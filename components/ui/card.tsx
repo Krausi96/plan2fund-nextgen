@@ -1,5 +1,4 @@
 import * as React from "react"
-
 export function Card({ children, className = "" }: { children: React.ReactNode, className?: string }) {
   return <div className={\g-white rounded-2xl shadow-md p-4 \\}>{children}</div>
 }
