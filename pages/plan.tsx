@@ -1,12 +1,5 @@
-import AppShell from "../components/layout/AppShell";
+﻿import Editor from "@/components/plan/Editor";
 
-export default function Page() {
-  return (
-    <AppShell>
-      <div className="mx-auto max-w-3xl py-16">
-        <h1 className="text-3xl font-bold">[plan.tsx]</h1>
-        <p className="mt-4 text-gray-600">Content coming soon...</p>
-      </div>
-    </AppShell>
-  );
+export default function PlanPage() {
+  return <Editor />;
 }
