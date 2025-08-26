@@ -9,6 +9,7 @@ export function Button({
   type = "button",
   disabled = false,
   variant = "default",
+  asChild = false,
 }: {
   children: React.ReactNode
   onClick?: () => void
@@ -16,9 +17,9 @@ export function Button({
   type?: "button" | "submit" | "reset"
   disabled?: boolean
   variant?: Variant
+  asChild?: boolean
 }) {
-  let base =
-    "px-4 py-2 rounded-xl font-semibold transition focus:outline-none"
+  let base = "px-4 py-2 rounded-xl font-semibold transition focus:outline-none"
   let styles = ""
 
   switch (variant) {
@@ -37,6 +38,10 @@ export function Button({
 
   if (disabled) {
     styles = "bg-gray-400 text-gray-200 cursor-not-allowed"
+  }
+
+  if (asChild) {
+    return <span className={\\ \ \\}>{children}</span>
   }
 
   return (
