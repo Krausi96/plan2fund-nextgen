@@ -1,4 +1,4 @@
-﻿import { useState } from "react";
+import { useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 
@@ -23,7 +23,7 @@ export default function PricingPanel() {
             {priority ? "Priority" : "Standard"}
           </Button>
         </div>
-        <p className="text-2xl font-bold mb-2">€{price.toFixed(0)}</p>
+        <p className="text-2xl font-bold mb-2">�{price.toFixed(0)}</p>
         <p className="text-sm text-gray-500 mb-4">
           {priority
             ? "Priority delivery (extra cost)"

@@ -1,4 +1,4 @@
-﻿import { useState, useEffect } from "react";
+import { useState, useEffect } from "react";
 import SideNav from "./SideNav";
 import { Progress } from "@/components/ui/progress";
 

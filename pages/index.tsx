@@ -1,4 +1,4 @@
-﻿import { motion } from "framer-motion";
+import { motion } from "framer-motion";
 import AppShell from "@/components/layout/AppShell";
 import Hero from "@/components/Hero";
 import UseCases from "@/components/home/UseCases";

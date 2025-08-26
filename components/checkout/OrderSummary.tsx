@@ -1,4 +1,4 @@
-﻿import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 
 export default function OrderSummary() {
   return (
@@ -13,7 +13,7 @@ export default function OrderSummary() {
         </div>
         <div className="flex justify-between">
           <span>Total</span>
-          <span className="font-bold">€1000</span>
+          <span className="font-bold">�1000</span>
         </div>
       </CardContent>
     </Card>

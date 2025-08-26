@@ -1,4 +1,4 @@
-﻿import AppShell from "@/components/layout/AppShell";
+import AppShell from "@/components/layout/AppShell";
 import CartSummary from "@/components/confirmation/CartSummary";
 import DocsUpload from "@/components/confirmation/DocsUpload";
 

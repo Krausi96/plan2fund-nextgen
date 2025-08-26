@@ -1,4 +1,4 @@
-﻿import AppShell from "@/components/layout/AppShell";
+import AppShell from "@/components/layout/AppShell";
 import Teaser from "@/components/ai/Teaser";
 
 export default function AIPlanMachinePage() {

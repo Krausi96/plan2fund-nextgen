@@ -1,4 +1,4 @@
-﻿import React from 'react'
+import React from 'react'
 type Crumb = { label: string; href?: string }
 export default function Breadcrumbs({ items }: { items: Crumb[] }) {
   return (

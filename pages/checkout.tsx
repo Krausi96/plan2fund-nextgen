@@ -1,4 +1,4 @@
-﻿import AppShell from "@/components/layout/AppShell";
+import AppShell from "@/components/layout/AppShell";
 import OrderSummary from "@/components/checkout/OrderSummary";
 import TrustSeals from "@/components/checkout/TrustSeals";
 

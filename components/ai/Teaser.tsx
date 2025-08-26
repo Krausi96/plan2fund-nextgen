@@ -1,4 +1,4 @@
-﻿import { useState } from "react";
+import { useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 
@@ -13,7 +13,7 @@ export default function Teaser() {
   return (
     <Card className="max-w-xl mx-auto shadow-md">
       <CardHeader>
-        <CardTitle>🚀 AI Plan Machine (Coming Soon)</CardTitle>
+        <CardTitle>?? AI Plan Machine (Coming Soon)</CardTitle>
       </CardHeader>
       <CardContent className="space-y-4">
         <p className="text-gray-600">
@@ -23,7 +23,7 @@ export default function Teaser() {
 
         {submitted ? (
           <p className="text-green-600 font-medium">
-            ✅ Thanks! You&apos;re on the waitlist.
+            ? Thanks! You&apos;re on the waitlist.
           </p>
         ) : (
           <div className="flex gap-2">

@@ -1,11 +1,11 @@
-﻿"use client";
+"use client";
 
 import { motion } from "framer-motion";
 
 const types = [
-  { title: "📘 Custom Business Plan", info: "15–35 pages. Submission-ready for Visa, Grants, Loans." },
-  { title: "🔍 Upgrade & Review", info: "We revise your draft to pass institutional checks." },
-  { title: "🧩 Strategy & Modelling", info: "4–8 pages. Define target group, pricing, positioning." },
+  { title: "?? Custom Business Plan", info: "15�35 pages. Submission-ready for Visa, Grants, Loans." },
+  { title: "?? Upgrade & Review", info: "We revise your draft to pass institutional checks." },
+  { title: "?? Strategy & Modelling", info: "4�8 pages. Define target group, pricing, positioning." },
 ];
 
 export default function PlanTypes() {

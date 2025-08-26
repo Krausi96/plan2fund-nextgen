@@ -1,4 +1,4 @@
-﻿"use client";
+"use client";
 
 import { motion } from "framer-motion";
 
@@ -12,7 +12,7 @@ const cases = [
 export default function UseCases() {
   return (
     <div className="py-12">
-      <h2 className="text-2xl font-bold text-center mb-8">🧾 Use Cases</h2>
+      <h2 className="text-2xl font-bold text-center mb-8">?? Use Cases</h2>
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6 max-w-4xl mx-auto">
         {cases.map((c, idx) => (
           <motion.div

@@ -1,4 +1,4 @@
-﻿import { useState } from "react";
+import { useState } from "react";
 import { Progress } from "@/components/ui/progress";
 
 interface PreviewPanelProps {
@@ -11,7 +11,7 @@ export default function PreviewPanel({ completeness, complexity }: PreviewPanelP
     <div className="border rounded-lg p-6 bg-white shadow-sm mb-6">
       <h2 className="text-xl font-semibold mb-4">Preview</h2>
       <div className="bg-gray-100 p-4 rounded-md text-gray-400 italic mb-4">
-        [Preview masked content — unlock with purchase]
+        [Preview masked content � unlock with purchase]
       </div>
       <div className="space-y-4">
         <div>

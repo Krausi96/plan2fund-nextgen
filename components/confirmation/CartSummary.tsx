@@ -1,4 +1,4 @@
-﻿import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 
 interface CartSummaryProps {
   program?: string;
@@ -18,7 +18,7 @@ export default function CartSummary({ program = "AWS PreSeed", price = 1000 }: C
         </div>
         <div className="flex justify-between">
           <span>Price</span>
-          <span className="font-bold">€{price}</span>
+          <span className="font-bold">�{price}</span>
         </div>
       </CardContent>
     </Card>

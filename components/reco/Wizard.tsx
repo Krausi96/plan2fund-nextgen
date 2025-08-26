@@ -1,4 +1,4 @@
-﻿import { useState } from "react";
+import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
@@ -15,7 +15,7 @@ const questions = [
 const programs = [
   { name: "AWS PreSeed", score: 92, reason: "Early-stage funding for tech startups" },
   { name: "FFG Basisprogramm", score: 80, reason: "Supports innovative projects with R&D focus" },
-  { name: "WKO Gründerfonds", score: 65, reason: "Targeted for Austrian SMEs" },
+  { name: "WKO Gr�nderfonds", score: 65, reason: "Targeted for Austrian SMEs" },
 ];
 
 export default function Wizard() {

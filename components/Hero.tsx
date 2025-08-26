@@ -1,4 +1,4 @@
-﻿"use client";
+"use client";
 
 import { motion } from "framer-motion";
 import { Button } from "@/components/ui/button";
@@ -32,7 +32,7 @@ export default function Hero({ ctaLabel = "Find Funding", ctaHref = "/reco" }: H
       </motion.h1>
 
       <p className="max-w-xl text-gray-600 mb-6">
-        From idea to funding-ready business plan — powered by AI and expert design.
+        From idea to funding-ready business plan � powered by AI and expert design.
       </p>
 
       <div className="flex gap-4">

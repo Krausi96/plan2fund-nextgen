@@ -1,4 +1,4 @@
-﻿import { useRef } from "react";
+import { useRef } from "react";
 import { Button } from "@/components/ui/button";
 import html2pdf from "html2pdf.js";
 
