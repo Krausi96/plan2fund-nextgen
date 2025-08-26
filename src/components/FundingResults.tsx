@@ -1,94 +1,32 @@
 import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import FundingResultCard from "./FundingResultCard";
+import ExplorationMode from "./ExplorationMode";
+import { useNavigate } from "react-router-dom"; // ✅ add this
 
-interface Program {
-  programName: string;
-  score: number;
-  reason: string;
-  eligibility: boolean;
-  confidence: number;
-  details: string;
-}
-
-const mockResults: Program[] = [
-  {
-    programName: "AWS Preseed",
-    score: 92,
-    reason: "Strong fit for early-stage startups with tech focus.",
-    eligibility: true,
-    confidence: 0.9,
-    details: "AWS Preseed supports Austrian tech startups with early grants.",
-  },
-  {
-    programName: "FFG Basisprogramm",
-    score: 85,
-    reason: "Supports R&D projects with innovative potential.",
-    eligibility: true,
-    confidence: 0.8,
-    details: "Basisprogramm funds R&D projects across industries.",
-  },
-  {
-    programName: "EU Startup Call",
-    score: 78,
-    reason: "Suitable for international expansion initiatives.",
-    eligibility: false,
-    confidence: 0.75,
-    details: "EU Startup Call provides pan-European funding opportunities.",
-  },
-  {
-    programName: "Wien Wirtschaftsagentur",
-    score: 74,
-    reason: "City-focused support for Vienna-based founders.",
-    eligibility: true,
-    confidence: 0.7,
-    details: "Local funding from Wirtschaftsagentur Wien for startups.",
-  },
-  {
-    programName: "Creative Europe",
-    score: 68,
-    reason: "Best for projects in cultural and creative sectors.",
-    eligibility: true,
-    confidence: 0.65,
-    details: "EU program dedicated to creative industries and media projects.",
-  },
-];
+// ... keep your Program interface & initialResults unchanged ...
 
 export default function FundingResults() {
+  const [results, setResults] = useState<Program[]>(initialResults);
   const [selected, setSelected] = useState<Program | null>(null);
+  const navigate = useNavigate(); // ✅ init router navigation
+
+  const handleAddProgram = (programName: string) => {
+    const newProgram: Program = {
+      programName,
+      score: 0,
+      reason: "Added manually by user.",
+      eligibility: true,
+      confidence: 0.5,
+      details: `${programName} was added manually.`,
+      userAdded: true,
+    };
+    setResults([...results, newProgram]);
+  };
 
   return (
     <section id="funding-results" className="py-16 bg-gray-50">
-      <div className="max-w-7xl mx-auto px-6 lg:px-8">
-        <h2 className="text-3xl font-bold text-gray-900 mb-8 text-center">
-          Top Funding Recommendations
-        </h2>
-
-        {/* Results Grid with stagger animation */}
-        <motion.div
-          className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3"
-          initial="hidden"
-          animate="show"
-          variants={{
-            hidden: {},
-            show: { transition: { staggerChildren: 0.15 } },
-          }}
-        >
-          {mockResults.map((program, idx) => (
-            <motion.div
-              key={idx}
-              variants={{
-                hidden: { opacity: 0, y: 20 },
-                show: { opacity: 1, y: 0 },
-              }}
-              onClick={() => setSelected(program)}
-              className="cursor-pointer"
-            >
-              <FundingResultCard {...program} />
-            </motion.div>
-          ))}
-        </motion.div>
-      </div>
+      {/* ... keep results grid & exploration mode unchanged ... */}
 
       {/* Modal popup */}
       <AnimatePresence>
@@ -114,7 +52,10 @@ export default function FundingResults() {
               <h3 className="text-2xl font-bold mb-2">{selected.programName}</h3>
               <p className="text-gray-600 mb-4">{selected.details}</p>
               <div className="flex justify-end">
-                <button className="px-6 py-3 bg-blue-600 text-white rounded-xl hover:bg-blue-700 transition">
+                <button
+                  onClick={() => navigate("/plan")} // ✅ navigate to PlanPage
+                  className="px-6 py-3 bg-blue-600 text-white rounded-xl hover:bg-blue-700 transition"
+                >
                   Continue to Plan Generator →
                 </button>
               </div>
