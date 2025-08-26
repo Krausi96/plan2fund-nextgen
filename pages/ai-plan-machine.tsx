@@ -1,11 +1,11 @@
-import AppShell from "../components/layout/AppShell";
+﻿import AppShell from "@/components/layout/AppShell";
+import Teaser from "@/components/ai/Teaser";
 
-export default function Page() {
+export default function AiPlanMachinePage() {
   return (
     <AppShell>
-      <div className="mx-auto max-w-3xl py-16">
-        <h1 className="text-3xl font-bold">[ai-plan-machine.tsx]</h1>
-        <p className="mt-4 text-gray-600">Content coming soon...</p>
+      <div className="max-w-2xl mx-auto p-6">
+        <Teaser />
       </div>
     </AppShell>
   );
