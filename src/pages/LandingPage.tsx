@@ -1,5 +1,6 @@
 import React from "react";
 import { motion } from "framer-motion";
+import Link from "next/link"; // ⚡ Use Next.js routing
 import { CheckCircle, Users, Briefcase, FileText, Target, DollarSign } from "lucide-react";
 
 // --- NavBar ---
@@ -11,14 +12,20 @@ function NavBar() {
         <div className="text-2xl font-bold text-blue-600">Plan2Fund</div>
         <div className="hidden md:flex gap-8 text-gray-700 font-medium">
           {links.map((l, i) => (
-            <a key={i} href={`#${l.toLowerCase().replace(/ /g, "-")}`} className="hover:text-blue-600 transition">
+            <a
+              key={i}
+              href={`#${l.toLowerCase().replace(/ /g, "-")}`}
+              className="hover:text-blue-600 transition"
+            >
               {l}
             </a>
           ))}
         </div>
-        <button className="ml-6 px-6 py-2 rounded-xl bg-blue-600 text-white hover:bg-blue-700 transition">
-          Get Started
-        </button>
+        <Link href="/reco">
+          <button className="ml-6 px-6 py-2 rounded-xl bg-blue-600 text-white hover:bg-blue-700 transition">
+            Get Started
+          </button>
+        </Link>
       </div>
     </nav>
   );
@@ -71,18 +78,22 @@ function Hero() {
         funding-ready Business Plan.
       </motion.p>
       <div className="mt-10 flex justify-center gap-6 relative z-10">
-        <motion.button
-          whileHover={{ scale: 1.05 }}
-          className="px-8 py-4 rounded-2xl bg-blue-600 text-white font-semibold shadow hover:shadow-lg hover:bg-blue-700 transition"
-        >
-          Find Funding
-        </motion.button>
-        <motion.button
-          whileHover={{ scale: 1.05 }}
-          className="px-8 py-4 rounded-2xl bg-gray-100 text-gray-900 font-semibold hover:bg-gray-200 transition"
-        >
-          Generate Plan
-        </motion.button>
+        <Link href="/reco">
+          <motion.button
+            whileHover={{ scale: 1.05 }}
+            className="px-8 py-4 rounded-2xl bg-blue-600 text-white font-semibold shadow hover:shadow-lg hover:bg-blue-700 transition"
+          >
+            Find Funding
+          </motion.button>
+        </Link>
+        <Link href="/plan">
+          <motion.button
+            whileHover={{ scale: 1.05 }}
+            className="px-8 py-4 rounded-2xl bg-gray-100 text-gray-900 font-semibold hover:bg-gray-200 transition"
+          >
+            Generate Plan
+          </motion.button>
+        </Link>
       </div>
     </section>
   );
