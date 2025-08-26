@@ -1,43 +1,53 @@
-"use client";
-import { motion } from "framer-motion";
-import Link from "next/link";
+ï»¿"use client";
 
-const floatingObjects = [
-  "??", "??", "??", "??", "??"
-];
+import { motion } from "framer-motion";
+import { Button } from "@/components/ui/button";
+
+const floatingVariants = {
+  animate: {
+    y: [0, -10, 0],
+    transition: {
+      duration: 4,
+      repeat: Infinity,
+      ease: "easeInOut",
+    },
+  },
+};
 
 export default function Hero() {
   return (
-    <section className="relative overflow-hidden bg-gradient-to-b from-blue-50 to-white py-24 text-center">
-      <h1 className="text-5xl font-bold">Freedom starts with a clear plan</h1>
-      <p className="mt-4 text-lg text-gray-600">
-        Let’s build yours — funding, visas, or growth.
+    <section className="relative flex flex-col items-center justify-center text-center py-24 bg-gradient-to-b from-blue-50 to-white">
+      <motion.h1
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.8 }}
+        className="text-4xl md:text-6xl font-bold mb-6"
+      >
+        Plan2Fund NextGen
+      </motion.h1>
+      <p className="max-w-xl text-gray-600 mb-6">
+        From idea to funding-ready business plan â€” powered by AI and expert design.
       </p>
-      <div className="mt-6 flex justify-center gap-4">
-        <Link href="/reco" className="rounded-xl bg-blue-600 px-6 py-3 text-white shadow hover:bg-blue-700">
-          Find Funding
-        </Link>
-        <Link href="/plan" className="rounded-xl border px-6 py-3 hover:bg-gray-50">
-          Generate Plan
-        </Link>
+      <div className="flex gap-4">
+        <Button asChild>
+          <a href="/reco">Find Funding</a>
+        </Button>
+        <Button variant="outline" asChild>
+          <a href="/plan">Generate Plan</a>
+        </Button>
       </div>
 
-      {/* Floating Icons */}
-      {floatingObjects.map((icon, i) => (
-        <motion.span
-          key={i}
-          className="absolute text-4xl"
-          initial={{ y: -50, opacity: 0 }}
-          animate={{ y: [0, -20, 0], opacity: 1 }}
-          transition={{ duration: 6, repeat: Infinity, delay: i * 0.5 }}
-          style={{
-            left: `${15 + i * 15}%`,
-            top: `${20 + (i % 3) * 20}%`,
-          }}
-        >
-          {icon}
-        </motion.span>
-      ))}
+      {/* Floating objects */}
+      <motion.div
+        className="absolute top-10 left-10 w-12 h-12 bg-blue-200 rounded-full"
+        variants={floatingVariants}
+        animate="animate"
+      />
+      <motion.div
+        className="absolute bottom-20 right-20 w-16 h-16 bg-green-200 rounded-full"
+        variants={floatingVariants}
+        animate="animate"
+      />
     </section>
   );
 }
