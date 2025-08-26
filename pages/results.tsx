@@ -1,51 +1,21 @@
-import AppShell from "@/components/layout/AppShell"
-import ProgramCard from "@/components/reco/ProgramCard"
-import { useRouter } from "next/router"
-import { useEffect, useState } from "react"
-import { checkEligibility } from "@/components/reco/eligibility"
-import { calcConfidence } from "@/components/reco/confidence"
+import { motion } from "framer-motion";
+import AppShell from "@/components/layout/AppShell";
+import Hero from "@/components/Hero";
+import UseCases from "@/components/home/UseCases";
+import PlanTypes from "@/components/home/PlanTypes";
+import Included from "@/components/home/Included";
+import Quote from "@/components/home/Quote";
 
-type Program = {
-  id: string
-  title: string
-  description: string
-  link: string
-}
-
-const mockPrograms: Program[] = [
-  { id: "1", title: "Startup Grant", description: "Funding for early-stage startups.", link: "#" },
-  { id: "2", title: "SME Innovation", description: "Support for SMEs developing new solutions.", link: "#" },
-  { id: "3", title: "Research Excellence", description: "Grants for academic research projects.", link: "#" },
-]
-
-export default function ResultsPage() {
-  const router = useRouter()
-  const [programs, setPrograms] = useState<(Program & { confidence: number })[]>([])
-
-  useEffect(() => {
-    // In future: replace with Supabase context or session
-    const answers = { stage: "startup", location: "AT" }
-
-    // Apply eligibility + scoring
-    const eligible = mockPrograms.filter(p => checkEligibility(p, answers))
-    const scored = eligible.map(p => ({
-      ...p,
-      confidence: calcConfidence(p, answers)
-    }))
-
-    setPrograms(scored)
-  }, [])
-
+export default function HomePage() {
   return (
-    <AppShell breadcrumb={["Home", "Recommendation", "Results"]}>
-      <div className="space-y-6">
-        <h1 className="text-2xl font-bold">Your recommended funding programs</h1>
-        <div className="grid gap-6 md:grid-cols-2">
-          {programs.map(p => (
-            <ProgramCard key={p.id} program={p} />
-          ))}
-        </div>
+    <AppShell showBreadcrumbs={false}>
+      <div className="flex flex-col space-y-16">
+        <motion.section><Hero ctaLabel="Start Your Plan" ctaHref="/reco" /></motion.section>
+        <motion.section><UseCases /></motion.section>
+        <motion.section><PlanTypes /></motion.section>
+        <motion.section><Included /></motion.section>
+        <motion.section><Quote /></motion.section>
       </div>
     </AppShell>
-  )
+  );
 }
