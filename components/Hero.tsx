@@ -9,7 +9,7 @@ const floatingVariants = {
     transition: {
       duration: 4,
       repeat: Infinity,
-      ease: "easeInOut" as const,
+      ease: "easeInOut" as const as const,
     },
   },
 };
