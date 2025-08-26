@@ -14,7 +14,12 @@ const floatingVariants = {
   },
 };
 
-export default function Hero() {
+interface HeroProps {
+  ctaLabel?: string;
+  ctaHref?: string;
+}
+
+export default function Hero({ ctaLabel = "Find Funding", ctaHref = "/reco" }: HeroProps) {
   return (
     <section className="relative flex flex-col items-center justify-center text-center py-24 bg-gradient-to-b from-blue-50 to-white">
       <motion.h1
@@ -25,13 +30,18 @@ export default function Hero() {
       >
         Plan2Fund NextGen
       </motion.h1>
+
       <p className="max-w-xl text-gray-600 mb-6">
         From idea to funding-ready business plan — powered by AI and expert design.
       </p>
+
       <div className="flex gap-4">
+        {/* Primary CTA from props */}
         <Button asChild>
-          <a href="/reco">Find Funding</a>
+          <a href={ctaHref}>{ctaLabel}</a>
         </Button>
+
+        {/* Secondary CTA remains */}
         <Button variant="outline" asChild>
           <a href="/plan">Generate Plan</a>
         </Button>
