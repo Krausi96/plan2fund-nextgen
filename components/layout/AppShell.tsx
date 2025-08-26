@@ -1,4 +1,4 @@
-import Header from "./Header";
+﻿import Header from "./Header";
 import Footer from "./Footer";
 
 export default function AppShell({ children }: { children: React.ReactNode }) {

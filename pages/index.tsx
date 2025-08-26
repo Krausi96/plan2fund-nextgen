@@ -1,10 +1,10 @@
 ﻿import { motion } from "framer-motion";
 import AppShell from "@/components/layout/AppShell";
 import Hero from "@/components/Hero";
-import UseCases from "@/src/components/home/UseCases";
-import PlanTypes from "@/src/components/home/PlanTypes";
-import Included from "@/src/components/home/Included";
-import Quote from "@/src/components/home/Quote";
+import UseCases from "@/components/home/UseCases";
+import PlanTypes from "@/components/home/PlanTypes";
+import Included from "@/components/home/Included";
+import Quote from "@/components/home/Quote";
 
 export default function HomePage() {
   return (
