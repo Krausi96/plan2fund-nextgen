@@ -1,12 +1,15 @@
-import AppShell from "../components/layout/AppShell";
+﻿import CartSummary from "@/components/confirmation/CartSummary";
+import DocsUpload from "@/components/confirmation/DocsUpload";
+import { Button } from "@/components/ui/button";
 
-export default function Page() {
+export default function ConfirmationPage() {
   return (
-    <AppShell>
-      <div className="mx-auto max-w-3xl py-16">
-        <h1 className="text-3xl font-bold">[confirmation.tsx]</h1>
-        <p className="mt-4 text-gray-600">Content coming soon...</p>
-      </div>
-    </AppShell>
+    <div className="max-w-2xl mx-auto p-6 space-y-6">
+      <CartSummary />
+      <DocsUpload />
+      <Button asChild>
+        <a href="/checkout">Proceed to Checkout</a>
+      </Button>
+    </div>
   );
 }
