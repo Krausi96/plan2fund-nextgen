@@ -1,51 +1,105 @@
+import React, { useState } from "react";
 import { motion } from "framer-motion";
 import { Badge } from "@/components/ui/badge";
-import { CheckCircle, AlertCircle } from "lucide-react";
+import { Card, CardContent } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Info, ArrowRight } from "lucide-react";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
+import { useNavigate } from "react-router-dom";
 
-export interface FundingResultCardProps {
-  programName: string;
-  score: number;
-  reason: string;
-  eligibility: boolean;
-  confidence: number;
+interface FundingResultCardProps {
+  program: {
+    id: string;
+    name: string;
+    score: number;
+    reason: string;
+    eligibility: string[];
+    confidence: "high" | "medium" | "low";
+  };
 }
 
-export default function FundingResultCard({
-  programName,
-  score,
-  reason,
-  eligibility,
-  confidence,
-}: FundingResultCardProps) {
+const confidenceColors: Record<"high" | "medium" | "low", string> = {
+  high: "bg-green-500",
+  medium: "bg-yellow-500",
+  low: "bg-red-500",
+};
+
+export const FundingResultCard: React.FC<FundingResultCardProps> = ({ program }) => {
+  const [open, setOpen] = useState(false);
+  const navigate = useNavigate();
+
   return (
-    <motion.div
-      initial={{ opacity: 0, y: 20 }}
-      animate={{ opacity: 1, y: 0 }}
-      transition={{ duration: 0.4 }}
-      className="bg-white shadow-md rounded-2xl p-6 flex flex-col justify-between hover:shadow-lg transition"
-    >
-      <div>
-        <h3 className="text-lg font-semibold text-gray-900 mb-2">{programName}</h3>
-        <p className="text-sm text-gray-600 mb-4">{reason}</p>
-      </div>
-      <div className="flex items-center justify-between mt-2">
-        <div className="flex space-x-2">
-          <Badge
-            className={eligibility ? "bg-green-100 text-green-800" : "bg-red-100 text-red-800"}
-          >
-            {eligibility ? (
-              <CheckCircle size={14} className="mr-1" />
-            ) : (
-              <AlertCircle size={14} className="mr-1" />
-            )}
-            {eligibility ? "Eligible" : "Not Eligible"}
-          </Badge>
-          <Badge className="bg-blue-100 text-blue-800">
-            Confidence {Math.round(confidence * 100)}%
-          </Badge>
-        </div>
-        <span className="text-lg font-bold text-gray-900">{score}</span>
-      </div>
-    </motion.div>
+    <>
+      <motion.div
+        initial={{ opacity: 0, y: 10 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.3 }}
+      >
+        <Card
+          className="rounded-2xl shadow-md hover:shadow-lg cursor-pointer transition"
+          onClick={() => setOpen(true)}
+        >
+          <CardContent className="p-6 space-y-3">
+            <div className="flex justify-between items-center">
+              <h3 className="text-lg font-semibold">{program.name}</h3>
+              <span
+                className={`text-xs px-2 py-1 rounded ${confidenceColors[program.confidence]} text-white`}
+              >
+                {program.confidence.toUpperCase()}
+              </span>
+            </div>
+
+            <p className="text-sm text-gray-600">{program.reason}</p>
+
+            <div className="flex flex-wrap gap-2">
+              {program.eligibility.map((tag, idx) => (
+                <Badge key={idx} variant="secondary" className="text-xs">
+                  {tag}
+                </Badge>
+              ))}
+            </div>
+
+            <div className="flex items-center justify-between">
+              <span className="text-sm font-medium">Score: {program.score}%</span>
+              <Info size={18} className="text-gray-500" />
+            </div>
+          </CardContent>
+        </Card>
+      </motion.div>
+
+      {/* Modal */}
+      <Dialog open={open} onOpenChange={setOpen}>
+        <DialogContent className="max-w-lg">
+          <DialogHeader>
+            <DialogTitle>{program.name}</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4">
+            <p className="text-gray-700">{program.reason}</p>
+            <div>
+              <h4 className="font-medium">Eligibility:</h4>
+              <ul className="list-disc list-inside text-sm text-gray-600">
+                {program.eligibility.map((tag, idx) => (
+                  <li key={idx}>{tag}</li>
+                ))}
+              </ul>
+            </div>
+            <div className="flex items-center space-x-2">
+              <span className="text-sm">Confidence:</span>
+              <span
+                className={`px-2 py-1 rounded text-white text-xs ${confidenceColors[program.confidence]}`}
+              >
+                {program.confidence}
+              </span>
+            </div>
+          </div>
+          <DialogFooter>
+            <Button onClick={() => navigate("/plan")} className="w-full flex items-center justify-center">
+              Continue to Plan Generator
+              <ArrowRight className="ml-2 h-4 w-4" />
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+    </>
   );
-}
+};
