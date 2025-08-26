@@ -1,12 +1,9 @@
-import AppShell from "../components/layout/AppShell";
+﻿import ExportPanel from "@/components/export/ExportPanel";
 
-export default function Page() {
+export default function ExportPage() {
   return (
-    <AppShell>
-      <div className="mx-auto max-w-3xl py-16">
-        <h1 className="text-3xl font-bold">[export.tsx]</h1>
-        <p className="mt-4 text-gray-600">Content coming soon...</p>
-      </div>
-    </AppShell>
+    <div className="max-w-3xl mx-auto p-6">
+      <ExportPanel />
+    </div>
   );
 }
