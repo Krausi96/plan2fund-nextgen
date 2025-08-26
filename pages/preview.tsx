@@ -1,12 +1,11 @@
-import AppShell from "../components/layout/AppShell";
+﻿import PreviewPanel from "@/components/preview/PreviewPanel";
+import PricingPanel from "@/components/preview/PricingPanel";
 
-export default function Page() {
+export default function PreviewPage() {
   return (
-    <AppShell>
-      <div className="mx-auto max-w-3xl py-16">
-        <h1 className="text-3xl font-bold">[preview.tsx]</h1>
-        <p className="mt-4 text-gray-600">Content coming soon...</p>
-      </div>
-    </AppShell>
+    <div className="max-w-3xl mx-auto p-6 space-y-6">
+      <PreviewPanel completeness={70} complexity={50} />
+      <PricingPanel />
+    </div>
   );
 }
