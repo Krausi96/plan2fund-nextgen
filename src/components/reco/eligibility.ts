@@ -1,5 +1,26 @@
-﻿export function getEligibility(program: string, answers: Record<string, string>) {
-  // Stub logic: if "sector" answer includes "tech" → eligible
-  if (answers[1]?.toLowerCase().includes("tech")) return "Eligible";
+﻿export interface Answers {
+  [key: number]: string;
+}
+
+export function getEligibility(program: string, answers: Answers): "Eligible" | "Not Eligible" {
+  const sector = answers[1]?.toLowerCase() || "";
+  const location = answers[2]?.toLowerCase() || "";
+  const stage = answers[3]?.toLowerCase() || "";
+
+  if (program === "AWS PreSeed") {
+    if (sector.includes("tech") && stage.includes("early")) return "Eligible";
+    return "Not Eligible";
+  }
+
+  if (program === "FFG Basisprogramm") {
+    if (sector.includes("r&d") || sector.includes("innovation")) return "Eligible";
+    return "Not Eligible";
+  }
+
+  if (program === "WKO Gründerfonds") {
+    if (location.includes("austria") && stage.includes("sme")) return "Eligible";
+    return "Not Eligible";
+  }
+
   return "Not Eligible";
 }

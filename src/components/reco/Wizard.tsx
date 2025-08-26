@@ -3,6 +3,8 @@ import { motion, AnimatePresence } from "framer-motion";
 import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
 import ProgramCard from "./ProgramCard";
+import { getEligibility } from "./eligibility";
+import { getConfidence } from "./confidence";
 
 const questions = [
   { id: 1, text: "What is your sector?" },
@@ -10,34 +12,17 @@ const questions = [
   { id: 3, text: "What is your company stage?" },
 ];
 
-const mockResults = [
-  {
-    name: "AWS PreSeed",
-    score: 92,
-    eligibility: "Eligible",
-    confidence: "High",
-    reason: "Best match for early-stage tech in Austria",
-  },
-  {
-    name: "FFG Basisprogramm",
-    score: 80,
-    eligibility: "Eligible",
-    confidence: "Medium",
-    reason: "Supports innovative projects with R&D focus",
-  },
-  {
-    name: "WKO Gründerfonds",
-    score: 65,
-    eligibility: "Eligible",
-    confidence: "Low",
-    reason: "May apply depending on SME status",
-  },
+const programs = [
+  { name: "AWS PreSeed", score: 92, reason: "Early-stage funding for tech startups" },
+  { name: "FFG Basisprogramm", score: 80, reason: "Supports innovative projects with R&D focus" },
+  { name: "WKO Gründerfonds", score: 65, reason: "Targeted for Austrian SMEs" },
 ];
 
 export default function Wizard() {
   const [step, setStep] = useState(0);
   const [answers, setAnswers] = useState<Record<number, string>>({});
   const [showResults, setShowResults] = useState(false);
+  const [strictMode, setStrictMode] = useState(false);
 
   const handleNext = () => {
     if (step < questions.length - 1) {
@@ -50,10 +35,39 @@ export default function Wizard() {
   if (showResults) {
     return (
       <div className="max-w-2xl mx-auto p-6">
-        <h2 className="text-2xl font-bold mb-6">Top Funding Programs</h2>
-        {mockResults.map((p, idx) => (
-          <ProgramCard key={idx} {...p} />
-        ))}
+        <div className="flex justify-between items-center mb-4">
+          <h2 className="text-2xl font-bold">Top Funding Programs</h2>
+          <label className="flex items-center gap-2 text-sm">
+            <input
+              type="checkbox"
+              checked={strictMode}
+              onChange={(e) => setStrictMode(e.target.checked)}
+            />
+            Strict Mode
+          </label>
+        </div>
+
+        {programs.map((p, idx) => {
+          const eligibility = getEligibility(p.name, answers);
+          const confidence = getConfidence(p.score, strictMode);
+          return (
+            <ProgramCard
+              key={idx}
+              name={p.name}
+              score={p.score}
+              eligibility={eligibility}
+              confidence={confidence}
+              reason={p.reason}
+            />
+          );
+        })}
+
+        {strictMode && (
+          <div className="mt-6 p-4 border rounded bg-gray-50 text-sm">
+            <h3 className="font-semibold mb-2">Debug Panel</h3>
+            <pre>{JSON.stringify(answers, null, 2)}</pre>
+          </div>
+        )}
       </div>
     );
   }
