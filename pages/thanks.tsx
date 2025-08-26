@@ -1,12 +1,13 @@
-import AppShell from "../components/layout/AppShell";
+﻿import RevisionRequest from "@/components/thanks/RevisionRequest";
+import Upsell from "@/components/thanks/Upsell";
 
-export default function Page() {
+export default function ThanksPage() {
   return (
-    <AppShell>
-      <div className="mx-auto max-w-3xl py-16">
-        <h1 className="text-3xl font-bold">[thanks.tsx]</h1>
-        <p className="mt-4 text-gray-600">Content coming soon...</p>
-      </div>
-    </AppShell>
+    <div className="max-w-2xl mx-auto p-6 space-y-6 text-center">
+      <h1 className="text-2xl font-bold">🎉 Thank You for Your Purchase!</h1>
+      <p className="text-gray-600">Your business plan is now ready.</p>
+      <RevisionRequest />
+      <Upsell />
+    </div>
   );
 }
