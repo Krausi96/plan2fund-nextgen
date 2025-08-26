@@ -1,17 +1,13 @@
-﻿import Editor from "@/components/plan/Editor";
-import AppShell from "@/components/layout/AppShell";
-import { Button } from "@/components/ui/button";
+﻿import AppShell from "@/components/layout/AppShell";
+import Editor from "@/components/plan/Editor";
+import SideNav from "@/components/plan/SideNav";
 
 export default function PlanPage() {
   return (
     <AppShell>
-      <div className="space-y-6">
+      <div className="flex">
+        <SideNav />
         <Editor />
-        <div className="flex justify-end">
-          <Button asChild>
-            <a href="/preview">Continue to Preview</a>
-          </Button>
-        </div>
       </div>
     </AppShell>
   );

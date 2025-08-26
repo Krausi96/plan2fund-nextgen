@@ -10,57 +10,11 @@ export default function HomePage() {
   return (
     <AppShell showBreadcrumbs={false}>
       <div className="flex flex-col space-y-16">
-        {/* Hero Section */}
-        <motion.section
-          initial={{ opacity: 0, y: 40 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.6 }}
-        >
-          <Hero
-            ctaLabel="Start Your Plan"
-            ctaHref="/reco"
-          />
-        </motion.section>
-
-        {/* Use Cases */}
-        <motion.section
-          initial={{ opacity: 0, y: 40 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.6 }}
-          viewport={{ once: true }}
-        >
-          <UseCases />
-        </motion.section>
-
-        {/* Plan Types */}
-        <motion.section
-          initial={{ opacity: 0, y: 40 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.6 }}
-          viewport={{ once: true }}
-        >
-          <PlanTypes />
-        </motion.section>
-
-        {/* Included Features */}
-        <motion.section
-          initial={{ opacity: 0, y: 40 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.6 }}
-          viewport={{ once: true }}
-        >
-          <Included />
-        </motion.section>
-
-        {/* Quote/Testimonial */}
-        <motion.section
-          initial={{ opacity: 0, y: 40 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.6 }}
-          viewport={{ once: true }}
-        >
-          <Quote />
-        </motion.section>
+        <motion.section><Hero ctaLabel="Start Your Plan" ctaHref="/reco" /></motion.section>
+        <motion.section><UseCases /></motion.section>
+        <motion.section><PlanTypes /></motion.section>
+        <motion.section><Included /></motion.section>
+        <motion.section><Quote /></motion.section>
       </div>
     </AppShell>
   );
