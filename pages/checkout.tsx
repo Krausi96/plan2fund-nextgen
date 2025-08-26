@@ -1,12 +1,19 @@
-import AppShell from "../components/layout/AppShell";
+﻿import OrderSummary from "@/components/checkout/OrderSummary";
+import TrustSeals from "@/components/checkout/TrustSeals";
+import { Button } from "@/components/ui/button";
 
-export default function Page() {
+export default function CheckoutPage() {
+  const handleCheckout = () => {
+    alert("Stripe Checkout Stub: Replace with live integration.");
+  };
+
   return (
-    <AppShell>
-      <div className="mx-auto max-w-3xl py-16">
-        <h1 className="text-3xl font-bold">[checkout.tsx]</h1>
-        <p className="mt-4 text-gray-600">Content coming soon...</p>
-      </div>
-    </AppShell>
+    <div className="max-w-2xl mx-auto p-6 space-y-6">
+      <OrderSummary />
+      <TrustSeals />
+      <Button className="w-full" onClick={handleCheckout}>
+        Pay with Stripe (Test Mode)
+      </Button>
+    </div>
   );
 }
