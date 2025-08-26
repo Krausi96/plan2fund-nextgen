@@ -20,16 +20,18 @@ const mockPrograms: Program[] = [
 
 export default function ResultsPage() {
   const router = useRouter()
-  const [programs, setPrograms] = useState<Program[]>([])
+  const [programs, setPrograms] = useState<(Program & { confidence: number })[]>([])
 
   useEffect(() => {
-    // Normally answers would come from context or Supabase
+    // In future: replace with Supabase context or session
     const answers = { stage: "startup", location: "AT" }
 
-    // Filter mock programs by eligibility
+    // Apply eligibility + scoring
     const eligible = mockPrograms.filter(p => checkEligibility(p, answers))
-    // Add confidence scoring
-    const scored = eligible.map(p => ({ ...p, confidence: calcConfidence(p, answers) }))
+    const scored = eligible.map(p => ({
+      ...p,
+      confidence: calcConfidence(p, answers)
+    }))
 
     setPrograms(scored)
   }, [])
