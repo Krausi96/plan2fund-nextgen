@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import FundingResultCard from "./FundingResultCard";
+import ExplorationMode from "./ExplorationMode";
 
 interface Program {
   programName: string;
@@ -9,9 +10,10 @@ interface Program {
   eligibility: boolean;
   confidence: number;
   details: string;
+  userAdded?: boolean;
 }
 
-const mockResults: Program[] = [
+const initialResults: Program[] = [
   {
     programName: "AWS Preseed",
     score: 92,
@@ -36,26 +38,24 @@ const mockResults: Program[] = [
     confidence: 0.75,
     details: "EU Startup Call provides pan-European funding opportunities.",
   },
-  {
-    programName: "Wien Wirtschaftsagentur",
-    score: 74,
-    reason: "City-focused support for Vienna-based founders.",
-    eligibility: true,
-    confidence: 0.7,
-    details: "Local funding from Wirtschaftsagentur Wien for startups.",
-  },
-  {
-    programName: "Creative Europe",
-    score: 68,
-    reason: "Best for projects in cultural and creative sectors.",
-    eligibility: true,
-    confidence: 0.65,
-    details: "EU program dedicated to creative industries and media projects.",
-  },
 ];
 
 export default function FundingResults() {
+  const [results, setResults] = useState<Program[]>(initialResults);
   const [selected, setSelected] = useState<Program | null>(null);
+
+  const handleAddProgram = (programName: string) => {
+    const newProgram: Program = {
+      programName,
+      score: 0,
+      reason: "Added manually by user.",
+      eligibility: true,
+      confidence: 0.5,
+      details: `${programName} was added manually.`,
+      userAdded: true,
+    };
+    setResults([...results, newProgram]);
+  };
 
   return (
     <section id="funding-results" className="py-16 bg-gray-50">
@@ -64,7 +64,7 @@ export default function FundingResults() {
           Top Funding Recommendations
         </h2>
 
-        {/* Results Grid with stagger animation */}
+        {/* Results Grid */}
         <motion.div
           className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3"
           initial="hidden"
@@ -74,7 +74,7 @@ export default function FundingResults() {
             show: { transition: { staggerChildren: 0.15 } },
           }}
         >
-          {mockResults.map((program, idx) => (
+          {results.map((program, idx) => (
             <motion.div
               key={idx}
               variants={{
@@ -85,12 +85,20 @@ export default function FundingResults() {
               className="cursor-pointer"
             >
               <FundingResultCard {...program} />
+              {program.userAdded && (
+                <span className="mt-2 inline-block px-2 py-1 text-xs rounded-full bg-purple-100 text-purple-800">
+                  User Added
+                </span>
+              )}
             </motion.div>
           ))}
         </motion.div>
       </div>
 
-      {/* Modal popup */}
+      {/* Exploration Mode */}
+      <ExplorationMode onAdd={handleAddProgram} />
+
+      {/* Modal popup (unchanged) */}
       <AnimatePresence>
         {selected && (
           <motion.div
