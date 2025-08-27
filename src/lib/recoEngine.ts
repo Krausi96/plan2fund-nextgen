@@ -6,6 +6,7 @@ export type UserAnswers = {
   stage: string;
   need: string;
   fundingSize?: number;
+  freeText?: string;
 };
 
 export type Program = {
@@ -44,6 +45,54 @@ const weights = {
   fundingSize: 0.1,
 };
 
+// ✅ NEW: normalizeAnswers (stub, later GPT)
+export function normalizeAnswers(freeText: string): UserAnswers {
+  const text = freeText.toLowerCase();
+
+  let sector = "";
+  if (text.includes("tech") || text.includes("ai")) sector = "Tech";
+  else if (text.includes("retail") || text.includes("shop")) sector = "Retail";
+  else sector = "Other";
+
+  let stage = "Early";
+  if (text.includes("idea")) stage = "Idea";
+  else if (text.includes("growth") || text.includes("expand")) stage = "Growth";
+
+  let need = "Loan";
+  if (text.includes("grant")) need = "Grant";
+  else if (text.includes("visa")) need = "Visa";
+  else if (text.includes("coach")) need = "Coaching";
+
+  let location = "Other";
+  if (text.includes("vienna") || text.includes("austria")) location = "AT";
+  else if (text.includes("germany")) location = "DE";
+  else if (text.includes("eu")) location = "EU";
+
+  let fundingSize: number | undefined = undefined;
+  const match = text.match(/\\d{4,6}/); // crude number detection
+  if (match) fundingSize = Number(match[0]);
+
+  return { sector, stage, need, location, fundingSize, freeText };
+}
+
+// ✅ NEW: generateReason (stub, later GPT)
+export function generateReason(program: Program, answers: UserAnswers, unmetRequirements: string[], score: number): string {
+  if (unmetRequirements.length > 0) {
+    return `Not eligible because missing requirements: ${unmetRequirements.join(", ")}.`;
+  }
+
+  let reasons: string[] = [];
+  if (program.needs.includes(answers.need)) reasons.push(`Matches your funding need: ${answers.need}`);
+  if (answers.fundingSize && answers.fundingSize <= program.maxAmount)
+    reasons.push(`Requested funding fits (≤ €${program.maxAmount.toLocaleString()})`);
+  if (program.region === answers.location) reasons.push(`Region matches: ${program.region}`);
+  if (program.targetStage === answers.stage || program.targetStage === "Any") reasons.push(`Stage matches: ${answers.stage}`);
+
+  return reasons.length > 0
+    ? `Eligible: ${reasons.join("; ")}. Final score ${score}%`
+    : `Partially matched, score ${score}%.`;
+}
+
 export function scorePrograms(answers: UserAnswers): ScoredProgram[] {
   return (programs as Program[]).map((program) => {
     let score = 0;
@@ -70,7 +119,7 @@ export function scorePrograms(answers: UserAnswers): ScoredProgram[] {
     score += fundingMatch ? weights.fundingSize : 0;
     debug.push({ factor: "Funding Size", matched: fundingMatch, weight: weights.fundingSize, points: fundingMatch ? weights.fundingSize : 0 });
 
-    // Sector (currently stub: partial match gives half credit)
+    // Sector (partial stub)
     const sectorMatch = !!answers.sector;
     score += sectorMatch ? weights.sector * 0.5 : 0;
     debug.push({ factor: "Sector", matched: sectorMatch, weight: weights.sector, points: sectorMatch ? weights.sector * 0.5 : 0 });
@@ -88,12 +137,13 @@ export function scorePrograms(answers: UserAnswers): ScoredProgram[] {
     // Confidence logic
     const confidence = score > 0.7 ? "High" : score > 0.4 ? "Medium" : "Low";
 
+    const finalScore = Math.round(score * 100);
+    const reason = generateReason(program, answers, unmetRequirements, finalScore);
+
     return {
       ...program,
-      score: Math.round(score * 100),
-      reason: unmetRequirements.length > 0
-        ? `Not eligible: missing ${unmetRequirements.join(", ")}`
-        : `Eligible with score ${Math.round(score * 100)}%`,
+      score: finalScore,
+      reason,
       eligibility,
       confidence,
       unmetRequirements,
