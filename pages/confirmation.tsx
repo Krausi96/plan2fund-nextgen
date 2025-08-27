@@ -1,38 +1,18 @@
-﻿import { motion } from 'framer-motion';
-import AppShell from "@/components/layout/AppShell"
-import CartSummary from "@/components/confirmation/CartSummary"
-import DocsUpload from "@/components/confirmation/DocsUpload"
-import { Button } from "@/components/ui/button"
-import Link from "next/link"
+﻿import { motion } from "framer-motion";
+import AppShell from "@/components/layout/AppShell";
 
-export default function confirmation() {
+export default function Confirmation() {
   return (
-    <AppShell breadcrumb={['Home','confirmation']}>
-    <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} transition={{ duration: 0.4, ease: 'easeInOut' }}>
-      
-  return (
-    <div className="max-w-3xl mx-auto py-10 space-y-6">
-      <h1 className="text-2xl font-bold">Confirmation</h1>
-      <DocsUpload onUpload={() => {}} />
-      <CartSummary />
-      <div className="text-right">
-        <Link href="/checkout"><Button>Proceed to Checkout</Button></Link>
-      </div>
-    </div>
-  )
-
-        </motion.div>
-</AppShell>
-  )
+    <AppShell breadcrumb={[{ label: "Home", href: "/" }, { label: "Confirmation" }]}>
+      <motion.div
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        exit={{ opacity: 0 }}
+        transition={{ duration: 0.4, ease: "easeInOut" }}
+      >
+        <h2 className="text-2xl font-bold mb-4">Confirmation</h2>
+        {/* Confirmation components here */}
+      </motion.div>
+    </AppShell>
+  );
 }
-
-
-
-
-
-
-
-
-
-
-
