@@ -3,7 +3,15 @@ import Header from "@/components/layout/Header"
 import Footer from "@/components/layout/Footer"
 import Breadcrumbs from "@/components/layout/Breadcrumbs"
 
-export default function AppShell({ children, breadcrumb = [] }: { children: ReactNode, breadcrumb?: string[] }) {
+type BreadcrumbItem = { label: string; href?: string }
+
+export default function AppShell({ 
+  children, 
+  breadcrumb = [] 
+}: { 
+  children: ReactNode, 
+  breadcrumb?: BreadcrumbItem[] 
+}) {
   return (
     <div className="flex flex-col min-h-screen">
       <Header />

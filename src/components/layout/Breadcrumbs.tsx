@@ -1,13 +1,18 @@
-import Link from "next/link"
+﻿import Link from "next/link"
 
-export default function Breadcrumbs({ items = [] }: { items?: { label: string, href?: string }[] }) {
-  if (!items.length) return null
+type BreadcrumbItem = { label: string; href?: string }
+
+export default function Breadcrumbs({ items }: { items: BreadcrumbItem[] }) {
   return (
-    <nav className="p-2 text-sm text-gray-600">
-      {items.map((item, idx) => (
-        <span key={idx}>
-          {item.href ? <Link href={item.href}>{item.label}</Link> : item.label}
-          {idx < items.length - 1 && " / "}
+    <nav className="px-6 py-3 text-sm text-gray-600">
+      {items.map((item, i) => (
+        <span key={i}>
+          {item.href ? (
+            <Link href={item.href} className="hover:text-blue-500">{item.label}</Link>
+          ) : (
+            <span>{item.label}</span>
+          )}
+          {i < items.length - 1 && " / "}
         </span>
       ))}
     </nav>
