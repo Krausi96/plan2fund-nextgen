@@ -28,25 +28,31 @@ export default function Breadcrumbs() {
   const router = useRouter()
   const path = router.pathname
 
-  // Decide flow
   const isRecoFlow = ["/reco", "/results", "/eligibility"].some(p => path.startsWith(p))
   const steps = isRecoFlow ? stepsReco : stepsDirect
 
+  const currentIndex = steps.findIndex(step => step.href === path)
+
   return (
     <div className="w-full bg-gray-50 py-4">
-      <nav className="flex justify-center gap-4 text-sm text-gray-600">
+      <nav className="flex justify-center gap-6 text-sm text-gray-600">
         {steps.map((step, i) => {
-          const isActive = path === step.href
+          const isActive = i === currentIndex
+          const isCompleted = i < currentIndex
+
           return (
             <Link
               key={i}
               href={step.href}
               className={
                 isActive
-                  ? "font-semibold text-blue-600"
-                  : "hover:underline"
+                  ? "flex items-center gap-1 font-semibold text-blue-600"
+                  : isCompleted
+                  ? "flex items-center gap-1 text-gray-500 hover:underline"
+                  : "flex items-center gap-1 text-gray-400"
               }
             >
+              <span className={isActive ? "text-blue-600" : "text-gray-400"}>●</span>
               {step.label}
             </Link>
           )
