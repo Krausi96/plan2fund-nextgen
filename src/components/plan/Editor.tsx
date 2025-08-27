@@ -32,10 +32,21 @@ export default function Editor({ program }: EditorProps) {
   const [saved, setSaved] = useState(true);
   const router = useRouter();
 
-  // Autosave simulation
+  // Load saved draft from localStorage
+  useEffect(() => {
+    const savedDraft = localStorage.getItem("planDraft");
+    if (savedDraft) {
+      setContent(savedDraft);
+    }
+  }, []);
+
+  // Autosave simulation with persistence
   useEffect(() => {
     if (!saved) {
-      const timer = setTimeout(() => setSaved(true), 1000);
+      const timer = setTimeout(() => {
+        localStorage.setItem("planDraft", content);
+        setSaved(true);
+      }, 1000);
       return () => clearTimeout(timer);
     }
   }, [content, saved]);
