@@ -1,34 +1,37 @@
-﻿import { Card } from "@/components/ui/card";
-import EligibilityCard from "@/components/eligibility/EligibilityCard";
-import Link from "next/link";
+﻿import { useRouter } from "next/router"
+import Link from "next/link"
 
 const mockPrograms = [
-  { id: 1, name: "AWS PreSeed", reason: "Early-stage tech funding in Austria", match: 92, eligible: true, confidence: "High" },
-  { id: 2, name: "FFG Basisprogramm", reason: "Supports R&D projects with innovation potential", match: 85, eligible: true, confidence: "Medium" },
-  { id: 3, name: "EU Startup Call", reason: "Pan-European funding for scaling companies", match: 78, eligible: false, confidence: "Low" },
-];
+  { id: "aws-preseed", name: "AWS PreSeed", match: 85 },
+  { id: "ffg-basic", name: "FFG Basisprogramm", match: 70 },
+  { id: "bank-loan", name: "Bank Loan", match: 55 },
+]
 
-export default function ResultsPage() {
+export default function Results() {
+  const router = useRouter()
+  const { answers } = router.query
+
   return (
-    <div className="space-y-6 p-6">
-      <h1 className="text-2xl font-bold">Top Funding Matches</h1>
-      <div className="grid md:grid-cols-2 gap-6">
-        {mockPrograms.map((program) => (
-          <Card key={program.id} className="shadow-md hover:shadow-lg transition space-y-2 p-4">
-            <h2 className="text-lg font-semibold">{program.name}</h2>
-            <p className="text-sm text-muted-foreground">{program.reason}</p>
-            <div className="flex items-center justify-between">
-              <span className="text-sm font-medium">Match: {program.match}%</span>
-              <EligibilityCard eligible={program.eligible} confidence={program.confidence} />
+    <main className="max-w-3xl mx-auto py-12 space-y-6">
+      <h1 className="text-2xl font-bold">Recommended Programs</h1>
+      <p className="text-gray-600">Based on your answers, here are some matches:</p>
+
+      <div className="space-y-4">
+        {mockPrograms.map((p) => (
+          <div key={p.id} className="p-4 border rounded-xl flex justify-between items-center">
+            <div>
+              <h2 className="font-semibold">{p.name}</h2>
+              <p className="text-sm text-gray-500">Match Score: {p.match}%</p>
             </div>
-            <Link href={`/eligibility?program=${program.id}`}>
-              <button className="w-full bg-blue-600 text-white py-2 rounded-lg mt-3">
-                Continue to Eligibility →
-              </button>
+            <Link
+              href={{ pathname: "/eligibility", query: { program: p.id } }}
+              className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
+            >
+              Check Eligibility
             </Link>
-          </Card>
+          </div>
         ))}
       </div>
-    </div>
-  );
+    </main>
+  )
 }
