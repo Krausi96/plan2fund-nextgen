@@ -1,28 +1,23 @@
-﻿import { Card } from "@/components/ui/card";
-import { motion } from "framer-motion";
+﻿const cases = [
+  { title: "Visa Applications", desc: "e.g. RWR, Freelance Permit", emoji: "🗂" },
+  { title: "Grants & Public Funding", desc: "e.g. AWS PreSeed, FFG Basisprogramm, EU startup calls", emoji: "🧬" },
+  { title: "Bank Loans or Leasing", desc: "Structured + formatted to meet financial standards", emoji: "📊" },
+  { title: "Startup, Coaching or Projects", desc: "Ideas, Self-employment, Projects supported by consultants", emoji: "👥" },
+]
 
-const useCases = [
-  { title: "Visa Applications", desc: "RWR, Freelance Permit" },
-  { title: "Grants & Public Funding", desc: "AWS PreSeed, FFG, EU startup calls" },
-  { title: "Bank Loans or Leasing", desc: "Structured & formatted for financial standards" },
-  { title: "Startup, Coaching or Projects", desc: "Early ideas, AMS, WKO, consulting support" },
-];
-
-export default function UseCases() {
+export function UseCases() {
   return (
-    <section className="py-16 bg-gray-50">
-      <h2 className="text-3xl font-bold text-center mb-8">Use Cases</h2>
-      <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6 max-w-6xl mx-auto">
-        {useCases.map((c, i) => (
-          <motion.div key={i} whileHover={{ scale: 1.05 }}>
-            <Card className="p-6 text-center shadow-md">
-              <h3 className="font-semibold text-lg">{c.title}</h3>
-              <p className="text-sm text-gray-600">{c.desc}</p>
-            </Card>
-          </motion.div>
+    <section className="py-16">
+      <h2 className="text-2xl font-semibold text-center mb-8">🧾 Use Cases</h2>
+      <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-4">
+        {cases.map((c, i) => (
+          <div key={i} className="p-6 rounded-2xl shadow bg-white hover:shadow-lg transition">
+            <div className="text-3xl">{c.emoji}</div>
+            <h3 className="font-bold mt-4">{c.title}</h3>
+            <p className="text-sm text-gray-600">{c.desc}</p>
+          </div>
         ))}
       </div>
     </section>
-  );
+  )
 }
-

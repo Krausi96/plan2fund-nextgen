@@ -1,17 +1,12 @@
-﻿import Link from "next/link"
-import { Button } from "@/components/ui/button"
-
-export default function AboutPage() {
+﻿export default function About() {
   return (
-    <div className="max-w-2xl mx-auto py-10 space-y-6">
-      <h1 className="text-3xl font-bold">About Us</h1>
+    <main className="max-w-3xl mx-auto py-16 space-y-6">
+      <h1 className="text-3xl font-bold mb-4">About Plan2Fund</h1>
       <p>
-        Plan2Fund helps entrepreneurs and businesses create funding-ready business plans.
-        Our mission is to make funding more accessible by simplifying the process.
+        I'm a startup advisor based in Austria, with a background in business modelling,
+        planning and funding. I’ve helped founders and teams secure grants and bank loans —
+        including FFG Basisprogramm and Wirtschaftsagentur Wien.
       </p>
-      <Link href="/"><Button>? Back to Home</Button></Link>
-    </div>
+    </main>
   )
 }
-
-

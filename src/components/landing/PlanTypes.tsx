@@ -1,24 +1,21 @@
-﻿import { Card } from "@/components/ui/card";
+﻿const plans = [
+  { title: "📘 Custom Business Plan (15–35 pages)", info: "Full plan aligned with institutional & funding requirements. Ideal for visa, grant, or loan/leasing applications when your business model is clear." },
+  { title: "🔍 Upgrade & Review", info: "We revise and upgrade your existing draft — formatting, rewriting, and expert edits for AWS, FFG, banks or visa programs." },
+  { title: "🧩 Strategy & Modelling Plan (4–8 pages)", info: "Shape your business model and strategy — ideal for early-stage ideas, pivots, or consulting clients." },
+]
 
-const plans = [
-  { title: "📘 Custom Business Plan", info: "Submission-ready, 15–35 pages, ideal for visa, grant or loan applications." },
-  { title: "🔍 Upgrade & Review", info: "Revise & upgrade drafts for AWS, FFG, banks or visa programs." },
-  { title: "🧩 Strategy & Modelling Plan", info: "Shape business idea into clear model & strategy. Ideal for early-stage ideas." },
-];
-
-export default function PlanTypes() {
+export function PlanTypes() {
   return (
     <section className="py-16">
-      <h2 className="text-3xl font-bold text-center mb-8">Plan Types</h2>
-      <div className="grid md:grid-cols-3 gap-6 max-w-6xl mx-auto">
+      <h2 className="text-2xl font-semibold text-center mb-8">Plan Types</h2>
+      <div className="grid gap-6 md:grid-cols-3">
         {plans.map((p, i) => (
-          <Card key={i} className="p-6 shadow-md hover:shadow-lg transition">
-            <h3 className="font-semibold text-lg">{p.title}</h3>
+          <div key={i} className="p-6 rounded-2xl shadow bg-white hover:shadow-lg transition">
+            <h3 className="font-bold">{p.title}</h3>
             <p className="text-sm text-gray-600 mt-2">{p.info}</p>
-          </Card>
+          </div>
         ))}
       </div>
     </section>
-  );
+  )
 }
-
