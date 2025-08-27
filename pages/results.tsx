@@ -1,21 +1,32 @@
-import { motion } from "framer-motion";
-import AppShell from "@/components/layout/AppShell";
-import Hero from "@/components/Hero";
-import UseCases from "@/components/home/UseCases";
-import PlanTypes from "@/components/home/PlanTypes";
-import Included from "@/components/home/Included";
-import Quote from "@/components/home/Quote";
+﻿import { Badge } from "@/components/ui/badge"
+import { Card } from "@/components/ui/card"
+import Link from "next/link"
+import { Button } from "@/components/ui/button"
 
-export default function HomePage() {
+export default function ResultsPage() {
+  const results = [
+    { name: "AWS PreSeed", eligible: true, confidence: "High" },
+    { name: "FFG Basisprogramm", eligible: false, confidence: "Low" },
+  ]
   return (
-    <AppShell showBreadcrumbs={false}>
-      <div className="flex flex-col space-y-16">
-        <motion.section><Hero ctaLabel="Start Your Plan" ctaHref="/reco" /></motion.section>
-        <motion.section><UseCases /></motion.section>
-        <motion.section><PlanTypes /></motion.section>
-        <motion.section><Included /></motion.section>
-        <motion.section><Quote /></motion.section>
+    <div className="max-w-3xl mx-auto py-10">
+      <h1 className="text-2xl font-bold mb-6">Funding Results</h1>
+      <div className="space-y-4">
+        {results.map(r => (
+          <Card key={r.name} className="p-4 flex justify-between">
+            <div>
+              <h2 className="font-semibold">{r.name}</h2>
+              <Badge variant={r.eligible ? "default" : "destructive"}>
+                {r.eligible ? "Eligible" : "Not Eligible"}
+              </Badge>
+              <Badge>{r.confidence} Confidence</Badge>
+            </div>
+          </Card>
+        ))}
       </div>
-    </AppShell>
-  );
+      <div className="mt-6">
+        <Link href="/plan"><Button>Continue to Plan Generator</Button></Link>
+      </div>
+    </div>
+  )
 }

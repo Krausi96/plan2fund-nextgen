@@ -9,12 +9,8 @@ export default function HomePage() {
         Choose your path below to get started.
       </p>
       <div className="flex justify-center gap-4">
-        <Link href="/reco">
-          <Button size="lg">Find Funding</Button>
-        </Link>
-        <Link href="/plan">
-          <Button size="lg" variant="secondary">Generate Plan</Button>
-        </Link>
+        <Link href="/reco"><Button size="lg">Find Funding</Button></Link>
+        <Link href="/plan"><Button size="lg" variant="secondary">Generate Plan</Button></Link>
       </div>
     </section>
   )
