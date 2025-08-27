@@ -163,7 +163,7 @@ export default function Wizard() {
             </motion.div>
           </AnimatePresence>
 
-          {/* Skip / Don’t know button */}
+          {/* Skip / Donâ€™t know button */}
           <div className="mt-2">
             <Button
               variant="ghost"
@@ -178,7 +178,7 @@ export default function Wizard() {
                 }
               }}
             >
-              Skip / Don’t know
+              Skip / Donâ€™t know
             </Button>
           </div>
 
