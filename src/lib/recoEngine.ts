@@ -1,4 +1,4 @@
-﻿import programs from "@/data/programs.json";
+﻿import programs from "../../data/programs.json";
 import { Program, UserAnswers, ScoredProgram } from "@/types";
 
 export function normalizeAnswers(answers: UserAnswers): UserAnswers {
