@@ -11,6 +11,7 @@ type ProgramResult = {
   reason: string;
   eligibility: string;
   confidence?: "High" | "Medium" | "Low";
+  unmetRequirements?: string[];
   link?: string;
 };
 
@@ -26,7 +27,6 @@ export default function ResultsPage() {
       if (stored) {
         const parsed = JSON.parse(stored);
 
-        // Handle both old array format and new API shape
         if (Array.isArray(parsed)) {
           setResults(parsed);
         } else if (parsed.recommendations && Array.isArray(parsed.recommendations)) {
@@ -91,6 +91,15 @@ export default function ResultsPage() {
               </div>
 
               <p className="text-sm text-gray-600 mb-2">{program.reason}</p>
+
+              {/* Unmet requirements */}
+              {program.unmetRequirements && program.unmetRequirements.length > 0 && (
+                <ul className="text-xs text-red-600 list-disc ml-5 mb-2">
+                  {program.unmetRequirements.map((req, idx) => (
+                    <li key={idx}>{req}</li>
+                  ))}
+                </ul>
+              )}
 
               <div className="flex gap-2 items-center mb-2">
                 <span className="px-2 py-1 text-xs rounded bg-blue-100 text-blue-800">
