@@ -6,7 +6,7 @@ import { useRouter } from 'next/router'
 export default function PlanPage() {
   const router = useRouter()
   return (
-    <AppShell breadcrumb={['Home','Plan']}>
+    <AppShell breadcrumb={[{ label: 'Home', href: '/' }, { label: 'Plan' }]}>
       <Editor />
       <div className='mt-6 flex justify-end'>
         <Button onClick={() => router.push('/eligibility')}>Continue</Button>
