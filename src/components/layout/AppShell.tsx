@@ -3,9 +3,14 @@ import Header from "@/components/layout/Header"
 import Footer from "@/components/layout/Footer"
 import Breadcrumbs from "@/components/layout/Breadcrumbs"
 
+interface BreadcrumbItem {
+  label: string
+  href?: string
+}
+
 interface AppShellProps {
   children: ReactNode
-  breadcrumb?: string[]
+  breadcrumb?: BreadcrumbItem[]
 }
 
 export default function AppShell({ children, breadcrumb }: AppShellProps) {
