@@ -1,28 +1,22 @@
+import AppShell from '@/components/layout/AppShell';
 import { motion } from 'framer-motion';
-import AppShell from "@/components/layout/AppShell"
-import RevisionRequest from "@/components/thanks/RevisionRequest"
-import Upsell from "@/components/thanks/Upsell"
+import { Button } from '@/components/ui/button';
 
-export default function thanks() {
+export default function ThanksPage() {
   return (
-    <AppShell breadcrumb={['Home','thanks']}>
-    <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} transition={{ duration: 0.4, ease: 'easeInOut' }}>
-      
-  return (
-    <div className="max-w-3xl mx-auto py-10 space-y-6 text-center">
-      <h1 className="text-2xl font-bold">Thank You!</h1>
-      <p>Your plan has been generated and a confirmation email has been sent.</p>
-      <RevisionRequest />
-      <Upsell />
-    </div>
-  )
-
-        </motion.div>
-</AppShell>
-  )
+    <AppShell breadcrumb={['Home', 'Thanks']}>
+      <motion.div
+        className="text-center p-8"
+        initial={{ opacity: 0, scale: 0.9 }}
+        animate={{ opacity: 1, scale: 1 }}
+        transition={{ duration: 0.6, ease: 'easeInOut' }}
+      >
+        <h1 className="text-2xl font-bold mb-4">?? Thank You!</h1>
+        <p className="text-gray-600 mb-6">Your plan has been created successfully.</p>
+        <Button asChild>
+          <a href="/">Start a New Plan</a>
+        </Button>
+      </motion.div>
+    </AppShell>
+  );
 }
-
-
-
-
-

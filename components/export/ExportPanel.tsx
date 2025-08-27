@@ -1,37 +1,18 @@
-import { useRef } from "react";
-import { Button } from "@/components/ui/button";
-import html2pdf from "html2pdf.js";
+import { Card } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
+import { motion } from 'framer-motion';
 
-export default function ExportPanel() {
-  const contentRef = useRef<HTMLDivElement>(null);
-
-  const handleExportPDF = () => {
-    if (!contentRef.current) return;
-    html2pdf().from(contentRef.current).save("business-plan.pdf");
+export function ExportPanel() {
+  const handleExport = () => {
+    alert('Export functionality will be connected here.');
   };
 
   return (
-    <div className="space-y-6">
-      <div
-        ref={contentRef}
-        className="border p-6 rounded bg-gray-50 relative"
-      >
-        <div className="absolute inset-0 flex items-center justify-center text-4xl font-bold text-gray-300 opacity-40 pointer-events-none">
-          PREVIEW ONLY
-        </div>
-        <h2 className="text-xl font-semibold mb-4">Business Plan Preview</h2>
-        <p className="text-gray-700">
-          This is a preview of your business plan. Export options are available
-          below.
-        </p>
-      </div>
-
-      <div className="flex gap-4">
-        <Button onClick={handleExportPDF}>Export as PDF</Button>
-        <Button variant="outline" disabled>
-          Export to Google Docs (Coming Soon)
-        </Button>
-      </div>
-    </div>
+    <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ duration: 0.5, ease: 'easeInOut' }}>
+      <Card className="p-6 text-center shadow-lg">
+        <h2 className="text-xl font-semibold mb-4">Export Your Plan</h2>
+        <Button onClick={handleExport}>Download PDF</Button>
+      </Card>
+    </motion.div>
   );
 }
