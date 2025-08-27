@@ -1,7 +1,7 @@
 ﻿import React, { useEffect, useState } from "react";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, DialogDescription } from "@/components/ui/dialog";
 import { ScoredProgram } from "@/lib/recoEngine";
 import Link from "next/link";
 
@@ -43,6 +43,9 @@ export default function ResultsPage() {
                 <DialogContent className="max-w-lg">
                   <DialogHeader>
                     <DialogTitle>{program.name}</DialogTitle>
+                    <DialogDescription>
+                      Learn more about this funding program and its requirements.
+                    </DialogDescription>
                   </DialogHeader>
                   <div className="mt-2 text-sm text-gray-700 space-y-2">
                     <p><strong>Type:</strong> {program.type}</p>
