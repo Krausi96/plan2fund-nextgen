@@ -1,4 +1,4 @@
-{
+﻿{
     "version":  "0.0.3",
     "name":  "plan2fund-nextgen",
     "scripts":  {
@@ -27,3 +27,4 @@
                      },
     "private":  true
 }
+
