@@ -1,4 +1,4 @@
-﻿import { Card, CardContent } from "@/components/ui/card";
+﻿import { Card } from "@/components/ui/card";
 import EligibilityCard from "@/components/eligibility/EligibilityCard";
 
 const mockPrograms = [
@@ -34,23 +34,21 @@ export default function ResultsPage() {
       <h1 className="text-2xl font-bold">Top Funding Matches</h1>
       <div className="grid md:grid-cols-2 gap-6">
         {mockPrograms.map((program) => (
-          <Card key={program.id} className="shadow-md hover:shadow-lg transition">
-            <CardContent className="space-y-2 p-4">
-              <h2 className="text-lg font-semibold">{program.name}</h2>
-              <p className="text-sm text-muted-foreground">{program.reason}</p>
-              <div className="flex items-center justify-between">
-                <span className="text-sm font-medium">
-                  Match: {program.match}%
-                </span>
-                <EligibilityCard
-                  eligible={program.eligible}
-                  confidence={program.confidence}
-                />
-              </div>
-              <button className="w-full bg-blue-600 text-white py-2 rounded-lg mt-3">
-                Continue to Plan Generator →
-              </button>
-            </CardContent>
+          <Card key={program.id} className="shadow-md hover:shadow-lg transition space-y-2 p-4">
+            <h2 className="text-lg font-semibold">{program.name}</h2>
+            <p className="text-sm text-muted-foreground">{program.reason}</p>
+            <div className="flex items-center justify-between">
+              <span className="text-sm font-medium">
+                Match: {program.match}%
+              </span>
+              <EligibilityCard
+                eligible={program.eligible}
+                confidence={program.confidence}
+              />
+            </div>
+            <button className="w-full bg-blue-600 text-white py-2 rounded-lg mt-3">
+              Continue to Plan Generator →
+            </button>
           </Card>
         ))}
       </div>
