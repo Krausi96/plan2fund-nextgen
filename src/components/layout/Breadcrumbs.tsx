@@ -11,7 +11,7 @@ const stepLabels: Record<string, string> = {
   "/export": "Export",
   "/thanks": "Thank You",
   "/plan": "Business Plan Editor",
-};
+  "/review": "Review Plan",\n};
 
 export default function Breadcrumbs() {
   const router = useRouter();
@@ -47,3 +47,5 @@ export default function Breadcrumbs() {
     </nav>
   );
 }
+
+
