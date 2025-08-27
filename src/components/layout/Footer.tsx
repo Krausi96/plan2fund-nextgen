@@ -1,4 +1,4 @@
-﻿export function Footer() {
+﻿export default function Footer() {
   return (
     <footer className="w-full py-6 border-t text-sm text-gray-600 bg-white">
       <div className="max-w-5xl mx-auto flex flex-wrap justify-between gap-4">
