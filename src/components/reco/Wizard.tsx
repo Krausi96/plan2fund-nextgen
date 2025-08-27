@@ -22,7 +22,7 @@ export default function Wizard() {
           const res = await fetch("/api/recommend", {
             method: "POST",
             headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ answers }),
+            body: JSON.stringify({ answers, mode }),
           });
           const data = await res.json();
 
@@ -166,3 +166,6 @@ export default function Wizard() {
     </div>
   );
 }
+
+// Persona mode toggle
+const [personaMode, setPersonaMode] = useState<"strict" | "explorer">("strict");

@@ -8,8 +8,9 @@ export default function handler(req: NextApiRequest, res: NextApiResponse) {
 
   try {
     const rawAnswers = req.body?.answers || {};
+    const mode = req.body?.mode || "strict";
     const normalized = normalizeAnswers(rawAnswers);
-    const scored = scorePrograms(normalized);
+    const scored = scorePrograms(normalized, mode);
 
     return res.status(200).json({
       normalizedAnswers: normalized,
