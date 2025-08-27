@@ -20,8 +20,8 @@ export default function Home() {
           Whether you're shaping an idea, applying for funding or preparing a visa — we turn your thoughts into submission-ready business plans.
         </p>
         <div className="flex gap-4">
-          <Link href="/reco"><Button size="lg">Find Funding</Button></Link>
-          <Link href="/plan"><Button variant="outline" size="lg">Generate Business Plan</Button></Link>
+          <Link href="/reco"><Button className="px-6 py-3 text-lg">Find Funding</Button></Link>
+          <Link href="/plan"><Button variant="outline" className="px-6 py-3 text-lg">Generate Business Plan</Button></Link>
         </div>
       </section>
 
