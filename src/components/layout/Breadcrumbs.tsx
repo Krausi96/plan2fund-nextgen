@@ -24,30 +24,34 @@ const stepsDirect = [
   { href: "/thank-you", label: "Thank You" },
 ]
 
-function Breadcrumbs() {
+export default function Breadcrumbs() {
   const router = useRouter()
   const path = router.pathname
 
-  const steps = path.startsWith("/reco") || path.startsWith("/results") || path.startsWith("/eligibility")
-    ? stepsReco
-    : stepsDirect
+  // Decide flow
+  const isRecoFlow = ["/reco", "/results", "/eligibility"].some(p => path.startsWith(p))
+  const steps = isRecoFlow ? stepsReco : stepsDirect
 
   return (
-    <nav className="flex flex-wrap gap-2 text-sm text-gray-600 mb-4">
-      {steps.map((step, i) => {
-        const isActive = path === step.href
-        return (
-          <Link
-            key={i}
-            href={step.href}
-            className={isActive ? "font-bold text-blue-600" : "hover:underline"}
-          >
-            {step.label}
-          </Link>
-        )
-      })}
-    </nav>
+    <div className="w-full bg-gray-50 py-4">
+      <nav className="flex justify-center gap-4 text-sm text-gray-600">
+        {steps.map((step, i) => {
+          const isActive = path === step.href
+          return (
+            <Link
+              key={i}
+              href={step.href}
+              className={
+                isActive
+                  ? "font-semibold text-blue-600"
+                  : "hover:underline"
+              }
+            >
+              {step.label}
+            </Link>
+          )
+        })}
+      </nav>
+    </div>
   )
 }
-
-export default Breadcrumbs
