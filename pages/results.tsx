@@ -1,31 +1,47 @@
-﻿import { Badge } from "@/components/ui/badge"
-import { Card } from "@/components/ui/card"
-import Link from "next/link"
+﻿import { useState } from "react"
+import { ProgramCard } from "@/components/reco/ProgramCard"
+import { ProgramModal } from "@/components/reco/ProgramModal"
+import { evaluateEligibility } from "@/components/reco/eligibility"
+import { evaluateConfidence } from "@/components/reco/confidence"
 import { Button } from "@/components/ui/button"
+import Link from "next/link"
 
 export default function ResultsPage() {
-  const results = [
-    { name: "AWS PreSeed", eligible: true, confidence: "High" },
-    { name: "FFG Basisprogramm", eligible: false, confidence: "Low" },
+  const [selected, setSelected] = useState(null)
+
+  const programs = [
+    { name: "AWS PreSeed", sector: "Tech", location: "AT" },
+    { name: "FFG Basisprogramm", sector: "Innovation", location: "AT" },
+    { name: "EU Startup Call", sector: "General", location: "EU" }
   ]
+
   return (
-    <div className="max-w-3xl mx-auto py-10">
+    <div className="max-w-4xl mx-auto py-10 space-y-6">
       <h1 className="text-2xl font-bold mb-6">Funding Results</h1>
-      <div className="space-y-4">
-        {results.map(r => (
-          <Card key={r.name} className="p-4 flex justify-between">
-            <div>
-              <h2 className="font-semibold">{r.name}</h2>
-              <Badge variant={r.eligible ? "default" : "destructive"}>
-                {r.eligible ? "Eligible" : "Not Eligible"}
-              </Badge>
-              <Badge>{r.confidence} Confidence</Badge>
-            </div>
-          </Card>
+
+      <div className="grid gap-6 md:grid-cols-2">
+        {programs.map((program, idx) => (
+          <ProgramCard
+            key={idx}
+            program={program}
+            eligibility={evaluateEligibility(program)}
+            confidence={evaluateConfidence(program)}
+            onClick={() => setSelected(program)}
+          />
         ))}
       </div>
-      <div className="mt-6">
-        <Link href="/plan"><Button>Continue to Plan Generator</Button></Link>
+
+      {selected && (
+        <ProgramModal
+          program={selected}
+          onClose={() => setSelected(null)}
+        />
+      )}
+
+      <div className="pt-6 text-right">
+        <Link href="/plan">
+          <Button>Continue to Plan Generator</Button>
+        </Link>
       </div>
     </div>
   )
