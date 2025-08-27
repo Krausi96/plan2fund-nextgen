@@ -1,5 +1,5 @@
-﻿import { OrderSummary } from "@/components/checkout/OrderSummary"
-import { TrustSeals } from "@/components/checkout/TrustSeals"
+﻿import OrderSummary from "@/components/checkout/OrderSummary"
+import TrustSeals from "@/components/checkout/TrustSeals"
 import { Button } from "@/components/ui/button"
 import Link from "next/link"
 
@@ -16,3 +16,4 @@ export default function CheckoutPage() {
     </div>
   )
 }
+
