@@ -1,13 +1,15 @@
-﻿import { Card } from "@/components/ui/card"
+﻿import { ExportPanel } from "@/components/export/ExportPanel"
 import { Button } from "@/components/ui/button"
 import Link from "next/link"
 
 export default function ExportPage() {
   return (
-    <div className="max-w-xl mx-auto py-10">
-      <h1 className="text-2xl font-bold mb-4">Export Documents</h1>
-      <Card className="p-4 mb-6">[DOCX/PDF Export Placeholder]</Card>
-      <Link href="/thanks"><Button>Finish</Button></Link>
+    <div className="max-w-3xl mx-auto py-10 space-y-6">
+      <h1 className="text-2xl font-bold">Export Documents</h1>
+      <ExportPanel />
+      <div className="text-right">
+        <Link href="/thanks"><Button>Finish</Button></Link>
+      </div>
     </div>
   )
 }
