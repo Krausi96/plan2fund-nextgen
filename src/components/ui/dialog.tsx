@@ -7,3 +7,4 @@ export function Dialog({ children }: { children: ReactNode }) {
     </div>
   )
 }
+

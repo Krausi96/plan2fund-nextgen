@@ -21,3 +21,4 @@ export function UseCases() {
     </section>
   )
 }
+

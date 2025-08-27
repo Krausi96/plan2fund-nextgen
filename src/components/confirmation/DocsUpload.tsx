@@ -39,3 +39,4 @@ export default function DocsUpload({ onUpload }: DocsUploadProps) {
     </div>
   );
 }
+
