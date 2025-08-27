@@ -1,17 +1,16 @@
 ﻿import { Button } from "@/components/ui/button";
 import Link from "next/link";
 
-export default function ThanksPage() {
+export default function SuccessHubPage() {
   return (
     <div className="max-w-3xl mx-auto p-6 space-y-8 text-center">
-
-      <h1 className="text-3xl font-bold text-green-600">🎉 Thank You!</h1>
+      <h1 className="text-3xl font-bold text-green-600">🚀 Success Hub</h1>
       <p className="text-gray-600">
-        Your order has been successfully completed. A copy of your plan has been
-        sent to your email.
+        Congratulations! Your business plan order has been successfully
+        completed. A copy has been sent to your email.
       </p>
 
-      {/* Revision option */}
+      {/* Revision Option */}
       <div className="space-y-4">
         <p className="text-sm text-gray-500">
           Need adjustments? You can request a free revision within 7 days.
