@@ -1,6 +1,5 @@
-﻿import React, { useState } from "react";
+import React, { useState } from "react";
 import { Button } from "@/components/ui/button";
-import { scorePrograms, UserAnswers } from "@/lib/recoEngine";
 import { useRouter } from "next/router";
 import questions from "@/data/questions.json";
 import { motion, AnimatePresence } from "framer-motion";
@@ -8,17 +7,33 @@ import { motion, AnimatePresence } from "framer-motion";
 export default function Wizard() {
   const router = useRouter();
   const [mode, setMode] = useState<"survey" | "freeText">("survey");
-  const [answers, setAnswers] = useState<UserAnswers>({});
+  const [answers, setAnswers] = useState<Record<string, any>>({});
   const [step, setStep] = useState(0);
+  const [loading, setLoading] = useState(false);
 
-  const handleNext = () => {
+  const handleNext = async () => {
     if (mode === "survey") {
       if (step < questions.length - 1) {
         setStep(step + 1);
       } else {
-        const results = scorePrograms(answers);
-        localStorage.setItem("recoResults", JSON.stringify(results));
-        router.push("/results");
+        // Submit to backend API
+        try {
+          setLoading(true);
+          const res = await fetch("/api/recommend", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ answers }),
+          });
+          const data = await res.json();
+
+          localStorage.setItem("recoResults", JSON.stringify(data.recommendations));
+          localStorage.setItem("normalizedAnswers", JSON.stringify(data.normalizedAnswers));
+          router.push("/results");
+        } catch (err) {
+          console.error("Error submitting answers:", err);
+        } finally {
+          setLoading(false);
+        }
       }
     } else {
       localStorage.setItem("freeTextReco", answers.freeText || "");
@@ -81,7 +96,7 @@ export default function Wizard() {
               </label>
               {questions[step].type === "select" && (
                 <select
-                  value={(answers as any)[questions[step].id] || ""}
+                  value={answers[questions[step].id] || ""}
                   onChange={(e) => handleChange(questions[step].id, e.target.value)}
                   className="w-full border rounded p-2"
                 >
@@ -96,14 +111,14 @@ export default function Wizard() {
               {questions[step].type === "number" && (
                 <input
                   type="number"
-                  value={(answers as any)[questions[step].id] || ""}
+                  value={answers[questions[step].id] || ""}
                   onChange={(e) => handleChange(questions[step].id, Number(e.target.value))}
                   className="w-full border rounded p-2"
                 />
               )}
               {questions[step].type === "boolean" && (
                 <select
-                  value={(answers as any)[questions[step].id] || ""}
+                  value={answers[questions[step].id] || ""}
                   onChange={(e) => handleChange(questions[step].id, e.target.value === "Yes")}
                   className="w-full border rounded p-2"
                 >
@@ -121,8 +136,12 @@ export default function Wizard() {
                 Back
               </Button>
             )}
-            <Button onClick={handleNext}>
-              {step < questions.length - 1 ? "Next" : "See Results"}
+            <Button onClick={handleNext} disabled={loading}>
+              {loading
+                ? "Processing..."
+                : step < questions.length - 1
+                ? "Next"
+                : "See Results"}
             </Button>
           </div>
 
@@ -132,9 +151,7 @@ export default function Wizard() {
         </div>
       ) : (
         <div>
-          <label className="block text-sm font-medium mb-2">
-            Describe your situation:
-          </label>
+          <label className="block text-sm font-medium mb-2">Describe your situation:</label>
           <textarea
             value={answers.freeText || ""}
             onChange={(e) => setAnswers({ ...answers, freeText: e.target.value })}
