@@ -5,7 +5,7 @@ import { useRouter } from 'next/router'
 export default function ResultsPage() {
   const router = useRouter()
   return (
-    <AppShell breadcrumb={['Home','Results']}>
+    <AppShell breadcrumb={[{ label: 'Home', href: '/' }, { label: 'Results' }]}>
       <h2 className='text-2xl font-bold mb-4'>Your Recommended Programs</h2>
       {/* Existing results content here */}
       <div className='mt-6 flex justify-end'>

@@ -6,7 +6,7 @@ import { Button } from '@/components/ui/button'
 export default function RecoPage() {
   const router = useRouter()
   return (
-    <AppShell breadcrumb={['Home','Recommendations']}>
+    <AppShell breadcrumb={[{ label: 'Home', href: '/' }, { label: 'Recommendations' }]}>
       <Wizard />
       <div className='mt-6 flex justify-end'>
         <Button onClick={() => router.push('/results')}>See Results</Button>
