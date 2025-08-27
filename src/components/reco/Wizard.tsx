@@ -1,27 +1,24 @@
-﻿import { useState } from "react"
+﻿"use client"
+import { useRouter } from "next/router"
+import { useState } from "react"
 import { Button } from "@/components/ui/button"
-import { Card } from "@/components/ui/card"
-import Link from "next/link"
 
 export default function Wizard() {
-  const [step, setStep] = useState(0)
-  const questions = [
-    "What is your business idea?",
-    "Who is your target audience?",
-    "How much funding do you need?"
-  ]
+  const router = useRouter()
+  const [step, setStep] = useState(1)
+
+  const nextStep = () => {
+    if (step < 3) {
+      setStep(step + 1)
+    } else {
+      router.push("/results")
+    }
+  }
 
   return (
-    <Card className="p-4 space-y-4">
-      <h2 className="text-xl font-bold">Recommendation Wizard</h2>
-      {step < questions.length ? (
-        <>
-          <p>{questions[step]}</p>
-          <Button onClick={() => setStep(step + 1)}>Next</Button>
-        </>
-      ) : (
-        <p>✅ Wizard Complete! Go to <Link href="/results" className="text-blue-500 underline">Results</Link></p>
-      )}
-    </Card>
+    <div className="p-6">
+      <h2 className="text-xl font-bold mb-4">Recommendation Wizard - Step {step}</h2>
+      <Button onClick={nextStep}>Next</Button>
+    </div>
   )
 }
