@@ -1,153 +1,110 @@
 ﻿import programs from "@/data/fundingPrograms.json";
 
+// --- Types ---
 export type UserAnswers = {
-  sector: string;
-  location: string;
-  stage: string;
-  need: string;
-  fundingSize?: number;
-  freeText?: string;
+  [key: string]: any; // canonical keys from questions.json (e.g. "location", "stage")
 };
 
 export type Program = {
   id: string;
   name: string;
   type: string;
-  region: string;
-  targetStage: string;
-  needs: string[];
-  requirements: string[];
-  maxAmount: number;
+  requirements: Record<string, any>;
+  maxAmount?: number | null;
   link: string;
-};
-
-export type ScoreBreakdown = {
-  factor: string;
-  matched: boolean;
-  weight: number;
-  points: number;
+  notes?: string;
 };
 
 export type ScoredProgram = Program & {
   score: number;
   reason: string;
   eligibility: "Eligible" | "Not Eligible";
-  confidence: "High" | "Medium" | "Low";
   unmetRequirements: string[];
-  debug: ScoreBreakdown[];
 };
 
-const weights = {
-  sector: 0.25,
-  location: 0.1,
-  stage: 0.25,
-  need: 0.3,
-  fundingSize: 0.1,
-};
-
-// ✅ NEW: normalizeAnswers (stub, later GPT)
-export function normalizeAnswers(freeText: string): UserAnswers {
-  const text = freeText.toLowerCase();
-
-  let sector = "";
-  if (text.includes("tech") || text.includes("ai")) sector = "Tech";
-  else if (text.includes("retail") || text.includes("shop")) sector = "Retail";
-  else sector = "Other";
-
-  let stage = "Early";
-  if (text.includes("idea")) stage = "Idea";
-  else if (text.includes("growth") || text.includes("expand")) stage = "Growth";
-
-  let need = "Loan";
-  if (text.includes("grant")) need = "Grant";
-  else if (text.includes("visa")) need = "Visa";
-  else if (text.includes("coach")) need = "Coaching";
-
-  let location = "Other";
-  if (text.includes("vienna") || text.includes("austria")) location = "AT";
-  else if (text.includes("germany")) location = "DE";
-  else if (text.includes("eu")) location = "EU";
-
-  let fundingSize: number | undefined = undefined;
-  const match = text.match(/\\d{4,6}/); // crude number detection
-  if (match) fundingSize = Number(match[0]);
-
-  return { sector, stage, need, location, fundingSize, freeText };
-}
-
-// ✅ NEW: generateReason (stub, later GPT)
-export function generateReason(program: Program, answers: UserAnswers, unmetRequirements: string[], score: number): string {
-  if (unmetRequirements.length > 0) {
-    return `Not eligible because missing requirements: ${unmetRequirements.join(", ")}.`;
-  }
-
-  let reasons: string[] = [];
-  if (program.needs.includes(answers.need)) reasons.push(`Matches your funding need: ${answers.need}`);
-  if (answers.fundingSize && answers.fundingSize <= program.maxAmount)
-    reasons.push(`Requested funding fits (≤ €${program.maxAmount.toLocaleString()})`);
-  if (program.region === answers.location) reasons.push(`Region matches: ${program.region}`);
-  if (program.targetStage === answers.stage || program.targetStage === "Any") reasons.push(`Stage matches: ${answers.stage}`);
-
-  return reasons.length > 0
-    ? `Eligible: ${reasons.join("; ")}. Final score ${score}%`
-    : `Partially matched, score ${score}%.`;
-}
-
+// --- Core Scoring Logic ---
 export function scorePrograms(answers: UserAnswers): ScoredProgram[] {
   return (programs as Program[]).map((program) => {
     let score = 0;
-    let debug: ScoreBreakdown[] = [];
-    let unmetRequirements: string[] = [];
+    const unmetRequirements: string[] = [];
 
-    // Location
-    const locationMatch = program.region === answers.location;
-    score += locationMatch ? weights.location : 0;
-    debug.push({ factor: "Location", matched: locationMatch, weight: weights.location, points: locationMatch ? weights.location : 0 });
+    // Evaluate each requirement dynamically
+    for (const [key, requirement] of Object.entries(program.requirements)) {
+      const answer = answers[key];
 
-    // Stage
-    const stageMatch = program.targetStage === answers.stage || program.targetStage === "Any";
-    score += stageMatch ? weights.stage : 0;
-    debug.push({ factor: "Stage", matched: stageMatch, weight: weights.stage, points: stageMatch ? weights.stage : 0 });
-
-    // Need
-    const needMatch = program.needs.includes(answers.need);
-    score += needMatch ? weights.need : 0;
-    debug.push({ factor: "Need", matched: needMatch, weight: weights.need, points: needMatch ? weights.need : 0 });
-
-    // Funding size
-    const fundingMatch = !answers.fundingSize || answers.fundingSize <= program.maxAmount;
-    score += fundingMatch ? weights.fundingSize : 0;
-    debug.push({ factor: "Funding Size", matched: fundingMatch, weight: weights.fundingSize, points: fundingMatch ? weights.fundingSize : 0 });
-
-    // Sector (partial stub)
-    const sectorMatch = !!answers.sector;
-    score += sectorMatch ? weights.sector * 0.5 : 0;
-    debug.push({ factor: "Sector", matched: sectorMatch, weight: weights.sector, points: sectorMatch ? weights.sector * 0.5 : 0 });
-
-    // Requirements check
-    program.requirements.forEach((req) => {
-      if (!answers.sector.toLowerCase().includes("tech") && req.toLowerCase().includes("technology")) {
-        unmetRequirements.push(req);
+      if (answer === undefined || answer === null || answer === "") {
+        unmetRequirements.push(`${key} is missing`);
+        continue;
       }
-    });
 
-    // Eligibility logic
-    const eligibility = unmetRequirements.length > 0 ? "Not Eligible" : score > 0.5 ? "Eligible" : "Not Eligible";
+      // Handle ranges and arrays
+      if (Array.isArray(requirement)) {
+        if (requirement.includes(answer)) {
+          score += 1;
+        } else {
+          unmetRequirements.push(`${key} does not match (${answer})`);
+        }
+      } else if (typeof requirement === "number") {
+        if (answer <= requirement) {
+          score += 1;
+        } else {
+          unmetRequirements.push(`${key} exceeds maximum (${answer})`);
+        }
+      } else if (typeof requirement === "object" && requirement.min !== undefined) {
+        if (answer >= requirement.min) {
+          score += 1;
+        } else {
+          unmetRequirements.push(`${key} is below minimum (${answer})`);
+        }
+      } else if (typeof requirement === "object" && requirement.max !== undefined) {
+        if (answer <= requirement.max) {
+          score += 1;
+        } else {
+          unmetRequirements.push(`${key} exceeds maximum (${answer})`);
+        }
+      } else {
+        // Fallback: strict equality
+        if (answer === requirement) {
+          score += 1;
+        } else {
+          unmetRequirements.push(`${key} mismatch (${answer})`);
+        }
+      }
+    }
 
-    // Confidence logic
-    const confidence = score > 0.7 ? "High" : score > 0.4 ? "Medium" : "Low";
+    // Normalize score to percentage
+    const totalRequirements = Object.keys(program.requirements).length;
+    const scorePercent =
+      totalRequirements > 0 ? Math.round((score / totalRequirements) * 100) : 0;
 
-    const finalScore = Math.round(score * 100);
-    const reason = generateReason(program, answers, unmetRequirements, finalScore);
+    // Eligibility
+    const eligibility =
+      unmetRequirements.length === 0 ? "Eligible" : "Not Eligible";
+
+    // Reason string
+    const reason = generateReason(program, answers, unmetRequirements, scorePercent);
 
     return {
       ...program,
-      score: finalScore,
+      score: scorePercent,
       reason,
       eligibility,
-      confidence,
       unmetRequirements,
-      debug,
     };
   }).sort((a, b) => b.score - a.score);
+}
+
+// --- Reason Generator ---
+export function generateReason(
+  program: Program,
+  answers: UserAnswers,
+  unmetRequirements: string[],
+  score: number
+): string {
+  if (unmetRequirements.length === 0) {
+    return `✅ You meet all requirements for ${program.name}. Score: ${score}%`;
+  }
+  return `⚠️ ${program.name} partially matches your profile (Score: ${score}%). Missing: ${unmetRequirements.join(
+    ", "
+  )}`;
 }
