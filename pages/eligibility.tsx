@@ -1,16 +1,30 @@
-﻿import AppShell from '@/components/layout/AppShell'
-import { Button } from '@/components/ui/button'
-import { useRouter } from 'next/router'
+﻿import AppShell from "@/components/layout/AppShell";
+import Breadcrumbs from "@/components/layout/Breadcrumbs";
+import EligibilityCard from "@/components/eligibility/EligibilityCard";
+
+const mockResults = [
+  { program: "AWS PreSeed", score: 92, eligible: true, confidence: "High" },
+  { program: "EU Startup Call", score: 68, eligible: false, confidence: "Medium" },
+  { program: "Vienna Business Agency", score: 81, eligible: true, confidence: "Low" },
+];
 
 export default function EligibilityPage() {
-  const router = useRouter()
   return (
-    <AppShell breadcrumb={[{ label: 'Home', href: '/' }, { label: 'Eligibility' }]}>
-      <h2 className='text-2xl font-bold mb-4'>Eligibility Check</h2>
-      {/* Eligibility logic here */}
-      <div className='mt-6 flex justify-end'>
-        <Button onClick={() => router.push('/preview')}>Continue to Preview</Button>
-      </div>
+    <AppShell>
+      <Breadcrumbs />
+      <section className="py-12 max-w-5xl mx-auto">
+        <h1 className="text-3xl font-bold mb-6 text-center">Eligibility & Confidence</h1>
+        <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
+          {mockResults.map((r, i) => (
+            <EligibilityCard key={i} {...r} />
+          ))}
+        </div>
+        <div className="mt-8 text-center">
+          <button className="px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700">
+            Continue to Preview
+          </button>
+        </div>
+      </section>
     </AppShell>
-  )
+  );
 }
