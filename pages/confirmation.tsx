@@ -1,30 +1,14 @@
-﻿import Breadcrumbs from "@/components/layout/Breadcrumbs";
-import CartSummary from "@/components/confirmation/CartSummary";
-import DocsUpload from "@/components/confirmation/DocsUpload";
-import { Button } from "@/components/ui/button";
-import Link from "next/link";
+﻿import Link from "next/link"
 
-export default function ConfirmationPage() {
+export default function Confirmation() {
   return (
-    <div className="max-w-4xl mx-auto p-6 space-y-8">
-      <Breadcrumbs />
-
-      <h1 className="text-2xl font-bold">Confirmation</h1>
-      <p className="text-gray-600">
-        Review your order and upload any supporting documents before checkout.
-      </p>
-
-      <CartSummary />
-      <DocsUpload />
-
-      <div className="flex justify-between mt-6">
-        <Button variant="outline" asChild>
-          <Link href="/preview">Back to Preview</Link>
-        </Button>
-        <Button asChild>
-          <Link href="/checkout">Proceed to Checkout →</Link>
-        </Button>
+    <main className="max-w-3xl mx-auto py-16">
+      <h1 className="text-3xl font-bold mb-6">Confirmation</h1>
+      <p className="mb-8 text-gray-700">Please confirm your details and uploaded documents.</p>
+      <div className="flex justify-between">
+        <Link href="/preview" className="px-4 py-2 rounded-lg bg-gray-100 hover:bg-gray-200">← Back</Link>
+        <Link href="/checkout" className="px-4 py-2 rounded-lg bg-blue-600 text-white hover:bg-blue-700">Continue →</Link>
       </div>
-    </div>
-  );
+    </main>
+  )
 }

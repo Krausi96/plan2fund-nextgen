@@ -33,7 +33,7 @@ export function Breadcrumbs() {
     : stepsDirect
 
   return (
-    <nav className="flex gap-2 text-sm text-gray-600">
+    <nav className="flex flex-wrap gap-2 text-sm text-gray-600 mb-4">
       {steps.map((step, i) => {
         const isActive = path === step.href
         return (
