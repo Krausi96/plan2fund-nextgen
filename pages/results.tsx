@@ -1,5 +1,6 @@
 ﻿import { Card } from "@/components/ui/card";
 import EligibilityCard from "@/components/eligibility/EligibilityCard";
+import Link from "next/link";
 
 const mockPrograms = [
   {
@@ -46,9 +47,11 @@ export default function ResultsPage() {
                 confidence={program.confidence}
               />
             </div>
-            <button className="w-full bg-blue-600 text-white py-2 rounded-lg mt-3">
-              Continue to Plan Generator →
-            </button>
+            <Link href="/eligibility">
+              <button className="w-full bg-blue-600 text-white py-2 rounded-lg mt-3">
+                Continue to Eligibility →
+              </button>
+            </Link>
           </Card>
         ))}
       </div>
