@@ -1,4 +1,4 @@
-import { motion } from 'framer-motion';
+﻿import { motion } from 'framer-motion';
 import AppShell from "@/components/layout/AppShell"
 import CartSummary from "@/components/confirmation/CartSummary"
 import DocsUpload from "@/components/confirmation/DocsUpload"
@@ -25,6 +25,7 @@ export default function confirmation() {
 </AppShell>
   )
 }
+
 
 
 

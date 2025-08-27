@@ -1,4 +1,4 @@
-import { motion } from 'framer-motion';
+﻿import { motion } from 'framer-motion';
 import AppShell from "@/components/layout/AppShell"
 import Eligibility from "@/components/reco/eligibility"
 
@@ -13,6 +13,7 @@ export default function EligibilityPage() {
 </AppShell>
   )
 }
+
 
 
 

@@ -1,4 +1,4 @@
-import Link from "next/link"
+﻿import Link from "next/link"
 import { Button } from "@/components/ui/button"
 
 export default function LegalPage() {
@@ -12,3 +12,4 @@ export default function LegalPage() {
     </div>
   )
 }
+

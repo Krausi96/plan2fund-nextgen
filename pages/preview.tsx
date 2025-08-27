@@ -1,4 +1,4 @@
-import { motion } from 'framer-motion';
+﻿import { motion } from 'framer-motion';
 import AppShell from "@/components/layout/AppShell"
 import PreviewPanel from "@/components/preview/PreviewPanel"
 import PricingPanel from "@/components/preview/PricingPanel"
@@ -27,6 +27,7 @@ export default function preview() {
 </AppShell>
   )
 }
+
 
 
 
