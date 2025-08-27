@@ -1,16 +1,14 @@
-﻿import AppShell from '@/components/layout/AppShell'
-import Editor from '@/components/plan/Editor'
-import { Button } from '@/components/ui/button'
-import { useRouter } from 'next/router'
+﻿import AppShell from "@/components/layout/AppShell";
+import Breadcrumbs from "@/components/layout/Breadcrumbs";
+import Editor from "@/components/plan/Editor";
 
 export default function PlanPage() {
-  const router = useRouter()
   return (
-    <AppShell breadcrumb={[{ label: 'Home', href: '/' }, { label: 'Plan' }]}>
-      <Editor />
-      <div className='mt-6 flex justify-end'>
-        <Button onClick={() => router.push('/eligibility')}>Continue</Button>
-      </div>
+    <AppShell>
+      <Breadcrumbs />
+      <section className="py-12 max-w-4xl mx-auto">
+        <Editor />
+      </section>
     </AppShell>
-  )
+  );
 }
