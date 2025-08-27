@@ -5,7 +5,7 @@ import { useRouter } from 'next/router'
 export default function CheckoutPage() {
   const router = useRouter()
   return (
-    <AppShell breadcrumb={['Home','Checkout']}>
+    <AppShell breadcrumb={[{ label: 'Home', href: '/' }, { label: 'Checkout' }]}>
       <h2 className='text-2xl font-bold mb-4'>Checkout</h2>
       {/* Checkout components here */}
       <div className='mt-6 flex justify-end'>
