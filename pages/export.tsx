@@ -1,5 +1,5 @@
 ﻿import AppShell from "@/components/layout/AppShell"
-import { ExportPanel } from "@/components/export/ExportPanel"
+import ExportPanel from "@/components/export/ExportPanel"
 import { Button } from "@/components/ui/button"
 import Link from "next/link"
 
@@ -20,4 +20,5 @@ export default function export() {
     </AppShell>
   )
 }
+
 
