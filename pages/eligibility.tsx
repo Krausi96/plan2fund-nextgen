@@ -20,11 +20,12 @@ export default function EligibilityPage() {
           ))}
         </div>
         <div className="mt-8 text-center">
-          <button className="px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700">
+          <a href="/preview" className="px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700">
             Continue to Preview
-          </button>
+          </a>
         </div>
       </section>
     </AppShell>
   );
 }
+
