@@ -24,7 +24,7 @@ const stepsDirect = [
   { href: "/thank-you", label: "Thank You" },
 ]
 
-export function Breadcrumbs() {
+function Breadcrumbs() {
   const router = useRouter()
   const path = router.pathname
 
@@ -49,3 +49,5 @@ export function Breadcrumbs() {
     </nav>
   )
 }
+
+export default Breadcrumbs
