@@ -1,30 +1,29 @@
 ﻿{
-    "version":  "0.0.3",
-    "name":  "plan2fund-nextgen",
-    "scripts":  {
-                    "lint":  "next lint",
-                    "build":  "next build",
-                    "dev":  "next dev",
-                    "start":  "next start"
-                },
-    "devDependencies":  {
-                            "typescript":  "^5.3.3",
-                            "@types/react":  "^18.2.45",
-                            "postcss":  "^8.4.31",
-                            "@types/node":  "^20.10.5",
-                            "@types/react-dom":  "^18.2.18"
-                        },
-    "dependencies":  {
-                         "tailwindcss":  "^3.4.1",
-                         "@radix-ui/react-progress":  "^1.0.3",
-                         "react":  "18.3.1",
-                         "next":  "14.2.32",
-                         "clsx":  "^2.0.0",
-                         "@radix-ui/react-dialog":  "^1.0.5",
-                         "react-dom":  "18.3.1",
-                         "autoprefixer":  "^10.4.15",
-                         "framer-motion":  "^10.16.4"
-                     },
-    "private":  true
+  "version": "0.0.3",
+  "name": "plan2fund-nextgen",
+  "scripts": {
+    "lint": "next lint",
+    "build": "next build",
+    "dev": "next dev",
+    "start": "next start"
+  },
+  "devDependencies": {
+    "typescript": "^5.3.3",
+    "@types/react": "^18.2.45",
+    "postcss": "^8.4.31",
+    "@types/node": "^20.10.5",
+    "@types/react-dom": "^18.2.18"
+  },
+  "dependencies": {
+    "tailwindcss": "^3.4.1",
+    "@radix-ui/react-progress": "^1.0.3",
+    "react": "18.3.1",
+    "next": "14.2.32",
+    "clsx": "^2.0.0",
+    "@radix-ui/react-dialog": "^1.0.5",
+    "react-dom": "18.3.1",
+    "autoprefixer": "^10.4.15",
+    "framer-motion": "^10.16.4"
+  },
+  "private": true
 }
-
