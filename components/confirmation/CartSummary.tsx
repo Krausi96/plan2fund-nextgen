@@ -1,26 +1,26 @@
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card } from '@/components/ui/card';
 
-interface CartSummaryProps {
-  program?: string;
-  price?: number;
+export interface CartSummaryProps {
+  items: { name: string; price: number }[];
+  total: number;
 }
 
-export default function CartSummary({ program = "AWS PreSeed", price = 1000 }: CartSummaryProps) {
+export function CartSummary({ items, total }: CartSummaryProps) {
   return (
-    <Card className="mb-6 shadow-sm">
-      <CardHeader>
-        <CardTitle>Cart Summary</CardTitle>
-      </CardHeader>
-      <CardContent>
-        <div className="flex justify-between mb-2">
-          <span>Selected Program</span>
-          <span className="font-medium">{program}</span>
-        </div>
-        <div className="flex justify-between">
-          <span>Price</span>
-          <span className="font-bold">€{price}</span>
-        </div>
-      </CardContent>
+    <Card className="p-4">
+      <h3 className="font-semibold mb-2">Order Summary</h3>
+      <ul>
+        {items.map((item, idx) => (
+          <li key={idx} className="flex justify-between text-sm py-1">
+            <span>{item.name}</span>
+            <span>\</span>
+          </li>
+        ))}
+      </ul>
+      <div className="flex justify-between font-bold mt-3">
+        <span>Total</span>
+        <span>\</span>
+      </div>
     </Card>
   );
 }

@@ -1,35 +1,28 @@
-import { useState } from "react";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
+import { useRef } from 'react';
+import { Button } from '@/components/ui/button';
 
-export default function DocsUpload() {
-  const [files, setFiles] = useState<File[]>([]);
+export interface DocsUploadProps {
+  onUpload: (file: File) => void;
+}
 
-  const handleFiles = (e: React.ChangeEvent<HTMLInputElement>) => {
-    if (e.target.files) {
-      setFiles(Array.from(e.target.files));
-    }
-  };
+export function DocsUpload({ onUpload }: DocsUploadProps) {
+  const inputRef = useRef<HTMLInputElement | null>(null);
 
   return (
-    <Card className="mb-6 shadow-sm">
-      <CardHeader>
-        <CardTitle>Upload Additional Documents</CardTitle>
-      </CardHeader>
-      <CardContent>
-        <input
-          type="file"
-          multiple
-          onChange={handleFiles}
-          className="mb-4"
-        />
-        <ul className="text-sm text-gray-600 mb-4">
-          {files.map((file, idx) => (
-            <li key={idx}>{file.name}</li>
-          ))}
-        </ul>
-        <Button disabled={files.length === 0}>Upload (stub)</Button>
-      </CardContent>
-    </Card>
+    <div className="space-y-2">
+      <input
+        type="file"
+        ref={inputRef}
+        className="hidden"
+        onChange={(e) => {
+          if (e.target.files && e.target.files[0]) {
+            onUpload(e.target.files[0]);
+          }
+        }}
+      />
+      <Button onClick={() => inputRef.current?.click()}>
+        Upload Documents
+      </Button>
+    </div>
   );
 }

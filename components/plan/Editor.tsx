@@ -1,3 +1,5 @@
+import { useState, useEffect } from 'react';
+
 import { useState, useEffect } from "react";
 import SideNav from "./SideNav";
 import { Progress } from "@/components/ui/progress";
@@ -50,6 +52,32 @@ export default function Editor() {
           onChange={(e) => handleChange(e.target.value)}
         />
       </main>
+    </div>
+  );
+}
+
+
+export default function Editor() {
+  const [content, setContent] = useState<string>(() => {
+    if (typeof window !== 'undefined') {
+      return localStorage.getItem('plan-editor') || '';
+    }
+    return '';
+  });
+
+  useEffect(() => {
+    localStorage.setItem('plan-editor', content);
+  }, [content]);
+
+  return (
+    <div className="p-4 border rounded-xl">
+      <textarea
+        className="w-full h-80 border p-3 rounded-lg"
+        value={content}
+        onChange={(e) => setContent(e.target.value)}
+        placeholder="Start writing your business plan..."
+      />
+      <p className="text-xs text-gray-400 mt-2">Autosaved locally</p>
     </div>
   );
 }
