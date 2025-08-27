@@ -15,6 +15,7 @@ export default function AIPage() {
           <p className="mt-2">Generate AI-powered business and funding insights.</p>
         </div>
       </motion.div>
-    </AppShell>
+    
   );
 }
+

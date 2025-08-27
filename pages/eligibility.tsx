@@ -11,7 +11,7 @@ const mockResults = [
 
 export default function EligibilityPage() {
   return (
-    <AppShell>
+    
       <Breadcrumbs />
       <section className="py-12 max-w-5xl mx-auto">
         <h1 className="text-3xl font-bold mb-6 text-center">Eligibility & Confidence</h1>
@@ -29,6 +29,6 @@ export default function EligibilityPage() {
           </Link>
         </div>
       </section>
-    </AppShell>
+    
   );
 }

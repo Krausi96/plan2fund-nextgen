@@ -12,7 +12,7 @@ const mockResults = [
 
 export default function ResultsPage() {
   return (
-    <AppShell>
+    
       <section className="py-12 max-w-5xl mx-auto">
         <h1 className="text-3xl font-bold mb-6 text-center">Top Matches for You</h1>
         <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
@@ -27,6 +27,7 @@ export default function ResultsPage() {
           ))}
         </div>
       </section>
-    </AppShell>
+    
   );
 }
+

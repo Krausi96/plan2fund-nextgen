@@ -11,6 +11,7 @@ export default function ExportPage() {
       <div className='mt-6 flex justify-end'>
         <Button onClick={() => router.push('/thanks')}>Finish</Button>
       </div>
-    </AppShell>
+    
   )
 }
+

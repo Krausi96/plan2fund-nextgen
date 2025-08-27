@@ -11,6 +11,7 @@ export default function CheckoutPage() {
       <div className='mt-6 flex justify-end'>
         <Button onClick={() => router.push('/export')}>Export Plan</Button>
       </div>
-    </AppShell>
+    
   )
 }
+

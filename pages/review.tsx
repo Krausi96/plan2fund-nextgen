@@ -5,7 +5,7 @@ import Link from "next/link";
 
 export default function ReviewPage() {
   return (
-    <AppShell>
+    
       <Breadcrumbs />
       <section className="py-12 max-w-5xl mx-auto">
         <h1 className="text-3xl font-bold mb-6 text-center">Review Your Business Plan</h1>
@@ -32,6 +32,6 @@ export default function ReviewPage() {
           </Link>
         </div>
       </section>
-    </AppShell>
+    
   );
 }

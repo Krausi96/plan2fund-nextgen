@@ -13,6 +13,7 @@ export default function Confirmation() {
         <h2 className="text-2xl font-bold mb-4">Confirmation</h2>
         {/* Confirmation components here */}
       </motion.div>
-    </AppShell>
+    
   );
 }
+

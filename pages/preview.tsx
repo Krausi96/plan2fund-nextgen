@@ -11,6 +11,7 @@ export default function PreviewPage() {
       <div className='mt-6 flex justify-end'>
         <Button onClick={() => router.push('/checkout')}>Proceed to Checkout</Button>
       </div>
-    </AppShell>
+    
   )
 }
+
