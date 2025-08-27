@@ -91,6 +91,10 @@ export default function ResultsPage() {
               </div>
 
               <p className="text-sm text-gray-600 mb-2">{program.reason}</p>
+              {program.unmetRequirements && program.unmetRequirements.some(r => r.includes("missing")) && (
+                <p className="text-xs text-yellow-700 mt-1">?? Some requirements unknown due to skipped answers (Explorer mode)</p>
+              )}
+
 
               {/* Unmet requirements */}
               {program.unmetRequirements && program.unmetRequirements.length > 0 && (
