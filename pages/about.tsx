@@ -1,12 +1,15 @@
-import AppShell from "@/components/layout/AppShell"
+﻿import Link from "next/link"
+import { Button } from "@/components/ui/button"
 
 export default function AboutPage() {
   return (
-    <AppShell breadcrumb={["Home", "About"]}>
-      <div className="p-6">
-        <h1 className="text-2xl font-bold">About Plan2Fund</h1>
-        <p className="mt-2">This is a demo about page for the NextGen app.</p>
-      </div>
-    </AppShell>
+    <div className="max-w-2xl mx-auto py-10 space-y-6">
+      <h1 className="text-3xl font-bold">About Us</h1>
+      <p>
+        Plan2Fund helps entrepreneurs and businesses create funding-ready business plans.
+        Our mission is to make funding more accessible by simplifying the process.
+      </p>
+      <Link href="/"><Button>← Back to Home</Button></Link>
+    </div>
   )
 }
