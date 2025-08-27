@@ -2,27 +2,13 @@
 import { Button } from "@/components/ui/button";
 import { scorePrograms, UserAnswers } from "@/lib/recoEngine";
 import { useRouter } from "next/router";
+import questions from "@/data/questions.json";
 
 export default function Wizard() {
   const router = useRouter();
   const [mode, setMode] = useState<"survey" | "freeText">("survey");
-  const [answers, setAnswers] = useState<UserAnswers & { freeText?: string }>({
-    sector: "",
-    location: "",
-    stage: "",
-    need: "",
-    fundingSize: undefined,
-    freeText: "",
-  });
+  const [answers, setAnswers] = useState<UserAnswers>({});
   const [step, setStep] = useState(0);
-
-  const questions = [
-    { key: "sector", label: "Which sector are you in?", type: "dropdown", options: ["Tech", "Retail", "Services", "Consulting", "Other"] },
-    { key: "location", label: "Where is your business located?", type: "dropdown", options: ["AT", "DE", "EU", "Other"] },
-    { key: "stage", label: "What stage is your business in?", type: "dropdown", options: ["Idea", "Early", "Growth"] },
-    { key: "need", label: "What is your funding need?", type: "dropdown", options: ["Visa", "Grant", "Loan", "Coaching"] },
-    { key: "fundingSize", label: "How much funding do you need (EUR)?", type: "number" },
-  ];
 
   const handleNext = () => {
     if (mode === "survey") {
@@ -34,16 +20,16 @@ export default function Wizard() {
         router.push("/results");
       }
     } else {
-      // Free text mode → store text for later GPT normalization
+      // Free text mode – stored for later GPT normalization
       localStorage.setItem("freeTextReco", answers.freeText || "");
       router.push("/results");
     }
   };
 
-  const handleChange = (key: string, value: string) => {
+  const handleChange = (key: string, value: any) => {
     setAnswers((prev) => ({
       ...prev,
-      [key]: key === "fundingSize" ? Number(value) : value,
+      [key]: value,
     }));
   };
 
@@ -70,29 +56,50 @@ export default function Wizard() {
       {mode === "survey" ? (
         <div>
           <div className="mb-4">
-            <label className="block text-sm font-medium mb-2">{questions[step].label}</label>
-            {questions[step].type === "dropdown" ? (
+            <label className="block text-sm font-medium mb-2">
+              {questions[step].label}
+            </label>
+            {questions[step].type === "select" && (
               <select
-                value={(answers as any)[questions[step].key] || ""}
-                onChange={(e) => handleChange(questions[step].key, e.target.value)}
+                value={(answers as any)[questions[step].id] || ""}
+                onChange={(e) =>
+                  handleChange(questions[step].id, e.target.value)
+                }
                 className="w-full border rounded p-2"
               >
                 <option value="">Select...</option>
-                {questions[step].options?.map((opt) => (
+                {questions[step].options?.map((opt: string) => (
                   <option key={opt} value={opt}>
                     {opt}
                   </option>
                 ))}
               </select>
-            ) : (
+            )}
+            {questions[step].type === "number" && (
               <input
-                type={questions[step].type}
-                value={(answers as any)[questions[step].key] || ""}
-                onChange={(e) => handleChange(questions[step].key, e.target.value)}
+                type="number"
+                value={(answers as any)[questions[step].id] || ""}
+                onChange={(e) =>
+                  handleChange(questions[step].id, Number(e.target.value))
+                }
                 className="w-full border rounded p-2"
               />
             )}
+            {questions[step].type === "boolean" && (
+              <select
+                value={(answers as any)[questions[step].id] || ""}
+                onChange={(e) =>
+                  handleChange(questions[step].id, e.target.value === "Yes")
+                }
+                className="w-full border rounded p-2"
+              >
+                <option value="">Select...</option>
+                <option value="Yes">Yes</option>
+                <option value="No">No</option>
+              </select>
+            )}
           </div>
+
           <div className="flex justify-between">
             {step > 0 && (
               <Button variant="outline" onClick={() => setStep(step - 1)}>
@@ -103,16 +110,21 @@ export default function Wizard() {
               {step < questions.length - 1 ? "Next" : "See Results"}
             </Button>
           </div>
+
           <div className="mt-4 text-sm text-gray-500">
             Question {step + 1} of {questions.length}
           </div>
         </div>
       ) : (
         <div>
-          <label className="block text-sm font-medium mb-2">Describe your situation:</label>
+          <label className="block text-sm font-medium mb-2">
+            Describe your situation:
+          </label>
           <textarea
             value={answers.freeText || ""}
-            onChange={(e) => setAnswers({ ...answers, freeText: e.target.value })}
+            onChange={(e) =>
+              setAnswers({ ...answers, freeText: e.target.value })
+            }
             placeholder="e.g., I run a bakery in Vienna and need a loan to expand"
             className="w-full border rounded p-2 h-40"
           />
