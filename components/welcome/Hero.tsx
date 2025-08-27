@@ -1,4 +1,5 @@
-﻿import { Button } from "@/components/ui/button"
+﻿import Link from "next/link"
+import { Button } from "@/components/ui/button"
 
 export function Hero() {
   return (
@@ -10,8 +11,12 @@ export function Hero() {
         We turn your drafts into funding-ready business plans.
       </p>
       <div className="flex justify-center gap-4">
-        <Button>Find Funding</Button>
-        <Button variant="outline">Generate Business Plan</Button>
+        <Link href="/reco">
+          <Button>Find Funding</Button>
+        </Link>
+        <Link href="/plan">
+          <Button variant="outline">Generate Business Plan</Button>
+        </Link>
       </div>
     </section>
   )
