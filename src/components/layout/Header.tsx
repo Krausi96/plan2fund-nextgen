@@ -1,20 +1,46 @@
-﻿"use client"
-import Link from "next/link"
+﻿'use client'
+import Link from 'next/link'
+import { useState } from 'react'
+import { motion } from 'framer-motion'
+import { Globe } from 'lucide-react'
+
+const languages = [
+  { code: 'EN', flag: '🇬🇧' },
+  { code: 'DE', flag: '🇩🇪' },
+  { code: 'ES', flag: '🇪🇸' },
+  { code: 'FR', flag: '🇫🇷' },
+]
 
 export default function Header() {
+  const [lang, setLang] = useState('EN')
+
   return (
-    <header className="w-full border-b bg-white shadow-sm px-6 py-3 flex justify-between items-center">
-      <Link href="/" className="text-lg font-bold text-blue-600">Plan2Fund</Link>
+    <motion.header
+      initial={{ opacity: 0, y: -20 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ ease: 'easeInOut', duration: 0.5 }}
+      className="w-full border-b bg-white shadow-sm px-6 py-4 flex justify-between items-center"
+    >
+      <Link href="/" className="text-lg font-bold text-blue-600 hover:text-blue-800">
+        Plan2Fund
+      </Link>
       <nav className="flex gap-6 items-center">
         <Link href="/about" className="hover:text-blue-500">About</Link>
         <Link href="/pricing" className="hover:text-blue-500">Pricing</Link>
-        <select className="border rounded px-2 py-1 text-sm">
-          <option>EN</option>
-          <option>DE</option>
-          <option>ES</option>
-          <option>FR</option>
-        </select>
+        <div className="relative">
+          <select
+            value={lang}
+            onChange={(e) => setLang(e.target.value)}
+            className="border rounded px-2 py-1 text-sm bg-white"
+          >
+            {languages.map(l => (
+              <option key={l.code} value={l.code}>
+                {l.flag} {l.code}
+              </option>
+            ))}
+          </select>
+        </div>
       </nav>
-    </header>
+    </motion.header>
   )
 }
