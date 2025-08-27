@@ -1,6 +1,8 @@
 ﻿import { useState, useEffect } from "react";
 import Link from "next/link";
+import { useRouter } from "next/router";
 import { Progress } from "@/components/ui/progress";
+import { Button } from "@/components/ui/button";
 
 const chapters = [
   "Executive Summary",
@@ -16,6 +18,8 @@ const chapters = [
 export default function Editor() {
   const [content, setContent] = useState("");
   const [saved, setSaved] = useState(true);
+  const router = useRouter();
+  const { program } = router.query;
 
   // Autosave simulation
   useEffect(() => {
@@ -31,7 +35,10 @@ export default function Editor() {
       <aside className="w-64 hidden md:block">
         <nav className="space-y-2">
           {chapters.map((ch, i) => (
-            <div key={i} className="text-sm py-1 px-2 rounded hover:bg-gray-100 cursor-pointer">
+            <div
+              key={i}
+              className="text-sm py-1 px-2 rounded hover:bg-gray-100 cursor-pointer"
+            >
               {ch}
             </div>
           ))}
@@ -60,13 +67,20 @@ export default function Editor() {
           className="w-full h-64 p-4 border rounded-md"
         />
 
-        <div className="flex justify-end mt-4">
-          <Link
-            href="/review"
-            className="px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
+        {/* Navigation */}
+        <div className="flex justify-between mt-4">
+          <Button
+            variant="outline"
+            asChild
           >
-            Continue to Review →
-          </Link>
+            <Link href={program ? `/eligibility?program=${program}` : "/"}>
+              Back
+            </Link>
+          </Button>
+
+          <Button asChild>
+            <Link href="/review">Continue to Review →</Link>
+          </Button>
         </div>
       </main>
     </div>
