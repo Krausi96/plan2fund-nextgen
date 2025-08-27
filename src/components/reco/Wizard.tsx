@@ -1,87 +1,68 @@
-﻿import { useState } from "react";
-import { motion } from "framer-motion";
+﻿import React, { useState } from "react";
 import { Button } from "@/components/ui/button";
-import Link from "next/link";
-
-const steps = [
-  { id: 1, question: "What’s your sector?", options: ["Tech", "Health", "Education", "Other"] },
-  { id: 2, question: "What stage are you at?", options: ["Idea", "Early", "Scaling"] },
-  { id: 3, question: "How much funding do you need?", options: ["< €50k", "€50k–200k", "€200k+"] }
-];
+import { scorePrograms, UserAnswers } from "@/lib/recoEngine";
+import { useRouter } from "next/router";
 
 export default function Wizard() {
+  const router = useRouter();
+  const [answers, setAnswers] = useState<UserAnswers>({
+    sector: "",
+    location: "",
+    stage: "",
+    need: "",
+    fundingSize: undefined,
+  });
   const [step, setStep] = useState(0);
-  const [answers, setAnswers] = useState<Record<number, string>>({});
 
-  const current = steps[step];
-  const totalSteps = steps.length;
+  const questions = [
+    { key: "sector", label: "Which sector are you in?", type: "text" },
+    { key: "location", label: "Where is your business located?", type: "text" },
+    { key: "stage", label: "What stage is your business in? (idea, early, growth)", type: "text" },
+    { key: "need", label: "What is your funding need? (visa, grant, loan, coaching)", type: "text" },
+    { key: "fundingSize", label: "How much funding do you need (EUR)?", type: "number" },
+  ];
+
+  const handleNext = () => {
+    if (step < questions.length - 1) {
+      setStep(step + 1);
+    } else {
+      // Final step → score and redirect
+      const results = scorePrograms(answers);
+      localStorage.setItem("recoResults", JSON.stringify(results));
+      router.push("/results");
+    }
+  };
+
+  const handleChange = (key: string, value: string) => {
+    setAnswers((prev) => ({
+      ...prev,
+      [key]: key === "fundingSize" ? Number(value) : value,
+    }));
+  };
 
   return (
-    <div className="max-w-xl mx-auto py-10 text-center space-y-6">
-      {/* Progress */}
-      <div className="w-full bg-gray-200 h-2 rounded">
-        <motion.div
-          className="bg-blue-600 h-2 rounded"
-          initial={{ width: 0 }}
-          animate={{ width: `${((step) / totalSteps) * 100}%` }}
-          transition={{ ease: "easeInOut", duration: 0.3 }}
+    <div className="p-6 max-w-lg mx-auto">
+      <h2 className="text-xl font-semibold mb-4">Funding Recommendation Wizard</h2>
+      <div className="mb-4">
+        <label className="block text-sm font-medium mb-2">{questions[step].label}</label>
+        <input
+          type={questions[step].type}
+          value={(answers as any)[questions[step].key] || ""}
+          onChange={(e) => handleChange(questions[step].key, e.target.value)}
+          className="w-full border rounded p-2"
         />
       </div>
-
-      {/* Question */}
-      {current ? (
-        <motion.div
-          key={current.id}
-          initial={{ opacity: 0, x: 40 }}
-          animate={{ opacity: 1, x: 0 }}
-          exit={{ opacity: 0, x: -40 }}
-          transition={{ ease: "easeInOut", duration: 0.4 }}
-        >
-          <h2 className="text-xl font-semibold mb-6">{current.question}</h2>
-          <div className="grid gap-3">
-            {current.options.map((opt) => (
-              <button
-                key={opt}
-                className={`border rounded-lg py-3 ${
-                  answers[current.id] === opt
-                    ? "bg-blue-600 text-white"
-                    : "hover:bg-gray-100"
-                }`}
-                onClick={() => setAnswers({ ...answers, [current.id]: opt })}
-              >
-                {opt}
-              </button>
-            ))}
-          </div>
-
-          {/* Navigation */}
-          <div className="mt-6 flex justify-between">
-            <Button
-              variant="outline"
-              disabled={step === 0}
-              onClick={() => setStep(step - 1)}
-            >
-              Back
-            </Button>
-            <Button
-              onClick={() => setStep(step + 1)}
-              disabled={!answers[current.id]}
-            >
-              Next
-            </Button>
-          </div>
-        </motion.div>
-      ) : (
-        <div className="space-y-6">
-          <h2 className="text-xl font-semibold">All done!</h2>
-          <Button asChild>
-            <Link href={{ pathname: "/results", query: answers }}>
-              See Results
-            </Link>
+      <div className="flex justify-between">
+        {step > 0 && (
+          <Button variant="outline" onClick={() => setStep(step - 1)}>
+            Back
           </Button>
-        </div>
-      )}
+        )}
+        <Button onClick={handleNext}>
+          {step < questions.length - 1 ? "Next" : "See Results"}
+        </Button>
+      </div>
+      <div className="mt-4 text-sm text-gray-500">Question {step + 1} of {questions.length}</div>
     </div>
   );
 }
-

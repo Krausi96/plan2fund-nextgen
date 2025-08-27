@@ -1,60 +1,44 @@
-﻿import { useRouter } from "next/router"
-import Link from "next/link"
-import { motion } from "framer-motion"
+﻿import React, { useEffect, useState } from "react";
+import { Card } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { ScoredProgram } from "@/lib/recoEngine";
+import Link from "next/link";
 
-const mockPrograms = [
-  { id: "aws-preseed", name: "AWS PreSeed", match: 85 },
-  { id: "ffg-basic", name: "FFG Basisprogramm", match: 70 },
-  { id: "bank-loan", name: "Bank Loan", match: 55 },
-]
+export default function ResultsPage() {
+  const [results, setResults] = useState<ScoredProgram[]>([]);
 
-export default function Results() {
-  const router = useRouter()
-  const { answers } = router.query
+  useEffect(() => {
+    const stored = localStorage.getItem("recoResults");
+    if (stored) {
+      setResults(JSON.parse(stored));
+    }
+  }, []);
 
   return (
-    <main className="max-w-3xl mx-auto py-12 space-y-6">
-
-      <h1 className="text-2xl font-bold">Recommended Programs</h1>
-      <p className="text-gray-600">
-        Based on your answers, here are some matches:
-      </p>
-
-      <div className="space-y-4">
-        {mockPrograms.map((p, i) => (
-          <motion.div
-            key={p.id}
-            initial={{ opacity: 0, y: 10 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: i * 0.15 }}
-            className="p-4 border rounded-xl flex justify-between items-center"
-          >
-            <div>
-              <h2 className="font-semibold">{p.name}</h2>
-              <span className="inline-block mt-1 px-2 py-1 text-xs rounded-full bg-blue-100 text-blue-800">
-                Match: {p.match}%
+    <div className="p-6 max-w-3xl mx-auto">
+      <h2 className="text-2xl font-semibold mb-6">Your Top Funding Matches</h2>
+      <div className="grid gap-4">
+        {results.map((program) => (
+          <Card key={program.id} className="p-4 shadow-md rounded-xl">
+            <div className="flex justify-between items-center mb-2">
+              <h3 className="text-lg font-bold">{program.name}</h3>
+              <span className="text-sm text-gray-600">{program.score}% Match</span>
+            </div>
+            <p className="text-sm mb-2">{program.reason}</p>
+            <div className="flex gap-2 mb-4">
+              <span className={`px-2 py-1 text-xs rounded ${program.eligibility === "Eligible" ? "bg-green-100 text-green-800" : "bg-red-100 text-red-800"}`}>
+                {program.eligibility}
+              </span>
+              <span className="px-2 py-1 text-xs rounded bg-blue-100 text-blue-800">
+                Confidence: {program.confidence}
               </span>
             </div>
-            <Link
-              href={{ pathname: "/eligibility", query: { program: p.id } }}
-              className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
-            >
-              Check Eligibility
+            <Link href={`/plan?programId=${program.id}`}>
+              <Button>Continue to Plan Generator</Button>
             </Link>
-          </motion.div>
+          </Card>
         ))}
       </div>
-
-      {/* Back button */}
-      <div className="pt-6">
-        <Link
-          href="/reco"
-          className="text-blue-600 hover:underline text-sm"
-        >
-          ← Back to Wizard
-        </Link>
-      </div>
-    </main>
-  )
+    </div>
+  );
 }
-
