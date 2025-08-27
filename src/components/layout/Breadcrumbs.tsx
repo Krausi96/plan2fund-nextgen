@@ -35,13 +35,16 @@ export default function Breadcrumbs() {
 
   const currentIndex = steps.findIndex((step) => step.href === path)
 
+  // Only show steps up to the current one
+  const visibleSteps =
+    currentIndex >= 0 ? steps.slice(0, currentIndex + 1) : steps
+
   return (
     <div className="w-full bg-gray-50 py-4">
       <nav className="flex justify-center gap-6 text-sm text-gray-600">
-        {steps.map((step, i) => {
+        {visibleSteps.map((step, i) => {
           const isActive = i === currentIndex
           const isCompleted = i < currentIndex
-          const isClickable = isCompleted || isActive
 
           const baseClass =
             "flex items-center gap-1 " +
@@ -51,16 +54,11 @@ export default function Breadcrumbs() {
               ? "text-gray-500 hover:underline"
               : "text-gray-400 cursor-not-allowed")
 
-          return isClickable ? (
+          return (
             <Link key={i} href={step.href} className={baseClass}>
               <span>{isCompleted ? "✔" : isActive ? "➡" : "○"}</span>
               {step.label}
             </Link>
-          ) : (
-            <span key={i} className={baseClass}>
-              <span>○</span>
-              {step.label}
-            </span>
           )
         })}
       </nav>
