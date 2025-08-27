@@ -1,0 +1,35 @@
+﻿[
+  {
+    "id": "location",
+    "label": "Where is your business registered?",
+    "type": "select",
+    "options": ["Wien", "Niederösterreich", "Oberösterreich", "Steiermark", "Salzburg", "Tirol", "Vorarlberg", "Kärnten", "Burgenland", "Other"]
+  },
+  {
+    "id": "stage",
+    "label": "What stage is your company at?",
+    "type": "select",
+    "options": ["Idea", "Prototype", "Pilot", "Revenue", "Scale"]
+  },
+  {
+    "id": "sector",
+    "label": "Which industry best describes your project?",
+    "type": "select",
+    "options": ["Technology", "Health & Life Sciences", "Manufacturing", "Creative & Cultural", "Finance", "Agriculture", "Education", "Other"]
+  },
+  {
+    "id": "fundingNeed",
+    "label": "How much funding do you need?",
+    "type": "number"
+  },
+  {
+    "id": "equityCommitment",
+    "label": "Can you commit equity?",
+    "type": "boolean"
+  },
+  {
+    "id": "collateral",
+    "label": "Do you have collateral available?",
+    "type": "boolean"
+  }
+]
