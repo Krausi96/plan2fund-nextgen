@@ -5,7 +5,7 @@ import QuoteBlock from "@/components/welcome/QuoteBlock"
 import WhatsIncluded from "@/components/welcome/WhatsIncluded"
 import Link from "next/link"
 
-export default function Home() {
+export default function Home(): JSX.Element {
   return (
     <main className="flex flex-col items-center">
       <Hero />
