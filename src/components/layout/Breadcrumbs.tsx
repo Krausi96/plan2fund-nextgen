@@ -5,23 +5,23 @@ const stepLabels: Record<string, string> = {
   "/reco": "Recommendation Wizard",
   "/results": "Results",
   "/eligibility": "Eligibility",
+  "/review": "Review Plan",
   "/preview": "Preview",
   "/confirmation": "Confirmation",
   "/checkout": "Checkout",
   "/export": "Export",
   "/thanks": "Thank You",
   "/plan": "Business Plan Editor",
-  "/review": "Review Plan",\n};
+};
 
 export default function Breadcrumbs() {
   const router = useRouter();
   const path = router.pathname;
 
-  // Build trail
   const allSteps = Object.keys(stepLabels);
   const currentIndex = allSteps.indexOf(path);
 
-  if (currentIndex === -1) return null; // no breadcrumbs on landing or static pages
+  if (currentIndex === -1) return null;
 
   const trail = allSteps.slice(0, currentIndex + 1);
 
@@ -37,7 +37,9 @@ export default function Breadcrumbs() {
                   {stepLabels[step]}
                 </Link>
               ) : (
-                <span className="font-semibold text-gray-700">{stepLabels[step]}</span>
+                <span className="font-semibold text-gray-700">
+                  {stepLabels[step]}
+                </span>
               )}
               {!isLast && <span>/</span>}
             </li>
@@ -47,5 +49,3 @@ export default function Breadcrumbs() {
     </nav>
   );
 }
-
-
