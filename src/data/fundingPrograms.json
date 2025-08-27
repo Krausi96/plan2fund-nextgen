@@ -1,0 +1,46 @@
+﻿[
+  {
+    "id": "visa-rwr",
+    "name": "Visa Application (RWR Card, Freelance Permit)",
+    "type": "Visa",
+    "region": "AT",
+    "targetStage": "Any",
+    "needs": ["Visa"],
+    "requirements": ["Clear business model", "Self-sustainability proof"],
+    "maxAmount": 0,
+    "link": "https://www.migration.gv.at/en/types-of-permits/red-white-red-card/"
+  },
+  {
+    "id": "ams-basic",
+    "name": "AMS Self-Employment Support",
+    "type": "Grant",
+    "region": "AT",
+    "targetStage": "Early",
+    "needs": ["Coaching", "Employment"],
+    "requirements": ["Proof of unemployment", "Business feasibility"],
+    "maxAmount": 5000,
+    "link": "https://www.ams.at/"
+  },
+  {
+    "id": "aws-preseed",
+    "name": "AWS PreSeed",
+    "type": "Grant",
+    "region": "AT",
+    "targetStage": "Early",
+    "needs": ["Grant"],
+    "requirements": ["Innovative technology", "Scalable model"],
+    "maxAmount": 200000,
+    "link": "https://www.aws.at/preseed/"
+  },
+  {
+    "id": "bank-loan",
+    "name": "Bank Loan / Leasing",
+    "type": "Loan",
+    "region": "EU",
+    "targetStage": "Growth",
+    "needs": ["Loan"],
+    "requirements": ["Business plan", "Collateral", "Cashflow forecast"],
+    "maxAmount": 1000000,
+    "link": "https://www.oebb.at/"
+  }
+]
