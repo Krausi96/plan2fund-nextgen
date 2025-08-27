@@ -7,6 +7,7 @@ import Link from "next/link";
 
 export default function ResultsPage() {
   const [results, setResults] = useState<ScoredProgram[]>([]);
+  const [expanded, setExpanded] = useState<string | null>(null);
 
   useEffect(() => {
     const stored = localStorage.getItem("recoResults");
@@ -15,9 +16,24 @@ export default function ResultsPage() {
     }
   }, []);
 
+  const eligiblePrograms = results.filter((p) => p.eligibility === "Eligible");
+
   return (
     <div className="p-6 max-w-3xl mx-auto">
       <h2 className="text-2xl font-semibold mb-6">Your Top Funding Matches</h2>
+
+      {/* Strict Mode */}
+      {results.length > 0 && eligiblePrograms.length === 0 && (
+        <div className="p-4 mb-6 border border-red-300 bg-red-50 rounded-lg">
+          <p className="text-red-700 mb-2 font-medium">
+            No eligible programs were found based on your answers.
+          </p>
+          <Link href="/reco">
+            <Button variant="destructive">Adjust Your Answers</Button>
+          </Link>
+        </div>
+      )}
+
       <div className="grid gap-4">
         {results.map((program) => (
           <Card key={program.id} className="p-4 shadow-md rounded-xl">
@@ -27,13 +43,59 @@ export default function ResultsPage() {
             </div>
             <p className="text-sm mb-2">{program.reason}</p>
             <div className="flex gap-2 mb-4">
-              <span className={`px-2 py-1 text-xs rounded ${program.eligibility === "Eligible" ? "bg-green-100 text-green-800" : "bg-red-100 text-red-800"}`}>
+              <span
+                className={`px-2 py-1 text-xs rounded ${
+                  program.eligibility === "Eligible"
+                    ? "bg-green-100 text-green-800"
+                    : "bg-red-100 text-red-800"
+                }`}
+              >
                 {program.eligibility}
               </span>
               <span className="px-2 py-1 text-xs rounded bg-blue-100 text-blue-800">
                 Confidence: {program.confidence}
               </span>
             </div>
+
+            {/* Debug Toggle */}
+            <div className="mb-3">
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => setExpanded(expanded === program.id ? null : program.id)}
+              >
+                {expanded === program.id ? "Hide Debug Info" : "Show Debug Info"}
+              </Button>
+            </div>
+
+            {/* Debug Panel */}
+            {expanded === program.id && (
+              <div className="p-3 mb-3 border rounded bg-gray-50 text-sm">
+                <h4 className="font-semibold mb-2">Debug Panel</h4>
+                <ul className="mb-2">
+                  {program.debug.map((d, i) => (
+                    <li key={i} className="flex justify-between">
+                      <span>
+                        {d.factor} – {d.matched ? "✔ Matched" : "✖ Not matched"}
+                      </span>
+                      <span className="text-gray-600">
+                        +{Math.round(d.points * 100)} pts (weight {d.weight})
+                      </span>
+                    </li>
+                  ))}
+                </ul>
+                {program.unmetRequirements.length > 0 && (
+                  <div className="text-red-600">
+                    <strong>Unmet requirements:</strong>
+                    <ul className="list-disc list-inside">
+                      {program.unmetRequirements.map((req, i) => (
+                        <li key={i}>{req}</li>
+                      ))}
+                    </ul>
+                  </div>
+                )}
+              </div>
+            )}
 
             <div className="flex gap-3">
               <Dialog>
@@ -48,9 +110,15 @@ export default function ResultsPage() {
                     </DialogDescription>
                   </DialogHeader>
                   <div className="mt-2 text-sm text-gray-700 space-y-2">
-                    <p><strong>Type:</strong> {program.type}</p>
-                    <p><strong>Region:</strong> {program.region}</p>
-                    <p><strong>Max Amount:</strong> €{program.maxAmount.toLocaleString()}</p>
+                    <p>
+                      <strong>Type:</strong> {program.type}
+                    </p>
+                    <p>
+                      <strong>Region:</strong> {program.region}
+                    </p>
+                    <p>
+                      <strong>Max Amount:</strong> €{program.maxAmount.toLocaleString()}
+                    </p>
                     <div>
                       <strong>Requirements:</strong>
                       <ul className="list-disc list-inside">
@@ -59,7 +127,12 @@ export default function ResultsPage() {
                         ))}
                       </ul>
                     </div>
-                    <a href={program.link} target="_blank" rel="noopener noreferrer" className="text-blue-600 underline">
+                    <a
+                      href={program.link}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="text-blue-600 underline"
+                    >
                       Official Program Link
                     </a>
                   </div>
