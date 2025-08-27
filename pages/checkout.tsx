@@ -1,9 +1,13 @@
-﻿import OrderSummary from "@/components/checkout/OrderSummary"
+﻿import AppShell from "@/components/layout/AppShell"
+import OrderSummary from "@/components/checkout/OrderSummary"
 import TrustSeals from "@/components/checkout/TrustSeals"
 import { Button } from "@/components/ui/button"
 import Link from "next/link"
 
-export default function CheckoutPage() {
+export default function checkout() {
+  return (
+    <AppShell breadcrumb={['Home','checkout']}>
+      
   return (
     <div className="max-w-3xl mx-auto py-10 space-y-6">
       <h1 className="text-2xl font-bold">Checkout</h1>
@@ -15,5 +19,9 @@ export default function CheckoutPage() {
       </div>
     </div>
   )
+
+    </AppShell>
+  )
 }
+
 

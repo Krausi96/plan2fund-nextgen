@@ -1,4 +1,5 @@
-﻿import { useState } from "react"
+﻿import AppShell from "@/components/layout/AppShell"
+import { useState } from "react"
 import { ProgramCard } from "@/components/reco/ProgramCard"
 import { ProgramModal } from "@/components/reco/ProgramModal"
 import { evaluateEligibility } from "@/components/reco/eligibility"
@@ -6,7 +7,10 @@ import { evaluateConfidence } from "@/components/reco/confidence"
 import { Button } from "@/components/ui/button"
 import Link from "next/link"
 
-export default function ResultsPage() {
+export default function results() {
+  return (
+    <AppShell breadcrumb={['Home','results']}>
+      
   const [selected, setSelected] = useState<any>(null)
   const programs = [
     { name: "AWS PreSeed", sector: "Tech", location: "AT" },
@@ -33,4 +37,8 @@ export default function ResultsPage() {
       </div>
     </div>
   )
+
+    </AppShell>
+  )
 }
+

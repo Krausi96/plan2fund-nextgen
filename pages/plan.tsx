@@ -1,10 +1,14 @@
-﻿import { SideNav } from "@/components/plan/SideNav"
+﻿import AppShell from "@/components/layout/AppShell"
+import { SideNav } from "@/components/plan/SideNav"
 import { Editor } from "@/components/plan/Editor"
 import { Progress } from "@/components/ui/progress"
 import { Button } from "@/components/ui/button"
 import Link from "next/link"
 
-export default function PlanPage() {
+export default function plan() {
+  return (
+    <AppShell breadcrumb={['Home','plan']}>
+      
   return (
     <div className="max-w-6xl mx-auto py-10 grid grid-cols-4 gap-6">
       <aside className="col-span-1"><SideNav /></aside>
@@ -18,4 +22,8 @@ export default function PlanPage() {
       </section>
     </div>
   )
+
+    </AppShell>
+  )
 }
+
