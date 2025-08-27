@@ -47,16 +47,18 @@ export default function Editor() {
 
       {/* Main Editor */}
       <main className="flex-1 flex flex-col space-y-4">
-        <div className="flex items-center justify-between">
-          <h1 className="text-2xl font-bold">Business Plan Editor</h1>
-          <span className="text-xs text-gray-500">
-            {saved ? "✓ Saved" : "Saving..."}
-          </span>
+        {/* Sticky top progress bar */}
+        <div className="sticky top-0 bg-white py-2 z-10 border-b">
+          <div className="flex justify-between items-center">
+            <h1 className="text-2xl font-bold">Business Plan Editor</h1>
+            <span className="text-xs text-gray-500">
+              {saved ? "💾 Saved" : "Saving..."}
+            </span>
+          </div>
+          <Progress value={content.length > 0 ? 30 : 10} className="h-2 mt-2" />
         </div>
 
-        {/* Progress Bar */}
-        <Progress value={content.length > 0 ? 30 : 10} className="h-2" />
-
+        {/* Textarea */}
         <textarea
           value={content}
           onChange={(e) => {
@@ -69,15 +71,11 @@ export default function Editor() {
 
         {/* Navigation */}
         <div className="flex justify-between mt-4">
-          <Button
-            variant="outline"
-            asChild
-          >
+          <Button variant="outline" asChild>
             <Link href={program ? `/eligibility?program=${program}` : "/"}>
-              Back
+              ← Back
             </Link>
           </Button>
-
           <Button asChild>
             <Link href="/review">Continue to Review →</Link>
           </Button>
