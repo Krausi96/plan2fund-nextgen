@@ -18,3 +18,5 @@ export function PlanTypes() {
     </section>
   )
 }
+
+export default PlanTypes

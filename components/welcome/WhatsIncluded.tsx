@@ -20,3 +20,5 @@
     </section>
   )
 }
+
+export default WhatsIncluded

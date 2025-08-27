@@ -1,4 +1,4 @@
-export interface Answers {
+﻿export interface Answers {
   [key: number]: string;
 }
 
@@ -17,10 +17,12 @@ export function getEligibility(program: string, answers: Answers): "Eligible" | 
     return "Not Eligible";
   }
 
-  if (program === "WKO Gr�nderfonds") {
+  if (program === "WKO Gründerfonds") {
     if (location.includes("austria") && stage.includes("sme")) return "Eligible";
     return "Not Eligible";
   }
 
   return "Not Eligible";
 }
+
+export default function Eligibility() { return null }

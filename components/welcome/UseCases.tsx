@@ -19,3 +19,5 @@ export function UseCases() {
     </section>
   )
 }
+
+export default UseCases

@@ -6,3 +6,5 @@
     </section>
   )
 }
+
+export default QuoteBlock
