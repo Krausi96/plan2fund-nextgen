@@ -1,13 +1,30 @@
 ﻿import React, { useEffect, useState } from "react";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, DialogDescription } from "@/components/ui/dialog";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+  DialogDescription,
+} from "@/components/ui/dialog";
 import { ScoredProgram } from "@/lib/recoEngine";
 import Link from "next/link";
 
 export default function ResultsPage() {
   const [results, setResults] = useState<ScoredProgram[]>([]);
   const [expanded, setExpanded] = useState<string | null>(null);
+
+  // Form state for custom program
+  const [custom, setCustom] = useState({
+    name: "",
+    type: "",
+    region: "",
+    maxAmount: "",
+    requirements: "",
+    link: "",
+  });
 
   useEffect(() => {
     const stored = localStorage.getItem("recoResults");
@@ -18,9 +35,107 @@ export default function ResultsPage() {
 
   const eligiblePrograms = results.filter((p) => p.eligibility === "Eligible");
 
+  const handleAddCustom = () => {
+    const newProgram: ScoredProgram = {
+      id: `custom-${Date.now()}`,
+      name: custom.name || "Custom Program",
+      type: custom.type || "Other",
+      region: custom.region || "N/A",
+      targetStage: "Any",
+      needs: [],
+      requirements: custom.requirements
+        ? custom.requirements.split(",").map((r) => r.trim())
+        : [],
+      maxAmount: custom.maxAmount ? Number(custom.maxAmount) : 0,
+      link: custom.link || "#",
+      score: 50,
+      reason: "Manually added program.",
+      eligibility: "Eligible",
+      confidence: "Medium",
+      unmetRequirements: [],
+      debug: [],
+    };
+
+    const updated = [...results, newProgram];
+    setResults(updated);
+    localStorage.setItem("recoResults", JSON.stringify(updated));
+
+    // reset form
+    setCustom({
+      name: "",
+      type: "",
+      region: "",
+      maxAmount: "",
+      requirements: "",
+      link: "",
+    });
+  };
+
   return (
     <div className="p-6 max-w-3xl mx-auto">
-      <h2 className="text-2xl font-semibold mb-6">Your Top Funding Matches</h2>
+      <h2 className="text-2xl font-semibold mb-6 flex justify-between items-center">
+        Your Top Funding Matches
+        <Dialog>
+          <DialogTrigger asChild>
+            <Button variant="outline">+ Add Custom Program</Button>
+          </DialogTrigger>
+          <DialogContent className="max-w-lg">
+            <DialogHeader>
+              <DialogTitle>Add Custom Program</DialogTitle>
+              <DialogDescription>
+                Enter details for a funding program not listed in the results.
+              </DialogDescription>
+            </DialogHeader>
+            <div className="space-y-3 mt-2">
+              <input
+                type="text"
+                placeholder="Name"
+                className="w-full border rounded p-2"
+                value={custom.name}
+                onChange={(e) => setCustom({ ...custom, name: e.target.value })}
+              />
+              <input
+                type="text"
+                placeholder="Type (e.g., Grant, Loan, Visa)"
+                className="w-full border rounded p-2"
+                value={custom.type}
+                onChange={(e) => setCustom({ ...custom, type: e.target.value })}
+              />
+              <input
+                type="text"
+                placeholder="Region"
+                className="w-full border rounded p-2"
+                value={custom.region}
+                onChange={(e) => setCustom({ ...custom, region: e.target.value })}
+              />
+              <input
+                type="number"
+                placeholder="Max Amount"
+                className="w-full border rounded p-2"
+                value={custom.maxAmount}
+                onChange={(e) => setCustom({ ...custom, maxAmount: e.target.value })}
+              />
+              <input
+                type="text"
+                placeholder="Requirements (comma separated)"
+                className="w-full border rounded p-2"
+                value={custom.requirements}
+                onChange={(e) => setCustom({ ...custom, requirements: e.target.value })}
+              />
+              <input
+                type="text"
+                placeholder="Official Link"
+                className="w-full border rounded p-2"
+                value={custom.link}
+                onChange={(e) => setCustom({ ...custom, link: e.target.value })}
+              />
+              <Button className="w-full" onClick={handleAddCustom}>
+                Save Program
+              </Button>
+            </div>
+          </DialogContent>
+        </Dialog>
+      </h2>
 
       {/* Strict Mode */}
       {results.length > 0 && eligiblePrograms.length === 0 && (
@@ -41,6 +156,11 @@ export default function ResultsPage() {
               <h3 className="text-lg font-bold">{program.name}</h3>
               <span className="text-sm text-gray-600">{program.score}% Match</span>
             </div>
+            {program.id.startsWith("custom-") && (
+              <span className="px-2 py-1 text-xs rounded bg-purple-100 text-purple-800 mb-2 inline-block">
+                Custom Program
+              </span>
+            )}
             <p className="text-sm mb-2">{program.reason}</p>
             <div className="flex gap-2 mb-4">
               <span
@@ -58,18 +178,21 @@ export default function ResultsPage() {
             </div>
 
             {/* Debug Toggle */}
-            <div className="mb-3">
-              <Button
-                variant="ghost"
-                size="sm"
-                onClick={() => setExpanded(expanded === program.id ? null : program.id)}
-              >
-                {expanded === program.id ? "Hide Debug Info" : "Show Debug Info"}
-              </Button>
-            </div>
+            {program.debug && program.debug.length > 0 && (
+              <div className="mb-3">
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={() =>
+                    setExpanded(expanded === program.id ? null : program.id)
+                  }
+                >
+                  {expanded === program.id ? "Hide Debug Info" : "Show Debug Info"}
+                </Button>
+              </div>
+            )}
 
-            {/* Debug Panel */}
-            {expanded === program.id && (
+            {expanded === program.id && program.debug && (
               <div className="p-3 mb-3 border rounded bg-gray-50 text-sm">
                 <h4 className="font-semibold mb-2">Debug Panel</h4>
                 <ul className="mb-2">
@@ -117,7 +240,8 @@ export default function ResultsPage() {
                       <strong>Region:</strong> {program.region}
                     </p>
                     <p>
-                      <strong>Max Amount:</strong> €{program.maxAmount.toLocaleString()}
+                      <strong>Max Amount:</strong> €
+                      {program.maxAmount.toLocaleString()}
                     </p>
                     <div>
                       <strong>Requirements:</strong>
