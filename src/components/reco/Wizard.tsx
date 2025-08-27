@@ -1,4 +1,4 @@
-import { useState } from "react";
+﻿import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 
@@ -11,7 +11,7 @@ export default function Wizard() {
   ];
 
   return (
-    <Card className="p-4 space-y-4">
+    <Card className='p-4 space-y-4' className="p-4 space-y-4">
       <h2 className="text-xl font-bold">Recommendation Wizard</h2>
       {step < questions.length ? (
         <>
