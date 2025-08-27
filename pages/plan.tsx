@@ -1,8 +1,8 @@
 ﻿import { SideNav } from "@/components/plan/SideNav"
 import { Editor } from "@/components/plan/Editor"
 import { Progress } from "@/components/ui/progress"
-import Link from "next/link"
 import { Button } from "@/components/ui/button"
+import Link from "next/link"
 
 export default function PlanPage() {
   return (

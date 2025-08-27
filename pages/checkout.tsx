@@ -9,7 +9,7 @@ export default function CheckoutPage() {
       <h1 className="text-2xl font-bold">Checkout</h1>
       <OrderSummary />
       <TrustSeals />
-      <p className="text-muted-foreground text-sm">⚠️ Payment is disabled (stub only)</p>
+      <p className="text-sm text-muted-foreground">⚠️ Payment is disabled (stub only)</p>
       <div className="text-right">
         <Link href="/export"><Button>Continue to Export</Button></Link>
       </div>

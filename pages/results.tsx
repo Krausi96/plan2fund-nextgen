@@ -8,30 +8,26 @@ import Link from "next/link"
 
 export default function ResultsPage() {
   const [selected, setSelected] = useState<any>(null)
-
   const programs = [
     { name: "AWS PreSeed", sector: "Tech", location: "AT" },
     { name: "FFG Basisprogramm", sector: "Innovation", location: "AT" },
     { name: "EU Startup Call", sector: "General", location: "EU" }
   ]
-
   return (
     <div className="max-w-4xl mx-auto py-10 space-y-6">
       <h1 className="text-2xl font-bold mb-6">Funding Results</h1>
       <div className="grid gap-6 md:grid-cols-2">
-        {programs.map((program, idx) => (
+        {programs.map((p, i) => (
           <ProgramCard
-            key={idx}
-            program={program}
-            eligibility={evaluateEligibility(program)}
-            confidence={evaluateConfidence(program)}
-            onClick={() => setSelected(program)}
+            key={i}
+            program={p}
+            eligibility={evaluateEligibility(p)}
+            confidence={evaluateConfidence(p)}
+            onClick={() => setSelected(p)}
           />
         ))}
       </div>
-      {selected && (
-        <ProgramModal program={selected} onClose={() => setSelected(null)} />
-      )}
+      {selected && <ProgramModal program={selected} onClose={() => setSelected(null)} />}
       <div className="pt-6 text-right">
         <Link href="/plan"><Button>Continue to Plan Generator</Button></Link>
       </div>
