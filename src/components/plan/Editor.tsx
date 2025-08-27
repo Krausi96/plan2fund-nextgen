@@ -44,7 +44,16 @@ export default function Editor({ program }: EditorProps) {
   useEffect(() => {
     if (!saved) {
       const timer = setTimeout(() => {
+        // Save locally
         localStorage.setItem("planDraft", content);
+
+        // Save to backend API
+        fetch("/api/savePlan", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ programId: program?.id || "generic", content }),
+        }).catch((err) => console.error("Save failed", err));
+
         setSaved(true);
       }, 1000);
       return () => clearTimeout(timer);
