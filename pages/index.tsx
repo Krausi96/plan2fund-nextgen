@@ -5,14 +5,16 @@ import UseCases from "@/components/landing/UseCases";
 import PlanTypes from "@/components/landing/PlanTypes";
 import Included from "@/components/landing/Included";
 
-export default function HomePage() {
+export default function Home() {
   return (
     <AppShell>
-      <Hero />
-      <Quote />
-      <UseCases />
-      <PlanTypes />
-      <Included />
+      <div className="flex flex-col space-y-12">
+        <Hero />
+        <Quote />
+        <UseCases />
+        <PlanTypes />
+        <Included />
+      </div>
     </AppShell>
   );
 }
