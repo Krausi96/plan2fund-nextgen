@@ -1,6 +1,7 @@
 ﻿import React, { useEffect, useState } from "react";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { ScoredProgram } from "@/lib/recoEngine";
 import Link from "next/link";
 
@@ -33,9 +34,43 @@ export default function ResultsPage() {
                 Confidence: {program.confidence}
               </span>
             </div>
-            <Link href={`/plan?programId=${program.id}`}>
-              <Button>Continue to Plan Generator</Button>
-            </Link>
+
+            <div className="flex gap-3">
+              <Dialog>
+                <DialogTrigger asChild>
+                  <Button variant="outline">More Details</Button>
+                </DialogTrigger>
+                <DialogContent className="max-w-lg">
+                  <DialogHeader>
+                    <DialogTitle>{program.name}</DialogTitle>
+                  </DialogHeader>
+                  <div className="mt-2 text-sm text-gray-700 space-y-2">
+                    <p><strong>Type:</strong> {program.type}</p>
+                    <p><strong>Region:</strong> {program.region}</p>
+                    <p><strong>Max Amount:</strong> €{program.maxAmount.toLocaleString()}</p>
+                    <div>
+                      <strong>Requirements:</strong>
+                      <ul className="list-disc list-inside">
+                        {program.requirements.map((req, i) => (
+                          <li key={i}>{req}</li>
+                        ))}
+                      </ul>
+                    </div>
+                    <a href={program.link} target="_blank" rel="noopener noreferrer" className="text-blue-600 underline">
+                      Official Program Link
+                    </a>
+                  </div>
+                  <div className="mt-4">
+                    <Link href={`/plan?programId=${program.id}`}>
+                      <Button className="w-full">Continue to Plan Generator</Button>
+                    </Link>
+                  </div>
+                </DialogContent>
+              </Dialog>
+              <Link href={`/plan?programId=${program.id}`}>
+                <Button>Continue</Button>
+              </Link>
+            </div>
           </Card>
         ))}
       </div>
