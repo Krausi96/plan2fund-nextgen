@@ -27,7 +27,8 @@ export default function Header() {
       <nav className="flex gap-6 items-center">
         <Link href="/about" className="hover:text-blue-500">About</Link>
         <Link href="/pricing" className="hover:text-blue-500">Pricing</Link>
-        <div className="relative">
+        <div className="flex items-center gap-2">
+          <Globe className="w-4 h-4 text-gray-500" />
           <select
             value={lang}
             onChange={(e) => setLang(e.target.value)}
