@@ -11,7 +11,7 @@ const stepsReco = [
   { href: "/confirmation", label: "Confirmation" },
   { href: "/checkout", label: "Checkout" },
   { href: "/export", label: "Export" },
-  { href: "/thank-you", label: "Thank You" },
+  { href: "/thank-you", label: "Success Hub" },
 ]
 
 const stepsDirect = [
@@ -21,7 +21,7 @@ const stepsDirect = [
   { href: "/confirmation", label: "Confirmation" },
   { href: "/checkout", label: "Checkout" },
   { href: "/export", label: "Export" },
-  { href: "/thank-you", label: "Thank You" },
+  { href: "/thank-you", label: "Success Hub" },
 ]
 
 export default function Breadcrumbs() {
