@@ -1,69 +1,51 @@
-﻿import Link from "next/link";
-import { useRouter } from "next/router";
+﻿import Link from "next/link"
+import { useRouter } from "next/router"
 
-const stepLabels: Record<string, string> = {
-  "/reco": "Recommendation Wizard",
-  "/results": "Results",
-  "/eligibility": "Eligibility",
-  "/plan": "Business Plan Editor",
-  "/review": "Review Plan",
-  "/preview": "Preview",
-  "/confirmation": "Confirmation",
-  "/checkout": "Checkout",
-  "/export": "Export",
-  "/thanks": "Thank You",
-};
+const stepsReco = [
+  { href: "/reco", label: "Recommendation" },
+  { href: "/results", label: "Results" },
+  { href: "/eligibility", label: "Eligibility" },
+  { href: "/plan", label: "Plan" },
+  { href: "/review", label: "Review" },
+  { href: "/preview", label: "Preview" },
+  { href: "/confirmation", label: "Confirmation" },
+  { href: "/checkout", label: "Checkout" },
+  { href: "/export", label: "Export" },
+  { href: "/thank-you", label: "Thank You" },
+]
 
-// Two flows
-const recoFlow = ["/reco", "/results", "/eligibility", "/plan", "/review", "/preview", "/confirmation", "/checkout", "/export", "/thanks"];
-const directPlanFlow = ["/plan", "/review", "/preview", "/confirmation", "/checkout", "/export", "/thanks"];
+const stepsDirect = [
+  { href: "/plan", label: "Plan" },
+  { href: "/review", label: "Review" },
+  { href: "/preview", label: "Preview" },
+  { href: "/confirmation", label: "Confirmation" },
+  { href: "/checkout", label: "Checkout" },
+  { href: "/export", label: "Export" },
+  { href: "/thank-you", label: "Thank You" },
+]
 
-export default function Breadcrumbs() {
-  const router = useRouter();
-  const path = router.pathname;
-  const query = router.query;
+export function Breadcrumbs() {
+  const router = useRouter()
+  const path = router.pathname
 
-  // Pick flow
-  let flow =
-    path.startsWith("/reco") ||
-    path.startsWith("/results") ||
-    path.startsWith("/eligibility")
-      ? recoFlow
-      : directPlanFlow;
-
-  // If no program selected, skip eligibility
-  if (!query.program) {
-    flow = flow.filter((step) => step !== "/eligibility");
-  }
-
-  const currentIndex = flow.indexOf(path);
-  if (currentIndex === -1) return null;
-
-  const trail = flow.slice(0, currentIndex + 1);
+  const steps = path.startsWith("/reco") || path.startsWith("/results") || path.startsWith("/eligibility")
+    ? stepsReco
+    : stepsDirect
 
   return (
-    <nav className="text-sm text-gray-500 mb-4">
-      <ol className="flex gap-2 flex-wrap">
-        {trail.map((step, i) => {
-          const isLast = i === trail.length - 1;
-          const href = query.program ? `${step}?program=${query.program}` : step;
-
-          return (
-            <li key={step} className="flex items-center gap-2">
-              {!isLast ? (
-                <Link href={href} className="text-blue-600 hover:underline">
-                  {stepLabels[step]}
-                </Link>
-              ) : (
-                <span className="font-semibold text-gray-700">
-                  {stepLabels[step]}
-                </span>
-              )}
-              {!isLast && <span>/</span>}
-            </li>
-          );
-        })}
-      </ol>
+    <nav className="flex gap-2 text-sm text-gray-600">
+      {steps.map((step, i) => {
+        const isActive = path === step.href
+        return (
+          <Link
+            key={i}
+            href={step.href}
+            className={isActive ? "font-bold text-blue-600" : "hover:underline"}
+          >
+            {step.label}
+          </Link>
+        )
+      })}
     </nav>
-  );
+  )
 }
