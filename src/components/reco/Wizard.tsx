@@ -4,9 +4,12 @@ import { useRouter } from "next/router";
 import questions from "@/data/questions.json";
 import { motion, AnimatePresence } from "framer-motion";
 
+type PersonaMode = "strict" | "explorer";
+
 export default function Wizard() {
   const router = useRouter();
   const [mode, setMode] = useState<"survey" | "freeText">("survey");
+  const [personaMode, setPersonaMode] = useState<PersonaMode>("strict");
   const [answers, setAnswers] = useState<Record<string, any>>({});
   const [step, setStep] = useState(0);
   const [loading, setLoading] = useState(false);
@@ -16,7 +19,6 @@ export default function Wizard() {
       if (step < questions.length - 1) {
         setStep(step + 1);
       } else {
-        // Submit to backend API
         try {
           setLoading(true);
           const res = await fetch("/api/recommend", {
@@ -36,8 +38,23 @@ export default function Wizard() {
         }
       }
     } else {
-      localStorage.setItem("freeTextReco", answers.freeText || "");
-      router.push("/results");
+      try {
+        setLoading(true);
+        const res = await fetch("/api/recommend/free-text", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ description: answers.freeText || "" }),
+        });
+        const data = await res.json();
+
+        localStorage.setItem("recoResults", JSON.stringify(data.recommendations));
+        localStorage.setItem("normalizedAnswers", JSON.stringify(data.normalizedAnswers));
+        router.push("/results");
+      } catch (err) {
+        console.error("Error submitting free-text:", err);
+      } finally {
+        setLoading(false);
+      }
     }
   };
 
@@ -53,6 +70,22 @@ export default function Wizard() {
   return (
     <div className="p-6 max-w-lg mx-auto">
       <h2 className="text-xl font-semibold mb-4">Funding Recommendation Wizard</h2>
+
+      {/* Persona Mode Toggle */}
+      <div className="flex gap-2 mb-6">
+        <Button
+          variant={personaMode === "strict" ? "default" : "outline"}
+          onClick={() => setPersonaMode("strict")}
+        >
+          Strict Mode
+        </Button>
+        <Button
+          variant={personaMode === "explorer" ? "default" : "outline"}
+          onClick={() => setPersonaMode("explorer")}
+        >
+          Explorer Mode
+        </Button>
+      </div>
 
       {/* Mode Toggle */}
       <div className="flex gap-2 mb-6">
@@ -130,7 +163,26 @@ export default function Wizard() {
             </motion.div>
           </AnimatePresence>
 
-          <div className="flex justify-between">
+          {/* Skip / Don’t know button */}
+          <div className="mt-2">
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={() => {
+                const qId = questions[step].id;
+                setAnswers((prev) => ({ ...prev, [qId]: "" }));
+                if (step < questions.length - 1) {
+                  setStep(step + 1);
+                } else {
+                  handleNext();
+                }
+              }}
+            >
+              Skip / Don’t know
+            </Button>
+          </div>
+
+          <div className="flex justify-between mt-4">
             {step > 0 && (
               <Button variant="outline" onClick={() => setStep(step - 1)}>
                 Back
@@ -166,6 +218,3 @@ export default function Wizard() {
     </div>
   );
 }
-
-// Persona mode toggle
-const [personaMode, setPersonaMode] = useState<"strict" | "explorer">("strict");
