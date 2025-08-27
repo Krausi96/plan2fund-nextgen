@@ -15,11 +15,22 @@ const chapters = [
   "Attachments",
 ];
 
-export default function Editor() {
+type EditorProps = {
+  program?: {
+    id: string;
+    name: string;
+    type: string;
+    region: string;
+    maxAmount: number;
+    requirements: string[];
+    link: string;
+  };
+};
+
+export default function Editor({ program }: EditorProps) {
   const [content, setContent] = useState("");
   const [saved, setSaved] = useState(true);
   const router = useRouter();
-  const { program } = router.query;
 
   // Autosave simulation
   useEffect(() => {
@@ -52,13 +63,12 @@ export default function Editor() {
           <div className="flex justify-between items-center">
             <h1 className="text-2xl font-bold">Business Plan Editor</h1>
             <span className="text-xs text-gray-500">
-              {saved ? "💾 Saved" : "Saving..."}
+              {saved ? "✅ Saved" : "Saving..."}
             </span>
           </div>
           <Progress value={content.length > 0 ? 30 : 10} className="h-2 mt-2" />
         </div>
 
-        {/* Textarea */}
         <textarea
           value={content}
           onChange={(e) => {
@@ -72,16 +82,44 @@ export default function Editor() {
         {/* Navigation */}
         <div className="flex justify-between mt-4">
           <Button variant="outline" asChild>
-            <Link href={program ? `/eligibility?program=${program}` : "/"}>
-              ← Back
+            <Link href={program ? `/eligibility?program=${program.id}` : "/"}>
+              ⬅ Back
             </Link>
           </Button>
           <Button asChild>
-            <Link href="/review">Continue to Review →</Link>
+            <Link href="/review">Continue to Review ➡</Link>
           </Button>
         </div>
       </main>
+
+      {/* Program Overlay */}
+      {program && (
+        <aside className="w-72 bg-gray-50 border rounded-lg p-4 space-y-3 sticky top-6 h-fit hidden lg:block">
+          <h2 className="text-lg font-semibold">Program Requirements</h2>
+          <p className="text-sm text-gray-600">
+            {program.name} ({program.type}, {program.region})
+          </p>
+          <p className="text-sm">
+            <strong>Max Funding:</strong> €{program.maxAmount.toLocaleString()}
+          </p>
+          <div>
+            <strong className="text-sm">Requirements:</strong>
+            <ul className="list-disc list-inside text-sm text-gray-700">
+              {program.requirements.map((req, i) => (
+                <li key={i}>{req}</li>
+              ))}
+            </ul>
+          </div>
+          <a
+            href={program.link}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="text-blue-600 underline text-sm"
+          >
+            Official Program Link
+          </a>
+        </aside>
+      )}
     </div>
   );
 }
-
