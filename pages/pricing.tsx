@@ -1,4 +1,4 @@
-﻿import Link from "next/link"
+import Link from "next/link"
 import { Button } from "@/components/ui/button"
 
 export default function PricingPage() {
@@ -9,7 +9,7 @@ export default function PricingPage() {
         Our pricing is flexible. Start with a free plan and upgrade as your needs grow.
         (Sample text placeholder).
       </p>
-      <Link href="/"><Button>← Back to Home</Button></Link>
+      <Link href="/"><Button>? Back to Home</Button></Link>
     </div>
   )
 }

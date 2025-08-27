@@ -1,4 +1,4 @@
-﻿import AppShell from "@/components/layout/AppShell"
+import AppShell from "@/components/layout/AppShell"
 import { useState } from "react"
 import ProgramCard from "@/components/reco/ProgramCard"
 import ProgramModal from "@/components/reco/ProgramModal"

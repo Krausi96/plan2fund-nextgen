@@ -1,4 +1,4 @@
-﻿import AppShell from "@/components/layout/AppShell"
+import AppShell from "@/components/layout/AppShell"
 import SideNav from "@/components/plan/SideNav"
 import Editor from "@/components/plan/Editor"
 import { Progress } from "@/components/ui/progress"

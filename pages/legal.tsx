@@ -1,4 +1,4 @@
-﻿import Link from "next/link"
+import Link from "next/link"
 import { Button } from "@/components/ui/button"
 
 export default function LegalPage() {
@@ -8,7 +8,7 @@ export default function LegalPage() {
       <p>
         Legal information placeholder. Company registration details, addresses, etc.
       </p>
-      <Link href="/"><Button>← Back to Home</Button></Link>
+      <Link href="/"><Button>? Back to Home</Button></Link>
     </div>
   )
 }

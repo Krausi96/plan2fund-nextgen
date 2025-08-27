@@ -1,4 +1,4 @@
-﻿import Link from "next/link"
+import Link from "next/link"
 import { Button } from "@/components/ui/button"
 
 export default function TermsPage() {
@@ -8,7 +8,7 @@ export default function TermsPage() {
       <p>
         These are the terms and conditions. (Sample text placeholder).
       </p>
-      <Link href="/"><Button>← Back to Home</Button></Link>
+      <Link href="/"><Button>? Back to Home</Button></Link>
     </div>
   )
 }

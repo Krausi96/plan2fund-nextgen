@@ -1,4 +1,4 @@
-﻿import AppShell from "@/components/layout/AppShell"
+import AppShell from "@/components/layout/AppShell"
 import ExportPanel from "@/components/export/ExportPanel"
 import { Button } from "@/components/ui/button"
 import Link from "next/link"

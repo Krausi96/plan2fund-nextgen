@@ -1,4 +1,4 @@
-﻿import AppShell from "@/components/layout/AppShell"
+import AppShell from "@/components/layout/AppShell"
 import PreviewPanel from "@/components/preview/PreviewPanel"
 import PricingPanel from "@/components/preview/PricingPanel"
 import { Progress } from "@/components/ui/progress"

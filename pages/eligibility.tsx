@@ -1,4 +1,4 @@
-﻿import AppShell from "@/components/layout/AppShell"
+import AppShell from "@/components/layout/AppShell"
 import Eligibility from "@/components/reco/eligibility"
 
 export default function EligibilityPage() {

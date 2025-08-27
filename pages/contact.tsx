@@ -1,4 +1,4 @@
-﻿import Link from "next/link"
+import Link from "next/link"
 import { Button } from "@/components/ui/button"
 
 export default function ContactPage() {
@@ -8,7 +8,7 @@ export default function ContactPage() {
       <p>
         Reach out to us at <a href="mailto:support@plan2fund.com" className="underline">support@plan2fund.com</a>.
       </p>
-      <Link href="/"><Button>← Back to Home</Button></Link>
+      <Link href="/"><Button>? Back to Home</Button></Link>
     </div>
   )
 }

@@ -1,4 +1,4 @@
-﻿import AppShell from "@/components/layout/AppShell"
+import AppShell from "@/components/layout/AppShell"
 import OrderSummary from "@/components/checkout/OrderSummary"
 import TrustSeals from "@/components/checkout/TrustSeals"
 import { Button } from "@/components/ui/button"
@@ -13,7 +13,7 @@ export default function checkout() {
       <h1 className="text-2xl font-bold">Checkout</h1>
       <OrderSummary />
       <TrustSeals />
-      <p className="text-sm text-muted-foreground">⚠️ Payment is disabled (stub only)</p>
+      <p className="text-sm text-muted-foreground">?? Payment is disabled (stub only)</p>
       <div className="text-right">
         <Link href="/export"><Button>Continue to Export</Button></Link>
       </div>

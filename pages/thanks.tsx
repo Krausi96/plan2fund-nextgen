@@ -1,4 +1,4 @@
-﻿import AppShell from "@/components/layout/AppShell"
+import AppShell from "@/components/layout/AppShell"
 import RevisionRequest from "@/components/thanks/RevisionRequest"
 import Upsell from "@/components/thanks/Upsell"
 
