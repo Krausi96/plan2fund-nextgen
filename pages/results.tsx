@@ -1,7 +1,7 @@
 ﻿import AppShell from "@/components/layout/AppShell"
 import { useState } from "react"
-import { ProgramCard } from "@/components/reco/ProgramCard"
-import { ProgramModal } from "@/components/reco/ProgramModal"
+import ProgramCard from "@/components/reco/ProgramCard"
+import ProgramModal from "@/components/reco/ProgramModal"
 import { evaluateEligibility } from "@/components/reco/eligibility"
 import { evaluateConfidence } from "@/components/reco/confidence"
 import { Button } from "@/components/ui/button"
@@ -41,4 +41,5 @@ export default function results() {
     </AppShell>
   )
 }
+
 

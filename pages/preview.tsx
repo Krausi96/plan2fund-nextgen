@@ -1,6 +1,6 @@
 ﻿import AppShell from "@/components/layout/AppShell"
-import { PreviewPanel } from "@/components/preview/PreviewPanel"
-import { PricingPanel } from "@/components/preview/PricingPanel"
+import PreviewPanel from "@/components/preview/PreviewPanel"
+import PricingPanel from "@/components/preview/PricingPanel"
 import { Progress } from "@/components/ui/progress"
 import { Button } from "@/components/ui/button"
 import Link from "next/link"
@@ -24,4 +24,5 @@ export default function preview() {
     </AppShell>
   )
 }
+
 
