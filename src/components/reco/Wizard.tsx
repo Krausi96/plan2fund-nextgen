@@ -1,6 +1,7 @@
 ﻿import { useState } from "react";
 import { motion } from "framer-motion";
 import { Button } from "@/components/ui/button";
+import Link from "next/link";
 
 const steps = [
   { id: 1, question: "What’s your goal? (Visa, Grant, Loan…)" },
@@ -29,7 +30,7 @@ export default function Wizard() {
           <Button onClick={() => setStep(step + 1)}>Next</Button>
         ) : (
           <Button asChild>
-            <a href="/results">See Results</a>
+            <Link href="/results">See Results</Link>
           </Button>
         )}
       </div>
