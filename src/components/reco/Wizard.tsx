@@ -22,7 +22,7 @@ export default function Wizard() {
           const res = await fetch("/api/recommend", {
             method: "POST",
             headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ answers, mode }),
+            body: JSON.stringify({ answers, mode: personaMode }),
           });
           const data = await res.json();
 
