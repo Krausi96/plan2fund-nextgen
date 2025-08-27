@@ -1,3 +1,4 @@
+import { motion } from 'framer-motion';
 import AppShell from "@/components/layout/AppShell"
 import CartSummary from "@/components/confirmation/CartSummary"
 import DocsUpload from "@/components/confirmation/DocsUpload"
@@ -7,6 +8,7 @@ import Link from "next/link"
 export default function confirmation() {
   return (
     <AppShell breadcrumb={['Home','confirmation']}>
+    <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} transition={{ duration: 0.4, ease: 'easeInOut' }}>
       
   return (
     <div className="max-w-3xl mx-auto py-10 space-y-6">
@@ -19,9 +21,11 @@ export default function confirmation() {
     </div>
   )
 
-    </AppShell>
+        </motion.div>
+</AppShell>
   )
 }
+
 
 
 

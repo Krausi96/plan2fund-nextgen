@@ -1,8 +1,10 @@
+import { motion } from 'framer-motion';
 import Link from "next/link"
 import { Button } from "@/components/ui/button"
 
 export function Hero() {
   return (
+    <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.6, ease: 'easeInOut' }}>
     <section className="text-center py-24 bg-gradient-to-b from-blue-50 to-white">
       <h1 className="text-4xl font-bold mb-6">
         Freedom starts with a clear plan — let’s build yours.
@@ -23,3 +25,4 @@ export function Hero() {
 }
 
 export default Hero
+

@@ -1,9 +1,11 @@
+import { motion } from 'framer-motion';
 import AppShell from "@/components/layout/AppShell"
 import Wizard from "@/components/reco/Wizard"
 
 export default function reco() {
   return (
     <AppShell breadcrumb={['Home','reco']}>
+    <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} transition={{ duration: 0.4, ease: 'easeInOut' }}>
       
   return (
     <div className="max-w-3xl mx-auto py-10">
@@ -12,9 +14,11 @@ export default function reco() {
     </div>
   )
 
-    </AppShell>
+        </motion.div>
+</AppShell>
   )
 }
+
 
 
 

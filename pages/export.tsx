@@ -1,3 +1,4 @@
+import { motion } from 'framer-motion';
 import AppShell from "@/components/layout/AppShell"
 import ExportPanel from "@/components/export/ExportPanel"
 import { Button } from "@/components/ui/button"
@@ -6,6 +7,7 @@ import Link from "next/link"
 export default function ExportPage(): JSX.Element {
   return (
     <AppShell breadcrumb={['Home','Export']}>
+    <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} transition={{ duration: 0.4, ease: 'easeInOut' }}>
       <div className="p-6">
         <ExportPanel data={{}} onExport={() => {}} />
         <div className="mt-6 flex justify-end">
@@ -14,9 +16,11 @@ export default function ExportPage(): JSX.Element {
           </Link>
         </div>
       </div>
-    </AppShell>
+        </motion.div>
+</AppShell>
   )
 }
+
 
 
 

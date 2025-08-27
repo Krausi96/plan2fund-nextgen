@@ -1,3 +1,4 @@
+import { motion } from 'framer-motion';
 import AppShell from "@/components/layout/AppShell"
 import OrderSummary from "@/components/checkout/OrderSummary"
 import TrustSeals from "@/components/checkout/TrustSeals"
@@ -7,6 +8,7 @@ import Link from "next/link"
 export default function checkout() {
   return (
     <AppShell breadcrumb={['Home','checkout']}>
+    <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} transition={{ duration: 0.4, ease: 'easeInOut' }}>
       
   return (
     <div className="max-w-3xl mx-auto py-10 space-y-6">
@@ -20,9 +22,11 @@ export default function checkout() {
     </div>
   )
 
-    </AppShell>
+        </motion.div>
+</AppShell>
   )
 }
+
 
 
 
