@@ -1,6 +1,7 @@
 ﻿import AppShell from "@/components/layout/AppShell";
 import Breadcrumbs from "@/components/layout/Breadcrumbs";
 import EligibilityCard from "@/components/eligibility/EligibilityCard";
+import Link from "next/link";
 
 const mockResults = [
   { program: "AWS PreSeed", score: 92, eligible: true, confidence: "High" },
@@ -20,12 +21,14 @@ export default function EligibilityPage() {
           ))}
         </div>
         <div className="mt-8 text-center">
-          <a href="/preview" className="px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700">
-            Continue to Preview
-          </a>
+          <Link
+            href="/plan"
+            className="px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
+          >
+            Continue to Business Plan Generator
+          </Link>
         </div>
       </section>
     </AppShell>
   );
 }
-
