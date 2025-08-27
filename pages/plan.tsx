@@ -11,11 +11,11 @@ export default function plan() {
       
   return (
     <div className="max-w-6xl mx-auto py-10 grid grid-cols-4 gap-6">
-      <aside className="col-span-1"><SideNav /></aside>
+      <aside className="col-span-1"><SideNav current="overview" setCurrent={() => {}} /></aside>
       <section className="col-span-3 space-y-6">
         <h1 className="text-2xl font-bold">Business Plan Editor</h1>
         <Progress value={30} />
-        <Editor />
+        <Editor content="" onChange={() => {}} />
         <div className="flex justify-end">
           <Link href="/preview"><Button>Continue to Preview</Button></Link>
         </div>
@@ -26,5 +26,6 @@ export default function plan() {
     </AppShell>
   )
 }
+
 
 

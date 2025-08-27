@@ -5,8 +5,9 @@ export default function EligibilityPage() {
   return (
     <AppShell breadcrumb={['Home','Eligibility']}>
       <div className="p-6">
-        <Eligibility />
+        <Eligibility status="pending" onCheck={() => {}} />
       </div>
     </AppShell>
   )
 }
+

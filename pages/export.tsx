@@ -7,7 +7,7 @@ export default function ExportPage(): JSX.Element {
   return (
     <AppShell breadcrumb={['Home','Export']}>
       <div className="p-6">
-        <ExportPanel />
+        <ExportPanel data={{}} onExport={() => {}} />
         <div className="mt-6 flex justify-end">
           <Link href="/thanks">
             <Button>Finish</Button>
@@ -17,5 +17,6 @@ export default function ExportPage(): JSX.Element {
     </AppShell>
   )
 }
+
 
 
