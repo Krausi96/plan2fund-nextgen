@@ -8,16 +8,11 @@ export default function PreviewPage() {
   return (
     <div className="max-w-4xl mx-auto py-10 space-y-8">
       <h1 className="text-2xl font-bold">Preview & Pricing</h1>
-
       <Progress value={60} className="mb-4" />
-
       <PreviewPanel />
       <PricingPanel />
-
       <div className="text-right">
-        <Link href="/confirmation">
-          <Button>Proceed to Confirmation</Button>
-        </Link>
+        <Link href="/confirmation"><Button>Proceed to Confirmation</Button></Link>
       </div>
     </div>
   )

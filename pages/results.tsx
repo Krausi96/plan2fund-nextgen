@@ -7,7 +7,7 @@ import { Button } from "@/components/ui/button"
 import Link from "next/link"
 
 export default function ResultsPage() {
-  const [selected, setSelected] = useState(null)
+  const [selected, setSelected] = useState<any>(null)
 
   const programs = [
     { name: "AWS PreSeed", sector: "Tech", location: "AT" },
@@ -18,7 +18,6 @@ export default function ResultsPage() {
   return (
     <div className="max-w-4xl mx-auto py-10 space-y-6">
       <h1 className="text-2xl font-bold mb-6">Funding Results</h1>
-
       <div className="grid gap-6 md:grid-cols-2">
         {programs.map((program, idx) => (
           <ProgramCard
@@ -30,18 +29,11 @@ export default function ResultsPage() {
           />
         ))}
       </div>
-
       {selected && (
-        <ProgramModal
-          program={selected}
-          onClose={() => setSelected(null)}
-        />
+        <ProgramModal program={selected} onClose={() => setSelected(null)} />
       )}
-
       <div className="pt-6 text-right">
-        <Link href="/plan">
-          <Button>Continue to Plan Generator</Button>
-        </Link>
+        <Link href="/plan"><Button>Continue to Plan Generator</Button></Link>
       </div>
     </div>
   )

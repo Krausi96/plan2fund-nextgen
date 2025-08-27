@@ -7,17 +7,13 @@ import { Button } from "@/components/ui/button"
 export default function PlanPage() {
   return (
     <div className="max-w-6xl mx-auto py-10 grid grid-cols-4 gap-6">
-      <aside className="col-span-1">
-        <SideNav />
-      </aside>
+      <aside className="col-span-1"><SideNav /></aside>
       <section className="col-span-3 space-y-6">
         <h1 className="text-2xl font-bold">Business Plan Editor</h1>
         <Progress value={30} />
         <Editor />
         <div className="flex justify-end">
-          <Link href="/preview">
-            <Button>Continue to Preview</Button>
-          </Link>
+          <Link href="/preview"><Button>Continue to Preview</Button></Link>
         </div>
       </section>
     </div>
