@@ -3,6 +3,7 @@ import { Button } from "@/components/ui/button";
 import { scorePrograms, UserAnswers } from "@/lib/recoEngine";
 import { useRouter } from "next/router";
 import questions from "@/data/questions.json";
+import { motion, AnimatePresence } from "framer-motion";
 
 export default function Wizard() {
   const router = useRouter();
@@ -20,7 +21,6 @@ export default function Wizard() {
         router.push("/results");
       }
     } else {
-      // Free text mode – stored for later GPT normalization
       localStorage.setItem("freeTextReco", answers.freeText || "");
       router.push("/results");
     }
@@ -32,6 +32,8 @@ export default function Wizard() {
       [key]: value,
     }));
   };
+
+  const progressPercent = Math.round(((step + 1) / questions.length) * 100);
 
   return (
     <div className="p-6 max-w-lg mx-auto">
@@ -53,52 +55,65 @@ export default function Wizard() {
         </Button>
       </div>
 
+      {/* Progress Bar */}
+      {mode === "survey" && (
+        <div className="w-full bg-gray-200 h-2 rounded mb-6">
+          <div
+            className="bg-blue-500 h-2 rounded transition-all duration-300"
+            style={{ width: `${progressPercent}%` }}
+          />
+        </div>
+      )}
+
       {mode === "survey" ? (
         <div>
-          <div className="mb-4">
-            <label className="block text-sm font-medium mb-2">
-              {questions[step].label}
-            </label>
-            {questions[step].type === "select" && (
-              <select
-                value={(answers as any)[questions[step].id] || ""}
-                onChange={(e) =>
-                  handleChange(questions[step].id, e.target.value)
-                }
-                className="w-full border rounded p-2"
-              >
-                <option value="">Select...</option>
-                {questions[step].options?.map((opt: string) => (
-                  <option key={opt} value={opt}>
-                    {opt}
-                  </option>
-                ))}
-              </select>
-            )}
-            {questions[step].type === "number" && (
-              <input
-                type="number"
-                value={(answers as any)[questions[step].id] || ""}
-                onChange={(e) =>
-                  handleChange(questions[step].id, Number(e.target.value))
-                }
-                className="w-full border rounded p-2"
-              />
-            )}
-            {questions[step].type === "boolean" && (
-              <select
-                value={(answers as any)[questions[step].id] || ""}
-                onChange={(e) =>
-                  handleChange(questions[step].id, e.target.value === "Yes")
-                }
-                className="w-full border rounded p-2"
-              >
-                <option value="">Select...</option>
-                <option value="Yes">Yes</option>
-                <option value="No">No</option>
-              </select>
-            )}
-          </div>
+          <AnimatePresence mode="wait">
+            <motion.div
+              key={step}
+              initial={{ opacity: 0, x: 50 }}
+              animate={{ opacity: 1, x: 0 }}
+              exit={{ opacity: 0, x: -50 }}
+              transition={{ duration: 0.3 }}
+              className="mb-4"
+            >
+              <label className="block text-sm font-medium mb-2">
+                {questions[step].label}
+              </label>
+              {questions[step].type === "select" && (
+                <select
+                  value={(answers as any)[questions[step].id] || ""}
+                  onChange={(e) => handleChange(questions[step].id, e.target.value)}
+                  className="w-full border rounded p-2"
+                >
+                  <option value="">Select...</option>
+                  {questions[step].options?.map((opt: string) => (
+                    <option key={opt} value={opt}>
+                      {opt}
+                    </option>
+                  ))}
+                </select>
+              )}
+              {questions[step].type === "number" && (
+                <input
+                  type="number"
+                  value={(answers as any)[questions[step].id] || ""}
+                  onChange={(e) => handleChange(questions[step].id, Number(e.target.value))}
+                  className="w-full border rounded p-2"
+                />
+              )}
+              {questions[step].type === "boolean" && (
+                <select
+                  value={(answers as any)[questions[step].id] || ""}
+                  onChange={(e) => handleChange(questions[step].id, e.target.value === "Yes")}
+                  className="w-full border rounded p-2"
+                >
+                  <option value="">Select...</option>
+                  <option value="Yes">Yes</option>
+                  <option value="No">No</option>
+                </select>
+              )}
+            </motion.div>
+          </AnimatePresence>
 
           <div className="flex justify-between">
             {step > 0 && (
@@ -122,9 +137,7 @@ export default function Wizard() {
           </label>
           <textarea
             value={answers.freeText || ""}
-            onChange={(e) =>
-              setAnswers({ ...answers, freeText: e.target.value })
-            }
+            onChange={(e) => setAnswers({ ...answers, freeText: e.target.value })}
             placeholder="e.g., I run a bakery in Vienna and need a loan to expand"
             className="w-full border rounded p-2 h-40"
           />
