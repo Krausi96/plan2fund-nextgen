@@ -1,0 +1,28 @@
+﻿[
+  {
+    "id": "grant-innovation",
+    "name": "Innovation Grant Austria",
+    "type": "Grant",
+    "requirements": {
+      "sector": "Technology",
+      "stage": "Startup",
+      "location": "Austria"
+    },
+    "maxAmount": 50000,
+    "notes": "Supports early-stage Austrian tech startups.",
+    "link": "https://example.com/innovation-grant"
+  },
+  {
+    "id": "loan-sme",
+    "name": "SME Growth Loan",
+    "type": "Loan",
+    "requirements": {
+      "sector": "Manufacturing",
+      "stage": "Growth",
+      "location": "Austria"
+    },
+    "maxAmount": 100000,
+    "notes": "Loan program for SMEs expanding operations.",
+    "link": "https://example.com/sme-loan"
+  }
+]
