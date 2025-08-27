@@ -1,11 +1,9 @@
-﻿import Breadcrumbs from "@/components/layout/Breadcrumbs";
-import { Button } from "@/components/ui/button";
+﻿import { Button } from "@/components/ui/button";
 import Link from "next/link";
 
 export default function ThanksPage() {
   return (
     <div className="max-w-3xl mx-auto p-6 space-y-8 text-center">
-      <Breadcrumbs />
 
       <h1 className="text-3xl font-bold text-green-600">🎉 Thank You!</h1>
       <p className="text-gray-600">

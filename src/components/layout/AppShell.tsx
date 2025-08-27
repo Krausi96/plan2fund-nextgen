@@ -5,7 +5,24 @@ import { useRouter } from "next/router";
 
 export default function AppShell({ children }: { children: React.ReactNode }) {
   const router = useRouter();
-  const showBreadcrumbs = !["/", "/about", "/pricing", "/legal", "/privacy"].includes(router.pathname);
+
+  // Define flow routes where Breadcrumbs should be shown
+  const flowRoutes = [
+    "/reco",
+    "/results",
+    "/eligibility",
+    "/plan",
+    "/review",
+    "/preview",
+    "/confirmation",
+    "/checkout",
+    "/export",
+    "/thank-you",
+  ];
+
+  const showBreadcrumbs = flowRoutes.some((route) =>
+    router.pathname.startsWith(route)
+  );
 
   return (
     <div className="flex flex-col min-h-screen">
@@ -22,4 +39,3 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
     </div>
   );
 }
-

@@ -1,6 +1,5 @@
 ﻿import { useRouter } from "next/router"
 import Link from "next/link"
-import Breadcrumbs from "@/components/layout/Breadcrumbs"
 import { motion } from "framer-motion"
 
 const mockPrograms = [
@@ -15,8 +14,6 @@ export default function Results() {
 
   return (
     <main className="max-w-3xl mx-auto py-12 space-y-6">
-      {/* Breadcrumbs */}
-      <Breadcrumbs />
 
       <h1 className="text-2xl font-bold">Recommended Programs</h1>
       <p className="text-gray-600">
