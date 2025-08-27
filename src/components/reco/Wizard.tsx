@@ -1,6 +1,7 @@
 ﻿import { useState } from "react"
 import { Button } from "@/components/ui/button"
 import { Card } from "@/components/ui/card"
+import Link from "next/link"
 
 export default function Wizard() {
   const [step, setStep] = useState(0)
@@ -19,7 +20,7 @@ export default function Wizard() {
           <Button onClick={() => setStep(step + 1)}>Next</Button>
         </>
       ) : (
-        <p>✅ Wizard Complete! Go to <a href="/results" className="text-blue-500 underline">Results</a></p>
+        <p>✅ Wizard Complete! Go to <Link href="/results" className="text-blue-500 underline">Results</Link></p>
       )}
     </Card>
   )
