@@ -1,17 +1,17 @@
 ﻿import { useState } from "react";
 
 type DocsUploadProps = {
-  onUpload?: (file: File) => void;
+  onUpload?: (files: File[]) => void;
 };
 
 export default function DocsUpload({ onUpload }: DocsUploadProps) {
-  const [fileName, setFileName] = useState<string | null>(null);
+  const [fileNames, setFileNames] = useState<string[]>([]);
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    if (e.target.files && e.target.files[0]) {
-      const file = e.target.files[0];
-      setFileName(file.name);
-      onUpload?.(file);
+    if (e.target.files) {
+      const files = Array.from(e.target.files);
+      setFileNames(files.map((f) => f.name));
+      onUpload?.(files);
     }
   };
 
@@ -20,13 +20,20 @@ export default function DocsUpload({ onUpload }: DocsUploadProps) {
       <label className="block cursor-pointer">
         <input
           type="file"
+          multiple
           className="hidden"
           onChange={handleFileChange}
         />
-        {fileName ? (
-          <span className="text-sm text-gray-700">Uploaded: {fileName}</span>
+        {fileNames.length > 0 ? (
+          <ul className="text-sm text-gray-700 list-disc pl-5">
+            {fileNames.map((name, i) => (
+              <li key={i}>{name}</li>
+            ))}
+          </ul>
         ) : (
-          <span className="text-sm text-gray-500">Click to Upload Supporting Docs</span>
+          <span className="text-sm text-gray-500">
+            Click to Upload Supporting Documents
+          </span>
         )}
       </label>
     </div>
