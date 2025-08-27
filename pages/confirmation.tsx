@@ -12,7 +12,7 @@ export default function confirmation() {
     <div className="max-w-3xl mx-auto py-10 space-y-6">
       <h1 className="text-2xl font-bold">Confirmation</h1>
       <DocsUpload onUpload={() => {}} />
-      <CartSummary items={[]} total={0} />
+      <CartSummary />
       <div className="text-right">
         <Link href="/checkout"><Button>Proceed to Checkout</Button></Link>
       </div>
@@ -22,6 +22,7 @@ export default function confirmation() {
     </AppShell>
   )
 }
+
 
 
 
