@@ -1,23 +1,18 @@
-﻿import Hero from "@/components/welcome/Hero"
-import PlanTypes from "@/components/welcome/PlanTypes"
-import UseCases from "@/components/welcome/UseCases"
-import QuoteBlock from "@/components/welcome/QuoteBlock"
-import WhatsIncluded from "@/components/welcome/WhatsIncluded"
-import Link from "next/link"
+﻿import Link from 'next/link'
+import AppShell from '@/components/layout/AppShell'
+import { Button } from '@/components/ui/button'
 
-export default function Home(): JSX.Element {
+export default function Home() {
   return (
-    <main className="flex flex-col items-center">
-      <Hero />
-      <div className="mt-6 flex gap-4">
-        <Link href="/reco" className="px-4 py-2 bg-blue-600 text-white rounded-lg">Find Funding</Link>
-        <Link href="/plan" className="px-4 py-2 bg-green-600 text-white rounded-lg">Generate Business Plan</Link>
-      </div>
-      <PlanTypes />
-      <UseCases />
-      <QuoteBlock />
-      <WhatsIncluded />
-    </main>
+    <AppShell>
+      <section className='text-center py-20'>
+        <h1 className='text-4xl font-bold mb-6'>Welcome to Plan2Fund NextGen</h1>
+        <p className='mb-8 text-gray-600'>Your journey to funding success starts here.</p>
+        <div className='flex justify-center gap-4'>
+          <Link href='/reco'><Button>Get Recommendations</Button></Link>
+          <Link href='/plan'><Button variant='outline'>Build Your Plan</Button></Link>
+        </div>
+      </section>
+    </AppShell>
   )
 }
-

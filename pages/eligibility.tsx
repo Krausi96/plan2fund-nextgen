@@ -1,20 +1,16 @@
-﻿import { motion } from 'framer-motion';
-import AppShell from "@/components/layout/AppShell"
-import Eligibility from "@/components/reco/eligibility"
+﻿import AppShell from '@/components/layout/AppShell'
+import { Button } from '@/components/ui/button'
+import { useRouter } from 'next/router'
 
 export default function EligibilityPage() {
+  const router = useRouter()
   return (
     <AppShell breadcrumb={['Home','Eligibility']}>
-    <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} transition={{ duration: 0.4, ease: 'easeInOut' }}>
-      <div className="p-6">
-        <Eligibility status="pending" onCheck={() => {}} />
+      <h2 className='text-2xl font-bold mb-4'>Eligibility Check</h2>
+      {/* Eligibility logic here */}
+      <div className='mt-6 flex justify-end'>
+        <Button onClick={() => router.push('/preview')}>Continue to Preview</Button>
       </div>
-        </motion.div>
-</AppShell>
+    </AppShell>
   )
 }
-
-
-
-
-

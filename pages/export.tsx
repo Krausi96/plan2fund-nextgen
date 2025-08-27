@@ -1,29 +1,16 @@
-﻿import { motion } from 'framer-motion';
-import AppShell from "@/components/layout/AppShell"
-import ExportPanel from "@/components/export/ExportPanel"
-import { Button } from "@/components/ui/button"
-import Link from "next/link"
+﻿import AppShell from '@/components/layout/AppShell'
+import { Button } from '@/components/ui/button'
+import { useRouter } from 'next/router'
 
-export default function ExportPage(): JSX.Element {
+export default function ExportPage() {
+  const router = useRouter()
   return (
     <AppShell breadcrumb={['Home','Export']}>
-    <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} transition={{ duration: 0.4, ease: 'easeInOut' }}>
-      <div className="p-6">
-        <ExportPanel data={{}} onExport={() => {}} />
-        <div className="mt-6 flex justify-end">
-          <Link href="/thanks">
-            <Button>Finish</Button>
-          </Link>
-        </div>
+      <h2 className='text-2xl font-bold mb-4'>Export Plan</h2>
+      {/* Export panel here */}
+      <div className='mt-6 flex justify-end'>
+        <Button onClick={() => router.push('/thanks')}>Finish</Button>
       </div>
-        </motion.div>
-</AppShell>
+    </AppShell>
   )
 }
-
-
-
-
-
-
-

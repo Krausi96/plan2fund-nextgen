@@ -1,38 +1,16 @@
-﻿import { motion } from 'framer-motion';
-import AppShell from "@/components/layout/AppShell"
-import SideNav from "@/components/plan/SideNav"
-import Editor from "@/components/plan/Editor"
-import { Progress } from "@/components/ui/progress"
-import { Button } from "@/components/ui/button"
-import Link from "next/link"
+﻿import AppShell from '@/components/layout/AppShell'
+import Editor from '@/components/plan/Editor'
+import { Button } from '@/components/ui/button'
+import { useRouter } from 'next/router'
 
-export default function plan() {
+export default function PlanPage() {
+  const router = useRouter()
   return (
-    <AppShell breadcrumb={['Home','plan']}>
-    <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} transition={{ duration: 0.4, ease: 'easeInOut' }}>
-      
-  return (
-    <div className="max-w-6xl mx-auto py-10 grid grid-cols-4 gap-6">
-      <aside className="col-span-1"><SideNav current="overview" setCurrent={() => {}} /></aside>
-      <section className="col-span-3 space-y-6">
-        <h1 className="text-2xl font-bold">Business Plan Editor</h1>
-        <Progress value={30} />
-        <Editor content="" onChange={() => {}} />
-        <div className="flex justify-end">
-          <Link href="/preview"><Button>Continue to Preview</Button></Link>
-        </div>
-      </section>
-    </div>
-  )
-
-        </motion.div>
-</AppShell>
+    <AppShell breadcrumb={['Home','Plan']}>
+      <Editor />
+      <div className='mt-6 flex justify-end'>
+        <Button onClick={() => router.push('/eligibility')}>Continue</Button>
+      </div>
+    </AppShell>
   )
 }
-
-
-
-
-
-
-

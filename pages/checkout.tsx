@@ -1,37 +1,16 @@
-﻿import { motion } from 'framer-motion';
-import AppShell from "@/components/layout/AppShell"
-import OrderSummary from "@/components/checkout/OrderSummary"
-import TrustSeals from "@/components/checkout/TrustSeals"
-import { Button } from "@/components/ui/button"
-import Link from "next/link"
+﻿import AppShell from '@/components/layout/AppShell'
+import { Button } from '@/components/ui/button'
+import { useRouter } from 'next/router'
 
-export default function checkout() {
+export default function CheckoutPage() {
+  const router = useRouter()
   return (
-    <AppShell breadcrumb={['Home','checkout']}>
-    <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} transition={{ duration: 0.4, ease: 'easeInOut' }}>
-      
-  return (
-    <div className="max-w-3xl mx-auto py-10 space-y-6">
-      <h1 className="text-2xl font-bold">Checkout</h1>
-      <OrderSummary />
-      <TrustSeals />
-      <p className="text-sm text-muted-foreground">?? Payment is disabled (stub only)</p>
-      <div className="text-right">
-        <Link href="/export"><Button>Continue to Export</Button></Link>
+    <AppShell breadcrumb={['Home','Checkout']}>
+      <h2 className='text-2xl font-bold mb-4'>Checkout</h2>
+      {/* Checkout components here */}
+      <div className='mt-6 flex justify-end'>
+        <Button onClick={() => router.push('/export')}>Export Plan</Button>
       </div>
-    </div>
-  )
-
-        </motion.div>
-</AppShell>
+    </AppShell>
   )
 }
-
-
-
-
-
-
-
-
-

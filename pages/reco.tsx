@@ -1,26 +1,16 @@
-﻿import { motion } from 'framer-motion';
-import AppShell from "@/components/layout/AppShell"
-import Wizard from "@/components/reco/Wizard"
+﻿import { useRouter } from 'next/router'
+import AppShell from '@/components/layout/AppShell'
+import Wizard from '@/components/reco/Wizard'
+import { Button } from '@/components/ui/button'
 
-export default function reco() {
+export default function RecoPage() {
+  const router = useRouter()
   return (
-    <AppShell breadcrumb={['Home','reco']}>
-    <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} transition={{ duration: 0.4, ease: 'easeInOut' }}>
-      
-  return (
-    <div className="max-w-3xl mx-auto py-10">
-      <h1 className="text-2xl font-bold mb-6">Funding Recommendation Wizard</h1>
+    <AppShell breadcrumb={['Home','Recommendations']}>
       <Wizard />
-    </div>
-  )
-
-        </motion.div>
-</AppShell>
+      <div className='mt-6 flex justify-end'>
+        <Button onClick={() => router.push('/results')}>See Results</Button>
+      </div>
+    </AppShell>
   )
 }
-
-
-
-
-
-
