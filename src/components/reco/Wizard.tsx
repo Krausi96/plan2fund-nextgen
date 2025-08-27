@@ -6,7 +6,7 @@ import Link from "next/link";
 const steps = [
   { id: 1, question: "What’s your sector?", options: ["Tech", "Health", "Education", "Other"] },
   { id: 2, question: "What stage are you at?", options: ["Idea", "Early", "Scaling"] },
-  { id: 3, question: "How much funding do you need?", options: ["< €50k", "€50k–€200k", "€200k+"] }
+  { id: 3, question: "How much funding do you need?", options: ["< €50k", "€50k–200k", "€200k+"] }
 ];
 
 export default function Wizard() {
@@ -39,17 +39,30 @@ export default function Wizard() {
         >
           <h2 className="text-xl font-semibold mb-6">{current.question}</h2>
           <div className="grid gap-3">
-            {current.options.map(opt => (
+            {current.options.map((opt) => (
               <button
                 key={opt}
-                className={`border rounded-lg py-3 ${answers[current.id] === opt ? "bg-blue-600 text-white" : "hover:bg-gray-100"}`}
+                className={`border rounded-lg py-3 ${
+                  answers[current.id] === opt
+                    ? "bg-blue-600 text-white"
+                    : "hover:bg-gray-100"
+                }`}
                 onClick={() => setAnswers({ ...answers, [current.id]: opt })}
               >
                 {opt}
               </button>
             ))}
           </div>
-          <div className="mt-6 flex justify-center">
+
+          {/* Navigation */}
+          <div className="mt-6 flex justify-between">
+            <Button
+              variant="outline"
+              disabled={step === 0}
+              onClick={() => setStep(step - 1)}
+            >
+              Back
+            </Button>
             <Button
               onClick={() => setStep(step + 1)}
               disabled={!answers[current.id]}
