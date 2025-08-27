@@ -146,3 +146,4 @@ export default function ResultsPage() {
     </div>
   );
 }
+import ProgramDetailsDialog from "@/components/reco/ProgramDetailsDialog";
