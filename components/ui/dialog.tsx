@@ -1,5 +1,5 @@
-import * as React from "react"
+﻿import * as React from "react"
 
-export default function dialog(props: any) {
-  return <div {...props}>[dialog stub]</div>
+export function Dialog({ children }: { children: React.ReactNode }) {
+  return <div>{children}</div>
 }

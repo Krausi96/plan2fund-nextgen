@@ -1,12 +1,14 @@
-import * as React from "react"
+﻿import * as React from "react"
+import { cn } from "@/lib/utils"
 
-export function Progress({ value, className = "" }: { value: number, className?: string }) {
+export interface ProgressProps extends React.HTMLAttributes<HTMLDivElement> {
+  value?: number
+}
+
+export function Progress({ value = 0, className, ...props }: ProgressProps) {
   return (
-    <div className={\w-full bg-gray-200 rounded-full h-3 \\}>
-      <div
-        className="bg-blue-600 h-3 rounded-full transition-all"
-        style={{ width: \\%\ }}
-      />
+    <div className={cn("w-full h-2 bg-gray-200 rounded", className)} {...props}>
+      <div className="h-2 bg-blue-600 rounded" style={{ width: `${value}%` }} />
     </div>
   )
 }

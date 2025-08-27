@@ -1,27 +1,23 @@
-import Hero from "@/components/Hero"
-import Included from "@/components/home/Included"
-import UseCases from "@/components/home/UseCases"
-import PlanTypes from "@/components/home/PlanTypes"
-import Quote from "@/components/home/Quote"
+﻿import { Header } from "@/components/layout/Header"
+import { Footer } from "@/components/layout/Footer"
+import { Hero } from "@/components/welcome/Hero"
+import { QuoteBlock } from "@/components/welcome/QuoteBlock"
+import { UseCases } from "@/components/welcome/UseCases"
+import { PlanTypes } from "@/components/welcome/PlanTypes"
+import { WhatsIncluded } from "@/components/welcome/WhatsIncluded"
 
 export default function HomePage() {
   return (
-    <div>
-      <Hero />
-      <div className="mt-10 flex justify-center">
-        <a
-          href="/ai-plan-machine"
-          className="px-6 py-3 bg-blue-600 text-white font-semibold rounded-xl shadow-md hover:bg-blue-700"
-        >
-          Start Funding Journey
-        </a>
-      </div>
-      <div className="space-y-16 mt-16">
-        <Included />
+    <div className="flex flex-col min-h-screen">
+      <Header />
+      <main className="flex-grow">
+        <Hero />
+        <QuoteBlock />
         <UseCases />
         <PlanTypes />
-        <Quote />
-      </div>
+        <WhatsIncluded />
+      </main>
+      <Footer />
     </div>
   )
 }

@@ -1,5 +1,6 @@
-import * as React from "react"
+﻿import * as React from "react"
+import { cn } from "@/lib/utils"
 
-export default function badge(props: any) {
-  return <div {...props}>[badge stub]</div>
+export function Badge({ className, ...props }: React.HTMLAttributes<HTMLSpanElement>) {
+  return <span className={cn("inline-flex items-center rounded-md bg-blue-100 px-2 py-1 text-xs font-medium text-blue-800", className)} {...props} />
 }
