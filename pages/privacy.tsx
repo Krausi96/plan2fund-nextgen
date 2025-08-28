@@ -1,16 +1,26 @@
-﻿export default function Privacy() {
+﻿export default function Legal() {
   return (
-    <main className="max-w-3xl mx-auto py-16 space-y-6">
-      <h1 className="text-3xl font-bold mb-6">Data Privacy Policy</h1>
-      <p>Your privacy is important to us. This policy explains how we handle your personal data in compliance with GDPR (EU Regulation 2016/679).</p>
-      <ul className="list-disc pl-6 space-y-2">
-        <li>We collect only the data necessary to deliver our services (e.g., contact details, business plan inputs).</li>
-        <li>Your data will never be sold to third parties.</li>
-        <li>Data is stored securely and may be deleted upon request.</li>
-        <li>You have the right to access, correct, or erase your data at any time by contacting us.</li>
+    <main className="max-w-3xl mx-auto px-6 py-16 space-y-12">
+      <section className="text-center mb-12">
+        <h1 className="text-4xl font-bold bg-gradient-to-r from-blue-600 to-indigo-600 bg-clip-text text-transparent">
+          Privacy Policy
+        </h1>
+      </section>
+      <p className="text-gray-700">
+        In compliance with Austrian and EU law, Plan2Fund provides the following company information:
+      </p>
+      <ul className="list-disc pl-6 space-y-2 text-gray-700">
+        <li><b>Company Name:</b> Plan2Fund</li>
+        <li><b>Business Address:</b> Vienna, Austria</li>
+        <li><b>Email:</b> contact@plan2fund.com</li>
+        <li><b>VAT ID:</b> [Placeholder VAT Number]</li>
+        <li><b>Managing Director:</b> [Your Name Here]</li>
       </ul>
-      <p>For inquiries, please contact: privacy@plan2fund.com</p>
+      <p className="text-gray-600 mt-6">
+        Dispute resolution: Online dispute resolution platform provided by the European Commission at
+        <a href="https://ec.europa.eu/consumers/odr" className="text-blue-600 hover:underline"> https://ec.europa.eu/consumers/odr</a>.
+      </p>
     </main>
-  )
+  );
 }
 

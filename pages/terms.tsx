@@ -1,15 +1,26 @@
-﻿export default function Terms() {
+﻿export default function Legal() {
   return (
-    <main className="max-w-3xl mx-auto py-16 space-y-6">
-      <h1 className="text-3xl font-bold mb-6">Terms & Conditions</h1>
-      <p>These Terms & Conditions govern the use of Plan2Fund’s services. By using our platform, you agree to the following:</p>
-      <ul className="list-disc pl-6 space-y-2">
-        <li>Services are provided on a best-effort basis for business planning and funding preparation.</li>
-        <li>All intellectual property remains with Plan2Fund unless otherwise agreed in writing.</li>
-        <li>Refunds or cancellations are subject to review on a case-by-case basis.</li>
-        <li>Any disputes will be handled under Austrian law and EU consumer regulations.</li>
+    <main className="max-w-3xl mx-auto px-6 py-16 space-y-12">
+      <section className="text-center mb-12">
+        <h1 className="text-4xl font-bold bg-gradient-to-r from-blue-600 to-indigo-600 bg-clip-text text-transparent">
+          Terms & Conditions
+        </h1>
+      </section>
+      <p className="text-gray-700">
+        In compliance with Austrian and EU law, Plan2Fund provides the following company information:
+      </p>
+      <ul className="list-disc pl-6 space-y-2 text-gray-700">
+        <li><b>Company Name:</b> Plan2Fund</li>
+        <li><b>Business Address:</b> Vienna, Austria</li>
+        <li><b>Email:</b> contact@plan2fund.com</li>
+        <li><b>VAT ID:</b> [Placeholder VAT Number]</li>
+        <li><b>Managing Director:</b> [Your Name Here]</li>
       </ul>
+      <p className="text-gray-600 mt-6">
+        Dispute resolution: Online dispute resolution platform provided by the European Commission at
+        <a href="https://ec.europa.eu/consumers/odr" className="text-blue-600 hover:underline"> https://ec.europa.eu/consumers/odr</a>.
+      </p>
     </main>
-  )
+  );
 }
 

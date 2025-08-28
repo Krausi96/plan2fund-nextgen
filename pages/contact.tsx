@@ -1,17 +1,26 @@
-﻿import Link from "next/link"
-import { Button } from "@/components/ui/button"
-
-export default function ContactPage() {
+﻿export default function Legal() {
   return (
-    <div className="max-w-2xl mx-auto py-10 space-y-6">
-      <h1 className="text-3xl font-bold">Contact</h1>
-      <p>
-        Reach out to us at <a href="mailto:support@plan2fund.com" className="underline">support@plan2fund.com</a>.
+    <main className="max-w-3xl mx-auto px-6 py-16 space-y-12">
+      <section className="text-center mb-12">
+        <h1 className="text-4xl font-bold bg-gradient-to-r from-blue-600 to-indigo-600 bg-clip-text text-transparent">
+          Contact Us
+        </h1>
+      </section>
+      <p className="text-gray-700">
+        In compliance with Austrian and EU law, Plan2Fund provides the following company information:
       </p>
-      <Link href="/"><Button>? Back to Home</Button></Link>
-    </div>
-  )
+      <ul className="list-disc pl-6 space-y-2 text-gray-700">
+        <li><b>Company Name:</b> Plan2Fund</li>
+        <li><b>Business Address:</b> Vienna, Austria</li>
+        <li><b>Email:</b> contact@plan2fund.com</li>
+        <li><b>VAT ID:</b> [Placeholder VAT Number]</li>
+        <li><b>Managing Director:</b> [Your Name Here]</li>
+      </ul>
+      <p className="text-gray-600 mt-6">
+        Dispute resolution: Online dispute resolution platform provided by the European Commission at
+        <a href="https://ec.europa.eu/consumers/odr" className="text-blue-600 hover:underline"> https://ec.europa.eu/consumers/odr</a>.
+      </p>
+    </main>
+  );
 }
-
-
 
