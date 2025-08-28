@@ -1,21 +1,39 @@
 ﻿import { motion } from "framer-motion";
-import { ClipboardList, BarChart2, Calendar, Target, Globe } from "lucide-react";
+import { useEffect, useState } from "react";
+
+function AnimatedNumber({ value, duration = 2 }) {
+  const [count, setCount] = useState(0);
+
+  useEffect(() => {
+    let start = 0;
+    const end = parseInt(value.replace(/[^0-9]/g, "")); 
+    if (start === end) return;
+
+    let incrementTime = (duration * 1000) / end;
+    let timer = setInterval(() => {
+      start += 1;
+      setCount(start);
+      if (start >= end) clearInterval(timer);
+    }, incrementTime);
+
+    return () => clearInterval(timer);
+  }, [value, duration]);
+
+  return (
+    <span>
+      {count.toLocaleString()}
+      {value.replace(/[0-9,]/g, "")}
+    </span>
+  );
+}
 
 export function Hero() {
-  const floatingIcons = [
-    { Icon: ClipboardList, left: "20%", top: "15%" },
-    { Icon: BarChart2, left: "60%", top: "25%" },
-    { Icon: Calendar, left: "40%", top: "60%" },
-    { Icon: Target, left: "70%", top: "50%" },
-    { Icon: Globe, left: "30%", top: "80%" },
-  ];
-
   return (
     <section className="relative py-20 bg-gradient-to-b from-white to-gray-50 overflow-hidden">
       <div className="container mx-auto px-6 grid md:grid-cols-2 gap-12 items-center">
         {/* Left Column: Headline + CTA */}
         <div>
-          <h1 className="text-5xl font-bold text-gray-900 mb-6">
+          <h1 className="text-5xl font-bold text-gray-900 mb-6 leading-tight">
             Freedom starts with a clear plan — let’s build yours.
           </h1>
           <p className="text-lg text-gray-600 mb-8 max-w-lg">
@@ -38,20 +56,43 @@ export function Hero() {
           </div>
         </div>
 
-        {/* Right Column: Floating Icons */}
-        <div className="relative h-80 w-full">
-          {floatingIcons.map(({ Icon, left, top }, i) => (
-            <motion.div
-              key={i}
-              className="absolute opacity-30"
-              initial={{ y: 0 }}
-              animate={{ y: [0, -20, 0] }}
-              transition={{ duration: 6 + i, repeat: Infinity }}
-              style={{ left, top }}
-            >
-              <Icon size={56} className="text-blue-600" />
-            </motion.div>
-          ))}
+        {/* Right Column: Animated Stats */}
+        <div className="grid gap-6">
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.6 }}
+            className="p-6 bg-white shadow rounded-2xl text-center"
+          >
+            <div className="text-3xl font-bold text-blue-600">
+              <AnimatedNumber value="1000000000" />€
+            </div>
+            <p className="text-lg text-gray-600">Funding Available Annually</p>
+          </motion.div>
+
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.8 }}
+            className="p-6 bg-white shadow rounded-2xl text-center"
+          >
+            <div className="text-3xl font-bold text-blue-600">
+              <AnimatedNumber value="30000" />+
+            </div>
+            <p className="text-lg text-gray-600">New Businesses / Year</p>
+          </motion.div>
+
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            transition={{ duration: 1 }}
+            className="p-6 bg-white shadow rounded-2xl text-center"
+          >
+            <div className="text-3xl font-bold text-blue-600">
+              <AnimatedNumber value="25" />%
+            </div>
+            <p className="text-lg text-gray-600">Startup Growth YoY</p>
+          </motion.div>
         </div>
       </div>
     </section>
