@@ -1,33 +1,46 @@
 ﻿import { motion } from "framer-motion";
-import { ClipboardList, BarChart2, FileText, Target, Briefcase, Users, DollarSign, TrendingUp, PieChart, Presentation } from "lucide-react";
+import { ClipboardList, BarChart2, LineChart, FileText, Target, Briefcase, Users, DollarSign, PieChart, Presentation, TrendingUp } from "lucide-react";
 
 const icons = [
-  { Icon: ClipboardList, x: "10%", y: "15%" },
-  { Icon: BarChart2, x: "80%", y: "20%" },
-  { Icon: FileText, x: "20%", y: "70%" },
-  { Icon: Target, x: "70%", y: "65%" },
-  { Icon: Briefcase, x: "15%", y: "40%" },
-  { Icon: Users, x: "85%", y: "50%" },
-  { Icon: DollarSign, x: "30%", y: "25%" },
-  { Icon: TrendingUp, x: "60%", y: "35%" },
-  { Icon: PieChart, x: "40%", y: "80%" },
-  { Icon: Presentation, x: "75%", y: "85%" },
+  ClipboardList, BarChart2, LineChart, FileText, Target,
+  Briefcase, Users, DollarSign, PieChart, Presentation, TrendingUp
 ];
+
+function FloatingIcon({ Icon, index }) {
+  const driftX = (index % 2 === 0 ? 1 : -1) * (30 + index * 3);
+  const driftY = (index % 2 === 0 ? -1 : 1) * (20 + index * 2);
+
+  return (
+    <motion.div
+      className="absolute opacity-30"
+      initial={{ x: 0, y: 0, opacity: 0 }}
+      animate={{
+        x: [0, driftX, 0],
+        y: [0, driftY, 0],
+        opacity: [0.2, 0.4, 0.2],
+        scale: [1, 1.1, 1]
+      }}
+      transition={{
+        repeat: Infinity,
+        duration: 12 + index * 2,
+        ease: "easeInOut"
+      }}
+      style={{
+        top: `${Math.random() * 80 + 5}%`,
+        left: `${Math.random() * 80 + 10}%`
+      }}
+    >
+      <Icon size={48} className="text-blue-500" />
+    </motion.div>
+  );
+}
 
 export function Hero() {
   return (
-    <section className="relative h-[70vh] flex items-center justify-center overflow-hidden bg-gradient-to-b from-gray-50 to-white">
-      {/* Background Floating Icons */}
-      {icons.map(({ Icon, x, y }, i) => (
-        <motion.div
-          key={i}
-          className="absolute opacity-30"
-          style={{ left: x, top: y }}
-          animate={{ y: [0, -20, 0] }}
-          transition={{ duration: 6 + i, repeat: Infinity, ease: "easeInOut" }}
-        >
-          <Icon size={48} className="text-blue-500" />
-        </motion.div>
+    <section className="relative h-[60vh] flex items-center justify-center overflow-hidden bg-gradient-to-b from-gray-50 to-white">
+      {/* Floating Background Icons */}
+      {icons.map((Icon, i) => (
+        <FloatingIcon Icon={Icon} index={i} key={i} />
       ))}
 
       {/* Central Content */}
