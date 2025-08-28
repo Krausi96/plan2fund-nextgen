@@ -1,53 +1,46 @@
-﻿import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import Link from "next/link";
+﻿import { CheckCircle } from "lucide-react";
 
 const plans = [
-  { name: "Starter", price: "€19", features: ["Basic plan editor", "PDF export"] },
-  { name: "Professional", price: "€49", features: ["Advanced editor", "Reco Wizard", "Priority support"] },
-  { name: "Team", price: "€99", features: ["Collaboration", "Cloud autosave", "All templates"] },
-  { name: "Business", price: "€199", features: ["Full export (DOCX, PDF)", "Custom branding", "Team workspace"] },
-  { name: "Enterprise", price: "Custom", features: ["Dedicated support", "Custom integrations", "SSO/Compliance"] },
+  { title: "Basic Submission Plan", price: "€500 – €850", desc: "For short, form-based applications (AMS, WKO).", features: ["Submission-ready", "No hidden fees"] },
+  { title: "Custom Business Plan", price: "€1.300 – €2.500", desc: "Visa, grants, or loan-ready detailed plans.", features: ["Grant-ready", "Investor-focused", "Visa compliant"] },
+  { title: "Review / Upgrade", price: "€800 – €1.300", desc: "Upgrade or review your existing plan.", features: ["Detailed feedback", "Funding-alignment check"] },
+  { title: "Strategy & Modelling", price: "€1.000 – €2.000", desc: "Business strategy and financial modelling.", features: ["Revenue modelling", "Cash flow analysis"] },
+  { title: "Full Plan + Strategy Combo", price: "€2.000 – €5.000", desc: "Complete plan with strategy & modelling.", features: ["All-in-one package", "Ready for investors"] },
 ];
 
 export default function Pricing() {
   return (
-    <main className="max-w-6xl mx-auto px-6 py-16 space-y-16">
-      <section className="text-center space-y-6">
-        <h1 className="text-4xl font-bold">Pricing Plans</h1>
-        <p className="text-lg text-gray-600">
-          Flexible options for individuals, teams, and enterprises.
-        </p>
+    <main className="bg-white">
+      <section className="py-20 text-center bg-gradient-to-b from-gray-50 to-white">
+        <h1 className="text-5xl font-bold mb-4">Pricing built for businesses of all sizes</h1>
+        <p className="text-lg text-gray-600">Simple, transparent packages — choose the plan that fits your journey.</p>
       </section>
 
-      <div className="grid md:grid-cols-3 lg:grid-cols-5 gap-8">
-        {plans.map((plan) => (
-          <Card key={plan.name} className="shadow-lg rounded-2xl border p-6 text-center">
-            <CardHeader>
-              <CardTitle>{plan.name}</CardTitle>
-              <p className="text-2xl font-bold mt-2">{plan.price}</p>
-            </CardHeader>
-            <CardContent className="space-y-2">
-              <ul className="space-y-1 text-sm text-gray-600">
-                {plan.features.map((f, i) => (
-                  <li key={i}>✔ {f}</li>
-                ))}
-              </ul>
-            </CardContent>
-          </Card>
+      <section className="max-w-6xl mx-auto py-12 grid md:grid-cols-3 gap-8 px-4">
+        {plans.map((plan, i) => (
+          <div key={i} className="rounded-2xl border shadow-sm p-6 bg-white hover:shadow-md transition">
+            <h2 className="text-xl font-bold">{plan.title}</h2>
+            <p className="text-gray-600 mt-2">{plan.desc}</p>
+            <p className="text-lg font-semibold mt-4">{plan.price}</p>
+            <ul className="mt-6 space-y-2">
+              {plan.features.map((f, j) => (
+                <li key={j} className="flex items-center space-x-2 text-gray-600">
+                  <CheckCircle className="h-5 w-5 text-blue-500" />
+                  <span>{f}</span>
+                </li>
+              ))}
+            </ul>
+          </div>
         ))}
-      </div>
+      </section>
 
-      <div className="text-center space-y-4">
-        <p className="text-lg">Ready to get started?</p>
-        <div className="flex justify-center gap-4">
-          <Link href="/plan" className="px-6 py-3 bg-blue-600 text-white rounded-xl hover:bg-blue-700">
-            Generate Business Plan
-          </Link>
-          <Link href="/reco" className="px-6 py-3 border rounded-xl hover:bg-gray-100">
-            Find Funding
-          </Link>
+      <section className="text-center py-12">
+        <h2 className="text-2xl font-semibold mb-6">Ready to get started?</h2>
+        <div className="flex flex-col md:flex-row justify-center gap-4">
+          <a href="/plan" className="px-6 py-3 rounded-xl bg-blue-600 text-white font-semibold hover:bg-blue-700">Generate Business Plan</a>
+          <a href="/reco" className="px-6 py-3 rounded-xl border border-blue-600 text-blue-600 font-semibold hover:bg-blue-50">Find Funding</a>
         </div>
-      </div>
+      </section>
     </main>
   );
 }

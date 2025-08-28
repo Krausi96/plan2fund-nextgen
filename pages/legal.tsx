@@ -1,25 +1,19 @@
 ﻿export default function Legal() {
   return (
-    <main className="max-w-3xl mx-auto px-6 py-16 space-y-12">
-      <section className="text-center mb-12">
-        <h1 className="text-4xl font-bold bg-gradient-to-r from-blue-600 to-indigo-600 bg-clip-text text-transparent">
-          Legal Notice
-        </h1>
+    <main className="bg-white">
+      <section className="py-12 text-center bg-gradient-to-b from-gray-50 to-white">
+        <h1 className="text-4xl font-bold mb-2">Legal Notice</h1>
+        <p className="text-gray-600">Transparency and compliance at every step.</p>
       </section>
-      <p className="text-gray-700">
-        In compliance with Austrian and EU law, Plan2Fund provides the following company information:
-      </p>
-      <ul className="list-disc pl-6 space-y-2 text-gray-700">
-        <li><b>Company Name:</b> Plan2Fund</li>
-        <li><b>Business Address:</b> Vienna, Austria</li>
-        <li><b>Email:</b> contact@plan2fund.com</li>
-        <li><b>VAT ID:</b> [Placeholder VAT Number]</li>
-        <li><b>Managing Director:</b> [Your Name Here]</li>
-      </ul>
-      <p className="text-gray-600 mt-6">
-        Dispute resolution: Online dispute resolution platform provided by the European Commission at
-        <a href="https://ec.europa.eu/consumers/odr" className="text-blue-600 hover:underline"> https://ec.europa.eu/consumers/odr</a>.
-      </p>
+      <section className="max-w-3xl mx-auto py-12 px-4 prose text-gray-600">
+        <h2>Company Information</h2>
+        <ul>
+          <li><strong>Company:</strong> Plan2Fund</li>
+          <li><strong>Address:</strong> Vienna, Austria</li>
+          <li><strong>Email:</strong> contact@plan2fund.com</li>
+          <li><strong>VAT ID:</strong> ATUxxxxxxx</li>
+        </ul>
+      </section>
     </main>
   );
 }
