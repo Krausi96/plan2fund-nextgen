@@ -1,37 +1,19 @@
 ﻿import { motion } from "framer-motion";
-import { useEffect, useState } from "react";
+import { ClipboardList, BarChart2, Calendar, Target, Globe } from "lucide-react";
 
-function AnimatedNumber({ value, duration = 2 }) {
-  const [count, setCount] = useState(0);
-
-  useEffect(() => {
-    let start = 0;
-    const end = parseInt(value.replace(/[^0-9]/g, "")); 
-    if (start === end) return;
-
-    let incrementTime = (duration * 1000) / end;
-    let timer = setInterval(() => {
-      start += 1;
-      setCount(start);
-      if (start >= end) clearInterval(timer);
-    }, incrementTime);
-
-    return () => clearInterval(timer);
-  }, [value, duration]);
-
-  return (
-    <span>
-      {count.toLocaleString()}
-      {value.replace(/[0-9,]/g, "")}
-    </span>
-  );
-}
+const orbitIcons = [
+  { Icon: ClipboardList, angle: 0 },
+  { Icon: BarChart2, angle: 72 },
+  { Icon: Calendar, angle: 144 },
+  { Icon: Target, angle: 216 },
+  { Icon: Globe, angle: 288 },
+];
 
 export function Hero() {
   return (
-    <section className="relative py-20 bg-gradient-to-b from-white to-gray-50 overflow-hidden">
+    <section className="relative py-20 bg-gradient-to-b from-gray-50 to-white overflow-hidden">
       <div className="container mx-auto px-6 grid md:grid-cols-2 gap-12 items-center">
-        {/* Left Column: Headline + CTA */}
+        {/* Left Column */}
         <div>
           <h1 className="text-5xl font-bold text-gray-900 mb-6 leading-tight">
             Freedom starts with a clear plan — let’s build yours.
@@ -56,43 +38,28 @@ export function Hero() {
           </div>
         </div>
 
-        {/* Right Column: Animated Stats */}
-        <div className="grid gap-6">
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.6 }}
-            className="p-6 bg-white shadow rounded-2xl text-center"
-          >
-            <div className="text-3xl font-bold text-blue-600">
-              <AnimatedNumber value="1000000000" />€
-            </div>
-            <p className="text-lg text-gray-600">Funding Available Annually</p>
-          </motion.div>
+        {/* Right Column: Circular Ecosystem */}
+        <div className="relative flex items-center justify-center h-96">
+          {/* Central abstract circle */}
+          <div className="w-40 h-40 rounded-full bg-gradient-to-r from-blue-400 to-blue-600 opacity-80 shadow-xl"></div>
 
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.8 }}
-            className="p-6 bg-white shadow rounded-2xl text-center"
-          >
-            <div className="text-3xl font-bold text-blue-600">
-              <AnimatedNumber value="30000" />+
-            </div>
-            <p className="text-lg text-gray-600">New Businesses / Year</p>
-          </motion.div>
-
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            transition={{ duration: 1 }}
-            className="p-6 bg-white shadow rounded-2xl text-center"
-          >
-            <div className="text-3xl font-bold text-blue-600">
-              <AnimatedNumber value="25" />%
-            </div>
-            <p className="text-lg text-gray-600">Startup Growth YoY</p>
-          </motion.div>
+          {/* Orbiting icons */}
+          {orbitIcons.map(({ Icon, angle }, i) => {
+            const radius = 140;
+            const x = radius * Math.cos((angle * Math.PI) / 180);
+            const y = radius * Math.sin((angle * Math.PI) / 180);
+            return (
+              <motion.div
+                key={i}
+                className="absolute flex items-center justify-center w-16 h-16 rounded-full bg-white shadow-lg"
+                initial={{ x: 0, y: 0, opacity: 0 }}
+                animate={{ x, y, opacity: 1 }}
+                transition={{ duration: 1.2, delay: i * 0.2 }}
+              >
+                <Icon size={28} className="text-blue-600" />
+              </motion.div>
+            );
+          })}
         </div>
       </div>
     </section>
