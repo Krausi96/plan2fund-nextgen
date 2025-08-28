@@ -3,6 +3,7 @@ import { Quote } from "@/components/landing/Quote"
 import { UseCases } from "@/components/landing/UseCases"
 import { PlanTypes } from "@/components/landing/PlanTypes"
 import { Included } from "@/components/landing/Included"
+import { Advantages } from "@/components/landing/Advantages"
 
 export default function Home() {
   return (
@@ -12,7 +13,7 @@ export default function Home() {
       <UseCases />
       <PlanTypes />
       <Included />
+      <Advantages />
     </main>
   )
 }
-
