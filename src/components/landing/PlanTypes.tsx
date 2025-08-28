@@ -15,23 +15,19 @@
 
 export function PlanTypes() {
   return (
-    <section className="py-16">
-      <h2 className="text-3xl font-semibold text-center mb-8">Plan Types</h2>
-      <div className="grid gap-6 md:grid-cols-3">
+    <section className="py-16 bg-gray-50">
+      <h2 className="text-3xl font-semibold text-center mb-12">Plan Types</h2>
+      <div className="grid gap-8 md:grid-cols-3">
         {plans.map((p, i) => (
           <div
             key={i}
-            className="p-6 rounded-2xl shadow bg-white hover:shadow-xl transform hover:-translate-y-2 transition flex flex-col justify-between"
+            className="p-6 rounded-2xl shadow bg-white hover:shadow-xl transition flex flex-col"
           >
-            <div>
-              <h3 className="font-bold text-lg">{p.title}</h3>
-              <p className="text-gray-600 text-sm mt-2">{p.info}</p>
-            </div>
-            <div className="mt-4">
-              <a href="/plan" className="text-blue-600 font-semibold hover:underline">
-                Read more →
-              </a>
-            </div>
+            <h3 className="font-bold text-lg text-gray-900">{p.title}</h3>
+            <p className="text-gray-600 text-sm mt-2 flex-grow">{p.info}</p>
+            <a href="/plan" className="mt-4 text-blue-600 font-semibold hover:underline">
+              Read more →
+            </a>
           </div>
         ))}
       </div>
