@@ -1,40 +1,47 @@
 ﻿import { motion } from "framer-motion";
+import { ClipboardList, BarChart2, Calendar, Target, Globe } from "lucide-react";
 
 export function Hero() {
-  const floatingItems = ["📊", "📑", "📈", "💼", "📅"];
+  const floatingIcons = [
+    { Icon: ClipboardList, left: "10%", top: "20%" },
+    { Icon: BarChart2, left: "30%", top: "40%" },
+    { Icon: Calendar, left: "60%", top: "25%" },
+    { Icon: Target, left: "75%", top: "50%" },
+    { Icon: Globe, left: "50%", top: "70%" },
+  ];
 
   return (
-    <section className="relative text-center py-20 bg-gradient-to-b from-blue-50 to-white overflow-hidden">
-      {/* Floating Objects */}
-      {floatingItems.map((item, i) => (
+    <section className="relative text-center py-20 bg-gradient-to-b from-blue-600 to-blue-900 overflow-hidden text-white">
+      {/* Floating Business Plan Objects */}
+      {floatingIcons.map(({ Icon, left, top }, i) => (
         <motion.div
           key={i}
-          className="absolute text-4xl opacity-30"
+          className="absolute opacity-30"
           initial={{ y: 0 }}
           animate={{ y: [0, -20, 0] }}
-          transition={{ duration: 4 + i, repeat: Infinity }}
-          style={{ left: `${10 + i * 15}%`, top: `${20 + i * 10}%` }}
+          transition={{ duration: 6 + i, repeat: Infinity }}
+          style={{ left, top }}
         >
-          {item}
+          <Icon size={48} />
         </motion.div>
       ))}
 
-      <h1 className="text-5xl font-bold text-gray-900 mb-6">
+      <h1 className="text-5xl font-bold drop-shadow mb-6">
         Freedom starts with a clear plan — let’s build yours.
       </h1>
-      <p className="text-lg text-gray-600 mb-8 max-w-2xl mx-auto">
-        Built to meet standards of institutions, banks & public funding programs nationally & internationally.
-      </p>
+      <h2 className="text-2xl font-medium text-gray-100 drop-shadow mb-6">
+        Built to meet standards of institutions, banks & public funding programs.
+      </h2>
       <div className="flex justify-center gap-4">
         <a
           href="/reco"
-          className="px-6 py-3 bg-blue-600 text-white rounded-xl shadow hover:bg-blue-700 transition"
+          className="px-6 py-3 bg-white text-blue-700 rounded-xl shadow hover:bg-gray-100 transition font-semibold"
         >
           Find Funding
         </a>
         <a
           href="/plan"
-          className="px-6 py-3 bg-gray-900 text-white rounded-xl shadow hover:bg-gray-700 transition"
+          className="px-6 py-3 bg-gray-900 text-white rounded-xl shadow hover:bg-gray-700 transition font-semibold"
         >
           Generate Business Plan
         </a>

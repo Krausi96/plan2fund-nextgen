@@ -21,10 +21,17 @@ export function PlanTypes() {
         {plans.map((p, i) => (
           <div
             key={i}
-            className="p-6 rounded-2xl shadow bg-white hover:shadow-xl transform hover:-translate-y-2 transition"
+            className="p-6 rounded-2xl shadow bg-white hover:shadow-xl transform hover:-translate-y-2 transition flex flex-col justify-between"
           >
-            <h3 className="font-bold">{p.title}</h3>
-            <p className="text-sm text-gray-600 mt-2">{p.info}</p>
+            <div>
+              <h3 className="font-bold text-lg">{p.title}</h3>
+              <p className="text-gray-600 text-sm mt-2">{p.info}</p>
+            </div>
+            <div className="mt-4">
+              <a href="/plan" className="text-blue-600 font-semibold hover:underline">
+                Read more →
+              </a>
+            </div>
           </div>
         ))}
       </div>

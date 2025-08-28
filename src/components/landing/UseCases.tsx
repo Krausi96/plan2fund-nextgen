@@ -13,11 +13,18 @@ export function UseCases() {
         {cases.map((c, i) => (
           <div
             key={i}
-            className="p-6 rounded-2xl shadow bg-white hover:shadow-lg transform hover:-translate-y-2 transition"
+            className="p-6 rounded-2xl shadow bg-white hover:shadow-xl transform hover:-translate-y-2 transition flex flex-col justify-between"
           >
-            <div className="text-4xl">{c.emoji}</div>
-            <h3 className="font-bold mt-4">{c.title}</h3>
-            <p className="text-sm text-gray-600">{c.desc}</p>
+            <div>
+              <div className="text-4xl">{c.emoji}</div>
+              <h3 className="font-bold text-lg mt-4">{c.title}</h3>
+              <p className="text-gray-600 text-sm mt-2">{c.desc}</p>
+            </div>
+            <div className="mt-4">
+              <a href="/reco" className="text-blue-600 font-semibold hover:underline">
+                Learn more →
+              </a>
+            </div>
           </div>
         ))}
       </div>
