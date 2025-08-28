@@ -1,40 +1,44 @@
-﻿import { motion, useScroll, useTransform } from "framer-motion";
-import { ClipboardList, BarChart2, LineChart, FileText, Target, Globe, Briefcase, DollarSign, Users, TrendingUp } from "lucide-react";
+﻿import { motion } from "framer-motion";
+import { ClipboardList, BarChart2, FileText, Target, Briefcase, Users, DollarSign, TrendingUp, PieChart, Presentation } from "lucide-react";
 
-const scatteredIcons = [
-  { Icon: ClipboardList, x: "-40%", y: "-20%" },
-  { Icon: BarChart2, x: "30%", y: "-25%" },
-  { Icon: LineChart, x: "45%", y: "20%" },
-  { Icon: FileText, x: "-30%", y: "25%" },
-  { Icon: Target, x: "20%", y: "35%" },
-  { Icon: Globe, x: "-50%", y: "10%" },
-  { Icon: Briefcase, x: "55%", y: "-10%" },
-  { Icon: DollarSign, x: "-20%", y: "45%" },
-  { Icon: Users, x: "40%", y: "50%" },
-  { Icon: TrendingUp, x: "-45%", y: "50%" },
+const icons = [
+  { Icon: ClipboardList, x: "10%", y: "15%" },
+  { Icon: BarChart2, x: "80%", y: "20%" },
+  { Icon: FileText, x: "20%", y: "70%" },
+  { Icon: Target, x: "70%", y: "65%" },
+  { Icon: Briefcase, x: "15%", y: "40%" },
+  { Icon: Users, x: "85%", y: "50%" },
+  { Icon: DollarSign, x: "30%", y: "25%" },
+  { Icon: TrendingUp, x: "60%", y: "35%" },
+  { Icon: PieChart, x: "40%", y: "80%" },
+  { Icon: Presentation, x: "75%", y: "85%" },
 ];
 
 export function Hero() {
-  const { scrollY } = useScroll();
-  const yTransform = useTransform(scrollY, [0, 500], [0, 40]);
-
   return (
-    <section className="relative h-[100vh] flex items-center justify-center overflow-hidden bg-gradient-to-b from-gray-50 to-white">
-      {/* Radial Glow */}
-      <motion.div
-        className="absolute w-[900px] h-[900px] rounded-full bg-blue-400 opacity-20 blur-3xl"
-        style={{ y: yTransform }}
-      ></motion.div>
+    <section className="relative h-[70vh] flex items-center justify-center overflow-hidden bg-gradient-to-b from-gray-50 to-white">
+      {/* Background Floating Icons */}
+      {icons.map(({ Icon, x, y }, i) => (
+        <motion.div
+          key={i}
+          className="absolute opacity-30"
+          style={{ left: x, top: y }}
+          animate={{ y: [0, -20, 0] }}
+          transition={{ duration: 6 + i, repeat: Infinity, ease: "easeInOut" }}
+        >
+          <Icon size={48} className="text-blue-500" />
+        </motion.div>
+      ))}
 
       {/* Central Content */}
-      <div className="relative z-20 text-center max-w-2xl px-6">
-        <h1 className="text-5xl font-semibold bg-gradient-to-r from-blue-700 to-indigo-600 bg-clip-text text-transparent leading-tight mb-4">
+      <div className="relative z-20 text-center max-w-3xl px-6">
+        <h1 className="text-6xl font-bold text-gray-900 leading-tight mb-4">
           Freedom starts with a clear plan.
         </h1>
-        <h2 className="text-5xl font-semibold bg-gradient-to-r from-indigo-600 to-blue-700 bg-clip-text text-transparent leading-tight mb-6">
+        <h2 className="text-4xl font-semibold text-blue-700 leading-tight mb-6">
           Let’s build yours.
         </h2>
-        <p className="text-lg text-gray-600 mb-8">
+        <p className="text-xl text-gray-700 mb-8">
           Built to meet standards of institutions, banks & public funding programs
           nationally & internationally.
         </p>
@@ -53,25 +57,6 @@ export function Hero() {
           </a>
         </div>
       </div>
-
-      {/* Scattered Pulsing Icons */}
-      {scatteredIcons.map(({ Icon, x, y }, i) => (
-        <motion.div
-          key={i}
-          className="absolute opacity-30"
-          style={{ left: x, top: y }}
-          animate={{
-            scale: [1, 1.1, 1],
-          }}
-          transition={{
-            repeat: Infinity,
-            duration: 3 + i,
-            ease: "easeInOut",
-          }}
-        >
-          <Icon size={40} className="text-blue-600" />
-        </motion.div>
-      ))}
     </section>
   );
 }
