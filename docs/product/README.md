@@ -1,21 +1,26 @@
-# Product Specification
+﻿# 🎯 Product Requirements
 
-## Reco (Funding Recommendation Engine)
-- Up to 8 structured questions (country, stage, amount, company form, sector, instrument preference, etc.).
-- Canva-style free-text intake to extract signals.
-- Output: Ranked funding programs with reasons + unmet requirements.
-- Programs dataset: /data/programs.json.
+## Zielgruppe
+- Startups & KMUs in AT/EU
+- Gründer, die Förderungen & Finanzierung suchen
 
-## Plan (Business Plan Generator)
-- Intake signals + free-text ? chapter skeletons.
-- Chapters: Executive Summary, Problem, Solution, Market, Competition, Business Model, Go-To-Market, Operations, Team, Financials, Milestones & Risks.
-- Autosave snapshots every 5s to plan_versions.
+## User Journey
+1. Landing (Hero, Choose Path)
+2. Reco-Wizard (Q&A, Free Text Intake)
+3. Ergebnisse (Program Fit, Confidence Score)
+4. Business Plan Editor
+5. Preview & Pricing
+6. Checkout (Stripe)
+7. AfterSales (Export, Confirmation)
 
-## Pricing / Checkout
-- Free tier: Reco + draft Plan.
-- Paid tier: Export features + thank-you email via Resend.
-- Stripe Checkout used for one-time payments.
+## Features (MVP)
+- RecoEngine (Basis Q&A Wizard, einfache Regeln)
+- Business Plan Generator (Template-basiert)
+- Pricing (3 Stufen, Paywall via Stripe)
+- Export (PDF/Docx)
+- i18n (EN, DE)
 
-## Export
-- Gated behind NEXT_PUBLIC_EXPORT_ENABLED.
-- Formats: PDF, DOCX (future task).
+## Nice-to-Have (später)
+- Erweiterte AI RecoEngine
+- Analytics
+- User Accounts / Auth

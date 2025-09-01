@@ -1,24 +1,17 @@
-# Legal & GDPR Baseline
+﻿# ⚖️ Legal & Compliance
 
-## Roles
-- Controller: Plan2Fund (you)
-- Processors: Supabase, Vercel, Stripe, Resend
+## Datenschutz
+- DSGVO-konform
+- Speicherung nur pseudonymisierter Daten
+- Keine personenbezogenen Daten ohne Consent
 
-## Data Map
-- Intake submissions, signals, plan documents (business data, not sensitive personal data)
-- Session cookie (pf_session) = pseudonymous ID
-- Payment data handled only by Stripe
+## Cookies & Sessions
+- SESSION_COOKIE_NAME=pf_session
+- Zweck: Session-Verwaltung (kein Tracking)
 
-## Lawful Bases
-- Contractual necessity (service provision)
-- Legitimate interest (product improvement)
-- Consent (cookies/analytics, if enabled)
+## Datenstandort
+- Supabase = EU (Frankfurt)
+- Stripe/Resend = DSGVO-konform mit EU-Serveroption
 
-## Rights
-- Right of access, rectification, erasure, restriction
-- Contact: [insert email]
-
-## Checklist
-- Cookie banner required before analytics
-- Resend configured with verified domain
-- Data Processing Agreements in place with Supabase, Vercel, Stripe, Resend
+## Rechtliches
+- Lizenz: MIT (falls nicht anders definiert)
