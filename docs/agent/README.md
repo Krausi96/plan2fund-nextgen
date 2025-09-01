@@ -23,3 +23,8 @@ Baue und teste autonom ein funktionierendes MVP von **Plan2Fund**.
 pm run build erfolgreich  
 - Vercel Deployment erfolgreich  
 - Alle MVP-Flows klickbar im Browser
+
+## Environment Handling
+- .env bleibt **lokal** (niemals committen).  
+- .env.example enthält Dummy-Werte → definiert benötigte Variablen.  
+- Für Deployments → Werte ins Vercel Dashboard (Environment Variables) eintragen.  
