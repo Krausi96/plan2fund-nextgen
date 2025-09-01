@@ -10,3 +10,5 @@ Bitte immer in folgender Reihenfolge lesen:
 5. BACKLOG.md (Tasks, Status)  
 6. sql/migrations/* (Schema, Daten)
 
+7. ../CHANGELOG.md (Historie der Änderungen)
+

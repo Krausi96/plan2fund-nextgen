@@ -39,3 +39,16 @@ User → Reco-Wizard (/pages/reco.tsx) → Save Answers (Supabase)
 
 👉 Echte .env bleibt **lokal** oder im Vercel Dashboard.  
 👉 .env.example dient als Vorlage im Repo.
+
+## CI/CD & Deploy Checklist
+- [ ] .env lokal gepflegt (niemals committen)
+- [ ] .env.example aktuell (alle benötigten Variablen als Platzhalter)
+- [ ] Vercel Project → **Environment Variables** gesetzt (Production/Preview/Development)
+- [ ] 
+pm run build lokal grün
+- [ ] Push auf main → Vercel Deploy prüft Logs
+- [ ] Feature Flags gesetzt (NEXT_PUBLIC_* & CHECKOUT_ENABLED) passend zum Stage
+
+
+**Hinweis:** Alle benötigten Variablen sind in .env.example beschrieben; echte Werte nur lokal oder in Vercel setzen.
+

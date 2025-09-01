@@ -27,4 +27,9 @@ pm run build erfolgreich
 ## Environment Handling
 - .env bleibt **lokal** (niemals committen).  
 - .env.example enthält Dummy-Werte → definiert benötigte Variablen.  
-- Für Deployments → Werte ins Vercel Dashboard (Environment Variables) eintragen.  
+- Für Deployments → Werte ins Vercel Dashboard (Environment Variables) eintragen.
+
+**Changelog-Pflicht:** Jede Änderung muss im CHANGELOG.md unter [Unreleased] dokumentiert werden (Added/Changed/Fixed).
+
+
+**Commit-Konvention:** Bitte Conventional Commits verwenden (feat/fix/docs/chore etc.).

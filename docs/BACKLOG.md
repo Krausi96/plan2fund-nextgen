@@ -1,6 +1,7 @@
 ﻿# 📋 Backlog
 
 ## TODO
+- [ ] **CHANGELOG.md pflegen (Eintrag je Änderung)**
 - [ ] Reco-Wizard Fragen definieren
 - [ ] Business Plan Template einbauen
 - [ ] Supabase Schema implementieren
@@ -17,3 +18,5 @@
 
 ## DONE
 - [x] Repo-Struktur aufgesetzt
+
+- [ ] \.env.example\ synchron halten (neue Variablen ergänzen)
