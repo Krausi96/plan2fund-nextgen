@@ -1,9 +1,24 @@
-# ⚖️ GDPR Baseline (MVP)
+# Legal & GDPR Baseline
 
-- **No sign-in.** Use pseudonymous cookie \pf_session\; no PII until Checkout.
-- **Data minimization.** Only store content needed for reco/plan/checkout/export.
-- **RLS.** Scope by \session_id\ (header \x-pf-session\).
-- **No analytics trackers at MVP.**
-- **Data Subject Requests.** Provide support email. Add deletion/export on request.
-- **Email.** Transactional only (Resend). Verify sending domain.
-- **LLM.** Keep \AI_ENABLED=false\ in production until legal & DPA signed with EU-region provider.
+## Roles
+- Controller: Plan2Fund (you)
+- Processors: Supabase, Vercel, Stripe, Resend
+
+## Data Map
+- Intake submissions, signals, plan documents (business data, not sensitive personal data)
+- Session cookie (pf_session) = pseudonymous ID
+- Payment data handled only by Stripe
+
+## Lawful Bases
+- Contractual necessity (service provision)
+- Legitimate interest (product improvement)
+- Consent (cookies/analytics, if enabled)
+
+## Rights
+- Right of access, rectification, erasure, restriction
+- Contact: [insert email]
+
+## Checklist
+- Cookie banner required before analytics
+- Resend configured with verified domain
+- Data Processing Agreements in place with Supabase, Vercel, Stripe, Resend

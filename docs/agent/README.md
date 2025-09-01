@@ -1,36 +1,25 @@
-# 🤖 Agent Loop — Execution & Update Cycle
+# Agent Instructions
 
-**Core rule:** Work from the **repo**. Do not request extra instructions from chat unless a secret or external approval is required.
+## Operating Loop
+1. Read docs sequentially (README ? product ? tech ? legal ? BACKLOG ? sql/migrations).
+2. Plan a small slice of work.
+3. Apply changes as PowerShell commits (git add/commit/push).
+4. Watch Vercel build logs, fix errors until green.
+5. Update docs/CHANGELOG.md and docs/BACKLOG.md after each slice.
 
-## 0) Pre-flight (once per session)
-- Confirm access: GitHub (repo read/write), Vercel (env), Supabase (URL/keys), Stripe (test), Resend (domain), optional LLM.
-- Read **[docs/tech/README.md](../tech/README.md)** and **[docs/product/README.md](../product/README.md)**.
-- Verify \.env\ via \.env.local\ or Vercel env (mirror of \.env.example\).
+## Acceptance Criteria
+- **Reco**: =8 questions, Canva-style free-text intake, output = ranked programs + reasons + unmet reqs.
+- **Plan**: Intake ? editable chapter skeletons, autosave snapshots every 5s.
+- **Stripe**: Checkout flow with webhook at /pages/api/stripe/webhook.ts.
+- **Resend**: Send thank-you email on successful paid checkout.
+- **RLS**: All tables (intake_submissions, eco_signals, plan_documents, plan_versions) isolated by x-pf-session.
+- **Flags respected**: NEXT_PUBLIC_AI_ENABLED, NEXT_PUBLIC_CHECKOUT_ENABLED, NEXT_PUBLIC_EXPORT_ENABLED.
+- **GDPR baseline**: Data map + cookie banner.
 
-## 1) Sync
-- \git pull --rebase\
-- Scan **BACKLOG.md** and **CHANGELOG.md**. Update your plan in a new branch if needed.
-
-## 2) Build Steps (MVP scope)
-- **Reco (3a)** — Survey + Canva-like Free-Text Intake → Signals + EduPanel → \eco_*\, \intake_submissions\
-- **Plan (3b)** — Canva-like Intake → chapter skeletons → Editor autosave/snapshots → Preview metrics
-- **Platform** — Cookie middleware (\pf_session\), Supabase migrations + RLS, Stripe Checkout (flag), Export (flag), Resend emails
-
-## 3) Flags & Compliance
-- Feature flags: \CHECKOUT_ENABLED\, \EXPORT_ENABLED\, \AI_ENABLED\ (keep false in production until legal OK).
-- GDPR: pseudonymous \pf_session\, no PII before checkout, DSR via support email, no trackers.
-
-## 4) CI/CD
-- Commit in small, testable slices. Keep \main\ deployable.
-- If Vercel build fails: read logs, fix, re-commit, re-deploy.
-
-## 5) Update Loop
-- After each change set:
-  - Update **CHANGELOG.md** (what/why/how to verify).
-  - Update **BACKLOG.md** (move Done → link to PR/commit; add next TODOs).
-  - Keep docs as the **single source of truth**.
-
-## 6) Acceptance (MVP)
-- Reco: ≤8 Qs, reasons + unmet reqs, Canva-like Intake + Signals + EduPanel
-- Plan: Intake → editable chapters, autosave + snapshots, calculators, preview metrics
-- Pricing/Checkout/Export behind flags; GDPR-safe; confirmation email on paid
+## Smoke Tests
+- /api/recommend/free-text ? returns signals JSON.
+- /api/recommend ? returns ranked programs + persists submission.
+- /api/intake/plan ? creates doc + autosaves versions.
+- Stripe webhook receives checkout.session.completed.
+- Resend test email sent.
+- Verify rows are isolated per session_id.
