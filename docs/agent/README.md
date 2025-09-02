@@ -1,35 +1,36 @@
-﻿# 🤖 Agent Guide
+# 🤖 Agent Loop — Execution & Update Cycle
 
-## Ziel
-Baue und teste autonom ein funktionierendes MVP von **Plan2Fund**.
+**Core rule:** Work from the **repo**. Do not request extra instructions from chat unless a secret or external approval is required.
 
-## Akzeptanzkriterien (MVP Definition of Done)
-- User kann den Reco-Wizard ausfüllen  
-- User erhält einen automatisch generierten Business Plan Draft  
-- Preview & Pricing funktionieren  
-- Checkout mit Stripe führt zu Bestätigung  
-- Export (PDF/Docx) ist möglich  
+## 0) Pre-flight (once per session)
+- Confirm access: GitHub (repo read/write), Vercel (env), Supabase (URL/keys), Stripe (test), Resend (domain), optional LLM.
+- Read **[docs/tech/README.md](../tech/README.md)** and **[docs/product/README.md](../product/README.md)**.
+- Verify \.env\ via \.env.local\ or Vercel env (mirror of \.env.example\).
 
-## Agent-Loop
-1. Lese /docs sequential  
-2. Plane kleinen Arbeitsschritt  
-3. Implementiere → Commit & Push  
-4. Trigger Vercel-Deployment  
-5. Prüfe Logs & Fix  
-6. Wiederhole bis alle MVP-Kriterien erfüllt
+## 1) Sync
+- \git pull --rebase\
+- Scan **BACKLOG.md** and **CHANGELOG.md**. Update your plan in a new branch if needed.
 
-## Grüner Build
-- 
-pm run build erfolgreich  
-- Vercel Deployment erfolgreich  
-- Alle MVP-Flows klickbar im Browser
+## 2) Build Steps (MVP scope)
+- **Reco (3a)** — Survey + Canva-like Free-Text Intake → Signals + EduPanel → \eco_*\, \intake_submissions\
+- **Plan (3b)** — Canva-like Intake → chapter skeletons → Editor autosave/snapshots → Preview metrics
+- **Platform** — Cookie middleware (\pf_session\), Supabase migrations + RLS, Stripe Checkout (flag), Export (flag), Resend emails
 
-## Environment Handling
-- .env bleibt **lokal** (niemals committen).  
-- .env.example enthält Dummy-Werte → definiert benötigte Variablen.  
-- Für Deployments → Werte ins Vercel Dashboard (Environment Variables) eintragen.
+## 3) Flags & Compliance
+- Feature flags: \CHECKOUT_ENABLED\, \EXPORT_ENABLED\, \AI_ENABLED\ (keep false in production until legal OK).
+- GDPR: pseudonymous \pf_session\, no PII before checkout, DSR via support email, no trackers.
 
-**Changelog-Pflicht:** Jede Änderung muss im CHANGELOG.md unter [Unreleased] dokumentiert werden (Added/Changed/Fixed).
+## 4) CI/CD
+- Commit in small, testable slices. Keep \main\ deployable.
+- If Vercel build fails: read logs, fix, re-commit, re-deploy.
 
+## 5) Update Loop
+- After each change set:
+  - Update **CHANGELOG.md** (what/why/how to verify).
+  - Update **BACKLOG.md** (move Done → link to PR/commit; add next TODOs).
+  - Keep docs as the **single source of truth**.
 
-**Commit-Konvention:** Bitte Conventional Commits verwenden (feat/fix/docs/chore etc.).
+## 6) Acceptance (MVP)
+- Reco: ≤8 Qs, reasons + unmet reqs, Canva-like Intake + Signals + EduPanel
+- Plan: Intake → editable chapters, autosave + snapshots, calculators, preview metrics
+- Pricing/Checkout/Export behind flags; GDPR-safe; confirmation email on paid

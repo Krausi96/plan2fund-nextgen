@@ -1,14 +1,12 @@
-﻿# 📚 Plan2Fund Docs Overview
+# 📚 Plan2Fund Docs (Index)
 
-Diese Doku ist die **einzige Quelle der Wahrheit** für alle Anforderungen.  
-Bitte immer in folgender Reihenfolge lesen:
+**Read order for all agents:**
+1. [agent/README.md](./agent/README.md) — Agent Loop & rules  
+2. [product/README.md](./product/README.md) — User Journey & flows (business → data)  
+3. [tech/README.md](./tech/README.md) — Architecture, data model, APIs, flags, env, deploy  
+4. [legal/README.md](./legal/README.md) — GDPR baseline  
+5. [../sql/migrations](../sql/migrations) — DB migrations (apply via Supabase)
+6. [BACKLOG.md](./BACKLOG.md) — Current tasks (3a/3b + platform)
+7. [CHANGELOG.md](./CHANGELOG.md) — What changed and why
 
-1. agent/README.md (Agent-Loop, MVP-Kriterien)  
-2. product/README.md (User Journey, Features, Prioritäten)  
-3. tech/README.md (Architektur, API, DB, .env)  
-4. legal/README.md (GDPR, Policies)  
-5. BACKLOG.md (Tasks, Status)  
-6. sql/migrations/* (Schema, Daten)
-
-7. ../CHANGELOG.md (Historie der Änderungen)
-
+**Goal:** Agents should resolve everything by reading this repo. Keep chat messages minimal (links + deltas).

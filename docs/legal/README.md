@@ -1,17 +1,9 @@
-﻿# ⚖️ Legal & Compliance
+# ⚖️ GDPR Baseline (MVP)
 
-## Datenschutz
-- DSGVO-konform
-- Speicherung nur pseudonymisierter Daten
-- Keine personenbezogenen Daten ohne Consent
-
-## Cookies & Sessions
-- SESSION_COOKIE_NAME=pf_session
-- Zweck: Session-Verwaltung (kein Tracking)
-
-## Datenstandort
-- Supabase = EU (Frankfurt)
-- Stripe/Resend = DSGVO-konform mit EU-Serveroption
-
-## Rechtliches
-- Lizenz: MIT (falls nicht anders definiert)
+- **No sign-in.** Use pseudonymous cookie \pf_session\; no PII until Checkout.
+- **Data minimization.** Only store content needed for reco/plan/checkout/export.
+- **RLS.** Scope by \session_id\ (header \x-pf-session\).
+- **No analytics trackers at MVP.**
+- **Data Subject Requests.** Provide support email. Add deletion/export on request.
+- **Email.** Transactional only (Resend). Verify sending domain.
+- **LLM.** Keep \AI_ENABLED=false\ in production until legal & DPA signed with EU-region provider.
