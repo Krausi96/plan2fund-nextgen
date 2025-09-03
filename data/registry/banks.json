@@ -1,0 +1,220 @@
+﻿[
+  {
+    "id": "erstebank_investitionskredit",
+    "category": "bank",
+    "title": "s Investitionskredit (Unternehmen)",
+    "authority": "Erste",
+    "official_url": "https://www.sparkasse.at/erstebank/unternehmen/produkte-firmenkunden/finanzieren/investitionsfinanzierung/investitionskredit",
+    "country": "AT",
+    "region": ["AT"],
+    "funding_type": "loan",
+    "applicant_type": ["SME"],
+    "company_stage": "sme",
+    "sector": [],
+    "ceiling_eur": null,
+    "cofinancing_pct": null,
+    "deadlines": ["rolling"],
+    "docs_required": ["financials","legal"],
+    "rule_groups": [
+      { "type":"HARD", "rules":[ "country:AT", "applicant:SME", "funding_type:loan" ] },
+      { "type":"SOFT", "rules":[ "industry_risk:low", "bank_relationship:preferred" ] }
+    ],
+    "weights": { "fit":0.5,"readiness":0.2,"effort":0.2,"confidence":0.1 },
+    "evidence_links": [
+      "https://www.sparkasse.at/erstebank/unternehmen/produkte-firmenkunden/finanzieren/investitionsfinanzierung/investitionskredit"
+    ],
+    "updated_at": "2025-09-03",
+    "source_quality": "official"
+  },
+  {
+    "id": "sparkasse_betriebsmittelkredit",
+    "category": "bank",
+    "title": "s Betriebsmittelkredit",
+    "authority": "Sparkasse",
+    "official_url": "https://www.sparkasse.at/sgruppe/unternehmen/produkte-firmenkunden/finanzieren/betriebsmittelfinanzierung/s-betriebsmittelkredit",
+    "country": "AT",
+    "region": ["AT"],
+    "funding_type": "loan",
+    "applicant_type": ["SME"],
+    "company_stage": "sme",
+    "sector": [],
+    "ceiling_eur": null,
+    "cofinancing_pct": null,
+    "deadlines": ["rolling"],
+    "docs_required": ["financials","legal"],
+    "rule_groups": [
+      { "type":"HARD", "rules":[ "country:AT", "applicant:SME", "funding_type:loan" ] },
+      { "type":"SOFT", "rules":[ "industry_risk:low", "bank_relationship:preferred" ] }
+    ],
+    "weights": { "fit":0.5,"readiness":0.2,"effort":0.2,"confidence":0.1 },
+    "evidence_links": [
+      "https://www.sparkasse.at/sgruppe/unternehmen/produkte-firmenkunden/finanzieren/betriebsmittelfinanzierung/s-betriebsmittelkredit"
+    ],
+    "updated_at": "2025-09-03",
+    "source_quality": "official"
+  },
+  {
+    "id": "raiffeisen_leasing_unternehmen",
+    "category": "bank",
+    "title": "Leasing für Unternehmer:innen",
+    "authority": "Raiffeisen",
+    "official_url": "https://www.raiffeisen.at/de/firmenkunden/finanzieren/leasing.html",
+    "country": "AT",
+    "region": ["AT"],
+    "funding_type": "leasing",
+    "applicant_type": ["SME"],
+    "company_stage": "sme",
+    "sector": [],
+    "ceiling_eur": null,
+    "cofinancing_pct": null,
+    "deadlines": ["rolling"],
+    "docs_required": ["financials","legal"],
+    "rule_groups": [
+      { "type":"HARD", "rules":[ "country:AT", "applicant:SME", "funding_type:leasing" ] },
+      { "type":"SOFT", "rules":[ "industry_risk:low", "bank_relationship:preferred" ] }
+    ],
+    "weights": { "fit":0.5,"readiness":0.2,"effort":0.2,"confidence":0.1 },
+    "evidence_links": [
+      "https://www.raiffeisen.at/de/firmenkunden/finanzieren/leasing.html"
+    ],
+    "updated_at": "2025-09-03",
+    "source_quality": "official"
+  },
+  {
+    "id": "volksbank_investitionskredit",
+    "category": "bank",
+    "title": "Investitionskredit (Unternehmen)",
+    "authority": "Volksbank",
+    "official_url": "https://www.volksbank.at/zib/kommerz/finanzieren_foerdern/investitionskredit.page?main=2&nav=3&sub=1&vbbranch=verbund",
+    "country": "AT",
+    "region": ["AT"],
+    "funding_type": "loan",
+    "applicant_type": ["SME"],
+    "company_stage": "sme",
+    "sector": [],
+    "ceiling_eur": null,
+    "cofinancing_pct": null,
+    "deadlines": ["rolling"],
+    "docs_required": ["financials","legal"],
+    "rule_groups": [
+      { "type":"HARD", "rules":[ "country:AT", "applicant:SME", "funding_type:loan" ] },
+      { "type":"SOFT", "rules":[ "industry_risk:low", "bank_relationship:preferred" ] }
+    ],
+    "weights": { "fit":0.5,"readiness":0.2,"effort":0.2,"confidence":0.1 },
+    "evidence_links": [
+      "https://www.volksbank.at/zib/kommerz/finanzieren_foerdern/investitionskredit.page?main=2&nav=3&sub=1&vbbranch=verbund"
+    ],
+    "updated_at": "2025-09-03",
+    "source_quality": "official"
+  },
+  {
+    "id": "bawag_investitionskredit",
+    "category": "bank",
+    "title": "Investitionskredite (BAWAG Corporate/Business)",
+    "authority": "BAWAG",
+    "official_url": "https://www.bawag.at/bawag/cb/finanzierung",
+    "country": "AT",
+    "region": ["AT"],
+    "funding_type": "loan",
+    "applicant_type": ["SME"],
+    "company_stage": "sme",
+    "sector": [],
+    "ceiling_eur": null,
+    "cofinancing_pct": null,
+    "deadlines": ["rolling"],
+    "docs_required": ["financials","legal"],
+    "rule_groups": [
+      { "type":"HARD", "rules":[ "country:AT", "applicant:SME", "funding_type:loan" ] },
+      { "type":"SOFT", "rules":[ "industry_risk:low", "bank_relationship:preferred" ] }
+    ],
+    "weights": { "fit":0.5,"readiness":0.2,"effort":0.2,"confidence":0.1 },
+    "evidence_links": [
+      "https://www.bawag.at/bawag/cb/finanzierung"
+    ],
+    "updated_at": "2025-09-03",
+    "source_quality": "official"
+  },
+  {
+    "id": "easybank_easy_business_kredit",
+    "category": "bank",
+    "title": "easy business Kredit (Selbständige & Unternehmen)",
+    "authority": "easybank",
+    "official_url": "https://www.easybank.at/easybank/kredite/easy-business-kredit",
+    "country": "AT",
+    "region": ["AT"],
+    "funding_type": "loan",
+    "applicant_type": ["freelancer","SME"],
+    "company_stage": "sme",
+    "sector": [],
+    "ceiling_eur": null,
+    "cofinancing_pct": null,
+    "deadlines": ["rolling"],
+    "docs_required": ["financials","legal"],
+    "rule_groups": [
+      { "type":"HARD", "rules":[ "country:AT", "applicant:(freelancer|SME)", "funding_type:loan" ] },
+      { "type":"SOFT", "rules":[ "collateral:negotiated", "bank_relationship:preferred" ] }
+    ],
+    "weights": { "fit":0.5,"readiness":0.2,"effort":0.2,"confidence":0.1 },
+    "evidence_links": [
+      "https://www.easybank.at/easybank/kredite/easy-business-kredit",
+      "https://www.easybank.at/easybank/kredite/easy-business-limit"
+    ],
+    "updated_at": "2025-09-03",
+    "source_quality": "official"
+  },
+  {
+    "id": "santander_firmenleasing",
+    "category": "bank",
+    "title": "Firmenleasing (Kfz & Mobilien)",
+    "authority": "Santander Consumer Bank",
+    "official_url": "https://www.santanderconsumer.at/kfz",
+    "country": "AT",
+    "region": ["AT"],
+    "funding_type": "leasing",
+    "applicant_type": ["SME"],
+    "company_stage": "sme",
+    "sector": [],
+    "ceiling_eur": null,
+    "cofinancing_pct": null,
+    "deadlines": ["rolling"],
+    "docs_required": ["financials","legal"],
+    "rule_groups": [
+      { "type":"HARD", "rules":[ "country:AT", "applicant:Unternehmer", "funding_type:leasing" ] },
+      { "type":"SOFT", "rules":[ "bank_relationship:preferred" ] }
+    ],
+    "weights": { "fit":0.5,"readiness":0.2,"effort":0.2,"confidence":0.1 },
+    "evidence_links": [
+      "https://www.santanderconsumer.at/kfz",
+      "https://www.santanderconsumer.at/storage/504/agbleasingfurgewerblichekunden.pdf"
+    ],
+    "updated_at": "2025-09-03",
+    "source_quality": "official"
+  },
+  {
+    "id": "sparkasse_leasing_gruender",
+    "category": "bank",
+    "title": "Leasing für Gründer:innen",
+    "authority": "Sparkasse",
+    "official_url": "https://www.sparkasse.at/sgruppe/gruender/finanzierung-und-foerderung/leasing-fuer-unternehmerinnen",
+    "country": "AT",
+    "region": ["AT"],
+    "funding_type": "leasing",
+    "applicant_type": ["founder","startup","SME"],
+    "company_stage": "seed",
+    "sector": [],
+    "ceiling_eur": null,
+    "cofinancing_pct": null,
+    "deadlines": ["rolling"],
+    "docs_required": ["financials","legal","bp"],
+    "rule_groups": [
+      { "type":"HARD", "rules":[ "country:AT", "applicant:Founder", "funding_type:leasing" ] },
+      { "type":"SOFT", "rules":[ "industry_risk:low", "bank_relationship:preferred" ] }
+    ],
+    "weights": { "fit":0.5,"readiness":0.2,"effort":0.2,"confidence":0.1 },
+    "evidence_links": [
+      "https://www.sparkasse.at/sgruppe/gruender/finanzierung-und-foerderung/leasing-fuer-unternehmerinnen"
+    ],
+    "updated_at": "2025-09-03",
+    "source_quality": "official"
+  }
+]
