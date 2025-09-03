@@ -16,4 +16,12 @@ export type ScoredProgram = Program & {
   eligibility: string;
   confidence: "High" | "Medium" | "Low";
   unmetRequirements?: string[];
+  source?: string;
+  scores?: {
+    fit: number;
+    readiness: number;
+    effort: number;
+    confidence: number;
+  };
+  why?: string[];
 };

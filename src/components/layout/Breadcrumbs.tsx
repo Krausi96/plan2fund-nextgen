@@ -2,23 +2,26 @@
 import { useRouter } from "next/router"
 
 const stepsReco = [
+  { href: "/", label: "Home" },
   { href: "/reco", label: "Recommendation" },
   { href: "/results", label: "Results" },
-  { href: "/eligibility", label: "Eligibility" },
+  { href: "/plan/intake", label: "Plan Intake" },
   { href: "/plan", label: "Plan" },
-  { href: "/review", label: "Review" },
   { href: "/preview", label: "Preview" },
-  { href: "/confirmation", label: "Confirmation" },
+  { href: "/pricing", label: "Pricing" },
+  { href: "/confirm", label: "Confirm" },
   { href: "/checkout", label: "Checkout" },
   { href: "/export", label: "Export" },
   { href: "/thank-you", label: "Success Hub" },
 ]
 
 const stepsDirect = [
+  { href: "/", label: "Home" },
+  { href: "/plan/intake", label: "Plan Intake" },
   { href: "/plan", label: "Plan" },
-  { href: "/review", label: "Review" },
   { href: "/preview", label: "Preview" },
-  { href: "/confirmation", label: "Confirmation" },
+  { href: "/pricing", label: "Pricing" },
+  { href: "/confirm", label: "Confirm" },
   { href: "/checkout", label: "Checkout" },
   { href: "/export", label: "Export" },
   { href: "/thank-you", label: "Success Hub" },
@@ -28,7 +31,7 @@ export default function Breadcrumbs() {
   const router = useRouter()
   const path = router.pathname
 
-  const isRecoFlow = ["/reco", "/results", "/eligibility"].some((p) =>
+  const isRecoFlow = ["/reco", "/results"].some((p) =>
     path.startsWith(p)
   )
   const steps = isRecoFlow ? stepsReco : stepsDirect

@@ -21,10 +21,10 @@ export default function EligibilityCard({ program, score, eligible, confidence }
       <h3 className="text-lg font-semibold">{program}</h3>
       <p className="text-sm text-gray-600">Match score: {score}%</p>
       <div className="flex gap-2">
-        <Badge variant={eligible ? "default" : "destructive"}>
+        <Badge>
           {eligible ? "✅ Eligible" : "❌ Not Eligible"}
         </Badge>
-        <Badge className={confidenceColors[confidence]}>
+        <Badge>
           🔵 {confidence} Confidence
         </Badge>
       </div>

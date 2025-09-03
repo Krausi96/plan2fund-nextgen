@@ -6,15 +6,14 @@ import { useRouter } from "next/router";
 export default function AppShell({ children }: { children: React.ReactNode }) {
   const router = useRouter();
 
-  // Define flow routes where Breadcrumbs should be shown
+  // Define flow routes where Breadcrumbs should be shown (aligned to product workflow)
   const flowRoutes = [
-    "/reco",
     "/results",
-    "/eligibility",
     "/plan",
-    "/review",
+    "/plan/intake",
     "/preview",
-    "/confirmation",
+    "/pricing",
+    "/confirm",
     "/checkout",
     "/export",
     "/thank-you",
@@ -29,10 +28,10 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
       <header className="sticky top-0 z-50 shadow-sm bg-white">
         <Header />
       </header>
-      <main className="flex-1 w-full max-w-screen-xl mx-auto px-4 py-8">
+      <div className="flex-1 w-full max-w-screen-xl mx-auto px-4 py-8">
         {showBreadcrumbs && <Breadcrumbs />}
         {children}
-      </main>
+      </div>
       <footer className="mt-auto border-t bg-gray-50">
         <Footer />
       </footer>

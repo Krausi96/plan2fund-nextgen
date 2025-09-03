@@ -1,7 +1,21 @@
 ﻿import Link from "next/link";
+import { useFeatureFlags } from "@/lib/utils";
 import CartSummary from "@/components/confirmation/CartSummary";
 
 export default function Checkout() {
+  const { CHECKOUT_ENABLED } = useFeatureFlags()
+  if (!CHECKOUT_ENABLED) {
+    return (
+      <main className="max-w-3xl mx-auto py-12 space-y-6">
+        <h1 className="text-2xl font-bold">Checkout</h1>
+        <p className="text-gray-600">Checkout is currently unavailable.</p>
+        <div className="flex justify-between pt-6">
+          <Link href="/pricing" className="px-4 py-2 rounded-lg bg-gray-200 hover:bg-gray-300">← Back to Pricing</Link>
+          <Link href="/export" className="px-4 py-2 rounded-lg bg-blue-600 text-white hover:bg-blue-700">Skip to Export →</Link>
+        </div>
+      </main>
+    )
+  }
   return (
     <main className="max-w-3xl mx-auto py-12 space-y-8">
       <h1 className="text-2xl font-bold">Checkout</h1>
@@ -9,8 +23,8 @@ export default function Checkout() {
         Please review your order and complete the checkout process.
       </p>
 
-      {/* Cart Summary Stub */}
-      <CartSummary items={[{ name: "Business Plan Package", price: "$199" }]} />
+      {/* Cart Summary */}
+      <CartSummary />
 
       {/* Trust Seals */}
       <div className="flex gap-6 items-center border-t pt-6">
@@ -45,10 +59,10 @@ export default function Checkout() {
       {/* Navigation */}
       <div className="flex justify-between pt-6">
         <Link
-          href="/confirmation"
+          href="/pricing"
           className="px-4 py-2 rounded-lg bg-gray-200 hover:bg-gray-300"
         >
-          ← Back to Confirmation
+          ← Back to Pricing
         </Link>
         <Link
           href="/export"

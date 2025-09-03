@@ -1,4 +1,4 @@
-﻿import programs from "../../data/programs.json";
+﻿import rawPrograms from "../../data/programs.json";
 import { Program, UserAnswers, ScoredProgram } from "@/types";
 
 export function normalizeAnswers(answers: UserAnswers): UserAnswers {
@@ -18,7 +18,18 @@ export function scorePrograms(
   answers: UserAnswers,
   mode: "strict" | "explorer" = "strict"
 ): ScoredProgram[] {
-  return (programs as Program[]).map((program) => {
+  const source = rawPrograms as any[]
+  const normalizedPrograms: Program[] = source.map((p) => ({
+    id: p.id,
+    name: p.title || p.name || p.id,
+    type: Array.isArray(p.tags) && p.tags.length > 0 ? p.tags[0] : (p.type || "program"),
+    requirements: (p.requirements as any) || {},
+    notes: undefined,
+    maxAmount: undefined,
+    link: undefined,
+  }))
+
+  return normalizedPrograms.map((program) => {
     let score = 0;
     const unmetRequirements: string[] = [];
     const matchedRequirements: string[] = [];
@@ -71,7 +82,7 @@ export function scorePrograms(
       }
     }
 
-    const totalRequirements = Object.keys(program.requirements).length;
+    const totalRequirements = Object.keys(program.requirements || {}).length;
     const scorePercent = totalRequirements > 0 ? Math.round((score / totalRequirements) * 100) : 0;
 
     const eligibility =

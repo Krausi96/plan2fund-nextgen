@@ -1,7 +1,21 @@
 ﻿import { useState } from "react";
 import Link from "next/link";
+import { useFeatureFlags } from "@/lib/utils";
 
 export default function Export() {
+  const { EXPORT_ENABLED } = useFeatureFlags()
+  if (!EXPORT_ENABLED) {
+    return (
+      <main className="max-w-3xl mx-auto py-12 space-y-6">
+        <h1 className="text-2xl font-bold">Export</h1>
+        <p className="text-gray-600">Export is currently unavailable.</p>
+        <div className="flex justify-between pt-8">
+          <Link href="/checkout" className="text-blue-600 hover:underline">← Back to Checkout</Link>
+          <Link href="/thank-you" className="text-blue-600 hover:underline">Continue to Success Hub →</Link>
+        </div>
+      </main>
+    )
+  }
   const [format, setFormat] = useState<"pdf" | "docx">("pdf");
   const isPaid = false; // stubbed payment state
 

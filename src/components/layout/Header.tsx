@@ -1,6 +1,7 @@
 ﻿import Link from "next/link"
 import { useState } from "react"
 import { Menu } from "lucide-react"
+import LanguageSwitcher from "@/components/layout/LanguageSwitcher"
 
 export default function Header() {
   const [open, setOpen] = useState(false)
@@ -18,12 +19,7 @@ export default function Header() {
           <Link href="/about" className="hover:text-blue-600">About</Link>
           <Link href="/pricing" className="hover:text-blue-600">Pricing</Link>
           {/* Language Switcher */}
-          <select className="border rounded px-2 py-1 text-sm">
-            <option value="en">🇬🇧 EN</option>
-            <option value="de">🇩🇪 DE</option>
-            <option value="es">🇪🇸 ES</option>
-            <option value="fr">🇫🇷 FR</option>
-          </select>
+          <LanguageSwitcher />
         </nav>
 
         {/* Mobile Menu Button */}
@@ -37,12 +33,7 @@ export default function Header() {
         <div className="md:hidden px-4 pb-4 flex flex-col gap-3">
           <Link href="/about" className="hover:text-blue-600">About</Link>
           <Link href="/pricing" className="hover:text-blue-600">Pricing</Link>
-          <select className="border rounded px-2 py-1 text-sm w-max">
-            <option value="en">🇬🇧 EN</option>
-            <option value="de">🇩🇪 DE</option>
-            <option value="es">🇪🇸 ES</option>
-            <option value="fr">🇫🇷 FR</option>
-          </select>
+          <div className="w-max"><LanguageSwitcher compact /></div>
         </div>
       )}
     </header>

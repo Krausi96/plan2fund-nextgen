@@ -1,12 +1,12 @@
 ﻿import { motion } from "framer-motion";
-import { ClipboardList, BarChart2, LineChart, FileText, Target, Briefcase, Users, DollarSign, PieChart, Presentation, TrendingUp } from "lucide-react";
+import { ClipboardList, BarChart2, LineChart, FileText, Target, Briefcase, Users, DollarSign, PieChart, Presentation, TrendingUp, type LucideIcon } from "lucide-react";
 
 const icons = [
   ClipboardList, BarChart2, LineChart, FileText, Target,
   Briefcase, Users, DollarSign, PieChart, Presentation, TrendingUp
 ];
 
-function FloatingIcon({ Icon, index }) {
+function FloatingIcon({ Icon, index }: { Icon: LucideIcon; index: number }) {
   const driftX = (index % 2 === 0 ? 1 : -1) * (40 + index * 5);
   const driftY = (index % 2 === 0 ? -1 : 1) * (30 + index * 3);
 

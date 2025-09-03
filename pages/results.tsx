@@ -2,6 +2,10 @@ import React, { useEffect, useState } from "react";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import Link from "next/link";
+import { Dialog, DialogContent, DialogTrigger, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
+import ProgramDetailsModal from "@/components/reco/ProgramDetailsModal";
+import ExplorationModal from "@/components/reco/ExplorationModal";
+import InfoDrawer from "@/components/common/InfoDrawer";
 
 type ProgramResult = {
   id: string;
@@ -13,11 +17,18 @@ type ProgramResult = {
   confidence?: "High" | "Medium" | "Low";
   unmetRequirements?: string[];
   link?: string;
+  source?: string;
+  why?: string[];
+  scores?: { fit: number; readiness: number; effort: number; confidence: number };
 };
 
 export default function ResultsPage() {
   const [results, setResults] = useState<ProgramResult[]>([]);
   const [freeText, setFreeText] = useState<string | null>(null);
+  const [showDebug, setShowDebug] = useState(false);
+  const [showExploration, setShowExploration] = useState(false);
+  const [showInfoDrawer, setShowInfoDrawer] = useState(false);
+  const [selectedProgram, setSelectedProgram] = useState<ProgramResult | null>(null);
 
   useEffect(() => {
     const stored = localStorage.getItem("recoResults");
@@ -41,11 +52,43 @@ export default function ResultsPage() {
     }
   }, []);
 
+  const eligibleResults = results.filter(r => r.eligibility === "Eligible");
+  const hasEligibleResults = eligibleResults.length > 0;
+  const hasAnyResults = results.length > 0;
+
   return (
     <div className="p-6 max-w-3xl mx-auto">
-      <h2 className="text-2xl font-semibold mb-6 text-center">
-        Your Funding Recommendations
-      </h2>
+      <div className="flex justify-between items-center mb-6">
+        <h2 className="text-2xl font-semibold">
+          Your Funding Recommendations
+        </h2>
+        <button
+          onClick={() => setShowInfoDrawer(true)}
+          className="text-blue-600 hover:text-blue-800 text-sm flex items-center gap-1"
+        >
+          <span>ℹ️</span> How recommendations work
+        </button>
+      </div>
+
+      {/* Strict mode: No eligible results */}
+      {hasAnyResults && !hasEligibleResults && (
+        <div className="p-6 border border-red-300 bg-red-50 rounded-lg mb-6">
+          <h3 className="text-lg font-semibold text-red-800 mb-2">No Eligible Results</h3>
+          <p className="text-red-700 mb-4">
+            None of the programs match your current criteria. Here are the main blockers:
+          </p>
+          <ul className="list-disc list-inside text-red-600 mb-4">
+            {results.slice(0, 3).map((r, i) => (
+              <li key={i} className="text-sm">
+                {r.name}: {r.why?.filter(w => w.includes("Hard rule failed")).join(", ") || "Eligibility requirements not met"}
+              </li>
+            ))}
+          </ul>
+          <Link href="/reco" className="inline-block px-4 py-2 bg-red-600 text-white rounded hover:bg-red-700">
+            Adjust Answers
+          </Link>
+        </div>
+      )}
 
       {/* Free text fallback */}
       {freeText && results.length === 0 && (
@@ -55,7 +98,7 @@ export default function ResultsPage() {
           </p>
           <p className="italic text-sm">{freeText}</p>
           <Link href="/reco">
-            <Button variant="destructive" className="mt-4">Go Back</Button>
+            <Button className="mt-4">Go Back</Button>
           </Link>
         </div>
       )}
@@ -67,7 +110,7 @@ export default function ResultsPage() {
             No recommendations found. Please adjust your answers.
           </p>
           <Link href="/reco">
-            <Button variant="destructive">Go Back</Button>
+            <Button>Go Back</Button>
           </Link>
         </div>
       )}
@@ -125,29 +168,196 @@ export default function ResultsPage() {
                     Confidence: {program.confidence}
                   </span>
                 )}
+                <span className={`px-2 py-1 text-xs rounded ${program.eligibility === 'Eligible' ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'}`}>
+                  {program.eligibility}
+                </span>
+                <span className={`px-2 py-1 text-xs rounded ${
+                  program.confidence === "High" ? "bg-green-200 text-green-800" : 
+                  program.confidence === "Medium" ? "bg-yellow-200 text-yellow-800" : 
+                  "bg-red-200 text-red-800"
+                }`}>
+                  {program.confidence} Confidence
+                </span>
               </div>
 
-              {program.link && (
+              {program.source && (
                 <a
-                  href={program.link}
+                  href={program.source}
                   target="_blank"
                   rel="noopener noreferrer"
                   className="text-blue-600 underline text-sm"
                 >
-                  Learn more
+                  Official source →
                 </a>
               )}
+              <button
+                onClick={() => {
+                  const note = prompt("Report a mismatch or issue with this program:");
+                  if (note) {
+                    try {
+                      const reports = JSON.parse(localStorage.getItem("programReports") || "[]");
+                      reports.push({ programId: program.id, note, timestamp: new Date().toISOString() });
+                      localStorage.setItem("programReports", JSON.stringify(reports));
+                      alert("Report saved locally. Thank you!");
+                    } catch (e) {
+                      console.error("Failed to save report:", e);
+                    }
+                  }
+                }}
+                className="ml-2 text-xs text-gray-500 hover:text-gray-700 underline"
+              >
+                Report mismatch
+              </button>
 
-              <div className="mt-4">
-                <Link href={`/plan?programId=${program.id}`}>
-                  <Button className="w-full">Continue to Plan Generator</Button>
-                </Link>
+              {program.scores && (
+                <div className="text-xs text-gray-500 mb-2">
+                  Fit {program.scores.fit}% · Readiness {program.scores.readiness}% · Effort {program.scores.effort}% · Confidence {program.scores.confidence}%
+                </div>
+              )}
+
+              {/* Why panel */}
+              {program.why && program.why.length > 0 && (
+                <details className="text-sm bg-gray-50 rounded p-3 mb-3">
+                  <summary className="cursor-pointer">Why this ranked here</summary>
+                  <ul className="list-disc list-inside mt-2 text-gray-700">
+                    {program.why.map((w, i) => (
+                      <li key={i}>{w}</li>
+                    ))}
+                  </ul>
+                </details>
+              )}
+
+              <div className="mt-4 flex gap-2">
+                <Dialog>
+                  <DialogTrigger asChild>
+                    <Button className="flex-1" disabled={!hasEligibleResults}>Continue to Plan</Button>
+                  </DialogTrigger>
+                  <DialogContent>
+                    <DialogHeader>
+                      <DialogTitle>Use this recommendation?</DialogTitle>
+                      <DialogDescription>
+                        We'll prefill your plan with relevant hints based on this program.
+                      </DialogDescription>
+                    </DialogHeader>
+                    <Link href={`/plan/intake?programId=${program.id}`}>
+                      <Button className="w-full mt-3">Prefill and continue →</Button>
+                    </Link>
+                  </DialogContent>
+                </Dialog>
+                <Button 
+                  variant="outline" 
+                  size="sm"
+                  onClick={() => setSelectedProgram(program)}
+                >
+                  Details
+                </Button>
               </div>
             </Card>
           ))}
         </div>
       )}
+
+      {/* Debug Panel */}
+      {hasAnyResults && (
+        <div className="mt-8">
+          <button
+            onClick={() => setShowDebug(!showDebug)}
+            className="text-sm text-gray-600 hover:text-gray-800 flex items-center gap-1"
+          >
+            <span>{showDebug ? "▼" : "▶"}</span> Debug Information
+          </button>
+          {showDebug && (
+            <div className="mt-2 p-4 bg-gray-50 rounded text-sm">
+              <h4 className="font-semibold mb-2">Scoring Breakdown</h4>
+              {results.slice(0, 3).map((r, i) => (
+                <div key={i} className="mb-3 p-2 bg-white rounded">
+                  <div className="font-medium">{r.name}</div>
+                  <div className="text-xs text-gray-600">
+                    <div>Eligibility: {r.eligibility}</div>
+                    <div>Confidence: {r.confidence}</div>
+                    {r.scores && (
+                      <div>Fit: {r.scores.fit}% | Readiness: {r.scores.readiness}% | Effort: {r.scores.effort}% | Confidence: {r.scores.confidence}%</div>
+                    )}
+                    {r.why && (
+                      <div className="mt-1">
+                        <div className="font-medium">Analysis:</div>
+                        <ul className="list-disc list-inside ml-2">
+                          {r.why.slice(0, 3).map((w, j) => (
+                            <li key={j}>{w}</li>
+                          ))}
+                        </ul>
+                      </div>
+                    )}
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
+      )}
+
+      {/* Add Custom Program */}
+      <div className="mt-6 text-center">
+        <button
+          onClick={() => setShowExploration(true)}
+          className="text-blue-600 hover:text-blue-800 text-sm flex items-center gap-1 mx-auto"
+        >
+          <span>+</span> Add a known program
+        </button>
+        <div className="text-xs text-gray-500 mt-1">
+          Exploration Mode lets you try a program we don't track yet. Results are demo-only, not official.
+        </div>
+      </div>
+
+      {/* Modals */}
+      <ProgramDetailsModal
+        isOpen={!!selectedProgram}
+        onClose={() => setSelectedProgram(null)}
+        program={selectedProgram}
+      />
+
+      <ExplorationModal
+        isOpen={showExploration}
+        onClose={() => setShowExploration(false)}
+        onAddProgram={(customProgram) => {
+          setResults(prev => [customProgram, ...prev]);
+        }}
+      />
+
+      <InfoDrawer
+        isOpen={showInfoDrawer}
+        onClose={() => setShowInfoDrawer(false)}
+        title="How Recommendations Work"
+        content={
+          <div className="space-y-4">
+            <p>
+              Our recommendation engine combines your survey answers and free-text "signal chips" 
+              to find the best funding matches for your situation.
+            </p>
+            
+            <h3 className="font-semibold">How We Score Programs:</h3>
+            <ul className="list-disc list-inside space-y-1">
+              <li><strong>HARD rules</strong> act as filters - if you don't meet them, the program is marked as "Not eligible"</li>
+              <li><strong>SOFT rules</strong> influence the "fit" score - more matches mean higher fit percentage</li>
+              <li><strong>Effort</strong> reflects how complex the application process is (1=easy, 5=complex)</li>
+              <li><strong>Readiness</strong> considers what documents you have vs. what's required</li>
+              <li><strong>Confidence</strong> reflects data freshness and how well we understand your situation</li>
+            </ul>
+
+            <h3 className="font-semibold">Improving Our Recommendations:</h3>
+            <ul className="list-disc list-inside space-y-1">
+              <li>Click "Official source" links to verify program details</li>
+              <li>Use "Report mismatch" if you find incorrect information</li>
+              <li>Try "Exploration Mode" to test programs we don't track yet</li>
+            </ul>
+
+            <div className="p-3 bg-blue-50 rounded text-sm">
+              <strong>Note:</strong> All recommendations are based on publicly available information 
+              and should be verified with official sources before applying.
+            </div>
+          </div>
+        }
+      />
     </div>
   );
 }
-import ProgramDetailsDialog from "@/components/reco/ProgramDetailsDialog";

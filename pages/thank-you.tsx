@@ -1,7 +1,17 @@
 ﻿import { Button } from "@/components/ui/button";
 import Link from "next/link";
+import { useState } from "react";
 
 export default function SuccessHubPage() {
+  const [revisionRequests, setRevisionRequests] = useState<Array<{
+    id: number;
+    message: string;
+    sections: string[];
+    timestamp: string;
+  }>>([]);
+  const [showRevisionForm, setShowRevisionForm] = useState(false);
+  const [revisionMessage, setRevisionMessage] = useState("");
+  const [selectedSections, setSelectedSections] = useState<string[]>([]);
   return (
     <div className="max-w-3xl mx-auto p-6 space-y-8 text-center">
       <h1 className="text-3xl font-bold text-green-600">🚀 Success Hub</h1>
@@ -15,11 +25,88 @@ export default function SuccessHubPage() {
         <p className="text-sm text-gray-500">
           Need adjustments? You can request a free revision within 7 days.
         </p>
-        <Button asChild variant="outline">
-          <a href="mailto:support@plan2fund.com?subject=Revision Request">
-            Request Revision
-          </a>
+        <Button 
+          variant="outline"
+          onClick={() => setShowRevisionForm(!showRevisionForm)}
+        >
+          Request Revision
         </Button>
+        
+        {showRevisionForm && (
+          <div className="max-w-md mx-auto p-4 border rounded-lg bg-gray-50 text-left">
+            <h3 className="font-semibold mb-3">Revision Request</h3>
+            <div className="space-y-3">
+              <div>
+                <label className="block text-sm font-medium mb-1">What needs to be changed?</label>
+                <textarea
+                  value={revisionMessage}
+                  onChange={(e) => setRevisionMessage(e.target.value)}
+                  className="w-full border rounded p-2 h-20"
+                  placeholder="Describe the changes you'd like..."
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium mb-1">Sections to revise:</label>
+                <div className="space-y-1">
+                  {["Executive Summary", "Problem Statement", "Solution", "Market Analysis", "Financial Projections"].map((section) => (
+                    <label key={section} className="flex items-center gap-2">
+                      <input
+                        type="checkbox"
+                        checked={selectedSections.includes(section)}
+                        onChange={(e) => {
+                          if (e.target.checked) {
+                            setSelectedSections([...selectedSections, section]);
+                          } else {
+                            setSelectedSections(selectedSections.filter(s => s !== section));
+                          }
+                        }}
+                        className="rounded"
+                      />
+                      <span className="text-sm">{section}</span>
+                    </label>
+                  ))}
+                </div>
+              </div>
+              <Button
+                onClick={() => {
+                  if (revisionMessage.trim()) {
+                    const newRequest = {
+                      id: Date.now(),
+                      message: revisionMessage,
+                      sections: selectedSections,
+                      timestamp: new Date().toLocaleString()
+                    };
+                    setRevisionRequests([newRequest, ...revisionRequests]);
+                    setRevisionMessage("");
+                    setSelectedSections([]);
+                    setShowRevisionForm(false);
+                    alert("Revision request noted (demo)");
+                  }
+                }}
+                className="w-full"
+              >
+                Submit Request
+              </Button>
+            </div>
+          </div>
+        )}
+
+        {revisionRequests.length > 0 && (
+          <div className="max-w-md mx-auto text-left">
+            <h4 className="font-semibold mb-2">Your Revision Requests:</h4>
+            <div className="space-y-2">
+              {revisionRequests.map((request) => (
+                <div key={request.id} className="p-3 border rounded bg-white">
+                  <div className="text-sm text-gray-600 mb-1">{request.timestamp}</div>
+                  <div className="text-sm mb-1">{request.message}</div>
+                  <div className="text-xs text-gray-500">
+                    Sections: {request.sections.join(", ") || "All sections"}
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
       </div>
 
       {/* Navigation */}
@@ -27,8 +114,14 @@ export default function SuccessHubPage() {
         <Button asChild>
           <Link href="/">Return to Home</Link>
         </Button>
-        <Button asChild variant="secondary">
+        <Button asChild variant="outline">
           <Link href="/plan">Start New Plan</Link>
+        </Button>
+        <Button asChild variant="outline">
+          <Link href="/preview">Download Preview</Link>
+        </Button>
+        <Button asChild variant="outline">
+          <Link href="/results">See Recommendations</Link>
         </Button>
       </div>
     </div>

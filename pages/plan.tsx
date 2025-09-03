@@ -1,4 +1,5 @@
 ﻿import { useRouter } from "next/router";
+import Link from "next/link";
 import Editor from "@/components/plan/Editor";
 import programs from "@/data/fundingPrograms.json";
 
@@ -16,6 +17,10 @@ export default function PlanPage() {
         </div>
       )}
       <Editor program={program} />
+      <div className="flex justify-between pt-6">
+        <Link href={program ? `/results` : `/reco`} className="px-4 py-2 rounded-lg bg-gray-100 hover:bg-gray-200">← Back</Link>
+        <Link href="/preview" className="px-4 py-2 rounded-lg bg-blue-600 text-white hover:bg-blue-700">Continue →</Link>
+      </div>
     </div>
   );
 }
