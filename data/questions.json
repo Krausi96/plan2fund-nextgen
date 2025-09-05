@@ -1,64 +1,14 @@
 ﻿{
   "core": [
-    {
-      "id": "q1_location",
-      "question": "Where will the company mainly operate?",
-      "description": "Determines which national/regional programs and visa tracks apply.",
-      "maps_to": ["jurisdiction.country"]
-    },
-    {
-      "id": "q2_state",
-      "question": "If Austria: which federal state?",
-      "description": "Enables regional programs (e.g., Vienna grants).",
-      "maps_to": ["jurisdiction.state"]
-    },
-    {
-      "id": "q3_residency_status",
-      "question": "What is the founder’s residency/citizenship status?",
-      "description": "Needed for visa paths (e.g., RWR Start-up, Self-employed Key Worker).",
-      "maps_to": ["founder.residency_status"]
-    },
-    {
-      "id": "q4_stage",
-      "question": "What stage are you at?",
-      "description": "Separates preseed/first/incubator vs seed/basisprogram/bank.",
-      "maps_to": ["company.age_bracket","program.stage"]
-    },
-    {
-      "id": "q5_team",
-      "question": "How many full-time founders/employees right now?",
-      "description": "SME sizing; can unlock bonuses (e.g., gender bonus handled later).",
-      "maps_to": ["company.headcount_fte"]
-    },
-    {
-      "id": "q6_innovation",
-      "question": "Is your project developing something new (not just buying or rolling out existing tech)?",
-      "description": "Distinguishes R&D grants (FFG, aws Preseed/Seed) vs rollout or bank finance.",
-      "maps_to": ["project.innovation_novelty","project.is_RnD"]
-    },
-    {
-      "id": "q7_industry",
-      "question": "Which sector best fits your project?",
-      "description": "Some lines are sector-oriented (EIC, Klima/Energy calls, city programs).",
-      "maps_to": ["company.industry_tags"]
-    },
-    {
-      "id": "q8_budget",
-      "question": "Roughly how much project budget do you need for the next 12–24 months (EUR)?",
-      "description": "Used to fit funding lines with ceilings (e.g., aws Preseed IS ~€100k; Deep Tech ~€300k).",
-      "maps_to": ["project.total_budget_eur"]
-    },
-    {
-      "id": "q9_own_contribution",
-      "question": "Can you cover at least 10–20% of project costs from your own funds or revenues?",
-      "description": "Required in many programs (e.g., aws Preseed IS 10%).",
-      "maps_to": ["finance.own_funds_ratio"]
-    },
-    {
-      "id": "q10_finance_type",
-      "question": "What types of funding are you open to?",
-      "description": "FFG Basisprogramm mixes grant + loan; banks need loan acceptance; EIC includes equity.",
-      "maps_to": ["finance.accepted_instruments[]"]
-    }
+    { "id": "q1_location","question": "Where will the company mainly operate?","description": "Determines which national/regional programs and visa tracks apply.","maps_to": ["jurisdiction.country"] },
+    { "id": "q2_state","question": "If Austria: which federal state?","description": "Enables regional programs (e.g., Vienna grants).","maps_to": ["jurisdiction.state"] },
+    { "id": "q3_residency_status","question": "What is the founder’s residency/citizenship status?","description": "Needed for visa paths (e.g., RWR Start-up, Self-employed Key Worker).","maps_to": ["founder.residency_status"] },
+    { "id": "q4_stage","question": "What stage are you at?","description": "Separates preseed/first/incubator vs seed/basisprogram/bank.","maps_to": ["company.age_bracket","program.stage"] },
+    { "id": "q5_team","question": "How many full-time founders/employees right now?","description": "SME sizing; can unlock bonuses.","maps_to": ["company.headcount_fte"] },
+    { "id": "q6_innovation","question": "Is your project developing something new (not just buying or rolling out existing tech)?","description": "Distinguishes R&D grants vs rollout or bank finance.","maps_to": ["project.innovation_novelty","project.is_RnD"] },
+    { "id": "q7_industry","question": "Which sector best fits your project?","description": "Some lines are sector-oriented (EIC, Klima/Energy calls, city programs).","maps_to": ["company.industry_tags"] },
+    { "id": "q8_budget","question": "Roughly how much project budget do you need for the next 12–24 months (EUR)?","description": "Used to fit funding lines with ceilings.","maps_to": ["project.total_budget_eur"] },
+    { "id": "q9_own_contribution","question": "Can you cover at least 10–20% of project costs from your own funds or revenues?","description": "Required in many programs (e.g., aws Preseed IS 10%).","maps_to": ["finance.own_funds_ratio"] },
+    { "id": "q10_finance_type","question": "What types of funding are you open to?","description": "Grants vs loans vs equity preferences.","maps_to": ["finance.accepted_instruments[]"] }
   ]
 }
