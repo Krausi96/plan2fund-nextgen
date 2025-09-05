@@ -1,14 +1,539 @@
-﻿[
-  { "id": "visa_rwr_startup_founders","extra_questions": ["rwr_startup_cap_equity","rwr_startup_points_boosters"] },
-  { "id": "visa_rwr_self_employed_key_worker","extra_questions": ["rwr_keyworker_investment","rwr_keyworker_business_plan"] },
-  { "id": "residence_permit_self_employed","extra_questions": ["rp_self_emp_contract"] },
-  { "id": "aws_preseed_innovative_solutions","extra_questions": ["aws_is_ownfunds_10","aws_is_cap_check"] },
-  { "id": "aws_preseed_deep_tech","extra_questions": ["aws_dt_is_deeptech","aws_dt_cap_ownfunds"] },
-  { "id": "aws_seedfinancing_innovative_solutions","extra_questions": ["aws_seed_age","aws_seed_cap_rate"] },
-  { "id": "ffg_basisprogramm_kleinprojekt","extra_questions": ["ffg_small_total_costs","ffg_small_mix_ok"] },
-  { "id": "ffg_basisprogramm_unternehmensprojekt","extra_questions": ["ffg_bp_rate_expectation","ffg_bp_RnD_fit"] },
-  { "id": "waw_vienna_gruendungsstipendium","extra_questions": ["waw_residence_condition","waw_exclusions"] },
-  { "id": "eu_eic_accelerator","extra_questions": ["eic_trl","eic_sme_status"] },
-  { "id": "eu_erasmus_young_entrepreneurs","extra_questions": ["eye_new_entrepreneur"] },
-  { "id": "bank_investment_credit_generic","extra_questions": ["bank_docs","bank_collateral_equity"] }
-]
+{
+  "version": "2025-09-05",
+  "programs": [
+    {
+      "id": "aws_preseed_innovative_solutions",
+      "name": "aws Preseed – Innovative Solutions",
+      "jurisdiction": "AT",
+      "type": "grant",
+      "tags": [
+        "innovation",
+        "startup"
+      ],
+      "eligibility": [
+        "Natural persons (teams) or companies ≤6 months after registration",
+        "Project location in Austria",
+        "High degree of innovation with scalable market potential",
+        "Focus areas include e.g. diversity, environment/climate, health/care, education, mobility, urban development (as per programme page)"
+      ],
+      "key_exclusions": [
+        "Deep-tech projects (apply to aws Preseed/Seedfinancing – Deep Tech instead)",
+        "Projects at state of the art / incremental changes",
+        "Real estate, vehicles, non-specific building equipment"
+      ],
+      "thresholds": {
+        "max_grant_eur": 100000,
+        "base_max_grant_eur": 89000,
+        "funding_rate": "80% (90% with gender bonus)",
+        "project_duration_months": 12
+      },
+      "deadlines": {
+        "submission": "Ongoing (as per programme page)"
+      },
+      "evidence_links": [
+        "https://www.aws.at/en/aws-preseed-innovative-solutions/"
+      ],
+      "docs_checklist": [
+        "Follow programme document & templates (see Downloads on programme page)"
+      ],
+      "overlays": [
+        {
+          "ask_if": "answers.q1_country in ['AT','EU'] and answers.q2_entity_stage in ['PRE_COMPANY','INC_LT_6M'] and 'INNOVATION_DIGITAL' in answers.q4_theme",
+          "question": "Will the project be executed in Austria and is the company either not yet founded or ≤6 months old at application?",
+          "decisiveness": "HARD",
+          "rationale": "Programme requires Austrian project location and allows natural persons or newly founded companies (≤6 months).",
+          "evidence_links": [
+            "https://www.aws.at/en/aws-preseed-innovative-solutions/"
+          ],
+          "last_checked": "2025-09-05"
+        },
+        {
+          "ask_if": "answers.q9_team_diversity in ['YES','UNKNOWN']",
+          "question": "Will one or more women own >25% at the time of grant award (gender bonus up to EUR 100k)?",
+          "decisiveness": "SOFT",
+          "rationale": "Gender bonus increases funding rate and cap.",
+          "evidence_links": [
+            "https://www.aws.at/en/aws-preseed-innovative-solutions/"
+          ],
+          "last_checked": "2025-09-05"
+        }
+      ]
+    },
+    {
+      "id": "ffg_basisprogramm_2025",
+      "name": "FFG Basisprogramm 2025",
+      "jurisdiction": "AT",
+      "type": "mixed",
+      "tags": [
+        "innovation",
+        "experimental_development",
+        "r&d"
+      ],
+      "eligibility": [
+        "All company sizes incl. startups in Austria",
+        "Projects of experimental development with exploitation potential",
+        "Optional cooperation with scientific partners (bonus)"
+      ],
+      "key_exclusions": [
+        "Undertakings in difficulty (financial viability check applies)"
+      ],
+      "thresholds": {
+        "project_volume_eur": "up to ~3,000,000",
+        "funding_rate": "typically 50% (up to 70% for startups per page)",
+        "instrument_mix": "grant + low-interest loan; possible guarantees for bank credit"
+      },
+      "deadlines": {
+        "submission": "Ongoing; decisions in scheduled boards (e.g., sessions in 2025)"
+      },
+      "evidence_links": [
+        "https://www.ffg.at/en/node/202479",
+        "https://fdoc.ffg.at/s/vdb/public/node/content/5OhVhxXOSamalpyzH2UHdQ/1.0",
+        "https://www.ffg.at/en/node/5701"
+      ],
+      "docs_checklist": [
+        "Submit via FFG eCall; follow Ausschreibungsleitfaden and Instrumentenleitfaden"
+      ],
+      "overlays": [
+        {
+          "ask_if": "answers.q6_rnd_in_at == 'YES'",
+          "question": "Does your project qualify as experimental development and can you document eligible costs in Austria?",
+          "decisiveness": "HARD",
+          "rationale": "Basisprogramm funds experimental development; cost eligibility and financial viability checks apply.",
+          "evidence_links": [
+            "https://www.ffg.at/en/node/202479",
+            "https://fdoc.ffg.at/s/vdb/public/node/content/5OhVhxXOSamalpyzH2UHdQ/1.0"
+          ],
+          "last_checked": "2025-09-05"
+        },
+        {
+          "ask_if": "answers.q7_collaboration in ['WITH_RESEARCH','WITH_BOTH']",
+          "question": "Will you include Austrian research partners (university/FH/institute) in a cooperative setup?",
+          "decisiveness": "SOFT",
+          "rationale": "Cooperations are optional but may be bonified.",
+          "evidence_links": [
+            "https://www.ffg.at/en/node/202479"
+          ],
+          "last_checked": "2025-09-05"
+        }
+      ]
+    },
+    {
+      "id": "ffg_impact_innovation_2025",
+      "name": "FFG Impact Innovation 2025",
+      "jurisdiction": "AT",
+      "type": "grant",
+      "tags": [
+        "innovation",
+        "design_thinking",
+        "impact"
+      ],
+      "eligibility": [
+        "Austrian companies; user-centred problem/solution approach"
+      ],
+      "key_exclusions": [],
+      "thresholds": {
+        "funding_rate": "per call documents",
+        "project_duration_months": "per call documents"
+      },
+      "deadlines": {
+        "submission": "See 2025 call page"
+      },
+      "evidence_links": [
+        "https://www.ffg.at/ausschreibung/impact-innovation-2025",
+        "https://www.ffg.at/programm/impactinnovation"
+      ],
+      "docs_checklist": [
+        "Submit via eCall; follow Ausschreibungsleitfaden"
+      ],
+      "overlays": [
+        {
+          "ask_if": "answers.q1_country in ['AT','EU'] and 'INNOVATION_DIGITAL' in answers.q4_theme",
+          "question": "Will you validate user needs and test solution impact iteratively (design thinking / prototypes)?",
+          "decisiveness": "SOFT",
+          "rationale": "Programme emphasises user-centred validation and impact.",
+          "evidence_links": [
+            "https://www.ffg.at/programm/impactinnovation"
+          ],
+          "last_checked": "2025-09-05"
+        },
+        {
+          "ask_if": "answers.q5_maturity_trl in ['TRL_3_4','TRL_5_6']",
+          "question": "Is your maturity at PoC/Prototype where iterative testing with users is feasible?",
+          "decisiveness": "SOFT",
+          "rationale": "Programme favours practical experimentation.",
+          "evidence_links": [
+            "https://www.ffg.at/programm/impactinnovation"
+          ],
+          "last_checked": "2025-09-05"
+        }
+      ]
+    },
+    {
+      "id": "umweltfoerderung_betriebe_generic",
+      "name": "Umweltförderung im Betrieb (generic categories)",
+      "jurisdiction": "AT",
+      "type": "grant",
+      "tags": [
+        "sustainability",
+        "energy_efficiency",
+        "environment"
+      ],
+      "eligibility": [
+        "Companies and business operations in Austria (incl. contracting companies; specific public/NGO entities under conditions)",
+        "Investments must lead to verifiable environmental effects (e.g., energy efficiency, emission reduction)"
+      ],
+      "key_exclusions": [
+        "Private individuals; purely private-use projects",
+        "Installations already funded via Ökostrom or EAG",
+        "Measures in objects used exclusively for residential purposes"
+      ],
+      "thresholds": {
+        "funding_rate": "per measure; possible EMAS bonus up to 5% (max EUR 10,000)",
+        "instrument": "investment grants; payout after approved final report"
+      },
+      "deadlines": {
+        "submission": "Ongoing by measure; see respective infosheets"
+      },
+      "evidence_links": [
+        "https://www.umweltfoerderung.at/fileadmin/user_upload/umweltfoerderung/uebergeordnete_dokumente/_infoblatt_zielgruppe.pdf",
+        "https://www.umweltfoerderung.at/fileadmin/user_upload/umweltfoerderung/uebergeordnete_dokumente/_infoblatt_foerderungsberechnung.pdf",
+        "https://www.umweltfoerderung.at/"
+      ],
+      "docs_checklist": [
+        "Use official infosheets per measure; follow calculation rules; final report for payout"
+      ],
+      "overlays": [
+        {
+          "ask_if": "answers.q10_env_benefit in ['STRONG','SOME'] and answers.q1_country in ['AT','EU']",
+          "question": "Does the investment occur in Austria and does it deliver quantifiable environmental benefits (e.g., kWh saved, tCO₂e avoided)?",
+          "decisiveness": "HARD",
+          "rationale": "Eligibility hinges on Austrian investment and demonstrable environmental impact.",
+          "evidence_links": [
+            "https://www.umweltfoerderung.at/fileadmin/user_upload/umweltfoerderung/uebergeordnete_dokumente/_infoblatt_zielgruppe.pdf"
+          ],
+          "last_checked": "2025-09-05"
+        },
+        {
+          "ask_if": "answers.q3_company_size in ['MICRO_0_9','SMALL_10_49','MEDIUM_50_249']",
+          "question": "Are you EMAS-registered (potential bonus on funding rate)?",
+          "decisiveness": "SOFT",
+          "rationale": "EMAS bonus can increase the grant within limits.",
+          "evidence_links": [
+            "https://www.umweltfoerderung.at/fileadmin/user_upload/umweltfoerderung/uebergeordnete_dokumente/_infoblatt_foerderungsberechnung.pdf"
+          ],
+          "last_checked": "2025-09-05"
+        }
+      ]
+    },
+    {
+      "id": "life_programme_2025_generic",
+      "name": "LIFE Programme 2025 (selected strands)",
+      "jurisdiction": "EU",
+      "type": "grant",
+      "tags": [
+        "sustainability",
+        "environment",
+        "climate"
+      ],
+      "eligibility": [
+        "Legal entities in EU Member States (and associated countries)",
+        "Projects addressing LIFE topics (environment, climate, nature)"
+      ],
+      "key_exclusions": [],
+      "thresholds": {
+        "budget": "varies by strand/topic"
+      },
+      "deadlines": {
+        "snap_concept": "2025-09-04",
+        "full_proposals": "2026-03-05",
+        "other_strands": "e.g., 2025-09-23 (see CINEA page)"
+      },
+      "evidence_links": [
+        "https://cinea.ec.europa.eu/life-calls-proposals-2025_en"
+      ],
+      "docs_checklist": [
+        "Apply via EU Funding & Tenders Portal; follow topic templates"
+      ],
+      "overlays": [
+        {
+          "ask_if": "'SUSTAINABILITY' in answers.q4_theme",
+          "question": "Is your project aligned with a 2025 LIFE topic and ready to apply by the relevant deadline?",
+          "decisiveness": "SOFT",
+          "rationale": "Multiple strands with fixed deadlines; alignment and timing are decisive.",
+          "evidence_links": [
+            "https://cinea.ec.europa.eu/life-calls-proposals-2025_en"
+          ],
+          "last_checked": "2025-09-05"
+        },
+        {
+          "ask_if": "answers.q1_country in ['EU','AT']",
+          "question": "Is your consortium (if required) fully EU-based/associated and eligible on the chosen LIFE topic?",
+          "decisiveness": "HARD",
+          "rationale": "Participation restricted to EU/associated entities; topic-specific eligibility applies.",
+          "evidence_links": [
+            "https://cinea.ec.europa.eu/life-calls-proposals-2025_en"
+          ],
+          "last_checked": "2025-09-05"
+        }
+      ]
+    },
+    {
+      "id": "clean_hydrogen_ju_2025",
+      "name": "Clean Hydrogen Joint Undertaking – Call 2025",
+      "jurisdiction": "EU",
+      "type": "grant",
+      "tags": [
+        "sustainability",
+        "hydrogen",
+        "energy"
+      ],
+      "eligibility": [
+        "Horizon Europe rules (EU/associated; topic-specific consortia)"
+      ],
+      "key_exclusions": [
+        "Ineligible third countries (per HE General Annexes)"
+      ],
+      "thresholds": {
+        "call_budget_eur": 184500000,
+        "topics": "19 topics; incl. Hydrogen Valleys (€80m from REPowerEU)"
+      },
+      "deadlines": {
+        "deadline": "2025-04-23 (closed)"
+      },
+      "evidence_links": [
+        "https://www.clean-hydrogen.europa.eu/call-proposals-2025-closed_en",
+        "https://www.clean-hydrogen.europa.eu/document/download/e5846471-328c-48fd-b91f-837da07556b6_en?filename=Clean+Hydrogen+JU+AWP+2025_FINAL_ADOPTED.pdf"
+      ],
+      "docs_checklist": [
+        "Submit via Funding & Tenders; topic templates; lump-sum grants"
+      ],
+      "overlays": [
+        {
+          "ask_if": "'SUSTAINABILITY' in answers.q4_theme and answers.q5_maturity_trl in ['TRL_5_6','TRL_7_8','TRL_9']",
+          "question": "Does your project fit a 2025 Clean Hydrogen topic and meet consortium requirements?",
+          "decisiveness": "HARD",
+          "rationale": "Topic fit and HE eligibility are mandatory.",
+          "evidence_links": [
+            "https://www.clean-hydrogen.europa.eu/call-proposals-2025-closed_en"
+          ],
+          "last_checked": "2025-09-05"
+        },
+        {
+          "ask_if": "answers.q10_env_benefit in ['STRONG','SOME']",
+          "question": "Can you quantify GHG benefits and system impacts required by the topic?",
+          "decisiveness": "SOFT",
+          "rationale": "Impact quantification strengthens proposals.",
+          "evidence_links": [
+            "https://www.clean-hydrogen.europa.eu/document/download/e5846471-328c-48fd-b91f-837da07556b6_en?filename=Clean+Hydrogen+JU+AWP+2025_FINAL_ADOPTED.pdf"
+          ],
+          "last_checked": "2025-09-05"
+        }
+      ]
+    },
+    {
+      "id": "eic_accelerator_2025",
+      "name": "EIC Accelerator 2025",
+      "jurisdiction": "EU",
+      "type": "grant_equity",
+      "tags": [
+        "innovation",
+        "deeptech",
+        "scaleup"
+      ],
+      "eligibility": [
+        "Single SME (or small mid-cap under certain conditions)",
+        "Breakthrough/high-risk innovations with strong market potential"
+      ],
+      "key_exclusions": [],
+      "thresholds": {
+        "budget": "≥ €1.2–1.4bn total WP 2025 across EIC, Accelerator cut-offs per WP",
+        "blended_finance": "grant + equity possible; topic streams per Work Programme"
+      },
+      "deadlines": {
+        "status": "See EIC Work Programme 2025 for cut-off dates (various)"
+      },
+      "evidence_links": [
+        "https://eic.ec.europa.eu/eic-2025-work-programme_en",
+        "https://eic.ec.europa.eu/document/download/5e1eb75f-e437-477f-9ee9-ef54ff6387fd_en?filename=EIC+Work+Programme+2025.pdf",
+        "https://eic.ec.europa.eu/eic-funding-opportunities/eic-accelerator_en"
+      ],
+      "docs_checklist": [
+        "Apply via Funding & Tenders; follow WP 2025 templates; pitching/interview for selected proposals"
+      ],
+      "overlays": [
+        {
+          "ask_if": "'INNOVATION_DIGITAL' in answers.q4_theme and answers.q5_maturity_trl in ['TRL_5_6','TRL_7_8','TRL_9'] and answers.q3_company_size in ['MICRO_0_9','SMALL_10_49','MEDIUM_50_249']",
+          "question": "Are you an EU SME with a breakthrough, high-risk innovation at TRL≥5 and willing to seek blended finance?",
+          "decisiveness": "HARD",
+          "rationale": "EIC Accelerator targets EU SMEs with TRL≥5 innovations; blended finance is common.",
+          "evidence_links": [
+            "https://eic.ec.europa.eu/eic-2025-work-programme_en"
+          ],
+          "last_checked": "2025-09-05"
+        },
+        {
+          "ask_if": "answers.q8_funding_types and ('EQUITY' in answers.q8_funding_types or 'GRANT' in answers.q8_funding_types)",
+          "question": "If invited, are you ready for a pitch/interview with EIC jury (slides, financials, traction)?",
+          "decisiveness": "SOFT",
+          "rationale": "Process includes interview stage.",
+          "evidence_links": [
+            "https://eic.ec.europa.eu/eic-2025-work-programme_en"
+          ],
+          "last_checked": "2025-09-05"
+        }
+      ]
+    },
+    {
+      "id": "eit_health_thi_2025",
+      "name": "EIT Health – Transformative Health Instrument (THI) 2025",
+      "jurisdiction": "EU",
+      "type": "grant",
+      "tags": [
+        "health",
+        "life_science",
+        "sme"
+      ],
+      "eligibility": [
+        "Single-beneficiary call aimed at SMEs; non-members can apply (per FAQ)"
+      ],
+      "key_exclusions": [],
+      "thresholds": {
+        "budget": "per call document",
+        "duration": "work in 2025; specifics per call documentation"
+      },
+      "deadlines": {
+        "status": "See call/FAQ; 2025 timelines defined in documents"
+      },
+      "evidence_links": [
+        "https://eithealth.eu/transformative-health-instrument-call-2025-faqs/",
+        "https://eithealth.eu/wp-content/uploads/2024/11/EIT-Health-Flagships-2025_Call-Document_v10.pdf"
+      ],
+      "docs_checklist": [
+        "Follow EIT Health call document & FAQs; eligibility and timelines inside"
+      ],
+      "overlays": [
+        {
+          "ask_if": "'HEALTH_LIFE_SCIENCE' in answers.q4_theme",
+          "question": "Are you an SME with a patient-centred health innovation and can you deliver within 2025 timelines?",
+          "decisiveness": "HARD",
+          "rationale": "THI is SME-focused with strict 2025 delivery timelines.",
+          "evidence_links": [
+            "https://eithealth.eu/transformative-health-instrument-call-2025-faqs/",
+            "https://eithealth.eu/wp-content/uploads/2024/11/EIT-Health-Flagships-2025_Call-Document_v10.pdf"
+          ],
+          "last_checked": "2025-09-05"
+        },
+        {
+          "ask_if": "answers.q10_env_benefit == 'NONE'",
+          "question": "Does your project clearly address health outcomes (not climate-only benefits)?",
+          "decisiveness": "SOFT",
+          "rationale": "Ensures correct routing to health-focused calls.",
+          "evidence_links": [
+            "https://eithealth.eu/transformative-health-instrument-call-2025-faqs/"
+          ],
+          "last_checked": "2025-09-05"
+        }
+      ]
+    },
+    {
+      "id": "esa_bic_austria",
+      "name": "ESA BIC Austria (incubation grant)",
+      "jurisdiction": "AT/EU",
+      "type": "grant+support",
+      "tags": [
+        "innovation",
+        "space",
+        "downstream"
+      ],
+      "eligibility": [
+        "Entrepreneurs, startups and SMEs with space-enabled products/services (e.g., GNSS, Earth observation)"
+      ],
+      "key_exclusions": [],
+      "thresholds": {
+        "grant_amount_eur": 50000,
+        "incubation_months": 24
+      },
+      "deadlines": {
+        "status": "Next application deadline to be announced in 2025"
+      },
+      "evidence_links": [
+        "https://www.sciencepark.at/esa-bic-austria/"
+      ],
+      "docs_checklist": [
+        "Follow ESA BIC Austria application guidance on site; includes business plan & technical plan"
+      ],
+      "overlays": [
+        {
+          "ask_if": "'SPACE_DOWNSTREAM' in answers.q4_theme",
+          "question": "Is your product/service space-enabled (e.g., GNSS/EO data) and are you ready for incubation in Austria?",
+          "decisiveness": "HARD",
+          "rationale": "ESA BIC targets space-enabled ventures; €50k grant + incubation.",
+          "evidence_links": [
+            "https://www.sciencepark.at/esa-bic-austria/"
+          ],
+          "last_checked": "2025-09-05"
+        },
+        {
+          "ask_if": "answers.q2_entity_stage != 'PRE_COMPANY'",
+          "question": "Can you commit to 24 months incubation milestones and ESA branding requirements?",
+          "decisiveness": "SOFT",
+          "rationale": "Programme includes business support and milestone obligations.",
+          "evidence_links": [
+            "https://www.sciencepark.at/esa-bic-austria/"
+          ],
+          "last_checked": "2025-09-05"
+        }
+      ]
+    },
+    {
+      "id": "horizon_europe_cluster1_health_2025",
+      "name": "Horizon Europe – Cluster 1: Health (2025)",
+      "jurisdiction": "EU",
+      "type": "grant",
+      "tags": [
+        "health",
+        "research",
+        "innovation"
+      ],
+      "eligibility": [
+        "Consortia eligibility per Horizon Europe (EU/associated), topic-specific conditions apply"
+      ],
+      "key_exclusions": [],
+      "thresholds": {
+        "funding_rate": "up to 100% for RIA/CSA; IA typically 70% (non-profit 100%)"
+      },
+      "deadlines": {
+        "status": "Deadlines vary by topic; see Work Programme 2025"
+      },
+      "evidence_links": [
+        "https://research-and-innovation.ec.europa.eu/funding/funding-opportunities/funding-programmes-and-open-calls/horizon-europe/cluster-1-health_en",
+        "https://research-and-innovation.ec.europa.eu/document/download/889d60c2-3cfb-4d94-8e17-8ebdd238b0c3_en"
+      ],
+      "docs_checklist": [
+        "Apply via Funding & Tenders; follow WP 2025 Part 4 Health; use topic templates"
+      ],
+      "overlays": [
+        {
+          "ask_if": "'HEALTH_LIFE_SCIENCE' in answers.q4_theme and answers.q6_rnd_in_at in ['YES','UNSURE']",
+          "question": "Do you have/plan an eligible EU consortium matching a 2025 Health topic (RIA/IA/CSA)?",
+          "decisiveness": "HARD",
+          "rationale": "HE requires eligible consortia and topic fit.",
+          "evidence_links": [
+            "https://research-and-innovation.ec.europa.eu/document/download/889d60c2-3cfb-4d94-8e17-8ebdd238b0c3_en"
+          ],
+          "last_checked": "2025-09-05"
+        },
+        {
+          "ask_if": "answers.q5_maturity_trl in ['TRL_3_4','TRL_5_6']",
+          "question": "Will your proposal meet evaluation thresholds (≥3/5 per criterion and ≥10/15 overall)?",
+          "decisiveness": "SOFT",
+          "rationale": "Typical HE thresholds for RIA/IA; ensure strong Excellence/Impact/Implementation.",
+          "evidence_links": [
+            "https://www.ffg.at/sites/default/files/downloads/00_Projekt_Life_Cycle_ENGLISCH.pdf"
+          ],
+          "last_checked": "2025-09-05"
+        }
+      ]
+    }
+  ]
+}
