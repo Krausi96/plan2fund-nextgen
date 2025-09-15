@@ -1,0 +1,17 @@
+﻿{
+  "master": "docs/Plan2Fund_MASTER.md",
+  "quickstart": "docs/QuickStart.md",
+  "architecture": ["docs/Architecture/Data_Map.md"],
+  "operations": [
+    "docs/Operations/Workflow.md",
+    "docs/Operations/Agent_Boot.md"
+  ],
+  "mappings": [
+    "docs/mappings/DECISION_TREE_MAPPING.md"
+  ],
+  "anchors": {
+    "journey": "#user-journey",
+    "scoring": "#recommendation-engine",
+    "workflow": "#operations--workflow"
+  }
+}
