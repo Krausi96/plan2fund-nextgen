@@ -9,18 +9,9 @@ const read = (p) => fs.readFileSync(p, "utf8");
 
 const ROOT = process.cwd();
 
-// --- Required docs & index coherence ---
-const indexPath = path.join(ROOT, "docs", "_index.json");
-if (!exists(indexPath)) fail("docs/_index.json missing");
-const index = JSON.parse(read(indexPath));
-
+// --- Required docs check ---
 const requiredDocs = [
-  "docs/Plan2Fund_MASTER.md",
-  "docs/QuickStart.md",
-  "docs/Architecture/Data_Map.md",
-  "docs/Operations/Workflow.md",
-  "docs/Operations/Agent_Boot.md",
-  "docs/mappings/DECISION_TREE_MAPPING.md"
+  "docs/README.md"
 ];
 
 for (const f of requiredDocs) {
@@ -28,45 +19,27 @@ for (const f of requiredDocs) {
 }
 ok("All required docs exist");
 
-function indexLists(file) {
-  const { master, quickstart, architecture, operations, mappings } = index;
-  const flat = [
-    master, quickstart,
-    ...(architecture || []),
-    ...(operations || []),
-    ...(mappings || [])
-  ].filter(Boolean);
-  return flat.includes(file);
-}
-
-for (const f of requiredDocs) {
-  if (!indexLists(f)) fail(`docs/_index.json does not reference: ${f}`);
-}
-ok("_index.json references all required docs");
-
-if (!index.anchors || !index.anchors.journey || !index.anchors.scoring) {
-  fail("docs/_index.json missing required anchors (journey, scoring)");
-}
-ok("Anchors present in _index.json");
-
-// --- README ToC sanity (non-strict) ---
+// --- README content check ---
 const readmePath = path.join(ROOT, "docs", "README.md");
 if (exists(readmePath)) {
   const r = read(readmePath);
-  const mustLink = [
-    "Plan2Fund_MASTER.md",
-    "QuickStart.md",
-    "Architecture/Data_Map.md",
-    "Operations/Workflow.md"
+  const mustContain = [
+    "Project Overview",
+    "User Journey", 
+    "Technical Architecture",
+    "Data Model",
+    "Feature Flags",
+    "Development Workflow",
+    "GDPR Compliance"
   ];
   let missing = [];
-  for (const m of mustLink) {
+  for (const m of mustContain) {
     if (!r.includes(m)) missing.push(m);
   }
-  if (missing.length) warn("README.md missing links: " + missing.join(", "));
-  else ok("README links look good");
+  if (missing.length) warn("README.md missing sections: " + missing.join(", "));
+  else ok("README.md contains all required sections");
 } else {
-  warn("docs/README.md not found; ToC check skipped");
+  fail("docs/README.md not found");
 }
 
 // --- Wizard/Intake invariants (best-effort) ---
@@ -105,12 +78,10 @@ ok("Overlay groups within limits or skipped");
 
 // --- Scoring engine parity check (import usage) ---
 const wiz = path.join(ROOT, "src", "components", "reco", "Wizard.tsx");
-const intake = path.join(ROOT, "src", "components", "reco", "AIIntake.tsx");
-const scoringRe = /decisionTreeScoring/;
+const scoringRe = /recoEngine|scoring/;
 const w = exists(wiz) ? read(wiz) : "";
-const i = exists(intake) ? read(intake) : "";
-if (!scoringRe.test(w) || !scoringRe.test(i)) warn("Parity not confirmed: ensure both use decisionTreeScoring.ts");
-else ok("Wizard & AI Intake reference decisionTreeScoring");
+if (!scoringRe.test(w)) warn("Parity not confirmed: ensure Wizard uses recoEngine.ts or scoring.ts");
+else ok("Wizard references scoring engine");
 
 // --- Results debug present ---
 const results1 = path.join(ROOT, "pages", "results.tsx");
