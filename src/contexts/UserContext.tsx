@@ -35,21 +35,27 @@ export function UserProvider({ children }: UserProviderProps) {
       // Check for existing profile in localStorage
       const storedProfile = localStorage.getItem('pf_user_profile');
       if (storedProfile) {
-        const profile = JSON.parse(storedProfile);
-        const validatedProfile = validateUserProfile(profile);
-        
-        if (validatedProfile) {
-          setUserProfileState(validatedProfile);
-          setHasCompletedOnboarding(true);
+        try {
+          const profile = JSON.parse(storedProfile);
+          const validatedProfile = validateUserProfile(profile);
           
-          // Set feature flags context
-          featureFlags.setUserContext(validatedProfile.segment, validatedProfile.id);
-          
-          // Set analytics user ID
-          analytics.setUserId(validatedProfile.id);
-          
-          // Refresh profile from server
-          await refreshProfileFromServer(validatedProfile.id);
+          if (validatedProfile) {
+            setUserProfileState(validatedProfile);
+            setHasCompletedOnboarding(true);
+            
+            // Set feature flags context
+            featureFlags.setUserContext(validatedProfile.segment, validatedProfile.id);
+            
+            // Set analytics user ID
+            analytics.setUserId(validatedProfile.id);
+            
+            // Refresh profile from server
+            await refreshProfileFromServer(validatedProfile.id);
+          }
+        } catch (parseError) {
+          console.error('Error parsing stored profile:', parseError);
+          // Clear invalid profile from localStorage
+          localStorage.removeItem('pf_user_profile');
         }
       }
     } catch (error) {
