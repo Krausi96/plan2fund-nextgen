@@ -2,6 +2,7 @@ import React, { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { useRouter } from "next/router";
 import { motion, AnimatePresence } from "framer-motion";
+import { ClientRecoEngine } from "@/lib/clientRecoEngine";
 
 // Dynamic imports to avoid SSR issues
 const questionsData = require("../../../data/questions.json");
@@ -92,16 +93,7 @@ export default function Wizard() {
   const submitAnswers = async () => {
     try {
       setLoading(true);
-      const res = await fetch("/api/recommend", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ answers, mode: personaMode }),
-      });
-      const data = await res.json();
-      const signalsHeader = res.headers.get("x-pf-signals")
-      if (signalsHeader) {
-        try { localStorage.setItem("normalizedAnswers", decodeURIComponent(signalsHeader)) } catch {}
-      }
+      const data = await ClientRecoEngine.processRecommendation(answers, personaMode, true);
 
       localStorage.setItem("recoResults", JSON.stringify(data.recommendations));
       localStorage.setItem("normalizedAnswers", JSON.stringify(data.normalizedAnswers));
@@ -116,16 +108,7 @@ export default function Wizard() {
   const submitFreeText = async () => {
     try {
       setLoading(true);
-      const res = await fetch("/api/recommend/free-text", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ description: answers.freeText || "" }),
-      });
-      const data = await res.json();
-      const signalsHeader = res.headers.get("x-pf-signals")
-      if (signalsHeader) {
-        try { localStorage.setItem("normalizedAnswers", decodeURIComponent(signalsHeader)) } catch {}
-      }
+      const data = await ClientRecoEngine.processFreeText(answers.freeText || "");
 
       localStorage.setItem("recoResults", JSON.stringify(data.recommendations));
       localStorage.setItem("normalizedAnswers", JSON.stringify(data.normalizedAnswers));
