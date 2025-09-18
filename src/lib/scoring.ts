@@ -19,7 +19,7 @@ export async function scorePrograms({
   signals?: Signals
   answers?: Answers
   programs?: any[]
-}): Promise<Array<{ id: string; scores: ScoreBreakdown; why: string[]; eligibility: string; confidence: string }>> {
+}): Promise<Array<{ id: string; scores: ScoreBreakdown; why: string[]; eligibility: string; confidence: "High" | "Medium" | "Low" }>> {
   let source: any[] = [];
   
   if (programs) {
@@ -139,7 +139,7 @@ export async function scorePrograms({
       scores: { fit, readiness, effort: effortScore, confidence },
       why,
       eligibility,
-      confidence: confidenceLevel,
+      confidence: confidenceLevel as "High" | "Medium" | "Low",
       title: p.title || p.name || p.id,
     }
   }) as Array<any>)

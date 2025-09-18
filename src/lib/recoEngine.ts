@@ -94,9 +94,9 @@ export async function scorePrograms(
         score: 50,
         reason: "No specific requirements found for this program",
         eligibility: "Unknown",
-        confidence: "Low",
+        confidence: "Low" as "High" | "Medium" | "Low",
         unmetRequirements: [],
-      };
+      } as ScoredProgram;
     }
 
     for (const [key, requirement] of Object.entries(program.requirements)) {
@@ -170,9 +170,9 @@ export async function scorePrograms(
       score: scorePercent,
       reason,
       eligibility,
-      confidence,
+      confidence: confidence as "High" | "Medium" | "Low",
       unmetRequirements,
-    };
+    } as ScoredProgram;
   }).sort((a, b) => b.score - a.score);
 }
 
