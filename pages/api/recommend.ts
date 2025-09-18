@@ -32,8 +32,8 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     } else {
       // Use legacy scoring logic
       const normalized = normalizeAnswers(rawAnswers);
-      const scored = scorePrograms(normalized, mode);
-      const breakdown = scoreBreakdown({ answers: normalized });
+      const scored = await scorePrograms(normalized, mode);
+      const breakdown = await scoreBreakdown({ answers: normalized });
       const whyById = new Map(breakdown.map((b) => [b.id, b]));
 
       // Optional: attach simple signals in a header for client-side panels

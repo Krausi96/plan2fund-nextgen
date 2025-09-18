@@ -194,7 +194,7 @@ export function generateReason(
 /**
  * Analyze free-text description and normalize into structured answers.
  */
-export function analyzeFreeText(description: string): { normalized: UserAnswers; scored: ScoredProgram[] } {
+export async function analyzeFreeText(description: string): Promise<{ normalized: UserAnswers; scored: ScoredProgram[] }> {
   const normalized: UserAnswers = {};
   const lower = description.toLowerCase();
 
@@ -226,6 +226,6 @@ export function analyzeFreeText(description: string): { normalized: UserAnswers;
     normalized["stage"] = "Growth";
   }
 
-  const scored = scorePrograms(normalized, "strict");
+  const scored = await scorePrograms(normalized, "strict");
   return { normalized, scored };
 }

@@ -3,7 +3,7 @@ import { analyzeFreeText, scorePrograms } from "@/lib/recoEngine";
 import { scorePrograms as scoreBreakdown } from "@/lib/scoring";
 import featureFlags from "@/lib/featureFlags";
 
-export default function handler(req: NextApiRequest, res: NextApiResponse) {
+export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   if (req.method !== "POST") {
     return res.status(405).json({ error: "Method not allowed" });
   }
@@ -19,9 +19,10 @@ export default function handler(req: NextApiRequest, res: NextApiResponse) {
     }
 
     // Use analyzeFreeText to normalize, but rescore with chosen mode
-    const normalized = featureFlags.isEnabled('AI_ENABLED') ? analyzeFreeText(description).normalized : {};
-    const scored = scorePrograms(normalized, mode);
-    const breakdown = scoreBreakdown({ answers: normalized });
+    const analyzed = featureFlags.isEnabled('AI_ENABLED') ? await analyzeFreeText(description) : { normalized: {} };
+    const normalized = analyzed.normalized;
+    const scored = await scorePrograms(normalized, mode);
+    const breakdown = await scoreBreakdown({ answers: normalized });
     const whyById = new Map(breakdown.map((b) => [b.id, b]));
 
     try {
