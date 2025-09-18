@@ -8,8 +8,7 @@ export async function loadPrograms(): Promise<any[]> {
   }
   
   try {
-    const response = await fetch('/api/data/programs');
-    const data = await response.json();
+    const data = await import('@/data/programs').then(module => module.default);
     programsCache = data.programs || [];
     return data.programs || [];
   } catch (error) {
@@ -24,8 +23,7 @@ export async function loadQuestions(): Promise<any> {
   }
   
   try {
-    const response = await fetch('/api/data/questions');
-    const data = await response.json();
+    const data = await import('@/data/questions').then(module => module.default);
     questionsCache = data;
     return data;
   } catch (error) {

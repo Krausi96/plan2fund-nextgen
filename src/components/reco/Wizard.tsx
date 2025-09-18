@@ -29,31 +29,10 @@ export default function Wizard() {
     try {
       console.log('Starting data load...');
       
+      // Import data directly to avoid API route issues with static export
       const [questionsResponse, programsResponse] = await Promise.all([
-        fetch('/api/data/questions', { 
-          cache: 'no-cache',
-          headers: { 'Content-Type': 'application/json' }
-        }).then(async res => {
-          console.log('Questions API fetch status:', res.status);
-          if (!res.ok) {
-            const errorText = await res.text();
-            console.error('Questions API fetch error response:', errorText);
-            throw new Error(`Questions API fetch failed: ${res.status} - ${errorText}`);
-          }
-          return res.json();
-        }),
-        fetch('/api/data/programs', { 
-          cache: 'no-cache',
-          headers: { 'Content-Type': 'application/json' }
-        }).then(async res => {
-          console.log('Programs API fetch status:', res.status);
-          if (!res.ok) {
-            const errorText = await res.text();
-            console.error('Programs API fetch error response:', errorText);
-            throw new Error(`Programs API fetch failed: ${res.status} - ${errorText}`);
-          }
-          return res.json();
-        })
+        import('@/data/questions').then(module => module.default),
+        import('@/data/programs').then(module => module.default)
       ]);
       
       console.log('Successfully loaded questions:', questionsResponse);
