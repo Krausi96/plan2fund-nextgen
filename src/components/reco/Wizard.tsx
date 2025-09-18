@@ -35,9 +35,15 @@ export default function Wizard() {
           headers: { 'Content-Type': 'application/json' }
         }).then(async res => {
           console.log('Questions fetch status:', res.status);
-          if (!res.ok) throw new Error(`Questions fetch failed: ${res.status}`);
+          console.log('Questions response headers:', res.headers);
+          if (!res.ok) {
+            const errorText = await res.text();
+            console.error('Questions fetch error response:', errorText);
+            throw new Error(`Questions fetch failed: ${res.status} - ${errorText}`);
+          }
           const text = await res.text();
-          console.log('Questions response text:', text.substring(0, 100));
+          console.log('Questions response text (first 200 chars):', text.substring(0, 200));
+          console.log('Questions response text (last 100 chars):', text.substring(Math.max(0, text.length - 100)));
           return JSON.parse(text);
         }),
         fetch('/programs.json', { 
@@ -45,9 +51,15 @@ export default function Wizard() {
           headers: { 'Content-Type': 'application/json' }
         }).then(async res => {
           console.log('Programs fetch status:', res.status);
-          if (!res.ok) throw new Error(`Programs fetch failed: ${res.status}`);
+          console.log('Programs response headers:', res.headers);
+          if (!res.ok) {
+            const errorText = await res.text();
+            console.error('Programs fetch error response:', errorText);
+            throw new Error(`Programs fetch failed: ${res.status} - ${errorText}`);
+          }
           const text = await res.text();
-          console.log('Programs response text:', text.substring(0, 100));
+          console.log('Programs response text (first 200 chars):', text.substring(0, 200));
+          console.log('Programs response text (last 100 chars):', text.substring(Math.max(0, text.length - 100)));
           return JSON.parse(text);
         })
       ]);
