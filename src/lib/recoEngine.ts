@@ -82,7 +82,7 @@ export async function scorePrograms(
     link: undefined,
   }))
 
-  return normalizedPrograms.map((program) => {
+  return normalizedPrograms.map((program): ScoredProgram => {
     let score = 0;
     const unmetRequirements: string[] = [];
     const matchedRequirements: string[] = [];
@@ -94,9 +94,9 @@ export async function scorePrograms(
         score: 50,
         reason: "No specific requirements found for this program",
         eligibility: "Unknown",
-        confidence: "Low" as "High" | "Medium" | "Low",
+        confidence: "Low",
         unmetRequirements: [],
-      } as ScoredProgram;
+      };
     }
 
     for (const [key, requirement] of Object.entries(program.requirements)) {
@@ -170,9 +170,9 @@ export async function scorePrograms(
       score: scorePercent,
       reason,
       eligibility,
-      confidence: confidence as "High" | "Medium" | "Low",
+      confidence,
       unmetRequirements,
-    } as ScoredProgram;
+    };
   }).sort((a, b) => b.score - a.score);
 }
 

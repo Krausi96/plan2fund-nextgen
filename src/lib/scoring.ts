@@ -151,6 +151,7 @@ export async function scorePrograms({
     if (bComp !== aComp) return bComp - aComp
     return String(a.title).localeCompare(String(b.title))
   })
+  
   return mapped.map((m: any) => ({ id: m.id, scores: m.scores, why: m.why, eligibility: m.eligibility, confidence: m.confidence }))
 }
 
