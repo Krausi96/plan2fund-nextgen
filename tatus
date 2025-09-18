@@ -1,0 +1,5 @@
+[33m688d24a[m[33m ([m[1;36mHEAD[m[33m -> [m[1;32mmain[m[33m, [m[1;31morigin/main[m[33m, [m[1;31morigin/HEAD[m[33m)[m Fix remaining JSON import in plan.tsx
+[33m18c98f5[m Fix remaining JSON fetch calls in scoring and decisionTree
+[33m82679db[m Embed data directly in TypeScript files to fix import issues
+[33me767cd8[m Fix data loading by using direct imports instead of API routes
+[33me9bf2ed[m Force clean Vercel build - remove static export detection
