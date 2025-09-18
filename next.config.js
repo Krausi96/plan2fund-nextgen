@@ -1,11 +1,11 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
-  output: 'export',
+  // Remove static export to enable API routes
   trailingSlash: true,
   images: {
     unoptimized: true
   },
-  // Disable API routes for static export
+  // Enable API routes for Vercel deployment
   experimental: {
     outputFileTracingRoot: undefined,
   },
