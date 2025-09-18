@@ -7,7 +7,7 @@ export type ProgramInput = {
   authority?: string
   country?: string
   tags?: string[]
-  eligibility?: { rules?: string[] }
+  eligibility?: string[] | { rules?: string[] }
   effort?: number
   docs_required?: string[]
   weights?: { fit?: number; readiness?: number; effort?: number; confidence?: number }
@@ -20,7 +20,7 @@ export function programSchemaParse(p: any): ProgramInput | null {
   if (!p || typeof p !== "object") return null
   if (typeof p.id !== "string" || p.id.length === 0) return null
   if (p.tags && !Array.isArray(p.tags)) return null
-  if (p.eligibility && !Array.isArray(p.eligibility.rules || [])) return null
+  if (p.eligibility && !Array.isArray(p.eligibility) && !Array.isArray(p.eligibility?.rules || [])) return null
   if (p.effort !== undefined && (typeof p.effort !== "number" || p.effort < 1 || p.effort > 5)) return null
   if (p.docs_required && !Array.isArray(p.docs_required)) return null
   if (p.weights) {

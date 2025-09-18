@@ -28,15 +28,23 @@ export default function Wizard() {
   const loadData = async () => {
     try {
       const [questionsResponse, programsResponse] = await Promise.all([
-        fetch('/questions.json').then(res => res.json()),
-        fetch('/programs.json').then(res => res.json())
+        fetch('/questions.json').then(res => {
+          if (!res.ok) throw new Error(`Questions fetch failed: ${res.status}`);
+          return res.json();
+        }),
+        fetch('/programs.json').then(res => {
+          if (!res.ok) throw new Error(`Programs fetch failed: ${res.status}`);
+          return res.json();
+        })
       ]);
+      console.log('Loaded questions:', questionsResponse);
+      console.log('Loaded programs:', programsResponse);
       setQuestionsData(questionsResponse);
-      setProgramsData(programsResponse);
+      setProgramsData(programsResponse.programs || []);
     } catch (error) {
       console.error('Error loading data:', error);
       // Fallback to empty data
-      setQuestionsData({ core: [], micro: [] });
+      setQuestionsData({ universal: [], core: [], micro: [] });
       setProgramsData([]);
     }
   };
@@ -148,7 +156,12 @@ export default function Wizard() {
   }
 
   const currentQuestions = showMicroQuestions ? microQuestions : (questionsData?.universal || questionsData?.core || []);
-  const progressPercent = Math.round(((step + 1) / currentQuestions.length) * 100);
+  const progressPercent = currentQuestions.length > 0 ? Math.round(((step + 1) / currentQuestions.length) * 100) : 0;
+
+  // Safety check for current question
+  if (step >= currentQuestions.length || !currentQuestions[step]) {
+    return <div>No questions available</div>;
+  }
 
   // Extract signal chips from free text
   const extractChips = (text: string): string[] => {
@@ -255,34 +268,34 @@ export default function Wizard() {
               className="mb-4"
             >
               <label className="block text-sm font-medium mb-2">
-                {currentQuestions[step].label}
+                {currentQuestions[step]?.label || 'Question'}
               </label>
-              {(currentQuestions[step].type === "select" || currentQuestions[step].type === "single-select") && (
+              {(currentQuestions[step]?.type === "select" || currentQuestions[step]?.type === "single-select") && (
                 <select
-                  value={answers[currentQuestions[step].id] || ""}
-                  onChange={(e) => handleChange(currentQuestions[step].id, e.target.value)}
+                  value={answers[currentQuestions[step]?.id] || ""}
+                  onChange={(e) => handleChange(currentQuestions[step]?.id, e.target.value)}
                   className="w-full border rounded p-2"
                 >
                   <option value="">Select...</option>
-                  {currentQuestions[step].options?.map((opt: any) => (
+                  {currentQuestions[step]?.options?.map((opt: any) => (
                     <option key={opt.value || opt} value={opt.value || opt}>
                       {opt.label || opt}
                     </option>
                   ))}
                 </select>
               )}
-              {currentQuestions[step].type === "number" && (
+              {currentQuestions[step]?.type === "number" && (
                 <input
                   type="number"
-                  value={answers[currentQuestions[step].id] || ""}
-                  onChange={(e) => handleChange(currentQuestions[step].id, Number(e.target.value))}
+                  value={answers[currentQuestions[step]?.id] || ""}
+                  onChange={(e) => handleChange(currentQuestions[step]?.id, Number(e.target.value))}
                   className="w-full border rounded p-2"
                 />
               )}
-              {currentQuestions[step].type === "boolean" && (
+              {currentQuestions[step]?.type === "boolean" && (
                 <select
-                  value={answers[currentQuestions[step].id] || ""}
-                  onChange={(e) => handleChange(currentQuestions[step].id, e.target.value === "Yes")}
+                  value={answers[currentQuestions[step]?.id] || ""}
+                  onChange={(e) => handleChange(currentQuestions[step]?.id, e.target.value === "Yes")}
                   className="w-full border rounded p-2"
                 >
                   <option value="">Select...</option>

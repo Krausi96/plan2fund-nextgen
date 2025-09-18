@@ -10,8 +10,8 @@ export async function loadPrograms(): Promise<any[]> {
   try {
     const response = await fetch('/programs.json');
     const data = await response.json();
-    programsCache = data;
-    return data;
+    programsCache = data.programs || [];
+    return data.programs || [];
   } catch (error) {
     console.error('Error loading programs:', error);
     return [];

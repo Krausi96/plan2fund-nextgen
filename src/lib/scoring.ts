@@ -38,13 +38,18 @@ export async function scorePrograms({
   const safeAnswers = answersSchemaParse(answers)
 
   const mapped = (source.map((raw) => {
+    if (!raw || typeof raw !== 'object') {
+      console.warn("Invalid program entry skipped - not an object", raw);
+      return null;
+    }
+    
     const p = programSchemaParse(raw)
     if (!p) {
       try { console.warn("Invalid program entry skipped", raw?.id || "<no-id>") } catch {}
       return null
     }
     const weights = p.weights || { fit: 0.4, readiness: 0.3, effort: 0.2, confidence: 0.1 }
-    const rules: string[] = p.eligibility?.rules || []
+    const rules: string[] = Array.isArray(p.eligibility) ? p.eligibility : (p.eligibility?.rules || [])
     const ruleGroups = (p as any).rule_groups || []
 
     const why: string[] = []
