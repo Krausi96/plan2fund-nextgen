@@ -1,14 +1,6 @@
-﻿export function cn(...classes: string[]) {
-  return classes.filter(Boolean).join(' ')
-}
+﻿import { type ClassValue, clsx } from "clsx"
+import { twMerge } from "tailwind-merge"
 
-// Feature flags (read from env with safe defaults)
-export const featureFlags = {
-  CHECKOUT_ENABLED: process.env.NEXT_PUBLIC_CHECKOUT_ENABLED === 'true',
-  EXPORT_ENABLED: process.env.NEXT_PUBLIC_EXPORT_ENABLED === 'true',
-  AI_ENABLED: process.env.NEXT_PUBLIC_AI_ENABLED === 'true',
-}
-
-export function useFeatureFlags() {
-  return featureFlags
+export function cn(...inputs: ClassValue[]) {
+  return twMerge(clsx(inputs))
 }

@@ -54,7 +54,7 @@ export default function Pricing() {
                 </li>
               ))}
             </ul>
-            <Link href={`/plan/intake?mode=${plan.mode}`} className="block mt-6">
+            <Link href={`/confirm?plan=${plan.id}&mode=${plan.mode}`} className="block mt-6">
               <Button className="w-full">
                 {plan.mode === 'upgrade' ? 'Upload & Review' : `Choose ${plan.title.split(' ')[0]}`}
               </Button>

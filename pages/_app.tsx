@@ -1,6 +1,7 @@
 ﻿import "../styles/globals.css"
 import type { AppProps } from "next/app"
 import AppShell from "@/components/layout/AppShell"
+import { UserProvider } from "@/contexts/UserContext"
 import { useEffect } from "react"
 
 export default function MyApp({ Component, pageProps }: AppProps) {
@@ -15,10 +16,13 @@ export default function MyApp({ Component, pageProps }: AppProps) {
       }
     } catch {}
   }, [])
+  
   return (
-    <AppShell>
-      <Component {...pageProps} />
-    </AppShell>
+    <UserProvider>
+      <AppShell>
+        <Component {...pageProps} />
+      </AppShell>
+    </UserProvider>
   )
 }
 

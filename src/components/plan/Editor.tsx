@@ -1,6 +1,5 @@
 ﻿import { useState, useEffect } from "react";
 import Link from "next/link";
-import { useRouter } from "next/router";
 import { Progress } from "@/components/ui/progress";
 import { Button } from "@/components/ui/button";
 import { chapterTemplates } from "@/lib/templates/chapters";
@@ -10,16 +9,6 @@ import AIChat from "@/components/plan/AIChat";
 import PlanCoach from "@/components/plan/PlanCoach";
 import SnapshotManager from "@/components/plan/SnapshotManager";
 
-const chapters = [
-  "Executive Summary",
-  "Products & Services",
-  "Company & Management",
-  "Industry",
-  "Market & Competition",
-  "Marketing & Sales",
-  "Financial Planning & Forecasting",
-  "Attachments",
-];
 
 type EditorProps = {
   program?: {
@@ -36,7 +25,6 @@ type EditorProps = {
 export default function Editor({ program }: EditorProps) {
   const [content, setContent] = useState("");
   const [saved, setSaved] = useState(true);
-  const router = useRouter();
   const [sections, setSections] = useState<PlanSection[]>([])
   const [activeIdx, setActiveIdx] = useState(0)
   const [persona, setPersona] = useState<"newbie" | "expert">("newbie");
@@ -169,7 +157,7 @@ export default function Editor({ program }: EditorProps) {
         {showAIChat && (
           <div className="h-96">
             <AIChat
-              onInsertContent={(content, section) => {
+              onInsertContent={(content) => {
                 setContent(prev => prev + "\n\n" + content);
                 setSaved(false);
               }}
@@ -181,7 +169,7 @@ export default function Editor({ program }: EditorProps) {
 
         {/* Plan Coach */}
         <PlanCoach
-          onInsertContent={(content, section) => {
+          onInsertContent={(content) => {
             setContent(prev => prev + "\n\n" + content);
             setSaved(false);
           }}

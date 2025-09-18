@@ -11,7 +11,7 @@ const ROOT = process.cwd();
 
 // --- Required docs check ---
 const requiredDocs = [
-  "docs/README.md"
+  "docs/PLAN2FUND_STRATEGIC_IMPLEMENTATION_PLAN.md"
 ];
 
 for (const f of requiredDocs) {
@@ -19,10 +19,10 @@ for (const f of requiredDocs) {
 }
 ok("All required docs exist");
 
-// --- README content check ---
-const readmePath = path.join(ROOT, "docs", "README.md");
-if (exists(readmePath)) {
-  const r = read(readmePath);
+// --- Strategic plan content check ---
+const planPath = path.join(ROOT, "docs", "PLAN2FUND_STRATEGIC_IMPLEMENTATION_PLAN.md");
+if (exists(planPath)) {
+  const r = read(planPath);
   const mustContain = [
     "Project Overview",
     "User Journey", 
@@ -36,10 +36,10 @@ if (exists(readmePath)) {
   for (const m of mustContain) {
     if (!r.includes(m)) missing.push(m);
   }
-  if (missing.length) warn("README.md missing sections: " + missing.join(", "));
-  else ok("README.md contains all required sections");
+  if (missing.length) warn("Strategic plan missing sections: " + missing.join(", "));
+  else ok("Strategic plan contains all required sections");
 } else {
-  fail("docs/README.md not found");
+  fail("docs/PLAN2FUND_STRATEGIC_IMPLEMENTATION_PLAN.md not found");
 }
 
 // --- Wizard/Intake invariants (best-effort) ---

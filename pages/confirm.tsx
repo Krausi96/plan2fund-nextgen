@@ -1,10 +1,10 @@
 import Link from "next/link"
 import { useState } from "react"
-import { featureFlags } from "@/lib/utils"
+import featureFlags from "@/lib/featureFlags"
 import { Button } from "@/components/ui/button"
 
 export default function ConfirmPage() {
-  const { CHECKOUT_ENABLED } = featureFlags
+  const CHECKOUT_ENABLED = featureFlags.isEnabled('CHECKOUT_ENABLED')
   const attachmentTodos = ["Add team CVs", "Add budget sheet"]
   const tier = "Pro"
   const [email, setEmail] = useState("")

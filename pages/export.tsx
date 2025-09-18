@@ -1,9 +1,9 @@
 ﻿import { useState } from "react";
 import Link from "next/link";
-import { useFeatureFlags } from "@/lib/utils";
+import featureFlags from "@/lib/featureFlags";
 
 export default function Export() {
-  const { EXPORT_ENABLED } = useFeatureFlags()
+  const EXPORT_ENABLED = featureFlags.isEnabled('EXPORT_ENABLED')
   if (!EXPORT_ENABLED) {
     return (
       <main className="max-w-3xl mx-auto py-12 space-y-6">

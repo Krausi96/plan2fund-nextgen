@@ -10,11 +10,6 @@ type EligibilityProps = {
 };
 
 export default function EligibilityCard({ program, score, eligible, confidence }: EligibilityProps) {
-  const confidenceColors: Record<string, string> = {
-    High: "bg-blue-500 text-white",
-    Medium: "bg-yellow-500 text-white",
-    Low: "bg-gray-400 text-white",
-  };
 
   return (
     <Card className="p-6 shadow-md flex flex-col gap-3">

@@ -20,7 +20,7 @@ export function scorePrograms({
   answers?: Answers
   programs?: any[]
 }): Array<{ id: string; scores: ScoreBreakdown; why: string[]; eligibility: string; confidence: string }> {
-  const source = (programs || (programsData as any[]))
+  const source = (programs || (programsData.programs as any[]))
   const safeSignals = signalsSchemaParse(signals)
   const safeAnswers = answersSchemaParse(answers)
 

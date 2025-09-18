@@ -1,4 +1,4 @@
-import React, { useState, useRef, useEffect } from "react";
+import React, { useState, useRef } from "react";
 import { Button } from "@/components/ui/button";
 import InfoDrawer from "@/components/common/InfoDrawer";
 
@@ -114,7 +114,7 @@ export default function AIChat({ onInsertContent, currentSection, persona }: AIC
 
     // Simulate AI response
     setTimeout(() => {
-      const aiResponse = generateAIResponse(input, currentSection, tone, persona);
+      const aiResponse = generateAIResponse(input, currentSection, tone);
       const aiMessage: ChatMessage = {
         id: (Date.now() + 1).toString(),
         type: "ai",
@@ -131,7 +131,7 @@ export default function AIChat({ onInsertContent, currentSection, persona }: AIC
     setExtractedChips([]);
   };
 
-  const generateAIResponse = (input: string, section: string, tone: string, persona: string) => {
+  const generateAIResponse = (input: string, section: string, tone: string) => {
     const command = input.startsWith("/") ? input.split(" ")[0] : null;
     
     if (command === "/outline") {

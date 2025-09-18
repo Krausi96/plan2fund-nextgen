@@ -1,6 +1,6 @@
 ﻿import Link from "next/link";
 import { useState } from "react";
-import { featureFlags } from "@/lib/utils";
+import featureFlags from "@/lib/featureFlags";
 
 export default function Preview() {
   const sectionsFilled = 3 // stub: could read from planStore
@@ -44,13 +44,13 @@ export default function Preview() {
                 <h2 className="font-semibold">{section}</h2>
               </div>
               <button
-                disabled={!featureFlags.CHECKOUT_ENABLED}
+                disabled={!featureFlags.isEnabled('CHECKOUT_ENABLED')}
                 className={`px-3 py-1 text-xs rounded ${
-                  featureFlags.CHECKOUT_ENABLED 
+                  featureFlags.isEnabled('CHECKOUT_ENABLED') 
                     ? "bg-blue-100 text-blue-800 hover:bg-blue-200" 
                     : "bg-gray-100 text-gray-400 cursor-not-allowed"
                 }`}
-                title={!featureFlags.CHECKOUT_ENABLED ? "Unlock after purchase" : ""}
+                title={!featureFlags.isEnabled('CHECKOUT_ENABLED') ? "Unlock after purchase" : ""}
               >
                 Copy section
               </button>

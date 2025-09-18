@@ -1,12 +1,23 @@
 ﻿import { useRouter } from "next/router";
 import Link from "next/link";
 import Editor from "@/components/plan/Editor";
-import programs from "@/data/fundingPrograms.json";
+import programs from "../data/programs.json";
 
 export default function PlanPage() {
   const router = useRouter();
   const programId = router.query.programId as string | undefined;
-  const program = (programs as any[]).find((p) => p.id === programId);
+  const rawProgram = programs.programs.find((p: any) => p.id === programId);
+  
+  // Transform program data to match Editor's expected structure
+  const program = rawProgram ? {
+    id: rawProgram.id,
+    name: rawProgram.name,
+    type: rawProgram.type,
+    region: rawProgram.jurisdiction,
+    maxAmount: rawProgram.thresholds?.max_grant_eur || 0,
+    requirements: rawProgram.eligibility || [],
+    link: rawProgram.evidence_links?.[0] || ""
+  } : undefined;
 
   return (
     <div className="space-y-6 p-6">

@@ -1,0 +1,160 @@
+{
+  "extended_questions": [
+    {
+      "key": "cofunding_capability",
+      "question": "What cofunding can you provide?",
+      "type": "single_choice",
+      "options": [
+        { "value": "none", "label": "None", "tooltip": "No cash or in-kind contribution possible" },
+        { "value": "partial", "label": "Partial", "tooltip": "Some cash or in-kind contribution possible" },
+        { "value": "full", "label": "Full", "tooltip": "Full cofunding requirement can be met" }
+      ],
+      "category": "funding",
+      "priority": "high"
+    },
+    {
+      "key": "ip_control",
+      "question": "Do you have intellectual property control?",
+      "type": "single_choice",
+      "options": [
+        { "value": "yes", "label": "Yes", "tooltip": "Full IP ownership and control" },
+        { "value": "no", "label": "No", "tooltip": "No IP ownership or control" },
+        { "value": "unsure", "label": "Unsure", "tooltip": "Uncertain about IP status" }
+      ],
+      "category": "legal",
+      "priority": "medium"
+    },
+    {
+      "key": "fto",
+      "question": "Do you have freedom-to-operate clearance?",
+      "type": "single_choice",
+      "options": [
+        { "value": "yes", "label": "Yes", "tooltip": "FTO analysis completed and clear" },
+        { "value": "no", "label": "No", "tooltip": "No FTO analysis completed" },
+        { "value": "unsure", "label": "Unsure", "tooltip": "FTO status uncertain" }
+      ],
+      "category": "legal",
+      "priority": "medium"
+    },
+    {
+      "key": "collaboration_partner",
+      "question": "What type of collaboration partner do you have?",
+      "type": "single_choice",
+      "options": [
+        { "value": "none", "label": "None", "tooltip": "No collaboration partner" },
+        { "value": "university", "label": "University", "tooltip": "University research partner" },
+        { "value": "company", "label": "Company", "tooltip": "Industry company partner" },
+        { "value": "research_institute", "label": "Research Institute", "tooltip": "Research institute partner" }
+      ],
+      "category": "collaboration",
+      "priority": "high"
+    },
+    {
+      "key": "company_age_band",
+      "question": "How old is your company?",
+      "type": "single_choice",
+      "options": [
+        { "value": "<1y", "label": "Less than 1 year", "tooltip": "Company founded within last 12 months" },
+        { "value": "1-3y", "label": "1-3 years", "tooltip": "Company founded 1-3 years ago" },
+        { "value": "3-5y", "label": "3-5 years", "tooltip": "Company founded 3-5 years ago" },
+        { "value": ">5y", "label": "More than 5 years", "tooltip": "Company founded more than 5 years ago" }
+      ],
+      "category": "company",
+      "priority": "high"
+    },
+    {
+      "key": "sme_size_class",
+      "question": "What is your company size?",
+      "type": "single_choice",
+      "options": [
+        { "value": "micro", "label": "Micro (0-9 employees)", "tooltip": "0-9 employees, <€2M turnover" },
+        { "value": "small", "label": "Small (10-49 employees)", "tooltip": "10-49 employees, <€10M turnover" },
+        { "value": "medium", "label": "Medium (50-249 employees)", "tooltip": "50-249 employees, <€50M turnover" },
+        { "value": "large", "label": "Large (250+ employees)", "tooltip": "250+ employees, >€50M turnover" }
+      ],
+      "category": "company",
+      "priority": "high"
+    },
+    {
+      "key": "de_minimis_remaining",
+      "question": "Do you have remaining de minimis allowance?",
+      "type": "single_choice",
+      "options": [
+        { "value": "yes", "label": "Yes", "tooltip": "Have remaining de minimis allowance (€200K limit)" },
+        { "value": "no", "label": "No", "tooltip": "No remaining de minimis allowance" },
+        { "value": "unsure", "label": "Unsure", "tooltip": "Uncertain about de minimis status" }
+      ],
+      "category": "funding",
+      "priority": "high"
+    },
+    {
+      "key": "eligible_cost_focus",
+      "question": "What is your main cost focus?",
+      "type": "single_choice",
+      "options": [
+        { "value": "rd", "label": "R&D", "tooltip": "Research and development costs" },
+        { "value": "equipment", "label": "Equipment", "tooltip": "Equipment and machinery" },
+        { "value": "personnel", "label": "Personnel", "tooltip": "Staff and personnel costs" },
+        { "value": "subcontracting", "label": "Subcontracting", "tooltip": "External subcontracting" },
+        { "value": "marketing", "label": "Marketing", "tooltip": "Marketing and promotion" }
+      ],
+      "category": "costs",
+      "priority": "medium"
+    },
+    {
+      "key": "collateral_types_available",
+      "question": "What collateral do you have available?",
+      "type": "multi_choice",
+      "options": [
+        { "value": "real_estate", "label": "Real Estate", "tooltip": "Property or real estate" },
+        { "value": "equipment", "label": "Equipment", "tooltip": "Machinery or equipment" },
+        { "value": "personal_guarantee", "label": "Personal Guarantee", "tooltip": "Personal guarantee" },
+        { "value": "deposit", "label": "Deposit", "tooltip": "Cash deposit or securities" },
+        { "value": "none", "label": "None", "tooltip": "No collateral available" }
+      ],
+      "category": "collateral",
+      "priority": "high"
+    },
+    {
+      "key": "equity_openness",
+      "question": "Are you open to equity investment?",
+      "type": "single_choice",
+      "options": [
+        { "value": "yes", "label": "Yes", "tooltip": "Open to equity investment" },
+        { "value": "no", "label": "No", "tooltip": "Not open to equity investment" },
+        { "value": "unsure", "label": "Unsure", "tooltip": "Uncertain about equity investment" }
+      ],
+      "category": "funding",
+      "priority": "high"
+    },
+    {
+      "key": "environmental_benefit_type",
+      "question": "What type of environmental benefit does your project provide?",
+      "type": "single_choice",
+      "options": [
+        { "value": "emissions", "label": "Emissions Reduction", "tooltip": "Reduces CO2 or other emissions" },
+        { "value": "energy_efficiency", "label": "Energy Efficiency", "tooltip": "Improves energy efficiency" },
+        { "value": "circularity", "label": "Circularity", "tooltip": "Promotes circular economy" },
+        { "value": "other", "label": "Other", "tooltip": "Other environmental benefit" },
+        { "value": "none", "label": "None", "tooltip": "No environmental benefit" }
+      ],
+      "category": "environment",
+      "priority": "medium"
+    }
+  ],
+  "question_categories": {
+    "funding": "Funding and financial questions",
+    "legal": "Legal and IP questions", 
+    "collaboration": "Partnership and collaboration questions",
+    "company": "Company profile questions",
+    "costs": "Cost and budget questions",
+    "collateral": "Collateral and security questions",
+    "environment": "Environmental impact questions"
+  },
+  "adaptive_flow_rules": {
+    "max_questions": 12,
+    "priority_order": ["high", "medium", "low"],
+    "discriminative_threshold": 0.3,
+    "fallback_questions": ["company_age_band", "sme_size_class", "cofunding_capability"]
+  }
+}

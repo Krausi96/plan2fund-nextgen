@@ -1,0 +1,272 @@
+import { Card } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import Link from "next/link";
+import { useUser } from "@/contexts/UserContext";
+import { FileText, Target, TrendingUp, Clock, CheckCircle, AlertCircle, Plus } from "lucide-react";
+import { useEffect, useState } from "react";
+
+interface Plan {
+  id: string;
+  title: string;
+  status: 'draft' | 'in_progress' | 'completed';
+  lastModified: string;
+  programType: string;
+  progress: number;
+}
+
+interface Recommendation {
+  id: string;
+  name: string;
+  type: string;
+  status: 'pending' | 'applied' | 'rejected' | 'approved';
+  amount: string;
+  deadline?: string;
+}
+
+export default function DashboardPage() {
+  const { userProfile, isLoading } = useUser();
+  const [plans, setPlans] = useState<Plan[]>([]);
+  const [recommendations, setRecommendations] = useState<Recommendation[]>([]);
+  const [stats, setStats] = useState({
+    totalPlans: 0,
+    completedPlans: 0,
+    activeRecommendations: 0,
+    successRate: 0
+  });
+
+  useEffect(() => {
+    // Load user data from localStorage or API
+    loadUserData();
+  }, []);
+
+  const loadUserData = () => {
+    // Load plans from localStorage
+    const savedPlans = JSON.parse(localStorage.getItem('userPlans') || '[]');
+    setPlans(savedPlans);
+
+    // Load recommendations from localStorage
+    const savedRecommendations = JSON.parse(localStorage.getItem('userRecommendations') || '[]');
+    setRecommendations(savedRecommendations);
+
+    // Calculate stats
+    const completedPlans = savedPlans.filter((plan: Plan) => plan.status === 'completed').length;
+    const activeRecommendations = savedRecommendations.filter((rec: Recommendation) => rec.status === 'pending' || rec.status === 'applied').length;
+    
+    setStats({
+      totalPlans: savedPlans.length,
+      completedPlans,
+      activeRecommendations,
+      successRate: savedPlans.length > 0 ? Math.round((completedPlans / savedPlans.length) * 100) : 0
+    });
+  };
+
+  const getStatusColor = (status: string) => {
+    switch (status) {
+      case 'completed': return 'text-green-600 bg-green-100';
+      case 'in_progress': return 'text-blue-600 bg-blue-100';
+      case 'draft': return 'text-gray-600 bg-gray-100';
+      case 'applied': return 'text-yellow-600 bg-yellow-100';
+      case 'approved': return 'text-green-600 bg-green-100';
+      case 'rejected': return 'text-red-600 bg-red-100';
+      default: return 'text-gray-600 bg-gray-100';
+    }
+  };
+
+  const getStatusIcon = (status: string) => {
+    switch (status) {
+      case 'completed': return <CheckCircle className="w-4 h-4" />;
+      case 'in_progress': return <Clock className="w-4 h-4" />;
+      case 'applied': return <Target className="w-4 h-4" />;
+      case 'approved': return <CheckCircle className="w-4 h-4" />;
+      case 'rejected': return <AlertCircle className="w-4 h-4" />;
+      default: return <FileText className="w-4 h-4" />;
+    }
+  };
+
+  if (isLoading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto mb-4"></div>
+          <p className="text-gray-600">Loading dashboard...</p>
+        </div>
+      </div>
+    );
+  }
+
+  return (
+    <div className="max-w-6xl mx-auto px-4 py-8">
+      {/* Header */}
+      <div className="mb-8">
+        <h1 className="text-3xl font-bold text-gray-900 mb-2">
+          Welcome back, {userProfile?.segment || 'User'}!
+        </h1>
+        <p className="text-gray-600">
+          Here's an overview of your funding journey and business plans.
+        </p>
+      </div>
+
+      {/* Stats Cards */}
+      <div className="grid md:grid-cols-4 gap-6 mb-8">
+        <Card className="p-6">
+          <div className="flex items-center">
+            <FileText className="w-8 h-8 text-blue-600 mr-4" />
+            <div>
+              <p className="text-sm text-gray-600">Total Plans</p>
+              <p className="text-2xl font-bold text-gray-900">{stats.totalPlans}</p>
+            </div>
+          </div>
+        </Card>
+
+        <Card className="p-6">
+          <div className="flex items-center">
+            <CheckCircle className="w-8 h-8 text-green-600 mr-4" />
+            <div>
+              <p className="text-sm text-gray-600">Completed</p>
+              <p className="text-2xl font-bold text-gray-900">{stats.completedPlans}</p>
+            </div>
+          </div>
+        </Card>
+
+        <Card className="p-6">
+          <div className="flex items-center">
+            <Target className="w-8 h-8 text-purple-600 mr-4" />
+            <div>
+              <p className="text-sm text-gray-600">Active Applications</p>
+              <p className="text-2xl font-bold text-gray-900">{stats.activeRecommendations}</p>
+            </div>
+          </div>
+        </Card>
+
+        <Card className="p-6">
+          <div className="flex items-center">
+            <TrendingUp className="w-8 h-8 text-orange-600 mr-4" />
+            <div>
+              <p className="text-sm text-gray-600">Success Rate</p>
+              <p className="text-2xl font-bold text-gray-900">{stats.successRate}%</p>
+            </div>
+          </div>
+        </Card>
+      </div>
+
+      <div className="grid lg:grid-cols-2 gap-8">
+        {/* Recent Plans */}
+        <Card className="p-6">
+          <div className="flex items-center justify-between mb-6">
+            <h2 className="text-xl font-semibold">Recent Business Plans</h2>
+            <Link href="/plan/intake">
+              <Button size="sm" className="bg-blue-600 hover:bg-blue-700">
+                <Plus className="w-4 h-4 mr-2" />
+                New Plan
+              </Button>
+            </Link>
+          </div>
+
+          {plans.length === 0 ? (
+            <div className="text-center py-8">
+              <FileText className="w-12 h-12 text-gray-400 mx-auto mb-4" />
+              <p className="text-gray-600 mb-4">No business plans yet</p>
+              <Link href="/plan/intake">
+                <Button className="bg-blue-600 hover:bg-blue-700">
+                  Create Your First Plan
+                </Button>
+              </Link>
+            </div>
+          ) : (
+            <div className="space-y-4">
+              {plans.slice(0, 5).map((plan) => (
+                <div key={plan.id} className="flex items-center justify-between p-4 border rounded-lg">
+                  <div className="flex-1">
+                    <h3 className="font-medium text-gray-900">{plan.title}</h3>
+                    <p className="text-sm text-gray-600">{plan.programType} • {plan.lastModified}</p>
+                    <div className="w-full bg-gray-200 rounded-full h-2 mt-2">
+                      <div 
+                        className="bg-blue-600 h-2 rounded-full" 
+                        style={{ width: `${plan.progress}%` }}
+                      ></div>
+                    </div>
+                  </div>
+                  <div className="flex items-center ml-4">
+                    <span className={`px-2 py-1 rounded-full text-xs font-medium flex items-center ${getStatusColor(plan.status)}`}>
+                      {getStatusIcon(plan.status)}
+                      <span className="ml-1 capitalize">{plan.status.replace('_', ' ')}</span>
+                    </span>
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
+        </Card>
+
+        {/* Active Recommendations */}
+        <Card className="p-6">
+          <div className="flex items-center justify-between mb-6">
+            <h2 className="text-xl font-semibold">Active Applications</h2>
+            <Link href="/reco">
+              <Button size="sm" variant="outline">
+                Find More
+              </Button>
+            </Link>
+          </div>
+
+          {recommendations.length === 0 ? (
+            <div className="text-center py-8">
+              <Target className="w-12 h-12 text-gray-400 mx-auto mb-4" />
+              <p className="text-gray-600 mb-4">No active applications</p>
+              <Link href="/reco">
+                <Button className="bg-blue-600 hover:bg-blue-700">
+                  Find Funding Opportunities
+                </Button>
+              </Link>
+            </div>
+          ) : (
+            <div className="space-y-4">
+              {recommendations.slice(0, 5).map((rec) => (
+                <div key={rec.id} className="flex items-center justify-between p-4 border rounded-lg">
+                  <div className="flex-1">
+                    <h3 className="font-medium text-gray-900">{rec.name}</h3>
+                    <p className="text-sm text-gray-600">{rec.type} • {rec.amount}</p>
+                    {rec.deadline && (
+                      <p className="text-xs text-orange-600">Deadline: {rec.deadline}</p>
+                    )}
+                  </div>
+                  <div className="flex items-center ml-4">
+                    <span className={`px-2 py-1 rounded-full text-xs font-medium flex items-center ${getStatusColor(rec.status)}`}>
+                      {getStatusIcon(rec.status)}
+                      <span className="ml-1 capitalize">{rec.status}</span>
+                    </span>
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
+        </Card>
+      </div>
+
+      {/* Quick Actions */}
+      <Card className="p-6 mt-8">
+        <h2 className="text-xl font-semibold mb-6">Quick Actions</h2>
+        <div className="grid md:grid-cols-3 gap-4">
+          <Link href="/reco">
+            <Button variant="outline" className="w-full h-20 flex flex-col items-center justify-center">
+              <Target className="w-6 h-6 mb-2" />
+              Find Funding
+            </Button>
+          </Link>
+          <Link href="/plan/intake">
+            <Button variant="outline" className="w-full h-20 flex flex-col items-center justify-center">
+              <FileText className="w-6 h-6 mb-2" />
+              Create Plan
+            </Button>
+          </Link>
+          <Link href="/contact">
+            <Button variant="outline" className="w-full h-20 flex flex-col items-center justify-center">
+              <AlertCircle className="w-6 h-6 mb-2" />
+              Get Help
+            </Button>
+          </Link>
+        </div>
+      </Card>
+    </div>
+  );
+}

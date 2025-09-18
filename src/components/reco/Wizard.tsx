@@ -2,10 +2,9 @@ import React, { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { useRouter } from "next/router";
 import { motion, AnimatePresence } from "framer-motion";
-import dynamic from "next/dynamic";
 
 // Dynamic imports to avoid SSR issues
-const questionsData = require("@/data/questions.json");
+const questionsData = require("../../../data/questions.json");
 const programsData = require("../../../data/programs.json");
 
 type PersonaMode = "strict" | "explorer";
@@ -28,7 +27,6 @@ export default function Wizard() {
   // Micro-question engine: compute coverage gaps
   const computeMicroQuestions = (currentAnswers: Record<string, any>) => {
     const programs = programsData as any[];
-    const topCandidates = programs.slice(0, 5); // Top 5 for coverage analysis
     
     const coverageGaps: string[] = [];
     const microQuestions: any[] = [];

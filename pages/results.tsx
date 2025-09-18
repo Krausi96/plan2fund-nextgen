@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import Link from "next/link";
@@ -6,21 +6,10 @@ import { Dialog, DialogContent, DialogTrigger, DialogHeader, DialogTitle, Dialog
 import ProgramDetailsModal from "@/components/reco/ProgramDetailsModal";
 import ExplorationModal from "@/components/reco/ExplorationModal";
 import InfoDrawer from "@/components/common/InfoDrawer";
+import { scoreProgramsEnhanced, analyzeFreeTextEnhanced, EnhancedProgramResult } from "@/lib/enhancedRecoEngine";
 
-type ProgramResult = {
-  id: string;
-  name: string;
-  type: string;
-  score: number;
-  reason: string;
-  eligibility: string;
-  confidence?: "High" | "Medium" | "Low";
-  unmetRequirements?: string[];
-  link?: string;
-  source?: string;
-  why?: string[];
-  scores?: { fit: number; readiness: number; effort: number; confidence: number };
-};
+// Enhanced program result type with detailed explanations
+type ProgramResult = EnhancedProgramResult;
 
 export default function ResultsPage() {
   const [results, setResults] = useState<ProgramResult[]>([]);
@@ -29,26 +18,66 @@ export default function ResultsPage() {
   const [showExploration, setShowExploration] = useState(false);
   const [showInfoDrawer, setShowInfoDrawer] = useState(false);
   const [selectedProgram, setSelectedProgram] = useState<ProgramResult | null>(null);
+  const [_userAnswers, setUserAnswers] = useState<any>(null);
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     const stored = localStorage.getItem("recoResults");
     const freeTextReco = localStorage.getItem("freeTextReco");
+    const answers = localStorage.getItem("userAnswers");
 
     try {
       if (stored) {
         const parsed = JSON.parse(stored);
 
         if (Array.isArray(parsed)) {
-          setResults(parsed);
+          // Convert old format to enhanced format
+          const enhancedResults = parsed.map(program => ({
+            ...program,
+            matchedCriteria: [],
+            gaps: [],
+            amount: { min: 0, max: 0, currency: 'EUR' },
+            timeline: 'Varies by program',
+            successRate: 0.3,
+            llmFailed: true,
+            fallbackReason: program.reason,
+            fallbackGaps: program.unmetRequirements || []
+          }));
+          setResults(enhancedResults);
         } else if (parsed.recommendations && Array.isArray(parsed.recommendations)) {
-          setResults(parsed.recommendations);
+          const enhancedResults = parsed.recommendations.map((program: any) => ({
+            ...program,
+            matchedCriteria: [],
+            gaps: [],
+            amount: { min: 0, max: 0, currency: 'EUR' },
+            timeline: 'Varies by program',
+            successRate: 0.3,
+            llmFailed: true,
+            fallbackReason: program.reason,
+            fallbackGaps: program.unmetRequirements || []
+          }));
+          setResults(enhancedResults);
         }
       }
+      
       if (freeTextReco) {
         setFreeText(freeTextReco);
+        // Analyze free text and get enhanced results
+        const { scored } = analyzeFreeTextEnhanced(freeTextReco);
+        setResults(scored);
+      }
+      
+      if (answers) {
+        const parsedAnswers = JSON.parse(answers);
+        setUserAnswers(parsedAnswers);
+        // Get enhanced results using the wired engine
+        const enhancedResults = scoreProgramsEnhanced(parsedAnswers, "strict");
+        setResults(enhancedResults);
       }
     } catch (err) {
       console.error("Failed to parse results:", err);
+    } finally {
+      setLoading(false);
     }
   }, []);
 
@@ -56,18 +85,37 @@ export default function ResultsPage() {
   const hasEligibleResults = eligibleResults.length > 0;
   const hasAnyResults = results.length > 0;
 
+
+  if (loading) {
+    return (
+      <div className="p-6 max-w-4xl mx-auto">
+        <div className="flex items-center justify-center h-64">
+          <div className="text-center">
+            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
+            <p className="text-gray-600">Loading recommendations...</p>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="p-6 max-w-3xl mx-auto">
       <div className="flex justify-between items-center mb-6">
         <h2 className="text-2xl font-semibold">
           Your Funding Recommendations
         </h2>
-        <button
-          onClick={() => setShowInfoDrawer(true)}
-          className="text-blue-600 hover:text-blue-800 text-sm flex items-center gap-1"
-        >
-          <span>ℹ️</span> How recommendations work
-        </button>
+        <div className="flex items-center gap-4">
+          <Link href="/dashboard" className="text-blue-600 hover:text-blue-800 text-sm">
+            Dashboard
+          </Link>
+          <button
+            onClick={() => setShowInfoDrawer(true)}
+            className="text-blue-600 hover:text-blue-800 text-sm flex items-center gap-1"
+          >
+            <span>ℹ️</span> How recommendations work
+          </button>
+        </div>
       </div>
 
       {/* Strict mode: No eligible results */}

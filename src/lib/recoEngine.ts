@@ -18,7 +18,7 @@ export function scorePrograms(
   answers: UserAnswers,
   mode: "strict" | "explorer" = "strict"
 ): ScoredProgram[] {
-  const source = rawPrograms as any[]
+  const source = rawPrograms.programs as any[]
   const normalizedPrograms: Program[] = source.map((p) => ({
     id: p.id,
     name: p.title || p.name || p.id,

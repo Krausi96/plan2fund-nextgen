@@ -1,9 +1,9 @@
 ﻿import Link from "next/link";
-import { useFeatureFlags } from "@/lib/utils";
-import CartSummary from "@/components/confirmation/CartSummary";
+import featureFlags from "@/lib/featureFlags";
+import CartSummary from "@/components/common/CartSummary";
 
 export default function Checkout() {
-  const { CHECKOUT_ENABLED } = useFeatureFlags()
+  const CHECKOUT_ENABLED = featureFlags.isEnabled('CHECKOUT_ENABLED')
   if (!CHECKOUT_ENABLED) {
     return (
       <main className="max-w-3xl mx-auto py-12 space-y-6">

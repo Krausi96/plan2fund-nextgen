@@ -18,6 +18,8 @@ export default function Header() {
         <nav className="hidden md:flex gap-6 items-center">
           <Link href="/about" className="hover:text-blue-600">About</Link>
           <Link href="/pricing" className="hover:text-blue-600">Pricing</Link>
+          <Link href="/contact" className="hover:text-blue-600">Contact</Link>
+          <Link href="/dashboard" className="hover:text-blue-600">Dashboard</Link>
           {/* Language Switcher */}
           <LanguageSwitcher />
         </nav>
@@ -33,6 +35,8 @@ export default function Header() {
         <div className="md:hidden px-4 pb-4 flex flex-col gap-3">
           <Link href="/about" className="hover:text-blue-600">About</Link>
           <Link href="/pricing" className="hover:text-blue-600">Pricing</Link>
+          <Link href="/contact" className="hover:text-blue-600">Contact</Link>
+          <Link href="/dashboard" className="hover:text-blue-600">Dashboard</Link>
           <div className="w-max"><LanguageSwitcher compact /></div>
         </div>
       )}
