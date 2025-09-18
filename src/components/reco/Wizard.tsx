@@ -27,24 +27,46 @@ export default function Wizard() {
 
   const loadData = async () => {
     try {
+      console.log('Starting data load...');
+      
       const [questionsResponse, programsResponse] = await Promise.all([
-        fetch('/questions.json').then(res => {
+        fetch('/questions.json', { 
+          cache: 'no-cache',
+          headers: { 'Content-Type': 'application/json' }
+        }).then(async res => {
+          console.log('Questions fetch status:', res.status);
           if (!res.ok) throw new Error(`Questions fetch failed: ${res.status}`);
-          return res.json();
+          const text = await res.text();
+          console.log('Questions response text:', text.substring(0, 100));
+          return JSON.parse(text);
         }),
-        fetch('/programs.json').then(res => {
+        fetch('/programs.json', { 
+          cache: 'no-cache',
+          headers: { 'Content-Type': 'application/json' }
+        }).then(async res => {
+          console.log('Programs fetch status:', res.status);
           if (!res.ok) throw new Error(`Programs fetch failed: ${res.status}`);
-          return res.json();
+          const text = await res.text();
+          console.log('Programs response text:', text.substring(0, 100));
+          return JSON.parse(text);
         })
       ]);
-      console.log('Loaded questions:', questionsResponse);
-      console.log('Loaded programs:', programsResponse);
+      
+      console.log('Successfully loaded questions:', questionsResponse);
+      console.log('Successfully loaded programs:', programsResponse);
+      
       setQuestionsData(questionsResponse);
       setProgramsData(programsResponse.programs || []);
     } catch (error) {
       console.error('Error loading data:', error);
-      // Fallback to empty data
-      setQuestionsData({ universal: [], core: [], micro: [] });
+      console.log('Using fallback data...');
+      
+      // Fallback to empty data with proper structure
+      setQuestionsData({ 
+        universal: [], 
+        core: [], 
+        micro: [] 
+      });
       setProgramsData([]);
     }
   };
@@ -151,8 +173,19 @@ export default function Wizard() {
     }));
   };
 
-  if (!mounted || !questionsData) {
+  if (!mounted) {
     return <div>Loading...</div>;
+  }
+
+  if (!questionsData) {
+    return (
+      <div className="p-6 max-w-5xl mx-auto">
+        <div className="text-center">
+          <h2 className="text-xl font-semibold mb-4">Loading Questions...</h2>
+          <p className="text-gray-600">Please wait while we load the questionnaire.</p>
+        </div>
+      </div>
+    );
   }
 
   const currentQuestions = showMicroQuestions ? microQuestions : (questionsData?.universal || questionsData?.core || []);
@@ -160,7 +193,20 @@ export default function Wizard() {
 
   // Safety check for current question
   if (step >= currentQuestions.length || !currentQuestions[step]) {
-    return <div>No questions available</div>;
+    return (
+      <div className="p-6 max-w-5xl mx-auto">
+        <div className="text-center">
+          <h2 className="text-xl font-semibold mb-4">No Questions Available</h2>
+          <p className="text-gray-600">There are no questions to display at this time.</p>
+          <button 
+            onClick={() => window.location.reload()} 
+            className="mt-4 px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600"
+          >
+            Reload Page
+          </button>
+        </div>
+      </div>
+    );
   }
 
   // Extract signal chips from free text
