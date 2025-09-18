@@ -249,9 +249,9 @@
 ## **TECHNICAL STACK & BACKEND SOLUTION**
 
 ### **RECOMMENDED STACK:**
-- **Frontend**: Next.js (existing) with static build on Netlify
+- **Frontend**: Next.js (existing) with deployment on Vercel
 - **Database**: Airtable for all persistence (user inputs, program data)
-- **Serverless Functions**: Netlify for Airtable integration and Stripe webhooks
+- **Serverless Functions**: Vercel for Airtable integration and Stripe webhooks
 - **Payments**: Stripe Checkout for immediate monetization
 - **File Storage**: Airtable attachments or AWS S3 for future file uploads
 - **Analytics**: Google Analytics or Plausible for usage tracking

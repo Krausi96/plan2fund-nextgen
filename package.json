@@ -10,7 +10,7 @@
         "typecheck": "tsc -p tsconfig.json --noEmit",
         "validate": "npm run typecheck && npm run lint",
         "smoke": "node scripts/smoke.mjs",
-        "build:netlify": "npm run smoke && npm run build"
+        "build:vercel": "npm run smoke && npm run build"
     },
     "devDependencies": {
         "@types/node": "^20.19.16",
