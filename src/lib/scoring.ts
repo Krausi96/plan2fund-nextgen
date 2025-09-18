@@ -1,4 +1,4 @@
-import programsData from "../../data/programs.json"
+// Import removed - will load data dynamically
 import { programSchemaParse, signalsSchemaParse, answersSchemaParse } from "@/lib/schemas"
 
 type Signals = Record<string, any>
@@ -11,7 +11,7 @@ type ScoreBreakdown = {
   confidence: number
 }
 
-export function scorePrograms({
+export async function scorePrograms({
   signals,
   answers,
   programs,
@@ -19,8 +19,21 @@ export function scorePrograms({
   signals?: Signals
   answers?: Answers
   programs?: any[]
-}): Array<{ id: string; scores: ScoreBreakdown; why: string[]; eligibility: string; confidence: string }> {
-  const source = (programs || (programsData.programs as any[]))
+}): Promise<Array<{ id: string; scores: ScoreBreakdown; why: string[]; eligibility: string; confidence: string }>> {
+  let source: any[] = [];
+  
+  if (programs) {
+    source = programs;
+  } else {
+    try {
+      const response = await fetch('/programs.json');
+      const data = await response.json();
+      source = data.programs || [];
+    } catch (error) {
+      console.error('Error loading programs for scoring:', error);
+      return [];
+    }
+  }
   const safeSignals = signalsSchemaParse(signals)
   const safeAnswers = answersSchemaParse(answers)
 

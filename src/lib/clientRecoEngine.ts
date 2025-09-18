@@ -35,7 +35,7 @@ export class ClientRecoEngine {
         // Use legacy scoring logic
         const normalized = normalizeAnswers(rawAnswers);
         const scored = await scorePrograms(normalized, mode as "strict" | "explorer");
-        const breakdown = scoreBreakdown({ answers: normalized });
+        const breakdown = await scoreBreakdown({ answers: normalized });
         const whyById = new Map(breakdown.map((b) => [b.id, b]));
 
         const recommendations = scored

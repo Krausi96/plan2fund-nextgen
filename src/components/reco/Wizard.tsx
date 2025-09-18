@@ -49,7 +49,7 @@ export default function Wizard() {
     const microQuestions: any[] = [];
     
     // Use structured questions from questions.json
-    const coreQuestions = questionsData?.core || [];
+    const coreQuestions = questionsData?.universal || questionsData?.core || [];
     const microQuestionsData = questionsData?.micro || [];
     
     // Check for missing critical attributes from core questions
@@ -84,7 +84,7 @@ export default function Wizard() {
 
   const handleNext = async () => {
     if (mode === "survey") {
-      const currentQuestions = showMicroQuestions ? microQuestions : (questionsData?.core || []);
+      const currentQuestions = showMicroQuestions ? microQuestions : (questionsData?.universal || questionsData?.core || []);
       if (step < currentQuestions.length - 1) {
         setStep(step + 1);
       } else if (!showMicroQuestions) {
@@ -147,7 +147,7 @@ export default function Wizard() {
     return <div>Loading...</div>;
   }
 
-  const currentQuestions = showMicroQuestions ? microQuestions : (questionsData?.core || []);
+  const currentQuestions = showMicroQuestions ? microQuestions : (questionsData?.universal || questionsData?.core || []);
   const progressPercent = Math.round(((step + 1) / currentQuestions.length) * 100);
 
   // Extract signal chips from free text
@@ -257,16 +257,16 @@ export default function Wizard() {
               <label className="block text-sm font-medium mb-2">
                 {currentQuestions[step].label}
               </label>
-              {currentQuestions[step].type === "select" && (
+              {(currentQuestions[step].type === "select" || currentQuestions[step].type === "single-select") && (
                 <select
                   value={answers[currentQuestions[step].id] || ""}
                   onChange={(e) => handleChange(currentQuestions[step].id, e.target.value)}
                   className="w-full border rounded p-2"
                 >
                   <option value="">Select...</option>
-                  {currentQuestions[step].options?.map((opt: string) => (
-                    <option key={opt} value={opt}>
-                      {opt}
+                  {currentQuestions[step].options?.map((opt: any) => (
+                    <option key={opt.value || opt} value={opt.value || opt}>
+                      {opt.label || opt}
                     </option>
                   ))}
                 </select>

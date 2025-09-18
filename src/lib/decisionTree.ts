@@ -1,7 +1,7 @@
 // Decision Tree Logic for Recommendation Engine
 import { UserProfile } from './schemas/userProfile';
 import { scorePrograms } from './scoring';
-import programsData from '../../data/programs.json';
+// Import removed - will load data dynamically;
 
 export interface DecisionTreeNode {
   id: string;
@@ -220,7 +220,7 @@ export class DecisionTreeEngine {
   public async processDecisionTree(answers: Record<string, any>, _currentNodeId: string = 'program_type'): Promise<DecisionTreeResult> {
     try {
       // Score programs based on current answers
-      const scoredPrograms = scorePrograms({ answers });
+      const scoredPrograms = await scorePrograms({ answers });
       
       // Filter programs based on decision tree path
       const filteredPrograms = this.filterProgramsByPath(answers, scoredPrograms);
@@ -233,7 +233,7 @@ export class DecisionTreeEngine {
       
       // Get fallback programs if no matches
       const fallbackPrograms = filteredPrograms.length === 0 ? 
-        this.getFallbackPrograms(answers) : [];
+        await this.getFallbackPrograms(answers) : [];
 
       return {
         recommendations: filteredPrograms,
@@ -323,14 +323,21 @@ export class DecisionTreeEngine {
     return gaps;
   }
 
-  private getFallbackPrograms(_answers: Record<string, any>): any[] {
-    // Return general programs that might be relevant
-    const allPrograms = programsData.programs || [];
-    return allPrograms.slice(0, 3).map(program => ({
-      ...program,
-      score: 50, // Neutral score for fallback programs
-      why: ['This is a general recommendation based on available programs.']
-    }));
+  private async getFallbackPrograms(_answers: Record<string, any>): Promise<any[]> {
+    try {
+      // Load programs dynamically
+      const response = await fetch('/programs.json');
+      const data = await response.json();
+      const allPrograms = data.programs || [];
+      return allPrograms.slice(0, 3).map((program: any) => ({
+        ...program,
+        score: 50, // Neutral score for fallback programs
+        why: ['This is a general recommendation based on available programs.']
+      }));
+    } catch (error) {
+      console.error('Error loading fallback programs:', error);
+      return [];
+    }
   }
 
   public createGapTicket(answers: Record<string, any>, _gaps: string[]): any {

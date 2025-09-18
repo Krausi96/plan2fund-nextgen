@@ -13,6 +13,58 @@ export function normalizeAnswers(answers: UserAnswers): UserAnswers {
   return normalized;
 }
 
+function convertEligibilityToRequirements(program: any): Record<string, any> {
+  const requirements: Record<string, any> = {};
+  
+  // Convert eligibility array to requirements
+  if (program.eligibility && Array.isArray(program.eligibility)) {
+    program.eligibility.forEach((rule: string) => {
+      const lowerRule = rule.toLowerCase();
+      
+      // Country requirements
+      if (lowerRule.includes('austria') || lowerRule.includes('at')) {
+        requirements.q1_country = ['AT', 'EU'];
+      }
+      
+      // Stage requirements
+      if (lowerRule.includes('startup') || lowerRule.includes('new')) {
+        requirements.q2_entity_stage = ['PRE_COMPANY', 'INC_LT_6M'];
+      }
+      
+      // Innovation requirements
+      if (lowerRule.includes('innovation') || lowerRule.includes('r&d')) {
+        requirements.q4_theme = ['INNOVATION_DIGITAL'];
+      }
+      
+      // Company age requirements
+      if (lowerRule.includes('≤6 months') || lowerRule.includes('6 months')) {
+        requirements.q2_entity_stage = ['PRE_COMPANY', 'INC_LT_6M'];
+      }
+    });
+  }
+  
+  // Convert overlays to requirements
+  if (program.overlays && Array.isArray(program.overlays)) {
+    program.overlays.forEach((overlay: any) => {
+      if (overlay.decisiveness === 'HARD') {
+        // Parse the ask_if condition to extract requirements
+        const askIf = overlay.ask_if;
+        if (askIf.includes("q1_country in ['AT','EU']")) {
+          requirements.q1_country = ['AT', 'EU'];
+        }
+        if (askIf.includes("q2_entity_stage in ['PRE_COMPANY','INC_LT_6M']")) {
+          requirements.q2_entity_stage = ['PRE_COMPANY', 'INC_LT_6M'];
+        }
+        if (askIf.includes("'INNOVATION_DIGITAL' in answers.q4_theme")) {
+          requirements.q4_theme = ['INNOVATION_DIGITAL'];
+        }
+      }
+    });
+  }
+  
+  return requirements;
+}
+
 // --- Core Scoring Logic with Persona Mode ---
 export async function scorePrograms(
   answers: UserAnswers,
@@ -24,7 +76,7 @@ export async function scorePrograms(
     id: p.id,
     name: p.title || p.name || p.id,
     type: Array.isArray(p.tags) && p.tags.length > 0 ? p.tags[0] : (p.type || "program"),
-    requirements: (p.requirements as any) || {},
+    requirements: convertEligibilityToRequirements(p),
     notes: undefined,
     maxAmount: undefined,
     link: undefined,
@@ -34,6 +86,18 @@ export async function scorePrograms(
     let score = 0;
     const unmetRequirements: string[] = [];
     const matchedRequirements: string[] = [];
+
+    // If no requirements, give a neutral score
+    if (!program.requirements || Object.keys(program.requirements).length === 0) {
+      return {
+        ...program,
+        score: 50,
+        reason: "No specific requirements found for this program",
+        eligibility: "Unknown",
+        confidence: "Low",
+        unmetRequirements: [],
+      };
+    }
 
     for (const [key, requirement] of Object.entries(program.requirements)) {
       const answer = answers[key];
@@ -84,7 +148,7 @@ export async function scorePrograms(
     }
 
     const totalRequirements = Object.keys(program.requirements || {}).length;
-    const scorePercent = totalRequirements > 0 ? Math.round((score / totalRequirements) * 100) : 0;
+    const scorePercent = totalRequirements > 0 ? Math.round((score / totalRequirements) * 100) : 50;
 
     const eligibility =
       mode === "strict"
