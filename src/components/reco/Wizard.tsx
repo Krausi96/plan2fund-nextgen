@@ -4,10 +4,6 @@ import { useRouter } from "next/router";
 import { motion, AnimatePresence } from "framer-motion";
 import { ClientRecoEngine } from "@/lib/clientRecoEngine";
 
-// Dynamic imports to avoid SSR issues
-const questionsData = require("../../../data/questions.json");
-const programsData = require("../../../data/programs.json");
-
 type PersonaMode = "strict" | "explorer";
 
 export default function Wizard() {
@@ -20,21 +16,41 @@ export default function Wizard() {
   const [microQuestions, setMicroQuestions] = useState<any[]>([]);
   const [showMicroQuestions, setShowMicroQuestions] = useState(false);
   const [mounted, setMounted] = useState(false);
+  const [questionsData, setQuestionsData] = useState<any>(null);
+  const [programsData, setProgramsData] = useState<any[]>([]);
 
   useEffect(() => {
     setMounted(true);
+    // Load data dynamically
+    loadData();
   }, []);
+
+  const loadData = async () => {
+    try {
+      const [questionsResponse, programsResponse] = await Promise.all([
+        fetch('/data/questions.json').then(res => res.json()),
+        fetch('/data/programs.json').then(res => res.json())
+      ]);
+      setQuestionsData(questionsResponse);
+      setProgramsData(programsResponse);
+    } catch (error) {
+      console.error('Error loading data:', error);
+      // Fallback to empty data
+      setQuestionsData({ core: [], micro: [] });
+      setProgramsData([]);
+    }
+  };
 
   // Micro-question engine: compute coverage gaps
   const computeMicroQuestions = (currentAnswers: Record<string, any>) => {
-    const programs = programsData as any[];
+    const programs = programsData || [];
     
     const coverageGaps: string[] = [];
     const microQuestions: any[] = [];
     
     // Use structured questions from questions.json
-    const coreQuestions = questionsData.core;
-    const microQuestionsData = questionsData.micro;
+    const coreQuestions = questionsData?.core || [];
+    const microQuestionsData = questionsData?.micro || [];
     
     // Check for missing critical attributes from core questions
     coreQuestions.forEach((q: any) => {
@@ -68,7 +84,7 @@ export default function Wizard() {
 
   const handleNext = async () => {
     if (mode === "survey") {
-      const currentQuestions = showMicroQuestions ? microQuestions : questionsData.core;
+      const currentQuestions = showMicroQuestions ? microQuestions : (questionsData?.core || []);
       if (step < currentQuestions.length - 1) {
         setStep(step + 1);
       } else if (!showMicroQuestions) {
@@ -127,11 +143,11 @@ export default function Wizard() {
     }));
   };
 
-  if (!mounted) {
+  if (!mounted || !questionsData) {
     return <div>Loading...</div>;
   }
 
-  const currentQuestions = showMicroQuestions ? microQuestions : questionsData.core;
+  const currentQuestions = showMicroQuestions ? microQuestions : (questionsData?.core || []);
   const progressPercent = Math.round(((step + 1) / currentQuestions.length) * 100);
 
   // Extract signal chips from free text
