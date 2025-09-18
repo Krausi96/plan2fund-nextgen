@@ -8,7 +8,7 @@ export async function loadPrograms(): Promise<any[]> {
   }
   
   try {
-    const response = await fetch('/programs.json');
+    const response = await fetch('/api/data/programs');
     const data = await response.json();
     programsCache = data.programs || [];
     return data.programs || [];
@@ -24,13 +24,13 @@ export async function loadQuestions(): Promise<any> {
   }
   
   try {
-    const response = await fetch('/questions.json');
+    const response = await fetch('/api/data/questions');
     const data = await response.json();
     questionsCache = data;
     return data;
   } catch (error) {
     console.error('Error loading questions:', error);
-    return { core: [], micro: [] };
+    return { universal: [], core: [], micro: [] };
   }
 }
 

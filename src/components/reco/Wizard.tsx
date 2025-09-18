@@ -30,37 +30,29 @@ export default function Wizard() {
       console.log('Starting data load...');
       
       const [questionsResponse, programsResponse] = await Promise.all([
-        fetch('/questions.json', { 
+        fetch('/api/data/questions', { 
           cache: 'no-cache',
           headers: { 'Content-Type': 'application/json' }
         }).then(async res => {
-          console.log('Questions fetch status:', res.status);
-          console.log('Questions response headers:', res.headers);
+          console.log('Questions API fetch status:', res.status);
           if (!res.ok) {
             const errorText = await res.text();
-            console.error('Questions fetch error response:', errorText);
-            throw new Error(`Questions fetch failed: ${res.status} - ${errorText}`);
+            console.error('Questions API fetch error response:', errorText);
+            throw new Error(`Questions API fetch failed: ${res.status} - ${errorText}`);
           }
-          const text = await res.text();
-          console.log('Questions response text (first 200 chars):', text.substring(0, 200));
-          console.log('Questions response text (last 100 chars):', text.substring(Math.max(0, text.length - 100)));
-          return JSON.parse(text);
+          return res.json();
         }),
-        fetch('/programs.json', { 
+        fetch('/api/data/programs', { 
           cache: 'no-cache',
           headers: { 'Content-Type': 'application/json' }
         }).then(async res => {
-          console.log('Programs fetch status:', res.status);
-          console.log('Programs response headers:', res.headers);
+          console.log('Programs API fetch status:', res.status);
           if (!res.ok) {
             const errorText = await res.text();
-            console.error('Programs fetch error response:', errorText);
-            throw new Error(`Programs fetch failed: ${res.status} - ${errorText}`);
+            console.error('Programs API fetch error response:', errorText);
+            throw new Error(`Programs API fetch failed: ${res.status} - ${errorText}`);
           }
-          const text = await res.text();
-          console.log('Programs response text (first 200 chars):', text.substring(0, 200));
-          console.log('Programs response text (last 100 chars):', text.substring(Math.max(0, text.length - 100)));
-          return JSON.parse(text);
+          return res.json();
         })
       ]);
       
