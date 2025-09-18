@@ -1,4 +1,4 @@
-import rawPrograms from "../../data/programs.json";
+import rawPrograms from "@/data/programs";
 import { Program, UserAnswers, ScoredProgram } from "@/types";
 
 // Enhanced program result with detailed explanations

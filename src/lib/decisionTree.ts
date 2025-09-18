@@ -326,8 +326,7 @@ export class DecisionTreeEngine {
   private async getFallbackPrograms(_answers: Record<string, any>): Promise<any[]> {
     try {
       // Load programs dynamically
-      const response = await fetch('/programs.json');
-      const data = await response.json();
+      const data = await import('@/data/programs').then(module => module.default);
       const allPrograms = data.programs || [];
       return allPrograms.slice(0, 3).map((program: any) => ({
         ...program,

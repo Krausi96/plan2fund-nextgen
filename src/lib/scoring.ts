@@ -26,8 +26,7 @@ export async function scorePrograms({
     source = programs;
   } else {
     try {
-      const response = await fetch('/programs.json');
-      const data = await response.json();
+      const data = await import('@/data/programs').then(module => module.default);
       source = data.programs || [];
     } catch (error) {
       console.error('Error loading programs for scoring:', error);
