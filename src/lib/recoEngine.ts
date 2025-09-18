@@ -1,5 +1,5 @@
-﻿import rawPrograms from "../../data/programs.json";
-import { Program, UserAnswers, ScoredProgram } from "@/types";
+﻿import { Program, UserAnswers, ScoredProgram } from "@/types";
+import { loadPrograms } from "./dataLoader";
 
 export function normalizeAnswers(answers: UserAnswers): UserAnswers {
   const normalized: UserAnswers = {};
@@ -14,11 +14,12 @@ export function normalizeAnswers(answers: UserAnswers): UserAnswers {
 }
 
 // --- Core Scoring Logic with Persona Mode ---
-export function scorePrograms(
+export async function scorePrograms(
   answers: UserAnswers,
   mode: "strict" | "explorer" = "strict"
-): ScoredProgram[] {
-  const source = rawPrograms.programs as any[]
+): Promise<ScoredProgram[]> {
+  const programs = await loadPrograms();
+  const source = programs as any[]
   const normalizedPrograms: Program[] = source.map((p) => ({
     id: p.id,
     name: p.title || p.name || p.id,

@@ -28,8 +28,8 @@ export default function Wizard() {
   const loadData = async () => {
     try {
       const [questionsResponse, programsResponse] = await Promise.all([
-        fetch('/data/questions.json').then(res => res.json()),
-        fetch('/data/programs.json').then(res => res.json())
+        fetch('/questions.json').then(res => res.json()),
+        fetch('/programs.json').then(res => res.json())
       ]);
       setQuestionsData(questionsResponse);
       setProgramsData(programsResponse);
