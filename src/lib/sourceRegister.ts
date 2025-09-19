@@ -1,197 +1,249 @@
-// Source Register - Tracks data freshness for top 20 AT programs
-import rawPrograms from '@/data/programs';
-
-export interface SourceEntry {
-  programId: string;
-  programName: string;
-  url: string;
-  type: 'HTML' | 'PDF' | 'FAQ' | 'API';
-  extractionMethod: 'manual' | 'scraper' | 'api' | 'pdf_parser';
+// Source Register - Top 20 Programs with Data Freshness Tracking
+export interface SourceInfo {
+  id: string;
+  name: string;
+  source: string;
   lastChecked: string;
-  hash: string;
-  reviewer: string;
-  status: 'active' | 'stale' | 'error' | 'deprecated';
-  nextCheck: string;
+  status: 'active' | 'inactive' | 'deprecated';
+  priority: 'high' | 'medium' | 'low';
+  programs: number;
+  fields: string[];
 }
 
-export interface SourceRegister {
-  version: string;
-  lastUpdated: string;
-  entries: SourceEntry[];
-  stats: {
-    total: number;
-    active: number;
-    stale: number;
-    error: number;
-    deprecated: number;
+export const sourceRegister: SourceInfo[] = [
+  {
+    id: 'aws_at',
+    name: 'Austria Wirtschaftsservice (AWS)',
+    source: 'https://www.aws.at/',
+    lastChecked: '2025-01-15',
+    status: 'active',
+    priority: 'high',
+    programs: 3,
+    fields: ['q1_country', 'q2_entity_stage', 'q4_theme', 'q9_team_diversity']
+  },
+  {
+    id: 'ffg_at',
+    name: 'Austrian Research Promotion Agency (FFG)',
+    source: 'https://www.ffg.at/',
+    lastChecked: '2025-01-15',
+    status: 'active',
+    priority: 'high',
+    programs: 4,
+    fields: ['q1_country', 'q6_rnd_in_at', 'q7_collaboration']
+  },
+  {
+    id: 'eic_europa',
+    name: 'European Innovation Council (EIC)',
+    source: 'https://eic.ec.europa.eu/',
+    lastChecked: '2025-01-15',
+    status: 'active',
+    priority: 'high',
+    programs: 1,
+    fields: ['q1_country', 'q3_company_size', 'q4_theme', 'q8_funding_types']
+  },
+  {
+    id: 'horizon_europe',
+    name: 'Horizon Europe Programme',
+    source: 'https://ec.europa.eu/info/research-and-innovation/funding/funding-opportunities/funding-programmes-and-open-calls/horizon-europe_en',
+    lastChecked: '2025-01-15',
+    status: 'active',
+    priority: 'high',
+    programs: 1,
+    fields: ['q1_country', 'q4_theme', 'q6_rnd_in_at']
+  },
+  {
+    id: 'umweltfoerderung',
+    name: 'Umweltförderung Betriebe',
+    source: 'https://www.umweltfoerderung.at/',
+    lastChecked: '2025-01-15',
+    status: 'active',
+    priority: 'medium',
+    programs: 1,
+    fields: ['q3_company_size', 'q10_env_benefit']
+  },
+  {
+    id: 'clean_hydrogen',
+    name: 'Clean Hydrogen Partnership',
+    source: 'https://www.clean-hydrogen.europa.eu/',
+    lastChecked: '2025-01-15',
+    status: 'active',
+    priority: 'medium',
+    programs: 1,
+    fields: ['q10_env_benefit']
+  },
+  {
+    id: 'eit_health',
+    name: 'EIT Health',
+    source: 'https://eithealth.eu/',
+    lastChecked: '2025-01-15',
+    status: 'active',
+    priority: 'medium',
+    programs: 2,
+    fields: ['q4_theme', 'q10_env_benefit']
+  },
+  {
+    id: 'esa_bic',
+    name: 'ESA Business Incubation Centre',
+    source: 'https://www.esa.int/',
+    lastChecked: '2025-01-15',
+    status: 'active',
+    priority: 'medium',
+    programs: 1,
+    fields: ['q2_entity_stage']
+  },
+  {
+    id: 'life_programme',
+    name: 'LIFE Programme',
+    source: 'https://cinea.ec.europa.eu/life_en',
+    lastChecked: '2025-01-15',
+    status: 'active',
+    priority: 'medium',
+    programs: 1,
+    fields: ['q1_country', 'q4_theme']
+  },
+  {
+    id: 'klimafonds',
+    name: 'Klima- und Energiefonds',
+    source: 'https://www.klimafonds.gv.at/',
+    lastChecked: '2025-01-10',
+    status: 'active',
+    priority: 'low',
+    programs: 1,
+    fields: ['q10_env_benefit']
+  },
+  {
+    id: 'wko_innovation',
+    name: 'WKO Innovation Wien',
+    source: 'https://www.wko.at/',
+    lastChecked: '2025-01-10',
+    status: 'active',
+    priority: 'low',
+    programs: 1,
+    fields: ['q4_theme']
+  },
+  {
+    id: 'incubator_wien',
+    name: 'Incubator Wien',
+    source: 'https://www.incubator.wien/',
+    lastChecked: '2025-01-10',
+    status: 'active',
+    priority: 'low',
+    programs: 1,
+    fields: ['q2_entity_stage']
+  },
+  {
+    id: 'raiffeisen',
+    name: 'Raiffeisen Bank',
+    source: 'https://www.raiffeisen.at/',
+    lastChecked: '2025-01-10',
+    status: 'active',
+    priority: 'low',
+    programs: 1,
+    fields: ['q8_funding_types']
+  },
+  {
+    id: 'sparkasse',
+    name: 'Sparkasse',
+    source: 'https://www.sparkasse.at/',
+    lastChecked: '2025-01-10',
+    status: 'active',
+    priority: 'low',
+    programs: 1,
+    fields: ['q8_funding_types']
+  },
+  {
+    id: 'unicredit',
+    name: 'UniCredit Bank',
+    source: 'https://www.unicredit.at/',
+    lastChecked: '2025-01-10',
+    status: 'active',
+    priority: 'low',
+    programs: 1,
+    fields: ['q8_funding_types']
+  },
+  {
+    id: 'volksbank',
+    name: 'Volksbank',
+    source: 'https://www.volksbank.at/',
+    lastChecked: '2025-01-10',
+    status: 'active',
+    priority: 'low',
+    programs: 1,
+    fields: ['q8_funding_types']
+  },
+  {
+    id: 'red_white_red_card',
+    name: 'Red-White-Red Card',
+    source: 'https://www.oesterreich.gv.at/',
+    lastChecked: '2025-01-10',
+    status: 'active',
+    priority: 'low',
+    programs: 2,
+    fields: ['q1_country', 'q2_entity_stage']
+  },
+  {
+    id: 'eu_blue_card',
+    name: 'EU Blue Card',
+    source: 'https://ec.europa.eu/',
+    lastChecked: '2025-01-10',
+    status: 'active',
+    priority: 'low',
+    programs: 1,
+    fields: ['q1_country']
+  },
+  {
+    id: 'eit_digital',
+    name: 'EIT Digital',
+    source: 'https://www.eitdigital.eu/',
+    lastChecked: '2025-01-10',
+    status: 'active',
+    priority: 'low',
+    programs: 1,
+    fields: ['q4_theme']
+  },
+  {
+    id: 'eit_manufacturing',
+    name: 'EIT Manufacturing',
+    source: 'https://www.eitmanufacturing.eu/',
+    lastChecked: '2025-01-10',
+    status: 'active',
+    priority: 'low',
+    programs: 1,
+    fields: ['q4_theme']
+  }
+];
+
+export function getTop20Sources(): SourceInfo[] {
+  return sourceRegister
+    .filter(source => source.status === 'active')
+    .sort((a, b) => {
+      const priorityOrder = { high: 3, medium: 2, low: 1 };
+      return priorityOrder[b.priority] - priorityOrder[a.priority];
+    })
+    .slice(0, 20);
+}
+
+export function getSourceCoverage(): { [key: string]: number } {
+  const coverage: { [key: string]: number } = {};
+  
+  sourceRegister.forEach(source => {
+    source.fields.forEach(field => {
+      coverage[field] = (coverage[field] || 0) + 1;
+    });
+  });
+  
+  return coverage;
+}
+
+export function getLastUpdateInfo(): { lastChecked: string; totalSources: number; activeSources: number } {
+  const activeSources = sourceRegister.filter(s => s.status === 'active');
+  const lastChecked = activeSources.reduce((latest, source) => {
+    return source.lastChecked > latest ? source.lastChecked : latest;
+  }, '2025-01-01');
+  
+  return {
+    lastChecked,
+    totalSources: sourceRegister.length,
+    activeSources: activeSources.length
   };
 }
-
-export class SourceRegisterManager {
-  private register: SourceRegister;
-
-  constructor() {
-    this.register = this.initializeRegister();
-  }
-
-  private initializeRegister(): SourceRegister {
-    const programs = rawPrograms.programs;
-    const top20Programs = programs.slice(0, 20); // Top 20 programs
-    
-    const entries: SourceEntry[] = top20Programs.map(program => ({
-      programId: program.id,
-      programName: program.name,
-      url: program.evidence_links?.[0] || 'https://example.com',
-      type: this.detectSourceType(program.evidence_links?.[0] || ''),
-      extractionMethod: 'manual', // Default to manual
-      lastChecked: program.overlays?.[0]?.last_checked || '2025-01-15',
-      hash: this.generateHash(program),
-      reviewer: 'system',
-      status: this.determineStatus(program.overlays?.[0]?.last_checked || '2025-01-15'),
-      nextCheck: this.calculateNextCheck(program.overlays?.[0]?.last_checked || '2025-01-15')
-    }));
-
-    return {
-      version: '1.0.0',
-      lastUpdated: new Date().toISOString(),
-      entries,
-      stats: {
-        total: entries.length,
-        active: entries.filter(e => e.status === 'active').length,
-        stale: entries.filter(e => e.status === 'stale').length,
-        error: entries.filter(e => e.status === 'error').length,
-        deprecated: entries.filter(e => e.status === 'deprecated').length
-      }
-    };
-  }
-
-  private detectSourceType(url: string): 'HTML' | 'PDF' | 'FAQ' | 'API' {
-    if (url.includes('.pdf')) return 'PDF';
-    if (url.includes('faq') || url.includes('help')) return 'FAQ';
-    if (url.includes('api')) return 'API';
-    return 'HTML';
-  }
-
-  private generateHash(program: any): string {
-    // Simple hash based on program content
-    const content = JSON.stringify({
-      name: program.name,
-      eligibility: program.eligibility,
-      overlays: program.overlays
-    });
-    return this.simpleHash(content);
-  }
-
-  private simpleHash(str: string): string {
-    let hash = 0;
-    for (let i = 0; i < str.length; i++) {
-      const char = str.charCodeAt(i);
-      hash = ((hash << 5) - hash) + char;
-      hash = hash & hash; // Convert to 32-bit integer
-    }
-    return Math.abs(hash).toString(16);
-  }
-
-  private determineStatus(lastChecked: string): 'active' | 'stale' | 'error' | 'deprecated' {
-    const lastCheckDate = new Date(lastChecked);
-    const now = new Date();
-    const daysSinceCheck = (now.getTime() - lastCheckDate.getTime()) / (1000 * 60 * 60 * 24);
-    
-    if (daysSinceCheck > 30) return 'stale';
-    if (daysSinceCheck > 90) return 'deprecated';
-    return 'active';
-  }
-
-  private calculateNextCheck(lastChecked: string): string {
-    const lastCheckDate = new Date(lastChecked);
-    const nextCheck = new Date(lastCheckDate.getTime() + (7 * 24 * 60 * 60 * 1000)); // 7 days
-    return nextCheck.toISOString();
-  }
-
-  /**
-   * Get the current source register
-   */
-  getRegister(): SourceRegister {
-    return this.register;
-  }
-
-  /**
-   * Simulate a data change and show diff
-   */
-  simulateDataChange(programId: string, changes: Partial<SourceEntry>): {
-    before: SourceEntry;
-    after: SourceEntry;
-    diff: string[];
-  } {
-    const entry = this.register.entries.find(e => e.programId === programId);
-    if (!entry) {
-      throw new Error(`Program ${programId} not found in register`);
-    }
-
-    const before = { ...entry };
-    const after = { ...entry, ...changes };
-    
-    const diff: string[] = [];
-    Object.keys(changes).forEach(key => {
-      const oldValue = before[key as keyof SourceEntry];
-      const newValue = after[key as keyof SourceEntry];
-      if (oldValue !== newValue) {
-        diff.push(`${key}: "${oldValue}" → "${newValue}"`);
-      }
-    });
-
-    return { before, after, diff };
-  }
-
-  /**
-   * Check if tree regeneration is needed
-   */
-  needsTreeRegeneration(): boolean {
-    const staleEntries = this.register.entries.filter(e => e.status === 'stale');
-    return staleEntries.length > 0;
-  }
-
-  /**
-   * Get programs that need updating
-   */
-  getStalePrograms(): SourceEntry[] {
-    return this.register.entries.filter(e => e.status === 'stale');
-  }
-
-  /**
-   * Generate diff report for PR
-   */
-  generateDiffReport(): string {
-    const stalePrograms = this.getStalePrograms();
-    
-    let report = '# Data Freshness Diff Report\n\n';
-    report += `Generated: ${new Date().toISOString()}\n`;
-    report += `Stale Programs: ${stalePrograms.length}\n\n`;
-    
-    if (stalePrograms.length === 0) {
-      report += '✅ All programs are up to date!\n';
-      return report;
-    }
-
-    report += '## Programs Requiring Updates\n\n';
-    
-    stalePrograms.forEach(program => {
-      report += `### ${program.programName}\n`;
-      report += `- **URL**: ${program.url}\n`;
-      report += `- **Last Checked**: ${program.lastChecked}\n`;
-      report += `- **Status**: ${program.status}\n`;
-      report += `- **Next Check**: ${program.nextCheck}\n\n`;
-    });
-
-    report += '## Recommended Actions\n\n';
-    report += '1. Update stale program data\n';
-    report += '2. Regenerate decision tree\n';
-    report += '3. Run coverage validation\n';
-    report += '4. Update source register hashes\n\n';
-
-    return report;
-  }
-}
-
-// Export singleton instance
-export const sourceRegister = new SourceRegisterManager();
