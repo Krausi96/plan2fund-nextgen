@@ -1,5 +1,5 @@
 // Simple Recommendation Engine - Minimal replacement for quarantined files
-import { Program, UserAnswers, ScoredProgram } from "@/types";
+import { UserAnswers, ScoredProgram } from "@/types";
 
 export interface EnhancedProgramResult extends ScoredProgram {
   matchedCriteria: Array<{
@@ -27,14 +27,14 @@ export interface EnhancedProgramResult extends ScoredProgram {
 }
 
 export function scoreProgramsEnhanced(
-  answers: UserAnswers,
-  mode: "strict" | "explorer" = "strict"
+  _answers: UserAnswers,
+  _mode: "strict" | "explorer" = "strict"
 ): EnhancedProgramResult[] {
   // Simple fallback - return empty results
   return [];
 }
 
-export function analyzeFreeTextEnhanced(description: string): { 
+export function analyzeFreeTextEnhanced(_description: string): { 
   normalized: UserAnswers; 
   scored: EnhancedProgramResult[] 
 } {
