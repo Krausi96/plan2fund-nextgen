@@ -18,6 +18,12 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       NO_MATCH_FALLBACK: true
     };
 
+    // Modules that read programs.json (single source of truth)
+    const programsModules = [
+      "src/components/reco/Wizard.tsx",
+      "pages/results.tsx"
+    ];
+
     // Check core system health
     const health = {
       status: "healthy",
@@ -33,6 +39,12 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         node: process.version,
         platform: process.platform,
         uptime: process.uptime()
+      },
+      programs: {
+        source: "data/programs.json",
+        modules: programsModules,
+        version: "2025-09-05",
+        count: 9
       },
       endpoints: {
         recommend: "/api/recommend",

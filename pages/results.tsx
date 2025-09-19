@@ -6,6 +6,7 @@ import { Dialog, DialogContent, DialogTrigger, DialogHeader, DialogTitle, Dialog
 import ProgramDetailsModal from "@/components/reco/ProgramDetailsModal";
 import ExplorationModal from "@/components/reco/ExplorationModal";
 import InfoDrawer from "@/components/common/InfoDrawer";
+import HealthFooter from "@/components/common/HealthFooter";
 import { scoreProgramsEnhanced, analyzeFreeTextEnhanced, EnhancedProgramResult } from "@/lib/enhancedRecoEngine";
 
 // Enhanced program result type with detailed explanations
@@ -482,6 +483,8 @@ export default function ResultsPage() {
           </div>
         }
       />
+      
+      <HealthFooter />
     </div>
   );
 }

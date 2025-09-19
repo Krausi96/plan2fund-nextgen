@@ -4,6 +4,7 @@ import { useRouter } from "next/router";
 import { motion, AnimatePresence } from "framer-motion";
 import { scoreProgramsEnhanced, analyzeFreeTextEnhanced } from "@/lib/enhancedRecoEngine";
 import { dynamicWizard } from "@/lib/dynamicWizard";
+import HealthFooter from "@/components/common/HealthFooter";
 
 export default function Wizard() {
   const router = useRouter();
@@ -398,6 +399,8 @@ export default function Wizard() {
           </div>
         </div>
       )}
+      
+      <HealthFooter />
     </div>
   );
 }
