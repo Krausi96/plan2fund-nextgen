@@ -1,6 +1,6 @@
 // Coverage Checker - Validates Programs × Fields × Questions coverage
-import rawPrograms from '@/data/programs';
-import rawQuestions from '@/data/questions';
+import rawPrograms from '../../data/programs';
+import rawQuestions from '../../data/questions';
 
 export interface CoverageGap {
   programId: string;
