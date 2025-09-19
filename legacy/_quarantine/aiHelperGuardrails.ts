@@ -1,5 +1,5 @@
 // AI Helper Guardrails - Constrains AI helper to intake accelerator & scout only
-import rawPrograms from '../../data/programs';
+import rawPrograms from '../../../data/programs';
 
 export interface AIHelperResponse {
   type: 'chips' | 'clarification' | 'redirect' | 'suggestion_ticket';

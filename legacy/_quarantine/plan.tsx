@@ -1,7 +1,7 @@
 ﻿import { useRouter } from "next/router";
 import Link from "next/link";
-import Editor from "../../src/components/plan/Editor";
-import programs from "../../data/programs";
+import Editor from "../../../src/components/plan/Editor";
+import programs from "../../../data/programs";
 
 export default function PlanPage() {
   const router = useRouter();

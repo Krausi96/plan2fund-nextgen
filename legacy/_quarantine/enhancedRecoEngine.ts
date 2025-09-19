@@ -1,5 +1,5 @@
-import rawPrograms from "../../data/programs";
-import { Program, UserAnswers, ScoredProgram } from "../../types";
+import rawPrograms from "../../../data/programs";
+import { Program, UserAnswers, ScoredProgram } from "../../../types";
 
 // Enhanced program result with detailed explanations
 export interface EnhancedProgramResult extends ScoredProgram {

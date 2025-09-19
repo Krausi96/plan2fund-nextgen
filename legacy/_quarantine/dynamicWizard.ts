@@ -1,6 +1,6 @@
 // Dynamic Wizard Engine - Computes question order from programs.json
-import rawPrograms from '../../data/programs';
-import rawQuestions from '../../data/questions';
+import rawPrograms from '../../../data/programs';
+import rawQuestions from '../../../data/questions';
 
 export interface Question {
   id: string;
