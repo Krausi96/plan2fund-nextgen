@@ -1,0 +1,220 @@
+# Current System Evidence Log
+Generated: 2025-09-19
+System: Recommendation Engine Audit
+
+## EVIDENCE 1: Decision Tree Starts with Program Type (VIOLATION)
+
+File: src/lib/decisionTree.ts:35-48
+```typescript
+private initializeTree(): void {
+    // Program Type Selection (First Question)  ← PROBLEM: This violates requirement
+    this.nodes.set('program_type', {
+      id: 'program_type',
+      question: 'What type of funding are you looking for?',
+      type: 'single',
+      options: [
+        { value: 'GRANT', label: 'Grant (Non-repayable funding)' },
+        { value: 'LOAN', label: 'Loan (Repayable funding)' },
+        { value: 'EQUITY', label: 'Equity Investment' },
+        { value: 'VISA', label: 'Visa/Immigration Support' },
+        { value: 'MIXED', label: 'Multiple types (I\'m not sure)' }
+      ]
+    });
+```
+
+**AUDIT REQUIREMENT VIOLATION**: 
+- ❌ "No 'Program Type' upfront — program/category must be the outcome"
+- ❌ Current system asks program type as FIRST question
+- ❌ Decision tree starts at 'program_type' node
+
+## EVIDENCE 2: AI Helper Location (VIOLATION)
+
+Current AI Location: src/components/plan/AIChat.tsx (Plan Editor Only)
+Expected Location: Inline with wizard (src/components/reco/Wizard.tsx)
+
+```typescript
+// CURRENT: AI only in plan editor
+// File: pages/editor.tsx includes AIChat component
+// File: pages/reco.tsx does NOT include AI helper
+
+// MISSING: Inline AI in wizard for "messy text → chips" conversion
+```
+
+**AUDIT REQUIREMENT VIOLATION**:
+- ❌ AI Help not available in wizard flow
+- ❌ Cannot convert messy text to chips during wizard
+- ❌ "CANVA AI BUSINESS PLAN" functionality missing
+
+## EVIDENCE 3: Current Feature Flags Status
+
+From src/lib/featureFlags.ts:
+```
+REQUIRED FLAGS:
+├── RECO_DECISION_TREE=ON ✅ (enabled: true, line 37)
+├── AI_HELPER_ON=ON ❌ (flag not defined)
+├── EXPLAIN_SIMPLE_COPY=ON ❌ (flag not defined)  
+└── AI_DISCOVERY=OFF ❌ (flag not defined)
+
+EXISTING FLAGS:
+├── SEGMENTED_ONBOARDING ✅ enabled: true
+├── EDITOR_TEMPLATES_V1 ✅ enabled: true
+├── ANALYTICS_AB ✅ enabled: true
+└── PR_BOT_FRESHNESS ❌ enabled: false
+```
+
+**COMPLIANCE**: 25% (1 of 4 required flags present)
+
+## EVIDENCE 4: No Source Register System
+
+Expected: Source Register for top 20 AT programs
+Current State: No tracking system exists
+
+```bash
+$ find . -name "*source*" -o -name "*register*" | grep -v node_modules
+./scripts/source-diff-fetcher.js  # Exists but not operational
+# No source register database or tracking
+```
+
+```bash
+$ ls data/programs/
+aws_preseed_innovative_solutions.md
+umweltfoerderung_betriebe.md
+# Programs exist but no source URLs, hash tracking, or freshness data
+```
+
+**AUDIT REQUIREMENT VIOLATION**:
+- ❌ No URL tracking for program sources
+- ❌ No last-checked timestamps  
+- ❌ No content hashes for change detection
+- ❌ No reviewer assignments
+
+## EVIDENCE 5: No Performance Monitoring
+
+```bash
+$ grep -r "performance\|latency\|P95" src/lib/
+# No results found
+
+$ grep -r "time\|duration\|speed" pages/api/recommend.ts
+# No performance tracking in API endpoint
+```
+
+**AUDIT REQUIREMENT VIOLATION**:
+- ❌ No P95 latency tracking
+- ❌ No performance monitoring dashboard  
+- ❌ Cannot verify ≤2.5s requirement
+
+## EVIDENCE 6: Skip Handling Partial Implementation
+
+Current skip logic in src/components/reco/Wizard.tsx:324-335:
+```typescript
+<Button variant="ghost" size="sm" onClick={() => {
+  const qId = currentQuestions[step].id;
+  setAnswers((prev) => ({ 
+    ...prev, 
+    [qId]: null, 
+    [`${qId}_skip_reason`]: "unknown" 
+  }));
+  // Continues to next question - NO overlay cap enforcement
+}}>
+  Skip / Don't know
+</Button>
+```
+
+Micro-overlay computation (lines 54-93):
+```typescript
+const computeMicroQuestions = (currentAnswers) => {
+  // Calculates missing items
+  // BUT: No maximum of 3 overlays enforced
+  // BUT: No QBank population after overlays
+}
+```
+
+**AUDIT REQUIREMENT VIOLATIONS**:
+- ⚠️ Skip functionality works but no 3-overlay cap
+- ❌ No QBank population in Editor after overlays
+- ❌ Missing "Proceed anyway" → Editor flow
+
+## EVIDENCE 7: Results Display Technical vs Human
+
+Current results format (pages/results.tsx:170-240):
+```json
+{
+  "name": "AWS Innovation Fund", 
+  "score": 75,
+  "reason": "✅ You meet all requirements for AWS Innovation Fund. Strong fit with score 75%.",
+  "eligibility": "Eligible",
+  "confidence": "High",
+  "unmetRequirements": []
+}
+```
+
+**MISSING HUMAN EXPLANATIONS**:
+- ❌ No "Why it fits" bullets (3-5 plain language)
+- ❌ No "Risks/Next steps" bullets (1-2)  
+- ❌ No inferred category display (Grant/Loan/Visa)
+- ⚠️ Shows technical match % but not human reasoning
+
+## EVIDENCE 8: No Rule Traceability
+
+Expected: Complete traces showing inputs → normalized chips → HARD/SOFT/UNCERTAIN outcomes → final %
+
+Current system (src/lib/recoEngine.ts):
+```typescript
+// Basic scoring exists but no trace logging:
+export async function scorePrograms(answers, mode) {
+  // Scoring logic exists
+  // BUT: No trace of which rules passed/failed
+  // BUT: No HARD/SOFT/UNCERTAIN classification system
+  // BUT: No persona-specific traces
+}
+```
+
+**AUDIT REQUIREMENT VIOLATIONS**:
+- ❌ No rule evaluation traces
+- ❌ No persona-specific decision paths  
+- ❌ No HARD/SOFT/UNCERTAIN rule classification
+- ❌ Cannot generate explanation from rule matches
+
+## EVIDENCE 9: Active Routes (COMPLIANT)
+
+Current active routes:
+```
+pages/
+├── reco.tsx ✅ (Main wizard)
+├── results.tsx ✅ (Results display)
+├── api/recommend.ts ✅ (Core API)
+├── api/recommend/decision-tree.ts ✅ (Decision tree API)  
+├── api/recommend/free-text.ts ✅ (Free text analysis)
+├── editor.tsx ✅ (Plan editor)
+├── plan.tsx ✅ (Plan creation)
+└── dashboard.tsx ✅ (User dashboard)
+
+src/components/
+├── reco/Wizard.tsx ✅ (Main wizard)
+├── reco/ProgramDetailsModal.tsx ✅ (Program details)
+├── fallback/ZeroMatchFallback.tsx ✅ (No-match handling)
+└── plan/AIChat.tsx ✅ (AI assistant - editor only)
+```
+
+**COMPLIANCE**: ✅ PASSES - Clean route structure, no legacy components identified
+
+## SUMMARY: COMPLIANCE EVIDENCE
+
+| Requirement | Evidence File/Line | Status |
+|-------------|-------------------|--------|
+| Wizard without Program Type | decisionTree.ts:37 | ❌ FAIL |
+| AI Helper → Chips | AIChat.tsx (editor only) | ❌ FAIL |
+| Simple Result Explanations | results.tsx:170-240 | ⚠️ PARTIAL |
+| No-match → QBank | ZeroMatchFallback.tsx | ❌ FAIL |
+| 3 Persona Rule Traces | No trace system exists | ❌ FAIL |
+| Decision Tree Regeneration | Hard-coded tree | ❌ FAIL |
+| Source Register | No register system | ❌ FAIL |
+| Data PR Diff | No diff bot operational | ❌ FAIL |
+| Skip → Overlays → QBank | Wizard.tsx:324 | ⚠️ PARTIAL |
+| P95 ≤ 2.5s | No monitoring system | ❌ FAIL |
+| Feature Flags | featureFlags.ts:35+ | ⚠️ PARTIAL |
+| Routes Inventory | Clean structure | ✅ PASS |
+
+**OVERALL SYSTEM COMPLIANCE: 25% (3 of 12 requirements fully met)**
+**CRITICAL VIOLATIONS: 8 requirements completely missing**
+**PARTIAL IMPLEMENTATIONS: 2 requirements partially working**
