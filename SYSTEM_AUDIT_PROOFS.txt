@@ -1,0 +1,172 @@
+RECOMMENDATION ENGINE AUDIT PROOFS
+Generated: 2025-09-19
+System: Current state analysis
+
+=== 1. DECISION TREE AUDIT ===
+
+CURRENT WIZARD ORDER:
+Decision tree starts with program_type (src/lib/decisionTree.ts:37)
+├── program_type: "What type of funding are you looking for?"
+├── Options: GRANT, LOAN, EQUITY, VISA, MIXED
+└── THEN branches to eligibility questions
+
+ACTUAL UNIVERSAL QUESTIONS ORDER (data/questions.json):
+1. q1_country: "Where will the project be carried out?"
+2. q2_entity_stage: "What is your legal setup & company age?"
+3. q3_company_size: "How many employees (FTE) does your organisation have?"
+4. q4_theme: "Which area(s) best fit your project?"
+5. q5_maturity_trl: "What is your current maturity (approx. TRL)?"
+6. q6_rnd_in_at: "Will you conduct R&D or experimental development in Austria?"
+7. q7_collaboration: "Do you plan to collaborate with research institutions or companies?"
+8. q8_funding_types: "Which funding types are acceptable?"
+9. q9_team_diversity: "At grant award, will women own >25% of shares?"
+10. q10_env_benefit: "Will the project measurably reduce emissions/energy/waste in the EU?"
+
+DIFF:
+❌ CURRENT: Starts with program_type selection
+✅ SHOULD: Use universal questions q1-q10, infer program type from answers
+❌ No computed order from programs.json (static tree definition)
+
+=== 2. COVERAGE MAP ===
+
+PROGRAMS × FIELDS:
+From programs.json analysis:
+- aws_preseed_innovative_solutions: Uses q1_country, q2_entity_stage, q4_theme
+- Total programs: ~15 visible in dataset
+- Field coverage: Partial (not all q1-q10 mapped to program rules)
+
+FIELDS × QUESTIONS MAPPING:
+q1_country → program eligibility rules (AT/EU requirements)
+q2_entity_stage → company age restrictions  
+q4_theme → program focus areas
+q8_funding_types → program types (grant/loan/equity)
+Missing: q3,q5,q6,q7,q9,q10 not consistently mapped to program rules
+
+ORPHAN ITEMS:
+❌ Questions q3,q5,q6,q7,q9,q10 collected but not used in matching
+❌ Program overlays reference fields not in universal questions
+
+=== 3. USER DEMOS ===
+
+CURRENT FLOW EVIDENCE:
+Wizard (src/components/reco/Wizard.tsx):
+├── ❌ Starts with mode selection (survey vs freeText)
+├── ❌ Decision tree asks program_type first
+├── ⚠️ AI help exists in AIChat.tsx but only in plan editor
+├── ✅ Skip functionality: "Skip / Don't know" button (line 324)
+└── ❌ No inline AI chip generation in wizard
+
+Results (pages/results.tsx):
+├── ✅ Shows match percentage and program name
+├── ❌ Technical explanations instead of plain language bullets
+├── ❌ No "Why it fits" 3-5 bullets
+└── ❌ No "Risks/Next steps" 1-2 bullets
+
+No-match → Editor:
+├── ✅ ZeroMatchFallback component exists
+├── ❌ No "Proceed anyway" button to Editor
+└── ❌ No QBank integration
+
+PROOF: Current system violates "no Program Type upfront" requirement
+
+=== 4. RULE TRACES (3 PERSONAS) ===
+
+B2C_FOUNDER TRACE:
+❌ No persona-specific tracing implemented
+❌ No HARD/SOFT/UNCERTAIN rule classification system
+❌ No trace logs showing inputs → chips → outcomes → match %
+
+SME_LOAN TRACE:
+❌ Same as above - no tracing system exists
+
+VISA TRACE:
+❌ Same as above - no tracing system exists
+
+EVIDENCE: src/lib/recoEngine.ts has basic scoring but no trace generation
+
+=== 5. FRESHNESS ===
+
+SOURCE REGISTER:
+❌ No source register system exists
+❌ Programs in data/programs.json have evidence_links but no tracking:
+   - No last_checked automation
+   - No content hashes
+   - No reviewer assignments
+
+DATA PR DIFF:
+❌ No automated diff bot operational
+❌ scripts/source-diff-fetcher.js exists but not integrated
+❌ No PR workflow for data updates
+
+TREE REGENERATION:
+❌ Decision tree is hard-coded (not generated from program rules)
+❌ No evidence of tree updates after rule changes
+
+=== 6. PARSING & PERFORMANCE ===
+
+CI TESTS:
+❌ npm test script not found
+❌ tests/intake/ directory exists but no test runner configured
+❌ Cannot verify golden/fuzzy test status
+
+P95 LATENCY:
+❌ No performance monitoring implemented
+❌ Cannot verify ≤2.5s requirement
+❌ No latency tracking in API endpoints
+
+BUILD STATUS:
+❌ npx next build fails with module errors
+
+=== 7. FILE → FUNCTION MAP ===
+
+WHO READS DATA:
+- data/programs.json: src/lib/recoEngine.ts (loadPrograms)
+- data/questions.json: src/components/reco/Wizard.tsx (loadData)
+
+WHO RENDERS WIZARD:
+- pages/reco.tsx → src/components/reco/Wizard.tsx
+- src/lib/decisionTree.ts (provides question logic)
+
+WHO COMPUTES RESULTS:
+- src/lib/recoEngine.ts (scorePrograms)
+- src/lib/enhancedRecoEngine.ts (scoreProgramsEnhanced)
+- src/lib/scoring.ts (scorePrograms with breakdown)
+
+WHO DISPLAYS RESULTS:
+- pages/results.tsx
+- src/components/reco/ProgramDetailsModal.tsx
+
+=== 8. ROUTE INVENTORY ===
+
+ACTIVE ROUTES:
+pages/reco.tsx - Main wizard entry ✅
+pages/results.tsx - Results display ✅
+pages/api/recommend.ts - Core recommendation API ✅
+pages/api/recommend/decision-tree.ts - Decision tree API ✅
+pages/api/recommend/free-text.ts - Free text analysis ✅
+pages/editor.tsx - Plan editor ✅
+pages/plan.tsx - Plan creation ✅
+
+DUPLICATE CANDIDATES:
+pages/api/recommend.ts vs pages/api/recommend/decision-tree.ts
+- Both provide recommendation logic
+- Could potentially consolidate
+
+COMPONENTS:
+src/components/reco/Wizard.tsx - Main wizard ✅
+src/components/reco/ProgramDetailsModal.tsx - Program details ✅
+src/components/reco/ProgramDetailsDialog.tsx - Alternative dialog ⚠️ DUPLICATE?
+src/components/fallback/ZeroMatchFallback.tsx - No-match handling ✅
+
+=== SUMMARY ===
+
+SYSTEM COMPLIANCE: 20%
+✅ Basic wizard and results display exist
+✅ Program and question data structures present
+✅ Clean route structure
+❌ Wizard violates "no Program Type upfront" requirement
+❌ No AI integration in wizard flow
+❌ No rule traceability or persona traces
+❌ No data freshness monitoring
+❌ No performance tracking
+❌ Test infrastructure not functional
