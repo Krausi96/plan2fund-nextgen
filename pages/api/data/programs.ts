@@ -2,7 +2,7 @@ import { NextApiRequest, NextApiResponse } from 'next';
 import fs from 'fs';
 import path from 'path';
 
-export default function handler(req: NextApiRequest, res: NextApiResponse) {
+export default function handler(_req: NextApiRequest, res: NextApiResponse) {
   try {
     const filePath = path.join(process.cwd(), 'public', 'programs.json');
     const fileContents = fs.readFileSync(filePath, 'utf8');
