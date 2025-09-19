@@ -57,7 +57,7 @@ class CITestRunner {
         suite: 'Golden Tests',
         passed: false,
         duration: Date.now() - startTime,
-        details: `Error: ${error.message}`
+        details: `Error: ${error instanceof Error ? error.message : 'Unknown error'}`
       };
     }
   }
@@ -80,7 +80,7 @@ class CITestRunner {
         suite: 'Fuzzy Tests',
         passed: false,
         duration: Date.now() - startTime,
-        details: `Error: ${error.message}`
+        details: `Error: ${error instanceof Error ? error.message : 'Unknown error'}`
       };
     }
   }
@@ -123,7 +123,7 @@ class CITestRunner {
         suite: 'Performance Tests',
         passed: false,
         duration: Date.now() - startTime,
-        details: `Error: ${error.message}`
+        details: `Error: ${error instanceof Error ? error.message : 'Unknown error'}`
       };
     }
   }
@@ -136,14 +136,14 @@ class CITestRunner {
         // Valid profile
         {
           sector: 'Health',
-          stage: 'mvp',
+          stage: 'mvp' as const,
           team_size: 3,
           location_city: 'Vienna',
           location_country: 'AT',
           funding_need_eur: 200000,
-          program_type: 'grant',
-          language: 'EN',
-          intent: 'business_intake',
+          program_type: 'grant' as const,
+          language: 'EN' as const,
+          intent: 'business_intake' as const,
           confidence: {
             sector: 0.9,
             stage: 0.8,
@@ -217,7 +217,7 @@ class CITestRunner {
         suite: 'Schema Validation Tests',
         passed: false,
         duration: Date.now() - startTime,
-        details: `Error: ${error.message}`
+        details: `Error: ${error instanceof Error ? error.message : 'Unknown error'}`
       };
     }
   }

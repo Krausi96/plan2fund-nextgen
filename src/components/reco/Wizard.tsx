@@ -3,6 +3,7 @@ import { Button } from "@/components/ui/button";
 import { useRouter } from "next/router";
 import { motion, AnimatePresence } from "framer-motion";
 import { scoreProgramsEnhanced, analyzeFreeTextEnhanced } from "@/lib/enhancedRecoEngine";
+import { dynamicWizard } from "@/lib/dynamicWizard";
 
 export default function Wizard() {
   const router = useRouter();
@@ -15,6 +16,7 @@ export default function Wizard() {
   const [mounted, setMounted] = useState(false);
   const [questionsData, setQuestionsData] = useState<any>(null);
   const [programsData, setProgramsData] = useState<any[]>([]);
+  const [dynamicQuestions, setDynamicQuestions] = useState<any[]>([]);
 
   useEffect(() => {
     setMounted(true);
@@ -37,6 +39,11 @@ export default function Wizard() {
       
       setQuestionsData(questionsResponse);
       setProgramsData(programsResponse.programs || []);
+      
+      // Get dynamic question order from programs.json
+      const computedQuestions = dynamicWizard.getQuestionOrder();
+      setDynamicQuestions(computedQuestions);
+      console.log('Dynamic question order:', computedQuestions);
     } catch (error) {
       console.error('Error loading data:', error);
       console.log('Using fallback data...');
@@ -48,6 +55,7 @@ export default function Wizard() {
         micro: [] 
       });
       setProgramsData([]);
+      setDynamicQuestions([]);
     }
   };
 
@@ -94,7 +102,8 @@ export default function Wizard() {
 
   const handleNext = async () => {
     if (mode === "survey") {
-      const currentQuestions = showMicroQuestions ? microQuestions : (questionsData?.universal || questionsData?.core || []);
+      // Use dynamic questions instead of hardcoded order
+      const currentQuestions = showMicroQuestions ? microQuestions : dynamicQuestions;
       if (step < currentQuestions.length - 1) {
         setStep(step + 1);
       } else if (!showMicroQuestions) {
@@ -168,7 +177,7 @@ export default function Wizard() {
     );
   }
 
-  const currentQuestions = showMicroQuestions ? microQuestions : (questionsData?.universal || questionsData?.core || []);
+  const currentQuestions = showMicroQuestions ? microQuestions : dynamicQuestions;
   const progressPercent = currentQuestions.length > 0 ? Math.round(((step + 1) / currentQuestions.length) * 100) : 0;
 
   // Safety check for current question

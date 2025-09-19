@@ -6,7 +6,7 @@ import {
   LOCATION_MAPPING, 
   PROGRAM_TYPE_MAPPING,
   DEFAULT_CONFIDENCE,
-  // validateFundingProfile
+  validateFundingProfile
 } from './schemas/fundingProfile';
 
 interface ParseResult {
@@ -370,7 +370,7 @@ class IntakeParser {
     sessionId: string, 
     userId?: string
   ): FundingProfile {
-    return {
+    const profile = {
       sector: data.sector || null,
       stage: data.stage || null,
       team_size: data.team_size || null,
@@ -390,6 +390,14 @@ class IntakeParser {
       session_id: sessionId,
       user_id: userId
     };
+
+    // Validate the profile
+    const validatedProfile = validateFundingProfile(profile);
+    if (!validatedProfile) {
+      throw new Error('Invalid profile data generated');
+    }
+
+    return validatedProfile;
   }
 
   getOverlayQuestions(questionTypes: string[]): OverlayQuestion[] {

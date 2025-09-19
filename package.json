@@ -10,7 +10,10 @@
         "typecheck": "tsc -p tsconfig.json --noEmit",
         "validate": "npm run typecheck && npm run lint",
         "smoke": "node scripts/smoke.mjs",
-        "build:vercel": "npm run smoke && npm run build"
+        "build:vercel": "npm run smoke && npm run build",
+        "test": "node scripts/run-tests.mjs",
+        "coverage": "node scripts/ci-coverage.mjs",
+        "ci:full": "npm run coverage && npm run test && npm run build"
     },
     "devDependencies": {
         "@types/node": "^20.19.16",

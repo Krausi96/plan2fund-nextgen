@@ -3,6 +3,7 @@ import React, { useState } from 'react';
 import { FundingProfile } from '@/lib/schemas/fundingProfile';
 import { intakeParser } from '@/lib/intakeParser';
 import OverlayQuestions from './OverlayQuestions';
+import OffTopicGate from './OffTopicGate';
 import analytics from '@/lib/analytics';
 
 interface IntakeFormProps {
@@ -25,6 +26,7 @@ export default function IntakeForm({ onComplete, onCancel }: IntakeFormProps) {
   const [chips, setChips] = useState<Chip[]>([]);
   const [showOverlay, setShowOverlay] = useState(false);
   const [overlayQuestions, setOverlayQuestions] = useState<string[]>([]);
+  const [showOffTopicGate, setShowOffTopicGate] = useState(false);
   const [error, setError] = useState('');
 
   const handleSubmit = async () => {
@@ -51,7 +53,10 @@ export default function IntakeForm({ onComplete, onCancel }: IntakeFormProps) {
       setProfile(result.profile);
       setChips(createChips(result.profile));
       
-      if (result.needsOverlay) {
+      // Check for off-topic intent
+      if (result.profile.intent === 'offtopic') {
+        setShowOffTopicGate(true);
+      } else if (result.needsOverlay) {
         setOverlayQuestions(result.overlayQuestions);
         setShowOverlay(true);
       } else {
@@ -169,6 +174,20 @@ export default function IntakeForm({ onComplete, onCancel }: IntakeFormProps) {
       onComplete(profile);
     }
     setShowOverlay(false);
+  };
+
+  const handleOffTopicRetry = () => {
+    setShowOffTopicGate(false);
+    setInput('');
+    setProfile(null);
+    setChips([]);
+  };
+
+  const handleOffTopicContinue = () => {
+    if (profile) {
+      onComplete(profile);
+    }
+    setShowOffTopicGate(false);
   };
 
   const getConfidenceColor = (confidence: number) => {
@@ -322,6 +341,15 @@ export default function IntakeForm({ onComplete, onCancel }: IntakeFormProps) {
           questionTypes={overlayQuestions}
           onComplete={handleOverlayComplete}
           onCancel={handleOverlayCancel}
+        />
+      )}
+
+      {/* Off-topic Gate */}
+      {showOffTopicGate && profile && (
+        <OffTopicGate
+          profile={profile}
+          onRetry={handleOffTopicRetry}
+          onContinue={handleOffTopicContinue}
         />
       )}
     </div>

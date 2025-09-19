@@ -50,29 +50,11 @@ const DEFAULT_FLAGS: FeatureFlagConfig = {
       description: 'Enable paid export with watermarks',
       segments: ['B2C_FOUNDER', 'SME_LOAN', 'VISA', 'PARTNER']
     },
-    ADDON_CHIPS: {
-      name: 'ADDON_CHIPS',
-      enabled: true,
-      description: 'Show contextual add-on chips in editor',
-      segments: ['B2C_FOUNDER', 'SME_LOAN', 'VISA', 'PARTNER']
-    },
-    SUCCESS_HUB_V1: {
-      name: 'SUCCESS_HUB_V1',
-      enabled: true,
-      description: 'Enable success hub after export',
-      segments: ['B2C_FOUNDER', 'SME_LOAN', 'VISA', 'PARTNER']
-    },
     ANALYTICS_AB: {
       name: 'ANALYTICS_AB',
       enabled: true,
       description: 'Enable A/B testing and analytics',
       segments: ['B2C_FOUNDER', 'SME_LOAN', 'VISA', 'PARTNER']
-    },
-    PR_BOT_FRESHNESS: {
-      name: 'PR_BOT_FRESHNESS',
-      enabled: false,
-      description: 'Enable automated program data freshness checks',
-      segments: ['PARTNER'] // Only for partners initially
     },
     AI_EXPLANATIONS: {
       name: 'AI_EXPLANATIONS',

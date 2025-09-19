@@ -118,23 +118,63 @@ export default function ResultsPage() {
         </div>
       </div>
 
-      {/* Strict mode: No eligible results */}
+      {/* No-match fallback: Nearest 3 + Proceed anyway */}
       {hasAnyResults && !hasEligibleResults && (
-        <div className="p-6 border border-red-300 bg-red-50 rounded-lg mb-6">
-          <h3 className="text-lg font-semibold text-red-800 mb-2">No Eligible Results</h3>
-          <p className="text-red-700 mb-4">
-            None of the programs match your current criteria. Here are the main blockers:
+        <div className="p-6 border border-orange-300 bg-orange-50 rounded-lg mb-6">
+          <h3 className="text-lg font-semibold text-orange-800 mb-2">No Perfect Matches Found</h3>
+          <p className="text-orange-700 mb-4">
+            None of the programs match your current criteria exactly. Here are the closest matches:
           </p>
-          <ul className="list-disc list-inside text-red-600 mb-4">
-            {results.slice(0, 3).map((r, i) => (
-              <li key={i} className="text-sm">
-                {r.name}: {r.why?.filter(w => w.includes("Hard rule failed")).join(", ") || "Eligibility requirements not met"}
-              </li>
-            ))}
-          </ul>
-          <Link href="/reco" className="inline-block px-4 py-2 bg-red-600 text-white rounded hover:bg-red-700">
-            Adjust Answers
-          </Link>
+          
+          {/* Nearest 3 programs */}
+          <div className="mb-4">
+            <h4 className="font-semibold text-orange-800 mb-2">Nearest 3 Programs:</h4>
+            <div className="space-y-2">
+              {results.slice(0, 3).map((program, idx) => (
+                <div key={program.id} className="p-3 bg-white border border-orange-200 rounded">
+                  <div className="flex justify-between items-center">
+                    <div>
+                      <div className="font-medium">{program.name}</div>
+                      <div className="text-sm text-gray-600">{program.type} • {program.score}% match</div>
+                    </div>
+                    <div className="text-right">
+                      <div className="text-sm text-orange-600">
+                        {program.gaps && program.gaps.length > 0 ? 
+                          `Missing: ${program.gaps[0].description}` : 
+                          'Some requirements not met'
+                        }
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+
+          {/* What to change */}
+          <div className="mb-4">
+            <h4 className="font-semibold text-orange-800 mb-2">What to change to qualify:</h4>
+            <ul className="text-sm text-orange-700 space-y-1">
+              {results.slice(0, 3).map((program, idx) => (
+                <li key={idx} className="flex items-start">
+                  <span className="text-orange-500 mr-2">•</span>
+                  <strong>{program.name}:</strong> {program.gaps && program.gaps.length > 0 ? 
+                    program.gaps[0].action : 'Review eligibility requirements'
+                  }
+                </li>
+              ))}
+            </ul>
+          </div>
+
+          {/* Action buttons */}
+          <div className="flex gap-3">
+            <Link href="/reco" className="px-4 py-2 bg-orange-600 text-white rounded hover:bg-orange-700">
+              Adjust Answers
+            </Link>
+            <Link href="/plan?mode=qbank" className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700">
+              Proceed Anyway → Editor with QBank
+            </Link>
+          </div>
         </div>
       )}
 
@@ -168,20 +208,56 @@ export default function ResultsPage() {
         <div className="grid gap-4">
           {results.map((program) => (
             <Card key={program.id} className="p-4 shadow-md rounded-xl">
-              <div className="flex justify-between items-center mb-2">
-                <h3 className="text-lg font-bold">{program.name}</h3>
-                <span
-                  className={`px-2 py-1 rounded text-xs ${
-                    program.eligibility === "Eligible"
-                      ? "bg-green-100 text-green-800"
-                      : "bg-red-100 text-red-800"
-                  }`}
-                >
-                  {program.eligibility}
-                </span>
+              <div className="flex justify-between items-center mb-3">
+                <div>
+                  <h3 className="text-lg font-bold">{program.name}</h3>
+                  <span className="text-sm text-gray-600 capitalize">{program.type}</span>
+                </div>
+                <div className="text-right">
+                  <div className="text-2xl font-bold text-blue-600">{program.score}%</div>
+                  <div className="text-xs text-gray-500">Match</div>
+                </div>
               </div>
 
-              <p className="text-sm text-gray-600 mb-2">{program.reason}</p>
+              {/* Why it fits - 3-5 plain-language bullets */}
+              <div className="mb-3">
+                <h4 className="text-sm font-semibold text-gray-800 mb-2">Why it fits:</h4>
+                <ul className="text-sm text-gray-700 space-y-1">
+                  {program.matchedCriteria && program.matchedCriteria.length > 0 ? (
+                    program.matchedCriteria.slice(0, 3).map((criteria, idx) => (
+                      <li key={idx} className="flex items-start">
+                        <span className="text-green-500 mr-2">•</span>
+                        {criteria.reason}
+                      </li>
+                    ))
+                  ) : (
+                    <li className="flex items-start">
+                      <span className="text-green-500 mr-2">•</span>
+                      {program.reason || 'General program match'}
+                    </li>
+                  )}
+                </ul>
+              </div>
+
+              {/* Risks/Next steps - 1-2 bullets */}
+              <div className="mb-3">
+                <h4 className="text-sm font-semibold text-gray-800 mb-2">Risks/Next steps:</h4>
+                <ul className="text-sm text-gray-700 space-y-1">
+                  {program.gaps && program.gaps.length > 0 ? (
+                    program.gaps.slice(0, 2).map((gap, idx) => (
+                      <li key={idx} className="flex items-start">
+                        <span className="text-yellow-500 mr-2">•</span>
+                        {gap.description}
+                      </li>
+                    ))
+                  ) : (
+                    <li className="flex items-start">
+                      <span className="text-yellow-500 mr-2">•</span>
+                      Verify eligibility requirements before applying
+                    </li>
+                  )}
+                </ul>
+              </div>
               {program.unmetRequirements && program.unmetRequirements.some(r => r.includes("missing")) && (
                 <p className="text-xs text-yellow-700 mt-1">?? Some requirements unknown due to skipped answers (Explorer mode)</p>
               )}

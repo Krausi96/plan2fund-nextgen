@@ -5,10 +5,8 @@ const stepsReco = [
   { href: "/", label: "Home" },
   { href: "/reco", label: "Recommendation" },
   { href: "/results", label: "Results" },
-  { href: "/plan/intake", label: "Plan Intake" },
   { href: "/plan", label: "Plan" },
   { href: "/preview", label: "Preview" },
-  { href: "/pricing", label: "Pricing" },
   { href: "/confirm", label: "Confirm" },
   { href: "/checkout", label: "Checkout" },
   { href: "/export", label: "Export" },
@@ -17,10 +15,8 @@ const stepsReco = [
 
 const stepsDirect = [
   { href: "/", label: "Home" },
-  { href: "/plan/intake", label: "Plan Intake" },
   { href: "/plan", label: "Plan" },
   { href: "/preview", label: "Preview" },
-  { href: "/pricing", label: "Pricing" },
   { href: "/confirm", label: "Confirm" },
   { href: "/checkout", label: "Checkout" },
   { href: "/export", label: "Export" },

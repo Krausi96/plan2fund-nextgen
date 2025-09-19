@@ -154,7 +154,7 @@ export default function DashboardPage() {
         <Card className="p-6">
           <div className="flex items-center justify-between mb-6">
             <h2 className="text-xl font-semibold">Recent Business Plans</h2>
-            <Link href="/plan/intake">
+            <Link href="/plan">
               <Button size="sm" className="bg-blue-600 hover:bg-blue-700">
                 <Plus className="w-4 h-4 mr-2" />
                 New Plan
@@ -166,7 +166,7 @@ export default function DashboardPage() {
             <div className="text-center py-8">
               <FileText className="w-12 h-12 text-gray-400 mx-auto mb-4" />
               <p className="text-gray-600 mb-4">No business plans yet</p>
-              <Link href="/plan/intake">
+              <Link href="/plan">
                 <Button className="bg-blue-600 hover:bg-blue-700">
                   Create Your First Plan
                 </Button>
@@ -253,7 +253,7 @@ export default function DashboardPage() {
               Find Funding
             </Button>
           </Link>
-          <Link href="/plan/intake">
+          <Link href="/plan">
             <Button variant="outline" className="w-full h-20 flex flex-col items-center justify-center">
               <FileText className="w-6 h-6 mb-2" />
               Create Plan

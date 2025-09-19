@@ -50,12 +50,12 @@
         {
           "ask_if": "answers.q9_team_diversity in ['YES','UNKNOWN']",
           "question": "Will one or more women own >25% at the time of grant award (gender bonus up to EUR 100k)?",
-          "decisiveness": "SOFT",
-          "rationale": "Gender bonus increases funding rate and cap.",
+          "decisiveness": "HARD",
+          "rationale": "Gender bonus increases funding rate and cap - now required for eligibility.",
           "evidence_links": [
             "https://www.aws.at/en/aws-preseed-innovative-solutions/"
           ],
-          "last_checked": "2025-09-05"
+          "last_checked": "2025-01-15"
         }
       ]
     },

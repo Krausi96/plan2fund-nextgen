@@ -10,7 +10,6 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
   const flowRoutes = [
     "/results",
     "/plan",
-    "/plan/intake",
     "/preview",
     "/confirm",
     "/checkout",

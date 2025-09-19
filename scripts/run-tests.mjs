@@ -1,10 +1,10 @@
 #!/usr/bin/env node
 
 // Test runner for intake parser
-const { runCITests } = require('../tests/intake/ci-tests.ts');
+import { runCITests } from '../tests/intake/ci-tests.ts';
 
 async function main() {
-  console.log('🧪 Running Intake Parser Tests...\n');
+  console.log('🚀 Starting Intake Parser Tests...\n');
   
   try {
     const success = await runCITests();
