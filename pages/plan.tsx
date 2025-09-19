@@ -13,10 +13,10 @@ export default function PlanPage() {
     id: rawProgram.id,
     name: rawProgram.name,
     type: rawProgram.type,
-    region: rawProgram.jurisdiction,
-    maxAmount: rawProgram.thresholds?.max_grant_eur || 0,
-    requirements: rawProgram.eligibility || [],
-    link: rawProgram.evidence_links?.[0] || ""
+    region: (rawProgram as any).jurisdiction || 'Unknown',
+    maxAmount: (rawProgram as any).thresholds?.max_grant_eur || 0,
+    requirements: (rawProgram as any).eligibility || [],
+    link: (rawProgram as any).evidence_links?.[0] || ""
   } : undefined;
 
   return (

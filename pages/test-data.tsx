@@ -17,7 +17,7 @@ export default function TestDataPage() {
       }
     } catch (error) {
       console.error('Error loading data:', error);
-      setStatus(`❌ Error: ${error.message}`);
+      setStatus(`❌ Error: ${error instanceof Error ? error.message : 'Unknown error'}`);
     }
   }, []);
 
