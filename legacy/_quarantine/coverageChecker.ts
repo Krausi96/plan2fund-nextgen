@@ -157,7 +157,6 @@ export class CoverageChecker {
    * Generate coverage table for display
    */
   generateCoverageTable(): string {
-    const report = this.generateCoverageReport();
     let table = '| Program | ' + this.questions.map(q => q.id).join(' | ') + ' |\n';
     table += '|---------|' + this.questions.map(() => '--------').join('|') + '|\n';
 
