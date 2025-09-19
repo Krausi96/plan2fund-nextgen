@@ -2,8 +2,8 @@ import React, { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { useRouter } from "next/router";
 import { motion, AnimatePresence } from "framer-motion";
-import { scoreProgramsEnhanced, analyzeFreeTextEnhanced } from "../../legacy/_quarantine/enhancedRecoEngine";
-import { dynamicWizard } from "../../legacy/_quarantine/dynamicWizard";
+import { scoreProgramsEnhanced, analyzeFreeTextEnhanced } from "@/lib/simpleRecoEngine";
+import { dynamicWizard } from "@/lib/simpleDynamicWizard";
 import HealthFooter from "@/components/common/HealthFooter";
 
 export default function Wizard() {

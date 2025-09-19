@@ -7,7 +7,7 @@ import ProgramDetailsModal from "@/components/reco/ProgramDetailsModal";
 import ExplorationModal from "@/components/reco/ExplorationModal";
 import InfoDrawer from "@/components/common/InfoDrawer";
 import HealthFooter from "@/components/common/HealthFooter";
-import { scoreProgramsEnhanced, analyzeFreeTextEnhanced, EnhancedProgramResult } from "../legacy/_quarantine/enhancedRecoEngine";
+import { scoreProgramsEnhanced, analyzeFreeTextEnhanced, EnhancedProgramResult } from "@/lib/simpleRecoEngine";
 
 // Enhanced program result type with detailed explanations
 type ProgramResult = EnhancedProgramResult;
