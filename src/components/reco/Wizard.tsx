@@ -2,14 +2,11 @@ import React, { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { useRouter } from "next/router";
 import { motion, AnimatePresence } from "framer-motion";
-import { ClientRecoEngine } from "@/lib/clientRecoEngine";
-
-type PersonaMode = "strict" | "explorer";
+import { scoreProgramsEnhanced, analyzeFreeTextEnhanced } from "@/lib/enhancedRecoEngine";
 
 export default function Wizard() {
   const router = useRouter();
   const [mode, setMode] = useState<"survey" | "freeText">("survey");
-  const [personaMode, setPersonaMode] = useState<PersonaMode>("strict");
   const [answers, setAnswers] = useState<Record<string, any>>({});
   const [step, setStep] = useState(0);
   const [loading, setLoading] = useState(false);
@@ -122,10 +119,10 @@ export default function Wizard() {
   const submitAnswers = async () => {
     try {
       setLoading(true);
-      const data = await ClientRecoEngine.processRecommendation(answers, personaMode, true);
+      const recommendations = scoreProgramsEnhanced(answers, "strict");
 
-      localStorage.setItem("recoResults", JSON.stringify(data.recommendations));
-      localStorage.setItem("normalizedAnswers", JSON.stringify(data.normalizedAnswers));
+      localStorage.setItem("recoResults", JSON.stringify(recommendations));
+      localStorage.setItem("userAnswers", JSON.stringify(answers));
       router.push("/results");
     } catch (err) {
       console.error("Error submitting answers:", err);
@@ -137,10 +134,10 @@ export default function Wizard() {
   const submitFreeText = async () => {
     try {
       setLoading(true);
-      const data = await ClientRecoEngine.processFreeText(answers.freeText || "");
+      const { scored } = analyzeFreeTextEnhanced(answers.freeText || "");
 
-      localStorage.setItem("recoResults", JSON.stringify(data.recommendations));
-      localStorage.setItem("normalizedAnswers", JSON.stringify(data.normalizedAnswers));
+      localStorage.setItem("recoResults", JSON.stringify(scored));
+      localStorage.setItem("freeTextReco", answers.freeText || "");
       router.push("/results");
     } catch (err) {
       console.error("Error submitting free-text:", err);
@@ -243,35 +240,19 @@ export default function Wizard() {
         </div>
       )}
 
-      {/* Persona Mode Toggle */}
-      <div className="flex gap-2 mb-6">
-        <Button
-          variant={personaMode === "strict" ? "default" : "outline"}
-          onClick={() => setPersonaMode("strict")}
-        >
-          Strict Mode
-        </Button>
-        <Button
-          variant={personaMode === "explorer" ? "default" : "outline"}
-          onClick={() => setPersonaMode("explorer")}
-        >
-          Explorer Mode
-        </Button>
-      </div>
-
-      {/* Mode Toggle */}
+      {/* Simple mode toggle */}
       <div className="flex gap-2 mb-6">
         <Button
           variant={mode === "survey" ? "default" : "outline"}
           onClick={() => setMode("survey")}
         >
-          Structured Survey
+          Answer Questions
         </Button>
         <Button
           variant={mode === "freeText" ? "default" : "outline"}
           onClick={() => setMode("freeText")}
         >
-          Free Text
+          Describe Your Situation
         </Button>
       </div>
 

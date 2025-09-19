@@ -287,7 +287,7 @@ export default function ResultsPage() {
                         We'll prefill your plan with relevant hints based on this program.
                       </DialogDescription>
                     </DialogHeader>
-                    <Link href={`/plan/intake?programId=${program.id}`}>
+                    <Link href={`/plan?programId=${program.id}`}>
                       <Button className="w-full mt-3">Prefill and continue →</Button>
                     </Link>
                   </DialogContent>
