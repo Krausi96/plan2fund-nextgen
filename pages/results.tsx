@@ -131,7 +131,7 @@ export default function ResultsPage() {
           <div className="mb-4">
             <h4 className="font-semibold text-orange-800 mb-2">Nearest 3 Programs:</h4>
             <div className="space-y-2">
-              {results.slice(0, 3).map((program, idx) => (
+              {results.slice(0, 3).map((program) => (
                 <div key={program.id} className="p-3 bg-white border border-orange-200 rounded">
                   <div className="flex justify-between items-center">
                     <div>
