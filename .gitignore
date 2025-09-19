@@ -3,6 +3,7 @@ node_modules/
 dist/
 out/
 build/
+legacy/_quarantine/
 
 .env
 .env.local
