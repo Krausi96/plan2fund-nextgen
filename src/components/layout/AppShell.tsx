@@ -12,7 +12,6 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
     "/plan",
     "/plan/intake",
     "/preview",
-    "/pricing",
     "/confirm",
     "/checkout",
     "/export",

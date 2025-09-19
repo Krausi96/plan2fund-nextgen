@@ -6,8 +6,6 @@ import { chapterTemplates } from "@/lib/templates/chapters";
 import { loadPlanSections, savePlanSections, type PlanSection } from "@/lib/planStore";
 import InfoDrawer from "@/components/common/InfoDrawer";
 import AIChat from "@/components/plan/AIChat";
-import PlanCoach from "@/components/plan/PlanCoach";
-import SnapshotManager from "@/components/plan/SnapshotManager";
 
 
 type EditorProps = {
@@ -68,24 +66,29 @@ export default function Editor({ program }: EditorProps) {
   }, [content, saved]);
 
   return (
-    <div className="flex gap-6 p-6">
-      {/* Side Navigation */}
-      <aside className="w-64 hidden md:block">
-        <nav className="space-y-2">
+    <div className="flex flex-col space-y-4 p-6">
+      {/* Chapter Navigation Breadcrumbs */}
+      <div className="bg-gray-50 py-3 px-4 rounded-lg">
+        <nav className="flex gap-4 text-sm text-gray-600 overflow-x-auto">
           {sections.map((s, i) => (
-            <div
+            <button
               key={i}
               onClick={() => {
                 setActiveIdx(i)
                 setContent(sections[i].content || "")
               }}
-              className={`text-sm py-1 px-2 rounded cursor-pointer ${i === activeIdx ? "bg-blue-50" : "hover:bg-gray-100"}`}
+              className={`flex items-center gap-1 whitespace-nowrap px-3 py-1 rounded ${
+                i === activeIdx 
+                  ? "bg-blue-100 text-blue-800 font-semibold" 
+                  : "hover:bg-gray-200"
+              }`}
             >
+              <span>{i === activeIdx ? "➡" : "○"}</span>
               {s.title}
-            </div>
+            </button>
           ))}
         </nav>
-      </aside>
+      </div>
 
       {/* Main Editor */}
       <main className="flex-1 flex flex-col space-y-4">
@@ -112,7 +115,7 @@ export default function Editor({ program }: EditorProps) {
                   onClick={() => setShowAIChat(!showAIChat)}
                   className="text-xs px-2 py-1 bg-blue-100 hover:bg-blue-200 rounded"
                 >
-                  {showAIChat ? "Hide AI" : "AI Chat"}
+                  {showAIChat ? "Hide AI" : "AI Assistant"}
                 </button>
 
                 <button
@@ -151,95 +154,56 @@ export default function Editor({ program }: EditorProps) {
         </div>
       </main>
 
-      {/* Right Sidebar */}
-      <aside className="w-80 space-y-4 sticky top-6 h-fit hidden lg:block">
-        {/* AI Chat */}
-        {showAIChat && (
-          <div className="h-96">
-            <AIChat
-              onInsertContent={(content) => {
-                setContent(prev => prev + "\n\n" + content);
-                setSaved(false);
-              }}
-              currentSection={sections[activeIdx]?.title || "Current Section"}
-              persona={persona}
-            />
-          </div>
-        )}
+      {/* AI Assistant - Only when enabled */}
+      {showAIChat && (
+        <div className="mt-6 bg-gray-50 border rounded-lg p-4">
+          <h3 className="text-lg font-semibold mb-3">AI Assistant</h3>
+          <AIChat
+            onInsertContent={(content) => {
+              setContent(prev => prev + "\n\n" + content);
+              setSaved(false);
+            }}
+            currentSection={sections[activeIdx]?.title || "Current Section"}
+            persona={persona}
+          />
+        </div>
+      )}
 
-        {/* Plan Coach */}
-        <PlanCoach
-          onInsertContent={(content) => {
-            setContent(prev => prev + "\n\n" + content);
-            setSaved(false);
-          }}
-          currentSection={sections[activeIdx]?.title || "Current Section"}
-          persona={persona}
-        />
-
-        {/* Snapshot Manager */}
-        <SnapshotManager
-          onRestore={(snapshot) => {
-            setContent(snapshot.content);
-            setSections(snapshot.sections);
-            setSaved(false);
-          }}
-          currentContent={content}
-          currentSections={sections}
-        />
-
-        {/* Hints & Helpers */}
+      {/* Hints & Helpers - Only for newbie mode */}
+      {persona === "newbie" && (
         <div className="bg-gray-50 border rounded-lg p-4 space-y-3">
           <h2 className="text-lg font-semibold">Hints</h2>
-          {persona === "newbie" && (
-            <div>
-              <p className="text-sm text-gray-700">{chapterTemplates[activeIdx]?.hint}</p>
-              {chapterTemplates[activeIdx]?.subchapters && (
-                <div className="mt-3">
-                  <h4 className="text-sm font-semibold mb-2">Subchapters:</h4>
-                  <div className="space-y-1">
-                    {chapterTemplates[activeIdx].subchapters!.map((sub, i) => (
-                      <div key={i} className="flex items-center gap-2 text-xs">
-                        <input 
-                          type="checkbox" 
-                          checked={sub.completed}
-                          onChange={() => {
-                            // Toggle completion (stub - would update state)
-                            console.log(`Toggle ${sub.id}`);
-                          }}
-                          className="rounded"
-                        />
-                        <span className={sub.completed ? "line-through text-gray-500" : ""}>
-                          {sub.title}
-                        </span>
-                      </div>
-                    ))}
-                  </div>
-                  <div className="mt-2 text-xs text-gray-500">
-                    Completion: {chapterTemplates[activeIdx].subchapters!.filter(s => s.completed).length} / {chapterTemplates[activeIdx].subchapters!.length}
-                  </div>
+          <div>
+            <p className="text-sm text-gray-700">{chapterTemplates[activeIdx]?.hint}</p>
+            {chapterTemplates[activeIdx]?.subchapters && (
+              <div className="mt-3">
+                <h4 className="text-sm font-semibold mb-2">Subchapters:</h4>
+                <div className="space-y-1">
+                  {chapterTemplates[activeIdx].subchapters!.map((sub, i) => (
+                    <div key={i} className="flex items-center gap-2 text-xs">
+                      <input 
+                        type="checkbox" 
+                        checked={sub.completed}
+                        onChange={() => {
+                          // Toggle completion (stub - would update state)
+                          console.log(`Toggle ${sub.id}`);
+                        }}
+                        className="rounded"
+                      />
+                      <span className={sub.completed ? "line-through text-gray-500" : ""}>
+                        {sub.title}
+                      </span>
+                    </div>
+                  ))}
                 </div>
-              )}
-            </div>
-          )}
-          {persona === "expert" && (
-            <p className="text-sm text-gray-500 italic">Expert mode: Hints hidden for clean editing</p>
-          )}
-          
-          {persona === "newbie" && (
-            <>
-              <div className="border-t pt-3">
-                <h3 className="font-semibold text-sm">TAM/SAM/SOM</h3>
-                <p className="text-xs text-gray-600">Stub: Estimate market sizes to strengthen your market chapter.</p>
+                <div className="mt-2 text-xs text-gray-500">
+                  Completion: {chapterTemplates[activeIdx].subchapters!.filter(s => s.completed).length} / {chapterTemplates[activeIdx].subchapters!.length}
+                </div>
               </div>
-              <div className="border-t pt-3">
-                <h3 className="font-semibold text-sm">Depreciation Helper</h3>
-                <p className="text-xs text-gray-600">Stub: Straight-line over N years.</p>
-              </div>
-            </>
-          )}
+            )}
+          </div>
         </div>
-      </aside>
+      )}
 
       {/* Info Drawer */}
       <InfoDrawer
