@@ -1,6 +1,6 @@
 // Coverage API endpoint
 import { NextApiRequest, NextApiResponse } from 'next';
-import { coverageChecker } from '@/lib/coverageChecker';
+import { coverageChecker } from '../../legacy/_quarantine/coverageChecker';
 
 export default function handler(req: NextApiRequest, res: NextApiResponse) {
   if (req.method !== 'GET') {

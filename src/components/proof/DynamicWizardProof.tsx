@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { dynamicWizard } from '@/lib/dynamicWizard';
+import { dynamicWizard } from '../../legacy/_quarantine/dynamicWizard';
 
 interface QuestionOrderItem {
   id: string;

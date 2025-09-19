@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { aiHelperGuardrails } from '@/lib/aiHelperGuardrails';
+import { aiHelperGuardrails } from '../../legacy/_quarantine/aiHelperGuardrails';
 
 export default function AIHelperDemo() {
   const [input, setInput] = useState('');
