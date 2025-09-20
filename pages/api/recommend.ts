@@ -1,5 +1,5 @@
 import type { NextApiRequest, NextApiResponse } from "next";
-import { scoreProgramsEnhanced } from "@/lib/simpleRecoEngine";
+import { scoreProgramsEnhanced } from "@/lib/enhancedRecoEngine";
 import analytics from "@/lib/analytics";
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
