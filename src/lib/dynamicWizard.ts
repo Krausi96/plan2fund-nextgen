@@ -26,9 +26,16 @@ export class DynamicWizardEngine {
   private questionOrder: Question[] = [];
 
   constructor() {
-    this.programs = rawPrograms.programs;
-    this.questions = rawQuestions.universal;
-    this.computeQuestionOrder();
+    try {
+      this.programs = rawPrograms.programs || [];
+      this.questions = rawQuestions.universal || [];
+      this.computeQuestionOrder();
+    } catch (error) {
+      console.error('Error initializing DynamicWizard:', error);
+      this.programs = [];
+      this.questions = [];
+      this.questionOrder = [];
+    }
   }
 
   /**
@@ -114,6 +121,14 @@ export class DynamicWizardEngine {
    * Get the computed question order
    */
   getQuestionOrder(): Question[] {
+    // If no computed questions, return basic questions as fallback
+    if (this.questionOrder.length === 0 && this.questions.length > 0) {
+      return this.questions.map(q => ({
+        ...q,
+        informationValue: 1,
+        programsAffected: 1
+      }));
+    }
     return this.questionOrder;
   }
 

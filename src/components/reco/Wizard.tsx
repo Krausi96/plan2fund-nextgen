@@ -45,6 +45,7 @@ export default function Wizard() {
       const computedQuestions = dynamicWizard.getQuestionOrder();
       setDynamicQuestions(computedQuestions);
       console.log('Dynamic question order:', computedQuestions);
+      console.log('Number of dynamic questions:', computedQuestions.length);
     } catch (error) {
       console.error('Error loading data:', error);
       console.log('Using fallback data...');
@@ -103,8 +104,10 @@ export default function Wizard() {
 
   const handleNext = async () => {
     if (mode === "survey") {
-      // Use dynamic questions instead of hardcoded order
-      const currentQuestions = showMicroQuestions ? microQuestions : dynamicQuestions;
+      // Use dynamic questions if available, otherwise fall back to universal questions
+      const currentQuestions = showMicroQuestions ? microQuestions : 
+        (dynamicQuestions.length > 0 ? dynamicQuestions : 
+         (questionsData?.universal || []));
       if (step < currentQuestions.length - 1) {
         setStep(step + 1);
       } else if (!showMicroQuestions) {
@@ -178,7 +181,10 @@ export default function Wizard() {
     );
   }
 
-  const currentQuestions = showMicroQuestions ? microQuestions : dynamicQuestions;
+  // Use dynamic questions if available, otherwise fall back to universal questions
+  const currentQuestions = showMicroQuestions ? microQuestions : 
+    (dynamicQuestions.length > 0 ? dynamicQuestions : 
+     (questionsData?.universal || []));
   const progressPercent = currentQuestions.length > 0 ? Math.round(((step + 1) / currentQuestions.length) * 100) : 0;
 
   // Safety check for current question
