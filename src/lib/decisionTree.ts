@@ -1,7 +1,6 @@
 // Decision Tree Logic for Recommendation Engine
 import { UserProfile } from '../types';
 import { scorePrograms } from './scoring';
-import { dynamicWizard } from './dynamicWizard';
 
 export interface DecisionTreeNode {
   id: string;
@@ -33,162 +32,140 @@ export class DecisionTreeEngine {
   }
 
   private initializeTree(): void {
-    // Auto-generate decision tree from dynamic wizard
-    const dynamicQuestions = dynamicWizard.getQuestionOrder();
-    
-    if (dynamicQuestions.length > 0) {
-      // Use dynamic questions to build decision tree
-      dynamicQuestions.forEach((question, index) => {
-        const nodeId = question.id;
-        const nextNodeId = index < dynamicQuestions.length - 1 ? dynamicQuestions[index + 1].id : null;
-        
-        this.nodes.set(nodeId, {
-          id: nodeId,
-          question: question.label,
-          type: question.type === 'multi-select' ? 'multiple' : 'single',
-          options: question.options.map(opt => ({
-            value: opt.value,
-            label: opt.label,
-            nextNodeId: nextNodeId || undefined
-          })),
-          isTerminal: index === dynamicQuestions.length - 1
-        });
-      });
-    } else {
-      // Fallback to hardcoded tree if dynamic generation fails
-      this.initializeHardcodedTree();
-    }
+    // Use hardcoded tree for now - this will be replaced with dynamic generation
+    this.initializeHardcodedTree();
   }
 
   private initializeHardcodedTree(): void {
-    // Program Type Selection (First Question)
-    this.nodes.set('program_type', {
-      id: 'program_type',
-      question: 'What type of funding are you looking for?',
+    // Start with country question (not Program Type - that's an outcome)
+    this.nodes.set('q1_country', {
+      id: 'q1_country',
+      question: 'Where will the project be carried out?',
       type: 'single',
       options: [
-        { value: 'GRANT', label: 'Grant (Non-repayable funding)', nextNodeId: 'grant_eligibility' },
-        { value: 'LOAN', label: 'Loan (Repayable funding)', nextNodeId: 'loan_eligibility' },
-        { value: 'EQUITY', label: 'Equity Investment', nextNodeId: 'equity_eligibility' },
-        { value: 'VISA', label: 'Visa/Immigration Support', nextNodeId: 'visa_eligibility' },
-        { value: 'MIXED', label: 'Multiple types (I\'m not sure)', nextNodeId: 'mixed_eligibility' }
+        { value: 'AT', label: 'Austria only', nextNodeId: 'q2_entity_stage' },
+        { value: 'EU', label: 'EU (incl. Austria)', nextNodeId: 'q2_entity_stage' },
+        { value: 'NON_EU', label: 'Outside EU', nextNodeId: 'q2_entity_stage' }
       ]
     });
 
-    // Grant Eligibility Path
-    this.nodes.set('grant_eligibility', {
-      id: 'grant_eligibility',
-      question: 'Are you eligible for Austrian grants?',
-      type: 'conditional',
-      condition: (answers) => this.checkGrantEligibility(answers),
-      nextNodeId: 'grant_preferences'
-    });
-
-    // Loan Eligibility Path
-    this.nodes.set('loan_eligibility', {
-      id: 'loan_eligibility',
-      question: 'Do you have collateral or guarantees for a loan?',
+    // Entity Stage Question
+    this.nodes.set('q2_entity_stage', {
+      id: 'q2_entity_stage',
+      question: 'What is your legal setup & company age?',
       type: 'single',
       options: [
-        { value: 'YES', label: 'Yes, I have collateral/guarantees', nextNodeId: 'loan_preferences' },
-        { value: 'NO', label: 'No, I need unsecured funding', nextNodeId: 'grant_eligibility' },
-        { value: 'UNSURE', label: 'I\'m not sure', nextNodeId: 'loan_preferences' }
+        { value: 'PRE_COMPANY', label: 'Not yet incorporated (team / natural persons)', nextNodeId: 'q3_company_size' },
+        { value: 'INC_LT_6M', label: 'Incorporated < 6 months', nextNodeId: 'q3_company_size' },
+        { value: 'INC_6_36M', label: 'Incorporated 6–36 months', nextNodeId: 'q3_company_size' },
+        { value: 'INC_GT_36M', label: 'Incorporated > 36 months', nextNodeId: 'q3_company_size' },
+        { value: 'RESEARCH_ORG', label: 'Research organisation / university', nextNodeId: 'q3_company_size' },
+        { value: 'NONPROFIT', label: 'Non-profit / association', nextNodeId: 'q3_company_size' }
       ]
     });
 
-    // Equity Eligibility Path
-    this.nodes.set('equity_eligibility', {
-      id: 'equity_eligibility',
-      question: 'What stage is your business at?',
+    // Company Size Question
+    this.nodes.set('q3_company_size', {
+      id: 'q3_company_size',
+      question: 'How many employees (FTE) does your organisation have?',
       type: 'single',
       options: [
-        { value: 'IDEA', label: 'Just an idea (Pre-seed)', nextNodeId: 'grant_eligibility' },
-        { value: 'PROTOTYPE', label: 'Prototype/MVP (Seed)', nextNodeId: 'equity_preferences' },
-        { value: 'REVENUE', label: 'Generating revenue (Series A)', nextNodeId: 'equity_preferences' },
-        { value: 'SCALING', label: 'Scaling (Series B+)', nextNodeId: 'equity_preferences' }
+        { value: 'MICRO_0_9', label: '0–9 (micro)', nextNodeId: 'q4_theme' },
+        { value: 'SMALL_10_49', label: '10–49 (small)', nextNodeId: 'q4_theme' },
+        { value: 'MEDIUM_50_249', label: '50–249 (medium)', nextNodeId: 'q4_theme' },
+        { value: 'LARGE_250_PLUS', label: '250+ (large)', nextNodeId: 'q4_theme' }
       ]
     });
 
-    // Visa Eligibility Path
-    this.nodes.set('visa_eligibility', {
-      id: 'visa_eligibility',
-      question: 'What is your immigration status?',
-      type: 'single',
-      options: [
-        { value: 'NON_EU', label: 'Non-EU citizen', nextNodeId: 'visa_preferences' },
-        { value: 'EU', label: 'EU citizen', nextNodeId: 'grant_eligibility' },
-        { value: 'UNSURE', label: 'I\'m not sure', nextNodeId: 'visa_preferences' }
-      ]
-    });
-
-    // Mixed Path
-    this.nodes.set('mixed_eligibility', {
-      id: 'mixed_eligibility',
-      question: 'Let me help you find the best options. What describes your situation best?',
-      type: 'single',
-      options: [
-        { value: 'STARTUP', label: 'I\'m starting a new business', nextNodeId: 'grant_eligibility' },
-        { value: 'EXPANDING', label: 'I\'m expanding an existing business', nextNodeId: 'loan_eligibility' },
-        { value: 'IMMIGRATING', label: 'I need to immigrate to Austria', nextNodeId: 'visa_eligibility' },
-        { value: 'INVESTING', label: 'I\'m looking for investors', nextNodeId: 'equity_eligibility' }
-      ]
-    });
-
-    // Preference Questions (Common to all paths)
-    this.nodes.set('grant_preferences', {
-      id: 'grant_preferences',
-      question: 'What are your preferences for grant funding?',
+    // Theme Question
+    this.nodes.set('q4_theme', {
+      id: 'q4_theme',
+      question: 'Which area(s) best fit your project?',
       type: 'multiple',
       options: [
-        { value: 'INNOVATION', label: 'Innovation/R&D focus' },
-        { value: 'SUSTAINABILITY', label: 'Sustainability/Environment' },
-        { value: 'SOCIAL_IMPACT', label: 'Social impact' },
-        { value: 'EXPORT', label: 'Export/International' },
-        { value: 'DIGITAL', label: 'Digital transformation' }
-      ],
-      nextNodeId: 'scoring'
+        { value: 'INNOVATION_DIGITAL', label: 'Innovation / Digital / Deep Tech', nextNodeId: 'q5_maturity_trl' },
+        { value: 'SUSTAINABILITY', label: 'Sustainability / Climate / Energy / Environment', nextNodeId: 'q5_maturity_trl' },
+        { value: 'HEALTH_LIFE_SCIENCE', label: 'Health / Life Sciences / MedTech / Biotech', nextNodeId: 'q5_maturity_trl' },
+        { value: 'SPACE_DOWNSTREAM', label: 'Space / GNSS / Earth Observation (downstream)', nextNodeId: 'q5_maturity_trl' },
+        { value: 'INDUSTRY_MANUFACTURING', label: 'Industry / Manufacturing', nextNodeId: 'q5_maturity_trl' },
+        { value: 'OTHER', label: 'Other', nextNodeId: 'q5_maturity_trl' }
+      ]
     });
 
-    this.nodes.set('loan_preferences', {
-      id: 'loan_preferences',
-      question: 'What are your preferences for loan funding?',
-      type: 'multiple',
+    // Maturity TRL Question
+    this.nodes.set('q5_maturity_trl', {
+      id: 'q5_maturity_trl',
+      question: 'What is your current maturity (approx. TRL)?',
+      type: 'single',
       options: [
-        { value: 'WORKING_CAPITAL', label: 'Working capital' },
-        { value: 'EQUIPMENT', label: 'Equipment purchase' },
-        { value: 'REAL_ESTATE', label: 'Real estate' },
-        { value: 'EXPANSION', label: 'Business expansion' },
-        { value: 'GUARANTEE', label: 'Government guarantee' }
-      ],
-      nextNodeId: 'scoring'
+        { value: 'TRL_1_2', label: 'Idea / Research (TRL 1–2)', nextNodeId: 'q6_rnd_in_at' },
+        { value: 'TRL_3_4', label: 'Proof of concept (TRL 3–4)', nextNodeId: 'q6_rnd_in_at' },
+        { value: 'TRL_5_6', label: 'Prototype / demonstrator (TRL 5–6)', nextNodeId: 'q6_rnd_in_at' },
+        { value: 'TRL_7_8', label: 'Pilot / market launch (TRL 7–8)', nextNodeId: 'q6_rnd_in_at' },
+        { value: 'TRL_9', label: 'Scaling (TRL 9+)', nextNodeId: 'q6_rnd_in_at' }
+      ]
     });
 
-    this.nodes.set('equity_preferences', {
-      id: 'equity_preferences',
-      question: 'What are your preferences for equity investment?',
-      type: 'multiple',
+    // R&D in Austria Question
+    this.nodes.set('q6_rnd_in_at', {
+      id: 'q6_rnd_in_at',
+      question: 'Will you conduct R&D or experimental development in Austria?',
+      type: 'single',
       options: [
-        { value: 'ANGEL', label: 'Angel investors' },
-        { value: 'VC', label: 'Venture capital' },
-        { value: 'CROWDFUNDING', label: 'Crowdfunding' },
-        { value: 'STRATEGIC', label: 'Strategic investors' },
-        { value: 'FAMILY_OFFICE', label: 'Family office' }
-      ],
-      nextNodeId: 'scoring'
+        { value: 'YES', label: 'Yes', nextNodeId: 'q7_collaboration' },
+        { value: 'NO', label: 'No', nextNodeId: 'q7_collaboration' },
+        { value: 'UNSURE', label: 'Unsure', nextNodeId: 'q7_collaboration' }
+      ]
     });
 
-    this.nodes.set('visa_preferences', {
-      id: 'visa_preferences',
-      question: 'What are your preferences for visa support?',
+    // Collaboration Question
+    this.nodes.set('q7_collaboration', {
+      id: 'q7_collaboration',
+      question: 'Do you plan to collaborate with research institutions or companies?',
+      type: 'single',
+      options: [
+        { value: 'NONE', label: 'No collaboration planned', nextNodeId: 'q8_funding_types' },
+        { value: 'WITH_RESEARCH', label: 'With research institution(s)', nextNodeId: 'q8_funding_types' },
+        { value: 'WITH_COMPANY', label: 'With company(ies)', nextNodeId: 'q8_funding_types' },
+        { value: 'WITH_BOTH', label: 'With both research & companies', nextNodeId: 'q8_funding_types' }
+      ]
+    });
+
+    // Funding Types Question
+    this.nodes.set('q8_funding_types', {
+      id: 'q8_funding_types',
+      question: 'Which funding types are acceptable?',
       type: 'multiple',
       options: [
-        { value: 'STARTUP_VISA', label: 'Startup visa (Red-White-Red Card)' },
-        { value: 'FREELANCE', label: 'Freelance permit' },
-        { value: 'EMPLOYMENT', label: 'Employment visa' },
-        { value: 'INVESTMENT', label: 'Investment visa' },
-        { value: 'FAMILY', label: 'Family reunification' }
-      ],
-      nextNodeId: 'scoring'
+        { value: 'GRANT', label: 'Grants', nextNodeId: 'q9_team_diversity' },
+        { value: 'LOAN', label: 'Loans', nextNodeId: 'q9_team_diversity' },
+        { value: 'GUARANTEE', label: 'Guarantees', nextNodeId: 'q9_team_diversity' },
+        { value: 'EQUITY', label: 'Equity / blended finance', nextNodeId: 'q9_team_diversity' }
+      ]
+    });
+
+    // Team Diversity Question
+    this.nodes.set('q9_team_diversity', {
+      id: 'q9_team_diversity',
+      question: 'At grant award, will women own >25% of shares?',
+      type: 'single',
+      options: [
+        { value: 'YES', label: 'Yes', nextNodeId: 'q10_env_benefit' },
+        { value: 'NO', label: 'No', nextNodeId: 'q10_env_benefit' },
+        { value: 'UNKNOWN', label: 'Not sure / TBD', nextNodeId: 'q10_env_benefit' }
+      ]
+    });
+
+    // Environmental Benefit Question
+    this.nodes.set('q10_env_benefit', {
+      id: 'q10_env_benefit',
+      question: 'Will the project measurably reduce emissions/energy/waste in the EU?',
+      type: 'single',
+      options: [
+        { value: 'STRONG', label: 'Yes, central to the project', nextNodeId: 'scoring' },
+        { value: 'SOME', label: 'Partly / co-benefit', nextNodeId: 'scoring' },
+        { value: 'NONE', label: 'No / not applicable', nextNodeId: 'scoring' }
+      ]
     });
 
     // Terminal Scoring Node
@@ -200,18 +177,6 @@ export class DecisionTreeEngine {
     });
   }
 
-  private checkGrantEligibility(answers: Record<string, any>): boolean {
-    // Check if user is eligible for Austrian grants
-    const country = answers.country || answers.q1_country;
-    const stage = answers.stage || answers.q2_entity_stage;
-    const theme = answers.theme || answers.q4_theme;
-
-    return (
-      (country === 'AT' || country === 'EU') &&
-      (stage === 'PRE_COMPANY' || stage === 'INC_LT_6M' || stage === 'INC_GT_6M') &&
-      (theme === 'INNOVATION_DIGITAL' || theme === 'SUSTAINABILITY' || theme === 'SOCIAL_IMPACT')
-    );
-  }
 
   public setUserProfile(profile: UserProfile): void {
     this.userProfile = profile;
@@ -245,7 +210,7 @@ export class DecisionTreeEngine {
     return null;
   }
 
-  public async processDecisionTree(answers: Record<string, any>, _currentNodeId: string = 'program_type'): Promise<DecisionTreeResult> {
+  public async processDecisionTree(answers: Record<string, any>, _currentNodeId: string = 'q1_country'): Promise<DecisionTreeResult> {
     try {
       // Score programs based on current answers
       const scoredPrograms = await scorePrograms({ answers });
@@ -280,32 +245,13 @@ export class DecisionTreeEngine {
     }
   }
 
-  private filterProgramsByPath(answers: Record<string, any>, programs: any[]): any[] {
-    const programType = answers.program_type || answers.q3_program_type;
-    if (!programType) return programs;
-
-    return programs.filter(program => {
-      const programTags = program.tags || [];
-      const programTypeLower = programType.toLowerCase();
-      
-      switch (programTypeLower) {
-        case 'grant':
-          return programTags.includes('grant') || program.type === 'grant';
-        case 'loan':
-          return programTags.includes('loan') || program.type === 'loan';
-        case 'equity':
-          return programTags.includes('equity') || program.type === 'equity';
-        case 'visa':
-          return programTags.includes('visa') || program.type === 'visa';
-        case 'mixed':
-          return true; // Show all programs for mixed type
-        default:
-          return true;
-      }
-    });
+  private filterProgramsByPath(_answers: Record<string, any>, programs: any[]): any[] {
+    // No filtering by program type since that's now an outcome, not input
+    // All programs are considered based on eligibility criteria
+    return programs;
   }
 
-  private generateExplanations(answers: Record<string, any>, programs: any[]): string[] {
+  private generateExplanations(_answers: Record<string, any>, programs: any[]): string[] {
     const explanations: string[] = [];
     
     if (programs.length === 0) {
@@ -313,10 +259,7 @@ export class DecisionTreeEngine {
       return explanations;
     }
 
-    const programType = answers.program_type || answers.q3_program_type;
-    if (programType) {
-      explanations.push(`Found ${programs.length} ${programType.toLowerCase()} programs that match your criteria.`);
-    }
+    explanations.push(`Found ${programs.length} programs that match your criteria.`);
 
     // Add specific explanations based on user profile
     if (this.userProfile) {
@@ -375,8 +318,7 @@ export class DecisionTreeEngine {
       context: {
         answers,
         signals: {},
-        requestedProgramType: answers.program_type,
-        requestedIndustry: answers.industry
+        requestedIndustry: answers.q4_theme
       },
       suggestedPrograms: [],
       status: 'OPEN',
