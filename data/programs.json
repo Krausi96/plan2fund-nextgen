@@ -38,17 +38,17 @@
       ],
       "overlays": [
         {
-          "ask_if": "answers.q1_country in ['AT','EU'] and answers.q2_entity_stage in ['PRE_COMPANY','INC_LT_6M'] and 'INNOVATION_DIGITAL' in answers.q4_theme",
-          "question": "Will the project be executed in Austria and is the company either not yet founded or ≤6 months old at application?",
+          "ask_if": "answers.q1_country in ['AT','EU'] and answers.q2_entity_stage in ['PRE_COMPANY','INC_LT_6M'] and 'INNOVATION_DIGITAL' in answers.q4_theme and answers.q9_team_diversity == 'YES'",
+          "question": "Will the project be executed in Austria, is the company ≤6 months old, focuses on digital innovation, AND has women owning >25% of shares?",
           "decisiveness": "HARD",
-          "rationale": "Programme requires Austrian project location and allows natural persons or newly founded companies (≤6 months).",
+          "rationale": "Programme requires Austrian project location, early-stage company, digital innovation focus, AND mandatory gender diversity.",
           "evidence_links": [
             "https://www.aws.at/en/aws-preseed-innovative-solutions/"
           ],
           "last_checked": "2025-09-05"
         },
         {
-          "ask_if": "answers.q9_team_diversity == 'YES'",
+          "ask_if": "answers.q9_team_diversity in ['YES','NO']",
           "question": "Will women own >25% of shares at grant award? (REQUIRED for eligibility)",
           "decisiveness": "HARD",
           "rationale": "Gender diversity is now MANDATORY for eligibility - no longer optional bonus.",
@@ -56,6 +56,26 @@
             "https://www.aws.at/en/aws-preseed-innovative-solutions/"
           ],
           "last_checked": "2025-01-15"
+        },
+        {
+          "ask_if": "answers.q8_funding_types and 'GRANT' in answers.q8_funding_types",
+          "question": "Are you open to grant funding (no repayment required)?",
+          "decisiveness": "HARD",
+          "rationale": "Program provides grant funding only - no loans or equity.",
+          "evidence_links": [
+            "https://www.aws.at/en/aws-preseed-innovative-solutions/"
+          ],
+          "last_checked": "2025-09-05"
+        },
+        {
+          "ask_if": "answers.q7_collaboration in ['NONE','WITH_RESEARCH','WITH_COMPANY','WITH_BOTH']",
+          "question": "Are you open to collaborating with research institutions or other companies?",
+          "decisiveness": "SOFT",
+          "rationale": "Collaboration is encouraged but not mandatory for this program.",
+          "evidence_links": [
+            "https://www.aws.at/en/aws-preseed-innovative-solutions/"
+          ],
+          "last_checked": "2025-09-05"
         }
       ]
     },
@@ -114,6 +134,26 @@
             "https://www.ffg.at/en/node/202479"
           ],
           "last_checked": "2025-09-05"
+        },
+        {
+          "ask_if": "answers.q9_team_diversity in ['YES','NO']",
+          "question": "Will women own >25% of shares at grant award? (REQUIRED for eligibility)",
+          "decisiveness": "HARD",
+          "rationale": "Gender diversity is now MANDATORY for eligibility - no longer optional bonus.",
+          "evidence_links": [
+            "https://www.ffg.at/en/node/202479"
+          ],
+          "last_checked": "2025-01-15"
+        },
+        {
+          "ask_if": "answers.q8_funding_types and ('GRANT' in answers.q8_funding_types or 'LOAN' in answers.q8_funding_types)",
+          "question": "Are you open to grant funding or low-interest loans?",
+          "decisiveness": "HARD",
+          "rationale": "Program provides mixed funding: grants + low-interest loans with possible guarantees.",
+          "evidence_links": [
+            "https://www.ffg.at/en/node/202479"
+          ],
+          "last_checked": "2025-09-05"
         }
       ]
     },
@@ -163,6 +203,56 @@
           "rationale": "Programme favours practical experimentation.",
           "evidence_links": [
             "https://www.ffg.at/programm/impactinnovation"
+          ],
+          "last_checked": "2025-09-05"
+        },
+        {
+          "ask_if": "answers.q8_funding_types and 'GRANT' in answers.q8_funding_types",
+          "question": "Are you open to grant funding for your innovation project?",
+          "decisiveness": "HARD",
+          "rationale": "Program provides grant funding only - no loans or equity.",
+          "evidence_links": [
+            "https://www.ffg.at/ausschreibung/impact-innovation-2025"
+          ],
+          "last_checked": "2025-09-05"
+        },
+        {
+          "ask_if": "answers.q7_collaboration in ['NONE','WITH_RESEARCH','WITH_COMPANY','WITH_BOTH']",
+          "question": "Are you open to collaborating with research institutions or other companies?",
+          "decisiveness": "SOFT",
+          "rationale": "Collaboration is encouraged but not mandatory for this program.",
+          "evidence_links": [
+            "https://www.ffg.at/programm/impactinnovation"
+          ],
+          "last_checked": "2025-09-05"
+        },
+        {
+          "ask_if": "answers.q9_team_diversity in ['YES','NO','UNKNOWN']",
+          "question": "Will women own >25% of shares at grant award?",
+          "decisiveness": "SOFT",
+          "rationale": "Gender diversity is encouraged but not mandatory for this program.",
+          "evidence_links": [
+            "https://www.ffg.at/ausschreibung/impact-innovation-2025"
+          ],
+          "last_checked": "2025-09-05"
+        },
+        {
+          "ask_if": "answers.q2_entity_stage in ['PRE_COMPANY','INC_LT_6M','INC_6_36M','INC_GT_36M']",
+          "question": "What is your company stage and legal setup?",
+          "decisiveness": "SOFT",
+          "rationale": "Program is open to various company stages but may have different requirements.",
+          "evidence_links": [
+            "https://www.ffg.at/ausschreibung/impact-innovation-2025"
+          ],
+          "last_checked": "2025-09-05"
+        },
+        {
+          "ask_if": "answers.q3_company_size in ['MICRO_0_9','SMALL_10_49','MEDIUM_50_249']",
+          "question": "What is your company size (number of employees)?",
+          "decisiveness": "SOFT",
+          "rationale": "Program is open to various company sizes but may have different requirements.",
+          "evidence_links": [
+            "https://www.ffg.at/ausschreibung/impact-innovation-2025"
           ],
           "last_checked": "2025-09-05"
         }
@@ -222,6 +312,46 @@
             "https://www.umweltfoerderung.at/fileadmin/user_upload/umweltfoerderung/uebergeordnete_dokumente/_infoblatt_foerderungsberechnung.pdf"
           ],
           "last_checked": "2025-09-05"
+        },
+        {
+          "ask_if": "answers.q8_funding_types and 'GRANT' in answers.q8_funding_types",
+          "question": "Are you open to grant funding for environmental investments?",
+          "decisiveness": "HARD",
+          "rationale": "Program provides investment grants only - no loans or equity.",
+          "evidence_links": [
+            "https://www.umweltfoerderung.at/"
+          ],
+          "last_checked": "2025-09-05"
+        },
+        {
+          "ask_if": "answers.q7_collaboration in ['NONE','WITH_RESEARCH','WITH_COMPANY','WITH_BOTH']",
+          "question": "Are you open to collaborating with research institutions or other companies?",
+          "decisiveness": "SOFT",
+          "rationale": "Collaboration is encouraged but not mandatory for this program.",
+          "evidence_links": [
+            "https://www.umweltfoerderung.at/"
+          ],
+          "last_checked": "2025-09-05"
+        },
+        {
+          "ask_if": "answers.q9_team_diversity in ['YES','NO','UNKNOWN']",
+          "question": "Will women own >25% of shares at grant award?",
+          "decisiveness": "SOFT",
+          "rationale": "Gender diversity is encouraged but not mandatory for this program.",
+          "evidence_links": [
+            "https://www.umweltfoerderung.at/"
+          ],
+          "last_checked": "2025-09-05"
+        },
+        {
+          "ask_if": "answers.q2_entity_stage in ['PRE_COMPANY','INC_LT_6M','INC_6_36M','INC_GT_36M']",
+          "question": "What is your company stage and legal setup?",
+          "decisiveness": "SOFT",
+          "rationale": "Program is open to various company stages but may have different requirements.",
+          "evidence_links": [
+            "https://www.umweltfoerderung.at/"
+          ],
+          "last_checked": "2025-09-05"
         }
       ]
     },
@@ -270,6 +400,56 @@
           "question": "Is your consortium (if required) fully EU-based/associated and eligible on the chosen LIFE topic?",
           "decisiveness": "HARD",
           "rationale": "Participation restricted to EU/associated entities; topic-specific eligibility applies.",
+          "evidence_links": [
+            "https://cinea.ec.europa.eu/life-calls-proposals-2025_en"
+          ],
+          "last_checked": "2025-09-05"
+        },
+        {
+          "ask_if": "answers.q8_funding_types and 'GRANT' in answers.q8_funding_types",
+          "question": "Are you open to grant funding for environmental/climate projects?",
+          "decisiveness": "HARD",
+          "rationale": "Program provides grant funding only - no loans or equity.",
+          "evidence_links": [
+            "https://cinea.ec.europa.eu/life-calls-proposals-2025_en"
+          ],
+          "last_checked": "2025-09-05"
+        },
+        {
+          "ask_if": "answers.q7_collaboration in ['WITH_RESEARCH','WITH_COMPANY','WITH_BOTH']",
+          "question": "Are you open to collaborating with research institutions or other companies?",
+          "decisiveness": "SOFT",
+          "rationale": "Collaboration is encouraged but not mandatory for this program.",
+          "evidence_links": [
+            "https://cinea.ec.europa.eu/life-calls-proposals-2025_en"
+          ],
+          "last_checked": "2025-09-05"
+        },
+        {
+          "ask_if": "answers.q9_team_diversity in ['YES','NO','UNKNOWN']",
+          "question": "Will women own >25% of shares at grant award?",
+          "decisiveness": "SOFT",
+          "rationale": "Gender diversity is encouraged but not mandatory for this program.",
+          "evidence_links": [
+            "https://cinea.ec.europa.eu/life-calls-proposals-2025_en"
+          ],
+          "last_checked": "2025-09-05"
+        },
+        {
+          "ask_if": "answers.q2_entity_stage in ['PRE_COMPANY','INC_LT_6M','INC_6_36M','INC_GT_36M','RESEARCH_ORG','NONPROFIT']",
+          "question": "What is your organization type and legal setup?",
+          "decisiveness": "SOFT",
+          "rationale": "Program is open to various organization types but may have different requirements.",
+          "evidence_links": [
+            "https://cinea.ec.europa.eu/life-calls-proposals-2025_en"
+          ],
+          "last_checked": "2025-09-05"
+        },
+        {
+          "ask_if": "answers.q3_company_size in ['MICRO_0_9','SMALL_10_49','MEDIUM_50_249','LARGE_250_PLUS']",
+          "question": "What is your organization size (number of employees)?",
+          "decisiveness": "SOFT",
+          "rationale": "Program is open to various organization sizes but may have different requirements.",
           "evidence_links": [
             "https://cinea.ec.europa.eu/life-calls-proposals-2025_en"
           ],
@@ -327,6 +507,56 @@
             "https://www.clean-hydrogen.europa.eu/document/download/e5846471-328c-48fd-b91f-837da07556b6_en?filename=Clean+Hydrogen+JU+AWP+2025_FINAL_ADOPTED.pdf"
           ],
           "last_checked": "2025-09-05"
+        },
+        {
+          "ask_if": "answers.q8_funding_types and 'GRANT' in answers.q8_funding_types",
+          "question": "Are you open to grant funding for hydrogen projects?",
+          "decisiveness": "HARD",
+          "rationale": "Program provides grant funding only - no loans or equity.",
+          "evidence_links": [
+            "https://www.clean-hydrogen.europa.eu/call-proposals-2025-closed_en"
+          ],
+          "last_checked": "2025-09-05"
+        },
+        {
+          "ask_if": "answers.q7_collaboration in ['WITH_RESEARCH','WITH_COMPANY','WITH_BOTH']",
+          "question": "Are you open to collaborating with research institutions or other companies?",
+          "decisiveness": "HARD",
+          "rationale": "Consortium collaboration is mandatory for this program.",
+          "evidence_links": [
+            "https://www.clean-hydrogen.europa.eu/call-proposals-2025-closed_en"
+          ],
+          "last_checked": "2025-09-05"
+        },
+        {
+          "ask_if": "answers.q9_team_diversity in ['YES','NO','UNKNOWN']",
+          "question": "Will women own >25% of shares at grant award?",
+          "decisiveness": "SOFT",
+          "rationale": "Gender diversity is encouraged but not mandatory for this program.",
+          "evidence_links": [
+            "https://www.clean-hydrogen.europa.eu/call-proposals-2025-closed_en"
+          ],
+          "last_checked": "2025-09-05"
+        },
+        {
+          "ask_if": "answers.q2_entity_stage in ['PRE_COMPANY','INC_LT_6M','INC_6_36M','INC_GT_36M','RESEARCH_ORG','NONPROFIT']",
+          "question": "What is your organization type and legal setup?",
+          "decisiveness": "SOFT",
+          "rationale": "Program is open to various organization types but may have different requirements.",
+          "evidence_links": [
+            "https://www.clean-hydrogen.europa.eu/call-proposals-2025-closed_en"
+          ],
+          "last_checked": "2025-09-05"
+        },
+        {
+          "ask_if": "answers.q3_company_size in ['MICRO_0_9','SMALL_10_49','MEDIUM_50_249','LARGE_250_PLUS']",
+          "question": "What is your organization size (number of employees)?",
+          "decisiveness": "SOFT",
+          "rationale": "Program is open to various organization sizes but may have different requirements.",
+          "evidence_links": [
+            "https://www.clean-hydrogen.europa.eu/call-proposals-2025-closed_en"
+          ],
+          "last_checked": "2025-09-05"
         }
       ]
     },
@@ -376,6 +606,36 @@
           "question": "If invited, are you ready for a pitch/interview with EIC jury (slides, financials, traction)?",
           "decisiveness": "SOFT",
           "rationale": "Process includes interview stage.",
+          "evidence_links": [
+            "https://eic.ec.europa.eu/eic-2025-work-programme_en"
+          ],
+          "last_checked": "2025-09-05"
+        },
+        {
+          "ask_if": "answers.q7_collaboration in ['NONE','WITH_RESEARCH','WITH_COMPANY','WITH_BOTH']",
+          "question": "Are you open to collaborating with research institutions or other companies?",
+          "decisiveness": "SOFT",
+          "rationale": "Collaboration is encouraged but not mandatory for this program.",
+          "evidence_links": [
+            "https://eic.ec.europa.eu/eic-2025-work-programme_en"
+          ],
+          "last_checked": "2025-09-05"
+        },
+        {
+          "ask_if": "answers.q9_team_diversity in ['YES','NO','UNKNOWN']",
+          "question": "Will women own >25% of shares at grant award?",
+          "decisiveness": "SOFT",
+          "rationale": "Gender diversity is encouraged but not mandatory for this program.",
+          "evidence_links": [
+            "https://eic.ec.europa.eu/eic-2025-work-programme_en"
+          ],
+          "last_checked": "2025-09-05"
+        },
+        {
+          "ask_if": "answers.q2_entity_stage in ['INC_LT_6M','INC_6_36M','INC_GT_36M']",
+          "question": "What is your company stage and legal setup?",
+          "decisiveness": "SOFT",
+          "rationale": "Program is open to various company stages but may have different requirements.",
           "evidence_links": [
             "https://eic.ec.europa.eu/eic-2025-work-programme_en"
           ],
@@ -432,6 +692,56 @@
             "https://eithealth.eu/transformative-health-instrument-call-2025-faqs/"
           ],
           "last_checked": "2025-09-05"
+        },
+        {
+          "ask_if": "answers.q8_funding_types and 'GRANT' in answers.q8_funding_types",
+          "question": "Are you open to grant funding for health innovation projects?",
+          "decisiveness": "HARD",
+          "rationale": "Program provides grant funding only - no loans or equity.",
+          "evidence_links": [
+            "https://eithealth.eu/transformative-health-instrument-call-2025-faqs/"
+          ],
+          "last_checked": "2025-09-05"
+        },
+        {
+          "ask_if": "answers.q7_collaboration in ['NONE','WITH_RESEARCH','WITH_COMPANY','WITH_BOTH']",
+          "question": "Are you open to collaborating with research institutions or other companies?",
+          "decisiveness": "SOFT",
+          "rationale": "Collaboration is encouraged but not mandatory for this program.",
+          "evidence_links": [
+            "https://eithealth.eu/transformative-health-instrument-call-2025-faqs/"
+          ],
+          "last_checked": "2025-09-05"
+        },
+        {
+          "ask_if": "answers.q9_team_diversity in ['YES','NO','UNKNOWN']",
+          "question": "Will women own >25% of shares at grant award?",
+          "decisiveness": "SOFT",
+          "rationale": "Gender diversity is encouraged but not mandatory for this program.",
+          "evidence_links": [
+            "https://eithealth.eu/transformative-health-instrument-call-2025-faqs/"
+          ],
+          "last_checked": "2025-09-05"
+        },
+        {
+          "ask_if": "answers.q2_entity_stage in ['INC_LT_6M','INC_6_36M','INC_GT_36M']",
+          "question": "What is your company stage and legal setup?",
+          "decisiveness": "SOFT",
+          "rationale": "Program is open to various company stages but may have different requirements.",
+          "evidence_links": [
+            "https://eithealth.eu/transformative-health-instrument-call-2025-faqs/"
+          ],
+          "last_checked": "2025-09-05"
+        },
+        {
+          "ask_if": "answers.q3_company_size in ['MICRO_0_9','SMALL_10_49','MEDIUM_50_249']",
+          "question": "What is your company size (number of employees)?",
+          "decisiveness": "SOFT",
+          "rationale": "Program is open to various company sizes but may have different requirements.",
+          "evidence_links": [
+            "https://eithealth.eu/transformative-health-instrument-call-2025-faqs/"
+          ],
+          "last_checked": "2025-09-05"
         }
       ]
     },
@@ -478,6 +788,46 @@
           "question": "Can you commit to 24 months incubation milestones and ESA branding requirements?",
           "decisiveness": "SOFT",
           "rationale": "Programme includes business support and milestone obligations.",
+          "evidence_links": [
+            "https://www.sciencepark.at/esa-bic-austria/"
+          ],
+          "last_checked": "2025-09-05"
+        },
+        {
+          "ask_if": "answers.q8_funding_types and 'GRANT' in answers.q8_funding_types",
+          "question": "Are you open to grant funding for space technology projects?",
+          "decisiveness": "HARD",
+          "rationale": "Program provides grant funding only - no loans or equity.",
+          "evidence_links": [
+            "https://www.sciencepark.at/esa-bic-austria/"
+          ],
+          "last_checked": "2025-09-05"
+        },
+        {
+          "ask_if": "answers.q7_collaboration in ['NONE','WITH_RESEARCH','WITH_COMPANY','WITH_BOTH']",
+          "question": "Are you open to collaborating with research institutions or other companies?",
+          "decisiveness": "SOFT",
+          "rationale": "Collaboration is encouraged but not mandatory for this program.",
+          "evidence_links": [
+            "https://www.sciencepark.at/esa-bic-austria/"
+          ],
+          "last_checked": "2025-09-05"
+        },
+        {
+          "ask_if": "answers.q9_team_diversity in ['YES','NO','UNKNOWN']",
+          "question": "Will women own >25% of shares at grant award?",
+          "decisiveness": "SOFT",
+          "rationale": "Gender diversity is encouraged but not mandatory for this program.",
+          "evidence_links": [
+            "https://www.sciencepark.at/esa-bic-austria/"
+          ],
+          "last_checked": "2025-09-05"
+        },
+        {
+          "ask_if": "answers.q3_company_size in ['MICRO_0_9','SMALL_10_49','MEDIUM_50_249']",
+          "question": "What is your company size (number of employees)?",
+          "decisiveness": "SOFT",
+          "rationale": "Program is open to various company sizes but may have different requirements.",
           "evidence_links": [
             "https://www.sciencepark.at/esa-bic-austria/"
           ],
@@ -530,6 +880,56 @@
           "rationale": "Typical HE thresholds for RIA/IA; ensure strong Excellence/Impact/Implementation.",
           "evidence_links": [
             "https://www.ffg.at/sites/default/files/downloads/00_Projekt_Life_Cycle_ENGLISCH.pdf"
+          ],
+          "last_checked": "2025-09-05"
+        },
+        {
+          "ask_if": "answers.q8_funding_types and 'GRANT' in answers.q8_funding_types",
+          "question": "Are you open to grant funding for health research projects?",
+          "decisiveness": "HARD",
+          "rationale": "Program provides grant funding only - no loans or equity.",
+          "evidence_links": [
+            "https://research-and-innovation.ec.europa.eu/funding/funding-opportunities/funding-programmes-and-open-calls/horizon-europe/cluster-1-health_en"
+          ],
+          "last_checked": "2025-09-05"
+        },
+        {
+          "ask_if": "answers.q7_collaboration in ['WITH_RESEARCH','WITH_COMPANY','WITH_BOTH']",
+          "question": "Are you open to collaborating with research institutions or other companies?",
+          "decisiveness": "HARD",
+          "rationale": "Consortium collaboration is mandatory for this program.",
+          "evidence_links": [
+            "https://research-and-innovation.ec.europa.eu/funding/funding-opportunities/funding-programmes-and-open-calls/horizon-europe/cluster-1-health_en"
+          ],
+          "last_checked": "2025-09-05"
+        },
+        {
+          "ask_if": "answers.q9_team_diversity in ['YES','NO','UNKNOWN']",
+          "question": "Will women own >25% of shares at grant award?",
+          "decisiveness": "SOFT",
+          "rationale": "Gender diversity is encouraged but not mandatory for this program.",
+          "evidence_links": [
+            "https://research-and-innovation.ec.europa.eu/funding/funding-opportunities/funding-programmes-and-open-calls/horizon-europe/cluster-1-health_en"
+          ],
+          "last_checked": "2025-09-05"
+        },
+        {
+          "ask_if": "answers.q2_entity_stage in ['PRE_COMPANY','INC_LT_6M','INC_6_36M','INC_GT_36M','RESEARCH_ORG','NONPROFIT']",
+          "question": "What is your organization type and legal setup?",
+          "decisiveness": "SOFT",
+          "rationale": "Program is open to various organization types but may have different requirements.",
+          "evidence_links": [
+            "https://research-and-innovation.ec.europa.eu/funding/funding-opportunities/funding-programmes-and-open-calls/horizon-europe/cluster-1-health_en"
+          ],
+          "last_checked": "2025-09-05"
+        },
+        {
+          "ask_if": "answers.q3_company_size in ['MICRO_0_9','SMALL_10_49','MEDIUM_50_249','LARGE_250_PLUS']",
+          "question": "What is your organization size (number of employees)?",
+          "decisiveness": "SOFT",
+          "rationale": "Program is open to various organization sizes but may have different requirements.",
+          "evidence_links": [
+            "https://research-and-innovation.ec.europa.eu/funding/funding-opportunities/funding-programmes-and-open-calls/horizon-europe/cluster-1-health_en"
           ],
           "last_checked": "2025-09-05"
         }
