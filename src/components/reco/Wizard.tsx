@@ -4,6 +4,7 @@ import { useRouter } from "next/router";
 import { motion, AnimatePresence } from "framer-motion";
 import { scoreProgramsEnhanced, analyzeFreeTextEnhanced } from "@/lib/enhancedRecoEngine";
 import { dynamicWizard } from "@/lib/dynamicWizard";
+import { AIHelperGuardrails } from "@/lib/aiHelperGuardrails";
 import HealthFooter from "@/components/common/HealthFooter";
 
 export default function Wizard() {
@@ -18,6 +19,7 @@ export default function Wizard() {
   const [questionsData, setQuestionsData] = useState<any>(null);
   const [programsData, setProgramsData] = useState<any[]>([]);
   const [dynamicQuestions, setDynamicQuestions] = useState<any[]>([]);
+  const [aiHelper] = useState(new AIHelperGuardrails());
 
   useEffect(() => {
     setMounted(true);
@@ -147,11 +149,37 @@ export default function Wizard() {
   const submitFreeText = async () => {
     try {
       setLoading(true);
-      const { scored } = analyzeFreeTextEnhanced(answers.freeText || "");
-
-      localStorage.setItem("recoResults", JSON.stringify(scored));
-      localStorage.setItem("freeTextReco", answers.freeText || "");
-      router.push("/results");
+      
+      // Use AI Helper to process free text
+      const aiResponse = await aiHelper.processInput(answers.freeText || "");
+      
+      if (aiResponse.type === 'chips') {
+        // Convert chips to answers
+        const normalizedAnswers: Record<string, any> = {};
+        aiResponse.content.forEach((chip: any) => {
+          normalizedAnswers[chip.field] = chip.value;
+        });
+        
+        // Score programs with normalized answers
+        const scored = scoreProgramsEnhanced(normalizedAnswers);
+        localStorage.setItem("recoResults", JSON.stringify(scored));
+        localStorage.setItem("freeTextReco", answers.freeText || "");
+        router.push("/results");
+      } else if (aiResponse.type === 'suggestion_ticket') {
+        // Handle unknown program suggestion
+        console.log('Suggestion ticket created:', aiResponse.content);
+        // Still process with basic analysis
+        const { scored } = analyzeFreeTextEnhanced(answers.freeText || "");
+        localStorage.setItem("recoResults", JSON.stringify(scored));
+        localStorage.setItem("freeTextReco", answers.freeText || "");
+        router.push("/results");
+      } else {
+        // Fallback to basic analysis
+        const { scored } = analyzeFreeTextEnhanced(answers.freeText || "");
+        localStorage.setItem("recoResults", JSON.stringify(scored));
+        localStorage.setItem("freeTextReco", answers.freeText || "");
+        router.push("/results");
+      }
     } catch (err) {
       console.error("Error submitting free-text:", err);
     } finally {

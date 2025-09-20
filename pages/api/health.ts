@@ -15,13 +15,20 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       AI_ENABLED: process.env.AI_ENABLED === "true",
       DYNAMIC_WIZARD: true,
       ENHANCED_SCORING: true,
-      NO_MATCH_FALLBACK: true
+      NO_MATCH_FALLBACK: true,
+      AI_HELPER_GUARDRAILS: true,
+      COVERAGE_CHECKER: true,
+      SOURCE_REGISTER: true
     };
 
     // Modules that read programs.json (single source of truth)
     const programsModules = [
       "src/components/reco/Wizard.tsx",
-      "pages/results.tsx"
+      "pages/results.tsx",
+      "src/lib/enhancedRecoEngine.ts",
+      "src/lib/dynamicWizard.ts",
+      "src/lib/aiHelperGuardrails.ts",
+      "src/lib/coverageChecker.ts"
     ];
 
     // Check core system health
