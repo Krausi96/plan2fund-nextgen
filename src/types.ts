@@ -1,5 +1,18 @@
 ﻿export type UserAnswers = Record<string, any>;
 
+export type UserProfile = {
+  id: string;
+  segment: 'B2C_FOUNDER' | 'SME_LOAN' | 'VISA_APPLICANT' | 'MIXED';
+  programType: 'GRANT' | 'LOAN' | 'EQUITY' | 'VISA' | 'MIXED';
+  country?: string;
+  stage?: string;
+  theme?: string;
+  industry?: string;
+  teamSize?: string;
+  amount?: string;
+  duration?: string;
+};
+
 export type Program = {
   id: string;
   name: string;

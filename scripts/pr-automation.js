@@ -2,6 +2,7 @@
 const fs = require('fs');
 const path = require('path');
 const { execSync } = require('child_process');
+const { sourceRegister } = require('../src/lib/sourceRegister');
 
 // Configuration
 const GITHUB_REPO = process.env.GITHUB_REPOSITORY || 'plan2fund/plan2fund-nextgen';
@@ -19,12 +20,27 @@ class PRAutomation {
     this.prNumber = null;
   }
 
-  // Load changes from diff results
-  loadChanges(diffResultsFile) {
+  // Load changes from diff results or source register
+  async loadChanges(diffResultsFile) {
     try {
-      const results = JSON.parse(fs.readFileSync(diffResultsFile, 'utf8'));
-      this.changes = results;
-      console.log(`📋 Loaded ${this.changes.length} changes from ${diffResultsFile}`);
+      if (diffResultsFile && fs.existsSync(diffResultsFile)) {
+        const results = JSON.parse(fs.readFileSync(diffResultsFile, 'utf8'));
+        this.changes = results;
+        console.log(`📋 Loaded ${this.changes.length} changes from ${diffResultsFile}`);
+      } else {
+        // Fallback to source register
+        console.log('📋 No diff file found, checking source register for stale data...');
+        const staleSources = await sourceRegister.getStaleSources();
+        this.changes = staleSources.map(source => ({
+          programId: source.id,
+          name: source.name,
+          url: source.url,
+          lastChecked: source.lastChecked,
+          status: 'stale',
+          reason: 'Source data is stale and needs refresh'
+        }));
+        console.log(`📋 Found ${this.changes.length} stale sources from source register`);
+      }
     } catch (error) {
       console.error('❌ Failed to load changes:', error.message);
       throw error;
@@ -374,11 +390,6 @@ This PR contains **proposed changes** that require human review before merging.
 async function main() {
   const args = process.argv.slice(2);
   const diffResultsFile = args[0] || 'scripts/diff-output/diff-results-latest.json';
-  
-  if (!fs.existsSync(diffResultsFile)) {
-    console.error(`❌ Diff results file not found: ${diffResultsFile}`);
-    process.exit(1);
-  }
   
   const automation = new PRAutomation();
   

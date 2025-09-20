@@ -32,5 +32,11 @@ export default {
   },
   trackNextStepClick: (stepId: string, planId: string) => {
     console.log('Analytics trackNextStepClick:', stepId, planId);
+  },
+  trackEditorStart: (type: string, programId?: string) => {
+    console.log('Analytics trackEditorStart:', type, programId);
+  },
+  trackEditorSectionEdit: (sectionId: string, sectionTitle: string, wordCount: number) => {
+    console.log('Analytics trackEditorSectionEdit:', sectionId, sectionTitle, wordCount);
   }
 };
