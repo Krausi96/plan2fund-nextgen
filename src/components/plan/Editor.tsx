@@ -7,6 +7,201 @@ import { loadPlanSections, savePlanSections, type PlanSection } from "@/lib/plan
 import InfoDrawer from "@/components/common/InfoDrawer";
 import AIChat from "@/components/plan/AIChat";
 
+// Helper function to generate pre-filled content based on user answers and enhanced payload
+function generatePreFilledContent(userAnswers: Record<string, any>, program?: any): string {
+  let content = "";
+  
+  // Try to load enhanced payload
+  let enhancedPayload = null;
+  try {
+    const stored = localStorage.getItem('enhancedPayload');
+    if (stored) {
+      enhancedPayload = JSON.parse(stored);
+    }
+  } catch (e) {
+    console.warn('Failed to parse enhanced payload:', e);
+  }
+  
+  // Add program information
+  if (program) {
+    content += `# ${program.name}\n\n`;
+    content += `**Program Type:** ${program.type}\n`;
+    content += `**Region:** ${program.region || 'Austria'}\n`;
+    if (program.maxAmount) {
+      content += `**Maximum Amount:** €${program.maxAmount.toLocaleString()}\n`;
+    }
+    
+    // Add derived funding mode if available
+    if (enhancedPayload?.fundingMode) {
+      content += `**Derived Funding Mode:** ${enhancedPayload.fundingMode}\n`;
+    }
+    
+    content += `\n---\n\n`;
+  }
+  
+  // Add user answers as pre-filled information
+  content += `## Your Business Information\n\n`;
+  
+  if (userAnswers.q1_country) {
+    const countryMap: Record<string, string> = {
+      'AT': 'Austria only',
+      'EU': 'EU (including Austria)',
+      'NON_EU': 'Outside EU'
+    };
+    content += `**Location:** ${countryMap[userAnswers.q1_country] || userAnswers.q1_country}\n`;
+  }
+  
+  if (userAnswers.q2_entity_stage) {
+    const stageMap: Record<string, string> = {
+      'PRE_COMPANY': 'Just an idea or team forming',
+      'INC_LT_6M': 'Recently started (less than 6 months)',
+      'INC_6_36M': 'Early stage (6 months to 3 years)',
+      'INC_GT_36M': 'Established business (over 3 years)',
+      'RESEARCH_ORG': 'University or research institute',
+      'NONPROFIT': 'Non-profit organization'
+    };
+    content += `**Business Stage:** ${stageMap[userAnswers.q2_entity_stage] || userAnswers.q2_entity_stage}\n`;
+  }
+  
+  if (userAnswers.q3_company_size) {
+    const sizeMap: Record<string, string> = {
+      'MICRO_0_9': 'Just me or small team (1-9 people)',
+      'SMALL_10_49': 'Small company (10-49 people)',
+      'MEDIUM_50_249': 'Medium company (50-249 people)',
+      'LARGE_250_PLUS': 'Large company (250+ people)'
+    };
+    content += `**Team Size:** ${sizeMap[userAnswers.q3_company_size] || userAnswers.q3_company_size}\n`;
+  }
+  
+  if (userAnswers.q4_theme) {
+    const themeMap: Record<string, string> = {
+      'INNOVATION_DIGITAL': 'Innovation, Technology, or Digital Solutions',
+      'SUSTAINABILITY': 'Sustainability, Climate, or Environmental Solutions',
+      'HEALTH_LIFE_SCIENCE': 'Health, Life Sciences, or Medical Technology',
+      'SPACE_DOWNSTREAM': 'Space Technology or Earth Observation',
+      'INDUSTRY_MANUFACTURING': 'Industry or Manufacturing',
+      'OTHER': 'Other'
+    };
+    const themes = Array.isArray(userAnswers.q4_theme) ? userAnswers.q4_theme : [userAnswers.q4_theme];
+    content += `**Business Focus:** ${themes.map(t => themeMap[t] || t).join(', ')}\n`;
+  }
+  
+  if (userAnswers.q5_maturity_trl) {
+    const maturityMap: Record<string, string> = {
+      'TRL_1_2': 'Just an idea or early research',
+      'TRL_3_4': 'Testing the concept',
+      'TRL_5_6': 'Building a prototype',
+      'TRL_7_8': 'Ready to launch or already launched',
+      'TRL_9': 'Scaling and growing'
+    };
+    content += `**Product Readiness:** ${maturityMap[userAnswers.q5_maturity_trl] || userAnswers.q5_maturity_trl}\n`;
+  }
+  
+  content += `\n---\n\n`;
+  
+  // Add derived signals information if available
+  if (enhancedPayload?.derivedSignals) {
+    content += `## Derived Analysis\n\n`;
+    const signals = enhancedPayload.derivedSignals;
+    
+    content += `**Funding Mode:** ${signals.fundingMode}\n`;
+    content += `**Company Stage:** ${signals.companyAgeBucket}\n`;
+    content += `**Sector Focus:** ${signals.sectorBucket}\n`;
+    content += `**Urgency Level:** ${signals.urgencyBucket}\n`;
+    content += `**TRL Level:** ${signals.trlBucket}\n`;
+    content += `**Revenue Status:** ${signals.revenueBucket}\n`;
+    
+    if (signals.capexFlag) {
+      content += `**CAPEX Flag:** This project involves capital expenditures\n`;
+    }
+    if (signals.equityOk) {
+      content += `**Equity Ready:** Your stage and size make you suitable for equity funding\n`;
+    }
+    if (signals.collateralOk) {
+      content += `**Collateral Capable:** Your company can provide collateral for loans\n`;
+    }
+    if (signals.ipFlag) {
+      content += `**IP Focus:** This project involves intellectual property development\n`;
+    }
+    if (signals.regulatoryFlag) {
+      content += `**Regulatory Focus:** This project requires regulatory approval or compliance\n`;
+    }
+    if (signals.socialImpactFlag) {
+      content += `**Social Impact:** This project has positive social impact potential\n`;
+    }
+    if (signals.esgFlag) {
+      content += `**ESG Focus:** This project aligns with Environmental, Social, and Governance principles\n`;
+    }
+    
+    // Add unknown variables section
+    if (signals.unknowns && signals.unknowns.length > 0) {
+      content += `\n**⚠️ Missing Information:**\n`;
+      signals.unknowns.forEach((unknown: string) => {
+        const descriptions: Record<string, string> = {
+          'q1_country': 'Country/location information',
+          'q2_entity_stage': 'Company stage information',
+          'q3_company_size': 'Team size information',
+          'q4_theme': 'Project theme information',
+          'q5_maturity_trl': 'Technology readiness level',
+          'q6_rnd_in_at': 'R&D location information',
+          'q7_collaboration': 'Collaboration preferences',
+          'q8_funding_types': 'Funding type preferences',
+          'q9_team_diversity': 'Team diversity information',
+          'q10_env_benefit': 'Environmental benefit information'
+        };
+        content += `- ⚪ ${descriptions[unknown] || unknown}: Not provided\n`;
+      });
+    }
+    
+    // Add counterfactuals section
+    if (signals.counterfactuals && signals.counterfactuals.length > 0) {
+      content += `\n**💡 Recommendations to Improve Eligibility:**\n`;
+      signals.counterfactuals.forEach((counterfactual: string) => {
+        content += `- ${counterfactual}\n`;
+      });
+    }
+    
+    content += `\n---\n\n`;
+  }
+  
+  content += `## Next Steps\n\n`;
+  content += `Based on your answers, here are some key points to include in your funding application:\n\n`;
+  
+  if (userAnswers.q6_rnd_in_at === 'YES') {
+    content += `- Highlight your research and development activities in Austria\n`;
+  }
+  
+  if (userAnswers.q7_collaboration && userAnswers.q7_collaboration !== 'NONE') {
+    content += `- Describe your collaboration plans with research institutions or companies\n`;
+  }
+  
+  if (userAnswers.q8_funding_types) {
+    const fundingTypes = Array.isArray(userAnswers.q8_funding_types) ? userAnswers.q8_funding_types : [userAnswers.q8_funding_types];
+    content += `- Specify why you need ${fundingTypes.join(' and ')} funding\n`;
+  }
+  
+  if (userAnswers.q9_team_diversity === 'YES') {
+    content += `- Emphasize your diverse team composition (women own at least 25% of shares)\n`;
+  }
+  
+  if (userAnswers.q10_env_benefit && userAnswers.q10_env_benefit !== 'NONE') {
+    content += `- Detail how your project benefits the environment\n`;
+  }
+  
+  // Add trace-based suggestions if available
+  if (enhancedPayload?.trace?.counterfactuals && enhancedPayload.trace.counterfactuals.length > 0) {
+    content += `\n### Eligibility Improvement Suggestions:\n`;
+    enhancedPayload.trace.counterfactuals.forEach((suggestion: string) => {
+      content += `- ${suggestion}\n`;
+    });
+  }
+  
+  content += `\n---\n\n`;
+  content += `## Your Business Plan\n\n`;
+  content += `*Start writing your business plan here. The information above has been pre-filled based on your answers to help you get started.*\n\n`;
+  
+  return content;
+}
 
 type EditorProps = {
   program?: {
@@ -18,9 +213,10 @@ type EditorProps = {
     requirements: string[];
     link: string;
   };
+  userAnswers?: Record<string, any>;
 };
 
-export default function Editor({ program }: EditorProps) {
+export default function Editor({ program, userAnswers }: EditorProps) {
   const [content, setContent] = useState("");
   const [saved, setSaved] = useState(true);
   const [sections, setSections] = useState<PlanSection[]>([])
@@ -41,6 +237,17 @@ export default function Editor({ program }: EditorProps) {
       setSections(seeded)
     }
   }, []);
+
+  // Pre-fill editor with user answers
+  useEffect(() => {
+    if (userAnswers && sections.length > 0) {
+      const preFilledContent = generatePreFilledContent(userAnswers, program);
+      if (preFilledContent) {
+        setContent(preFilledContent);
+        setSaved(false);
+      }
+    }
+  }, [userAnswers, sections, program]);
 
   // Autosave simulation with persistence
   useEffect(() => {

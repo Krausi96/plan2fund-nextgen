@@ -1,6 +1,14 @@
 import rawPrograms from "../data/programs";
 import { Program, UserAnswers, ScoredProgram } from "../types";
 
+// Eligibility trace interface
+export interface EligibilityTrace {
+  passed: string[];
+  failed: string[];
+  warnings: string[];
+  counterfactuals: string[];
+}
+
 // Enhanced program result with detailed explanations
 export interface EnhancedProgramResult extends ScoredProgram {
   matchedCriteria: Array<{
@@ -25,6 +33,9 @@ export interface EnhancedProgramResult extends ScoredProgram {
   llmFailed?: boolean;
   fallbackReason?: string;
   fallbackGaps?: string[];
+  founderFriendlyReasons?: string[];
+  founderFriendlyRisks?: string[];
+  trace?: EligibilityTrace;
 }
 
 export function normalizeAnswers(answers: UserAnswers): UserAnswers {
@@ -39,12 +50,323 @@ export function normalizeAnswers(answers: UserAnswers): UserAnswers {
   return normalized;
 }
 
-// Enhanced scoring with detailed explanations
+// Derived signals interface
+export interface DerivedSignals {
+  capexFlag: boolean;
+  equityOk: boolean;
+  collateralOk: boolean;
+  urgencyBucket: "urgent" | "soon" | "normal";
+  companyAgeBucket: "pre" | "0-3y" | "3y+";
+  sectorBucket: string;
+  rdInAT?: boolean;
+  amountFit: number;
+  stageFit: number;
+  timelineFit: number;
+  fundingMode: string;
+  // New derived signals for richer persona coverage
+  trlBucket: "low" | "mid" | "high";
+  revenueBucket: "none" | "low" | "medium" | "high";
+  ipFlag: boolean;
+  regulatoryFlag: boolean;
+  socialImpactFlag: boolean;
+  esgFlag: boolean;
+  // Unknown handling
+  unknowns: string[];
+  counterfactuals: string[];
+}
+
+// Derive signals from user answers
+export function deriveSignals(answers: UserAnswers): DerivedSignals {
+  const signals: DerivedSignals = {
+    capexFlag: false,
+    equityOk: false,
+    collateralOk: false,
+    urgencyBucket: "normal",
+    companyAgeBucket: "pre",
+    sectorBucket: "general",
+    rdInAT: undefined,
+    amountFit: 0,
+    stageFit: 0,
+    timelineFit: 0,
+    fundingMode: "grant", // default
+    // New derived signals
+    trlBucket: "low",
+    revenueBucket: "none",
+    ipFlag: false,
+    regulatoryFlag: false,
+    socialImpactFlag: false,
+    esgFlag: false,
+    // Unknown handling
+    unknowns: [],
+    counterfactuals: []
+  };
+
+  // Derive CAPEX flag from theme and maturity
+  if (answers.q4_theme && Array.isArray(answers.q4_theme)) {
+    const themes = answers.q4_theme as string[];
+    signals.capexFlag = themes.some(theme => 
+      ['INNOVATION_DIGITAL', 'MANUFACTURING', 'ENERGY'].includes(theme)
+    );
+  } else if (answers.q4_theme === undefined || answers.q4_theme === null) {
+    signals.unknowns.push("q4_theme");
+    signals.counterfactuals.push("Add project theme to unlock theme-specific programs");
+  }
+
+  // Derive equity preference from stage and size
+  if (answers.q2_entity_stage && answers.q3_company_size) {
+    const stage = answers.q2_entity_stage as string;
+    const size = answers.q3_company_size as string;
+    
+    // Early stage + small size = equity friendly
+    signals.equityOk = (
+      (stage === 'PRE_COMPANY' || stage === 'INC_LT_6M' || stage === 'INC_6_36M') &&
+      (size === 'MICRO_0_9' || size === 'SMALL_10_49')
+    );
+  } else {
+    if (!answers.q2_entity_stage) {
+      signals.unknowns.push("q2_entity_stage");
+      signals.counterfactuals.push("Add company stage to qualify for stage-specific programs");
+    }
+    if (!answers.q3_company_size) {
+      signals.unknowns.push("q3_company_size");
+      signals.counterfactuals.push("Add team size to unlock size-specific programs");
+    }
+  }
+
+  // Derive collateral capability from company age and size
+  if (answers.q2_entity_stage && answers.q3_company_size) {
+    const stage = answers.q2_entity_stage as string;
+    const size = answers.q3_company_size as string;
+    
+    // Established + larger size = collateral capable
+    signals.collateralOk = (
+      (stage === 'INC_GT_36M' || stage === 'RESEARCH_ORG') &&
+      (size === 'MEDIUM_50_249' || size === 'LARGE_250_PLUS')
+    );
+  }
+
+  // Derive urgency from stage and maturity
+  if (answers.q2_entity_stage && answers.q5_maturity_trl) {
+    const stage = answers.q2_entity_stage as string;
+    const trl = answers.q5_maturity_trl as string;
+    
+    if (stage === 'PRE_COMPANY' || stage === 'INC_LT_6M') {
+      signals.urgencyBucket = "urgent";
+    } else if (stage === 'INC_6_36M' && (trl === 'TRL_3_4' || trl === 'TRL_5_6')) {
+      signals.urgencyBucket = "soon";
+    } else {
+      signals.urgencyBucket = "normal";
+    }
+  }
+
+  // Derive company age bucket
+  if (answers.q2_entity_stage) {
+    const stage = answers.q2_entity_stage as string;
+    if (stage === 'PRE_COMPANY') {
+      signals.companyAgeBucket = "pre";
+    } else if (stage === 'INC_LT_6M' || stage === 'INC_6_36M') {
+      signals.companyAgeBucket = "0-3y";
+    } else {
+      signals.companyAgeBucket = "3y+";
+    }
+  }
+
+  // Derive sector bucket
+  if (answers.q4_theme && Array.isArray(answers.q4_theme)) {
+    const themes = answers.q4_theme as string[];
+    if (themes.includes('HEALTH_LIFE_SCIENCE')) {
+      signals.sectorBucket = "health";
+    } else if (themes.includes('SUSTAINABILITY') || themes.includes('ENERGY')) {
+      signals.sectorBucket = "sustainability";
+    } else if (themes.includes('INNOVATION_DIGITAL')) {
+      signals.sectorBucket = "tech";
+    } else if (themes.includes('MANUFACTURING')) {
+      signals.sectorBucket = "manufacturing";
+    } else {
+      signals.sectorBucket = "general";
+    }
+  }
+
+  // Derive R&D in Austria flag
+  if (answers.q6_rnd_in_at) {
+    signals.rdInAT = answers.q6_rnd_in_at === 'YES';
+  } else {
+    signals.unknowns.push("q6_rnd_in_at");
+    signals.counterfactuals.push("Specify R&D location to unlock location-specific programs");
+  }
+
+  // Derive TRL bucket
+  if (answers.q5_maturity_trl) {
+    const trl = answers.q5_maturity_trl as string;
+    if (trl === 'TRL_1_2' || trl === 'TRL_3_4') {
+      signals.trlBucket = "low";
+    } else if (trl === 'TRL_5_6' || trl === 'TRL_7_8') {
+      signals.trlBucket = "mid";
+    } else if (trl === 'TRL_9') {
+      signals.trlBucket = "high";
+    }
+  } else {
+    signals.unknowns.push("q5_maturity_trl");
+    signals.counterfactuals.push("Add technology readiness level to unlock TRL-specific programs");
+  }
+
+  // Derive revenue bucket (based on company stage and size)
+  if (answers.q2_entity_stage) {
+    const stage = answers.q2_entity_stage as string;
+    if (stage === 'PRE_COMPANY') {
+      signals.revenueBucket = "none";
+    } else if (stage === 'INC_LT_6M' || stage === 'INC_6_36M') {
+      signals.revenueBucket = "low";
+    } else {
+      signals.revenueBucket = "medium";
+    }
+  }
+
+  // Derive IP flag (based on themes and stage)
+  if (answers.q4_theme && Array.isArray(answers.q4_theme)) {
+    const themes = answers.q4_theme as string[];
+    signals.ipFlag = themes.some(theme => 
+      ['INNOVATION_DIGITAL', 'HEALTH_LIFE_SCIENCE', 'MANUFACTURING'].includes(theme)
+    );
+  }
+
+  // Derive regulatory flag (based on themes)
+  if (answers.q4_theme && Array.isArray(answers.q4_theme)) {
+    const themes = answers.q4_theme as string[];
+    signals.regulatoryFlag = themes.some(theme => 
+      ['HEALTH_LIFE_SCIENCE', 'ENERGY'].includes(theme)
+    );
+  }
+
+  // Derive social impact flag (based on themes and environmental benefit)
+  if (answers.q4_theme && Array.isArray(answers.q4_theme)) {
+    const themes = answers.q4_theme as string[];
+    signals.socialImpactFlag = themes.some(theme => 
+      ['SUSTAINABILITY', 'HEALTH_LIFE_SCIENCE'].includes(theme)
+    );
+  }
+  if (answers.q10_env_benefit && answers.q10_env_benefit !== 'NONE') {
+    signals.socialImpactFlag = true;
+  }
+
+  // Derive ESG flag (based on themes and environmental benefit)
+  if (answers.q4_theme && Array.isArray(answers.q4_theme)) {
+    const themes = answers.q4_theme as string[];
+    signals.esgFlag = themes.some(theme => 
+      ['SUSTAINABILITY', 'ENERGY'].includes(theme)
+    );
+  }
+  if (answers.q10_env_benefit && (answers.q10_env_benefit === 'SOME' || answers.q10_env_benefit === 'HIGH')) {
+    signals.esgFlag = true;
+  }
+
+  // Derive funding mode based on derived signals
+  if (signals.equityOk && signals.companyAgeBucket === "pre") {
+    signals.fundingMode = "equity";
+  } else if (signals.collateralOk && signals.urgencyBucket === "urgent") {
+    signals.fundingMode = "loan";
+  } else if (signals.capexFlag && signals.rdInAT) {
+    signals.fundingMode = "grant";
+  } else if (signals.socialImpactFlag && signals.esgFlag) {
+    signals.fundingMode = "grant"; // ESG programs are typically grants
+  } else if (signals.regulatoryFlag && signals.trlBucket === "mid") {
+    signals.fundingMode = "grant"; // Regulatory programs often require grants
+  } else {
+    signals.fundingMode = "mixed";
+  }
+
+  // Calculate fit scores (0-100)
+  signals.amountFit = calculateAmountFit(answers, signals);
+  signals.stageFit = calculateStageFit(answers, signals);
+  signals.timelineFit = calculateTimelineFit(answers, signals);
+
+  return signals;
+}
+
+// Helper functions for fit calculations
+function calculateAmountFit(_answers: UserAnswers, signals: DerivedSignals): number {
+  // This would typically use actual program amount data
+  // For now, return a base score based on funding mode and derived signals
+  const baseScores = {
+    "grant": 80,
+    "loan": 70,
+    "equity": 60,
+    "mixed": 75
+  };
+  
+  let score = baseScores[signals.fundingMode as keyof typeof baseScores] || 50;
+  
+  // Boost score for ESG/social impact programs
+  if (signals.esgFlag && signals.socialImpactFlag) {
+    score += 10;
+  }
+  
+  // Boost score for regulatory programs
+  if (signals.regulatoryFlag) {
+    score += 5;
+  }
+  
+  // Reduce score for unknowns
+  if (signals.unknowns.length > 0) {
+    score -= signals.unknowns.length * 5;
+  }
+  
+  return Math.max(0, Math.min(100, score));
+}
+
+function calculateStageFit(_answers: UserAnswers, signals: DerivedSignals): number {
+  // Higher score for better stage-program alignment
+  let score = 70;
+  
+  if (signals.companyAgeBucket === "pre" && signals.fundingMode === "equity") score = 90;
+  else if (signals.companyAgeBucket === "0-3y" && signals.fundingMode === "grant") score = 85;
+  else if (signals.companyAgeBucket === "3y+" && signals.fundingMode === "loan") score = 80;
+  
+  // Boost for TRL alignment
+  if (signals.trlBucket === "mid" && signals.fundingMode === "grant") score += 10;
+  if (signals.trlBucket === "high" && signals.fundingMode === "loan") score += 10;
+  
+  // Boost for IP alignment
+  if (signals.ipFlag && signals.fundingMode === "equity") score += 5;
+  
+  // Reduce for unknowns
+  if (signals.unknowns.includes("q2_entity_stage") || signals.unknowns.includes("q3_company_size")) {
+    score -= 15;
+  }
+  
+  return Math.max(0, Math.min(100, score));
+}
+
+function calculateTimelineFit(_answers: UserAnswers, signals: DerivedSignals): number {
+  // Higher score for urgent needs with fast programs
+  let score = 60;
+  
+  if (signals.urgencyBucket === "urgent" && signals.fundingMode === "loan") score = 90;
+  else if (signals.urgencyBucket === "soon" && signals.fundingMode === "grant") score = 80;
+  else if (signals.urgencyBucket === "normal") score = 75;
+  
+  // Boost for regulatory programs (often have longer timelines)
+  if (signals.regulatoryFlag && signals.fundingMode === "grant") score += 5;
+  
+  // Boost for ESG programs (often have flexible timelines)
+  if (signals.esgFlag && signals.fundingMode === "grant") score += 5;
+  
+  // Reduce for unknowns
+  if (signals.unknowns.includes("q5_maturity_trl")) {
+    score -= 10;
+  }
+  
+  return Math.max(0, Math.min(100, score));
+}
+
+// Enhanced scoring with detailed explanations and trace generation
 export function scoreProgramsEnhanced(
   answers: UserAnswers,
   mode: "strict" | "explorer" = "strict"
 ): EnhancedProgramResult[] {
   const source = rawPrograms.programs as any[];
+  const derivedSignals = deriveSignals(answers);
+  
   const normalizedPrograms: Program[] = source.map((p) => ({
     id: p.id,
     name: p.title || p.name || p.id,
@@ -177,7 +499,12 @@ export function scoreProgramsEnhanced(
     else if (scorePercent >= 50) confidence = "Medium";
 
     const reason = generateEnhancedReason(program, matchedCriteria, gaps, scorePercent);
+    const founderFriendlyReasons = generateFounderFriendlyReasons(matchedCriteria);
+    const founderFriendlyRisks = generateFounderFriendlyRisks(gaps);
 
+    // Generate eligibility trace
+    const trace = generateEligibilityTrace(program, matchedCriteria, gaps, derivedSignals);
+    
     return {
       ...program,
       score: scorePercent,
@@ -191,7 +518,10 @@ export function scoreProgramsEnhanced(
       successRate: getProgramSuccessRate(program),
       llmFailed: false, // This is rule-based, not LLM
       fallbackReason: reason,
-      fallbackGaps: gaps.map(g => g.description)
+      fallbackGaps: gaps.map(g => g.description),
+      founderFriendlyReasons,
+      founderFriendlyRisks,
+      trace // Add trace information
     };
   }).sort((a, b) => b.score - a.score);
 }
@@ -211,6 +541,121 @@ function generateEnhancedReason(
   const failedCount = matchedCriteria.filter(c => c.status === 'failed').length;
   
   return `ℹ️ ${program.name} matches ${passedCount} requirement(s) but has ${failedCount} issue(s). Score: ${score}%`;
+}
+
+// Generate founder-friendly explanations for why a program fits
+function generateFounderFriendlyReasons(
+  matchedCriteria: Array<{ key: string; value: any; reason: string; status: 'passed' | 'warning' | 'failed' }>
+): string[] {
+  const reasons: string[] = [];
+  const passedCriteria = matchedCriteria.filter(c => c.status === 'passed');
+  
+  // Map technical criteria to founder-friendly explanations
+  const criteriaMapping: Record<string, (value: any) => string> = {
+    'q1_country': (value) => {
+      if (value === 'AT') return 'Your project is based in Austria, which is required for this program';
+      if (value === 'EU') return 'Your project is EU-based, making you eligible for this program';
+      return 'Your project location qualifies for this program';
+    },
+    'q4_theme': (value) => {
+      if (Array.isArray(value) && value.includes('INNOVATION_DIGITAL')) return 'Your innovation/digital focus aligns perfectly with this program';
+      if (Array.isArray(value) && value.includes('SUSTAINABILITY')) return 'Your sustainability focus matches this program\'s environmental goals';
+      if (Array.isArray(value) && value.includes('HEALTH_LIFE_SCIENCE')) return 'Your health/life science focus is exactly what this program supports';
+      return 'Your project theme matches this program\'s focus areas';
+    },
+    'q8_funding_types': (value) => {
+      if (Array.isArray(value) && value.includes('GRANT')) return 'You\'re open to grants, which is what this program provides';
+      if (Array.isArray(value) && value.includes('LOAN')) return 'You\'re open to loans, which this program offers';
+      if (Array.isArray(value) && value.includes('EQUITY')) return 'You\'re open to equity funding, which this program provides';
+      return 'Your funding preferences align with this program';
+    },
+    'q2_entity_stage': (value) => {
+      if (value === 'PRE_COMPANY') return 'You\'re in the pre-company stage, which this program supports';
+      if (value === 'INC_LT_6M') return 'Your company is less than 6 months old, perfect for this program';
+      if (value === 'INC_6_36M') return 'Your company age fits this program\'s requirements';
+      return 'Your company stage qualifies for this program';
+    },
+    'q3_company_size': (value) => {
+      if (value === 'MICRO_0_9') return 'Your micro-company size is ideal for this program';
+      if (value === 'SMALL_10_49') return 'Your small company size fits this program perfectly';
+      if (value === 'MEDIUM_50_249') return 'Your medium company size qualifies for this program';
+      return 'Your company size is right for this program';
+    },
+    'q5_maturity_trl': (value) => {
+      if (value === 'TRL_3_4') return 'Your proof-of-concept stage is exactly what this program targets';
+      if (value === 'TRL_5_6') return 'Your prototype stage is perfect for this program';
+      if (value === 'TRL_7_8') return 'Your pilot stage aligns with this program\'s goals';
+      return 'Your technology maturity level fits this program';
+    },
+    'q6_rnd_in_at': (value) => {
+      if (value === 'YES') return 'You\'ll conduct R&D in Austria, which this program requires';
+      return 'Your R&D plans align with this program\'s requirements';
+    },
+    'q7_collaboration': (value) => {
+      if (value === 'WITH_RESEARCH') return 'Your research collaboration plans are supported by this program';
+      if (value === 'WITH_COMPANY') return 'Your industry collaboration approach fits this program';
+      if (value === 'WITH_BOTH') return 'Your comprehensive collaboration strategy is ideal for this program';
+      return 'Your collaboration approach aligns with this program';
+    },
+    'q9_team_diversity': (value) => {
+      if (value === 'YES') return 'Your team diversity meets this program\'s requirements';
+      return 'Your team structure qualifies for this program';
+    },
+    'q10_env_benefit': (value) => {
+      if (value === 'STRONG') return 'Your strong environmental impact aligns perfectly with this program';
+      if (value === 'SOME') return 'Your environmental benefits match this program\'s goals';
+      return 'Your project impact aligns with this program';
+    }
+  };
+
+  // Generate up to 3 reasons from passed criteria
+  for (const criteria of passedCriteria.slice(0, 3)) {
+    const mapper = criteriaMapping[criteria.key];
+    if (mapper) {
+      reasons.push(mapper(criteria.value));
+    }
+  }
+
+  // Fill with generic reasons if needed
+  while (reasons.length < 3) {
+    reasons.push('This program matches your project profile and requirements');
+  }
+
+  return reasons;
+}
+
+// Generate founder-friendly risk explanations
+function generateFounderFriendlyRisks(
+  gaps: Array<{ key: string; description: string; action: string; priority: 'high' | 'medium' | 'low' }>
+): string[] {
+  const risks: string[] = [];
+  
+  // Map technical gaps to founder-friendly risks
+  const riskMapping: Record<string, string> = {
+    'q1_country': 'You may need to relocate your project to Austria or the EU to qualify',
+    'q4_theme': 'Your project theme might not align with this program\'s focus areas',
+    'q8_funding_types': 'This program may not offer the funding type you\'re looking for',
+    'q2_entity_stage': 'Your company stage might not meet this program\'s requirements',
+    'q3_company_size': 'Your company size may not fit this program\'s target audience',
+    'q5_maturity_trl': 'Your technology maturity level might not match this program\'s requirements',
+    'q6_rnd_in_at': 'You may need to conduct R&D activities in Austria to qualify',
+    'q7_collaboration': 'This program may require specific collaboration arrangements',
+    'q9_team_diversity': 'Your team structure might not meet this program\'s diversity requirements',
+    'q10_env_benefit': 'Your project may not have the environmental impact this program requires'
+  };
+
+  // Generate risks from gaps
+  for (const gap of gaps.slice(0, 1)) {
+    const risk = riskMapping[gap.key] || 'There may be eligibility requirements you need to meet';
+    risks.push(risk);
+  }
+
+  // Add generic risk if no specific gaps
+  if (risks.length === 0) {
+    risks.push('Verify all eligibility requirements before applying');
+  }
+
+  return risks;
 }
 
 // Get gap action based on requirement type
@@ -315,4 +760,107 @@ export function analyzeFreeTextEnhanced(description: string): { normalized: User
 
   const scored = scoreProgramsEnhanced(normalized, "explorer");
   return { normalized, scored };
+}
+
+// Generate eligibility trace for a program
+function generateEligibilityTrace(
+  program: Program,
+  matchedCriteria: Array<{ key: string; value: any; reason: string; status: 'passed' | 'warning' | 'failed' }>,
+  gaps: Array<{ key: string; description: string; action: string; priority: 'high' | 'medium' | 'low' }>,
+  derivedSignals: DerivedSignals
+): EligibilityTrace {
+  const passed: string[] = [];
+  const failed: string[] = [];
+  const warnings: string[] = [];
+  const counterfactuals: string[] = [];
+
+  // Process matched criteria
+  matchedCriteria.forEach(criteria => {
+    if (criteria.status === 'passed') {
+      passed.push(criteria.reason);
+    } else if (criteria.status === 'failed') {
+      failed.push(criteria.reason);
+    } else if (criteria.status === 'warning') {
+      warnings.push(criteria.reason);
+    }
+  });
+
+  // Add unknowns to warnings with special icon
+  derivedSignals.unknowns.forEach(unknown => {
+    warnings.push(`⚪ Missing info: ${unknown} - ${getUnknownDescription(unknown)}`);
+  });
+
+  // Generate counterfactuals based on gaps and derived signals
+  gaps.forEach(gap => {
+    if (gap.priority === 'high') {
+      counterfactuals.push(gap.action);
+    }
+  });
+
+  // Add counterfactuals from derived signals
+  derivedSignals.counterfactuals.forEach(counterfactual => {
+    counterfactuals.push(counterfactual);
+  });
+
+  // Add funding mode specific counterfactuals
+  if (program.type !== derivedSignals.fundingMode) {
+    if (derivedSignals.fundingMode === 'equity' && program.type === 'grant') {
+      counterfactuals.push('Consider equity funding programs instead');
+    } else if (derivedSignals.fundingMode === 'loan' && program.type === 'grant') {
+      counterfactuals.push('Consider loan programs for faster funding');
+    } else if (derivedSignals.fundingMode === 'grant' && program.type === 'equity') {
+      counterfactuals.push('Consider grant programs for non-dilutive funding');
+    }
+  }
+
+  // Add sector-specific counterfactuals
+  if (derivedSignals.sectorBucket !== 'general') {
+    counterfactuals.push(`Look for ${derivedSignals.sectorBucket}-specific programs`);
+  }
+
+  // Add urgency-based counterfactuals
+  if (derivedSignals.urgencyBucket === 'urgent') {
+    counterfactuals.push('Consider programs with faster approval processes');
+  }
+
+  // Add stage-based counterfactuals
+  if (derivedSignals.companyAgeBucket === 'pre') {
+    counterfactuals.push('Consider pre-company or idea-stage programs');
+  } else if (derivedSignals.companyAgeBucket === '0-3y') {
+    counterfactuals.push('Consider early-stage startup programs');
+  }
+
+  // Add ESG-specific counterfactuals
+  if (derivedSignals.esgFlag && program.type !== 'grant') {
+    counterfactuals.push('Look for ESG-focused grant programs');
+  }
+
+  // Add regulatory-specific counterfactuals
+  if (derivedSignals.regulatoryFlag && program.type !== 'grant') {
+    counterfactuals.push('Consider regulatory-focused grant programs');
+  }
+
+  return {
+    passed,
+    failed,
+    warnings,
+    counterfactuals: counterfactuals.slice(0, 5) // Limit to top 5 counterfactuals
+  };
+}
+
+// Helper function to describe unknown variables
+function getUnknownDescription(unknown: string): string {
+  const descriptions: Record<string, string> = {
+    'q1_country': 'Country/location information',
+    'q2_entity_stage': 'Company stage information',
+    'q3_company_size': 'Team size information',
+    'q4_theme': 'Project theme information',
+    'q5_maturity_trl': 'Technology readiness level',
+    'q6_rnd_in_at': 'R&D location information',
+    'q7_collaboration': 'Collaboration preferences',
+    'q8_funding_types': 'Funding type preferences',
+    'q9_team_diversity': 'Team diversity information',
+    'q10_env_benefit': 'Environmental benefit information'
+  };
+  return descriptions[unknown] || 'Unknown variable';
 }

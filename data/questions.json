@@ -1,9 +1,9 @@
 {
-  "version": "2025-09-05",
+  "version": "2025-09-20",
   "universal": [
     {
       "id": "q1_country",
-      "label": "Where will the project be carried out?",
+      "label": "Where will your business operate?",
       "type": "single-select",
       "options": [
         {
@@ -12,7 +12,7 @@
         },
         {
           "value": "EU",
-          "label": "EU (incl. Austria)"
+          "label": "EU (including Austria)"
         },
         {
           "value": "NON_EU",
@@ -23,84 +23,84 @@
     },
     {
       "id": "q2_entity_stage",
-      "label": "What is your legal setup & company age?",
+      "label": "What stage is your business at?",
       "type": "single-select",
       "options": [
         {
           "value": "PRE_COMPANY",
-          "label": "Not yet incorporated (team / natural persons)"
+          "label": "Just an idea or team forming"
         },
         {
           "value": "INC_LT_6M",
-          "label": "Incorporated < 6 months"
+          "label": "Recently started (less than 6 months)"
         },
         {
           "value": "INC_6_36M",
-          "label": "Incorporated 6–36 months"
+          "label": "Early stage (6 months to 3 years)"
         },
         {
           "value": "INC_GT_36M",
-          "label": "Incorporated > 36 months"
+          "label": "Established business (over 3 years)"
         },
         {
           "value": "RESEARCH_ORG",
-          "label": "Research organisation / university"
+          "label": "University or research institute"
         },
         {
           "value": "NONPROFIT",
-          "label": "Non-profit / association"
+          "label": "Non-profit organization"
         }
       ],
       "required": true
     },
     {
       "id": "q3_company_size",
-      "label": "How many employees (FTE) does your organisation have?",
+      "label": "How big is your team?",
       "type": "single-select",
       "options": [
         {
           "value": "MICRO_0_9",
-          "label": "0–9 (micro)"
+          "label": "Just me or small team (1-9 people)"
         },
         {
           "value": "SMALL_10_49",
-          "label": "10–49 (small)"
+          "label": "Small company (10-49 people)"
         },
         {
           "value": "MEDIUM_50_249",
-          "label": "50–249 (medium)"
+          "label": "Medium company (50-249 people)"
         },
         {
           "value": "LARGE_250_PLUS",
-          "label": "250+ (large)"
+          "label": "Large company (250+ people)"
         }
       ],
       "required": true
     },
     {
       "id": "q4_theme",
-      "label": "Which area(s) best fit your project?",
+      "label": "What does your business do?",
       "type": "multi-select",
       "options": [
         {
           "value": "INNOVATION_DIGITAL",
-          "label": "Innovation / Digital / Deep Tech"
+          "label": "Innovation, Technology, or Digital Solutions"
         },
         {
           "value": "SUSTAINABILITY",
-          "label": "Sustainability / Climate / Energy / Environment"
+          "label": "Sustainability, Climate, or Environmental Solutions"
         },
         {
           "value": "HEALTH_LIFE_SCIENCE",
-          "label": "Health / Life Sciences / MedTech / Biotech"
+          "label": "Health, Life Sciences, or Medical Technology"
         },
         {
           "value": "SPACE_DOWNSTREAM",
-          "label": "Space / GNSS / Earth Observation (downstream)"
+          "label": "Space Technology or Earth Observation"
         },
         {
           "value": "INDUSTRY_MANUFACTURING",
-          "label": "Industry / Manufacturing"
+          "label": "Industry or Manufacturing"
         },
         {
           "value": "OTHER",
@@ -111,35 +111,35 @@
     },
     {
       "id": "q5_maturity_trl",
-      "label": "What is your current maturity (approx. TRL)?",
+      "label": "How ready is your product or service?",
       "type": "single-select",
       "options": [
         {
           "value": "TRL_1_2",
-          "label": "Idea / Research (TRL 1–2)"
+          "label": "Just an idea or early research"
         },
         {
           "value": "TRL_3_4",
-          "label": "Proof of concept (TRL 3–4)"
+          "label": "Testing the concept"
         },
         {
           "value": "TRL_5_6",
-          "label": "Prototype / demonstrator (TRL 5–6)"
+          "label": "Building a prototype"
         },
         {
           "value": "TRL_7_8",
-          "label": "Pilot / market launch (TRL 7–8)"
+          "label": "Ready to launch or already launched"
         },
         {
           "value": "TRL_9",
-          "label": "Scaling (TRL 9+)"
+          "label": "Scaling and growing"
         }
       ],
       "required": true
     },
     {
       "id": "q6_rnd_in_at",
-      "label": "Will you conduct R&D or experimental development in Austria?",
+      "label": "Will you do research or development work in Austria?",
       "type": "single-select",
       "options": [
         {
@@ -152,95 +152,95 @@
         },
         {
           "value": "UNSURE",
-          "label": "Unsure"
+          "label": "Maybe or not sure"
         }
       ],
       "required": true
     },
     {
       "id": "q7_collaboration",
-      "label": "Do you plan to collaborate with research institutions or companies?",
+      "label": "Do you work with universities or other companies?",
       "type": "single-select",
       "options": [
         {
           "value": "NONE",
-          "label": "No collaboration planned"
+          "label": "No, we work alone"
         },
         {
           "value": "WITH_RESEARCH",
-          "label": "With research institution(s)"
+          "label": "Yes, with universities or research institutes"
         },
         {
           "value": "WITH_COMPANY",
-          "label": "With company(ies)"
+          "label": "Yes, with other companies"
         },
         {
           "value": "WITH_BOTH",
-          "label": "With both research & companies"
+          "label": "Yes, with both universities and companies"
         }
       ],
       "required": true
     },
     {
       "id": "q8_funding_types",
-      "label": "Which funding types are acceptable? (affects skip logic)",
+      "label": "What type of funding are you looking for?",
       "type": "multi-select",
       "options": [
         {
           "value": "GRANT",
-          "label": "Grants"
+          "label": "Grants (money you don't pay back)"
         },
         {
           "value": "LOAN",
-          "label": "Loans"
+          "label": "Loans (money you pay back)"
         },
         {
           "value": "GUARANTEE",
-          "label": "Guarantees"
+          "label": "Guarantees (help getting loans)"
         },
         {
           "value": "EQUITY",
-          "label": "Equity / blended finance"
+          "label": "Investment (investors get shares)"
         }
       ],
       "required": true
     },
     {
       "id": "q9_team_diversity",
-      "label": "At grant award, will women own >25% of shares (or will they)?",
+      "label": "Is your team diverse?",
       "type": "single-select",
       "options": [
         {
           "value": "YES",
-          "label": "Yes"
+          "label": "Yes, women own at least 25% of the business"
         },
         {
           "value": "NO",
-          "label": "No"
+          "label": "No, mostly men"
         },
         {
           "value": "UNKNOWN",
-          "label": "Not sure / TBD"
+          "label": "Not sure or still working on it"
         }
       ],
       "required": true
     },
     {
       "id": "q10_env_benefit",
-      "label": "Will the project measurably reduce emissions/energy/waste in the EU?",
+      "label": "Does your business help the environment?",
       "type": "single-select",
       "options": [
         {
           "value": "STRONG",
-          "label": "Yes, central to the project"
+          "label": "Yes, it's central to what we do"
         },
         {
           "value": "SOME",
-          "label": "Partly / co-benefit"
+          "label": "Somewhat or as a side benefit"
         },
         {
           "value": "NONE",
-          "label": "No / not applicable"
+          "label": "No, not really"
         }
       ],
       "required": true

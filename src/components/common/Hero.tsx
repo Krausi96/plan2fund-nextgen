@@ -58,12 +58,18 @@ export function Hero() {
           Built to meet standards of institutions, banks & public funding programs
           nationally & internationally.
         </p>
-        <div className="flex justify-center gap-4">
+        <div className="flex justify-center gap-4 flex-wrap">
           <a
             href="/reco"
             className="px-6 py-3 bg-blue-600 text-white rounded-xl shadow hover:bg-blue-700 transition font-semibold"
           >
             Find Funding
+          </a>
+          <a
+            href="/advanced-search"
+            className="px-6 py-3 bg-green-600 text-white rounded-xl shadow hover:bg-green-700 transition font-semibold"
+          >
+            Quick Search
           </a>
           <a
             href="/plan"

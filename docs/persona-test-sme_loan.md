@@ -1,0 +1,1639 @@
+# Persona Test: SME Loan Seeker
+
+## Persona Description
+Established SME looking for loan financing
+
+## Test Answers
+- **q1_country**: AT
+- **q2_entity_stage**: INC_GT_36M
+- **q3_company_size**: SMALL_10_49
+- **q4_theme**: INDUSTRY_MANUFACTURING
+- **q5_maturity_trl**: TRL_7_8
+- **q6_rnd_in_at**: NO
+- **q7_collaboration**: WITH_COMPANY
+- **q8_funding_types**: LOAN
+- **q9_team_diversity**: NO
+- **q10_env_benefit**: NONE
+
+## Recommendation Results
+
+### Top 5 Recommendations
+
+**1. EIT Health – Transformative Health Instrument (THI) 2025** (eit_health_thi_2025)
+- **Score**: 100%
+- **Type**: grant
+- **Jurisdiction**: EU
+- **Why it matches**:
+    - ✓ Is your organization eligible for EU funding?
+  - ~ Are you an incorporated company?
+  - ✓ Is your company an SME (micro, small, or medium-sized)?
+- **Risks**:
+    - ✗ Are you seeking grant funding?
+- **Tags**: health, life_science, sme
+
+
+**2. Sme market expansion open call 2025** (www_eit_europa_eu_our_activities_opportunities_sme)
+- **Score**: 100%
+- **Type**: grant
+- **Jurisdiction**: EU
+- **Why it matches**:
+    - ✓ Is your organization eligible for EU funding?
+  - ~ Are you an incorporated company?
+  - ✓ Is your company an SME (micro, small, or medium-sized)?
+- **Risks**:
+    - ✗ Are you seeking grant funding?
+- **Tags**: eit
+
+
+**3. Sme market expansion call** (www_eiturbanmobility_eu_what_we_offer_innovations_)
+- **Score**: 100%
+- **Type**: grant
+- **Jurisdiction**: EU
+- **Why it matches**:
+    - ✓ Is your organization eligible for EU funding?
+  - ~ Are you an incorporated company?
+  - ✓ Is your company an SME (micro, small, or medium-sized)?
+- **Risks**:
+    - ✗ Are you seeking grant funding?
+- **Tags**: eit
+
+
+**4. Sme market expansion open call 2025** (www_eit_europa_eu_our_activities_opportunities_sme)
+- **Score**: 100%
+- **Type**: grant
+- **Jurisdiction**: EU
+- **Why it matches**:
+    - ✓ Is your organization eligible for EU funding?
+  - ~ Are you an incorporated company?
+  - ✓ Is your company an SME (micro, small, or medium-sized)?
+- **Risks**:
+    - ✗ Are you seeking grant funding?
+- **Tags**: sme, eit
+
+
+**5. Sme market expansion call** (www_eiturbanmobility_eu_what_we_offer_innovations_)
+- **Score**: 100%
+- **Type**: grant
+- **Jurisdiction**: EU
+- **Why it matches**:
+    - ✓ Is your organization eligible for EU funding?
+  - ~ Are you an incorporated company?
+  - ✓ Is your company an SME (micro, small, or medium-sized)?
+- **Risks**:
+    - ✗ Are you seeking grant funding?
+- **Tags**: sme, eit
+
+
+### Triggered Rules Summary
+1530 rules were triggered across all programs.
+
+**Hard Rules (Must Match)**:
+- **aws_preseed_innovative_solutions**: Will the project be executed in Austria?
+- **ffg_basisprogramm_2025**: Will the project be executed in Austria?
+- **ffg_impact_innovation_2025**: Will the project be executed in Austria?
+- **umweltfoerderung_betriebe_generic**: Will the project be executed in Austria?
+- **life_programme_2025_generic**: Is your organization eligible for EU funding?
+- **clean_hydrogen_ju_2025**: Is your organization eligible for EU funding?
+- **eic_accelerator_2025**: Is your organization eligible for EU funding?
+- **eit_health_thi_2025**: Is your organization eligible for EU funding?
+- **eit_health_thi_2025**: Is your company an SME (micro, small, or medium-sized)?
+- **horizon_europe_cluster1_health_2025**: Is your organization eligible for EU funding?
+- **wirtschaftsagentur_at_aktuelle_foerderungen_der_wi**: Will the project be executed in Austria?
+- **www_aws_at_aws_erp_kredit**: Will the project be executed in Austria?
+- **www_aws_at_aws_garantie**: Will the project be executed in Austria?
+- **www_aws_at_en_aws_erp_loan**: Will the project be executed in Austria?
+- **www_aws_at_en_aws_preseed_deep_tech**: Will the project be executed in Austria?
+- **www_aws_at_en_aws_seedfinancing_deep_tech**: Will the project be executed in Austria?
+- **www_aws_at_en_aws_seedfinancing_innovative_solutio**: Will the project be executed in Austria?
+- **www_bankaustria_at_files_aws_erp_kredit_de_pdf**: Will the project be executed in Austria?
+- **www_ffg_at_ausschreibung_basisprogramm_2025**: Will the project be executed in Austria?
+- **www_ffg_at_ausschreibung_impact_innovation_2025**: Will the project be executed in Austria?
+- **www_ffg_at_en_content_funding**: Will the project be executed in Austria?
+- **www_ffg_at_en_program_spin_fellowships_0**: Will the project be executed in Austria?
+- **www_ffg_at_en_spin_off_fellowships**: Will the project be executed in Austria?
+- **www_ffg_at_initiative_basisprogramm**: Will the project be executed in Austria?
+- **www_ffg_at_programm_bridge**: Will the project be executed in Austria?
+- **www_ffg_at_programm_impactinnovation**: Will the project be executed in Austria?
+- **www_klimafonds_gv_at_unknown_program**: Will the project be executed in Austria?
+- **www_lifescienceaustria_at_our_services_aws_funding**: Will the project be executed in Austria?
+- **www_umweltfoerderung_at_unknown_program**: Will the project be executed in Austria?
+- **www_umweltfoerderung_at_betriebe**: Will the project be executed in Austria?
+- **cinea_ec_europa_eu_life_calls_proposals_2025_en**: Is your organization eligible for EU funding?
+- **cinea_ec_europa_eu_news_events_news_life_calls_pro**: Is your organization eligible for EU funding?
+- **clean_hydrogen_europa_eu_calls_proposals_en**: Is your organization eligible for EU funding?
+- **digital_strategy_ec_europa_eu_en_activities_cef_di**: Is your organization eligible for EU funding?
+- **digital_strategy_ec_europa_eu_en_activities_digita**: Is your organization eligible for EU funding?
+- **ec_europa_eu_info_funding_tenders_opportunities_po**: Is your organization eligible for EU funding?
+- **ec_europa_eu_info_funding_tenders_opportunities_po**: Is your organization eligible for EU funding?
+- **ec_europa_eu_investeuportal_desktop_en_index_html**: Is your organization eligible for EU funding?
+- **economie_fgov_be_en_themes_online_strategy_europea**: Is your organization eligible for EU funding?
+- **eic_ec_europa_eu_eic_funding_opportunities_eic_acc**: Is your organization eligible for EU funding?
+- **eic_ec_europa_eu_eic_funding_opportunities_eic_pat**: Is your organization eligible for EU funding?
+- **eic_ec_europa_eu_eic_funding_opportunities_eic_pat**: Is your organization eligible for EU funding?
+- **eithealth_eu_opportunities**: Is your organization eligible for EU funding?
+- **errin_eu_news_life_calls_proposals_2025**: Is your organization eligible for EU funding?
+- **hadea_ec_europa_eu_news_fourth_call_cef_digital_to**: Is your organization eligible for EU funding?
+- **home_affairs_ec_europa_eu_policies_migration_and_a**: Is your organization eligible for EU funding?
+- **invest_europa_eu_investeu_programme_investeu_porta**: Is your organization eligible for EU funding?
+- **research_and_innovation_ec_europa_eu_funding_fundi**: Is your organization eligible for EU funding?
+- **research_and_innovation_ec_europa_eu_funding_fundi**: Is your organization eligible for EU funding?
+- **research_and_innovation_ec_europa_eu_funding_fundi**: Is your organization eligible for EU funding?
+- **research_and_innovation_ec_europa_eu_funding_fundi**: Is your organization eligible for EU funding?
+- **research_and_innovation_ec_europa_eu_funding_fundi**: Is your organization eligible for EU funding?
+- **single_market_economy_ec_europa_eu_sectors_raw_mat**: Is your organization eligible for EU funding?
+- **www_ams_at_arbeitsuchende_arbeitslos_was_tun_foerd**: Will the project be executed in Austria?
+- **www_ams_at_unternehmen_personalsicherung_und_frueh**: Will the project be executed in Austria?
+- **www_cbe_europa_eu_unknown_program**: Is your organization eligible for EU funding?
+- **www_cbe_europa_eu_opportunities_calls_proposals**: Is your organization eligible for EU funding?
+- **www_chips_ju_europa_eu_unknown_program**: Is your organization eligible for EU funding?
+- **www_clean_hydrogen_europa_eu_calls_proposals_en**: Is your organization eligible for EU funding?
+- **www_eif_org_eif_org_InvestEU_guarantee_products_in**: Is your organization eligible for EU funding?
+- **www_eif_org_investeu**: Is your organization eligible for EU funding?
+- **www_eit_europa_eu_our_activities_opportunities_eit**: Is your organization eligible for EU funding?
+- **www_eit_europa_eu_our_activities_opportunities_sme**: Is your organization eligible for EU funding?
+- **www_eit_europa_eu_our_activities_opportunities_sme**: Is your company an SME (micro, small, or medium-sized)?
+- **www_eitdigital_eu_entrepreneurial_academy_2025**: Is your organization eligible for EU funding?
+- **www_eitdigital_eu_open_innovation_factory**: Is your organization eligible for EU funding?
+- **www_eitdigital_eu_our_messages_calls_tenders_eit_d**: Is your organization eligible for EU funding?
+- **www_eitmanufacturing_eu_calls_call_for_proposals_2**: Is your organization eligible for EU funding?
+- **www_eitmanufacturing_eu_news_events_news_call_for_**: Is your organization eligible for EU funding?
+- **www_eitrawmaterials_eu_opportunities**: Is your organization eligible for EU funding?
+- **www_eiturbanmobility_eu_what_we_offer_innovations_**: Is your organization eligible for EU funding?
+- **www_eiturbanmobility_eu_what_we_offer_innovations_**: Is your company an SME (micro, small, or medium-sized)?
+- **www_esa_bic_at_unknown_program**: Will the project be executed in Austria?
+- **www_esa_int_Applications_Telecommunications_and_In**: Is your organization eligible for EU funding?
+- **www_esa_int_Enabling_Support_Space_Engineering_Tec**: Is your organization eligible for EU funding?
+- **www_eurohpc_ju_europa_eu_establishing_hpc_centres_**: Is your organization eligible for EU funding?
+- **www_eurohpc_ju_europa_eu_eurohpc_ju_call_proposals**: Is your organization eligible for EU funding?
+- **www_oesterreich_gv_at_de_themen_menschen_aus_ander**: Will the project be executed in Austria?
+- **www_oesterreich_gv_at_en_themen_menschen_aus_ander**: Will the project be executed in Austria?
+- **www_space_ec_europa_eu_eu_space_policy_cassini_spa**: Is your organization eligible for EU funding?
+- **www_aws_at_aws_erp_kredit**: Will the project be executed in Austria?
+- **www_aws_at_aws_garantie**: Will the project be executed in Austria?
+- **www_aws_at_en_aws_erp_loan**: Will the project be executed in Austria?
+- **www_aws_at_en_aws_preseed_deep_tech**: Will the project be executed in Austria?
+- **www_aws_at_en_aws_seedfinancing_deep_tech**: Will the project be executed in Austria?
+- **www_aws_at_en_aws_seedfinancing_innovative_solutio**: Will the project be executed in Austria?
+- **www_bankaustria_at_files_aws_erp_kredit_de_pdf**: Will the project be executed in Austria?
+- **www_lifescienceaustria_at_our_services_aws_funding**: Will the project be executed in Austria?
+- **www_wko_at_foerderungen_erp_kredit**: Will the project be executed in Austria?
+- **www_ams_at_arbeitsuchende_arbeitslos_was_tun_foerd**: Will the project be executed in Austria?
+- **www_ams_at_unternehmen_personalsicherung_und_frueh**: Will the project be executed in Austria?
+- **www_i2b_at_unknown_program**: Will the project be executed in Austria?
+- **viennabusinessagency_at_current_funding**: Will the project be executed in Austria?
+- **viennabusinessagency_at_current_funding**: Is your company an SME (micro, small, or medium-sized)?
+- **viennabusinessagency_at_current_funding_innovation**: Will the project be executed in Austria?
+- **viennabusinessagency_at_current_funding_innovation**: Is your company an SME (micro, small, or medium-sized)?
+- **viennabusinessagency_at_current_funding_startup_gr**: Will the project be executed in Austria?
+- **viennabusinessagency_at_current_funding_startup_gr**: Is your company an SME (micro, small, or medium-sized)?
+- **www_addiko_at_business_kredite**: Will the project be executed in Austria?
+- **www_addiko_at_business_kredite**: Is your company an SME (micro, small, or medium-sized)?
+- **www_ams_at_unternehmen_personalsicherung_und_frueh**: Will the project be executed in Austria?
+- **www_ams_at_unternehmen_personalsicherung_und_frueh**: Is your company an SME (micro, small, or medium-sized)?
+- **www_bankaustria_at_en_corporate_customers_financin**: Will the project be executed in Austria?
+- **www_bankaustria_at_en_corporate_customers_financin**: Is your company an SME (micro, small, or medium-sized)?
+- **www_bankaustria_at_en_corporate_customers_financin**: Will the project be executed in Austria?
+- **www_bankaustria_at_en_corporate_customers_financin**: Is your company an SME (micro, small, or medium-sized)?
+- **www_bankaustria_at_en_corporate_customers_financin**: Will the project be executed in Austria?
+- **www_bankaustria_at_en_corporate_customers_financin**: Is your company an SME (micro, small, or medium-sized)?
+- **www_bawag_at_en_gewerbekunden_finanzieren_finanzie**: Will the project be executed in Austria?
+- **www_bawag_at_en_gewerbekunden_finanzieren_finanzie**: Is your company an SME (micro, small, or medium-sized)?
+- **www_eit_europa_eu_our_activities_opportunities_sme**: Is your organization eligible for EU funding?
+- **www_eit_europa_eu_our_activities_opportunities_sme**: Is your company an SME (micro, small, or medium-sized)?
+- **www_eiturbanmobility_eu_what_we_offer_innovations_**: Is your organization eligible for EU funding?
+- **www_eiturbanmobility_eu_what_we_offer_innovations_**: Is your company an SME (micro, small, or medium-sized)?
+- **www_hellobank_at_business_finanzierung**: Will the project be executed in Austria?
+- **www_hellobank_at_business_finanzierung**: Is your company an SME (micro, small, or medium-sized)?
+- **www_hyponoe_at_firmenkunden_finanzieren**: Will the project be executed in Austria?
+- **www_hyponoe_at_firmenkunden_finanzieren**: Is your company an SME (micro, small, or medium-sized)?
+- **www_hypotirol_com_unternehmen_finanzieren**: Is your organization eligible for EU funding?
+- **www_hypotirol_com_unternehmen_finanzieren**: Is your company an SME (micro, small, or medium-sized)?
+- **www_hypovbg_at_unternehmen_finanzieren**: Will the project be executed in Austria?
+- **www_hypovbg_at_unternehmen_finanzieren**: Is your company an SME (micro, small, or medium-sized)?
+- **www_oberbank_at_unternehmen_finanzieren**: Will the project be executed in Austria?
+- **www_oberbank_at_unternehmen_finanzieren**: Is your company an SME (micro, small, or medium-sized)?
+- **www_psk_at_firmenkunden_finanzieren**: Will the project be executed in Austria?
+- **www_psk_at_firmenkunden_finanzieren**: Is your company an SME (micro, small, or medium-sized)?
+- **www_sparkasse_at_erste_en_business_financing_busin**: Will the project be executed in Austria?
+- **www_sparkasse_at_erste_en_business_financing_busin**: Is your company an SME (micro, small, or medium-sized)?
+- **www_unicreditbank_at_en_unternehmen_finanzierung_l**: Will the project be executed in Austria?
+- **www_unicreditbank_at_en_unternehmen_finanzierung_l**: Is your company an SME (micro, small, or medium-sized)?
+- **www_vkb_bank_at_unternehmen_finanzieren**: Will the project be executed in Austria?
+- **www_vkb_bank_at_unternehmen_finanzieren**: Is your company an SME (micro, small, or medium-sized)?
+- **www_volksbank_at_en_firmenkunden_finanzierung_html**: Will the project be executed in Austria?
+- **www_volksbank_at_en_firmenkunden_finanzierung_html**: Is your company an SME (micro, small, or medium-sized)?
+- **www_wko_at_service_gruendung_uebernahme_businesspl**: Will the project be executed in Austria?
+- **www_wko_at_service_gruendung_uebernahme_businesspl**: Is your company an SME (micro, small, or medium-sized)?
+- **youreurope_europa_eu_business_finance_funding_gett**: Is your organization eligible for EU funding?
+- **youreurope_europa_eu_business_finance_funding_gett**: Is your company an SME (micro, small, or medium-sized)?
+- **www_kommunalkredit_at_umweltfoerderung**: Will the project be executed in Austria?
+- **www_kommunalkredit_at_umweltfoerderung**: Is your company an SME (micro, small, or medium-sized)?
+- **www_wko_at_foerderungen_erp_kredit**: Will the project be executed in Austria?
+- **www_wko_at_foerderungen_erp_kredit**: Is your company an SME (micro, small, or medium-sized)?
+- **www_wko_at_foerderungen_innovation_wien**: Will the project be executed in Austria?
+- **www_wko_at_foerderungen_innovation_wien**: Is your company an SME (micro, small, or medium-sized)?
+- **www_wko_at_service_gruendung_uebernahme_businesspl**: Will the project be executed in Austria?
+- **www_wko_at_service_gruendung_uebernahme_businesspl**: Is your company an SME (micro, small, or medium-sized)?
+- **www_wko_at_service_gruendung_uebernahme_gruenderse**: Will the project be executed in Austria?
+- **www_wko_at_service_gruendung_uebernahme_gruenderse**: Is your company an SME (micro, small, or medium-sized)?
+- **cinea_ec_europa_eu_life_calls_proposals_2025_en**: Is your organization eligible for EU funding?
+- **cinea_ec_europa_eu_news_events_news_life_calls_pro**: Is your organization eligible for EU funding?
+- **clean_hydrogen_europa_eu_calls_proposals_en**: Is your organization eligible for EU funding?
+- **digital_strategy_ec_europa_eu_en_activities_cef_di**: Is your organization eligible for EU funding?
+- **digital_strategy_ec_europa_eu_en_activities_digita**: Is your organization eligible for EU funding?
+- **ec_europa_eu_info_funding_tenders_opportunities_po**: Is your organization eligible for EU funding?
+- **ec_europa_eu_info_funding_tenders_opportunities_po**: Is your organization eligible for EU funding?
+- **ec_europa_eu_investeuportal_desktop_en_index_html**: Is your organization eligible for EU funding?
+- **economie_fgov_be_en_themes_online_strategy_europea**: Is your organization eligible for EU funding?
+- **eic_ec_europa_eu_eic_funding_opportunities_eic_acc**: Is your organization eligible for EU funding?
+- **eic_ec_europa_eu_eic_funding_opportunities_eic_pat**: Is your organization eligible for EU funding?
+- **eic_ec_europa_eu_eic_funding_opportunities_eic_pat**: Is your organization eligible for EU funding?
+- **eithealth_eu_opportunities**: Is your organization eligible for EU funding?
+- **errin_eu_news_life_calls_proposals_2025**: Is your organization eligible for EU funding?
+- **hadea_ec_europa_eu_news_fourth_call_cef_digital_to**: Is your organization eligible for EU funding?
+- **home_affairs_ec_europa_eu_policies_migration_and_a**: Is your organization eligible for EU funding?
+- **invest_europa_eu_investeu_programme_investeu_porta**: Is your organization eligible for EU funding?
+- **research_and_innovation_ec_europa_eu_funding_fundi**: Is your organization eligible for EU funding?
+- **research_and_innovation_ec_europa_eu_funding_fundi**: Is your organization eligible for EU funding?
+- **research_and_innovation_ec_europa_eu_funding_fundi**: Is your organization eligible for EU funding?
+- **research_and_innovation_ec_europa_eu_funding_fundi**: Is your organization eligible for EU funding?
+- **research_and_innovation_ec_europa_eu_funding_fundi**: Is your organization eligible for EU funding?
+- **single_market_economy_ec_europa_eu_sectors_raw_mat**: Is your organization eligible for EU funding?
+- **transparenzportal_gv_at_tdb_tp_leistung_1003102_ht**: Will the project be executed in Austria?
+- **wirtschaftsagentur_at_aktuelle_foerderungen_der_wi**: Will the project be executed in Austria?
+- **www_ams_at_arbeitsuchende_arbeitslos_was_tun_foerd**: Will the project be executed in Austria?
+- **www_bmdw_gv_at_Themen_Innovation_und_Technologie_I**: Will the project be executed in Austria?
+- **www_bmimi_gv_at_themen_innovation_FTI_Themen_IWI_F**: Will the project be executed in Austria?
+- **www_cbe_europa_eu_unknown_program**: Is your organization eligible for EU funding?
+- **www_cbe_europa_eu_opportunities_calls_proposals**: Is your organization eligible for EU funding?
+- **www_chips_ju_europa_eu_unknown_program**: Is your organization eligible for EU funding?
+- **www_clean_hydrogen_europa_eu_calls_proposals_en**: Is your organization eligible for EU funding?
+- **www_easybank_at_geschaeftskunden_finanzieren_html**: Will the project be executed in Austria?
+- **www_eif_org_eif_org_InvestEU_guarantee_products_in**: Is your organization eligible for EU funding?
+- **www_eif_org_investeu**: Is your organization eligible for EU funding?
+- **www_eit_europa_eu_our_activities_opportunities_eit**: Is your organization eligible for EU funding?
+- **www_eitdigital_eu_entrepreneurial_academy_2025**: Is your organization eligible for EU funding?
+- **www_eitdigital_eu_open_innovation_factory**: Is your organization eligible for EU funding?
+- **www_eitdigital_eu_our_messages_calls_tenders_eit_d**: Is your organization eligible for EU funding?
+- **www_eitmanufacturing_eu_calls_call_for_proposals_2**: Is your organization eligible for EU funding?
+- **www_eitmanufacturing_eu_news_events_news_call_for_**: Is your organization eligible for EU funding?
+- **www_eitrawmaterials_eu_opportunities**: Is your organization eligible for EU funding?
+- **www_esa_bic_at_unknown_program**: Will the project be executed in Austria?
+- **www_esa_int_Applications_Telecommunications_and_In**: Is your organization eligible for EU funding?
+- **www_esa_int_Enabling_Support_Space_Engineering_Tec**: Is your organization eligible for EU funding?
+- **www_eurohpc_ju_europa_eu_establishing_hpc_centres_**: Is your organization eligible for EU funding?
+- **www_eurohpc_ju_europa_eu_eurohpc_ju_call_proposals**: Is your organization eligible for EU funding?
+- **www_ffg_at_ausschreibung_basisprogramm_2025**: Will the project be executed in Austria?
+- **www_ffg_at_ausschreibung_impact_innovation_2025**: Will the project be executed in Austria?
+- **www_ffg_at_en_content_funding**: Will the project be executed in Austria?
+- **www_ffg_at_en_program_spin_fellowships_0**: Will the project be executed in Austria?
+- **www_ffg_at_en_spin_off_fellowships**: Will the project be executed in Austria?
+- **www_ffg_at_initiative_basisprogramm**: Will the project be executed in Austria?
+- **www_ffg_at_programm_bridge**: Will the project be executed in Austria?
+- **www_ffg_at_programm_impactinnovation**: Will the project be executed in Austria?
+- **www_grenke_at_unknown_program**: Will the project be executed in Austria?
+- **www_horizontevropa_cz_en_news_yiifnews_3109**: Is your organization eligible for EU funding?
+- **www_i2b_at_unknown_program**: Will the project be executed in Austria?
+- **www_klimafonds_gv_at_unknown_program**: Will the project be executed in Austria?
+- **www_kommunalkredit_at_umweltfoerderung**: Will the project be executed in Austria?
+- **www_migration_gv_at_en_types_of_immigration_perman**: Will the project be executed in Austria?
+- **www_migration_gv_at_en_types_of_immigration_perman**: Will the project be executed in Austria?
+- **www_migration_gv_at_en_types_of_immigration_perman**: Will the project be executed in Austria?
+- **www_migration_gv_at_en_types_of_immigration_perman**: Will the project be executed in Austria?
+- **www_migration_gv_at_en_types_of_immigration_perman**: Will the project be executed in Austria?
+- **www_migration_gv_at_en_types_of_immigration_perman**: Will the project be executed in Austria?
+- **www_migration_gv_at_en_types_of_immigration_perman**: Will the project be executed in Austria?
+- **www_migration_gv_at_en_types_of_immigration_red_wh**: Will the project be executed in Austria?
+- **www_oesterreich_gv_at_de_themen_menschen_aus_ander**: Will the project be executed in Austria?
+- **www_oesterreich_gv_at_en_themen_menschen_aus_ander**: Will the project be executed in Austria?
+- **www_raiffeisen_at_ooe_privatkunden_finanzieren_kre**: Will the project be executed in Austria?
+- **www_raiffeisen_at_tirol_privatkunden_finanzieren_p**: Will the project be executed in Austria?
+- **www_ril_at_de_raiffeisen_impuls_leasing_html**: Will the project be executed in Austria?
+- **www_s_leasing_at_unknown_program**: Will the project be executed in Austria?
+- **www_space_ec_europa_eu_eu_space_policy_cassini_spa**: Is your organization eligible for EU funding?
+- **www_umweltfoerderung_at_unknown_program**: Will the project be executed in Austria?
+- **www_umweltfoerderung_at_betriebe**: Will the project be executed in Austria?
+- **www_wien_gv_at_english_e_government_documents_resi**: Will the project be executed in Austria?
+- **www_wko_at_foerderungen_innovation_wien**: Will the project be executed in Austria?
+- **www_wko_at_service_gruendung_uebernahme_gruenderse**: Will the project be executed in Austria?
+- **www_workinaustria_com_en_residence_employment_red_**: Will the project be executed in Austria?
+- **viennabusinessagency_at_current_funding**: Will the project be executed in Austria?
+- **viennabusinessagency_at_current_funding_innovation**: Will the project be executed in Austria?
+- **viennabusinessagency_at_current_funding_startup_gr**: Will the project be executed in Austria?
+- **www_migration_gv_at_en_types_of_immigration_perman**: Will the project be executed in Austria?
+- **www_migration_gv_at_en_types_of_immigration_red_wh**: Will the project be executed in Austria?
+- **www_migration_gv_at_en_types_of_immigration_perman**: Will the project be executed in Austria?
+- **www_migration_gv_at_en_types_of_immigration_perman**: Will the project be executed in Austria?
+- **www_migration_gv_at_en_types_of_immigration_perman**: Will the project be executed in Austria?
+- **www_migration_gv_at_en_types_of_immigration_perman**: Will the project be executed in Austria?
+- **www_migration_gv_at_en_types_of_immigration_perman**: Will the project be executed in Austria?
+- **www_migration_gv_at_en_types_of_immigration_perman**: Will the project be executed in Austria?
+- **www_oesterreich_gv_at_de_themen_menschen_aus_ander**: Will the project be executed in Austria?
+- **www_oesterreich_gv_at_en_themen_menschen_aus_ander**: Will the project be executed in Austria?
+- **www_wien_gv_at_english_e_government_documents_resi**: Will the project be executed in Austria?
+- **www_workinaustria_com_en_residence_employment_red_**: Will the project be executed in Austria?
+
+**Soft Rules (Nice to Have)**:
+- **aws_preseed_innovative_solutions**: Is your company a micro or small enterprise?
+- **aws_preseed_innovative_solutions**: What is your current project maturity?
+- **aws_preseed_innovative_solutions**: Do you plan to collaborate with other organizations?
+- **aws_preseed_innovative_solutions**: What is your team's gender diversity?
+- **aws_preseed_innovative_solutions**: Does your project have environmental benefits?
+- **ffg_basisprogramm_2025**: What is your current legal status?
+- **ffg_basisprogramm_2025**: What is your company size?
+- **ffg_basisprogramm_2025**: What is your current project maturity?
+- **ffg_basisprogramm_2025**: Do you plan to collaborate with other organizations?
+- **ffg_basisprogramm_2025**: What is your team's gender diversity?
+- **ffg_basisprogramm_2025**: Does your project have environmental benefits?
+- **ffg_impact_innovation_2025**: What is your current legal status?
+- **ffg_impact_innovation_2025**: What is your company size?
+- **ffg_impact_innovation_2025**: What is your current project maturity?
+- **ffg_impact_innovation_2025**: Do you plan to collaborate with other organizations?
+- **ffg_impact_innovation_2025**: What is your team's gender diversity?
+- **ffg_impact_innovation_2025**: Does your project have environmental benefits?
+- **umweltfoerderung_betriebe_generic**: What is your current legal status?
+- **umweltfoerderung_betriebe_generic**: What is your company size?
+- **umweltfoerderung_betriebe_generic**: What is your current project maturity?
+- **umweltfoerderung_betriebe_generic**: Do you plan to collaborate with other organizations?
+- **umweltfoerderung_betriebe_generic**: What is your team's gender diversity?
+- **life_programme_2025_generic**: What is your current legal status?
+- **life_programme_2025_generic**: What is your company size?
+- **life_programme_2025_generic**: What is your current project maturity?
+- **life_programme_2025_generic**: Will you conduct R&D activities?
+- **life_programme_2025_generic**: Do you plan to collaborate with other organizations?
+- **life_programme_2025_generic**: What is your team's gender diversity?
+- **clean_hydrogen_ju_2025**: What is your current legal status?
+- **clean_hydrogen_ju_2025**: What is your company size?
+- **clean_hydrogen_ju_2025**: What is your current project maturity?
+- **clean_hydrogen_ju_2025**: Will you conduct R&D activities?
+- **clean_hydrogen_ju_2025**: Do you plan to collaborate with other organizations?
+- **clean_hydrogen_ju_2025**: What is your team's gender diversity?
+- **eic_accelerator_2025**: What is your current legal status?
+- **eic_accelerator_2025**: What is your company size?
+- **eic_accelerator_2025**: Is your project ready for scaling or market launch?
+- **eic_accelerator_2025**: Will you conduct R&D activities?
+- **eic_accelerator_2025**: Do you plan to collaborate with other organizations?
+- **eic_accelerator_2025**: What is your team's gender diversity?
+- **eic_accelerator_2025**: Does your project have environmental benefits?
+- **eit_health_thi_2025**: Are you an incorporated company?
+- **eit_health_thi_2025**: What is your current project maturity?
+- **eit_health_thi_2025**: Will you conduct R&D activities?
+- **eit_health_thi_2025**: Do you plan to collaborate with other organizations?
+- **eit_health_thi_2025**: What is your team's gender diversity?
+- **eit_health_thi_2025**: Does your project have environmental benefits?
+- **esa_bic_austria**: What is your current legal status?
+- **esa_bic_austria**: What is your company size?
+- **esa_bic_austria**: What is your current project maturity?
+- **esa_bic_austria**: Will you conduct R&D activities?
+- **esa_bic_austria**: Do you plan to collaborate with other organizations?
+- **esa_bic_austria**: What is your team's gender diversity?
+- **esa_bic_austria**: Does your project have environmental benefits?
+- **horizon_europe_cluster1_health_2025**: What is your current legal status?
+- **horizon_europe_cluster1_health_2025**: What is your company size?
+- **horizon_europe_cluster1_health_2025**: Will you conduct R&D activities?
+- **horizon_europe_cluster1_health_2025**: What is your team's gender diversity?
+- **horizon_europe_cluster1_health_2025**: Does your project have environmental benefits?
+- **wirtschaftsagentur_at_aktuelle_foerderungen_der_wi**: What is your current legal status?
+- **wirtschaftsagentur_at_aktuelle_foerderungen_der_wi**: What is your company size?
+- **wirtschaftsagentur_at_aktuelle_foerderungen_der_wi**: What is your current project maturity?
+- **wirtschaftsagentur_at_aktuelle_foerderungen_der_wi**: Do you plan to collaborate with other organizations?
+- **wirtschaftsagentur_at_aktuelle_foerderungen_der_wi**: What is your team's gender diversity?
+- **wirtschaftsagentur_at_aktuelle_foerderungen_der_wi**: Does your project have environmental benefits?
+- **www_aws_at_aws_erp_kredit**: What is your current legal status?
+- **www_aws_at_aws_erp_kredit**: What is your company size?
+- **www_aws_at_aws_erp_kredit**: What is your current project maturity?
+- **www_aws_at_aws_erp_kredit**: Do you plan to collaborate with other organizations?
+- **www_aws_at_aws_erp_kredit**: What is your team's gender diversity?
+- **www_aws_at_aws_erp_kredit**: Does your project have environmental benefits?
+- **www_aws_at_aws_garantie**: What is your current legal status?
+- **www_aws_at_aws_garantie**: What is your company size?
+- **www_aws_at_aws_garantie**: What is your current project maturity?
+- **www_aws_at_aws_garantie**: Do you plan to collaborate with other organizations?
+- **www_aws_at_aws_garantie**: What is your team's gender diversity?
+- **www_aws_at_aws_garantie**: Does your project have environmental benefits?
+- **www_aws_at_en_aws_erp_loan**: What is your current legal status?
+- **www_aws_at_en_aws_erp_loan**: What is your company size?
+- **www_aws_at_en_aws_erp_loan**: What is your current project maturity?
+- **www_aws_at_en_aws_erp_loan**: Do you plan to collaborate with other organizations?
+- **www_aws_at_en_aws_erp_loan**: What is your team's gender diversity?
+- **www_aws_at_en_aws_erp_loan**: Does your project have environmental benefits?
+- **www_aws_at_en_aws_preseed_deep_tech**: What is your current legal status?
+- **www_aws_at_en_aws_preseed_deep_tech**: What is your company size?
+- **www_aws_at_en_aws_preseed_deep_tech**: What is your current project maturity?
+- **www_aws_at_en_aws_preseed_deep_tech**: Do you plan to collaborate with other organizations?
+- **www_aws_at_en_aws_preseed_deep_tech**: What is your team's gender diversity?
+- **www_aws_at_en_aws_preseed_deep_tech**: Does your project have environmental benefits?
+- **www_aws_at_en_aws_seedfinancing_deep_tech**: What is your current legal status?
+- **www_aws_at_en_aws_seedfinancing_deep_tech**: What is your company size?
+- **www_aws_at_en_aws_seedfinancing_deep_tech**: What is your current project maturity?
+- **www_aws_at_en_aws_seedfinancing_deep_tech**: Do you plan to collaborate with other organizations?
+- **www_aws_at_en_aws_seedfinancing_deep_tech**: What is your team's gender diversity?
+- **www_aws_at_en_aws_seedfinancing_deep_tech**: Does your project have environmental benefits?
+- **www_aws_at_en_aws_seedfinancing_innovative_solutio**: What is your current legal status?
+- **www_aws_at_en_aws_seedfinancing_innovative_solutio**: What is your company size?
+- **www_aws_at_en_aws_seedfinancing_innovative_solutio**: What is your current project maturity?
+- **www_aws_at_en_aws_seedfinancing_innovative_solutio**: Do you plan to collaborate with other organizations?
+- **www_aws_at_en_aws_seedfinancing_innovative_solutio**: What is your team's gender diversity?
+- **www_aws_at_en_aws_seedfinancing_innovative_solutio**: Does your project have environmental benefits?
+- **www_bankaustria_at_files_aws_erp_kredit_de_pdf**: What is your current legal status?
+- **www_bankaustria_at_files_aws_erp_kredit_de_pdf**: What is your company size?
+- **www_bankaustria_at_files_aws_erp_kredit_de_pdf**: What is your current project maturity?
+- **www_bankaustria_at_files_aws_erp_kredit_de_pdf**: Do you plan to collaborate with other organizations?
+- **www_bankaustria_at_files_aws_erp_kredit_de_pdf**: What is your team's gender diversity?
+- **www_bankaustria_at_files_aws_erp_kredit_de_pdf**: Does your project have environmental benefits?
+- **www_ffg_at_ausschreibung_basisprogramm_2025**: What is your current legal status?
+- **www_ffg_at_ausschreibung_basisprogramm_2025**: What is your company size?
+- **www_ffg_at_ausschreibung_basisprogramm_2025**: What is your team's gender diversity?
+- **www_ffg_at_ausschreibung_basisprogramm_2025**: Does your project have environmental benefits?
+- **www_ffg_at_ausschreibung_impact_innovation_2025**: What is your current legal status?
+- **www_ffg_at_ausschreibung_impact_innovation_2025**: What is your company size?
+- **www_ffg_at_ausschreibung_impact_innovation_2025**: What is your team's gender diversity?
+- **www_ffg_at_ausschreibung_impact_innovation_2025**: Does your project have environmental benefits?
+- **www_ffg_at_en_content_funding**: What is your current legal status?
+- **www_ffg_at_en_content_funding**: What is your company size?
+- **www_ffg_at_en_content_funding**: What is your team's gender diversity?
+- **www_ffg_at_en_content_funding**: Does your project have environmental benefits?
+- **www_ffg_at_en_program_spin_fellowships_0**: What is your current legal status?
+- **www_ffg_at_en_program_spin_fellowships_0**: What is your company size?
+- **www_ffg_at_en_program_spin_fellowships_0**: What is your team's gender diversity?
+- **www_ffg_at_en_program_spin_fellowships_0**: Does your project have environmental benefits?
+- **www_ffg_at_en_spin_off_fellowships**: What is your current legal status?
+- **www_ffg_at_en_spin_off_fellowships**: What is your company size?
+- **www_ffg_at_en_spin_off_fellowships**: What is your team's gender diversity?
+- **www_ffg_at_en_spin_off_fellowships**: Does your project have environmental benefits?
+- **www_ffg_at_initiative_basisprogramm**: What is your current legal status?
+- **www_ffg_at_initiative_basisprogramm**: What is your company size?
+- **www_ffg_at_initiative_basisprogramm**: What is your team's gender diversity?
+- **www_ffg_at_initiative_basisprogramm**: Does your project have environmental benefits?
+- **www_ffg_at_programm_bridge**: What is your current legal status?
+- **www_ffg_at_programm_bridge**: What is your company size?
+- **www_ffg_at_programm_bridge**: What is your team's gender diversity?
+- **www_ffg_at_programm_bridge**: Does your project have environmental benefits?
+- **www_ffg_at_programm_impactinnovation**: What is your current legal status?
+- **www_ffg_at_programm_impactinnovation**: What is your company size?
+- **www_ffg_at_programm_impactinnovation**: What is your team's gender diversity?
+- **www_ffg_at_programm_impactinnovation**: Does your project have environmental benefits?
+- **www_klimafonds_gv_at_unknown_program**: What is your current legal status?
+- **www_klimafonds_gv_at_unknown_program**: What is your company size?
+- **www_klimafonds_gv_at_unknown_program**: What is your current project maturity?
+- **www_klimafonds_gv_at_unknown_program**: Do you plan to collaborate with other organizations?
+- **www_klimafonds_gv_at_unknown_program**: What is your team's gender diversity?
+- **www_lifescienceaustria_at_our_services_aws_funding**: What is your current legal status?
+- **www_lifescienceaustria_at_our_services_aws_funding**: What is your company size?
+- **www_lifescienceaustria_at_our_services_aws_funding**: What is your current project maturity?
+- **www_lifescienceaustria_at_our_services_aws_funding**: Do you plan to collaborate with other organizations?
+- **www_lifescienceaustria_at_our_services_aws_funding**: What is your team's gender diversity?
+- **www_lifescienceaustria_at_our_services_aws_funding**: Does your project have environmental benefits?
+- **www_umweltfoerderung_at_unknown_program**: What is your current legal status?
+- **www_umweltfoerderung_at_unknown_program**: What is your company size?
+- **www_umweltfoerderung_at_unknown_program**: What is your current project maturity?
+- **www_umweltfoerderung_at_unknown_program**: Do you plan to collaborate with other organizations?
+- **www_umweltfoerderung_at_unknown_program**: What is your team's gender diversity?
+- **www_umweltfoerderung_at_betriebe**: What is your current legal status?
+- **www_umweltfoerderung_at_betriebe**: What is your company size?
+- **www_umweltfoerderung_at_betriebe**: What is your current project maturity?
+- **www_umweltfoerderung_at_betriebe**: Do you plan to collaborate with other organizations?
+- **www_umweltfoerderung_at_betriebe**: What is your team's gender diversity?
+- **cinea_ec_europa_eu_life_calls_proposals_2025_en**: What is your current legal status?
+- **cinea_ec_europa_eu_life_calls_proposals_2025_en**: What is your company size?
+- **cinea_ec_europa_eu_life_calls_proposals_2025_en**: What is your current project maturity?
+- **cinea_ec_europa_eu_life_calls_proposals_2025_en**: Will you conduct R&D activities?
+- **cinea_ec_europa_eu_life_calls_proposals_2025_en**: Do you plan to collaborate with other organizations?
+- **cinea_ec_europa_eu_life_calls_proposals_2025_en**: What is your team's gender diversity?
+- **cinea_ec_europa_eu_life_calls_proposals_2025_en**: Does your project have environmental benefits?
+- **cinea_ec_europa_eu_news_events_news_life_calls_pro**: What is your current legal status?
+- **cinea_ec_europa_eu_news_events_news_life_calls_pro**: What is your company size?
+- **cinea_ec_europa_eu_news_events_news_life_calls_pro**: What is your current project maturity?
+- **cinea_ec_europa_eu_news_events_news_life_calls_pro**: Will you conduct R&D activities?
+- **cinea_ec_europa_eu_news_events_news_life_calls_pro**: Do you plan to collaborate with other organizations?
+- **cinea_ec_europa_eu_news_events_news_life_calls_pro**: What is your team's gender diversity?
+- **cinea_ec_europa_eu_news_events_news_life_calls_pro**: Does your project have environmental benefits?
+- **clean_hydrogen_europa_eu_calls_proposals_en**: What is your current legal status?
+- **clean_hydrogen_europa_eu_calls_proposals_en**: What is your company size?
+- **clean_hydrogen_europa_eu_calls_proposals_en**: What is your current project maturity?
+- **clean_hydrogen_europa_eu_calls_proposals_en**: Will you conduct R&D activities?
+- **clean_hydrogen_europa_eu_calls_proposals_en**: Do you plan to collaborate with other organizations?
+- **clean_hydrogen_europa_eu_calls_proposals_en**: What is your team's gender diversity?
+- **clean_hydrogen_europa_eu_calls_proposals_en**: Does your project have environmental benefits?
+- **digital_strategy_ec_europa_eu_en_activities_cef_di**: What is your current legal status?
+- **digital_strategy_ec_europa_eu_en_activities_cef_di**: What is your company size?
+- **digital_strategy_ec_europa_eu_en_activities_cef_di**: What is your current project maturity?
+- **digital_strategy_ec_europa_eu_en_activities_cef_di**: Will you conduct R&D activities?
+- **digital_strategy_ec_europa_eu_en_activities_cef_di**: Do you plan to collaborate with other organizations?
+- **digital_strategy_ec_europa_eu_en_activities_cef_di**: What is your team's gender diversity?
+- **digital_strategy_ec_europa_eu_en_activities_cef_di**: Does your project have environmental benefits?
+- **digital_strategy_ec_europa_eu_en_activities_digita**: What is your current legal status?
+- **digital_strategy_ec_europa_eu_en_activities_digita**: What is your company size?
+- **digital_strategy_ec_europa_eu_en_activities_digita**: What is your current project maturity?
+- **digital_strategy_ec_europa_eu_en_activities_digita**: Will you conduct R&D activities?
+- **digital_strategy_ec_europa_eu_en_activities_digita**: Do you plan to collaborate with other organizations?
+- **digital_strategy_ec_europa_eu_en_activities_digita**: What is your team's gender diversity?
+- **digital_strategy_ec_europa_eu_en_activities_digita**: Does your project have environmental benefits?
+- **ec_europa_eu_info_funding_tenders_opportunities_po**: What is your current legal status?
+- **ec_europa_eu_info_funding_tenders_opportunities_po**: What is your company size?
+- **ec_europa_eu_info_funding_tenders_opportunities_po**: What is your current project maturity?
+- **ec_europa_eu_info_funding_tenders_opportunities_po**: Will you conduct R&D activities?
+- **ec_europa_eu_info_funding_tenders_opportunities_po**: Do you plan to collaborate with other organizations?
+- **ec_europa_eu_info_funding_tenders_opportunities_po**: What is your team's gender diversity?
+- **ec_europa_eu_info_funding_tenders_opportunities_po**: Does your project have environmental benefits?
+- **ec_europa_eu_info_funding_tenders_opportunities_po**: What is your current legal status?
+- **ec_europa_eu_info_funding_tenders_opportunities_po**: What is your company size?
+- **ec_europa_eu_info_funding_tenders_opportunities_po**: What is your current project maturity?
+- **ec_europa_eu_info_funding_tenders_opportunities_po**: Will you conduct R&D activities?
+- **ec_europa_eu_info_funding_tenders_opportunities_po**: Do you plan to collaborate with other organizations?
+- **ec_europa_eu_info_funding_tenders_opportunities_po**: What is your team's gender diversity?
+- **ec_europa_eu_info_funding_tenders_opportunities_po**: Does your project have environmental benefits?
+- **ec_europa_eu_investeuportal_desktop_en_index_html**: What is your current legal status?
+- **ec_europa_eu_investeuportal_desktop_en_index_html**: What is your company size?
+- **ec_europa_eu_investeuportal_desktop_en_index_html**: What is your current project maturity?
+- **ec_europa_eu_investeuportal_desktop_en_index_html**: Will you conduct R&D activities?
+- **ec_europa_eu_investeuportal_desktop_en_index_html**: Do you plan to collaborate with other organizations?
+- **ec_europa_eu_investeuportal_desktop_en_index_html**: What is your team's gender diversity?
+- **ec_europa_eu_investeuportal_desktop_en_index_html**: Does your project have environmental benefits?
+- **economie_fgov_be_en_themes_online_strategy_europea**: What is your current legal status?
+- **economie_fgov_be_en_themes_online_strategy_europea**: What is your company size?
+- **economie_fgov_be_en_themes_online_strategy_europea**: What is your current project maturity?
+- **economie_fgov_be_en_themes_online_strategy_europea**: Will you conduct R&D activities?
+- **economie_fgov_be_en_themes_online_strategy_europea**: Do you plan to collaborate with other organizations?
+- **economie_fgov_be_en_themes_online_strategy_europea**: What is your team's gender diversity?
+- **economie_fgov_be_en_themes_online_strategy_europea**: Does your project have environmental benefits?
+- **eic_ec_europa_eu_eic_funding_opportunities_eic_acc**: What is your current legal status?
+- **eic_ec_europa_eu_eic_funding_opportunities_eic_acc**: What is your company size?
+- **eic_ec_europa_eu_eic_funding_opportunities_eic_acc**: What is your current project maturity?
+- **eic_ec_europa_eu_eic_funding_opportunities_eic_acc**: Will you conduct R&D activities?
+- **eic_ec_europa_eu_eic_funding_opportunities_eic_acc**: Do you plan to collaborate with other organizations?
+- **eic_ec_europa_eu_eic_funding_opportunities_eic_acc**: What is your team's gender diversity?
+- **eic_ec_europa_eu_eic_funding_opportunities_eic_acc**: Does your project have environmental benefits?
+- **eic_ec_europa_eu_eic_funding_opportunities_eic_pat**: What is your current legal status?
+- **eic_ec_europa_eu_eic_funding_opportunities_eic_pat**: What is your company size?
+- **eic_ec_europa_eu_eic_funding_opportunities_eic_pat**: What is your current project maturity?
+- **eic_ec_europa_eu_eic_funding_opportunities_eic_pat**: Will you conduct R&D activities?
+- **eic_ec_europa_eu_eic_funding_opportunities_eic_pat**: Do you plan to collaborate with other organizations?
+- **eic_ec_europa_eu_eic_funding_opportunities_eic_pat**: What is your team's gender diversity?
+- **eic_ec_europa_eu_eic_funding_opportunities_eic_pat**: Does your project have environmental benefits?
+- **eic_ec_europa_eu_eic_funding_opportunities_eic_pat**: What is your current legal status?
+- **eic_ec_europa_eu_eic_funding_opportunities_eic_pat**: What is your company size?
+- **eic_ec_europa_eu_eic_funding_opportunities_eic_pat**: What is your current project maturity?
+- **eic_ec_europa_eu_eic_funding_opportunities_eic_pat**: Will you conduct R&D activities?
+- **eic_ec_europa_eu_eic_funding_opportunities_eic_pat**: Do you plan to collaborate with other organizations?
+- **eic_ec_europa_eu_eic_funding_opportunities_eic_pat**: What is your team's gender diversity?
+- **eic_ec_europa_eu_eic_funding_opportunities_eic_pat**: Does your project have environmental benefits?
+- **eithealth_eu_opportunities**: What is your current legal status?
+- **eithealth_eu_opportunities**: What is your company size?
+- **eithealth_eu_opportunities**: What is your current project maturity?
+- **eithealth_eu_opportunities**: Will you conduct R&D activities?
+- **eithealth_eu_opportunities**: Do you plan to collaborate with other organizations?
+- **eithealth_eu_opportunities**: What is your team's gender diversity?
+- **eithealth_eu_opportunities**: Does your project have environmental benefits?
+- **errin_eu_news_life_calls_proposals_2025**: What is your current legal status?
+- **errin_eu_news_life_calls_proposals_2025**: What is your company size?
+- **errin_eu_news_life_calls_proposals_2025**: What is your current project maturity?
+- **errin_eu_news_life_calls_proposals_2025**: Will you conduct R&D activities?
+- **errin_eu_news_life_calls_proposals_2025**: Do you plan to collaborate with other organizations?
+- **errin_eu_news_life_calls_proposals_2025**: What is your team's gender diversity?
+- **errin_eu_news_life_calls_proposals_2025**: Does your project have environmental benefits?
+- **hadea_ec_europa_eu_news_fourth_call_cef_digital_to**: What is your current legal status?
+- **hadea_ec_europa_eu_news_fourth_call_cef_digital_to**: What is your company size?
+- **hadea_ec_europa_eu_news_fourth_call_cef_digital_to**: What is your current project maturity?
+- **hadea_ec_europa_eu_news_fourth_call_cef_digital_to**: Will you conduct R&D activities?
+- **hadea_ec_europa_eu_news_fourth_call_cef_digital_to**: Do you plan to collaborate with other organizations?
+- **hadea_ec_europa_eu_news_fourth_call_cef_digital_to**: What is your team's gender diversity?
+- **hadea_ec_europa_eu_news_fourth_call_cef_digital_to**: Does your project have environmental benefits?
+- **home_affairs_ec_europa_eu_policies_migration_and_a**: What is your current legal status?
+- **home_affairs_ec_europa_eu_policies_migration_and_a**: What is your company size?
+- **home_affairs_ec_europa_eu_policies_migration_and_a**: What is your current project maturity?
+- **home_affairs_ec_europa_eu_policies_migration_and_a**: Will you conduct R&D activities?
+- **home_affairs_ec_europa_eu_policies_migration_and_a**: Do you plan to collaborate with other organizations?
+- **home_affairs_ec_europa_eu_policies_migration_and_a**: What is your team's gender diversity?
+- **home_affairs_ec_europa_eu_policies_migration_and_a**: Does your project have environmental benefits?
+- **invest_europa_eu_investeu_programme_investeu_porta**: What is your current legal status?
+- **invest_europa_eu_investeu_programme_investeu_porta**: What is your company size?
+- **invest_europa_eu_investeu_programme_investeu_porta**: What is your current project maturity?
+- **invest_europa_eu_investeu_programme_investeu_porta**: Will you conduct R&D activities?
+- **invest_europa_eu_investeu_programme_investeu_porta**: Do you plan to collaborate with other organizations?
+- **invest_europa_eu_investeu_programme_investeu_porta**: What is your team's gender diversity?
+- **invest_europa_eu_investeu_programme_investeu_porta**: Does your project have environmental benefits?
+- **research_and_innovation_ec_europa_eu_funding_fundi**: What is your current legal status?
+- **research_and_innovation_ec_europa_eu_funding_fundi**: What is your company size?
+- **research_and_innovation_ec_europa_eu_funding_fundi**: What is your current project maturity?
+- **research_and_innovation_ec_europa_eu_funding_fundi**: Will you conduct R&D activities?
+- **research_and_innovation_ec_europa_eu_funding_fundi**: Do you plan to collaborate with other organizations?
+- **research_and_innovation_ec_europa_eu_funding_fundi**: What is your team's gender diversity?
+- **research_and_innovation_ec_europa_eu_funding_fundi**: Does your project have environmental benefits?
+- **research_and_innovation_ec_europa_eu_funding_fundi**: What is your current legal status?
+- **research_and_innovation_ec_europa_eu_funding_fundi**: What is your company size?
+- **research_and_innovation_ec_europa_eu_funding_fundi**: What is your current project maturity?
+- **research_and_innovation_ec_europa_eu_funding_fundi**: Will you conduct R&D activities?
+- **research_and_innovation_ec_europa_eu_funding_fundi**: Do you plan to collaborate with other organizations?
+- **research_and_innovation_ec_europa_eu_funding_fundi**: What is your team's gender diversity?
+- **research_and_innovation_ec_europa_eu_funding_fundi**: Does your project have environmental benefits?
+- **research_and_innovation_ec_europa_eu_funding_fundi**: What is your current legal status?
+- **research_and_innovation_ec_europa_eu_funding_fundi**: What is your company size?
+- **research_and_innovation_ec_europa_eu_funding_fundi**: What is your current project maturity?
+- **research_and_innovation_ec_europa_eu_funding_fundi**: Will you conduct R&D activities?
+- **research_and_innovation_ec_europa_eu_funding_fundi**: Do you plan to collaborate with other organizations?
+- **research_and_innovation_ec_europa_eu_funding_fundi**: What is your team's gender diversity?
+- **research_and_innovation_ec_europa_eu_funding_fundi**: Does your project have environmental benefits?
+- **research_and_innovation_ec_europa_eu_funding_fundi**: What is your current legal status?
+- **research_and_innovation_ec_europa_eu_funding_fundi**: What is your company size?
+- **research_and_innovation_ec_europa_eu_funding_fundi**: What is your current project maturity?
+- **research_and_innovation_ec_europa_eu_funding_fundi**: Will you conduct R&D activities?
+- **research_and_innovation_ec_europa_eu_funding_fundi**: Do you plan to collaborate with other organizations?
+- **research_and_innovation_ec_europa_eu_funding_fundi**: What is your team's gender diversity?
+- **research_and_innovation_ec_europa_eu_funding_fundi**: Does your project have environmental benefits?
+- **research_and_innovation_ec_europa_eu_funding_fundi**: What is your current legal status?
+- **research_and_innovation_ec_europa_eu_funding_fundi**: What is your company size?
+- **research_and_innovation_ec_europa_eu_funding_fundi**: What is your current project maturity?
+- **research_and_innovation_ec_europa_eu_funding_fundi**: Will you conduct R&D activities?
+- **research_and_innovation_ec_europa_eu_funding_fundi**: Do you plan to collaborate with other organizations?
+- **research_and_innovation_ec_europa_eu_funding_fundi**: What is your team's gender diversity?
+- **research_and_innovation_ec_europa_eu_funding_fundi**: Does your project have environmental benefits?
+- **single_market_economy_ec_europa_eu_sectors_raw_mat**: What is your current legal status?
+- **single_market_economy_ec_europa_eu_sectors_raw_mat**: What is your company size?
+- **single_market_economy_ec_europa_eu_sectors_raw_mat**: What is your current project maturity?
+- **single_market_economy_ec_europa_eu_sectors_raw_mat**: Will you conduct R&D activities?
+- **single_market_economy_ec_europa_eu_sectors_raw_mat**: Do you plan to collaborate with other organizations?
+- **single_market_economy_ec_europa_eu_sectors_raw_mat**: What is your team's gender diversity?
+- **single_market_economy_ec_europa_eu_sectors_raw_mat**: Does your project have environmental benefits?
+- **www_ams_at_arbeitsuchende_arbeitslos_was_tun_foerd**: What is your current legal status?
+- **www_ams_at_arbeitsuchende_arbeitslos_was_tun_foerd**: What is your company size?
+- **www_ams_at_arbeitsuchende_arbeitslos_was_tun_foerd**: What is your current project maturity?
+- **www_ams_at_arbeitsuchende_arbeitslos_was_tun_foerd**: Do you plan to collaborate with other organizations?
+- **www_ams_at_arbeitsuchende_arbeitslos_was_tun_foerd**: What is your team's gender diversity?
+- **www_ams_at_arbeitsuchende_arbeitslos_was_tun_foerd**: Does your project have environmental benefits?
+- **www_ams_at_unternehmen_personalsicherung_und_frueh**: What is your current legal status?
+- **www_ams_at_unternehmen_personalsicherung_und_frueh**: What is your company size?
+- **www_ams_at_unternehmen_personalsicherung_und_frueh**: What is your current project maturity?
+- **www_ams_at_unternehmen_personalsicherung_und_frueh**: Do you plan to collaborate with other organizations?
+- **www_ams_at_unternehmen_personalsicherung_und_frueh**: What is your team's gender diversity?
+- **www_ams_at_unternehmen_personalsicherung_und_frueh**: Does your project have environmental benefits?
+- **www_cbe_europa_eu_unknown_program**: What is your current legal status?
+- **www_cbe_europa_eu_unknown_program**: What is your company size?
+- **www_cbe_europa_eu_unknown_program**: What is your current project maturity?
+- **www_cbe_europa_eu_unknown_program**: Will you conduct R&D activities?
+- **www_cbe_europa_eu_unknown_program**: Do you plan to collaborate with other organizations?
+- **www_cbe_europa_eu_unknown_program**: What is your team's gender diversity?
+- **www_cbe_europa_eu_unknown_program**: Does your project have environmental benefits?
+- **www_cbe_europa_eu_opportunities_calls_proposals**: What is your current legal status?
+- **www_cbe_europa_eu_opportunities_calls_proposals**: What is your company size?
+- **www_cbe_europa_eu_opportunities_calls_proposals**: What is your current project maturity?
+- **www_cbe_europa_eu_opportunities_calls_proposals**: Will you conduct R&D activities?
+- **www_cbe_europa_eu_opportunities_calls_proposals**: Do you plan to collaborate with other organizations?
+- **www_cbe_europa_eu_opportunities_calls_proposals**: What is your team's gender diversity?
+- **www_cbe_europa_eu_opportunities_calls_proposals**: Does your project have environmental benefits?
+- **www_chips_ju_europa_eu_unknown_program**: What is your current legal status?
+- **www_chips_ju_europa_eu_unknown_program**: What is your company size?
+- **www_chips_ju_europa_eu_unknown_program**: What is your current project maturity?
+- **www_chips_ju_europa_eu_unknown_program**: Will you conduct R&D activities?
+- **www_chips_ju_europa_eu_unknown_program**: Do you plan to collaborate with other organizations?
+- **www_chips_ju_europa_eu_unknown_program**: What is your team's gender diversity?
+- **www_chips_ju_europa_eu_unknown_program**: Does your project have environmental benefits?
+- **www_clean_hydrogen_europa_eu_calls_proposals_en**: What is your current legal status?
+- **www_clean_hydrogen_europa_eu_calls_proposals_en**: What is your company size?
+- **www_clean_hydrogen_europa_eu_calls_proposals_en**: What is your current project maturity?
+- **www_clean_hydrogen_europa_eu_calls_proposals_en**: Will you conduct R&D activities?
+- **www_clean_hydrogen_europa_eu_calls_proposals_en**: Do you plan to collaborate with other organizations?
+- **www_clean_hydrogen_europa_eu_calls_proposals_en**: What is your team's gender diversity?
+- **www_clean_hydrogen_europa_eu_calls_proposals_en**: Does your project have environmental benefits?
+- **www_eif_org_eif_org_InvestEU_guarantee_products_in**: What is your current legal status?
+- **www_eif_org_eif_org_InvestEU_guarantee_products_in**: What is your company size?
+- **www_eif_org_eif_org_InvestEU_guarantee_products_in**: What is your current project maturity?
+- **www_eif_org_eif_org_InvestEU_guarantee_products_in**: Will you conduct R&D activities?
+- **www_eif_org_eif_org_InvestEU_guarantee_products_in**: Do you plan to collaborate with other organizations?
+- **www_eif_org_eif_org_InvestEU_guarantee_products_in**: What is your team's gender diversity?
+- **www_eif_org_eif_org_InvestEU_guarantee_products_in**: Does your project have environmental benefits?
+- **www_eif_org_investeu**: What is your current legal status?
+- **www_eif_org_investeu**: What is your company size?
+- **www_eif_org_investeu**: What is your current project maturity?
+- **www_eif_org_investeu**: Will you conduct R&D activities?
+- **www_eif_org_investeu**: Do you plan to collaborate with other organizations?
+- **www_eif_org_investeu**: What is your team's gender diversity?
+- **www_eif_org_investeu**: Does your project have environmental benefits?
+- **www_eit_europa_eu_our_activities_opportunities_eit**: What is your current legal status?
+- **www_eit_europa_eu_our_activities_opportunities_eit**: What is your company size?
+- **www_eit_europa_eu_our_activities_opportunities_eit**: What is your current project maturity?
+- **www_eit_europa_eu_our_activities_opportunities_eit**: Will you conduct R&D activities?
+- **www_eit_europa_eu_our_activities_opportunities_eit**: Do you plan to collaborate with other organizations?
+- **www_eit_europa_eu_our_activities_opportunities_eit**: What is your team's gender diversity?
+- **www_eit_europa_eu_our_activities_opportunities_eit**: Does your project have environmental benefits?
+- **www_eit_europa_eu_our_activities_opportunities_sme**: Are you an incorporated company?
+- **www_eit_europa_eu_our_activities_opportunities_sme**: What is your current project maturity?
+- **www_eit_europa_eu_our_activities_opportunities_sme**: Will you conduct R&D activities?
+- **www_eit_europa_eu_our_activities_opportunities_sme**: Do you plan to collaborate with other organizations?
+- **www_eit_europa_eu_our_activities_opportunities_sme**: What is your team's gender diversity?
+- **www_eit_europa_eu_our_activities_opportunities_sme**: Does your project have environmental benefits?
+- **www_eitdigital_eu_entrepreneurial_academy_2025**: What is your current legal status?
+- **www_eitdigital_eu_entrepreneurial_academy_2025**: What is your company size?
+- **www_eitdigital_eu_entrepreneurial_academy_2025**: What is your current project maturity?
+- **www_eitdigital_eu_entrepreneurial_academy_2025**: Will you conduct R&D activities?
+- **www_eitdigital_eu_entrepreneurial_academy_2025**: Do you plan to collaborate with other organizations?
+- **www_eitdigital_eu_entrepreneurial_academy_2025**: What is your team's gender diversity?
+- **www_eitdigital_eu_entrepreneurial_academy_2025**: Does your project have environmental benefits?
+- **www_eitdigital_eu_open_innovation_factory**: What is your current legal status?
+- **www_eitdigital_eu_open_innovation_factory**: What is your company size?
+- **www_eitdigital_eu_open_innovation_factory**: What is your current project maturity?
+- **www_eitdigital_eu_open_innovation_factory**: Will you conduct R&D activities?
+- **www_eitdigital_eu_open_innovation_factory**: Do you plan to collaborate with other organizations?
+- **www_eitdigital_eu_open_innovation_factory**: What is your team's gender diversity?
+- **www_eitdigital_eu_open_innovation_factory**: Does your project have environmental benefits?
+- **www_eitdigital_eu_our_messages_calls_tenders_eit_d**: What is your current legal status?
+- **www_eitdigital_eu_our_messages_calls_tenders_eit_d**: What is your company size?
+- **www_eitdigital_eu_our_messages_calls_tenders_eit_d**: What is your current project maturity?
+- **www_eitdigital_eu_our_messages_calls_tenders_eit_d**: Will you conduct R&D activities?
+- **www_eitdigital_eu_our_messages_calls_tenders_eit_d**: Do you plan to collaborate with other organizations?
+- **www_eitdigital_eu_our_messages_calls_tenders_eit_d**: What is your team's gender diversity?
+- **www_eitdigital_eu_our_messages_calls_tenders_eit_d**: Does your project have environmental benefits?
+- **www_eitmanufacturing_eu_calls_call_for_proposals_2**: What is your current legal status?
+- **www_eitmanufacturing_eu_calls_call_for_proposals_2**: What is your company size?
+- **www_eitmanufacturing_eu_calls_call_for_proposals_2**: What is your current project maturity?
+- **www_eitmanufacturing_eu_calls_call_for_proposals_2**: Will you conduct R&D activities?
+- **www_eitmanufacturing_eu_calls_call_for_proposals_2**: Do you plan to collaborate with other organizations?
+- **www_eitmanufacturing_eu_calls_call_for_proposals_2**: What is your team's gender diversity?
+- **www_eitmanufacturing_eu_calls_call_for_proposals_2**: Does your project have environmental benefits?
+- **www_eitmanufacturing_eu_news_events_news_call_for_**: What is your current legal status?
+- **www_eitmanufacturing_eu_news_events_news_call_for_**: What is your company size?
+- **www_eitmanufacturing_eu_news_events_news_call_for_**: What is your current project maturity?
+- **www_eitmanufacturing_eu_news_events_news_call_for_**: Will you conduct R&D activities?
+- **www_eitmanufacturing_eu_news_events_news_call_for_**: Do you plan to collaborate with other organizations?
+- **www_eitmanufacturing_eu_news_events_news_call_for_**: What is your team's gender diversity?
+- **www_eitmanufacturing_eu_news_events_news_call_for_**: Does your project have environmental benefits?
+- **www_eitrawmaterials_eu_opportunities**: What is your current legal status?
+- **www_eitrawmaterials_eu_opportunities**: What is your company size?
+- **www_eitrawmaterials_eu_opportunities**: What is your current project maturity?
+- **www_eitrawmaterials_eu_opportunities**: Will you conduct R&D activities?
+- **www_eitrawmaterials_eu_opportunities**: Do you plan to collaborate with other organizations?
+- **www_eitrawmaterials_eu_opportunities**: What is your team's gender diversity?
+- **www_eitrawmaterials_eu_opportunities**: Does your project have environmental benefits?
+- **www_eiturbanmobility_eu_what_we_offer_innovations_**: Are you an incorporated company?
+- **www_eiturbanmobility_eu_what_we_offer_innovations_**: What is your current project maturity?
+- **www_eiturbanmobility_eu_what_we_offer_innovations_**: Will you conduct R&D activities?
+- **www_eiturbanmobility_eu_what_we_offer_innovations_**: Do you plan to collaborate with other organizations?
+- **www_eiturbanmobility_eu_what_we_offer_innovations_**: What is your team's gender diversity?
+- **www_eiturbanmobility_eu_what_we_offer_innovations_**: Does your project have environmental benefits?
+- **www_esa_bic_at_unknown_program**: What is your current legal status?
+- **www_esa_bic_at_unknown_program**: What is your company size?
+- **www_esa_bic_at_unknown_program**: What is your current project maturity?
+- **www_esa_bic_at_unknown_program**: Do you plan to collaborate with other organizations?
+- **www_esa_bic_at_unknown_program**: What is your team's gender diversity?
+- **www_esa_bic_at_unknown_program**: Does your project have environmental benefits?
+- **www_esa_int_Applications_Telecommunications_and_In**: What is your current legal status?
+- **www_esa_int_Applications_Telecommunications_and_In**: What is your company size?
+- **www_esa_int_Applications_Telecommunications_and_In**: What is your current project maturity?
+- **www_esa_int_Applications_Telecommunications_and_In**: Will you conduct R&D activities?
+- **www_esa_int_Applications_Telecommunications_and_In**: Do you plan to collaborate with other organizations?
+- **www_esa_int_Applications_Telecommunications_and_In**: What is your team's gender diversity?
+- **www_esa_int_Applications_Telecommunications_and_In**: Does your project have environmental benefits?
+- **www_esa_int_Enabling_Support_Space_Engineering_Tec**: What is your current legal status?
+- **www_esa_int_Enabling_Support_Space_Engineering_Tec**: What is your company size?
+- **www_esa_int_Enabling_Support_Space_Engineering_Tec**: What is your current project maturity?
+- **www_esa_int_Enabling_Support_Space_Engineering_Tec**: Will you conduct R&D activities?
+- **www_esa_int_Enabling_Support_Space_Engineering_Tec**: Do you plan to collaborate with other organizations?
+- **www_esa_int_Enabling_Support_Space_Engineering_Tec**: What is your team's gender diversity?
+- **www_esa_int_Enabling_Support_Space_Engineering_Tec**: Does your project have environmental benefits?
+- **www_eurohpc_ju_europa_eu_establishing_hpc_centres_**: What is your current legal status?
+- **www_eurohpc_ju_europa_eu_establishing_hpc_centres_**: What is your company size?
+- **www_eurohpc_ju_europa_eu_establishing_hpc_centres_**: What is your current project maturity?
+- **www_eurohpc_ju_europa_eu_establishing_hpc_centres_**: Will you conduct R&D activities?
+- **www_eurohpc_ju_europa_eu_establishing_hpc_centres_**: Do you plan to collaborate with other organizations?
+- **www_eurohpc_ju_europa_eu_establishing_hpc_centres_**: What is your team's gender diversity?
+- **www_eurohpc_ju_europa_eu_establishing_hpc_centres_**: Does your project have environmental benefits?
+- **www_eurohpc_ju_europa_eu_eurohpc_ju_call_proposals**: What is your current legal status?
+- **www_eurohpc_ju_europa_eu_eurohpc_ju_call_proposals**: What is your company size?
+- **www_eurohpc_ju_europa_eu_eurohpc_ju_call_proposals**: What is your current project maturity?
+- **www_eurohpc_ju_europa_eu_eurohpc_ju_call_proposals**: Will you conduct R&D activities?
+- **www_eurohpc_ju_europa_eu_eurohpc_ju_call_proposals**: Do you plan to collaborate with other organizations?
+- **www_eurohpc_ju_europa_eu_eurohpc_ju_call_proposals**: What is your team's gender diversity?
+- **www_eurohpc_ju_europa_eu_eurohpc_ju_call_proposals**: Does your project have environmental benefits?
+- **www_oesterreich_gv_at_de_themen_menschen_aus_ander**: What is your current legal status?
+- **www_oesterreich_gv_at_de_themen_menschen_aus_ander**: What is your company size?
+- **www_oesterreich_gv_at_de_themen_menschen_aus_ander**: What is your current project maturity?
+- **www_oesterreich_gv_at_de_themen_menschen_aus_ander**: Do you plan to collaborate with other organizations?
+- **www_oesterreich_gv_at_de_themen_menschen_aus_ander**: What is your team's gender diversity?
+- **www_oesterreich_gv_at_de_themen_menschen_aus_ander**: Does your project have environmental benefits?
+- **www_oesterreich_gv_at_en_themen_menschen_aus_ander**: What is your current legal status?
+- **www_oesterreich_gv_at_en_themen_menschen_aus_ander**: What is your company size?
+- **www_oesterreich_gv_at_en_themen_menschen_aus_ander**: What is your current project maturity?
+- **www_oesterreich_gv_at_en_themen_menschen_aus_ander**: Do you plan to collaborate with other organizations?
+- **www_oesterreich_gv_at_en_themen_menschen_aus_ander**: What is your team's gender diversity?
+- **www_oesterreich_gv_at_en_themen_menschen_aus_ander**: Does your project have environmental benefits?
+- **www_space_ec_europa_eu_eu_space_policy_cassini_spa**: What is your current legal status?
+- **www_space_ec_europa_eu_eu_space_policy_cassini_spa**: What is your company size?
+- **www_space_ec_europa_eu_eu_space_policy_cassini_spa**: What is your current project maturity?
+- **www_space_ec_europa_eu_eu_space_policy_cassini_spa**: Will you conduct R&D activities?
+- **www_space_ec_europa_eu_eu_space_policy_cassini_spa**: Do you plan to collaborate with other organizations?
+- **www_space_ec_europa_eu_eu_space_policy_cassini_spa**: What is your team's gender diversity?
+- **www_space_ec_europa_eu_eu_space_policy_cassini_spa**: Does your project have environmental benefits?
+- **www_aws_at_aws_erp_kredit**: Is your company a micro or small enterprise?
+- **www_aws_at_aws_erp_kredit**: What is your current project maturity?
+- **www_aws_at_aws_erp_kredit**: Do you plan to collaborate with other organizations?
+- **www_aws_at_aws_erp_kredit**: What is your team's gender diversity?
+- **www_aws_at_aws_erp_kredit**: Does your project have environmental benefits?
+- **www_aws_at_aws_garantie**: Is your company a micro or small enterprise?
+- **www_aws_at_aws_garantie**: What is your current project maturity?
+- **www_aws_at_aws_garantie**: Do you plan to collaborate with other organizations?
+- **www_aws_at_aws_garantie**: What is your team's gender diversity?
+- **www_aws_at_aws_garantie**: Does your project have environmental benefits?
+- **www_aws_at_en_aws_erp_loan**: Is your company a micro or small enterprise?
+- **www_aws_at_en_aws_erp_loan**: What is your current project maturity?
+- **www_aws_at_en_aws_erp_loan**: Do you plan to collaborate with other organizations?
+- **www_aws_at_en_aws_erp_loan**: What is your team's gender diversity?
+- **www_aws_at_en_aws_erp_loan**: Does your project have environmental benefits?
+- **www_aws_at_en_aws_preseed_deep_tech**: Is your company a micro or small enterprise?
+- **www_aws_at_en_aws_preseed_deep_tech**: What is your current project maturity?
+- **www_aws_at_en_aws_preseed_deep_tech**: Do you plan to collaborate with other organizations?
+- **www_aws_at_en_aws_preseed_deep_tech**: What is your team's gender diversity?
+- **www_aws_at_en_aws_preseed_deep_tech**: Does your project have environmental benefits?
+- **www_aws_at_en_aws_seedfinancing_deep_tech**: Is your company a micro or small enterprise?
+- **www_aws_at_en_aws_seedfinancing_deep_tech**: What is your current project maturity?
+- **www_aws_at_en_aws_seedfinancing_deep_tech**: Do you plan to collaborate with other organizations?
+- **www_aws_at_en_aws_seedfinancing_deep_tech**: What is your team's gender diversity?
+- **www_aws_at_en_aws_seedfinancing_deep_tech**: Does your project have environmental benefits?
+- **www_aws_at_en_aws_seedfinancing_innovative_solutio**: Is your company a micro or small enterprise?
+- **www_aws_at_en_aws_seedfinancing_innovative_solutio**: What is your current project maturity?
+- **www_aws_at_en_aws_seedfinancing_innovative_solutio**: Do you plan to collaborate with other organizations?
+- **www_aws_at_en_aws_seedfinancing_innovative_solutio**: What is your team's gender diversity?
+- **www_aws_at_en_aws_seedfinancing_innovative_solutio**: Does your project have environmental benefits?
+- **www_bankaustria_at_files_aws_erp_kredit_de_pdf**: Is your company a micro or small enterprise?
+- **www_bankaustria_at_files_aws_erp_kredit_de_pdf**: What is your current project maturity?
+- **www_bankaustria_at_files_aws_erp_kredit_de_pdf**: Do you plan to collaborate with other organizations?
+- **www_bankaustria_at_files_aws_erp_kredit_de_pdf**: What is your team's gender diversity?
+- **www_bankaustria_at_files_aws_erp_kredit_de_pdf**: Does your project have environmental benefits?
+- **www_lifescienceaustria_at_our_services_aws_funding**: Is your company a micro or small enterprise?
+- **www_lifescienceaustria_at_our_services_aws_funding**: What is your current project maturity?
+- **www_lifescienceaustria_at_our_services_aws_funding**: Do you plan to collaborate with other organizations?
+- **www_lifescienceaustria_at_our_services_aws_funding**: What is your team's gender diversity?
+- **www_lifescienceaustria_at_our_services_aws_funding**: Does your project have environmental benefits?
+- **www_wko_at_foerderungen_erp_kredit**: Is your company a micro or small enterprise?
+- **www_wko_at_foerderungen_erp_kredit**: What is your current project maturity?
+- **www_wko_at_foerderungen_erp_kredit**: Do you plan to collaborate with other organizations?
+- **www_wko_at_foerderungen_erp_kredit**: What is your team's gender diversity?
+- **www_wko_at_foerderungen_erp_kredit**: Does your project have environmental benefits?
+- **www_ams_at_arbeitsuchende_arbeitslos_was_tun_foerd**: Is your company a micro or small enterprise?
+- **www_ams_at_arbeitsuchende_arbeitslos_was_tun_foerd**: What is your current project maturity?
+- **www_ams_at_arbeitsuchende_arbeitslos_was_tun_foerd**: Do you plan to collaborate with other organizations?
+- **www_ams_at_arbeitsuchende_arbeitslos_was_tun_foerd**: What is your team's gender diversity?
+- **www_ams_at_arbeitsuchende_arbeitslos_was_tun_foerd**: Does your project have environmental benefits?
+- **www_ams_at_unternehmen_personalsicherung_und_frueh**: Is your company a micro or small enterprise?
+- **www_ams_at_unternehmen_personalsicherung_und_frueh**: What is your current project maturity?
+- **www_ams_at_unternehmen_personalsicherung_und_frueh**: Do you plan to collaborate with other organizations?
+- **www_ams_at_unternehmen_personalsicherung_und_frueh**: What is your team's gender diversity?
+- **www_ams_at_unternehmen_personalsicherung_und_frueh**: Does your project have environmental benefits?
+- **www_i2b_at_unknown_program**: Is your company a micro or small enterprise?
+- **www_i2b_at_unknown_program**: What is your current project maturity?
+- **www_i2b_at_unknown_program**: Do you plan to collaborate with other organizations?
+- **www_i2b_at_unknown_program**: What is your team's gender diversity?
+- **www_i2b_at_unknown_program**: Does your project have environmental benefits?
+- **viennabusinessagency_at_current_funding**: Are you an incorporated company?
+- **viennabusinessagency_at_current_funding**: What is your current project maturity?
+- **viennabusinessagency_at_current_funding**: Do you plan to collaborate with other organizations?
+- **viennabusinessagency_at_current_funding**: What is your team's gender diversity?
+- **viennabusinessagency_at_current_funding**: Does your project have environmental benefits?
+- **viennabusinessagency_at_current_funding_innovation**: Are you an incorporated company?
+- **viennabusinessagency_at_current_funding_innovation**: What is your current project maturity?
+- **viennabusinessagency_at_current_funding_innovation**: Do you plan to collaborate with other organizations?
+- **viennabusinessagency_at_current_funding_innovation**: What is your team's gender diversity?
+- **viennabusinessagency_at_current_funding_innovation**: Does your project have environmental benefits?
+- **viennabusinessagency_at_current_funding_startup_gr**: What is your current project maturity?
+- **viennabusinessagency_at_current_funding_startup_gr**: Do you plan to collaborate with other organizations?
+- **viennabusinessagency_at_current_funding_startup_gr**: What is your team's gender diversity?
+- **viennabusinessagency_at_current_funding_startup_gr**: Does your project have environmental benefits?
+- **www_addiko_at_business_kredite**: Are you an incorporated company?
+- **www_addiko_at_business_kredite**: What is your current project maturity?
+- **www_addiko_at_business_kredite**: Do you plan to collaborate with other organizations?
+- **www_addiko_at_business_kredite**: What is your team's gender diversity?
+- **www_addiko_at_business_kredite**: Does your project have environmental benefits?
+- **www_ams_at_unternehmen_personalsicherung_und_frueh**: Are you an incorporated company?
+- **www_ams_at_unternehmen_personalsicherung_und_frueh**: What is your current project maturity?
+- **www_ams_at_unternehmen_personalsicherung_und_frueh**: Do you plan to collaborate with other organizations?
+- **www_ams_at_unternehmen_personalsicherung_und_frueh**: What is your team's gender diversity?
+- **www_ams_at_unternehmen_personalsicherung_und_frueh**: Does your project have environmental benefits?
+- **www_bankaustria_at_en_corporate_customers_financin**: Are you an incorporated company?
+- **www_bankaustria_at_en_corporate_customers_financin**: What is your current project maturity?
+- **www_bankaustria_at_en_corporate_customers_financin**: Do you plan to collaborate with other organizations?
+- **www_bankaustria_at_en_corporate_customers_financin**: What is your team's gender diversity?
+- **www_bankaustria_at_en_corporate_customers_financin**: Does your project have environmental benefits?
+- **www_bankaustria_at_en_corporate_customers_financin**: Are you an incorporated company?
+- **www_bankaustria_at_en_corporate_customers_financin**: What is your current project maturity?
+- **www_bankaustria_at_en_corporate_customers_financin**: Do you plan to collaborate with other organizations?
+- **www_bankaustria_at_en_corporate_customers_financin**: What is your team's gender diversity?
+- **www_bankaustria_at_en_corporate_customers_financin**: Does your project have environmental benefits?
+- **www_bankaustria_at_en_corporate_customers_financin**: Are you an incorporated company?
+- **www_bankaustria_at_en_corporate_customers_financin**: What is your current project maturity?
+- **www_bankaustria_at_en_corporate_customers_financin**: Do you plan to collaborate with other organizations?
+- **www_bankaustria_at_en_corporate_customers_financin**: What is your team's gender diversity?
+- **www_bankaustria_at_en_corporate_customers_financin**: Does your project have environmental benefits?
+- **www_bawag_at_en_gewerbekunden_finanzieren_finanzie**: Are you an incorporated company?
+- **www_bawag_at_en_gewerbekunden_finanzieren_finanzie**: What is your current project maturity?
+- **www_bawag_at_en_gewerbekunden_finanzieren_finanzie**: Do you plan to collaborate with other organizations?
+- **www_bawag_at_en_gewerbekunden_finanzieren_finanzie**: What is your team's gender diversity?
+- **www_bawag_at_en_gewerbekunden_finanzieren_finanzie**: Does your project have environmental benefits?
+- **www_eit_europa_eu_our_activities_opportunities_sme**: Are you an incorporated company?
+- **www_eit_europa_eu_our_activities_opportunities_sme**: What is your current project maturity?
+- **www_eit_europa_eu_our_activities_opportunities_sme**: Will you conduct R&D activities?
+- **www_eit_europa_eu_our_activities_opportunities_sme**: Do you plan to collaborate with other organizations?
+- **www_eit_europa_eu_our_activities_opportunities_sme**: What is your team's gender diversity?
+- **www_eit_europa_eu_our_activities_opportunities_sme**: Does your project have environmental benefits?
+- **www_eiturbanmobility_eu_what_we_offer_innovations_**: Are you an incorporated company?
+- **www_eiturbanmobility_eu_what_we_offer_innovations_**: What is your current project maturity?
+- **www_eiturbanmobility_eu_what_we_offer_innovations_**: Will you conduct R&D activities?
+- **www_eiturbanmobility_eu_what_we_offer_innovations_**: Do you plan to collaborate with other organizations?
+- **www_eiturbanmobility_eu_what_we_offer_innovations_**: What is your team's gender diversity?
+- **www_eiturbanmobility_eu_what_we_offer_innovations_**: Does your project have environmental benefits?
+- **www_hellobank_at_business_finanzierung**: Are you an incorporated company?
+- **www_hellobank_at_business_finanzierung**: What is your current project maturity?
+- **www_hellobank_at_business_finanzierung**: Do you plan to collaborate with other organizations?
+- **www_hellobank_at_business_finanzierung**: What is your team's gender diversity?
+- **www_hellobank_at_business_finanzierung**: Does your project have environmental benefits?
+- **www_hyponoe_at_firmenkunden_finanzieren**: Are you an incorporated company?
+- **www_hyponoe_at_firmenkunden_finanzieren**: What is your current project maturity?
+- **www_hyponoe_at_firmenkunden_finanzieren**: Do you plan to collaborate with other organizations?
+- **www_hyponoe_at_firmenkunden_finanzieren**: What is your team's gender diversity?
+- **www_hyponoe_at_firmenkunden_finanzieren**: Does your project have environmental benefits?
+- **www_hypotirol_com_unternehmen_finanzieren**: Are you an incorporated company?
+- **www_hypotirol_com_unternehmen_finanzieren**: What is your current project maturity?
+- **www_hypotirol_com_unternehmen_finanzieren**: Will you conduct R&D activities?
+- **www_hypotirol_com_unternehmen_finanzieren**: Do you plan to collaborate with other organizations?
+- **www_hypotirol_com_unternehmen_finanzieren**: What is your team's gender diversity?
+- **www_hypotirol_com_unternehmen_finanzieren**: Does your project have environmental benefits?
+- **www_hypovbg_at_unternehmen_finanzieren**: Are you an incorporated company?
+- **www_hypovbg_at_unternehmen_finanzieren**: What is your current project maturity?
+- **www_hypovbg_at_unternehmen_finanzieren**: Do you plan to collaborate with other organizations?
+- **www_hypovbg_at_unternehmen_finanzieren**: What is your team's gender diversity?
+- **www_hypovbg_at_unternehmen_finanzieren**: Does your project have environmental benefits?
+- **www_oberbank_at_unternehmen_finanzieren**: Are you an incorporated company?
+- **www_oberbank_at_unternehmen_finanzieren**: What is your current project maturity?
+- **www_oberbank_at_unternehmen_finanzieren**: Do you plan to collaborate with other organizations?
+- **www_oberbank_at_unternehmen_finanzieren**: What is your team's gender diversity?
+- **www_oberbank_at_unternehmen_finanzieren**: Does your project have environmental benefits?
+- **www_psk_at_firmenkunden_finanzieren**: Are you an incorporated company?
+- **www_psk_at_firmenkunden_finanzieren**: What is your current project maturity?
+- **www_psk_at_firmenkunden_finanzieren**: Do you plan to collaborate with other organizations?
+- **www_psk_at_firmenkunden_finanzieren**: What is your team's gender diversity?
+- **www_psk_at_firmenkunden_finanzieren**: Does your project have environmental benefits?
+- **www_sparkasse_at_erste_en_business_financing_busin**: Are you an incorporated company?
+- **www_sparkasse_at_erste_en_business_financing_busin**: What is your current project maturity?
+- **www_sparkasse_at_erste_en_business_financing_busin**: Do you plan to collaborate with other organizations?
+- **www_sparkasse_at_erste_en_business_financing_busin**: What is your team's gender diversity?
+- **www_sparkasse_at_erste_en_business_financing_busin**: Does your project have environmental benefits?
+- **www_unicreditbank_at_en_unternehmen_finanzierung_l**: Are you an incorporated company?
+- **www_unicreditbank_at_en_unternehmen_finanzierung_l**: What is your current project maturity?
+- **www_unicreditbank_at_en_unternehmen_finanzierung_l**: Do you plan to collaborate with other organizations?
+- **www_unicreditbank_at_en_unternehmen_finanzierung_l**: What is your team's gender diversity?
+- **www_unicreditbank_at_en_unternehmen_finanzierung_l**: Does your project have environmental benefits?
+- **www_vkb_bank_at_unternehmen_finanzieren**: Are you an incorporated company?
+- **www_vkb_bank_at_unternehmen_finanzieren**: What is your current project maturity?
+- **www_vkb_bank_at_unternehmen_finanzieren**: Do you plan to collaborate with other organizations?
+- **www_vkb_bank_at_unternehmen_finanzieren**: What is your team's gender diversity?
+- **www_vkb_bank_at_unternehmen_finanzieren**: Does your project have environmental benefits?
+- **www_volksbank_at_en_firmenkunden_finanzierung_html**: Are you an incorporated company?
+- **www_volksbank_at_en_firmenkunden_finanzierung_html**: What is your current project maturity?
+- **www_volksbank_at_en_firmenkunden_finanzierung_html**: Do you plan to collaborate with other organizations?
+- **www_volksbank_at_en_firmenkunden_finanzierung_html**: What is your team's gender diversity?
+- **www_volksbank_at_en_firmenkunden_finanzierung_html**: Does your project have environmental benefits?
+- **www_wko_at_service_gruendung_uebernahme_businesspl**: Are you an incorporated company?
+- **www_wko_at_service_gruendung_uebernahme_businesspl**: What is your current project maturity?
+- **www_wko_at_service_gruendung_uebernahme_businesspl**: Do you plan to collaborate with other organizations?
+- **www_wko_at_service_gruendung_uebernahme_businesspl**: What is your team's gender diversity?
+- **www_wko_at_service_gruendung_uebernahme_businesspl**: Does your project have environmental benefits?
+- **youreurope_europa_eu_business_finance_funding_gett**: Are you an incorporated company?
+- **youreurope_europa_eu_business_finance_funding_gett**: What is your current project maturity?
+- **youreurope_europa_eu_business_finance_funding_gett**: Will you conduct R&D activities?
+- **youreurope_europa_eu_business_finance_funding_gett**: Do you plan to collaborate with other organizations?
+- **youreurope_europa_eu_business_finance_funding_gett**: What is your team's gender diversity?
+- **youreurope_europa_eu_business_finance_funding_gett**: Does your project have environmental benefits?
+- **www_kommunalkredit_at_umweltfoerderung**: Are you an incorporated company?
+- **www_kommunalkredit_at_umweltfoerderung**: What is your current project maturity?
+- **www_kommunalkredit_at_umweltfoerderung**: Do you plan to collaborate with other organizations?
+- **www_kommunalkredit_at_umweltfoerderung**: What is your team's gender diversity?
+- **www_wko_at_foerderungen_erp_kredit**: Are you an incorporated company?
+- **www_wko_at_foerderungen_erp_kredit**: What is your current project maturity?
+- **www_wko_at_foerderungen_erp_kredit**: Do you plan to collaborate with other organizations?
+- **www_wko_at_foerderungen_erp_kredit**: What is your team's gender diversity?
+- **www_wko_at_foerderungen_erp_kredit**: Does your project have environmental benefits?
+- **www_wko_at_foerderungen_innovation_wien**: Are you an incorporated company?
+- **www_wko_at_foerderungen_innovation_wien**: What is your current project maturity?
+- **www_wko_at_foerderungen_innovation_wien**: Do you plan to collaborate with other organizations?
+- **www_wko_at_foerderungen_innovation_wien**: What is your team's gender diversity?
+- **www_wko_at_foerderungen_innovation_wien**: Does your project have environmental benefits?
+- **www_wko_at_service_gruendung_uebernahme_businesspl**: Are you an incorporated company?
+- **www_wko_at_service_gruendung_uebernahme_businesspl**: What is your current project maturity?
+- **www_wko_at_service_gruendung_uebernahme_businesspl**: Do you plan to collaborate with other organizations?
+- **www_wko_at_service_gruendung_uebernahme_businesspl**: What is your team's gender diversity?
+- **www_wko_at_service_gruendung_uebernahme_businesspl**: Does your project have environmental benefits?
+- **www_wko_at_service_gruendung_uebernahme_gruenderse**: Are you an incorporated company?
+- **www_wko_at_service_gruendung_uebernahme_gruenderse**: What is your current project maturity?
+- **www_wko_at_service_gruendung_uebernahme_gruenderse**: Do you plan to collaborate with other organizations?
+- **www_wko_at_service_gruendung_uebernahme_gruenderse**: What is your team's gender diversity?
+- **www_wko_at_service_gruendung_uebernahme_gruenderse**: Does your project have environmental benefits?
+- **cinea_ec_europa_eu_life_calls_proposals_2025_en**: What is your current legal status?
+- **cinea_ec_europa_eu_life_calls_proposals_2025_en**: What is your company size?
+- **cinea_ec_europa_eu_life_calls_proposals_2025_en**: What is your current project maturity?
+- **cinea_ec_europa_eu_life_calls_proposals_2025_en**: Will you conduct R&D activities?
+- **cinea_ec_europa_eu_life_calls_proposals_2025_en**: Do you plan to collaborate with other organizations?
+- **cinea_ec_europa_eu_life_calls_proposals_2025_en**: What is your team's gender diversity?
+- **cinea_ec_europa_eu_life_calls_proposals_2025_en**: Does your project have environmental benefits?
+- **cinea_ec_europa_eu_news_events_news_life_calls_pro**: What is your current legal status?
+- **cinea_ec_europa_eu_news_events_news_life_calls_pro**: What is your company size?
+- **cinea_ec_europa_eu_news_events_news_life_calls_pro**: What is your current project maturity?
+- **cinea_ec_europa_eu_news_events_news_life_calls_pro**: Will you conduct R&D activities?
+- **cinea_ec_europa_eu_news_events_news_life_calls_pro**: Do you plan to collaborate with other organizations?
+- **cinea_ec_europa_eu_news_events_news_life_calls_pro**: What is your team's gender diversity?
+- **cinea_ec_europa_eu_news_events_news_life_calls_pro**: Does your project have environmental benefits?
+- **clean_hydrogen_europa_eu_calls_proposals_en**: What is your current legal status?
+- **clean_hydrogen_europa_eu_calls_proposals_en**: What is your company size?
+- **clean_hydrogen_europa_eu_calls_proposals_en**: What is your current project maturity?
+- **clean_hydrogen_europa_eu_calls_proposals_en**: Will you conduct R&D activities?
+- **clean_hydrogen_europa_eu_calls_proposals_en**: Do you plan to collaborate with other organizations?
+- **clean_hydrogen_europa_eu_calls_proposals_en**: What is your team's gender diversity?
+- **clean_hydrogen_europa_eu_calls_proposals_en**: Does your project have environmental benefits?
+- **digital_strategy_ec_europa_eu_en_activities_cef_di**: What is your current legal status?
+- **digital_strategy_ec_europa_eu_en_activities_cef_di**: What is your company size?
+- **digital_strategy_ec_europa_eu_en_activities_cef_di**: What is your current project maturity?
+- **digital_strategy_ec_europa_eu_en_activities_cef_di**: Will you conduct R&D activities?
+- **digital_strategy_ec_europa_eu_en_activities_cef_di**: Do you plan to collaborate with other organizations?
+- **digital_strategy_ec_europa_eu_en_activities_cef_di**: What is your team's gender diversity?
+- **digital_strategy_ec_europa_eu_en_activities_cef_di**: Does your project have environmental benefits?
+- **digital_strategy_ec_europa_eu_en_activities_digita**: What is your current legal status?
+- **digital_strategy_ec_europa_eu_en_activities_digita**: What is your company size?
+- **digital_strategy_ec_europa_eu_en_activities_digita**: What is your current project maturity?
+- **digital_strategy_ec_europa_eu_en_activities_digita**: Will you conduct R&D activities?
+- **digital_strategy_ec_europa_eu_en_activities_digita**: Do you plan to collaborate with other organizations?
+- **digital_strategy_ec_europa_eu_en_activities_digita**: What is your team's gender diversity?
+- **digital_strategy_ec_europa_eu_en_activities_digita**: Does your project have environmental benefits?
+- **ec_europa_eu_info_funding_tenders_opportunities_po**: What is your current legal status?
+- **ec_europa_eu_info_funding_tenders_opportunities_po**: What is your company size?
+- **ec_europa_eu_info_funding_tenders_opportunities_po**: What is your current project maturity?
+- **ec_europa_eu_info_funding_tenders_opportunities_po**: Will you conduct R&D activities?
+- **ec_europa_eu_info_funding_tenders_opportunities_po**: Do you plan to collaborate with other organizations?
+- **ec_europa_eu_info_funding_tenders_opportunities_po**: What is your team's gender diversity?
+- **ec_europa_eu_info_funding_tenders_opportunities_po**: Does your project have environmental benefits?
+- **ec_europa_eu_info_funding_tenders_opportunities_po**: What is your current legal status?
+- **ec_europa_eu_info_funding_tenders_opportunities_po**: What is your company size?
+- **ec_europa_eu_info_funding_tenders_opportunities_po**: What is your current project maturity?
+- **ec_europa_eu_info_funding_tenders_opportunities_po**: Will you conduct R&D activities?
+- **ec_europa_eu_info_funding_tenders_opportunities_po**: Do you plan to collaborate with other organizations?
+- **ec_europa_eu_info_funding_tenders_opportunities_po**: What is your team's gender diversity?
+- **ec_europa_eu_info_funding_tenders_opportunities_po**: Does your project have environmental benefits?
+- **ec_europa_eu_investeuportal_desktop_en_index_html**: What is your current legal status?
+- **ec_europa_eu_investeuportal_desktop_en_index_html**: What is your company size?
+- **ec_europa_eu_investeuportal_desktop_en_index_html**: What is your current project maturity?
+- **ec_europa_eu_investeuportal_desktop_en_index_html**: Will you conduct R&D activities?
+- **ec_europa_eu_investeuportal_desktop_en_index_html**: Do you plan to collaborate with other organizations?
+- **ec_europa_eu_investeuportal_desktop_en_index_html**: What is your team's gender diversity?
+- **ec_europa_eu_investeuportal_desktop_en_index_html**: Does your project have environmental benefits?
+- **economie_fgov_be_en_themes_online_strategy_europea**: What is your current legal status?
+- **economie_fgov_be_en_themes_online_strategy_europea**: What is your company size?
+- **economie_fgov_be_en_themes_online_strategy_europea**: What is your current project maturity?
+- **economie_fgov_be_en_themes_online_strategy_europea**: Will you conduct R&D activities?
+- **economie_fgov_be_en_themes_online_strategy_europea**: Do you plan to collaborate with other organizations?
+- **economie_fgov_be_en_themes_online_strategy_europea**: What is your team's gender diversity?
+- **economie_fgov_be_en_themes_online_strategy_europea**: Does your project have environmental benefits?
+- **eic_ec_europa_eu_eic_funding_opportunities_eic_acc**: What is your current legal status?
+- **eic_ec_europa_eu_eic_funding_opportunities_eic_acc**: What is your company size?
+- **eic_ec_europa_eu_eic_funding_opportunities_eic_acc**: What is your current project maturity?
+- **eic_ec_europa_eu_eic_funding_opportunities_eic_acc**: Will you conduct R&D activities?
+- **eic_ec_europa_eu_eic_funding_opportunities_eic_acc**: Do you plan to collaborate with other organizations?
+- **eic_ec_europa_eu_eic_funding_opportunities_eic_acc**: What is your team's gender diversity?
+- **eic_ec_europa_eu_eic_funding_opportunities_eic_acc**: Does your project have environmental benefits?
+- **eic_ec_europa_eu_eic_funding_opportunities_eic_pat**: What is your current legal status?
+- **eic_ec_europa_eu_eic_funding_opportunities_eic_pat**: What is your company size?
+- **eic_ec_europa_eu_eic_funding_opportunities_eic_pat**: What is your current project maturity?
+- **eic_ec_europa_eu_eic_funding_opportunities_eic_pat**: Will you conduct R&D activities?
+- **eic_ec_europa_eu_eic_funding_opportunities_eic_pat**: Do you plan to collaborate with other organizations?
+- **eic_ec_europa_eu_eic_funding_opportunities_eic_pat**: What is your team's gender diversity?
+- **eic_ec_europa_eu_eic_funding_opportunities_eic_pat**: Does your project have environmental benefits?
+- **eic_ec_europa_eu_eic_funding_opportunities_eic_pat**: What is your current legal status?
+- **eic_ec_europa_eu_eic_funding_opportunities_eic_pat**: What is your company size?
+- **eic_ec_europa_eu_eic_funding_opportunities_eic_pat**: What is your current project maturity?
+- **eic_ec_europa_eu_eic_funding_opportunities_eic_pat**: Will you conduct R&D activities?
+- **eic_ec_europa_eu_eic_funding_opportunities_eic_pat**: Do you plan to collaborate with other organizations?
+- **eic_ec_europa_eu_eic_funding_opportunities_eic_pat**: What is your team's gender diversity?
+- **eic_ec_europa_eu_eic_funding_opportunities_eic_pat**: Does your project have environmental benefits?
+- **eithealth_eu_opportunities**: What is your current legal status?
+- **eithealth_eu_opportunities**: What is your company size?
+- **eithealth_eu_opportunities**: What is your current project maturity?
+- **eithealth_eu_opportunities**: Will you conduct R&D activities?
+- **eithealth_eu_opportunities**: Do you plan to collaborate with other organizations?
+- **eithealth_eu_opportunities**: What is your team's gender diversity?
+- **eithealth_eu_opportunities**: Does your project have environmental benefits?
+- **errin_eu_news_life_calls_proposals_2025**: What is your current legal status?
+- **errin_eu_news_life_calls_proposals_2025**: What is your company size?
+- **errin_eu_news_life_calls_proposals_2025**: What is your current project maturity?
+- **errin_eu_news_life_calls_proposals_2025**: Will you conduct R&D activities?
+- **errin_eu_news_life_calls_proposals_2025**: Do you plan to collaborate with other organizations?
+- **errin_eu_news_life_calls_proposals_2025**: What is your team's gender diversity?
+- **errin_eu_news_life_calls_proposals_2025**: Does your project have environmental benefits?
+- **hadea_ec_europa_eu_news_fourth_call_cef_digital_to**: What is your current legal status?
+- **hadea_ec_europa_eu_news_fourth_call_cef_digital_to**: What is your company size?
+- **hadea_ec_europa_eu_news_fourth_call_cef_digital_to**: What is your current project maturity?
+- **hadea_ec_europa_eu_news_fourth_call_cef_digital_to**: Will you conduct R&D activities?
+- **hadea_ec_europa_eu_news_fourth_call_cef_digital_to**: Do you plan to collaborate with other organizations?
+- **hadea_ec_europa_eu_news_fourth_call_cef_digital_to**: What is your team's gender diversity?
+- **hadea_ec_europa_eu_news_fourth_call_cef_digital_to**: Does your project have environmental benefits?
+- **home_affairs_ec_europa_eu_policies_migration_and_a**: What is your current legal status?
+- **home_affairs_ec_europa_eu_policies_migration_and_a**: What is your company size?
+- **home_affairs_ec_europa_eu_policies_migration_and_a**: What is your current project maturity?
+- **home_affairs_ec_europa_eu_policies_migration_and_a**: Will you conduct R&D activities?
+- **home_affairs_ec_europa_eu_policies_migration_and_a**: Do you plan to collaborate with other organizations?
+- **home_affairs_ec_europa_eu_policies_migration_and_a**: What is your team's gender diversity?
+- **home_affairs_ec_europa_eu_policies_migration_and_a**: Does your project have environmental benefits?
+- **invest_europa_eu_investeu_programme_investeu_porta**: What is your current legal status?
+- **invest_europa_eu_investeu_programme_investeu_porta**: What is your company size?
+- **invest_europa_eu_investeu_programme_investeu_porta**: What is your current project maturity?
+- **invest_europa_eu_investeu_programme_investeu_porta**: Will you conduct R&D activities?
+- **invest_europa_eu_investeu_programme_investeu_porta**: Do you plan to collaborate with other organizations?
+- **invest_europa_eu_investeu_programme_investeu_porta**: What is your team's gender diversity?
+- **invest_europa_eu_investeu_programme_investeu_porta**: Does your project have environmental benefits?
+- **research_and_innovation_ec_europa_eu_funding_fundi**: What is your current legal status?
+- **research_and_innovation_ec_europa_eu_funding_fundi**: What is your company size?
+- **research_and_innovation_ec_europa_eu_funding_fundi**: What is your current project maturity?
+- **research_and_innovation_ec_europa_eu_funding_fundi**: Will you conduct R&D activities?
+- **research_and_innovation_ec_europa_eu_funding_fundi**: Do you plan to collaborate with other organizations?
+- **research_and_innovation_ec_europa_eu_funding_fundi**: What is your team's gender diversity?
+- **research_and_innovation_ec_europa_eu_funding_fundi**: Does your project have environmental benefits?
+- **research_and_innovation_ec_europa_eu_funding_fundi**: What is your current legal status?
+- **research_and_innovation_ec_europa_eu_funding_fundi**: What is your company size?
+- **research_and_innovation_ec_europa_eu_funding_fundi**: What is your current project maturity?
+- **research_and_innovation_ec_europa_eu_funding_fundi**: Will you conduct R&D activities?
+- **research_and_innovation_ec_europa_eu_funding_fundi**: Do you plan to collaborate with other organizations?
+- **research_and_innovation_ec_europa_eu_funding_fundi**: What is your team's gender diversity?
+- **research_and_innovation_ec_europa_eu_funding_fundi**: Does your project have environmental benefits?
+- **research_and_innovation_ec_europa_eu_funding_fundi**: What is your current legal status?
+- **research_and_innovation_ec_europa_eu_funding_fundi**: What is your company size?
+- **research_and_innovation_ec_europa_eu_funding_fundi**: What is your current project maturity?
+- **research_and_innovation_ec_europa_eu_funding_fundi**: Will you conduct R&D activities?
+- **research_and_innovation_ec_europa_eu_funding_fundi**: Do you plan to collaborate with other organizations?
+- **research_and_innovation_ec_europa_eu_funding_fundi**: What is your team's gender diversity?
+- **research_and_innovation_ec_europa_eu_funding_fundi**: Does your project have environmental benefits?
+- **research_and_innovation_ec_europa_eu_funding_fundi**: What is your current legal status?
+- **research_and_innovation_ec_europa_eu_funding_fundi**: What is your company size?
+- **research_and_innovation_ec_europa_eu_funding_fundi**: What is your current project maturity?
+- **research_and_innovation_ec_europa_eu_funding_fundi**: Will you conduct R&D activities?
+- **research_and_innovation_ec_europa_eu_funding_fundi**: Do you plan to collaborate with other organizations?
+- **research_and_innovation_ec_europa_eu_funding_fundi**: What is your team's gender diversity?
+- **research_and_innovation_ec_europa_eu_funding_fundi**: Does your project have environmental benefits?
+- **research_and_innovation_ec_europa_eu_funding_fundi**: What is your current legal status?
+- **research_and_innovation_ec_europa_eu_funding_fundi**: What is your company size?
+- **research_and_innovation_ec_europa_eu_funding_fundi**: What is your current project maturity?
+- **research_and_innovation_ec_europa_eu_funding_fundi**: Will you conduct R&D activities?
+- **research_and_innovation_ec_europa_eu_funding_fundi**: Do you plan to collaborate with other organizations?
+- **research_and_innovation_ec_europa_eu_funding_fundi**: What is your team's gender diversity?
+- **research_and_innovation_ec_europa_eu_funding_fundi**: Does your project have environmental benefits?
+- **single_market_economy_ec_europa_eu_sectors_raw_mat**: What is your current legal status?
+- **single_market_economy_ec_europa_eu_sectors_raw_mat**: What is your company size?
+- **single_market_economy_ec_europa_eu_sectors_raw_mat**: What is your current project maturity?
+- **single_market_economy_ec_europa_eu_sectors_raw_mat**: Will you conduct R&D activities?
+- **single_market_economy_ec_europa_eu_sectors_raw_mat**: Do you plan to collaborate with other organizations?
+- **single_market_economy_ec_europa_eu_sectors_raw_mat**: What is your team's gender diversity?
+- **single_market_economy_ec_europa_eu_sectors_raw_mat**: Does your project have environmental benefits?
+- **transparenzportal_gv_at_tdb_tp_leistung_1003102_ht**: What is your current legal status?
+- **transparenzportal_gv_at_tdb_tp_leistung_1003102_ht**: What is your company size?
+- **transparenzportal_gv_at_tdb_tp_leistung_1003102_ht**: What is your current project maturity?
+- **transparenzportal_gv_at_tdb_tp_leistung_1003102_ht**: Do you plan to collaborate with other organizations?
+- **transparenzportal_gv_at_tdb_tp_leistung_1003102_ht**: What is your team's gender diversity?
+- **transparenzportal_gv_at_tdb_tp_leistung_1003102_ht**: Does your project have environmental benefits?
+- **wirtschaftsagentur_at_aktuelle_foerderungen_der_wi**: What is your current legal status?
+- **wirtschaftsagentur_at_aktuelle_foerderungen_der_wi**: What is your company size?
+- **wirtschaftsagentur_at_aktuelle_foerderungen_der_wi**: What is your current project maturity?
+- **wirtschaftsagentur_at_aktuelle_foerderungen_der_wi**: Do you plan to collaborate with other organizations?
+- **wirtschaftsagentur_at_aktuelle_foerderungen_der_wi**: What is your team's gender diversity?
+- **wirtschaftsagentur_at_aktuelle_foerderungen_der_wi**: Does your project have environmental benefits?
+- **www_ams_at_arbeitsuchende_arbeitslos_was_tun_foerd**: What is your current legal status?
+- **www_ams_at_arbeitsuchende_arbeitslos_was_tun_foerd**: What is your company size?
+- **www_ams_at_arbeitsuchende_arbeitslos_was_tun_foerd**: What is your current project maturity?
+- **www_ams_at_arbeitsuchende_arbeitslos_was_tun_foerd**: Do you plan to collaborate with other organizations?
+- **www_ams_at_arbeitsuchende_arbeitslos_was_tun_foerd**: What is your team's gender diversity?
+- **www_ams_at_arbeitsuchende_arbeitslos_was_tun_foerd**: Does your project have environmental benefits?
+- **www_bmdw_gv_at_Themen_Innovation_und_Technologie_I**: What is your current legal status?
+- **www_bmdw_gv_at_Themen_Innovation_und_Technologie_I**: What is your company size?
+- **www_bmdw_gv_at_Themen_Innovation_und_Technologie_I**: What is your current project maturity?
+- **www_bmdw_gv_at_Themen_Innovation_und_Technologie_I**: Do you plan to collaborate with other organizations?
+- **www_bmdw_gv_at_Themen_Innovation_und_Technologie_I**: What is your team's gender diversity?
+- **www_bmdw_gv_at_Themen_Innovation_und_Technologie_I**: Does your project have environmental benefits?
+- **www_bmimi_gv_at_themen_innovation_FTI_Themen_IWI_F**: What is your current legal status?
+- **www_bmimi_gv_at_themen_innovation_FTI_Themen_IWI_F**: What is your company size?
+- **www_bmimi_gv_at_themen_innovation_FTI_Themen_IWI_F**: What is your current project maturity?
+- **www_bmimi_gv_at_themen_innovation_FTI_Themen_IWI_F**: Do you plan to collaborate with other organizations?
+- **www_bmimi_gv_at_themen_innovation_FTI_Themen_IWI_F**: What is your team's gender diversity?
+- **www_bmimi_gv_at_themen_innovation_FTI_Themen_IWI_F**: Does your project have environmental benefits?
+- **www_cbe_europa_eu_unknown_program**: What is your current legal status?
+- **www_cbe_europa_eu_unknown_program**: What is your company size?
+- **www_cbe_europa_eu_unknown_program**: What is your current project maturity?
+- **www_cbe_europa_eu_unknown_program**: Will you conduct R&D activities?
+- **www_cbe_europa_eu_unknown_program**: Do you plan to collaborate with other organizations?
+- **www_cbe_europa_eu_unknown_program**: What is your team's gender diversity?
+- **www_cbe_europa_eu_unknown_program**: Does your project have environmental benefits?
+- **www_cbe_europa_eu_opportunities_calls_proposals**: What is your current legal status?
+- **www_cbe_europa_eu_opportunities_calls_proposals**: What is your company size?
+- **www_cbe_europa_eu_opportunities_calls_proposals**: What is your current project maturity?
+- **www_cbe_europa_eu_opportunities_calls_proposals**: Will you conduct R&D activities?
+- **www_cbe_europa_eu_opportunities_calls_proposals**: Do you plan to collaborate with other organizations?
+- **www_cbe_europa_eu_opportunities_calls_proposals**: What is your team's gender diversity?
+- **www_cbe_europa_eu_opportunities_calls_proposals**: Does your project have environmental benefits?
+- **www_chips_ju_europa_eu_unknown_program**: What is your current legal status?
+- **www_chips_ju_europa_eu_unknown_program**: What is your company size?
+- **www_chips_ju_europa_eu_unknown_program**: What is your current project maturity?
+- **www_chips_ju_europa_eu_unknown_program**: Will you conduct R&D activities?
+- **www_chips_ju_europa_eu_unknown_program**: Do you plan to collaborate with other organizations?
+- **www_chips_ju_europa_eu_unknown_program**: What is your team's gender diversity?
+- **www_chips_ju_europa_eu_unknown_program**: Does your project have environmental benefits?
+- **www_clean_hydrogen_europa_eu_calls_proposals_en**: What is your current legal status?
+- **www_clean_hydrogen_europa_eu_calls_proposals_en**: What is your company size?
+- **www_clean_hydrogen_europa_eu_calls_proposals_en**: What is your current project maturity?
+- **www_clean_hydrogen_europa_eu_calls_proposals_en**: Will you conduct R&D activities?
+- **www_clean_hydrogen_europa_eu_calls_proposals_en**: Do you plan to collaborate with other organizations?
+- **www_clean_hydrogen_europa_eu_calls_proposals_en**: What is your team's gender diversity?
+- **www_clean_hydrogen_europa_eu_calls_proposals_en**: Does your project have environmental benefits?
+- **www_easybank_at_geschaeftskunden_finanzieren_html**: What is your current legal status?
+- **www_easybank_at_geschaeftskunden_finanzieren_html**: What is your company size?
+- **www_easybank_at_geschaeftskunden_finanzieren_html**: What is your current project maturity?
+- **www_easybank_at_geschaeftskunden_finanzieren_html**: Do you plan to collaborate with other organizations?
+- **www_easybank_at_geschaeftskunden_finanzieren_html**: What is your team's gender diversity?
+- **www_easybank_at_geschaeftskunden_finanzieren_html**: Does your project have environmental benefits?
+- **www_eif_org_eif_org_InvestEU_guarantee_products_in**: What is your current legal status?
+- **www_eif_org_eif_org_InvestEU_guarantee_products_in**: What is your company size?
+- **www_eif_org_eif_org_InvestEU_guarantee_products_in**: What is your current project maturity?
+- **www_eif_org_eif_org_InvestEU_guarantee_products_in**: Will you conduct R&D activities?
+- **www_eif_org_eif_org_InvestEU_guarantee_products_in**: Do you plan to collaborate with other organizations?
+- **www_eif_org_eif_org_InvestEU_guarantee_products_in**: What is your team's gender diversity?
+- **www_eif_org_eif_org_InvestEU_guarantee_products_in**: Does your project have environmental benefits?
+- **www_eif_org_investeu**: What is your current legal status?
+- **www_eif_org_investeu**: What is your company size?
+- **www_eif_org_investeu**: What is your current project maturity?
+- **www_eif_org_investeu**: Will you conduct R&D activities?
+- **www_eif_org_investeu**: Do you plan to collaborate with other organizations?
+- **www_eif_org_investeu**: What is your team's gender diversity?
+- **www_eif_org_investeu**: Does your project have environmental benefits?
+- **www_eit_europa_eu_our_activities_opportunities_eit**: What is your current legal status?
+- **www_eit_europa_eu_our_activities_opportunities_eit**: What is your company size?
+- **www_eit_europa_eu_our_activities_opportunities_eit**: What is your current project maturity?
+- **www_eit_europa_eu_our_activities_opportunities_eit**: Will you conduct R&D activities?
+- **www_eit_europa_eu_our_activities_opportunities_eit**: Do you plan to collaborate with other organizations?
+- **www_eit_europa_eu_our_activities_opportunities_eit**: What is your team's gender diversity?
+- **www_eit_europa_eu_our_activities_opportunities_eit**: Does your project have environmental benefits?
+- **www_eitdigital_eu_entrepreneurial_academy_2025**: What is your current legal status?
+- **www_eitdigital_eu_entrepreneurial_academy_2025**: What is your company size?
+- **www_eitdigital_eu_entrepreneurial_academy_2025**: What is your current project maturity?
+- **www_eitdigital_eu_entrepreneurial_academy_2025**: Will you conduct R&D activities?
+- **www_eitdigital_eu_entrepreneurial_academy_2025**: Do you plan to collaborate with other organizations?
+- **www_eitdigital_eu_entrepreneurial_academy_2025**: What is your team's gender diversity?
+- **www_eitdigital_eu_entrepreneurial_academy_2025**: Does your project have environmental benefits?
+- **www_eitdigital_eu_open_innovation_factory**: What is your current legal status?
+- **www_eitdigital_eu_open_innovation_factory**: What is your company size?
+- **www_eitdigital_eu_open_innovation_factory**: What is your current project maturity?
+- **www_eitdigital_eu_open_innovation_factory**: Will you conduct R&D activities?
+- **www_eitdigital_eu_open_innovation_factory**: Do you plan to collaborate with other organizations?
+- **www_eitdigital_eu_open_innovation_factory**: What is your team's gender diversity?
+- **www_eitdigital_eu_open_innovation_factory**: Does your project have environmental benefits?
+- **www_eitdigital_eu_our_messages_calls_tenders_eit_d**: What is your current legal status?
+- **www_eitdigital_eu_our_messages_calls_tenders_eit_d**: What is your company size?
+- **www_eitdigital_eu_our_messages_calls_tenders_eit_d**: What is your current project maturity?
+- **www_eitdigital_eu_our_messages_calls_tenders_eit_d**: Will you conduct R&D activities?
+- **www_eitdigital_eu_our_messages_calls_tenders_eit_d**: Do you plan to collaborate with other organizations?
+- **www_eitdigital_eu_our_messages_calls_tenders_eit_d**: What is your team's gender diversity?
+- **www_eitdigital_eu_our_messages_calls_tenders_eit_d**: Does your project have environmental benefits?
+- **www_eitmanufacturing_eu_calls_call_for_proposals_2**: What is your current legal status?
+- **www_eitmanufacturing_eu_calls_call_for_proposals_2**: What is your company size?
+- **www_eitmanufacturing_eu_calls_call_for_proposals_2**: What is your current project maturity?
+- **www_eitmanufacturing_eu_calls_call_for_proposals_2**: Will you conduct R&D activities?
+- **www_eitmanufacturing_eu_calls_call_for_proposals_2**: Do you plan to collaborate with other organizations?
+- **www_eitmanufacturing_eu_calls_call_for_proposals_2**: What is your team's gender diversity?
+- **www_eitmanufacturing_eu_calls_call_for_proposals_2**: Does your project have environmental benefits?
+- **www_eitmanufacturing_eu_news_events_news_call_for_**: What is your current legal status?
+- **www_eitmanufacturing_eu_news_events_news_call_for_**: What is your company size?
+- **www_eitmanufacturing_eu_news_events_news_call_for_**: What is your current project maturity?
+- **www_eitmanufacturing_eu_news_events_news_call_for_**: Will you conduct R&D activities?
+- **www_eitmanufacturing_eu_news_events_news_call_for_**: Do you plan to collaborate with other organizations?
+- **www_eitmanufacturing_eu_news_events_news_call_for_**: What is your team's gender diversity?
+- **www_eitmanufacturing_eu_news_events_news_call_for_**: Does your project have environmental benefits?
+- **www_eitrawmaterials_eu_opportunities**: What is your current legal status?
+- **www_eitrawmaterials_eu_opportunities**: What is your company size?
+- **www_eitrawmaterials_eu_opportunities**: What is your current project maturity?
+- **www_eitrawmaterials_eu_opportunities**: Will you conduct R&D activities?
+- **www_eitrawmaterials_eu_opportunities**: Do you plan to collaborate with other organizations?
+- **www_eitrawmaterials_eu_opportunities**: What is your team's gender diversity?
+- **www_eitrawmaterials_eu_opportunities**: Does your project have environmental benefits?
+- **www_esa_bic_at_unknown_program**: What is your current legal status?
+- **www_esa_bic_at_unknown_program**: What is your company size?
+- **www_esa_bic_at_unknown_program**: What is your current project maturity?
+- **www_esa_bic_at_unknown_program**: Do you plan to collaborate with other organizations?
+- **www_esa_bic_at_unknown_program**: What is your team's gender diversity?
+- **www_esa_bic_at_unknown_program**: Does your project have environmental benefits?
+- **www_esa_int_Applications_Telecommunications_and_In**: What is your current legal status?
+- **www_esa_int_Applications_Telecommunications_and_In**: What is your company size?
+- **www_esa_int_Applications_Telecommunications_and_In**: What is your current project maturity?
+- **www_esa_int_Applications_Telecommunications_and_In**: Will you conduct R&D activities?
+- **www_esa_int_Applications_Telecommunications_and_In**: Do you plan to collaborate with other organizations?
+- **www_esa_int_Applications_Telecommunications_and_In**: What is your team's gender diversity?
+- **www_esa_int_Applications_Telecommunications_and_In**: Does your project have environmental benefits?
+- **www_esa_int_Enabling_Support_Space_Engineering_Tec**: What is your current legal status?
+- **www_esa_int_Enabling_Support_Space_Engineering_Tec**: What is your company size?
+- **www_esa_int_Enabling_Support_Space_Engineering_Tec**: What is your current project maturity?
+- **www_esa_int_Enabling_Support_Space_Engineering_Tec**: Will you conduct R&D activities?
+- **www_esa_int_Enabling_Support_Space_Engineering_Tec**: Do you plan to collaborate with other organizations?
+- **www_esa_int_Enabling_Support_Space_Engineering_Tec**: What is your team's gender diversity?
+- **www_esa_int_Enabling_Support_Space_Engineering_Tec**: Does your project have environmental benefits?
+- **www_eurohpc_ju_europa_eu_establishing_hpc_centres_**: What is your current legal status?
+- **www_eurohpc_ju_europa_eu_establishing_hpc_centres_**: What is your company size?
+- **www_eurohpc_ju_europa_eu_establishing_hpc_centres_**: What is your current project maturity?
+- **www_eurohpc_ju_europa_eu_establishing_hpc_centres_**: Will you conduct R&D activities?
+- **www_eurohpc_ju_europa_eu_establishing_hpc_centres_**: Do you plan to collaborate with other organizations?
+- **www_eurohpc_ju_europa_eu_establishing_hpc_centres_**: What is your team's gender diversity?
+- **www_eurohpc_ju_europa_eu_establishing_hpc_centres_**: Does your project have environmental benefits?
+- **www_eurohpc_ju_europa_eu_eurohpc_ju_call_proposals**: What is your current legal status?
+- **www_eurohpc_ju_europa_eu_eurohpc_ju_call_proposals**: What is your company size?
+- **www_eurohpc_ju_europa_eu_eurohpc_ju_call_proposals**: What is your current project maturity?
+- **www_eurohpc_ju_europa_eu_eurohpc_ju_call_proposals**: Will you conduct R&D activities?
+- **www_eurohpc_ju_europa_eu_eurohpc_ju_call_proposals**: Do you plan to collaborate with other organizations?
+- **www_eurohpc_ju_europa_eu_eurohpc_ju_call_proposals**: What is your team's gender diversity?
+- **www_eurohpc_ju_europa_eu_eurohpc_ju_call_proposals**: Does your project have environmental benefits?
+- **www_ffg_at_ausschreibung_basisprogramm_2025**: What is your current legal status?
+- **www_ffg_at_ausschreibung_basisprogramm_2025**: What is your company size?
+- **www_ffg_at_ausschreibung_basisprogramm_2025**: What is your team's gender diversity?
+- **www_ffg_at_ausschreibung_basisprogramm_2025**: Does your project have environmental benefits?
+- **www_ffg_at_ausschreibung_impact_innovation_2025**: What is your current legal status?
+- **www_ffg_at_ausschreibung_impact_innovation_2025**: What is your company size?
+- **www_ffg_at_ausschreibung_impact_innovation_2025**: What is your team's gender diversity?
+- **www_ffg_at_ausschreibung_impact_innovation_2025**: Does your project have environmental benefits?
+- **www_ffg_at_en_content_funding**: What is your current legal status?
+- **www_ffg_at_en_content_funding**: What is your company size?
+- **www_ffg_at_en_content_funding**: What is your team's gender diversity?
+- **www_ffg_at_en_content_funding**: Does your project have environmental benefits?
+- **www_ffg_at_en_program_spin_fellowships_0**: What is your current legal status?
+- **www_ffg_at_en_program_spin_fellowships_0**: What is your company size?
+- **www_ffg_at_en_program_spin_fellowships_0**: What is your team's gender diversity?
+- **www_ffg_at_en_program_spin_fellowships_0**: Does your project have environmental benefits?
+- **www_ffg_at_en_spin_off_fellowships**: What is your current legal status?
+- **www_ffg_at_en_spin_off_fellowships**: What is your company size?
+- **www_ffg_at_en_spin_off_fellowships**: What is your team's gender diversity?
+- **www_ffg_at_en_spin_off_fellowships**: Does your project have environmental benefits?
+- **www_ffg_at_initiative_basisprogramm**: What is your current legal status?
+- **www_ffg_at_initiative_basisprogramm**: What is your company size?
+- **www_ffg_at_initiative_basisprogramm**: What is your team's gender diversity?
+- **www_ffg_at_initiative_basisprogramm**: Does your project have environmental benefits?
+- **www_ffg_at_programm_bridge**: What is your current legal status?
+- **www_ffg_at_programm_bridge**: What is your company size?
+- **www_ffg_at_programm_bridge**: What is your team's gender diversity?
+- **www_ffg_at_programm_bridge**: Does your project have environmental benefits?
+- **www_ffg_at_programm_impactinnovation**: What is your current legal status?
+- **www_ffg_at_programm_impactinnovation**: What is your company size?
+- **www_ffg_at_programm_impactinnovation**: What is your team's gender diversity?
+- **www_ffg_at_programm_impactinnovation**: Does your project have environmental benefits?
+- **www_grenke_at_unknown_program**: What is your current legal status?
+- **www_grenke_at_unknown_program**: What is your company size?
+- **www_grenke_at_unknown_program**: What is your current project maturity?
+- **www_grenke_at_unknown_program**: Do you plan to collaborate with other organizations?
+- **www_grenke_at_unknown_program**: What is your team's gender diversity?
+- **www_grenke_at_unknown_program**: Does your project have environmental benefits?
+- **www_horizontevropa_cz_en_news_yiifnews_3109**: What is your current legal status?
+- **www_horizontevropa_cz_en_news_yiifnews_3109**: What is your company size?
+- **www_horizontevropa_cz_en_news_yiifnews_3109**: What is your current project maturity?
+- **www_horizontevropa_cz_en_news_yiifnews_3109**: Will you conduct R&D activities?
+- **www_horizontevropa_cz_en_news_yiifnews_3109**: Do you plan to collaborate with other organizations?
+- **www_horizontevropa_cz_en_news_yiifnews_3109**: What is your team's gender diversity?
+- **www_horizontevropa_cz_en_news_yiifnews_3109**: Does your project have environmental benefits?
+- **www_i2b_at_unknown_program**: What is your current legal status?
+- **www_i2b_at_unknown_program**: What is your company size?
+- **www_i2b_at_unknown_program**: What is your current project maturity?
+- **www_i2b_at_unknown_program**: Do you plan to collaborate with other organizations?
+- **www_i2b_at_unknown_program**: What is your team's gender diversity?
+- **www_i2b_at_unknown_program**: Does your project have environmental benefits?
+- **www_klimafonds_gv_at_unknown_program**: What is your current legal status?
+- **www_klimafonds_gv_at_unknown_program**: What is your company size?
+- **www_klimafonds_gv_at_unknown_program**: What is your current project maturity?
+- **www_klimafonds_gv_at_unknown_program**: Do you plan to collaborate with other organizations?
+- **www_klimafonds_gv_at_unknown_program**: What is your team's gender diversity?
+- **www_kommunalkredit_at_umweltfoerderung**: What is your current legal status?
+- **www_kommunalkredit_at_umweltfoerderung**: What is your company size?
+- **www_kommunalkredit_at_umweltfoerderung**: What is your current project maturity?
+- **www_kommunalkredit_at_umweltfoerderung**: Do you plan to collaborate with other organizations?
+- **www_kommunalkredit_at_umweltfoerderung**: What is your team's gender diversity?
+- **www_migration_gv_at_en_types_of_immigration_perman**: What is your current legal status?
+- **www_migration_gv_at_en_types_of_immigration_perman**: What is your company size?
+- **www_migration_gv_at_en_types_of_immigration_perman**: What is your current project maturity?
+- **www_migration_gv_at_en_types_of_immigration_perman**: Do you plan to collaborate with other organizations?
+- **www_migration_gv_at_en_types_of_immigration_perman**: What is your team's gender diversity?
+- **www_migration_gv_at_en_types_of_immigration_perman**: Does your project have environmental benefits?
+- **www_migration_gv_at_en_types_of_immigration_perman**: What is your current legal status?
+- **www_migration_gv_at_en_types_of_immigration_perman**: What is your company size?
+- **www_migration_gv_at_en_types_of_immigration_perman**: What is your current project maturity?
+- **www_migration_gv_at_en_types_of_immigration_perman**: Do you plan to collaborate with other organizations?
+- **www_migration_gv_at_en_types_of_immigration_perman**: What is your team's gender diversity?
+- **www_migration_gv_at_en_types_of_immigration_perman**: Does your project have environmental benefits?
+- **www_migration_gv_at_en_types_of_immigration_perman**: What is your current legal status?
+- **www_migration_gv_at_en_types_of_immigration_perman**: What is your company size?
+- **www_migration_gv_at_en_types_of_immigration_perman**: What is your current project maturity?
+- **www_migration_gv_at_en_types_of_immigration_perman**: Do you plan to collaborate with other organizations?
+- **www_migration_gv_at_en_types_of_immigration_perman**: What is your team's gender diversity?
+- **www_migration_gv_at_en_types_of_immigration_perman**: Does your project have environmental benefits?
+- **www_migration_gv_at_en_types_of_immigration_perman**: What is your current legal status?
+- **www_migration_gv_at_en_types_of_immigration_perman**: What is your company size?
+- **www_migration_gv_at_en_types_of_immigration_perman**: What is your current project maturity?
+- **www_migration_gv_at_en_types_of_immigration_perman**: Do you plan to collaborate with other organizations?
+- **www_migration_gv_at_en_types_of_immigration_perman**: What is your team's gender diversity?
+- **www_migration_gv_at_en_types_of_immigration_perman**: Does your project have environmental benefits?
+- **www_migration_gv_at_en_types_of_immigration_perman**: What is your current legal status?
+- **www_migration_gv_at_en_types_of_immigration_perman**: What is your company size?
+- **www_migration_gv_at_en_types_of_immigration_perman**: What is your current project maturity?
+- **www_migration_gv_at_en_types_of_immigration_perman**: Do you plan to collaborate with other organizations?
+- **www_migration_gv_at_en_types_of_immigration_perman**: What is your team's gender diversity?
+- **www_migration_gv_at_en_types_of_immigration_perman**: Does your project have environmental benefits?
+- **www_migration_gv_at_en_types_of_immigration_perman**: What is your current legal status?
+- **www_migration_gv_at_en_types_of_immigration_perman**: What is your company size?
+- **www_migration_gv_at_en_types_of_immigration_perman**: What is your current project maturity?
+- **www_migration_gv_at_en_types_of_immigration_perman**: Do you plan to collaborate with other organizations?
+- **www_migration_gv_at_en_types_of_immigration_perman**: What is your team's gender diversity?
+- **www_migration_gv_at_en_types_of_immigration_perman**: Does your project have environmental benefits?
+- **www_migration_gv_at_en_types_of_immigration_perman**: What is your current legal status?
+- **www_migration_gv_at_en_types_of_immigration_perman**: What is your company size?
+- **www_migration_gv_at_en_types_of_immigration_perman**: What is your current project maturity?
+- **www_migration_gv_at_en_types_of_immigration_perman**: Do you plan to collaborate with other organizations?
+- **www_migration_gv_at_en_types_of_immigration_perman**: What is your team's gender diversity?
+- **www_migration_gv_at_en_types_of_immigration_perman**: Does your project have environmental benefits?
+- **www_migration_gv_at_en_types_of_immigration_red_wh**: What is your current legal status?
+- **www_migration_gv_at_en_types_of_immigration_red_wh**: What is your company size?
+- **www_migration_gv_at_en_types_of_immigration_red_wh**: What is your current project maturity?
+- **www_migration_gv_at_en_types_of_immigration_red_wh**: Do you plan to collaborate with other organizations?
+- **www_migration_gv_at_en_types_of_immigration_red_wh**: What is your team's gender diversity?
+- **www_migration_gv_at_en_types_of_immigration_red_wh**: Does your project have environmental benefits?
+- **www_oesterreich_gv_at_de_themen_menschen_aus_ander**: What is your current legal status?
+- **www_oesterreich_gv_at_de_themen_menschen_aus_ander**: What is your company size?
+- **www_oesterreich_gv_at_de_themen_menschen_aus_ander**: What is your current project maturity?
+- **www_oesterreich_gv_at_de_themen_menschen_aus_ander**: Do you plan to collaborate with other organizations?
+- **www_oesterreich_gv_at_de_themen_menschen_aus_ander**: What is your team's gender diversity?
+- **www_oesterreich_gv_at_de_themen_menschen_aus_ander**: Does your project have environmental benefits?
+- **www_oesterreich_gv_at_en_themen_menschen_aus_ander**: What is your current legal status?
+- **www_oesterreich_gv_at_en_themen_menschen_aus_ander**: What is your company size?
+- **www_oesterreich_gv_at_en_themen_menschen_aus_ander**: What is your current project maturity?
+- **www_oesterreich_gv_at_en_themen_menschen_aus_ander**: Do you plan to collaborate with other organizations?
+- **www_oesterreich_gv_at_en_themen_menschen_aus_ander**: What is your team's gender diversity?
+- **www_oesterreich_gv_at_en_themen_menschen_aus_ander**: Does your project have environmental benefits?
+- **www_raiffeisen_at_ooe_privatkunden_finanzieren_kre**: What is your current legal status?
+- **www_raiffeisen_at_ooe_privatkunden_finanzieren_kre**: What is your company size?
+- **www_raiffeisen_at_ooe_privatkunden_finanzieren_kre**: What is your current project maturity?
+- **www_raiffeisen_at_ooe_privatkunden_finanzieren_kre**: Do you plan to collaborate with other organizations?
+- **www_raiffeisen_at_ooe_privatkunden_finanzieren_kre**: What is your team's gender diversity?
+- **www_raiffeisen_at_ooe_privatkunden_finanzieren_kre**: Does your project have environmental benefits?
+- **www_raiffeisen_at_tirol_privatkunden_finanzieren_p**: What is your current legal status?
+- **www_raiffeisen_at_tirol_privatkunden_finanzieren_p**: What is your company size?
+- **www_raiffeisen_at_tirol_privatkunden_finanzieren_p**: What is your current project maturity?
+- **www_raiffeisen_at_tirol_privatkunden_finanzieren_p**: Do you plan to collaborate with other organizations?
+- **www_raiffeisen_at_tirol_privatkunden_finanzieren_p**: What is your team's gender diversity?
+- **www_raiffeisen_at_tirol_privatkunden_finanzieren_p**: Does your project have environmental benefits?
+- **www_ril_at_de_raiffeisen_impuls_leasing_html**: What is your current legal status?
+- **www_ril_at_de_raiffeisen_impuls_leasing_html**: What is your company size?
+- **www_ril_at_de_raiffeisen_impuls_leasing_html**: What is your current project maturity?
+- **www_ril_at_de_raiffeisen_impuls_leasing_html**: Do you plan to collaborate with other organizations?
+- **www_ril_at_de_raiffeisen_impuls_leasing_html**: What is your team's gender diversity?
+- **www_ril_at_de_raiffeisen_impuls_leasing_html**: Does your project have environmental benefits?
+- **www_s_leasing_at_unknown_program**: What is your current legal status?
+- **www_s_leasing_at_unknown_program**: What is your company size?
+- **www_s_leasing_at_unknown_program**: What is your current project maturity?
+- **www_s_leasing_at_unknown_program**: Do you plan to collaborate with other organizations?
+- **www_s_leasing_at_unknown_program**: What is your team's gender diversity?
+- **www_s_leasing_at_unknown_program**: Does your project have environmental benefits?
+- **www_space_ec_europa_eu_eu_space_policy_cassini_spa**: What is your current legal status?
+- **www_space_ec_europa_eu_eu_space_policy_cassini_spa**: What is your company size?
+- **www_space_ec_europa_eu_eu_space_policy_cassini_spa**: What is your current project maturity?
+- **www_space_ec_europa_eu_eu_space_policy_cassini_spa**: Will you conduct R&D activities?
+- **www_space_ec_europa_eu_eu_space_policy_cassini_spa**: Do you plan to collaborate with other organizations?
+- **www_space_ec_europa_eu_eu_space_policy_cassini_spa**: What is your team's gender diversity?
+- **www_space_ec_europa_eu_eu_space_policy_cassini_spa**: Does your project have environmental benefits?
+- **www_umweltfoerderung_at_unknown_program**: What is your current legal status?
+- **www_umweltfoerderung_at_unknown_program**: What is your company size?
+- **www_umweltfoerderung_at_unknown_program**: What is your current project maturity?
+- **www_umweltfoerderung_at_unknown_program**: Do you plan to collaborate with other organizations?
+- **www_umweltfoerderung_at_unknown_program**: What is your team's gender diversity?
+- **www_umweltfoerderung_at_betriebe**: What is your current legal status?
+- **www_umweltfoerderung_at_betriebe**: What is your company size?
+- **www_umweltfoerderung_at_betriebe**: What is your current project maturity?
+- **www_umweltfoerderung_at_betriebe**: Do you plan to collaborate with other organizations?
+- **www_umweltfoerderung_at_betriebe**: What is your team's gender diversity?
+- **www_wien_gv_at_english_e_government_documents_resi**: What is your current legal status?
+- **www_wien_gv_at_english_e_government_documents_resi**: What is your company size?
+- **www_wien_gv_at_english_e_government_documents_resi**: What is your current project maturity?
+- **www_wien_gv_at_english_e_government_documents_resi**: Do you plan to collaborate with other organizations?
+- **www_wien_gv_at_english_e_government_documents_resi**: What is your team's gender diversity?
+- **www_wien_gv_at_english_e_government_documents_resi**: Does your project have environmental benefits?
+- **www_wko_at_foerderungen_innovation_wien**: What is your current legal status?
+- **www_wko_at_foerderungen_innovation_wien**: What is your company size?
+- **www_wko_at_foerderungen_innovation_wien**: What is your current project maturity?
+- **www_wko_at_foerderungen_innovation_wien**: Do you plan to collaborate with other organizations?
+- **www_wko_at_foerderungen_innovation_wien**: What is your team's gender diversity?
+- **www_wko_at_foerderungen_innovation_wien**: Does your project have environmental benefits?
+- **www_wko_at_service_gruendung_uebernahme_gruenderse**: What is your current legal status?
+- **www_wko_at_service_gruendung_uebernahme_gruenderse**: What is your company size?
+- **www_wko_at_service_gruendung_uebernahme_gruenderse**: What is your current project maturity?
+- **www_wko_at_service_gruendung_uebernahme_gruenderse**: Do you plan to collaborate with other organizations?
+- **www_wko_at_service_gruendung_uebernahme_gruenderse**: What is your team's gender diversity?
+- **www_wko_at_service_gruendung_uebernahme_gruenderse**: Does your project have environmental benefits?
+- **www_workinaustria_com_en_residence_employment_red_**: What is your current legal status?
+- **www_workinaustria_com_en_residence_employment_red_**: What is your company size?
+- **www_workinaustria_com_en_residence_employment_red_**: What is your current project maturity?
+- **www_workinaustria_com_en_residence_employment_red_**: Do you plan to collaborate with other organizations?
+- **www_workinaustria_com_en_residence_employment_red_**: What is your team's gender diversity?
+- **www_workinaustria_com_en_residence_employment_red_**: Does your project have environmental benefits?
+- **viennabusinessagency_at_current_funding**: What is your current legal status?
+- **viennabusinessagency_at_current_funding**: What is your company size?
+- **viennabusinessagency_at_current_funding**: What is your current project maturity?
+- **viennabusinessagency_at_current_funding**: Do you plan to collaborate with other organizations?
+- **viennabusinessagency_at_current_funding**: What is your team's gender diversity?
+- **viennabusinessagency_at_current_funding**: Does your project have environmental benefits?
+- **viennabusinessagency_at_current_funding_innovation**: What is your current legal status?
+- **viennabusinessagency_at_current_funding_innovation**: What is your company size?
+- **viennabusinessagency_at_current_funding_innovation**: What is your current project maturity?
+- **viennabusinessagency_at_current_funding_innovation**: Do you plan to collaborate with other organizations?
+- **viennabusinessagency_at_current_funding_innovation**: What is your team's gender diversity?
+- **viennabusinessagency_at_current_funding_innovation**: Does your project have environmental benefits?
+- **viennabusinessagency_at_current_funding_startup_gr**: What is your company size?
+- **viennabusinessagency_at_current_funding_startup_gr**: What is your current project maturity?
+- **viennabusinessagency_at_current_funding_startup_gr**: Do you plan to collaborate with other organizations?
+- **viennabusinessagency_at_current_funding_startup_gr**: What is your team's gender diversity?
+- **viennabusinessagency_at_current_funding_startup_gr**: Does your project have environmental benefits?
+- **www_migration_gv_at_en_types_of_immigration_perman**: Is your company a micro or small enterprise?
+- **www_migration_gv_at_en_types_of_immigration_perman**: What is your current project maturity?
+- **www_migration_gv_at_en_types_of_immigration_perman**: Do you plan to collaborate with other organizations?
+- **www_migration_gv_at_en_types_of_immigration_perman**: What is your team's gender diversity?
+- **www_migration_gv_at_en_types_of_immigration_perman**: Does your project have environmental benefits?
+- **www_migration_gv_at_en_types_of_immigration_red_wh**: Is your company a micro or small enterprise?
+- **www_migration_gv_at_en_types_of_immigration_red_wh**: What is your current project maturity?
+- **www_migration_gv_at_en_types_of_immigration_red_wh**: Do you plan to collaborate with other organizations?
+- **www_migration_gv_at_en_types_of_immigration_red_wh**: What is your team's gender diversity?
+- **www_migration_gv_at_en_types_of_immigration_red_wh**: Does your project have environmental benefits?
+- **www_migration_gv_at_en_types_of_immigration_perman**: What is your current legal status?
+- **www_migration_gv_at_en_types_of_immigration_perman**: What is your company size?
+- **www_migration_gv_at_en_types_of_immigration_perman**: What is your current project maturity?
+- **www_migration_gv_at_en_types_of_immigration_perman**: Do you plan to collaborate with other organizations?
+- **www_migration_gv_at_en_types_of_immigration_perman**: What is your team's gender diversity?
+- **www_migration_gv_at_en_types_of_immigration_perman**: Does your project have environmental benefits?
+- **www_migration_gv_at_en_types_of_immigration_perman**: What is your current legal status?
+- **www_migration_gv_at_en_types_of_immigration_perman**: What is your company size?
+- **www_migration_gv_at_en_types_of_immigration_perman**: What is your current project maturity?
+- **www_migration_gv_at_en_types_of_immigration_perman**: Do you plan to collaborate with other organizations?
+- **www_migration_gv_at_en_types_of_immigration_perman**: What is your team's gender diversity?
+- **www_migration_gv_at_en_types_of_immigration_perman**: Does your project have environmental benefits?
+- **www_migration_gv_at_en_types_of_immigration_perman**: What is your current legal status?
+- **www_migration_gv_at_en_types_of_immigration_perman**: What is your company size?
+- **www_migration_gv_at_en_types_of_immigration_perman**: What is your current project maturity?
+- **www_migration_gv_at_en_types_of_immigration_perman**: Do you plan to collaborate with other organizations?
+- **www_migration_gv_at_en_types_of_immigration_perman**: What is your team's gender diversity?
+- **www_migration_gv_at_en_types_of_immigration_perman**: Does your project have environmental benefits?
+- **www_migration_gv_at_en_types_of_immigration_perman**: What is your current legal status?
+- **www_migration_gv_at_en_types_of_immigration_perman**: What is your company size?
+- **www_migration_gv_at_en_types_of_immigration_perman**: What is your current project maturity?
+- **www_migration_gv_at_en_types_of_immigration_perman**: Do you plan to collaborate with other organizations?
+- **www_migration_gv_at_en_types_of_immigration_perman**: What is your team's gender diversity?
+- **www_migration_gv_at_en_types_of_immigration_perman**: Does your project have environmental benefits?
+- **www_migration_gv_at_en_types_of_immigration_perman**: What is your current legal status?
+- **www_migration_gv_at_en_types_of_immigration_perman**: What is your company size?
+- **www_migration_gv_at_en_types_of_immigration_perman**: What is your current project maturity?
+- **www_migration_gv_at_en_types_of_immigration_perman**: Do you plan to collaborate with other organizations?
+- **www_migration_gv_at_en_types_of_immigration_perman**: What is your team's gender diversity?
+- **www_migration_gv_at_en_types_of_immigration_perman**: Does your project have environmental benefits?
+- **www_migration_gv_at_en_types_of_immigration_perman**: What is your current legal status?
+- **www_migration_gv_at_en_types_of_immigration_perman**: What is your company size?
+- **www_migration_gv_at_en_types_of_immigration_perman**: What is your current project maturity?
+- **www_migration_gv_at_en_types_of_immigration_perman**: Do you plan to collaborate with other organizations?
+- **www_migration_gv_at_en_types_of_immigration_perman**: What is your team's gender diversity?
+- **www_migration_gv_at_en_types_of_immigration_perman**: Does your project have environmental benefits?
+- **www_oesterreich_gv_at_de_themen_menschen_aus_ander**: What is your current legal status?
+- **www_oesterreich_gv_at_de_themen_menschen_aus_ander**: What is your company size?
+- **www_oesterreich_gv_at_de_themen_menschen_aus_ander**: What is your current project maturity?
+- **www_oesterreich_gv_at_de_themen_menschen_aus_ander**: Do you plan to collaborate with other organizations?
+- **www_oesterreich_gv_at_de_themen_menschen_aus_ander**: What is your team's gender diversity?
+- **www_oesterreich_gv_at_de_themen_menschen_aus_ander**: Does your project have environmental benefits?
+- **www_oesterreich_gv_at_en_themen_menschen_aus_ander**: What is your current legal status?
+- **www_oesterreich_gv_at_en_themen_menschen_aus_ander**: What is your company size?
+- **www_oesterreich_gv_at_en_themen_menschen_aus_ander**: What is your current project maturity?
+- **www_oesterreich_gv_at_en_themen_menschen_aus_ander**: Do you plan to collaborate with other organizations?
+- **www_oesterreich_gv_at_en_themen_menschen_aus_ander**: What is your team's gender diversity?
+- **www_oesterreich_gv_at_en_themen_menschen_aus_ander**: Does your project have environmental benefits?
+- **www_wien_gv_at_english_e_government_documents_resi**: What is your current legal status?
+- **www_wien_gv_at_english_e_government_documents_resi**: What is your company size?
+- **www_wien_gv_at_english_e_government_documents_resi**: What is your current project maturity?
+- **www_wien_gv_at_english_e_government_documents_resi**: Do you plan to collaborate with other organizations?
+- **www_wien_gv_at_english_e_government_documents_resi**: What is your team's gender diversity?
+- **www_wien_gv_at_english_e_government_documents_resi**: Does your project have environmental benefits?
+- **www_workinaustria_com_en_residence_employment_red_**: What is your current legal status?
+- **www_workinaustria_com_en_residence_employment_red_**: What is your company size?
+- **www_workinaustria_com_en_residence_employment_red_**: What is your current project maturity?
+- **www_workinaustria_com_en_residence_employment_red_**: Do you plan to collaborate with other organizations?
+- **www_workinaustria_com_en_residence_employment_red_**: What is your team's gender diversity?
+- **www_workinaustria_com_en_residence_employment_red_**: Does your project have environmental benefits?
+
+## System Transparency
+
+### Answer → Rules → Program IDs → Bullets Flow
+1. **Input Answers**: 10 questions answered
+2. **Rule Evaluation**: 1530 rules triggered
+3. **Program Matching**: 5 programs matched
+4. **Scoring**: Programs scored based on rule matches and bonuses
+5. **Output**: Top 5 recommendations with reasons and risks
+
+### Coverage Analysis
+- **Programs Evaluated**: 214
+- **Rules Triggered**: 1530
+- **Match Rate**: 2%
+- **Average Score**: 100%
+
+---

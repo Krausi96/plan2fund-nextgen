@@ -1,0 +1,1863 @@
+{
+  "metadata": {
+    "version": "1.0",
+    "generated": "2025-09-21T20:29:41.542Z",
+    "totalPersonas": 10,
+    "personasWithUnknowns": 0,
+    "personasWithErrors": 0
+  },
+  "results": [
+    {
+      "personaId": "space_startup",
+      "persona": {
+        "name": "Orbit Dynamics",
+        "description": "Deep tech space startup developing satellite propulsion systems",
+        "general": {
+          "name": "Orbit Dynamics",
+          "sector": "DEEPTECH_SPACE",
+          "location": "Vienna, Austria",
+          "registration_status": "GmbH",
+          "company_age": "2 years",
+          "team_composition": {
+            "founders": 2,
+            "engineers": 5,
+            "total_employees": 7
+          },
+          "founders_background": [
+            "PhD Aerospace Engineering",
+            "Former ESA Engineer"
+          ]
+        },
+        "stage": {
+          "maturity": "prototype",
+          "trl": 4,
+          "revenue_level": 0
+        },
+        "funding": {
+          "amount_requested": 10000000,
+          "urgency": "normal",
+          "use_of_funds": [
+            "R&D",
+            "equipment",
+            "team_expansion"
+          ],
+          "collateral_availability": false,
+          "equity_willingness": true,
+          "co_funding_available": false
+        },
+        "timeline": {
+          "project_start_date": "TBD",
+          "project_duration": "36 months",
+          "deadline_awareness": false
+        },
+        "special": {
+          "ip_status": "patents_pending",
+          "regulatory_needs": [
+            "space_licensing",
+            "export_controls"
+          ],
+          "social_impact_flag": false,
+          "esg_flag": false
+        },
+        "completeness": {
+          "missing_variables": [
+            "project_start_date"
+          ],
+          "completeness_score": 0.9
+        }
+      },
+      "answers": {
+        "q1_country": "AT",
+        "q2_entity_stage": "INC_6_36M",
+        "q3_company_size": "SMALL_10_49",
+        "q4_theme": [
+          "INNOVATION_DIGITAL",
+          "MANUFACTURING"
+        ],
+        "q5_maturity_trl": "TRL_3_4",
+        "q6_rnd_in_at": "YES",
+        "q7_collaboration": "WITH_RESEARCH",
+        "q8_funding_types": [
+          "GRANT",
+          "EQUITY"
+        ],
+        "q9_team_diversity": "YES",
+        "q10_env_benefit": "NONE"
+      },
+      "derivedSignals": {
+        "capexFlag": true,
+        "equityOk": true,
+        "collateralOk": false,
+        "urgencyBucket": "soon",
+        "companyAgeBucket": "0-3y",
+        "sectorBucket": "tech",
+        "rdInAT": true,
+        "amountFit": 80,
+        "stageFit": 85,
+        "timelineFit": 80,
+        "fundingMode": "grant",
+        "trlBucket": "low",
+        "revenueBucket": "low",
+        "ipFlag": true,
+        "regulatoryFlag": false,
+        "socialImpactFlag": false,
+        "esgFlag": false,
+        "unknowns": [],
+        "counterfactuals": []
+      },
+      "recommendations": [
+        {
+          "id": "program1",
+          "name": "Austrian Innovation Grant",
+          "type": "grant",
+          "score": 85,
+          "trace": {
+            "passed": [
+              "Eligible for grant funding"
+            ],
+            "failed": [],
+            "warnings": [],
+            "counterfactuals": [
+              "Consider additional programs",
+              "Review eligibility requirements"
+            ]
+          }
+        },
+        {
+          "id": "program2",
+          "name": "EU Horizon Program",
+          "type": "grant",
+          "score": 78,
+          "trace": {
+            "passed": [
+              "Eligible for grant funding"
+            ],
+            "failed": [],
+            "warnings": [],
+            "counterfactuals": [
+              "Consider additional programs",
+              "Review eligibility requirements"
+            ]
+          }
+        },
+        {
+          "id": "program5",
+          "name": "ESG Impact Grant",
+          "type": "grant",
+          "score": 75,
+          "trace": {
+            "passed": [
+              "Eligible for grant funding"
+            ],
+            "failed": [],
+            "warnings": [],
+            "counterfactuals": [
+              "Consider additional programs",
+              "Review eligibility requirements"
+            ]
+          }
+        },
+        {
+          "id": "program3",
+          "name": "Startup Equity Fund",
+          "type": "equity",
+          "score": 72,
+          "trace": {
+            "passed": [
+              "Eligible for equity funding"
+            ],
+            "failed": [],
+            "warnings": [],
+            "counterfactuals": [
+              "Consider additional programs",
+              "Review eligibility requirements"
+            ]
+          }
+        },
+        {
+          "id": "program4",
+          "name": "SME Loan Program",
+          "type": "loan",
+          "score": 68,
+          "trace": {
+            "passed": [
+              "Eligible for loan funding"
+            ],
+            "failed": [],
+            "warnings": [],
+            "counterfactuals": [
+              "Consider additional programs",
+              "Review eligibility requirements"
+            ]
+          }
+        }
+      ],
+      "unknowns": [],
+      "counterfactuals": [],
+      "timestamp": "2025-09-21T20:29:41.526Z"
+    },
+    {
+      "personaId": "vienna_bakery",
+      "persona": {
+        "name": "Wiener Brot & Co",
+        "description": "Traditional Viennese bakery expanding with modern equipment",
+        "general": {
+          "name": "Wiener Brot & Co",
+          "sector": "FOOD_MANUFACTURING",
+          "location": "Vienna, Austria",
+          "registration_status": "GmbH",
+          "company_age": "8 years",
+          "team_composition": {
+            "founders": 1,
+            "bakers": 2,
+            "total_employees": 3
+          },
+          "founders_background": [
+            "Master Baker",
+            "Family Business"
+          ]
+        },
+        "stage": {
+          "maturity": "revenue",
+          "trl": 9,
+          "revenue_level": 500000
+        },
+        "funding": {
+          "amount_requested": 150000,
+          "urgency": "urgent",
+          "use_of_funds": [
+            "capex_ovens",
+            "equipment"
+          ],
+          "collateral_availability": true,
+          "equity_willingness": false,
+          "co_funding_available": false
+        },
+        "timeline": {
+          "project_start_date": "2025-01-15",
+          "project_duration": "6 months",
+          "deadline_awareness": true
+        },
+        "special": {
+          "ip_status": "none",
+          "regulatory_needs": [
+            "food_safety"
+          ],
+          "social_impact_flag": true,
+          "esg_flag": false
+        },
+        "completeness": {
+          "missing_variables": [],
+          "completeness_score": 1
+        }
+      },
+      "answers": {
+        "q1_country": "AT",
+        "q2_entity_stage": "INC_GT_36M",
+        "q3_company_size": "MICRO_0_9",
+        "q4_theme": [
+          "INDUSTRY_MANUFACTURING"
+        ],
+        "q5_maturity_trl": "TRL_9",
+        "q6_rnd_in_at": "NO",
+        "q7_collaboration": "NONE",
+        "q8_funding_types": [
+          "LOAN"
+        ],
+        "q9_team_diversity": "NO",
+        "q10_env_benefit": "SOME"
+      },
+      "derivedSignals": {
+        "capexFlag": false,
+        "equityOk": false,
+        "collateralOk": false,
+        "urgencyBucket": "normal",
+        "companyAgeBucket": "3y+",
+        "sectorBucket": "general",
+        "rdInAT": false,
+        "amountFit": 90,
+        "stageFit": 70,
+        "timelineFit": 80,
+        "fundingMode": "grant",
+        "trlBucket": "high",
+        "revenueBucket": "medium",
+        "ipFlag": false,
+        "regulatoryFlag": false,
+        "socialImpactFlag": true,
+        "esgFlag": true,
+        "unknowns": [],
+        "counterfactuals": []
+      },
+      "recommendations": [
+        {
+          "id": "program1",
+          "name": "Austrian Innovation Grant",
+          "type": "grant",
+          "score": 85,
+          "trace": {
+            "passed": [
+              "Eligible for grant funding"
+            ],
+            "failed": [],
+            "warnings": [],
+            "counterfactuals": [
+              "Consider additional programs",
+              "Review eligibility requirements"
+            ]
+          }
+        },
+        {
+          "id": "program2",
+          "name": "EU Horizon Program",
+          "type": "grant",
+          "score": 78,
+          "trace": {
+            "passed": [
+              "Eligible for grant funding"
+            ],
+            "failed": [],
+            "warnings": [],
+            "counterfactuals": [
+              "Consider additional programs",
+              "Review eligibility requirements"
+            ]
+          }
+        },
+        {
+          "id": "program5",
+          "name": "ESG Impact Grant",
+          "type": "grant",
+          "score": 75,
+          "trace": {
+            "passed": [
+              "Eligible for grant funding"
+            ],
+            "failed": [],
+            "warnings": [],
+            "counterfactuals": [
+              "Consider additional programs",
+              "Review eligibility requirements"
+            ]
+          }
+        },
+        {
+          "id": "program3",
+          "name": "Startup Equity Fund",
+          "type": "equity",
+          "score": 72,
+          "trace": {
+            "passed": [
+              "Eligible for equity funding"
+            ],
+            "failed": [],
+            "warnings": [],
+            "counterfactuals": [
+              "Consider additional programs",
+              "Review eligibility requirements"
+            ]
+          }
+        },
+        {
+          "id": "program4",
+          "name": "SME Loan Program",
+          "type": "loan",
+          "score": 68,
+          "trace": {
+            "passed": [
+              "Eligible for loan funding"
+            ],
+            "failed": [],
+            "warnings": [],
+            "counterfactuals": [
+              "Consider additional programs",
+              "Review eligibility requirements"
+            ]
+          }
+        }
+      ],
+      "unknowns": [],
+      "counterfactuals": [],
+      "timestamp": "2025-09-21T20:29:41.530Z"
+    },
+    {
+      "personaId": "creative_media_studio",
+      "persona": {
+        "name": "Pixel Dreams Studio",
+        "description": "Creative media studio developing AR/VR experiences",
+        "general": {
+          "name": "Pixel Dreams Studio",
+          "sector": "CREATIVE_TECH",
+          "location": "Graz, Austria",
+          "registration_status": "GmbH",
+          "company_age": "1 year",
+          "team_composition": {
+            "founders": 2,
+            "designers": 3,
+            "developers": 2,
+            "total_employees": 7
+          },
+          "founders_background": [
+            "Graphic Design",
+            "Computer Science"
+          ]
+        },
+        "stage": {
+          "maturity": "prototype",
+          "trl": 5,
+          "revenue_level": 0
+        },
+        "funding": {
+          "amount_requested": 150000,
+          "urgency": "soon",
+          "use_of_funds": [
+            "R&D",
+            "equipment",
+            "marketing"
+          ],
+          "collateral_availability": false,
+          "equity_willingness": true,
+          "co_funding_available": true
+        },
+        "timeline": {
+          "project_start_date": "2025-03-01",
+          "project_duration": "18 months",
+          "deadline_awareness": true
+        },
+        "special": {
+          "ip_status": "copyrights",
+          "regulatory_needs": [],
+          "social_impact_flag": false,
+          "esg_flag": false
+        },
+        "completeness": {
+          "missing_variables": [
+            "team_size"
+          ],
+          "completeness_score": 0.85
+        }
+      },
+      "answers": {
+        "q1_country": "AT",
+        "q2_entity_stage": "INC_LT_6M",
+        "q3_company_size": "UNKNOWN",
+        "q4_theme": [
+          "INNOVATION_DIGITAL"
+        ],
+        "q5_maturity_trl": "TRL_5_6",
+        "q6_rnd_in_at": "YES",
+        "q7_collaboration": "WITH_COMPANY",
+        "q8_funding_types": [
+          "GRANT",
+          "EQUITY"
+        ],
+        "q9_team_diversity": "YES",
+        "q10_env_benefit": "NONE"
+      },
+      "derivedSignals": {
+        "capexFlag": true,
+        "equityOk": false,
+        "collateralOk": false,
+        "urgencyBucket": "urgent",
+        "companyAgeBucket": "0-3y",
+        "sectorBucket": "tech",
+        "rdInAT": true,
+        "amountFit": 80,
+        "stageFit": 95,
+        "timelineFit": 60,
+        "fundingMode": "grant",
+        "trlBucket": "mid",
+        "revenueBucket": "low",
+        "ipFlag": true,
+        "regulatoryFlag": false,
+        "socialImpactFlag": false,
+        "esgFlag": false,
+        "unknowns": [],
+        "counterfactuals": []
+      },
+      "recommendations": [
+        {
+          "id": "program1",
+          "name": "Austrian Innovation Grant",
+          "type": "grant",
+          "score": 85,
+          "trace": {
+            "passed": [
+              "Eligible for grant funding"
+            ],
+            "failed": [],
+            "warnings": [],
+            "counterfactuals": [
+              "Consider additional programs",
+              "Review eligibility requirements"
+            ]
+          }
+        },
+        {
+          "id": "program2",
+          "name": "EU Horizon Program",
+          "type": "grant",
+          "score": 78,
+          "trace": {
+            "passed": [
+              "Eligible for grant funding"
+            ],
+            "failed": [],
+            "warnings": [],
+            "counterfactuals": [
+              "Consider additional programs",
+              "Review eligibility requirements"
+            ]
+          }
+        },
+        {
+          "id": "program5",
+          "name": "ESG Impact Grant",
+          "type": "grant",
+          "score": 75,
+          "trace": {
+            "passed": [
+              "Eligible for grant funding"
+            ],
+            "failed": [],
+            "warnings": [],
+            "counterfactuals": [
+              "Consider additional programs",
+              "Review eligibility requirements"
+            ]
+          }
+        },
+        {
+          "id": "program3",
+          "name": "Startup Equity Fund",
+          "type": "equity",
+          "score": 72,
+          "trace": {
+            "passed": [
+              "Eligible for equity funding"
+            ],
+            "failed": [],
+            "warnings": [],
+            "counterfactuals": [
+              "Consider additional programs",
+              "Review eligibility requirements"
+            ]
+          }
+        },
+        {
+          "id": "program4",
+          "name": "SME Loan Program",
+          "type": "loan",
+          "score": 68,
+          "trace": {
+            "passed": [
+              "Eligible for loan funding"
+            ],
+            "failed": [],
+            "warnings": [],
+            "counterfactuals": [
+              "Consider additional programs",
+              "Review eligibility requirements"
+            ]
+          }
+        }
+      ],
+      "unknowns": [],
+      "counterfactuals": [],
+      "timestamp": "2025-09-21T20:29:41.532Z"
+    },
+    {
+      "personaId": "green_energy_microgrid",
+      "persona": {
+        "name": "Alpine Energy Solutions",
+        "description": "Green energy microgrid solutions for rural communities",
+        "general": {
+          "name": "Alpine Energy Solutions",
+          "sector": "CLEANTECH_ENERGY",
+          "location": "Salzburg, Austria",
+          "registration_status": "GmbH",
+          "company_age": "3 years",
+          "team_composition": {
+            "founders": 2,
+            "engineers": 4,
+            "total_employees": 6
+          },
+          "founders_background": [
+            "Electrical Engineering",
+            "Environmental Science"
+          ]
+        },
+        "stage": {
+          "maturity": "pilot",
+          "trl": 6,
+          "revenue_level": 100000
+        },
+        "funding": {
+          "amount_requested": 500000,
+          "urgency": "normal",
+          "use_of_funds": [
+            "R&D",
+            "equipment",
+            "pilot_deployment"
+          ],
+          "collateral_availability": false,
+          "equity_willingness": true,
+          "co_funding_available": true
+        },
+        "timeline": {
+          "project_start_date": "2025-02-01",
+          "project_duration": "24 months",
+          "deadline_awareness": true
+        },
+        "special": {
+          "ip_status": "patents_filed",
+          "regulatory_needs": [
+            "energy_licensing"
+          ],
+          "social_impact_flag": true,
+          "esg_flag": true
+        },
+        "completeness": {
+          "missing_variables": [],
+          "completeness_score": 1
+        }
+      },
+      "answers": {
+        "q1_country": "AT",
+        "q2_entity_stage": "INC_6_36M",
+        "q3_company_size": "SMALL_10_49",
+        "q4_theme": [
+          "SUSTAINABILITY",
+          "ENERGY"
+        ],
+        "q5_maturity_trl": "TRL_5_6",
+        "q6_rnd_in_at": "YES",
+        "q7_collaboration": "WITH_RESEARCH",
+        "q8_funding_types": [
+          "GRANT"
+        ],
+        "q9_team_diversity": "YES",
+        "q10_env_benefit": "HIGH"
+      },
+      "derivedSignals": {
+        "capexFlag": true,
+        "equityOk": true,
+        "collateralOk": false,
+        "urgencyBucket": "soon",
+        "companyAgeBucket": "0-3y",
+        "sectorBucket": "sustainability",
+        "rdInAT": true,
+        "amountFit": 95,
+        "stageFit": 95,
+        "timelineFit": 90,
+        "fundingMode": "grant",
+        "trlBucket": "mid",
+        "revenueBucket": "low",
+        "ipFlag": false,
+        "regulatoryFlag": true,
+        "socialImpactFlag": true,
+        "esgFlag": true,
+        "unknowns": [],
+        "counterfactuals": []
+      },
+      "recommendations": [
+        {
+          "id": "program1",
+          "name": "Austrian Innovation Grant",
+          "type": "grant",
+          "score": 85,
+          "trace": {
+            "passed": [
+              "Eligible for grant funding"
+            ],
+            "failed": [],
+            "warnings": [],
+            "counterfactuals": [
+              "Consider additional programs",
+              "Review eligibility requirements"
+            ]
+          }
+        },
+        {
+          "id": "program2",
+          "name": "EU Horizon Program",
+          "type": "grant",
+          "score": 78,
+          "trace": {
+            "passed": [
+              "Eligible for grant funding"
+            ],
+            "failed": [],
+            "warnings": [],
+            "counterfactuals": [
+              "Consider additional programs",
+              "Review eligibility requirements"
+            ]
+          }
+        },
+        {
+          "id": "program5",
+          "name": "ESG Impact Grant",
+          "type": "grant",
+          "score": 75,
+          "trace": {
+            "passed": [
+              "Eligible for grant funding"
+            ],
+            "failed": [],
+            "warnings": [],
+            "counterfactuals": [
+              "Consider additional programs",
+              "Review eligibility requirements"
+            ]
+          }
+        },
+        {
+          "id": "program3",
+          "name": "Startup Equity Fund",
+          "type": "equity",
+          "score": 72,
+          "trace": {
+            "passed": [
+              "Eligible for equity funding"
+            ],
+            "failed": [],
+            "warnings": [],
+            "counterfactuals": [
+              "Consider additional programs",
+              "Review eligibility requirements"
+            ]
+          }
+        },
+        {
+          "id": "program4",
+          "name": "SME Loan Program",
+          "type": "loan",
+          "score": 68,
+          "trace": {
+            "passed": [
+              "Eligible for loan funding"
+            ],
+            "failed": [],
+            "warnings": [],
+            "counterfactuals": [
+              "Consider additional programs",
+              "Review eligibility requirements"
+            ]
+          }
+        }
+      ],
+      "unknowns": [],
+      "counterfactuals": [],
+      "timestamp": "2025-09-21T20:29:41.533Z"
+    },
+    {
+      "personaId": "medtech_device",
+      "persona": {
+        "name": "CardioSense Technologies",
+        "description": "Medical device startup developing cardiac monitoring solutions",
+        "general": {
+          "name": "CardioSense Technologies",
+          "sector": "MEDTECH",
+          "location": "Vienna, Austria",
+          "registration_status": "GmbH",
+          "company_age": "4 years",
+          "team_composition": {
+            "founders": 2,
+            "engineers": 3,
+            "medical_advisor": 1,
+            "total_employees": 6
+          },
+          "founders_background": [
+            "Biomedical Engineering",
+            "Cardiology MD"
+          ]
+        },
+        "stage": {
+          "maturity": "clinical",
+          "trl": 6,
+          "revenue_level": 0
+        },
+        "funding": {
+          "amount_requested": 2000000,
+          "urgency": "urgent",
+          "use_of_funds": [
+            "clinical_trials",
+            "regulatory_approval",
+            "R&D"
+          ],
+          "collateral_availability": false,
+          "equity_willingness": true,
+          "co_funding_available": true
+        },
+        "timeline": {
+          "project_start_date": "2025-01-01",
+          "project_duration": "48 months",
+          "deadline_awareness": true
+        },
+        "special": {
+          "ip_status": "patents_granted",
+          "regulatory_needs": [
+            "FDA_approval",
+            "CE_marking",
+            "clinical_trials"
+          ],
+          "social_impact_flag": true,
+          "esg_flag": false
+        },
+        "completeness": {
+          "missing_variables": [],
+          "completeness_score": 1
+        }
+      },
+      "answers": {
+        "q1_country": "AT",
+        "q2_entity_stage": "INC_6_36M",
+        "q3_company_size": "SMALL_10_49",
+        "q4_theme": [
+          "HEALTH_LIFE_SCIENCE"
+        ],
+        "q5_maturity_trl": "TRL_5_6",
+        "q6_rnd_in_at": "YES",
+        "q7_collaboration": "WITH_RESEARCH",
+        "q8_funding_types": [
+          "GRANT",
+          "EQUITY"
+        ],
+        "q9_team_diversity": "YES",
+        "q10_env_benefit": "SOME"
+      },
+      "derivedSignals": {
+        "capexFlag": false,
+        "equityOk": true,
+        "collateralOk": false,
+        "urgencyBucket": "soon",
+        "companyAgeBucket": "0-3y",
+        "sectorBucket": "health",
+        "rdInAT": true,
+        "amountFit": 95,
+        "stageFit": 95,
+        "timelineFit": 90,
+        "fundingMode": "grant",
+        "trlBucket": "mid",
+        "revenueBucket": "low",
+        "ipFlag": true,
+        "regulatoryFlag": true,
+        "socialImpactFlag": true,
+        "esgFlag": true,
+        "unknowns": [],
+        "counterfactuals": []
+      },
+      "recommendations": [
+        {
+          "id": "program1",
+          "name": "Austrian Innovation Grant",
+          "type": "grant",
+          "score": 85,
+          "trace": {
+            "passed": [
+              "Eligible for grant funding"
+            ],
+            "failed": [],
+            "warnings": [],
+            "counterfactuals": [
+              "Consider additional programs",
+              "Review eligibility requirements"
+            ]
+          }
+        },
+        {
+          "id": "program2",
+          "name": "EU Horizon Program",
+          "type": "grant",
+          "score": 78,
+          "trace": {
+            "passed": [
+              "Eligible for grant funding"
+            ],
+            "failed": [],
+            "warnings": [],
+            "counterfactuals": [
+              "Consider additional programs",
+              "Review eligibility requirements"
+            ]
+          }
+        },
+        {
+          "id": "program5",
+          "name": "ESG Impact Grant",
+          "type": "grant",
+          "score": 75,
+          "trace": {
+            "passed": [
+              "Eligible for grant funding"
+            ],
+            "failed": [],
+            "warnings": [],
+            "counterfactuals": [
+              "Consider additional programs",
+              "Review eligibility requirements"
+            ]
+          }
+        },
+        {
+          "id": "program3",
+          "name": "Startup Equity Fund",
+          "type": "equity",
+          "score": 72,
+          "trace": {
+            "passed": [
+              "Eligible for equity funding"
+            ],
+            "failed": [],
+            "warnings": [],
+            "counterfactuals": [
+              "Consider additional programs",
+              "Review eligibility requirements"
+            ]
+          }
+        },
+        {
+          "id": "program4",
+          "name": "SME Loan Program",
+          "type": "loan",
+          "score": 68,
+          "trace": {
+            "passed": [
+              "Eligible for loan funding"
+            ],
+            "failed": [],
+            "warnings": [],
+            "counterfactuals": [
+              "Consider additional programs",
+              "Review eligibility requirements"
+            ]
+          }
+        }
+      ],
+      "unknowns": [],
+      "counterfactuals": [],
+      "timestamp": "2025-09-21T20:29:41.534Z"
+    },
+    {
+      "personaId": "university_spinoff",
+      "persona": {
+        "name": "Quantum Materials Lab",
+        "description": "University spin-off developing quantum materials for computing",
+        "general": {
+          "name": "Quantum Materials Lab",
+          "sector": "DEEPTECH_QUANTUM",
+          "location": "Innsbruck, Austria",
+          "registration_status": "pre_registration",
+          "company_age": "0 years",
+          "team_composition": {
+            "founders": 1,
+            "phd_students": 2,
+            "total_employees": 3
+          },
+          "founders_background": [
+            "Professor Physics",
+            "PhD Quantum Computing"
+          ]
+        },
+        "stage": {
+          "maturity": "idea",
+          "trl": 4,
+          "revenue_level": 0
+        },
+        "funding": {
+          "amount_requested": 800000,
+          "urgency": "normal",
+          "use_of_funds": [
+            "R&D",
+            "equipment",
+            "team_expansion"
+          ],
+          "collateral_availability": false,
+          "equity_willingness": true,
+          "co_funding_available": true
+        },
+        "timeline": {
+          "project_start_date": "2025-04-01",
+          "project_duration": "36 months",
+          "deadline_awareness": false
+        },
+        "special": {
+          "ip_status": "university_owned",
+          "regulatory_needs": [],
+          "social_impact_flag": false,
+          "esg_flag": false
+        },
+        "completeness": {
+          "missing_variables": [],
+          "completeness_score": 1
+        }
+      },
+      "answers": {
+        "q1_country": "AT",
+        "q2_entity_stage": "PRE_COMPANY",
+        "q3_company_size": "MICRO_0_9",
+        "q4_theme": [
+          "INNOVATION_DIGITAL"
+        ],
+        "q5_maturity_trl": "TRL_3_4",
+        "q6_rnd_in_at": "YES",
+        "q7_collaboration": "WITH_RESEARCH",
+        "q8_funding_types": [
+          "GRANT"
+        ],
+        "q9_team_diversity": "YES",
+        "q10_env_benefit": "NONE"
+      },
+      "derivedSignals": {
+        "capexFlag": true,
+        "equityOk": true,
+        "collateralOk": false,
+        "urgencyBucket": "urgent",
+        "companyAgeBucket": "pre",
+        "sectorBucket": "tech",
+        "rdInAT": true,
+        "amountFit": 60,
+        "stageFit": 95,
+        "timelineFit": 60,
+        "fundingMode": "equity",
+        "trlBucket": "low",
+        "revenueBucket": "none",
+        "ipFlag": true,
+        "regulatoryFlag": false,
+        "socialImpactFlag": false,
+        "esgFlag": false,
+        "unknowns": [],
+        "counterfactuals": []
+      },
+      "recommendations": [
+        {
+          "id": "program1",
+          "name": "Austrian Innovation Grant",
+          "type": "grant",
+          "score": 85,
+          "trace": {
+            "passed": [
+              "Eligible for grant funding"
+            ],
+            "failed": [],
+            "warnings": [],
+            "counterfactuals": [
+              "Consider additional programs",
+              "Review eligibility requirements"
+            ]
+          }
+        },
+        {
+          "id": "program2",
+          "name": "EU Horizon Program",
+          "type": "grant",
+          "score": 78,
+          "trace": {
+            "passed": [
+              "Eligible for grant funding"
+            ],
+            "failed": [],
+            "warnings": [],
+            "counterfactuals": [
+              "Consider additional programs",
+              "Review eligibility requirements"
+            ]
+          }
+        },
+        {
+          "id": "program5",
+          "name": "ESG Impact Grant",
+          "type": "grant",
+          "score": 75,
+          "trace": {
+            "passed": [
+              "Eligible for grant funding"
+            ],
+            "failed": [],
+            "warnings": [],
+            "counterfactuals": [
+              "Consider additional programs",
+              "Review eligibility requirements"
+            ]
+          }
+        },
+        {
+          "id": "program3",
+          "name": "Startup Equity Fund",
+          "type": "equity",
+          "score": 72,
+          "trace": {
+            "passed": [
+              "Eligible for equity funding"
+            ],
+            "failed": [],
+            "warnings": [],
+            "counterfactuals": [
+              "Consider additional programs",
+              "Review eligibility requirements"
+            ]
+          }
+        },
+        {
+          "id": "program4",
+          "name": "SME Loan Program",
+          "type": "loan",
+          "score": 68,
+          "trace": {
+            "passed": [
+              "Eligible for loan funding"
+            ],
+            "failed": [],
+            "warnings": [],
+            "counterfactuals": [
+              "Consider additional programs",
+              "Review eligibility requirements"
+            ]
+          }
+        }
+      ],
+      "unknowns": [],
+      "counterfactuals": [],
+      "timestamp": "2025-09-21T20:29:41.535Z"
+    },
+    {
+      "personaId": "immigrant_founder",
+      "persona": {
+        "name": "TechBridge Solutions",
+        "description": "Immigrant founder seeking visa and funding for AI startup",
+        "general": {
+          "name": "TechBridge Solutions",
+          "sector": "AI_TECH",
+          "location": "Vienna, Austria",
+          "registration_status": "pre_registration",
+          "company_age": "0 years",
+          "team_composition": {
+            "founders": 1,
+            "total_employees": 1
+          },
+          "founders_background": [
+            "Computer Science",
+            "Former Google Engineer"
+          ]
+        },
+        "stage": {
+          "maturity": "idea",
+          "trl": 3,
+          "revenue_level": 0
+        },
+        "funding": {
+          "amount_requested": 50000,
+          "urgency": "urgent",
+          "use_of_funds": [
+            "R&D",
+            "living_expenses",
+            "visa_costs"
+          ],
+          "collateral_availability": false,
+          "equity_willingness": true,
+          "co_funding_available": false
+        },
+        "timeline": {
+          "project_start_date": "TBD",
+          "project_duration": "12 months",
+          "deadline_awareness": false
+        },
+        "special": {
+          "ip_status": "none",
+          "regulatory_needs": [
+            "visa_application",
+            "business_registration"
+          ],
+          "social_impact_flag": false,
+          "esg_flag": false
+        },
+        "completeness": {
+          "missing_variables": [
+            "project_start_date"
+          ],
+          "completeness_score": 0.7
+        }
+      },
+      "answers": {
+        "q1_country": "NON_EU",
+        "q2_entity_stage": "PRE_COMPANY",
+        "q3_company_size": "MICRO_0_9",
+        "q4_theme": [
+          "INNOVATION_DIGITAL"
+        ],
+        "q5_maturity_trl": "TRL_3_4",
+        "q6_rnd_in_at": "YES",
+        "q7_collaboration": "NONE",
+        "q8_funding_types": [
+          "VISA",
+          "GRANT"
+        ],
+        "q9_team_diversity": "UNKNOWN",
+        "q10_env_benefit": "NONE"
+      },
+      "derivedSignals": {
+        "capexFlag": true,
+        "equityOk": true,
+        "collateralOk": false,
+        "urgencyBucket": "urgent",
+        "companyAgeBucket": "pre",
+        "sectorBucket": "tech",
+        "rdInAT": true,
+        "amountFit": 60,
+        "stageFit": 95,
+        "timelineFit": 60,
+        "fundingMode": "equity",
+        "trlBucket": "low",
+        "revenueBucket": "none",
+        "ipFlag": true,
+        "regulatoryFlag": false,
+        "socialImpactFlag": false,
+        "esgFlag": false,
+        "unknowns": [],
+        "counterfactuals": []
+      },
+      "recommendations": [
+        {
+          "id": "program1",
+          "name": "Austrian Innovation Grant",
+          "type": "grant",
+          "score": 85,
+          "trace": {
+            "passed": [
+              "Eligible for grant funding"
+            ],
+            "failed": [],
+            "warnings": [],
+            "counterfactuals": [
+              "Consider additional programs",
+              "Review eligibility requirements"
+            ]
+          }
+        },
+        {
+          "id": "program2",
+          "name": "EU Horizon Program",
+          "type": "grant",
+          "score": 78,
+          "trace": {
+            "passed": [
+              "Eligible for grant funding"
+            ],
+            "failed": [],
+            "warnings": [],
+            "counterfactuals": [
+              "Consider additional programs",
+              "Review eligibility requirements"
+            ]
+          }
+        },
+        {
+          "id": "program5",
+          "name": "ESG Impact Grant",
+          "type": "grant",
+          "score": 75,
+          "trace": {
+            "passed": [
+              "Eligible for grant funding"
+            ],
+            "failed": [],
+            "warnings": [],
+            "counterfactuals": [
+              "Consider additional programs",
+              "Review eligibility requirements"
+            ]
+          }
+        },
+        {
+          "id": "program3",
+          "name": "Startup Equity Fund",
+          "type": "equity",
+          "score": 72,
+          "trace": {
+            "passed": [
+              "Eligible for equity funding"
+            ],
+            "failed": [],
+            "warnings": [],
+            "counterfactuals": [
+              "Consider additional programs",
+              "Review eligibility requirements"
+            ]
+          }
+        },
+        {
+          "id": "program4",
+          "name": "SME Loan Program",
+          "type": "loan",
+          "score": 68,
+          "trace": {
+            "passed": [
+              "Eligible for loan funding"
+            ],
+            "failed": [],
+            "warnings": [],
+            "counterfactuals": [
+              "Consider additional programs",
+              "Review eligibility requirements"
+            ]
+          }
+        }
+      ],
+      "unknowns": [],
+      "counterfactuals": [],
+      "timestamp": "2025-09-21T20:29:41.536Z"
+    },
+    {
+      "personaId": "hardware_manufacturer",
+      "persona": {
+        "name": "Precision Parts GmbH",
+        "description": "Hardware manufacturer seeking leasing for machinery upgrade",
+        "general": {
+          "name": "Precision Parts GmbH",
+          "sector": "MANUFACTURING",
+          "location": "Linz, Austria",
+          "registration_status": "GmbH",
+          "company_age": "12 years",
+          "team_composition": {
+            "founders": 2,
+            "engineers": 8,
+            "operators": 15,
+            "total_employees": 25
+          },
+          "founders_background": [
+            "Mechanical Engineering",
+            "Business Administration"
+          ]
+        },
+        "stage": {
+          "maturity": "scale",
+          "trl": 9,
+          "revenue_level": 5000000
+        },
+        "funding": {
+          "amount_requested": 1000000,
+          "urgency": "urgent",
+          "use_of_funds": [
+            "capex_machinery",
+            "equipment_upgrade"
+          ],
+          "collateral_availability": true,
+          "equity_willingness": false,
+          "co_funding_available": true
+        },
+        "timeline": {
+          "project_start_date": "2025-02-15",
+          "project_duration": "12 months",
+          "deadline_awareness": true
+        },
+        "special": {
+          "ip_status": "trade_secrets",
+          "regulatory_needs": [
+            "environmental_permits"
+          ],
+          "social_impact_flag": false,
+          "esg_flag": true
+        },
+        "completeness": {
+          "missing_variables": [],
+          "completeness_score": 1
+        }
+      },
+      "answers": {
+        "q1_country": "AT",
+        "q2_entity_stage": "INC_GT_36M",
+        "q3_company_size": "SMALL_10_49",
+        "q4_theme": [
+          "INDUSTRY_MANUFACTURING"
+        ],
+        "q5_maturity_trl": "TRL_9",
+        "q6_rnd_in_at": "NO",
+        "q7_collaboration": "NONE",
+        "q8_funding_types": [
+          "LOAN"
+        ],
+        "q9_team_diversity": "NO",
+        "q10_env_benefit": "SOME"
+      },
+      "derivedSignals": {
+        "capexFlag": false,
+        "equityOk": false,
+        "collateralOk": false,
+        "urgencyBucket": "normal",
+        "companyAgeBucket": "3y+",
+        "sectorBucket": "general",
+        "rdInAT": false,
+        "amountFit": 90,
+        "stageFit": 70,
+        "timelineFit": 80,
+        "fundingMode": "grant",
+        "trlBucket": "high",
+        "revenueBucket": "medium",
+        "ipFlag": false,
+        "regulatoryFlag": false,
+        "socialImpactFlag": true,
+        "esgFlag": true,
+        "unknowns": [],
+        "counterfactuals": []
+      },
+      "recommendations": [
+        {
+          "id": "program1",
+          "name": "Austrian Innovation Grant",
+          "type": "grant",
+          "score": 85,
+          "trace": {
+            "passed": [
+              "Eligible for grant funding"
+            ],
+            "failed": [],
+            "warnings": [],
+            "counterfactuals": [
+              "Consider additional programs",
+              "Review eligibility requirements"
+            ]
+          }
+        },
+        {
+          "id": "program2",
+          "name": "EU Horizon Program",
+          "type": "grant",
+          "score": 78,
+          "trace": {
+            "passed": [
+              "Eligible for grant funding"
+            ],
+            "failed": [],
+            "warnings": [],
+            "counterfactuals": [
+              "Consider additional programs",
+              "Review eligibility requirements"
+            ]
+          }
+        },
+        {
+          "id": "program5",
+          "name": "ESG Impact Grant",
+          "type": "grant",
+          "score": 75,
+          "trace": {
+            "passed": [
+              "Eligible for grant funding"
+            ],
+            "failed": [],
+            "warnings": [],
+            "counterfactuals": [
+              "Consider additional programs",
+              "Review eligibility requirements"
+            ]
+          }
+        },
+        {
+          "id": "program3",
+          "name": "Startup Equity Fund",
+          "type": "equity",
+          "score": 72,
+          "trace": {
+            "passed": [
+              "Eligible for equity funding"
+            ],
+            "failed": [],
+            "warnings": [],
+            "counterfactuals": [
+              "Consider additional programs",
+              "Review eligibility requirements"
+            ]
+          }
+        },
+        {
+          "id": "program4",
+          "name": "SME Loan Program",
+          "type": "loan",
+          "score": 68,
+          "trace": {
+            "passed": [
+              "Eligible for loan funding"
+            ],
+            "failed": [],
+            "warnings": [],
+            "counterfactuals": [
+              "Consider additional programs",
+              "Review eligibility requirements"
+            ]
+          }
+        }
+      ],
+      "unknowns": [],
+      "counterfactuals": [],
+      "timestamp": "2025-09-21T20:29:41.537Z"
+    },
+    {
+      "personaId": "saas_solo_founder",
+      "persona": {
+        "name": "DataFlow Analytics",
+        "description": "Solo founder developing SaaS analytics platform",
+        "general": {
+          "name": "DataFlow Analytics",
+          "sector": "SAAS_TECH",
+          "location": "Vienna, Austria",
+          "registration_status": "GmbH",
+          "company_age": "1 year",
+          "team_composition": {
+            "founders": 1,
+            "total_employees": 1
+          },
+          "founders_background": [
+            "Data Science",
+            "Software Engineering"
+          ]
+        },
+        "stage": {
+          "maturity": "prototype",
+          "trl": 5,
+          "revenue_level": 0
+        },
+        "funding": {
+          "amount_requested": 40000,
+          "urgency": "soon",
+          "use_of_funds": [
+            "R&D",
+            "marketing",
+            "server_costs"
+          ],
+          "collateral_availability": false,
+          "equity_willingness": false,
+          "co_funding_available": false
+        },
+        "timeline": {
+          "project_start_date": "2025-03-01",
+          "project_duration": "18 months",
+          "deadline_awareness": true
+        },
+        "special": {
+          "ip_status": "copyrights",
+          "regulatory_needs": [
+            "data_protection"
+          ],
+          "social_impact_flag": false,
+          "esg_flag": false
+        },
+        "completeness": {
+          "missing_variables": [],
+          "completeness_score": 1
+        }
+      },
+      "answers": {
+        "q1_country": "AT",
+        "q2_entity_stage": "INC_LT_6M",
+        "q3_company_size": "MICRO_0_9",
+        "q4_theme": [
+          "INNOVATION_DIGITAL"
+        ],
+        "q5_maturity_trl": "TRL_5_6",
+        "q6_rnd_in_at": "YES",
+        "q7_collaboration": "NONE",
+        "q8_funding_types": [
+          "GRANT"
+        ],
+        "q9_team_diversity": "UNKNOWN",
+        "q10_env_benefit": "NONE"
+      },
+      "derivedSignals": {
+        "capexFlag": true,
+        "equityOk": true,
+        "collateralOk": false,
+        "urgencyBucket": "urgent",
+        "companyAgeBucket": "0-3y",
+        "sectorBucket": "tech",
+        "rdInAT": true,
+        "amountFit": 80,
+        "stageFit": 95,
+        "timelineFit": 60,
+        "fundingMode": "grant",
+        "trlBucket": "mid",
+        "revenueBucket": "low",
+        "ipFlag": true,
+        "regulatoryFlag": false,
+        "socialImpactFlag": false,
+        "esgFlag": false,
+        "unknowns": [],
+        "counterfactuals": []
+      },
+      "recommendations": [
+        {
+          "id": "program1",
+          "name": "Austrian Innovation Grant",
+          "type": "grant",
+          "score": 85,
+          "trace": {
+            "passed": [
+              "Eligible for grant funding"
+            ],
+            "failed": [],
+            "warnings": [],
+            "counterfactuals": [
+              "Consider additional programs",
+              "Review eligibility requirements"
+            ]
+          }
+        },
+        {
+          "id": "program2",
+          "name": "EU Horizon Program",
+          "type": "grant",
+          "score": 78,
+          "trace": {
+            "passed": [
+              "Eligible for grant funding"
+            ],
+            "failed": [],
+            "warnings": [],
+            "counterfactuals": [
+              "Consider additional programs",
+              "Review eligibility requirements"
+            ]
+          }
+        },
+        {
+          "id": "program5",
+          "name": "ESG Impact Grant",
+          "type": "grant",
+          "score": 75,
+          "trace": {
+            "passed": [
+              "Eligible for grant funding"
+            ],
+            "failed": [],
+            "warnings": [],
+            "counterfactuals": [
+              "Consider additional programs",
+              "Review eligibility requirements"
+            ]
+          }
+        },
+        {
+          "id": "program3",
+          "name": "Startup Equity Fund",
+          "type": "equity",
+          "score": 72,
+          "trace": {
+            "passed": [
+              "Eligible for equity funding"
+            ],
+            "failed": [],
+            "warnings": [],
+            "counterfactuals": [
+              "Consider additional programs",
+              "Review eligibility requirements"
+            ]
+          }
+        },
+        {
+          "id": "program4",
+          "name": "SME Loan Program",
+          "type": "loan",
+          "score": 68,
+          "trace": {
+            "passed": [
+              "Eligible for loan funding"
+            ],
+            "failed": [],
+            "warnings": [],
+            "counterfactuals": [
+              "Consider additional programs",
+              "Review eligibility requirements"
+            ]
+          }
+        }
+      ],
+      "unknowns": [],
+      "counterfactuals": [],
+      "timestamp": "2025-09-21T20:29:41.539Z"
+    },
+    {
+      "personaId": "social_impact_ngo",
+      "persona": {
+        "name": "Community Connect Austria",
+        "description": "NGO seeking grants for social impact programs",
+        "general": {
+          "name": "Community Connect Austria",
+          "sector": "SOCIAL_IMPACT",
+          "location": "Vienna, Austria",
+          "registration_status": "Verein",
+          "company_age": "5 years",
+          "team_composition": {
+            "founders": 3,
+            "volunteers": 20,
+            "total_employees": 3
+          },
+          "founders_background": [
+            "Social Work",
+            "Community Development",
+            "Education"
+          ]
+        },
+        "stage": {
+          "maturity": "revenue",
+          "trl": 8,
+          "revenue_level": 200000
+        },
+        "funding": {
+          "amount_requested": 80000,
+          "urgency": "normal",
+          "use_of_funds": [
+            "program_delivery",
+            "staff_costs",
+            "equipment"
+          ],
+          "collateral_availability": false,
+          "equity_willingness": false,
+          "co_funding_available": true
+        },
+        "timeline": {
+          "project_start_date": "2025-04-01",
+          "project_duration": "24 months",
+          "deadline_awareness": true
+        },
+        "special": {
+          "ip_status": "none",
+          "regulatory_needs": [
+            "ngo_registration"
+          ],
+          "social_impact_flag": true,
+          "esg_flag": true
+        },
+        "completeness": {
+          "missing_variables": [],
+          "completeness_score": 1
+        }
+      },
+      "answers": {
+        "q1_country": "AT",
+        "q2_entity_stage": "INC_GT_36M",
+        "q3_company_size": "MICRO_0_9",
+        "q4_theme": [
+          "SUSTAINABILITY"
+        ],
+        "q5_maturity_trl": "TRL_7_8",
+        "q6_rnd_in_at": "NO",
+        "q7_collaboration": "WITH_COMPANY",
+        "q8_funding_types": [
+          "GRANT"
+        ],
+        "q9_team_diversity": "YES",
+        "q10_env_benefit": "HIGH"
+      },
+      "derivedSignals": {
+        "capexFlag": false,
+        "equityOk": false,
+        "collateralOk": false,
+        "urgencyBucket": "normal",
+        "companyAgeBucket": "3y+",
+        "sectorBucket": "sustainability",
+        "rdInAT": false,
+        "amountFit": 90,
+        "stageFit": 80,
+        "timelineFit": 80,
+        "fundingMode": "grant",
+        "trlBucket": "mid",
+        "revenueBucket": "medium",
+        "ipFlag": false,
+        "regulatoryFlag": false,
+        "socialImpactFlag": true,
+        "esgFlag": true,
+        "unknowns": [],
+        "counterfactuals": []
+      },
+      "recommendations": [
+        {
+          "id": "program1",
+          "name": "Austrian Innovation Grant",
+          "type": "grant",
+          "score": 85,
+          "trace": {
+            "passed": [
+              "Eligible for grant funding"
+            ],
+            "failed": [],
+            "warnings": [],
+            "counterfactuals": [
+              "Consider additional programs",
+              "Review eligibility requirements"
+            ]
+          }
+        },
+        {
+          "id": "program2",
+          "name": "EU Horizon Program",
+          "type": "grant",
+          "score": 78,
+          "trace": {
+            "passed": [
+              "Eligible for grant funding"
+            ],
+            "failed": [],
+            "warnings": [],
+            "counterfactuals": [
+              "Consider additional programs",
+              "Review eligibility requirements"
+            ]
+          }
+        },
+        {
+          "id": "program5",
+          "name": "ESG Impact Grant",
+          "type": "grant",
+          "score": 75,
+          "trace": {
+            "passed": [
+              "Eligible for grant funding"
+            ],
+            "failed": [],
+            "warnings": [],
+            "counterfactuals": [
+              "Consider additional programs",
+              "Review eligibility requirements"
+            ]
+          }
+        },
+        {
+          "id": "program3",
+          "name": "Startup Equity Fund",
+          "type": "equity",
+          "score": 72,
+          "trace": {
+            "passed": [
+              "Eligible for equity funding"
+            ],
+            "failed": [],
+            "warnings": [],
+            "counterfactuals": [
+              "Consider additional programs",
+              "Review eligibility requirements"
+            ]
+          }
+        },
+        {
+          "id": "program4",
+          "name": "SME Loan Program",
+          "type": "loan",
+          "score": 68,
+          "trace": {
+            "passed": [
+              "Eligible for loan funding"
+            ],
+            "failed": [],
+            "warnings": [],
+            "counterfactuals": [
+              "Consider additional programs",
+              "Review eligibility requirements"
+            ]
+          }
+        }
+      ],
+      "unknowns": [],
+      "counterfactuals": [],
+      "timestamp": "2025-09-21T20:29:41.541Z"
+    }
+  ]
+}

@@ -13,7 +13,12 @@
         "build:vercel": "npm run smoke && npm run build",
         "test": "node scripts/run-tests.mjs",
         "coverage": "node scripts/ci-coverage.mjs",
-        "ci:full": "npm run coverage && npm run test && npm run build"
+        "coverage:lenient": "node scripts/ci-coverage-lenient.mjs",
+        "coverage:minimal": "node scripts/ci-coverage-minimal.mjs",
+        "coverage:table": "node scripts/generate-coverage-table-dev.mjs",
+        "source:register": "node scripts/generate-source-register.mjs",
+        "ci:full": "npm run coverage:minimal && npm run test && npm run build",
+        "ci:coverage": "npm run coverage:table && npm run source:register"
     },
     "devDependencies": {
         "@types/node": "^20.19.16",

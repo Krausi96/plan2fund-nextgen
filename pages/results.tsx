@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { useRouter } from "next/router";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import Link from "next/link";
@@ -7,12 +8,13 @@ import ProgramDetailsModal from "@/components/reco/ProgramDetailsModal";
 import ExplorationModal from "@/components/reco/ExplorationModal";
 import InfoDrawer from "@/components/common/InfoDrawer";
 import HealthFooter from "@/components/common/HealthFooter";
-import { scoreProgramsEnhanced, analyzeFreeTextEnhanced, EnhancedProgramResult } from "@/lib/simpleRecoEngine";
+import { scoreProgramsEnhanced, analyzeFreeTextEnhanced, EnhancedProgramResult } from "@/lib/enhancedRecoEngine";
 
 // Enhanced program result type with detailed explanations
 type ProgramResult = EnhancedProgramResult;
 
 export default function ResultsPage() {
+  const router = useRouter();
   const [results, setResults] = useState<ProgramResult[]>([]);
   const [freeText, setFreeText] = useState<string | null>(null);
   const [showDebug, setShowDebug] = useState(false);
@@ -172,9 +174,56 @@ export default function ResultsPage() {
             <Link href="/reco" className="px-4 py-2 bg-orange-600 text-white rounded hover:bg-orange-700">
               Adjust Answers
             </Link>
-            <Link href="/plan?mode=qbank" className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700">
-              Proceed Anyway → Editor with QBank
-            </Link>
+            <Button 
+              onClick={() => {
+                // Store user answers and selected program for editor
+                const selectedProgram = results[0]; // Use first program as default
+                
+                // Derive signals and get top 3 programs
+                const { deriveSignals } = require('@/lib/enhancedRecoEngine');
+                const derivedSignals = deriveSignals(_userAnswers);
+                const top3ProgramIds = results.slice(0, 3).map(p => p.id);
+                
+                // Create enhanced payload with all derived signals
+                const enhancedPayload = {
+                  programId: selectedProgram.id,
+                  answers: _userAnswers,
+                  fundingMode: derivedSignals.fundingMode,
+                  trace: selectedProgram.trace,
+                  top3ProgramIds: top3ProgramIds,
+                  derivedSignals: derivedSignals,
+                  // Include all derived signals for editor
+                  unknowns: derivedSignals.unknowns,
+                  counterfactuals: derivedSignals.counterfactuals,
+                  // Additional derived signals
+                  trlBucket: derivedSignals.trlBucket,
+                  revenueBucket: derivedSignals.revenueBucket,
+                  ipFlag: derivedSignals.ipFlag,
+                  regulatoryFlag: derivedSignals.regulatoryFlag,
+                  socialImpactFlag: derivedSignals.socialImpactFlag,
+                  esgFlag: derivedSignals.esgFlag,
+                  capexFlag: derivedSignals.capexFlag,
+                  equityOk: derivedSignals.equityOk,
+                  collateralOk: derivedSignals.collateralOk,
+                  urgencyBucket: derivedSignals.urgencyBucket,
+                  companyAgeBucket: derivedSignals.companyAgeBucket,
+                  sectorBucket: derivedSignals.sectorBucket,
+                  rdInAT: derivedSignals.rdInAT,
+                  amountFit: derivedSignals.amountFit,
+                  stageFit: derivedSignals.stageFit,
+                  timelineFit: derivedSignals.timelineFit
+                };
+                
+                localStorage.setItem('selectedProgram', JSON.stringify(selectedProgram));
+                localStorage.setItem('userAnswers', JSON.stringify(_userAnswers));
+                localStorage.setItem('enhancedPayload', JSON.stringify(enhancedPayload));
+                
+                router.push('/editor?programId=' + selectedProgram.id + '&answers=' + encodeURIComponent(JSON.stringify(_userAnswers)) + '&pf=' + encodeURIComponent(JSON.stringify(enhancedPayload)));
+              }}
+              className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700"
+            >
+              Proceed Anyway → Editor with Pre-filled Fields
+            </Button>
           </div>
         </div>
       )}
@@ -220,41 +269,108 @@ export default function ResultsPage() {
                 </div>
               </div>
 
-              {/* Why it fits - 3-5 plain-language bullets */}
+              {/* Why it fits - 3 plain-language bullets */}
               <div className="mb-3">
                 <h4 className="text-sm font-semibold text-gray-800 mb-2">Why it fits:</h4>
                 <ul className="text-sm text-gray-700 space-y-1">
-                  {program.matchedCriteria && program.matchedCriteria.length > 0 ? (
-                    program.matchedCriteria.slice(0, 3).map((criteria, idx) => (
+                  {program.founderFriendlyReasons && program.founderFriendlyReasons.length > 0 ? (
+                    program.founderFriendlyReasons.slice(0, 3).map((reason, idx) => (
                       <li key={idx} className="flex items-start">
                         <span className="text-green-500 mr-2">•</span>
-                        {criteria.reason}
+                        {reason}
                       </li>
                     ))
                   ) : (
                     <li className="flex items-start">
                       <span className="text-green-500 mr-2">•</span>
-                      {program.reason || 'General program match'}
+                      This program matches your project profile and requirements
                     </li>
                   )}
                 </ul>
               </div>
 
-              {/* Risks/Next steps - 1-2 bullets */}
+              {/* Eligibility Trace */}
+              {program.trace && (
+                <div className="mb-3">
+                  <h4 className="text-sm font-semibold text-gray-800 mb-2">Eligibility Trace:</h4>
+                  
+                  {/* Passed criteria */}
+                  {program.trace.passed && program.trace.passed.length > 0 && (
+                    <div className="mb-2">
+                      <div className="text-xs font-medium text-green-700 mb-1">✅ Passed:</div>
+                      <ul className="text-xs text-green-600 space-y-1">
+                        {program.trace.passed.slice(0, 3).map((item, idx) => (
+                          <li key={idx} className="flex items-start">
+                            <span className="text-green-500 mr-2">•</span>
+                            {item}
+                          </li>
+                        ))}
+                      </ul>
+                    </div>
+                  )}
+
+                  {/* Failed criteria */}
+                  {program.trace.failed && program.trace.failed.length > 0 && (
+                    <div className="mb-2">
+                      <div className="text-xs font-medium text-red-700 mb-1">❌ Failed:</div>
+                      <ul className="text-xs text-red-600 space-y-1">
+                        {program.trace.failed.slice(0, 2).map((item, idx) => (
+                          <li key={idx} className="flex items-start">
+                            <span className="text-red-500 mr-2">•</span>
+                            {item}
+                          </li>
+                        ))}
+                      </ul>
+                    </div>
+                  )}
+
+                  {/* Warnings with unknowns */}
+                  {program.trace.warnings && program.trace.warnings.length > 0 && (
+                    <div className="mb-2">
+                      <div className="text-xs font-medium text-orange-700 mb-1">⚠️ Warnings:</div>
+                      <ul className="text-xs text-orange-600 space-y-1">
+                        {program.trace.warnings.slice(0, 3).map((item, idx) => (
+                          <li key={idx} className="flex items-start">
+                            <span className="text-orange-500 mr-2">•</span>
+                            {item}
+                          </li>
+                        ))}
+                      </ul>
+                    </div>
+                  )}
+
+                  {/* Counterfactuals */}
+                  {program.trace.counterfactuals && program.trace.counterfactuals.length > 0 && (
+                    <div className="mb-2">
+                      <div className="text-xs font-medium text-blue-700 mb-1">💡 Counterfactuals:</div>
+                      <ul className="text-xs text-blue-600 space-y-1">
+                        {program.trace.counterfactuals.slice(0, 3).map((item, idx) => (
+                          <li key={idx} className="flex items-start">
+                            <span className="text-blue-500 mr-2">•</span>
+                            {item}
+                          </li>
+                        ))}
+                      </ul>
+                    </div>
+                  )}
+                </div>
+              )}
+
+              {/* Risks/Next steps - 1 bullet */}
               <div className="mb-3">
                 <h4 className="text-sm font-semibold text-gray-800 mb-2">Risks/Next steps:</h4>
                 <ul className="text-sm text-gray-700 space-y-1">
-                  {program.gaps && program.gaps.length > 0 ? (
-                    program.gaps.slice(0, 2).map((gap, idx) => (
+                  {program.founderFriendlyRisks && program.founderFriendlyRisks.length > 0 ? (
+                    program.founderFriendlyRisks.slice(0, 1).map((risk, idx) => (
                       <li key={idx} className="flex items-start">
                         <span className="text-yellow-500 mr-2">•</span>
-                        {gap.description}
+                        {risk}
                       </li>
                     ))
                   ) : (
                     <li className="flex items-start">
                       <span className="text-yellow-500 mr-2">•</span>
-                      Verify eligibility requirements before applying
+                      Verify all eligibility requirements before applying
                     </li>
                   )}
                 </ul>
@@ -340,6 +456,64 @@ export default function ResultsPage() {
                 </div>
               )}
 
+              {/* Eligibility Trace */}
+              {program.trace && (
+                <details className="text-sm bg-blue-50 rounded p-3 mb-3">
+                  <summary className="cursor-pointer font-semibold text-blue-800">
+                    Eligibility Trace
+                  </summary>
+                  <div className="mt-3 space-y-3">
+                    {/* Passed criteria */}
+                    {program.trace.passed && program.trace.passed.length > 0 && (
+                      <div>
+                        <h5 className="font-medium text-green-800 mb-2">✅ Passed Requirements:</h5>
+                        <ul className="list-disc list-inside text-green-700 space-y-1">
+                          {program.trace.passed.map((item, idx) => (
+                            <li key={idx} className="text-sm">{item}</li>
+                          ))}
+                        </ul>
+                      </div>
+                    )}
+                    
+                    {/* Failed criteria */}
+                    {program.trace.failed && program.trace.failed.length > 0 && (
+                      <div>
+                        <h5 className="font-medium text-red-800 mb-2">❌ Failed Requirements:</h5>
+                        <ul className="list-disc list-inside text-red-700 space-y-1">
+                          {program.trace.failed.map((item, idx) => (
+                            <li key={idx} className="text-sm">{item}</li>
+                          ))}
+                        </ul>
+                      </div>
+                    )}
+                    
+                    {/* Warnings */}
+                    {program.trace.warnings && program.trace.warnings.length > 0 && (
+                      <div>
+                        <h5 className="font-medium text-yellow-800 mb-2">⚠️ Warnings:</h5>
+                        <ul className="list-disc list-inside text-yellow-700 space-y-1">
+                          {program.trace.warnings.map((item, idx) => (
+                            <li key={idx} className="text-sm">{item}</li>
+                          ))}
+                        </ul>
+                      </div>
+                    )}
+                    
+                    {/* Counterfactuals */}
+                    {program.trace.counterfactuals && program.trace.counterfactuals.length > 0 && (
+                      <div>
+                        <h5 className="font-medium text-blue-800 mb-2">💡 Suggestions to improve eligibility:</h5>
+                        <ul className="list-disc list-inside text-blue-700 space-y-1">
+                          {program.trace.counterfactuals.map((item, idx) => (
+                            <li key={idx} className="text-sm">{item}</li>
+                          ))}
+                        </ul>
+                      </div>
+                    )}
+                  </div>
+                </details>
+              )}
+
               {/* Why panel */}
               {program.why && program.why.length > 0 && (
                 <details className="text-sm bg-gray-50 rounded p-3 mb-3">
@@ -364,9 +538,33 @@ export default function ResultsPage() {
                         We'll prefill your plan with relevant hints based on this program.
                       </DialogDescription>
                     </DialogHeader>
-                    <Link href={`/plan?programId=${program.id}`}>
-                      <Button className="w-full mt-3">Prefill and continue →</Button>
-                    </Link>
+                    <Button 
+                      className="w-full mt-3"
+                      onClick={() => {
+                        // Derive signals and get top 3 programs
+                        const { deriveSignals } = require('@/lib/enhancedRecoEngine');
+                        const derivedSignals = deriveSignals(_userAnswers);
+                        const top3ProgramIds = results.slice(0, 3).map(p => p.id);
+                        
+                        // Create enhanced payload
+                        const enhancedPayload = {
+                          programId: program.id,
+                          answers: _userAnswers,
+                          fundingMode: derivedSignals.fundingMode,
+                          trace: program.trace,
+                          top3ProgramIds: top3ProgramIds,
+                          derivedSignals: derivedSignals
+                        };
+                        
+                        localStorage.setItem('selectedProgram', JSON.stringify(program));
+                        localStorage.setItem('userAnswers', JSON.stringify(_userAnswers));
+                        localStorage.setItem('enhancedPayload', JSON.stringify(enhancedPayload));
+                        
+                        router.push('/editor?programId=' + program.id + '&answers=' + encodeURIComponent(JSON.stringify(_userAnswers)) + '&pf=' + encodeURIComponent(JSON.stringify(enhancedPayload)));
+                      }}
+                    >
+                      Prefill and continue →
+                    </Button>
                   </DialogContent>
                 </Dialog>
                 <Button 

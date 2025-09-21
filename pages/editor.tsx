@@ -5,17 +5,43 @@ import Editor from "@/components/plan/Editor";
 export default function EditorPage() {
   const router = useRouter();
   const [program, setProgram] = useState<any>(null);
+  const [userAnswers, setUserAnswers] = useState<any>(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    // Get program data from URL params or localStorage
-    const { programId } = router.query;
+    // Get program data and answers from URL params or localStorage
+    const { programId, answers, pf } = router.query;
     
     if (programId) {
       // Load program data from localStorage or API
-      const savedProgram = localStorage.getItem(`program_${programId}`);
+      const savedProgram = localStorage.getItem(`program_${programId}`) || 
+                          localStorage.getItem('selectedProgram');
       if (savedProgram) {
         setProgram(JSON.parse(savedProgram));
+      }
+    }
+    
+    // Try to load enhanced payload first
+    if (pf) {
+      try {
+        const enhancedPayload = JSON.parse(decodeURIComponent(pf as string));
+        setUserAnswers(enhancedPayload.answers);
+        // Store enhanced payload for Editor component
+        localStorage.setItem('enhancedPayload', JSON.stringify(enhancedPayload));
+      } catch (e) {
+        console.error('Failed to parse enhanced payload:', e);
+      }
+    } else if (answers) {
+      try {
+        setUserAnswers(JSON.parse(decodeURIComponent(answers as string)));
+      } catch (e) {
+        console.error('Failed to parse answers:', e);
+      }
+    } else {
+      // Fallback to localStorage
+      const savedAnswers = localStorage.getItem('userAnswers');
+      if (savedAnswers) {
+        setUserAnswers(JSON.parse(savedAnswers));
       }
     }
     
@@ -33,5 +59,5 @@ export default function EditorPage() {
     );
   }
 
-  return <Editor program={program} />;
+  return <Editor program={program} userAnswers={userAnswers} />;
 }

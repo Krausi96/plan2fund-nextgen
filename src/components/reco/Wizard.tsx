@@ -3,55 +3,37 @@ import { Button } from "@/components/ui/button";
 import { useRouter } from "next/router";
 import { motion, AnimatePresence } from "framer-motion";
 import { scoreProgramsEnhanced } from "@/lib/enhancedRecoEngine";
-import questionsData from "@/data/questions";
+import { dynamicQuestionEngine, DynamicQuestion } from "@/lib/dynamicQuestionEngine";
 import HealthFooter from "@/components/common/HealthFooter";
-
-interface Question {
-  id: string;
-  label: string;
-  type: 'single-select' | 'multi-select';
-  options: Array<{ value: string; label: string }>;
-  required: boolean;
-}
 
 export default function Wizard() {
   const router = useRouter();
   const [mode, setMode] = useState<"survey" | "freeText">("survey");
   const [answers, setAnswers] = useState<Record<string, any>>({});
-  const [currentQuestion, setCurrentQuestion] = useState<Question | null>(null);
+  const [currentQuestion, setCurrentQuestion] = useState<DynamicQuestion | null>(null);
   const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
   const [loading, setLoading] = useState(false);
   const [mounted, setMounted] = useState(false);
 
-  const questions = questionsData.universal as Question[];
+  const questions = dynamicQuestionEngine.getQuestionOrder();
 
   useEffect(() => {
     setMounted(true);
-    // Get the first question
-    setCurrentQuestion(questions[0] || null);
+    // Get the first question dynamically
+    const firstQuestion = dynamicQuestionEngine.getNextQuestion(answers);
+    setCurrentQuestion(firstQuestion);
   }, []);
 
   // Update current question when answers change
   useEffect(() => {
-    const nextIndex = getNextQuestionIndex();
-    if (nextIndex < questions.length) {
-      setCurrentQuestion(questions[nextIndex]);
-      setCurrentQuestionIndex(nextIndex);
+    const nextQuestion = dynamicQuestionEngine.getNextQuestion(answers);
+    if (nextQuestion) {
+      setCurrentQuestion(nextQuestion);
+      setCurrentQuestionIndex(questions.findIndex(q => q.id === nextQuestion.id));
     } else {
       setCurrentQuestion(null);
     }
   }, [answers]);
-
-  const getNextQuestionIndex = () => {
-    // Simple logic: move to next question if current is answered
-    for (let i = 0; i < questions.length; i++) {
-      const question = questions[i];
-      if (!answers[question.id] && question.required) {
-        return i;
-      }
-    }
-    return questions.length; // All questions answered
-  };
 
   const handleAnswer = (questionId: string, value: any) => {
     setAnswers(prev => ({
@@ -63,8 +45,8 @@ export default function Wizard() {
   const handleNext = async () => {
     if (mode === "survey") {
       // Check if we have more questions
-      const nextIndex = getNextQuestionIndex();
-      if (nextIndex >= questions.length) {
+      const nextQuestion = dynamicQuestionEngine.getNextQuestion(answers);
+      if (!nextQuestion) {
         // No more questions, get recommendations
         await submitSurvey();
       }
@@ -171,6 +153,11 @@ export default function Wizard() {
                 <div className="flex justify-between pt-6">
                   <div className="text-sm text-gray-500">
                     Question {currentQuestionIndex + 1} of {questions.length}
+                    {currentQuestion.programsAffected > 0 && (
+                      <span className="ml-2 px-2 py-1 bg-blue-100 text-blue-800 rounded text-xs">
+                        Affects {currentQuestion.programsAffected} programs ({currentQuestion.informationValue}% info value)
+                      </span>
+                    )}
                   </div>
                   <Button
                     onClick={handleNext}
