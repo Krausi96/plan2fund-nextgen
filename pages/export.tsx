@@ -1,9 +1,23 @@
-﻿import { useState } from "react";
+﻿import React, { useState } from "react";
 import Link from "next/link";
 import featureFlags from "@/lib/featureFlags";
+import { loadPlanSections, type PlanSection } from "@/lib/planStore";
+import analytics from "@/lib/analytics";
 
 export default function Export() {
   const EXPORT_ENABLED = featureFlags.isEnabled('EXPORT_ENABLED')
+  const [sections, setSections] = useState<PlanSection[]>([]);
+  const [exporting, setExporting] = useState(false);
+  
+  // Load plan sections
+  React.useEffect(() => {
+    const loadedSections = loadPlanSections();
+    setSections(loadedSections);
+    
+    // Track export page view
+    analytics.trackEvent({ event: 'export_page_view', sections: loadedSections.length });
+  }, []);
+
   if (!EXPORT_ENABLED) {
     return (
       <main className="max-w-3xl mx-auto py-12 space-y-6">
@@ -26,6 +40,18 @@ export default function Export() {
         Download your business plan as PDF or DOCX.
       </p>
 
+      {/* Content Preview */}
+      {sections.length > 0 && (
+        <div className="p-4 border rounded-lg bg-gray-50">
+          <h3 className="font-semibold mb-2">Content Preview</h3>
+          <div className="text-sm text-gray-600 space-y-1">
+            <p>Total sections: {sections.length}</p>
+            <p>Completed sections: {sections.filter(s => s.content && s.content.trim().length > 0).length}</p>
+            <p>Total words: {sections.reduce((acc, s) => acc + (s.content?.split(' ').length || 0), 0)}</p>
+          </div>
+        </div>
+      )}
+
       {/* Export format toggle */}
       <div className="flex gap-6 items-center">
         <label className="flex items-center gap-2">
@@ -46,9 +72,54 @@ export default function Export() {
         </label>
       </div>
 
-      {/* Download stub */}
-      <button className="px-6 py-2 rounded-lg bg-blue-600 text-white hover:bg-blue-700">
-        Download {format.toUpperCase()} (Stub)
+      {/* Download functionality */}
+      <button 
+        className="px-6 py-2 rounded-lg bg-blue-600 text-white hover:bg-blue-700 disabled:opacity-50"
+        disabled={exporting || sections.length === 0}
+        onClick={async () => {
+          setExporting(true);
+          try {
+            // Track export attempt
+            analytics.trackEvent({ 
+              event: 'export_attempt', 
+              format, 
+              sections: sections.length,
+              isPaid 
+            });
+
+            // Generate content
+            const content = sections.map(s => `# ${s.title}\n\n${s.content || 'No content yet'}`).join('\n\n---\n\n');
+            
+            if (format === 'pdf') {
+              // For now, download as text file (PDF generation would require server-side implementation)
+              const blob = new Blob([content], { type: 'text/plain' });
+              const url = URL.createObjectURL(blob);
+              const a = document.createElement('a');
+              a.href = url;
+              a.download = `business-plan.${format}`;
+              a.click();
+              URL.revokeObjectURL(url);
+            } else {
+              // DOCX would require a library like docx
+              alert('DOCX export not yet implemented. Please use PDF format.');
+            }
+
+            // Track successful export
+            analytics.trackEvent({ 
+              event: 'export_success', 
+              format, 
+              sections: sections.length,
+              isPaid 
+            });
+          } catch (error) {
+            analytics.trackError(error as Error, 'export_download');
+            alert('Export failed. Please try again.');
+          } finally {
+            setExporting(false);
+          }
+        }}
+      >
+        {exporting ? 'Exporting...' : `Download ${format.toUpperCase()}`}
       </button>
 
       {/* Watermark stub if unpaid */}

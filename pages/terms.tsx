@@ -1,8 +1,20 @@
+import Head from "next/head";
 import { Card } from "@/components/ui/card";
 
 export default function TermsPage() {
   return (
-    <div className="max-w-4xl mx-auto px-4 py-12">
+    <>
+      <Head>
+        <title>Terms of Service - Plan2Fund | Legal Terms & Conditions</title>
+        <meta name="description" content="Read Plan2Fund's Terms of Service, including user responsibilities, payment terms, intellectual property rights, and legal obligations." />
+        <meta property="og:title" content="Terms of Service - Plan2Fund" />
+        <meta property="og:description" content="Read Plan2Fund's Terms of Service and legal terms for using our business planning platform." />
+        <meta property="og:type" content="website" />
+        <meta property="og:url" content="https://plan2fund.com/terms" />
+        <link rel="canonical" href="https://plan2fund.com/terms" />
+      </Head>
+      
+      <div className="max-w-4xl mx-auto px-4 py-12">
       <div className="prose max-w-none">
         <h1 className="text-4xl font-bold text-gray-900 mb-8">Terms of Service</h1>
         <p className="text-lg text-gray-600 mb-8">
@@ -200,6 +212,7 @@ export default function TermsPage() {
           </div>
         </Card>
       </div>
-    </div>
+      </div>
+    </>
   );
 }

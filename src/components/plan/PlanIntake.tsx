@@ -117,7 +117,7 @@ export default function PlanIntake() {
           </button>
         )}
         <Link
-          href={{ pathname: "/plan", query: { ...(programId && { programId }), ...(mode && { mode }) } }}
+          href={{ pathname: "/editor", query: { ...(programId && { programId }), ...(mode && { mode }) } }}
           className="px-4 py-2 rounded border hover:bg-gray-50"
         >
           {mode === 'upgrade' ? 'Start Review →' : 'Continue to Plan →'}

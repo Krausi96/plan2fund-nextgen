@@ -1,6 +1,7 @@
 import React, { useState, useRef } from "react";
 import { Button } from "@/components/ui/button";
 import InfoDrawer from "@/components/common/InfoDrawer";
+import { aiHelperGuardrails } from "@/lib/aiHelperGuardrails";
 
 type AIChatProps = {
   onInsertContent: (content: string, section: string) => void;
@@ -112,8 +113,71 @@ export default function AIChat({ onInsertContent, currentSection, persona }: AIC
     setMessages(prev => [...prev, userMessage]);
     setIsProcessing(true);
 
-    // Simulate AI response
-    setTimeout(() => {
+    try {
+      // Process input with guardrails
+      const guardrailResponse = await aiHelperGuardrails.processInput(input, 'plan');
+      
+      // Handle different response types
+      if (guardrailResponse.type === 'redirect') {
+        const aiMessage: ChatMessage = {
+          id: (Date.now() + 1).toString(),
+          type: "ai",
+          content: guardrailResponse.content.message,
+          timestamp: new Date(),
+          command: 'redirect'
+        };
+        setMessages(prev => [...prev, aiMessage]);
+      } else if (guardrailResponse.type === 'suggestion_ticket') {
+        const aiMessage: ChatMessage = {
+          id: (Date.now() + 1).toString(),
+          type: "ai",
+          content: `I've created a suggestion ticket for "${guardrailResponse.content.programName}". This will be reviewed by our team.`,
+          timestamp: new Date(),
+          command: 'suggestion'
+        };
+        setMessages(prev => [...prev, aiMessage]);
+      } else if (guardrailResponse.type === 'chips') {
+        const aiMessage: ChatMessage = {
+          id: (Date.now() + 1).toString(),
+          type: "ai",
+          content: `I extracted these key information from your input:\n\n${guardrailResponse.content.map((chip: any) => `• ${chip.label}: ${chip.value}`).join('\n')}\n\nWould you like me to help you with your business plan based on this information?`,
+          timestamp: new Date(),
+          command: 'chips'
+        };
+        setMessages(prev => [...prev, aiMessage]);
+      } else if (guardrailResponse.type === 'clarification') {
+        const aiMessage: ChatMessage = {
+          id: (Date.now() + 1).toString(),
+          type: "ai",
+          content: `To better help you, could you clarify:\n\n${guardrailResponse.content.map((q: string) => `• ${q}`).join('\n')}`,
+          timestamp: new Date(),
+          command: 'clarification'
+        };
+        setMessages(prev => [...prev, aiMessage]);
+      } else if (guardrailResponse.type === 'plan_assistance') {
+        const aiMessage: ChatMessage = {
+          id: (Date.now() + 1).toString(),
+          type: "ai",
+          content: `${guardrailResponse.content.message}\n\n${guardrailResponse.content.suggestions.map((s: string) => `• ${s}`).join('\n')}`,
+          timestamp: new Date(),
+          command: 'plan_assistance'
+        };
+        setMessages(prev => [...prev, aiMessage]);
+      } else {
+        // Fallback to original AI response
+        const aiResponse = generateAIResponse(input, currentSection, tone);
+        const aiMessage: ChatMessage = {
+          id: (Date.now() + 1).toString(),
+          type: "ai",
+          content: aiResponse.content,
+          timestamp: new Date(),
+          command: input.startsWith("/") ? input.split(" ")[0] : undefined
+        };
+        setMessages(prev => [...prev, aiMessage]);
+      }
+    } catch (error) {
+      console.error('Error processing input with guardrails:', error);
+      // Fallback to original AI response
       const aiResponse = generateAIResponse(input, currentSection, tone);
       const aiMessage: ChatMessage = {
         id: (Date.now() + 1).toString(),
@@ -122,10 +186,10 @@ export default function AIChat({ onInsertContent, currentSection, persona }: AIC
         timestamp: new Date(),
         command: input.startsWith("/") ? input.split(" ")[0] : undefined
       };
-
       setMessages(prev => [...prev, aiMessage]);
+    } finally {
       setIsProcessing(false);
-    }, 1500);
+    }
 
     setInput("");
     setExtractedChips([]);

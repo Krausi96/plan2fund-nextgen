@@ -304,7 +304,7 @@ export default function ProgramDetailsPage() {
           <Card className="p-6">
             <h2 className="text-xl font-semibold mb-4">Next Steps</h2>
             <div className="space-y-3">
-              <Link href={`/plan/intake?programId=${program.id}`} className="block">
+              <Link href={`/editor?programId=${program.id}`} className="block">
                 <Button className="w-full bg-blue-600 hover:bg-blue-700">
                   Create Business Plan
                 </Button>

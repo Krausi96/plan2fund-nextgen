@@ -1,0 +1,13 @@
+<svg width="1200" height="630" viewBox="0 0 1200 630" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <rect width="1200" height="630" fill="#2563eb"/>
+  <rect width="1200" height="630" fill="url(#gradient)"/>
+  <defs>
+    <linearGradient id="gradient" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#2563eb;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#1e4af9;stop-opacity:1" />
+    </linearGradient>
+  </defs>
+  <text x="600" y="300" font-family="Arial, sans-serif" font-size="72" font-weight="bold" fill="white" text-anchor="middle">Plan2Fund</text>
+  <text x="600" y="400" font-family="Arial, sans-serif" font-size="32" fill="white" text-anchor="middle" opacity="0.9">Find Funding & Build Business Plans</text>
+  <text x="600" y="500" font-family="Arial, sans-serif" font-size="24" fill="white" text-anchor="middle" opacity="0.8">Austria & EU Funding Programs</text>
+</svg>

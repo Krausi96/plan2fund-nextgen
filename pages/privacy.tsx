@@ -1,8 +1,20 @@
+import Head from "next/head";
 import { Card } from "@/components/ui/card";
 
 export default function PrivacyPage() {
   return (
-    <div className="max-w-4xl mx-auto px-4 py-12">
+    <>
+      <Head>
+        <title>Privacy Policy - Plan2Fund | Data Protection & GDPR Compliance</title>
+        <meta name="description" content="Learn about Plan2Fund's privacy policy, data protection practices, and GDPR compliance. Understand how we collect, use, and protect your personal information." />
+        <meta property="og:title" content="Privacy Policy - Plan2Fund | Data Protection & GDPR" />
+        <meta property="og:description" content="Learn about Plan2Fund's privacy policy and data protection practices in compliance with GDPR." />
+        <meta property="og:type" content="website" />
+        <meta property="og:url" content="https://plan2fund.com/privacy" />
+        <link rel="canonical" href="https://plan2fund.com/privacy" />
+      </Head>
+      
+      <div className="max-w-4xl mx-auto px-4 py-12">
       <div className="prose max-w-none">
         <h1 className="text-4xl font-bold text-gray-900 mb-8">Privacy Policy</h1>
         <p className="text-lg text-gray-600 mb-8">
@@ -168,6 +180,7 @@ export default function PrivacyPage() {
           </div>
         </Card>
       </div>
-    </div>
+      </div>
+    </>
   );
 }

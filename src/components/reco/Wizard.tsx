@@ -100,13 +100,13 @@ export default function Wizard() {
         {/* Mode Toggle */}
         <div className="flex justify-center space-x-4 mb-8">
           <Button
-            variant={mode === "survey" ? "default" : "outline"}
+            variant={mode === "survey" ? "primary" : "outline"}
             onClick={() => setMode("survey")}
           >
             Guided Questions
           </Button>
           <Button
-            variant={mode === "freeText" ? "default" : "outline"}
+            variant={mode === "freeText" ? "primary" : "outline"}
             onClick={() => setMode("freeText")}
           >
             Free Text Search

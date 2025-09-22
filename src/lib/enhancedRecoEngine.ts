@@ -364,166 +364,221 @@ export function scoreProgramsEnhanced(
   answers: UserAnswers,
   mode: "strict" | "explorer" = "strict"
 ): EnhancedProgramResult[] {
-  const source = rawPrograms.programs as any[];
-  const derivedSignals = deriveSignals(answers);
-  
-  const normalizedPrograms: Program[] = source.map((p) => ({
-    id: p.id,
-    name: p.title || p.name || p.id,
-    type: Array.isArray(p.tags) && p.tags.length > 0 ? p.tags[0] : (p.type || "program"),
-    requirements: (p.requirements as any) || {},
-    notes: undefined,
-    maxAmount: undefined,
-    link: undefined,
-  }));
+  try {
+    const source = rawPrograms.programs as any[];
+    const derivedSignals = deriveSignals(answers);
+    
+    const normalizedPrograms: Program[] = source.map((p) => ({
+      id: p.id,
+      name: p.title || p.name || p.id,
+      type: Array.isArray(p.tags) && p.tags.length > 0 ? p.tags[0] : (p.type || "program"),
+      requirements: (p.requirements as any) || {},
+      notes: undefined,
+      maxAmount: undefined,
+      link: undefined,
+    }));
 
-  return normalizedPrograms.map((program) => {
-    let score = 0;
-    const matchedCriteria: Array<{
-      key: string;
-      value: any;
-      reason: string;
-      status: 'passed' | 'warning' | 'failed';
-    }> = [];
-    const gaps: Array<{
-      key: string;
-      description: string;
-      action: string;
-      priority: 'high' | 'medium' | 'low';
-    }> = [];
+    return normalizedPrograms.map((program) => {
+      let score = 0;
+      const matchedCriteria: Array<{
+        key: string;
+        value: any;
+        reason: string;
+        status: 'passed' | 'warning' | 'failed';
+      }> = [];
+      const gaps: Array<{
+        key: string;
+        description: string;
+        action: string;
+        priority: 'high' | 'medium' | 'low';
+      }> = [];
 
-    // Evaluate each requirement
-    for (const [key, requirement] of Object.entries(program.requirements)) {
-      const answer = answers[key];
+      // Evaluate each requirement
+      for (const [key, requirement] of Object.entries(program.requirements)) {
+        const answer = answers[key];
 
-      if (answer === undefined || answer === null || answer === "") {
-        if (mode === "strict") {
+        if (answer === undefined || answer === null || answer === "") {
+          if (mode === "strict") {
+            gaps.push({
+              key,
+              description: `${key} is missing`,
+              action: `Provide answer for ${key}`,
+              priority: 'high'
+            });
+          }
+          continue;
+        }
+
+        let passed = false;
+        let reason = '';
+        let status: 'passed' | 'warning' | 'failed' = 'failed';
+
+        if (Array.isArray(requirement)) {
+          if (requirement.includes(answer)) {
+            passed = true;
+            reason = `${key} matches requirement (${answer})`;
+            status = 'passed';
+          } else {
+            reason = `${key} does not match requirement (${answer})`;
+            status = 'failed';
+          }
+        } else if (typeof requirement === "number") {
+          if (answer <= requirement) {
+            passed = true;
+            reason = `${key} within limit (${answer} <= ${requirement})`;
+            status = 'passed';
+          } else {
+            reason = `${key} exceeds limit (${answer} > ${requirement})`;
+            status = 'failed';
+          }
+        } else if (typeof requirement === "object" && requirement.min !== undefined) {
+          if (answer >= requirement.min) {
+            passed = true;
+            reason = `${key} meets minimum (${answer} >= ${requirement.min})`;
+            status = 'passed';
+          } else {
+            reason = `${key} below minimum (${answer} < ${requirement.min})`;
+            status = 'failed';
+          }
+        } else if (typeof requirement === "object" && requirement.max !== undefined) {
+          if (answer <= requirement.max) {
+            passed = true;
+            reason = `${key} within maximum (${answer} <= ${requirement.max})`;
+            status = 'passed';
+          } else {
+            reason = `${key} exceeds maximum (${answer} > ${requirement.max})`;
+            status = 'failed';
+          }
+        } else {
+          if (answer === requirement) {
+            passed = true;
+            reason = `${key} matches exactly (${answer})`;
+            status = 'passed';
+          } else {
+            reason = `${key} does not match (${answer} vs ${requirement})`;
+            status = 'failed';
+          }
+        }
+
+        // Add to matched criteria
+        matchedCriteria.push({
+          key,
+          value: answer,
+          reason,
+          status
+        });
+
+        // Add to gaps if failed
+        if (!passed) {
           gaps.push({
             key,
-            description: `${key} is missing`,
-            action: `Provide answer for ${key}`,
-            priority: 'high'
+            description: reason,
+            action: getGapAction(key, requirement, answer),
+            priority: getGapPriority(key, requirement)
           });
         }
-        continue;
-      }
 
-      let passed = false;
-      let reason = '';
-      let status: 'passed' | 'warning' | 'failed' = 'failed';
-
-      if (Array.isArray(requirement)) {
-        if (requirement.includes(answer)) {
-          passed = true;
-          reason = `${key} matches requirement (${answer})`;
-          status = 'passed';
-        } else {
-          reason = `${key} does not match requirement (${answer})`;
-          status = 'failed';
-        }
-      } else if (typeof requirement === "number") {
-        if (answer <= requirement) {
-          passed = true;
-          reason = `${key} within limit (${answer} <= ${requirement})`;
-          status = 'passed';
-        } else {
-          reason = `${key} exceeds limit (${answer} > ${requirement})`;
-          status = 'failed';
-        }
-      } else if (typeof requirement === "object" && requirement.min !== undefined) {
-        if (answer >= requirement.min) {
-          passed = true;
-          reason = `${key} meets minimum (${answer} >= ${requirement.min})`;
-          status = 'passed';
-        } else {
-          reason = `${key} below minimum (${answer} < ${requirement.min})`;
-          status = 'failed';
-        }
-      } else if (typeof requirement === "object" && requirement.max !== undefined) {
-        if (answer <= requirement.max) {
-          passed = true;
-          reason = `${key} within maximum (${answer} <= ${requirement.max})`;
-          status = 'passed';
-        } else {
-          reason = `${key} exceeds maximum (${answer} > ${requirement.max})`;
-          status = 'failed';
-        }
-      } else {
-        if (answer === requirement) {
-          passed = true;
-          reason = `${key} matches exactly (${answer})`;
-          status = 'passed';
-        } else {
-          reason = `${key} does not match (${answer} vs ${requirement})`;
-          status = 'failed';
+        if (passed) {
+          score += 1;
         }
       }
 
-      // Add to matched criteria
-      matchedCriteria.push({
-        key,
-        value: answer,
-        reason,
-        status
-      });
+      const totalRequirements = Object.keys(program.requirements || {}).length;
+      const scorePercent = totalRequirements > 0 ? Math.round((score / totalRequirements) * 100) : 0;
 
-      // Add to gaps if failed
-      if (!passed) {
-        gaps.push({
-          key,
-          description: reason,
-          action: getGapAction(key, requirement, answer),
-          priority: getGapPriority(key, requirement)
-        });
-      }
-
-      if (passed) {
-        score += 1;
-      }
-    }
-
-    const totalRequirements = Object.keys(program.requirements || {}).length;
-    const scorePercent = totalRequirements > 0 ? Math.round((score / totalRequirements) * 100) : 0;
-
-    const eligibility =
-      mode === "strict"
-        ? gaps.length === 0
+      const eligibility =
+        mode === "strict"
+          ? gaps.length === 0
+            ? "Eligible"
+            : "Not Eligible"
+          : scorePercent > 0
           ? "Eligible"
-          : "Not Eligible"
-        : scorePercent > 0
-        ? "Eligible"
-        : "Not Eligible";
+          : "Not Eligible";
 
-    let confidence: "High" | "Medium" | "Low" = "Low";
-    if (scorePercent >= 80) confidence = "High";
-    else if (scorePercent >= 50) confidence = "Medium";
+      let confidence: "High" | "Medium" | "Low" = "Low";
+      if (scorePercent >= 80) confidence = "High";
+      else if (scorePercent >= 50) confidence = "Medium";
 
-    const reason = generateEnhancedReason(program, matchedCriteria, gaps, scorePercent);
-    const founderFriendlyReasons = generateFounderFriendlyReasons(matchedCriteria);
-    const founderFriendlyRisks = generateFounderFriendlyRisks(gaps);
+      const reason = generateEnhancedReason(program, matchedCriteria, gaps, scorePercent);
+      const founderFriendlyReasons = generateFounderFriendlyReasons(matchedCriteria);
+      const founderFriendlyRisks = generateFounderFriendlyRisks(gaps);
 
-    // Generate eligibility trace
-    const trace = generateEligibilityTrace(program, matchedCriteria, gaps, derivedSignals);
+      // Generate eligibility trace
+      const trace = generateEligibilityTrace(program, matchedCriteria, gaps, derivedSignals);
+      
+      return {
+        ...program,
+        score: scorePercent,
+        reason,
+        eligibility,
+        confidence,
+        matchedCriteria,
+        gaps: gaps.slice(0, 3), // Limit to top 3 gaps
+        amount: getProgramAmount(program),
+        timeline: getProgramTimeline(program.type),
+        successRate: getProgramSuccessRate(program),
+        llmFailed: false, // This is rule-based, not LLM
+        fallbackReason: reason,
+        fallbackGaps: gaps.map(g => g.description),
+        founderFriendlyReasons,
+        founderFriendlyRisks,
+        trace // Add trace information
+      };
+    }).sort((a, b) => b.score - a.score);
+  } catch (error) {
+    console.error('Enhanced recommendation engine failed, using fallback:', error);
+    return scoreProgramsFallback(answers, mode);
+  }
+}
+
+// Fallback recommendation engine - simple but reliable
+function scoreProgramsFallback(
+  _answers: UserAnswers,
+  _mode: "strict" | "explorer" = "strict"
+): EnhancedProgramResult[] {
+  try {
+    const source = rawPrograms.programs as any[];
     
-    return {
-      ...program,
-      score: scorePercent,
-      reason,
-      eligibility,
-      confidence,
-      matchedCriteria,
-      gaps: gaps.slice(0, 3), // Limit to top 3 gaps
-      amount: getProgramAmount(program),
-      timeline: getProgramTimeline(program.type),
-      successRate: getProgramSuccessRate(program),
-      llmFailed: false, // This is rule-based, not LLM
-      fallbackReason: reason,
-      fallbackGaps: gaps.map(g => g.description),
-      founderFriendlyReasons,
-      founderFriendlyRisks,
-      trace // Add trace information
-    };
-  }).sort((a, b) => b.score - a.score);
+    // Simple fallback: return basic program information with minimal scoring
+    return source.slice(0, 10).map((p, index) => ({
+      id: p.id || `fallback-${index}`,
+      name: p.title || p.name || p.id || `Program ${index + 1}`,
+      type: Array.isArray(p.tags) && p.tags.length > 0 ? p.tags[0] : (p.type || "program"),
+      requirements: (p.requirements as any) || {},
+      notes: undefined,
+      maxAmount: undefined,
+      link: undefined,
+      score: Math.max(0, 100 - (index * 10)), // Decreasing score
+      reason: "Fallback recommendation - basic program information available",
+      eligibility: "Unknown",
+      confidence: "Low" as const,
+      matchedCriteria: [],
+      gaps: [{
+        key: "fallback",
+        description: "Using fallback recommendation system",
+        action: "Contact support for detailed analysis",
+        priority: "medium" as const
+      }],
+      amount: { min: 0, max: 0, currency: 'EUR' },
+      timeline: "Unknown",
+      successRate: 0.3,
+      llmFailed: true,
+      fallbackReason: "Main recommendation engine unavailable",
+      fallbackGaps: ["System fallback mode"],
+      founderFriendlyReasons: ["This program may be suitable for your project"],
+      founderFriendlyRisks: ["Verify eligibility requirements before applying"],
+      trace: {
+        passed: [],
+        failed: [],
+        warnings: ["⚠️ Using fallback recommendation system"],
+        counterfactuals: ["Contact support for detailed program analysis"]
+      }
+    }));
+  } catch (fallbackError) {
+    console.error('Fallback recommendation engine also failed:', fallbackError);
+    // Ultimate fallback - return empty results
+    return [];
+  }
 }
 
 // Generate enhanced reason with detailed explanations
@@ -730,36 +785,44 @@ function getProgramSuccessRate(program: Program): number {
 
 // Analyze free-text description and normalize into structured answers
 export function analyzeFreeTextEnhanced(description: string): { normalized: UserAnswers; scored: EnhancedProgramResult[] } {
-  const normalized: UserAnswers = {};
-  const lower = description.toLowerCase();
+  try {
+    const normalized: UserAnswers = {};
+    const lower = description.toLowerCase();
 
-  // Basic sector detection
-  if (lower.includes("bakery") || lower.includes("restaurant") || lower.includes("food")) {
-    normalized["sector"] = "Food";
-  } else if (lower.includes("tech") || lower.includes("software") || lower.includes("ai")) {
-    normalized["sector"] = "Technology";
-  } else if (lower.includes("manufacturing")) {
-    normalized["sector"] = "Manufacturing";
+    // Basic sector detection
+    if (lower.includes("bakery") || lower.includes("restaurant") || lower.includes("food")) {
+      normalized["sector"] = "Food";
+    } else if (lower.includes("tech") || lower.includes("software") || lower.includes("ai")) {
+      normalized["sector"] = "Technology";
+    } else if (lower.includes("manufacturing")) {
+      normalized["sector"] = "Manufacturing";
+    }
+
+    // Basic funding type detection
+    if (lower.includes("loan")) {
+      normalized["purpose"] = "Loan";
+    } else if (lower.includes("grant")) {
+      normalized["purpose"] = "Grant";
+    } else if (lower.includes("funding")) {
+      normalized["purpose"] = "Funding";
+    }
+
+    // Basic stage detection
+    if (lower.includes("startup") || lower.includes("new")) {
+      normalized["stage"] = "Startup";
+    } else if (lower.includes("established") || lower.includes("existing")) {
+      normalized["stage"] = "Established";
+    }
+
+    const scored = scoreProgramsEnhanced(normalized, "explorer");
+    return { normalized, scored };
+  } catch (error) {
+    console.error('Free text analysis failed, using fallback:', error);
+    return {
+      normalized: {},
+      scored: scoreProgramsFallback({}, "explorer")
+    };
   }
-
-  // Basic funding type detection
-  if (lower.includes("loan")) {
-    normalized["purpose"] = "Loan";
-  } else if (lower.includes("grant")) {
-    normalized["purpose"] = "Grant";
-  } else if (lower.includes("funding")) {
-    normalized["purpose"] = "Funding";
-  }
-
-  // Basic stage detection
-  if (lower.includes("startup") || lower.includes("new")) {
-    normalized["stage"] = "Startup";
-  } else if (lower.includes("established") || lower.includes("existing")) {
-    normalized["stage"] = "Established";
-  }
-
-  const scored = scoreProgramsEnhanced(normalized, "explorer");
-  return { normalized, scored };
 }
 
 // Generate eligibility trace for a program

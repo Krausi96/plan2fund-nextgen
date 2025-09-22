@@ -315,7 +315,7 @@ export default function AdvancedSearch() {
                       </div>
 
                       <div className="mt-4 flex gap-2">
-                        <Link href={`/plan?programId=${program.id}`}>
+                        <Link href={`/editor?programId=${program.id}`}>
                           <Button className="flex-1">Start in Editor</Button>
                         </Link>
                         <Button variant="outline" size="sm">

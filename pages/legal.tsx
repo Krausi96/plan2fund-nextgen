@@ -1,4 +1,5 @@
-﻿import { useState } from "react";
+﻿import Head from "next/head";
+import { useState } from "react";
 
 export default function Legal() {
   const [activeTab, setActiveTab] = useState<'legal' | 'privacy' | 'terms'>('legal');
@@ -69,7 +70,18 @@ export default function Legal() {
   };
 
   return (
-    <main className="max-w-3xl mx-auto px-6 py-16 space-y-8">
+    <>
+      <Head>
+        <title>Legal Information - Plan2Fund | Company Details & Compliance</title>
+        <meta name="description" content="Legal information for Plan2Fund including company details, legal notice, privacy policy, and terms of service in compliance with Austrian and EU law." />
+        <meta property="og:title" content="Legal Information - Plan2Fund" />
+        <meta property="og:description" content="Legal information and company details for Plan2Fund in compliance with Austrian and EU regulations." />
+        <meta property="og:type" content="website" />
+        <meta property="og:url" content="https://plan2fund.com/legal" />
+        <link rel="canonical" href="https://plan2fund.com/legal" />
+      </Head>
+      
+      <main className="max-w-3xl mx-auto px-6 py-16 space-y-8">
       <section className="text-center mb-8">
         <h1 className="text-4xl font-bold bg-gradient-to-r from-blue-600 to-indigo-600 bg-clip-text text-transparent">
           Legal Information
@@ -100,6 +112,7 @@ export default function Legal() {
       <div className="prose text-gray-600">
         {renderContent()}
       </div>
-    </main>
+      </main>
+    </>
   );
 }

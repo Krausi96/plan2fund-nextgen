@@ -1,0 +1,101 @@
+import { motion } from "framer-motion";
+import { Search, FileText, CheckCircle } from "lucide-react";
+
+const steps = [
+  {
+    icon: Search,
+    title: "Find Your Programs",
+    description: "Answer a few questions and discover 214+ funding programs you qualify for in Austria and the EU.",
+    color: "text-blue-600",
+    bgColor: "bg-blue-50",
+  },
+  {
+    icon: FileText,
+    title: "Draft Your Plan",
+    description: "Use our program-aware editor to create a comprehensive business plan in under 30 minutes.",
+    color: "text-green-600",
+    bgColor: "bg-green-50",
+  },
+  {
+    icon: CheckCircle,
+    title: "Submit & Track",
+    description: "Submit your application with confidence and track your progress through the funding process.",
+    color: "text-purple-600",
+    bgColor: "bg-purple-50",
+  },
+];
+
+export function HowItWorks() {
+  return (
+    <section className="section-padding bg-neutral-50">
+      <div className="container">
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.6 }}
+          viewport={{ once: true }}
+          className="text-center mb-16"
+        >
+          <h2 className="text-4xl font-bold text-neutral-900 mb-4">
+            How it works
+          </h2>
+          <p className="text-xl text-neutral-600 max-w-2xl mx-auto">
+            Get from idea to funded in three simple steps
+          </p>
+        </motion.div>
+
+        <div className="grid md:grid-cols-3 gap-8 lg:gap-12">
+          {steps.map((step, index) => (
+            <motion.div
+              key={index}
+              initial={{ opacity: 0, y: 30 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.6, delay: index * 0.2 }}
+              viewport={{ once: true }}
+              className="text-center"
+            >
+              <div className="relative">
+                {/* Step Number */}
+                <div className="absolute -top-4 -left-4 w-8 h-8 bg-primary-600 text-white rounded-full flex items-center justify-center text-sm font-bold">
+                  {index + 1}
+                </div>
+                
+                {/* Icon */}
+                <div className={`w-16 h-16 ${step.bgColor} rounded-2xl flex items-center justify-center mx-auto mb-6`}>
+                  <step.icon className={`w-8 h-8 ${step.color}`} />
+                </div>
+                
+                {/* Content */}
+                <h3 className="text-2xl font-semibold text-neutral-900 mb-4">
+                  {step.title}
+                </h3>
+                <p className="text-neutral-600 leading-relaxed">
+                  {step.description}
+                </p>
+              </div>
+            </motion.div>
+          ))}
+        </div>
+
+        {/* CTA */}
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.6, delay: 0.6 }}
+          viewport={{ once: true }}
+          className="text-center mt-16"
+        >
+          <a
+            href="/reco"
+            className="inline-flex items-center px-8 py-4 bg-primary-600 text-white rounded-xl hover:bg-primary-700 transition-colors font-semibold text-lg shadow-lg hover:shadow-xl"
+          >
+            Start your journey
+            <svg className="ml-2 w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+            </svg>
+          </a>
+        </motion.div>
+      </div>
+    </section>
+  );
+}

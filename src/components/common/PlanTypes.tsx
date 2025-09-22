@@ -25,7 +25,7 @@ export function PlanTypes() {
           >
             <h3 className="font-bold text-lg text-gray-900">{p.title}</h3>
             <p className="text-gray-600 text-sm mt-2 flex-grow">{p.info}</p>
-            <a href="/plan" className="mt-4 text-blue-600 font-semibold hover:underline">
+            <a href="/editor" className="mt-4 text-blue-600 font-semibold hover:underline">
               Read more →
             </a>
           </div>

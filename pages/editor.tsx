@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import { useRouter } from "next/router";
 import Editor from "@/components/plan/Editor";
+import { decodePayload, validatePayload } from "@/lib/payload";
 
 export default function EditorPage() {
   const router = useRouter();
@@ -24,10 +25,17 @@ export default function EditorPage() {
     // Try to load enhanced payload first
     if (pf) {
       try {
-        const enhancedPayload = JSON.parse(decodeURIComponent(pf as string));
-        setUserAnswers(enhancedPayload.answers);
-        // Store enhanced payload for Editor component
-        localStorage.setItem('enhancedPayload', JSON.stringify(enhancedPayload));
+        const payload = decodePayload(pf as string);
+        if (payload && validatePayload(payload)) {
+          setUserAnswers(payload.answers_v1);
+          if (payload.program) {
+            setProgram(payload.program);
+          }
+          // Store enhanced payload for Editor component
+          localStorage.setItem('enhancedPayload', JSON.stringify(payload));
+        } else {
+          console.error('Invalid payload structure');
+        }
       } catch (e) {
         console.error('Failed to parse enhanced payload:', e);
       }
@@ -59,5 +67,5 @@ export default function EditorPage() {
     );
   }
 
-  return <Editor program={program} userAnswers={userAnswers} />;
+  return <Editor program={program} userAnswers={userAnswers} showProductSelector={!program && !userAnswers} />;
 }

@@ -1,16 +1,37 @@
 ﻿import Link from "next/link";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import featureFlags from "@/lib/featureFlags";
+import { loadPlanSections, type PlanSection } from "@/lib/planStore";
+import { chapterTemplates } from "@/lib/templates/chapters";
+import analytics from "@/lib/analytics";
 
 export default function Preview() {
-  const sectionsFilled = 3 // stub: could read from planStore
-  const totalSections = 9
-  const completeness = Math.round((sectionsFilled / totalSections) * 100)
-  const complexity = sectionsFilled > 6 ? "High" : sectionsFilled > 3 ? "Medium" : "Low"
-  const basicPrice = "€99"
-  const proPrice = "€199"
-  const [deliveryMode, setDeliveryMode] = useState<"standard" | "priority">("standard")
-  const [includedSections, setIncludedSections] = useState<Set<string>>(new Set(["summary", "problem", "solution"]))
+  const [sections, setSections] = useState<PlanSection[]>([]);
+  const [loading, setLoading] = useState(true);
+  
+  useEffect(() => {
+    const loadedSections = loadPlanSections();
+    if (loadedSections.length > 0) {
+      setSections(loadedSections);
+    } else {
+      // Initialize with empty sections if none exist
+      const emptySections = chapterTemplates.map(t => ({ id: t.id, title: t.title, content: "" }));
+      setSections(emptySections);
+    }
+    setLoading(false);
+
+    // Track preview view
+    analytics.trackSuccessHubView("preview");
+  }, []);
+
+  const sectionsFilled = sections.filter(s => s.content && s.content.trim().length > 0).length;
+  const totalSections = sections.length;
+  const completeness = totalSections > 0 ? Math.round((sectionsFilled / totalSections) * 100) : 0;
+  const complexity = sectionsFilled > 6 ? "High" : sectionsFilled > 3 ? "Medium" : "Low";
+  const basicPrice = "€99";
+  const proPrice = "€199";
+  const [deliveryMode, setDeliveryMode] = useState<"standard" | "priority">("standard");
+  const [includedSections, setIncludedSections] = useState<Set<string>>(new Set(["summary", "problem", "solution"]));
   return (
     <main className="max-w-5xl mx-auto py-12 grid md:grid-cols-[1fr_320px] gap-6">
       <div>
@@ -20,47 +41,94 @@ export default function Preview() {
         you finalize your choices.
       </p>
 
-      {/* Blurred Preview of the Plan */}
+      {/* Real Preview of the Plan */}
       <div className="space-y-4">
-        {["Executive Summary", "Problem Statement", "Solution", "Market Analysis", "Financial Projections"].map((section, i) => (
-          <div key={i} className="relative">
-            <div className="flex items-center justify-between p-4 bg-gray-50 rounded-xl">
-              <div className="flex items-center gap-3">
-                <input
-                  type="checkbox"
-                  checked={includedSections.has(section.toLowerCase().replace(/\s+/g, "-"))}
-                  onChange={(e) => {
-                    const sectionId = section.toLowerCase().replace(/\s+/g, "-");
-                    const newIncluded = new Set(includedSections);
-                    if (e.target.checked) {
-                      newIncluded.add(sectionId);
-                    } else {
-                      newIncluded.delete(sectionId);
-                    }
-                    setIncludedSections(newIncluded);
-                  }}
-                  className="rounded"
-                />
-                <h2 className="font-semibold">{section}</h2>
-              </div>
-              <button
-                disabled={!featureFlags.isEnabled('CHECKOUT_ENABLED')}
-                className={`px-3 py-1 text-xs rounded ${
-                  featureFlags.isEnabled('CHECKOUT_ENABLED') 
-                    ? "bg-blue-100 text-blue-800 hover:bg-blue-200" 
-                    : "bg-gray-100 text-gray-400 cursor-not-allowed"
-                }`}
-                title={!featureFlags.isEnabled('CHECKOUT_ENABLED') ? "Unlock after purchase" : ""}
-              >
-                Copy section
-              </button>
-            </div>
-            <div className="absolute inset-0 bg-black opacity-50 z-10 rounded-xl"></div>
-            <div className="p-6 bg-gray-50 rounded-xl z-20 relative">
-              <p className="text-sm">[Blurred preview of content]</p>
-            </div>
+        {loading ? (
+          <div className="text-center py-8">
+            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto mb-4"></div>
+            <p className="text-gray-600">Loading your business plan...</p>
           </div>
-        ))}
+        ) : (
+          sections.map((section, i) => {
+            const hasContent = section.content && section.content.trim().length > 0;
+            const sectionId = section.id;
+            return (
+              <div key={i} className="relative">
+                <div className="flex items-center justify-between p-4 bg-gray-50 rounded-xl">
+                  <div className="flex items-center gap-3">
+                    <input
+                      type="checkbox"
+                      checked={includedSections.has(sectionId)}
+                      onChange={(e) => {
+                        const newIncluded = new Set(includedSections);
+                        if (e.target.checked) {
+                          newIncluded.add(sectionId);
+                        } else {
+                          newIncluded.delete(sectionId);
+                        }
+                        setIncludedSections(newIncluded);
+                      }}
+                      className="rounded"
+                    />
+                    <h2 className="font-semibold">{section.title}</h2>
+                    {hasContent && <span className="text-xs text-green-600">✓ Completed</span>}
+                  </div>
+                  <button
+                    disabled={!featureFlags.isEnabled('CHECKOUT_ENABLED')}
+                    className={`px-3 py-1 text-xs rounded ${
+                      featureFlags.isEnabled('CHECKOUT_ENABLED') 
+                        ? "bg-blue-100 text-blue-800 hover:bg-blue-200" 
+                        : "bg-gray-100 text-gray-400 cursor-not-allowed"
+                    }`}
+                    title={!featureFlags.isEnabled('CHECKOUT_ENABLED') ? "Unlock after purchase" : ""}
+                  >
+                    Copy section
+                  </button>
+                </div>
+                <div className="p-6 bg-gray-50 rounded-xl">
+                  {hasContent ? (
+                    <div className="space-y-3">
+                      <div className="flex items-center justify-between">
+                        <p className="text-sm text-gray-600">Preview of your content:</p>
+                        <span className="text-xs text-gray-500">{section.content.length} characters</span>
+                      </div>
+                      <div className="max-h-40 overflow-hidden border rounded p-3 bg-white">
+                        <p className="text-sm whitespace-pre-wrap leading-relaxed">{section.content.substring(0, 300)}...</p>
+                      </div>
+                      <div className="flex gap-2">
+                        <button 
+                          className="text-xs text-blue-600 hover:text-blue-800"
+                          onClick={() => {
+                            navigator.clipboard.writeText(section.content);
+                            alert('Content copied to clipboard!');
+                          }}
+                        >
+                          📋 Copy Full Content
+                        </button>
+                        <button 
+                          className="text-xs text-gray-600 hover:text-gray-800"
+                          onClick={() => window.open('/editor', '_blank')}
+                        >
+                          ✏️ Edit in Editor
+                        </button>
+                      </div>
+                    </div>
+                  ) : (
+                    <div className="text-center py-4">
+                      <p className="text-sm text-gray-500 italic mb-2">No content yet - this section is empty</p>
+                      <button 
+                        className="text-xs text-blue-600 hover:text-blue-800"
+                        onClick={() => window.open('/editor', '_blank')}
+                      >
+                        ✏️ Start Writing
+                      </button>
+                    </div>
+                  )}
+                </div>
+              </div>
+            );
+          })
+        )}
       </div>
 
       {/* Pricing Cards Stub */}
@@ -78,11 +146,11 @@ export default function Preview() {
       </div>
 
       <div className="flex justify-between pt-8">
-        <Link href="/plan" className="text-blue-600 hover:underline">
-          ← Back to Plan
+        <Link href="/editor" className="text-blue-600 hover:underline">
+          ← Back to Editor
         </Link>
-        <Link href="/pricing" className="text-blue-600 hover:underline">
-          Continue to Pricing →
+        <Link href="/confirm" className="text-blue-600 hover:underline">
+          Continue to Confirm →
         </Link>
       </div>
       </div>
@@ -91,26 +159,44 @@ export default function Preview() {
           <h3 className="font-semibold">Completeness</h3>
           <div className="w-full bg-gray-200 h-2 rounded mt-2">
             <div 
-              className={`h-2 rounded ${
+              className={`h-2 rounded transition-all duration-300 ${
                 completeness >= 80 ? "bg-green-500" : 
                 completeness >= 50 ? "bg-orange-500" : "bg-red-500"
               }`} 
               style={{ width: `${completeness}%` }} 
             />
           </div>
-          <p className="text-xs mt-2">{completeness}% sections filled</p>
+          <p className="text-xs mt-2">{completeness}% sections filled ({sectionsFilled}/{totalSections})</p>
+          {completeness < 50 && (
+            <p className="text-xs text-orange-600 mt-1">💡 Complete more sections for better results</p>
+          )}
         </div>
+        
         <div className="p-4 border rounded">
-          <h3 className="font-semibold">Complexity</h3>
-          <p className={`text-sm font-medium ${
-            complexity === "High" ? "text-red-500" : 
-            complexity === "Medium" ? "text-orange-500" : "text-green-600"
-          }`}>
-            {complexity}
-          </p>
+          <h3 className="font-semibold">Content Statistics</h3>
+          <div className="space-y-2 text-sm">
+            <div className="flex justify-between">
+              <span>Total words:</span>
+              <span className="font-medium">{sections.reduce((acc, s) => acc + (s.content?.split(' ').length || 0), 0)}</span>
+            </div>
+            <div className="flex justify-between">
+              <span>Characters:</span>
+              <span className="font-medium">{sections.reduce((acc, s) => acc + (s.content?.length || 0), 0)}</span>
+            </div>
+            <div className="flex justify-between">
+              <span>Complexity:</span>
+              <span className={`font-medium ${
+                complexity === "High" ? "text-red-500" : 
+                complexity === "Medium" ? "text-orange-500" : "text-green-600"
+              }`}>
+                {complexity}
+              </span>
+            </div>
+          </div>
         </div>
+
         <div className="p-4 border rounded">
-          <h3 className="font-semibold">Delivery</h3>
+          <h3 className="font-semibold">Delivery Options</h3>
           <div className="space-y-2">
             <label className="flex items-center gap-2">
               <input
@@ -134,9 +220,45 @@ export default function Preview() {
             </label>
           </div>
         </div>
+
         <div className="p-4 border rounded">
-          <h3 className="font-semibold">Suggested Pricing</h3>
-          <p className="text-sm">Based on completeness and complexity, we suggest Pro.</p>
+          <h3 className="font-semibold">Recommended Plan</h3>
+          <div className="space-y-2">
+            <p className="text-sm">Based on your content:</p>
+            <div className={`p-2 rounded text-sm font-medium ${
+              complexity === "High" ? "bg-red-50 text-red-700" : 
+              complexity === "Medium" ? "bg-orange-50 text-orange-700" : "bg-green-50 text-green-700"
+            }`}>
+              {complexity === "High" ? "Pro Plan (€199)" : 
+               complexity === "Medium" ? "Pro Plan (€199)" : "Basic Plan (€99)"}
+            </div>
+            <p className="text-xs text-gray-600">
+              {complexity === "High" ? "Complex content requires expert review" : 
+               complexity === "Medium" ? "Medium complexity benefits from pro features" : "Simple content works with basic plan"}
+            </p>
+          </div>
+        </div>
+
+        <div className="p-4 border rounded bg-blue-50">
+          <h3 className="font-semibold text-blue-800">Quick Actions</h3>
+          <div className="space-y-2 mt-2">
+            <button 
+              className="w-full text-left text-sm text-blue-600 hover:text-blue-800"
+              onClick={() => window.open('/editor', '_blank')}
+            >
+              ✏️ Continue Editing
+            </button>
+            <button 
+              className="w-full text-left text-sm text-blue-600 hover:text-blue-800"
+              onClick={() => {
+                const allContent = sections.map(s => `# ${s.title}\n\n${s.content || 'No content yet'}`).join('\n\n---\n\n');
+                navigator.clipboard.writeText(allContent);
+                alert('Full business plan copied to clipboard!');
+              }}
+            >
+              📋 Copy Full Plan
+            </button>
+          </div>
         </div>
       </aside>
     </main>

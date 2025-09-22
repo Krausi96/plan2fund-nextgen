@@ -1,0 +1,27 @@
+User-agent: *
+Allow: /
+
+# Sitemap
+Sitemap: https://plan2fund.com/sitemap.xml
+
+# Disallow admin and private areas
+Disallow: /api/
+Disallow: /dashboard/
+Disallow: /editor/
+Disallow: /preview/
+Disallow: /confirm/
+Disallow: /checkout/
+Disallow: /export/
+Disallow: /thank-you/
+Disallow: /results/
+
+# Allow important pages
+Allow: /
+Allow: /features
+Allow: /pricing
+Allow: /resources
+Allow: /about
+Allow: /for/
+Allow: /contact
+Allow: /privacy
+Allow: /terms

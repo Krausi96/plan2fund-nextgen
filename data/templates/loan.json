@@ -1,0 +1,182 @@
+{
+  "id": "loan_template",
+  "name": "Business Loan Application Template",
+  "type": "loan",
+  "description": "Template for business loan applications focusing on financial viability and repayment capacity",
+  "sections": [
+    {
+      "id": "executive_summary",
+      "title": "Executive Summary",
+      "required": true,
+      "template": "Our [BUSINESS_TYPE] business, [BUSINESS_NAME], is seeking a [LOAN_AMOUNT] loan to [USE_OF_FUNDS]. With [YEARS_IN_BUSINESS] years of operation and [REVENUE_FIGURE] in annual revenue, we have demonstrated strong financial performance and market traction. This loan will enable us to [EXPANSION_PLAN] and achieve [PROJECTED_GROWTH] growth over the next [TIMEFRAME].",
+      "placeholders": {
+        "BUSINESS_TYPE": "business type from answers",
+        "BUSINESS_NAME": "business name from answers",
+        "LOAN_AMOUNT": "loan amount from answers",
+        "USE_OF_FUNDS": "use of funds from answers",
+        "YEARS_IN_BUSINESS": "years in business",
+        "REVENUE_FIGURE": "revenue figure",
+        "EXPANSION_PLAN": "expansion plan",
+        "PROJECTED_GROWTH": "projected growth",
+        "TIMEFRAME": "timeframe"
+      }
+    },
+    {
+      "id": "business_description",
+      "title": "Business Description",
+      "required": true,
+      "template": "## Company Overview\n\n[BUSINESS_DESCRIPTION]\n\n## Products and Services\n\n[PRODUCTS_SERVICES]\n\n## Market Position\n\nWe operate in the [INDUSTRY] industry, serving [TARGET_MARKET]. Our competitive advantage lies in [COMPETITIVE_ADVANTAGE], which has enabled us to [ACHIEVEMENTS].\n\n## Legal Structure\n\n- **Entity Type**: [ENTITY_TYPE]\n- **Registration**: [REGISTRATION_INFO]\n- **Tax ID**: [TAX_ID]\n- **Business License**: [BUSINESS_LICENSE]",
+      "placeholders": {
+        "BUSINESS_DESCRIPTION": "business description from answers",
+        "PRODUCTS_SERVICES": "products and services",
+        "INDUSTRY": "industry",
+        "TARGET_MARKET": "target market from answers",
+        "COMPETITIVE_ADVANTAGE": "competitive advantage",
+        "ACHIEVEMENTS": "achievements",
+        "ENTITY_TYPE": "entity type",
+        "REGISTRATION_INFO": "registration information",
+        "TAX_ID": "tax ID",
+        "BUSINESS_LICENSE": "business license"
+      }
+    },
+    {
+      "id": "financial_analysis",
+      "title": "Financial Analysis",
+      "required": true,
+      "template": "## Financial Performance\n\n### Revenue History\n\n| Year | Revenue | Growth Rate |\n|------|---------|-------------|\n| [YEAR_1] | [REVENUE_1] | [GROWTH_1]% |\n| [YEAR_2] | [REVENUE_2] | [GROWTH_2]% |\n| [YEAR_3] | [REVENUE_3] | [GROWTH_3]% |\n\n### Profitability\n\n- **Gross Margin**: [GROSS_MARGIN]%\n- **Net Margin**: [NET_MARGIN]%\n- **EBITDA**: [EBITDA]\n- **Cash Flow**: [CASH_FLOW]\n\n### Key Financial Ratios\n\n- **Current Ratio**: [CURRENT_RATIO]\n- **Debt-to-Equity**: [DEBT_TO_EQUITY]\n- **Return on Assets**: [ROA]%\n- **Return on Equity**: [ROE]%",
+      "placeholders": {
+        "YEAR_1": "year 1",
+        "REVENUE_1": "revenue year 1",
+        "GROWTH_1": "growth year 1",
+        "YEAR_2": "year 2",
+        "REVENUE_2": "revenue year 2",
+        "GROWTH_2": "growth year 2",
+        "YEAR_3": "year 3",
+        "REVENUE_3": "revenue year 3",
+        "GROWTH_3": "growth year 3",
+        "GROSS_MARGIN": "gross margin",
+        "NET_MARGIN": "net margin",
+        "EBITDA": "EBITDA",
+        "CASH_FLOW": "cash flow",
+        "CURRENT_RATIO": "current ratio",
+        "DEBT_TO_EQUITY": "debt to equity",
+        "ROA": "return on assets",
+        "ROE": "return on equity"
+      }
+    },
+    {
+      "id": "loan_purpose",
+      "title": "Loan Purpose and Use of Funds",
+      "required": true,
+      "template": "## Loan Purpose\n\nWe are seeking a [LOAN_AMOUNT] loan for the following purposes:\n\n### Primary Use\n\n[PRIMARY_USE_DESCRIPTION]\n\n### Secondary Uses\n\n1. [SECONDARY_USE_1]: [AMOUNT_1]\n2. [SECONDARY_USE_2]: [AMOUNT_2]\n3. [SECONDARY_USE_3]: [AMOUNT_3]\n\n### Expected Impact\n\nThis loan will enable us to:\n- [IMPACT_1]\n- [IMPACT_2]\n- [IMPACT_3]\n\n### Timeline for Implementation\n\n[IMPLEMENTATION_TIMELINE]",
+      "placeholders": {
+        "LOAN_AMOUNT": "loan amount from answers",
+        "PRIMARY_USE_DESCRIPTION": "primary use description",
+        "SECONDARY_USE_1": "secondary use 1",
+        "AMOUNT_1": "amount 1",
+        "SECONDARY_USE_2": "secondary use 2",
+        "AMOUNT_2": "amount 2",
+        "SECONDARY_USE_3": "secondary use 3",
+        "AMOUNT_3": "amount 3",
+        "IMPACT_1": "impact 1",
+        "IMPACT_2": "impact 2",
+        "IMPACT_3": "impact 3",
+        "IMPLEMENTATION_TIMELINE": "implementation timeline"
+      }
+    },
+    {
+      "id": "repayment_plan",
+      "title": "Repayment Plan",
+      "required": true,
+      "template": "## Repayment Strategy\n\n### Loan Terms Requested\n\n- **Amount**: [LOAN_AMOUNT]\n- **Term**: [LOAN_TERM] years\n- **Interest Rate**: [INTEREST_RATE]% (estimated)\n- **Monthly Payment**: [MONTHLY_PAYMENT]\n\n### Repayment Capacity\n\nOur business generates [MONTHLY_REVENUE] in monthly revenue with [MONTHLY_EXPENSES] in monthly expenses, resulting in [MONTHLY_NET] in net monthly income. This provides a [DEBT_SERVICE_COVERAGE] debt service coverage ratio.\n\n### Repayment Sources\n\n1. **Primary**: [PRIMARY_REPAYMENT_SOURCE]\n2. **Secondary**: [SECONDARY_REPAYMENT_SOURCE]\n3. **Backup**: [BACKUP_REPAYMENT_SOURCE]\n\n### Risk Mitigation\n\n[RISK_MITIGATION_STRATEGIES]",
+      "placeholders": {
+        "LOAN_AMOUNT": "loan amount from answers",
+        "LOAN_TERM": "loan term",
+        "INTEREST_RATE": "interest rate",
+        "MONTHLY_PAYMENT": "monthly payment",
+        "MONTHLY_REVENUE": "monthly revenue",
+        "MONTHLY_EXPENSES": "monthly expenses",
+        "MONTHLY_NET": "monthly net income",
+        "DEBT_SERVICE_COVERAGE": "debt service coverage ratio",
+        "PRIMARY_REPAYMENT_SOURCE": "primary repayment source",
+        "SECONDARY_REPAYMENT_SOURCE": "secondary repayment source",
+        "BACKUP_REPAYMENT_SOURCE": "backup repayment source",
+        "RISK_MITIGATION_STRATEGIES": "risk mitigation strategies"
+      }
+    },
+    {
+      "id": "market_analysis",
+      "title": "Market Analysis",
+      "required": true,
+      "template": "## Market Overview\n\n### Industry Analysis\n\nThe [INDUSTRY] industry is characterized by [INDUSTRY_CHARACTERISTICS]. The market size is estimated at [MARKET_SIZE] with a projected growth rate of [GROWTH_RATE]% annually.\n\n### Target Market\n\nOur target market consists of [TARGET_MARKET_DETAILED] with a total addressable market of [TAM_SIZE]. Key market segments include:\n\n1. [SEGMENT_1]: [SEGMENT_1_SIZE]\n2. [SEGMENT_2]: [SEGMENT_2_SIZE]\n3. [SEGMENT_3]: [SEGMENT_3_SIZE]\n\n### Competitive Analysis\n\nKey competitors include [COMPETITORS] who control [COMPETITOR_MARKET_SHARE]% of the market. Our competitive advantages include:\n\n- [ADVANTAGE_1]\n- [ADVANTAGE_2]\n- [ADVANTAGE_3]\n\n### Market Trends\n\n[MARKET_TRENDS]",
+      "placeholders": {
+        "INDUSTRY": "industry",
+        "INDUSTRY_CHARACTERISTICS": "industry characteristics",
+        "MARKET_SIZE": "market size",
+        "GROWTH_RATE": "growth rate",
+        "TARGET_MARKET_DETAILED": "target market detailed",
+        "TAM_SIZE": "total addressable market size",
+        "SEGMENT_1": "segment 1",
+        "SEGMENT_1_SIZE": "segment 1 size",
+        "SEGMENT_2": "segment 2",
+        "SEGMENT_2_SIZE": "segment 2 size",
+        "SEGMENT_3": "segment 3",
+        "SEGMENT_3_SIZE": "segment 3 size",
+        "COMPETITORS": "competitors",
+        "COMPETITOR_MARKET_SHARE": "competitor market share",
+        "ADVANTAGE_1": "advantage 1",
+        "ADVANTAGE_2": "advantage 2",
+        "ADVANTAGE_3": "advantage 3",
+        "MARKET_TRENDS": "market trends"
+      }
+    },
+    {
+      "id": "management_team",
+      "title": "Management Team",
+      "required": true,
+      "template": "## Management Team\n\n### Leadership Team\n\n#### [CEO_NAME] - Chief Executive Officer\n[CEO_QUALIFICATIONS]\n\n#### [CFO_NAME] - Chief Financial Officer\n[CFO_QUALIFICATIONS]\n\n#### [CTO_NAME] - Chief Technology Officer\n[CTO_QUALIFICATIONS]\n\n### Board of Directors\n\n[BOARD_DESCRIPTION]\n\n### Advisory Board\n\n[ADVISORY_BOARD_DESCRIPTION]\n\n### Key Personnel\n\n[KEY_PERSONNEL_DESCRIPTION]",
+      "placeholders": {
+        "CEO_NAME": "CEO name",
+        "CEO_QUALIFICATIONS": "CEO qualifications",
+        "CFO_NAME": "CFO name",
+        "CFO_QUALIFICATIONS": "CFO qualifications",
+        "CTO_NAME": "CTO name",
+        "CTO_QUALIFICATIONS": "CTO qualifications",
+        "BOARD_DESCRIPTION": "board description",
+        "ADVISORY_BOARD_DESCRIPTION": "advisory board description",
+        "KEY_PERSONNEL_DESCRIPTION": "key personnel description"
+      }
+    },
+    {
+      "id": "financial_projections",
+      "title": "Financial Projections",
+      "required": true,
+      "template": "## Financial Projections\n\n### 3-Year Financial Forecast\n\n| Year | Revenue | Expenses | Net Income | Cash Flow |\n|------|---------|----------|------------|----------|\n| Year 1 | [REVENUE_Y1] | [EXPENSES_Y1] | [NET_Y1] | [CASH_Y1] |\n| Year 2 | [REVENUE_Y2] | [EXPENSES_Y2] | [NET_Y2] | [CASH_Y2] |\n| Year 3 | [REVENUE_Y3] | [EXPENSES_Y3] | [NET_Y3] | [CASH_Y3] |\n\n### Key Assumptions\n\n[KEY_ASSUMPTIONS]\n\n### Break-even Analysis\n\n[BREAK_EVEN_ANALYSIS]\n\n### Sensitivity Analysis\n\n[SENSITIVITY_ANALYSIS]",
+      "placeholders": {
+        "REVENUE_Y1": "revenue year 1",
+        "EXPENSES_Y1": "expenses year 1",
+        "NET_Y1": "net income year 1",
+        "CASH_Y1": "cash flow year 1",
+        "REVENUE_Y2": "revenue year 2",
+        "EXPENSES_Y2": "expenses year 2",
+        "NET_Y2": "net income year 2",
+        "CASH_Y2": "cash flow year 2",
+        "REVENUE_Y3": "revenue year 3",
+        "EXPENSES_Y3": "expenses year 3",
+        "NET_Y3": "net income year 3",
+        "CASH_Y3": "cash flow year 3",
+        "KEY_ASSUMPTIONS": "key assumptions",
+        "BREAK_EVEN_ANALYSIS": "break-even analysis",
+        "SENSITIVITY_ANALYSIS": "sensitivity analysis"
+      }
+    }
+  ],
+  "metadata": {
+    "version": "1.0",
+    "created": "2025-01-20",
+    "updated": "2025-01-20",
+    "author": "Plan2Fund",
+    "category": "loan",
+    "tags": ["loan", "business", "financing", "funding"]
+  }
+}

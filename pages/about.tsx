@@ -1,21 +1,25 @@
 ﻿import { Card } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import Link from "next/link";
+import HeroLite from "@/components/common/HeroLite";
+import CTAStrip from "@/components/common/CTAStrip";
+import SEOHead from "@/components/common/SEOHead";
+import { useI18n } from "@/contexts/I18nContext";
 import { Users, Target, Award, Lightbulb, Shield } from "lucide-react";
 
 export default function AboutPage() {
+  const { t } = useI18n();
+
   return (
-    <div className="max-w-4xl mx-auto px-4 py-12">
-      {/* Hero Section */}
-      <div className="text-center mb-16">
-        <h1 className="text-4xl font-bold text-gray-900 mb-6">
-          About Plan2Fund
-        </h1>
-        <p className="text-xl text-gray-600 max-w-3xl mx-auto">
-          We're on a mission to democratize access to funding by making professional 
-          business planning accessible to every entrepreneur, regardless of their background.
-        </p>
-      </div>
+    <>
+      <SEOHead pageKey="about" />
+      
+      <main>
+        <HeroLite
+          title={t('about.title')}
+          subtitle={t('about.subtitle')}
+        />
+        
+        <div className="max-w-4xl mx-auto px-4 py-12">
+          <h1 className="sr-only">{t('about.title')}</h1>
 
       {/* Mission & Vision */}
       <div className="grid md:grid-cols-2 gap-8 mb-16">
@@ -161,25 +165,21 @@ export default function AboutPage() {
         </div>
       </div>
 
-      {/* CTA */}
-      <div className="text-center bg-blue-50 rounded-2xl p-8">
-        <h2 className="text-2xl font-bold mb-4">Ready to Start Your Funding Journey?</h2>
-        <p className="text-gray-600 mb-6">
-          Join hundreds of entrepreneurs who have successfully secured funding with Plan2Fund.
-        </p>
-        <div className="flex justify-center gap-4">
-          <Link href="/reco">
-            <Button size="lg" className="bg-blue-600 hover:bg-blue-700">
-              Find Your Funding
-            </Button>
-          </Link>
-          <Link href="/contact">
-            <Button size="lg" variant="outline">
-              Get in Touch
-            </Button>
-          </Link>
         </div>
-      </div>
-    </div>
+        
+        <CTAStrip
+          title={t('cta.readyToStartJourney')}
+          subtitle={t('cta.joinHundreds')}
+          primaryAction={{
+            label: t('cta.findYourFunding'),
+            href: "/reco"
+          }}
+          secondaryAction={{
+            label: t('cta.getInTouch'),
+            href: "/contact"
+          }}
+        />
+      </main>
+    </>
   );
 }

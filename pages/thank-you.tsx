@@ -115,7 +115,7 @@ export default function SuccessHubPage() {
           <Link href="/">Return to Home</Link>
         </Button>
         <Button asChild variant="outline">
-          <Link href="/plan">Start New Plan</Link>
+          <Link href="/editor">Start New Plan</Link>
         </Button>
         <Button asChild variant="outline">
           <Link href="/preview">Download Preview</Link>

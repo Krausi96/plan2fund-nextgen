@@ -2,10 +2,17 @@
 import Link from "next/link";
 import { Progress } from "@/components/ui/progress";
 import { Button } from "@/components/ui/button";
+import { Card } from "@/components/ui/card";
 import { chapterTemplates } from "@/lib/templates/chapters";
 import { loadPlanSections, savePlanSections, type PlanSection } from "@/lib/planStore";
 import InfoDrawer from "@/components/common/InfoDrawer";
 import AIChat from "@/components/plan/AIChat";
+import analytics from "@/lib/analytics";
+import SetupBar from "@/components/editor/SetupBar";
+import SidebarPrograms from "@/components/editor/SidebarPrograms";
+import AdvancedSearchPanel from "@/components/editor/AdvancedSearchPanel";
+import { scorePrograms } from "@/lib/scoring";
+import { loadPrograms } from "@/lib/prefill";
 
 // Helper function to generate pre-filled content based on user answers and enhanced payload
 function generatePreFilledContent(userAnswers: Record<string, any>, program?: any): string {
@@ -214,9 +221,18 @@ type EditorProps = {
     link: string;
   };
   userAnswers?: Record<string, any>;
+  showProductSelector?: boolean;
 };
 
-export default function Editor({ program, userAnswers }: EditorProps) {
+interface ProductOption {
+  id: string;
+  title: string;
+  description: string;
+  icon: string;
+  action: string;
+}
+
+export default function Editor({ program, userAnswers, showProductSelector = false }: EditorProps) {
   const [content, setContent] = useState("");
   const [saved, setSaved] = useState(true);
   const [sections, setSections] = useState<PlanSection[]>([])
@@ -224,6 +240,42 @@ export default function Editor({ program, userAnswers }: EditorProps) {
   const [persona, setPersona] = useState<"newbie" | "expert">("newbie");
   const [showInfoDrawer, setShowInfoDrawer] = useState(false);
   const [showAIChat, setShowAIChat] = useState(false);
+  
+  // New state for unified flow
+  const [showProductSelectorState, setShowProductSelector] = useState(showProductSelector);
+  const [showSetupBar, setShowSetupBar] = useState(!userAnswers);
+  const [showSidebar, setShowSidebar] = useState(true);
+  const [showAdvancedSearch, setShowAdvancedSearch] = useState(false);
+  const [programs, setPrograms] = useState<any[]>([]);
+  const [selectedProgram, setSelectedProgram] = useState<any>(program);
+  const [searchResults, setSearchResults] = useState<any[]>([]);
+  const [isSearching, setIsSearching] = useState(false);
+  const [currentQuery, setCurrentQuery] = useState("");
+
+  // Product selector options
+  const productOptions: ProductOption[] = [
+    {
+      id: 'create_new',
+      title: 'Create New',
+      description: 'Start with a blank document and inline setup',
+      icon: '📝',
+      action: 'create'
+    },
+    {
+      id: 'update_existing',
+      title: 'Update Existing',
+      description: 'Upload Word/PDF and parse into document structure',
+      icon: '📄',
+      action: 'upload'
+    },
+    {
+      id: 'modeling_doc',
+      title: 'Modeling Document',
+      description: 'Start with financial blocks, then add text',
+      icon: '📊',
+      action: 'modeling'
+    }
+  ];
 
   // Load saved draft from localStorage
   useEffect(() => {
@@ -236,7 +288,88 @@ export default function Editor({ program, userAnswers }: EditorProps) {
       const seeded = chapterTemplates.map((t) => ({ id: t.id, title: t.title, content: "" }))
       setSections(seeded)
     }
+
+    // Track editor start
+    analytics.trackEditorStart("business_plan", program?.id);
   }, []);
+
+  // Initialize AI Helper and load programs
+  useEffect(() => {
+    const initializeEditor = async () => {
+      try {
+
+        // Load and score programs
+        if (userAnswers) {
+          const allPrograms = await loadPrograms();
+          const scoredPrograms = await scorePrograms({
+            programs: allPrograms,
+            answers: userAnswers
+          });
+          setPrograms(scoredPrograms);
+        }
+      } catch (error) {
+        console.error('Failed to initialize editor:', error);
+      }
+    };
+
+    initializeEditor();
+  }, [userAnswers]);
+
+  // Handlers
+  const handleProductSelect = (option: ProductOption) => {
+    switch (option.action) {
+      case 'create':
+        setShowProductSelector(false);
+        setShowSetupBar(true);
+        break;
+      case 'upload':
+        // TODO: Implement file upload
+        console.log('File upload not implemented yet');
+        break;
+      case 'modeling':
+        setShowProductSelector(false);
+        setShowSetupBar(true);
+        // TODO: Start with financial blocks
+        break;
+    }
+  };
+
+  const handleSetupComplete = () => {
+    setShowSetupBar(false);
+    setShowSidebar(true);
+  };
+
+  const handleAnswersUpdate = (answers: Record<string, any>) => {
+    // Answers are passed as props, so we don't need to update state here
+    // This is just to satisfy the SetupBar component interface
+    console.log('Answers updated:', answers);
+  };
+
+
+  const handleProgramSelect = (program: any) => {
+    setSelectedProgram(program);
+  };
+
+  const handleAdoptTemplate = (program: any) => {
+    setSelectedProgram(program);
+    // TODO: Switch document template and re-prefill sections
+    console.log('Adopting template for:', program.name);
+  };
+
+  const handleSearch = async (query: string) => {
+    setIsSearching(true);
+    setCurrentQuery(query);
+    // TODO: Implement search with Before/After scoring
+    setTimeout(() => {
+      setSearchResults([]);
+      setIsSearching(false);
+    }, 1000);
+  };
+
+  const handleResultSelect = (result: any) => {
+    // TODO: Handle result selection
+    console.log('Selected result:', result);
+  };
 
   // Pre-fill editor with user answers
   useEffect(() => {
@@ -259,6 +392,16 @@ export default function Editor({ program, userAnswers }: EditorProps) {
         setSections(next)
         savePlanSections(next)
 
+        // Track section edit
+        const currentSection = sections[activeIdx];
+        if (currentSection) {
+          analytics.trackEditorSectionEdit(
+            currentSection.id, 
+            currentSection.title, 
+            content.split(' ').length
+          );
+        }
+
         // Save to backend API
         fetch("/api/plan/save", {
           method: "POST",
@@ -272,94 +415,175 @@ export default function Editor({ program, userAnswers }: EditorProps) {
     }
   }, [content, saved]);
 
-  return (
-    <div className="flex flex-col space-y-4 p-6">
-      {/* Chapter Navigation Breadcrumbs */}
-      <div className="bg-gray-50 py-3 px-4 rounded-lg">
-        <nav className="flex gap-4 text-sm text-gray-600 overflow-x-auto">
-          {sections.map((s, i) => (
-            <button
-              key={i}
-              onClick={() => {
-                setActiveIdx(i)
-                setContent(sections[i].content || "")
-              }}
-              className={`flex items-center gap-1 whitespace-nowrap px-3 py-1 rounded ${
-                i === activeIdx 
-                  ? "bg-blue-100 text-blue-800 font-semibold" 
-                  : "hover:bg-gray-200"
-              }`}
-            >
-              <span>{i === activeIdx ? "➡" : "○"}</span>
-              {s.title}
-            </button>
-          ))}
-        </nav>
+  // Product Selector
+  if (showProductSelectorState) {
+    return (
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center p-6">
+        <div className="max-w-4xl w-full">
+          <div className="text-center mb-8">
+            <h1 className="text-3xl font-bold text-gray-900 mb-4">Choose Your Starting Point</h1>
+            <p className="text-lg text-gray-600">Select how you'd like to begin your business plan</p>
+          </div>
+          
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+            {productOptions.map((option) => (
+              <div
+                key={option.id}
+                className="cursor-pointer hover:shadow-lg transition-all duration-200 hover:scale-105"
+                onClick={() => handleProductSelect(option)}
+              >
+                <Card className="p-6">
+                  <div className="text-center">
+                    <div className="text-4xl mb-4">{option.icon}</div>
+                    <h3 className="text-xl font-semibold text-gray-900 mb-2">{option.title}</h3>
+                    <p className="text-gray-600">{option.description}</p>
+                  </div>
+                </Card>
+              </div>
+            ))}
+          </div>
+        </div>
       </div>
+    );
+  }
 
-      {/* Main Editor */}
-      <main className="flex-1 flex flex-col space-y-4">
-        {/* Sticky top progress bar */}
-        <div className="sticky top-0 bg-white py-2 z-10 border-b">
-          <div className="flex justify-between items-center">
-            <h1 className="text-2xl font-bold">Business Plan Editor</h1>
-            <div className="flex items-center gap-4">
-              <div className="flex items-center gap-2">
-                <span className="text-sm">Mode:</span>
+  return (
+    <div className="flex h-screen bg-gray-50">
+      {/* Main Editor Area */}
+      <div className="flex-1 flex flex-col">
+        <div className="flex-1 flex flex-col space-y-4 p-6 overflow-y-auto">
+          {/* Inline Setup Bar */}
+          {showSetupBar && (
+            <SetupBar
+              userAnswers={userAnswers || {}}
+              onAnswersUpdate={handleAnswersUpdate}
+              onSetupComplete={handleSetupComplete}
+            />
+          )}
+
+          {/* Chapter Navigation Breadcrumbs */}
+          <div className="bg-gray-50 py-3 px-4 rounded-lg">
+            <nav className="flex gap-4 text-sm text-gray-600 overflow-x-auto">
+              {sections.map((s, i) => (
                 <button
-                  onClick={() => setPersona(persona === "newbie" ? "expert" : "newbie")}
-                  className={`px-3 py-1 text-sm rounded ${
-                    persona === "newbie" 
-                      ? "bg-blue-100 text-blue-800" 
-                      : "bg-gray-100 text-gray-600"
+                  key={i}
+                  onClick={() => {
+                    setActiveIdx(i)
+                    setContent(sections[i].content || "")
+                  }}
+                  className={`flex items-center gap-1 whitespace-nowrap px-3 py-1 rounded ${
+                    i === activeIdx 
+                      ? "bg-blue-100 text-blue-800 font-semibold" 
+                      : "hover:bg-gray-200"
                   }`}
                 >
-                  {persona === "newbie" ? "Newbie" : "Expert"}
+                  <span>{i === activeIdx ? "➡" : "○"}</span>
+                  {s.title}
                 </button>
-              </div>
-              <div className="flex items-center gap-2">
-                <button
-                  onClick={() => setShowAIChat(!showAIChat)}
-                  className="text-xs px-2 py-1 bg-blue-100 hover:bg-blue-200 rounded"
-                >
-                  {showAIChat ? "Hide AI" : "AI Assistant"}
-                </button>
-
-                <button
-                  onClick={() => setShowInfoDrawer(true)}
-                  className="text-blue-600 hover:text-blue-800 text-sm flex items-center gap-1"
-                >
-                  <span>ℹ️</span> How it works
-                </button>
-              </div>
-              <span className="text-xs text-gray-500">
-                {saved ? "✅ Saved" : "Saving..."}
-              </span>
-            </div>
+              ))}
+            </nav>
           </div>
-          <div className="mt-2"><Progress value={content.length > 0 ? 30 : 10} /></div>
-        </div>
 
-        <textarea
-          value={content}
-          onChange={(e) => {
-            setContent(e.target.value);
-            setSaved(false);
-          }}
-          placeholder="Start writing your plan..."
-          className="w-full h-64 p-4 border rounded-md"
+          {/* Main Editor */}
+          <main className="flex-1 flex flex-col space-y-4">
+            {/* Sticky top progress bar */}
+            <div className="sticky top-0 bg-white py-2 z-10 border-b">
+              <div className="flex justify-between items-center">
+                <h1 className="text-2xl font-bold">Business Plan Editor</h1>
+                <div className="flex items-center gap-4">
+                  <div className="flex items-center gap-2">
+                    <span className="text-sm">Mode:</span>
+                    <button
+                      onClick={() => setPersona(persona === "newbie" ? "expert" : "newbie")}
+                      className={`px-3 py-1 text-sm rounded ${
+                        persona === "newbie" 
+                          ? "bg-blue-100 text-blue-800" 
+                          : "bg-gray-100 text-gray-600"
+                      }`}
+                    >
+                      {persona === "newbie" ? "Newbie" : "Expert"}
+                    </button>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <button
+                      onClick={() => setShowAIChat(!showAIChat)}
+                      className="text-xs px-2 py-1 bg-blue-100 hover:bg-blue-200 rounded"
+                    >
+                      {showAIChat ? "Hide AI" : "AI Assistant"}
+                    </button>
+
+                    <button
+                      onClick={() => setShowAdvancedSearch(!showAdvancedSearch)}
+                      className="text-xs px-2 py-1 bg-green-100 hover:bg-green-200 rounded"
+                    >
+                      {showAdvancedSearch ? "Hide Search" : "Advanced Search"}
+                    </button>
+
+                    <button
+                      onClick={() => setShowSidebar(!showSidebar)}
+                      className="text-xs px-2 py-1 bg-purple-100 hover:bg-purple-200 rounded"
+                    >
+                      {showSidebar ? "Hide Sidebar" : "Show Sidebar"}
+                    </button>
+
+                    <button
+                      onClick={() => setShowInfoDrawer(true)}
+                      className="text-blue-600 hover:text-blue-800 text-sm flex items-center gap-1"
+                    >
+                      <span>ℹ️</span> How it works
+                    </button>
+                  </div>
+                  <span className="text-xs text-gray-500">
+                    {saved ? "✅ Saved" : "Saving..."}
+                  </span>
+                </div>
+              </div>
+              <div className="mt-2"><Progress value={content.length > 0 ? 30 : 10} /></div>
+            </div>
+
+            <textarea
+              value={content}
+              onChange={(e) => {
+                setContent(e.target.value);
+                setSaved(false);
+              }}
+              placeholder="Start writing your plan..."
+              className="w-full h-64 p-4 border rounded-md"
+            />
+
+            {/* Advanced Search Panel */}
+            {showAdvancedSearch && (
+              <AdvancedSearchPanel
+                onSearch={handleSearch}
+                onResultSelect={handleResultSelect}
+                searchResults={searchResults}
+                isLoading={isSearching}
+                currentQuery={currentQuery}
+              />
+            )}
+
+            {/* Navigation */}
+            <div className="flex justify-between mt-4">
+              <Button variant="outline" asChild>
+                <Link href={program ? "/results" : "/reco"}>⬅ Back</Link>
+              </Button>
+              <Button asChild>
+                <Link href="/preview">Continue to Preview ➡</Link>
+              </Button>
+            </div>
+          </main>
+        </div>
+      </div>
+
+      {/* Program-Aware Sidebar */}
+      {showSidebar && (
+        <SidebarPrograms
+          programs={programs}
+          selectedProgram={selectedProgram}
+          onProgramSelect={handleProgramSelect}
+          onAdoptTemplate={handleAdoptTemplate}
         />
-
-        {/* Navigation */}
-        <div className="flex justify-between mt-4">
-          <Button variant="outline" asChild>
-            <Link href={program ? "/results" : "/reco"}>⬅ Back</Link>
-          </Button>
-          <Button asChild>
-            <Link href="/preview">Continue to Preview ➡</Link>
-          </Button>
-        </div>
-      </main>
+      )}
 
       {/* AI Assistant - Only when enabled */}
       {showAIChat && (

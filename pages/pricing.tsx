@@ -1,6 +1,10 @@
 ﻿import { CheckCircle } from "lucide-react";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
+import HeroLite from "@/components/common/HeroLite";
+import CTAStrip from "@/components/common/CTAStrip";
+import SEOHead from "@/components/common/SEOHead";
+import { useI18n } from "@/contexts/I18nContext";
 
 const plans = [
   { 
@@ -31,49 +35,57 @@ const plans = [
 ];
 
 export default function Pricing() {
+  const { t } = useI18n();
+
   return (
-    <main className="bg-white">
-      <section className="py-20 text-center bg-gradient-to-b from-gray-50 to-white">
-        <h1 className="text-5xl font-bold mb-4">Pricing built for businesses of all sizes</h1>
-        <p className="text-lg text-gray-600">Simple, transparent packages — choose the plan that fits your journey.</p>
-      </section>
+    <>
+      <SEOHead pageKey="pricing" schema="faq" />
+      
+      <main className="bg-white">
+        <HeroLite
+          title={t('pricing.title')}
+          subtitle={t('pricing.subtitle')}
+        />
 
-      <section className="max-w-6xl mx-auto py-12 grid md:grid-cols-3 gap-8 px-4">
-        {plans.map((plan, i) => (
-          <div key={i} className={`rounded-2xl border shadow-sm p-6 bg-white hover:shadow-md transition ${
-            plan.featured ? 'border-blue-200 bg-blue-50' : ''
-          }`}>
-            <h2 className="text-xl font-bold">{plan.title}</h2>
-            <p className="text-gray-600 mt-2">{plan.desc}</p>
-            <p className="text-lg font-semibold mt-4">{plan.price}</p>
-            <ul className="mt-6 space-y-2">
-              {plan.features.map((f, j) => (
-                <li key={j} className="flex items-center space-x-2 text-gray-600">
-                  <CheckCircle className="h-5 w-5 text-blue-500" />
-                  <span>{f}</span>
-                </li>
-              ))}
-            </ul>
-            <Link href={`/confirm?plan=${plan.id}&mode=${plan.mode}`} className="block mt-6">
-              <Button className="w-full">
-                {plan.mode === 'upgrade' ? 'Upload & Review' : `Choose ${plan.title.split(' ')[0]}`}
-              </Button>
-            </Link>
-          </div>
-        ))}
-      </section>
+        <section className="max-w-6xl mx-auto py-12 grid md:grid-cols-3 gap-8 px-4">
+          <h1 className="sr-only">{t('pricing.title')}</h1>
+          {plans.map((plan, i) => (
+            <div key={i} className={`rounded-2xl border shadow-sm p-6 bg-white hover:shadow-md transition ${
+              plan.featured ? 'border-blue-200 bg-blue-50' : ''
+            }`}>
+              <h2 className="text-xl font-bold">{plan.title}</h2>
+              <p className="text-gray-600 mt-2">{plan.desc}</p>
+              <p className="text-lg font-semibold mt-4">{plan.price}</p>
+              <ul className="mt-6 space-y-2">
+                {plan.features.map((f, j) => (
+                  <li key={j} className="flex items-center space-x-2 text-gray-600">
+                    <CheckCircle className="h-5 w-5 text-blue-500" />
+                    <span>{f}</span>
+                  </li>
+                ))}
+              </ul>
+              <Link href={`/confirm?plan=${plan.id}&mode=${plan.mode}`} className="block mt-6">
+                <Button className="w-full">
+                  {plan.mode === 'upgrade' ? 'Upload & Review' : `Choose ${plan.title.split(' ')[0]}`}
+                </Button>
+              </Link>
+            </div>
+          ))}
+        </section>
 
-      <section className="text-center py-12">
-        <h2 className="text-2xl font-semibold mb-6">Ready to get started?</h2>
-        <div className="flex flex-col md:flex-row justify-center gap-4">
-          <Link href="/plan" className="px-6 py-3 rounded-xl bg-blue-600 text-white font-semibold hover:bg-blue-700">Continue to Checkout</Link>
-          <Link href="/checkout" className="px-6 py-3 rounded-xl border border-blue-600 text-blue-600 font-semibold hover:bg-blue-50">Proceed to Checkout</Link>
-        </div>
-        <div className="flex justify-between max-w-xl mx-auto mt-8">
-          <Link href="/preview" className="text-blue-600 hover:underline">← Back to Preview</Link>
-          <Link href="/confirm" className="text-blue-600 hover:underline">Continue to Confirm →</Link>
-        </div>
-      </section>
-    </main>
+        <CTAStrip
+          title={t('cta.readyToStart')}
+          subtitle={t('cta.choosePlan')}
+          primaryAction={{
+            label: t('cta.startPlan'),
+            href: "/reco"
+          }}
+          secondaryAction={{
+            label: t('cta.learnMore'),
+            href: "/features"
+          }}
+        />
+      </main>
+    </>
   );
 }

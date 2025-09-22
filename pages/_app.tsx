@@ -2,6 +2,7 @@
 import type { AppProps } from "next/app"
 import AppShell from "@/components/layout/AppShell"
 import { UserProvider } from "@/contexts/UserContext"
+import { I18nProvider } from "@/contexts/I18nContext"
 import { useEffect } from "react"
 
 export default function MyApp({ Component, pageProps }: AppProps) {
@@ -18,11 +19,13 @@ export default function MyApp({ Component, pageProps }: AppProps) {
   }, [])
   
   return (
-    <UserProvider>
-      <AppShell>
-        <Component {...pageProps} />
-      </AppShell>
-    </UserProvider>
+    <I18nProvider>
+      <UserProvider>
+        <AppShell>
+          <Component {...pageProps} />
+        </AppShell>
+      </UserProvider>
+    </I18nProvider>
   )
 }
 

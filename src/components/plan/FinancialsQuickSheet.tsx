@@ -205,6 +205,7 @@ export default function FinancialsQuickSheet({ onInsertSummary }: FinancialsQuic
           <button
             onClick={() => setShowSheet(false)}
             className="text-gray-500 hover:text-gray-700"
+            aria-label="Close financials sheet"
           >
             ✕
           </button>

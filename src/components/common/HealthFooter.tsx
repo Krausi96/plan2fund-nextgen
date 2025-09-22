@@ -52,6 +52,7 @@ export default function HealthFooter() {
         <button
           onClick={() => setShowDetails(!showDetails)}
           className="hover:text-gray-600 underline"
+          aria-label={showDetails ? 'Hide system details' : 'Show system details'}
         >
           {showDetails ? 'Hide' : 'Show'} Details
         </button>

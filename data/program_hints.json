@@ -1,0 +1,145 @@
+{
+  "program_hints": {
+    "grant": {
+      "reviewer_tips": [
+        "Focus on innovation and research aspects",
+        "Emphasize societal impact and public benefit",
+        "Include detailed methodology and research plan",
+        "Highlight team qualifications and expertise",
+        "Provide clear budget breakdown and justification",
+        "Include expected outcomes and dissemination plan",
+        "Address potential risks and mitigation strategies",
+        "Ensure compliance with grant guidelines"
+      ],
+      "common_mistakes": [
+        "Not clearly articulating the innovation",
+        "Missing detailed budget justification",
+        "Insufficient team qualifications",
+        "Lack of clear methodology",
+        "No risk assessment",
+        "Missing expected outcomes",
+        "Inadequate dissemination plan"
+      ],
+      "success_factors": [
+        "Clear innovation statement",
+        "Strong team credentials",
+        "Detailed methodology",
+        "Realistic budget",
+        "Clear outcomes",
+        "Risk mitigation",
+        "Public benefit focus"
+      ]
+    },
+    "loan": {
+      "reviewer_tips": [
+        "Focus on financial viability and repayment capacity",
+        "Include detailed financial projections",
+        "Emphasize business model and revenue streams",
+        "Highlight management team experience",
+        "Provide clear use of funds",
+        "Include market analysis and competitive advantage",
+        "Address potential risks and mitigation",
+        "Ensure adequate collateral or guarantees"
+      ],
+      "common_mistakes": [
+        "Insufficient financial documentation",
+        "Unrealistic financial projections",
+        "Weak business model",
+        "Inadequate management team",
+        "Unclear use of funds",
+        "No market analysis",
+        "Missing risk assessment",
+        "Insufficient collateral"
+      ],
+      "success_factors": [
+        "Strong financial performance",
+        "Realistic projections",
+        "Solid business model",
+        "Experienced team",
+        "Clear use of funds",
+        "Market opportunity",
+        "Risk mitigation",
+        "Adequate collateral"
+      ]
+    },
+    "equity": {
+      "reviewer_tips": [
+        "Focus on growth potential and scalability",
+        "Emphasize market opportunity and competitive advantage",
+        "Include detailed financial projections and growth metrics",
+        "Highlight management team and advisory board",
+        "Provide clear exit strategy",
+        "Include market analysis and competitive landscape",
+        "Address potential risks and mitigation",
+        "Ensure alignment with investor criteria"
+      ],
+      "common_mistakes": [
+        "Unrealistic growth projections",
+        "Weak competitive advantage",
+        "Inadequate management team",
+        "No clear exit strategy",
+        "Poor market analysis",
+        "Missing risk assessment",
+        "Insufficient traction",
+        "Unclear value proposition"
+      ],
+      "success_factors": [
+        "High growth potential",
+        "Strong competitive advantage",
+        "Experienced team",
+        "Clear exit strategy",
+        "Large market opportunity",
+        "Proven traction",
+        "Risk mitigation",
+        "Clear value proposition"
+      ]
+    },
+    "mixed": {
+      "reviewer_tips": [
+        "Address both grant and loan requirements",
+        "Include detailed financial analysis",
+        "Emphasize both innovation and financial viability",
+        "Provide clear funding structure",
+        "Include comprehensive risk assessment",
+        "Address both public benefit and commercial potential",
+        "Ensure compliance with multiple program guidelines",
+        "Include detailed implementation plan"
+      ],
+      "common_mistakes": [
+        "Not addressing both program types",
+        "Insufficient financial analysis",
+        "Missing innovation focus",
+        "Unclear funding structure",
+        "Inadequate risk assessment",
+        "Poor implementation plan",
+        "Non-compliance with guidelines"
+      ],
+      "success_factors": [
+        "Clear dual focus",
+        "Strong financial analysis",
+        "Innovation emphasis",
+        "Clear funding structure",
+        "Comprehensive risk assessment",
+        "Detailed implementation plan",
+        "Guideline compliance"
+      ]
+    }
+  },
+  "general_tips": [
+    "Always read the program guidelines carefully",
+    "Tailor your application to the specific program",
+    "Use clear, professional language",
+    "Include all required documentation",
+    "Meet all deadlines",
+    "Follow formatting requirements",
+    "Include contact information",
+    "Proofread thoroughly"
+  ],
+  "metadata": {
+    "version": "1.0",
+    "created": "2025-01-20",
+    "updated": "2025-01-20",
+    "author": "Plan2Fund",
+    "description": "Program-specific reviewer tips and guidance"
+  }
+}

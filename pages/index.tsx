@@ -1,19 +1,41 @@
 ﻿import { Hero } from "@/components/common/Hero"
-import { Quote } from "@/components/common/Quote"
-import { UseCases } from "@/components/common/UseCases"
-import { PlanTypes } from "@/components/common/PlanTypes"
-import { Included } from "@/components/common/Included"
-import { Advantages } from "@/components/common/Advantages"
+import { HowItWorks } from "@/components/common/HowItWorks"
+import { WhoItsFor } from "@/components/common/WhoItsFor"
+import { WhyPlan2Fund } from "@/components/common/WhyPlan2Fund"
+import { Testimonials } from "@/components/common/Testimonials"
+import CTAStrip from "@/components/common/CTAStrip"
+import SEOHead from "@/components/common/SEOHead"
+import { useI18n } from "@/contexts/I18nContext"
 
 export default function Home() {
+  const { t } = useI18n();
+
   return (
-    <main className="flex flex-col gap-16">
-      <Hero />
-      <Quote />
-      <UseCases />
-      <PlanTypes />
-      <Included />
-      <Advantages />
-    </main>
+    <>
+      <SEOHead 
+        pageKey="home" 
+        schema="organization"
+      />
+      
+      <main className="flex flex-col">
+        <Hero />
+        <HowItWorks />
+        <WhoItsFor />
+        <WhyPlan2Fund />
+        <Testimonials />
+        <CTAStrip
+          title={t('cta.readyToFind')}
+          subtitle={t('cta.joinFounders')}
+          primaryAction={{
+            label: t('cta.startPlan'),
+            href: "/reco"
+          }}
+          secondaryAction={{
+            label: t('cta.learnMore'),
+            href: "/features"
+          }}
+        />
+      </main>
+    </>
   )
 }
