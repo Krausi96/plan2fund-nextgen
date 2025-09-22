@@ -1,6 +1,5 @@
 import { motion } from "framer-motion";
 import { Building2, Rocket, Palette, GraduationCap } from "lucide-react";
-import { Counter } from "./Counter";
 
 const audiences = [
   {
@@ -95,38 +94,20 @@ export function WhoItsFor() {
           ))}
         </div>
 
-        {/* Stats */}
+        {/* CTA */}
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           whileInView={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.6, delay: 0.4 }}
           viewport={{ once: true }}
-          className="mt-16 grid grid-cols-2 md:grid-cols-4 gap-8 text-center"
+          className="text-center mt-16"
         >
-          <Counter
-            value={500}
-            label="Active Users"
-            description="Austrian entrepreneurs"
-            delay={0.1}
-          />
-          <Counter
-            value={214}
-            label="Funding Programs"
-            description="Austrian & EU programs"
-            delay={0.2}
-          />
-          <Counter
-            value={1000000000}
-            label="Available Funding"
-            description="€1B+ total funding"
-            delay={0.3}
-          />
-          <Counter
-            value={95}
-            label="Success Rate"
-            description="Funding applications"
-            delay={0.4}
-          />
+          <a
+            href="/reco"
+            className="inline-block px-8 py-4 bg-blue-600 text-white rounded-xl shadow-lg hover:bg-blue-700 transition-all duration-300 font-semibold text-lg hover:shadow-xl hover:scale-105"
+          >
+            Find Your Funding Programs
+          </a>
         </motion.div>
       </div>
     </section>

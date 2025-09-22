@@ -1,37 +1,5 @@
 import { motion } from "framer-motion";
-import { Counter } from "./Counter";
-import { Building2, Euro, Users, Award } from "lucide-react";
-
-const austriaStats = [
-  {
-    icon: Building2,
-    value: 119,
-    label: "Austrian Programs",
-    description: "Exclusively for Austrian businesses",
-    color: "text-blue-600"
-  },
-  {
-    icon: Euro,
-    value: 94,
-    label: "EU Programs",
-    description: "Available to Austrian companies",
-    color: "text-green-600"
-  },
-  {
-    icon: Users,
-    value: 500,
-    label: "Active Users",
-    description: "Austrian entrepreneurs",
-    color: "text-purple-600"
-  },
-  {
-    icon: Award,
-    value: 95,
-    label: "Success Rate",
-    description: "Funding application success",
-    color: "text-orange-600"
-  }
-];
+import { Building2, Euro, Users } from "lucide-react";
 
 export function WhyAustria() {
   return (
@@ -45,36 +13,13 @@ export function WhyAustria() {
           className="text-center mb-16"
         >
           <h2 className="text-4xl font-bold text-neutral-900 mb-4">
-            Why Austria?
+            Why Austria? 🇦🇹
           </h2>
           <p className="text-xl text-neutral-600 max-w-2xl mx-auto">
-            Austria offers one of Europe's most comprehensive funding ecosystems for startups and SMEs
+            Austria offers one of Europe's most comprehensive funding ecosystems for startups and SMEs, with strong innovation culture, generous funding programs, and a supportive business environment.
           </p>
         </motion.div>
 
-        {/* Stats Grid */}
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-8 mb-16">
-          {austriaStats.map((stat, index) => (
-            <motion.div
-              key={index}
-              initial={{ opacity: 0, y: 30 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.6, delay: index * 0.1 }}
-              viewport={{ once: true }}
-              className="text-center"
-            >
-              <div className={`${stat.color} mb-4 flex justify-center`}>
-                <stat.icon className="w-8 h-8" />
-              </div>
-              <Counter
-                value={stat.value}
-                label={stat.label}
-                description={stat.description}
-                delay={index * 0.1}
-              />
-            </motion.div>
-          ))}
-        </div>
 
         {/* Benefits */}
         <motion.div
@@ -119,6 +64,22 @@ export function WhyAustria() {
               Low bureaucracy, excellent infrastructure, and a highly skilled workforce make Austria ideal for business growth.
             </p>
           </div>
+        </motion.div>
+
+        {/* CTA */}
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.6, delay: 0.6 }}
+          viewport={{ once: true }}
+          className="text-center mt-12"
+        >
+          <a
+            href="/reco"
+            className="inline-block px-8 py-4 bg-blue-600 text-white rounded-xl shadow-lg hover:bg-blue-700 transition-all duration-300 font-semibold text-lg hover:shadow-xl hover:scale-105"
+          >
+            Discover Austrian Funding Programs
+          </a>
         </motion.div>
       </div>
     </section>

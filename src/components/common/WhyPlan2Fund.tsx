@@ -1,5 +1,5 @@
 import { motion } from "framer-motion";
-import { Target, Search, FileCheck, TrendingUp } from "lucide-react";
+import { Target, Search, FileCheck } from "lucide-react";
 
 const features = [
   {
@@ -22,13 +22,6 @@ const features = [
     description: "Get detailed analysis of what-if scenarios and counterfactuals to strengthen your funding applications.",
     color: "text-purple-600",
     bgColor: "bg-purple-50",
-  },
-  {
-    icon: TrendingUp,
-    title: "Proven Results",
-    description: "Join 500+ founders who have successfully secured funding using our platform and methodology.",
-    color: "text-orange-600",
-    bgColor: "bg-orange-50",
   },
 ];
 
@@ -80,29 +73,20 @@ export function WhyPlan2Fund() {
           ))}
         </div>
 
-        {/* Testimonial Quote */}
+        {/* CTA */}
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           whileInView={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.6, delay: 0.4 }}
           viewport={{ once: true }}
-          className="mt-16 text-center"
+          className="text-center mt-16"
         >
-          <div className="max-w-4xl mx-auto">
-            <blockquote className="text-2xl font-medium text-neutral-800 mb-6 italic">
-              "Plan2Fund helped us identify 12 funding programs we never knew existed. 
-              We secured €150,000 in grants within 3 months of using the platform."
-            </blockquote>
-            <div className="flex items-center justify-center gap-4">
-              <div className="w-12 h-12 bg-primary-600 rounded-full flex items-center justify-center text-white font-semibold">
-                M.S.
-              </div>
-              <div className="text-left">
-                <div className="font-semibold text-neutral-900">Maria Schmidt</div>
-                <div className="text-neutral-600">Founder, TechStart Vienna</div>
-              </div>
-            </div>
-          </div>
+          <a
+            href="/reco"
+            className="inline-block px-8 py-4 bg-blue-600 text-white rounded-xl shadow-lg hover:bg-blue-700 transition-all duration-300 font-semibold text-lg hover:shadow-xl hover:scale-105"
+          >
+            Get Started Today
+          </a>
         </motion.div>
       </div>
     </section>

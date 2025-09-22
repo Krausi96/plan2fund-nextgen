@@ -1,7 +1,6 @@
 ﻿import { motion, useReducedMotion } from "framer-motion";
-import { useState, useEffect, memo } from "react";
+import { memo } from "react";
 import { ClipboardList, BarChart2, LineChart, FileText, Target, Briefcase, Users, DollarSign, PieChart, Presentation, TrendingUp, type LucideIcon } from "lucide-react";
-import { useI18n } from "@/contexts/I18nContext";
 
 const icons = [
   ClipboardList, BarChart2, LineChart, FileText, Target,
@@ -38,70 +37,25 @@ const FloatingIcon = memo(function FloatingIcon({ Icon, index }: { Icon: LucideI
   );
 });
 
-const ProgramCounter = memo(function ProgramCounter() {
-  const [count, setCount] = useState(0);
-  const [hasAnimated, setHasAnimated] = useState(false);
-  const targetCount = 214;
-  const shouldReduceMotion = useReducedMotion();
-
-  useEffect(() => {
-    if (hasAnimated) return;
-    
-    const timer = setTimeout(() => {
-      const increment = targetCount / 50;
-      if (count < targetCount) {
-        setCount(prev => Math.min(prev + increment, targetCount));
-      } else {
-        setHasAnimated(true);
-      }
-    }, 50);
-    return () => clearTimeout(timer);
-  }, [count, targetCount, hasAnimated]);
-
-  return (
-    <motion.div
-      initial={{ opacity: 0, y: 20 }}
-      animate={{ opacity: 1, y: 0 }}
-      transition={{ delay: 0.5 }}
-      className="bg-white/10 backdrop-blur-sm rounded-2xl p-6 border border-white/20"
-    >
-      <div className="text-center">
-        <div className="text-4xl font-bold text-white mb-2">
-          {shouldReduceMotion ? targetCount : Math.floor(count)}+
-        </div>
-        <div className="text-lg text-blue-200 mb-2">
-          programs live in Austria/EU
-        </div>
-        <div className="text-sm text-gray-300">
-          How many do you qualify for?
-        </div>
-      </div>
-    </motion.div>
-  );
-});
 
 interface HeroProps {
   title?: string;
   subtitle?: string;
   primaryButtonText?: string;
   primaryButtonHref?: string;
-  trustText?: string;
 }
 
 export function Hero({
   title,
   subtitle,
   primaryButtonText,
-  primaryButtonHref = "/editor",
-  trustText
+  primaryButtonHref = "/editor"
 }: HeroProps = {}) {
-  const { t } = useI18n();
   const shouldReduceMotion = useReducedMotion();
   
   const heroTitle = title || "Freedom starts with a plan — let's build yours.";
   const heroSubtitle = subtitle || "Find Austrian/EU funding you're eligible for and draft a plan in minutes.";
   const heroPrimaryButton = primaryButtonText || "Start your plan";
-  const heroTrustText = trustText || t('hero.trust');
 
   return (
     <section 
@@ -217,25 +171,37 @@ export function Hero({
             </a>
           </motion.div>
 
-          {/* Trust indicators */}
-          <motion.div 
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            transition={{ delay: 0.9, duration: 0.8 }}
-            className="text-sm text-gray-400"
-          >
-            {heroTrustText}
-          </motion.div>
         </div>
 
-        {/* Right Content - Program Counter */}
+        {/* Right Content - Data Proof Box */}
         <div className="flex justify-center lg:justify-end">
           <motion.div
-            initial={{ opacity: 0, scale: 0.9 }}
-            animate={{ opacity: 1, scale: 1 }}
-            transition={{ delay: 0.8, duration: 0.8 }}
+            initial={{ opacity: 0, y: 30 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.5, duration: 0.8 }}
+            className="bg-white/10 backdrop-blur-sm rounded-2xl p-6 border border-white/20 max-w-md"
           >
-            <ProgramCounter />
+            <h3 className="text-xl font-semibold text-white mb-4 text-center">
+              Data-Driven Results
+            </h3>
+            <div className="space-y-4">
+              <div className="text-sm text-blue-200">
+                <div className="font-medium text-white mb-1">Austria ranks among the top EU countries for innovation funding per capita</div>
+                <div className="text-xs text-gray-300">European Innovation Scoreboard</div>
+              </div>
+              <div className="text-sm text-blue-200">
+                <div className="font-medium text-white mb-1">90% of Austrian companies are SMEs — many rely on grants and co-funding</div>
+                <div className="text-xs text-gray-300">Statistik Austria, WKO</div>
+              </div>
+              <div className="text-sm text-blue-200">
+                <div className="font-medium text-white mb-1">Entrepreneurs with a business plan are 2x more likely to secure funding</div>
+                <div className="text-xs text-gray-300">HBR, OECD</div>
+              </div>
+              <div className="text-sm text-blue-200">
+                <div className="font-medium text-white mb-1">Horizon Europe provides €95B in funding until 2027</div>
+                <div className="text-xs text-gray-300">European Commission</div>
+              </div>
+            </div>
           </motion.div>
         </div>
       </div>
