@@ -6,6 +6,7 @@ import { chapterTemplates } from "@/lib/templates/chapters";
 import { loadPlanSections, savePlanSections, type PlanSection } from "@/lib/planStore";
 import InfoDrawer from "@/components/common/InfoDrawer";
 import AIChat from "@/components/plan/AIChat";
+import AdvancedSearchPanel from "@/components/editor/AdvancedSearchPanel";
 import analytics from "@/lib/analytics";
 
 // Helper function to generate pre-filled content based on user answers and enhanced payload
@@ -227,6 +228,10 @@ export default function Editor({ program, userAnswers }: EditorProps) {
   const [persona, setPersona] = useState<"newbie" | "expert">("newbie");
   const [showAISidebar, setShowAISidebar] = useState(true);
   const [showInfoDrawer, setShowInfoDrawer] = useState(false);
+  const [showAdvancedSearch, setShowAdvancedSearch] = useState(false);
+  const [searchResults, setSearchResults] = useState<any[]>([]);
+  const [searchQuery, setSearchQuery] = useState("");
+  const [isSearching, setIsSearching] = useState(false);
 
   // Load saved draft from localStorage
   useEffect(() => {
@@ -292,6 +297,42 @@ export default function Editor({ program, userAnswers }: EditorProps) {
     }
   }, [content, saved]);
 
+  // Handlers
+  const handleSearch = async (query: string) => {
+    setIsSearching(true);
+    setSearchQuery(query);
+    
+    try {
+      // Use the same recommendation engine as advanced search
+      const { scoreProgramsEnhanced } = await import("@/lib/enhancedRecoEngine");
+      const results = scoreProgramsEnhanced(userAnswers || {}, "explorer");
+      
+      // Transform results to match AdvancedSearchPanel interface
+      const transformedResults = results.slice(0, 10).map((result, index) => ({
+        id: result.id || `result-${index}`,
+        title: result.name || "Unknown Program",
+        content: result.reason || "No description available",
+        score: result.score || 0,
+        beforeScore: Math.max(0, (result.score || 0) - 10),
+        afterScore: result.score || 0,
+        delta: 10,
+        reasons: result.founderFriendlyReasons || [],
+        risks: result.founderFriendlyRisks || []
+      }));
+      
+      setSearchResults(transformedResults);
+    } catch (error) {
+      console.error("Search error:", error);
+      setSearchResults([]);
+    } finally {
+      setIsSearching(false);
+    }
+  };
+
+  const handleResultSelect = (result: any) => {
+    // Handle result selection - could open program details or update plan
+    console.log("Selected result:", result);
+  };
 
   return (
     <div className="flex h-screen bg-gray-50">
@@ -393,18 +434,36 @@ export default function Editor({ program, userAnswers }: EditorProps) {
       {showAISidebar && (
         <div className="w-80 bg-white border-l border-gray-200 flex flex-col">
           <div className="p-4 border-b border-gray-200">
-            <h3 className="text-lg font-semibold text-gray-900">AI Assistant</h3>
+            <div className="flex items-center justify-between">
+              <h3 className="text-lg font-semibold text-gray-900">AI Assistant</h3>
+              <button
+                onClick={() => setShowAdvancedSearch(!showAdvancedSearch)}
+                className="text-sm text-blue-600 hover:text-blue-700"
+              >
+                {showAdvancedSearch ? 'Hide Search' : 'Show Search'}
+              </button>
+            </div>
             <p className="text-sm text-gray-600 mt-1">Get help writing your business plan</p>
           </div>
           <div className="flex-1 p-4">
-            <AIChat
-              onInsertContent={(content) => {
-                setContent(prev => prev + "\n\n" + content);
-                setSaved(false);
-              }}
-              currentSection={sections[activeIdx]?.title || "Current Section"}
-              persona={persona}
-            />
+            {showAdvancedSearch ? (
+              <AdvancedSearchPanel
+                onSearch={handleSearch}
+                onResultSelect={handleResultSelect}
+                searchResults={searchResults}
+                isLoading={isSearching}
+                currentQuery={searchQuery}
+              />
+            ) : (
+              <AIChat
+                onInsertContent={(content) => {
+                  setContent(prev => prev + "\n\n" + content);
+                  setSaved(false);
+                }}
+                currentSection={sections[activeIdx]?.title || "Current Section"}
+                persona={persona}
+              />
+            )}
           </div>
         </div>
       )}

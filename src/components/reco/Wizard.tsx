@@ -2,6 +2,7 @@ import React, { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { useRouter } from "next/router";
 import { motion } from "framer-motion";
+import Link from "next/link";
 import { scoreProgramsEnhanced } from "@/lib/enhancedRecoEngine";
 import { dynamicQuestionEngine, DynamicQuestion } from "@/lib/dynamicQuestionEngine";
 import HealthFooter from "@/components/common/HealthFooter";
@@ -79,6 +80,18 @@ export default function Wizard() {
           Answer a few questions and we'll recommend the best funding programs for you
         </p>
         
+        {/* Advanced Search Option */}
+        <div className="mb-6">
+          <Link 
+            href="/advanced-search"
+            className="inline-flex items-center px-4 py-2 text-sm font-medium text-blue-600 bg-blue-50 rounded-lg hover:bg-blue-100 transition-colors"
+          >
+            <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+            </svg>
+            Try Advanced Search Instead
+          </Link>
+        </div>
       </div>
 
       <motion.div
