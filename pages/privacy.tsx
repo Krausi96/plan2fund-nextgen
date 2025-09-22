@@ -21,6 +21,22 @@ export default function PrivacyPage() {
           Last updated: {new Date().toLocaleDateString()}
         </p>
 
+        {/* Legal Pages Navigation */}
+        <div className="mb-8 p-4 bg-gray-50 rounded-lg">
+          <h3 className="text-lg font-semibold mb-3">Related Legal Documents</h3>
+          <div className="flex flex-wrap gap-4">
+            <a href="/legal" className="text-blue-600 hover:text-blue-700 font-medium">
+              Legal Notice
+            </a>
+            <a href="/terms" className="text-blue-600 hover:text-blue-700 font-medium">
+              Terms & Conditions
+            </a>
+            <a href="/contact" className="text-blue-600 hover:text-blue-700 font-medium">
+              Contact Us
+            </a>
+          </div>
+        </div>
+
         <Card className="p-8 mb-8">
           <h2 className="text-2xl font-semibold mb-4">1. Information We Collect</h2>
           <h3 className="text-xl font-medium mb-3">1.1 Personal Information</h3>

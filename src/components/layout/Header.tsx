@@ -48,17 +48,8 @@ export default function Header() {
           <Link href="/about" className="text-textSecondary hover:text-primary transition-colors font-medium">
             {t('nav.howItWorks')}
           </Link>
-          <Link href="/about#features" className="text-textSecondary hover:text-primary transition-colors font-medium">
-            {t('nav.features')}
-          </Link>
-          <Link href="/advanced-search" className="text-textSecondary hover:text-primary transition-colors font-medium">
-            {t('nav.advancedSearch')}
-          </Link>
           <Link href="/pricing" className="text-textSecondary hover:text-primary transition-colors font-medium">
             {t('nav.pricing')}
-          </Link>
-          <Link href="/about#resources" className="text-textSecondary hover:text-primary transition-colors font-medium">
-            {t('nav.resources')}
           </Link>
           <Link href="/faq" className="text-textSecondary hover:text-primary transition-colors font-medium">
             FAQ
@@ -106,32 +97,11 @@ export default function Header() {
               {t('nav.howItWorks')}
             </Link>
             <Link 
-              href="/about#features" 
-              className="text-gray-700 hover:text-blue-600 transition-colors font-medium py-2"
-              onClick={() => setOpen(false)}
-            >
-              {t('nav.features')}
-            </Link>
-            <Link 
-              href="/advanced-search" 
-              className="text-gray-700 hover:text-blue-600 transition-colors font-medium py-2"
-              onClick={() => setOpen(false)}
-            >
-              {t('nav.advancedSearch')}
-            </Link>
-            <Link 
               href="/pricing" 
               className="text-gray-700 hover:text-blue-600 transition-colors font-medium py-2"
               onClick={() => setOpen(false)}
             >
               {t('nav.pricing')}
-            </Link>
-            <Link 
-              href="/about#resources" 
-              className="text-gray-700 hover:text-blue-600 transition-colors font-medium py-2"
-              onClick={() => setOpen(false)}
-            >
-              {t('nav.resources')}
             </Link>
             <Link 
               href="/faq" 

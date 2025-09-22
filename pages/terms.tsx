@@ -21,6 +21,22 @@ export default function TermsPage() {
           Last updated: {new Date().toLocaleDateString()}
         </p>
 
+        {/* Legal Pages Navigation */}
+        <div className="mb-8 p-4 bg-gray-50 rounded-lg">
+          <h3 className="text-lg font-semibold mb-3">Related Legal Documents</h3>
+          <div className="flex flex-wrap gap-4">
+            <a href="/legal" className="text-blue-600 hover:text-blue-700 font-medium">
+              Legal Notice
+            </a>
+            <a href="/privacy" className="text-blue-600 hover:text-blue-700 font-medium">
+              Privacy Policy
+            </a>
+            <a href="/contact" className="text-blue-600 hover:text-blue-700 font-medium">
+              Contact Us
+            </a>
+          </div>
+        </div>
+
         <Card className="p-8 mb-8">
           <h2 className="text-2xl font-semibold mb-4">1. Acceptance of Terms</h2>
           <p className="mb-4">

@@ -173,7 +173,10 @@ export default function ContactPage() {
                 <HelpCircle className="w-5 h-5 text-green-600 mr-3 mt-1" />
                 <div>
                   <h3 className="font-medium text-gray-900">FAQ</h3>
-                  <p className="text-sm text-gray-600">Find answers to common questions</p>
+                  <p className="text-sm text-gray-600 mb-2">Find answers to common questions</p>
+                  <a href="/faq" className="text-blue-600 hover:text-blue-700 text-sm font-medium">
+                    Browse FAQ →
+                  </a>
                 </div>
               </div>
 

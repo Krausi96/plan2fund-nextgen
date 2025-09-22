@@ -108,6 +108,22 @@ export default function Legal() {
         </nav>
       </div>
 
+      {/* Legal Pages Navigation */}
+      <div className="mb-8 p-4 bg-gray-50 rounded-lg">
+        <h3 className="text-lg font-semibold mb-3">Related Legal Documents</h3>
+        <div className="flex flex-wrap gap-4">
+          <a href="/privacy" className="text-blue-600 hover:text-blue-700 font-medium">
+            Privacy Policy
+          </a>
+          <a href="/terms" className="text-blue-600 hover:text-blue-700 font-medium">
+            Terms & Conditions
+          </a>
+          <a href="/contact" className="text-blue-600 hover:text-blue-700 font-medium">
+            Contact Us
+          </a>
+        </div>
+      </div>
+
       {/* Tab Content */}
       <div className="prose text-gray-600">
         {renderContent()}
