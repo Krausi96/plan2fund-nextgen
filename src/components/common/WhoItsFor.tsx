@@ -1,36 +1,37 @@
 import { motion } from "framer-motion";
 import { Building2, Rocket, Palette, GraduationCap } from "lucide-react";
+import { Counter } from "./Counter";
 
 const audiences = [
   {
     icon: Building2,
-    title: "SMEs & Established Businesses",
-    description: "Scale your existing business with strategic funding and expansion plans.",
-    features: ["Growth funding", "Market expansion", "Technology upgrades"],
+    title: "Austrian SMEs & Established Businesses",
+    description: "Scale your existing business with Austrian and EU funding programs for growth and expansion.",
+    features: ["AWS funding programs", "EU Horizon projects", "Regional development grants"],
     color: "text-blue-600",
     bgColor: "bg-blue-50",
   },
   {
     icon: Rocket,
-    title: "Startups & Entrepreneurs",
-    description: "Turn your innovative ideas into reality with comprehensive business planning.",
-    features: ["Pre-seed funding", "MVP development", "Market validation"],
+    title: "Austrian Startups & Entrepreneurs",
+    description: "Turn your innovative ideas into reality with comprehensive Austrian startup funding support.",
+    features: ["AWS PreSeed funding", "Startup grants", "Innovation vouchers"],
     color: "text-green-600",
     bgColor: "bg-green-50",
   },
   {
     icon: Palette,
-    title: "Creative Professionals",
-    description: "Secure funding for creative projects and cultural initiatives.",
-    features: ["Arts funding", "Cultural projects", "Creative grants"],
+    title: "Creative Professionals & Artists",
+    description: "Secure Austrian cultural funding for creative projects and artistic initiatives.",
+    features: ["Austrian cultural grants", "EU Creative Europe", "Regional arts funding"],
     color: "text-purple-600",
     bgColor: "bg-purple-50",
   },
   {
     icon: GraduationCap,
-    title: "Students & Researchers",
-    description: "Access research grants and academic funding opportunities.",
-    features: ["Research grants", "Academic funding", "Innovation projects"],
+    title: "Researchers & Academic Institutions",
+    description: "Access Austrian research grants and EU academic funding opportunities.",
+    features: ["FFG research grants", "EU Horizon Europe", "Austrian Academy funding"],
     color: "text-orange-600",
     bgColor: "bg-orange-50",
   },
@@ -51,8 +52,8 @@ export function WhoItsFor() {
             Who it's for
           </h2>
           <p className="text-xl text-neutral-600 max-w-2xl mx-auto">
-            Whether you're a startup, SME, creative professional, or researcher, 
-            we have the tools and funding programs for you.
+            Whether you're an Austrian startup, SME, creative professional, or researcher, 
+            we have the tools and Austrian/EU funding programs for you.
           </p>
         </motion.div>
 
@@ -102,22 +103,30 @@ export function WhoItsFor() {
           viewport={{ once: true }}
           className="mt-16 grid grid-cols-2 md:grid-cols-4 gap-8 text-center"
         >
-          <div>
-            <div className="text-3xl font-bold text-primary-600 mb-2">500+</div>
-            <div className="text-neutral-600">Active Users</div>
-          </div>
-          <div>
-            <div className="text-3xl font-bold text-primary-600 mb-2">214+</div>
-            <div className="text-neutral-600">Funding Programs</div>
-          </div>
-          <div>
-            <div className="text-3xl font-bold text-primary-600 mb-2">€1B+</div>
-            <div className="text-neutral-600">Available Funding</div>
-          </div>
-          <div>
-            <div className="text-3xl font-bold text-primary-600 mb-2">95%</div>
-            <div className="text-neutral-600">Success Rate</div>
-          </div>
+          <Counter
+            value={500}
+            label="Active Users"
+            description="Austrian entrepreneurs"
+            delay={0.1}
+          />
+          <Counter
+            value={214}
+            label="Funding Programs"
+            description="Austrian & EU programs"
+            delay={0.2}
+          />
+          <Counter
+            value={1000000000}
+            label="Available Funding"
+            description="€1B+ total funding"
+            delay={0.3}
+          />
+          <Counter
+            value={95}
+            label="Success Rate"
+            description="Funding applications"
+            delay={0.4}
+          />
         </motion.div>
       </div>
     </section>

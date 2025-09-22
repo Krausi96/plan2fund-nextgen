@@ -2,7 +2,8 @@
 import { HowItWorks } from "@/components/common/HowItWorks"
 import { WhoItsFor } from "@/components/common/WhoItsFor"
 import { WhyPlan2Fund } from "@/components/common/WhyPlan2Fund"
-import { Testimonials } from "@/components/common/Testimonials"
+import { EvidenceCards } from "@/components/common/EvidenceCards"
+import { WhyAustria } from "@/components/common/WhyAustria"
 import CTAStrip from "@/components/common/CTAStrip"
 import SEOHead from "@/components/common/SEOHead"
 import { useI18n } from "@/contexts/I18nContext"
@@ -26,10 +27,11 @@ export default function Home() {
       
       <main className="flex flex-col">
         <Hero />
+        <EvidenceCards />
+        <WhyAustria />
         <HowItWorks />
         <WhoItsFor />
         <WhyPlan2Fund />
-        <Testimonials />
         <CTAStrip
           title={t('cta.readyToFind')}
           subtitle={t('cta.joinFounders')}
