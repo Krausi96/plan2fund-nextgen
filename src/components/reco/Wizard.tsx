@@ -10,9 +10,7 @@ import HealthFooter from "@/components/common/HealthFooter";
 export default function Wizard() {
   const router = useRouter();
   const [answers, setAnswers] = useState<Record<string, any>>({});
-  const [currentQuestion, setCurrentQuestion] = useState<DynamicQuestion | null>(null);
   const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
-  const [questionHistory, setQuestionHistory] = useState<string[]>([]);
   const [loading, setLoading] = useState(false);
   const [mounted, setMounted] = useState(false);
 
@@ -20,27 +18,9 @@ export default function Wizard() {
 
   useEffect(() => {
     setMounted(true);
-    // Get the first question dynamically
-    const firstQuestion = dynamicQuestionEngine.getNextQuestion(answers);
-    setCurrentQuestion(firstQuestion);
   }, []);
 
-  // Update current question when answers change
-  useEffect(() => {
-    const nextQuestion = dynamicQuestionEngine.getNextQuestion(answers);
-    if (nextQuestion) {
-      setCurrentQuestion(nextQuestion);
-      const questionIndex = questions.findIndex(q => q.id === nextQuestion.id);
-      setCurrentQuestionIndex(questionIndex);
-      
-      // Add to history if not already there
-      if (!questionHistory.includes(nextQuestion.id)) {
-        setQuestionHistory(prev => [...prev, nextQuestion.id]);
-      }
-    } else {
-      setCurrentQuestion(null);
-    }
-  }, [answers, questionHistory]);
+  const currentQuestion = questions[currentQuestionIndex];
 
   const handleAnswer = (questionId: string, value: any) => {
     setAnswers(prev => ({
@@ -50,27 +30,16 @@ export default function Wizard() {
   };
 
   const handlePrevious = () => {
-    if (questionHistory.length > 1) {
-      // Remove current question from history
-      const newHistory = questionHistory.slice(0, -1);
-      setQuestionHistory(newHistory);
-      
-      // Find the previous question
-      const previousQuestionId = newHistory[newHistory.length - 1];
-      const previousQuestion = questions.find(q => q.id === previousQuestionId);
-      
-      if (previousQuestion) {
-        setCurrentQuestion(previousQuestion);
-        setCurrentQuestionIndex(questions.findIndex(q => q.id === previousQuestionId));
-      }
+    if (currentQuestionIndex > 0) {
+      setCurrentQuestionIndex(prev => prev - 1);
     }
   };
 
   const handleNext = async () => {
-    // Check if we have more questions
-    const nextQuestion = dynamicQuestionEngine.getNextQuestion(answers);
-    if (!nextQuestion) {
-      // No more questions, get recommendations
+    if (currentQuestionIndex < questions.length - 1) {
+      setCurrentQuestionIndex(prev => prev + 1);
+    } else {
+      // Last question, get recommendations
       await submitSurvey();
     }
   };
@@ -95,17 +64,24 @@ export default function Wizard() {
   if (!mounted) return null;
 
   return (
-    <div className="max-w-4xl mx-auto p-6">
-      <div className="text-center mb-8">
-        <h1 className="text-3xl font-bold text-gray-900 mb-4">
-          Find Your Perfect Funding Program
-        </h1>
-        <p className="text-lg text-gray-600 mb-6">
-          Answer a few questions and we'll recommend the best funding programs for you
-        </p>
-        
+    <div className="min-h-screen bg-gray-50">
+      <div className="max-w-2xl mx-auto px-4 py-8">
+        {/* Progress Bar */}
+        <div className="mb-8">
+          <div className="flex items-center justify-between text-sm text-gray-600 mb-2">
+            <span>Question {currentQuestionIndex + 1} of {questions.length}</span>
+            <span>{Math.round(((currentQuestionIndex + 1) / questions.length) * 100)}% Complete</span>
+          </div>
+          <div className="w-full bg-gray-200 rounded-full h-2">
+            <div 
+              className="bg-blue-600 h-2 rounded-full transition-all duration-300"
+              style={{ width: `${((currentQuestionIndex + 1) / questions.length) * 100}%` }}
+            ></div>
+          </div>
+        </div>
+
         {/* Advanced Search Option */}
-        <div className="mb-6">
+        <div className="mb-8">
           <div className="bg-gradient-to-r from-blue-50 to-indigo-50 border border-blue-200 rounded-lg p-4">
             <div className="flex items-center justify-between">
               <div>
@@ -124,85 +100,89 @@ export default function Wizard() {
             </div>
           </div>
         </div>
-      </div>
 
-      <motion.div
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
-        className="bg-white rounded-lg shadow-lg p-8"
-      >
-            {currentQuestion ? (
-              <div className="space-y-6">
-                <div className="text-center">
-                  <h2 className="text-2xl font-semibold text-gray-900 mb-2">
-                    {currentQuestion.label}
-                  </h2>
-                  {currentQuestion.required && (
-                    <p className="text-sm text-gray-500">* Required</p>
-                  )}
-                </div>
-
-                <div className="space-y-3">
-                  {currentQuestion.options?.map((option) => (
-                    <button
-                      key={option.value}
-                      onClick={() => handleAnswer(currentQuestion.id, option.value)}
-                      className={`w-full p-4 text-left rounded-lg border-2 transition-all ${
-                        answers[currentQuestion.id] === option.value
-                          ? "border-blue-500 bg-blue-50 text-blue-900"
-                          : "border-gray-200 hover:border-gray-300 hover:bg-gray-50"
-                      }`}
-                    >
-                      {option.label}
-                    </button>
-                  ))}
-                </div>
-
-                <div className="flex justify-between pt-6">
-                  <div className="flex items-center gap-4">
-                    <div className="text-sm text-gray-500">
-                      Question {currentQuestionIndex + 1} of {questions.length}
-                      {currentQuestion.programsAffected > 0 && (
-                        <span className="ml-2 px-2 py-1 bg-blue-100 text-blue-800 rounded text-xs">
-                          Affects {currentQuestion.programsAffected} programs ({currentQuestion.informationValue}% info value)
-                        </span>
-                      )}
-                    </div>
-                    {questionHistory.length > 1 && (
-                      <Button
-                        onClick={handlePrevious}
-                        variant="outline"
-                        className="px-4 py-2 text-sm"
-                      >
-                        ← Previous
-                      </Button>
-                    )}
-                  </div>
-                  <Button
-                    onClick={handleNext}
-                    disabled={!answers[currentQuestion.id] || loading}
-                    className="px-8"
-                  >
-                    {loading ? "Processing..." : "Next"}
-                  </Button>
-                </div>
+        {/* Question Card */}
+        <motion.div
+          key={currentQuestionIndex}
+          initial={{ opacity: 0, x: 20 }}
+          animate={{ opacity: 1, x: 0 }}
+          exit={{ opacity: 0, x: -20 }}
+          className="bg-white rounded-xl shadow-lg p-8"
+        >
+          {currentQuestion ? (
+            <div className="space-y-6">
+              <div className="text-center">
+                <h2 className="text-2xl font-semibold text-gray-900 mb-2">
+                  {currentQuestion.label}
+                </h2>
+                {currentQuestion.required && (
+                  <p className="text-sm text-gray-500">* Required</p>
+                )}
               </div>
-            ) : (
-              <div className="text-center py-8">
-                <h3 className="text-xl font-semibold text-gray-900 mb-4">
-                  No more questions needed!
-                </h3>
-                <p className="text-gray-600 mb-6">
-                  We have enough information to find the best programs for you.
-                </p>
-                <Button onClick={handleNext} className="px-8">
-                  Get Recommendations
+
+              <div className="space-y-3">
+                {currentQuestion.options?.map((option) => (
+                  <button
+                    key={option.value}
+                    onClick={() => handleAnswer(currentQuestion.id, option.value)}
+                    className={`w-full p-4 text-left rounded-lg border-2 transition-all duration-200 ${
+                      answers[currentQuestion.id] === option.value
+                        ? "border-blue-500 bg-blue-50 text-blue-900 shadow-md"
+                        : "border-gray-200 hover:border-blue-300 hover:bg-blue-50 hover:shadow-sm"
+                    }`}
+                  >
+                    <div className="flex items-center">
+                      <div className={`w-4 h-4 rounded-full border-2 mr-3 ${
+                        answers[currentQuestion.id] === option.value
+                          ? "border-blue-500 bg-blue-500"
+                          : "border-gray-300"
+                      }`}>
+                        {answers[currentQuestion.id] === option.value && (
+                          <div className="w-2 h-2 bg-white rounded-full m-0.5"></div>
+                        )}
+                      </div>
+                      <span className="font-medium">{option.label}</span>
+                    </div>
+                  </button>
+                ))}
+              </div>
+
+              <div className="flex justify-between items-center pt-6">
+                <Button
+                  onClick={handlePrevious}
+                  variant="outline"
+                  disabled={currentQuestionIndex === 0}
+                  className="px-6 py-2"
+                >
+                  ← Previous
+                </Button>
+                
+                <Button
+                  onClick={handleNext}
+                  disabled={!answers[currentQuestion.id] || loading}
+                  className="px-8 py-2 bg-blue-600 hover:bg-blue-700"
+                >
+                  {loading ? "Processing..." : currentQuestionIndex === questions.length - 1 ? "Get Results" : "Next →"}
                 </Button>
               </div>
-            )}
-      </motion.div>
+            </div>
+          ) : (
+            <div className="text-center py-8">
+              <h3 className="text-xl font-semibold text-gray-900 mb-4">
+                No more questions needed!
+              </h3>
+              <p className="text-gray-600 mb-6">
+                We have enough information to find the best programs for you.
+              </p>
+              <Button onClick={handleNext} className="px-8">
+                Get Recommendations
+              </Button>
+            </div>
+          )}
+        </motion.div>
 
-      <HealthFooter />
+        <HealthFooter />
+      </div>
     </div>
   );
 }

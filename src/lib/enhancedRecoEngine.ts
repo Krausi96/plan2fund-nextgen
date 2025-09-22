@@ -631,61 +631,61 @@ function generateFounderFriendlyReasons(
   const reasons: string[] = [];
   const passedCriteria = matchedCriteria.filter(c => c.status === 'passed');
   
-  // Map technical criteria to founder-friendly explanations
+  // Map technical criteria to founder-friendly explanations with program benefits
   const criteriaMapping: Record<string, (value: any) => string> = {
     'q1_country': (value) => {
-      if (value === 'AT') return 'Your project is based in Austria, which is required for this program';
-      if (value === 'EU') return 'Your project is EU-based, making you eligible for this program';
-      return 'Your project location qualifies for this program';
+      if (value === 'AT') return 'Austrian location requirement met - you can access local funding and support networks';
+      if (value === 'EU') return 'EU eligibility confirmed - access to broader European funding opportunities';
+      return 'Your project location qualifies for this program\'s geographic requirements';
     },
     'q4_theme': (value) => {
-      if (Array.isArray(value) && value.includes('INNOVATION_DIGITAL')) return 'Your innovation/digital focus aligns perfectly with this program';
-      if (Array.isArray(value) && value.includes('SUSTAINABILITY')) return 'Your sustainability focus matches this program\'s environmental goals';
-      if (Array.isArray(value) && value.includes('HEALTH_LIFE_SCIENCE')) return 'Your health/life science focus is exactly what this program supports';
-      return 'Your project theme matches this program\'s focus areas';
+      if (Array.isArray(value) && value.includes('INNOVATION_DIGITAL')) return 'Perfect match for digital innovation programs - high success rates for tech projects';
+      if (Array.isArray(value) && value.includes('SUSTAINABILITY')) return 'Environmental focus aligns with green funding priorities - often higher funding amounts available';
+      if (Array.isArray(value) && value.includes('HEALTH_LIFE_SCIENCE')) return 'Health sector focus qualifies for specialized medical innovation funding';
+      return 'Your project theme matches this program\'s priority sectors';
     },
     'q8_funding_types': (value) => {
-      if (Array.isArray(value) && value.includes('GRANT')) return 'You\'re open to grants, which is what this program provides';
-      if (Array.isArray(value) && value.includes('LOAN')) return 'You\'re open to loans, which this program offers';
-      if (Array.isArray(value) && value.includes('EQUITY')) return 'You\'re open to equity funding, which this program provides';
-      return 'Your funding preferences align with this program';
+      if (Array.isArray(value) && value.includes('GRANT')) return 'Non-dilutive funding available - keep full ownership while getting financial support';
+      if (Array.isArray(value) && value.includes('LOAN')) return 'Debt financing option - faster approval process than equity funding';
+      if (Array.isArray(value) && value.includes('EQUITY')) return 'Equity investment opportunity - access to investor networks and expertise';
+      return 'Your funding preferences match this program\'s offering';
     },
     'q2_entity_stage': (value) => {
-      if (value === 'PRE_COMPANY') return 'You\'re in the pre-company stage, which this program supports';
-      if (value === 'INC_LT_6M') return 'Your company is less than 6 months old, perfect for this program';
-      if (value === 'INC_6_36M') return 'Your company age fits this program\'s requirements';
-      return 'Your company stage qualifies for this program';
+      if (value === 'PRE_COMPANY') return 'Early-stage support available - perfect for idea validation and initial development';
+      if (value === 'INC_LT_6M') return 'Startup stage qualification - access to specialized early-stage funding programs';
+      if (value === 'INC_6_36M') return 'Growth stage eligibility - funding for scaling and market expansion';
+      return 'Your company stage qualifies for this program\'s target audience';
     },
     'q3_company_size': (value) => {
-      if (value === 'MICRO_0_9') return 'Your micro-company size is ideal for this program';
-      if (value === 'SMALL_10_49') return 'Your small company size fits this program perfectly';
-      if (value === 'MEDIUM_50_249') return 'Your medium company size qualifies for this program';
-      return 'Your company size is right for this program';
+      if (value === 'MICRO_0_9') return 'Micro-company focus - specialized support for small teams and limited resources';
+      if (value === 'SMALL_10_49') return 'Small business category - access to SME-specific funding and support programs';
+      if (value === 'MEDIUM_50_249') return 'Medium enterprise eligibility - larger funding amounts and business development support';
+      return 'Your company size fits this program\'s target range';
     },
     'q5_maturity_trl': (value) => {
-      if (value === 'TRL_3_4') return 'Your proof-of-concept stage is exactly what this program targets';
-      if (value === 'TRL_5_6') return 'Your prototype stage is perfect for this program';
-      if (value === 'TRL_7_8') return 'Your pilot stage aligns with this program\'s goals';
-      return 'Your technology maturity level fits this program';
+      if (value === 'TRL_3_4') return 'Proof-of-concept stage - ideal for R&D funding and technology validation';
+      if (value === 'TRL_5_6') return 'Prototype development - perfect timing for product development funding';
+      if (value === 'TRL_7_8') return 'Pilot stage - ready for market testing and commercialization support';
+      return 'Your technology readiness level matches this program\'s requirements';
     },
     'q6_rnd_in_at': (value) => {
-      if (value === 'YES') return 'You\'ll conduct R&D in Austria, which this program requires';
-      return 'Your R&D plans align with this program\'s requirements';
+      if (value === 'YES') return 'Austrian R&D location - access to local research networks and tax incentives';
+      return 'Your R&D plans align with this program\'s location requirements';
     },
     'q7_collaboration': (value) => {
-      if (value === 'WITH_RESEARCH') return 'Your research collaboration plans are supported by this program';
-      if (value === 'WITH_COMPANY') return 'Your industry collaboration approach fits this program';
-      if (value === 'WITH_BOTH') return 'Your comprehensive collaboration strategy is ideal for this program';
-      return 'Your collaboration approach aligns with this program';
+      if (value === 'WITH_RESEARCH') return 'Research collaboration focus - access to university partnerships and academic resources';
+      if (value === 'WITH_COMPANY') return 'Industry collaboration approach - networking opportunities with established companies';
+      if (value === 'WITH_BOTH') return 'Comprehensive collaboration strategy - maximum networking and resource access';
+      return 'Your collaboration approach aligns with this program\'s networking goals';
     },
     'q9_team_diversity': (value) => {
-      if (value === 'YES') return 'Your team diversity meets this program\'s requirements';
-      return 'Your team structure qualifies for this program';
+      if (value === 'YES') return 'Diverse team composition - often qualifies for additional funding bonuses and support';
+      return 'Your team structure meets this program\'s requirements';
     },
     'q10_env_benefit': (value) => {
-      if (value === 'STRONG') return 'Your strong environmental impact aligns perfectly with this program';
-      if (value === 'SOME') return 'Your environmental benefits match this program\'s goals';
-      return 'Your project impact aligns with this program';
+      if (value === 'STRONG') return 'Strong environmental impact - access to premium green funding and sustainability programs';
+      if (value === 'SOME') return 'Environmental benefits present - qualifies for sustainability-focused funding';
+      return 'Your project impact aligns with this program\'s environmental goals';
     }
   };
 
@@ -697,9 +697,12 @@ function generateFounderFriendlyReasons(
     }
   }
 
-  // Fill with generic reasons if needed
-  while (reasons.length < 3) {
-    reasons.push('This program matches your project profile and requirements');
+  // Add program-specific benefits if we have space
+  if (reasons.length < 3) {
+    reasons.push('This program offers competitive funding terms and comprehensive support services');
+  }
+  if (reasons.length < 3) {
+    reasons.push('High success rate for projects matching your profile and requirements');
   }
 
   return reasons;

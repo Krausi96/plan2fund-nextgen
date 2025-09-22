@@ -248,24 +248,26 @@ export default function ResultsPage() {
                 </div>
               </div>
 
-              {/* Why it fits - 3 plain-language bullets */}
-              <div className="mb-3">
-                <h4 className="text-sm font-semibold text-gray-800 mb-2">Why it fits:</h4>
-                <ul className="text-sm text-gray-700 space-y-1">
-                  {program.founderFriendlyReasons && program.founderFriendlyReasons.length > 0 ? (
-                    program.founderFriendlyReasons.slice(0, 3).map((reason, idx) => (
-                      <li key={idx} className="flex items-start">
-                        <span className="text-green-500 mr-2">✓</span>
-                        {reason}
+              {/* Why it fits - Program-specific benefits */}
+              <div className="mb-4">
+                <h4 className="text-sm font-semibold text-gray-800 mb-2">Why this program fits your project:</h4>
+                <div className="bg-green-50 border border-green-200 rounded-lg p-3">
+                  <ul className="text-sm text-gray-700 space-y-2">
+                    {program.founderFriendlyReasons && program.founderFriendlyReasons.length > 0 ? (
+                      program.founderFriendlyReasons.slice(0, 3).map((reason, idx) => (
+                        <li key={idx} className="flex items-start">
+                          <span className="text-green-500 mr-2 mt-0.5">✓</span>
+                          <span>{reason}</span>
+                        </li>
+                      ))
+                    ) : (
+                      <li className="flex items-start">
+                        <span className="text-green-500 mr-2 mt-0.5">✓</span>
+                        <span>This program aligns with your project stage and funding needs</span>
                       </li>
-                    ))
-                  ) : (
-                    <li className="flex items-start">
-                      <span className="text-green-500 mr-2">✓</span>
-                      This program matches your project profile and requirements
-                    </li>
-                  )}
-                </ul>
+                    )}
+                  </ul>
+                </div>
               </div>
 
               {/* Key Requirements */}
@@ -414,81 +416,7 @@ export default function ResultsPage() {
                 Report mismatch
               </button>
 
-              {program.scores && (
-                <div className="text-xs text-gray-500 mb-2">
-                  Fit {program.scores.fit}% · Readiness {program.scores.readiness}% · Effort {program.scores.effort}% · Confidence {program.scores.confidence}%
-                </div>
-              )}
 
-              {/* Eligibility Trace */}
-              {program.trace && (
-                <details className="text-sm bg-blue-50 rounded p-3 mb-3">
-                  <summary className="cursor-pointer font-semibold text-blue-800">
-                    Eligibility Trace
-                  </summary>
-                  <div className="mt-3 space-y-3">
-                    {/* Passed criteria */}
-                    {program.trace.passed && program.trace.passed.length > 0 && (
-                      <div>
-                        <h5 className="font-medium text-green-800 mb-2">✅ Passed Requirements:</h5>
-                        <ul className="list-disc list-inside text-green-700 space-y-1">
-                          {program.trace.passed.map((item, idx) => (
-                            <li key={idx} className="text-sm">{item}</li>
-                          ))}
-                        </ul>
-                      </div>
-                    )}
-                    
-                    {/* Failed criteria */}
-                    {program.trace.failed && program.trace.failed.length > 0 && (
-                      <div>
-                        <h5 className="font-medium text-red-800 mb-2">❌ Failed Requirements:</h5>
-                        <ul className="list-disc list-inside text-red-700 space-y-1">
-                          {program.trace.failed.map((item, idx) => (
-                            <li key={idx} className="text-sm">{item}</li>
-                          ))}
-                        </ul>
-                      </div>
-                    )}
-                    
-                    {/* Warnings */}
-                    {program.trace.warnings && program.trace.warnings.length > 0 && (
-                      <div>
-                        <h5 className="font-medium text-yellow-800 mb-2">⚠️ Warnings:</h5>
-                        <ul className="list-disc list-inside text-yellow-700 space-y-1">
-                          {program.trace.warnings.map((item, idx) => (
-                            <li key={idx} className="text-sm">{item}</li>
-                          ))}
-                        </ul>
-                      </div>
-                    )}
-                    
-                    {/* Counterfactuals */}
-                    {program.trace.counterfactuals && program.trace.counterfactuals.length > 0 && (
-                      <div>
-                        <h5 className="font-medium text-blue-800 mb-2">💡 Suggestions to improve eligibility:</h5>
-                        <ul className="list-disc list-inside text-blue-700 space-y-1">
-                          {program.trace.counterfactuals.map((item, idx) => (
-                            <li key={idx} className="text-sm">{item}</li>
-                          ))}
-                        </ul>
-                      </div>
-                    )}
-                  </div>
-                </details>
-              )}
-
-              {/* Why panel */}
-              {program.why && program.why.length > 0 && (
-                <details className="text-sm bg-gray-50 rounded p-3 mb-3">
-                  <summary className="cursor-pointer">Why this ranked here</summary>
-                  <ul className="list-disc list-inside mt-2 text-gray-700">
-                    {program.why.map((w, i) => (
-                      <li key={i}>{w}</li>
-                    ))}
-                  </ul>
-                </details>
-              )}
 
               <div className="mt-4 flex gap-2">
                 <Dialog>
@@ -544,44 +472,6 @@ export default function ResultsPage() {
         </div>
       )}
 
-      {/* Debug Panel */}
-      {hasAnyResults && (
-        <div className="mt-8">
-          <button
-            onClick={() => setShowDebug(!showDebug)}
-            className="text-sm text-gray-600 hover:text-gray-800 flex items-center gap-1"
-          >
-            <span>{showDebug ? "▼" : "▶"}</span> Debug Information
-          </button>
-          {showDebug && (
-            <div className="mt-2 p-4 bg-gray-50 rounded text-sm">
-              <h4 className="font-semibold mb-2">Scoring Breakdown</h4>
-              {results.slice(0, 3).map((r, i) => (
-                <div key={i} className="mb-3 p-2 bg-white rounded">
-                  <div className="font-medium">{r.name}</div>
-                  <div className="text-xs text-gray-600">
-                    <div>Eligibility: {r.eligibility}</div>
-                    <div>Confidence: {r.confidence}</div>
-                    {r.scores && (
-                      <div>Fit: {r.scores.fit}% | Readiness: {r.scores.readiness}% | Effort: {r.scores.effort}% | Confidence: {r.scores.confidence}%</div>
-                    )}
-                    {r.why && (
-                      <div className="mt-1">
-                        <div className="font-medium">Analysis:</div>
-                        <ul className="list-disc list-inside ml-2">
-                          {r.why.slice(0, 3).map((w, j) => (
-                            <li key={j}>{w}</li>
-                          ))}
-                        </ul>
-                      </div>
-                    )}
-                  </div>
-                </div>
-              ))}
-            </div>
-          )}
-        </div>
-      )}
 
       {/* Add Custom Program */}
       <div className="mt-6 text-center">
