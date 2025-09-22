@@ -372,7 +372,7 @@ export function scoreProgramsEnhanced(
       id: p.id,
       name: p.title || p.name || p.id,
       type: Array.isArray(p.tags) && p.tags.length > 0 ? p.tags[0] : (p.type || "program"),
-      requirements: (p.requirements as any) || {},
+      requirements: convertOverlaysToRequirements(p.overlays || []),
       notes: undefined,
       maxAmount: undefined,
       link: undefined,
@@ -393,8 +393,20 @@ export function scoreProgramsEnhanced(
         priority: 'high' | 'medium' | 'low';
       }> = [];
 
-      // Evaluate each requirement
-      for (const [key, requirement] of Object.entries(program.requirements)) {
+      // If no requirements, give a base score based on program type
+      if (Object.keys(program.requirements || {}).length === 0) {
+        const baseScores = {
+          'grant': 60,
+          'loan': 50,
+          'equity': 40,
+          'mixed': 55,
+          'visa': 30,
+          'incubator': 45
+        };
+        score = baseScores[program.type as keyof typeof baseScores] || 50;
+      } else {
+        // Evaluate each requirement
+        for (const [key, requirement] of Object.entries(program.requirements)) {
         const answer = answers[key];
 
         if (answer === undefined || answer === null || answer === "") {
@@ -413,7 +425,13 @@ export function scoreProgramsEnhanced(
         let reason = '';
         let status: 'passed' | 'warning' | 'failed' = 'failed';
 
-        if (Array.isArray(requirement)) {
+        // Handle overlay conditions (string format like "answers.q1_country in ['AT','EU']")
+        if (typeof requirement === "string" && requirement.includes("answers.")) {
+          const result = evaluateOverlayCondition(requirement, answers);
+          passed = result.passed;
+          reason = result.reason;
+          status = result.status;
+        } else if (Array.isArray(requirement)) {
           if (requirement.includes(answer)) {
             passed = true;
             reason = `${key} matches requirement (${answer})`;
@@ -478,13 +496,21 @@ export function scoreProgramsEnhanced(
           });
         }
 
-        if (passed) {
-          score += 1;
+          if (passed) {
+            score += 1;
+          }
         }
       }
 
       const totalRequirements = Object.keys(program.requirements || {}).length;
-      const scorePercent = totalRequirements > 0 ? Math.round((score / totalRequirements) * 100) : 0;
+      let scorePercent = totalRequirements > 0 ? Math.round((score / totalRequirements) * 100) : score;
+      
+      // Ensure minimum score for programs with no requirements or when scoring fails
+      if (scorePercent === 0 && totalRequirements === 0) {
+        scorePercent = 50; // Base score for programs without specific requirements
+      } else if (scorePercent === 0 && totalRequirements > 0) {
+        scorePercent = 10; // Minimum score even if no requirements are met
+      }
 
       const eligibility =
         mode === "strict"
@@ -909,6 +935,100 @@ function generateEligibilityTrace(
     warnings,
     counterfactuals: counterfactuals.slice(0, 5) // Limit to top 5 counterfactuals
   };
+}
+
+// Convert program overlays to requirements format
+function convertOverlaysToRequirements(overlays: any[]): Record<string, any> {
+  const requirements: Record<string, any> = {};
+  
+  for (const overlay of overlays) {
+    if (overlay.ask_if && overlay.decisiveness) {
+      // Extract question ID from ask_if condition
+      const match = overlay.ask_if.match(/answers\.(q\d+_\w+)/);
+      if (match) {
+        const questionId = match[1];
+        
+        // Convert condition to requirement based on decisiveness
+        if (overlay.decisiveness === 'HARD') {
+          // For hard rules, we'll evaluate the condition
+          requirements[questionId] = overlay.ask_if;
+        } else if (overlay.decisiveness === 'SOFT') {
+          // For soft rules, we'll use a more lenient evaluation
+          requirements[questionId] = overlay.ask_if;
+        }
+      }
+    }
+  }
+  
+  return requirements;
+}
+
+// Evaluate overlay conditions like "answers.q1_country in ['AT','EU']"
+function evaluateOverlayCondition(condition: string, answers: UserAnswers): {
+  passed: boolean;
+  reason: string;
+  status: 'passed' | 'warning' | 'failed';
+} {
+  try {
+    // Extract the question ID and value from the condition
+    const match = condition.match(/answers\.(q\d+_\w+)\s+in\s+\[([^\]]+)\]/);
+    if (match) {
+      const questionId = match[1];
+      const allowedValues = match[2].split(',').map(v => v.trim().replace(/['"]/g, ''));
+      const answer = answers[questionId];
+      
+      if (answer && allowedValues.includes(answer)) {
+        return {
+          passed: true,
+          reason: `${questionId} matches requirement (${answer} in [${allowedValues.join(', ')}])`,
+          status: 'passed'
+        };
+      } else {
+        return {
+          passed: false,
+          reason: `${questionId} does not match requirement (${answer} not in [${allowedValues.join(', ')}])`,
+          status: 'failed'
+        };
+      }
+    }
+    
+    // Handle other condition formats
+    if (condition.includes('===') || condition.includes('==')) {
+      const match = condition.match(/answers\.(q\d+_\w+)\s*[=!]+\s*['"]([^'"]+)['"]/);
+      if (match) {
+        const questionId = match[1];
+        const expectedValue = match[2];
+        const answer = answers[questionId];
+        
+        if (answer === expectedValue) {
+          return {
+            passed: true,
+            reason: `${questionId} matches requirement (${answer} === ${expectedValue})`,
+            status: 'passed'
+          };
+        } else {
+          return {
+            passed: false,
+            reason: `${questionId} does not match requirement (${answer} !== ${expectedValue})`,
+            status: 'failed'
+          };
+        }
+      }
+    }
+    
+    // Default fallback
+    return {
+      passed: false,
+      reason: `Could not evaluate condition: ${condition}`,
+      status: 'failed'
+    };
+  } catch (error) {
+    return {
+      passed: false,
+      reason: `Error evaluating condition: ${condition}`,
+      status: 'failed'
+    };
+  }
 }
 
 // Helper function to describe unknown variables

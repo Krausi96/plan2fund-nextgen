@@ -12,6 +12,7 @@ export default function Wizard() {
   const [answers, setAnswers] = useState<Record<string, any>>({});
   const [currentQuestion, setCurrentQuestion] = useState<DynamicQuestion | null>(null);
   const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
+  const [questionHistory, setQuestionHistory] = useState<string[]>([]);
   const [loading, setLoading] = useState(false);
   const [mounted, setMounted] = useState(false);
 
@@ -29,17 +30,40 @@ export default function Wizard() {
     const nextQuestion = dynamicQuestionEngine.getNextQuestion(answers);
     if (nextQuestion) {
       setCurrentQuestion(nextQuestion);
-      setCurrentQuestionIndex(questions.findIndex(q => q.id === nextQuestion.id));
+      const questionIndex = questions.findIndex(q => q.id === nextQuestion.id);
+      setCurrentQuestionIndex(questionIndex);
+      
+      // Add to history if not already there
+      if (!questionHistory.includes(nextQuestion.id)) {
+        setQuestionHistory(prev => [...prev, nextQuestion.id]);
+      }
     } else {
       setCurrentQuestion(null);
     }
-  }, [answers]);
+  }, [answers, questionHistory]);
 
   const handleAnswer = (questionId: string, value: any) => {
     setAnswers(prev => ({
       ...prev,
       [questionId]: value
     }));
+  };
+
+  const handlePrevious = () => {
+    if (questionHistory.length > 1) {
+      // Remove current question from history
+      const newHistory = questionHistory.slice(0, -1);
+      setQuestionHistory(newHistory);
+      
+      // Find the previous question
+      const previousQuestionId = newHistory[newHistory.length - 1];
+      const previousQuestion = questions.find(q => q.id === previousQuestionId);
+      
+      if (previousQuestion) {
+        setCurrentQuestion(previousQuestion);
+        setCurrentQuestionIndex(questions.findIndex(q => q.id === previousQuestionId));
+      }
+    }
   };
 
   const handleNext = async () => {
@@ -82,15 +106,23 @@ export default function Wizard() {
         
         {/* Advanced Search Option */}
         <div className="mb-6">
-          <Link 
-            href="/advanced-search"
-            className="inline-flex items-center px-4 py-2 text-sm font-medium text-blue-600 bg-blue-50 rounded-lg hover:bg-blue-100 transition-colors"
-          >
-            <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
-            </svg>
-            Try Advanced Search Instead
-          </Link>
+          <div className="bg-gradient-to-r from-blue-50 to-indigo-50 border border-blue-200 rounded-lg p-4">
+            <div className="flex items-center justify-between">
+              <div>
+                <h3 className="text-sm font-semibold text-blue-900 mb-1">Prefer to describe your project?</h3>
+                <p className="text-xs text-blue-700">Skip the questions and describe your project in plain language</p>
+              </div>
+              <Link 
+                href="/advanced-search"
+                className="inline-flex items-center px-4 py-2 text-sm font-medium text-white bg-blue-600 rounded-lg hover:bg-blue-700 transition-colors shadow-sm"
+              >
+                <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                </svg>
+                Try Advanced Search
+              </Link>
+            </div>
+          </div>
         </div>
       </div>
 
@@ -127,12 +159,23 @@ export default function Wizard() {
                 </div>
 
                 <div className="flex justify-between pt-6">
-                  <div className="text-sm text-gray-500">
-                    Question {currentQuestionIndex + 1} of {questions.length}
-                    {currentQuestion.programsAffected > 0 && (
-                      <span className="ml-2 px-2 py-1 bg-blue-100 text-blue-800 rounded text-xs">
-                        Affects {currentQuestion.programsAffected} programs ({currentQuestion.informationValue}% info value)
-                      </span>
+                  <div className="flex items-center gap-4">
+                    <div className="text-sm text-gray-500">
+                      Question {currentQuestionIndex + 1} of {questions.length}
+                      {currentQuestion.programsAffected > 0 && (
+                        <span className="ml-2 px-2 py-1 bg-blue-100 text-blue-800 rounded text-xs">
+                          Affects {currentQuestion.programsAffected} programs ({currentQuestion.informationValue}% info value)
+                        </span>
+                      )}
+                    </div>
+                    {questionHistory.length > 1 && (
+                      <Button
+                        onClick={handlePrevious}
+                        variant="outline"
+                        className="px-4 py-2 text-sm"
+                      >
+                        ← Previous
+                      </Button>
                     )}
                   </div>
                   <Button

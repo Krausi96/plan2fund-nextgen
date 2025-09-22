@@ -48,8 +48,8 @@ export default function Header() {
           <Link href="/about" className="text-textSecondary hover:text-primary transition-colors font-medium">
             {t('nav.howItWorks')}
           </Link>
-          <Link href="/advanced-search" className="text-textSecondary hover:text-primary transition-colors font-medium">
-            Advanced Search
+          <Link href="/advanced-search" className="text-textSecondary hover:text-primary transition-colors font-medium px-3 py-1 rounded-md hover:bg-blue-50">
+            🔍 Advanced Search
           </Link>
           <Link href="/pricing" className="text-textSecondary hover:text-primary transition-colors font-medium">
             {t('nav.pricing')}

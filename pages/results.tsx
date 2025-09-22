@@ -255,33 +255,33 @@ export default function ResultsPage() {
                   {program.founderFriendlyReasons && program.founderFriendlyReasons.length > 0 ? (
                     program.founderFriendlyReasons.slice(0, 3).map((reason, idx) => (
                       <li key={idx} className="flex items-start">
-                        <span className="text-green-500 mr-2">•</span>
+                        <span className="text-green-500 mr-2">✓</span>
                         {reason}
                       </li>
                     ))
                   ) : (
                     <li className="flex items-start">
-                      <span className="text-green-500 mr-2">•</span>
+                      <span className="text-green-500 mr-2">✓</span>
                       This program matches your project profile and requirements
                     </li>
                   )}
                 </ul>
               </div>
 
-              {/* Eligibility Trace */}
+              {/* Key Requirements */}
               {program.trace && (
                 <div className="mb-3">
-                  <h4 className="text-sm font-semibold text-gray-800 mb-2">Eligibility Trace:</h4>
+                  <h4 className="text-sm font-semibold text-gray-800 mb-2">Key Requirements:</h4>
                   
                   {/* Passed criteria */}
                   {program.trace.passed && program.trace.passed.length > 0 && (
                     <div className="mb-2">
-                      <div className="text-xs font-medium text-green-700 mb-1">✅ Passed:</div>
+                      <div className="text-xs font-medium text-green-700 mb-1">✅ You meet:</div>
                       <ul className="text-xs text-green-600 space-y-1">
-                        {program.trace.passed.slice(0, 3).map((item, idx) => (
+                        {program.trace.passed.slice(0, 2).map((item, idx) => (
                           <li key={idx} className="flex items-start">
-                            <span className="text-green-500 mr-2">•</span>
-                            {item}
+                            <span className="text-green-500 mr-2">✓</span>
+                            {item.replace(/answers\.(q\d+_\w+)\s+matches\s+requirement\s+\(([^)]+)\)/, '$2')}
                           </li>
                         ))}
                       </ul>
@@ -291,41 +291,26 @@ export default function ResultsPage() {
                   {/* Failed criteria */}
                   {program.trace.failed && program.trace.failed.length > 0 && (
                     <div className="mb-2">
-                      <div className="text-xs font-medium text-red-700 mb-1">❌ Failed:</div>
+                      <div className="text-xs font-medium text-red-700 mb-1">❌ Missing:</div>
                       <ul className="text-xs text-red-600 space-y-1">
-                        {program.trace.failed.slice(0, 2).map((item, idx) => (
+                        {program.trace.failed.slice(0, 1).map((item, idx) => (
                           <li key={idx} className="flex items-start">
-                            <span className="text-red-500 mr-2">•</span>
-                            {item}
+                            <span className="text-red-500 mr-2">✗</span>
+                            {item.replace(/answers\.(q\d+_\w+)\s+does\s+not\s+match\s+requirement\s+\(([^)]+)\)/, '$2')}
                           </li>
                         ))}
                       </ul>
                     </div>
                   )}
 
-                  {/* Warnings with unknowns */}
-                  {program.trace.warnings && program.trace.warnings.length > 0 && (
-                    <div className="mb-2">
-                      <div className="text-xs font-medium text-orange-700 mb-1">⚠️ Warnings:</div>
-                      <ul className="text-xs text-orange-600 space-y-1">
-                        {program.trace.warnings.slice(0, 3).map((item, idx) => (
-                          <li key={idx} className="flex items-start">
-                            <span className="text-orange-500 mr-2">•</span>
-                            {item}
-                          </li>
-                        ))}
-                      </ul>
-                    </div>
-                  )}
-
-                  {/* Counterfactuals */}
+                  {/* Suggestions */}
                   {program.trace.counterfactuals && program.trace.counterfactuals.length > 0 && (
                     <div className="mb-2">
-                      <div className="text-xs font-medium text-blue-700 mb-1">💡 Counterfactuals:</div>
+                      <div className="text-xs font-medium text-blue-700 mb-1">💡 To improve eligibility:</div>
                       <ul className="text-xs text-blue-600 space-y-1">
-                        {program.trace.counterfactuals.slice(0, 3).map((item, idx) => (
+                        {program.trace.counterfactuals.slice(0, 2).map((item, idx) => (
                           <li key={idx} className="flex items-start">
-                            <span className="text-blue-500 mr-2">•</span>
+                            <span className="text-blue-500 mr-2">→</span>
                             {item}
                           </li>
                         ))}
