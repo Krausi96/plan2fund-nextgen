@@ -4,7 +4,7 @@ import { useRouter } from "next/router";
 import { motion } from "framer-motion";
 import Link from "next/link";
 import { scoreProgramsEnhanced } from "@/lib/enhancedRecoEngine";
-import { dynamicQuestionEngine, DynamicQuestion } from "@/lib/dynamicQuestionEngine";
+import { dynamicQuestionEngine } from "@/lib/dynamicQuestionEngine";
 import HealthFooter from "@/components/common/HealthFooter";
 
 export default function Wizard() {

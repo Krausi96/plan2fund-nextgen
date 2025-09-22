@@ -16,7 +16,6 @@ type ProgramResult = EnhancedProgramResult;
 export default function ResultsPage() {
   const router = useRouter();
   const [results, setResults] = useState<ProgramResult[]>([]);
-  const [showDebug, setShowDebug] = useState(false);
   const [showExploration, setShowExploration] = useState(false);
   const [showInfoDrawer, setShowInfoDrawer] = useState(false);
   const [selectedProgram, setSelectedProgram] = useState<ProgramResult | null>(null);
