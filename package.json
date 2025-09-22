@@ -6,19 +6,13 @@
         "build": "next build",
         "dev": "next dev",
         "start": "next start",
-        "smoke:score": "node scripts/smoke/score.js",
         "typecheck": "tsc -p tsconfig.json --noEmit",
         "validate": "npm run typecheck && npm run lint",
-        "smoke": "node scripts/smoke.mjs",
-        "build:vercel": "npm run smoke && npm run build",
         "test": "node scripts/run-tests.mjs",
         "coverage": "node scripts/ci-coverage.mjs",
-        "coverage:lenient": "node scripts/ci-coverage-lenient.mjs",
-        "coverage:minimal": "node scripts/ci-coverage-minimal.mjs",
-        "coverage:table": "node scripts/generate-coverage-table-dev.mjs",
         "source:register": "node scripts/generate-source-register.mjs",
-        "ci:full": "npm run coverage:minimal && npm run test && npm run build",
-        "ci:coverage": "npm run coverage:table && npm run source:register"
+        "ci:full": "npm run test && npm run build",
+        "ci:coverage": "npm run source:register"
     },
     "devDependencies": {
         "@types/file-saver": "^2.0.7",

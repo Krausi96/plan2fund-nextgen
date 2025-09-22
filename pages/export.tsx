@@ -15,7 +15,10 @@ export default function Export() {
     setSections(loadedSections);
     
     // Track export page view
-    analytics.trackEvent({ event: 'export_page_view', sections: loadedSections.length });
+    analytics.trackEvent({ 
+      event: 'export_page_view', 
+      properties: { sections_count: loadedSections.length } 
+    });
   }, []);
 
   if (!EXPORT_ENABLED) {
@@ -82,9 +85,11 @@ export default function Export() {
             // Track export attempt
             analytics.trackEvent({ 
               event: 'export_attempt', 
-              format, 
-              sections: sections.length,
-              isPaid 
+              properties: {
+                format, 
+                sections_count: sections.length,
+                is_paid: isPaid 
+              }
             });
 
             // Generate content
@@ -107,9 +112,11 @@ export default function Export() {
             // Track successful export
             analytics.trackEvent({ 
               event: 'export_success', 
-              format, 
-              sections: sections.length,
-              isPaid 
+              properties: {
+                format, 
+                sections_count: sections.length,
+                is_paid: isPaid 
+              }
             });
           } catch (error) {
             analytics.trackError(error as Error, 'export_download');

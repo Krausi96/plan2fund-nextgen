@@ -4,6 +4,26 @@ import AppShell from "@/components/layout/AppShell"
 import { UserProvider } from "@/contexts/UserContext"
 import { I18nProvider } from "@/contexts/I18nContext"
 import { useEffect } from "react"
+import Script from "next/script"
+import { useRouter } from "next/router"
+import analytics from "@/lib/analytics"
+
+function AnalyticsWrapper({ children }: { children: React.ReactNode }) {
+  const router = useRouter();
+
+  useEffect(() => {
+    const handleRouteChange = (url: string) => {
+      analytics.trackPageView(url);
+    };
+
+    router.events.on('routeChangeComplete', handleRouteChange);
+    return () => {
+      router.events.off('routeChangeComplete', handleRouteChange);
+    };
+  }, [router.events]);
+
+  return <>{children}</>;
+}
 
 export default function MyApp({ Component, pageProps }: AppProps) {
   useEffect(() => {
@@ -19,13 +39,38 @@ export default function MyApp({ Component, pageProps }: AppProps) {
   }, [])
   
   return (
-    <I18nProvider>
-      <UserProvider>
-        <AppShell>
-          <Component {...pageProps} />
-        </AppShell>
-      </UserProvider>
-    </I18nProvider>
+    <>
+      {/* Google Analytics 4 */}
+      <Script
+        strategy="afterInteractive"
+        src={`https://www.googletagmanager.com/gtag/js?id=${process.env.NEXT_PUBLIC_GA_MEASUREMENT_ID}`}
+      />
+      <Script
+        id="google-analytics"
+        strategy="afterInteractive"
+        dangerouslySetInnerHTML={{
+          __html: `
+            window.dataLayer = window.dataLayer || [];
+            function gtag(){dataLayer.push(arguments);}
+            gtag('js', new Date());
+            gtag('config', '${process.env.NEXT_PUBLIC_GA_MEASUREMENT_ID}', {
+              page_title: document.title,
+              page_location: window.location.href,
+            });
+          `,
+        }}
+      />
+      
+      <I18nProvider>
+        <UserProvider>
+          <AnalyticsWrapper>
+            <AppShell>
+              <Component {...pageProps} />
+            </AppShell>
+          </AnalyticsWrapper>
+        </UserProvider>
+      </I18nProvider>
+    </>
   )
 }
 

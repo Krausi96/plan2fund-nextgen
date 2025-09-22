@@ -6,9 +6,16 @@ import { Testimonials } from "@/components/common/Testimonials"
 import CTAStrip from "@/components/common/CTAStrip"
 import SEOHead from "@/components/common/SEOHead"
 import { useI18n } from "@/contexts/I18nContext"
+import { useEffect } from "react"
+import analytics from "@/lib/analytics"
 
 export default function Home() {
   const { t } = useI18n();
+
+  useEffect(() => {
+    analytics.trackPageView('/', 'Home');
+    analytics.trackUserAction('home_page_viewed');
+  }, []);
 
   return (
     <>

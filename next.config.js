@@ -20,7 +20,7 @@ const nextConfig = {
   i18n: {
     locales: ['en', 'de'],
     defaultLocale: 'en',
-    localeDetection: true,
+    localeDetection: false,
   },
   // Bundle analyzer (uncomment for analysis)
   // webpack: (config, { isServer }) => {

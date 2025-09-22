@@ -4,6 +4,7 @@ import Link from "next/link";
 import { useUser } from "@/contexts/UserContext";
 import { FileText, Target, TrendingUp, Clock, CheckCircle, AlertCircle, Plus } from "lucide-react";
 import { useEffect, useState } from "react";
+import analytics from "@/lib/analytics";
 
 interface Plan {
   id: string;
@@ -37,6 +38,14 @@ export default function DashboardPage() {
   useEffect(() => {
     // Load user data from localStorage or API
     loadUserData();
+    
+    // Track dashboard view
+    analytics.trackPageView('/dashboard', 'Dashboard');
+    analytics.trackUserAction('dashboard_viewed', {
+      user_type: userProfile?.segment || 'unknown',
+      has_plans: plans.length > 0,
+      has_recommendations: recommendations.length > 0
+    });
   }, []);
 
   const loadUserData = () => {
@@ -98,12 +107,21 @@ export default function DashboardPage() {
     <div className="max-w-6xl mx-auto px-4 py-8">
       {/* Header */}
       <div className="mb-8">
-        <h1 className="text-3xl font-bold text-gray-900 mb-2">
-          Welcome back, {userProfile?.segment || 'User'}!
-        </h1>
-        <p className="text-gray-600">
-          Here's an overview of your funding journey and business plans.
-        </p>
+        <div className="flex items-center justify-between">
+          <div>
+            <h1 className="text-3xl font-bold text-gray-900 mb-2">
+              Welcome back, {userProfile?.segment || 'User'}!
+            </h1>
+            <p className="text-gray-600">
+              Here's an overview of your funding journey and business plans.
+            </p>
+          </div>
+          <div className="hidden md:block">
+            <div className="bg-blue-50 px-4 py-2 rounded-lg">
+              <p className="text-sm text-blue-600 font-medium">My Account</p>
+            </div>
+          </div>
+        </div>
       </div>
 
       {/* Stats Cards */}

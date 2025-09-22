@@ -3,7 +3,7 @@ import HeroLite from "@/components/common/HeroLite";
 import CTAStrip from "@/components/common/CTAStrip";
 import SEOHead from "@/components/common/SEOHead";
 import { useI18n } from "@/contexts/I18nContext";
-import { Users, Target, Award, Lightbulb, Shield } from "lucide-react";
+import { Users, Target, Lightbulb, Shield, Zap, FileText, Search, CheckCircle, BookOpen, Download, ExternalLink } from "lucide-react";
 
 export default function AboutPage() {
   const { t } = useI18n();
@@ -47,42 +47,120 @@ export default function AboutPage() {
         </Card>
       </div>
 
-      {/* What We Do */}
-      <div className="mb-16">
-        <h2 className="text-3xl font-bold text-center mb-12">What We Do</h2>
-        <div className="grid md:grid-cols-3 gap-8">
-          <div className="text-center">
+      {/* Features Section */}
+      <div id="features" className="mb-16">
+        <h2 className="text-3xl font-bold text-center mb-12">Our Features</h2>
+        <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
+          <Card className="p-6 text-center hover:shadow-lg transition-shadow">
             <div className="w-16 h-16 bg-blue-100 rounded-full flex items-center justify-center mx-auto mb-4">
-              <Users className="w-8 h-8 text-blue-600" />
+              <Search className="w-8 h-8 text-blue-600" />
             </div>
             <h3 className="text-xl font-semibold mb-3">Smart Matching</h3>
             <p className="text-gray-600">
               Our AI-powered recommendation engine matches you with the perfect funding programs 
               based on your specific situation and needs.
             </p>
-          </div>
+          </Card>
 
-          <div className="text-center">
+          <Card className="p-6 text-center hover:shadow-lg transition-shadow">
             <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4">
-              <Award className="w-8 h-8 text-green-600" />
+              <FileText className="w-8 h-8 text-green-600" />
             </div>
             <h3 className="text-xl font-semibold mb-3">Professional Plans</h3>
             <p className="text-gray-600">
               Generate institution-grade business plans that meet the standards of banks, 
               investors, and public funding programs.
             </p>
-          </div>
+          </Card>
 
-          <div className="text-center">
+          <Card className="p-6 text-center hover:shadow-lg transition-shadow">
             <div className="w-16 h-16 bg-purple-100 rounded-full flex items-center justify-center mx-auto mb-4">
-              <Shield className="w-8 h-8 text-purple-600" />
+              <Zap className="w-8 h-8 text-purple-600" />
+            </div>
+            <h3 className="text-xl font-semibold mb-3">Quick Setup</h3>
+            <p className="text-gray-600">
+              Get started in minutes with our intuitive interface and guided process. 
+              No complex forms or lengthy setup required.
+            </p>
+          </Card>
+
+          <Card className="p-6 text-center hover:shadow-lg transition-shadow">
+            <div className="w-16 h-16 bg-orange-100 rounded-full flex items-center justify-center mx-auto mb-4">
+              <Shield className="w-8 h-8 text-orange-600" />
             </div>
             <h3 className="text-xl font-semibold mb-3">Expert Guidance</h3>
             <p className="text-gray-600">
               Get personalized advice and step-by-step guidance throughout your funding journey, 
               from application to success.
             </p>
-          </div>
+          </Card>
+
+          <Card className="p-6 text-center hover:shadow-lg transition-shadow">
+            <div className="w-16 h-16 bg-red-100 rounded-full flex items-center justify-center mx-auto mb-4">
+              <CheckCircle className="w-8 h-8 text-red-600" />
+            </div>
+            <h3 className="text-xl font-semibold mb-3">Compliance Ready</h3>
+            <p className="text-gray-600">
+              All plans are built to meet Austrian and EU funding program requirements, 
+              ensuring your applications are compliant from day one.
+            </p>
+          </Card>
+
+          <Card className="p-6 text-center hover:shadow-lg transition-shadow">
+            <div className="w-16 h-16 bg-indigo-100 rounded-full flex items-center justify-center mx-auto mb-4">
+              <Users className="w-8 h-8 text-indigo-600" />
+            </div>
+            <h3 className="text-xl font-semibold mb-3">Team Collaboration</h3>
+            <p className="text-gray-600">
+              Work together with your team, advisors, and stakeholders on your business plan 
+              with real-time collaboration features.
+            </p>
+          </Card>
+        </div>
+      </div>
+
+      {/* Resources Section */}
+      <div id="resources" className="mb-16">
+        <h2 className="text-3xl font-bold text-center mb-12">Resources & Support</h2>
+        <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
+          <Card className="p-6 hover:shadow-lg transition-shadow">
+            <div className="flex items-center mb-4">
+              <BookOpen className="w-6 h-6 text-blue-600 mr-3" />
+              <h3 className="text-xl font-semibold">Getting Started Guide</h3>
+            </div>
+            <p className="text-gray-600 mb-4">
+              Learn how to create your first business plan and find the right funding opportunities.
+            </p>
+            <a href="/reco" className="text-blue-600 hover:text-blue-700 font-medium inline-flex items-center">
+              Start Guide <ExternalLink className="w-4 h-4 ml-1" />
+            </a>
+          </Card>
+
+          <Card className="p-6 hover:shadow-lg transition-shadow">
+            <div className="flex items-center mb-4">
+              <Download className="w-6 h-6 text-green-600 mr-3" />
+              <h3 className="text-xl font-semibold">Templates & Examples</h3>
+            </div>
+            <p className="text-gray-600 mb-4">
+              Access professional business plan templates and real-world examples to guide your writing.
+            </p>
+            <a href="/editor" className="text-green-600 hover:text-green-700 font-medium inline-flex items-center">
+              View Templates <ExternalLink className="w-4 h-4 ml-1" />
+            </a>
+          </Card>
+
+          <Card className="p-6 hover:shadow-lg transition-shadow">
+            <div className="flex items-center mb-4">
+              <Target className="w-6 h-6 text-purple-600 mr-3" />
+              <h3 className="text-xl font-semibold">Funding Program Database</h3>
+            </div>
+            <p className="text-gray-600 mb-4">
+              Explore our comprehensive database of Austrian and EU funding programs with detailed requirements.
+            </p>
+            <a href="/advanced-search" className="text-purple-600 hover:text-purple-700 font-medium inline-flex items-center">
+              Browse Programs <ExternalLink className="w-4 h-4 ml-1" />
+            </a>
+          </Card>
         </div>
       </div>
 

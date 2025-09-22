@@ -1,11 +1,13 @@
 ﻿import Link from "next/link"
 import { useState, useEffect, useRef } from "react"
-import { Menu, X } from "lucide-react"
+import { Menu, X, User } from "lucide-react"
 import LanguageSwitcher from "@/components/layout/LanguageSwitcher"
 import { useI18n } from "@/contexts/I18nContext"
+import { useUser } from "@/contexts/UserContext"
 
 export default function Header() {
   const { t } = useI18n()
+  const { userProfile } = useUser()
   const [open, setOpen] = useState(false)
   const menuRef = useRef<HTMLDivElement>(null)
   const buttonRef = useRef<HTMLButtonElement>(null)
@@ -43,10 +45,10 @@ export default function Header() {
 
         {/* Desktop Nav */}
         <nav className="hidden md:flex gap-8 items-center">
-          <Link href="/features" className="text-textSecondary hover:text-primary transition-colors font-medium">
+          <Link href="/about" className="text-textSecondary hover:text-primary transition-colors font-medium">
             {t('nav.howItWorks')}
           </Link>
-          <Link href="/features" className="text-textSecondary hover:text-primary transition-colors font-medium">
+          <Link href="/about#features" className="text-textSecondary hover:text-primary transition-colors font-medium">
             {t('nav.features')}
           </Link>
           <Link href="/advanced-search" className="text-textSecondary hover:text-primary transition-colors font-medium">
@@ -55,9 +57,21 @@ export default function Header() {
           <Link href="/pricing" className="text-textSecondary hover:text-primary transition-colors font-medium">
             {t('nav.pricing')}
           </Link>
-          <Link href="/resources" className="text-textSecondary hover:text-primary transition-colors font-medium">
+          <Link href="/about#resources" className="text-textSecondary hover:text-primary transition-colors font-medium">
             {t('nav.resources')}
           </Link>
+          <Link href="/faq" className="text-textSecondary hover:text-primary transition-colors font-medium">
+            FAQ
+          </Link>
+          {userProfile ? (
+            <Link 
+              href="/dashboard" 
+              className="flex items-center gap-2 text-textSecondary hover:text-primary transition-colors font-medium"
+            >
+              <User className="w-4 h-4" />
+              My Account
+            </Link>
+          ) : null}
           <Link 
             href="/editor" 
             className="px-6 py-2 bg-primary text-white rounded-lg hover:bg-primaryHover transition-colors font-medium shadow-md hover:shadow-lg"
@@ -85,14 +99,14 @@ export default function Header() {
         <div id="mobile-menu" ref={menuRef} className="md:hidden border-t bg-white/95 backdrop-blur-md">
           <div className="px-4 py-6 flex flex-col gap-4">
             <Link 
-              href="/features" 
+              href="/about" 
               className="text-gray-700 hover:text-blue-600 transition-colors font-medium py-2"
               onClick={() => setOpen(false)}
             >
               {t('nav.howItWorks')}
             </Link>
             <Link 
-              href="/features" 
+              href="/about#features" 
               className="text-gray-700 hover:text-blue-600 transition-colors font-medium py-2"
               onClick={() => setOpen(false)}
             >
@@ -113,12 +127,29 @@ export default function Header() {
               {t('nav.pricing')}
             </Link>
             <Link 
-              href="/resources" 
+              href="/about#resources" 
               className="text-gray-700 hover:text-blue-600 transition-colors font-medium py-2"
               onClick={() => setOpen(false)}
             >
               {t('nav.resources')}
             </Link>
+            <Link 
+              href="/faq" 
+              className="text-gray-700 hover:text-blue-600 transition-colors font-medium py-2"
+              onClick={() => setOpen(false)}
+            >
+              FAQ
+            </Link>
+            {userProfile ? (
+              <Link 
+                href="/dashboard" 
+                className="flex items-center gap-2 text-gray-700 hover:text-blue-600 transition-colors font-medium py-2"
+                onClick={() => setOpen(false)}
+              >
+                <User className="w-4 h-4" />
+                My Account
+              </Link>
+            ) : null}
             <Link 
               href="/editor" 
               className="px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors font-medium text-center mt-2 shadow-md hover:shadow-lg"
