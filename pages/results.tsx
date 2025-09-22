@@ -8,7 +8,7 @@ import ProgramDetailsModal from "@/components/reco/ProgramDetailsModal";
 import ExplorationModal from "@/components/reco/ExplorationModal";
 import InfoDrawer from "@/components/common/InfoDrawer";
 import HealthFooter from "@/components/common/HealthFooter";
-import { scoreProgramsEnhanced, analyzeFreeTextEnhanced, EnhancedProgramResult } from "@/lib/enhancedRecoEngine";
+import { scoreProgramsEnhanced, EnhancedProgramResult } from "@/lib/enhancedRecoEngine";
 
 // Enhanced program result type with detailed explanations
 type ProgramResult = EnhancedProgramResult;
@@ -16,7 +16,6 @@ type ProgramResult = EnhancedProgramResult;
 export default function ResultsPage() {
   const router = useRouter();
   const [results, setResults] = useState<ProgramResult[]>([]);
-  const [freeText, setFreeText] = useState<string | null>(null);
   const [showDebug, setShowDebug] = useState(false);
   const [showExploration, setShowExploration] = useState(false);
   const [showInfoDrawer, setShowInfoDrawer] = useState(false);
@@ -26,7 +25,6 @@ export default function ResultsPage() {
 
   useEffect(() => {
     const stored = localStorage.getItem("recoResults");
-    const freeTextReco = localStorage.getItem("freeTextReco");
     const answers = localStorage.getItem("userAnswers");
 
     try {
@@ -63,12 +61,6 @@ export default function ResultsPage() {
         }
       }
       
-      if (freeTextReco) {
-        setFreeText(freeTextReco);
-        // Analyze free text and get enhanced results
-        const { scored } = analyzeFreeTextEnhanced(freeTextReco);
-        setResults(scored);
-      }
       
       if (answers) {
         const parsedAnswers = JSON.parse(answers);
@@ -228,21 +220,8 @@ export default function ResultsPage() {
         </div>
       )}
 
-      {/* Free text fallback */}
-      {freeText && results.length === 0 && (
-        <div className="p-4 border border-blue-300 bg-blue-50 rounded-lg text-center">
-          <p className="text-blue-800 mb-2">
-            You entered a free-text description. Our AI will analyze this in future updates.
-          </p>
-          <p className="italic text-sm">{freeText}</p>
-          <Link href="/reco">
-            <Button className="mt-4">Go Back</Button>
-          </Link>
-        </div>
-      )}
-
       {/* No results */}
-      {!freeText && results.length === 0 && (
+      {results.length === 0 && (
         <div className="p-4 border border-red-300 bg-red-50 rounded-lg text-center">
           <p className="text-red-700 mb-2 font-medium">
             No recommendations found. Please adjust your answers.

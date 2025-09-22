@@ -1,14 +1,13 @@
 import React, { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { useRouter } from "next/router";
-import { motion, AnimatePresence } from "framer-motion";
+import { motion } from "framer-motion";
 import { scoreProgramsEnhanced } from "@/lib/enhancedRecoEngine";
 import { dynamicQuestionEngine, DynamicQuestion } from "@/lib/dynamicQuestionEngine";
 import HealthFooter from "@/components/common/HealthFooter";
 
 export default function Wizard() {
   const router = useRouter();
-  const [mode, setMode] = useState<"survey" | "freeText">("survey");
   const [answers, setAnswers] = useState<Record<string, any>>({});
   const [currentQuestion, setCurrentQuestion] = useState<DynamicQuestion | null>(null);
   const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
@@ -43,15 +42,11 @@ export default function Wizard() {
   };
 
   const handleNext = async () => {
-    if (mode === "survey") {
-      // Check if we have more questions
-      const nextQuestion = dynamicQuestionEngine.getNextQuestion(answers);
-      if (!nextQuestion) {
-        // No more questions, get recommendations
-        await submitSurvey();
-      }
-    } else {
-      await submitFreeText();
+    // Check if we have more questions
+    const nextQuestion = dynamicQuestionEngine.getNextQuestion(answers);
+    if (!nextQuestion) {
+      // No more questions, get recommendations
+      await submitSurvey();
     }
   };
 
@@ -71,19 +66,6 @@ export default function Wizard() {
     }
   };
 
-  const submitFreeText = async () => {
-    try {
-      setLoading(true);
-      // For now, just redirect to results with empty recommendations
-      // TODO: Implement free text analysis
-      localStorage.setItem("recoResults", JSON.stringify([]));
-      router.push("/results");
-    } catch (err) {
-      console.error("Error submitting free-text:", err);
-    } finally {
-      setLoading(false);
-    }
-  };
 
   if (!mounted) return null;
 
@@ -97,32 +79,13 @@ export default function Wizard() {
           Answer a few questions and we'll recommend the best funding programs for you
         </p>
         
-        {/* Mode Toggle */}
-        <div className="flex justify-center space-x-4 mb-8">
-          <Button
-            variant={mode === "survey" ? "primary" : "outline"}
-            onClick={() => setMode("survey")}
-          >
-            Guided Questions
-          </Button>
-          <Button
-            variant={mode === "freeText" ? "primary" : "outline"}
-            onClick={() => setMode("freeText")}
-          >
-            Free Text Search
-          </Button>
-        </div>
       </div>
 
-      <AnimatePresence mode="wait">
-        {mode === "survey" ? (
-          <motion.div
-            key="survey"
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: -20 }}
-            className="bg-white rounded-lg shadow-lg p-8"
-          >
+      <motion.div
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        className="bg-white rounded-lg shadow-lg p-8"
+      >
             {currentQuestion ? (
               <div className="space-y-6">
                 <div className="text-center">
@@ -181,45 +144,7 @@ export default function Wizard() {
                 </Button>
               </div>
             )}
-          </motion.div>
-        ) : (
-          <motion.div
-            key="freeText"
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: -20 }}
-            className="bg-white rounded-lg shadow-lg p-8"
-          >
-            <div className="space-y-6">
-              <div className="text-center">
-                <h2 className="text-2xl font-semibold text-gray-900 mb-2">
-                  Describe Your Project
-                </h2>
-                <p className="text-gray-600">
-                  Tell us about your project and we'll find relevant funding programs
-                </p>
-              </div>
-
-              <textarea
-                value={answers.freeText || ""}
-                onChange={(e) => handleAnswer("freeText", e.target.value)}
-                placeholder="e.g., I'm developing a mobile app for sustainable transportation in Austria. We're a team of 3 people, just incorporated, looking for €50,000 in funding..."
-                className="w-full h-32 p-4 border border-gray-300 rounded-lg resize-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-              />
-
-              <div className="flex justify-end">
-                <Button
-                  onClick={handleNext}
-                  disabled={!answers.freeText || loading}
-                  className="px-8"
-                >
-                  {loading ? "Processing..." : "Find Programs"}
-                </Button>
-              </div>
-            </div>
-          </motion.div>
-        )}
-      </AnimatePresence>
+      </motion.div>
 
       <HealthFooter />
     </div>
