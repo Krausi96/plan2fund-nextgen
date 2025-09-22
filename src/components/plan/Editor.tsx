@@ -9,10 +9,6 @@ import InfoDrawer from "@/components/common/InfoDrawer";
 import AIChat from "@/components/plan/AIChat";
 import analytics from "@/lib/analytics";
 import SetupBar from "@/components/editor/SetupBar";
-import SidebarPrograms from "@/components/editor/SidebarPrograms";
-import AdvancedSearchPanel from "@/components/editor/AdvancedSearchPanel";
-import { scorePrograms } from "@/lib/scoring";
-import { loadPrograms } from "@/lib/prefill";
 
 // Helper function to generate pre-filled content based on user answers and enhanced payload
 function generatePreFilledContent(userAnswers: Record<string, any>, program?: any): string {
@@ -239,18 +235,11 @@ export default function Editor({ program, userAnswers, showProductSelector = fal
   const [activeIdx, setActiveIdx] = useState(0)
   const [persona, setPersona] = useState<"newbie" | "expert">("newbie");
   const [showInfoDrawer, setShowInfoDrawer] = useState(false);
-  const [showAIChat, setShowAIChat] = useState(false);
   
   // New state for unified flow
   const [showProductSelectorState, setShowProductSelector] = useState(showProductSelector);
   const [showSetupBar, setShowSetupBar] = useState(!userAnswers);
-  const [showSidebar, setShowSidebar] = useState(true);
-  const [showAdvancedSearch, setShowAdvancedSearch] = useState(false);
-  const [programs, setPrograms] = useState<any[]>([]);
-  const [selectedProgram, setSelectedProgram] = useState<any>(program);
-  const [searchResults, setSearchResults] = useState<any[]>([]);
-  const [isSearching, setIsSearching] = useState(false);
-  const [currentQuery, setCurrentQuery] = useState("");
+  const [showAISidebar, setShowAISidebar] = useState(true);
 
   // Product selector options
   const productOptions: ProductOption[] = [
@@ -293,27 +282,6 @@ export default function Editor({ program, userAnswers, showProductSelector = fal
     analytics.trackEditorStart("business_plan", program?.id);
   }, []);
 
-  // Initialize AI Helper and load programs
-  useEffect(() => {
-    const initializeEditor = async () => {
-      try {
-
-        // Load and score programs
-        if (userAnswers) {
-          const allPrograms = await loadPrograms();
-          const scoredPrograms = await scorePrograms({
-            programs: allPrograms,
-            answers: userAnswers
-          });
-          setPrograms(scoredPrograms);
-        }
-      } catch (error) {
-        console.error('Failed to initialize editor:', error);
-      }
-    };
-
-    initializeEditor();
-  }, [userAnswers]);
 
   // Handlers
   const handleProductSelect = (option: ProductOption) => {
@@ -336,7 +304,7 @@ export default function Editor({ program, userAnswers, showProductSelector = fal
 
   const handleSetupComplete = () => {
     setShowSetupBar(false);
-    setShowSidebar(true);
+    setShowAISidebar(true);
   };
 
   const handleAnswersUpdate = (answers: Record<string, any>) => {
@@ -346,30 +314,6 @@ export default function Editor({ program, userAnswers, showProductSelector = fal
   };
 
 
-  const handleProgramSelect = (program: any) => {
-    setSelectedProgram(program);
-  };
-
-  const handleAdoptTemplate = (program: any) => {
-    setSelectedProgram(program);
-    // TODO: Switch document template and re-prefill sections
-    console.log('Adopting template for:', program.name);
-  };
-
-  const handleSearch = async (query: string) => {
-    setIsSearching(true);
-    setCurrentQuery(query);
-    // TODO: Implement search with Before/After scoring
-    setTimeout(() => {
-      setSearchResults([]);
-      setIsSearching(false);
-    }, 1000);
-  };
-
-  const handleResultSelect = (result: any) => {
-    // TODO: Handle result selection
-    console.log('Selected result:', result);
-  };
 
   // Pre-fill editor with user answers
   useEffect(() => {
@@ -506,24 +450,10 @@ export default function Editor({ program, userAnswers, showProductSelector = fal
                   </div>
                   <div className="flex items-center gap-2">
                     <button
-                      onClick={() => setShowAIChat(!showAIChat)}
-                      className="text-xs px-2 py-1 bg-blue-100 hover:bg-blue-200 rounded"
+                      onClick={() => setShowAISidebar(!showAISidebar)}
+                      className="text-xs px-3 py-1 bg-blue-100 hover:bg-blue-200 rounded font-medium"
                     >
-                      {showAIChat ? "Hide AI" : "AI Assistant"}
-                    </button>
-
-                    <button
-                      onClick={() => setShowAdvancedSearch(!showAdvancedSearch)}
-                      className="text-xs px-2 py-1 bg-green-100 hover:bg-green-200 rounded"
-                    >
-                      {showAdvancedSearch ? "Hide Search" : "Advanced Search"}
-                    </button>
-
-                    <button
-                      onClick={() => setShowSidebar(!showSidebar)}
-                      className="text-xs px-2 py-1 bg-purple-100 hover:bg-purple-200 rounded"
-                    >
-                      {showSidebar ? "Hide Sidebar" : "Show Sidebar"}
+                      {showAISidebar ? "Hide AI Assistant" : "Show AI Assistant"}
                     </button>
 
                     <button
@@ -551,16 +481,6 @@ export default function Editor({ program, userAnswers, showProductSelector = fal
               className="w-full h-64 p-4 border rounded-md"
             />
 
-            {/* Advanced Search Panel */}
-            {showAdvancedSearch && (
-              <AdvancedSearchPanel
-                onSearch={handleSearch}
-                onResultSelect={handleResultSelect}
-                searchResults={searchResults}
-                isLoading={isSearching}
-                currentQuery={currentQuery}
-              />
-            )}
 
             {/* Navigation */}
             <div className="flex justify-between mt-4">
@@ -575,28 +495,23 @@ export default function Editor({ program, userAnswers, showProductSelector = fal
         </div>
       </div>
 
-      {/* Program-Aware Sidebar */}
-      {showSidebar && (
-        <SidebarPrograms
-          programs={programs}
-          selectedProgram={selectedProgram}
-          onProgramSelect={handleProgramSelect}
-          onAdoptTemplate={handleAdoptTemplate}
-        />
-      )}
-
-      {/* AI Assistant - Only when enabled */}
-      {showAIChat && (
-        <div className="mt-6 bg-gray-50 border rounded-lg p-4">
-          <h3 className="text-lg font-semibold mb-3">AI Assistant</h3>
-          <AIChat
-            onInsertContent={(content) => {
-              setContent(prev => prev + "\n\n" + content);
-              setSaved(false);
-            }}
-            currentSection={sections[activeIdx]?.title || "Current Section"}
-            persona={persona}
-          />
+      {/* AI Assistant Sidebar */}
+      {showAISidebar && (
+        <div className="w-80 bg-white border-l border-gray-200 flex flex-col">
+          <div className="p-4 border-b border-gray-200">
+            <h3 className="text-lg font-semibold text-gray-900">AI Assistant</h3>
+            <p className="text-sm text-gray-600 mt-1">Get help writing your business plan</p>
+          </div>
+          <div className="flex-1 p-4">
+            <AIChat
+              onInsertContent={(content) => {
+                setContent(prev => prev + "\n\n" + content);
+                setSaved(false);
+              }}
+              currentSection={sections[activeIdx]?.title || "Current Section"}
+              persona={persona}
+            />
+          </div>
         </div>
       )}
 

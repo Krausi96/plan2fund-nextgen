@@ -1,31 +1,33 @@
 import { motion } from "framer-motion";
 import { Search, FileText, CheckCircle } from "lucide-react";
-
-const steps = [
-  {
-    icon: Search,
-    title: "Find Your Programs",
-    description: "Answer a few questions and discover 214+ funding programs you qualify for in Austria and the EU.",
-    color: "text-blue-600",
-    bgColor: "bg-blue-50",
-  },
-  {
-    icon: FileText,
-    title: "Draft Your Plan",
-    description: "Use our program-aware editor to create a comprehensive business plan in under 30 minutes.",
-    color: "text-green-600",
-    bgColor: "bg-green-50",
-  },
-  {
-    icon: CheckCircle,
-    title: "Submit & Track",
-    description: "Submit your application with confidence and track your progress through the funding process.",
-    color: "text-purple-600",
-    bgColor: "bg-purple-50",
-  },
-];
+import { useI18n } from "@/contexts/I18nContext";
 
 export function HowItWorks() {
+  const { t } = useI18n();
+
+  const steps = [
+    {
+      icon: Search,
+      title: t('howItWorks.step1.title'),
+      description: t('howItWorks.step1.description'),
+      color: "text-blue-600",
+      bgColor: "bg-blue-50",
+    },
+    {
+      icon: FileText,
+      title: t('howItWorks.step2.title'),
+      description: t('howItWorks.step2.description'),
+      color: "text-green-600",
+      bgColor: "bg-green-50",
+    },
+    {
+      icon: CheckCircle,
+      title: t('howItWorks.step3.title'),
+      description: t('howItWorks.step3.description'),
+      color: "text-purple-600",
+      bgColor: "bg-purple-50",
+    },
+  ];
   return (
     <section className="section-padding bg-neutral-50">
       <div className="container">
@@ -37,10 +39,10 @@ export function HowItWorks() {
           className="text-center mb-16"
         >
           <h2 className="text-4xl font-bold text-neutral-900 mb-4">
-            How it works
+            {t('howItWorks.title')}
           </h2>
           <p className="text-xl text-neutral-600 max-w-2xl mx-auto">
-            Get from idea to funded in three simple steps
+            {t('howItWorks.subtitle')}
           </p>
         </motion.div>
 
@@ -86,10 +88,10 @@ export function HowItWorks() {
           className="text-center mt-16"
         >
           <a
-            href="/reco"
+            href="/editor"
             className="inline-flex items-center px-8 py-4 bg-primary-600 text-white rounded-xl hover:bg-primary-700 transition-colors font-semibold text-lg shadow-lg hover:shadow-xl"
           >
-            Start your journey
+{t('howItWorks.cta')}
             <svg className="ml-2 w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
             </svg>

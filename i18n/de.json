@@ -14,7 +14,7 @@
   "hero.title": "Freiheit beginnt mit einem Plan — lass uns deinen erstellen.",
   "hero.subtitle": "Finde Förderungen, die du nicht kanntest. Erstelle einen Plan in <30 Minuten.",
   "hero.startPlan": "Plan starten",
-  "hero.quickSearch": "Schnellsuche",
+  "hero.quickSearch": "Programme finden",
   "hero.trust": "Vertraut von 500+ Gründern • Entwickelt für österreichische & EU-Förderprogramme",
   "hero.keywords": "Businessplan, Förderung, Österreich, EU-Zuschüsse, Startup-Finanzierung, Geschäftsplanung",
   "features.title": "Funktionen",
@@ -94,7 +94,19 @@
   "seo.universities.title": "Universitäten & Forscher - Plan2Fund",
   "seo.universities.description": "Zugang zu Forschungsstipendien und akademischen Finanzierungsmöglichkeiten. Finden Sie Finanzierung für Innovationsprojekte, Forschung und Studentenunternehmertumsprogramme.",
   "seo.banks.title": "Banken & Finanzinstitute - Plan2Fund",
-  "seo.banks.description": "Zugang zu institutioneller Finanzierung und Partnerschaftsprogrammen. Finden Sie großangelegte Finanzierungsmöglichkeiten für Banken und Finanzinstitute."
+  "seo.banks.description": "Zugang zu institutioneller Finanzierung und Partnerschaftsprogrammen. Finden Sie großangelegte Finanzierungsmöglichkeiten für Banken und Finanzinstitute.",
+  "howItWorks.title": "So funktioniert's",
+  "howItWorks.subtitle": "Von der Idee zur Finanzierung in drei einfachen Schritten",
+  "howItWorks.step1.title": "Programme finden",
+  "howItWorks.step1.description": "Beantworten Sie ein paar Fragen und entdecken Sie 214+ Förderprogramme, für die Sie sich qualifizieren, in Österreich und der EU.",
+  "howItWorks.step2.title": "Plan erstellen",
+  "howItWorks.step2.description": "Nutzen Sie unseren programmbewussten Editor, um in weniger als 30 Minuten einen umfassenden Geschäftsplan zu erstellen.",
+  "howItWorks.step3.title": "Einreichen & Verfolgen",
+  "howItWorks.step3.description": "Reichen Sie Ihre Bewerbung mit Vertrauen ein und verfolgen Sie Ihren Fortschritt durch den Finanzierungsprozess.",
+  "howItWorks.cta": "Reise beginnen",
+  "advancedSearch.title": "Erweiterte Suche",
+  "advancedSearch.subtitle": "Beschreiben Sie Ihr Projekt in einfacher Sprache und erhalten Sie sofortige Finanzierungsempfehlungen",
+  "nav.advancedSearch": "Erweiterte Suche"
 }
 
 

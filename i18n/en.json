@@ -14,7 +14,7 @@
   "hero.title": "Freedom starts with a plan — let's create yours.",
   "hero.subtitle": "Find funding you didn't know existed. Create a plan in <30 minutes.",
   "hero.startPlan": "Start your plan",
-  "hero.quickSearch": "Quick search",
+  "hero.quickSearch": "Find Programs",
   "hero.trust": "Trusted by 500+ founders • Built for Austrian & EU funding programs",
   "hero.keywords": "business plan, funding, Austria, EU grants, startup funding, business planning",
   "features.title": "Features",
@@ -94,7 +94,19 @@
   "seo.universities.title": "Universities & Researchers - Plan2Fund",
   "seo.universities.description": "Access research grants and academic funding opportunities. Find funding for innovation projects, research, and student entrepreneurship programs.",
   "seo.banks.title": "Banks & Financial Institutions - Plan2Fund",
-  "seo.banks.description": "Access institutional funding and partnership programs. Find large-scale funding opportunities for banks and financial institutions."
+  "seo.banks.description": "Access institutional funding and partnership programs. Find large-scale funding opportunities for banks and financial institutions.",
+  "howItWorks.title": "How it works",
+  "howItWorks.subtitle": "Get from idea to funded in three simple steps",
+  "howItWorks.step1.title": "Find Your Programs",
+  "howItWorks.step1.description": "Answer a few questions and discover 214+ funding programs you qualify for in Austria and the EU.",
+  "howItWorks.step2.title": "Draft Your Plan",
+  "howItWorks.step2.description": "Use our program-aware editor to create a comprehensive business plan in under 30 minutes.",
+  "howItWorks.step3.title": "Submit & Track",
+  "howItWorks.step3.description": "Submit your application with confidence and track your progress through the funding process.",
+  "howItWorks.cta": "Start your journey",
+  "advancedSearch.title": "Advanced Search",
+  "advancedSearch.subtitle": "Describe your project in plain language and get instant funding recommendations",
+  "nav.advancedSearch": "Advanced Search"
 }
 
 

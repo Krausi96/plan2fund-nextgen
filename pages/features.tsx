@@ -40,7 +40,7 @@ export default function Features() {
           subtitle={t('cta.seeHowPlatform')}
           primaryAction={{
             label: t('cta.startPlan'),
-            href: "/reco"
+            href: "/editor"
           }}
           secondaryAction={{
             label: t('cta.viewPricing'),

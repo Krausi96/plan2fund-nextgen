@@ -43,11 +43,14 @@ export default function Header() {
 
         {/* Desktop Nav */}
         <nav className="hidden md:flex gap-8 items-center">
-          <Link href="/reco" className="text-textSecondary hover:text-primary transition-colors font-medium">
+          <Link href="/features" className="text-textSecondary hover:text-primary transition-colors font-medium">
             {t('nav.howItWorks')}
           </Link>
           <Link href="/features" className="text-textSecondary hover:text-primary transition-colors font-medium">
             {t('nav.features')}
+          </Link>
+          <Link href="/advanced-search" className="text-textSecondary hover:text-primary transition-colors font-medium">
+            {t('nav.advancedSearch')}
           </Link>
           <Link href="/pricing" className="text-textSecondary hover:text-primary transition-colors font-medium">
             {t('nav.pricing')}
@@ -56,7 +59,7 @@ export default function Header() {
             {t('nav.resources')}
           </Link>
           <Link 
-            href="/reco" 
+            href="/editor" 
             className="px-6 py-2 bg-primary text-white rounded-lg hover:bg-primaryHover transition-colors font-medium shadow-md hover:shadow-lg"
           >
             {t('nav.startPlan')}
@@ -82,7 +85,7 @@ export default function Header() {
         <div id="mobile-menu" ref={menuRef} className="md:hidden border-t bg-white/95 backdrop-blur-md">
           <div className="px-4 py-6 flex flex-col gap-4">
             <Link 
-              href="/reco" 
+              href="/features" 
               className="text-gray-700 hover:text-blue-600 transition-colors font-medium py-2"
               onClick={() => setOpen(false)}
             >
@@ -94,6 +97,13 @@ export default function Header() {
               onClick={() => setOpen(false)}
             >
               {t('nav.features')}
+            </Link>
+            <Link 
+              href="/advanced-search" 
+              className="text-gray-700 hover:text-blue-600 transition-colors font-medium py-2"
+              onClick={() => setOpen(false)}
+            >
+              {t('nav.advancedSearch')}
             </Link>
             <Link 
               href="/pricing" 
@@ -110,7 +120,7 @@ export default function Header() {
               {t('nav.resources')}
             </Link>
             <Link 
-              href="/reco" 
+              href="/editor" 
               className="px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors font-medium text-center mt-2 shadow-md hover:shadow-lg"
               onClick={() => setOpen(false)}
             >

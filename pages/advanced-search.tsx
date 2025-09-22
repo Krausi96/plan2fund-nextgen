@@ -6,8 +6,10 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { aiChipParser, Chip } from '@/lib/aiChipParser';
 import { scoreProgramsEnhanced, EnhancedProgramResult } from '@/lib/enhancedRecoEngine';
 import HealthFooter from '@/components/common/HealthFooter';
+import { useI18n } from '@/contexts/I18nContext';
 
 export default function AdvancedSearch() {
+  const { t } = useI18n();
   const [searchInput, setSearchInput] = useState('');
   const [chips, setChips] = useState<Chip[]>([]);
   const [clarifications, setClarifications] = useState<string[]>([]);
@@ -121,10 +123,10 @@ export default function AdvancedSearch() {
         {/* Header */}
         <div className="text-center mb-8">
           <h1 className="text-3xl font-bold text-gray-900 mb-4">
-            Advanced Search
+            {t('advancedSearch.title')}
           </h1>
           <p className="text-gray-600 max-w-2xl mx-auto">
-            Describe your project in plain language and get instant funding recommendations
+            {t('advancedSearch.subtitle')}
           </p>
         </div>
 

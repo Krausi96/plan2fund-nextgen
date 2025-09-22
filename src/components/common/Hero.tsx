@@ -87,9 +87,9 @@ export function Hero({
   title,
   subtitle,
   primaryButtonText,
-  primaryButtonHref = "/reco",
+  primaryButtonHref = "/editor",
   secondaryButtonText,
-  secondaryButtonHref = "/advanced-search",
+  secondaryButtonHref = "/reco",
   trustText
 }: HeroProps = {}) {
   const { t } = useI18n();
