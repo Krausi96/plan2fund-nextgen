@@ -48,6 +48,9 @@ export default function Header() {
           <Link href="/about" className="text-textSecondary hover:text-primary transition-colors font-medium">
             {t('nav.howItWorks')}
           </Link>
+          <Link href="/advanced-search" className="text-textSecondary hover:text-primary transition-colors font-medium">
+            Advanced Search
+          </Link>
           <Link href="/pricing" className="text-textSecondary hover:text-primary transition-colors font-medium">
             {t('nav.pricing')}
           </Link>
@@ -95,6 +98,13 @@ export default function Header() {
               onClick={() => setOpen(false)}
             >
               {t('nav.howItWorks')}
+            </Link>
+            <Link 
+              href="/advanced-search" 
+              className="text-gray-700 hover:text-blue-600 transition-colors font-medium py-2"
+              onClick={() => setOpen(false)}
+            >
+              Advanced Search
             </Link>
             <Link 
               href="/pricing" 

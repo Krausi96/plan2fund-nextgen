@@ -2,13 +2,11 @@
 import Link from "next/link";
 import { Progress } from "@/components/ui/progress";
 import { Button } from "@/components/ui/button";
-import { Card } from "@/components/ui/card";
 import { chapterTemplates } from "@/lib/templates/chapters";
 import { loadPlanSections, savePlanSections, type PlanSection } from "@/lib/planStore";
 import InfoDrawer from "@/components/common/InfoDrawer";
 import AIChat from "@/components/plan/AIChat";
 import analytics from "@/lib/analytics";
-import SetupBar from "@/components/editor/SetupBar";
 
 // Helper function to generate pre-filled content based on user answers and enhanced payload
 function generatePreFilledContent(userAnswers: Record<string, any>, program?: any): string {
@@ -220,51 +218,15 @@ type EditorProps = {
   showProductSelector?: boolean;
 };
 
-interface ProductOption {
-  id: string;
-  title: string;
-  description: string;
-  icon: string;
-  action: string;
-}
 
-export default function Editor({ program, userAnswers, showProductSelector = false }: EditorProps) {
+export default function Editor({ program, userAnswers }: EditorProps) {
   const [content, setContent] = useState("");
   const [saved, setSaved] = useState(true);
   const [sections, setSections] = useState<PlanSection[]>([])
   const [activeIdx, setActiveIdx] = useState(0)
   const [persona, setPersona] = useState<"newbie" | "expert">("newbie");
-  const [showInfoDrawer, setShowInfoDrawer] = useState(false);
-  
-  // New state for unified flow
-  const [showProductSelectorState, setShowProductSelector] = useState(showProductSelector);
-  const [showSetupBar, setShowSetupBar] = useState(!userAnswers);
   const [showAISidebar, setShowAISidebar] = useState(true);
-
-  // Product selector options
-  const productOptions: ProductOption[] = [
-    {
-      id: 'create_new',
-      title: 'Create New',
-      description: 'Start with a blank document and inline setup',
-      icon: '📝',
-      action: 'create'
-    },
-    {
-      id: 'update_existing',
-      title: 'Update Existing',
-      description: 'Upload Word/PDF and parse into document structure',
-      icon: '📄',
-      action: 'upload'
-    },
-    {
-      id: 'modeling_doc',
-      title: 'Modeling Document',
-      description: 'Start with financial blocks, then add text',
-      icon: '📊',
-      action: 'modeling'
-    }
-  ];
+  const [showInfoDrawer, setShowInfoDrawer] = useState(false);
 
   // Load saved draft from localStorage
   useEffect(() => {
@@ -283,35 +245,6 @@ export default function Editor({ program, userAnswers, showProductSelector = fal
   }, []);
 
 
-  // Handlers
-  const handleProductSelect = (option: ProductOption) => {
-    switch (option.action) {
-      case 'create':
-        setShowProductSelector(false);
-        setShowSetupBar(true);
-        break;
-      case 'upload':
-        // TODO: Implement file upload
-        console.log('File upload not implemented yet');
-        break;
-      case 'modeling':
-        setShowProductSelector(false);
-        setShowSetupBar(true);
-        // TODO: Start with financial blocks
-        break;
-    }
-  };
-
-  const handleSetupComplete = () => {
-    setShowSetupBar(false);
-    setShowAISidebar(true);
-  };
-
-  const handleAnswersUpdate = (answers: Record<string, any>) => {
-    // Answers are passed as props, so we don't need to update state here
-    // This is just to satisfy the SetupBar component interface
-    console.log('Answers updated:', answers);
-  };
 
 
 
@@ -359,51 +292,12 @@ export default function Editor({ program, userAnswers, showProductSelector = fal
     }
   }, [content, saved]);
 
-  // Product Selector
-  if (showProductSelectorState) {
-    return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center p-6">
-        <div className="max-w-4xl w-full">
-          <div className="text-center mb-8">
-            <h1 className="text-3xl font-bold text-gray-900 mb-4">Choose Your Starting Point</h1>
-            <p className="text-lg text-gray-600">Select how you'd like to begin your business plan</p>
-          </div>
-          
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-            {productOptions.map((option) => (
-              <div
-                key={option.id}
-                className="cursor-pointer hover:shadow-lg transition-all duration-200 hover:scale-105"
-                onClick={() => handleProductSelect(option)}
-              >
-                <Card className="p-6">
-                  <div className="text-center">
-                    <div className="text-4xl mb-4">{option.icon}</div>
-                    <h3 className="text-xl font-semibold text-gray-900 mb-2">{option.title}</h3>
-                    <p className="text-gray-600">{option.description}</p>
-                  </div>
-                </Card>
-              </div>
-            ))}
-          </div>
-        </div>
-      </div>
-    );
-  }
 
   return (
     <div className="flex h-screen bg-gray-50">
       {/* Main Editor Area */}
       <div className="flex-1 flex flex-col">
         <div className="flex-1 flex flex-col space-y-4 p-6 overflow-y-auto">
-          {/* Inline Setup Bar */}
-          {showSetupBar && (
-            <SetupBar
-              userAnswers={userAnswers || {}}
-              onAnswersUpdate={handleAnswersUpdate}
-              onSetupComplete={handleSetupComplete}
-            />
-          )}
 
           {/* Chapter Navigation Breadcrumbs */}
           <div className="bg-gray-50 py-3 px-4 rounded-lg">
