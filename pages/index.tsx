@@ -1,6 +1,7 @@
 ﻿import { Hero } from "@/components/common/Hero"
 import { HowItWorks } from "@/components/common/HowItWorks"
 import { WhoItsFor } from "@/components/common/WhoItsFor"
+import { PlanTypes } from "@/components/common/PlanTypes"
 import { WhyAustria } from "@/components/common/WhyAustria"
 import { WhyPlan2Fund } from "@/components/common/WhyPlan2Fund"
 import CTAStrip from "@/components/common/CTAStrip"
@@ -27,6 +28,7 @@ export default function Home() {
       <main className="flex flex-col">
         <Hero />
         <WhoItsFor />
+        <PlanTypes />
         <WhyAustria />
         <HowItWorks />
         <WhyPlan2Fund />

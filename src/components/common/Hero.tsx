@@ -1,5 +1,5 @@
 ﻿import { motion, useReducedMotion } from "framer-motion";
-import { memo } from "react";
+import { memo, useState, useEffect } from "react";
 
 interface HeroProps {
   title?: string;
@@ -64,6 +64,91 @@ const BlueprintGrid = memo(function BlueprintGrid() {
   );
 });
 
+// Right Column Preview Cards Component
+const PreviewCards = memo(function PreviewCards() {
+  const shouldReduceMotion = useReducedMotion();
+  const [currentChip, setCurrentChip] = useState(0);
+  
+  const fundingChips = ["Bank Loans", "Grants & Public Funding", "EU funding programs", "Coaching"];
+  
+  useEffect(() => {
+    if (shouldReduceMotion) return;
+    
+    const interval = setInterval(() => {
+      setCurrentChip((prev) => (prev + 1) % fundingChips.length);
+    }, 6000);
+    
+    return () => clearInterval(interval);
+  }, [shouldReduceMotion, fundingChips.length]);
+
+  return (
+    <div className="space-y-4">
+      {/* Card A - Funding matches */}
+      <motion.div
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ delay: 0.4, duration: 0.6 }}
+        className="bg-white/95 backdrop-blur-sm rounded-xl p-4 shadow-lg border border-white/20"
+      >
+        <h3 className="text-sm font-semibold text-gray-800 mb-3">Funding matches</h3>
+        <div className="flex flex-wrap gap-2">
+          {fundingChips.map((chip, index) => (
+            <span
+              key={chip}
+              className={`px-3 py-1 text-xs font-medium rounded-full transition-all duration-500 ${
+                index === currentChip
+                  ? "bg-blue-100 text-blue-700 border border-blue-200"
+                  : "bg-gray-100 text-gray-600"
+              }`}
+            >
+              {chip}
+            </span>
+          ))}
+        </div>
+      </motion.div>
+
+      {/* Card B - Plan outline */}
+      <motion.div
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ delay: 0.6, duration: 0.6 }}
+        className="bg-white/95 backdrop-blur-sm rounded-xl p-4 shadow-lg border border-white/20"
+      >
+        <h3 className="text-sm font-semibold text-gray-800 mb-3">Plan outline</h3>
+        <div className="space-y-2">
+          {["Executive Summary", "Market Analysis", "Product & Service", "Team & Organization", "Financials"].map((section, index) => (
+            <motion.div
+              key={section}
+              initial={{ width: 0 }}
+              animate={{ width: "100%" }}
+              transition={{ 
+                delay: 0.8 + index * 0.1, 
+                duration: 1,
+                ease: "easeOut"
+              }}
+              className="h-2 bg-gradient-to-r from-blue-200 to-blue-300 rounded-full"
+            />
+          ))}
+        </div>
+      </motion.div>
+
+      {/* Card C - Export */}
+      <motion.div
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ delay: 0.8, duration: 0.6 }}
+        className="bg-white/95 backdrop-blur-sm rounded-xl p-3 shadow-lg border border-white/20 hover:shadow-xl transition-shadow"
+      >
+        <div className="flex items-center justify-center gap-4 text-sm text-gray-600">
+          <span className="font-medium">PDF</span>
+          <div className="w-px h-4 bg-gray-300"></div>
+          <span className="font-medium">DOCX</span>
+        </div>
+      </motion.div>
+    </div>
+  );
+});
+
 // Animated Blueprint Lines Component
 const BlueprintLines = memo(function BlueprintLines() {
   const shouldReduceMotion = useReducedMotion();
@@ -71,9 +156,9 @@ const BlueprintLines = memo(function BlueprintLines() {
   return (
     <div className="absolute inset-0 pointer-events-none">
       <svg className="w-full h-full" viewBox="0 0 1200 800" preserveAspectRatio="xMidYMid slice">
-        {/* Line A - Diagonal high */}
+        {/* Line 1: Answer → Card A (Funding matches) */}
         <motion.path
-          d="M 100 150 Q 300 200 500 300 Q 700 400 900 500"
+          d="M 200 400 Q 400 350 600 300 Q 800 250 900 200"
           fill="none"
           stroke="url(#lineGradient)"
           strokeWidth="2"
@@ -90,9 +175,9 @@ const BlueprintLines = memo(function BlueprintLines() {
           className="hidden md:block"
         />
         
-        {/* Line B - Shallow arc */}
+        {/* Line 2: See matches → Card B (Plan outline) */}
         <motion.path
-          d="M 150 300 Q 400 250 650 350 Q 850 400 1000 450"
+          d="M 250 420 Q 450 370 650 320 Q 850 270 950 250"
           fill="none"
           stroke="url(#lineGradient)"
           strokeWidth="2"
@@ -104,14 +189,14 @@ const BlueprintLines = memo(function BlueprintLines() {
           transition={{ 
             duration: 1.1, 
             ease: "easeInOut",
-            delay: 0.35
+            delay: 0.4
           }}
           className="hidden md:block"
         />
         
-        {/* Line C - Diagonal low */}
+        {/* Line 3: Build plan & export → Card C (Export) */}
         <motion.path
-          d="M 200 450 Q 400 400 600 450 Q 800 500 1000 550"
+          d="M 300 440 Q 500 390 700 340 Q 900 290 1000 300"
           fill="none"
           stroke="url(#lineGradient)"
           strokeWidth="2"
@@ -123,7 +208,7 @@ const BlueprintLines = memo(function BlueprintLines() {
           transition={{ 
             duration: 0.8, 
             ease: "easeOut",
-            delay: 0.5
+            delay: 0.6
           }}
           className="hidden md:block"
         />
@@ -158,14 +243,12 @@ const BlueprintLines = memo(function BlueprintLines() {
 });
 
 export function Hero({
-  title,
-  subtitle,
-  primaryButtonText,
   primaryButtonHref = "/reco"
 }: HeroProps = {}) {
-  const heroTitle = title || "Freedom starts with a plan — let's build yours.";
-  const heroSubtitle = subtitle || "Plan2Fund finds Austrian grants and programs (AWS, FFG, Wirtschaftsagentur) and guides you from business model to bank-ready financials — generate or upgrade your business plan in German or English";
-  const heroPrimaryButton = primaryButtonText || "Get funding matches";
+  // Locked copy as specified
+  const heroTitle = "Freedom starts with a plan — let's build yours.";
+  const heroSubtitle = "Find funding matches and build the application-ready business plan made for grants, visas, or bank loans (DE/EN).";
+  const heroPrimaryButton = "Get funding matches";
 
   return (
     <section 
@@ -177,11 +260,11 @@ export function Hero({
       <BlueprintLines />
 
       {/* Main Content */}
-      <div className="relative z-20 w-full max-w-7xl px-4 py-20 md:py-28 mx-auto">
-        <div className="grid md:grid-cols-[1.15fr_0.85fr] gap-8 md:gap-12 items-center">
+      <div className="relative z-20 w-full max-w-7xl px-4 py-24 md:py-32 mx-auto">
+        <div className="grid md:grid-cols-[1.15fr_0.85fr] gap-8 md:gap-12 items-start">
           
-          {/* Text Content */}
-          <div className="text-left">
+          {/* Text Content - Left Column (55-60%) */}
+          <div className="text-left max-w-[60ch]">
             <motion.h1 
               initial={{ opacity: 0, y: 30 }}
               animate={{ opacity: 1, y: 0 }}
@@ -196,7 +279,7 @@ export function Hero({
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.3, duration: 0.8 }}
-              className="text-lg md:text-xl text-blue-100 mb-8 max-w-[60ch] leading-relaxed"
+              className="text-lg md:text-xl text-blue-100 mb-8 leading-relaxed"
             >
               {heroSubtitle}
             </motion.p>
@@ -214,7 +297,7 @@ export function Hero({
                 <div className="w-1 h-1 bg-blue-400 rounded-full"></div>
                 <span>See matches</span>
                 <div className="w-1 h-1 bg-blue-400 rounded-full"></div>
-                <span>Export</span>
+                <span>Build plan & export</span>
               </div>
             </motion.div>
 
@@ -223,17 +306,17 @@ export function Hero({
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.9, duration: 0.8 }}
-              className="flex flex-col sm:flex-row gap-3 sm:gap-4"
+              className="flex flex-col sm:flex-row gap-3 sm:gap-4 mb-6"
             >
               <a
                 href={primaryButtonHref}
-                className="inline-block px-6 py-4 bg-blue-600 text-white rounded-xl shadow-lg hover:bg-blue-700 transition-all duration-300 font-semibold text-lg hover:shadow-xl hover:scale-[1.02] touch-target will-change-transform text-center"
+                className="inline-block px-6 py-4 bg-blue-600 text-white rounded-xl shadow-lg hover:bg-blue-700 transition-all duration-300 font-semibold text-lg hover:shadow-xl hover:scale-[1.02] touch-target will-change-transform text-center min-h-[44px] min-w-[44px]"
               >
                 {heroPrimaryButton}
               </a>
               <a
                 href="/editor"
-                className="inline-block px-6 py-4 bg-transparent text-white border-2 border-white/30 rounded-xl hover:border-white/60 hover:bg-white/5 transition-all duration-300 font-semibold text-lg touch-target will-change-transform text-center"
+                className="inline-block px-6 py-4 bg-transparent text-white border-2 border-white/50 rounded-xl hover:border-white/80 hover:bg-white/10 transition-all duration-300 font-semibold text-lg touch-target will-change-transform text-center min-h-[44px] min-w-[44px]"
               >
                 Start your plan
               </a>
@@ -244,10 +327,10 @@ export function Hero({
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 1.2, duration: 0.8 }}
-              className="mt-6 flex flex-wrap gap-2"
+              className="flex flex-wrap gap-2"
             >
               <span className="px-3 py-1 text-xs font-medium text-blue-200 bg-blue-900/30 border border-blue-700/30 rounded-full">
-                Austria-specific
+                Austria/EU-Call-specific
               </span>
               <span className="px-3 py-1 text-xs font-medium text-blue-200 bg-blue-900/30 border border-blue-700/30 rounded-full">
                 German & English
@@ -258,9 +341,9 @@ export function Hero({
             </motion.div>
           </div>
 
-          {/* Visual Column - Hidden on mobile */}
+          {/* Visual Preview Column - Right Column (40-45%) */}
           <div className="hidden md:block">
-            {/* This space is reserved for future visual elements */}
+            <PreviewCards />
           </div>
         </div>
       </div>
