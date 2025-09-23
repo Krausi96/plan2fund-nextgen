@@ -65,17 +65,24 @@ export function WhoItsFor() {
               viewport={{ once: true }}
               className="group"
             >
-              <div className="card-hover p-6 h-full flex flex-col">
+              <div className="card-hover p-6 h-full flex flex-col relative group">
                 {/* Emoji */}
-                <div className="text-4xl mb-4">{audience.emoji}</div>
+                <div className="text-4xl mb-4 group-hover:scale-110 transition-transform duration-300">{audience.emoji}</div>
                 
                 {/* Content */}
-                <h3 className="text-xl font-semibold text-neutral-900 mb-3">
+                <h3 className="text-xl font-semibold text-neutral-900 mb-3 group-hover:text-blue-600 transition-colors duration-300">
                   {audience.title}
                 </h3>
-                <p className="text-neutral-600 mb-4 leading-relaxed flex-grow">
+                <p className="text-neutral-600 mb-4 leading-relaxed flex-grow group-hover:text-neutral-700 transition-colors duration-300">
                   {audience.description}
                 </p>
+                
+                {/* Hover Information Tooltip */}
+                <div className="absolute top-4 right-4 opacity-0 group-hover:opacity-100 transition-opacity duration-300">
+                  <div className="bg-blue-600 text-white text-xs px-2 py-1 rounded-full">
+                    Click to explore
+                  </div>
+                </div>
                 
                 {/* Features */}
                 <ul className="space-y-2 mb-6">
@@ -91,8 +98,12 @@ export function WhoItsFor() {
                 
                 {/* CTA */}
                 <a 
-                  href="/reco" 
-                  className={`w-full px-4 py-2 ${audience.bgColor} ${audience.color} rounded-lg font-semibold text-center hover:opacity-80 transition-opacity`}
+                  href={audience.title === "Bank Loans or Leasing" ? "/for?tab=banks" : 
+                        audience.title === "Grants & Public Funding" ? "/reco" :
+                        audience.title === "Visa Applications" ? "/for?tab=startups" :
+                        "/for"}
+                  className={`w-full px-4 py-2 ${audience.bgColor} ${audience.color} rounded-lg font-semibold text-center hover:opacity-80 transition-opacity group-hover:scale-105 transform transition-transform`}
+                  title={`Learn more about ${audience.title.toLowerCase()}`}
                 >
                   Learn more →
                 </a>
