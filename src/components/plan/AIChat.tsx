@@ -24,28 +24,52 @@ type ExtractedChip = {
   confidence: number;
 };
 
-const COMMANDS = [
-  { key: "outline", label: "Create outline", description: "Generate section outline" },
-  { key: "bullets", label: "Bullet points", description: "Create bullet list" },
-  { key: "financials", label: "Financial data", description: "Generate financial projections" },
-  { key: "rewrite", label: "Rewrite", description: "Improve existing text" },
-  { key: "critique", label: "Critique", description: "Review and suggest improvements" }
+const EXPERT_ACTIONS = [
+  { key: "draft", label: "Draft", icon: "✍️", description: "Create initial content" },
+  { key: "improve", label: "Improve", icon: "⚡", description: "Enhance existing text" },
+  { key: "summarize", label: "Summarize", icon: "📝", description: "Create executive summary" },
+  { key: "translate", label: "Translate", icon: "🌐", description: "Translate content" },
+  { key: "formal", label: "Make Formal", icon: "👔", description: "Professional tone" },
+  { key: "risks", label: "Add Risks", icon: "⚠️", description: "Identify potential risks" }
 ];
 
-const TONE_OPTIONS = [
-  { value: "concise", label: "Concise" },
-  { value: "neutral", label: "Neutral" },
-  { value: "formal", label: "Formal" }
-];
+const CONTEXT_SUGGESTIONS = {
+  "Executive Summary": [
+    "Create compelling value proposition",
+    "Add market opportunity metrics",
+    "Include funding requirements"
+  ],
+  "Business Description": [
+    "Define unique selling proposition",
+    "Add competitive advantages",
+    "Include business model details"
+  ],
+  "Market Analysis": [
+    "Add market size data",
+    "Include target customer segments",
+    "Add competitive landscape"
+  ],
+  "Financial Projections": [
+    "Create revenue forecasts",
+    "Add expense breakdown",
+    "Include funding timeline"
+  ],
+  "Team": [
+    "Highlight key team members",
+    "Add relevant experience",
+    "Include advisory board"
+  ]
+};
 
 export default function AIChat({ onInsertContent, currentSection, persona }: AIChatProps) {
   const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [input, setInput] = useState("");
   const [showCommands, setShowCommands] = useState(false);
-  const [tone, setTone] = useState("neutral");
   const [extractedChips, setExtractedChips] = useState<ExtractedChip[]>([]);
   const [showInfoDrawer, setShowInfoDrawer] = useState(false);
   const [isProcessing, setIsProcessing] = useState(false);
+  const [isExpanded, setIsExpanded] = useState(false);
+  const [selectedAction, setSelectedAction] = useState<string | null>(null);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
 
   // Extract chips from user input
@@ -93,10 +117,27 @@ export default function AIChat({ onInsertContent, currentSection, persona }: AIC
     setExtractedChips(chips);
   };
 
-  const handleCommandSelect = (command: string) => {
-    setInput(`/${command} `);
-    setShowCommands(false);
-    textareaRef.current?.focus();
+
+  const handleActionClick = async (action: string) => {
+    setSelectedAction(action);
+    setIsProcessing(true);
+
+    try {
+      const aiResponse = generateExpertResponse(action, currentSection);
+      const aiMessage: ChatMessage = {
+        id: (Date.now() + 1).toString(),
+        type: "ai",
+        content: aiResponse.content,
+        timestamp: new Date(),
+        command: action
+      };
+      setMessages(prev => [...prev, aiMessage]);
+    } catch (error) {
+      console.error('Error processing action:', error);
+    } finally {
+      setIsProcessing(false);
+      setSelectedAction(null);
+    }
   };
 
   const handleSend = async () => {
@@ -165,7 +206,7 @@ export default function AIChat({ onInsertContent, currentSection, persona }: AIC
         setMessages(prev => [...prev, aiMessage]);
       } else {
         // Fallback to original AI response
-        const aiResponse = generateAIResponse(input, currentSection, tone);
+        const aiResponse = generateAIResponse(input, currentSection);
         const aiMessage: ChatMessage = {
           id: (Date.now() + 1).toString(),
           type: "ai",
@@ -178,7 +219,7 @@ export default function AIChat({ onInsertContent, currentSection, persona }: AIC
     } catch (error) {
       console.error('Error processing input with guardrails:', error);
       // Fallback to original AI response
-      const aiResponse = generateAIResponse(input, currentSection, tone);
+      const aiResponse = generateAIResponse(input, currentSection);
       const aiMessage: ChatMessage = {
         id: (Date.now() + 1).toString(),
         type: "ai",
@@ -195,7 +236,40 @@ export default function AIChat({ onInsertContent, currentSection, persona }: AIC
     setExtractedChips([]);
   };
 
-  const generateAIResponse = (input: string, section: string, tone: string) => {
+  const generateExpertResponse = (action: string, section: string) => {
+    switch (action) {
+      case "draft":
+        return {
+          content: `I'll help you draft content for your ${section}:\n\n**Key Elements to Include:**\n• Clear problem statement\n• Your unique solution\n• Target market definition\n• Competitive advantages\n• Revenue model\n\nWould you like me to create a structured draft based on your business details?`
+        };
+      case "improve":
+        return {
+          content: `Let me help you improve your ${section}:\n\n**Enhancement Areas:**\n• Strengthen value proposition\n• Add supporting data and metrics\n• Improve clarity and flow\n• Include specific examples\n• Add compelling language\n\nPlease share your current content and I'll provide specific improvements.`
+        };
+      case "summarize":
+        return {
+          content: `I'll create a compelling executive summary for your ${section}:\n\n**Summary Structure:**\n• Problem & Solution (2-3 sentences)\n• Market Opportunity (with data)\n• Business Model (revenue streams)\n• Key Metrics & Traction\n• Funding Requirements\n\nThis will be perfect for investor presentations and grant applications.`
+        };
+      case "translate":
+        return {
+          content: `I can translate your ${section} content:\n\n**Available Languages:**\n• German (Deutsch)\n• French (Français)\n• Spanish (Español)\n• Italian (Italiano)\n\n**Translation Features:**\n• Business terminology accuracy\n• Cultural adaptation\n• Professional tone maintenance\n• Industry-specific vocabulary\n\nWhich language would you prefer?`
+        };
+      case "formal":
+        return {
+          content: `I'll make your ${section} more formal and professional:\n\n**Professional Enhancements:**\n• Academic writing style\n• Formal business language\n• Structured presentation\n• Professional terminology\n• Investor-ready format\n\nThis will ensure your content meets the highest professional standards for funding applications.`
+        };
+      case "risks":
+        return {
+          content: `I'll help you identify and address risks in your ${section}:\n\n**Risk Categories to Consider:**\n• Market risks (competition, demand)\n• Financial risks (funding, cash flow)\n• Operational risks (team, execution)\n• Regulatory risks (compliance, changes)\n• Technology risks (development, security)\n\n**Risk Mitigation Strategies:**\n• Contingency planning\n• Alternative approaches\n• Insurance considerations\n• Partnership strategies\n\nThis shows investors you've thought through potential challenges.`
+        };
+      default:
+        return {
+          content: `I'm your expert business consultant. How can I help you with your ${section}?\n\n**Available Services:**\n• Content creation and improvement\n• Strategic planning guidance\n• Risk assessment\n• Professional formatting\n• Multi-language support\n\nWhat would you like to work on?`
+        };
+    }
+  };
+
+  const generateAIResponse = (input: string, section: string) => {
     const command = input.startsWith("/") ? input.split(" ")[0] : null;
     
     if (command === "/outline") {
@@ -212,7 +286,7 @@ export default function AIChat({ onInsertContent, currentSection, persona }: AIC
       };
     } else if (command === "/rewrite") {
       return {
-        content: `Here's a ${tone} rewrite:\n\n"Our innovative solution addresses the critical market need through a scalable business model that delivers measurable value to customers while maintaining sustainable growth."\n\nWould you like me to adjust the tone or focus?`
+        content: `Here's a professional rewrite:\n\n"Our innovative solution addresses the critical market need through a scalable business model that delivers measurable value to customers while maintaining sustainable growth."\n\nWould you like me to adjust the tone or focus?`
       };
     } else if (command === "/critique") {
       return {
@@ -231,21 +305,24 @@ export default function AIChat({ onInsertContent, currentSection, persona }: AIC
 
   return (
     <div className="flex flex-col h-full bg-white border rounded-lg">
-      {/* Header */}
-      <div className="flex items-center justify-between p-3 border-b">
-        <h3 className="font-semibold">AI Plan Assistant</h3>
+      {/* Expert Header */}
+      <div className="flex items-center justify-between p-3 border-b bg-gradient-to-r from-blue-50 to-indigo-50">
         <div className="flex items-center gap-2">
-          <select
-            value={tone}
-            onChange={(e) => setTone(e.target.value)}
-            className="text-xs border rounded px-2 py-1"
+          <div className="w-8 h-8 bg-blue-600 rounded-full flex items-center justify-center text-white text-sm font-bold">
+            👔
+          </div>
+          <div>
+            <h3 className="font-semibold text-gray-900">Expert AI Coach</h3>
+            <p className="text-xs text-gray-600">Professional Business Consultant</p>
+          </div>
+        </div>
+        <div className="flex items-center gap-2">
+          <button
+            onClick={() => setIsExpanded(!isExpanded)}
+            className="text-blue-600 hover:text-blue-800 text-xs px-2 py-1 rounded hover:bg-blue-100 transition-colors"
           >
-            {TONE_OPTIONS.map(option => (
-              <option key={option.value} value={option.value}>
-                {option.label}
-              </option>
-            ))}
-          </select>
+            {isExpanded ? "Compact" : "Expand"}
+          </button>
           <button
             onClick={() => setShowInfoDrawer(true)}
             className="text-blue-600 hover:text-blue-800 text-xs"
@@ -255,71 +332,97 @@ export default function AIChat({ onInsertContent, currentSection, persona }: AIC
         </div>
       </div>
 
-      {/* Extracted Chips */}
-      {extractedChips.length > 0 && (
-        <div className="p-2 bg-blue-50 border-b">
-          <div className="text-xs text-gray-600 mb-1">Extracted signals:</div>
-          <div className="flex flex-wrap gap-1">
-            {extractedChips.map((chip, i) => (
-              <span
-                key={i}
-                className="px-2 py-1 bg-blue-100 text-blue-800 text-xs rounded"
+      {/* Context-Aware Suggestions */}
+      <div className="p-3 bg-gray-50 border-b">
+        <div className="text-xs text-gray-600 mb-2">Suggestions for {currentSection}:</div>
+        <div className="flex flex-wrap gap-1">
+          {(CONTEXT_SUGGESTIONS[currentSection as keyof typeof CONTEXT_SUGGESTIONS] || []).map((suggestion, i) => (
+            <button
+              key={i}
+              onClick={() => setInput(suggestion)}
+              className="px-2 py-1 bg-white text-blue-700 text-xs rounded border border-blue-200 hover:bg-blue-50 transition-colors"
+            >
+              {suggestion}
+            </button>
+          ))}
+        </div>
+      </div>
+
+      {/* Expert Action Toolbar */}
+      <div className="p-3 border-b">
+        <div className="text-xs text-gray-600 mb-2">Quick Actions:</div>
+        <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
+          {EXPERT_ACTIONS.map((action) => (
+            <button
+              key={action.key}
+              onClick={() => handleActionClick(action.key)}
+              disabled={isProcessing}
+              className={`flex items-center gap-2 p-2 text-xs rounded border transition-colors ${
+                selectedAction === action.key
+                  ? "bg-blue-100 border-blue-300 text-blue-800"
+                  : "bg-white border-gray-200 hover:bg-gray-50 text-gray-700"
+              } ${isProcessing ? "opacity-50 cursor-not-allowed" : ""}`}
+            >
+              <span className="text-sm flex-shrink-0">{action.icon}</span>
+              <div className="text-left min-w-0">
+                <div className="font-medium truncate">{action.label}</div>
+                <div className="text-gray-500 text-xs hidden sm:block">{action.description}</div>
+              </div>
+            </button>
+          ))}
+        </div>
+      </div>
+
+      {/* Messages - Only show when expanded */}
+      {isExpanded && (
+        <div className="flex-1 overflow-y-auto p-3 space-y-3">
+          {messages.map((message) => (
+            <div
+              key={message.id}
+              className={`flex ${message.type === "user" ? "justify-end" : "justify-start"}`}
+            >
+              <div
+                className={`max-w-[80%] p-3 rounded-lg ${
+                  message.type === "user"
+                    ? "bg-blue-500 text-white"
+                    : "bg-gray-100 text-gray-800"
+                }`}
               >
-                {chip.type}: {chip.value}
-              </span>
-            ))}
-          </div>
+                <div className="whitespace-pre-wrap text-sm">{message.content}</div>
+                {message.chips && message.chips.length > 0 && (
+                  <div className="mt-2 text-xs opacity-75">
+                    Chips: {message.chips.join(", ")}
+                  </div>
+                )}
+                {message.type === "ai" && (
+                  <div className="mt-2">
+                    <Button
+                      size="sm"
+                      variant="outline"
+                      onClick={() => handleInsertToSection(message.content)}
+                      className="text-xs"
+                    >
+                      Apply to {currentSection}
+                    </Button>
+                  </div>
+                )}
+              </div>
+            </div>
+          ))}
+          {isProcessing && (
+            <div className="flex justify-start">
+              <div className="bg-gray-100 p-3 rounded-lg">
+                <div className="flex items-center gap-2">
+                  <div className="animate-spin w-4 h-4 border-2 border-blue-500 border-t-transparent rounded-full"></div>
+                  <span className="text-sm text-gray-600">AI is thinking...</span>
+                </div>
+              </div>
+            </div>
+          )}
         </div>
       )}
 
-      {/* Messages */}
-      <div className="flex-1 overflow-y-auto p-3 space-y-3">
-        {messages.map((message) => (
-          <div
-            key={message.id}
-            className={`flex ${message.type === "user" ? "justify-end" : "justify-start"}`}
-          >
-            <div
-              className={`max-w-[80%] p-3 rounded-lg ${
-                message.type === "user"
-                  ? "bg-blue-500 text-white"
-                  : "bg-gray-100 text-gray-800"
-              }`}
-            >
-              <div className="whitespace-pre-wrap">{message.content}</div>
-              {message.chips && message.chips.length > 0 && (
-                <div className="mt-2 text-xs opacity-75">
-                  Chips: {message.chips.join(", ")}
-                </div>
-              )}
-              {message.type === "ai" && (
-                <div className="mt-2">
-                  <Button
-                    size="sm"
-                    variant="outline"
-                    onClick={() => handleInsertToSection(message.content)}
-                    className="text-xs"
-                  >
-                    Apply to {currentSection}
-                  </Button>
-                </div>
-              )}
-            </div>
-          </div>
-        ))}
-        {isProcessing && (
-          <div className="flex justify-start">
-            <div className="bg-gray-100 p-3 rounded-lg">
-              <div className="flex items-center gap-2">
-                <div className="animate-spin w-4 h-4 border-2 border-blue-500 border-t-transparent rounded-full"></div>
-                <span className="text-sm text-gray-600">AI is thinking...</span>
-              </div>
-            </div>
-          </div>
-        )}
-      </div>
-
-      {/* Input */}
+      {/* Compact Input - Always visible */}
       <div className="p-3 border-t">
         <div className="relative">
           <textarea
@@ -332,20 +435,20 @@ export default function AIChat({ onInsertContent, currentSection, persona }: AIC
                 handleSend();
               }
             }}
-            placeholder="Ask AI for help with your plan... (try /outline, /bullets, /financials)"
-            className="w-full border rounded-lg p-2 resize-none"
-            rows={2}
+            placeholder="Ask your expert consultant..."
+            className="w-full border rounded-lg p-2 resize-none text-sm"
+            rows={isExpanded ? 2 : 1}
           />
           {showCommands && (
             <div className="absolute bottom-full left-0 right-0 mb-1 bg-white border rounded-lg shadow-lg z-10">
-              {COMMANDS.map((cmd) => (
+              {EXPERT_ACTIONS.map((action) => (
                 <button
-                  key={cmd.key}
-                  onClick={() => handleCommandSelect(cmd.key)}
+                  key={action.key}
+                  onClick={() => handleActionClick(action.key)}
                   className="w-full text-left px-3 py-2 hover:bg-gray-50 text-sm"
                 >
-                  <div className="font-medium">/{cmd.key}</div>
-                  <div className="text-gray-500 text-xs">{cmd.description}</div>
+                  <div className="font-medium">{action.icon} {action.label}</div>
+                  <div className="text-gray-500 text-xs">{action.description}</div>
                 </button>
               ))}
             </div>
@@ -355,8 +458,13 @@ export default function AIChat({ onInsertContent, currentSection, persona }: AIC
           <div className="text-xs text-gray-500">
             {persona === "newbie" ? "Tutoring mode" : "Expert mode"}
           </div>
-          <Button onClick={handleSend} disabled={!input.trim() || isProcessing}>
-            Send
+          <Button 
+            onClick={handleSend} 
+            disabled={!input.trim() || isProcessing}
+            size="sm"
+            className="text-xs"
+          >
+            {isProcessing ? "..." : "Send"}
           </Button>
         </div>
       </div>
@@ -365,47 +473,39 @@ export default function AIChat({ onInsertContent, currentSection, persona }: AIC
       <InfoDrawer
         isOpen={showInfoDrawer}
         onClose={() => setShowInfoDrawer(false)}
-        title="How the AI Chat Works"
+        title="Expert AI Coach Features"
         content={
           <div className="space-y-4">
             <p>
-              The AI chat helps you create and improve your business plan content through 
-              intelligent assistance and structured guidance.
+              Your professional business consultant AI coach provides expert guidance 
+              for creating compelling business plans and funding applications.
             </p>
             
-            <h3 className="font-semibold">Commands:</h3>
+            <h3 className="font-semibold">Expert Actions:</h3>
             <ul className="list-disc list-inside space-y-1 text-sm">
-              <li><strong>/outline</strong> - Generate structured section outlines</li>
-              <li><strong>/bullets</strong> - Create bullet point lists</li>
-              <li><strong>/financials</strong> - Generate financial projections</li>
-              <li><strong>/rewrite</strong> - Improve existing text</li>
-              <li><strong>/critique</strong> - Review and suggest improvements</li>
+              <li><strong>Draft:</strong> Create initial content with professional structure</li>
+              <li><strong>Improve:</strong> Enhance existing text with expert insights</li>
+              <li><strong>Summarize:</strong> Create compelling executive summaries</li>
+              <li><strong>Translate:</strong> Multi-language support for international applications</li>
+              <li><strong>Make Formal:</strong> Professional formatting for investor presentations</li>
+              <li><strong>Add Risks:</strong> Comprehensive risk assessment and mitigation</li>
             </ul>
 
-            <h3 className="font-semibold">Signal Extraction:</h3>
+            <h3 className="font-semibold">Context-Aware Suggestions:</h3>
             <p className="text-sm">
-              The AI automatically extracts key signals from your input (ICP, market size, 
-              pricing, team, budget) to better understand your business context.
+              The AI provides specific suggestions based on your current section, 
+              helping you focus on the most important elements for each part of your plan.
             </p>
 
-            <h3 className="font-semibold">Content Insertion:</h3>
+            <h3 className="font-semibold">Professional Standards:</h3>
             <p className="text-sm">
-              When you click "Apply to [Section]", the AI shows you a preview of what 
-              will be inserted. You can review and modify before accepting.
+              All content is generated to meet the highest professional standards 
+              for business plans, grant applications, and investor presentations.
             </p>
 
-            <h3 className="font-semibold">Tone & Persona:</h3>
-            <ul className="list-disc list-inside space-y-1 text-sm">
-              <li><strong>Concise:</strong> Short, direct responses</li>
-              <li><strong>Neutral:</strong> Balanced, professional tone</li>
-              <li><strong>Formal:</strong> Academic, detailed responses</li>
-              <li><strong>Newbie:</strong> Includes tutoring and explanations</li>
-              <li><strong>Expert:</strong> Assumes knowledge, focuses on content</li>
-            </ul>
-
-            <div className="p-3 bg-yellow-50 border border-yellow-200 rounded text-sm text-yellow-800">
-              <strong>Note:</strong> This is a demo AI assistant. In production, it would 
-              use advanced language models and have access to your full business context.
+            <div className="p-3 bg-blue-50 border border-blue-200 rounded text-sm text-blue-800">
+              <strong>Expert Mode:</strong> Your AI coach assumes business knowledge 
+              and focuses on creating professional, investor-ready content.
             </div>
           </div>
         }

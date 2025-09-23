@@ -532,7 +532,7 @@ ${answers.business_description || '[Business Description]'}
         <div className="hidden lg:block w-80 bg-white border-l border-gray-200 flex flex-col">
           <div className="p-4 border-b border-gray-200">
             <div className="flex items-center justify-between">
-              <h3 className="text-lg font-semibold text-gray-900">AI Assistant</h3>
+              <h3 className="text-lg font-semibold text-gray-900">Expert AI Coach</h3>
               <button
                 onClick={() => setShowAdvancedSearch(!showAdvancedSearch)}
                 className="text-sm text-blue-600 hover:text-blue-700 transition-colors"
@@ -540,7 +540,7 @@ ${answers.business_description || '[Business Description]'}
                 {showAdvancedSearch ? 'Hide Search' : 'Show Search'}
               </button>
             </div>
-            <p className="text-sm text-gray-600 mt-1">Get help writing your business plan</p>
+            <p className="text-sm text-gray-600 mt-1">Professional business consultant</p>
           </div>
           
           <div className="flex-1 overflow-y-auto">
@@ -582,10 +582,10 @@ ${answers.business_description || '[Business Description]'}
       {/* Mobile Sidebar Overlay */}
       {showAISidebar && (
         <div className="lg:hidden fixed inset-0 z-50 bg-black bg-opacity-50" onClick={() => setShowAISidebar(false)}>
-          <div className="absolute right-0 top-0 h-full w-80 bg-white shadow-xl" onClick={(e) => e.stopPropagation()}>
+          <div className="absolute right-0 top-0 h-full w-full max-w-sm bg-white shadow-xl" onClick={(e) => e.stopPropagation()}>
             <div className="p-4 border-b border-gray-200">
               <div className="flex items-center justify-between">
-                <h3 className="text-lg font-semibold text-gray-900">AI Assistant</h3>
+                <h3 className="text-lg font-semibold text-gray-900">Expert AI Coach</h3>
                 <button
                   onClick={() => setShowAISidebar(false)}
                   className="text-gray-500 hover:text-gray-700"
@@ -593,7 +593,7 @@ ${answers.business_description || '[Business Description]'}
                   ✕
                 </button>
               </div>
-              <p className="text-sm text-gray-600 mt-1">Get help writing your business plan</p>
+              <p className="text-sm text-gray-600 mt-1">Professional business consultant</p>
             </div>
             
             <div className="flex-1 overflow-y-auto p-4">
