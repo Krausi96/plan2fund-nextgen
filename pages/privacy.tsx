@@ -95,7 +95,7 @@ export default function PrivacyPage() {
           </ul>
         </Card>
 
-        <Card className="p-8 mb-8">
+        <Card id="security" className="p-8 mb-8">
           <h2 className="text-2xl font-semibold mb-4">4. Data Security</h2>
           <p className="mb-4">
             We implement appropriate technical and organizational measures to protect your personal information against:

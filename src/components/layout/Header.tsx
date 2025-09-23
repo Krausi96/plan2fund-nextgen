@@ -64,6 +64,12 @@ export default function Header() {
             </Link>
           ) : null}
           <Link 
+            href="/reco" 
+            className="px-4 py-2 text-primary border border-primary rounded-lg hover:bg-primary hover:text-white transition-colors font-medium"
+          >
+            Find Funding
+          </Link>
+          <Link 
             href="/editor" 
             className="px-6 py-2 bg-primary text-white rounded-lg hover:bg-primaryHover transition-colors font-medium shadow-md hover:shadow-lg"
           >
@@ -97,13 +103,6 @@ export default function Header() {
               {t('nav.howItWorks')}
             </Link>
             <Link 
-              href="/advanced-search" 
-              className="text-gray-700 hover:text-blue-600 transition-colors font-medium py-2"
-              onClick={() => setOpen(false)}
-            >
-              Advanced Search
-            </Link>
-            <Link 
               href="/pricing" 
               className="text-gray-700 hover:text-blue-600 transition-colors font-medium py-2"
               onClick={() => setOpen(false)}
@@ -127,6 +126,13 @@ export default function Header() {
                 My Account
               </Link>
             ) : null}
+            <Link 
+              href="/reco" 
+              className="px-4 py-2 text-blue-600 border border-blue-600 rounded-lg hover:bg-blue-600 hover:text-white transition-colors font-medium text-center"
+              onClick={() => setOpen(false)}
+            >
+              Find Funding
+            </Link>
             <Link 
               href="/editor" 
               className="px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors font-medium text-center mt-2 shadow-md hover:shadow-lg"

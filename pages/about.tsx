@@ -210,6 +210,42 @@ export default function AboutPage() {
         </div>
       </div>
 
+      {/* Partners */}
+      <div id="partners" className="mb-16">
+        <h2 className="text-3xl font-bold text-center mb-12">Our Partners</h2>
+        <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
+          <Card className="p-6 text-center">
+            <div className="w-16 h-16 bg-blue-100 rounded-full mx-auto mb-4 flex items-center justify-center">
+              <span className="text-2xl font-bold text-blue-600">AWS</span>
+            </div>
+            <h3 className="text-xl font-semibold mb-2">Austria Wirtschaftsservice</h3>
+            <p className="text-gray-600 text-sm">
+              Official partner for Austrian startup funding programs and business development support.
+            </p>
+          </Card>
+
+          <Card className="p-6 text-center">
+            <div className="w-16 h-16 bg-green-100 rounded-full mx-auto mb-4 flex items-center justify-center">
+              <span className="text-2xl font-bold text-green-600">FFG</span>
+            </div>
+            <h3 className="text-xl font-semibold mb-2">Austrian Research Promotion Agency</h3>
+            <p className="text-gray-600 text-sm">
+              Partner for research and innovation funding programs across Austria.
+            </p>
+          </Card>
+
+          <Card className="p-6 text-center">
+            <div className="w-16 h-16 bg-purple-100 rounded-full mx-auto mb-4 flex items-center justify-center">
+              <span className="text-2xl font-bold text-purple-600">EU</span>
+            </div>
+            <h3 className="text-xl font-semibold mb-2">European Union Programs</h3>
+            <p className="text-gray-600 text-sm">
+              Access to Horizon Europe and other EU funding opportunities for Austrian businesses.
+            </p>
+          </Card>
+        </div>
+      </div>
+
       {/* Team */}
       <div className="mb-16">
         <h2 className="text-3xl font-bold text-center mb-12">Meet Our Team</h2>

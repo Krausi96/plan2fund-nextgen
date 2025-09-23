@@ -150,4 +150,9 @@
   .mobile-spacing {
     @apply space-y-4 sm:space-y-6 lg:space-y-8;
   }
+  
+  /* Flip card perspective */
+  .perspective-1000 {
+    perspective: 1000px;
+  }
 }

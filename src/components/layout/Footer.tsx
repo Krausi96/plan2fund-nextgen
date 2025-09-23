@@ -29,13 +29,12 @@ export default function Footer() {
             </div>
           </div>
 
-          {/* Product */}
+          {/* Company */}
           <div>
-            <h4 className="font-semibold text-gray-900 mb-4">Product</h4>
+            <h4 className="font-semibold text-gray-900 mb-4">Company</h4>
             <ul className="space-y-3 text-sm">
-              <li><Link href="/about" className="hover:text-blue-600 transition-colors">How it works</Link></li>
-              <li><Link href="/pricing" className="hover:text-blue-600 transition-colors">Pricing</Link></li>
-              <li><Link href="/faq" className="hover:text-blue-600 transition-colors">FAQ</Link></li>
+              <li><Link href="/contact" className="hover:text-blue-600 transition-colors">Contact</Link></li>
+              <li><Link href="/about#partners" className="hover:text-blue-600 transition-colors">For partners</Link></li>
             </ul>
           </div>
 
@@ -46,7 +45,7 @@ export default function Footer() {
               <li><Link href="/privacy" className="hover:text-blue-600 transition-colors">Privacy Policy</Link></li>
               <li><Link href="/terms" className="hover:text-blue-600 transition-colors">Terms & Conditions</Link></li>
               <li><Link href="/legal" className="hover:text-blue-600 transition-colors">Legal Notice</Link></li>
-              <li><Link href="/contact" className="hover:text-blue-600 transition-colors">Contact</Link></li>
+              <li><Link href="/privacy#security" className="hover:text-blue-600 transition-colors">Security & data</Link></li>
             </ul>
           </div>
         </div>

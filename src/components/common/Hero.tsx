@@ -1,41 +1,5 @@
 ﻿import { motion, useReducedMotion } from "framer-motion";
 import { memo } from "react";
-import { ClipboardList, BarChart2, LineChart, FileText, Target, Briefcase, Users, DollarSign, PieChart, Presentation, TrendingUp, type LucideIcon } from "lucide-react";
-
-const icons = [
-  ClipboardList, BarChart2, LineChart, FileText, Target,
-  Briefcase, Users, DollarSign, PieChart, Presentation, TrendingUp
-];
-
-const FloatingIcon = memo(function FloatingIcon({ Icon, index }: { Icon: LucideIcon; index: number }) {
-  const shouldReduceMotion = useReducedMotion();
-  const driftX = (index % 2 === 0 ? 1 : -1) * (40 + index * 5);
-  const driftY = (index % 2 === 0 ? -1 : 1) * (30 + index * 3);
-
-  return (
-    <motion.div
-      className="absolute opacity-15"
-      initial={{ x: 0, y: 0, opacity: 0 }}
-      animate={shouldReduceMotion ? { opacity: 0.1 } : {
-        x: [0, driftX, 0],
-        y: [0, driftY, 0],
-        opacity: [0.1, 0.3, 0.1],
-        scale: [1, 1.05, 1]
-      }}
-      transition={shouldReduceMotion ? { duration: 0.1 } : {
-        repeat: Infinity,
-        duration: 14 + index * 2,
-        ease: "easeInOut"
-      }}
-      style={{
-        top: `${Math.random() * 80 + 5}%`,
-        left: `${Math.random() * 80 + 10}%`
-      }}
-    >
-      <Icon size={42} className="text-blue-400" />
-    </motion.div>
-  );
-});
 
 
 interface HeroProps {
@@ -45,224 +9,285 @@ interface HeroProps {
   primaryButtonHref?: string;
 }
 
+// Blueprint Grid Component
+const BlueprintGrid = memo(function BlueprintGrid() {
+  const shouldReduceMotion = useReducedMotion();
+  
+  return (
+    <div className="absolute inset-0 opacity-20">
+      <svg className="w-full h-full" viewBox="0 0 1200 800" preserveAspectRatio="xMidYMid slice">
+        {/* Grid lines - responsive density */}
+        <defs>
+          <pattern id="grid" width="40" height="40" patternUnits="userSpaceOnUse">
+            <path d="M 40 0 L 0 0 0 40" fill="none" stroke="#60A5FA" strokeWidth="0.5" opacity="0.3"/>
+          </pattern>
+          <pattern id="grid-mobile" width="60" height="60" patternUnits="userSpaceOnUse">
+            <path d="M 60 0 L 0 0 0 60" fill="none" stroke="#60A5FA" strokeWidth="0.3" opacity="0.2"/>
+          </pattern>
+        </defs>
+        <rect width="100%" height="100%" fill="url(#grid)" className="hidden sm:block" />
+        <rect width="100%" height="100%" fill="url(#grid-mobile)" className="block sm:hidden" />
+        
+        {/* Animated flow lines - responsive paths */}
+        <g opacity="0.6">
+          {/* Main flow line - Desktop */}
+          <motion.path
+            d="M 200 200 Q 400 300 600 400 Q 800 500 1000 600"
+            fill="none"
+            stroke="#60A5FA"
+            strokeWidth="2"
+            initial={{ pathLength: 0, opacity: 0 }}
+            animate={shouldReduceMotion ? { pathLength: 1, opacity: 0.6 } : { 
+              pathLength: 1, 
+              opacity: 0.8 
+            }}
+            transition={{ 
+              duration: 1.2, 
+              ease: "easeInOut",
+              delay: 0.5
+            }}
+            className="hidden sm:block"
+          />
+          
+          {/* Main flow line - Mobile (shorter) */}
+          <motion.path
+            d="M 150 300 Q 300 400 450 500 Q 600 600 750 700"
+            fill="none"
+            stroke="#60A5FA"
+            strokeWidth="1.5"
+            initial={{ pathLength: 0, opacity: 0 }}
+            animate={shouldReduceMotion ? { pathLength: 1, opacity: 0.6 } : { 
+              pathLength: 1, 
+              opacity: 0.8 
+            }}
+            transition={{ 
+              duration: 1.0, 
+              ease: "easeInOut",
+              delay: 0.5
+            }}
+            className="block sm:hidden"
+          />
+          
+          {/* Secondary flow line - Desktop */}
+          <motion.path
+            d="M 150 350 Q 350 250 550 300 Q 750 350 950 500"
+            fill="none"
+            stroke="#3B82F6"
+            strokeWidth="1.5"
+            initial={{ pathLength: 0, opacity: 0 }}
+            animate={shouldReduceMotion ? { pathLength: 1, opacity: 0.4 } : { 
+              pathLength: 1, 
+              opacity: 0.6 
+            }}
+            transition={{ 
+              duration: 1.0, 
+              ease: "easeInOut",
+              delay: 0.8
+            }}
+            className="hidden sm:block"
+          />
+          
+          {/* Secondary flow line - Mobile */}
+          <motion.path
+            d="M 100 450 Q 250 350 400 400 Q 550 450 700 550"
+            fill="none"
+            stroke="#3B82F6"
+            strokeWidth="1"
+            initial={{ pathLength: 0, opacity: 0 }}
+            animate={shouldReduceMotion ? { pathLength: 1, opacity: 0.4 } : { 
+              pathLength: 1, 
+              opacity: 0.6 
+            }}
+            transition={{ 
+              duration: 0.8, 
+              ease: "easeInOut",
+              delay: 0.8
+            }}
+            className="block sm:hidden"
+          />
+          
+          {/* Tertiary flow line - Desktop */}
+          <motion.path
+            d="M 250 500 Q 450 400 650 450 Q 850 500 1050 550"
+            fill="none"
+            stroke="#1D4ED8"
+            strokeWidth="1"
+            initial={{ pathLength: 0, opacity: 0 }}
+            animate={shouldReduceMotion ? { pathLength: 1, opacity: 0.3 } : { 
+              pathLength: 1, 
+              opacity: 0.5 
+            }}
+            transition={{ 
+              duration: 0.8, 
+              ease: "easeInOut",
+              delay: 1.1
+            }}
+            className="hidden sm:block"
+          />
+        </g>
+        
+        {/* Flow nodes - responsive positioning */}
+        <g>
+          {/* Idea node - Desktop */}
+          <motion.circle
+            cx="200"
+            cy="200"
+            r="8"
+            fill="#60A5FA"
+            initial={{ scale: 0, opacity: 0 }}
+            animate={{ scale: 1, opacity: 1 }}
+            transition={{ delay: 0.3, duration: 0.5 }}
+            className="hidden sm:block"
+          />
+          
+          {/* Idea node - Mobile */}
+          <motion.circle
+            cx="150"
+            cy="300"
+            r="6"
+            fill="#60A5FA"
+            initial={{ scale: 0, opacity: 0 }}
+            animate={{ scale: 1, opacity: 1 }}
+            transition={{ delay: 0.3, duration: 0.5 }}
+            className="block sm:hidden"
+          />
+          
+          {/* Matches node - Desktop */}
+          <motion.circle
+            cx="600"
+            cy="400"
+            r="8"
+            fill="#3B82F6"
+            initial={{ scale: 0, opacity: 0 }}
+            animate={{ scale: 1, opacity: 1 }}
+            transition={{ delay: 0.7, duration: 0.5 }}
+            className="hidden sm:block"
+          />
+          
+          {/* Matches node - Mobile */}
+          <motion.circle
+            cx="450"
+            cy="500"
+            r="6"
+            fill="#3B82F6"
+            initial={{ scale: 0, opacity: 0 }}
+            animate={{ scale: 1, opacity: 1 }}
+            transition={{ delay: 0.7, duration: 0.5 }}
+            className="block sm:hidden"
+          />
+          
+          {/* Plan node - Desktop */}
+          <motion.circle
+            cx="1000"
+            cy="600"
+            r="8"
+            fill="#1D4ED8"
+            initial={{ scale: 0, opacity: 0 }}
+            animate={{ scale: 1, opacity: 1 }}
+            transition={{ delay: 1.1, duration: 0.5 }}
+            className="hidden sm:block"
+          />
+          
+          {/* Plan node - Mobile */}
+          <motion.circle
+            cx="750"
+            cy="700"
+            r="6"
+            fill="#1D4ED8"
+            initial={{ scale: 0, opacity: 0 }}
+            animate={{ scale: 1, opacity: 1 }}
+            transition={{ delay: 1.1, duration: 0.5 }}
+            className="block sm:hidden"
+          />
+        </g>
+      </svg>
+    </div>
+  );
+});
+
 export function Hero({
   title,
   subtitle,
   primaryButtonText,
   primaryButtonHref = "/editor"
 }: HeroProps = {}) {
-  const shouldReduceMotion = useReducedMotion();
-  
   const heroTitle = title || "Freedom starts with a plan — let's build yours.";
-  const heroSubtitle = subtitle || "Find Austrian/EU funding you're eligible for and draft a plan in minutes.";
+  const heroSubtitle = subtitle || "Plan2Fund finds Austrian grants and programs (AWS, FFG, Wirtschaftsagentur) and guides you from business model to bank-ready financials — generate or upgrade your business plan in German or English";
   const heroPrimaryButton = primaryButtonText || "Start your plan";
 
   return (
     <section 
-      className="relative min-h-[100vh] sm:min-h-[80vh] flex items-center justify-center overflow-hidden bg-gradient-to-b from-neutral-800 via-neutral-900 to-black"
+      className="relative min-h-[100vh] sm:min-h-[80vh] flex items-center justify-center overflow-hidden bg-gradient-to-b from-slate-900 via-blue-900 to-slate-800"
       aria-label="Hero section with main value proposition"
     >
-      {/* Stripe-style Background with Dotted Globe and Flowing Arcs */}
-      <div className="absolute inset-0 overflow-hidden">
-        <svg className="w-full h-full" viewBox="0 0 1200 800" preserveAspectRatio="xMidYMid slice">
-          {/* Dotted Globe */}
-          <g opacity="0.3">
-            {/* Globe outline */}
-            <circle cx="800" cy="400" r="180" fill="none" stroke="#60A5FA" strokeWidth="1" opacity="0.2" />
-            {/* Dotted pattern for globe */}
-            {Array.from({ length: 200 }, (_, i) => {
-              const angle = (i / 200) * 2 * Math.PI;
-              const radius = 160 + Math.random() * 40;
-              const x = 800 + Math.cos(angle) * radius;
-              const y = 400 + Math.sin(angle) * radius;
-              return (
-                <motion.circle
-                  key={i}
-                  cx={x}
-                  cy={y}
-                  r="1.5"
-                  fill="#60A5FA"
-                  initial={{ opacity: 0 }}
-                  animate={{ opacity: 0.6 }}
-                  transition={{ 
-                    delay: i * 0.01,
-                    duration: 0.5,
-                    repeat: shouldReduceMotion ? 0 : Infinity,
-                    repeatType: "reverse",
-                    repeatDelay: 2
-                  }}
-                />
-              );
-            })}
-          </g>
+      {/* Blueprint Grid Background */}
+      <BlueprintGrid />
 
-          {/* Flowing Arcs */}
-          <g opacity="0.4">
-            {/* Red arc */}
-            <motion.path
-              d="M200 600 Q500 300 800 200 Q1000 100 1000 400"
-              fill="none"
-              stroke="#EF4444"
-              strokeWidth="2"
-              initial={{ pathLength: 0, opacity: 0 }}
-              animate={{ pathLength: 1, opacity: 0.6 }}
-              transition={{ 
-                duration: 8, 
-                ease: "easeInOut",
-                repeat: shouldReduceMotion ? 0 : Infinity,
-                repeatDelay: 1
-              }}
-            />
-            {/* Light blue arc */}
-            <motion.path
-              d="M100 400 Q400 350 700 400 Q900 450 1100 400"
-              fill="none"
-              stroke="#60A5FA"
-              strokeWidth="1.5"
-              initial={{ pathLength: 0, opacity: 0 }}
-              animate={{ pathLength: 1, opacity: 0.5 }}
-              transition={{ 
-                duration: 6, 
-                ease: "easeInOut",
-                repeat: shouldReduceMotion ? 0 : Infinity,
-                repeatDelay: 2
-              }}
-            />
-            {/* Purple arc */}
-            <motion.path
-              d="M150 200 Q450 250 750 300 Q950 350 1050 500"
-              fill="none"
-              stroke="#A855F7"
-              strokeWidth="1.5"
-              initial={{ pathLength: 0, opacity: 0 }}
-              animate={{ pathLength: 1, opacity: 0.5 }}
-              transition={{ 
-                duration: 7, 
-                ease: "easeInOut",
-                repeat: shouldReduceMotion ? 0 : Infinity,
-                repeatDelay: 1.5
-              }}
-            />
-            {/* Yellow arc */}
-            <motion.path
-              d="M300 100 Q600 150 900 200 Q1000 250 950 350"
-              fill="none"
-              stroke="#EAB308"
-              strokeWidth="1"
-              initial={{ pathLength: 0, opacity: 0 }}
-              animate={{ pathLength: 1, opacity: 0.4 }}
-              transition={{ 
-                duration: 5, 
-                ease: "easeInOut",
-                repeat: shouldReduceMotion ? 0 : Infinity,
-                repeatDelay: 3
-              }}
-            />
-          </g>
+      {/* Main Content */}
+      <div className="relative z-20 w-full max-w-6xl px-4 sm:px-6 text-center">
+        <motion.h1 
+          initial={{ opacity: 0, y: 30 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.8 }}
+          className="text-4xl sm:text-5xl lg:text-6xl font-extrabold text-white leading-tight mb-6"
+        >
+          {heroTitle}
+        </motion.h1>
+        
+        <motion.p 
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.3, duration: 0.8 }}
+          className="text-xl text-blue-100 mb-8 max-w-4xl mx-auto"
+        >
+          {heroSubtitle}
+        </motion.p>
 
-          {/* Subtle starfield dots */}
-          {Array.from({ length: 50 }, (_, i) => (
-            <motion.circle
-              key={`star-${i}`}
-              cx={Math.random() * 1200}
-              cy={Math.random() * 800}
-              r="0.5"
-              fill="#60A5FA"
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 0.3 }}
-              transition={{ 
-                delay: i * 0.1,
-                duration: 2,
-                repeat: shouldReduceMotion ? 0 : Infinity,
-                repeatType: "reverse",
-                repeatDelay: Math.random() * 5
-              }}
-            />
-          ))}
-        </svg>
-      </div>
-
-      {/* Floating Icons */}
-      {icons.map((Icon, i) => (
-        <FloatingIcon Icon={Icon} index={i} key={i} />
-      ))}
-
-      {/* Main Content Grid */}
-      <div className="relative z-20 w-full max-w-7xl px-4 sm:px-6 grid lg:grid-cols-2 gap-12 items-center">
-        {/* Left Content */}
-        <div className="text-left">
-          <motion.h1 
-            initial={{ opacity: 0, y: 30 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.8 }}
-            className="text-4xl sm:text-5xl lg:text-6xl font-extrabold text-white leading-tight mb-6"
-          >
-            {heroTitle}
-          </motion.h1>
-          
-          <motion.p 
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.3, duration: 0.8 }}
-            className="text-xl text-neutral-300 mb-8 max-w-2xl"
-          >
-            {heroSubtitle}
-          </motion.p>
-
-          {/* CTA Buttons */}
-          <motion.div 
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.6, duration: 0.8 }}
-            className="mb-8 flex flex-col sm:flex-row gap-4"
-          >
-            <a
-              href={primaryButtonHref}
-              className="inline-block px-8 py-4 bg-blue-600 text-white rounded-xl shadow-lg hover:bg-blue-700 transition-all duration-300 font-semibold text-lg hover:shadow-xl hover:scale-105 touch-target will-change-transform text-center"
-            >
-              {heroPrimaryButton}
-            </a>
-            <a
-              href="/reco"
-              className="inline-block px-8 py-4 bg-white/10 backdrop-blur-sm text-white border border-white/20 rounded-xl hover:bg-white/20 transition-all duration-300 font-semibold text-lg hover:shadow-xl hover:scale-105 touch-target will-change-transform text-center"
-            >
-              Get Recommendations
-            </a>
-          </motion.div>
-
-        </div>
-
-        {/* Right Content - Data Proof Box */}
-        <div className="flex justify-center lg:justify-end">
-          <motion.div
-            initial={{ opacity: 0, y: 30 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.5, duration: 0.8 }}
-            className="bg-white/10 backdrop-blur-sm rounded-2xl p-6 border border-white/20 max-w-md"
-          >
-            <h3 className="text-xl font-semibold text-white mb-4 text-center">
-              Data-Driven Results
-            </h3>
-            <div className="space-y-4">
-              <div className="text-sm text-blue-200">
-                <div className="font-medium text-white mb-1">Austria ranks among the top EU countries for innovation funding per capita</div>
-                <div className="text-xs text-gray-300">European Innovation Scoreboard</div>
-              </div>
-              <div className="text-sm text-blue-200">
-                <div className="font-medium text-white mb-1">90% of Austrian companies are SMEs — many rely on grants and co-funding</div>
-                <div className="text-xs text-gray-300">Statistik Austria, WKO</div>
-              </div>
-              <div className="text-sm text-blue-200">
-                <div className="font-medium text-white mb-1">Entrepreneurs with a business plan are 2x more likely to secure funding</div>
-                <div className="text-xs text-gray-300">HBR, OECD</div>
-              </div>
-              <div className="text-sm text-blue-200">
-                <div className="font-medium text-white mb-1">Horizon Europe provides €95B in funding until 2027</div>
-                <div className="text-xs text-gray-300">European Commission</div>
-              </div>
+        {/* 3-Step Process */}
+        <motion.div 
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.6, duration: 0.8 }}
+          className="mb-12"
+        >
+          <div className="flex flex-col sm:flex-row items-center justify-center gap-4 sm:gap-8 text-sm text-blue-200">
+            <div className="flex items-center gap-2">
+              <div className="w-2 h-2 bg-blue-400 rounded-full"></div>
+              <span>Answer a few practical questions</span>
             </div>
-          </motion.div>
-        </div>
+            <div className="hidden sm:block text-blue-400">→</div>
+            <div className="flex items-center gap-2">
+              <div className="w-2 h-2 bg-blue-400 rounded-full"></div>
+              <span>See matched programs</span>
+            </div>
+            <div className="hidden sm:block text-blue-400">→</div>
+            <div className="flex items-center gap-2">
+              <div className="w-2 h-2 bg-blue-400 rounded-full"></div>
+              <span>Export a funding-ready plan</span>
+            </div>
+          </div>
+        </motion.div>
+
+        {/* CTA Buttons */}
+        <motion.div 
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.9, duration: 0.8 }}
+          className="flex flex-col sm:flex-row gap-4 justify-center"
+        >
+          <a
+            href={primaryButtonHref}
+            className="inline-block px-8 py-4 bg-blue-600 text-white rounded-xl shadow-lg hover:bg-blue-700 transition-all duration-300 font-semibold text-lg hover:shadow-xl hover:scale-105 touch-target will-change-transform text-center"
+          >
+            {heroPrimaryButton}
+          </a>
+          <a
+            href="/reco"
+            className="inline-block px-8 py-4 bg-white/10 backdrop-blur-sm text-white border border-white/20 rounded-xl hover:bg-white/20 transition-all duration-300 font-semibold text-lg hover:shadow-xl hover:scale-105 touch-target will-change-transform text-center"
+          >
+            Get Recommendations
+          </a>
+        </motion.div>
       </div>
     </section>
   );
