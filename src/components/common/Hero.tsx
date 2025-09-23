@@ -15,7 +15,7 @@ const BlueprintGrid = memo(function BlueprintGrid() {
       {/* Deep blue gradient background */}
       <div className="absolute inset-0 bg-gradient-to-b from-slate-900 via-blue-900 to-slate-800" />
       
-      {/* Blueprint grid overlay */}
+      {/* Blueprint grid overlay - reduced opacity to ≤6% */}
       <div 
         className="absolute inset-0 opacity-[0.06]"
         style={{
@@ -23,16 +23,16 @@ const BlueprintGrid = memo(function BlueprintGrid() {
             repeating-linear-gradient(
               0deg,
               transparent,
-              transparent 56px,
-              #60A5FA 56px,
-              #60A5FA 57px
+              transparent 48px,
+              #60A5FA 48px,
+              #60A5FA 49px
             ),
             repeating-linear-gradient(
               90deg,
               transparent,
-              transparent 56px,
-              #60A5FA 56px,
-              #60A5FA 57px
+              transparent 48px,
+              #60A5FA 48px,
+              #60A5FA 49px
             )
           `,
         }}
@@ -46,16 +46,16 @@ const BlueprintGrid = memo(function BlueprintGrid() {
             repeating-linear-gradient(
               0deg,
               transparent,
-              transparent 40px,
-              #60A5FA 40px,
-              #60A5FA 41px
+              transparent 32px,
+              #60A5FA 32px,
+              #60A5FA 33px
             ),
             repeating-linear-gradient(
               90deg,
               transparent,
-              transparent 40px,
-              #60A5FA 40px,
-              #60A5FA 41px
+              transparent 32px,
+              #60A5FA 32px,
+              #60A5FA 33px
             )
           `,
         }}
@@ -64,118 +64,69 @@ const BlueprintGrid = memo(function BlueprintGrid() {
   );
 });
 
-// Right Column Animated User Flow Component
-const AnimatedUserFlow = memo(function AnimatedUserFlow() {
+// Plan Capsule Component
+const PlanCapsule = memo(function PlanCapsule() {
   const shouldReduceMotion = useReducedMotion();
-  const [currentChip, setCurrentChip] = useState(0);
-  
-  const fundingChips = ["Equity", "National/EU grants", "Bank loans & leasing", "Coaching"];
-  
+  const [isFlashed, setIsFlashed] = useState(false);
+
   useEffect(() => {
     if (shouldReduceMotion) return;
     
-    const interval = setInterval(() => {
-      setCurrentChip((prev) => (prev + 1) % fundingChips.length);
-    }, 2000);
+    const timer = setTimeout(() => {
+      setIsFlashed(true);
+      setTimeout(() => setIsFlashed(false), 140);
+    }, 1200); // After dot arrives
     
-    return () => clearInterval(interval);
-  }, [shouldReduceMotion, fundingChips.length]);
-
-  const steps = [
-    {
-      id: 1,
-      title: "Business idea → Model & strategy",
-      description: "Sketch your model, go-to-market & unit economics (start or import).",
-      delay: 0.1
-    },
-    {
-      id: 2,
-      title: "Find funding (via Recommendation Engine)",
-      description: "Equity · National/EU grants · Bank loans & leasing · Coaching",
-      delay: 0.2,
-      hasChips: true
-    },
-    {
-      id: 3,
-      title: "Build application-ready plan",
-      description: "Generate or upgrade a DE/EN plan tailored to the selected program/bank.",
-      delay: 0.3
-    },
-    {
-      id: 4,
-      title: "Export & apply",
-      description: "PDF/DOCX + submission checklist",
-      delay: 0.4
-    }
-  ];
+    return () => clearTimeout(timer);
+  }, [shouldReduceMotion]);
 
   return (
     <div className="relative">
-      {/* Animated Path */}
-      <div className="absolute left-6 top-8 bottom-8 w-0.5 bg-gradient-to-b from-blue-400 via-blue-500 to-blue-600 opacity-60">
-        <motion.div
-          className="absolute w-2 h-2 bg-blue-400 rounded-full -left-1.5"
-          initial={{ top: 0 }}
-          animate={shouldReduceMotion ? { top: "100%" } : { top: "100%" }}
-          transition={{ duration: 1.2, ease: "easeInOut", delay: 0.5 }}
-        />
-      </div>
-
-      <div className="space-y-6 pl-12">
-        {steps.map((step) => (
-          <motion.div
-            key={step.id}
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: step.delay, duration: 0.6 }}
-            className="bg-white/95 backdrop-blur-sm rounded-xl p-4 shadow-lg border border-white/20"
-            aria-label={`Step ${step.id}: ${step.title}`}
-          >
-            <div className="flex items-start gap-3">
-              <div className="w-8 h-8 bg-blue-600 text-white rounded-full flex items-center justify-center text-sm font-semibold flex-shrink-0">
-                {step.id}
-              </div>
-              <div className="flex-1">
-                <h3 className="text-sm font-semibold text-gray-800 mb-2">{step.title}</h3>
-                <p className="text-xs text-gray-600 mb-3">{step.description}</p>
-                
-                {step.hasChips && (
-                  <div className="flex flex-wrap gap-1">
-                    {fundingChips.map((chip, chipIndex) => (
-                      <span
-                        key={chip}
-                        className={`px-2 py-1 text-xs font-medium rounded-full transition-all duration-500 ${
-                          chipIndex === currentChip
-                            ? "bg-blue-100 text-blue-700 border border-blue-200"
-                            : "bg-gray-100 text-gray-600"
-                        }`}
-                      >
-                        {chip}
-                      </span>
-                    ))}
-                  </div>
-                )}
-              </div>
-            </div>
-          </motion.div>
-        ))}
-      </div>
+      {/* Plan Capsule Card */}
+      <motion.div
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ delay: 0.8, duration: 0.6 }}
+        className={`bg-white/95 backdrop-blur-sm rounded-xl p-6 shadow-lg border border-white/20 transition-all duration-140 ${
+          isFlashed ? 'shadow-blue-400/50 shadow-2xl' : ''
+        }`}
+        aria-label="Plan preview"
+      >
+        <h3 className="text-lg font-semibold text-gray-800 mb-4">Application-ready plan</h3>
+        <div className="space-y-2 text-sm text-gray-600">
+          <div className="h-3 bg-gray-200 rounded w-3/4"></div>
+          <div className="h-3 bg-gray-200 rounded w-1/2"></div>
+          <div className="h-3 bg-gray-200 rounded w-2/3"></div>
+        </div>
+      </motion.div>
+      
+      {/* PDF/DOCX Pill */}
+      <motion.div
+        initial={{ opacity: 0, y: 10 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ delay: 1.0, duration: 0.4 }}
+        className="mt-3 text-center"
+      >
+        <span className="inline-block px-3 py-1 text-xs font-medium text-gray-600 bg-gray-100 rounded-full">
+          PDF · DOCX
+        </span>
+      </motion.div>
     </div>
   );
 });
 
-// Animated Blueprint Lines Component
-const BlueprintLines = memo(function BlueprintLines() {
+// Single Line Funding Path Animation
+const FundingPathAnimation = memo(function FundingPathAnimation() {
   const shouldReduceMotion = useReducedMotion();
-  
+
   return (
-    <div className="absolute inset-0 pointer-events-none">
+    <div className="absolute inset-0 pointer-events-none" aria-hidden="true">
       <svg className="w-full h-full" viewBox="0 0 1200 800" preserveAspectRatio="xMidYMid slice">
-        {/* Line 1: Answer → Card A (Funding matches) */}
+        {/* Single S-curve path from mini steps to Plan Capsule */}
         <motion.path
-          d="M 200 400 Q 400 350 600 300 Q 800 250 900 200"
+          d="M 200 500 Q 400 450 600 400 Q 800 350 1000 300"
           fill="none"
-          stroke="url(#lineGradient)"
+          stroke="url(#pathGradient)"
           strokeWidth="2"
           initial={{ pathLength: 0, opacity: 0 }}
           animate={shouldReduceMotion ? { pathLength: 1, opacity: 0.7 } : { 
@@ -183,73 +134,47 @@ const BlueprintLines = memo(function BlueprintLines() {
             opacity: 0.7 
           }}
           transition={{ 
-            duration: 0.9, 
+            duration: 1.0, 
             ease: "easeOut",
-            delay: 0.2
+            delay: 0.12
           }}
           className="hidden md:block"
         />
         
-        {/* Line 2: See matches → Card B (Plan outline) */}
-        <motion.path
-          d="M 250 420 Q 450 370 650 320 Q 850 270 950 250"
-          fill="none"
-          stroke="url(#lineGradient)"
-          strokeWidth="2"
+        {/* Traveling dot */}
+        <motion.circle
+          cx="200"
+          cy="500"
+          r="3"
+          fill="url(#dotGradient)"
           initial={{ pathLength: 0, opacity: 0 }}
-          animate={shouldReduceMotion ? { pathLength: 1, opacity: 0.6 } : { 
+          animate={shouldReduceMotion ? { 
             pathLength: 1, 
-            opacity: 0.6 
-          }}
-          transition={{ 
-            duration: 1.1, 
-            ease: "easeInOut",
-            delay: 0.4
-          }}
-          className="hidden md:block"
-        />
-        
-        {/* Line 3: Build plan & export → Card C (Export) */}
-        <motion.path
-          d="M 300 440 Q 500 390 700 340 Q 900 290 1000 300"
-          fill="none"
-          stroke="url(#lineGradient)"
-          strokeWidth="2"
-          initial={{ pathLength: 0, opacity: 0 }}
-          animate={shouldReduceMotion ? { pathLength: 1, opacity: 0.5 } : { 
+            opacity: 0 
+          } : { 
             pathLength: 1, 
-            opacity: 0.5 
+            opacity: 1,
+            cx: [200, 1000],
+            cy: [500, 300]
           }}
           transition={{ 
-            duration: 0.8, 
+            duration: 1.0, 
             ease: "easeOut",
-            delay: 0.6
+            delay: 0.12
           }}
           className="hidden md:block"
-        />
-        
-        {/* Mobile static line */}
-        <motion.path
-          d="M 50 200 Q 200 250 350 300 Q 500 350 650 400"
-          fill="none"
-          stroke="url(#lineGradient)"
-          strokeWidth="1.5"
-          initial={{ pathLength: 0, opacity: 0 }}
-          animate={{ pathLength: 1, opacity: 0.6 }}
-          transition={{ 
-            duration: 0.8, 
-            ease: "easeOut",
-            delay: 0.3
-          }}
-          className="block md:hidden"
         />
         
         {/* Gradient definitions */}
         <defs>
-          <linearGradient id="lineGradient" x1="0%" y1="0%" x2="100%" y2="0%">
-            <stop offset="0%" stopColor="#8B5CF6" stopOpacity="0.7" />
-            <stop offset="50%" stopColor="#60A5FA" stopOpacity="0.8" />
-            <stop offset="100%" stopColor="#3B82F6" stopOpacity="0.6" />
+          <linearGradient id="pathGradient" x1="0%" y1="0%" x2="100%" y2="0%">
+            <stop offset="0%" stopColor="#3B82F6" stopOpacity="0.6" />
+            <stop offset="50%" stopColor="#60A5FA" stopOpacity="0.7" />
+            <stop offset="100%" stopColor="#8B5CF6" stopOpacity="0.6" />
+          </linearGradient>
+          <linearGradient id="dotGradient" x1="0%" y1="0%" x2="100%" y2="0%">
+            <stop offset="0%" stopColor="#60A5FA" stopOpacity="0.9" />
+            <stop offset="100%" stopColor="#3B82F6" stopOpacity="0.9" />
           </linearGradient>
         </defs>
       </svg>
@@ -257,13 +182,15 @@ const BlueprintLines = memo(function BlueprintLines() {
   );
 });
 
+
 export function Hero({
   primaryButtonHref = "/reco"
 }: HeroProps = {}) {
   // Locked copy as specified
   const heroTitle = "Freedom starts with a plan — let's build yours.";
-  const heroSubtitle = "Find funding matches and build the application-ready business plan made for grants, visas, or bank loans (DE/EN).";
+  const heroSubtitle = "Find suitable funding for your Idea/Business and create a customized Business Plan tailored to Grants, Investors, or Bank Loans (DE/EN).";
   const heroPrimaryButton = "Get funding matches";
+  const miniStepsText = "Idea → Funding → Plan → Apply";
 
   return (
     <section 
@@ -272,13 +199,13 @@ export function Hero({
     >
       {/* Background */}
       <BlueprintGrid />
-      <BlueprintLines />
+      <FundingPathAnimation />
 
       {/* Main Content */}
       <div className="relative z-20 w-full max-w-7xl px-4 py-24 md:py-32 mx-auto">
-        <div className="grid md:grid-cols-[1.1fr_0.9fr] gap-8 md:gap-10 items-center">
+        <div className="grid md:grid-cols-[7fr_5fr] xl:grid-cols-[8fr_4fr] gap-10 md:gap-12 items-center">
           
-          {/* Text Content - Left Column (55-60%) */}
+          {/* Text Content - Left Column (wider) */}
           <div className="text-left max-w-[60ch]">
             <motion.h1 
               initial={{ opacity: 0, y: 30 }}
@@ -299,20 +226,15 @@ export function Hero({
               {heroSubtitle}
             </motion.p>
 
-            {/* Step Progress Line */}
+            {/* Mini Steps Text (one line) */}
             <motion.div 
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.6, duration: 0.8 }}
               className="mb-8"
             >
-              <div className="flex items-center gap-2 text-sm text-blue-200">
-                <div className="w-2 h-2 bg-blue-400 rounded-full"></div>
-                <span>Answer</span>
-                <div className="w-1 h-1 bg-blue-400 rounded-full"></div>
-                <span>See matches</span>
-                <div className="w-1 h-1 bg-blue-400 rounded-full"></div>
-                <span>Build plan & export</span>
+              <div className="text-sm text-blue-200">
+                {miniStepsText}
               </div>
             </motion.div>
 
@@ -345,7 +267,7 @@ export function Hero({
               className="flex flex-wrap gap-2 mb-4"
             >
               <span className="px-3 py-1 text-xs font-medium text-blue-200 bg-blue-900/30 border border-blue-700/30 rounded-full">
-                Austria/EU-Call-specific
+                Austria/EU-call specific
               </span>
               <span className="px-3 py-1 text-xs font-medium text-blue-200 bg-blue-900/30 border border-blue-700/30 rounded-full">
                 German & English
@@ -366,56 +288,15 @@ export function Hero({
             </motion.p>
           </div>
 
-          {/* Visual Preview Column - Right Column (40-45%) */}
+          {/* Plan Capsule - Right Column */}
           <div className="hidden md:block">
-            <AnimatedUserFlow />
+            <PlanCapsule />
           </div>
         </div>
 
-        {/* Mobile Horizontal Stepper */}
+        {/* Mobile Plan Capsule */}
         <div className="md:hidden mt-12">
-          <div className="flex gap-4 overflow-x-auto pb-4 snap-x snap-mandatory">
-            {[
-              {
-                id: 1,
-                title: "Business idea → Model & strategy",
-                description: "Sketch your model, go-to-market & unit economics"
-              },
-              {
-                id: 2,
-                title: "Find funding",
-                description: "Equity · Grants · Bank loans · Coaching"
-              },
-              {
-                id: 3,
-                title: "Build application-ready plan",
-                description: "Generate DE/EN plan tailored to program"
-              },
-              {
-                id: 4,
-                title: "Export & apply",
-                description: "PDF/DOCX + submission checklist"
-              }
-            ].map((step, index) => (
-              <motion.div
-                key={step.id}
-                initial={{ opacity: 0, x: 30 }}
-                animate={{ opacity: 1, x: 0 }}
-                transition={{ delay: index * 0.1, duration: 0.6 }}
-                className="flex-shrink-0 w-64 bg-white/95 backdrop-blur-sm rounded-xl p-4 shadow-lg border border-white/20 snap-center"
-              >
-                <div className="flex items-start gap-3">
-                  <div className="w-8 h-8 bg-blue-600 text-white rounded-full flex items-center justify-center text-sm font-semibold flex-shrink-0">
-                    {step.id}
-                  </div>
-                  <div className="flex-1">
-                    <h3 className="text-sm font-semibold text-gray-800 mb-1">{step.title}</h3>
-                    <p className="text-xs text-gray-600">{step.description}</p>
-                  </div>
-                </div>
-              </motion.div>
-            ))}
-          </div>
+          <PlanCapsule />
         </div>
       </div>
     </section>
