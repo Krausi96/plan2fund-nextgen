@@ -11,9 +11,7 @@ const planTypes = [
       "structured financials template", 
       "eligibility alignment",
       "PDF/DOCX export"
-    ],
-    cta: "See details",
-    href: "/pricing#plans"
+    ]
   },
   {
     id: "upgrade",
@@ -25,23 +23,19 @@ const planTypes = [
       "for aws/FFG/bank/visa",
       "rewriting edits",
       "PDF/DOCX export"
-    ],
-    cta: "Upload draft",
-    href: "/pricing#plans"
+    ]
   },
   {
     id: "strategy",
     title: "🧩 Strategy & Modelling Plan",
     subtitle: "4–8 pages",
-    description: "Best for: early-stage ideas, pivots, consulting clients",
+    description: "Best for: early-stage ideas, pivots, consulting",
     features: [
       "business model & GTM outline",
       "unit economics sketch",
-      "next-step plan",
+      "next steps",
       "upgrade path to full plan"
-    ],
-    cta: "Start strategy plan",
-    href: "/pricing#plans"
+    ]
   }
 ];
 
@@ -63,16 +57,17 @@ export function PlanTypes() {
 
         <div className="grid md:grid-cols-3 gap-6">
           {planTypes.map((plan, index) => (
-            <motion.div
+            <motion.a
               key={plan.id}
+              href="/pricing#plans"
               initial={{ opacity: 0, y: 30 }}
               whileInView={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.6, delay: index * 0.1 }}
               viewport={{ once: true }}
-              className="bg-white rounded-xl p-6 shadow-sm border border-gray-200 hover:shadow-md transition-shadow duration-300"
+              className="block bg-white rounded-xl p-6 shadow-sm border border-gray-200 hover:shadow-md hover:border-blue-300 transition-all duration-300 cursor-pointer group"
             >
               <div className="mb-4">
-                <h3 className="text-lg font-semibold text-neutral-900 mb-1">
+                <h3 className="text-lg font-semibold text-neutral-900 mb-1 group-hover:text-blue-600 transition-colors">
                   {plan.title}
                 </h3>
                 {plan.subtitle && (
@@ -92,16 +87,25 @@ export function PlanTypes() {
                   ))}
                 </ul>
               </div>
-
-              <a
-                href={plan.href}
-                className="block w-full px-4 py-2 bg-blue-600 text-white rounded-lg font-semibold text-center hover:bg-blue-700 transition-colors duration-300"
-              >
-                {plan.cta} →
-              </a>
-            </motion.div>
+            </motion.a>
           ))}
         </div>
+
+        {/* Single Section CTA */}
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.6, delay: 0.4 }}
+          viewport={{ once: true }}
+          className="text-center mt-8"
+        >
+          <a
+            href="/pricing#plans"
+            className="inline-block px-6 py-3 bg-blue-600 text-white rounded-lg font-semibold hover:bg-blue-700 transition-colors duration-300"
+          >
+            Compare plans →
+          </a>
+        </motion.div>
       </div>
     </section>
   );

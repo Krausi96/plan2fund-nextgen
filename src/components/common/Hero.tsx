@@ -64,87 +64,102 @@ const BlueprintGrid = memo(function BlueprintGrid() {
   );
 });
 
-// Right Column Preview Cards Component
-const PreviewCards = memo(function PreviewCards() {
+// Right Column Animated User Flow Component
+const AnimatedUserFlow = memo(function AnimatedUserFlow() {
   const shouldReduceMotion = useReducedMotion();
   const [currentChip, setCurrentChip] = useState(0);
   
-  const fundingChips = ["Bank Loans", "Grants & Public Funding", "EU funding programs", "Coaching"];
+  const fundingChips = ["Equity", "National/EU grants", "Bank loans & leasing", "Coaching"];
   
   useEffect(() => {
     if (shouldReduceMotion) return;
     
     const interval = setInterval(() => {
       setCurrentChip((prev) => (prev + 1) % fundingChips.length);
-    }, 6000);
+    }, 2000);
     
     return () => clearInterval(interval);
   }, [shouldReduceMotion, fundingChips.length]);
 
+  const steps = [
+    {
+      id: 1,
+      title: "Business idea → Model & strategy",
+      description: "Sketch your model, go-to-market & unit economics (start or import).",
+      delay: 0.1
+    },
+    {
+      id: 2,
+      title: "Find funding (via Recommendation Engine)",
+      description: "Equity · National/EU grants · Bank loans & leasing · Coaching",
+      delay: 0.2,
+      hasChips: true
+    },
+    {
+      id: 3,
+      title: "Build application-ready plan",
+      description: "Generate or upgrade a DE/EN plan tailored to the selected program/bank.",
+      delay: 0.3
+    },
+    {
+      id: 4,
+      title: "Export & apply",
+      description: "PDF/DOCX + submission checklist",
+      delay: 0.4
+    }
+  ];
+
   return (
-    <div className="space-y-4">
-      {/* Card A - Funding matches */}
-      <motion.div
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ delay: 0.4, duration: 0.6 }}
-        className="bg-white/95 backdrop-blur-sm rounded-xl p-4 shadow-lg border border-white/20"
-      >
-        <h3 className="text-sm font-semibold text-gray-800 mb-3">Funding matches</h3>
-        <div className="flex flex-wrap gap-2">
-          {fundingChips.map((chip, index) => (
-            <span
-              key={chip}
-              className={`px-3 py-1 text-xs font-medium rounded-full transition-all duration-500 ${
-                index === currentChip
-                  ? "bg-blue-100 text-blue-700 border border-blue-200"
-                  : "bg-gray-100 text-gray-600"
-              }`}
-            >
-              {chip}
-            </span>
-          ))}
-        </div>
-      </motion.div>
+    <div className="relative">
+      {/* Animated Path */}
+      <div className="absolute left-6 top-8 bottom-8 w-0.5 bg-gradient-to-b from-blue-400 via-blue-500 to-blue-600 opacity-60">
+        <motion.div
+          className="absolute w-2 h-2 bg-blue-400 rounded-full -left-1.5"
+          initial={{ top: 0 }}
+          animate={shouldReduceMotion ? { top: "100%" } : { top: "100%" }}
+          transition={{ duration: 1.2, ease: "easeInOut", delay: 0.5 }}
+        />
+      </div>
 
-      {/* Card B - Plan outline */}
-      <motion.div
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ delay: 0.6, duration: 0.6 }}
-        className="bg-white/95 backdrop-blur-sm rounded-xl p-4 shadow-lg border border-white/20"
-      >
-        <h3 className="text-sm font-semibold text-gray-800 mb-3">Plan outline</h3>
-        <div className="space-y-2">
-          {["Executive Summary", "Market Analysis", "Product & Service", "Team & Organization", "Financials"].map((section, index) => (
-            <motion.div
-              key={section}
-              initial={{ width: 0 }}
-              animate={{ width: "100%" }}
-              transition={{ 
-                delay: 0.8 + index * 0.1, 
-                duration: 1,
-                ease: "easeOut"
-              }}
-              className="h-2 bg-gradient-to-r from-blue-200 to-blue-300 rounded-full"
-            />
-          ))}
-        </div>
-      </motion.div>
-
-      {/* Card C - Export */}
-      <motion.div
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ delay: 0.8, duration: 0.6 }}
-        className="bg-white/95 backdrop-blur-sm rounded-xl p-3 shadow-lg border border-white/20 hover:shadow-xl transition-shadow"
-      >
-        <div className="flex items-center justify-center gap-4 text-sm text-gray-600">
-          <span className="font-medium">PDF</span>
-          <div className="w-px h-4 bg-gray-300"></div>
-          <span className="font-medium">DOCX</span>
-        </div>
-      </motion.div>
+      <div className="space-y-6 pl-12">
+        {steps.map((step) => (
+          <motion.div
+            key={step.id}
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: step.delay, duration: 0.6 }}
+            className="bg-white/95 backdrop-blur-sm rounded-xl p-4 shadow-lg border border-white/20"
+            aria-label={`Step ${step.id}: ${step.title}`}
+          >
+            <div className="flex items-start gap-3">
+              <div className="w-8 h-8 bg-blue-600 text-white rounded-full flex items-center justify-center text-sm font-semibold flex-shrink-0">
+                {step.id}
+              </div>
+              <div className="flex-1">
+                <h3 className="text-sm font-semibold text-gray-800 mb-2">{step.title}</h3>
+                <p className="text-xs text-gray-600 mb-3">{step.description}</p>
+                
+                {step.hasChips && (
+                  <div className="flex flex-wrap gap-1">
+                    {fundingChips.map((chip, chipIndex) => (
+                      <span
+                        key={chip}
+                        className={`px-2 py-1 text-xs font-medium rounded-full transition-all duration-500 ${
+                          chipIndex === currentChip
+                            ? "bg-blue-100 text-blue-700 border border-blue-200"
+                            : "bg-gray-100 text-gray-600"
+                        }`}
+                      >
+                        {chip}
+                      </span>
+                    ))}
+                  </div>
+                )}
+              </div>
+            </div>
+          </motion.div>
+        ))}
+      </div>
     </div>
   );
 });
@@ -261,7 +276,7 @@ export function Hero({
 
       {/* Main Content */}
       <div className="relative z-20 w-full max-w-7xl px-4 py-24 md:py-32 mx-auto">
-        <div className="grid md:grid-cols-[1.15fr_0.85fr] gap-8 md:gap-12 items-start">
+        <div className="grid md:grid-cols-[1.1fr_0.9fr] gap-8 md:gap-10 items-center">
           
           {/* Text Content - Left Column (55-60%) */}
           <div className="text-left max-w-[60ch]">
@@ -327,7 +342,7 @@ export function Hero({
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 1.2, duration: 0.8 }}
-              className="flex flex-wrap gap-2"
+              className="flex flex-wrap gap-2 mb-4"
             >
               <span className="px-3 py-1 text-xs font-medium text-blue-200 bg-blue-900/30 border border-blue-700/30 rounded-full">
                 Austria/EU-Call-specific
@@ -339,11 +354,67 @@ export function Hero({
                 Start free
               </span>
             </motion.div>
+
+            {/* Safety Microcopy */}
+            <motion.p 
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 1.4, duration: 0.8 }}
+              className="text-xs text-blue-200/80"
+            >
+              We help you prepare your application; decisions are made by the providers.
+            </motion.p>
           </div>
 
           {/* Visual Preview Column - Right Column (40-45%) */}
           <div className="hidden md:block">
-            <PreviewCards />
+            <AnimatedUserFlow />
+          </div>
+        </div>
+
+        {/* Mobile Horizontal Stepper */}
+        <div className="md:hidden mt-12">
+          <div className="flex gap-4 overflow-x-auto pb-4 snap-x snap-mandatory">
+            {[
+              {
+                id: 1,
+                title: "Business idea → Model & strategy",
+                description: "Sketch your model, go-to-market & unit economics"
+              },
+              {
+                id: 2,
+                title: "Find funding",
+                description: "Equity · Grants · Bank loans · Coaching"
+              },
+              {
+                id: 3,
+                title: "Build application-ready plan",
+                description: "Generate DE/EN plan tailored to program"
+              },
+              {
+                id: 4,
+                title: "Export & apply",
+                description: "PDF/DOCX + submission checklist"
+              }
+            ].map((step, index) => (
+              <motion.div
+                key={step.id}
+                initial={{ opacity: 0, x: 30 }}
+                animate={{ opacity: 1, x: 0 }}
+                transition={{ delay: index * 0.1, duration: 0.6 }}
+                className="flex-shrink-0 w-64 bg-white/95 backdrop-blur-sm rounded-xl p-4 shadow-lg border border-white/20 snap-center"
+              >
+                <div className="flex items-start gap-3">
+                  <div className="w-8 h-8 bg-blue-600 text-white rounded-full flex items-center justify-center text-sm font-semibold flex-shrink-0">
+                    {step.id}
+                  </div>
+                  <div className="flex-1">
+                    <h3 className="text-sm font-semibold text-gray-800 mb-1">{step.title}</h3>
+                    <p className="text-xs text-gray-600">{step.description}</p>
+                  </div>
+                </div>
+              </motion.div>
+            ))}
           </div>
         </div>
       </div>

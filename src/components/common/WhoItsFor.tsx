@@ -1,37 +1,36 @@
 import { motion } from "framer-motion";
 
-const audiences = [
+const personas = [
   {
-    title: "Visa Applications",
-    description: "Create professional business plans for visa applications like RWR and Freelance Permits.",
-    features: ["RWR visa support", "Freelance permit applications", "Business plan compliance"],
+    title: "First-time founders / Solopreneurs",
+    description: "Go from idea to funding-ready plan with Austria/EU awareness.",
+    features: ["Quick funding matches", "DE/EN business plans", "Austria/EU programs"],
     color: "text-blue-600",
     bgColor: "bg-blue-50",
-    emoji: "🗂",
+    emoji: "🚀",
+    badge: "Primary",
+    href: "/reco",
+    isPrimary: true
   },
   {
-    title: "Grants & Public Funding",
-    description: "Access Austrian and EU funding programs including AWS PreSeed, FFG, and Horizon Europe.",
-    features: ["AWS PreSeed funding", "FFG research grants", "EU startup programs"],
+    title: "SME (light)",
+    description: "Clean, bank-friendly plans for expansion or innovation.",
+    features: ["Bank loan applications", "Simple grant programs", "SME presets"],
     color: "text-green-600",
     bgColor: "bg-green-50",
-    emoji: "🧬",
+    emoji: "🏢",
+    href: "/reco?type=bank",
+    isPrimary: false
   },
   {
-    title: "Bank Loans or Leasing",
-    description: "Structured business plans formatted to meet financial standards for traditional financing.",
-    features: ["Bank loan applications", "Leasing agreements", "Financial compliance"],
+    title: "Partners — Banks / Advisors / Universities",
+    description: "Share the guided planner with clients; reduce back-and-forth.",
+    features: ["Client onboarding", "Reduced back-and-forth", "Partner tools"],
     color: "text-purple-600",
     bgColor: "bg-purple-50",
-    emoji: "📊",
-  },
-  {
-    title: "Startup, Coaching or Projects",
-    description: "Support for startup ideas, self-employment, or consultant-supported business projects.",
-    features: ["Startup projects", "Self-employment plans", "Consultant support"],
-    color: "text-orange-600",
-    bgColor: "bg-orange-50",
-    emoji: "👥",
+    emoji: "🤝",
+    href: "/about#partners",
+    isPrimary: false
   },
 ];
 
@@ -51,8 +50,8 @@ export function WhoItsFor() {
           </h2>
         </motion.div>
 
-        <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-8">
-          {audiences.map((audience, index) => (
+        <div className="grid md:grid-cols-3 gap-8">
+          {personas.map((persona, index) => (
             <motion.div
               key={index}
               initial={{ opacity: 0, y: 30 }}
@@ -61,28 +60,34 @@ export function WhoItsFor() {
               viewport={{ once: true }}
               className="group"
             >
-              <div className="card-hover p-6 h-full flex flex-col relative group">
+              <div className={`p-6 h-full flex flex-col relative group rounded-xl border-2 transition-all duration-300 ${
+                persona.isPrimary 
+                  ? "border-blue-200 bg-blue-50/50 hover:border-blue-300 hover:shadow-lg" 
+                  : "border-gray-200 bg-white hover:border-gray-300 hover:shadow-md"
+              }`}>
+                {/* Badge for Primary */}
+                {persona.badge && (
+                  <div className="absolute top-4 right-4">
+                    <span className="bg-blue-600 text-white text-xs px-2 py-1 rounded-full font-medium">
+                      {persona.badge}
+                    </span>
+                  </div>
+                )}
+                
                 {/* Emoji */}
-                <div className="text-4xl mb-4 group-hover:scale-110 transition-transform duration-300">{audience.emoji}</div>
+                <div className="text-4xl mb-4 group-hover:scale-110 transition-transform duration-300">{persona.emoji}</div>
                 
                 {/* Content */}
                 <h3 className="text-xl font-semibold text-neutral-900 mb-3 group-hover:text-blue-600 transition-colors duration-300">
-                  {audience.title}
+                  {persona.title}
                 </h3>
                 <p className="text-neutral-600 mb-4 leading-relaxed flex-grow group-hover:text-neutral-700 transition-colors duration-300">
-                  {audience.description}
+                  {persona.description}
                 </p>
-                
-                {/* Hover Information Tooltip */}
-                <div className="absolute top-4 right-4 opacity-0 group-hover:opacity-100 transition-opacity duration-300">
-                  <div className="bg-blue-600 text-white text-xs px-2 py-1 rounded-full">
-                    Click to explore
-                  </div>
-                </div>
                 
                 {/* Features */}
                 <ul className="space-y-2 mb-6">
-                  {audience.features.map((feature, featureIndex) => (
+                  {persona.features.map((feature, featureIndex) => (
                     <li key={featureIndex} className="flex items-center text-sm text-neutral-600">
                       <svg className="w-4 h-4 text-green-500 mr-2 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
                         <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
@@ -94,14 +99,11 @@ export function WhoItsFor() {
                 
                 {/* CTA */}
                 <a 
-                  href={audience.title === "Bank Loans or Leasing" ? "/for?tab=banks" : 
-                        audience.title === "Grants & Public Funding" ? "/reco" :
-                        audience.title === "Visa Applications" ? "/for?tab=startups" :
-                        "/for"}
-                  className={`w-full px-4 py-2 ${audience.bgColor} ${audience.color} rounded-lg font-semibold text-center hover:opacity-80 transition-opacity group-hover:scale-105 transform transition-transform`}
-                  title={`Learn more about ${audience.title.toLowerCase()}`}
+                  href={persona.href}
+                  className={`w-full px-4 py-2 ${persona.bgColor} ${persona.color} rounded-lg font-semibold text-center hover:opacity-80 transition-opacity group-hover:scale-105 transform transition-transform`}
+                  title={`Learn more about ${persona.title.toLowerCase()}`}
                 >
-                  Learn more →
+                  {persona.title.includes("Partners") ? "For partners" : "See matches"} →
                 </a>
               </div>
             </motion.div>
