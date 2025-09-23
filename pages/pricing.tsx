@@ -82,7 +82,7 @@ export default function Pricing() {
           }}
           secondaryAction={{
             label: t('cta.learnMore'),
-            href: "/features"
+            href: "/about"
           }}
         />
       </main>
