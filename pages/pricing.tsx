@@ -354,15 +354,6 @@ export default function Pricing() {
             href: "/about"
           }}
         />
-
-        {/* Disclaimer Footer */}
-        <div className="bg-gray-50 py-8">
-          <div className="max-w-4xl mx-auto px-4 text-center">
-            <p className="text-sm text-gray-600">
-              We help you prepare your application; decisions are made by the providers.
-            </p>
-          </div>
-        </div>
       </main>
     </>
   );

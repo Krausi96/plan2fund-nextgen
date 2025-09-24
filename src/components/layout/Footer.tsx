@@ -50,8 +50,15 @@ export default function Footer() {
           </div>
         </div>
 
+        {/* Disclaimer */}
+        <div className="mt-8 pt-6 border-t border-gray-200 text-center">
+          <p className="text-sm text-gray-600">
+            We help you prepare your application; decisions are made by the providers.
+          </p>
+        </div>
+
         {/* Bottom Bar */}
-        <div className="mt-12 pt-8 border-t border-gray-200 flex flex-col md:flex-row justify-between items-center gap-4">
+        <div className="mt-8 pt-6 border-t border-gray-200 flex flex-col md:flex-row justify-between items-center gap-4">
           <div className="text-sm text-gray-500">
             © {new Date().getFullYear()} Plan2Fund. All rights reserved.
           </div>
