@@ -58,7 +58,7 @@ const BlueprintGrid = memo(function BlueprintGrid() {
 });
 
 // Simple User Flow Animation Component
-const UserFlowAnimation = memo(function UserFlowAnimation() {
+const UserFlowAnimation = memo(function UserFlowAnimation({ onStepClick }: { onStepClick?: (stepId: number) => void }) {
   const shouldReduceMotion = useReducedMotion();
   const [currentStep, setCurrentStep] = useState(0);
 
@@ -67,29 +67,36 @@ const UserFlowAnimation = memo(function UserFlowAnimation() {
       id: 1, 
       title: "Idea", 
       icon: "💡", 
-      description: "Your business concept",
+      description: "Define Business Concept",
       color: "from-blue-500 to-cyan-500"
     },
     { 
       id: 2, 
-      title: "Find Programs", 
-      icon: "🔍", 
-      description: "Discover funding opportunities",
+      title: "Business Model", 
+      icon: "🏢", 
+      description: "Prepare Market Entry",
       color: "from-green-500 to-emerald-500"
     },
     { 
       id: 3, 
-      title: "Create Plan", 
-      icon: "📝", 
-      description: "Build your business plan",
+      title: "Funding", 
+      icon: "🔍", 
+      description: "Find Funding Options",
       color: "from-purple-500 to-pink-500"
     },
     { 
       id: 4, 
-      title: "Submit & Track", 
-      icon: "🚀", 
-      description: "Apply and get funding",
+      title: "Business Plan", 
+      icon: "📝", 
+      description: "Build your Business Plan",
       color: "from-orange-500 to-red-500"
+    },
+    { 
+      id: 5, 
+      title: "Application", 
+      icon: "💰", 
+      description: "Apply for funding",
+      color: "from-yellow-500 to-orange-500"
     }
   ];
 
@@ -108,39 +115,46 @@ const UserFlowAnimation = memo(function UserFlowAnimation() {
     <div className="relative w-full h-full flex items-center justify-center p-2">
       <div className="relative w-full max-w-[200px]">
         {/* Simple Flow Container */}
-        <div className="flex flex-col items-center space-y-3">
+        <div className="flex flex-col items-center space-y-2">
           {/* Flow Steps */}
           {flowSteps.map((step, index) => (
-            <motion.div
-              key={step.id}
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ 
-                delay: shouldReduceMotion ? 0 : 0.2 + (index * 0.1),
-                duration: 0.5
-              }}
-              className={`relative p-2 rounded-lg bg-white/10 backdrop-blur-md border transition-all duration-300 ${
-                currentStep === index 
-                  ? 'border-white/60 bg-white/20' 
-                  : 'border-white/20'
-              }`}
-              style={{ width: '140px' }}
-            >
-              {/* Step Icon */}
-              <div className={`w-6 h-6 mx-auto mb-1 bg-gradient-to-br ${step.color} rounded-full flex items-center justify-center text-white text-xs font-bold`}>
-                {step.icon}
-              </div>
+            <div key={step.id} className="relative flex flex-col items-center">
+              <motion.div
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ 
+                  delay: shouldReduceMotion ? 0 : 0.2 + (index * 0.1),
+                  duration: 0.5
+                }}
+                className={`relative p-2 rounded-lg bg-white/10 backdrop-blur-md border transition-all duration-300 cursor-pointer hover:bg-white/20 hover:border-white/40 ${
+                  currentStep === index 
+                    ? 'border-white/60 bg-white/20' 
+                    : 'border-white/20'
+                }`}
+                style={{ width: '140px' }}
+                onClick={() => onStepClick?.(step.id)}
+              >
+                {/* Step Icon */}
+                <div className={`w-6 h-6 mx-auto mb-1 bg-gradient-to-br ${step.color} rounded-full flex items-center justify-center text-white text-xs font-bold`}>
+                  {step.icon}
+                </div>
+                
+                {/* Step Content */}
+                <div className="text-center">
+                  <h3 className="text-xs font-bold text-white mb-1">
+                    {step.title}
+                  </h3>
+                  <p className="text-xs text-blue-200 leading-tight">
+                    {step.description}
+                  </p>
+                </div>
+              </motion.div>
               
-              {/* Step Content */}
-              <div className="text-center">
-                <h3 className="text-xs font-bold text-white mb-1">
-                  {step.title}
-                </h3>
-                <p className="text-xs text-blue-200 leading-tight">
-                  {step.description}
-                </p>
-              </div>
-            </motion.div>
+              {/* Connecting Line */}
+              {index < flowSteps.length - 1 && (
+                <div className="w-0.5 h-4 bg-white/30 mt-2"></div>
+              )}
+            </div>
           ))}
         </div>
       </div>
@@ -150,10 +164,12 @@ const UserFlowAnimation = memo(function UserFlowAnimation() {
 
 interface HeroProps {
   primaryButtonHref?: string;
+  onStepClick?: (stepId: number) => void;
 }
 
 export function Hero({
-  primaryButtonHref = "/reco"
+  primaryButtonHref = "/reco",
+  onStepClick
 }: HeroProps = {}) {
   // Locked copy as specified
   const heroTitle = "Freedom starts with a plan — let's build yours.";
@@ -179,7 +195,7 @@ export function Hero({
               initial={{ opacity: 0, y: 30 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.8 }}
-              className="text-2xl sm:text-3xl lg:text-4xl xl:text-5xl font-extrabold text-white leading-tight mb-6 text-wrap-balance tracking-tight xl:tracking-tighter pr-0 md:pr-4 lg:pr-8"
+              className="text-3xl sm:text-4xl lg:text-5xl xl:text-6xl font-extrabold text-white leading-tight mb-6 text-wrap-balance tracking-tight xl:tracking-tighter pr-0 md:pr-4 lg:pr-8"
               style={{ textWrap: 'balance' }}
             >
               {heroTitle}
@@ -233,13 +249,13 @@ export function Hero({
 
           {/* User Flow Animation - Right Column */}
           <div className="hidden md:block w-full">
-            <UserFlowAnimation />
+            <UserFlowAnimation onStepClick={onStepClick} />
           </div>
         </div>
 
         {/* Mobile User Flow */}
         <div className="md:hidden mt-12">
-          <UserFlowAnimation />
+          <UserFlowAnimation onStepClick={onStepClick} />
         </div>
       </div>
     </section>

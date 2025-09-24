@@ -9,14 +9,39 @@ import SEOHead from "@/components/common/SEOHead"
 import { useI18n } from "@/contexts/I18nContext"
 import { useEffect } from "react"
 import analytics from "@/lib/analytics"
+import { useRouter } from "next/router"
 
 export default function Home() {
   const { t } = useI18n();
+  const router = useRouter();
 
   useEffect(() => {
     analytics.trackPageView('/', 'Home');
     analytics.trackUserAction('home_page_viewed');
   }, []);
+
+  const handleStepClick = (stepId: number) => {
+    // Map step IDs to different actions
+    switch (stepId) {
+      case 1: // Idea - Define Business Concept
+        router.push('/editor');
+        break;
+      case 2: // Business Model - Prepare Market Entry
+        router.push('/editor');
+        break;
+      case 3: // Funding - Find Funding Options
+        router.push('/reco');
+        break;
+      case 4: // Business Plan - Build your Business Plan
+        router.push('/editor');
+        break;
+      case 5: // Application - Apply for funding
+        router.push('/reco');
+        break;
+      default:
+        router.push('/reco');
+    }
+  };
 
   return (
     <>
@@ -26,7 +51,7 @@ export default function Home() {
       />
       
       <main className="flex flex-col">
-        <Hero />
+        <Hero onStepClick={handleStepClick} />
         <PlanTypes />
         <WhoItsFor />
         <WhyAustria />
