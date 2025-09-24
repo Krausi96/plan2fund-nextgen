@@ -122,12 +122,6 @@ export function PlanTypes() {
           </a>
         </motion.div>
 
-        {/* Disclaimer Footer */}
-        <div className="mt-12 pt-8 border-t border-gray-200">
-          <p className="text-sm text-gray-600 text-center">
-            We help you prepare your application; decisions are made by the providers.
-          </p>
-        </div>
       </div>
     </section>
   );
