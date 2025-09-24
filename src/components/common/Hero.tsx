@@ -160,36 +160,35 @@ const UserFlowAnimation = memo(function UserFlowAnimation() {
 
         {/* Main Flow Container */}
         <div className="relative z-10">
-          {/* Central Hub */}
-          <motion.div
-            initial={{ scale: 0, rotate: -180 }}
-            animate={{ scale: 1, rotate: 0 }}
-            transition={{ 
-              delay: shouldReduceMotion ? 0 : 0.5,
-              duration: 0.8,
-              type: "spring",
-              stiffness: 100
-            }}
-            className="w-20 h-20 mx-auto mb-8 bg-gradient-to-br from-blue-600 via-purple-600 to-pink-600 rounded-full flex items-center justify-center shadow-2xl"
-          >
-            <motion.div
-              animate={{ rotate: 360 }}
-              transition={{ 
-                duration: 30, // Slower rotation for more appealing effect
-                repeat: Infinity,
-                ease: "linear"
-              }}
-              className="text-2xl"
-            >
-              ⚡
-            </motion.div>
-          </motion.div>
-
           {/* Flow Steps in Circular Layout */}
-          <div className="relative">
+          <div className="relative w-full h-80 flex items-center justify-center">
+            {/* Central Hub */}
+            <motion.div
+              initial={{ scale: 0, rotate: -180 }}
+              animate={{ scale: 1, rotate: 0 }}
+              transition={{ 
+                delay: shouldReduceMotion ? 0 : 0.5,
+                duration: 0.8,
+                type: "spring",
+                stiffness: 100
+              }}
+              className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-12 h-12 bg-gradient-to-br from-blue-600 via-purple-600 to-pink-600 rounded-full flex items-center justify-center shadow-2xl z-10"
+            >
+              <motion.div
+                animate={{ rotate: 360 }}
+                transition={{ 
+                  duration: 20, // Faster rotation for more dynamic effect
+                  repeat: Infinity,
+                  ease: "linear"
+                }}
+                className="text-lg"
+              >
+                ⚡
+              </motion.div>
+            </motion.div>
             {flowSteps.map((step, index) => {
               const angle = (index * 72) - 90; // 72 degrees apart for 5 steps (360/5)
-              const radius = 140; // Slightly larger radius for 5 steps
+              const radius = 100; // Smaller radius for better fit
               const x = Math.cos(angle * Math.PI / 180) * radius;
               const y = Math.sin(angle * Math.PI / 180) * radius;
               
@@ -223,17 +222,17 @@ const UserFlowAnimation = memo(function UserFlowAnimation() {
                     <motion.div
                       whileHover={{ scale: 1.05 }}
                       animate={{
-                        scale: currentStep === index ? [1, 1.05, 1] : 1,
+                        scale: currentStep === index ? [1, 1.08, 1] : 1,
                       }}
                       transition={{
-                        duration: 6, // 6 seconds for full breathing cycle
+                        duration: 4, // 4 seconds for full breathing cycle
                         repeat: currentStep === index ? Infinity : 0,
                         ease: "easeInOut"
                       }}
-                      className={`relative p-4 rounded-2xl bg-white/10 backdrop-blur-md border border-white/20 shadow-xl ${step.bgGlow} transition-all duration-500 ${
+                      className={`relative p-3 rounded-xl bg-white/10 backdrop-blur-md border border-white/20 shadow-xl ${step.bgGlow} transition-all duration-500 ${
                         currentStep === index ? 'ring-2 ring-white/50' : ''
                       }`}
-                      style={{ width: '160px' }}
+                      style={{ width: '140px' }}
                     >
                       {/* Step Icon */}
                       <motion.div
@@ -316,11 +315,11 @@ export function Hero({
       <BlueprintGrid />
 
       {/* Main Content */}
-      <div className="relative z-20 w-full max-w-9xl px-4 py-16 md:py-20 mx-auto">
-        <div className="grid md:grid-cols-[9fr_3fr] xl:grid-cols-[10fr_2fr] gap-8 md:gap-12 items-center">
+      <div className="relative z-20 w-full max-w-7xl px-4 py-16 md:py-20 mx-auto">
+        <div className="grid md:grid-cols-[6fr_6fr] xl:grid-cols-[7fr_5fr] gap-8 md:gap-12 items-center">
           
-          {/* Text Content - Left Column (even wider) */}
-          <div className="text-left max-w-[95ch]">
+          {/* Text Content - Left Column (balanced) */}
+          <div className="text-left max-w-[65ch]">
             <motion.h1 
               initial={{ opacity: 0, y: 30 }}
               animate={{ opacity: 1, y: 0 }}
