@@ -1,5 +1,5 @@
 ﻿import { motion, useReducedMotion } from "framer-motion";
-import { memo } from "react";
+import { memo, useState, useEffect } from "react";
 
 interface HeroProps {
   title?: string;
@@ -64,91 +64,207 @@ const BlueprintGrid = memo(function BlueprintGrid() {
   );
 });
 
-// User Flow Animation Component
+// Advanced User Flow Animation Component
 const UserFlowAnimation = memo(function UserFlowAnimation() {
   const shouldReduceMotion = useReducedMotion();
+  const [currentStep, setCurrentStep] = useState(0);
 
   const flowSteps = [
-    { id: 1, title: "Idea", icon: "💡", description: "Your business concept" },
-    { id: 2, title: "Business Model", icon: "📊", description: "One of our products" },
-    { id: 3, title: "Find Funding", icon: "🔍", description: "Program types" },
-    { id: 4, title: "Create Plan", icon: "📝", description: "Business plan" },
-    { id: 5, title: "Get Funding", icon: "💰", description: "Success!" }
+    { 
+      id: 1, 
+      title: "Find Programs", 
+      icon: "🔍", 
+      description: "Answer questions → Discover 214+ funding programs",
+      color: "from-blue-500 to-cyan-500",
+      bgGlow: "bg-blue-500/20"
+    },
+    { 
+      id: 2, 
+      title: "Draft Plan", 
+      icon: "📝", 
+      description: "Program-aware editor → Create plan in <30 min",
+      color: "from-green-500 to-emerald-500",
+      bgGlow: "bg-green-500/20"
+    },
+    { 
+      id: 3, 
+      title: "Submit & Track", 
+      icon: "🚀", 
+      description: "Submit application → Track progress to success",
+      color: "from-purple-500 to-pink-500",
+      bgGlow: "bg-purple-500/20"
+    }
   ];
 
+  // Auto-advance through steps
+  useEffect(() => {
+    if (shouldReduceMotion) return;
+    
+    const interval = setInterval(() => {
+      setCurrentStep((prev) => (prev + 1) % flowSteps.length);
+    }, 3000);
+    
+    return () => clearInterval(interval);
+  }, [shouldReduceMotion, flowSteps.length]);
+
   return (
-    <div className="relative w-full h-full flex items-center justify-center">
-      <div className="relative w-full max-w-md">
-        {/* Flow Steps */}
-        <div className="space-y-6">
-          {flowSteps.map((step, index) => (
+    <div className="relative w-full h-full flex items-center justify-center p-6">
+      <div className="relative w-full max-w-sm">
+        {/* Floating Background Elements */}
+        <div className="absolute inset-0 overflow-hidden">
+          {[...Array(6)].map((_, i) => (
             <motion.div
-              key={step.id}
-              initial={{ opacity: 0, x: 50 }}
-              animate={{ opacity: 1, x: 0 }}
-              transition={{ 
-                delay: shouldReduceMotion ? 0 : 0.5 + (index * 0.3),
-                duration: 0.6 
+              key={i}
+              initial={{ opacity: 0, scale: 0 }}
+              animate={{ 
+                opacity: [0, 0.3, 0],
+                scale: [0, 1, 0],
+                x: [0, Math.random() * 200 - 100],
+                y: [0, Math.random() * 200 - 100]
               }}
-              className="flex items-center space-x-4 group"
-            >
-              {/* Step Circle */}
-              <motion.div
-                initial={{ scale: 0 }}
-                animate={{ scale: 1 }}
-                transition={{ 
-                  delay: shouldReduceMotion ? 0 : 0.7 + (index * 0.3),
-                  duration: 0.4,
-                  type: "spring",
-                  stiffness: 200
-                }}
-                className="flex-shrink-0 w-12 h-12 bg-gradient-to-br from-blue-500 to-purple-600 rounded-full flex items-center justify-center text-white text-lg font-bold shadow-lg group-hover:scale-110 transition-transform duration-300"
-              >
-                {step.icon}
-              </motion.div>
-              
-              {/* Step Content */}
-              <div className="flex-1">
-                <h3 className="text-lg font-semibold text-white mb-1">
-                  {step.title}
-                </h3>
-                <p className="text-sm text-blue-200">
-                  {step.description}
-                </p>
-              </div>
-              
-              {/* Arrow (except for last step) */}
-              {index < flowSteps.length - 1 && (
-                <motion.div
-                  initial={{ opacity: 0, scale: 0 }}
-                  animate={{ opacity: 1, scale: 1 }}
-                  transition={{ 
-                    delay: shouldReduceMotion ? 0 : 1.0 + (index * 0.3),
-                    duration: 0.3 
-                  }}
-                  className="flex-shrink-0 text-blue-300"
-                >
-                  <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
-                  </svg>
-                </motion.div>
-              )}
-            </motion.div>
+              transition={{
+                duration: 4,
+                delay: i * 0.5,
+                repeat: Infinity,
+                repeatDelay: 2
+              }}
+              className="absolute w-2 h-2 bg-white/20 rounded-full"
+              style={{
+                left: `${20 + i * 15}%`,
+                top: `${30 + i * 10}%`
+              }}
+            />
           ))}
         </div>
-        
-        {/* Animated Progress Line */}
-        <motion.div
-          initial={{ scaleX: 0 }}
-          animate={{ scaleX: 1 }}
-          transition={{ 
-            delay: shouldReduceMotion ? 0 : 0.8,
-            duration: 2.0,
-            ease: "easeInOut"
-          }}
-          className="absolute left-6 top-6 bottom-6 w-0.5 bg-gradient-to-b from-blue-400 to-purple-500 origin-top"
-          style={{ transformOrigin: "top" }}
-        />
+
+        {/* Main Flow Container */}
+        <div className="relative z-10">
+          {/* Central Hub */}
+          <motion.div
+            initial={{ scale: 0, rotate: -180 }}
+            animate={{ scale: 1, rotate: 0 }}
+            transition={{ 
+              delay: shouldReduceMotion ? 0 : 0.5,
+              duration: 0.8,
+              type: "spring",
+              stiffness: 100
+            }}
+            className="w-20 h-20 mx-auto mb-8 bg-gradient-to-br from-blue-600 via-purple-600 to-pink-600 rounded-full flex items-center justify-center shadow-2xl"
+          >
+            <motion.div
+              animate={{ rotate: 360 }}
+              transition={{ 
+                duration: 20,
+                repeat: Infinity,
+                ease: "linear"
+              }}
+              className="text-2xl"
+            >
+              ⚡
+            </motion.div>
+          </motion.div>
+
+          {/* Flow Steps in Circular Layout */}
+          <div className="relative">
+            {flowSteps.map((step, index) => {
+              const angle = (index * 120) - 90; // 120 degrees apart
+              const radius = 120;
+              const x = Math.cos(angle * Math.PI / 180) * radius;
+              const y = Math.sin(angle * Math.PI / 180) * radius;
+              
+              return (
+                <motion.div
+                  key={step.id}
+                  initial={{ 
+                    opacity: 0, 
+                    scale: 0,
+                    x: 0,
+                    y: 0
+                  }}
+                  animate={{ 
+                    opacity: 1, 
+                    scale: currentStep === index ? 1.1 : 1,
+                    x: x,
+                    y: y
+                  }}
+                  transition={{ 
+                    delay: shouldReduceMotion ? 0 : 0.8 + (index * 0.3),
+                    duration: 0.6,
+                    type: "spring",
+                    stiffness: 100
+                  }}
+                  className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2"
+                  style={{
+                    transform: `translate(calc(-50% + ${x}px), calc(-50% + ${y}px))`
+                  }}
+                >
+                  {/* Step Card */}
+                  <motion.div
+                    whileHover={{ scale: 1.05 }}
+                    className={`relative p-4 rounded-2xl bg-white/10 backdrop-blur-md border border-white/20 shadow-xl ${step.bgGlow} transition-all duration-300 ${
+                      currentStep === index ? 'ring-2 ring-white/50' : ''
+                    }`}
+                    style={{ width: '140px' }}
+                  >
+                    {/* Step Icon */}
+                    <motion.div
+                      animate={{ 
+                        scale: currentStep === index ? [1, 1.2, 1] : 1,
+                        rotate: currentStep === index ? [0, 10, -10, 0] : 0
+                      }}
+                      transition={{ 
+                        duration: 0.6,
+                        repeat: currentStep === index ? Infinity : 0,
+                        repeatDelay: 2
+                      }}
+                      className={`w-10 h-10 mx-auto mb-3 bg-gradient-to-br ${step.color} rounded-full flex items-center justify-center text-white text-lg font-bold shadow-lg`}
+                    >
+                      {step.icon}
+                    </motion.div>
+                    
+                    {/* Step Content */}
+                    <div className="text-center">
+                      <h3 className="text-sm font-bold text-white mb-1 leading-tight">
+                        {step.title}
+                      </h3>
+                      <p className="text-xs text-blue-200 leading-tight">
+                        {step.description}
+                      </p>
+                    </div>
+
+                    {/* Connection Line to Center */}
+                    <motion.div
+                      initial={{ scaleX: 0 }}
+                      animate={{ scaleX: 1 }}
+                      transition={{ 
+                        delay: shouldReduceMotion ? 0 : 1.2 + (index * 0.2),
+                        duration: 0.8
+                      }}
+                      className="absolute top-1/2 left-1/2 w-16 h-0.5 bg-gradient-to-r from-white/30 to-transparent origin-left"
+                      style={{
+                        transform: `translate(-50%, -50%) rotate(${angle}deg)`
+                      }}
+                    />
+                  </motion.div>
+                </motion.div>
+              );
+            })}
+          </div>
+
+          {/* Success Pulse Effect */}
+          <motion.div
+            animate={{ 
+              scale: [1, 1.2, 1],
+              opacity: [0.3, 0.6, 0.3]
+            }}
+            transition={{ 
+              duration: 2,
+              repeat: Infinity,
+              ease: "easeInOut"
+            }}
+            className="absolute inset-0 rounded-full bg-gradient-to-r from-blue-500/20 via-purple-500/20 to-pink-500/20"
+          />
+        </div>
       </div>
     </div>
   );
@@ -174,11 +290,11 @@ export function Hero({
       <BlueprintGrid />
 
       {/* Main Content */}
-      <div className="relative z-20 w-full max-w-7xl px-4 py-16 md:py-20 mx-auto">
-        <div className="grid md:grid-cols-[6fr_6fr] xl:grid-cols-[7fr_5fr] gap-8 md:gap-12 items-center">
+      <div className="relative z-20 w-full max-w-8xl px-4 py-16 md:py-20 mx-auto">
+        <div className="grid md:grid-cols-[8fr_4fr] xl:grid-cols-[9fr_3fr] gap-8 md:gap-12 items-center">
           
-          {/* Text Content - Left Column (wider) */}
-          <div className="text-left max-w-[70ch]">
+          {/* Text Content - Left Column (much wider) */}
+          <div className="text-left max-w-[85ch]">
             <motion.h1 
               initial={{ opacity: 0, y: 30 }}
               animate={{ opacity: 1, y: 0 }}
