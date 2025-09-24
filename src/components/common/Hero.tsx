@@ -126,25 +126,25 @@ const UserFlowAnimation = memo(function UserFlowAnimation({ onStepClick }: { onS
                   delay: shouldReduceMotion ? 0 : 0.2 + (index * 0.1),
                   duration: 0.5
                 }}
-                className={`relative p-3 rounded-lg bg-white/10 backdrop-blur-md border transition-all duration-300 cursor-pointer hover:bg-white/20 hover:border-white/40 ${
+                className={`relative p-2 rounded-md bg-white/5 backdrop-blur-sm border transition-all duration-300 cursor-pointer hover:bg-white/10 hover:border-white/30 ${
                   currentStep === index 
-                    ? 'border-white/60 bg-white/20' 
-                    : 'border-white/20'
+                    ? 'border-white/40 bg-white/10' 
+                    : 'border-white/10'
                 }`}
-                style={{ width: '160px' }}
+                style={{ width: '120px' }}
                 onClick={() => onStepClick?.(step.id)}
               >
                 {/* Step Icon */}
-                <div className={`w-8 h-8 mx-auto mb-2 bg-gradient-to-br ${step.color} rounded-full flex items-center justify-center text-white text-sm font-bold`}>
+                <div className={`w-6 h-6 mx-auto mb-1 bg-white/20 rounded-full flex items-center justify-center text-white text-xs font-bold`}>
                   {step.icon}
                 </div>
                 
                 {/* Step Content */}
                 <div className="text-center">
-                  <h3 className="text-sm font-bold text-white mb-1">
+                  <h3 className="text-xs font-bold text-white mb-1">
                     {step.title}
                   </h3>
-                  <p className="text-xs text-blue-200 leading-tight">
+                  <p className="text-xs text-blue-200/80 leading-tight">
                     {step.description}
                   </p>
                 </div>
@@ -152,11 +152,11 @@ const UserFlowAnimation = memo(function UserFlowAnimation({ onStepClick }: { onS
               
               {/* Connecting Line */}
               {index < flowSteps.length - 1 && (
-                <div className="hidden md:block w-8 h-0.5 bg-white/30 mx-2"></div>
+                <div className="hidden md:block w-6 h-0.5 bg-white/20 mx-2"></div>
               )}
               {/* Vertical connecting line for mobile */}
               {index < flowSteps.length - 1 && (
-                <div className="md:hidden w-0.5 h-4 bg-white/30 mt-2"></div>
+                <div className="md:hidden w-0.5 h-3 bg-white/20 mt-2"></div>
               )}
             </div>
           ))}
@@ -199,7 +199,7 @@ export function Hero({
               initial={{ opacity: 0, y: 30 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.8 }}
-              className="text-3xl sm:text-4xl lg:text-5xl xl:text-6xl font-extrabold text-white leading-tight mb-6 text-wrap-balance tracking-tight xl:tracking-tighter"
+              className="text-4xl sm:text-5xl lg:text-6xl xl:text-7xl font-extrabold text-white leading-tight mb-8 text-wrap-balance tracking-tight xl:tracking-tighter"
               style={{ textWrap: 'balance' }}
             >
               {heroTitle}
@@ -209,11 +209,19 @@ export function Hero({
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.3, duration: 0.8 }}
-              className="text-lg md:text-xl text-blue-100 mb-8 leading-relaxed"
+              className="text-xl md:text-2xl text-blue-100 mb-12 leading-relaxed"
             >
               {heroSubtitle}
             </motion.p>
+          </div>
 
+          {/* User Flow Animation - Horizontal */}
+          <div className="w-full mb-12">
+            <UserFlowAnimation onStepClick={onStepClick} />
+          </div>
+
+          {/* CTA Buttons and Disclaimer */}
+          <div className="text-center max-w-4xl">
             {/* CTA Buttons */}
             <motion.div 
               initial={{ opacity: 0, y: 20 }}
@@ -249,11 +257,6 @@ export function Hero({
             >
               We help you prepare your application; decisions are made by the providers.
             </motion.p>
-          </div>
-
-          {/* User Flow Animation - Horizontal */}
-          <div className="w-full">
-            <UserFlowAnimation onStepClick={onStepClick} />
           </div>
         </div>
       </div>
