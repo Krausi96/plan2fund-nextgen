@@ -72,37 +72,53 @@ const UserFlowAnimation = memo(function UserFlowAnimation() {
   const flowSteps = [
     { 
       id: 1, 
-      title: "Find Programs", 
-      icon: "🔍", 
-      description: "Answer questions → Discover 214+ funding programs",
+      title: "Idea", 
+      icon: "💡", 
+      description: "Your business concept",
       color: "from-blue-500 to-cyan-500",
       bgGlow: "bg-blue-500/20"
     },
     { 
       id: 2, 
-      title: "Draft Plan", 
-      icon: "📝", 
-      description: "Program-aware editor → Create plan in <30 min",
+      title: "Develop Business Model", 
+      icon: "📊", 
+      description: "Get market ready",
       color: "from-green-500 to-emerald-500",
       bgGlow: "bg-green-500/20"
     },
     { 
       id: 3, 
-      title: "Submit & Track", 
-      icon: "🚀", 
-      description: "Submit application → Track progress to success",
+      title: "Funding", 
+      icon: "💰", 
+      description: "Secure funding for your business",
       color: "from-purple-500 to-pink-500",
       bgGlow: "bg-purple-500/20"
+    },
+    { 
+      id: 4, 
+      title: "Create Business Plan", 
+      icon: "📝", 
+      description: "Prepare funding ready documents",
+      color: "from-orange-500 to-red-500",
+      bgGlow: "bg-orange-500/20"
+    },
+    { 
+      id: 5, 
+      title: "Submit Plan", 
+      icon: "🚀", 
+      description: "Receive funding",
+      color: "from-indigo-500 to-purple-500",
+      bgGlow: "bg-indigo-500/20"
     }
   ];
 
-  // Auto-advance through steps
+  // Auto-advance through steps (slower, more appealing)
   useEffect(() => {
     if (shouldReduceMotion) return;
     
     const interval = setInterval(() => {
       setCurrentStep((prev) => (prev + 1) % flowSteps.length);
-    }, 3000);
+    }, 5000); // Increased from 3000 to 5000ms for slower, more appealing timing
     
     return () => clearInterval(interval);
   }, [shouldReduceMotion, flowSteps.length]);
@@ -112,26 +128,26 @@ const UserFlowAnimation = memo(function UserFlowAnimation() {
       <div className="relative w-full max-w-sm">
         {/* Floating Background Elements */}
         <div className="absolute inset-0 overflow-hidden">
-          {[...Array(6)].map((_, i) => (
+          {[...Array(8)].map((_, i) => (
             <motion.div
               key={i}
               initial={{ opacity: 0, scale: 0 }}
               animate={{ 
-                opacity: [0, 0.3, 0],
-                scale: [0, 1, 0],
-                x: [0, Math.random() * 200 - 100],
-                y: [0, Math.random() * 200 - 100]
+                opacity: [0, 0.4, 0],
+                scale: [0, 1.2, 0],
+                x: [0, Math.random() * 300 - 150],
+                y: [0, Math.random() * 300 - 150]
               }}
               transition={{
-                duration: 4,
-                delay: i * 0.5,
+                duration: 6, // Slower, more appealing
+                delay: i * 0.8, // More staggered timing
                 repeat: Infinity,
-                repeatDelay: 2
+                repeatDelay: 4 // Longer delay between cycles
               }}
-              className="absolute w-2 h-2 bg-white/20 rounded-full"
+              className="absolute w-3 h-3 bg-white/25 rounded-full"
               style={{
-                left: `${20 + i * 15}%`,
-                top: `${30 + i * 10}%`
+                left: `${15 + i * 12}%`,
+                top: `${25 + i * 8}%`
               }}
             />
           ))}
@@ -154,7 +170,7 @@ const UserFlowAnimation = memo(function UserFlowAnimation() {
             <motion.div
               animate={{ rotate: 360 }}
               transition={{ 
-                duration: 20,
+                duration: 30, // Slower rotation for more appealing effect
                 repeat: Infinity,
                 ease: "linear"
               }}
@@ -167,8 +183,8 @@ const UserFlowAnimation = memo(function UserFlowAnimation() {
           {/* Flow Steps in Circular Layout */}
           <div className="relative">
             {flowSteps.map((step, index) => {
-              const angle = (index * 120) - 90; // 120 degrees apart
-              const radius = 120;
+              const angle = (index * 72) - 90; // 72 degrees apart for 5 steps (360/5)
+              const radius = 140; // Slightly larger radius for 5 steps
               const x = Math.cos(angle * Math.PI / 180) * radius;
               const y = Math.sin(angle * Math.PI / 180) * radius;
               
@@ -188,64 +204,50 @@ const UserFlowAnimation = memo(function UserFlowAnimation() {
                     y: y
                   }}
                   transition={{ 
-                    delay: shouldReduceMotion ? 0 : 0.8 + (index * 0.3),
-                    duration: 0.6,
+                    delay: shouldReduceMotion ? 0 : 1.0 + (index * 0.4), // Slower, more appealing timing
+                    duration: 0.8, // Increased duration for smoother animation
                     type: "spring",
-                    stiffness: 100
+                    stiffness: 80 // Reduced stiffness for more fluid motion
                   }}
                   className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2"
                   style={{
                     transform: `translate(calc(-50% + ${x}px), calc(-50% + ${y}px))`
                   }}
                 >
-                  {/* Step Card */}
-                  <motion.div
-                    whileHover={{ scale: 1.05 }}
-                    className={`relative p-4 rounded-2xl bg-white/10 backdrop-blur-md border border-white/20 shadow-xl ${step.bgGlow} transition-all duration-300 ${
-                      currentStep === index ? 'ring-2 ring-white/50' : ''
-                    }`}
-                    style={{ width: '140px' }}
-                  >
-                    {/* Step Icon */}
+                    {/* Step Card */}
                     <motion.div
-                      animate={{ 
-                        scale: currentStep === index ? [1, 1.2, 1] : 1,
-                        rotate: currentStep === index ? [0, 10, -10, 0] : 0
-                      }}
-                      transition={{ 
-                        duration: 0.6,
-                        repeat: currentStep === index ? Infinity : 0,
-                        repeatDelay: 2
-                      }}
-                      className={`w-10 h-10 mx-auto mb-3 bg-gradient-to-br ${step.color} rounded-full flex items-center justify-center text-white text-lg font-bold shadow-lg`}
+                      whileHover={{ scale: 1.05 }}
+                      className={`relative p-4 rounded-2xl bg-white/10 backdrop-blur-md border border-white/20 shadow-xl ${step.bgGlow} transition-all duration-500 ${
+                        currentStep === index ? 'ring-2 ring-white/50 scale-110' : ''
+                      }`}
+                      style={{ width: '150px' }}
                     >
-                      {step.icon}
+                      {/* Step Icon */}
+                      <motion.div
+                        animate={{ 
+                          scale: currentStep === index ? [1, 1.3, 1] : 1,
+                          rotate: currentStep === index ? [0, 15, -15, 0] : 0
+                        }}
+                        transition={{ 
+                          duration: 1.0, // Slower, more appealing
+                          repeat: currentStep === index ? Infinity : 0,
+                          repeatDelay: 3 // Longer delay between repeats
+                        }}
+                        className={`w-12 h-12 mx-auto mb-3 bg-gradient-to-br ${step.color} rounded-full flex items-center justify-center text-white text-xl font-bold shadow-lg`}
+                      >
+                        {step.icon}
+                      </motion.div>
+                      
+                      {/* Step Content */}
+                      <div className="text-center">
+                        <h3 className="text-sm font-bold text-white mb-1 leading-tight">
+                          {step.title}
+                        </h3>
+                        <p className="text-xs text-blue-200 leading-tight">
+                          {step.description}
+                        </p>
+                      </div>
                     </motion.div>
-                    
-                    {/* Step Content */}
-                    <div className="text-center">
-                      <h3 className="text-sm font-bold text-white mb-1 leading-tight">
-                        {step.title}
-                      </h3>
-                      <p className="text-xs text-blue-200 leading-tight">
-                        {step.description}
-                      </p>
-                    </div>
-
-                    {/* Connection Line to Center */}
-                    <motion.div
-                      initial={{ scaleX: 0 }}
-                      animate={{ scaleX: 1 }}
-                      transition={{ 
-                        delay: shouldReduceMotion ? 0 : 1.2 + (index * 0.2),
-                        duration: 0.8
-                      }}
-                      className="absolute top-1/2 left-1/2 w-16 h-0.5 bg-gradient-to-r from-white/30 to-transparent origin-left"
-                      style={{
-                        transform: `translate(-50%, -50%) rotate(${angle}deg)`
-                      }}
-                    />
-                  </motion.div>
                 </motion.div>
               );
             })}
@@ -277,7 +279,7 @@ export function Hero({
 }: HeroProps = {}) {
   // Locked copy as specified
   const heroTitle = "Freedom starts with a plan — let's build yours.";
-  const heroSubtitle = "Find funding matches and build the application-ready business plan they require—grants, visas, or bank loans (DE/EN). Start free.";
+  const heroSubtitle = "Find funding matches and build an application-ready business plan tailored to Grants, Investors or Bank Loans (DE/EN). Start free.";
   const heroPrimaryButton = "Get funding matches";
   const heroSecondaryButton = "Start your plan";
 
@@ -290,16 +292,16 @@ export function Hero({
       <BlueprintGrid />
 
       {/* Main Content */}
-      <div className="relative z-20 w-full max-w-8xl px-4 py-16 md:py-20 mx-auto">
-        <div className="grid md:grid-cols-[8fr_4fr] xl:grid-cols-[9fr_3fr] gap-8 md:gap-12 items-center">
+      <div className="relative z-20 w-full max-w-9xl px-4 py-16 md:py-20 mx-auto">
+        <div className="grid md:grid-cols-[9fr_3fr] xl:grid-cols-[10fr_2fr] gap-8 md:gap-12 items-center">
           
-          {/* Text Content - Left Column (much wider) */}
-          <div className="text-left max-w-[85ch]">
+          {/* Text Content - Left Column (even wider) */}
+          <div className="text-left max-w-[95ch]">
             <motion.h1 
               initial={{ opacity: 0, y: 30 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.8 }}
-              className="text-4xl sm:text-5xl lg:text-6xl xl:text-7xl font-extrabold text-white leading-tight mb-6 text-wrap-balance tracking-tight xl:tracking-tighter"
+              className="text-3xl sm:text-4xl lg:text-5xl xl:text-6xl font-extrabold text-white leading-tight mb-6 text-wrap-balance tracking-tight xl:tracking-tighter"
               style={{ textWrap: 'balance' }}
             >
               {heroTitle}
