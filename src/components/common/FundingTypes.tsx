@@ -6,40 +6,35 @@ const fundingTypes = [
     title: "Equity",
     description: "Business angels, venture capital, and investment opportunities",
     icon: "💰",
-    href: "/reco?type=equity",
-    chips: ["PreSeed", "Seed", "Series A"]
+    href: "/reco?type=equity"
   },
   {
     id: "national",
     title: "National grants",
     description: "Austrian funding programs including AWS, FFG, and WA",
     icon: "🏛️",
-    href: "/reco?type=national",
-    chips: ["Basisprogramm", "Digitalisierung", "Innovation"]
+    href: "/reco?type=national"
   },
   {
     id: "eu",
     title: "EU funding programs",
     description: "Horizon Europe, EIC, and other European funding opportunities",
     icon: "🇪🇺",
-    href: "/reco?type=eu",
-    chips: ["Horizon Europe", "EIC", "Erasmus+"]
+    href: "/reco?type=eu"
   },
   {
     id: "bank",
     title: "Bank loans & leasing",
     description: "Traditional financing options for established businesses",
     icon: "🏦",
-    href: "/reco?type=bank",
-    chips: ["Working capital", "Equipment", "Real estate"]
+    href: "/reco?type=bank"
   },
   {
     id: "coaching",
     title: "Coaching / vouchers",
     description: "Support programs, consulting vouchers, and mentorship",
     icon: "🎯",
-    href: "/reco?type=coaching",
-    chips: ["Consulting", "Mentorship", "Training"]
+    href: "/reco?type=coaching"
   }
 ];
 
@@ -84,18 +79,6 @@ export function FundingTypes() {
                   </h3>
                   <p className="text-sm text-gray-600 mb-4">{type.description}</p>
                   
-                  {/* Starting points chips */}
-                  <div className="flex flex-wrap gap-1 mb-4">
-                    {type.chips.map((chip, chipIndex) => (
-                      <span
-                        key={chipIndex}
-                        className="px-2 py-1 text-xs font-medium text-blue-600 bg-blue-50 rounded-full"
-                      >
-                        {chip}
-                      </span>
-                    ))}
-                  </div>
-                  
                   <div className="text-sm text-blue-600 font-medium group-hover:text-blue-700">
                     View options →
                   </div>
@@ -127,18 +110,6 @@ export function FundingTypes() {
                       {type.title}
                     </h3>
                     <p className="text-sm text-gray-600 mb-4">{type.description}</p>
-                    
-                    {/* Starting points chips */}
-                    <div className="flex flex-wrap gap-1 mb-4">
-                      {type.chips.map((chip, chipIndex) => (
-                        <span
-                          key={chipIndex}
-                          className="px-2 py-1 text-xs font-medium text-blue-600 bg-blue-50 rounded-full"
-                        >
-                          {chip}
-                        </span>
-                      ))}
-                    </div>
                     
                     <div className="text-sm text-blue-600 font-medium group-hover:text-blue-700">
                       View options →
