@@ -75,6 +75,7 @@ const UserFlowAnimation = memo(function UserFlowAnimation() {
       title: "Idea", 
       icon: "💡", 
       description: "Your business concept",
+      help: "We help you structure it",
       color: "from-blue-500 to-cyan-500",
       bgGlow: "bg-blue-500/20"
     },
@@ -83,6 +84,7 @@ const UserFlowAnimation = memo(function UserFlowAnimation() {
       title: "Develop Business Model", 
       icon: "📊", 
       description: "Get market ready",
+      help: "We provide templates & guidance",
       color: "from-green-500 to-emerald-500",
       bgGlow: "bg-green-500/20"
     },
@@ -91,6 +93,7 @@ const UserFlowAnimation = memo(function UserFlowAnimation() {
       title: "Funding", 
       icon: "💰", 
       description: "Secure funding for your business",
+      help: "We find 214+ programs you qualify for",
       color: "from-purple-500 to-pink-500",
       bgGlow: "bg-purple-500/20"
     },
@@ -99,6 +102,7 @@ const UserFlowAnimation = memo(function UserFlowAnimation() {
       title: "Create Business Plan", 
       icon: "📝", 
       description: "Prepare funding ready documents",
+      help: "We build program-specific plans",
       color: "from-orange-500 to-red-500",
       bgGlow: "bg-orange-500/20"
     },
@@ -107,6 +111,7 @@ const UserFlowAnimation = memo(function UserFlowAnimation() {
       title: "Submit Plan", 
       icon: "🚀", 
       description: "Receive funding",
+      help: "We track your application progress",
       color: "from-indigo-500 to-purple-500",
       bgGlow: "bg-indigo-500/20"
     }
@@ -217,21 +222,29 @@ const UserFlowAnimation = memo(function UserFlowAnimation() {
                     {/* Step Card */}
                     <motion.div
                       whileHover={{ scale: 1.05 }}
+                      animate={{
+                        scale: currentStep === index ? [1, 1.05, 1] : 1,
+                      }}
+                      transition={{
+                        duration: 6, // 6 seconds for full breathing cycle
+                        repeat: currentStep === index ? Infinity : 0,
+                        ease: "easeInOut"
+                      }}
                       className={`relative p-4 rounded-2xl bg-white/10 backdrop-blur-md border border-white/20 shadow-xl ${step.bgGlow} transition-all duration-500 ${
-                        currentStep === index ? 'ring-2 ring-white/50 scale-110' : ''
+                        currentStep === index ? 'ring-2 ring-white/50' : ''
                       }`}
-                      style={{ width: '150px' }}
+                      style={{ width: '160px' }}
                     >
                       {/* Step Icon */}
                       <motion.div
                         animate={{ 
-                          scale: currentStep === index ? [1, 1.3, 1] : 1,
-                          rotate: currentStep === index ? [0, 15, -15, 0] : 0
+                          scale: currentStep === index ? [1, 1.2, 1] : 1,
+                          rotate: currentStep === index ? [0, 10, -10, 0] : 0
                         }}
                         transition={{ 
-                          duration: 1.0, // Slower, more appealing
+                          duration: 1.0,
                           repeat: currentStep === index ? Infinity : 0,
-                          repeatDelay: 3 // Longer delay between repeats
+                          repeatDelay: 3
                         }}
                         className={`w-12 h-12 mx-auto mb-3 bg-gradient-to-br ${step.color} rounded-full flex items-center justify-center text-white text-xl font-bold shadow-lg`}
                       >
@@ -243,9 +256,20 @@ const UserFlowAnimation = memo(function UserFlowAnimation() {
                         <h3 className="text-sm font-bold text-white mb-1 leading-tight">
                           {step.title}
                         </h3>
-                        <p className="text-xs text-blue-200 leading-tight">
+                        <p className="text-xs text-blue-200 leading-tight mb-1">
                           {step.description}
                         </p>
+                        {/* Help text - only show on active step */}
+                        {currentStep === index && (
+                          <motion.p 
+                            initial={{ opacity: 0, y: 5 }}
+                            animate={{ opacity: 1, y: 0 }}
+                            transition={{ delay: 0.3, duration: 0.5 }}
+                            className="text-xs text-blue-300 font-medium leading-tight"
+                          >
+                            {step.help}
+                          </motion.p>
+                        )}
                       </div>
                     </motion.div>
                 </motion.div>
