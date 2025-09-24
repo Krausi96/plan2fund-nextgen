@@ -1,5 +1,5 @@
 ﻿import { motion, useReducedMotion } from "framer-motion";
-import { memo, useState, useEffect } from "react";
+import { memo } from "react";
 
 interface HeroProps {
   title?: string;
@@ -64,123 +64,96 @@ const BlueprintGrid = memo(function BlueprintGrid() {
   );
 });
 
-// Plan Capsule Component
-const PlanCapsule = memo(function PlanCapsule() {
+// User Flow Animation Component
+const UserFlowAnimation = memo(function UserFlowAnimation() {
   const shouldReduceMotion = useReducedMotion();
-  const [isFlashed, setIsFlashed] = useState(false);
 
-  useEffect(() => {
-    if (shouldReduceMotion) return;
-    
-    const timer = setTimeout(() => {
-      setIsFlashed(true);
-      setTimeout(() => setIsFlashed(false), 140);
-    }, 1200); // After dot arrives
-    
-    return () => clearTimeout(timer);
-  }, [shouldReduceMotion]);
+  const flowSteps = [
+    { id: 1, title: "Idea", icon: "💡", description: "Your business concept" },
+    { id: 2, title: "Business Model", icon: "📊", description: "One of our products" },
+    { id: 3, title: "Find Funding", icon: "🔍", description: "Program types" },
+    { id: 4, title: "Create Plan", icon: "📝", description: "Business plan" },
+    { id: 5, title: "Get Funding", icon: "💰", description: "Success!" }
+  ];
 
   return (
-    <div className="relative">
-      {/* Plan Capsule Card */}
-      <motion.div
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ delay: 0.8, duration: 0.6 }}
-        className={`bg-white/95 backdrop-blur-sm rounded-xl p-6 shadow-lg border border-white/20 transition-all duration-140 ${
-          isFlashed ? 'shadow-blue-400/50 shadow-2xl' : ''
-        }`}
-        aria-label="Plan preview"
-      >
-        <h3 className="text-lg font-semibold text-gray-800 mb-4">Application-ready plan</h3>
-        <div className="space-y-2 text-sm text-gray-600">
-          <div className="h-3 bg-gray-200 rounded w-3/4"></div>
-          <div className="h-3 bg-gray-200 rounded w-1/2"></div>
-          <div className="h-3 bg-gray-200 rounded w-2/3"></div>
+    <div className="relative w-full h-full flex items-center justify-center">
+      <div className="relative w-full max-w-md">
+        {/* Flow Steps */}
+        <div className="space-y-6">
+          {flowSteps.map((step, index) => (
+            <motion.div
+              key={step.id}
+              initial={{ opacity: 0, x: 50 }}
+              animate={{ opacity: 1, x: 0 }}
+              transition={{ 
+                delay: shouldReduceMotion ? 0 : 0.5 + (index * 0.3),
+                duration: 0.6 
+              }}
+              className="flex items-center space-x-4 group"
+            >
+              {/* Step Circle */}
+              <motion.div
+                initial={{ scale: 0 }}
+                animate={{ scale: 1 }}
+                transition={{ 
+                  delay: shouldReduceMotion ? 0 : 0.7 + (index * 0.3),
+                  duration: 0.4,
+                  type: "spring",
+                  stiffness: 200
+                }}
+                className="flex-shrink-0 w-12 h-12 bg-gradient-to-br from-blue-500 to-purple-600 rounded-full flex items-center justify-center text-white text-lg font-bold shadow-lg group-hover:scale-110 transition-transform duration-300"
+              >
+                {step.icon}
+              </motion.div>
+              
+              {/* Step Content */}
+              <div className="flex-1">
+                <h3 className="text-lg font-semibold text-white mb-1">
+                  {step.title}
+                </h3>
+                <p className="text-sm text-blue-200">
+                  {step.description}
+                </p>
+              </div>
+              
+              {/* Arrow (except for last step) */}
+              {index < flowSteps.length - 1 && (
+                <motion.div
+                  initial={{ opacity: 0, scale: 0 }}
+                  animate={{ opacity: 1, scale: 1 }}
+                  transition={{ 
+                    delay: shouldReduceMotion ? 0 : 1.0 + (index * 0.3),
+                    duration: 0.3 
+                  }}
+                  className="flex-shrink-0 text-blue-300"
+                >
+                  <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                  </svg>
+                </motion.div>
+              )}
+            </motion.div>
+          ))}
         </div>
-      </motion.div>
-      
-      {/* PDF/DOCX Pill */}
-      <motion.div
-        initial={{ opacity: 0, y: 10 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ delay: 1.0, duration: 0.4 }}
-        className="mt-3 text-center"
-      >
-        <span className="inline-block px-3 py-1 text-xs font-medium text-gray-600 bg-gray-100 rounded-full">
-          PDF · DOCX
-        </span>
-      </motion.div>
+        
+        {/* Animated Progress Line */}
+        <motion.div
+          initial={{ scaleX: 0 }}
+          animate={{ scaleX: 1 }}
+          transition={{ 
+            delay: shouldReduceMotion ? 0 : 0.8,
+            duration: 2.0,
+            ease: "easeInOut"
+          }}
+          className="absolute left-6 top-6 bottom-6 w-0.5 bg-gradient-to-b from-blue-400 to-purple-500 origin-top"
+          style={{ transformOrigin: "top" }}
+        />
+      </div>
     </div>
   );
 });
 
-// Single Line Funding Path Animation
-const FundingPathAnimation = memo(function FundingPathAnimation() {
-  const shouldReduceMotion = useReducedMotion();
-
-  return (
-    <div className="absolute inset-0 pointer-events-none" aria-hidden="true">
-      <svg className="w-full h-full" viewBox="0 0 1200 800" preserveAspectRatio="xMidYMid slice">
-        {/* Single S-curve path from mini steps to Plan Capsule */}
-        <motion.path
-          d="M 200 500 Q 400 450 600 400 Q 800 350 1000 300"
-          fill="none"
-          stroke="url(#pathGradient)"
-          strokeWidth="2"
-          initial={{ pathLength: 0, opacity: 0 }}
-          animate={shouldReduceMotion ? { pathLength: 1, opacity: 0.7 } : { 
-            pathLength: 1, 
-            opacity: 0.7 
-          }}
-          transition={{ 
-            duration: 1.0, 
-            ease: "easeOut",
-            delay: 0.12
-          }}
-          className="hidden md:block"
-        />
-        
-        {/* Traveling dot */}
-        <motion.circle
-          cx="200"
-          cy="500"
-          r="3"
-          fill="url(#dotGradient)"
-          initial={{ pathLength: 0, opacity: 0 }}
-          animate={shouldReduceMotion ? { 
-            pathLength: 1, 
-            opacity: 0 
-          } : { 
-            pathLength: 1, 
-            opacity: 1,
-            cx: [200, 1000],
-            cy: [500, 300]
-          }}
-          transition={{ 
-            duration: 1.0, 
-            ease: "easeOut",
-            delay: 0.12
-          }}
-          className="hidden md:block"
-        />
-        
-        {/* Gradient definitions */}
-        <defs>
-          <linearGradient id="pathGradient" x1="0%" y1="0%" x2="100%" y2="0%">
-            <stop offset="0%" stopColor="#3B82F6" stopOpacity="0.6" />
-            <stop offset="50%" stopColor="#60A5FA" stopOpacity="0.7" />
-            <stop offset="100%" stopColor="#8B5CF6" stopOpacity="0.6" />
-          </linearGradient>
-          <linearGradient id="dotGradient" x1="0%" y1="0%" x2="100%" y2="0%">
-            <stop offset="0%" stopColor="#60A5FA" stopOpacity="0.9" />
-            <stop offset="100%" stopColor="#3B82F6" stopOpacity="0.9" />
-          </linearGradient>
-        </defs>
-      </svg>
-    </div>
-  );
-});
 
 
 export function Hero({
@@ -191,23 +164,21 @@ export function Hero({
   const heroSubtitle = "Find funding matches and build the application-ready business plan they require—grants, visas, or bank loans (DE/EN). Start free.";
   const heroPrimaryButton = "Get funding matches";
   const heroSecondaryButton = "Start your plan";
-  const miniStepsText = "Idea → Funding → Plan → Apply";
 
   return (
     <section 
-      className="relative min-h-[100vh] flex items-center overflow-hidden"
+      className="relative min-h-[80vh] flex items-center overflow-hidden"
       aria-label="Hero section with main value proposition"
     >
       {/* Background */}
       <BlueprintGrid />
-      <FundingPathAnimation />
 
       {/* Main Content */}
-      <div className="relative z-20 w-full max-w-7xl px-4 py-24 md:py-32 mx-auto">
-        <div className="grid md:grid-cols-[7fr_5fr] xl:grid-cols-[8fr_4fr] gap-10 md:gap-12 items-center">
+      <div className="relative z-20 w-full max-w-7xl px-4 py-16 md:py-20 mx-auto">
+        <div className="grid md:grid-cols-[6fr_6fr] xl:grid-cols-[7fr_5fr] gap-8 md:gap-12 items-center">
           
           {/* Text Content - Left Column (wider) */}
-          <div className="text-left max-w-[60ch]">
+          <div className="text-left max-w-[70ch]">
             <motion.h1 
               initial={{ opacity: 0, y: 30 }}
               animate={{ opacity: 1, y: 0 }}
@@ -227,24 +198,12 @@ export function Hero({
               {heroSubtitle}
             </motion.p>
 
-            {/* Mini Steps Text (one line) */}
-            <motion.div 
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.6, duration: 0.8 }}
-              className="mb-8"
-            >
-              <div className="text-sm text-blue-200">
-                {miniStepsText}
-              </div>
-            </motion.div>
-
             {/* CTA Buttons */}
             <motion.div 
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.9, duration: 0.8 }}
-              className="flex flex-col sm:flex-row gap-3 sm:gap-4 mb-6"
+              transition={{ delay: 0.6, duration: 0.8 }}
+              className="flex flex-col sm:flex-row gap-3 sm:gap-4 mb-8"
             >
               <a
                 href={primaryButtonHref}
@@ -260,47 +219,26 @@ export function Hero({
               </a>
             </motion.div>
 
-            {/* Offer Chips */}
-            <motion.div 
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 1.2, duration: 0.8 }}
-              className="flex flex-wrap gap-2 mb-4"
-            >
-              <span className="px-3 py-1 text-xs font-medium text-blue-200 bg-blue-900/30 border border-blue-700/30 rounded-full">
-                Funding matches (Free)
-              </span>
-              <span className="px-3 py-1 text-xs font-medium text-blue-200 bg-blue-900/30 border border-blue-700/30 rounded-full">
-                Plan outline (Free)
-              </span>
-              <span className="px-3 py-1 text-xs font-medium text-blue-200 bg-blue-900/30 border border-blue-700/30 rounded-full">
-                Full plan & export (Paid)
-              </span>
-              <span className="px-3 py-1 text-xs font-medium text-blue-200 bg-blue-900/30 border border-blue-700/30 rounded-full">
-                Add-ons (Paid)
-              </span>
-            </motion.div>
-
             {/* Safety Microcopy */}
             <motion.p 
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 1.4, duration: 0.8 }}
+              transition={{ delay: 0.9, duration: 0.8 }}
               className="text-xs text-blue-200/80"
             >
               We help you prepare your application; decisions are made by the providers.
             </motion.p>
           </div>
 
-          {/* Plan Capsule - Right Column */}
+          {/* User Flow Animation - Right Column */}
           <div className="hidden md:block">
-            <PlanCapsule />
+            <UserFlowAnimation />
           </div>
         </div>
 
-        {/* Mobile Plan Capsule */}
+        {/* Mobile User Flow */}
         <div className="md:hidden mt-12">
-          <PlanCapsule />
+          <UserFlowAnimation />
         </div>
       </div>
     </section>
