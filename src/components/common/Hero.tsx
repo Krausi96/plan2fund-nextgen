@@ -4,14 +4,55 @@ import { memo, useState, useEffect } from "react";
 // Blueprint Grid Background Component
 const BlueprintGrid = memo(function BlueprintGrid() {
   return (
-    <div className="absolute inset-0 opacity-20">
-      <div className="absolute inset-0" style={{
-        backgroundImage: `
-          linear-gradient(rgba(59, 130, 246, 0.1) 1px, transparent 1px),
-          linear-gradient(90deg, rgba(59, 130, 246, 0.1) 1px, transparent 1px)
-        `,
-        backgroundSize: '50px 50px'
-      }} />
+    <div className="absolute inset-0">
+      {/* Deep blue gradient background */}
+      <div className="absolute inset-0 bg-gradient-to-b from-slate-900 via-blue-900 to-slate-800" />
+      
+      {/* Blueprint grid overlay - reduced opacity to ≤6% */}
+      <div 
+        className="absolute inset-0 opacity-[0.06]"
+        style={{
+          backgroundImage: `
+            repeating-linear-gradient(
+              0deg,
+              transparent,
+              transparent 48px,
+              #60A5FA 48px,
+              #60A5FA 49px
+            ),
+            repeating-linear-gradient(
+              90deg,
+              transparent,
+              transparent 48px,
+              #60A5FA 48px,
+              #60A5FA 49px
+            )
+          `,
+        }}
+      />
+      
+      {/* Mobile grid - smaller cells */}
+      <div 
+        className="absolute inset-0 opacity-[0.04] md:hidden"
+        style={{
+          backgroundImage: `
+            repeating-linear-gradient(
+              0deg,
+              transparent,
+              transparent 32px,
+              #60A5FA 32px,
+              #60A5FA 33px
+            ),
+            repeating-linear-gradient(
+              90deg,
+              transparent,
+              transparent 32px,
+              #60A5FA 32px,
+              #60A5FA 33px
+            )
+          `,
+        }}
+      />
     </div>
   );
 });
@@ -171,18 +212,18 @@ export function Hero({
 
   return (
     <section 
-      className="relative min-h-[80vh] flex items-center overflow-hidden"
+      className="relative min-h-[80vh] flex items-center overflow-hidden bg-gradient-to-b from-slate-900 via-blue-900 to-slate-800"
       aria-label="Hero section with main value proposition"
     >
       {/* Background */}
       <BlueprintGrid />
 
       {/* Main Content */}
-      <div className="relative z-20 w-full max-w-8xl px-4 py-16 md:py-20 mx-auto">
-        <div className="grid md:grid-cols-[8fr_4fr] xl:grid-cols-[9fr_3fr] gap-8 md:gap-12 items-center">
+      <div className="relative z-20 w-full max-w-7xl px-4 py-16 md:py-20 mx-auto">
+        <div className="grid md:grid-cols-[6fr_6fr] xl:grid-cols-[7fr_5fr] gap-8 md:gap-12 items-center">
           
           {/* Text Content - Left Column (wider) */}
-          <div className="text-left max-w-[80ch]">
+          <div className="text-left max-w-[65ch]">
             <motion.h1 
               initial={{ opacity: 0, y: 30 }}
               animate={{ opacity: 1, y: 0 }}
