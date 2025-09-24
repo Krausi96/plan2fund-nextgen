@@ -5,37 +5,43 @@ const planTypes = [
     id: "custom",
     title: "📘 Custom Business Plan",
     subtitle: "15–35 pages",
-    description: "Complete business plan tailored to your funding requirements",
-    bestFor: "visas, grants, bank loans",
+    description: "Your model is defined. We turn it into a **submission-ready plan** reviewers can read quickly.",
+    bestFor: "visas, grants, bank loans/leasing",
     features: [
-      "Tailored to selected provider",
-      "Bank-ready financials", 
-      "PDF/DOCX export"
-    ]
+      "Complete plan in the order reviewers expect (Exec Summary → Financials)",
+      "Financial tables: revenue, costs, cash flow, use of funds",
+      "Checklist matched to aws/FFG/Wirtschaftsagentur or bank requirements",
+      "DE/EN · PDF/DOCX export"
+    ],
+    badges: ["DE/EN", "PDF/DOCX", "Checklist included"]
   },
   {
     id: "upgrade",
     title: "🔍 Upgrade & Review",
-    subtitle: "Existing drafts",
-    description: "Revise and upgrade your existing plan to meet requirements",
-    bestFor: "you already have a draft",
+    subtitle: "bring your draft",
+    description: "Have a plan or partial draft? We **fix structure, fill gaps, and polish** it to the required outline.",
+    bestFor: "drafts needing structure/compliance/financial add-ons",
     features: [
-      "Formatting & compliance review",
-      "Expert edits & improvements",
-      "PDF/DOCX export"
-    ]
+      "Gap report vs. target outline (aws/FFG/WA/bank/visa)",
+      "Rewrite + reformat; add missing sections/financials",
+      "Track changes so you approve every edit",
+      "DE/EN · PDF/DOCX export"
+    ],
+    badges: ["DE/EN", "PDF/DOCX", "Gap report"]
   },
   {
     id: "strategy",
     title: "🧩 Strategy & Modelling Plan",
     subtitle: "4–8 pages",
-    description: "Business model and strategy for early-stage ideas",
-    bestFor: "early-stage ideas, pivots",
+    description: "Idea not fully defined? We turn it into a **clear business model & go-to-market**.",
+    bestFor: "early-stage ideas, pivots, consulting clients",
     features: [
-      "Business model outline",
-      "Unit economics",
-      "Upgrade path available"
-    ]
+      "Value prop, customer profile, pricing & positioning",
+      "Unit economics + milestones / next steps",
+      "Upgrade path to full Business Plan",
+      "DE/EN deliverable"
+    ],
+    badges: ["DE/EN", "Short plan", "Upgrade path"]
   }
 ];
 
@@ -59,7 +65,7 @@ export function PlanTypes() {
           {planTypes.map((plan, index) => (
             <motion.a
               key={plan.id}
-              href="/pricing#plans"
+              href={`/pricing#${plan.id}`}
               initial={{ opacity: 0, y: 30 }}
               whileInView={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.6, delay: index * 0.1 }}
@@ -71,9 +77,9 @@ export function PlanTypes() {
                   {plan.title}
                 </h3>
                 {plan.subtitle && (
-                  <p className="text-sm text-gray-600 mb-3">{plan.subtitle}</p>
+                  <p className="text-sm text-gray-500 mb-3 font-medium">{plan.subtitle}</p>
                 )}
-                <p className="text-sm text-gray-700 mb-4">{plan.description}</p>
+                <p className="text-sm text-gray-700 mb-4" dangerouslySetInnerHTML={{ __html: plan.description }}></p>
                 <p className="text-sm font-medium text-gray-800 mb-4">Best for: {plan.bestFor}</p>
               </div>
 
@@ -86,6 +92,15 @@ export function PlanTypes() {
                     </li>
                   ))}
                 </ul>
+              </div>
+
+              {/* Badges */}
+              <div className="flex flex-wrap gap-2">
+                {plan.badges.map((badge, badgeIndex) => (
+                  <span key={badgeIndex} className="text-xs bg-gray-100 text-gray-600 px-2 py-1 rounded">
+                    {badge}
+                  </span>
+                ))}
               </div>
             </motion.a>
           ))}
@@ -106,6 +121,13 @@ export function PlanTypes() {
             Compare plans →
           </a>
         </motion.div>
+
+        {/* Disclaimer Footer */}
+        <div className="mt-12 pt-8 border-t border-gray-200">
+          <p className="text-sm text-gray-600 text-center">
+            We help you prepare your application; decisions are made by the providers.
+          </p>
+        </div>
       </div>
     </section>
   );
