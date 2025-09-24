@@ -126,22 +126,22 @@ const UserFlowAnimation = memo(function UserFlowAnimation({ onStepClick }: { onS
                   delay: shouldReduceMotion ? 0 : 0.2 + (index * 0.1),
                   duration: 0.5
                 }}
-                className={`relative p-2 rounded-md bg-white/5 backdrop-blur-sm border transition-all duration-300 cursor-pointer hover:bg-white/10 hover:border-white/30 ${
+                className={`relative p-3 rounded-md bg-white/5 backdrop-blur-sm border transition-all duration-300 cursor-pointer hover:bg-white/10 hover:border-white/30 ${
                   currentStep === index 
                     ? 'border-white/40 bg-white/10' 
                     : 'border-white/10'
                 }`}
-                style={{ width: '120px' }}
+                style={{ width: '140px' }}
                 onClick={() => onStepClick?.(step.id)}
               >
                 {/* Step Icon */}
-                <div className={`w-6 h-6 mx-auto mb-1 bg-white/20 rounded-full flex items-center justify-center text-white text-xs font-bold`}>
+                <div className={`w-7 h-7 mx-auto mb-2 bg-white/20 rounded-full flex items-center justify-center text-white text-sm font-bold`}>
                   {step.icon}
                 </div>
                 
                 {/* Step Content */}
                 <div className="text-center">
-                  <h3 className="text-xs font-bold text-white mb-1">
+                  <h3 className="text-sm font-bold text-white mb-1">
                     {step.title}
                   </h3>
                   <p className="text-xs text-blue-200/80 leading-tight">
@@ -190,7 +190,7 @@ export function Hero({
       <BlueprintGrid />
 
       {/* Main Content */}
-      <div className="relative z-20 w-full max-w-6xl px-6 sm:px-8 lg:px-12 py-12 md:py-16 mx-auto">
+      <div className="relative z-20 w-full max-w-6xl px-6 sm:px-8 lg:px-12 py-8 md:py-12 mx-auto">
         <div className="flex flex-col items-center space-y-12">
           
           {/* Text Content - Full Width */}
@@ -209,14 +209,14 @@ export function Hero({
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.3, duration: 0.8 }}
-              className="text-xl md:text-2xl text-blue-100 mb-12 leading-relaxed"
+              className="text-xl md:text-2xl text-blue-100 mb-8 leading-relaxed"
             >
               {heroSubtitle}
             </motion.p>
           </div>
 
           {/* User Flow Animation - Horizontal */}
-          <div className="w-full mb-12">
+          <div className="w-full mb-8">
             <UserFlowAnimation onStepClick={onStepClick} />
           </div>
 
