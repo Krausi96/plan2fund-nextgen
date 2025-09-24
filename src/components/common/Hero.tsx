@@ -57,7 +57,7 @@ const BlueprintGrid = memo(function BlueprintGrid() {
   );
 });
 
-// Simple Linear User Flow Animation Component
+// Top-Down User Flow Animation Component
 const UserFlowAnimation = memo(function UserFlowAnimation() {
   const shouldReduceMotion = useReducedMotion();
   const [currentStep, setCurrentStep] = useState(0);
@@ -68,7 +68,7 @@ const UserFlowAnimation = memo(function UserFlowAnimation() {
       title: "Idea", 
       icon: "💡", 
       description: "Your business concept",
-      help: "We help you structure it",
+      help: "We help you structure and refine your idea",
       color: "from-blue-500 to-cyan-500"
     },
     { 
@@ -97,100 +97,99 @@ const UserFlowAnimation = memo(function UserFlowAnimation() {
     }
   ];
 
-  // Auto-advance through steps
+  // Auto-advance through steps (slower, calmer)
   useEffect(() => {
     if (shouldReduceMotion) return;
     
     const interval = setInterval(() => {
       setCurrentStep((prev) => (prev + 1) % flowSteps.length);
-    }, 3000);
+    }, 4000); // Slower timing for calmer feel
     
     return () => clearInterval(interval);
   }, [shouldReduceMotion, flowSteps.length]);
 
   return (
-    <div className="relative w-full h-full flex items-center justify-center">
+    <div className="relative w-full h-full flex items-center justify-center p-6">
       <div className="relative w-full max-w-sm">
-        {/* Linear Flow Container */}
-        <div className="relative">
-          {/* Connection Line */}
-          <div className="absolute top-1/2 left-0 right-0 h-0.5 bg-gradient-to-r from-blue-500 via-green-500 via-purple-500 to-orange-500 opacity-30"></div>
+        {/* Vertical Flow Container */}
+        <div className="relative flex flex-col items-center space-y-6">
+          {/* Connection Line - Vertical */}
+          <div className="absolute left-1/2 top-8 bottom-8 w-0.5 bg-gradient-to-b from-blue-500 via-green-500 via-purple-500 to-orange-500 opacity-30 transform -translate-x-1/2"></div>
           
-          {/* Flow Steps */}
-          <div className="flex justify-between items-center relative z-10">
-            {flowSteps.map((step, index) => (
+          {/* Flow Steps - Top to Bottom */}
+          {flowSteps.map((step, index) => (
+            <motion.div
+              key={step.id}
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ 
+                delay: shouldReduceMotion ? 0 : 0.3 + (index * 0.2),
+                duration: 0.6,
+                type: "spring",
+                stiffness: 120
+              }}
+              className="relative z-10"
+            >
+              {/* Step Card */}
               <motion.div
-                key={step.id}
-                initial={{ opacity: 0, scale: 0 }}
-                animate={{ opacity: 1, scale: 1 }}
-                transition={{ 
-                  delay: shouldReduceMotion ? 0 : 0.5 + (index * 0.3),
-                  duration: 0.6,
-                  type: "spring",
-                  stiffness: 100
+                whileHover={{ scale: 1.02 }}
+                animate={{
+                  scale: currentStep === index ? 1.05 : 1,
+                  backgroundColor: currentStep === index ? 'rgba(255, 255, 255, 0.15)' : 'rgba(255, 255, 255, 0.08)',
                 }}
-                className="flex flex-col items-center"
+                transition={{
+                  duration: 0.8,
+                  ease: "easeInOut"
+                }}
+                className={`relative p-4 rounded-xl backdrop-blur-md border transition-all duration-500 ${
+                  currentStep === index 
+                    ? 'border-white/60 shadow-lg shadow-blue-500/20' 
+                    : 'border-white/20'
+                }`}
+                style={{ width: '200px' }}
               >
-                {/* Step Card */}
+                {/* Step Icon */}
                 <motion.div
-                  whileHover={{ scale: 1.05 }}
-                  animate={{
-                    scale: currentStep === index ? [1, 1.1, 1] : 1,
-                    boxShadow: currentStep === index ? 
-                      ["0 0 0 0 rgba(59, 130, 246, 0.5)", "0 0 0 10px rgba(59, 130, 246, 0)", "0 0 0 0 rgba(59, 130, 246, 0)"] : 
-                      "0 4px 6px -1px rgba(0, 0, 0, 0.1)"
+                  animate={{ 
+                    scale: currentStep === index ? 1.1 : 1,
+                    rotate: currentStep === index ? [0, 5, -5, 0] : 0
                   }}
-                  transition={{
+                  transition={{ 
                     duration: 2,
                     repeat: currentStep === index ? Infinity : 0,
                     ease: "easeInOut"
                   }}
-                  className={`relative p-4 rounded-xl bg-white/10 backdrop-blur-md border-2 transition-all duration-300 ${
-                    currentStep === index 
-                      ? 'border-white/60 bg-white/20' 
-                      : 'border-white/20'
-                  }`}
-                  style={{ width: '120px' }}
+                  className={`w-12 h-12 mx-auto mb-3 bg-gradient-to-br ${step.color} rounded-full flex items-center justify-center text-white text-xl font-bold shadow-lg`}
                 >
-                  {/* Step Icon */}
-                  <motion.div
-                    animate={{ 
-                      scale: currentStep === index ? [1, 1.2, 1] : 1,
-                    }}
-                    transition={{ 
-                      duration: 1.5,
-                      repeat: currentStep === index ? Infinity : 0,
-                      ease: "easeInOut"
-                    }}
-                    className={`w-10 h-10 mx-auto mb-2 bg-gradient-to-br ${step.color} rounded-full flex items-center justify-center text-white text-lg font-bold shadow-lg`}
-                  >
-                    {step.icon}
-                  </motion.div>
-                  
-                  {/* Step Content */}
-                  <div className="text-center">
-                    <h3 className="text-xs font-bold text-white mb-1 leading-tight">
-                      {step.title}
-                    </h3>
-                    <p className="text-xs text-blue-200 leading-tight mb-1">
-                      {step.description}
-                    </p>
-                    {/* Help text - only show on active step */}
-                    {currentStep === index && (
-                      <motion.p 
-                        initial={{ opacity: 0, y: 5 }}
-                        animate={{ opacity: 1, y: 0 }}
-                        transition={{ delay: 0.3, duration: 0.5 }}
-                        className="text-xs text-blue-300 font-medium leading-tight"
-                      >
-                        {step.help}
-                      </motion.p>
-                    )}
-                  </div>
+                  {step.icon}
                 </motion.div>
+                
+                {/* Step Content */}
+                <div className="text-center">
+                  <h3 className="text-sm font-bold text-white mb-1 leading-tight">
+                    {step.title}
+                  </h3>
+                  <p className="text-xs text-blue-200 leading-tight mb-2">
+                    {step.description}
+                  </p>
+                  
+                  {/* Help text - cleaner formatting */}
+                  {currentStep === index && (
+                    <motion.div
+                      initial={{ opacity: 0, y: 5 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      transition={{ delay: 0.4, duration: 0.6 }}
+                      className="bg-white/10 rounded-lg p-2 border border-white/20"
+                    >
+                      <p className="text-xs text-blue-100 font-medium leading-tight">
+                        {step.help}
+                      </p>
+                    </motion.div>
+                  )}
+                </div>
               </motion.div>
-            ))}
-          </div>
+            </motion.div>
+          ))}
         </div>
       </div>
     </div>
@@ -220,10 +219,10 @@ export function Hero({
 
       {/* Main Content */}
       <div className="relative z-20 w-full max-w-7xl px-4 py-16 md:py-20 mx-auto">
-        <div className="grid md:grid-cols-[6fr_6fr] xl:grid-cols-[7fr_5fr] gap-8 md:gap-12 items-center">
+        <div className="grid md:grid-cols-[5fr_7fr] xl:grid-cols-[4fr_8fr] gap-8 md:gap-12 items-center">
           
           {/* Text Content - Left Column (wider) */}
-          <div className="text-left max-w-[65ch]">
+          <div className="text-left max-w-[70ch]">
             <motion.h1 
               initial={{ opacity: 0, y: 30 }}
               animate={{ opacity: 1, y: 0 }}
