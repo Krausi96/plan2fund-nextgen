@@ -105,10 +105,10 @@ const UserFlowAnimation = memo(function UserFlowAnimation() {
   }, [shouldReduceMotion, flowSteps.length]);
 
   return (
-    <div className="relative w-full h-full flex items-center justify-center p-4">
-      <div className="relative w-full max-w-xs">
+    <div className="relative w-full h-full flex items-center justify-center p-2">
+      <div className="relative w-full max-w-[200px]">
         {/* Simple Flow Container */}
-        <div className="flex flex-col items-center space-y-4">
+        <div className="flex flex-col items-center space-y-3">
           {/* Flow Steps */}
           {flowSteps.map((step, index) => (
             <motion.div
@@ -119,15 +119,15 @@ const UserFlowAnimation = memo(function UserFlowAnimation() {
                 delay: shouldReduceMotion ? 0 : 0.2 + (index * 0.1),
                 duration: 0.5
               }}
-              className={`relative p-3 rounded-lg bg-white/10 backdrop-blur-md border transition-all duration-300 ${
+              className={`relative p-2 rounded-lg bg-white/10 backdrop-blur-md border transition-all duration-300 ${
                 currentStep === index 
                   ? 'border-white/60 bg-white/20' 
                   : 'border-white/20'
               }`}
-              style={{ width: '160px' }}
+              style={{ width: '140px' }}
             >
               {/* Step Icon */}
-              <div className={`w-8 h-8 mx-auto mb-2 bg-gradient-to-br ${step.color} rounded-full flex items-center justify-center text-white text-sm font-bold`}>
+              <div className={`w-6 h-6 mx-auto mb-1 bg-gradient-to-br ${step.color} rounded-full flex items-center justify-center text-white text-xs font-bold`}>
                 {step.icon}
               </div>
               
@@ -157,7 +157,7 @@ export function Hero({
 }: HeroProps = {}) {
   // Locked copy as specified
   const heroTitle = "Freedom starts with a plan — let's build yours.";
-  const heroSubtitle = "Find funding matches and build an application-ready business plan tailored to Grants, Investors or Bank Loans (DE/EN). Start free.";
+  const heroSubtitle = "Find funding options for your business and build an application-ready Business Plan tailored to Grants, Investors or Bank Loans (DE/EN). Start free.";
   const heroPrimaryButton = "Get funding matches";
   const heroSecondaryButton = "Start your plan";
 
@@ -171,15 +171,15 @@ export function Hero({
 
       {/* Main Content */}
       <div className="relative z-20 w-full max-w-7xl px-6 sm:px-8 lg:px-12 py-12 md:py-16 mx-auto">
-        <div className="grid md:grid-cols-[8fr_4fr] xl:grid-cols-[9fr_3fr] gap-8 md:gap-16 items-center">
+        <div className="grid md:grid-cols-[10fr_2fr] xl:grid-cols-[11fr_1fr] items-center">
           
           {/* Text Content - Left Column (wider) */}
-          <div className="text-left max-w-none md:max-w-[70ch] lg:max-w-[75ch]">
+          <div className="text-left max-w-none md:max-w-[80ch] lg:max-w-[85ch]">
             <motion.h1 
               initial={{ opacity: 0, y: 30 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.8 }}
-              className="text-3xl sm:text-4xl lg:text-5xl xl:text-6xl font-extrabold text-white leading-tight mb-6 text-wrap-balance tracking-tight xl:tracking-tighter pr-0 md:pr-4 lg:pr-8"
+              className="text-2xl sm:text-3xl lg:text-4xl xl:text-5xl font-extrabold text-white leading-tight mb-6 text-wrap-balance tracking-tight xl:tracking-tighter pr-0 md:pr-4 lg:pr-8"
               style={{ textWrap: 'balance' }}
             >
               {heroTitle}
@@ -232,7 +232,7 @@ export function Hero({
           </div>
 
           {/* User Flow Animation - Right Column */}
-          <div className="hidden md:block">
+          <div className="hidden md:block w-full">
             <UserFlowAnimation />
           </div>
         </div>
