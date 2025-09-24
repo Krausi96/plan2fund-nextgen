@@ -8,29 +8,29 @@ import { useI18n } from "@/contexts/I18nContext";
 
 const plans = [
   { 
-    id: "strategy",
-    title: "Strategy (4-8 pages)", 
-    price: "€99", 
-    desc: "Concise business strategy template for quick planning.", 
-    features: ["Summary, Problem, ICP", "Strategy, GTM outline", "Next 90 days"],
-    mode: "strategy"
+    id: "custom",
+    title: "📘 Custom Business Plan", 
+    price: "€299", 
+    desc: "Complete business plan tailored to your funding requirements", 
+    features: ["Tailored to selected provider", "Bank-ready financials", "PDF/DOCX export"],
+    mode: "custom"
   },
   { 
     id: "upgrade",
-    title: "Upgrade & Review", 
+    title: "🔍 Upgrade & Review", 
     price: "€149", 
-    desc: "Upload existing plan for professional review and enhancement.", 
-    features: ["Formatting & Structure", "Financials review", "Funding fit analysis"],
+    desc: "Revise and upgrade your existing plan to meet requirements", 
+    features: ["Formatting & compliance review", "Expert edits & improvements", "PDF/DOCX export"],
     mode: "upgrade",
     featured: true
   },
   { 
-    id: "custom",
-    title: "Custom (15-35 pages)", 
-    price: "€299", 
-    desc: "Full business plan with all chapters and subchapters.", 
-    features: ["Complete template", "Subchapters & checklists", "Professor tips"],
-    mode: "custom"
+    id: "strategy",
+    title: "🧩 Strategy & Modelling Plan", 
+    price: "€99", 
+    desc: "Business model and strategy for early-stage ideas", 
+    features: ["Business model outline", "Unit economics", "Upgrade path available"],
+    mode: "strategy"
   },
 ];
 
@@ -80,40 +80,22 @@ export default function Pricing() {
             {/* Custom Business Plan Details */}
             <div id="custom" className="scroll-mt-20">
               <h2 className="text-2xl font-bold text-gray-900 mb-6">📘 Custom Business Plan (15–35 pages)</h2>
-              <div className="bg-gray-50 rounded-lg p-6 space-y-6">
+              <div className="bg-gray-50 rounded-lg p-6 space-y-4">
                 <div>
-                  <h3 className="text-lg font-semibold text-gray-900 mb-2">Ideal when</h3>
-                  <p className="text-gray-700">You've defined your model—vision, offer, market, target group, marketing, financials. You need a submission-ready plan aligned with institutional & funding requirements.</p>
+                  <h3 className="text-lg font-semibold text-gray-900 mb-2">Best for</h3>
+                  <p className="text-gray-700">visas, grants, bank loans</p>
                 </div>
                 <div>
-                  <h3 className="text-lg font-semibold text-gray-900 mb-2">Inputs you bring</h3>
+                  <h3 className="text-lg font-semibold text-gray-900 mb-2">You get</h3>
                   <ul className="text-gray-700 space-y-1">
-                    <li>• Business concept and value proposition</li>
-                    <li>• Target market and customer segments</li>
-                    <li>• Basic financial projections</li>
-                    <li>• Marketing and operational strategy</li>
+                    <li>• Tailored to selected provider</li>
+                    <li>• Bank-ready financials</li>
+                    <li>• PDF/DOCX export</li>
                   </ul>
                 </div>
                 <div>
-                  <h3 className="text-lg font-semibold text-gray-900 mb-2">What we deliver</h3>
-                  <ul className="text-gray-700 space-y-1">
-                    <li>• Narrative tailored to selected provider (aws/FFG/WA/bank/visa)</li>
-                    <li>• Structured financials template (bank/grant-ready)</li>
-                    <li>• Eligibility alignment + application checklist</li>
-                    <li>• DE/EN · PDF/DOCX export</li>
-                  </ul>
-                </div>
-                <div>
-                  <h3 className="text-lg font-semibold text-gray-900 mb-2">What's not included</h3>
-                  <ul className="text-gray-700 space-y-1">
-                    <li>• Market research and validation</li>
-                    <li>• Financial modeling beyond basic projections</li>
-                    <li>• Legal and regulatory compliance review</li>
-                  </ul>
-                </div>
-                <div>
-                  <h3 className="text-lg font-semibold text-gray-900 mb-2">Typical timeline</h3>
-                  <p className="text-gray-700">5-7 business days from input to final delivery</p>
+                  <h3 className="text-lg font-semibold text-gray-900 mb-2">Timeline</h3>
+                  <p className="text-gray-700">5-7 business days</p>
                 </div>
               </div>
             </div>
@@ -121,39 +103,22 @@ export default function Pricing() {
             {/* Upgrade & Review Details */}
             <div id="upgrade" className="scroll-mt-20">
               <h2 className="text-2xl font-bold text-gray-900 mb-6">🔍 Upgrade & Review</h2>
-              <div className="bg-gray-50 rounded-lg p-6 space-y-6">
+              <div className="bg-gray-50 rounded-lg p-6 space-y-4">
                 <div>
-                  <h3 className="text-lg font-semibold text-gray-900 mb-2">Ideal when</h3>
-                  <p className="text-gray-700">You already have a plan or draft that needs professional review and enhancement for specific funding programs or institutional requirements.</p>
+                  <h3 className="text-lg font-semibold text-gray-900 mb-2">Best for</h3>
+                  <p className="text-gray-700">you already have a draft</p>
                 </div>
                 <div>
-                  <h3 className="text-lg font-semibold text-gray-900 mb-2">Inputs you bring</h3>
+                  <h3 className="text-lg font-semibold text-gray-900 mb-2">You get</h3>
                   <ul className="text-gray-700 space-y-1">
-                    <li>• Existing business plan or draft document</li>
-                    <li>• Target funding program or institution</li>
-                    <li>• Specific areas of concern or improvement</li>
+                    <li>• Formatting & compliance review</li>
+                    <li>• Expert edits & improvements</li>
+                    <li>• PDF/DOCX export</li>
                   </ul>
                 </div>
                 <div>
-                  <h3 className="text-lg font-semibold text-gray-900 mb-2">What we deliver</h3>
-                  <ul className="text-gray-700 space-y-1">
-                    <li>• Gap analysis vs. chosen program/bank requirements</li>
-                    <li>• Rewriting + formatting to required structure</li>
-                    <li>• Missing sections/financials added</li>
-                    <li>• DE/EN · PDF/DOCX export</li>
-                  </ul>
-                </div>
-                <div>
-                  <h3 className="text-lg font-semibold text-gray-900 mb-2">What's not included</h3>
-                  <ul className="text-gray-700 space-y-1">
-                    <li>• Complete business model redesign</li>
-                    <li>• Market research and validation</li>
-                    <li>• Legal and regulatory compliance review</li>
-                  </ul>
-                </div>
-                <div>
-                  <h3 className="text-lg font-semibold text-gray-900 mb-2">Typical timeline</h3>
-                  <p className="text-gray-700">3-5 business days from document upload to final delivery</p>
+                  <h3 className="text-lg font-semibold text-gray-900 mb-2">Timeline</h3>
+                  <p className="text-gray-700">3-5 business days</p>
                 </div>
               </div>
             </div>
@@ -161,38 +126,22 @@ export default function Pricing() {
             {/* Strategy & Modelling Plan Details */}
             <div id="strategy" className="scroll-mt-20">
               <h2 className="text-2xl font-bold text-gray-900 mb-6">🧩 Strategy & Modelling Plan (4–8 pages)</h2>
-              <div className="bg-gray-50 rounded-lg p-6 space-y-6">
+              <div className="bg-gray-50 rounded-lg p-6 space-y-4">
                 <div>
-                  <h3 className="text-lg font-semibold text-gray-900 mb-2">Ideal when</h3>
-                  <p className="text-gray-700">You've got an idea but key details (target group, pricing, positioning) aren't set. You need to shape your business model & strategy before moving into development or a full plan.</p>
+                  <h3 className="text-lg font-semibold text-gray-900 mb-2">Best for</h3>
+                  <p className="text-gray-700">early-stage ideas, pivots</p>
                 </div>
                 <div>
-                  <h3 className="text-lg font-semibold text-gray-900 mb-2">Inputs you bring</h3>
+                  <h3 className="text-lg font-semibold text-gray-900 mb-2">You get</h3>
                   <ul className="text-gray-700 space-y-1">
-                    <li>• Business idea or concept</li>
-                    <li>• Basic understanding of the problem you're solving</li>
-                    <li>• Initial thoughts on target market</li>
+                    <li>• Business model outline</li>
+                    <li>• Unit economics</li>
+                    <li>• Upgrade path available</li>
                   </ul>
                 </div>
                 <div>
-                  <h3 className="text-lg font-semibold text-gray-900 mb-2">What we deliver</h3>
-                  <ul className="text-gray-700 space-y-1">
-                    <li>• Business model & GTM outline (DE/EN)</li>
-                    <li>• Unit economics + next steps & milestones</li>
-                    <li>• Upgrade path to Custom Business Plan or Upgrade & Review</li>
-                  </ul>
-                </div>
-                <div>
-                  <h3 className="text-lg font-semibold text-gray-900 mb-2">What's not included</h3>
-                  <ul className="text-gray-700 space-y-1">
-                    <li>• Detailed financial projections</li>
-                    <li>• Complete business plan document</li>
-                    <li>• Market research and validation</li>
-                  </ul>
-                </div>
-                <div>
-                  <h3 className="text-lg font-semibold text-gray-900 mb-2">Typical timeline</h3>
-                  <p className="text-gray-700">2-3 business days from concept to strategy outline</p>
+                  <h3 className="text-lg font-semibold text-gray-900 mb-2">Timeline</h3>
+                  <p className="text-gray-700">2-3 business days</p>
                 </div>
               </div>
             </div>
