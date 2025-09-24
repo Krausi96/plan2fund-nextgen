@@ -2,7 +2,6 @@
 import { HowItWorks } from "@/components/common/HowItWorks"
 import { WhoItsFor } from "@/components/common/WhoItsFor"
 import { PlanTypes } from "@/components/common/PlanTypes"
-import { FundingTypes } from "@/components/common/FundingTypes"
 import { WhyAustria } from "@/components/common/WhyAustria"
 import { WhyPlan2Fund } from "@/components/common/WhyPlan2Fund"
 import CTAStrip from "@/components/common/CTAStrip"
@@ -30,7 +29,6 @@ export default function Home() {
         <Hero />
         <PlanTypes />
         <WhoItsFor />
-        <FundingTypes />
         <WhyAustria />
         <HowItWorks />
         <WhyPlan2Fund />
