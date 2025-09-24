@@ -170,16 +170,16 @@ export function Hero({
       <BlueprintGrid />
 
       {/* Main Content */}
-      <div className="relative z-20 w-full max-w-6xl px-4 py-12 md:py-16 mx-auto">
-        <div className="grid md:grid-cols-[6fr_6fr] xl:grid-cols-[7fr_5fr] gap-8 md:gap-12 items-center">
+      <div className="relative z-20 w-full max-w-7xl px-6 sm:px-8 lg:px-12 py-12 md:py-16 mx-auto">
+        <div className="grid md:grid-cols-[8fr_4fr] xl:grid-cols-[9fr_3fr] gap-8 md:gap-16 items-center">
           
           {/* Text Content - Left Column (wider) */}
-          <div className="text-left max-w-[60ch]">
+          <div className="text-left max-w-none md:max-w-[70ch] lg:max-w-[75ch]">
             <motion.h1 
               initial={{ opacity: 0, y: 30 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.8 }}
-              className="text-3xl sm:text-4xl lg:text-5xl xl:text-6xl font-extrabold text-white leading-tight mb-6 text-wrap-balance tracking-tight xl:tracking-tighter"
+              className="text-3xl sm:text-4xl lg:text-5xl xl:text-6xl font-extrabold text-white leading-tight mb-6 text-wrap-balance tracking-tight xl:tracking-tighter pr-0 md:pr-4 lg:pr-8"
               style={{ textWrap: 'balance' }}
             >
               {heroTitle}
@@ -189,7 +189,7 @@ export function Hero({
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.3, duration: 0.8 }}
-              className="text-lg md:text-xl text-blue-100 mb-8 leading-relaxed"
+              className="text-lg md:text-xl text-blue-100 mb-8 leading-relaxed pr-0 md:pr-4 lg:pr-8"
             >
               {heroSubtitle}
             </motion.p>
@@ -199,7 +199,7 @@ export function Hero({
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.6, duration: 0.8 }}
-              className="flex flex-col sm:flex-row gap-4 mb-6"
+              className="flex flex-col sm:flex-row gap-4 mb-6 pr-0 md:pr-4 lg:pr-8"
             >
               <motion.a
                 href={primaryButtonHref}
