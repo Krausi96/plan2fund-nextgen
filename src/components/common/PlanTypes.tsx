@@ -5,27 +5,27 @@ const planTypes = [
     id: "custom",
     title: "📘 Custom Business Plan",
     subtitle: "15–35 pages",
-    description: "Your model is defined. We turn it into a **submission-ready plan** reviewers can read quickly.",
+    description: "Your model is defined. We turn it into a submission-ready plan reviewers can read quickly.",
     bestFor: "visas, grants, bank loans/leasing",
     features: [
-      "Complete plan in the order reviewers expect (Exec Summary → Financials)",
-      "Financial tables: revenue, costs, cash flow, use of funds",
-      "Checklist matched to aws/FFG/Wirtschaftsagentur or bank requirements",
-      "DE/EN · PDF/DOCX export"
+      "Standard sections (Exec Summary → Financials)",
+      "Financial tables (revenue, costs, cash flow, use of funds)",
+      "Submission checklist for aws/FFG/Wirtschaftsagentur or bank",
+      "Export: PDF/DOCX (DE/EN)"
     ],
-    badges: ["DE/EN", "PDF/DOCX", "Checklist included"]
+    badges: ["DE/EN", "PDF/DOCX", "Checklist"]
   },
   {
     id: "upgrade",
     title: "🔍 Upgrade & Review",
     subtitle: "bring your draft",
-    description: "Have a plan or partial draft? We **fix structure, fill gaps, and polish** it to the required outline.",
+    description: "Have a plan or partial draft? We fix structure, fill gaps, and polish it to the required outline.",
     bestFor: "drafts needing structure/compliance/financial add-ons",
     features: [
-      "Gap report vs. target outline (aws/FFG/WA/bank/visa)",
+      "Gap report vs. selected outline (aws/FFG/WA/bank/visa)",
       "Rewrite + reformat; add missing sections/financials",
-      "Track changes so you approve every edit",
-      "DE/EN · PDF/DOCX export"
+      "Tracked changes for your approval",
+      "Export: PDF/DOCX (DE/EN)"
     ],
     badges: ["DE/EN", "PDF/DOCX", "Gap report"]
   },
@@ -33,13 +33,13 @@ const planTypes = [
     id: "strategy",
     title: "🧩 Strategy & Modelling Plan",
     subtitle: "4–8 pages",
-    description: "Idea not fully defined? We turn it into a **clear business model & go-to-market**.",
+    description: "Idea not fully defined? We turn it into a clear business model and go-to-market.",
     bestFor: "early-stage ideas, pivots, consulting clients",
     features: [
-      "Value prop, customer profile, pricing & positioning",
+      "Value prop, ideal customer, pricing & positioning",
       "Unit economics + milestones / next steps",
       "Upgrade path to full Business Plan",
-      "DE/EN deliverable"
+      "Deliverable in DE/EN"
     ],
     badges: ["DE/EN", "Short plan", "Upgrade path"]
   }
@@ -79,7 +79,7 @@ export function PlanTypes() {
                 {plan.subtitle && (
                   <p className="text-sm text-gray-500 mb-3 font-medium">{plan.subtitle}</p>
                 )}
-                <p className="text-sm text-gray-700 mb-4" dangerouslySetInnerHTML={{ __html: plan.description }}></p>
+                <p className="text-sm text-gray-700 mb-4">{plan.description}</p>
                 <p className="text-sm font-medium text-gray-800 mb-4">Best for: {plan.bestFor}</p>
               </div>
 

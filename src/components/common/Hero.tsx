@@ -188,8 +188,9 @@ export function Hero({
 }: HeroProps = {}) {
   // Locked copy as specified
   const heroTitle = "Freedom starts with a plan — let's build yours.";
-  const heroSubtitle = "Find suitable funding for your Idea/Business and create a customized Business Plan tailored to Grants, Investors, or Bank Loans (DE/EN).";
+  const heroSubtitle = "Find funding matches and build the application-ready business plan they require—grants, visas, or bank loans (DE/EN). Start free.";
   const heroPrimaryButton = "Get funding matches";
+  const heroSecondaryButton = "Start your plan";
   const miniStepsText = "Idea → Funding → Plan → Apply";
 
   return (
@@ -252,14 +253,14 @@ export function Hero({
                 {heroPrimaryButton}
               </a>
               <a
-                href="/editor"
+                href="/editor?mode=outline"
                 className="inline-block px-6 py-4 bg-transparent text-white border-2 border-white/50 rounded-xl hover:border-white/80 hover:bg-white/10 transition-all duration-300 font-semibold text-lg touch-target will-change-transform text-center min-h-[44px] min-w-[44px]"
               >
-                Start your plan
+                {heroSecondaryButton}
               </a>
             </motion.div>
 
-            {/* Proof Chips */}
+            {/* Offer Chips */}
             <motion.div 
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
@@ -267,13 +268,16 @@ export function Hero({
               className="flex flex-wrap gap-2 mb-4"
             >
               <span className="px-3 py-1 text-xs font-medium text-blue-200 bg-blue-900/30 border border-blue-700/30 rounded-full">
-                Austria/EU-call specific
+                Funding matches (Free)
               </span>
               <span className="px-3 py-1 text-xs font-medium text-blue-200 bg-blue-900/30 border border-blue-700/30 rounded-full">
-                German & English
+                Plan outline (Free)
               </span>
               <span className="px-3 py-1 text-xs font-medium text-blue-200 bg-blue-900/30 border border-blue-700/30 rounded-full">
-                Start free
+                Full plan & export (Paid)
+              </span>
+              <span className="px-3 py-1 text-xs font-medium text-blue-200 bg-blue-900/30 border border-blue-700/30 rounded-full">
+                Add-ons (Paid)
               </span>
             </motion.div>
 

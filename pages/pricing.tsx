@@ -11,17 +11,17 @@ const plans = [
     id: "custom",
     title: "📘 Custom Business Plan", 
     price: "€299", 
-    desc: "Your model is defined. We turn it into a **submission-ready plan** reviewers can read quickly.", 
-    features: ["Complete plan in the order reviewers expect (Exec Summary → Financials)", "Financial tables: revenue, costs, cash flow, use of funds", "Checklist matched to aws/FFG/Wirtschaftsagentur or bank requirements", "DE/EN · PDF/DOCX export"],
+    desc: "Your model is defined. We turn it into a submission-ready plan reviewers can read quickly.", 
+    features: ["Standard sections (Exec Summary → Financials)", "Financial tables (revenue, costs, cash flow, use of funds)", "Submission checklist for aws/FFG/Wirtschaftsagentur or bank", "Export: PDF/DOCX (DE/EN)"],
     mode: "custom",
-    badges: ["DE/EN", "PDF/DOCX", "Checklist included"]
+    badges: ["DE/EN", "PDF/DOCX", "Checklist"]
   },
   { 
     id: "upgrade",
     title: "🔍 Upgrade & Review", 
     price: "€149", 
-    desc: "Have a plan or partial draft? We **fix structure, fill gaps, and polish** it to the required outline.", 
-    features: ["Gap report vs. target outline (aws/FFG/WA/bank/visa)", "Rewrite + reformat; add missing sections/financials", "Track changes so you approve every edit", "DE/EN · PDF/DOCX export"],
+    desc: "Have a plan or partial draft? We fix structure, fill gaps, and polish it to the required outline.", 
+    features: ["Gap report vs. selected outline (aws/FFG/WA/bank/visa)", "Rewrite + reformat; add missing sections/financials", "Tracked changes for your approval", "Export: PDF/DOCX (DE/EN)"],
     mode: "upgrade",
     featured: true,
     badges: ["DE/EN", "PDF/DOCX", "Gap report"]
@@ -30,8 +30,8 @@ const plans = [
     id: "strategy",
     title: "🧩 Strategy & Modelling Plan", 
     price: "€99", 
-    desc: "Idea not fully defined? We turn it into a **clear business model & go-to-market**.", 
-    features: ["Value prop, customer profile, pricing & positioning", "Unit economics + milestones / next steps", "Upgrade path to full Business Plan", "DE/EN deliverable"],
+    desc: "Idea not fully defined? We turn it into a clear business model and go-to-market.", 
+    features: ["Value prop, ideal customer, pricing & positioning", "Unit economics + milestones / next steps", "Upgrade path to full Business Plan", "Deliverable in DE/EN"],
     mode: "strategy",
     badges: ["DE/EN", "Short plan", "Upgrade path"]
   },
@@ -57,7 +57,7 @@ export default function Pricing() {
               plan.featured ? 'border-blue-200 bg-blue-50' : ''
             }`}>
               <h2 className="text-xl font-bold">{plan.title}</h2>
-              <p className="text-gray-600 mt-2" dangerouslySetInnerHTML={{ __html: plan.desc }}></p>
+              <p className="text-gray-600 mt-2">{plan.desc}</p>
               <p className="text-lg font-semibold mt-4">{plan.price}</p>
               <ul className="mt-6 space-y-2">
                 {plan.features.map((f, j) => (
@@ -156,8 +156,14 @@ export default function Pricing() {
                 </div>
 
                 <div>
-                  <h3 className="text-lg font-semibold text-gray-900 mb-3">Upgrade path:</h3>
-                  <p className="text-gray-700">Later edits via <strong>Upgrade & Review</strong>. If the model is unclear, start with <strong>Strategy & Modelling</strong>.</p>
+                  <h3 className="text-lg font-semibold text-gray-900 mb-3">Good next step:</h3>
+                  <p className="text-gray-700 mb-4">Later edits via <strong>Upgrade & Review</strong>. If the model is unclear, start with <strong>Strategy & Modelling</strong>.</p>
+                  <a 
+                    href="/editor?plan=custom"
+                    className="inline-block px-6 py-3 bg-blue-600 text-white rounded-lg font-semibold hover:bg-blue-700 transition-colors duration-300"
+                  >
+                    Start Custom Plan
+                  </a>
                 </div>
               </div>
             </div>
@@ -215,8 +221,14 @@ export default function Pricing() {
                 </div>
 
                 <div>
-                  <h3 className="text-lg font-semibold text-gray-900 mb-3">Upgrade path:</h3>
-                  <p className="text-gray-700">If foundations are weak, pair with <strong>Strategy & Modelling</strong>.</p>
+                  <h3 className="text-lg font-semibold text-gray-900 mb-3">Good next step:</h3>
+                  <p className="text-gray-700 mb-4">If foundations are weak, pair with <strong>Strategy & Modelling</strong>.</p>
+                  <a 
+                    href="/editor?plan=upgrade"
+                    className="inline-block px-6 py-3 bg-blue-600 text-white rounded-lg font-semibold hover:bg-blue-700 transition-colors duration-300"
+                  >
+                    Upload your draft
+                  </a>
                 </div>
               </div>
             </div>
@@ -270,12 +282,63 @@ export default function Pricing() {
                 </div>
 
                 <div>
-                  <h3 className="text-lg font-semibold text-gray-900 mb-3">Upgrade path:</h3>
-                  <p className="text-gray-700">Move to <strong>Custom Business Plan</strong> when the model is set.</p>
+                  <h3 className="text-lg font-semibold text-gray-900 mb-3">Good next step:</h3>
+                  <p className="text-gray-700 mb-4">Move to <strong>Custom Business Plan</strong> when the model is set.</p>
+                  <a 
+                    href="/editor?plan=strategy"
+                    className="inline-block px-6 py-3 bg-blue-600 text-white rounded-lg font-semibold hover:bg-blue-700 transition-colors duration-300"
+                  >
+                    Start Strategy Plan
+                  </a>
                 </div>
               </div>
             </div>
 
+          </div>
+        </section>
+
+        {/* Add-ons Section */}
+        <section className="max-w-4xl mx-auto py-16 px-4">
+          <div className="text-center mb-12">
+            <h2 className="text-2xl font-bold text-gray-900 mb-4">Add-ons</h2>
+            <p className="text-gray-600">Optional enhancements to your plan</p>
+          </div>
+          
+          <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
+            {[
+              "Deep Financial Model",
+              "Extra Revision", 
+              "Provider Form Help",
+              "Rush Delivery",
+              "Pitch Deck Outline"
+            ].map((addon, index) => (
+              <div key={index} className="bg-gray-50 rounded-lg p-4 text-center">
+                <h3 className="font-semibold text-gray-900 mb-2">{addon}</h3>
+                <p className="text-sm text-gray-600">Priced by scope</p>
+              </div>
+            ))}
+          </div>
+          
+          <div className="mt-8 text-center">
+            <p className="text-sm text-gray-600">
+              Add-ons are optional and priced by scope.
+            </p>
+          </div>
+        </section>
+
+        {/* Partners Section */}
+        <section id="partners" className="max-w-4xl mx-auto py-16 px-4">
+          <div className="text-center">
+            <h2 className="text-2xl font-bold text-gray-900 mb-4">Partners</h2>
+            <p className="text-gray-600 mb-6">
+              Banks, advisors, and universities can share the guided planner with clients to reduce back-and-forth and streamline the application process.
+            </p>
+            <a 
+              href="/about#partners"
+              className="inline-block px-6 py-3 bg-blue-600 text-white rounded-lg font-semibold hover:bg-blue-700 transition-colors duration-300"
+            >
+              Contact us
+            </a>
           </div>
         </section>
 

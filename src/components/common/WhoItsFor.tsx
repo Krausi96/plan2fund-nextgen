@@ -2,28 +2,28 @@ import { motion } from "framer-motion";
 
 const personas = [
   {
-    title: "First-time founders / Solopreneurs",
-    description: "Go from idea to funding-ready plan with Austria/EU awareness.",
+    title: "First-time founder / Solo",
+    description: "See programs that fit an early-stage founder (DE/EN).",
     features: ["Quick funding matches", "DE/EN business plans", "Austria/EU programs"],
     color: "text-blue-600",
     bgColor: "bg-blue-50",
     emoji: "🚀",
     badge: "Primary",
-    href: "/reco",
+    href: "/reco?persona=solo",
     isPrimary: true
   },
   {
     title: "SME (light)",
-    description: "Clean, bank-friendly plans for expansion or innovation.",
+    description: "Bank-friendly options for expansion & simple grants.",
     features: ["Bank loan applications", "Simple grant programs", "SME presets"],
     color: "text-green-600",
     bgColor: "bg-green-50",
     emoji: "🏢",
-    href: "/reco?type=bank",
+    href: "/reco?persona=sme",
     isPrimary: false
   },
   {
-    title: "Partners — Banks / Advisors / Universities",
+    title: "Advisors / Universities / Banks",
     description: "Share the guided planner with clients; reduce back-and-forth.",
     features: ["Client onboarding", "Reduced back-and-forth", "Partner tools"],
     color: "text-purple-600",
@@ -46,7 +46,7 @@ export function WhoItsFor() {
           className="text-center mb-12"
         >
           <h2 className="text-3xl font-bold text-neutral-900 mb-4">
-            Who is this for?
+            Start by your situation
           </h2>
         </motion.div>
 
@@ -103,7 +103,7 @@ export function WhoItsFor() {
                   className={`w-full px-4 py-2 ${persona.bgColor} ${persona.color} rounded-lg font-semibold text-center hover:opacity-80 transition-opacity group-hover:scale-105 transform transition-transform`}
                   title={`Learn more about ${persona.title.toLowerCase()}`}
                 >
-                  {persona.title.includes("Partners") ? "For partners" : "See matches"} →
+                  {persona.title.includes("Advisors") ? "For partners" : "See matches"} →
                 </a>
               </div>
             </motion.div>
