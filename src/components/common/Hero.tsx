@@ -200,7 +200,7 @@ export function Hero({
 
       {/* Main Content */}
       <div className="relative z-20 w-full max-w-6xl px-6 sm:px-8 lg:px-12 py-6 md:py-8 mx-auto">
-        <div className="flex flex-col items-center space-y-8">
+        <div className="flex flex-col items-center justify-center space-y-8 min-h-[50vh]">
           
           {/* Text Content - Full Width */}
           <div className="text-center max-w-4xl">
@@ -208,18 +208,18 @@ export function Hero({
               initial={{ opacity: 0, y: 30 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.8 }}
-              className="text-4xl sm:text-5xl lg:text-6xl xl:text-7xl font-extrabold text-white leading-tight mb-4 text-wrap-balance tracking-tight xl:tracking-tighter"
+              className="text-4xl sm:text-5xl lg:text-6xl xl:text-7xl font-extrabold text-white leading-tight mb-8 text-wrap-balance tracking-tight xl:tracking-tighter"
               style={{ textWrap: 'balance' }}
             >
               <div>{heroTitle}</div>
-              <div className="text-blue-200">{heroTitleSecond}</div>
+              <div className="text-white">{heroTitleSecond}</div>
             </motion.h1>
             
             <motion.p 
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.3, duration: 0.8 }}
-              className="text-xl md:text-2xl text-blue-100 mb-6 leading-relaxed"
+              className="text-lg md:text-xl text-blue-100 mb-6 leading-relaxed"
             >
               {heroSubtitle}
             </motion.p>
