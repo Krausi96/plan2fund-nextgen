@@ -2,31 +2,6 @@ import { motion, useReducedMotion } from "framer-motion";
 import { memo, useState, useEffect } from "react";
 import { useI18n } from "@/contexts/I18nContext";
 
-// Typing Animation Component
-const TypingText = memo(function TypingText({ text, delay = 0 }: { text: string; delay?: number }) {
-  const [displayedText, setDisplayedText] = useState("");
-  const [currentIndex, setCurrentIndex] = useState(0);
-  const [isComplete, setIsComplete] = useState(false);
-
-  useEffect(() => {
-    if (currentIndex < text.length) {
-      const timeout = setTimeout(() => {
-        setDisplayedText(prev => prev + text[currentIndex]);
-        setCurrentIndex(prev => prev + 1);
-      }, 50 + delay);
-      return () => clearTimeout(timeout);
-    } else {
-      setIsComplete(true);
-    }
-  }, [currentIndex, text, delay]);
-
-  return (
-    <div className="text-white">
-      {displayedText}
-      {!isComplete && <span className="animate-pulse">|</span>}
-    </div>
-  );
-});
 
 // Blueprint Grid Background Component
 const BlueprintGrid = memo(function BlueprintGrid() {
@@ -159,14 +134,17 @@ const UserFlowAnimation = memo(function UserFlowAnimation({ onStepClick }: { onS
                     ? 'border-white/40 bg-white/10 scale-105' 
                     : 'border-white/10'
                 }`}
-                style={{ width: '120px', height: '100px' }}
+                style={{ width: '120px', minHeight: '100px' }}
                 onClick={() => onStepClick?.(step.id)}
               >
                 {/* Step Icon */}
                 <motion.div 
-                  className={`mx-auto mb-1 bg-white/20 rounded-full flex items-center justify-center text-white font-bold ${
+                  className={`mx-auto mb-1 rounded-full flex items-center justify-center text-white font-bold ${
                     currentStep === index ? 'w-7 h-7 text-sm' : 'w-6 h-6 text-xs'
                   }`}
+                  style={{
+                    background: `linear-gradient(135deg, ${step.color.includes('blue') ? '#3B82F6' : step.color.includes('green') ? '#10B981' : step.color.includes('purple') ? '#8B5CF6' : step.color.includes('orange') ? '#F59E0B' : '#EAB308'}, ${step.color.includes('blue') ? '#06B6D4' : step.color.includes('green') ? '#059669' : step.color.includes('purple') ? '#A855F7' : step.color.includes('orange') ? '#EF4444' : '#F97316'})`
+                  }}
                   animate={{
                     scale: currentStep === index ? 1.1 : 1,
                   }}
@@ -176,11 +154,11 @@ const UserFlowAnimation = memo(function UserFlowAnimation({ onStepClick }: { onS
                 </motion.div>
                 
                 {/* Step Content */}
-                <div className="text-center">
-                  <h3 className="text-xs font-bold text-white mb-1">
+                <div className="text-center flex flex-col justify-center h-full">
+                  <h3 className="text-xs font-bold text-white mb-1 line-clamp-2">
                     {step.title}
                   </h3>
-                  <p className="text-[10px] text-blue-200/80 leading-tight">
+                  <p className="text-[10px] text-blue-200/80 leading-tight line-clamp-3 overflow-hidden">
                     {step.description}
                   </p>
                 </div>
@@ -231,7 +209,7 @@ export function Hero({
       <div className="relative z-20 w-full max-w-6xl px-6 sm:px-8 lg:px-12 py-12 md:py-16 mx-auto">
         <div className="flex flex-col items-center justify-center space-y-8 min-h-[60vh]">
           
-          {/* H1 Title - Typing animation with consistent colors */}
+          {/* H1 Title - Static with proper spacing */}
           <div className="text-center max-w-4xl">
             <motion.h1 
               initial={{ opacity: 0, y: 30 }}
@@ -240,8 +218,8 @@ export function Hero({
               className="text-3xl sm:text-4xl lg:text-5xl xl:text-6xl font-extrabold text-white leading-tight mb-6 text-wrap-balance tracking-tight"
               style={{ textWrap: 'balance' }}
             >
-              <TypingText text={heroTitle} delay={0} />
-              <TypingText text={heroTitleSecond} delay={2000} />
+              <div className="mb-2">{heroTitle}</div>
+              <div className="text-white">{heroTitleSecond}</div>
             </motion.h1>
           </div>
 
