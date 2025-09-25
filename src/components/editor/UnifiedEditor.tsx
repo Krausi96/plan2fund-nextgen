@@ -7,9 +7,7 @@
 import React, { useState, useEffect } from 'react';
 import { useRouter } from 'next/router';
 import Link from 'next/link';
-import { Progress } from '@/components/ui/progress';
 import { Button } from '@/components/ui/button';
-import { Badge } from '@/components/ui/badge';
 import BlockEditor, { Block } from './BlockEditor';
 import SidebarPrograms from './SidebarPrograms';
 import InlineSetupBar from './InlineSetupBar';
@@ -18,6 +16,10 @@ import AIChat from '@/components/plan/AIChat';
 import AdvancedSearchPanel from './AdvancedSearchPanel';
 import InfoDrawer from '@/components/common/InfoDrawer';
 import RouteExtrasPanel from './RouteExtrasPanel';
+import RequirementsChecker from './RequirementsChecker';
+import SectionGuidance from './SectionGuidance';
+import FinancialDashboard from './FinancialDashboard';
+import SimplifiedNavigation from './SimplifiedNavigation';
 import { loadPlanSections, type PlanSection } from '@/lib/planStore';
 import { chapterTemplates } from '@/lib/templates/chapters';
 import { type Program } from '@/lib/prefill';
@@ -46,6 +48,8 @@ export default function UnifiedEditor({
   const [showAdvancedSearch, setShowAdvancedSearch] = useState(false);
   const [showInfoDrawer, setShowInfoDrawer] = useState(false);
   const [showSetupBar, setShowSetupBar] = useState(!userAnswers || Object.keys(userAnswers).length === 0);
+  const [showSectionGuidance, setShowSectionGuidance] = useState(false);
+  const [showFinancialDashboard, setShowFinancialDashboard] = useState(false);
   
   // Data state
   const [currentAnswers, setCurrentAnswers] = useState<Record<string, any>>(userAnswers);
@@ -88,7 +92,7 @@ export default function UnifiedEditor({
 
       // Generate initial blocks from user answers if available
       if (userAnswers && Object.keys(userAnswers).length > 0) {
-        generateInitialBlocks(userAnswers);
+        await generateInitialBlocks(userAnswers);
       }
 
       // Track editor start
@@ -99,12 +103,162 @@ export default function UnifiedEditor({
   };
 
 
-  const generateInitialBlocks = (answers: Record<string, any>) => {
+  const generateInitialBlocks = async (answers: Record<string, any>) => {
     const initialBlocks: Block[] = [];
 
+    try {
+      // Use AI helper for better content generation
+      const { AIHelper } = await import('@/lib/aiHelper');
+      const aiHelper = new AIHelper({
+        maxWords: 200,
+        sectionScope: 'general',
+        programHints: selectedProgram ? { [selectedProgram.type]: selectedProgram } : {},
+        userAnswers: answers,
+        tone: 'neutral',
+        language: 'en'
+      });
+
+      // Executive Summary block with AI enhancement
+      if (answers.business_name || answers.business_description) {
+        const execSummaryContent = selectedProgram 
+          ? await generateProgramAwareContent('executive_summary', answers, selectedProgram, aiHelper)
+          : generateExecutiveSummary(answers);
+        
+        initialBlocks.push({
+          id: `block_${Date.now()}_exec_summary`,
+          type: 'text',
+          data: {
+            content: execSummaryContent,
+            title: 'Executive Summary'
+          },
+          order: 0
+        });
+      }
+
+      // Business Description block with AI enhancement
+      if (answers.business_description) {
+        const businessDescContent = selectedProgram 
+          ? await generateProgramAwareContent('business_description', answers, selectedProgram, aiHelper)
+          : answers.business_description;
+        
+        initialBlocks.push({
+          id: `block_${Date.now()}_business_desc`,
+          type: 'text',
+          data: {
+            content: businessDescContent,
+            title: 'Business Description'
+          },
+          order: 1
+        });
+      }
+
+      // Market Analysis block with AI enhancement
+      if (answers.target_market) {
+        const marketContent = selectedProgram 
+          ? await generateProgramAwareContent('market_analysis', answers, selectedProgram, aiHelper)
+          : answers.target_market;
+        
+        initialBlocks.push({
+          id: `block_${Date.now()}_market`,
+          type: 'text',
+          data: {
+            content: marketContent,
+            title: 'Market Analysis'
+          },
+          order: 2
+        });
+      }
+
+      // Financial Projections block with AI enhancement
+      if (answers.funding_amount) {
+        const financialContent = selectedProgram 
+          ? await generateProgramAwareContent('financial_projections', answers, selectedProgram, aiHelper)
+          : generateFinancialSection(answers);
+        
+        initialBlocks.push({
+          id: `block_${Date.now()}_financials`,
+          type: 'text',
+          data: {
+            content: financialContent,
+            title: 'Financial Projections'
+          },
+          order: 3
+        });
+      }
+
+      // Timeline block
+      if (answers.timeline) {
+        initialBlocks.push({
+          id: `block_${Date.now()}_timeline`,
+          type: 'text',
+          data: {
+            content: generateTimelineSection(answers),
+            title: 'Implementation Timeline'
+          },
+          order: 4
+        });
+      }
+
+      // Add program-specific blocks if program is selected
+      if (selectedProgram) {
+        await addProgramSpecificBlocks(initialBlocks, answers, selectedProgram, aiHelper);
+      }
+
+      setBlocks(initialBlocks);
+    } catch (error) {
+      console.error('Error generating initial blocks:', error);
+      // Fallback to basic generation
+      generateBasicInitialBlocks(answers, initialBlocks);
+      setBlocks(initialBlocks);
+    }
+  };
+
+  const generateProgramAwareContent = async (section: string, answers: Record<string, any>, program: any, aiHelper: any) => {
+    try {
+      const response = await aiHelper.generateSectionContent(section, answers.business_description || '', program);
+      return response.content;
+    } catch (error) {
+      console.error(`Error generating ${section} content:`, error);
+      return generateBasicContent(section, answers);
+    }
+  };
+
+  const addProgramSpecificBlocks = async (blocks: Block[], answers: Record<string, any>, program: any, _aiHelper: any) => {
+    // Add program-specific requirements block
+    if (program.requirements && program.requirements.length > 0) {
+      const requirementsContent = `## Program Requirements\n\nThis application addresses the following requirements for ${program.name}:\n\n${program.requirements.map((req: string) => `• ${req}`).join('\n')}\n\n### Eligibility Criteria\n\n${program.eligibility ? program.eligibility.map((el: string) => `• ${el}`).join('\n') : 'Please verify eligibility requirements.'}`;
+      
+      blocks.push({
+        id: `block_${Date.now()}_requirements`,
+        type: 'text',
+        data: {
+          content: requirementsContent,
+          title: 'Program Requirements & Eligibility'
+        },
+        order: blocks.length
+      });
+    }
+
+    // Add program-specific financial details if it's a grant
+    if (program.type === 'grant' && answers.funding_amount) {
+      const grantFinancials = `## Grant Financial Details\n\n**Requested Amount:** ${answers.funding_amount}\n**Program:** ${program.name}\n**Grant Type:** ${program.type}\n\n### Use of Funds\n\n${answers.use_of_funds || 'Please specify how the grant will be used.'}\n\n### Matching Funds\n\n${answers.matching_funds || 'Please specify any matching funds or co-financing.'}`;
+      
+      blocks.push({
+        id: `block_${Date.now()}_grant_financials`,
+        type: 'text',
+        data: {
+          content: grantFinancials,
+          title: 'Grant Financial Details'
+        },
+        order: blocks.length
+      });
+    }
+  };
+
+  const generateBasicInitialBlocks = (answers: Record<string, any>, blocks: Block[]) => {
     // Executive Summary block
     if (answers.business_name || answers.business_description) {
-      initialBlocks.push({
+      blocks.push({
         id: `block_${Date.now()}_exec_summary`,
         type: 'text',
         data: {
@@ -117,7 +271,7 @@ export default function UnifiedEditor({
 
     // Business Description block
     if (answers.business_description) {
-      initialBlocks.push({
+      blocks.push({
         id: `block_${Date.now()}_business_desc`,
         type: 'text',
         data: {
@@ -130,7 +284,7 @@ export default function UnifiedEditor({
 
     // Market Analysis block
     if (answers.target_market) {
-      initialBlocks.push({
+      blocks.push({
         id: `block_${Date.now()}_market`,
         type: 'text',
         data: {
@@ -143,7 +297,7 @@ export default function UnifiedEditor({
 
     // Financial Projections block
     if (answers.funding_amount) {
-      initialBlocks.push({
+      blocks.push({
         id: `block_${Date.now()}_financials`,
         type: 'text',
         data: {
@@ -156,7 +310,7 @@ export default function UnifiedEditor({
 
     // Timeline block
     if (answers.timeline) {
-      initialBlocks.push({
+      blocks.push({
         id: `block_${Date.now()}_timeline`,
         type: 'text',
         data: {
@@ -166,8 +320,42 @@ export default function UnifiedEditor({
         order: 4
       });
     }
+  };
 
-    setBlocks(initialBlocks);
+  const generateBasicContent = (section: string, answers: Record<string, any>) => {
+    switch (section) {
+      case 'executive_summary':
+        return generateExecutiveSummary(answers);
+      case 'business_description':
+        return answers.business_description || '';
+      case 'market_analysis':
+        return answers.target_market || '';
+      case 'financial_projections':
+        return generateFinancialSection(answers);
+      default:
+        return '';
+    }
+  };
+
+  const getPlanContent = () => {
+    const content: Record<string, any> = {};
+    
+    // Extract content from blocks
+    blocks.forEach(block => {
+      if (block.type === 'text' && block.data?.content) {
+        const section = block.data.title?.toLowerCase().replace(/\s+/g, '_') || 'general';
+        content[section] = block.data.content;
+      }
+    });
+
+    // Add section content
+    sections.forEach(section => {
+      if (section.content) {
+        content[section.title.toLowerCase().replace(/\s+/g, '_')] = section.content;
+      }
+    });
+
+    return content;
   };
 
   const generateExecutiveSummary = (answers: Record<string, any>): string => {
@@ -436,37 +624,35 @@ ${answers.business_description || '[Business Description]'}
             />
           )}
 
-          {/* Section Navigation */}
-          <div className="bg-white py-3 px-4 rounded-lg shadow-sm border">
-            <nav className="flex gap-2 md:gap-4 text-sm text-gray-600 overflow-x-auto">
-              {sections.map((s, i) => (
-                <button
-                  key={i}
-                  onClick={() => setActiveSection(i)}
-                  className={`flex items-center gap-1 whitespace-nowrap px-2 md:px-3 py-1 rounded transition-colors text-xs md:text-sm ${
-                    i === activeSection 
-                      ? "bg-blue-100 text-blue-800 font-semibold" 
-                      : "hover:bg-gray-100"
-                  }`}
-                >
-                  <span className="hidden md:inline">{i === activeSection ? "➡" : "○"}</span>
-                  <span className="md:hidden">{i === activeSection ? "●" : "○"}</span>
-                  <span className="truncate max-w-20 md:max-w-none">{s.title}</span>
-                </button>
-              ))}
-            </nav>
-          </div>
+          {/* Simplified Navigation */}
+          <SimplifiedNavigation
+            sections={sections}
+            activeSection={activeSection}
+            onSectionChange={setActiveSection}
+            onSave={() => handleSave(blocks)}
+            onExport={() => handleExport('pdf')}
+            onPreview={() => {
+              // Open preview in new tab
+              window.open('/preview', '_blank');
+            }}
+            onSettings={() => {
+              // Open settings modal or panel
+              console.log('Open settings');
+            }}
+            completionPercentage={getCompletionPercentage()}
+            isDirty={false} // TODO: Track dirty state
+          />
 
-          {/* Editor Header */}
-          <div className="sticky top-0 bg-white py-4 z-10 border-b shadow-sm">
-            <div className="flex flex-col md:flex-row md:justify-between md:items-center gap-4">
+          {/* Quick Actions Bar */}
+          <div className="bg-white py-3 px-4 rounded-lg shadow-sm border">
+            <div className="flex flex-col md:flex-row md:justify-between md:items-center gap-3">
               <div>
-                <h1 className="text-xl md:text-2xl font-bold text-gray-900">Business Plan Editor</h1>
-                <p className="text-sm text-gray-600 mt-1">
+                <h1 className="text-lg font-semibold text-gray-900">Business Plan Editor</h1>
+                <p className="text-sm text-gray-600">
                   {selectedProgram ? `Tailored for ${selectedProgram.name}` : 'Create your business plan'}
                 </p>
               </div>
-              <div className="flex flex-col md:flex-row items-start md:items-center gap-3 md:gap-4">
+              <div className="flex items-center gap-2">
                 <div className="flex items-center gap-2">
                   <span className="text-sm text-gray-600">Mode:</span>
                   <button
@@ -480,37 +666,90 @@ ${answers.business_description || '[Business Description]'}
                     {persona === "newbie" ? "Newbie" : "Expert"}
                   </button>
                 </div>
-                <div className="flex items-center gap-2">
+                <div className="flex items-center gap-1">
+                  <button
+                    onClick={() => setShowFinancialDashboard(!showFinancialDashboard)}
+                    className={`text-xs px-2 py-1 rounded transition-colors ${
+                      showFinancialDashboard 
+                        ? "bg-purple-100 text-purple-800" 
+                        : "bg-gray-100 text-gray-600 hover:bg-gray-200"
+                    }`}
+                  >
+                    💰
+                  </button>
+                  <button
+                    onClick={() => setShowSectionGuidance(!showSectionGuidance)}
+                    className={`text-xs px-2 py-1 rounded transition-colors ${
+                      showSectionGuidance 
+                        ? "bg-green-100 text-green-800" 
+                        : "bg-gray-100 text-gray-600 hover:bg-gray-200"
+                    }`}
+                  >
+                    📚
+                  </button>
                   <button
                     onClick={() => setShowAISidebar(!showAISidebar)}
-                    className="text-xs px-3 py-1 bg-blue-100 hover:bg-blue-200 rounded font-medium transition-colors"
+                    className="text-xs px-2 py-1 bg-blue-100 hover:bg-blue-200 rounded transition-colors"
                   >
-                    {showAISidebar ? "Hide AI" : "Show AI"}
-                  </button>
-                  <button
-                    onClick={() => setShowInfoDrawer(true)}
-                    className="text-blue-600 hover:text-blue-800 text-sm flex items-center gap-1 transition-colors"
-                  >
-                    <span>ℹ️</span> <span className="hidden md:inline">Help</span>
+                    🤖
                   </button>
                 </div>
-                <Badge variant="outline" className="text-green-600 border-green-300">
-                  {getCompletionPercentage()}% Complete
-                </Badge>
               </div>
             </div>
-            <div className="mt-3">
-              <Progress value={getCompletionPercentage()} />
-            </div>
           </div>
+
+          {/* Financial Dashboard Panel */}
+          {showFinancialDashboard && (
+            <div className="bg-purple-50 border border-purple-200 rounded-lg p-4 mb-4">
+              <FinancialDashboard
+                businessType={selectedProgram?.type || 'saas'}
+                initialAssumptions={{
+                  fundingAmount: currentAnswers.funding_amount || 500000,
+                  initialRevenue: currentAnswers.initial_revenue || 5000,
+                  monthlyGrowthRate: currentAnswers.monthly_growth_rate || 15
+                }}
+                onAssumptionsChange={(assumptions) => {
+                  // Update assumptions in current answers
+                  setCurrentAnswers(prev => ({
+                    ...prev,
+                    funding_amount: assumptions.fundingAmount,
+                    initial_revenue: assumptions.initialRevenue,
+                    monthly_growth_rate: assumptions.monthlyGrowthRate
+                  }));
+                }}
+                onExport={(data) => {
+                  // Export financial data
+                  console.log("Export financial data:", data);
+                }}
+              />
+            </div>
+          )}
+
+          {/* Section Guidance Panel */}
+          {showSectionGuidance && (
+            <div className="bg-green-50 border border-green-200 rounded-lg p-4 mb-4">
+              <SectionGuidance
+                section={sections[activeSection]?.title || "Current Section"}
+                programType={selectedProgram?.type}
+                onInsertTemplate={(template) => {
+                  // Insert template into current section
+                  console.log("Insert template:", template);
+                }}
+                onShowExamples={() => {
+                  // Show examples modal or navigate to examples
+                  console.log("Show examples");
+                }}
+              />
+            </div>
+          )}
 
           {/* Block Editor */}
           <div className="flex-1">
             <BlockEditor
               initialBlocks={blocks}
               onBlocksChange={handleBlocksChange}
-              onSave={handleSave}
-              onExport={handleExport}
+              onSave={() => handleSave(blocks)}
+              onExport={() => handleExport('pdf')}
               showFormatting={true}
               showToolbar={true}
             />
@@ -555,6 +794,21 @@ ${answers.business_description || '[Business Description]'}
               />
             ) : (
               <div className="p-4 space-y-4">
+                {/* Requirements Checker */}
+                {selectedProgram && (
+                  <RequirementsChecker
+                    programType={selectedProgram.type}
+                    planContent={getPlanContent()}
+                    onRequirementClick={(section, _requirement) => {
+                      // Navigate to specific section and highlight requirement
+                      const sectionIndex = sections.findIndex(s => s.title.toLowerCase().includes(section));
+                      if (sectionIndex !== -1) {
+                        setActiveSection(sectionIndex);
+                      }
+                    }}
+                  />
+                )}
+                
                 {/* Route Extras Panel */}
                 <RouteExtrasPanel
                   planType={currentAnswers.plan_type || 'custom'}
@@ -615,6 +869,22 @@ ${answers.business_description || '[Business Description]'}
                 />
               ) : (
                 <div className="space-y-4">
+                  {/* Requirements Checker */}
+                  {selectedProgram && (
+                    <RequirementsChecker
+                      programType={selectedProgram.type}
+                      planContent={getPlanContent()}
+                      onRequirementClick={(section, _requirement) => {
+                        // Navigate to specific section and highlight requirement
+                        const sectionIndex = sections.findIndex(s => s.title.toLowerCase().includes(section));
+                        if (sectionIndex !== -1) {
+                          setActiveSection(sectionIndex);
+                        }
+                        setShowAISidebar(false); // Close mobile sidebar
+                      }}
+                    />
+                  )}
+                  
                   {/* Route Extras Panel */}
                   <RouteExtrasPanel
                     planType={currentAnswers.plan_type || 'custom'}

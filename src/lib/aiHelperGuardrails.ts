@@ -1,5 +1,5 @@
 // Enhanced AI Helper Guardrails - Integrates with existing system
-import rawPrograms from "../data/programs";
+import rawPrograms from "../../data/programs.json";
 
 export interface AIHelperResponse {
   type: 'chips' | 'clarification' | 'redirect' | 'suggestion_ticket' | 'plan_assistance';

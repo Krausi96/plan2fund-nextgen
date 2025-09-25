@@ -153,9 +153,38 @@ export default function Pricing() {
                 </div>
               )}
               
+              {/* Route Selection for Custom Plan */}
+              {plan.mode === 'custom' && (
+                <div className="mb-4">
+                  <h4 className="text-sm font-semibold text-gray-900 mb-2">Choose your route:</h4>
+                  <div className="grid grid-cols-2 gap-2">
+                    <Link href={`/editor?product=submission&route=grant`} className="block">
+                      <Button variant="outline" className="w-full py-2 text-sm">
+                        Grant
+                      </Button>
+                    </Link>
+                    <Link href={`/editor?product=submission&route=bank`} className="block">
+                      <Button variant="outline" className="w-full py-2 text-sm">
+                        Bank
+                      </Button>
+                    </Link>
+                    <Link href={`/editor?product=submission&route=equity`} className="block">
+                      <Button variant="outline" className="w-full py-2 text-sm">
+                        Equity
+                      </Button>
+                    </Link>
+                    <Link href={`/editor?product=submission&route=visa`} className="block">
+                      <Button variant="outline" className="w-full py-2 text-sm">
+                        Visa
+                      </Button>
+                    </Link>
+                  </div>
+                </div>
+              )}
+
               {/* Action Button */}
               <div className="mt-6">
-                <Link href={`/editor?plan=${plan.mode}`} className="block">
+                <Link href={`/editor?product=${plan.mode}`} className="block">
                   <Button className="w-full py-3 text-base font-semibold group-hover:shadow-lg transition-all duration-300">
                     {plan.cta}
                   </Button>
@@ -166,6 +195,149 @@ export default function Pricing() {
         </section>
 
         <PricingDetails />
+
+        {/* Template Selection Section */}
+        <section id="templates" className="max-w-6xl mx-auto py-16 px-4">
+          <div className="text-center mb-12">
+            <h2 className="text-3xl font-bold text-gray-900 mb-4">
+              Choose Your Template
+            </h2>
+            <p className="text-lg text-gray-600 max-w-3xl mx-auto">
+              Each template is optimized for specific funding routes and includes all required sections, 
+              financial tables, and formatting guidelines.
+            </p>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+            {/* Grant Template */}
+            <div className="bg-white border-2 border-gray-200 rounded-xl p-6 hover:border-blue-300 hover:shadow-lg transition-all duration-300">
+              <div className="text-center mb-4">
+                <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-3">
+                  <span className="text-2xl">🏛️</span>
+                </div>
+                <h3 className="text-lg font-semibold text-gray-900">Grant Template</h3>
+                <p className="text-sm text-gray-600">Government & EU funding</p>
+              </div>
+              <div className="space-y-2 text-sm">
+                <div className="flex items-center">
+                  <span className="w-2 h-2 bg-green-500 rounded-full mr-2"></span>
+                  <span>Work packages & timeline</span>
+                </div>
+                <div className="flex items-center">
+                  <span className="w-2 h-2 bg-green-500 rounded-full mr-2"></span>
+                  <span>Budget sheet</span>
+                </div>
+                <div className="flex items-center">
+                  <span className="w-2 h-2 bg-green-500 rounded-full mr-2"></span>
+                  <span>Annex guidance</span>
+                </div>
+              </div>
+              <div className="mt-4">
+                <Link href="/editor?product=submission&route=grant">
+                  <Button variant="outline" className="w-full">
+                    Use Grant Template
+                  </Button>
+                </Link>
+              </div>
+            </div>
+
+            {/* Bank Template */}
+            <div className="bg-white border-2 border-gray-200 rounded-xl p-6 hover:border-blue-300 hover:shadow-lg transition-all duration-300">
+              <div className="text-center mb-4">
+                <div className="w-16 h-16 bg-blue-100 rounded-full flex items-center justify-center mx-auto mb-3">
+                  <span className="text-2xl">🏦</span>
+                </div>
+                <h3 className="text-lg font-semibold text-gray-900">Bank Template</h3>
+                <p className="text-sm text-gray-600">Loans & credit</p>
+              </div>
+              <div className="space-y-2 text-sm">
+                <div className="flex items-center">
+                  <span className="w-2 h-2 bg-blue-500 rounded-full mr-2"></span>
+                  <span>Bank summary page</span>
+                </div>
+                <div className="flex items-center">
+                  <span className="w-2 h-2 bg-blue-500 rounded-full mr-2"></span>
+                  <span>Financial ratios</span>
+                </div>
+                <div className="flex items-center">
+                  <span className="w-2 h-2 bg-blue-500 rounded-full mr-2"></span>
+                  <span>Repayment analysis</span>
+                </div>
+              </div>
+              <div className="mt-4">
+                <Link href="/editor?product=submission&route=bank">
+                  <Button variant="outline" className="w-full">
+                    Use Bank Template
+                  </Button>
+                </Link>
+              </div>
+            </div>
+
+            {/* Equity Template */}
+            <div className="bg-white border-2 border-gray-200 rounded-xl p-6 hover:border-blue-300 hover:shadow-lg transition-all duration-300">
+              <div className="text-center mb-4">
+                <div className="w-16 h-16 bg-purple-100 rounded-full flex items-center justify-center mx-auto mb-3">
+                  <span className="text-2xl">💼</span>
+                </div>
+                <h3 className="text-lg font-semibold text-gray-900">Equity Template</h3>
+                <p className="text-sm text-gray-600">Investors & VCs</p>
+              </div>
+              <div className="space-y-2 text-sm">
+                <div className="flex items-center">
+                  <span className="w-2 h-2 bg-purple-500 rounded-full mr-2"></span>
+                  <span>Investor teaser</span>
+                </div>
+                <div className="flex items-center">
+                  <span className="w-2 h-2 bg-purple-500 rounded-full mr-2"></span>
+                  <span>Cap table</span>
+                </div>
+                <div className="flex items-center">
+                  <span className="w-2 h-2 bg-purple-500 rounded-full mr-2"></span>
+                  <span>Exit strategy</span>
+                </div>
+              </div>
+              <div className="mt-4">
+                <Link href="/editor?product=submission&route=equity">
+                  <Button variant="outline" className="w-full">
+                    Use Equity Template
+                  </Button>
+                </Link>
+              </div>
+            </div>
+
+            {/* Visa Template */}
+            <div className="bg-white border-2 border-gray-200 rounded-xl p-6 hover:border-blue-300 hover:shadow-lg transition-all duration-300">
+              <div className="text-center mb-4">
+                <div className="w-16 h-16 bg-orange-100 rounded-full flex items-center justify-center mx-auto mb-3">
+                  <span className="text-2xl">🛂</span>
+                </div>
+                <h3 className="text-lg font-semibold text-gray-900">Visa Template</h3>
+                <p className="text-sm text-gray-600">Immigration & residency</p>
+              </div>
+              <div className="space-y-2 text-sm">
+                <div className="flex items-center">
+                  <span className="w-2 h-2 bg-orange-500 rounded-full mr-2"></span>
+                  <span>Visa annex guidance</span>
+                </div>
+                <div className="flex items-center">
+                  <span className="w-2 h-2 bg-orange-500 rounded-full mr-2"></span>
+                  <span>Legal requirements</span>
+                </div>
+                <div className="flex items-center">
+                  <span className="w-2 h-2 bg-orange-500 rounded-full mr-2"></span>
+                  <span>Documentation checklist</span>
+                </div>
+              </div>
+              <div className="mt-4">
+                <Link href="/editor?product=submission&route=visa">
+                  <Button variant="outline" className="w-full">
+                    Use Visa Template
+                  </Button>
+                </Link>
+              </div>
+            </div>
+          </div>
+        </section>
 
         {/* Add-on Pack Section */}
         <section id="addons" className="max-w-4xl mx-auto py-16 px-4">

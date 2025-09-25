@@ -7,7 +7,13 @@ import { getExportLabels } from '../i18n/settings';
 export interface ExportOptions {
   format: 'PDF' | 'DOCX';
   includeWatermark: boolean;
+  watermarkText?: string;
   quality: 'draft' | 'standard' | 'premium';
+  theme?: 'serif' | 'sans' | 'modern' | 'classic';
+  fontSize?: 'small' | 'medium' | 'large';
+  spacing?: 'compact' | 'normal' | 'relaxed';
+  showPageNumbers?: boolean;
+  showTableOfContents?: boolean;
 }
 
 export interface ExportResult {
@@ -78,7 +84,30 @@ export class ExportRenderer {
     };
   }
 
-  private generateHTML(plan: PlanDocument, _options: ExportOptions, labels: any): string {
+  private generateHTML(plan: PlanDocument, options: ExportOptions, labels: any): string {
+    const theme = options.theme || 'sans';
+    const fontSize = options.fontSize || 'medium';
+    const spacing = options.spacing || 'normal';
+    
+    const fontFamily = {
+      'serif': 'Times New Roman, serif',
+      'sans': 'Arial, sans-serif',
+      'modern': 'Helvetica, sans-serif',
+      'classic': 'Georgia, serif'
+    }[theme];
+    
+    const fontSizeValue = {
+      'small': '12px',
+      'medium': '14px',
+      'large': '16px'
+    }[fontSize];
+    
+    const lineHeight = {
+      'compact': '1.4',
+      'normal': '1.6',
+      'relaxed': '1.8'
+    }[spacing];
+    
     let html = `
       <!DOCTYPE html>
       <html lang="${plan.language}">
@@ -87,7 +116,26 @@ export class ExportRenderer {
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
         <title>${plan.id}</title>
         <style>
-          body { font-family: Arial, sans-serif; line-height: 1.6; margin: 0; padding: 20px; }
+          body { 
+            font-family: ${fontFamily}; 
+            font-size: ${fontSizeValue};
+            line-height: ${lineHeight}; 
+            margin: 0; 
+            padding: 20px;
+            position: relative;
+          }
+          .watermark {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%) rotate(-45deg);
+            font-size: 72px;
+            font-weight: bold;
+            color: rgba(0, 0, 0, 0.1);
+            z-index: -1;
+            pointer-events: none;
+            user-select: none;
+          }
           .title-page { text-align: center; page-break-after: always; padding: 50px 0; }
           .section { margin-bottom: 30px; }
           .section h1 { color: #2563eb; font-size: 24px; margin-bottom: 15px; }
@@ -100,10 +148,19 @@ export class ExportRenderer {
           .figure-caption { font-style: italic; margin-top: 10px; }
           .sources { margin-top: 30px; }
           .page-number { position: fixed; bottom: 20px; right: 20px; font-size: 12px; }
+          .toc { margin-bottom: 30px; }
+          .toc ul { list-style: none; padding-left: 0; }
+          .toc li { margin: 5px 0; }
+          .toc a { text-decoration: none; color: #2563eb; }
         </style>
       </head>
       <body>
     `;
+    
+    // Add watermark if enabled
+    if (options.includeWatermark && options.watermarkText) {
+      html += `<div class="watermark">${options.watermarkText}</div>`;
+    }
 
     // Title Page
     if (plan.settings.includeTitlePage) {
@@ -119,13 +176,27 @@ export class ExportRenderer {
       `;
     }
 
+    // Table of Contents
+    if (options.showTableOfContents) {
+      html += `
+        <div class="toc">
+          <h2>Table of Contents</h2>
+          <ul>
+            ${plan.sections.map((section, index) => `
+              <li><a href="#section-${index}">${section.title}</a></li>
+            `).join('')}
+          </ul>
+        </div>
+      `;
+    }
+
     // Content Sections
     plan.sections.forEach((section, index) => {
-      const pageNumber = plan.settings.includePageNumbers ? 
+      const pageNumber = options.showPageNumbers ? 
         `<div class="page-number">${labels.pageNumber} ${index + (plan.settings.includeTitlePage ? 2 : 1)}</div>` : '';
       
       html += `
-        <div class="section">
+        <div class="section" id="section-${index}">
           <h1>${section.title}</h1>
           <div>${this.formatContent(section.content)}</div>
           ${pageNumber}

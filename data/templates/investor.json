@@ -1,0 +1,113 @@
+{
+  "id": "investor",
+  "name": "Investor Pitch Deck",
+  "type": "equity",
+  "description": "Comprehensive pitch deck template for equity investors",
+  "target_audience": "Venture Capitalists, Angel Investors, Private Equity",
+  "estimated_time": "2-3 hours",
+  "difficulty": "expert",
+  "sections": [
+    {
+      "id": "executive_summary",
+      "title": "Executive Summary",
+      "description": "One-page overview of your business opportunity",
+      "required": true,
+      "estimated_words": 200,
+      "guidance": "Focus on the problem, solution, market size, and ask. Keep it concise and compelling.",
+      "template": "# Executive Summary\n\n## The Problem\n[Describe the problem you're solving in 2-3 sentences]\n\n## The Solution\n[Explain your product/service in 2-3 sentences]\n\n## Market Opportunity\n- **Total Addressable Market (TAM):** €[X]B\n- **Serviceable Addressable Market (SAM):** €[X]M\n- **Serviceable Obtainable Market (SOM):** €[X]M\n\n## Traction\n- Revenue: €[X]K MRR\n- Growth: [X]% month-over-month\n- Customers: [X] paying customers\n\n## The Ask\n- **Funding Amount:** €[X]M\n- **Use of Funds:** [Primary use cases]\n- **Timeline:** [X] months runway"
+    },
+    {
+      "id": "problem_solution",
+      "title": "Problem & Solution",
+      "description": "Deep dive into the problem and your unique solution",
+      "required": true,
+      "estimated_words": 400,
+      "guidance": "Use data and customer quotes to validate the problem. Clearly articulate your unique value proposition.",
+      "template": "# Problem & Solution\n\n## The Problem\n\n### Market Pain Points\n- [Pain point 1 with supporting data]\n- [Pain point 2 with supporting data]\n- [Pain point 3 with supporting data]\n\n### Customer Quotes\n> \"[Customer quote about the problem]\" - [Customer name, title]\n\n## The Solution\n\n### Our Approach\n[Describe your solution in detail]\n\n### Key Features\n- **Feature 1:** [Description and benefit]\n- **Feature 2:** [Description and benefit]\n- **Feature 3:** [Description and benefit]\n\n### Competitive Advantage\n- [What makes you different]\n- [Why you'll win]\n- [Barriers to entry]"
+    },
+    {
+      "id": "market_analysis",
+      "title": "Market Analysis",
+      "description": "Comprehensive market research and opportunity sizing",
+      "required": true,
+      "estimated_words": 500,
+      "guidance": "Include TAM/SAM/SOM analysis, market trends, and competitive landscape.",
+      "template": "# Market Analysis\n\n## Market Size\n\n### Total Addressable Market (TAM)\n- **Market Size:** €[X]B globally\n- **Growth Rate:** [X]% CAGR\n- **Key Drivers:** [List 3-5 key growth drivers]\n\n### Serviceable Addressable Market (SAM)\n- **Target Market:** €[X]M\n- **Geographic Focus:** [Primary markets]\n- **Customer Segments:** [Define your target segments]\n\n### Serviceable Obtainable Market (SOM)\n- **Realistic Capture:** €[X]M (X% of SAM)\n- **Timeline:** [X] years to achieve\n- **Assumptions:** [Key assumptions for capture]\n\n## Market Trends\n- **Trend 1:** [Description and impact]\n- **Trend 2:** [Description and impact]\n- **Trend 3:** [Description and impact]\n\n## Competitive Landscape\n\n### Direct Competitors\n| Company | Strengths | Weaknesses | Market Share |\n|---------|-----------|------------|--------------|\n| [Competitor 1] | [Strengths] | [Weaknesses] | [X]% |\n| [Competitor 2] | [Strengths] | [Weaknesses] | [X]% |\n\n### Competitive Advantages\n- [Advantage 1]\n- [Advantage 2]\n- [Advantage 3]"
+    },
+    {
+      "id": "business_model",
+      "title": "Business Model",
+      "description": "How you make money and your revenue strategy",
+      "required": true,
+      "estimated_words": 300,
+      "guidance": "Clearly explain your revenue streams, pricing strategy, and unit economics.",
+      "template": "# Business Model\n\n## Revenue Streams\n\n### Primary Revenue\n- **[Revenue Stream 1]:** €[X] per [unit] - [X]% of revenue\n- **[Revenue Stream 2]:** €[X] per [unit] - [X]% of revenue\n- **[Revenue Stream 3]:** €[X] per [unit] - [X]% of revenue\n\n## Pricing Strategy\n- **Pricing Model:** [Subscription/One-time/Freemium/etc.]\n- **Price Points:** €[X] - €[X] range\n- **Value Proposition:** [Why customers pay this price]\n\n## Unit Economics\n- **Customer Acquisition Cost (CAC):** €[X]\n- **Lifetime Value (LTV):** €[X]\n- **LTV:CAC Ratio:** [X]:1\n- **Payback Period:** [X] months\n- **Gross Margin:** [X]%\n\n## Sales Strategy\n- **Sales Channels:** [Direct/Partners/Online/etc.]\n- **Sales Process:** [Describe your sales funnel]\n- **Key Metrics:** [Conversion rates, sales cycle, etc.]"
+    },
+    {
+      "id": "traction_metrics",
+      "title": "Traction & Metrics",
+      "description": "Key performance indicators and growth metrics",
+      "required": true,
+      "estimated_words": 400,
+      "guidance": "Show concrete numbers, growth trends, and key milestones achieved.",
+      "template": "# Traction & Metrics\n\n## Key Metrics\n\n### Revenue Growth\n- **Current MRR:** €[X]K\n- **Growth Rate:** [X]% month-over-month\n- **Annual Run Rate:** €[X]K\n- **Revenue Trend:** [Show 6-12 month trend]\n\n### Customer Metrics\n- **Total Customers:** [X]\n- **Paying Customers:** [X] ([X]% conversion)\n- **Customer Growth:** [X]% month-over-month\n- **Churn Rate:** [X]% monthly\n\n### Product Metrics\n- **Monthly Active Users:** [X]\n- **User Engagement:** [X] minutes/day\n- **Feature Adoption:** [X]% use key features\n- **NPS Score:** [X]\n\n## Key Milestones\n- **Q1 2024:** [Milestone achieved]\n- **Q2 2024:** [Milestone achieved]\n- **Q3 2024:** [Current milestone]\n- **Q4 2024:** [Upcoming milestone]\n\n## Customer Testimonials\n> \"[Customer testimonial]\" - [Customer name, company]\n\n## Partnerships\n- **[Partner 1]:** [Description of partnership]\n- **[Partner 2]:** [Description of partnership]"
+    },
+    {
+      "id": "financial_projections",
+      "title": "Financial Projections",
+      "description": "3-5 year financial forecasts and key assumptions",
+      "required": true,
+      "estimated_words": 500,
+      "guidance": "Include detailed P&L, cash flow, and key financial metrics with clear assumptions.",
+      "template": "# Financial Projections\n\n## 3-Year Financial Forecast\n\n### Revenue Projections\n| Year | Revenue | Growth | Customers | ARPU |\n|------|---------|--------|-----------|------|\n| 2024 | €[X]K | [X]% | [X] | €[X] |\n| 2025 | €[X]K | [X]% | [X] | €[X] |\n| 2026 | €[X]K | [X]% | [X] | €[X] |\n\n### Key Financial Metrics\n- **Gross Margin:** [X]% (improving to [X]% by 2026)\n- **Operating Margin:** [X]% (improving to [X]% by 2026)\n- **Break-even:** Month [X] of 2025\n- **Cash Flow Positive:** Q[X] 2025\n\n## Use of Funds\n- **Product Development (40%):** €[X]M\n- **Sales & Marketing (35%):** €[X]M\n- **Operations (15%):** €[X]M\n- **Working Capital (10%):** €[X]M\n\n## Key Assumptions\n- **Customer Acquisition:** [X] new customers/month\n- **Churn Rate:** [X]% monthly\n- **Pricing:** [X]% annual increase\n- **Team Growth:** [X] employees by 2026\n\n## Scenario Analysis\n- **Optimistic:** [X]% higher revenue\n- **Realistic:** Base case projections\n- **Pessimistic:** [X]% lower revenue"
+    },
+    {
+      "id": "team",
+      "title": "Team & Advisors",
+      "description": "Key team members, advisors, and hiring plan",
+      "required": true,
+      "estimated_words": 400,
+      "guidance": "Highlight relevant experience, achievements, and how the team complements each other.",
+      "template": "# Team & Advisors\n\n## Founding Team\n\n### [Name] - CEO/Founder\n- **Background:** [Previous experience and achievements]\n- **Relevant Experience:** [Why they're qualified for this role]\n- **Education:** [Relevant degrees/certifications]\n- **Notable Achievements:** [Key accomplishments]\n\n### [Name] - CTO/Co-founder\n- **Background:** [Technical background and experience]\n- **Relevant Experience:** [Why they're qualified for this role]\n- **Education:** [Relevant degrees/certifications]\n- **Notable Achievements:** [Key accomplishments]\n\n## Advisory Board\n- **[Name]:** [Title, Company] - [Relevant expertise]\n- **[Name]:** [Title, Company] - [Relevant expertise]\n- **[Name]:** [Title, Company] - [Relevant expertise]\n\n## Hiring Plan\n- **Next 6 months:** [Key hires needed]\n- **Next 12 months:** [Team expansion plan]\n- **Key Roles:** [Critical positions to fill]\n\n## Equity Structure\n- **Founders:** [X]%\n- **Employees:** [X]%\n- **Advisors:** [X]%\n- **Investors:** [X]% (after this round)"
+    },
+    {
+      "id": "funding_ask",
+      "title": "Funding Ask",
+      "description": "Specific funding request and use of funds",
+      "required": true,
+      "estimated_words": 300,
+      "guidance": "Be specific about the amount, valuation, and exactly how you'll use the money.",
+      "template": "# Funding Ask\n\n## The Ask\n- **Funding Amount:** €[X]M\n- **Valuation:** €[X]M pre-money\n- **Equity:** [X]%\n- **Round:** Series [A/B/Seed]\n\n## Use of Funds\n\n### Product Development (40%)\n- [Specific development goals]\n- [Key features to build]\n- [Technical infrastructure]\n\n### Sales & Marketing (35%)\n- [Customer acquisition strategy]\n- [Marketing channels]\n- [Sales team expansion]\n\n### Operations (15%)\n- [Operational improvements]\n- [Infrastructure scaling]\n- [Process optimization]\n\n### Working Capital (10%)\n- [Cash reserves]\n- [Contingency planning]\n\n## Milestones & Timeline\n- **6 months:** [Key milestone]\n- **12 months:** [Key milestone]\n- **18 months:** [Key milestone]\n- **24 months:** [Key milestone]\n\n## Exit Strategy\n- **Potential Acquirers:** [List potential acquirers]\n- **Exit Timeline:** [X] years\n- **Expected Valuation:** €[X]M+"
+    }
+  ],
+  "requirements": [
+    "Clear problem-solution fit",
+    "Market size and opportunity analysis",
+    "Competitive differentiation",
+    "Traction and key metrics",
+    "Financial projections and unit economics",
+    "Strong founding team",
+    "Clear use of funds",
+    "Realistic valuation expectations"
+  ],
+  "tips": [
+    "Keep slides concise - one key point per slide",
+    "Use data and metrics to support every claim",
+    "Tell a compelling story about the problem and solution",
+    "Show clear path to profitability",
+    "Demonstrate strong team execution capability",
+    "Be realistic about market size and competition",
+    "Have clear, specific use of funds",
+    "Practice your pitch until it's perfect"
+  ],
+  "common_mistakes": [
+    "Overestimating market size without proper research",
+    "Not addressing competition adequately",
+    "Lack of clear traction or metrics",
+    "Unrealistic financial projections",
+    "Weak or incomplete team information",
+    "Vague use of funds",
+    "Asking for too much or too little money",
+    "Not having a clear exit strategy"
+  ]
+}

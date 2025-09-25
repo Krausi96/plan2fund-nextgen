@@ -5,6 +5,8 @@ import { loadPlanSections, type PlanSection } from "@/lib/planStore";
 import { chapterTemplates } from "@/lib/templates/chapters";
 import analytics from "@/lib/analytics";
 import { useI18n } from "@/contexts/I18nContext";
+import { Switch } from "@/components/ui/switch";
+import { Label } from "@/components/ui/label";
 
 export default function Preview() {
   const { t } = useI18n();
@@ -34,14 +36,49 @@ export default function Preview() {
   const proPrice = "€199";
   const [deliveryMode, setDeliveryMode] = useState<"standard" | "priority">("standard");
   const [includedSections, setIncludedSections] = useState<Set<string>>(new Set(["summary", "problem", "solution"]));
+  const [showWatermark, setShowWatermark] = useState(true);
+  const [watermarkText] = useState("DRAFT");
+  const [previewMode, setPreviewMode] = useState<"preview" | "formatted">("preview");
+  const [formattingOptions, setFormattingOptions] = useState({
+    theme: "sans",
+    fontSize: "medium",
+    spacing: "normal",
+    showPageNumbers: true,
+    showTableOfContents: true
+  });
   return (
     <main className="max-w-5xl mx-auto py-12 grid md:grid-cols-[1fr_320px] gap-6">
       <div>
-      <h1 className="text-2xl font-bold flex items-center gap-2">Preview Your Business Plan <span className="text-xs px-2 py-1 rounded bg-gray-200">Demo</span></h1>
-      <p className="text-gray-600">
-        Here's a preview of your business plan. The content is blurred until
-        you finalize your choices.
-      </p>
+      <div className="flex items-center justify-between mb-6">
+        <div>
+          <h1 className="text-2xl font-bold flex items-center gap-2">Preview Your Business Plan <span className="text-xs px-2 py-1 rounded bg-gray-200">Demo</span></h1>
+          <p className="text-gray-600">
+            Here's a preview of your business plan. The content is blurred until
+            you finalize your choices.
+          </p>
+        </div>
+        <div className="flex items-center gap-4">
+          <div className="flex items-center gap-2">
+            <Label htmlFor="watermark-toggle" className="text-sm">Watermark</Label>
+            <Switch
+              checked={showWatermark}
+              onCheckedChange={setShowWatermark}
+            />
+          </div>
+          <div className="flex items-center gap-2">
+            <Label htmlFor="preview-mode" className="text-sm">Mode</Label>
+            <select
+              id="preview-mode"
+              value={previewMode}
+              onChange={(e) => setPreviewMode(e.target.value as "preview" | "formatted")}
+              className="px-3 py-1 border border-gray-300 rounded-md text-sm"
+            >
+              <option value="preview">Preview</option>
+              <option value="formatted">Formatted</option>
+            </select>
+          </div>
+        </div>
+      </div>
 
       {/* Real Preview of the Plan */}
       <div className="space-y-4">
@@ -87,15 +124,29 @@ export default function Preview() {
                     Copy section
                   </button>
                 </div>
-                <div className="p-6 bg-gray-50 rounded-xl">
+                <div className="p-6 bg-gray-50 rounded-xl relative">
+                  {showWatermark && (
+                    <div className="absolute inset-0 pointer-events-none flex items-center justify-center">
+                      <div className="text-6xl font-bold text-gray-200 opacity-30 transform -rotate-45 select-none">
+                        {watermarkText}
+                      </div>
+                    </div>
+                  )}
                   {hasContent ? (
-                    <div className="space-y-3">
+                    <div className="space-y-3 relative z-10">
                       <div className="flex items-center justify-between">
                         <p className="text-sm text-gray-600">Preview of your content:</p>
                         <span className="text-xs text-gray-500">{section.content.length} characters</span>
                       </div>
-                      <div className="max-h-40 overflow-hidden border rounded p-3 bg-white">
-                        <p className="text-sm whitespace-pre-wrap leading-relaxed">{section.content.substring(0, 300)}...</p>
+                      <div className={`max-h-40 overflow-hidden border rounded p-3 bg-white ${
+                        previewMode === "formatted" ? "font-serif" : ""
+                      }`}>
+                        <p className={`text-sm whitespace-pre-wrap leading-relaxed ${
+                          formattingOptions.fontSize === "small" ? "text-xs" :
+                          formattingOptions.fontSize === "large" ? "text-base" : "text-sm"
+                        }`}>
+                          {section.content.substring(0, 300)}...
+                        </p>
                       </div>
                       <div className="flex gap-2">
                         <button 
@@ -238,6 +289,63 @@ export default function Preview() {
               {complexity === t("preview.complexityHigh") ? t("preview.complexContent") : 
                complexity === t("preview.complexityMedium") ? t("preview.mediumContent") : t("preview.simpleContent")}
             </p>
+          </div>
+        </div>
+
+        <div className="p-4 border rounded">
+          <h3 className="font-semibold mb-3">Formatting Options</h3>
+          <div className="space-y-3">
+            <div>
+              <Label className="text-xs text-gray-600 mb-1">Theme</Label>
+              <select
+                value={formattingOptions.theme}
+                onChange={(e) => setFormattingOptions(prev => ({ ...prev, theme: e.target.value }))}
+                className="w-full px-2 py-1 border border-gray-300 rounded text-sm"
+              >
+                <option value="sans">Sans Serif</option>
+                <option value="serif">Serif</option>
+                <option value="modern">Modern</option>
+                <option value="classic">Classic</option>
+              </select>
+            </div>
+            <div>
+              <Label className="text-xs text-gray-600 mb-1">Font Size</Label>
+              <select
+                value={formattingOptions.fontSize}
+                onChange={(e) => setFormattingOptions(prev => ({ ...prev, fontSize: e.target.value }))}
+                className="w-full px-2 py-1 border border-gray-300 rounded text-sm"
+              >
+                <option value="small">Small</option>
+                <option value="medium">Medium</option>
+                <option value="large">Large</option>
+              </select>
+            </div>
+            <div>
+              <Label className="text-xs text-gray-600 mb-1">Spacing</Label>
+              <select
+                value={formattingOptions.spacing}
+                onChange={(e) => setFormattingOptions(prev => ({ ...prev, spacing: e.target.value }))}
+                className="w-full px-2 py-1 border border-gray-300 rounded text-sm"
+              >
+                <option value="compact">Compact</option>
+                <option value="normal">Normal</option>
+                <option value="relaxed">Relaxed</option>
+              </select>
+            </div>
+            <div className="flex items-center justify-between">
+              <Label className="text-xs text-gray-600">Page Numbers</Label>
+              <Switch
+                checked={formattingOptions.showPageNumbers}
+                onCheckedChange={(checked) => setFormattingOptions(prev => ({ ...prev, showPageNumbers: checked }))}
+              />
+            </div>
+            <div className="flex items-center justify-between">
+              <Label className="text-xs text-gray-600">Table of Contents</Label>
+              <Switch
+                checked={formattingOptions.showTableOfContents}
+                onCheckedChange={(checked) => setFormattingOptions(prev => ({ ...prev, showTableOfContents: checked }))}
+              />
+            </div>
           </div>
         </div>
 

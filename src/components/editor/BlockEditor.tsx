@@ -34,6 +34,13 @@ export interface FormattingOptions {
   showListOfFigures: boolean;
   fontSize: 'small' | 'medium' | 'large';
   lineHeight: 'tight' | 'normal' | 'loose';
+  // New options
+  tone: 'formal' | 'neutral' | 'concise' | 'persuasive';
+  language: 'en' | 'de' | 'fr' | 'es';
+  pageCount: 'auto' | '1-5' | '5-10' | '10-20' | '20+';
+  citations: 'none' | 'minimal' | 'standard' | 'academic';
+  watermark: boolean;
+  customWatermark?: string;
 }
 
 interface BlockEditorProps {
@@ -78,7 +85,14 @@ export default function BlockEditor({
     showTableOfContents: true,
     showListOfFigures: true,
     fontSize: 'medium',
-    lineHeight: 'normal'
+    lineHeight: 'normal',
+    // New options
+    tone: 'neutral',
+    language: 'en',
+    pageCount: 'auto',
+    citations: 'standard',
+    watermark: false,
+    customWatermark: ''
   });
 
   const addBlock = useCallback((type: string) => {

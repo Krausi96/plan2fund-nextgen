@@ -21,6 +21,13 @@ interface FormattingOptions {
   showListOfFigures: boolean;
   fontSize: 'small' | 'medium' | 'large';
   lineHeight: 'tight' | 'normal' | 'loose';
+  // New options
+  tone: 'formal' | 'neutral' | 'concise' | 'persuasive';
+  language: 'en' | 'de' | 'fr' | 'es';
+  pageCount: 'auto' | '1-5' | '5-10' | '10-20' | '20+';
+  citations: 'none' | 'minimal' | 'standard' | 'academic';
+  watermark: boolean;
+  customWatermark?: string;
 }
 
 interface FormattingPanelProps {
@@ -59,6 +66,35 @@ const LINE_HEIGHTS = [
   { value: 'loose', label: 'Loose (1.8)', description: 'Wide line spacing' }
 ];
 
+const TONE_OPTIONS = [
+  { value: 'formal', label: 'Formal', description: 'Professional, academic tone' },
+  { value: 'neutral', label: 'Neutral', description: 'Balanced, objective tone' },
+  { value: 'concise', label: 'Concise', description: 'Brief, to-the-point' },
+  { value: 'persuasive', label: 'Persuasive', description: 'Compelling, convincing' }
+];
+
+const LANGUAGE_OPTIONS = [
+  { value: 'en', label: 'English', flag: '🇺🇸' },
+  { value: 'de', label: 'Deutsch', flag: '🇩🇪' },
+  { value: 'fr', label: 'Français', flag: '🇫🇷' },
+  { value: 'es', label: 'Español', flag: '🇪🇸' }
+];
+
+const PAGE_COUNT_OPTIONS = [
+  { value: 'auto', label: 'Auto', description: 'Let AI determine length' },
+  { value: '1-5', label: '1-5 pages', description: 'Brief summary' },
+  { value: '5-10', label: '5-10 pages', description: 'Standard length' },
+  { value: '10-20', label: '10-20 pages', description: 'Detailed plan' },
+  { value: '20+', label: '20+ pages', description: 'Comprehensive document' }
+];
+
+const CITATION_OPTIONS = [
+  { value: 'none', label: 'None', description: 'No citations' },
+  { value: 'minimal', label: 'Minimal', description: 'Key sources only' },
+  { value: 'standard', label: 'Standard', description: 'Standard references' },
+  { value: 'academic', label: 'Academic', description: 'Full academic citations' }
+];
+
 export default function FormattingPanel({ 
   options, 
   onOptionsChange, 
@@ -84,7 +120,13 @@ export default function FormattingPanel({
       showTableOfContents: true,
       showListOfFigures: true,
       fontSize: 'medium',
-      lineHeight: 'normal'
+      lineHeight: 'normal',
+      tone: 'neutral',
+      language: 'en',
+      pageCount: 'auto',
+      citations: 'standard',
+      watermark: false,
+      customWatermark: ''
     };
     setLocalOptions(defaultOptions);
     onOptionsChange(defaultOptions);
@@ -295,6 +337,106 @@ export default function FormattingPanel({
                 onCheckedChange={(checked) => handleOptionChange('showListOfFigures', checked)}
               />
             </div>
+          </div>
+        </div>
+
+        {/* Content Customization */}
+        <div className="space-y-4">
+          <h4 className="text-sm font-medium text-gray-700">Content Customization</h4>
+          
+          <div className="grid grid-cols-2 gap-4">
+            <div>
+              <Label className="text-xs text-gray-600 mb-1">Tone</Label>
+              <select 
+                value={localOptions.tone} 
+                onChange={(e) => handleOptionChange('tone', e.target.value)}
+                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+              >
+                {TONE_OPTIONS.map(tone => (
+                  <option key={tone.value} value={tone.value}>
+                    {tone.label} - {tone.description}
+                  </option>
+                ))}
+              </select>
+            </div>
+
+            <div>
+              <Label className="text-xs text-gray-600 mb-1">Language</Label>
+              <select 
+                value={localOptions.language} 
+                onChange={(e) => handleOptionChange('language', e.target.value)}
+                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+              >
+                {LANGUAGE_OPTIONS.map(lang => (
+                  <option key={lang.value} value={lang.value}>
+                    {lang.flag} {lang.label}
+                  </option>
+                ))}
+              </select>
+            </div>
+          </div>
+
+          <div className="grid grid-cols-2 gap-4">
+            <div>
+              <Label className="text-xs text-gray-600 mb-1">Page Count</Label>
+              <select 
+                value={localOptions.pageCount} 
+                onChange={(e) => handleOptionChange('pageCount', e.target.value)}
+                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+              >
+                {PAGE_COUNT_OPTIONS.map(count => (
+                  <option key={count.value} value={count.value}>
+                    {count.label} - {count.description}
+                  </option>
+                ))}
+              </select>
+            </div>
+
+            <div>
+              <Label className="text-xs text-gray-600 mb-1">Citations</Label>
+              <select 
+                value={localOptions.citations} 
+                onChange={(e) => handleOptionChange('citations', e.target.value)}
+                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+              >
+                {CITATION_OPTIONS.map(citation => (
+                  <option key={citation.value} value={citation.value}>
+                    {citation.label} - {citation.description}
+                  </option>
+                ))}
+              </select>
+            </div>
+          </div>
+        </div>
+
+        {/* Watermark Settings */}
+        <div className="space-y-4">
+          <h4 className="text-sm font-medium text-gray-700">Watermark & Branding</h4>
+          
+          <div className="space-y-3">
+            <div className="flex items-center justify-between">
+              <div>
+                <Label className="text-sm font-medium">Watermark</Label>
+                <p className="text-xs text-gray-500">Add watermark to document</p>
+              </div>
+              <Switch
+                checked={localOptions.watermark}
+                onCheckedChange={(checked) => handleOptionChange('watermark', checked)}
+              />
+            </div>
+
+            {localOptions.watermark && (
+              <div>
+                <Label className="text-xs text-gray-600 mb-1">Custom Watermark Text</Label>
+                <input
+                  type="text"
+                  value={localOptions.customWatermark || ''}
+                  onChange={(e) => handleOptionChange('customWatermark', e.target.value)}
+                  placeholder="Enter custom watermark text..."
+                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                />
+              </div>
+            )}
           </div>
         </div>
 

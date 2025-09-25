@@ -209,7 +209,7 @@ export default function AIChat({ onInsertContent, currentSection, persona }: AIC
         setMessages(prev => [...prev, aiMessage]);
       } else {
         // Fallback to original AI response
-        const aiResponse = generateAIResponse(input, currentSection);
+        const aiResponse = await generateAIResponse(input, currentSection);
         const aiMessage: ChatMessage = {
           id: (Date.now() + 1).toString(),
           type: "ai",
@@ -222,7 +222,7 @@ export default function AIChat({ onInsertContent, currentSection, persona }: AIC
     } catch (error) {
       console.error('Error processing input with guardrails:', error);
       // Fallback to original AI response
-      const aiResponse = generateAIResponse(input, currentSection);
+      const aiResponse = await generateAIResponse(input, currentSection);
       const aiMessage: ChatMessage = {
         id: (Date.now() + 1).toString(),
         type: "ai",
@@ -272,32 +272,40 @@ export default function AIChat({ onInsertContent, currentSection, persona }: AIC
     }
   };
 
-  const generateAIResponse = (input: string, section: string) => {
-    const command = input.startsWith("/") ? input.split(" ")[0] : null;
-    
-    if (command === "/outline") {
+  const generateAIResponse = async (input: string, section: string) => {
+    try {
+      // Use the real AI helper
+      const aiHelper = new (await import('@/lib/aiHelper')).AIHelper({
+        maxWords: 200,
+        sectionScope: section,
+        programHints: {},
+        userAnswers: {},
+        tone: 'neutral',
+        language: 'en'
+      });
+
+      const response = await aiHelper.generateSectionContent(section, input, { 
+        id: 'business_plan',
+        name: 'Business Plan',
+        type: 'business_plan',
+        amount: '0',
+        eligibility: [],
+        requirements: [],
+        score: 0,
+        reasons: [],
+        risks: []
+      });
       return {
-        content: `Here's an outline for your ${section}:\n\n1. Executive Summary\n2. Key Points\n3. Supporting Evidence\n4. Next Steps\n\nWould you like me to expand on any section?`
+        content: response.content,
+        suggestions: response.suggestions,
+        citations: response.citations
       };
-    } else if (command === "/bullets") {
+    } catch (error) {
+      console.error('AI response generation error:', error);
       return {
-        content: `• Clear value proposition\n• Target market identification\n• Competitive advantages\n• Revenue model\n• Growth strategy\n\nThese bullet points can be expanded with specific details.`
-      };
-    } else if (command === "/financials") {
-      return {
-        content: `Financial projections for ${section}:\n\n• Revenue: €50K - €200K (Year 1)\n• Costs: €30K - €120K\n• Break-even: Month 8-12\n• Funding needed: €100K\n\nWould you like me to create a detailed financial model?`
-      };
-    } else if (command === "/rewrite") {
-      return {
-        content: `Here's a professional rewrite:\n\n"Our innovative solution addresses the critical market need through a scalable business model that delivers measurable value to customers while maintaining sustainable growth."\n\nWould you like me to adjust the tone or focus?`
-      };
-    } else if (command === "/critique") {
-      return {
-        content: `Review of your ${section}:\n\nStrengths:\n• Clear problem identification\n• Strong market opportunity\n\nAreas for improvement:\n• Add specific metrics\n• Include competitive analysis\n• Define success criteria\n\nWould you like me to help improve any specific area?`
-      };
-    } else {
-      return {
-        content: `I understand you're working on your ${section}. Based on your input, I can help you:\n\n• Create structured content\n• Generate financial projections\n• Improve clarity and tone\n• Add supporting data\n\nWhat specific aspect would you like help with?`
+        content: `I understand you're working on your ${section}. Based on your input, I can help you:\n\n• Create structured content\n• Generate financial projections\n• Improve clarity and tone\n• Add supporting data\n\nWhat specific aspect would you like help with?`,
+        suggestions: [],
+        citations: []
       };
     }
   };

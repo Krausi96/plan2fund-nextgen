@@ -1,0 +1,104 @@
+{
+  "id": "visa",
+  "name": "Visa Application Business Plan",
+  "type": "visa",
+  "description": "Comprehensive business plan for visa applications (Startup Visa, Investor Visa, etc.)",
+  "target_audience": "Immigration Authorities, Visa Officers, Government Officials",
+  "estimated_time": "3-4 hours",
+  "difficulty": "expert",
+  "sections": [
+    {
+      "id": "executive_summary",
+      "title": "Executive Summary",
+      "description": "Overview of your business and visa application",
+      "required": true,
+      "estimated_words": 300,
+      "guidance": "Clearly state your business purpose, economic contribution, and why you need to be in the country.",
+      "template": "# Executive Summary\n\n## Business Overview\n[Company Name] is a [business type] that [brief description of what you do]. We are seeking [visa type] to establish and operate our business in [country].\n\n## Economic Contribution\n- **Job Creation:** [X] direct jobs within [X] years\n- **Investment:** €[X] in local economy\n- **Innovation:** [Description of innovative aspects]\n- **Market Impact:** [How you'll benefit the local market]\n\n## Visa Requirements Met\n- **Business Viability:** [Evidence of viable business]\n- **Financial Capacity:** €[X] available capital\n- **Relevant Experience:** [X] years in [industry]\n- **Local Market Knowledge:** [Research and connections]\n\n## Timeline\n- **Application Date:** [Date]\n- **Expected Start:** [Date]\n- **Business Launch:** [Date]\n- **First Revenue:** [Date]"
+    },
+    {
+      "id": "business_description",
+      "title": "Business Description",
+      "description": "Detailed description of your business operations",
+      "required": true,
+      "estimated_words": 500,
+      "guidance": "Provide comprehensive details about your business model, operations, and how it will operate in the target country.",
+      "template": "# Business Description\n\n## Company Overview\n\n### Business Name\n[Company Name]\n\n### Business Type\n[Type of business entity - LLC, Corporation, etc.]\n\n### Industry\n[Primary industry and sector]\n\n### Business Model\n[How you make money and operate]\n\n## Products/Services\n\n### Primary Offerings\n- **[Product/Service 1]:** [Description, target market, pricing]\n- **[Product/Service 2]:** [Description, target market, pricing]\n- **[Product/Service 3]:** [Description, target market, pricing]\n\n### Unique Value Proposition\n[What makes your business unique and competitive]\n\n## Operations Plan\n\n### Business Location\n- **Primary Office:** [Address, city, country]\n- **Facilities:** [Office space, equipment, etc.]\n- **Remote Work:** [Percentage of remote work, if applicable]\n\n### Business Hours\n- **Operating Hours:** [Days and times]\n- **Time Zone:** [Primary time zone]\n- **Customer Support:** [Support hours and methods]\n\n### Legal Structure\n- **Entity Type:** [LLC, Corporation, Partnership, etc.]\n- **Registration:** [Where and when registered]\n- **Tax Status:** [Tax classification and obligations]\n- **Compliance:** [Relevant regulations and compliance requirements]"
+    },
+    {
+      "id": "market_analysis",
+      "title": "Market Analysis",
+      "description": "Analysis of target market and business opportunity",
+      "required": true,
+      "estimated_words": 600,
+      "guidance": "Demonstrate deep understanding of the local market and business opportunity.",
+      "template": "# Market Analysis\n\n## Target Market\n\n### Primary Market\n- **Geographic Focus:** [Primary markets]\n- **Customer Segments:** [Who you're targeting]\n- **Market Size:** €[X]M locally, €[X]B globally\n- **Growth Rate:** [X]% annually\n\n### Customer Demographics\n- **Age Range:** [X] - [X] years\n- **Income Level:** €[X] - €[X] annually\n- **Education:** [Education level of target customers]\n- **Location:** [Geographic distribution]\n\n## Market Research\n\n### Primary Research\n- **Surveys:** [X] responses from potential customers\n- **Interviews:** [X] in-depth customer interviews\n- **Focus Groups:** [X] focus group sessions\n- **Key Findings:** [Main insights from research]\n\n### Secondary Research\n- **Industry Reports:** [Relevant industry studies]\n- **Government Data:** [Official statistics and data]\n- **Competitor Analysis:** [Analysis of existing competitors]\n- **Market Trends:** [Current and future trends]\n\n## Competitive Landscape\n\n### Direct Competitors\n| Company | Strengths | Weaknesses | Market Share |\n|---------|-----------|------------|--------------|\n| [Competitor 1] | [Strengths] | [Weaknesses] | [X]% |\n| [Competitor 2] | [Strengths] | [Weaknesses] | [X]% |\n\n### Competitive Advantages\n- [What makes you different]\n- [Why customers will choose you]\n- [Barriers to entry for competitors]\n\n## Market Entry Strategy\n- **Phase 1:** [Initial market entry approach]\n- **Phase 2:** [Expansion strategy]\n- **Phase 3:** [Long-term market position]"
+    },
+    {
+      "id": "financial_projections",
+      "title": "Financial Projections",
+      "description": "3-5 year financial forecasts and funding requirements",
+      "required": true,
+      "estimated_words": 700,
+      "guidance": "Provide detailed, realistic financial projections that demonstrate business viability.",
+      "template": "# Financial Projections\n\n## 3-Year Financial Forecast\n\n### Revenue Projections\n| Year | Revenue | Growth | Customers | ARPU |\n|------|---------|--------|-----------|------|\n| 2024 | €[X]K | [X]% | [X] | €[X] |\n| 2025 | €[X]K | [X]% | [X] | €[X] |\n| 2026 | €[X]K | [X]% | [X] | €[X] |\n\n### Expense Breakdown\n| Category | Year 1 | Year 2 | Year 3 |\n|----------|--------|--------|--------|\n| Personnel | €[X]K | €[X]K | €[X]K |\n| Marketing | €[X]K | €[X]K | €[X]K |\n| Operations | €[X]K | €[X]K | €[X]K |\n| Technology | €[X]K | €[X]K | €[X]K |\n| Other | €[X]K | €[X]K | €[X]K |\n| **Total** | **€[X]K** | **€[X]K** | **€[X]K** |\n\n### Profit & Loss Statement\n| Item | Year 1 | Year 2 | Year 3 |\n|------|--------|--------|--------|\n| Revenue | €[X]K | €[X]K | €[X]K |\n| Cost of Goods Sold | €[X]K | €[X]K | €[X]K |\n| Gross Profit | €[X]K | €[X]K | €[X]K |\n| Operating Expenses | €[X]K | €[X]K | €[X]K |\n| Operating Income | €[X]K | €[X]K | €[X]K |\n| Net Income | €[X]K | €[X]K | €[X]K |\n\n## Funding Requirements\n\n### Initial Investment\n- **Total Required:** €[X]K\n- **Personal Investment:** €[X]K ([X]%)\n- **External Funding:** €[X]K ([X]%)\n- **Use of Funds:** [Detailed breakdown]\n\n### Cash Flow Projections\n- **Break-even:** Month [X] of Year [X]\n- **Cash Flow Positive:** Month [X] of Year [X]\n- **Peak Cash Requirement:** €[X]K in Month [X]\n\n## Key Assumptions\n- **Customer Acquisition:** [X] new customers/month\n- **Pricing:** €[X] average per customer\n- **Churn Rate:** [X]% monthly\n- **Growth Rate:** [X]% annually\n- **Inflation:** [X]% annually"
+    },
+    {
+      "id": "team_qualifications",
+      "title": "Team & Qualifications",
+      "description": "Team background, qualifications, and relevant experience",
+      "required": true,
+      "estimated_words": 400,
+      "guidance": "Highlight relevant experience, qualifications, and why you're qualified to run this business.",
+      "template": "# Team & Qualifications\n\n## Founder/Principal Applicant\n\n### Personal Information\n- **Name:** [Full name]\n- **Date of Birth:** [Date]\n- **Nationality:** [Nationality]\n- **Current Residence:** [Country]\n\n### Educational Background\n- **Degree:** [Degree, Institution, Year]\n- **Relevant Certifications:** [List relevant certifications]\n- **Continuing Education:** [Ongoing learning and development]\n\n### Professional Experience\n- **Current Position:** [Current job title and company]\n- **Previous Experience:** [Relevant work history]\n- **Industry Experience:** [X] years in [industry]\n- **Management Experience:** [X] years managing teams\n\n### Relevant Skills\n- **Technical Skills:** [List relevant technical skills]\n- **Business Skills:** [List relevant business skills]\n- **Language Skills:** [Languages spoken and proficiency levels]\n\n## Supporting Team\n\n### Key Team Members\n- **[Name]:** [Role] - [Relevant experience]\n- **[Name]:** [Role] - [Relevant experience]\n- **[Name]:** [Role] - [Relevant experience]\n\n### Advisory Board\n- **[Name]:** [Title, Company] - [Relevant expertise]\n- **[Name]:** [Title, Company] - [Relevant expertise]\n\n## Local Connections\n- **Business Partners:** [Local business connections]\n- **Industry Contacts:** [Relevant industry connections]\n- **Professional Network:** [Professional network in target country]\n- **Mentors/Advisors:** [Local mentors and advisors]"
+    },
+    {
+      "id": "implementation_plan",
+      "title": "Implementation Plan",
+      "description": "Detailed timeline and milestones for business launch",
+      "required": true,
+      "estimated_words": 500,
+      "guidance": "Provide a realistic, detailed timeline showing how you'll establish and grow the business.",
+      "template": "# Implementation Plan\n\n## Launch Timeline\n\n### Pre-Launch Phase (Months 1-3)\n- **Month 1:** [Key activities and milestones]\n- **Month 2:** [Key activities and milestones]\n- **Month 3:** [Key activities and milestones]\n\n### Launch Phase (Months 4-6)\n- **Month 4:** [Key activities and milestones]\n- **Month 5:** [Key activities and milestones]\n- **Month 6:** [Key activities and milestones]\n\n### Growth Phase (Months 7-12)\n- **Months 7-9:** [Key activities and milestones]\n- **Months 10-12:** [Key activities and milestones]\n\n## Key Milestones\n\n### Legal & Administrative\n- [ ] Business registration completed\n- [ ] Tax ID obtained\n- [ ] Bank account opened\n- [ ] Insurance policies secured\n- [ ] Compliance requirements met\n\n### Operations\n- [ ] Office space secured\n- [ ] Equipment purchased\n- [ ] Systems implemented\n- [ ] Staff hired\n- [ ] Processes established\n\n### Marketing & Sales\n- [ ] Website launched\n- [ ] Marketing materials created\n- [ ] First customers acquired\n- [ ] Sales processes established\n- [ ] Customer support implemented\n\n## Risk Management\n\n### Identified Risks\n- **Risk 1:** [Description and mitigation strategy]\n- **Risk 2:** [Description and mitigation strategy]\n- **Risk 3:** [Description and mitigation strategy]\n\n### Contingency Plans\n- **Plan A:** [Primary approach]\n- **Plan B:** [Alternative approach if Plan A fails]\n- **Plan C:** [Fallback approach]\n\n## Success Metrics\n- **Revenue Targets:** [Monthly and annual targets]\n- **Customer Targets:** [Customer acquisition goals]\n- **Operational Targets:** [Operational efficiency goals]\n- **Financial Targets:** [Profitability and cash flow goals]"
+    },
+    {
+      "id": "economic_impact",
+      "title": "Economic Impact",
+      "description": "Expected economic contribution to the local economy",
+      "required": true,
+      "estimated_words": 400,
+      "guidance": "Demonstrate how your business will contribute to the local economy and create value.",
+      "template": "# Economic Impact\n\n## Job Creation\n\n### Direct Employment\n- **Year 1:** [X] full-time employees\n- **Year 2:** [X] full-time employees\n- **Year 3:** [X] full-time employees\n- **Total by Year 3:** [X] direct jobs\n\n### Indirect Employment\n- **Suppliers:** [X] jobs supported through supplier relationships\n- **Service Providers:** [X] jobs supported through service contracts\n- **Total Indirect:** [X] jobs\n\n### Job Types\n- **High-Skill Positions:** [X]% (average salary €[X]K)\n- **Medium-Skill Positions:** [X]% (average salary €[X]K)\n- **Entry-Level Positions:** [X]% (average salary €[X]K)\n\n## Economic Investment\n\n### Capital Investment\n- **Initial Investment:** €[X]K\n- **Annual Operating Expenses:** €[X]K\n- **Total 3-Year Investment:** €[X]K\n\n### Tax Contributions\n- **Corporate Taxes:** €[X]K annually\n- **Payroll Taxes:** €[X]K annually\n- **Sales Taxes:** €[X]K annually\n- **Total Annual Tax Contribution:** €[X]K\n\n## Innovation & Technology\n\n### Technology Transfer\n- **New Technologies:** [Description of new technologies introduced]\n- **Process Improvements:** [How you'll improve existing processes]\n- **Knowledge Transfer:** [How you'll share knowledge with local partners]\n\n### Industry Development\n- **Market Development:** [How you'll develop the local market]\n- **Supply Chain:** [How you'll develop local supply chains]\n- **Skills Development:** [How you'll develop local skills]\n\n## Community Impact\n\n### Local Partnerships\n- **Suppliers:** [X] local suppliers\n- **Service Providers:** [X] local service providers\n- **Community Organizations:** [Partnerships with local organizations]\n\n### Social Responsibility\n- **Community Programs:** [Community involvement programs]\n- **Environmental Impact:** [Environmental sustainability initiatives]\n- **Diversity & Inclusion:** [Commitment to diversity and inclusion]"
+    }
+  ],
+  "requirements": [
+    "Clear business purpose and viability",
+    "Detailed market analysis and opportunity",
+    "Realistic financial projections",
+    "Relevant team qualifications and experience",
+    "Detailed implementation plan with milestones",
+    "Demonstrated economic contribution",
+    "Compliance with visa requirements",
+    "Evidence of sufficient funding"
+  ],
+  "tips": [
+    "Be specific about your business activities and operations",
+    "Provide concrete evidence of market research and validation",
+    "Include realistic financial projections with clear assumptions",
+    "Highlight relevant experience and qualifications",
+    "Show clear timeline and implementation plan",
+    "Demonstrate significant economic contribution",
+    "Ensure all visa requirements are clearly addressed",
+    "Include supporting documents and evidence"
+  ],
+  "common_mistakes": [
+    "Vague or unrealistic business descriptions",
+    "Insufficient market research and validation",
+    "Unrealistic financial projections",
+    "Lack of relevant experience or qualifications",
+    "Unclear or unrealistic implementation timeline",
+    "Insufficient economic impact demonstration",
+    "Not addressing specific visa requirements",
+    "Lack of supporting documentation"
+  ]
+}

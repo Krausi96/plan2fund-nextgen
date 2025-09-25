@@ -1,4 +1,4 @@
-import rawPrograms from "../data/programs";
+import rawPrograms from "../../data/programs.json";
 import { Program, UserAnswers, ScoredProgram } from "../types";
 
 // Eligibility trace interface
