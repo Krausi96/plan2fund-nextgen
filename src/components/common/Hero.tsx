@@ -2,6 +2,32 @@ import { motion, useReducedMotion } from "framer-motion";
 import { memo, useState, useEffect } from "react";
 import { useI18n } from "@/contexts/I18nContext";
 
+// Typing Animation Component
+const TypingText = memo(function TypingText({ text, delay = 0 }: { text: string; delay?: number }) {
+  const [displayedText, setDisplayedText] = useState("");
+  const [currentIndex, setCurrentIndex] = useState(0);
+  const [isComplete, setIsComplete] = useState(false);
+
+  useEffect(() => {
+    if (currentIndex < text.length) {
+      const timeout = setTimeout(() => {
+        setDisplayedText(prev => prev + text[currentIndex]);
+        setCurrentIndex(prev => prev + 1);
+      }, 50 + delay);
+      return () => clearTimeout(timeout);
+    } else {
+      setIsComplete(true);
+    }
+  }, [currentIndex, text, delay]);
+
+  return (
+    <div className="text-white">
+      {displayedText}
+      {!isComplete && <span className="animate-pulse">|</span>}
+    </div>
+  );
+});
+
 // Blueprint Grid Background Component
 const BlueprintGrid = memo(function BlueprintGrid() {
   return (
@@ -82,14 +108,14 @@ const UserFlowAnimation = memo(function UserFlowAnimation({ onStepClick }: { onS
     { 
       id: 3, 
       title: t('hero.steps.funding.title'), 
-      icon: "🔍", 
+      icon: "💰", 
       description: t('hero.steps.funding.description'),
       color: "from-purple-500 to-pink-500"
     },
     { 
       id: 4, 
       title: t('hero.steps.plan.title'), 
-      icon: "📝", 
+      icon: "📋", 
       description: t('hero.steps.plan.description'),
       color: "from-orange-500 to-red-500"
     },
@@ -133,7 +159,7 @@ const UserFlowAnimation = memo(function UserFlowAnimation({ onStepClick }: { onS
                     ? 'border-white/40 bg-white/10 scale-105' 
                     : 'border-white/10'
                 }`}
-                style={{ width: '120px' }}
+                style={{ width: '120px', height: '100px' }}
                 onClick={() => onStepClick?.(step.id)}
               >
                 {/* Step Icon */}
@@ -203,31 +229,31 @@ export function Hero({
 
       {/* Main Content */}
       <div className="relative z-20 w-full max-w-6xl px-6 sm:px-8 lg:px-12 py-12 md:py-16 mx-auto">
-        <div className="flex flex-col items-center justify-center space-y-12 min-h-[70vh]">
+        <div className="flex flex-col items-center justify-center space-y-8 min-h-[60vh]">
           
-          {/* H1 Title - Enhanced prominence and centering */}
-          <div className="text-center max-w-5xl">
+          {/* H1 Title - Typing animation with consistent colors */}
+          <div className="text-center max-w-4xl">
             <motion.h1 
               initial={{ opacity: 0, y: 30 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.8 }}
-              className="text-5xl sm:text-6xl lg:text-7xl xl:text-8xl font-extrabold text-white leading-[0.9] mb-6 text-wrap-balance tracking-tight"
+              className="text-3xl sm:text-4xl lg:text-5xl xl:text-6xl font-extrabold text-white leading-tight mb-6 text-wrap-balance tracking-tight"
               style={{ textWrap: 'balance' }}
             >
-              <div className="mb-2">{heroTitle}</div>
-              <div className="text-blue-200">{heroTitleSecond}</div>
+              <TypingText text={heroTitle} delay={0} />
+              <TypingText text={heroTitleSecond} delay={2000} />
             </motion.h1>
           </div>
 
-          {/* Subtitle - Simplified and more impactful */}
+          {/* Subtitle - With highlighted key phrases */}
           <div className="text-center max-w-3xl">
             <motion.p 
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.3, duration: 0.8 }}
-              className="text-xl md:text-2xl text-blue-100 leading-relaxed"
+              className="text-lg md:text-xl text-white leading-relaxed"
             >
-              Find funding options and build an application-ready Business Plan tailored to Grants, Investors or Bank Loans. <span className="font-semibold text-white">Start free.</span>
+              Find <span className="font-bold text-white">funding options</span> and build an <span className="font-bold text-white">application-ready Business Plan</span> tailored to Grants, Investors or Bank Loans. <span className="font-semibold text-white">Start free.</span>
             </motion.p>
           </div>
 
