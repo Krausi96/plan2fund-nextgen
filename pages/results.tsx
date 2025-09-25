@@ -7,13 +7,14 @@ import { Dialog, DialogContent, DialogTrigger, DialogHeader, DialogTitle, Dialog
 import ProgramDetailsModal from "@/components/reco/ProgramDetailsModal";
 import ExplorationModal from "@/components/reco/ExplorationModal";
 import InfoDrawer from "@/components/common/InfoDrawer";
-import HealthFooter from "@/components/common/HealthFooter";
 import { scoreProgramsEnhanced, EnhancedProgramResult } from "@/lib/enhancedRecoEngine";
+import { useI18n } from "@/contexts/I18nContext";
 
 // Enhanced program result type with detailed explanations
 type ProgramResult = EnhancedProgramResult;
 
 export default function ResultsPage() {
+  const { t } = useI18n();
   const router = useRouter();
   const [results, setResults] = useState<ProgramResult[]>([]);
   const [showExploration, setShowExploration] = useState(false);
@@ -75,7 +76,7 @@ export default function ResultsPage() {
     }
   }, []);
 
-  const eligibleResults = results.filter(r => r.eligibility === "Eligible");
+  const eligibleResults = results.filter(r => r.eligibility === t("results.eligible"));
   const hasEligibleResults = eligibleResults.length > 0;
   const hasAnyResults = results.length > 0;
 
@@ -86,7 +87,7 @@ export default function ResultsPage() {
         <div className="flex items-center justify-center h-64">
           <div className="text-center">
             <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
-            <p className="text-gray-600">Loading recommendations...</p>
+            <p className="text-gray-600">{t('results.loading')}</p>
           </div>
         </div>
       </div>
@@ -97,17 +98,17 @@ export default function ResultsPage() {
     <div className="p-6 max-w-3xl mx-auto">
       <div className="flex justify-between items-center mb-6">
         <h2 className="text-2xl font-semibold">
-          Your Funding Recommendations
+          {t('results.title')}
         </h2>
         <div className="flex items-center gap-4">
           <Link href="/dashboard" className="text-blue-600 hover:text-blue-800 text-sm">
-            Dashboard
+            {t('results.dashboard')}
           </Link>
           <button
             onClick={() => setShowInfoDrawer(true)}
             className="text-blue-600 hover:text-blue-800 text-sm flex items-center gap-1"
           >
-            <span>ℹ️</span> How recommendations work
+            <span>ℹ️</span> {t('results.howItWorks')}
           </button>
         </div>
       </div>
@@ -115,27 +116,27 @@ export default function ResultsPage() {
       {/* No-match fallback: Nearest 3 + Proceed anyway */}
       {hasAnyResults && !hasEligibleResults && (
         <div className="p-6 border border-orange-300 bg-orange-50 rounded-lg mb-6">
-          <h3 className="text-lg font-semibold text-orange-800 mb-2">No Perfect Matches Found</h3>
+          <h3 className="text-lg font-semibold text-orange-800 mb-2">{t('results.noMatches.title')}</h3>
           <p className="text-orange-700 mb-4">
-            None of the programs match your current criteria exactly. Here are the closest matches:
+            {t('results.noMatches.description')}
           </p>
           
           {/* Nearest 3 programs */}
           <div className="mb-4">
-            <h4 className="font-semibold text-orange-800 mb-2">Nearest 3 Programs:</h4>
+            <h4 className="font-semibold text-orange-800 mb-2">{t('results.noMatches.nearest3')}</h4>
             <div className="space-y-2">
               {results.slice(0, 3).map((program) => (
                 <div key={program.id} className="p-3 bg-white border border-orange-200 rounded">
                   <div className="flex justify-between items-center">
                     <div>
                       <div className="font-medium">{program.name}</div>
-                      <div className="text-sm text-gray-600">{program.type} • {program.score}% match</div>
+                      <div className="text-sm text-gray-600">{program.type} • {program.score}% {t('results.noMatches.match')}</div>
                     </div>
                     <div className="text-right">
                       <div className="text-sm text-orange-600">
                         {program.gaps && program.gaps.length > 0 ? 
-                          `Missing: ${program.gaps[0].description}` : 
-                          'Some requirements not met'
+                          `${t('results.noMatches.missing')} ${program.gaps[0].description}` : 
+                          t('results.noMatches.someRequirements')
                         }
                       </div>
                     </div>
@@ -147,13 +148,13 @@ export default function ResultsPage() {
 
           {/* What to change */}
           <div className="mb-4">
-            <h4 className="font-semibold text-orange-800 mb-2">What to change to qualify:</h4>
+            <h4 className="font-semibold text-orange-800 mb-2">{t('results.noMatches.whatToChange')}</h4>
             <ul className="text-sm text-orange-700 space-y-1">
               {results.slice(0, 3).map((program, idx) => (
                 <li key={idx} className="flex items-start">
                   <span className="text-orange-500 mr-2">•</span>
                   <strong>{program.name}:</strong> {program.gaps && program.gaps.length > 0 ? 
-                    program.gaps[0].action : 'Review eligibility requirements'
+                    program.gaps[0].action : t('results.noMatches.reviewRequirements')
                   }
                 </li>
               ))}
@@ -163,7 +164,7 @@ export default function ResultsPage() {
           {/* Action buttons */}
           <div className="flex gap-3">
             <Link href="/reco" className="px-4 py-2 bg-orange-600 text-white rounded hover:bg-orange-700">
-              Adjust Answers
+              {t('results.noMatches.adjustAnswers')}
             </Link>
             <Button 
               onClick={() => {
@@ -213,7 +214,7 @@ export default function ResultsPage() {
               }}
               className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700"
             >
-              Proceed Anyway → Editor with Pre-filled Fields
+              {t('results.noMatches.proceedAnyway')}
             </Button>
           </div>
         </div>
@@ -223,10 +224,10 @@ export default function ResultsPage() {
       {results.length === 0 && (
         <div className="p-4 border border-red-300 bg-red-50 rounded-lg text-center">
           <p className="text-red-700 mb-2 font-medium">
-            No recommendations found. Please adjust your answers.
+            {t('results.noResults.title')}
           </p>
           <Link href="/reco">
-            <Button>Go Back</Button>
+            <Button>{t('results.noResults.goBack')}</Button>
           </Link>
         </div>
       )}
@@ -249,7 +250,7 @@ export default function ResultsPage() {
 
               {/* Why it fits - Program-specific benefits */}
               <div className="mb-4">
-                <h4 className="text-sm font-semibold text-gray-800 mb-2">Why this program fits your project:</h4>
+                <h4 className="text-sm font-semibold text-gray-800 mb-2">{t('results.whyFits')}</h4>
                 <div className="bg-green-50 border border-green-200 rounded-lg p-3">
                   <ul className="text-sm text-gray-700 space-y-2">
                     {program.founderFriendlyReasons && program.founderFriendlyReasons.length > 0 ? (
@@ -262,7 +263,7 @@ export default function ResultsPage() {
                     ) : (
                       <li className="flex items-start">
                         <span className="text-green-500 mr-2 mt-0.5">✓</span>
-                        <span>This program aligns with your project stage and funding needs</span>
+                        <span>{t('results.alignsWithProject')}</span>
                       </li>
                     )}
                   </ul>
@@ -272,12 +273,12 @@ export default function ResultsPage() {
               {/* Key Requirements */}
               {program.trace && (
                 <div className="mb-3">
-                  <h4 className="text-sm font-semibold text-gray-800 mb-2">Key Requirements:</h4>
+                  <h4 className="text-sm font-semibold text-gray-800 mb-2">{t('results.keyRequirements')}</h4>
                   
                   {/* Passed criteria */}
                   {program.trace.passed && program.trace.passed.length > 0 && (
                     <div className="mb-2">
-                      <div className="text-xs font-medium text-green-700 mb-1">✅ You meet:</div>
+                      <div className="text-xs font-medium text-green-700 mb-1">{t('results.youMeet')}</div>
                       <ul className="text-xs text-green-600 space-y-1">
                         {program.trace.passed.slice(0, 2).map((item, idx) => (
                           <li key={idx} className="flex items-start">
@@ -292,7 +293,7 @@ export default function ResultsPage() {
                   {/* Failed criteria */}
                   {program.trace.failed && program.trace.failed.length > 0 && (
                     <div className="mb-2">
-                      <div className="text-xs font-medium text-red-700 mb-1">❌ Missing:</div>
+                      <div className="text-xs font-medium text-red-700 mb-1">{t('results.missing')}</div>
                       <ul className="text-xs text-red-600 space-y-1">
                         {program.trace.failed.slice(0, 1).map((item, idx) => (
                           <li key={idx} className="flex items-start">
@@ -307,7 +308,7 @@ export default function ResultsPage() {
                   {/* Suggestions */}
                   {program.trace.counterfactuals && program.trace.counterfactuals.length > 0 && (
                     <div className="mb-2">
-                      <div className="text-xs font-medium text-blue-700 mb-1">💡 To improve eligibility:</div>
+                      <div className="text-xs font-medium text-blue-700 mb-1">{t('results.toImproveEligibility')}</div>
                       <ul className="text-xs text-blue-600 space-y-1">
                         {program.trace.counterfactuals.slice(0, 2).map((item, idx) => (
                           <li key={idx} className="flex items-start">
@@ -323,7 +324,7 @@ export default function ResultsPage() {
 
               {/* Risks/Next steps - 1 bullet */}
               <div className="mb-3">
-                <h4 className="text-sm font-semibold text-gray-800 mb-2">Risks/Next steps:</h4>
+                <h4 className="text-sm font-semibold text-gray-800 mb-2">{t('results.risksNextSteps')}</h4>
                 <ul className="text-sm text-gray-700 space-y-1">
                   {program.founderFriendlyRisks && program.founderFriendlyRisks.length > 0 ? (
                     program.founderFriendlyRisks.slice(0, 1).map((risk, idx) => (
@@ -335,13 +336,13 @@ export default function ResultsPage() {
                   ) : (
                     <li className="flex items-start">
                       <span className="text-yellow-500 mr-2">•</span>
-                      Verify all eligibility requirements before applying
+                      {t('results.verifyRequirements')}
                     </li>
                   )}
                 </ul>
               </div>
               {program.unmetRequirements && program.unmetRequirements.some(r => r.includes("missing")) && (
-                <p className="text-xs text-yellow-700 mt-1">?? Some requirements unknown due to skipped answers (Explorer mode)</p>
+                <p className="text-xs text-yellow-700 mt-1">{t('results.requirementsUnknown')}</p>
               )}
 
 
@@ -356,7 +357,7 @@ export default function ResultsPage() {
 
               <div className="flex gap-2 items-center mb-2">
                 <span className="px-2 py-1 text-xs rounded bg-blue-100 text-blue-800">
-                  {program.score}% Match
+                  {program.score}% {t('results.match')}
                 </span>
                 <span className="px-2 py-1 text-xs rounded bg-purple-100 text-purple-800">
                   {program.type}
@@ -364,25 +365,25 @@ export default function ResultsPage() {
                 {program.confidence && (
                   <span
                     className={`px-2 py-1 text-xs rounded ${
-                      program.confidence === "High"
+                      program.confidence === t("results.confidenceHigh")
                         ? "bg-green-200 text-green-800"
-                        : program.confidence === "Medium"
+                        : program.confidence === t("results.confidenceMedium")
                         ? "bg-yellow-200 text-yellow-800"
                         : "bg-red-200 text-red-800"
                     }`}
                   >
-                    Confidence: {program.confidence}
+                    {t('results.confidence')} {program.confidence}
                   </span>
                 )}
                 <span className={`px-2 py-1 text-xs rounded ${program.eligibility === 'Eligible' ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'}`}>
                   {program.eligibility}
                 </span>
                 <span className={`px-2 py-1 text-xs rounded ${
-                  program.confidence === "High" ? "bg-green-200 text-green-800" : 
-                  program.confidence === "Medium" ? "bg-yellow-200 text-yellow-800" : 
+                  program.confidence === t("results.confidenceHigh") ? "bg-green-200 text-green-800" : 
+                  program.confidence === t("results.confidenceMedium") ? "bg-yellow-200 text-yellow-800" : 
                   "bg-red-200 text-red-800"
                 }`}>
-                  {program.confidence} Confidence
+                  {program.confidence} {t('results.confidence')}
                 </span>
               </div>
 
@@ -393,7 +394,7 @@ export default function ResultsPage() {
                   rel="noopener noreferrer"
                   className="text-blue-600 underline text-sm"
                 >
-                  Official source →
+                  {t('results.officialSource')}
                 </a>
               )}
               <button
@@ -412,7 +413,7 @@ export default function ResultsPage() {
                 }}
                 className="ml-2 text-xs text-gray-500 hover:text-gray-700 underline"
               >
-                Report mismatch
+                {t('results.reportMismatch')}
               </button>
 
 
@@ -420,13 +421,13 @@ export default function ResultsPage() {
               <div className="mt-4 flex gap-2">
                 <Dialog>
                   <DialogTrigger asChild>
-                    <Button className="flex-1" disabled={!hasEligibleResults}>Continue to Plan</Button>
+                    <Button className="flex-1" disabled={!hasEligibleResults}>{t('results.continueToPlan')}</Button>
                   </DialogTrigger>
                   <DialogContent>
                     <DialogHeader>
-                      <DialogTitle>Use this recommendation?</DialogTitle>
+                      <DialogTitle>{t('results.useRecommendation')}</DialogTitle>
                       <DialogDescription>
-                        We'll prefill your plan with relevant hints based on this program.
+                        {t('results.prefillDescription')}
                       </DialogDescription>
                     </DialogHeader>
                     <Button 
@@ -454,7 +455,7 @@ export default function ResultsPage() {
                         router.push('/editor?programId=' + program.id + '&answers=' + encodeURIComponent(JSON.stringify(_userAnswers)) + '&pf=' + encodeURIComponent(JSON.stringify(enhancedPayload)));
                       }}
                     >
-                      Prefill and continue →
+                      {t('results.prefillContinue')}
                     </Button>
                   </DialogContent>
                 </Dialog>
@@ -463,7 +464,7 @@ export default function ResultsPage() {
                   size="sm"
                   onClick={() => setSelectedProgram(program)}
                 >
-                  Details
+                  {t('results.details')}
                 </Button>
               </div>
             </Card>
@@ -478,10 +479,10 @@ export default function ResultsPage() {
           onClick={() => setShowExploration(true)}
           className="text-blue-600 hover:text-blue-800 text-sm flex items-center gap-1 mx-auto"
         >
-          <span>+</span> Add a known program
+          <span>+</span> {t('results.addKnownProgram')}
         </button>
         <div className="text-xs text-gray-500 mt-1">
-          Exploration Mode lets you try a program we don't track yet. Results are demo-only, not official.
+          {t('results.explorationMode')}
         </div>
       </div>
 
@@ -503,39 +504,36 @@ export default function ResultsPage() {
       <InfoDrawer
         isOpen={showInfoDrawer}
         onClose={() => setShowInfoDrawer(false)}
-        title="How Recommendations Work"
+        title={t('results.howItWorksTitle')}
         content={
           <div className="space-y-4">
             <p>
-              Our recommendation engine combines your survey answers and free-text "signal chips" 
-              to find the best funding matches for your situation.
+              {t('results.howItWorksDescription')}
             </p>
             
-            <h3 className="font-semibold">How We Score Programs:</h3>
+            <h3 className="font-semibold">{t('results.howWeScore')}</h3>
             <ul className="list-disc list-inside space-y-1">
-              <li><strong>HARD rules</strong> act as filters - if you don't meet them, the program is marked as "Not eligible"</li>
-              <li><strong>SOFT rules</strong> influence the "fit" score - more matches mean higher fit percentage</li>
-              <li><strong>Effort</strong> reflects how complex the application process is (1=easy, 5=complex)</li>
-              <li><strong>Readiness</strong> considers what documents you have vs. what's required</li>
-              <li><strong>Confidence</strong> reflects data freshness and how well we understand your situation</li>
+              <li><strong>{t('results.hardRules')}</strong></li>
+              <li><strong>{t('results.softRules')}</strong></li>
+              <li><strong>{t('results.effort')}</strong></li>
+              <li><strong>{t('results.readiness')}</strong></li>
+              <li><strong>{t('results.confidenceDesc')}</strong></li>
             </ul>
 
-            <h3 className="font-semibold">Improving Our Recommendations:</h3>
+            <h3 className="font-semibold">{t('results.improvingRecommendations')}</h3>
             <ul className="list-disc list-inside space-y-1">
-              <li>Click "Official source" links to verify program details</li>
-              <li>Use "Report mismatch" if you find incorrect information</li>
-              <li>Try "Exploration Mode" to test programs we don't track yet</li>
+              <li>{t('results.verifyProgramDetails')}</li>
+              <li>{t('results.reportMismatchDesc')}</li>
+              <li>{t('results.tryExplorationMode')}</li>
             </ul>
 
             <div className="p-3 bg-blue-50 rounded text-sm">
-              <strong>Note:</strong> All recommendations are based on publicly available information 
-              and should be verified with official sources before applying.
+              <strong>{t('results.note')}</strong> {t('results.disclaimer')}
             </div>
           </div>
         }
       />
       
-      <HealthFooter />
     </div>
   );
 }

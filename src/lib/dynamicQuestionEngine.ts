@@ -1,6 +1,6 @@
 // Dynamic Question Engine - Computes questions from programs.json overlays
 import programsData from '../../data/programs.json';
-import questionsData from '../../data/questions.json';
+import { getQuestionsData } from '../data/questions';
 
 console.log('Dynamic Question Engine: Loading programs data...', programsData.programs.length, 'programs');
 
@@ -21,8 +21,12 @@ export interface DynamicQuestion {
 
 export class DynamicQuestionEngine {
   private questions: DynamicQuestion[] = [];
+  private t: (key: any) => string = (key: any) => key;
 
-  constructor() {
+  constructor(translationFunction?: (key: any) => string) {
+    if (translationFunction) {
+      this.t = translationFunction;
+    }
     // Don't compute at construction time - do it lazily
   }
 
@@ -52,7 +56,8 @@ export class DynamicQuestionEngine {
     };
 
     // Start with universal questions as base (excluding q8_funding_types - will be derived)
-    for (const baseQuestion of questionsData.universal) {
+    const translatedQuestionsData = getQuestionsData(this.t);
+    for (const baseQuestion of translatedQuestionsData.universal) {
       const questionId = baseQuestion.id;
       
       // Skip q8_funding_types as it will be derived from program types

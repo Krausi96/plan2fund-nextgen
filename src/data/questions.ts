@@ -1,111 +1,111 @@
-// Questions data embedded directly to avoid import issues
-const questionsData = {
+// Questions data with translation support
+export const getQuestionsData = (t: (key: any) => string) => ({
   "version": "2025-09-05",
   "universal": [
     {
       "id": "q1_country",
-      "label": "Where will the project be carried out?",
+      "label": t("questions.q1_country"),
       "type": "single-select",
       "options": [
         {
           "value": "AT",
-          "label": "Austria only"
+          "label": t("questions.q1_country.AT")
         },
         {
           "value": "EU",
-          "label": "EU (incl. Austria)"
+          "label": t("questions.q1_country.EU")
         },
         {
           "value": "NON_EU",
-          "label": "Outside EU"
+          "label": t("questions.q1_country.NON_EU")
         }
       ],
       "required": true
     },
     {
       "id": "q2_entity_stage",
-      "label": "What is your legal setup & company age?",
+      "label": t("questions.q2_entity_stage"),
       "type": "single-select",
       "options": [
         {
           "value": "PRE_COMPANY",
-          "label": "Not yet incorporated (team / natural persons)"
+          "label": t("questions.q2_entity_stage.PRE_COMPANY")
         },
         {
           "value": "INC_LT_6M",
-          "label": "Incorporated < 6 months"
+          "label": t("questions.q2_entity_stage.INC_LT_6M")
         },
         {
           "value": "INC_6_36M",
-          "label": "Incorporated 6–36 months"
+          "label": t("questions.q2_entity_stage.INC_6_36M")
         },
         {
           "value": "INC_GT_36M",
-          "label": "Incorporated > 36 months"
+          "label": t("questions.q2_entity_stage.INC_GT_36M")
         },
         {
           "value": "RESEARCH_ORG",
-          "label": "Research organisation / university"
+          "label": t("questions.q2_entity_stage.RESEARCH_ORG")
         },
         {
           "value": "NONPROFIT",
-          "label": "Non-profit / association"
+          "label": t("questions.q2_entity_stage.NONPROFIT")
         }
       ],
       "required": true
     },
     {
       "id": "q3_company_size",
-      "label": "How many employees (FTE) does your organisation have?",
+      "label": t("questions.q3_company_size"),
       "type": "single-select",
       "options": [
         {
           "value": "MICRO_0_9",
-          "label": "0–9 (micro)"
+          "label": t("questions.q3_company_size.MICRO_0_9")
         },
         {
           "value": "SMALL_10_49",
-          "label": "10–49 (small)"
+          "label": t("questions.q3_company_size.SMALL_10_49")
         },
         {
           "value": "MEDIUM_50_249",
-          "label": "50–249 (medium)"
+          "label": t("questions.q3_company_size.MEDIUM_50_249")
         },
         {
           "value": "LARGE_250_PLUS",
-          "label": "250+ (large)"
+          "label": t("questions.q3_company_size.LARGE_250_PLUS")
         }
       ],
       "required": true
     },
     {
       "id": "q4_theme",
-      "label": "Which area(s) best fit your project?",
+      "label": t("questions.q4_theme"),
       "type": "multi-select",
       "options": [
         {
           "value": "INNOVATION_DIGITAL",
-          "label": "Innovation / Digital / Deep Tech"
+          "label": t("questions.q4_theme.INNOVATION_DIGITAL")
         },
         {
           "value": "SUSTAINABILITY",
-          "label": "Sustainability / Climate / Energy / Environment"
+          "label": t("questions.q4_theme.SUSTAINABILITY")
         },
         {
           "value": "HEALTH_LIFE_SCIENCE",
-          "label": "Health / Life Sciences / MedTech / Biotech"
+          "label": t("questions.q4_theme.HEALTH_LIFE_SCIENCE")
         },
         {
           "value": "SPACE_DOWNSTREAM",
-          "label": "Space / GNSS / Earth Observation (downstream)"
+          "label": t("questions.q4_theme.SPACE_DOWNSTREAM")
         },
         {
           "value": "INDUSTRY_MANUFACTURING",
-          "label": "Industry / Manufacturing"
+          "label": t("questions.q4_theme.MANUFACTURING")
         },
         {
           "value": "OTHER",
-          "label": "Other"
+          "label": t("questions.q4_theme.OTHER")
         }
       ],
       "required": true
@@ -274,6 +274,8 @@ const questionsData = {
       "effect": "boost_tags=['space','gnss','eo']"
     }
   ]
-};
+});
 
+// Keep the old export for backward compatibility
+const questionsData = getQuestionsData((key: string) => key);
 export default questionsData;

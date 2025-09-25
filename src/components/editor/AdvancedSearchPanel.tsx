@@ -8,6 +8,7 @@ import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
+import { useI18n } from '@/contexts/I18nContext';
 
 interface SearchResult {
   id: string;
@@ -44,6 +45,7 @@ export default function AdvancedSearchPanel({
   isLoading,
   currentQuery
 }: AdvancedSearchPanelProps) {
+  const { t } = useI18n();
   const [query, setQuery] = useState(currentQuery);
   const [showDeltas, setShowDeltas] = useState(true);
   const [sortBy, setSortBy] = useState<'score' | 'delta' | 'title'>('score');
@@ -124,19 +126,19 @@ export default function AdvancedSearchPanel({
     const recommendations = [];
     
     if (params.fundingAmount < 50000) {
-      recommendations.push("Consider increasing funding amount for better program eligibility");
+      recommendations.push(t("advancedSearch.recommendations.increaseFunding"));
     }
     if (params.teamSize < 3) {
-      recommendations.push("Expand team size to strengthen application");
+      recommendations.push(t("advancedSearch.recommendations.expandTeam"));
     }
     if (params.timeline > 18) {
-      recommendations.push("Shorten timeline to improve competitiveness");
+      recommendations.push(t("advancedSearch.recommendations.shortenTimeline"));
     }
     if (params.revenue < 25000) {
-      recommendations.push("Focus on revenue generation strategies");
+      recommendations.push(t("advancedSearch.recommendations.focusRevenue"));
     }
     if (params.marketSize < 500000) {
-      recommendations.push("Expand market size or target additional segments");
+      recommendations.push(t("advancedSearch.recommendations.expandMarket"));
     }
     
     return recommendations;

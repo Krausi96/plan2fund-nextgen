@@ -1,19 +1,21 @@
 import Head from "next/head";
 import HeroLite from "@/components/common/HeroLite";
 import CTAStrip from "@/components/common/CTAStrip";
+import { useI18n } from "@/contexts/I18nContext";
 
 export default function ForStartupsAustria() {
+  const { t } = useI18n();
   return (
     <>
       <Head>
         <title>Startups & Entrepreneurs Österreich - Plan2Fund</title>
         <meta name="description" content="Verwandle deine innovativen Ideen in die Realität mit umfassender Geschäftsplanung. Zugang zu Pre-Seed-Finanzierung, MVP-Entwicklung und Marktvalidierungsprogrammen in Österreich." />
-        <meta property="og:title" content="Startups & Entrepreneurs Österreich - Plan2Fund" />
+        <meta property="og:title" content={t('for.startupsAustria.ogTitle')} />
         <meta property="og:description" content="Verwandle deine innovativen Ideen in die Realität mit umfassender Geschäftsplanung für österreichische Startups." />
         <meta property="og:type" content="website" />
         <meta property="og:url" content="https://plan2fund.com/for/startups-austria" />
         <meta name="twitter:card" content="summary" />
-        <meta name="twitter:title" content="Startups Österreich - Plan2Fund" />
+        <meta name="twitter:title" content={t('for.startupsAustria.twitterTitle')} />
         <meta name="twitter:description" content="Geschäftsplanung für österreichische Startups und Entrepreneure." />
         <link rel="canonical" href="https://plan2fund.com/for/startups-austria" />
         <link rel="alternate" hrefLang="en" href="https://plan2fund.com/for/startups" />
@@ -23,13 +25,13 @@ export default function ForStartupsAustria() {
           dangerouslySetInnerHTML={{ 
             __html: JSON.stringify({
               "@context": "https://schema.org",
-              "@type": "WebPage",
-              "name": "Startups & Entrepreneurs Österreich - Plan2Fund",
-              "description": "Geschäftsplanung für österreichische Startups und Entrepreneure",
+              "@type": t('for.startupsAustria.schemaType'),
+              "name": t('for.startupsAustria.schemaName'),
+              "description": t('for.startupsAustria.schemaDescription'),
               "url": "https://plan2fund.com/for/startups-austria",
               "inLanguage": "de-AT",
               "about": {
-                "@type": "Thing",
+                "@type": t('for.startupsAustria.schemaThingType'),
                 "name": "Startup Funding Austria",
                 "description": "Förderprogramme für österreichische Startups"
               }

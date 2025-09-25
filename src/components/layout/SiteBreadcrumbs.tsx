@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { useRouter } from "next/router";
 import { ChevronRight, Home } from "lucide-react";
+import { useI18n } from "@/contexts/I18nContext";
 
 interface BreadcrumbItem {
   label: string;
@@ -14,6 +15,7 @@ interface SiteBreadcrumbsProps {
 
 export default function SiteBreadcrumbs({ items, className = "" }: SiteBreadcrumbsProps) {
   const router = useRouter();
+  const { t } = useI18n();
   
   // Auto-generate breadcrumbs from route if not provided
   const generateBreadcrumbs = (): BreadcrumbItem[] => {
@@ -21,7 +23,7 @@ export default function SiteBreadcrumbs({ items, className = "" }: SiteBreadcrum
     
     const pathSegments = router.pathname.split('/').filter(Boolean);
     const breadcrumbs: BreadcrumbItem[] = [
-      { label: 'Home', href: '/' }
+      { label: t('breadcrumb.home'), href: '/' }
     ];
     
     let currentPath = '';

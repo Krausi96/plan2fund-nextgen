@@ -4,8 +4,10 @@ import featureFlags from "@/lib/featureFlags";
 import { loadPlanSections, type PlanSection } from "@/lib/planStore";
 import { chapterTemplates } from "@/lib/templates/chapters";
 import analytics from "@/lib/analytics";
+import { useI18n } from "@/contexts/I18nContext";
 
 export default function Preview() {
+  const { t } = useI18n();
   const [sections, setSections] = useState<PlanSection[]>([]);
   const [loading, setLoading] = useState(true);
   
@@ -27,7 +29,7 @@ export default function Preview() {
   const sectionsFilled = sections.filter(s => s.content && s.content.trim().length > 0).length;
   const totalSections = sections.length;
   const completeness = totalSections > 0 ? Math.round((sectionsFilled / totalSections) * 100) : 0;
-  const complexity = sectionsFilled > 6 ? "High" : sectionsFilled > 3 ? "Medium" : "Low";
+  const complexity = sectionsFilled > 6 ? t("preview.complexityHigh") : sectionsFilled > 3 ? t("preview.complexityMedium") : t("preview.complexityLow");
   const basicPrice = "€99";
   const proPrice = "€199";
   const [deliveryMode, setDeliveryMode] = useState<"standard" | "priority">("standard");
@@ -80,7 +82,7 @@ export default function Preview() {
                         ? "bg-blue-100 text-blue-800 hover:bg-blue-200" 
                         : "bg-gray-100 text-gray-400 cursor-not-allowed"
                     }`}
-                    title={!featureFlags.isEnabled('CHECKOUT_ENABLED') ? "Unlock after purchase" : ""}
+                    title={!featureFlags.isEnabled('CHECKOUT_ENABLED') ? t("preview.unlockAfterPurchase") : ""}
                   >
                     Copy section
                   </button>
@@ -186,8 +188,8 @@ export default function Preview() {
             <div className="flex justify-between">
               <span>Complexity:</span>
               <span className={`font-medium ${
-                complexity === "High" ? "text-red-500" : 
-                complexity === "Medium" ? "text-orange-500" : "text-green-600"
+                complexity === t("preview.complexityHigh") ? "text-red-500" : 
+                complexity === t("preview.complexityMedium") ? "text-orange-500" : "text-green-600"
               }`}>
                 {complexity}
               </span>
@@ -226,15 +228,15 @@ export default function Preview() {
           <div className="space-y-2">
             <p className="text-sm">Based on your content:</p>
             <div className={`p-2 rounded text-sm font-medium ${
-              complexity === "High" ? "bg-red-50 text-red-700" : 
-              complexity === "Medium" ? "bg-orange-50 text-orange-700" : "bg-green-50 text-green-700"
+              complexity === t("preview.complexityHigh") ? "bg-red-50 text-red-700" : 
+              complexity === t("preview.complexityMedium") ? "bg-orange-50 text-orange-700" : "bg-green-50 text-green-700"
             }`}>
-              {complexity === "High" ? "Pro Plan (€199)" : 
-               complexity === "Medium" ? "Pro Plan (€199)" : "Basic Plan (€99)"}
+              {complexity === t("preview.complexityHigh") ? t("preview.proPlan") : 
+               complexity === t("preview.complexityMedium") ? t("preview.proPlan") : t("preview.basicPlan")}
             </div>
             <p className="text-xs text-gray-600">
-              {complexity === "High" ? "Complex content requires expert review" : 
-               complexity === "Medium" ? "Medium complexity benefits from pro features" : "Simple content works with basic plan"}
+              {complexity === t("preview.complexityHigh") ? t("preview.complexContent") : 
+               complexity === t("preview.complexityMedium") ? t("preview.mediumContent") : t("preview.simpleContent")}
             </p>
           </div>
         </div>

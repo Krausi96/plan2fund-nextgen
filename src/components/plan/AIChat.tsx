@@ -2,6 +2,7 @@ import React, { useState, useRef } from "react";
 import { Button } from "@/components/ui/button";
 import InfoDrawer from "@/components/common/InfoDrawer";
 import { aiHelperGuardrails } from "@/lib/aiHelperGuardrails";
+import { useI18n } from "@/contexts/I18nContext";
 
 type AIChatProps = {
   onInsertContent: (content: string, section: string) => void;
@@ -24,44 +25,45 @@ type ExtractedChip = {
   confidence: number;
 };
 
-const EXPERT_ACTIONS = [
-  { key: "draft", label: "Draft", icon: "✍️", description: "Create initial content" },
-  { key: "improve", label: "Improve", icon: "⚡", description: "Enhance existing text" },
-  { key: "summarize", label: "Summarize", icon: "📝", description: "Create executive summary" },
-  { key: "translate", label: "Translate", icon: "🌐", description: "Translate content" },
-  { key: "formal", label: "Make Formal", icon: "👔", description: "Professional tone" },
-  { key: "risks", label: "Add Risks", icon: "⚠️", description: "Identify potential risks" }
+const getExpertActions = (t: (key: keyof typeof import('../../../i18n/en.json')) => string) => [
+  { key: "draft", label: t("aiChat.draft"), icon: "✍️", description: t("aiChat.draftDesc") },
+  { key: "improve", label: t("aiChat.improve"), icon: "⚡", description: t("aiChat.improveDesc") },
+  { key: "summarize", label: t("aiChat.summarize"), icon: "📝", description: t("aiChat.summarizeDesc") },
+  { key: "translate", label: t("aiChat.translate"), icon: "🌐", description: t("aiChat.translateDesc") },
+  { key: "formal", label: t("aiChat.formal"), icon: "👔", description: t("aiChat.formalDesc") },
+  { key: "risks", label: t("aiChat.risks"), icon: "⚠️", description: t("aiChat.risksDesc") }
 ];
 
-const CONTEXT_SUGGESTIONS = {
-  "Executive Summary": [
-    "Create compelling value proposition",
-    "Add market opportunity metrics",
-    "Include funding requirements"
+const getContextSuggestions = (t: (key: keyof typeof import('../../../i18n/en.json')) => string) => ({
+  [t("aiChat.suggestions.executiveSummary")]: [
+    t("aiChat.suggestions.createValueProp"),
+    t("aiChat.suggestions.addMarketMetrics"),
+    t("aiChat.suggestions.includeFundingReqs")
   ],
-  "Business Description": [
-    "Define unique selling proposition",
-    "Add competitive advantages",
-    "Include business model details"
+  [t("aiChat.suggestions.businessDescription")]: [
+    t("aiChat.suggestions.defineUSP"),
+    t("aiChat.suggestions.addCompetitiveAdvantages"),
+    t("aiChat.suggestions.includeBusinessModel")
   ],
-  "Market Analysis": [
-    "Add market size data",
-    "Include target customer segments",
-    "Add competitive landscape"
+  [t("aiChat.suggestions.marketAnalysis")]: [
+    t("aiChat.suggestions.addMarketSize"),
+    t("aiChat.suggestions.includeTargetSegments"),
+    t("aiChat.suggestions.addCompetitiveLandscape")
   ],
-  "Financial Projections": [
-    "Create revenue forecasts",
-    "Add expense breakdown",
-    "Include funding timeline"
+  [t("aiChat.suggestions.financialProjections")]: [
+    t("aiChat.suggestions.createRevenueForecasts"),
+    t("aiChat.suggestions.addExpenseBreakdown"),
+    t("aiChat.suggestions.includeFundingTimeline")
   ],
-  "Team": [
-    "Highlight key team members",
-    "Add relevant experience",
-    "Include advisory board"
+  [t("aiChat.suggestions.team")]: [
+    t("aiChat.suggestions.highlightKeyMembers"),
+    t("aiChat.suggestions.addRelevantExperience"),
+    t("aiChat.suggestions.includeAdvisoryBoard")
   ]
-};
+});
 
 export default function AIChat({ onInsertContent, currentSection, persona }: AIChatProps) {
+  const { t } = useI18n();
   const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [input, setInput] = useState("");
   const [showCommands, setShowCommands] = useState(false);
@@ -71,6 +73,7 @@ export default function AIChat({ onInsertContent, currentSection, persona }: AIC
   const [isExpanded, setIsExpanded] = useState(false);
   const [selectedAction, setSelectedAction] = useState<string | null>(null);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
+  const expertActions = getExpertActions(t);
 
   // Extract chips from user input
   const extractChips = (text: string): ExtractedChip[] => {
@@ -321,7 +324,7 @@ export default function AIChat({ onInsertContent, currentSection, persona }: AIC
             onClick={() => setIsExpanded(!isExpanded)}
             className="text-blue-600 hover:text-blue-800 text-xs px-2 py-1 rounded hover:bg-blue-100 transition-colors"
           >
-            {isExpanded ? "Compact" : "Expand"}
+            {isExpanded ? t("aiChat.compact") : t("aiChat.expand")}
           </button>
           <button
             onClick={() => setShowInfoDrawer(true)}
@@ -336,7 +339,7 @@ export default function AIChat({ onInsertContent, currentSection, persona }: AIC
       <div className="p-3 bg-gray-50 border-b">
         <div className="text-xs text-gray-600 mb-2">Suggestions for {currentSection}:</div>
         <div className="flex flex-wrap gap-1">
-          {(CONTEXT_SUGGESTIONS[currentSection as keyof typeof CONTEXT_SUGGESTIONS] || []).map((suggestion, i) => (
+          {(getContextSuggestions(t)[currentSection as keyof ReturnType<typeof getContextSuggestions>] || []).map((suggestion, i) => (
             <button
               key={i}
               onClick={() => setInput(suggestion)}
@@ -352,7 +355,7 @@ export default function AIChat({ onInsertContent, currentSection, persona }: AIC
       <div className="p-3 border-b">
         <div className="text-xs text-gray-600 mb-2">Quick Actions:</div>
         <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
-          {EXPERT_ACTIONS.map((action) => (
+          {expertActions.map((action) => (
             <button
               key={action.key}
               onClick={() => handleActionClick(action.key)}
@@ -441,7 +444,7 @@ export default function AIChat({ onInsertContent, currentSection, persona }: AIC
           />
           {showCommands && (
             <div className="absolute bottom-full left-0 right-0 mb-1 bg-white border rounded-lg shadow-lg z-10">
-              {EXPERT_ACTIONS.map((action) => (
+              {expertActions.map((action) => (
                 <button
                   key={action.key}
                   onClick={() => handleActionClick(action.key)}
@@ -456,7 +459,7 @@ export default function AIChat({ onInsertContent, currentSection, persona }: AIC
         </div>
         <div className="flex justify-between items-center mt-2">
           <div className="text-xs text-gray-500">
-            {persona === "newbie" ? "Tutoring mode" : "Expert mode"}
+            {persona === "newbie" ? t("aiChat.tutoringMode") : t("aiChat.expertMode")}
           </div>
           <Button 
             onClick={handleSend} 
@@ -464,7 +467,7 @@ export default function AIChat({ onInsertContent, currentSection, persona }: AIC
             size="sm"
             className="text-xs"
           >
-            {isProcessing ? "..." : "Send"}
+            {isProcessing ? "..." : t("aiChat.send")}
           </Button>
         </div>
       </div>
@@ -473,7 +476,7 @@ export default function AIChat({ onInsertContent, currentSection, persona }: AIC
       <InfoDrawer
         isOpen={showInfoDrawer}
         onClose={() => setShowInfoDrawer(false)}
-        title="Expert AI Coach Features"
+        title={t("aiChat.expertFeaturesTitle")}
         content={
           <div className="space-y-4">
             <p>

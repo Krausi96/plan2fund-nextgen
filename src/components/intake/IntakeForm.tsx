@@ -5,6 +5,7 @@ import { intakeParser } from '@/lib/intakeParser';
 import OverlayQuestions from './OverlayQuestions';
 import OffTopicGate from './OffTopicGate';
 import analytics from '@/lib/analytics';
+import { useI18n } from '@/contexts/I18nContext';
 
 interface IntakeFormProps {
   onComplete: (profile: FundingProfile) => void;
@@ -20,6 +21,7 @@ interface Chip {
 }
 
 export default function IntakeForm({ onComplete, onCancel }: IntakeFormProps) {
+  const { t } = useI18n();
   const [input, setInput] = useState('');
   const [isProcessing, setIsProcessing] = useState(false);
   const [profile, setProfile] = useState<FundingProfile | null>(null);
@@ -77,7 +79,7 @@ export default function IntakeForm({ onComplete, onCancel }: IntakeFormProps) {
     if (profile.sector) {
       chips.push({
         field: 'sector',
-        label: 'Sector',
+        label: t('intake.chip.sector'),
         value: profile.sector,
         confidence: profile.confidence.sector,
         editable: true
@@ -87,7 +89,7 @@ export default function IntakeForm({ onComplete, onCancel }: IntakeFormProps) {
     if (profile.stage) {
       chips.push({
         field: 'stage',
-        label: 'Stage',
+        label: t('intake.chip.stage'),
         value: profile.stage,
         confidence: profile.confidence.stage,
         editable: true
@@ -97,7 +99,7 @@ export default function IntakeForm({ onComplete, onCancel }: IntakeFormProps) {
     if (profile.team_size) {
       chips.push({
         field: 'team_size',
-        label: 'Team Size',
+        label: t('intake.chip.teamSize'),
         value: profile.team_size,
         confidence: profile.confidence.team_size,
         editable: true
@@ -107,7 +109,7 @@ export default function IntakeForm({ onComplete, onCancel }: IntakeFormProps) {
     if (profile.location_city) {
       chips.push({
         field: 'location',
-        label: 'Location',
+        label: t('intake.chip.location'),
         value: `${profile.location_city}, ${profile.location_country}`,
         confidence: Math.min(profile.confidence.location_city, profile.confidence.location_country),
         editable: true
@@ -117,7 +119,7 @@ export default function IntakeForm({ onComplete, onCancel }: IntakeFormProps) {
     if (profile.funding_need_eur) {
       chips.push({
         field: 'funding_need_eur',
-        label: 'Funding',
+        label: t('intake.chip.funding'),
         value: `€${profile.funding_need_eur.toLocaleString()}`,
         confidence: profile.confidence.funding_need_eur,
         editable: true
@@ -127,7 +129,7 @@ export default function IntakeForm({ onComplete, onCancel }: IntakeFormProps) {
     if (profile.program_type) {
       chips.push({
         field: 'program_type',
-        label: 'Looking for',
+        label: t('intake.chip.lookingFor'),
         value: profile.program_type,
         confidence: profile.confidence.program_type,
         editable: true
@@ -137,7 +139,7 @@ export default function IntakeForm({ onComplete, onCancel }: IntakeFormProps) {
     if (profile.collaboration) {
       chips.push({
         field: 'collaboration',
-        label: 'Collaboration',
+        label: t('intake.chip.collaboration'),
         value: profile.collaboration,
         confidence: profile.confidence.collaboration,
         editable: true
@@ -147,7 +149,7 @@ export default function IntakeForm({ onComplete, onCancel }: IntakeFormProps) {
     if (profile.trl) {
       chips.push({
         field: 'trl',
-        label: 'TRL',
+        label: t('intake.chip.trl'),
         value: profile.trl,
         confidence: profile.confidence.trl,
         editable: true
@@ -208,10 +210,10 @@ export default function IntakeForm({ onComplete, onCancel }: IntakeFormProps) {
         {/* Header */}
         <div className="p-6 border-b border-gray-200">
           <h1 className="text-2xl font-bold text-gray-900 mb-2">
-            Tell us about your business
+            {t('intake.title')}
           </h1>
           <p className="text-gray-600">
-            Describe your business in 1-2 sentences. Include: sector, stage, team size, location, funding need.
+            {t('intake.subtitle')}
           </p>
         </div>
 
@@ -219,13 +221,13 @@ export default function IntakeForm({ onComplete, onCancel }: IntakeFormProps) {
         <div className="p-6">
           <div className="mb-4">
             <label htmlFor="business-description" className="block text-sm font-medium text-gray-700 mb-2">
-              Business Description
+              {t('intake.label')}
             </label>
             <textarea
               id="business-description"
               value={input}
               onChange={(e) => setInput(e.target.value)}
-              placeholder="Example: 'Healthtech MVP, 3 founders in Vienna, seeking €150k grant for clinical pilot.' We'll create editable chips and ask if we're unsure."
+              placeholder={t('intake.placeholder')}
               className="w-full p-4 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 resize-none"
               rows={4}
               disabled={isProcessing}
@@ -234,9 +236,9 @@ export default function IntakeForm({ onComplete, onCancel }: IntakeFormProps) {
 
           {/* Example */}
           <div className="mb-6 p-4 bg-blue-50 rounded-lg">
-            <h3 className="text-sm font-medium text-blue-900 mb-2">Example:</h3>
+            <h3 className="text-sm font-medium text-blue-900 mb-2">{t('intake.example')}</h3>
             <p className="text-sm text-blue-800">
-              "Healthtech MVP, 3 founders in Vienna, seeking €150k grant for clinical pilot."
+              {t('intake.exampleText')}
             </p>
           </div>
 
@@ -253,7 +255,7 @@ export default function IntakeForm({ onComplete, onCancel }: IntakeFormProps) {
             disabled={isProcessing || !input.trim()}
             className="w-full bg-blue-600 text-white py-3 px-4 rounded-lg hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed"
           >
-            {isProcessing ? 'Processing...' : 'Analyze My Business'}
+            {isProcessing ? t('intake.processing') : t('intake.submit')}
           </button>
         </div>
 

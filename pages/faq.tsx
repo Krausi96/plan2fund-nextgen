@@ -3,6 +3,7 @@ import { Card } from "@/components/ui/card";
 import SEOHead from "@/components/common/SEOHead";
 import { ChevronDown, ChevronUp, HelpCircle } from "lucide-react";
 import analytics from "@/lib/analytics";
+import { useI18n } from "@/contexts/I18nContext";
 
 interface FAQItem {
   id: string;
@@ -11,93 +12,106 @@ interface FAQItem {
   category: string;
 }
 
-const faqData: FAQItem[] = [
+const getFAQData = (t: (key: any) => string): FAQItem[] => [
   {
     id: "how-it-works",
-    question: "How does the funding recommendation work?",
-    answer: "Our AI analyzes your business details and matches you with relevant funding programs based on eligibility criteria, funding amounts, and program requirements. We consider factors like your business stage, industry, location, and funding needs to provide personalized recommendations.",
-    category: "General"
+    question: t("faq.questions.howItWorks.question"),
+    answer: t("faq.questions.howItWorks.answer"),
+    category: t("faq.categories.general")
   },
   {
     id: "data-security",
-    question: "Is my business plan data secure?",
-    answer: "Yes, we use enterprise-grade security measures and are GDPR compliant. Your data is encrypted both in transit and at rest, and we never share your information without your explicit consent. You can also delete your data at any time through your account settings.",
-    category: "Security"
+    question: t("faq.questions.dataSecurity.question"),
+    answer: t("faq.questions.dataSecurity.answer"),
+    category: t("faq.categories.security")
   },
   {
     id: "time-to-complete",
-    question: "How long does it take to create a business plan?",
-    answer: "Most users complete their business plan in 2-4 hours using our guided process and templates. Our program-aware editor pre-fills relevant sections based on your selected funding program, making it much faster than starting from scratch.",
-    category: "General"
+    question: t("faq.questions.timeToComplete.question"),
+    answer: t("faq.questions.timeToComplete.answer"),
+    category: t("faq.categories.general")
   },
   {
     id: "refunds",
-    question: "Do you offer refunds?",
-    answer: "Yes, we offer a 30-day money-back guarantee if you're not satisfied with our service. Contact our support team to request a refund, and we'll process it within 5 business days.",
-    category: "Billing"
+    question: t("faq.questions.refunds.question"),
+    answer: t("faq.questions.refunds.answer"),
+    category: t("faq.categories.billing")
   },
   {
     id: "funding-programs",
-    question: "What funding programs are supported?",
-    answer: "We support over 214 Austrian and EU funding programs including AWS PreSeed, FFG, EU startup calls, bank loans, and more. Our database is regularly updated with new programs and eligibility criteria.",
-    category: "Programs"
+    question: t("faq.questions.fundingPrograms.question"),
+    answer: t("faq.questions.fundingPrograms.answer"),
+    category: t("faq.categories.programs")
   },
   {
     id: "pricing",
-    question: "Is Plan2Fund free to use?",
-    answer: "Yes, we offer a free tier with basic features including access to our funding database and basic business plan templates. Premium plans are available for advanced functionality, priority support, and additional features.",
-    category: "Billing"
+    question: t("faq.questions.pricing.question"),
+    answer: t("faq.questions.pricing.answer"),
+    category: t("faq.categories.billing")
   },
   {
     id: "export-formats",
-    question: "What formats can I export my business plan in?",
-    answer: "You can export your business plan in PDF, Word, and PowerPoint formats. Premium users also get access to additional export options and custom branding.",
-    category: "Features"
+    question: t("faq.questions.exportFormats.question"),
+    answer: t("faq.questions.exportFormats.answer"),
+    category: t("faq.categories.features")
   },
   {
     id: "collaboration",
-    question: "Can I collaborate with team members on my business plan?",
-    answer: "Yes, our premium plans include team collaboration features. You can invite team members, assign sections, track changes, and work together in real-time on your business plan.",
-    category: "Features"
+    question: t("faq.questions.collaboration.question"),
+    answer: t("faq.questions.collaboration.answer"),
+    category: t("faq.categories.features")
   },
   {
     id: "support",
-    question: "What kind of support do you offer?",
-    answer: "We offer email support for all users and priority support for premium users. We also have a comprehensive knowledge base, video tutorials, and regular webinars to help you get the most out of Plan2Fund.",
-    category: "Support"
+    question: t("faq.questions.support.question"),
+    answer: t("faq.questions.support.answer"),
+    category: t("faq.categories.support")
   },
   {
     id: "updates",
-    question: "How often is the funding database updated?",
-    answer: "Our funding database is updated monthly with new programs, changes to existing programs, and updated eligibility criteria. We also monitor program deadlines and notify users of upcoming opportunities.",
-    category: "Programs"
+    question: t("faq.questions.updates.question"),
+    answer: t("faq.questions.updates.answer"),
+    category: t("faq.categories.programs")
   },
   {
     id: "compliance",
-    question: "Does Plan2Fund ensure compliance with funding program requirements?",
-    answer: "While we help structure your business plan according to program requirements, final compliance is your responsibility. We recommend reviewing program guidelines and consulting with funding advisors for complex applications.",
-    category: "Compliance"
+    question: t("faq.questions.compliance.question"),
+    answer: t("faq.questions.compliance.answer"),
+    category: t("faq.categories.compliance")
   },
   {
     id: "success-rate",
-    question: "What's the success rate of users who use Plan2Fund?",
-    answer: "Users who complete our guided process and follow our recommendations have a significantly higher success rate in securing funding. While we can't guarantee approval, our structured approach and program-specific guidance greatly improve your chances.",
-    category: "General"
+    question: t("faq.questions.successRate.question"),
+    answer: t("faq.questions.successRate.answer"),
+    category: t("faq.categories.general")
   }
 ];
 
-const categories = ["All", "General", "Security", "Billing", "Programs", "Features", "Support", "Compliance"];
+const getCategories = (t: (key: any) => string) => [
+  t("faq.categories.all"),
+  t("faq.categories.general"),
+  t("faq.categories.security"),
+  t("faq.categories.billing"),
+  t("faq.categories.programs"),
+  t("faq.categories.features"),
+  t("faq.categories.support"),
+  t("faq.categories.compliance")
+];
 
 export default function FAQPage() {
-  const [selectedCategory, setSelectedCategory] = useState("All");
+  const { t } = useI18n();
+  const [selectedCategory, setSelectedCategory] = useState(t("faq.categories.all"));
   const [openItems, setOpenItems] = useState<string[]>([]);
+
+  const faqData = getFAQData(t);
+  const categories = getCategories(t);
 
   useEffect(() => {
     analytics.trackPageView('/faq', 'FAQ');
     analytics.trackUserAction('faq_page_viewed');
   }, []);
 
-  const filteredFAQs = selectedCategory === "All" 
+  const filteredFAQs = selectedCategory === t("faq.categories.all")
     ? faqData 
     : faqData.filter(faq => faq.category === selectedCategory);
 
@@ -125,7 +139,7 @@ export default function FAQPage() {
     <>
       <SEOHead 
         pageKey="faq"
-        title="Frequently Asked Questions - Plan2Fund"
+        title={t('faq.ogTitle')}
         description="Find answers to common questions about Plan2Fund's business planning and funding recommendation platform."
         schema="faq"
       />
@@ -138,10 +152,10 @@ export default function FAQPage() {
               <div className="bg-blue-100 p-3 rounded-full mr-4">
                 <HelpCircle className="w-12 h-12 text-blue-600" />
               </div>
-              <h1 className="text-4xl font-bold text-gray-900">Frequently Asked Questions</h1>
+              <h1 className="text-4xl font-bold text-gray-900">{t("faq.title")}</h1>
             </div>
             <p className="text-xl text-gray-600 max-w-2xl mx-auto">
-              Find answers to common questions about our business planning platform and funding recommendations.
+              {t("faq.subtitle")}
             </p>
           </div>
 
@@ -196,23 +210,23 @@ export default function FAQPage() {
           <div className="mt-12 text-center">
             <Card className="p-8 bg-blue-50 border-blue-200">
               <h3 className="text-xl font-semibold text-gray-900 mb-4">
-                Still have questions?
+                {t("faq.cta.title")}
               </h3>
               <p className="text-gray-600 mb-6">
-                Can't find what you're looking for? Our support team is here to help.
+                {t("faq.cta.subtitle")}
               </p>
               <div className="flex flex-col sm:flex-row gap-4 justify-center">
                 <a
                   href="/contact"
                   className="px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors font-medium"
                 >
-                  Contact Support
+                  {t("faq.cta.contactSupport")}
                 </a>
                 <a
                   href="/about"
                   className="px-6 py-3 border border-blue-600 text-blue-600 rounded-lg hover:bg-blue-50 transition-colors font-medium"
                 >
-                  Learn More
+                  {t("faq.cta.learnMore")}
                 </a>
               </div>
             </Card>

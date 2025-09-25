@@ -4,17 +4,21 @@ import { useRouter } from "next/router";
 import { motion } from "framer-motion";
 import Link from "next/link";
 import { scoreProgramsEnhanced } from "@/lib/enhancedRecoEngine";
-import { dynamicQuestionEngine } from "@/lib/dynamicQuestionEngine";
+import { DynamicQuestionEngine } from "@/lib/dynamicQuestionEngine";
 import HealthFooter from "@/components/common/HealthFooter";
+import { useI18n } from "@/contexts/I18nContext";
 
 export default function Wizard() {
+  const { t } = useI18n();
   const router = useRouter();
   const [answers, setAnswers] = useState<Record<string, any>>({});
   const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
   const [loading, setLoading] = useState(false);
   const [mounted, setMounted] = useState(false);
 
-  const questions = dynamicQuestionEngine.getQuestionOrder();
+  // Create a new instance with translation function
+  const [questionEngine] = useState(() => new DynamicQuestionEngine(t));
+  const questions = questionEngine.getQuestionOrder();
 
   useEffect(() => {
     setMounted(true);
@@ -154,7 +158,7 @@ export default function Wizard() {
                   disabled={currentQuestionIndex === 0}
                   className="px-6 py-2"
                 >
-                  ← Previous
+                  ← {t('wizard.previous')}
                 </Button>
                 
                 <Button
@@ -162,7 +166,7 @@ export default function Wizard() {
                   disabled={!answers[currentQuestion.id] || loading}
                   className="px-8 py-2 bg-blue-600 hover:bg-blue-700"
                 >
-                  {loading ? "Processing..." : currentQuestionIndex === questions.length - 1 ? "Get Results" : "Next →"}
+                  {loading ? t('wizard.loading') : currentQuestionIndex === questions.length - 1 ? t('wizard.submit') : t('wizard.next') + " →"}
                 </Button>
               </div>
             </div>
@@ -175,7 +179,7 @@ export default function Wizard() {
                 We have enough information to find the best programs for you.
               </p>
               <Button onClick={handleNext} className="px-8">
-                Get Recommendations
+                {t('wizard.submit')}
               </Button>
             </div>
           )}

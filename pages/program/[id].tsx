@@ -4,6 +4,7 @@ import Link from "next/link";
 import { useRouter } from "next/router";
 import { ArrowLeft, ExternalLink, Users, Calendar, FileText, Target } from "lucide-react";
 import { useState, useEffect } from "react";
+import { useI18n } from "@/contexts/I18nContext";
 
 interface Program {
   id: string;
@@ -31,6 +32,7 @@ interface Program {
 }
 
 export default function ProgramDetailsPage() {
+  const { t } = useI18n();
   const router = useRouter();
   const { id } = router.query;
   const [program, setProgram] = useState<Program | null>(null);
@@ -57,10 +59,10 @@ export default function ProgramDetailsPage() {
         // Load from API or create sample data
         const sampleProgram: Program = {
           id: programId,
-          name: "Austrian Research Promotion Agency (FFG) - eCall",
+          name: t("program.ffgName"),
           description: "The FFG eCall program provides funding for research and development projects in Austria. It supports innovative projects across various sectors with a focus on technological advancement and economic impact.",
-          type: "Grant",
-          country: "Austria",
+          type: t("program.type"),
+          country: t("program.country"),
           amount: {
             min: 10000,
             max: 500000,
@@ -69,24 +71,24 @@ export default function ProgramDetailsPage() {
           timeline: "6-12 months",
           successRate: 0.35,
           requirements: [
-            "Austrian company or research institution",
-            "Innovative R&D project",
-            "Clear market potential",
-            "Experienced project team",
-            "Detailed project plan"
+            t("program.eligibility"),
+            t("program.innovativeRd"),
+            t("program.marketPotential"),
+            t("program.experiencedTeam"),
+            t("program.detailedPlan")
           ],
           documents: [
-            "Project proposal",
-            "Financial statements",
-            "Team CVs",
-            "Market analysis",
-            "Technical documentation"
+            t("program.projectProposal"),
+            t("program.financialStatements"),
+            t("program.teamCvs"),
+            t("program.marketAnalysis"),
+            t("program.technicalDocumentation")
           ],
           eligibility: {
-            sectors: ["Technology", "Manufacturing", "Healthcare", "Energy", "Digital"],
-            stages: ["R&D", "Prototype", "Market Entry"],
-            companySize: ["SME", "Startup", "Large Company"],
-            other: ["Austrian registration", "EU compliance", "Innovation focus"]
+            sectors: t("program.sectors").split(", "),
+            stages: t("program.stages").split(", "),
+            companySize: t("program.companySize").split(", "),
+            other: t("program.other").split(", ")
           },
           source: "https://www.ffg.at/en/ecall",
           lastUpdated: "2024-01-15"

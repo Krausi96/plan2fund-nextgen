@@ -8,6 +8,7 @@ import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
+import { useI18n } from '@/contexts/I18nContext';
 import { Badge } from '@/components/ui/badge';
 
 interface ProductSelectorProps {
@@ -16,6 +17,7 @@ interface ProductSelectorProps {
 }
 
 export default function ProductSelector({ onSelect, onCancel }: ProductSelectorProps) {
+  const { t } = useI18n();
   const [selectedType, setSelectedType] = useState<'create' | 'update' | 'modeling' | null>(null);
   const [uploadedFile, setUploadedFile] = useState<File | null>(null);
   const [businessName, setBusinessName] = useState('');
@@ -122,7 +124,7 @@ export default function ProductSelector({ onSelect, onCancel }: ProductSelectorP
                 <Input
                   value={businessName}
                   onChange={(e) => setBusinessName(e.target.value)}
-                  placeholder="Enter your business name"
+                  placeholder={t("productSelector.businessNamePlaceholder")}
                   className="w-full"
                 />
               </div>
@@ -131,7 +133,7 @@ export default function ProductSelector({ onSelect, onCancel }: ProductSelectorP
                 <Textarea
                   value={businessDescription}
                   onChange={(e) => setBusinessDescription(e.target.value)}
-                  placeholder="Brief description of your business"
+                  placeholder={t("productSelector.businessDescriptionPlaceholder")}
                   rows={3}
                   className="w-full"
                 />

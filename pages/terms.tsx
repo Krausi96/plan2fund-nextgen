@@ -1,13 +1,15 @@
 import Head from "next/head";
 import { Card } from "@/components/ui/card";
+import { useI18n } from "@/contexts/I18nContext";
 
 export default function TermsPage() {
+  const { t } = useI18n();
   return (
     <>
       <Head>
         <title>Terms of Service - Plan2Fund | Legal Terms & Conditions</title>
         <meta name="description" content="Read Plan2Fund's Terms of Service, including user responsibilities, payment terms, intellectual property rights, and legal obligations." />
-        <meta property="og:title" content="Terms of Service - Plan2Fund" />
+        <meta property="og:title" content={t('terms.ogTitle')} />
         <meta property="og:description" content="Read Plan2Fund's Terms of Service and legal terms for using our business planning platform." />
         <meta property="og:type" content="website" />
         <meta property="og:url" content="https://plan2fund.com/terms" />
@@ -16,38 +18,36 @@ export default function TermsPage() {
       
       <div className="max-w-4xl mx-auto px-4 py-12">
       <div className="prose max-w-none">
-        <h1 className="text-4xl font-bold text-gray-900 mb-8">Terms of Service</h1>
+        <h1 className="text-4xl font-bold text-gray-900 mb-8">{t('terms.title')}</h1>
         <p className="text-lg text-gray-600 mb-8">
-          Last updated: {new Date().toLocaleDateString()}
+          {t('terms.lastUpdated')}: {new Date().toLocaleDateString()}
         </p>
 
         {/* Legal Pages Navigation */}
         <div className="mb-8 p-4 bg-gray-50 rounded-lg">
-          <h3 className="text-lg font-semibold mb-3">Related Legal Documents</h3>
+          <h3 className="text-lg font-semibold mb-3">{t('terms.navigation.title')}</h3>
           <div className="flex flex-wrap gap-4">
             <a href="/legal" className="text-blue-600 hover:text-blue-700 font-medium">
-              Legal Notice
+              {t('terms.navigation.legal')}
             </a>
             <a href="/privacy" className="text-blue-600 hover:text-blue-700 font-medium">
-              Privacy Policy
+              {t('terms.navigation.privacy')}
             </a>
             <a href="/contact" className="text-blue-600 hover:text-blue-700 font-medium">
-              Contact Us
+              {t('terms.navigation.contact')}
             </a>
           </div>
         </div>
 
         <Card className="p-8 mb-8">
-          <h2 className="text-2xl font-semibold mb-4">1. Acceptance of Terms</h2>
+          <h2 className="text-2xl font-semibold mb-4">{t('terms.section1.title')}</h2>
           <p className="mb-4">
-            By accessing and using Plan2Fund ("the Service"), you accept and agree to be bound by 
-            the terms and provision of this agreement. If you do not agree to abide by the above, 
-            please do not use this service.
+            {t('terms.section1.content')}
           </p>
         </Card>
 
         <Card className="p-8 mb-8">
-          <h2 className="text-2xl font-semibold mb-4">2. Description of Service</h2>
+          <h2 className="text-2xl font-semibold mb-4">{t('terms.section2.title')}</h2>
           <p className="mb-4">
             Plan2Fund provides an online platform that helps entrepreneurs and businesses:
           </p>
@@ -200,7 +200,7 @@ export default function TermsPage() {
           <h2 className="text-2xl font-semibold mb-4">12. Changes to Terms</h2>
           <p className="mb-4">
             We reserve the right to modify these terms at any time. We will notify users of any 
-            material changes by posting the new terms on this page and updating the "Last updated" date.
+            material changes by posting the new terms on this page and updating the "{t('terms.lastUpdated')}" date.
           </p>
           <p className="mb-4">
             Your continued use of the Service after any such changes constitutes acceptance of the new terms.

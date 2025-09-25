@@ -1,34 +1,38 @@
 import { motion } from "framer-motion";
+import { useI18n } from "@/contexts/I18nContext";
 
-const fundingTypes = [
+const getFundingTypes = (t: (key: keyof typeof import('../../../i18n/en.json')) => string) => [
   {
     id: "equity",
-    title: "Equity",
+    title: t("fundingTypes.equity"),
     href: "/reco?type=equity"
   },
   {
     id: "national",
-    title: "National grants",
+    title: t("fundingTypes.national"),
     href: "/reco?type=national"
   },
   {
     id: "eu",
-    title: "EU programs",
+    title: t("fundingTypes.eu"),
     href: "/reco?type=eu"
   },
   {
     id: "bank",
-    title: "Bank loans & leasing",
+    title: t("fundingTypes.bank"),
     href: "/reco?type=bank"
   },
   {
     id: "coaching",
-    title: "Coaching",
+    title: t("fundingTypes.coaching"),
     href: "/reco?type=coaching"
   }
 ];
 
 export function FundingTypes() {
+  const { t } = useI18n();
+  const fundingTypes = getFundingTypes(t);
+  
   return (
     <section className="section-padding bg-gray-50">
       <div className="container">
@@ -40,7 +44,7 @@ export function FundingTypes() {
           className="text-center mb-8"
         >
           <h2 className="text-3xl font-bold text-neutral-900 mb-4">
-            Browse by funding type
+            {t("fundingTypes.title")}
           </h2>
         </motion.div>
 

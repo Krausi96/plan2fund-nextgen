@@ -5,7 +5,6 @@ import Link from 'next/link';
 import { motion } from 'framer-motion';
 import { aiChipParser, Chip } from '@/lib/aiChipParser';
 import { scoreProgramsEnhanced } from '@/lib/enhancedRecoEngine';
-import HealthFooter from '@/components/common/HealthFooter';
 import { useI18n } from '@/contexts/I18nContext';
 
 export default function AdvancedSearch() {
@@ -233,7 +232,6 @@ export default function AdvancedSearch() {
         </div>
       </div>
 
-      <HealthFooter />
     </div>
   );
 }

@@ -1,40 +1,54 @@
 import { motion } from "framer-motion";
-
-const personas = [
-  {
-    title: "First-time founder / Solo",
-    description: "See programs that fit an early-stage founder (DE/EN).",
-    features: ["Quick funding matches", "DE/EN business plans", "Austria/EU programs"],
-    color: "text-blue-600",
-    bgColor: "bg-blue-50",
-    emoji: "🚀",
-    badge: "Primary",
-    href: "/reco?persona=solo",
-    isPrimary: true
-  },
-  {
-    title: "SME (light)",
-    description: "Bank-friendly options for expansion & simple grants.",
-    features: ["Bank loan applications", "Simple grant programs", "SME presets"],
-    color: "text-green-600",
-    bgColor: "bg-green-50",
-    emoji: "🏢",
-    href: "/reco?persona=sme",
-    isPrimary: false
-  },
-  {
-    title: "Advisors / Universities / Banks",
-    description: "Share the guided planner with clients; reduce back-and-forth.",
-    features: ["Client onboarding", "Reduced back-and-forth", "Partner tools"],
-    color: "text-purple-600",
-    bgColor: "bg-purple-50",
-    emoji: "🤝",
-    href: "/about#partners",
-    isPrimary: false
-  },
-];
+import { useI18n } from "@/contexts/I18nContext";
 
 export function WhoItsFor() {
+  const { t } = useI18n();
+
+  const personas = [
+    {
+      title: t('whoItsFor.solo.title'),
+      description: t('whoItsFor.solo.description'),
+      features: [
+        t('whoItsFor.solo.features.0'),
+        t('whoItsFor.solo.features.1'),
+        t('whoItsFor.solo.features.2')
+      ],
+      color: "text-blue-600",
+      bgColor: "bg-blue-50",
+      emoji: "🚀",
+      badge: t('whoItsFor.solo.badge'),
+      href: "/reco?persona=solo",
+      isPrimary: true
+    },
+    {
+      title: t('whoItsFor.sme.title'),
+      description: t('whoItsFor.sme.description'),
+      features: [
+        t('whoItsFor.sme.features.0'),
+        t('whoItsFor.sme.features.1'),
+        t('whoItsFor.sme.features.2')
+      ],
+      color: "text-green-600",
+      bgColor: "bg-green-50",
+      emoji: "🏢",
+      href: "/reco?persona=sme",
+      isPrimary: false
+    },
+    {
+      title: t('whoItsFor.advisors.title'),
+      description: t('whoItsFor.advisors.description'),
+      features: [
+        t('whoItsFor.advisors.features.0'),
+        t('whoItsFor.advisors.features.1'),
+        t('whoItsFor.advisors.features.2')
+      ],
+      color: "text-purple-600",
+      bgColor: "bg-purple-50",
+      emoji: "🤝",
+      href: "/about#partners",
+      isPrimary: false
+    },
+  ];
   return (
     <section className="section-padding bg-white">
       <div className="container">
@@ -46,7 +60,7 @@ export function WhoItsFor() {
           className="text-center mb-12"
         >
           <h2 className="text-3xl font-bold text-neutral-900 mb-4">
-            Start by your situation
+            {t('whoItsFor.title')}
           </h2>
         </motion.div>
 
@@ -103,7 +117,7 @@ export function WhoItsFor() {
                   className={`w-full px-4 py-2 ${persona.bgColor} ${persona.color} rounded-lg font-semibold text-center hover:opacity-80 transition-opacity group-hover:scale-105 transform transition-transform`}
                   title={`Learn more about ${persona.title.toLowerCase()}`}
                 >
-                  {persona.title.includes("Advisors") ? "For partners" : "See matches"} →
+                  {persona.title.includes("Advisors") ? t("whoItsFor.forPartners") : t("whoItsFor.seeMatches")} →
                 </a>
               </div>
             </motion.div>

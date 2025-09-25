@@ -1,8 +1,10 @@
 ﻿import { Button } from "@/components/ui/button";
 import Link from "next/link";
 import { useState } from "react";
+import { useI18n } from "@/contexts/I18nContext";
 
 export default function SuccessHubPage() {
+  const { t } = useI18n();
   const [revisionRequests, setRevisionRequests] = useState<Array<{
     id: number;
     message: string;
@@ -48,7 +50,7 @@ export default function SuccessHubPage() {
               <div>
                 <label className="block text-sm font-medium mb-1">Sections to revise:</label>
                 <div className="space-y-1">
-                  {["Executive Summary", "Problem Statement", "Solution", "Market Analysis", "Financial Projections"].map((section) => (
+                  {t("thankYou.sections").split(", ").map((section) => (
                     <label key={section} className="flex items-center gap-2">
                       <input
                         type="checkbox"
@@ -100,7 +102,7 @@ export default function SuccessHubPage() {
                   <div className="text-sm text-gray-600 mb-1">{request.timestamp}</div>
                   <div className="text-sm mb-1">{request.message}</div>
                   <div className="text-xs text-gray-500">
-                    Sections: {request.sections.join(", ") || "All sections"}
+                    {t("thankYou.sectionsLabel")}: {request.sections.join(", ") || t("thankYou.allSections")}
                   </div>
                 </div>
               ))}

@@ -1,48 +1,63 @@
 import { motion } from "framer-motion";
-
-const planTypes = [
-  {
-    id: "strategy",
-    title: "🧩 Strategy Document (Business Model & GTM)",
-    subtitle: "4–8 pages",
-    description: "Turn your idea into a clear **business model & go-to-market** you can build on.",
-    features: [
-      "Value prop, ideal customer, pricing & positioning",
-      "First channels and launch plan (GTM)",
-      "Unit economics (simple) + milestones / next steps"
-    ],
-    badges: ["DE/EN", "PDF/DOCX", "Edit anytime"],
-    helper: "Start from scratch or paste notes per section."
-  },
-  {
-    id: "review",
-    title: "🔄 Update & Review (bring your text)",
-    subtitle: "bring your text",
-    description: "Paste what you have — we **structure, fix gaps & polish** it to the expected outline.",
-    features: [
-      "Gap notes by section (what's missing / needs rewrite)",
-      "Financial tables added/tidied (revenue, costs, cash-flow, use of funds)",
-      "Submission alignment for aws/FFG/Wirtschaftsagentur/bank/visa"
-    ],
-    badges: ["DE/EN", "PDF/DOCX", "Edit anytime"],
-    helper: "No upload needed — paste directly into sections."
-  },
-  {
-    id: "custom",
-    title: "📘 Submission-Ready Business Plan",
-    subtitle: "15–35 pages",
-    description: "Application-ready plan in the order reviewers expect — for **grants, visas, or bank loans**.",
-    features: [
-      "Standard sections (Executive Summary → Financials)",
-      "Tables: revenue, costs, cash-flow, use of funds",
-      "Submission checklist (aws/FFG/WA/bank/visa)"
-    ],
-    badges: ["DE/EN", "PDF/DOCX", "Edit anytime"],
-    helper: "Start clean or paste parts you've already written."
-  }
-];
+import { useI18n } from "@/contexts/I18nContext";
 
 export function PlanTypes() {
+  const { t } = useI18n();
+
+  const planTypes = [
+    {
+      id: "strategy",
+      title: t('planTypes.strategy.title'),
+      subtitle: t('planTypes.strategy.subtitle'),
+      description: t('planTypes.strategy.description'),
+      features: [
+        t('planTypes.strategy.features.0'),
+        t('planTypes.strategy.features.1'),
+        t('planTypes.strategy.features.2')
+      ],
+      badges: [
+        t('planTypes.strategy.badges.0'),
+        t('planTypes.strategy.badges.1'),
+        t('planTypes.strategy.badges.2')
+      ],
+      helper: t('planTypes.strategy.helper')
+    },
+    {
+      id: "review",
+      title: t('planTypes.review.title'),
+      subtitle: t('planTypes.review.subtitle'),
+      description: t('planTypes.review.description'),
+      features: [
+        t('planTypes.review.features.0'),
+        t('planTypes.review.features.1'),
+        t('planTypes.review.features.2')
+      ],
+      badges: [
+        t('planTypes.review.badges.0'),
+        t('planTypes.review.badges.1'),
+        t('planTypes.review.badges.2')
+      ],
+      helper: t('planTypes.review.helper')
+    },
+    {
+      id: "custom",
+      title: t('planTypes.custom.title'),
+      subtitle: t('planTypes.custom.subtitle'),
+      description: t('planTypes.custom.description'),
+      features: [
+        t('planTypes.custom.features.0'),
+        t('planTypes.custom.features.1'),
+        t('planTypes.custom.features.2')
+      ],
+      badges: [
+        t('planTypes.custom.badges.0'),
+        t('planTypes.custom.badges.1'),
+        t('planTypes.custom.badges.2')
+      ],
+      helper: t('planTypes.custom.helper')
+    }
+  ];
+
   return (
     <section className="section-padding bg-gray-50">
       <div className="container">

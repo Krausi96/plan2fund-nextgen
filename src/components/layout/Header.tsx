@@ -114,7 +114,7 @@ export default function Header() {
               className="text-gray-700 hover:text-blue-600 transition-colors font-medium py-2"
               onClick={() => setOpen(false)}
             >
-              FAQ
+              {t('nav.faq')}
             </Link>
             {userProfile ? (
               <Link 
@@ -123,7 +123,7 @@ export default function Header() {
                 onClick={() => setOpen(false)}
               >
                 <User className="w-4 h-4" />
-                My Account
+                {t('nav.myAccount')}
               </Link>
             ) : null}
             <Link 

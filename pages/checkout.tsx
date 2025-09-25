@@ -1,8 +1,10 @@
 ﻿import Link from "next/link";
 import featureFlags from "@/lib/featureFlags";
 import CartSummary from "@/components/common/CartSummary";
+import { useI18n } from "@/contexts/I18nContext";
 
 export default function Checkout() {
+  const { t } = useI18n();
   const CHECKOUT_ENABLED = featureFlags.isEnabled('CHECKOUT_ENABLED')
   if (!CHECKOUT_ENABLED) {
     return (
@@ -38,12 +40,12 @@ export default function Checkout() {
         <p className="font-semibold">Payment Details (Stub)</p>
         <input
           type="text"
-          placeholder="Card Number"
+          placeholder={t("checkout.cardNumber")}
           className="w-full p-2 border rounded"
         />
         <input
           type="text"
-          placeholder="Expiry Date"
+          placeholder={t("checkout.expiryDate")}
           className="w-full p-2 border rounded"
         />
         <input

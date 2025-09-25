@@ -5,56 +5,69 @@ import CTAStrip from "@/components/common/CTAStrip";
 import SEOHead from "@/components/common/SEOHead";
 import { useI18n } from "@/contexts/I18nContext";
 
-const plans = [
+const getPlans = (t: (key: any) => string) => [
   { 
     id: "strategy",
-    title: "🧩 Strategy Document (Business Model & GTM)", 
+    title: t('planTypes.strategy.title'), 
     price: "From €99", 
-    desc: "Turn your idea into a clear **business model & go-to-market** you can build on.", 
+    desc: t('planTypes.strategy.description'), 
     features: [
-      "Value prop, ideal customer, pricing & positioning",
-      "First channels and launch plan (GTM)",
-      "Unit economics (simple) + milestones / next steps"
+      t('planTypes.strategy.features.0'),
+      t('planTypes.strategy.features.1'),
+      t('planTypes.strategy.features.2')
     ],
     mode: "strategy",
-    badges: ["DE/EN", "PDF/DOCX", "Edit anytime"],
-    helper: "Start from scratch or paste notes per section.",
-    cta: "Start Strategy"
+    badges: [
+      t('planTypes.strategy.badges.0'),
+      t('planTypes.strategy.badges.1'),
+      t('planTypes.strategy.badges.2')
+    ],
+    helper: t('planTypes.strategy.helper'),
+    cta: t('pricing.cta.startStrategy')
   },
   { 
     id: "review",
-    title: "🔄 Update & Review (bring your text)", 
+    title: t('planTypes.review.title'), 
     price: "From €149", 
-    desc: "Paste what you have — we **structure, fix gaps & polish** it to the expected outline.", 
+    desc: t('planTypes.review.description'), 
     features: [
-      "Gap notes by section (what's missing / needs rewrite)",
-      "Financial tables added/tidied (revenue, costs, cash-flow, use of funds)",
-      "Submission alignment for aws/FFG/Wirtschaftsagentur/bank/visa"
+      t('planTypes.review.features.0'),
+      t('planTypes.review.features.1'),
+      t('planTypes.review.features.2')
     ],
     mode: "review",
-    badges: ["DE/EN", "PDF/DOCX", "Edit anytime"],
-    helper: "No upload needed — paste directly into sections.",
-    cta: "Start Update & Review"
+    badges: [
+      t('planTypes.review.badges.0'),
+      t('planTypes.review.badges.1'),
+      t('planTypes.review.badges.2')
+    ],
+    helper: t('planTypes.review.helper'),
+    cta: t('pricing.cta.startUpdateReview')
   },
   { 
     id: "custom",
-    title: "📘 Submission-Ready Business Plan", 
+    title: t('planTypes.custom.title'), 
     price: "From €299", 
-    desc: "Application-ready plan in the order reviewers expect — for **grants, visas, or bank loans**.", 
+    desc: t('planTypes.custom.description'), 
     features: [
-      "Standard sections (Executive Summary → Financials)",
-      "Tables: revenue, costs, cash-flow, use of funds",
-      "Submission checklist (aws/FFG/WA/bank/visa)"
+      t('planTypes.custom.features.0'),
+      t('planTypes.custom.features.1'),
+      t('planTypes.custom.features.2')
     ],
     mode: "custom",
-    badges: ["DE/EN", "PDF/DOCX", "Edit anytime"],
-    helper: "Start clean or paste parts you've already written.",
-    cta: "Start Business Plan"
+    badges: [
+      t('planTypes.custom.badges.0'),
+      t('planTypes.custom.badges.1'),
+      t('planTypes.custom.badges.2')
+    ],
+    helper: t('planTypes.custom.helper'),
+    cta: t('pricing.cta.startBusinessPlan')
   },
 ];
 
 export default function Pricing() {
   const { t } = useI18n();
+  const plans = getPlans(t);
 
   return (
     <>
@@ -150,7 +163,7 @@ export default function Pricing() {
                 <div>
                     <h4 className="text-lg font-semibold text-gray-900 mb-3">Outline</h4>
                     <div className="flex flex-wrap gap-2">
-                      {["Value Prop", "Customer", "Pricing/Positioning", "Channels", "Launch Plan", "Unit Economics", "Milestones"].map((item, index) => (
+                      {t("pricing.sections.strategy").split(", ").map((item, index) => (
                         <span key={index} className="text-sm bg-gray-100 text-gray-700 px-3 py-1 rounded-full">
                           {item}
                         </span>
@@ -209,7 +222,7 @@ export default function Pricing() {
                 <div>
                     <h4 className="text-lg font-semibold text-gray-900 mb-3">Outline</h4>
                     <div className="flex flex-wrap gap-2">
-                      {["Exec Summary", "Market/Competition", "Product/Operations", "Team", "GTM", "Financials", "Risks"].map((item, index) => (
+                      {t("pricing.sections.review").split(", ").map((item, index) => (
                         <span key={index} className="text-sm bg-gray-100 text-gray-700 px-3 py-1 rounded-full">
                           {item}
                         </span>
@@ -269,7 +282,7 @@ export default function Pricing() {
                 <div>
                     <h4 className="text-lg font-semibold text-gray-900 mb-3">Outline</h4>
                     <div className="flex flex-wrap gap-2">
-                      {["Exec Summary", "Problem/Solution", "Market/Competition", "Product/Operations", "Team", "GTM", "Financials", "Risks"].map((item, index) => (
+                      {t("pricing.sections.custom").split(", ").map((item, index) => (
                         <span key={index} className="text-sm bg-gray-100 text-gray-700 px-3 py-1 rounded-full">
                           {item}
                         </span>

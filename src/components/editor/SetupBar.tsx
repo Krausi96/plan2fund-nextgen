@@ -9,6 +9,7 @@ import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
+import { useI18n } from '@/contexts/I18nContext';
 
 interface SetupBarProps {
   userAnswers: Record<string, any>;
@@ -26,72 +27,72 @@ interface BusinessQuestion {
   businessFriendly?: boolean;
 }
 
-const BUSINESS_QUESTIONS: BusinessQuestion[] = [
+const getBusinessQuestions = (t: (key: any) => string): BusinessQuestion[] => [
   {
     id: 'business_name',
-    label: 'Business Name',
+    label: t('setup.businessName'),
     type: 'text',
-    placeholder: 'Enter your business name',
+    placeholder: t('setup.businessNamePlaceholder'),
     required: true,
     businessFriendly: true
   },
   {
     id: 'business_description',
-    label: 'What does your business do?',
+    label: t('setup.businessDescription'),
     type: 'textarea',
-    placeholder: 'Describe your business in 2-3 sentences',
+    placeholder: t('setup.businessDescriptionPlaceholder'),
     required: true,
     businessFriendly: true
   },
   {
     id: 'target_market',
-    label: 'Who are your customers?',
+    label: t('setup.targetMarket'),
     type: 'textarea',
-    placeholder: 'Describe your target market and customer segments',
+    placeholder: t('setup.targetMarketPlaceholder'),
     required: true,
     businessFriendly: true
   },
   {
     id: 'revenue_model',
-    label: 'How do you make money?',
+    label: t('setup.revenueModel'),
     type: 'textarea',
-    placeholder: 'Explain your revenue model and pricing strategy',
+    placeholder: t('setup.revenueModelPlaceholder'),
     required: true,
     businessFriendly: true
   },
   {
     id: 'team_size',
-    label: 'Team Size',
+    label: t('setup.teamSize'),
     type: 'select',
     options: [
-      { value: '1', label: 'Just me (solo founder)' },
-      { value: '2-5', label: '2-5 people' },
-      { value: '6-10', label: '6-10 people' },
-      { value: '11-25', label: '11-25 people' },
-      { value: '25+', label: '25+ people' }
+      { value: '1', label: t('setup.teamSize.solo') },
+      { value: '2-5', label: t('setup.teamSize.small') },
+      { value: '6-10', label: t('setup.teamSize.medium') },
+      { value: '11-25', label: t('setup.teamSize.large') },
+      { value: '25+', label: t('setup.teamSize.enterprise') }
     ],
     required: true,
     businessFriendly: true
   },
   {
     id: 'funding_amount',
-    label: 'Funding Amount Needed',
+    label: t('setup.fundingAmount'),
     type: 'select',
     options: [
-      { value: '0-10k', label: '€0 - €10,000' },
-      { value: '10k-50k', label: '€10,000 - €50,000' },
-      { value: '50k-100k', label: '€50,000 - €100,000' },
-      { value: '100k-500k', label: '€100,000 - €500,000' },
-      { value: '500k+', label: '€500,000+' }
+      { value: '0-10k', label: t('setup.fundingAmount.low') },
+      { value: '10k-50k', label: t('setup.fundingAmount.medium') },
+      { value: '50k-100k', label: t('setup.fundingAmount.high') },
+      { value: '100k-500k', label: t('setup.fundingAmount.veryHigh') },
+      { value: '500k+', label: t('setup.fundingAmount.enterprise') }
     ],
     required: true,
     businessFriendly: true
   },
   {
     id: 'use_of_funds',
-    label: 'How will you use the funding?',
+    label: t('setup.useOfFunds'),
     type: 'textarea',
-    placeholder: 'Describe how you plan to use the funding (e.g., product development, marketing, hiring)',
+    placeholder: t('setup.useOfFundsPlaceholder'),
     required: true,
     businessFriendly: true
   },
@@ -112,9 +113,12 @@ const BUSINESS_QUESTIONS: BusinessQuestion[] = [
 ];
 
 export default function SetupBar({ userAnswers, onAnswersUpdate, onSetupComplete }: SetupBarProps) {
+  const { t } = useI18n();
   const [answers, setAnswers] = useState<Record<string, any>>(userAnswers || {});
   const [currentStep, setCurrentStep] = useState(0);
   const [isComplete, setIsComplete] = useState(false);
+  
+  const businessQuestions = getBusinessQuestions(t);
 
   useEffect(() => {
     setAnswers(userAnswers || {});
@@ -127,7 +131,7 @@ export default function SetupBar({ userAnswers, onAnswersUpdate, onSetupComplete
   };
 
   const handleNext = () => {
-    if (currentStep < BUSINESS_QUESTIONS.length - 1) {
+    if (currentStep < businessQuestions.length - 1) {
       setCurrentStep(currentStep + 1);
     } else {
       setIsComplete(true);
@@ -142,7 +146,7 @@ export default function SetupBar({ userAnswers, onAnswersUpdate, onSetupComplete
   };
 
   const handleSkip = () => {
-    if (currentStep < BUSINESS_QUESTIONS.length - 1) {
+    if (currentStep < businessQuestions.length - 1) {
       setCurrentStep(currentStep + 1);
     } else {
       setIsComplete(true);
@@ -150,7 +154,7 @@ export default function SetupBar({ userAnswers, onAnswersUpdate, onSetupComplete
     }
   };
 
-  const currentQuestion = BUSINESS_QUESTIONS[currentStep];
+  const currentQuestion = businessQuestions[currentStep];
   const isCurrentQuestionAnswered = answers[currentQuestion.id] && answers[currentQuestion.id].trim() !== '';
 
   const renderQuestionInput = (question: BusinessQuestion) => {
@@ -228,13 +232,13 @@ export default function SetupBar({ userAnswers, onAnswersUpdate, onSetupComplete
         <div className="flex items-center justify-between mb-2">
           <h3 className="text-lg font-semibold text-gray-900">Business Setup</h3>
           <span className="text-sm text-gray-500">
-            {currentStep + 1} of {BUSINESS_QUESTIONS.length}
+            {currentStep + 1} of {businessQuestions.length}
           </span>
         </div>
         <div className="w-full bg-gray-200 rounded-full h-2">
           <div
             className="bg-blue-600 h-2 rounded-full transition-all duration-300"
-            style={{ width: `${((currentStep + 1) / BUSINESS_QUESTIONS.length) * 100}%` }}
+            style={{ width: `${((currentStep + 1) / businessQuestions.length) * 100}%` }}
           />
         </div>
       </div>
@@ -270,7 +274,7 @@ export default function SetupBar({ userAnswers, onAnswersUpdate, onSetupComplete
             disabled={currentQuestion.required && !isCurrentQuestionAnswered}
             className="bg-blue-600 hover:bg-blue-700"
           >
-            {currentStep === BUSINESS_QUESTIONS.length - 1 ? 'Complete Setup' : 'Next'}
+            {currentStep === businessQuestions.length - 1 ? 'Complete Setup' : 'Next'}
           </Button>
         </div>
       </div>

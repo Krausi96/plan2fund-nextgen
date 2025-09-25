@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useState, useEffect } from 'react';
+import React, { createContext, useContext, useState } from 'react';
 import enTranslations from '../../i18n/en.json';
 import deTranslations from '../../i18n/de.json';
 
@@ -19,21 +19,25 @@ const translations = {
 };
 
 export function I18nProvider({ children }: { children: React.ReactNode }) {
-  const [locale, setLocaleState] = useState('en');
-
-  // Initialize locale from browser language or localStorage
-  useEffect(() => {
+  // Initialize locale from localStorage or browser language
+  const getInitialLocale = () => {
+    if (typeof window === 'undefined') return 'en';
+    
     const savedLocale = localStorage.getItem('plan2fund-locale');
     if (savedLocale && translations[savedLocale as keyof typeof translations]) {
-      setLocaleState(savedLocale);
-    } else {
-      // Detect browser language
-      const browserLang = navigator.language.split('-')[0];
-      if (translations[browserLang as keyof typeof translations]) {
-        setLocaleState(browserLang);
-      }
+      return savedLocale;
     }
-  }, []);
+    
+    // Detect browser language
+    const browserLang = navigator.language.split('-')[0];
+    if (translations[browserLang as keyof typeof translations]) {
+      return browserLang;
+    }
+    
+    return 'en';
+  };
+
+  const [locale, setLocaleState] = useState(getInitialLocale);
 
   const setLocale = (newLocale: string) => {
     setLocaleState(newLocale);

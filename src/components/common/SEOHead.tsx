@@ -63,10 +63,15 @@ export default function SEOHead({
       {/* Canonical */}
       <link rel="canonical" href={currentUrl} />
       
-      {/* Hreflang */}
+      {/* Hreflang - Enhanced for better SEO */}
       <link rel="alternate" hrefLang="en" href={`${baseUrl}${currentPath}`} />
       <link rel="alternate" hrefLang="de" href={`${baseUrl}/de${currentPath}`} />
       <link rel="alternate" hrefLang="x-default" href={`${baseUrl}${currentPath}`} />
+      
+      {/* Additional SEO meta tags */}
+      <meta name="language" content={locale === 'en' ? 'English' : 'German'} />
+      <meta name="geo.region" content="AT" />
+      <meta name="geo.country" content="Austria" />
       
       {/* Robots */}
       <meta name="robots" content={noindex ? 'noindex, nofollow' : 'index, follow'} />

@@ -4,6 +4,7 @@ import HeroLite from "@/components/common/HeroLite";
 import CTAStrip from "@/components/common/CTAStrip";
 import SEOHead from "@/components/common/SEOHead";
 import analytics from "@/lib/analytics";
+import { useI18n } from "@/contexts/I18nContext";
 import { 
   Building, 
   Shield, 
@@ -49,62 +50,62 @@ interface UserType {
   };
 }
 
-const userTypes: UserType[] = [
+const getUserTypes = (t: (key: keyof typeof import('../i18n/en.json')) => string): UserType[] => [
   {
     id: "banks",
-    title: "Banks & Financial Institutions",
-    subtitle: "Access institutional funding programs and partnership opportunities for your financial institution.",
+    title: t("for.banks.title"),
+    subtitle: t("for.banks.subtitle"),
     icon: Building,
     color: "purple",
     features: [
       {
         icon: Building,
-        title: "Institutional Funding",
-        description: "Access large-scale funding programs for institutional and corporate clients."
+        title: t("for.banks.features.institutional"),
+        description: t("for.banks.features.institutionalDesc")
       },
       {
         icon: Shield,
-        title: "Risk Management",
-        description: "Find funding programs with built-in risk management and compliance features."
+        title: t("for.banks.features.riskManagement"),
+        description: t("for.banks.features.riskManagementDesc")
       },
       {
         icon: TrendingUp,
-        title: "Growth Capital",
-        description: "Secure substantial funding for major expansion and development projects."
+        title: t("for.banks.features.growthCapital"),
+        description: t("for.banks.features.growthCapitalDesc")
       },
       {
         icon: Handshake,
-        title: "Partnership Programs",
-        description: "Access collaborative funding opportunities and partnership programs."
+        title: t("for.banks.features.partnerships"),
+        description: t("for.banks.features.partnershipsDesc")
       }
     ],
     programs: [
       {
-        name: "EU Investment Programs",
-        description: "Large-scale investment programs for financial institutions",
+        name: t("for.banks.programs.euInvestment"),
+        description: t("for.banks.programs.euInvestmentDesc"),
         color: "border-purple-500"
       },
       {
-        name: "Institutional Loans",
-        description: "Specialized loan programs for banks and financial institutions",
+        name: t("for.banks.programs.institutionalLoans"),
+        description: t("for.banks.programs.institutionalLoansDesc"),
         color: "border-blue-500"
       }
     ],
     benefits: [
       {
-        title: "Compliance Focus",
-        description: "Programs designed with financial institution requirements in mind"
+        title: t("for.banks.benefits.compliance"),
+        description: t("for.banks.benefits.complianceDesc")
       },
       {
-        title: "Scale Advantage",
-        description: "Access to larger funding amounts and institutional programs"
+        title: t("for.banks.benefits.scale"),
+        description: t("for.banks.benefits.scaleDesc")
       }
     ],
     cta: {
-      title: "Ready to explore institutional funding?",
-      subtitle: "Find the perfect funding programs for your financial institution.",
-      primaryLabel: "Start Planning",
-      secondaryLabel: "Get in Touch"
+      title: t("for.banks.cta.title"),
+      subtitle: t("for.banks.cta.subtitle"),
+      primaryLabel: t("for.banks.cta.primary"),
+      secondaryLabel: t("for.banks.cta.secondary")
     }
   },
   {
@@ -116,29 +117,29 @@ const userTypes: UserType[] = [
     features: [
       {
         icon: Building2,
-        title: "Scale Your Business",
+        title: t("for.sme.features.scale"),
         description: "Access growth funding and expansion opportunities tailored for established SMEs."
       },
       {
         icon: TrendingUp,
-        title: "Market Expansion",
+        title: t("for.sme.features.marketExpansion"),
         description: "Find funding programs to enter new markets and expand your operations."
       },
       {
         icon: Users,
-        title: "Team Growth",
+        title: t("for.sme.features.teamGrowth"),
         description: "Secure funding for hiring, training, and developing your workforce."
       },
       {
         icon: Target,
-        title: "Technology Upgrades",
+        title: t("for.sme.features.technology"),
         description: "Modernize your operations with technology-focused funding programs."
       }
     ],
     programs: [
       {
         name: "KMU-Digitalisierungsbonus",
-        description: "Up to €12,000 for digitalization projects",
+        description: t("for.sme.programs.digitalizationDesc"),
         color: "border-blue-500"
       },
       {
@@ -148,63 +149,63 @@ const userTypes: UserType[] = [
       },
       {
         name: "EU Funding Programs",
-        description: "Horizon Europe, COSME and other EU programs",
+        description: t("for.sme.programs.euFundingDesc"),
         color: "border-purple-500"
       }
     ],
     benefits: [
       {
-        title: "Local Market Knowledge",
-        description: "Optimized for Austrian business practices"
+        title: t("for.sme.benefits.localMarket"),
+        description: t("for.sme.benefits.localMarketDesc")
       },
       {
-        title: "Quick Implementation",
-        description: "Create strategic plans in under 30 minutes"
+        title: t("for.sme.benefits.quickImplementation"),
+        description: t("for.sme.benefits.quickImplementationDesc")
       },
       {
-        title: "Compliance Ready",
-        description: "Automatic adherence to Austrian standards"
+        title: t("for.sme.benefits.complianceReady"),
+        description: t("for.sme.benefits.complianceReadyDesc")
       }
     ],
     cta: {
       title: "Ready to scale your business?",
       subtitle: "Find the perfect funding programs for your SME growth plans.",
-      primaryLabel: "Start Planning",
-      secondaryLabel: "View Pricing"
+      primaryLabel: t("for.sme.cta.primary"),
+      secondaryLabel: t("for.sme.cta.secondary")
     }
   },
   {
     id: "startups",
-    title: "Startups & Entrepreneurs",
-    subtitle: "Turn your innovative ideas into reality with comprehensive business planning and early-stage funding.",
+    title: t("for.startups.title"),
+    subtitle: t("for.startups.subtitle"),
     icon: Rocket,
     color: "green",
     features: [
       {
         icon: Rocket,
-        title: "Pre-seed Funding",
-        description: "Access early-stage funding programs to turn your innovative ideas into reality."
+        title: t("for.startups.features.preSeed"),
+        description: t("for.startups.features.preSeedDesc")
       },
       {
         icon: Lightbulb,
-        title: "MVP Development",
-        description: "Secure funding for building and testing your minimum viable product."
+        title: t("for.startups.features.mvp"),
+        description: t("for.startups.features.mvpDesc")
       },
       {
         icon: Target,
-        title: "Market Validation",
-        description: "Find programs that help you validate your market and business model."
+        title: t("for.startups.features.marketValidation"),
+        description: t("for.startups.features.marketValidationDesc")
       },
       {
         icon: Zap,
-        title: "Rapid Growth",
-        description: "Accelerate your startup's growth with targeted funding opportunities."
+        title: t("for.startups.features.rapidGrowth"),
+        description: t("for.startups.features.rapidGrowthDesc")
       }
     ],
     programs: [
       {
         name: "AWS PreSeed",
-        description: "Up to €50,000 for innovative early-stage ideas",
+        description: t("for.startups.programs.awsDesc"),
         color: "border-blue-500"
       },
       {
@@ -214,98 +215,100 @@ const userTypes: UserType[] = [
       },
       {
         name: "EU Startup Calls",
-        description: "Horizon Europe programs for innovative companies",
+        description: t("for.startups.programs.euStartupDesc"),
         color: "border-purple-500"
       }
     ],
     benefits: [
       {
-        title: "Local Expertise",
-        description: "Developed specifically for Austrian funding landscape"
+        title: t("for.startups.benefits.localExpertise"),
+        description: t("for.startups.benefits.localExpertiseDesc")
       },
       {
-        title: "Quick Implementation",
-        description: "Create business plans in under 30 minutes"
+        title: t("for.startups.benefits.quickImplementation"),
+        description: t("for.startups.benefits.quickImplementationDesc")
       },
       {
-        title: "Program Awareness",
-        description: "Automatic adaptation to funding criteria"
+        title: t("for.startups.benefits.programAwareness"),
+        description: t("for.startups.benefits.programAwarenessDesc")
       }
     ],
     cta: {
       title: "Ready to launch your startup?",
       subtitle: "Find the perfect funding programs for your innovative business idea.",
-      primaryLabel: "Start Planning",
-      secondaryLabel: "View Features"
+      primaryLabel: t("for.startups.cta.primary"),
+      secondaryLabel: t("for.startups.cta.secondary")
     }
   },
   {
     id: "universities",
-    title: "Universities & Research Institutions",
-    subtitle: "Advance your research and academic projects with specialized funding programs.",
+    title: t("for.universities.title"),
+    subtitle: t("for.universities.subtitle"),
     icon: GraduationCap,
     color: "orange",
     features: [
       {
         icon: GraduationCap,
-        title: "Research Grants",
-        description: "Access academic funding programs for research and development projects."
+        title: t("for.universities.features.researchGrants"),
+        description: t("for.universities.features.researchGrantsDesc")
       },
       {
         icon: Microscope,
-        title: "Innovation Projects",
-        description: "Secure funding for cutting-edge research and innovation initiatives."
+        title: t("for.universities.features.innovationProjects"),
+        description: t("for.universities.features.innovationProjectsDesc")
       },
       {
         icon: BookOpen,
-        title: "Academic Funding",
-        description: "Find funding opportunities for educational and academic programs."
+        title: t("for.universities.features.academicFunding"),
+        description: t("for.universities.features.academicFundingDesc")
       },
       {
         icon: Users,
-        title: "Student Support",
-        description: "Access funding programs that support student entrepreneurship and research."
+        title: t("for.universities.features.studentSupport"),
+        description: t("for.universities.features.studentSupportDesc")
       }
     ],
     programs: [
       {
-        name: "Horizon Europe",
-        description: "EU research and innovation funding programs",
+        name: t("for.universities.programs.horizon"),
+        description: t("for.universities.programs.horizonDesc"),
         color: "border-blue-500"
       },
       {
         name: "FFG Research Programs",
-        description: "Austrian research funding for academic institutions",
+        description: t("for.universities.programs.ffgDesc"),
         color: "border-green-500"
       },
       {
-        name: "Erasmus+ Programs",
-        description: "Educational and research mobility programs",
+        name: t("for.universities.programs.erasmus"),
+        description: t("for.universities.programs.erasmusDesc"),
         color: "border-purple-500"
       }
     ],
     benefits: [
       {
-        title: "Academic Focus",
-        description: "Programs designed specifically for research institutions"
+        title: t("for.universities.benefits.academicFocus"),
+        description: t("for.universities.benefits.academicFocusDesc")
       },
       {
-        title: "International Reach",
-        description: "Access to both Austrian and EU funding programs"
+        title: t("for.universities.benefits.researchNetwork"),
+        description: t("for.universities.benefits.researchNetworkDesc")
       }
     ],
     cta: {
       title: "Ready to advance your research?",
       subtitle: "Find the perfect funding programs for your academic and research projects.",
-      primaryLabel: "Start Planning",
-      secondaryLabel: "View Features"
+      primaryLabel: t("for.universities.cta.primary"),
+      secondaryLabel: t("for.universities.cta.secondary")
     }
   }
 ];
 
 export default function ForPage() {
+  const { t } = useI18n();
   const router = useRouter();
   const [activeTab, setActiveTab] = useState("sme");
+  const userTypes = getUserTypes(t);
 
   // Handle URL parameters for tab selection
   useEffect(() => {
@@ -337,15 +340,15 @@ export default function ForPage() {
     <>
       <SEOHead 
         pageKey="for"
-        title="Funding Programs for Every Business Type - Plan2Fund"
-        description="Discover tailored funding programs for startups, SMEs, banks, and universities. Find the perfect funding solution for your business type."
+        title={t("for.pageTitle")}
+        description={t("for.pageDescription")}
         schema="organization"
       />
       
       <main>
         <HeroLite
-          title="Funding Programs for Every Business Type"
-          subtitle="Whether you're a startup, established SME, financial institution, or research organization, we have the right funding programs for you."
+          title={t("for.heroTitle")}
+          subtitle={t("for.heroSubtitle")}
           className="bg-gradient-to-br from-blue-50 to-indigo-100"
         />
         

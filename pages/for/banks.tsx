@@ -1,8 +1,10 @@
 import { useEffect } from "react";
 import { useRouter } from "next/router";
 import SEOHead from "@/components/common/SEOHead";
+import { useI18n } from "@/contexts/I18nContext";
 
 export default function ForBanks() {
+  const { t } = useI18n();
   const router = useRouter();
 
   useEffect(() => {
@@ -14,7 +16,7 @@ export default function ForBanks() {
     <>
       <SEOHead 
         pageKey="banks"
-        title="Banks & Financial Institutions - Plan2Fund"
+        title={t('for.banks.ogTitle')}
         description="Access institutional funding programs and partnership opportunities for your financial institution."
       />
       <div className="min-h-screen flex items-center justify-center">

@@ -1,5 +1,6 @@
 import { motion, useReducedMotion } from "framer-motion";
 import { memo, useState, useEffect } from "react";
+import { useI18n } from "@/contexts/I18nContext";
 
 // Blueprint Grid Background Component
 const BlueprintGrid = memo(function BlueprintGrid() {
@@ -61,41 +62,42 @@ const BlueprintGrid = memo(function BlueprintGrid() {
 const UserFlowAnimation = memo(function UserFlowAnimation({ onStepClick }: { onStepClick?: (stepId: number) => void }) {
   const shouldReduceMotion = useReducedMotion();
   const [currentStep, setCurrentStep] = useState(0);
+  const { t } = useI18n();
 
   const flowSteps = [
     { 
       id: 1, 
-      title: "Idea", 
+      title: t('hero.steps.idea.title'), 
       icon: "💡", 
-      description: "Define Business Concept",
+      description: t('hero.steps.idea.description'),
       color: "from-blue-500 to-cyan-500"
     },
     { 
       id: 2, 
-      title: "Business Model", 
+      title: t('hero.steps.business.title'), 
       icon: "🏢", 
-      description: "Prepare Market Entry",
+      description: t('hero.steps.business.description'),
       color: "from-green-500 to-emerald-500"
     },
     { 
       id: 3, 
-      title: "Funding", 
+      title: t('hero.steps.funding.title'), 
       icon: "🔍", 
-      description: "Find Funding Options",
+      description: t('hero.steps.funding.description'),
       color: "from-purple-500 to-pink-500"
     },
     { 
       id: 4, 
-      title: "Business Plan", 
+      title: t('hero.steps.plan.title'), 
       icon: "📝", 
-      description: "Build your Business Plan",
+      description: t('hero.steps.plan.description'),
       color: "from-orange-500 to-red-500"
     },
     { 
       id: 5, 
-      title: "Submit & Track", 
+      title: t('hero.steps.submit.title'), 
       icon: "🚀", 
-      description: "Apply and get funding",
+      description: t('hero.steps.submit.description'),
       color: "from-yellow-500 to-orange-500"
     }
   ];
@@ -183,12 +185,13 @@ export function Hero({
   primaryButtonHref = "/reco",
   onStepClick
 }: HeroProps = {}) {
+  const { t } = useI18n();
+  
   // Locked copy as specified
-  const heroTitle = "Freedom starts with a Plan";
-  const heroTitleSecond = "Let's build yours.";
-  const heroSubtitle = "Find funding options for your business and build an application-ready Business Plan tailored to Grants, Investors or Bank Loans (DE/EN). Start free.";
-  const heroPrimaryButton = "Get funding matches";
-  const heroSecondaryButton = "Start your plan";
+  const heroTitle = t('hero.title.main');
+  const heroTitleSecond = t('hero.titleSecond');
+  const heroPrimaryButton = t('hero.button.primary');
+  const heroSecondaryButton = t('hero.button.secondary');
 
   return (
     <section 
@@ -200,9 +203,9 @@ export function Hero({
 
       {/* Main Content */}
       <div className="relative z-20 w-full max-w-6xl px-6 sm:px-8 lg:px-12 py-6 md:py-8 mx-auto">
-        <div className="flex flex-col items-center justify-center space-y-8 min-h-[50vh]">
+        <div className="flex flex-col items-center justify-center space-y-8 min-h-[60vh]">
           
-          {/* Text Content - Full Width */}
+          {/* H1 Title - Moved up and more centered */}
           <div className="text-center max-w-4xl">
             <motion.h1 
               initial={{ opacity: 0, y: 30 }}
@@ -214,20 +217,23 @@ export function Hero({
               <div>{heroTitle}</div>
               <div className="text-white">{heroTitleSecond}</div>
             </motion.h1>
-            
-            <motion.p 
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.3, duration: 0.8 }}
-              className="text-lg md:text-xl text-blue-100 mb-6 leading-relaxed"
-            >
-              {heroSubtitle}
-            </motion.p>
           </div>
 
           {/* User Flow Animation - Horizontal */}
           <div className="w-full mb-4">
             <UserFlowAnimation onStepClick={onStepClick} />
+          </div>
+
+          {/* Subtitle - Moved below animation with larger font and highlighted text */}
+          <div className="text-center max-w-4xl">
+            <motion.p 
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.3, duration: 0.8 }}
+              className="text-xl md:text-2xl text-blue-100 mb-6 leading-relaxed"
+            >
+              <span className="font-semibold text-blue-200">Find funding options</span> for your business and <span className="font-semibold text-blue-200">build an application-ready Business Plan</span> tailored to Grants, Investors or Bank Loans (DE/EN). Start free.
+            </motion.p>
           </div>
 
           {/* CTA Buttons and Disclaimer */}
@@ -265,7 +271,7 @@ export function Hero({
               transition={{ delay: 0.9, duration: 0.8 }}
               className="text-xs text-blue-200/80"
             >
-              We help you prepare your application; decisions are made by the providers.
+              {t('hero.disclaimer')}
             </motion.p>
           </div>
         </div>

@@ -1,11 +1,12 @@
 import { motion } from "framer-motion";
 import { CheckCircle, TrendingUp, Users, Award } from "lucide-react";
+import { useI18n } from "@/contexts/I18nContext";
 
-const evidenceData = [
+const getEvidenceData = (t: (key: keyof typeof import('../../../i18n/en.json')) => string) => [
   {
     icon: CheckCircle,
-    title: "214+ Programs",
-    description: "Austrian and EU funding programs in our database",
+    title: t("evidence.programs.title"),
+    description: t("evidence.programs.description"),
     value: "214+",
     color: "text-blue-600",
     bgColor: "bg-blue-50",
@@ -13,8 +14,8 @@ const evidenceData = [
   },
   {
     icon: TrendingUp,
-    title: "€1B+ Available",
-    description: "Total funding available across all programs",
+    title: t("evidence.funding.title"),
+    description: t("evidence.funding.description"),
     value: "€1B+",
     color: "text-green-600",
     bgColor: "bg-green-50",
@@ -22,8 +23,8 @@ const evidenceData = [
   },
   {
     icon: Users,
-    title: "500+ Founders",
-    description: "Successful entrepreneurs using our platform",
+    title: t("evidence.founders.title"),
+    description: t("evidence.founders.description"),
     value: "500+",
     color: "text-purple-600",
     bgColor: "bg-purple-50",
@@ -31,8 +32,8 @@ const evidenceData = [
   },
   {
     icon: Award,
-    title: "95% Success Rate",
-    description: "Average success rate for funding applications",
+    title: t("evidence.success.title"),
+    description: t("evidence.success.description"),
     value: "95%",
     color: "text-orange-600",
     bgColor: "bg-orange-50",
@@ -41,6 +42,9 @@ const evidenceData = [
 ];
 
 export function EvidenceCards() {
+  const { t } = useI18n();
+  const evidenceData = getEvidenceData(t);
+  
   return (
     <section className="section-padding bg-gray-50">
       <div className="container">
@@ -52,10 +56,10 @@ export function EvidenceCards() {
           className="text-center mb-16"
         >
           <h2 className="text-4xl font-bold text-neutral-900 mb-4">
-            Proof, not promises
+            {t("evidence.title")}
           </h2>
           <p className="text-xl text-neutral-600 max-w-2xl mx-auto">
-            Real data from our platform shows the impact we're making for Austrian entrepreneurs
+            {t("evidence.subtitle")}
           </p>
         </motion.div>
 
@@ -103,7 +107,7 @@ export function EvidenceCards() {
         >
           <div className="bg-white rounded-2xl p-8 shadow-sm border border-gray-200">
             <h3 className="text-2xl font-bold text-neutral-900 mb-4">
-              Trusted by leading Austrian organizations
+              {t("evidence.trusted.title")}
             </h3>
             <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-8 items-center opacity-60">
               {[

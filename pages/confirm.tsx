@@ -2,11 +2,13 @@ import Link from "next/link"
 import { useState } from "react"
 import featureFlags from "@/lib/featureFlags"
 import { Button } from "@/components/ui/button"
+import { useI18n } from "@/contexts/I18nContext"
 
 export default function ConfirmPage() {
+  const { t } = useI18n();
   const CHECKOUT_ENABLED = featureFlags.isEnabled('CHECKOUT_ENABLED')
-  const attachmentTodos = ["Add team CVs", "Add budget sheet"]
-  const tier = "Pro"
+  const attachmentTodos = t("confirm.attachmentTodos").split(", ")
+  const tier = t("confirm.tier")
   const [email, setEmail] = useState("")
   return (
     <main className="max-w-3xl mx-auto py-12 space-y-6">
@@ -15,10 +17,10 @@ export default function ConfirmPage() {
       <div className="p-4 border rounded">
         <h3 className="font-semibold mb-2">Attachments / Todos</h3>
         <ul className="list-disc list-inside text-sm text-gray-700">
-          {attachmentTodos.map((t, i) => (
+          {attachmentTodos.map((todo, i) => (
             <li key={i} className="flex items-center gap-2">
-              {t}
-              <span className="text-xs text-gray-500" title="Why we need this">
+              {todo}
+              <span className="text-xs text-gray-500" title={t("confirm.whyWeNeedThis")}>
                 ℹ️
               </span>
             </li>

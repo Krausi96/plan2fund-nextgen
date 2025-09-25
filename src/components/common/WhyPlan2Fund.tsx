@@ -1,31 +1,33 @@
 import { motion } from "framer-motion";
 import { Target, Search, FileCheck } from "lucide-react";
-
-const features = [
-  {
-    icon: Target,
-    title: "Traceable Eligibility",
-    description: "Every recommendation comes with clear reasoning and traceable eligibility criteria, so you know exactly why you qualify.",
-    color: "text-blue-600",
-    bgColor: "bg-blue-50",
-  },
-  {
-    icon: Search,
-    title: "Program-Aware Editor",
-    description: "Our editor understands funding program requirements and guides you to create plans that meet specific criteria.",
-    color: "text-green-600",
-    bgColor: "bg-green-50",
-  },
-  {
-    icon: FileCheck,
-    title: "Counterfactuals & Analysis",
-    description: "Get detailed analysis of what-if scenarios and counterfactuals to strengthen your funding applications.",
-    color: "text-purple-600",
-    bgColor: "bg-purple-50",
-  },
-];
+import { useI18n } from "@/contexts/I18nContext";
 
 export function WhyPlan2Fund() {
+  const { t } = useI18n();
+
+  const features = [
+    {
+      icon: Target,
+      title: t('whyPlan2Fund.features.0.title'),
+      description: t('whyPlan2Fund.features.0.description'),
+      color: "text-blue-600",
+      bgColor: "bg-blue-50",
+    },
+    {
+      icon: Search,
+      title: t('whyPlan2Fund.features.1.title'),
+      description: t('whyPlan2Fund.features.1.description'),
+      color: "text-green-600",
+      bgColor: "bg-green-50",
+    },
+    {
+      icon: FileCheck,
+      title: t('whyPlan2Fund.features.2.title'),
+      description: t('whyPlan2Fund.features.2.description'),
+      color: "text-purple-600",
+      bgColor: "bg-purple-50",
+    },
+  ];
   return (
     <section className="section-padding bg-gradient-to-br from-primary-50 to-blue-50">
       <div className="container">
@@ -37,11 +39,10 @@ export function WhyPlan2Fund() {
           className="text-center mb-16"
         >
           <h2 className="text-4xl font-bold text-neutral-900 mb-4">
-            Why Plan2Fund?
+            {t('whyPlan2Fund.title')}
           </h2>
           <p className="text-xl text-neutral-600 max-w-3xl mx-auto">
-            We're not just another business plan generator. We're your strategic partner 
-            in finding and securing the right funding for your venture.
+            {t('whyPlan2Fund.subtitle')}
           </p>
         </motion.div>
 

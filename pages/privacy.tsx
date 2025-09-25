@@ -1,7 +1,9 @@
 import Head from "next/head";
 import { Card } from "@/components/ui/card";
+import { useI18n } from "@/contexts/I18nContext";
 
 export default function PrivacyPage() {
+  const { t } = useI18n();
   return (
     <>
       <Head>
@@ -16,38 +18,38 @@ export default function PrivacyPage() {
       
       <div className="max-w-4xl mx-auto px-4 py-12">
       <div className="prose max-w-none">
-        <h1 className="text-4xl font-bold text-gray-900 mb-8">Privacy Policy</h1>
+        <h1 className="text-4xl font-bold text-gray-900 mb-8">{t('privacy.title')}</h1>
         <p className="text-lg text-gray-600 mb-8">
-          Last updated: {new Date().toLocaleDateString()}
+          {t('privacy.lastUpdated')}: {new Date().toLocaleDateString()}
         </p>
 
         {/* Legal Pages Navigation */}
         <div className="mb-8 p-4 bg-gray-50 rounded-lg">
-          <h3 className="text-lg font-semibold mb-3">Related Legal Documents</h3>
+          <h3 className="text-lg font-semibold mb-3">{t('privacy.navigation.title')}</h3>
           <div className="flex flex-wrap gap-4">
             <a href="/legal" className="text-blue-600 hover:text-blue-700 font-medium">
-              Legal Notice
+              {t('privacy.navigation.legal')}
             </a>
             <a href="/terms" className="text-blue-600 hover:text-blue-700 font-medium">
-              Terms & Conditions
+              {t('privacy.navigation.terms')}
             </a>
             <a href="/contact" className="text-blue-600 hover:text-blue-700 font-medium">
-              Contact Us
+              {t('privacy.navigation.contact')}
             </a>
           </div>
         </div>
 
         <Card className="p-8 mb-8">
-          <h2 className="text-2xl font-semibold mb-4">1. Information We Collect</h2>
-          <h3 className="text-xl font-medium mb-3">1.1 Personal Information</h3>
+          <h2 className="text-2xl font-semibold mb-4">{t('privacy.section1.title')}</h2>
+          <h3 className="text-xl font-medium mb-3">{t('privacy.section1.subtitle')}</h3>
           <p className="mb-4">
-            We collect information you provide directly to us, such as when you:
+            {t('privacy.section1.content')}
           </p>
           <ul className="list-disc list-inside mb-4 space-y-2">
-            <li>Create an account or profile</li>
-            <li>Use our funding recommendation service</li>
-            <li>Create or edit business plans</li>
-            <li>Contact us for support</li>
+            <li>{t('privacy.section1.list1')}</li>
+            <li>{t('privacy.section1.list2')}</li>
+            <li>{t('privacy.section1.list3')}</li>
+            <li>{t('privacy.section1.list4')}</li>
             <li>Subscribe to our newsletter</li>
           </ul>
           <p className="mb-4">
@@ -177,7 +179,7 @@ export default function PrivacyPage() {
           <h2 className="text-2xl font-semibold mb-4">10. Changes to This Policy</h2>
           <p className="mb-4">
             We may update this privacy policy from time to time. We will notify you of any changes 
-            by posting the new policy on this page and updating the "Last updated" date.
+            by posting the new policy on this page and updating the "{t('privacy.lastUpdated')}" date.
           </p>
           <p className="mb-4">
             We encourage you to review this privacy policy periodically for any changes.

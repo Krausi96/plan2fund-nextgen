@@ -1,5 +1,4 @@
 import { useI18n } from "@/contexts/I18nContext"
-import { useRouter } from "next/router"
 
 type Props = {
   compact?: boolean
@@ -7,12 +6,11 @@ type Props = {
 
 export default function LanguageSwitcher({ compact }: Props) {
   const { locale, setLocale } = useI18n()
-  const router = useRouter()
 
   const handleLanguageChange = (newLocale: string) => {
     setLocale(newLocale)
-    // Update the URL with the new locale
-    router.push(router.asPath, router.asPath, { locale: newLocale })
+    // Force a page refresh to ensure all components re-render with new locale
+    window.location.reload()
   }
 
   const languageOptions = [

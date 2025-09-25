@@ -1,8 +1,10 @@
 import { useEffect } from "react";
 import { useRouter } from "next/router";
 import SEOHead from "@/components/common/SEOHead";
+import { useI18n } from "@/contexts/I18nContext";
 
 export default function ForStartups() {
+  const { t } = useI18n();
   const router = useRouter();
 
   useEffect(() => {
@@ -14,7 +16,7 @@ export default function ForStartups() {
     <>
       <SEOHead 
         pageKey="startups"
-        title="Startups & Entrepreneurs - Plan2Fund"
+        title={t('for.startups.ogTitle')}
         description="Turn your innovative ideas into reality with comprehensive business planning and early-stage funding."
       />
       <div className="min-h-screen flex items-center justify-center">
