@@ -47,7 +47,7 @@ export default function EditorPage() {
         templateSections = routeTemplate.sections.map(section => ({
           key: section.key,
           title: section.title,
-          content: section.content || '',
+          content: '',
           status: 'missing' as const,
           guidance: section.guidance
         }));

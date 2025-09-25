@@ -36,7 +36,7 @@ export interface ExportResult {
   error?: string;
 }
 
-export class ExportRenderer {
+class ExportRenderer {
   async renderPlan(plan: PlanDocument, options: ExportOptions): Promise<ExportResult> {
     try {
       const labels = getExportLabels(plan.language);
@@ -68,7 +68,7 @@ export class ExportRenderer {
     } = options;
 
     const sectionsToRender = selectedSections && selectedSections.size > 0
-      ? plan.sections.filter(section => selectedSections.has(section.id))
+      ? plan.sections.filter(section => selectedSections.has(section.key))
       : plan.sections;
 
     return (
@@ -84,9 +84,9 @@ export class ExportRenderer {
         <div className="relative z-10 space-y-8">
           {/* Title Page */}
           <div className="text-center py-12 border-b">
-            <h1 className="text-4xl font-bold text-gray-900 mb-4">{plan.metadata?.title || 'Business Plan'}</h1>
-            <p className="text-lg text-gray-600 mb-2">Created by {plan.metadata?.author || 'User'}</p>
-            <p className="text-sm text-gray-500">{new Date(plan.metadata?.createdAt || Date.now()).toLocaleDateString()}</p>
+            <h1 className="text-4xl font-bold text-gray-900 mb-4">Business Plan</h1>
+            <p className="text-lg text-gray-600 mb-2">Created by User</p>
+            <p className="text-sm text-gray-500">{new Date().toLocaleDateString()}</p>
           </div>
 
           {/* Table of Contents */}
@@ -94,7 +94,7 @@ export class ExportRenderer {
             <h2 className="text-2xl font-semibold text-gray-900 mb-4">Table of Contents</h2>
             <div className="space-y-1">
               {sectionsToRender.map((section, index) => (
-                <div key={section.id} className="flex justify-between items-center py-1">
+                <div key={section.key} className="flex justify-between items-center py-1">
                   <span className="text-blue-600 hover:text-blue-800 cursor-pointer">
                     {index + 1}. {section.title}
                   </span>
@@ -109,13 +109,13 @@ export class ExportRenderer {
           </div>
 
           {/* Content Sections */}
-          {sectionsToRender.map((section, index) => {
+          {sectionsToRender.map((section) => {
             const hasContent = section.content && section.content.trim().length > 0;
             const wordCount = section.content ? section.content.split(' ').length : 0;
             const charCount = section.content ? section.content.length : 0;
             
             return (
-              <div key={section.id} className="space-y-4">
+              <div key={section.key} className="space-y-4">
                 <div className="border-b border-gray-200 pb-2">
                   <h2 className="text-2xl font-semibold text-gray-900">{section.title}</h2>
                   {previewSettings.showCompletionStatus && (
@@ -434,7 +434,7 @@ export class ExportRenderer {
 export const exportRenderer = new ExportRenderer();
 
 // Default export component for direct JSX usage
-export default function ExportRenderer({ 
+function ExportRendererComponent({ 
   plan, 
   showWatermark = false, 
   watermarkText = 'DRAFT', 
@@ -462,3 +462,5 @@ export default function ExportRenderer({
     previewSettings
   });
 }
+
+export default ExportRendererComponent;

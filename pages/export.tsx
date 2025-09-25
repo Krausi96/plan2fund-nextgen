@@ -8,6 +8,8 @@ export default function Export() {
   const EXPORT_ENABLED = featureFlags.isEnabled('EXPORT_ENABLED')
   const [sections, setSections] = useState<PlanSection[]>([]);
   const [exporting, setExporting] = useState(false);
+  const [format, setFormat] = useState<"pdf" | "docx">("pdf");
+  const isPaid = false; // stubbed payment state
   
   // Load plan sections
   React.useEffect(() => {
@@ -33,8 +35,6 @@ export default function Export() {
       </main>
     )
   }
-  const [format, setFormat] = useState<"pdf" | "docx">("pdf");
-  const isPaid = false; // stubbed payment state
 
   return (
     <main className="max-w-3xl mx-auto py-12 space-y-6">

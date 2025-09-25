@@ -7,7 +7,7 @@ import analytics from "@/lib/analytics";
 import { useI18n } from "@/contexts/I18nContext";
 import { Switch } from "@/components/ui/switch";
 import { Label } from "@/components/ui/label";
-import { ExportRenderer } from "@/export/renderer";
+import ExportRenderer from "@/export/renderer";
 
 export default function Preview() {
   const { t } = useI18n();
@@ -47,7 +47,7 @@ export default function Preview() {
     showPageNumbers: true,
     showTableOfContents: true
   });
-  const [selectedSections, setSelectedSections] = useState<Set<string>>(new Set());
+  const [selectedSections] = useState<Set<string>>(new Set());
   const [previewSettings, setPreviewSettings] = useState({
     showWordCount: true,
     showCharacterCount: true,
@@ -164,13 +164,32 @@ export default function Preview() {
           <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-8">
             <ExportRenderer
               plan={{
-                sections: sections,
-                metadata: {
-                  title: "Business Plan",
-                  author: "User",
-                  createdAt: new Date().toISOString(),
-                  updatedAt: new Date().toISOString()
-                }
+                id: "preview_plan",
+                ownerId: "user",
+                product: "submission" as const,
+                route: "grant" as const,
+                language: "en" as const,
+                tone: "neutral" as const,
+                targetLength: "standard" as const,
+                settings: {
+                  includeTitlePage: true,
+                  includePageNumbers: true,
+                  citations: "simple" as const,
+                  captions: true,
+                  graphs: {
+                    revenueCosts: true,
+                    cashflow: true,
+                    useOfFunds: true
+                  }
+                },
+                sections: sections.map(section => ({
+                  key: section.id,
+                  title: section.title,
+                  content: section.content,
+                  status: "missing" as const
+                })),
+                addonPack: false,
+                versions: []
               }}
               showWatermark={showWatermark}
               watermarkText={watermarkText}
