@@ -231,7 +231,7 @@
   "wizard.submit": "Get Recommendations",
   "wizard.loading": "Finding your perfect funding matches...",
   "wizard.error": "Error loading recommendations. Please try again.",
-  "whoItsFor.title": "Start by your situation",
+  "whoItsFor.title": "Who is this for?",
   "whoItsFor.solo.title": "First-time founder / Solo",
   "whoItsFor.solo.description": "See programs that fit an early-stage founder (DE/EN).",
   "whoItsFor.solo.features.0": "Quick funding matches",

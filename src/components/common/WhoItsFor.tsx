@@ -89,7 +89,14 @@ export function WhoItsFor() {
                 )}
                 
                 {/* Emoji */}
-                <div className="text-3xl mb-3 group-hover:scale-105 transition-transform duration-300">{persona.emoji}</div>
+                <div 
+                  className="text-3xl mb-3 group-hover:scale-105 transition-transform duration-300 w-16 h-16 rounded-full flex items-center justify-center mx-auto"
+                  style={{
+                    background: `linear-gradient(135deg, ${persona.color.includes('blue') ? '#3B82F6' : persona.color.includes('green') ? '#10B981' : '#8B5CF6'}, ${persona.color.includes('blue') ? '#06B6D4' : persona.color.includes('green') ? '#059669' : '#A855F7'})`
+                  }}
+                >
+                  {persona.emoji}
+                </div>
                 
                 {/* Content */}
                 <h3 className="text-lg font-semibold text-neutral-900 mb-2 group-hover:text-blue-600 transition-colors duration-300">
@@ -114,7 +121,7 @@ export function WhoItsFor() {
                 {/* CTA */}
                 <a 
                   href={persona.href}
-                  className={`w-full px-4 py-2 ${persona.bgColor} ${persona.color} rounded-lg font-semibold text-center hover:opacity-80 transition-opacity group-hover:scale-105 transform transition-transform`}
+                  className="w-full px-4 py-2 bg-blue-600 text-white rounded-lg font-semibold text-center hover:bg-blue-700 transition-colors group-hover:scale-105 transform transition-transform"
                   title={`Learn more about ${persona.title.toLowerCase()}`}
                 >
                   {persona.title.includes("Advisors") ? t("whoItsFor.forPartners") : t("whoItsFor.seeMatches")} →
