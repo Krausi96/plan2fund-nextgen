@@ -26,6 +26,7 @@ import {
   FinancialAssumptions,
   createFinancialCalculator 
 } from '@/lib/financialCalculator';
+import { useI18n } from '@/contexts/I18nContext';
 
 interface FinancialDashboardProps {
   businessType?: string;
@@ -40,6 +41,7 @@ export default function FinancialDashboard({
   onAssumptionsChange,
   onExport
 }: FinancialDashboardProps) {
+  const { t } = useI18n();
   const [calculator, setCalculator] = useState<FinancialCalculator | null>(null);
   const [projections, setProjections] = useState<FinancialProjection[]>([]);
   const [kpis, setKpis] = useState<KPIMetrics | null>(null);
@@ -112,7 +114,7 @@ export default function FinancialDashboard({
         <div className="p-6">
           <div className="flex items-center justify-center">
             <Calculator className="h-6 w-6 animate-spin mr-2" />
-            <span>Calculating financial projections...</span>
+            <span>{t('financialDashboard.calculating')}</span>
           </div>
         </div>
       </Card>
@@ -124,8 +126,8 @@ export default function FinancialDashboard({
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
-          <h2 className="text-2xl font-bold text-gray-900">Financial Dashboard</h2>
-          <p className="text-sm text-gray-600">Comprehensive financial projections and KPIs</p>
+          <h2 className="text-2xl font-bold text-gray-900">{t('financialDashboard.title')}</h2>
+          <p className="text-sm text-gray-600">{t('financialDashboard.subtitle')}</p>
         </div>
         <div className="flex gap-2">
           <Button
@@ -134,7 +136,7 @@ export default function FinancialDashboard({
             onClick={() => setIsEditing(!isEditing)}
           >
             <Edit3 className="h-4 w-4 mr-2" />
-            {isEditing ? 'Done' : 'Edit'}
+            {isEditing ? t('financialDashboard.done') : t('financialDashboard.edit')}
           </Button>
           <Button
             variant="outline"
@@ -142,7 +144,7 @@ export default function FinancialDashboard({
             onClick={() => onExport?.({ projections, kpis, summary, sensitivity })}
           >
             <Download className="h-4 w-4 mr-2" />
-            Export
+            {t('financialDashboard.export')}
           </Button>
         </div>
       </div>
@@ -153,7 +155,7 @@ export default function FinancialDashboard({
           <div className="p-4">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm font-medium text-gray-600">Monthly Revenue</p>
+                <p className="text-sm font-medium text-gray-600">{t('financialDashboard.monthlyRevenue')}</p>
                 <p className="text-2xl font-bold text-gray-900">
                   {formatCurrency(kpis.revenue.monthly)}
                 </p>
@@ -173,14 +175,14 @@ export default function FinancialDashboard({
           <div className="p-4">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm font-medium text-gray-600">Break-Even</p>
+                <p className="text-sm font-medium text-gray-600">{t('financialDashboard.breakEven')}</p>
                 <p className="text-2xl font-bold text-gray-900">
-                  Month {kpis.profitability.breakEvenMonth}
+                  {t('financialDashboard.month')} {kpis.profitability.breakEvenMonth}
                 </p>
                 <div className="flex items-center gap-1 mt-1">
                   <Calendar className="h-4 w-4 text-blue-500" />
                   <span className="text-sm text-gray-600">
-                    {kpis.profitability.breakEvenMonth <= 12 ? 'Fast' : 'Moderate'}
+                    {kpis.profitability.breakEvenMonth <= 12 ? t('financialDashboard.fast') : t('financialDashboard.moderate')}
                   </span>
                 </div>
               </div>
@@ -193,14 +195,14 @@ export default function FinancialDashboard({
           <div className="p-4">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm font-medium text-gray-600">Net Margin</p>
+                <p className="text-sm font-medium text-gray-600">{t('financialDashboard.netMargin')}</p>
                 <p className="text-2xl font-bold text-gray-900">
                   {formatPercentage(kpis.profitability.netMargin)}
                 </p>
                 <div className="flex items-center gap-1 mt-1">
                   <BarChart3 className="h-4 w-4 text-purple-500" />
                   <span className="text-sm text-gray-600">
-                    {kpis.profitability.netMargin > 20 ? 'Excellent' : 'Good'}
+                    {kpis.profitability.netMargin > 20 ? t('financialDashboard.excellent') : t('financialDashboard.good')}
                   </span>
                 </div>
               </div>
@@ -213,14 +215,14 @@ export default function FinancialDashboard({
           <div className="p-4">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm font-medium text-gray-600">Runway</p>
+                <p className="text-sm font-medium text-gray-600">{t('financialDashboard.runway')}</p>
                 <p className="text-2xl font-bold text-gray-900">
-                  {kpis.funding.runway} months
+                  {kpis.funding.runway} {t('financialDashboard.months')}
                 </p>
                 <div className="flex items-center gap-1 mt-1">
                   <Progress value={kpis.funding.utilization} />
                   <span className="text-sm text-gray-600">
-                    {formatPercentage(kpis.funding.utilization)} used
+                    {formatPercentage(kpis.funding.utilization)} {t('financialDashboard.used')}
                   </span>
                 </div>
               </div>
@@ -233,29 +235,29 @@ export default function FinancialDashboard({
       {/* Main Content div */}
       <div defaultValue="projections" className="space-y-4">
         <div className="grid w-full grid-cols-4">
-          <div className="px-4 py-2 text-center border-b-2 border-blue-500">Projections</div>      
-          <div className="px-4 py-2 text-center border-b border-gray-200">Assumptions</div>      
-          <div className="px-4 py-2 text-center border-b border-gray-200">Sensitivity</div>      
-          <div className="px-4 py-2 text-center border-b border-gray-200">Insights</div>
+          <div className="px-4 py-2 text-center border-b-2 border-blue-500">{t('financialDashboard.projections')}</div>      
+          <div className="px-4 py-2 text-center border-b border-gray-200">{t('financialDashboard.assumptions')}</div>      
+          <div className="px-4 py-2 text-center border-b border-gray-200">{t('financialDashboard.sensitivity')}</div>      
+          <div className="px-4 py-2 text-center border-b border-gray-200">{t('financialDashboard.insights')}</div>
         </div>
 
         {/* Projections Tab */}
         <div className="space-y-4">
           <Card>
             <div>
-              <div>Financial Projections (36 Months)</div>
+              <div>{t('financialDashboard.financialProjections')}</div>
             </div>
             <div>
               <div className="overflow-x-auto">
                 <table className="w-full text-sm">
                   <thead>
                     <tr className="border-b">
-                      <th className="text-left p-2">Month</th>
-                      <th className="text-right p-2">Revenue</th>
-                      <th className="text-right p-2">Expenses</th>
-                      <th className="text-right p-2">Profit</th>
-                      <th className="text-right p-2">Cash Flow</th>
-                      <th className="text-right p-2">Cumulative</th>
+                      <th className="text-left p-2">{t('financialDashboard.month')}</th>
+                      <th className="text-right p-2">{t('financialDashboard.revenue')}</th>
+                      <th className="text-right p-2">{t('financialDashboard.expenses')}</th>
+                      <th className="text-right p-2">{t('financialDashboard.profit')}</th>
+                      <th className="text-right p-2">{t('financialDashboard.cashFlow')}</th>
+                      <th className="text-right p-2">{t('financialDashboard.cumulative')}</th>
                     </tr>
                   </thead>
                   <tbody>
@@ -296,14 +298,14 @@ export default function FinancialDashboard({
         <div className="space-y-4">
           <Card>
             <div>
-              <div>Financial Assumptions</div>
+              <div>{t('financialDashboard.financialAssumptions')}</div>
             </div>
             <div>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div className="space-y-4">
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-1">
-                      Initial Monthly Revenue
+                      {t('financialDashboard.initialMonthlyRevenue')}
                     </label>
                     <input
                       type="number"
@@ -315,7 +317,7 @@ export default function FinancialDashboard({
                   </div>
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-1">
-                      Monthly Growth Rate (%)
+                      {t('financialDashboard.monthlyGrowthRate')}
                     </label>
                     <input
                       type="number"
@@ -327,7 +329,7 @@ export default function FinancialDashboard({
                   </div>
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-1">
-                      Initial Monthly Expenses
+                      {t('financialDashboard.initialMonthlyExpenses')}
                     </label>
                     <input
                       type="number"
@@ -341,7 +343,7 @@ export default function FinancialDashboard({
                 <div className="space-y-4">
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-1">
-                      Expense Growth Rate (%)
+                      {t('financialDashboard.expenseGrowthRate')}
                     </label>
                     <input
                       type="number"
@@ -353,7 +355,7 @@ export default function FinancialDashboard({
                   </div>
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-1">
-                      Gross Margin (%)
+                      {t('financialDashboard.grossMargin')}
                     </label>
                     <input
                       type="number"
@@ -365,7 +367,7 @@ export default function FinancialDashboard({
                   </div>
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-1">
-                      Funding Amount
+                      {t('financialDashboard.fundingAmount')}
                     </label>
                     <input
                       type="number"
@@ -385,43 +387,43 @@ export default function FinancialDashboard({
         <div className="space-y-4">
           <Card>
             <div>
-              <div>Sensitivity Analysis</div>
+              <div>{t('financialDashboard.sensitivityAnalysis')}</div>
             </div>
             <div>
               <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                 <div className="p-4 bg-green-50 rounded-lg">
-                  <h3 className="font-semibold text-green-800 mb-2">Optimistic Scenario</h3>
-                  <p className="text-sm text-green-700 mb-2">20% higher growth, 10% lower expenses</p>
+                  <h3 className="font-semibold text-green-800 mb-2">{t('financialDashboard.optimisticScenario')}</h3>
+                  <p className="text-sm text-green-700 mb-2">{t('financialDashboard.optimisticDesc')}</p>
                   <div className="space-y-1">
                     <p className="text-sm">
-                      <span className="font-medium">Break-even:</span> Month {sensitivity?.optimistic.find((p: any) => p.cumulativeCashFlow >= 0)?.year || 'N/A'}
+                      <span className="font-medium">{t('financialDashboard.breakEvenLabel')}</span> {t('financialDashboard.month')} {sensitivity?.optimistic.find((p: any) => p.cumulativeCashFlow >= 0)?.year || 'N/A'}
                     </p>
                     <p className="text-sm">
-                      <span className="font-medium">Year 3 Revenue:</span> {formatCurrency(sensitivity?.optimistic[35]?.revenue || 0)}
+                      <span className="font-medium">{t('financialDashboard.year3Revenue')}</span> {formatCurrency(sensitivity?.optimistic[35]?.revenue || 0)}
                     </p>
                   </div>
                 </div>
                 <div className="p-4 bg-blue-50 rounded-lg">
-                  <h3 className="font-semibold text-blue-800 mb-2">Realistic Scenario</h3>
-                  <p className="text-sm text-blue-700 mb-2">Base assumptions</p>
+                  <h3 className="font-semibold text-blue-800 mb-2">{t('financialDashboard.realisticScenario')}</h3>
+                  <p className="text-sm text-blue-700 mb-2">{t('financialDashboard.realisticDesc')}</p>
                   <div className="space-y-1">
                     <p className="text-sm">
-                      <span className="font-medium">Break-even:</span> Month {kpis.profitability.breakEvenMonth}
+                      <span className="font-medium">{t('financialDashboard.breakEvenLabel')}</span> {t('financialDashboard.month')} {kpis.profitability.breakEvenMonth}
                     </p>
                     <p className="text-sm">
-                      <span className="font-medium">Year 3 Revenue:</span> {formatCurrency(projections[35]?.revenue || 0)}
+                      <span className="font-medium">{t('financialDashboard.year3Revenue')}</span> {formatCurrency(projections[35]?.revenue || 0)}
                     </p>
                   </div>
                 </div>
                 <div className="p-4 bg-red-50 rounded-lg">
-                  <h3 className="font-semibold text-red-800 mb-2">Pessimistic Scenario</h3>
-                  <p className="text-sm text-red-700 mb-2">20% lower growth, 10% higher expenses</p>
+                  <h3 className="font-semibold text-red-800 mb-2">{t('financialDashboard.pessimisticScenario')}</h3>
+                  <p className="text-sm text-red-700 mb-2">{t('financialDashboard.pessimisticDesc')}</p>
                   <div className="space-y-1">
                     <p className="text-sm">
-                      <span className="font-medium">Break-even:</span> Month {sensitivity?.pessimistic.find((p: any) => p.cumulativeCashFlow >= 0)?.year || 'N/A'}
+                      <span className="font-medium">{t('financialDashboard.breakEvenLabel')}</span> {t('financialDashboard.month')} {sensitivity?.pessimistic.find((p: any) => p.cumulativeCashFlow >= 0)?.year || 'N/A'}
                     </p>
                     <p className="text-sm">
-                      <span className="font-medium">Year 3 Revenue:</span> {formatCurrency(sensitivity?.pessimistic[35]?.revenue || 0)}
+                      <span className="font-medium">{t('financialDashboard.year3Revenue')}</span> {formatCurrency(sensitivity?.pessimistic[35]?.revenue || 0)}
                     </p>
                   </div>
                 </div>
@@ -434,34 +436,34 @@ export default function FinancialDashboard({
         <div className="space-y-4">
           <Card>
             <div>
-              <div>Key Insights & Recommendations</div>
+              <div>{t('financialDashboard.keyInsights')}</div>
             </div>
             <div>
               <div className="space-y-4">
                 <div>
-                  <h3 className="font-semibold text-gray-900 mb-2">Financial Summary</h3>
+                  <h3 className="font-semibold text-gray-900 mb-2">{t('financialDashboard.financialSummary')}</h3>
                   <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm">
                     <div>
-                      <p className="text-gray-600">Total Revenue (3Y)</p>
+                      <p className="text-gray-600">{t('financialDashboard.totalRevenue')}</p>
                       <p className="font-semibold">{formatCurrency(summary.totalRevenue)}</p>
                     </div>
                     <div>
-                      <p className="text-gray-600">Total Expenses (3Y)</p>
+                      <p className="text-gray-600">{t('financialDashboard.totalExpenses')}</p>
                       <p className="font-semibold">{formatCurrency(summary.totalExpenses)}</p>
                     </div>
                     <div>
-                      <p className="text-gray-600">Net Profit (3Y)</p>
+                      <p className="text-gray-600">{t('financialDashboard.netProfit')}</p>
                       <p className="font-semibold text-green-600">{formatCurrency(summary.netProfit)}</p>
                     </div>
                     <div>
-                      <p className="text-gray-600">Peak Cash Flow</p>
+                      <p className="text-gray-600">{t('financialDashboard.peakCashFlow')}</p>
                       <p className="font-semibold text-blue-600">{formatCurrency(summary.peakCashFlow)}</p>
                     </div>
                   </div>
                 </div>
                 
                 <div>
-                  <h3 className="font-semibold text-gray-900 mb-2">Key Insights</h3>
+                  <h3 className="font-semibold text-gray-900 mb-2">{t('financialDashboard.keyInsightsTitle')}</h3>
                   <ul className="space-y-2">
                     {summary.keyInsights.map((insight: string, index: number) => (
                       <li key={index} className="flex items-start gap-2 text-sm">

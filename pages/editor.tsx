@@ -19,6 +19,7 @@ import { evaluate } from '../src/editor/readiness/engine';
 import { exportRenderer } from '../src/export/renderer';
 import { calculatePricing, getPricingSummary } from '../src/lib/pricing';
 import { useI18n } from '@/contexts/I18nContext';
+import { TEMPLATES, buildRouteTemplate } from '../src/editor/templates/registry';
 
 export default function EditorPage() {
   const router = useRouter();
@@ -37,6 +38,37 @@ export default function EditorPage() {
     const { route, programId, product } = router.query;
     
     if (route && product) {
+      // Load template based on product and route
+      const baseTemplate = TEMPLATES[product as keyof typeof TEMPLATES];
+      let templateSections: any[] = [];
+      
+      if (baseTemplate) {
+        const routeTemplate = buildRouteTemplate(baseTemplate, route as Route);
+        templateSections = routeTemplate.sections.map(section => ({
+          key: section.key,
+          title: section.title,
+          content: section.content || '',
+          status: 'missing' as const,
+          guidance: section.guidance
+        }));
+      } else {
+        // Fallback to basic sections if template not found
+        templateSections = [
+          {
+            key: 'executive_summary',
+            title: 'Executive Summary',
+            content: '',
+            status: 'missing' as const
+          },
+          {
+            key: 'financial_projections',
+            title: 'Financial Projections',
+            content: '',
+            status: 'missing' as const
+          }
+        ];
+      }
+
       const initialPlan: PlanDocument = {
         id: `plan_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
         ownerId: 'user_' + Date.now(),
@@ -57,53 +89,7 @@ export default function EditorPage() {
             useOfFunds: true
           }
         },
-        sections: [
-          {
-            key: 'executive_summary',
-            title: 'Executive Summary',
-            content: 'This is a sample executive summary section. In a real implementation, this would contain the actual business plan content.',
-            status: 'needs_fix'
-          },
-          {
-            key: 'financial_projections',
-            title: 'Financial Projections',
-            content: 'Financial projections and analysis section.',
-            tables: {
-              revenue: {
-                columns: ['Year 1', 'Year 2', 'Year 3'],
-                rows: [
-                  { label: 'Product Sales', values: [100000, 150000, 200000] },
-                  { label: 'Service Revenue', values: [50000, 75000, 100000] }
-                ]
-              },
-              costs: {
-                columns: ['Year 1', 'Year 2', 'Year 3'],
-                rows: [
-                  { label: 'Personnel', values: [80000, 120000, 160000] },
-                  { label: 'Marketing', values: [20000, 30000, 40000] },
-                  { label: 'Operations', values: [15000, 20000, 25000] }
-                ]
-              },
-              cashflow: {
-                columns: ['Q1', 'Q2', 'Q3', 'Q4'],
-                rows: [
-                  { label: 'Operating Cash Flow', values: [10000, 15000, 20000, 25000] },
-                  { label: 'Investment', values: [-5000, -5000, -5000, -5000] }
-                ]
-              },
-              useOfFunds: {
-                columns: ['Amount', 'Percentage'],
-                rows: [
-                  { label: 'Product Development', values: [400000, 40] },
-                  { label: 'Marketing', values: [200000, 20] },
-                  { label: 'Operations', values: [300000, 30] },
-                  { label: 'Reserves', values: [100000, 10] }
-                ]
-              }
-            },
-            status: 'aligned'
-          }
-        ],
+        sections: templateSections,
         addonPack: false,
         versions: []
       };

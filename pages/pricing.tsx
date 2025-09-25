@@ -183,10 +183,15 @@ export default function Pricing() {
               )}
 
               {/* Action Button */}
-              <div className="mt-6">
-                <Link href={`/editor?product=${plan.mode}`} className="block">
+              <div className="mt-6 space-y-2">
+                <Link href={`/editor?product=${plan.mode}&route=grant`} className="block">
                   <Button className="w-full py-3 text-base font-semibold group-hover:shadow-lg transition-all duration-300">
                     {plan.cta}
+                  </Button>
+                </Link>
+                <Link href={`/checkout?product=${plan.mode}&route=grant`} className="block">
+                  <Button variant="outline" className="w-full py-2 text-sm">
+                    View Pricing Details
                   </Button>
                 </Link>
               </div>

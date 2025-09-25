@@ -150,7 +150,7 @@ export function getTemplateRecommendations(userAnswers: Record<string, any>): Bu
   
   // Analyze user answers to recommend templates
   const fundingType = userAnswers.funding_type || userAnswers.plan_type;
-  const _businessStage = userAnswers.business_stage;
+  // const _businessStage = userAnswers.business_stage;
   const fundingAmount = userAnswers.funding_amount;
   
   // Grant recommendations

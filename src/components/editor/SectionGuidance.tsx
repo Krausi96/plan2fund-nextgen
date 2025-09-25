@@ -18,6 +18,7 @@ import {
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Card } from '@/components/ui/card';
+import { useI18n } from '@/contexts/I18nContext';
 
 interface SectionGuidanceProps {
   section: string;
@@ -237,6 +238,7 @@ export default function SectionGuidance({
   onInsertTemplate,
   onShowExamples
 }: SectionGuidanceProps) {
+  const { t } = useI18n();
   const [expandedSections, setExpandedSections] = useState<Set<string>>(new Set(['tips']));
 
   const guidance = SECTION_GUIDANCE[section.toLowerCase().replace(/\s+/g, '_')];
@@ -247,7 +249,7 @@ export default function SectionGuidance({
         <div className="p-6">
           <div className="text-center text-gray-500">
             <BookOpen className="h-12 w-12 mx-auto mb-4 text-gray-400" />
-            <p>No guidance available for this section</p>
+            <p>{t('sectionGuidance.noGuidance')}</p>
           </div>
         </div>
       </Card>
@@ -306,7 +308,7 @@ export default function SectionGuidance({
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-2 text-lg">
                   <Lightbulb className="h-5 w-5" />
-                  Writing Tips
+                  {t('sectionGuidance.writingTips')}
                 </div>
                 {expandedSections.has('tips') ? 
                   <ChevronDown className="h-5 w-5" /> : 
@@ -341,7 +343,7 @@ export default function SectionGuidance({
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-2 text-lg">
                   <Target className="h-5 w-5" />
-                  Examples
+                  {t('sectionGuidance.examples')}
                 </div>
                 {expandedSections.has('examples') ? 
                   <ChevronDown className="h-5 w-5" /> : 
@@ -365,7 +367,7 @@ export default function SectionGuidance({
                   className="w-full"
                 >
                   <ExternalLink className="h-4 w-4 mr-2" />
-                  Show More Examples
+                  {t('sectionGuidance.showMoreExamples')}
                 </Button>
               </div>
             </div>
@@ -384,7 +386,7 @@ export default function SectionGuidance({
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-2 text-lg">
                   <CheckCircle className="h-5 w-5" />
-                  Requirements Checklist
+                  {t('sectionGuidance.requirementsChecklist')}
                 </div>
                 {expandedSections.has('requirements') ? 
                   <ChevronDown className="h-5 w-5" /> : 
@@ -419,7 +421,7 @@ export default function SectionGuidance({
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-2 text-lg">
                   <AlertCircle className="h-5 w-5" />
-                  Common Mistakes to Avoid
+                  {t('sectionGuidance.commonMistakes')}
                 </div>
                 {expandedSections.has('mistakes') ? 
                   <ChevronDown className="h-5 w-5" /> : 
@@ -450,7 +452,7 @@ export default function SectionGuidance({
           className="flex-1"
         >
           <BookOpen className="h-4 w-4 mr-2" />
-          Insert Template
+          {t('sectionGuidance.insertTemplate')}
         </Button>
         <Button 
           onClick={() => onShowExamples?.()}
@@ -458,7 +460,7 @@ export default function SectionGuidance({
           className="flex-1"
         >
           <ExternalLink className="h-4 w-4 mr-2" />
-          Show Examples
+          {t('sectionGuidance.showExamples')}
         </Button>
       </div>
     </div>

@@ -10,6 +10,7 @@ import { Badge } from '@/components/ui/badge';
 import { Progress } from '@/components/ui/progress';
 import { Card } from '@/components/ui/card';
 import { ReadinessCheck, createReadinessValidator } from '@/lib/readiness';
+import { useI18n } from '@/contexts/I18nContext';
 
 interface RequirementsCheckerProps {
   programType: string;
@@ -22,6 +23,7 @@ export default function RequirementsChecker({
   planContent, 
   onRequirementClick 
 }: RequirementsCheckerProps) {
+  const { t } = useI18n();
   const [checks, setChecks] = useState<ReadinessCheck[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [expandedSections, setExpandedSections] = useState<Set<string>>(new Set());
@@ -132,7 +134,7 @@ export default function RequirementsChecker({
         <div className="p-6">
           <div className="flex items-center justify-center">
             <Clock className="h-6 w-6 animate-spin mr-2" />
-            <span>Checking requirements...</span>
+            <span>{t('requirementsChecker.checking')}</span>
           </div>
         </div>
       </Card>
@@ -145,8 +147,8 @@ export default function RequirementsChecker({
         <div className="p-6">
           <div className="text-center text-gray-500">
             <Target className="h-12 w-12 mx-auto mb-4 text-gray-400" />
-            <p>No program requirements found</p>
-            <p className="text-sm">Select a program to see requirements</p>
+            <p>{t('requirementsChecker.noProgramRequirements')}</p>
+            <p className="text-sm">{t('requirementsChecker.selectProgram')}</p>
           </div>
         </div>
       </Card>
@@ -160,7 +162,7 @@ export default function RequirementsChecker({
         <div>
           <div className="flex items-center gap-2">
             {getStatusIcon(getOverallStatus())}
-            Program Readiness
+            {t('requirementsChecker.title')}
             <Badge className={getStatusColor(getOverallStatus())}>
               {getOverallStatus().toUpperCase()}
             </Badge>
@@ -169,22 +171,22 @@ export default function RequirementsChecker({
         <div>
           <div className="space-y-4">
             <div className="flex items-center justify-between">
-              <span className="text-sm font-medium">Overall Score</span>
+              <span className="text-sm font-medium">{t('requirementsChecker.overallScore')}</span>
               <span className="text-2xl font-bold">{getOverallScore()}%</span>
             </div>
             <Progress value={getOverallScore()} />
             <div className="flex items-center gap-4 text-sm text-gray-600">
               <div className="flex items-center gap-1">
                 <CheckCircle className="h-4 w-4 text-green-500" />
-                <span>Complete</span>
+                <span>{t('requirementsChecker.complete')}</span>
               </div>
               <div className="flex items-center gap-1">
                 <AlertCircle className="h-4 w-4 text-yellow-500" />
-                <span>Needs Work</span>
+                <span>{t('requirementsChecker.needsWork')}</span>
               </div>
               <div className="flex items-center gap-1">
                 <XCircle className="h-4 w-4 text-red-500" />
-                <span>Missing</span>
+                <span>{t('requirementsChecker.missing')}</span>
               </div>
             </div>
           </div>
@@ -214,7 +216,7 @@ export default function RequirementsChecker({
                     <div className="flex items-center gap-4">
                       <div className="text-right">
                         <div className="text-2xl font-bold">{check.score}%</div>
-                        <div className="text-xs text-gray-500">Score</div>
+                        <div className="text-xs text-gray-500">{t('requirementsChecker.score')}</div>
                       </div>
                       <TrendingUp className="h-5 w-5 text-gray-400" />
                     </div>
@@ -228,7 +230,7 @@ export default function RequirementsChecker({
                   <div className="space-y-4">
                     {/* Requirements */}
                     <div>
-                      <h4 className="font-medium mb-3">Requirements</h4>
+                      <h4 className="font-medium mb-3">{t('requirementsChecker.requirements')}</h4>
                       <div className="space-y-2">
                         {check.requirements.map((req) => (
                           <div 
@@ -258,7 +260,7 @@ export default function RequirementsChecker({
                     {/* Suggestions */}
                     {check.suggestions.length > 0 && (
                       <div>
-                        <h4 className="font-medium mb-3">Suggestions</h4>
+                        <h4 className="font-medium mb-3">{t('requirementsChecker.suggestions')}</h4>
                         <ul className="space-y-1">
                           {check.suggestions.map((suggestion, index) => (
                             <li key={index} className="text-sm text-gray-600 flex items-start gap-2">
@@ -285,21 +287,21 @@ export default function RequirementsChecker({
           size="sm"
         >
           <Clock className="h-4 w-4 mr-2" />
-          Refresh Check
+          {t('requirementsChecker.refreshCheck')}
         </Button>
         <Button 
           onClick={() => setExpandedSections(new Set(checks.map(c => c.section)))}
           variant="outline"
           size="sm"
         >
-          Expand All
+          {t('requirementsChecker.expandAll')}
         </Button>
         <Button 
           onClick={() => setExpandedSections(new Set())}
           variant="outline"
           size="sm"
         >
-          Collapse All
+          {t('requirementsChecker.collapseAll')}
         </Button>
       </div>
     </div>

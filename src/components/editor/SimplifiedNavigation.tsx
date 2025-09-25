@@ -18,6 +18,7 @@ import {
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Progress } from '@/components/ui/progress';
+import { useI18n } from '@/contexts/I18nContext';
 
 interface SimplifiedNavigationProps {
   sections: Array<{ id: string; title: string; content: string }>;
@@ -42,6 +43,7 @@ export default function SimplifiedNavigation({
   completionPercentage,
   isDirty
 }: SimplifiedNavigationProps) {
+  const { t } = useI18n();
   const [showMobileMenu, setShowMobileMenu] = useState(false);
 
   const nextSection = () => {
@@ -125,7 +127,7 @@ export default function SimplifiedNavigation({
                   {sections[activeSection]?.title || 'Untitled'}
                 </span>
                 <Badge variant="outline" className="text-xs">
-                  {activeSection + 1} of {sections.length}
+                  {activeSection + 1} {t('navigation.of')} {sections.length}
                 </Badge>
               </div>
             </div>
@@ -152,7 +154,7 @@ export default function SimplifiedNavigation({
                 className="text-gray-600 hover:text-gray-900"
               >
                 <Save className="h-4 w-4 mr-1" />
-                <span className="hidden sm:inline">Save</span>
+                <span className="hidden sm:inline">{t('navigation.save')}</span>
                 {isDirty && <div className="w-2 h-2 bg-orange-500 rounded-full ml-1" />}
               </Button>
 
@@ -163,7 +165,7 @@ export default function SimplifiedNavigation({
                 className="text-gray-600 hover:text-gray-900"
               >
                 <Eye className="h-4 w-4 mr-1" />
-                <span className="hidden sm:inline">Preview</span>
+                <span className="hidden sm:inline">{t('navigation.preview')}</span>
               </Button>
 
               <Button
@@ -173,7 +175,7 @@ export default function SimplifiedNavigation({
                 className="text-gray-600 hover:text-gray-900"
               >
                 <Settings className="h-4 w-4 mr-1" />
-                <span className="hidden sm:inline">Settings</span>
+                <span className="hidden sm:inline">{t('navigation.settings')}</span>
               </Button>
 
               <Button
@@ -183,7 +185,7 @@ export default function SimplifiedNavigation({
                 className="bg-blue-600 hover:bg-blue-700 text-white"
               >
                 <Download className="h-4 w-4 mr-1" />
-                <span className="hidden sm:inline">Export</span>
+                <span className="hidden sm:inline">{t('navigation.export')}</span>
               </Button>
             </div>
           </div>
@@ -205,7 +207,7 @@ export default function SimplifiedNavigation({
         <div className="lg:hidden border-t border-gray-200 bg-gray-50">
           <div className="px-4 py-3">
             <div className="space-y-2">
-              <h3 className="text-sm font-medium text-gray-700 mb-2">Sections</h3>
+              <h3 className="text-sm font-medium text-gray-700 mb-2">{t('navigation.sections')}</h3>
               {sections.map((section, index) => (
                 <button
                   key={section.id}
@@ -220,7 +222,7 @@ export default function SimplifiedNavigation({
                     <span>{section.title}</span>
                     {index === activeSection && (
                       <Badge variant="outline" className="text-xs">
-                        Current
+                        {t('navigation.current')}
                       </Badge>
                     )}
                   </div>

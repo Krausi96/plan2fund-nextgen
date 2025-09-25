@@ -7,6 +7,7 @@ import analytics from "@/lib/analytics";
 import { useI18n } from "@/contexts/I18nContext";
 import { Switch } from "@/components/ui/switch";
 import { Label } from "@/components/ui/label";
+import { ExportRenderer } from "@/export/renderer";
 
 export default function Preview() {
   const { t } = useI18n();
@@ -37,8 +38,8 @@ export default function Preview() {
   const [deliveryMode, setDeliveryMode] = useState<"standard" | "priority">("standard");
   const [includedSections, setIncludedSections] = useState<Set<string>>(new Set(["summary", "problem", "solution"]));
   const [showWatermark, setShowWatermark] = useState(true);
-  const [watermarkText] = useState("DRAFT");
-  const [previewMode, setPreviewMode] = useState<"preview" | "formatted">("preview");
+  const [watermarkText, setWatermarkText] = useState("DRAFT");
+  const [previewMode, setPreviewMode] = useState<"preview" | "formatted" | "print">("preview");
   const [formattingOptions, setFormattingOptions] = useState({
     theme: "sans",
     fontSize: "medium",
@@ -46,6 +47,14 @@ export default function Preview() {
     showPageNumbers: true,
     showTableOfContents: true
   });
+  const [selectedSections, setSelectedSections] = useState<Set<string>>(new Set());
+  const [previewSettings, setPreviewSettings] = useState({
+    showWordCount: true,
+    showCharacterCount: true,
+    showCompletionStatus: true,
+    enableRealTimePreview: true
+  });
+  const [useExportRenderer, setUseExportRenderer] = useState(false);
   return (
     <main className="max-w-5xl mx-auto py-12 grid md:grid-cols-[1fr_320px] gap-6">
       <div>
@@ -65,20 +74,84 @@ export default function Preview() {
               onCheckedChange={setShowWatermark}
             />
           </div>
+          {showWatermark && (
+            <div className="flex items-center gap-2">
+              <Label htmlFor="watermark-text" className="text-sm">Text</Label>
+              <input
+                id="watermark-text"
+                type="text"
+                value={watermarkText}
+                onChange={(e) => setWatermarkText(e.target.value)}
+                className="px-2 py-1 border border-gray-300 rounded text-sm w-20"
+                maxLength={10}
+              />
+            </div>
+          )}
           <div className="flex items-center gap-2">
             <Label htmlFor="preview-mode" className="text-sm">Mode</Label>
             <select
               id="preview-mode"
               value={previewMode}
-              onChange={(e) => setPreviewMode(e.target.value as "preview" | "formatted")}
+              onChange={(e) => setPreviewMode(e.target.value as "preview" | "formatted" | "print")}
               className="px-3 py-1 border border-gray-300 rounded-md text-sm"
             >
               <option value="preview">Preview</option>
               <option value="formatted">Formatted</option>
+              <option value="print">Print View</option>
             </select>
+          </div>
+          <div className="flex items-center gap-2">
+            <Label htmlFor="real-time-toggle" className="text-sm">Real-time</Label>
+            <Switch
+              checked={previewSettings.enableRealTimePreview}
+              onCheckedChange={(checked) => setPreviewSettings(prev => ({ ...prev, enableRealTimePreview: checked }))}
+            />
+          </div>
+          <div className="flex items-center gap-2">
+            <Label htmlFor="export-renderer-toggle" className="text-sm">Export View</Label>
+            <Switch
+              checked={useExportRenderer}
+              onCheckedChange={setUseExportRenderer}
+            />
           </div>
         </div>
       </div>
+
+      {/* Additional Preview Settings */}
+      {!useExportRenderer && (
+        <div className="bg-gray-50 rounded-lg p-4">
+          <h3 className="text-sm font-medium text-gray-700 mb-3">Preview Settings</h3>
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+            <label className="flex items-center space-x-2 text-sm">
+              <input
+                type="checkbox"
+                checked={previewSettings.showWordCount}
+                onChange={(e) => setPreviewSettings(prev => ({ ...prev, showWordCount: e.target.checked }))}
+                className="rounded border-gray-300"
+              />
+              <span>Word Count</span>
+            </label>
+            <label className="flex items-center space-x-2 text-sm">
+              <input
+                type="checkbox"
+                checked={previewSettings.showCharacterCount}
+                onChange={(e) => setPreviewSettings(prev => ({ ...prev, showCharacterCount: e.target.checked }))}
+                className="rounded border-gray-300"
+              />
+              <span>Character Count</span>
+            </label>
+            <label className="flex items-center space-x-2 text-sm">
+              <input
+                type="checkbox"
+                checked={previewSettings.showCompletionStatus}
+                onChange={(e) => setPreviewSettings(prev => ({ ...prev, showCompletionStatus: e.target.checked }))}
+                className="rounded border-gray-300"
+              />
+              <span>Completion Status</span>
+            </label>
+          </div>
+        </div>
+      )}
 
       {/* Real Preview of the Plan */}
       <div className="space-y-4">
@@ -86,6 +159,25 @@ export default function Preview() {
           <div className="text-center py-8">
             <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto mb-4"></div>
             <p className="text-gray-600">Loading your business plan...</p>
+          </div>
+        ) : useExportRenderer ? (
+          <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-8">
+            <ExportRenderer
+              plan={{
+                sections: sections,
+                metadata: {
+                  title: "Business Plan",
+                  author: "User",
+                  createdAt: new Date().toISOString(),
+                  updatedAt: new Date().toISOString()
+                }
+              }}
+              showWatermark={showWatermark}
+              watermarkText={watermarkText}
+              previewMode={previewMode}
+              selectedSections={selectedSections.size > 0 ? selectedSections : undefined}
+              previewSettings={previewSettings}
+            />
           </div>
         ) : (
           sections.map((section, i) => {
