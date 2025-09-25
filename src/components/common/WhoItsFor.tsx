@@ -89,10 +89,10 @@ export function WhoItsFor() {
                 )}
                 
                 {/* Emoji */}
-                <div className="text-4xl mb-4 group-hover:scale-110 transition-transform duration-300">{persona.emoji}</div>
+                <div className="text-3xl mb-3 group-hover:scale-105 transition-transform duration-300">{persona.emoji}</div>
                 
                 {/* Content */}
-                <h3 className="text-xl font-semibold text-neutral-900 mb-3 group-hover:text-blue-600 transition-colors duration-300">
+                <h3 className="text-lg font-semibold text-neutral-900 mb-2 group-hover:text-blue-600 transition-colors duration-300">
                   {persona.title}
                 </h3>
                 <p className="text-neutral-600 mb-4 leading-relaxed flex-grow group-hover:text-neutral-700 transition-colors duration-300">
