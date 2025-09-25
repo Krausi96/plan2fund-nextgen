@@ -128,18 +128,18 @@ const UserFlowAnimation = memo(function UserFlowAnimation({ onStepClick }: { onS
                   delay: shouldReduceMotion ? 0 : 0.2 + (index * 0.1),
                   duration: 0.5
                 }}
-                className={`relative p-4 rounded-lg bg-white/5 backdrop-blur-sm border transition-all duration-500 cursor-pointer hover:bg-white/10 hover:border-white/30 ${
+                className={`relative p-3 rounded-lg bg-white/5 backdrop-blur-sm border transition-all duration-500 cursor-pointer hover:bg-white/10 hover:border-white/30 ${
                   currentStep === index 
                     ? 'border-white/40 bg-white/10 scale-105' 
                     : 'border-white/10'
                 }`}
-                style={{ width: '140px' }}
+                style={{ width: '120px' }}
                 onClick={() => onStepClick?.(step.id)}
               >
                 {/* Step Icon */}
                 <motion.div 
-                  className={`mx-auto mb-2 bg-white/20 rounded-full flex items-center justify-center text-white font-bold ${
-                    currentStep === index ? 'w-8 h-8 text-base' : 'w-7 h-7 text-sm'
+                  className={`mx-auto mb-1 bg-white/20 rounded-full flex items-center justify-center text-white font-bold ${
+                    currentStep === index ? 'w-7 h-7 text-sm' : 'w-6 h-6 text-xs'
                   }`}
                   animate={{
                     scale: currentStep === index ? 1.1 : 1,
@@ -151,10 +151,10 @@ const UserFlowAnimation = memo(function UserFlowAnimation({ onStepClick }: { onS
                 
                 {/* Step Content */}
                 <div className="text-center">
-                  <h3 className="text-sm font-bold text-white mb-1">
+                  <h3 className="text-xs font-bold text-white mb-1">
                     {step.title}
                   </h3>
-                  <p className="text-xs text-blue-200/80 leading-tight">
+                  <p className="text-[10px] text-blue-200/80 leading-tight">
                     {step.description}
                   </p>
                 </div>
@@ -202,38 +202,38 @@ export function Hero({
       <BlueprintGrid />
 
       {/* Main Content */}
-      <div className="relative z-20 w-full max-w-6xl px-6 sm:px-8 lg:px-12 py-6 md:py-8 mx-auto">
-        <div className="flex flex-col items-center justify-center space-y-8 min-h-[60vh]">
+      <div className="relative z-20 w-full max-w-6xl px-6 sm:px-8 lg:px-12 py-12 md:py-16 mx-auto">
+        <div className="flex flex-col items-center justify-center space-y-12 min-h-[70vh]">
           
-          {/* H1 Title - Moved up and more centered */}
-          <div className="text-center max-w-4xl">
+          {/* H1 Title - Enhanced prominence and centering */}
+          <div className="text-center max-w-5xl">
             <motion.h1 
               initial={{ opacity: 0, y: 30 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.8 }}
-              className="text-4xl sm:text-5xl lg:text-6xl xl:text-7xl font-extrabold text-white leading-tight mb-8 text-wrap-balance tracking-tight xl:tracking-tighter"
+              className="text-5xl sm:text-6xl lg:text-7xl xl:text-8xl font-extrabold text-white leading-[0.9] mb-6 text-wrap-balance tracking-tight"
               style={{ textWrap: 'balance' }}
             >
-              <div>{heroTitle}</div>
-              <div className="text-white">{heroTitleSecond}</div>
+              <div className="mb-2">{heroTitle}</div>
+              <div className="text-blue-200">{heroTitleSecond}</div>
             </motion.h1>
           </div>
 
-          {/* User Flow Animation - Horizontal */}
-          <div className="w-full mb-4">
-            <UserFlowAnimation onStepClick={onStepClick} />
-          </div>
-
-          {/* Subtitle - Moved below animation with larger font and highlighted text */}
-          <div className="text-center max-w-4xl">
+          {/* Subtitle - Simplified and more impactful */}
+          <div className="text-center max-w-3xl">
             <motion.p 
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.3, duration: 0.8 }}
-              className="text-xl md:text-2xl text-blue-100 mb-6 leading-relaxed"
+              className="text-xl md:text-2xl text-blue-100 leading-relaxed"
             >
-              <span className="font-semibold text-blue-200">Find funding options</span> for your business and <span className="font-semibold text-blue-200">build an application-ready Business Plan</span> tailored to Grants, Investors or Bank Loans (DE/EN). Start free.
+              Find funding options and build an application-ready Business Plan tailored to Grants, Investors or Bank Loans. <span className="font-semibold text-white">Start free.</span>
             </motion.p>
+          </div>
+
+          {/* User Flow Animation - Smaller and more subtle */}
+          <div className="w-full max-w-4xl">
+            <UserFlowAnimation onStepClick={onStepClick} />
           </div>
 
           {/* CTA Buttons and Disclaimer */}

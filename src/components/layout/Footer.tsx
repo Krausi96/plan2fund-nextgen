@@ -52,22 +52,10 @@ export default function Footer() {
           </div>
         </div>
 
-        {/* Disclaimer */}
+        {/* Copyright */}
         <div className="mt-8 pt-6 border-t border-gray-200 text-center">
-          <p className="text-sm text-gray-600">
-            We help you prepare your application; decisions are made by the providers.
-          </p>
-        </div>
-
-        {/* Bottom Bar */}
-        <div className="mt-8 pt-6 border-t border-gray-200 flex flex-col md:flex-row justify-between items-center gap-4">
           <div className="text-sm text-gray-500">
             © {new Date().getFullYear()} Plan2Fund. All rights reserved.
-          </div>
-          <div className="flex gap-6 text-sm">
-            <Link href="/privacy" className="hover:text-blue-600 transition-colors">Privacy</Link>
-            <Link href="/terms" className="hover:text-blue-600 transition-colors">Terms</Link>
-            <Link href="/legal" className="hover:text-blue-600 transition-colors">Legal</Link>
           </div>
         </div>
       </div>
