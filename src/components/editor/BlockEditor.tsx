@@ -214,6 +214,24 @@ export default function BlockEditor({
     // This would update the visual appearance of blocks
   };
 
+  const handlePasteText = () => {
+    const text = prompt("Paste your existing text here:");
+    if (text && text.trim()) {
+      // Create a new text block with the pasted content
+      const newBlock: Block = {
+        id: `block_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
+        type: 'text',
+        data: { content: text.trim() },
+        order: blocks.length
+      };
+      
+      const newBlocks = [...blocks, newBlock];
+      setBlocks(newBlocks);
+      onBlocksChange?.(newBlocks);
+      setSelectedBlock(newBlock.id);
+    }
+  };
+
   return (
     <div className="flex h-screen bg-gray-50">
       {/* Main Editor */}
@@ -235,6 +253,13 @@ export default function BlockEditor({
                     </option>
                   ))}
                 </select>
+                
+                <Button
+                  variant="outline"
+                  onClick={handlePasteText}
+                >
+                  📋 Paste existing text
+                </Button>
                 
                 <Button
                   variant="outline"
@@ -275,18 +300,27 @@ export default function BlockEditor({
                 <p className="text-gray-500 mb-4">
                   Add blocks to create your business plan
                 </p>
-                <select 
-                  onChange={(e) => addBlock(e.target.value)}
-                  className="w-48 mx-auto px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                  defaultValue=""
-                >
-                  <option value="" disabled>Add First Block</option>
-                  {BLOCK_TYPES.map(type => (
-                    <option key={type.value} value={type.value}>
-                      {type.icon} {type.label}
-                    </option>
-                  ))}
-                </select>
+                <div className="flex flex-col sm:flex-row gap-3 justify-center">
+                  <select 
+                    onChange={(e) => addBlock(e.target.value)}
+                    className="w-48 px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    defaultValue=""
+                  >
+                    <option value="" disabled>Add First Block</option>
+                    {BLOCK_TYPES.map(type => (
+                      <option key={type.value} value={type.value}>
+                        {type.icon} {type.label}
+                      </option>
+                    ))}
+                  </select>
+                  <Button
+                    variant="outline"
+                    onClick={handlePasteText}
+                    className="w-48"
+                  >
+                    📋 Paste existing text
+                  </Button>
+                </div>
               </div>
             ) : (
               blocks.map((block, index) => (

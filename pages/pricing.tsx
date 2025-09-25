@@ -3,18 +3,20 @@ import { Button } from "@/components/ui/button";
 import HeroLite from "@/components/common/HeroLite";
 import CTAStrip from "@/components/common/CTAStrip";
 import SEOHead from "@/components/common/SEOHead";
+import { PricingDetails } from "@/components/common/PricingDetails";
 import { useI18n } from "@/contexts/I18nContext";
 
 const getPlans = (t: (key: any) => string) => [
   { 
     id: "strategy",
     title: t('planTypes.strategy.title'), 
-    price: "From €99", 
-    desc: t('planTypes.strategy.description'), 
+    price: t('pricing.strategy.price'), 
+    desc: t('planTypes.strategy.subtitle'), 
     features: [
       t('planTypes.strategy.features.0'),
       t('planTypes.strategy.features.1'),
-      t('planTypes.strategy.features.2')
+      t('planTypes.strategy.features.2'),
+      t('planTypes.strategy.features.3')
     ],
     mode: "strategy",
     badges: [
@@ -23,13 +25,13 @@ const getPlans = (t: (key: any) => string) => [
       t('planTypes.strategy.badges.2')
     ],
     helper: t('planTypes.strategy.helper'),
-    cta: t('pricing.cta.startStrategy')
+    cta: t('pricing.strategy.cta')
   },
   { 
     id: "review",
     title: t('planTypes.review.title'), 
-    price: "From €149", 
-    desc: t('planTypes.review.description'), 
+    price: t('pricing.review.price'), 
+    desc: t('planTypes.review.subtitle'), 
     features: [
       t('planTypes.review.features.0'),
       t('planTypes.review.features.1'),
@@ -42,13 +44,14 @@ const getPlans = (t: (key: any) => string) => [
       t('planTypes.review.badges.2')
     ],
     helper: t('planTypes.review.helper'),
-    cta: t('pricing.cta.startUpdateReview')
+    cta: t('pricing.review.cta'),
+    note: t('pricing.review.note')
   },
   { 
     id: "custom",
     title: t('planTypes.custom.title'), 
-    price: "From €299", 
-    desc: t('planTypes.custom.description'), 
+    price: t('pricing.custom.price'), 
+    desc: t('planTypes.custom.subtitle'), 
     features: [
       t('planTypes.custom.features.0'),
       t('planTypes.custom.features.1'),
@@ -61,7 +64,7 @@ const getPlans = (t: (key: any) => string) => [
       t('planTypes.custom.badges.2')
     ],
     helper: t('planTypes.custom.helper'),
-    cta: t('pricing.cta.startBusinessPlan')
+    cta: t('pricing.custom.cta')
   },
 ];
 
@@ -84,16 +87,21 @@ export default function Pricing() {
           {plans.map((plan, i) => (
             <div key={i} className="rounded-2xl border shadow-sm p-6 bg-white hover:shadow-md transition">
               <h2 className="text-xl font-bold">{plan.title}</h2>
-              <p className="text-gray-600 mt-2" dangerouslySetInnerHTML={{ __html: plan.desc }}></p>
-              <p className="text-lg font-semibold mt-4 text-blue-600">{plan.price}</p>
-              <ul className="mt-6 space-y-2">
-                {plan.features.map((f, j) => (
-                  <li key={j} className="flex items-start space-x-2 text-gray-600">
-                    <span className="text-blue-500 mr-2 mt-0.5">•</span>
-                    <span>{f}</span>
-                  </li>
-                ))}
-              </ul>
+              <p className="text-lg font-semibold mt-2 text-blue-600">{plan.price}</p>
+              <p className="text-gray-600 mt-2">{plan.desc}</p>
+              
+              <div className="mt-4">
+                <h4 className="text-sm font-medium text-gray-900 mb-2">Includes:</h4>
+                <ul className="space-y-2">
+                  {plan.features.map((f, j) => (
+                    <li key={j} className="flex items-start space-x-2 text-gray-600">
+                      <span className="text-blue-500 mr-2 mt-0.5">•</span>
+                      <span>{f}</span>
+                    </li>
+                  ))}
+                </ul>
+              </div>
+              
               {/* Badges */}
               <div className="flex flex-wrap gap-2 mt-4">
                 {plan.badges.map((badge, badgeIndex) => (
@@ -105,6 +113,11 @@ export default function Pricing() {
               
               {/* Helper text */}
               <p className="text-xs text-gray-500 mt-3">{plan.helper}</p>
+              
+              {/* Note for review plan */}
+              {plan.note && (
+                <p className="text-xs text-gray-400 mt-2 italic">{plan.note}</p>
+              )}
               
               {/* Action Button */}
               <div className="mt-6">
@@ -118,203 +131,21 @@ export default function Pricing() {
           ))}
         </section>
 
-        {/* Plan Details */}
-        <section className="max-w-6xl mx-auto py-16 px-4">
-          <div className="text-center mb-12">
-            <h2 className="text-2xl font-bold text-gray-900 mb-4">{t('pricing.planDetails')}</h2>
-          </div>
-          
-          <div className="space-y-16">
-            
-            {/* Strategy Document Details */}
-            <div id="strategy" className="scroll-mt-20">
-              <h3 className="text-2xl font-bold text-gray-900 mb-8">🧩 Strategy Document (Business Model & GTM)</h3>
-              
-              <div className="grid lg:grid-cols-2 gap-8">
-              <div className="space-y-6">
-                <div>
-                    <h4 className="text-lg font-semibold text-gray-900 mb-3">What it's for</h4>
-                  <ul className="text-gray-700 space-y-1">
-                      <li>• Early ideas or pivots that need clarity before a full plan</li>
-                      <li>• Decide target customer, pricing and first channels</li>
-                  </ul>
-                </div>
-
-                  <div className="border-t pt-4">
-                    <h4 className="text-lg font-semibold text-gray-900 mb-3">You provide</h4>
-                  <ul className="text-gray-700 space-y-1">
-                      <li>• Idea and goals</li>
-                      <li>• Notes on market/competitors (optional)</li>
-                      <li>• Rough numbers (optional)</li>
-                  </ul>
-                </div>
-
-                  <div className="border-t pt-4">
-                    <h4 className="text-lg font-semibold text-gray-900 mb-3">What you get</h4>
-                  <ul className="text-gray-700 space-y-1">
-                      <li>• Business model & GTM summary (value prop, ICP, pricing/positioning, channels)</li>
-                      <li>• Unit economics sketch + milestones / next steps</li>
-                      <li>• DE/EN deliverable you can later extend to a full plan</li>
-                  </ul>
-                </div>
-                </div>
-
-                <div className="space-y-6">
-                <div>
-                    <h4 className="text-lg font-semibold text-gray-900 mb-3">Outline</h4>
-                    <div className="flex flex-wrap gap-2">
-                      {t("pricing.sections.strategy").split(", ").map((item, index) => (
-                        <span key={index} className="text-sm bg-gray-100 text-gray-700 px-3 py-1 rounded-full">
-                          {item}
-                        </span>
-                      ))}
-                    </div>
-                </div>
-
-                  <div className="border-t pt-4">
-                    <h4 className="text-lg font-semibold text-gray-900 mb-3">Export & language</h4>
-                    <p className="text-gray-700">PDF/DOCX · DE/EN · 4–8 pages</p>
-                </div>
-
-                  <div className="border-t pt-4">
-                    <Link href="/editor?plan=strategy" className="inline-block">
-                      <Button>Start Strategy</Button>
-                    </Link>
-                  </div>
-                </div>
-              </div>
-            </div>
-
-            {/* Update & Review Details */}
-            <div id="review" className="scroll-mt-20">
-              <h3 className="text-2xl font-bold text-gray-900 mb-8">🔄 Update & Review</h3>
-              
-              <div className="grid lg:grid-cols-2 gap-8">
-              <div className="space-y-6">
-                <div>
-                    <h4 className="text-lg font-semibold text-gray-900 mb-3">What it's for</h4>
-                  <ul className="text-gray-700 space-y-1">
-                      <li>• You have text/drafts and want a plan that passes checks</li>
-                      <li>• Bring structure, fill gaps, add missing financials</li>
-                  </ul>
-                </div>
-
-                  <div className="border-t pt-4">
-                    <h4 className="text-lg font-semibold text-gray-900 mb-3">You provide</h4>
-                  <ul className="text-gray-700 space-y-1">
-                      <li>• Your existing text (paste by section)</li>
-                      <li>• Target route (aws/FFG/WA/bank/visa), if known</li>
-                      <li>• Latest basic numbers</li>
-                  </ul>
-                </div>
-
-                  <div className="border-t pt-4">
-                    <h4 className="text-lg font-semibold text-gray-900 mb-3">What you get</h4>
-                  <ul className="text-gray-700 space-y-1">
-                      <li>• Section-by-section gap notes + restructured content</li>
-                      <li>• Financial tables added or cleaned (revenue, costs, cash-flow, use of funds)</li>
-                      <li>• Submission alignment notes + formatting to expected style</li>
-                  </ul>
-                </div>
-                </div>
-
-                <div className="space-y-6">
-                <div>
-                    <h4 className="text-lg font-semibold text-gray-900 mb-3">Outline</h4>
-                    <div className="flex flex-wrap gap-2">
-                      {t("pricing.sections.review").split(", ").map((item, index) => (
-                        <span key={index} className="text-sm bg-gray-100 text-gray-700 px-3 py-1 rounded-full">
-                          {item}
-                        </span>
-                      ))}
-                    </div>
-                </div>
-
-                  <div className="border-t pt-4">
-                    <h4 className="text-lg font-semibold text-gray-900 mb-3">Export & language</h4>
-                    <p className="text-gray-700">PDF/DOCX · DE/EN · length depends on your material</p>
-                </div>
-
-                  <div className="border-t pt-4">
-                    <Link href="/editor?plan=review" className="inline-block">
-                      <Button>Start Update & Review</Button>
-                    </Link>
-                    <p className="text-xs text-gray-500 mt-2">Paste, don't upload — edit everything in the builder.</p>
-                  </div>
-                </div>
-              </div>
-            </div>
-
-            {/* Submission-Ready Business Plan Details */}
-            <div id="custom" className="scroll-mt-20">
-              <h3 className="text-2xl font-bold text-gray-900 mb-8">📘 Submission-Ready Business Plan</h3>
-              
-              <div className="grid lg:grid-cols-2 gap-8">
-              <div className="space-y-6">
-                <div>
-                    <h4 className="text-lg font-semibold text-gray-900 mb-3">What it's for</h4>
-                  <ul className="text-gray-700 space-y-1">
-                      <li>• Grants (aws/FFG/WA/EU), visas or bank loans when your model is defined</li>
-                      <li>• A plan reviewers can scan in the expected order</li>
-                  </ul>
-                </div>
-
-                  <div className="border-t pt-4">
-                    <h4 className="text-lg font-semibold text-gray-900 mb-3">You provide</h4>
-                  <ul className="text-gray-700 space-y-1">
-                      <li>• Model summary (offer, customer, pricing, channels)</li>
-                      <li>• Basic numbers (price, volumes, costs, funding need)</li>
-                      <li>• Target program/bank/visa (if known)</li>
-                  </ul>
-                </div>
-
-                  <div className="border-t pt-4">
-                    <h4 className="text-lg font-semibold text-gray-900 mb-3">What you get</h4>
-                  <ul className="text-gray-700 space-y-1">
-                      <li>• Full plan with standard sections (Exec Summary → Financials)</li>
-                      <li>• Tables: revenue model, cost breakdown, cash-flow, use of funds</li>
-                      <li>• Submission checklist aligned to your selected route</li>
-                  </ul>
-                </div>
-                </div>
-
-                <div className="space-y-6">
-                <div>
-                    <h4 className="text-lg font-semibold text-gray-900 mb-3">Outline</h4>
-                    <div className="flex flex-wrap gap-2">
-                      {t("pricing.sections.custom").split(", ").map((item, index) => (
-                        <span key={index} className="text-sm bg-gray-100 text-gray-700 px-3 py-1 rounded-full">
-                          {item}
-                        </span>
-                      ))}
-                    </div>
-                </div>
-
-                  <div className="border-t pt-4">
-                    <h4 className="text-lg font-semibold text-gray-900 mb-3">Export & language</h4>
-                    <p className="text-gray-700">PDF/DOCX · DE/EN · 15–35 pages</p>
-                </div>
-
-                  <div className="border-t pt-4">
-                    <Link href="/editor?plan=custom" className="inline-block">
-                      <Button>Start Business Plan</Button>
-                    </Link>
-                  </div>
-                </div>
-              </div>
-            </div>
-
-          </div>
-        </section>
+        <PricingDetails />
 
         {/* Add-on Pack Section */}
         <section id="addons" className="max-w-4xl mx-auto py-16 px-4">
           <div className="text-center mb-8">
-            <h2 className="text-2xl font-bold text-gray-900 mb-4">{t('pricing.addonPack')}</h2>
-            <p className="text-gray-600">
+            <h2 className="text-2xl font-bold text-gray-900 mb-4">
+              {t('pricing.addonPack')}
+            </h2>
+            <p className="text-lg font-semibold text-blue-600 mb-2">
+              {t('pricing.addonPackPrice')}
+            </p>
+            <p className="text-gray-600 mb-4">
               {t('pricing.addonPackDesc')}
             </p>
-            <p className="text-sm text-gray-500 mt-4">
+            <p className="text-sm text-gray-500">
               {t('pricing.addonPackNote')}
             </p>
           </div>

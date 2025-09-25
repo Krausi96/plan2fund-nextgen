@@ -13,14 +13,16 @@ export function PlanTypes() {
       features: [
         t('planTypes.strategy.features.0'),
         t('planTypes.strategy.features.1'),
-        t('planTypes.strategy.features.2')
+        t('planTypes.strategy.features.2'),
+        t('planTypes.strategy.features.3')
       ],
       badges: [
         t('planTypes.strategy.badges.0'),
         t('planTypes.strategy.badges.1'),
         t('planTypes.strategy.badges.2')
       ],
-      helper: t('planTypes.strategy.helper')
+      helper: t('planTypes.strategy.helper'),
+      href: "/pricing#strategy"
     },
     {
       id: "review",
@@ -37,7 +39,8 @@ export function PlanTypes() {
         t('planTypes.review.badges.1'),
         t('planTypes.review.badges.2')
       ],
-      helper: t('planTypes.review.helper')
+      helper: t('planTypes.review.helper'),
+      href: "/pricing#review"
     },
     {
       id: "custom",
@@ -54,7 +57,8 @@ export function PlanTypes() {
         t('planTypes.custom.badges.1'),
         t('planTypes.custom.badges.2')
       ],
-      helper: t('planTypes.custom.helper')
+      helper: t('planTypes.custom.helper'),
+      href: "/pricing#custom"
     }
   ];
 
@@ -77,21 +81,25 @@ export function PlanTypes() {
           {planTypes.map((plan, index) => (
             <motion.a
               key={plan.id}
-              href={`/pricing#${plan.id}`}
+              href={plan.href}
               initial={{ opacity: 0, y: 30 }}
               whileInView={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.6, delay: index * 0.1 }}
               viewport={{ once: true }}
-              className="block bg-white rounded-xl p-6 shadow-sm border border-gray-200 hover:shadow-lg hover:border-blue-300 hover:-translate-y-1 transition-all duration-300 cursor-pointer group"
+              className="block bg-white rounded-xl p-6 shadow-sm border border-gray-200 hover:shadow-lg hover:border-blue-300 hover:-translate-y-1 transition-all duration-300 cursor-pointer group focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
+              aria-label={`Learn more about ${plan.title}`}
             >
               <div className="mb-4">
                 <h3 className="text-lg font-semibold text-neutral-900 mb-2 group-hover:text-blue-600 transition-colors">
                   {plan.title}
                 </h3>
-                <p className="text-sm text-gray-600 mb-4" dangerouslySetInnerHTML={{ __html: plan.description }}></p>
+                <p className="text-sm text-gray-600 mb-4">
+                  {plan.subtitle}
+                </p>
               </div>
 
               <div className="mb-4">
+                <h4 className="text-sm font-medium text-gray-900 mb-2">Includes:</h4>
                 <ul className="space-y-2">
                   {plan.features.map((feature, featureIndex) => (
                     <li key={featureIndex} className="text-sm text-gray-600 flex items-start">
@@ -126,7 +134,7 @@ export function PlanTypes() {
           className="text-center mt-6"
         >
           <p className="text-sm text-gray-500">
-            Optional <strong>Add-on Pack</strong>: Rush + extra revision + provider form help → <a href="/pricing#addons" className="text-blue-600 hover:text-blue-800 underline">/pricing#addons</a>
+            <a href="/pricing#addons" className="text-blue-600 hover:text-blue-800 underline">Add-on Pack</a>
           </p>
         </motion.div>
 
