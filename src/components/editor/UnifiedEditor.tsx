@@ -17,6 +17,7 @@ import ProductSelector from './ProductSelector';
 import AIChat from '@/components/plan/AIChat';
 import AdvancedSearchPanel from './AdvancedSearchPanel';
 import InfoDrawer from '@/components/common/InfoDrawer';
+import RouteExtrasPanel from './RouteExtrasPanel';
 import { loadPlanSections, type PlanSection } from '@/lib/planStore';
 import { chapterTemplates } from '@/lib/templates/chapters';
 import { type Program } from '@/lib/prefill';
@@ -554,6 +555,13 @@ ${answers.business_description || '[Business Description]'}
               />
             ) : (
               <div className="p-4 space-y-4">
+                {/* Route Extras Panel */}
+                <RouteExtrasPanel
+                  planType={currentAnswers.plan_type || 'custom'}
+                  selectedRoute={selectedProgram?.type}
+                  selectedProgram={selectedProgram}
+                />
+                
                 {/* Programs Sidebar */}
                 {programs.length > 0 && (
                   <SidebarPrograms
@@ -607,6 +615,13 @@ ${answers.business_description || '[Business Description]'}
                 />
               ) : (
                 <div className="space-y-4">
+                  {/* Route Extras Panel */}
+                  <RouteExtrasPanel
+                    planType={currentAnswers.plan_type || 'custom'}
+                    selectedRoute={selectedProgram?.type}
+                    selectedProgram={selectedProgram}
+                  />
+                  
                   {/* Programs Sidebar */}
                   {programs.length > 0 && (
                     <SidebarPrograms

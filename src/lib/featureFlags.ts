@@ -79,6 +79,36 @@ const DEFAULT_FLAGS: FeatureFlagConfig = {
       enabled: true,
       description: 'Enable program-specific editor templates and guidance',
       segments: ['B2C_FOUNDER', 'SME_LOAN', 'VISA', 'PARTNER']
+    },
+    EDITOR_FORMATTING: {
+      name: 'EDITOR_FORMATTING',
+      enabled: true,
+      description: 'Enable advanced formatting options in editor',
+      segments: ['B2C_FOUNDER', 'SME_LOAN', 'VISA', 'PARTNER']
+    },
+    ROUTE_EXTRAS_PANEL: {
+      name: 'ROUTE_EXTRAS_PANEL',
+      enabled: true,
+      description: 'Show route-specific extras panel in editor',
+      segments: ['B2C_FOUNDER', 'SME_LOAN', 'VISA', 'PARTNER']
+    },
+    READINESS_CHECK: {
+      name: 'READINESS_CHECK',
+      enabled: true,
+      description: 'Enable readiness check engine and UI',
+      segments: ['B2C_FOUNDER', 'SME_LOAN', 'VISA', 'PARTNER']
+    },
+    RECO_INTEGRATION: {
+      name: 'RECO_INTEGRATION',
+      enabled: true,
+      description: 'Enable Reco to Editor data flow integration',
+      segments: ['B2C_FOUNDER', 'SME_LOAN', 'VISA', 'PARTNER']
+    },
+    AI_ASSISTANT: {
+      name: 'AI_ASSISTANT',
+      enabled: true,
+      description: 'Enable AI assistant in editor',
+      segments: ['B2C_FOUNDER', 'SME_LOAN', 'VISA', 'PARTNER']
     }
   },
   experiments: {

@@ -10,6 +10,8 @@ interface AIHelperConfig {
   sectionScope: string;
   programHints: any;
   userAnswers: Record<string, any>;
+  tone?: 'neutral'|'formal'|'concise';
+  language?: 'de'|'en';
 }
 
 interface AIResponse {
@@ -53,12 +55,22 @@ export class AIHelper {
   private buildSectionPrompt(section: string, context: string, program: Program): string {
     const programType = program.type;
     const hints = this.programHints[programType] || this.programHints.general;
+    const tone = this.config.tone || 'neutral';
+    const language = this.config.language || 'en';
+    
+    const toneInstructions = {
+      neutral: 'Use a balanced, professional tone that is clear and accessible.',
+      formal: 'Use a formal, academic tone with sophisticated language and structure.',
+      concise: 'Use a concise, direct tone with short sentences and clear points.'
+    };
     
     return `
 You are an AI writing assistant helping to create a ${programType} application for ${program.name}.
 
 Section: ${section}
 Context: ${context}
+Language: ${language.toUpperCase()}
+Tone: ${tone} - ${toneInstructions[tone]}
 
 Program-specific guidance:
 ${hints.reviewer_tips.map((tip: string) => `- ${tip}`).join('\n')}
@@ -71,6 +83,8 @@ Requirements:
 - Focus on ${section} content
 - Use program-specific guidance
 - Include relevant user answers
+- Write in ${language.toUpperCase()}
+- Use ${tone} tone: ${toneInstructions[tone]}
 - Be professional and compelling
 - Address common mistakes to avoid
 
@@ -439,13 +453,17 @@ Add relevant risks and mitigation strategies:
 export function createAIHelper(
   userAnswers: Record<string, any>,
   programHints: any,
-  maxWords: number = 200
+  maxWords: number = 200,
+  tone: 'neutral'|'formal'|'concise' = 'neutral',
+  language: 'de'|'en' = 'en'
 ): AIHelper {
   return new AIHelper({
     maxWords,
     sectionScope: 'general',
     programHints,
-    userAnswers
+    userAnswers,
+    tone,
+    language
   });
 }
 

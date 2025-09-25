@@ -64,7 +64,7 @@ export function WhoItsFor() {
           </h2>
         </motion.div>
 
-        <div className="grid md:grid-cols-3 gap-8">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 lg:gap-8">
           {personas.map((persona, index) => (
             <motion.div
               key={index}
@@ -74,57 +74,65 @@ export function WhoItsFor() {
               viewport={{ once: true }}
               className="group"
             >
-              <div className={`p-6 h-full flex flex-col relative group rounded-xl border-2 transition-all duration-300 ${
+              <div className={`p-8 h-full flex flex-col relative group rounded-2xl border-2 transition-all duration-300 ${
                 persona.isPrimary 
-                  ? "border-blue-200 bg-blue-50/50 hover:border-blue-300 hover:shadow-lg" 
-                  : "border-gray-200 bg-white hover:border-gray-300 hover:shadow-md"
+                  ? "border-blue-200 bg-blue-50/50 hover:border-blue-300 hover:shadow-xl hover:-translate-y-1" 
+                  : "border-gray-200 bg-white hover:border-gray-300 hover:shadow-lg hover:-translate-y-1"
               }`}>
                 {/* Badge for Primary */}
                 {persona.badge && (
-                  <div className="absolute top-4 right-4">
-                    <span className="bg-blue-600 text-white text-xs px-2 py-1 rounded-full font-medium">
+                  <div className="absolute top-6 right-6">
+                    <span className="bg-blue-600 text-white text-xs px-3 py-1.5 rounded-full font-semibold shadow-sm">
                       {persona.badge}
                     </span>
                   </div>
                 )}
                 
-                {/* Emoji */}
-                <div 
-                  className="text-3xl mb-3 group-hover:scale-105 transition-transform duration-300 w-16 h-16 rounded-full flex items-center justify-center mx-auto"
-                  style={{
-                    background: `linear-gradient(135deg, ${persona.color.includes('blue') ? '#3B82F6' : persona.color.includes('green') ? '#10B981' : '#8B5CF6'}, ${persona.color.includes('blue') ? '#06B6D4' : persona.color.includes('green') ? '#059669' : '#A855F7'})`
-                  }}
-                >
-                  {persona.emoji}
+                {/* Icon and Title Section */}
+                <div className="text-center mb-6">
+                  <div 
+                    className="text-4xl mb-4 group-hover:scale-110 transition-transform duration-300 w-20 h-20 rounded-2xl flex items-center justify-center mx-auto shadow-sm"
+                    style={{
+                      background: `linear-gradient(135deg, ${persona.color.includes('blue') ? '#3B82F6' : persona.color.includes('green') ? '#10B981' : '#8B5CF6'}, ${persona.color.includes('blue') ? '#06B6D4' : persona.color.includes('green') ? '#059669' : '#A855F7'})`
+                    }}
+                  >
+                    {persona.emoji}
+                  </div>
+                  
+                  <h3 className="text-xl font-bold text-neutral-900 mb-3 group-hover:text-blue-600 transition-colors duration-300">
+                    {persona.title}
+                  </h3>
+                  <p className="text-neutral-600 leading-relaxed">
+                    {persona.description}
+                  </p>
                 </div>
                 
-                {/* Content */}
-                <h3 className="text-lg font-semibold text-neutral-900 mb-2 group-hover:text-blue-600 transition-colors duration-300">
-                  {persona.title}
-                </h3>
-                <p className="text-neutral-600 mb-4 leading-relaxed flex-grow group-hover:text-neutral-700 transition-colors duration-300">
-                  {persona.description}
-                </p>
-                
-                {/* Features */}
-                <ul className="space-y-2 mb-6">
-                  {persona.features.map((feature, featureIndex) => (
-                    <li key={featureIndex} className="flex items-center text-sm text-neutral-600">
-                      <svg className="w-4 h-4 text-green-500 mr-2 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
-                        <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
-                      </svg>
-                      {feature}
-                    </li>
-                  ))}
-                </ul>
+                {/* Features - simplified */}
+                <div className="flex-grow mb-6">
+                  <ul className="space-y-3">
+                    {persona.features.map((feature, featureIndex) => (
+                      <li key={featureIndex} className="flex items-start text-sm text-neutral-600">
+                        <svg className="w-5 h-5 text-green-500 mr-3 mt-0.5 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
+                          <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
+                        </svg>
+                        <span className="leading-relaxed">{feature}</span>
+                      </li>
+                    ))}
+                  </ul>
+                </div>
                 
                 {/* CTA */}
                 <a 
                   href={persona.href}
-                  className="w-full px-4 py-2 bg-blue-600 text-white rounded-lg font-semibold text-center hover:bg-blue-700 transition-colors group-hover:scale-105 transform transition-transform"
+                  className="w-full px-6 py-3 bg-blue-600 text-white rounded-xl font-semibold text-center hover:bg-blue-700 transition-all duration-300 group-hover:shadow-lg transform group-hover:scale-105"
                   title={`Learn more about ${persona.title.toLowerCase()}`}
                 >
-                  {persona.title.includes("Advisors") ? t("whoItsFor.forPartners") : t("whoItsFor.seeMatches")} →
+                  <span className="flex items-center justify-center">
+                    {persona.title.includes("Advisors") ? t("whoItsFor.forPartners") : t("whoItsFor.seeMatches")}
+                    <svg className="w-4 h-4 ml-2 group-hover:translate-x-1 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                    </svg>
+                  </span>
                 </a>
               </div>
             </motion.div>
