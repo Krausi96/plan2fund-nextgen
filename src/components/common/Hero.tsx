@@ -93,20 +93,20 @@ const UserFlowAnimation = memo(function UserFlowAnimation({ onStepClick }: { onS
     },
     { 
       id: 5, 
-      title: "Application", 
-      icon: "💰", 
-      description: "Apply for funding",
+      title: "Submit & Track", 
+      icon: "🚀", 
+      description: "Apply and get funding",
       color: "from-yellow-500 to-orange-500"
     }
   ];
 
-  // Auto-advance through steps
+  // Auto-advance through steps - slower animation
   useEffect(() => {
     if (shouldReduceMotion) return;
     
     const interval = setInterval(() => {
       setCurrentStep((prev) => (prev + 1) % flowSteps.length);
-    }, 3000);
+    }, 5000); // Increased from 3000ms to 5000ms for slower animation
     
     return () => clearInterval(interval);
   }, [shouldReduceMotion, flowSteps.length]);
@@ -126,18 +126,26 @@ const UserFlowAnimation = memo(function UserFlowAnimation({ onStepClick }: { onS
                   delay: shouldReduceMotion ? 0 : 0.2 + (index * 0.1),
                   duration: 0.5
                 }}
-                className={`relative p-3 rounded-md bg-white/5 backdrop-blur-sm border transition-all duration-300 cursor-pointer hover:bg-white/10 hover:border-white/30 ${
+                className={`relative p-4 rounded-lg bg-white/5 backdrop-blur-sm border transition-all duration-500 cursor-pointer hover:bg-white/10 hover:border-white/30 ${
                   currentStep === index 
-                    ? 'border-white/40 bg-white/10' 
+                    ? 'border-white/40 bg-white/10 scale-105' 
                     : 'border-white/10'
                 }`}
                 style={{ width: '140px' }}
                 onClick={() => onStepClick?.(step.id)}
               >
                 {/* Step Icon */}
-                <div className={`w-7 h-7 mx-auto mb-2 bg-white/20 rounded-full flex items-center justify-center text-white text-sm font-bold`}>
+                <motion.div 
+                  className={`mx-auto mb-2 bg-white/20 rounded-full flex items-center justify-center text-white font-bold ${
+                    currentStep === index ? 'w-8 h-8 text-base' : 'w-7 h-7 text-sm'
+                  }`}
+                  animate={{
+                    scale: currentStep === index ? 1.1 : 1,
+                  }}
+                  transition={{ duration: 0.3 }}
+                >
                   {step.icon}
-                </div>
+                </motion.div>
                 
                 {/* Step Content */}
                 <div className="text-center">
@@ -176,22 +184,23 @@ export function Hero({
   onStepClick
 }: HeroProps = {}) {
   // Locked copy as specified
-  const heroTitle = "Freedom starts with a plan — let's build yours.";
+  const heroTitle = "Freedom starts with a Plan";
+  const heroTitleSecond = "Let's build yours.";
   const heroSubtitle = "Find funding options for your business and build an application-ready Business Plan tailored to Grants, Investors or Bank Loans (DE/EN). Start free.";
   const heroPrimaryButton = "Get funding matches";
   const heroSecondaryButton = "Start your plan";
 
   return (
     <section 
-      className="relative min-h-[80vh] flex items-center overflow-hidden bg-gradient-to-b from-slate-900 via-blue-900 to-slate-800"
+      className="relative min-h-[60vh] flex items-center overflow-hidden bg-gradient-to-b from-slate-900 via-blue-900 to-slate-800"
       aria-label="Hero section with main value proposition"
     >
       {/* Background */}
       <BlueprintGrid />
 
       {/* Main Content */}
-      <div className="relative z-20 w-full max-w-6xl px-6 sm:px-8 lg:px-12 py-8 md:py-12 mx-auto">
-        <div className="flex flex-col items-center space-y-12">
+      <div className="relative z-20 w-full max-w-6xl px-6 sm:px-8 lg:px-12 py-6 md:py-8 mx-auto">
+        <div className="flex flex-col items-center space-y-8">
           
           {/* Text Content - Full Width */}
           <div className="text-center max-w-4xl">
@@ -199,24 +208,25 @@ export function Hero({
               initial={{ opacity: 0, y: 30 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.8 }}
-              className="text-4xl sm:text-5xl lg:text-6xl xl:text-7xl font-extrabold text-white leading-tight mb-8 text-wrap-balance tracking-tight xl:tracking-tighter"
+              className="text-4xl sm:text-5xl lg:text-6xl xl:text-7xl font-extrabold text-white leading-tight mb-4 text-wrap-balance tracking-tight xl:tracking-tighter"
               style={{ textWrap: 'balance' }}
             >
-              {heroTitle}
+              <div>{heroTitle}</div>
+              <div className="text-blue-200">{heroTitleSecond}</div>
             </motion.h1>
             
             <motion.p 
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.3, duration: 0.8 }}
-              className="text-xl md:text-2xl text-blue-100 mb-8 leading-relaxed"
+              className="text-xl md:text-2xl text-blue-100 mb-6 leading-relaxed"
             >
               {heroSubtitle}
             </motion.p>
           </div>
 
           {/* User Flow Animation - Horizontal */}
-          <div className="w-full mb-8">
+          <div className="w-full mb-4">
             <UserFlowAnimation onStepClick={onStepClick} />
           </div>
 

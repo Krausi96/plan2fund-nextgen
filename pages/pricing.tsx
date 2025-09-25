@@ -1,5 +1,4 @@
-﻿import { CheckCircle } from "lucide-react";
-import Link from "next/link";
+﻿import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import HeroLite from "@/components/common/HeroLite";
 import CTAStrip from "@/components/common/CTAStrip";
@@ -8,32 +7,49 @@ import { useI18n } from "@/contexts/I18nContext";
 
 const plans = [
   { 
-    id: "custom",
-    title: "📘 Custom Business Plan", 
-    price: "€299", 
-    desc: "Your model is defined. We turn it into a submission-ready plan reviewers can read quickly.", 
-    features: ["Standard sections (Exec Summary → Financials)", "Financial tables (revenue, costs, cash flow, use of funds)", "Submission checklist for aws/FFG/Wirtschaftsagentur or bank", "Export: PDF/DOCX (DE/EN)"],
-    mode: "custom",
-    badges: ["DE/EN", "PDF/DOCX", "Checklist"]
-  },
-  { 
-    id: "upgrade",
-    title: "🔍 Upgrade & Review", 
-    price: "€149", 
-    desc: "Have a plan or partial draft? We fix structure, fill gaps, and polish it to the required outline.", 
-    features: ["Gap report vs. selected outline (aws/FFG/WA/bank/visa)", "Rewrite + reformat; add missing sections/financials", "Tracked changes for your approval", "Export: PDF/DOCX (DE/EN)"],
-    mode: "upgrade",
-    featured: true,
-    badges: ["DE/EN", "PDF/DOCX", "Gap report"]
-  },
-  { 
     id: "strategy",
-    title: "🧩 Strategy & Modelling Plan", 
-    price: "€99", 
-    desc: "Idea not fully defined? We turn it into a clear business model and go-to-market.", 
-    features: ["Value prop, ideal customer, pricing & positioning", "Unit economics + milestones / next steps", "Upgrade path to full Business Plan", "Deliverable in DE/EN"],
+    title: "🧩 Strategy Document (Business Model & GTM)", 
+    price: "From €99", 
+    desc: "Turn your idea into a clear **business model & go-to-market** you can build on.", 
+    features: [
+      "Value prop, ideal customer, pricing & positioning",
+      "First channels and launch plan (GTM)",
+      "Unit economics (simple) + milestones / next steps"
+    ],
     mode: "strategy",
-    badges: ["DE/EN", "Short plan", "Upgrade path"]
+    badges: ["DE/EN", "PDF/DOCX", "Edit anytime"],
+    helper: "Start from scratch or paste notes per section.",
+    cta: "Start Strategy"
+  },
+  { 
+    id: "review",
+    title: "🔄 Update & Review (bring your text)", 
+    price: "From €149", 
+    desc: "Paste what you have — we **structure, fix gaps & polish** it to the expected outline.", 
+    features: [
+      "Gap notes by section (what's missing / needs rewrite)",
+      "Financial tables added/tidied (revenue, costs, cash-flow, use of funds)",
+      "Submission alignment for aws/FFG/Wirtschaftsagentur/bank/visa"
+    ],
+    mode: "review",
+    badges: ["DE/EN", "PDF/DOCX", "Edit anytime"],
+    helper: "No upload needed — paste directly into sections.",
+    cta: "Start Update & Review"
+  },
+  { 
+    id: "custom",
+    title: "📘 Submission-Ready Business Plan", 
+    price: "From €299", 
+    desc: "Application-ready plan in the order reviewers expect — for **grants, visas, or bank loans**.", 
+    features: [
+      "Standard sections (Executive Summary → Financials)",
+      "Tables: revenue, costs, cash-flow, use of funds",
+      "Submission checklist (aws/FFG/WA/bank/visa)"
+    ],
+    mode: "custom",
+    badges: ["DE/EN", "PDF/DOCX", "Edit anytime"],
+    helper: "Start clean or paste parts you've already written.",
+    cta: "Start Business Plan"
   },
 ];
 
@@ -53,16 +69,14 @@ export default function Pricing() {
         <section id="plans" className="max-w-6xl mx-auto py-12 grid md:grid-cols-3 gap-8 px-4">
           <h1 className="sr-only">{t('pricing.title')}</h1>
           {plans.map((plan, i) => (
-            <div key={i} className={`rounded-2xl border shadow-sm p-6 bg-white hover:shadow-md transition ${
-              plan.featured ? 'border-blue-200 bg-blue-50' : ''
-            }`}>
+            <div key={i} className="rounded-2xl border shadow-sm p-6 bg-white hover:shadow-md transition">
               <h2 className="text-xl font-bold">{plan.title}</h2>
-              <p className="text-gray-600 mt-2">{plan.desc}</p>
-              <p className="text-lg font-semibold mt-4">{plan.price}</p>
+              <p className="text-gray-600 mt-2" dangerouslySetInnerHTML={{ __html: plan.desc }}></p>
+              <p className="text-lg font-semibold mt-4 text-blue-600">{plan.price}</p>
               <ul className="mt-6 space-y-2">
                 {plan.features.map((f, j) => (
-                  <li key={j} className="flex items-center space-x-2 text-gray-600">
-                    <CheckCircle className="h-5 w-5 text-blue-500" />
+                  <li key={j} className="flex items-start space-x-2 text-gray-600">
+                    <span className="text-blue-500 mr-2 mt-0.5">•</span>
                     <span>{f}</span>
                   </li>
                 ))}
@@ -76,220 +90,203 @@ export default function Pricing() {
                 ))}
               </div>
               
-              {/* Action Buttons */}
-              <div className="mt-6 space-y-3">
-                <Link href={`/confirm?plan=${plan.id}&mode=${plan.mode}`} className="block">
+              {/* Helper text */}
+              <p className="text-xs text-gray-500 mt-3">{plan.helper}</p>
+              
+              {/* Action Button */}
+              <div className="mt-6">
+                <Link href={`/editor?plan=${plan.mode}`} className="block">
                   <Button className="w-full">
-                    {plan.mode === 'upgrade' ? 'Upload & Review' : `Choose ${plan.title.split(' ')[0]}`}
+                    {plan.cta}
                   </Button>
                 </Link>
-                <a 
-                  href={`#${plan.id}`} 
-                  className="block text-center text-sm text-blue-600 hover:text-blue-800 transition-colors"
-                >
-                  View details ↓
-                </a>
               </div>
             </div>
           ))}
         </section>
 
-        {/* Detailed Plan Sections */}
-        <section className="max-w-4xl mx-auto py-16 px-4">
+        {/* Plan Details */}
+        <section className="max-w-6xl mx-auto py-16 px-4">
           <div className="text-center mb-12">
-            <h2 className="text-2xl font-bold text-gray-900 mb-4">Detailed Information</h2>
-            <p className="text-gray-600">Learn more about each plan option below</p>
+            <h2 className="text-2xl font-bold text-gray-900 mb-4">{t('pricing.planDetails')}</h2>
           </div>
+          
           <div className="space-y-16">
             
-            {/* Custom Business Plan Details */}
-            <div id="custom" className="scroll-mt-20">
-              <h2 className="text-2xl font-bold text-gray-900 mb-6">📘 Custom Business Plan <span className="text-sm bg-gray-100 text-gray-600 px-2 py-1 rounded">15–35 pages</span></h2>
-              
-              <div className="space-y-6">
-                <div>
-                  <h3 className="text-lg font-semibold text-gray-900 mb-3">Ideal when:</h3>
-                  <ul className="text-gray-700 space-y-1">
-                    <li>• Your model is defined (offer, market, target group, pricing, channels).</li>
-                    <li>• You need a plan for a visa/grant/bank submission (DE or EN).</li>
-                    <li>• You want a coherent document reviewers can scan quickly.</li>
-                  </ul>
-                </div>
-
-                <div>
-                  <h3 className="text-lg font-semibold text-gray-900 mb-3">You provide:</h3>
-                  <ul className="text-gray-700 space-y-1">
-                    <li>• Your model summary and goals.</li>
-                    <li>• Basic numbers (price, volumes, costs, investment need).</li>
-                    <li>• Target program/bank/visa (if known).</li>
-                  </ul>
-                </div>
-
-                <div>
-                  <h3 className="text-lg font-semibold text-gray-900 mb-3">What you get (deliverables):</h3>
-                  <ul className="text-gray-700 space-y-1">
-                    <li>• A 15–35 page plan in the order reviewers expect (Executive Summary, Problem/Solution, Market & Competition, Product/Operations, Team, Go-to-Market, Financials, Risks).</li>
-                    <li>• Financial tables: revenue model, cost breakdown, cash-flow template, use of funds.</li>
-                    <li>• Checklist matched to aws/FFG/Wirtschaftsagentur or bank requirements.</li>
-                    <li>• Clear wording; we edit, you approve.</li>
-                    <li>• Export: <strong>PDF/DOCX</strong> in <strong>DE/EN</strong>.</li>
-                  </ul>
-                </div>
-
-                <div>
-                  <h3 className="text-lg font-semibold text-gray-900 mb-3">Advantages:</h3>
-                  <ul className="text-gray-700 space-y-1">
-                    <li>• Cuts back-and-forth by matching familiar structure.</li>
-                    <li>• Faster first draft than starting from scratch.</li>
-                    <li>• Bilingual output when needed.</li>
-                  </ul>
-                </div>
-
-                <div>
-                  <h3 className="text-lg font-semibold text-gray-900 mb-3">Format & output:</h3>
-                  <p className="text-gray-700">DE/EN · 15–35 pages · PDF/DOCX.</p>
-                </div>
-
-                <div>
-                  <h3 className="text-lg font-semibold text-gray-900 mb-3">Not included:</h3>
-                  <p className="text-gray-700">Legal/immigration advice; audited statements; <strong>no approval guarantee</strong>.</p>
-                </div>
-
-                <div>
-                  <h3 className="text-lg font-semibold text-gray-900 mb-3">Good next step:</h3>
-                  <p className="text-gray-700 mb-4">Later edits via <strong>Upgrade & Review</strong>. If the model is unclear, start with <strong>Strategy & Modelling</strong>.</p>
-                  <a 
-                    href="/editor?plan=custom"
-                    className="inline-block px-6 py-3 bg-blue-600 text-white rounded-lg font-semibold hover:bg-blue-700 transition-colors duration-300"
-                  >
-                    Start Custom Plan
-                  </a>
-                </div>
-              </div>
-            </div>
-
-            {/* Upgrade & Review Details */}
-            <div id="upgrade" className="scroll-mt-20">
-              <h2 className="text-2xl font-bold text-gray-900 mb-6">🔍 Upgrade & Review <span className="text-sm bg-gray-100 text-gray-600 px-2 py-1 rounded">bring your draft</span></h2>
-              
-              <div className="space-y-6">
-                <div>
-                  <h3 className="text-lg font-semibold text-gray-900 mb-3">Ideal when:</h3>
-                  <ul className="text-gray-700 space-y-1">
-                    <li>• You already have a plan/draft/sections.</li>
-                    <li>• The outline or formatting doesn't match aws/FFG/WA/bank/visa expectations.</li>
-                    <li>• You're missing sections or financials.</li>
-                  </ul>
-                </div>
-
-                <div>
-                  <h3 className="text-lg font-semibold text-gray-900 mb-3">You provide:</h3>
-                  <ul className="text-gray-700 space-y-1">
-                    <li>• Your current document(s) and target program/bank template (if any).</li>
-                    <li>• Latest numbers and any reviewer feedback.</li>
-                  </ul>
-                </div>
-
-                <div>
-                  <h3 className="text-lg font-semibold text-gray-900 mb-3">What you get (deliverables):</h3>
-                  <ul className="text-gray-700 space-y-1">
-                    <li>• Gap report vs. the required outline.</li>
-                    <li>• Rewrite + restructure; formatting to the expected style.</li>
-                    <li>• Missing sections/financials added.</li>
-                    <li>• Tracked changes so you keep control.</li>
-                    <li>• Export: <strong>PDF/DOCX</strong> in <strong>DE/EN</strong>.</li>
-                  </ul>
-                </div>
-
-                <div>
-                  <h3 className="text-lg font-semibold text-gray-900 mb-3">Advantages:</h3>
-                  <ul className="text-gray-700 space-y-1">
-                    <li>• Keeps your voice; fixes only what's needed.</li>
-                    <li>• Aligns to reviewer expectations without a full rewrite.</li>
-                    <li>• Quicker turnaround than writing new.</li>
-                  </ul>
-                </div>
-
-                <div>
-                  <h3 className="text-lg font-semibold text-gray-900 mb-3">Format & output:</h3>
-                  <p className="text-gray-700">DE/EN · Revised submission-ready plan · PDF/DOCX.</p>
-                </div>
-
-                <div>
-                  <h3 className="text-lg font-semibold text-gray-900 mb-3">Not included:</h3>
-                  <p className="text-gray-700">Legal/visa advice; approval guarantees; audited financials.</p>
-                </div>
-
-                <div>
-                  <h3 className="text-lg font-semibold text-gray-900 mb-3">Good next step:</h3>
-                  <p className="text-gray-700 mb-4">If foundations are weak, pair with <strong>Strategy & Modelling</strong>.</p>
-                  <a 
-                    href="/editor?plan=upgrade"
-                    className="inline-block px-6 py-3 bg-blue-600 text-white rounded-lg font-semibold hover:bg-blue-700 transition-colors duration-300"
-                  >
-                    Upload your draft
-                  </a>
-                </div>
-              </div>
-            </div>
-
-            {/* Strategy & Modelling Plan Details */}
+            {/* Strategy Document Details */}
             <div id="strategy" className="scroll-mt-20">
-              <h2 className="text-2xl font-bold text-gray-900 mb-6">🧩 Strategy & Modelling Plan <span className="text-sm bg-gray-100 text-gray-600 px-2 py-1 rounded">4–8 pages</span></h2>
+              <h3 className="text-2xl font-bold text-gray-900 mb-8">🧩 Strategy Document (Business Model & GTM)</h3>
               
+              <div className="grid lg:grid-cols-2 gap-8">
               <div className="space-y-6">
                 <div>
-                  <h3 className="text-lg font-semibold text-gray-900 mb-3">Ideal when:</h3>
+                    <h4 className="text-lg font-semibold text-gray-900 mb-3">What it's for</h4>
                   <ul className="text-gray-700 space-y-1">
-                    <li>• Idea is early or pivoting; target group/pricing/positioning are not final.</li>
-                    <li>• You need a concise brief to align co-founders or advisors.</li>
+                      <li>• Early ideas or pivots that need clarity before a full plan</li>
+                      <li>• Decide target customer, pricing and first channels</li>
                   </ul>
                 </div>
 
-                <div>
-                  <h3 className="text-lg font-semibold text-gray-900 mb-3">You provide:</h3>
+                  <div className="border-t pt-4">
+                    <h4 className="text-lg font-semibold text-gray-900 mb-3">You provide</h4>
                   <ul className="text-gray-700 space-y-1">
-                    <li>• Idea description, goals, constraints; any notes on market/competitors.</li>
+                      <li>• Idea and goals</li>
+                      <li>• Notes on market/competitors (optional)</li>
+                      <li>• Rough numbers (optional)</li>
                   </ul>
                 </div>
 
-                <div>
-                  <h3 className="text-lg font-semibold text-gray-900 mb-3">What you get (deliverables):</h3>
+                  <div className="border-t pt-4">
+                    <h4 className="text-lg font-semibold text-gray-900 mb-3">What you get</h4>
                   <ul className="text-gray-700 space-y-1">
-                    <li>• Strategy brief: value proposition, ideal customer, pricing & positioning, channels, MVP scope.</li>
-                    <li>• Unit economics sketch (how you make money).</li>
-                    <li>• Milestones & next steps; risk & assumptions log.</li>
-                    <li>• Export: <strong>PDF/DOCX</strong> in <strong>DE/EN</strong>.</li>
+                      <li>• Business model & GTM summary (value prop, ICP, pricing/positioning, channels)</li>
+                      <li>• Unit economics sketch + milestones / next steps</li>
+                      <li>• DE/EN deliverable you can later extend to a full plan</li>
+                  </ul>
+                </div>
+                </div>
+
+                <div className="space-y-6">
+                <div>
+                    <h4 className="text-lg font-semibold text-gray-900 mb-3">Outline</h4>
+                    <div className="flex flex-wrap gap-2">
+                      {["Value Prop", "Customer", "Pricing/Positioning", "Channels", "Launch Plan", "Unit Economics", "Milestones"].map((item, index) => (
+                        <span key={index} className="text-sm bg-gray-100 text-gray-700 px-3 py-1 rounded-full">
+                          {item}
+                        </span>
+                      ))}
+                    </div>
+                </div>
+
+                  <div className="border-t pt-4">
+                    <h4 className="text-lg font-semibold text-gray-900 mb-3">Export & language</h4>
+                    <p className="text-gray-700">PDF/DOCX · DE/EN · 4–8 pages</p>
+                </div>
+
+                  <div className="border-t pt-4">
+                    <Link href="/editor?plan=strategy" className="inline-block">
+                      <Button>Start Strategy</Button>
+                    </Link>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {/* Update & Review Details */}
+            <div id="review" className="scroll-mt-20">
+              <h3 className="text-2xl font-bold text-gray-900 mb-8">🔄 Update & Review</h3>
+              
+              <div className="grid lg:grid-cols-2 gap-8">
+              <div className="space-y-6">
+                <div>
+                    <h4 className="text-lg font-semibold text-gray-900 mb-3">What it's for</h4>
+                  <ul className="text-gray-700 space-y-1">
+                      <li>• You have text/drafts and want a plan that passes checks</li>
+                      <li>• Bring structure, fill gaps, add missing financials</li>
                   </ul>
                 </div>
 
-                <div>
-                  <h3 className="text-lg font-semibold text-gray-900 mb-3">Advantages:</h3>
+                  <div className="border-t pt-4">
+                    <h4 className="text-lg font-semibold text-gray-900 mb-3">You provide</h4>
                   <ul className="text-gray-700 space-y-1">
-                    <li>• Turns a fuzzy idea into a concrete model.</li>
-                    <li>• Creates a base you can upgrade to a full plan.</li>
+                      <li>• Your existing text (paste by section)</li>
+                      <li>• Target route (aws/FFG/WA/bank/visa), if known</li>
+                      <li>• Latest basic numbers</li>
                   </ul>
                 </div>
 
-                <div>
-                  <h3 className="text-lg font-semibold text-gray-900 mb-3">Format & output:</h3>
-                  <p className="text-gray-700">DE/EN · 4–8 pages · PDF/DOCX.</p>
+                  <div className="border-t pt-4">
+                    <h4 className="text-lg font-semibold text-gray-900 mb-3">What you get</h4>
+                  <ul className="text-gray-700 space-y-1">
+                      <li>• Section-by-section gap notes + restructured content</li>
+                      <li>• Financial tables added or cleaned (revenue, costs, cash-flow, use of funds)</li>
+                      <li>• Submission alignment notes + formatting to expected style</li>
+                  </ul>
+                </div>
                 </div>
 
+                <div className="space-y-6">
                 <div>
-                  <h3 className="text-lg font-semibold text-gray-900 mb-3">Not included:</h3>
-                  <p className="text-gray-700">Market due-diligence reports; legal/visa advice; any approval guarantee.</p>
+                    <h4 className="text-lg font-semibold text-gray-900 mb-3">Outline</h4>
+                    <div className="flex flex-wrap gap-2">
+                      {["Exec Summary", "Market/Competition", "Product/Operations", "Team", "GTM", "Financials", "Risks"].map((item, index) => (
+                        <span key={index} className="text-sm bg-gray-100 text-gray-700 px-3 py-1 rounded-full">
+                          {item}
+                        </span>
+                      ))}
+                    </div>
                 </div>
 
+                  <div className="border-t pt-4">
+                    <h4 className="text-lg font-semibold text-gray-900 mb-3">Export & language</h4>
+                    <p className="text-gray-700">PDF/DOCX · DE/EN · length depends on your material</p>
+                </div>
+
+                  <div className="border-t pt-4">
+                    <Link href="/editor?plan=review" className="inline-block">
+                      <Button>Start Update & Review</Button>
+                    </Link>
+                    <p className="text-xs text-gray-500 mt-2">Paste, don't upload — edit everything in the builder.</p>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {/* Submission-Ready Business Plan Details */}
+            <div id="custom" className="scroll-mt-20">
+              <h3 className="text-2xl font-bold text-gray-900 mb-8">📘 Submission-Ready Business Plan</h3>
+              
+              <div className="grid lg:grid-cols-2 gap-8">
+              <div className="space-y-6">
                 <div>
-                  <h3 className="text-lg font-semibold text-gray-900 mb-3">Good next step:</h3>
-                  <p className="text-gray-700 mb-4">Move to <strong>Custom Business Plan</strong> when the model is set.</p>
-                  <a 
-                    href="/editor?plan=strategy"
-                    className="inline-block px-6 py-3 bg-blue-600 text-white rounded-lg font-semibold hover:bg-blue-700 transition-colors duration-300"
-                  >
-                    Start Strategy Plan
-                  </a>
+                    <h4 className="text-lg font-semibold text-gray-900 mb-3">What it's for</h4>
+                  <ul className="text-gray-700 space-y-1">
+                      <li>• Grants (aws/FFG/WA/EU), visas or bank loans when your model is defined</li>
+                      <li>• A plan reviewers can scan in the expected order</li>
+                  </ul>
+                </div>
+
+                  <div className="border-t pt-4">
+                    <h4 className="text-lg font-semibold text-gray-900 mb-3">You provide</h4>
+                  <ul className="text-gray-700 space-y-1">
+                      <li>• Model summary (offer, customer, pricing, channels)</li>
+                      <li>• Basic numbers (price, volumes, costs, funding need)</li>
+                      <li>• Target program/bank/visa (if known)</li>
+                  </ul>
+                </div>
+
+                  <div className="border-t pt-4">
+                    <h4 className="text-lg font-semibold text-gray-900 mb-3">What you get</h4>
+                  <ul className="text-gray-700 space-y-1">
+                      <li>• Full plan with standard sections (Exec Summary → Financials)</li>
+                      <li>• Tables: revenue model, cost breakdown, cash-flow, use of funds</li>
+                      <li>• Submission checklist aligned to your selected route</li>
+                  </ul>
+                </div>
+                </div>
+
+                <div className="space-y-6">
+                <div>
+                    <h4 className="text-lg font-semibold text-gray-900 mb-3">Outline</h4>
+                    <div className="flex flex-wrap gap-2">
+                      {["Exec Summary", "Problem/Solution", "Market/Competition", "Product/Operations", "Team", "GTM", "Financials", "Risks"].map((item, index) => (
+                        <span key={index} className="text-sm bg-gray-100 text-gray-700 px-3 py-1 rounded-full">
+                          {item}
+                        </span>
+                      ))}
+                    </div>
+                </div>
+
+                  <div className="border-t pt-4">
+                    <h4 className="text-lg font-semibold text-gray-900 mb-3">Export & language</h4>
+                    <p className="text-gray-700">PDF/DOCX · DE/EN · 15–35 pages</p>
+                </div>
+
+                  <div className="border-t pt-4">
+                    <Link href="/editor?plan=custom" className="inline-block">
+                      <Button>Start Business Plan</Button>
+                    </Link>
+                  </div>
                 </div>
               </div>
             </div>
@@ -297,31 +294,15 @@ export default function Pricing() {
           </div>
         </section>
 
-        {/* Add-ons Section */}
-        <section className="max-w-4xl mx-auto py-16 px-4">
-          <div className="text-center mb-12">
-            <h2 className="text-2xl font-bold text-gray-900 mb-4">Add-ons</h2>
-            <p className="text-gray-600">Optional enhancements to your plan</p>
-          </div>
-          
-          <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {[
-              "Deep Financial Model",
-              "Extra Revision", 
-              "Provider Form Help",
-              "Rush Delivery",
-              "Pitch Deck Outline"
-            ].map((addon, index) => (
-              <div key={index} className="bg-gray-50 rounded-lg p-4 text-center">
-                <h3 className="font-semibold text-gray-900 mb-2">{addon}</h3>
-                <p className="text-sm text-gray-600">Priced by scope</p>
-              </div>
-            ))}
-          </div>
-          
-          <div className="mt-8 text-center">
-            <p className="text-sm text-gray-600">
-              Add-ons are optional and priced by scope.
+        {/* Add-on Pack Section */}
+        <section id="addons" className="max-w-4xl mx-auto py-16 px-4">
+          <div className="text-center mb-8">
+            <h2 className="text-2xl font-bold text-gray-900 mb-4">{t('pricing.addonPack')}</h2>
+            <p className="text-gray-600">
+              {t('pricing.addonPackDesc')}
+            </p>
+            <p className="text-sm text-gray-500 mt-4">
+              {t('pricing.addonPackNote')}
             </p>
           </div>
         </section>
