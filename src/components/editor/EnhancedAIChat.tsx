@@ -69,6 +69,38 @@ export default function EnhancedAIChat({
     return suggestions;
   };
 
+  // Get section-specific guidance
+  const getSectionGuidance = (sectionKey: string): string => {
+    const guidanceMap: Record<string, string> = {
+      'execSummary': 'Write a compelling executive summary that highlights your business opportunity, key metrics, and funding requirements. Keep it concise but comprehensive.',
+      'problemSolution': 'Clearly define the problem you\'re solving and how your solution addresses it. Include market validation and customer feedback.',
+      'productOverview': 'Describe your product or service in detail. Include features, benefits, and how it works.',
+      'companyTeam': 'Introduce your team, their backgrounds, and why they\'re qualified to execute this business plan.',
+      'marketCompetition': 'Analyze your target market size, growth potential, and competitive landscape.',
+      'gtmStrategy': 'Explain how you\'ll reach customers, pricing strategy, and sales approach.',
+      'financials': 'Provide detailed financial projections including revenue, costs, and cash flow.',
+      'risksMitigation': 'Identify key risks and how you\'ll mitigate them.',
+      'bmcCustomerSegments': 'Define your target customer segments and their characteristics.',
+      'bmcValueProposition': 'Explain the unique value you provide to customers.',
+      'bmcChannels': 'Describe how you\'ll reach and serve customers.',
+      'bmcCustomerRelationships': 'Explain how you\'ll build and maintain customer relationships.',
+      'bmcRevenueStreams': 'Detail how you\'ll generate revenue.',
+      'bmcKeyResources': 'List the key resources needed to deliver your value proposition.',
+      'bmcKeyActivities': 'Describe the most important activities for your business model.',
+      'bmcKeyPartnerships': 'Identify key partners and suppliers.',
+      'bmcCostStructure': 'Outline your cost structure and key cost drivers.',
+      'gtmTargetMarket': 'Define your target market and customer segments.',
+      'gtmPricing': 'Explain your pricing strategy and rationale.',
+      'gtmPromotion': 'Describe your marketing and promotional activities.',
+      'gtmDistributionChannels': 'Explain how you\'ll distribute your product or service.',
+      'gtmSalesTactics': 'Detail your sales process and tactics.',
+      'unitEconomicsSimple': 'Provide simple unit economics showing price, cost, and margin.',
+      'milestones': 'List key milestones and timelines for your business.'
+    };
+    
+    return guidanceMap[sectionKey] || `Provide detailed content for the ${sectionKey} section.`;
+  };
+
   // Generate "Make Compliant" action
   const handleMakeCompliant = async () => {
     setIsProcessing(true);
@@ -141,35 +173,65 @@ Generate compliant content that addresses these issues:
     setIsProcessing(true);
     
     try {
-      // Generate AI response based on plan context
-      const mockProgram = {
-        id: programProfile?.programId || 'unknown',
-        name: programProfile?.programId || 'Unknown Program',
-        type: 'grant',
-        amount: '€0',
-        eligibility: [],
-        requirements: [],
-        score: 0,
-        reasons: [],
-        risks: []
+      // Get current section content and context
+      const currentSectionContent = plan.sections.find(s => s.key === currentSection)?.content || '';
+      const readinessIssues = getReadinessIssues();
+      const programSuggestions = getProgramSuggestions();
+      
+      // Create enhanced context for AI
+      const context = {
+        currentSection,
+        currentContent: currentSectionContent,
+        planLanguage: plan.language,
+        planTone: plan.tone,
+        readinessIssues,
+        programSuggestions,
+        programRequirements: programProfile?.required || {},
+        programId: programProfile?.programId || 'unknown'
       };
       
+      // Generate AI response with enhanced context
       const response = await aiHelper.generateSectionContent(
         currentSection,
-        input,
-        mockProgram
+        `${input}\n\nContext: ${JSON.stringify(context)}`,
+        {
+          id: programProfile?.programId || 'unknown',
+          name: programProfile?.programId || 'Unknown Program',
+          type: programProfile?.route || 'grant',
+          amount: '€0',
+          eligibility: [],
+          requirements: programProfile?.required?.sections?.map(s => s.key) || [],
+          score: 0,
+          reasons: [],
+          risks: []
+        }
       );
       
       const aiMessage: ChatMessage = {
         id: (Date.now() + 1).toString(),
         type: 'ai',
         content: response.content,
-        timestamp: new Date()
+        timestamp: new Date(),
+        action: 'insert'
       };
       
       setMessages(prev => [...prev, aiMessage]);
     } catch (error) {
       console.error('Error generating response:', error);
+      
+      // Fallback response
+      const fallbackMessage: ChatMessage = {
+        id: (Date.now() + 1).toString(),
+        type: 'ai',
+        content: `I understand you're asking about "${input}" for the ${currentSection} section. Here's some guidance:
+
+${getSectionGuidance(currentSection)}
+
+Please provide more specific details about what you'd like help with, and I'll provide more targeted assistance.`,
+        timestamp: new Date()
+      };
+      
+      setMessages(prev => [...prev, fallbackMessage]);
     } finally {
       setIsProcessing(false);
     }
@@ -189,22 +251,50 @@ Generate compliant content that addresses these issues:
       icon: '✅'
     },
     {
-      label: 'Improve',
-      action: async () => {
-        // Implementation for improve action
-        console.log('Improve action');
+      label: 'Improve Content',
+      action: () => {
+        const prompt = `Improve the content for ${currentSection} section. Make it more compelling and professional.`;
+        setInput(prompt);
       },
-      description: 'Enhance content',
+      description: 'Enhance content quality',
       icon: '⚡'
     },
     {
-      label: 'Summarize',
-      action: async () => {
-        // Implementation for summarize action
-        console.log('Summarize action');
+      label: 'Add Structure',
+      action: () => {
+        const prompt = `Add proper structure and formatting to the ${currentSection} section with clear headings and bullet points.`;
+        setInput(prompt);
       },
-      description: 'Create summary',
-      icon: '📝'
+      description: 'Add structure and formatting',
+      icon: '📋'
+    },
+    {
+      label: 'Expand Content',
+      action: () => {
+        const prompt = `Expand the ${currentSection} section with more detailed information and examples.`;
+        setInput(prompt);
+      },
+      description: 'Add more details',
+      icon: '📈'
+    },
+    {
+      label: 'Fix Readiness',
+      action: () => {
+        const issues = getReadinessIssues();
+        const prompt = `Fix these readiness issues: ${issues.join(', ')}`;
+        setInput(prompt);
+      },
+      description: 'Address readiness issues',
+      icon: '🔧'
+    },
+    {
+      label: 'Generate Examples',
+      action: () => {
+        const prompt = `Generate specific examples and case studies for the ${currentSection} section.`;
+        setInput(prompt);
+      },
+      description: 'Generate examples',
+      icon: '💡'
     }
   ];
 
