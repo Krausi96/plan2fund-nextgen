@@ -11,8 +11,10 @@ export function WhoItsFor() {
       features: [
         t('whoItsFor.solo.features.0'),
         t('whoItsFor.solo.features.1'),
-        t('whoItsFor.solo.features.2')
+        t('whoItsFor.solo.features.2'),
+        t('whoItsFor.solo.features.3')
       ],
+      ideal: t('whoItsFor.solo.ideal'),
       color: "text-blue-600",
       bgColor: "bg-blue-50",
       emoji: "🚀",
@@ -26,11 +28,13 @@ export function WhoItsFor() {
       features: [
         t('whoItsFor.sme.features.0'),
         t('whoItsFor.sme.features.1'),
-        t('whoItsFor.sme.features.2')
+        t('whoItsFor.sme.features.2'),
+        t('whoItsFor.sme.features.3')
       ],
+      ideal: t('whoItsFor.sme.ideal'),
       color: "text-green-600",
       bgColor: "bg-green-50",
-      emoji: "🏢",
+      emoji: "✏️",
       href: "/reco?persona=sme",
       isPrimary: false
     },
@@ -40,11 +44,13 @@ export function WhoItsFor() {
       features: [
         t('whoItsFor.advisors.features.0'),
         t('whoItsFor.advisors.features.1'),
-        t('whoItsFor.advisors.features.2')
+        t('whoItsFor.advisors.features.2'),
+        t('whoItsFor.advisors.features.3')
       ],
+      ideal: t('whoItsFor.advisors.ideal'),
       color: "text-purple-600",
       bgColor: "bg-purple-50",
-      emoji: "🤝",
+      emoji: "📋",
       href: "/about#partners",
       isPrimary: false
     },
@@ -119,6 +125,27 @@ export function WhoItsFor() {
                       </li>
                     ))}
                   </ul>
+                  
+                  {/* Ideal text for all personas */}
+                  {persona.ideal && (
+                    <div className={`mt-4 p-3 rounded-lg border-l-4 ${
+                      persona.isPrimary 
+                        ? 'bg-blue-50 border-blue-400' 
+                        : persona.color.includes('green') 
+                          ? 'bg-green-50 border-green-400' 
+                          : 'bg-purple-50 border-purple-400'
+                    }`}>
+                      <p className={`text-sm font-medium ${
+                        persona.isPrimary 
+                          ? 'text-blue-800' 
+                          : persona.color.includes('green') 
+                            ? 'text-green-800' 
+                            : 'text-purple-800'
+                      }`}>
+                        {persona.ideal}
+                      </p>
+                    </div>
+                  )}
                 </div>
                 
                 {/* CTA */}
