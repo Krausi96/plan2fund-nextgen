@@ -13,6 +13,7 @@ import Figures from '../src/editor/figures/index';
 import AddonPack from '../src/editor/addons/AddonPack';
 import EnhancedAIChat from '../src/components/editor/EnhancedAIChat';
 import FormHelpModal from '../src/components/editor/FormHelpModal';
+import SectionEditor from '../src/components/editor/SectionEditor';
 import { PlanDocument, Route, Product, FigureRef } from '@/types/plan';
 import { ProgramProfile } from '@/types/reco';
 import { evaluate } from '../src/editor/readiness/engine';
@@ -179,6 +180,28 @@ export default function EditorPage() {
     setFigures(newFigures);
   };
 
+  const handleSectionContentChange = (sectionKey: string, content: string) => {
+    if (plan) {
+      const updatedSections = plan.sections.map(section => 
+        section.key === sectionKey 
+          ? { ...section, content }
+          : section
+      );
+      setPlan({ ...plan, sections: updatedSections });
+    }
+  };
+
+  const handleSectionStatusChange = (sectionKey: string, status: 'missing' | 'needs_fix' | 'aligned') => {
+    if (plan) {
+      const updatedSections = plan.sections.map(section => 
+        section.key === sectionKey 
+          ? { ...section, status }
+          : section
+      );
+      setPlan({ ...plan, sections: updatedSections });
+    }
+  };
+
   const handleAIContentInsert = (content: string, section: string) => {
     if (plan) {
       const updatedSections = plan.sections.map(s => 
@@ -334,15 +357,31 @@ export default function EditorPage() {
           {/* Center - Editor */}
           <div className="flex-1 p-6">
             <div className="max-w-4xl mx-auto space-y-6">
-              <h2 className="text-2xl font-bold">Editor Content</h2>
+              <div className="flex items-center justify-between mb-6">
+                <h2 className="text-2xl font-bold">Business Plan Editor</h2>
+                <div className="text-sm text-gray-500">
+                  {plan.sections.filter(s => s.status === 'aligned').length} of {plan.sections.length} sections complete
+                </div>
+              </div>
               
+              {/* Current Section Editor */}
+              {plan.sections.find(s => s.key === currentSection) && (
+                <SectionEditor
+                  section={plan.sections.find(s => s.key === currentSection)!}
+                  onContentChange={handleSectionContentChange}
+                  onStatusChange={handleSectionStatusChange}
+                  isActive={true}
+                  showProgress={true}
+                />
+              )}
+
               {/* Financial Tables */}
-              {plan.sections.find(s => s.key === 'financial_projections')?.tables && (
+              {plan.sections.find(s => s.key === 'financials')?.tables && (
                 <div className="bg-white border rounded-lg p-6">
                   <h3 className="text-lg font-semibold mb-4">Financial Tables</h3>
                   <FinancialTables
-                    tables={plan.sections.find(s => s.key === 'financial_projections')?.tables || {}}
-                    onTablesChange={(tables) => handleTablesChange('financial_projections', tables)}
+                    tables={plan.sections.find(s => s.key === 'financials')?.tables || {}}
+                    onTablesChange={(tables) => handleTablesChange('financials', tables)}
                     onFiguresChange={handleFiguresChange}
                     graphSettings={plan.settings.graphs}
                   />
@@ -355,20 +394,10 @@ export default function EditorPage() {
                   <Figures
                     figures={figures}
                     onFiguresChange={handleFiguresChange}
-                    tables={plan.sections.find(s => s.key === 'financial_projections')?.tables}
+                    tables={plan.sections.find(s => s.key === 'financials')?.tables}
                   />
                 </div>
               )}
-
-              {/* Sample Content */}
-              <div className="bg-white border rounded-lg p-6">
-                <h3 className="text-lg font-semibold mb-4">Sample Business Plan Content</h3>
-                <p className="text-gray-600">
-                  This is where the main editor content would go. The actual editor implementation 
-                  would be integrated here with rich text editing, section management, and content 
-                  generation capabilities.
-                </p>
-              </div>
             </div>
           </div>
 

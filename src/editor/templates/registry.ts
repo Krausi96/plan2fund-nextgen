@@ -92,6 +92,19 @@ export const TEMPLATES: Record<'strategy'|'submission'|'review', Template> = {
 };
 
 // Runtime template building functions
+export function buildRouteTemplate(template: Template, route: Route): Template {
+  const routeVariants = template.routeVariants?.[route];
+  if (!routeVariants) return template;
+  
+  return {
+    ...template,
+    sections: [
+      ...template.sections,
+      ...(routeVariants.sections || [])
+    ]
+  };
+}
+
 export function buildReviewTemplate(submissionTemplate: Template): Template {
   return {
     ...submissionTemplate,
@@ -104,18 +117,6 @@ export function buildReviewTemplate(submissionTemplate: Template): Template {
   };
 }
 
-export function buildRouteTemplate(baseTemplate: Template, route: Route): Template {
-  const routeVariant = baseTemplate.routeVariants?.[route];
-  if (!routeVariant) return baseTemplate;
-  
-  return {
-    ...baseTemplate,
-    sections: [
-      ...baseTemplate.sections,
-      ...(routeVariant.sections || [])
-    ]
-  };
-}
 
 export function upgradeStrategyToSubmission(strategySections: any[], mapping: Record<string, string>): any[] {
   const submissionSections: any[] = [];

@@ -35,8 +35,11 @@ export default function EnhancedAIChat({
 
   // Initialize AI helper with plan context
   const aiHelper = createAIHelper(
-    {}, // userAnswers - would be populated from plan data
-    {}, // programHints - would be loaded from data
+    plan.sections.reduce((acc, section) => {
+      acc[section.key] = section.content || '';
+      return acc;
+    }, {} as Record<string, string>), // Real plan data
+    programProfile?.required || {}, // Real program requirements
     200, // maxWords
     plan.tone || 'neutral',
     plan.language || 'en'
