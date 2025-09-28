@@ -49,9 +49,9 @@ function PricingDetailCard({
 
   const getIcon = (id: string) => {
     switch (id) {
-      case 'strategy': return '🧩';
-      case 'review': return '🔄';
-      case 'custom': return '📘';
+      case 'strategy': return '💡'; // Lightbulb for strategy/ideas
+      case 'review': return '✏️'; // Edit pencil for review/update
+      case 'custom': return '📋'; // Clipboard for submission-ready documents
       default: return '📋';
     }
   };
@@ -233,7 +233,7 @@ export function PricingDetails() {
   const details = [
     {
       id: "custom",
-      title: "📘 Submission-Ready Business Plan (15–35 pages)",
+      title: "Submission-Ready Business Plan (15–35 pages)",
       whoFor: "Who it's for",
       whoForDesc: "Submitting to aws/FFG/Wirtschaftsagentur/EU, banks/leasing, visas (RWR), or sharing with investors",
       youProvide: "You provide",
@@ -253,7 +253,7 @@ export function PricingDetails() {
     },
     {
       id: "review",
-      title: "🔄 Update & Review (existing text)",
+      title: "Update & Review (existing text)",
       whoFor: "Who it's for",
       whoForDesc: "You have a draft and need it aligned to grant/bank/visa/equity expectations",
       youProvide: "You provide",
@@ -273,7 +273,7 @@ export function PricingDetails() {
     },
     {
       id: "strategy",
-      title: "🧩 Strategy Document (Business Model & GTM) — 4–8 pages",
+      title: "Strategy Document (Business Model & GTM) — 4–8 pages",
       whoFor: "Who it's for",
       whoForDesc: "Early ideas/pivots — decide who to serve, what to charge, and how to launch",
       youProvide: "You provide",

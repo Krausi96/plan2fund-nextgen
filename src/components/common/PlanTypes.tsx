@@ -7,7 +7,8 @@ export function PlanTypes() {
   const planTypes = [
     {
       id: "strategy",
-      title: "🧩 Strategy Document (Business Model & GTM) — 4–8 pages",
+      title: "Strategy Document (Business Model & GTM) — 4–8 pages",
+      icon: "💡", // Lightbulb for strategy/ideas
       subtitle: "Turn your idea into a clear business model & go-to-market you can build on — upgradeable to a full plan.",
       features: [
         "Business Model Canvas snapshot (9 blocks) with concise assumptions",
@@ -22,7 +23,8 @@ export function PlanTypes() {
     },
     {
       id: "review",
-      title: "🔄 Update & Review (improve your existing text)",
+      title: "Update & Review (improve your existing text)",
+      icon: "✏️", // Edit pencil for review/update
       subtitle: "Paste your draft — we re-structure, complete missing parts, align to requirements, and polish.",
       features: [
         "Re-structure & completion (we add missing sections and financials)",
@@ -43,7 +45,8 @@ export function PlanTypes() {
     },
     {
       id: "custom",
-      title: "📘 Submission-Ready Business Plan — 15–35 pages",
+      title: "Submission-Ready Business Plan — 15–35 pages",
+      icon: "📋", // Clipboard for submission-ready documents
       subtitle: "Application-ready plan for grants, banks, visas, or equity investors — in the order reviewers expect.",
       features: [
         "Standard sections (Executive Summary → Financials)",
@@ -95,7 +98,7 @@ export function PlanTypes() {
               <div className="mb-6">
                 <div className="flex items-center mb-4">
                   <div className="w-12 h-12 rounded-xl bg-blue-50 flex items-center justify-center mr-4 group-hover:bg-blue-100 transition-colors">
-                    <span className="text-2xl">{plan.title.includes('Strategy') ? '🧩' : plan.title.includes('Review') ? '🔄' : '📘'}</span>
+                    <span className="text-2xl">{plan.icon}</span>
                   </div>
                   <div>
                     <h3 className="text-xl font-bold text-neutral-900 group-hover:text-blue-600 transition-colors">
