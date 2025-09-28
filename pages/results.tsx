@@ -210,7 +210,11 @@ export default function ResultsPage() {
                 localStorage.setItem('userAnswers', JSON.stringify(_userAnswers));
                 localStorage.setItem('enhancedPayload', JSON.stringify(enhancedPayload));
                 
-                router.push('/editor?programId=' + selectedProgram.id + '&answers=' + encodeURIComponent(JSON.stringify(_userAnswers)) + '&pf=' + encodeURIComponent(JSON.stringify(enhancedPayload)));
+                // Extract route from program type and set product
+                const route = selectedProgram.type?.toLowerCase() || 'grant';
+                const product = 'submission'; // Default to submission-ready business plan
+                
+                router.push(`/editor?programId=${selectedProgram.id}&route=${route}&product=${product}&answers=${encodeURIComponent(JSON.stringify(_userAnswers))}&pf=${encodeURIComponent(JSON.stringify(enhancedPayload))}`);
               }}
               className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700"
             >
@@ -452,7 +456,11 @@ export default function ResultsPage() {
                         localStorage.setItem('userAnswers', JSON.stringify(_userAnswers));
                         localStorage.setItem('enhancedPayload', JSON.stringify(enhancedPayload));
                         
-                        router.push('/editor?programId=' + program.id + '&answers=' + encodeURIComponent(JSON.stringify(_userAnswers)) + '&pf=' + encodeURIComponent(JSON.stringify(enhancedPayload)));
+                        // Extract route from program type and set product
+                        const route = program.type?.toLowerCase() || 'grant';
+                        const product = 'submission'; // Default to submission-ready business plan
+                        
+                        router.push(`/editor?programId=${program.id}&route=${route}&product=${product}&answers=${encodeURIComponent(JSON.stringify(_userAnswers))}&pf=${encodeURIComponent(JSON.stringify(enhancedPayload))}`);
                       }}
                     >
                       {t('results.prefillContinue')}

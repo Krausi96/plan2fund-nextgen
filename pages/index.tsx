@@ -24,16 +24,16 @@ export default function Home() {
     // Map step IDs to different actions
     switch (stepId) {
       case 1: // Idea - Define Business Concept
-        router.push('/editor');
+        router.push('/reco?product=strategy');
         break;
       case 2: // Business Model - Prepare Market Entry
-        router.push('/editor');
+        router.push('/reco?product=strategy');
         break;
       case 3: // Funding - Find Funding Options
         router.push('/reco');
         break;
       case 4: // Business Plan - Build your Business Plan
-        router.push('/editor');
+        router.push('/reco?product=submission');
         break;
       case 5: // Application - Apply for funding
         router.push('/reco');

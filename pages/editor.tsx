@@ -14,17 +14,16 @@ import AddonPack from '../src/editor/addons/AddonPack';
 import EnhancedAIChat from '../src/components/editor/EnhancedAIChat';
 import FormHelpModal from '../src/components/editor/FormHelpModal';
 import SectionEditor from '../src/components/editor/SectionEditor';
-import { PlanDocument, Route, Product, FigureRef } from '@/types/plan';
+import { PlanDocument, Route, FigureRef } from '@/types/plan';
 import { ProgramProfile } from '@/types/reco';
 import { evaluate } from '../src/editor/readiness/engine';
 import { exportRenderer } from '../src/export/renderer';
 import { calculatePricing, getPricingSummary } from '../src/lib/pricing';
 import { useI18n } from '@/contexts/I18nContext';
-import { TEMPLATES, buildRouteTemplate } from '../src/editor/templates/registry';
 
 export default function EditorPage() {
   const router = useRouter();
-  const { locale, t } = useI18n();
+  const { t } = useI18n();
   const [plan, setPlan] = useState<PlanDocument | null>(null);
   const [programProfile, setProgramProfile] = useState<ProgramProfile | null>(null);
   const [isLoading, setIsLoading] = useState(true);
@@ -34,71 +33,21 @@ export default function EditorPage() {
   const [showFormHelp, setShowFormHelp] = useState(false);
   const [formHelpData, setFormHelpData] = useState<any>(null);
 
+  // Fallback for direct editor access without parameters
   useEffect(() => {
-    // Initialize from URL parameters
     const { route, programId, product } = router.query;
     
-    if (route && product) {
-      // Load template based on product and route
-      const baseTemplate = TEMPLATES[product as keyof typeof TEMPLATES];
-      let templateSections: any[] = [];
-      
-      if (baseTemplate) {
-        const routeTemplate = buildRouteTemplate(baseTemplate, route as Route);
-        templateSections = routeTemplate.sections.map(section => ({
-          key: section.key,
-          title: section.title,
-          content: '',
-          status: 'missing' as const,
-          guidance: section.guidance
-        }));
-      } else {
-        // Fallback to basic sections if template not found
-        templateSections = [
-          {
-            key: 'executive_summary',
-            title: 'Executive Summary',
-            content: '',
-            status: 'missing' as const
-          },
-          {
-            key: 'financial_projections',
-            title: 'Financial Projections',
-            content: '',
-            status: 'missing' as const
-          }
-        ];
-      }
-
-      const initialPlan: PlanDocument = {
-        id: `plan_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
-        ownerId: 'user_' + Date.now(),
-        product: product as Product,
-        route: route as Route,
-        programId: programId as string,
-        language: locale as 'de'|'en',
-        tone: 'neutral',
-        targetLength: 'standard',
-        settings: {
-          includeTitlePage: true,
-          includePageNumbers: true,
-          citations: 'simple',
-          captions: true,
-          graphs: {
-            revenueCosts: true,
-            cashflow: true,
-            useOfFunds: true
-          }
-        },
-        sections: templateSections,
-        addonPack: false,
-        versions: []
-      };
-      
-      setPlan(initialPlan);
-      setIsLoading(false);
+    // If no parameters, redirect to reco with default product
+    if (!route && !programId && !product) {
+      router.push('/reco?product=submission');
+      return;
     }
-  }, [router.query, locale]);
+    
+    // If we have parameters but no plan yet, show loading
+    if ((route || programId || product) && !plan) {
+      setIsLoading(true);
+    }
+  }, [router.query, plan, router]);
 
   const handleSave = () => {
     if (plan) {
