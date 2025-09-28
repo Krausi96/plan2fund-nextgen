@@ -2,8 +2,8 @@
 import { HowItWorks } from "@/components/common/HowItWorks"
 import { WhoItsFor } from "@/components/common/WhoItsFor"
 import { PlanTypes } from "@/components/common/PlanTypes"
-import { WhyAustria } from "@/components/common/WhyAustria"
 import { WhyPlan2Fund } from "@/components/common/WhyPlan2Fund"
+import { WhyAustria } from "@/components/common/WhyAustria"
 import CTAStrip from "@/components/common/CTAStrip"
 import SEOHead from "@/components/common/SEOHead"
 import { useI18n } from "@/contexts/I18nContext"
@@ -52,14 +52,14 @@ export default function Home() {
       
       <main className="flex flex-col">
         <Hero onStepClick={handleStepClick} />
-        <PlanTypes />
-        <WhoItsFor />
-        <WhyAustria />
-        <HowItWorks />
         <WhyPlan2Fund />
+        <WhoItsFor />
+        <PlanTypes />
+        <HowItWorks />
+        <WhyAustria />
         <CTAStrip
           title={t('cta.readyToFind')}
-          subtitle="Discover funding programs you qualify for and create a professional business plan in minutes."
+          subtitle={t('cta.joinFounders')}
           primaryAction={{
             label: t('cta.startPlan'),
             href: "/editor"

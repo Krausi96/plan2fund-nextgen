@@ -231,7 +231,7 @@ export function Hero({
               transition={{ delay: 0.3, duration: 0.8 }}
               className="text-lg md:text-xl text-white leading-relaxed"
             >
-              Find <span className="font-bold text-white">funding options</span> and build an <span className="font-bold text-white">application-ready Business Plan</span> tailored to Grants, Investors or Bank Loans. <span className="font-semibold text-white">Start free.</span>
+              {t('hero.subtitle.main')}
             </motion.p>
           </div>
 

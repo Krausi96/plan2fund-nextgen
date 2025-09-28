@@ -1,5 +1,5 @@
 import { motion } from "framer-motion";
-import { Search, FileText, CheckCircle } from "lucide-react";
+import { Search, FileText, CheckCircle, Upload } from "lucide-react";
 import { useI18n } from "@/contexts/I18nContext";
 
 export function HowItWorks() {
@@ -27,6 +27,13 @@ export function HowItWorks() {
       color: "text-purple-600",
       bgColor: "bg-purple-50",
     },
+    {
+      icon: Upload,
+      title: t('howItWorks.step4.title'),
+      description: t('howItWorks.step4.description'),
+      color: "text-orange-600",
+      bgColor: "bg-orange-50",
+    },
   ];
   return (
     <section className="section-padding bg-neutral-50">
@@ -46,7 +53,7 @@ export function HowItWorks() {
           </p>
         </motion.div>
 
-        <div className="grid md:grid-cols-3 gap-8 lg:gap-12">
+        <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-8 lg:gap-12">
           {steps.map((step, index) => (
             <motion.div
               key={index}

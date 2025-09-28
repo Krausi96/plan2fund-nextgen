@@ -1,7 +1,10 @@
 import { motion } from "framer-motion";
 import { Building2, Euro, Users } from "lucide-react";
+import { useI18n } from "@/contexts/I18nContext";
 
 export function WhyAustria() {
+  const { t } = useI18n();
+
   return (
     <section className="section-padding bg-white">
       <div className="container">
@@ -13,10 +16,10 @@ export function WhyAustria() {
           className="text-center mb-16"
         >
           <h2 className="text-4xl font-bold text-neutral-900 mb-4">
-            Why Austria? 🇦🇹
+            {t('whyAustria.title')}
           </h2>
           <p className="text-xl text-neutral-600 max-w-2xl mx-auto">
-            Austria offers one of Europe's most comprehensive funding ecosystems for startups and SMEs, with strong innovation culture, generous funding programs, and a supportive business environment.
+            {t('whyAustria.subtitle')}
           </p>
         </motion.div>
 
@@ -34,10 +37,10 @@ export function WhyAustria() {
               <Building2 className="w-8 h-8 text-blue-600" />
             </div>
             <h3 className="text-xl font-semibold text-neutral-900 mb-2">
-              Strong Innovation Ecosystem
+              {t('whyAustria.benefits.innovation.title')}
             </h3>
             <p className="text-neutral-600">
-              Austria ranks among Europe's top innovation hubs with world-class research institutions and supportive government policies.
+              {t('whyAustria.benefits.innovation.description')}
             </p>
           </div>
 
@@ -46,10 +49,10 @@ export function WhyAustria() {
               <Euro className="w-8 h-8 text-green-600" />
             </div>
             <h3 className="text-xl font-semibold text-neutral-900 mb-2">
-              Generous Funding Programs
+              {t('whyAustria.benefits.funding.title')}
             </h3>
             <p className="text-neutral-600">
-              From AWS PreSeed to EU Horizon programs, Austrian companies have access to over €1B in funding opportunities.
+              {t('whyAustria.benefits.funding.description')}
             </p>
           </div>
 
@@ -58,10 +61,10 @@ export function WhyAustria() {
               <Users className="w-8 h-8 text-purple-600" />
             </div>
             <h3 className="text-xl font-semibold text-neutral-900 mb-2">
-              Supportive Business Environment
+              {t('whyAustria.benefits.support.title')}
             </h3>
             <p className="text-neutral-600">
-              Low bureaucracy, excellent infrastructure, and a highly skilled workforce make Austria ideal for business growth.
+              {t('whyAustria.benefits.support.description')}
             </p>
           </div>
         </motion.div>
