@@ -1,49 +1,49 @@
 import { motion } from "framer-motion";
-// import { useI18n } from "@/contexts/I18nContext";
+import { useI18n } from "@/contexts/I18nContext";
 
 export function PlanTypes() {
-  // const { t } = useI18n();
+  const { t } = useI18n();
 
   const planTypes = [
     {
       id: "strategy",
-      title: "Strategy Document",
+      title: t("planTypes.strategy.title"),
       icon: "💡", // Lightbulb for strategy/ideas
-      subtitle: "Turn your idea into a clear business model & go-to-market you can build on — upgradeable to a full plan.",
+      subtitle: t("planTypes.strategy.subtitle"),
       features: [
-        "Business Model Canvas with guided questions",
-        "GTM essentials: target market, pricing, promotion, channels",
-        "Virtual funding expert for startup guidance",
-        "Readiness Check for pre-seed & early-stage programs"
+        t("planTypes.strategy.feature1"),
+        t("planTypes.strategy.feature2"),
+        t("planTypes.strategy.feature3"),
+        t("planTypes.strategy.feature4")
       ],
       href: "/pricing#strategy",
       hasRouteExtras: false
     },
     {
       id: "review",
-      title: "Upgrade & Review",
+      title: t("planTypes.review.title"),
       icon: "✏️", // Edit pencil for review/update
-      subtitle: "Paste your draft — we re-structure, complete missing parts, align to requirements, and polish.",
+      subtitle: t("planTypes.review.subtitle"),
       features: [
-        "Content restructuring & completion",
-        "Financial tables & cash flow projections",
-        "Virtual funding expert for content improvement",
-        "Readiness Check for all funding types"
+        t("planTypes.review.feature1"),
+        t("planTypes.review.feature2"),
+        t("planTypes.review.feature3"),
+        t("planTypes.review.feature4")
       ],
       href: "/pricing#review",
       hasRouteExtras: false
     },
     {
       id: "custom",
-      title: "Custom Business Plan",
+      title: t("planTypes.custom.title"),
       icon: "📋", // Clipboard for submission-ready documents
-      subtitle: "Application-ready plan for grants, banks, visas, or equity investors — in the order reviewers expect.",
+      subtitle: t("planTypes.custom.subtitle"),
       features: [
-        "Complete business plan structure (Executive Summary → Financials)",
-        "Advanced financial modeling & use of funds",
-        "Virtual funding expert for route-specific guidance",
-        "Readiness Check for chosen funding route requirements",
-        "Specific funding documents (budget sheets, pitch decks, etc.)"
+        t("planTypes.custom.feature1"),
+        t("planTypes.custom.feature2"),
+        t("planTypes.custom.feature3"),
+        t("planTypes.custom.feature4"),
+        t("planTypes.custom.feature5")
       ],
       href: "/pricing#custom",
       hasRouteExtras: false
@@ -61,7 +61,7 @@ export function PlanTypes() {
           className="text-center mb-12"
         >
           <h2 className="text-3xl font-bold text-neutral-900 mb-4">
-            Choose your plan
+            {t("planTypes.title")}
           </h2>
         </motion.div>
 
@@ -94,7 +94,7 @@ export function PlanTypes() {
 
               {/* Key features */}
               <div className="mb-6">
-                <h4 className="text-sm font-semibold text-gray-900 mb-3">Key Features:</h4>
+                <h4 className="text-sm font-semibold text-gray-900 mb-3">{t("planTypes.keyFeatures")}</h4>
                 <ul className="space-y-2">
                   {plan.features.map((feature, featureIndex) => (
                     <li key={featureIndex} className="text-sm text-gray-600 flex items-start">
@@ -110,14 +110,14 @@ export function PlanTypes() {
               {/* Additional documents note */}
               <div className="mb-4 p-3 bg-gray-50 rounded-lg border border-gray-200">
                 <p className="text-xs text-gray-600 text-center">
-                  <span className="font-medium">Additional documents and add-ons</span> based on funding type
+                  <span className="font-medium">{t("planTypes.additionalDocs")}</span> {t("planTypes.additionalDocsNote")}
                 </p>
               </div>
 
               {/* CTA */}
               <div className="pt-4 border-t border-gray-100">
                 <div className="flex items-center justify-between">
-                  <span className="text-sm text-gray-500">Learn more</span>
+                  <span className="text-sm text-gray-500">{t("planTypes.learnMore")}</span>
                   <svg className="w-5 h-5 text-blue-600 group-hover:translate-x-1 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
                   </svg>

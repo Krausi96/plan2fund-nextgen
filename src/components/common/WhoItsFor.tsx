@@ -1,16 +1,18 @@
 import { motion } from "framer-motion";
 import { CheckCircle } from "lucide-react";
+import { useI18n } from "@/contexts/I18nContext";
 
 export function WhoItsFor() {
+  const { t } = useI18n();
 
   const personas = [
     {
-      title: "Solo-Entrepreneurs",
-      description: "Transform your idea into a professional business plan that investors and partners will take seriously.",
+      title: t("whoItsFor.soloEntrepreneurs.title"),
+      description: t("whoItsFor.soloEntrepreneurs.description"),
       features: [
-        "Business Model Canvas with guided questions",
-        "AI assistant for expert advice & content creation",
-        "Readiness Check to ensure you have everything needed"
+        t("whoItsFor.soloEntrepreneurs.feature1"),
+        t("whoItsFor.soloEntrepreneurs.feature2"),
+        t("whoItsFor.soloEntrepreneurs.feature3")
       ],
       icon: "🚀",
       color: "text-blue-600",
@@ -19,12 +21,12 @@ export function WhoItsFor() {
       isPrimary: true
     },
     {
-      title: "SMEs & Growing Businesses",
-      description: "Create compelling business plans that showcase your growth potential and secure the resources you need.",
+      title: t("whoItsFor.sme.title"),
+      description: t("whoItsFor.sme.description"),
       features: [
-        "Financial tables & cash flow projections",
-        "Readiness Check for bank & investor requirements",
-        "AI assistant for content improvement & translation"
+        t("whoItsFor.sme.feature1"),
+        t("whoItsFor.sme.feature2"),
+        t("whoItsFor.sme.feature3")
       ],
       icon: "✏️",
       color: "text-green-600",
@@ -33,12 +35,12 @@ export function WhoItsFor() {
       isPrimary: false
     },
     {
-      title: "Business Advisors",
-      description: "Deliver consistent, high-quality business plans for all your clients with scalable tools.",
+      title: t("whoItsFor.advisors.title"),
+      description: t("whoItsFor.advisors.description"),
       features: [
-        "Professional templates for different industries",
-        "AI assistant for content creation & improvement",
-        "Export in multiple formats (PDF, Word, PowerPoint)"
+        t("whoItsFor.advisors.feature1"),
+        t("whoItsFor.advisors.feature2"),
+        t("whoItsFor.advisors.feature3")
       ],
       icon: "📋",
       color: "text-purple-600",
@@ -47,12 +49,12 @@ export function WhoItsFor() {
       isPrimary: false
     },
     {
-      title: "Universities & Accelerators",
-      description: "Empower your students and researchers with professional business planning tools and institutional support.",
+      title: t("whoItsFor.universities.title"),
+      description: t("whoItsFor.universities.description"),
       features: [
-        "Professional templates for research projects",
-        "AI assistant for academic writing & translation",
-        "Readiness Check for EU & research programs"
+        t("whoItsFor.universities.feature1"),
+        t("whoItsFor.universities.feature2"),
+        t("whoItsFor.universities.feature3")
       ],
       icon: "🎓",
       color: "text-indigo-600",
@@ -72,10 +74,10 @@ export function WhoItsFor() {
           className="text-center mb-8"
         >
           <h2 id="who-its-for-heading" className="text-2xl md:text-3xl font-bold text-neutral-900 mb-3">
-            Who is this for?
+            {t("whoItsFor.title")}
           </h2>
           <p className="text-lg text-neutral-600 max-w-2xl mx-auto">
-            We have specific solutions for every target group
+            {t("whoItsFor.subtitle")}
           </p>
         </motion.div>
 
@@ -148,7 +150,7 @@ export function WhoItsFor() {
             aria-label="Get started with Plan2Fund"
           >
             <span className="flex items-center justify-center">
-              Get Started
+              {t("whoItsFor.getStarted")}
               <svg className="w-4 h-4 ml-2 group-hover:translate-x-1 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
               </svg>
