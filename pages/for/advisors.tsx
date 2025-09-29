@@ -10,7 +10,7 @@ import WhyAustria from "@/components/common/WhyAustria";
 import CTAStrip from "@/components/common/CTAStrip";
 import { useI18n } from "@/contexts/I18nContext";
 
-export default function ForStartups() {
+export default function ForAdvisors() {
   const { t } = useI18n();
   const router = useRouter();
 
@@ -39,10 +39,10 @@ export default function ForStartups() {
   return (
     <>
       <SEOHead 
-        pageKey="startups"
-        title="Startup Business Plans & Funding | Plan2Fund"
-        description="Turn your idea into a funded startup. Get AWS PreSeed, FFG grants, and EU funding with our AI-powered business plan generator."
-        keywords="startup business plan, AWS PreSeed, FFG funding, EU grants, startup funding Austria"
+        pageKey="advisors"
+        title="Business Advisor Tools & Client Management | Plan2Fund"
+        description="Help your clients succeed with professional business planning tools. Create client-ready business plans and find funding programs efficiently."
+        keywords="business advisor tools, client management, professional business plans, advisor platform Austria"
         schema="organization"
       />
       

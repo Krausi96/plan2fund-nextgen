@@ -1,28 +1,71 @@
 import { useEffect } from "react";
 import { useRouter } from "next/router";
 import SEOHead from "@/components/common/SEOHead";
+import Hero from "@/components/common/Hero";
+import WhyPlan2Fund from "@/components/common/WhyPlan2Fund";
+import WhoItsFor from "@/components/common/WhoItsFor";
+import PlanTypes from "@/components/common/PlanTypes";
+import HowItWorks from "@/components/common/HowItWorks";
+import WhyAustria from "@/components/common/WhyAustria";
+import CTAStrip from "@/components/common/CTAStrip";
+import { useI18n } from "@/contexts/I18nContext";
 
 export default function ForSME() {
+  const { t } = useI18n();
   const router = useRouter();
 
-  useEffect(() => {
-    // Redirect to main /for page with sme tab
-    router.replace("/for?tab=sme");
-  }, [router]);
+  const handleStepClick = (stepId: number) => {
+    switch (stepId) {
+      case 1:
+        router.push('/reco');
+        break;
+      case 2:
+        router.push('/reco');
+        break;
+      case 3:
+        router.push('/reco');
+        break;
+      case 4:
+        router.push('/editor');
+        break;
+      case 5:
+        router.push('/reco');
+        break;
+      default:
+        router.push('/reco');
+    }
+  };
 
   return (
     <>
       <SEOHead 
         pageKey="sme"
-        title="SMEs & Established Businesses - Plan2Fund"
-        description="Scale your existing business with strategic funding and expansion plans."
+        title="SME Business Plans & Funding | Plan2Fund"
+        description="Scale your business with the right funding. Get bank loans, equity investments, and EU grants with our professional business plan generator."
+        keywords="SME business plan, bank loans, equity funding, EU grants, business growth Austria"
+        schema="organization"
       />
-      <div className="min-h-screen flex items-center justify-center">
-        <div className="text-center">
-          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto mb-4"></div>
-          <p className="text-gray-600">Redirecting...</p>
-        </div>
-      </div>
+      
+      <main className="flex flex-col">
+        <Hero onStepClick={handleStepClick} />
+        <WhyPlan2Fund />
+        <WhoItsFor />
+        <PlanTypes />
+        <HowItWorks />
+        <WhyAustria />
+        <CTAStrip
+          title={t('cta.readyToFind')}
+          subtitle={t('cta.joinFounders')}
+          primaryAction={{
+            label: t('cta.startPlan'),
+            href: "/editor"
+          }}
+          secondaryAction={{
+            label: t('cta.learnMore'),
+            href: "/about"
+          }}
+        />
+      </main>
     </>
   );
 }

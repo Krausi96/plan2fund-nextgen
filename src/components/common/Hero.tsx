@@ -1,6 +1,7 @@
 import { motion, useReducedMotion } from "framer-motion";
 import { memo, useState, useEffect } from "react";
 import { useI18n } from "@/contexts/I18nContext";
+import TargetGroupBanner from './TargetGroupBanner';
 
 
 // Blueprint Grid Background Component
@@ -180,6 +181,18 @@ const UserFlowAnimation = memo(function UserFlowAnimation({ onStepClick }: { onS
   );
 });
 
+// Target group detection function
+function getTargetGroupFromURL(): string {
+  if (typeof window !== 'undefined') {
+    const path = window.location.pathname;
+    if (path.includes('/for/startups') || path.includes('/startups')) return 'startups';
+    if (path.includes('/for/sme') || path.includes('/smes')) return 'smes';
+    if (path.includes('/for/advisors') || path.includes('/advisors')) return 'advisors';
+    if (path.includes('/for/universities') || path.includes('/universities')) return 'universities';
+  }
+  return 'default';
+}
+
 interface HeroProps {
   primaryButtonHref?: string;
   onStepClick?: (stepId: number) => void;
@@ -191,9 +204,13 @@ export function Hero({
 }: HeroProps = {}) {
   const { t } = useI18n();
   
-  // Locked copy as specified
-  const heroTitle = t('hero.title.main');
+  // Get target group from URL
+  const targetGroup = getTargetGroupFromURL();
+  
+  // Get target group specific content or fallback to default
+  const heroTitle = t(`hero.title.${targetGroup}`) || t('hero.title.main');
   const heroTitleSecond = t('hero.titleSecond');
+  const heroSubtitle = t(`hero.subtitle.${targetGroup}`) || t('hero.subtitle.main');
   const heroPrimaryButton = t('hero.button.primary');
   const heroSecondaryButton = t('hero.button.secondary');
 
@@ -208,6 +225,11 @@ export function Hero({
       {/* Main Content */}
       <div className="relative z-20 w-full max-w-6xl px-6 sm:px-8 lg:px-12 py-12 md:py-16 mx-auto">
         <div className="flex flex-col items-center justify-center space-y-8 min-h-[60vh]">
+          
+          {/* Target Group Banner - Show only when detection fails */}
+          {targetGroup === 'default' && (
+            <TargetGroupBanner />
+          )}
           
           {/* H1 Title - Static with proper spacing */}
           <div className="text-center max-w-4xl">
@@ -231,7 +253,7 @@ export function Hero({
               transition={{ delay: 0.3, duration: 0.8 }}
               className="text-lg md:text-xl text-white leading-relaxed"
             >
-              {t('hero.subtitle.main')}
+              {heroSubtitle}
             </motion.p>
           </div>
 
