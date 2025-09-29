@@ -1,18 +1,19 @@
 import { motion } from "framer-motion";
-import { Rocket, TrendingUp, Users, GraduationCap, CheckCircle } from "lucide-react";
+import { CheckCircle } from "lucide-react";
 
 export function WhoItsFor() {
 
   const personas = [
     {
       title: "Startup Founders",
-      description: "Turn your innovative idea into a compelling business plan that attracts investors and partners.",
+      description: "Transform your idea into a professional business plan that investors and partners will take seriously.",
       features: [
-        "Business Model Canvas & GTM strategy",
-        "Virtual funding expert for startup guidance",
-        "Readiness Check for pre-seed & early-stage programs"
+        "Business Model Canvas with guided questions",
+        "AI assistant for expert advice & content creation",
+        "Readiness Check to ensure you have everything needed"
       ],
-      icon: Rocket,
+      perfectFor: "Pre-seed & early-stage funding",
+      icon: "🚀",
       color: "text-blue-600",
       bgColor: "bg-blue-50",
       iconBg: "bg-blue-100",
@@ -21,13 +22,14 @@ export function WhoItsFor() {
     },
     {
       title: "SMEs & Growing Businesses",
-      description: "Create professional business plans that showcase your growth potential and secure funding.",
+      description: "Create compelling business plans that showcase your growth potential and secure the resources you need.",
       features: [
-        "Bank & investor ready documents",
         "Financial tables & cash flow projections",
-        "Compliance checking for requirements"
+        "Readiness Check for bank & investor requirements",
+        "Route-specific documents (budget sheets, summaries)"
       ],
-      icon: TrendingUp,
+      perfectFor: "Bank loans & equity funding",
+      icon: "📈",
       color: "text-green-600",
       bgColor: "bg-green-50",
       iconBg: "bg-green-100",
@@ -36,13 +38,14 @@ export function WhoItsFor() {
     },
     {
       title: "Business Advisors",
-      description: "Deliver consistent, high-quality business plans for all your clients with professional tools.",
+      description: "Deliver consistent, high-quality business plans for all your clients with scalable tools.",
       features: [
         "Professional templates for different industries",
-        "Client dashboard & team workspaces",
-        "Virtual funding expert for content improvement"
+        "AI assistant for content creation & improvement",
+        "Export in multiple formats (PDF, Word, PowerPoint)"
       ],
-      icon: Users,
+      perfectFor: "Client business plans",
+      icon: "👥",
       color: "text-purple-600",
       bgColor: "bg-purple-50",
       iconBg: "bg-purple-100",
@@ -51,13 +54,15 @@ export function WhoItsFor() {
     },
     {
       title: "Universities & Accelerators",
-      description: "Empower your students and researchers with professional business planning tools.",
+      description: "Empower your students and researchers with professional business planning tools and institutional support.",
       features: [
         "Professional templates for research projects",
-        "Multiple student accounts & branding",
-        "Readiness Check for EU & research programs"
+        "AI assistant for academic writing & translation",
+        "Readiness Check for EU & research programs",
+        "Multiple export formats for different applications"
       ],
-      icon: GraduationCap,
+      perfectFor: "Universities, Accelerators, Research teams",
+      icon: "🎓",
       color: "text-indigo-600",
       bgColor: "bg-indigo-50",
       iconBg: "bg-indigo-100",
@@ -93,7 +98,7 @@ export function WhoItsFor() {
               viewport={{ once: true }}
               className="group"
             >
-              <div className={`p-6 h-auto flex flex-col relative group rounded-xl border-2 transition-all duration-300 hover:shadow-lg hover:-translate-y-1 ${
+              <div className={`p-6 h-full flex flex-col relative group rounded-xl border-2 transition-all duration-300 hover:shadow-lg hover:-translate-y-1 ${
                 persona.isPrimary 
                   ? "border-blue-200 bg-blue-50/50 hover:border-blue-300" 
                   : "border-gray-200 bg-white hover:border-gray-300"
@@ -110,7 +115,7 @@ export function WhoItsFor() {
                 {/* Compact Header */}
                 <div className="text-center mb-4">
                   <div className={`w-16 h-16 rounded-lg flex items-center justify-center mx-auto mb-3 shadow-sm group-hover:scale-110 transition-transform duration-300 ${persona.iconBg}`}>
-                    <persona.icon className={`w-8 h-8 ${persona.color}`} />
+                    <span className="text-2xl">{persona.icon}</span>
                   </div>
                   
                   <h3 className="text-lg font-bold text-neutral-900 mb-2 group-hover:text-blue-600 transition-colors duration-300">
@@ -121,6 +126,14 @@ export function WhoItsFor() {
                   </p>
                 </div>
                 
+                {/* Perfect for */}
+                <div className="mb-4">
+                  <div className="inline-flex items-center px-3 py-1 rounded-full bg-gray-100 text-gray-700 text-sm font-medium">
+                    <span className="w-2 h-2 bg-green-500 rounded-full mr-2"></span>
+                    Perfect for: {persona.perfectFor}
+                  </div>
+                </div>
+
                 {/* Compact Features - 3 max */}
                 <div className="flex-grow mb-4">
                   <ul className="space-y-2">
@@ -141,7 +154,7 @@ export function WhoItsFor() {
                   aria-label={`Get started with ${persona.title}`}
                 >
                   <span className="flex items-center justify-center">
-                    Get Started
+                    Jetzt starten
                     <svg className="w-4 h-4 ml-2 group-hover:translate-x-1 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
                     </svg>
