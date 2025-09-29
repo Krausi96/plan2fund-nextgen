@@ -1,12 +1,11 @@
-import { useEffect } from "react";
 import { useRouter } from "next/router";
 import SEOHead from "@/components/common/SEOHead";
-import Hero from "@/components/common/Hero";
-import WhyPlan2Fund from "@/components/common/WhyPlan2Fund";
-import WhoItsFor from "@/components/common/WhoItsFor";
-import PlanTypes from "@/components/common/PlanTypes";
-import HowItWorks from "@/components/common/HowItWorks";
-import WhyAustria from "@/components/common/WhyAustria";
+import { Hero } from "@/components/common/Hero";
+import { WhyPlan2Fund } from "@/components/common/WhyPlan2Fund";
+import { WhoItsFor } from "@/components/common/WhoItsFor";
+import { PlanTypes } from "@/components/common/PlanTypes";
+import { HowItWorks } from "@/components/common/HowItWorks";
+import { WhyAustria } from "@/components/common/WhyAustria";
 import CTAStrip from "@/components/common/CTAStrip";
 import { useI18n } from "@/contexts/I18nContext";
 

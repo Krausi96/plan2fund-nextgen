@@ -4,6 +4,7 @@
 import React, { useState, useEffect } from 'react';
 import { useI18n } from '@/contexts/I18nContext';
 import { motion, AnimatePresence } from 'framer-motion';
+import { storeTargetGroupSelection } from '@/lib/targetGroupDetection';
 
 interface TargetGroupBannerProps {
   onTargetGroupSelect?: (targetGroup: string) => void;
@@ -22,8 +23,8 @@ export default function TargetGroupBanner({ onTargetGroupSelect }: TargetGroupBa
   }, []);
 
   const handleTargetGroupClick = (targetGroup: string) => {
-    // Store selection in localStorage
-    localStorage.setItem('selectedTargetGroup', targetGroup);
+    // Store selection using the detection utility
+    storeTargetGroupSelection(targetGroup as any);
     
     // Hide banner
     setShowBanner(false);
@@ -34,7 +35,7 @@ export default function TargetGroupBanner({ onTargetGroupSelect }: TargetGroupBa
     }
     
     // Navigate to target group specific page
-    window.location.href = `/${targetGroup}`;
+    window.location.href = `/for/${targetGroup}`;
   };
 
   const handleDismiss = () => {

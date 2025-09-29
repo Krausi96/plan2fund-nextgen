@@ -2,6 +2,7 @@ import { motion, useReducedMotion } from "framer-motion";
 import { memo, useState, useEffect } from "react";
 import { useI18n } from "@/contexts/I18nContext";
 import TargetGroupBanner from './TargetGroupBanner';
+import { detectTargetGroup } from '@/lib/targetGroupDetection';
 
 
 // Blueprint Grid Background Component
@@ -181,16 +182,10 @@ const UserFlowAnimation = memo(function UserFlowAnimation({ onStepClick }: { onS
   );
 });
 
-// Target group detection function
-function getTargetGroupFromURL(): string {
-  if (typeof window !== 'undefined') {
-    const path = window.location.pathname;
-    if (path.includes('/for/startups') || path.includes('/startups')) return 'startups';
-    if (path.includes('/for/sme') || path.includes('/smes')) return 'smes';
-    if (path.includes('/for/advisors') || path.includes('/advisors')) return 'advisors';
-    if (path.includes('/for/universities') || path.includes('/universities')) return 'universities';
-  }
-  return 'default';
+// Enhanced target group detection with external traffic support
+function getTargetGroupFromDetection(): string {
+  const detection = detectTargetGroup();
+  return detection.targetGroup;
 }
 
 interface HeroProps {
@@ -204,13 +199,13 @@ export function Hero({
 }: HeroProps = {}) {
   const { t } = useI18n();
   
-  // Get target group from URL
-  const targetGroup = getTargetGroupFromURL();
+  // Get target group using enhanced detection (URL, UTM, referrer, etc.)
+  const targetGroup = getTargetGroupFromDetection();
   
   // Get target group specific content or fallback to default
-  const heroTitle = t(`hero.title.${targetGroup}`) || t('hero.title.main');
+  const heroTitle = t(`hero.title.${targetGroup}` as any) || t('hero.title.main');
   const heroTitleSecond = t('hero.titleSecond');
-  const heroSubtitle = t(`hero.subtitle.${targetGroup}`) || t('hero.subtitle.main');
+  const heroSubtitle = t(`hero.subtitle.${targetGroup}` as any) || t('hero.subtitle.main');
   const heroPrimaryButton = t('hero.button.primary');
   const heroSecondaryButton = t('hero.button.secondary');
 
