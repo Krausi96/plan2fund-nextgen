@@ -57,36 +57,36 @@ export default function TargetGroupBanner({ onTargetGroupSelect }: TargetGroupBa
         animate={{ opacity: 1, y: 0 }}
         exit={{ opacity: 0, y: 20 }}
         transition={{ duration: 0.3 }}
-        className="fixed bottom-0 left-0 right-0 z-50 bg-gradient-to-r from-blue-600 to-blue-700 shadow-lg border-t border-blue-500"
+        className="fixed bottom-4 left-4 right-4 z-50 bg-white/95 backdrop-blur-sm shadow-xl border border-gray-200 rounded-lg max-w-2xl mx-auto"
       >
-        <div className="max-w-6xl mx-auto px-4 py-3">
-          <div className="flex flex-col sm:flex-row items-center justify-between gap-3">
-            <div className="flex-1 text-center sm:text-left">
-              <p className="text-sm font-medium text-white mb-1">
+        <div className="px-4 py-3">
+          <div className="flex items-center justify-between gap-3">
+            <div className="flex-1">
+              <p className="text-sm font-medium text-gray-900 mb-2">
                 {t('banner.title')}
               </p>
-              <div className="flex flex-wrap justify-center sm:justify-start gap-2">
+              <div className="flex flex-wrap gap-2">
                 <button
                   onClick={() => handleTargetGroupClick('startups')}
-                  className="px-4 py-2 text-xs bg-white/20 hover:bg-white/30 text-white rounded-full transition-all duration-200 backdrop-blur-sm border border-white/30"
+                  className="px-3 py-1.5 text-xs bg-blue-600 hover:bg-blue-700 text-white rounded-md transition-colors duration-200 font-medium"
                 >
                   {t('banner.startups')}
                 </button>
                 <button
                   onClick={() => handleTargetGroupClick('smes')}
-                  className="px-4 py-2 text-xs bg-white/20 hover:bg-white/30 text-white rounded-full transition-all duration-200 backdrop-blur-sm border border-white/30"
+                  className="px-3 py-1.5 text-xs bg-blue-600 hover:bg-blue-700 text-white rounded-md transition-colors duration-200 font-medium"
                 >
                   {t('banner.smes')}
                 </button>
                 <button
                   onClick={() => handleTargetGroupClick('advisors')}
-                  className="px-4 py-2 text-xs bg-white/20 hover:bg-white/30 text-white rounded-full transition-all duration-200 backdrop-blur-sm border border-white/30"
+                  className="px-3 py-1.5 text-xs bg-blue-600 hover:bg-blue-700 text-white rounded-md transition-colors duration-200 font-medium"
                 >
                   {t('banner.advisors')}
                 </button>
                 <button
                   onClick={() => handleTargetGroupClick('universities')}
-                  className="px-4 py-2 text-xs bg-white/20 hover:bg-white/30 text-white rounded-full transition-all duration-200 backdrop-blur-sm border border-white/30"
+                  className="px-3 py-1.5 text-xs bg-blue-600 hover:bg-blue-700 text-white rounded-md transition-colors duration-200 font-medium"
                 >
                   {t('banner.universities')}
                 </button>
@@ -94,10 +94,10 @@ export default function TargetGroupBanner({ onTargetGroupSelect }: TargetGroupBa
             </div>
             <button
               onClick={handleDismiss}
-              className="text-white/80 hover:text-white transition-colors duration-200 p-2 hover:bg-white/10 rounded-full"
+              className="text-gray-400 hover:text-gray-600 transition-colors duration-200 p-1"
               aria-label="Dismiss banner"
             >
-              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
               </svg>
             </button>

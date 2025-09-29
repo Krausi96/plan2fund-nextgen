@@ -235,7 +235,7 @@ export function Hero({
             </motion.h1>
           </div>
 
-          {/* Subtitle - With highlighted key phrases */}
+          {/* Subtitle - With bold key phrases */}
           <div className="text-center max-w-3xl">
             <motion.p 
               initial={{ opacity: 0, y: 20 }}
@@ -244,10 +244,10 @@ export function Hero({
               className="text-lg md:text-xl text-white leading-relaxed"
               dangerouslySetInnerHTML={{
                 __html: heroSubtitle
-                  .replace(/(funding|Förderung|Finanzierung)/gi, '<span class="text-blue-300 font-semibold">$1</span>')
-                  .replace(/(30 minutes|30 Minuten)/gi, '<span class="text-yellow-300 font-semibold">$1</span>')
-                  .replace(/(Austria|Österreich)/gi, '<span class="text-green-300 font-semibold">$1</span>')
-                  .replace(/(business plan|Businessplan)/gi, '<span class="text-purple-300 font-semibold">$1</span>')
+                  .replace(/(funding|Förderung|Finanzierung)/gi, '<span class="font-bold text-white">$1</span>')
+                  .replace(/(30 minutes|30 Minuten)/gi, '<span class="font-bold text-white">$1</span>')
+                  .replace(/(Austria|Österreich)/gi, '<span class="font-bold text-white">$1</span>')
+                  .replace(/(business plan|Businessplan)/gi, '<span class="font-bold text-white">$1</span>')
               }}
             />
           </div>
