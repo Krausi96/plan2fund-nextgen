@@ -5,12 +5,12 @@ export function WhoItsFor() {
 
   const personas = [
     {
-      title: "First-time Founders",
-      description: "Transform your idea into a professional business plan that investors and partners will take seriously.",
+      title: "Startup Founders",
+      description: "Turn your innovative idea into a compelling business plan that attracts investors and partners.",
       features: [
-        "Business Model Canvas with guided questions",
-        "AI assistant for expert advice & content creation",
-        "Readiness Check to ensure you have everything needed"
+        "Business Model Canvas & GTM strategy",
+        "Virtual funding expert for startup guidance",
+        "Readiness Check for pre-seed & early-stage programs"
       ],
       icon: Rocket,
       color: "text-blue-600",
@@ -20,12 +20,12 @@ export function WhoItsFor() {
       isPrimary: true
     },
     {
-      title: "Growing Businesses",
-      description: "Create compelling business plans that showcase your growth potential and secure the resources you need.",
+      title: "SMEs & Growing Businesses",
+      description: "Create professional business plans that showcase your growth potential and secure funding.",
       features: [
+        "Bank & investor ready documents",
         "Financial tables & cash flow projections",
-        "Readiness Check for bank & investor requirements",
-        "Route-specific documents (budget sheets, summaries)"
+        "Compliance checking for requirements"
       ],
       icon: TrendingUp,
       color: "text-green-600",
@@ -36,11 +36,11 @@ export function WhoItsFor() {
     },
     {
       title: "Business Advisors",
-      description: "Deliver consistent, high-quality business plans for all your clients with scalable tools.",
+      description: "Deliver consistent, high-quality business plans for all your clients with professional tools.",
       features: [
         "Professional templates for different industries",
-        "AI assistant for content creation & improvement",
-        "Export in multiple formats (PDF, Word, PowerPoint)"
+        "Client dashboard & team workspaces",
+        "Virtual funding expert for content improvement"
       ],
       icon: Users,
       color: "text-purple-600",
@@ -51,10 +51,10 @@ export function WhoItsFor() {
     },
     {
       title: "Universities & Accelerators",
-      description: "Empower your students and researchers with professional business planning tools and institutional support.",
+      description: "Empower your students and researchers with professional business planning tools.",
       features: [
         "Professional templates for research projects",
-        "AI assistant for academic writing & translation",
+        "Multiple student accounts & branding",
         "Readiness Check for EU & research programs"
       ],
       icon: GraduationCap,
@@ -109,8 +109,8 @@ export function WhoItsFor() {
                 
                 {/* Compact Header */}
                 <div className="text-center mb-4">
-                  <div className={`w-12 h-12 rounded-lg flex items-center justify-center mx-auto mb-3 shadow-sm group-hover:scale-110 transition-transform duration-300 ${persona.iconBg}`}>
-                    <persona.icon className={`w-6 h-6 ${persona.color}`} />
+                  <div className={`w-16 h-16 rounded-lg flex items-center justify-center mx-auto mb-3 shadow-sm group-hover:scale-110 transition-transform duration-300 ${persona.iconBg}`}>
+                    <persona.icon className={`w-8 h-8 ${persona.color}`} />
                   </div>
                   
                   <h3 className="text-lg font-bold text-neutral-900 mb-2 group-hover:text-blue-600 transition-colors duration-300">

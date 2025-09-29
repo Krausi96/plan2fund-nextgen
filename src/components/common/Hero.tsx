@@ -218,7 +218,7 @@ export function Hero({
 
   return (
     <section 
-      className="relative min-h-[30vh] flex items-center overflow-hidden bg-gradient-to-b from-blue-600 via-blue-700 to-blue-800"
+      className="relative min-h-[25vh] flex items-center overflow-hidden bg-gradient-to-b from-blue-600 via-blue-700 to-blue-800"
       aria-label="Hero section with main value proposition"
     >
       {/* Background */}
@@ -226,7 +226,7 @@ export function Hero({
 
       {/* Main Content */}
       <div className="relative z-20 w-full max-w-6xl px-6 sm:px-8 lg:px-12 py-6 md:py-8 mx-auto">
-        <div className="flex flex-col items-center justify-center space-y-4 min-h-[30vh]">
+        <div className="flex flex-col items-center justify-center space-y-4 min-h-[25vh]">
           
           {/* Target Group Banner - Show only when detection fails */}
           {targetGroup === 'default' && (
@@ -243,7 +243,7 @@ export function Hero({
               style={{ textWrap: 'balance' }}
             >
               <div className="mb-2">{heroTitle}</div>
-              {heroTitleSecond && <div className="text-white text-2xl sm:text-3xl lg:text-4xl xl:text-5xl font-bold">{heroTitleSecond}</div>}
+              {heroTitleSecond && <div className="text-white text-3xl sm:text-4xl lg:text-5xl xl:text-6xl font-bold">{heroTitleSecond}</div>}
             </motion.h1>
           </div>
 
