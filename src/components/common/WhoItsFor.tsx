@@ -5,14 +5,15 @@ export function WhoItsFor() {
 
   const personas = [
     {
-      title: "Startup Founders",
+      title: "Solo-Entrepreneurs & Startups",
       description: "Transform your idea into a professional business plan that investors and partners will take seriously.",
       features: [
         "Business Model Canvas with guided questions",
         "AI assistant for expert advice & content creation",
-        "Readiness Check to ensure you have everything needed"
+        "Readiness Check to ensure you have everything needed",
+        "PDF & Word documents ready for submission"
       ],
-      perfectFor: "Pre-seed & early-stage funding",
+      perfectFor: "New ideas, first-time entrepreneurs",
       icon: "🚀",
       color: "text-blue-600",
       bgColor: "bg-blue-50",
@@ -26,10 +27,11 @@ export function WhoItsFor() {
       features: [
         "Financial tables & cash flow projections",
         "Readiness Check for bank & investor requirements",
+        "AI assistant for content improvement & translation",
         "Route-specific documents (budget sheets, summaries)"
       ],
-      perfectFor: "Bank loans & equity funding",
-      icon: "📈",
+      perfectFor: "Existing businesses, growth projects",
+      icon: "✏️",
       color: "text-green-600",
       bgColor: "bg-green-50",
       iconBg: "bg-green-100",
@@ -37,15 +39,16 @@ export function WhoItsFor() {
       isPrimary: false
     },
     {
-      title: "Business Advisors",
+      title: "Business Advisors & Consultants",
       description: "Deliver consistent, high-quality business plans for all your clients with scalable tools.",
       features: [
         "Professional templates for different industries",
         "AI assistant for content creation & improvement",
+        "Readiness Check across multiple funding routes",
         "Export in multiple formats (PDF, Word, PowerPoint)"
       ],
-      perfectFor: "Client business plans",
-      icon: "👥",
+      perfectFor: "Consultants, agencies, multiple clients",
+      icon: "📋",
       color: "text-purple-600",
       bgColor: "bg-purple-50",
       iconBg: "bg-purple-100",
@@ -61,7 +64,7 @@ export function WhoItsFor() {
         "Readiness Check for EU & research programs",
         "Multiple export formats for different applications"
       ],
-      perfectFor: "Universities, Accelerators, Research teams",
+      perfectFor: "Universities, accelerators, research teams",
       icon: "🎓",
       color: "text-indigo-600",
       bgColor: "bg-indigo-50",
@@ -154,7 +157,7 @@ export function WhoItsFor() {
                   aria-label={`Get started with ${persona.title}`}
                 >
                   <span className="flex items-center justify-center">
-                    Jetzt starten
+                    Get Started
                     <svg className="w-4 h-4 ml-2 group-hover:translate-x-1 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
                     </svg>
