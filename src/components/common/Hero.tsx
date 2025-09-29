@@ -203,7 +203,7 @@ export function Hero({
   
   // Get target group specific content or fallback to default
   const heroTitle = targetGroup !== 'default' ? t(`hero.title.${targetGroup}` as any) : t('hero.title.main');
-  const heroTitleSecond = targetGroup !== 'default' ? t('hero.titleSecond') : '';
+  const heroTitleSecond = targetGroup === 'default' ? t('hero.titleSecond') : '';
   const heroSubtitle = targetGroup !== 'default' ? t(`hero.subtitle.${targetGroup}` as any) : t('hero.subtitle.main');
   const heroPrimaryButton = t('hero.button.primary');
   const heroSecondaryButton = t('hero.button.secondary');
