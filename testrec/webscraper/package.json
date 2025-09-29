@@ -1,0 +1,37 @@
+{
+  "name": "plan2fund-webscraper",
+  "version": "1.0.0",
+  "description": "Web scraper for Austrian/EU funding programs",
+  "main": "program-scraper.js",
+  "scripts": {
+    "scrape": "node program-scraper.js",
+    "scrape:aws": "node program-scraper.js --source=aws",
+    "scrape:ffg": "node program-scraper.js --source=ffg",
+    "scrape:all": "node program-scraper.js --all",
+    "test": "node test-scraper.js",
+    "install-deps": "npm install"
+  },
+  "dependencies": {
+    "puppeteer": "^21.0.0",
+    "cheerio": "^1.0.0-rc.12",
+    "natural": "^6.0.0",
+    "pdf-parse": "^1.1.1",
+    "axios": "^1.6.0",
+    "fs-extra": "^11.1.1",
+    "moment": "^2.29.4"
+  },
+  "devDependencies": {
+    "jest": "^29.7.0",
+    "nodemon": "^3.0.0"
+  },
+  "keywords": [
+    "web-scraping",
+    "funding-programs",
+    "austria",
+    "eu",
+    "grants",
+    "loans"
+  ],
+  "author": "Plan2Fund",
+  "license": "MIT"
+}

@@ -1,76 +1,89 @@
 import { motion } from "framer-motion";
-import { useI18n } from "@/contexts/I18nContext";
+import { Rocket, TrendingUp, Users, GraduationCap, CheckCircle } from "lucide-react";
 
 export function WhoItsFor() {
-  const { t } = useI18n();
 
   const personas = [
     {
-      title: t('whoItsFor.solo.title'),
-      description: t('whoItsFor.solo.description'),
+      title: "First-time Founders",
+      description: "Transform your idea into a professional business plan that investors and partners will take seriously.",
       features: [
-        t('whoItsFor.solo.features.0'),
-        t('whoItsFor.solo.features.1'),
-        t('whoItsFor.solo.features.2'),
-        t('whoItsFor.solo.features.3')
+        "Business Model Canvas with guided questions",
+        "AI assistant for expert advice & content creation",
+        "Readiness Check to ensure you have everything needed"
       ],
-      ideal: t('whoItsFor.solo.ideal'),
+      icon: Rocket,
       color: "text-blue-600",
       bgColor: "bg-blue-50",
-      emoji: "🚀",
-      badge: t('whoItsFor.solo.badge'),
+      iconBg: "bg-blue-100",
       href: "/reco?persona=solo",
       isPrimary: true
     },
     {
-      title: t('whoItsFor.sme.title'),
-      description: t('whoItsFor.sme.description'),
+      title: "Growing Businesses",
+      description: "Create compelling business plans that showcase your growth potential and secure the resources you need.",
       features: [
-        t('whoItsFor.sme.features.0'),
-        t('whoItsFor.sme.features.1'),
-        t('whoItsFor.sme.features.2'),
-        t('whoItsFor.sme.features.3')
+        "Financial tables & cash flow projections",
+        "Readiness Check for bank & investor requirements",
+        "Route-specific documents (budget sheets, summaries)"
       ],
-      ideal: t('whoItsFor.sme.ideal'),
+      icon: TrendingUp,
       color: "text-green-600",
       bgColor: "bg-green-50",
-      emoji: "✏️",
+      iconBg: "bg-green-100",
       href: "/reco?persona=sme",
       isPrimary: false
     },
     {
-      title: t('whoItsFor.advisors.title'),
-      description: t('whoItsFor.advisors.description'),
+      title: "Business Advisors",
+      description: "Deliver consistent, high-quality business plans for all your clients with scalable tools.",
       features: [
-        t('whoItsFor.advisors.features.0'),
-        t('whoItsFor.advisors.features.1'),
-        t('whoItsFor.advisors.features.2'),
-        t('whoItsFor.advisors.features.3')
+        "Professional templates for different industries",
+        "AI assistant for content creation & improvement",
+        "Export in multiple formats (PDF, Word, PowerPoint)"
       ],
-      ideal: t('whoItsFor.advisors.ideal'),
+      icon: Users,
       color: "text-purple-600",
       bgColor: "bg-purple-50",
-      emoji: "📋",
+      iconBg: "bg-purple-100",
+      href: "/about#partners",
+      isPrimary: false
+    },
+    {
+      title: "Universities & Accelerators",
+      description: "Empower your students and researchers with professional business planning tools and institutional support.",
+      features: [
+        "Professional templates for research projects",
+        "AI assistant for academic writing & translation",
+        "Readiness Check for EU & research programs"
+      ],
+      icon: GraduationCap,
+      color: "text-indigo-600",
+      bgColor: "bg-indigo-50",
+      iconBg: "bg-indigo-100",
       href: "/about#partners",
       isPrimary: false
     },
   ];
   return (
-    <section className="section-padding bg-white">
+    <section className="section-padding bg-white" aria-labelledby="who-its-for-heading">
       <div className="container">
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           whileInView={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.6 }}
           viewport={{ once: true }}
-          className="text-center mb-12"
+          className="text-center mb-8"
         >
-          <h2 className="text-3xl font-bold text-neutral-900 mb-4">
-            {t('whoItsFor.title')}
+          <h2 id="who-its-for-heading" className="text-2xl md:text-3xl font-bold text-neutral-900 mb-3">
+            Who is this for?
           </h2>
+          <p className="text-lg text-neutral-600 max-w-2xl mx-auto">
+            We have specific solutions for every target group
+          </p>
         </motion.div>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 lg:gap-8">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 lg:gap-6">
           {personas.map((persona, index) => (
             <motion.div
               key={index}
@@ -80,83 +93,56 @@ export function WhoItsFor() {
               viewport={{ once: true }}
               className="group"
             >
-              <div className={`p-8 h-full flex flex-col relative group rounded-2xl border-2 transition-all duration-300 ${
+              <div className={`p-6 h-auto flex flex-col relative group rounded-xl border-2 transition-all duration-300 hover:shadow-lg hover:-translate-y-1 ${
                 persona.isPrimary 
-                  ? "border-blue-200 bg-blue-50/50 hover:border-blue-300 hover:shadow-xl hover:-translate-y-1" 
-                  : "border-gray-200 bg-white hover:border-gray-300 hover:shadow-lg hover:-translate-y-1"
+                  ? "border-blue-200 bg-blue-50/50 hover:border-blue-300" 
+                  : "border-gray-200 bg-white hover:border-gray-300"
               }`}>
                 {/* Badge for Primary */}
-                {persona.badge && (
-                  <div className="absolute top-6 right-6">
-                    <span className="bg-blue-600 text-white text-xs px-3 py-1.5 rounded-full font-semibold shadow-sm">
-                      {persona.badge}
+                {persona.isPrimary && (
+                  <div className="absolute top-4 right-4">
+                    <span className="bg-blue-600 text-white text-xs px-2 py-1 rounded-full font-semibold shadow-sm">
+                      Primary
                     </span>
                   </div>
                 )}
                 
-                {/* Icon and Title Section */}
-                <div className="text-center mb-6">
-                  <div 
-                    className="text-4xl mb-4 group-hover:scale-110 transition-transform duration-300 w-20 h-20 rounded-2xl flex items-center justify-center mx-auto shadow-sm"
-                    style={{
-                      background: `linear-gradient(135deg, ${persona.color.includes('blue') ? '#3B82F6' : persona.color.includes('green') ? '#10B981' : '#8B5CF6'}, ${persona.color.includes('blue') ? '#06B6D4' : persona.color.includes('green') ? '#059669' : '#A855F7'})`
-                    }}
-                  >
-                    {persona.emoji}
+                {/* Compact Header */}
+                <div className="text-center mb-4">
+                  <div className={`w-12 h-12 rounded-lg flex items-center justify-center mx-auto mb-3 shadow-sm group-hover:scale-110 transition-transform duration-300 ${persona.iconBg}`}>
+                    <persona.icon className={`w-6 h-6 ${persona.color}`} />
                   </div>
                   
-                  <h3 className="text-xl font-bold text-neutral-900 mb-3 group-hover:text-blue-600 transition-colors duration-300">
+                  <h3 className="text-lg font-bold text-neutral-900 mb-2 group-hover:text-blue-600 transition-colors duration-300">
                     {persona.title}
                   </h3>
-                  <p className="text-neutral-600 leading-relaxed">
+                  <p className="text-sm text-neutral-600 leading-relaxed">
                     {persona.description}
                   </p>
                 </div>
                 
-                {/* Features - simplified */}
-                <div className="flex-grow mb-6">
-                  <ul className="space-y-3">
+                {/* Compact Features - 3 max */}
+                <div className="flex-grow mb-4">
+                  <ul className="space-y-2">
                     {persona.features.map((feature, featureIndex) => (
                       <li key={featureIndex} className="flex items-start text-sm text-neutral-600">
-                        <svg className="w-5 h-5 text-green-500 mr-3 mt-0.5 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
-                          <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
-                        </svg>
+                        <CheckCircle className="w-4 h-4 text-green-500 mr-2 mt-0.5 flex-shrink-0" />
                         <span className="leading-relaxed">{feature}</span>
                       </li>
                     ))}
                   </ul>
-                  
-                  {/* Ideal text for all personas */}
-                  {persona.ideal && (
-                    <div className={`mt-4 p-3 rounded-lg border-l-4 ${
-                      persona.isPrimary 
-                        ? 'bg-blue-50 border-blue-400' 
-                        : persona.color.includes('green') 
-                          ? 'bg-green-50 border-green-400' 
-                          : 'bg-purple-50 border-purple-400'
-                    }`}>
-                      <p className={`text-sm font-medium ${
-                        persona.isPrimary 
-                          ? 'text-blue-800' 
-                          : persona.color.includes('green') 
-                            ? 'text-green-800' 
-                            : 'text-purple-800'
-                      }`}>
-                        {persona.ideal}
-                      </p>
-                    </div>
-                  )}
                 </div>
                 
-                {/* CTA */}
+                {/* Compact CTA */}
                 <a 
                   href={persona.href}
-                  className="w-full px-6 py-3 bg-blue-600 text-white rounded-xl font-semibold text-center hover:bg-blue-700 transition-all duration-300 group-hover:shadow-lg transform group-hover:scale-105"
+                  className="w-full px-4 py-2.5 bg-blue-600 text-white rounded-lg font-medium text-center hover:bg-blue-700 transition-all duration-300 group-hover:shadow-lg transform group-hover:scale-105"
                   title={`Learn more about ${persona.title.toLowerCase()}`}
+                  aria-label={`Get started with ${persona.title}`}
                 >
                   <span className="flex items-center justify-center">
-                    {persona.title.includes("Advisors") ? t("whoItsFor.forPartners") : t("whoItsFor.seeMatches")}
-                    <svg className="w-4 h-4 ml-2 group-hover:translate-x-1 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    Get Started
+                    <svg className="w-4 h-4 ml-2 group-hover:translate-x-1 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
                     </svg>
                   </span>

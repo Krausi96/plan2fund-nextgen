@@ -218,15 +218,15 @@ export function Hero({
 
   return (
     <section 
-      className="relative min-h-[60vh] flex items-center overflow-hidden bg-gradient-to-b from-slate-900 via-blue-900 to-slate-800"
+      className="relative min-h-[40vh] flex items-center overflow-hidden bg-gradient-to-b from-blue-600 via-blue-700 to-blue-800"
       aria-label="Hero section with main value proposition"
     >
       {/* Background */}
       <BlueprintGrid />
 
       {/* Main Content */}
-      <div className="relative z-20 w-full max-w-6xl px-6 sm:px-8 lg:px-12 py-12 md:py-16 mx-auto">
-        <div className="flex flex-col items-center justify-center space-y-8 min-h-[60vh]">
+      <div className="relative z-20 w-full max-w-6xl px-6 sm:px-8 lg:px-12 py-8 md:py-12 mx-auto">
+        <div className="flex flex-col items-center justify-center space-y-6 min-h-[40vh]">
           
           {/* Target Group Banner - Show only when detection fails */}
           {targetGroup === 'default' && (
@@ -239,11 +239,11 @@ export function Hero({
               initial={{ opacity: 0, y: 30 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.8 }}
-              className="text-3xl sm:text-4xl lg:text-5xl xl:text-6xl font-extrabold text-white leading-tight mb-6 text-wrap-balance tracking-tight"
+              className="text-2xl sm:text-3xl lg:text-4xl xl:text-5xl font-extrabold text-white leading-tight mb-4 text-wrap-balance tracking-tight"
               style={{ textWrap: 'balance' }}
             >
               <div className="mb-2">{heroTitle}</div>
-              {heroTitleSecond && <div className="text-white text-2xl sm:text-3xl lg:text-4xl xl:text-5xl font-bold">{heroTitleSecond}</div>}
+              {heroTitleSecond && <div className="text-white text-xl sm:text-2xl lg:text-3xl xl:text-4xl font-bold">{heroTitleSecond}</div>}
             </motion.h1>
           </div>
 
@@ -253,7 +253,7 @@ export function Hero({
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.3, duration: 0.8 }}
-              className="text-lg md:text-xl text-white leading-relaxed"
+              className="text-base md:text-lg text-white leading-relaxed"
               dangerouslySetInnerHTML={{
                 __html: heroSubtitle
                   .replace(/(funding|Förderung|Finanzierung)/gi, '<span class="font-bold text-white">$1</span>')
@@ -267,7 +267,7 @@ export function Hero({
           </div>
 
           {/* User Flow Animation - Smaller and more subtle */}
-          <div className="w-full max-w-4xl">
+          <div className="w-full max-w-3xl">
             <UserFlowAnimation onStepClick={onStepClick} />
           </div>
 
@@ -278,7 +278,7 @@ export function Hero({
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.6, duration: 0.8 }}
-              className="flex flex-col sm:flex-row gap-4 mb-6 justify-center"
+              className="flex flex-col sm:flex-row gap-3 mb-4 justify-center"
             >
               <motion.a
                 href={primaryButtonHref}

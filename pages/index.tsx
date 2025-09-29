@@ -52,9 +52,9 @@ export default function Home() {
       
       <main className="flex flex-col">
         <Hero onStepClick={handleStepClick} />
-        <WhyPlan2Fund />
         <WhoItsFor />
         <PlanTypes />
+        <WhyPlan2Fund />
         <HowItWorks />
         <WhyAustria />
         <CTAStrip
