@@ -233,7 +233,7 @@ export function Hero({
             <TargetGroupBanner onTargetGroupSelect={handleTargetGroupSelect} />
           )}
           
-          {/* H1 Title - Static with proper spacing */}
+          {/* H1 Title - Consistent layout for all target groups */}
           <div className="text-center max-w-4xl">
             <motion.h1 
               initial={{ opacity: 0, y: 30 }}
@@ -243,11 +243,11 @@ export function Hero({
               style={{ textWrap: 'balance' }}
             >
               <div className="mb-2">{heroTitle}</div>
-              {heroTitleSecond && <div className="text-white">{heroTitleSecond}</div>}
+              {heroTitleSecond && <div className="text-white text-2xl sm:text-3xl lg:text-4xl xl:text-5xl font-bold">{heroTitleSecond}</div>}
             </motion.h1>
           </div>
 
-          {/* Subtitle - With bold key phrases */}
+          {/* Subtitle - Consistent styling with bold highlighting */}
           <div className="text-center max-w-3xl">
             <motion.p 
               initial={{ opacity: 0, y: 20 }}
@@ -257,9 +257,11 @@ export function Hero({
               dangerouslySetInnerHTML={{
                 __html: heroSubtitle
                   .replace(/(funding|Förderung|Finanzierung)/gi, '<span class="font-bold text-white">$1</span>')
-                  .replace(/(30 minutes|30 Minuten)/gi, '<span class="font-bold text-white">$1</span>')
                   .replace(/(Austria|Österreich)/gi, '<span class="font-bold text-white">$1</span>')
                   .replace(/(business plan|Businessplan)/gi, '<span class="font-bold text-white">$1</span>')
+                  .replace(/(Start free|Starte kostenlos)/gi, '<span class="font-bold text-white">$1</span>')
+                  .replace(/(Grants|Investors|Bank Loans|Förderungen|Investoren|Bankkredite)/gi, '<span class="font-bold text-white">$1</span>')
+                  .replace(/(requirements|Anforderungen)/gi, '<span class="font-bold text-white">$1</span>')
               }}
             />
           </div>
