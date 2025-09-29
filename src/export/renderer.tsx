@@ -163,43 +163,265 @@ class ExportRenderer {
   }
 
   private async renderPDF(plan: PlanDocument, options: ExportOptions, labels: any): Promise<ExportResult> {
-    // This would integrate with html2pdf or similar
-    const htmlContent = this.generateHTML(plan, options, labels);
-    
-    if (typeof window !== 'undefined') {
+    try {
+      if (typeof window === 'undefined') {
+        throw new Error('PDF generation only available in browser');
+      }
+
       const html2pdf = (await import('html2pdf.js')).default;
       
+      // Generate HTML content with better styling
+      const htmlContent = this.generateHTML(plan, options, labels);
+      
+      // Create a temporary container with proper styling
       const element = document.createElement('div');
       element.innerHTML = htmlContent;
+      element.style.cssText = `
+        font-family: ${options.theme === 'serif' ? 'Times, serif' : 'Arial, sans-serif'};
+        font-size: ${options.fontSize === 'small' ? '12px' : options.fontSize === 'large' ? '16px' : '14px'};
+        line-height: ${options.spacing === 'compact' ? '1.4' : options.spacing === 'relaxed' ? '1.8' : '1.6'};
+        color: #333;
+        max-width: 800px;
+        margin: 0 auto;
+        padding: 20px;
+        background: white;
+      `;
+      
+      // Add to DOM temporarily
       document.body.appendChild(element);
 
-      const opt = {
-        margin: 1,
+      // Configure PDF options based on quality
+      const pdfOptions = {
+        margin: options.quality === 'premium' ? 0.5 : options.quality === 'draft' ? 1.5 : 1,
         filename: `${plan.id.replace(/[^a-z0-9]/gi, '_').toLowerCase()}.pdf`,
-        image: { type: 'jpeg' as const, quality: 0.98 },
-        html2canvas: { scale: 2 },
-        jsPDF: { unit: 'in', format: 'letter', orientation: 'portrait' as const }
+        image: { 
+          type: 'jpeg' as const, 
+          quality: options.quality === 'premium' ? 1.0 : options.quality === 'draft' ? 0.7 : 0.9 
+        },
+        html2canvas: { 
+          scale: options.quality === 'premium' ? 3 : options.quality === 'draft' ? 1.5 : 2,
+          useCORS: true,
+          letterRendering: true
+        },
+        jsPDF: { 
+          unit: 'in', 
+          format: 'a4', 
+          orientation: 'portrait' as const,
+          compress: true
+        },
+        pagebreak: { mode: ['avoid-all', 'css', 'legacy'] }
       };
 
-      await html2pdf().set(opt).from(element).save();
+      // Generate PDF
+      await html2pdf().set(pdfOptions).from(element).save();
+      
+      // Clean up
       document.body.removeChild(element);
 
       return {
         success: true,
         downloadUrl: `${plan.id}.pdf`
       };
-    } else {
-      throw new Error('PDF generation only available in browser');
+    } catch (error) {
+      console.error('Error generating PDF:', error);
+      return {
+        success: false,
+        error: error instanceof Error ? error.message : 'PDF generation failed'
+      };
     }
   }
 
-  private async renderDOCX(plan: PlanDocument, _options: ExportOptions, _labels: any): Promise<ExportResult> {
-    // This would integrate with docx library
-    // For now, return a placeholder
-    return {
-      success: true,
-      downloadUrl: `${plan.id}.docx`
-    };
+  private async renderDOCX(plan: PlanDocument, options: ExportOptions, _labels: any): Promise<ExportResult> {
+    try {
+      if (typeof window === 'undefined') {
+        throw new Error('DOCX generation only available in browser');
+      }
+
+      // Import DOCX library dynamically
+      const { Document, Packer, Paragraph, HeadingLevel, AlignmentType, PageBreak, Table, TableRow, TableCell, WidthType } = await import('docx');
+      const { saveAs } = await import('file-saver');
+
+      // Create document children
+      const children: any[] = [];
+
+      // Add title page
+      if (plan.settings.includeTitlePage) {
+        children.push(
+          new Paragraph({
+            text: plan.sections.find(s => s.key === 'execSummary')?.title || 'Business Plan',
+            heading: HeadingLevel.TITLE,
+            alignment: AlignmentType.CENTER,
+            spacing: { after: 400 }
+          })
+        );
+
+        if (plan.programId) {
+          children.push(
+            new Paragraph({
+              text: `Program: ${plan.programId}`,
+              alignment: AlignmentType.CENTER,
+              spacing: { after: 200 }
+            })
+          );
+        }
+
+        children.push(
+          new Paragraph({
+            text: `Created: ${new Date().toLocaleDateString()}`,
+            alignment: AlignmentType.CENTER,
+            spacing: { after: 400 }
+          }),
+          new PageBreak()
+        );
+      }
+
+      // Add table of contents if requested
+      if (options.showTableOfContents) {
+        children.push(
+          new Paragraph({
+            text: 'Table of Contents',
+            heading: HeadingLevel.HEADING_1,
+            spacing: { after: 200 }
+          })
+        );
+
+        plan.sections.forEach((section, index) => {
+          children.push(
+            new Paragraph({
+              text: `${index + 1}. ${section.title}`,
+              spacing: { after: 100 }
+            })
+          );
+        });
+
+        children.push(new PageBreak());
+      }
+
+      // Add sections
+      plan.sections.forEach((section, index) => {
+        if (section.content && section.content.trim()) {
+          // Section title
+          children.push(
+            new Paragraph({
+              text: section.title,
+              heading: HeadingLevel.HEADING_1,
+              spacing: { before: 400, after: 200 }
+            })
+          );
+
+          // Section content
+          const content = section.content.replace(/<[^>]*>/g, ''); // Strip HTML tags
+          const paragraphs = content.split('\n').filter(p => p.trim());
+          
+          paragraphs.forEach(paragraph => {
+            if (paragraph.trim()) {
+              children.push(
+                new Paragraph({
+                  text: paragraph.trim(),
+                  spacing: { after: 100 }
+                })
+              );
+            }
+          });
+
+          // Add tables if they exist
+          if (section.tables) {
+            Object.entries(section.tables).forEach(([tableName, table]) => {
+              if (table && table.rows && table.rows.length > 0) {
+                children.push(
+                  new Paragraph({
+                    text: `${tableName.charAt(0).toUpperCase() + tableName.slice(1)} Table`,
+                    heading: HeadingLevel.HEADING_2,
+                    spacing: { before: 300, after: 200 }
+                  })
+                );
+
+                // Create table
+                const tableRows = [
+                  new TableRow({
+                    children: table.columns.map(col => 
+                      new TableCell({
+                        children: [new Paragraph({ text: col, heading: HeadingLevel.HEADING_3 })],
+                        width: { size: 100 / table.columns.length, type: WidthType.PERCENTAGE }
+                      })
+                    )
+                  })
+                ];
+
+                table.rows.forEach(row => {
+                  tableRows.push(
+                    new TableRow({
+                      children: [
+                        new TableCell({
+                          children: [new Paragraph({ text: row.label })],
+                          width: { size: 30, type: WidthType.PERCENTAGE }
+                        }),
+                        ...row.values.map(value => 
+                          new TableCell({
+                            children: [new Paragraph({ text: value.toString() })],
+                            width: { size: 70 / (row.values.length), type: WidthType.PERCENTAGE }
+                          })
+                        )
+                      ]
+                    })
+                  );
+                });
+
+                children.push(
+                  new Table({
+                    rows: tableRows,
+                    width: { size: 100, type: WidthType.PERCENTAGE }
+                  })
+                );
+              }
+            });
+          }
+
+          // Add page break between sections (except last)
+          if (index < plan.sections.length - 1) {
+            children.push(new PageBreak());
+          }
+        }
+      });
+
+      // Add watermark if requested
+      if (options.includeWatermark) {
+        children.push(
+          new Paragraph({
+            text: options.watermarkText || 'DRAFT',
+            alignment: AlignmentType.CENTER,
+            spacing: { before: 200 }
+          })
+        );
+      }
+
+      // Create document
+      const doc = new Document({
+        sections: [{
+          properties: {},
+          children: children
+        }]
+      });
+
+      // Generate and save DOCX
+      const buffer = await Packer.toBuffer(doc);
+      const uint8Array = new Uint8Array(buffer);
+      const blob = new Blob([uint8Array], { type: 'application/vnd.openxmlformats-officedocument.wordprocessingml.document' });
+      
+      const filename = `${plan.id.replace(/[^a-z0-9]/gi, '_').toLowerCase()}.docx`;
+      saveAs(blob, filename);
+
+      return {
+        success: true,
+        downloadUrl: filename
+      };
+    } catch (error) {
+      console.error('Error generating DOCX:', error);
+      return {
+        success: false,
+        error: error instanceof Error ? error.message : 'DOCX generation failed'
+      };
+    }
   }
 
   private generateHTML(plan: PlanDocument, options: ExportOptions, labels: any): string {
@@ -429,6 +651,7 @@ class ExportRenderer {
     };
     return labels[type] || type;
   }
+
 }
 
 export const exportRenderer = new ExportRenderer();

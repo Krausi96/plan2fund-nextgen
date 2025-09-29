@@ -17,7 +17,6 @@ import SectionEditor from '../src/components/editor/SectionEditor';
 import { PlanDocument, Route, FigureRef } from '@/types/plan';
 import { ProgramProfile } from '@/types/reco';
 import { evaluate } from '../src/editor/readiness/engine';
-import { exportRenderer } from '../src/export/renderer';
 import { calculatePricing, getPricingSummary } from '../src/lib/pricing';
 import { useI18n } from '@/contexts/I18nContext';
 
@@ -57,25 +56,7 @@ export default function EditorPage() {
     }
   };
 
-  const handleExport = async () => {
-    if (!plan) return;
-
-    try {
-      const result = await exportRenderer.renderPlan(plan, {
-        format: 'PDF',
-        includeWatermark: !plan.addonPack,
-        quality: 'standard'
-      });
-
-      if (result.success) {
-        console.log('Export successful:', result.downloadUrl);
-      } else {
-        console.error('Export failed:', result.error);
-      }
-    } catch (error) {
-      console.error('Export error:', error);
-    }
-  };
+  // Export functionality is now handled by EditorShell
 
   const handleRouteChange = (newRoute: Route) => {
     if (plan) {
@@ -259,18 +240,17 @@ export default function EditorPage() {
         onPlanChange={setPlan}
         onProgramProfileChange={setProgramProfile}
       >
-      <EditorShell
-        plan={plan}
-        programProfile={programProfile}
-        onSave={handleSave}
-        onExport={handleExport}
-        onRouteChange={handleRouteChange}
-        onLanguageChange={handleLanguageChange}
-        onToneChange={handleToneChange}
-        onTargetLengthChange={handleTargetLengthChange}
-        onSettingsChange={handleSettingsChange}
-        onAddonPackToggle={handleAddonPackToggle}
-      >
+        <EditorShell
+          plan={plan}
+          programProfile={programProfile}
+          onSave={handleSave}
+          onRouteChange={handleRouteChange}
+          onLanguageChange={handleLanguageChange}
+          onToneChange={handleToneChange}
+          onTargetLengthChange={handleTargetLengthChange}
+          onSettingsChange={handleSettingsChange}
+          onAddonPackToggle={handleAddonPackToggle}
+        >
         <div className="flex flex-1">
           {/* Left Rail - Sections */}
           <div className="w-64 bg-white border-r border-gray-200 p-4">

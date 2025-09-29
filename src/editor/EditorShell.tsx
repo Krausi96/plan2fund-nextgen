@@ -7,12 +7,14 @@ import { Badge } from '@/components/ui/badge';
 import { useI18n } from '@/contexts/I18nContext';
 import { PlanDocument, Route } from '@/types/plan';
 import { ProgramProfile } from '@/types/reco';
+import ExportSettings from '@/components/editor/ExportSettings';
+import { exportRenderer } from '@/export/renderer';
+import { ExportOptions } from '@/export/renderer';
 
 interface EditorShellProps {
   plan: PlanDocument;
   programProfile?: ProgramProfile | null;
   onSave: () => void;
-  onExport: () => void;
   onRouteChange: (route: Route) => void;
   onLanguageChange: (language: 'de'|'en') => void;
   onToneChange: (tone: 'neutral'|'formal'|'concise') => void;
@@ -26,7 +28,6 @@ export default function EditorShell({
   plan,
   programProfile,
   // onSave,
-  onExport,
   onRouteChange,
   onLanguageChange,
   onToneChange,
@@ -37,10 +38,30 @@ export default function EditorShell({
 }: EditorShellProps) {
   const { setLocale } = useI18n();
   const [saveStatus] = useState<'saved'|'saving'|'unsaved'>('saved');
+  const [showExportSettings, setShowExportSettings] = useState(false);
+  const [isExporting, setIsExporting] = useState(false);
 
   const handleLanguageChange = (newLanguage: 'de'|'en') => {
     setLocale(newLanguage);
     onLanguageChange(newLanguage);
+  };
+
+  const handleExport = async (options: ExportOptions) => {
+    setIsExporting(true);
+    try {
+      const result = await exportRenderer.renderPlan(plan, options);
+      if (result.success) {
+        console.log('Export successful:', result.downloadUrl);
+        // You could show a success notification here
+      } else {
+        console.error('Export failed:', result.error);
+        // You could show an error notification here
+      }
+    } catch (error) {
+      console.error('Export error:', error);
+    } finally {
+      setIsExporting(false);
+    }
   };
 
   return (
@@ -124,8 +145,12 @@ export default function EditorShell({
             </span>
 
             {/* Export Button */}
-            <Button onClick={onExport} variant="primary">
-              Export
+            <Button 
+              onClick={() => setShowExportSettings(true)} 
+              variant="primary"
+              disabled={isExporting}
+            >
+              {isExporting ? 'Exporting...' : 'Export'}
             </Button>
           </div>
         </div>
@@ -135,6 +160,14 @@ export default function EditorShell({
       <div className="flex flex-1 overflow-hidden">
         {children}
       </div>
+
+      {/* Export Settings Modal */}
+      <ExportSettings
+        isOpen={showExportSettings}
+        onClose={() => setShowExportSettings(false)}
+        onExport={handleExport}
+        hasAddonPack={plan.addonPack || false}
+      />
     </div>
   );
 }
