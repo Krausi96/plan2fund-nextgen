@@ -28,7 +28,13 @@ export default function TargetGroupBanner({ onTargetGroupSelect }: TargetGroupBa
     }
   }, []);
 
-  const handleTargetGroupClick = (targetGroup: string) => {
+  const handleTargetGroupClick = (targetGroup: string, event?: React.MouseEvent) => {
+    // Prevent any default behavior
+    if (event) {
+      event.preventDefault();
+      event.stopPropagation();
+    }
+    
     // Store selection using the detection utility
     storeTargetGroupSelection(targetGroup as any);
     
@@ -67,7 +73,8 @@ export default function TargetGroupBanner({ onTargetGroupSelect }: TargetGroupBa
               </div>
               <div className="grid grid-cols-2 gap-2">
                 <button
-                  onClick={() => handleTargetGroupClick('startups')}
+                  type="button"
+                  onClick={(e) => handleTargetGroupClick('startups', e)}
                   className="flex items-center gap-2 px-4 py-2.5 text-sm bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 text-white rounded-lg transition-all duration-200 font-medium shadow-lg hover:shadow-xl transform hover:scale-105"
                 >
                   <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -76,7 +83,8 @@ export default function TargetGroupBanner({ onTargetGroupSelect }: TargetGroupBa
                   {t('banner.startups')}
                 </button>
                 <button
-                  onClick={() => handleTargetGroupClick('smes')}
+                  type="button"
+                  onClick={(e) => handleTargetGroupClick('smes', e)}
                   className="flex items-center gap-2 px-4 py-2.5 text-sm bg-gradient-to-r from-green-600 to-green-700 hover:from-green-700 hover:to-green-800 text-white rounded-lg transition-all duration-200 font-medium shadow-lg hover:shadow-xl transform hover:scale-105"
                 >
                   <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -85,7 +93,8 @@ export default function TargetGroupBanner({ onTargetGroupSelect }: TargetGroupBa
                   {t('banner.smes')}
                 </button>
                 <button
-                  onClick={() => handleTargetGroupClick('advisors')}
+                  type="button"
+                  onClick={(e) => handleTargetGroupClick('advisors', e)}
                   className="flex items-center gap-2 px-4 py-2.5 text-sm bg-gradient-to-r from-purple-600 to-purple-700 hover:from-purple-700 hover:to-purple-800 text-white rounded-lg transition-all duration-200 font-medium shadow-lg hover:shadow-xl transform hover:scale-105"
                 >
                   <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -94,7 +103,8 @@ export default function TargetGroupBanner({ onTargetGroupSelect }: TargetGroupBa
                   {t('banner.advisors')}
                 </button>
                 <button
-                  onClick={() => handleTargetGroupClick('universities')}
+                  type="button"
+                  onClick={(e) => handleTargetGroupClick('universities', e)}
                   className="flex items-center gap-2 px-4 py-2.5 text-sm bg-gradient-to-r from-orange-600 to-orange-700 hover:from-orange-700 hover:to-orange-800 text-white rounded-lg transition-all duration-200 font-medium shadow-lg hover:shadow-xl transform hover:scale-105"
                 >
                   <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -106,6 +116,7 @@ export default function TargetGroupBanner({ onTargetGroupSelect }: TargetGroupBa
               </div>
             </div>
             <button
+              type="button"
               onClick={handleDismiss}
               className="text-slate-400 hover:text-white transition-colors duration-200 p-2 hover:bg-slate-700 rounded-lg"
               aria-label="Dismiss banner"
