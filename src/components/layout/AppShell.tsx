@@ -2,7 +2,6 @@
 import Footer from "@/components/layout/Footer";
 import Breadcrumbs from "@/components/layout/Breadcrumbs";
 import SiteBreadcrumbs from "@/components/layout/SiteBreadcrumbs";
-import TargetGroupBanner from "@/components/common/TargetGroupBanner";
 import { useRouter } from "next/router";
 
 export default function AppShell({ children }: { children: React.ReactNode }) {
@@ -53,9 +52,6 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
       )}
       
       <Footer />
-      
-      {/* Target Group Banner - Show only on landing page when no target group detected */}
-      {isLandingPage && <TargetGroupBanner />}
     </div>
   );
 }

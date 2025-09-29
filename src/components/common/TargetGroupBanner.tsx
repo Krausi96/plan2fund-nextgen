@@ -35,13 +35,10 @@ export default function TargetGroupBanner({ onTargetGroupSelect }: TargetGroupBa
     // Hide banner
     setShowBanner(false);
     
-    // Notify parent component
+    // Notify parent component to update Hero content
     if (onTargetGroupSelect) {
       onTargetGroupSelect(targetGroup);
     }
-    
-    // Navigate to target group specific page
-    window.location.href = `/for/${targetGroup}`;
   };
 
   const handleDismiss = () => {

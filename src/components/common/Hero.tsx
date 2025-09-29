@@ -2,6 +2,7 @@ import { motion, useReducedMotion } from "framer-motion";
 import { memo, useState, useEffect } from "react";
 import { useI18n } from "@/contexts/I18nContext";
 import { detectTargetGroup } from '@/lib/targetGroupDetection';
+import TargetGroupBanner from './TargetGroupBanner';
 
 
 // Blueprint Grid Background Component
@@ -197,9 +198,16 @@ export function Hero({
   onStepClick
 }: HeroProps = {}) {
   const { t } = useI18n();
+  const [selectedTargetGroup, setSelectedTargetGroup] = useState<string | null>(null);
   
   // Get target group using enhanced detection (URL, UTM, referrer, etc.)
-  const targetGroup = getTargetGroupFromDetection();
+  // If user selected from banner, use that; otherwise use detection
+  const targetGroup = selectedTargetGroup || getTargetGroupFromDetection();
+
+  // Handle target group selection from banner
+  const handleTargetGroupSelect = (targetGroup: string) => {
+    setSelectedTargetGroup(targetGroup);
+  };
   
   // Get target group specific content or fallback to default
   const heroTitle = targetGroup !== 'default' ? t(`hero.title.${targetGroup}` as any) : t('hero.title.main');
@@ -220,6 +228,10 @@ export function Hero({
       <div className="relative z-20 w-full max-w-6xl px-6 sm:px-8 lg:px-12 py-12 md:py-16 mx-auto">
         <div className="flex flex-col items-center justify-center space-y-8 min-h-[60vh]">
           
+          {/* Target Group Banner - Show only when detection fails */}
+          {targetGroup === 'default' && (
+            <TargetGroupBanner onTargetGroupSelect={handleTargetGroupSelect} />
+          )}
           
           {/* H1 Title - Static with proper spacing */}
           <div className="text-center max-w-4xl">
