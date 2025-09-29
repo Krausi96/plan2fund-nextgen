@@ -5,20 +5,17 @@ export function WhoItsFor() {
 
   const personas = [
     {
-      title: "Solo-Entrepreneurs & Startups",
+      title: "Solo-Entrepreneurs",
       description: "Transform your idea into a professional business plan that investors and partners will take seriously.",
       features: [
         "Business Model Canvas with guided questions",
         "AI assistant for expert advice & content creation",
-        "Readiness Check to ensure you have everything needed",
-        "PDF & Word documents ready for submission"
+        "Readiness Check to ensure you have everything needed"
       ],
-      perfectFor: "New ideas, first-time entrepreneurs",
       icon: "🚀",
       color: "text-blue-600",
       bgColor: "bg-blue-50",
       iconBg: "bg-blue-100",
-      href: "/reco?persona=solo",
       isPrimary: true
     },
     {
@@ -27,32 +24,26 @@ export function WhoItsFor() {
       features: [
         "Financial tables & cash flow projections",
         "Readiness Check for bank & investor requirements",
-        "AI assistant for content improvement & translation",
-        "Route-specific documents (budget sheets, summaries)"
+        "AI assistant for content improvement & translation"
       ],
-      perfectFor: "Existing businesses, growth projects",
       icon: "✏️",
       color: "text-green-600",
       bgColor: "bg-green-50",
       iconBg: "bg-green-100",
-      href: "/reco?persona=sme",
       isPrimary: false
     },
     {
-      title: "Business Advisors & Consultants",
+      title: "Business Advisors",
       description: "Deliver consistent, high-quality business plans for all your clients with scalable tools.",
       features: [
         "Professional templates for different industries",
         "AI assistant for content creation & improvement",
-        "Readiness Check across multiple funding routes",
         "Export in multiple formats (PDF, Word, PowerPoint)"
       ],
-      perfectFor: "Consultants, agencies, multiple clients",
       icon: "📋",
       color: "text-purple-600",
       bgColor: "bg-purple-50",
       iconBg: "bg-purple-100",
-      href: "/about#partners",
       isPrimary: false
     },
     {
@@ -61,15 +52,12 @@ export function WhoItsFor() {
       features: [
         "Professional templates for research projects",
         "AI assistant for academic writing & translation",
-        "Readiness Check for EU & research programs",
-        "Multiple export formats for different applications"
+        "Readiness Check for EU & research programs"
       ],
-      perfectFor: "Universities, accelerators, research teams",
       icon: "🎓",
       color: "text-indigo-600",
       bgColor: "bg-indigo-50",
       iconBg: "bg-indigo-100",
-      href: "/about#partners",
       isPrimary: false
     },
   ];
@@ -101,14 +89,14 @@ export function WhoItsFor() {
               viewport={{ once: true }}
               className="group"
             >
-              <div className={`p-6 h-full flex flex-col relative group rounded-xl border-2 transition-all duration-300 hover:shadow-lg hover:-translate-y-1 ${
+              <div className={`p-4 h-full flex flex-col relative group rounded-xl border-2 transition-all duration-300 hover:shadow-lg hover:-translate-y-1 ${
                 persona.isPrimary 
                   ? "border-blue-200 bg-blue-50/50 hover:border-blue-300" 
                   : "border-gray-200 bg-white hover:border-gray-300"
               }`}>
                 {/* Badge for Primary */}
                 {persona.isPrimary && (
-                  <div className="absolute top-4 right-4">
+                  <div className="absolute top-3 right-3">
                     <span className="bg-blue-600 text-white text-xs px-2 py-1 rounded-full font-semibold shadow-sm">
                       Primary
                     </span>
@@ -116,57 +104,57 @@ export function WhoItsFor() {
                 )}
                 
                 {/* Compact Header */}
-                <div className="text-center mb-4">
-                  <div className={`w-16 h-16 rounded-lg flex items-center justify-center mx-auto mb-3 shadow-sm group-hover:scale-110 transition-transform duration-300 ${persona.iconBg}`}>
-                    <span className="text-2xl">{persona.icon}</span>
+                <div className="text-center mb-3">
+                  <div className={`w-12 h-12 rounded-lg flex items-center justify-center mx-auto mb-2 shadow-sm group-hover:scale-110 transition-transform duration-300 ${persona.iconBg}`}>
+                    <span className="text-xl">{persona.icon}</span>
                   </div>
                   
-                  <h3 className="text-lg font-bold text-neutral-900 mb-2 group-hover:text-blue-600 transition-colors duration-300">
+                  <h3 className="text-base font-bold text-neutral-900 mb-2 group-hover:text-blue-600 transition-colors duration-300">
                     {persona.title}
                   </h3>
-                  <p className="text-sm text-neutral-600 leading-relaxed">
+                  <p className="text-xs text-neutral-600 leading-relaxed">
                     {persona.description}
                   </p>
                 </div>
-                
-                {/* Perfect for */}
-                <div className="mb-4">
-                  <div className="inline-flex items-center px-3 py-1 rounded-full bg-gray-100 text-gray-700 text-sm font-medium">
-                    <span className="w-2 h-2 bg-green-500 rounded-full mr-2"></span>
-                    Perfect for: {persona.perfectFor}
-                  </div>
-                </div>
 
                 {/* Compact Features - 3 max */}
-                <div className="flex-grow mb-4">
-                  <ul className="space-y-2">
+                <div className="flex-grow">
+                  <ul className="space-y-1.5">
                     {persona.features.map((feature, featureIndex) => (
-                      <li key={featureIndex} className="flex items-start text-sm text-neutral-600">
-                        <CheckCircle className="w-4 h-4 text-green-500 mr-2 mt-0.5 flex-shrink-0" />
+                      <li key={featureIndex} className="flex items-start text-xs text-neutral-600">
+                        <CheckCircle className="w-3 h-3 text-green-500 mr-2 mt-0.5 flex-shrink-0" />
                         <span className="leading-relaxed">{feature}</span>
                       </li>
                     ))}
                   </ul>
                 </div>
-                
-                {/* Compact CTA */}
-                <a 
-                  href={persona.href}
-                  className="w-full px-4 py-2.5 bg-blue-600 text-white rounded-lg font-medium text-center hover:bg-blue-700 transition-all duration-300 group-hover:shadow-lg transform group-hover:scale-105"
-                  title={`Learn more about ${persona.title.toLowerCase()}`}
-                  aria-label={`Get started with ${persona.title}`}
-                >
-                  <span className="flex items-center justify-center">
-                    Get Started
-                    <svg className="w-4 h-4 ml-2 group-hover:translate-x-1 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
-                    </svg>
-                  </span>
-                </a>
               </div>
             </motion.div>
           ))}
         </div>
+
+        {/* Common CTA */}
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.6, delay: 0.4 }}
+          viewport={{ once: true }}
+          className="text-center mt-8"
+        >
+          <a 
+            href="/reco"
+            className="inline-flex items-center px-6 py-3 bg-blue-600 text-white rounded-lg font-medium hover:bg-blue-700 transition-all duration-300 hover:shadow-lg transform hover:scale-105"
+            title="Get started with Plan2Fund"
+            aria-label="Get started with Plan2Fund"
+          >
+            <span className="flex items-center justify-center">
+              Get Started
+              <svg className="w-4 h-4 ml-2 group-hover:translate-x-1 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+              </svg>
+            </span>
+          </a>
+        </motion.div>
 
       </div>
     </section>
