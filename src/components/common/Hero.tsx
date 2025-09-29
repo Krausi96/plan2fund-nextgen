@@ -1,7 +1,6 @@
 import { motion, useReducedMotion } from "framer-motion";
 import { memo, useState, useEffect } from "react";
 import { useI18n } from "@/contexts/I18nContext";
-import TargetGroupBanner from './TargetGroupBanner';
 import { detectTargetGroup } from '@/lib/targetGroupDetection';
 
 
@@ -203,9 +202,9 @@ export function Hero({
   const targetGroup = getTargetGroupFromDetection();
   
   // Get target group specific content or fallback to default
-  const heroTitle = t(`hero.title.${targetGroup}` as any) || t('hero.title.main');
-  const heroTitleSecond = t('hero.titleSecond');
-  const heroSubtitle = t(`hero.subtitle.${targetGroup}` as any) || t('hero.subtitle.main');
+  const heroTitle = targetGroup !== 'default' ? t(`hero.title.${targetGroup}` as any) : t('hero.title.main');
+  const heroTitleSecond = targetGroup !== 'default' ? t('hero.titleSecond') : '';
+  const heroSubtitle = targetGroup !== 'default' ? t(`hero.subtitle.${targetGroup}` as any) : t('hero.subtitle.main');
   const heroPrimaryButton = t('hero.button.primary');
   const heroSecondaryButton = t('hero.button.secondary');
 
@@ -221,10 +220,6 @@ export function Hero({
       <div className="relative z-20 w-full max-w-6xl px-6 sm:px-8 lg:px-12 py-12 md:py-16 mx-auto">
         <div className="flex flex-col items-center justify-center space-y-8 min-h-[60vh]">
           
-          {/* Target Group Banner - Show only when detection fails */}
-          {targetGroup === 'default' && (
-            <TargetGroupBanner />
-          )}
           
           {/* H1 Title - Static with proper spacing */}
           <div className="text-center max-w-4xl">
@@ -236,7 +231,7 @@ export function Hero({
               style={{ textWrap: 'balance' }}
             >
               <div className="mb-2">{heroTitle}</div>
-              <div className="text-white">{heroTitleSecond}</div>
+              {heroTitleSecond && <div className="text-white">{heroTitleSecond}</div>}
             </motion.h1>
           </div>
 
@@ -247,9 +242,14 @@ export function Hero({
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.3, duration: 0.8 }}
               className="text-lg md:text-xl text-white leading-relaxed"
-            >
-              {heroSubtitle}
-            </motion.p>
+              dangerouslySetInnerHTML={{
+                __html: heroSubtitle
+                  .replace(/(funding|Förderung|Finanzierung)/gi, '<span class="text-blue-300 font-semibold">$1</span>')
+                  .replace(/(30 minutes|30 Minuten)/gi, '<span class="text-yellow-300 font-semibold">$1</span>')
+                  .replace(/(Austria|Österreich)/gi, '<span class="text-green-300 font-semibold">$1</span>')
+                  .replace(/(business plan|Businessplan)/gi, '<span class="text-purple-300 font-semibold">$1</span>')
+              }}
+            />
           </div>
 
           {/* User Flow Animation - Smaller and more subtle */}
