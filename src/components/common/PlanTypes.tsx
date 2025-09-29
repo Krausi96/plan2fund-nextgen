@@ -7,7 +7,7 @@ export function PlanTypes() {
   const planTypes = [
     {
       id: "strategy",
-      title: "Strategy Document (Business Model & GTM) — 4–8 pages",
+      title: "Strategy Document",
       icon: "💡", // Lightbulb for strategy/ideas
       subtitle: "Turn your idea into a clear business model & go-to-market you can build on — upgradeable to a full plan.",
       features: [
@@ -21,7 +21,7 @@ export function PlanTypes() {
     },
     {
       id: "review",
-      title: "Update & Review (improve your existing text)",
+      title: "Upgrade & Review",
       icon: "✏️", // Edit pencil for review/update
       subtitle: "Paste your draft — we re-structure, complete missing parts, align to requirements, and polish.",
       features: [
@@ -35,7 +35,7 @@ export function PlanTypes() {
     },
     {
       id: "custom",
-      title: "Submission-Ready Business Plan — 15–35 pages",
+      title: "Custom Business Plan",
       icon: "📋", // Clipboard for submission-ready documents
       subtitle: "Application-ready plan for grants, banks, visas, or equity investors — in the order reviewers expect.",
       features: [
@@ -79,20 +79,15 @@ export function PlanTypes() {
             >
               {/* Header with icon and title */}
               <div className="mb-6">
-                <div className="flex items-center mb-4">
-                  <div className="w-12 h-12 rounded-xl bg-blue-50 flex items-center justify-center mr-4 group-hover:bg-blue-100 transition-colors">
+                <div className="text-center mb-4">
+                  <div className="w-16 h-16 rounded-xl bg-blue-50 flex items-center justify-center mx-auto mb-3 group-hover:bg-blue-100 transition-colors">
                     <span className="text-2xl">{plan.icon}</span>
                   </div>
-                  <div>
-                    <h3 className="text-xl font-bold text-neutral-900 group-hover:text-blue-600 transition-colors">
-                      {plan.title.split(' — ')[0]}
-                    </h3>
-                    <p className="text-sm text-gray-500 font-medium">
-                      {plan.title.split(' — ')[1]}
-                    </p>
-                  </div>
+                  <h3 className="text-xl font-bold text-neutral-900 group-hover:text-blue-600 transition-colors mb-2">
+                    {plan.title}
+                  </h3>
                 </div>
-                <p className="text-gray-600 leading-relaxed">
+                <p className="text-gray-600 leading-relaxed text-center">
                   {plan.subtitle}
                 </p>
               </div>

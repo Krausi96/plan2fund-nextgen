@@ -89,40 +89,40 @@ export function WhoItsFor() {
               viewport={{ once: true }}
               className="group"
             >
-              <div className={`p-4 h-full flex flex-col relative group rounded-xl border-2 transition-all duration-300 hover:shadow-lg hover:-translate-y-1 ${
+              <div className={`p-6 h-full flex flex-col relative group rounded-xl border-2 transition-all duration-300 hover:shadow-lg hover:-translate-y-1 ${
                 persona.isPrimary 
                   ? "border-blue-200 bg-blue-50/50 hover:border-blue-300" 
                   : "border-gray-200 bg-white hover:border-gray-300"
               }`}>
                 {/* Badge for Primary */}
                 {persona.isPrimary && (
-                  <div className="absolute top-3 right-3">
+                  <div className="absolute top-4 right-4">
                     <span className="bg-blue-600 text-white text-xs px-2 py-1 rounded-full font-semibold shadow-sm">
                       Primary
                     </span>
                   </div>
                 )}
                 
-                {/* Compact Header */}
-                <div className="text-center mb-3">
-                  <div className={`w-12 h-12 rounded-lg flex items-center justify-center mx-auto mb-2 shadow-sm group-hover:scale-110 transition-transform duration-300 ${persona.iconBg}`}>
-                    <span className="text-xl">{persona.icon}</span>
+                {/* Header */}
+                <div className="text-center mb-4">
+                  <div className={`w-16 h-16 rounded-lg flex items-center justify-center mx-auto mb-3 shadow-sm group-hover:scale-110 transition-transform duration-300 ${persona.iconBg}`}>
+                    <span className="text-2xl">{persona.icon}</span>
                   </div>
                   
-                  <h3 className="text-base font-bold text-neutral-900 mb-2 group-hover:text-blue-600 transition-colors duration-300">
+                  <h3 className="text-lg font-bold text-neutral-900 mb-2 group-hover:text-blue-600 transition-colors duration-300">
                     {persona.title}
                   </h3>
-                  <p className="text-xs text-neutral-600 leading-relaxed">
+                  <p className="text-sm text-neutral-600 leading-relaxed">
                     {persona.description}
                   </p>
                 </div>
 
-                {/* Compact Features - 3 max */}
+                {/* Features - 3 max */}
                 <div className="flex-grow">
-                  <ul className="space-y-1.5">
+                  <ul className="space-y-2">
                     {persona.features.map((feature, featureIndex) => (
-                      <li key={featureIndex} className="flex items-start text-xs text-neutral-600">
-                        <CheckCircle className="w-3 h-3 text-green-500 mr-2 mt-0.5 flex-shrink-0" />
+                      <li key={featureIndex} className="flex items-start text-sm text-neutral-600">
+                        <CheckCircle className="w-4 h-4 text-green-500 mr-2 mt-0.5 flex-shrink-0" />
                         <span className="leading-relaxed">{feature}</span>
                       </li>
                     ))}
@@ -142,7 +142,7 @@ export function WhoItsFor() {
           className="text-center mt-8"
         >
           <a 
-            href="/reco"
+            href="/editor"
             className="inline-flex items-center px-6 py-3 bg-blue-600 text-white rounded-lg font-medium hover:bg-blue-700 transition-all duration-300 hover:shadow-lg transform hover:scale-105"
             title="Get started with Plan2Fund"
             aria-label="Get started with Plan2Fund"

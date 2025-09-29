@@ -218,7 +218,7 @@ export function Hero({
 
   return (
     <section 
-      className="relative min-h-[25vh] flex items-center overflow-hidden bg-gradient-to-b from-blue-600 via-blue-700 to-blue-800"
+      className="relative min-h-[20vh] flex items-center overflow-hidden bg-gradient-to-b from-blue-600 via-blue-700 to-blue-800"
       aria-label="Hero section with main value proposition"
     >
       {/* Background */}
@@ -226,7 +226,7 @@ export function Hero({
 
       {/* Main Content */}
       <div className="relative z-20 w-full max-w-6xl px-6 sm:px-8 lg:px-12 py-6 md:py-8 mx-auto">
-        <div className="flex flex-col items-center justify-center space-y-4 min-h-[25vh]">
+        <div className="flex flex-col items-center justify-center space-y-4 min-h-[20vh]">
           
           {/* Target Group Banner - Show only when detection fails */}
           {targetGroup === 'default' && (
