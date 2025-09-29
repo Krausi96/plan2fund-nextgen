@@ -11,13 +11,11 @@ export function PlanTypes() {
       icon: "💡", // Lightbulb for strategy/ideas
       subtitle: "Turn your idea into a clear business model & go-to-market you can build on — upgradeable to a full plan.",
       features: [
-        "Business Model Canvas snapshot (9 blocks) with concise assumptions",
-        "GTM essentials: target market, pricing, promotion, channels, sales tactics",
-        "Unit economics (simple): price, unit cost, contribution margin, break-even",
-        "Executive One-Pager (DE/EN); content carries over to the full plan"
+        "Business Model Canvas with guided questions",
+        "GTM essentials: target market, pricing, promotion, channels",
+        "Virtual funding expert for startup guidance",
+        "Readiness Check for pre-seed & early-stage programs"
       ],
-      badges: ["DE/EN", "PDF/DOCX", "Edit anytime"],
-      helper: "Recommended add-on: Add-on Pack for faster first draft and one extra revision.",
       href: "/pricing#strategy",
       hasRouteExtras: false
     },
@@ -27,21 +25,13 @@ export function PlanTypes() {
       icon: "✏️", // Edit pencil for review/update
       subtitle: "Paste your draft — we re-structure, complete missing parts, align to requirements, and polish.",
       features: [
-        "Re-structure & completion (we add missing sections and financials)",
-        "Readiness Check — cross-checked to grant/bank/visa/equity requirements",
-        "Customization & formatting: DE/EN, tone, pagination, references/quotations"
+        "Content restructuring & completion",
+        "Financial tables & cash flow projections",
+        "Virtual funding expert for content improvement",
+        "Readiness Check for all funding types"
       ],
-      routeExtras: [
-        "Budget sheet",
-        "Work packages & timeline", 
-        "Annex guidance",
-        "Bank summary",
-        "Investor teaser & cap table"
-      ],
-      badges: ["DE/EN", "PDF/DOCX", "Edit anytime"],
-      helper: "Recommended add-on: Add-on Pack for rush, one extra revision, and provider form help (one standard form).",
       href: "/pricing#review",
-      hasRouteExtras: true
+      hasRouteExtras: false
     },
     {
       id: "custom",
@@ -49,21 +39,14 @@ export function PlanTypes() {
       icon: "📋", // Clipboard for submission-ready documents
       subtitle: "Application-ready plan for grants, banks, visas, or equity investors — in the order reviewers expect.",
       features: [
-        "Standard sections (Executive Summary → Financials)",
-        "Financial tables: revenue, costs, cash-flow, use of funds",
-        "Readiness Check — cross-checked to the chosen route's requirements"
+        "Complete business plan structure (Executive Summary → Financials)",
+        "Advanced financial modeling & use of funds",
+        "Virtual funding expert for route-specific guidance",
+        "Readiness Check for chosen funding route requirements",
+        "Specific funding documents (budget sheets, pitch decks, etc.)"
       ],
-      routeExtras: [
-        "Budget sheet",
-        "Work packages & timeline",
-        "Annex guidance", 
-        "Bank summary",
-        "Investor teaser & cap table"
-      ],
-      badges: ["DE/EN", "PDF/DOCX", "Edit anytime"],
-      helper: "Recommended add-on: Add-on Pack for rush, one extra revision, and provider form help (one standard form).",
       href: "/pricing#custom",
-      hasRouteExtras: true
+      hasRouteExtras: false
     }
   ];
 
@@ -114,9 +97,9 @@ export function PlanTypes() {
                 </p>
               </div>
 
-              {/* Key features - simplified */}
+              {/* Key features */}
               <div className="mb-6">
-                <h4 className="text-sm font-semibold text-gray-900 mb-3">Includes:</h4>
+                <h4 className="text-sm font-semibold text-gray-900 mb-3">Key Features:</h4>
                 <ul className="space-y-2">
                   {plan.features.map((feature, featureIndex) => (
                     <li key={featureIndex} className="text-sm text-gray-600 flex items-start">
@@ -129,27 +112,11 @@ export function PlanTypes() {
                 </ul>
               </div>
 
-              {/* Route extras - only for review and custom */}
-              {plan.hasRouteExtras && plan.routeExtras && (
-                <div className="mb-6 p-4 bg-blue-50 rounded-xl border border-blue-200">
-                  <h4 className="text-sm font-semibold text-blue-900 mb-2">Route extras (included when relevant):</h4>
-                  <div className="flex flex-wrap gap-1">
-                    {plan.routeExtras.map((extra, extraIndex) => (
-                      <span key={extraIndex} className="text-xs bg-blue-100 text-blue-800 px-2 py-1 rounded-full">
-                        {extra}
-                      </span>
-                    ))}
-                  </div>
-                </div>
-              )}
-
-              {/* Badges - more prominent */}
-              <div className="flex flex-wrap gap-2 mb-4">
-                {plan.badges.map((badge, badgeIndex) => (
-                  <span key={badgeIndex} className="text-xs bg-blue-50 text-blue-700 px-3 py-1.5 rounded-full font-medium">
-                    {badge}
-                  </span>
-                ))}
+              {/* Additional documents note */}
+              <div className="mb-4 p-3 bg-gray-50 rounded-lg border border-gray-200">
+                <p className="text-xs text-gray-600 text-center">
+                  <span className="font-medium">Additional documents and add-ons</span> based on funding type
+                </p>
               </div>
 
               {/* CTA */}
@@ -165,18 +132,6 @@ export function PlanTypes() {
           ))}
         </div>
 
-        {/* Add-on Pack mention */}
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.6, delay: 0.4 }}
-          viewport={{ once: true }}
-          className="text-center mt-8"
-        >
-          <p className="text-sm text-gray-600">
-            Optional <a href="/pricing#addons" className="text-blue-600 hover:text-blue-800 underline font-medium">Add-on Pack</a>: Rush + extra revision + provider form help.
-          </p>
-        </motion.div>
 
       </div>
     </section>
