@@ -67,7 +67,7 @@ export function WhyPlan2Fund({ targetGroup = 'default' }: WhyPlan2FundProps) {
                   </p>
         </motion.div>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6 lg:gap-8">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           {features.map((feature, index) => (
             <motion.div
               key={index}

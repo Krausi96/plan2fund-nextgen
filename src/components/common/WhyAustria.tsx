@@ -60,7 +60,7 @@ export function WhyAustria({ targetGroup = 'default' }: WhyAustriaProps) {
           <h2 className="text-2xl md:text-3xl font-bold text-neutral-900 mb-4">
             {t('whyAustria.title')}
           </h2>
-          <p className="text-base text-neutral-600 max-w-xl mx-auto">
+          <p className="text-base text-neutral-600 max-w-2xl mx-auto">
             {t('whyAustria.subtitle')}
           </p>
         </motion.div>
@@ -103,7 +103,7 @@ export function WhyAustria({ targetGroup = 'default' }: WhyAustriaProps) {
                 }`}>
                   {benefit.title}
                 </h3>
-                <p className="text-neutral-600 leading-relaxed text-left">
+                <p className="text-neutral-600 leading-relaxed text-center">
                   {benefit.description}
                 </p>
               </div>

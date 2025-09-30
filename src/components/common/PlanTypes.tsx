@@ -121,7 +121,7 @@ export function PlanTypes({ targetGroup = 'default' }: PlanTypesProps) {
               </div>
 
               {/* Key features */}
-              <div className="mb-6">
+              <div className="mb-6 flex-1">
                 <h4 className="text-sm font-semibold text-gray-900 mb-3">{t("planTypes.keyFeatures")}</h4>
                 <ul className="space-y-2">
                   {plan.features.map((feature, featureIndex) => (
@@ -136,12 +136,10 @@ export function PlanTypes({ targetGroup = 'default' }: PlanTypesProps) {
               </div>
 
               {/* Additional documents note */}
-              <div className="mb-4 p-3 bg-gray-50 rounded-lg border border-gray-200">
-                <div className="mt-auto">
-                  <p className="text-xs text-gray-600 text-center">
-                    <span className="font-medium">{t("planTypes.additionalDocs")}</span> {t("planTypes.additionalDocsNote")}
-                  </p>
-                </div>
+              <div className="mt-auto p-3 bg-gray-50 rounded-lg border border-gray-200">
+                <p className="text-xs text-gray-600 text-center">
+                  <span className="font-medium">{t("planTypes.additionalDocs")}</span> {t("planTypes.additionalDocsNote")}
+                </p>
               </div>
 
                     </motion.a>

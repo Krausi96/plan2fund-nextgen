@@ -60,7 +60,7 @@ export default function TargetGroupBanner({ onTargetGroupSelect }: TargetGroupBa
         animate={{ opacity: 1, y: 0 }}
         exit={{ opacity: 0, y: 20 }}
         transition={{ duration: 0.3 }}
-        className="fixed top-4 left-4 right-4 z-50 bg-slate-800/95 backdrop-blur-sm shadow-lg border border-slate-600 rounded-lg max-w-4xl mx-auto"
+        className="fixed bottom-4 left-4 right-4 z-50 bg-slate-800/95 backdrop-blur-sm shadow-lg border border-slate-600 rounded-lg max-w-4xl mx-auto"
       >
         <div className="px-4 py-3">
           <div className="flex items-center justify-between gap-3">
