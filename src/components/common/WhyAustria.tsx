@@ -1,5 +1,4 @@
 import { motion } from "framer-motion";
-import { Building2, Euro, Users } from "lucide-react";
 import { useI18n } from "@/contexts/I18nContext";
 
 interface WhyAustriaProps {
@@ -8,10 +7,45 @@ interface WhyAustriaProps {
 
 export function WhyAustria({ targetGroup = 'default' }: WhyAustriaProps) {
   const { t } = useI18n();
-  
-  // Future: Use targetGroup to customize content for different personas
-  // For now, we use the same content for all target groups
-  console.debug('Target group for WhyAustria:', targetGroup);
+
+  // Helper function to determine if a benefit should be highlighted
+  const isBenefitHighlighted = (benefitIndex: number) => {
+    if (targetGroup === 'default') return false;
+    
+    // Map target groups to benefit indices to highlight
+    const highlightMap = {
+      'startups': [0, 2],      // Emphasize innovation culture and supportive ecosystem
+      'sme': [1, 2],           // Emphasize funding programs and supportive ecosystem
+      'advisors': [2, 0],      // Emphasize supportive ecosystem and innovation culture
+      'universities': [0, 1]   // Emphasize innovation culture and funding programs
+    };
+    
+    return highlightMap[targetGroup as keyof typeof highlightMap]?.includes(benefitIndex) || false;
+  };
+
+  const benefits = [
+    {
+      icon: "🏢", // Building icon for innovation culture
+      title: t('whyAustria.benefits.innovation.title'),
+      description: t('whyAustria.benefits.innovation.description'),
+      color: "text-blue-600",
+      bgColor: "bg-blue-100",
+    },
+    {
+      icon: "💰", // Money icon for funding programs
+      title: t('whyAustria.benefits.funding.title'),
+      description: t('whyAustria.benefits.funding.description'),
+      color: "text-green-600",
+      bgColor: "bg-green-100",
+    },
+    {
+      icon: "🤝", // Handshake icon for supportive ecosystem
+      title: t('whyAustria.benefits.support.title'),
+      description: t('whyAustria.benefits.support.description'),
+      color: "text-purple-600",
+      bgColor: "bg-purple-100",
+    },
+  ];
 
   return (
     <section className="section-padding bg-white">
@@ -40,41 +74,39 @@ export function WhyAustria({ targetGroup = 'default' }: WhyAustriaProps) {
           viewport={{ once: true }}
           className="grid md:grid-cols-3 gap-8"
         >
-          <div className="text-center p-6">
-            <div className="w-16 h-16 bg-blue-100 rounded-full flex items-center justify-center mx-auto mb-4">
-              <Building2 className="w-8 h-8 text-blue-600" />
+          {benefits.map((benefit, index) => {
+            const isHighlighted = isBenefitHighlighted(index);
+            return (
+            <div key={index} className={`text-center p-6 rounded-xl transition-all duration-300 ${
+              isHighlighted 
+                ? 'bg-blue-50 border-2 border-blue-200 shadow-lg' 
+                : 'bg-white'
+            }`}>
+              {/* Highlighted Badge */}
+              {isHighlighted && (
+                <div className="flex justify-center mb-4">
+                  <span className="text-xs bg-green-600 text-white px-3 py-1 rounded-full font-semibold shadow-sm">
+                    Recommended
+                  </span>
+                </div>
+              )}
+              
+              <div className={`w-16 h-16 ${benefit.bgColor} rounded-full flex items-center justify-center mx-auto mb-4 ${
+                isHighlighted ? 'ring-2 ring-blue-200' : ''
+              }`}>
+                <span className="text-3xl">{benefit.icon}</span>
+              </div>
+              <h3 className={`text-xl font-semibold mb-2 ${
+                isHighlighted ? 'text-blue-900' : 'text-neutral-900'
+              }`}>
+                {benefit.title}
+              </h3>
+              <p className="text-neutral-600">
+                {benefit.description}
+              </p>
             </div>
-            <h3 className="text-xl font-semibold text-neutral-900 mb-2">
-              {t('whyAustria.benefits.innovation.title')}
-            </h3>
-            <p className="text-neutral-600">
-              {t('whyAustria.benefits.innovation.description')}
-            </p>
-          </div>
-
-          <div className="text-center p-6">
-            <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4">
-              <Euro className="w-8 h-8 text-green-600" />
-            </div>
-            <h3 className="text-xl font-semibold text-neutral-900 mb-2">
-              {t('whyAustria.benefits.funding.title')}
-            </h3>
-            <p className="text-neutral-600">
-              {t('whyAustria.benefits.funding.description')}
-            </p>
-          </div>
-
-          <div className="text-center p-6">
-            <div className="w-16 h-16 bg-purple-100 rounded-full flex items-center justify-center mx-auto mb-4">
-              <Users className="w-8 h-8 text-purple-600" />
-            </div>
-            <h3 className="text-xl font-semibold text-neutral-900 mb-2">
-              {t('whyAustria.benefits.support.title')}
-            </h3>
-            <p className="text-neutral-600">
-              {t('whyAustria.benefits.support.description')}
-            </p>
-          </div>
+            );
+          })}
         </motion.div>
 
       </div>

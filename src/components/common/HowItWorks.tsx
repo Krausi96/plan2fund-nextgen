@@ -1,5 +1,4 @@
 import { motion } from "framer-motion";
-import { Search, FileText, CheckCircle, Upload } from "lucide-react";
 import { useI18n } from "@/contexts/I18nContext";
 
 interface HowItWorksProps {
@@ -8,35 +7,46 @@ interface HowItWorksProps {
 
 export function HowItWorks({ targetGroup = 'default' }: HowItWorksProps) {
   const { t } = useI18n();
-  
-  // Future: Use targetGroup to customize content for different personas
-  // For now, we use the same content for all target groups
-  console.debug('Target group for HowItWorks:', targetGroup);
+
+  // Helper function to determine if a step should be highlighted
+  const isStepHighlighted = (stepIndex: number) => {
+    if (targetGroup === 'default') return false;
+    
+    // Map target groups to step indices to highlight
+    const highlightMap = {
+      'startups': [0, 2],      // Emphasize idea description and business plan creation
+      'sme': [1, 3],           // Emphasize program matching and ready documents
+      'advisors': [2, 3],      // Emphasize business plan creation and multiple formats
+      'universities': [0, 2]   // Emphasize research projects and academic writing
+    };
+    
+    return highlightMap[targetGroup as keyof typeof highlightMap]?.includes(stepIndex) || false;
+  };
 
   const steps = [
     {
-      icon: Search,
+      icon: "🔍", // Search icon for idea description
       title: t('howItWorks.step1.title'),
       description: t('howItWorks.step1.description'),
       color: "text-blue-600",
       bgColor: "bg-blue-50",
     },
     {
-      icon: FileText,
+      icon: "📋", // Document icon for finding programs
       title: t('howItWorks.step2.title'),
       description: t('howItWorks.step2.description'),
       color: "text-green-600",
       bgColor: "bg-green-50",
     },
     {
-      icon: CheckCircle,
+      icon: "✏️", // Edit icon for creating business plan
       title: t('howItWorks.step3.title'),
       description: t('howItWorks.step3.description'),
       color: "text-purple-600",
       bgColor: "bg-purple-50",
     },
     {
-      icon: Upload,
+      icon: "📤", // Upload icon for downloading and using
       title: t('howItWorks.step4.title'),
       description: t('howItWorks.step4.description'),
       color: "text-orange-600",
@@ -62,7 +72,9 @@ export function HowItWorks({ targetGroup = 'default' }: HowItWorksProps) {
         </motion.div>
 
         <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-8 lg:gap-12">
-          {steps.map((step, index) => (
+          {steps.map((step, index) => {
+            const isHighlighted = isStepHighlighted(index);
+            return (
             <motion.div
               key={index}
               initial={{ opacity: 0, y: 30 }}
@@ -71,19 +83,38 @@ export function HowItWorks({ targetGroup = 'default' }: HowItWorksProps) {
               viewport={{ once: true }}
               className="text-center"
             >
-              <div className="relative">
+              <div className={`relative p-6 rounded-xl transition-all duration-300 ${
+                isHighlighted 
+                  ? 'bg-blue-50 border-2 border-blue-200 shadow-lg' 
+                  : 'bg-white'
+              }`}>
                 {/* Step Number */}
-                <div className="absolute -top-4 -left-4 w-8 h-8 bg-primary-600 text-white rounded-full flex items-center justify-center text-sm font-bold">
+                <div className={`absolute -top-4 -left-4 w-8 h-8 text-white rounded-full flex items-center justify-center text-sm font-bold ${
+                  isHighlighted ? 'bg-blue-600' : 'bg-primary-600'
+                }`}>
                   {index + 1}
                 </div>
                 
+                {/* Highlighted Badge */}
+                {isHighlighted && (
+                  <div className="absolute -top-2 -right-2">
+                    <span className="text-xs bg-green-600 text-white px-2 py-1 rounded-full font-semibold shadow-sm">
+                      Recommended
+                    </span>
+                  </div>
+                )}
+                
                 {/* Icon */}
-                <div className={`w-16 h-16 ${step.bgColor} rounded-2xl flex items-center justify-center mx-auto mb-6`}>
-                  <step.icon className={`w-8 h-8 ${step.color}`} />
+                <div className={`w-16 h-16 ${step.bgColor} rounded-2xl flex items-center justify-center mx-auto mb-6 ${
+                  isHighlighted ? 'ring-2 ring-blue-200' : ''
+                }`}>
+                  <span className="text-3xl">{step.icon}</span>
                 </div>
                 
                 {/* Content */}
-                <h3 className="text-2xl font-semibold text-neutral-900 mb-4">
+                <h3 className={`text-2xl font-semibold mb-4 ${
+                  isHighlighted ? 'text-blue-900' : 'text-neutral-900'
+                }`}>
                   {step.title}
                 </h3>
                 <p className="text-neutral-600 leading-relaxed">
@@ -91,7 +122,8 @@ export function HowItWorks({ targetGroup = 'default' }: HowItWorksProps) {
                 </p>
               </div>
             </motion.div>
-          ))}
+            );
+          })}
         </div>
 
         {/* CTA */}
