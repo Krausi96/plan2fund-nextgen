@@ -273,7 +273,7 @@ export function PricingDetails() {
     },
     {
       id: "strategy",
-      title: "Strategy Document (Business Model & GTM) — 4–8 pages",
+      title: "Strategy Document",
       whoFor: "Who it's for",
       whoForDesc: "Early ideas/pivots — decide who to serve, what to charge, and how to launch",
       youProvide: "You provide",

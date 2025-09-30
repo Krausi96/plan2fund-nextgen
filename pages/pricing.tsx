@@ -9,7 +9,7 @@ import { useI18n } from "@/contexts/I18nContext";
 const getPlans = () => [
   { 
     id: "strategy",
-    title: "Strategy Document (Business Model & GTM) — 4–8 pages", 
+    title: "Strategy Document", 
     icon: "💡", // Lightbulb for strategy/ideas
     price: "From €99", 
     desc: "Turn your idea into a clear business model & go-to-market you can build on — upgradeable to a full plan.", 
