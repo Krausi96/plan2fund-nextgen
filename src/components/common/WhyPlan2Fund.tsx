@@ -9,14 +9,9 @@ interface WhyPlan2FundProps {
 export function WhyPlan2Fund({ targetGroup = 'default' }: WhyPlan2FundProps) {
   const { t } = useI18n();
 
-  // Debug logging
-  console.debug('WhyPlan2Fund targetGroup:', targetGroup);
-
   // Get target group specific content or fallback to default
   const getTranslationKey = (key: string) => {
-    const translationKey = targetGroup !== 'default' ? `whyPlan2Fund.${key}.${targetGroup}` : `whyPlan2Fund.${key}.default`;
-    console.debug(`Translation key for ${key}:`, translationKey);
-    return translationKey;
+    return targetGroup !== 'default' ? `whyPlan2Fund.${key}.${targetGroup}` : `whyPlan2Fund.${key}.default`;
   };
 
   const features = [
