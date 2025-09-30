@@ -159,28 +159,6 @@ export function WhoItsFor({ targetGroup = 'default' }: WhoItsForProps) {
                   })}
                 </div>
 
-        {/* Common CTA - Vercel deployment fix */}
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.6, delay: 0.4 }}
-          viewport={{ once: true }}
-          className="text-center mt-8"
-        >
-          <a 
-            href="/editor"
-            className="inline-flex items-center px-6 py-3 bg-blue-600 text-white rounded-lg font-medium hover:bg-blue-700 transition-all duration-300 hover:shadow-lg transform hover:scale-105"
-            title="Get started with Plan2Fund"
-            aria-label="Get started with Plan2Fund"
-          >
-            <span className="flex items-center justify-center">
-              {t("whoItsFor.getStarted")}
-              <svg className="w-4 h-4 ml-2 group-hover:translate-x-1 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
-              </svg>
-            </span>
-          </a>
-        </motion.div>
 
       </div>
     </section>

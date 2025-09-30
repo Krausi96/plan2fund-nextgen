@@ -195,7 +195,7 @@ interface HeroProps {
 }
 
 export function Hero({
-  primaryButtonHref = "/reco",
+  primaryButtonHref = "/editor",
   onStepClick,
   onTargetGroupSelect
 }: HeroProps = {}) {
@@ -224,15 +224,15 @@ export function Hero({
 
   return (
     <section 
-      className="relative min-h-[15vh] flex items-center overflow-hidden bg-gradient-to-b from-blue-600 via-blue-700 to-blue-800"
+      className="relative min-h-[25vh] flex items-center overflow-hidden bg-gradient-to-b from-blue-600 via-blue-700 to-blue-800"
       aria-label="Hero section with main value proposition"
     >
       {/* Background */}
       <BlueprintGrid />
 
       {/* Main Content */}
-      <div className="relative z-20 w-full max-w-6xl px-6 sm:px-8 lg:px-12 py-6 md:py-8 mx-auto">
-        <div className="flex flex-col items-center justify-center space-y-4 min-h-[15vh]">
+      <div className="relative z-20 w-full max-w-7xl px-6 sm:px-8 lg:px-12 py-6 md:py-8 mx-auto">
+        <div className="flex flex-col items-center justify-center space-y-4 min-h-[25vh]">
           
           {/* Target Group Banner - Show only when detection fails */}
           {targetGroup === 'default' && (
@@ -245,11 +245,11 @@ export function Hero({
               initial={{ opacity: 0, y: 30 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.8 }}
-              className="text-3xl sm:text-4xl lg:text-5xl xl:text-6xl font-bold text-white leading-tight mb-3 text-wrap-balance tracking-tight"
+              className="text-2xl sm:text-3xl lg:text-4xl xl:text-5xl font-bold text-white leading-tight mb-3 text-wrap-balance tracking-tight"
               style={{ textWrap: 'balance' }}
             >
               <div className="mb-2">{heroTitle}</div>
-              {heroTitleSecond && <div className="text-white text-3xl sm:text-4xl lg:text-5xl xl:text-6xl font-bold">{heroTitleSecond}</div>}
+              {heroTitleSecond && <div className="text-white text-2xl sm:text-3xl lg:text-4xl xl:text-5xl font-bold">{heroTitleSecond}</div>}
             </motion.h1>
           </div>
 
@@ -296,7 +296,7 @@ export function Hero({
               </motion.a>
               
               <motion.a
-                href="/editor"
+                href="/reco"
                 whileHover={{ scale: 1.05 }}
                 whileTap={{ scale: 0.95 }}
                 className="inline-flex items-center justify-center px-8 py-4 border-2 border-white/30 hover:border-white/50 text-white font-semibold rounded-xl transition-colors duration-200 backdrop-blur-sm hover:bg-white/10"

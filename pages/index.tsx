@@ -77,7 +77,7 @@ export default function Home() {
           }}
           secondaryAction={{
             label: t('cta.learnMore'),
-            href: "/about"
+            href: "/reco"
           }}
         />
       </main>
