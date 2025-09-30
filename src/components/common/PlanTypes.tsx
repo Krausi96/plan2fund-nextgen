@@ -104,15 +104,15 @@ export function PlanTypes({ targetGroup = 'default' }: PlanTypesProps) {
                     >
               {/* Header with icon and title */}
               <div className="mb-6">
-                <div className="text-center mb-4">
-                  <div className="w-16 h-16 rounded-xl bg-blue-50 flex items-center justify-center mx-auto mb-3 group-hover:bg-blue-100 transition-colors">
+                <div className="mb-4">
+                  <div className="w-16 h-16 rounded-xl bg-blue-50 flex items-center justify-center mb-3 group-hover:bg-blue-100 transition-colors">
                     <span className="text-2xl">{plan.icon}</span>
                   </div>
-                  <h3 className="text-xl font-bold text-neutral-900 group-hover:text-blue-600 transition-colors mb-2">
+                  <h3 className="text-xl font-bold text-neutral-900 group-hover:text-blue-600 transition-colors mb-2 min-h-[3rem] flex items-center">
                     {plan.title}
                   </h3>
                 </div>
-                <p className="text-gray-600 leading-relaxed text-center">
+                <p className="text-gray-600 leading-relaxed">
                   {plan.subtitle}
                 </p>
               </div>

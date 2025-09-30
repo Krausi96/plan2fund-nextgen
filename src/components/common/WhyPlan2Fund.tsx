@@ -75,19 +75,19 @@ export function WhyPlan2Fund({ targetGroup = 'default' }: WhyPlan2FundProps) {
               whileInView={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.6, delay: index * 0.1 }}
               viewport={{ once: true }}
-              className="flex flex-col sm:flex-row gap-4 sm:gap-6 p-6 bg-white rounded-xl shadow-sm hover:shadow-md transition-shadow duration-300"
+              className="flex flex-col gap-4 p-6 bg-white rounded-xl shadow-sm hover:shadow-md transition-shadow duration-300 h-full"
             >
               {/* Icon */}
-              <div className={`w-12 h-12 sm:w-14 sm:h-14 ${feature.bgColor} rounded-xl flex items-center justify-center flex-shrink-0 mx-auto sm:mx-0`}>
-                <span className="text-2xl sm:text-3xl" aria-hidden="true">{feature.icon}</span>
+              <div className={`w-16 h-16 ${feature.bgColor} rounded-xl flex items-center justify-center`}>
+                <span className="text-2xl" aria-hidden="true">{feature.icon}</span>
               </div>
               
               {/* Content */}
-              <div className="text-center sm:text-left">
-                <h3 className="text-lg sm:text-xl font-semibold text-neutral-900 mb-3">
+              <div className="flex-1">
+                <h3 className="text-lg font-semibold text-neutral-900 mb-3 min-h-[3rem] flex items-center">
                   {feature.title}
                 </h3>
-                <p className="text-sm sm:text-base text-neutral-600 leading-relaxed">
+                <p className="text-sm text-neutral-600 leading-relaxed">
                   {feature.description}
                 </p>
               </div>

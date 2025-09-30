@@ -81,15 +81,15 @@ export function HowItWorks({ targetGroup = 'default' }: HowItWorksProps) {
               whileInView={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.6, delay: index * 0.2 }}
               viewport={{ once: true }}
-              className="text-center"
+              className="h-full"
             >
-              <div className={`relative p-6 rounded-xl transition-all duration-300 ${
+              <div className={`relative p-6 rounded-xl transition-all duration-300 h-full flex flex-col ${
                 isHighlighted 
                   ? 'bg-blue-50 border-2 border-blue-200 shadow-lg' 
                   : 'bg-white'
               }`}>
                 {/* Step Number */}
-                <div className={`absolute -top-4 -left-4 w-8 h-8 text-white rounded-full flex items-center justify-center text-sm font-bold ${
+                <div className={`w-8 h-8 text-white rounded-full flex items-center justify-center text-sm font-bold mb-4 ${
                   isHighlighted ? 'bg-blue-600' : 'bg-primary-600'
                 }`}>
                   {index + 1}
@@ -97,7 +97,7 @@ export function HowItWorks({ targetGroup = 'default' }: HowItWorksProps) {
                 
                 {/* Highlighted Badge */}
                 {isHighlighted && (
-                  <div className="absolute -top-2 -right-2">
+                  <div className="mb-4">
                     <span className="text-xs bg-green-600 text-white px-2 py-1 rounded-full font-semibold shadow-sm">
                       Recommended
                     </span>
@@ -105,21 +105,23 @@ export function HowItWorks({ targetGroup = 'default' }: HowItWorksProps) {
                 )}
                 
                 {/* Icon */}
-                <div className={`w-16 h-16 ${step.bgColor} rounded-2xl flex items-center justify-center mx-auto mb-6 ${
+                <div className={`w-16 h-16 ${step.bgColor} rounded-2xl flex items-center justify-center mb-4 ${
                   isHighlighted ? 'ring-2 ring-blue-200' : ''
                 }`}>
                   <span className="text-3xl">{step.icon}</span>
                 </div>
                 
                 {/* Content */}
-                <h3 className={`text-2xl font-semibold mb-4 ${
-                  isHighlighted ? 'text-blue-900' : 'text-neutral-900'
-                }`}>
-                  {step.title}
-                </h3>
-                <p className="text-neutral-600 leading-relaxed">
-                  {step.description}
-                </p>
+                <div className="flex-1">
+                  <h3 className={`text-xl font-semibold mb-3 min-h-[3rem] flex items-center ${
+                    isHighlighted ? 'text-blue-900' : 'text-neutral-900'
+                  }`}>
+                    {step.title}
+                  </h3>
+                  <p className="text-neutral-600 leading-relaxed">
+                    {step.description}
+                  </p>
+                </div>
               </div>
             </motion.div>
             );

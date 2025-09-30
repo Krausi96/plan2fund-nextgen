@@ -77,33 +77,36 @@ export function WhyAustria({ targetGroup = 'default' }: WhyAustriaProps) {
           {benefits.map((benefit, index) => {
             const isHighlighted = isBenefitHighlighted(index);
             return (
-            <div key={index} className={`text-center p-6 rounded-xl transition-all duration-300 ${
+            <div key={index} className={`p-6 rounded-xl transition-all duration-300 h-full flex flex-col ${
               isHighlighted 
                 ? 'bg-blue-50 border-2 border-blue-200 shadow-lg' 
                 : 'bg-white'
             }`}>
               {/* Highlighted Badge */}
               {isHighlighted && (
-                <div className="flex justify-center mb-4">
+                <div className="mb-4">
                   <span className="text-xs bg-green-600 text-white px-3 py-1 rounded-full font-semibold shadow-sm">
                     Recommended
                   </span>
                 </div>
               )}
               
-              <div className={`w-16 h-16 ${benefit.bgColor} rounded-full flex items-center justify-center mx-auto mb-4 ${
+              <div className={`w-16 h-16 ${benefit.bgColor} rounded-full flex items-center justify-center mb-4 ${
                 isHighlighted ? 'ring-2 ring-blue-200' : ''
               }`}>
                 <span className="text-3xl">{benefit.icon}</span>
               </div>
-              <h3 className={`text-xl font-semibold mb-2 ${
-                isHighlighted ? 'text-blue-900' : 'text-neutral-900'
-              }`}>
-                {benefit.title}
-              </h3>
-              <p className="text-neutral-600">
-                {benefit.description}
-              </p>
+              
+              <div className="flex-1">
+                <h3 className={`text-xl font-semibold mb-3 min-h-[3rem] flex items-center ${
+                  isHighlighted ? 'text-blue-900' : 'text-neutral-900'
+                }`}>
+                  {benefit.title}
+                </h3>
+                <p className="text-neutral-600 leading-relaxed">
+                  {benefit.description}
+                </p>
+              </div>
             </div>
             );
           })}
