@@ -2,11 +2,7 @@ import { motion } from "framer-motion";
 import { Search, Zap, Shield, Award } from "lucide-react";
 import { useI18n } from "@/contexts/I18nContext";
 
-interface WhyPlan2FundProps {
-  targetGroup?: 'solo' | 'sme' | 'advisors' | 'universities' | 'default';
-}
-
-export function WhyPlan2Fund({ targetGroup = 'default' }: WhyPlan2FundProps) {
+export function WhyPlan2Fund() {
   const { t } = useI18n();
 
   const features = [
