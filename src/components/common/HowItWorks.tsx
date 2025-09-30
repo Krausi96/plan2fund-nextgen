@@ -54,7 +54,7 @@ export function HowItWorks({ targetGroup = 'default' }: HowItWorksProps) {
     },
   ];
   return (
-    <section className="section-padding bg-neutral-50">
+    <section className="py-12 md:py-16 bg-neutral-50">
       <div className="container">
         <motion.div
           initial={{ opacity: 0, y: 20 }}

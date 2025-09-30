@@ -70,7 +70,7 @@ export function PlanTypes({ targetGroup = 'default' }: PlanTypesProps) {
   ];
 
   return (
-    <section className="section-padding bg-gray-50">
+    <section className="py-12 md:py-16 bg-gray-50">
       <div className="container">
         <motion.div
           initial={{ opacity: 0, y: 20 }}
@@ -139,22 +139,6 @@ export function PlanTypes({ targetGroup = 'default' }: PlanTypesProps) {
                 </p>
               </div>
 
-                      {/* CTA */}
-                      <div className="pt-4 border-t border-gray-100">
-                        <div className="flex items-center justify-between">
-                          <span className="text-sm text-gray-500">{t("planTypes.learnMore")}</span>
-                          <div className="flex items-center gap-2">
-                            {isHighlighted && (
-                              <span className="text-xs bg-green-600 text-white px-2 py-1 rounded-full font-semibold">
-                                Recommended
-                              </span>
-                            )}
-                            <svg className="w-5 h-5 text-blue-600 group-hover:translate-x-1 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
-                            </svg>
-                          </div>
-                        </div>
-                      </div>
                     </motion.a>
                     );
                   })}

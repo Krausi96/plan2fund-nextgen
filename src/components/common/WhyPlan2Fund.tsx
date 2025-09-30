@@ -45,7 +45,7 @@ export function WhyPlan2Fund({ targetGroup = 'default' }: WhyPlan2FundProps) {
   ];
   return (
     <section 
-      className="section-padding bg-gradient-to-br from-primary-50 to-blue-50"
+      className="py-12 md:py-16 bg-gradient-to-br from-primary-50 to-blue-50"
       aria-labelledby="why-plan2fund-heading"
     >
       <div className="container">

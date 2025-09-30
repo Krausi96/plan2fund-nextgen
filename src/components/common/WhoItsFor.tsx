@@ -83,7 +83,7 @@ export function WhoItsFor({ targetGroup = 'default' }: WhoItsForProps) {
     },
   ];
   return (
-    <section className="section-padding bg-white" aria-labelledby="who-its-for-heading">
+    <section className="py-12 md:py-16 bg-white" aria-labelledby="who-its-for-heading">
       <div className="container">
         <motion.div
           initial={{ opacity: 0, y: 20 }}
