@@ -1,7 +1,7 @@
 // ========= PLAN2FUND — TARGET GROUP DETECTION =========
 // Comprehensive detection for external traffic, UTM params, referrers, and query params
 
-export type TargetGroup = 'startups' | 'smes' | 'advisors' | 'universities' | 'default';
+export type TargetGroup = 'startups' | 'sme' | 'advisors' | 'universities' | 'default';
 
 export interface DetectionResult {
   targetGroup: TargetGroup;
@@ -15,10 +15,10 @@ const UTM_TARGET_MAPPING: Record<string, TargetGroup> = {
   'startups': 'startups',
   'founder': 'startups',
   'founders': 'startups',
-  'sme': 'smes',
-  'smes': 'smes',
-  'scaleup': 'smes',
-  'scaleups': 'smes',
+  'sme': 'sme',
+  'smes': 'sme',
+  'scaleup': 'sme',
+  'scaleups': 'sme',
   'advisor': 'advisors',
   'advisors': 'advisors',
   'consultant': 'advisors',
@@ -90,7 +90,7 @@ function detectFromURL(): DetectionResult {
     return { targetGroup: 'startups', source: 'url', confidence: 0.9 };
   }
   if (path.includes('/for/sme') || path.includes('/smes')) {
-    return { targetGroup: 'smes', source: 'url', confidence: 0.9 };
+    return { targetGroup: 'sme', source: 'url', confidence: 0.9 };
   }
   if (path.includes('/for/advisors') || path.includes('/advisors')) {
     return { targetGroup: 'advisors', source: 'url', confidence: 0.9 };

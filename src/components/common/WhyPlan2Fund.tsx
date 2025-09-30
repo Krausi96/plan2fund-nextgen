@@ -1,5 +1,4 @@
 import { motion } from "framer-motion";
-import { Search, Zap, Shield, Award } from "lucide-react";
 import { useI18n } from "@/contexts/I18nContext";
 
 interface WhyPlan2FundProps {
@@ -16,28 +15,28 @@ export function WhyPlan2Fund({ targetGroup = 'default' }: WhyPlan2FundProps) {
 
   const features = [
     {
-      icon: Search,
+      icon: "🔍", // Search icon for finding programs
       title: t(getTranslationKey('features.0.title') as any),
       description: t(getTranslationKey('features.0.description') as any),
       color: "text-blue-600",
       bgColor: "bg-blue-50",
     },
     {
-      icon: Zap,
+      icon: "⚡", // Lightning icon for efficiency/speed
       title: t(getTranslationKey('features.1.title') as any),
       description: t(getTranslationKey('features.1.description') as any),
       color: "text-green-600",
       bgColor: "bg-green-50",
     },
     {
-      icon: Shield,
+      icon: "🛡️", // Shield icon for compliance/protection
       title: t(getTranslationKey('features.2.title') as any),
       description: t(getTranslationKey('features.2.description') as any),
       color: "text-purple-600",
       bgColor: "bg-purple-50",
     },
     {
-      icon: Award,
+      icon: "📄", // Document icon for ready documents
       title: t(getTranslationKey('features.3.title') as any),
       description: t(getTranslationKey('features.3.description') as any),
       color: "text-orange-600",
@@ -80,7 +79,7 @@ export function WhyPlan2Fund({ targetGroup = 'default' }: WhyPlan2FundProps) {
             >
               {/* Icon */}
               <div className={`w-12 h-12 sm:w-14 sm:h-14 ${feature.bgColor} rounded-xl flex items-center justify-center flex-shrink-0 mx-auto sm:mx-0`}>
-                <feature.icon className={`w-6 h-6 sm:w-7 sm:h-7 ${feature.color}`} aria-hidden="true" />
+                <span className="text-2xl sm:text-3xl" aria-hidden="true">{feature.icon}</span>
               </div>
               
               {/* Content */}
