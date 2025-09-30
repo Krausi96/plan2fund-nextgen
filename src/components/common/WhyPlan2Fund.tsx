@@ -1,34 +1,38 @@
 import { motion } from "framer-motion";
-import { Target, Search, FileCheck, Zap } from "lucide-react";
+import { Search, Zap, Shield, Award } from "lucide-react";
 import { useI18n } from "@/contexts/I18nContext";
 
-export function WhyPlan2Fund() {
+interface WhyPlan2FundProps {
+  targetGroup?: 'solo' | 'sme' | 'advisors' | 'universities' | 'default';
+}
+
+export function WhyPlan2Fund({ targetGroup = 'default' }: WhyPlan2FundProps) {
   const { t } = useI18n();
 
   const features = [
     {
-      icon: Target,
+      icon: Search,
       title: t('whyPlan2Fund.features.0.title'),
       description: t('whyPlan2Fund.features.0.description'),
       color: "text-blue-600",
       bgColor: "bg-blue-50",
     },
     {
-      icon: FileCheck,
+      icon: Zap,
       title: t('whyPlan2Fund.features.1.title'),
       description: t('whyPlan2Fund.features.1.description'),
       color: "text-green-600",
       bgColor: "bg-green-50",
     },
     {
-      icon: Search,
+      icon: Shield,
       title: t('whyPlan2Fund.features.2.title'),
       description: t('whyPlan2Fund.features.2.description'),
       color: "text-purple-600",
       bgColor: "bg-purple-50",
     },
     {
-      icon: Zap,
+      icon: Award,
       title: t('whyPlan2Fund.features.3.title'),
       description: t('whyPlan2Fund.features.3.description'),
       color: "text-orange-600",
