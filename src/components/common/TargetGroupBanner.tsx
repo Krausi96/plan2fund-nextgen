@@ -60,22 +60,22 @@ export default function TargetGroupBanner({ onTargetGroupSelect }: TargetGroupBa
         animate={{ opacity: 1, y: 0 }}
         exit={{ opacity: 0, y: 20 }}
         transition={{ duration: 0.3 }}
-        className="fixed bottom-4 left-4 right-4 z-50 bg-slate-800/95 backdrop-blur-sm shadow-lg border border-slate-600 rounded-lg max-w-lg mx-auto"
+        className="fixed top-4 left-4 right-4 z-50 bg-slate-800/95 backdrop-blur-sm shadow-lg border border-slate-600 rounded-lg max-w-4xl mx-auto"
       >
-        <div className="px-6 py-4">
-          <div className="flex items-center justify-between gap-4">
+        <div className="px-4 py-3">
+          <div className="flex items-center justify-between gap-3">
             <div className="flex-1">
-              <div className="flex items-center gap-2 mb-3">
-                <div className="w-2 h-2 bg-blue-400 rounded-full"></div>
-                <p className="text-sm font-semibold text-white">
+              <div className="flex items-center gap-2 mb-2">
+                <div className="w-1.5 h-1.5 bg-blue-400 rounded-full"></div>
+                <p className="text-xs font-semibold text-white">
                   {t('banner.title')}
                 </p>
               </div>
-              <div className="grid grid-cols-2 gap-2">
+              <div className="flex flex-wrap gap-2">
                 <button
                   type="button"
                   onClick={(e) => handleTargetGroupClick('startups', e)}
-                  className="flex items-center gap-2 px-3 py-2 text-sm bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition-all duration-200 font-medium hover:shadow-md"
+                  className="flex items-center gap-1.5 px-2.5 py-1.5 text-xs bg-blue-600 hover:bg-blue-700 text-white rounded-md transition-all duration-200 font-medium hover:shadow-md flex-shrink-0"
                 >
                   <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
@@ -85,7 +85,7 @@ export default function TargetGroupBanner({ onTargetGroupSelect }: TargetGroupBa
                 <button
                   type="button"
                   onClick={(e) => handleTargetGroupClick('smes', e)}
-                  className="flex items-center gap-2 px-3 py-2 text-sm bg-green-600 hover:bg-green-700 text-white rounded-lg transition-all duration-200 font-medium hover:shadow-md"
+                  className="flex items-center gap-1.5 px-2.5 py-1.5 text-xs bg-green-600 hover:bg-green-700 text-white rounded-md transition-all duration-200 font-medium hover:shadow-md flex-shrink-0"
                 >
                   <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
@@ -95,7 +95,7 @@ export default function TargetGroupBanner({ onTargetGroupSelect }: TargetGroupBa
                 <button
                   type="button"
                   onClick={(e) => handleTargetGroupClick('advisors', e)}
-                  className="flex items-center gap-2 px-3 py-2 text-sm bg-purple-600 hover:bg-purple-700 text-white rounded-lg transition-all duration-200 font-medium hover:shadow-md"
+                  className="flex items-center gap-1.5 px-2.5 py-1.5 text-xs bg-purple-600 hover:bg-purple-700 text-white rounded-md transition-all duration-200 font-medium hover:shadow-md flex-shrink-0"
                 >
                   <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
@@ -105,7 +105,7 @@ export default function TargetGroupBanner({ onTargetGroupSelect }: TargetGroupBa
                 <button
                   type="button"
                   onClick={(e) => handleTargetGroupClick('universities', e)}
-                  className="flex items-center gap-2 px-3 py-2 text-sm bg-orange-600 hover:bg-orange-700 text-white rounded-lg transition-all duration-200 font-medium hover:shadow-md"
+                  className="flex items-center gap-1.5 px-2.5 py-1.5 text-xs bg-orange-600 hover:bg-orange-700 text-white rounded-md transition-all duration-200 font-medium hover:shadow-md flex-shrink-0"
                 >
                   <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 14l9-5-9-5-9 5 9 5z" />
