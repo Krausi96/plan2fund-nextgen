@@ -82,6 +82,9 @@ export function PlanTypes({ targetGroup = 'default' }: PlanTypesProps) {
           <h2 className="text-3xl font-bold text-neutral-900 mb-4">
             {t("planTypes.title")}
           </h2>
+          <p className="text-lg text-neutral-600 max-w-2xl mx-auto">
+            {t("planTypes.subtitle")}
+          </p>
         </motion.div>
 
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 lg:gap-8">
@@ -104,15 +107,15 @@ export function PlanTypes({ targetGroup = 'default' }: PlanTypesProps) {
                     >
               {/* Header with icon and title */}
               <div className="mb-6">
-                <div className="mb-4">
-                  <div className="w-16 h-16 rounded-xl bg-blue-50 flex items-center justify-center mb-3 group-hover:bg-blue-100 transition-colors">
+                <div className="mb-4 text-center">
+                  <div className="w-16 h-16 rounded-xl bg-blue-50 flex items-center justify-center mx-auto mb-3 group-hover:bg-blue-100 transition-colors">
                     <span className="text-2xl">{plan.icon}</span>
                   </div>
-                  <h3 className="text-xl font-bold text-neutral-900 group-hover:text-blue-600 transition-colors mb-2 min-h-[3rem] flex items-center">
+                  <h3 className="text-xl font-bold text-neutral-900 group-hover:text-blue-600 transition-colors mb-2 min-h-[3rem] flex items-center justify-center">
                     {plan.title}
                   </h3>
                 </div>
-                <p className="text-gray-600 leading-relaxed">
+                <p className="text-gray-600 leading-relaxed text-left">
                   {plan.subtitle}
                 </p>
               </div>
@@ -134,9 +137,11 @@ export function PlanTypes({ targetGroup = 'default' }: PlanTypesProps) {
 
               {/* Additional documents note */}
               <div className="mb-4 p-3 bg-gray-50 rounded-lg border border-gray-200">
-                <p className="text-xs text-gray-600 text-center">
-                  <span className="font-medium">{t("planTypes.additionalDocs")}</span> {t("planTypes.additionalDocsNote")}
-                </p>
+                <div className="mt-auto">
+                  <p className="text-xs text-gray-600 text-center">
+                    <span className="font-medium">{t("planTypes.additionalDocs")}</span> {t("planTypes.additionalDocsNote")}
+                  </p>
+                </div>
               </div>
 
                     </motion.a>

@@ -57,10 +57,10 @@ export function WhyAustria({ targetGroup = 'default' }: WhyAustriaProps) {
           viewport={{ once: true }}
           className="text-center mb-16"
         >
-          <h2 className="text-4xl font-bold text-neutral-900 mb-4">
+          <h2 className="text-2xl md:text-3xl font-bold text-neutral-900 mb-4">
             {t('whyAustria.title')}
           </h2>
-          <p className="text-xl text-neutral-600 max-w-2xl mx-auto">
+          <p className="text-base text-neutral-600 max-w-xl mx-auto">
             {t('whyAustria.subtitle')}
           </p>
         </motion.div>
@@ -91,19 +91,19 @@ export function WhyAustria({ targetGroup = 'default' }: WhyAustriaProps) {
                 </div>
               )}
               
-              <div className={`w-16 h-16 ${benefit.bgColor} rounded-full flex items-center justify-center mb-4 ${
+              <div className={`w-16 h-16 ${benefit.bgColor} rounded-full flex items-center justify-center mx-auto mb-4 ${
                 isHighlighted ? 'ring-2 ring-blue-200' : ''
               }`}>
                 <span className="text-3xl">{benefit.icon}</span>
               </div>
               
-              <div className="flex-1">
-                <h3 className={`text-xl font-semibold mb-3 min-h-[3rem] flex items-center ${
+              <div className="flex-1 text-center">
+                <h3 className={`text-xl font-semibold mb-3 min-h-[3rem] flex items-center justify-center ${
                   isHighlighted ? 'text-blue-900' : 'text-neutral-900'
                 }`}>
                   {benefit.title}
                 </h3>
-                <p className="text-neutral-600 leading-relaxed">
+                <p className="text-neutral-600 leading-relaxed text-left">
                   {benefit.description}
                 </p>
               </div>

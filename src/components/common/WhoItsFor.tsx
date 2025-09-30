@@ -129,15 +129,15 @@ export function WhoItsFor({ targetGroup = 'default' }: WhoItsForProps) {
                         )}
                 
                 {/* Header */}
-                <div className="mb-4">
-                  <div className={`w-16 h-16 rounded-lg flex items-center justify-center mb-3 shadow-sm group-hover:scale-110 transition-transform duration-300 ${persona.iconBg}`}>
+                <div className="mb-4 text-center">
+                  <div className={`w-16 h-16 rounded-lg flex items-center justify-center mx-auto mb-3 shadow-sm group-hover:scale-110 transition-transform duration-300 ${persona.iconBg}`}>
                     <span className="text-2xl">{persona.icon}</span>
                   </div>
                   
-                  <h3 className="text-lg font-bold text-neutral-900 mb-2 group-hover:text-blue-600 transition-colors duration-300 min-h-[2.5rem] flex items-center">
+                  <h3 className="text-lg font-bold text-neutral-900 mb-2 group-hover:text-blue-600 transition-colors duration-300 min-h-[2.5rem] flex items-center justify-center">
                     {persona.title}
                   </h3>
-                  <p className="text-sm text-neutral-600 leading-relaxed">
+                  <p className="text-sm text-neutral-600 leading-relaxed text-left">
                     {persona.description}
                   </p>
                 </div>

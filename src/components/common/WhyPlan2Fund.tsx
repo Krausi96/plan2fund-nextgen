@@ -58,11 +58,11 @@ export function WhyPlan2Fund({ targetGroup = 'default' }: WhyPlan2FundProps) {
         >
                   <h2 
                     id="why-plan2fund-heading"
-                    className="text-2xl md:text-3xl lg:text-4xl font-bold text-neutral-900 mb-4"
+                    className="text-2xl md:text-3xl font-bold text-neutral-900 mb-4"
                   >
                     {t(getTranslationKey('title') as any)}
                   </h2>
-                  <p className="text-lg md:text-xl text-neutral-600 max-w-3xl mx-auto leading-relaxed">
+                  <p className="text-base text-neutral-600 max-w-2xl mx-auto leading-relaxed">
                     {t(getTranslationKey('subtitle') as any)}
                   </p>
         </motion.div>
@@ -78,16 +78,16 @@ export function WhyPlan2Fund({ targetGroup = 'default' }: WhyPlan2FundProps) {
               className="flex flex-col gap-4 p-6 bg-white rounded-xl shadow-sm hover:shadow-md transition-shadow duration-300 h-full"
             >
               {/* Icon */}
-              <div className={`w-16 h-16 ${feature.bgColor} rounded-xl flex items-center justify-center`}>
+              <div className={`w-16 h-16 ${feature.bgColor} rounded-xl flex items-center justify-center mx-auto`}>
                 <span className="text-2xl" aria-hidden="true">{feature.icon}</span>
               </div>
               
               {/* Content */}
-              <div className="flex-1">
-                <h3 className="text-lg font-semibold text-neutral-900 mb-3 min-h-[3rem] flex items-center">
+              <div className="flex-1 text-center">
+                <h3 className="text-lg font-semibold text-neutral-900 mb-3 min-h-[3rem] flex items-center justify-center">
                   {feature.title}
                 </h3>
-                <p className="text-sm text-neutral-600 leading-relaxed">
+                <p className="text-sm text-neutral-600 leading-relaxed text-left">
                   {feature.description}
                 </p>
               </div>

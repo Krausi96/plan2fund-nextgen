@@ -105,20 +105,20 @@ export function HowItWorks({ targetGroup = 'default' }: HowItWorksProps) {
                 )}
                 
                 {/* Icon */}
-                <div className={`w-16 h-16 ${step.bgColor} rounded-2xl flex items-center justify-center mb-4 ${
+                <div className={`w-16 h-16 ${step.bgColor} rounded-2xl flex items-center justify-center mx-auto mb-4 ${
                   isHighlighted ? 'ring-2 ring-blue-200' : ''
                 }`}>
                   <span className="text-3xl">{step.icon}</span>
                 </div>
                 
                 {/* Content */}
-                <div className="flex-1">
-                  <h3 className={`text-xl font-semibold mb-3 min-h-[3rem] flex items-center ${
+                <div className="flex-1 text-center">
+                  <h3 className={`text-xl font-semibold mb-3 min-h-[3rem] flex items-center justify-center ${
                     isHighlighted ? 'text-blue-900' : 'text-neutral-900'
                   }`}>
                     {step.title}
                   </h3>
-                  <p className="text-neutral-600 leading-relaxed">
+                  <p className="text-neutral-600 leading-relaxed text-left">
                     {step.description}
                   </p>
                 </div>
