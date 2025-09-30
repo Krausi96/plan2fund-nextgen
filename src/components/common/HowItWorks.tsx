@@ -118,7 +118,7 @@ export function HowItWorks({ targetGroup = 'default' }: HowItWorksProps) {
                   }`}>
                     {step.title}
                   </h3>
-                  <p className="text-neutral-600 leading-relaxed text-left">
+                  <p className="text-neutral-600 leading-relaxed text-justify">
                     {step.description}
                   </p>
                 </div>

@@ -137,7 +137,7 @@ export function WhoItsFor({ targetGroup = 'default' }: WhoItsForProps) {
                   <h3 className="text-lg font-bold text-neutral-900 mb-2 group-hover:text-blue-600 transition-colors duration-300 min-h-[2.5rem] flex items-center justify-center">
                     {persona.title}
                   </h3>
-                  <p className="text-sm text-neutral-600 leading-relaxed text-left">
+                  <p className="text-sm text-neutral-600 leading-relaxed text-justify">
                     {persona.description}
                   </p>
                 </div>

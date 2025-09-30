@@ -259,7 +259,7 @@ export function Hero({
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.3, duration: 0.8 }}
-              className="text-base md:text-lg text-white leading-relaxed"
+              className="text-base md:text-lg text-white leading-relaxed text-justify"
                       dangerouslySetInnerHTML={{
                         __html: heroSubtitle
                           .replace(/(funding options|Förderungsoptionen|Finanzierungsoptionen)/gi, '<span class="font-bold text-white">$1</span>')

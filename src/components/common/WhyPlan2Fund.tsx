@@ -87,7 +87,7 @@ export function WhyPlan2Fund({ targetGroup = 'default' }: WhyPlan2FundProps) {
                 <h3 className="text-lg font-semibold text-neutral-900 mb-3 min-h-[3rem] flex items-center justify-center">
                   {feature.title}
                 </h3>
-                <p className="text-sm text-neutral-600 leading-relaxed text-left">
+                <p className="text-sm text-neutral-600 leading-relaxed text-justify">
                   {feature.description}
                 </p>
               </div>

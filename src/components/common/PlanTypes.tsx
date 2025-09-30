@@ -115,7 +115,7 @@ export function PlanTypes({ targetGroup = 'default' }: PlanTypesProps) {
                     {plan.title}
                   </h3>
                 </div>
-                <p className="text-gray-600 leading-relaxed text-left">
+                <p className="text-gray-600 leading-relaxed text-justify">
                   {plan.subtitle}
                 </p>
               </div>
