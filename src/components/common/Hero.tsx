@@ -191,11 +191,13 @@ function getTargetGroupFromDetection(): string {
 interface HeroProps {
   primaryButtonHref?: string;
   onStepClick?: (stepId: number) => void;
+  onTargetGroupSelect?: (targetGroup: string) => void;
 }
 
 export function Hero({
   primaryButtonHref = "/reco",
-  onStepClick
+  onStepClick,
+  onTargetGroupSelect
 }: HeroProps = {}) {
   const { t } = useI18n();
   const [selectedTargetGroup, setSelectedTargetGroup] = useState<string | null>(null);
@@ -207,6 +209,10 @@ export function Hero({
   // Handle target group selection from banner
   const handleTargetGroupSelect = (targetGroup: string) => {
     setSelectedTargetGroup(targetGroup);
+    // Notify parent component
+    if (onTargetGroupSelect) {
+      onTargetGroupSelect(targetGroup);
+    }
   };
   
   // Get target group specific content or fallback to default

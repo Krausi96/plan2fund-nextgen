@@ -2,8 +2,16 @@ import { motion } from "framer-motion";
 import { Building2, Euro, Users } from "lucide-react";
 import { useI18n } from "@/contexts/I18nContext";
 
-export function WhyAustria() {
+interface WhyAustriaProps {
+  targetGroup?: string;
+}
+
+export function WhyAustria({ targetGroup = 'default' }: WhyAustriaProps) {
   const { t } = useI18n();
+  
+  // Future: Use targetGroup to customize content for different personas
+  // For now, we use the same content for all target groups
+  console.debug('Target group for WhyAustria:', targetGroup);
 
   return (
     <section className="section-padding bg-white">

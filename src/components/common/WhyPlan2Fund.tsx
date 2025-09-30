@@ -2,35 +2,44 @@ import { motion } from "framer-motion";
 import { Search, Zap, Shield, Award } from "lucide-react";
 import { useI18n } from "@/contexts/I18nContext";
 
-export function WhyPlan2Fund() {
+interface WhyPlan2FundProps {
+  targetGroup?: string;
+}
+
+export function WhyPlan2Fund({ targetGroup = 'default' }: WhyPlan2FundProps) {
   const { t } = useI18n();
+
+  // Get target group specific content or fallback to default
+  const getTranslationKey = (key: string) => {
+    return targetGroup !== 'default' ? `whyPlan2Fund.${key}.${targetGroup}` : `whyPlan2Fund.${key}.default`;
+  };
 
   const features = [
     {
       icon: Search,
-      title: t('whyPlan2Fund.features.0.title'),
-      description: t('whyPlan2Fund.features.0.description'),
+      title: t(getTranslationKey('features.0.title') as any),
+      description: t(getTranslationKey('features.0.description') as any),
       color: "text-blue-600",
       bgColor: "bg-blue-50",
     },
     {
       icon: Zap,
-      title: t('whyPlan2Fund.features.1.title'),
-      description: t('whyPlan2Fund.features.1.description'),
+      title: t(getTranslationKey('features.1.title') as any),
+      description: t(getTranslationKey('features.1.description') as any),
       color: "text-green-600",
       bgColor: "bg-green-50",
     },
     {
       icon: Shield,
-      title: t('whyPlan2Fund.features.2.title'),
-      description: t('whyPlan2Fund.features.2.description'),
+      title: t(getTranslationKey('features.2.title') as any),
+      description: t(getTranslationKey('features.2.description') as any),
       color: "text-purple-600",
       bgColor: "bg-purple-50",
     },
     {
       icon: Award,
-      title: t('whyPlan2Fund.features.3.title'),
-      description: t('whyPlan2Fund.features.3.description'),
+      title: t(getTranslationKey('features.3.title') as any),
+      description: t(getTranslationKey('features.3.description') as any),
       color: "text-orange-600",
       bgColor: "bg-orange-50",
     },
@@ -48,15 +57,15 @@ export function WhyPlan2Fund() {
           viewport={{ once: true }}
           className="text-center mb-12 md:mb-16"
         >
-          <h2 
-            id="why-plan2fund-heading"
-            className="text-2xl md:text-3xl lg:text-4xl font-bold text-neutral-900 mb-4"
-          >
-            {t('whyPlan2Fund.title')}
-          </h2>
-          <p className="text-lg md:text-xl text-neutral-600 max-w-3xl mx-auto leading-relaxed">
-            {t('whyPlan2Fund.subtitle')}
-          </p>
+                  <h2 
+                    id="why-plan2fund-heading"
+                    className="text-2xl md:text-3xl lg:text-4xl font-bold text-neutral-900 mb-4"
+                  >
+                    {t(getTranslationKey('title') as any)}
+                  </h2>
+                  <p className="text-lg md:text-xl text-neutral-600 max-w-3xl mx-auto leading-relaxed">
+                    {t(getTranslationKey('subtitle') as any)}
+                  </p>
         </motion.div>
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6 lg:gap-8">

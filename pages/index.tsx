@@ -7,13 +7,24 @@ import { WhyAustria } from "@/components/common/WhyAustria"
 import CTAStrip from "@/components/common/CTAStrip"
 import SEOHead from "@/components/common/SEOHead"
 import { useI18n } from "@/contexts/I18nContext"
-import { useEffect } from "react"
+import { useEffect, useState } from "react"
 import analytics from "@/lib/analytics"
 import { useRouter } from "next/router"
+import { detectTargetGroup } from '@/lib/targetGroupDetection'
 
 export default function Home() {
   const { t } = useI18n();
   const router = useRouter();
+  const [selectedTargetGroup, setSelectedTargetGroup] = useState<string | null>(null);
+
+  // Get target group using enhanced detection (URL, UTM, referrer, etc.)
+  // If user selected from banner, use that; otherwise use detection
+  const targetGroup = selectedTargetGroup || (typeof window !== 'undefined' ? detectTargetGroup().targetGroup : 'default');
+
+  // Handle target group selection from banner
+  const handleTargetGroupSelect = (targetGroup: string) => {
+    setSelectedTargetGroup(targetGroup);
+  };
 
   useEffect(() => {
     analytics.trackPageView('/', 'Home');
@@ -51,12 +62,12 @@ export default function Home() {
       />
       
       <main className="flex flex-col">
-        <Hero onStepClick={handleStepClick} />
-        <WhoItsFor />
-        <PlanTypes />
-        <WhyPlan2Fund />
-        <HowItWorks />
-        <WhyAustria />
+        <Hero onStepClick={handleStepClick} onTargetGroupSelect={handleTargetGroupSelect} />
+        <WhoItsFor targetGroup={targetGroup} />
+        <PlanTypes targetGroup={targetGroup} />
+        <WhyPlan2Fund targetGroup={targetGroup} />
+        <HowItWorks targetGroup={targetGroup} />
+        <WhyAustria targetGroup={targetGroup} />
         <CTAStrip
           title={t('cta.readyToFind')}
           subtitle={t('cta.joinFounders')}

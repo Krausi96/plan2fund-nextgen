@@ -2,8 +2,16 @@ import { motion } from "framer-motion";
 import { Search, FileText, CheckCircle, Upload } from "lucide-react";
 import { useI18n } from "@/contexts/I18nContext";
 
-export function HowItWorks() {
+interface HowItWorksProps {
+  targetGroup?: string;
+}
+
+export function HowItWorks({ targetGroup = 'default' }: HowItWorksProps) {
   const { t } = useI18n();
+  
+  // Future: Use targetGroup to customize content for different personas
+  // For now, we use the same content for all target groups
+  console.debug('Target group for HowItWorks:', targetGroup);
 
   const steps = [
     {

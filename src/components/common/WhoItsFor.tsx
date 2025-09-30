@@ -2,8 +2,16 @@ import { motion } from "framer-motion";
 import { CheckCircle } from "lucide-react";
 import { useI18n } from "@/contexts/I18nContext";
 
-export function WhoItsFor() {
+interface WhoItsForProps {
+  targetGroup?: string;
+}
+
+export function WhoItsFor({ targetGroup = 'default' }: WhoItsForProps) {
   const { t } = useI18n();
+  
+  // Future: Use targetGroup to customize content for different personas
+  // For now, we use the same content for all target groups
+  console.debug('Target group for WhoItsFor:', targetGroup);
 
   const personas = [
     {
