@@ -232,7 +232,7 @@ export function Hero({
 
       {/* Main Content */}
       <div className="relative z-20 w-full max-w-6xl px-6 sm:px-8 lg:px-12 py-6 md:py-8 mx-auto">
-                <div className="flex flex-col items-center justify-center space-y-4 min-h-[50vh]">
+                <div className="flex flex-col items-center justify-center space-y-6 min-h-[50vh] pt-8">
           
           {/* Target Group Banner - Show only when detection fails */}
           {targetGroup === 'default' && (
@@ -245,7 +245,7 @@ export function Hero({
               initial={{ opacity: 0, y: 30 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.8 }}
-                      className="text-3xl sm:text-4xl lg:text-5xl xl:text-6xl font-bold text-white leading-tight mb-6 text-wrap-balance tracking-tight"
+                      className="text-3xl sm:text-4xl lg:text-5xl xl:text-6xl font-bold text-white leading-tight mb-8 text-wrap-balance tracking-tight"
                       style={{ textWrap: 'balance' }}
             >
               <div className="mb-2">{heroTitle}</div>
@@ -254,7 +254,7 @@ export function Hero({
           </div>
 
           {/* Subtitle - Consistent styling with bold highlighting */}
-          <div className="text-center max-w-4xl">
+          <div className="text-center max-w-5xl">
             <motion.p 
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}

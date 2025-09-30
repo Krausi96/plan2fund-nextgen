@@ -103,7 +103,7 @@ export function WhyAustria({ targetGroup = 'default' }: WhyAustriaProps) {
                 }`}>
                   {benefit.title}
                 </h3>
-                <p className="text-neutral-600 leading-relaxed text-justify">
+                <p className="text-neutral-600 leading-relaxed text-center">
                   {benefit.description}
                 </p>
               </div>
