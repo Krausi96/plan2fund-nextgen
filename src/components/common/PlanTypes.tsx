@@ -8,9 +8,20 @@ interface PlanTypesProps {
 export function PlanTypes({ targetGroup = 'default' }: PlanTypesProps) {
   const { t } = useI18n();
   
-  // Future: Use targetGroup to customize content for different personas
-  // For now, we use the same content for all target groups
-  console.debug('Target group for PlanTypes:', targetGroup);
+  // Helper function to determine if a plan type should be highlighted
+  const isPlanHighlighted = (planId: string) => {
+    if (targetGroup === 'default') return false;
+    
+    // Map target groups to plan types
+    const highlightMap = {
+      'startups': 'strategy',    // Strategy Document for first-time entrepreneurs
+      'sme': 'review',          // Upgrade & Review for existing businesses
+      'advisors': 'custom',     // Custom Business Plan for client work
+      'universities': 'strategy' // Strategy Document for research projects
+    };
+    
+    return highlightMap[targetGroup as keyof typeof highlightMap] === planId;
+  };
 
   const planTypes = [
     {
@@ -73,18 +84,24 @@ export function PlanTypes({ targetGroup = 'default' }: PlanTypesProps) {
           </h2>
         </motion.div>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 lg:gap-8">
-          {planTypes.map((plan, index) => (
-            <motion.a
-              key={plan.id}
-              href={plan.href}
-              initial={{ opacity: 0, y: 30 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.6, delay: index * 0.1 }}
-              viewport={{ once: true }}
-              className="block bg-white rounded-2xl p-8 shadow-sm border border-gray-200 hover:shadow-xl hover:border-blue-300 hover:-translate-y-2 transition-all duration-300 cursor-pointer group focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
-              aria-label={`Learn more about ${plan.title}`}
-            >
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 lg:gap-8">
+                  {planTypes.map((plan, index) => {
+                    const isHighlighted = isPlanHighlighted(plan.id);
+                    return (
+                    <motion.a
+                      key={plan.id}
+                      href={plan.href}
+                      initial={{ opacity: 0, y: 30 }}
+                      whileInView={{ opacity: 1, y: 0 }}
+                      transition={{ duration: 0.6, delay: index * 0.1 }}
+                      viewport={{ once: true }}
+                      className={`block rounded-2xl p-8 shadow-sm border transition-all duration-300 cursor-pointer group focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 hover:shadow-xl hover:-translate-y-2 ${
+                        isHighlighted 
+                          ? 'bg-blue-50 border-blue-300 hover:border-blue-400 ring-2 ring-blue-200' 
+                          : 'bg-white border-gray-200 hover:border-blue-300'
+                      }`}
+                      aria-label={`Learn more about ${plan.title}`}
+                    >
               {/* Header with icon and title */}
               <div className="mb-6">
                 <div className="text-center mb-4">
@@ -122,18 +139,26 @@ export function PlanTypes({ targetGroup = 'default' }: PlanTypesProps) {
                 </p>
               </div>
 
-              {/* CTA */}
-              <div className="pt-4 border-t border-gray-100">
-                <div className="flex items-center justify-between">
-                  <span className="text-sm text-gray-500">{t("planTypes.learnMore")}</span>
-                  <svg className="w-5 h-5 text-blue-600 group-hover:translate-x-1 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
-                  </svg>
+                      {/* CTA */}
+                      <div className="pt-4 border-t border-gray-100">
+                        <div className="flex items-center justify-between">
+                          <span className="text-sm text-gray-500">{t("planTypes.learnMore")}</span>
+                          <div className="flex items-center gap-2">
+                            {isHighlighted && (
+                              <span className="text-xs bg-green-600 text-white px-2 py-1 rounded-full font-semibold">
+                                Recommended
+                              </span>
+                            )}
+                            <svg className="w-5 h-5 text-blue-600 group-hover:translate-x-1 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                            </svg>
+                          </div>
+                        </div>
+                      </div>
+                    </motion.a>
+                    );
+                  })}
                 </div>
-              </div>
-            </motion.a>
-          ))}
-        </div>
 
 
       </div>

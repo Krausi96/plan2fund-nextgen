@@ -9,9 +9,20 @@ interface WhoItsForProps {
 export function WhoItsFor({ targetGroup = 'default' }: WhoItsForProps) {
   const { t } = useI18n();
   
-  // Future: Use targetGroup to customize content for different personas
-  // For now, we use the same content for all target groups
-  console.debug('Target group for WhoItsFor:', targetGroup);
+  // Helper function to determine if a persona should be highlighted
+  const isPersonaHighlighted = (personaIndex: number) => {
+    if (targetGroup === 'default') return false;
+    
+    // Map target groups to persona indices
+    const highlightMap = {
+      'startups': 0, // Solo-Entrepreneurs & Startups
+      'sme': 1,     // SMEs & Growing Businesses  
+      'advisors': 2, // Business Advisors
+      'universities': 3 // Universities & Accelerators
+    };
+    
+    return highlightMap[targetGroup as keyof typeof highlightMap] === personaIndex;
+  };
 
   const personas = [
     {
@@ -89,29 +100,33 @@ export function WhoItsFor({ targetGroup = 'default' }: WhoItsForProps) {
           </p>
         </motion.div>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 lg:gap-6">
-          {personas.map((persona, index) => (
-            <motion.div
-              key={index}
-              initial={{ opacity: 0, y: 30 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.6, delay: index * 0.1 }}
-              viewport={{ once: true }}
-              className="group"
-            >
-              <div className={`p-6 h-full flex flex-col relative group rounded-xl border-2 transition-all duration-300 hover:shadow-lg hover:-translate-y-1 ${
-                persona.isPrimary 
-                  ? "border-blue-200 bg-blue-50/50 hover:border-blue-300" 
-                  : "border-gray-200 bg-white hover:border-gray-300"
-              }`}>
-                {/* Badge for Primary */}
-                {persona.isPrimary && (
-                  <div className="absolute top-4 right-4">
-                    <span className="bg-blue-600 text-white text-xs px-2 py-1 rounded-full font-semibold shadow-sm">
-                      Primary
-                    </span>
-                  </div>
-                )}
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 lg:gap-6">
+                  {personas.map((persona, index) => {
+                    const isHighlighted = isPersonaHighlighted(index);
+                    return (
+                    <motion.div
+                      key={index}
+                      initial={{ opacity: 0, y: 30 }}
+                      whileInView={{ opacity: 1, y: 0 }}
+                      transition={{ duration: 0.6, delay: index * 0.1 }}
+                      viewport={{ once: true }}
+                      className="group"
+                    >
+                      <div className={`p-6 h-full flex flex-col relative group rounded-xl border-2 transition-all duration-300 hover:shadow-lg hover:-translate-y-1 ${
+                        persona.isPrimary || isHighlighted
+                          ? "border-blue-200 bg-blue-50/50 hover:border-blue-300" 
+                          : "border-gray-200 bg-white hover:border-gray-300"
+                      }`}>
+                        {/* Badge for Primary or Highlighted */}
+                        {(persona.isPrimary || isHighlighted) && (
+                          <div className="absolute top-4 right-4">
+                            <span className={`text-white text-xs px-2 py-1 rounded-full font-semibold shadow-sm ${
+                              persona.isPrimary ? 'bg-blue-600' : 'bg-green-600'
+                            }`}>
+                              {persona.isPrimary ? 'Primary' : 'Recommended'}
+                            </span>
+                          </div>
+                        )}
                 
                 {/* Header */}
                 <div className="text-center mb-4">
@@ -138,10 +153,11 @@ export function WhoItsFor({ targetGroup = 'default' }: WhoItsForProps) {
                     ))}
                   </ul>
                 </div>
-              </div>
-            </motion.div>
-          ))}
-        </div>
+                      </div>
+                    </motion.div>
+                    );
+                  })}
+                </div>
 
         {/* Common CTA - Vercel deployment fix */}
         <motion.div
