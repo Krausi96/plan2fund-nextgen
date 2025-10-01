@@ -247,15 +247,15 @@ export function Hero({
               className="mb-12"
             >
               {/* H1 Title - Tight line-height for compact feel when breaking */}
-              <h1 className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl xl:text-6xl font-bold text-white leading-tight sm:leading-tight text-wrap-balance tracking-tight">
+              <h1 className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl xl:text-7xl font-bold text-white leading-tight sm:leading-tight text-wrap-balance tracking-tight">
                 <div className="mb-0">{heroTitle}</div>
-                {heroTitleSecond && <div className="text-white text-2xl sm:text-3xl md:text-4xl lg:text-5xl xl:text-6xl font-bold leading-tight">... {heroTitleSecond}</div>}
+                {heroTitleSecond && <div className="text-white text-3xl sm:text-4xl md:text-5xl lg:text-6xl xl:text-7xl font-bold leading-tight">... {heroTitleSecond}</div>}
               </h1>
               
               {/* Fixed spacing between H1 and subtitle - consistent 28px */}
               <div className="mt-7">
-                {/* Subtitle - 60% container width for better proportions */}
-                <div className="text-center max-w-2xl mx-auto">
+                {/* Subtitle - 65% container width for better proportions */}
+                <div className="text-center max-w-3xl mx-auto">
                   <motion.p 
                     initial={{ opacity: 0, y: 20 }}
                     animate={{ opacity: 1, y: 0 }}
@@ -263,6 +263,14 @@ export function Hero({
                     className="text-base md:text-lg text-white/90 leading-relaxed font-normal"
                     dangerouslySetInnerHTML={{
                       __html: heroSubtitle
+                        .replace(/(funding options|Finanzierungsoptionen)/gi, '<span class="font-bold text-white">$1</span>')
+                        .replace(/(business plan|Businessplan)/gi, '<span class="font-bold text-white">$1</span>')
+                        .replace(/(Austria|Österreich)/gi, '<span class="font-bold text-white">$1</span>')
+                        .replace(/(Grants, Investors or Bank Loans|Förderungen, Investoren oder Bankkredite)/gi, '<span class="font-bold text-white">$1</span>')
+                        .replace(/(funding requirements|Finanzierungsanforderungen)/gi, '<span class="font-bold text-white">$1</span>')
+                        .replace(/(Virtual Funding Expert)/gi, '<span class="font-bold text-white">$1</span>')
+                        .replace(/(Readiness Check)/gi, '<span class="font-bold text-white">$1</span>')
+                        .replace(/(Plan Editor)/gi, '<span class="font-bold text-white">$1</span>')
                         .replace(/(Save hours|Spare Stunden)/gi, '<span class="font-bold text-white">$1</span>')
                         .replace(/(Start free|Starte kostenlos)/gi, '<span class="font-bold text-white">$1</span>')
                     }}
