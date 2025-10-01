@@ -238,39 +238,45 @@ export function Hero({
           {/* Target Group Banner - Always show for testing */}
           <TargetGroupBanner onTargetGroupSelect={handleTargetGroupSelect} />
           
-          {/* H1 Title - Consistent layout for all target groups */}
+          {/* H1 + Subtitle as one visual block */}
           <div className="text-center max-w-5xl">
-            <motion.h1 
+            <motion.div
               initial={{ opacity: 0, y: 30 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.8 }}
-              className="text-4xl sm:text-5xl lg:text-6xl xl:text-7xl font-bold text-white leading-tight mb-12 text-wrap-balance tracking-tight"
-              style={{ textWrap: 'balance' }}
+              className="mb-12"
             >
-              <div className="mb-1">{heroTitle}</div>
-              {heroTitleSecond && <div className="text-white text-4xl sm:text-5xl lg:text-6xl xl:text-7xl font-bold">... {heroTitleSecond}</div>}
-            </motion.h1>
-          </div>
-
-          {/* Subtitle - Consistent styling with bold highlighting */}
-          <div className="text-center max-w-3xl">
-            <motion.p 
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.3, duration: 0.8 }}
-              className="text-base md:text-lg text-white leading-relaxed"
-                      dangerouslySetInnerHTML={{
-                        __html: heroSubtitle
-                          .replace(/(funding options|Förderungsoptionen|Finanzierungsoptionen)/gi, '<span class="font-bold text-white">$1</span>')
-                          .replace(/(Austria|Österreich)/gi, '<span class="font-bold text-white">$1</span>')
-                          .replace(/(business plan|Businessplan)/gi, '<span class="font-bold text-white">$1</span>')
-                          .replace(/(Start free|Starte kostenlos)/gi, '<span class="font-bold text-white">$1</span>')
-                          .replace(/(Grants|Investors|Bank Loans|Förderungen|Investoren|Bankkredite)/gi, '<span class="font-bold text-white">$1</span>')
-                          .replace(/(requirements|Anforderungen)/gi, '<span class="font-bold text-white">$1</span>')
-                          .replace(/(Virtual Funding Expert|Readiness Check|Plan Editor)/gi, '<span class="font-bold text-white">$1</span>')
-                          .replace(/(Save hours|Spare Stunden)/gi, '<span class="font-bold text-white">$1</span>')
-                      }}
-            />
+              {/* H1 Title - Tight line-height for compact feel when breaking */}
+              <h1 className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl xl:text-6xl font-bold text-white leading-tight sm:leading-tight text-wrap-balance tracking-tight">
+                <div className="mb-0">{heroTitle}</div>
+                {heroTitleSecond && <div className="text-white text-2xl sm:text-3xl md:text-4xl lg:text-5xl xl:text-6xl font-bold leading-tight">... {heroTitleSecond}</div>}
+              </h1>
+              
+              {/* Fixed spacing between H1 and subtitle - responsive */}
+              <div className="mt-6 sm:mt-8 lg:mt-10">
+                {/* Subtitle - 50-60% container width for better proportions */}
+                <div className="text-center max-w-xl mx-auto">
+                  <motion.p 
+                    initial={{ opacity: 0, y: 20 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ delay: 0.3, duration: 0.8 }}
+                    className="text-base md:text-lg text-white/90 leading-loose font-normal"
+                    dangerouslySetInnerHTML={{
+                      __html: heroSubtitle
+                        .replace(/(funding options|Förderungsoptionen|Finanzierungsoptionen)/gi, '<span class="font-bold text-white">$1</span>')
+                        .replace(/(Austria|Österreich)/gi, '<span class="font-bold text-white">$1</span>')
+                        .replace(/(business plan|Businessplan)/gi, '<span class="font-bold text-white">$1</span>')
+                        .replace(/(Start free|Starte kostenlos)/gi, '<span class="font-bold text-white">$1</span>')
+                        .replace(/(Grants|Investors|Bank Loans|Förderungen|Investoren|Bankkredite)/gi, '<span class="font-bold text-white">$1</span>')
+                        .replace(/(requirements|Anforderungen)/gi, '<span class="font-bold text-white">$1</span>')
+                        .replace(/(Virtual Funding Expert|Readiness Check)/gi, '<span class="font-bold text-white">$1</span>')
+                        .replace(/(structured Plan Editor)/gi, '<span class="font-bold text-white">$1</span>')
+                        .replace(/(Save hours|Spare Stunden)/gi, '<span class="font-bold text-white">$1</span>')
+                    }}
+                  />
+                </div>
+              </div>
+            </motion.div>
           </div>
 
           {/* User Flow Animation - Hidden on mobile */}
