@@ -24,6 +24,12 @@ export function WhoItsFor({ targetGroup = 'default' }: WhoItsForProps) {
     return highlightMap[targetGroup as keyof typeof highlightMap] === personaIndex;
   };
 
+  // Helper function to determine if a persona should be primary (only for default/landing page)
+  const isPersonaPrimary = (personaIndex: number) => {
+    // Only show primary on default/landing page, and only for the first persona
+    return targetGroup === 'default' && personaIndex === 0;
+  };
+
   const personas = [
     {
       title: t("whoItsFor.soloEntrepreneurs.title"),
@@ -36,8 +42,7 @@ export function WhoItsFor({ targetGroup = 'default' }: WhoItsForProps) {
       icon: "🚀",
       color: "text-blue-600",
       bgColor: "bg-blue-50",
-      iconBg: "bg-blue-100",
-      isPrimary: true
+      iconBg: "bg-blue-100"
     },
     {
       title: t("whoItsFor.sme.title"),
@@ -103,6 +108,7 @@ export function WhoItsFor({ targetGroup = 'default' }: WhoItsForProps) {
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 lg:gap-6">
                   {personas.map((persona, index) => {
                     const isHighlighted = isPersonaHighlighted(index);
+                    const isPrimary = isPersonaPrimary(index);
                     return (
                     <motion.div
                       key={index}
@@ -113,17 +119,17 @@ export function WhoItsFor({ targetGroup = 'default' }: WhoItsForProps) {
                       className="group"
                     >
                       <div className={`p-6 h-full flex flex-col relative group rounded-xl border-2 transition-all duration-300 hover:shadow-lg hover:-translate-y-1 ${
-                        persona.isPrimary || isHighlighted
+                        isPrimary || isHighlighted
                           ? "border-blue-200 bg-blue-50/50 hover:border-blue-300" 
                           : "border-gray-200 bg-white hover:border-gray-300"
                       }`}>
                         {/* Badge for Primary or Highlighted */}
-                        {(persona.isPrimary || isHighlighted) && (
+                        {(isPrimary || isHighlighted) && (
                           <div className="absolute top-4 right-4">
                             <span className={`text-white text-xs px-2 py-1 rounded-full font-semibold shadow-sm ${
-                              persona.isPrimary ? 'bg-blue-600' : 'bg-green-600'
+                              isPrimary ? 'bg-blue-600' : 'bg-green-600'
                             }`}>
-                              {persona.isPrimary ? 'Primary' : 'Recommended'}
+                              {isPrimary ? 'Primary' : 'Recommended'}
                             </span>
                           </div>
                         )}
