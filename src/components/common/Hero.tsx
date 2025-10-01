@@ -249,8 +249,8 @@ export function Hero({
               className="text-4xl sm:text-5xl lg:text-6xl xl:text-7xl font-bold text-white leading-tight mb-12 text-wrap-balance tracking-tight"
               style={{ textWrap: 'balance' }}
             >
-              <div className="mb-3">{heroTitle}</div>
-              {heroTitleSecond && <div className="text-white text-4xl sm:text-5xl lg:text-6xl xl:text-7xl font-bold">...{heroTitleSecond}</div>}
+              <div className="mb-1">{heroTitle}</div>
+              {heroTitleSecond && <div className="text-white text-4xl sm:text-5xl lg:text-6xl xl:text-7xl font-bold">... {heroTitleSecond}</div>}
             </motion.h1>
           </div>
 
@@ -269,12 +269,14 @@ export function Hero({
                           .replace(/(Start free|Starte kostenlos)/gi, '<span class="font-bold text-white">$1</span>')
                           .replace(/(Grants|Investors|Bank Loans|Förderungen|Investoren|Bankkredite)/gi, '<span class="font-bold text-white">$1</span>')
                           .replace(/(requirements|Anforderungen)/gi, '<span class="font-bold text-white">$1</span>')
+                          .replace(/(Virtual Funding Expert|Readiness Check|Plan Editor)/gi, '<span class="font-bold text-white">$1</span>')
+                          .replace(/(Save hours|Spare Stunden)/gi, '<span class="font-bold text-white">$1</span>')
                       }}
             />
           </div>
 
-          {/* User Flow Animation - Smaller and more subtle */}
-          <div className="w-full max-w-2xl">
+          {/* User Flow Animation - Hidden on mobile */}
+          <div className="w-full max-w-2xl hidden md:block">
             <UserFlowAnimation onStepClick={onStepClick} />
           </div>
 
@@ -300,7 +302,7 @@ export function Hero({
                 href="/reco"
                 whileHover={{ scale: 1.05 }}
                 whileTap={{ scale: 0.95 }}
-                className="inline-flex items-center justify-center px-8 py-4 border-2 border-white/30 hover:border-white/50 text-white font-semibold rounded-xl transition-colors duration-200 backdrop-blur-sm hover:bg-white/10"
+                className="hidden sm:inline-flex items-center justify-center px-8 py-4 border-2 border-white/30 hover:border-white/50 text-white font-semibold rounded-xl transition-colors duration-200 backdrop-blur-sm hover:bg-white/10"
               >
                 {heroSecondaryButton}
               </motion.a>
