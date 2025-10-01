@@ -10,12 +10,22 @@ import { useI18n } from "@/contexts/I18nContext"
 import { useEffect, useState } from "react"
 import analytics from "@/lib/analytics"
 import { useRouter } from "next/router"
-import { detectTargetGroup } from '@/lib/targetGroupDetection'
+import { detectTargetGroup, storeTargetGroupSelection } from '@/lib/targetGroupDetection'
 
 export default function Home() {
   const { t } = useI18n();
   const router = useRouter();
   const [selectedTargetGroup, setSelectedTargetGroup] = useState<string | null>(null);
+
+  // Initialize selectedTargetGroup from localStorage on mount
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      const stored = localStorage.getItem('selectedTargetGroup');
+      if (stored) {
+        setSelectedTargetGroup(stored);
+      }
+    }
+  }, []);
 
   // Get target group using enhanced detection (URL, UTM, referrer, etc.)
   // If user selected from banner, use that; otherwise use detection
@@ -24,6 +34,7 @@ export default function Home() {
   // Handle target group selection from banner
   const handleTargetGroupSelect = (targetGroup: string) => {
     setSelectedTargetGroup(targetGroup);
+    storeTargetGroupSelection(targetGroup as any);
   };
 
   useEffect(() => {

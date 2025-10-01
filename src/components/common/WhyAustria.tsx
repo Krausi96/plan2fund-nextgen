@@ -82,14 +82,6 @@ export function WhyAustria({ targetGroup = 'default' }: WhyAustriaProps) {
                 ? 'bg-blue-50 border-2 border-blue-200 shadow-lg' 
                 : 'bg-white'
             }`}>
-              {/* Highlighted Badge */}
-              {isHighlighted && (
-                <div className="mb-4">
-                  <span className="text-xs bg-green-600 text-white px-3 py-1 rounded-full font-semibold shadow-sm">
-                    Recommended
-                  </span>
-                </div>
-              )}
               
               <div className={`w-16 h-16 ${benefit.bgColor} rounded-full flex items-center justify-center mx-auto mb-4 ${
                 isHighlighted ? 'ring-2 ring-blue-200' : ''

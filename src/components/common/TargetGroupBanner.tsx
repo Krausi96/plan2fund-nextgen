@@ -75,7 +75,7 @@ export default function TargetGroupBanner({ onTargetGroupSelect }: TargetGroupBa
                 </button>
                 <button
                   type="button"
-                  onClick={(e) => handleTargetGroupClick('smes', e)}
+                  onClick={(e) => handleTargetGroupClick('sme', e)}
                   className="flex items-center gap-1.5 px-2.5 py-1.5 text-xs bg-green-600 hover:bg-green-700 text-white rounded-md transition-all duration-200 font-medium hover:shadow-md flex-shrink-0"
                 >
                   <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
