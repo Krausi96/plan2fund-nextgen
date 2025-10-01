@@ -235,10 +235,8 @@ export function Hero({
       <div className="relative z-20 w-full max-w-6xl px-6 sm:px-8 lg:px-12 py-6 md:py-8 mx-auto">
                 <div className="flex flex-col items-center justify-center space-y-8 min-h-[50vh] pt-8">
           
-          {/* Target Group Banner - Show only when detection fails */}
-          {targetGroup === 'default' && (
-            <TargetGroupBanner onTargetGroupSelect={handleTargetGroupSelect} />
-          )}
+          {/* Target Group Banner - Always show for testing */}
+          <TargetGroupBanner onTargetGroupSelect={handleTargetGroupSelect} />
           
           {/* H1 Title - Consistent layout for all target groups */}
           <div className="text-center max-w-5xl">
@@ -255,12 +253,12 @@ export function Hero({
           </div>
 
           {/* Subtitle - Consistent styling with bold highlighting */}
-          <div className="text-center max-w-4xl">
+          <div className="text-center max-w-3xl">
             <motion.p 
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.3, duration: 0.8 }}
-              className="text-base md:text-lg text-white leading-loose text-justify"
+              className="text-base md:text-lg text-white leading-relaxed"
                       dangerouslySetInnerHTML={{
                         __html: heroSubtitle
                           .replace(/(funding options|Förderungsoptionen|Finanzierungsoptionen)/gi, '<span class="font-bold text-white">$1</span>')
