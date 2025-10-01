@@ -46,12 +46,12 @@ export default function ForStartups() {
       />
       
       <main className="flex flex-col">
-        <Hero onStepClick={handleStepClick} />
-        <WhyPlan2Fund />
-        <WhoItsFor />
-        <PlanTypes />
-        <HowItWorks />
-        <WhyAustria />
+        <Hero targetGroup="startups" onStepClick={handleStepClick} />
+        <WhyPlan2Fund targetGroup="startups" />
+        <WhoItsFor targetGroup="startups" />
+        <PlanTypes targetGroup="startups" />
+        <HowItWorks targetGroup="startups" />
+        <WhyAustria targetGroup="startups" />
         <CTAStrip
           title={t('cta.readyToFind')}
           subtitle={t('cta.joinFounders')}

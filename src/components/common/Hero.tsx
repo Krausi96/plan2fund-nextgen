@@ -192,19 +192,20 @@ interface HeroProps {
   primaryButtonHref?: string;
   onStepClick?: (stepId: number) => void;
   onTargetGroupSelect?: (targetGroup: string) => void;
+  targetGroup?: string;
 }
 
 export function Hero({
   primaryButtonHref = "/editor",
   onStepClick,
-  onTargetGroupSelect
+  onTargetGroupSelect,
+  targetGroup: propTargetGroup
 }: HeroProps = {}) {
   const { t } = useI18n();
   const [selectedTargetGroup, setSelectedTargetGroup] = useState<string | null>(null);
   
-  // Get target group using enhanced detection (URL, UTM, referrer, etc.)
-  // If user selected from banner, use that; otherwise use detection
-  const targetGroup = selectedTargetGroup || getTargetGroupFromDetection();
+  // Get target group: prop > selected from banner > detection
+  const targetGroup = propTargetGroup || selectedTargetGroup || getTargetGroupFromDetection();
 
   // Handle target group selection from banner
   const handleTargetGroupSelect = (targetGroup: string) => {
@@ -232,7 +233,7 @@ export function Hero({
 
       {/* Main Content */}
       <div className="relative z-20 w-full max-w-6xl px-6 sm:px-8 lg:px-12 py-6 md:py-8 mx-auto">
-                <div className="flex flex-col items-center justify-center space-y-6 min-h-[50vh] pt-8">
+                <div className="flex flex-col items-center justify-center space-y-8 min-h-[50vh] pt-8">
           
           {/* Target Group Banner - Show only when detection fails */}
           {targetGroup === 'default' && (
@@ -240,26 +241,26 @@ export function Hero({
           )}
           
           {/* H1 Title - Consistent layout for all target groups */}
-          <div className="text-center max-w-4xl">
+          <div className="text-center max-w-5xl">
             <motion.h1 
               initial={{ opacity: 0, y: 30 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.8 }}
-                      className="text-3xl sm:text-4xl lg:text-5xl xl:text-6xl font-bold text-white leading-tight mb-8 text-wrap-balance tracking-tight"
-                      style={{ textWrap: 'balance' }}
+              className="text-4xl sm:text-5xl lg:text-6xl xl:text-7xl font-bold text-white leading-tight mb-12 text-wrap-balance tracking-tight"
+              style={{ textWrap: 'balance' }}
             >
-              <div className="mb-2">{heroTitle}</div>
-                      {heroTitleSecond && <div className="text-white text-3xl sm:text-4xl lg:text-5xl xl:text-6xl font-bold">{heroTitleSecond}</div>}
+              <div className="mb-3">{heroTitle}</div>
+              {heroTitleSecond && <div className="text-white text-4xl sm:text-5xl lg:text-6xl xl:text-7xl font-bold">...{heroTitleSecond}</div>}
             </motion.h1>
           </div>
 
           {/* Subtitle - Consistent styling with bold highlighting */}
-          <div className="text-center max-w-5xl">
+          <div className="text-center max-w-4xl">
             <motion.p 
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.3, duration: 0.8 }}
-              className="text-base md:text-lg text-white leading-relaxed text-justify"
+              className="text-base md:text-lg text-white leading-loose text-justify"
                       dangerouslySetInnerHTML={{
                         __html: heroSubtitle
                           .replace(/(funding options|Förderungsoptionen|Finanzierungsoptionen)/gi, '<span class="font-bold text-white">$1</span>')

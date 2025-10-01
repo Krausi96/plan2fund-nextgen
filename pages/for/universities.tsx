@@ -46,12 +46,12 @@ export default function ForUniversities() {
       />
       
       <main className="flex flex-col">
-        <Hero onStepClick={handleStepClick} />
-        <WhyPlan2Fund />
-        <WhoItsFor />
-        <PlanTypes />
-        <HowItWorks />
-        <WhyAustria />
+        <Hero targetGroup="universities" onStepClick={handleStepClick} />
+        <WhyPlan2Fund targetGroup="universities" />
+        <WhoItsFor targetGroup="universities" />
+        <PlanTypes targetGroup="universities" />
+        <HowItWorks targetGroup="universities" />
+        <WhyAustria targetGroup="universities" />
         <CTAStrip
           title={t('cta.readyToFind')}
           subtitle={t('cta.joinFounders')}

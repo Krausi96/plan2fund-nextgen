@@ -46,12 +46,12 @@ export default function ForSME() {
       />
       
       <main className="flex flex-col">
-        <Hero onStepClick={handleStepClick} />
-        <WhyPlan2Fund />
-        <WhoItsFor />
-        <PlanTypes />
-        <HowItWorks />
-        <WhyAustria />
+        <Hero targetGroup="sme" onStepClick={handleStepClick} />
+        <WhyPlan2Fund targetGroup="sme" />
+        <WhoItsFor targetGroup="sme" />
+        <PlanTypes targetGroup="sme" />
+        <HowItWorks targetGroup="sme" />
+        <WhyAustria targetGroup="sme" />
         <CTAStrip
           title={t('cta.readyToFind')}
           subtitle={t('cta.joinFounders')}
