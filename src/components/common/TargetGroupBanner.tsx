@@ -4,7 +4,7 @@
 import React, { useState, useEffect } from 'react';
 import { useI18n } from '@/contexts/I18nContext';
 import { motion, AnimatePresence } from 'framer-motion';
-import { storeTargetGroupSelection, detectTargetGroup } from '@/lib/targetGroupDetection';
+import { storeTargetGroupSelection } from '@/lib/targetGroupDetection';
 
 interface TargetGroupBannerProps {
   onTargetGroupSelect?: (targetGroup: string) => void;
@@ -15,17 +15,8 @@ export default function TargetGroupBanner({ onTargetGroupSelect }: TargetGroupBa
   const [showBanner, setShowBanner] = useState(false);
 
   useEffect(() => {
-    // Check if user has already made a selection (stored in localStorage)
-    const hasSelectedTargetGroup = localStorage.getItem('selectedTargetGroup');
-    const detection = detectTargetGroup();
-    
-    // Only show banner if:
-    // 1. No target group is stored in localStorage
-    // 2. Detection failed (targetGroup is 'default')
-    // 3. User is on landing page (not /for/* pages)
-    if (!hasSelectedTargetGroup && detection.targetGroup === 'default' && window.location.pathname === '/') {
-      setShowBanner(true);
-    }
+    // Always show banner for testing purposes
+    setShowBanner(true);
   }, []);
 
   const handleTargetGroupClick = (targetGroup: string, event?: React.MouseEvent) => {
@@ -38,8 +29,8 @@ export default function TargetGroupBanner({ onTargetGroupSelect }: TargetGroupBa
     // Store selection using the detection utility
     storeTargetGroupSelection(targetGroup as any);
     
-    // Hide banner
-    setShowBanner(false);
+    // Keep banner visible for testing - don't hide it
+    // setShowBanner(false);
     
     // Notify parent component to update Hero content
     if (onTargetGroupSelect) {
