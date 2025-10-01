@@ -264,7 +264,7 @@ export function Hero({
                     dangerouslySetInnerHTML={{
                       __html: heroSubtitle
                         .replace(/(funding options|Finanzierungsoptionen)/gi, '<span class="font-bold text-white">$1</span>')
-                        .replace(/(business plan|Businessplan|Business Plan|Businesspläne)/gi, '<span class="font-bold text-white">$1</span>')
+                        .replace(/(business plan|Businessplan|Business Plan|Businesspläne|business plans|business planning)/gi, '<span class="font-bold text-white">$1</span>')
                         .replace(/(application-ready|antragsfertigen)/gi, '<span class="font-bold text-white">$1</span>')
                         .replace(/(Austria|Österreich)/gi, '<span class="font-bold text-white">$1</span>')
                         .replace(/(Grants, Investors or Bank Loans|Förderungen, Investoren oder Bankkredite)/gi, '<span class="font-bold text-white">$1</span>')
