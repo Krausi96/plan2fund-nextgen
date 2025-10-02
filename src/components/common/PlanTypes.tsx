@@ -61,8 +61,7 @@ export function PlanTypes({ targetGroup = 'default' }: PlanTypesProps) {
         t("planTypes.custom.feature1"),
         t("planTypes.custom.feature2"),
         t("planTypes.custom.feature3"),
-        t("planTypes.custom.feature4"),
-        t("planTypes.custom.feature5")
+        t("planTypes.custom.feature4")
       ],
       href: "/pricing#custom",
       hasRouteExtras: false
