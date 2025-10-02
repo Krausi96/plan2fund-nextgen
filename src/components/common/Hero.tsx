@@ -263,6 +263,14 @@ export function Hero({
                     className="text-lg md:text-xl text-white/90 leading-relaxed font-normal"
                     dangerouslySetInnerHTML={{
                       __html: heroSubtitle
+                        .replace(/(funding options|Finanzierungsoptionen)/gi, '<span class="font-bold text-white">$1</span>')
+                        .replace(/(application-ready Business Plan|antragsfertigen Businessplan)/gi, '<span class="font-bold text-white">$1</span>')
+                        .replace(/(Business Plans|Businesspläne)/gi, '<span class="font-bold text-white">$1</span>')
+                        .replace(/(Business Plan|Businessplan)/gi, '<span class="font-bold text-white">$1</span>')
+                        .replace(/(research|Recherche)/gi, '<span class="font-bold text-white">$1</span>')
+                        .replace(/(drafting|Erstellung)/gi, '<span class="font-bold text-white">$1</span>')
+                        .replace(/(formatting|Formatierung)/gi, '<span class="font-bold text-white">$1</span>')
+                        .replace(/(finalization|Nachbearbeitung)/gi, '<span class="font-bold text-white">$1</span>')
                         .replace(/(Save hours|Spare Stunden)/gi, '<span class="font-bold text-white">$1</span>')
                         .replace(/(Start free|Starte kostenlos)/gi, '<span class="font-bold text-white">$1</span>')
                     }}
