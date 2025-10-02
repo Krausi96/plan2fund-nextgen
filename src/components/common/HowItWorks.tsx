@@ -54,10 +54,10 @@ export function HowItWorks({}: HowItWorksProps) {
           viewport={{ once: true }}
           className="text-center mb-16"
         >
-          <h2 className="text-2xl md:text-3xl font-bold text-neutral-900 mb-4">
+          <h2 className="text-3xl font-bold text-neutral-900 mb-4">
             {t('howItWorks.title')}
           </h2>
-          <p className="text-xl text-neutral-600 max-w-2xl mx-auto">
+          <p className="text-lg text-neutral-600 max-w-3xl mx-auto">
             {t('howItWorks.subtitle')}
           </p>
         </motion.div>

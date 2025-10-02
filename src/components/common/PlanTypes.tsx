@@ -82,7 +82,7 @@ export function PlanTypes({ targetGroup = 'default' }: PlanTypesProps) {
           <h2 className="text-3xl font-bold text-neutral-900 mb-4">
             {t("planTypes.title")}
           </h2>
-          <p className="text-lg text-neutral-600 max-w-2xl mx-auto">
+          <p className="text-lg text-neutral-600 max-w-3xl mx-auto">
             {t("planTypes.subtitle")}
           </p>
         </motion.div>
