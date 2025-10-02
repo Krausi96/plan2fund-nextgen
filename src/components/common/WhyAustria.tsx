@@ -5,22 +5,13 @@ interface WhyAustriaProps {
   targetGroup?: string;
 }
 
-export function WhyAustria({ targetGroup = 'default' }: WhyAustriaProps) {
+export function WhyAustria({}: WhyAustriaProps) {
   const { t } = useI18n();
 
   // Helper function to determine if a benefit should be highlighted
-  const isBenefitHighlighted = (benefitIndex: number) => {
-    if (targetGroup === 'default') return false;
-    
-    // Map target groups to benefit indices to highlight
-    const highlightMap = {
-      'startups': [0, 2],      // Emphasize innovation culture and supportive ecosystem
-      'sme': [1, 2],           // Emphasize funding programs and supportive ecosystem
-      'advisors': [2, 0],      // Emphasize supportive ecosystem and innovation culture
-      'universities': [0, 1]   // Emphasize innovation culture and funding programs
-    };
-    
-    return highlightMap[targetGroup as keyof typeof highlightMap]?.includes(benefitIndex) || false;
+  const isBenefitHighlighted = (_benefitIndex: number) => {
+    // Disabled highlighting for all target groups
+    return false;
   };
 
   const benefits = [

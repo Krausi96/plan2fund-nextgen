@@ -5,22 +5,13 @@ interface HowItWorksProps {
   targetGroup?: string;
 }
 
-export function HowItWorks({ targetGroup = 'default' }: HowItWorksProps) {
+export function HowItWorks({}: HowItWorksProps) {
   const { t } = useI18n();
 
   // Helper function to determine if a step should be highlighted
-  const isStepHighlighted = (stepIndex: number) => {
-    if (targetGroup === 'default') return false;
-    
-    // Map target groups to step indices to highlight
-    const highlightMap = {
-      'startups': [0, 2],      // Emphasize idea description and business plan creation
-      'sme': [1, 3],           // Emphasize program matching and ready documents
-      'advisors': [2, 3],      // Emphasize business plan creation and multiple formats
-      'universities': [0, 2]   // Emphasize research projects and academic writing
-    };
-    
-    return highlightMap[targetGroup as keyof typeof highlightMap]?.includes(stepIndex) || false;
+  const isStepHighlighted = (_stepIndex: number) => {
+    // Disabled highlighting for all target groups
+    return false;
   };
 
   const steps = [
