@@ -256,32 +256,45 @@ export function Hero({
               <div className="mt-7">
                 {/* Subtitle - 65% container width for better proportions */}
                 <div className="text-center max-w-3xl mx-auto">
-                  <motion.p 
-                    initial={{ opacity: 0, y: 20 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    transition={{ delay: 0.3, duration: 0.8 }}
-                    className="text-lg md:text-xl text-white/90 leading-relaxed font-normal"
-                    dangerouslySetInnerHTML={{
-                      __html: heroSubtitle
-                        .replace(/(funding options|Finanzierungsoptionen)/gi, '<span class="font-bold text-white">$1</span>')
-                        .replace(/(application-ready Business Plan|antragsfertigen Businessplan)/gi, '<span class="font-bold text-white">$1</span>')
-                        .replace(/(Business Plans|Businesspläne)/gi, '<span class="font-bold text-white">$1</span>')
-                        .replace(/(Business Plan|Businessplan)/gi, '<span class="font-bold text-white">$1</span>')
-                        .replace(/(research|Recherche)/gi, '<span class="font-bold text-white">$1</span>')
-                        .replace(/(drafting|Erstellung)/gi, '<span class="font-bold text-white">$1</span>')
-                        .replace(/(formatting|Formatierung)/gi, '<span class="font-bold text-white">$1</span>')
-                        .replace(/(finalization|Nachbearbeitung)/gi, '<span class="font-bold text-white">$1</span>')
-                        .replace(/(Save hours|Spare Stunden)/gi, '<span class="font-bold text-white">$1</span>')
-                        .replace(/(Start free|Starte kostenlos)/gi, '<span class="font-bold text-white">$1</span>')
-                    }}
-                  />
+                  <div>
+                    <motion.p 
+                      initial={{ opacity: 0, y: 20 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      transition={{ delay: 0.3, duration: 0.8 }}
+                      className="text-lg md:text-xl text-white/90 leading-relaxed font-normal"
+                      dangerouslySetInnerHTML={{
+                        __html: heroSubtitle
+                          .replace(/(funding options|Finanzierungsoptionen)/gi, '<span class="font-bold text-white">$1</span>')
+                          .replace(/(application-ready Business Plan|antragsfertigen Businessplan)/gi, '<span class="font-bold text-white">$1</span>')
+                          .replace(/(Business Plans|Businesspläne)/gi, '<span class="font-bold text-white">$1</span>')
+                          .replace(/(Business Plan|Businessplan)/gi, '<span class="font-bold text-white">$1</span>')
+                          .replace(/(research|Recherche)/gi, '<span class="font-bold text-white">$1</span>')
+                          .replace(/(drafting|Erstellung)/gi, '<span class="font-bold text-white">$1</span>')
+                          .replace(/(formatting|Formatierung)/gi, '<span class="font-bold text-white">$1</span>')
+                          .replace(/(finalization|Nachbearbeitung)/gi, '<span class="font-bold text-white">$1</span>')
+                          .replace(/(Save hours|Spare Stunden)/gi, '<span class="font-bold text-white">$1</span>')
+                      }}
+                    />
+                    {/* Kicker line with increased spacing and italics */}
+                    <motion.p 
+                      initial={{ opacity: 0, y: 20 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      transition={{ delay: 0.5, duration: 0.8 }}
+                      className="text-lg md:text-xl text-white italic mt-6 font-medium"
+                      dangerouslySetInnerHTML={{
+                        __html: heroSubtitle.includes('Start free') 
+                          ? '<span class="font-bold text-white">Start free</span>'
+                          : '<span class="font-bold text-white">Starte kostenlos</span>'
+                      }}
+                    />
+                  </div>
                 </div>
               </div>
             </motion.div>
           </div>
 
           {/* User Flow Animation - Hidden on mobile */}
-          <div className="w-full max-w-2xl hidden md:block">
+          <div className="w-full max-w-2xl hidden md:block -mt-4">
             <UserFlowAnimation onStepClick={onStepClick} />
           </div>
 
