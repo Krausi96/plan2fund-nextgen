@@ -247,9 +247,9 @@ export function Hero({
               className="mb-12"
             >
               {/* H1 Title - Tight line-height for compact feel when breaking */}
-              <h1 className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl xl:text-7xl font-bold text-white leading-tight sm:leading-tight text-wrap-balance tracking-tight">
+              <h1 className="text-4xl sm:text-5xl md:text-6xl lg:text-7xl xl:text-8xl font-bold text-white leading-tight sm:leading-tight text-wrap-balance tracking-tight">
                 <div className="mb-0">{heroTitle}</div>
-                {heroTitleSecond && <div className="text-white text-3xl sm:text-4xl md:text-5xl lg:text-6xl xl:text-7xl font-bold leading-tight">... {heroTitleSecond}</div>}
+                {heroTitleSecond && <div className="text-white text-4xl sm:text-5xl md:text-6xl lg:text-7xl xl:text-8xl font-bold leading-tight">. . . {heroTitleSecond}</div>}
               </h1>
               
               {/* Fixed spacing between H1 and subtitle - consistent 28px */}
@@ -260,7 +260,7 @@ export function Hero({
                     initial={{ opacity: 0, y: 20 }}
                     animate={{ opacity: 1, y: 0 }}
                     transition={{ delay: 0.3, duration: 0.8 }}
-                    className="text-base md:text-lg text-white/90 leading-relaxed font-normal"
+                    className="text-lg md:text-xl text-white/90 leading-relaxed font-normal"
                     dangerouslySetInnerHTML={{
                       __html: heroSubtitle
                         .replace(/(funding options|Finanzierungsoptionen)/gi, '<span class="font-bold text-white">$1</span>')
