@@ -254,8 +254,8 @@ export function Hero({
               
               {/* Fixed spacing between H1 and subtitle - consistent 28px */}
               <div className="mt-7">
-                {/* Subtitle - 65% container width for better proportions */}
-                <div className="text-center max-w-3xl mx-auto">
+                {/* Subtitle - increased width for better proportions */}
+                <div className="text-center max-w-4xl mx-auto">
                   <div>
                     <motion.p 
                       initial={{ opacity: 0, y: 20 }}
@@ -275,18 +275,6 @@ export function Hero({
                           .replace(/(Save hours|Spare Stunden)/gi, '<span class="font-bold text-white">$1</span>')
                       }}
                     />
-                    {/* Kicker line with increased spacing and italics */}
-                    <motion.p 
-                      initial={{ opacity: 0, y: 20 }}
-                      animate={{ opacity: 1, y: 0 }}
-                      transition={{ delay: 0.5, duration: 0.8 }}
-                      className="text-lg md:text-xl text-white italic mt-6 font-medium"
-                      dangerouslySetInnerHTML={{
-                        __html: heroSubtitle.includes('Start free') 
-                          ? '<span class="font-bold text-white">Start free</span>'
-                          : '<span class="font-bold text-white">Starte kostenlos</span>'
-                      }}
-                    />
                   </div>
                 </div>
               </div>
@@ -294,7 +282,7 @@ export function Hero({
           </div>
 
           {/* User Flow Animation - Hidden on mobile */}
-          <div className="w-full max-w-2xl hidden md:block -mt-4">
+          <div className="w-full max-w-2xl hidden md:block -mt-8">
             <UserFlowAnimation onStepClick={onStepClick} />
           </div>
 
