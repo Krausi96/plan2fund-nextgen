@@ -263,18 +263,7 @@ export function Hero({
                     className="text-lg md:text-xl text-white/90 leading-relaxed font-normal"
                     dangerouslySetInnerHTML={{
                       __html: heroSubtitle
-                        .replace(/(funding options|Finanzierungsoptionen)/gi, '<span class="font-bold text-white">$1</span>')
-                        .replace(/(business plan|Businessplan|Business Plan|Businesspläne|business plans|business planning)/gi, '<span class="font-bold text-white">$1</span>')
-                        .replace(/(application-ready|antragsfertigen)/gi, '<span class="font-bold text-white">$1</span>')
-                        .replace(/(Austria|Österreich)/gi, '<span class="font-bold text-white">$1</span>')
-                        .replace(/(Grants, Investors or Bank Loans|Förderungen, Investoren oder Bankkredite)/gi, '<span class="font-bold text-white">$1</span>')
-                        .replace(/(funding requirements|Finanzierungsanforderungen)/gi, '<span class="font-bold text-white">$1</span>')
-                        .replace(/(Virtual Funding Expert)/gi, '<span class="font-bold text-white">$1</span>')
-                        .replace(/(Readiness Check)/gi, '<span class="font-bold text-white">$1</span>')
-                        .replace(/(Plan Editor)/gi, '<span class="font-bold text-white">$1</span>')
                         .replace(/(Save hours|Spare Stunden)/gi, '<span class="font-bold text-white">$1</span>')
-                        .replace(/(research|Recherche)/gi, '<span class="font-bold text-white">$1</span>')
-                        .replace(/(formatting|Formatierung)/gi, '<span class="font-bold text-white">$1</span>')
                         .replace(/(Start free|Starte kostenlos)/gi, '<span class="font-bold text-white">$1</span>')
                     }}
                   />
