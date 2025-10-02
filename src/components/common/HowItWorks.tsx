@@ -63,7 +63,7 @@ export function HowItWorks({ targetGroup = 'default' }: HowItWorksProps) {
           viewport={{ once: true }}
           className="text-center mb-16"
         >
-          <h2 className="text-4xl font-bold text-neutral-900 mb-4">
+          <h2 className="text-2xl md:text-3xl font-bold text-neutral-900 mb-4">
             {t('howItWorks.title')}
           </h2>
           <p className="text-xl text-neutral-600 max-w-2xl mx-auto">
