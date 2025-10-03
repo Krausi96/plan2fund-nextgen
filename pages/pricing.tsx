@@ -20,7 +20,10 @@ import {
   Globe,
   Shield,
   Award,
-  FileCheck
+  FileCheck,
+  CheckCircle,
+  Download,
+  Plus
 } from "lucide-react";
 
 // Core Products Data
@@ -216,7 +219,7 @@ export default function Pricing() {
                   <div className="text-center mb-6">
                     <div className="text-5xl mb-4">{product.icon}</div>
                     <h3 className="text-2xl font-bold text-gray-900 mb-2">{product.title}</h3>
-                    <div className="text-4xl font-bold text-blue-600 mb-4">{product.price}</div>
+                    <div className="text-3xl font-bold text-blue-500 mb-4">{product.price}</div>
                     <p className="text-gray-600 mb-4">{product.bestFor}</p>
                     <p className="text-sm text-gray-500 bg-gray-50 p-3 rounded-lg">{product.includes}</p>
                   </div>
@@ -233,69 +236,22 @@ export default function Pricing() {
           </div>
         </section>
 
-        {/* Document Counts by Product & Funding Type */}
+        {/* Document Packages & Requirements */}
         <section className="py-16 bg-white">
           <div className="max-w-7xl mx-auto px-4">
             <div className="text-center mb-12">
               <h2 className="text-3xl font-bold text-gray-900 mb-4">
-                Document Counts by Product & Funding Type
+                Document Packages & Funder Requirements
               </h2>
               <p className="text-lg text-gray-600 max-w-3xl mx-auto">
-                See exactly what documents you get for each combination
+                See exactly what documents you get and what funders require for each funding type
               </p>
             </div>
 
-            <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-              {coreProducts.map((product) => (
-                <div key={product.id} className="bg-gray-50 rounded-2xl p-6">
-                  <div className="text-center mb-6">
-                    <div className="text-3xl mb-2">{product.icon}</div>
-                    <h3 className="text-xl font-bold text-gray-900">{product.title}</h3>
-                    <div className="text-2xl font-bold text-blue-600">{product.price}</div>
-                  </div>
-                  
-                  <div className="space-y-4">
-                    {Object.entries(documentCounts[product.id as keyof typeof documentCounts]).map(([fundingType, description]) => {
-                      const fundingTypeData = fundingTypes.find(ft => ft.id === fundingType);
-                      return (
-                        <div key={fundingType} className="bg-white rounded-lg p-4 border border-gray-200">
-                          <div className="flex items-center mb-2">
-                            {fundingTypeData && (
-                              <fundingTypeData.icon className={`w-5 h-5 mr-2 ${
-                                fundingTypeData.color === 'green' ? 'text-green-600' :
-                                fundingTypeData.color === 'blue' ? 'text-blue-600' :
-                                fundingTypeData.color === 'purple' ? 'text-purple-600' :
-                                'text-orange-600'
-                              }`} />
-                            )}
-                            <h4 className="font-semibold text-gray-900">{fundingTypeData?.title}</h4>
-                          </div>
-                          <p className="text-sm text-gray-600">{description}</p>
-                        </div>
-                      );
-                    })}
-                  </div>
-                </div>
-              ))}
-            </div>
-          </div>
-        </section>
-
-        {/* Funding Type Packages */}
-        <section className="py-16 bg-gray-50">
-          <div className="max-w-7xl mx-auto px-4">
-            <div className="text-center mb-12">
-              <h2 className="text-3xl font-bold text-gray-900 mb-4">
-                What Funders Require (At a Glance)
-              </h2>
-              <p className="text-lg text-gray-600 max-w-3xl mx-auto">
-                Each funding type has specific document requirements
-              </p>
-            </div>
-
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+            {/* Funding Type Overview */}
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-12">
               {fundingTypes.map((fundingType) => (
-                <div key={fundingType.id} className={`bg-white rounded-2xl p-6 border-2 border-gray-200 hover:shadow-lg transition-all duration-300 ${
+                <div key={fundingType.id} className={`bg-gray-50 rounded-2xl p-6 border-2 border-gray-200 hover:shadow-lg transition-all duration-300 ${
                   recommendedTypes.includes(fundingType.id) || recommendedTypes.includes('all') 
                     ? 'ring-2 ring-blue-100' : ''
                 }`}>
@@ -332,6 +288,63 @@ export default function Pricing() {
                       <h4 className="font-semibold text-gray-900 text-sm mb-1">Expertise:</h4>
                       <p className="text-xs text-gray-600">{fundingType.expertise}</p>
                     </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+
+            {/* Product Details with Document Counts */}
+            <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+              {coreProducts.map((product) => (
+                <div key={product.id} className="bg-gray-50 rounded-2xl p-8">
+                  <div className="text-center mb-6">
+                    <div className="text-4xl mb-3">{product.icon}</div>
+                    <h3 className="text-2xl font-bold text-gray-900 mb-2">{product.title}</h3>
+                    <div className="text-3xl font-bold text-blue-500 mb-4">{product.price}</div>
+                    <p className="text-gray-600 mb-4">{product.bestFor}</p>
+                    <p className="text-sm text-gray-500 bg-white p-3 rounded-lg">{product.includes}</p>
+                  </div>
+                  
+                  <div className="space-y-4">
+                    <h4 className="font-semibold text-gray-900 text-lg mb-3">Documents by Funding Type:</h4>
+                    {Object.entries(documentCounts[product.id as keyof typeof documentCounts]).map(([fundingType, description]) => {
+                      const fundingTypeData = fundingTypes.find(ft => ft.id === fundingType);
+                      return (
+                        <div key={fundingType} className="bg-white rounded-lg p-4 border border-gray-200">
+                          <div className="flex items-center mb-2">
+                            {fundingTypeData && (
+                              <fundingTypeData.icon className={`w-5 h-5 mr-2 ${
+                                fundingTypeData.color === 'green' ? 'text-green-600' :
+                                fundingTypeData.color === 'blue' ? 'text-blue-600' :
+                                fundingTypeData.color === 'purple' ? 'text-purple-600' :
+                                'text-orange-600'
+                              }`} />
+                            )}
+                            <h5 className="font-semibold text-gray-900">{fundingTypeData?.title}</h5>
+                          </div>
+                          <p className="text-sm text-gray-600">{description}</p>
+                        </div>
+                      );
+                    })}
+                  </div>
+
+                  {/* Additional Documents Details */}
+                  <div className="mt-6 p-4 bg-blue-50 rounded-lg">
+                    <h5 className="font-semibold text-gray-900 mb-2">Additional Documents Include:</h5>
+                    <ul className="text-sm text-gray-600 space-y-1">
+                      <li>• Executive One-Pager (DE/EN)</li>
+                      <li>• PDF & DOCX formats</li>
+                      <li>• Financial models (Excel)</li>
+                      <li>• CV templates & guidance</li>
+                      <li>• Compliance checklists</li>
+                      {product.id === 'submission' && (
+                        <>
+                          <li>• Pitch deck content pack</li>
+                          <li>• Cap table templates</li>
+                          <li>• Bank summary pages</li>
+                        </>
+                      )}
+                    </ul>
                   </div>
                 </div>
               ))}
@@ -407,7 +420,7 @@ export default function Pricing() {
         <section className="py-16 bg-gray-50">
           <div className="max-w-7xl mx-auto px-4">
             <div className="text-center mb-12">
-              <h2 className="text-3xl font-bold text-gray-900 mb-4">
+              <h2 className="text-2xl font-bold text-gray-900 mb-4">
                 Add-ons
               </h2>
               <p className="text-lg text-gray-600 max-w-3xl mx-auto">
@@ -421,8 +434,8 @@ export default function Pricing() {
                   <div className="w-12 h-12 bg-blue-100 rounded-full flex items-center justify-center mx-auto mb-4">
                     <addon.icon className="w-6 h-6 text-blue-600" />
                   </div>
-                  <h3 className="font-semibold text-gray-900 mb-2">{addon.name}</h3>
-                  <div className="text-2xl font-bold text-blue-600">{addon.price}</div>
+                  <h3 className="font-semibold text-gray-900 mb-2 text-sm">{addon.name}</h3>
+                  <div className="text-xl font-bold text-blue-500">{addon.price}</div>
                 </div>
               ))}
             </div>
@@ -431,9 +444,9 @@ export default function Pricing() {
 
         {/* How to Use Guide */}
         <section className="py-16 bg-white">
-          <div className="max-w-4xl mx-auto px-4">
+          <div className="max-w-7xl mx-auto px-4">
             <div className="text-center mb-12">
-              <h2 className="text-3xl font-bold text-gray-900 mb-4">
+              <h2 className="text-2xl font-bold text-gray-900 mb-4">
                 How to Use This Page
               </h2>
               <p className="text-lg text-gray-600">
@@ -441,19 +454,45 @@ export default function Pricing() {
               </p>
             </div>
 
-            <div className="space-y-6">
+            <div className="grid grid-cols-1 md:grid-cols-5 gap-6">
               {[
-                "Pick your plan (Strategy, Review, Submission)",
-                "Select your funding type (Grants, Bank, Equity, Visa)",
-                "See included docs (counts & descriptions above)",
-                "Add extras (rush, consultation, translation, etc.)",
-                "Apply with confidence → All docs are aligned with Austrian/EU funder standards"
+                {
+                  icon: CheckCircle,
+                  title: "Pick your plan",
+                  description: "Strategy, Review, Submission"
+                },
+                {
+                  icon: Building2,
+                  title: "Select funding type",
+                  description: "Grants, Bank, Equity, Visa"
+                },
+                {
+                  icon: FileText,
+                  title: "See included docs",
+                  description: "Counts & descriptions above"
+                },
+                {
+                  icon: Plus,
+                  title: "Add extras",
+                  description: "Rush, consultation, translation"
+                },
+                {
+                  icon: Download,
+                  title: "Apply with confidence",
+                  description: "Aligned with Austrian/EU standards"
+                }
               ].map((step, index) => (
-                <div key={index} className="flex items-center bg-gray-50 rounded-lg p-4">
-                  <div className="w-8 h-8 bg-blue-600 text-white rounded-full flex items-center justify-center font-bold text-sm mr-4 flex-shrink-0">
-                    {index + 1}
+                <div key={index} className="text-center">
+                  <div className="w-16 h-16 bg-blue-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                    <step.icon className="w-8 h-8 text-blue-600" />
                   </div>
-                  <p className="text-gray-700">{step}</p>
+                  <h3 className="font-semibold text-gray-900 mb-2">{step.title}</h3>
+                  <p className="text-sm text-gray-600">{step.description}</p>
+                  {index < 4 && (
+                    <div className="hidden md:block mt-4">
+                      <ArrowRight className="w-6 h-6 text-gray-400 mx-auto" />
+                    </div>
+                  )}
                 </div>
               ))}
             </div>
