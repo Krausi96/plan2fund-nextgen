@@ -154,7 +154,12 @@ export function WhoItsFor({ targetGroup = 'default' }: WhoItsForProps) {
                     {persona.features.map((feature, featureIndex) => (
                       <li key={featureIndex} className="flex items-start text-sm text-neutral-600">
                         <CheckCircle className="w-4 h-4 text-green-500 mr-2 mt-0.5 flex-shrink-0" />
-                        <span className="leading-relaxed">{feature}</span>
+                        <span 
+                          className="leading-relaxed"
+                          dangerouslySetInnerHTML={{
+                            __html: feature.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
+                          }}
+                        />
                       </li>
                     ))}
                   </ul>

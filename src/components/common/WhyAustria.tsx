@@ -86,9 +86,12 @@ export function WhyAustria({}: WhyAustriaProps) {
                 }`}>
                   {benefit.title}
                 </h3>
-                <p className="text-neutral-600 leading-relaxed text-center">
-                  {benefit.description}
-                </p>
+                <p 
+                  className="text-neutral-600 leading-relaxed text-center"
+                  dangerouslySetInnerHTML={{
+                    __html: benefit.description.replace(/\*(.*?)\*/g, '<strong>$1</strong>')
+                  }}
+                />
               </div>
             </div>
             );
