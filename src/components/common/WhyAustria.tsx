@@ -48,12 +48,15 @@ export function WhyAustria({}: WhyAustriaProps) {
           viewport={{ once: true }}
           className="text-center mb-16"
         >
-          <h2 className="text-3xl font-bold text-neutral-900 mb-4">
+          <h2 className="text-4xl font-bold text-neutral-900 mb-4">
             {t('whyAustria.title')}
           </h2>
-          <p className="text-lg text-neutral-600 max-w-3xl mx-auto">
-            {t('whyAustria.subtitle')}
-          </p>
+          <p 
+            className="text-lg text-neutral-600 max-w-3xl mx-auto"
+            dangerouslySetInnerHTML={{
+              __html: t('whyAustria.subtitle').replace(/\*(.*?)\*/g, '<strong>$1</strong>')
+            }}
+          />
         </motion.div>
 
 
@@ -87,7 +90,7 @@ export function WhyAustria({}: WhyAustriaProps) {
                   {benefit.title}
                 </h3>
                 <p 
-                  className="text-neutral-600 leading-relaxed text-center"
+                  className="text-neutral-600 leading-relaxed text-justify"
                   dangerouslySetInnerHTML={{
                     __html: benefit.description.replace(/\*(.*?)\*/g, '<strong>$1</strong>')
                   }}

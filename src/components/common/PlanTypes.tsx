@@ -78,9 +78,9 @@ export function PlanTypes({ targetGroup = 'default' }: PlanTypesProps) {
           viewport={{ once: true }}
           className="text-center mb-12"
         >
-          <h2 className="text-3xl font-bold text-neutral-900 mb-4">
-            {t("planTypes.title")}
-          </h2>
+        <h2 className="text-4xl font-bold text-neutral-900 mb-4">
+          {t("planTypes.title")}
+        </h2>
           <p className="text-lg text-neutral-600 max-w-3xl mx-auto">
             {t("planTypes.subtitle")}
           </p>

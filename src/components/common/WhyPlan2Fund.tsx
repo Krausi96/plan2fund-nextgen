@@ -56,12 +56,12 @@ export function WhyPlan2Fund({ targetGroup = 'default' }: WhyPlan2FundProps) {
           viewport={{ once: true }}
           className="text-center mb-12 md:mb-16"
         >
-                  <h2 
-                    id="why-plan2fund-heading"
-                    className="text-3xl font-bold text-neutral-900 mb-4"
-                  >
-                    {t(getTranslationKey('title') as any)}
-                  </h2>
+        <h2
+          id="why-plan2fund-heading"
+          className="text-4xl font-bold text-neutral-900 mb-4"
+        >
+          {t(getTranslationKey('title') as any)}
+        </h2>
                   <p className="text-lg text-neutral-600 max-w-3xl mx-auto leading-relaxed">
                     {t(getTranslationKey('subtitle') as any)}
                   </p>
