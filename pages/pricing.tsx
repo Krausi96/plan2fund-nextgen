@@ -18,9 +18,6 @@ import {
   MessageCircle, 
   Presentation,
   Globe,
-  Shield,
-  Award,
-  FileCheck,
   CheckCircle,
   Download,
   Plus
@@ -357,60 +354,87 @@ export default function Pricing() {
           <div className="max-w-7xl mx-auto px-4">
             <div className="text-center mb-12">
               <h2 className="text-3xl font-bold text-gray-900 mb-4">
-                Built for Austrian & EU Funding
+                🇦🇹 Built for Austrian & EU Funding
               </h2>
-              <p className="text-lg text-gray-600 max-w-3xl mx-auto">
-                Our documents are specifically designed for Austrian and EU funding requirements
+              <p className="text-lg text-gray-600 max-w-4xl mx-auto">
+                Plan2Fund is designed around the real requirements of Austrian and EU funding bodies, banks, and investors.<br/>
+                Every document is generated to match <strong>local standards and expectations</strong> across all major funding routes:
               </p>
             </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            {/* Funding Routes */}
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-12">
               <div className="bg-green-50 rounded-2xl p-6 border border-green-200">
                 <div className="flex items-center mb-3">
-                  <Shield className="w-6 h-6 text-green-600 mr-3" />
-                  <h3 className="text-lg font-semibold text-green-900">AWS Template-Ready</h3>
+                  <FileText className="w-6 h-6 text-green-600 mr-3" />
+                  <h3 className="text-lg font-semibold text-green-900">🧾 Public Grants</h3>
                 </div>
-                <p className="text-sm text-green-800">25pp + structured pitch deck format, aligned with AWS requirements</p>
+                <p className="text-sm text-green-800">Structured business plans, work packages, and budgets aligned with Austrian agencies and EU programs.</p>
               </div>
 
               <div className="bg-blue-50 rounded-2xl p-6 border border-blue-200">
                 <div className="flex items-center mb-3">
-                  <FileCheck className="w-6 h-6 text-blue-600 mr-3" />
-                  <h3 className="text-lg font-semibold text-blue-900">FFG eCall-Aligned</h3>
+                  <Building2 className="w-6 h-6 text-blue-600 mr-3" />
+                  <h3 className="text-lg font-semibold text-blue-900">🏦 Bank Loans & Leasing</h3>
                 </div>
-                <p className="text-sm text-blue-800">Kostenleitfaden categories, overheads, and cost structure compliance</p>
+                <p className="text-sm text-blue-800">Loan-ready plans including financial ratios, repayment schedules, and collateral sheets in line with Austrian banking practice.</p>
               </div>
 
               <div className="bg-purple-50 rounded-2xl p-6 border border-purple-200">
                 <div className="flex items-center mb-3">
-                  <Globe className="w-6 h-6 text-purple-600 mr-3" />
-                  <h3 className="text-lg font-semibold text-purple-900">Horizon Europe Part B</h3>
+                  <Briefcase className="w-6 h-6 text-purple-600 mr-3" />
+                  <h3 className="text-lg font-semibold text-purple-900">📈 Investors & VC</h3>
                 </div>
-                <p className="text-sm text-purple-800">Excellence / Impact / Implementation sections with EU terminology</p>
+                <p className="text-sm text-purple-800">Investor teasers, pitch content, cap tables, and growth projections in the format equity partners expect.</p>
               </div>
 
               <div className="bg-orange-50 rounded-2xl p-6 border border-orange-200">
                 <div className="flex items-center mb-3">
-                  <Award className="w-6 h-6 text-orange-600 mr-3" />
-                  <h3 className="text-lg font-semibold text-orange-900">Austrian Banks</h3>
+                  <Plane className="w-6 h-6 text-orange-600 mr-3" />
+                  <h3 className="text-lg font-semibold text-orange-900">🛂 Visa & Residency</h3>
                 </div>
-                <p className="text-sm text-orange-800">Equity ratio (20–30%) & DSCR tables with WKO terminology</p>
+                <p className="text-sm text-orange-800">Business plans highlighting innovation, investment capital, and economic benefit, tailored for Austrian immigration authorities.</p>
               </div>
+            </div>
 
-              <div className="bg-gray-50 rounded-2xl p-6 border border-gray-200">
-                <div className="flex items-center mb-3">
-                  <Plane className="w-6 h-6 text-gray-600 mr-3" />
-                  <h3 className="text-lg font-semibold text-gray-900">RWR Visa-Ready</h3>
-                </div>
-                <p className="text-sm text-gray-800">€30k own funds, innovation impact, AMS compliance</p>
+            {/* Quality & Compliance */}
+            <div className="bg-gray-50 rounded-2xl p-8">
+              <div className="text-center mb-8">
+                <h3 className="text-2xl font-bold text-gray-900 mb-4">🔒 Quality & Compliance</h3>
               </div>
-
-              <div className="bg-indigo-50 rounded-2xl p-6 border border-indigo-200">
-                <div className="flex items-center mb-3">
-                  <FileText className="w-6 h-6 text-indigo-600 mr-3" />
-                  <h3 className="text-lg font-semibold text-indigo-900">Quality & Compliance</h3>
+              
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+                <div className="text-center">
+                  <div className="w-12 h-12 bg-blue-100 rounded-full flex items-center justify-center mx-auto mb-3">
+                    <FileText className="w-6 h-6 text-blue-600" />
+                  </div>
+                  <h4 className="font-semibold text-gray-900 mb-2">📑 Page limits & required sections enforced</h4>
+                  <p className="text-sm text-gray-600">No risk of rejection for format errors</p>
                 </div>
-                <p className="text-sm text-indigo-800">Cover page, TOC, auto-numbered sections, Austrian terminology</p>
+
+                <div className="text-center">
+                  <div className="w-12 h-12 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-3">
+                    <Calculator className="w-6 h-6 text-green-600" />
+                  </div>
+                  <h4 className="font-semibold text-gray-900 mb-2">📊 Financials built with Austrian accounting terms</h4>
+                  <p className="text-sm text-gray-600">Umsatz, Eigenkapitalquote, DSCR</p>
+                </div>
+
+                <div className="text-center">
+                  <div className="w-12 h-12 bg-purple-100 rounded-full flex items-center justify-center mx-auto mb-3">
+                    <Globe className="w-6 h-6 text-purple-600" />
+                  </div>
+                  <h4 className="font-semibold text-gray-900 mb-2">🌍 Bilingual output</h4>
+                  <p className="text-sm text-gray-600">German/English depending on funder requirements</p>
+                </div>
+
+                <div className="text-center">
+                  <div className="w-12 h-12 bg-orange-100 rounded-full flex items-center justify-center mx-auto mb-3">
+                    <CheckCircle className="w-6 h-6 text-orange-600" />
+                  </div>
+                  <h4 className="font-semibold text-gray-900 mb-2">✅ Structured for easy copy-paste</h4>
+                  <p className="text-sm text-gray-600">Into official templates & portals</p>
+                </div>
               </div>
             </div>
           </div>
