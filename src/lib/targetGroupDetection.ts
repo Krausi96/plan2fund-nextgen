@@ -95,7 +95,7 @@ function detectFromURL(): DetectionResult {
   if (path.includes('/for/advisors') || path.includes('/advisors')) {
     return { targetGroup: 'advisors', source: 'url', confidence: 0.9 };
   }
-  if (path.includes('/for/universities') || path.includes('/universities')) {
+  if (path.includes('/for/innovation-hubs') || path.includes('/innovation-hubs')) {
     return { targetGroup: 'universities', source: 'url', confidence: 0.9 };
   }
   

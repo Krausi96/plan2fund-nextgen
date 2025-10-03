@@ -64,13 +64,13 @@
     <xhtml:link rel="alternate" hreflang="x-default" href="https://plan2fund.com/for/startups" />
   </url>
   <url>
-    <loc>https://plan2fund.com/for/universities</loc>
+    <loc>https://plan2fund.com/for/innovation-hubs</loc>
     <lastmod>2024-01-15</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.7</priority>
-    <xhtml:link rel="alternate" hreflang="en" href="https://plan2fund.com/for/universities" />
-    <xhtml:link rel="alternate" hreflang="de" href="https://plan2fund.com/de/for/universities" />
-    <xhtml:link rel="alternate" hreflang="x-default" href="https://plan2fund.com/for/universities" />
+    <xhtml:link rel="alternate" hreflang="en" href="https://plan2fund.com/for/innovation-hubs" />
+    <xhtml:link rel="alternate" hreflang="de" href="https://plan2fund.com/de/for/innovation-hubs" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://plan2fund.com/for/innovation-hubs" />
   </url>
   <url>
     <loc>https://plan2fund.com/for/banks</loc>

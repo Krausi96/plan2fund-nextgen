@@ -132,7 +132,7 @@ export const pageSEO = {
     ...defaultSEO,
     title: 'Universities & Researchers - Plan2Fund',
     description: 'Access research grants and academic funding opportunities. Find funding for innovation projects, research, and student entrepreneurship programs.',
-    canonical: 'https://plan2fund.com/for/universities',
+    canonical: 'https://plan2fund.com/for/innovation-hubs',
   },
   banks: {
     ...defaultSEO,

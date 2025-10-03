@@ -9,7 +9,7 @@ import { WhyAustria } from "@/components/common/WhyAustria";
 import CTAStrip from "@/components/common/CTAStrip";
 import { useI18n } from "@/contexts/I18nContext";
 
-export default function ForUniversities() {
+export default function ForInnovationHubs() {
   const { t } = useI18n();
   const router = useRouter();
 
@@ -39,9 +39,9 @@ export default function ForUniversities() {
     <>
       <SEOHead 
         pageKey="universities"
-        title="University & Accelerator Tools | Plan2Fund"
-        description="Support student startups and research projects with professional business planning. Help students find funding and create business plans."
-        keywords="university tools, student startups, research funding, accelerator platform, academic business plans Austria"
+        title="Innovation Hub & Research Tools | Plan2Fund"
+        description="Support innovation teams and research projects with professional business planning. Help research teams find funding and create business plans."
+        keywords="innovation hub tools, research teams, research funding, innovation platform, research business plans Austria"
         schema="organization"
       />
       
