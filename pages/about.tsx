@@ -3,7 +3,7 @@ import HeroLite from "@/components/common/HeroLite";
 import CTAStrip from "@/components/common/CTAStrip";
 import SEOHead from "@/components/common/SEOHead";
 import { useI18n } from "@/contexts/I18nContext";
-import { Target, Lightbulb, FileText, Search, BookOpen, Shield, Mail, ArrowRight, Scale, Book } from "lucide-react";
+import { Target, Lightbulb, FileText, Search, BookOpen, Shield, Mail, ArrowRight, Scale, Book, Zap, Rocket } from "lucide-react";
 import Link from "next/link";
 
 export default function AboutPage() {
@@ -19,31 +19,31 @@ export default function AboutPage() {
           subtitle={t('about.subtitle')}
         />
         
-        <div className="max-w-4xl mx-auto px-4 py-12">
+        <div className="max-w-7xl mx-auto px-4 py-12">
           <h1 className="sr-only">{t('about.title')}</h1>
 
           {/* Mission & Vision */}
-          <div className="max-w-6xl mx-auto grid md:grid-cols-2 gap-8 mb-16">
-            <Card className="p-8 hover:shadow-lg transition-shadow">
+          <div className="max-w-7xl mx-auto grid md:grid-cols-2 gap-8 mb-16">
+            <Card className="p-10 hover:shadow-lg transition-shadow">
               <div className="flex items-center mb-6">
-                <div className="w-16 h-16 bg-blue-100 rounded-full flex items-center justify-center mr-4 flex-shrink-0">
-                  <Target className="w-8 h-8 text-blue-600" />
+                <div className="w-20 h-20 bg-blue-100 rounded-full flex items-center justify-center mr-6 flex-shrink-0">
+                  <Target className="w-10 h-10 text-blue-600" />
                 </div>
                 <h2 className="text-2xl font-semibold text-gray-900">{t('about.mission.title')}</h2>
               </div>
-              <p className="text-gray-600 leading-relaxed text-left">
+              <p className="text-gray-600 leading-relaxed text-left text-lg">
                 {t('about.mission.description')}
               </p>
             </Card>
 
-            <Card className="p-8 hover:shadow-lg transition-shadow">
+            <Card className="p-10 hover:shadow-lg transition-shadow">
               <div className="flex items-center mb-6">
-                <div className="w-16 h-16 bg-yellow-100 rounded-full flex items-center justify-center mr-4 flex-shrink-0">
-                  <Lightbulb className="w-8 h-8 text-yellow-600" />
+                <div className="w-20 h-20 bg-yellow-100 rounded-full flex items-center justify-center mr-6 flex-shrink-0">
+                  <Lightbulb className="w-10 h-10 text-yellow-600" />
                 </div>
                 <h2 className="text-2xl font-semibold text-gray-900">{t('about.vision.title')}</h2>
               </div>
-              <p className="text-gray-600 leading-relaxed text-left">
+              <p className="text-gray-600 leading-relaxed text-left text-lg">
                 {t('about.vision.description')}
               </p>
             </Card>
@@ -53,36 +53,36 @@ export default function AboutPage() {
           <div className="mb-16">
             <h2 className="text-3xl font-bold text-center mb-12">{t('about.features.title')}</h2>
             <div className="max-w-7xl mx-auto grid md:grid-cols-3 gap-8">
-              <Card className="p-8 hover:shadow-lg transition-shadow">
-                <div className="w-16 h-16 bg-blue-100 rounded-full flex items-center justify-center mx-auto mb-6">
-                  <Search className="w-8 h-8 text-blue-600" />
+              <Card className="p-10 hover:shadow-lg transition-shadow">
+                <div className="w-20 h-20 bg-blue-100 rounded-full flex items-center justify-center mx-auto mb-6">
+                  <Search className="w-10 h-10 text-blue-600" />
                 </div>
                 <h3 className="text-xl font-semibold mb-4 text-center text-gray-900">{t('about.features.smartMatching.title')}</h3>
-                <div className="text-gray-600 leading-relaxed text-left">
+                <div className="text-gray-600 leading-relaxed text-left text-lg">
                   <p>
                     {t('about.features.smartMatching.description')}
                   </p>
                 </div>
               </Card>
 
-              <Card className="p-8 hover:shadow-lg transition-shadow">
-                <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-6">
-                  <FileText className="w-8 h-8 text-green-600" />
+              <Card className="p-10 hover:shadow-lg transition-shadow">
+                <div className="w-20 h-20 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-6">
+                  <FileText className="w-10 h-10 text-green-600" />
                 </div>
                 <h3 className="text-xl font-semibold mb-4 text-center text-gray-900">{t('about.features.professionalPlans.title')}</h3>
-                <div className="text-gray-600 leading-relaxed text-left">
+                <div className="text-gray-600 leading-relaxed text-left text-lg">
                   <p>
                     {t('about.features.professionalPlans.description')}
                   </p>
                 </div>
               </Card>
 
-              <Card className="p-8 hover:shadow-lg transition-shadow">
-                <div className="w-16 h-16 bg-purple-100 rounded-full flex items-center justify-center mx-auto mb-6">
-                  <BookOpen className="w-8 h-8 text-purple-600" />
+              <Card className="p-10 hover:shadow-lg transition-shadow">
+                <div className="w-20 h-20 bg-purple-100 rounded-full flex items-center justify-center mx-auto mb-6">
+                  <BookOpen className="w-10 h-10 text-purple-600" />
                 </div>
                 <h3 className="text-xl font-semibold mb-4 text-center text-gray-900">{t('about.features.expertGuidance.title')}</h3>
-                <div className="text-gray-600 leading-relaxed text-left">
+                <div className="text-gray-600 leading-relaxed text-left text-lg">
                   <p>
                     {t('about.features.expertGuidance.description')}
                   </p>
@@ -99,7 +99,7 @@ export default function AboutPage() {
                 <div className="max-w-4xl mx-auto">
                   <div className="flex items-start mb-8">
                     <div className="w-16 h-16 bg-blue-600 rounded-full flex items-center justify-center mr-6 flex-shrink-0">
-                      <span className="text-2xl">💡</span>
+                      <Zap className="w-8 h-8 text-white" />
                     </div>
                     <div className="flex-1">
                       <h3 className="text-xl font-semibold text-gray-900 mb-4">{t('about.founderStory.problemTitle')}</h3>
@@ -111,7 +111,7 @@ export default function AboutPage() {
                   
                   <div className="flex items-start">
                     <div className="w-16 h-16 bg-green-600 rounded-full flex items-center justify-center mr-6 flex-shrink-0">
-                      <span className="text-2xl">🚀</span>
+                      <Rocket className="w-8 h-8 text-white" />
                     </div>
                     <div className="flex-1">
                       <h3 className="text-xl font-semibold text-gray-900 mb-4">{t('about.founderStory.solutionTitle')}</h3>
@@ -129,14 +129,14 @@ export default function AboutPage() {
           <div className="mb-16">
             <h2 className="text-3xl font-bold text-center mb-12">{t('about.trust.title')}</h2>
             <div className="max-w-7xl mx-auto grid md:grid-cols-3 gap-8">
-              <Card className="p-8 hover:shadow-lg transition-shadow">
+              <Card className="p-10 hover:shadow-lg transition-shadow">
                 <div className="flex items-center mb-6">
-                  <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mr-4 flex-shrink-0">
-                    <Shield className="w-8 h-8 text-green-600" />
+                  <div className="w-20 h-20 bg-green-100 rounded-full flex items-center justify-center mr-6 flex-shrink-0">
+                    <Shield className="w-10 h-10 text-green-600" />
                   </div>
                   <h3 className="text-xl font-semibold text-gray-900">{t('about.trust.security')}</h3>
                 </div>
-                <div className="text-gray-600 leading-relaxed space-y-4 text-left">
+                <div className="text-gray-600 leading-relaxed space-y-4 text-left text-lg">
                   <p>
                     {t('about.trust.securityDescription')}
                   </p>
@@ -152,28 +152,28 @@ export default function AboutPage() {
                 </div>
               </Card>
 
-              <Card className="p-8 hover:shadow-lg transition-shadow">
+              <Card className="p-10 hover:shadow-lg transition-shadow">
                 <div className="flex items-center mb-6">
-                  <div className="w-16 h-16 bg-blue-100 rounded-full flex items-center justify-center mr-4 flex-shrink-0">
-                    <Scale className="w-8 h-8 text-blue-600" />
+                  <div className="w-20 h-20 bg-blue-100 rounded-full flex items-center justify-center mr-6 flex-shrink-0">
+                    <Scale className="w-10 h-10 text-blue-600" />
                   </div>
                   <h3 className="text-xl font-semibold text-gray-900">{t('about.trust.independence')}</h3>
                 </div>
-                <div className="text-gray-600 leading-relaxed text-left">
+                <div className="text-gray-600 leading-relaxed text-left text-lg">
                   <p>
                     {t('about.trust.independenceDescription')}
                   </p>
                 </div>
               </Card>
 
-              <Card className="p-8 hover:shadow-lg transition-shadow">
+              <Card className="p-10 hover:shadow-lg transition-shadow">
                 <div className="flex items-center mb-6">
-                  <div className="w-16 h-16 bg-purple-100 rounded-full flex items-center justify-center mr-4 flex-shrink-0">
-                    <Book className="w-8 h-8 text-purple-600" />
+                  <div className="w-20 h-20 bg-purple-100 rounded-full flex items-center justify-center mr-6 flex-shrink-0">
+                    <Book className="w-10 h-10 text-purple-600" />
                   </div>
                   <h3 className="text-xl font-semibold text-gray-900">{t('about.trust.quality')}</h3>
                 </div>
-                <div className="text-gray-600 leading-relaxed text-left">
+                <div className="text-gray-600 leading-relaxed text-left text-lg">
                   <p>
                     {t('about.trust.qualityDescription')}
                   </p>
