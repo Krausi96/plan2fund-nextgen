@@ -15,8 +15,11 @@ export default function TargetGroupBanner({ onTargetGroupSelect }: TargetGroupBa
   const [showBanner, setShowBanner] = useState(false);
 
   useEffect(() => {
-    // Always show banner for testing purposes
-    setShowBanner(true);
+    // Check if user has already selected a target group
+    const stored = localStorage.getItem('selectedTargetGroup');
+    if (!stored) {
+      setShowBanner(true);
+    }
   }, []);
 
   const handleTargetGroupClick = (targetGroup: string, event?: React.MouseEvent) => {
@@ -29,8 +32,8 @@ export default function TargetGroupBanner({ onTargetGroupSelect }: TargetGroupBa
     // Store selection using the detection utility
     storeTargetGroupSelection(targetGroup as any);
     
-    // Keep banner visible for testing - don't hide it
-    // setShowBanner(false);
+    // Hide banner after selection
+    setShowBanner(false);
     
     // Notify parent component to update Hero content
     if (onTargetGroupSelect) {
