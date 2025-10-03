@@ -1,6 +1,6 @@
 ﻿import Link from "next/link";
 import { Button } from "@/components/ui/button";
-import { Hero } from "@/components/common/Hero";
+import HeroLite from "@/components/common/HeroLite";
 import CTAStrip from "@/components/common/CTAStrip";
 import SEOHead from "@/components/common/SEOHead";
 import { PricingDetails } from "@/components/common/PricingDetails";
@@ -139,9 +139,9 @@ export default function Pricing() {
       <SEOHead pageKey="pricing" schema="faq" />
       
       <main className="bg-white">
-        <Hero
-          targetGroup={targetGroup}
-          onTargetGroupSelect={(tg) => setTargetGroup(tg as TargetGroup)}
+        <HeroLite 
+          title={t('pricing.title')}
+          subtitle={t('pricing.subtitle')}
         />
 
         {/* Plans Section */}
@@ -420,221 +420,8 @@ export default function Pricing() {
 
         <PricingDetails />
 
-        {/* Template Selection Section */}
-        <section id="templates" className="max-w-6xl mx-auto py-16 px-4">
-          <div className="text-center mb-12">
-            <h2 className="text-3xl font-bold text-gray-900 mb-4">
-              Choose Your Template
-            </h2>
-            <p className="text-lg text-gray-600 max-w-3xl mx-auto">
-              Each template is optimized for specific funding routes and includes all required sections, 
-              financial tables, and formatting guidelines.
-            </p>
-          </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-            {/* Grant Template */}
-            <div className="bg-white border-2 border-gray-200 rounded-xl p-6 hover:border-blue-300 hover:shadow-lg transition-all duration-300">
-              <div className="text-center mb-4">
-                <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-3">
-                  <span className="text-2xl">🏛️</span>
-                </div>
-                <h3 className="text-lg font-semibold text-gray-900">Grant Template</h3>
-                <p className="text-sm text-gray-600">Government & EU funding</p>
-              </div>
-              <div className="space-y-2 text-sm">
-                <div className="flex items-center">
-                  <span className="w-2 h-2 bg-green-500 rounded-full mr-2"></span>
-                  <span>Work packages & timeline</span>
-                </div>
-                <div className="flex items-center">
-                  <span className="w-2 h-2 bg-green-500 rounded-full mr-2"></span>
-                  <span>Budget sheet</span>
-                </div>
-                <div className="flex items-center">
-                  <span className="w-2 h-2 bg-green-500 rounded-full mr-2"></span>
-                  <span>Annex guidance</span>
-                </div>
-              </div>
-              <div className="mt-4">
-                <Link href="/editor?product=submission&route=grant">
-                  <Button variant="outline" className="w-full">
-                    Use Grant Template
-                  </Button>
-                </Link>
-              </div>
-            </div>
 
-            {/* Bank Template */}
-            <div className="bg-white border-2 border-gray-200 rounded-xl p-6 hover:border-blue-300 hover:shadow-lg transition-all duration-300">
-              <div className="text-center mb-4">
-                <div className="w-16 h-16 bg-blue-100 rounded-full flex items-center justify-center mx-auto mb-3">
-                  <span className="text-2xl">🏦</span>
-                </div>
-                <h3 className="text-lg font-semibold text-gray-900">Bank Template</h3>
-                <p className="text-sm text-gray-600">Loans & credit</p>
-              </div>
-              <div className="space-y-2 text-sm">
-                <div className="flex items-center">
-                  <span className="w-2 h-2 bg-blue-500 rounded-full mr-2"></span>
-                  <span>Bank summary page</span>
-                </div>
-                <div className="flex items-center">
-                  <span className="w-2 h-2 bg-blue-500 rounded-full mr-2"></span>
-                  <span>Financial ratios</span>
-                </div>
-                <div className="flex items-center">
-                  <span className="w-2 h-2 bg-blue-500 rounded-full mr-2"></span>
-                  <span>Repayment analysis</span>
-                </div>
-              </div>
-              <div className="mt-4">
-                <Link href="/editor?product=submission&route=bank">
-                  <Button variant="outline" className="w-full">
-                    Use Bank Template
-                  </Button>
-                </Link>
-              </div>
-            </div>
-
-            {/* Equity Template */}
-            <div className="bg-white border-2 border-gray-200 rounded-xl p-6 hover:border-blue-300 hover:shadow-lg transition-all duration-300">
-              <div className="text-center mb-4">
-                <div className="w-16 h-16 bg-purple-100 rounded-full flex items-center justify-center mx-auto mb-3">
-                  <span className="text-2xl">💼</span>
-                </div>
-                <h3 className="text-lg font-semibold text-gray-900">Equity Template</h3>
-                <p className="text-sm text-gray-600">Investors & VCs</p>
-              </div>
-              <div className="space-y-2 text-sm">
-                <div className="flex items-center">
-                  <span className="w-2 h-2 bg-purple-500 rounded-full mr-2"></span>
-                  <span>Investor teaser</span>
-                </div>
-                <div className="flex items-center">
-                  <span className="w-2 h-2 bg-purple-500 rounded-full mr-2"></span>
-                  <span>Cap table</span>
-                </div>
-                <div className="flex items-center">
-                  <span className="w-2 h-2 bg-purple-500 rounded-full mr-2"></span>
-                  <span>Exit strategy</span>
-                </div>
-              </div>
-              <div className="mt-4">
-                <Link href="/editor?product=submission&route=equity">
-                  <Button variant="outline" className="w-full">
-                    Use Equity Template
-                  </Button>
-                </Link>
-              </div>
-            </div>
-
-            {/* Visa Template */}
-            <div className="bg-white border-2 border-gray-200 rounded-xl p-6 hover:border-blue-300 hover:shadow-lg transition-all duration-300">
-              <div className="text-center mb-4">
-                <div className="w-16 h-16 bg-orange-100 rounded-full flex items-center justify-center mx-auto mb-3">
-                  <span className="text-2xl">🛂</span>
-                </div>
-                <h3 className="text-lg font-semibold text-gray-900">Visa Template</h3>
-                <p className="text-sm text-gray-600">Immigration & residency</p>
-              </div>
-              <div className="space-y-2 text-sm">
-                <div className="flex items-center">
-                  <span className="w-2 h-2 bg-orange-500 rounded-full mr-2"></span>
-                  <span>Visa annex guidance</span>
-                </div>
-                <div className="flex items-center">
-                  <span className="w-2 h-2 bg-orange-500 rounded-full mr-2"></span>
-                  <span>Legal requirements</span>
-                </div>
-                <div className="flex items-center">
-                  <span className="w-2 h-2 bg-orange-500 rounded-full mr-2"></span>
-                  <span>Documentation checklist</span>
-                </div>
-              </div>
-              <div className="mt-4">
-                <Link href="/editor?product=submission&route=visa">
-                  <Button variant="outline" className="w-full">
-                    Use Visa Template
-                  </Button>
-                </Link>
-              </div>
-            </div>
-          </div>
-        </section>
-
-        {/* Add-on Pack Section */}
-        <section id="addons" className="max-w-4xl mx-auto py-16 px-4">
-          <div className="text-center mb-8">
-            <h2 className="text-2xl font-bold text-gray-900 mb-4">
-              Add-on Pack (optional)
-            </h2>
-            <p className="text-lg font-semibold text-blue-600 mb-2">
-              +€39
-            </p>
-            <p className="text-gray-600 mb-4">
-              Rush to first draft (target 3 business days) + one extra revision + provider form help (one standard form using your plan content).
-            </p>
-            <p className="text-sm text-gray-500">
-              Not included: legal/visa advice, additional revisions, custom modelling, portal setup. Decisions are made by providers.
-            </p>
-          </div>
-        </section>
-
-        {/* FAQ Section */}
-        <section id="faq" className="max-w-4xl mx-auto py-16 px-4">
-          <div className="text-center mb-12">
-            <h2 className="text-4xl font-bold text-neutral-900 mb-4">
-              Frequently Asked Questions
-            </h2>
-            <p className="text-lg text-neutral-600 max-w-3xl mx-auto">
-              Common questions about our pricing and plans
-            </p>
-          </div>
-
-          <div className="space-y-6">
-            <div className="bg-white border border-gray-200 rounded-lg p-6">
-              <h3 className="text-lg font-semibold text-gray-900 mb-2">
-                What's included in each plan?
-              </h3>
-              <p className="text-gray-600">
-                Each plan includes the core business plan creation tools, Virtual Funding Expert guidance, 
-                Readiness Check, and a Document Pack tailored to your chosen funding route. Higher-tier plans 
-                include more comprehensive features and additional rounds of revision.
-              </p>
-            </div>
-
-            <div className="bg-white border border-gray-200 rounded-lg p-6">
-              <h3 className="text-lg font-semibold text-gray-900 mb-2">
-                Can I upgrade my plan later?
-              </h3>
-              <p className="text-gray-600">
-                Yes! You can upgrade from Idea Strategy to Plan Review, or from Plan Review to Submission Plan 
-                at any time. We'll credit your previous payment towards the upgrade.
-              </p>
-            </div>
-
-            <div className="bg-white border border-gray-200 rounded-lg p-6">
-              <h3 className="text-lg font-semibold text-gray-900 mb-2">
-                What if I need help with my plan?
-              </h3>
-              <p className="text-gray-600">
-                All plans include access to our Virtual Funding Expert and Readiness Check. For additional 
-                support, you can purchase add-ons like One-on-One Consultation or Additional Revision rounds.
-              </p>
-            </div>
-
-            <div className="bg-white border border-gray-200 rounded-lg p-6">
-              <h3 className="text-lg font-semibold text-gray-900 mb-2">
-                How long does it take to complete a plan?
-              </h3>
-              <p className="text-gray-600">
-                Most users complete their plans within 3-5 business days. Rush Delivery add-on is available 
-                for 2-day turnaround. The actual time depends on how much information you provide initially.
-              </p>
-            </div>
-          </div>
-        </section>
 
         <CTAStrip
           title={t('cta.readyToStart')}

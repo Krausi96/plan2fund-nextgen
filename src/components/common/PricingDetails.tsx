@@ -218,7 +218,82 @@ function PricingDetailCard({
               role="region"
               aria-labelledby={`${id}-button`}
             >
-              <p className="text-gray-700 leading-relaxed">{seeMoreDesc}</p>
+              <div className="space-y-4">
+                <p className="text-gray-700 leading-relaxed">{seeMoreDesc}</p>
+                
+                {/* Additional detailed information based on plan type */}
+                {id === 'strategy' && (
+                  <div className="space-y-3">
+                    <h5 className="font-semibold text-gray-900">What's included:</h5>
+                    <ul className="space-y-2 text-sm text-gray-600">
+                      <li className="flex items-start">
+                        <span className="w-2 h-2 bg-blue-500 rounded-full mr-3 mt-2 flex-shrink-0"></span>
+                        <span>Business Model Canvas with 9 building blocks and guided questions</span>
+                      </li>
+                      <li className="flex items-start">
+                        <span className="w-2 h-2 bg-blue-500 rounded-full mr-3 mt-2 flex-shrink-0"></span>
+                        <span>Go-to-Market strategy with target market analysis and pricing strategy</span>
+                      </li>
+                      <li className="flex items-start">
+                        <span className="w-2 h-2 bg-blue-500 rounded-full mr-3 mt-2 flex-shrink-0"></span>
+                        <span>Unit economics calculator with break-even analysis</span>
+                      </li>
+                      <li className="flex items-start">
+                        <span className="w-2 h-2 bg-blue-500 rounded-full mr-3 mt-2 flex-shrink-0"></span>
+                        <span>Milestone roadmap with next steps and timeline</span>
+                      </li>
+                    </ul>
+                  </div>
+                )}
+                
+                {id === 'review' && (
+                  <div className="space-y-3">
+                    <h5 className="font-semibold text-gray-900">What we improve:</h5>
+                    <ul className="space-y-2 text-sm text-gray-600">
+                      <li className="flex items-start">
+                        <span className="w-2 h-2 bg-green-500 rounded-full mr-3 mt-2 flex-shrink-0"></span>
+                        <span>Content structure and organization for better readability</span>
+                      </li>
+                      <li className="flex items-start">
+                        <span className="w-2 h-2 bg-green-500 rounded-full mr-3 mt-2 flex-shrink-0"></span>
+                        <span>Financial projections and cash flow analysis</span>
+                      </li>
+                      <li className="flex items-start">
+                        <span className="w-2 h-2 bg-green-500 rounded-full mr-3 mt-2 flex-shrink-0"></span>
+                        <span>Market analysis and competitive positioning</span>
+                      </li>
+                      <li className="flex items-start">
+                        <span className="w-2 h-2 bg-green-500 rounded-full mr-3 mt-2 flex-shrink-0"></span>
+                        <span>Professional formatting and presentation</span>
+                      </li>
+                    </ul>
+                  </div>
+                )}
+                
+                {id === 'custom' && (
+                  <div className="space-y-3">
+                    <h5 className="font-semibold text-gray-900">Comprehensive features:</h5>
+                    <ul className="space-y-2 text-sm text-gray-600">
+                      <li className="flex items-start">
+                        <span className="w-2 h-2 bg-purple-500 rounded-full mr-3 mt-2 flex-shrink-0"></span>
+                        <span>Complete business plan structure (15-35 pages)</span>
+                      </li>
+                      <li className="flex items-start">
+                        <span className="w-2 h-2 bg-purple-500 rounded-full mr-3 mt-2 flex-shrink-0"></span>
+                        <span>Advanced financial modeling and funding scenarios</span>
+                      </li>
+                      <li className="flex items-start">
+                        <span className="w-2 h-2 bg-purple-500 rounded-full mr-3 mt-2 flex-shrink-0"></span>
+                        <span>Virtual Funding Expert for specific requirements</span>
+                      </li>
+                      <li className="flex items-start">
+                        <span className="w-2 h-2 bg-purple-500 rounded-full mr-3 mt-2 flex-shrink-0"></span>
+                        <span>Detailed Readiness Check for funding compliance</span>
+                      </li>
+                    </ul>
+                  </div>
+                )}
+              </div>
             </div>
           )}
         </div>
@@ -232,64 +307,62 @@ export function PricingDetails() {
 
   const details = [
     {
-      id: "custom",
-      title: "Submission-Ready Business Plan (15–35 pages)",
-      whoFor: "Who it's for",
-      whoForDesc: "Submitting to aws/FFG/Wirtschaftsagentur/EU, banks/leasing, visas (RWR), or sharing with investors",
-      youProvide: "You provide",
-      youProvideDesc: "Model summary (offer, customer, pricing, channels), Basic numbers (price, volumes, costs, funding need), Target route (if known)",
-      youGet: "You get",
-      youGetDesc: "Full plan in standard order (Executive Summary → Financials), Financial tables: revenue model, cost breakdown, cash-flow, use of funds, Readiness Check — cross-check to route requirements; status: Aligned / Needs fix / Missing, Customization & formatting (DE/EN) + Executive One-Pager (DE/EN)",
-      routeExtras: "Route extras (included when relevant)",
-      routeExtrasDesc: "Budget / planning sheet, Work packages & timeline, Annex guidance (CVs, market evidence), Bank summary page (ratios & repayment), Investor teaser one-pager & basic cap table",
-      outline: "Outline",
-      outlineDesc: "Exec Summary · Problem/Solution · Market/Competition · Product/Operations · Team · GTM · Financials · Risks",
-      export: "Export & language",
-      exportDesc: "PDF/DOCX · DE/EN · 15–35 pages",
-      cta: "Start Business Plan",
-      ctaHref: "/editor?plan=custom",
-      seeMore: "See more",
-      seeMoreDesc: "What you must attach yourself: identity/company documents, legal/visa papers, signed forms, letters of intent."
+      id: "strategy",
+      title: t('pricing.details.strategy.title'),
+      whoFor: t('pricing.details.strategy.whoFor'),
+      whoForDesc: t('pricing.details.strategy.whoForDesc'),
+      youProvide: t('pricing.details.strategy.youProvide'),
+      youProvideDesc: t('pricing.details.strategy.youProvideDesc'),
+      youGet: t('pricing.details.strategy.youGet'),
+      youGetDesc: t('pricing.details.strategy.youGetDesc'),
+      outline: t('pricing.details.strategy.outline'),
+      outlineDesc: t('pricing.details.strategy.outlineDesc'),
+      export: t('pricing.details.strategy.export'),
+      exportDesc: t('pricing.details.strategy.exportDesc'),
+      cta: t('pricing.details.strategy.cta'),
+      ctaHref: "/editor?product=strategy",
+      seeMore: t('pricing.details.strategy.seeMore'),
+      seeMoreDesc: t('pricing.details.strategy.seeMoreDesc')
     },
     {
       id: "review",
-      title: "Update & Review (existing text)",
-      whoFor: "Who it's for",
-      whoForDesc: "You have a draft and need it aligned to grant/bank/visa/equity expectations",
-      youProvide: "You provide",
-      youProvideDesc: "Your text (paste per section), route (if known), latest numbers",
-      youGet: "You get",
-      youGetDesc: "Re-structure & completion to the expected outline (we add missing sections and financials), Readiness Check — cross-check to route requirements; status: Aligned / Needs fix / Missing, Customization & formatting (DE/EN) + Executive One-Pager (DE/EN) + PDF/DOCX export",
+      title: t('pricing.details.review.title'),
+      whoFor: t('pricing.details.review.whoFor'),
+      whoForDesc: t('pricing.details.review.whoForDesc'),
+      youProvide: t('pricing.details.review.youProvide'),
+      youProvideDesc: t('pricing.details.review.youProvideDesc'),
+      youGet: t('pricing.details.review.youGet'),
+      youGetDesc: t('pricing.details.review.youGetDesc'),
       routeExtras: "Route extras (included when relevant)",
-      routeExtrasDesc: "Budget / planning sheet, Work packages & timeline, Annex guidance (CVs, market evidence), Bank summary page (ratios & repayment), Investor teaser one-pager & basic cap table",
-      outline: "Outline",
-      outlineDesc: "Exec Summary · Market/Competition · Product/Operations · Team · GTM · Financials · Risks",
-      export: "Export & language",
-      exportDesc: "PDF/DOCX · DE/EN · length depends on your material",
-      cta: "Start Update & Review",
-      ctaHref: "/editor?plan=review",
-      seeMore: "See more",
-      seeMoreDesc: "Optional reviewer memo (how the plan maps to criteria)."
+      routeExtrasDesc: "Bank summary page, Investor teaser one-pager, Route-specific annex guidance",
+      outline: t('pricing.details.review.outline'),
+      outlineDesc: t('pricing.details.review.outlineDesc'),
+      export: t('pricing.details.review.export'),
+      exportDesc: t('pricing.details.review.exportDesc'),
+      cta: t('pricing.details.review.cta'),
+      ctaHref: "/editor?product=review",
+      seeMore: t('pricing.details.review.seeMore'),
+      seeMoreDesc: t('pricing.details.review.seeMoreDesc')
     },
     {
-      id: "strategy",
-      title: "Strategy Document",
-      whoFor: "Who it's for",
-      whoForDesc: "Early ideas/pivots — decide who to serve, what to charge, and how to launch",
-      youProvide: "You provide",
-      youProvideDesc: "Idea & goals; any market notes (optional); rough numbers (optional)",
-      youGet: "You get",
-      youGetDesc: "Business Model Canvas snapshot (9 blocks) with concise assumptions, GTM plan: target market, pricing, promotion, distribution channels, sales tactics, Unit economics (simple): price, unit cost, contribution margin, break-even — clearly explained, Milestones & next steps + Executive One-Pager (DE/EN); content carries over automatically",
-      routeExtras: null,
-      routeExtrasDesc: null,
-      outline: "Outline",
-      outlineDesc: "BMC (9 blocks) · GTM (target/pricing/promotion/channels/sales) · Unit Economics · Milestones",
-      export: "Export & language",
-      exportDesc: "PDF/DOCX · DE/EN · 4–8 pages",
-      cta: "Start Strategy",
-      ctaHref: "/editor?plan=strategy",
-      seeMore: "See more",
-      seeMoreDesc: "Optional canvas snapshot export and assumptions log."
+      id: "custom",
+      title: t('pricing.details.custom.title'),
+      whoFor: t('pricing.details.custom.whoFor'),
+      whoForDesc: t('pricing.details.custom.whoForDesc'),
+      youProvide: t('pricing.details.custom.youProvide'),
+      youProvideDesc: t('pricing.details.custom.youProvideDesc'),
+      youGet: t('pricing.details.custom.youGet'),
+      youGetDesc: t('pricing.details.custom.youGetDesc'),
+      routeExtras: "Route extras (included when relevant)",
+      routeExtrasDesc: "Budget / planning sheet, Work packages & timeline, Annex guidance (CVs, market evidence), Bank summary page (ratios & repayment), Investor teaser one-pager & basic cap table",
+      outline: t('pricing.details.custom.outline'),
+      outlineDesc: t('pricing.details.custom.outlineDesc'),
+      export: t('pricing.details.custom.export'),
+      exportDesc: t('pricing.details.custom.exportDesc'),
+      cta: t('pricing.details.custom.cta'),
+      ctaHref: "/editor?product=custom",
+      seeMore: t('pricing.details.custom.seeMore'),
+      seeMoreDesc: t('pricing.details.custom.seeMoreDesc')
     }
   ];
 
@@ -297,9 +370,9 @@ export function PricingDetails() {
     <section className="bg-gray-50 py-20">
       <div className="max-w-7xl mx-auto px-4">
         <div className="text-center mb-16">
-          <h2 className="text-3xl font-bold text-gray-900 mb-4">{t('pricing.planDetails')}</h2>
+          <h2 className="text-4xl font-bold text-gray-900 mb-4">Detailed Plan Information</h2>
           <p className="text-lg text-gray-600 max-w-3xl mx-auto">
-            Detailed information about each plan to help you choose the right business planning solution for your needs.
+            Comprehensive breakdown of features, deliverables, and what to expect from each plan
           </p>
         </div>
         
