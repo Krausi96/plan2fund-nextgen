@@ -3,7 +3,7 @@ import HeroLite from "@/components/common/HeroLite";
 import CTAStrip from "@/components/common/CTAStrip";
 import SEOHead from "@/components/common/SEOHead";
 import { useI18n } from "@/contexts/I18nContext";
-import { Target, Lightbulb, FileText, Search, BookOpen, Shield, Lock, Mail, ArrowRight } from "lucide-react";
+import { Target, Lightbulb, FileText, Search, BookOpen, Shield, Mail, ArrowRight, Scale, Book } from "lucide-react";
 import Link from "next/link";
 
 export default function AboutPage() {
@@ -107,7 +107,7 @@ export default function AboutPage() {
           {/* Trust & Independence */}
           <div className="mb-16">
             <h2 className="text-3xl font-bold text-center mb-8">{t('about.trust.title')}</h2>
-            <div className="max-w-6xl mx-auto grid md:grid-cols-2 gap-8">
+            <div className="max-w-7xl mx-auto grid md:grid-cols-3 gap-8">
               <Card className="p-8">
                 <div className="flex items-center mb-6">
                   <div className="w-12 h-12 bg-green-100 rounded-full flex items-center justify-center mr-4">
@@ -120,21 +120,41 @@ export default function AboutPage() {
                     {t('about.trust.securityDescription')}
                   </p>
                   <p className="text-sm text-gray-500 italic">
-                    Your business ideas and plans are stored securely and never shared with third parties. We use industry-standard encryption and comply with Austrian data protection laws.
+                    {t('about.trust.securityNote')}
                   </p>
+                  <Link 
+                    href="/privacy" 
+                    className="inline-block text-sm text-blue-600 hover:text-blue-800 underline"
+                  >
+                    {t('about.trust.dsgvoLink')}
+                  </Link>
                 </div>
               </Card>
 
               <Card className="p-8">
                 <div className="flex items-center mb-6">
                   <div className="w-12 h-12 bg-blue-100 rounded-full flex items-center justify-center mr-4">
-                    <Lock className="w-6 h-6 text-blue-600" />
+                    <Scale className="w-6 h-6 text-blue-600" />
                   </div>
                   <h3 className="text-xl font-semibold">{t('about.trust.independence')}</h3>
                 </div>
                 <div className="text-gray-600 text-justify leading-relaxed space-y-3">
                   <p>
                     {t('about.trust.independenceDescription')}
+                  </p>
+                </div>
+              </Card>
+
+              <Card className="p-8">
+                <div className="flex items-center mb-6">
+                  <div className="w-12 h-12 bg-purple-100 rounded-full flex items-center justify-center mr-4">
+                    <Book className="w-6 h-6 text-purple-600" />
+                  </div>
+                  <h3 className="text-xl font-semibold">{t('about.trust.quality')}</h3>
+                </div>
+                <div className="text-gray-600 text-justify leading-relaxed space-y-3">
+                  <p>
+                    {t('about.trust.qualityDescription')}
                   </p>
                 </div>
               </Card>
