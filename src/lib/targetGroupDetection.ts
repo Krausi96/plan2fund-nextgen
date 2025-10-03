@@ -86,16 +86,16 @@ export function detectTargetGroup(): DetectionResult {
 function detectFromURL(): DetectionResult {
   const path = window.location.pathname;
   
-  if (path.includes('/for/startups') || path.includes('/startups')) {
+  if (path.includes('/for') && path.includes('startups')) {
     return { targetGroup: 'startups', source: 'url', confidence: 0.9 };
   }
-  if (path.includes('/for/sme') || path.includes('/smes')) {
+  if (path.includes('/for') && path.includes('sme')) {
     return { targetGroup: 'sme', source: 'url', confidence: 0.9 };
   }
-  if (path.includes('/for/advisors') || path.includes('/advisors')) {
+  if (path.includes('/for') && path.includes('advisors')) {
     return { targetGroup: 'advisors', source: 'url', confidence: 0.9 };
   }
-  if (path.includes('/for/innovation-hubs') || path.includes('/innovation-hubs')) {
+  if (path.includes('/for') && path.includes('innovation-hubs')) {
     return { targetGroup: 'universities', source: 'url', confidence: 0.9 };
   }
   
