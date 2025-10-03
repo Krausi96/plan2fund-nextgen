@@ -1,5 +1,6 @@
 import { motion } from "framer-motion";
 import { useI18n } from "@/contexts/I18nContext";
+import { Search, FileText, Edit3, Download } from "lucide-react";
 
 interface HowItWorksProps {
   targetGroup?: string;
@@ -16,28 +17,28 @@ export function HowItWorks({}: HowItWorksProps) {
 
   const steps = [
     {
-      icon: "🔍", // Search icon for idea description
+      icon: Search, // Search icon for idea description
       title: t('howItWorks.step1.title'),
       description: t('howItWorks.step1.description'),
       color: "text-blue-600",
       bgColor: "bg-blue-50",
     },
     {
-      icon: "📋", // Document icon for finding programs
+      icon: FileText, // Document icon for finding programs
       title: t('howItWorks.step2.title'),
       description: t('howItWorks.step2.description'),
       color: "text-green-600",
       bgColor: "bg-green-50",
     },
     {
-      icon: "✏️", // Edit icon for creating business plan
+      icon: Edit3, // Edit icon for creating business plan
       title: t('howItWorks.step3.title'),
       description: t('howItWorks.step3.description'),
       color: "text-purple-600",
       bgColor: "bg-purple-50",
     },
     {
-      icon: "📤", // Upload icon for downloading and using
+      icon: Download, // Download icon for downloading and using
       title: t('howItWorks.step4.title'),
       description: t('howItWorks.step4.description'),
       color: "text-orange-600",
@@ -62,7 +63,7 @@ export function HowItWorks({}: HowItWorksProps) {
           </p>
         </motion.div>
 
-        <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-8 lg:gap-12">
+        <div className="grid md:grid-cols-2 gap-8 lg:gap-12 max-w-6xl mx-auto">
           {steps.map((step, index) => {
             const isHighlighted = isStepHighlighted(index);
             return (
@@ -74,10 +75,10 @@ export function HowItWorks({}: HowItWorksProps) {
               viewport={{ once: true }}
               className="h-full"
             >
-              <div className={`relative p-6 rounded-xl transition-all duration-300 h-full flex flex-col ${
+              <div className={`relative p-8 rounded-xl transition-all duration-300 h-full flex flex-col ${
                 isHighlighted 
                   ? 'bg-blue-50 border-2 border-blue-200 shadow-lg' 
-                  : 'bg-white'
+                  : 'bg-white shadow-md hover:shadow-lg'
               }`}>
                 {/* Step Number */}
                 <div className={`w-8 h-8 text-white rounded-full flex items-center justify-center text-sm font-bold mb-4 ${
@@ -88,10 +89,10 @@ export function HowItWorks({}: HowItWorksProps) {
                 
                 
                 {/* Icon */}
-                <div className={`w-16 h-16 ${step.bgColor} rounded-2xl flex items-center justify-center mx-auto mb-4 ${
+                <div className={`w-20 h-20 ${step.bgColor} rounded-2xl flex items-center justify-center mx-auto mb-6 ${
                   isHighlighted ? 'ring-2 ring-blue-200' : ''
                 }`}>
-                  <span className="text-3xl">{step.icon}</span>
+                  <step.icon className={`w-10 h-10 ${step.color}`} />
                 </div>
                 
                 {/* Content */}
@@ -101,7 +102,7 @@ export function HowItWorks({}: HowItWorksProps) {
                   }`}>
                     {step.title}
                   </h3>
-                  <p className="text-neutral-600 leading-relaxed text-justify">
+                  <p className="text-neutral-600 leading-relaxed text-left">
                     {step.description}
                   </p>
                 </div>
