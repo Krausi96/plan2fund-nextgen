@@ -102,7 +102,7 @@ export default function AboutPage() {
                       <span className="text-2xl">💡</span>
                     </div>
                     <div className="flex-1">
-                      <h3 className="text-xl font-semibold text-gray-900 mb-4">The Problem We Observed</h3>
+                      <h3 className="text-xl font-semibold text-gray-900 mb-4">{t('about.founderStory.problemTitle')}</h3>
                       <p className="text-gray-700 leading-relaxed text-left">
                         {t('about.founderStory.description')}
                       </p>
@@ -114,7 +114,7 @@ export default function AboutPage() {
                       <span className="text-2xl">🚀</span>
                     </div>
                     <div className="flex-1">
-                      <h3 className="text-xl font-semibold text-gray-900 mb-4">Our Solution</h3>
+                      <h3 className="text-xl font-semibold text-gray-900 mb-4">{t('about.founderStory.solutionTitle')}</h3>
                       <p className="text-gray-700 leading-relaxed text-left">
                         {t('about.founderStory.founder')}
                       </p>

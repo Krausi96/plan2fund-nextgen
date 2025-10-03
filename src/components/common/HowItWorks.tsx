@@ -63,7 +63,7 @@ export function HowItWorks({}: HowItWorksProps) {
           </p>
         </motion.div>
 
-        <div className="grid md:grid-cols-2 gap-8 lg:gap-12 max-w-6xl mx-auto">
+        <div className="grid md:grid-cols-2 gap-6 lg:gap-8 max-w-6xl mx-auto">
           {steps.map((step, index) => {
             const isHighlighted = isStepHighlighted(index);
             return (
@@ -75,7 +75,7 @@ export function HowItWorks({}: HowItWorksProps) {
               viewport={{ once: true }}
               className="h-full"
             >
-              <div className={`relative p-8 rounded-xl transition-all duration-300 h-full flex flex-col ${
+              <div className={`relative p-6 rounded-xl transition-all duration-300 h-full flex flex-col ${
                 isHighlighted 
                   ? 'bg-blue-50 border-2 border-blue-200 shadow-lg' 
                   : 'bg-white shadow-md hover:shadow-lg'
@@ -89,15 +89,15 @@ export function HowItWorks({}: HowItWorksProps) {
                 
                 
                 {/* Icon */}
-                <div className={`w-20 h-20 ${step.bgColor} rounded-2xl flex items-center justify-center mx-auto mb-6 ${
+                <div className={`w-16 h-16 ${step.bgColor} rounded-2xl flex items-center justify-center mx-auto mb-4 ${
                   isHighlighted ? 'ring-2 ring-blue-200' : ''
                 }`}>
-                  <step.icon className={`w-10 h-10 ${step.color}`} />
+                  <step.icon className={`w-8 h-8 ${step.color}`} />
                 </div>
                 
                 {/* Content */}
                 <div className="flex-1 text-center">
-                  <h3 className={`text-xl font-semibold mb-3 min-h-[3rem] flex items-center justify-center ${
+                  <h3 className={`text-xl font-semibold mb-3 ${
                     isHighlighted ? 'text-blue-900' : 'text-neutral-900'
                   }`}>
                     {step.title}
