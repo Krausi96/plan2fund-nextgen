@@ -20,8 +20,17 @@ import {
   Globe,
   CheckCircle,
   Download,
-  Plus
+  Plus,
+  Lightbulb,
+  Edit3,
+  BookOpen,
+  Users,
+  GraduationCap,
+  Rocket
 } from "lucide-react";
+import { documentBundles } from "@/data/documentBundles";
+import { additionalRequirements } from "@/data/additionalRequirements";
+import { DocumentTag } from "@/components/pricing/DocumentTag";
 
 // Core Products Data
 const coreProducts = [
@@ -31,7 +40,7 @@ const coreProducts = [
     price: "€99",
     bestFor: "Idea-stage founders exploring funding options",
     includes: "2–3 lightweight docs to clarify your idea & funding direction",
-    icon: "💡",
+    icon: Lightbulb,
     color: "blue"
   },
   {
@@ -40,7 +49,7 @@ const coreProducts = [
     price: "€149",
     bestFor: "Founders with a draft plan needing polish",
     includes: "Annotated feedback, improved plan, compliance checks",
-    icon: "✏️",
+    icon: Edit3,
     color: "green"
   },
   {
@@ -49,31 +58,25 @@ const coreProducts = [
     price: "€199",
     bestFor: "Ready-to-apply founders",
     includes: "Full, funder-ready documentation bundles",
-    icon: "📘",
+    icon: BookOpen,
     color: "purple"
   }
 ];
 
-// Document Counts by Product & Funding Type
-const documentCounts = {
-  strategy: {
-    grants: "3 docs → Lean strategy brief (5–7 pp), Business Model Canvas, Funding match summary",
-    bankLoans: "2 docs → Loan-oriented brief, Funding match summary",
-    equity: "3 docs → Investor positioning brief, One-pager teaser, Funding match summary", 
-    visa: "2 docs → Visa viability brief, Funding match summary"
-  },
-  review: {
-    grants: "3–4 docs → Annotated draft, Revised plan, Compliance checklist, (opt.) budget check",
-    bankLoans: "3–4 docs → Annotated draft, Revised bank plan, Ratios/DSCR check, (opt.) amortization review",
-    equity: "3–4 docs → Annotated plan/deck, Revised investor plan, Cap table check, (opt.) model review",
-    visa: "2–3 docs → Annotated visa plan, Revised visa plan, (opt.) CV tidy-up"
-  },
-  submission: {
-    grants: "5–6 docs → Full grant plan (20–30 pp), Work plan & Gantt, Budget sheet, Team CVs, Annex guidance, (opt.) pitch deck outline",
-    bankLoans: "5 docs → Loan-ready business plan, 3–5y financial model, Bank summary one-pager, Amortization schedule, Collateral sheet",
-    equity: "5 docs → Investor plan, One-pager teaser, Pitch deck content pack, 5y financial model, Cap table",
-    visa: "3–4 docs → Visa-specific business plan, Founder CV, Visa evidence checklist, (opt.) talking points/short pitch"
-  }
+// Helper function to get document count and description
+const getDocumentInfo = (productId: string, fundingType: string) => {
+  const bundle = documentBundles[productId as keyof typeof documentBundles]?.[fundingType as keyof typeof documentBundles.strategy];
+  const documents = bundle?.documents || [];
+  const count = documents.length;
+  const optionalCount = documents.filter(doc => doc.startsWith('optional')).length;
+  const requiredCount = count - optionalCount;
+  
+  return {
+    count,
+    requiredCount,
+    optionalCount,
+    documents
+  };
 };
 
 // Funding Type Packages
@@ -175,11 +178,11 @@ export default function Pricing() {
             {/* Target Group Filter */}
             <div className="flex flex-wrap justify-center gap-3 mb-8">
               {[
-                { id: 'default', label: 'All', icon: '👥' },
-                { id: 'startups', label: 'Startups', icon: '🚀' },
-                { id: 'sme', label: 'SMEs', icon: '🏢' },
-                { id: 'advisors', label: 'Advisors', icon: '👨‍💼' },
-                { id: 'universities', label: 'Innovation Hubs', icon: '🎓' }
+                { id: 'default', label: 'All', icon: Users },
+                { id: 'startups', label: 'Startups', icon: Rocket },
+                { id: 'sme', label: 'SMEs', icon: Building2 },
+                { id: 'advisors', label: 'Advisors', icon: Users },
+                { id: 'universities', label: 'Innovation Hubs', icon: GraduationCap }
               ].map((group) => (
                 <button
                   key={group.id}
@@ -190,7 +193,7 @@ export default function Pricing() {
                       : 'bg-white text-gray-600 border border-gray-200 hover:border-blue-300'
                   }`}
                 >
-                  <span>{group.icon}</span>
+                  <group.icon className="w-4 h-4" />
                   <span>{group.label}</span>
                 </button>
               ))}
@@ -214,7 +217,17 @@ export default function Pricing() {
               {coreProducts.map((product) => (
                 <div key={product.id} className="bg-white rounded-2xl border-2 border-gray-200 shadow-lg hover:shadow-xl transition-all duration-300 p-8">
                   <div className="text-center mb-6">
-                    <div className="text-5xl mb-4">{product.icon}</div>
+                    <div className={`w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4 ${
+                      product.color === 'blue' ? 'bg-blue-100' :
+                      product.color === 'green' ? 'bg-green-100' :
+                      'bg-purple-100'
+                    }`}>
+                      <product.icon className={`w-8 h-8 ${
+                        product.color === 'blue' ? 'text-blue-600' :
+                        product.color === 'green' ? 'text-green-600' :
+                        'text-purple-600'
+                      }`} />
+                    </div>
                     <h3 className="text-2xl font-bold text-gray-900 mb-2">{product.title}</h3>
                     <div className="text-3xl font-bold text-blue-500 mb-4">{product.price}</div>
                     <p className="text-gray-600 mb-4">{product.bestFor}</p>
@@ -295,7 +308,17 @@ export default function Pricing() {
               {coreProducts.map((product) => (
                 <div key={product.id} className="bg-gray-50 rounded-2xl p-8">
                   <div className="text-center mb-6">
-                    <div className="text-4xl mb-3">{product.icon}</div>
+                    <div className={`w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4 ${
+                      product.color === 'blue' ? 'bg-blue-100' :
+                      product.color === 'green' ? 'bg-green-100' :
+                      'bg-purple-100'
+                    }`}>
+                      <product.icon className={`w-8 h-8 ${
+                        product.color === 'blue' ? 'text-blue-600' :
+                        product.color === 'green' ? 'text-green-600' :
+                        'text-purple-600'
+                      }`} />
+                    </div>
                     <h3 className="text-2xl font-bold text-gray-900 mb-2">{product.title}</h3>
                     <div className="text-3xl font-bold text-blue-500 mb-4">{product.price}</div>
                     <p className="text-gray-600 mb-4">{product.bestFor}</p>
@@ -304,44 +327,75 @@ export default function Pricing() {
                   
                   <div className="space-y-4">
                     <h4 className="font-semibold text-gray-900 text-lg mb-3">Documents by Funding Type:</h4>
-                    {Object.entries(documentCounts[product.id as keyof typeof documentCounts]).map(([fundingType, description]) => {
-                      const fundingTypeData = fundingTypes.find(ft => ft.id === fundingType);
+                    {fundingTypes.map((fundingType) => {
+                      const docInfo = getDocumentInfo(product.id, fundingType.id);
                       return (
-                        <div key={fundingType} className="bg-white rounded-lg p-4 border border-gray-200">
-                          <div className="flex items-center mb-2">
-                            {fundingTypeData && (
-                              <fundingTypeData.icon className={`w-5 h-5 mr-2 ${
-                                fundingTypeData.color === 'green' ? 'text-green-600' :
-                                fundingTypeData.color === 'blue' ? 'text-blue-600' :
-                                fundingTypeData.color === 'purple' ? 'text-purple-600' :
-                                'text-orange-600'
-                              }`} />
-                            )}
-                            <h5 className="font-semibold text-gray-900">{fundingTypeData?.title}</h5>
+                        <div key={fundingType.id} className="bg-white rounded-lg p-4 border border-gray-200">
+                          <div className="flex items-center mb-3">
+                            <fundingType.icon className={`w-5 h-5 mr-2 ${
+                              fundingType.color === 'green' ? 'text-green-600' :
+                              fundingType.color === 'blue' ? 'text-blue-600' :
+                              fundingType.color === 'purple' ? 'text-purple-600' :
+                              'text-orange-600'
+                            }`} />
+                            <h5 className="font-semibold text-gray-900">{fundingType.title}</h5>
+                            <span className="ml-auto text-sm text-gray-500">
+                              {docInfo.requiredCount} docs
+                              {docInfo.optionalCount > 0 && ` + ${docInfo.optionalCount} optional`}
+                            </span>
                           </div>
-                          <p className="text-sm text-gray-600">{description}</p>
+                          
+                          <div className="flex flex-wrap gap-2">
+                            {docInfo.documents.slice(0, 3).map((docId) => (
+                              <DocumentTag
+                                key={docId}
+                                document={{
+                                  id: docId,
+                                  i18nKey: `documents.${docId}`,
+                                  title: docId.replace(/([A-Z])/g, ' $1').replace(/^./, str => str.toUpperCase()),
+                                  short: `${docId} description`,
+                                  details: `${docId} detailed description`,
+                                  formatHints: ['PDF', 'DOCX'],
+                                  category: 'strategy',
+                                  fundingTypes: [fundingType.id as 'grants' | 'bankLoans' | 'equity' | 'visa']
+                                }}
+                                variant="included"
+                                size="sm"
+                                showTooltip={false}
+                              />
+                            ))}
+                            {docInfo.documents.length > 3 && (
+                              <span className="text-xs text-gray-500 bg-gray-100 px-2 py-1 rounded">
+                                +{docInfo.documents.length - 3} more
+                              </span>
+                            )}
+                          </div>
                         </div>
                       );
                     })}
                   </div>
 
-                  {/* Additional Documents Details */}
+                  {/* Additional Requirements */}
                   <div className="mt-6 p-4 bg-blue-50 rounded-lg">
-                    <h5 className="font-semibold text-gray-900 mb-2">Additional Documents Include:</h5>
-                    <ul className="text-sm text-gray-600 space-y-1">
-                      <li>• Executive One-Pager (DE/EN)</li>
-                      <li>• PDF & DOCX formats</li>
-                      <li>• Financial models (Excel)</li>
-                      <li>• CV templates & guidance</li>
-                      <li>• Compliance checklists</li>
-                      {product.id === 'submission' && (
-                        <>
-                          <li>• Pitch deck content pack</li>
-                          <li>• Cap table templates</li>
-                          <li>• Bank summary pages</li>
-                        </>
-                      )}
-                    </ul>
+                    <h5 className="font-semibold text-gray-900 mb-3">You'll Need to Provide:</h5>
+                    <div className="space-y-2">
+                      {fundingTypes.slice(0, 2).map((fundingType) => {
+                        const requirements = additionalRequirements[fundingType.id as keyof typeof additionalRequirements]?.[targetGroup as keyof typeof additionalRequirements.grants] || [];
+                        return (
+                          <div key={fundingType.id}>
+                            <h6 className="text-sm font-medium text-gray-700 mb-1">{fundingType.title}:</h6>
+                            <ul className="text-xs text-gray-600 space-y-1">
+                              {requirements.slice(0, 3).map((req, idx) => (
+                                <li key={idx}>• {req}</li>
+                              ))}
+                              {requirements.length > 3 && (
+                                <li className="text-gray-500">• +{requirements.length - 3} more items</li>
+                              )}
+                            </ul>
+                          </div>
+                        );
+                      })}
+                    </div>
                   </div>
                 </div>
               ))}
@@ -354,7 +408,7 @@ export default function Pricing() {
           <div className="max-w-7xl mx-auto px-4">
             <div className="text-center mb-12">
               <h2 className="text-3xl font-bold text-gray-900 mb-4">
-                🇦🇹 Built for Austrian & EU Funding
+                Built for Austrian & EU Funding
               </h2>
               <p className="text-lg text-gray-600 max-w-4xl mx-auto">
                 Plan2Fund is designed around the real requirements of Austrian and EU funding bodies, banks, and investors.<br/>
@@ -367,7 +421,7 @@ export default function Pricing() {
               <div className="bg-green-50 rounded-2xl p-6 border border-green-200">
                 <div className="flex items-center mb-3">
                   <FileText className="w-6 h-6 text-green-600 mr-3" />
-                  <h3 className="text-lg font-semibold text-green-900">🧾 Public Grants</h3>
+                  <h3 className="text-lg font-semibold text-green-900">Public Grants</h3>
                 </div>
                 <p className="text-sm text-green-800">Structured business plans, work packages, and budgets aligned with Austrian agencies and EU programs.</p>
               </div>
@@ -375,7 +429,7 @@ export default function Pricing() {
               <div className="bg-blue-50 rounded-2xl p-6 border border-blue-200">
                 <div className="flex items-center mb-3">
                   <Building2 className="w-6 h-6 text-blue-600 mr-3" />
-                  <h3 className="text-lg font-semibold text-blue-900">🏦 Bank Loans & Leasing</h3>
+                  <h3 className="text-lg font-semibold text-blue-900">Bank Loans & Leasing</h3>
                 </div>
                 <p className="text-sm text-blue-800">Loan-ready plans including financial ratios, repayment schedules, and collateral sheets in line with Austrian banking practice.</p>
               </div>
@@ -383,7 +437,7 @@ export default function Pricing() {
               <div className="bg-purple-50 rounded-2xl p-6 border border-purple-200">
                 <div className="flex items-center mb-3">
                   <Briefcase className="w-6 h-6 text-purple-600 mr-3" />
-                  <h3 className="text-lg font-semibold text-purple-900">📈 Investors & VC</h3>
+                  <h3 className="text-lg font-semibold text-purple-900">Investors & VC</h3>
                 </div>
                 <p className="text-sm text-purple-800">Investor teasers, pitch content, cap tables, and growth projections in the format equity partners expect.</p>
               </div>
@@ -391,7 +445,7 @@ export default function Pricing() {
               <div className="bg-orange-50 rounded-2xl p-6 border border-orange-200">
                 <div className="flex items-center mb-3">
                   <Plane className="w-6 h-6 text-orange-600 mr-3" />
-                  <h3 className="text-lg font-semibold text-orange-900">🛂 Visa & Residency</h3>
+                  <h3 className="text-lg font-semibold text-orange-900">Visa & Residency</h3>
                 </div>
                 <p className="text-sm text-orange-800">Business plans highlighting innovation, investment capital, and economic benefit, tailored for Austrian immigration authorities.</p>
               </div>
@@ -400,7 +454,7 @@ export default function Pricing() {
             {/* Quality & Compliance */}
             <div className="bg-gray-50 rounded-2xl p-8">
               <div className="text-center mb-8">
-                <h3 className="text-2xl font-bold text-gray-900 mb-4">🔒 Quality & Compliance</h3>
+                <h3 className="text-2xl font-bold text-gray-900 mb-4">Quality & Compliance</h3>
               </div>
               
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
@@ -408,7 +462,7 @@ export default function Pricing() {
                   <div className="w-12 h-12 bg-blue-100 rounded-full flex items-center justify-center mx-auto mb-3">
                     <FileText className="w-6 h-6 text-blue-600" />
                   </div>
-                  <h4 className="font-semibold text-gray-900 mb-2">📑 Page limits & required sections enforced</h4>
+                  <h4 className="font-semibold text-gray-900 mb-2">Page limits & required sections enforced</h4>
                   <p className="text-sm text-gray-600">No risk of rejection for format errors</p>
                 </div>
 
@@ -416,7 +470,7 @@ export default function Pricing() {
                   <div className="w-12 h-12 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-3">
                     <Calculator className="w-6 h-6 text-green-600" />
                   </div>
-                  <h4 className="font-semibold text-gray-900 mb-2">📊 Financials built with Austrian accounting terms</h4>
+                  <h4 className="font-semibold text-gray-900 mb-2">Financials built with Austrian accounting terms</h4>
                   <p className="text-sm text-gray-600">Umsatz, Eigenkapitalquote, DSCR</p>
                 </div>
 
@@ -424,7 +478,7 @@ export default function Pricing() {
                   <div className="w-12 h-12 bg-purple-100 rounded-full flex items-center justify-center mx-auto mb-3">
                     <Globe className="w-6 h-6 text-purple-600" />
                   </div>
-                  <h4 className="font-semibold text-gray-900 mb-2">🌍 Bilingual output</h4>
+                  <h4 className="font-semibold text-gray-900 mb-2">Bilingual output</h4>
                   <p className="text-sm text-gray-600">German/English depending on funder requirements</p>
                 </div>
 
@@ -432,7 +486,7 @@ export default function Pricing() {
                   <div className="w-12 h-12 bg-orange-100 rounded-full flex items-center justify-center mx-auto mb-3">
                     <CheckCircle className="w-6 h-6 text-orange-600" />
                   </div>
-                  <h4 className="font-semibold text-gray-900 mb-2">✅ Structured for easy copy-paste</h4>
+                  <h4 className="font-semibold text-gray-900 mb-2">Structured for easy copy-paste</h4>
                   <p className="text-sm text-gray-600">Into official templates & portals</p>
                 </div>
               </div>
