@@ -29,7 +29,6 @@ import {
   Rocket
 } from "lucide-react";
 import { documentBundles } from "@/data/documentBundles";
-import { additionalRequirements } from "@/data/additionalRequirements";
 import { DocumentTag } from "@/components/pricing/DocumentTag";
 
 // Core Products Data
@@ -379,22 +378,15 @@ export default function Pricing() {
                   <div className="mt-6 p-4 bg-blue-50 rounded-lg">
                     <h5 className="font-semibold text-gray-900 mb-3">You'll Need to Provide:</h5>
                     <div className="space-y-2">
-                      {fundingTypes.slice(0, 2).map((fundingType) => {
-                        const requirements = additionalRequirements[fundingType.id as keyof typeof additionalRequirements]?.[targetGroup as keyof typeof additionalRequirements.grants] || [];
-                        return (
-                          <div key={fundingType.id}>
-                            <h6 className="text-sm font-medium text-gray-700 mb-1">{fundingType.title}:</h6>
-                            <ul className="text-xs text-gray-600 space-y-1">
-                              {requirements.slice(0, 3).map((req, idx) => (
-                                <li key={idx}>• {req}</li>
-                              ))}
-                              {requirements.length > 3 && (
-                                <li className="text-gray-500">• +{requirements.length - 3} more items</li>
-                              )}
-                            </ul>
-                          </div>
-                        );
-                      })}
+                      <div>
+                        <h6 className="text-sm font-medium text-gray-700 mb-1">General Requirements:</h6>
+                        <ul className="text-xs text-gray-600 space-y-1">
+                          <li>• Business registration documents</li>
+                          <li>• Financial statements (if applicable)</li>
+                          <li>• Team CVs and qualifications</li>
+                          <li>• Proof of funds or investment</li>
+                        </ul>
+                      </div>
                     </div>
                   </div>
                 </div>
