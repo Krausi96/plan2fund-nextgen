@@ -9,10 +9,6 @@ import {
   Clock, 
   FileText, 
   ArrowRight, 
-  Building2, 
-  Banknote, 
-  Briefcase, 
-  Plane, 
   Zap, 
   Calculator, 
   MessageCircle, 
@@ -20,13 +16,7 @@ import {
   Globe,
   CheckCircle,
   Download,
-  Plus,
-  Lightbulb,
-  Edit3,
-  BookOpen,
-  Users,
-  GraduationCap,
-  Rocket
+  Plus
 } from "lucide-react";
 import { documentBundles } from "@/data/documentBundles";
 import { DocumentTag } from "@/components/pricing/DocumentTag";
@@ -39,7 +29,7 @@ const coreProducts = [
     price: "€99",
     bestFor: "Idea-stage founders exploring funding options",
     includes: "2–3 lightweight docs to clarify your idea & funding direction",
-    icon: Lightbulb,
+    icon: "💡",
     color: "blue"
   },
   {
@@ -48,7 +38,7 @@ const coreProducts = [
     price: "€149",
     bestFor: "Founders with a draft plan needing polish",
     includes: "Annotated feedback, improved plan, compliance checks",
-    icon: Edit3,
+    icon: "✏️",
     color: "green"
   },
   {
@@ -57,7 +47,7 @@ const coreProducts = [
     price: "€199",
     bestFor: "Ready-to-apply founders",
     includes: "Full, funder-ready documentation bundles",
-    icon: BookOpen,
+    icon: "📚",
     color: "purple"
   }
 ];
@@ -84,7 +74,7 @@ const fundingTypes = [
     id: "grants",
     title: "Grants",
     description: "Austrian & EU grant applications",
-    icon: Building2,
+    icon: "🏛️",
     color: "green",
     language: "German default, English toggle",
     requirements: "Business Plan, Work Plan & Gantt, Budget Sheet, CVs, Annexes",
@@ -94,7 +84,7 @@ const fundingTypes = [
     id: "bankLoans", 
     title: "Bank Loans",
     description: "Austrian bank financing",
-    icon: Banknote,
+    icon: "💰",
     color: "blue", 
     language: "German default",
     requirements: "Business Plan, Financials, Repayment Schedule, Collateral",
@@ -104,7 +94,7 @@ const fundingTypes = [
     id: "equity",
     title: "Equity Investment", 
     description: "Venture capital & angel investors",
-    icon: Briefcase,
+    icon: "💼",
     color: "purple",
     language: "English default, German optional",
     requirements: "Pitch Deck, One-pager Teaser, Cap Table, 5y Model",
@@ -114,7 +104,7 @@ const fundingTypes = [
     id: "visa",
     title: "Visa (RWR)",
     description: "Red-White-Red visa applications", 
-    icon: Plane,
+    icon: "✈️",
     color: "orange",
     language: "English default, German toggle",
     requirements: "Business Plan, CVs, Proof of €30k+ funds, Evidence checklist",
@@ -177,11 +167,11 @@ export default function Pricing() {
             {/* Target Group Filter */}
             <div className="flex flex-wrap justify-center gap-3 mb-8">
               {[
-                { id: 'default', label: 'All', icon: Users },
-                { id: 'startups', label: 'Startups', icon: Rocket },
-                { id: 'sme', label: 'SMEs', icon: Building2 },
-                { id: 'advisors', label: 'Advisors', icon: Users },
-                { id: 'universities', label: 'Innovation Hubs', icon: GraduationCap }
+                { id: 'default', label: 'All', icon: '👥' },
+                { id: 'startups', label: 'Startups', icon: '🚀' },
+                { id: 'sme', label: 'SMEs', icon: '🏢' },
+                { id: 'advisors', label: 'Advisors', icon: '👨‍💼' },
+                { id: 'universities', label: 'Innovation Hubs', icon: '🎓' }
               ].map((group) => (
                 <button
                   key={group.id}
@@ -192,7 +182,7 @@ export default function Pricing() {
                       : 'bg-white text-gray-600 border border-gray-200 hover:border-blue-300'
                   }`}
                 >
-                  <group.icon className="w-4 h-4" />
+                  <span className="text-lg">{group.icon}</span>
                   <span>{group.label}</span>
                 </button>
               ))}
@@ -221,11 +211,7 @@ export default function Pricing() {
                       product.color === 'green' ? 'bg-green-100' :
                       'bg-purple-100'
                     }`}>
-                      <product.icon className={`w-8 h-8 ${
-                        product.color === 'blue' ? 'text-blue-600' :
-                        product.color === 'green' ? 'text-green-600' :
-                        'text-purple-600'
-                      }`} />
+                      <span className="text-3xl">{product.icon}</span>
                     </div>
                     <h3 className="text-2xl font-bold text-gray-900 mb-2">{product.title}</h3>
                     <div className="text-3xl font-bold text-blue-500 mb-4">{product.price}</div>
@@ -271,12 +257,7 @@ export default function Pricing() {
                       fundingType.color === 'purple' ? 'bg-purple-100' :
                       'bg-orange-100'
                     }`}>
-                      <fundingType.icon className={`w-8 h-8 ${
-                        fundingType.color === 'green' ? 'text-green-600' :
-                        fundingType.color === 'blue' ? 'text-blue-600' :
-                        fundingType.color === 'purple' ? 'text-purple-600' :
-                        'text-orange-600'
-                      }`} />
+                      <span className="text-3xl">{fundingType.icon}</span>
                     </div>
                     <h3 className="text-lg font-semibold text-gray-900">{fundingType.title}</h3>
                     <p className="text-sm text-gray-600">{fundingType.description}</p>
@@ -312,11 +293,7 @@ export default function Pricing() {
                       product.color === 'green' ? 'bg-green-100' :
                       'bg-purple-100'
                     }`}>
-                      <product.icon className={`w-8 h-8 ${
-                        product.color === 'blue' ? 'text-blue-600' :
-                        product.color === 'green' ? 'text-green-600' :
-                        'text-purple-600'
-                      }`} />
+                      <span className="text-3xl">{product.icon}</span>
                     </div>
                     <h3 className="text-2xl font-bold text-gray-900 mb-2">{product.title}</h3>
                     <div className="text-3xl font-bold text-blue-500 mb-4">{product.price}</div>
@@ -331,12 +308,7 @@ export default function Pricing() {
                       return (
                         <div key={fundingType.id} className="bg-white rounded-lg p-4 border border-gray-200">
                           <div className="flex items-center mb-3">
-                            <fundingType.icon className={`w-5 h-5 mr-2 ${
-                              fundingType.color === 'green' ? 'text-green-600' :
-                              fundingType.color === 'blue' ? 'text-blue-600' :
-                              fundingType.color === 'purple' ? 'text-purple-600' :
-                              'text-orange-600'
-                            }`} />
+                            <span className="text-lg mr-2">{fundingType.icon}</span>
                             <h5 className="font-semibold text-gray-900">{fundingType.title}</h5>
                             <span className="ml-auto text-sm text-gray-500">
                               {docInfo.requiredCount} docs
@@ -420,7 +392,7 @@ export default function Pricing() {
 
               <div className="bg-blue-50 rounded-2xl p-6 border border-blue-200">
                 <div className="flex items-center mb-3">
-                  <Building2 className="w-6 h-6 text-blue-600 mr-3" />
+                  <span className="text-lg mr-3">💰</span>
                   <h3 className="text-lg font-semibold text-blue-900">Bank Loans & Leasing</h3>
                 </div>
                 <p className="text-sm text-blue-800">Loan-ready plans including financial ratios, repayment schedules, and collateral sheets in line with Austrian banking practice.</p>
@@ -428,7 +400,7 @@ export default function Pricing() {
 
               <div className="bg-purple-50 rounded-2xl p-6 border border-purple-200">
                 <div className="flex items-center mb-3">
-                  <Briefcase className="w-6 h-6 text-purple-600 mr-3" />
+                  <span className="text-lg mr-3">💼</span>
                   <h3 className="text-lg font-semibold text-purple-900">Investors & VC</h3>
                 </div>
                 <p className="text-sm text-purple-800">Investor teasers, pitch content, cap tables, and growth projections in the format equity partners expect.</p>
@@ -436,7 +408,7 @@ export default function Pricing() {
 
               <div className="bg-orange-50 rounded-2xl p-6 border border-orange-200">
                 <div className="flex items-center mb-3">
-                  <Plane className="w-6 h-6 text-orange-600 mr-3" />
+                  <span className="text-lg mr-3">✈️</span>
                   <h3 className="text-lg font-semibold text-orange-900">Visa & Residency</h3>
                 </div>
                 <p className="text-sm text-orange-800">Business plans highlighting innovation, investment capital, and economic benefit, tailored for Austrian immigration authorities.</p>
@@ -532,7 +504,7 @@ export default function Pricing() {
                   description: "Strategy, Review, Submission"
                 },
                 {
-                  icon: Building2,
+                  icon: "🏛️",
                   title: "Select funding type",
                   description: "Grants, Bank, Equity, Visa"
                 },
@@ -554,7 +526,11 @@ export default function Pricing() {
               ].map((step, index) => (
                 <div key={index} className="text-center">
                   <div className="w-16 h-16 bg-blue-100 rounded-full flex items-center justify-center mx-auto mb-4">
-                    <step.icon className="w-8 h-8 text-blue-600" />
+                    {typeof step.icon === 'string' ? (
+                      <span className="text-3xl">{step.icon}</span>
+                    ) : (
+                      <step.icon className="w-8 h-8 text-blue-600" />
+                    )}
                   </div>
                   <h3 className="font-semibold text-gray-900 mb-2">{step.title}</h3>
                   <p className="text-sm text-gray-600">{step.description}</p>

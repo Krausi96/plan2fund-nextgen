@@ -1,6 +1,5 @@
 import { motion } from "framer-motion";
 import { useI18n } from "@/contexts/I18nContext";
-import { Search, FileText, Edit3, Download } from "lucide-react";
 
 interface HowItWorksProps {
   targetGroup?: string;
@@ -17,28 +16,28 @@ export function HowItWorks({}: HowItWorksProps) {
 
   const steps = [
     {
-      icon: Search, // Search icon for idea description
+      icon: "🔍", // Search icon for idea description
       title: t('howItWorks.step1.title'),
       description: t('howItWorks.step1.description'),
       color: "text-blue-600",
       bgColor: "bg-blue-50",
     },
     {
-      icon: FileText, // Document icon for finding programs
+      icon: "📋", // Document icon for finding programs
       title: t('howItWorks.step2.title'),
       description: t('howItWorks.step2.description'),
       color: "text-green-600",
       bgColor: "bg-green-50",
     },
     {
-      icon: Edit3, // Edit icon for creating business plan
+      icon: "✏️", // Edit icon for creating business plan
       title: t('howItWorks.step3.title'),
       description: t('howItWorks.step3.description'),
       color: "text-purple-600",
       bgColor: "bg-purple-50",
     },
     {
-      icon: Download, // Download icon for downloading and using
+      icon: "📤", // Upload icon for downloading and using
       title: t('howItWorks.step4.title'),
       description: t('howItWorks.step4.description'),
       color: "text-orange-600",
@@ -92,7 +91,7 @@ export function HowItWorks({}: HowItWorksProps) {
                 <div className={`w-16 h-16 ${step.bgColor} rounded-2xl flex items-center justify-center mx-auto mb-4 ${
                   isHighlighted ? 'ring-2 ring-blue-200' : ''
                 }`}>
-                  <step.icon className={`w-8 h-8 ${step.color}`} />
+                  <span className="text-3xl">{step.icon}</span>
                 </div>
                 
                 {/* Content */}

@@ -3,7 +3,7 @@ import HeroLite from "@/components/common/HeroLite";
 import CTAStrip from "@/components/common/CTAStrip";
 import SEOHead from "@/components/common/SEOHead";
 import { useI18n } from "@/contexts/I18nContext";
-import { Target, Lightbulb, FileText, Search, BookOpen, Shield, Mail, ArrowRight, Scale, Book, Zap, Rocket } from "lucide-react";
+import { Mail, ArrowRight } from "lucide-react";
 import Link from "next/link";
 
 export default function AboutPage() {
@@ -26,8 +26,8 @@ export default function AboutPage() {
           <div className="max-w-7xl mx-auto grid md:grid-cols-2 gap-8 mb-16">
             <Card className="p-10 hover:shadow-lg transition-shadow">
               <div className="flex items-center mb-6">
-                <div className="w-20 h-20 bg-blue-100 rounded-full flex items-center justify-center mr-6 flex-shrink-0">
-                  <Target className="w-10 h-10 text-blue-600" />
+                <div className="w-20 h-20 bg-blue-50 rounded-2xl flex items-center justify-center mr-6 flex-shrink-0">
+                  <span className="text-3xl">🎯</span>
                 </div>
                 <h2 className="text-2xl font-semibold text-gray-900">{t('about.mission.title')}</h2>
               </div>
@@ -38,8 +38,8 @@ export default function AboutPage() {
 
             <Card className="p-10 hover:shadow-lg transition-shadow">
               <div className="flex items-center mb-6">
-                <div className="w-20 h-20 bg-yellow-100 rounded-full flex items-center justify-center mr-6 flex-shrink-0">
-                  <Lightbulb className="w-10 h-10 text-yellow-600" />
+                <div className="w-20 h-20 bg-yellow-50 rounded-2xl flex items-center justify-center mr-6 flex-shrink-0">
+                  <span className="text-3xl">💡</span>
                 </div>
                 <h2 className="text-2xl font-semibold text-gray-900">{t('about.vision.title')}</h2>
               </div>
@@ -54,8 +54,8 @@ export default function AboutPage() {
             <h2 className="text-3xl font-bold text-center mb-12">{t('about.features.title')}</h2>
             <div className="max-w-7xl mx-auto grid md:grid-cols-3 gap-8">
               <Card className="p-10 hover:shadow-lg transition-shadow">
-                <div className="w-20 h-20 bg-blue-100 rounded-full flex items-center justify-center mx-auto mb-6">
-                  <Search className="w-10 h-10 text-blue-600" />
+                <div className="w-20 h-20 bg-blue-50 rounded-2xl flex items-center justify-center mx-auto mb-6">
+                  <span className="text-3xl">🔍</span>
                 </div>
                 <h3 className="text-xl font-semibold mb-4 text-center text-gray-900">{t('about.features.smartMatching.title')}</h3>
                 <div className="text-gray-600 leading-relaxed text-left text-lg">
@@ -66,8 +66,8 @@ export default function AboutPage() {
               </Card>
 
               <Card className="p-10 hover:shadow-lg transition-shadow">
-                <div className="w-20 h-20 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-6">
-                  <FileText className="w-10 h-10 text-green-600" />
+                <div className="w-20 h-20 bg-green-50 rounded-2xl flex items-center justify-center mx-auto mb-6">
+                  <span className="text-3xl">📋</span>
                 </div>
                 <h3 className="text-xl font-semibold mb-4 text-center text-gray-900">{t('about.features.professionalPlans.title')}</h3>
                 <div className="text-gray-600 leading-relaxed text-left text-lg">
@@ -78,8 +78,8 @@ export default function AboutPage() {
               </Card>
 
               <Card className="p-10 hover:shadow-lg transition-shadow">
-                <div className="w-20 h-20 bg-purple-100 rounded-full flex items-center justify-center mx-auto mb-6">
-                  <BookOpen className="w-10 h-10 text-purple-600" />
+                <div className="w-20 h-20 bg-purple-50 rounded-2xl flex items-center justify-center mx-auto mb-6">
+                  <span className="text-3xl">📚</span>
                 </div>
                 <h3 className="text-xl font-semibold mb-4 text-center text-gray-900">{t('about.features.expertGuidance.title')}</h3>
                 <div className="text-gray-600 leading-relaxed text-left text-lg">
@@ -98,8 +98,8 @@ export default function AboutPage() {
               <div className="bg-gradient-to-r from-blue-50 to-indigo-50 rounded-2xl p-8 md:p-12">
                 <div className="max-w-4xl mx-auto">
                   <div className="flex items-start mb-8">
-                    <div className="w-16 h-16 bg-blue-600 rounded-full flex items-center justify-center mr-6 flex-shrink-0">
-                      <Zap className="w-8 h-8 text-white" />
+                    <div className="w-16 h-16 bg-blue-50 rounded-2xl flex items-center justify-center mr-6 flex-shrink-0">
+                      <span className="text-3xl">💡</span>
                     </div>
                     <div className="flex-1">
                       <h3 className="text-xl font-semibold text-gray-900 mb-4">{t('about.founderStory.problemTitle')}</h3>
@@ -110,8 +110,8 @@ export default function AboutPage() {
                   </div>
                   
                   <div className="flex items-start">
-                    <div className="w-16 h-16 bg-green-600 rounded-full flex items-center justify-center mr-6 flex-shrink-0">
-                      <Rocket className="w-8 h-8 text-white" />
+                    <div className="w-16 h-16 bg-green-50 rounded-2xl flex items-center justify-center mr-6 flex-shrink-0">
+                      <span className="text-3xl">🚀</span>
                     </div>
                     <div className="flex-1">
                       <h3 className="text-xl font-semibold text-gray-900 mb-4">{t('about.founderStory.solutionTitle')}</h3>
@@ -131,8 +131,8 @@ export default function AboutPage() {
             <div className="max-w-7xl mx-auto grid md:grid-cols-3 gap-8">
               <Card className="p-10 hover:shadow-lg transition-shadow">
                 <div className="flex items-center mb-6">
-                  <div className="w-20 h-20 bg-green-100 rounded-full flex items-center justify-center mr-6 flex-shrink-0">
-                    <Shield className="w-10 h-10 text-green-600" />
+                  <div className="w-20 h-20 bg-green-50 rounded-2xl flex items-center justify-center mr-6 flex-shrink-0">
+                    <span className="text-3xl">🛡️</span>
                   </div>
                   <h3 className="text-xl font-semibold text-gray-900">{t('about.trust.security')}</h3>
                 </div>
@@ -154,8 +154,8 @@ export default function AboutPage() {
 
               <Card className="p-10 hover:shadow-lg transition-shadow">
                 <div className="flex items-center mb-6">
-                  <div className="w-20 h-20 bg-blue-100 rounded-full flex items-center justify-center mr-6 flex-shrink-0">
-                    <Scale className="w-10 h-10 text-blue-600" />
+                  <div className="w-20 h-20 bg-blue-50 rounded-2xl flex items-center justify-center mr-6 flex-shrink-0">
+                    <span className="text-3xl">⚖️</span>
                   </div>
                   <h3 className="text-xl font-semibold text-gray-900">{t('about.trust.independence')}</h3>
                 </div>
@@ -168,8 +168,8 @@ export default function AboutPage() {
 
               <Card className="p-10 hover:shadow-lg transition-shadow">
                 <div className="flex items-center mb-6">
-                  <div className="w-20 h-20 bg-purple-100 rounded-full flex items-center justify-center mr-6 flex-shrink-0">
-                    <Book className="w-10 h-10 text-purple-600" />
+                  <div className="w-20 h-20 bg-purple-50 rounded-2xl flex items-center justify-center mr-6 flex-shrink-0">
+                    <span className="text-3xl">📚</span>
                   </div>
                   <h3 className="text-xl font-semibold text-gray-900">{t('about.trust.quality')}</h3>
                 </div>
