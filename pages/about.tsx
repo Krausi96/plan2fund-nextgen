@@ -3,7 +3,7 @@ import HeroLite from "@/components/common/HeroLite";
 import CTAStrip from "@/components/common/CTAStrip";
 import SEOHead from "@/components/common/SEOHead";
 import { useI18n } from "@/contexts/I18nContext";
-import { Target, Lightbulb, FileText, Search, BookOpen, Shield, Lock, Heart, Users, Mail } from "lucide-react";
+import { Target, Lightbulb, FileText, Search, BookOpen, Shield, Lock, Mail, ArrowRight } from "lucide-react";
 import Link from "next/link";
 
 export default function AboutPage() {
@@ -23,23 +23,27 @@ export default function AboutPage() {
           <h1 className="sr-only">{t('about.title')}</h1>
 
           {/* Mission & Vision */}
-          <div className="grid md:grid-cols-2 gap-8 mb-16">
+          <div className="max-w-6xl mx-auto grid md:grid-cols-2 gap-8 mb-16">
             <Card className="p-8">
               <div className="flex items-center mb-4">
-                <Target className="w-8 h-8 text-blue-600 mr-3" />
+                <div className="w-12 h-12 bg-blue-100 rounded-full flex items-center justify-center mr-4">
+                  <Target className="w-6 h-6 text-blue-600" />
+                </div>
                 <h2 className="text-2xl font-semibold">{t('about.mission.title')}</h2>
               </div>
-              <p className="text-gray-600">
+              <p className="text-gray-600 text-justify leading-relaxed">
                 {t('about.mission.description')}
               </p>
             </Card>
 
             <Card className="p-8">
               <div className="flex items-center mb-4">
-                <Lightbulb className="w-8 h-8 text-yellow-600 mr-3" />
+                <div className="w-12 h-12 bg-yellow-100 rounded-full flex items-center justify-center mr-4">
+                  <Lightbulb className="w-6 h-6 text-yellow-600" />
+                </div>
                 <h2 className="text-2xl font-semibold">{t('about.vision.title')}</h2>
               </div>
-              <p className="text-gray-600">
+              <p className="text-gray-600 text-justify leading-relaxed">
                 {t('about.vision.description')}
               </p>
             </Card>
@@ -48,108 +52,107 @@ export default function AboutPage() {
           {/* How Plan2Fund Helps You */}
           <div className="mb-16">
             <h2 className="text-3xl font-bold text-center mb-12">{t('about.features.title')}</h2>
-            <div className="grid md:grid-cols-3 gap-8">
-              <Card className="p-6 text-center hover:shadow-lg transition-shadow">
-                <div className="w-16 h-16 bg-blue-100 rounded-full flex items-center justify-center mx-auto mb-4">
+            <div className="max-w-7xl mx-auto grid md:grid-cols-3 gap-8">
+              <Card className="p-8 hover:shadow-lg transition-shadow">
+                <div className="w-16 h-16 bg-blue-100 rounded-full flex items-center justify-center mx-auto mb-6">
                   <Search className="w-8 h-8 text-blue-600" />
                 </div>
-                <h3 className="text-xl font-semibold mb-3">{t('about.features.smartMatching.title')}</h3>
-                <p className="text-gray-600">
-                  {t('about.features.smartMatching.description')}
-                </p>
+                <h3 className="text-xl font-semibold mb-4 text-center">{t('about.features.smartMatching.title')}</h3>
+                <div className="text-gray-600 text-justify leading-relaxed space-y-3">
+                  <p>
+                    {t('about.features.smartMatching.description')}
+                  </p>
+                </div>
               </Card>
 
-              <Card className="p-6 text-center hover:shadow-lg transition-shadow">
-                <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4">
+              <Card className="p-8 hover:shadow-lg transition-shadow">
+                <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-6">
                   <FileText className="w-8 h-8 text-green-600" />
                 </div>
-                <h3 className="text-xl font-semibold mb-3">{t('about.features.professionalPlans.title')}</h3>
-                <p className="text-gray-600">
-                  {t('about.features.professionalPlans.description')}
-                </p>
+                <h3 className="text-xl font-semibold mb-4 text-center">{t('about.features.professionalPlans.title')}</h3>
+                <div className="text-gray-600 text-justify leading-relaxed space-y-3">
+                  <p>
+                    {t('about.features.professionalPlans.description')}
+                  </p>
+                </div>
               </Card>
 
-              <Card className="p-6 text-center hover:shadow-lg transition-shadow">
-                <div className="w-16 h-16 bg-purple-100 rounded-full flex items-center justify-center mx-auto mb-4">
+              <Card className="p-8 hover:shadow-lg transition-shadow">
+                <div className="w-16 h-16 bg-purple-100 rounded-full flex items-center justify-center mx-auto mb-6">
                   <BookOpen className="w-8 h-8 text-purple-600" />
                 </div>
-                <h3 className="text-xl font-semibold mb-3">{t('about.features.expertGuidance.title')}</h3>
-                <p className="text-gray-600">
-                  {t('about.features.expertGuidance.description')}
-                </p>
+                <h3 className="text-xl font-semibold mb-4 text-center">{t('about.features.expertGuidance.title')}</h3>
+                <div className="text-gray-600 text-justify leading-relaxed space-y-3">
+                  <p>
+                    {t('about.features.expertGuidance.description')}
+                  </p>
+                </div>
               </Card>
             </div>
           </div>
 
-          {/* Founder Story & Values */}
+          {/* Founder Story */}
           <div className="mb-16">
             <h2 className="text-3xl font-bold text-center mb-8">{t('about.founderStory.title')}</h2>
-            <div className="prose max-w-3xl mx-auto text-gray-600">
+            <div className="prose max-w-4xl mx-auto text-gray-600 text-justify leading-relaxed">
               <p className="text-lg mb-6">
                 {t('about.founderStory.description')}
               </p>
               <p className="text-lg mb-6">
                 {t('about.founderStory.founder')}
               </p>
-              
-              {/* Values Section */}
-              <div className="mt-8 p-6 bg-gray-50 rounded-lg">
-                <h3 className="text-xl font-semibold mb-4 text-center">{t('about.values.title')}</h3>
-                <div className="flex flex-wrap justify-center gap-6">
-                  <div className="flex items-center gap-2">
-                    <Heart className="w-5 h-5 text-red-500" />
-                    <span className="font-medium">{t('about.values.transparency')}</span>
-                  </div>
-                  <div className="flex items-center gap-2">
-                    <Users className="w-5 h-5 text-blue-500" />
-                    <span className="font-medium">{t('about.values.fairness')}</span>
-                  </div>
-                  <div className="flex items-center gap-2">
-                    <Lightbulb className="w-5 h-5 text-yellow-500" />
-                    <span className="font-medium">{t('about.values.innovation')}</span>
-                  </div>
-                </div>
-              </div>
             </div>
           </div>
 
           {/* Trust & Independence */}
           <div className="mb-16">
             <h2 className="text-3xl font-bold text-center mb-8">{t('about.trust.title')}</h2>
-            <div className="grid md:grid-cols-2 gap-8 max-w-4xl mx-auto">
-              <Card className="p-6">
-                <div className="flex items-center mb-4">
-                  <Shield className="w-8 h-8 text-green-600 mr-3" />
+            <div className="max-w-6xl mx-auto grid md:grid-cols-2 gap-8">
+              <Card className="p-8">
+                <div className="flex items-center mb-6">
+                  <div className="w-12 h-12 bg-green-100 rounded-full flex items-center justify-center mr-4">
+                    <Shield className="w-6 h-6 text-green-600" />
+                  </div>
                   <h3 className="text-xl font-semibold">{t('about.trust.security')}</h3>
                 </div>
-                <p className="text-gray-600">
-                  {t('about.trust.securityDescription')}
-                </p>
+                <div className="text-gray-600 text-justify leading-relaxed space-y-3">
+                  <p>
+                    {t('about.trust.securityDescription')}
+                  </p>
+                  <p className="text-sm text-gray-500 italic">
+                    Your business ideas and plans are stored securely and never shared with third parties. We use industry-standard encryption and comply with Austrian data protection laws.
+                  </p>
+                </div>
               </Card>
 
-              <Card className="p-6">
-                <div className="flex items-center mb-4">
-                  <Lock className="w-8 h-8 text-blue-600 mr-3" />
+              <Card className="p-8">
+                <div className="flex items-center mb-6">
+                  <div className="w-12 h-12 bg-blue-100 rounded-full flex items-center justify-center mr-4">
+                    <Lock className="w-6 h-6 text-blue-600" />
+                  </div>
                   <h3 className="text-xl font-semibold">{t('about.trust.independence')}</h3>
                 </div>
-                <p className="text-gray-600">
-                  {t('about.trust.independenceDescription')}
-                </p>
+                <div className="text-gray-600 text-justify leading-relaxed space-y-3">
+                  <p>
+                    {t('about.trust.independenceDescription')}
+                  </p>
+                </div>
               </Card>
             </div>
           </div>
 
           {/* Contact Support */}
           <div className="text-center mb-8">
-            <p className="text-gray-600 mb-4">
+            <p className="text-gray-600 mb-6 text-lg">
               {t('about.contact.support')}
             </p>
             <Link 
               href="/contact" 
-              className="inline-flex items-center gap-2 text-blue-600 hover:text-blue-800 font-medium"
+              className="inline-flex items-center gap-3 px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors font-medium shadow-lg hover:shadow-xl"
             >
-              <Mail className="w-4 h-4" />
-              Contact Support
+              <Mail className="w-5 h-5" />
+              {t('about.contact.button')}
+              <ArrowRight className="w-4 h-4" />
             </Link>
           </div>
 
