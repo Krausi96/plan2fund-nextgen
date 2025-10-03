@@ -24,26 +24,26 @@ export default function AboutPage() {
 
           {/* Mission & Vision */}
           <div className="max-w-6xl mx-auto grid md:grid-cols-2 gap-8 mb-16">
-            <Card className="p-8">
-              <div className="flex items-center mb-4">
-                <div className="w-12 h-12 bg-blue-100 rounded-full flex items-center justify-center mr-4">
-                  <Target className="w-6 h-6 text-blue-600" />
+            <Card className="p-8 hover:shadow-lg transition-shadow">
+              <div className="flex items-center mb-6">
+                <div className="w-16 h-16 bg-blue-100 rounded-full flex items-center justify-center mr-4 flex-shrink-0">
+                  <Target className="w-8 h-8 text-blue-600" />
                 </div>
-                <h2 className="text-2xl font-semibold">{t('about.mission.title')}</h2>
+                <h2 className="text-2xl font-semibold text-gray-900">{t('about.mission.title')}</h2>
               </div>
-              <p className="text-gray-600 text-justify leading-relaxed">
+              <p className="text-gray-600 leading-relaxed text-left">
                 {t('about.mission.description')}
               </p>
             </Card>
 
-            <Card className="p-8">
-              <div className="flex items-center mb-4">
-                <div className="w-12 h-12 bg-yellow-100 rounded-full flex items-center justify-center mr-4">
-                  <Lightbulb className="w-6 h-6 text-yellow-600" />
+            <Card className="p-8 hover:shadow-lg transition-shadow">
+              <div className="flex items-center mb-6">
+                <div className="w-16 h-16 bg-yellow-100 rounded-full flex items-center justify-center mr-4 flex-shrink-0">
+                  <Lightbulb className="w-8 h-8 text-yellow-600" />
                 </div>
-                <h2 className="text-2xl font-semibold">{t('about.vision.title')}</h2>
+                <h2 className="text-2xl font-semibold text-gray-900">{t('about.vision.title')}</h2>
               </div>
-              <p className="text-gray-600 text-justify leading-relaxed">
+              <p className="text-gray-600 leading-relaxed text-left">
                 {t('about.vision.description')}
               </p>
             </Card>
@@ -57,8 +57,8 @@ export default function AboutPage() {
                 <div className="w-16 h-16 bg-blue-100 rounded-full flex items-center justify-center mx-auto mb-6">
                   <Search className="w-8 h-8 text-blue-600" />
                 </div>
-                <h3 className="text-xl font-semibold mb-4 text-center">{t('about.features.smartMatching.title')}</h3>
-                <div className="text-gray-600 text-justify leading-relaxed space-y-3">
+                <h3 className="text-xl font-semibold mb-4 text-center text-gray-900">{t('about.features.smartMatching.title')}</h3>
+                <div className="text-gray-600 leading-relaxed text-left">
                   <p>
                     {t('about.features.smartMatching.description')}
                   </p>
@@ -69,8 +69,8 @@ export default function AboutPage() {
                 <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-6">
                   <FileText className="w-8 h-8 text-green-600" />
                 </div>
-                <h3 className="text-xl font-semibold mb-4 text-center">{t('about.features.professionalPlans.title')}</h3>
-                <div className="text-gray-600 text-justify leading-relaxed space-y-3">
+                <h3 className="text-xl font-semibold mb-4 text-center text-gray-900">{t('about.features.professionalPlans.title')}</h3>
+                <div className="text-gray-600 leading-relaxed text-left">
                   <p>
                     {t('about.features.professionalPlans.description')}
                   </p>
@@ -81,8 +81,8 @@ export default function AboutPage() {
                 <div className="w-16 h-16 bg-purple-100 rounded-full flex items-center justify-center mx-auto mb-6">
                   <BookOpen className="w-8 h-8 text-purple-600" />
                 </div>
-                <h3 className="text-xl font-semibold mb-4 text-center">{t('about.features.expertGuidance.title')}</h3>
-                <div className="text-gray-600 text-justify leading-relaxed space-y-3">
+                <h3 className="text-xl font-semibold mb-4 text-center text-gray-900">{t('about.features.expertGuidance.title')}</h3>
+                <div className="text-gray-600 leading-relaxed text-left">
                   <p>
                     {t('about.features.expertGuidance.description')}
                   </p>
@@ -93,66 +93,87 @@ export default function AboutPage() {
 
           {/* Founder Story */}
           <div className="mb-16">
-            <h2 className="text-3xl font-bold text-center mb-8">{t('about.founderStory.title')}</h2>
-            <div className="prose max-w-4xl mx-auto text-gray-600 text-justify leading-relaxed">
-              <p className="text-lg mb-6">
-                {t('about.founderStory.description')}
-              </p>
-              <p className="text-lg mb-6">
-                {t('about.founderStory.founder')}
-              </p>
+            <div className="max-w-6xl mx-auto">
+              <h2 className="text-3xl font-bold text-center mb-12">{t('about.founderStory.title')}</h2>
+              <div className="bg-gradient-to-r from-blue-50 to-indigo-50 rounded-2xl p-8 md:p-12">
+                <div className="max-w-4xl mx-auto">
+                  <div className="flex items-start mb-8">
+                    <div className="w-16 h-16 bg-blue-600 rounded-full flex items-center justify-center mr-6 flex-shrink-0">
+                      <span className="text-2xl">💡</span>
+                    </div>
+                    <div className="flex-1">
+                      <h3 className="text-xl font-semibold text-gray-900 mb-4">The Problem We Observed</h3>
+                      <p className="text-gray-700 leading-relaxed text-left">
+                        {t('about.founderStory.description')}
+                      </p>
+                    </div>
+                  </div>
+                  
+                  <div className="flex items-start">
+                    <div className="w-16 h-16 bg-green-600 rounded-full flex items-center justify-center mr-6 flex-shrink-0">
+                      <span className="text-2xl">🚀</span>
+                    </div>
+                    <div className="flex-1">
+                      <h3 className="text-xl font-semibold text-gray-900 mb-4">Our Solution</h3>
+                      <p className="text-gray-700 leading-relaxed text-left">
+                        {t('about.founderStory.founder')}
+                      </p>
+                    </div>
+                  </div>
+                </div>
+              </div>
             </div>
           </div>
 
           {/* Trust & Independence */}
           <div className="mb-16">
-            <h2 className="text-3xl font-bold text-center mb-8">{t('about.trust.title')}</h2>
+            <h2 className="text-3xl font-bold text-center mb-12">{t('about.trust.title')}</h2>
             <div className="max-w-7xl mx-auto grid md:grid-cols-3 gap-8">
-              <Card className="p-8">
+              <Card className="p-8 hover:shadow-lg transition-shadow">
                 <div className="flex items-center mb-6">
-                  <div className="w-12 h-12 bg-green-100 rounded-full flex items-center justify-center mr-4">
-                    <Shield className="w-6 h-6 text-green-600" />
+                  <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mr-4 flex-shrink-0">
+                    <Shield className="w-8 h-8 text-green-600" />
                   </div>
-                  <h3 className="text-xl font-semibold">{t('about.trust.security')}</h3>
+                  <h3 className="text-xl font-semibold text-gray-900">{t('about.trust.security')}</h3>
                 </div>
-                <div className="text-gray-600 text-justify leading-relaxed space-y-3">
+                <div className="text-gray-600 leading-relaxed space-y-4 text-left">
                   <p>
                     {t('about.trust.securityDescription')}
                   </p>
-                  <p className="text-sm text-gray-500 italic">
+                  <p className="text-sm text-gray-500 italic bg-gray-50 p-3 rounded-lg">
                     {t('about.trust.securityNote')}
                   </p>
                   <Link 
                     href="/privacy" 
-                    className="inline-block text-sm text-blue-600 hover:text-blue-800 underline"
+                    className="inline-block text-sm text-blue-600 hover:text-blue-800 underline font-medium"
                   >
                     {t('about.trust.dsgvoLink')}
                   </Link>
                 </div>
               </Card>
 
-              <Card className="p-8">
+              <Card className="p-8 hover:shadow-lg transition-shadow">
                 <div className="flex items-center mb-6">
-                  <div className="w-12 h-12 bg-blue-100 rounded-full flex items-center justify-center mr-4">
-                    <Scale className="w-6 h-6 text-blue-600" />
+                  <div className="w-16 h-16 bg-blue-100 rounded-full flex items-center justify-center mr-4 flex-shrink-0">
+                    <Scale className="w-8 h-8 text-blue-600" />
                   </div>
-                  <h3 className="text-xl font-semibold">{t('about.trust.independence')}</h3>
+                  <h3 className="text-xl font-semibold text-gray-900">{t('about.trust.independence')}</h3>
                 </div>
-                <div className="text-gray-600 text-justify leading-relaxed space-y-3">
+                <div className="text-gray-600 leading-relaxed text-left">
                   <p>
                     {t('about.trust.independenceDescription')}
                   </p>
                 </div>
               </Card>
 
-              <Card className="p-8">
+              <Card className="p-8 hover:shadow-lg transition-shadow">
                 <div className="flex items-center mb-6">
-                  <div className="w-12 h-12 bg-purple-100 rounded-full flex items-center justify-center mr-4">
-                    <Book className="w-6 h-6 text-purple-600" />
+                  <div className="w-16 h-16 bg-purple-100 rounded-full flex items-center justify-center mr-4 flex-shrink-0">
+                    <Book className="w-8 h-8 text-purple-600" />
                   </div>
-                  <h3 className="text-xl font-semibold">{t('about.trust.quality')}</h3>
+                  <h3 className="text-xl font-semibold text-gray-900">{t('about.trust.quality')}</h3>
                 </div>
-                <div className="text-gray-600 text-justify leading-relaxed space-y-3">
+                <div className="text-gray-600 leading-relaxed text-left">
                   <p>
                     {t('about.trust.qualityDescription')}
                   </p>
