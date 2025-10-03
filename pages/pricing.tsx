@@ -1,6 +1,5 @@
 ﻿import Link from "next/link";
 import { Button } from "@/components/ui/button";
-import HeroLite from "@/components/common/HeroLite";
 import CTAStrip from "@/components/common/CTAStrip";
 import SEOHead from "@/components/common/SEOHead";
 import { PricingDetails } from "@/components/common/PricingDetails";
@@ -8,6 +7,7 @@ import { useI18n } from "@/contexts/I18nContext";
 import { detectTargetGroup, TargetGroup } from "@/lib/targetGroupDetection";
 import { useState, useEffect } from "react";
 import { Tooltip } from "@/components/common/Tooltip";
+import { CheckCircle, Clock, Users, FileText, Download, Star, ArrowRight } from "lucide-react";
 
 const getPlans = () => [
   { 
@@ -134,161 +134,185 @@ export default function Pricing() {
     }
   };
 
+  const isPlanRecommended = (planId: string) => {
+    switch (targetGroup) {
+      case 'startups':
+        return planId === 'custom';
+      case 'sme':
+        return planId === 'review';
+      case 'advisors':
+        return planId === 'custom';
+      case 'universities':
+        return planId === 'custom';
+      default:
+        return false;
+    }
+  };
+
   return (
     <>
       <SEOHead pageKey="pricing" schema="faq" />
       
-      <main className="bg-white">
-        <HeroLite 
-          title={t('pricing.title')}
-          subtitle={t('pricing.subtitle')}
-        />
+      <main className="bg-gray-50">
+        {/* Hero Section */}
+        <section className="bg-white py-16 md:py-20">
+          <div className="max-w-4xl mx-auto px-4 text-center">
+            <h1 className="text-4xl md:text-5xl font-bold text-gray-900 mb-6">
+              {t('pricing.title')}
+            </h1>
+            <p className="text-xl text-gray-600 mb-8 max-w-3xl mx-auto">
+              {t('pricing.subtitle')}
+            </p>
+            
+            {/* Target Group Filter */}
+            <div className="flex flex-wrap justify-center gap-3 mb-8">
+              {[
+                { id: 'default', label: 'All', icon: '👥' },
+                { id: 'startups', label: 'Startups', icon: '🚀' },
+                { id: 'sme', label: 'SMEs', icon: '🏢' },
+                { id: 'advisors', label: 'Advisors', icon: '👨‍💼' },
+                { id: 'universities', label: 'Innovation Hubs', icon: '🎓' }
+              ].map((group) => (
+                <button
+                  key={group.id}
+                  onClick={() => setTargetGroup(group.id as TargetGroup)}
+                  className={`flex items-center gap-2 px-4 py-2 rounded-full text-sm font-medium transition-all ${
+                    targetGroup === group.id
+                      ? 'bg-blue-600 text-white shadow-lg'
+                      : 'bg-white text-gray-600 border border-gray-200 hover:border-blue-300'
+                  }`}
+                >
+                  <span>{group.icon}</span>
+                  <span>{group.label}</span>
+                </button>
+              ))}
+            </div>
+          </div>
+        </section>
 
         {/* Plans Section */}
-        <section id="plans" className="max-w-6xl mx-auto py-16 px-4">
-          <div className="text-center mb-12">
-            <h2 className="text-4xl font-bold text-neutral-900 mb-4">
-              Choose Your Plan
-            </h2>
-            <p className="text-lg text-neutral-600 max-w-3xl mx-auto">
-              {getPersonaMessage()}
-            </p>
-          </div>
-          
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 lg:gap-8">
-            <h1 className="sr-only">{t('pricing.title')}</h1>
-          {plans.map((plan, i) => (
-            <div key={i} className="rounded-2xl border-2 shadow-sm p-8 bg-white hover:shadow-xl hover:border-blue-300 hover:-translate-y-2 transition-all duration-300 group">
-              {/* Header with icon and pricing */}
-              <div className="mb-6">
-                <div className="flex items-center mb-4">
-                  <div className="w-12 h-12 rounded-xl bg-blue-50 flex items-center justify-center mr-4 group-hover:bg-blue-100 transition-colors">
-                    <span className="text-2xl">{plan.icon}</span>
-                  </div>
-                  <div>
-                    <h2 className="text-xl font-bold text-gray-900">{plan.title.split(' — ')[0]}</h2>
-                    <p className="text-sm text-gray-500 font-medium">{plan.title.split(' — ')[1]}</p>
-                  </div>
-                </div>
-                <div className="text-center mb-4">
-                  <p className="text-3xl font-bold text-blue-600">{plan.price}</p>
-                  <p className="text-gray-600 mt-2">{plan.desc}</p>
-                </div>
-              </div>
-              
-              {/* Key features */}
-              <div className="mb-6">
-                <h4 className="text-sm font-semibold text-gray-900 mb-3">Includes:</h4>
-                <ul className="space-y-2">
-                  {plan.features.map((f, j) => (
-                    <li key={j} className="flex items-start text-sm text-gray-600">
-                      <svg className="w-4 h-4 text-green-500 mr-3 mt-0.5 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
-                        <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
-                      </svg>
-                      <span className="leading-relaxed">{f}</span>
-                    </li>
-                  ))}
-                </ul>
-              </div>
-
-              {/* Route extras - only for review and custom */}
-              {plan.hasRouteExtras && plan.routeExtras && (
-                <div className="mb-6 p-4 bg-blue-50 rounded-xl border border-blue-200">
-                  <h4 className="text-sm font-semibold text-blue-900 mb-2">Document Pack (included when relevant):</h4>
-                  <div className="flex flex-wrap gap-1">
-                    {plan.routeExtras.map((extra, extraIndex) => (
-                      <span key={extraIndex} className="text-xs bg-blue-100 text-blue-800 px-2 py-1 rounded-full">
-                        {extra}
-                      </span>
-                    ))}
-                  </div>
-                </div>
-              )}
-
-              {/* Add-ons */}
-              {plan.addons && plan.addons.length > 0 && (
-                <div className="mb-6 p-4 bg-gray-50 rounded-xl border border-gray-200">
-                  <h4 className="text-sm font-semibold text-gray-900 mb-2">Available add-ons:</h4>
-                  <div className="space-y-1">
-                    {plan.addons.map((addon, addonIndex) => (
-                      <div key={addonIndex} className="text-xs text-gray-600 flex items-center">
-                        <span className="w-1.5 h-1.5 bg-gray-400 rounded-full mr-2"></span>
-                        {addon}
-                      </div>
-                    ))}
-                  </div>
-                </div>
-              )}
-              
-              {/* Badges */}
-              <div className="flex flex-wrap gap-2 mb-4">
-                {plan.badges.map((badge, badgeIndex) => (
-                  <span key={badgeIndex} className="text-xs bg-blue-50 text-blue-700 px-3 py-1.5 rounded-full font-medium">
-                    {badge}
-                  </span>
-                ))}
-                {/* Persona-specific recommended badge */}
-                {((targetGroup === 'startups' && plan.id === 'custom') ||
-                  (targetGroup === 'sme' && plan.id === 'review') ||
-                  (targetGroup === 'advisors' && plan.id === 'custom') ||
-                  (targetGroup === 'universities' && plan.id === 'custom')) && (
-                  <span className="text-xs bg-green-100 text-green-700 px-3 py-1.5 rounded-full font-medium">
-                    Recommended
-                  </span>
-                )}
-              </div>
-              
-              {/* Note for review plan */}
-              {plan.note && (
-                <div className="mb-4 p-3 bg-yellow-50 border border-yellow-200 rounded-lg">
-                  <p className="text-xs text-yellow-800 font-medium">{plan.note}</p>
-                </div>
-              )}
-              
-              {/* Route Selection for Custom Plan */}
-              {plan.mode === 'custom' && (
-                <div className="mb-4">
-                  <h4 className="text-sm font-semibold text-gray-900 mb-2">Choose your route:</h4>
-                  <div className="grid grid-cols-2 gap-2">
-                    <Link href={`/editor?product=custom&route=grant`} className="block">
-                      <Button variant={targetGroup === 'universities' ? "primary" : "outline"} className="w-full py-2 text-sm">
-                        Grant
-                      </Button>
-                    </Link>
-                    <Link href={`/editor?product=custom&route=bank`} className="block">
-                      <Button variant={targetGroup === 'sme' ? "primary" : "outline"} className="w-full py-2 text-sm">
-                        Bank
-                      </Button>
-                    </Link>
-                    <Link href={`/editor?product=custom&route=equity`} className="block">
-                      <Button variant={targetGroup === 'startups' ? "primary" : "outline"} className="w-full py-2 text-sm">
-                        Equity
-                      </Button>
-                    </Link>
-                    <Link href={`/editor?product=custom&route=visa`} className="block">
-                      <Button variant="outline" className="w-full py-2 text-sm">
-                        Visa
-                      </Button>
-                    </Link>
-                  </div>
-                </div>
-              )}
-
-              {/* Action Button */}
-              <div className="mt-6 space-y-2">
-                <Link href={`/editor?product=${plan.id}&route=${getDefaultRoute()}`} className="block">
-                  <Button className="w-full py-3 text-base font-semibold group-hover:shadow-lg transition-all duration-300">
-                    {plan.cta}
-                  </Button>
-                </Link>
-                <Link href={`/checkout?product=${plan.id}&route=${getDefaultRoute()}`} className="block">
-                  <Button variant="outline" className="w-full py-2 text-sm">
-                    View Pricing Details
-                  </Button>
-                </Link>
-              </div>
+        <section className="py-16 bg-gray-50">
+          <div className="max-w-7xl mx-auto px-4">
+            <div className="text-center mb-12">
+              <h2 className="text-3xl font-bold text-gray-900 mb-4">
+                Choose Your Plan
+              </h2>
+              <p className="text-lg text-gray-600 max-w-2xl mx-auto">
+                {getPersonaMessage()}
+              </p>
             </div>
-          ))}
+
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+              {plans.map((plan) => (
+                <div key={plan.id} className={`relative bg-white rounded-2xl border-2 shadow-lg hover:shadow-xl transition-all duration-300 overflow-hidden ${
+                  isPlanRecommended(plan.id) ? 'border-blue-500 ring-2 ring-blue-100' : 'border-gray-200'
+                }`}>
+                  {/* Recommended Badge */}
+                  {isPlanRecommended(plan.id) && (
+                    <div className="absolute top-0 right-0 bg-blue-600 text-white px-4 py-2 text-sm font-semibold rounded-bl-lg flex items-center gap-1">
+                      <Star className="w-4 h-4" />
+                      Recommended
+                    </div>
+                  )}
+
+                  <div className="p-8">
+                    {/* Header */}
+                    <div className="text-center mb-8">
+                      <div className="text-5xl mb-4">{plan.icon}</div>
+                      <h3 className="text-2xl font-bold text-gray-900 mb-2">{plan.title}</h3>
+                      <div className="text-4xl font-bold text-blue-600 mb-4">{plan.price}</div>
+                      
+                      {/* Target Audience */}
+                      <div className="bg-blue-50 rounded-lg p-4 mb-4">
+                        <h4 className="font-semibold text-blue-900 mb-2 flex items-center gap-2">
+                          <Users className="w-4 h-4" />
+                          Perfect for:
+                        </h4>
+                        <p className="text-sm text-blue-800">{plan.desc}</p>
+                      </div>
+                    </div>
+
+                    {/* What You Provide */}
+                    <div className="mb-6">
+                      <h4 className="font-semibold text-gray-900 mb-3 flex items-center gap-2">
+                        <FileText className="w-4 h-4 text-green-600" />
+                        What you provide:
+                      </h4>
+                      <p className="text-sm text-gray-600 bg-green-50 p-3 rounded-lg">
+                        {plan.id === 'strategy' && "Your idea, goals, and any market notes (optional)"}
+                        {plan.id === 'review' && "Your existing draft text and latest numbers"}
+                        {plan.id === 'custom' && "Model summary, basic numbers, and target route (if known)"}
+                      </p>
+                    </div>
+
+                    {/* What You Get */}
+                    <div className="mb-6">
+                      <h4 className="font-semibold text-gray-900 mb-3 flex items-center gap-2">
+                        <CheckCircle className="w-4 h-4 text-blue-600" />
+                        What you get:
+                      </h4>
+                      <div className="space-y-2">
+                        {plan.features.slice(0, 4).map((feature, idx) => (
+                          <div key={idx} className="flex items-start text-sm">
+                            <CheckCircle className="w-4 h-4 text-green-500 mr-3 mt-0.5 flex-shrink-0" />
+                            <span className="text-gray-700">{feature}</span>
+                          </div>
+                        ))}
+                        {plan.features.length > 4 && (
+                          <div className="text-sm text-gray-500 italic">
+                            + {plan.features.length - 4} more features
+                          </div>
+                        )}
+                      </div>
+                    </div>
+
+                    {/* Documents Included */}
+                    <div className="mb-6">
+                      <h4 className="font-semibold text-gray-900 mb-3 flex items-center gap-2">
+                        <Download className="w-4 h-4 text-purple-600" />
+                        Documents included:
+                      </h4>
+                      <div className="flex flex-wrap gap-2">
+                        <span className="px-3 py-1 bg-purple-100 text-purple-800 text-xs rounded-full">PDF</span>
+                        <span className="px-3 py-1 bg-purple-100 text-purple-800 text-xs rounded-full">DOCX</span>
+                        <span className="px-3 py-1 bg-purple-100 text-purple-800 text-xs rounded-full">DE/EN</span>
+                        {plan.id === 'custom' && (
+                          <span className="px-3 py-1 bg-purple-100 text-purple-800 text-xs rounded-full">15-35 pages</span>
+                        )}
+                        {plan.id === 'strategy' && (
+                          <span className="px-3 py-1 bg-purple-100 text-purple-800 text-xs rounded-full">4-8 pages</span>
+                        )}
+                      </div>
+                    </div>
+
+                    {/* Add-ons */}
+                    {plan.addons && plan.addons.length > 0 && (
+                      <div className="mb-6 p-4 bg-orange-50 rounded-lg border border-orange-200">
+                        <h4 className="font-semibold text-orange-900 mb-2 flex items-center gap-2">
+                          <Clock className="w-4 h-4" />
+                          Optional Add-ons:
+                        </h4>
+                        <div className="space-y-1">
+                          {plan.addons.map((addon, idx) => (
+                            <div key={idx} className="text-sm text-orange-800">
+                              {addon}
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                    )}
+
+                    {/* CTA */}
+                    <Link href={`/editor?product=${plan.id}&route=${getDefaultRoute()}`} className="block">
+                      <Button className="w-full py-3 text-base font-semibold bg-blue-600 hover:bg-blue-700 flex items-center justify-center gap-2">
+                        {plan.cta}
+                        <ArrowRight className="w-4 h-4" />
+                      </Button>
+                    </Link>
+                  </div>
+                </div>
+              ))}
+            </div>
           </div>
         </section>
 
