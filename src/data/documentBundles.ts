@@ -1,10 +1,12 @@
 // ========= PLAN2FUND — DOCUMENT BUNDLES =========
 // Structured mapping of documents by product and funding type
+// Now uses BASIS PACK as single source of truth
 
 import { DocumentDescription, getDocumentById } from './documentDescriptions';
+import { getFundingPack, type Product, type FundingType, type TargetGroup } from './basisPack';
 
-export type Product = 'strategy' | 'review' | 'submission';
-export type FundingType = 'grants' | 'bankLoans' | 'equity' | 'visa';
+// Re-export types from basisPack for backward compatibility
+export type { Product, FundingType };
 
 export interface DocumentBundle {
   product: Product;
@@ -153,4 +155,34 @@ export function getProductsForFundingType(fundingType: FundingType): Product[] {
   return Object.keys(documentBundles).filter(product => 
     documentBundles[product as Product][fundingType]
   ) as Product[];
+}
+
+// ========= BASIS PACK INTEGRATION =========
+// New functions that use BASIS PACK as single source of truth
+
+// Get document bundle from BASIS PACK
+export function getBasisPackBundle(
+  targetGroup: TargetGroup,
+  fundingType: FundingType,
+  product: Product
+): DocumentBundle | null {
+  const fundingPack = getFundingPack(targetGroup, fundingType, product);
+  if (!fundingPack) return null;
+  
+  return {
+    product: fundingPack.product,
+    fundingType: fundingPack.fundingType,
+    documents: fundingPack.included,
+    description: fundingPack.description,
+    i18nKey: `bundles.${product}.${fundingType}`
+  };
+}
+
+// Get all funding packs for a target group
+export function getFundingPacksForTargetGroup(_targetGroup: TargetGroup) {
+  return Object.values(documentBundles).flat().filter(_bundle => {
+    // This would need to be enhanced to filter by target group
+    // For now, return all bundles
+    return true;
+  });
 }

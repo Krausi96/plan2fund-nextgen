@@ -1,5 +1,7 @@
 import rawPrograms from "../../data/programs.json";
 import { Program, UserAnswers, ScoredProgram } from "../types";
+import { dataSource } from "./dataSource";
+import { doctorDiagnostic } from "./doctorDiagnostic";
 
 // Eligibility trace interface
 export interface EligibilityTrace {
@@ -36,6 +38,11 @@ export interface EnhancedProgramResult extends ScoredProgram {
   founderFriendlyReasons?: string[];
   founderFriendlyRisks?: string[];
   trace?: EligibilityTrace;
+  // Doctor diagnostic fields
+  diagnosis?: string;
+  diagnosisConfidence?: number;
+  diagnosisReasoning?: string;
+  nextQuestions?: string[];
 }
 
 export function normalizeAnswers(answers: UserAnswers): UserAnswers {
@@ -360,22 +367,34 @@ function calculateTimelineFit(_answers: UserAnswers, signals: DerivedSignals): n
 }
 
 // Enhanced scoring with detailed explanations and trace generation
-export function scoreProgramsEnhanced(
+export async function scoreProgramsEnhanced(
   answers: UserAnswers,
   mode: "strict" | "explorer" = "strict"
-): EnhancedProgramResult[] {
+): Promise<EnhancedProgramResult[]> {
   try {
-    const source = rawPrograms.programs as any[];
+    // Use enhanced data source (combines static + scraped data)
+    const programs = await dataSource.getPrograms();
     const derivedSignals = deriveSignals(answers);
     
-    const normalizedPrograms: Program[] = source.map((p) => ({
+    // Use doctor diagnostic for better matching
+    const symptoms = doctorDiagnostic.analyzeSymptoms(answers);
+    const diagnosis = await doctorDiagnostic.makeDiagnosis(symptoms);
+    
+    // Filter programs based on diagnosis if confidence is high
+    let filteredPrograms = programs;
+    if (diagnosis.confidence > 0.7) {
+      filteredPrograms = diagnosis.programs;
+    }
+    
+    const normalizedPrograms: Program[] = filteredPrograms.map((p) => ({
       id: p.id,
-      name: p.title || p.name || p.id,
-      type: Array.isArray(p.tags) && p.tags.length > 0 ? p.tags[0] : (p.type || "program"),
-      requirements: convertOverlaysToRequirements(p.overlays || []),
+      name: p.name || p.id,
+      type: p.type || "program",
+      requirements: p.requirements || {},
       notes: undefined,
       maxAmount: undefined,
       link: undefined,
+      // Add enhanced fields
     }));
 
     return normalizedPrograms.map((program) => {
@@ -548,7 +567,12 @@ export function scoreProgramsEnhanced(
         fallbackGaps: gaps.map(g => g.description),
         founderFriendlyReasons,
         founderFriendlyRisks,
-        trace // Add trace information
+        trace, // Add trace information
+        // Add doctor diagnostic information
+        diagnosis: diagnosis.primary,
+        diagnosisConfidence: diagnosis.confidence,
+        diagnosisReasoning: diagnosis.reasoning,
+        nextQuestions: diagnosis.nextQuestions
       };
     }).sort((a, b) => b.score - a.score);
   } catch (error) {
@@ -813,7 +837,7 @@ function getProgramSuccessRate(program: Program): number {
 }
 
 // Analyze free-text description and normalize into structured answers
-export function analyzeFreeTextEnhanced(description: string): { normalized: UserAnswers; scored: EnhancedProgramResult[] } {
+export async function analyzeFreeTextEnhanced(description: string): Promise<{ normalized: UserAnswers; scored: EnhancedProgramResult[] }> {
   try {
     const normalized: UserAnswers = {};
     const lower = description.toLowerCase();
@@ -843,7 +867,7 @@ export function analyzeFreeTextEnhanced(description: string): { normalized: User
       normalized["stage"] = "Established";
     }
 
-    const scored = scoreProgramsEnhanced(normalized, "explorer");
+    const scored = await scoreProgramsEnhanced(normalized, "explorer");
     return { normalized, scored };
   } catch (error) {
     console.error('Free text analysis failed, using fallback:', error);
@@ -940,31 +964,6 @@ function generateEligibilityTrace(
   };
 }
 
-// Convert program overlays to requirements format
-function convertOverlaysToRequirements(overlays: any[]): Record<string, any> {
-  const requirements: Record<string, any> = {};
-  
-  for (const overlay of overlays) {
-    if (overlay.ask_if && overlay.decisiveness) {
-      // Extract question ID from ask_if condition
-      const match = overlay.ask_if.match(/answers\.(q\d+_\w+)/);
-      if (match) {
-        const questionId = match[1];
-        
-        // Convert condition to requirement based on decisiveness
-        if (overlay.decisiveness === 'HARD') {
-          // For hard rules, we'll evaluate the condition
-          requirements[questionId] = overlay.ask_if;
-        } else if (overlay.decisiveness === 'SOFT') {
-          // For soft rules, we'll use a more lenient evaluation
-          requirements[questionId] = overlay.ask_if;
-        }
-      }
-    }
-  }
-  
-  return requirements;
-}
 
 // Evaluate overlay conditions like "answers.q1_country in ['AT','EU']"
 function evaluateOverlayCondition(condition: string, answers: UserAnswers): {

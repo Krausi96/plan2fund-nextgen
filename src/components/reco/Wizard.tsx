@@ -54,7 +54,7 @@ export default function Wizard() {
       // Store answers for results page
       localStorage.setItem("userAnswers", JSON.stringify(answers));
       // Get recommendations using enhanced reco engine
-      const recommendations = scoreProgramsEnhanced(answers, "strict");
+      const recommendations = await scoreProgramsEnhanced(answers, "strict");
       localStorage.setItem("recoResults", JSON.stringify(recommendations));
       router.push("/results");
     } catch (err) {

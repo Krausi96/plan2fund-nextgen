@@ -66,8 +66,9 @@ export default function ResultsPage() {
         const parsedAnswers = JSON.parse(answers);
         setUserAnswers(parsedAnswers);
         // Get enhanced results using the wired engine
-        const enhancedResults = scoreProgramsEnhanced(parsedAnswers, "strict");
-        setResults(enhancedResults);
+        scoreProgramsEnhanced(parsedAnswers, "strict").then(enhancedResults => {
+          setResults(enhancedResults);
+        });
       }
     } catch (err) {
       console.error("Failed to parse results:", err);

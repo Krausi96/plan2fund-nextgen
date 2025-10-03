@@ -66,10 +66,10 @@ export async function loadTemplate(templateType: string): Promise<Template | nul
 /**
  * Prefill document state from user answers and program
  */
-export function prefillDocumentState(
+export async function prefillDocumentState(
   answers_v1: Record<string, any>,
   program: Program
-): Partial<DocumentState> {
+): Promise<Partial<DocumentState>> {
   const templateType = program.template || program.type;
   
   return {

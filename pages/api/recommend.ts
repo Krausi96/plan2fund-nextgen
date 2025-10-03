@@ -15,7 +15,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     await analytics.trackWizardStart(mode.toUpperCase() as 'STRICT' | 'EXPLORER');
 
     // Use enhanced scoring engine
-    const recommendations = scoreProgramsEnhanced(rawAnswers, mode);
+    const recommendations = await scoreProgramsEnhanced(rawAnswers, mode);
 
     // Track wizard completion
     await analytics.trackWizardComplete(rawAnswers, recommendations);

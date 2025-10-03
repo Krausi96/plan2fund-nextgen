@@ -3,6 +3,8 @@
  * Checks business plan compliance with program requirements
  */
 
+import { dataSource } from './dataSource';
+
 export interface ReadinessCheck {
   section: string;
   status: 'complete' | 'incomplete' | 'missing';
@@ -379,15 +381,35 @@ export const PROGRAM_REQUIREMENTS: { [key: string]: ProgramRequirements } = {
 /**
  * Get program requirements by type
  */
-export function getProgramRequirements(type: string): ProgramRequirements | null {
+export async function getProgramRequirements(type: string): Promise<ProgramRequirements | null> {
+  // Try to get from enhanced data source first
+  try {
+    const programs = await dataSource.getProgramsByType(type);
+    if (programs.length > 0) {
+      // Convert program to requirements format
+      const program = programs[0];
+      return {
+        id: program.id,
+        name: program.name,
+        type: program.type as any,
+        requirements: program.requirements || {},
+        eligibility: {},
+        scoring: {}
+      };
+    }
+  } catch (error) {
+    console.log('Could not get requirements from data source, using fallback');
+  }
+  
+  // Fallback to static requirements
   return PROGRAM_REQUIREMENTS[type] || null;
 }
 
 /**
  * Create readiness validator
  */
-export function createReadinessValidator(programType: string, planContent: Record<string, any>): ReadinessValidator | null {
-  const requirements = getProgramRequirements(programType);
+export async function createReadinessValidator(programType: string, planContent: Record<string, any>): Promise<ReadinessValidator | null> {
+  const requirements = await getProgramRequirements(programType);
   if (!requirements) {
     return null;
   }

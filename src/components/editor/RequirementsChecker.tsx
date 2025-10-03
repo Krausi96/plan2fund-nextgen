@@ -35,7 +35,7 @@ export default function RequirementsChecker({
   const performReadinessCheck = async () => {
     setIsLoading(true);
     try {
-      const validator = createReadinessValidator(programType, planContent);
+      const validator = await createReadinessValidator(programType, planContent);
       if (validator) {
         const results = await validator.performReadinessCheck();
         setChecks(results);

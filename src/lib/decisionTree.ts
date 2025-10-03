@@ -1,6 +1,8 @@
 // Decision Tree Logic for Recommendation Engine
 import { UserProfile } from '../types';
 import { scorePrograms } from './scoring';
+import { doctorDiagnostic } from './doctorDiagnostic';
+import { dataSource } from './dataSource';
 
 export interface DecisionTreeNode {
   id: string;
@@ -212,20 +214,30 @@ export class DecisionTreeEngine {
 
   public async processDecisionTree(answers: Record<string, any>, _currentNodeId: string = 'q1_country'): Promise<DecisionTreeResult> {
     try {
-      // Score programs based on current answers
-      const scoredPrograms = await scorePrograms({ answers });
+      // Use doctor diagnostic for better program matching
+      const symptoms = doctorDiagnostic.analyzeSymptoms(answers);
+      const diagnosis = await doctorDiagnostic.makeDiagnosis(symptoms);
       
-      // Filter programs based on decision tree path
-      const filteredPrograms = this.filterProgramsByPath(answers, scoredPrograms);
+      // Get programs from enhanced data source
+      const programs = await dataSource.getPrograms();
       
-      // Generate explanations
-      const explanations = this.generateExplanations(answers, filteredPrograms);
+      // Filter programs based on diagnosis if confidence is high
+      let filteredPrograms = programs;
+      if (diagnosis.confidence > 0.7) {
+        filteredPrograms = diagnosis.programs;
+      }
+      
+      // Score programs using enhanced engine
+      const scoredPrograms = await scorePrograms({ answers, programs: filteredPrograms });
+      
+      // Generate explanations with doctor reasoning
+      const explanations = this.generateExplanations(answers, scoredPrograms, diagnosis);
       
       // Check for gaps
-      const gaps = this.identifyGaps(answers, filteredPrograms);
+      const gaps = this.identifyGaps(answers, scoredPrograms);
       
       // Get fallback programs if no matches
-      const fallbackPrograms = filteredPrograms.length === 0 ? 
+      const fallbackPrograms = scoredPrograms.length === 0 ? 
         await this.getFallbackPrograms(answers) : [];
 
       return {
@@ -245,13 +257,8 @@ export class DecisionTreeEngine {
     }
   }
 
-  private filterProgramsByPath(_answers: Record<string, any>, programs: any[]): any[] {
-    // No filtering by program type since that's now an outcome, not input
-    // All programs are considered based on eligibility criteria
-    return programs;
-  }
 
-  private generateExplanations(_answers: Record<string, any>, programs: any[]): string[] {
+  private generateExplanations(_answers: Record<string, any>, programs: any[], diagnosis?: any): string[] {
     const explanations: string[] = [];
     
     if (programs.length === 0) {
@@ -260,6 +267,14 @@ export class DecisionTreeEngine {
     }
 
     explanations.push(`Found ${programs.length} programs that match your criteria.`);
+    
+    // Add doctor diagnostic reasoning
+    if (diagnosis) {
+      explanations.push(`Diagnosis: ${diagnosis.primary} (confidence: ${Math.round(diagnosis.confidence * 100)}%)`);
+      if (diagnosis.reasoning) {
+        explanations.push(diagnosis.reasoning);
+      }
+    }
 
     // Add specific explanations based on user profile
     if (this.userProfile) {

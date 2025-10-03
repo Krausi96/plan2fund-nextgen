@@ -9,6 +9,7 @@
     "scrape:ffg": "node program-scraper.js --source=ffg",
     "scrape:all": "node program-scraper.js --all",
     "test": "node test-scraper.js",
+    "quick-test": "node quick-test.js",
     "install-deps": "npm install"
   },
   "dependencies": {

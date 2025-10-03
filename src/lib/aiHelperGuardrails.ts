@@ -1,5 +1,6 @@
 // Enhanced AI Helper Guardrails - Integrates with existing system
 import rawPrograms from "../../data/programs.json";
+import { dataSource } from './dataSource';
 
 export interface AIHelperResponse {
   type: 'chips' | 'clarification' | 'redirect' | 'suggestion_ticket' | 'plan_assistance';
@@ -35,7 +36,16 @@ export class AIHelperGuardrails {
   private maxClarifications = 3;
 
   constructor() {
-    this.programs = rawPrograms.programs;
+    this.programs = rawPrograms.programs; // Fallback to static data
+  }
+
+  async initialize() {
+    try {
+      const programs = await dataSource.getPrograms();
+      this.programs = programs;
+    } catch (error) {
+      console.log('Could not load enhanced programs, using static fallback');
+    }
   }
 
   /**

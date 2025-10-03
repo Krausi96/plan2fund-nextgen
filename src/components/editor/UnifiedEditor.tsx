@@ -411,7 +411,7 @@ ${answers.business_description || '[Business Description]'}
 
   const loadPrograms = async () => {
     try {
-      const results = scoreProgramsEnhanced(currentAnswers, "strict");
+      const results = await scoreProgramsEnhanced(currentAnswers, "strict");
       setPrograms(results.slice(0, 10)); // Top 10 programs
       
       // Set first program as selected if none selected
@@ -452,7 +452,7 @@ ${answers.business_description || '[Business Description]'}
     setSearchQuery(query);
     
     try {
-      const results = scoreProgramsEnhanced(currentAnswers, "explorer");
+      const results = await scoreProgramsEnhanced(currentAnswers, "explorer");
       const transformedResults = results.slice(0, 10).map((result, index) => ({
         id: result.id || `result-${index}`,
         title: result.name || "Unknown Program",

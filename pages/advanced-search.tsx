@@ -3,8 +3,9 @@ import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import Link from 'next/link';
 import { motion } from 'framer-motion';
-import { aiChipParser, Chip } from '@/lib/aiChipParser';
+import { Chip } from '@/lib/aiChipParser';
 import { scoreProgramsEnhanced } from '@/lib/enhancedRecoEngine';
+import { advancedSearchDoctor } from '@/lib/advancedSearchDoctor';
 import { useI18n } from '@/contexts/I18nContext';
 
 export default function AdvancedSearch() {
@@ -25,29 +26,30 @@ export default function AdvancedSearch() {
     setLoading(true);
     
     try {
-      // Parse input into chips
-      const parsed = aiChipParser.parseInput(searchInput);
-      setChips(parsed.chips);
-      setClarifications(parsed.clarifications);
+      // Use doctor-like diagnostic for better parsing
+      const result = await advancedSearchDoctor.processFreeTextInput(searchInput);
+      
+      // Set chips and clarifications from doctor analysis
+      setChips(result.chips);
+      setClarifications(result.clarifications);
 
-      // Convert chips to answers format for recommendation engine
-      const answers = convertChipsToAnswers(parsed.chips);
-      
-      // Get recommendations using the same engine as wizard
-      const recommendations = scoreProgramsEnhanced(answers, "strict");
-      
-      // Store results in localStorage like wizard does
-      localStorage.setItem("recoResults", JSON.stringify(recommendations));
-      localStorage.setItem("userAnswers", JSON.stringify(answers));
-      
-      // Route to results page
-      window.location.href = "/results";
+      // If we have good confidence, proceed directly to results
+      if (result.diagnosis.confidence > 0.7) {
+        // Store results in localStorage like wizard does
+        localStorage.setItem("recoResults", JSON.stringify(result.recommendations));
+        localStorage.setItem("userAnswers", JSON.stringify(convertChipsToAnswers(result.chips)));
+        localStorage.setItem("diagnosis", JSON.stringify(result.diagnosis));
+        
+        // Route to results page
+        window.location.href = "/results";
+      }
 
       // Log analytics
-      console.log('Advanced Search Analytics:', {
+      console.log('Advanced Search Doctor Analytics:', {
         ai_help_opened: true,
-        chips_generated: parsed.chips.length,
-        clarifications_asked: parsed.clarifications.length,
+        chips_generated: result.chips.length,
+        clarifications_asked: result.clarifications.length,
+        diagnosis_confidence: result.diagnosis.confidence,
         advanced_search_run: 1
       });
 
@@ -58,10 +60,10 @@ export default function AdvancedSearch() {
     }
   };
 
-  const handleSkipClarifications = () => {
+  const handleSkipClarifications = async () => {
     // Proceed with current chips even if some required fields are missing
     const answers = convertChipsToAnswers(chips);
-    const recommendations = scoreProgramsEnhanced(answers, "explorer");
+    const recommendations = await scoreProgramsEnhanced(answers, "explorer");
     
     // Store results in localStorage like wizard does
     localStorage.setItem("recoResults", JSON.stringify(recommendations));
