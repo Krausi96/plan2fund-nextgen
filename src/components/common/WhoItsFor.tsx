@@ -1,5 +1,5 @@
 import { motion } from "framer-motion";
-import { CheckCircle } from "lucide-react";
+import { CheckCircle, Rocket, Building2, Users, GraduationCap } from "lucide-react";
 import { useI18n } from "@/contexts/I18nContext";
 
 interface WhoItsForProps {
@@ -39,7 +39,7 @@ export function WhoItsFor({ targetGroup = 'default' }: WhoItsForProps) {
         t("whoItsFor.soloEntrepreneurs.feature2"),
         t("whoItsFor.soloEntrepreneurs.feature3")
       ],
-      icon: "🚀",
+      icon: Rocket,
       color: "text-blue-600",
       bgColor: "bg-blue-50",
       iconBg: "bg-blue-100"
@@ -52,7 +52,7 @@ export function WhoItsFor({ targetGroup = 'default' }: WhoItsForProps) {
         t("whoItsFor.sme.feature2"),
         t("whoItsFor.sme.feature3")
       ],
-      icon: "✏️",
+      icon: Building2,
       color: "text-green-600",
       bgColor: "bg-green-50",
       iconBg: "bg-green-100",
@@ -66,7 +66,7 @@ export function WhoItsFor({ targetGroup = 'default' }: WhoItsForProps) {
         t("whoItsFor.advisors.feature2"),
         t("whoItsFor.advisors.feature3")
       ],
-      icon: "📋",
+      icon: Users,
       color: "text-purple-600",
       bgColor: "bg-purple-50",
       iconBg: "bg-purple-100",
@@ -80,7 +80,7 @@ export function WhoItsFor({ targetGroup = 'default' }: WhoItsForProps) {
         t("whoItsFor.universities.feature2"),
         t("whoItsFor.universities.feature3")
       ],
-      icon: "🎓",
+      icon: GraduationCap,
       color: "text-indigo-600",
       bgColor: "bg-indigo-50",
       iconBg: "bg-indigo-100",
@@ -137,7 +137,7 @@ export function WhoItsFor({ targetGroup = 'default' }: WhoItsForProps) {
                 {/* Header */}
                 <div className="mb-4 text-center">
                   <div className={`w-16 h-16 rounded-lg flex items-center justify-center mx-auto mb-3 shadow-sm group-hover:scale-110 transition-transform duration-300 ${persona.iconBg}`}>
-                    <span className="text-2xl">{persona.icon}</span>
+                    <persona.icon className={`w-8 h-8 ${persona.color}`} />
                   </div>
                   
                   <h3 className="text-lg font-bold text-neutral-900 mb-2 group-hover:text-blue-600 transition-colors duration-300 min-h-[2.5rem] flex items-center justify-center">
