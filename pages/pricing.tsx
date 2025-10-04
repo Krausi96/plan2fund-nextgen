@@ -6,7 +6,7 @@ import { useI18n } from "@/contexts/I18nContext";
 import { detectTargetGroup } from "@/lib/targetGroupDetection";
 import { useState, useEffect } from "react";
 import { 
-  ArrowRight,
+  ArrowRight, 
   ChevronDown,
   ChevronUp
 } from "lucide-react";
@@ -16,7 +16,6 @@ import { FilterTabContent } from "@/components/pricing/FilterTabContent";
 import { ProofSection } from "@/components/pricing/ProofSection";
 import { AddonsSection } from "@/components/pricing/AddonsSection";
 import { HowItWorksSection } from "@/components/pricing/HowItWorksSection";
-import { DocumentModal } from "@/components/pricing/DocumentModal";
 import { type Product, type FundingType, type TargetGroup } from "@/data/basisPack";
 
 // Core Products Data - Updated with new structure
@@ -316,8 +315,6 @@ export default function Pricing() {
   const [selectedFundingType, setSelectedFundingType] = useState<FundingType>('grants');
   const [selectedProduct, setSelectedProduct] = useState<Product>('strategy');
   const [activeTab, setActiveTab] = useState<'product' | 'funding' | 'target'>('product');
-  const [selectedDocument, setSelectedDocument] = useState<any>(null);
-  const [isModalOpen, setIsModalOpen] = useState(false);
   const [expandedProduct, setExpandedProduct] = useState<string | null>(null);
   
   useEffect(() => {
@@ -325,10 +322,6 @@ export default function Pricing() {
     setTargetGroup(mapTargetGroup(detection.targetGroup));
   }, []);
 
-  const handleDocumentClick = (document: any) => {
-    setSelectedDocument(document);
-    setIsModalOpen(true);
-  };
 
   const toggleExpanded = (productId: string) => {
     setExpandedProduct(expandedProduct === productId ? null : productId);
@@ -383,79 +376,98 @@ export default function Pricing() {
 
             <div className="grid grid-cols-1 md:grid-cols-3 gap-8 mb-16">
               {coreProducts.map((product) => (
-                <div key={product.id} className="bg-white rounded-2xl border-2 border-gray-200 shadow-lg hover:shadow-xl transition-all duration-300 p-8">
-                  <div className="text-center mb-6">
-                    <div className={`w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4 ${
-                      product.color === 'blue' ? 'bg-blue-100' :
-                      product.color === 'green' ? 'bg-green-100' :
-                      'bg-purple-100'
+                <div key={product.id} className="bg-white rounded-3xl border border-gray-100 shadow-xl hover:shadow-2xl transition-all duration-500 p-8 relative overflow-hidden group">
+                  <div className="text-center mb-8">
+                    <div className={`w-20 h-20 rounded-2xl flex items-center justify-center mx-auto mb-6 shadow-lg ${
+                      product.color === 'blue' ? 'bg-gradient-to-br from-blue-500 to-blue-600' :
+                      product.color === 'green' ? 'bg-gradient-to-br from-green-500 to-green-600' :
+                      'bg-gradient-to-br from-purple-500 to-purple-600'
                     }`}>
-                      <span className="text-3xl">{product.icon}</span>
+                      <span className="text-4xl text-white">{product.icon}</span>
                     </div>
-                    <h3 className="text-2xl font-bold text-gray-900 mb-2">{product.title}</h3>
-                    <div className="inline-flex items-center px-4 py-2 bg-gray-100 rounded-full mb-4">
-                      <span className="text-2xl font-bold text-gray-900">{product.price}</span>
-                      <span className="text-sm text-gray-500 ml-2">incl. VAT</span>
+                    <h3 className="text-3xl font-bold text-gray-900 mb-3">{product.title}</h3>
+                    <div className="inline-flex items-center px-6 py-3 bg-gradient-to-r from-gray-900 to-gray-800 text-white rounded-2xl mb-6 shadow-lg">
+                      <span className="text-3xl font-bold">{product.price}</span>
+                      <span className="text-sm opacity-80 ml-2">incl. VAT</span>
                     </div>
-                    <p className="text-gray-600 mb-4 text-sm font-medium">{product.bestFor}</p>
-                    <p className="text-sm text-gray-500 bg-gray-50 p-3 rounded-lg mb-4">{product.includes}</p>
+                    <p className="text-gray-700 mb-6 text-base font-medium leading-relaxed">{product.bestFor}</p>
+                    <div className="bg-gradient-to-r from-gray-50 to-gray-100 p-4 rounded-xl mb-6 border border-gray-200">
+                      <p className="text-sm text-gray-700 font-medium">{product.includes}</p>
+                    </div>
                     
                     {/* Document Details - Collapsible */}
                     <div className="text-left">
                       <button
                         onClick={() => toggleExpanded(product.id)}
-                        className="flex items-center justify-between w-full text-sm font-semibold text-gray-900 mb-3 hover:text-blue-600 transition-colors"
+                        className="flex items-center justify-between w-full text-base font-bold text-gray-900 mb-4 hover:text-blue-600 transition-colors group"
                       >
-                        <span>What you get:</span>
+                        <span className="flex items-center gap-2">
+                          <span className="w-2 h-2 bg-blue-500 rounded-full"></span>
+                          What you get:
+                        </span>
                         {expandedProduct === product.id ? (
-                          <ChevronUp className="w-4 h-4" />
+                          <ChevronUp className="w-5 h-5 group-hover:text-blue-600 transition-colors" />
                         ) : (
-                          <ChevronDown className="w-4 h-4" />
+                          <ChevronDown className="w-5 h-5 group-hover:text-blue-600 transition-colors" />
                         )}
                       </button>
                       
                       {expandedProduct === product.id && (
                         <div className="space-y-2">
                           {product.documents.map((doc, index) => (
-                            <button
+                            <Link
                               key={index}
-                              onClick={() => handleDocumentClick(doc)}
-                              className="w-full text-left text-xs text-gray-600 bg-gray-50 hover:bg-gray-100 p-3 rounded transition-colors"
+                              href={`/library?doc=${doc.id}`}
+                              className="block w-full text-left p-4 rounded-xl border border-gray-200 hover:border-blue-300 hover:shadow-md transition-all duration-300 group"
                             >
-                              <div className="font-medium text-gray-800 mb-1">{doc.name}</div>
-                              <div className="text-gray-600">{doc.description}</div>
-                              <div className="text-gray-500 mt-1 flex items-center gap-1">
-                                <span>Click for details</span>
-                                <ArrowRight className="w-3 h-3" />
+                              <div className="flex items-start justify-between">
+                                <div className="flex-1">
+                                  <div className="font-semibold text-gray-900 mb-2 group-hover:text-blue-600 transition-colors">{doc.name}</div>
+                                  <div className="text-sm text-gray-600 mb-3 leading-relaxed">{doc.description}</div>
+                                  <div className="flex items-center gap-2 text-xs text-blue-600 font-medium">
+                                    <span>View in Library</span>
+                                    <ArrowRight className="w-3 h-3 group-hover:translate-x-1 transition-transform" />
+                                  </div>
+                                </div>
+                                <div className="ml-4">
+                                  <div className="w-8 h-8 rounded-lg bg-blue-50 flex items-center justify-center group-hover:bg-blue-100 transition-colors">
+                                    <ArrowRight className="w-4 h-4 text-blue-600" />
+                                  </div>
+                                </div>
                               </div>
-                            </button>
+                            </Link>
                           ))}
                           
                           {/* Companion Docs for Submission Plan */}
                           {product.id === 'submission' && product.companionDocs && (
-                            <div className="mt-4">
-                              <h5 className="text-xs font-semibold text-gray-800 mb-3">Companion Docs (by funding type):</h5>
-                              <div className="space-y-3">
+                            <div className="mt-6">
+                              <h5 className="text-sm font-bold text-gray-900 mb-4 flex items-center gap-2">
+                                <span className="w-2 h-2 bg-purple-500 rounded-full"></span>
+                                Companion Docs (by funding type):
+                              </h5>
+                              <div className="space-y-4">
                                 {Object.entries(product.companionDocs).map(([type, docs]) => (
-                                  <div key={type} className="text-xs">
-                                    <div className="font-medium text-gray-700 capitalize mb-2 flex items-center gap-1">
-                                      <span className="text-lg">
+                                  <div key={type} className="space-y-2">
+                                    <div className="font-semibold text-gray-800 capitalize mb-3 flex items-center gap-2 text-sm">
+                                      <span className="text-xl">
                                         {type === 'grants' ? '🏛️' : 
                                          type === 'banks' ? '💰' : 
                                          type === 'investors' ? '💼' : '✈️'}
                                       </span>
                                       {type}:
                                     </div>
-                                    <div className="space-y-1 ml-6">
+                                    <div className="space-y-2 ml-6">
                                       {docs.map((doc, index) => (
-                                        <button
+                                        <Link
                                           key={index}
-                                          onClick={() => handleDocumentClick(doc)}
-                                          className="w-full text-left text-xs text-gray-600 bg-gray-50 hover:bg-gray-100 p-2 rounded transition-colors flex items-center justify-between"
+                                          href={`/library?doc=${doc.id}`}
+                                          className="block w-full text-left p-3 rounded-lg border border-gray-200 hover:border-purple-300 hover:shadow-sm transition-all duration-300 group"
                                         >
-                                          <span className="font-medium text-gray-800">{doc.name}</span>
-                                          <ArrowRight className="w-3 h-3 text-gray-400" />
-                                        </button>
+                                          <div className="flex items-center justify-between">
+                                            <span className="font-medium text-gray-800 text-sm group-hover:text-purple-600 transition-colors">{doc.name}</span>
+                                            <ArrowRight className="w-3 h-3 text-gray-400 group-hover:text-purple-600 group-hover:translate-x-1 transition-all" />
+                                          </div>
+                                        </Link>
                                       ))}
                                     </div>
                                   </div>
@@ -468,10 +480,14 @@ export default function Pricing() {
                     </div>
                   </div>
                   
-                  <Link href={`/editor?product=${product.id}`} className="block">
-                    <Button className="w-full py-3 text-base font-semibold bg-blue-600 hover:bg-blue-700 flex items-center justify-center gap-2">
-                      Start {product.title}
-                      <ArrowRight className="w-4 h-4" />
+                  <Link href={`/editor?product=${product.id}`} className="block mt-8">
+                    <Button className={`w-full py-4 text-lg font-bold rounded-2xl shadow-lg hover:shadow-xl transition-all duration-300 flex items-center justify-center gap-3 group ${
+                      product.color === 'blue' ? 'bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800' :
+                      product.color === 'green' ? 'bg-gradient-to-r from-green-600 to-green-700 hover:from-green-700 hover:to-green-800' :
+                      'bg-gradient-to-r from-purple-600 to-purple-700 hover:from-purple-700 hover:to-purple-800'
+                    }`}>
+                      <span>Start {product.title}</span>
+                      <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
                     </Button>
                   </Link>
                 </div>
@@ -546,12 +562,6 @@ export default function Pricing() {
         />
       </main>
 
-      {/* Document Modal */}
-      <DocumentModal
-        isOpen={isModalOpen}
-        onClose={() => setIsModalOpen(false)}
-        document={selectedDocument}
-      />
     </>
   );
 }
