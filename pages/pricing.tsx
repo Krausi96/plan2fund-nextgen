@@ -10,7 +10,9 @@ import {
   ChevronDown,
   ChevronUp
 } from "lucide-react";
-import { RequirementsMatrix } from "@/components/pricing/RequirementsMatrix";
+import { RequirementsDisplay } from "@/components/pricing/RequirementsDisplay";
+import { FilterTabs } from "@/components/pricing/FilterTabs";
+import { FilterTabContent } from "@/components/pricing/FilterTabContent";
 import { ProofSection } from "@/components/pricing/ProofSection";
 import { AddonsSection } from "@/components/pricing/AddonsSection";
 import { HowItWorksSection } from "@/components/pricing/HowItWorksSection";
@@ -116,10 +118,179 @@ const coreProducts = [
       }
     ],
     companionDocs: {
-      grants: ["Work Plan & Gantt", "Budget", "CVs", "Annex Guidance"],
-      banks: ["Financial Model", "Bank Summary", "Amortization", "Collateral Sheet"],
-      investors: ["Pitch Deck", "Teaser", "5y Model", "Cap Table"],
-      visa: ["Visa Plan", "Founder CV", "Evidence Checklist"]
+      grants: [
+        {
+          id: "workPlanGantt",
+          name: "Work Plan & Gantt",
+          description: "Show feasibility & timeline",
+          purpose: "Show feasibility & timeline.",
+          sections: ["Work packages", "milestones", "deliverables", "Gantt chart"],
+          inputs: "Project timeline, work packages, deliverables",
+          outputs: "DOCX + Gantt image",
+          limits: "High-level planning, not detailed project management",
+          formatHints: ["DOCX", "Gantt chart", "Project timeline"]
+        },
+        {
+          id: "budget",
+          name: "Budget",
+          description: "Detailed EU/AT cost breakdown",
+          purpose: "Detailed EU/AT cost breakdown.",
+          sections: ["Cost categories", "EU/AT compliance", "justification", "summary"],
+          inputs: "Project costs, EU/AT requirements",
+          outputs: "XLSX + PDF summary",
+          limits: "Cost estimates only, not audited financials",
+          formatHints: ["XLSX", "PDF summary", "EU/AT compliant"]
+        },
+        {
+          id: "cvs",
+          name: "CVs",
+          description: "Show team credibility",
+          purpose: "Show team credibility.",
+          sections: ["Professional experience", "relevant qualifications", "education", "achievements"],
+          inputs: "Team member details, qualifications",
+          outputs: "1–2 page DE/EN CVs (funding-compliant)",
+          limits: "Professional CVs only, not personal details",
+          formatHints: ["DOCX/PDF", "1-2 pages", "DE/EN versions"]
+        },
+        {
+          id: "annexGuidance",
+          name: "Annex Guidance",
+          description: "Step-by-step instructions on annexes you must attach",
+          purpose: "Step-by-step instructions on annexes you must attach.",
+          sections: ["Required annexes", "format requirements", "submission checklist", "deadlines"],
+          inputs: "Funding call requirements",
+          outputs: "1–2 page checklist",
+          limits: "Guidance only, not actual annexes",
+          formatHints: ["PDF", "1-2 page checklist", "Step-by-step"]
+        }
+      ],
+      banks: [
+        {
+          id: "financialModel",
+          name: "Financial Model",
+          description: "Show financial health, DSCR, and growth projections",
+          purpose: "Show financial health, DSCR, and growth projections.",
+          sections: ["3-5 year projections", "DSCR calculations", "cash flow", "key ratios"],
+          inputs: "Historical data, growth assumptions, cost structure",
+          outputs: "3–5y XLSX + charts",
+          limits: "Projections only, not audited statements",
+          formatHints: ["XLSX", "3-5 years", "Financial charts"]
+        },
+        {
+          id: "bankSummary",
+          name: "Bank Summary",
+          description: "Concise one-pager for credit officers",
+          purpose: "Concise one-pager for credit officers.",
+          sections: ["Executive summary", "key financials", "collateral", "risk assessment"],
+          inputs: "Business plan, financial model",
+          outputs: "PDF",
+          limits: "Summary only, not full application",
+          formatHints: ["PDF", "1 page", "Bank-ready format"]
+        },
+        {
+          id: "amortization",
+          name: "Amortization",
+          description: "Loan repayment schedule",
+          purpose: "Loan repayment schedule.",
+          sections: ["Payment schedule", "interest calculations", "principal reduction", "total cost"],
+          inputs: "Loan amount, interest rate, term",
+          outputs: "XLSX + PDF",
+          limits: "Standard calculations only",
+          formatHints: ["XLSX/PDF", "Payment schedule", "Bank format"]
+        },
+        {
+          id: "collateralSheet",
+          name: "Collateral Sheet",
+          description: "Assets available as security",
+          purpose: "Assets available as security.",
+          sections: ["Asset inventory", "valuation", "liquidity", "security ranking"],
+          inputs: "Asset details, valuations",
+          outputs: "PDF",
+          limits: "Asset list only, not valuations",
+          formatHints: ["PDF", "Asset inventory", "Security assessment"]
+        }
+      ],
+      investors: [
+        {
+          id: "pitchDeck",
+          name: "Pitch Deck",
+          description: "Slides for investor meetings",
+          purpose: "Slides for investor meetings.",
+          sections: ["Problem/solution", "market opportunity", "business model", "team", "financials", "ask"],
+          inputs: "Business plan, financial model",
+          outputs: "Slide text + structure, PDF/PPT export",
+          limits: "Presentation only, not full due diligence",
+          formatHints: ["PDF/PPT", "10-15 slides", "Investor format"]
+        },
+        {
+          id: "teaser",
+          name: "Teaser",
+          description: "One-page investment summary",
+          purpose: "One-page investment summary.",
+          sections: ["Company overview", "key metrics", "investment ask", "use of funds"],
+          inputs: "Business highlights, financials",
+          outputs: "PDF",
+          limits: "Summary only, not detailed analysis",
+          formatHints: ["PDF", "1 page", "Executive summary"]
+        },
+        {
+          id: "fiveYearModel",
+          name: "5y Model",
+          description: "Detailed financial projections",
+          purpose: "Detailed financial projections.",
+          sections: ["Revenue projections", "cost structure", "cash flow", "key metrics"],
+          inputs: "Business assumptions, market data",
+          outputs: "XLSX + charts",
+          limits: "Projections only, not guarantees",
+          formatHints: ["XLSX", "5 years", "Financial model"]
+        },
+        {
+          id: "capTable",
+          name: "Cap Table",
+          description: "Current and proposed ownership structure",
+          purpose: "Current and proposed ownership structure.",
+          sections: ["Current ownership", "investment rounds", "option pool", "post-money structure"],
+          inputs: "Current ownership, investment terms",
+          outputs: "XLSX + PDF",
+          limits: "Structure only, not legal documents",
+          formatHints: ["XLSX/PDF", "Ownership table", "Investment structure"]
+        }
+      ],
+      visa: [
+        {
+          id: "visaPlan",
+          name: "Visa Plan",
+          description: "Show economic benefit for Austria",
+          purpose: "Show economic benefit for Austria.",
+          sections: ["Economic impact", "job creation", "innovation", "Austria benefits"],
+          inputs: "Business details, job plans, economic projections",
+          outputs: "15–20 pages DE/EN",
+          limits: "Business case only, not legal advice",
+          formatHints: ["DOCX/PDF", "15-20 pages", "DE/EN versions"]
+        },
+        {
+          id: "founderCV",
+          name: "Founder CV",
+          description: "Professional CV for visa application",
+          purpose: "Professional CV for visa application.",
+          sections: ["Education", "work experience", "achievements", "Austria relevance"],
+          inputs: "Professional background, qualifications",
+          outputs: "2-3 page DE/EN CV",
+          limits: "Professional details only",
+          formatHints: ["DOCX/PDF", "2-3 pages", "Visa-compliant format"]
+        },
+        {
+          id: "evidenceChecklist",
+          name: "Evidence Checklist",
+          description: "Checklist of IDs, funds, proof of jobs",
+          purpose: "Checklist of IDs, funds, proof of jobs.",
+          sections: ["Required documents", "proof of funds", "job creation evidence", "timeline"],
+          inputs: "Personal documents, business evidence",
+          outputs: "1 page PDF",
+          limits: "Checklist only, not actual documents",
+          formatHints: ["PDF", "1 page", "Document checklist"]
+        }
+      ]
     },
     icon: "🚀",
     color: "purple"
@@ -137,49 +308,6 @@ const mapTargetGroup = (detectedGroup: string): TargetGroup => {
   }
 };
 
-// Funding Type Packages - Updated to match BASIS PACK
-const fundingTypes = [
-  {
-    id: "grants",
-    title: "Grants",
-    description: "Austrian & EU grant applications",
-    icon: "🏛️",
-    color: "green",
-    language: "German default, English toggle",
-    requirements: "Plan + work plan & budget + CVs/annexes (as per call)",
-    expertise: "AWS, FFG, Horizon Europe, Regional Grants"
-  },
-  {
-    id: "bankLoans", 
-    title: "Bank Loans",
-    description: "Austrian bank financing",
-    icon: "💰",
-    color: "blue", 
-    language: "German default",
-    requirements: "Plan + 3–5y model + ratios/repayment + collateral",
-    expertise: "Austrian Banking Standards, WKO Guidelines"
-  },
-  {
-    id: "equity",
-    title: "Equity Investment", 
-    description: "Venture capital & angel investors",
-    icon: "💼",
-    color: "purple",
-    language: "English default, German optional",
-    requirements: "Plan + teaser/deck + 5y model + cap table",
-    expertise: "Austrian/EU VC Landscape, Investment Standards"
-  },
-  {
-    id: "visa",
-    title: "Visa (RWR)",
-    description: "Red-White-Red visa applications", 
-    icon: "✈️",
-    color: "orange",
-    language: "English default, German toggle",
-    requirements: "Visa plan + CV + evidence checklist (capital, jobs, qualifications)",
-    expertise: "Austrian Immigration Law, AMS Requirements"
-  }
-];
 
 
 export default function Pricing() {
@@ -187,6 +315,7 @@ export default function Pricing() {
   const [targetGroup, setTargetGroup] = useState<TargetGroup>('startups');
   const [selectedFundingType, setSelectedFundingType] = useState<FundingType>('grants');
   const [selectedProduct, setSelectedProduct] = useState<Product>('strategy');
+  const [activeTab, setActiveTab] = useState<'product' | 'funding' | 'target'>('product');
   const [selectedDocument, setSelectedDocument] = useState<any>(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [expandedProduct, setExpandedProduct] = useState<string | null>(null);
@@ -203,6 +332,23 @@ export default function Pricing() {
 
   const toggleExpanded = (productId: string) => {
     setExpandedProduct(expandedProduct === productId ? null : productId);
+  };
+
+  const handleProductSelect = (product: Product) => {
+    setSelectedProduct(product);
+    // Auto-advance to funding tab after product selection
+    setActiveTab('funding');
+  };
+
+  const handleFundingSelect = (funding: FundingType) => {
+    setSelectedFundingType(funding);
+    // Auto-advance to target tab after funding selection
+    setActiveTab('target');
+  };
+
+  const handleTargetSelect = (target: TargetGroup) => {
+    setTargetGroup(target);
+    // Stay on target tab to allow changes
   };
 
   return (
@@ -288,12 +434,30 @@ export default function Pricing() {
                           {/* Companion Docs for Submission Plan */}
                           {product.id === 'submission' && product.companionDocs && (
                             <div className="mt-4">
-                              <h5 className="text-xs font-semibold text-gray-800 mb-2">Companion Docs (by funding type):</h5>
-                              <div className="space-y-1">
+                              <h5 className="text-xs font-semibold text-gray-800 mb-3">Companion Docs (by funding type):</h5>
+                              <div className="space-y-3">
                                 {Object.entries(product.companionDocs).map(([type, docs]) => (
                                   <div key={type} className="text-xs">
-                                    <span className="font-medium text-gray-700 capitalize">{type}:</span>
-                                    <span className="text-gray-600 ml-1">{docs.join(', ')}</span>
+                                    <div className="font-medium text-gray-700 capitalize mb-2 flex items-center gap-1">
+                                      <span className="text-lg">
+                                        {type === 'grants' ? '🏛️' : 
+                                         type === 'banks' ? '💰' : 
+                                         type === 'investors' ? '💼' : '✈️'}
+                                      </span>
+                                      {type}:
+                                    </div>
+                                    <div className="space-y-1 ml-6">
+                                      {docs.map((doc, index) => (
+                                        <button
+                                          key={index}
+                                          onClick={() => handleDocumentClick(doc)}
+                                          className="w-full text-left text-xs text-gray-600 bg-gray-50 hover:bg-gray-100 p-2 rounded transition-colors flex items-center justify-between"
+                                        >
+                                          <span className="font-medium text-gray-800">{doc.name}</span>
+                                          <ArrowRight className="w-3 h-3 text-gray-400" />
+                                        </button>
+                                      ))}
+                                    </div>
                                   </div>
                                 ))}
                               </div>
@@ -328,47 +492,30 @@ export default function Pricing() {
               </p>
             </div>
 
-            {/* Simplified Filters */}
-            <div className="flex flex-wrap justify-center gap-4 mb-8">
-              {/* Funding Type Filter */}
-              <div className="flex flex-wrap gap-2">
-                {fundingTypes.map((fundingType) => (
-                  <button
-                    key={fundingType.id}
-                    onClick={() => setSelectedFundingType(fundingType.id as FundingType)}
-                    className={`flex items-center gap-2 px-4 py-2 rounded-full text-sm font-medium transition-all ${
-                      selectedFundingType === fundingType.id
-                        ? 'bg-blue-600 text-white shadow-lg'
-                        : 'bg-white text-gray-600 border border-gray-200 hover:border-blue-300'
-                    }`}
-                  >
-                    <span className="text-lg">{fundingType.icon}</span>
-                    <span>{fundingType.title}</span>
-                  </button>
-                ))}
-              </div>
+            {/* Filter Tabs */}
+            <FilterTabs
+              activeTab={activeTab}
+              onTabChange={setActiveTab}
+              selectedProduct={selectedProduct}
+              selectedFunding={selectedFundingType}
+              selectedTarget={targetGroup}
+            />
 
-              {/* Product Filter */}
-              <div className="flex flex-wrap gap-2">
-                {coreProducts.map((product) => (
-                  <button
-                    key={product.id}
-                    onClick={() => setSelectedProduct(product.id as Product)}
-                    className={`flex items-center gap-2 px-4 py-2 rounded-full text-sm font-medium transition-all ${
-                      selectedProduct === product.id
-                        ? 'bg-blue-600 text-white shadow-lg'
-                        : 'bg-white text-gray-600 border border-gray-200 hover:border-blue-300'
-                    }`}
-                  >
-                    <span className="text-lg">{product.icon}</span>
-                    <span>{product.title}</span>
-                  </button>
-                ))}
-              </div>
+            {/* Tab Content */}
+            <div className="mb-8">
+              <FilterTabContent
+                activeTab={activeTab}
+                selectedProduct={selectedProduct}
+                selectedFunding={selectedFundingType}
+                selectedTarget={targetGroup}
+                onProductSelect={handleProductSelect}
+                onFundingSelect={handleFundingSelect}
+                onTargetSelect={handleTargetSelect}
+              />
             </div>
 
-            {/* Requirements Matrix */}
-            <RequirementsMatrix
+            {/* Requirements Display */}
+            <RequirementsDisplay
               targetGroup={targetGroup}
               fundingType={selectedFundingType}
               product={selectedProduct}
