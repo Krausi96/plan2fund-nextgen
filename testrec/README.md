@@ -70,3 +70,5 @@ npm run scrape:ffg
 ```
 
 This system will transform Plan2Fund from a static platform to a dynamic, AI-powered funding recommendation engine.
+
+

@@ -21,7 +21,27 @@ const coreProducts = [
     title: "Strategy Plan",
     price: "€99",
     bestFor: "Idea-stage founders exploring funding options",
-    includes: "Strategy brief, BMC and funding-fit summary — tailored to grants/bank/VC/visa",
+    includes: "3 documents: Strategy Brief (5-7 pages), Business Model Canvas, Funding Match Summary",
+    documents: [
+      {
+        name: "Strategy Brief",
+        description: "Core strategy document with Executive Summary, Problem & Solution, Target Market, Business Model, Financial Projections, and Funding Ask",
+        pages: "5-7 pages",
+        formats: "DOCX + PDF"
+      },
+      {
+        name: "Business Model Canvas", 
+        description: "Visual framework showing Value Propositions, Customer Segments, Revenue Streams, Key Resources, and Cost Structure",
+        pages: "1 page visual",
+        formats: "PDF"
+      },
+      {
+        name: "Funding Match Summary",
+        description: "Personalized funding recommendations with fit analysis and next steps for Austrian/EU funding landscape",
+        pages: "2-3 pages",
+        formats: "PDF"
+      }
+    ],
     icon: "💡",
     color: "blue"
   },
@@ -30,7 +50,27 @@ const coreProducts = [
     title: "Review Plan",
     price: "€149",
     bestFor: "Founders with a draft plan needing polish",
-    includes: "Line-by-line edits, reworked plan and funder-specific compliance checks",
+    includes: "3 documents: Annotated Draft, Revised Plan, Compliance Checklist",
+    documents: [
+      {
+        name: "Annotated Draft",
+        description: "Your existing plan with line-by-line comments, suggestions, and improvement notes",
+        pages: "Your original + comments",
+        formats: "DOCX with track changes"
+      },
+      {
+        name: "Revised Plan",
+        description: "Completely reworked plan incorporating all feedback and improvements",
+        pages: "5-30 pages (depending on original)",
+        formats: "DOCX + PDF"
+      },
+      {
+        name: "Compliance Checklist",
+        description: "Requirements verification checklist ensuring plan meets funding type requirements",
+        pages: "1 page interactive",
+        formats: "PDF"
+      }
+    ],
     icon: "✏️",
     color: "green"
   },
@@ -39,7 +79,39 @@ const coreProducts = [
     title: "Submission Plan", 
     price: "€199",
     bestFor: "Ready-to-apply founders",
-    includes: "Full submission bundle per funding type (plan + companion docs)",
+    includes: "5+ documents: Full Business Plan, Work Plan & Gantt, Budget Sheet, CVs, Annex Guidance",
+    documents: [
+      {
+        name: "Full Business Plan",
+        description: "Complete Austrian-style business plan with all sections: Executive Summary, Market Analysis, Go-to-Market Strategy, Team, Operations, Financials",
+        pages: "20-30 pages",
+        formats: "DOCX + PDF"
+      },
+      {
+        name: "Work Plan & Gantt Chart",
+        description: "Project timeline and deliverables for grant applications with visual Gantt chart",
+        pages: "5-10 pages + visual timeline",
+        formats: "DOCX + PDF + Gantt image"
+      },
+      {
+        name: "Budget Sheet",
+        description: "Detailed financial breakdown with EU cost categories and funding calculations",
+        pages: "2-3 pages",
+        formats: "Excel + PDF"
+      },
+      {
+        name: "Founder CVs",
+        description: "Professional CVs tailored to funding requirements with Austrian/EU format",
+        pages: "2-3 pages per founder",
+        formats: "DOCX + PDF"
+      },
+      {
+        name: "Annex Guidance",
+        description: "Step-by-step guide for additional documents you need to provide",
+        pages: "1-2 pages",
+        formats: "PDF"
+      }
+    ],
     icon: "📚",
     color: "purple"
   }
@@ -127,30 +199,6 @@ export default function Pricing() {
               Professional business plans tailored to Austrian/EU funding requirements. 
               Built specifically for the Austrian and EU funding landscape.
             </p>
-            
-            {/* Target Group Filter */}
-            <div className="flex flex-wrap justify-center gap-3 mb-8">
-              {[
-                { id: 'default', label: 'All', icon: '👥' },
-                { id: 'startups', label: 'Startups', icon: '🚀' },
-                { id: 'sme', label: 'SMEs', icon: '🏢' },
-                { id: 'advisors', label: 'Advisors', icon: '👨‍💼' },
-                { id: 'universities', label: 'Innovation Hubs', icon: '🎓' }
-              ].map((group) => (
-                <button
-                  key={group.id}
-                  onClick={() => setTargetGroup(group.id as TargetGroup)}
-                  className={`flex items-center gap-2 px-4 py-2 rounded-full text-sm font-medium transition-all ${
-                    targetGroup === group.id
-                      ? 'bg-blue-600 text-white shadow-lg'
-                      : 'bg-white text-gray-600 border border-gray-200 hover:border-blue-300'
-                  }`}
-                >
-                  <span className="text-lg">{group.icon}</span>
-                  <span>{group.label}</span>
-                </button>
-              ))}
-            </div>
           </div>
         </section>
 
@@ -180,7 +228,21 @@ export default function Pricing() {
                     <h3 className="text-2xl font-bold text-gray-900 mb-2">{product.title}</h3>
                     <div className="text-3xl font-bold text-blue-500 mb-4">{product.price}</div>
                     <p className="text-gray-600 mb-4">{product.bestFor}</p>
-                    <p className="text-sm text-gray-500 bg-gray-50 p-3 rounded-lg">{product.includes}</p>
+                    <p className="text-sm text-gray-500 bg-gray-50 p-3 rounded-lg mb-4">{product.includes}</p>
+                    
+                    {/* Document Details */}
+                    <div className="text-left">
+                      <h4 className="text-sm font-semibold text-gray-900 mb-3">What you get:</h4>
+                      <div className="space-y-2">
+                        {product.documents.map((doc, index) => (
+                          <div key={index} className="text-xs text-gray-600 bg-gray-50 p-2 rounded">
+                            <div className="font-medium text-gray-800">{doc.name}</div>
+                            <div className="text-gray-600">{doc.description}</div>
+                            <div className="text-gray-500 mt-1">{doc.pages} • {doc.formats}</div>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
                   </div>
                   
                   <Link href={`/editor?product=${product.id}`} className="block">
@@ -200,38 +262,15 @@ export default function Pricing() {
           <div className="max-w-7xl mx-auto px-4">
             <div className="text-center mb-12">
               <h2 className="text-3xl font-bold text-gray-900 mb-4">
-                What we create vs. what you provide
+                Document Requirements by Funding Type
               </h2>
               <p className="text-lg text-gray-600 max-w-3xl mx-auto">
-                See exactly what documents you get and what funders require for each funding type
+                See exactly what documents we create for you and what you need to provide for each funding type
               </p>
             </div>
 
-            {/* Filters */}
+            {/* Simplified Filters */}
             <div className="flex flex-wrap justify-center gap-4 mb-8">
-              {/* Target Group Filter */}
-                          <div className="flex flex-wrap gap-2">
-                {[
-                  { id: 'startups', label: 'Startups', icon: '🚀' },
-                  { id: 'sme', label: 'SMEs', icon: '🏢' },
-                  { id: 'advisors', label: 'Advisors', icon: '👨‍💼' },
-                  { id: 'universities', label: 'Innovation Hubs', icon: '🎓' }
-                ].map((group) => (
-                  <button
-                    key={group.id}
-                    onClick={() => setTargetGroup(group.id as TargetGroup)}
-                    className={`flex items-center gap-2 px-4 py-2 rounded-full text-sm font-medium transition-all ${
-                      targetGroup === group.id
-                        ? 'bg-blue-600 text-white shadow-lg'
-                        : 'bg-white text-gray-600 border border-gray-200 hover:border-blue-300'
-                    }`}
-                  >
-                    <span className="text-lg">{group.icon}</span>
-                    <span>{group.label}</span>
-                  </button>
-                ))}
-              </div>
-
               {/* Funding Type Filter */}
               <div className="flex flex-wrap gap-2">
                 {fundingTypes.map((fundingType) => (
