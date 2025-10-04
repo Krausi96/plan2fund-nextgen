@@ -380,15 +380,15 @@ export default function Pricing() {
                   <div className="text-center mb-8">
                     <div className={`w-20 h-20 rounded-2xl flex items-center justify-center mx-auto mb-6 shadow-lg ${
                       product.color === 'blue' ? 'bg-gradient-to-br from-blue-500 to-blue-600' :
-                      product.color === 'green' ? 'bg-gradient-to-br from-green-500 to-green-600' :
-                      'bg-gradient-to-br from-purple-500 to-purple-600'
+                      product.color === 'green' ? 'bg-gradient-to-br from-blue-400 to-blue-500' :
+                      'bg-gradient-to-br from-blue-600 to-blue-700'
                     }`}>
                       <span className="text-4xl text-white">{product.icon}</span>
                     </div>
                     <h3 className="text-3xl font-bold text-gray-900 mb-3">{product.title}</h3>
-                    <div className="inline-flex items-center px-6 py-3 bg-gradient-to-r from-gray-900 to-gray-800 text-white rounded-2xl mb-6 shadow-lg">
-                      <span className="text-3xl font-bold">{product.price}</span>
-                      <span className="text-sm opacity-80 ml-2">incl. VAT</span>
+                    <div className="inline-flex items-center px-8 py-4 bg-white border-2 border-black text-black rounded-2xl mb-6 shadow-lg">
+                      <span className="text-4xl font-black">{product.price}</span>
+                      <span className="text-sm font-medium ml-3">incl. VAT</span>
                     </div>
                     <p className="text-gray-700 mb-6 text-base font-medium leading-relaxed">{product.bestFor}</p>
                     <div className="bg-gradient-to-r from-gray-50 to-gray-100 p-4 rounded-xl mb-6 border border-gray-200">
@@ -483,8 +483,8 @@ export default function Pricing() {
                   <Link href={`/editor?product=${product.id}`} className="block mt-8">
                     <Button className={`w-full py-4 text-lg font-bold rounded-2xl shadow-lg hover:shadow-xl transition-all duration-300 flex items-center justify-center gap-3 group ${
                       product.color === 'blue' ? 'bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800' :
-                      product.color === 'green' ? 'bg-gradient-to-r from-green-600 to-green-700 hover:from-green-700 hover:to-green-800' :
-                      'bg-gradient-to-r from-purple-600 to-purple-700 hover:from-purple-700 hover:to-purple-800'
+                      product.color === 'green' ? 'bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700' :
+                      'bg-gradient-to-r from-blue-700 to-blue-800 hover:from-blue-800 hover:to-blue-900'
                     }`}>
                       <span>Start {product.title}</span>
                       <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />

@@ -1,7 +1,5 @@
-import React, { useState, useEffect } from 'react';
-import { useRouter } from 'next/router';
+import React from 'react';
 import SEOHead from '@/components/common/SEOHead';
-import { DocumentModal } from '@/components/pricing/DocumentModal';
 import { ArrowLeft, FileText, CheckCircle } from 'lucide-react';
 import Link from 'next/link';
 
@@ -248,30 +246,7 @@ const documentLibrary = {
 };
 
 export default function Library() {
-  const router = useRouter();
-  const [selectedDocument, setSelectedDocument] = useState<any>(null);
-  const [isModalOpen, setIsModalOpen] = useState(false);
 
-  useEffect(() => {
-    const { doc } = router.query;
-    if (doc && typeof doc === 'string' && documentLibrary[doc as keyof typeof documentLibrary]) {
-      const document = documentLibrary[doc as keyof typeof documentLibrary];
-      setSelectedDocument(document);
-      setIsModalOpen(true);
-    }
-  }, [router.query]);
-
-  const handleDocumentClick = (document: any) => {
-    setSelectedDocument(document);
-    setIsModalOpen(true);
-  };
-
-  const closeModal = () => {
-    setIsModalOpen(false);
-    setSelectedDocument(null);
-    // Update URL to remove doc parameter
-    router.push('/library', undefined, { shallow: true });
-  };
 
   // Group documents by category
   const documentCategories = {
@@ -323,9 +298,8 @@ export default function Library() {
                       if (!doc) return null;
                       
                       return (
-                        <button
+                        <div
                           key={docId}
-                          onClick={() => handleDocumentClick(doc)}
                           className="text-left p-6 bg-white rounded-xl border border-gray-200 hover:border-blue-300 hover:shadow-lg transition-all duration-300 group"
                         >
                           <div className="flex items-start justify-between mb-3">
@@ -341,7 +315,7 @@ export default function Library() {
                             <span>View Details</span>
                             <ArrowLeft className="w-3 h-3 rotate-180 group-hover:translate-x-1 transition-transform" />
                           </div>
-                        </button>
+                        </div>
                       );
                     })}
                   </div>
@@ -351,12 +325,6 @@ export default function Library() {
           </div>
         </section>
 
-        {/* Document Modal */}
-        <DocumentModal
-          isOpen={isModalOpen}
-          onClose={closeModal}
-          document={selectedDocument}
-        />
       </main>
     </>
   );
