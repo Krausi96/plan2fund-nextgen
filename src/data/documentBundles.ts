@@ -22,29 +22,29 @@ export const documentBundles: Record<Product, Record<FundingType, DocumentBundle
     grants: {
       product: 'strategy',
       fundingType: 'grants',
-      documents: ['strategyBrief', 'businessModelCanvas', 'fundingMatchSummary'],
-      description: '3 documents: Strategy brief, Business Model Canvas, and funding recommendations',
+      documents: ['businessModelCanvas', 'goToMarketStrategy', 'fundingMatchSummary'],
+      description: '3 documents: Business Model Canvas, Go-to-Market Strategy, and Funding Fit Summary',
       i18nKey: 'bundles.strategy.grants'
     },
     bankLoans: {
       product: 'strategy',
       fundingType: 'bankLoans',
-      documents: ['loanBrief', 'fundingMatchSummary'],
-      description: '2 documents: Loan-focused strategy brief and funding recommendations',
+      documents: ['businessModelCanvas', 'goToMarketStrategy', 'fundingMatchSummary'],
+      description: '3 documents: Business Model Canvas, Go-to-Market Strategy, and Funding Fit Summary',
       i18nKey: 'bundles.strategy.bankLoans'
     },
     equity: {
       product: 'strategy',
       fundingType: 'equity',
-      documents: ['investorBrief', 'investorTeaserOnePager', 'fundingMatchSummary'],
-      description: '3 documents: Investor positioning brief, one-pager teaser, and funding recommendations',
+      documents: ['businessModelCanvas', 'goToMarketStrategy', 'fundingMatchSummary'],
+      description: '3 documents: Business Model Canvas, Go-to-Market Strategy, and Funding Fit Summary',
       i18nKey: 'bundles.strategy.equity'
     },
     visa: {
       product: 'strategy',
       fundingType: 'visa',
-      documents: ['visaBrief', 'fundingMatchSummary'],
-      description: '2 documents: Visa-focused strategy brief and funding recommendations',
+      documents: ['businessModelCanvas', 'goToMarketStrategy', 'fundingMatchSummary'],
+      description: '3 documents: Business Model Canvas, Go-to-Market Strategy, and Funding Fit Summary',
       i18nKey: 'bundles.strategy.visa'
     }
   },
@@ -52,29 +52,29 @@ export const documentBundles: Record<Product, Record<FundingType, DocumentBundle
     grants: {
       product: 'review',
       fundingType: 'grants',
-      documents: ['annotatedDraft', 'revisedPlan', 'complianceChecklist'],
-      description: '3-4 documents: Annotated draft, revised plan, and compliance checklist',
+      documents: ['reviewedBusinessPlan', 'complianceNotes'],
+      description: '2 documents: Reviewed & Revised Business Plan and Compliance Notes',
       i18nKey: 'bundles.review.grants'
     },
     bankLoans: {
       product: 'review',
       fundingType: 'bankLoans',
-      documents: ['annotatedDraft', 'revisedPlan', 'ratiosCheck'],
-      description: '3-4 documents: Annotated draft, revised plan, and financial ratios check',
+      documents: ['reviewedBusinessPlan', 'complianceNotes'],
+      description: '2 documents: Reviewed & Revised Business Plan and Compliance Notes',
       i18nKey: 'bundles.review.bankLoans'
     },
     equity: {
       product: 'review',
       fundingType: 'equity',
-      documents: ['annotatedDraft', 'revisedPlan', 'capTableCheck'],
-      description: '3-4 documents: Annotated draft, revised plan, and cap table review',
+      documents: ['reviewedBusinessPlan', 'complianceNotes'],
+      description: '2 documents: Reviewed & Revised Business Plan and Compliance Notes',
       i18nKey: 'bundles.review.equity'
     },
     visa: {
       product: 'review',
       fundingType: 'visa',
-      documents: ['annotatedDraft', 'revisedPlan'],
-      description: '2-3 documents: Annotated draft and revised visa plan',
+      documents: ['reviewedBusinessPlan', 'complianceNotes'],
+      description: '2 documents: Reviewed & Revised Business Plan and Compliance Notes',
       i18nKey: 'bundles.review.visa'
     }
   },

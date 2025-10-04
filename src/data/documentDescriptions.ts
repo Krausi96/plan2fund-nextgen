@@ -14,13 +14,13 @@ export interface DocumentDescription {
 
 export const documentDescriptions: Record<string, DocumentDescription> = {
   // Strategy Documents
-  strategyBrief: {
-    id: 'strategyBrief',
-    title: 'Strategy Brief',
-    short: 'Lean strategy brief (5–7 pages)',
-    details: 'Comprehensive strategy document covering business model, market analysis, and funding direction. Includes executive summary, problem/solution fit, target market, and initial financial projections.',
-    formatHints: ['PDF/DOCX', '5-7 pages', 'German/English'],
-    i18nKey: 'documents.strategyBrief',
+  goToMarketStrategy: {
+    id: 'goToMarketStrategy',
+    title: 'Go-to-Market Strategy',
+    short: 'First traction roadmap & customer acquisition plan',
+    details: 'Strategic document explaining how you reach first customers and prove traction. Covers ideal customer profile, positioning, marketing channels, first sales steps, and 6-12 month traction goals.',
+    formatHints: ['DOCX/PDF', '2-3 pages', 'Strategic roadmap'],
+    i18nKey: 'documents.goToMarketStrategy',
     category: 'strategy',
     fundingTypes: ['grants', 'bankLoans', 'equity', 'visa']
   },
@@ -86,33 +86,23 @@ export const documentDescriptions: Record<string, DocumentDescription> = {
   },
 
   // Review Documents
-  annotatedDraft: {
-    id: 'annotatedDraft',
-    title: 'Annotated Draft',
-    short: 'Line-by-line feedback on your draft',
-    details: 'Your existing business plan with detailed annotations, suggestions, and improvements marked throughout. Includes specific recommendations for each section.',
-    formatHints: ['PDF/DOCX', 'Tracked changes', 'Detailed comments'],
-    i18nKey: 'documents.annotatedDraft',
+  reviewedBusinessPlan: {
+    id: 'reviewedBusinessPlan',
+    title: 'Reviewed & Revised Business Plan',
+    short: 'Fixed, restructured, and clean version of your draft',
+    details: 'Professional, funder-ready business plan with tracked changes showing improvements and a clean final version. Restructured for better flow and compliance with funding requirements.',
+    formatHints: ['DOCX/PDF', 'Clean version + tracked changes', 'Professional formatting'],
+    i18nKey: 'documents.reviewedBusinessPlan',
     category: 'review',
     fundingTypes: ['grants', 'bankLoans', 'equity', 'visa']
   },
-  revisedPlan: {
-    id: 'revisedPlan',
-    title: 'Revised Business Plan',
-    short: 'Improved and restructured plan',
-    details: 'Completely revised business plan incorporating all feedback and improvements. Restructured for better flow and compliance with funding requirements.',
-    formatHints: ['PDF/DOCX', 'Clean version', 'Professional formatting'],
-    i18nKey: 'documents.revisedPlan',
-    category: 'review',
-    fundingTypes: ['grants', 'bankLoans', 'equity', 'visa']
-  },
-  complianceChecklist: {
-    id: 'complianceChecklist',
-    title: 'Compliance Checklist',
-    short: 'Requirements verification checklist',
-    details: 'Detailed checklist ensuring your plan meets all specific requirements for your chosen funding type, with specific section and format checks.',
-    formatHints: ['PDF', 'Interactive checklist', 'Actionable items'],
-    i18nKey: 'documents.complianceChecklist',
+  complianceNotes: {
+    id: 'complianceNotes',
+    title: 'Compliance Notes',
+    short: 'Short checklist showing how your plan aligns with funder requirements',
+    details: 'Concise checklist showing your plan\'s alignment with specific funding criteria including page-limit checks, mandatory headings (grants), DSCR/ratios (banks), cap table/traction (investors), and RWR criteria (visa).',
+    formatHints: ['PDF', '1-2 page appendix', 'Funder-specific checks'],
+    i18nKey: 'documents.complianceNotes',
     category: 'review',
     fundingTypes: ['grants', 'bankLoans', 'equity', 'visa']
   },
