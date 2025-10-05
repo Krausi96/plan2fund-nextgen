@@ -49,10 +49,10 @@ export default function Pricing() {
 const coreProducts = [
   {
     id: "strategy",
-    title: "Strategy Plan",
+      title: t('pricing.products.strategy.title'),
     price: "€99",
       bestFor: t('pricing.strategy.bestFor'),
-      includes: "Business Model Canvas, Go-to-Market Strategy, Funding Fit Summary",
+      includes: t('pricing.includes.strategy'),
       documents: [
         {
           id: "businessModelCanvas",
@@ -93,10 +93,10 @@ const coreProducts = [
   },
   {
     id: "review", 
-    title: "Review Plan",
+      title: t('pricing.products.review.title'),
     price: "€149",
       bestFor: t('pricing.review.bestFor'),
-      includes: "Reviewed & Revised Business Plan, Compliance Notes",
+      includes: t('pricing.includes.review'),
       documents: [
         {
           id: "reviewedBusinessPlan",
@@ -126,10 +126,10 @@ const coreProducts = [
   },
   {
     id: "submission",
-    title: "Submission Plan", 
+      title: t('pricing.products.submission.title'),
     price: "€199",
       bestFor: t('pricing.submission.bestFor'),
-      includes: "Full Business Plan + Companion Docs (by funding type)",
+      includes: t('pricing.includes.submission'),
       documents: [
         {
           id: "businessPlan",
@@ -328,6 +328,19 @@ const coreProducts = [
     setExpandedProduct(expandedProduct === productId ? null : productId);
   };
 
+  const getButtonText = (productId: string) => {
+    switch (productId) {
+      case 'strategy':
+        return t('pricing.buttons.startStrategy');
+      case 'review':
+        return t('pricing.buttons.startReview');
+      case 'submission':
+        return t('pricing.buttons.startSubmission');
+      default:
+        return `Start ${productId}`;
+    }
+  };
+
   const handleProductSelect = (product: Product) => {
     setSelectedProduct(product);
     // Auto-advance to funding tab after product selection
@@ -388,13 +401,13 @@ const coreProducts = [
                     <h3 className="text-3xl font-bold text-gray-900 mb-3">{product.title}</h3>
                     <div className="inline-flex items-center px-8 py-4 bg-white border-2 border-black text-black rounded-2xl mb-6 shadow-lg">
                       <span className="text-4xl font-black">{product.price}</span>
-                      <span className="text-sm font-medium ml-3">incl. VAT</span>
-                    </div>
+                      <span className="text-sm font-medium ml-3">{t('pricing.labels.inclVat')}</span>
+                  </div>
                     <p className="text-gray-700 mb-6 text-base font-medium leading-relaxed">{product.bestFor}</p>
                     <div className="bg-gradient-to-r from-gray-50 to-gray-100 p-4 rounded-xl mb-6 border border-gray-200">
                       <p className="text-sm text-gray-700 font-medium">{product.includes}</p>
-                    </div>
-                    
+            </div>
+
                     {/* Document Details - Collapsible */}
                     <div className="text-left">
                       <button
@@ -403,7 +416,7 @@ const coreProducts = [
                       >
                         <span className="flex items-center gap-2">
                           <span className="w-2 h-2 bg-blue-500 rounded-full"></span>
-                          What you get:
+                          {t('pricing.labels.whatYouGet')}
                         </span>
                         {expandedProduct === product.id ? (
                           <ChevronUp className="w-5 h-5 group-hover:text-blue-600 transition-colors" />
@@ -425,9 +438,9 @@ const coreProducts = [
                                   <div className="font-semibold text-gray-900 mb-2 group-hover:text-blue-600 transition-colors">{doc.name}</div>
                                   <div className="text-sm text-gray-600 mb-3 leading-relaxed">{doc.description}</div>
                                   <div className="flex items-center gap-2 text-xs text-blue-600 font-medium">
-                                    <span>View in Library</span>
+                                    <span>{t('pricing.buttons.viewLibrary')}</span>
                                     <ArrowRight className="w-3 h-3 group-hover:translate-x-1 transition-transform" />
-                                  </div>
+                    </div>
                     </div>
                                 <div className="ml-4">
                                   <div className="w-8 h-8 rounded-lg bg-blue-50 flex items-center justify-center group-hover:bg-blue-100 transition-colors">
@@ -443,9 +456,9 @@ const coreProducts = [
                             <div className="mt-6">
                               <h5 className="text-sm font-bold text-gray-900 mb-4 flex items-center gap-2">
                                 <span className="w-2 h-2 bg-purple-500 rounded-full"></span>
-                                Companion Docs (by funding type):
+                                {t('pricing.labels.companionDocs')}
                               </h5>
-                              <div className="space-y-4">
+                  <div className="space-y-4">
                                 {Object.entries(product.companionDocs).map(([type, docs]) => (
                                   <div key={type} className="space-y-2">
                                     <div className="font-semibold text-gray-800 capitalize mb-3 flex items-center gap-2 text-sm">
@@ -453,7 +466,7 @@ const coreProducts = [
                                         {type === 'grants' ? '🏛️' : 
                                          type === 'banks' ? '💰' : 
                                          type === 'investors' ? '💼' : '✈️'}
-                                      </span>
+                            </span>
                                       {type}:
                                     </div>
                                     <div className="space-y-2 ml-6">
@@ -466,27 +479,27 @@ const coreProducts = [
                                           <div className="flex items-center justify-between">
                                             <span className="font-medium text-gray-800 text-sm group-hover:text-purple-600 transition-colors">{doc.name}</span>
                                             <ArrowRight className="w-3 h-3 text-gray-400 group-hover:text-purple-600 group-hover:translate-x-1 transition-all" />
-                                          </div>
+                          </div>
                                         </Link>
                                       ))}
-                                    </div>
-                                  </div>
-                                ))}
-                              </div>
-                            </div>
-                          )}
-                        </div>
-                      )}
-                    </div>
                   </div>
-                  
+                </div>
+              ))}
+            </div>
+          </div>
+                          )}
+            </div>
+                      )}
+              </div>
+            </div>
+
                   <Link href={`/editor?product=${product.id}`} className="block mt-8">
                     <Button className={`w-full py-4 text-lg font-bold rounded-2xl shadow-lg hover:shadow-xl transition-all duration-300 flex items-center justify-center gap-3 group ${
                       product.color === 'blue' ? 'bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800' :
                       product.color === 'green' ? 'bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700' :
                       'bg-gradient-to-r from-blue-700 to-blue-800 hover:from-blue-800 hover:to-blue-900'
                     }`}>
-                      <span>Start {product.title}</span>
+                      <span>{getButtonText(product.id)}</span>
                       <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
                     </Button>
                   </Link>
@@ -528,7 +541,7 @@ const coreProducts = [
                 onFundingSelect={handleFundingSelect}
                 onTargetSelect={handleTargetSelect}
               />
-            </div>
+                  </div>
 
             {/* Requirements Display */}
             <RequirementsDisplay
