@@ -1,6 +1,12 @@
 // GPT-Enhanced API endpoint for testing new features
 import { NextApiRequest, NextApiResponse } from 'next';
-import { dataSource } from '../../src/lib/dataSource';
+import { Pool } from 'pg';
+
+// Database connection
+const pool = new Pool({
+  connectionString: process.env.DATABASE_URL,
+  ssl: process.env.NODE_ENV === 'production' ? { rejectUnauthorized: false } : false
+});
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   if (req.method !== 'GET') {
@@ -13,7 +19,32 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     switch (action) {
       case 'programs':
         // Get all GPT-enhanced programs
-        const programs = await dataSource.getGPTEnhancedPrograms();
+        const result = await pool.query(`
+          SELECT id, name, description, program_type, funding_amount_min, funding_amount_max, 
+                 source_url, deadline, is_active, scraped_at,
+                 target_personas, tags, decision_tree_questions, 
+                 editor_sections, readiness_criteria, ai_guidance
+          FROM programs 
+          WHERE is_active = true
+          ORDER BY scraped_at DESC
+        `);
+        
+        const programs = result.rows.map(row => ({
+          id: row.id,
+          name: row.name,
+          type: row.program_type,
+          requirements: {},
+          notes: row.description,
+          maxAmount: row.funding_amount_max,
+          link: row.source_url,
+          target_personas: row.target_personas ? JSON.parse(row.target_personas) : [],
+          tags: row.tags ? JSON.parse(row.tags) : [],
+          decision_tree_questions: row.decision_tree_questions ? JSON.parse(row.decision_tree_questions) : [],
+          editor_sections: row.editor_sections ? JSON.parse(row.editor_sections) : [],
+          readiness_criteria: row.readiness_criteria ? JSON.parse(row.readiness_criteria) : [],
+          ai_guidance: row.ai_guidance ? JSON.parse(row.ai_guidance) : null
+        }));
+        
         return res.status(200).json({
           success: true,
           data: programs,
@@ -22,11 +53,19 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         });
 
       case 'questions':
-        // Get decision tree questions for a specific program
         if (!programId) {
           return res.status(400).json({ error: 'programId is required for questions action' });
         }
-        const questions = await dataSource.getDecisionTreeQuestions(programId as string);
+        const questionsResult = await pool.query(`
+          SELECT decision_tree_questions 
+          FROM programs 
+          WHERE id = $1 AND is_active = true
+        `, [programId]);
+        
+        const questions = questionsResult.rows.length > 0 && questionsResult.rows[0].decision_tree_questions 
+          ? JSON.parse(questionsResult.rows[0].decision_tree_questions) 
+          : [];
+        
         return res.status(200).json({
           success: true,
           data: questions,
@@ -35,11 +74,19 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         });
 
       case 'sections':
-        // Get editor sections for a specific program
         if (!programId) {
           return res.status(400).json({ error: 'programId is required for sections action' });
         }
-        const sections = await dataSource.getEditorSections(programId as string);
+        const sectionsResult = await pool.query(`
+          SELECT editor_sections 
+          FROM programs 
+          WHERE id = $1 AND is_active = true
+        `, [programId]);
+        
+        const sections = sectionsResult.rows.length > 0 && sectionsResult.rows[0].editor_sections 
+          ? JSON.parse(sectionsResult.rows[0].editor_sections) 
+          : [];
+        
         return res.status(200).json({
           success: true,
           data: sections,
@@ -48,11 +95,19 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         });
 
       case 'criteria':
-        // Get readiness criteria for a specific program
         if (!programId) {
           return res.status(400).json({ error: 'programId is required for criteria action' });
         }
-        const criteria = await dataSource.getReadinessCriteria(programId as string);
+        const criteriaResult = await pool.query(`
+          SELECT readiness_criteria 
+          FROM programs 
+          WHERE id = $1 AND is_active = true
+        `, [programId]);
+        
+        const criteria = criteriaResult.rows.length > 0 && criteriaResult.rows[0].readiness_criteria 
+          ? JSON.parse(criteriaResult.rows[0].readiness_criteria) 
+          : [];
+        
         return res.status(200).json({
           success: true,
           data: criteria,
@@ -61,11 +116,19 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         });
 
       case 'guidance':
-        // Get AI guidance for a specific program
         if (!programId) {
           return res.status(400).json({ error: 'programId is required for guidance action' });
         }
-        const guidance = await dataSource.getAIGuidance(programId as string);
+        const guidanceResult = await pool.query(`
+          SELECT ai_guidance 
+          FROM programs 
+          WHERE id = $1 AND is_active = true
+        `, [programId]);
+        
+        const guidance = guidanceResult.rows.length > 0 && guidanceResult.rows[0].ai_guidance 
+          ? JSON.parse(guidanceResult.rows[0].ai_guidance) 
+          : null;
+        
         return res.status(200).json({
           success: true,
           data: guidance,
