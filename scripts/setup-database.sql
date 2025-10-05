@@ -1,7 +1,7 @@
 -- Plan2Fund Database Schema for Neon
 -- Run this in your Neon SQL editor
 
--- Create programs table
+-- Create programs table with GPT enhancements
 CREATE TABLE IF NOT EXISTS programs (
   id VARCHAR(255) PRIMARY KEY,
   name VARCHAR(500) NOT NULL,
@@ -17,7 +17,14 @@ CREATE TABLE IF NOT EXISTS programs (
   source_url VARCHAR(500),
   scraped_at TIMESTAMP DEFAULT NOW(),
   confidence_score FLOAT DEFAULT 1.0,
-  is_active BOOLEAN DEFAULT true
+  is_active BOOLEAN DEFAULT true,
+  -- GPT-Recommended Enhancements:
+  target_personas JSONB, -- ["solo", "sme", "startup", "researcher"]
+  tags JSONB, -- ["innovation", "startup", "non-dilutive", "biotech"]
+  decision_tree_questions JSONB, -- Generated questions for wizard
+  editor_sections JSONB, -- Program-specific business plan sections
+  readiness_criteria JSONB, -- Automated compliance checks
+  ai_guidance JSONB -- AI assistant context and prompts
 );
 
 -- Create program_requirements table
@@ -51,10 +58,44 @@ CREATE INDEX IF NOT EXISTS idx_programs_scraped_at ON programs(scraped_at);
 CREATE INDEX IF NOT EXISTS idx_requirements_program_id ON program_requirements(program_id);
 CREATE INDEX IF NOT EXISTS idx_rubrics_program_id ON rubrics(program_id);
 
--- Insert some sample data for testing
-INSERT INTO programs (id, name, description, program_type, funding_amount_min, funding_amount_max, source_url, scraped_at) VALUES
-('aws_preseed_sample', 'AWS Preseed - Sample Program', 'Sample AWS Preseed program for testing', 'grant', 50000, 200000, 'https://aws.at/preseed', NOW()),
-('ffg_basis_sample', 'FFG Basis - Sample Program', 'Sample FFG Basis program for testing', 'grant', 25000, 100000, 'https://ffg.at/basis', NOW())
+-- Insert sample data with GPT enhancements
+INSERT INTO programs (
+  id, name, description, program_type, funding_amount_min, funding_amount_max, 
+  source_url, scraped_at, target_personas, tags, decision_tree_questions, 
+  editor_sections, readiness_criteria, ai_guidance
+) VALUES
+(
+  'aws_preseed_sample', 
+  'AWS Preseed - Sample Program', 
+  'Sample AWS Preseed program for testing', 
+  'grant', 
+  50000, 
+  200000, 
+  'https://aws.at/preseed', 
+  NOW(),
+  '["startup", "solo"]',
+  '["innovation", "startup", "non-dilutive"]',
+  '[{"id": "q_company_stage", "question": "What is your company stage?", "type": "single", "options": [{"value": "PRE_COMPANY", "label": "Just an idea or team forming"}, {"value": "INC_LT_6M", "label": "Recently started (less than 6 months)"}]}]',
+  '[{"id": "executive_summary", "title": "Executive Summary", "required": true, "template": "Our innovative project [PROJECT_NAME] seeks [FUNDING_AMOUNT] in funding to [PROJECT_GOAL].", "guidance": "Keep concise but compelling. Highlight innovation and impact."}]',
+  '[{"id": "criterion_1", "title": "Company Stage Eligibility", "description": "Verify company is within 6 months of registration", "checkType": "validation", "weight": 1.0}]',
+  '{"context": "AWS Preseed program focuses on innovative startups", "tone": "professional", "key_points": ["innovation", "market potential", "team expertise"]}'
+),
+(
+  'ffg_basis_sample', 
+  'FFG Basis - Sample Program', 
+  'Sample FFG Basis program for testing', 
+  'grant', 
+  25000, 
+  100000, 
+  'https://ffg.at/basis', 
+  NOW(),
+  '["sme", "researcher"]',
+  '["research", "innovation", "academic"]',
+  '[{"id": "q_research_focus", "question": "What is your research focus area?", "type": "single", "options": [{"value": "TECH", "label": "Technology and Engineering"}, {"value": "BIO", "label": "Biotechnology and Life Sciences"}]}]',
+  '[{"id": "project_description", "title": "Project Description", "required": true, "template": "This research project [PROJECT_NAME] aims to [RESEARCH_GOAL] through [METHODOLOGY].", "guidance": "Include technical details and implementation approach."}]',
+  '[{"id": "criterion_1", "title": "Research Innovation", "description": "Verify project demonstrates scientific innovation", "checkType": "content_analysis", "weight": 0.8}]',
+  '{"context": "FFG Basis program supports fundamental research", "tone": "academic", "key_points": ["scientific merit", "innovation", "feasibility"]}'
+)
 ON CONFLICT (id) DO NOTHING;
 
 -- Insert sample requirements

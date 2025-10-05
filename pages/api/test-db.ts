@@ -1,7 +1,7 @@
 import { NextApiRequest, NextApiResponse } from 'next';
 import { DatabaseService } from '../../src/lib/database';
 
-export default async function handler(req: NextApiRequest, res: NextApiResponse) {
+export default async function handler(_req: NextApiRequest, res: NextApiResponse) {
   // Temporary: Use hardcoded URL for testing
   const originalUrl = process.env.DATABASE_URL;
   if (!originalUrl) {

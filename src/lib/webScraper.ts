@@ -1,4 +1,4 @@
-import puppeteer from 'puppeteer';
+import puppeteer, { Browser, Page } from 'puppeteer';
 import * as cheerio from 'cheerio';
 
 export interface ScrapedProgram {
@@ -19,7 +19,7 @@ export interface ScrapedProgram {
 }
 
 export class WebScraperService {
-  private browser: puppeteer.Browser | null = null;
+  private browser: Browser | null = null;
 
   async init() {
     this.browser = await puppeteer.launch({
@@ -61,7 +61,7 @@ export class WebScraperService {
     return programs;
   }
 
-  private async scrapeAWSPrograms(page: puppeteer.Page): Promise<ScrapedProgram[]> {
+  private async scrapeAWSPrograms(page: Page): Promise<ScrapedProgram[]> {
     const programs = [];
     
     try {
@@ -82,7 +82,7 @@ export class WebScraperService {
     return programs;
   }
 
-  private async scrapeFFGPrograms(page: puppeteer.Page): Promise<ScrapedProgram[]> {
+  private async scrapeFFGPrograms(page: Page): Promise<ScrapedProgram[]> {
     const programs = [];
     
     try {
@@ -98,7 +98,7 @@ export class WebScraperService {
     return programs;
   }
 
-  private async extractAWSProgram(page: puppeteer.Page, type: string): Promise<ScrapedProgram | null> {
+  private async extractAWSProgram(page: Page, type: string): Promise<ScrapedProgram | null> {
     const content = await page.content();
     const $ = cheerio.load(content);
 
@@ -143,7 +143,7 @@ export class WebScraperService {
     };
   }
 
-  private async extractFFGProgram(page: puppeteer.Page, type: string): Promise<ScrapedProgram | null> {
+  private async extractFFGProgram(page: Page, type: string): Promise<ScrapedProgram | null> {
     const content = await page.content();
     const $ = cheerio.load(content);
 

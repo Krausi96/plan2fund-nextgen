@@ -1,8 +1,8 @@
-# Plan2Fund Web Scraper Implementation Guide
+# Plan2Fund Web Scraper Implementation Guide - GPT-Enhanced
 
 ## Quick Start Implementation
 
-This guide provides step-by-step instructions for implementing the web scraper integration with Plan2Fund.
+This guide provides step-by-step instructions for implementing the web scraper integration with Plan2Fund, incorporating GPT's comprehensive recommendations for an AI-powered, intelligence-driven platform.
 
 ## Prerequisites
 
@@ -11,12 +11,12 @@ This guide provides step-by-step instructions for implementing the web scraper i
 - Redis instance (Upstash Redis recommended)
 - Existing Plan2Fund codebase
 
-## Phase 1: Database Setup (Day 1-2)
+## Phase 1: Database Setup (Day 1-2) - GPT-Enhanced
 
-### 1.1 Create Database Schema
+### 1.1 Create Enhanced Database Schema (GPT-Recommended)
 
 ```sql
--- Create programs table
+-- Create programs table with GPT enhancements
 CREATE TABLE programs (
   id VARCHAR(255) PRIMARY KEY,
   name VARCHAR(500) NOT NULL,
@@ -32,7 +32,14 @@ CREATE TABLE programs (
   source_url VARCHAR(500),
   scraped_at TIMESTAMP DEFAULT NOW(),
   confidence_score FLOAT DEFAULT 1.0,
-  is_active BOOLEAN DEFAULT true
+  is_active BOOLEAN DEFAULT true,
+  -- GPT-Recommended Enhancements:
+  target_personas JSONB, -- ["solo", "sme", "startup", "researcher"]
+  tags JSONB, -- ["innovation", "startup", "non-dilutive", "biotech"]
+  decision_tree_questions JSONB, -- Generated questions for wizard
+  editor_sections JSONB, -- Program-specific business plan sections
+  readiness_criteria JSONB, -- Automated compliance checks
+  ai_guidance JSONB -- AI assistant context and prompts
 );
 
 -- Create program_requirements table
