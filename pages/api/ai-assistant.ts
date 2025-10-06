@@ -83,22 +83,33 @@ export default async function handler(
       });
     }
 
-    // Create enhanced AI helper
-    const aiHelper = createEnhancedAIHelper(
-      userAnswers,
-      programHints,
-      maxWords,
-      tone,
-      language,
-      decisionTreeAnswers,
-      programTemplate,
-      currentTemplateSection,
-      aiGuidance
-    );
+    // Create enhanced AI helper with error handling
+    let aiHelper;
+    try {
+      aiHelper = createEnhancedAIHelper(
+        userAnswers,
+        programHints,
+        maxWords,
+        tone,
+        language,
+        decisionTreeAnswers,
+        programTemplate,
+        currentTemplateSection,
+        aiGuidance
+      );
+    } catch (helperError) {
+      console.error('AI Helper creation error:', helperError);
+      return res.status(500).json({
+        success: false,
+        error: 'Failed to create AI helper',
+        details: String(helperError)
+      });
+    }
 
     let response;
 
-    switch (action) {
+    try {
+      switch (action) {
       case 'generate':
         // Generate new content
         response = await aiHelper.generateSectionContent(
@@ -212,6 +223,14 @@ export default async function handler(
           success: false,
           error: 'Invalid action. Supported actions: generate, improve, compliance, template, decision-tree'
         });
+      }
+    } catch (actionError) {
+      console.error('Action processing error:', actionError);
+      return res.status(500).json({
+        success: false,
+        error: 'Failed to process action',
+        details: String(actionError)
+      });
     }
 
     return res.status(200).json({

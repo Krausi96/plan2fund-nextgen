@@ -116,10 +116,9 @@ async function testDecisionTreeValidation() {
     has_financial_projections: true
   };
   
-  const response = await makeRequest(`${BASE_URL}/api/decision-tree?action=validate`, {
+  const response = await makeRequest(`${BASE_URL}/api/decision-tree?action=validate&programId=${TEST_PROGRAM_ID}`, {
     method: 'POST',
     body: {
-      programId: TEST_PROGRAM_ID,
       answers: testAnswers
     }
   });
