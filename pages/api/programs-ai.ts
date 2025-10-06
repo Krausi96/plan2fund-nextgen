@@ -46,12 +46,12 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
           notes: row.description,
           maxAmount: row.funding_amount_max,
           link: row.source_url,
-          target_personas: row.target_personas ? JSON.parse(row.target_personas) : [],
-          tags: row.tags ? JSON.parse(row.tags) : [],
-          decision_tree_questions: row.decision_tree_questions ? JSON.parse(row.decision_tree_questions) : [],
-          editor_sections: row.editor_sections ? JSON.parse(row.editor_sections) : [],
-          readiness_criteria: row.readiness_criteria ? JSON.parse(row.readiness_criteria) : [],
-          ai_guidance: row.ai_guidance ? JSON.parse(row.ai_guidance) : null
+          target_personas: row.target_personas || [],
+          tags: row.tags || [],
+          decision_tree_questions: row.decision_tree_questions || [],
+          editor_sections: row.editor_sections || [],
+          readiness_criteria: row.readiness_criteria || [],
+          ai_guidance: row.ai_guidance || null
         }));
         
         return res.status(200).json({
@@ -72,7 +72,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         `, [programId]);
         
         const questions = questionsResult.rows.length > 0 && questionsResult.rows[0].decision_tree_questions 
-          ? JSON.parse(questionsResult.rows[0].decision_tree_questions) 
+          ? questionsResult.rows[0].decision_tree_questions 
           : [];
         
         return res.status(200).json({
@@ -93,7 +93,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         `, [programId]);
         
         const sections = sectionsResult.rows.length > 0 && sectionsResult.rows[0].editor_sections 
-          ? JSON.parse(sectionsResult.rows[0].editor_sections) 
+          ? sectionsResult.rows[0].editor_sections 
           : [];
         
         return res.status(200).json({
@@ -114,7 +114,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         `, [programId]);
         
         const criteria = criteriaResult.rows.length > 0 && criteriaResult.rows[0].readiness_criteria 
-          ? JSON.parse(criteriaResult.rows[0].readiness_criteria) 
+          ? criteriaResult.rows[0].readiness_criteria 
           : [];
         
         return res.status(200).json({
@@ -135,7 +135,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         `, [programId]);
         
         const guidance = guidanceResult.rows.length > 0 && guidanceResult.rows[0].ai_guidance 
-          ? JSON.parse(guidanceResult.rows[0].ai_guidance) 
+          ? guidanceResult.rows[0].ai_guidance 
           : null;
         
         return res.status(200).json({
