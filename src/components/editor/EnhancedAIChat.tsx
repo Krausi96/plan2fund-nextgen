@@ -1,16 +1,28 @@
 // ========= PLAN2FUND — ENHANCED AI CHAT =========
 // AI Chat component with plan context and readiness integration
+// Enhanced with Phase 3: Dynamic Decision Trees & Program-Specific Templates
 
 import React, { useState, useRef } from 'react';
 import { PlanDocument } from '@/types/plan';
 import { ProgramProfile } from '@/types/reco';
-import { createAIHelper } from '@/lib/aiHelper';
+import { createAIHelper, createEnhancedAIHelper } from '@/lib/aiHelper';
+import { ProgramTemplate, TemplateSection } from '@/lib/programTemplates';
 
 interface EnhancedAIChatProps {
   plan: PlanDocument;
   programProfile: ProgramProfile | null;
   currentSection: string;
   onInsertContent: (content: string, section: string) => void;
+  // Phase 3 Enhancements
+  decisionTreeAnswers?: Record<string, any>;
+  programTemplate?: ProgramTemplate;
+  currentTemplateSection?: TemplateSection;
+  aiGuidance?: {
+    context: string;
+    tone: 'professional' | 'academic' | 'enthusiastic' | 'technical';
+    key_points: string[];
+    prompts?: Record<string, string>;
+  };
 }
 
 type ChatMessage = {
@@ -25,7 +37,12 @@ export default function EnhancedAIChat({
   plan, 
   programProfile, 
   currentSection, 
-  onInsertContent 
+  onInsertContent,
+  // Phase 3 Enhancements
+  decisionTreeAnswers,
+  programTemplate,
+  currentTemplateSection,
+  aiGuidance
 }: EnhancedAIChatProps) {
   const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [input, setInput] = useState('');
@@ -34,16 +51,33 @@ export default function EnhancedAIChat({
   const textareaRef = useRef<HTMLTextAreaElement>(null);
 
   // Initialize AI helper with plan context
-  const aiHelper = createAIHelper(
-    plan.sections.reduce((acc, section) => {
-      acc[section.key] = section.content || '';
-      return acc;
-    }, {} as Record<string, string>), // Real plan data
-    programProfile?.required || {}, // Real program requirements
-    200, // maxWords
-    plan.tone || 'neutral',
-    plan.language || 'en'
-  );
+  // Use enhanced AI helper if Phase 3 features are available
+  const aiHelper = (decisionTreeAnswers || programTemplate || currentTemplateSection || aiGuidance) 
+    ? createEnhancedAIHelper(
+        plan.sections.reduce((acc, section) => {
+          acc[section.key] = section.content || '';
+          return acc;
+        }, {} as Record<string, string>), // Real plan data
+        programProfile?.required || {}, // Real program requirements
+        200, // maxWords
+        plan.tone || 'neutral',
+        plan.language || 'en',
+        // Phase 3 enhancements
+        decisionTreeAnswers,
+        programTemplate,
+        currentTemplateSection,
+        aiGuidance
+      )
+    : createAIHelper(
+        plan.sections.reduce((acc, section) => {
+          acc[section.key] = section.content || '';
+          return acc;
+        }, {} as Record<string, string>), // Real plan data
+        programProfile?.required || {}, // Real program requirements
+        200, // maxWords
+        plan.tone || 'neutral',
+        plan.language || 'en'
+      );
 
   // Get readiness issues for current section
   const getReadinessIssues = () => {
@@ -242,6 +276,136 @@ Please provide more specific details about what you'd like help with, and I'll p
     onInsertContent(content, currentSection);
   };
 
+  // ========== PHASE 3 ENHANCED METHODS ==========
+
+  // Generate content using program-specific template
+  const handleGenerateFromTemplate = async () => {
+    if (!programTemplate || !currentTemplateSection) return;
+    
+    setIsProcessing(true);
+    
+    try {
+      const currentSectionContent = plan.sections.find(s => s.key === currentSection)?.content || '';
+      
+      const response = await aiHelper.generateTemplateBasedContent(
+        currentSection,
+        currentSectionContent,
+        {
+          id: programProfile?.programId || 'unknown',
+          name: programTemplate.program_name,
+          type: programProfile?.route || 'grant',
+          amount: '€0',
+          eligibility: [],
+          requirements: programTemplate.sections.map(s => s.id),
+          score: 0,
+          reasons: [],
+          risks: []
+        }
+      );
+      
+      const aiMessage: ChatMessage = {
+        id: Date.now().toString(),
+        type: 'ai',
+        content: `Generated content using program-specific template:\n\n${response.content}\n\n${response.sectionGuidance?.map(g => `💡 ${g}`).join('\n')}\n\n${response.complianceTips?.map(t => `⚠️ ${t}`).join('\n')}`,
+        timestamp: new Date(),
+        action: 'insert'
+      };
+      
+      setMessages(prev => [...prev, aiMessage]);
+    } catch (error) {
+      console.error('Error generating template content:', error);
+    } finally {
+      setIsProcessing(false);
+    }
+  };
+
+  // Generate content using decision tree answers
+  const handleGenerateFromDecisionTree = async () => {
+    if (!decisionTreeAnswers) return;
+    
+    setIsProcessing(true);
+    
+    try {
+      const currentSectionContent = plan.sections.find(s => s.key === currentSection)?.content || '';
+      
+      const response = await aiHelper.generateDecisionTreeBasedContent(
+        currentSection,
+        currentSectionContent,
+        {
+          id: programProfile?.programId || 'unknown',
+          name: programProfile?.programId || 'Unknown Program',
+          type: programProfile?.route || 'grant',
+          amount: '€0',
+          eligibility: [],
+          requirements: programProfile?.required?.sections?.map(s => s.key) || [],
+          score: 0,
+          reasons: [],
+          risks: []
+        },
+        decisionTreeAnswers
+      );
+      
+      const aiMessage: ChatMessage = {
+        id: Date.now().toString(),
+        type: 'ai',
+        content: `Generated personalized content based on your answers:\n\n${response.content}\n\n${response.sectionGuidance?.map(g => `💡 ${g}`).join('\n')}\n\n${response.complianceTips?.map(t => `⚠️ ${t}`).join('\n')}`,
+        timestamp: new Date(),
+        action: 'insert'
+      };
+      
+      setMessages(prev => [...prev, aiMessage]);
+    } catch (error) {
+      console.error('Error generating decision tree content:', error);
+    } finally {
+      setIsProcessing(false);
+    }
+  };
+
+  // Get AI guidance for current section
+  const getAIGuidance = (): string[] => {
+    if (!aiGuidance) return [];
+    
+    const guidance: string[] = [];
+    
+    if (aiGuidance.context) {
+      guidance.push(`Context: ${aiGuidance.context}`);
+    }
+    
+    if (aiGuidance.key_points) {
+      guidance.push(`Key Points: ${aiGuidance.key_points.join(', ')}`);
+    }
+    
+    if (aiGuidance.prompts && aiGuidance.prompts[currentSection]) {
+      guidance.push(`Section Prompt: ${aiGuidance.prompts[currentSection]}`);
+    }
+    
+    return guidance;
+  };
+
+  // Get template-specific guidance
+  const getTemplateGuidance = (): string[] => {
+    if (!currentTemplateSection) return [];
+    
+    const guidance: string[] = [];
+    
+    if (currentTemplateSection.description) {
+      guidance.push(`Description: ${currentTemplateSection.description}`);
+    }
+    
+    if (currentTemplateSection.ai_prompts) {
+      guidance.push(`AI Prompts: ${currentTemplateSection.ai_prompts.join(', ')}`);
+    }
+    
+    if (currentTemplateSection.validation_rules) {
+      const rules = Object.entries(currentTemplateSection.validation_rules)
+        .map(([key, value]) => `${key}: ${value}`)
+        .join(', ');
+      guidance.push(`Validation Rules: ${rules}`);
+    }
+    
+    return guidance;
+  };
+
   // Quick action buttons
   const quickActions = [
     {
@@ -295,7 +459,20 @@ Please provide more specific details about what you'd like help with, and I'll p
       },
       description: 'Generate examples',
       icon: '💡'
-    }
+    },
+    // Phase 3 Enhanced Actions
+    ...(programTemplate && currentTemplateSection ? [{
+      label: 'Generate from Template',
+      action: handleGenerateFromTemplate,
+      description: 'Use program-specific template',
+      icon: '📋'
+    }] : []),
+    ...(decisionTreeAnswers ? [{
+      label: 'Generate from Answers',
+      action: handleGenerateFromDecisionTree,
+      description: 'Use decision tree answers',
+      icon: '🌳'
+    }] : [])
   ];
 
   return (
@@ -321,6 +498,13 @@ Please provide more specific details about what you'd like help with, and I'll p
             ))}
             {getProgramSuggestions().slice(0, 2).map((suggestion, index) => (
               <div key={index} className="text-blue-800">• {suggestion}</div>
+            ))}
+            {/* Phase 3 Enhanced Suggestions */}
+            {getAIGuidance().map((guidance, index) => (
+              <div key={`ai-${index}`} className="text-purple-800">• {guidance}</div>
+            ))}
+            {getTemplateGuidance().map((guidance, index) => (
+              <div key={`template-${index}`} className="text-green-800">• {guidance}</div>
             ))}
           </div>
         </div>

@@ -1,9 +1,11 @@
 /**
- * AI Helper for editor
+ * AI Helper for editor - Enhanced with Phase 3 Features
  * Provides section-scoped prompts, bound to 200 words, cites program hints
+ * Integrates with Dynamic Decision Trees and Program-Specific Templates
  */
 
 import { Program } from './prefill';
+import { ProgramTemplate, TemplateSection } from './programTemplates';
 
 interface AIHelperConfig {
   maxWords: number;
@@ -12,6 +14,16 @@ interface AIHelperConfig {
   userAnswers: Record<string, any>;
   tone?: 'neutral'|'formal'|'concise';
   language?: 'de'|'en';
+  // Phase 3 Enhancements
+  decisionTreeAnswers?: Record<string, any>;
+  programTemplate?: ProgramTemplate;
+  currentSection?: TemplateSection;
+  aiGuidance?: {
+    context: string;
+    tone: 'professional' | 'academic' | 'enthusiastic' | 'technical';
+    key_points: string[];
+    prompts?: Record<string, string>;
+  };
 }
 
 interface AIResponse {
@@ -19,6 +31,11 @@ interface AIResponse {
   wordCount: number;
   suggestions: string[];
   citations: string[];
+  // Phase 3 Enhancements
+  programSpecific?: boolean;
+  sectionGuidance?: string[];
+  complianceTips?: string[];
+  readinessScore?: number;
 }
 
 export class AIHelper {
@@ -506,6 +523,293 @@ Add relevant risks and mitigation strategies:
     const truncatedWords = words.slice(0, this.config.maxWords);
     return truncatedWords.join(' ') + '...';
   }
+
+  // ========== PHASE 3 ENHANCEMENTS ==========
+
+  /**
+   * Generate content using program-specific template guidance
+   */
+  async generateTemplateBasedContent(
+    sectionId: string,
+    context: string,
+    program: Program
+  ): Promise<AIResponse> {
+    if (!this.config.programTemplate || !this.config.currentSection) {
+      return this.generateSectionContent(sectionId, context, program);
+    }
+
+    const template = this.config.programTemplate;
+    const section = this.config.currentSection;
+    
+    const prompt = this.buildTemplatePrompt(section, context, program, template);
+    const response = await this.callAI(prompt);
+    
+    return {
+      content: response.content,
+      wordCount: this.countWords(response.content),
+      suggestions: response.suggestions || [],
+      citations: response.citations || [],
+      programSpecific: true,
+      sectionGuidance: section.ai_prompts || [],
+      complianceTips: this.extractComplianceTips(section),
+      readinessScore: this.calculateReadinessScore(response.content, section)
+    };
+  }
+
+  /**
+   * Generate content using decision tree answers
+   */
+  async generateDecisionTreeBasedContent(
+    sectionId: string,
+    context: string,
+    program: Program,
+    decisionTreeAnswers: Record<string, any>
+  ): Promise<AIResponse> {
+    const prompt = this.buildDecisionTreePrompt(sectionId, context, program, decisionTreeAnswers);
+    const response = await this.callAI(prompt);
+    
+    return {
+      content: response.content,
+      wordCount: this.countWords(response.content),
+      suggestions: response.suggestions || [],
+      citations: response.citations || [],
+      programSpecific: true,
+      sectionGuidance: this.generateSectionGuidanceFromAnswers(decisionTreeAnswers),
+      complianceTips: this.generateComplianceTipsFromAnswers(decisionTreeAnswers),
+      readinessScore: this.calculateReadinessFromAnswers(decisionTreeAnswers)
+    };
+  }
+
+  /**
+   * Build template-based prompt
+   */
+  private buildTemplatePrompt(
+    section: TemplateSection,
+    context: string,
+    program: Program,
+    template: ProgramTemplate
+  ): string {
+    const aiGuidance = this.config.aiGuidance;
+    const tone = aiGuidance?.tone || this.config.tone || 'neutral';
+    const language = this.config.language || 'en';
+    
+    return `
+You are an AI writing assistant creating content for a ${program.type} application for ${program.name}.
+
+Section: ${section.title}
+Description: ${section.description}
+Program: ${template.program_name}
+Target Audience: ${template.target_audience.join(', ')}
+
+AI Guidance Context: ${aiGuidance?.context || 'Standard business plan guidance'}
+Tone: ${tone} - ${this.getToneInstructions(tone)}
+Language: ${language.toUpperCase()}
+
+Template Requirements:
+- Required: ${section.required ? 'Yes' : 'No'}
+- Difficulty: ${section.difficulty_level}
+- Industry Hints: ${section.industry_hints?.join(', ') || 'General'}
+
+AI Prompts for this section:
+${section.ai_prompts.map(prompt => `- ${prompt}`).join('\n')}
+
+Validation Rules:
+${Object.entries(section.validation_rules).map(([key, value]) => `- ${key}: ${value}`).join('\n')}
+
+User Context: ${context}
+
+Decision Tree Answers:
+${Object.entries(this.config.decisionTreeAnswers || {}).map(([key, value]) => `- ${key}: ${value}`).join('\n')}
+
+Requirements:
+- Maximum ${this.config.maxWords} words
+- Follow template structure: ${section.content_template}
+- Use program-specific guidance
+- Address validation requirements
+- Include relevant decision tree answers
+- Write in ${language.toUpperCase()}
+- Use ${tone} tone
+- Be professional and compelling
+
+Generate content for the ${section.title} section:
+`;
+  }
+
+  /**
+   * Build decision tree-based prompt
+   */
+  private buildDecisionTreePrompt(
+    sectionId: string,
+    context: string,
+    program: Program,
+    decisionTreeAnswers: Record<string, any>
+  ): string {
+    const tone = this.config.tone || 'neutral';
+    const language = this.config.language || 'en';
+    
+    return `
+You are an AI writing assistant creating content for a ${program.type} application for ${program.name}.
+
+Section: ${sectionId}
+Program: ${program.name}
+Type: ${program.type}
+
+Decision Tree Analysis:
+${Object.entries(decisionTreeAnswers).map(([key, value]) => {
+  const question = key.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase());
+  return `- ${question}: ${value}`;
+}).join('\n')}
+
+User Context: ${context}
+Tone: ${tone} - ${this.getToneInstructions(tone)}
+Language: ${language.toUpperCase()}
+
+Requirements:
+- Maximum ${this.config.maxWords} words
+- Use decision tree answers to personalize content
+- Focus on ${sectionId} content
+- Write in ${language.toUpperCase()}
+- Use ${tone} tone
+- Be professional and compelling
+- Address program-specific requirements
+
+Generate personalized content for the ${sectionId} section:
+`;
+  }
+
+  /**
+   * Extract compliance tips from template section
+   */
+  private extractComplianceTips(section: TemplateSection): string[] {
+    const tips: string[] = [];
+    
+    if (section.validation_rules.required_fields) {
+      tips.push(`Required fields: ${section.validation_rules.required_fields.join(', ')}`);
+    }
+    
+    if (section.validation_rules.format_requirements) {
+      tips.push(`Format requirements: ${section.validation_rules.format_requirements.join(', ')}`);
+    }
+    
+    if (section.program_specific) {
+      tips.push('This section is program-specific - ensure compliance with funding requirements');
+    }
+    
+    return tips;
+  }
+
+  /**
+   * Generate section guidance from decision tree answers
+   */
+  private generateSectionGuidanceFromAnswers(answers: Record<string, any>): string[] {
+    const guidance: string[] = [];
+    
+    // Analyze answers to provide contextual guidance
+    if (answers.company_stage) {
+      guidance.push(`Focus on ${answers.company_stage} stage considerations`);
+    }
+    
+    if (answers.industry) {
+      guidance.push(`Include ${answers.industry} industry-specific insights`);
+    }
+    
+    if (answers.funding_amount) {
+      guidance.push(`Justify funding amount of ${answers.funding_amount}`);
+    }
+    
+    return guidance;
+  }
+
+  /**
+   * Generate compliance tips from decision tree answers
+   */
+  private generateComplianceTipsFromAnswers(answers: Record<string, any>): string[] {
+    const tips: string[] = [];
+    
+    if (answers.has_business_plan === false) {
+      tips.push('Business plan required - consider creating one first');
+    }
+    
+    if (answers.has_financial_projections === false) {
+      tips.push('Financial projections required - include 3-year projections');
+    }
+    
+    if (answers.team_size && answers.team_size < 2) {
+      tips.push('Consider expanding team or explaining solo founder approach');
+    }
+    
+    return tips;
+  }
+
+  /**
+   * Calculate readiness score based on content and section requirements
+   */
+  private calculateReadinessScore(content: string, section: TemplateSection): number {
+    let score = 0;
+    const maxScore = 100;
+    
+    // Word count compliance
+    const wordCount = this.countWords(content);
+    if (section.validation_rules.min_words && wordCount >= section.validation_rules.min_words) {
+      score += 20;
+    }
+    if (section.validation_rules.max_words && wordCount <= section.validation_rules.max_words) {
+      score += 20;
+    }
+    
+    // Required fields check
+    if (section.validation_rules.required_fields) {
+      const hasRequiredFields = section.validation_rules.required_fields.every(field => 
+        content.toLowerCase().includes(field.toLowerCase())
+      );
+      if (hasRequiredFields) score += 30;
+    }
+    
+    // Program-specific content
+    if (section.program_specific && content.length > 50) {
+      score += 20;
+    }
+    
+    // Content quality indicators
+    if (content.includes('.')) score += 5; // Has sentences
+    if (content.length > 100) score += 5; // Substantial content
+    
+    return Math.min(score, maxScore);
+  }
+
+  /**
+   * Calculate readiness from decision tree answers
+   */
+  private calculateReadinessFromAnswers(answers: Record<string, any>): number {
+    let score = 0;
+    const maxScore = 100;
+    
+    // Basic readiness indicators
+    if (answers.has_business_plan) score += 25;
+    if (answers.has_financial_projections) score += 25;
+    if (answers.team_size && answers.team_size >= 2) score += 20;
+    if (answers.market_research) score += 15;
+    if (answers.legal_structure) score += 15;
+    
+    return Math.min(score, maxScore);
+  }
+
+  /**
+   * Get tone instructions
+   */
+  private getToneInstructions(tone: string): string {
+    const instructions = {
+      professional: 'Use a balanced, professional tone that is clear and accessible.',
+      academic: 'Use a formal, academic tone with sophisticated language and structure.',
+      enthusiastic: 'Use an enthusiastic, energetic tone that conveys passion and excitement.',
+      technical: 'Use a technical, precise tone with industry-specific terminology.',
+      neutral: 'Use a balanced, professional tone that is clear and accessible.',
+      formal: 'Use a formal, academic tone with sophisticated language and structure.',
+      concise: 'Use a concise, direct tone with short sentences and clear points.'
+    };
+    
+    return instructions[tone as keyof typeof instructions] || instructions.neutral;
+  }
 }
 
 /**
@@ -525,6 +829,40 @@ export function createAIHelper(
     userAnswers,
     tone,
     language
+  });
+}
+
+/**
+ * Create enhanced AI Helper instance with Phase 3 features
+ */
+export function createEnhancedAIHelper(
+  userAnswers: Record<string, any>,
+  programHints: any,
+  maxWords: number = 200,
+  tone: 'neutral'|'formal'|'concise' = 'neutral',
+  language: 'de'|'en' = 'en',
+  // Phase 3 enhancements
+  decisionTreeAnswers?: Record<string, any>,
+  programTemplate?: ProgramTemplate,
+  currentSection?: TemplateSection,
+  aiGuidance?: {
+    context: string;
+    tone: 'professional' | 'academic' | 'enthusiastic' | 'technical';
+    key_points: string[];
+    prompts?: Record<string, string>;
+  }
+): AIHelper {
+  return new AIHelper({
+    maxWords,
+    sectionScope: 'general',
+    programHints,
+    userAnswers,
+    tone,
+    language,
+    decisionTreeAnswers,
+    programTemplate,
+    currentSection,
+    aiGuidance
   });
 }
 

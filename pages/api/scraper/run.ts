@@ -207,7 +207,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       ]);
 
       return res.status(200).json({
-        success: true,
+      success: true, 
         data: { id: result.rows[0].id },
         message: `Successfully saved program to database: ${sampleProgram.name}`,
         timestamp: new Date().toISOString()
