@@ -2,8 +2,9 @@
 // Integrates Dynamic Decision Trees and Program-Specific Templates
 
 import { NextApiRequest, NextApiResponse } from 'next';
-import { createEnhancedAIHelper } from '@/lib/aiHelper';
-import { ProgramTemplate, TemplateSection } from '@/lib/programTemplates';
+// Temporarily disable complex imports to fix deployment issues
+// import { createEnhancedAIHelper } from '@/lib/aiHelper';
+// import { ProgramTemplate, TemplateSection } from '@/lib/programTemplates';
 
 interface AIAssistantRequest {
   action: 'generate' | 'improve' | 'compliance' | 'template' | 'decision-tree';
@@ -12,8 +13,8 @@ interface AIAssistantRequest {
   context?: string;
   // Phase 3 Enhancements
   decisionTreeAnswers?: Record<string, any>;
-  programTemplate?: ProgramTemplate;
-  currentTemplateSection?: TemplateSection;
+  programTemplate?: any; // ProgramTemplate;
+  currentTemplateSection?: any; // TemplateSection;
   aiGuidance?: {
     context: string;
     tone: 'professional' | 'academic' | 'enthusiastic' | 'technical';
