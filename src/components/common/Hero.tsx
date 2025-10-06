@@ -196,7 +196,7 @@ interface HeroProps {
 }
 
 export function Hero({
-  primaryButtonHref = "/editor",
+  primaryButtonHref = "/reco?product=submission",
   onStepClick,
   onTargetGroupSelect,
   targetGroup: propTargetGroup

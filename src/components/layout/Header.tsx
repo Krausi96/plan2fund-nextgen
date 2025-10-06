@@ -70,7 +70,7 @@ export default function Header() {
             Find Funding
           </Link>
           <Link 
-            href="/editor" 
+            href="/reco?product=submission" 
             className="px-6 py-2 bg-primary text-white rounded-lg hover:bg-primaryHover transition-colors font-medium shadow-md hover:shadow-lg"
           >
             {t('nav.startPlan')}
@@ -134,7 +134,7 @@ export default function Header() {
               Find Funding
             </Link>
             <Link 
-              href="/editor" 
+              href="/reco?product=submission" 
               className="px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors font-medium text-center mt-2 shadow-md hover:shadow-lg"
               onClick={() => setOpen(false)}
             >
