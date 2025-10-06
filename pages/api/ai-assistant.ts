@@ -15,7 +15,7 @@ interface AIAssistantRequest {
   decisionTreeAnswers?: Record<string, any>;
   programTemplate?: any; // ProgramTemplate;
   currentTemplateSection?: any; // TemplateSection;
-  aiGuidance?: {
+  _aiGuidance?: {
     context: string;
     tone: 'professional' | 'academic' | 'enthusiastic' | 'technical';
     key_points: string[];
@@ -41,6 +41,7 @@ interface AIAssistantResponse {
   complianceTips?: string[];
   readinessScore?: number;
   error?: string;
+  details?: string;
 }
 
 export default async function handler(
@@ -69,12 +70,12 @@ export default async function handler(
       decisionTreeAnswers,
       programTemplate,
       currentTemplateSection,
-      aiGuidance,
-      programHints = {},
-      userAnswers = {},
-      maxWords = 200,
-      tone = 'neutral',
-      language = 'en'
+      // _aiGuidance, // Temporarily disabled
+      // programHints = {}, // Temporarily disabled
+      // userAnswers = {}, // Temporarily disabled
+      // maxWords = 200, // Temporarily disabled
+      // tone = 'neutral', // Temporarily disabled
+      // language = 'en' // Temporarily disabled
     }: AIAssistantRequest = req.body;
 
     if (!action || !sectionId) {

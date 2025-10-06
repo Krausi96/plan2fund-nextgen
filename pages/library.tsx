@@ -249,7 +249,7 @@ const documentLibrary = {
 export default function Library() {
   const router = useRouter();
   const [selectedProgram, setSelectedProgram] = useState<string | null>(null);
-  const [programRecommendations, setProgramRecommendations] = useState<any[]>([]);
+  const [_programRecommendations, setProgramRecommendations] = useState<any[]>([]);
   const [aiGuidance, setAiGuidance] = useState<any>(null);
   const [showPhase3Features, setShowPhase3Features] = useState(false);
 

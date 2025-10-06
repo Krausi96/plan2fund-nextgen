@@ -29,7 +29,7 @@ export default async function handler(
     }
 
     // Simple response generator
-    const generateResponse = (action: string, sectionId: string, content: string) => {
+    const generateResponse = (_action: string, sectionId: string, content: string) => {
       return {
         content: `AI-generated content for ${sectionId}: ${content}`,
         wordCount: content.split(' ').length + 15,

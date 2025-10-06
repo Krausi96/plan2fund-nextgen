@@ -5,8 +5,9 @@
  */
 
 import { dataSource } from './dataSource';
-import { DecisionTreeResult } from './dynamicDecisionTree';
-import { ProgramTemplate, TemplateSection } from './programTemplates';
+// import { DecisionTreeResult } from './dynamicDecisionTree'; // Temporarily disabled
+import { ProgramTemplate } from './programTemplates';
+// import { TemplateSection } from './programTemplates'; // Temporarily disabled
 
 export interface ReadinessCheck {
   section: string;
@@ -401,7 +402,12 @@ export class ReadinessValidator {
    * Calculate intelligent readiness score with Phase 3 features
    */
   calculateIntelligentReadinessScore(): number {
-    const baseScore = this.calculateOverallScore();
+    // Simple base score calculation
+    const sections = Object.keys(this.planContent);
+    const completedSections = sections.filter(section => 
+      this.planContent[section] && this.planContent[section].trim().length > 50
+    ).length;
+    const baseScore = sections.length > 0 ? Math.round((completedSections / sections.length) * 100) : 0;
     let intelligentScore = baseScore;
     
     // Adjust score based on decision tree answers
@@ -438,7 +444,7 @@ export class ReadinessValidator {
   /**
    * Get intelligent readiness summary
    */
-  getIntelligentReadinessSummary(): {
+  async getIntelligentReadinessSummary(): Promise<{
     score: number;
     status: 'ready' | 'needs_work' | 'not_ready';
     recommendations: string[];
@@ -447,9 +453,9 @@ export class ReadinessValidator {
       templateCompliance: string[];
       aiGuidance: string[];
     };
-  } {
+  }> {
     const score = this.calculateIntelligentReadinessScore();
-    const checks = this.performReadinessCheck();
+    const checks = await this.performReadinessCheck();
     
     let status: 'ready' | 'needs_work' | 'not_ready';
     if (score >= 85) status = 'ready';
