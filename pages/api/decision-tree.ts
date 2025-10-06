@@ -24,7 +24,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   }
 
   try {
-    const { programId, action } = req.query;
+    const { programId, action } = req.method === 'GET' ? req.query : req.body;
 
     // Check database connection
     if (!process.env.DATABASE_URL) {
