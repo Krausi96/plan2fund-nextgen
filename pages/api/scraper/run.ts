@@ -22,17 +22,17 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     return res.status(405).json({ error: 'Method not allowed. Use POST to run scraper.' });
   }
 
-  // Check database connection
-  if (!process.env.DATABASE_URL) {
-    return res.status(500).json({
-      success: false,
-      error: 'Database connection not configured',
-      message: 'DATABASE_URL environment variable is missing'
-    });
-  }
-
   try {
     const { source, action } = req.body;
+    
+    // Check database connection (only for save action)
+    if (action === 'save' && !process.env.DATABASE_URL) {
+      return res.status(500).json({
+        success: false,
+        error: 'Database connection not configured',
+        message: 'DATABASE_URL environment variable is missing'
+      });
+    }
     
     if (action === 'test') {
       // Test mode - return sample data
