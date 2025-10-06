@@ -23,7 +23,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   }
 
   try {
-    const { source, action } = req.body;
+    const { action } = req.body;
     
     // Check database connection (only for save action)
     if (action === 'save' && !process.env.DATABASE_URL) {
