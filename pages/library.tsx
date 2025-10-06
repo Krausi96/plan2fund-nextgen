@@ -1,7 +1,8 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import SEOHead from '@/components/common/SEOHead';
-import { ArrowLeft, FileText, CheckCircle } from 'lucide-react';
+import { ArrowLeft, FileText, CheckCircle, Brain, Target, Sparkles } from 'lucide-react';
 import Link from 'next/link';
+import { useRouter } from 'next/router';
 
 // Document library data - this should match the pricing page data
 const documentLibrary = {
@@ -246,7 +247,41 @@ const documentLibrary = {
 };
 
 export default function Library() {
+  const router = useRouter();
+  const [selectedProgram, setSelectedProgram] = useState<string | null>(null);
+  const [programRecommendations, setProgramRecommendations] = useState<any[]>([]);
+  const [aiGuidance, setAiGuidance] = useState<any>(null);
+  const [showPhase3Features, setShowPhase3Features] = useState(false);
 
+  // Phase 3: Load program-specific recommendations
+  useEffect(() => {
+    const { programId } = router.query;
+    if (programId) {
+      setSelectedProgram(programId as string);
+      loadProgramRecommendations(programId as string);
+      setShowPhase3Features(true);
+    }
+  }, [router.query]);
+
+  const loadProgramRecommendations = async (programId: string) => {
+    try {
+      // Load program-specific document recommendations
+      const response = await fetch(`/api/programs-ai?action=programs&programId=${programId}`);
+      if (response.ok) {
+        const data = await response.json();
+        setProgramRecommendations(data.data || []);
+      }
+
+      // Load AI guidance
+      const guidanceResponse = await fetch(`/api/programs-ai?action=guidance&programId=${programId}`);
+      if (guidanceResponse.ok) {
+        const guidanceData = await guidanceResponse.json();
+        setAiGuidance(guidanceData.data || null);
+      }
+    } catch (error) {
+      console.error('Error loading program recommendations:', error);
+    }
+  };
 
   // Group documents by category
   const documentCategories = {
@@ -275,12 +310,80 @@ export default function Library() {
             </div>
             <h1 className="text-4xl md:text-5xl font-bold text-gray-900 mb-4">
               Document Library
+              {showPhase3Features && (
+                <span className="ml-3 text-2xl">🤖</span>
+              )}
             </h1>
             <p className="text-xl text-gray-600 max-w-3xl">
               Explore all the documents we create for you. Click on any document to see detailed specifications.
+              {showPhase3Features && selectedProgram && (
+                <span className="block mt-2 text-blue-600 font-medium">
+                  ✨ Enhanced with AI recommendations for your selected program
+                </span>
+              )}
             </p>
           </div>
         </section>
+
+        {/* Phase 3: AI Guidance Section */}
+        {showPhase3Features && aiGuidance && (
+          <section className="py-12 bg-gradient-to-r from-blue-50 to-purple-50">
+            <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
+              <div className="bg-white rounded-2xl shadow-lg p-8 border border-blue-200">
+                <div className="flex items-center mb-6">
+                  <Brain className="w-8 h-8 text-blue-600 mr-3" />
+                  <h2 className="text-2xl font-bold text-gray-900">AI-Powered Document Guidance</h2>
+                </div>
+                
+                <div className="grid md:grid-cols-2 gap-6">
+                  <div>
+                    <h3 className="text-lg font-semibold text-gray-900 mb-3 flex items-center">
+                      <Target className="w-5 h-5 text-green-600 mr-2" />
+                      Program Context
+                    </h3>
+                    <p className="text-gray-700 mb-4">{aiGuidance.context}</p>
+                    
+                    {aiGuidance.key_points && aiGuidance.key_points.length > 0 && (
+                      <div>
+                        <h4 className="font-medium text-gray-900 mb-2">Key Focus Areas:</h4>
+                        <ul className="list-disc list-inside text-gray-700 space-y-1">
+                          {aiGuidance.key_points.map((point: string, index: number) => (
+                            <li key={index}>{point}</li>
+                          ))}
+                        </ul>
+                      </div>
+                    )}
+                  </div>
+                  
+                  <div>
+                    <h3 className="text-lg font-semibold text-gray-900 mb-3 flex items-center">
+                      <Sparkles className="w-5 h-5 text-purple-600 mr-2" />
+                      Document Recommendations
+                    </h3>
+                    <p className="text-gray-700 mb-4">
+                      Based on your program requirements, we recommend focusing on these document types:
+                    </p>
+                    
+                    <div className="space-y-2">
+                      <div className="flex items-center text-sm text-gray-700">
+                        <CheckCircle className="w-4 h-4 text-green-500 mr-2" />
+                        Business Plan (Required)
+                      </div>
+                      <div className="flex items-center text-sm text-gray-700">
+                        <CheckCircle className="w-4 h-4 text-green-500 mr-2" />
+                        Financial Projections (Required)
+                      </div>
+                      <div className="flex items-center text-sm text-gray-700">
+                        <CheckCircle className="w-4 h-4 text-blue-500 mr-2" />
+                        Pitch Deck (Recommended)
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </section>
+        )}
 
         {/* Document Categories */}
         <section className="py-16">

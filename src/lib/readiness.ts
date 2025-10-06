@@ -1,9 +1,12 @@
 /**
- * Readiness Validation System
+ * Readiness Validation System - Enhanced with Phase 3 AI Features
  * Checks business plan compliance with program requirements
+ * Integrates with Dynamic Decision Trees and Program-Specific Templates
  */
 
 import { dataSource } from './dataSource';
+import { DecisionTreeResult } from './dynamicDecisionTree';
+import { ProgramTemplate, TemplateSection } from './programTemplates';
 
 export interface ReadinessCheck {
   section: string;
@@ -45,10 +48,24 @@ export interface ProgramRequirements {
 export class ReadinessValidator {
   private programRequirements: ProgramRequirements;
   private planContent: Record<string, any>;
+  // Phase 3 Enhancements
+  private decisionTreeAnswers?: Record<string, any>;
+  private programTemplate?: ProgramTemplate;
+  private aiGuidance?: any;
 
-  constructor(programRequirements: ProgramRequirements, planContent: Record<string, any>) {
+  constructor(
+    programRequirements: ProgramRequirements, 
+    planContent: Record<string, any>,
+    // Phase 3 Enhancements
+    decisionTreeAnswers?: Record<string, any>,
+    programTemplate?: ProgramTemplate,
+    aiGuidance?: any
+  ) {
     this.programRequirements = programRequirements;
     this.planContent = planContent;
+    this.decisionTreeAnswers = decisionTreeAnswers;
+    this.programTemplate = programTemplate;
+    this.aiGuidance = aiGuidance;
   }
 
   /**
@@ -239,6 +256,287 @@ export class ReadinessValidator {
     };
 
     return suggestions[section] || [];
+  }
+
+  // ========== PHASE 3 ENHANCED METHODS ==========
+
+  /**
+   * Perform intelligent readiness check with Phase 3 features
+   */
+  async performIntelligentReadinessCheck(): Promise<ReadinessCheck[]> {
+    const checks = await this.performReadinessCheck();
+    
+    // Enhance with Phase 3 features
+    if (this.decisionTreeAnswers) {
+      this.enhanceWithDecisionTreeAnswers(checks);
+    }
+    
+    if (this.programTemplate) {
+      this.enhanceWithProgramTemplate(checks);
+    }
+    
+    if (this.aiGuidance) {
+      this.enhanceWithAIGuidance(checks);
+    }
+    
+    return checks;
+  }
+
+  /**
+   * Enhance readiness checks with decision tree answers
+   */
+  private enhanceWithDecisionTreeAnswers(checks: ReadinessCheck[]): void {
+    if (!this.decisionTreeAnswers) return;
+
+    // Check document readiness based on decision tree answers
+    const documentReadiness = this.decisionTreeAnswers.document_readiness || [];
+    const hasBusinessPlan = documentReadiness.includes('business_plan');
+    const hasFinancialProjections = documentReadiness.includes('financial_projections');
+    const hasPitchDeck = documentReadiness.includes('pitch_deck');
+
+    // Update checks based on document readiness
+    checks.forEach(check => {
+      if (check.section === 'executive_summary' && !hasBusinessPlan) {
+        check.suggestions.push('Consider creating a business plan first - decision tree indicates this is needed');
+        check.score = Math.max(0, check.score - 20);
+      }
+      
+      if (check.section === 'financials' && !hasFinancialProjections) {
+        check.suggestions.push('Financial projections required - decision tree indicates this is needed');
+        check.score = Math.max(0, check.score - 30);
+      }
+      
+      if (check.section === 'pitch' && !hasPitchDeck) {
+        check.suggestions.push('Pitch deck recommended - decision tree indicates this is needed');
+        check.score = Math.max(0, check.score - 15);
+      }
+    });
+  }
+
+  /**
+   * Enhance readiness checks with program template requirements
+   */
+  private enhanceWithProgramTemplate(checks: ReadinessCheck[]): void {
+    if (!this.programTemplate) return;
+
+    // Check against program-specific template sections
+    const templateSections = this.programTemplate.sections || [];
+    
+    checks.forEach(check => {
+      const templateSection = templateSections.find(s => s.id === check.section);
+      
+      if (templateSection) {
+        // Check required fields from template
+        if (templateSection.required && check.score < 80) {
+          check.suggestions.push(`This section is required by ${this.programTemplate?.program_name} - ensure it's complete`);
+        }
+        
+        // Check validation rules
+        if (templateSection.validation_rules) {
+          this.checkTemplateValidationRules(check, templateSection);
+        }
+        
+        // Add AI prompts as suggestions
+        if (templateSection.ai_prompts && templateSection.ai_prompts.length > 0) {
+          check.suggestions.push(`AI Guidance: ${templateSection.ai_prompts.join(', ')}`);
+        }
+      }
+    });
+  }
+
+  /**
+   * Check template validation rules
+   */
+  private checkTemplateValidationRules(check: ReadinessCheck, templateSection: any): void {
+    const content = this.planContent[check.section] || '';
+    const wordCount = content.split(/\s+/).length;
+    
+    // Check word count requirements
+    if (templateSection.validation_rules.min_words && wordCount < templateSection.validation_rules.min_words) {
+      check.suggestions.push(`Minimum ${templateSection.validation_rules.min_words} words required (current: ${wordCount})`);
+      check.score = Math.max(0, check.score - 20);
+    }
+    
+    if (templateSection.validation_rules.max_words && wordCount > templateSection.validation_rules.max_words) {
+      check.suggestions.push(`Maximum ${templateSection.validation_rules.max_words} words allowed (current: ${wordCount})`);
+      check.score = Math.max(0, check.score - 10);
+    }
+    
+    // Check required fields
+    if (templateSection.validation_rules.required_fields) {
+      const missingFields = templateSection.validation_rules.required_fields.filter((field: string) => 
+        !content.toLowerCase().includes(field.toLowerCase())
+      );
+      
+      if (missingFields.length > 0) {
+        check.suggestions.push(`Missing required fields: ${missingFields.join(', ')}`);
+        check.score = Math.max(0, check.score - 25);
+      }
+    }
+  }
+
+  /**
+   * Enhance readiness checks with AI guidance
+   */
+  private enhanceWithAIGuidance(checks: ReadinessCheck[]): void {
+    if (!this.aiGuidance) return;
+
+    // Add AI guidance context to all checks
+    checks.forEach(check => {
+      if (this.aiGuidance.context) {
+        check.suggestions.push(`AI Context: ${this.aiGuidance.context}`);
+      }
+      
+      if (this.aiGuidance.key_points && this.aiGuidance.key_points.length > 0) {
+        check.suggestions.push(`Key Points to Address: ${this.aiGuidance.key_points.join(', ')}`);
+      }
+      
+      if (this.aiGuidance.prompts && this.aiGuidance.prompts[check.section]) {
+        check.suggestions.push(`AI Prompt: ${this.aiGuidance.prompts[check.section]}`);
+      }
+    });
+  }
+
+  /**
+   * Calculate intelligent readiness score with Phase 3 features
+   */
+  calculateIntelligentReadinessScore(): number {
+    const baseScore = this.calculateOverallScore();
+    let intelligentScore = baseScore;
+    
+    // Adjust score based on decision tree answers
+    if (this.decisionTreeAnswers) {
+      const documentReadiness = this.decisionTreeAnswers.document_readiness || [];
+      const hasRequiredDocs = documentReadiness.includes('business_plan') && 
+                             documentReadiness.includes('financial_projections');
+      
+      if (hasRequiredDocs) {
+        intelligentScore += 10; // Bonus for having required documents
+      } else {
+        intelligentScore -= 15; // Penalty for missing required documents
+      }
+    }
+    
+    // Adjust score based on program template compliance
+    if (this.programTemplate) {
+      const templateSections = this.programTemplate.sections || [];
+      const requiredSections = templateSections.filter(s => s.required);
+      const completedRequiredSections = requiredSections.filter(section => {
+        const content = this.planContent[section.id] || '';
+        return content.trim().length > 50;
+      });
+      
+      const templateCompliance = requiredSections.length > 0 ? 
+        completedRequiredSections.length / requiredSections.length : 1;
+      
+      intelligentScore = Math.round(intelligentScore * templateCompliance);
+    }
+    
+    return Math.max(0, Math.min(100, intelligentScore));
+  }
+
+  /**
+   * Get intelligent readiness summary
+   */
+  getIntelligentReadinessSummary(): {
+    score: number;
+    status: 'ready' | 'needs_work' | 'not_ready';
+    recommendations: string[];
+    phase3Features: {
+      decisionTreeInsights: string[];
+      templateCompliance: string[];
+      aiGuidance: string[];
+    };
+  } {
+    const score = this.calculateIntelligentReadinessScore();
+    const checks = this.performReadinessCheck();
+    
+    let status: 'ready' | 'needs_work' | 'not_ready';
+    if (score >= 85) status = 'ready';
+    else if (score >= 60) status = 'needs_work';
+    else status = 'not_ready';
+    
+    const recommendations = checks
+      .filter(c => c.score < 80)
+      .flatMap(c => c.suggestions);
+    
+    const phase3Features = {
+      decisionTreeInsights: this.getDecisionTreeInsights(),
+      templateCompliance: this.getTemplateComplianceInsights(),
+      aiGuidance: this.getAIGuidanceInsights()
+    };
+    
+    return {
+      score,
+      status,
+      recommendations,
+      phase3Features
+    };
+  }
+
+  /**
+   * Get decision tree insights
+   */
+  private getDecisionTreeInsights(): string[] {
+    if (!this.decisionTreeAnswers) return [];
+    
+    const insights: string[] = [];
+    const documentReadiness = this.decisionTreeAnswers.document_readiness || [];
+    
+    if (documentReadiness.includes('business_plan')) {
+      insights.push('✅ Business plan available');
+    } else {
+      insights.push('❌ Business plan needed');
+    }
+    
+    if (documentReadiness.includes('financial_projections')) {
+      insights.push('✅ Financial projections available');
+    } else {
+      insights.push('❌ Financial projections needed');
+    }
+    
+    return insights;
+  }
+
+  /**
+   * Get template compliance insights
+   */
+  private getTemplateComplianceInsights(): string[] {
+    if (!this.programTemplate) return [];
+    
+    const insights: string[] = [];
+    const templateSections = this.programTemplate.sections || [];
+    const requiredSections = templateSections.filter(s => s.required);
+    
+    insights.push(`📋 ${requiredSections.length} required sections for ${this.programTemplate.program_name}`);
+    
+    const completedSections = requiredSections.filter(section => {
+      const content = this.planContent[section.id] || '';
+      return content.trim().length > 50;
+    });
+    
+    insights.push(`✅ ${completedSections.length}/${requiredSections.length} required sections completed`);
+    
+    return insights;
+  }
+
+  /**
+   * Get AI guidance insights
+   */
+  private getAIGuidanceInsights(): string[] {
+    if (!this.aiGuidance) return [];
+    
+    const insights: string[] = [];
+    
+    if (this.aiGuidance.context) {
+      insights.push(`🎯 Focus: ${this.aiGuidance.context}`);
+    }
+    
+    if (this.aiGuidance.key_points && this.aiGuidance.key_points.length > 0) {
+      insights.push(`📝 Key Points: ${this.aiGuidance.key_points.join(', ')}`);
+    }
+    
+    return insights;
   }
 }
 
