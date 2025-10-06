@@ -4,16 +4,19 @@
 import React, { useState, useEffect } from 'react';
 import { useRouter } from 'next/router';
 import Head from 'next/head';
+import dynamic from 'next/dynamic';
 import EditorShell from '../src/editor/EditorShell';
-import RecoIntegration from '../src/editor/integration/RecoIntegration';
-import FormattingPanel from '../src/editor/settings/FormattingPanel';
-import RouteExtrasPanel from '../src/components/editor/RouteExtrasPanel';
-import FinancialTables from '../src/editor/financials/index';
-import Figures from '../src/editor/figures/index';
-import AddonPack from '../src/editor/addons/AddonPack';
-import EnhancedAIChat from '../src/components/editor/EnhancedAIChat';
-import FormHelpModal from '../src/components/editor/FormHelpModal';
-import SectionEditor from '../src/components/editor/SectionEditor';
+
+// Lazy load heavy components for better performance
+const RecoIntegration = dynamic(() => import('../src/editor/integration/RecoIntegration'), { ssr: false });
+const FormattingPanel = dynamic(() => import('../src/editor/settings/FormattingPanel'), { ssr: false });
+const RouteExtrasPanel = dynamic(() => import('../src/components/editor/RouteExtrasPanel'), { ssr: false });
+const FinancialTables = dynamic(() => import('../src/editor/financials/index'), { ssr: false });
+const Figures = dynamic(() => import('../src/editor/figures/index'), { ssr: false });
+const AddonPack = dynamic(() => import('../src/editor/addons/AddonPack'), { ssr: false });
+const EnhancedAIChat = dynamic(() => import('../src/components/editor/EnhancedAIChat'), { ssr: false });
+const FormHelpModal = dynamic(() => import('../src/components/editor/FormHelpModal'), { ssr: false });
+const SectionEditor = dynamic(() => import('../src/components/editor/SectionEditor'), { ssr: false });
 import { PlanDocument, Route, FigureRef } from '@/types/plan';
 import { ProgramProfile } from '@/types/reco';
 import { evaluate } from '../src/editor/readiness/engine';
