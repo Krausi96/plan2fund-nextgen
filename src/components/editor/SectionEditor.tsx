@@ -9,19 +9,42 @@ interface SectionEditorProps {
   section: PlanSection;
   onContentChange: (sectionKey: string, content: string) => void;
   onStatusChange: (sectionKey: string, status: 'missing' | 'needs_fix' | 'aligned') => void;
+  onSectionReorder?: (fromIndex: number, toIndex: number) => void;
+  onSectionCustomize?: (sectionKey: string, customizations: SectionCustomizations) => void;
   isActive?: boolean;
   showProgress?: boolean;
+  showCustomization?: boolean;
+  showUniqueness?: boolean;
+  customizations?: SectionCustomizations;
+}
+
+interface SectionCustomizations {
+  title?: string;
+  guidance?: string;
+  minLength?: number;
+  maxLength?: number;
+  required?: boolean;
+  order?: number;
+  isVisible?: boolean;
+  template?: string;
 }
 
 export default function SectionEditor({
   section,
   onContentChange,
   onStatusChange,
+  onSectionReorder,
+  onSectionCustomize,
   isActive = false,
-  showProgress = true
+  showProgress = true,
+  showCustomization = false,
+  showUniqueness = false,
+  customizations
 }: SectionEditorProps) {
   const [content, setContent] = useState(section.content || '');
   const [status, setStatus] = useState(section.status || 'missing');
+  const [showCustomizationPanel, setShowCustomizationPanel] = useState(false);
+  const [uniquenessScore, setUniquenessScore] = useState(0);
 
   // Auto-update status based on content
   useEffect(() => {
@@ -31,6 +54,33 @@ export default function SectionEditor({
       onStatusChange(section.key, newStatus);
     }
   }, [content, section.key, status, onStatusChange]);
+
+  // Calculate uniqueness score to avoid template monotony
+  useEffect(() => {
+    if (showUniqueness && content.length > 0) {
+      const score = calculateUniquenessScore(content);
+      setUniquenessScore(score);
+    }
+  }, [content, showUniqueness]);
+
+  const calculateUniquenessScore = (text: string): number => {
+    // Simple uniqueness scoring based on:
+    // 1. Word variety (unique words / total words)
+    // 2. Sentence length variation
+    // 3. Personal pronouns usage (indicates personalization)
+    const words = text.toLowerCase().split(/\s+/).filter(w => w.length > 2);
+    const uniqueWords = new Set(words).size;
+    const wordVariety = uniqueWords / words.length;
+    
+    const sentences = text.split(/[.!?]+/).filter(s => s.trim().length > 0);
+    const avgSentenceLength = sentences.reduce((sum, s) => sum + s.split(/\s+/).length, 0) / sentences.length;
+    const sentenceVariation = Math.min(avgSentenceLength / 20, 1); // Normalize to 0-1
+    
+    const personalPronouns = (text.match(/\b(i|we|our|my|us|me)\b/gi) || []).length;
+    const personalization = Math.min(personalPronouns / 10, 1); // Normalize to 0-1
+    
+    return Math.round((wordVariety * 0.4 + sentenceVariation * 0.3 + personalization * 0.3) * 100);
+  };
 
   const getContentStatus = (content: string): 'missing' | 'needs_fix' | 'aligned' => {
     const charCount = content.trim().length;
@@ -75,6 +125,11 @@ export default function SectionEditor({
   };
 
   const getSectionGuidance = (section: PlanSection): string => {
+    // Use custom guidance if available, otherwise fall back to default
+    if (customizations?.guidance) {
+      return customizations.guidance;
+    }
+    
     // Provide guidance based on section key
     const guidanceMap: Record<string, string> = {
       'execSummary': 'Write a compelling executive summary that highlights your business opportunity, key metrics, and funding requirements. Keep it concise but comprehensive.',
@@ -106,6 +161,22 @@ export default function SectionEditor({
     return guidanceMap[section.key] || `Provide detailed content for ${section.title}.`;
   };
 
+  const handleCustomizationChange = (field: keyof SectionCustomizations, value: any) => {
+    if (onSectionCustomize) {
+      const newCustomizations = {
+        ...customizations,
+        [field]: value
+      };
+      onSectionCustomize(section.key, newCustomizations);
+    }
+  };
+
+  const getUniquenessColor = (score: number) => {
+    if (score >= 80) return 'text-green-600 bg-green-50';
+    if (score >= 60) return 'text-yellow-600 bg-yellow-50';
+    return 'text-red-600 bg-red-50';
+  };
+
   return (
     <div className={`section-editor border rounded-lg transition-all duration-200 ${
       isActive ? 'border-blue-300 shadow-lg' : 'border-gray-200'
@@ -115,7 +186,14 @@ export default function SectionEditor({
         <div className="flex items-center justify-between">
           <div className="flex items-center space-x-3">
             <span className="text-lg font-semibold">{getStatusIcon()}</span>
-            <h3 className="text-lg font-semibold">{section.title}</h3>
+            <h3 className="text-lg font-semibold">
+              {customizations?.title || section.title}
+            </h3>
+            {showUniqueness && uniquenessScore > 0 && (
+              <span className={`px-2 py-1 rounded-full text-xs font-medium ${getUniquenessColor(uniquenessScore)}`}>
+                Uniqueness: {uniquenessScore}%
+              </span>
+            )}
           </div>
           
           <div className="flex items-center space-x-2">
@@ -124,12 +202,65 @@ export default function SectionEditor({
             </span>
             {showProgress && (
               <div className="text-sm text-gray-500">
-                {Math.round((content.length / 200) * 100)}% complete
+                {Math.round((content.length / (customizations?.minLength || 200)) * 100)}% complete
               </div>
+            )}
+            {showCustomization && (
+              <button
+                onClick={() => setShowCustomizationPanel(!showCustomizationPanel)}
+                className="px-2 py-1 text-xs text-blue-600 hover:bg-blue-50 rounded"
+              >
+                ⚙️ Customize
+              </button>
             )}
           </div>
         </div>
       </div>
+
+      {/* Customization Panel */}
+      {showCustomizationPanel && showCustomization && (
+        <div className="px-4 py-3 bg-gray-50 border-b">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">
+                Custom Title
+              </label>
+              <input
+                type="text"
+                value={customizations?.title || section.title}
+                onChange={(e) => handleCustomizationChange('title', e.target.value)}
+                className="w-full px-3 py-2 border border-gray-300 rounded-md text-sm"
+                placeholder="Enter custom title"
+              />
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">
+                Min Length
+              </label>
+              <input
+                type="number"
+                value={customizations?.minLength || 50}
+                onChange={(e) => handleCustomizationChange('minLength', parseInt(e.target.value))}
+                className="w-full px-3 py-2 border border-gray-300 rounded-md text-sm"
+                min="10"
+                max="5000"
+              />
+            </div>
+            <div className="md:col-span-2">
+              <label className="block text-sm font-medium text-gray-700 mb-1">
+                Custom Guidance
+              </label>
+              <textarea
+                value={customizations?.guidance || getSectionGuidance(section)}
+                onChange={(e) => handleCustomizationChange('guidance', e.target.value)}
+                className="w-full px-3 py-2 border border-gray-300 rounded-md text-sm"
+                rows={2}
+                placeholder="Enter custom guidance for this section"
+              />
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Section Content */}
       <div className="p-4">
@@ -138,8 +269,8 @@ export default function SectionEditor({
           onChange={handleContentChange}
           section={section}
           guidance={getSectionGuidance(section)}
-          minLength={50}
-          maxLength={2000}
+          minLength={customizations?.minLength || 50}
+          maxLength={customizations?.maxLength || 2000}
           showWordCount={true}
           showGuidance={true}
         />
