@@ -86,7 +86,7 @@ export default async function handler(
     }
 
     // For now, create a simple response without complex AI helper
-    // TODO: Fix AIHelper integration
+    // TODO: Fix AIHelper integration - Vercel deployment test
     const generateSimpleResponse = (sectionId: string, content: string) => {
       return {
         content: `This is a generated response for ${sectionId}: ${content}`,

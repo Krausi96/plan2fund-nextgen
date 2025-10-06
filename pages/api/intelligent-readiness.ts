@@ -62,7 +62,7 @@ export default async function handler(
       });
     }
 
-    // Simple readiness check implementation
+    // Simple readiness check implementation - Vercel deployment test
     const generateReadinessResponse = (action: string, _programId: string, planContent: Record<string, any>) => {
       const sections = Object.keys(planContent);
       const totalSections = sections.length;
