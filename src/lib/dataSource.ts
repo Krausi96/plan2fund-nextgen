@@ -84,7 +84,7 @@ class HybridDataSource implements ProgramDataSource {
     await this.initialize();
     
     try {
-      const response = await fetch('/api/gpt-enhanced?action=programs');
+      const response = await fetch('/api/programs-ai?action=programs');
       if (!response.ok) throw new Error('Failed to fetch GPT-enhanced programs');
       const data = await response.json();
       return data.data || [];
@@ -98,7 +98,7 @@ class HybridDataSource implements ProgramDataSource {
     await this.initialize();
     
     try {
-      const response = await fetch(`/api/gpt-enhanced?action=questions&programId=${programId}`);
+      const response = await fetch(`/api/programs-ai?action=questions&programId=${programId}`);
       if (!response.ok) throw new Error('Failed to fetch decision tree questions');
       const data = await response.json();
       return data.data || [];
@@ -112,7 +112,7 @@ class HybridDataSource implements ProgramDataSource {
     await this.initialize();
     
     try {
-      const response = await fetch(`/api/gpt-enhanced?action=sections&programId=${programId}`);
+      const response = await fetch(`/api/programs-ai?action=sections&programId=${programId}`);
       if (!response.ok) throw new Error('Failed to fetch editor sections');
       const data = await response.json();
       return data.data || [];
@@ -126,7 +126,7 @@ class HybridDataSource implements ProgramDataSource {
     await this.initialize();
     
     try {
-      const response = await fetch(`/api/gpt-enhanced?action=criteria&programId=${programId}`);
+      const response = await fetch(`/api/programs-ai?action=criteria&programId=${programId}`);
       if (!response.ok) throw new Error('Failed to fetch readiness criteria');
       const data = await response.json();
       return data.data || [];
@@ -140,7 +140,7 @@ class HybridDataSource implements ProgramDataSource {
     await this.initialize();
     
     try {
-      const response = await fetch(`/api/gpt-enhanced?action=guidance&programId=${programId}`);
+      const response = await fetch(`/api/programs-ai?action=guidance&programId=${programId}`);
       if (!response.ok) throw new Error('Failed to fetch AI guidance');
       const data = await response.json();
       return data.data || null;
