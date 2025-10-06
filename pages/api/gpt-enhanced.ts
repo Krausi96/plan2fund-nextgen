@@ -13,14 +13,12 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     return res.status(405).json({ error: 'Method not allowed' });
   }
 
-  // Test mode - return mock data if no database connection
+  // Check database connection
   if (!process.env.DATABASE_URL) {
-    return res.status(200).json({
-      success: true,
-      data: [],
-      count: 0,
-      message: 'Test mode - no database connection configured',
-      test: true
+    return res.status(500).json({
+      success: false,
+      error: 'Database connection not configured',
+      message: 'DATABASE_URL environment variable is missing'
     });
   }
 
