@@ -116,9 +116,11 @@ async function testDecisionTreeValidation() {
     has_financial_projections: true
   };
   
-  const response = await makeRequest(`${BASE_URL}/api/decision-tree?action=validate&programId=${TEST_PROGRAM_ID}`, {
+  const response = await makeRequest(`${BASE_URL}/api/decision-tree`, {
     method: 'POST',
     body: {
+      action: 'validate',
+      programId: TEST_PROGRAM_ID,
       answers: testAnswers
     }
   });
@@ -207,6 +209,11 @@ async function testAIAssistantTemplate() {
       programTemplate: {
         program_name: 'Test Program',
         sections: []
+      },
+      currentTemplateSection: {
+        id: 'executive_summary',
+        title: 'Executive Summary',
+        required: true
       }
     }
   });
