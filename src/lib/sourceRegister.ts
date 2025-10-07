@@ -8,6 +8,11 @@ export interface SourceInfo {
   priority: 'high' | 'medium' | 'low';
   programs: number;
   fields: string[];
+  monitoring: 'daily' | 'weekly' | 'monthly';
+  category: string;
+  enabled: boolean;
+  retryAttempts: number;
+  timeout: number;
 }
 
 export const sourceRegister: SourceInfo[] = [
@@ -19,7 +24,12 @@ export const sourceRegister: SourceInfo[] = [
     status: 'active',
     priority: 'high',
     programs: 3,
-    fields: ['q1_country', 'q2_entity_stage', 'q4_theme', 'q9_team_diversity']
+    fields: ['q1_country', 'q2_entity_stage', 'q4_theme', 'q9_team_diversity'],
+    monitoring: 'daily',
+    category: 'austrian_grants',
+    enabled: true,
+    retryAttempts: 3,
+    timeout: 30000
   },
   {
     id: 'ffg_at',
@@ -29,7 +39,12 @@ export const sourceRegister: SourceInfo[] = [
     status: 'active',
     priority: 'high',
     programs: 4,
-    fields: ['q1_country', 'q6_rnd_in_at', 'q7_collaboration']
+    fields: ['q1_country', 'q6_rnd_in_at', 'q7_collaboration'],
+    monitoring: 'daily',
+    category: 'research_grants',
+    enabled: true,
+    retryAttempts: 3,
+    timeout: 30000
   },
   {
     id: 'eic_europa',
@@ -39,7 +54,12 @@ export const sourceRegister: SourceInfo[] = [
     status: 'active',
     priority: 'high',
     programs: 1,
-    fields: ['q1_country', 'q3_company_size', 'q4_theme', 'q8_funding_types']
+    fields: ['q1_country', 'q3_company_size', 'q4_theme', 'q8_funding_types'],
+    monitoring: 'daily',
+    category: 'eu_programs',
+    enabled: true,
+    retryAttempts: 3,
+    timeout: 30000
   },
   {
     id: 'horizon_europe',
@@ -49,7 +69,12 @@ export const sourceRegister: SourceInfo[] = [
     status: 'active',
     priority: 'high',
     programs: 1,
-    fields: ['q1_country', 'q4_theme', 'q6_rnd_in_at']
+    fields: ['q1_country', 'q4_theme', 'q6_rnd_in_at'],
+    monitoring: 'daily',
+    category: 'eu_programs',
+    enabled: true,
+    retryAttempts: 3,
+    timeout: 30000
   },
   {
     id: 'umweltfoerderung',
@@ -59,7 +84,12 @@ export const sourceRegister: SourceInfo[] = [
     status: 'active',
     priority: 'medium',
     programs: 1,
-    fields: ['q3_company_size', 'q10_env_benefit']
+    fields: ['q3_company_size', 'q10_env_benefit'],
+    monitoring: 'weekly',
+    category: 'environmental',
+    enabled: true,
+    retryAttempts: 2,
+    timeout: 20000
   },
   {
     id: 'clean_hydrogen',
@@ -69,181 +99,221 @@ export const sourceRegister: SourceInfo[] = [
     status: 'active',
     priority: 'medium',
     programs: 1,
-    fields: ['q10_env_benefit']
+    fields: ['q10_env_benefit'],
+    monitoring: 'weekly',
+    category: 'environmental',
+    enabled: true,
+    retryAttempts: 2,
+    timeout: 20000
   },
   {
     id: 'eit_health',
     name: 'EIT Health',
-    source: 'https://eithealth.eu/',
+    source: 'https://www.eithealth.eu/',
     lastChecked: '2025-01-15',
     status: 'active',
-    priority: 'medium',
-    programs: 2,
-    fields: ['q4_theme', 'q10_env_benefit']
-  },
-  {
-    id: 'esa_bic',
-    name: 'ESA Business Incubation Centre',
-    source: 'https://www.esa.int/',
-    lastChecked: '2025-01-15',
-    status: 'active',
-    priority: 'medium',
+    priority: 'high',
     programs: 1,
-    fields: ['q2_entity_stage']
-  },
-  {
-    id: 'life_programme',
-    name: 'LIFE Programme',
-    source: 'https://cinea.ec.europa.eu/life_en',
-    lastChecked: '2025-01-15',
-    status: 'active',
-    priority: 'medium',
-    programs: 1,
-    fields: ['q1_country', 'q4_theme']
-  },
-  {
-    id: 'klimafonds',
-    name: 'Klima- und Energiefonds',
-    source: 'https://www.klimafonds.gv.at/',
-    lastChecked: '2025-01-10',
-    status: 'active',
-    priority: 'low',
-    programs: 1,
-    fields: ['q10_env_benefit']
-  },
-  {
-    id: 'wko_innovation',
-    name: 'WKO Innovation Wien',
-    source: 'https://www.wko.at/',
-    lastChecked: '2025-01-10',
-    status: 'active',
-    priority: 'low',
-    programs: 1,
-    fields: ['q4_theme']
-  },
-  {
-    id: 'incubator_wien',
-    name: 'Incubator Wien',
-    source: 'https://www.incubator.wien/',
-    lastChecked: '2025-01-10',
-    status: 'active',
-    priority: 'low',
-    programs: 1,
-    fields: ['q2_entity_stage']
-  },
-  {
-    id: 'raiffeisen',
-    name: 'Raiffeisen Bank',
-    source: 'https://www.raiffeisen.at/',
-    lastChecked: '2025-01-10',
-    status: 'active',
-    priority: 'low',
-    programs: 1,
-    fields: ['q8_funding_types']
-  },
-  {
-    id: 'sparkasse',
-    name: 'Sparkasse',
-    source: 'https://www.sparkasse.at/',
-    lastChecked: '2025-01-10',
-    status: 'active',
-    priority: 'low',
-    programs: 1,
-    fields: ['q8_funding_types']
-  },
-  {
-    id: 'unicredit',
-    name: 'UniCredit Bank',
-    source: 'https://www.unicredit.at/',
-    lastChecked: '2025-01-10',
-    status: 'active',
-    priority: 'low',
-    programs: 1,
-    fields: ['q8_funding_types']
-  },
-  {
-    id: 'volksbank',
-    name: 'Volksbank',
-    source: 'https://www.volksbank.at/',
-    lastChecked: '2025-01-10',
-    status: 'active',
-    priority: 'low',
-    programs: 1,
-    fields: ['q8_funding_types']
-  },
-  {
-    id: 'red_white_red_card',
-    name: 'Red-White-Red Card',
-    source: 'https://www.oesterreich.gv.at/',
-    lastChecked: '2025-01-10',
-    status: 'active',
-    priority: 'low',
-    programs: 2,
-    fields: ['q1_country', 'q2_entity_stage']
-  },
-  {
-    id: 'eu_blue_card',
-    name: 'EU Blue Card',
-    source: 'https://ec.europa.eu/',
-    lastChecked: '2025-01-10',
-    status: 'active',
-    priority: 'low',
-    programs: 1,
-    fields: ['q1_country']
+    fields: ['q4_theme', 'q6_rnd_in_at'],
+    monitoring: 'daily',
+    category: 'health',
+    enabled: true,
+    retryAttempts: 3,
+    timeout: 30000
   },
   {
     id: 'eit_digital',
     name: 'EIT Digital',
     source: 'https://www.eitdigital.eu/',
-    lastChecked: '2025-01-10',
+    lastChecked: '2025-01-15',
     status: 'active',
-    priority: 'low',
+    priority: 'high',
     programs: 1,
-    fields: ['q4_theme']
+    fields: ['q4_theme', 'q6_rnd_in_at'],
+    monitoring: 'daily',
+    category: 'digital',
+    enabled: true,
+    retryAttempts: 3,
+    timeout: 30000
+  },
+  {
+    id: 'eit_urban_mobility',
+    name: 'EIT Urban Mobility',
+    source: 'https://www.eiturbanmobility.eu/',
+    lastChecked: '2025-01-15',
+    status: 'active',
+    priority: 'high',
+    programs: 1,
+    fields: ['q4_theme', 'q6_rnd_in_at'],
+    monitoring: 'daily',
+    category: 'mobility',
+    enabled: true,
+    retryAttempts: 3,
+    timeout: 30000
+  },
+  {
+    id: 'eit_food',
+    name: 'EIT Food',
+    source: 'https://www.eitfood.eu/',
+    lastChecked: '2025-01-15',
+    status: 'active',
+    priority: 'high',
+    programs: 1,
+    fields: ['q4_theme', 'q6_rnd_in_at'],
+    monitoring: 'daily',
+    category: 'food',
+    enabled: true,
+    retryAttempts: 3,
+    timeout: 30000
   },
   {
     id: 'eit_manufacturing',
     name: 'EIT Manufacturing',
     source: 'https://www.eitmanufacturing.eu/',
-    lastChecked: '2025-01-10',
+    lastChecked: '2025-01-15',
     status: 'active',
-    priority: 'low',
+    priority: 'high',
     programs: 1,
-    fields: ['q4_theme']
+    fields: ['q4_theme', 'q6_rnd_in_at'],
+    monitoring: 'daily',
+    category: 'manufacturing',
+    enabled: true,
+    retryAttempts: 3,
+    timeout: 30000
+  },
+  {
+    id: 'eit_raw_materials',
+    name: 'EIT Raw Materials',
+    source: 'https://eitrawmaterials.eu/',
+    lastChecked: '2025-01-15',
+    status: 'active',
+    priority: 'high',
+    programs: 1,
+    fields: ['q4_theme', 'q6_rnd_in_at'],
+    monitoring: 'daily',
+    category: 'materials',
+    enabled: true,
+    retryAttempts: 3,
+    timeout: 30000
+  },
+  {
+    id: 'eit_climate',
+    name: 'EIT Climate',
+    source: 'https://www.eitclimate.eu/',
+    lastChecked: '2025-01-15',
+    status: 'active',
+    priority: 'high',
+    programs: 1,
+    fields: ['q4_theme', 'q6_rnd_in_at'],
+    monitoring: 'daily',
+    category: 'climate',
+    enabled: true,
+    retryAttempts: 3,
+    timeout: 30000
+  },
+  {
+    id: 'eit_culture_creativity',
+    name: 'EIT Culture & Creativity',
+    source: 'https://www.eitculturecreativity.eu/',
+    lastChecked: '2025-01-15',
+    status: 'active',
+    priority: 'high',
+    programs: 1,
+    fields: ['q4_theme', 'q6_rnd_in_at'],
+    monitoring: 'daily',
+    category: 'culture',
+    enabled: true,
+    retryAttempts: 3,
+    timeout: 30000
+  },
+  {
+    id: 'eit_energy',
+    name: 'EIT Energy',
+    source: 'https://www.eitenergy.eu/',
+    lastChecked: '2025-01-15',
+    status: 'active',
+    priority: 'high',
+    programs: 1,
+    fields: ['q4_theme', 'q6_rnd_in_at'],
+    monitoring: 'daily',
+    category: 'energy',
+    enabled: true,
+    retryAttempts: 3,
+    timeout: 30000
+  },
+  {
+    id: 'eit_water',
+    name: 'EIT Water',
+    source: 'https://www.eitwater.eu/',
+    lastChecked: '2025-01-15',
+    status: 'active',
+    priority: 'high',
+    programs: 1,
+    fields: ['q4_theme', 'q6_rnd_in_at'],
+    monitoring: 'daily',
+    category: 'water',
+    enabled: true,
+    retryAttempts: 3,
+    timeout: 30000
+  },
+  {
+    id: 'wko_at',
+    name: 'Austrian Economic Chamber (WKO)',
+    source: 'https://www.wko.at/',
+    lastChecked: '2025-01-15',
+    status: 'active',
+    priority: 'high',
+    programs: 2,
+    fields: ['q1_country', 'q3_company_size', 'q4_theme'],
+    monitoring: 'daily',
+    category: 'business_grants',
+    enabled: true,
+    retryAttempts: 3,
+    timeout: 30000
+  },
+  {
+    id: 'ams_at',
+    name: 'Austrian Employment Service (AMS)',
+    source: 'https://www.ams.at/',
+    lastChecked: '2025-01-15',
+    status: 'active',
+    priority: 'high',
+    programs: 2,
+    fields: ['q1_country', 'q3_company_size', 'q9_team_diversity'],
+    monitoring: 'daily',
+    category: 'employment',
+    enabled: true,
+    retryAttempts: 3,
+    timeout: 30000
+  },
+  {
+    id: 'oesb_at',
+    name: 'ÖSB Consulting',
+    source: 'https://www.oesb.at/',
+    lastChecked: '2025-01-15',
+    status: 'active',
+    priority: 'high',
+    programs: 1,
+    fields: ['q1_country', 'q3_company_size', 'q4_theme'],
+    monitoring: 'daily',
+    category: 'consulting',
+    enabled: true,
+    retryAttempts: 3,
+    timeout: 30000
+  },
+  {
+    id: 'vba_at',
+    name: 'Vienna Business Agency (VBA)',
+    source: 'https://www.viennabusinessagency.at/',
+    lastChecked: '2025-01-15',
+    status: 'active',
+    priority: 'high',
+    programs: 2,
+    fields: ['q1_country', 'q2_entity_stage', 'q4_theme'],
+    monitoring: 'daily',
+    category: 'regional_grants',
+    enabled: true,
+    retryAttempts: 3,
+    timeout: 30000
   }
 ];
-
-export function getTop20Sources(): SourceInfo[] {
-  return sourceRegister
-    .filter(source => source.status === 'active')
-    .sort((a, b) => {
-      const priorityOrder = { high: 3, medium: 2, low: 1 };
-      return priorityOrder[b.priority] - priorityOrder[a.priority];
-    })
-    .slice(0, 20);
-}
-
-export function getSourceCoverage(): { [key: string]: number } {
-  const coverage: { [key: string]: number } = {};
-  
-  sourceRegister.forEach(source => {
-    source.fields.forEach(field => {
-      coverage[field] = (coverage[field] || 0) + 1;
-    });
-  });
-  
-  return coverage;
-}
-
-export function getLastUpdateInfo(): { lastChecked: string; totalSources: number; activeSources: number } {
-  const activeSources = sourceRegister.filter(s => s.status === 'active');
-  const lastChecked = activeSources.reduce((latest, source) => {
-    return source.lastChecked > latest ? source.lastChecked : latest;
-  }, '2025-01-01');
-  
-  return {
-    lastChecked,
-    totalSources: sourceRegister.length,
-    activeSources: activeSources.length
-  };
-}

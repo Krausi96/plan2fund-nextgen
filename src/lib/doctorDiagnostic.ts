@@ -102,30 +102,33 @@ export class DoctorDiagnostic {
     return symptoms;
   }
 
-  // Make diagnosis based on symptoms (like a doctor making a diagnosis)
+  // Make diagnosis based on symptoms using structured requirements
   async makeDiagnosis(symptoms: Symptom[]): Promise<Diagnosis> {
     // Get programs that match the symptoms
     const symptomData = this.symptomsToData(symptoms);
     const matchingPrograms = await dataSource.getProgramsBySymptoms(symptomData);
 
-    // Calculate confidence based on symptom matches
-    const confidence = this.calculateConfidence(symptoms, matchingPrograms);
+    // Enhance programs with structured requirements
+    const enhancedPrograms = await this.enhanceProgramsWithStructuredRequirements(matchingPrograms);
 
-    // Generate diagnosis reasoning
-    const reasoning = this.generateReasoning(symptoms, matchingPrograms);
+    // Calculate confidence based on symptom matches and structured requirements
+    const confidence = this.calculateConfidenceWithStructured(symptoms, enhancedPrograms);
 
-    // Determine primary and secondary diagnoses
-    const primary = this.determinePrimaryDiagnosis(symptoms, matchingPrograms);
-    const secondary = this.determineSecondaryDiagnoses(symptoms, matchingPrograms);
+    // Generate diagnosis reasoning using structured requirements
+    const reasoning = this.generateReasoningWithStructured(symptoms, enhancedPrograms);
 
-    // Suggest next questions if confidence is low
-    const nextQuestions = confidence < 0.7 ? this.suggestNextQuestions(symptoms) : undefined;
+    // Determine primary and secondary diagnoses using structured requirements
+    const primary = this.determinePrimaryDiagnosisWithStructured(symptoms, enhancedPrograms);
+    const secondary = this.determineSecondaryDiagnosesWithStructured(symptoms, enhancedPrograms);
+
+    // Suggest next questions if confidence is low, using structured requirements
+    const nextQuestions = confidence < 0.7 ? this.suggestNextQuestionsWithStructured(symptoms, enhancedPrograms) : undefined;
 
     this.diagnosis = {
       primary,
       secondary,
       confidence,
-      programs: matchingPrograms,
+      programs: enhancedPrograms,
       reasoning,
       nextQuestions
     };
@@ -318,6 +321,137 @@ export class DoctorDiagnostic {
     }
 
     return symptoms;
+  }
+
+  /**
+   * Enhance programs with structured requirements
+   */
+  private async enhanceProgramsWithStructuredRequirements(programs: Program[]): Promise<Program[]> {
+    try {
+      const enhancedPrograms = await Promise.all(
+        programs.map(async (program) => {
+          try {
+            const response = await fetch(`/api/programmes/${program.id}/requirements`);
+            if (response.ok) {
+              const requirements = await response.json();
+              return {
+                ...program,
+                structured_requirements: {
+                  decision_tree: requirements.decision_tree || [],
+                  editor: requirements.editor || [],
+                  library: requirements.library || []
+                }
+              };
+            }
+          } catch (error) {
+            console.warn(`Failed to load structured requirements for ${program.id}:`, error);
+          }
+          return program;
+        })
+      );
+      return enhancedPrograms;
+    } catch (error) {
+      console.error('Error enhancing programs with structured requirements:', error);
+      return programs;
+    }
+  }
+
+  /**
+   * Calculate confidence with structured requirements
+   */
+  private calculateConfidenceWithStructured(symptoms: Symptom[], programs: Program[]): number {
+    const baseConfidence = this.calculateConfidence(symptoms, programs);
+    
+    // Boost confidence if programs have structured requirements
+    const programsWithStructured = programs.filter(p => 
+      (p as any).structured_requirements && 
+      ((p as any).structured_requirements.decision_tree?.length > 0 || 
+       (p as any).structured_requirements.editor?.length > 0 || 
+       (p as any).structured_requirements.library?.length > 0)
+    );
+    
+    const structuredBoost = programsWithStructured.length / programs.length * 0.2;
+    return Math.min(1, baseConfidence + structuredBoost);
+  }
+
+  /**
+   * Generate reasoning with structured requirements
+   */
+  private generateReasoningWithStructured(symptoms: Symptom[], programs: Program[]): string {
+    const baseReasoning = this.generateReasoning(symptoms, programs);
+    
+    const programsWithStructured = programs.filter(p => 
+      (p as any).structured_requirements && 
+      ((p as any).structured_requirements.decision_tree?.length > 0 || 
+       (p as any).structured_requirements.editor?.length > 0 || 
+       (p as any).structured_requirements.library?.length > 0)
+    );
+    
+    if (programsWithStructured.length > 0) {
+      return `${baseReasoning} Enhanced with structured requirements for ${programsWithStructured.length} programs.`;
+    }
+    
+    return baseReasoning;
+  }
+
+  /**
+   * Determine primary diagnosis with structured requirements
+   */
+  private determinePrimaryDiagnosisWithStructured(symptoms: Symptom[], programs: Program[]): string {
+    const baseDiagnosis = this.determinePrimaryDiagnosis(symptoms, programs);
+    
+    const programsWithStructured = programs.filter(p => 
+      (p as any).structured_requirements && 
+      ((p as any).structured_requirements.decision_tree?.length > 0 || 
+       (p as any).structured_requirements.editor?.length > 0 || 
+       (p as any).structured_requirements.library?.length > 0)
+    );
+    
+    if (programsWithStructured.length > 0) {
+      return `${baseDiagnosis} (Enhanced with structured requirements)`;
+    }
+    
+    return baseDiagnosis;
+  }
+
+  /**
+   * Determine secondary diagnoses with structured requirements
+   */
+  private determineSecondaryDiagnosesWithStructured(symptoms: Symptom[], programs: Program[]): string[] {
+    const baseDiagnoses = this.determineSecondaryDiagnoses(symptoms, programs);
+    
+    const programsWithStructured = programs.filter(p => 
+      (p as any).structured_requirements && 
+      ((p as any).structured_requirements.decision_tree?.length > 0 || 
+       (p as any).structured_requirements.editor?.length > 0 || 
+       (p as any).structured_requirements.library?.length > 0)
+    );
+    
+    if (programsWithStructured.length > 0) {
+      return [...baseDiagnoses, 'Structured requirements available for detailed analysis'];
+    }
+    
+    return baseDiagnoses;
+  }
+
+  /**
+   * Suggest next questions with structured requirements
+   */
+  private suggestNextQuestionsWithStructured(symptoms: Symptom[], programs: Program[]): string[] {
+    const baseQuestions = this.suggestNextQuestions(symptoms);
+    
+    const programsWithStructured = programs.filter(p => 
+      (p as any).structured_requirements && 
+      ((p as any).structured_requirements.decision_tree?.length > 0 || 
+       (p as any).structured_requirements.editor?.length > 0 || 
+       (p as any).structured_requirements.library?.length > 0)
+    );
+    
+    if (programsWithStructured.length > 0) {
+      return [...baseQuestions, 'Would you like to see detailed program requirements?'];
+    }
+    
+    return baseQuestions;
   }
 }
 

@@ -41,12 +41,56 @@ export class ProgramTemplateEngine {
   }
 
   /**
-   * Generate program-specific template
+   * Generate program-specific template using structured requirements
    */
-  generateTemplate(programId: string): ProgramTemplate {
+  async generateTemplate(programId: string): Promise<ProgramTemplate> {
     const program = this.programData.find((p: any) => p.id === programId);
     if (!program) {
       throw new Error(`Program ${programId} not found`);
+    }
+
+    // Try to get structured requirements from API
+    try {
+      const requirementsResponse = await fetch(`/api/programmes/${programId}/requirements`);
+      if (requirementsResponse.ok) {
+        const requirements = await requirementsResponse.json();
+        
+        // Convert structured editor requirements to template sections
+        const editorRequirements = requirements.editor || [];
+        const sections = editorRequirements.map((req: any, index: number) => ({
+          id: req.id || `section_${index}`,
+          title: req.section_name,
+          description: req.prompt || '',
+          required: req.required !== false,
+          order: index + 1,
+          content_template: req.template || req.prompt || '',
+          ai_prompts: req.hints || [],
+          validation_rules: {
+            min_words: req.word_count_min,
+            max_words: req.word_count_max,
+            required_fields: [],
+            format_requirements: []
+          },
+          program_specific: true,
+          industry_hints: [],
+          difficulty_level: 'intermediate' as const
+        }));
+
+        return {
+          program_id: programId,
+          program_name: program.name,
+          template_name: `${program.name} Template`,
+          description: `Program-specific template for ${program.name}`,
+          sections,
+          total_sections: sections.length,
+          estimated_completion_time: sections.length * 0.5, // 30 minutes per section
+          difficulty: 'medium' as const,
+          industry_focus: [],
+          target_audience: program.target_personas || []
+        };
+      }
+    } catch (error) {
+      console.warn('Failed to fetch structured requirements, falling back to default template:', error);
     }
 
     const sections = this.buildTemplateSections(program);
@@ -625,8 +669,8 @@ export class ProgramTemplateEngine {
   /**
    * Get template for specific program
    */
-  getTemplateForProgram(programId: string): ProgramTemplate {
-    return this.generateTemplate(programId);
+  async getTemplateForProgram(programId: string): Promise<ProgramTemplate> {
+    return await this.generateTemplate(programId);
   }
 
   /**

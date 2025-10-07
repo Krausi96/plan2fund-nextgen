@@ -40,9 +40,12 @@ export class AdvancedSearchDoctor {
       // Make diagnosis
       const diagnosis = await doctorDiagnostic.makeDiagnosis(symptoms);
 
-      // Get recommendations
+      // Get recommendations with structured requirements
       const answers = this.symptomsToAnswers(symptoms);
       const recommendations = await scoreProgramsEnhanced(answers, "strict");
+      
+      // Enhance recommendations with structured requirements
+      const enhancedRecommendations = await this.enhanceWithStructuredRequirements(recommendations);
 
       return {
         chips,
@@ -52,7 +55,7 @@ export class AdvancedSearchDoctor {
           confidence: diagnosis.confidence,
           reasoning: diagnosis.reasoning
         },
-        recommendations
+        recommendations: enhancedRecommendations
       };
 
     } catch (error) {
@@ -129,6 +132,45 @@ export class AdvancedSearchDoctor {
     });
 
     return answers;
+  }
+
+  /**
+   * Enhance recommendations with structured requirements
+   */
+  private async enhanceWithStructuredRequirements(recommendations: any[]): Promise<any[]> {
+    try {
+      const enhancedRecommendations = await Promise.all(
+        recommendations.map(async (rec) => {
+          try {
+            // Fetch structured requirements for this program
+            const response = await fetch(`/api/programmes/${rec.id}/requirements`);
+            if (response.ok) {
+              const requirements = await response.json();
+              
+              // Add structured requirements to the recommendation
+              return {
+                ...rec,
+                structured_requirements: {
+                  decision_tree: requirements.decision_tree || [],
+                  editor: requirements.editor || [],
+                  library: requirements.library || []
+                }
+              };
+            }
+          } catch (error) {
+            console.warn(`Failed to load structured requirements for ${rec.id}:`, error);
+          }
+          
+          // Return original recommendation if structured requirements fail
+          return rec;
+        })
+      );
+      
+      return enhancedRecommendations;
+    } catch (error) {
+      console.error('Error enhancing with structured requirements:', error);
+      return recommendations;
+    }
   }
 }
 

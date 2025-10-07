@@ -7,10 +7,10 @@ import Head from 'next/head';
 import dynamic from 'next/dynamic';
 import { useUser } from '@/contexts/UserContext';
 import { PlanDocument, Route, FigureRef } from '@/types/plan';
-import { ProgramProfile } from '@/types/reco';
 import { evaluate } from '../src/editor/readiness/engine';
 import { calculatePricing, getPricingSummary } from '../src/lib/pricing';
 import { useI18n } from '@/contexts/I18nContext';
+import { useOptimizedEditorData } from '../src/hooks/useOptimizedEditorData';
 
 // Lazy load components with proper loading states
 const OptimizedEditorShell = dynamic(() => import('../src/editor/optimized/OptimizedEditorShell'), {
@@ -79,38 +79,110 @@ const RouteExtrasPanel = dynamic(() => import('../src/components/editor/RouteExt
   loading: () => <div className="animate-pulse bg-gray-200 h-24 w-full rounded"></div>
 });
 
-// Loading skeleton component
+// Enhanced loading skeleton component with better UX
 function EditorLoadingSkeleton() {
   return (
     <div className="flex flex-col h-screen bg-gray-50">
+      {/* Top Bar Skeleton */}
       <div className="bg-white border-b border-gray-200 px-6 py-4">
         <div className="animate-pulse flex items-center justify-between">
           <div className="flex space-x-4">
             <div className="h-6 bg-gray-200 rounded w-48"></div>
             <div className="h-8 bg-gray-200 rounded w-24"></div>
+            <div className="h-6 bg-gray-200 rounded w-20"></div>
           </div>
           <div className="flex space-x-4">
             <div className="h-8 bg-gray-200 rounded w-16"></div>
             <div className="h-8 bg-gray-200 rounded w-20"></div>
             <div className="h-8 bg-gray-200 rounded w-24"></div>
+            <div className="h-8 bg-gray-200 rounded w-20"></div>
           </div>
         </div>
       </div>
+      
+      {/* Main Content Skeleton */}
       <div className="flex flex-1">
-        <div className="w-64 bg-white border-r border-gray-200 p-4">
-          <div className="space-y-2">
-            {[1,2,3,4,5].map(i => (
-              <div key={i} className="animate-pulse bg-gray-200 h-16 rounded"></div>
-            ))}
+        {/* Left Navigation Skeleton */}
+        <div className="w-80 bg-white border-r border-gray-200 p-4">
+          <div className="space-y-4">
+            <div className="animate-pulse">
+              <div className="h-6 bg-gray-200 rounded w-32 mb-4"></div>
+              <div className="space-y-2">
+                {[1,2,3,4,5,6].map(i => (
+                  <div key={i} className="flex items-center space-x-3 p-3 bg-gray-50 rounded">
+                    <div className="w-6 h-6 bg-gray-200 rounded-full"></div>
+                    <div className="flex-1">
+                      <div className="h-4 bg-gray-200 rounded w-3/4 mb-1"></div>
+                      <div className="h-3 bg-gray-200 rounded w-1/2"></div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
           </div>
         </div>
+        
+        {/* Center Editor Skeleton */}
         <div className="flex-1 p-6">
-          <div className="animate-pulse bg-gray-200 h-32 w-full rounded"></div>
+          <div className="max-w-4xl mx-auto space-y-6">
+            {/* Toolbar Skeleton */}
+            <div className="animate-pulse bg-white border rounded-lg p-4">
+              <div className="flex items-center justify-between mb-4">
+                <div className="h-8 bg-gray-200 rounded w-64"></div>
+                <div className="h-4 bg-gray-200 rounded w-32"></div>
+              </div>
+              <div className="flex space-x-4">
+                {[1,2,3,4,5].map(i => (
+                  <div key={i} className="h-8 bg-gray-200 rounded w-24"></div>
+                ))}
+              </div>
+            </div>
+            
+            {/* Section Editor Skeleton */}
+            <div className="animate-pulse bg-white border rounded-lg">
+              <div className="p-4 border-b border-gray-200">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center space-x-3">
+                    <div className="w-6 h-6 bg-gray-200 rounded-full"></div>
+                    <div className="h-6 bg-gray-200 rounded w-48"></div>
+                  </div>
+                  <div className="h-6 bg-gray-200 rounded w-20"></div>
+                </div>
+              </div>
+              <div className="p-4">
+                <div className="space-y-3">
+                  <div className="h-4 bg-gray-200 rounded w-full"></div>
+                  <div className="h-4 bg-gray-200 rounded w-5/6"></div>
+                  <div className="h-4 bg-gray-200 rounded w-4/6"></div>
+                  <div className="h-32 bg-gray-200 rounded"></div>
+                </div>
+              </div>
+            </div>
+          </div>
         </div>
+        
+        {/* Right Panel Skeleton */}
         <div className="w-80 bg-white border-l border-gray-200 p-4">
           <div className="space-y-4">
-            <div className="animate-pulse bg-gray-200 h-80 rounded"></div>
-            <div className="animate-pulse bg-gray-200 h-32 rounded"></div>
+            <div className="animate-pulse bg-gray-50 rounded-lg p-4">
+              <div className="h-6 bg-gray-200 rounded w-32 mb-3"></div>
+              <div className="space-y-2">
+                <div className="h-4 bg-gray-200 rounded w-full"></div>
+                <div className="h-4 bg-gray-200 rounded w-3/4"></div>
+                <div className="h-4 bg-gray-200 rounded w-1/2"></div>
+              </div>
+            </div>
+            <div className="animate-pulse bg-gray-50 rounded-lg p-4">
+              <div className="h-6 bg-gray-200 rounded w-24 mb-3"></div>
+              <div className="space-y-2">
+                {[1,2,3,4].map(i => (
+                  <div key={i} className="flex justify-between">
+                    <div className="h-4 bg-gray-200 rounded w-20"></div>
+                    <div className="h-4 bg-gray-200 rounded w-16"></div>
+                  </div>
+                ))}
+              </div>
+            </div>
           </div>
         </div>
       </div>
@@ -123,10 +195,25 @@ export default function OptimizedEditorPage() {
   const { t } = useI18n();
   const { userProfile, isLoading: userLoading } = useUser();
   
-  // Optimized state management
-  const [plan, setPlan] = useState<PlanDocument | null>(null);
-  const [programProfile, setProgramProfile] = useState<ProgramProfile | null>(null);
-  const [isLoading, setIsLoading] = useState(true);
+  // Get query parameters
+  const { route, programId, product } = router.query;
+  
+  // Use optimized data hook
+  const {
+    plan,
+    programProfile,
+    aiFields,
+    isLoading: dataLoading,
+    error: dataError,
+    savePlan,
+    updatePlan
+  } = useOptimizedEditorData({
+    programId: programId as string,
+    route: route as string,
+    product: product as string
+  });
+  
+  // Local UI state
   const [figures, setFigures] = useState<FigureRef[]>([]);
   const [showAIChat, setShowAIChat] = useState(false);
   
@@ -136,12 +223,10 @@ export default function OptimizedEditorPage() {
   const [showTemplates, setShowTemplates] = useState(false);
   const [showCollaboration, setShowCollaboration] = useState(false);
   const [showCustomization, setShowCustomization] = useState(false);
-  const [showUniqueness, setShowUniqueness] = useState(true);
+  const [showUniqueness] = useState(true);
   const [activeSection, setActiveSection] = useState(0);
   const [sectionCustomizations, setSectionCustomizations] = useState<Record<string, any>>({});
-  const [currentSection, setCurrentSection] = useState('executive_summary');
-  const [showFormHelp, setShowFormHelp] = useState(false);
-  const [formHelpData, setFormHelpData] = useState<any>(null);
+  const [currentSection] = useState('executive_summary');
 
   // Memoized values for performance
   const currentSectionData = useMemo(() => 
@@ -159,10 +244,8 @@ export default function OptimizedEditorPage() {
     [plan?.sections]
   );
 
-  // Optimized initialization
+  // Handle redirects and loading states
   useEffect(() => {
-    const { route, programId, product } = router.query;
-    
     // Redirect if no user context
     if (!userLoading && !userProfile) {
       router.push('/reco?product=submission');
@@ -174,78 +257,41 @@ export default function OptimizedEditorPage() {
       router.push('/reco?product=submission');
       return;
     }
-    
-    // If we have parameters but no plan yet, show loading
-    if ((route || programId || product) && !plan) {
-      setIsLoading(true);
-    }
-  }, [router.query, plan, router, userProfile, userLoading]);
+  }, [router.query, router, userProfile, userLoading]);
 
-  // Optimized save function with user context
+  // Use optimized save function from hook
   const handleSave = useCallback(async (planToSave: PlanDocument) => {
-    if (!userProfile) return;
-    
     try {
-      // Save to user-specific storage
-      const userPlanKey = `plan_${userProfile.id}_${planToSave.id}`;
-      localStorage.setItem(userPlanKey, JSON.stringify(planToSave));
-      
-      // Also save to API if available
-      const response = await fetch('/api/plan/save', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          plan: planToSave,
-          userId: userProfile.id
-        })
-      });
-      
-      if (!response.ok) {
-        console.warn('Failed to save to server, saved locally');
-      }
-      
-      console.log('Plan saved successfully');
+      await savePlan(planToSave);
     } catch (error) {
       console.error('Save failed:', error);
     }
-  }, [userProfile]);
+  }, [savePlan]);
 
-  // Optimized handlers with useCallback
+  // Optimized handlers using updatePlan
   const handleRouteChange = useCallback((newRoute: Route) => {
-    if (plan) {
-      setPlan({ ...plan, route: newRoute });
-    }
-  }, [plan]);
+    updatePlan({ route: newRoute });
+  }, [updatePlan]);
 
   const handleLanguageChange = useCallback((newLanguage: 'de'|'en') => {
-    if (plan) {
-      setPlan({ ...plan, language: newLanguage });
-    }
-  }, [plan]);
+    updatePlan({ language: newLanguage });
+  }, [updatePlan]);
 
   const handleToneChange = useCallback((newTone: 'neutral'|'formal'|'concise') => {
-    if (plan) {
-      setPlan({ ...plan, tone: newTone });
-    }
-  }, [plan]);
+    updatePlan({ tone: newTone });
+  }, [updatePlan]);
 
   const handleTargetLengthChange = useCallback((newLength: 'short'|'standard'|'extended') => {
-    if (plan) {
-      setPlan({ ...plan, targetLength: newLength });
-    }
-  }, [plan]);
+    updatePlan({ targetLength: newLength });
+  }, [updatePlan]);
 
   const handleSettingsChange = useCallback((newSettings: PlanDocument['settings']) => {
-    if (plan) {
-      setPlan({ ...plan, settings: newSettings });
-    }
-  }, [plan]);
+    updatePlan({ settings: newSettings });
+  }, [updatePlan]);
 
   const handleAddonPackToggle = useCallback((enabled: boolean) => {
-    if (plan) {
-      setPlan({ ...plan, addonPack: enabled });
-    }
-  }, [plan]);
+    updatePlan({ addonPack: enabled });
+  }, [updatePlan]);
 
   const handleTablesChange = useCallback((sectionKey: string, tables: any) => {
     if (plan) {
@@ -254,9 +300,9 @@ export default function OptimizedEditorPage() {
           ? { ...section, tables }
           : section
       );
-      setPlan({ ...plan, sections: updatedSections });
+      updatePlan({ sections: updatedSections });
     }
-  }, [plan]);
+  }, [plan, updatePlan]);
 
   const handleFiguresChange = useCallback((newFigures: FigureRef[]) => {
     setFigures(newFigures);
@@ -269,9 +315,9 @@ export default function OptimizedEditorPage() {
           ? { ...section, content }
           : section
       );
-      setPlan({ ...plan, sections: updatedSections });
+      updatePlan({ sections: updatedSections });
     }
-  }, [plan]);
+  }, [plan, updatePlan]);
 
   const handleSectionStatusChange = useCallback((sectionKey: string, status: 'missing' | 'needs_fix' | 'aligned') => {
     if (plan) {
@@ -280,9 +326,9 @@ export default function OptimizedEditorPage() {
           ? { ...section, status }
           : section
       );
-      setPlan({ ...plan, sections: updatedSections });
+      updatePlan({ sections: updatedSections });
     }
-  }, [plan]);
+  }, [plan, updatePlan]);
 
   const handleAIContentInsert = useCallback((content: string, section: string) => {
     if (plan) {
@@ -291,20 +337,20 @@ export default function OptimizedEditorPage() {
           ? { ...s, content: (s.content || '') + '\n\n' + content }
           : s
       );
-      setPlan({ ...plan, sections: updatedSections });
+      updatePlan({ sections: updatedSections });
     }
-  }, [plan]);
+  }, [plan, updatePlan]);
 
   // Optimized readiness evaluation
   useEffect(() => {
     if (plan && programProfile) {
       const readiness = evaluate(plan, programProfile);
-      setPlan(prev => prev ? { ...prev, readiness } : null);
+      updatePlan({ readiness });
     }
-  }, [plan, programProfile]);
+  }, [plan, programProfile, updatePlan]);
 
   // Loading state
-  if (isLoading || !plan || userLoading) {
+  if (dataLoading || !plan || userLoading) {
     return (
       <>
         <Head>
@@ -314,6 +360,32 @@ export default function OptimizedEditorPage() {
           <link rel="canonical" href="https://plan2fund.com/optimized-editor" />
         </Head>
         <EditorLoadingSkeleton />
+      </>
+    );
+  }
+
+  // Error state
+  if (dataError) {
+    return (
+      <>
+        <Head>
+          <title>{t('editor.title')}</title>
+          <meta name="description" content={t('editor.description')} />
+          <meta name="keywords" content={t('editor.keywords')} />
+          <link rel="canonical" href="https://plan2fund.com/optimized-editor" />
+        </Head>
+        <div className="flex items-center justify-center h-screen">
+          <div className="text-center">
+            <div className="text-red-600 mb-4">Error loading editor</div>
+            <div className="text-gray-600 mb-4">{dataError}</div>
+            <button 
+              onClick={() => window.location.reload()}
+              className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700"
+            >
+              Retry
+            </button>
+          </div>
+        </div>
       </>
     );
   }
@@ -328,8 +400,8 @@ export default function OptimizedEditorPage() {
       </Head>
       
       <RecoIntegration
-        onPlanChange={setPlan}
-        onProgramProfileChange={setProgramProfile}
+        onPlanChange={updatePlan}
+        onProgramProfileChange={() => {}} // Program profile is managed by the hook
       >
         <OptimizedEditorShell
           plan={plan}
@@ -356,7 +428,7 @@ export default function OptimizedEditorPage() {
                 const newSections = [...plan.sections];
                 const [moved] = newSections.splice(from, 1);
                 newSections.splice(to, 0, moved);
-                setPlan({ ...plan, sections: newSections });
+                updatePlan({ sections: newSections });
               }}
             />
 
@@ -423,7 +495,7 @@ export default function OptimizedEditorPage() {
                     <EntryPointsManager
                       currentPlan={plan}
                       programProfile={programProfile}
-                      onPlanSwitch={setPlan}
+                      onPlanSwitch={updatePlan}
                       onDocumentTypeChange={(type) => console.log('Document type changed:', type)}
                       showWizardEntry={true}
                       showDirectEditor={true}
@@ -465,31 +537,34 @@ export default function OptimizedEditorPage() {
                   </div>
                 )}
                 
-                {/* Current Section Editor with Phase 4 Features */}
-                {currentSectionData && (
-                  <SectionEditor
-                    section={currentSectionData}
-                    onContentChange={handleSectionContentChange}
-                    onStatusChange={handleSectionStatusChange}
-                    onSectionReorder={(from, to) => {
-                      const newSections = [...plan.sections];
-                      const [moved] = newSections.splice(from, 1);
-                      newSections.splice(to, 0, moved);
-                      setPlan({ ...plan, sections: newSections });
-                    }}
-                    onSectionCustomize={(sectionKey, customizations) => {
-                      setSectionCustomizations(prev => ({
-                        ...prev,
-                        [sectionKey]: customizations
-                      }));
-                    }}
-                    isActive={true}
-                    showProgress={true}
-                    showCustomization={showCustomization}
-                    showUniqueness={showUniqueness}
-                    customizations={sectionCustomizations[currentSectionData.key]}
-                  />
-                )}
+                        {/* Current Section Editor with Phase 4 Features */}
+                        {currentSectionData && (
+                          <SectionEditor
+                            section={currentSectionData}
+                            onContentChange={handleSectionContentChange}
+                            onStatusChange={handleSectionStatusChange}
+                            onSectionReorder={(from, to) => {
+                              const newSections = [...plan.sections];
+                              const [moved] = newSections.splice(from, 1);
+                              newSections.splice(to, 0, moved);
+                              updatePlan({ sections: newSections });
+                            }}
+                            onSectionCustomize={(sectionKey, customizations) => {
+                              setSectionCustomizations(prev => ({
+                                ...prev,
+                                [sectionKey]: customizations
+                              }));
+                            }}
+                            isActive={true}
+                            showProgress={true}
+                            showCustomization={showCustomization}
+                            showUniqueness={showUniqueness}
+                            customizations={sectionCustomizations[currentSectionData.key]}
+                            // Pass AI-enhanced fields
+                            programSections={aiFields?.editorSections}
+                            aiGuidance={aiFields?.aiGuidance}
+                          />
+                        )}
 
                 {/* Financial Tables */}
                 {plan.sections.find(s => s.key === 'financials')?.tables && (
@@ -519,19 +594,46 @@ export default function OptimizedEditorPage() {
 
             {/* Right Rail - Readiness & Settings */}
             <div className="w-80 bg-white border-l border-gray-200 p-4 space-y-4">
-              {/* AI Chat */}
-              {showAIChat && (
-                <div className="bg-gray-50 rounded-lg p-4 mb-4">
-                  <div className="h-80">
-                    <EnhancedAIChat
-                      plan={plan}
-                      programProfile={programProfile}
-                      currentSection={currentSection}
-                      onInsertContent={handleAIContentInsert}
-                    />
-                  </div>
-                </div>
-              )}
+                      {/* AI Chat */}
+                      {showAIChat && (
+                        <div className="bg-gray-50 rounded-lg p-4 mb-4">
+                          <div className="h-80">
+                            <EnhancedAIChat
+                              plan={plan}
+                              programProfile={programProfile}
+                              currentSection={currentSection}
+                              onInsertContent={handleAIContentInsert}
+                              // Pass AI-enhanced fields
+                              decisionTreeAnswers={aiFields?.decisionTreeQuestions}
+                              programTemplate={aiFields?.editorSections ? {
+                                program_id: programId as string,
+                                program_name: programProfile?.programId || 'Unknown Program',
+                                template_name: 'Program Template',
+                                description: 'Program-specific template',
+                                sections: aiFields.editorSections.map((section: any, index: number) => ({
+                                  id: section.id || `section_${index}`,
+                                  title: section.title || 'Untitled Section',
+                                  description: section.description || 'Program-specific section',
+                                  required: section.required || false,
+                                  order: index + 1,
+                                  content_template: section.content_template || '',
+                                  ai_prompts: section.ai_prompts || [],
+                                  validation_rules: section.validation_rules || {},
+                                  program_specific: true,
+                                  industry_hints: aiFields.tags || [],
+                                  difficulty_level: 'intermediate' as const
+                                })),
+                                total_sections: aiFields.editorSections.length,
+                                estimated_completion_time: 4,
+                                difficulty: 'medium' as const,
+                                industry_focus: aiFields.tags || [],
+                                target_audience: aiFields.targetPersonas || []
+                              } : undefined}
+                              aiGuidance={aiFields?.aiGuidance}
+                            />
+                          </div>
+                        </div>
+                      )}
               
               {/* Readiness Check */}
               {plan.readiness && (

@@ -1,5 +1,6 @@
 // ========= PLAN2FUND — PROGRAM REQUIREMENTS SCHEMA =========
 // Comprehensive schema for program requirements and eligibility
+// Enhanced with 3 structured requirement types: Decision Tree, Editor, Library
 
 export interface ProgramRequirement {
   id: string;
@@ -265,4 +266,84 @@ export interface ProgramExtractionTemplate {
     content: string;
     required: boolean;
   }>;
+}
+
+// ========= ENHANCED REQUIREMENT TYPES (System Analysis) =========
+
+// Program Types (7 total)
+export type ProgramType = 
+  | 'grant'        // Non-repayable funding
+  | 'loan'         // Repayable funding with interest
+  | 'equity'       // Investment funding
+  | 'visa'         // Immigration programs
+  | 'consulting'   // Advisory services
+  | 'service'      // Support services
+  | 'other';       // Hybrid or specialized instruments
+
+// Program Categories (50+ total)
+export type ProgramCategory = 
+  | 'digitalization' | 'energy' | 'environment' | 'life_sciences' | 'mobility'
+  | 'climate' | 'research' | 'startup' | 'sme' | 'regional' | 'international'
+  | 'specialized' | 'austrian_grants' | 'research_grants' | 'eu_programs'
+  | 'banking' | 'health' | 'tech_sectors' | 'environmental' | 'business_grants'
+  | 'employment_grants' | 'consulting_services' | 'regional_grants';
+
+// 1. Decision Tree Requirements
+export interface DecisionTreeRequirement {
+  id: string;
+  program_id: string;
+  question_text: string;
+  answer_options: string[];
+  next_question_id?: string;
+  validation_rules: ValidationRule[];
+  skip_logic?: {
+    condition: string;
+    skip_to_question_id: string;
+  }[];
+  required: boolean;
+  category: RequirementCategory;
+}
+
+// 2. Editor Requirements
+export interface EditorRequirement {
+  id: string;
+  program_id: string;
+  section_name: string;
+  prompt: string;
+  hints: string[];
+  word_count_min?: number;
+  word_count_max?: number;
+  required: boolean;
+  ai_guidance?: string;
+  template?: string;
+}
+
+// 3. Library Requirements
+export interface LibraryRequirement {
+  id: string;
+  program_id: string;
+  eligibility_text: string;
+  documents: string[];
+  funding_amount: string;
+  deadlines: string[];
+  application_procedures: string[];
+  compliance_requirements: string[];
+  contact_info?: {
+    email?: string;
+    phone?: string;
+    website?: string;
+  };
+}
+
+// Enhanced Program Requirements (combines all 3 types)
+export interface EnhancedProgramRequirements {
+  program_id: string;
+  program_name: string;
+  program_type: ProgramType;
+  program_category: ProgramCategory[];
+  decision_tree_requirements: DecisionTreeRequirement[];
+  editor_requirements: EditorRequirement[];
+  library_requirements: LibraryRequirement[];
+  created_at: Date;
+  updated_at: Date;
 }

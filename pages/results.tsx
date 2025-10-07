@@ -1,81 +1,34 @@
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { useRouter } from "next/router";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import Link from "next/link";
 import { Dialog, DialogContent, DialogTrigger, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import ProgramDetailsModal from "@/components/reco/ProgramDetailsModal";
-import ExplorationModal from "@/components/reco/ExplorationModal";
+// import ExplorationModal from "@/components/reco/ExplorationModal"; // Removed - results managed by context
 import InfoDrawer from "@/components/common/InfoDrawer";
-import { scoreProgramsEnhanced, EnhancedProgramResult } from "@/lib/enhancedRecoEngine";
+import { useRecommendation } from "@/contexts/RecommendationContext";
 import { useI18n } from "@/contexts/I18nContext";
+import StructuredRequirementsDisplay from "@/components/results/StructuredRequirementsDisplay";
 
 // Enhanced program result type with detailed explanations
-type ProgramResult = EnhancedProgramResult;
+type ProgramResult = any; // Using any for now to avoid import issues
 
 export default function ResultsPage() {
   const { t } = useI18n();
   const router = useRouter();
-  const [results, setResults] = useState<ProgramResult[]>([]);
-  const [showExploration, setShowExploration] = useState(false);
+  const { state } = useRecommendation();
+  // const [showExploration, setShowExploration] = useState(false); // Removed - results managed by context
   const [showInfoDrawer, setShowInfoDrawer] = useState(false);
   const [selectedProgram, setSelectedProgram] = useState<ProgramResult | null>(null);
-  const [_userAnswers, setUserAnswers] = useState<any>(null);
-  const [loading, setLoading] = useState(true);
+  
+  // Use results from context instead of local state
+  const results = state.recommendations;
+  const loading = state.isLoading;
+  // const userAnswers = state.answers;
 
-  useEffect(() => {
-    const stored = localStorage.getItem("recoResults");
-    const answers = localStorage.getItem("userAnswers");
-
-    try {
-      if (stored) {
-        const parsed = JSON.parse(stored);
-
-        if (Array.isArray(parsed)) {
-          // Convert old format to enhanced format
-          const enhancedResults = parsed.map(program => ({
-            ...program,
-            matchedCriteria: [],
-            gaps: [],
-            amount: { min: 0, max: 0, currency: 'EUR' },
-            timeline: 'Varies by program',
-            successRate: 0.3,
-            llmFailed: true,
-            fallbackReason: program.reason,
-            fallbackGaps: program.unmetRequirements || []
-          }));
-          setResults(enhancedResults);
-        } else if (parsed.recommendations && Array.isArray(parsed.recommendations)) {
-          const enhancedResults = parsed.recommendations.map((program: any) => ({
-            ...program,
-            matchedCriteria: [],
-            gaps: [],
-            amount: { min: 0, max: 0, currency: 'EUR' },
-            timeline: 'Varies by program',
-            successRate: 0.3,
-            llmFailed: true,
-            fallbackReason: program.reason,
-            fallbackGaps: program.unmetRequirements || []
-          }));
-          setResults(enhancedResults);
-        }
-      }
-      
-      
-      if (answers) {
-        const parsedAnswers = JSON.parse(answers);
-        setUserAnswers(parsedAnswers);
-        // Get enhanced results using the wired engine
-        scoreProgramsEnhanced(parsedAnswers, "strict").then(enhancedResults => {
-          setResults(enhancedResults);
-        });
-      }
-    } catch (err) {
-      console.error("Failed to parse results:", err);
-    } finally {
-      setLoading(false);
-    }
-  }, []);
+  // Results are now managed by the RecommendationContext
+  // No need for localStorage loading here
 
   const eligibleResults = results.filter(r => r.eligibility === t("results.eligible"));
   const hasEligibleResults = eligibleResults.length > 0;
@@ -174,13 +127,13 @@ export default function ResultsPage() {
                 
                 // Derive signals and get top 3 programs
                 const { deriveSignals } = require('@/lib/enhancedRecoEngine');
-                const derivedSignals = deriveSignals(_userAnswers);
+                const derivedSignals = deriveSignals(state.answers);
                 const top3ProgramIds = results.slice(0, 3).map(p => p.id);
                 
                 // Create enhanced payload with all derived signals
                 const enhancedPayload = {
                   programId: selectedProgram.id,
-                  answers: _userAnswers,
+                  answers: state.answers,
                   fundingMode: derivedSignals.fundingMode,
                   trace: selectedProgram.trace,
                   top3ProgramIds: top3ProgramIds,
@@ -208,14 +161,14 @@ export default function ResultsPage() {
                 };
                 
                 localStorage.setItem('selectedProgram', JSON.stringify(selectedProgram));
-                localStorage.setItem('userAnswers', JSON.stringify(_userAnswers));
+                localStorage.setItem('userAnswers', JSON.stringify(state.answers));
                 localStorage.setItem('enhancedPayload', JSON.stringify(enhancedPayload));
                 
                 // Extract route from program type and set product
                 const route = selectedProgram.type?.toLowerCase() || 'grant';
                 const product = 'submission'; // Default to submission-ready business plan
                 
-                router.push(`/editor?programId=${selectedProgram.id}&route=${route}&product=${product}&answers=${encodeURIComponent(JSON.stringify(_userAnswers))}&pf=${encodeURIComponent(JSON.stringify(enhancedPayload))}`);
+                router.push(`/editor?programId=${selectedProgram.id}&route=${route}&product=${product}&answers=${encodeURIComponent(JSON.stringify(state.answers))}&pf=${encodeURIComponent(JSON.stringify(enhancedPayload))}`);
               }}
               className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700"
             >
@@ -274,6 +227,9 @@ export default function ResultsPage() {
                   </ul>
                 </div>
               </div>
+
+              {/* Structured Requirements */}
+              <StructuredRequirementsDisplay programId={program.id} />
 
               {/* Key Requirements */}
               {program.trace && (
@@ -440,13 +396,13 @@ export default function ResultsPage() {
                       onClick={() => {
                         // Derive signals and get top 3 programs
                         const { deriveSignals } = require('@/lib/enhancedRecoEngine');
-                        const derivedSignals = deriveSignals(_userAnswers);
+                        const derivedSignals = deriveSignals(state.answers);
                         const top3ProgramIds = results.slice(0, 3).map(p => p.id);
                         
                         // Create enhanced payload
                         const enhancedPayload = {
                           programId: program.id,
-                          answers: _userAnswers,
+                          answers: state.answers,
                           fundingMode: derivedSignals.fundingMode,
                           trace: program.trace,
                           top3ProgramIds: top3ProgramIds,
@@ -454,14 +410,14 @@ export default function ResultsPage() {
                         };
                         
                         localStorage.setItem('selectedProgram', JSON.stringify(program));
-                        localStorage.setItem('userAnswers', JSON.stringify(_userAnswers));
+                        localStorage.setItem('userAnswers', JSON.stringify(state.answers));
                         localStorage.setItem('enhancedPayload', JSON.stringify(enhancedPayload));
                         
                         // Extract route from program type and set product
                         const route = program.type?.toLowerCase() || 'grant';
                         const product = 'submission'; // Default to submission-ready business plan
                         
-                        router.push(`/editor?programId=${program.id}&route=${route}&product=${product}&answers=${encodeURIComponent(JSON.stringify(_userAnswers))}&pf=${encodeURIComponent(JSON.stringify(enhancedPayload))}`);
+                        router.push(`/editor?programId=${program.id}&route=${route}&product=${product}&answers=${encodeURIComponent(JSON.stringify(state.answers))}&pf=${encodeURIComponent(JSON.stringify(enhancedPayload))}`);
                       }}
                     >
                       {t('results.prefillContinue')}
@@ -482,18 +438,7 @@ export default function ResultsPage() {
       )}
 
 
-      {/* Add Custom Program */}
-      <div className="mt-6 text-center">
-        <button
-          onClick={() => setShowExploration(true)}
-          className="text-blue-600 hover:text-blue-800 text-sm flex items-center gap-1 mx-auto"
-        >
-          <span>+</span> {t('results.addKnownProgram')}
-        </button>
-        <div className="text-xs text-gray-500 mt-1">
-          {t('results.explorationMode')}
-        </div>
-      </div>
+      {/* Add Custom Program - removed, results managed by context */}
 
       {/* Modals */}
       <ProgramDetailsModal
@@ -502,13 +447,7 @@ export default function ResultsPage() {
         program={selectedProgram}
       />
 
-      <ExplorationModal
-        isOpen={showExploration}
-        onClose={() => setShowExploration(false)}
-        onAddProgram={(customProgram) => {
-          setResults(prev => [customProgram, ...prev]);
-        }}
-      />
+      {/* ExplorationModal removed - results now managed by context */}
 
       <InfoDrawer
         isOpen={showInfoDrawer}

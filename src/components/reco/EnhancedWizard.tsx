@@ -4,7 +4,7 @@ import { Button } from "@/components/ui/button";
 import { useRouter } from "next/router";
 import { motion } from "framer-motion";
 import { scoreProgramsEnhanced } from "@/lib/enhancedRecoEngine";
-import { DynamicQuestionEngine } from "@/lib/dynamicQuestionEngine";
+import { DynamicQuestionEngine, DynamicQuestion } from "@/lib/dynamicQuestionEngine";
 import { DynamicWizard } from "../decision-tree/DynamicWizard";
 import HealthFooter from "@/components/common/HealthFooter";
 import { useI18n } from "@/contexts/I18nContext";
@@ -34,11 +34,18 @@ export default function EnhancedWizard() {
 
   // Create a new instance with translation function
   const [questionEngine] = useState(() => new DynamicQuestionEngine(t));
-  const questions = questionEngine.getQuestionOrder();
+  const [questions, setQuestions] = useState<DynamicQuestion[]>([]);
+  const [questionsLoaded, setQuestionsLoaded] = useState(false);
 
   useEffect(() => {
-    setMounted(true);
-  }, []);
+    const loadQuestions = async () => {
+      const loadedQuestions = await questionEngine.getQuestionOrder();
+      setQuestions(loadedQuestions);
+      setQuestionsLoaded(true);
+      setMounted(true);
+    };
+    loadQuestions();
+  }, [questionEngine]);
 
   const currentQuestion = questions[currentQuestionIndex];
 
@@ -107,8 +114,8 @@ export default function EnhancedWizard() {
     setSelectedProgram(null);
   };
 
-  if (!mounted) {
-    return null;
+  if (!mounted || !questionsLoaded) {
+    return <div>Loading...</div>;
   }
 
   // Show dynamic wizard if a program is selected

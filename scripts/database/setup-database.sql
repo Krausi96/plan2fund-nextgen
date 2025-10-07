@@ -24,7 +24,12 @@ CREATE TABLE IF NOT EXISTS programs (
   decision_tree_questions JSONB, -- Generated questions for wizard
   editor_sections JSONB, -- Program-specific business plan sections
   readiness_criteria JSONB, -- Automated compliance checks
-  ai_guidance JSONB -- AI assistant context and prompts
+  ai_guidance JSONB, -- AI assistant context and prompts
+  -- Enhanced Requirements Fields:
+  institution VARCHAR(255), -- Source institution name
+  program_category VARCHAR(255), -- Category like 'austrian_grants'
+  comprehensive_requirements JSONB, -- Full extracted requirements
+  requirements_extraction_metadata JSONB -- Extraction confidence, patterns used, etc.
 );
 
 -- Create program_requirements table
@@ -110,4 +115,72 @@ INSERT INTO rubrics (program_id, criteria, program_type, target_group) VALUES
 ('aws_preseed_sample', '[{"name": "Innovation Level", "desc": "High innovation required", "section_hint": "Focus on technological innovation", "weight": 0.4, "validation_type": "text_analysis"}]', 'grant', 'startup'),
 ('ffg_basis_sample', '[{"name": "Technical Feasibility", "desc": "Project must be technically feasible", "section_hint": "Include technical details and milestones", "weight": 0.3, "validation_type": "technical_check"}]', 'grant', 'sme')
 ON CONFLICT DO NOTHING;
+
+-- ============================================================================
+-- ENHANCED REQUIREMENT TABLES (System Analysis Implementation)
+-- ============================================================================
+
+-- Decision Tree Questions Table
+CREATE TABLE IF NOT EXISTS decision_tree_questions (
+  id SERIAL PRIMARY KEY,
+  program_id VARCHAR(255) REFERENCES programs(id) ON DELETE CASCADE,
+  question_text TEXT NOT NULL,
+  answer_options JSONB,
+  next_question_id INTEGER,
+  validation_rules JSONB,
+  skip_logic JSONB,
+  required BOOLEAN DEFAULT true,
+  category VARCHAR(100) DEFAULT 'eligibility',
+  created_at TIMESTAMP DEFAULT NOW(),
+  updated_at TIMESTAMP DEFAULT NOW()
+);
+
+-- Editor Sections Table
+CREATE TABLE IF NOT EXISTS editor_sections (
+  id SERIAL PRIMARY KEY,
+  program_id VARCHAR(255) REFERENCES programs(id) ON DELETE CASCADE,
+  section_name VARCHAR(255) NOT NULL,
+  prompt TEXT,
+  hints JSONB,
+  word_count_min INTEGER,
+  word_count_max INTEGER,
+  required BOOLEAN DEFAULT true,
+  ai_guidance TEXT,
+  template TEXT,
+  created_at TIMESTAMP DEFAULT NOW(),
+  updated_at TIMESTAMP DEFAULT NOW()
+);
+
+-- Library Details Table
+CREATE TABLE IF NOT EXISTS library_details (
+  id SERIAL PRIMARY KEY,
+  program_id VARCHAR(255) REFERENCES programs(id) ON DELETE CASCADE,
+  eligibility_text TEXT,
+  documents JSONB,
+  funding_amount VARCHAR(255),
+  deadlines JSONB,
+  application_procedures JSONB,
+  compliance_requirements JSONB,
+  contact_info JSONB,
+  created_at TIMESTAMP DEFAULT NOW(),
+  updated_at TIMESTAMP DEFAULT NOW()
+);
+
+-- Enhanced Program Categories Table
+CREATE TABLE IF NOT EXISTS program_categories (
+  id SERIAL PRIMARY KEY,
+  program_id VARCHAR(255) REFERENCES programs(id) ON DELETE CASCADE,
+  category VARCHAR(255) NOT NULL,
+  subcategory VARCHAR(255),
+  priority INTEGER DEFAULT 1,
+  created_at TIMESTAMP DEFAULT NOW()
+);
+
+-- Create additional indexes for performance
+CREATE INDEX IF NOT EXISTS idx_decision_tree_program_id ON decision_tree_questions(program_id);
+CREATE INDEX IF NOT EXISTS idx_editor_sections_program_id ON editor_sections(program_id);
+CREATE INDEX IF NOT EXISTS idx_library_details_program_id ON library_details(program_id);
+CREATE INDEX IF NOT EXISTS idx_program_categories_program_id ON program_categories(program_id);
+CREATE INDEX IF NOT EXISTS idx_program_categories_category ON program_categories(category);
+CREATE INDEX IF NOT EXISTS idx_programs_category ON programs(program_category);
 

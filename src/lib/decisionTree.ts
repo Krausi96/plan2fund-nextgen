@@ -1,6 +1,6 @@
 // Decision Tree Logic for Recommendation Engine
 import { UserProfile } from '../types';
-import { scorePrograms } from './scoring';
+// Removed scoring import - using enhancedRecoEngine instead
 import { doctorDiagnostic } from './doctorDiagnostic';
 import { dataSource } from './dataSource';
 
@@ -228,7 +228,8 @@ export class DecisionTreeEngine {
       }
       
       // Score programs using enhanced engine
-      const scoredPrograms = await scorePrograms({ answers, programs: filteredPrograms });
+      const { scoreProgramsEnhanced } = await import('./enhancedRecoEngine');
+      const scoredPrograms = await scoreProgramsEnhanced(answers, 'strict');
       
       // Generate explanations with doctor reasoning
       const explanations = this.generateExplanations(answers, scoredPrograms, diagnosis);
@@ -312,7 +313,8 @@ export class DecisionTreeEngine {
   private async getFallbackPrograms(_answers: Record<string, any>): Promise<any[]> {
     try {
       // Load programs dynamically
-      const data = await import('../../data/programs.json').then(module => module.default);
+      const response = await fetch('/api/programs-ai?action=programs');
+      const data = await response.json();
       const allPrograms = data.programs || [];
       return allPrograms.slice(0, 3).map((program: any) => ({
         ...program,

@@ -1,8 +1,9 @@
 // Dynamic Question Engine - Computes questions from programs.json overlays
-import programsData from '../../data/programs.json';
+// Removed static JSON import - using database instead
 import { getQuestionsData } from '../data/questions';
+import { dataSource } from './dataSource';
 
-console.log('Dynamic Question Engine: Loading programs data...', programsData.programs.length, 'programs');
+console.log('Dynamic Question Engine: Loading programs data from database...');
 
 export interface DynamicQuestion {
   id: string;
@@ -30,7 +31,7 @@ export class DynamicQuestionEngine {
     // Don't compute at construction time - do it lazily
   }
 
-  private computeQuestions(): void {
+  private async computeQuestions(): Promise<void> {
     const questionStats = new Map<string, {
       question: DynamicQuestion;
       programsAffected: number;
@@ -68,10 +69,12 @@ export class DynamicQuestionEngine {
       let programsAffected = 0;
       const sourcePrograms: string[] = [];
 
-      // Find all program overlays that reference this question
-      for (const program of programsData.programs) {
-        if (program.overlays && Array.isArray(program.overlays)) {
-          for (const overlay of program.overlays) {
+      // Find all programs that reference this question
+      const programs = await dataSource.getGPTEnhancedPrograms();
+      for (const program of programs) {
+        // Check if program has overlays (legacy JSON format)
+        if ((program as any).overlays && Array.isArray((program as any).overlays)) {
+          for (const overlay of (program as any).overlays) {
             if (overlay.ask_if && overlay.ask_if.includes(questionId)) {
               console.log(`Found overlay for ${questionId} in program ${program.id}:`, overlay.ask_if);
               rules.push({
@@ -84,6 +87,21 @@ export class DynamicQuestionEngine {
               programsAffected++;
               sourcePrograms.push(program.id);
             }
+          }
+        }
+        // For scraped programs, we'll use basic matching based on program type and target personas
+        else if (program.target_personas && program.target_personas.length > 0) {
+          // Basic matching for scraped programs
+          if (questionId === 'q2_entity_stage' && program.target_personas.includes('startup')) {
+            rules.push({
+              programId: program.id,
+              questionId: questionId,
+              decisiveness: 'SOFT',
+              condition: 'startup',
+              question: 'What stage is your company at?'
+            });
+            programsAffected++;
+            sourcePrograms.push(program.id);
           }
         }
       }
@@ -172,34 +190,34 @@ export class DynamicQuestionEngine {
     }
   }
 
-  public getQuestionOrder(): DynamicQuestion[] {
+  public async getQuestionOrder(): Promise<DynamicQuestion[]> {
     if (this.questions.length === 0) {
-      this.computeQuestions();
+      await this.computeQuestions();
     }
     return this.questions;
   }
 
-  public getCoreQuestions(): DynamicQuestion[] {
+  public async getCoreQuestions(): Promise<DynamicQuestion[]> {
     if (this.questions.length === 0) {
-      this.computeQuestions();
+      await this.computeQuestions();
     }
     return this.questions.filter(q => q.isCoreQuestion);
   }
 
-  public getOverlayQuestions(): DynamicQuestion[] {
+  public async getOverlayQuestions(): Promise<DynamicQuestion[]> {
     if (this.questions.length === 0) {
-      this.computeQuestions();
+      await this.computeQuestions();
     }
     return this.questions.filter(q => !q.isCoreQuestion).slice(0, 3);
   }
 
-  public getNextQuestion(answers: Record<string, any>): DynamicQuestion | null {
+  public async getNextQuestion(answers: Record<string, any>): Promise<DynamicQuestion | null> {
     if (this.questions.length === 0) {
-      this.computeQuestions();
+      await this.computeQuestions();
     }
     
     // First, find unanswered core questions (prioritize these)
-    const coreQuestions = this.getCoreQuestions();
+    const coreQuestions = await this.getCoreQuestions();
     for (const question of coreQuestions) {
       if (question.required && !answers[question.id]) {
         return question;
@@ -207,7 +225,7 @@ export class DynamicQuestionEngine {
     }
     
     // Then, find unanswered overlay questions (only if core questions are done)
-    const overlayQuestions = this.getOverlayQuestions();
+    const overlayQuestions = await this.getOverlayQuestions();
     for (const question of overlayQuestions) {
       if (question.required && !answers[question.id]) {
         return question;
@@ -238,8 +256,8 @@ export class DynamicQuestionEngine {
   }
 
   // Method to recompute questions when programs change
-  public recomputeQuestions(): void {
-    this.computeQuestions();
+  public async recomputeQuestions(): Promise<void> {
+    await this.computeQuestions();
   }
 }
 

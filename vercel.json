@@ -3,6 +3,12 @@
   "buildCommand": "npm run build",
   "outputDirectory": ".next",
   "installCommand": "npm install",
+  "crons": [
+    {
+      "path": "/api/cron/scraper",
+      "schedule": "0 2 */5 * *"
+    }
+  ],
   "env": {
     "AI_ENABLED": "false"
   }

@@ -23,7 +23,6 @@ export default function EnhancedNavigation({
   onViewModeChange,
   currentViewMode,
   showProgress = true,
-  showUniqueness = false,
   onSectionReorder
 }: EnhancedNavigationProps) {
   const [isCollapsed, setIsCollapsed] = useState(false);
@@ -116,28 +115,28 @@ export default function EnhancedNavigation({
               <div className="grid grid-cols-2 gap-2">
                 <Button
                   size="sm"
-                  variant={currentViewMode === 'dashboard' ? 'default' : 'outline'}
+                  variant={currentViewMode === 'dashboard' ? 'primary' : 'outline'}
                   onClick={() => onViewModeChange('dashboard')}
                 >
                   Dashboard
                 </Button>
                 <Button
                   size="sm"
-                  variant={currentViewMode === 'editor' ? 'default' : 'outline'}
+                  variant={currentViewMode === 'editor' ? 'primary' : 'outline'}
                   onClick={() => onViewModeChange('editor')}
                 >
                   Editor
                 </Button>
                 <Button
                   size="sm"
-                  variant={currentViewMode === 'single-page' ? 'default' : 'outline'}
+                  variant={currentViewMode === 'single-page' ? 'primary' : 'outline'}
                   onClick={() => onViewModeChange('single-page')}
                 >
                   Single Page
                 </Button>
                 <Button
                   size="sm"
-                  variant={currentViewMode === 'multi-step' ? 'default' : 'outline'}
+                  variant={currentViewMode === 'multi-step' ? 'primary' : 'outline'}
                   onClick={() => onViewModeChange('multi-step')}
                 >
                   Multi-Step

@@ -47,6 +47,40 @@ export const DynamicWizard: React.FC<DynamicWizardProps> = ({
     setWizardState(prev => ({ ...prev, isGenerating: true, error: null }));
 
     try {
+      // First try to get structured requirements from the new API
+      const requirementsResponse = await fetch(`/api/programmes/${programId}/requirements`);
+      if (requirementsResponse.ok) {
+        const requirements = await requirementsResponse.json();
+        
+        // Convert structured requirements to decision tree format
+        const decisionTreeQuestions = requirements.decision_tree || [];
+        const result = {
+          success: true,
+          data: {
+            programId,
+            questions: decisionTreeQuestions.map((q: any, index: number) => ({
+              id: q.id || `q_${index}`,
+              question: q.question_text,
+              type: 'single' as const,
+              options: q.answer_options ? q.answer_options.map((opt: string) => ({ value: opt, label: opt })) : [],
+              required: q.required !== false,
+              program_specific: true,
+              validation_rules: q.validation_rules || [],
+              follow_up_questions: q.next_question_id ? [`q_${q.next_question_id}`] : [],
+              ai_guidance: q.category || 'eligibility'
+            })),
+            total_questions: decisionTreeQuestions.length,
+            estimated_time: decisionTreeQuestions.length * 2, // 2 minutes per question
+            difficulty: decisionTreeQuestions.length > 5 ? 'hard' as const : decisionTreeQuestions.length > 3 ? 'medium' as const : 'easy' as const
+          }
+        };
+        
+        setDecisionTree(result.data);
+        setWizardState(prev => ({ ...prev, isGenerating: false }));
+        return;
+      }
+      
+      // Fallback to original decision tree generation
       const response = await fetch(`/api/decision-tree?action=generate&programId=${programId}`);
       const result = await response.json();
 

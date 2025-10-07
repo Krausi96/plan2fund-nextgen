@@ -479,7 +479,7 @@ function generateCounterfactuals(missingFields: string[], answers: Record<string
  */
 export async function loadPrograms(): Promise<Program[]> {
   try {
-    const response = await fetch('/data/programs.json');
+    const response = await fetch('/api/programs-ai?action=programs');
     if (!response.ok) {
       throw new Error('Failed to load programs');
     }

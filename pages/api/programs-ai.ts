@@ -1,51 +1,65 @@
-// GPT-Enhanced API endpoint for testing new features
+// Programs AI API endpoint for Library and enhanced features
 import { NextApiRequest, NextApiResponse } from 'next';
 import { Pool } from 'pg';
 
 // Database connection
-const pool = new Pool({
-  connectionString: process.env.DATABASE_URL,
-  ssl: process.env.NODE_ENV === 'production' ? { rejectUnauthorized: false } : false
-});
+let pool: Pool | null = null;
+
+const getPool = () => {
+  if (!pool) {
+    pool = new Pool({
+      connectionString: process.env.DATABASE_URL,
+      ssl: false
+    });
+  }
+  return pool;
+};
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   if (req.method !== 'GET') {
     return res.status(405).json({ error: 'Method not allowed' });
   }
 
-  // Check database connection
-  if (!process.env.DATABASE_URL) {
-    return res.status(500).json({
-      success: false,
-      error: 'Database connection not configured',
-      message: 'DATABASE_URL environment variable is missing'
-    });
-  }
-
   try {
     const { action, programId } = req.query;
 
-    switch (action) {
-      case 'programs':
-        // Get all GPT-enhanced programs
-        const result = await pool.query(`
-          SELECT id, name, description, program_type, funding_amount_min, funding_amount_max, 
-                 source_url, deadline, is_active, scraped_at,
-                 target_personas, tags, decision_tree_questions, 
-                 editor_sections, readiness_criteria, ai_guidance
+    const dbPool = getPool();
+
+    if (action === 'programs') {
+      // Get program-specific recommendations for Library
+      try {
+        let query = `
+          SELECT id, name, description, program_type, funding_amount_min, funding_amount_max,
+                 source_url, target_personas, tags,
+                 decision_tree_questions, editor_sections, readiness_criteria, ai_guidance
           FROM programs 
           WHERE is_active = true
-          ORDER BY scraped_at DESC
-        `);
+        `;
+        
+        const params = [];
+        if (programId) {
+          query += ` AND id = $1`;
+          params.push(programId);
+        }
+        
+        query += ` ORDER BY scraped_at DESC LIMIT 10`;
+        
+        console.log('Executing query:', query);
+        console.log('With params:', params);
+        
+        const result = await dbPool.query(query, params);
+        console.log('Query result rows:', result.rows.length);
         
         const programs = result.rows.map(row => ({
           id: row.id,
           name: row.name,
+          description: row.description,
           type: row.program_type,
-          requirements: {},
-          notes: row.description,
-          maxAmount: row.funding_amount_max,
-          link: row.source_url,
+          funding: {
+            min: row.funding_amount_min,
+            max: row.funding_amount_max
+          },
+          source_url: row.source_url,
           target_personas: row.target_personas || [],
           tags: row.tags || [],
           decision_tree_questions: row.decision_tree_questions || [],
@@ -53,108 +67,69 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
           readiness_criteria: row.readiness_criteria || [],
           ai_guidance: row.ai_guidance || null
         }));
-        
+
         return res.status(200).json({
           success: true,
           data: programs,
           count: programs.length,
-          message: `Found ${programs.length} GPT-enhanced programs`
+          message: `Found ${programs.length} programs for Library`
         });
-
-      case 'questions':
-        if (!programId) {
-          return res.status(400).json({ error: 'programId is required for questions action' });
-        }
-        const questionsResult = await pool.query(`
-          SELECT decision_tree_questions 
-          FROM programs 
-          WHERE id = $1 AND is_active = true
-        `, [programId]);
-        
-        const questions = questionsResult.rows.length > 0 && questionsResult.rows[0].decision_tree_questions 
-          ? questionsResult.rows[0].decision_tree_questions 
-          : [];
-        
-        return res.status(200).json({
-          success: true,
-          data: questions,
-          count: questions.length,
-          message: `Found ${questions.length} decision tree questions for program ${programId}`
+      } catch (dbError) {
+        console.error('Database error in programs-ai:', dbError);
+        return res.status(500).json({
+          success: false,
+          error: 'Database query failed',
+          details: dbError instanceof Error ? dbError.message : 'Unknown error'
         });
-
-      case 'sections':
-        if (!programId) {
-          return res.status(400).json({ error: 'programId is required for sections action' });
-        }
-        const sectionsResult = await pool.query(`
-          SELECT editor_sections 
-          FROM programs 
-          WHERE id = $1 AND is_active = true
-        `, [programId]);
-        
-        const sections = sectionsResult.rows.length > 0 && sectionsResult.rows[0].editor_sections 
-          ? sectionsResult.rows[0].editor_sections 
-          : [];
-        
-        return res.status(200).json({
-          success: true,
-          data: sections,
-          count: sections.length,
-          message: `Found ${sections.length} editor sections for program ${programId}`
-        });
-
-      case 'criteria':
-        if (!programId) {
-          return res.status(400).json({ error: 'programId is required for criteria action' });
-        }
-        const criteriaResult = await pool.query(`
-          SELECT readiness_criteria 
-          FROM programs 
-          WHERE id = $1 AND is_active = true
-        `, [programId]);
-        
-        const criteria = criteriaResult.rows.length > 0 && criteriaResult.rows[0].readiness_criteria 
-          ? criteriaResult.rows[0].readiness_criteria 
-          : [];
-        
-        return res.status(200).json({
-          success: true,
-          data: criteria,
-          count: criteria.length,
-          message: `Found ${criteria.length} readiness criteria for program ${programId}`
-        });
-
-      case 'guidance':
-        if (!programId) {
-          return res.status(400).json({ error: 'programId is required for guidance action' });
-        }
-        const guidanceResult = await pool.query(`
-          SELECT ai_guidance 
-          FROM programs 
-          WHERE id = $1 AND is_active = true
-        `, [programId]);
-        
-        const guidance = guidanceResult.rows.length > 0 && guidanceResult.rows[0].ai_guidance 
-          ? guidanceResult.rows[0].ai_guidance 
-          : null;
-        
-        return res.status(200).json({
-          success: true,
-          data: guidance,
-          message: guidance ? `Found AI guidance for program ${programId}` : `No AI guidance found for program ${programId}`
-        });
-
-      default:
-        return res.status(400).json({ 
-          error: 'Invalid action. Use: programs, questions, sections, criteria, or guidance',
-          availableActions: ['programs', 'questions', 'sections', 'criteria', 'guidance']
-        });
+      }
     }
+
+    if (action === 'guidance') {
+      // Get AI guidance for specific program
+      if (!programId) {
+        return res.status(400).json({ 
+          success: false, 
+          error: 'programId is required for guidance action' 
+        });
+      }
+
+      const result = await dbPool.query(
+        `SELECT ai_guidance, decision_tree_questions, editor_sections, readiness_criteria
+         FROM programs WHERE id = $1 AND is_active = true`,
+        [programId]
+      );
+
+      if (result.rows.length === 0) {
+        return res.status(404).json({ 
+          success: false, 
+          error: 'Program not found' 
+        });
+      }
+
+      const program = result.rows[0];
+      
+      return res.status(200).json({
+        success: true,
+        data: {
+          ai_guidance: program.ai_guidance,
+          decision_tree_questions: program.decision_tree_questions || [],
+          editor_sections: program.editor_sections || [],
+          readiness_criteria: program.readiness_criteria || []
+        },
+        message: 'AI guidance retrieved successfully'
+      });
+    }
+
+    return res.status(400).json({ 
+      success: false, 
+      error: 'Invalid action. Use "programs" or "guidance"' 
+    });
+
   } catch (error) {
-    console.error('GPT-Enhanced API Error:', error);
-    return res.status(500).json({
-      error: 'Internal server error',
-      message: error instanceof Error ? error.message : 'Unknown error'
+    console.error('Programs AI API error:', error);
+    return res.status(500).json({ 
+      success: false, 
+      error: 'Internal server error' 
     });
   }
 }

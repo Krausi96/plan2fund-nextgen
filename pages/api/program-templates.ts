@@ -66,7 +66,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         
         // Create template engine
         const engine = createTemplateEngine([program]);
-        const programTemplate = engine.generateTemplate(programId as string);
+        const programTemplate = await engine.generateTemplate(programId as string);
 
         return res.status(200).json({
           success: true,

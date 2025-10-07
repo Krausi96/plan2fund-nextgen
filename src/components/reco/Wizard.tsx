@@ -4,7 +4,7 @@ import { useRouter } from "next/router";
 import { motion } from "framer-motion";
 import Link from "next/link";
 import { scoreProgramsEnhanced } from "@/lib/enhancedRecoEngine";
-import { DynamicQuestionEngine } from "@/lib/dynamicQuestionEngine";
+import { DynamicQuestionEngine, DynamicQuestion } from "@/lib/dynamicQuestionEngine";
 import HealthFooter from "@/components/common/HealthFooter";
 import { useI18n } from "@/contexts/I18nContext";
 
@@ -18,11 +18,18 @@ export default function Wizard() {
 
   // Create a new instance with translation function
   const [questionEngine] = useState(() => new DynamicQuestionEngine(t));
-  const questions = questionEngine.getQuestionOrder();
+  const [questions, setQuestions] = useState<DynamicQuestion[]>([]);
+  const [questionsLoaded, setQuestionsLoaded] = useState(false);
 
   useEffect(() => {
-    setMounted(true);
-  }, []);
+    const loadQuestions = async () => {
+      const loadedQuestions = await questionEngine.getQuestionOrder();
+      setQuestions(loadedQuestions);
+      setQuestionsLoaded(true);
+      setMounted(true);
+    };
+    loadQuestions();
+  }, [questionEngine]);
 
   const currentQuestion = questions[currentQuestionIndex];
 
@@ -65,7 +72,9 @@ export default function Wizard() {
   };
 
 
-  if (!mounted) return null;
+  if (!mounted || !questionsLoaded) {
+    return <div>Loading...</div>;
+  }
 
   return (
     <div className="min-h-screen bg-gray-50">

@@ -4,12 +4,13 @@ import { Card } from '@/components/ui/card';
 import Link from 'next/link';
 import { motion } from 'framer-motion';
 import { Chip } from '@/lib/aiChipParser';
-import { scoreProgramsEnhanced } from '@/lib/enhancedRecoEngine';
-import { advancedSearchDoctor } from '@/lib/advancedSearchDoctor';
+import { useRecommendation } from '@/contexts/RecommendationContext';
+// import { advancedSearchDoctor } from '@/lib/advancedSearchDoctor';
 import { useI18n } from '@/contexts/I18nContext';
 
 export default function AdvancedSearch() {
   const { t } = useI18n();
+  const { handleAdvancedSearch } = useRecommendation();
   const [searchInput, setSearchInput] = useState('');
   const [chips, setChips] = useState<Chip[]>([]);
   const [clarifications, setClarifications] = useState<string[]>([]);
@@ -26,32 +27,11 @@ export default function AdvancedSearch() {
     setLoading(true);
     
     try {
-      // Use doctor-like diagnostic for better parsing
-      const result = await advancedSearchDoctor.processFreeTextInput(searchInput);
+      // Use the centralized recommendation context for advanced search
+      await handleAdvancedSearch(searchInput);
       
-      // Set chips and clarifications from doctor analysis
-      setChips(result.chips);
-      setClarifications(result.clarifications);
-
-      // If we have good confidence, proceed directly to results
-      if (result.diagnosis.confidence > 0.7) {
-        // Store results in localStorage like wizard does
-        localStorage.setItem("recoResults", JSON.stringify(result.recommendations));
-        localStorage.setItem("userAnswers", JSON.stringify(convertChipsToAnswers(result.chips)));
-        localStorage.setItem("diagnosis", JSON.stringify(result.diagnosis));
-        
-        // Route to results page
-        window.location.href = "/results";
-      }
-
-      // Log analytics
-      console.log('Advanced Search Doctor Analytics:', {
-        ai_help_opened: true,
-        chips_generated: result.chips.length,
-        clarifications_asked: result.clarifications.length,
-        diagnosis_confidence: result.diagnosis.confidence,
-        advanced_search_run: 1
-      });
+      // The context will handle the search and routing
+      console.log('Advanced Search completed via RecommendationContext');
 
     } catch (error) {
       console.error('Search error:', error);
@@ -63,7 +43,8 @@ export default function AdvancedSearch() {
   const handleSkipClarifications = async () => {
     // Proceed with current chips even if some required fields are missing
     const answers = convertChipsToAnswers(chips);
-    const recommendations = await scoreProgramsEnhanced(answers, "explorer");
+    // Use the recommendation context instead of direct import
+    const recommendations = await handleAdvancedSearch(JSON.stringify(answers));
     
     // Store results in localStorage like wizard does
     localStorage.setItem("recoResults", JSON.stringify(recommendations));

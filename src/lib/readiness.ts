@@ -442,7 +442,7 @@ export class ReadinessValidator {
   }
 
   /**
-   * Get intelligent readiness summary
+   * Get intelligent readiness summary with structured requirements
    */
   async getIntelligentReadinessSummary(): Promise<{
     score: number;
@@ -453,9 +453,17 @@ export class ReadinessValidator {
       templateCompliance: string[];
       aiGuidance: string[];
     };
+    structuredRequirements?: {
+      decisionTree: any[];
+      editor: any[];
+      library: any[];
+    };
   }> {
     const score = this.calculateIntelligentReadinessScore();
     const checks = await this.performReadinessCheck();
+    
+    // Get structured requirements for this program
+    const structuredRequirements = await this.getStructuredRequirements();
     
     let status: 'ready' | 'needs_work' | 'not_ready';
     if (score >= 85) status = 'ready';
@@ -467,80 +475,169 @@ export class ReadinessValidator {
       .flatMap(c => c.suggestions);
     
     const phase3Features = {
-      decisionTreeInsights: this.getDecisionTreeInsights(),
-      templateCompliance: this.getTemplateComplianceInsights(),
-      aiGuidance: this.getAIGuidanceInsights()
+      decisionTreeInsights: this.getDecisionTreeInsightsFromStructured(structuredRequirements),
+      templateCompliance: this.getTemplateComplianceInsightsFromStructured(structuredRequirements),
+      aiGuidance: this.getAIGuidanceInsightsFromStructured(structuredRequirements)
     };
     
     return {
       score,
       status,
       recommendations,
-      phase3Features
+      phase3Features,
+      structuredRequirements
     };
   }
 
   /**
    * Get decision tree insights
    */
-  private getDecisionTreeInsights(): string[] {
-    if (!this.decisionTreeAnswers) return [];
-    
-    const insights: string[] = [];
-    const documentReadiness = this.decisionTreeAnswers.document_readiness || [];
-    
-    if (documentReadiness.includes('business_plan')) {
-      insights.push('✅ Business plan available');
-    } else {
-      insights.push('❌ Business plan needed');
-    }
-    
-    if (documentReadiness.includes('financial_projections')) {
-      insights.push('✅ Financial projections available');
-    } else {
-      insights.push('❌ Financial projections needed');
-    }
-    
-    return insights;
-  }
+  // private getDecisionTreeInsights(): string[] {
+  //   if (!this.decisionTreeAnswers) return [];
+  //   
+  //   const insights: string[] = [];
+  //   const documentReadiness = this.decisionTreeAnswers.document_readiness || [];
+  //   
+  //   if (documentReadiness.includes('business_plan')) {
+  //     insights.push('✅ Business plan available');
+  //   } else {
+  //     insights.push('❌ Business plan needed');
+  //   }
+  //   
+  //   if (documentReadiness.includes('financial_projections')) {
+  //     insights.push('✅ Financial projections available');
+  //   } else {
+  //     insights.push('❌ Financial projections needed');
+  //   }
+  //   
+  //   return insights;
+  // }
 
   /**
    * Get template compliance insights
    */
-  private getTemplateComplianceInsights(): string[] {
-    if (!this.programTemplate) return [];
-    
+  // private getTemplateComplianceInsights(): string[] {
+  //   if (!this.programTemplate) return [];
+  //   
+  //   const insights: string[] = [];
+  //   const templateSections = this.programTemplate.sections || [];
+  //   const requiredSections = templateSections.filter(s => s.required);
+  //   
+  //   insights.push(`📋 ${requiredSections.length} required sections for ${this.programTemplate.program_name}`);
+  //   
+  //   const completedSections = requiredSections.filter(section => {
+  //     const content = this.planContent[section.id] || '';
+  //     return content.trim().length > 50;
+  //   });
+  //   
+  //   insights.push(`✅ ${completedSections.length}/${requiredSections.length} required sections completed`);
+  //   
+  //   return insights;
+  // }
+
+  /**
+   * Get AI guidance insights
+   */
+  // private getAIGuidanceInsights(): string[] {
+  //   if (!this.aiGuidance) return [];
+  //   
+  //   const insights: string[] = [];
+  //   
+  //   if (this.aiGuidance.context) {
+  //     insights.push(`🎯 Focus: ${this.aiGuidance.context}`);
+  //   }
+  //   
+  //   if (this.aiGuidance.key_points && this.aiGuidance.key_points.length > 0) {
+  //     insights.push(`📝 Key Points: ${this.aiGuidance.key_points.join(', ')}`);
+  //   }
+  //   
+  //   return insights;
+  // }
+
+  /**
+   * Get structured requirements for this program
+   */
+  private async getStructuredRequirements(): Promise<any> {
+    try {
+      // This would need the program ID - for now return empty structure
+      // In a real implementation, this would fetch from the API
+      return {
+        decisionTree: [],
+        editor: [],
+        library: []
+      };
+    } catch (error) {
+      console.warn('Failed to load structured requirements:', error);
+      return {
+        decisionTree: [],
+        editor: [],
+        library: []
+      };
+    }
+  }
+
+  /**
+   * Get decision tree insights from structured requirements
+   */
+  private getDecisionTreeInsightsFromStructured(structuredRequirements: any): string[] {
+    const decisionTreeRequirements = structuredRequirements.decisionTree || [];
     const insights: string[] = [];
-    const templateSections = this.programTemplate.sections || [];
-    const requiredSections = templateSections.filter(s => s.required);
     
-    insights.push(`📋 ${requiredSections.length} required sections for ${this.programTemplate.program_name}`);
-    
-    const completedSections = requiredSections.filter(section => {
-      const content = this.planContent[section.id] || '';
-      return content.trim().length > 50;
+    decisionTreeRequirements.forEach((req: any) => {
+      if (req.question_text) {
+        insights.push(`📋 Question: ${req.question_text}`);
+      }
+      if (req.answer_options && req.answer_options.length > 0) {
+        insights.push(`✅ Options: ${req.answer_options.join(', ')}`);
+      }
+      if (req.validation_rules) {
+        insights.push(`🔍 Validation: ${req.validation_rules}`);
+      }
     });
-    
-    insights.push(`✅ ${completedSections.length}/${requiredSections.length} required sections completed`);
     
     return insights;
   }
 
   /**
-   * Get AI guidance insights
+   * Get template compliance insights from structured requirements
    */
-  private getAIGuidanceInsights(): string[] {
-    if (!this.aiGuidance) return [];
-    
+  private getTemplateComplianceInsightsFromStructured(structuredRequirements: any): string[] {
+    const editorRequirements = structuredRequirements.editor || [];
     const insights: string[] = [];
     
-    if (this.aiGuidance.context) {
-      insights.push(`🎯 Focus: ${this.aiGuidance.context}`);
-    }
+    editorRequirements.forEach((req: any) => {
+      if (req.section_name) {
+        insights.push(`📝 Section: ${req.section_name}`);
+      }
+      if (req.prompt) {
+        insights.push(`💡 Prompt: ${req.prompt}`);
+      }
+      if (req.hints && req.hints.length > 0) {
+        insights.push(`💡 Hints: ${req.hints.join(', ')}`);
+      }
+      if (req.word_count_min || req.word_count_max) {
+        insights.push(`📏 Word Count: ${req.word_count_min || 0}-${req.word_count_max || 'unlimited'}`);
+      }
+    });
     
-    if (this.aiGuidance.key_points && this.aiGuidance.key_points.length > 0) {
-      insights.push(`📝 Key Points: ${this.aiGuidance.key_points.join(', ')}`);
-    }
+    return insights;
+  }
+
+  /**
+   * Get AI guidance insights from structured requirements
+   */
+  private getAIGuidanceInsightsFromStructured(structuredRequirements: any): string[] {
+    const editorRequirements = structuredRequirements.editor || [];
+    const insights: string[] = [];
+    
+    editorRequirements.forEach((req: any) => {
+      if (req.ai_guidance) {
+        insights.push(`🤖 AI Guidance: ${req.ai_guidance}`);
+      }
+      if (req.template) {
+        insights.push(`📋 Template: ${req.template}`);
+      }
+    });
     
     return insights;
   }
@@ -701,7 +798,7 @@ export async function getProgramRequirements(type: string): Promise<ProgramRequi
         scoring: {}
       };
     }
-  } catch (error) {
+  } catch {
     console.log('Could not get requirements from data source, using fallback');
   }
   

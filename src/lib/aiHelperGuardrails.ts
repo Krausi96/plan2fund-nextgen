@@ -1,5 +1,4 @@
 // Enhanced AI Helper Guardrails - Integrates with existing system
-import rawPrograms from "../../data/programs.json";
 import { dataSource } from './dataSource';
 
 export interface AIHelperResponse {
@@ -36,7 +35,7 @@ export class AIHelperGuardrails {
   private maxClarifications = 3;
 
   constructor() {
-    this.programs = rawPrograms.programs; // Fallback to static data
+    this.programs = []; // Will be loaded from database
   }
 
   async initialize() {

@@ -3,7 +3,7 @@
 export type UserProfile = {
   id: string;
   segment: 'B2C_FOUNDER' | 'SME_LOAN' | 'VISA_APPLICANT' | 'MIXED';
-  programType: 'GRANT' | 'LOAN' | 'EQUITY' | 'VISA' | 'MIXED';
+  programType: 'grant' | 'loan' | 'equity' | 'visa' | 'consulting' | 'service' | 'other';
   country?: string;
   stage?: string;
   theme?: string;
@@ -13,14 +13,25 @@ export type UserProfile = {
   duration?: string;
 };
 
+export type ProgramType = 'grant' | 'loan' | 'equity' | 'visa' | 'consulting' | 'service' | 'other';
+
 export type Program = {
   id: string;
   name: string;
-  type: string;
+  type: ProgramType;
+  program_type: ProgramType;
+  program_category: string;
   requirements: Record<string, any>;
   notes?: string;
   maxAmount?: number;
   link?: string;
+  // GPT-enhanced fields
+  target_personas?: string[];
+  tags?: string[];
+  decision_tree_questions?: any[];
+  editor_sections?: any[];
+  readiness_criteria?: any[];
+  ai_guidance?: any;
 };
 
 export type ScoredProgram = Program & {

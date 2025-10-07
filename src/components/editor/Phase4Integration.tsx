@@ -1,11 +1,9 @@
 // ========= PLAN2FUND — PHASE 4 INTEGRATION =========
 // Comprehensive integration of all Phase 4 features: Business Plan Editor Structure, UI Navigation, Entry Points, Templates & Formatting, and Collaboration
 
-import React, { useState, useEffect, useMemo } from 'react';
-import { useRouter } from 'next/router';
+import React, { useState, useEffect } from 'react';
 import { PlanDocument } from '@/types/plan';
 import { ProgramProfile } from '@/types/reco';
-import { UserProfile } from '@/lib/schemas/userProfile';
 import { useUser } from '@/contexts/UserContext';
 
 // Phase 4 Components
@@ -57,11 +55,8 @@ export default function Phase4Integration({
   initialPlan,
   programProfile,
   onPlanChange,
-  onProgramProfileChange,
-  showAllFeatures = true,
   defaultViewMode = 'editor'
 }: Phase4IntegrationProps) {
-  const router = useRouter();
   const { userProfile, isLoading: isUserLoading } = useUser();
   
   // Core state
@@ -76,21 +71,10 @@ export default function Phase4Integration({
   const [showTemplates, setShowTemplates] = useState(false);
   const [showCollaboration, setShowCollaboration] = useState(false);
   const [showCustomization, setShowCustomization] = useState(false);
-  const [showUniqueness, setShowUniqueness] = useState(true);
+  const [showUniqueness] = useState(true);
   
   // Phase 4 feature state
   const [sectionCustomizations, setSectionCustomizations] = useState<Record<string, SectionCustomizations>>({});
-  const [formatting, setFormatting] = useState<FormattingConfig>({
-    fontFamily: 'Arial',
-    fontSize: 12,
-    lineSpacing: 1.5,
-    margins: { top: 2.5, bottom: 2.5, left: 2.5, right: 2.5 },
-    headerStyle: 'formal',
-    tone: 'formal',
-    language: 'en',
-    pageNumbers: true,
-    tableOfContents: true
-  });
 
   // Initialize plan and sections
   useEffect(() => {
@@ -116,7 +100,13 @@ export default function Phase4Integration({
         language: 'en',
         tone: 'neutral',
         targetLength: 'standard',
-        settings: {},
+        settings: {
+          includeTitlePage: true,
+          includePageNumbers: true,
+          citations: 'simple' as const,
+          captions: true,
+          graphs: {}
+        },
         sections: [],
         addonPack: false,
         versions: []
@@ -186,7 +176,6 @@ export default function Phase4Integration({
   };
 
   const handleTemplateChange = (template: any) => {
-    setFormatting(template.formatting);
     // Apply template sections if needed
     if (template.sections) {
       const newSections = template.sections.map((sectionKey: string, index: number) => ({
@@ -201,7 +190,7 @@ export default function Phase4Integration({
   };
 
   const handleFormattingChange = (newFormatting: FormattingConfig) => {
-    setFormatting(newFormatting);
+    console.log('Formatting changed:', newFormatting);
   };
 
   const handleExport = (format: 'pdf' | 'docx' | 'html' | 'markdown') => {

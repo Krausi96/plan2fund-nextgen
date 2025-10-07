@@ -190,11 +190,11 @@ export default function EntryPointsManager({
                 </p>
                 {programProfile && (
                   <p className="text-xs text-blue-600 mt-1">
-                    Current program: {programProfile.name}
+                    Current program: {programProfile.programId}
                   </p>
                 )}
               </div>
-              <Button onClick={handleWizardEntry} variant="default">
+              <Button onClick={handleWizardEntry} variant="primary">
                 Start Wizard
               </Button>
             </div>
@@ -248,7 +248,7 @@ export default function EntryPointsManager({
             )}
 
             <div className="mt-4">
-              <Button onClick={handleDirectEditor} variant="default" className="w-full">
+              <Button onClick={handleDirectEditor} variant="primary" className="w-full">
                 Start with {DOCUMENT_TYPES.find(t => t.id === selectedDocumentType)?.name}
               </Button>
             </div>

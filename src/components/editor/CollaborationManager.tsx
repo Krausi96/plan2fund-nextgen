@@ -74,7 +74,6 @@ export default function CollaborationManager({
   onVersionCreate,
   onVersionRestore,
   onTeamInvite,
-  onAdvisorRequest,
   showTeamEditing = true,
   showVersionControl = true,
   showSharing = true,
@@ -83,9 +82,7 @@ export default function CollaborationManager({
   const [teamMembers, setTeamMembers] = useState<TeamMember[]>([]);
   const [versions, setVersions] = useState<PlanVersion[]>([]);
   const [showShareModal, setShowShareModal] = useState(false);
-  const [showVersionHistory, setShowVersionHistory] = useState(false);
   const [showTeamModal, setShowTeamModal] = useState(false);
-  const [showAdvisorModal, setShowAdvisorModal] = useState(false);
   const [shareData, setShareData] = useState<Partial<ShareData>>({});
   const [inviteEmail, setInviteEmail] = useState('');
   const [inviteRole, setInviteRole] = useState<TeamRole>('viewer');
@@ -157,12 +154,6 @@ export default function CollaborationManager({
     }
   };
 
-  const handleAdvisorRequest = (advisorData: AdvisorRequest) => {
-    if (onAdvisorRequest) {
-      onAdvisorRequest(advisorData);
-      setShowAdvisorModal(false);
-    }
-  };
 
   const getRoleColor = (role: TeamRole) => {
     const colors = {
@@ -319,7 +310,7 @@ export default function CollaborationManager({
               <h3 className="text-lg font-medium text-gray-900">🎓 Advisor Integration</h3>
               <Button
                 size="sm"
-                onClick={() => setShowAdvisorModal(true)}
+                onClick={() => console.log('Request advisor review')}
               >
                 Request Review
               </Button>

@@ -2,7 +2,6 @@
 // Performance-optimized editor with multi-user support
 
 import React, { useState, useEffect, useMemo, useCallback } from 'react';
-import { useRouter } from 'next/router';
 import { useUser } from '@/contexts/UserContext';
 import { PlanDocument, Route } from '@/types/plan';
 import { ProgramProfile } from '@/types/reco';
@@ -11,8 +10,6 @@ import { Badge } from '@/components/ui/badge';
 import { useI18n } from '@/contexts/I18nContext';
 
 // Lazy load only essential components
-const SectionEditor = React.lazy(() => import('@/components/editor/SectionEditor'));
-const EnhancedAIChat = React.lazy(() => import('@/components/editor/EnhancedAIChat'));
 const ExportSettings = React.lazy(() => import('@/components/editor/ExportSettings'));
 
 interface OptimizedEditorShellProps {
@@ -36,29 +33,20 @@ export default function OptimizedEditorShell({
   onLanguageChange,
   onToneChange,
   onTargetLengthChange,
-  onSettingsChange,
-  onAddonPackToggle,
   children
 }: OptimizedEditorShellProps) {
   const { userProfile } = useUser();
   const { setLocale } = useI18n();
-  const router = useRouter();
   
   // Optimized state management
   const [saveStatus, setSaveStatus] = useState<'saved'|'saving'|'unsaved'>('saved');
   const [showExportSettings, setShowExportSettings] = useState(false);
   const [isExporting, setIsExporting] = useState(false);
-  const [currentSection, setCurrentSection] = useState(plan.sections[0]?.key || 'executive_summary');
 
   // Memoized values to prevent unnecessary re-renders
-  const completedSections = useMemo(() => 
-    plan.sections.filter(s => s.status === 'aligned').length,
-    [plan.sections]
-  );
-
-  const totalSections = useMemo(() => 
-    plan.sections.length,
-    [plan.sections]
+  const userPlanId = useMemo(() => 
+    userProfile ? `${userProfile.id}_${plan.id}` : plan.id,
+    [userProfile, plan.id]
   );
 
   // Optimized save with debouncing
@@ -106,11 +94,6 @@ export default function OptimizedEditorShell({
     }
   }, [plan]);
 
-  // User-specific plan ID
-  const userPlanId = useMemo(() => 
-    userProfile ? `${userProfile.id}_${plan.id}` : plan.id,
-    [userProfile, plan.id]
-  );
 
   return (
     <div className="flex flex-col h-screen bg-gray-50">

@@ -1,10 +1,9 @@
 // ========= PLAN2FUND — TEMPLATES & FORMATTING MANAGER =========
 // Phase 4: Official templates, export options, industry variations, and tone customization
 
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { PlanDocument } from '@/types/plan';
-import { Route } from '@/types/plan';
 
 interface TemplatesFormattingManagerProps {
   currentPlan: PlanDocument;
@@ -171,7 +170,6 @@ const INDUSTRY_VARIATIONS: TemplateConfig[] = [
 ];
 
 export default function TemplatesFormattingManager({
-  currentPlan,
   onTemplateChange,
   onFormattingChange,
   onExport,

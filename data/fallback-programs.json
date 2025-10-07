@@ -1,0 +1,182 @@
+{
+  "version": "1.0.0",
+  "lastUpdated": "2025-01-15",
+  "description": "Realistic fallback funding programs for Austrian and EU sources",
+  "programs": [
+    {
+      "id": "aws_preseed_real",
+      "name": "AWS Preseed",
+      "description": "Austria Wirtschaftsservice Preseed funding for innovative startups in early stages",
+      "type": "grant",
+      "program_type": "grant",
+      "funding_amount_min": 50000,
+      "funding_amount_max": 200000,
+      "currency": "EUR",
+      "institution": "Austria Wirtschaftsservice",
+      "program_category": "business_grants",
+      "eligibility_criteria": {
+        "min_team_size": 2,
+        "max_company_age": 5,
+        "location": "Austria",
+        "revenue_max": 500000
+      },
+      "requirements": {
+        "business_plan": true,
+        "pitch_deck": true,
+        "financial_projections": true,
+        "team_cv": true,
+        "market_analysis": true
+      },
+      "contact_info": {
+        "website": "https://www.aws.at",
+        "email": "preseed@aws.at",
+        "phone": "+43 1 50175-0"
+      },
+      "source_url": "https://www.aws.at/foerderungen/preseed/",
+      "confidence_score": 0.95,
+      "tags": ["austria", "startup", "preseed", "aws", "innovation"],
+      "target_personas": ["startup", "innovator", "entrepreneur"],
+      "decision_tree_questions": [
+        "Are you based in Austria?",
+        "Is your company less than 5 years old?",
+        "Do you have a business plan?",
+        "Is your revenue under €500,000?"
+      ],
+      "editor_sections": ["overview", "requirements", "application", "timeline"],
+      "readiness_criteria": ["business_plan", "team", "market_validation", "financial_projections"],
+      "ai_guidance": "This program is ideal for Austrian startups in the idea/MVP stage looking for their first significant funding round."
+    },
+    {
+      "id": "aws_seed_real",
+      "name": "AWS Seed",
+      "description": "Austria Wirtschaftsservice Seed funding for startups with proven market traction",
+      "type": "grant",
+      "program_type": "grant",
+      "funding_amount_min": 100000,
+      "funding_amount_max": 500000,
+      "currency": "EUR",
+      "institution": "Austria Wirtschaftsservice",
+      "program_category": "business_grants",
+      "eligibility_criteria": {
+        "min_team_size": 3,
+        "max_company_age": 7,
+        "location": "Austria",
+        "revenue_min": 100000,
+        "revenue_max": 2000000
+      },
+      "requirements": {
+        "business_plan": true,
+        "pitch_deck": true,
+        "financial_projections": true,
+        "team_cv": true,
+        "market_analysis": true,
+        "customer_traction": true
+      },
+      "contact_info": {
+        "website": "https://www.aws.at",
+        "email": "seed@aws.at",
+        "phone": "+43 1 50175-0"
+      },
+      "source_url": "https://www.aws.at/foerderungen/seed/",
+      "confidence_score": 0.95,
+      "tags": ["austria", "startup", "seed", "aws", "growth"],
+      "target_personas": ["startup", "scaleup", "entrepreneur"],
+      "decision_tree_questions": [
+        "Are you based in Austria?",
+        "Is your company less than 7 years old?",
+        "Do you have proven market traction?",
+        "Is your revenue between €100k-€2M?"
+      ],
+      "editor_sections": ["overview", "requirements", "application", "timeline"],
+      "readiness_criteria": ["business_plan", "team", "market_validation", "customer_traction"],
+      "ai_guidance": "This program is perfect for Austrian startups with initial market validation looking to scale their operations."
+    },
+    {
+      "id": "ffg_basisprogramm_real",
+      "name": "FFG Basisprogramm",
+      "description": "Austrian Research Promotion Agency basic funding for research and development projects",
+      "type": "grant",
+      "program_type": "grant",
+      "funding_amount_min": 10000,
+      "funding_amount_max": 100000,
+      "currency": "EUR",
+      "institution": "FFG - Austrian Research Promotion Agency",
+      "program_category": "research_grants",
+      "eligibility_criteria": {
+        "min_team_size": 1,
+        "max_company_age": 15,
+        "location": "Austria",
+        "research_focus": true
+      },
+      "requirements": {
+        "research_proposal": true,
+        "team_cv": true,
+        "project_timeline": true,
+        "budget_breakdown": true,
+        "innovation_plan": true
+      },
+      "contact_info": {
+        "website": "https://www.ffg.at",
+        "email": "basisprogramm@ffg.at",
+        "phone": "+43 5 7755-0"
+      },
+      "source_url": "https://www.ffg.at/basisprogramm",
+      "confidence_score": 0.9,
+      "tags": ["austria", "research", "ffg", "innovation", "rd"],
+      "target_personas": ["researcher", "startup", "university", "sme"],
+      "decision_tree_questions": [
+        "Are you based in Austria?",
+        "Is your project research-focused?",
+        "Do you have a research proposal?",
+        "Is your team qualified for R&D?"
+      ],
+      "editor_sections": ["overview", "requirements", "application", "research_plan"],
+      "readiness_criteria": ["research_proposal", "team", "innovation_plan", "budget"],
+      "ai_guidance": "This program is ideal for Austrian researchers and companies conducting innovative R&D projects."
+    },
+    {
+      "id": "horizon_europe_real",
+      "name": "Horizon Europe",
+      "description": "EU's flagship research and innovation program with €95.5 billion budget",
+      "type": "grant",
+      "program_type": "grant",
+      "funding_amount_min": 100000,
+      "funding_amount_max": 5000000,
+      "currency": "EUR",
+      "institution": "European Commission",
+      "program_category": "eu_grants",
+      "eligibility_criteria": {
+        "min_team_size": 2,
+        "max_company_age": 15,
+        "location": "EU",
+        "international_collaboration": true
+      },
+      "requirements": {
+        "business_plan": true,
+        "pitch_deck": true,
+        "financial_projections": true,
+        "team_cv": true,
+        "innovation_plan": true,
+        "partnership_agreements": true
+      },
+      "contact_info": {
+        "website": "https://ec.europa.eu",
+        "email": "info@ec.europa.eu",
+        "phone": "+32 2 299 11 11"
+      },
+      "source_url": "https://ec.europa.eu/info/research-and-innovation/funding/funding-opportunities/funding-programmes-and-open-calls/horizon-europe_en",
+      "confidence_score": 0.95,
+      "tags": ["eu", "research", "innovation", "international", "horizon"],
+      "target_personas": ["startup", "scaleup", "researcher", "university"],
+      "decision_tree_questions": [
+        "Are you based in the EU?",
+        "Is your project innovative?",
+        "Do you have international partners?",
+        "Is your project research-focused?"
+      ],
+      "editor_sections": ["overview", "requirements", "application", "partnerships"],
+      "readiness_criteria": ["business_plan", "team", "innovation", "partnerships"],
+      "ai_guidance": "This EU program is perfect for innovative projects with international scope and research focus."
+    }
+  ]
+}

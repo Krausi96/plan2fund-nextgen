@@ -16,6 +16,9 @@ interface SectionEditorProps {
   showCustomization?: boolean;
   showUniqueness?: boolean;
   customizations?: SectionCustomizations;
+  // AI-enhanced fields
+  programSections?: any[];
+  aiGuidance?: any;
 }
 
 interface SectionCustomizations {
@@ -33,13 +36,14 @@ export default function SectionEditor({
   section,
   onContentChange,
   onStatusChange,
-  onSectionReorder,
   onSectionCustomize,
   isActive = false,
   showProgress = true,
   showCustomization = false,
   showUniqueness = false,
-  customizations
+  customizations,
+  programSections,
+  aiGuidance
 }: SectionEditorProps) {
   const [content, setContent] = useState(section.content || '');
   const [status, setStatus] = useState(section.status || 'missing');
@@ -128,6 +132,19 @@ export default function SectionEditor({
     // Use custom guidance if available, otherwise fall back to default
     if (customizations?.guidance) {
       return customizations.guidance;
+    }
+    
+    // Check for program-specific guidance from AI fields
+    if (programSections && programSections.length > 0) {
+      const programSection = programSections.find(ps => ps.id === section.key);
+      if (programSection?.description) {
+        return programSection.description;
+      }
+    }
+    
+    // Use AI guidance if available
+    if (aiGuidance?.context) {
+      return `${aiGuidance.context}\n\nFocus on: ${aiGuidance.key_points?.join(', ') || 'key business aspects'}`;
     }
     
     // Provide guidance based on section key

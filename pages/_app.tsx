@@ -3,6 +3,7 @@ import type { AppProps } from "next/app"
 import AppShell from "@/components/layout/AppShell"
 import { UserProvider } from "@/contexts/UserContext"
 import { I18nProvider } from "@/contexts/I18nContext"
+import { RecommendationProvider } from "@/contexts/RecommendationContext"
 import { useEffect } from "react"
 import Script from "next/script"
 import { useRouter } from "next/router"
@@ -63,11 +64,13 @@ export default function MyApp({ Component, pageProps }: AppProps) {
       
       <I18nProvider>
         <UserProvider>
-          <AnalyticsWrapper>
-            <AppShell>
-              <Component {...pageProps} />
-            </AppShell>
-          </AnalyticsWrapper>
+          <RecommendationProvider>
+            <AnalyticsWrapper>
+              <AppShell>
+                <Component {...pageProps} />
+              </AppShell>
+            </AnalyticsWrapper>
+          </RecommendationProvider>
         </UserProvider>
       </I18nProvider>
     </>

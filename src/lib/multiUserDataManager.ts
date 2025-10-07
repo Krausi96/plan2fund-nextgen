@@ -4,7 +4,6 @@
  */
 
 import { PlanDocument } from '@/types/plan';
-import { UserProfile } from '@/lib/schemas/userProfile';
 
 export interface UserPlan {
   id: string;

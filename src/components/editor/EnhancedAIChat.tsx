@@ -54,30 +54,44 @@ export default function EnhancedAIChat({
   // Use enhanced AI helper if Phase 3 features are available
   const aiHelper = (decisionTreeAnswers || programTemplate || currentTemplateSection || aiGuidance) 
     ? createEnhancedAIHelper(
+        {
+          maxWords: 200,
+          sectionScope: currentSection,
+          programHints: programProfile?.required || {},
+          userAnswers: plan.sections.reduce((acc, section) => {
+            acc[section.key] = section.content || '';
+            return acc;
+          }, {} as Record<string, string>),
+          tone: plan.tone || 'neutral',
+          language: plan.language || 'en',
+          decisionTreeAnswers,
+          programTemplate,
+          currentSection: currentTemplateSection,
+          aiGuidance
+        },
+        programProfile?.required || {},
         plan.sections.reduce((acc, section) => {
           acc[section.key] = section.content || '';
           return acc;
-        }, {} as Record<string, string>), // Real plan data
-        programProfile?.required || {}, // Real program requirements
-        200, // maxWords
+        }, {} as Record<string, string>),
         plan.tone || 'neutral',
         plan.language || 'en',
-        // Phase 3 enhancements
         decisionTreeAnswers,
         programTemplate,
         currentTemplateSection,
         aiGuidance
       )
-    : createAIHelper(
-        plan.sections.reduce((acc, section) => {
+    : createAIHelper({
+        maxWords: 200,
+        sectionScope: currentSection,
+        programHints: programProfile?.required || {},
+        userAnswers: plan.sections.reduce((acc, section) => {
           acc[section.key] = section.content || '';
           return acc;
-        }, {} as Record<string, string>), // Real plan data
-        programProfile?.required || {}, // Real program requirements
-        200, // maxWords
-        plan.tone || 'neutral',
-        plan.language || 'en'
-      );
+        }, {} as Record<string, string>),
+        tone: plan.tone || 'neutral',
+        language: plan.language || 'en'
+      });
 
   // Get readiness issues for current section
   const getReadinessIssues = () => {
@@ -98,6 +112,15 @@ export default function EnhancedAIChat({
     
     if (programProfile.required?.tables) {
       suggestions.push(`Required tables: ${programProfile.required.tables.join(', ')}`);
+    }
+    
+    // Add AI guidance suggestions if available
+    if (aiGuidance?.key_points) {
+      suggestions.push(`Key points: ${aiGuidance.key_points.join(', ')}`);
+    }
+    
+    if (aiGuidance?.context) {
+      suggestions.push(`Context: ${aiGuidance.context}`);
     }
     
     return suggestions;
@@ -287,7 +310,7 @@ Please provide more specific details about what you'd like help with, and I'll p
     try {
       const currentSectionContent = plan.sections.find(s => s.key === currentSection)?.content || '';
       
-      const response = await aiHelper.generateTemplateBasedContent(
+      const response = await aiHelper.generateSectionContent(
         currentSection,
         currentSectionContent,
         {
@@ -328,7 +351,7 @@ Please provide more specific details about what you'd like help with, and I'll p
     try {
       const currentSectionContent = plan.sections.find(s => s.key === currentSection)?.content || '';
       
-      const response = await aiHelper.generateDecisionTreeBasedContent(
+      const response = await aiHelper.generateSectionContent(
         currentSection,
         currentSectionContent,
         {
@@ -341,8 +364,7 @@ Please provide more specific details about what you'd like help with, and I'll p
           score: 0,
           reasons: [],
           risks: []
-        },
-        decisionTreeAnswers
+        }
       );
       
       const aiMessage: ChatMessage = {

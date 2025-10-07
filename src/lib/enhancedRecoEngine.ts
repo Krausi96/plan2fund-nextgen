@@ -1,5 +1,5 @@
-import rawPrograms from "../../data/programs.json";
-import { Program, UserAnswers, ScoredProgram } from "../types";
+// Removed static JSON import - using database instead
+import { Program, UserAnswers, ScoredProgram, ProgramType } from "../types";
 import { dataSource } from "./dataSource";
 import { doctorDiagnostic } from "./doctorDiagnostic";
 
@@ -372,8 +372,15 @@ export async function scoreProgramsEnhanced(
   mode: "strict" | "explorer" = "strict"
 ): Promise<EnhancedProgramResult[]> {
   try {
-    // Use enhanced data source (combines static + scraped data)
-    const programs = await dataSource.getPrograms();
+    // Use GPT-enhanced data source (includes target_personas, tags, etc.)
+    const programs = await dataSource.getGPTEnhancedPrograms();
+    console.log('🔍 Debug: DataSource returned programs:', programs.length);
+    console.log('🔍 Debug: Sample program from dataSource:', {
+      id: programs[0]?.id,
+      hasDecisionTreeQuestions: programs[0]?.decision_tree_questions?.length || 0,
+      hasEditorSections: programs[0]?.editor_sections?.length || 0,
+      hasReadinessCriteria: programs[0]?.readiness_criteria?.length || 0
+    });
     const derivedSignals = deriveSignals(answers);
     
     // Use doctor diagnostic for better matching
@@ -382,20 +389,39 @@ export async function scoreProgramsEnhanced(
     
     // Filter programs based on diagnosis if confidence is high
     let filteredPrograms = programs;
+    console.log('🔍 Debug: Original programs count:', programs.length);
+    console.log('🔍 Debug: Diagnosis confidence:', diagnosis.confidence);
+    console.log('🔍 Debug: Diagnosis programs count:', diagnosis.programs?.length || 0);
+    
     if (diagnosis.confidence > 0.7) {
       filteredPrograms = diagnosis.programs;
+      console.log('🔍 Debug: Using filtered programs from diagnosis');
+    } else {
+      console.log('🔍 Debug: Using all programs (low confidence diagnosis)');
     }
     
     const normalizedPrograms: Program[] = filteredPrograms.map((p) => ({
       id: p.id,
       name: p.name || p.id,
       type: p.type || "program",
+      program_type: p.program_type || p.type || "grant",
+      program_category: p.program_category || "general",
       requirements: p.requirements || {},
-      notes: undefined,
-      maxAmount: undefined,
-      link: undefined,
-      // Add enhanced fields
+      notes: p.notes,
+      maxAmount: p.maxAmount,
+      link: p.link,
+      // Add enhanced fields for scoring
+      target_personas: p.target_personas || [],
+      tags: p.tags || [],
+      decision_tree_questions: p.decision_tree_questions || [],
+      editor_sections: p.editor_sections || [],
+      readiness_criteria: p.readiness_criteria || [],
+      ai_guidance: p.ai_guidance || null
     }));
+
+    console.log('🔍 Debug: Processing', normalizedPrograms.length, 'programs');
+    console.log('🔍 Debug: Sample program:', JSON.stringify(normalizedPrograms[0], null, 2));
+    console.log('🔍 Debug: User answers:', answers);
 
     return normalizedPrograms.map((program) => {
       let score = 0;
@@ -411,6 +437,70 @@ export async function scoreProgramsEnhanced(
         action: string;
         priority: 'high' | 'medium' | 'low';
       }> = [];
+
+      // Score based on program-specific decision tree questions
+      if (program.decision_tree_questions && program.decision_tree_questions.length > 0) {
+        const programSpecificScore = scoreProgramSpecificQuestions(program.decision_tree_questions, answers);
+        score += programSpecificScore.score;
+        matchedCriteria.push(...programSpecificScore.matchedCriteria);
+        gaps.push(...programSpecificScore.gaps);
+      }
+
+      // Score based on GPT-enhanced fields
+      if (program.target_personas && program.target_personas.length > 0) {
+        // Check if user stage matches target personas
+        if (answers.q2_entity_stage === 'startup' && program.target_personas.includes('startup')) {
+          score += 30;
+          matchedCriteria.push({
+            key: 'target_personas',
+            value: 'startup',
+            reason: 'Program targets startup companies',
+            status: 'passed'
+          });
+        }
+        if (answers.q3_company_size === 'small' && program.target_personas.includes('sme')) {
+          score += 20;
+          matchedCriteria.push({
+            key: 'target_personas',
+            value: 'sme',
+            reason: 'Program targets small/medium enterprises',
+            status: 'passed'
+          });
+        }
+      }
+
+      // Score based on tags
+      if (program.tags && program.tags.length > 0) {
+        if (answers.q4_theme === 'innovation' && program.tags.includes('innovation')) {
+          score += 25;
+          matchedCriteria.push({
+            key: 'tags',
+            value: 'innovation',
+            reason: 'Program focuses on innovation',
+            status: 'passed'
+          });
+        }
+        if (program.tags.includes('non-dilutive')) {
+          score += 15;
+          matchedCriteria.push({
+            key: 'tags',
+            value: 'non-dilutive',
+            reason: 'Non-dilutive funding available',
+            status: 'passed'
+          });
+        }
+      }
+
+      // Country matching
+      if (answers.q1_country === 'AT' && program.id.includes('aws')) {
+        score += 20;
+        matchedCriteria.push({
+          key: 'location',
+          value: 'Austria',
+          reason: 'Austrian program',
+          status: 'passed'
+        });
+      }
 
       // If no requirements, give a base score based on program type
       if (Object.keys(program.requirements || {}).length === 0) {
@@ -521,14 +611,23 @@ export async function scoreProgramsEnhanced(
         }
       }
 
-      const totalRequirements = Object.keys(program.requirements || {}).length;
-      let scorePercent = totalRequirements > 0 ? Math.round((score / totalRequirements) * 100) : score;
+      // Use GPT-enhanced scoring as primary score
+      let scorePercent = score;
       
-      // Ensure minimum score for programs with no requirements or when scoring fails
-      if (scorePercent === 0 && totalRequirements === 0) {
-        scorePercent = 50; // Base score for programs without specific requirements
-      } else if (scorePercent === 0 && totalRequirements > 0) {
-        scorePercent = 10; // Minimum score even if no requirements are met
+      // If no GPT-enhanced scoring happened, fall back to requirements-based scoring
+      const totalRequirements = Object.keys(program.requirements || {}).length;
+      if (score === 0 && totalRequirements > 0) {
+        scorePercent = totalRequirements > 0 ? Math.round((score / totalRequirements) * 100) : score;
+      }
+      
+      // Ensure minimum score for programs
+      if (scorePercent === 0) {
+        scorePercent = 30; // Base score for all programs
+      }
+      
+      // Add bonus for GPT-enhanced matches
+      if (matchedCriteria.length > 0) {
+        scorePercent += Math.min(20, matchedCriteria.length * 5); // Up to 20 bonus points
       }
 
       const eligibility =
@@ -550,6 +649,8 @@ export async function scoreProgramsEnhanced(
 
       // Generate eligibility trace
       const trace = generateEligibilityTrace(program, matchedCriteria, gaps, derivedSignals);
+      
+      console.log(`🔍 Debug: Program ${program.id} - Final Score: ${scorePercent}, Matched: ${matchedCriteria.length}, Gaps: ${gaps.length}`);
       
       return {
         ...program,
@@ -577,23 +678,25 @@ export async function scoreProgramsEnhanced(
     }).sort((a, b) => b.score - a.score);
   } catch (error) {
     console.error('Enhanced recommendation engine failed, using fallback:', error);
-    return scoreProgramsFallback(answers, mode);
+    return await scoreProgramsFallback(answers, mode);
   }
 }
 
 // Fallback recommendation engine - simple but reliable
-function scoreProgramsFallback(
+async function scoreProgramsFallback(
   _answers: UserAnswers,
   _mode: "strict" | "explorer" = "strict"
-): EnhancedProgramResult[] {
+): Promise<EnhancedProgramResult[]> {
   try {
-    const source = rawPrograms.programs as any[];
+    const source = await dataSource.getPrograms();
     
     // Simple fallback: return basic program information with minimal scoring
     return source.slice(0, 10).map((p, index) => ({
       id: p.id || `fallback-${index}`,
-      name: p.title || p.name || p.id || `Program ${index + 1}`,
-      type: Array.isArray(p.tags) && p.tags.length > 0 ? p.tags[0] : (p.type || "program"),
+      name: p.name || p.id || `Program ${index + 1}`,
+      type: (Array.isArray(p.tags) && p.tags.length > 0 ? p.tags[0] : (p.type || "program")) as ProgramType,
+      program_type: p.program_type || p.type || "grant",
+      program_category: p.program_category || "general",
       requirements: (p.requirements as any) || {},
       notes: undefined,
       maxAmount: undefined,
@@ -873,7 +976,7 @@ export async function analyzeFreeTextEnhanced(description: string): Promise<{ no
     console.error('Free text analysis failed, using fallback:', error);
     return {
       normalized: {},
-      scored: scoreProgramsFallback({}, "explorer")
+      scored: await scoreProgramsFallback({}, "explorer")
     };
   }
 }
@@ -1048,4 +1151,119 @@ function getUnknownDescription(unknown: string): string {
     'q10_env_benefit': 'Environmental benefit information'
   };
   return descriptions[unknown] || 'Unknown variable';
+}
+
+// Score program-specific decision tree questions
+function scoreProgramSpecificQuestions(
+  decisionTreeQuestions: any[],
+  answers: UserAnswers
+): {
+  score: number;
+  matchedCriteria: Array<{
+    key: string;
+    value: any;
+    reason: string;
+    status: 'passed' | 'warning' | 'failed';
+  }>;
+  gaps: Array<{
+    key: string;
+    description: string;
+    action: string;
+    priority: 'high' | 'medium' | 'low';
+  }>;
+} {
+  let score = 0;
+  const matchedCriteria: Array<{
+    key: string;
+    value: any;
+    reason: string;
+    status: 'passed' | 'warning' | 'failed';
+  }> = [];
+  const gaps: Array<{
+    key: string;
+    description: string;
+    action: string;
+    priority: 'high' | 'medium' | 'low';
+  }> = [];
+
+  for (const question of decisionTreeQuestions) {
+    const questionId = question.id;
+    const userAnswer = answers[questionId];
+    
+    if (!userAnswer) {
+      // User hasn't answered this program-specific question
+      gaps.push({
+        key: questionId,
+        description: `Program requires: ${question.question}`,
+        action: `Answer the question: ${question.question}`,
+        priority: question.required ? 'high' : 'medium'
+      });
+      continue;
+    }
+
+    // Score based on question type
+    if (question.type === 'single') {
+      const option = question.options?.find((opt: any) => opt.value === userAnswer);
+      if (option) {
+        score += 25; // High weight for program-specific questions
+        matchedCriteria.push({
+          key: questionId,
+          value: userAnswer,
+          reason: `Program-specific requirement met: ${question.question}`,
+          status: 'passed'
+        });
+      }
+    } else if (question.type === 'range') {
+      const userAmount = parseInt(userAnswer);
+      const minAmount = question.min || 0;
+      const maxAmount = question.max || Infinity;
+      
+      if (userAmount >= minAmount && userAmount <= maxAmount) {
+        score += 30; // Higher weight for funding amount matching
+        matchedCriteria.push({
+          key: questionId,
+          value: userAnswer,
+          reason: `Funding amount fits program range (€${minAmount.toLocaleString()} - €${maxAmount.toLocaleString()})`,
+          status: 'passed'
+        });
+      } else if (userAmount < minAmount) {
+        score += 10; // Partial credit for being close
+        matchedCriteria.push({
+          key: questionId,
+          value: userAnswer,
+          reason: `Funding amount below program minimum (€${minAmount.toLocaleString()})`,
+          status: 'warning'
+        });
+        gaps.push({
+          key: questionId,
+          description: `Increase funding request to at least €${minAmount.toLocaleString()}`,
+          action: `Adjust funding amount to meet program minimum`,
+          priority: 'medium'
+        });
+      } else {
+        gaps.push({
+          key: questionId,
+          description: `Funding amount exceeds program maximum (€${maxAmount.toLocaleString()})`,
+          action: `Reduce funding request or find alternative programs`,
+          priority: 'high'
+        });
+      }
+    } else if (question.type === 'multiple') {
+      const userSelections = Array.isArray(userAnswer) ? userAnswer : [userAnswer];
+      const validOptions = question.options?.map((opt: any) => opt.value) || [];
+      const validSelections = userSelections.filter(sel => validOptions.includes(sel));
+      
+      if (validSelections.length > 0) {
+        score += 20;
+        matchedCriteria.push({
+          key: questionId,
+          value: userAnswer,
+          reason: `Program-specific selections match: ${validSelections.join(', ')}`,
+          status: 'passed'
+        });
+      }
+    }
+  }
+
+  return { score, matchedCriteria, gaps };
 }
