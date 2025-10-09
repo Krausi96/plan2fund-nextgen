@@ -1,0 +1,1589 @@
+{
+  "architecture_analysis": {
+    "total_files": 265,
+    "file_types": {
+      ".json": 12,
+      ".md": 15,
+      ".py": 3,
+      ".js": 6,
+      ".ts": 98,
+      ".txt": 2,
+      ".tsx": 118,
+      ".jpg": 1,
+      ".svg": 1,
+      ".xml": 1,
+      ".mjs": 3,
+      ".css": 1,
+      ".sql": 4
+    },
+    "directory_structure": {
+      ".vercel": {
+        "files": 2,
+        "subdirs": {}
+      },
+      "data": {
+        "files": 2,
+        "subdirs": {}
+      },
+      "docs": {
+        "files": 9,
+        "subdirs": {
+          "architecture": {
+            "files": 2,
+            "subdirs": {}
+          },
+          "implementation": {
+            "files": 1,
+            "subdirs": {}
+          },
+          "phase-trackers": {
+            "files": 2,
+            "subdirs": {
+              "phase4": {
+                "files": 1,
+                "subdirs": {}
+              }
+            }
+          },
+          "system-flow": {
+            "files": 1,
+            "subdirs": {}
+          },
+          "testing": {
+            "files": 1,
+            "subdirs": {
+              "performance": {
+                "files": 1,
+                "subdirs": {}
+              }
+            }
+          },
+          "editor": {
+            "files": 1,
+            "subdirs": {
+              "phase4": {
+                "files": 1,
+                "subdirs": {}
+              }
+            }
+          }
+        }
+      },
+      "i18n": {
+        "files": 2,
+        "subdirs": {}
+      },
+      "pages": {
+        "files": 54,
+        "subdirs": {
+          "api": {
+            "files": 30,
+            "subdirs": {
+              "ai": {
+                "files": 1,
+                "subdirs": {}
+              },
+              "analytics": {
+                "files": 1,
+                "subdirs": {}
+              },
+              "cron": {
+                "files": 1,
+                "subdirs": {}
+              },
+              "data": {
+                "files": 2,
+                "subdirs": {}
+              },
+              "gdpr": {
+                "files": 1,
+                "subdirs": {}
+              },
+              "intake": {
+                "files": 2,
+                "subdirs": {}
+              },
+              "payments": {
+                "files": 2,
+                "subdirs": {}
+              },
+              "plan": {
+                "files": 1,
+                "subdirs": {}
+              },
+              "recommend": {
+                "files": 1,
+                "subdirs": {}
+              },
+              "scraper": {
+                "files": 2,
+                "subdirs": {}
+              },
+              "stripe": {
+                "files": 1,
+                "subdirs": {}
+              },
+              "user": {
+                "files": 1,
+                "subdirs": {}
+              },
+              "programmes": {
+                "files": 1,
+                "subdirs": {
+                  "[id]": {
+                    "files": 1,
+                    "subdirs": {}
+                  }
+                }
+              }
+            }
+          },
+          "program": {
+            "files": 1,
+            "subdirs": {}
+          }
+        }
+      },
+      "public": {
+        "files": 4,
+        "subdirs": {}
+      },
+      "scripts": {
+        "files": 10,
+        "subdirs": {
+          "database": {
+            "files": 4,
+            "subdirs": {}
+          }
+        }
+      },
+      "src": {
+        "files": 161,
+        "subdirs": {
+          "contexts": {
+            "files": 3,
+            "subdirs": {}
+          },
+          "data": {
+            "files": 4,
+            "subdirs": {}
+          },
+          "editor": {
+            "files": 9,
+            "subdirs": {
+              "addons": {
+                "files": 1,
+                "subdirs": {}
+              },
+              "figures": {
+                "files": 1,
+                "subdirs": {}
+              },
+              "financials": {
+                "files": 1,
+                "subdirs": {}
+              },
+              "integration": {
+                "files": 1,
+                "subdirs": {}
+              },
+              "optimized": {
+                "files": 1,
+                "subdirs": {}
+              },
+              "readiness": {
+                "files": 1,
+                "subdirs": {}
+              },
+              "settings": {
+                "files": 1,
+                "subdirs": {}
+              },
+              "templates": {
+                "files": 1,
+                "subdirs": {}
+              }
+            }
+          },
+          "export": {
+            "files": 1,
+            "subdirs": {}
+          },
+          "hooks": {
+            "files": 2,
+            "subdirs": {}
+          },
+          "i18n": {
+            "files": 1,
+            "subdirs": {}
+          },
+          "lib": {
+            "files": 52,
+            "subdirs": {
+              "schemas": {
+                "files": 3,
+                "subdirs": {}
+              },
+              "templates": {
+                "files": 2,
+                "subdirs": {}
+              }
+            }
+          },
+          "reco": {
+            "files": 1,
+            "subdirs": {}
+          },
+          "types": {
+            "files": 4,
+            "subdirs": {}
+          },
+          "components": {
+            "files": 83,
+            "subdirs": {
+              "addons": {
+                "files": 1,
+                "subdirs": {}
+              },
+              "common": {
+                "files": 21,
+                "subdirs": {}
+              },
+              "decision-tree": {
+                "files": 1,
+                "subdirs": {}
+              },
+              "editor": {
+                "files": 13,
+                "subdirs": {}
+              },
+              "fallback": {
+                "files": 1,
+                "subdirs": {}
+              },
+              "gdpr": {
+                "files": 1,
+                "subdirs": {}
+              },
+              "intake": {
+                "files": 3,
+                "subdirs": {}
+              },
+              "layout": {
+                "files": 7,
+                "subdirs": {}
+              },
+              "library": {
+                "files": 1,
+                "subdirs": {}
+              },
+              "onboarding": {
+                "files": 1,
+                "subdirs": {}
+              },
+              "plan": {
+                "files": 6,
+                "subdirs": {}
+              },
+              "pricing": {
+                "files": 9,
+                "subdirs": {}
+              },
+              "reco": {
+                "files": 6,
+                "subdirs": {}
+              },
+              "results": {
+                "files": 1,
+                "subdirs": {}
+              },
+              "success": {
+                "files": 1,
+                "subdirs": {}
+              },
+              "templates": {
+                "files": 1,
+                "subdirs": {}
+              },
+              "ui": {
+                "files": 9,
+                "subdirs": {}
+              }
+            }
+          }
+        }
+      },
+      "styles": {
+        "files": 1,
+        "subdirs": {}
+      },
+      "tests": {
+        "files": 1,
+        "subdirs": {
+          "fixtures": {
+            "files": 1,
+            "subdirs": {}
+          }
+        }
+      }
+    },
+    "large_files": [
+      {
+        "path": "data\\migrated-programs.json",
+        "size_kb": 2121.1
+      },
+      {
+        "path": "ARCHITECTURE.md",
+        "size_kb": 116.1
+      },
+      {
+        "path": "src\\lib\\webScraperService.ts",
+        "size_kb": 108.8
+      },
+      {
+        "path": "i18n\\de.json",
+        "size_kb": 88.3
+      },
+      {
+        "path": "i18n\\en.json",
+        "size_kb": 82.6
+      }
+    ],
+    "empty_files": [],
+    "duplicate_files": []
+  },
+  "layer_analysis": {
+    "layer_1": {
+      "scraper_service": {
+        "size_kb": 108.8,
+        "lines": 3136,
+        "complexity": "high"
+      },
+      "institutions": [
+        "Found 2 institutions"
+      ],
+      "scraping_methods": [],
+      "rate_limiting": {
+        "requests": 10,
+        "window_ms": 60000
+      },
+      "error_handling": {},
+      "monitoring": {},
+      "issues": [
+        "Has error handling",
+        "Has retry logic",
+        "Uses browser automation"
+      ],
+      "optimizations": [
+        "Consider extracting configuration to separate file",
+        "Consider making configuration dynamic"
+      ]
+    },
+    "layer_2": {
+      "pipeline_service": {
+        "size_kb": 32.5,
+        "lines": 1070,
+        "complexity": "medium"
+      },
+      "ai_enhancement": {
+        "methods": [
+          "AIEnhancedFields",
+          "AIEnhancedFields",
+          "DecisionTreeQuestions",
+          "EditorSections",
+          "ReadinessCriteria",
+          "TargetPersonas",
+          "Tags",
+          "AIGuidance",
+          "DecisionTreeQuestions",
+          "EditorSections",
+          "ReadinessCriteria",
+          "TargetPersonas",
+          "Tags",
+          "AIGuidance"
+        ],
+        "count": 14
+      },
+      "quality_scoring": {
+        "has_scoring": true,
+        "has_confidence": true
+      },
+      "normalization": {},
+      "caching": {
+        "has_caching": true,
+        "has_ttl": true
+      },
+      "issues": [],
+      "optimizations": []
+    },
+    "layer_5": {
+      "engines": {
+        "enhancedRecoEngine.ts": {
+          "size_kb": 46.7,
+          "lines": 1269,
+          "complexity": "high",
+          "imports": 3,
+          "exports": 5,
+          "functions": 22
+        }
+      },
+      "data_management": {
+        "database.ts": {
+          "size_kb": 4.3,
+          "lines": 143,
+          "complexity": "low",
+          "imports": 1,
+          "exports": 3,
+          "functions": 6
+        },
+        "dataSource.ts": {
+          "size_kb": 20.3,
+          "lines": 573,
+          "complexity": "high",
+          "imports": 2,
+          "exports": 7,
+          "functions": 11
+        },
+        "planStore.ts": {
+          "size_kb": 1.2,
+          "lines": 39,
+          "complexity": "low",
+          "imports": 0,
+          "exports": 2,
+          "functions": 3
+        }
+      },
+      "templates": {
+        "editorTemplates.ts": {
+          "size_kb": 11.0,
+          "lines": 278,
+          "complexity": "medium",
+          "imports": 1,
+          "exports": 1,
+          "functions": 0
+        },
+        "programTemplates.ts": {
+          "size_kb": 21.7,
+          "lines": 711,
+          "complexity": "high",
+          "imports": 0,
+          "exports": 4,
+          "functions": 6
+        }
+      },
+      "ai_processing": {
+        "aiChipParser.ts": {
+          "size_kb": 9.9,
+          "lines": 319,
+          "complexity": "medium",
+          "imports": 0,
+          "exports": 4,
+          "functions": 0
+        },
+        "aiHelper.ts": {
+          "size_kb": 9.3,
+          "lines": 298,
+          "complexity": "medium",
+          "imports": 2,
+          "exports": 3,
+          "functions": 6
+        },
+        "aiHelperGuardrails.ts": {
+          "size_kb": 15.0,
+          "lines": 515,
+          "complexity": "medium",
+          "imports": 1,
+          "exports": 5,
+          "functions": 2
+        },
+        "airtable.ts": {
+          "size_kb": 9.5,
+          "lines": 289,
+          "complexity": "medium",
+          "imports": 1,
+          "exports": 1,
+          "functions": 9
+        },
+        "email.ts": {
+          "size_kb": 0.2,
+          "lines": 9,
+          "complexity": "low",
+          "imports": 0,
+          "exports": 0,
+          "functions": 1
+        }
+      },
+      "utilities": {
+        "addons.ts": {
+          "size_kb": 12.9,
+          "lines": 515,
+          "complexity": "medium",
+          "imports": 1,
+          "exports": 5,
+          "functions": 4
+        },
+        "advancedSearchDoctor.ts": {
+          "size_kb": 5.6,
+          "lines": 178,
+          "complexity": "medium",
+          "imports": 2,
+          "exports": 3,
+          "functions": 2
+        },
+        "analytics.ts": {
+          "size_kb": 7.3,
+          "lines": 298,
+          "complexity": "medium",
+          "imports": 0,
+          "exports": 0,
+          "functions": 14
+        },
+        "comprehensiveExport.ts": {
+          "size_kb": 11.4,
+          "lines": 355,
+          "complexity": "medium",
+          "imports": 5,
+          "exports": 4,
+          "functions": 1
+        },
+        "decisionTree.ts": {
+          "size_kb": 13.0,
+          "lines": 348,
+          "complexity": "medium",
+          "imports": 3,
+          "exports": 4,
+          "functions": 2
+        },
+        "decisionTreeParser.ts": {
+          "size_kb": 6.5,
+          "lines": 205,
+          "complexity": "medium",
+          "imports": 1,
+          "exports": 1,
+          "functions": 0
+        },
+        "doctorDiagnostic.ts": {
+          "size_kb": 14.5,
+          "lines": 459,
+          "complexity": "medium",
+          "imports": 2,
+          "exports": 4,
+          "functions": 2
+        },
+        "dynamicDecisionTree.ts": {
+          "size_kb": 14.4,
+          "lines": 431,
+          "complexity": "medium",
+          "imports": 0,
+          "exports": 4,
+          "functions": 4
+        },
+        "dynamicQuestionEngine.ts": {
+          "size_kb": 9.5,
+          "lines": 265,
+          "complexity": "medium",
+          "imports": 2,
+          "exports": 3,
+          "functions": 7
+        },
+        "enhancedDecisionTree.ts": {
+          "size_kb": 17.8,
+          "lines": 575,
+          "complexity": "medium",
+          "imports": 2,
+          "exports": 3,
+          "functions": 3
+        },
+        "export.ts": {
+          "size_kb": 21.6,
+          "lines": 673,
+          "complexity": "high",
+          "imports": 3,
+          "exports": 3,
+          "functions": 7
+        },
+        "featureFlags.ts": {
+          "size_kb": 7.9,
+          "lines": 271,
+          "complexity": "medium",
+          "imports": 0,
+          "exports": 3,
+          "functions": 2
+        },
+        "financialCalculator.ts": {
+          "size_kb": 10.8,
+          "lines": 365,
+          "complexity": "medium",
+          "imports": 0,
+          "exports": 6,
+          "functions": 1
+        },
+        "intakeParser.ts": {
+          "size_kb": 14.6,
+          "lines": 441,
+          "complexity": "medium",
+          "imports": 0,
+          "exports": 1,
+          "functions": 3
+        },
+        "libraryExtractor.ts": {
+          "size_kb": 8.1,
+          "lines": 271,
+          "complexity": "medium",
+          "imports": 1,
+          "exports": 1,
+          "functions": 0
+        },
+        "motion.ts": {
+          "size_kb": 1.9,
+          "lines": 70,
+          "complexity": "low",
+          "imports": 2,
+          "exports": 16,
+          "functions": 1
+        },
+        "multiUserDataManager.ts": {
+          "size_kb": 10.4,
+          "lines": 359,
+          "complexity": "medium",
+          "imports": 1,
+          "exports": 5,
+          "functions": 18
+        },
+        "payload.ts": {
+          "size_kb": 2.6,
+          "lines": 115,
+          "complexity": "low",
+          "imports": 0,
+          "exports": 7,
+          "functions": 5
+        },
+        "payments.ts": {
+          "size_kb": 10.4,
+          "lines": 330,
+          "complexity": "medium",
+          "imports": 3,
+          "exports": 4,
+          "functions": 7
+        },
+        "prefill.ts": {
+          "size_kb": 14.0,
+          "lines": 491,
+          "complexity": "medium",
+          "imports": 1,
+          "exports": 8,
+          "functions": 17
+        },
+        "pricing.ts": {
+          "size_kb": 2.6,
+          "lines": 96,
+          "complexity": "low",
+          "imports": 0,
+          "exports": 4,
+          "functions": 3
+        },
+        "readiness.ts": {
+          "size_kb": 26.8,
+          "lines": 818,
+          "complexity": "high",
+          "imports": 4,
+          "exports": 5,
+          "functions": 7
+        },
+        "requirementsExtractor.ts": {
+          "size_kb": 11.8,
+          "lines": 364,
+          "complexity": "medium",
+          "imports": 1,
+          "exports": 2,
+          "functions": 0
+        },
+        "requirementsMapper.ts": {
+          "size_kb": 4.1,
+          "lines": 121,
+          "complexity": "low",
+          "imports": 1,
+          "exports": 1,
+          "functions": 0
+        },
+        "routeExtras.ts": {
+          "size_kb": 2.7,
+          "lines": 69,
+          "complexity": "low",
+          "imports": 0,
+          "exports": 4,
+          "functions": 2
+        },
+        "ScrapedProgram.ts": {
+          "size_kb": 1.5,
+          "lines": 67,
+          "complexity": "low",
+          "imports": 0,
+          "exports": 5,
+          "functions": 0
+        },
+        "seo.ts": {
+          "size_kb": 10.8,
+          "lines": 311,
+          "complexity": "medium",
+          "imports": 1,
+          "exports": 4,
+          "functions": 2
+        },
+        "sourceRegister.ts": {
+          "size_kb": 7.7,
+          "lines": 319,
+          "complexity": "medium",
+          "imports": 0,
+          "exports": 2,
+          "functions": 0
+        },
+        "submissionPack.ts": {
+          "size_kb": 11.8,
+          "lines": 425,
+          "complexity": "medium",
+          "imports": 1,
+          "exports": 3,
+          "functions": 1
+        },
+        "targetGroupDetection.ts": {
+          "size_kb": 7.0,
+          "lines": 242,
+          "complexity": "medium",
+          "imports": 0,
+          "exports": 4,
+          "functions": 8
+        },
+        "teamManagement.ts": {
+          "size_kb": 9.1,
+          "lines": 327,
+          "complexity": "medium",
+          "imports": 0,
+          "exports": 8,
+          "functions": 16
+        },
+        "theme.ts": {
+          "size_kb": 5.0,
+          "lines": 195,
+          "complexity": "medium",
+          "imports": 0,
+          "exports": 8,
+          "functions": 0
+        },
+        "translationValidator.ts": {
+          "size_kb": 0.9,
+          "lines": 31,
+          "complexity": "low",
+          "imports": 2,
+          "exports": 1,
+          "functions": 1
+        },
+        "utils.ts": {
+          "size_kb": 0.2,
+          "lines": 6,
+          "complexity": "low",
+          "imports": 2,
+          "exports": 1,
+          "functions": 1
+        }
+      },
+      "file_analysis": {},
+      "dependencies": {},
+      "issues": [
+        "enhancedRecoEngine.ts has many functions (22)"
+      ],
+      "optimizations": []
+    },
+    "layer_6": {
+      "pages": {
+        "about.tsx": {
+          "size_kb": 9.8,
+          "lines": 217,
+          "complexity": "medium"
+        },
+        "advanced-search.tsx": {
+          "size_kb": 8.1,
+          "lines": 220,
+          "complexity": "medium"
+        },
+        "checkout.tsx": {
+          "size_kb": 2.7,
+          "lines": 79,
+          "complexity": "low"
+        },
+        "confirm.tsx": {
+          "size_kb": 3.1,
+          "lines": 85,
+          "complexity": "low"
+        },
+        "contact.tsx": {
+          "size_kb": 9.0,
+          "lines": 237,
+          "complexity": "medium"
+        },
+        "dashboard.tsx": {
+          "size_kb": 11.0,
+          "lines": 290,
+          "complexity": "medium"
+        },
+        "editor.tsx": {
+          "size_kb": 17.7,
+          "lines": 455,
+          "complexity": "medium"
+        },
+        "export.tsx": {
+          "size_kb": 5.3,
+          "lines": 158,
+          "complexity": "medium"
+        },
+        "faq.tsx": {
+          "size_kb": 8.0,
+          "lines": 238,
+          "complexity": "medium"
+        },
+        "for.tsx": {
+          "size_kb": 14.2,
+          "lines": 448,
+          "complexity": "medium"
+        },
+        "index.tsx": {
+          "size_kb": 3.3,
+          "lines": 97,
+          "complexity": "low"
+        },
+        "legal.tsx": {
+          "size_kb": 4.5,
+          "lines": 110,
+          "complexity": "low"
+        },
+        "library.tsx": {
+          "size_kb": 19.1,
+          "lines": 434,
+          "complexity": "medium"
+        },
+        "optimized-editor.tsx": {
+          "size_kb": 29.2,
+          "lines": 717,
+          "complexity": "high"
+        },
+        "preview.tsx": {
+          "size_kb": 21.8,
+          "lines": 488,
+          "complexity": "high"
+        },
+        "pricing.tsx": {
+          "size_kb": 26.4,
+          "lines": 580,
+          "complexity": "high"
+        },
+        "privacy-settings.tsx": {
+          "size_kb": 12.0,
+          "lines": 304,
+          "complexity": "medium"
+        },
+        "privacy.tsx": {
+          "size_kb": 10.5,
+          "lines": 204,
+          "complexity": "medium"
+        },
+        "reco.tsx": {
+          "size_kb": 0.2,
+          "lines": 10,
+          "complexity": "low"
+        },
+        "results.tsx": {
+          "size_kb": 22.1,
+          "lines": 487,
+          "complexity": "high"
+        },
+        "terms.tsx": {
+          "size_kb": 11.2,
+          "lines": 234,
+          "complexity": "medium"
+        },
+        "thank-you.tsx": {
+          "size_kb": 5.2,
+          "lines": 132,
+          "complexity": "medium"
+        },
+        "_app.tsx": {
+          "size_kb": 2.4,
+          "lines": 80,
+          "complexity": "low"
+        }
+      },
+      "components": {
+        "addons\\AddOnChips.tsx": {
+          "size_kb": 9.7,
+          "lines": 298,
+          "complexity": "medium",
+          "category": "addons"
+        },
+        "common\\CartSummary.tsx": {
+          "size_kb": 2.8,
+          "lines": 82,
+          "complexity": "low",
+          "category": "common"
+        },
+        "common\\Counter.tsx": {
+          "size_kb": 1.5,
+          "lines": 55,
+          "complexity": "low",
+          "category": "common"
+        },
+        "common\\CTAStrip.tsx": {
+          "size_kb": 2.0,
+          "lines": 76,
+          "complexity": "low",
+          "category": "common"
+        },
+        "common\\DocsUpload.tsx": {
+          "size_kb": 1.1,
+          "lines": 42,
+          "complexity": "low",
+          "category": "common"
+        },
+        "common\\EligibilityCard.tsx": {
+          "size_kb": 0.9,
+          "lines": 33,
+          "complexity": "low",
+          "category": "common"
+        },
+        "common\\EvidenceCards.tsx": {
+          "size_kb": 4.4,
+          "lines": 134,
+          "complexity": "low",
+          "category": "common"
+        },
+        "common\\FundingTypes.tsx": {
+          "size_kb": 2.2,
+          "lines": 72,
+          "complexity": "low",
+          "category": "common"
+        },
+        "common\\HealthFooter.tsx": {
+          "size_kb": 2.7,
+          "lines": 85,
+          "complexity": "low",
+          "category": "common"
+        },
+        "common\\Hero.tsx": {
+          "size_kb": 13.2,
+          "lines": 331,
+          "complexity": "medium",
+          "category": "common"
+        },
+        "common\\HeroLite.tsx": {
+          "size_kb": 0.9,
+          "lines": 32,
+          "complexity": "low",
+          "category": "common"
+        },
+        "common\\HowItWorks.tsx": {
+          "size_kb": 4.0,
+          "lines": 117,
+          "complexity": "low",
+          "category": "common"
+        },
+        "common\\Included.tsx": {
+          "size_kb": 1.0,
+          "lines": 31,
+          "complexity": "low",
+          "category": "common"
+        },
+        "common\\InfoDrawer.tsx": {
+          "size_kb": 0.7,
+          "lines": 24,
+          "complexity": "low",
+          "category": "common"
+        },
+        "common\\PlanTypes.tsx": {
+          "size_kb": 6.1,
+          "lines": 153,
+          "complexity": "medium",
+          "category": "common"
+        },
+        "common\\PricingDetails.tsx": {
+          "size_kb": 17.1,
+          "lines": 393,
+          "complexity": "medium",
+          "category": "common"
+        },
+        "common\\SEOHead.tsx": {
+          "size_kb": 3.3,
+          "lines": 94,
+          "complexity": "low",
+          "category": "common"
+        },
+        "common\\TargetGroupBanner.tsx": {
+          "size_kb": 6.1,
+          "lines": 127,
+          "complexity": "medium",
+          "category": "common"
+        },
+        "common\\Tooltip.tsx": {
+          "size_kb": 1.4,
+          "lines": 39,
+          "complexity": "low",
+          "category": "common"
+        },
+        "common\\WhoItsFor.tsx": {
+          "size_kb": 6.7,
+          "lines": 172,
+          "complexity": "medium",
+          "category": "common"
+        },
+        "common\\WhyAustria.tsx": {
+          "size_kb": 3.6,
+          "lines": 107,
+          "complexity": "low",
+          "category": "common"
+        },
+        "common\\WhyPlan2Fund.tsx": {
+          "size_kb": 3.7,
+          "lines": 101,
+          "complexity": "low",
+          "category": "common"
+        },
+        "decision-tree\\DynamicWizard.tsx": {
+          "size_kb": 15.0,
+          "lines": 447,
+          "complexity": "medium",
+          "category": "decision-tree"
+        },
+        "editor\\CollaborationManager.tsx": {
+          "size_kb": 15.0,
+          "lines": 451,
+          "complexity": "medium",
+          "category": "editor"
+        },
+        "editor\\EnhancedAIChat.tsx": {
+          "size_kb": 21.2,
+          "lines": 606,
+          "complexity": "high",
+          "category": "editor"
+        },
+        "editor\\EnhancedNavigation.tsx": {
+          "size_kb": 9.3,
+          "lines": 260,
+          "complexity": "medium",
+          "category": "editor"
+        },
+        "editor\\EntryPointsManager.tsx": {
+          "size_kb": 10.7,
+          "lines": 301,
+          "complexity": "medium",
+          "category": "editor"
+        },
+        "editor\\ExportSettings.tsx": {
+          "size_kb": 11.6,
+          "lines": 290,
+          "complexity": "medium",
+          "category": "editor"
+        },
+        "editor\\FormHelpModal.tsx": {
+          "size_kb": 4.3,
+          "lines": 112,
+          "complexity": "low",
+          "category": "editor"
+        },
+        "editor\\Phase4Integration.tsx": {
+          "size_kb": 16.4,
+          "lines": 454,
+          "complexity": "medium",
+          "category": "editor"
+        },
+        "editor\\RequirementsChecker.tsx": {
+          "size_kb": 11.0,
+          "lines": 309,
+          "complexity": "medium",
+          "category": "editor"
+        },
+        "editor\\RichTextEditor.tsx": {
+          "size_kb": 11.6,
+          "lines": 316,
+          "complexity": "medium",
+          "category": "editor"
+        },
+        "editor\\RouteExtrasPanel.tsx": {
+          "size_kb": 3.8,
+          "lines": 105,
+          "complexity": "low",
+          "category": "editor"
+        },
+        "editor\\SectionEditor.tsx": {
+          "size_kb": 12.6,
+          "lines": 311,
+          "complexity": "medium",
+          "category": "editor"
+        },
+        "editor\\StructuredEditor.tsx": {
+          "size_kb": 10.3,
+          "lines": 286,
+          "complexity": "medium",
+          "category": "editor"
+        },
+        "editor\\TemplatesFormattingManager.tsx": {
+          "size_kb": 16.9,
+          "lines": 469,
+          "complexity": "medium",
+          "category": "editor"
+        },
+        "fallback\\ZeroMatchFallback.tsx": {
+          "size_kb": 9.5,
+          "lines": 237,
+          "complexity": "medium",
+          "category": "fallback"
+        },
+        "gdpr\\ConsentBanner.tsx": {
+          "size_kb": 4.6,
+          "lines": 149,
+          "complexity": "low",
+          "category": "gdpr"
+        },
+        "intake\\IntakeForm.tsx": {
+          "size_kb": 11.3,
+          "lines": 359,
+          "complexity": "medium",
+          "category": "intake"
+        },
+        "intake\\OffTopicGate.tsx": {
+          "size_kb": 4.0,
+          "lines": 90,
+          "complexity": "low",
+          "category": "intake"
+        },
+        "intake\\OverlayQuestions.tsx": {
+          "size_kb": 9.6,
+          "lines": 259,
+          "complexity": "medium",
+          "category": "intake"
+        },
+        "layout\\AppShell.tsx": {
+          "size_kb": 1.7,
+          "lines": 58,
+          "complexity": "low",
+          "category": "layout"
+        },
+        "layout\\Breadcrumbs.tsx": {
+          "size_kb": 2.4,
+          "lines": 69,
+          "complexity": "low",
+          "category": "layout"
+        },
+        "layout\\Footer.tsx": {
+          "size_kb": 2.8,
+          "lines": 64,
+          "complexity": "low",
+          "category": "layout"
+        },
+        "layout\\Header.tsx": {
+          "size_kb": 5.4,
+          "lines": 152,
+          "complexity": "medium",
+          "category": "layout"
+        },
+        "layout\\InPageBreadcrumbs.tsx": {
+          "size_kb": 1.7,
+          "lines": 53,
+          "complexity": "low",
+          "category": "layout"
+        },
+        "layout\\LanguageSwitcher.tsx": {
+          "size_kb": 0.9,
+          "lines": 38,
+          "complexity": "low",
+          "category": "layout"
+        },
+        "layout\\SiteBreadcrumbs.tsx": {
+          "size_kb": 3.0,
+          "lines": 101,
+          "complexity": "low",
+          "category": "layout"
+        },
+        "library\\ProgramDetails.tsx": {
+          "size_kb": 8.1,
+          "lines": 225,
+          "complexity": "medium",
+          "category": "library"
+        },
+        "onboarding\\SegmentedOnboarding.tsx": {
+          "size_kb": 11.6,
+          "lines": 334,
+          "complexity": "medium",
+          "category": "onboarding"
+        },
+        "plan\\ChartWidget.tsx": {
+          "size_kb": 9.0,
+          "lines": 274,
+          "complexity": "medium",
+          "category": "plan"
+        },
+        "plan\\FinancialsQuickSheet.tsx": {
+          "size_kb": 16.3,
+          "lines": 427,
+          "complexity": "medium",
+          "category": "plan"
+        },
+        "plan\\PlanIntake.tsx": {
+          "size_kb": 4.8,
+          "lines": 141,
+          "complexity": "low",
+          "category": "plan"
+        },
+        "plan\\StyleTokens.tsx": {
+          "size_kb": 8.5,
+          "lines": 255,
+          "complexity": "medium",
+          "category": "plan"
+        },
+        "plan\\TableOfContents.tsx": {
+          "size_kb": 2.6,
+          "lines": 85,
+          "complexity": "low",
+          "category": "plan"
+        },
+        "plan\\TitlePage.tsx": {
+          "size_kb": 5.5,
+          "lines": 166,
+          "complexity": "medium",
+          "category": "plan"
+        },
+        "pricing\\AddonsSection.tsx": {
+          "size_kb": 6.7,
+          "lines": 177,
+          "complexity": "medium",
+          "category": "pricing"
+        },
+        "pricing\\DocumentModal.tsx": {
+          "size_kb": 3.1,
+          "lines": 96,
+          "complexity": "low",
+          "category": "pricing"
+        },
+        "pricing\\DocumentSpecModal.tsx": {
+          "size_kb": 7.1,
+          "lines": 169,
+          "complexity": "medium",
+          "category": "pricing"
+        },
+        "pricing\\FilterTabContent.tsx": {
+          "size_kb": 6.8,
+          "lines": 211,
+          "complexity": "medium",
+          "category": "pricing"
+        },
+        "pricing\\FilterTabs.tsx": {
+          "size_kb": 2.2,
+          "lines": 78,
+          "complexity": "low",
+          "category": "pricing"
+        },
+        "pricing\\HowItWorksSection.tsx": {
+          "size_kb": 3.9,
+          "lines": 103,
+          "complexity": "low",
+          "category": "pricing"
+        },
+        "pricing\\ProofSection.tsx": {
+          "size_kb": 5.3,
+          "lines": 132,
+          "complexity": "medium",
+          "category": "pricing"
+        },
+        "pricing\\RequirementsDisplay.tsx": {
+          "size_kb": 7.7,
+          "lines": 195,
+          "complexity": "medium",
+          "category": "pricing"
+        },
+        "pricing\\RequirementsMatrix.tsx": {
+          "size_kb": 7.8,
+          "lines": 194,
+          "complexity": "medium",
+          "category": "pricing"
+        },
+        "reco\\EnhancedWizard.tsx": {
+          "size_kb": 12.1,
+          "lines": 330,
+          "complexity": "medium",
+          "category": "reco"
+        },
+        "reco\\ExplorationModal.tsx": {
+          "size_kb": 4.5,
+          "lines": 128,
+          "complexity": "low",
+          "category": "reco"
+        },
+        "reco\\ProgramDetailsModal.tsx": {
+          "size_kb": 3.7,
+          "lines": 119,
+          "complexity": "low",
+          "category": "reco"
+        },
+        "reco\\SmartRecommendationFlow.tsx": {
+          "size_kb": 8.6,
+          "lines": 244,
+          "complexity": "medium",
+          "category": "reco"
+        },
+        "reco\\UnifiedRecommendationWizard.tsx": {
+          "size_kb": 9.5,
+          "lines": 335,
+          "complexity": "medium",
+          "category": "reco"
+        },
+        "reco\\Wizard.tsx": {
+          "size_kb": 7.7,
+          "lines": 201,
+          "complexity": "medium",
+          "category": "reco"
+        },
+        "results\\StructuredRequirementsDisplay.tsx": {
+          "size_kb": 10.0,
+          "lines": 253,
+          "complexity": "medium",
+          "category": "results"
+        },
+        "success\\SuccessHub.tsx": {
+          "size_kb": 16.8,
+          "lines": 431,
+          "complexity": "medium",
+          "category": "success"
+        },
+        "templates\\ProgramTemplateEditor.tsx": {
+          "size_kb": 13.6,
+          "lines": 383,
+          "complexity": "medium",
+          "category": "templates"
+        },
+        "ui\\badge.tsx": {
+          "size_kb": 0.7,
+          "lines": 26,
+          "complexity": "low",
+          "category": "ui"
+        },
+        "ui\\button.tsx": {
+          "size_kb": 1.9,
+          "lines": 56,
+          "complexity": "low",
+          "category": "ui"
+        },
+        "ui\\card.tsx": {
+          "size_kb": 0.3,
+          "lines": 6,
+          "complexity": "low",
+          "category": "ui"
+        },
+        "ui\\dialog.tsx": {
+          "size_kb": 3.4,
+          "lines": 90,
+          "complexity": "low",
+          "category": "ui"
+        },
+        "ui\\input.tsx": {
+          "size_kb": 0.8,
+          "lines": 24,
+          "complexity": "low",
+          "category": "ui"
+        },
+        "ui\\label.tsx": {
+          "size_kb": 0.7,
+          "lines": 34,
+          "complexity": "low",
+          "category": "ui"
+        },
+        "ui\\progress.tsx": {
+          "size_kb": 0.2,
+          "lines": 8,
+          "complexity": "low",
+          "category": "ui"
+        },
+        "ui\\switch.tsx": {
+          "size_kb": 1.5,
+          "lines": 59,
+          "complexity": "low",
+          "category": "ui"
+        },
+        "ui\\textarea.tsx": {
+          "size_kb": 0.8,
+          "lines": 23,
+          "complexity": "low",
+          "category": "ui"
+        }
+      },
+      "component_categories": {
+        "addons": [
+          "addons\\AddOnChips.tsx"
+        ],
+        "common": [
+          "common\\CartSummary.tsx",
+          "common\\Counter.tsx",
+          "common\\CTAStrip.tsx",
+          "common\\DocsUpload.tsx",
+          "common\\EligibilityCard.tsx",
+          "common\\EvidenceCards.tsx",
+          "common\\FundingTypes.tsx",
+          "common\\HealthFooter.tsx",
+          "common\\Hero.tsx",
+          "common\\HeroLite.tsx",
+          "common\\HowItWorks.tsx",
+          "common\\Included.tsx",
+          "common\\InfoDrawer.tsx",
+          "common\\PlanTypes.tsx",
+          "common\\PricingDetails.tsx",
+          "common\\SEOHead.tsx",
+          "common\\TargetGroupBanner.tsx",
+          "common\\Tooltip.tsx",
+          "common\\WhoItsFor.tsx",
+          "common\\WhyAustria.tsx",
+          "common\\WhyPlan2Fund.tsx"
+        ],
+        "decision-tree": [
+          "decision-tree\\DynamicWizard.tsx"
+        ],
+        "editor": [
+          "editor\\CollaborationManager.tsx",
+          "editor\\EnhancedAIChat.tsx",
+          "editor\\EnhancedNavigation.tsx",
+          "editor\\EntryPointsManager.tsx",
+          "editor\\ExportSettings.tsx",
+          "editor\\FormHelpModal.tsx",
+          "editor\\Phase4Integration.tsx",
+          "editor\\RequirementsChecker.tsx",
+          "editor\\RichTextEditor.tsx",
+          "editor\\RouteExtrasPanel.tsx",
+          "editor\\SectionEditor.tsx",
+          "editor\\StructuredEditor.tsx",
+          "editor\\TemplatesFormattingManager.tsx"
+        ],
+        "fallback": [
+          "fallback\\ZeroMatchFallback.tsx"
+        ],
+        "gdpr": [
+          "gdpr\\ConsentBanner.tsx"
+        ],
+        "intake": [
+          "intake\\IntakeForm.tsx",
+          "intake\\OffTopicGate.tsx",
+          "intake\\OverlayQuestions.tsx"
+        ],
+        "layout": [
+          "layout\\AppShell.tsx",
+          "layout\\Breadcrumbs.tsx",
+          "layout\\Footer.tsx",
+          "layout\\Header.tsx",
+          "layout\\InPageBreadcrumbs.tsx",
+          "layout\\LanguageSwitcher.tsx",
+          "layout\\SiteBreadcrumbs.tsx"
+        ],
+        "library": [
+          "library\\ProgramDetails.tsx"
+        ],
+        "onboarding": [
+          "onboarding\\SegmentedOnboarding.tsx"
+        ],
+        "plan": [
+          "plan\\ChartWidget.tsx",
+          "plan\\FinancialsQuickSheet.tsx",
+          "plan\\PlanIntake.tsx",
+          "plan\\StyleTokens.tsx",
+          "plan\\TableOfContents.tsx",
+          "plan\\TitlePage.tsx"
+        ],
+        "pricing": [
+          "pricing\\AddonsSection.tsx",
+          "pricing\\DocumentModal.tsx",
+          "pricing\\DocumentSpecModal.tsx",
+          "pricing\\FilterTabContent.tsx",
+          "pricing\\FilterTabs.tsx",
+          "pricing\\HowItWorksSection.tsx",
+          "pricing\\ProofSection.tsx",
+          "pricing\\RequirementsDisplay.tsx",
+          "pricing\\RequirementsMatrix.tsx"
+        ],
+        "reco": [
+          "reco\\EnhancedWizard.tsx",
+          "reco\\ExplorationModal.tsx",
+          "reco\\ProgramDetailsModal.tsx",
+          "reco\\SmartRecommendationFlow.tsx",
+          "reco\\UnifiedRecommendationWizard.tsx",
+          "reco\\Wizard.tsx"
+        ],
+        "results": [
+          "results\\StructuredRequirementsDisplay.tsx"
+        ],
+        "success": [
+          "success\\SuccessHub.tsx"
+        ],
+        "templates": [
+          "templates\\ProgramTemplateEditor.tsx"
+        ],
+        "ui": [
+          "ui\\badge.tsx",
+          "ui\\button.tsx",
+          "ui\\card.tsx",
+          "ui\\dialog.tsx",
+          "ui\\input.tsx",
+          "ui\\label.tsx",
+          "ui\\progress.tsx",
+          "ui\\switch.tsx",
+          "ui\\textarea.tsx"
+        ]
+      },
+      "file_analysis": {},
+      "dependencies": {},
+      "issues": [
+        "editor\\Phase4Integration.tsx has many useState hooks",
+        "reco\\EnhancedWizard.tsx has many useState hooks"
+      ],
+      "optimizations": []
+    }
+  },
+  "dependency_mapping": {
+    "layer_dependencies": {},
+    "file_dependencies": {},
+    "circular_dependencies": [],
+    "missing_integrations": [],
+    "unused_files": [],
+    "integration_issues": []
+  },
+  "integration_analysis": {},
+  "optimization_opportunities": {
+    "performance_issues": [],
+    "memory_issues": [],
+    "bundle_size_issues": [],
+    "code_duplication": [],
+    "unused_code": [],
+    "optimization_recommendations": []
+  },
+  "unused_files": {},
+  "performance_issues": {},
+  "code_quality": {},
+  "consolidation_recommendations": {
+    "merge_opportunities": [],
+    "split_opportunities": [],
+    "remove_opportunities": [],
+    "refactor_opportunities": [],
+    "priority_actions": [
+      "Focus on optimizing large files (>100KB) first",
+      "Consider splitting webScraperService.ts and enhancedDataPipeline.ts",
+      "Review and consolidate small utility files",
+      "Implement proper code splitting for better performance",
+      "Remove unused files and dead code"
+    ]
+  },
+  "summary": {
+    "total_files_analyzed": 265,
+    "large_files_count": 5,
+    "unused_files_count": 0,
+    "circular_dependencies_count": 0,
+    "performance_issues_count": 0,
+    "optimization_recommendations_count": 0,
+    "consolidation_opportunities": {
+      "split": 0,
+      "merge": 0,
+      "remove": 0
+    }
+  }
+}

@@ -77,9 +77,14 @@ class HybridDataSource implements ProgramDataSource {
         : 'http://localhost:3000';
       
       console.log('🌐 Fetching programs from API layer...');
-      const response = await fetch(`${baseUrl}/api/programs`);
+      const response = await fetch(`${baseUrl}/api/programs`, {
+        headers: {
+          'Content-Type': 'application/json',
+          'Cache-Control': 'no-cache'
+        }
+      });
       
-      if (!response.ok) throw new Error('Failed to fetch programs from API');
+      if (!response.ok) throw new Error(`Failed to fetch programs from API: ${response.status}`);
       const data = await response.json();
       
       if (data.success && data.programs && data.programs.length > 0) {

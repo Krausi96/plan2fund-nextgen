@@ -1,45 +1,36 @@
 # Plan2Fund Documentation
 
-This directory contains all project documentation organized by category.
+## 📁 Structure
 
-## 📁 Directory Structure
+### Core Documentation
+- **`architecture/`** - System architecture and design documents
+- **`implementation/`** - Implementation guides and plans
+- **`user-flows/`** - User flow documentation and analysis
+- **`restructure/`** - Folder restructure plans and summaries
 
-### `/architecture/`
-- **ARCHITECTURE_IMPLEMENTATION.md** - Main system architecture and design
-- **SIMPLIFIED_ARCHITECTURE.md** - Simplified architecture overview
+### Analysis & Monitoring
+- **`analysis/`** - Current system analysis and reports
+- **`system-checks/`** - System health check results
 
-### `/implementation/`
-- **IMPLEMENTATION_GUIDE.md** - Step-by-step implementation instructions
+### Backup Archives
+- **`backup/`** - Archived analysis results, phase trackers, and historical data
 
-### `/phase-trackers/`
-- **GPT_IMPLEMENTATION_TRACKER.md** - Phase-by-phase implementation tracker
-- **PHASE1_COMPLETION_SUMMARY.md** - Phase 1 completion summary
+## 🚀 Quick Start
 
-### `/system-flow/`
-- **SYSTEM_FLOW_EXPLANATION.md** - Complete system flow and backend logic
+1. **System Overview**: Read `architecture/ARCHITECTURE.md`
+2. **Current Status**: Check `analysis/SYSTEM_ANALYSIS.md`
+3. **User Flows**: Review `user-flows/USER_FLOW_DOCUMENTATION.md`
+4. **Implementation**: Follow `implementation/IMPLEMENTATION_PLAN.md`
 
-### `/api/`
-- API documentation and specifications
+## 📊 Current Status
 
-### `/testing/`
-- Testing documentation and guides
+- **System Health**: 80%
+- **Documentation**: Organized and clean
+- **Analysis**: Complete and backed up
+- **Ready for**: Folder restructure execution
 
-### `/deployment/`
-- Deployment guides and configurations
+## 🔄 Maintenance
 
-## 🎯 Quick Navigation
-
-- **Start Here**: [ARCHITECTURE_IMPLEMENTATION.md](./architecture/ARCHITECTURE_IMPLEMENTATION.md)
-- **Implementation**: [IMPLEMENTATION_GUIDE.md](./implementation/IMPLEMENTATION_GUIDE.md)
-- **Progress**: [GPT_IMPLEMENTATION_TRACKER.md](./phase-trackers/GPT_IMPLEMENTATION_TRACKER.md)
-- **System Flow**: [SYSTEM_FLOW_EXPLANATION.md](./system-flow/SYSTEM_FLOW_EXPLANATION.md)
-
-## 📋 Current Status
-
-- **Phase 1**: ✅ Completed (Database & API)
-- **Phase 2**: ✅ Completed (Web Scraper)
-- **Phase 3**: 🔄 Ready to start (AI Features)
-
-## 🔧 Development
-
-All documentation is maintained alongside code changes. When implementing new features, update the relevant documentation files.
+- **Analysis Results**: Updated regularly in `analysis/`
+- **System Checks**: Run `python scripts/analysis/system_requirements_checker.py`
+- **Backup**: Important historical data preserved in `backup/`

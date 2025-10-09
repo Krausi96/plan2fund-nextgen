@@ -40,41 +40,65 @@ async function getProgramRequirements(programId: string) {
   const client = await pool.connect();
   
   try {
-    // Get decision tree questions
-    const decisionTreeQuery = `
-      SELECT id, question_text, answer_options, next_question_id, 
-             validation_rules, skip_logic, required, category
-      FROM decision_tree_questions 
-      WHERE program_id = $1 
-      ORDER BY id
+    // Get program data from main table with JSONB columns
+    const programQuery = `
+      SELECT id, name, description, program_type, funding_amount_min, funding_amount_max,
+             currency, deadline, eligibility_criteria, requirements, contact_info,
+             source_url, target_personas, tags, decision_tree_questions, editor_sections, 
+             readiness_criteria, ai_guidance
+      FROM programs 
+      WHERE id = $1 AND is_active = true
     `;
-    const decisionTreeResult = await client.query(decisionTreeQuery, [programId]);
+    const programResult = await client.query(programQuery, [programId]);
 
-    // Get editor sections
-    const editorQuery = `
-      SELECT id, section_name, prompt, hints, word_count_min, 
-             word_count_max, required, ai_guidance, template
-      FROM editor_sections 
-      WHERE program_id = $1 
-      ORDER BY id
-    `;
-    const editorResult = await client.query(editorQuery, [programId]);
+    if (programResult.rows.length === 0) {
+      throw new Error('Program not found');
+    }
 
-    // Get library details
-    const libraryQuery = `
-      SELECT id, eligibility_text, documents, funding_amount, 
-             deadlines, application_procedures, compliance_requirements, contact_info
-      FROM library_details 
-      WHERE program_id = $1 
-      ORDER BY id
-    `;
-    const libraryResult = await client.query(libraryQuery, [programId]);
+    const program = programResult.rows[0];
+
+    // Transform decision_tree_questions from JSONB to expected format
+    const decisionTree = (program.decision_tree_questions || []).map((q: any, index: number) => ({
+      id: q.id || `q_${index}`,
+      question_text: q.question,
+      answer_options: q.options || [],
+      next_question_id: q.follow_up_questions && q.follow_up_questions[0] ? q.follow_up_questions[0].replace('q_', '') : null,
+      validation_rules: q.validation_rules || [],
+      skip_logic: {},
+      required: q.required !== false,
+      category: q.ai_guidance || 'eligibility'
+    }));
+
+    // Transform editor_sections from JSONB to expected format
+    const editor = (program.editor_sections || []).map((s: any, index: number) => ({
+      id: s.id || `section_${index}`,
+      section_name: s.title,
+      prompt: s.guidance || '',
+      hints: s.hints || [],
+      word_count_min: s.word_count_min,
+      word_count_max: s.word_count_max,
+      required: s.required !== false,
+      ai_guidance: s.guidance,
+      template: s.template || ''
+    }));
+
+    // Transform library details from program data
+    const library = [{
+      id: 'library_1',
+      eligibility_text: (program.eligibility_criteria && program.eligibility_criteria.text) || program.description || '',
+      documents: (program.requirements && program.requirements.documents) || [],
+      funding_amount: `${program.funding_amount_min || 0} - ${program.funding_amount_max || 0} ${program.currency || 'EUR'}`,
+      deadlines: program.deadline ? [program.deadline] : [],
+      application_procedures: (program.requirements && program.requirements.procedures) || [],
+      compliance_requirements: (program.requirements && program.requirements.compliance) || [],
+      contact_info: program.contact_info || {}
+    }];
 
     return {
       program_id: programId,
-      decision_tree: decisionTreeResult.rows,
-      editor: editorResult.rows,
-      library: libraryResult.rows
+      decision_tree: decisionTree,
+      editor: editor,
+      library: library
     };
   } finally {
     client.release();

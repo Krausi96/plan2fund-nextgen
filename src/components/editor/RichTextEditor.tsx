@@ -1,8 +1,10 @@
-// ========= PLAN2FUND — RICH TEXT EDITOR =========
-// Rich text editor component for section content editing
+// ========= PLAN2FUND — ENHANCED RICH TEXT EDITOR =========
+// Rich text editor component with advanced formatting options
 
 import React, { useState, useRef, useEffect } from 'react';
 import { PlanSection } from '@/types/plan';
+import { Button } from '@/components/ui/button';
+import { Card } from '@/components/ui/card';
 
 interface RichTextEditorProps {
   content: string;
@@ -14,6 +16,17 @@ interface RichTextEditorProps {
   maxLength?: number;
   showWordCount?: boolean;
   showGuidance?: boolean;
+  showFormatting?: boolean;
+  onFormattingChange?: (formatting: FormattingOptions) => void;
+}
+
+interface FormattingOptions {
+  theme: 'serif' | 'sans' | 'modern' | 'classic';
+  spacing: 'compact' | 'normal' | 'relaxed';
+  fontSize: 'small' | 'medium' | 'large';
+  lineHeight: 'tight' | 'normal' | 'loose';
+  tone: 'formal' | 'neutral' | 'concise' | 'persuasive';
+  language: 'en' | 'de' | 'fr' | 'es';
 }
 
 export default function RichTextEditor({
@@ -25,11 +38,22 @@ export default function RichTextEditor({
   minLength = 50,
   maxLength = 5000,
   showWordCount = true,
-  showGuidance = true
+  showGuidance = true,
+  showFormatting = false,
+  onFormattingChange
 }: RichTextEditorProps) {
   const [isFocused, setIsFocused] = useState(false);
   const [wordCount, setWordCount] = useState(0);
   const [charCount, setCharCount] = useState(0);
+  const [showFormattingPanel, setShowFormattingPanel] = useState(false);
+  const [formatting, setFormatting] = useState<FormattingOptions>({
+    theme: 'sans',
+    spacing: 'normal',
+    fontSize: 'medium',
+    lineHeight: 'normal',
+    tone: 'neutral',
+    language: 'en'
+  });
   const textareaRef = useRef<HTMLTextAreaElement>(null);
 
   // Calculate word and character count
@@ -64,12 +88,57 @@ export default function RichTextEditor({
     return 'Good length';
   };
 
+  const handleFormattingChange = (key: keyof FormattingOptions, value: any) => {
+    const newFormatting = { ...formatting, [key]: value };
+    setFormatting(newFormatting);
+    onFormattingChange?.(newFormatting);
+  };
+
+  const getThemeClasses = () => {
+    const themeClasses = {
+      serif: 'font-serif',
+      sans: 'font-sans',
+      modern: 'font-sans font-light',
+      classic: 'font-serif font-medium'
+    };
+    return themeClasses[formatting.theme];
+  };
+
+
+  const getFontSizeClasses = () => {
+    const fontSizeClasses = {
+      small: 'text-sm',
+      medium: 'text-base',
+      large: 'text-lg'
+    };
+    return fontSizeClasses[formatting.fontSize];
+  };
+
+  const getLineHeightClasses = () => {
+    const lineHeightClasses = {
+      tight: 'leading-tight',
+      normal: 'leading-normal',
+      loose: 'leading-loose'
+    };
+    return lineHeightClasses[formatting.lineHeight];
+  };
+
   return (
     <div className="rich-text-editor space-y-3">
       {/* Editor Header */}
       <div className="flex items-center justify-between">
         <h4 className="text-lg font-semibold text-gray-900">{section.title}</h4>
         <div className="flex items-center space-x-2">
+          {showFormatting && (
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => setShowFormattingPanel(!showFormattingPanel)}
+              className="text-xs"
+            >
+              🎨 Formatting
+            </Button>
+          )}
           {showWordCount && (
             <div className="text-sm text-gray-500">
               {wordCount} words • {charCount} chars
@@ -80,6 +149,89 @@ export default function RichTextEditor({
           </div>
         </div>
       </div>
+
+      {/* Formatting Panel */}
+      {showFormatting && showFormattingPanel && (
+        <Card className="p-4 bg-gray-50">
+          <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
+            <div>
+              <label className="block text-xs font-medium text-gray-700 mb-1">Theme</label>
+              <select
+                value={formatting.theme}
+                onChange={(e) => handleFormattingChange('theme', e.target.value)}
+                className="w-full px-2 py-1 text-xs border border-gray-300 rounded focus:outline-none focus:ring-1 focus:ring-blue-500"
+              >
+                <option value="serif">Serif</option>
+                <option value="sans">Sans Serif</option>
+                <option value="modern">Modern</option>
+                <option value="classic">Classic</option>
+              </select>
+            </div>
+            <div>
+              <label className="block text-xs font-medium text-gray-700 mb-1">Font Size</label>
+              <select
+                value={formatting.fontSize}
+                onChange={(e) => handleFormattingChange('fontSize', e.target.value)}
+                className="w-full px-2 py-1 text-xs border border-gray-300 rounded focus:outline-none focus:ring-1 focus:ring-blue-500"
+              >
+                <option value="small">Small</option>
+                <option value="medium">Medium</option>
+                <option value="large">Large</option>
+              </select>
+            </div>
+            <div>
+              <label className="block text-xs font-medium text-gray-700 mb-1">Spacing</label>
+              <select
+                value={formatting.spacing}
+                onChange={(e) => handleFormattingChange('spacing', e.target.value)}
+                className="w-full px-2 py-1 text-xs border border-gray-300 rounded focus:outline-none focus:ring-1 focus:ring-blue-500"
+              >
+                <option value="compact">Compact</option>
+                <option value="normal">Normal</option>
+                <option value="relaxed">Relaxed</option>
+              </select>
+            </div>
+            <div>
+              <label className="block text-xs font-medium text-gray-700 mb-1">Line Height</label>
+              <select
+                value={formatting.lineHeight}
+                onChange={(e) => handleFormattingChange('lineHeight', e.target.value)}
+                className="w-full px-2 py-1 text-xs border border-gray-300 rounded focus:outline-none focus:ring-1 focus:ring-blue-500"
+              >
+                <option value="tight">Tight</option>
+                <option value="normal">Normal</option>
+                <option value="loose">Loose</option>
+              </select>
+            </div>
+            <div>
+              <label className="block text-xs font-medium text-gray-700 mb-1">Tone</label>
+              <select
+                value={formatting.tone}
+                onChange={(e) => handleFormattingChange('tone', e.target.value)}
+                className="w-full px-2 py-1 text-xs border border-gray-300 rounded focus:outline-none focus:ring-1 focus:ring-blue-500"
+              >
+                <option value="formal">Formal</option>
+                <option value="neutral">Neutral</option>
+                <option value="concise">Concise</option>
+                <option value="persuasive">Persuasive</option>
+              </select>
+            </div>
+            <div>
+              <label className="block text-xs font-medium text-gray-700 mb-1">Language</label>
+              <select
+                value={formatting.language}
+                onChange={(e) => handleFormattingChange('language', e.target.value)}
+                className="w-full px-2 py-1 text-xs border border-gray-300 rounded focus:outline-none focus:ring-1 focus:ring-blue-500"
+              >
+                <option value="en">🇺🇸 English</option>
+                <option value="de">🇩🇪 Deutsch</option>
+                <option value="fr">🇫🇷 Français</option>
+                <option value="es">🇪🇸 Español</option>
+              </select>
+            </div>
+          </div>
+        </Card>
+      )}
 
       {/* Guidance */}
       {showGuidance && guidance && (
@@ -116,7 +268,7 @@ export default function RichTextEditor({
             charCount < minLength ? 'border-red-300 bg-red-50' : ''
           } ${
             charCount > maxLength * 0.9 ? 'border-yellow-300 bg-yellow-50' : ''
-          }`}
+          } ${getThemeClasses()} ${getFontSizeClasses()} ${getLineHeightClasses()}`}
           style={{ minHeight: '200px' }}
         />
         

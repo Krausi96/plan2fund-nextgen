@@ -1,0 +1,262 @@
+{
+  "scraper_ok": false,
+  "editor_ok": true,
+  "flow_ok": true,
+  "consolidation_ok": true,
+  "cta_ok": true,
+  "total_issues": 1,
+  "issues": [
+    "Recommendation system not connected to scraper data"
+  ],
+  "fixes_needed": [
+    "Connect recommendation system to scraper APIs"
+  ],
+  "consolidation_opportunities": [
+    {
+      "file": "src\\\\components\\\\addons\\\\AddOnChips.tsx",
+      "size": 9584,
+      "group": "other",
+      "action": "review"
+    },
+    {
+      "file": "src\\\\components\\\\common\\\\Hero.tsx",
+      "size": 13487,
+      "group": "common",
+      "action": "review"
+    },
+    {
+      "file": "src\\\\components\\\\common\\\\PlanTypes.tsx",
+      "size": 6130,
+      "group": "common",
+      "action": "review"
+    },
+    {
+      "file": "src\\\\components\\\\common\\\\PricingDetails.tsx",
+      "size": 17120,
+      "group": "common",
+      "action": "review"
+    },
+    {
+      "file": "src\\\\components\\\\common\\\\TargetGroupBanner.tsx",
+      "size": 6154,
+      "group": "common",
+      "action": "review"
+    },
+    {
+      "file": "src\\\\components\\\\common\\\\WhoItsFor.tsx",
+      "size": 6645,
+      "group": "common",
+      "action": "review"
+    },
+    {
+      "file": "src\\\\components\\\\decision-tree\\\\DynamicWizard.tsx",
+      "size": 15391,
+      "group": "other",
+      "action": "review"
+    },
+    {
+      "file": "src\\\\components\\\\editor\\\\CollaborationManager.tsx",
+      "size": 15275,
+      "group": "editor",
+      "action": "review"
+    },
+    {
+      "file": "src\\\\components\\\\editor\\\\EnhancedAIChat.tsx",
+      "size": 21027,
+      "group": "editor",
+      "action": "split"
+    },
+    {
+      "file": "src\\\\components\\\\editor\\\\EnhancedNavigation.tsx",
+      "size": 9463,
+      "group": "editor",
+      "action": "review"
+    },
+    {
+      "file": "src\\\\components\\\\editor\\\\EntryPointsManager.tsx",
+      "size": 10947,
+      "group": "editor",
+      "action": "review"
+    },
+    {
+      "file": "src\\\\components\\\\editor\\\\ExportSettings.tsx",
+      "size": 11600,
+      "group": "editor",
+      "action": "review"
+    },
+    {
+      "file": "src\\\\components\\\\editor\\\\Phase4Integration.tsx",
+      "size": 16301,
+      "group": "editor",
+      "action": "review"
+    },
+    {
+      "file": "src\\\\components\\\\editor\\\\RequirementsChecker.tsx",
+      "size": 10964,
+      "group": "editor",
+      "action": "review"
+    },
+    {
+      "file": "src\\\\components\\\\editor\\\\RichTextEditor.tsx",
+      "size": 11571,
+      "group": "editor",
+      "action": "review"
+    },
+    {
+      "file": "src\\\\components\\\\editor\\\\SectionEditor.tsx",
+      "size": 12533,
+      "group": "editor",
+      "action": "review"
+    },
+    {
+      "file": "src\\\\components\\\\editor\\\\StructuredEditor.tsx",
+      "size": 10515,
+      "group": "editor",
+      "action": "review"
+    },
+    {
+      "file": "src\\\\components\\\\editor\\\\TemplatesFormattingManager.tsx",
+      "size": 16829,
+      "group": "editor",
+      "action": "review"
+    },
+    {
+      "file": "src\\\\components\\\\fallback\\\\ZeroMatchFallback.tsx",
+      "size": 9521,
+      "group": "other",
+      "action": "review"
+    },
+    {
+      "file": "src\\\\components\\\\intake\\\\IntakeForm.tsx",
+      "size": 11234,
+      "group": "other",
+      "action": "review"
+    },
+    {
+      "file": "src\\\\components\\\\intake\\\\OverlayQuestions.tsx",
+      "size": 9531,
+      "group": "other",
+      "action": "review"
+    },
+    {
+      "file": "src\\\\components\\\\layout\\\\Header.tsx",
+      "size": 5541,
+      "group": "other",
+      "action": "review"
+    },
+    {
+      "file": "src\\\\components\\\\library\\\\ProgramDetails.tsx",
+      "size": 8092,
+      "group": "other",
+      "action": "review"
+    },
+    {
+      "file": "src\\\\components\\\\onboarding\\\\SegmentedOnboarding.tsx",
+      "size": 11521,
+      "group": "other",
+      "action": "review"
+    },
+    {
+      "file": "src\\\\components\\\\plan\\\\ChartWidget.tsx",
+      "size": 8940,
+      "group": "other",
+      "action": "review"
+    },
+    {
+      "file": "src\\\\components\\\\plan\\\\FinancialsQuickSheet.tsx",
+      "size": 16172,
+      "group": "other",
+      "action": "review"
+    },
+    {
+      "file": "src\\\\components\\\\plan\\\\StyleTokens.tsx",
+      "size": 8667,
+      "group": "other",
+      "action": "review"
+    },
+    {
+      "file": "src\\\\components\\\\plan\\\\TitlePage.tsx",
+      "size": 5427,
+      "group": "other",
+      "action": "review"
+    },
+    {
+      "file": "src\\\\components\\\\pricing\\\\AddonsSection.tsx",
+      "size": 6639,
+      "group": "pricing",
+      "action": "review"
+    },
+    {
+      "file": "src\\\\components\\\\pricing\\\\DocumentSpecModal.tsx",
+      "size": 7034,
+      "group": "pricing",
+      "action": "review"
+    },
+    {
+      "file": "src\\\\components\\\\pricing\\\\FilterTabContent.tsx",
+      "size": 6659,
+      "group": "pricing",
+      "action": "review"
+    },
+    {
+      "file": "src\\\\components\\\\pricing\\\\ProofSection.tsx",
+      "size": 5334,
+      "group": "pricing",
+      "action": "review"
+    },
+    {
+      "file": "src\\\\components\\\\pricing\\\\RequirementsDisplay.tsx",
+      "size": 7645,
+      "group": "pricing",
+      "action": "review"
+    },
+    {
+      "file": "src\\\\components\\\\pricing\\\\RequirementsMatrix.tsx",
+      "size": 7775,
+      "group": "pricing",
+      "action": "review"
+    },
+    {
+      "file": "src\\\\components\\\\reco\\\\EnhancedWizard.tsx",
+      "size": 12032,
+      "group": "recommendation",
+      "action": "review"
+    },
+    {
+      "file": "src\\\\components\\\\reco\\\\SmartRecommendationFlow.tsx",
+      "size": 8810,
+      "group": "recommendation",
+      "action": "review"
+    },
+    {
+      "file": "src\\\\components\\\\reco\\\\UnifiedRecommendationWizard.tsx",
+      "size": 9751,
+      "group": "recommendation",
+      "action": "review"
+    },
+    {
+      "file": "src\\\\components\\\\reco\\\\Wizard.tsx",
+      "size": 7866,
+      "group": "recommendation",
+      "action": "review"
+    },
+    {
+      "file": "src\\\\components\\\\results\\\\StructuredRequirementsDisplay.tsx",
+      "size": 10203,
+      "group": "other",
+      "action": "review"
+    },
+    {
+      "file": "src\\\\components\\\\success\\\\SuccessHub.tsx",
+      "size": 16774,
+      "group": "other",
+      "action": "review"
+    },
+    {
+      "file": "src\\\\components\\\\templates\\\\ProgramTemplateEditor.tsx",
+      "size": 13573,
+      "group": "other",
+      "action": "review"
+    }
+  ]
+}

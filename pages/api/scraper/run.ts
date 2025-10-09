@@ -324,8 +324,8 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
                   currency, deadline, eligibility_criteria, requirements, contact_info,
                   source_url, scraped_at, confidence_score, is_active,
                   target_personas, tags, decision_tree_questions, editor_sections,
-                  readiness_criteria, ai_guidance
-                ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19, $20, $21)
+                  readiness_criteria, ai_guidance, categorized_requirements
+                ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19, $20, $21, $22)
                 ON CONFLICT (id) DO UPDATE SET
                   name = EXCLUDED.name,
                   description = EXCLUDED.description,
@@ -346,7 +346,8 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
                   decision_tree_questions = EXCLUDED.decision_tree_questions,
                   editor_sections = EXCLUDED.editor_sections,
                   readiness_criteria = EXCLUDED.readiness_criteria,
-                  ai_guidance = EXCLUDED.ai_guidance
+                  ai_guidance = EXCLUDED.ai_guidance,
+                  categorized_requirements = EXCLUDED.categorized_requirements
               `, [
                 program.id, program.name, program.description, program.program_type,
                 program.funding_amount_min, program.funding_amount_max, program.currency,
@@ -356,7 +357,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
                 program.is_active, JSON.stringify(program.target_personas),
                 JSON.stringify(program.tags), JSON.stringify(program.decision_tree_questions),
                 JSON.stringify(program.editor_sections), JSON.stringify(program.readiness_criteria),
-                JSON.stringify(program.ai_guidance)
+                JSON.stringify(program.ai_guidance), JSON.stringify(program.categorized_requirements)
               ]);
             }
             
@@ -509,7 +510,8 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
           decision_tree_questions = EXCLUDED.decision_tree_questions,
           editor_sections = EXCLUDED.editor_sections,
           readiness_criteria = EXCLUDED.readiness_criteria,
-          ai_guidance = EXCLUDED.ai_guidance
+          ai_guidance = EXCLUDED.ai_guidance,
+          categorized_requirements = EXCLUDED.categorized_requirements
         RETURNING id
       `, [
         sampleProgram.id,
@@ -630,8 +632,8 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
                   currency, deadline, eligibility_criteria, requirements, contact_info,
                   source_url, scraped_at, confidence_score, is_active,
                   target_personas, tags, decision_tree_questions, editor_sections,
-                  readiness_criteria, ai_guidance
-                ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19, $20, $21)
+                  readiness_criteria, ai_guidance, categorized_requirements
+                ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19, $20, $21, $22)
                 ON CONFLICT (id) DO UPDATE SET
                   name = EXCLUDED.name,
                   description = EXCLUDED.description,
@@ -652,7 +654,8 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
                   decision_tree_questions = EXCLUDED.decision_tree_questions,
                   editor_sections = EXCLUDED.editor_sections,
                   readiness_criteria = EXCLUDED.readiness_criteria,
-                  ai_guidance = EXCLUDED.ai_guidance
+                  ai_guidance = EXCLUDED.ai_guidance,
+                  categorized_requirements = EXCLUDED.categorized_requirements
               `, [
                 program.id, program.name, program.description, program.program_type,
                 program.funding_amount_min, program.funding_amount_max, program.currency,
@@ -662,7 +665,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
                 program.is_active, JSON.stringify(program.target_personas),
                 JSON.stringify(program.tags), JSON.stringify(program.decision_tree_questions),
                 JSON.stringify(program.editor_sections), JSON.stringify(program.readiness_criteria),
-                JSON.stringify(program.ai_guidance)
+                JSON.stringify(program.ai_guidance), JSON.stringify(program.categorized_requirements)
               ]);
             }
             

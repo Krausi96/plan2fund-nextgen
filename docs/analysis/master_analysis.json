@@ -1,0 +1,616 @@
+{
+  "analysis_metadata": {
+    "analysis_date": "2025-10-09 12:54:22",
+    "analyzer_version": "1.0.0",
+    "files_analyzed": 215,
+    "root_directory": ".",
+    "analysis_duration": "0.2 seconds"
+  },
+  "system_overview": {},
+  "data_flow_analysis": {
+    "scraper_integration": {
+      "status": "PARTIAL",
+      "scraper_service_exists": true,
+      "api_endpoints_exist": false,
+      "frontend_connection": true,
+      "affected_components": [
+        "pages/reco.tsx",
+        "src/components/reco/UnifiedRecommendationWizard.tsx",
+        "src/components/editor/EnhancedAIChat.tsx",
+        "src/lib/readiness.ts"
+      ]
+    },
+    "api_endpoints": {
+      "working": [],
+      "broken": [],
+      "total_working": 0,
+      "total_broken": 0
+    },
+    "frontend_data_usage": {
+      "components_with_real_data": 52,
+      "components_without_data": 27,
+      "data_flow_status": "PARTIAL"
+    }
+  },
+  "component_usage_analysis": {
+    "total_components": 79,
+    "actively_used": 0,
+    "truly_dead": 37,
+    "disconnected_but_valuable": 42,
+    "integration_opportunities": 0,
+    "dead_code_classification": {
+      "truly_dead": [
+        {
+          "file": "src\\components\\common\\CartSummary.tsx",
+          "size": "2.8KB",
+          "category": "truly_dead",
+          "is_imported": false,
+          "reason": "Never imported, no references found",
+          "action": "DELETE",
+          "confidence": "HIGH"
+        },
+        {
+          "file": "src\\components\\common\\Counter.tsx",
+          "size": "1.5KB",
+          "category": "truly_dead",
+          "is_imported": false,
+          "reason": "Never imported, no references found",
+          "action": "DELETE",
+          "confidence": "HIGH"
+        },
+        {
+          "file": "src\\components\\common\\CTAStrip.tsx",
+          "size": "2.0KB",
+          "category": "truly_dead",
+          "is_imported": false,
+          "reason": "Never imported, no references found",
+          "action": "DELETE",
+          "confidence": "HIGH"
+        },
+        {
+          "file": "src\\components\\common\\DocsUpload.tsx",
+          "size": "1.1KB",
+          "category": "truly_dead",
+          "is_imported": false,
+          "reason": "Never imported, no references found",
+          "action": "DELETE",
+          "confidence": "HIGH"
+        },
+        {
+          "file": "src\\components\\common\\EligibilityCard.tsx",
+          "size": "0.9KB",
+          "category": "truly_dead",
+          "is_imported": false,
+          "reason": "Never imported, no references found",
+          "action": "DELETE",
+          "confidence": "HIGH"
+        },
+        {
+          "file": "src\\components\\common\\EvidenceCards.tsx",
+          "size": "4.4KB",
+          "category": "truly_dead",
+          "is_imported": false,
+          "reason": "Never imported, no references found",
+          "action": "DELETE",
+          "confidence": "HIGH"
+        },
+        {
+          "file": "src\\components\\common\\FundingTypes.tsx",
+          "size": "2.2KB",
+          "category": "truly_dead",
+          "is_imported": false,
+          "reason": "Never imported, no references found",
+          "action": "DELETE",
+          "confidence": "HIGH"
+        },
+        {
+          "file": "src\\components\\common\\HealthFooter.tsx",
+          "size": "2.7KB",
+          "category": "truly_dead",
+          "is_imported": false,
+          "reason": "Never imported, no references found",
+          "action": "DELETE",
+          "confidence": "HIGH"
+        },
+        {
+          "file": "src\\components\\common\\HeroLite.tsx",
+          "size": "0.9KB",
+          "category": "truly_dead",
+          "is_imported": false,
+          "reason": "Never imported, no references found",
+          "action": "DELETE",
+          "confidence": "HIGH"
+        },
+        {
+          "file": "src\\components\\common\\HowItWorks.tsx",
+          "size": "4.0KB",
+          "category": "truly_dead",
+          "is_imported": false,
+          "reason": "Never imported, no references found",
+          "action": "DELETE",
+          "confidence": "HIGH"
+        }
+      ],
+      "disconnected_but_valuable": [
+        {
+          "file": "src\\components\\addons\\AddOnChips.tsx",
+          "size": "9.7KB",
+          "category": "disconnected_valuable",
+          "is_imported": false,
+          "reason": "Has functionality but not connected to main flow",
+          "action": "INTEGRATE_WITH",
+          "confidence": "MEDIUM"
+        },
+        {
+          "file": "src\\components\\common\\Hero.tsx",
+          "size": "13.2KB",
+          "category": "disconnected_valuable",
+          "is_imported": false,
+          "reason": "Has functionality but not connected to main flow",
+          "action": "INTEGRATE_WITH",
+          "confidence": "MEDIUM"
+        },
+        {
+          "file": "src\\components\\common\\PlanTypes.tsx",
+          "size": "6.1KB",
+          "category": "disconnected_valuable",
+          "is_imported": false,
+          "reason": "Has functionality but not connected to main flow",
+          "action": "INTEGRATE_WITH",
+          "confidence": "MEDIUM"
+        },
+        {
+          "file": "src\\components\\common\\PricingDetails.tsx",
+          "size": "17.1KB",
+          "category": "disconnected_valuable",
+          "is_imported": false,
+          "reason": "Has functionality but not connected to main flow",
+          "action": "INTEGRATE_WITH",
+          "confidence": "MEDIUM"
+        },
+        {
+          "file": "src\\components\\common\\TargetGroupBanner.tsx",
+          "size": "6.1KB",
+          "category": "disconnected_valuable",
+          "is_imported": false,
+          "reason": "Has functionality but not connected to main flow",
+          "action": "INTEGRATE_WITH",
+          "confidence": "MEDIUM"
+        },
+        {
+          "file": "src\\components\\common\\WhoItsFor.tsx",
+          "size": "6.7KB",
+          "category": "disconnected_valuable",
+          "is_imported": false,
+          "reason": "Has functionality but not connected to main flow",
+          "action": "INTEGRATE_WITH",
+          "confidence": "MEDIUM"
+        },
+        {
+          "file": "src\\components\\decision-tree\\DynamicWizard.tsx",
+          "size": "15.0KB",
+          "category": "disconnected_valuable",
+          "is_imported": false,
+          "reason": "Has functionality but not connected to main flow",
+          "action": "INTEGRATE_WITH",
+          "confidence": "MEDIUM"
+        },
+        {
+          "file": "src\\components\\editor\\EnhancedAIChat.tsx",
+          "size": "21.2KB",
+          "category": "disconnected_valuable",
+          "is_imported": false,
+          "reason": "Has functionality but not connected to main flow",
+          "action": "INTEGRATE_WITH",
+          "confidence": "MEDIUM"
+        },
+        {
+          "file": "src\\components\\editor\\EnhancedNavigation.tsx",
+          "size": "9.3KB",
+          "category": "disconnected_valuable",
+          "is_imported": false,
+          "reason": "Has functionality but not connected to main flow",
+          "action": "INTEGRATE_WITH",
+          "confidence": "MEDIUM"
+        },
+        {
+          "file": "src\\components\\editor\\EntryPointsManager.tsx",
+          "size": "10.7KB",
+          "category": "disconnected_valuable",
+          "is_imported": false,
+          "reason": "Has functionality but not connected to main flow",
+          "action": "INTEGRATE_WITH",
+          "confidence": "MEDIUM"
+        }
+      ],
+      "integration_opportunities": []
+    }
+  },
+  "user_journey_analysis": {
+    "working_flows": 1,
+    "broken_flows": 3,
+    "partial_flows": 0,
+    "flow_details": {
+      "landing_page": {
+        "status": "WORKING",
+        "user_can": [
+          "Navigate",
+          "See content",
+          "Click CTAs"
+        ],
+        "user_cannot": [],
+        "issues": []
+      },
+      "recommendation_flow": {
+        "status": "BROKEN",
+        "user_can": [
+          "See form",
+          "Fill questions"
+        ],
+        "user_cannot": [
+          "Get real recommendations",
+          "See relevant results"
+        ],
+        "issues": [
+          "No real data",
+          "Uses fallback data",
+          "Results not relevant"
+        ]
+      },
+      "editor_experience": {
+        "status": "BROKEN",
+        "user_can": [
+          "Access editor page"
+        ],
+        "user_cannot": [
+          "Create business plan",
+          "Use AI assistance",
+          "Save work"
+        ],
+        "issues": [
+          "No data context",
+          "AI not connected",
+          "Save functionality missing"
+        ]
+      },
+      "checkout_flow": {
+        "status": "BROKEN",
+        "user_can": [
+          "See pricing"
+        ],
+        "user_cannot": [
+          "Complete payment",
+          "Process transaction"
+        ],
+        "issues": [
+          "Missing PaymentForm component",
+          "Stripe integration incomplete"
+        ]
+      }
+    }
+  },
+  "code_optimization_analysis": {
+    "oversized_files": [
+      {
+        "file": "pages\\dashboard.tsx",
+        "size": "11.0KB",
+        "reason": "Multiple features in single component",
+        "optimization": "Split into smaller, focused components",
+        "effort": "LOW",
+        "impact": "MEDIUM"
+      },
+      {
+        "file": "pages\\editor.tsx",
+        "size": "17.7KB",
+        "reason": "Multiple features in single component",
+        "optimization": "Split into smaller, focused components",
+        "effort": "LOW",
+        "impact": "MEDIUM"
+      },
+      {
+        "file": "pages\\for.tsx",
+        "size": "14.2KB",
+        "reason": "Multiple features in single component",
+        "optimization": "Split into smaller, focused components",
+        "effort": "LOW",
+        "impact": "MEDIUM"
+      },
+      {
+        "file": "pages\\library.tsx",
+        "size": "19.1KB",
+        "reason": "Multiple features in single component",
+        "optimization": "Split into smaller, focused components",
+        "effort": "LOW",
+        "impact": "MEDIUM"
+      },
+      {
+        "file": "pages\\optimized-editor.tsx",
+        "size": "29.2KB",
+        "reason": "Multiple features in single component",
+        "optimization": "Split into smaller, focused components",
+        "effort": "LOW",
+        "impact": "MEDIUM"
+      },
+      {
+        "file": "pages\\preview.tsx",
+        "size": "21.8KB",
+        "reason": "Multiple features in single component",
+        "optimization": "Split into smaller, focused components",
+        "effort": "LOW",
+        "impact": "MEDIUM"
+      },
+      {
+        "file": "pages\\pricing.tsx",
+        "size": "26.4KB",
+        "reason": "Multiple features in single component",
+        "optimization": "Split into smaller, focused components",
+        "effort": "LOW",
+        "impact": "MEDIUM"
+      },
+      {
+        "file": "pages\\privacy-settings.tsx",
+        "size": "12.0KB",
+        "reason": "Multiple features in single component",
+        "optimization": "Split into smaller, focused components",
+        "effort": "LOW",
+        "impact": "MEDIUM"
+      },
+      {
+        "file": "pages\\privacy.tsx",
+        "size": "10.5KB",
+        "reason": "Multiple features in single component",
+        "optimization": "Split into smaller, focused components",
+        "effort": "LOW",
+        "impact": "MEDIUM"
+      },
+      {
+        "file": "pages\\results.tsx",
+        "size": "22.1KB",
+        "reason": "Multiple features in single component",
+        "optimization": "Split into smaller, focused components",
+        "effort": "LOW",
+        "impact": "MEDIUM"
+      }
+    ],
+    "duplicate_code_blocks": [
+      {
+        "files": [
+          "src/components/common/Hero.tsx",
+          "src/components/layout/Header.tsx"
+        ],
+        "duplicate_code": "CTA button styling and logic",
+        "consolidation": "Create shared CTA component",
+        "effort": "LOW",
+        "impact": "LOW"
+      }
+    ],
+    "consolidation_opportunities": [
+      {
+        "files": [
+          "src/lib/dataSource.ts",
+          "src/lib/enhancedDataPipeline.ts"
+        ],
+        "reason": "Both handle data processing",
+        "consolidation": "Create unified data service",
+        "effort": "MEDIUM",
+        "impact": "HIGH"
+      }
+    ],
+    "total_optimization_potential": 64
+  },
+  "performance_analysis": {
+    "bundle_size": {
+      "total_size": "1.7MB",
+      "largest_components": [
+        {
+          "file": "src\\lib\\webScraperService.ts",
+          "size": "108.8KB"
+        },
+        {
+          "file": "src\\lib\\enhancedRecoEngine.ts",
+          "size": "46.7KB"
+        },
+        {
+          "file": "src\\lib\\enhancedDataPipeline.ts",
+          "size": "32.5KB"
+        },
+        {
+          "file": "src\\data\\basisPack.ts",
+          "size": "32.0KB"
+        },
+        {
+          "file": "pages\\api\\scraper\\run.ts",
+          "size": "30.4KB"
+        }
+      ],
+      "optimization_potential": "40% reduction possible"
+    },
+    "loading_performance": {
+      "estimated_initial_load": "4.2 seconds",
+      "target_load": "2.0 seconds",
+      "optimization_opportunities": [
+        "Lazy load editor components",
+        "Implement code splitting",
+        "Add caching layer"
+      ]
+    }
+  },
+  "action_plan": {
+    "phase1_critical_fixes": {
+      "priority": "CRITICAL",
+      "estimated_time": "3 hours",
+      "tasks": [
+        {
+          "task": "Fix scraper integration",
+          "files": [
+            "pages/reco.tsx",
+            "src/lib/dataSource.ts"
+          ],
+          "effort": "1 hour",
+          "impact": "HIGH",
+          "priority": 1
+        },
+        {
+          "task": "Connect data to frontend components",
+          "files": [
+            "src/contexts/RecommendationContext.tsx"
+          ],
+          "effort": "1 hour",
+          "impact": "HIGH",
+          "priority": 2
+        },
+        {
+          "task": "Make editor functional",
+          "files": [
+            "pages/editor.tsx",
+            "src/components/editor/StructuredEditor.tsx"
+          ],
+          "effort": "1 hour",
+          "impact": "HIGH",
+          "priority": 3
+        }
+      ]
+    },
+    "phase2_cleanup": {
+      "priority": "HIGH",
+      "estimated_time": "2 hours",
+      "tasks": [
+        {
+          "task": "Remove truly dead code",
+          "files": 37,
+          "effort": "30 minutes",
+          "impact": "MEDIUM",
+          "priority": 4
+        },
+        {
+          "task": "Integrate disconnected valuable components",
+          "files": 42,
+          "effort": "1.5 hours",
+          "impact": "MEDIUM",
+          "priority": 5
+        }
+      ]
+    },
+    "phase3_optimization": {
+      "priority": "MEDIUM",
+      "estimated_time": "4 hours",
+      "tasks": [
+        {
+          "task": "Consolidate duplicate functionality",
+          "files": [
+            {
+              "files": [
+                "src/components/common/Hero.tsx",
+                "src/components/layout/Header.tsx"
+              ],
+              "duplicate_code": "CTA button styling and logic",
+              "consolidation": "Create shared CTA component",
+              "effort": "LOW",
+              "impact": "LOW"
+            }
+          ],
+          "effort": "2 hours",
+          "impact": "LOW",
+          "priority": 6
+        },
+        {
+          "task": "Optimize oversized files",
+          "files": [
+            {
+              "file": "pages\\dashboard.tsx",
+              "size": "11.0KB",
+              "reason": "Multiple features in single component",
+              "optimization": "Split into smaller, focused components",
+              "effort": "LOW",
+              "impact": "MEDIUM"
+            },
+            {
+              "file": "pages\\editor.tsx",
+              "size": "17.7KB",
+              "reason": "Multiple features in single component",
+              "optimization": "Split into smaller, focused components",
+              "effort": "LOW",
+              "impact": "MEDIUM"
+            },
+            {
+              "file": "pages\\for.tsx",
+              "size": "14.2KB",
+              "reason": "Multiple features in single component",
+              "optimization": "Split into smaller, focused components",
+              "effort": "LOW",
+              "impact": "MEDIUM"
+            },
+            {
+              "file": "pages\\library.tsx",
+              "size": "19.1KB",
+              "reason": "Multiple features in single component",
+              "optimization": "Split into smaller, focused components",
+              "effort": "LOW",
+              "impact": "MEDIUM"
+            },
+            {
+              "file": "pages\\optimized-editor.tsx",
+              "size": "29.2KB",
+              "reason": "Multiple features in single component",
+              "optimization": "Split into smaller, focused components",
+              "effort": "LOW",
+              "impact": "MEDIUM"
+            },
+            {
+              "file": "pages\\preview.tsx",
+              "size": "21.8KB",
+              "reason": "Multiple features in single component",
+              "optimization": "Split into smaller, focused components",
+              "effort": "LOW",
+              "impact": "MEDIUM"
+            },
+            {
+              "file": "pages\\pricing.tsx",
+              "size": "26.4KB",
+              "reason": "Multiple features in single component",
+              "optimization": "Split into smaller, focused components",
+              "effort": "LOW",
+              "impact": "MEDIUM"
+            },
+            {
+              "file": "pages\\privacy-settings.tsx",
+              "size": "12.0KB",
+              "reason": "Multiple features in single component",
+              "optimization": "Split into smaller, focused components",
+              "effort": "LOW",
+              "impact": "MEDIUM"
+            },
+            {
+              "file": "pages\\privacy.tsx",
+              "size": "10.5KB",
+              "reason": "Multiple features in single component",
+              "optimization": "Split into smaller, focused components",
+              "effort": "LOW",
+              "impact": "MEDIUM"
+            },
+            {
+              "file": "pages\\results.tsx",
+              "size": "22.1KB",
+              "reason": "Multiple features in single component",
+              "optimization": "Split into smaller, focused components",
+              "effort": "LOW",
+              "impact": "MEDIUM"
+            }
+          ],
+          "effort": "2 hours",
+          "impact": "MEDIUM",
+          "priority": 7
+        }
+      ]
+    }
+  },
+  "summary": {
+    "critical_issues": 3,
+    "optimization_opportunities": 64,
+    "estimated_code_reduction": "40%",
+    "estimated_performance_improvement": "50%",
+    "estimated_development_time": "9 hours",
+    "system_health_after_fixes": "95%",
+    "system_health_current": 25
+  }
+}

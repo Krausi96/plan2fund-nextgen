@@ -1,0 +1,685 @@
+{
+  "analysis_metadata": {
+    "analysis_date": "2025-10-09 13:05:14",
+    "analyzer_version": "2.0.0",
+    "files_analyzed": 215,
+    "root_directory": ".",
+    "improvements": [
+      "Fixed component usage detection",
+      "Added dynamic import detection",
+      "Added JSX usage detection",
+      "Improved data flow analysis"
+    ],
+    "analysis_duration": "1.2 seconds"
+  },
+  "system_overview": {},
+  "data_flow_analysis": {
+    "scraper_integration": {
+      "status": "CONNECTED",
+      "scraper_service_exists": true,
+      "data_source_connected": true,
+      "api_endpoints_exist": false,
+      "recommendation_context_exists": true,
+      "data_flow_path": [
+        "src/lib/webScraperService.ts \u2192 /api/scraper/run",
+        "/api/programs \u2192 src/lib/dataSource.ts",
+        "src/lib/dataSource.ts \u2192 src/contexts/RecommendationContext.tsx",
+        "src/contexts/RecommendationContext.tsx \u2192 pages/reco.tsx",
+        "pages/reco.tsx \u2192 pages/results.tsx",
+        "pages/results.tsx \u2192 pages/editor.tsx"
+      ]
+    },
+    "api_endpoints": {
+      "working": [],
+      "broken": [],
+      "total_working": 0,
+      "total_broken": 0
+    },
+    "data_sources": {
+      "scraper_data": true,
+      "api_data": false,
+      "fallback_data": true,
+      "data_source_integration": true
+    }
+  },
+  "component_usage_analysis": {
+    "total_components": 79,
+    "actively_used": 38,
+    "truly_dead": 21,
+    "disconnected_but_valuable": 18,
+    "integration_opportunities": 2,
+    "detection_methods": {
+      "static_imports": 215,
+      "dynamic_imports": 215,
+      "jsx_usage": 215
+    },
+    "dead_code_classification": {
+      "truly_dead": [
+        {
+          "file": "src\\components\\common\\CartSummary.tsx",
+          "size": "2.8KB",
+          "category": "truly_dead",
+          "is_statically_imported": false,
+          "is_dynamically_imported": false,
+          "is_used_in_jsx": false,
+          "is_exported": true,
+          "is_used": false,
+          "reason": "Not imported, not used in JSX, not exported",
+          "action": "DELETE",
+          "confidence": "LOW"
+        },
+        {
+          "file": "src\\components\\common\\Counter.tsx",
+          "size": "1.5KB",
+          "category": "truly_dead",
+          "is_statically_imported": false,
+          "is_dynamically_imported": false,
+          "is_used_in_jsx": false,
+          "is_exported": false,
+          "is_used": false,
+          "reason": "Not imported, not used in JSX, not exported",
+          "action": "DELETE",
+          "confidence": "HIGH"
+        },
+        {
+          "file": "src\\components\\common\\DocsUpload.tsx",
+          "size": "1.1KB",
+          "category": "truly_dead",
+          "is_statically_imported": false,
+          "is_dynamically_imported": false,
+          "is_used_in_jsx": false,
+          "is_exported": true,
+          "is_used": false,
+          "reason": "Not imported, not used in JSX, not exported",
+          "action": "DELETE",
+          "confidence": "LOW"
+        },
+        {
+          "file": "src\\components\\common\\EligibilityCard.tsx",
+          "size": "0.9KB",
+          "category": "truly_dead",
+          "is_statically_imported": false,
+          "is_dynamically_imported": false,
+          "is_used_in_jsx": false,
+          "is_exported": true,
+          "is_used": false,
+          "reason": "Not imported, not used in JSX, not exported",
+          "action": "DELETE",
+          "confidence": "LOW"
+        },
+        {
+          "file": "src\\components\\common\\EvidenceCards.tsx",
+          "size": "4.4KB",
+          "category": "truly_dead",
+          "is_statically_imported": false,
+          "is_dynamically_imported": false,
+          "is_used_in_jsx": false,
+          "is_exported": false,
+          "is_used": false,
+          "reason": "Not imported, not used in JSX, not exported",
+          "action": "DELETE",
+          "confidence": "HIGH"
+        },
+        {
+          "file": "src\\components\\common\\FundingTypes.tsx",
+          "size": "2.2KB",
+          "category": "truly_dead",
+          "is_statically_imported": false,
+          "is_dynamically_imported": false,
+          "is_used_in_jsx": false,
+          "is_exported": false,
+          "is_used": false,
+          "reason": "Not imported, not used in JSX, not exported",
+          "action": "DELETE",
+          "confidence": "HIGH"
+        },
+        {
+          "file": "src\\components\\common\\Included.tsx",
+          "size": "1.0KB",
+          "category": "truly_dead",
+          "is_statically_imported": false,
+          "is_dynamically_imported": false,
+          "is_used_in_jsx": false,
+          "is_exported": false,
+          "is_used": false,
+          "reason": "Not imported, not used in JSX, not exported",
+          "action": "DELETE",
+          "confidence": "HIGH"
+        },
+        {
+          "file": "src\\components\\gdpr\\ConsentBanner.tsx",
+          "size": "4.6KB",
+          "category": "truly_dead",
+          "is_statically_imported": false,
+          "is_dynamically_imported": false,
+          "is_used_in_jsx": false,
+          "is_exported": true,
+          "is_used": false,
+          "reason": "Not imported, not used in JSX, not exported",
+          "action": "DELETE",
+          "confidence": "LOW"
+        },
+        {
+          "file": "src\\components\\plan\\PlanIntake.tsx",
+          "size": "4.8KB",
+          "category": "truly_dead",
+          "is_statically_imported": false,
+          "is_dynamically_imported": false,
+          "is_used_in_jsx": false,
+          "is_exported": true,
+          "is_used": false,
+          "reason": "Not imported, not used in JSX, not exported",
+          "action": "DELETE",
+          "confidence": "LOW"
+        },
+        {
+          "file": "src\\components\\plan\\TableOfContents.tsx",
+          "size": "2.6KB",
+          "category": "truly_dead",
+          "is_statically_imported": false,
+          "is_dynamically_imported": false,
+          "is_used_in_jsx": false,
+          "is_exported": true,
+          "is_used": false,
+          "reason": "Not imported, not used in JSX, not exported",
+          "action": "DELETE",
+          "confidence": "LOW"
+        },
+        {
+          "file": "src\\components\\pricing\\RequirementsMatrix.tsx",
+          "size": "7.8KB",
+          "category": "truly_dead",
+          "is_statically_imported": false,
+          "is_dynamically_imported": false,
+          "is_used_in_jsx": false,
+          "is_exported": false,
+          "is_used": false,
+          "reason": "Not imported, not used in JSX, not exported",
+          "action": "DELETE",
+          "confidence": "HIGH"
+        },
+        {
+          "file": "src\\components\\reco\\ExplorationModal.tsx",
+          "size": "4.5KB",
+          "category": "truly_dead",
+          "is_statically_imported": false,
+          "is_dynamically_imported": false,
+          "is_used_in_jsx": false,
+          "is_exported": true,
+          "is_used": false,
+          "reason": "Not imported, not used in JSX, not exported",
+          "action": "DELETE",
+          "confidence": "LOW"
+        },
+        {
+          "file": "src\\components\\ui\\badge.tsx",
+          "size": "0.7KB",
+          "category": "truly_dead",
+          "is_statically_imported": false,
+          "is_dynamically_imported": false,
+          "is_used_in_jsx": false,
+          "is_exported": true,
+          "is_used": false,
+          "reason": "Not imported, not used in JSX, not exported",
+          "action": "DELETE",
+          "confidence": "LOW"
+        },
+        {
+          "file": "src\\components\\ui\\button.tsx",
+          "size": "1.9KB",
+          "category": "truly_dead",
+          "is_statically_imported": false,
+          "is_dynamically_imported": false,
+          "is_used_in_jsx": false,
+          "is_exported": true,
+          "is_used": false,
+          "reason": "Not imported, not used in JSX, not exported",
+          "action": "DELETE",
+          "confidence": "LOW"
+        },
+        {
+          "file": "src\\components\\ui\\card.tsx",
+          "size": "0.3KB",
+          "category": "truly_dead",
+          "is_statically_imported": false,
+          "is_dynamically_imported": false,
+          "is_used_in_jsx": false,
+          "is_exported": false,
+          "is_used": false,
+          "reason": "Not imported, not used in JSX, not exported",
+          "action": "DELETE",
+          "confidence": "HIGH"
+        }
+      ],
+      "disconnected_but_valuable": [
+        {
+          "file": "src\\components\\addons\\AddOnChips.tsx",
+          "size": "9.7KB",
+          "category": "disconnected_valuable",
+          "is_statically_imported": false,
+          "is_dynamically_imported": false,
+          "is_used_in_jsx": false,
+          "is_exported": true,
+          "is_used": false,
+          "reason": "Has functionality (AddOnChips.tsx) but not connected to main flow",
+          "action": "INTEGRATE_WITH",
+          "confidence": "MEDIUM"
+        },
+        {
+          "file": "src\\components\\common\\PricingDetails.tsx",
+          "size": "17.1KB",
+          "category": "disconnected_valuable",
+          "is_statically_imported": false,
+          "is_dynamically_imported": false,
+          "is_used_in_jsx": false,
+          "is_exported": true,
+          "is_used": false,
+          "reason": "Has functionality (PricingDetails.tsx) but not connected to main flow",
+          "action": "INTEGRATE_WITH",
+          "confidence": "MEDIUM"
+        },
+        {
+          "file": "src\\components\\editor\\Phase4Integration.tsx",
+          "size": "16.4KB",
+          "category": "disconnected_valuable",
+          "is_statically_imported": false,
+          "is_dynamically_imported": false,
+          "is_used_in_jsx": false,
+          "is_exported": true,
+          "is_used": false,
+          "reason": "Has functionality (Phase4Integration.tsx) but not connected to main flow",
+          "action": "INTEGRATE_WITH",
+          "confidence": "MEDIUM"
+        },
+        {
+          "file": "src\\components\\editor\\RequirementsChecker.tsx",
+          "size": "11.0KB",
+          "category": "disconnected_valuable",
+          "is_statically_imported": false,
+          "is_dynamically_imported": false,
+          "is_used_in_jsx": false,
+          "is_exported": true,
+          "is_used": false,
+          "reason": "Has functionality (RequirementsChecker.tsx) but not connected to main flow",
+          "action": "INTEGRATE_WITH",
+          "confidence": "MEDIUM"
+        },
+        {
+          "file": "src\\components\\editor\\StructuredEditor.tsx",
+          "size": "10.3KB",
+          "category": "disconnected_valuable",
+          "is_statically_imported": false,
+          "is_dynamically_imported": false,
+          "is_used_in_jsx": false,
+          "is_exported": true,
+          "is_used": false,
+          "reason": "Has functionality (StructuredEditor.tsx) but not connected to main flow",
+          "action": "INTEGRATE_WITH",
+          "confidence": "MEDIUM"
+        },
+        {
+          "file": "src\\components\\fallback\\ZeroMatchFallback.tsx",
+          "size": "9.5KB",
+          "category": "disconnected_valuable",
+          "is_statically_imported": false,
+          "is_dynamically_imported": false,
+          "is_used_in_jsx": false,
+          "is_exported": true,
+          "is_used": false,
+          "reason": "Has functionality (ZeroMatchFallback.tsx) but not connected to main flow",
+          "action": "INTEGRATE_WITH",
+          "confidence": "MEDIUM"
+        },
+        {
+          "file": "src\\components\\intake\\IntakeForm.tsx",
+          "size": "11.3KB",
+          "category": "disconnected_valuable",
+          "is_statically_imported": false,
+          "is_dynamically_imported": false,
+          "is_used_in_jsx": false,
+          "is_exported": true,
+          "is_used": false,
+          "reason": "Has functionality (IntakeForm.tsx) but not connected to main flow",
+          "action": "INTEGRATE_WITH",
+          "confidence": "MEDIUM"
+        },
+        {
+          "file": "src\\components\\library\\ProgramDetails.tsx",
+          "size": "8.1KB",
+          "category": "disconnected_valuable",
+          "is_statically_imported": false,
+          "is_dynamically_imported": false,
+          "is_used_in_jsx": false,
+          "is_exported": true,
+          "is_used": false,
+          "reason": "Has functionality (ProgramDetails.tsx) but not connected to main flow",
+          "action": "INTEGRATE_WITH",
+          "confidence": "MEDIUM"
+        },
+        {
+          "file": "src\\components\\onboarding\\SegmentedOnboarding.tsx",
+          "size": "11.6KB",
+          "category": "disconnected_valuable",
+          "is_statically_imported": false,
+          "is_dynamically_imported": false,
+          "is_used_in_jsx": false,
+          "is_exported": true,
+          "is_used": false,
+          "reason": "Has functionality (SegmentedOnboarding.tsx) but not connected to main flow",
+          "action": "INTEGRATE_WITH",
+          "confidence": "MEDIUM"
+        },
+        {
+          "file": "src\\components\\plan\\ChartWidget.tsx",
+          "size": "9.0KB",
+          "category": "disconnected_valuable",
+          "is_statically_imported": false,
+          "is_dynamically_imported": false,
+          "is_used_in_jsx": false,
+          "is_exported": true,
+          "is_used": false,
+          "reason": "Has functionality (ChartWidget.tsx) but not connected to main flow",
+          "action": "INTEGRATE_WITH",
+          "confidence": "MEDIUM"
+        },
+        {
+          "file": "src\\components\\plan\\FinancialsQuickSheet.tsx",
+          "size": "16.3KB",
+          "category": "disconnected_valuable",
+          "is_statically_imported": false,
+          "is_dynamically_imported": false,
+          "is_used_in_jsx": false,
+          "is_exported": true,
+          "is_used": false,
+          "reason": "Has functionality (FinancialsQuickSheet.tsx) but not connected to main flow",
+          "action": "INTEGRATE_WITH",
+          "confidence": "MEDIUM"
+        },
+        {
+          "file": "src\\components\\plan\\StyleTokens.tsx",
+          "size": "8.5KB",
+          "category": "disconnected_valuable",
+          "is_statically_imported": false,
+          "is_dynamically_imported": false,
+          "is_used_in_jsx": false,
+          "is_exported": true,
+          "is_used": false,
+          "reason": "Has functionality (StyleTokens.tsx) but not connected to main flow",
+          "action": "INTEGRATE_WITH",
+          "confidence": "MEDIUM"
+        },
+        {
+          "file": "src\\components\\plan\\TitlePage.tsx",
+          "size": "5.5KB",
+          "category": "disconnected_valuable",
+          "is_statically_imported": false,
+          "is_dynamically_imported": false,
+          "is_used_in_jsx": false,
+          "is_exported": true,
+          "is_used": false,
+          "reason": "Has functionality (TitlePage.tsx) but not connected to main flow",
+          "action": "INTEGRATE_WITH",
+          "confidence": "MEDIUM"
+        },
+        {
+          "file": "src\\components\\reco\\EnhancedWizard.tsx",
+          "size": "12.1KB",
+          "category": "disconnected_valuable",
+          "is_statically_imported": false,
+          "is_dynamically_imported": false,
+          "is_used_in_jsx": false,
+          "is_exported": true,
+          "is_used": false,
+          "reason": "Has functionality (EnhancedWizard.tsx) but not connected to main flow",
+          "action": "INTEGRATE_WITH",
+          "confidence": "MEDIUM"
+        },
+        {
+          "file": "src\\components\\reco\\SmartRecommendationFlow.tsx",
+          "size": "8.6KB",
+          "category": "disconnected_valuable",
+          "is_statically_imported": false,
+          "is_dynamically_imported": false,
+          "is_used_in_jsx": false,
+          "is_exported": true,
+          "is_used": false,
+          "reason": "Has functionality (SmartRecommendationFlow.tsx) but not connected to main flow",
+          "action": "INTEGRATE_WITH",
+          "confidence": "MEDIUM"
+        }
+      ],
+      "integration_opportunities": [
+        {
+          "file": "src\\components\\decision-tree\\DynamicWizard.tsx",
+          "size": "15.0KB",
+          "category": "integration_opportunity",
+          "is_statically_imported": false,
+          "is_dynamically_imported": false,
+          "is_used_in_jsx": true,
+          "is_exported": true,
+          "is_used": true,
+          "reason": "Large file (DynamicWizard.tsx) that could be optimized or split",
+          "action": "OPTIMIZE",
+          "confidence": "LOW"
+        },
+        {
+          "file": "src\\components\\editor\\EnhancedAIChat.tsx",
+          "size": "21.2KB",
+          "category": "integration_opportunity",
+          "is_statically_imported": false,
+          "is_dynamically_imported": false,
+          "is_used_in_jsx": true,
+          "is_exported": true,
+          "is_used": true,
+          "reason": "Large file (EnhancedAIChat.tsx) that could be optimized or split",
+          "action": "OPTIMIZE",
+          "confidence": "LOW"
+        }
+      ]
+    }
+  },
+  "user_journey_analysis": {
+    "working_flows": 2,
+    "broken_flows": 0,
+    "partial_flows": 2,
+    "flow_details": {
+      "landing_page": {
+        "status": "WORKING",
+        "user_can": [
+          "Navigate",
+          "See content",
+          "Click CTAs"
+        ],
+        "user_cannot": [],
+        "issues": []
+      },
+      "recommendation_flow": {
+        "status": "PARTIAL",
+        "user_can": [
+          "See form",
+          "Fill questions",
+          "Get recommendations"
+        ],
+        "user_cannot": [
+          "Get real-time scraper data"
+        ],
+        "issues": [
+          "Using fallback data instead of real scraper data"
+        ]
+      },
+      "editor_experience": {
+        "status": "WORKING",
+        "user_can": [
+          "Access editor",
+          "Create business plan",
+          "Use AI assistance",
+          "Save work"
+        ],
+        "user_cannot": [],
+        "issues": []
+      },
+      "checkout_flow": {
+        "status": "PARTIAL",
+        "user_can": [
+          "See pricing",
+          "Select plan"
+        ],
+        "user_cannot": [
+          "Complete payment"
+        ],
+        "issues": [
+          "Missing PaymentForm component"
+        ]
+      }
+    }
+  },
+  "code_optimization_analysis": {
+    "oversized_files": [
+      {
+        "file": "pages\\dashboard.tsx",
+        "size": "11.0KB",
+        "reason": "Multiple features in single component",
+        "optimization": "Split into smaller, focused components",
+        "effort": "LOW",
+        "impact": "MEDIUM"
+      },
+      {
+        "file": "pages\\editor.tsx",
+        "size": "17.7KB",
+        "reason": "Multiple features in single component",
+        "optimization": "Split into smaller, focused components",
+        "effort": "LOW",
+        "impact": "MEDIUM"
+      },
+      {
+        "file": "pages\\for.tsx",
+        "size": "14.2KB",
+        "reason": "Multiple features in single component",
+        "optimization": "Split into smaller, focused components",
+        "effort": "LOW",
+        "impact": "MEDIUM"
+      },
+      {
+        "file": "pages\\library.tsx",
+        "size": "19.1KB",
+        "reason": "Multiple features in single component",
+        "optimization": "Split into smaller, focused components",
+        "effort": "LOW",
+        "impact": "MEDIUM"
+      },
+      {
+        "file": "pages\\optimized-editor.tsx",
+        "size": "29.2KB",
+        "reason": "Multiple features in single component",
+        "optimization": "Split into smaller, focused components",
+        "effort": "LOW",
+        "impact": "MEDIUM"
+      },
+      {
+        "file": "pages\\preview.tsx",
+        "size": "21.8KB",
+        "reason": "Multiple features in single component",
+        "optimization": "Split into smaller, focused components",
+        "effort": "LOW",
+        "impact": "MEDIUM"
+      },
+      {
+        "file": "pages\\pricing.tsx",
+        "size": "26.4KB",
+        "reason": "Multiple features in single component",
+        "optimization": "Split into smaller, focused components",
+        "effort": "LOW",
+        "impact": "MEDIUM"
+      },
+      {
+        "file": "pages\\privacy-settings.tsx",
+        "size": "12.0KB",
+        "reason": "Multiple features in single component",
+        "optimization": "Split into smaller, focused components",
+        "effort": "LOW",
+        "impact": "MEDIUM"
+      },
+      {
+        "file": "pages\\privacy.tsx",
+        "size": "10.5KB",
+        "reason": "Multiple features in single component",
+        "optimization": "Split into smaller, focused components",
+        "effort": "LOW",
+        "impact": "MEDIUM"
+      },
+      {
+        "file": "pages\\results.tsx",
+        "size": "22.1KB",
+        "reason": "Multiple features in single component",
+        "optimization": "Split into smaller, focused components",
+        "effort": "LOW",
+        "impact": "MEDIUM"
+      }
+    ],
+    "total_optimization_potential": 62
+  },
+  "performance_analysis": {
+    "bundle_size": {
+      "total_size": "1.7MB",
+      "optimization_potential": "30% reduction possible"
+    },
+    "loading_performance": {
+      "estimated_initial_load": "3.5 seconds",
+      "target_load": "2.0 seconds",
+      "optimization_opportunities": [
+        "Lazy load editor components",
+        "Implement code splitting",
+        "Add caching layer"
+      ]
+    }
+  },
+  "action_plan": {
+    "phase1_critical_fixes": {
+      "priority": "CRITICAL",
+      "estimated_time": "2 hours",
+      "tasks": [
+        {
+          "task": "Fix scraper integration",
+          "files": [
+            "pages/reco.tsx",
+            "src/lib/dataSource.ts"
+          ],
+          "effort": "1 hour",
+          "impact": "HIGH",
+          "priority": 1
+        },
+        {
+          "task": "Add PaymentForm component",
+          "files": [
+            "src/components/pricing/PaymentForm.tsx"
+          ],
+          "effort": "45 minutes",
+          "impact": "HIGH",
+          "priority": 2
+        }
+      ]
+    },
+    "phase2_cleanup": {
+      "priority": "HIGH",
+      "estimated_time": "1 hour",
+      "tasks": [
+        {
+          "task": "Remove truly dead code",
+          "files": "Verify with improved analyzer",
+          "effort": "30 minutes",
+          "impact": "MEDIUM",
+          "priority": 3
+        }
+      ]
+    }
+  },
+  "summary": {
+    "critical_issues": 2,
+    "optimization_opportunities": 62,
+    "estimated_code_reduction": "20%",
+    "estimated_performance_improvement": "30%",
+    "estimated_development_time": "3 hours",
+    "system_health_after_fixes": "95%",
+    "system_health_current": 100
+  }
+}

@@ -209,30 +209,21 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
             const result = await pool.query(query, params);
             
             const enhancedPrograms = result.rows.map(row => {
-              // Generate decision tree questions based on program characteristics
-              const decisionTreeQuestions = generateDecisionTreeQuestions(row);
-              const editorSections = generateEditorSections(row);
-              const readinessCriteria = generateReadinessCriteria(row);
-              
               return {
                 id: row.id,
                 name: row.name,
                 type: row.program_type || 'grant',
-                requirements: {},
+                requirements: row.requirements || {},
                 notes: row.description || '',
                 maxAmount: row.funding_amount_max || 0,
                 link: row.source_url || '',
-                target_personas: row.target_personas || ['startup', 'sme'],
-                tags: row.tags || [row.program_type || 'grant', 'funding'],
-                decision_tree_questions: decisionTreeQuestions,
-                editor_sections: editorSections,
-                readiness_criteria: readinessCriteria,
-                ai_guidance: row.ai_guidance || {
-                  context: 'AI-enhanced program data',
-                  tone: 'professional',
-                  key_points: ['Check eligibility requirements', 'Prepare necessary documents'],
-                  prompts: {}
-                }
+                // Use existing AI-enhanced fields from database
+                target_personas: row.target_personas || [],
+                tags: row.tags || [],
+                decision_tree_questions: row.decision_tree_questions || [],
+                editor_sections: row.editor_sections || [],
+                readiness_criteria: row.readiness_criteria || [],
+                ai_guidance: row.ai_guidance || null
               };
             });
             

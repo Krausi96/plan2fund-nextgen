@@ -231,6 +231,20 @@ export class MultiUserDataManager {
     return this.planVersions.get(planId) || [];
   }
 
+  async createPlanVersion(planId: string, userId: string, version: PlanVersion): Promise<boolean> {
+    const userPlan = await this.getUserPlan(planId, userId);
+    
+    if (!userPlan || userPlan.userId !== userId) {
+      return false;
+    }
+
+    const versions = this.planVersions.get(planId) || [];
+    versions.push(version);
+    this.planVersions.set(planId, versions);
+    
+    return true;
+  }
+
   async restorePlanVersion(planId: string, userId: string, version: number): Promise<UserPlan | null> {
     const userPlan = await this.getUserPlan(planId, userId);
     

@@ -1,0 +1,250 @@
+{
+  "current_issues": [
+    "21 pages scattered in root directory",
+    "52 lib files scattered in root directory",
+    "Components are well organized but could be better grouped",
+    "No clear separation between marketing, user flow, and admin pages"
+  ],
+  "proposed_structure": {
+    "pages": {
+      "marketing/": [
+        "index.tsx",
+        "about.tsx",
+        "pricing.tsx",
+        "contact.tsx",
+        "faq.tsx",
+        "for.tsx"
+      ],
+      "user-flow/": [
+        "reco.tsx",
+        "results.tsx",
+        "editor.tsx",
+        "optimized-editor.tsx",
+        "preview.tsx"
+      ],
+      "checkout/": [
+        "checkout.tsx",
+        "confirm.tsx",
+        "thank-you.tsx"
+      ],
+      "legal/": [
+        "privacy.tsx",
+        "terms.tsx",
+        "legal.tsx",
+        "privacy-settings.tsx"
+      ],
+      "admin/": [
+        "dashboard.tsx",
+        "library.tsx",
+        "export.tsx",
+        "advanced-search.tsx"
+      ]
+    },
+    "src/lib": {
+      "api/": [
+        "apiClient.ts",
+        "endpoints.ts",
+        "airtable.ts",
+        "database.ts"
+      ],
+      "ai/": [
+        "aiService.ts",
+        "aiHelper.ts",
+        "aiHelperGuardrails.ts",
+        "aiChipParser.ts",
+        "enhancedRecoEngine.ts",
+        "recommendationEngine.ts"
+      ],
+      "data/": [
+        "dataSource.ts",
+        "programs.ts",
+        "questions.ts",
+        "sourceRegister.ts",
+        "ScrapedProgram.ts",
+        "libraryExtractor.ts"
+      ],
+      "export/": [
+        "export.ts",
+        "comprehensiveExport.ts",
+        "submissionPack.ts",
+        "templates.ts"
+      ],
+      "editor/": [
+        "editorTemplates.ts",
+        "programTemplates.ts",
+        "requirementsExtractor.ts",
+        "requirementsMapper.ts",
+        "intakeParser.ts",
+        "prefill.ts"
+      ],
+      "recommendation/": [
+        "decisionTree.ts",
+        "decisionTreeParser.ts",
+        "dynamicDecisionTree.ts",
+        "dynamicQuestionEngine.ts",
+        "enhancedDecisionTree.ts",
+        "doctorDiagnostic.ts",
+        "advancedSearchDoctor.ts",
+        "targetGroupDetection.ts"
+      ],
+      "utils/": [
+        "utils.ts",
+        "validation.ts",
+        "formatting.ts",
+        "constants.ts",
+        "motion.ts",
+        "theme.ts",
+        "seo.ts",
+        "translationValidator.ts"
+      ],
+      "business/": [
+        "pricing.ts",
+        "payments.ts",
+        "financialCalculator.ts",
+        "planStore.ts",
+        "multiUserDataManager.ts",
+        "teamManagement.ts",
+        "addons.ts"
+      ],
+      "scraper/": [
+        "webScraperService.ts",
+        "enhancedDataPipeline.ts"
+      ]
+    }
+  },
+  "migration_steps": [
+    {
+      "step": 1,
+      "action": "Create new folder structure",
+      "commands": [
+        "mkdir pages/marketing",
+        "mkdir pages/user-flow",
+        "mkdir pages/checkout",
+        "mkdir pages/legal",
+        "mkdir pages/admin",
+        "mkdir src/lib/api",
+        "mkdir src/lib/ai",
+        "mkdir src/lib/data",
+        "mkdir src/lib/export",
+        "mkdir src/lib/editor",
+        "mkdir src/lib/recommendation",
+        "mkdir src/lib/utils",
+        "mkdir src/lib/business",
+        "mkdir src/lib/scraper"
+      ]
+    },
+    {
+      "step": 2,
+      "action": "Move pages to appropriate folders",
+      "files_to_move": {
+        "pages/index.tsx": "pages/marketing/",
+        "pages/about.tsx": "pages/marketing/",
+        "pages/pricing.tsx": "pages/marketing/",
+        "pages/contact.tsx": "pages/marketing/",
+        "pages/faq.tsx": "pages/marketing/",
+        "pages/for.tsx": "pages/marketing/",
+        "pages/reco.tsx": "pages/user-flow/",
+        "pages/results.tsx": "pages/user-flow/",
+        "pages/editor.tsx": "pages/user-flow/",
+        "pages/optimized-editor.tsx": "pages/user-flow/",
+        "pages/preview.tsx": "pages/user-flow/",
+        "pages/checkout.tsx": "pages/checkout/",
+        "pages/confirm.tsx": "pages/checkout/",
+        "pages/thank-you.tsx": "pages/checkout/",
+        "pages/privacy.tsx": "pages/legal/",
+        "pages/terms.tsx": "pages/legal/",
+        "pages/legal.tsx": "pages/legal/",
+        "pages/privacy-settings.tsx": "pages/legal/",
+        "pages/dashboard.tsx": "pages/admin/",
+        "pages/library.tsx": "pages/admin/",
+        "pages/export.tsx": "pages/admin/",
+        "pages/advanced-search.tsx": "pages/admin/"
+      }
+    },
+    {
+      "step": 3,
+      "action": "Move lib files to appropriate folders",
+      "files_to_move": {
+        "src/lib/apiClient.ts": "src/lib/api/",
+        "src/lib/endpoints.ts": "src/lib/api/",
+        "src/lib/airtable.ts": "src/lib/api/",
+        "src/lib/database.ts": "src/lib/api/",
+        "src/lib/aiService.ts": "src/lib/ai/",
+        "src/lib/aiHelper.ts": "src/lib/ai/",
+        "src/lib/aiHelperGuardrails.ts": "src/lib/ai/",
+        "src/lib/aiChipParser.ts": "src/lib/ai/",
+        "src/lib/enhancedRecoEngine.ts": "src/lib/ai/",
+        "src/lib/recommendationEngine.ts": "src/lib/ai/",
+        "src/lib/dataSource.ts": "src/lib/data/",
+        "src/lib/programs.ts": "src/lib/data/",
+        "src/lib/questions.ts": "src/lib/data/",
+        "src/lib/sourceRegister.ts": "src/lib/data/",
+        "src/lib/ScrapedProgram.ts": "src/lib/data/",
+        "src/lib/libraryExtractor.ts": "src/lib/data/",
+        "src/lib/export.ts": "src/lib/export/",
+        "src/lib/comprehensiveExport.ts": "src/lib/export/",
+        "src/lib/submissionPack.ts": "src/lib/export/",
+        "src/lib/templates.ts": "src/lib/export/",
+        "src/lib/editorTemplates.ts": "src/lib/editor/",
+        "src/lib/programTemplates.ts": "src/lib/editor/",
+        "src/lib/requirementsExtractor.ts": "src/lib/editor/",
+        "src/lib/requirementsMapper.ts": "src/lib/editor/",
+        "src/lib/intakeParser.ts": "src/lib/editor/",
+        "src/lib/prefill.ts": "src/lib/editor/",
+        "src/lib/decisionTree.ts": "src/lib/recommendation/",
+        "src/lib/decisionTreeParser.ts": "src/lib/recommendation/",
+        "src/lib/dynamicDecisionTree.ts": "src/lib/recommendation/",
+        "src/lib/dynamicQuestionEngine.ts": "src/lib/recommendation/",
+        "src/lib/enhancedDecisionTree.ts": "src/lib/recommendation/",
+        "src/lib/doctorDiagnostic.ts": "src/lib/recommendation/",
+        "src/lib/advancedSearchDoctor.ts": "src/lib/recommendation/",
+        "src/lib/targetGroupDetection.ts": "src/lib/recommendation/",
+        "src/lib/utils.ts": "src/lib/utils/",
+        "src/lib/validation.ts": "src/lib/utils/",
+        "src/lib/formatting.ts": "src/lib/utils/",
+        "src/lib/constants.ts": "src/lib/utils/",
+        "src/lib/motion.ts": "src/lib/utils/",
+        "src/lib/theme.ts": "src/lib/utils/",
+        "src/lib/seo.ts": "src/lib/utils/",
+        "src/lib/translationValidator.ts": "src/lib/utils/",
+        "src/lib/pricing.ts": "src/lib/business/",
+        "src/lib/payments.ts": "src/lib/business/",
+        "src/lib/financialCalculator.ts": "src/lib/business/",
+        "src/lib/planStore.ts": "src/lib/business/",
+        "src/lib/multiUserDataManager.ts": "src/lib/business/",
+        "src/lib/teamManagement.ts": "src/lib/business/",
+        "src/lib/addons.ts": "src/lib/business/",
+        "src/lib/webScraperService.ts": "src/lib/scraper/",
+        "src/lib/enhancedDataPipeline.ts": "src/lib/scraper/"
+      }
+    },
+    {
+      "step": 4,
+      "action": "Update import paths",
+      "description": "Update all import statements to reflect new folder structure"
+    },
+    {
+      "step": 5,
+      "action": "Test functionality",
+      "description": "Run tests to ensure everything still works"
+    }
+  ],
+  "benefits": [
+    "Clear separation of concerns",
+    "Easier navigation and maintenance",
+    "Logical grouping of related functionality",
+    "Better scalability",
+    "Reduced cognitive load for developers"
+  ],
+  "risks": [
+    "Import path updates required",
+    "Potential breaking changes if not done carefully",
+    "Need to update all references"
+  ],
+  "mitigation": [
+    "Use automated tools to update import paths",
+    "Test thoroughly after each step",
+    "Keep backup of original structure",
+    "Update documentation"
+  ]
+}

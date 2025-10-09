@@ -23,6 +23,18 @@ export interface NormalizedProgram extends ScrapedProgram {
   validation_errors: string[];
   is_duplicate: boolean;
   duplicate_of?: string;
+  categorized_requirements?: {
+    eligibility: any[];
+    documents: any[];
+    financial: any[];
+    technical: any[];
+    legal: any[];
+    timeline: any[];
+    geographic: any[];
+    team: any[];
+    project: any[];
+    compliance: any[];
+  };
 }
 
 export interface QualityScore {
@@ -245,6 +257,9 @@ export class DataNormalization {
     
     // Generate AI guidance
     program.ai_guidance = this.generateAIGuidance(program);
+    
+    // Generate categorized requirements (NEW)
+    program.categorized_requirements = this.categorizeRequirements(program);
   }
 
   /**
@@ -462,6 +477,184 @@ export class DataNormalization {
         technical_documentation: 'Emphasize innovation and technical feasibility'
       }
     };
+  }
+
+  /**
+   * Automatically categorize requirements into the 10 standardized categories
+   */
+  private categorizeRequirements(program: NormalizedProgram): any {
+    const categories = {
+      eligibility: [],
+      documents: [],
+      financial: [],
+      technical: [],
+      legal: [],
+      timeline: [],
+      geographic: [],
+      team: [],
+      project: [],
+      compliance: []
+    };
+
+    // Categorize from requirements object
+    if (program.requirements && typeof program.requirements === 'object') {
+      Object.entries(program.requirements).forEach(([key, value]) => {
+        const category = this.mapRequirementToCategory(key, value);
+        if (category) {
+          categories[category].push({
+            type: key,
+            value: value,
+            required: true,
+            source: 'requirements'
+          });
+        }
+      });
+    }
+
+    // Categorize from eligibility_criteria object
+    if (program.eligibility_criteria && typeof program.eligibility_criteria === 'object') {
+      Object.entries(program.eligibility_criteria).forEach(([key, value]) => {
+        const category = this.mapEligibilityToCategory(key, value);
+        if (category) {
+          categories[category].push({
+            type: key,
+            value: value,
+            required: true,
+            source: 'eligibility_criteria'
+          });
+        }
+      });
+    }
+
+    // Add funding information to financial category
+    if (program.funding_amount_min || program.funding_amount_max) {
+      categories.financial.push({
+        type: 'funding_amount',
+        value: {
+          min: program.funding_amount_min,
+          max: program.funding_amount_max,
+          currency: program.currency || 'EUR'
+        },
+        required: true,
+        source: 'program_data'
+      });
+    }
+
+    // Add deadline to timeline category
+    if (program.deadline) {
+      categories.timeline.push({
+        type: 'deadline',
+        value: program.deadline,
+        required: true,
+        source: 'program_data'
+      });
+    }
+
+    return categories;
+  }
+
+  /**
+   * Map requirement keys to categories
+   */
+  private mapRequirementToCategory(key: string, value: any): string | null {
+    const mapping = {
+      // Documents category
+      'business_plan': 'documents',
+      'pitch_deck': 'documents',
+      'financial_projections': 'documents',
+      'market_analysis': 'documents',
+      'technical_documentation': 'documents',
+      'team_cv': 'documents',
+      'legal_documents': 'documents',
+      'project_description': 'documents',
+      'documents': 'documents',
+      
+      // Technical category
+      'technical_requirements': 'technical',
+      'technology_stack': 'technical',
+      'prototype': 'technical',
+      'mvp': 'technical',
+      'innovation': 'technical',
+      
+      // Team category
+      'team_size': 'team',
+      'team_qualifications': 'team',
+      'advisory_board': 'team',
+      'key_personnel': 'team',
+      'team_structure': 'team',
+      
+      // Project category
+      'project_timeline': 'project',
+      'project_goals': 'project',
+      'deliverables': 'project',
+      'milestones': 'project',
+      'research_focus': 'project',
+      
+      // Legal category
+      'legal_requirements': 'legal',
+      'compliance': 'legal',
+      'regulations': 'legal',
+      'gdpr': 'legal',
+      
+      // Financial category
+      'funding_amounts': 'financial',
+      'budget': 'financial',
+      'costs': 'financial',
+      'revenue': 'financial'
+    };
+
+    return mapping[key] || null;
+  }
+
+  /**
+   * Map eligibility criteria keys to categories
+   */
+  private mapEligibilityToCategory(key: string, value: any): string | null {
+    const mapping = {
+      // Eligibility category
+      'description': 'eligibility',
+      'criteria': 'eligibility',
+      'requirements': 'eligibility',
+      'exclusions': 'eligibility',
+      
+      // Geographic category
+      'location': 'geographic',
+      'country': 'geographic',
+      'region': 'geographic',
+      'area': 'geographic',
+      
+      // Team category
+      'min_team_size': 'team',
+      'max_team_size': 'team',
+      'team_requirements': 'team',
+      'team_diversity': 'team',
+      
+      // Timeline category
+      'max_company_age': 'timeline',
+      'min_company_age': 'timeline',
+      'duration': 'timeline',
+      'period': 'timeline',
+      
+      // Financial category
+      'funding_rate': 'financial',
+      'co_funding': 'financial',
+      'budget': 'financial',
+      'costs': 'financial',
+      
+      // Project category
+      'research_focus': 'project',
+      'innovation': 'project',
+      'sector': 'project',
+      'industry': 'project',
+      
+      // Compliance category
+      'thresholds': 'compliance',
+      'standards': 'compliance',
+      'certifications': 'compliance',
+      'audit': 'compliance'
+    };
+
+    return mapping[key] || null;
   }
 
   /**

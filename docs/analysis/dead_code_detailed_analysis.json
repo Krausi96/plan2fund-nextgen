@@ -1,0 +1,82 @@
+[
+  {
+    "file": "src/components/common/CartSummary.tsx",
+    "size": "2.8KB",
+    "purpose": "Shopping cart summary component for e-commerce functionality",
+    "replacement": "Not needed - Plan2Fund is not an e-commerce platform",
+    "why_not_needed": "Plan2Fund doesn't have a shopping cart - it's a funding recommendation service",
+    "can_be_integrated": false
+  },
+  {
+    "file": "src/components/common/Counter.tsx",
+    "size": "1.5KB",
+    "purpose": "Simple counter component for counting items or values",
+    "replacement": "Not needed - no counting functionality required",
+    "why_not_needed": "No use case for counting in funding recommendation flow",
+    "can_be_integrated": false
+  },
+  {
+    "file": "src/components/common/CTAStrip.tsx",
+    "size": "2.0KB",
+    "purpose": "Call-to-action strip component for marketing",
+    "replacement": "Replaced by Hero.tsx and existing CTA components",
+    "why_not_needed": "Functionality already exists in main Hero component",
+    "can_be_integrated": false
+  },
+  {
+    "file": "src/components/common/DocsUpload.tsx",
+    "size": "1.1KB",
+    "purpose": "Document upload functionality",
+    "replacement": "Not needed - no document upload in current flow",
+    "why_not_needed": "Plan2Fund generates documents, doesn't upload them",
+    "can_be_integrated": false
+  },
+  {
+    "file": "src/components/common/EligibilityCard.tsx",
+    "size": "0.9KB",
+    "purpose": "Card component showing eligibility information",
+    "replacement": "Replaced by RecommendationContext and program cards",
+    "why_not_needed": "Eligibility logic moved to recommendation engine",
+    "can_be_integrated": false
+  },
+  {
+    "file": "src/components/common/EvidenceCards.tsx",
+    "size": "4.4KB",
+    "purpose": "Cards showing evidence or proof of concept",
+    "replacement": "Not needed - no evidence display in current flow",
+    "why_not_needed": "Not part of the funding recommendation process",
+    "can_be_integrated": false
+  },
+  {
+    "file": "src/components/common/FundingTypes.tsx",
+    "size": "2.2KB",
+    "purpose": "Component displaying different types of funding",
+    "replacement": "Replaced by program categories in recommendation system",
+    "why_not_needed": "Funding types now handled by program profiles",
+    "can_be_integrated": false
+  },
+  {
+    "file": "src/components/common/HealthFooter.tsx",
+    "size": "2.7KB",
+    "purpose": "Simple counter component for counting items or values",
+    "replacement": "Not needed - no counting functionality required",
+    "why_not_needed": "No use case for counting in funding recommendation flow",
+    "can_be_integrated": false
+  },
+  {
+    "file": "src/components/common/HeroLite.tsx",
+    "size": "0.9KB",
+    "purpose": "Lightweight version of hero component",
+    "replacement": "Replaced by main Hero.tsx component",
+    "why_not_needed": "Main Hero component handles all hero functionality",
+    "can_be_integrated": false
+  },
+  {
+    "file": "src/components/common/HowItWorks.tsx",
+    "size": "4.0KB",
+    "purpose": "Document upload functionality",
+    "replacement": "Not needed - no document upload in current flow",
+    "why_not_needed": "Plan2Fund generates documents, doesn't upload them",
+    "can_be_integrated": false
+  }
+]
