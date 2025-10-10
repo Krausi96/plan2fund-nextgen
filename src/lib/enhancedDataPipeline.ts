@@ -11,10 +11,160 @@
 
 import { ScrapedProgram } from './ScrapedProgram';
 import { Program } from '../types';
+import { RequirementCategory, ConfidenceScore, AustrianEUPatterns, EnhancedRequirement } from '../types/requirements';
+import { dynamicPatternEngine } from './dynamicPatternEngine';
 
 // ============================================================================
 // INTERFACES
 // ============================================================================
+
+// Austrian/EU specific patterns for enhanced categorization
+const AUSTRIAN_EU_PATTERNS: AustrianEUPatterns = {
+  co_financing: {
+    patterns: [
+      /(?:mindestens|at least)\s+(\d{1,3})\s*%/gi,
+      /(?:eigenbeitrag|own contribution)\s*:?\s*(\d{1,3})\s*%/gi,
+      /(?:förderquote|funding rate)\s*:?\s*(\d{1,3})\s*%/gi,
+      /(?:co-?financing|mitfinanzierung)\s*:?\s*(\d{1,3})\s*%/gi,
+      /(?:eigenkapitalquote|equity ratio)\s*:?\s*(\d{1,3})\s*%/gi,
+      /(?:finanzautonomie|financial autonomy)\s*:?\s*(\d{1,3})\s*%/gi
+    ],
+    examples: [
+      'mindestens 50% Eigenbeitrag',
+      'at least 50% own contribution',
+      'förderquote 80%',
+      'co-financing 60%',
+      'eigenkapitalquote 20%',
+      'finanzautonomie 15%'
+    ],
+    institutions: ['ADA', 'FFG', 'Klimafonds', 'Eurostars', 'Eureka', 'M-ERA.NET']
+  },
+  trl_level: {
+    patterns: [
+      /(?:trl|technology readiness level)\s*(\d)\s*(?:–|-|to)\s*(\d)/gi,
+      /(?:reifegrad|maturity level)\s*(\d)\s*(?:–|-|to)\s*(\d)/gi,
+      /(?:trl|technology readiness level)\s*(\d)/gi,
+      /(?:reifegrad|maturity level)\s*(\d)/gi,
+      /(?:tr[1-9]|trl[1-9])/gi
+    ],
+    examples: [
+      'TRL 3-7',
+      'Reifegrad 2-4',
+      'TRL 5',
+      'maturity level 6',
+      'TRL3'
+    ],
+    institutions: ['FFG', 'EU', 'Horizon Europe', 'EIC', 'Digital Europe']
+  },
+  impact: {
+    patterns: [
+      /(?:innovation|environmental|social)\s+impact/i,
+      /(?:marktwirkung|market impact)/i,
+      /(?:nachhaltigkeit|sustainability)/i,
+      /(?:developmental impact|entwicklungswirkung)/i,
+      /(?:climate|klima)\s+(?:impact|wirkung)/i,
+      /(?:environmental|umwelt)\s+(?:benefit|nutzen)/i
+    ],
+    examples: [
+      'innovation impact',
+      'environmental impact',
+      'social impact',
+      'nachhaltigkeit',
+      'developmental impact',
+      'climate impact'
+    ],
+    institutions: ['ADA', 'EU', 'Horizon Europe', 'LIFE', 'Climate Fund']
+  },
+  consortium: {
+    patterns: [
+      /(?:konsortialpartner|consortium partner)/i,
+      /(?:partnership|partnerschaft)/i,
+      /(?:consortium leader|konsortialführer)/i,
+      /(?:international\s+consortium|internationales\s+konsortium)/i,
+      /(?:mindestens\s+\d+\s+partner|at least\s+\d+\s+partners)/i,
+      /(?:konsortium|consortium)/i
+    ],
+    examples: [
+      'Konsortialpartner',
+      'consortium partner',
+      'partnership required',
+      'international consortium',
+      'mindestens 2 Partner',
+      'consortium leader'
+    ],
+    institutions: ['Eurostars', 'Eureka', 'M-ERA.NET', 'Horizon Europe', 'EIC']
+  },
+  capex_opex: {
+    patterns: [
+      /(?:capital\s+expenditure|capex)/i,
+      /(?:operating\s+costs|opex)/i,
+      /(?:investitionskosten|investment costs)/i,
+      /(?:betriebskosten|operating costs)/i,
+      /(?:budget\s+breakdown|budgetaufschlüsselung)/i,
+      /(?:cost\s+breakdown|kostenaufschlüsselung)/i
+    ],
+    examples: [
+      'capital expenditure',
+      'CAPEX',
+      'operating costs',
+      'OPEX',
+      'investitionskosten',
+      'budget breakdown'
+    ],
+    institutions: ['ADA', 'FFG', 'EU', 'Horizon Europe']
+  },
+  use_of_funds: {
+    patterns: [
+      /(?:use\s+of\s+funds|verwendung\s+der\s+mittel)/i,
+      /(?:budget\s+allocation|budgetzuweisung)/i,
+      /(?:funding\s+purpose|förderzweck)/i,
+      /(?:cost\s+breakdown|kostenaufschlüsselung)/i,
+      /(?:budget\s+plan|budgetplan)/i
+    ],
+    examples: [
+      'use of funds',
+      'verwendung der mittel',
+      'budget allocation',
+      'funding purpose',
+      'cost breakdown'
+    ],
+    institutions: ['ADA', 'FFG', 'EU', 'Horizon Europe', 'EIC']
+  },
+  revenue_model: {
+    patterns: [
+      /(?:business\s+model|geschäftsmodell)/i,
+      /(?:revenue\s+model|umsatzmodell)/i,
+      /(?:pricing\s+strategy|preisstrategie)/i,
+      /(?:monetization|monetarisierung)/i,
+      /(?:revenue\s+generation|umsatzgenerierung)/i
+    ],
+    examples: [
+      'business model',
+      'geschäftsmodell',
+      'revenue model',
+      'pricing strategy',
+      'monetization'
+    ],
+    institutions: ['VBA', 'Startup Grant', 'AWS', 'FFG']
+  },
+  market_size: {
+    patterns: [
+      /(?:market\s+size|marktgröße)/i,
+      /(?:market\s+potential|marktpotential)/i,
+      /(?:target\s+market|zielmarkt)/i,
+      /(?:growth\s+potential|wachstumspotential)/i,
+      /(?:market\s+opportunity|marktchance)/i
+    ],
+    examples: [
+      'market size',
+      'marktgröße',
+      'market potential',
+      'target market',
+      'growth potential'
+    ],
+    institutions: ['VBA', 'Startup Grant', 'AWS', 'FFG', 'EIC']
+  }
+};
 
 export interface NormalizedProgram extends ScrapedProgram {
   quality_score: number;
@@ -34,6 +184,14 @@ export interface NormalizedProgram extends ScrapedProgram {
     team: any[];
     project: any[];
     compliance: any[];
+    impact: any[];
+    capex_opex: any[];
+    use_of_funds: any[];
+    revenue_model: any[];
+    market_size: any[];
+    co_financing: any[];
+    trl_level: any[];
+    consortium: any[];
   };
 }
 
@@ -64,9 +222,9 @@ export interface CacheEntry<T> {
 
 export class DataNormalization {
   /**
-   * Normalize a single scraped program
+   * Normalize a single scraped program using DYNAMIC patterns
    */
-  normalizeProgram(rawProgram: ScrapedProgram): NormalizedProgram {
+  async normalizeProgram(rawProgram: ScrapedProgram): Promise<NormalizedProgram> {
     const normalized: NormalizedProgram = {
       ...rawProgram,
       quality_score: 0,
@@ -258,8 +416,8 @@ export class DataNormalization {
     // Generate AI guidance
     program.ai_guidance = this.generateAIGuidance(program);
     
-    // Generate categorized requirements (NEW)
-    program.categorized_requirements = this.categorizeRequirements(program);
+    // Generate categorized requirements using DYNAMIC patterns
+    program.categorized_requirements = await this.categorizeRequirements(program);
   }
 
   /**
@@ -480,9 +638,9 @@ export class DataNormalization {
   }
 
   /**
-   * Automatically categorize requirements into the 10 standardized categories
+   * Automatically categorize requirements into the 18 standardized categories using DYNAMIC patterns
    */
-  private categorizeRequirements(program: NormalizedProgram): any {
+  private async categorizeRequirements(program: NormalizedProgram): Promise<any> {
     const categories = {
       eligibility: [],
       documents: [],
@@ -493,7 +651,15 @@ export class DataNormalization {
       geographic: [],
       team: [],
       project: [],
-      compliance: []
+      compliance: [],
+      impact: [],
+      capex_opex: [],
+      use_of_funds: [],
+      revenue_model: [],
+      market_size: [],
+      co_financing: [],
+      trl_level: [],
+      consortium: []
     };
 
     // Categorize from requirements object
@@ -549,6 +715,9 @@ export class DataNormalization {
         source: 'program_data'
       });
     }
+
+    // Enhanced categorization using DYNAMIC patterns
+    await this.categorizeWithDynamicPatterns(program, categories);
 
     return categories;
   }
@@ -655,6 +824,160 @@ export class DataNormalization {
     };
 
     return mapping[key] || null;
+  }
+
+  /**
+   * Enhanced categorization using DYNAMIC patterns that learn and adapt
+   */
+  private async categorizeWithDynamicPatterns(program: NormalizedProgram, categories: any): Promise<void> {
+    // Combine all text content for pattern matching
+    const textContent = this.extractTextContent(program);
+    
+    // Get institution from program data
+    const institution = this.extractInstitution(program);
+    
+    // Use dynamic pattern engine to extract requirements
+    const extractedRequirements = await dynamicPatternEngine.extractRequirements(
+      textContent,
+      institution,
+      ['co_financing', 'trl_level', 'impact', 'consortium', 'capex_opex', 'use_of_funds', 'revenue_model', 'market_size']
+    );
+    
+    // Add extracted requirements to categories
+    extractedRequirements.forEach((requirements, category) => {
+      if (requirements.length > 0) {
+        categories[category].push({
+          type: category,
+          value: requirements,
+          required: true,
+          source: 'dynamic_patterns',
+          confidence: this.calculateAverageConfidence(requirements),
+          evidence: requirements.flatMap(req => req.evidence),
+          institutions: [...new Set(requirements.map(req => req.institution))]
+        });
+      }
+    });
+  }
+
+  /**
+   * Extract all text content from program for pattern matching
+   */
+  private extractTextContent(program: NormalizedProgram): string {
+    const textParts = [];
+    
+    if (program.description) textParts.push(program.description);
+    if (program.name) textParts.push(program.name);
+    
+    // Extract from requirements
+    if (program.requirements && typeof program.requirements === 'object') {
+      Object.values(program.requirements).forEach(req => {
+        if (typeof req === 'string') {
+          textParts.push(req);
+        } else if (typeof req === 'object' && req !== null) {
+          if (req.description) textParts.push(req.description);
+          if (req.value && typeof req.value === 'string') textParts.push(req.value);
+        }
+      });
+    }
+    
+    // Extract from eligibility criteria
+    if (program.eligibility_criteria && typeof program.eligibility_criteria === 'object') {
+      Object.values(program.eligibility_criteria).forEach(criteria => {
+        if (typeof criteria === 'string') {
+          textParts.push(criteria);
+        } else if (Array.isArray(criteria)) {
+          criteria.forEach(item => {
+            if (typeof item === 'string') textParts.push(item);
+          });
+        }
+      });
+    }
+    
+    return textParts.join(' ').toLowerCase();
+  }
+
+  /**
+   * Find pattern matches in text content
+   */
+  private findPatternMatches(text: string, patterns: RegExp[]): Array<{ text: string; match: RegExpMatchArray }> {
+    const matches = [];
+    
+    for (const pattern of patterns) {
+      const patternMatches = text.match(pattern);
+      if (patternMatches) {
+        matches.push({
+          text: patternMatches[0],
+          match: patternMatches
+        });
+      }
+    }
+    
+    return matches;
+  }
+
+  /**
+   * Extract institution from program data
+   */
+  private extractInstitution(program: NormalizedProgram): string {
+    if (program.institution) {
+      return program.institution.toLowerCase();
+    }
+    
+    if (program.source_url) {
+      if (program.source_url.includes('aws.at')) return 'aws';
+      if (program.source_url.includes('ffg.at')) return 'ffg';
+      if (program.source_url.includes('viennabusinessagency.at')) return 'vba';
+      if (program.source_url.includes('ec.europa.eu')) return 'eu';
+      if (program.source_url.includes('ams.at')) return 'ams';
+    }
+    
+    return 'general';
+  }
+
+  /**
+   * Calculate average confidence from dynamic pattern results
+   */
+  private calculateAverageConfidence(requirements: any[]): number {
+    if (requirements.length === 0) return 0;
+    
+    const totalConfidence = requirements.reduce((sum, req) => sum + req.confidence, 0);
+    return totalConfidence / requirements.length;
+  }
+
+  /**
+   * Calculate confidence score for pattern matches (legacy method for static patterns)
+   */
+  private calculateConfidence(matches: Array<{ text: string; match: RegExpMatchArray }>, patternConfig: any): ConfidenceScore {
+    let confidence = 0.5; // Base confidence
+    
+    // More matches = higher confidence
+    if (matches.length > 1) confidence += 0.2;
+    if (matches.length > 3) confidence += 0.1;
+    
+    // Check for specific values (percentages, numbers)
+    const hasSpecificValues = matches.some(match => 
+      /\d+/.test(match.text) || /%/.test(match.text)
+    );
+    if (hasSpecificValues) confidence += 0.2;
+    
+    // Check for institution-specific terms
+    const hasInstitutionTerms = matches.some(match => 
+      patternConfig.institutions.some((inst: string) => 
+        match.text.toLowerCase().includes(inst.toLowerCase())
+      )
+    );
+    if (hasInstitutionTerms) confidence += 0.1;
+    
+    // Cap at 1.0
+    confidence = Math.min(confidence, 1.0);
+    
+    return {
+      overall: confidence,
+      pattern_matches: matches.length / 5, // Normalize to 0-1
+      context_accuracy: confidence,
+      extraction_method: 'regex',
+      evidence: matches.map(match => match.text)
+    };
   }
 
   /**
@@ -1039,9 +1362,9 @@ export class EnhancedDataPipeline {
       return [];
     }
     
-    // Step 1: Normalize each program
-    const normalizedPrograms = rawPrograms.map(program => 
-      this.normalizer.normalizeProgram(program)
+    // Step 1: Normalize each program using DYNAMIC patterns
+    const normalizedPrograms = await Promise.all(
+      rawPrograms.map(program => this.normalizer.normalizeProgram(program))
     );
     
     console.log(`✅ Normalized ${normalizedPrograms.length} programs`);

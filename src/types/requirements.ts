@@ -28,7 +28,15 @@ export type RequirementCategory =
   | 'geographic'      // Location requirements
   | 'team'            // Team requirements
   | 'project'         // Project-specific requirements
-  | 'compliance';     // Regulatory compliance
+  | 'compliance'      // Regulatory compliance
+  | 'impact'          // Environmental, social, economic impact
+  | 'capex_opex'      // Capital expenditure vs operating expenditure
+  | 'use_of_funds'    // How funding will be used
+  | 'revenue_model'   // Business model and revenue generation
+  | 'market_size'     // Market potential and size
+  | 'co_financing'    // Co-financing requirements and ratios
+  | 'trl_level'       // Technology readiness level (1-9)
+  | 'consortium';     // Partnership and consortium requirements
 
 export type RequirementType = 
   | 'boolean'         // Yes/No requirement
@@ -84,6 +92,30 @@ export interface ProgramRequirements {
   // Compliance requirements
   compliance: ProgramRequirement[];
   
+  // Impact requirements
+  impact: ProgramRequirement[];
+  
+  // CAPEX/OPEX requirements
+  capex_opex: ProgramRequirement[];
+  
+  // Use of funds requirements
+  use_of_funds: ProgramRequirement[];
+  
+  // Revenue model requirements
+  revenue_model: ProgramRequirement[];
+  
+  // Market size requirements
+  market_size: ProgramRequirement[];
+  
+  // Co-financing requirements
+  co_financing: ProgramRequirement[];
+  
+  // TRL level requirements
+  trl_level: ProgramRequirement[];
+  
+  // Consortium requirements
+  consortium: ProgramRequirement[];
+  
   // Scoring weights for each category
   scoringWeights: {
     eligibility: number;
@@ -96,6 +128,14 @@ export interface ProgramRequirements {
     team: number;
     project: number;
     compliance: number;
+    impact: number;
+    capex_opex: number;
+    use_of_funds: number;
+    revenue_model: number;
+    market_size: number;
+    co_financing: number;
+    trl_level: number;
+    consortium: number;
   };
   
   // Decision tree questions derived from requirements
@@ -250,6 +290,54 @@ export interface ProgramExtractionTemplate {
       isRequired: boolean;
       examples?: string[];
     }>;
+    impact: Array<{
+      title: string;
+      description: string;
+      isRequired: boolean;
+      examples?: string[];
+    }>;
+    capex_opex: Array<{
+      title: string;
+      description: string;
+      isRequired: boolean;
+      examples?: string[];
+    }>;
+    use_of_funds: Array<{
+      title: string;
+      description: string;
+      isRequired: boolean;
+      examples?: string[];
+    }>;
+    revenue_model: Array<{
+      title: string;
+      description: string;
+      isRequired: boolean;
+      examples?: string[];
+    }>;
+    market_size: Array<{
+      title: string;
+      description: string;
+      isRequired: boolean;
+      examples?: string[];
+    }>;
+    co_financing: Array<{
+      title: string;
+      description: string;
+      isRequired: boolean;
+      examples?: string[];
+    }>;
+    trl_level: Array<{
+      title: string;
+      description: string;
+      isRequired: boolean;
+      examples?: string[];
+    }>;
+    consortium: Array<{
+      title: string;
+      description: string;
+      isRequired: boolean;
+      examples?: string[];
+    }>;
   };
   
   // Decision tree questions
@@ -269,6 +357,80 @@ export interface ProgramExtractionTemplate {
 }
 
 // ========= ENHANCED REQUIREMENT TYPES (System Analysis) =========
+
+// Confidence scoring for pattern matches
+export interface ConfidenceScore {
+  overall: number; // 0-1
+  pattern_matches: number; // 0-1
+  context_accuracy: number; // 0-1
+  extraction_method: 'regex' | 'nlp' | 'manual' | 'hybrid';
+  evidence: string[]; // Text snippets that support the categorization
+}
+
+// Austrian/EU specific requirement patterns
+export interface AustrianEUPatterns {
+  co_financing: {
+    patterns: RegExp[];
+    examples: string[];
+    institutions: string[];
+  };
+  trl_level: {
+    patterns: RegExp[];
+    examples: string[];
+    institutions: string[];
+  };
+  impact: {
+    patterns: RegExp[];
+    examples: string[];
+    institutions: string[];
+  };
+  consortium: {
+    patterns: RegExp[];
+    examples: string[];
+    institutions: string[];
+  };
+  capex_opex: {
+    patterns: RegExp[];
+    examples: string[];
+    institutions: string[];
+  };
+  use_of_funds: {
+    patterns: RegExp[];
+    examples: string[];
+    institutions: string[];
+  };
+  revenue_model: {
+    patterns: RegExp[];
+    examples: string[];
+    institutions: string[];
+  };
+  market_size: {
+    patterns: RegExp[];
+    examples: string[];
+    institutions: string[];
+  };
+}
+
+// Enhanced requirement with confidence scoring
+export interface EnhancedRequirement {
+  id: string;
+  category: RequirementCategory;
+  type: RequirementType;
+  title: string;
+  description: string;
+  isRequired: boolean;
+  priority: 'critical' | 'high' | 'medium' | 'low';
+  validationRules: ValidationRule[];
+  alternatives?: string[];
+  examples?: string[];
+  guidance?: string;
+  estimatedTime?: string;
+  cost?: number;
+  confidence: ConfidenceScore;
+  source_institution: string;
+  source_url: string;
+  extracted_at: Date;
+}
 
 // Program Types (7 total)
 export type ProgramType = 

@@ -2,6 +2,7 @@
 import puppeteer, { Browser, Page } from 'puppeteer';
 import * as cheerio from 'cheerio';
 import { ScrapedProgram } from './ScrapedProgram';
+import { dynamicPatternEngine } from './dynamicPatternEngine';
 
 // ============================================================================
 // CONFIGURATION CONSTANTS - Centralized Configuration
@@ -163,7 +164,7 @@ export class WebScraperService {
   private robotsTxtCache: Map<string, { rules: string[]; expires: number }> = new Map();
   private discoveredUrls: Map<string, string[]> = new Map();
   
-  // Enhanced requirements extraction patterns
+  // Enhanced requirements extraction patterns with Austrian/EU specific patterns
   private requirementPatterns = {
     business_plan: [
       /business\s+plan|geschäftsplan|business\s+concept|strategic\s+plan/i,
@@ -211,6 +212,67 @@ export class WebScraperService {
       /innovation\s+potential|innovationspotential/i,
       /research\s+and\s+development|forschung\s+und\s+entwicklung/i,
       /intellectual\s+property|geistiges\s+eigentum/i
+    ],
+    // NEW: Austrian/EU specific patterns
+    co_financing: [
+      /(?:mindestens|at least)\s+(\d{1,3})\s*%/gi,
+      /(?:eigenbeitrag|own contribution)\s*:?\s*(\d{1,3})\s*%/gi,
+      /(?:förderquote|funding rate)\s*:?\s*(\d{1,3})\s*%/gi,
+      /(?:co-?financing|mitfinanzierung)\s*:?\s*(\d{1,3})\s*%/gi,
+      /(?:eigenkapitalquote|equity ratio)\s*:?\s*(\d{1,3})\s*%/gi,
+      /(?:finanzautonomie|financial autonomy)\s*:?\s*(\d{1,3})\s*%/gi
+    ],
+    trl_level: [
+      /(?:trl|technology readiness level)\s*(\d)\s*(?:–|-|to)\s*(\d)/gi,
+      /(?:reifegrad|maturity level)\s*(\d)\s*(?:–|-|to)\s*(\d)/gi,
+      /(?:trl|technology readiness level)\s*(\d)/gi,
+      /(?:reifegrad|maturity level)\s*(\d)/gi,
+      /(?:tr[1-9]|trl[1-9])/gi
+    ],
+    impact: [
+      /(?:innovation|environmental|social)\s+impact/i,
+      /(?:marktwirkung|market impact)/i,
+      /(?:nachhaltigkeit|sustainability)/i,
+      /(?:developmental impact|entwicklungswirkung)/i,
+      /(?:climate|klima)\s+(?:impact|wirkung)/i,
+      /(?:environmental|umwelt)\s+(?:benefit|nutzen)/i
+    ],
+    consortium: [
+      /(?:konsortialpartner|consortium partner)/i,
+      /(?:partnership|partnerschaft)/i,
+      /(?:consortium leader|konsortialführer)/i,
+      /(?:international\s+consortium|internationales\s+konsortium)/i,
+      /(?:mindestens\s+\d+\s+partner|at least\s+\d+\s+partners)/i,
+      /(?:konsortium|consortium)/i
+    ],
+    capex_opex: [
+      /(?:capital\s+expenditure|capex)/i,
+      /(?:operating\s+costs|opex)/i,
+      /(?:investitionskosten|investment costs)/i,
+      /(?:betriebskosten|operating costs)/i,
+      /(?:budget\s+breakdown|budgetaufschlüsselung)/i,
+      /(?:cost\s+breakdown|kostenaufschlüsselung)/i
+    ],
+    use_of_funds: [
+      /(?:use\s+of\s+funds|verwendung\s+der\s+mittel)/i,
+      /(?:budget\s+allocation|budgetzuweisung)/i,
+      /(?:funding\s+purpose|förderzweck)/i,
+      /(?:cost\s+breakdown|kostenaufschlüsselung)/i,
+      /(?:budget\s+plan|budgetplan)/i
+    ],
+    revenue_model: [
+      /(?:business\s+model|geschäftsmodell)/i,
+      /(?:revenue\s+model|umsatzmodell)/i,
+      /(?:pricing\s+strategy|preisstrategie)/i,
+      /(?:monetization|monetarisierung)/i,
+      /(?:revenue\s+generation|umsatzgenerierung)/i
+    ],
+    market_size: [
+      /(?:market\s+size|marktgröße)/i,
+      /(?:market\s+potential|marktpotential)/i,
+      /(?:target\s+market|zielmarkt)/i,
+      /(?:growth\s+potential|wachstumspotential)/i,
+      /(?:market\s+opportunity|marktchance)/i
     ]
   };
 
@@ -251,7 +313,21 @@ export class WebScraperService {
       }
       
       console.log(`✅ Scraped ${programs.length} programs total`);
-      return programs;
+      
+      // Direct integration with categorization
+      console.log('🔄 Categorizing scraped programs...');
+      const categorizedPrograms = await Promise.all(
+        programs.map(async (program) => {
+          const categorizedRequirements = await this.categorizeScrapedData(program);
+          return {
+            ...program,
+            categorized_requirements: categorizedRequirements
+          };
+        })
+      );
+      
+      console.log(`✅ Categorized ${categorizedPrograms.length} programs`);
+      return categorizedPrograms;
     } catch (error) {
       console.error('❌ Error scraping programs:', error);
       // Fallback to API-based scraping
@@ -1321,7 +1397,7 @@ export class WebScraperService {
   }
 
   /**
-   * Enhanced requirements extraction using comprehensive patterns
+   * Enhanced requirements extraction using DYNAMIC patterns that learn and adapt
    */
   private async extractComprehensiveRequirements(page: Page, institution: string): Promise<any> {
     try {
@@ -1329,29 +1405,60 @@ export class WebScraperService {
         return document.body.textContent || '';
       });
       
+      // Use dynamic pattern engine for extraction
+      const extractedRequirements = await dynamicPatternEngine.extractRequirements(
+        content,
+        institution.toLowerCase(),
+        ['co_financing', 'trl_level', 'impact', 'consortium', 'capex_opex', 'use_of_funds', 'revenue_model', 'market_size']
+      );
+      
       const requirements: any = {};
       let confidence = 0;
       let totalPatterns = 0;
       let matchedPatterns = 0;
       
-      // Extract requirements using patterns
-      for (const [requirementType, patterns] of Object.entries(this.requirementPatterns)) {
-        let found = false;
-        let evidence: string[] = [];
-        
-        for (const pattern of patterns) {
-          const matches = content.match(pattern);
-          if (matches && matches.length > 0) {
-            found = true;
-            evidence.push(...matches.slice(0, 3)); // Keep first 3 matches as evidence
-          }
-        }
-        
-        if (found) {
-          requirements[requirementType] = true;
+      // Convert dynamic pattern results to requirements format
+      extractedRequirements.forEach((reqs, category) => {
+        if (reqs.length > 0) {
+          requirements[category] = {
+            required: true,
+            evidence: reqs.flatMap(req => req.evidence),
+            confidence: this.calculateAverageConfidence(reqs),
+            extraction_method: 'dynamic_patterns',
+            source_institution: institution,
+            pattern_matches: reqs.length
+          };
           matchedPatterns++;
         }
         totalPatterns++;
+      });
+      
+      // Fallback to static patterns for basic requirements
+      for (const [requirementType, patterns] of Object.entries(this.requirementPatterns)) {
+        if (!requirements[requirementType]) {
+          let found = false;
+          let evidence: string[] = [];
+          
+          for (const pattern of patterns) {
+            const matches = content.match(pattern);
+            if (matches && matches.length > 0) {
+              found = true;
+              evidence.push(...matches.slice(0, 3));
+            }
+          }
+          
+          if (found) {
+            requirements[requirementType] = {
+              required: true,
+              evidence: evidence,
+              confidence: this.calculatePatternConfidence(evidence, patterns),
+              extraction_method: 'static_regex',
+              source_institution: institution
+            };
+            matchedPatterns++;
+          }
+          totalPatterns++;
+        }
       }
       
       // Calculate confidence score
@@ -1369,6 +1476,96 @@ export class WebScraperService {
       };
     } catch (error) {
       console.error('❌ Error extracting requirements:', error);
+      return {};
+    }
+  }
+
+  /**
+   * Calculate average confidence from dynamic pattern results
+   */
+  private calculateAverageConfidence(requirements: any[]): number {
+    if (requirements.length === 0) return 0;
+    
+    const totalConfidence = requirements.reduce((sum, req) => sum + req.confidence, 0);
+    return totalConfidence / requirements.length;
+  }
+
+  /**
+   * Calculate confidence score for pattern matches
+   */
+  private calculatePatternConfidence(evidence: string[], patterns: RegExp[]): number {
+    let confidence = 0.5; // Base confidence
+    
+    // More evidence = higher confidence
+    if (evidence.length > 1) confidence += 0.2;
+    if (evidence.length > 3) confidence += 0.1;
+    
+    // Check for specific values (percentages, numbers)
+    const hasSpecificValues = evidence.some(e => /\d+/.test(e) || /%/.test(e));
+    if (hasSpecificValues) confidence += 0.2;
+    
+    // Check for multiple pattern matches
+    const patternMatches = evidence.length;
+    if (patternMatches > 1) confidence += 0.1;
+    
+    // Cap at 1.0
+    return Math.min(confidence, 1.0);
+  }
+
+  /**
+   * Scrape a specific source for background updates
+   */
+  async scrapeSource(source: string): Promise<ScrapedProgram[]> {
+    console.log(`🔄 Scraping source: ${source}`);
+    
+    try {
+      switch (source.toLowerCase()) {
+        case 'aws':
+          return await this.scrapeAWSPrograms();
+        case 'ffg':
+          return await this.scrapeFFGPrograms();
+        case 'vba':
+          return await this.scrapeAustrianPrograms();
+        case 'eu':
+          return await this.scrapeEUPrograms();
+        case 'eic':
+          return await this.scrapeEUPrograms(); // EIC is part of EU
+        case 'horizon_europe':
+          return await this.scrapeEUPrograms(); // Horizon Europe is part of EU
+        case 'ams':
+          return await this.scrapeAMSPrograms();
+        case 'wko':
+          return await this.scrapeWKOPrograms();
+        case 'oesb':
+          return await this.scrapeOESBPrograms();
+        default:
+          console.warn(`⚠️ Unknown source: ${source}`);
+          return [];
+      }
+    } catch (error) {
+      console.error(`❌ Error scraping ${source}:`, error);
+      return [];
+    }
+  }
+
+  /**
+   * Direct integration with categorization - call enhancedDataPipeline directly
+   */
+  private async categorizeScrapedData(scrapedProgram: ScrapedProgram): Promise<any> {
+    try {
+      // Import the enhanced data pipeline
+      const { enhancedDataPipeline } = await import('./enhancedDataPipeline');
+      
+      // Process the scraped program through the pipeline
+      const normalizedPrograms = await enhancedDataPipeline.processPrograms([scrapedProgram]);
+      
+      if (normalizedPrograms.length > 0) {
+        return normalizedPrograms[0].categorized_requirements || {};
+      }
+      
+      return {};
+    } catch (error) {
+      console.warn('⚠️ Failed to categorize scraped data:', error);
       return {};
     }
   }
@@ -2052,7 +2249,21 @@ export class WebScraperService {
       const uniquePrograms = this.detectDuplicates(allPrograms);
       
       console.log(`✅ Enhanced scraping completed: ${uniquePrograms.length} unique programs`);
-      return uniquePrograms;
+      
+      // Direct integration with categorization
+      console.log('🔄 Categorizing enhanced scraped programs...');
+      const categorizedPrograms = await Promise.all(
+        uniquePrograms.map(async (program) => {
+          const categorizedRequirements = await this.categorizeScrapedData(program);
+          return {
+            ...program,
+            categorized_requirements: categorizedRequirements
+          };
+        })
+      );
+      
+      console.log(`✅ Categorized ${categorizedPrograms.length} enhanced programs`);
+      return categorizedPrograms;
       
     } catch (error) {
       console.error('❌ Enhanced scraping failed:', error);
