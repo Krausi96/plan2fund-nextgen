@@ -2,7 +2,7 @@ import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import Link from "next/link";
 import { useUser } from "@/contexts/UserContext";
-import { FileText, Target, TrendingUp, Clock, CheckCircle, AlertCircle, Plus } from "lucide-react";
+import { FileText, Target, TrendingUp, Clock, CheckCircle, AlertCircle, Plus, RefreshCw, Database, Settings } from "lucide-react";
 import { useEffect, useState } from "react";
 import analytics from "@/lib/analytics";
 
@@ -34,10 +34,22 @@ export default function DashboardPage() {
     activeRecommendations: 0,
     successRate: 0
   });
+  
+  // Admin state
+  const [isAdmin, setIsAdmin] = useState(false);
+  const [isUpdating, setIsUpdating] = useState(false);
+  const [updateStatus, setUpdateStatus] = useState<string>('');
+  const [lastUpdate, setLastUpdate] = useState<string>('');
 
   useEffect(() => {
     // Load user data from localStorage or API
     loadUserData();
+    
+    // Check if user is admin (you can customize this logic)
+    checkAdminStatus();
+    
+    // Load last update time
+    loadLastUpdateTime();
     
     // Track dashboard view
     analytics.trackPageView('/dashboard', 'Dashboard');
@@ -89,6 +101,67 @@ export default function DashboardPage() {
       case 'approved': return <CheckCircle className="w-4 h-4" />;
       case 'rejected': return <AlertCircle className="w-4 h-4" />;
       default: return <FileText className="w-4 h-4" />;
+    }
+  };
+
+  // Admin functions
+  const checkAdminStatus = () => {
+    // Simple admin check - you can customize this
+    // For now, check if user email contains 'admin' or specific admin email
+    const isAdminUser = userProfile?.email?.includes('admin') || 
+                       userProfile?.email === 'kevin@plan2fund.com' ||
+                       localStorage.getItem('isAdmin') === 'true';
+    setIsAdmin(isAdminUser);
+  };
+
+  const loadLastUpdateTime = () => {
+    const lastUpdate = localStorage.getItem('lastDataUpdate');
+    if (lastUpdate) {
+      setLastUpdate(new Date(lastUpdate).toLocaleString());
+    }
+  };
+
+  const updateData = async () => {
+    setIsUpdating(true);
+    setUpdateStatus('Starting update...');
+    
+    try {
+      const response = await fetch('/api/scraper/run', { 
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' }
+      });
+      
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+      
+      const result = await response.json();
+      console.log('✅ Update completed:', result);
+      
+      setUpdateStatus('✅ Update completed successfully!');
+      setLastUpdate(new Date().toLocaleString());
+      localStorage.setItem('lastDataUpdate', new Date().toISOString());
+      
+      // Track admin action
+      analytics.trackUserAction('admin_data_update', {
+        success: true,
+        timestamp: new Date().toISOString()
+      });
+      
+    } catch (error) {
+      console.error('❌ Update failed:', error);
+      setUpdateStatus(`❌ Update failed: ${error instanceof Error ? error.message : 'Unknown error'}`);
+      
+      // Track admin action
+      analytics.trackUserAction('admin_data_update', {
+        success: false,
+        error: error instanceof Error ? error.message : 'Unknown error',
+        timestamp: new Date().toISOString()
+      });
+    } finally {
+      setIsUpdating(false);
+      // Clear status after 5 seconds
+      setTimeout(() => setUpdateStatus(''), 5000);
     }
   };
 
@@ -285,6 +358,94 @@ export default function DashboardPage() {
           </Link>
         </div>
       </Card>
+
+      {/* Admin Panel - Only visible to admins */}
+      {isAdmin && (
+        <Card className="p-6 mt-8 border-orange-200 bg-orange-50">
+          <div className="flex items-center justify-between mb-6">
+            <div className="flex items-center">
+              <Settings className="w-6 h-6 text-orange-600 mr-2" />
+              <h2 className="text-xl font-semibold text-orange-800">Admin Panel</h2>
+            </div>
+            <span className="px-2 py-1 bg-orange-200 text-orange-800 text-xs rounded-full">
+              Admin Only
+            </span>
+          </div>
+          
+          <div className="space-y-4">
+            {/* Data Update Section */}
+            <div className="bg-white p-4 rounded-lg border">
+              <div className="flex items-center justify-between mb-3">
+                <div className="flex items-center">
+                  <Database className="w-5 h-5 text-blue-600 mr-2" />
+                  <h3 className="font-medium text-gray-900">Funding Data Update</h3>
+                </div>
+                <Button 
+                  onClick={updateData} 
+                  disabled={isUpdating}
+                  className="bg-blue-600 hover:bg-blue-700 text-white"
+                >
+                  {isUpdating ? (
+                    <>
+                      <RefreshCw className="w-4 h-4 mr-2 animate-spin" />
+                      Updating...
+                    </>
+                  ) : (
+                    <>
+                      <RefreshCw className="w-4 h-4 mr-2" />
+                      Update Data
+                    </>
+                  )}
+                </Button>
+              </div>
+              
+              {lastUpdate && (
+                <p className="text-sm text-gray-600 mb-2">
+                  Last update: {lastUpdate}
+                </p>
+              )}
+              
+              {updateStatus && (
+                <div className={`text-sm p-2 rounded ${
+                  updateStatus.includes('✅') 
+                    ? 'bg-green-100 text-green-800' 
+                    : 'bg-red-100 text-red-800'
+                }`}>
+                  {updateStatus}
+                </div>
+              )}
+              
+              <p className="text-xs text-gray-500">
+                This will scrape all funding websites, categorize data, and update the database.
+                Process typically takes 2-5 minutes.
+              </p>
+            </div>
+            
+            {/* System Status */}
+            <div className="bg-white p-4 rounded-lg border">
+              <h3 className="font-medium text-gray-900 mb-2">System Status</h3>
+              <div className="grid grid-cols-2 gap-4 text-sm">
+                <div>
+                  <span className="text-gray-600">Pattern Learning:</span>
+                  <span className="ml-2 text-green-600 font-medium">Active</span>
+                </div>
+                <div>
+                  <span className="text-gray-600">Categories:</span>
+                  <span className="ml-2 text-blue-600 font-medium">18 Active</span>
+                </div>
+                <div>
+                  <span className="text-gray-600">Auto-Update:</span>
+                  <span className="ml-2 text-orange-600 font-medium">Manual</span>
+                </div>
+                <div>
+                  <span className="text-gray-600">Data Sources:</span>
+                  <span className="ml-2 text-blue-600 font-medium">Austrian/EU</span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </Card>
+      )}
     </div>
   );
 }
