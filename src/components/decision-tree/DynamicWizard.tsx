@@ -1,6 +1,7 @@
 // Dynamic Decision Tree Wizard - Phase 3 Step 1
 import React, { useState, useEffect } from 'react';
 import { DecisionTreeQuestion, DecisionTreeResult } from '../../lib/dynamicDecisionTree';
+import { conditionalQuestionEngine, ConditionalQuestion } from '../../lib/conditionalQuestionEngine';
 
 interface DynamicWizardProps {
   programId: string;
@@ -20,6 +21,8 @@ interface WizardState {
     warnings: string[];
     recommendations: string[];
   } | null;
+  conditionalQuestions: ConditionalQuestion[];
+  userProfile: Record<string, any>;
 }
 
 export const DynamicWizard: React.FC<DynamicWizardProps> = ({
@@ -33,7 +36,9 @@ export const DynamicWizard: React.FC<DynamicWizardProps> = ({
     isGenerating: false,
     isSubmitting: false,
     error: null,
-    validation: null
+    validation: null,
+    conditionalQuestions: [],
+    userProfile: {}
   });
 
   const [decisionTree, setDecisionTree] = useState<DecisionTreeResult | null>(null);
@@ -52,26 +57,71 @@ export const DynamicWizard: React.FC<DynamicWizardProps> = ({
       if (requirementsResponse.ok) {
         const requirements = await requirementsResponse.json();
         
-        // Convert structured requirements to decision tree format
-        const decisionTreeQuestions = requirements.decision_tree || [];
+        // Use decision tree engine to generate questions from program data
+        const { createDecisionTreeEngine } = await import('../../lib/dynamicDecisionTree');
+        
+        // Get program data for decision tree engine
+        const programData = requirements.library?.[0] || {};
+        const decisionTreeEngine = createDecisionTreeEngine([programData]);
+        
+        // Generate decision tree questions using the engine
+        const decisionTreeResult = decisionTreeEngine.generateDecisionTree(programId);
+        const decisionTreeQuestions = decisionTreeResult.questions;
+        
+        // Generate conditional questions from categorized requirements
+        // let conditionalQuestions: ConditionalQuestion[] = [];
+        // if (requirements.data_source === 'categorized_requirements' && requirements.library?.[0]?.categorized_requirements) {
+        //   conditionalQuestions = conditionalQuestionEngine.generateFromCategorizedRequirements(
+        //     requirements.library[0].categorized_requirements
+        //   );
+        // }
+        
+        // Set user profile for conditional logic
+        const userProfile = {
+          entity_stage: wizardState.answers.q2_entity_stage,
+          company_size: wizardState.answers.q3_company_size,
+          industry: wizardState.answers.q8_industry,
+          funding_type: wizardState.answers.q6_funding_amount,
+          location: wizardState.answers.q1_country
+        };
+        
+        conditionalQuestionEngine.setUserContext(wizardState.answers, userProfile);
+        const relevantConditionalQuestions = conditionalQuestionEngine.getRelevantQuestions();
+        
+        // Combine decision tree and conditional questions
+        const allQuestions = [
+          ...decisionTreeQuestions.map((q: any) => ({
+            id: q.id,
+            question: q.question,
+            type: q.type,
+            options: q.options || [],
+            required: q.required,
+            program_specific: q.program_specific,
+            validation_rules: q.validation_rules || [],
+            follow_up_questions: q.follow_up_questions || [],
+            ai_guidance: q.ai_guidance || 'eligibility'
+          })),
+          ...relevantConditionalQuestions.map((q: ConditionalQuestion) => ({
+            id: q.id,
+            question: q.question_text,
+            type: 'single' as const,
+            options: q.answer_options.map((opt: string) => ({ value: opt, label: opt })),
+            required: q.required,
+            program_specific: false,
+            validation_rules: q.validation_rules || [],
+            follow_up_questions: q.follow_up_questions || [],
+            ai_guidance: q.category
+          }))
+        ];
+        
         const result = {
           success: true,
           data: {
             programId,
-            questions: decisionTreeQuestions.map((q: any, index: number) => ({
-              id: q.id || `q_${index}`,
-              question: q.question_text,
-              type: 'single' as const,
-              options: q.answer_options ? q.answer_options.map((opt: string) => ({ value: opt, label: opt })) : [],
-              required: q.required !== false,
-              program_specific: true,
-              validation_rules: q.validation_rules || [],
-              follow_up_questions: q.next_question_id ? [`q_${q.next_question_id}`] : [],
-              ai_guidance: q.category || 'eligibility'
-            })),
-            total_questions: decisionTreeQuestions.length,
-            estimated_time: decisionTreeQuestions.length * 2, // 2 minutes per question
-            difficulty: decisionTreeQuestions.length > 5 ? 'hard' as const : decisionTreeQuestions.length > 3 ? 'medium' as const : 'easy' as const
+            questions: allQuestions,
+            total_questions: allQuestions.length,
+            estimated_time: allQuestions.length * 2, // 2 minutes per question
+            difficulty: allQuestions.length > 5 ? 'hard' as const : allQuestions.length > 3 ? 'medium' as const : 'easy' as const
           }
         };
         

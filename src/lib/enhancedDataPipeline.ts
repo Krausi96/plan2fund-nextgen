@@ -11,7 +11,7 @@
 
 import { ScrapedProgram } from './ScrapedProgram';
 import { Program } from '../types';
-import { RequirementCategory, ConfidenceScore, AustrianEUPatterns, EnhancedRequirement } from '../types/requirements';
+import { ConfidenceScore } from '../types/requirements';
 import { dynamicPatternEngine } from './dynamicPatternEngine';
 
 // ============================================================================
@@ -19,7 +19,8 @@ import { dynamicPatternEngine } from './dynamicPatternEngine';
 // ============================================================================
 
 // Austrian/EU specific patterns for enhanced categorization
-const AUSTRIAN_EU_PATTERNS: AustrianEUPatterns = {
+// These are ESSENTIAL patterns that the dynamic engine uses as base patterns
+const AUSTRIAN_EU_PATTERNS = {
   co_financing: {
     patterns: [
       /(?:mindestens|at least)\s+(\d{1,3})\s*%/gi,
@@ -58,22 +59,129 @@ const AUSTRIAN_EU_PATTERNS: AustrianEUPatterns = {
   },
   impact: {
     patterns: [
+      // EXISTING: Innovation, Environmental, Social Impact
       /(?:innovation|environmental|social)\s+impact/i,
       /(?:marktwirkung|market impact)/i,
       /(?:nachhaltigkeit|sustainability)/i,
       /(?:developmental impact|entwicklungswirkung)/i,
       /(?:climate|klima)\s+(?:impact|wirkung)/i,
-      /(?:environmental|umwelt)\s+(?:benefit|nutzen)/i
+      /(?:environmental|umwelt)\s+(?:benefit|nutzen)/i,
+      
+      // NEW: Economic Impact
+      /(?:economic|wirtschaftlich)\s+impact/i,
+      /(?:job\s+creation|arbeitsplatzschaffung)/i,
+      /(?:gdp|bruttoinlandsprodukt)/i,
+      /(?:economic\s+growth|wirtschaftswachstum)/i,
+      /(?:economic\s+benefit|wirtschaftlicher\s+nutzen)/i,
+      /(?:employment|beschäftigung)/i,
+      
+      // NEW: Technology Impact
+      /(?:digital\s+transformation|digitale\s+transformation)/i,
+      /(?:technology\s+adoption|technologieadoption)/i,
+      /(?:innovation\s+adoption|innovationsadoption)/i,
+      /(?:digital\s+impact|digitaler\s+impact)/i,
+      /(?:tech\s+impact|technologie\s+wirkung)/i,
+      
+      // NEW: Regional Impact
+      /(?:regional\s+development|regionale\s+entwicklung)/i,
+      /(?:rural\s+development|ländliche\s+entwicklung)/i,
+      /(?:urban\s+innovation|städtische\s+innovation)/i,
+      /(?:regional\s+impact|regionaler\s+impact)/i,
+      /(?:local\s+impact|lokaler\s+impact)/i,
+      
+      // NEW: Sector Impact
+      /(?:industry\s+transformation|branchentransformation)/i,
+      /(?:sector\s+development|branchenentwicklung)/i,
+      /(?:sector\s+impact|branchenimpact)/i,
+      /(?:industry\s+impact|branchenwirkung)/i,
+      
+      // NEW: International Impact
+      /(?:export\s+potential|exportpotential)/i,
+      /(?:global\s+competitiveness|globale\s+wettbewerbsfähigkeit)/i,
+      /(?:international\s+cooperation|internationale\s+zusammenarbeit)/i,
+      /(?:international\s+impact|internationaler\s+impact)/i,
+      /(?:global\s+impact|globaler\s+impact)/i,
+      
+      // NEW: Research Impact
+      /(?:scientific\s+advancement|wissenschaftlicher\s+fortschritt)/i,
+      /(?:knowledge\s+transfer|wissenstransfer)/i,
+      /(?:research\s+impact|forschungsimpact)/i,
+      /(?:academic\s+impact|akademischer\s+impact)/i,
+      /(?:scientific\s+impact|wissenschaftlicher\s+impact)/i,
+      
+      // NEW: Social Impact (expanded)
+      /(?:social\s+benefit|sozialer\s+nutzen)/i,
+      /(?:community\s+impact|gemeinschaftsimpact)/i,
+      /(?:societal\s+impact|gesellschaftlicher\s+impact)/i,
+      /(?:public\s+benefit|öffentlicher\s+nutzen)/i,
+      
+      // NEW: Cultural Impact
+      /(?:cultural\s+preservation|kulturerhalt)/i,
+      /(?:creative\s+industries|kreativwirtschaft)/i,
+      /(?:cultural\s+impact|kulturimpact)/i,
+      /(?:cultural\s+benefit|kultureller\s+nutzen)/i,
+      /(?:arts\s+impact|kunst\s+wirkung)/i
     ],
     examples: [
+      // EXISTING
       'innovation impact',
       'environmental impact',
       'social impact',
       'nachhaltigkeit',
       'developmental impact',
-      'climate impact'
+      'climate impact',
+      
+      // NEW: Economic Impact
+      'economic impact',
+      'job creation',
+      'GDP contribution',
+      'economic growth',
+      'arbeitsplatzschaffung',
+      'wirtschaftswachstum',
+      
+      // NEW: Technology Impact
+      'digital transformation',
+      'technology adoption',
+      'digitale transformation',
+      'technologieadoption',
+      
+      // NEW: Regional Impact
+      'regional development',
+      'rural development',
+      'regionale entwicklung',
+      'ländliche entwicklung',
+      
+      // NEW: Sector Impact
+      'industry transformation',
+      'sector development',
+      'branchentransformation',
+      'branchenentwicklung',
+      
+      // NEW: International Impact
+      'export potential',
+      'global competitiveness',
+      'exportpotential',
+      'globale wettbewerbsfähigkeit',
+      
+      // NEW: Research Impact
+      'scientific advancement',
+      'knowledge transfer',
+      'wissenschaftlicher fortschritt',
+      'wissenstransfer',
+      
+      // NEW: Social Impact (expanded)
+      'social benefit',
+      'community impact',
+      'sozialer nutzen',
+      'gemeinschaftsimpact',
+      
+      // NEW: Cultural Impact
+      'cultural preservation',
+      'creative industries',
+      'kulturerhalt',
+      'kreativwirtschaft'
     ],
-    institutions: ['ADA', 'EU', 'Horizon Europe', 'LIFE', 'Climate Fund']
+    institutions: ['ADA', 'EU', 'Horizon Europe', 'LIFE', 'Climate Fund', 'FFG', 'AWS', 'VBA', 'EIC', 'Digital Europe']
   },
   consortium: {
     patterns: [
@@ -260,7 +368,7 @@ export class DataNormalization {
     normalized.eligibility_criteria = this.standardizeEligibility(rawProgram.eligibility_criteria);
     
     // 7. Generate AI-enhanced fields (decision tree questions, editor sections, readiness criteria)
-    this.generateAIEnhancedFields(normalized);
+    await this.generateAIEnhancedFields(normalized);
     
     // 8. Ensure required fields have defaults
     this.ensureRequiredFields(normalized);
@@ -397,7 +505,7 @@ export class DataNormalization {
   /**
    * Generate AI-enhanced fields based on program characteristics
    */
-  private generateAIEnhancedFields(program: NormalizedProgram): void {
+  private async generateAIEnhancedFields(program: NormalizedProgram): Promise<void> {
     // Generate decision tree questions
     program.decision_tree_questions = this.generateDecisionTreeQuestions(program);
     
@@ -641,7 +749,7 @@ export class DataNormalization {
    * Automatically categorize requirements into the 18 standardized categories using DYNAMIC patterns
    */
   private async categorizeRequirements(program: NormalizedProgram): Promise<any> {
-    const categories = {
+    const categories: { [key: string]: any[] } = {
       eligibility: [],
       documents: [],
       financial: [],
@@ -725,7 +833,7 @@ export class DataNormalization {
   /**
    * Map requirement keys to categories
    */
-  private mapRequirementToCategory(key: string, value: any): string | null {
+  private mapRequirementToCategory(key: string, _value: any): string | null {
     const mapping = {
       // Documents category
       'business_plan': 'documents',
@@ -772,13 +880,13 @@ export class DataNormalization {
       'revenue': 'financial'
     };
 
-    return mapping[key] || null;
+    return (mapping as any)[key] || null;
   }
 
   /**
    * Map eligibility criteria keys to categories
    */
-  private mapEligibilityToCategory(key: string, value: any): string | null {
+  private mapEligibilityToCategory(key: string, _value: any): string | null {
     const mapping = {
       // Eligibility category
       'description': 'eligibility',
@@ -823,11 +931,12 @@ export class DataNormalization {
       'audit': 'compliance'
     };
 
-    return mapping[key] || null;
+    return (mapping as any)[key] || null;
   }
 
   /**
    * Enhanced categorization using DYNAMIC patterns that learn and adapt
+   * Also uses static Austrian/EU patterns as fallback
    */
   private async categorizeWithDynamicPatterns(program: NormalizedProgram, categories: any): Promise<void> {
     // Combine all text content for pattern matching
@@ -853,8 +962,30 @@ export class DataNormalization {
           source: 'dynamic_patterns',
           confidence: this.calculateAverageConfidence(requirements),
           evidence: requirements.flatMap(req => req.evidence),
-          institutions: [...new Set(requirements.map(req => req.institution))]
+          institutions: Array.from(new Set(requirements.map(req => req.institution)))
         });
+      }
+    });
+    
+    // FALLBACK: Use static Austrian/EU patterns for any categories that didn't get results
+    Object.keys(AUSTRIAN_EU_PATTERNS).forEach(category => {
+      if (categories[category].length === 0) {
+        const patternConfig = (AUSTRIAN_EU_PATTERNS as any)[category];
+        const matches = this.findPatternMatches(textContent, patternConfig.patterns);
+        
+        if (matches.length > 0) {
+          const confidence = this.calculateConfidence(matches, patternConfig);
+          
+          categories[category].push({
+            type: category,
+            value: matches.map(match => match.text),
+            required: true,
+            source: 'static_patterns',
+            confidence: confidence.overall,
+            evidence: matches.map(match => match.text),
+            institutions: patternConfig.institutions
+          });
+        }
       }
     });
   }
@@ -874,8 +1005,8 @@ export class DataNormalization {
         if (typeof req === 'string') {
           textParts.push(req);
         } else if (typeof req === 'object' && req !== null) {
-          if (req.description) textParts.push(req.description);
-          if (req.value && typeof req.value === 'string') textParts.push(req.value);
+          if ((req as any).description) textParts.push((req as any).description);
+          if ((req as any).value && typeof (req as any).value === 'string') textParts.push((req as any).value);
         }
       });
     }
@@ -896,8 +1027,9 @@ export class DataNormalization {
     return textParts.join(' ').toLowerCase();
   }
 
+
   /**
-   * Find pattern matches in text content
+   * Find pattern matches in text content using Austrian/EU patterns
    */
   private findPatternMatches(text: string, patterns: RegExp[]): Array<{ text: string; match: RegExpMatchArray }> {
     const matches = [];
@@ -916,36 +1048,7 @@ export class DataNormalization {
   }
 
   /**
-   * Extract institution from program data
-   */
-  private extractInstitution(program: NormalizedProgram): string {
-    if (program.institution) {
-      return program.institution.toLowerCase();
-    }
-    
-    if (program.source_url) {
-      if (program.source_url.includes('aws.at')) return 'aws';
-      if (program.source_url.includes('ffg.at')) return 'ffg';
-      if (program.source_url.includes('viennabusinessagency.at')) return 'vba';
-      if (program.source_url.includes('ec.europa.eu')) return 'eu';
-      if (program.source_url.includes('ams.at')) return 'ams';
-    }
-    
-    return 'general';
-  }
-
-  /**
-   * Calculate average confidence from dynamic pattern results
-   */
-  private calculateAverageConfidence(requirements: any[]): number {
-    if (requirements.length === 0) return 0;
-    
-    const totalConfidence = requirements.reduce((sum, req) => sum + req.confidence, 0);
-    return totalConfidence / requirements.length;
-  }
-
-  /**
-   * Calculate confidence score for pattern matches (legacy method for static patterns)
+   * Calculate confidence score for pattern matches
    */
   private calculateConfidence(matches: Array<{ text: string; match: RegExpMatchArray }>, patternConfig: any): ConfidenceScore {
     let confidence = 0.5; // Base confidence
@@ -979,6 +1082,36 @@ export class DataNormalization {
       evidence: matches.map(match => match.text)
     };
   }
+
+  /**
+   * Extract institution from program data
+   */
+  private extractInstitution(program: NormalizedProgram): string {
+    if (program.institution) {
+      return program.institution.toLowerCase();
+    }
+    
+    if (program.source_url) {
+      if (program.source_url.includes('aws.at')) return 'aws';
+      if (program.source_url.includes('ffg.at')) return 'ffg';
+      if (program.source_url.includes('viennabusinessagency.at')) return 'vba';
+      if (program.source_url.includes('ec.europa.eu')) return 'eu';
+      if (program.source_url.includes('ams.at')) return 'ams';
+    }
+    
+    return 'general';
+  }
+
+  /**
+   * Calculate average confidence from dynamic pattern results
+   */
+  private calculateAverageConfidence(requirements: any[]): number {
+    if (requirements.length === 0) return 0;
+    
+    const totalConfidence = requirements.reduce((sum, req) => sum + req.confidence, 0);
+    return totalConfidence / requirements.length;
+  }
+
 
   /**
    * Ensure all required fields have default values
@@ -1311,7 +1444,7 @@ export class DataCaching {
   async invalidateCache(pattern: string): Promise<void> {
     const regex = new RegExp(pattern);
     
-    for (const key of this.cache.keys()) {
+    for (const key of Array.from(this.cache.keys())) {
       if (regex.test(key)) {
         this.cache.delete(key);
       }

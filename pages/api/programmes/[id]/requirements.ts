@@ -1,6 +1,7 @@
 // API endpoint for program requirements (Decision Tree, Editor, Library)
 import { NextApiRequest, NextApiResponse } from 'next';
 import { Pool } from 'pg';
+import { categoryConverter, CategorizedRequirements } from '../../../../src/lib/categoryConverters';
 
 const pool = new Pool({
   connectionString: process.env.DATABASE_URL,
@@ -16,7 +17,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
   try {
     if (req.method === 'GET') {
-      // Get all requirements for a program
+      // Get all requirements for a program using new category converters
       const requirements = await getProgramRequirements(id);
       return res.status(200).json(requirements);
     } else if (req.method === 'POST') {
@@ -40,12 +41,12 @@ async function getProgramRequirements(programId: string) {
   const client = await pool.connect();
   
   try {
-    // Get program data from main table with JSONB columns
+    // Get program data from main table with JSONB columns including categorized_requirements
     const programQuery = `
       SELECT id, name, description, program_type, funding_amount_min, funding_amount_max,
              currency, deadline, eligibility_criteria, requirements, contact_info,
              source_url, target_personas, tags, decision_tree_questions, editor_sections, 
-             readiness_criteria, ai_guidance
+             readiness_criteria, ai_guidance, categorized_requirements
       FROM programs 
       WHERE id = $1 AND is_active = true
     `;
@@ -57,49 +58,80 @@ async function getProgramRequirements(programId: string) {
 
     const program = programResult.rows[0];
 
-    // Transform decision_tree_questions from JSONB to expected format
-    const decisionTree = (program.decision_tree_questions || []).map((q: any, index: number) => ({
-      id: q.id || `q_${index}`,
-      question_text: q.question,
-      answer_options: q.options || [],
-      next_question_id: q.follow_up_questions && q.follow_up_questions[0] ? q.follow_up_questions[0].replace('q_', '') : null,
-      validation_rules: q.validation_rules || [],
-      skip_logic: {},
-      required: q.required !== false,
-      category: q.ai_guidance || 'eligibility'
-    }));
+    // Check if we have categorized_requirements from Layer 1&2
+    if (program.categorized_requirements && Object.keys(program.categorized_requirements).length > 0) {
+      console.log('🔄 Using categorized_requirements from Layer 1&2');
+      
+      // Use decision tree engine to generate questions from categorized data
+      const categorizedRequirements = program.categorized_requirements as CategorizedRequirements;
+      
+      // Import decision tree engine
+      const { createDecisionTreeEngine } = await import('../../../../src/lib/dynamicDecisionTree');
+      
+      // Create decision tree from program data
+      const decisionTreeEngine = createDecisionTreeEngine([program]);
+      const decisionTreeResult = decisionTreeEngine.generateDecisionTree(programId);
+      const decisionTree = decisionTreeResult.questions;
+      
+      // Determine program type for template selection
+      const programType = program.program_type || 'grants';
+      
+      const editor = categoryConverter.convertToEditorSections(categorizedRequirements, programType);
+      const library = [categoryConverter.convertToLibraryData(categorizedRequirements, program)];
 
-    // Transform editor_sections from JSONB to expected format
-    const editor = (program.editor_sections || []).map((s: any, index: number) => ({
-      id: s.id || `section_${index}`,
-      section_name: s.title,
-      prompt: s.guidance || '',
-      hints: s.hints || [],
-      word_count_min: s.word_count_min,
-      word_count_max: s.word_count_max,
-      required: s.required !== false,
-      ai_guidance: s.guidance,
-      template: s.template || ''
-    }));
+      return {
+        program_id: programId,
+        decision_tree: decisionTree,
+        editor: editor,
+        library: library,
+        data_source: 'categorized_requirements' // Flag to indicate we used new system
+      };
+    } else {
+      console.log('⚠️ No categorized_requirements found, falling back to legacy data');
+      
+      // Fallback to legacy transformation for programs without categorized_requirements
+      const decisionTree = (program.decision_tree_questions || []).map((q: any, index: number) => ({
+        id: q.id || `q_${index}`,
+        question_text: q.question,
+        answer_options: q.options || [],
+        next_question_id: q.follow_up_questions && q.follow_up_questions[0] ? q.follow_up_questions[0].replace('q_', '') : null,
+        validation_rules: q.validation_rules || [],
+        skip_logic: {},
+        required: q.required !== false,
+        category: q.ai_guidance || 'eligibility'
+      }));
 
-    // Transform library details from program data
-    const library = [{
-      id: 'library_1',
-      eligibility_text: (program.eligibility_criteria && program.eligibility_criteria.text) || program.description || '',
-      documents: (program.requirements && program.requirements.documents) || [],
-      funding_amount: `${program.funding_amount_min || 0} - ${program.funding_amount_max || 0} ${program.currency || 'EUR'}`,
-      deadlines: program.deadline ? [program.deadline] : [],
-      application_procedures: (program.requirements && program.requirements.procedures) || [],
-      compliance_requirements: (program.requirements && program.requirements.compliance) || [],
-      contact_info: program.contact_info || {}
-    }];
+      const editor = (program.editor_sections || []).map((s: any, index: number) => ({
+        id: s.id || `section_${index}`,
+        section_name: s.title,
+        prompt: s.guidance || '',
+        hints: s.hints || [],
+        word_count_min: s.word_count_min,
+        word_count_max: s.word_count_max,
+        required: s.required !== false,
+        ai_guidance: s.guidance,
+        template: s.template || ''
+      }));
 
-    return {
-      program_id: programId,
-      decision_tree: decisionTree,
-      editor: editor,
-      library: library
-    };
+      const library = [{
+        id: 'library_1',
+        eligibility_text: (program.eligibility_criteria && program.eligibility_criteria.text) || program.description || '',
+        documents: (program.requirements && program.requirements.documents) || [],
+        funding_amount: `${program.funding_amount_min || 0} - ${program.funding_amount_max || 0} ${program.currency || 'EUR'}`,
+        deadlines: program.deadline ? [program.deadline] : [],
+        application_procedures: (program.requirements && program.requirements.procedures) || [],
+        compliance_requirements: (program.requirements && program.requirements.compliance) || [],
+        contact_info: program.contact_info || {}
+      }];
+
+      return {
+        program_id: programId,
+        decision_tree: decisionTree,
+        editor: editor,
+        library: library,
+        data_source: 'legacy' // Flag to indicate we used legacy system
+      };
+    }
   } finally {
     client.release();
   }

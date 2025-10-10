@@ -38,79 +38,11 @@ import path from 'path';
 //   return tags;
 // }
 
-function generateDecisionTreeQuestions(program: any): any[] {
-  const questions = [];
-  if (program.program_type === 'grant' || program.program_type === 'loan') {
-    questions.push({
-      id: 'q1_company_stage',
-      type: 'single',
-      question: 'What stage is your company at?',
-      options: [
-        { value: 'startup', label: 'Startup (0-3 years)' },
-        { value: 'sme', label: 'Small/Medium Enterprise' },
-        { value: 'scaleup', label: 'Scale-up (3+ years)' }
-      ],
-      required: true
-    });
-  }
-  if (program.funding_amount_max > 0) {
-    questions.push({
-      id: 'q2_funding_amount',
-      type: 'range',
-      question: `How much funding do you need? (This program offers up to €${program.funding_amount_max.toLocaleString()})`,
-      min: 0,
-      max: program.funding_amount_max,
-      required: true
-    });
-  }
-  return questions;
-}
+// Removed unused function - replaced by category converter system
 
-function generateEditorSections(program: any): any[] {
-  const sections = [];
-  sections.push({
-    id: 'executive_summary',
-    title: 'Executive Summary',
-    required: true,
-    ai_prompts: [
-      'Describe your business idea in 2-3 sentences',
-      'What problem does your solution solve?',
-      'What makes your approach unique?'
-    ]
-  });
-  if (program.program_type === 'grant' || program.program_type === 'loan') {
-    sections.push({
-      id: 'business_plan',
-      title: 'Business Plan',
-      required: true,
-      ai_prompts: [
-        'Market analysis and target customers',
-        'Revenue model and financial projections',
-        'Competitive advantage and go-to-market strategy'
-      ]
-    });
-  }
-  return sections;
-}
+// Removed unused function - replaced by category converter system
 
-function generateReadinessCriteria(program: any): any[] {
-  const criteria = [];
-  criteria.push({
-    id: 'team_complete',
-    required: true,
-    description: 'Complete founding team with relevant expertise',
-    weight: 'high'
-  });
-  if (program.program_type === 'grant' || program.program_type === 'loan') {
-    criteria.push({
-      id: 'business_registered',
-      required: true,
-      description: 'Company legally registered and operational',
-      weight: 'high'
-    });
-  }
-  return criteria;
-}
+// Removed unused function - replaced by category converter system
 
 // function generateAIGuidance(program: any): any {
 //   return {
@@ -193,7 +125,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
               SELECT id, name, description, program_type, funding_amount_min, funding_amount_max, 
                      source_url, deadline, is_active, scraped_at,
                      target_personas, tags, decision_tree_questions, editor_sections, 
-                     readiness_criteria, ai_guidance
+                     readiness_criteria, ai_guidance, categorized_requirements
               FROM programs 
               WHERE is_active = true
             `;
@@ -223,7 +155,9 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
                 decision_tree_questions: row.decision_tree_questions || [],
                 editor_sections: row.editor_sections || [],
                 readiness_criteria: row.readiness_criteria || [],
-                ai_guidance: row.ai_guidance || null
+                ai_guidance: row.ai_guidance || null,
+                // Include categorized requirements from Layer 1&2
+                categorized_requirements: row.categorized_requirements || null
               };
             });
             

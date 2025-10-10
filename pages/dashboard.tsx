@@ -107,9 +107,9 @@ export default function DashboardPage() {
   // Admin functions
   const checkAdminStatus = () => {
     // Simple admin check - you can customize this
-    // For now, check if user email contains 'admin' or specific admin email
-    const isAdminUser = userProfile?.email?.includes('admin') || 
-                       userProfile?.email === 'kevin@plan2fund.com' ||
+    // For now, check if user ID contains 'admin' or specific admin ID
+    const isAdminUser = userProfile?.id?.includes('admin') || 
+                       userProfile?.id === 'kevin@plan2fund.com' ||
                        localStorage.getItem('isAdmin') === 'true';
     setIsAdmin(isAdminUser);
   };

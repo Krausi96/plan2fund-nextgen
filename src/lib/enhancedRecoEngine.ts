@@ -366,6 +366,110 @@ function calculateTimelineFit(_answers: UserAnswers, signals: DerivedSignals): n
   return Math.max(0, Math.min(100, score));
 }
 
+// Score programs using categorized requirements (18 categories from Layer 1&2)
+function scoreCategorizedRequirements(
+  categorizedRequirements: any,
+  answers: UserAnswers
+): {
+  score: number;
+  matchedCriteria: Array<{
+    key: string;
+    value: any;
+    reason: string;
+    status: 'passed' | 'warning' | 'failed';
+  }>;
+  gaps: Array<{
+    key: string;
+    description: string;
+    action: string;
+    priority: 'high' | 'medium' | 'low';
+  }>;
+} {
+  let score = 0;
+  const matchedCriteria: Array<{
+    key: string;
+    value: any;
+    reason: string;
+    status: 'passed' | 'warning' | 'failed';
+  }> = [];
+  const gaps: Array<{
+    key: string;
+    description: string;
+    action: string;
+    priority: 'high' | 'medium' | 'low';
+  }> = [];
+
+  // Define mapping between user answers and categorized requirements
+  const answerMapping: Record<string, string[]> = {
+    'q1_country': ['geographic', 'eligibility'],
+    'q2_entity_stage': ['team', 'project'],
+    'q3_company_size': ['team', 'consortium'],
+    'q4_theme': ['impact', 'project'],
+    'q5_maturity_trl': ['trl_level', 'technical'],
+    'q6_funding_amount': ['financial', 'co_financing'],
+    'q7_timeline': ['timeline'],
+    'q8_industry': ['project', 'market_size'],
+    'q9_team_size': ['team', 'consortium'],
+    'q10_revenue_model': ['revenue_model', 'use_of_funds']
+  };
+
+  // Score each category
+  Object.entries(categorizedRequirements).forEach(([category, data]: [string, any]) => {
+    if (!data || !Array.isArray(data) || data.length === 0) return;
+
+    // Find matching user answers for this category
+    const relevantAnswers = Object.entries(answerMapping)
+      .filter(([_, categories]) => categories.includes(category))
+      .map(([answerKey, _]) => ({ key: answerKey, value: answers[answerKey] }))
+      .filter(answer => answer.value !== undefined && answer.value !== null && answer.value !== '');
+
+    if (relevantAnswers.length === 0) return;
+
+    // Score based on category type
+    data.forEach((item: any) => {
+      const itemValue = Array.isArray(item.value) ? item.value.join(', ') : item.value;
+      const confidence = item.confidence || 0.5;
+
+      // Check if any relevant answer matches this requirement
+      let matched = false;
+      let matchReason = '';
+
+      relevantAnswers.forEach(answer => {
+        if (typeof itemValue === 'string' && itemValue.toLowerCase().includes(answer.value.toLowerCase())) {
+          matched = true;
+          matchReason = `${answer.key} matches ${category} requirement`;
+        } else if (Array.isArray(item.value) && item.value.some((v: string) => 
+          v.toLowerCase().includes(answer.value.toLowerCase()))) {
+          matched = true;
+          matchReason = `${answer.key} matches ${category} requirement`;
+        }
+      });
+
+      if (matched) {
+        const categoryScore = Math.round(10 * confidence); // Base 10 points per match, weighted by confidence
+        score += categoryScore;
+        
+        matchedCriteria.push({
+          key: category,
+          value: itemValue,
+          reason: matchReason,
+          status: 'passed'
+        });
+      } else if (confidence > 0.7) {
+        // High confidence requirement that doesn't match
+        gaps.push({
+          key: category,
+          description: `${category} requirement not met: ${itemValue}`,
+          action: `Review ${category} requirements and adjust your answers`,
+          priority: 'medium'
+        });
+      }
+    });
+  });
+
+  return { score, matchedCriteria, gaps };
+}
+
 // Enhanced scoring with detailed explanations and trace generation
 export async function scoreProgramsEnhanced(
   answers: UserAnswers,
@@ -416,7 +520,9 @@ export async function scoreProgramsEnhanced(
       decision_tree_questions: p.decision_tree_questions || [],
       editor_sections: p.editor_sections || [],
       readiness_criteria: p.readiness_criteria || [],
-      ai_guidance: p.ai_guidance || null
+      ai_guidance: p.ai_guidance || null,
+      // Include categorized requirements from Layer 1&2
+      categorized_requirements: p.categorized_requirements || null
     }));
 
     console.log('🔍 Debug: Processing', normalizedPrograms.length, 'programs');
@@ -609,6 +715,15 @@ export async function scoreProgramsEnhanced(
             score += 1;
           }
         }
+      }
+
+      // Enhanced scoring with categorized requirements (Layer 1&2)
+      if (program.categorized_requirements) {
+        const categorizedScore = scoreCategorizedRequirements(program.categorized_requirements, answers);
+        score += categorizedScore.score;
+        matchedCriteria.push(...categorizedScore.matchedCriteria);
+        gaps.push(...categorizedScore.gaps);
+        console.log(`🔍 Debug: Categorized requirements score for ${program.id}: ${categorizedScore.score}`);
       }
 
       // Use GPT-enhanced scoring as primary score

@@ -10,6 +10,7 @@ export interface GPTEnhancedProgram extends Program {
   editor_sections?: EditorSection[];
   readiness_criteria?: ReadinessCriterion[];
   ai_guidance?: AIGuidance;
+  categorized_requirements?: any; // From Layer 1&2 - 18 categories
 }
 
 export interface DecisionTreeQuestion {

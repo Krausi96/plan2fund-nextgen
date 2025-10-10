@@ -33,7 +33,15 @@ export class RequirementsExtractor {
         geographic: [],
         team: [],
         project: [],
-        compliance: []
+        compliance: [],
+        impact: [],
+        capex_opex: [],
+        use_of_funds: [],
+        revenue_model: [],
+        market_size: [],
+        co_financing: [],
+        trl_level: [],
+        consortium: []
       },
       questions: [],
       editorSections: []
@@ -117,6 +125,14 @@ export class RequirementsExtractor {
       team: this.convertRequirements(extracted.requirements.team, 'team'),
       project: this.convertRequirements(extracted.requirements.project, 'project'),
       compliance: this.convertRequirements(extracted.requirements.compliance, 'compliance'),
+      impact: this.convertRequirements(extracted.requirements.impact, 'impact'),
+      capex_opex: this.convertRequirements(extracted.requirements.capex_opex, 'capex_opex'),
+      use_of_funds: this.convertRequirements(extracted.requirements.use_of_funds, 'use_of_funds'),
+      revenue_model: this.convertRequirements(extracted.requirements.revenue_model, 'revenue_model'),
+      market_size: this.convertRequirements(extracted.requirements.market_size, 'market_size'),
+      co_financing: this.convertRequirements(extracted.requirements.co_financing, 'co_financing'),
+      trl_level: this.convertRequirements(extracted.requirements.trl_level, 'trl_level'),
+      consortium: this.convertRequirements(extracted.requirements.consortium, 'consortium'),
       
       scoringWeights: this.calculateScoringWeights(extracted),
       decisionTreeQuestions: this.convertQuestions(extracted.questions),

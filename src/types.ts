@@ -32,6 +32,8 @@ export type Program = {
   editor_sections?: any[];
   readiness_criteria?: any[];
   ai_guidance?: any;
+  // Layer 1&2 categorized requirements
+  categorized_requirements?: any;
 };
 
 export type ScoredProgram = Program & {

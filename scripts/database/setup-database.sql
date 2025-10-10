@@ -29,7 +29,8 @@ CREATE TABLE IF NOT EXISTS programs (
   institution VARCHAR(255), -- Source institution name
   program_category VARCHAR(255), -- Category like 'austrian_grants'
   comprehensive_requirements JSONB, -- Full extracted requirements
-  requirements_extraction_metadata JSONB -- Extraction confidence, patterns used, etc.
+  requirements_extraction_metadata JSONB, -- Extraction confidence, patterns used, etc.
+  categorized_requirements JSONB -- 18 categories with extracted requirements
 );
 
 -- Create program_requirements table
@@ -62,6 +63,10 @@ CREATE INDEX IF NOT EXISTS idx_programs_deadline ON programs(deadline);
 CREATE INDEX IF NOT EXISTS idx_programs_scraped_at ON programs(scraped_at);
 CREATE INDEX IF NOT EXISTS idx_requirements_program_id ON program_requirements(program_id);
 CREATE INDEX IF NOT EXISTS idx_rubrics_program_id ON rubrics(program_id);
+-- GIN indexes for JSONB fields
+CREATE INDEX IF NOT EXISTS idx_programs_categorized_requirements ON programs USING gin (categorized_requirements);
+CREATE INDEX IF NOT EXISTS idx_programs_eligibility_criteria ON programs USING gin (eligibility_criteria);
+CREATE INDEX IF NOT EXISTS idx_programs_requirements ON programs USING gin (requirements);
 
 -- Insert sample data with GPT enhancements
 INSERT INTO programs (

@@ -64,34 +64,136 @@ export class DynamicDecisionTreeEngine {
   private buildQuestionsFromProgram(program: any): DecisionTreeQuestion[] {
     const questions: DecisionTreeQuestion[] = [];
 
-    // 1. Basic eligibility questions
-    questions.push(...this.generateEligibilityQuestions(program));
+    // 1. Use categorized requirements if available (Layer 1&2)
+    if (program.categorized_requirements && Object.keys(program.categorized_requirements).length > 0) {
+      questions.push(...this.generateQuestionsFromCategorizedRequirements(program.categorized_requirements));
+    } else {
+      // 2. Fallback to basic eligibility questions
+      questions.push(...this.generateEligibilityQuestions(program));
 
-    // 2. Program-specific questions from decision_tree_questions
-    if (program.decision_tree_questions && Array.isArray(program.decision_tree_questions)) {
-      questions.push(...program.decision_tree_questions.map((q: any) => ({
-        ...q,
-        program_specific: true,
-        required: true
-      })));
+      // 3. Program-specific questions from decision_tree_questions
+      if (program.decision_tree_questions && Array.isArray(program.decision_tree_questions)) {
+        questions.push(...program.decision_tree_questions.map((q: any) => ({
+          ...q,
+          program_specific: true,
+          required: true
+        })));
+      }
+
+      // 4. Funding amount questions
+      questions.push(...this.generateFundingQuestions(program));
+
+      // 5. Timeline questions
+      questions.push(...this.generateTimelineQuestions(program));
+
+      // 6. Team and experience questions
+      questions.push(...this.generateTeamQuestions(program));
+
+      // 7. Industry-specific questions
+      questions.push(...this.generateIndustryQuestions(program));
     }
-
-    // 3. Funding amount questions
-    questions.push(...this.generateFundingQuestions(program));
-
-    // 4. Timeline questions
-    questions.push(...this.generateTimelineQuestions(program));
-
-    // 5. Team and experience questions
-    questions.push(...this.generateTeamQuestions(program));
-
-    // 6. Industry-specific questions
-    questions.push(...this.generateIndustryQuestions(program));
 
     // 7. Document readiness questions
     questions.push(...this.generateDocumentQuestions(program));
 
     return questions;
+  }
+
+  /**
+   * Generate questions from categorized requirements (Layer 1&2)
+   */
+  private generateQuestionsFromCategorizedRequirements(categorizedRequirements: any): DecisionTreeQuestion[] {
+    const questions: DecisionTreeQuestion[] = [];
+    let questionIndex = 0;
+
+    Object.entries(categorizedRequirements).forEach(([category, data]: [string, any]) => {
+      if (data && Array.isArray(data) && data.length > 0) {
+        const categoryQuestions = this.createQuestionsForCategory(category, data, questionIndex);
+        questions.push(...categoryQuestions);
+        questionIndex += categoryQuestions.length;
+      }
+    });
+
+    // Add skip logic between questions
+    this.addSkipLogic(questions);
+
+    return questions;
+  }
+
+  /**
+   * Create questions for a specific category from categorized requirements
+   */
+  private createQuestionsForCategory(category: string, data: any[], startIndex: number): DecisionTreeQuestion[] {
+    const questions: DecisionTreeQuestion[] = [];
+
+    switch (category) {
+      case 'co_financing':
+        questions.push(this.createCoFinancingQuestion(data, startIndex));
+        break;
+      case 'trl_level':
+        questions.push(this.createTRLQuestion(data, startIndex));
+        break;
+      case 'impact':
+        questions.push(this.createImpactQuestion(data, startIndex));
+        break;
+      case 'consortium':
+        questions.push(this.createConsortiumQuestion(data, startIndex));
+        break;
+      case 'eligibility':
+        questions.push(this.createEligibilityQuestion(data, startIndex));
+        break;
+      case 'financial':
+        questions.push(this.createFinancialQuestion(data, startIndex));
+        break;
+      case 'team':
+        questions.push(this.createTeamQuestion(data, startIndex));
+        break;
+      case 'project':
+        questions.push(this.createProjectQuestion(data, startIndex));
+        break;
+      case 'geographic':
+        questions.push(this.createGeographicQuestion(data, startIndex));
+        break;
+      case 'timeline':
+        questions.push(this.createTimelineQuestion(data, startIndex));
+        break;
+      case 'technical':
+        questions.push(this.createTechnicalQuestion(data, startIndex));
+        break;
+      case 'legal':
+        questions.push(this.createLegalQuestion(data, startIndex));
+        break;
+      case 'compliance':
+        questions.push(this.createComplianceQuestion(data, startIndex));
+        break;
+      case 'documents':
+        questions.push(this.createDocumentsQuestion(data, startIndex));
+        break;
+      case 'capex_opex':
+        questions.push(this.createCapexOpexQuestion(data, startIndex));
+        break;
+      case 'use_of_funds':
+        questions.push(this.createUseOfFundsQuestion(data, startIndex));
+        break;
+      case 'revenue_model':
+        questions.push(this.createRevenueModelQuestion(data, startIndex));
+        break;
+      case 'market_size':
+        questions.push(this.createMarketSizeQuestion(data, startIndex));
+        break;
+    }
+
+    return questions;
+  }
+
+  /**
+   * Add skip logic between questions
+   */
+  private addSkipLogic(questions: DecisionTreeQuestion[]): void {
+    for (let i = 0; i < questions.length - 1; i++) {
+      questions[i].follow_up_questions = [questions[i + 1].id];
+    }
+    questions[questions.length - 1].follow_up_questions = [];
   }
 
   /**
@@ -399,6 +501,458 @@ export class DynamicDecisionTreeEngine {
     // For now, return empty array
     return [];
   }
+
+  /**
+   * Create co-financing question from categorized data
+   */
+  private createCoFinancingQuestion(_data: any[], index: number): DecisionTreeQuestion {
+    // const evidence = data.flatMap(d => d.evidence);
+    // const confidence = Math.max(...data.map(d => d.confidence));
+
+    return {
+      id: `q_${index}`,
+      question: 'What percentage can you co-finance?',
+      type: 'single',
+      options: [
+        { value: '0-10%', label: '0-10%' },
+        { value: '10-25%', label: '10-25%' },
+        { value: '25-50%', label: '25-50%' },
+        { value: '50%+', label: '50%+' }
+      ],
+      required: true,
+      program_specific: true,
+      validation_rules: {
+        min_value: 0,
+        max_value: 100
+      },
+      follow_up_questions: [],
+      ai_guidance: 'co_financing'
+    };
+  }
+
+  /**
+   * Create TRL question from categorized data
+   */
+  private createTRLQuestion(_data: any[], index: number): DecisionTreeQuestion {
+    // const evidence = data.flatMap(d => d.evidence);
+    // const confidence = Math.max(...data.map(d => d.confidence));
+
+    return {
+      id: `q_${index}`,
+      question: 'What is your technology readiness level (TRL)?',
+      type: 'single',
+      options: [
+        { value: 'TRL 1-3', label: 'TRL 1-3 (Basic research)' },
+        { value: 'TRL 4-6', label: 'TRL 4-6 (Development)' },
+        { value: 'TRL 7-9', label: 'TRL 7-9 (Commercial)' }
+      ],
+      required: true,
+      program_specific: true,
+      validation_rules: {
+        min_value: 1,
+        max_value: 9
+      },
+      follow_up_questions: [],
+      ai_guidance: 'trl_level'
+    };
+  }
+
+  /**
+   * Create impact question from categorized data
+   */
+  private createImpactQuestion(_data: any[], index: number): DecisionTreeQuestion {
+    // const evidence = data.flatMap(d => d.evidence);
+    // const confidence = Math.max(...data.map(d => d.confidence));
+
+    return {
+      id: `q_${index}`,
+      question: 'What type of impact will your project have?',
+      type: 'multiple',
+      options: [
+        { value: 'local', label: 'Local impact' },
+        { value: 'regional', label: 'Regional impact' },
+        { value: 'national', label: 'National impact' },
+        { value: 'international', label: 'International impact' }
+      ],
+      required: true,
+      program_specific: true,
+      validation_rules: {},
+      follow_up_questions: [],
+      ai_guidance: 'impact'
+    };
+  }
+
+  /**
+   * Create consortium question from categorized data
+   */
+  private createConsortiumQuestion(_data: any[], index: number): DecisionTreeQuestion {
+    // const evidence = data.flatMap(d => d.evidence);
+    // const confidence = Math.max(...data.map(d => d.confidence));
+
+    return {
+      id: `q_${index}`,
+      question: 'Do you have consortium partners?',
+      type: 'single',
+      options: [
+        { value: 'yes', label: 'Yes' },
+        { value: 'no', label: 'No' },
+        { value: 'planning', label: 'Planning to find partners' }
+      ],
+      required: true,
+      program_specific: true,
+      validation_rules: {},
+      follow_up_questions: [],
+      ai_guidance: 'consortium'
+    };
+  }
+
+  /**
+   * Create eligibility question from categorized data
+   */
+  private createEligibilityQuestion(_data: any[], index: number): DecisionTreeQuestion {
+    // const evidence = data.flatMap(d => d.evidence);
+    // const confidence = Math.max(...data.map(d => d.confidence));
+
+    return {
+      id: `q_${index}`,
+      question: 'Do you meet the eligibility requirements?',
+      type: 'single',
+      options: [
+        { value: 'yes', label: 'Yes' },
+        { value: 'no', label: 'No' },
+        { value: 'partially', label: 'Partially' }
+      ],
+      required: true,
+      program_specific: true,
+      validation_rules: {},
+      follow_up_questions: [],
+      ai_guidance: 'eligibility'
+    };
+  }
+
+  /**
+   * Create financial question from categorized data
+   */
+  private createFinancialQuestion(_data: any[], index: number): DecisionTreeQuestion {
+    // const evidence = data.flatMap(d => d.evidence);
+    // const confidence = Math.max(...data.map(d => d.confidence));
+
+    return {
+      id: `q_${index}`,
+      question: 'What is your funding requirement?',
+      type: 'single',
+      options: [
+        { value: '<50k', label: '< €50k' },
+        { value: '50k-100k', label: '€50k - €100k' },
+        { value: '100k-500k', label: '€100k - €500k' },
+        { value: '500k+', label: '€500k+' }
+      ],
+      required: true,
+      program_specific: true,
+      validation_rules: {},
+      follow_up_questions: [],
+      ai_guidance: 'financial'
+    };
+  }
+
+  /**
+   * Create team question from categorized data
+   */
+  private createTeamQuestion(_data: any[], index: number): DecisionTreeQuestion {
+    // const evidence = data.flatMap(d => d.evidence);
+    // const confidence = Math.max(...data.map(d => d.confidence));
+
+    return {
+      id: `q_${index}`,
+      question: 'What is your team composition?',
+      type: 'single',
+      options: [
+        { value: '1-2', label: '1-2 people' },
+        { value: '3-5', label: '3-5 people' },
+        { value: '6-10', label: '6-10 people' },
+        { value: '10+', label: '10+ people' }
+      ],
+      required: true,
+      program_specific: true,
+      validation_rules: {},
+      follow_up_questions: [],
+      ai_guidance: 'team'
+    };
+  }
+
+  /**
+   * Create project question from categorized data
+   */
+  private createProjectQuestion(_data: any[], index: number): DecisionTreeQuestion {
+    // const evidence = data.flatMap(d => d.evidence);
+    // const confidence = Math.max(...data.map(d => d.confidence));
+
+    return {
+      id: `q_${index}`,
+      question: 'What is your project focus?',
+      type: 'multiple',
+      options: [
+        { value: 'innovation', label: 'Innovation' },
+        { value: 'research', label: 'Research' },
+        { value: 'development', label: 'Development' },
+        { value: 'commercialization', label: 'Commercialization' }
+      ],
+      required: true,
+      program_specific: true,
+      validation_rules: {},
+      follow_up_questions: [],
+      ai_guidance: 'project'
+    };
+  }
+
+  /**
+   * Create geographic question from categorized data
+   */
+  private createGeographicQuestion(_data: any[], index: number): DecisionTreeQuestion {
+    // const evidence = data.flatMap(d => d.evidence);
+    // const confidence = Math.max(...data.map(d => d.confidence));
+
+    return {
+      id: `q_${index}`,
+      question: 'Where is your project located?',
+      type: 'single',
+      options: [
+        { value: 'austria', label: 'Austria' },
+        { value: 'eu', label: 'EU' },
+        { value: 'international', label: 'International' }
+      ],
+      required: true,
+      program_specific: true,
+      validation_rules: {},
+      follow_up_questions: [],
+      ai_guidance: 'geographic'
+    };
+  }
+
+  /**
+   * Create timeline question from categorized data
+   */
+  private createTimelineQuestion(_data: any[], index: number): DecisionTreeQuestion {
+    // const evidence = data.flatMap(d => d.evidence);
+    // const confidence = Math.max(...data.map(d => d.confidence));
+
+    return {
+      id: `q_${index}`,
+      question: 'What is your project timeline?',
+      type: 'single',
+      options: [
+        { value: '<6months', label: '< 6 months' },
+        { value: '6-12months', label: '6-12 months' },
+        { value: '1-2years', label: '1-2 years' },
+        { value: '2+years', label: '2+ years' }
+      ],
+      required: true,
+      program_specific: true,
+      validation_rules: {},
+      follow_up_questions: [],
+      ai_guidance: 'timeline'
+    };
+  }
+
+  /**
+   * Create technical question from categorized data
+   */
+  private createTechnicalQuestion(_data: any[], index: number): DecisionTreeQuestion {
+    // const evidence = data.flatMap(d => d.evidence);
+    // const confidence = Math.max(...data.map(d => d.confidence));
+
+    return {
+      id: `q_${index}`,
+      question: 'What is your technical readiness level?',
+      type: 'single',
+      options: [
+        { value: 'basic', label: 'Basic' },
+        { value: 'intermediate', label: 'Intermediate' },
+        { value: 'advanced', label: 'Advanced' },
+        { value: 'expert', label: 'Expert' }
+      ],
+      required: true,
+      program_specific: true,
+      validation_rules: {},
+      follow_up_questions: [],
+      ai_guidance: 'technical'
+    };
+  }
+
+  /**
+   * Create legal question from categorized data
+   */
+  private createLegalQuestion(_data: any[], index: number): DecisionTreeQuestion {
+    // const evidence = data.flatMap(d => d.evidence);
+    // const confidence = Math.max(...data.map(d => d.confidence));
+
+    return {
+      id: `q_${index}`,
+      question: 'What legal structure do you have?',
+      type: 'single',
+      options: [
+        { value: 'gmbh', label: 'GmbH' },
+        { value: 'ag', label: 'AG' },
+        { value: 'og', label: 'OG' },
+        { value: 'other', label: 'Other' }
+      ],
+      required: true,
+      program_specific: true,
+      validation_rules: {},
+      follow_up_questions: [],
+      ai_guidance: 'legal'
+    };
+  }
+
+  /**
+   * Create compliance question from categorized data
+   */
+  private createComplianceQuestion(_data: any[], index: number): DecisionTreeQuestion {
+    // const evidence = data.flatMap(d => d.evidence);
+    // const confidence = Math.max(...data.map(d => d.confidence));
+
+    return {
+      id: `q_${index}`,
+      question: 'What compliance requirements do you have?',
+      type: 'multiple',
+      options: [
+        { value: 'none', label: 'None' },
+        { value: 'basic', label: 'Basic' },
+        { value: 'complex', label: 'Complex' },
+        { value: 'very_complex', label: 'Very Complex' }
+      ],
+      required: true,
+      program_specific: true,
+      validation_rules: {},
+      follow_up_questions: [],
+      ai_guidance: 'compliance'
+    };
+  }
+
+  /**
+   * Create documents question from categorized data
+   */
+  private createDocumentsQuestion(_data: any[], index: number): DecisionTreeQuestion {
+    // const evidence = data.flatMap(d => d.evidence);
+    // const confidence = Math.max(...data.map(d => d.confidence));
+
+    return {
+      id: `q_${index}`,
+      question: 'What documents can you provide?',
+      type: 'multiple',
+      options: [
+        { value: 'business_plan', label: 'Business Plan' },
+        { value: 'financial_projections', label: 'Financial Projections' },
+        { value: 'team_cv', label: 'Team CVs' },
+        { value: 'technical_docs', label: 'Technical Documentation' }
+      ],
+      required: true,
+      program_specific: true,
+      validation_rules: {},
+      follow_up_questions: [],
+      ai_guidance: 'documents'
+    };
+  }
+
+  /**
+   * Create capex/opex question from categorized data
+   */
+  private createCapexOpexQuestion(_data: any[], index: number): DecisionTreeQuestion {
+    // const evidence = data.flatMap(d => d.evidence);
+    // const confidence = Math.max(...data.map(d => d.confidence));
+
+    return {
+      id: `q_${index}`,
+      question: 'What are your capital and operational expenses?',
+      type: 'single',
+      options: [
+        { value: 'low', label: 'Low' },
+        { value: 'medium', label: 'Medium' },
+        { value: 'high', label: 'High' },
+        { value: 'very_high', label: 'Very High' }
+      ],
+      required: true,
+      program_specific: true,
+      validation_rules: {},
+      follow_up_questions: [],
+      ai_guidance: 'capex_opex'
+    };
+  }
+
+  /**
+   * Create use of funds question from categorized data
+   */
+  private createUseOfFundsQuestion(_data: any[], index: number): DecisionTreeQuestion {
+    // const evidence = data.flatMap(d => d.evidence);
+    // const confidence = Math.max(...data.map(d => d.confidence));
+
+    return {
+      id: `q_${index}`,
+      question: 'How will you use the funding?',
+      type: 'multiple',
+      options: [
+        { value: 'rd', label: 'R&D' },
+        { value: 'marketing', label: 'Marketing' },
+        { value: 'operations', label: 'Operations' },
+        { value: 'expansion', label: 'Expansion' }
+      ],
+      required: true,
+      program_specific: true,
+      validation_rules: {},
+      follow_up_questions: [],
+      ai_guidance: 'use_of_funds'
+    };
+  }
+
+  /**
+   * Create revenue model question from categorized data
+   */
+  private createRevenueModelQuestion(_data: any[], index: number): DecisionTreeQuestion {
+    // const evidence = data.flatMap(d => d.evidence);
+    // const confidence = Math.max(...data.map(d => d.confidence));
+
+    return {
+      id: `q_${index}`,
+      question: 'What is your revenue model?',
+      type: 'single',
+      options: [
+        { value: 'subscription', label: 'Subscription' },
+        { value: 'one_time', label: 'One-time sales' },
+        { value: 'freemium', label: 'Freemium' },
+        { value: 'marketplace', label: 'Marketplace' }
+      ],
+      required: true,
+      program_specific: true,
+      validation_rules: {},
+      follow_up_questions: [],
+      ai_guidance: 'revenue_model'
+    };
+  }
+
+  /**
+   * Create market size question from categorized data
+   */
+  private createMarketSizeQuestion(_data: any[], index: number): DecisionTreeQuestion {
+    // const evidence = data.flatMap(d => d.evidence);
+    // const confidence = Math.max(...data.map(d => d.confidence));
+
+    return {
+      id: `q_${index}`,
+      question: 'What is your target market size?',
+      type: 'single',
+      options: [
+        { value: 'small', label: 'Small (< €1M)' },
+        { value: 'medium', label: 'Medium (€1M - €10M)' },
+        { value: 'large', label: 'Large (€10M - €100M)' },
+        { value: 'very_large', label: 'Very Large (€100M+)' }
+      ],
+      required: true,
+      program_specific: true,
+      validation_rules: {},
+      follow_up_questions: [],
+      ai_guidance: 'market_size'
+    };
+  }
 }
 
 /**
@@ -429,3 +983,6 @@ export async function getDecisionTreeForProgram(programId: string): Promise<Deci
   const engine = new DynamicDecisionTreeEngine([mockProgram]);
   return engine.generateDecisionTree(programId);
 }
+
+// Add question creation methods for categorized requirements
+// (Methods would be added here in a real implementation)

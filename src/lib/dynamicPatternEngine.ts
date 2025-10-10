@@ -3,7 +3,7 @@
  * This is the core of making the system truly dynamic
  */
 
-import { RequirementCategory, ConfidenceScore } from '../types/requirements';
+import { RequirementCategory } from '../types/requirements';
 
 export interface DynamicPattern {
   id: string;
@@ -36,6 +36,7 @@ export class DynamicPatternEngine {
 
   constructor() {
     this.initializeBasePatterns();
+    this.loadPatterns(); // Load persisted patterns
   }
 
   /**
@@ -68,13 +69,62 @@ export class DynamicPatternEngine {
         examples: ['TRL 3-7', 'technology readiness level 2-4']
       },
       
-      // Impact patterns
+      // Impact patterns - Expanded to cover all 8 impact types
       {
         category: 'impact',
         pattern: /(?:innovation|environmental|social)\s+impact/i,
         institution: 'EU',
         confidence: 0.8,
         examples: ['innovation impact', 'environmental impact']
+      },
+      {
+        category: 'impact',
+        pattern: /(?:economic|wirtschaftlich)\s+impact/i,
+        institution: 'AWS',
+        confidence: 0.8,
+        examples: ['economic impact', 'wirtschaftlicher impact']
+      },
+      {
+        category: 'impact',
+        pattern: /(?:job\s+creation|arbeitsplatzschaffung)/i,
+        institution: 'VBA',
+        confidence: 0.9,
+        examples: ['job creation', 'arbeitsplatzschaffung']
+      },
+      {
+        category: 'impact',
+        pattern: /(?:digital\s+transformation|digitale\s+transformation)/i,
+        institution: 'Digital Europe',
+        confidence: 0.8,
+        examples: ['digital transformation', 'digitale transformation']
+      },
+      {
+        category: 'impact',
+        pattern: /(?:regional\s+development|regionale\s+entwicklung)/i,
+        institution: 'ADA',
+        confidence: 0.8,
+        examples: ['regional development', 'regionale entwicklung']
+      },
+      {
+        category: 'impact',
+        pattern: /(?:export\s+potential|exportpotential)/i,
+        institution: 'EIC',
+        confidence: 0.8,
+        examples: ['export potential', 'exportpotential']
+      },
+      {
+        category: 'impact',
+        pattern: /(?:scientific\s+advancement|wissenschaftlicher\s+fortschritt)/i,
+        institution: 'FFG',
+        confidence: 0.9,
+        examples: ['scientific advancement', 'wissenschaftlicher fortschritt']
+      },
+      {
+        category: 'impact',
+        pattern: /(?:cultural\s+preservation|kulturerhalt)/i,
+        institution: 'Creative Europe',
+        confidence: 0.8,
+        examples: ['cultural preservation', 'kulturerhalt']
       },
       
       // Consortium patterns
@@ -110,6 +160,8 @@ export class DynamicPatternEngine {
     extractedValue: string,
     confidence: number
   ): Promise<void> {
+    console.log(`🧠 Learning from extraction: ${category} - ${extractedValue} (confidence: ${confidence})`);
+    
     // Find the pattern that matched
     const matchingPattern = this.findMatchingPattern(text, category);
     
@@ -127,9 +179,12 @@ export class DynamicPatternEngine {
           matchingPattern.examples = matchingPattern.examples.slice(-10);
         }
       }
+      
+      console.log(`✅ Updated existing pattern ${matchingPattern.id} (success: ${matchingPattern.success_count}, confidence: ${matchingPattern.confidence})`);
     } else {
       // Create new pattern from successful extraction
       await this.createPatternFromExtraction(text, category, institution, extractedValue, confidence);
+      console.log(`🆕 Created new pattern for ${category} from extraction`);
     }
 
     // Record learning result
@@ -141,15 +196,18 @@ export class DynamicPatternEngine {
       institution,
       timestamp: new Date()
     });
+    
+    // Persist patterns to database (if available)
+    await this.persistPatterns();
   }
 
   /**
    * Learn from failed extractions
    */
   async learnFromFailure(
-    text: string,
-    category: RequirementCategory,
-    institution: string,
+    _text: string,
+    _category: RequirementCategory,
+    _institution: string,
     attemptedPattern: string
   ): Promise<void> {
     const matchingPattern = this.patterns.get(attemptedPattern);
@@ -163,8 +221,8 @@ export class DynamicPatternEngine {
       pattern_id: attemptedPattern,
       success: false,
       confidence: 0,
-      evidence: text.substring(0, 100),
-      institution,
+      evidence: _text.substring(0, 100),
+      institution: _institution,
       timestamp: new Date()
     });
   }
@@ -190,7 +248,7 @@ export class DynamicPatternEngine {
         }
         
         results.get(pattern.category)!.push({
-          value: matches,
+          value: matches.map(m => m.text), // Convert to array of strings
           confidence: pattern.confidence,
           pattern_id: pattern.id,
           institution: pattern.institution,
@@ -283,27 +341,27 @@ export class DynamicPatternEngine {
    * Create a new pattern from a successful extraction
    */
   private async createPatternFromExtraction(
-    text: string,
-    category: RequirementCategory,
-    institution: string,
-    extractedValue: string,
-    confidence: number
+    _text: string,
+    _category: RequirementCategory,
+    _institution: string,
+    _extractedValue: string,
+    _confidence: number
   ): Promise<void> {
     // Generate a regex pattern from the extracted value
-    const pattern = this.generatePatternFromValue(extractedValue);
+    const pattern = this.generatePatternFromValue(_extractedValue);
     
     if (pattern) {
       const dynamicPattern: DynamicPattern = {
         id: `learned_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
-        category,
+        category: _category,
         pattern,
-        institution,
-        confidence,
+        institution: _institution,
+        confidence: _confidence,
         success_count: 1,
         failure_count: 0,
         last_used: new Date(),
         created_at: new Date(),
-        examples: [extractedValue]
+        examples: [_extractedValue]
       };
 
       // Only add if we don't have too many patterns
@@ -325,6 +383,60 @@ export class DynamicPatternEngine {
     } catch (error) {
       console.warn('Failed to generate pattern from value:', value, error);
       return null;
+    }
+  }
+
+  /**
+   * Persist patterns to database (if available)
+   */
+  private async persistPatterns(): Promise<void> {
+    try {
+      // Convert patterns to array for database storage
+      const patternsArray = Array.from(this.patterns.values()).map(pattern => ({
+        ...pattern,
+        pattern: pattern.pattern.toString(), // Convert RegExp to string
+        last_used: pattern.last_used.toISOString(),
+        created_at: pattern.created_at.toISOString()
+      }));
+
+      // Store in localStorage for now (in production, use database)
+      if (typeof window !== 'undefined') {
+        localStorage.setItem('dynamic_patterns', JSON.stringify(patternsArray));
+        console.log(`💾 Patterns persisted to localStorage: ${this.patterns.size} total patterns`);
+      } else {
+        // Server-side: could store in database here
+        console.log(`💾 Patterns persisted: ${this.patterns.size} total patterns`);
+      }
+    } catch (error) {
+      console.warn('Failed to persist patterns:', error);
+    }
+  }
+
+  /**
+   * Load patterns from database (if available)
+   */
+  private async loadPatterns(): Promise<void> {
+    try {
+      if (typeof window !== 'undefined') {
+        const stored = localStorage.getItem('dynamic_patterns');
+        if (stored) {
+          const patternsArray = JSON.parse(stored);
+          patternsArray.forEach((pattern: any) => {
+            // Convert string back to RegExp
+            const regex = new RegExp(pattern.pattern.slice(1, -1), pattern.pattern.includes('gi') ? 'gi' : 'i');
+            const dynamicPattern: DynamicPattern = {
+              ...pattern,
+              pattern: regex,
+              last_used: new Date(pattern.last_used),
+              created_at: new Date(pattern.created_at)
+            };
+            this.patterns.set(dynamicPattern.id, dynamicPattern);
+          });
+          console.log(`📥 Loaded ${patternsArray.length} patterns from localStorage`);
+        }
+      }
+    } catch (error) {
+      console.warn('Failed to load patterns:', error);
     }
   }
 

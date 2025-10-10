@@ -230,11 +230,22 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       const scraper = new WebScraperService();
       
       try {
-        // Try to initialize browser, but don't fail if it doesn't work
-        try {
-          await scraper.init();
-        } catch (browserError) {
-          console.log('⚠️ Browser initialization failed, using fallback method:', browserError instanceof Error ? browserError.message : 'Unknown error');
+        // Try to initialize browser with retry logic
+        for (let attempt = 1; attempt <= 3; attempt++) {
+          try {
+            console.log(`🔄 Browser initialization attempt ${attempt}/3...`);
+            await scraper.init();
+            console.log('✅ Browser initialized successfully');
+            break;
+          } catch (browserError) {
+            console.log(`⚠️ Browser initialization attempt ${attempt} failed:`, browserError instanceof Error ? browserError.message : 'Unknown error');
+            if (attempt === 3) {
+              console.log('❌ All browser initialization attempts failed, using fallback method');
+            } else {
+              // Wait before retry
+              await new Promise(resolve => setTimeout(resolve, 2000));
+            }
+          }
         }
         
         const scrapedPrograms = await scraper.scrapeAllPrograms();
@@ -284,7 +295,8 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
               decision_tree_questions,
               editor_sections,
               readiness_criteria,
-              ai_guidance
+              ai_guidance,
+              categorized_requirements: undefined // Empty for fallback programs
             };
           });
           console.log(`📊 Fallback processed ${processedPrograms.length} programs with AI fields`);
@@ -357,7 +369,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
                 program.is_active, JSON.stringify(program.target_personas),
                 JSON.stringify(program.tags), JSON.stringify(program.decision_tree_questions),
                 JSON.stringify(program.editor_sections), JSON.stringify(program.readiness_criteria),
-                JSON.stringify(program.ai_guidance), JSON.stringify(program.categorized_requirements)
+                JSON.stringify(program.ai_guidance), JSON.stringify(program.categorized_requirements || {})
               ]);
             }
             
@@ -594,7 +606,8 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
               decision_tree_questions,
               editor_sections,
               readiness_criteria,
-              ai_guidance
+              ai_guidance,
+              categorized_requirements: undefined // Empty for fallback programs
             };
           });
           console.log(`📊 Fallback processed ${processedPrograms.length} programs with AI fields`);
@@ -665,7 +678,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
                 program.is_active, JSON.stringify(program.target_personas),
                 JSON.stringify(program.tags), JSON.stringify(program.decision_tree_questions),
                 JSON.stringify(program.editor_sections), JSON.stringify(program.readiness_criteria),
-                JSON.stringify(program.ai_guidance), JSON.stringify(program.categorized_requirements)
+                JSON.stringify(program.ai_guidance), JSON.stringify(program.categorized_requirements || {})
               ]);
             }
             

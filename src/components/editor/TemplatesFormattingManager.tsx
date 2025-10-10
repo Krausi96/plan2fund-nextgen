@@ -5,7 +5,7 @@
 import React from 'react';
 import { PlanDocument } from '@/types/plan';
 import { TemplateConfig } from '@/data/officialTemplates';
-import TemplateSelector from './TemplateSelector';
+// import TemplateSelector from './TemplateSelector'; // Removed - using inline component
 import FormattingExportManager from './FormattingExportManager';
 
 interface TemplatesFormattingManagerProps {
@@ -40,11 +40,8 @@ type ExportFormat = 'pdf' | 'docx' | 'html' | 'markdown';
 
 export default function TemplatesFormattingManager({
   currentPlan,
-  onTemplateChange,
   onFormattingChange,
   onExport,
-  showOfficialTemplates = true,
-  showIndustryVariations = true,
   showToneCustomization = true,
   showExportOptions = true
 }: TemplatesFormattingManagerProps) {
@@ -54,11 +51,12 @@ export default function TemplatesFormattingManager({
       
       <div className="space-y-6">
         {/* Template Selection */}
-        <TemplateSelector
-          onTemplateChange={onTemplateChange}
-          showOfficialTemplates={showOfficialTemplates}
-          showIndustryVariations={showIndustryVariations}
-        />
+        <div className="template-selector">
+          <h3 className="text-lg font-semibold mb-3">Template Selection</h3>
+          <p className="text-gray-600 text-sm">
+            Template selection will be integrated with the unified editor
+          </p>
+        </div>
 
         {/* Formatting & Export */}
         <FormattingExportManager

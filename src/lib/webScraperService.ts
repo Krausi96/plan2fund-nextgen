@@ -3,6 +3,7 @@ import puppeteer, { Browser, Page } from 'puppeteer';
 import * as cheerio from 'cheerio';
 import { ScrapedProgram } from './ScrapedProgram';
 import { dynamicPatternEngine } from './dynamicPatternEngine';
+// PDF parsing is handled directly in this file
 
 // ============================================================================
 // CONFIGURATION CONSTANTS - Centralized Configuration
@@ -230,12 +231,68 @@ export class WebScraperService {
       /(?:tr[1-9]|trl[1-9])/gi
     ],
     impact: [
+      // EXISTING: Innovation, Environmental, Social Impact
       /(?:innovation|environmental|social)\s+impact/i,
       /(?:marktwirkung|market impact)/i,
       /(?:nachhaltigkeit|sustainability)/i,
       /(?:developmental impact|entwicklungswirkung)/i,
       /(?:climate|klima)\s+(?:impact|wirkung)/i,
-      /(?:environmental|umwelt)\s+(?:benefit|nutzen)/i
+      /(?:environmental|umwelt)\s+(?:benefit|nutzen)/i,
+      
+      // NEW: Economic Impact
+      /(?:economic|wirtschaftlich)\s+impact/i,
+      /(?:job\s+creation|arbeitsplatzschaffung)/i,
+      /(?:gdp|bruttoinlandsprodukt)/i,
+      /(?:economic\s+growth|wirtschaftswachstum)/i,
+      /(?:economic\s+benefit|wirtschaftlicher\s+nutzen)/i,
+      /(?:employment|beschäftigung)/i,
+      
+      // NEW: Technology Impact
+      /(?:digital\s+transformation|digitale\s+transformation)/i,
+      /(?:technology\s+adoption|technologieadoption)/i,
+      /(?:innovation\s+adoption|innovationsadoption)/i,
+      /(?:digital\s+impact|digitaler\s+impact)/i,
+      /(?:tech\s+impact|technologie\s+wirkung)/i,
+      
+      // NEW: Regional Impact
+      /(?:regional\s+development|regionale\s+entwicklung)/i,
+      /(?:rural\s+development|ländliche\s+entwicklung)/i,
+      /(?:urban\s+innovation|städtische\s+innovation)/i,
+      /(?:regional\s+impact|regionaler\s+impact)/i,
+      /(?:local\s+impact|lokaler\s+impact)/i,
+      
+      // NEW: Sector Impact
+      /(?:industry\s+transformation|branchentransformation)/i,
+      /(?:sector\s+development|branchenentwicklung)/i,
+      /(?:sector\s+impact|branchenimpact)/i,
+      /(?:industry\s+impact|branchenwirkung)/i,
+      
+      // NEW: International Impact
+      /(?:export\s+potential|exportpotential)/i,
+      /(?:global\s+competitiveness|globale\s+wettbewerbsfähigkeit)/i,
+      /(?:international\s+cooperation|internationale\s+zusammenarbeit)/i,
+      /(?:international\s+impact|internationaler\s+impact)/i,
+      /(?:global\s+impact|globaler\s+impact)/i,
+      
+      // NEW: Research Impact
+      /(?:scientific\s+advancement|wissenschaftlicher\s+fortschritt)/i,
+      /(?:knowledge\s+transfer|wissenstransfer)/i,
+      /(?:research\s+impact|forschungsimpact)/i,
+      /(?:academic\s+impact|akademischer\s+impact)/i,
+      /(?:scientific\s+impact|wissenschaftlicher\s+impact)/i,
+      
+      // NEW: Social Impact (expanded)
+      /(?:social\s+benefit|sozialer\s+nutzen)/i,
+      /(?:community\s+impact|gemeinschaftsimpact)/i,
+      /(?:societal\s+impact|gesellschaftlicher\s+impact)/i,
+      /(?:public\s+benefit|öffentlicher\s+nutzen)/i,
+      
+      // NEW: Cultural Impact
+      /(?:cultural\s+preservation|kulturerhalt)/i,
+      /(?:creative\s+industries|kreativwirtschaft)/i,
+      /(?:cultural\s+impact|kulturimpact)/i,
+      /(?:cultural\s+benefit|kultureller\s+nutzen)/i,
+      /(?:arts\s+impact|kunst\s+wirkung)/i
     ],
     consortium: [
       /(?:konsortialpartner|consortium partner)/i,
@@ -281,13 +338,40 @@ export class WebScraperService {
   }
 
   async init(): Promise<void> {
-    this.browser = await puppeteer.launch({
-      headless: SCRAPER_CONFIG.scraping.headless,
-      args: SCRAPER_CONFIG.scraping.args,
-      executablePath: process.env.PUPPETEER_EXECUTABLE_PATH || undefined
-    });
-    
-    // Browser initialized - ready for scraping
+    try {
+      console.log('🚀 Initializing browser for web scraping...');
+      this.browser = await puppeteer.launch({
+        headless: true,
+        args: [
+          '--no-sandbox',
+          '--disable-setuid-sandbox',
+          '--disable-dev-shm-usage',
+          '--disable-accelerated-2d-canvas',
+          '--no-first-run',
+          '--no-zygote',
+          '--single-process',
+          '--disable-gpu',
+          '--disable-web-security',
+          '--disable-features=VizDisplayCompositor'
+        ],
+        executablePath: process.env.PUPPETEER_EXECUTABLE_PATH || undefined
+      });
+      console.log('✅ Browser initialized successfully');
+    } catch (error) {
+      console.error('❌ Browser initialization failed:', error);
+      // Try fallback configuration
+      try {
+        console.log('🔄 Trying fallback browser configuration...');
+        this.browser = await puppeteer.launch({
+          headless: true,
+          args: ['--no-sandbox', '--disable-setuid-sandbox']
+        });
+        console.log('✅ Fallback browser initialized successfully');
+      } catch (fallbackError) {
+        console.error('❌ Fallback browser initialization also failed:', fallbackError);
+        throw new Error(`Browser initialization failed: ${error instanceof Error ? error.message : 'Unknown error'}`);
+      }
+    }
   }
 
   async scrapeAllPrograms(): Promise<ScrapedProgram[]> {
@@ -1464,6 +1548,41 @@ export class WebScraperService {
       // Calculate confidence score
       confidence = totalPatterns > 0 ? matchedPatterns / totalPatterns : 0;
       
+      // NEW: Extract requirements from PDF documents
+      try {
+        const pdfRequirements = await this.extractPDFRequirements(page);
+        if (pdfRequirements && pdfRequirements.parsed_pdfs && pdfRequirements.parsed_pdfs.length > 0) {
+          console.log(`📄 PDF parsing found ${pdfRequirements.total_requirements_extracted} additional requirements`);
+          
+          // Merge PDF requirements with existing requirements
+          pdfRequirements.parsed_pdfs.forEach((pdf: any) => {
+            Object.entries(pdf.requirements).forEach(([category, reqs]: [string, any]) => {
+              if (Array.isArray(reqs) && reqs.length > 0) {
+                if (!requirements[category]) {
+                  requirements[category] = {
+                    required: true,
+                    evidence: [],
+                    confidence: 0.8, // High confidence for PDF content
+                    extraction_method: 'pdf_parsing',
+                    source_institution: institution,
+                    pattern_matches: 0
+                  };
+                }
+                
+                // Add PDF evidence to existing requirements
+                requirements[category].evidence.push(...reqs.slice(0, 5)); // Limit to 5 evidence items
+                requirements[category].pattern_matches += reqs.length;
+                requirements[category].extraction_method = 'dynamic_patterns_and_pdf';
+                requirements[category].pdf_sources = requirements[category].pdf_sources || [];
+                requirements[category].pdf_sources.push(pdf.url);
+              }
+            });
+          });
+        }
+      } catch (pdfError) {
+        console.warn('⚠️ PDF parsing failed, continuing with HTML-only extraction:', pdfError);
+      }
+      
       // Add institution-specific requirements
       const institutionRequirements = this.getInstitutionSpecificRequirements(institution, content);
       Object.assign(requirements, institutionRequirements);
@@ -1493,7 +1612,7 @@ export class WebScraperService {
   /**
    * Calculate confidence score for pattern matches
    */
-  private calculatePatternConfidence(evidence: string[], patterns: RegExp[]): number {
+  private calculatePatternConfidence(evidence: string[], _patterns: RegExp[]): number {
     let confidence = 0.5; // Base confidence
     
     // More evidence = higher confidence
@@ -1632,29 +1751,93 @@ export class WebScraperService {
   
   /**
    * Extract PDF requirements (if PDF URLs are found)
-   * Note: This method is ready for future PDF parsing implementation
+   * Now implemented with pdf-parse library
    */
-  // private async extractPDFRequirements(page: Page): Promise<any> {
-  //   try {
-  //     // Look for PDF links
-  //     const pdfUrls = await page.$$eval('a[href$=".pdf"]', (links: HTMLAnchorElement[]) => 
-  //       links.map(link => link.href)
-  //     );
-  //     
-  //     if (pdfUrls.length === 0) return {};
-  //     
-  //     // For now, return that PDFs were found
-  //     // In production, you'd use pdf-parse library here
-  //     return {
-  //       pdf_documents_found: pdfUrls.length,
-  //       pdf_urls: pdfUrls.slice(0, 3), // Limit to first 3 PDFs
-  //       note: 'PDF parsing not implemented yet - would require pdf-parse library'
-  //     };
-  //   } catch (error) {
-  //     console.error('❌ Error extracting PDF requirements:', error);
-  //     return {};
-  //   }
-  // }
+  private async extractPDFRequirements(page: Page): Promise<any> {
+    try {
+      // Look for PDF links
+      const pdfUrls = await page.$$eval('a[href$=".pdf"]', (links: HTMLAnchorElement[]) => 
+        links.map(link => link.href)
+      );
+      
+      if (pdfUrls.length === 0) return {};
+      
+      console.log(`📄 Found ${pdfUrls.length} PDF documents, parsing first 3...`);
+      
+      const pdfParse = await import('pdf-parse') as any;
+      const pdfResults: any[] = [];
+      
+      // Parse first 3 PDFs to avoid overwhelming the system
+      for (let i = 0; i < Math.min(pdfUrls.length, 3); i++) {
+        try {
+          const pdfUrl = pdfUrls[i];
+          console.log(`📄 Parsing PDF ${i + 1}/${Math.min(pdfUrls.length, 3)}: ${pdfUrl}`);
+          
+          // Fetch PDF content
+          const response = await fetch(pdfUrl);
+          if (!response.ok) {
+            console.warn(`⚠️ Failed to fetch PDF: ${pdfUrl}`);
+            continue;
+          }
+          
+          const pdfBuffer = await response.arrayBuffer();
+          const pdfData = await pdfParse.default(Buffer.from(pdfBuffer));
+          
+          // Extract requirements from PDF text using our patterns
+          const extractedRequirements = this.extractRequirementsFromText(pdfData.text);
+          
+          pdfResults.push({
+            url: pdfUrl,
+            text_length: pdfData.text.length,
+            pages: pdfData.numpages,
+            requirements: extractedRequirements
+          });
+          
+        } catch (pdfError) {
+          console.warn(`⚠️ Failed to parse PDF ${pdfUrls[i]}:`, pdfError);
+        }
+      }
+      
+      return {
+        pdf_documents_found: pdfUrls.length,
+        pdf_urls: pdfUrls.slice(0, 3),
+        parsed_pdfs: pdfResults,
+        total_requirements_extracted: pdfResults.reduce((sum, pdf) => 
+          sum + Object.values(pdf.requirements).reduce((pdfSum: number, reqs: any) => 
+            pdfSum + (Array.isArray(reqs) ? reqs.length : 0), 0), 0
+        )
+      };
+      
+    } catch (error) {
+      console.error('❌ Error extracting PDF requirements:', error);
+      return {};
+    }
+  }
+
+  /**
+   * Extract requirements from text using our pattern matching
+   */
+  private extractRequirementsFromText(text: string): any {
+    const requirements: any = {};
+    
+    // Apply all our requirement patterns to the text
+    Object.entries(this.requirementPatterns).forEach(([category, patterns]) => {
+      const matches: string[] = [];
+      
+      patterns.forEach(pattern => {
+        const found = text.match(pattern);
+        if (found) {
+          matches.push(...found);
+        }
+      });
+      
+      if (matches.length > 0) {
+        requirements[category] = Array.from(new Set(matches)); // Remove duplicates
+      }
+    });
+    
+    return requirements;
+  }
 
   async close(): Promise<void> {
     if (this.browser) {
@@ -2125,6 +2308,107 @@ export class WebScraperService {
     
     return fundingKeywords.some(keyword => url.toLowerCase().includes(keyword)) &&
            domainKeywords.some(keyword => url.toLowerCase().includes(keyword));
+  }
+
+  /**
+   * NEW: Deep program-specific requirement extraction
+   * Crawls program-specific pages to extract detailed requirements
+   */
+  private async discoverProgramRequirements(programUrl: string, institution: string): Promise<any> {
+    try {
+      if (!this.browser) return {};
+      
+      const page = await this.browser.newPage();
+      await page.setUserAgent(SCRAPER_CONFIG.scraping.userAgent);
+      
+      console.log(`🔍 Deep crawling program requirements: ${programUrl}`);
+      
+      // Navigate to program page
+      await page.goto(programUrl, { waitUntil: 'networkidle2', timeout: 15000 });
+      
+      // Extract comprehensive requirements from this specific program
+      const programRequirements = await this.extractComprehensiveRequirements(page, institution);
+      
+      // Look for additional program-specific pages (requirements, guidelines, etc.)
+      const additionalPages = await page.$$eval('a[href*="requirement"], a[href*="guideline"], a[href*="criteria"], a[href*="bedingung"], a[href*="richtlinie"]', (links: HTMLAnchorElement[]) => 
+        links.map(link => link.href).slice(0, 3) // Limit to 3 additional pages
+      );
+      
+      const additionalRequirements: any = {};
+      
+      // Crawl additional program-specific pages
+      for (const additionalUrl of additionalPages) {
+        try {
+          console.log(`🔍 Crawling additional page: ${additionalUrl}`);
+          await page.goto(additionalUrl, { waitUntil: 'networkidle2', timeout: 10000 });
+          
+          const additionalReqs = await this.extractComprehensiveRequirements(page, institution);
+          
+          // Merge additional requirements
+          Object.entries(additionalReqs).forEach(([category, reqs]) => {
+            const reqsObj = reqs as any;
+            if (reqsObj && typeof reqsObj === 'object' && reqsObj.evidence) {
+              if (!additionalRequirements[category]) {
+                additionalRequirements[category] = {
+                  required: true,
+                  evidence: [],
+                  confidence: 0,
+                  extraction_method: 'deep_crawl',
+                  source_institution: institution,
+                  pattern_matches: 0
+                };
+              }
+              
+              additionalRequirements[category].evidence.push(...reqsObj.evidence);
+              additionalRequirements[category].pattern_matches += reqsObj.pattern_matches || 0;
+              additionalRequirements[category].confidence = Math.max(
+                additionalRequirements[category].confidence, 
+                reqsObj.confidence || 0
+              );
+            }
+          });
+          
+        } catch (pageError) {
+          console.warn(`⚠️ Failed to crawl additional page ${additionalUrl}:`, pageError);
+        }
+      }
+      
+      await page.close();
+      
+      // Merge program requirements with additional requirements
+      const mergedRequirements = { ...programRequirements };
+      Object.entries(additionalRequirements).forEach(([category, reqs]) => {
+        const reqsObj = reqs as any;
+        if (mergedRequirements[category]) {
+          // Merge evidence and update confidence
+          mergedRequirements[category].evidence.push(...reqsObj.evidence);
+          mergedRequirements[category].pattern_matches += reqsObj.pattern_matches;
+          mergedRequirements[category].confidence = Math.max(
+            mergedRequirements[category].confidence, 
+            reqsObj.confidence
+          );
+          mergedRequirements[category].extraction_method = 'comprehensive_deep_crawl';
+        } else {
+          mergedRequirements[category] = reqs;
+        }
+      });
+      
+      console.log(`✅ Deep crawl completed for ${programUrl}: ${Object.keys(mergedRequirements).length} requirement categories found`);
+      
+      return {
+        program_url: programUrl,
+        institution: institution,
+        requirements: mergedRequirements,
+        additional_pages_crawled: additionalPages.length,
+        total_evidence_items: Object.values(mergedRequirements).reduce((sum: number, req: any) => 
+          sum + (req.evidence ? req.evidence.length : 0), 0
+        )
+      };
+      
+    } catch (error) {
+      console.error(`❌ Deep program requirements discovery failed for ${programUrl}:`, error);
+      return {};
+    }
   }
 
   /**
@@ -3030,6 +3314,37 @@ export class WebScraperService {
       // Extract requirements using enhanced patterns
       const requirements = await this.extractEnhancedRequirements(content, _institutionId);
       
+      // NEW: Deep program-specific requirement discovery
+      let deepRequirements = {};
+      try {
+        console.log(`🔍 Starting deep discovery for program: ${name}`);
+        const deepDiscovery = await this.discoverProgramRequirements(url, institution?.name || 'Unknown');
+        if (deepDiscovery && deepDiscovery.requirements) {
+          deepRequirements = deepDiscovery.requirements;
+          console.log(`✅ Deep discovery found ${Object.keys(deepRequirements).length} additional requirement categories`);
+        }
+      } catch (deepError) {
+        console.warn(`⚠️ Deep discovery failed for ${url}, using basic requirements only:`, deepError);
+      }
+      
+      // Merge basic and deep requirements
+      const mergedRequirements = { ...requirements };
+      Object.entries(deepRequirements).forEach(([category, reqs]) => {
+        const reqsObj = reqs as any;
+        if (mergedRequirements[category]) {
+          // Merge evidence and update confidence
+          if (reqsObj.evidence && mergedRequirements[category].evidence) {
+            mergedRequirements[category].evidence.push(...reqsObj.evidence);
+          }
+          if (reqsObj.pattern_matches && mergedRequirements[category].pattern_matches) {
+            mergedRequirements[category].pattern_matches += reqsObj.pattern_matches;
+          }
+          mergedRequirements[category].extraction_method = 'enhanced_and_deep_crawl';
+        } else {
+          mergedRequirements[category] = reqs;
+        }
+      });
+      
       const program: ScrapedProgram = {
         id: `${_institutionId}_${Date.now()}`,
         name,
@@ -3044,7 +3359,7 @@ export class WebScraperService {
         institution: institution?.name || 'Unknown',
         program_category: institution?.category || 'unknown',
         eligibility_criteria: {},
-        requirements,
+        requirements: mergedRequirements,
         contact_info: {},
         scraped_at: new Date(),
         confidence_score: 0.8,
