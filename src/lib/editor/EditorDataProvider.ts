@@ -88,11 +88,11 @@ export class EditorDataProvider {
       
       // Extract program info and categorized requirements
       const program = data.program || {};
-      const categorizedRequirements = data.categorized_requirements || {};
+      // const categorizedRequirements = data.categorized_requirements || {};
       const editorSections = data.editor || [];
       
       // Determine program type for template selection
-      const programType = program.program_type || 'grants';
+      // const programType = program.program_type || 'grants';
       
       // Generate template using real data
       const template: EditorTemplate = {
@@ -113,66 +113,30 @@ export class EditorDataProvider {
           word_count_min: section.word_count_min || 200,
           word_count_max: section.word_count_max || 800
         })),
-        inputs: this.generateTemplateInputs(programType),
-        outputs: this.generateTemplateOutputs(programType),
-        complianceChecklist: this.generateComplianceChecklist(categorizedRequirements)
       };
       
       return template;
     } catch (error) {
       console.error('Error generating template from program:', error);
       // Fallback to mock template
-      return this.getMockTemplate(templateId);
+      return this.getMockTemplate('fallback-template');
     }
   }
 
   /**
    * Generate template inputs based on program type
    */
-  private generateTemplateInputs(programType: string): string[] {
-    const inputs: { [key: string]: string[] } = {
-      grants: ['Project Description', 'Innovation Plan', 'Impact Assessment', 'Consortium Details', 'Financial Plan'],
-      bankLoans: ['Business Description', 'Financial Stability', 'Repayment Plan', 'Collateral Details'],
-      equity: ['Market Opportunity', 'Business Model', 'Traction Metrics', 'Team Details', 'Financial Projections'],
-      visa: ['Innovation Focus', 'Economic Benefit', 'Job Creation Plan', 'Austrian Market Analysis', 'Qualifications']
-    };
-    
-    return inputs[programType] || inputs.grants;
-  }
+  // Removed unused method: generateTemplateInputs
 
   /**
    * Generate template outputs based on program type
    */
-  private generateTemplateOutputs(programType: string): string[] {
-    const outputs: { [key: string]: string[] } = {
-      grants: ['Grant Application', 'Project Proposal', 'Budget Breakdown', 'Timeline'],
-      bankLoans: ['Loan Application', 'Business Plan', 'Financial Statements', 'Repayment Schedule'],
-      equity: ['Pitch Deck', 'Business Plan', 'Financial Model', 'Due Diligence Package'],
-      visa: ['Visa Application', 'Business Plan', 'Job Creation Plan', 'Economic Impact Report']
-    };
-    
-    return outputs[programType] || outputs.grants;
-  }
+  // Removed unused method: generateTemplateOutputs
 
   /**
    * Generate compliance checklist from categorized requirements
    */
-  private generateComplianceChecklist(categorizedRequirements: any): string[] {
-    const checklist: string[] = [];
-    
-    // Add requirements from each category
-    Object.entries(categorizedRequirements).forEach(([category, data]) => {
-      if (Array.isArray(data) && data.length > 0) {
-        data.forEach((item: any) => {
-          if (item.required && item.value) {
-            checklist.push(`${category}: ${Array.isArray(item.value) ? item.value.join(', ') : item.value}`);
-          }
-        });
-      }
-    });
-    
-    return checklist;
-  }
+  // Removed unused method: generateComplianceChecklist
 
   /**
    * Get mock template as fallback
@@ -184,10 +148,7 @@ export class EditorDataProvider {
       name: 'Mock Template',
       description: 'Mock template for development',
       route: 'business-plan',
-      sections: [],
-      inputs: [],
-      outputs: [],
-      complianceChecklist: []
+      sections: []
     };
   }
 

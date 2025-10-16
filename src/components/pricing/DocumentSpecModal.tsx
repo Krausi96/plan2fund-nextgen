@@ -56,7 +56,7 @@ export function DocumentSpecModal({ docSpec, isOpen, onClose }: DocumentSpecModa
                 {docSpec.coreSections.map((section, index) => (
                   <div key={index} className="flex items-center gap-2 text-sm text-gray-700">
                     <CheckCircle className="w-4 h-4 text-green-500 flex-shrink-0" />
-                    <span>{section}</span>
+                    <span>{section.title}</span>
                   </div>
                 ))}
               </div>
@@ -77,7 +77,7 @@ export function DocumentSpecModal({ docSpec, isOpen, onClose }: DocumentSpecModa
                 {docSpec.inputs.map((input, index) => (
                   <div key={index} className="flex items-center gap-2 text-sm text-gray-700">
                     <div className="w-2 h-2 bg-blue-500 rounded-full flex-shrink-0" />
-                    <span className="capitalize">{input.replace(/([A-Z])/g, ' $1').trim()}</span>
+                    <span className="capitalize">{input.name.replace(/([A-Z])/g, ' $1').trim()}</span>
                   </div>
                 ))}
               </div>
@@ -108,7 +108,7 @@ export function DocumentSpecModal({ docSpec, isOpen, onClose }: DocumentSpecModa
                 {docSpec.outputs.map((output, index) => (
                   <div key={index} className="flex items-center gap-2 text-sm text-gray-700 bg-green-50 rounded-lg p-2">
                     <FileText className="w-4 h-4 text-green-600 flex-shrink-0" />
-                    <code className="text-xs bg-white px-2 py-1 rounded border">{output}</code>
+                    <code className="text-xs bg-white px-2 py-1 rounded border">{output.name}</code>
                   </div>
                 ))}
               </div>
@@ -121,7 +121,7 @@ export function DocumentSpecModal({ docSpec, isOpen, onClose }: DocumentSpecModa
                 {docSpec.complianceChecklist.map((item, index) => (
                   <div key={index} className="flex items-center gap-2 text-sm text-gray-700">
                     <CheckCircle className="w-4 h-4 text-green-500 flex-shrink-0" />
-                    <span>{item}</span>
+                    <span>{item.item}</span>
                   </div>
                 ))}
               </div>

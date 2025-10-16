@@ -2,7 +2,22 @@
 // Industry-specific template variations and customizations
 // Enhanced with comprehensive GPT agent structure
 
-import { IndustryVariation } from '../standardSectionTemplates';
+// import { IndustryVariation } from '../standardSectionTemplates';
+
+export interface IndustryVariation {
+  industry: string;
+  modifications: {
+    description: string;
+    prompts: string[];
+    validationRules: Record<string, any>;
+    tips: string[];
+    commonMistakes: string[];
+    sections?: Record<string, any>;
+    requirements?: string[];
+    customizations?: string[];
+    [key: string]: any; // Allow additional properties
+  };
+}
 
 export const INDUSTRY_VARIATIONS: IndustryVariation[] = [
   {

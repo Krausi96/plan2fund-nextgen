@@ -2,8 +2,14 @@
 // Product-specific section definitions for Strategy, Review, and Submission
 // Based on GPT agent comprehensive instructions
 
-import { StandardSection, ConditionalRule } from '../standardSectionTemplates';
+import { StandardSection } from '../standardSectionTemplates';
 import { AdditionalDocument } from './additionalDocuments';
+
+export interface ConditionalRule {
+  condition: string;
+  action: string;
+  value?: any;
+}
 
 export interface WorkflowStep {
   id: string;

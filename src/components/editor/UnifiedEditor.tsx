@@ -533,20 +533,26 @@ function AIAssistant({ state, onToggle }: AIAssistantProps) {
     id: 'mock-plan',
     ownerId: 'current-user',
     product: 'strategy' as const,
-    route: 'business-plan' as const,
+    route: 'grant' as const,
     title: 'Business Plan',
     sections: state.sections?.map((section: any) => ({
       key: section.id,
       content: state.content?.[section.id] || '',
       status: 'draft'
     })) || [],
-    tone: 'professional',
-    language: 'en',
-    targetLength: 20,
+    tone: 'neutral' as const,
+    language: 'en' as const,
+    targetLength: 'standard' as const,
     settings: {
-      showPageNumbers: true,
-      showTableOfContents: true,
-      includeCharts: true
+      includeTitlePage: true,
+      includePageNumbers: true,
+      citations: 'simple' as const,
+      captions: true,
+      graphs: {
+        revenueCosts: true,
+        cashflow: true,
+        useOfFunds: true
+      }
     },
     createdAt: new Date(),
     updatedAt: new Date()

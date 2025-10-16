@@ -1,21 +1,23 @@
 # Plan2Fund Scripts
 
-This directory contains all automation scripts organized by category.
+This directory contains essential automation scripts for database management and system utilities.
 
 ## 📁 Directory Structure
 
-### `/database/`
+### `/database/` - Database Management
 - **setup-database.sql** - Initial database schema creation
 - **migrate-database.sql** - Database migration scripts
+- **migrate-enhanced-requirements.sql** - Requirements migration
+- **add-categorized-requirements.js** - Category migration
+- **migrate.js** - Migration runner
 - **fix-json-data.sql** - Data correction scripts
 
-### `/testing/`
-- **test-*.js** - Automated testing scripts
-- **test-scraper-api.js** - Scraper API testing
-- **test-vercel-complete.js** - Complete system testing
-
-### `/deployment/`
-- Deployment and CI/CD scripts
+### Core Scripts - System Utilities
+- **run-tests.mjs** - Test runner
+- **ci-coverage.mjs** - Coverage reporting
+- **generate-source-register.mjs** - Source registration
+- **migrate-to-json.js** - Data migration utility
+- **update-fallback-data.js** - Fallback data updates
 
 ## 🚀 Quick Start
 
@@ -25,13 +27,28 @@ This directory contains all automation scripts organized by category.
 cat scripts/database/setup-database.sql
 ```
 
+### Database Migration
+```bash
+# Run database migrations
+node scripts/database/migrate.js
+```
+
 ### Testing
 ```bash
-# Test scraper API locally
-node scripts/testing/test-scraper-api.js
+# Run tests
+npm run test
 
-# Test complete system
-node scripts/testing/test-vercel-complete.js
+# Generate coverage report
+npm run coverage
+```
+
+### Data Management
+```bash
+# Update fallback data
+node scripts/update-fallback-data.js
+
+# Generate source register
+npm run source:register
 ```
 
 ## 📋 Script Categories
@@ -41,16 +58,11 @@ node scripts/testing/test-vercel-complete.js
 - **Migration**: Add new columns and features
 - **Fix**: Correct data issues
 
-### Testing Scripts
-- **API Testing**: Test all API endpoints
-- **Integration Testing**: Test complete workflows
-- **Performance Testing**: Test system performance
-
-### Deployment Scripts
-- **Build**: Build and prepare for deployment
-- **Deploy**: Deploy to production
-- **Monitor**: Monitor deployment health
+### Core Utilities
+- **Testing**: Test runner and coverage
+- **Data Management**: Fallback data and source registration
+- **Migration**: Data format conversions
 
 ## 🔧 Usage
 
-All scripts are designed to be run from the project root directory. Check individual script files for specific usage instructions.
+All scripts are designed to be run from the project root directory. Use npm scripts when available for better integration.
