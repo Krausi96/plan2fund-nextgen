@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import Link from 'next/link';
-import { motion } from 'framer-motion';
+// Removed framer-motion import - using CSS animations instead
 import { Chip } from '@/lib/aiChipParser';
 import { useRecommendation } from '@/contexts/RecommendationContext';
 import { useI18n } from '@/contexts/I18nContext';
@@ -156,11 +156,9 @@ export default function AdvancedSearch() {
             <h3 className="text-lg font-semibold text-gray-900 mb-4">Detected Information</h3>
             <div className="flex flex-wrap gap-2">
               {chips.map((chip) => (
-                <motion.div
+                <div
                   key={chip.id}
-                  initial={{ opacity: 0, scale: 0.8 }}
-                  animate={{ opacity: 1, scale: 1 }}
-                  className={`px-3 py-1 rounded-full text-sm flex items-center gap-2 ${
+                  className={`animate-fade-in-up px-3 py-1 rounded-full text-sm flex items-center gap-2 ${
                     chip.required 
                       ? 'bg-blue-100 text-blue-800' 
                       : 'bg-gray-100 text-gray-700'
@@ -174,7 +172,7 @@ export default function AdvancedSearch() {
                   >
                     ×
                   </button>
-                </motion.div>
+                </div>
               ))}
             </div>
           </Card>

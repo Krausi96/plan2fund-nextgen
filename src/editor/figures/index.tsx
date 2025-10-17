@@ -15,7 +15,7 @@ interface FiguresProps {
   };
 }
 
-export default function Figures({ figures, tables }: FiguresProps) {
+function Figures({ figures, tables }: FiguresProps) {
   // Convert table data to chart format
   const convertTableToChartData = (table: Table) => {
     if (!table) return [];
@@ -157,3 +157,6 @@ export default function Figures({ figures, tables }: FiguresProps) {
     </div>
   );
 }
+
+// Export as default with lazy loading
+export default Figures;
