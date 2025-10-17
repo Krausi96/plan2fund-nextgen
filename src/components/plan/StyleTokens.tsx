@@ -1,4 +1,6 @@
 import React, { useState } from "react";
+import { Tooltip } from "@/components/common/Tooltip";
+import { HelpCircle } from "lucide-react";
 
 type StyleTokensProps = {
   onStyleChange: (styles: DocumentStyles) => void;
@@ -122,7 +124,12 @@ export default function StyleTokens({ onStyleChange, initialStyles }: StyleToken
       
       {/* Presets */}
       <div className="mb-4">
-        <label className="block text-sm font-medium mb-2">Style Presets</label>
+        <div className="flex items-center gap-2 mb-2">
+          <label className="block text-sm font-medium">Style Presets</label>
+          <Tooltip content="Choose from pre-designed style combinations for quick setup" position="top">
+            <HelpCircle className="w-4 h-4 text-gray-400 hover:text-gray-600 cursor-help" />
+          </Tooltip>
+        </div>
         <div className="flex gap-2">
           {stylePresets.map((preset) => (
             <button
@@ -138,7 +145,12 @@ export default function StyleTokens({ onStyleChange, initialStyles }: StyleToken
 
       {/* Element Selector */}
       <div className="mb-4">
-        <label className="block text-sm font-medium mb-2">Style Element</label>
+        <div className="flex items-center gap-2 mb-2">
+          <label className="block text-sm font-medium">Style Element</label>
+          <Tooltip content="Select which document element to customize (headings, body text, quotes)" position="top">
+            <HelpCircle className="w-4 h-4 text-gray-400 hover:text-gray-600 cursor-help" />
+          </Tooltip>
+        </div>
         <div className="flex gap-2">
           {Object.keys(styles).map((element) => (
             <button

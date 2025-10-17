@@ -1,7 +1,8 @@
 import React, { useState } from 'react';
-import { CheckCircle, FileText, AlertCircle, ArrowRight } from 'lucide-react';
+import { CheckCircle, FileText, AlertCircle, ArrowRight, HelpCircle } from 'lucide-react';
 import { getFundingPack, getDocSpec, type TargetGroup, type FundingType, type Product } from '@/data/basisPack';
 import { DocumentModal } from './DocumentModal';
+import { Tooltip } from '@/components/common/Tooltip';
 
 interface RequirementsDisplayProps {
   targetGroup: TargetGroup;
@@ -88,10 +89,15 @@ export function RequirementsDisplay({ targetGroup, fundingType, product }: Requi
                   <div className="flex items-center justify-between">
                     <div className="flex items-center gap-3">
                       <FileText className="w-5 h-5 text-green-600" />
-                      <div>
-                        <h5 className="font-semibold text-gray-900 group-hover:text-green-700">
-                          {docSpec.name}
-                        </h5>
+                      <div className="flex-1">
+                        <div className="flex items-center gap-2">
+                          <h5 className="font-semibold text-gray-900 group-hover:text-green-700">
+                            {docSpec.name}
+                          </h5>
+                          <Tooltip content={docSpec.purpose || 'No description available'} position="top">
+                            <HelpCircle className="w-4 h-4 text-gray-400 hover:text-gray-600 cursor-help" />
+                          </Tooltip>
+                        </div>
                         <p className="text-sm text-gray-600 mt-1">
                           {docSpec.purpose}
                         </p>

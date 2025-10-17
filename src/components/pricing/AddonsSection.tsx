@@ -2,8 +2,9 @@
 // Add-ons section with scope-driven descriptions
 
 import React, { useState } from 'react';
-import { Clock, Calculator, MessageCircle, Presentation, Zap, FileText, Shield, Globe } from 'lucide-react';
+import { Clock, Calculator, MessageCircle, Presentation, Zap, FileText, Shield, Globe, HelpCircle } from 'lucide-react';
 import { getAddonsForFundingType, getAddonSpec, type FundingType } from '@/data/basisPack';
+import { Tooltip } from '@/components/common/Tooltip';
 
 interface AddonsSectionProps {
   fundingType: FundingType;
@@ -56,7 +57,12 @@ export function AddonsSection({ fundingType }: AddonsSectionProps) {
                   </div>
                   <div className="flex-1">
                     <div className="flex items-center justify-between mb-2">
-                      <h3 className="font-semibold text-gray-900 text-sm">{addon.name}</h3>
+                      <div className="flex items-center gap-2">
+                        <h3 className="font-semibold text-gray-900 text-sm">{addon.name}</h3>
+                        <Tooltip content={addon.scope || 'No description available'} position="top">
+                          <HelpCircle className="w-4 h-4 text-gray-400 hover:text-gray-600 cursor-help" />
+                        </Tooltip>
+                      </div>
                       <span className="text-lg font-bold text-blue-500">{addon.price}</span>
                     </div>
                     <p className="text-sm text-gray-600 mb-3">{addon.scope}</p>
