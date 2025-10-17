@@ -3,7 +3,6 @@
 
 import React, { useState, useEffect } from 'react';
 import { useI18n } from '@/contexts/I18nContext';
-import { motion, AnimatePresence } from 'framer-motion';
 import { storeTargetGroupSelection } from '@/lib/targetGroupDetection';
 
 interface TargetGroupBannerProps {
@@ -48,14 +47,7 @@ export default function TargetGroupBanner({ onTargetGroupSelect }: TargetGroupBa
   if (!showBanner) return null;
 
   return (
-    <AnimatePresence>
-      <motion.div
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
-        exit={{ opacity: 0, y: 20 }}
-        transition={{ duration: 0.3 }}
-        className="fixed bottom-4 left-4 right-4 z-50 bg-slate-800/95 backdrop-blur-sm shadow-lg border border-slate-600 rounded-lg max-w-4xl mx-auto"
-      >
+    <div className="animate-fade-in-up fixed bottom-4 left-4 right-4 z-50 bg-slate-800/95 backdrop-blur-sm shadow-lg border border-slate-600 rounded-lg max-w-4xl mx-auto">
         <div className="px-4 py-3">
           <div className="flex items-center justify-between gap-3">
             <div className="flex-1">
@@ -121,7 +113,6 @@ export default function TargetGroupBanner({ onTargetGroupSelect }: TargetGroupBa
             </button>
           </div>
         </div>
-      </motion.div>
-    </AnimatePresence>
+      </div>
   );
 }

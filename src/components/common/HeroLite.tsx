@@ -1,6 +1,3 @@
-import { motion } from "framer-motion";
-import { fadeInUp } from "@/lib/motion";
-
 interface HeroLiteProps {
   title: string;
   subtitle?: string;
@@ -11,12 +8,7 @@ export default function HeroLite({ title, subtitle, className = "" }: HeroLitePr
   return (
     <section className={`py-16 md:py-20 bg-gray-50 ${className}`}>
       <div className="container">
-        <motion.div
-          initial={fadeInUp.initial}
-          animate={fadeInUp.animate}
-          transition={fadeInUp.transition}
-          className="text-center max-w-3xl mx-auto"
-        >
+        <div className="animate-fade-in-up text-center max-w-3xl mx-auto">
           <h1 className="text-4xl md:text-5xl font-bold text-gray-900 mb-4">
             {title}
           </h1>
@@ -25,7 +17,7 @@ export default function HeroLite({ title, subtitle, className = "" }: HeroLitePr
               {subtitle}
             </p>
           )}
-        </motion.div>
+        </div>
       </div>
     </section>
   );

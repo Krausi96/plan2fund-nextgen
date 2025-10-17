@@ -1,4 +1,3 @@
-import { motion } from "framer-motion";
 import { useI18n } from "@/contexts/I18nContext";
 
 interface WhyPlan2FundProps {
@@ -49,13 +48,7 @@ export function WhyPlan2Fund({ targetGroup = 'default' }: WhyPlan2FundProps) {
       aria-labelledby="why-plan2fund-heading"
     >
       <div className="container">
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.6 }}
-          viewport={{ once: true }}
-          className="text-center mb-12 md:mb-16"
-        >
+        <div className="animate-fade-in-up text-center mb-12 md:mb-16">
         <h2
           id="why-plan2fund-heading"
           className="text-4xl font-bold text-neutral-900 mb-4"
@@ -65,17 +58,14 @@ export function WhyPlan2Fund({ targetGroup = 'default' }: WhyPlan2FundProps) {
                   <p className="text-lg text-neutral-600 max-w-3xl mx-auto leading-relaxed">
                     {t(getTranslationKey('subtitle') as any)}
                   </p>
-        </motion.div>
+        </div>
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           {features.map((feature, index) => (
-            <motion.div
+            <div
               key={index}
-              initial={{ opacity: 0, y: 30 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.6, delay: index * 0.1 }}
-              viewport={{ once: true }}
-              className="flex flex-col gap-4 p-6 bg-white rounded-xl shadow-sm hover:shadow-md transition-shadow duration-300 h-full"
+              className="animate-fade-in-up-staggered flex flex-col gap-4 p-6 bg-white rounded-xl shadow-sm hover:shadow-md transition-shadow duration-300 h-full"
+              style={{ animationDelay: `${index * 0.1}s` }}
             >
               {/* Icon */}
               <div className={`w-16 h-16 ${feature.bgColor} rounded-xl flex items-center justify-center mx-auto`}>
@@ -91,7 +81,7 @@ export function WhyPlan2Fund({ targetGroup = 'default' }: WhyPlan2FundProps) {
                   {feature.description}
                 </p>
               </div>
-            </motion.div>
+            </div>
           ))}
         </div>
 

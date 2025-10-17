@@ -1,7 +1,6 @@
 // Unified Recommendation Wizard - Consolidates all wizard functionality
 import { Button } from "@/components/ui/button";
 // import { useRouter } from "next/router"; // Unused
-import { motion } from "framer-motion";
 import Link from "next/link";
 import { useRecommendation } from "@/contexts/RecommendationContext";
 import { DynamicWizard } from "../decision-tree/DynamicWizard";
@@ -173,12 +172,9 @@ function QuestionCard({
   // const { t } = useI18n(); // Unused
   
   return (
-    <motion.div
+    <div
       key={question.id}
-      initial={{ opacity: 0, y: 20 }}
-      animate={{ opacity: 1, y: 0 }}
-      exit={{ opacity: 0, y: -20 }}
-      className="bg-white rounded-lg shadow-md p-6 mb-6"
+      className="animate-fade-in-up bg-white rounded-lg shadow-md p-6 mb-6"
     >
       <h2 className="text-xl font-semibold text-gray-900 mb-4">
         {question.question}
@@ -246,7 +242,7 @@ function QuestionCard({
           className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
         />
       )}
-    </motion.div>
+    </div>
   );
 }
 

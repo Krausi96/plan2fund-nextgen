@@ -1,7 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { useRouter } from "next/router";
-import { motion } from "framer-motion";
 import Link from "next/link";
 import { scoreProgramsEnhanced } from "@/lib/enhancedRecoEngine";
 import { DynamicQuestionEngine, DynamicQuestion } from "@/lib/dynamicQuestionEngine";
@@ -115,12 +114,9 @@ export default function Wizard() {
         </div>
 
         {/* Question Card */}
-        <motion.div
+        <div
           key={currentQuestionIndex}
-          initial={{ opacity: 0, x: 20 }}
-          animate={{ opacity: 1, x: 0 }}
-          exit={{ opacity: 0, x: -20 }}
-          className="bg-white rounded-xl shadow-lg p-8"
+          className="animate-fade-in-right bg-white rounded-xl shadow-lg p-8"
         >
           {currentQuestion ? (
             <div className="space-y-6">
@@ -192,7 +188,7 @@ export default function Wizard() {
               </Button>
             </div>
           )}
-        </motion.div>
+        </div>
 
         <HealthFooter />
       </div>
