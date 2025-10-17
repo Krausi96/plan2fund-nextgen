@@ -1,4 +1,3 @@
-import { motion, useReducedMotion } from "framer-motion";
 import { memo, useState, useEffect } from "react";
 import { useI18n } from "@/contexts/I18nContext";
 import { detectTargetGroup } from '@/lib/targetGroupDetection';
@@ -63,7 +62,7 @@ const BlueprintGrid = memo(function BlueprintGrid() {
 
 // Simple User Flow Animation Component
 const UserFlowAnimation = memo(function UserFlowAnimation({ onStepClick }: { onStepClick?: (stepId: number) => void }) {
-  const shouldReduceMotion = useReducedMotion();
+  // Removed useReducedMotion - using CSS @media (prefers-reduced-motion) instead
   const [currentStep, setCurrentStep] = useState(0);
   const { t } = useI18n();
 
@@ -107,14 +106,12 @@ const UserFlowAnimation = memo(function UserFlowAnimation({ onStepClick }: { onS
 
   // Auto-advance through steps - slower animation
   useEffect(() => {
-    if (shouldReduceMotion) return;
-    
     const interval = setInterval(() => {
       setCurrentStep((prev) => (prev + 1) % flowSteps.length);
     }, 5000); // Increased from 3000ms to 5000ms for slower animation
     
     return () => clearInterval(interval);
-  }, [shouldReduceMotion, flowSteps.length]);
+  }, [flowSteps.length]);
 
   return (
     <div className="relative w-full flex items-center justify-center p-4">
@@ -124,36 +121,30 @@ const UserFlowAnimation = memo(function UserFlowAnimation({ onStepClick }: { onS
           {/* Flow Steps */}
           {flowSteps.map((step, index) => (
             <div key={step.id} className="relative flex items-center">
-              <motion.div
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ 
-                  delay: shouldReduceMotion ? 0 : 0.2 + (index * 0.1),
-                  duration: 0.5
-                }}
-                className={`relative p-3 rounded-lg bg-white/5 backdrop-blur-sm border transition-all duration-500 cursor-pointer hover:bg-white/10 hover:border-white/30 ${
+              <div
+                className={`hero-fade-in-up hero-interactive-hover relative p-3 rounded-lg bg-white/5 backdrop-blur-sm border transition-all duration-500 cursor-pointer hover:bg-white/10 hover:border-white/30 ${
                   currentStep === index 
                     ? 'border-white/40 bg-white/10 scale-105' 
                     : 'border-white/10'
                 }`}
-                style={{ width: '120px', minHeight: '100px' }}
+                style={{ 
+                  width: '120px', 
+                  minHeight: '100px',
+                  animationDelay: `${0.2 + (index * 0.1)}s`
+                }}
                 onClick={() => onStepClick?.(step.id)}
               >
                 {/* Step Icon */}
-                <motion.div 
-                  className={`mx-auto mb-1 rounded-full flex items-center justify-center text-white font-bold ${
-                    currentStep === index ? 'w-7 h-7 text-sm' : 'w-6 h-6 text-xs'
+                <div 
+                  className={`mx-auto mb-1 rounded-full flex items-center justify-center text-white font-bold transition-transform duration-300 ${
+                    currentStep === index ? 'w-7 h-7 text-sm scale-110' : 'w-6 h-6 text-xs'
                   }`}
                   style={{
                     background: `linear-gradient(135deg, ${step.color.includes('blue') ? '#3B82F6' : step.color.includes('green') ? '#10B981' : step.color.includes('purple') ? '#8B5CF6' : step.color.includes('orange') ? '#F59E0B' : '#EAB308'}, ${step.color.includes('blue') ? '#06B6D4' : step.color.includes('green') ? '#059669' : step.color.includes('purple') ? '#A855F7' : step.color.includes('orange') ? '#EF4444' : '#F97316'})`
                   }}
-                  animate={{
-                    scale: currentStep === index ? 1.1 : 1,
-                  }}
-                  transition={{ duration: 0.3 }}
                 >
                   {step.icon}
-                </motion.div>
+                </div>
                 
                 {/* Step Content */}
                 <div className="text-center flex flex-col justify-center h-full">
@@ -164,7 +155,7 @@ const UserFlowAnimation = memo(function UserFlowAnimation({ onStepClick }: { onS
                     {step.description}
                   </p>
                 </div>
-              </motion.div>
+              </div>
               
               {/* Connecting Line */}
               {index < flowSteps.length - 1 && (
@@ -240,12 +231,7 @@ export function Hero({
           
           {/* H1 + Subtitle as one visual block */}
           <div className="text-center max-w-5xl">
-            <motion.div
-              initial={{ opacity: 0, y: 30 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.8 }}
-              className="mb-12"
-            >
+            <div className="hero-fade-in-up-large mb-12">
               {/* H1 Title - Tight line-height for compact feel when breaking */}
               <h1 className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl xl:text-7xl font-bold text-white leading-tight sm:leading-tight text-wrap-balance tracking-tight">
                 <div className="mb-0">{heroTitle}</div>
@@ -257,11 +243,8 @@ export function Hero({
                 {/* Subtitle - increased width for better proportions */}
                 <div className="text-center max-w-4xl mx-auto">
                   <div>
-                    <motion.p 
-                      initial={{ opacity: 0, y: 20 }}
-                      animate={{ opacity: 1, y: 0 }}
-                      transition={{ delay: 0.3, duration: 0.8 }}
-                      className="text-lg md:text-xl text-white/90 leading-relaxed font-normal"
+                    <p 
+                      className="hero-staggered-1 text-lg md:text-xl text-white/90 leading-relaxed font-normal"
                       dangerouslySetInnerHTML={{
                         __html: heroSubtitle
                           .replace(/(funding options|Finanzierungsoptionen)/gi, '<span class="font-bold text-white">$1</span>')
@@ -278,7 +261,7 @@ export function Hero({
                   </div>
                 </div>
               </div>
-            </motion.div>
+            </div>
           </div>
 
           {/* User Flow Animation - Hidden on mobile */}
@@ -289,40 +272,28 @@ export function Hero({
           {/* CTA Buttons and Disclaimer */}
           <div className="text-center max-w-4xl">
             {/* CTA Buttons */}
-            <motion.div 
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.6, duration: 0.8 }}
-              className="flex flex-col sm:flex-row gap-3 mb-3 justify-center"
-            >
-              <motion.a
+            <div className="hero-staggered-2 flex flex-col sm:flex-row gap-3 mb-3 justify-center">
+              <a
                 href={primaryButtonHref}
-                whileHover={{ scale: 1.05 }}
-                whileTap={{ scale: 0.95 }}
-                className="inline-flex items-center justify-center px-8 py-4 bg-blue-600 hover:bg-blue-700 text-white font-semibold rounded-xl transition-colors duration-200 shadow-lg hover:shadow-xl"
+                className="hero-button-hover inline-flex items-center justify-center px-8 py-4 bg-blue-600 hover:bg-blue-700 text-white font-semibold rounded-xl transition-colors duration-200 shadow-lg hover:shadow-xl"
               >
                 {heroPrimaryButton}
-              </motion.a>
+              </a>
               
-              <motion.a
+              <a
                 href="/reco"
-                whileHover={{ scale: 1.05 }}
-                whileTap={{ scale: 0.95 }}
-                className="hidden sm:inline-flex items-center justify-center px-8 py-4 border-2 border-white/30 hover:border-white/50 text-white font-semibold rounded-xl transition-colors duration-200 backdrop-blur-sm hover:bg-white/10"
+                className="hero-button-hover hidden sm:inline-flex items-center justify-center px-8 py-4 border-2 border-white/30 hover:border-white/50 text-white font-semibold rounded-xl transition-colors duration-200 backdrop-blur-sm hover:bg-white/10"
               >
                 {heroSecondaryButton}
-              </motion.a>
-            </motion.div>
+              </a>
+            </div>
 
             {/* Safety Microcopy */}
-            <motion.p 
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.9, duration: 0.8 }}
-              className="text-xs text-blue-200/70 max-w-xl mx-auto"
+            <p 
+              className="hero-staggered-3 text-xs text-blue-200/70 max-w-xl mx-auto"
             >
               {t('hero.disclaimer')}
-            </motion.p>
+            </p>
           </div>
         </div>
       </div>
