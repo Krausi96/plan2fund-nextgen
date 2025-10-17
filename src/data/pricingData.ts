@@ -1,7 +1,8 @@
 // Minimal data for pricing components
 // This replaces the fake data from basisPack.ts
 
-import { type Product, type FundingType } from '@/types/plan';
+import { type Product } from '@/types/plan';
+import { type FundingType } from '@/data/basisPack';
 import { type TargetGroup } from '@/lib/targetGroupDetection';
 
 export interface FundingPack {

@@ -1,0 +1,75 @@
+{
+  "timestamp": "2025-10-16T20:19:15.155Z",
+  "fileStructure": {
+    "status": "WARNING",
+    "structure": {
+      "hasSrc": true,
+      "hasPages": true,
+      "hasComponents": true,
+      "hasLib": true,
+      "hasTypes": true,
+      "hasTests": false,
+      "hasConfig": true,
+      "hasTsConfig": true,
+      "hasPackageJson": true,
+      "hasEslintConfig": true
+    },
+    "missing": [
+      "hasTests"
+    ],
+    "message": "Missing: hasTests"
+  },
+  "packageJson": {
+    "status": "PASS",
+    "name": "plan2fund-nextgen",
+    "version": "0.0.3",
+    "hasScripts": true,
+    "hasDependencies": true,
+    "hasDevDependencies": true,
+    "scripts": [
+      "lint",
+      "build",
+      "dev",
+      "start",
+      "typecheck",
+      "validate",
+      "test",
+      "coverage",
+      "source:register",
+      "ci:full",
+      "ci:coverage",
+      "analyze",
+      "analyze:full",
+      "analyze:all",
+      "analyze:health",
+      "analyze:filesize",
+      "analyze:bundle",
+      "analyze:unused",
+      "analyze:duplicates"
+    ],
+    "dependencyCount": 32,
+    "devDependencyCount": 14
+  },
+  "configFiles": {
+    "status": "PASS",
+    "configs": {
+      "nextConfig": true,
+      "tsConfig": true,
+      "eslintConfig": true,
+      "tailwindConfig": true,
+      "postcssConfig": true
+    },
+    "present": 5,
+    "total": 5,
+    "message": "5/5 config files present"
+  },
+  "recommendations": [
+    {
+      "priority": "LOW",
+      "category": "Structure",
+      "issue": "Missing files/directories: hasTests",
+      "action": "Review project structure",
+      "impact": "Code organization"
+    }
+  ]
+}

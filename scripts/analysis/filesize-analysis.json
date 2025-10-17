@@ -1,0 +1,1034 @@
+{
+  "timestamp": "2025-10-16T20:19:20.367Z",
+  "fileStats": {
+    "total": 234,
+    "byType": {
+      ".tsx": 123,
+      ".ts": 111
+    },
+    "bySize": {
+      "small": 23,
+      "medium": 137,
+      "large": 71,
+      "xlarge": 3
+    },
+    "byDirectory": {
+      "src\\components\\addons": 1,
+      "src\\components\\common": 21,
+      "src\\components\\decision-tree": 1,
+      "src\\components\\editor": 18,
+      "src\\components\\fallback": 1,
+      "src\\components\\gdpr": 1,
+      "src\\components\\intake": 3,
+      "src\\components\\layout": 7,
+      "src\\components\\library": 1,
+      "src\\components\\onboarding": 1,
+      "src\\components\\plan": 6,
+      "src\\components\\pricing": 9,
+      "src\\components\\reco": 6,
+      "src\\components\\results": 1,
+      "src\\components\\success": 1,
+      "src\\components\\templates": 1,
+      "src\\components\\ui": 9,
+      "src\\contexts": 3,
+      "src\\data": 7,
+      "src\\editor\\addons": 1,
+      "src\\editor": 1,
+      "src\\editor\\figures": 1,
+      "src\\editor\\financials": 1,
+      "src\\editor\\integration": 1,
+      "src\\editor\\optimized": 1,
+      "src\\editor\\readiness": 1,
+      "src\\editor\\settings": 1,
+      "src\\editor\\templates": 1,
+      "src\\export": 1,
+      "src\\hooks": 2,
+      "src\\i18n": 1,
+      "src\\lib": 49,
+      "src\\lib\\editor": 2,
+      "src\\lib\\examples": 1,
+      "src\\lib\\schemas": 3,
+      "src\\lib\\templates": 5,
+      "src\\lib\\validation": 2,
+      "src\\reco": 1,
+      "src\\types": 5,
+      "src": 1,
+      "pages": 23,
+      "pages\\api\\ai": 2,
+      "pages\\api": 13,
+      "pages\\api\\analytics": 1,
+      "pages\\api\\cron": 1,
+      "pages\\api\\data": 2,
+      "pages\\api\\gdpr": 1,
+      "pages\\api\\intake": 2,
+      "pages\\api\\payments": 2,
+      "pages\\api\\plan": 1,
+      "pages\\api\\programmes\\[id]": 1,
+      "pages\\api\\scraper": 2,
+      "pages\\api\\stripe": 1,
+      "pages\\api\\user": 1,
+      "pages\\program": 1
+    }
+  },
+  "largeFiles": [
+    {
+      "path": "src\\lib\\webScraperService.ts",
+      "size": 136202,
+      "sizeKB": 133,
+      "priority": "CRITICAL",
+      "type": ".ts",
+      "directory": "src\\lib",
+      "lines": 3663,
+      "lastModified": "2025-10-16T09:53:19.449Z"
+    },
+    {
+      "path": "src\\lib\\enhancedDataPipeline.ts",
+      "size": 55733,
+      "sizeKB": 54,
+      "priority": "CRITICAL",
+      "type": ".ts",
+      "directory": "src\\lib",
+      "lines": 1720,
+      "lastModified": "2025-10-16T09:53:19.274Z"
+    },
+    {
+      "path": "src\\lib\\enhancedRecoEngine.ts",
+      "size": 53352,
+      "sizeKB": 52,
+      "priority": "CRITICAL",
+      "type": ".ts",
+      "directory": "src\\lib",
+      "lines": 1385,
+      "lastModified": "2025-10-16T09:53:19.274Z"
+    },
+    {
+      "path": "src\\lib\\templates\\productSectionTemplates.ts",
+      "size": 39414,
+      "sizeKB": 38,
+      "priority": "WARNING",
+      "type": ".ts",
+      "directory": "src\\lib\\templates",
+      "lines": 963,
+      "lastModified": "2025-10-16T18:09:49.576Z"
+    },
+    {
+      "path": "src\\lib\\dynamicDecisionTree.ts",
+      "size": 32989,
+      "sizeKB": 32,
+      "priority": "WARNING",
+      "type": ".ts",
+      "directory": "src\\lib",
+      "lines": 989,
+      "lastModified": "2025-10-16T09:53:19.254Z"
+    },
+    {
+      "path": "pages\\api\\scraper\\run.ts",
+      "size": 32939,
+      "sizeKB": 32,
+      "priority": "WARNING",
+      "type": ".ts",
+      "directory": "pages\\api\\scraper",
+      "lines": 768,
+      "lastModified": "2025-10-16T09:53:18.842Z"
+    },
+    {
+      "path": "pages\\optimized-editor.tsx",
+      "size": 30641,
+      "sizeKB": 30,
+      "priority": "WARNING",
+      "type": ".tsx",
+      "directory": "pages",
+      "lines": 718,
+      "lastModified": "2025-10-16T09:53:18.884Z"
+    },
+    {
+      "path": "src\\lib\\templates\\additionalDocuments.ts",
+      "size": 28528,
+      "sizeKB": 28,
+      "priority": "WARNING",
+      "type": ".ts",
+      "directory": "src\\lib\\templates",
+      "lines": 840,
+      "lastModified": "2025-10-16T09:15:30.188Z"
+    },
+    {
+      "path": "src\\lib\\readiness.ts",
+      "size": 28265,
+      "sizeKB": 28,
+      "priority": "WARNING",
+      "type": ".ts",
+      "directory": "src\\lib",
+      "lines": 819,
+      "lastModified": "2025-10-16T09:53:19.357Z"
+    },
+    {
+      "path": "pages\\pricing.tsx",
+      "size": 27582,
+      "sizeKB": 27,
+      "priority": "WARNING",
+      "type": ".tsx",
+      "directory": "pages",
+      "lines": 581,
+      "lastModified": "2025-10-16T09:53:18.890Z"
+    },
+    {
+      "path": "src\\lib\\examples\\examples.ts",
+      "size": 27056,
+      "sizeKB": 26,
+      "priority": "WARNING",
+      "type": ".ts",
+      "directory": "src\\lib\\examples",
+      "lines": 457,
+      "lastModified": "2025-10-16T09:53:19.284Z"
+    },
+    {
+      "path": "src\\components\\editor\\UnifiedEditor.tsx",
+      "size": 26010,
+      "sizeKB": 25,
+      "priority": "WARNING",
+      "type": ".tsx",
+      "directory": "src\\components\\editor",
+      "lines": 755,
+      "lastModified": "2025-10-16T18:05:50.622Z"
+    },
+    {
+      "path": "src\\export\\renderer.tsx",
+      "size": 23635,
+      "sizeKB": 23,
+      "priority": "WARNING",
+      "type": ".tsx",
+      "directory": "src\\export",
+      "lines": 690,
+      "lastModified": "2025-10-16T09:15:29.466Z"
+    },
+    {
+      "path": "pages\\results.tsx",
+      "size": 23090,
+      "sizeKB": 23,
+      "priority": "WARNING",
+      "type": ".tsx",
+      "directory": "pages",
+      "lines": 488,
+      "lastModified": "2025-10-16T09:53:18.905Z"
+    },
+    {
+      "path": "src\\lib\\programTemplates.ts",
+      "size": 22937,
+      "sizeKB": 22,
+      "priority": "WARNING",
+      "type": ".ts",
+      "directory": "src\\lib",
+      "lines": 712,
+      "lastModified": "2025-10-16T09:53:19.353Z"
+    },
+    {
+      "path": "pages\\preview.tsx",
+      "size": 22293,
+      "sizeKB": 22,
+      "priority": "WARNING",
+      "type": ".tsx",
+      "directory": "pages",
+      "lines": 489,
+      "lastModified": "2025-10-16T09:53:18.887Z"
+    },
+    {
+      "path": "src\\lib\\export.ts",
+      "size": 22151,
+      "sizeKB": 22,
+      "priority": "WARNING",
+      "type": ".ts",
+      "directory": "src\\lib",
+      "lines": 674,
+      "lastModified": "2025-10-16T09:53:19.288Z"
+    },
+    {
+      "path": "src\\components\\editor\\EnhancedAIChat.tsx",
+      "size": 21687,
+      "sizeKB": 21,
+      "priority": "WARNING",
+      "type": ".tsx",
+      "directory": "src\\components\\editor",
+      "lines": 607,
+      "lastModified": "2025-10-16T09:53:18.981Z"
+    },
+    {
+      "path": "src\\lib\\dataSource.ts",
+      "size": 21384,
+      "sizeKB": 21,
+      "priority": "WARNING",
+      "type": ".ts",
+      "directory": "src\\lib",
+      "lines": 574,
+      "lastModified": "2025-10-16T09:53:19.239Z"
+    },
+    {
+      "path": "src\\lib\\standardSectionTemplates.ts",
+      "size": 18174,
+      "sizeKB": 18,
+      "priority": "WARNING",
+      "type": ".ts",
+      "directory": "src\\lib",
+      "lines": 550,
+      "lastModified": "2025-10-16T09:53:19.408Z"
+    },
+    {
+      "path": "src\\components\\decision-tree\\DynamicWizard.tsx",
+      "size": 18076,
+      "sizeKB": 18,
+      "priority": "WARNING",
+      "type": ".tsx",
+      "directory": "src\\components\\decision-tree",
+      "lines": 498,
+      "lastModified": "2025-10-16T09:53:18.971Z"
+    },
+    {
+      "path": "src\\components\\common\\PricingDetails.tsx",
+      "size": 17526,
+      "sizeKB": 17,
+      "priority": "WARNING",
+      "type": ".tsx",
+      "directory": "src\\components\\common",
+      "lines": 394,
+      "lastModified": "2025-10-16T09:53:18.951Z"
+    },
+    {
+      "path": "pages\\dashboard.tsx",
+      "size": 17472,
+      "sizeKB": 17,
+      "priority": "WARNING",
+      "type": ".tsx",
+      "directory": "pages",
+      "lines": 452,
+      "lastModified": "2025-10-16T09:53:18.865Z"
+    },
+    {
+      "path": "src\\lib\\dynamicPatternEngine.ts",
+      "size": 17330,
+      "sizeKB": 17,
+      "priority": "WARNING",
+      "type": ".ts",
+      "directory": "src\\lib",
+      "lines": 519,
+      "lastModified": "2025-10-16T09:53:19.258Z"
+    },
+    {
+      "path": "src\\components\\success\\SuccessHub.tsx",
+      "size": 17209,
+      "sizeKB": 17,
+      "priority": "WARNING",
+      "type": ".tsx",
+      "directory": "src\\components\\success",
+      "lines": 432,
+      "lastModified": "2025-10-16T09:53:19.150Z"
+    },
+    {
+      "path": "src\\lib\\conditionalQuestionEngine.ts",
+      "size": 17034,
+      "sizeKB": 17,
+      "priority": "WARNING",
+      "type": ".ts",
+      "directory": "src\\lib",
+      "lines": 524,
+      "lastModified": "2025-10-16T09:53:19.235Z"
+    },
+    {
+      "path": "src\\components\\editor\\Phase4Integration.tsx",
+      "size": 16763,
+      "sizeKB": 16,
+      "priority": "WARNING",
+      "type": ".tsx",
+      "directory": "src\\components\\editor",
+      "lines": 455,
+      "lastModified": "2025-10-16T19:28:52.778Z"
+    },
+    {
+      "path": "src\\components\\plan\\FinancialsQuickSheet.tsx",
+      "size": 16650,
+      "sizeKB": 16,
+      "priority": "WARNING",
+      "type": ".tsx",
+      "directory": "src\\components\\plan",
+      "lines": 428,
+      "lastModified": "2025-10-16T19:28:56.808Z"
+    },
+    {
+      "path": "src\\lib\\aiHelperGuardrails.ts",
+      "size": 15907,
+      "sizeKB": 16,
+      "priority": "WARNING",
+      "type": ".ts",
+      "directory": "src\\lib",
+      "lines": 516,
+      "lastModified": "2025-10-16T09:53:19.216Z"
+    },
+    {
+      "path": "src\\lib\\validation\\conditionalLogic.ts",
+      "size": 15785,
+      "sizeKB": 15,
+      "priority": "WARNING",
+      "type": ".ts",
+      "directory": "src\\lib\\validation",
+      "lines": 530,
+      "lastModified": "2025-10-16T09:53:19.439Z"
+    },
+    {
+      "path": "src\\lib\\doctorDiagnostic.ts",
+      "size": 15350,
+      "sizeKB": 15,
+      "priority": "WARNING",
+      "type": ".ts",
+      "directory": "src\\lib",
+      "lines": 460,
+      "lastModified": "2025-10-16T09:53:19.250Z"
+    },
+    {
+      "path": "src\\lib\\intakeParser.ts",
+      "size": 14966,
+      "sizeKB": 15,
+      "priority": "WARNING",
+      "type": ".ts",
+      "directory": "src\\lib",
+      "lines": 442,
+      "lastModified": "2025-10-16T09:53:19.300Z"
+    },
+    {
+      "path": "src\\lib\\prefill.ts",
+      "size": 14815,
+      "sizeKB": 14,
+      "priority": "WARNING",
+      "type": ".ts",
+      "directory": "src\\lib",
+      "lines": 491,
+      "lastModified": "2025-10-16T09:53:19.344Z"
+    },
+    {
+      "path": "pages\\for.tsx",
+      "size": 14513,
+      "sizeKB": 14,
+      "priority": "WARNING",
+      "type": ".tsx",
+      "directory": "pages",
+      "lines": 449,
+      "lastModified": "2025-10-16T09:53:18.874Z"
+    },
+    {
+      "path": "src\\lib\\validation\\validationRules.ts",
+      "size": 14399,
+      "sizeKB": 14,
+      "priority": "WARNING",
+      "type": ".ts",
+      "directory": "src\\lib\\validation",
+      "lines": 409,
+      "lastModified": "2025-10-16T09:53:19.443Z"
+    },
+    {
+      "path": "src\\data\\documentDescriptions.ts",
+      "size": 14078,
+      "sizeKB": 14,
+      "priority": "WARNING",
+      "type": ".ts",
+      "directory": "src\\data",
+      "lines": 301,
+      "lastModified": "2025-10-16T09:15:29.426Z"
+    },
+    {
+      "path": "src\\components\\templates\\ProgramTemplateEditor.tsx",
+      "size": 13958,
+      "sizeKB": 14,
+      "priority": "WARNING",
+      "type": ".tsx",
+      "directory": "src\\components\\templates",
+      "lines": 384,
+      "lastModified": "2025-10-16T19:29:03.418Z"
+    },
+    {
+      "path": "src\\components\\common\\Hero.tsx",
+      "size": 13836,
+      "sizeKB": 14,
+      "priority": "WARNING",
+      "type": ".tsx",
+      "directory": "src\\components\\common",
+      "lines": 332,
+      "lastModified": "2025-10-16T09:53:18.935Z"
+    },
+    {
+      "path": "src\\types\\requirements.ts",
+      "size": 13744,
+      "sizeKB": 13,
+      "priority": "WARNING",
+      "type": ".ts",
+      "directory": "src\\types",
+      "lines": 512,
+      "lastModified": "2025-10-16T09:15:30.257Z"
+    },
+    {
+      "path": "src\\components\\editor\\EditorState.tsx",
+      "size": 13701,
+      "sizeKB": 13,
+      "priority": "WARNING",
+      "type": ".tsx",
+      "directory": "src\\components\\editor",
+      "lines": 393,
+      "lastModified": "2025-10-16T09:53:18.973Z"
+    },
+    {
+      "path": "src\\lib\\editor\\EditorDataProvider.ts",
+      "size": 13697,
+      "sizeKB": 13,
+      "priority": "WARNING",
+      "type": ".ts",
+      "directory": "src\\lib\\editor",
+      "lines": 423,
+      "lastModified": "2025-10-16T18:26:56.538Z"
+    },
+    {
+      "path": "src\\editor\\financials\\index.tsx",
+      "size": 13585,
+      "sizeKB": 13,
+      "priority": "WARNING",
+      "type": ".tsx",
+      "directory": "src\\editor\\financials",
+      "lines": 416,
+      "lastModified": "2025-10-16T09:14:27.128Z"
+    },
+    {
+      "path": "pages\\program\\[id].tsx",
+      "size": 13426,
+      "sizeKB": 13,
+      "priority": "WARNING",
+      "type": ".tsx",
+      "directory": "pages\\program",
+      "lines": 352,
+      "lastModified": "2025-10-16T09:53:18.899Z"
+    },
+    {
+      "path": "src\\lib\\addons.ts",
+      "size": 13256,
+      "sizeKB": 13,
+      "priority": "WARNING",
+      "type": ".ts",
+      "directory": "src\\lib",
+      "lines": 516,
+      "lastModified": "2025-10-16T09:53:19.204Z"
+    },
+    {
+      "path": "src\\lib\\requirementsExtractor.ts",
+      "size": 13023,
+      "sizeKB": 13,
+      "priority": "WARNING",
+      "type": ".ts",
+      "directory": "src\\lib",
+      "lines": 381,
+      "lastModified": "2025-10-16T09:53:19.361Z"
+    },
+    {
+      "path": "src\\components\\editor\\SectionEditor.tsx",
+      "size": 12858,
+      "sizeKB": 13,
+      "priority": "WARNING",
+      "type": ".tsx",
+      "directory": "src\\components\\editor",
+      "lines": 312,
+      "lastModified": "2025-10-16T09:53:19.007Z"
+    },
+    {
+      "path": "src\\components\\reco\\EnhancedWizard.tsx",
+      "size": 12371,
+      "sizeKB": 12,
+      "priority": "WARNING",
+      "type": ".tsx",
+      "directory": "src\\components\\reco",
+      "lines": 331,
+      "lastModified": "2025-10-16T19:29:03.414Z"
+    },
+    {
+      "path": "pages\\privacy-settings.tsx",
+      "size": 12329,
+      "sizeKB": 12,
+      "priority": "WARNING",
+      "type": ".tsx",
+      "directory": "pages",
+      "lines": 305,
+      "lastModified": "2025-10-16T09:53:18.891Z"
+    },
+    {
+      "path": "src\\components\\editor\\TeamManager.tsx",
+      "size": 12311,
+      "sizeKB": 12,
+      "priority": "WARNING",
+      "type": ".tsx",
+      "directory": "src\\components\\editor",
+      "lines": 343,
+      "lastModified": "2025-10-16T09:53:19.007Z"
+    },
+    {
+      "path": "src\\components\\editor\\VersionControl.tsx",
+      "size": 12156,
+      "sizeKB": 12,
+      "priority": "WARNING",
+      "type": ".tsx",
+      "directory": "src\\components\\editor",
+      "lines": 360,
+      "lastModified": "2025-10-16T09:53:19.023Z"
+    },
+    {
+      "path": "src\\lib\\submissionPack.ts",
+      "size": 12064,
+      "sizeKB": 12,
+      "priority": "WARNING",
+      "type": ".ts",
+      "directory": "src\\lib",
+      "lines": 426,
+      "lastModified": "2025-10-16T09:53:19.412Z"
+    },
+    {
+      "path": "src\\components\\editor\\RichTextEditor.tsx",
+      "size": 11922,
+      "sizeKB": 12,
+      "priority": "WARNING",
+      "type": ".tsx",
+      "directory": "src\\components\\editor",
+      "lines": 317,
+      "lastModified": "2025-10-16T09:53:19.003Z"
+    },
+    {
+      "path": "src\\components\\editor\\ExportSettings.tsx",
+      "size": 11909,
+      "sizeKB": 12,
+      "priority": "WARNING",
+      "type": ".tsx",
+      "directory": "src\\components\\editor",
+      "lines": 291,
+      "lastModified": "2025-10-16T09:53:18.990Z"
+    },
+    {
+      "path": "src\\components\\onboarding\\SegmentedOnboarding.tsx",
+      "size": 11855,
+      "sizeKB": 12,
+      "priority": "WARNING",
+      "type": ".tsx",
+      "directory": "src\\components\\onboarding",
+      "lines": 335,
+      "lastModified": "2025-10-16T19:28:56.768Z"
+    },
+    {
+      "path": "src\\lib\\templates\\industryVariations.ts",
+      "size": 11850,
+      "sizeKB": 12,
+      "priority": "WARNING",
+      "type": ".ts",
+      "directory": "src\\lib\\templates",
+      "lines": 323,
+      "lastModified": "2025-10-16T18:26:56.539Z"
+    },
+    {
+      "path": "pages\\api\\ai\\generate.ts",
+      "size": 11817,
+      "sizeKB": 12,
+      "priority": "WARNING",
+      "type": ".ts",
+      "directory": "pages\\api\\ai",
+      "lines": 232,
+      "lastModified": "2025-10-16T09:53:18.782Z"
+    },
+    {
+      "path": "src\\lib\\comprehensiveExport.ts",
+      "size": 11631,
+      "sizeKB": 11,
+      "priority": "WARNING",
+      "type": ".ts",
+      "directory": "src\\lib",
+      "lines": 356,
+      "lastModified": "2025-10-16T09:53:19.231Z"
+    },
+    {
+      "path": "src\\components\\intake\\IntakeForm.tsx",
+      "size": 11595,
+      "sizeKB": 11,
+      "priority": "WARNING",
+      "type": ".tsx",
+      "directory": "src\\components\\intake",
+      "lines": 360,
+      "lastModified": "2025-10-16T19:28:52.796Z"
+    },
+    {
+      "path": "pages\\terms.tsx",
+      "size": 11503,
+      "sizeKB": 11,
+      "priority": "WARNING",
+      "type": ".tsx",
+      "directory": "pages",
+      "lines": 235,
+      "lastModified": "2025-10-16T09:53:18.906Z"
+    },
+    {
+      "path": "src\\components\\editor\\EntryPointsManager.tsx",
+      "size": 11291,
+      "sizeKB": 11,
+      "priority": "WARNING",
+      "type": ".tsx",
+      "directory": "src\\components\\editor",
+      "lines": 302,
+      "lastModified": "2025-10-16T09:53:18.987Z"
+    },
+    {
+      "path": "src\\components\\editor\\RequirementsChecker.tsx",
+      "size": 11275,
+      "sizeKB": 11,
+      "priority": "WARNING",
+      "type": ".tsx",
+      "directory": "src\\components\\editor",
+      "lines": 310,
+      "lastModified": "2025-10-16T09:53:19.000Z"
+    },
+    {
+      "path": "src\\lib\\editorTemplates.ts",
+      "size": 11268,
+      "sizeKB": 11,
+      "priority": "WARNING",
+      "type": ".ts",
+      "directory": "src\\lib",
+      "lines": 279,
+      "lastModified": "2025-10-16T09:53:19.266Z"
+    },
+    {
+      "path": "src\\lib\\seo.ts",
+      "size": 11108,
+      "sizeKB": 11,
+      "priority": "WARNING",
+      "type": ".ts",
+      "directory": "src\\lib",
+      "lines": 312,
+      "lastModified": "2025-10-16T09:53:19.400Z"
+    },
+    {
+      "path": "src\\lib\\financialCalculator.ts",
+      "size": 11091,
+      "sizeKB": 11,
+      "priority": "WARNING",
+      "type": ".ts",
+      "directory": "src\\lib",
+      "lines": 366,
+      "lastModified": "2025-10-16T09:53:19.297Z"
+    },
+    {
+      "path": "src\\lib\\multiUserDataManager.ts",
+      "size": 11088,
+      "sizeKB": 11,
+      "priority": "WARNING",
+      "type": ".ts",
+      "directory": "src\\lib",
+      "lines": 374,
+      "lastModified": "2025-10-16T09:53:19.320Z"
+    },
+    {
+      "path": "src\\components\\editor\\StructuredEditor.tsx",
+      "size": 10811,
+      "sizeKB": 11,
+      "priority": "WARNING",
+      "type": ".tsx",
+      "directory": "src\\components\\editor",
+      "lines": 287,
+      "lastModified": "2025-10-16T09:53:19.007Z"
+    },
+    {
+      "path": "src\\contexts\\RecommendationContext.tsx",
+      "size": 10809,
+      "sizeKB": 11,
+      "priority": "WARNING",
+      "type": ".tsx",
+      "directory": "src\\contexts",
+      "lines": 358,
+      "lastModified": "2025-10-16T09:15:29.414Z"
+    },
+    {
+      "path": "pages\\privacy.tsx",
+      "size": 10751,
+      "sizeKB": 10,
+      "priority": "WARNING",
+      "type": ".tsx",
+      "directory": "pages",
+      "lines": 205,
+      "lastModified": "2025-10-16T09:53:18.891Z"
+    },
+    {
+      "path": "src\\lib\\payments.ts",
+      "size": 10698,
+      "sizeKB": 10,
+      "priority": "WARNING",
+      "type": ".ts",
+      "directory": "src\\lib",
+      "lines": 331,
+      "lastModified": "2025-10-16T09:53:19.332Z"
+    },
+    {
+      "path": "src\\components\\results\\StructuredRequirementsDisplay.tsx",
+      "size": 10489,
+      "sizeKB": 10,
+      "priority": "WARNING",
+      "type": ".tsx",
+      "directory": "src\\components\\results",
+      "lines": 254,
+      "lastModified": "2025-10-16T09:53:19.150Z"
+    },
+    {
+      "path": "src\\components\\editor\\FormattingExportManager.tsx",
+      "size": 10138,
+      "sizeKB": 10,
+      "priority": "WARNING",
+      "type": ".tsx",
+      "directory": "src\\components\\editor",
+      "lines": 274,
+      "lastModified": "2025-10-16T09:53:18.992Z"
+    },
+    {
+      "path": "src\\lib\\aiChipParser.ts",
+      "size": 10122,
+      "sizeKB": 10,
+      "priority": "WARNING",
+      "type": ".ts",
+      "directory": "src\\lib",
+      "lines": 320,
+      "lastModified": "2025-10-16T09:53:19.210Z"
+    },
+    {
+      "path": "src\\components\\reco\\UnifiedRecommendationWizard.tsx",
+      "size": 10090,
+      "sizeKB": 10,
+      "priority": "WARNING",
+      "type": ".tsx",
+      "directory": "src\\components\\reco",
+      "lines": 336,
+      "lastModified": "2025-10-16T09:53:19.147Z"
+    },
+    {
+      "path": "pages\\about.tsx",
+      "size": 10064,
+      "sizeKB": 10,
+      "priority": "WARNING",
+      "type": ".tsx",
+      "directory": "pages",
+      "lines": 217,
+      "lastModified": "2025-10-16T09:53:18.770Z"
+    }
+  ],
+  "recommendations": [
+    {
+      "priority": "HIGH",
+      "issue": "3 critical large files (>50KB)",
+      "action": "Optimize or split these files immediately",
+      "impact": "Bundle size and performance",
+      "files": [
+        "src\\lib\\webScraperService.ts (133KB)",
+        "src\\lib\\enhancedDataPipeline.ts (54KB)",
+        "src\\lib\\enhancedRecoEngine.ts (52KB)"
+      ]
+    },
+    {
+      "priority": "MEDIUM",
+      "issue": "71 large files (>10KB)",
+      "action": "Consider optimizing these files",
+      "impact": "Bundle size",
+      "files": [
+        "src\\lib\\templates\\productSectionTemplates.ts (38KB)",
+        "src\\lib\\dynamicDecisionTree.ts (32KB)",
+        "pages\\api\\scraper\\run.ts (32KB)",
+        "pages\\optimized-editor.tsx (30KB)",
+        "src\\lib\\templates\\additionalDocuments.ts (28KB)"
+      ]
+    },
+    {
+      "priority": "MEDIUM",
+      "issue": "38 large React components",
+      "action": "Consider splitting components or using code splitting",
+      "impact": "Bundle size and loading performance"
+    },
+    {
+      "priority": "LOW",
+      "issue": "36 large TypeScript files",
+      "action": "Consider splitting utility files or using tree shaking",
+      "impact": "Bundle size"
+    },
+    {
+      "priority": "LOW",
+      "issue": "3 directories with high total size",
+      "action": "Review directory structure and file organization",
+      "impact": "Code organization and maintainability",
+      "directories": [
+        "src\\lib (588KB)",
+        "src\\components\\editor (179KB)",
+        "pages (176KB)"
+      ]
+    }
+  ],
+  "directorySizes": [
+    {
+      "directory": "src\\lib",
+      "totalSizeKB": 588,
+      "fileCount": 25,
+      "largeFiles": 25,
+      "avgSizeKB": 24
+    },
+    {
+      "directory": "src\\components\\editor",
+      "totalSizeKB": 179,
+      "fileCount": 13,
+      "largeFiles": 13,
+      "avgSizeKB": 14
+    },
+    {
+      "directory": "pages",
+      "totalSizeKB": 176,
+      "fileCount": 10,
+      "largeFiles": 10,
+      "avgSizeKB": 18
+    },
+    {
+      "directory": "src\\lib\\templates",
+      "totalSizeKB": 78,
+      "fileCount": 3,
+      "largeFiles": 3,
+      "avgSizeKB": 26
+    },
+    {
+      "directory": "pages\\api\\scraper",
+      "totalSizeKB": 32,
+      "fileCount": 1,
+      "largeFiles": 1,
+      "avgSizeKB": 32
+    },
+    {
+      "directory": "src\\components\\common",
+      "totalSizeKB": 31,
+      "fileCount": 2,
+      "largeFiles": 2,
+      "avgSizeKB": 15
+    },
+    {
+      "directory": "src\\lib\\validation",
+      "totalSizeKB": 29,
+      "fileCount": 2,
+      "largeFiles": 2,
+      "avgSizeKB": 15
+    },
+    {
+      "directory": "src\\lib\\examples",
+      "totalSizeKB": 26,
+      "fileCount": 1,
+      "largeFiles": 1,
+      "avgSizeKB": 26
+    },
+    {
+      "directory": "src\\export",
+      "totalSizeKB": 23,
+      "fileCount": 1,
+      "largeFiles": 1,
+      "avgSizeKB": 23
+    },
+    {
+      "directory": "src\\components\\reco",
+      "totalSizeKB": 22,
+      "fileCount": 2,
+      "largeFiles": 2,
+      "avgSizeKB": 11
+    },
+    {
+      "directory": "src\\components\\decision-tree",
+      "totalSizeKB": 18,
+      "fileCount": 1,
+      "largeFiles": 1,
+      "avgSizeKB": 18
+    },
+    {
+      "directory": "src\\components\\success",
+      "totalSizeKB": 17,
+      "fileCount": 1,
+      "largeFiles": 1,
+      "avgSizeKB": 17
+    },
+    {
+      "directory": "src\\components\\plan",
+      "totalSizeKB": 16,
+      "fileCount": 1,
+      "largeFiles": 1,
+      "avgSizeKB": 16
+    },
+    {
+      "directory": "src\\data",
+      "totalSizeKB": 14,
+      "fileCount": 1,
+      "largeFiles": 1,
+      "avgSizeKB": 14
+    },
+    {
+      "directory": "src\\components\\templates",
+      "totalSizeKB": 14,
+      "fileCount": 1,
+      "largeFiles": 1,
+      "avgSizeKB": 14
+    },
+    {
+      "directory": "src\\types",
+      "totalSizeKB": 13,
+      "fileCount": 1,
+      "largeFiles": 1,
+      "avgSizeKB": 13
+    },
+    {
+      "directory": "src\\lib\\editor",
+      "totalSizeKB": 13,
+      "fileCount": 1,
+      "largeFiles": 1,
+      "avgSizeKB": 13
+    },
+    {
+      "directory": "src\\editor\\financials",
+      "totalSizeKB": 13,
+      "fileCount": 1,
+      "largeFiles": 1,
+      "avgSizeKB": 13
+    },
+    {
+      "directory": "pages\\program",
+      "totalSizeKB": 13,
+      "fileCount": 1,
+      "largeFiles": 1,
+      "avgSizeKB": 13
+    },
+    {
+      "directory": "src\\components\\onboarding",
+      "totalSizeKB": 12,
+      "fileCount": 1,
+      "largeFiles": 1,
+      "avgSizeKB": 12
+    },
+    {
+      "directory": "pages\\api\\ai",
+      "totalSizeKB": 12,
+      "fileCount": 1,
+      "largeFiles": 1,
+      "avgSizeKB": 12
+    },
+    {
+      "directory": "src\\components\\intake",
+      "totalSizeKB": 11,
+      "fileCount": 1,
+      "largeFiles": 1,
+      "avgSizeKB": 11
+    },
+    {
+      "directory": "src\\contexts",
+      "totalSizeKB": 11,
+      "fileCount": 1,
+      "largeFiles": 1,
+      "avgSizeKB": 11
+    },
+    {
+      "directory": "src\\components\\results",
+      "totalSizeKB": 10,
+      "fileCount": 1,
+      "largeFiles": 1,
+      "avgSizeKB": 10
+    }
+  ]
+}
