@@ -469,7 +469,7 @@ npm run data:import data-file.json
 ## 🚀 PHASE 3: ENHANCEMENT (4 hours)
 
 ### **3.1 Performance Optimization (2 hours)**
-- **Large Components**: Optimize Hero.tsx (13KB), PricingDetails.tsx (17KB)
+- **Large Components**: Optimize Hero.tsx (13KB)
 - **Lazy Loading**: Load editor components only when needed
 - **Caching**: Cache recommendation data for faster subsequent loads
 - **Bundle Splitting**: Split code by user flow sections

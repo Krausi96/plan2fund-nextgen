@@ -204,7 +204,7 @@ Plan Content → Template Selection → Formatting → Export Generation
 
 **Files Involved**:
 - **Pages**: `pages/marketing/pricing.tsx`, `pages/checkout/checkout.tsx`, `pages/checkout/thank-you.tsx`
-- **Components**: `PricingDetails.tsx`, `SuccessHub.tsx`
+- **Components**: `SuccessHub.tsx`
 - **APIs**: `/api/payments/create-session`, `/api/stripe/webhook`
 - **Lib Files**: `src/lib/business/pricing.ts`, `src/lib/business/payments.ts`
 
@@ -303,7 +303,7 @@ User pays for the service and completes the process
 
 ### Files Involved:
 - **Pages**: `pages/marketing/pricing.tsx`, `pages/checkout/checkout.tsx`, `pages/checkout/thank-you.tsx`
-- **Components**: `PricingDetails.tsx`, `SuccessHub.tsx`
+- **Components**: `SuccessHub.tsx`
 - **APIs**: `/api/payments/create-session`, `/api/stripe/webhook`
 - **Lib Files**: `src/lib/business/pricing.ts`, `src/lib/business/payments.ts`
 
@@ -346,7 +346,7 @@ Pricing Selection → Payment Processing → Success Confirmation
 ## 🚀 OPTIMIZATION OPPORTUNITIES
 
 ### **PERFORMANCE OPTIMIZATIONS**:
-1. **Large Components**: Optimize Hero.tsx (13KB) and PricingDetails.tsx (17KB)
+1. **Large Components**: Optimize Hero.tsx (13KB)
 2. **Lazy Loading**: Load editor components only when needed
 3. **Caching**: Cache recommendation data for faster subsequent loads
 4. **Bundle Splitting**: Split code by user flow sections
@@ -500,7 +500,7 @@ Pricing Selection → Payment Processing → Success Confirmation
 ## 🔧 OPTIMIZATION OPPORTUNITIES
 
 ### **PERFORMANCE OPTIMIZATIONS**:
-1. **Large Components**: Optimize Hero.tsx (13KB) and PricingDetails.tsx (17KB)
+1. **Large Components**: Optimize Hero.tsx (13KB)
 2. **Lazy Loading**: Load editor components only when needed
 3. **Caching**: Cache recommendation data for faster subsequent loads
 4. **Bundle Splitting**: Split code by user flow sections
