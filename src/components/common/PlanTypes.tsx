@@ -1,4 +1,3 @@
-import { motion } from "framer-motion";
 import { useI18n } from "@/contexts/I18nContext";
 
 interface PlanTypesProps {
@@ -71,38 +70,29 @@ export function PlanTypes({ targetGroup = 'default' }: PlanTypesProps) {
   return (
     <section className="py-12 md:py-16 bg-gray-50">
       <div className="container">
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.6 }}
-          viewport={{ once: true }}
-          className="text-center mb-12"
-        >
+        <div className="animate-fade-in-up text-center mb-12">
         <h2 className="text-4xl font-bold text-neutral-900 mb-4">
           {t("planTypes.title")}
         </h2>
           <p className="text-lg text-neutral-600 max-w-3xl mx-auto">
             {t("planTypes.subtitle")}
           </p>
-        </motion.div>
+        </div>
 
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 lg:gap-8">
                   {planTypes.map((plan, index) => {
                     const isHighlighted = isPlanHighlighted(plan.id);
                     return (
-                    <motion.a
+                    <a
                       key={plan.id}
                       href={plan.href}
-                      initial={{ opacity: 0, y: 30 }}
-                      whileInView={{ opacity: 1, y: 0 }}
-                      transition={{ duration: 0.6, delay: index * 0.1 }}
-                      viewport={{ once: true }}
-                      className={`block rounded-2xl p-8 shadow-sm border transition-all duration-300 cursor-pointer group focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 hover:shadow-xl hover:-translate-y-2 ${
+                      className={`animate-fade-in-up-staggered block rounded-2xl p-8 shadow-sm border transition-all duration-300 cursor-pointer group focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 hover:shadow-xl hover:-translate-y-2 ${
                         isHighlighted 
                           ? 'bg-blue-50 border-blue-300 hover:border-blue-400 ring-2 ring-blue-200' 
                           : 'bg-white border-gray-200 hover:border-blue-300'
                       }`}
                       aria-label={`Learn more about ${plan.title}`}
+                      style={{ animationDelay: `${index * 0.1}s` }}
                     >
               {/* Header with icon and title */}
               <div className="mb-6">
@@ -141,7 +131,7 @@ export function PlanTypes({ targetGroup = 'default' }: PlanTypesProps) {
                 </p>
               </div>
 
-                    </motion.a>
+                    </a>
                     );
                   })}
                 </div>

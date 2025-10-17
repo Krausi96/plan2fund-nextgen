@@ -1,4 +1,3 @@
-import { motion } from "framer-motion";
 import { CheckCircle } from "lucide-react";
 import { useI18n } from "@/contexts/I18nContext";
 
@@ -90,33 +89,24 @@ export function WhoItsFor({ targetGroup = 'default' }: WhoItsForProps) {
   return (
     <section className="py-12 md:py-16 bg-white" aria-labelledby="who-its-for-heading">
       <div className="container">
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.6 }}
-          viewport={{ once: true }}
-          className="text-center mb-8"
-        >
+        <div className="animate-fade-in-up text-center mb-8">
         <h2 id="who-its-for-heading" className="text-4xl font-bold text-neutral-900 mb-4">
           {t("whoItsFor.title")}
         </h2>
           <p className="text-lg text-neutral-600 max-w-3xl mx-auto">
             {t("whoItsFor.subtitle")}
           </p>
-        </motion.div>
+        </div>
 
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 lg:gap-6">
                   {personas.map((persona, index) => {
                     const isHighlighted = isPersonaHighlighted(index);
                     const isPrimary = isPersonaPrimary(index);
                     return (
-                    <motion.div
+                    <div
                       key={index}
-                      initial={{ opacity: 0, y: 30 }}
-                      whileInView={{ opacity: 1, y: 0 }}
-                      transition={{ duration: 0.6, delay: index * 0.1 }}
-                      viewport={{ once: true }}
-                      className="group"
+                      className="animate-fade-in-up-staggered group"
+                      style={{ animationDelay: `${index * 0.1}s` }}
                     >
                       <div className={`p-6 h-full flex flex-col relative group rounded-xl border-2 transition-all duration-300 hover:shadow-lg hover:-translate-y-1 ${
                         isPrimary || isHighlighted
@@ -160,7 +150,7 @@ export function WhoItsFor({ targetGroup = 'default' }: WhoItsForProps) {
                   </ul>
                 </div>
                       </div>
-                    </motion.div>
+                    </div>
                     );
                   })}
                 </div>

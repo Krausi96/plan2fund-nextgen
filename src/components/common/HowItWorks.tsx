@@ -1,4 +1,3 @@
-import { motion } from "framer-motion";
 import { useI18n } from "@/contexts/I18nContext";
 
 interface HowItWorksProps {
@@ -47,32 +46,23 @@ export function HowItWorks({}: HowItWorksProps) {
   return (
     <section className="py-12 md:py-16 bg-neutral-50">
       <div className="container">
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.6 }}
-          viewport={{ once: true }}
-          className="text-center mb-16"
-        >
+        <div className="animate-fade-in-up text-center mb-16">
         <h2 className="text-4xl font-bold text-neutral-900 mb-4">
           {t('howItWorks.title')}
         </h2>
           <p className="text-lg text-neutral-600 max-w-3xl mx-auto">
             {t('howItWorks.subtitle')}
           </p>
-        </motion.div>
+        </div>
 
         <div className="grid md:grid-cols-2 gap-6 lg:gap-8 max-w-6xl mx-auto">
           {steps.map((step, index) => {
             const isHighlighted = isStepHighlighted(index);
             return (
-            <motion.div
+            <div
               key={index}
-              initial={{ opacity: 0, y: 30 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.6, delay: index * 0.2 }}
-              viewport={{ once: true }}
-              className="h-full"
+              className="animate-fade-in-up-staggered h-full"
+              style={{ animationDelay: `${index * 0.2}s` }}
             >
               <div className={`relative p-6 rounded-xl transition-all duration-300 h-full flex flex-col ${
                 isHighlighted 
@@ -106,7 +96,7 @@ export function HowItWorks({}: HowItWorksProps) {
                   </p>
                 </div>
               </div>
-            </motion.div>
+            </div>
             );
           })}
         </div>

@@ -1,4 +1,3 @@
-import { motion } from "framer-motion";
 import { useI18n } from "@/contexts/I18nContext";
 
 interface WhyAustriaProps {
@@ -41,13 +40,7 @@ export function WhyAustria({}: WhyAustriaProps) {
   return (
     <section className="py-12 md:py-16 bg-white">
       <div className="container">
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.6 }}
-          viewport={{ once: true }}
-          className="text-center mb-16"
-        >
+        <div className="animate-fade-in-up text-center mb-16">
           <h2 className="text-4xl font-bold text-neutral-900 mb-4">
             {t('whyAustria.title')}
           </h2>
@@ -57,16 +50,13 @@ export function WhyAustria({}: WhyAustriaProps) {
               __html: t('whyAustria.subtitle').replace(/\*(.*?)\*/g, '<strong>$1</strong>')
             }}
           />
-        </motion.div>
+        </div>
 
 
         {/* Benefits */}
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.6, delay: 0.4 }}
-          viewport={{ once: true }}
-          className="grid md:grid-cols-3 gap-8"
+        <div
+          className="animate-fade-in-up grid md:grid-cols-3 gap-8"
+          style={{ animationDelay: '0.4s' }}
         >
           {benefits.map((benefit, index) => {
             const isHighlighted = isBenefitHighlighted(index);
@@ -99,7 +89,7 @@ export function WhyAustria({}: WhyAustriaProps) {
             </div>
             );
           })}
-        </motion.div>
+        </div>
 
       </div>
     </section>
