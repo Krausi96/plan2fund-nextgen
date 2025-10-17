@@ -1,0 +1,437 @@
+{
+  "timestamp": "2025-10-17T12:15:56.922Z",
+  "unusedExports": [],
+  "unusedDependencies": [],
+  "deadImports": [
+    {
+      "file": "src\\components\\editor\\CollaborationManager.tsx",
+      "line": 5,
+      "import": "import React from 'react';",
+      "unusedNames": [
+        "React"
+      ],
+      "confidence": "HIGH"
+    },
+    {
+      "file": "src\\components\\editor\\FormHelpModal.tsx",
+      "line": 4,
+      "import": "import React from 'react';",
+      "unusedNames": [
+        "React"
+      ],
+      "confidence": "HIGH"
+    },
+    {
+      "file": "src\\components\\editor\\StructuredEditor.tsx",
+      "line": 3,
+      "import": "// import { Card } from '@/components/ui/card'; // Unused",
+      "unusedNames": [
+        "Card"
+      ],
+      "confidence": "HIGH"
+    },
+    {
+      "file": "src\\components\\editor\\TemplatesFormattingManager.tsx",
+      "line": 5,
+      "import": "import React from 'react';",
+      "unusedNames": [
+        "React"
+      ],
+      "confidence": "HIGH"
+    },
+    {
+      "file": "src\\components\\editor\\TemplatesFormattingManager.tsx",
+      "line": 8,
+      "import": "// import TemplateSelector from './TemplateSelector'; // Removed - using inline component",
+      "unusedNames": [
+        "TemplateSelector"
+      ],
+      "confidence": "HIGH"
+    },
+    {
+      "file": "src\\components\\intake\\OffTopicGate.tsx",
+      "line": 2,
+      "import": "import React from 'react';",
+      "unusedNames": [
+        "React"
+      ],
+      "confidence": "HIGH"
+    },
+    {
+      "file": "src\\components\\plan\\TableOfContents.tsx",
+      "line": 1,
+      "import": "import React from \"react\";",
+      "unusedNames": [
+        "React"
+      ],
+      "confidence": "HIGH"
+    },
+    {
+      "file": "src\\components\\pricing\\AddonsSection.tsx",
+      "line": 6,
+      "import": "import { getAddonsForFundingType, getAddonSpec, type FundingType } from '@/data/basisPack';",
+      "unusedNames": [
+        "type FundingType"
+      ],
+      "confidence": "HIGH"
+    },
+    {
+      "file": "src\\components\\pricing\\DocumentModal.tsx",
+      "line": 1,
+      "import": "import React from 'react';",
+      "unusedNames": [
+        "React"
+      ],
+      "confidence": "HIGH"
+    },
+    {
+      "file": "src\\components\\pricing\\DocumentSpecModal.tsx",
+      "line": 4,
+      "import": "import React from 'react';",
+      "unusedNames": [
+        "React"
+      ],
+      "confidence": "HIGH"
+    },
+    {
+      "file": "src\\components\\pricing\\FilterTabContent.tsx",
+      "line": 1,
+      "import": "import React from 'react';",
+      "unusedNames": [
+        "React"
+      ],
+      "confidence": "HIGH"
+    },
+    {
+      "file": "src\\components\\pricing\\FilterTabContent.tsx",
+      "line": 3,
+      "import": "import { type Product, type FundingType, type TargetGroup } from '@/data/basisPack';",
+      "unusedNames": [
+        "type Product",
+        "type FundingType",
+        "type TargetGroup"
+      ],
+      "confidence": "HIGH"
+    },
+    {
+      "file": "src\\components\\pricing\\FilterTabs.tsx",
+      "line": 1,
+      "import": "import React from 'react';",
+      "unusedNames": [
+        "React"
+      ],
+      "confidence": "HIGH"
+    },
+    {
+      "file": "src\\components\\pricing\\HowItWorksSection.tsx",
+      "line": 4,
+      "import": "import React from 'react';",
+      "unusedNames": [
+        "React"
+      ],
+      "confidence": "HIGH"
+    },
+    {
+      "file": "src\\components\\pricing\\ProofSection.tsx",
+      "line": 4,
+      "import": "import React from 'react';",
+      "unusedNames": [
+        "React"
+      ],
+      "confidence": "HIGH"
+    },
+    {
+      "file": "src\\components\\pricing\\RequirementsDisplay.tsx",
+      "line": 3,
+      "import": "import { getFundingPack, getDocSpec, type TargetGroup, type FundingType, type Product } from '@/data/basisPack';",
+      "unusedNames": [
+        "type TargetGroup",
+        "type FundingType",
+        "type Product"
+      ],
+      "confidence": "HIGH"
+    },
+    {
+      "file": "src\\components\\pricing\\RequirementsMatrix.tsx",
+      "line": 6,
+      "import": "import { getFundingPack, getDocSpec, getAddonsForFundingType, type TargetGroup, type FundingType, type Product } from '@/data/basisPack';",
+      "unusedNames": [
+        "type TargetGroup",
+        "type FundingType",
+        "type Product"
+      ],
+      "confidence": "HIGH"
+    },
+    {
+      "file": "src\\components\\reco\\UnifiedRecommendationWizard.tsx",
+      "line": 2,
+      "import": "import React from 'react';",
+      "unusedNames": [
+        "React"
+      ],
+      "confidence": "HIGH"
+    },
+    {
+      "file": "src\\components\\results\\StructuredRequirementsDisplay.tsx",
+      "line": 3,
+      "import": "// import { Badge } from '@/components/ui/badge'; // Unused",
+      "unusedNames": [
+        "Badge"
+      ],
+      "confidence": "HIGH"
+    },
+    {
+      "file": "src\\components\\success\\SuccessHub.tsx",
+      "line": 5,
+      "import": "// import featureFlags from '@/lib/featureFlags';",
+      "unusedNames": [
+        "featureFlags"
+      ],
+      "confidence": "HIGH"
+    },
+    {
+      "file": "src\\components\\ui\\button.tsx",
+      "line": 3,
+      "import": "import { cva, type VariantProps } from \"class-variance-authority\"",
+      "unusedNames": [
+        "type VariantProps"
+      ],
+      "confidence": "HIGH"
+    },
+    {
+      "file": "src\\components\\ui\\switch.tsx",
+      "line": 6,
+      "import": "import React from 'react';",
+      "unusedNames": [
+        "React"
+      ],
+      "confidence": "HIGH"
+    },
+    {
+      "file": "src\\data\\documentBundles.ts",
+      "line": 6,
+      "import": "import { getFundingPack, type Product, type FundingType, type TargetGroup } from './basisPack';",
+      "unusedNames": [
+        "type Product",
+        "type FundingType",
+        "type TargetGroup"
+      ],
+      "confidence": "HIGH"
+    },
+    {
+      "file": "src\\data\\pricingData.ts",
+      "line": 4,
+      "import": "import { type Product } from '@/types/plan';",
+      "unusedNames": [
+        "type Product"
+      ],
+      "confidence": "HIGH"
+    },
+    {
+      "file": "src\\data\\pricingData.ts",
+      "line": 5,
+      "import": "import { type FundingType } from '@/data/basisPack';",
+      "unusedNames": [
+        "type FundingType"
+      ],
+      "confidence": "HIGH"
+    },
+    {
+      "file": "src\\data\\pricingData.ts",
+      "line": 6,
+      "import": "import { type TargetGroup } from '@/lib/targetGroupDetection';",
+      "unusedNames": [
+        "type TargetGroup"
+      ],
+      "confidence": "HIGH"
+    },
+    {
+      "file": "src\\editor\\addons\\AddonPack.tsx",
+      "line": 4,
+      "import": "import React from 'react';",
+      "unusedNames": [
+        "React"
+      ],
+      "confidence": "HIGH"
+    },
+    {
+      "file": "src\\editor\\addons\\AddonPack.tsx",
+      "line": 5,
+      "import": "// import { Button } from '@/components/ui/button';",
+      "unusedNames": [
+        "Button"
+      ],
+      "confidence": "HIGH"
+    },
+    {
+      "file": "src\\editor\\figures\\index.tsx",
+      "line": 4,
+      "import": "import React from 'react';",
+      "unusedNames": [
+        "React"
+      ],
+      "confidence": "HIGH"
+    },
+    {
+      "file": "src\\editor\\settings\\FormattingPanel.tsx",
+      "line": 4,
+      "import": "import React from 'react';",
+      "unusedNames": [
+        "React"
+      ],
+      "confidence": "HIGH"
+    },
+    {
+      "file": "src\\export\\renderer.tsx",
+      "line": 4,
+      "import": "import React from 'react';",
+      "unusedNames": [
+        "React"
+      ],
+      "confidence": "HIGH"
+    },
+    {
+      "file": "src\\lib\\motion.ts",
+      "line": 2,
+      "import": "import { motion as motionTokens } from './theme';",
+      "unusedNames": [
+        "motion as motionTokens"
+      ],
+      "confidence": "HIGH"
+    },
+    {
+      "file": "src\\lib\\readiness.ts",
+      "line": 8,
+      "import": "// import { DecisionTreeResult } from './dynamicDecisionTree'; // Temporarily disabled",
+      "unusedNames": [
+        "DecisionTreeResult"
+      ],
+      "confidence": "HIGH"
+    },
+    {
+      "file": "src\\lib\\readiness.ts",
+      "line": 10,
+      "import": "// import { TemplateSection } from './programTemplates'; // Temporarily disabled",
+      "unusedNames": [
+        "TemplateSection"
+      ],
+      "confidence": "HIGH"
+    },
+    {
+      "file": "src\\lib\\utils.ts",
+      "line": 1,
+      "import": "import { type ClassValue, clsx } from \"clsx\"",
+      "unusedNames": [
+        "type ClassValue"
+      ],
+      "confidence": "HIGH"
+    },
+    {
+      "file": "pages\\advanced-search.tsx",
+      "line": 8,
+      "import": "// import { advancedSearchDoctor } from '@/lib/advancedSearchDoctor';",
+      "unusedNames": [
+        "advancedSearchDoctor"
+      ],
+      "confidence": "HIGH"
+    },
+    {
+      "file": "pages\\api\\ai-assistant.ts",
+      "line": 6,
+      "import": "// import { createEnhancedAIHelper } from '@/lib/aiHelper';",
+      "unusedNames": [
+        "createEnhancedAIHelper"
+      ],
+      "confidence": "HIGH"
+    },
+    {
+      "file": "pages\\api\\intelligent-readiness.ts",
+      "line": 6,
+      "import": "// import { ReadinessValidator, getProgramRequirements } from '@/lib/readiness';",
+      "unusedNames": [
+        "ReadinessValidator",
+        "getProgramRequirements"
+      ],
+      "confidence": "HIGH"
+    },
+    {
+      "file": "pages\\api\\intelligent-readiness.ts",
+      "line": 7,
+      "import": "// import { ProgramTemplate, TemplateSection } from '@/lib/programTemplates';",
+      "unusedNames": [
+        "TemplateSection"
+      ],
+      "confidence": "HIGH"
+    },
+    {
+      "file": "pages\\api\\intelligent-readiness.ts",
+      "line": 8,
+      "import": "// import { DecisionTreeResult } from '@/lib/dynamicDecisionTree';",
+      "unusedNames": [
+        "DecisionTreeResult"
+      ],
+      "confidence": "HIGH"
+    },
+    {
+      "file": "pages\\api\\programs.ts",
+      "line": 62,
+      "import": "// import { dataSource } from '../../src/lib/dataSource';",
+      "unusedNames": [
+        "dataSource"
+      ],
+      "confidence": "HIGH"
+    },
+    {
+      "file": "pages\\editor.tsx",
+      "line": 4,
+      "import": "import React from 'react';",
+      "unusedNames": [
+        "React"
+      ],
+      "confidence": "HIGH"
+    },
+    {
+      "file": "pages\\export.tsx",
+      "line": 4,
+      "import": "import { loadPlanSections, type PlanSection } from \"@/lib/planStore\";",
+      "unusedNames": [
+        "type PlanSection"
+      ],
+      "confidence": "HIGH"
+    },
+    {
+      "file": "pages\\preview.tsx",
+      "line": 4,
+      "import": "import { loadPlanSections, type PlanSection } from \"@/lib/planStore\";",
+      "unusedNames": [
+        "type PlanSection"
+      ],
+      "confidence": "HIGH"
+    },
+    {
+      "file": "pages\\pricing.tsx",
+      "line": 19,
+      "import": "import { type Product, type FundingType, type TargetGroup } from \"@/data/basisPack\";",
+      "unusedNames": [
+        "type Product",
+        "type FundingType",
+        "type TargetGroup"
+      ],
+      "confidence": "HIGH"
+    }
+  ],
+  "recommendations": [
+    {
+      "priority": "HIGH",
+      "issue": "45 dead imports found",
+      "action": "Remove unused imports to clean up code",
+      "details": [
+        "src\\components\\editor\\CollaborationManager.tsx:5",
+        "src\\components\\editor\\FormHelpModal.tsx:4",
+        "src\\components\\editor\\StructuredEditor.tsx:3",
+        "src\\components\\editor\\TemplatesFormattingManager.tsx:5",
+        "src\\components\\editor\\TemplatesFormattingManager.tsx:8"
+      ]
+    }
+  ]
+}
