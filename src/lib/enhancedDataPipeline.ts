@@ -10,7 +10,6 @@
  */
 
 import { ScrapedProgram } from './ScrapedProgram';
-import { Program } from '../types';
 import { ConfidenceScore } from '../types/requirements';
 import { dynamicPatternEngine } from './dynamicPatternEngine';
 
@@ -1600,51 +1599,7 @@ export class EnhancedDataPipeline {
     console.log(`💾 Cached ${programs.length} processed programs`);
   }
 
-  /**
-   * Convert normalized programs to Program format for API compatibility
-   */
-  convertToProgramFormat(normalizedPrograms: NormalizedProgram[]): Program[] {
-    return normalizedPrograms.map(program => ({
-      id: program.id,
-      name: program.name,
-      type: program.type,
-      program_type: program.program_type,
-      program_category: program.program_category,
-      requirements: program.requirements,
-      notes: program.description,
-      maxAmount: program.funding_amount_max,
-      link: program.source_url,
-      target_personas: program.target_personas,
-      tags: program.tags,
-      decision_tree_questions: program.decision_tree_questions,
-      editor_sections: program.editor_sections,
-      readiness_criteria: program.readiness_criteria,
-      ai_guidance: program.ai_guidance
-    }));
-  }
 
-  /**
-   * Convert normalized programs to GPTEnhancedProgram format
-   */
-  convertToGPTEnhancedFormat(normalizedPrograms: NormalizedProgram[]): Program[] {
-    return normalizedPrograms.map(program => ({
-      id: program.id,
-      name: program.name,
-      type: program.type,
-      program_type: program.program_type,
-      program_category: program.program_category,
-      requirements: program.requirements,
-      notes: program.description,
-      maxAmount: program.funding_amount_max,
-      link: program.source_url,
-      target_personas: program.target_personas || [],
-      tags: program.tags || [],
-      decision_tree_questions: program.decision_tree_questions || [],
-      editor_sections: program.editor_sections || [],
-      readiness_criteria: program.readiness_criteria || [],
-      ai_guidance: program.ai_guidance
-    }));
-  }
 
   /**
    * Remove duplicate programs based on name and institution
@@ -1698,18 +1653,6 @@ export class EnhancedDataPipeline {
     return distribution;
   }
 
-  /**
-   * Get pipeline statistics
-   */
-  getPipelineStats(): {
-    cacheStats: { size: number; keys: string[] };
-    qualityThresholds: { high: number; medium: number; low: number };
-  } {
-    return {
-      cacheStats: this.cache.getCacheStats(),
-      qualityThresholds: { high: 0.8, medium: 0.5, low: 0.3 }
-    };
-  }
 }
 
 // ============================================================================

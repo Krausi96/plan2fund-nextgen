@@ -1,0 +1,42 @@
+[33mcommit 5f644a37afc43b2d4492e5fc49eda53ee6a48f82[m
+Author: Krausi96 <133792501+Krausi96@users.noreply.github.com>
+Date:   Thu Sep 25 15:46:50 2025 +0200
+
+    feat: Complete Plan2Fund editor integration with AI assistant and form help
+    
+    - Add EnhancedAIChat component with plan context and readiness integration
+    - Add FormHelpModal for program-specific form generation
+    - Integrate AI assistant into editor-unified page with toggle functionality
+    - Add form help generation based on plan content and program requirements
+    - Complete all remaining todos (AI assistant and form help integration)
+    - All 10 phases now complete and fully functional
+    - Build verified and ready for production
+
+pages/editor-unified.tsx
+pages/pricing.tsx
+src/components/common/PlanTypes.tsx
+src/components/common/PricingDetails.tsx
+src/components/common/WhoItsFor.tsx
+src/components/editor/EnhancedAIChat.tsx
+src/components/editor/FormHelpModal.tsx
+src/components/editor/RouteExtrasPanel.tsx
+src/components/editor/UnifiedEditor.tsx
+src/editor/EditorShell.tsx
+src/editor/addons/AddonPack.tsx
+src/editor/figures/index.tsx
+src/editor/financials/index.tsx
+src/editor/integration/RecoIntegration.tsx
+src/editor/readiness/engine.ts
+src/editor/settings/FormattingPanel.tsx
+src/editor/templates/registry.ts
+src/export/renderer.tsx
+src/i18n/settings.ts
+src/lib/aiHelper.ts
+src/lib/featureFlags.ts
+src/lib/pricing.ts
+src/lib/routeExtras.ts
+src/reco/programProfiles.ts
+src/types/plan.ts
+src/types/readiness.ts
+src/types/reco.ts
+tsconfig.tsbuildinfo
