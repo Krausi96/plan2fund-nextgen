@@ -1,7 +1,6 @@
 // ========= PLAN2FUND — FORMATTING PANEL =========
 // Settings panel for document formatting options
 
-import React from 'react';
 import { PlanDocument } from '@/types/plan';
 
 interface FormattingPanelProps {

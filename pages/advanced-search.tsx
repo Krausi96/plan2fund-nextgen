@@ -5,7 +5,6 @@ import Link from 'next/link';
 import { motion } from 'framer-motion';
 import { Chip } from '@/lib/aiChipParser';
 import { useRecommendation } from '@/contexts/RecommendationContext';
-// import { advancedSearchDoctor } from '@/lib/advancedSearchDoctor';
 import { useI18n } from '@/contexts/I18nContext';
 
 export default function AdvancedSearch() {

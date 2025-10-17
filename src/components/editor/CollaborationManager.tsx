@@ -2,7 +2,6 @@
 // Phase 4: Team editing, advisor integration, version control, and sharing capabilities
 // Now uses split components for better maintainability
 
-import React from 'react';
 import { PlanDocument } from '@/types/plan';
 import { UserProfile } from '@/lib/schemas/userProfile';
 import TeamManager from './TeamManager';

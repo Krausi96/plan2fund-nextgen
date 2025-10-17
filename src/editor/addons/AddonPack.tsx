@@ -1,8 +1,6 @@
 // ========= PLAN2FUND — ADD-ON PACK =========
 // Add-on pack checkbox and information component
 
-import React from 'react';
-// import { Button } from '@/components/ui/button';
 
 interface AddonPackProps {
   enabled: boolean;

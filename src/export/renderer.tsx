@@ -1,7 +1,6 @@
 // ========= PLAN2FUND — EXPORT RENDERER =========
 // PDF/DOCX export renderer with professional formatting
 
-import React from 'react';
 import { PlanDocument } from '../types/plan';
 import { getExportLabels } from '../i18n/settings';
 

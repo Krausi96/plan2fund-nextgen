@@ -1,5 +1,4 @@
 // Off-topic Gate Component
-import React from 'react';
 import { FundingProfile } from '@/lib/schemas/fundingProfile';
 
 interface OffTopicGateProps {

@@ -1,7 +1,6 @@
 // ========= PLAN2FUND — UNIFIED EDITOR PAGE =========
 // Main editor page using the new unified editor architecture
 
-import React from 'react';
 import { useRouter } from 'next/router';
 import { EditorProvider } from '@/components/editor/EditorState';
 import UnifiedEditor from '@/components/editor/UnifiedEditor';

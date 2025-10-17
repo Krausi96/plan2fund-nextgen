@@ -1,6 +1,5 @@
 // Structured Editor Component - Uses program-specific editor requirements
 import React, { useState, useEffect } from 'react';
-// import { Card } from '@/components/ui/card'; // Unused
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 

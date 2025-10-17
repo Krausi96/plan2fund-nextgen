@@ -2,7 +2,6 @@
 import React, { useState, useEffect } from 'react';
 import { PlanDocument } from '@/lib/schemas/userProfile';
 import analytics from '@/lib/analytics';
-// import featureFlags from '@/lib/featureFlags';
 
 interface SuccessHubProps {
   plan: PlanDocument;

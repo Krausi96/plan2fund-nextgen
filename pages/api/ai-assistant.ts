@@ -3,7 +3,6 @@
 
 import { NextApiRequest, NextApiResponse } from 'next';
 // Temporarily disable complex imports to fix deployment issues
-// import { createEnhancedAIHelper } from '@/lib/aiHelper';
 // import { ProgramTemplate, TemplateSection } from '@/lib/programTemplates';
 
 interface AIAssistantRequest {

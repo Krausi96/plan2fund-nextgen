@@ -2,10 +2,8 @@
 // Phase 4: Official templates, export options, industry variations, and tone customization
 // Now uses split components for better maintainability
 
-import React from 'react';
 import { PlanDocument } from '@/types/plan';
 import { TemplateConfig } from '@/data/officialTemplates';
-// import TemplateSelector from './TemplateSelector'; // Removed - using inline component
 import FormattingExportManager from './FormattingExportManager';
 
 interface TemplatesFormattingManagerProps {

@@ -59,7 +59,6 @@ import path from 'path';
 //     }
 //   };
 // }
-// import { dataSource } from '../../src/lib/dataSource';
 
 // Database connection
 let pool: Pool | null = null;

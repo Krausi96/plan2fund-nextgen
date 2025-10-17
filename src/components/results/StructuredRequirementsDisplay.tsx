@@ -1,6 +1,5 @@
 // Structured Requirements Display Component for Results Page
 import React, { useState, useEffect } from 'react';
-// import { Badge } from '@/components/ui/badge'; // Unused
 import { Button } from '@/components/ui/button';
 
 interface LibraryRequirement {

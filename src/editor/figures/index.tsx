@@ -1,7 +1,6 @@
 // ========= PLAN2FUND — FIGURES & GRAPHS =========
 // Figures and graphs rendering component
 
-import React from 'react';
 import { FigureRef, Table } from '@/types/plan';
 import { LineChart, Line, BarChart, Bar, PieChart, Pie, Cell, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts';
 

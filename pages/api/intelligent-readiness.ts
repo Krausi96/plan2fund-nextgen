@@ -3,9 +3,6 @@
 
 import { NextApiRequest, NextApiResponse } from 'next';
 // Temporarily disable complex imports to fix deployment issues
-// import { ReadinessValidator, getProgramRequirements } from '@/lib/readiness';
-// import { ProgramTemplate, TemplateSection } from '@/lib/programTemplates';
-// import { DecisionTreeResult } from '@/lib/dynamicDecisionTree';
 
 interface IntelligentReadinessRequest {
   action: 'check' | 'summary' | 'validate';

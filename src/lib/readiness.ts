@@ -5,9 +5,7 @@
  */
 
 import { dataSource } from './dataSource';
-// import { DecisionTreeResult } from './dynamicDecisionTree'; // Temporarily disabled
 import { ProgramTemplate } from './programTemplates';
-// import { TemplateSection } from './programTemplates'; // Temporarily disabled
 
 export interface ReadinessCheck {
   section: string;

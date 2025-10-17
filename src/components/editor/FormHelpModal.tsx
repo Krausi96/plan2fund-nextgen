@@ -1,7 +1,6 @@
 // ========= PLAN2FUND — FORM HELP MODAL =========
 // Modal component for displaying generated form help
 
-import React from 'react';
 import { PlanDocument } from '@/types/plan';
 import { ProgramProfile } from '@/types/reco';
 

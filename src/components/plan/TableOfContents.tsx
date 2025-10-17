@@ -1,4 +1,3 @@
-import React from "react";
 import { chapterTemplates } from "@/lib/templates/chapters";
 
 type TableOfContentsProps = {

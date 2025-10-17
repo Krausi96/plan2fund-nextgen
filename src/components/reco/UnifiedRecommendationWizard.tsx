@@ -1,5 +1,4 @@
 // Unified Recommendation Wizard - Consolidates all wizard functionality
-import React from 'react';
 import { Button } from "@/components/ui/button";
 // import { useRouter } from "next/router"; // Unused
 import { motion } from "framer-motion";
