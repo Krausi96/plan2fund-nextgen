@@ -2,7 +2,6 @@
 import React, { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { useRouter } from "next/router";
-import { motion } from "framer-motion";
 import { scoreProgramsEnhanced } from "@/lib/enhancedRecoEngine";
 import { DynamicQuestionEngine, DynamicQuestion } from "@/lib/dynamicQuestionEngine";
 import { DynamicWizard } from "../decision-tree/DynamicWizard";
@@ -145,12 +144,10 @@ export default function EnhancedWizard() {
 
           <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
             {recommendations.slice(0, 6).map((recommendation, index) => (
-              <motion.div
+              <div
                 key={recommendation.program.id}
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: index * 0.1 }}
-                className="bg-white rounded-lg shadow-md p-6 hover:shadow-lg transition-shadow"
+                className="animate-fade-in-up-staggered bg-white rounded-lg shadow-md p-6 hover:shadow-lg transition-shadow"
+                style={{ animationDelay: `${index * 0.1}s` }}
               >
                 <div className="mb-4">
                   <h3 className="text-xl font-semibold text-gray-900 mb-2">
@@ -210,7 +207,7 @@ export default function EnhancedWizard() {
                     💡 This program has a personalized assessment to help you prepare
                   </div>
                 )}
-              </motion.div>
+              </div>
             ))}
           </div>
 
@@ -272,12 +269,9 @@ export default function EnhancedWizard() {
           </div>
 
           {/* Question */}
-          <motion.div
+          <div
             key={currentQuestionIndex}
-            initial={{ opacity: 0, x: 20 }}
-            animate={{ opacity: 1, x: 0 }}
-            exit={{ opacity: 0, x: -20 }}
-            className="mb-8"
+            className="animate-fade-in-right mb-8"
           >
             <h2 className="text-xl font-semibold text-gray-900 mb-6">
               {currentQuestion.label}
@@ -301,7 +295,7 @@ export default function EnhancedWizard() {
                 </label>
               ))}
             </div>
-          </motion.div>
+          </div>
 
           {/* Navigation */}
           <div className="flex justify-between">

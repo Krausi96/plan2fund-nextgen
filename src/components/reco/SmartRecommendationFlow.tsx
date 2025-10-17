@@ -5,7 +5,7 @@ import { useRecommendation } from '@/contexts/RecommendationContext';
 import { useRealTimeRecommendations } from '@/hooks/useRealTimeRecommendations';
 import UnifiedRecommendationWizard from './UnifiedRecommendationWizard';
 import { DynamicWizard } from '../decision-tree/DynamicWizard';
-import { motion, AnimatePresence } from 'framer-motion';
+// Removed framer-motion imports - using CSS animations instead
 
 interface SmartRecommendationFlowProps {
   initialMode?: 'wizard' | 'advanced-search' | 'enhanced';
@@ -87,27 +87,17 @@ export default function SmartRecommendationFlow({
     <div className="relative">
       {/* Real-time Updates Indicator */}
       {showRealTimeUpdates && isRealTimeActive && (
-        <motion.div
-          initial={{ opacity: 0, y: -20 }}
-          animate={{ opacity: 1, y: 0 }}
-          className="fixed top-4 right-4 z-50"
-        >
+        <div className="animate-fade-in-down fixed top-4 right-4 z-50">
           <div className="bg-blue-600 text-white px-4 py-2 rounded-lg shadow-lg flex items-center">
             <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2" />
             <span className="text-sm">Updating recommendations...</span>
           </div>
-        </motion.div>
+        </div>
       )}
 
       {/* Smart Suggestions */}
-      <AnimatePresence>
-        {showSmartSuggestions && (
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: 20 }}
-            className="fixed bottom-4 left-4 right-4 z-50"
-          >
+      {showSmartSuggestions && (
+        <div className="animate-fade-in-up fixed bottom-4 left-4 right-4 z-50">
             <div className="bg-white border border-gray-200 rounded-lg shadow-lg p-4">
               <div className="flex items-center justify-between">
                 <div>
@@ -132,19 +122,11 @@ export default function SmartRecommendationFlow({
                 </div>
               </div>
             </div>
-          </motion.div>
+          </div>
         )}
-      </AnimatePresence>
 
       {/* Main Content */}
-      <AnimatePresence mode="wait">
-        <motion.div
-          key={currentMode}
-          initial={{ opacity: 0, x: 20 }}
-          animate={{ opacity: 1, x: 0 }}
-          exit={{ opacity: 0, x: -20 }}
-          transition={{ duration: 0.3 }}
-        >
+      <div key={currentMode} className="animate-fade-in-right">
           {currentMode === 'wizard' && (
             <UnifiedRecommendationWizard 
               mode="wizard" 
@@ -167,8 +149,7 @@ export default function SmartRecommendationFlow({
               onModeChange={handleModeChange}
             />
           )}
-        </motion.div>
-      </AnimatePresence>
+      </div>
 
       {/* Dynamic Wizard Overlay */}
       {state.showDynamicWizard && state.selectedProgram && (
