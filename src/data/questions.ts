@@ -112,28 +112,28 @@ export const getQuestionsData = (t: (key: any) => string) => ({
     },
     {
       "id": "q5_maturity_trl",
-      "label": "What is your current maturity (approx. TRL)?",
+      "label": "How developed is your project?",
       "type": "single-select",
       "options": [
         {
           "value": "TRL_1_2",
-          "label": "Idea / Research (TRL 1–2)"
+          "label": "Just an idea or early research"
         },
         {
           "value": "TRL_3_4",
-          "label": "Proof of concept (TRL 3–4)"
+          "label": "Proof of concept - basic testing done"
         },
         {
           "value": "TRL_5_6",
-          "label": "Prototype / demonstrator (TRL 5–6)"
+          "label": "Working prototype or demonstrator"
         },
         {
           "value": "TRL_7_8",
-          "label": "Pilot / market launch (TRL 7–8)"
+          "label": "Pilot testing or market launch"
         },
         {
           "value": "TRL_9",
-          "label": "Scaling (TRL 9+)"
+          "label": "Ready for scaling and growth"
         }
       ],
       "required": true
@@ -184,7 +184,7 @@ export const getQuestionsData = (t: (key: any) => string) => ({
     },
     {
       "id": "q8_funding_types",
-      "label": "Which funding types are acceptable? (affects skip logic)",
+      "label": "Which funding types are you interested in?",
       "type": "multi-select",
       "options": [
         {

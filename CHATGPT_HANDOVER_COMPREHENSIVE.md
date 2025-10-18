@@ -911,3 +911,873 @@ pages/api/programmes/[id]/requirements.ts # Program requirements
 ---
 
 **Good luck with your analysis! The system is complex but well-structured - your insights will be invaluable for optimization.** 🚀
+
+---
+
+# 🔍 **CHATGPT ANALYSIS RESULTS**
+
+## 📊 **EXECUTIVE SUMMARY**
+
+Plan2Fund‑nextgen is a multi‑layered web application that helps Austrian start‑ups, SMEs and other organisations discover funding programmes and create high‑quality business plans. The codebase combines a large-scale web scraper, AI‑enhanced data processing, an intelligent recommendation engine, dynamic wizards, a rich editor, payment & export flows and analytics. The system currently functions end‑to‑end and contains over 610 programmes and templates. Core strengths include modular data ingestion, a flexible decision‑tree based recommendation engine, configurable templates, Stripe payment integration and internationalisation (de/en). However, the repository suffers from duplicated functionality, inconsistent naming, missing documentation, some incomplete implementations and ad‑hoc error handling. Several components are tightly coupled and the UI needs refinement to appeal to Austrian founders. This report analyses the entire application across twenty functional areas and proposes a unified restructure and roadmap.
+
+---
+
+# 🚀 **IMMEDIATE ACTION PLAN - GET SYSTEM RUNNING FIRST**
+
+## **PHASE 0: CRITICAL FIXES TO GET SYSTEM RUNNING** (This Week)
+
+### **1. Fix Test Mode Issues** (HIGH PRIORITY)
+- **Problem**: System needs to work without external APIs for testing
+- **Files**: `pages/api/ai/openai.ts`, `src/lib/payments.ts`, `src/lib/export.ts`
+- **Action**: Ensure all test modes work properly with mock data
+- **Impact**: Allows full flow testing without external dependencies
+
+### **2. Fix Data Flow Issues** (HIGH PRIORITY)
+- **Problem**: Data not flowing properly from wizard to editor
+- **Files**: `src/contexts/RecommendationContext.tsx`, `pages/editor.tsx`
+- **Action**: Ensure answers and recommendations persist to editor
+- **Impact**: Complete user flow works end-to-end
+
+### **3. Fix Template Application** (HIGH PRIORITY)
+- **Problem**: Templates not applied correctly based on product selection
+- **Files**: `src/lib/templates/productSectionTemplates.ts`, `src/components/editor/UnifiedEditor.tsx`
+- **Action**: Ensure templates load correctly for different products
+- **Impact**: Editor shows appropriate content for selected product
+
+### **4. Fix Export System** (HIGH PRIORITY)
+- **Problem**: Export may not work without external services
+- **Files**: `src/export/renderer.tsx`, `pages/export.tsx`
+- **Action**: Ensure export works with mock data
+- **Impact**: Users can generate documents
+
+---
+
+# 📋 **DETAILED ANALYSIS BY AREA**
+
+Plan2Fund‑nextgen – Comprehensive Repository Analysis and Improvement Plan
+Executive Summary
+Plan2Fund‑nextgen is a multi‑layered web application that helps Austrian start‑ups, SMEs and other organisations discover funding programmes and create high‑quality business plans. The codebase combines a large-scale web scraper, AI‑enhanced data processing, an intelligent recommendation engine, dynamic wizards, a rich editor, payment & export flows and analytics. The system currently functions end‑to‑end and contains over 610 programmes and templates. Core strengths include modular data ingestion, a flexible decision‑tree based recommendation engine, configurable templates, Stripe payment integration and internationalisation (de/en). However, the repository suffers from duplicated functionality, inconsistent naming, missing documentation, some incomplete implementations and ad‑hoc error handling. Several components are tightly coupled and the UI needs refinement to appeal to Austrian founders. This report analyses the entire application across twenty functional areas and proposes a unified restructure and roadmap.
+
+Area 1 – Web Scraper & Data Collection
+Current State
+The webScraperService.ts file orchestrates Puppeteer‑based scraping for multiple Austrian institutions (AWS, FFG, VBA, AMS, ÖSB, WKO and EU). Each institution has a base URL, sitemaps, selectors and a rate‑limit configuration to respect robots.txt[1]. The configuration also defines timeouts, concurrency and URL discovery strategies[2]. URL discovery uses sitemap parsing and link discovery; discovered pages are filtered and cached. The scrapeAllPrograms method attempts dynamic scraping and falls back to an API if Puppeteer fails[3]. Further down, functions discoverProgramUrls and discoverProgramRequirements crawl programme pages, parse HTML and PDFs, apply dynamic patterns (via dynamicPatternEngine.ts) and merge evidence from multiple pages[4][5]. The dynamic pattern engine defines regex patterns for categories such as co‑financing, TRL level and multiple impact types[6] and learns new patterns based on extracted values.
+Specific Issues
+Complexity and length – webScraperService.ts is almost 4 000 lines long, mixing configuration, scraping logic, data parsing and fallback logic. This hampers maintainability and testability.
+Incomplete Austrian coverage – The configuration covers major institutions but some programmes (e.g., regional funds or niche EU initiatives) are absent. The dynamic patterns target broad categories but miss program‑specific rules (e.g., R&D intensity, sustainability scoring).
+Robots.txt & rate limiting – The code has rate‑limit options but robots.txt compliance is not enforced by default; ignoring robots policies risks legal issues.
+Error handling & logging – Errors are logged to console, but no central logging or retry strategy exists. When a page fails, the scraper simply skips it; this can lead to incomplete data for Austrian companies.
+PDF parsing – The code uses a basic PDF parser; complex PDF forms (common in AWS/FFG) may fail or misclassify fields. There is no fallback for scanned PDFs.
+Recommendations
+Recommendation
+Code Example
+Priority
+Effort
+Refactor the scraper into modular services – separate configuration, URL discovery, page scraping, PDF parsing and pattern learning into smaller files/classes. Use dependency injection for Puppeteer and pattern engine.
+Extract institution configuration into config/institutions.ts and create urlDiscovery.ts, pageScraper.ts, pdfParser.ts, patternLearner.ts. In webScraperService, import modules and orchestrate them.
+High
+Hard
+Add comprehensive robots.txt parser – fetch robots.txt for each domain and respect Disallow paths and crawl‑delay.
+Use robots-parser library: const robots = await robotsParser(url + '/robots.txt'); if (!robots.isAllowed(url, userAgent)) skip; before scraping.
+High
+Medium
+Improve coverage – create a configuration file listing all federal, regional and EU programmes, including AWS, FFG, VBA, AMS, ÖSB, WKO, research grants, export programs etc. Use a modular discoveryRules.json to add new sites without code changes.
+Add src/config/discoveryRules.json with entries: { "institution": "AWS", "sitemaps": ["…"], "selectors": { … } } and load it dynamically.
+Medium
+Medium
+Central error handling & retry – wrap page fetches in try/catch, implement exponential backoff and logging. Create a logging service to send errors to Slack/email.
+Add retry(fn, retries=3) helper; if scraping fails, schedule a retry and record failure in database with details.
+Medium
+Medium
+Enhance PDF parsing – integrate open‑source libraries like pdf-parse or PDF.js for text extraction and fallback to OCR (e.g., Tesseract) for scanned PDFs.
+Create a pdfParser.ts module that tries text extraction; if output is empty, call OCR.
+Medium
+Hard
+
+Missing Features
+A queue or scheduler to run scraping regularly and store results to Postgres.
+Automatic detection of new Austrian funding programmes via RSS/email or by monitoring institution sites.
+Comprehensive test suite (mocked websites, test PDFs) for scraping.
+
+Area 2 – Data Processing & Enhancement
+Current State
+The enhancedDataPipeline.ts normalises and enhances scraped programmes. It defines Austrian/EU‑specific regex patterns for categories such as co‑financing and TRL levels[7]. Programmes are processed via processPrograms, which calls a normaliser, scores quality, removes duplicates and filters out programmes with quality < 0.1[8]. The module caches processed data and falls back to stored data when none is available[9]. requirementsMapper.ts converts scraped requirements into DecisionTree, Editor and Library structures, extracting validation rules from question text[10]. dataSource.ts defines a hybrid data source that fetches GPT‑enhanced programmes, falls back to basic data and converts them to the normalised structure[11].
+Specific Issues
+Duplication of pattern definitions – Patterns are defined in both dynamicPatternEngine.ts and enhancedDataPipeline.ts, risking drift.
+Quality scoring heuristic – The quality score threshold is static (0.1) and may allow low‑quality programmes or exclude valid but short entries. There is no feedback loop from user interactions.
+No data lineage – It is hard to trace which institution or update produced each programme. ScrapedProgram includes a confidence field[12], but this is not propagated to later layers.
+Hard‑coded categories – The 18 requirement categories are fixed; Austrian programmes may need dynamic categories (e.g., “female founders”, “digitisation”).
+Personas and decision trees – Programmes have target_personas but there is no check that these personas align with Austrian company realities; these appear to be static strings.
+Recommendations
+Recommendation
+Code Example
+Priority
+Effort
+Centralise pattern definitions – create a shared patternConfig.ts and import in both the dynamic pattern engine and the data pipeline to avoid duplication.
+```ts
+
+
+
+
+// patternConfig.ts
+
+
+
+
+
+
+export const CO_FINANCING = [/co.?finanzierung/i, /…/];
+
+
+
+
+
+
+export const TRL_LEVEL = [/TRL\s*([1-9])/i, …];
+
+
+
+
+
+
+``` Then import in modules.
+Medium
+Easy
+
+
+Introduce adaptive quality scoring – use analytics and user feedback to adjust quality thresholds. For example, record which programmes get clicked or applied to and adjust weights accordingly.
+Add scoreProgramsEnhanced to update quality scores based on acceptance and user ratings. Store in analytics and feed back into pipeline.
+Medium
+Medium
+Add lineage metadata – extend ScrapedProgram and normalised Program with fields for source_institution, scrape_date, version and store these in the database.
+Update interfaces and DB schema: ALTER TABLE programs ADD COLUMN source_institution TEXT, scrape_date TIMESTAMP, version INT;.
+High
+Medium
+Make categories extensible – store category definitions in a database table and allow admins to add new categories with regex patterns. The pipeline should fetch category definitions at runtime.
+Create table categories(id, name, regex_patterns). Replace hard-coded pattern lists with DB lookups.
+Medium
+Hard
+Validate personas against Austrian market – use data from Austrian company registers or research to map real personas to programmes. For example, tag programmes for “SME”, “research institute”, “female founder” etc.
+Enrich target_personas by cross‑referencing scraped data (e.g., eligibility text) and adding missing Austrian personas.
+Low
+Medium
+
+Missing Features
+Data enhancement pipeline could compute AI‑generated summaries, risk scores or recommended budgets per programme.
+Data validation (duplicates, outdated programmes) could use heuristics like comparing names and deadlines.
+
+Area 3 – Recommendation System
+Current State
+enhancedRecoEngine.ts computes derived signals (e.g., capexFlag, equityOk, company age bucket, revenue bucket, IP risk, social impact, ESG flags) from user answers[13]. Scores are calculated by matching user signals against programmes’ requirement categories. Unknown or missing inputs generate “counterfactual suggestions” to prompt users for more information. doctorDiagnostic.ts turns user answers into weighted symptoms, matches them to programmes via the data source and returns a diagnosis with reasoning and next questions[14]. dynamicQuestionEngine.ts builds a question ordering from program overlays and program‑specific rules. It assigns UX weights, calculates information value and selects up to seven core questions[15][16].
+Specific Issues
+Black‑box scoring – The scoring algorithm is spread across several functions; it is not transparent how scores are computed or how signals are weighted. This makes it hard to adjust for Austrian market nuances.
+Limited eligibility tracing – The system generates derived signals but does not provide a detailed trace of which requirement matched or failed for each programme. Users cannot see why a programme was or wasn’t recommended.
+Static question weights – UX weights and information values in dynamicQuestionEngine are static[15]. They might not reflect real information gain for Austrian programmes.
+Gap analysis & counterfactuals – Counterfactual suggestions exist but are not presented to users in a meaningful way. There is no UI to show “if you were to change X, you could qualify for Y programme”.
+Edge cases – The scoring engine may misbehave when answers are incomplete or contradictory. No explicit handling for unusual company structures (e.g., cooperatives, sole proprietorships) is present.
+Recommendations
+Recommendation
+Code Example
+Priority
+Effort
+Make scoring transparent – Consolidate scoring logic into a single module that outputs a score breakdown per programme (e.g., eligibility match % per category). Pass this breakdown to the frontend so users understand why programmes are recommended.
+Modify scoreProgramsEnhanced to return { programId, totalScore, breakdown: { eligibility: 0.8, funding_type: 0.9, … } } and update UI to display tooltips.
+High
+Medium
+Add eligibility tracing – When matching symptoms to programmes, store which requirement categories were matched or failed. Return this trace with the diagnosis and display in the results modal.
+In doctorDiagnostic.ts, extend Diagnosis interface with matchTrace: { programId: string; matched: string[]; missing: string[] }[]; and compute from symptomMatchesProgram.
+High
+Medium
+Learn question weights – Use analytics to collect drop‑off rates and information value per question. Periodically recompute the UX weights in dynamicQuestionEngine based on real user data rather than static constants.
+Store question answers and completion data via analytics.trackWizardComplete; run a script that calculates information gain and updates uxWeights.json.
+Medium
+Hard
+Implement gap analysis UI – After scoring, show a section “How to qualify for more programmes” based on counterfactual suggestions.
+Add component GapAnalysis to results page; read from enhancedRecoEngine suggestions and display messages such as “Raising your TRL to 6 would unlock 4 additional programmes”.
+Medium
+Medium
+Extend eligibility to special company types – Add fields for legal form, age of founders, gender diversity, etc., and incorporate into scoring.
+Add new questions q_legal_form, q_founder_gender, etc., update derived signals and scoring rules.
+Low
+Medium
+
+
+Area 4 – Wizard & Advanced Search
+Current State
+The unified recommendation wizard (UnifiedRecommendationWizard.tsx) loads questions from RecommendationContext, displays progress, handles navigation and optionally shows advanced search or dynamic wizard modes[17]. DynamicWizard.tsx renders programme‑specific decision‑tree questions; it fetches structured requirements from the API and merges them with conditional questions[18]. The advanced search page accepts free‑text input, uses aiChipParser.ts to extract chips and clarifications, converts them to answers, and triggers the recommendation engine via context[19]. aiChipParser contains heuristics for sector, stage, location, team size and funding need[20].
+Specific Issues
+Multiple wizard variants – The code contains EnhancedWizard.tsx, SmartRecommendationFlow.tsx and DynamicWizard.tsx, causing duplication and inconsistent UX. Only UnifiedRecommendationWizard is used on /reco; other variations are confusing.
+Advanced search integration – The advanced search is separate from the wizard; results are stored in localStorage and the page manually redirects to /results. There is no unified state management or error handling.
+AI chip parsing heuristics – aiChipParser relies on simple keyword matching for location, sector and stage[20]. It fails if the user uses synonyms or typos (“Healthtech” vs. “health tech”) and is not aware of Austrian provinces beyond major cities.
+Prefill and branching logic – Prefill scenarios (e.g., when the user arrives from AWS or FFG site) are not handled; questions are always presented in the same order. DynamicWizard uses decision‑tree logic but fallback to legacy API may return unstructured questions.
+UX issues – The wizard has no skip option; if users cannot answer a question, they are stuck. Error messages are generic (“Failed to get recommendations”).
+Recommendations
+Recommendation
+Code Example
+Priority
+Effort
+Consolidate wizard components – Keep UnifiedRecommendationWizard as the single wizard component. Remove unused EnhancedWizard, SmartRecommendationFlow and duplicate dynamic wizard code.
+Delete unused files and migrate any necessary functions into UnifiedRecommendationWizard.
+
+
+
+
+Update imports accordingly.
+Medium
+Medium
+
+
+Unify advanced search with wizard state – Integrate advanced search into RecommendationContext. When a user performs free‑text search, parse chips, convert to answers and populate the context without using localStorage.
+Replace handleAdvancedSearch to accept chips and call scoreProgramsEnhanced directly; push results into context state instead of redirecting manually.
+High
+Medium
+Upgrade AI chip parser – Use a small fine‑tuned language model (via OpenAI) to extract structured entities (location, stage, sector, funding need) instead of static regex. Extend location keywords to include all Austrian provinces and EU countries.
+Replace sectorKeywords mapping with a call to an NER API. Use openai.completions with prompt: “Extract location, company stage, team size, sector, funding need from: <input>.”.
+Medium
+Hard
+Implement prefill & branching logic – Accept query parameters or saved answers (e.g., product=strategy) and skip irrelevant questions. In DynamicWizard, use conditionalQuestionEngine to generate relevant conditional questions and hide others.
+Add prefill param to /reco route; in useRecommendation, set initial answers accordingly.
+Low
+Medium
+Improve UX – Allow users to skip a question or mark “Not sure”. Provide tooltips for complex terms and show progress in absolute numbers. Display a spinner and descriptive error when API requests fail.
+Add “Skip” button that sets answer to undefined and moves forward; update scoreProgramsEnhanced to handle missing answers gracefully.
+Medium
+Easy
+
+
+Area 5 – Entry Points & Routing
+Current State
+The home page (pages/index.tsx) uses hero sections and CTAs to lead users to /reco with a product query; it also uses targetGroupDetection to tailor content[21]. The page /reco embeds the unified wizard. Other entry points include advanced-search.tsx, checkout.tsx, editor.tsx, optimized-editor.tsx (an improved editor), results.tsx (shows programme recommendations) and confirm.tsx (submission confirmation). Routing is simple Next.js page‑based routing; query parameters are passed to components via router.push.
+Specific Issues
+Inconsistent product handling – Query parameters like ?product=strategy or submission are used but not validated; components may not react accordingly.
+Prefill data flow – After the wizard, answers and recommendations are stored in localStorage; the results page reads them, but the editor does not prefill answers when the user continues to plan creation.
+Landing page messaging – The home page emphasises Plan2Fund’s benefits but could better highlight Austrian programmes and show real success stories. It also mixes German and English content; more localisation is needed.
+Duplicate editor entry points – There are both editor.tsx and optimized-editor.tsx pages, causing confusion.
+Recommendations
+Recommendation
+Code Example
+Priority
+Effort
+Validate product query – In pages/reco.tsx, parse router.query.product; if it is not one of strategy, review or submission, fallback to default.
+```ts
+
+
+
+
+const { product } = router.query;
+
+
+
+
+
+
+const validProduct = ['strategy','review','submission'].includes(product as string);
+
+
+
+
+
+
+```
+Medium
+Easy
+
+
+Propagate answers to editor – Use RecommendationContext to persist answers and selected programme until the user reaches the editor. The editor should prefill sections based on these answers and programme templates.
+In EditorState.tsx, accept initialAnswers prop and set state accordingly. In results.tsx, call setInitialAnswers(answers) before navigating to editor.
+High
+Medium
+Strengthen landing page for Austrian founders – Use Austrian success stories (e.g., quotes from AWS/FFG grantees), highlight specific programmes (Horizon Europe, regional grants) and integrate a language selector prominently.
+Update Hero, WhyAustria components with testimonials and call‑to‑action; move language selector to header.
+Low
+Easy
+Consolidate editor entry points – Remove editor.tsx if optimized-editor.tsx is the newer version. Redirect old routes to the new editor.
+Add redirect in next.config.js: { source: '/editor', destination: '/optimized-editor', permanent: true }.
+Medium
+Easy
+
+
+Area 6 – Template System
+Current State
+Templates define section structures for various products and programmes. Files such as productSectionTemplates.ts, documentBundles.ts, basisPack.ts, documentDescriptions.ts, officialTemplates.ts and standardSectionTemplates.ts specify sections (e.g., Executive Summary, Market Analysis, Financials) and additional documents required. Templates are mapped by product type and industry; basisPack.ts defines a base set of documents and documentBundles.ts bundles them per funding type. Conditional rules adjust sections based on programme categories.
+Specific Issues
+Fragmented template definitions – Templates are split across many files with overlapping responsibilities. For example, basisPack.ts and officialTemplates.ts both define baseline documents; documentBundles.ts replicates templates for each product. This leads to duplication and inconsistent updates.
+Manual maintenance – Templates are manually created; there is no mechanism to scrape or import official templates from Austrian funding agencies. Many EU programmes require specific forms (e.g., AWS formula, FFG calculation tables) that are missing.
+Conditional rules – Section adjustment rules are hard‑coded in arrays; adding a new rule requires code changes. Some categories (e.g., export, sustainability) may require custom sections that are not supported.
+Coverage of Austrian funding types – Templates cover grants, loans, equity and visa programmes but may not address consulting or tax incentives (WKO, ÖSB). Local language support (German) for template names and hints is partial.
+Recommendations
+Recommendation
+Code Example
+Priority
+Effort
+Unify template definitions – Create a templates/ folder containing JSON or YAML definitions for sections and documents. Each template should include metadata (product, industry, funding type, language). Load these at runtime.
+Move definitions to src/data/templates/*.json. Example: { "id": "grant_austria", "sections": [{"id": "exec_summary", "title_en": "Executive Summary", "title_de": "Executive Summary", …}], "documents": [] }.
+High
+Hard
+Integrate scraper to fetch official templates – Extend the scraper to download official templates (PDF/Word) from AWS/FFG and store them in the repository or a storage bucket. Use a parser to extract required fields.
+Add to webScraperService new methods discoverOfficialTemplates() that parse links containing “formular” or “template” and download them. Save file metadata in DB.
+Medium
+Hard
+Make conditional rules data‑driven – Store rules in the database with conditions and actions (e.g., “if funding_type=loan then include Financial Plan section”). The template engine reads rules and applies them to base templates.
+Create table template_rules(id, condition_json, action_json). Modify template loader to apply rules at runtime.
+Medium
+Medium
+Add coverage for all Austrian funding types – Audit programmes to identify missing templates (e.g., WKO consulting grants, ÖSB labour market support) and create or scrape appropriate templates.
+Create new JSON templates for each missing funding type; update wizard to select correct template based on programme type.
+High
+Medium
+Enhance language support – Provide both German and English titles, descriptions and hints for each template section and document. Use i18n files for dynamic translation.
+Add fields title_de, description_de to template definitions; modify editor to display based on I18nContext.locale.
+Medium
+Easy
+
+
+Area 7 – Editor System
+Current State
+The editor is implemented via components such as UnifiedEditor.tsx, EditorState.tsx, EnhancedAIChat.tsx, RequirementsChecker.tsx, SectionEditor.tsx and TemplatesFormattingManager.tsx. It supports writing sections, AI assistance (via aiHelper.ts), formatting tools and a readiness checker. EditorState.tsx manages the state of the plan, including sections, progress, citations and hints. aiHelper builds section prompts with structured requirements and program hints[22]. Guardrails are provided in aiHelperGuardrails.ts to handle off‑topic queries, unknown programme requests and plan assistance[23]. The editor can export a PDF via the export system (see Area 9).
+Specific Issues
+Complex UI – The editor provides many tools (AI suggestions, formatting, readiness check) but the UI is cluttered and not intuitive for non‑technical founders. Important actions (save, export, consult AI) are hidden in menus.
+State management – EditorState.tsx is large and handles all concerns (loading templates, updating sections, interacting with AI, formatting). There is no separation of concerns or custom hooks.
+Customisation – Sections are pre‑defined; users cannot easily add or reorder sections. Graphs, images and financial tables require manual embedding; there is no component for charts or spreadsheets.
+Readiness checker – The readiness check uses heuristics to flag missing sections or word count issues, but it does not integrate programme‑specific criteria (e.g., TRL, team composition). Users get generic feedback.
+Recommendations
+Recommendation
+Code Example
+Priority
+Effort
+Redesign editor UI – Conduct usability tests with Austrian entrepreneurs to simplify the editor. Group tools (AI, formatting, readiness) into a sidebar with clear icons. Provide a preview pane of the final document.
+Use a component library (e.g., Radix UI) to build a 2‑column layout: left panel with outline & sections, right panel with editor. Move AI hints into collapsible panels.
+High
+Hard
+Refactor state management – Split EditorState into smaller hooks (usePlan, useSectionEditor, useAI). Use react‑query to fetch templates and requirements.
+Extract logic: usePlan.ts handles loading & saving plan; useSection.ts manages section content; useAI.ts interacts with aiHelper.
+High
+Medium
+Allow custom sections – Let users insert custom sections or reorder existing sections. Store custom sections in the plan document and update templates accordingly.
+Add buttons “Add Section” and drag‑and‑drop ordering; update plan schema to support custom_sections: Section[].
+Medium
+Hard
+Integrate charts and financial tools – Provide simple chart components (bar, line) and a mini spreadsheet for financial projections. Use libraries like Chart.js and Handsontable.
+Create <FinancialTable/> component with editing capabilities; embed Chart.js for graphs.
+Medium
+Hard
+Enhance readiness checker – Use structured requirements from the programme to perform deeper checks (e.g., missing TRL justification, team qualifications, sustainability metrics). Provide actionable suggestions.
+Modify RequirementsChecker.tsx to call /api/programmes/[id]/requirements and compare with the plan.
+Medium
+Medium
+
+
+Area 8 – AI Integration
+Current State
+The AI system uses openai.ts and high‑level helpers (aiHelper.ts, aiHelperGuardrails.ts, ai-assistant.ts and ai-assistant-simple.ts in the API layer). aiHelper builds prompts for each editor section, injecting structured requirements, programme hints and user answers[22]. The AI service returns content, suggestions, citations and a readiness score. aiHelperGuardrails intercepts off‑topic or unknown requests, generating clarifications or redirecting the user to the wizard[23]. The API endpoints in pages/api/ai-assistant.ts handle streaming responses and test modes for offline development.
+Specific Issues
+Prompt duplication – Prompts are constructed in multiple places (e.g., aiHelper, API routes) and may not be consistent. Maintaining prompts is error‑prone.
+No test harness – There are test modes, but no automated tests to validate that AI responses meet expected formats (e.g., word limit, bullet points). Developers cannot iterate on prompts confidently.
+Context injection – The AI includes programme hints and user answers, but there is no mechanism to inject additional context (e.g., Austrian funding laws, evaluation criteria). Consequently, AI suggestions may lack local nuance.
+Guardrail coverage – aiHelperGuardrails checks for off‑topic inputs and unknown programmes, but the detection lists are static; new off‑topic patterns or unknown programmes are not automatically learned.
+Recommendations
+Recommendation
+Code Example
+Priority
+Effort
+Centralise prompts – Define prompts in a single prompts.ts file with placeholders. Use a templating function to assemble prompts for different contexts (wizard, section, advanced search).
+```ts
+
+
+
+
+export const SECTION_PROMPT = You are an AI assistant… Section: {{section}}…;
+
+
+
+
+
+
+`` Usemustache` to render.
+High
+Easy
+
+
+Create an automated prompt test suite – Write unit tests that send sample inputs to the AI (using mock API) and verify the response meets constraints (e.g., ≤200 words, contains at least one suggestion).
+Use Jest with mocked fetch; check aiHelper.generateSectionContent returns AIResponse with content.length < 200.
+Medium
+Medium
+Inject local context – Provide a knowledge base of Austrian funding guidelines and evaluation criteria. Use retrieval‑augmented generation (RAG) to fetch relevant passages and include them in the prompt.
+Build a knowledgeBase.ts with key paragraphs from AWS/FFG guidelines; update aiHelper to add them to structuredGuidance.
+Medium
+Medium
+Expand guardrails with machine learning – Use NLU to classify user inputs as off‑topic or plan‑related. Continuously update unknown programme detection by reading the list of programmes from the database.
+Implement a logistic regression classifier trained on labelled queries. Use dataSource.getPrograms() to populate known programme names.
+Low
+Medium
+
+
+Area 9 – Payment & Export
+Current State
+payments.ts integrates Stripe. getPricingTiers returns tier definitions for B2C founders, SME loans, visa plans and partners; these include price, features and currency[24]. createPaymentSession initialises Stripe and calls the backend to create a session[25]. The export system (export.ts) generates PDFs client‑side using html2pdf; it supports watermarks and different quality levels[26]. Pricing tiers are used to limit features (PDF vs. DOCX, watermarks). A success page acknowledges the transaction.
+Specific Issues
+Pricing not localised – Prices are hard‑coded in EUR; there is no differentiation between Austrian and EU markets or currency options. Taxes (e.g., Austrian VAT) are not considered.
+Export limitations – Generating PDFs client‑side can be unreliable for long documents; there is no server‑side rendering. The export does not support complex charts or attachments. DOCX export is mentioned but not implemented.
+Payment testing – Feature flags control payment integration, but there are no test harnesses to simulate Stripe flows. Developers must use test keys manually.
+Submission pack – submissionPack.ts is not fully integrated; there is no UI to compile all forms and attachments required by different programmes.
+Recommendations
+Recommendation
+Code Example
+Priority
+Effort
+Localise pricing & taxes – Store pricing tiers in a database, including net price, VAT and currency. Determine the user’s country via IP or user profile and display appropriate pricing.
+Add table pricing_tiers(id, segment, country, price_net, vat_rate, currency). Modify getPricingTiers to fetch from DB.
+Medium
+Medium
+Implement server‑side export – Use a server‑side PDF/DOCX generator (e.g., Puppeteer or Docxtemplater). Move export code to API route /api/export and stream the file to the client.
+Create pages/api/export/index.ts that receives a plan ID and options, renders HTML via React/Next.js and uses puppeteer to generate PDF.
+High
+Hard
+Add Stripe test environment helpers – Provide a test mode in payments.ts that uses Stripe test keys and mocks responses for end‑to‑end tests.
+Add process.env.NODE_ENV === 'test' check; if true, return mocked sessions.
+Medium
+Easy
+Complete submission pack integration – Finish submissionPack.ts to collect all required documents (templates, forms) for the chosen programme. Provide a UI for users to download or upload attachments.
+Create a component SubmissionPackModal that lists required documents and forms with download links; integrate into success page.
+Medium
+Medium
+
+
+Area 10 – State Management & Contexts
+Current State
+The application uses React contexts for recommendation (RecommendationContext.tsx), user profile (UserContext.tsx), editor state (EditorState.tsx) and internationalisation (I18nContext.tsx). RecommendationContext loads questions via DynamicQuestionEngine, stores answers and recommendations, and controls advanced search and dynamic wizard flows[27]. I18nContext selects locale and provides translation function t[28]. Feature flags and analytics use their own classes.
+Specific Issues
+Context coupling – RecommendationContext handles many responsibilities (questions, answers, recommendations, advanced search, dynamic wizard). This violates the single‑responsibility principle.
+Persistence – Answers and recommendations are stored in localStorage; there is no central state persistence (e.g., using a Redux store or server‑side session). Data may be lost if the page is refreshed.
+Internationalisation – Only English and German are supported via JSON files; translation keys are sometimes missing; dynamic content (e.g., programme names) is not translated.
+User context – There is limited information about the user (e.g., segment, preferences). There is no authentication or account management.
+Recommendations
+Recommendation
+Code Example
+Priority
+Effort
+Split contexts – Create separate contexts: QuestionContext (loads & stores questions), AnswerContext (stores answers & handles persistence), RecommendationResultsContext (stores recommendations), and WizardUIContext (controls UI state). Use custom hooks for each.
+Create useQuestions, useAnswers, etc. Compose them in a provider component.
+Medium
+Medium
+Implement persistent store – Use indexedDB or localForage to store answers and plans. Alternatively, persist to the backend via an API and restore on page load.
+Replace localStorage calls with localForage.setItem('userAnswers', answers); on mount, call localForage.getItem to restore.
+High
+Medium
+Enhance internationalisation – Use react-i18next or a similar library to support dynamic translations; load language files on demand. Provide translation keys for all UI strings and templates.
+Replace I18nContext.t with useTranslation from react-i18next; wrap the app in I18nextProvider.
+Medium
+Hard
+Extend user context – Add authentication (e.g., Auth0 or Firebase), store user profiles (segment, company details) and integrate with analytics and payment.
+Create UserProvider that loads user data from JWT and provides user, setUser, logout.
+Medium
+Medium
+
+
+Area 11 – API Layer
+Current State
+The API endpoints reside under pages/api. Notable routes include:
+/api/programmes/[id]/requirements.ts – fetches structured requirements from Postgres and returns decision tree questions, editor sections and library data. It uses categoryConverter and falls back to legacy data if no categorised requirements are found[29].
+/api/ai-assistant.ts and /api/ai-assistant-simple.ts – proxy requests to OpenAI; handle streaming responses, context injection and test modes.
+/api/payments/create-session.ts – creates Stripe checkout sessions.
+/api/analytics/track.ts – collects analytics events.
+/api/cron – scheduled tasks (e.g., scraping updates).
+Specific Issues
+Authentication & authorisation – Most API routes are open; there is no verification of user identity or rate limiting. Malicious users could overload the AI or scraping endpoints.
+Error handling – Several endpoints catch errors and log them but return 500 errors without detail. There is no standardised error format.
+Schema & validation – Request bodies are not validated; invalid data may enter the system.
+Versioning & maintainability – There is no API versioning; changes to endpoints could break clients.
+Recommendations
+Recommendation
+Code Example
+Priority
+Effort
+Implement authentication – Use JWT or session cookies to authenticate API calls. Protect endpoints like /api/ai-assistant and /api/programmes/[id]/requirements so only authorised users can access them.
+Add middleware: export default withAuth(handler); verify token before executing handler.
+High
+Medium
+Standardise error responses – Define an error response format { error: { code: string, message: string } }. Wrap handlers in try/catch and return descriptive codes.
+Create apiError(code, message, res) helper and use in endpoints.
+Medium
+Easy
+Validate request schemas – Use a schema validation library (e.g., Zod or Yup) to validate body and query parameters. Reject invalid requests with 400 errors.
+const schema = z.object({ decisionTree: z.array(...), editor: z.array(...) }); schema.parse(req.body);
+Medium
+Easy
+Add API versioning – Place endpoints under /api/v1/…; maintain backward compatibility when changing response structures.
+Create folder pages/api/v1/programmes/[id]/requirements.ts and update clients accordingly.
+Low
+Medium
+
+
+Area 12 – Testing & Fallbacks
+Current State
+The repository includes fallback data and test modes in various modules. Feature flags enable or disable payment integration, export paywall and AI explanations[30]. Some APIs have a TEST_MODE environment variable to return mock data. There are manual fallback programmes in the database used when scraping is offline. However, there is no unified test suite; unit tests or integration tests are absent.
+Specific Issues
+Lack of automated tests – There are no Jest or Cypress tests to verify functionality. Developers must manually test flows, which is error‑prone.
+Fallback data is outdated – The fallback programmes and templates are static and may not reflect current Austrian funding programmes. They are not updated regularly.
+No offline mode – If the API is unavailable, the app falls back to localStorage but cannot operate fully offline (e.g., AI integration, export, payment). There is no offline test harness.
+Recommendations
+Recommendation
+Code Example
+Priority
+Effort
+Implement test suites – Use Jest for unit tests (scraper, data pipeline, AI helpers) and Cypress for end‑to‑end tests (wizard, editor, payment). Include mock servers for API endpoints.
+Create __tests__/webScraperService.test.ts using nock to mock HTTP requests. Write Cypress tests for /reco flow.
+High
+Hard
+Automate fallback data updates – Schedule a cron job in /api/cron to regenerate fallback data (e.g., weekly scraping) and commit updates to the repository or store in S3.
+Add function refreshFallbackData() that runs webScraperService.scrapeAllPrograms() and writes JSON to fallback/.
+Medium
+Medium
+Support offline mode – Cache AI responses, templates and programs in IndexedDB. Provide a service worker to allow offline editing and exporting.
+Use Workbox to implement service worker; store required assets and data in Cache API.
+Low
+Hard
+
+
+Area 13 – Future Scalability
+Current State
+The system is targeted at the Austrian market with plans to expand to the EU. The data pipeline is designed to process programmes from multiple institutions. However, multi‑user collaboration, analytics and AI learning from user plans are not fully implemented. There is mention of a dynamic pattern engine to learn new patterns automatically and a recommendation system to adapt to new programmes.
+Specific Issues
+EU expansion – The scraper and templates are currently tailored to Austria (AT codes, German language, AWS/FFG programmes). EU expansion (Horizon, Eurostars) requires new patterns, languages and legal considerations.
+Multi‑user collaboration – There is no support for collaborative editing (e.g., multiple founders editing the same plan). Plans are stored only client‑side.
+Analytics & learning – Although analytics events are tracked, there is no pipeline to analyse data, extract insights and feed them back into the recommendation engine or template suggestions.
+Geographical customisation – The platform does not support region‑specific features (e.g., Austrian states vs. German Bundesländer). EU countries have different eligibility rules.
+Recommendations
+Recommendation
+Code Example
+Priority
+Effort
+Modularise geographic configuration – Separate configuration for each country/region (sitemaps, patterns, templates). Add a country field to programmes and user profiles to load appropriate data.
+Create src/config/countries/AT.ts, DE.ts, FR.ts etc. In webScraperService, load country config based on environment.
+High
+Medium
+Implement real‑time collaboration – Use WebSockets (e.g., Socket.io) or Firebase Realtime Database to allow multiple users to edit the same plan. Add editing locks and merge changes.
+Integrate yjs for conflict‑free replicated data type (CRDT) editing; store updates in backend.
+Medium
+Hard
+Build analytics dashboard – Use tools like Metabase or Supabase to visualise analytics events (wizard conversion rates, drop‑off points, popular programmes). Feed aggregated insights into product decisions.
+Export events from /api/analytics/track to a data warehouse and build dashboards; schedule weekly reports.
+Medium
+Medium
+Enable AI learning from plans – Anonymise completed plans and use them to fine‑tune AI prompts or train models that suggest better content for each section.
+Implement a pipeline that strips PII, stores text and metadata in a secure environment and triggers a fine‑tuning job.
+Low
+Hard
+
+
+Area 14 – Additional Documents & Forms
+Current State
+documentBundles.ts, requirements.ts and submissionPack.ts define which extra documents are required for each programme. These include pitch decks, financial plans, CVs, certificates and application forms. The mapping is partly manual. The submission pack file is used to bundle documents for export but integration in the UI is missing.
+Specific Issues
+Missing programme forms – Many funding schemes require official forms (e.g., AWS Finanzierungsantrag, FFG Kostenplan) that are not included or linked. Users must obtain them elsewhere.
+Inflexible document requirements – Requirements are not personalised; for example, an SME and a university might need different attachments. The system does not adjust automatically.
+No upload & validation – The system provides a list of required documents but lacks a UI for uploading and checking if all documents are present. There is no integration with a file storage service.
+Requirements matrix – The current requirements matrix (mapping categories to document types) may not reflect Austrian programme guidelines; some categories may be missing or outdated.
+Recommendations
+Recommendation
+Code Example
+Priority
+Effort
+Scrape & include official forms – Extend the scraper to download application forms, guidelines and sample attachments. Store them in a public/forms/ directory and link them in the submission pack.
+In webScraperService, detect links labelled “Antrag”, “Formular”, “Template” and download the PDF/Doc.
+High
+Medium
+Personalise document requirements – When the user selects a programme and answers eligibility questions, generate a customised checklist of required documents. Use decision tree outcomes to infer which documents apply.
+Extend submissionPack.ts to accept answers and produce documentRequirements = determineDocs(program, answers).
+Medium
+Medium
+Implement upload & validation UI – Create a file uploader component that allows users to upload each required document. Validate file type and size. Store files in S3 or a secure storage and reference them in the plan.
+Build <DocumentUploadList/> component; use next-s3-upload to upload to AWS S3; store metadata in DB.
+Medium
+Hard
+Update requirements matrix – Review Austrian programme guidelines to update categories (e.g., “employee protection”, “ESG reporting”) and ensure requirements align with real forms.
+Research AWS/FFG/AMS guidelines; update requirements.ts accordingly.
+Medium
+Medium
+
+
+Area 15 – Analytics & User Intelligence
+Current State
+The analytics system (analytics.ts) tracks page views, user actions, wizard start/completion, editor interactions, exports and conversions[31]. Events are sent to an internal API and optionally to Google Analytics. targetGroupDetection.ts detects user segments via URL, UTM parameters, query parameters, referrers and localStorage[32]. Feature flags allow A/B testing (e.g., landing page hero variants)[30].
+Specific Issues
+Limited analysis – Events are collected but not analysed or visualised. There is no segmentation by industry, company size or region.
+Privacy & GDPR – Tracking may conflict with GDPR requirements if consent is not obtained. There is a gdpr component but no enforcement.
+Feature flag complexity – Many flags are enabled, but there is no experiment framework to analyse variant performance. Variants are assigned randomly without persistent assignment.
+User intelligence – The system does not infer user intent beyond target group detection. It does not suggest content or features based on behaviour.
+Recommendations
+Recommendation
+Code Example
+Priority
+Effort
+Build analytics pipeline – Export events to a data warehouse (e.g., BigQuery, Postgres) via server‑side API. Use BI tools to create dashboards (conversion funnel, drop‑off points).
+Update /api/analytics/track to write to a queue (Kafka/SQS) and process asynchronously into DB.
+Medium
+Medium
+Implement consent management – Show a cookie banner asking for analytics consent. Only send events if the user accepts. Respect Austrian/ePrivacy rules.
+Use react-cookie-consent library; wrap analytics calls: if (cookies.analyticsAccepted) analytics.trackEvent(...).
+High
+Easy
+Persist feature flag variants – When assigning an experiment variant, store it in localStorage or user profile so the user sees the same variant across sessions.
+In FeatureFlagManager.getExperimentVariant, after picking a variant, call localStorage.setItem('pf_experiment_LANDING_PAGE_HERO', variant).
+Medium
+Easy
+Leverage user intelligence – Use analytics data to personalise content (e.g., recommend relevant articles, highlight trending programmes). Build a recommendation engine for content.
+Add endpoint /api/recommendations/content that uses user segment and behaviour to return personalised content.
+Low
+Medium
+
+
+Area 16 – Repository Structure & Design
+Current State
+The repository follows a typical Next.js structure but is cluttered. Large files like webScraperService.ts and enhancedRecoEngine.ts contain multiple classes and functions. Template files are scattered across different directories. There is no clear separation between front‑end, back‑end and shared modules. Some unused files remain from earlier iterations (e.g., EnhancedWizard.tsx, SmartRecommendationFlow.tsx).
+Recommendations
+Adopt a layer‑based structure – Group files by layer: src/scraper/ (scraper services, pattern engine), src/pipeline/ (data processing), src/models/ (data interfaces), src/api/ (API handlers), src/frontend/components/ (React components), src/frontend/pages/ (Next.js pages), src/frontend/contexts/ (contexts), src/templates/ (JSON templates), src/utils/ (helpers). This improves discoverability.
+Use domain‑driven naming – Name modules after their domain responsibilities (e.g., FundingProgrammeScraper, ProgrammeNormalizer, RecommendationEngine, BusinessPlanEditor). Avoid ambiguous names like EnhancedRecoEngine.
+Remove dead code – Identify and delete unused components (EnhancedWizard.tsx, SmartRecommendationFlow.tsx) and duplicate files. Keep a deprecated/ folder if necessary.
+Introduce linting and formatting – Use ESLint and Prettier to enforce consistent code style. Add Husky pre‑commit hooks.
+Document with README per folder – Add README files that explain the purpose of each layer and how modules interact. Include diagrams from MASTER_SYSTEM_DOCS.md for architecture.
+
+Area 17 – Performance & Optimization
+Current State
+Performance metrics are briefly mentioned in the documentation (e.g., API response time improvements). The recommendation engine runs computations client‑side, and scraping is off‑loaded to the server. There is some caching in enhancedDataPipeline.ts and dynamic question engine. However, no systematic performance monitoring is implemented.
+Recommendations
+Optimise front‑end bundle size – Use dynamic imports for heavy components (AI assistants, charts) to reduce initial load. Analyse bundle size with Next.js analyser.
+Implement caching at API layer – Cache programme requirements and recommendation results in Redis to avoid repeated database queries. Use HTTP Cache-Control headers for GET endpoints.
+Parallelise scraping – Use a job queue (e.g., BullMQ) and worker instances to parallelise scraping tasks while respecting rate limits. Monitor throughput and failures.
+Monitor performance – Integrate a performance monitoring tool (e.g., New Relic or Next.js built‑in telemetry) to track response times, memory usage and error rates.
+Optimise database queries – Add indexes to programs table on id, program_type, categorized_requirements JSONB keys. Use pagination for large queries.
+
+Area 18 – Security & Compliance
+Current State
+Sensitive data (user profiles, payment info) is handled via Stripe and Postgres. Feature flags enable GDPR compliance features, but there is no explicit implementation. API routes are publicly accessible and there is limited input validation.
+Recommendations
+Encrypt sensitive data – Encrypt user profiles and programme data at rest using Postgres’ pgcrypto or AWS KMS. Use HTTPS for all requests.
+Implement authentication and authorisation – See Area 11: protect APIs with JWT or session cookies and role‑based access control (e.g., admin vs. user vs. partner).
+GDPR compliance – Provide a privacy policy and data processing agreement. Allow users to download and delete their data. Use cookie consent to obtain tracking permission.
+Secure API keys – Store API keys (OpenAI, Stripe, database) in environment variables and never commit them to the repository. Use a secrets manager.
+Rate limiting & CSRF – Use middleware to limit API calls per IP and implement CSRF protection on POST requests.
+
+Area 19 – Error Handling & Edge Cases
+Current State
+Error handling is inconsistent. The scraper logs errors and continues. The API layer returns generic 500 errors without detail. The frontend displays a generic error message (“Failed to get recommendations”) when API calls fail. Edge cases (e.g., network failure, invalid input, missing data) are not systematically handled.
+Recommendations
+Define error codes – Create an error catalogue (e.g., ERR_SCRAPE_TIMEOUT, ERR_INVALID_INPUT, ERR_PAYMENT_FAILED) and use it across layers.
+User‑friendly error messages – In the frontend, map error codes to descriptive messages (e.g., “Our scraper is temporarily unavailable. Please try again later.”) and provide contact information.
+Graceful fallbacks – When the recommendation engine fails, show cached results or direct the user to contact support. When the editor cannot load templates, allow manual editing.
+Handle edge cases – Validate user input (empty answers, unrealistic funding amounts), handle network timeouts and provide offline fallback. Use try/catch around async functions and surface errors up to the UI.
+
+Area 20 – Integration & Dependencies
+Current State
+The system integrates numerous external services: Puppeteer for scraping, Postgres for storage, OpenAI for AI assistance, Stripe for payments, and Google Analytics. Dependencies are pinned in package.json. Some modules import heavy libraries (e.g., pdf generation) on the client. No explicit update or version management strategy is documented.
+Recommendations
+Document integration points – Create a docs/integration.md that lists each external service, API keys, environments and contact points. Document rate limits and error codes.
+Use dependency injection – Abstract external services behind interfaces (e.g., IAIProvider, IPaymentProvider, IScraper) so they can be swapped or mocked for testing.
+Monitor versions & updates – Use tools like Renovate or Dependabot to automatically open PRs for dependency updates. Run tests on update PRs to catch breaking changes.
+Fallback strategies – For each integration, define a fallback: e.g., if Stripe is unavailable, allow free draft export; if OpenAI fails, disable AI suggestions but allow manual editing; if Puppeteer fails, use fallback programmes.
+Document environment variables – Provide a sample .env.example file with all required variables (OpenAI keys, Stripe keys, database URL, feature flags).
+
+Implementation Roadmap
+Month 1:
+Refactor scraper and data pipeline into modular services; implement robots.txt handling and error logging. Introduce pattern configuration file and lineage metadata.
+Consolidate wizard components; integrate advanced search into recommendation context; unify prompts. Introduce persistent store (IndexedDB).
+Build test harness for AI prompts and scraping; set up Jest and Cypress.
+Add authentication middleware and standard error responses in API layer.
+Start analytics dashboard setup and GDPR consent banner.
+Month 2:
+Migrate templates to JSON/YAML; implement server‑side PDF export; localise pricing with VAT; develop submission pack UI.
+Refactor editor into modular hooks; redesign editor UI with usability tests; allow custom sections and charts.
+Enhance scoring transparency and gap analysis; implement eligibility tracing and display breakdowns.
+Extend targetGroupDetection and AI chip parser with machine‑learning models; integrate local context into AI prompts.
+Add document requirements personalisation and upload component.
+Month 3:
+Introduce multi‑user collaboration (CRDT or Firebase); modularise geographic configuration for EU expansion; create new scraper configs for Germany and France.
+Build analytics dashboard, integrate feature flag experiments, and personalise content.
+Implement server‑side caching and performance monitoring; optimise front‑end bundle and database queries.
+Expand guardrails and unknown programme detection; enrich persona mapping.
+Document integrations and environment variables; set up Renovate for dependency updates.
+Month 4+:
+Continue adding programme templates and forms; fine‑tune AI models with user plans; experiment with dynamic pricing models; expand to additional countries.
+
+Priority Matrix
+Issue
+Priority
+Area
+Modularising scraper and implementing robots.txt & error handling
+High
+Area 1
+Making scoring transparent and adding eligibility tracing
+High
+Area 3
+Consolidating wizards and integrating advanced search into context
+High
+Area 4
+Propagating answers to editor and redesigning editor UI
+High
+Areas 5 & 7
+Implementing authentication and standard error responses
+High
+Area 11
+Building test suites and automating fallback updates
+High
+Area 12
+Modularising template definitions and scraping official forms
+High
+Area 6
+Localising pricing and implementing server‑side export
+Medium
+Area 9
+Splitting contexts and implementing persistent store
+Medium
+Area 10
+Building analytics pipeline and consent management
+Medium
+Area 15
+Modularising geographic configuration for EU expansion
+Medium
+Area 13
+Adding personalised document requirements and upload UI
+Medium
+Area 14
+Refactoring AI prompts and injecting local context
+Medium
+Area 8
+Security hardening (encryption, rate limiting)
+Medium
+Area 18
+Repository restructure and documentation
+Medium
+Area 16
+Performance optimisation and caching
+Medium
+Area 17
+Error catalogue and user‑friendly messages
+Medium
+Area 19
+Integration documentation and dependency management
+Low
+Area 20
+Multi‑user collaboration and AI learning from plans
+Low
+Area 13
+Fine‑grained analytics & feature‑flag experiments
+Low
+Area 15
+
+
+Conclusion
+Plan2Fund‑nextgen has achieved an impressive prototype that scrapes funding data, matches Austrian companies to programmes, guides users through a wizard, and helps draft business plans. To evolve into a scalable, maintainable product ready for Austrian and EU markets, significant refactoring and feature development are needed. This report outlines concrete improvements across scraping, data processing, recommendation logic, UI/UX, AI integration, payments, testing, scalability, security and analytics. Implementing the suggested roadmap will enhance reliability, user experience and adaptability, creating a robust platform for entrepreneurs seeking funding.
+
+[1] [2] [3] [4] [5] raw.githubusercontent.com
+https://raw.githubusercontent.com/Krausi96/plan2fund-nextgen/main/src/lib/webScraperService.ts
+[6] raw.githubusercontent.com
+https://raw.githubusercontent.com/Krausi96/plan2fund-nextgen/main/src/lib/dynamicPatternEngine.ts
+[7] [8] [9] raw.githubusercontent.com
+https://raw.githubusercontent.com/Krausi96/plan2fund-nextgen/main/src/lib/enhancedDataPipeline.ts
+[10] raw.githubusercontent.com
+https://raw.githubusercontent.com/Krausi96/plan2fund-nextgen/main/src/lib/requirementsMapper.ts
+[11] raw.githubusercontent.com
+https://raw.githubusercontent.com/Krausi96/plan2fund-nextgen/main/src/lib/dataSource.ts
+[12] raw.githubusercontent.com
+https://raw.githubusercontent.com/Krausi96/plan2fund-nextgen/main/src/lib/ScrapedProgram.ts
+[13] raw.githubusercontent.com
+https://raw.githubusercontent.com/Krausi96/plan2fund-nextgen/main/src/lib/enhancedRecoEngine.ts
+[14] raw.githubusercontent.com
+https://raw.githubusercontent.com/Krausi96/plan2fund-nextgen/main/src/lib/doctorDiagnostic.ts
+[15] [16] raw.githubusercontent.com
+https://raw.githubusercontent.com/Krausi96/plan2fund-nextgen/main/src/lib/dynamicQuestionEngine.ts
+[17] raw.githubusercontent.com
+https://raw.githubusercontent.com/Krausi96/plan2fund-nextgen/main/src/components/reco/UnifiedRecommendationWizard.tsx
+[18] raw.githubusercontent.com
+https://raw.githubusercontent.com/Krausi96/plan2fund-nextgen/main/src/components/decision-tree/DynamicWizard.tsx
+[19] raw.githubusercontent.com
+https://raw.githubusercontent.com/Krausi96/plan2fund-nextgen/main/pages/advanced-search.tsx
+[20] raw.githubusercontent.com
+https://raw.githubusercontent.com/Krausi96/plan2fund-nextgen/main/src/lib/aiChipParser.ts
+[21] raw.githubusercontent.com
+https://raw.githubusercontent.com/Krausi96/plan2fund-nextgen/main/pages/index.tsx
+[22] raw.githubusercontent.com
+https://raw.githubusercontent.com/Krausi96/plan2fund-nextgen/main/src/lib/aiHelper.ts
+[23] raw.githubusercontent.com
+https://raw.githubusercontent.com/Krausi96/plan2fund-nextgen/main/src/lib/aiHelperGuardrails.ts
+[24] [25] raw.githubusercontent.com
+https://raw.githubusercontent.com/Krausi96/plan2fund-nextgen/main/src/lib/payments.ts
+[26] raw.githubusercontent.com
+https://raw.githubusercontent.com/Krausi96/plan2fund-nextgen/main/src/lib/export.ts
+[27] raw.githubusercontent.com
+https://raw.githubusercontent.com/Krausi96/plan2fund-nextgen/main/src/contexts/RecommendationContext.tsx
+[28] raw.githubusercontent.com
+https://raw.githubusercontent.com/Krausi96/plan2fund-nextgen/main/src/contexts/I18nContext.tsx
+[29] raw.githubusercontent.com
+https://raw.githubusercontent.com/Krausi96/plan2fund-nextgen/main/pages/api/programmes/[id]/requirements.ts
+[30] raw.githubusercontent.com
+https://raw.githubusercontent.com/Krausi96/plan2fund-nextgen/main/src/lib/featureFlags.ts
+[31] raw.githubusercontent.com
+https://raw.githubusercontent.com/Krausi96/plan2fund-nextgen/main/src/lib/analytics.ts
+[32] raw.githubusercontent.com
+https://raw.githubusercontent.com/Krausi96/plan2fund-nextgen/main/src/lib/targetGroupDetection.ts
+
+---
+
+# 🎯 **IMPLEMENTATION PRIORITY MATRIX**
+
+## **PHASE 1: GET SYSTEM RUNNING** (Week 1-2)
+**Goal**: Make the complete user flow work end-to-end with mock data
+
+### **Critical Issues to Fix First:**
+1. **Test Mode Implementation** - Ensure AI, payment, and export work without external APIs
+2. **Data Flow Fixes** - Wizard answers must persist to editor
+3. **Template Loading** - Editor must show correct templates for selected product
+4. **Export Functionality** - Must generate documents with mock data
+
+### **Files to Focus On:**
+- `pages/api/ai/openai.ts` - Fix test mode
+- `src/contexts/RecommendationContext.tsx` - Fix data persistence
+- `src/components/editor/UnifiedEditor.tsx` - Fix template loading
+- `src/export/renderer.tsx` - Fix export with mock data
+
+## **PHASE 2: IMPROVE USER EXPERIENCE** (Week 3-4)
+**Goal**: Make the system user-friendly and reliable
+
+### **High-Impact Improvements:**
+1. **Wizard Question Jargon** - Simplify technical terms
+2. **Editor UI** - Make it more intuitive for Austrian entrepreneurs
+3. **Error Handling** - Better error messages and fallbacks
+4. **Template System** - Ensure all Austrian funding types are covered
+
+## **PHASE 3: OPTIMIZE & SCALE** (Month 2+)
+**Goal**: Prepare for production and future expansion
+
+### **Architecture Improvements:**
+1. **Modularize Large Files** - Split webScraperService.ts, enhancedRecoEngine.ts
+2. **Consolidate Wizards** - Remove duplicate wizard components
+3. **Improve State Management** - Better context organization
+4. **Add Testing** - Comprehensive test suite
+
+---
+
+# 📝 **NEXT STEPS**
+
+## **Immediate Actions (This Week):**
+1. **Test the complete flow** - From landing page to export
+2. **Fix any broken test modes** - Ensure system works without external APIs
+3. **Verify data persistence** - Wizard answers must reach editor
+4. **Test template loading** - Different products must show correct templates
+
+## **Success Criteria:**
+- ✅ Complete user flow works end-to-end
+- ✅ System works without external APIs (test mode)
+- ✅ All entry points lead to working editor
+- ✅ Export generates documents successfully
+- ✅ Templates are appropriate for Austrian funding types
+
+## **After System is Running:**
+- Focus on user experience improvements
+- Address wizard question jargon
+- Improve editor UI for Austrian entrepreneurs
+- Add comprehensive testing
+- Prepare for EU expansion
+
+---
+
+**The key is to get the system running first, then improve it step by step. Focus on Phase 1 critical fixes before moving to optimizations.**
