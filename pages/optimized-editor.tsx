@@ -677,7 +677,7 @@ export default function OptimizedEditorPage() {
                 <h3 className="font-semibold mb-2">Pricing</h3>
                 <div className="space-y-2 text-sm">
                   {(() => {
-                    const pricing = calculatePricing(plan.product, plan.route, plan.addonPack);
+                    const pricing = calculatePricing(plan.product, plan.route as any, plan.addonPack);
                     return (
                       <>
                         <div className="flex justify-between">

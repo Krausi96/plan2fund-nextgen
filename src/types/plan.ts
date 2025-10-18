@@ -29,7 +29,7 @@ export type PlanSection = {
   status?: 'aligned'|'needs_fix'|'missing'
 };
 
-export type Route = 'grant'|'bank'|'equity'|'visa'|'ams';
+export type Route = 'grant'|'loan'|'equity'|'visa';
 export type Product = 'strategy'|'review'|'submission';
 
 export type PlanDocument = {

@@ -86,10 +86,9 @@ export default function EditorShell({
               className="border rounded px-3 py-1 text-sm"
             >
               <option value="grant">Grant</option>
-              <option value="bank">Bank</option>
+              <option value="loan">Loan</option>
               <option value="equity">Equity</option>
               <option value="visa">Visa</option>
-              <option value="ams">AMS</option>
             </select>
 
             {/* Program Badge */}

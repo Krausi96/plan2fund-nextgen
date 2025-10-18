@@ -45,7 +45,7 @@ export const PROGRAM_PROFILES: Record<string, ProgramProfile> = {
   // Bank/Loan programs
   'bank-loan': {
     programId: 'bank-loan',
-    route: 'bank',
+    route: 'loan',
     required: {
       sections: [
         { key: 'execSummary', minTokens: 200 },
@@ -100,7 +100,7 @@ export const PROGRAM_PROFILES: Record<string, ProgramProfile> = {
   // AMS programs
   'ams-startup': {
     programId: 'ams-startup',
-    route: 'ams',
+    route: 'loan',
     required: {
       sections: [
         { key: 'execSummary', minTokens: 200 },

@@ -76,11 +76,10 @@ export const TEMPLATES: Record<'strategy'|'submission'|'review', Template> = {
     ],
     routeVariants: {
       grant:  { sections: [{ key: 'workPackagesTimeline', title: 'Work Packages & Timeline' }] },
-      bank:   { sections: [{ key: 'bankSummaryPage',      title: 'Bank Summary (Ratios & Repayment)' }] },
+      loan:   { sections: [{ key: 'bankSummaryPage',      title: 'Bank Summary (Ratios & Repayment)' }] },
       equity: { sections: [{ key: 'investorTeaser',       title: 'Investor Teaser One-Pager' },
                            { key: 'capTableBasic',        title: 'Basic Cap Table' }] },
-      visa:   { sections: [{ key: 'visaAnnex',            title: 'Visa Annex Guidance' }] },
-      ams:    { sections: [{ key: 'amsAnnex',             title: 'AMS Annex Guidance' }] }
+      visa:   { sections: [{ key: 'visaAnnex',            title: 'Visa Annex Guidance' }] }
     }
   },
 
