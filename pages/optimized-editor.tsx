@@ -29,10 +29,7 @@ const EntryPointsManager = dynamic(() => import('../src/components/editor/EntryP
   loading: () => <div className="animate-pulse bg-gray-200 h-64 w-full rounded"></div>
 });
 
-const TemplatesFormattingManager = dynamic(() => import('../src/components/editor/TemplatesFormattingManager'), {
-  ssr: false,
-  loading: () => <div className="animate-pulse bg-gray-200 h-64 w-full rounded"></div>
-});
+// TemplatesFormattingManager removed - functionality moved to DocumentCustomizationPanel
 
 const CollaborationManager = dynamic(() => import('../src/components/editor/CollaborationManager'), {
   ssr: false,
@@ -505,17 +502,11 @@ export default function OptimizedEditorPage() {
                 )}
 
                 {showTemplates && (
-                  <div className="mb-6">
-                    <TemplatesFormattingManager
-                      currentPlan={plan}
-                      onTemplateChange={(template) => console.log('Template changed:', template)}
-                      onFormattingChange={(formatting) => console.log('Formatting changed:', formatting)}
-                      onExport={(format) => console.log('Export:', format)}
-                      showOfficialTemplates={true}
-                      showIndustryVariations={true}
-                      showToneCustomization={true}
-                      showExportOptions={true}
-                    />
+                  <div className="mb-6 p-4 bg-gray-100 rounded-lg">
+                    <h3 className="text-lg font-semibold mb-2">Templates & Formatting</h3>
+                    <p className="text-gray-600 text-sm">
+                      Customization features are now available in the Document Customization Panel.
+                    </p>
                   </div>
                 )}
 

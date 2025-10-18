@@ -8,7 +8,7 @@ import Head from 'next/head';
 import { useEditorState } from './EditorState';
 import { useI18n } from '../../contexts/I18nContext';
 import EnhancedAIChat from './EnhancedAIChat';
-import RequirementsChecker from './RequirementsChecker';
+import DocumentCustomizationPanel from './DocumentCustomizationPanel';
 import ProductRouteFilter from './ProductRouteFilter';
 import { normalizeEditorInput } from '../../lib/editor/EditorNormalization';
 import { Product, Route } from '../../types/plan';
@@ -279,22 +279,78 @@ export default function UnifiedEditor({
           
           {/* Right Sidebar - AI Assistant & Tools */}
           <div className="w-80 bg-white border-l border-gray-200 flex flex-col">
-            <AIAssistant 
-              state={state.aiAssistant}
-              onSendMessage={actions.sendAIMessage}
-              onToggle={() => actions.setAIAssistant({ isOpen: !state.aiAssistant.isOpen })}
-            />
-            <RequirementsChecker 
-              programType={state.product?.type || 'grant'}
-              planContent={state.content}
-              onRequirementClick={(section, requirement) => {
-                console.log('Requirement clicked:', section, requirement);
-                // Navigate to specific section or highlight requirement
+             <EnhancedAIChat 
+               plan={{
+                 id: 'current-plan',
+                 ownerId: 'current-user',
+                 product: 'strategy' as const,
+                 route: 'grant' as const,
+                 sections: state.sections?.map((section: any) => ({
+                   key: section.id,
+                   title: section.title || section.section_name || 'Untitled Section',
+                   content: state.content?.[section.id] || '',
+                   status: 'missing' as const
+                 })) || [],
+                 tone: 'neutral' as const,
+                 language: 'en' as const,
+                 targetLength: 'standard' as const,
+                 settings: {
+                   includeTitlePage: true,
+                   includePageNumbers: true,
+                   citations: 'simple' as const,
+                   captions: true,
+                   graphs: {
+                     revenueCosts: true,
+                     cashflow: true,
+                     useOfFunds: true
+                   }
+                 }
+               }}
+               programProfile={null}
+               currentSection={state.activeSection || 'executive-summary'}
+               onInsertContent={(content: string, section: string) => {
+                 console.log('Insert content:', content, 'into section:', section);
+                 // TODO: Update section content
+               }}
+             />
+            <DocumentCustomizationPanel 
+              currentConfig={{
+                tone: 'formal',
+                language: 'en',
+                tableOfContents: true,
+                pageNumbers: true,
+                fontFamily: 'Arial',
+                fontSize: 12,
+                lineSpacing: 1.5,
+                margins: { top: 2.5, bottom: 2.5, left: 2.5, right: 2.5 },
+                titlePage: {
+                  enabled: true,
+                  companyName: '',
+                  projectTitle: '',
+                  date: new Date().toLocaleDateString(),
+                },
+                citations: {
+                  enabled: true,
+                  style: 'apa',
+                },
+                figures: {
+                  enabled: true,
+                  tableOfFigures: true,
+                  chartDescriptions: true,
+                },
               }}
-            />
-            <ExportManager 
-              content={state.content}
-              onExport={handleExport}
+              onConfigChange={(config) => {
+                console.log('Customization changed:', config);
+                // TODO: Update editor state with customization
+              }}
+              onTemplateSelect={(template) => {
+                console.log('Template selected:', template);
+                // TODO: Apply template settings
+              }}
+              onExport={(format) => {
+                console.log('Export requested:', format);
+                // TODO: Handle export
+              }}
             />
           </div>
         </div>
@@ -622,100 +678,7 @@ function ProgressTracker({ progress }: ProgressTrackerProps) {
   );
 }
 
-interface AIAssistantProps {
-  state: any;
-  onSendMessage: (message: string) => void;
-  onToggle: () => void;
-}
-
-function AIAssistant({ state, onToggle }: AIAssistantProps) {
-  // Mock plan document for EnhancedAIChat
-  const mockPlan = {
-    id: 'mock-plan',
-    ownerId: 'current-user',
-    product: 'strategy' as const,
-    route: 'grant' as const,
-    title: 'Business Plan',
-    sections: state.sections?.map((section: any) => ({
-      key: section.id,
-      content: state.content?.[section.id] || '',
-      status: 'draft'
-    })) || [],
-    tone: 'neutral' as const,
-    language: 'en' as const,
-    targetLength: 'standard' as const,
-    settings: {
-      includeTitlePage: true,
-      includePageNumbers: true,
-      citations: 'simple' as const,
-      captions: true,
-      graphs: {
-        revenueCosts: true,
-        cashflow: true,
-        useOfFunds: true
-      }
-    },
-    createdAt: new Date(),
-    updatedAt: new Date()
-  };
-
-  const handleInsertContent = (content: string, section: string) => {
-    // This would update the section content
-    console.log('Insert content:', content, 'into section:', section);
-  };
-
-  return (
-    <div className="p-4 border-b border-gray-200">
-      <div className="flex items-center justify-between mb-3">
-        <h3 className="text-lg font-semibold">AI Assistant</h3>
-        <button
-          onClick={onToggle}
-          className="text-blue-600 hover:text-blue-800"
-        >
-          {state.isOpen ? 'Hide' : 'Show'}
-        </button>
-      </div>
-      {state.isOpen && (
-        <div className="h-96">
-          <EnhancedAIChat
-            plan={mockPlan}
-            programProfile={null}
-            currentSection={state.activeSection || 'executive-summary'}
-            onInsertContent={handleInsertContent}
-          />
-        </div>
-      )}
-    </div>
-  );
-}
-
-
-interface ExportManagerProps {
-  content: Record<string, string>;
-  onExport: (format: string) => void;
-}
-
-function ExportManager({ onExport }: ExportManagerProps) {
-  return (
-    <div className="p-4">
-      <h3 className="text-lg font-semibold mb-3">Export</h3>
-      <div className="space-y-2">
-        <button
-          onClick={() => onExport('pdf')}
-          className="w-full px-3 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 text-sm"
-        >
-          Export PDF
-        </button>
-        <button
-          onClick={() => onExport('docx')}
-          className="w-full px-3 py-2 bg-gray-100 text-gray-700 rounded hover:bg-gray-200 text-sm"
-        >
-          Export Word
-        </button>
-      </div>
-    </div>
-  );
-}
+// Removed unused AIAssistant and ExportManager functions - using EnhancedAIChat directly
 
 // ============================================================================
 // UNIFIED SECTION EDITOR

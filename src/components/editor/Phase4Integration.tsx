@@ -9,7 +9,6 @@ import { useUser } from '@/contexts/UserContext';
 // Phase 4 Components
 import EnhancedNavigation from './EnhancedNavigation';
 import EntryPointsManager from './EntryPointsManager';
-import TemplatesFormattingManager from './TemplatesFormattingManager';
 import CollaborationManager from './CollaborationManager';
 import SectionEditor from './SectionEditor';
 
@@ -25,22 +24,7 @@ interface SectionCustomizations {
   template?: string;
 }
 
-interface FormattingConfig {
-  fontFamily: string;
-  fontSize: number;
-  lineSpacing: number;
-  margins: {
-    top: number;
-    bottom: number;
-    left: number;
-    right: number;
-  };
-  headerStyle: 'formal' | 'modern' | 'minimal';
-  tone: 'formal' | 'enthusiastic' | 'technical' | 'conversational';
-  language: 'en' | 'de';
-  pageNumbers: boolean;
-  tableOfContents: boolean;
-}
+// FormattingConfig interface removed - functionality moved to DocumentCustomizationPanel
 
 interface Phase4IntegrationProps {
   initialPlan?: PlanDocument;
@@ -175,28 +159,7 @@ export default function Phase4Integration({
     setViewMode(mode);
   };
 
-  const handleTemplateChange = (template: any) => {
-    // Apply template sections if needed
-    if (template.sections) {
-      const newSections = template.sections.map((sectionKey: string, index: number) => ({
-        key: sectionKey,
-        title: sectionKey.replace(/([A-Z])/g, ' $1').replace(/^./, str => str.toUpperCase()),
-        content: '',
-        status: 'missing' as const,
-        order: index
-      }));
-      setSections(newSections);
-    }
-  };
-
-  const handleFormattingChange = (newFormatting: FormattingConfig) => {
-    console.log('Formatting changed:', newFormatting);
-  };
-
-  const handleExport = (format: 'pdf' | 'docx' | 'html' | 'markdown') => {
-    console.log(`Exporting plan as ${format}...`);
-    // In a real implementation, this would trigger the export process
-  };
+  // Template, formatting, and export handlers removed - functionality moved to DocumentCustomizationPanel
 
   const handlePlanShare = (shareData: any) => {
     console.log('Sharing plan:', shareData);
@@ -341,17 +304,11 @@ export default function Phase4Integration({
 
           {/* Templates & Formatting Panel */}
           {showTemplates && (
-            <div className="mb-6">
-              <TemplatesFormattingManager
-                currentPlan={plan}
-                onTemplateChange={handleTemplateChange}
-                onFormattingChange={handleFormattingChange}
-                onExport={handleExport}
-                showOfficialTemplates={true}
-                showIndustryVariations={true}
-                showToneCustomization={true}
-                showExportOptions={true}
-              />
+            <div className="mb-6 p-4 bg-gray-100 rounded-lg">
+              <h3 className="text-lg font-semibold mb-2">Templates & Formatting</h3>
+              <p className="text-gray-600 text-sm">
+                Customization features are now available in the Document Customization Panel.
+              </p>
             </div>
           )}
 
