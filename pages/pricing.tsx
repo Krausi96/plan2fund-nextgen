@@ -573,6 +573,28 @@ const coreProducts = [
             href: "/about"
           }}
         />
+        
+        {/* Editor Access Section */}
+        <section className="py-16 bg-gray-50">
+          <div className="container text-center">
+            <h2 className="text-3xl font-bold mb-4">Ready to Get Started?</h2>
+            <p className="text-lg text-gray-600 mb-8 max-w-2xl mx-auto">
+              Choose your approach: Use our recommendation wizard or start directly with the editor.
+            </p>
+            <div className="flex flex-col sm:flex-row gap-4 justify-center items-center">
+              <Link href="/reco">
+                <Button size="lg" className="bg-blue-600 hover:bg-blue-700 text-white px-8 py-3 text-lg">
+                  Get Recommendations →
+                </Button>
+              </Link>
+              <Link href="/editor?product=strategy&route=grant">
+                <Button variant="outline" size="lg" className="px-8 py-3 text-lg">
+                  Start with Editor
+                </Button>
+              </Link>
+            </div>
+          </div>
+        </section>
       </main>
 
     </>

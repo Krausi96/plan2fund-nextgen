@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import SEOHead from '@/components/common/SEOHead';
 import { ArrowLeft, FileText, CheckCircle } from 'lucide-react';
 import Link from 'next/link';
+import { Button } from '@/components/ui/button';
 import { useRouter } from 'next/router';
 import ProgramDetails from '@/components/library/ProgramDetails';
 
@@ -147,6 +148,28 @@ export default function Library() {
           </div>
         </section>
         )}
+
+        {/* Editor Access Section */}
+        <section className="py-16 bg-gray-50">
+          <div className="container text-center">
+            <h2 className="text-3xl font-bold mb-4">Ready to Create Your Business Plan?</h2>
+            <p className="text-lg text-gray-600 mb-8 max-w-2xl mx-auto">
+              Browse programs above or start directly with our business plan editor.
+            </p>
+            <div className="flex flex-col sm:flex-row gap-4 justify-center items-center">
+              <Link href="/reco">
+                <Button size="lg" className="bg-blue-600 hover:bg-blue-700 text-white px-8 py-3 text-lg">
+                  Get Recommendations →
+                </Button>
+              </Link>
+              <Link href="/editor?product=submission&route=grant">
+                <Button variant="outline" size="lg" className="px-8 py-3 text-lg">
+                  Start with Editor
+                </Button>
+              </Link>
+            </div>
+          </div>
+        </section>
 
       </main>
     </>

@@ -2,13 +2,16 @@
 // Main orchestrator component for the unified editor architecture
 // Replaces the fragmented editor system with a single, modular component
 
-import React, { useEffect, useMemo } from 'react';
+import React, { useEffect, useMemo, useState, useCallback } from 'react';
 import { useRouter } from 'next/router';
 import Head from 'next/head';
 import { useEditorState } from './EditorState';
 import { useI18n } from '../../contexts/I18nContext';
 import EnhancedAIChat from './EnhancedAIChat';
 import RequirementsChecker from './RequirementsChecker';
+import ProductRouteFilter from './ProductRouteFilter';
+import { normalizeEditorInput } from '../../lib/editor/EditorNormalization';
+import { Product, Route } from '../../types/plan';
 
 // Import existing components that we'll integrate
 
@@ -17,7 +20,7 @@ import RequirementsChecker from './RequirementsChecker';
 // ============================================================================
 
 interface UnifiedEditorProps {
-  programId?: string;
+  programId?: string | null;
   route?: string;
   product?: string;
   answers?: Record<string, any>;
@@ -42,6 +45,45 @@ export default function UnifiedEditor({
 
   // Get programId from props or URL
   const programId = propProgramId || (router.query.programId as string);
+
+  // Normalize all input data
+  const normalizedData = useMemo(() => {
+    return normalizeEditorInput({
+      programId: propProgramId || undefined,
+      route: propRoute,
+      product: propProduct,
+      answers: propAnswers,
+      payload: propPayload,
+      restore: propRestore,
+      entryPoint: propProgramId ? 'wizard-results' : 'direct'
+    });
+  }, [propProgramId, propRoute, propProduct, propAnswers, propPayload, propRestore]);
+
+  // State for filter selections
+  const [filterProduct, setFilterProduct] = useState<Product>(normalizedData.product);
+  const [filterRoute, setFilterRoute] = useState<Route>(normalizedData.route);
+  const [filterProgramId, setFilterProgramId] = useState<string | null>(normalizedData.programId);
+
+  // Filter change handlers
+  const handleProductChange = useCallback((newProduct: Product) => {
+    setFilterProduct(newProduct);
+    // Update editor state if needed
+    // Note: state.product?.type is different from Product type
+    // This will be handled by the editor state management
+  }, []);
+
+  const handleRouteChange = useCallback((newRoute: Route) => {
+    setFilterRoute(newRoute);
+    // Update editor state if needed
+  }, []);
+
+  const handleProgramChange = useCallback((newProgramId: string | null) => {
+    setFilterProgramId(newProgramId);
+    // Load program data if program selected
+    if (newProgramId) {
+      actions.loadProgramData(newProgramId);
+    }
+  }, [actions]);
 
   // Log wizard data for debugging
   useEffect(() => {
@@ -181,6 +223,17 @@ export default function UnifiedEditor({
         <meta name="keywords" content={t('editor.keywords')} />
         <link rel="canonical" href="https://plan2fund.com/editor" />
       </Head>
+      
+      {/* Product/Route/Program Filter */}
+      <ProductRouteFilter
+        product={filterProduct}
+        route={filterRoute}
+        programId={filterProgramId}
+        onProductChange={handleProductChange}
+        onRouteChange={handleRouteChange}
+        onProgramChange={handleProgramChange}
+        showPrograms={true}
+      />
       
       <div className="unified-editor h-screen flex flex-col bg-gray-50">
         {/* Top Bar */}

@@ -84,11 +84,11 @@ export default function Home() {
           subtitle={t('cta.joinFounders')}
           primaryAction={{
             label: t('cta.startPlan'),
-            href: "/reco?product=submission"
+            href: "/reco"
           }}
           secondaryAction={{
-            label: t('cta.learnMore'),
-            href: "/reco"
+            label: "Start Editor",
+            href: "/editor"
           }}
         />
       </main>

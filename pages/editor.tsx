@@ -4,6 +4,7 @@
 import { useRouter } from 'next/router';
 import { EditorProvider } from '@/components/editor/EditorState';
 import UnifiedEditor from '@/components/editor/UnifiedEditor';
+import { EditorNormalization } from '@/lib/editor/EditorNormalization';
 
 export default function EditorPage() {
   const router = useRouter();
@@ -27,31 +28,27 @@ export default function EditorPage() {
     return null;
   }
 
-  // Parse the encoded parameters
-  let parsedAnswers = {};
-  let parsedPayload = {};
-  
-  try {
-    if (answers && typeof answers === 'string') {
-      parsedAnswers = JSON.parse(decodeURIComponent(answers));
-    }
-    if (pf && typeof pf === 'string') {
-      parsedPayload = JSON.parse(decodeURIComponent(pf));
-    }
-  } catch (error) {
-    console.error('Error parsing URL parameters:', error);
-  }
+  // Use normalization system to handle all entry points
+  const normalizedData = EditorNormalization.normalizeInput({
+    programId: programId as string,
+    route: route as string,
+    product: product as string,
+    answers: answers ? JSON.parse(decodeURIComponent(answers as string)) : {},
+    payload: pf ? JSON.parse(decodeURIComponent(pf as string)) : {},
+    restore: restore === 'true',
+    entryPoint: programId ? 'wizard-results' : 'direct'
+  });
 
   return (
     <EditorProvider>
-        <UnifiedEditor 
-          programId={programId as string}
-          route={route as string}
-          product={product as string}
-          answers={parsedAnswers}
-          payload={parsedPayload}
-          restore={restore === 'true'}
-        />
+      <UnifiedEditor 
+        programId={normalizedData.programId}
+        route={normalizedData.route}
+        product={normalizedData.product}
+        answers={normalizedData.answers}
+        payload={normalizedData.payload}
+        restore={restore === 'true'}
+      />
     </EditorProvider>
   );
 }

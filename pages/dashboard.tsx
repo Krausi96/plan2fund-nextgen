@@ -245,23 +245,38 @@ export default function DashboardPage() {
         <Card className="p-6">
           <div className="flex items-center justify-between mb-6">
             <h2 className="text-xl font-semibold">Recent Business Plans</h2>
-            <Link href="/editor">
-              <Button size="sm" className="bg-blue-600 hover:bg-blue-700">
-                <Plus className="w-4 h-4 mr-2" />
-                New Plan
-              </Button>
-            </Link>
+            <div className="flex gap-2">
+              <Link href="/reco">
+                <Button size="sm" variant="outline">
+                  <Plus className="w-4 h-4 mr-2" />
+                  Get Recommendations
+                </Button>
+              </Link>
+              <Link href="/editor?product=submission&route=grant">
+                <Button size="sm" className="bg-blue-600 hover:bg-blue-700">
+                  <Plus className="w-4 h-4 mr-2" />
+                  New Plan
+                </Button>
+              </Link>
+            </div>
           </div>
 
           {plans.length === 0 ? (
             <div className="text-center py-8">
               <FileText className="w-12 h-12 text-gray-400 mx-auto mb-4" />
               <p className="text-gray-600 mb-4">No business plans yet</p>
-              <Link href="/editor">
-                <Button className="bg-blue-600 hover:bg-blue-700">
-                  Create Your First Plan
-                </Button>
-              </Link>
+              <div className="flex flex-col sm:flex-row gap-2">
+                <Link href="/reco">
+                  <Button variant="outline">
+                    Get Recommendations
+                  </Button>
+                </Link>
+                <Link href="/editor?product=submission&route=grant">
+                  <Button className="bg-blue-600 hover:bg-blue-700">
+                    Create Your First Plan
+                  </Button>
+                </Link>
+              </div>
             </div>
           ) : (
             <div className="space-y-4">
@@ -344,12 +359,20 @@ export default function DashboardPage() {
               Find Funding
             </Button>
           </Link>
-          <Link href="/editor">
-            <Button variant="outline" className="w-full h-20 flex flex-col items-center justify-center">
-              <FileText className="w-6 h-6 mb-2" />
-              Create Plan
-            </Button>
-          </Link>
+          <div className="space-y-2">
+            <Link href="/reco">
+              <Button variant="outline" className="w-full h-16 flex flex-col items-center justify-center">
+                <FileText className="w-6 h-6 mb-2" />
+                Get Recommendations
+              </Button>
+            </Link>
+            <Link href="/editor?product=submission&route=grant">
+              <Button variant="outline" className="w-full h-16 flex flex-col items-center justify-center">
+                <FileText className="w-6 h-6 mb-2" />
+                Create Plan
+              </Button>
+            </Link>
+          </div>
           <Link href="/contact">
             <Button variant="outline" className="w-full h-20 flex flex-col items-center justify-center">
               <AlertCircle className="w-6 h-6 mb-2" />
