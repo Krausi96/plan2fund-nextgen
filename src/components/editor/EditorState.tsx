@@ -256,22 +256,7 @@ export function EditorProvider({ children }: EditorProviderProps) {
     }
   }, [state.content]);
 
-  const exportDocument = useCallback(async (format: string) => {
-    try {
-      const url = await editorEngineRef.current.exportDocument(state.content, format);
-      
-      // Create download link
-      const link = document.createElement('a');
-      link.href = url;
-      link.download = `document.${format}`;
-      document.body.appendChild(link);
-      link.click();
-      document.body.removeChild(link);
-      
-    } catch (error) {
-      dispatch({ type: 'SET_ERROR', payload: error instanceof Error ? error.message : 'Failed to export document' });
-    }
-  }, [state.content]);
+  // exportDocument removed - export happens in Preview page after payment
 
   const loadProgramData = useCallback(async (programId: string) => {
     dispatch({ type: 'SET_LOADING', payload: true });
@@ -359,13 +344,13 @@ export function EditorProvider({ children }: EditorProviderProps) {
     updateSection,
     setActiveSection,
     saveContent,
-    exportDocument,
     loadProgramData,
     resetEditor,
     sendAIMessage,
     checkReadiness,
     setAIAssistant: (updates: Partial<EditorState['aiAssistant']>) => dispatch({ type: 'SET_AI_ASSISTANT', payload: updates })
   };
+
 
   const contextValue: EditorContextType = {
     state,

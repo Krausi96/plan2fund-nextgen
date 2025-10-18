@@ -286,4 +286,5 @@ export class EditorEngine {
       wordProgress: totalTargetWords > 0 ? (totalWords / totalTargetWords) * 100 : 0
     };
   }
+
 }

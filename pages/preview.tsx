@@ -310,7 +310,7 @@ export default function Preview() {
       </div>
 
       <div className="flex justify-between pt-8">
-        <Link href="/editor" className="text-blue-600 hover:underline">
+        <Link href="/editor?restore=true" className="text-blue-600 hover:underline">
           ← Back to Editor
         </Link>
         <Link href="/confirm" className="text-blue-600 hover:underline">

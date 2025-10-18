@@ -291,8 +291,27 @@ export class EditorDataProvider {
     } catch (error) {
       console.error('Error saving content:', error);
       // Fallback to localStorage
-      localStorage.setItem('editorContent', JSON.stringify(content));
-      throw error;
+      const planData = {
+        content,
+        documentId: documentId || 'current-plan',
+        lastSaved: new Date().toISOString()
+      };
+      
+      localStorage.setItem('currentPlan', JSON.stringify(planData));
+      console.log('💾 Plan content saved to localStorage (fallback)');
+      
+      // Also save to planStore for preview page
+      if (typeof window !== 'undefined') {
+        const { savePlanSections } = await import('@/lib/planStore');
+        const planSections = Object.entries(content).map(([id, content]) => ({
+          id,
+          title: id.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase()),
+          content
+        }));
+        savePlanSections(planSections);
+      }
+      
+      // Don't throw error since we saved to localStorage
     }
   }
 

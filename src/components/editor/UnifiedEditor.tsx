@@ -18,14 +18,23 @@ import RequirementsChecker from './RequirementsChecker';
 
 interface UnifiedEditorProps {
   programId?: string;
+  route?: string;
+  product?: string;
+  answers?: Record<string, any>;
+  payload?: Record<string, any>;
+  restore?: boolean;
   onSave?: (content: Record<string, string>) => void;
   onExport?: () => void;
 }
 
 export default function UnifiedEditor({
   programId: propProgramId,
-  onSave: propOnSave,
-  onExport: propOnExport
+  route: propRoute,
+  product: propProduct,
+  answers: propAnswers,
+  payload: propPayload,
+  restore: propRestore,
+  onSave: propOnSave
 }: UnifiedEditorProps) {
   const router = useRouter();
   const { t } = useI18n();
@@ -34,12 +43,46 @@ export default function UnifiedEditor({
   // Get programId from props or URL
   const programId = propProgramId || (router.query.programId as string);
 
+  // Log wizard data for debugging
+  useEffect(() => {
+    if (propAnswers && Object.keys(propAnswers).length > 0) {
+      console.log('🎯 Wizard answers received:', propAnswers);
+    }
+    if (propProduct) {
+      console.log('📦 Product from wizard:', propProduct);
+    }
+    if (propRoute) {
+      console.log('🛣️ Route from wizard:', propRoute);
+    }
+    if (propPayload && Object.keys(propPayload).length > 0) {
+      console.log('📋 Enhanced payload received:', propPayload);
+    }
+  }, [propAnswers, propProduct, propRoute, propPayload]);
+
   // Load program data on mount
   useEffect(() => {
     if (programId) {
       actions.loadProgramData(programId);
     }
   }, [programId, actions]);
+
+  // Handle restore from Preview
+  useEffect(() => {
+    if (propRestore) {
+      console.log('🔄 Restoring editor from Preview');
+      // Load saved content from localStorage
+      const savedPlan = localStorage.getItem('currentPlan');
+      if (savedPlan) {
+        try {
+          const planData = JSON.parse(savedPlan);
+          console.log('📄 Restored plan data:', planData);
+          // The content will be loaded by the editor components
+        } catch (error) {
+          console.error('Error parsing saved plan:', error);
+        }
+      }
+    }
+  }, [propRestore]);
 
   // Handle save
   const handleSave = async () => {
@@ -49,12 +92,13 @@ export default function UnifiedEditor({
     }
   };
 
-  // Handle export
-  const handleExport = async (format: string = 'pdf') => {
-    await actions.exportDocument(format);
-    if (propOnExport) {
-      propOnExport();
-    }
+  // Handle export - go to preview instead of direct export
+  const handleExport = async () => {
+    // Save content first
+    await actions.saveContent();
+    
+    // Navigate to preview page
+    router.push('/preview');
   };
 
   // ============================================================================
@@ -256,7 +300,7 @@ function EditorHeader({ product, template, progress, onSave, onExport }: EditorH
               onClick={() => onExport('pdf')}
               className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
             >
-              Export PDF
+              Continue to Preview
             </button>
           </div>
         </div>

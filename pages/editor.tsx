@@ -7,7 +7,7 @@ import UnifiedEditor from '@/components/editor/UnifiedEditor';
 
 export default function EditorPage() {
   const router = useRouter();
-  const { programId } = router.query;
+  const { programId, route, product, answers, pf, restore } = router.query;
 
   // Show loading while router is ready
   if (!router.isReady) {
@@ -21,17 +21,37 @@ export default function EditorPage() {
     );
   }
 
-  // If no programId, redirect to reco
-  if (!programId) {
+  // If no programId and not restoring, redirect to reco
+  if (!programId && !restore) {
     router.push('/reco');
     return null;
   }
 
+  // Parse the encoded parameters
+  let parsedAnswers = {};
+  let parsedPayload = {};
+  
+  try {
+    if (answers && typeof answers === 'string') {
+      parsedAnswers = JSON.parse(decodeURIComponent(answers));
+    }
+    if (pf && typeof pf === 'string') {
+      parsedPayload = JSON.parse(decodeURIComponent(pf));
+    }
+  } catch (error) {
+    console.error('Error parsing URL parameters:', error);
+  }
+
   return (
     <EditorProvider>
-      <UnifiedEditor 
-        programId={programId as string}
-      />
+        <UnifiedEditor 
+          programId={programId as string}
+          route={route as string}
+          product={product as string}
+          answers={parsedAnswers}
+          payload={parsedPayload}
+          restore={restore === 'true'}
+        />
     </EditorProvider>
   );
 }

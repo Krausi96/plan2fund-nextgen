@@ -154,7 +154,6 @@ export interface EditorActions {
   updateSection: (sectionId: string, content: string) => void;
   setActiveSection: (sectionId: string | null) => void;
   saveContent: () => Promise<void>;
-  exportDocument: (format: string) => Promise<void>;
   loadProgramData: (programId: string) => Promise<void>;
   resetEditor: () => void;
   // Additional actions

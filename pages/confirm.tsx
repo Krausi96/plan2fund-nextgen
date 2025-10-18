@@ -75,7 +75,7 @@ export default function ConfirmPage() {
           <span className="text-xs text-gray-500 self-center">Checkout disabled (demo)</span>
         )}
         <Button asChild variant="outline">
-          <Link href="/thank-you">Skip payment (Demo)</Link>
+          <Link href="/export">Skip payment (Demo)</Link>
         </Button>
       </div>
     </main>

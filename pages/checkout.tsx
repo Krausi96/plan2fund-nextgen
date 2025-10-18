@@ -67,10 +67,10 @@ export default function Checkout() {
           ← Back to Pricing
         </Link>
         <Link
-          href="/export"
+          href="/confirm"
           className="px-4 py-2 rounded-lg bg-blue-600 text-white hover:bg-blue-700"
         >
-          Continue to Export →
+          Proceed to Payment →
         </Link>
       </div>
     </main>

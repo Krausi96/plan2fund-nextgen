@@ -29,7 +29,7 @@ export default function Export() {
         <h1 className="text-2xl font-bold">Export</h1>
         <p className="text-gray-600">Export is currently unavailable.</p>
         <div className="flex justify-between pt-8">
-          <Link href="/checkout" className="text-blue-600 hover:underline">← Back to Checkout</Link>
+          <Link href="/confirm" className="text-blue-600 hover:underline">← Back to Payment</Link>
           <Link href="/thank-you" className="text-blue-600 hover:underline">Continue to Success Hub →</Link>
         </div>
       </main>
@@ -118,6 +118,11 @@ export default function Export() {
                 is_paid: isPaid 
               }
             });
+
+            // After successful export, redirect to thank-you page
+            setTimeout(() => {
+              window.location.href = '/thank-you';
+            }, 2000);
           } catch (error) {
             analytics.trackError(error as Error, 'export_download');
             alert('Export failed. Please try again.');
