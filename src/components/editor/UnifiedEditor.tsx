@@ -284,9 +284,13 @@ export default function UnifiedEditor({
               onSendMessage={actions.sendAIMessage}
               onToggle={() => actions.setAIAssistant({ isOpen: !state.aiAssistant.isOpen })}
             />
-            <ReadinessChecker 
-              readiness={state.readiness}
-              onCheck={actions.checkReadiness}
+            <RequirementsChecker 
+              programType={state.product?.type || 'grant'}
+              planContent={state.content}
+              onRequirementClick={(section, requirement) => {
+                console.log('Requirement clicked:', section, requirement);
+                // Navigate to specific section or highlight requirement
+              }}
             />
             <ExportManager 
               content={state.content}
@@ -685,42 +689,6 @@ function AIAssistant({ state, onToggle }: AIAssistantProps) {
   );
 }
 
-interface ReadinessCheckerProps {
-  readiness: any;
-  onCheck: () => void;
-}
-
-function ReadinessChecker({ onCheck }: ReadinessCheckerProps) {
-  // Mock plan content for RequirementsChecker
-  const mockPlanContent = {
-    sections: [] // This will be populated when we have access to state
-  };
-
-  const handleRequirementClick = (section: string, requirement: string) => {
-    console.log('Requirement clicked:', section, requirement);
-  };
-
-  return (
-    <div className="p-4 border-b border-gray-200">
-      <div className="flex items-center justify-between mb-3">
-        <h3 className="text-lg font-semibold">Readiness Check</h3>
-        <button
-          onClick={onCheck}
-          className="px-3 py-1 bg-blue-600 text-white rounded text-sm hover:bg-blue-700"
-        >
-          Check
-        </button>
-      </div>
-      <div className="h-64 overflow-y-auto">
-        <RequirementsChecker
-          programType="grant" // This should come from selected product/template
-          planContent={mockPlanContent}
-          onRequirementClick={handleRequirementClick}
-        />
-      </div>
-    </div>
-  );
-}
 
 interface ExportManagerProps {
   content: Record<string, string>;

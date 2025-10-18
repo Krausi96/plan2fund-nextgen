@@ -3,6 +3,9 @@ import { UserProfile } from './schemas/userProfile';
 // import analytics from './analytics';
 import featureFlags from './featureFlags';
 
+// Test mode detection
+const isTestMode = !process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY || process.env.NODE_ENV === 'test';
+
 export interface PaymentItem {
   id: string;
   name: string;
@@ -349,6 +352,34 @@ class PaymentManager {
 
     return addOns[userSegment as keyof typeof addOns] || [];
   }
+}
+
+// Mock payment functions for test mode
+export async function createMockPaymentSession(items: PaymentItem[]): Promise<PaymentSession> {
+  if (!isTestMode) {
+    throw new Error('Mock payment only available in test mode');
+  }
+  
+  console.log('🧪 Payment Test Mode: Creating mock payment session');
+  
+  const totalAmount = items.reduce((sum, item) => sum + (item.amount * item.quantity), 0);
+  
+  return {
+    id: 'mock_session_' + Date.now(),
+    url: '/mock-payment-success',
+    amount: totalAmount,
+    currency: 'EUR',
+    status: 'pending'
+  };
+}
+
+export async function createMockPaymentSuccess(_sessionId: string): Promise<boolean> {
+  if (!isTestMode) {
+    throw new Error('Mock payment only available in test mode');
+  }
+  
+  console.log('🧪 Payment Test Mode: Mock payment successful');
+  return true;
 }
 
 export const paymentManager = new PaymentManager();

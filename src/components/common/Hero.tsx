@@ -187,7 +187,7 @@ interface HeroProps {
 }
 
 export function Hero({
-  primaryButtonHref = "/reco?product=submission",
+  primaryButtonHref = "/reco",
   onStepClick,
   onTargetGroupSelect,
   targetGroup: propTargetGroup
@@ -281,7 +281,7 @@ export function Hero({
               </a>
               
               <a
-                href="/reco"
+                href="/editor"
                 className="hero-button-hover hidden sm:inline-flex items-center justify-center px-8 py-4 border-2 border-white/30 hover:border-white/50 text-white font-semibold rounded-xl transition-colors duration-200 backdrop-blur-sm hover:bg-white/10"
               >
                 {heroSecondaryButton}

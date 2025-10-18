@@ -114,16 +114,10 @@ export default function SuccessHubPage() {
       {/* Navigation */}
       <div className="flex justify-center gap-4 mt-6">
         <Button asChild>
-          <Link href="/">Return to Home</Link>
+          <Link href="/dashboard">Go to Dashboard</Link>
         </Button>
         <Button asChild variant="outline">
-          <Link href="/editor">Start New Plan</Link>
-        </Button>
-        <Button asChild variant="outline">
-          <Link href="/preview">Download Preview</Link>
-        </Button>
-        <Button asChild variant="outline">
-          <Link href="/results">See Recommendations</Link>
+          <Link href="/preview">View Your Plan</Link>
         </Button>
       </div>
     </div>

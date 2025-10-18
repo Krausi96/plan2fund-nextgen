@@ -320,8 +320,6 @@ export function RecommendationProvider({ children }: RecommendationProviderProps
     setState(prev => ({ ...prev, error }));
   };
 
-  // Helper function to parse search input (simplified) - removed as unused
-
   const value: RecommendationContextType = {
     state,
     loadQuestions,

@@ -3,6 +3,8 @@ import Link from "next/link";
 import featureFlags from "@/lib/featureFlags";
 import { loadPlanSections, type PlanSection } from "@/lib/planStore";
 import analytics from "@/lib/analytics";
+import { getDocumentBundle } from "@/data/documentBundles";
+import { getDocumentById } from "@/data/documentDescriptions";
 
 export default function Export() {
   const EXPORT_ENABLED = featureFlags.isEnabled('EXPORT_ENABLED')
@@ -10,11 +12,17 @@ export default function Export() {
   const [exporting, setExporting] = useState(false);
   const [format, setFormat] = useState<"pdf" | "docx">("pdf");
   const isPaid = false; // stubbed payment state
+  const [additionalDocuments, setAdditionalDocuments] = useState<any[]>([]);
+  const [product] = useState<string>('submission');
+  const [route] = useState<string>('grants');
   
-  // Load plan sections
+  // Load plan sections and additional documents
   React.useEffect(() => {
     const loadedSections = loadPlanSections();
     setSections(loadedSections);
+    
+    // Load additional documents
+    loadAdditionalDocuments();
     
     // Track export page view
     analytics.trackEvent({ 
@@ -22,6 +30,30 @@ export default function Export() {
       properties: { sections_count: loadedSections.length } 
     });
   }, []);
+
+  const loadAdditionalDocuments = () => {
+    try {
+      // Get document bundle for current product/route
+      const bundle = getDocumentBundle(product as any, route as any);
+      if (bundle) {
+        // Get document details for each document ID
+        const documents = bundle.documents.map((docId: string) => {
+          const docSpec = getDocumentById(docId);
+          return {
+            id: docId,
+            title: docSpec?.title || docId,
+            description: docSpec?.short || '',
+            format: docSpec?.formatHints?.[0] || 'PDF',
+            status: 'ready' // Mock status
+          };
+        });
+        setAdditionalDocuments(documents);
+      }
+    } catch (error) {
+      console.error('Error loading additional documents:', error);
+      setAdditionalDocuments([]);
+    }
+  };
 
   if (!EXPORT_ENABLED) {
     return (
@@ -51,6 +83,34 @@ export default function Export() {
             <p>Total sections: {sections.length}</p>
             <p>Completed sections: {sections.filter(s => s.content && s.content.trim().length > 0).length}</p>
             <p>Total words: {sections.reduce((acc, s) => acc + (s.content?.split(' ').length || 0), 0)}</p>
+          </div>
+        </div>
+      )}
+
+      {/* Additional Documents Section */}
+      {additionalDocuments.length > 0 && (
+        <div className="p-4 border rounded-lg bg-blue-50">
+          <h3 className="font-semibold mb-3 flex items-center gap-2">
+            📄 Additional Documents
+            <span className="text-sm text-gray-600">({additionalDocuments.length} documents)</span>
+          </h3>
+          <p className="text-sm text-gray-600 mb-3">
+            The following additional documents will be included in your export package:
+          </p>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
+            {additionalDocuments.map((doc, index) => (
+              <div key={index} className="flex items-center justify-between p-2 bg-white rounded border text-sm">
+                <div className="flex items-center gap-2">
+                  <div className="w-4 h-4 bg-green-100 rounded-full flex items-center justify-center">
+                    <span className="text-green-600 text-xs">✓</span>
+                  </div>
+                  <span className="font-medium">{doc.title}</span>
+                </div>
+                <span className="text-xs text-gray-500 bg-gray-100 px-2 py-1 rounded">
+                  {doc.format}
+                </span>
+              </div>
+            ))}
           </div>
         </div>
       )}

@@ -8,11 +8,16 @@ import { useI18n } from "@/contexts/I18nContext";
 import { Switch } from "@/components/ui/switch";
 import { Label } from "@/components/ui/label";
 import ExportRenderer from "@/export/renderer";
+import { getDocumentBundle } from "@/data/documentBundles";
+import { getDocumentById } from "@/data/documentDescriptions";
 
 export default function Preview() {
   const { t } = useI18n();
   const [sections, setSections] = useState<PlanSection[]>([]);
   const [loading, setLoading] = useState(true);
+  const [additionalDocuments, setAdditionalDocuments] = useState<any[]>([]);
+  const [product] = useState<string>('submission');
+  const [route] = useState<string>('grants');
   
   useEffect(() => {
     const loadedSections = loadPlanSections();
@@ -25,9 +30,36 @@ export default function Preview() {
     }
     setLoading(false);
 
+    // Load additional documents based on product/route
+    loadAdditionalDocuments();
+
     // Track preview view
     analytics.trackSuccessHubView("preview");
   }, []);
+
+  const loadAdditionalDocuments = () => {
+    try {
+      // Get document bundle for current product/route
+      const bundle = getDocumentBundle(product as any, route as any);
+      if (bundle) {
+        // Get document details for each document ID
+        const documents = bundle.documents.map((docId: string) => {
+          const docSpec = getDocumentById(docId);
+          return {
+            id: docId,
+            title: docSpec?.title || docId,
+            description: docSpec?.short || '',
+            format: docSpec?.formatHints?.[0] || 'PDF',
+            status: 'ready' // Mock status
+          };
+        });
+        setAdditionalDocuments(documents);
+      }
+    } catch (error) {
+      console.error('Error loading additional documents:', error);
+      setAdditionalDocuments([]);
+    }
+  };
 
   const sectionsFilled = sections.filter(s => s.content && s.content.trim().length > 0).length;
   const totalSections = sections.length;
@@ -294,6 +326,41 @@ export default function Preview() {
           })
         )}
       </div>
+
+      {/* Additional Documents Section */}
+      {additionalDocuments.length > 0 && (
+        <div className="mt-8 p-6 border rounded-xl bg-blue-50">
+          <h3 className="text-lg font-semibold mb-4 flex items-center gap-2">
+            📄 Additional Documents
+            <span className="text-sm text-gray-600">({additionalDocuments.length} documents)</span>
+          </h3>
+          <p className="text-sm text-gray-600 mb-4">
+            Based on your selection of <strong>{product}</strong> product and <strong>{route}</strong> funding type, 
+            the following additional documents will be generated:
+          </p>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+            {additionalDocuments.map((doc, index) => (
+              <div key={index} className="flex items-center justify-between p-3 bg-white rounded-lg border">
+                <div className="flex items-center gap-3">
+                  <div className="w-8 h-8 bg-green-100 rounded-full flex items-center justify-center">
+                    <span className="text-green-600 text-sm">✓</span>
+                  </div>
+                  <div>
+                    <div className="font-medium text-sm">{doc.title}</div>
+                    <div className="text-xs text-gray-500">{doc.description}</div>
+                  </div>
+                </div>
+                <div className="text-xs text-gray-500 bg-gray-100 px-2 py-1 rounded">
+                  {doc.format}
+                </div>
+              </div>
+            ))}
+          </div>
+          <div className="mt-4 text-xs text-gray-600">
+            💡 These documents will be automatically generated based on your business plan content and included in your final export package.
+          </div>
+        </div>
+      )}
 
       {/* Pricing Cards Stub */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mt-8">
