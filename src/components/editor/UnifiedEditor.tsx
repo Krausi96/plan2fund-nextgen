@@ -10,6 +10,8 @@ import { normalizeEditorInput } from '../../lib/editor/EditorNormalization';
 import { Product, Route } from '../../types/plan';
 import { EditorProduct, EditorTemplate } from '../../types/editor';
 import ProductRouteFilter from './ProductRouteFilter';
+import SectionEditor from './SectionEditor';
+import DocumentCustomizationPanel from './DocumentCustomizationPanel';
 
 // Debounce utility for auto-save
 function debounce<T extends (...args: any[]) => any>(func: T, wait: number): T {
@@ -81,6 +83,33 @@ export default function UnifiedEditor({
   // Performance optimization: Save status and auto-save
   const [saveStatus, setSaveStatus] = useState<'saved' | 'saving' | 'unsaved'>('saved');
   
+  // Document customization config
+  const [customizationConfig, setCustomizationConfig] = useState({
+    tone: 'formal' as const,
+    language: 'en' as const,
+    tableOfContents: true,
+    pageNumbers: true,
+    fontFamily: 'Arial',
+    fontSize: 12,
+    lineSpacing: 1.5,
+    margins: { top: 2.5, bottom: 2.5, left: 2.5, right: 2.5 },
+    titlePage: {
+      enabled: true,
+      companyName: '',
+      projectTitle: '',
+      date: new Date().toLocaleDateString(),
+    },
+    citations: {
+      enabled: true,
+      style: 'apa' as const,
+    },
+    figures: {
+      enabled: true,
+      tableOfFigures: true,
+      chartDescriptions: true,
+    },
+  });
+  
   // Debounced auto-save function
   const debouncedSave = useCallback(
     debounce(async () => {
@@ -125,10 +154,6 @@ export default function UnifiedEditor({
     setError(null);
   }, []);
 
-  const handleTemplateSelect = useCallback((templateId: string) => {
-    setSelectedTemplate(templateId);
-    setError(null);
-  }, []);
 
   const handleStartEditing = useCallback(async () => {
     if (!selectedProduct || !selectedTemplate) {
@@ -183,6 +208,41 @@ export default function UnifiedEditor({
   const handleGoToReco = useCallback(() => {
     router.push('/reco');
   }, [router]);
+
+  // Document customization handlers
+  const handleCustomizationChange = useCallback((config: any) => {
+    setCustomizationConfig(config);
+  }, []);
+
+  const handleCustomizationTemplateSelect = useCallback((template: any) => {
+    console.log('Template selected:', template);
+    // Apply template-specific settings
+    if (template.agency) {
+      setCustomizationConfig(prev => ({
+        ...prev,
+        tone: template.tone || 'formal',
+        fontFamily: template.fontFamily || 'Arial',
+      }));
+    }
+  }, []);
+
+  const handleCustomizationExport = useCallback((format: string) => {
+    console.log(`Exporting as ${format} with config:`, customizationConfig);
+    // Navigate to export page with current config
+    router.push(`/export?format=${format}`);
+  }, [customizationConfig, router]);
+
+  // Simple template selection for step-by-step flow
+  const handleTemplateSelect = useCallback((templateId: string) => {
+    setSelectedTemplate(templateId);
+    setError(null);
+  }, []);
+
+  // Simple export handler for EditorHeader
+  const handleExport = useCallback(async () => {
+    await actions.saveContent();
+    router.push('/preview');
+  }, [actions, router]);
 
   // Get templates for product (from SimpleEditor)
   const getTemplatesForProduct = useCallback((productId: string) => {
@@ -271,14 +331,6 @@ export default function UnifiedEditor({
     }
   };
 
-  // Handle export - go to preview instead of direct export
-  const handleExport = async () => {
-    // Save content first
-    await actions.saveContent();
-    
-    // Navigate to preview page
-    router.push('/preview');
-  };
 
   // ============================================================================
   // RENDER
@@ -527,6 +579,7 @@ export default function UnifiedEditor({
       }
     : { overall: 0, sections: [], lastUpdated: new Date() };
   const safeActiveSection = state.activeSection || 'executive-summary';
+  const activeSectionData = safeSections.find(s => s.id === safeActiveSection);
 
   return (
     <>
@@ -587,50 +640,43 @@ export default function UnifiedEditor({
               </div>
             </div>
             
-            <UnifiedSectionEditor 
-              sections={safeSections}
-              content={state.content || {}}
-              activeSection={safeActiveSection}
-              onUpdate={actions.updateSection}
-            />
+            {activeSectionData ? (
+              <SectionEditor
+                section={{
+                  key: activeSectionData.id,
+                  title: activeSectionData.title || activeSectionData.section_name || 'Untitled Section',
+                  content: state.content?.[activeSectionData.id] || '',
+                  status: 'missing' as const
+                }}
+                onContentChange={actions.updateSection}
+                onStatusChange={(sectionKey, status) => {
+                  console.log(`Section ${sectionKey} status: ${status}`);
+                }}
+                isActive={true}
+                showProgress={true}
+                showCustomization={true}
+                showUniqueness={true}
+                programSections={safeSections}
+                aiGuidance={undefined}
+              />
+            ) : (
+              <div className="flex-1 flex items-center justify-center bg-gray-50">
+                <div className="text-center">
+                  <div className="text-gray-400 text-6xl mb-4">📝</div>
+                  <h3 className="text-lg font-medium text-gray-900 mb-2">No Section Selected</h3>
+                  <p className="text-gray-500">Choose a section from the sidebar to start editing</p>
+                </div>
+              </div>
+            )}
           </div>
           
-          {/* Right Sidebar - Simplified Tools */}
-          <div className="w-80 bg-white border-l border-gray-200 flex flex-col">
-            <div className="p-4 border-b border-gray-200">
-              <h3 className="text-lg font-semibold mb-3">Tools</h3>
-              <div className="space-y-2">
-                <button
-                  onClick={handleSave}
-                  className="w-full px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700"
-                >
-                  Save Progress
-                </button>
-                <button
-                  onClick={handleExport}
-                  className="w-full px-4 py-2 bg-green-600 text-white rounded hover:bg-green-700"
-                >
-                  Continue to Preview
-                </button>
-                <button
-                  onClick={() => router.push('/reco')}
-                  className="w-full px-4 py-2 bg-gray-600 text-white rounded hover:bg-gray-700"
-                >
-                  Back to Funding Finder
-                </button>
-              </div>
-            </div>
-            
-            <div className="p-4">
-              <h3 className="text-lg font-semibold mb-3">Help</h3>
-              <div className="text-sm text-gray-600 space-y-2">
-                <p>• Select a product and template to start</p>
-                <p>• Choose sections from the left sidebar</p>
-                <p>• Write your content in the main area</p>
-                <p>• Save regularly to avoid losing work</p>
-              </div>
-            </div>
-          </div>
+          {/* Right Sidebar - Document Customization */}
+          <DocumentCustomizationPanel
+            currentConfig={customizationConfig}
+            onConfigChange={handleCustomizationChange}
+            onTemplateSelect={handleCustomizationTemplateSelect}
+            onExport={handleCustomizationExport}
+          />
         </div>
       </div>
     </>
@@ -958,103 +1004,3 @@ function ProgressTracker({ progress }: ProgressTrackerProps) {
 
 // Removed unused AIAssistant and ExportManager functions - using EnhancedAIChat directly
 
-// ============================================================================
-// UNIFIED SECTION EDITOR
-// ============================================================================
-
-interface UnifiedSectionEditorProps {
-  sections: any[];
-  content: Record<string, string>;
-  activeSection: string | null;
-  onUpdate: (sectionId: string, content: string) => void;
-}
-
-function UnifiedSectionEditor({ sections, content, activeSection, onUpdate }: UnifiedSectionEditorProps) {
-  const activeSectionData = sections.find(s => s.id === activeSection);
-
-  // Memoize word count calculation to avoid recalculating on every render
-  const wordCount = useMemo(() => {
-    if (!activeSectionData || !content[activeSectionData.id]) return 0;
-    return content[activeSectionData.id].trim().split(/\s+/).filter(word => word.length > 0).length;
-  }, [activeSectionData, content]);
-
-  if (!activeSectionData) {
-    return (
-      <div className="flex-1 flex items-center justify-center text-gray-500">
-        <div className="text-center">
-          <div className="text-xl mb-2">No section selected</div>
-          <div className="text-sm">Select a section from the sidebar to start editing</div>
-        </div>
-      </div>
-    );
-  }
-
-  return (
-    <div className="flex-1 p-6">
-      <div className="max-w-4xl mx-auto">
-        <div className="mb-6">
-          <h2 className="text-2xl font-bold text-gray-900 mb-2">
-            {activeSectionData.title || activeSectionData.section_name}
-          </h2>
-          <p className="text-gray-600">
-            {activeSectionData.description || activeSectionData.prompt}
-          </p>
-          {activeSectionData.required && (
-            <div className="text-sm text-red-600 mt-2">This section is required</div>
-          )}
-        </div>
-        
-        <div className="space-y-4">
-          {/* AI Guidance */}
-          {activeSectionData.guidance && (
-            <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
-              <h4 className="font-medium text-blue-900 mb-2">AI Guidance</h4>
-              <p className="text-blue-800 text-sm">{activeSectionData.guidance}</p>
-            </div>
-          )}
-
-          {/* Hints */}
-          {activeSectionData.hints && activeSectionData.hints.length > 0 && (
-            <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4">
-              <h4 className="font-medium text-yellow-900 mb-2">Hints</h4>
-              <ul className="text-yellow-800 text-sm space-y-1">
-                {activeSectionData.hints.map((hint: string, index: number) => (
-                  <li key={index}>• {hint}</li>
-                ))}
-              </ul>
-            </div>
-          )}
-
-          {/* Text Editor */}
-          <div className="border rounded-lg">
-            <textarea
-              value={content[activeSectionData.id] || ''}
-              onChange={(e) => onUpdate(activeSectionData.id, e.target.value)}
-              placeholder={activeSectionData.template || activeSectionData.placeholder || 'Start writing...'}
-              className="w-full h-96 p-4 border-0 rounded-lg resize-none focus:outline-none"
-            />
-          </div>
-
-          {/* Word Count */}
-          {(activeSectionData.word_count_min || activeSectionData.word_count_max) && (
-            <div className="flex justify-between items-center text-sm">
-              <span className="text-gray-600">
-                {wordCount} words
-              </span>
-              {activeSectionData.word_count_min && (
-                <span className="text-gray-500">
-                  Min: {activeSectionData.word_count_min}
-                </span>
-              )}
-              {activeSectionData.word_count_max && (
-                <span className="text-gray-500">
-                  Max: {activeSectionData.word_count_max}
-                </span>
-              )}
-            </div>
-          )}
-        </div>
-      </div>
-    </div>
-  );
-}
