@@ -1,6 +1,5 @@
 // ========= PLAN2FUND — UNIFIED EDITOR =========
-// Main orchestrator component for the unified editor architecture
-// Replaces the fragmented editor system with a single, modular component
+// Simplified, beautiful editor with proper entry points and working logic
 
 import React, { useEffect, useMemo, useState, useCallback } from 'react';
 import { useRouter } from 'next/router';
@@ -9,6 +8,17 @@ import { useEditorState } from './EditorState';
 import { useI18n } from '../../contexts/I18nContext';
 import { normalizeEditorInput } from '../../lib/editor/EditorNormalization';
 import { Product, Route } from '../../types/plan';
+import { EditorProduct, EditorTemplate } from '../../types/editor';
+import ProductRouteFilter from './ProductRouteFilter';
+
+// Debounce utility for auto-save
+function debounce<T extends (...args: any[]) => any>(func: T, wait: number): T {
+  let timeout: NodeJS.Timeout;
+  return ((...args: any[]) => {
+    clearTimeout(timeout);
+    timeout = setTimeout(() => func(...args), wait);
+  }) as T;
+}
 
 // Import existing components that we'll integrate
 
@@ -57,9 +67,35 @@ export default function UnifiedEditor({
   }, [propProgramId, propRoute, propProduct, propAnswers, propPayload, propRestore]);
 
   // State for filter selections
-  const [filterProduct, setFilterProduct] = useState<Product>(normalizedData.product);
-  const [filterRoute, setFilterRoute] = useState<Route>(normalizedData.route);
+  const [filterProduct, setFilterProduct] = useState<Product>(normalizedData.product as Product);
+  const [filterRoute, setFilterRoute] = useState<Route>(normalizedData.route as Route);
   const [filterProgramId, setFilterProgramId] = useState<string | null>(normalizedData.programId);
+  
+  // Step-by-step flow state (from SimpleEditor)
+  const [step, setStep] = useState<'select' | 'edit' | 'error'>('select');
+  const [selectedProduct, setSelectedProduct] = useState<string>(typeof normalizedData.product === 'string' ? normalizedData.product : '');
+  const [selectedTemplate, setSelectedTemplate] = useState<string>('');
+  const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  
+  // Performance optimization: Save status and auto-save
+  const [saveStatus, setSaveStatus] = useState<'saved' | 'saving' | 'unsaved'>('saved');
+  
+  // Debounced auto-save function
+  const debouncedSave = useCallback(
+    debounce(async () => {
+      setSaveStatus('saving');
+      try {
+        // Auto-save current editor state
+        await actions.saveContent();
+        setSaveStatus('saved');
+      } catch (error) {
+        console.error('Auto-save failed:', error);
+        setSaveStatus('unsaved');
+      }
+    }, 1000),
+    [actions]
+  );
 
   // Filter change handlers
   const handleProductChange = useCallback((newProduct: Product) => {
@@ -82,6 +118,93 @@ export default function UnifiedEditor({
     }
   }, [actions]);
 
+  // Step-by-step flow handlers (from SimpleEditor)
+  const handleProductSelect = useCallback((productId: string) => {
+    setSelectedProduct(productId);
+    setSelectedTemplate('');
+    setError(null);
+  }, []);
+
+  const handleTemplateSelect = useCallback((templateId: string) => {
+    setSelectedTemplate(templateId);
+    setError(null);
+  }, []);
+
+  const handleStartEditing = useCallback(async () => {
+    if (!selectedProduct || !selectedTemplate) {
+      setError('Please select both a product and template');
+      return;
+    }
+
+    setIsLoading(true);
+    setError(null);
+
+    try {
+      // Simulate loading
+      await new Promise(resolve => setTimeout(resolve, 1000));
+      
+      // Check for compatibility issues
+      if (selectedProduct === 'strategy' && selectedTemplate === 'loan-application') {
+        throw new Error('Strategy product is not compatible with loan applications. Please select a different template.');
+      }
+
+      // Set the product and template in editor state
+      const product: EditorProduct = {
+        id: selectedProduct,
+        name: selectedProduct.charAt(0).toUpperCase() + selectedProduct.slice(1),
+        type: "grant" // Default to grant type for now
+      };
+      
+      const template: EditorTemplate = {
+        id: selectedTemplate,
+        name: selectedTemplate.charAt(0).toUpperCase() + selectedTemplate.slice(1).replace('-', ' '),
+        description: `Template for ${selectedTemplate}`,
+        route: 'strategy' as Route,
+        sections: []
+      };
+
+      await actions.setProduct(product);
+      await actions.setTemplate(template);
+      
+      setStep('edit');
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'An error occurred');
+      setStep('error');
+    } finally {
+      setIsLoading(false);
+    }
+  }, [selectedProduct, selectedTemplate, actions]);
+
+  const handleGoBack = useCallback(() => {
+    setStep('select');
+    setError(null);
+  }, []);
+
+  const handleGoToReco = useCallback(() => {
+    router.push('/reco');
+  }, [router]);
+
+  // Get templates for product (from SimpleEditor)
+  const getTemplatesForProduct = useCallback((productId: string) => {
+    const templates: Record<string, any[]> = {
+      strategy: [
+        { id: 'business-model', name: 'Business Model Canvas', description: 'Visual business model' },
+        { id: 'go-to-market', name: 'Go-to-Market Strategy', description: 'Market entry plan' },
+        { id: 'funding-fit', name: 'Funding Fit Summary', description: 'Funding readiness' }
+      ],
+      review: [
+        { id: 'business-plan-review', name: 'Business Plan Review', description: 'Comprehensive review' },
+        { id: 'compliance-check', name: 'Compliance Check', description: 'Regulatory compliance' }
+      ],
+      submission: [
+        { id: 'grant-proposal', name: 'Grant Proposal', description: 'EU/Austrian grants' },
+        { id: 'loan-application', name: 'Loan Application', description: 'Bank loan application' },
+        { id: 'pitch-deck', name: 'Pitch Deck', description: 'Investor presentation' }
+      ]
+    };
+    return templates[productId] || [];
+  }, []);
+
   // Log wizard data for debugging
   useEffect(() => {
     if (propAnswers && Object.keys(propAnswers).length > 0) {
@@ -101,9 +224,26 @@ export default function UnifiedEditor({
   // Load program data on mount
   useEffect(() => {
     if (programId) {
-      actions.loadProgramData(programId);
+      loadProgramRequirements(programId);
     }
-  }, [programId, actions]);
+  }, [programId]);
+
+  // Auto-save when content changes (performance optimization)
+  useEffect(() => {
+    if (state.content && Object.keys(state.content).length > 0) {
+      debouncedSave();
+    }
+  }, [state.content, debouncedSave]);
+
+  // Load program requirements from API (from StructuredEditor)
+  const loadProgramRequirements = async (programId: string) => {
+    try {
+      // Use existing loadProgramData action which handles loading state
+      await actions.loadProgramData(programId);
+    } catch (error) {
+      console.error('Error loading program requirements:', error);
+    }
+  };
 
   // Handle restore from Preview
   useEffect(() => {
@@ -143,6 +283,143 @@ export default function UnifiedEditor({
   // ============================================================================
   // RENDER
   // ============================================================================
+
+  // Step-by-step flow: Show selection step if no product selected
+  if (step === 'select' && !state.product) {
+    return (
+      <>
+        <Head>
+          <title>Editor - Plan2Fund</title>
+          <meta name="description" content="Create your business plan" />
+        </Head>
+        
+        <div className="min-h-screen bg-gray-50 py-12">
+          <div className="max-w-4xl mx-auto px-4">
+            {/* Header */}
+            <div className="text-center mb-8">
+              <h1 className="text-3xl font-bold text-gray-900 mb-4">Create Your Plan</h1>
+              <p className="text-lg text-gray-600">Choose a product and template to get started</p>
+            </div>
+
+            {/* Error Display */}
+            {error && (
+              <div className="mb-6 bg-red-50 border border-red-200 rounded-lg p-4">
+                <div className="flex items-center">
+                  <div className="text-red-600 mr-3">⚠️</div>
+                  <div>
+                    <h3 className="text-red-800 font-medium">Error</h3>
+                    <p className="text-red-700 text-sm">{error}</p>
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {/* Product Selection */}
+            <div className="mb-8">
+              <h2 className="text-xl font-semibold text-gray-900 mb-4">1. Select Product</h2>
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                {[
+                  { id: 'strategy', name: 'Strategy', description: 'Core strategy documents', price: '€99', icon: '🎯' },
+                  { id: 'review', name: 'Review', description: 'Professional review', price: '€149', icon: '📝' },
+                  { id: 'submission', name: 'Submission', description: 'Complete business plans', price: '€199', icon: '📄' }
+                ].map((product) => (
+                  <div
+                    key={product.id}
+                    onClick={() => handleProductSelect(product.id)}
+                    className={`p-6 border-2 rounded-lg cursor-pointer transition-all ${
+                      selectedProduct === product.id
+                        ? 'border-blue-500 bg-blue-50'
+                        : 'border-gray-200 hover:border-gray-300 hover:bg-gray-50'
+                    }`}
+                  >
+                    <div className="text-center">
+                      <div className="text-2xl mb-2">{product.icon}</div>
+                      <h3 className="text-lg font-semibold text-gray-900">{product.name}</h3>
+                      <p className="text-gray-600 text-sm mb-2">{product.description}</p>
+                      <div className="text-lg font-bold text-blue-600">{product.price}</div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            {/* Template Selection */}
+            {selectedProduct && (
+              <div className="mb-8">
+                <h2 className="text-xl font-semibold text-gray-900 mb-4">2. Select Template</h2>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  {getTemplatesForProduct(selectedProduct).map((template) => (
+                    <div
+                      key={template.id}
+                      onClick={() => handleTemplateSelect(template.id)}
+                      className={`p-4 border-2 rounded-lg cursor-pointer transition-all ${
+                        selectedTemplate === template.id
+                          ? 'border-green-500 bg-green-50'
+                          : 'border-gray-200 hover:border-gray-300 hover:bg-gray-50'
+                      }`}
+                    >
+                      <h3 className="font-semibold text-gray-900">{template.name}</h3>
+                      <p className="text-gray-600 text-sm">{template.description}</p>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {/* Action Buttons */}
+            <div className="flex justify-center space-x-4">
+              <button
+                onClick={handleGoToReco}
+                className="px-6 py-3 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors"
+              >
+                Find Funding First
+              </button>
+              <button
+                onClick={handleStartEditing}
+                disabled={!selectedProduct || !selectedTemplate || isLoading}
+                className="px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+              >
+                {isLoading ? 'Starting...' : 'Start Editing'}
+              </button>
+            </div>
+          </div>
+        </div>
+      </>
+    );
+  }
+
+  // Step-by-step flow: Show error step
+  if (step === 'error') {
+    return (
+      <>
+        <Head>
+          <title>Error - Plan2Fund Editor</title>
+        </Head>
+        
+        <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+          <div className="max-w-md mx-auto px-4 text-center">
+            <div className="text-red-600 text-6xl mb-4">⚠️</div>
+            <h1 className="text-2xl font-bold text-gray-900 mb-4">Configuration Error</h1>
+            <p className="text-gray-600 mb-6">{error}</p>
+            <div className="space-y-3">
+              <button
+                onClick={handleGoBack}
+                className="w-full px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+              >
+                Try Different Selection
+              </button>
+              <button
+                onClick={handleGoToReco}
+                className="w-full px-4 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors"
+              >
+                Find Funding First
+              </button>
+            </div>
+          </div>
+        </div>
+      </>
+    );
+  }
 
   if (state.isLoading) {
     return (
@@ -294,6 +571,22 @@ export default function UnifiedEditor({
           
           {/* Main Content - Section Editor */}
           <div className="flex-1 flex flex-col">
+            {/* Save Status Indicator */}
+            <div className="bg-white border-b border-gray-200 px-4 py-2 flex items-center justify-between">
+              <div className="flex items-center space-x-2">
+                <div className={`w-2 h-2 rounded-full ${
+                  saveStatus === 'saved' ? 'bg-green-500' : 
+                  saveStatus === 'saving' ? 'bg-yellow-500' : 
+                  'bg-red-500'
+                }`}></div>
+                <span className="text-sm text-gray-600">
+                  {saveStatus === 'saved' ? 'All changes saved' : 
+                   saveStatus === 'saving' ? 'Saving...' : 
+                   'Unsaved changes'}
+                </span>
+              </div>
+            </div>
+            
             <UnifiedSectionEditor 
               sections={safeSections}
               content={state.content || {}}
