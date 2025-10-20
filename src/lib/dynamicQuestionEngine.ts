@@ -1,7 +1,7 @@
 // Dynamic Question Engine - Computes questions from programs.json overlays
 // Removed static JSON import - using database instead
 import { getQuestionsData } from '../data/questions';
-import { dataSource } from './dataSource';
+import { dataSource } from './dataSource-simple';
 
 console.log('Dynamic Question Engine: Loading programs data from database...');
 
