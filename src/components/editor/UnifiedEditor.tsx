@@ -7,9 +7,6 @@ import { useRouter } from 'next/router';
 import Head from 'next/head';
 import { useEditorState } from './EditorState';
 import { useI18n } from '../../contexts/I18nContext';
-import EnhancedAIChat from './EnhancedAIChat';
-import DocumentCustomizationPanel from './DocumentCustomizationPanel';
-import ProductRouteFilter from './ProductRouteFilter';
 import { normalizeEditorInput } from '../../lib/editor/EditorNormalization';
 import { Product, Route } from '../../types/plan';
 
@@ -263,17 +260,6 @@ export default function UnifiedEditor({
         <link rel="canonical" href="https://plan2fund.com/editor" />
       </Head>
       
-      {/* Product/Route/Program Filter */}
-      <ProductRouteFilter
-        product={filterProduct}
-        route={filterRoute}
-        programId={filterProgramId}
-        onProductChange={handleProductChange}
-        onRouteChange={handleRouteChange}
-        onProgramChange={handleProgramChange}
-        showPrograms={true}
-      />
-      
       <div className="unified-editor h-screen flex flex-col bg-gray-50">
         {/* Top Bar */}
         <EditorHeader 
@@ -316,81 +302,41 @@ export default function UnifiedEditor({
             />
           </div>
           
-          {/* Right Sidebar - AI Assistant & Tools */}
+          {/* Right Sidebar - Simplified Tools */}
           <div className="w-80 bg-white border-l border-gray-200 flex flex-col">
-             <EnhancedAIChat 
-               plan={{
-                 id: 'current-plan',
-                 ownerId: 'current-user',
-                 product: 'strategy' as const,
-                 route: 'grant' as const,
-                 sections: safeSections.map((section: any) => ({
-                   key: section.id,
-                   title: section.title || section.section_name || 'Untitled Section',
-                   content: (state.content && state.content[section.id]) ? state.content[section.id] : '',
-                   status: 'missing' as const
-                 })) || [],
-                 tone: 'neutral' as const,
-                 language: 'en' as const,
-                 targetLength: 'standard' as const,
-                 settings: {
-                   includeTitlePage: true,
-                   includePageNumbers: true,
-                   citations: 'simple' as const,
-                   captions: true,
-                   graphs: {
-                     revenueCosts: true,
-                     cashflow: true,
-                     useOfFunds: true
-                   }
-                 }
-               }}
-               programProfile={null}
-               currentSection={safeActiveSection}
-               onInsertContent={(content: string, section: string) => {
-                 console.log('Insert content:', content, 'into section:', section);
-                 // TODO: Update section content
-               }}
-             />
-            <DocumentCustomizationPanel 
-              currentConfig={{
-                tone: 'formal',
-                language: 'en',
-                tableOfContents: true,
-                pageNumbers: true,
-                fontFamily: 'Arial',
-                fontSize: 12,
-                lineSpacing: 1.5,
-                margins: { top: 2.5, bottom: 2.5, left: 2.5, right: 2.5 },
-                titlePage: {
-                  enabled: true,
-                  companyName: '',
-                  projectTitle: '',
-                  date: new Date().toLocaleDateString(),
-                },
-                citations: {
-                  enabled: true,
-                  style: 'apa',
-                },
-                figures: {
-                  enabled: true,
-                  tableOfFigures: true,
-                  chartDescriptions: true,
-                },
-              }}
-              onConfigChange={(config) => {
-                console.log('Customization changed:', config);
-                // TODO: Update editor state with customization
-              }}
-              onTemplateSelect={(template) => {
-                console.log('Template selected:', template);
-                // TODO: Apply template settings
-              }}
-              onExport={(format) => {
-                console.log('Export requested:', format);
-                // TODO: Handle export
-              }}
-            />
+            <div className="p-4 border-b border-gray-200">
+              <h3 className="text-lg font-semibold mb-3">Tools</h3>
+              <div className="space-y-2">
+                <button
+                  onClick={handleSave}
+                  className="w-full px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700"
+                >
+                  Save Progress
+                </button>
+                <button
+                  onClick={handleExport}
+                  className="w-full px-4 py-2 bg-green-600 text-white rounded hover:bg-green-700"
+                >
+                  Continue to Preview
+                </button>
+                <button
+                  onClick={() => router.push('/reco')}
+                  className="w-full px-4 py-2 bg-gray-600 text-white rounded hover:bg-gray-700"
+                >
+                  Back to Funding Finder
+                </button>
+              </div>
+            </div>
+            
+            <div className="p-4">
+              <h3 className="text-lg font-semibold mb-3">Help</h3>
+              <div className="text-sm text-gray-600 space-y-2">
+                <p>• Select a product and template to start</p>
+                <p>• Choose sections from the left sidebar</p>
+                <p>• Write your content in the main area</p>
+                <p>• Save regularly to avoid losing work</p>
+              </div>
+            </div>
           </div>
         </div>
       </div>
@@ -407,7 +353,7 @@ interface EditorHeaderProps {
   template: any;
   progress: any;
   onSave: () => void;
-  onExport: (format: string) => void;
+  onExport: () => void;
 }
 
 function EditorHeader({ product, template, progress, onSave, onExport }: EditorHeaderProps) {
@@ -449,7 +395,7 @@ function EditorHeader({ product, template, progress, onSave, onExport }: EditorH
               Save
             </button>
             <button
-              onClick={() => onExport('pdf')}
+              onClick={onExport}
               className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
             >
               Continue to Preview
