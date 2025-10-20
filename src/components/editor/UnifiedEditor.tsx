@@ -200,15 +200,43 @@ export default function UnifiedEditor({
           <meta name="keywords" content={t('editor.keywords')} />
           <link rel="canonical" href="https://plan2fund.com/editor" />
         </Head>
-        <div className="flex items-center justify-center h-screen">
-          <div className="text-center">
-            <div className="text-gray-600 mb-4">No program selected</div>
-            <button
-              onClick={() => router.push('/reco')}
-              className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700"
-            >
-              Go to Recommendations
-            </button>
+        {/* Entry points: allow selecting product/program directly in the editor */}
+        <div className="unified-editor h-screen flex flex-col bg-gray-50">
+          <ProductRouteFilter
+            product={filterProduct}
+            route={filterRoute}
+            programId={filterProgramId}
+            onProductChange={handleProductChange}
+            onRouteChange={handleRouteChange}
+            onProgramChange={handleProgramChange}
+            showPrograms={true}
+          />
+          <div className="flex flex-1 overflow-hidden">
+            {/* Left: selectors to start a plan */}
+            <div className="w-96 bg-white border-r border-gray-200 p-4 space-y-4">
+              <ProductSelector 
+                selected={state.product}
+                onSelect={actions.setProduct}
+              />
+              <TemplateSelector 
+                selected={state.template}
+                onSelect={actions.setTemplate}
+                product={state.product}
+              />
+            </div>
+            {/* Right: empty state guidance */}
+            <div className="flex-1 flex items-center justify-center">
+              <div className="text-center max-w-md px-6">
+                <h2 className="text-xl font-semibold text-gray-900 mb-2">Start your plan</h2>
+                <p className="text-gray-600 mb-4">Select a product on the left or pick a program above to load tailored sections.</p>
+                <button
+                  onClick={() => router.push('/reco')}
+                  className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700"
+                >
+                  Find funding first
+                </button>
+              </div>
+            </div>
           </div>
         </div>
       </>
