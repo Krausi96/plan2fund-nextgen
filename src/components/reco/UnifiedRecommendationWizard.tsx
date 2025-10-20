@@ -65,8 +65,11 @@ export default function UnifiedRecommendationWizard({
   }
 
   // Default wizard mode
-  if (!isMounted || questions.length === 0) {
+  if (!isMounted) {
     return <LoadingState />;
+  }
+  if (questions.length === 0) {
+    return <div className="min-h-screen flex items-center justify-center text-gray-600">No questions available. Please try again.</div>;
   }
 
   const currentQuestion = questions[currentQuestionIndex];

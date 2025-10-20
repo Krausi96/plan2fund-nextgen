@@ -84,23 +84,39 @@ export function RecommendationProvider({ children }: RecommendationProviderProps
     loadQuestions();
   }, [questionEngine]);
 
-  // Load questions from dynamic question engine
+  // Load questions from dynamic question engine (with timeout + fallback)
   const loadQuestions = async () => {
     try {
       setState(prev => ({ ...prev, isLoading: true, error: null }));
-      const loadedQuestions = await questionEngine.getQuestionOrder();
+      const timeout = new Promise<never>((_, reject) => setTimeout(() => reject(new Error('timeout')), 7000));
+      const loadedQuestions = await Promise.race([
+        questionEngine.getQuestionOrder(),
+        timeout
+      ]);
+      const safeQuestions = Array.isArray(loadedQuestions) ? loadedQuestions : [];
       setState(prev => ({ 
         ...prev, 
-        questions: loadedQuestions,
+        questions: safeQuestions,
         isLoading: false,
         isMounted: true
       }));
     } catch (error) {
-      console.error('Error loading questions:', error);
+      console.warn('Question engine failed, using minimal fallback set');
+      // Minimal local fallback to avoid infinite loading
+      const fallbackQuestions: DynamicQuestion[] = [
+        { id: 'q1_country', label: t('questions.q1_country'), type: 'single', options: [
+          { value: 'AT', label: t('questions.q1_country.AT') },
+          { value: 'EU', label: t('questions.q1_country.EU') },
+          { value: 'NON_EU', label: t('questions.q1_country.NON_EU') }
+        ], required: true, informationValue: 100, programsAffected: 0, decisiveness: 'HARD', sourcePrograms: [], uxWeight: 10, isCoreQuestion: true, questionNumber: 1 },
+        { id: 'q2_entity_stage', label: t('questions.q2_entity_stage'), type: 'single', options: [], required: true, informationValue: 80, programsAffected: 0, decisiveness: 'SOFT', sourcePrograms: [], uxWeight: 7, isCoreQuestion: true, questionNumber: 2 }
+      ];
       setState(prev => ({ 
         ...prev, 
+        questions: fallbackQuestions,
         isLoading: false,
-        error: 'Failed to load questions'
+        isMounted: true,
+        error: null
       }));
     }
   };

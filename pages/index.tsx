@@ -83,11 +83,11 @@ export default function Home() {
           title={t('cta.readyToFind')}
           subtitle={t('cta.joinFounders')}
           primaryAction={{
-            label: "Plan starten",
+            label: t('nav.startPlan'),
             href: "/editor"
           }}
           secondaryAction={{
-            label: "Finanzierungsmöglichkeiten erkunden",
+            label: t('cta.findYourFunding'),
             href: "/reco"
           }}
         />
