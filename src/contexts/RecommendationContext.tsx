@@ -2,6 +2,7 @@
 import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
 import { scoreProgramsEnhanced, EnhancedProgramResult } from '@/lib/enhancedRecoEngine';
 import { DynamicQuestionEngine, DynamicQuestion } from '@/lib/dynamicQuestionEngine';
+import { getQuestionsData } from '@/data/questions';
 import { useI18n } from './I18nContext';
 
 interface RecommendationState {
@@ -84,7 +85,7 @@ export function RecommendationProvider({ children }: RecommendationProviderProps
     loadQuestions();
   }, [questionEngine]);
 
-  // Load questions from dynamic question engine (with timeout + fallback)
+  // Load questions from dynamic question engine (with timeout + robust fallback)
   const loadQuestions = async () => {
     try {
       setState(prev => ({ ...prev, isLoading: true, error: null }));
@@ -98,25 +99,34 @@ export function RecommendationProvider({ children }: RecommendationProviderProps
         ...prev, 
         questions: safeQuestions,
         isLoading: false,
-        isMounted: true
+        isMounted: true,
+        currentQuestionIndex: 0
       }));
     } catch (error) {
-      console.warn('Question engine failed, using minimal fallback set');
-      // Minimal local fallback to avoid infinite loading
-      const fallbackQuestions: DynamicQuestion[] = [
-        { id: 'q1_country', label: t('questions.q1_country'), type: 'single', options: [
-          { value: 'AT', label: t('questions.q1_country.AT') },
-          { value: 'EU', label: t('questions.q1_country.EU') },
-          { value: 'NON_EU', label: t('questions.q1_country.NON_EU') }
-        ], required: true, informationValue: 100, programsAffected: 0, decisiveness: 'HARD', sourcePrograms: [], uxWeight: 10, isCoreQuestion: true, questionNumber: 1 },
-        { id: 'q2_entity_stage', label: t('questions.q2_entity_stage'), type: 'single', options: [], required: true, informationValue: 80, programsAffected: 0, decisiveness: 'SOFT', sourcePrograms: [], uxWeight: 7, isCoreQuestion: true, questionNumber: 2 }
-      ];
+      console.warn('Question engine failed, using robust local fallback');
+      // Robust local fallback: use static questions with normalized types
+      const q = getQuestionsData(t).universal;
+      const fallbackQuestions: DynamicQuestion[] = q.map((base: any, index: number) => ({
+        id: base.id,
+        label: base.label,
+        type: base.type === 'single-select' ? 'single' : base.type === 'multi-select' ? 'multiple' : base.type,
+        options: base.options || [],
+        required: !!base.required,
+        informationValue: 0,
+        programsAffected: 0,
+        decisiveness: 'UNCERTAIN',
+        sourcePrograms: [],
+        uxWeight: 1,
+        isCoreQuestion: index < 7,
+        questionNumber: index + 1
+      }));
       setState(prev => ({ 
         ...prev, 
         questions: fallbackQuestions,
         isLoading: false,
         isMounted: true,
-        error: null
+        error: null,
+        currentQuestionIndex: 0
       }));
     }
   };

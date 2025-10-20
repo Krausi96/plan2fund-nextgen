@@ -221,5 +221,15 @@ export class EditorNormalization {
   }
 }
 
-// Export convenience function
-export const normalizeEditorInput = EditorNormalization.normalizeInput;
+// Export convenience function (bound to class to preserve context for internal this.* calls)
+export function normalizeEditorInput(props: {
+  programId?: string;
+  route?: string;
+  product?: string;
+  answers?: Record<string, any>;
+  payload?: Record<string, any>;
+  restore?: boolean;
+  entryPoint?: EntryPoint;
+}) {
+  return EditorNormalization.normalizeInput(props);
+}

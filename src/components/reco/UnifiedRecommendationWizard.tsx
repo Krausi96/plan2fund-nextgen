@@ -110,8 +110,8 @@ export default function UnifiedRecommendationWizard({
           isLastQuestion={isLastQuestion}
         />
 
-        {/* Health Footer */}
-        <HealthFooter />
+        {/* Health Footer (hidden unless explicitly enabled) */}
+        {process.env.NEXT_PUBLIC_SHOW_HEALTH === '1' && <HealthFooter />}
       </div>
     </div>
   );

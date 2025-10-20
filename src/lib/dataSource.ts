@@ -107,14 +107,16 @@ class HybridDataSource implements ProgramDataSource {
     await this.initialize();
 
     try {
-      const baseUrl = process.env.VERCEL_URL
-        ? `https://${process.env.VERCEL_URL}`
-        : 'http://localhost:3000';
+      // Use same-origin on the client to avoid CORS; on server use VERCEL_URL/localhost
+      const isBrowser = typeof window !== 'undefined';
+      const apiUrl = isBrowser
+        ? `/api/programs?enhanced=true`
+        : (process.env.VERCEL_URL ? `https://${process.env.VERCEL_URL}/api/programs?enhanced=true` : `http://localhost:3000/api/programs?enhanced=true`);
 
       const controller = new AbortController();
       const timeoutId = setTimeout(() => controller.abort(), 7000);
 
-      const response = await fetch(`${baseUrl}/api/programs?enhanced=true`, {
+      const response = await fetch(apiUrl, {
         signal: controller.signal,
         headers: {
           'Content-Type': 'application/json',
@@ -134,10 +136,13 @@ class HybridDataSource implements ProgramDataSource {
       console.warn('Enhanced programs API failed, using migrated fallback');
     }
 
-    // Fallback: use migrated programs and enhance locally
-    const migrated = this.getMigratedPrograms();
-    const enhanced = migrated.map((p: any) => this.enhanceProgramWithAI(p));
-    return enhanced;
+    // Fallback: on server we can read from filesystem; in browser return empty to avoid fs errors
+    if (typeof window === 'undefined') {
+      const migrated = this.getMigratedPrograms();
+      const enhanced = migrated.map((p: any) => this.enhanceProgramWithAI(p));
+      return enhanced;
+    }
+    return [];
   }
 
   // Helper method to enhance programs with AI fields
