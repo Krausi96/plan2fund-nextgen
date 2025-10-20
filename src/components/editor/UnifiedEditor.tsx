@@ -215,6 +215,17 @@ export default function UnifiedEditor({
     );
   }
 
+  // Safe fallbacks for potentially undefined or empty state slices
+  const safeSections = Array.isArray(state.sections) ? state.sections : [];
+  const safeProgress = state.progress && typeof state.progress === 'object'
+    ? {
+        overall: typeof state.progress.overall === 'number' ? state.progress.overall : 0,
+        sections: Array.isArray(state.progress.sections) ? state.progress.sections : [],
+        lastUpdated: state.progress.lastUpdated || new Date()
+      }
+    : { overall: 0, sections: [], lastUpdated: new Date() };
+  const safeActiveSection = state.activeSection || 'executive-summary';
+
   return (
     <>
       <Head>
@@ -240,7 +251,7 @@ export default function UnifiedEditor({
         <EditorHeader 
           product={state.product}
           template={state.template}
-          progress={state.progress}
+          progress={safeProgress}
           onSave={handleSave}
           onExport={handleExport}
         />
@@ -258,21 +269,21 @@ export default function UnifiedEditor({
               product={state.product}
             />
             <SectionManager 
-              sections={state.sections}
-              activeSection={state.activeSection}
+              sections={safeSections}
+              activeSection={safeActiveSection}
               onSelect={actions.setActiveSection}
             />
             <ProgressTracker 
-              progress={state.progress}
+              progress={safeProgress}
             />
           </div>
           
           {/* Main Content - Section Editor */}
           <div className="flex-1 flex flex-col">
             <UnifiedSectionEditor 
-              sections={state.sections}
-              content={state.content}
-              activeSection={state.activeSection}
+              sections={safeSections}
+              content={state.content || {}}
+              activeSection={safeActiveSection}
               onUpdate={actions.updateSection}
             />
           </div>
@@ -285,10 +296,10 @@ export default function UnifiedEditor({
                  ownerId: 'current-user',
                  product: 'strategy' as const,
                  route: 'grant' as const,
-                 sections: state.sections?.map((section: any) => ({
+                 sections: safeSections.map((section: any) => ({
                    key: section.id,
                    title: section.title || section.section_name || 'Untitled Section',
-                   content: state.content?.[section.id] || '',
+                   content: (state.content && state.content[section.id]) ? state.content[section.id] : '',
                    status: 'missing' as const
                  })) || [],
                  tone: 'neutral' as const,
@@ -307,7 +318,7 @@ export default function UnifiedEditor({
                  }
                }}
                programProfile={null}
-               currentSection={state.activeSection || 'executive-summary'}
+               currentSection={safeActiveSection}
                onInsertContent={(content: string, section: string) => {
                  console.log('Insert content:', content, 'into section:', section);
                  // TODO: Update section content
