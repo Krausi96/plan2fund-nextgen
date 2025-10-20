@@ -15,7 +15,6 @@ import { FilterTabs } from "@/components/pricing/FilterTabs";
 import { FilterTabContent } from "@/components/pricing/FilterTabContent";
 import { ProofSection } from "@/components/pricing/ProofSection";
 import { AddonsSection } from "@/components/pricing/AddonsSection";
-import { HowItWorksSection } from "@/components/pricing/HowItWorksSection";
 import { type Product, type FundingType, type TargetGroup } from "@/data/basisPack";
 
 
@@ -552,14 +551,11 @@ const coreProducts = [
           </div>
         </section>
 
-        {/* Proof Section */}
+        {/* Proof / Snapshots Section */}
         <ProofSection />
 
         {/* Add-ons Section */}
         <AddonsSection fundingType={selectedFundingType} />
-
-        {/* How It Works Section */}
-        <HowItWorksSection />
 
         <CTAStrip
           title={t('cta.readyToStart')}

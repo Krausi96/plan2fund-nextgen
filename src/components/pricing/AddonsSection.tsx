@@ -41,14 +41,14 @@ export function AddonsSection({ fundingType }: AddonsSectionProps) {
         </div>
 
         {/* Add-ons Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
           {addons.map((addon) => {
             const IconComponent = iconMap[addon.id as keyof typeof iconMap] || FileText;
             
             return (
               <div
                 key={addon.id}
-                className="bg-white rounded-2xl p-6 border border-gray-200 hover:shadow-lg transition-all duration-300 cursor-pointer"
+                className="group bg-white rounded-2xl p-6 border border-gray-200 shadow-sm hover:shadow-lg hover:border-blue-200 transition-all duration-300 cursor-pointer hover:scale-[1.01]"
                 onClick={() => setSelectedAddon(addon.id)}
               >
                 <div className="flex items-start gap-4">
@@ -56,23 +56,27 @@ export function AddonsSection({ fundingType }: AddonsSectionProps) {
                     <IconComponent className="w-6 h-6 text-blue-600" />
                   </div>
                   <div className="flex-1">
-                    <div className="flex items-center justify-between mb-2">
-                      <div className="flex items-center gap-2">
-                        <h3 className="font-semibold text-gray-900 text-sm">{addon.name}</h3>
-                        <Tooltip content={addon.scope || 'No description available'} position="top">
-                          <HelpCircle className="w-4 h-4 text-gray-400 hover:text-gray-600 cursor-help" />
-                        </Tooltip>
-                      </div>
-                      <span className="text-lg font-bold text-blue-500">{addon.price}</span>
+                    <div className="flex items-center gap-2 mb-1">
+                      <h3 className="text-base font-semibold text-gray-900">{addon.name}</h3>
+                      <Tooltip content={addon.scope || 'No description available'} position="top">
+                        <HelpCircle className="w-4 h-4 text-gray-400 group-hover:text-gray-600 cursor-help" />
+                      </Tooltip>
                     </div>
-                    <p className="text-sm text-gray-600 mb-3">{addon.scope}</p>
-                    <div className="text-xs text-gray-500">
-                      <div className="mb-1">
-                        <strong>Deliverables:</strong> {addon.deliverables}
-                      </div>
-                      <div>
-                        <strong>Turnaround:</strong> {addon.turnaround}
-                      </div>
+                    <p className="text-sm text-gray-600 mb-4">{addon.scope}</p>
+                    <div className="text-xs text-gray-600 space-y-1">
+                      <div><strong className="text-gray-800">Deliverables:</strong> {addon.deliverables}</div>
+                      <div><strong className="text-gray-800">Turnaround:</strong> {addon.turnaround}</div>
+                    </div>
+                    <div className="mt-5 flex items-center justify-between">
+                      <span className="inline-flex items-center rounded-full border px-3 py-1 text-sm font-medium text-gray-800">
+                        {addon.price}
+                      </span>
+                      <button
+                        className="text-blue-600 hover:text-blue-700 text-sm font-medium underline"
+                        aria-label={`Add ${addon.name} in editor`}
+                      >
+                        Add in Editor
+                      </button>
                     </div>
                   </div>
                 </div>

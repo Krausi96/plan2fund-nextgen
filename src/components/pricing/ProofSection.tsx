@@ -65,11 +65,11 @@ export function ProofSection() {
         {/* Header */}
         <div className="text-center mb-12">
           <h2 className="text-3xl font-bold text-gray-900 mb-4">
-            Built for Austrian & EU Funding
+            Snapshots
           </h2>
           <p className="text-lg text-gray-600 max-w-4xl mx-auto">
-            Plan2Fund is designed around the real requirements of Austrian and EU funding bodies, banks, and investors.
-            Every document is generated to match <strong>local standards and expectations</strong> across all major funding routes.
+            Real outcomes from founders using Plan2Fund. Quick looks at how plans turned into
+            funding, faster — across grants, banks, investors, and visas.
           </p>
         </div>
 
