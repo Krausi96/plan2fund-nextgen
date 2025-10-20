@@ -112,136 +112,136 @@ export const getQuestionsData = (t: (key: any) => string) => ({
     },
     {
       "id": "q5_maturity_trl",
-      "label": "How developed is your project?",
+      "label": t("questions.q5_maturity_trl"),
       "type": "single-select",
       "options": [
         {
           "value": "TRL_1_2",
-          "label": "Just an idea or early research"
+          "label": t("questions.q5_maturity_trl.TRL_1_2")
         },
         {
           "value": "TRL_3_4",
-          "label": "Proof of concept - basic testing done"
+          "label": t("questions.q5_maturity_trl.TRL_3_4")
         },
         {
           "value": "TRL_5_6",
-          "label": "Working prototype or demonstrator"
+          "label": t("questions.q5_maturity_trl.TRL_5_6")
         },
         {
           "value": "TRL_7_8",
-          "label": "Pilot testing or market launch"
+          "label": t("questions.q5_maturity_trl.TRL_7_8")
         },
         {
           "value": "TRL_9",
-          "label": "Ready for scaling and growth"
+          "label": t("questions.q5_maturity_trl.TRL_9")
         }
       ],
       "required": true
     },
     {
       "id": "q6_rnd_in_at",
-      "label": "Will you conduct R&D or experimental development in Austria?",
+      "label": t("questions.q6_rnd_in_at"),
       "type": "single-select",
       "options": [
         {
           "value": "YES",
-          "label": "Yes"
+          "label": t("questions.q6_rnd_in_at.YES")
         },
         {
           "value": "NO",
-          "label": "No"
+          "label": t("questions.q6_rnd_in_at.NO")
         },
         {
           "value": "UNSURE",
-          "label": "Unsure"
+          "label": t("questions.q6_rnd_in_at.UNSURE")
         }
       ],
       "required": true
     },
     {
       "id": "q7_collaboration",
-      "label": "Do you plan to collaborate with research institutions or companies?",
+      "label": t("questions.q7_collaboration"),
       "type": "single-select",
       "options": [
         {
           "value": "NONE",
-          "label": "No collaboration planned"
+          "label": t("questions.q7_collaboration.NONE")
         },
         {
           "value": "WITH_RESEARCH",
-          "label": "With research institution(s)"
+          "label": t("questions.q7_collaboration.WITH_RESEARCH")
         },
         {
           "value": "WITH_COMPANY",
-          "label": "With company(ies)"
+          "label": t("questions.q7_collaboration.WITH_COMPANY")
         },
         {
           "value": "WITH_BOTH",
-          "label": "With both research & companies"
+          "label": t("questions.q7_collaboration.WITH_BOTH")
         }
       ],
       "required": true
     },
     {
       "id": "q8_funding_types",
-      "label": "Which funding types are you interested in?",
+      "label": t("questions.q8_funding_types"),
       "type": "multi-select",
       "options": [
         {
           "value": "GRANT",
-          "label": "Grants"
+          "label": t("questions.q8_funding_types.GRANT")
         },
         {
           "value": "LOAN",
-          "label": "Loans"
+          "label": t("questions.q8_funding_types.LOAN")
         },
         {
           "value": "GUARANTEE",
-          "label": "Guarantees"
+          "label": t("questions.q8_funding_types.GUARANTEE")
         },
         {
           "value": "EQUITY",
-          "label": "Equity / blended finance"
+          "label": t("questions.q8_funding_types.EQUITY")
         }
       ],
       "required": true
     },
     {
       "id": "q9_team_diversity",
-      "label": "At grant award, will women own >25% of shares (or will they)?",
+      "label": t("questions.q9_team_diversity"),
       "type": "single-select",
       "options": [
         {
           "value": "YES",
-          "label": "Yes"
+          "label": t("questions.q9_team_diversity.YES")
         },
         {
           "value": "NO",
-          "label": "No"
+          "label": t("questions.q9_team_diversity.NO")
         },
         {
           "value": "UNKNOWN",
-          "label": "Not sure / TBD"
+          "label": t("questions.q9_team_diversity.UNKNOWN")
         }
       ],
       "required": true
     },
     {
       "id": "q10_env_benefit",
-      "label": "Will the project measurably reduce emissions/energy/waste in the EU?",
+      "label": t("questions.q10_env_benefit"),
       "type": "single-select",
       "options": [
         {
           "value": "STRONG",
-          "label": "Yes, central to the project"
+          "label": t("questions.q10_env_benefit.STRONG")
         },
         {
           "value": "SOME",
-          "label": "Partly / co-benefit"
+          "label": t("questions.q10_env_benefit.SOME")
         },
         {
           "value": "NONE",
-          "label": "No / not applicable"
+          "label": t("questions.q10_env_benefit.NONE")
         }
       ],
       "required": true

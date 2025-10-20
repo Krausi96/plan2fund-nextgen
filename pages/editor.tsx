@@ -1,14 +1,12 @@
-// ========= PLAN2FUND — UNIFIED EDITOR PAGE =========
-// Main editor page using the new unified editor architecture
+// ========= PLAN2FUND — SIMPLE EDITOR PAGE =========
+// Clean, intuitive editor page with proper error handling
 
 import { useRouter } from 'next/router';
-import { EditorProvider } from '@/components/editor/EditorState';
-import UnifiedEditor from '@/components/editor/UnifiedEditor';
-import { EditorNormalization } from '@/lib/editor/EditorNormalization';
+import SimpleEditor from '../components/editor/SimpleEditor';
 
 export default function EditorPage() {
   const router = useRouter();
-  const { programId, route, product, answers, pf, restore } = router.query;
+  const { programId, route, product, answers } = router.query;
 
   // Show loading while router is ready
   if (!router.isReady) {
@@ -22,29 +20,12 @@ export default function EditorPage() {
     );
   }
 
-  // Allow opening Editor directly without programId to use in-editor selection
-
-  // Use normalization system to handle all entry points
-  const normalizedData = EditorNormalization.normalizeInput({
-    programId: programId as string,
-    route: route as string,
-    product: product as string,
-    answers: answers ? JSON.parse(decodeURIComponent(answers as string)) : {},
-    payload: pf ? JSON.parse(decodeURIComponent(pf as string)) : {},
-    restore: restore === 'true',
-    entryPoint: programId ? 'wizard-results' : 'direct'
-  });
-
   return (
-    <EditorProvider>
-      <UnifiedEditor 
-        programId={normalizedData.programId}
-        route={normalizedData.route}
-        product={normalizedData.product}
-        answers={normalizedData.answers}
-        payload={normalizedData.payload}
-        restore={restore === 'true'}
-      />
-    </EditorProvider>
+    <SimpleEditor
+      programId={programId as string}
+      route={route as string}
+      product={product as string}
+      answers={answers ? JSON.parse(decodeURIComponent(answers as string)) : undefined}
+    />
   );
 }
