@@ -87,7 +87,7 @@ export default function Home() {
             href: "/reco"
           }}
           secondaryAction={{
-            label: "Start Editor",
+            label: t('hero.button.secondary'),
             href: "/editor"
           }}
         />

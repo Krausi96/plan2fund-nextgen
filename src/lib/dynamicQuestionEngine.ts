@@ -123,10 +123,15 @@ export class DynamicQuestionEngine {
       if (hardRules > 0) decisiveness = 'HARD';
       else if (softRules > 0) decisiveness = 'SOFT';
 
+      const normalizedType =
+        baseQuestion.type === 'single-select' ? 'single' :
+        baseQuestion.type === 'multi-select' ? 'multiple' :
+        baseQuestion.type;
+
       const dynamicQuestion: DynamicQuestion = {
         id: baseQuestion.id,
         label: baseQuestion.label,
-        type: baseQuestion.type,
+        type: normalizedType,
         options: baseQuestion.options,
         required: baseQuestion.required,
         informationValue,
