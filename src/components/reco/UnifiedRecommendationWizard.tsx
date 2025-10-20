@@ -185,7 +185,7 @@ function QuestionCard({
       className="animate-fade-in-up bg-white rounded-lg shadow-md p-6 mb-6"
     >
       <h2 className="text-xl font-semibold text-gray-900 mb-4">
-        {question.question}
+        {question.label || question.question}
       </h2>
       
       {normalizedType === 'single' && question.options && (
