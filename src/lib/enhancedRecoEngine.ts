@@ -1,6 +1,6 @@
 // Removed static JSON import - using database instead
 import { Program, UserAnswers, ScoredProgram, ProgramType } from "../types";
-import { dataSource } from "./dataSource-simple";
+import { dataSource } from "./dataSource";
 import { doctorDiagnostic } from "./doctorDiagnostic";
 
 // Eligibility trace interface

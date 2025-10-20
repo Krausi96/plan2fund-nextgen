@@ -1,6 +1,6 @@
 // Enhanced Data Source - GPT-Enhanced with AI features
 import { Program } from "../types";
-import { enhancedDataPipeline } from './enhancedDataPipeline';
+// import { enhancedDataPipeline } from './enhancedDataPipeline';
 
 // GPT-Enhanced Program interface
 export interface GPTEnhancedProgram extends Program {
@@ -105,44 +105,39 @@ class HybridDataSource implements ProgramDataSource {
 
   async getGPTEnhancedPrograms(): Promise<GPTEnhancedProgram[]> {
     await this.initialize();
-    
-    // Use fallback data to avoid API loading issues
-    console.log('🔄 Using fallback programs data to avoid API loading issues...');
-    return this.getFallbackPrograms();
-          name: 'AWS Preseed Program',
-          type: 'grant',
-          program_type: 'grant',
-          program_category: 'austrian_grants',
-          requirements: {},
-          notes: 'Mock program for testing',
-          maxAmount: 200000,
-          link: 'https://aws.at',
-          target_personas: ['startup', 'sme'],
-          tags: ['innovation', 'startup', 'non-dilutive', 'aws'],
-          decision_tree_questions: [],
-          editor_sections: [],
-          readiness_criteria: [],
-          ai_guidance: undefined
-        },
-        {
-          id: 'ffg_basic_research',
-          name: 'FFG Basic Research Program',
-          type: 'grant',
-          program_type: 'grant',
-          program_category: 'research_grants',
-          requirements: {},
-          notes: 'Mock program for testing',
-          maxAmount: 500000,
-          link: 'https://ffg.at',
-          target_personas: ['startup', 'sme', 'researcher'],
-          tags: ['research', 'innovation', 'non-dilutive'],
-          decision_tree_questions: [],
-          editor_sections: [],
-          readiness_criteria: [],
-          ai_guidance: undefined
+
+    try {
+      const baseUrl = process.env.VERCEL_URL
+        ? `https://${process.env.VERCEL_URL}`
+        : 'http://localhost:3000';
+
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), 7000);
+
+      const response = await fetch(`${baseUrl}/api/programs?enhanced=true`, {
+        signal: controller.signal,
+        headers: {
+          'Content-Type': 'application/json',
+          'Cache-Control': 'no-cache'
         }
-      ];
+      });
+
+      clearTimeout(timeoutId);
+
+      if (response.ok) {
+        const data = await response.json();
+        if (data.success && Array.isArray(data.programs) && data.programs.length > 0) {
+          return data.programs as GPTEnhancedProgram[];
+        }
+      }
+    } catch (_err) {
+      console.warn('Enhanced programs API failed, using migrated fallback');
     }
+
+    // Fallback: use migrated programs and enhance locally
+    const migrated = this.getMigratedPrograms();
+    const enhanced = migrated.map((p: any) => this.enhanceProgramWithAI(p));
+    return enhanced;
   }
 
   // Helper method to enhance programs with AI fields
@@ -177,28 +172,7 @@ class HybridDataSource implements ProgramDataSource {
     };
   }
 
-  private convertToNormalizedProgram(program: any): any {
-    return {
-      id: program.id,
-      name: program.name,
-      type: program.program_type || program.type || 'grant',
-      description: program.description || '',
-      funding_amount_min: program.funding_amount_min || 0,
-      funding_amount_max: program.funding_amount_max || program.funding_amount || 0,
-      source_url: program.source_url || program.url || '',
-      institution: program.institution || 'Unknown Institution',
-      requirements: program.requirements || {},
-      scraped_at: new Date().toISOString(),
-      confidence_score: 0.8, // Default confidence
-      // Preserve AI-enhanced fields from API response
-      target_personas: program.target_personas || [],
-      tags: program.tags || [],
-      decision_tree_questions: program.decision_tree_questions || [],
-      editor_sections: program.editor_sections || [],
-      readiness_criteria: program.readiness_criteria || [],
-      ai_guidance: program.ai_guidance || null
-    };
-  }
+  // Removed unused normalization helper (kept logic inline where needed)
 
   // Generate target personas based on program characteristics
   private generateTargetPersonas(program: any, _programType: string, institution: string): string[] {

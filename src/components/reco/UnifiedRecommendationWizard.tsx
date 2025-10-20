@@ -170,7 +170,12 @@ function QuestionCard({
   onAnswer: (value: any) => void; 
 }) {
   // const { t } = useI18n(); // Unused
-  
+  // Normalize question types from data source to UI-supported values
+  const normalizedType =
+    question?.type === 'single-select' ? 'single' :
+    question?.type === 'multi-select' ? 'multiple' :
+    question?.type;
+
   return (
     <div
       key={question.id}
@@ -180,7 +185,7 @@ function QuestionCard({
         {question.question}
       </h2>
       
-      {question.type === 'single' && question.options && (
+      {normalizedType === 'single' && question.options && (
         <div className="space-y-3">
           {question.options.map((option: any) => (
             <label key={option.value} className="flex items-center">
@@ -198,7 +203,7 @@ function QuestionCard({
         </div>
       )}
       
-      {question.type === 'multiple' && question.options && (
+      {normalizedType === 'multiple' && question.options && (
         <div className="space-y-3">
           {question.options.map((option: any) => (
             <label key={option.value} className="flex items-center">
@@ -223,7 +228,7 @@ function QuestionCard({
         </div>
       )}
       
-      {question.type === 'text' && (
+      {normalizedType === 'text' && (
         <textarea
           value={answer || ''}
           onChange={(e) => onAnswer(e.target.value)}
@@ -233,7 +238,7 @@ function QuestionCard({
         />
       )}
       
-      {question.type === 'number' && (
+      {normalizedType === 'number' && (
         <input
           type="number"
           value={answer || ''}

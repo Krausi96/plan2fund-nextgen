@@ -22,11 +22,7 @@ export default function EditorPage() {
     );
   }
 
-  // If no programId and not restoring, redirect to reco
-  if (!programId && !restore) {
-    router.push('/reco');
-    return null;
-  }
+  // Allow opening Editor directly without programId to use in-editor selection
 
   // Use normalization system to handle all entry points
   const normalizedData = EditorNormalization.normalizeInput({
