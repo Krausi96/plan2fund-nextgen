@@ -134,6 +134,268 @@ export class DynamicPatternEngine {
         institution: 'Eurostars',
         confidence: 0.9,
         examples: ['Konsortialpartner', 'consortium partner']
+      },
+      
+      // Funding type patterns - NEW
+      {
+        category: 'funding_type',
+        pattern: /(?:grant|förderung|subvention)/i,
+        institution: 'general',
+        confidence: 0.9,
+        examples: ['grant', 'förderung', 'subvention']
+      },
+      {
+        category: 'funding_type',
+        pattern: /(?:loan|darlehen|kredit)/i,
+        institution: 'general',
+        confidence: 0.9,
+        examples: ['loan', 'darlehen', 'kredit']
+      },
+      {
+        category: 'funding_type',
+        pattern: /(?:equity|eigenkapital|beteiligung)/i,
+        institution: 'general',
+        confidence: 0.9,
+        examples: ['equity', 'eigenkapital', 'beteiligung']
+      },
+      {
+        category: 'funding_type',
+        pattern: /(?:mixed|gemischt|kombiniert)/i,
+        institution: 'general',
+        confidence: 0.8,
+        examples: ['mixed funding', 'gemischte förderung', 'kombinierte finanzierung']
+      },
+      {
+        category: 'funding_type',
+        pattern: /(?:visa|visum|aufenthalt)/i,
+        institution: 'general',
+        confidence: 0.9,
+        examples: ['visa', 'visum', 'aufenthaltstitel']
+      },
+      {
+        category: 'funding_type',
+        pattern: /(?:incubator|inkubator|gründerzentrum)/i,
+        institution: 'general',
+        confidence: 0.9,
+        examples: ['incubator', 'inkubator', 'gründerzentrum']
+      },
+      {
+        category: 'funding_type',
+        pattern: /(?:accelerator|beschleuniger|scale-up)/i,
+        institution: 'general',
+        confidence: 0.9,
+        examples: ['accelerator', 'beschleuniger', 'scale-up program']
+      },
+      {
+        category: 'funding_type',
+        pattern: /(?:consulting|beratung|coaching)/i,
+        institution: 'general',
+        confidence: 0.8,
+        examples: ['consulting', 'beratung', 'coaching']
+      },
+      {
+        category: 'funding_type',
+        pattern: /(?:leasing|mietkauf|rental)/i,
+        institution: 'general',
+        confidence: 0.9,
+        examples: ['leasing', 'mietkauf', 'rental financing']
+      },
+      {
+        category: 'funding_type',
+        pattern: /(?:investor|venture|capital|angel)/i,
+        institution: 'general',
+        confidence: 0.9,
+        examples: ['investor', 'venture capital', 'angel investor', 'kapitalgeber']
+      },
+      {
+        category: 'funding_type',
+        pattern: /(?:crowdfunding|crowd|community)/i,
+        institution: 'general',
+        confidence: 0.8,
+        examples: ['crowdfunding', 'crowd financing', 'community funding']
+      },
+      {
+        category: 'funding_type',
+        pattern: /(?:subsidy|subvention|beihilfe)/i,
+        institution: 'general',
+        confidence: 0.9,
+        examples: ['subsidy', 'subvention', 'beihilfe', 'zuschuss']
+      },
+      
+      // Program category patterns - NEW
+      {
+        category: 'program_category',
+        pattern: /(?:research|forschung|rd)/i,
+        institution: 'FFG',
+        confidence: 0.9,
+        examples: ['research', 'forschung', 'R&D']
+      },
+      {
+        category: 'program_category',
+        pattern: /(?:innovation|innovation|neuerung)/i,
+        institution: 'EIC',
+        confidence: 0.9,
+        examples: ['innovation', 'innovation', 'neuerung']
+      },
+      {
+        category: 'program_category',
+        pattern: /(?:environmental|umwelt|klima)/i,
+        institution: 'LIFE',
+        confidence: 0.9,
+        examples: ['environmental', 'umwelt', 'klima']
+      },
+      {
+        category: 'program_category',
+        pattern: /(?:digital|digital|digitalisierung)/i,
+        institution: 'Digital Europe',
+        confidence: 0.9,
+        examples: ['digital', 'digital', 'digitalisierung']
+      },
+      {
+        category: 'program_category',
+        pattern: /(?:health|gesundheit|medizin)/i,
+        institution: 'EU4Health',
+        confidence: 0.9,
+        examples: ['health', 'gesundheit', 'medizin']
+      },
+      {
+        category: 'program_category',
+        pattern: /(?:culture|kultur|creative)/i,
+        institution: 'Creative Europe',
+        confidence: 0.9,
+        examples: ['culture', 'kultur', 'creative']
+      },
+      {
+        category: 'program_category',
+        pattern: /(?:energy|energie|nachhaltigkeit)/i,
+        institution: 'Horizon Europe',
+        confidence: 0.9,
+        examples: ['energy', 'energie', 'nachhaltigkeit']
+      },
+      {
+        category: 'program_category',
+        pattern: /(?:business|unternehmen|wirtschaft)/i,
+        institution: 'AWS',
+        confidence: 0.9,
+        examples: ['business', 'unternehmen', 'wirtschaft']
+      },
+      {
+        category: 'program_category',
+        pattern: /(?:employment|beschäftigung|arbeitsmarkt)/i,
+        institution: 'AMS',
+        confidence: 0.9,
+        examples: ['employment', 'beschäftigung', 'arbeitsmarkt']
+      },
+      {
+        category: 'program_category',
+        pattern: /(?:regional|regional|landesentwicklung)/i,
+        institution: 'ERDF',
+        confidence: 0.9,
+        examples: ['regional', 'regional', 'landesentwicklung']
+      },
+      
+      // Geographic patterns - NEW
+      {
+        category: 'geographic',
+        pattern: /(?:österreich|austria|at)/i,
+        institution: 'austria',
+        confidence: 0.9,
+        examples: ['österreich', 'austria', 'AT']
+      },
+      {
+        category: 'geographic',
+        pattern: /(?:deutschland|germany|de)/i,
+        institution: 'germany',
+        confidence: 0.9,
+        examples: ['deutschland', 'germany', 'DE']
+      },
+      {
+        category: 'geographic',
+        pattern: /(?:schweiz|switzerland|ch)/i,
+        institution: 'switzerland',
+        confidence: 0.9,
+        examples: ['schweiz', 'switzerland', 'CH']
+      },
+      {
+        category: 'geographic',
+        pattern: /(?:europa|europe|eu)/i,
+        institution: 'eu',
+        confidence: 0.9,
+        examples: ['europa', 'europe', 'EU']
+      },
+      
+      // Target group patterns - NEW
+      {
+        category: 'target_group',
+        pattern: /(?:einzelunternehmer|solo|freelancer)/i,
+        institution: 'general',
+        confidence: 0.9,
+        examples: ['einzelunternehmer', 'solo entrepreneur', 'freelancer']
+      },
+      {
+        category: 'target_group',
+        pattern: /(?:frauen|women|female)/i,
+        institution: 'general',
+        confidence: 0.9,
+        examples: ['frauen', 'women', 'female entrepreneurs']
+      },
+      {
+        category: 'target_group',
+        pattern: /(?:jugend|young|under-30)/i,
+        institution: 'general',
+        confidence: 0.9,
+        examples: ['jugend', 'young entrepreneurs', 'under-30']
+      },
+      {
+        category: 'target_group',
+        pattern: /(?:kmU|mittelstand|sme)/i,
+        institution: 'general',
+        confidence: 0.9,
+        examples: ['KMU', 'mittelstand', 'SME', 'small-medium enterprise']
+      },
+      {
+        category: 'target_group',
+        pattern: /(?:startup|gründer|neugründung)/i,
+        institution: 'general',
+        confidence: 0.9,
+        examples: ['startup', 'gründer', 'neugründung', 'new venture']
+      },
+      
+      // Industry patterns - NEW
+      {
+        category: 'industry',
+        pattern: /(?:technologie|technology|tech)/i,
+        institution: 'general',
+        confidence: 0.9,
+        examples: ['technologie', 'technology', 'tech']
+      },
+      {
+        category: 'industry',
+        pattern: /(?:produktion|industrie|manufacturing)/i,
+        institution: 'general',
+        confidence: 0.9,
+        examples: ['produktion', 'industrie', 'manufacturing']
+      },
+      {
+        category: 'industry',
+        pattern: /(?:landwirtschaft|agrar|farming)/i,
+        institution: 'general',
+        confidence: 0.9,
+        examples: ['landwirtschaft', 'agrar', 'farming', 'agriculture']
+      },
+      {
+        category: 'industry',
+        pattern: /(?:tourismus|hotel|gastronomie)/i,
+        institution: 'general',
+        confidence: 0.9,
+        examples: ['tourismus', 'hotel', 'gastronomie', 'tourism']
+      },
+      {
+        category: 'industry',
+        pattern: /(?:handwerk|craft|artisan)/i,
+        institution: 'general',
+        confidence: 0.9,
+        examples: ['handwerk', 'craft', 'artisan', 'traditional crafts']
       }
     ];
 

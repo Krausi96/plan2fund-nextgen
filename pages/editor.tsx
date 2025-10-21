@@ -2,7 +2,6 @@
 // Main editor page with proper provider wrapping
 
 import { useRouter } from 'next/router';
-import { EditorProvider } from '../src/components/editor/EditorState';
 import UnifiedEditor from '../src/components/editor/UnifiedEditor';
 
 export default function EditorPage() {
@@ -22,13 +21,11 @@ export default function EditorPage() {
   }
 
   return (
-    <EditorProvider>
-      <UnifiedEditor
-        programId={programId as string}
-        route={route as string}
-        product={product as string}
-        answers={answers ? JSON.parse(decodeURIComponent(answers as string)) : undefined}
-      />
-    </EditorProvider>
+    <UnifiedEditor
+      programId={programId as string}
+      route={route as string}
+      product={product as string}
+      answers={answers ? JSON.parse(decodeURIComponent(answers as string)) : undefined}
+    />
   );
 }

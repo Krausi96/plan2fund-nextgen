@@ -160,3 +160,4 @@ function Figures({ figures, tables }: FiguresProps) {
 
 // Export as default with lazy loading
 export default Figures;
+

@@ -2,7 +2,6 @@
 import React, { useState } from 'react';
 import { GapTicket } from '@/lib/schemas/userProfile';
 import analytics from '@/lib/analytics';
-import airtable from '@/lib/airtable';
 
 interface ZeroMatchFallbackProps {
   userAnswers: Record<string, any>;
@@ -40,8 +39,8 @@ export default function ZeroMatchFallback({
         createdAt: new Date().toISOString()
       };
 
-      // Save to backend
-      await airtable.createGapTicket(gapTicket);
+      // TODO: Save to backend (airtable removed)
+      console.log('Gap ticket created:', gapTicket);
 
       // Track gap ticket creation
       await analytics.trackGapTicketCreated('NO_MATCHES', {

@@ -15,7 +15,7 @@ const SCRAPER_CONFIG = {
       name: 'Austria Wirtschaftsservice', 
       baseUrl: 'https://aws.at', 
       priority: 1,
-      category: 'grants',
+      category: 'austrian_grants',
       enabled: true,
       rateLimit: { requests: 10, window: 60000 }, // 10 requests per minute
       robotsTxt: 'https://aws.at/robots.txt',
@@ -30,7 +30,7 @@ const SCRAPER_CONFIG = {
       name: 'Austrian Research Promotion Agency', 
       baseUrl: 'https://www.ffg.at', 
       priority: 1,
-      category: 'grants',
+      category: 'research_grants',
       enabled: true,
       rateLimit: { requests: 8, window: 60000 }, // 8 requests per minute
       robotsTxt: 'https://www.ffg.at/robots.txt',
@@ -45,7 +45,7 @@ const SCRAPER_CONFIG = {
       name: 'Vienna Business Agency', 
       baseUrl: 'https://www.viennabusinessagency.at', 
       priority: 2,
-      category: 'grants',
+      category: 'business_grants',
       enabled: true,
       rateLimit: { requests: 6, window: 60000 }, // 6 requests per minute
       robotsTxt: 'https://www.viennabusinessagency.at/robots.txt',
@@ -90,7 +90,7 @@ const SCRAPER_CONFIG = {
       name: 'Austrian Economic Chamber', 
       baseUrl: 'https://www.wko.at', 
       priority: 2,
-      category: 'business',
+      category: 'business_grants',
       enabled: true,
       rateLimit: { requests: 6, window: 60000 }, // 6 requests per minute
       robotsTxt: 'https://www.wko.at/robots.txt',
@@ -105,7 +105,7 @@ const SCRAPER_CONFIG = {
       name: 'European Union', 
       baseUrl: 'https://ec.europa.eu', 
       priority: 1,
-      category: 'grants',
+      category: 'eu_programs',
       enabled: true,
       rateLimit: { requests: 12, window: 60000 }, // 12 requests per minute
       robotsTxt: 'https://ec.europa.eu/robots.txt',
@@ -115,12 +115,147 @@ const SCRAPER_CONFIG = {
         programTitle: 'h1, h2, .program-title',
         programDescription: '.description, .content, p'
       }
+    },
+    eic: {
+      name: 'European Innovation Council (EIC)',
+      baseUrl: 'https://eic.ec.europa.eu',
+      priority: 1,
+      category: 'eu_programs',
+      enabled: true,
+      rateLimit: { requests: 8, window: 60000 },
+      robotsTxt: 'https://eic.ec.europa.eu/robots.txt',
+      sitemap: 'https://eic.ec.europa.eu/sitemap.xml',
+      customSelectors: {
+        programLinks: 'a[href*="/funding"], a[href*="/programme"], a[href*="/grants"]',
+        programTitle: 'h1, h2, .program-title',
+        programDescription: '.description, .content, p'
+      }
+    },
+    horizon: {
+      name: 'Horizon Europe Programme',
+      baseUrl: 'https://ec.europa.eu/info/research-and-innovation/funding/funding-opportunities/funding-programmes-and-open-calls/horizon-europe_en',
+      priority: 1,
+      category: 'eu_programs',
+      enabled: true,
+      rateLimit: { requests: 8, window: 60000 },
+      robotsTxt: 'https://ec.europa.eu/robots.txt',
+      sitemap: 'https://ec.europa.eu/sitemap.xml',
+      customSelectors: {
+        programLinks: 'a[href*="/funding"], a[href*="/programme"], a[href*="/grants"]',
+        programTitle: 'h1, h2, .program-title',
+        programDescription: '.description, .content, p'
+      }
+    },
+    umwelt: {
+      name: 'Umweltförderung Betriebe',
+      baseUrl: 'https://www.umweltfoerderung.at',
+      priority: 2,
+      category: 'environmental',
+      enabled: true,
+      rateLimit: { requests: 5, window: 60000 },
+      robotsTxt: 'https://www.umweltfoerderung.at/robots.txt',
+      sitemap: 'https://www.umweltfoerderung.at/sitemap.xml',
+      customSelectors: {
+        programLinks: 'a[href*="/foerderung"], a[href*="/programme"], a[href*="/umwelt"]',
+        programTitle: 'h1, h2, .program-title',
+        programDescription: '.description, .content, p'
+      }
+    },
+    digital: {
+      name: 'Digital Europe Programme',
+      baseUrl: 'https://digital-strategy.ec.europa.eu/en/activities/digital-europe-programme',
+      priority: 2,
+      category: 'digital',
+      enabled: true,
+      rateLimit: { requests: 6, window: 60000 },
+      robotsTxt: 'https://digital-strategy.ec.europa.eu/robots.txt',
+      sitemap: 'https://digital-strategy.ec.europa.eu/sitemap.xml',
+      customSelectors: {
+        programLinks: 'a[href*="/funding"], a[href*="/programme"], a[href*="/digital"]',
+        programTitle: 'h1, h2, .program-title',
+        programDescription: '.description, .content, p'
+      }
+    },
+    health: {
+      name: 'EU4Health Programme',
+      baseUrl: 'https://health.ec.europa.eu/funding/eu4health-programme-2021-2027_en',
+      priority: 2,
+      category: 'health',
+      enabled: true,
+      rateLimit: { requests: 5, window: 60000 },
+      robotsTxt: 'https://health.ec.europa.eu/robots.txt',
+      sitemap: 'https://health.ec.europa.eu/sitemap.xml',
+      customSelectors: {
+        programLinks: 'a[href*="/funding"], a[href*="/programme"], a[href*="/health"]',
+        programTitle: 'h1, h2, .program-title',
+        programDescription: '.description, .content, p'
+      }
+    },
+    climate: {
+      name: 'LIFE Programme',
+      baseUrl: 'https://cinea.ec.europa.eu/life_en',
+      priority: 2,
+      category: 'climate',
+      enabled: true,
+      rateLimit: { requests: 5, window: 60000 },
+      robotsTxt: 'https://cinea.ec.europa.eu/robots.txt',
+      sitemap: 'https://cinea.ec.europa.eu/sitemap.xml',
+      customSelectors: {
+        programLinks: 'a[href*="/funding"], a[href*="/programme"], a[href*="/life"]',
+        programTitle: 'h1, h2, .program-title',
+        programDescription: '.description, .content, p'
+      }
+    },
+    energy: {
+      name: 'Horizon Europe - Energy',
+      baseUrl: 'https://ec.europa.eu/info/research-and-innovation/funding/funding-opportunities/funding-programmes-and-open-calls/horizon-europe/cluster-5-climate-energy-mobility_en',
+      priority: 2,
+      category: 'energy',
+      enabled: true,
+      rateLimit: { requests: 5, window: 60000 },
+      robotsTxt: 'https://ec.europa.eu/robots.txt',
+      sitemap: 'https://ec.europa.eu/sitemap.xml',
+      customSelectors: {
+        programLinks: 'a[href*="/funding"], a[href*="/programme"], a[href*="/energy"]',
+        programTitle: 'h1, h2, .program-title',
+        programDescription: '.description, .content, p'
+      }
+    },
+    culture: {
+      name: 'Creative Europe Programme',
+      baseUrl: 'https://culture.ec.europa.eu/creative-europe_en',
+      priority: 3,
+      category: 'culture',
+      enabled: true,
+      rateLimit: { requests: 4, window: 60000 },
+      robotsTxt: 'https://culture.ec.europa.eu/robots.txt',
+      sitemap: 'https://culture.ec.europa.eu/sitemap.xml',
+      customSelectors: {
+        programLinks: 'a[href*="/funding"], a[href*="/programme"], a[href*="/culture"]',
+        programTitle: 'h1, h2, .program-title',
+        programDescription: '.description, .content, p'
+      }
+    },
+    regional: {
+      name: 'European Regional Development Fund',
+      baseUrl: 'https://ec.europa.eu/regional_policy/en/funding/erdf/',
+      priority: 2,
+      category: 'regional_grants',
+      enabled: true,
+      rateLimit: { requests: 5, window: 60000 },
+      robotsTxt: 'https://ec.europa.eu/robots.txt',
+      sitemap: 'https://ec.europa.eu/sitemap.xml',
+      customSelectors: {
+        programLinks: 'a[href*="/funding"], a[href*="/programme"], a[href*="/erdf"]',
+        programTitle: 'h1, h2, .program-title',
+        programDescription: '.description, .content, p'
+      }
     }
   },
   scraping: {
-    timeout: 30000,
+    timeout: 10000,
     retryAttempts: 3,
-    userAgent: 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36',
+    userAgent: 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
     headless: true,
     args: [
       '--no-sandbox',
@@ -130,7 +265,19 @@ const SCRAPER_CONFIG = {
       '--no-first-run',
       '--no-zygote',
       '--single-process',
-      '--disable-gpu'
+      '--disable-gpu',
+      '--disable-blink-features=AutomationControlled',
+      '--disable-features=VizDisplayCompositor',
+      '--disable-web-security',
+      '--disable-features=TranslateUI',
+      '--disable-ipc-flooding-protection',
+      '--no-default-browser-check',
+      '--disable-extensions',
+      '--disable-plugins',
+      '--disable-images',
+      '--disable-javascript',
+      '--disable-css',
+      '--disable-fonts'
     ] as string[],
     // Enhanced scraping configuration
     rateLimiting: {
@@ -339,24 +486,28 @@ export class WebScraperService {
 
   async init(): Promise<void> {
     try {
-      console.log('🚀 Initializing browser for web scraping...');
+      console.log('🚀 Initializing browser with advanced stealth measures...');
       this.browser = await puppeteer.launch({
         headless: true,
-        args: [
-          '--no-sandbox',
-          '--disable-setuid-sandbox',
-          '--disable-dev-shm-usage',
-          '--disable-accelerated-2d-canvas',
-          '--no-first-run',
-          '--no-zygote',
-          '--single-process',
-          '--disable-gpu',
-          '--disable-web-security',
-          '--disable-features=VizDisplayCompositor'
-        ],
-        executablePath: process.env.PUPPETEER_EXECUTABLE_PATH || undefined
+        args: SCRAPER_CONFIG.scraping.args,
+        executablePath: process.env.PUPPETEER_EXECUTABLE_PATH || undefined,
+        ignoreDefaultArgs: ['--enable-automation'],
+        // ignoreHTTPSErrors: true, // Removed - not supported in current Puppeteer version
+        defaultViewport: { width: 1366, height: 768 },
+        slowMo: 100 // Add small delay between actions
       });
-      console.log('✅ Browser initialized successfully');
+      
+      // Add stealth measures to all pages
+      this.browser.on('targetcreated', async (target) => {
+        if (target.type() === 'page') {
+          const page = await target.page();
+          if (page) {
+            await this.addStealthMeasures(page);
+          }
+        }
+      });
+      
+      console.log('✅ Browser initialized with stealth measures');
     } catch (error) {
       console.error('❌ Browser initialization failed:', error);
       // Try fallback configuration
@@ -374,56 +525,127 @@ export class WebScraperService {
     }
   }
 
-  async scrapeAllPrograms(): Promise<ScrapedProgram[]> {
-    // Use enhanced scraping by default
-    if (SCRAPER_CONFIG.scraping.urlDiscovery.enabled) {
-      return await this.scrapeAllProgramsEnhanced();
+  private async addStealthMeasures(page: any): Promise<void> {
+    try {
+      // Override navigator properties
+      await page.evaluateOnNewDocument(() => {
+        Object.defineProperty(navigator, 'webdriver', {
+          get: () => undefined,
+        });
+        
+        Object.defineProperty(navigator, 'plugins', {
+          get: () => [1, 2, 3, 4, 5],
+        });
+        
+        Object.defineProperty(navigator, 'languages', {
+          get: () => ['en-US', 'en'],
+        });
+        
+        // Override chrome property
+        (window as any).chrome = {
+          runtime: {},
+        };
+        
+        // Override permissions
+        const originalQuery = window.navigator.permissions.query;
+        (window.navigator.permissions as any).query = (parameters: any) => (
+          parameters.name === 'notifications' ?
+            Promise.resolve({ state: Notification.permission }) :
+            originalQuery(parameters)
+        );
+      });
+      
+      // Set realistic viewport
+      await page.setViewport({ width: 1366, height: 768 });
+      
+      // Set realistic user agent
+      await page.setUserAgent(SCRAPER_CONFIG.scraping.userAgent);
+      
+      // Set extra headers
+      await page.setExtraHTTPHeaders({
+        'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,image/apng,*/*;q=0.8',
+        'Accept-Language': 'en-US,en;q=0.9',
+        'Accept-Encoding': 'gzip, deflate, br',
+        'DNT': '1',
+        'Connection': 'keep-alive',
+        'Upgrade-Insecure-Requests': '1',
+      });
+      
+      console.log('✅ Stealth measures applied to page');
+    } catch (error) {
+      console.error('❌ Failed to apply stealth measures:', error);
     }
+  }
+
+  async scrapeAllPrograms(): Promise<ScrapedProgram[]> {
+    console.log('🚀 Starting web scraper with enhanced reliability...');
     
-    // Fallback to original method
-    const programs: ScrapedProgram[] = [];
+    let programs: ScrapedProgram[] = [];
     
     try {
-      // Try browser-based scraping first
-      if (this.browser) {
-        console.log('🌐 Using browser-based scraping...');
-        const austrianPrograms = await this.scrapeAustrianPrograms();
-        const euPrograms = await this.scrapeEUPrograms();
-        return [...austrianPrograms, ...euPrograms];
+      // Use enhanced scraping by default
+      if (SCRAPER_CONFIG.scraping.urlDiscovery.enabled) {
+        programs = await this.scrapeAllProgramsEnhanced();
       } else {
-        // Fallback to API-based scraping (no browser needed)
-        console.log('📡 Using API-based scraping (fallback)...');
-        return await this.scrapeProgramsViaAPI();
+        // Fallback to original method
+        try {
+          // Try browser-based scraping first
+          if (this.browser) {
+            console.log('🌐 Using browser-based scraping...');
+            const austrianPrograms = await this.scrapeAustrianPrograms();
+            const euPrograms = await this.scrapeEUPrograms();
+            programs = [...austrianPrograms, ...euPrograms];
+          } else {
+            // Fallback to API-based scraping (no browser needed)
+            console.log('📡 Using API-based scraping (fallback)...');
+            programs = await this.scrapeProgramsViaAPI();
+          }
+          
+          console.log(`✅ Scraped ${programs.length} programs total`);
+          
+          // Direct integration with categorization
+          console.log('🔄 Categorizing scraped programs...');
+          const categorizedPrograms = await Promise.all(
+            programs.map(async (program) => {
+              const categorizedRequirements = await this.categorizeScrapedData(program);
+              return {
+                ...program,
+                categorized_requirements: categorizedRequirements
+              };
+            })
+          );
+          
+          console.log(`✅ Categorized ${categorizedPrograms.length} programs`);
+          programs = categorizedPrograms;
+        } catch (error) {
+          console.error('❌ Error scraping programs:', error);
+          // Fallback to API-based scraping
+          console.log('🔄 Falling back to API-based scraping...');
+          try {
+            const fallbackPrograms = await this.scrapeProgramsViaAPI();
+            console.log(`✅ Fallback scraped ${fallbackPrograms.length} programs`);
+            programs = fallbackPrograms;
+          } catch (fallbackError) {
+            console.error('❌ Fallback scraping also failed:', fallbackError);
+            throw error;
+          }
+        }
       }
       
-      console.log(`✅ Scraped ${programs.length} programs total`);
+      // STEP 1.1: Save output to local JSON file for reliability
+      await this.saveScrapedData(programs);
       
-      // Direct integration with categorization
-      console.log('🔄 Categorizing scraped programs...');
-      const categorizedPrograms = await Promise.all(
-        programs.map(async (program) => {
-          const categorizedRequirements = await this.categorizeScrapedData(program);
-          return {
-            ...program,
-            categorized_requirements: categorizedRequirements
-          };
-        })
-      );
+      console.log(`✅ Successfully processed ${programs.length} programs`);
+      return programs;
       
-      console.log(`✅ Categorized ${categorizedPrograms.length} programs`);
-      return categorizedPrograms;
     } catch (error) {
-      console.error('❌ Error scraping programs:', error);
-      // Fallback to API-based scraping
-      console.log('🔄 Falling back to API-based scraping...');
-      try {
-        const fallbackPrograms = await this.scrapeProgramsViaAPI();
-        console.log(`✅ Fallback scraped ${fallbackPrograms.length} programs`);
-        return fallbackPrograms;
-      } catch (fallbackError) {
-        console.error('❌ Fallback scraping also failed:', fallbackError);
-        throw error;
-      }
+      console.error('❌ All scraping methods failed, loading fallback data:', error);
+      
+      // Load fallback data if all scraping fails
+      programs = await this.loadFallbackData();
+      console.log(`📁 Loaded ${programs.length} programs from fallback data`);
+      
+      return programs;
     }
   }
 
@@ -1489,11 +1711,11 @@ export class WebScraperService {
         return document.body.textContent || '';
       });
       
-      // Use dynamic pattern engine for extraction
+      // Use dynamic pattern engine for extraction with enhanced categories
       const extractedRequirements = await dynamicPatternEngine.extractRequirements(
         content,
         institution.toLowerCase(),
-        ['co_financing', 'trl_level', 'impact', 'consortium', 'capex_opex', 'use_of_funds', 'revenue_model', 'market_size']
+        ['co_financing', 'trl_level', 'impact', 'consortium', 'capex_opex', 'use_of_funds', 'revenue_model', 'market_size', 'geographic', 'target_group', 'industry'] as const
       );
       
       const requirements: any = {};
@@ -1988,30 +2210,36 @@ export class WebScraperService {
     const urls: string[] = [];
     
     try {
-      // Common program page patterns
+      // Austrian/German program page patterns (corrected)
       const patterns = [
-        '/foerderung',
-        '/programme',
-        '/funding',
-        '/grants',
-        '/stipendien',
-        '/beihilfen',
-        '/subventionen',
-        '/hilfe',
-        '/support',
-        '/finanzierung'
+        '/foerderung',           // German: funding
+        '/programme',            // German: programs  
+        '/stipendien',           // German: scholarships
+        '/beihilfen',            // German: subsidies
+        '/subventionen',         // German: subsidies
+        '/finanzierung',         // German: financing
+        '/hilfe',                // German: help
+        '/unterstuetzung',       // German: support
+        '/foerderprogramme',     // German: funding programs
+        '/innovationsfoerderung' // German: innovation funding
       ];
       
       for (const pattern of patterns) {
         try {
           const testUrl = new URL(pattern, institution.baseUrl).href;
-          await page.goto(testUrl, { waitUntil: 'networkidle2', timeout: 10000 });
+          await page.goto(testUrl, { waitUntil: 'domcontentloaded', timeout: 5000 });
           
-          // Check if page exists and has content
+          // Check if page exists and has valid content (not 404)
           const content = await page.content();
-          if (content.length > 1000) { // Basic content check
+          const title = await page.title().catch(() => '');
+          const is404 = content.includes('404') || content.includes('nicht gefunden') || 
+                       content.includes('Seite nicht gefunden') || title.includes('404');
+          
+          if (content.length > 1000 && !is404) { // Valid content and not 404
             urls.push(testUrl);
             console.log(`🎯 Found program page: ${testUrl}`);
+          } else if (is404) {
+            console.log(`❌ 404 page detected: ${testUrl}`);
           }
         } catch (patternError) {
           // Pattern doesn't exist, continue
@@ -2171,6 +2399,17 @@ export class WebScraperService {
     // Required fields validation
     if (!program.name || program.name.length < 3) {
       errors.push('Program name is too short or missing');
+    }
+    
+    // Reject 404 pages and error pages
+    if (program.name && (
+      program.name.includes('404') || 
+      program.name.includes('nicht gefunden') || 
+      program.name.includes('Seite nicht gefunden') ||
+      program.name.includes('Error') ||
+      program.name.includes('Not Found')
+    )) {
+      errors.push('Program appears to be a 404 or error page');
     }
     
     if (!program.description || program.description.length < 10) {
@@ -3658,5 +3897,79 @@ export class WebScraperService {
     }
     
     return compliance;
+  }
+
+  // STEP 1.1: Enhanced reliability methods
+  private async saveScrapedData(programs: ScrapedProgram[]): Promise<void> {
+    try {
+      const fs = require('fs');
+      const path = require('path');
+      
+      // Create data directory if it doesn't exist
+      const dataDir = path.join(process.cwd(), 'data');
+      if (!fs.existsSync(dataDir)) {
+        fs.mkdirSync(dataDir, { recursive: true });
+      }
+      
+      // Save scraped data with timestamp
+      const timestamp = new Date().toISOString().split('T')[0];
+      const filename = `scraped-programs-${timestamp}.json`;
+      const filepath = path.join(dataDir, filename);
+      
+      const dataToSave = {
+        timestamp: new Date().toISOString(),
+        totalPrograms: programs.length,
+        programs: programs,
+        metadata: {
+          scraperVersion: '1.0.0',
+          institutions: Object.keys(SCRAPER_CONFIG.institutions),
+          categories: [...new Set(programs.map(p => p.category || p.program_category))],
+          totalFunding: programs.reduce((sum, p) => sum + (p.max_funding_amount || p.funding_amount_max || 0), 0)
+        }
+      };
+      
+      fs.writeFileSync(filepath, JSON.stringify(dataToSave, null, 2));
+      console.log(`💾 Saved ${programs.length} programs to ${filename}`);
+      
+      // Also save as latest for easy access
+      const latestFilepath = path.join(dataDir, 'scraped-programs-latest.json');
+      fs.writeFileSync(latestFilepath, JSON.stringify(dataToSave, null, 2));
+      console.log(`💾 Saved latest data to scraped-programs-latest.json`);
+      
+    } catch (error) {
+      console.error('❌ Failed to save scraped data:', error);
+      // Don't throw - this is not critical
+    }
+  }
+
+  private async loadFallbackData(): Promise<ScrapedProgram[]> {
+    try {
+      const fs = require('fs');
+      const path = require('path');
+      
+      // Try to load latest scraped data first
+      const latestFilepath = path.join(process.cwd(), 'data', 'scraped-programs-latest.json');
+      if (fs.existsSync(latestFilepath)) {
+        const data = JSON.parse(fs.readFileSync(latestFilepath, 'utf8'));
+        console.log(`📁 Loaded ${data.programs.length} programs from latest scraped data`);
+        return data.programs;
+      }
+      
+      // Fallback to original fallback data
+      const fallbackFilepath = path.join(process.cwd(), 'data', 'fallback-programs.json');
+      if (fs.existsSync(fallbackFilepath)) {
+        const data = JSON.parse(fs.readFileSync(fallbackFilepath, 'utf8'));
+        console.log(`📁 Loaded ${data.length} programs from fallback data`);
+        return data;
+      }
+      
+      // Last resort - return empty array
+      console.log('⚠️ No fallback data available, returning empty array');
+      return [];
+      
+    } catch (error) {
+      console.error('❌ Failed to load fallback data:', error);
+      return [];
+    }
   }
 }

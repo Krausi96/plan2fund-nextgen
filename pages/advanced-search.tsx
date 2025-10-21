@@ -3,9 +3,20 @@ import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import Link from 'next/link';
 // Removed framer-motion import - using CSS animations instead
-import { Chip } from '@/lib/aiChipParser';
+// import { Chip } from '@/lib/aiChipParser'; // Removed - file deleted
 import { useRecommendation } from '@/contexts/RecommendationContext';
 import { useI18n } from '@/contexts/I18nContext';
+
+// Define Chip type locally since aiChipParser was deleted
+interface Chip {
+  id: string;
+  text: string;
+  value: string;
+  label: string;
+  type: 'keyword' | 'category' | 'filter';
+  removable?: boolean;
+  required?: boolean;
+}
 
 export default function AdvancedSearch() {
   const { t } = useI18n();

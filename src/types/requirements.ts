@@ -36,7 +36,11 @@ export type RequirementCategory =
   | 'market_size'     // Market potential and size
   | 'co_financing'    // Co-financing requirements and ratios
   | 'trl_level'       // Technology readiness level (1-9)
-  | 'consortium';     // Partnership and consortium requirements
+  | 'consortium'      // Partnership and consortium requirements
+  | 'funding_type'    // Type of funding (grant, loan, equity, etc.)
+  | 'program_category' // Program category (research, startup, etc.)
+  | 'target_group'    // Target audience (startups, SMEs, etc.)
+  | 'industry';       // Industry-specific requirements
 
 export type RequirementType = 
   | 'boolean'         // Yes/No requirement
@@ -333,6 +337,30 @@ export interface ProgramExtractionTemplate {
       examples?: string[];
     }>;
     consortium: Array<{
+      title: string;
+      description: string;
+      isRequired: boolean;
+      examples?: string[];
+    }>;
+    funding_type: Array<{
+      title: string;
+      description: string;
+      isRequired: boolean;
+      examples?: string[];
+    }>;
+    program_category: Array<{
+      title: string;
+      description: string;
+      isRequired: boolean;
+      examples?: string[];
+    }>;
+    target_group: Array<{
+      title: string;
+      description: string;
+      isRequired: boolean;
+      examples?: string[];
+    }>;
+    industry: Array<{
       title: string;
       description: string;
       isRequired: boolean;

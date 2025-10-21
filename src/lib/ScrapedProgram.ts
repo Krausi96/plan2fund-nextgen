@@ -11,11 +11,13 @@ export interface ScrapedProgram {
   program_type: 'grant' | 'loan' | 'equity' | 'visa' | 'consulting' | 'service' | 'other';
   funding_amount_min?: number;
   funding_amount_max?: number;
+  max_funding_amount?: number; // Alias for funding_amount_max
   currency?: string;
   deadline?: Date;
   source_url: string;
   institution: string;
   program_category: string;
+  category?: string; // Alias for program_category
   eligibility_criteria: any;
   requirements: any;
   contact_info: any;

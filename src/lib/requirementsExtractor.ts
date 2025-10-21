@@ -41,7 +41,11 @@ export class RequirementsExtractor {
         market_size: [],
         co_financing: [],
         trl_level: [],
-        consortium: []
+        consortium: [],
+        funding_type: [],
+        program_category: [],
+        target_group: [],
+        industry: []
       },
       questions: [],
       editorSections: []

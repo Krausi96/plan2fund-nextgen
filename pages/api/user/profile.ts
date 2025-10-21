@@ -1,7 +1,6 @@
 // User Profile API Endpoints
 import type { NextApiRequest, NextApiResponse } from 'next';
 import { validateUserProfile } from '@/lib/schemas/userProfile';
-import airtable from '@/lib/airtable';
 import analytics from '@/lib/analytics';
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
@@ -31,14 +30,14 @@ async function createUserProfile(req: NextApiRequest, res: NextApiResponse) {
       return res.status(400).json({ error: 'Invalid profile data' });
     }
 
-    // Check if profile already exists
-    const existingProfile = await airtable.getUserProfile(validatedProfile.id);
-    if (existingProfile) {
-      return res.status(409).json({ error: 'Profile already exists' });
-    }
+    // TODO: Check if profile already exists (airtable removed)
+    // const existingProfile = await airtable.getUserProfile(validatedProfile.id);
+    // if (existingProfile) {
+    //   return res.status(409).json({ error: 'Profile already exists' });
+    // }
 
-    // Create profile in Airtable
-    const profileId = await airtable.createUserProfile(validatedProfile);
+    // TODO: Create profile in database (airtable removed)
+    const profileId = validatedProfile.id;
     
     // Track analytics
     await analytics.trackOnboardingComplete(validatedProfile);
@@ -62,7 +61,11 @@ async function getUserProfile(req: NextApiRequest, res: NextApiResponse) {
       return res.status(400).json({ error: 'User ID is required' });
     }
 
-    const profile = await airtable.getUserProfile(userId);
+    // TODO: Get profile from database (airtable removed)
+    // const profile = await airtable.getUserProfile(userId);
+    
+    // Mock response for now
+    const profile = { id: userId, segment: 'B2C_FOUNDER' as const };
     
     if (!profile) {
       return res.status(404).json({ error: 'Profile not found' });
@@ -81,13 +84,16 @@ async function getUserProfile(req: NextApiRequest, res: NextApiResponse) {
 async function updateUserProfile(req: NextApiRequest, res: NextApiResponse) {
   try {
     const { userId } = req.query;
-    const updates = req.body;
+    const updates = req.body; // TODO: Use updates when database is implemented
     
     if (!userId || typeof userId !== 'string') {
       return res.status(400).json({ error: 'User ID is required' });
     }
 
-    const success = await airtable.updateUserProfile(userId, updates);
+    // TODO: Update profile in database (airtable removed)
+    // const success = await airtable.updateUserProfile(userId, updates);
+    console.log('Mock: Updating profile for user', userId, 'with updates:', updates);
+    const success = true; // Mock success
     
     if (!success) {
       return res.status(404).json({ error: 'Profile not found' });
@@ -111,8 +117,9 @@ async function deleteUserProfile(req: NextApiRequest, res: NextApiResponse) {
       return res.status(400).json({ error: 'User ID is required' });
     }
 
-    // GDPR compliance - delete all user data
-    const success = await airtable.deleteUserData(userId);
+    // TODO: GDPR compliance - delete all user data (airtable removed)
+    // const success = await airtable.deleteUserData(userId);
+    const success = true; // Mock success
     
     if (!success) {
       return res.status(404).json({ error: 'Profile not found' });

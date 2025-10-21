@@ -3,6 +3,7 @@
 
 import { EditorProduct, EditorTemplate, UnifiedEditorSection, EditorProgress, SectionProgress } from '../../types/editor';
 import { EditorDataProvider } from './EditorDataProvider';
+import { PRODUCT_SECTION_TEMPLATES } from '../templates/productSectionTemplates';
 
 export class EditorEngine {
   private dataProvider: EditorDataProvider;
@@ -55,16 +56,122 @@ export class EditorEngine {
    * Load sections for a product and template combination
    */
   async loadSections(productId: string, templateId?: string): Promise<UnifiedEditorSection[]> {
-    const product = await this.loadProduct(productId);
-    let sections = product.sections || [];
+    try {
+      // Try to load from program data first
+      const product = await this.loadProduct(productId);
+      let sections = product.sections || [];
 
-    // If template is specified, merge with template sections
-    if (templateId) {
-      const template = await this.loadTemplate(templateId);
-      sections = this.mergeSections(sections, template.sections);
+      // If template is specified, merge with template sections
+      if (templateId) {
+        const template = await this.loadTemplate(templateId);
+        sections = this.mergeSections(sections, template.sections);
+      }
+
+      // If we have sections from program data, return them
+      if (sections.length > 0) {
+        return sections;
+      }
+    } catch (error) {
+      console.log('No program data available, using template system');
     }
 
-    return sections;
+    // Fallback to template system based on product type
+    return this.loadSectionsFromTemplates(productId, templateId);
+  }
+
+  /**
+   * Load sections from template system when program data is not available
+   */
+  private loadSectionsFromTemplates(productId: string, templateId?: string): UnifiedEditorSection[] {
+    // Map productId to product type (this could be improved with a mapping)
+    const productType = this.mapProductIdToType(productId);
+    const fundingType = templateId ? this.mapTemplateIdToFundingType(templateId) : 'grants';
+    
+    // Get template for product type and funding type
+    const template = PRODUCT_SECTION_TEMPLATES[productType]?.[fundingType];
+    
+    if (!template) {
+      console.warn(`No template found for productType: ${productType}, fundingType: ${fundingType}`);
+      return this.getDefaultSections();
+    }
+
+    // Convert template sections to UnifiedEditorSection format
+    return template.sections.map(section => ({
+      id: section.id,
+      title: section.title,
+      required: section.required,
+      template: section.prompts.join(' ') || '',
+      guidance: section.description,
+      requirements: [section.category],
+      prefillData: {},
+      section_name: section.title,
+      description: section.description,
+      word_count_min: section.wordCountMin,
+      word_count_max: section.wordCountMax,
+      ai_guidance: section.prompts.join(' '),
+      hints: section.prompts
+    }));
+  }
+
+  /**
+   * Map product ID to product type
+   */
+  private mapProductIdToType(productId: string): 'strategy' | 'review' | 'submission' {
+    // This is a simple mapping - could be improved with a proper mapping system
+    if (productId.includes('strategy') || productId.includes('Strategy')) return 'strategy';
+    if (productId.includes('review') || productId.includes('Review')) return 'review';
+    if (productId.includes('submission') || productId.includes('Submission')) return 'submission';
+    return 'strategy'; // Default
+  }
+
+  /**
+   * Map template ID to funding type
+   */
+  private mapTemplateIdToFundingType(templateId: string): 'grants' | 'bankLoans' | 'equity' | 'visa' {
+    // This is a simple mapping - could be improved with a proper mapping system
+    if (templateId.includes('grant') || templateId.includes('Grant')) return 'grants';
+    if (templateId.includes('loan') || templateId.includes('Loan')) return 'bankLoans';
+    if (templateId.includes('equity') || templateId.includes('Equity')) return 'equity';
+    if (templateId.includes('visa') || templateId.includes('Visa')) return 'visa';
+    return 'grants'; // Default
+  }
+
+  /**
+   * Get default sections when no template is available
+   */
+  private getDefaultSections(): UnifiedEditorSection[] {
+    return [
+      {
+        id: 'executive-summary',
+        title: 'Executive Summary',
+        required: true,
+        template: '',
+        guidance: 'Brief overview of your business plan',
+        requirements: [],
+        prefillData: {},
+        section_name: 'Executive Summary',
+        description: 'Brief overview of your business plan',
+        word_count_min: 150,
+        word_count_max: 300,
+        ai_guidance: 'Focus on key value propositions and market opportunity',
+        hints: ['Keep it concise and compelling']
+      },
+      {
+        id: 'project-description',
+        title: 'Project Description',
+        required: true,
+        template: '',
+        guidance: 'Detailed description of your project',
+        requirements: [],
+        prefillData: {},
+        section_name: 'Project Description',
+        description: 'Detailed description of your project',
+        word_count_min: 300,
+        word_count_max: 800,
+        ai_guidance: 'Explain the problem you solve and how',
+        hints: ['Be specific about your solution']
+      }
+    ];
   }
 
   /**
