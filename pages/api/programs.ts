@@ -1,8 +1,9 @@
-// Programs API endpoint with GPT-enhanced data
+// Programs API endpoint with Enhanced Data Pipeline Integration
 import { NextApiRequest, NextApiResponse } from 'next';
 import { Pool } from 'pg';
 import fs from 'fs';
 import path from 'path';
+import { enhancedDataPipeline } from '../../src/lib/enhancedDataPipeline';
 
 // AI Field Generation Functions
 // function generateTargetPersonas(program: any): string[] {
@@ -104,15 +105,95 @@ function getFallbackData() {
   }
 }
 
+// NEW: Get programs using Enhanced Data Pipeline (Step 1.3)
+async function getProgramsFromEnhancedPipeline(type?: string): Promise<any[]> {
+  try {
+    console.log('🔄 Using Enhanced Data Pipeline for program processing...');
+    
+    // Get processed programs from the pipeline
+    const processedPrograms = await enhancedDataPipeline.getProcessedPrograms();
+    
+    console.log(`✅ Enhanced Pipeline: ${processedPrograms.length} programs processed`);
+    
+    // Filter by type if specified
+    let filteredPrograms = processedPrograms;
+    if (type) {
+      filteredPrograms = processedPrograms.filter(program => 
+        program.type === type || program.program_type === type
+      );
+    }
+    
+    // Convert to API format
+    const apiPrograms = filteredPrograms.map(program => ({
+      id: program.id,
+      name: program.name,
+      type: program.type || program.program_type || 'grant',
+      requirements: program.requirements || {},
+      notes: program.description || '',
+      maxAmount: program.funding_amount_max || 0,
+      minAmount: program.funding_amount_min || 0,
+      currency: program.currency || 'EUR',
+      link: program.source_url || '',
+      deadline: program.deadline,
+      isActive: program.is_active !== false,
+      scrapedAt: program.scraped_at,
+      // Enhanced fields from pipeline
+      target_personas: program.target_personas || [],
+      tags: program.tags || [],
+      decision_tree_questions: program.decision_tree_questions || [],
+      editor_sections: program.editor_sections || [],
+      readiness_criteria: program.readiness_criteria || [],
+      ai_guidance: program.ai_guidance || null,
+      categorized_requirements: program.categorized_requirements || {},
+      // Quality metrics
+      quality_score: program.quality_score,
+      confidence_level: program.confidence_level,
+      processed_at: program.processed_at
+    }));
+    
+    console.log(`✅ Enhanced Pipeline: Converted ${apiPrograms.length} programs to API format`);
+    return apiPrograms;
+    
+  } catch (error) {
+    console.error('Enhanced Data Pipeline error:', error);
+    throw error;
+  }
+}
+
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   if (req.method !== 'GET') {
     return res.status(405).json({ error: 'Method not allowed' });
   }
 
   try {
-    const { type, enhanced } = req.query;
+    const { type, enhanced, source } = req.query;
     
-    // If enhanced data is requested, use database with AI enhancement
+    // STEP 1.3: Use Enhanced Data Pipeline for intelligent data source
+    if (enhanced === 'true' || source === 'pipeline') {
+      try {
+        console.log('🔄 Using Enhanced Data Pipeline (Step 1.3)...');
+        const programs = await getProgramsFromEnhancedPipeline(type as string);
+        
+        return res.status(200).json({
+          success: true,
+          programs,
+          source: 'enhanced_pipeline',
+          total: programs.length,
+          timestamp: new Date().toISOString(),
+          pipeline: {
+            quality_scores: programs.map(p => p.quality_score),
+            confidence_levels: programs.map(p => p.confidence_level),
+            categories_applied: true,
+            dynamic_learning: true
+          }
+        });
+      } catch (error) {
+        console.error('Enhanced Pipeline failed, falling back to database:', error);
+        // Fall through to database fallback
+      }
+    }
+    
+    // Fallback: If enhanced data is requested, use database with AI enhancement
     if (enhanced === 'true') {
       try {
         console.log('🔍 Fetching enhanced programs from database...');

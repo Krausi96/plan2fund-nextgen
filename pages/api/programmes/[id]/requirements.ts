@@ -65,13 +65,12 @@ async function getProgramRequirements(programId: string) {
       // Use decision tree engine to generate questions from categorized data
       const categorizedRequirements = program.categorized_requirements as CategorizedRequirements;
       
-      // Import decision tree engine
-      const { createDecisionTreeEngine } = await import('../../../../src/lib/dynamicDecisionTree');
+      // Import question engine
+      const { QuestionEngine } = await import('../../../../src/lib/questionEngine');
       
-      // Create decision tree from program data
-      const decisionTreeEngine = createDecisionTreeEngine([program]);
-      const decisionTreeResult = decisionTreeEngine.generateDecisionTree(programId);
-      const decisionTree = decisionTreeResult.questions;
+      // Create question engine from program data
+      const questionEngine = new QuestionEngine([program]);
+      const decisionTree = questionEngine.getCoreQuestions();
       
       // Determine program type for template selection
       const programType = program.program_type || 'grants';

@@ -1,6 +1,6 @@
 // Enhanced Data Source - GPT-Enhanced with AI features
-import { Program } from "../types";
-// import { enhancedDataPipeline } from './enhancedDataPipeline';
+import { Program } from "../types/requirements";
+import { enhancedDataPipeline } from './enhancedDataPipeline';
 
 // GPT-Enhanced Program interface
 export interface GPTEnhancedProgram extends Program {
@@ -72,34 +72,66 @@ class HybridDataSource implements ProgramDataSource {
     await this.initialize();
     
     try {
-      // Use proper API layer (Layer 4) instead of calling scraper directly
-      const baseUrl = process.env.VERCEL_URL 
-        ? `https://${process.env.VERCEL_URL}` 
-        : 'http://localhost:3000';
+      // STEP 1.3: Use Enhanced Data Pipeline as primary data source
+      console.log('🔄 Using Enhanced Data Pipeline as primary data source...');
+      const processedPrograms = await enhancedDataPipeline.getProcessedPrograms();
       
-      console.log('🌐 Fetching programs from API layer...');
-      const response = await fetch(`${baseUrl}/api/programs`, {
-        headers: {
-          'Content-Type': 'application/json',
-          'Cache-Control': 'no-cache'
-        }
-      });
-      
-      if (!response.ok) throw new Error(`Failed to fetch programs from API: ${response.status}`);
-      const data = await response.json();
-      
-      if (data.success && data.programs && data.programs.length > 0) {
-        console.log(`✅ Got ${data.programs.length} programs from API (${data.source})`);
-        return data.programs;
+      if (processedPrograms && processedPrograms.length > 0) {
+        console.log(`✅ Enhanced Pipeline: ${processedPrograms.length} programs processed`);
+        
+        // Convert to Program format
+        const programs: Program[] = processedPrograms.map(program => ({
+          id: program.id,
+          name: program.name,
+          type: program.type || program.program_type || 'grant',
+          program_type: program.type || program.program_type || 'grant',
+          program_category: program.program_category || 'general',
+          requirements: program.requirements || {},
+          notes: program.description || '',
+          maxAmount: program.funding_amount_max || 0,
+          link: program.source_url || '',
+          deadline: program.deadline,
+          isActive: program.is_active !== false,
+          scrapedAt: program.scraped_at
+        }));
+        
+        return programs;
       }
       
-      throw new Error('No programs found in API response');
+      throw new Error('No programs found in Enhanced Data Pipeline');
     } catch (error) {
-      console.error('Error fetching programs from API:', error);
+      console.error('Enhanced Data Pipeline failed, falling back to API:', error);
       
-      // Fallback to migrated programs with AI metadata
-      console.log('🔄 Using migrated programs with AI metadata...');
-      return this.getMigratedPrograms();
+      try {
+        // Fallback to API layer
+        const baseUrl = process.env.VERCEL_URL 
+          ? `https://${process.env.VERCEL_URL}` 
+          : 'http://localhost:3000';
+        
+        console.log('🌐 Fetching programs from API layer...');
+        const response = await fetch(`${baseUrl}/api/programs`, {
+          headers: {
+            'Content-Type': 'application/json',
+            'Cache-Control': 'no-cache'
+          }
+        });
+        
+        if (!response.ok) throw new Error(`Failed to fetch programs from API: ${response.status}`);
+        const data = await response.json();
+        
+        if (data.success && data.programs && data.programs.length > 0) {
+          console.log(`✅ Got ${data.programs.length} programs from API (${data.source})`);
+          return data.programs;
+        }
+        
+        throw new Error('No programs found in API response');
+      } catch (apiError) {
+        console.error('API fallback failed:', apiError);
+        
+        // Final fallback to migrated programs
+        console.log('🔄 Using migrated programs with AI metadata...');
+        return this.getMigratedPrograms();
+      }
     }
   }
 

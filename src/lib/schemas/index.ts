@@ -41,5 +41,8 @@ export function answersSchemaParse(a: any): AnswersInput {
   return a as AnswersInput
 }
 
+// Consolidated from src/types.ts
+export type UserAnswers = Record<string, any>;
+
 
 

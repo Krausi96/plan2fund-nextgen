@@ -460,7 +460,7 @@ export interface EnhancedRequirement {
   extracted_at: Date;
 }
 
-// Program Types (7 total)
+// Program Types (7 total) - Consolidated from src/types.ts
 export type ProgramType = 
   | 'grant'        // Non-repayable funding
   | 'loan'         // Repayable funding with interest
@@ -469,6 +469,44 @@ export type ProgramType =
   | 'consulting'   // Advisory services
   | 'service'      // Support services
   | 'other';       // Hybrid or specialized instruments
+
+// Consolidated from src/types.ts
+export type Program = {
+  id: string;
+  name: string;
+  type: ProgramType;
+  program_type: ProgramType;
+  program_category: string;
+  requirements: Record<string, any>;
+  notes?: string;
+  maxAmount?: number;
+  link?: string;
+  // GPT-enhanced fields
+  target_personas?: string[];
+  tags?: string[];
+  decision_tree_questions?: any[];
+  editor_sections?: any[];
+  readiness_criteria?: any[];
+  ai_guidance?: any;
+  // Layer 1&2 categorized requirements
+  categorized_requirements?: any;
+};
+
+export type ScoredProgram = Program & {
+  score: number;
+  reason: string;
+  eligibility: string;
+  confidence: "High" | "Medium" | "Low";
+  unmetRequirements?: string[];
+  source?: string;
+  scores?: {
+    fit: number;
+    readiness: number;
+    effort: number;
+    confidence: number;
+  };
+  why?: string[];
+};
 
 // Program Categories (50+ total)
 export type ProgramCategory = 

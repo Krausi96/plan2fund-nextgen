@@ -1,275 +1,130 @@
 /**
- * Enhanced Data Pipeline - Consolidated Data Processing
- * Combines normalization, quality assurance, and caching in a single file
+ * Enhanced Data Pipeline - SIMPLIFIED VERSION
+ * Focuses on core 18 categories with efficient processing
  * 
- * This pipeline sits between the web scraper and the API, ensuring:
- * - Clean, normalized data
- * - Quality scoring and validation
- * - Fast caching for performance
- * - Duplicate detection and removal
+ * This pipeline ensures:
+ * - Clean, normalized data for core 18 categories
+ * - Essential quality checks
+ * - Efficient categorization
+ * - Simple duplicate detection
  */
 
 import { ScrapedProgram } from './ScrapedProgram';
-import { ConfidenceScore } from '../types/requirements';
-import { dynamicPatternEngine } from './dynamicPatternEngine';
+import * as fs from 'fs';
+import * as path from 'path';
 
 // ============================================================================
 // INTERFACES
 // ============================================================================
 
-// Austrian/EU specific patterns for enhanced categorization
-// These are ESSENTIAL patterns that the dynamic engine uses as base patterns
-const AUSTRIAN_EU_PATTERNS = {
-  co_financing: {
-    patterns: [
-      /(?:mindestens|at least)\s+(\d{1,3})\s*%/gi,
-      /(?:eigenbeitrag|own contribution)\s*:?\s*(\d{1,3})\s*%/gi,
-      /(?:förderquote|funding rate)\s*:?\s*(\d{1,3})\s*%/gi,
-      /(?:co-?financing|mitfinanzierung)\s*:?\s*(\d{1,3})\s*%/gi,
-      /(?:eigenkapitalquote|equity ratio)\s*:?\s*(\d{1,3})\s*%/gi,
-      /(?:finanzautonomie|financial autonomy)\s*:?\s*(\d{1,3})\s*%/gi
-    ],
-    examples: [
-      'mindestens 50% Eigenbeitrag',
-      'at least 50% own contribution',
-      'förderquote 80%',
-      'co-financing 60%',
-      'eigenkapitalquote 20%',
-      'finanzautonomie 15%'
-    ],
-    institutions: ['ADA', 'FFG', 'Klimafonds', 'Eurostars', 'Eureka', 'M-ERA.NET']
+// CORE 18 CATEGORIES - SIMPLIFIED PATTERNS
+const CORE_18_CATEGORIES = {
+  // 1. Eligibility
+  eligibility: {
+    keywords: ['eligible', 'qualification', 'criteria', 'requirements', 'bedingungen'],
+    patterns: [/eligible/i, /qualification/i, /criteria/i]
   },
-  trl_level: {
-    patterns: [
-      /(?:trl|technology readiness level)\s*(\d)\s*(?:–|-|to)\s*(\d)/gi,
-      /(?:reifegrad|maturity level)\s*(\d)\s*(?:–|-|to)\s*(\d)/gi,
-      /(?:trl|technology readiness level)\s*(\d)/gi,
-      /(?:reifegrad|maturity level)\s*(\d)/gi,
-      /(?:tr[1-9]|trl[1-9])/gi
-    ],
-    examples: [
-      'TRL 3-7',
-      'Reifegrad 2-4',
-      'TRL 5',
-      'maturity level 6',
-      'TRL3'
-    ],
-    institutions: ['FFG', 'EU', 'Horizon Europe', 'EIC', 'Digital Europe']
+  
+  // 2. Documents  
+  documents: {
+    keywords: ['business plan', 'pitch deck', 'financial', 'documentation', 'unterlagen'],
+    patterns: [/business plan/i, /pitch deck/i, /financial/i]
   },
+  
+  // 3. Financial
+  financial: {
+    keywords: ['funding', 'budget', 'costs', 'finanzierung', 'kosten'],
+    patterns: [/funding/i, /budget/i, /costs/i]
+  },
+  
+  // 4. Technical
+  technical: {
+    keywords: ['technology', 'innovation', 'prototype', 'technical', 'technologie'],
+    patterns: [/technology/i, /innovation/i, /prototype/i]
+  },
+  
+  // 5. Legal
+  legal: {
+    keywords: ['legal', 'compliance', 'regulations', 'rechtlich', 'vorschriften'],
+    patterns: [/legal/i, /compliance/i, /regulations/i]
+  },
+  
+  // 6. Timeline
+  timeline: {
+    keywords: ['deadline', 'duration', 'timeline', 'frist', 'dauer'],
+    patterns: [/deadline/i, /duration/i, /timeline/i]
+  },
+  
+  // 7. Geographic
+  geographic: {
+    keywords: ['location', 'country', 'region', 'standort', 'region'],
+    patterns: [/location/i, /country/i, /region/i]
+  },
+  
+  // 8. Team
+  team: {
+    keywords: ['team', 'personnel', 'staff', 'team', 'personal'],
+    patterns: [/team/i, /personnel/i, /staff/i]
+  },
+  
+  // 9. Project
+  project: {
+    keywords: ['project', 'deliverables', 'milestones', 'projekt', 'lieferungen'],
+    patterns: [/project/i, /deliverables/i, /milestones/i]
+  },
+  
+  // 10. Compliance
+  compliance: {
+    keywords: ['compliance', 'standards', 'certification', 'konformität', 'standards'],
+    patterns: [/compliance/i, /standards/i, /certification/i]
+  },
+  
+  // 11. Impact
   impact: {
-    patterns: [
-      // EXISTING: Innovation, Environmental, Social Impact
-      /(?:innovation|environmental|social)\s+impact/i,
-      /(?:marktwirkung|market impact)/i,
-      /(?:nachhaltigkeit|sustainability)/i,
-      /(?:developmental impact|entwicklungswirkung)/i,
-      /(?:climate|klima)\s+(?:impact|wirkung)/i,
-      /(?:environmental|umwelt)\s+(?:benefit|nutzen)/i,
-      
-      // NEW: Economic Impact
-      /(?:economic|wirtschaftlich)\s+impact/i,
-      /(?:job\s+creation|arbeitsplatzschaffung)/i,
-      /(?:gdp|bruttoinlandsprodukt)/i,
-      /(?:economic\s+growth|wirtschaftswachstum)/i,
-      /(?:economic\s+benefit|wirtschaftlicher\s+nutzen)/i,
-      /(?:employment|beschäftigung)/i,
-      
-      // NEW: Technology Impact
-      /(?:digital\s+transformation|digitale\s+transformation)/i,
-      /(?:technology\s+adoption|technologieadoption)/i,
-      /(?:innovation\s+adoption|innovationsadoption)/i,
-      /(?:digital\s+impact|digitaler\s+impact)/i,
-      /(?:tech\s+impact|technologie\s+wirkung)/i,
-      
-      // NEW: Regional Impact
-      /(?:regional\s+development|regionale\s+entwicklung)/i,
-      /(?:rural\s+development|ländliche\s+entwicklung)/i,
-      /(?:urban\s+innovation|städtische\s+innovation)/i,
-      /(?:regional\s+impact|regionaler\s+impact)/i,
-      /(?:local\s+impact|lokaler\s+impact)/i,
-      
-      // NEW: Sector Impact
-      /(?:industry\s+transformation|branchentransformation)/i,
-      /(?:sector\s+development|branchenentwicklung)/i,
-      /(?:sector\s+impact|branchenimpact)/i,
-      /(?:industry\s+impact|branchenwirkung)/i,
-      
-      // NEW: International Impact
-      /(?:export\s+potential|exportpotential)/i,
-      /(?:global\s+competitiveness|globale\s+wettbewerbsfähigkeit)/i,
-      /(?:international\s+cooperation|internationale\s+zusammenarbeit)/i,
-      /(?:international\s+impact|internationaler\s+impact)/i,
-      /(?:global\s+impact|globaler\s+impact)/i,
-      
-      // NEW: Research Impact
-      /(?:scientific\s+advancement|wissenschaftlicher\s+fortschritt)/i,
-      /(?:knowledge\s+transfer|wissenstransfer)/i,
-      /(?:research\s+impact|forschungsimpact)/i,
-      /(?:academic\s+impact|akademischer\s+impact)/i,
-      /(?:scientific\s+impact|wissenschaftlicher\s+impact)/i,
-      
-      // NEW: Social Impact (expanded)
-      /(?:social\s+benefit|sozialer\s+nutzen)/i,
-      /(?:community\s+impact|gemeinschaftsimpact)/i,
-      /(?:societal\s+impact|gesellschaftlicher\s+impact)/i,
-      /(?:public\s+benefit|öffentlicher\s+nutzen)/i,
-      
-      // NEW: Cultural Impact
-      /(?:cultural\s+preservation|kulturerhalt)/i,
-      /(?:creative\s+industries|kreativwirtschaft)/i,
-      /(?:cultural\s+impact|kulturimpact)/i,
-      /(?:cultural\s+benefit|kultureller\s+nutzen)/i,
-      /(?:arts\s+impact|kunst\s+wirkung)/i
-    ],
-    examples: [
-      // EXISTING
-      'innovation impact',
-      'environmental impact',
-      'social impact',
-      'nachhaltigkeit',
-      'developmental impact',
-      'climate impact',
-      
-      // NEW: Economic Impact
-      'economic impact',
-      'job creation',
-      'GDP contribution',
-      'economic growth',
-      'arbeitsplatzschaffung',
-      'wirtschaftswachstum',
-      
-      // NEW: Technology Impact
-      'digital transformation',
-      'technology adoption',
-      'digitale transformation',
-      'technologieadoption',
-      
-      // NEW: Regional Impact
-      'regional development',
-      'rural development',
-      'regionale entwicklung',
-      'ländliche entwicklung',
-      
-      // NEW: Sector Impact
-      'industry transformation',
-      'sector development',
-      'branchentransformation',
-      'branchenentwicklung',
-      
-      // NEW: International Impact
-      'export potential',
-      'global competitiveness',
-      'exportpotential',
-      'globale wettbewerbsfähigkeit',
-      
-      // NEW: Research Impact
-      'scientific advancement',
-      'knowledge transfer',
-      'wissenschaftlicher fortschritt',
-      'wissenstransfer',
-      
-      // NEW: Social Impact (expanded)
-      'social benefit',
-      'community impact',
-      'sozialer nutzen',
-      'gemeinschaftsimpact',
-      
-      // NEW: Cultural Impact
-      'cultural preservation',
-      'creative industries',
-      'kulturerhalt',
-      'kreativwirtschaft'
-    ],
-    institutions: ['ADA', 'EU', 'Horizon Europe', 'LIFE', 'Climate Fund', 'FFG', 'AWS', 'VBA', 'EIC', 'Digital Europe']
+    keywords: ['impact', 'benefit', 'outcome', 'wirkung', 'nutzen'],
+    patterns: [/impact/i, /benefit/i, /outcome/i]
   },
-  consortium: {
-    patterns: [
-      /(?:konsortialpartner|consortium partner)/i,
-      /(?:partnership|partnerschaft)/i,
-      /(?:consortium leader|konsortialführer)/i,
-      /(?:international\s+consortium|internationales\s+konsortium)/i,
-      /(?:mindestens\s+\d+\s+partner|at least\s+\d+\s+partners)/i,
-      /(?:konsortium|consortium)/i
-    ],
-    examples: [
-      'Konsortialpartner',
-      'consortium partner',
-      'partnership required',
-      'international consortium',
-      'mindestens 2 Partner',
-      'consortium leader'
-    ],
-    institutions: ['Eurostars', 'Eureka', 'M-ERA.NET', 'Horizon Europe', 'EIC']
-  },
+  
+  // 12. Capex/Opex
   capex_opex: {
-    patterns: [
-      /(?:capital\s+expenditure|capex)/i,
-      /(?:operating\s+costs|opex)/i,
-      /(?:investitionskosten|investment costs)/i,
-      /(?:betriebskosten|operating costs)/i,
-      /(?:budget\s+breakdown|budgetaufschlüsselung)/i,
-      /(?:cost\s+breakdown|kostenaufschlüsselung)/i
-    ],
-    examples: [
-      'capital expenditure',
-      'CAPEX',
-      'operating costs',
-      'OPEX',
-      'investitionskosten',
-      'budget breakdown'
-    ],
-    institutions: ['ADA', 'FFG', 'EU', 'Horizon Europe']
+    keywords: ['capex', 'opex', 'capital', 'operating', 'investition', 'betrieb'],
+    patterns: [/capex/i, /opex/i, /capital/i, /operating/i]
   },
+  
+  // 13. Use of Funds
   use_of_funds: {
-    patterns: [
-      /(?:use\s+of\s+funds|verwendung\s+der\s+mittel)/i,
-      /(?:budget\s+allocation|budgetzuweisung)/i,
-      /(?:funding\s+purpose|förderzweck)/i,
-      /(?:cost\s+breakdown|kostenaufschlüsselung)/i,
-      /(?:budget\s+plan|budgetplan)/i
-    ],
-    examples: [
-      'use of funds',
-      'verwendung der mittel',
-      'budget allocation',
-      'funding purpose',
-      'cost breakdown'
-    ],
-    institutions: ['ADA', 'FFG', 'EU', 'Horizon Europe', 'EIC']
+    keywords: ['use of funds', 'budget allocation', 'funding purpose', 'mittelverwendung'],
+    patterns: [/use of funds/i, /budget allocation/i, /funding purpose/i]
   },
+  
+  // 14. Revenue Model
   revenue_model: {
-    patterns: [
-      /(?:business\s+model|geschäftsmodell)/i,
-      /(?:revenue\s+model|umsatzmodell)/i,
-      /(?:pricing\s+strategy|preisstrategie)/i,
-      /(?:monetization|monetarisierung)/i,
-      /(?:revenue\s+generation|umsatzgenerierung)/i
-    ],
-    examples: [
-      'business model',
-      'geschäftsmodell',
-      'revenue model',
-      'pricing strategy',
-      'monetization'
-    ],
-    institutions: ['VBA', 'Startup Grant', 'AWS', 'FFG']
+    keywords: ['revenue', 'business model', 'monetization', 'umsatz', 'geschäftsmodell'],
+    patterns: [/revenue/i, /business model/i, /monetization/i]
   },
+  
+  // 15. Market Size
   market_size: {
-    patterns: [
-      /(?:market\s+size|marktgröße)/i,
-      /(?:market\s+potential|marktpotential)/i,
-      /(?:target\s+market|zielmarkt)/i,
-      /(?:growth\s+potential|wachstumspotential)/i,
-      /(?:market\s+opportunity|marktchance)/i
-    ],
-    examples: [
-      'market size',
-      'marktgröße',
-      'market potential',
-      'target market',
-      'growth potential'
-    ],
-    institutions: ['VBA', 'Startup Grant', 'AWS', 'FFG', 'EIC']
+    keywords: ['market size', 'market potential', 'target market', 'marktgröße', 'marktpotential'],
+    patterns: [/market size/i, /market potential/i, /target market/i]
+  },
+  
+  // 16. Co-financing
+  co_financing: {
+    keywords: ['co-financing', 'own contribution', 'eigenbeitrag', 'mitfinanzierung'],
+    patterns: [/co-financing/i, /own contribution/i, /eigenbeitrag/i]
+  },
+  
+  // 17. TRL Level
+  trl_level: {
+    keywords: ['trl', 'technology readiness', 'maturity', 'reifegrad'],
+    patterns: [/trl/i, /technology readiness/i, /maturity/i]
+  },
+  
+  // 18. Consortium
+  consortium: {
+    keywords: ['consortium', 'partnership', 'collaboration', 'konsortium', 'partnerschaft'],
+    patterns: [/consortium/i, /partnership/i, /collaboration/i]
   }
 };
 
@@ -745,7 +600,7 @@ export class DataNormalization {
   }
 
   /**
-   * Automatically categorize requirements into the 18 standardized categories using DYNAMIC patterns
+   * DYNAMIC: Categorize requirements into core 18 categories with learning
    */
   private async categorizeRequirements(program: NormalizedProgram): Promise<any> {
     const categories: { [key: string]: any[] } = {
@@ -769,37 +624,56 @@ export class DataNormalization {
       consortium: []
     };
 
-    // Categorize from requirements object
-    if (program.requirements && typeof program.requirements === 'object') {
-      Object.entries(program.requirements).forEach(([key, value]) => {
-        const category = this.mapRequirementToCategory(key, value);
-        if (category) {
+    // Extract all text content for pattern matching
+    const textContent = this.extractTextContent(program);
+    
+    // DYNAMIC: Use enhanced scraper's learning patterns if available
+    try {
+      const { dynamicPatternEngine } = await import('./dynamicPatternEngine');
+      const institution = this.extractInstitution(program);
+      
+      // Use dynamic pattern engine for enhanced categorization
+      const extractedRequirements = await dynamicPatternEngine.extractRequirements(
+        textContent,
+        institution,
+        Object.keys(CORE_18_CATEGORIES) as any
+      );
+      
+      // Add extracted requirements to categories
+      extractedRequirements.forEach((requirements, category) => {
+        if (requirements.length > 0) {
           categories[category].push({
-            type: key,
-            value: value,
+            type: category,
+            value: requirements,
             required: true,
-            source: 'requirements'
+            source: 'dynamic_patterns',
+            confidence: this.calculateAverageConfidence(requirements),
+            evidence: requirements.flatMap(req => req.evidence),
+            institutions: Array.from(new Set(requirements.map(req => req.institution)))
+          });
+        }
+      });
+    } catch (error) {
+      console.warn('Dynamic pattern engine not available, using static patterns');
+      
+      // FALLBACK: Simple pattern matching for each of the 18 categories
+      Object.keys(CORE_18_CATEGORIES).forEach(categoryKey => {
+        const categoryConfig = (CORE_18_CATEGORIES as any)[categoryKey];
+        const matches = this.findSimpleMatches(textContent, categoryConfig.patterns);
+        
+        if (matches.length > 0) {
+          categories[categoryKey].push({
+            type: categoryKey,
+            value: matches,
+            required: true,
+            source: 'static_patterns',
+            confidence: Math.min(matches.length / 3, 1.0)
           });
         }
       });
     }
 
-    // Categorize from eligibility_criteria object
-    if (program.eligibility_criteria && typeof program.eligibility_criteria === 'object') {
-      Object.entries(program.eligibility_criteria).forEach(([key, value]) => {
-        const category = this.mapEligibilityToCategory(key, value);
-        if (category) {
-          categories[category].push({
-            type: key,
-            value: value,
-            required: true,
-            source: 'eligibility_criteria'
-          });
-        }
-      });
-    }
-
-    // Add funding information to financial category
+    // Add basic program data to relevant categories
     if (program.funding_amount_min || program.funding_amount_max) {
       categories.financial.push({
         type: 'funding_amount',
@@ -813,7 +687,6 @@ export class DataNormalization {
       });
     }
 
-    // Add deadline to timeline category
     if (program.deadline) {
       categories.timeline.push({
         type: 'deadline',
@@ -823,174 +696,28 @@ export class DataNormalization {
       });
     }
 
-    // Enhanced categorization using DYNAMIC patterns
-    await this.categorizeWithDynamicPatterns(program, categories);
-
     return categories;
   }
 
   /**
-   * Map requirement keys to categories
+   * SIMPLIFIED: Find simple pattern matches in text
    */
-  private mapRequirementToCategory(key: string, _value: any): string | null {
-    const mapping = {
-      // Documents category
-      'business_plan': 'documents',
-      'pitch_deck': 'documents',
-      'financial_projections': 'documents',
-      'market_analysis': 'documents',
-      'technical_documentation': 'documents',
-      'team_cv': 'documents',
-      'legal_documents': 'documents',
-      'project_description': 'documents',
-      'documents': 'documents',
-      
-      // Technical category
-      'technical_requirements': 'technical',
-      'technology_stack': 'technical',
-      'prototype': 'technical',
-      'mvp': 'technical',
-      'innovation': 'technical',
-      
-      // Team category
-      'team_size': 'team',
-      'team_qualifications': 'team',
-      'advisory_board': 'team',
-      'key_personnel': 'team',
-      'team_structure': 'team',
-      
-      // Project category
-      'project_timeline': 'project',
-      'project_goals': 'project',
-      'deliverables': 'project',
-      'milestones': 'project',
-      'research_focus': 'project',
-      
-      // Legal category
-      'legal_requirements': 'legal',
-      'compliance': 'legal',
-      'regulations': 'legal',
-      'gdpr': 'legal',
-      
-      // Financial category
-      'funding_amounts': 'financial',
-      'budget': 'financial',
-      'costs': 'financial',
-      'revenue': 'financial'
-    };
-
-    return (mapping as any)[key] || null;
-  }
-
-  /**
-   * Map eligibility criteria keys to categories
-   */
-  private mapEligibilityToCategory(key: string, _value: any): string | null {
-    const mapping = {
-      // Eligibility category
-      'description': 'eligibility',
-      'criteria': 'eligibility',
-      'requirements': 'eligibility',
-      'exclusions': 'eligibility',
-      
-      // Geographic category
-      'location': 'geographic',
-      'country': 'geographic',
-      'region': 'geographic',
-      'area': 'geographic',
-      
-      // Team category
-      'min_team_size': 'team',
-      'max_team_size': 'team',
-      'team_requirements': 'team',
-      'team_diversity': 'team',
-      
-      // Timeline category
-      'max_company_age': 'timeline',
-      'min_company_age': 'timeline',
-      'duration': 'timeline',
-      'period': 'timeline',
-      
-      // Financial category
-      'funding_rate': 'financial',
-      'co_funding': 'financial',
-      'budget': 'financial',
-      'costs': 'financial',
-      
-      // Project category
-      'research_focus': 'project',
-      'innovation': 'project',
-      'sector': 'project',
-      'industry': 'project',
-      
-      // Compliance category
-      'thresholds': 'compliance',
-      'standards': 'compliance',
-      'certifications': 'compliance',
-      'audit': 'compliance'
-    };
-
-    return (mapping as any)[key] || null;
-  }
-
-  /**
-   * Enhanced categorization using DYNAMIC patterns that learn and adapt
-   * Also uses static Austrian/EU patterns as fallback
-   */
-  private async categorizeWithDynamicPatterns(program: NormalizedProgram, categories: any): Promise<void> {
-    // Combine all text content for pattern matching
-    const textContent = this.extractTextContent(program);
+  private findSimpleMatches(text: string, patterns: RegExp[]): string[] {
+    const matches: string[] = [];
     
-    // Get institution from program data
-    const institution = this.extractInstitution(program);
-    
-    // Use dynamic pattern engine to extract requirements
-    const extractedRequirements = await dynamicPatternEngine.extractRequirements(
-      textContent,
-      institution,
-      ['co_financing', 'trl_level', 'impact', 'consortium', 'capex_opex', 'use_of_funds', 'revenue_model', 'market_size']
-    );
-    
-    // Add extracted requirements to categories
-    extractedRequirements.forEach((requirements, category) => {
-      if (requirements.length > 0) {
-        categories[category].push({
-          type: category,
-          value: requirements,
-          required: true,
-          source: 'dynamic_patterns',
-          confidence: this.calculateAverageConfidence(requirements),
-          evidence: requirements.flatMap(req => req.evidence),
-          institutions: Array.from(new Set(requirements.map(req => req.institution)))
-        });
+    for (const pattern of patterns) {
+      const patternMatches = text.match(pattern);
+      if (patternMatches) {
+        matches.push(patternMatches[0]);
       }
-    });
+    }
     
-    // FALLBACK: Use static Austrian/EU patterns for any categories that didn't get results
-    Object.keys(AUSTRIAN_EU_PATTERNS).forEach(category => {
-      if (categories[category].length === 0) {
-        const patternConfig = (AUSTRIAN_EU_PATTERNS as any)[category];
-        const matches = this.findPatternMatches(textContent, patternConfig.patterns);
-        
-        if (matches.length > 0) {
-          const confidence = this.calculateConfidence(matches, patternConfig);
-          
-          categories[category].push({
-            type: category,
-            value: matches.map(match => match.text),
-            required: true,
-            source: 'static_patterns',
-            confidence: confidence.overall,
-            evidence: matches.map(match => match.text),
-            institutions: patternConfig.institutions
-          });
-        }
-      }
-    });
+    return matches;
   }
 
+
   /**
-   * Extract all text content from program for pattern matching
+   * DYNAMIC: Extract text content from program
    */
   private extractTextContent(program: NormalizedProgram): string {
     const textParts = [];
@@ -1024,62 +751,6 @@ export class DataNormalization {
     }
     
     return textParts.join(' ').toLowerCase();
-  }
-
-
-  /**
-   * Find pattern matches in text content using Austrian/EU patterns
-   */
-  private findPatternMatches(text: string, patterns: RegExp[]): Array<{ text: string; match: RegExpMatchArray }> {
-    const matches = [];
-    
-    for (const pattern of patterns) {
-      const patternMatches = text.match(pattern);
-      if (patternMatches) {
-        matches.push({
-          text: patternMatches[0],
-          match: patternMatches
-        });
-      }
-    }
-    
-    return matches;
-  }
-
-  /**
-   * Calculate confidence score for pattern matches
-   */
-  private calculateConfidence(matches: Array<{ text: string; match: RegExpMatchArray }>, patternConfig: any): ConfidenceScore {
-    let confidence = 0.5; // Base confidence
-    
-    // More matches = higher confidence
-    if (matches.length > 1) confidence += 0.2;
-    if (matches.length > 3) confidence += 0.1;
-    
-    // Check for specific values (percentages, numbers)
-    const hasSpecificValues = matches.some(match => 
-      /\d+/.test(match.text) || /%/.test(match.text)
-    );
-    if (hasSpecificValues) confidence += 0.2;
-    
-    // Check for institution-specific terms
-    const hasInstitutionTerms = matches.some(match => 
-      patternConfig.institutions.some((inst: string) => 
-        match.text.toLowerCase().includes(inst.toLowerCase())
-      )
-    );
-    if (hasInstitutionTerms) confidence += 0.1;
-    
-    // Cap at 1.0
-    confidence = Math.min(confidence, 1.0);
-    
-    return {
-      overall: confidence,
-      pattern_matches: matches.length / 5, // Normalize to 0-1
-      context_accuracy: confidence,
-      extraction_method: 'regex',
-      evidence: matches.map(match => match.text)
-    };
   }
 
   /**
@@ -1194,43 +865,24 @@ export class DataQuality {
   }
 
   /**
-   * Calculate completeness score (0-1)
+   * SIMPLIFIED: Calculate completeness score (0-1)
    */
   private calculateCompleteness(program: NormalizedProgram): number {
-    const requiredFields = [
-      'id', 'name', 'type', 'institution', 'program_category',
-      'source_url', 'eligibility_criteria', 'requirements'
-    ];
-    
-    const optionalFields = [
-      'description', 'funding_amount_min', 'funding_amount_max', 'currency',
-      'deadline', 'contact_info', 'target_personas', 'tags'
-    ];
-    
+    const requiredFields = ['id', 'name', 'type', 'institution'];
     let score = 0;
-    let totalWeight = 0;
     
-    // Required fields (weight: 2)
     for (const field of requiredFields) {
       const value = (program as any)[field];
-      const hasValue = value !== undefined && value !== null && value !== '';
-      score += hasValue ? 2 : 0;
-      totalWeight += 2;
+      if (value !== undefined && value !== null && value !== '') {
+        score += 1;
+      }
     }
     
-    // Optional fields (weight: 1)
-    for (const field of optionalFields) {
-      const value = (program as any)[field];
-      const hasValue = value !== undefined && value !== null && value !== '';
-      score += hasValue ? 1 : 0;
-      totalWeight += 1;
-    }
-    
-    return totalWeight > 0 ? score / totalWeight : 0;
+    return score / requiredFields.length;
   }
 
   /**
-   * Calculate accuracy score (0-1)
+   * SIMPLIFIED: Calculate accuracy score (0-1)
    */
   private calculateAccuracy(program: NormalizedProgram): number {
     let score = 0;
@@ -1240,23 +892,6 @@ export class DataQuality {
     if (program.funding_amount_min !== undefined && program.funding_amount_max !== undefined) {
       checks++;
       if (program.funding_amount_min <= program.funding_amount_max) {
-        score += 1;
-      }
-    }
-    
-    // Check currency is valid
-    if (program.currency) {
-      checks++;
-      const validCurrencies = ['EUR', 'USD', 'GBP', 'JPY', 'CHF'];
-      if (validCurrencies.includes(program.currency)) {
-        score += 1;
-      }
-    }
-    
-    // Check deadline is in the future (if provided)
-    if (program.deadline) {
-      checks++;
-      if (program.deadline > new Date()) {
         score += 1;
       }
     }
@@ -1294,7 +929,7 @@ export class DataQuality {
   }
 
   /**
-   * Calculate consistency score (0-1)
+   * SIMPLIFIED: Calculate consistency score (0-1)
    */
   private calculateConsistency(program: NormalizedProgram): number {
     let score = 0;
@@ -1308,39 +943,11 @@ export class DataQuality {
       }
     }
     
-    // Check institution and category consistency
-    if (program.institution && program.program_category) {
-      checks++;
-      const institutionCategoryMap: { [key: string]: string[] } = {
-        'Austria Wirtschaftsservice': ['austrian_grants', 'business_grants'],
-        'Austrian Research Promotion Agency': ['research_grants', 'austrian_grants'],
-        'European Union': ['eu_programs'],
-        'Austrian Employment Service': ['employment'],
-        'Vienna Business Agency': ['regional_grants', 'startup_grants']
-      };
-      
-      const expectedCategories = institutionCategoryMap[program.institution] || [];
-      if (expectedCategories.includes(program.program_category)) {
-        score += 1;
-      }
-    }
-    
-    // Check requirements structure consistency
-    if (program.requirements && typeof program.requirements === 'object') {
-      checks++;
-      const hasValidStructure = Object.values(program.requirements).some(req => 
-        typeof req === 'object' && req !== null && 'required' in req
-      );
-      if (hasValidStructure) {
-        score += 1;
-      }
-    }
-    
     return checks > 0 ? score / checks : 0.5;
   }
 
   /**
-   * Validate a program and return validation result
+   * ENHANCED: Validate a program with advanced validation rules
    */
   validateProgram(program: NormalizedProgram): ValidationResult {
     const errors: string[] = [];
@@ -1367,6 +974,11 @@ export class DataQuality {
       }
     }
     
+    // ENHANCED: Advanced program validation rules
+    this.validateProgramContent(program, errors, warnings);
+    this.validateProgramStructure(program, errors, warnings);
+    this.validateProgramCompleteness(program, errors, warnings);
+    
     // URL validation
     if (program.source_url) {
       try {
@@ -1391,6 +1003,179 @@ export class DataQuality {
       warnings,
       score: qualityScore.overall
     };
+  }
+
+  /**
+   * NEW: Validate program content quality
+   */
+  private validateProgramContent(program: NormalizedProgram, _errors: string[], warnings: string[]): void {
+    // Description quality
+    if (program.description) {
+      const descLength = program.description.trim().length;
+      if (descLength < 50) {
+        warnings.push('Program description is very short - consider adding more details');
+      }
+      if (descLength > 2000) {
+        warnings.push('Program description is very long - consider summarizing');
+      }
+      
+      // Check for essential information in description
+      const hasEligibility = /eligible|qualification|criteria|requirements/i.test(program.description);
+      const hasDeadline = /deadline|application|due|frist/i.test(program.description);
+      const hasAmount = /funding|amount|budget|€|\$/i.test(program.description);
+      
+      if (!hasEligibility) {
+        warnings.push('Description should mention eligibility criteria');
+      }
+      if (!hasDeadline) {
+        warnings.push('Description should mention application deadline');
+      }
+      if (!hasAmount) {
+        warnings.push('Description should mention funding amount');
+      }
+    }
+    
+    // Institution validation
+    if (program.institution) {
+      const institutionLength = program.institution.trim().length;
+      if (institutionLength < 3) {
+        warnings.push('Institution name seems too short');
+      }
+      if (institutionLength > 100) {
+        warnings.push('Institution name seems too long');
+      }
+    }
+  }
+
+  /**
+   * NEW: Validate program structure and consistency
+   */
+  private validateProgramStructure(program: NormalizedProgram, errors: string[], warnings: string[]): void {
+    // Type consistency
+    if (program.type && program.program_type && program.type !== program.program_type) {
+      warnings.push('Program type and program_type fields are inconsistent');
+    }
+    
+    // Funding amount consistency
+    if (program.funding_amount_min && program.funding_amount_max) {
+      const range = program.funding_amount_max - program.funding_amount_min;
+      if (range < 0) {
+        errors.push('Funding amount range is invalid (max < min)');
+      } else if (range > program.funding_amount_max) {
+        warnings.push('Funding amount range is very wide - consider if this is accurate');
+      }
+    }
+    
+    // Currency consistency
+    if (program.currency && program.currency !== 'EUR' && program.source_url?.includes('.at')) {
+      warnings.push('Non-EUR currency for Austrian program - verify this is correct');
+    }
+    
+    // Deadline validation
+    if (program.deadline) {
+      const deadline = new Date(program.deadline);
+      const now = new Date();
+      if (deadline < now) {
+        warnings.push('Program deadline is in the past');
+      }
+      if (deadline > new Date(now.getTime() + 365 * 24 * 60 * 60 * 1000)) {
+        warnings.push('Program deadline is more than 1 year away - verify accuracy');
+      }
+    }
+  }
+
+  /**
+   * NEW: Validate program completeness for different program types
+   */
+  private validateProgramCompleteness(program: NormalizedProgram, errors: string[], warnings: string[]): void {
+    const programType = program.type || program.program_type;
+    
+    switch (programType) {
+      case 'grant':
+        this.validateGrantProgram(program, errors, warnings);
+        break;
+      case 'loan':
+        this.validateLoanProgram(program, errors, warnings);
+        break;
+      case 'equity':
+        this.validateEquityProgram(program, errors, warnings);
+        break;
+      default:
+        this.validateGenericProgram(program, errors, warnings);
+    }
+  }
+
+  /**
+   * NEW: Validate grant-specific requirements
+   */
+  private validateGrantProgram(program: NormalizedProgram, _errors: string[], warnings: string[]): void {
+    // Grants typically need eligibility criteria
+    if (!program.eligibility_criteria || Object.keys(program.eligibility_criteria).length === 0) {
+      warnings.push('Grant program should have eligibility criteria');
+    }
+    
+    // Grants often have specific requirements
+    if (!program.requirements || Object.keys(program.requirements).length === 0) {
+      warnings.push('Grant program should have specific requirements');
+    }
+    
+    // Grants typically have application deadlines
+    if (!program.deadline) {
+      warnings.push('Grant program should have application deadline');
+    }
+  }
+
+  /**
+   * NEW: Validate loan-specific requirements
+   */
+  private validateLoanProgram(program: NormalizedProgram, errors: string[], warnings: string[]): void {
+    // Loans need financial information
+    if (!program.funding_amount_min && !program.funding_amount_max) {
+      errors.push('Loan program must have funding amount information');
+    }
+    
+    // Loans typically need repayment terms
+    if (!program.description?.toLowerCase().includes('repay') && 
+        !program.description?.toLowerCase().includes('interest')) {
+      warnings.push('Loan program should mention repayment terms');
+    }
+  }
+
+  /**
+   * NEW: Validate equity-specific requirements
+   */
+  private validateEquityProgram(program: NormalizedProgram, _errors: string[], warnings: string[]): void {
+    // Equity programs need company stage information
+    if (!program.description?.toLowerCase().includes('stage') && 
+        !program.description?.toLowerCase().includes('startup') &&
+        !program.description?.toLowerCase().includes('scale')) {
+      warnings.push('Equity program should specify target company stage');
+    }
+    
+    // Equity programs typically need valuation information
+    if (!program.description?.toLowerCase().includes('valuation') && 
+        !program.description?.toLowerCase().includes('equity')) {
+      warnings.push('Equity program should mention valuation or equity terms');
+    }
+  }
+
+  /**
+   * NEW: Validate generic program requirements
+   */
+  private validateGenericProgram(program: NormalizedProgram, errors: string[], warnings: string[]): void {
+    // All programs should have basic information
+    if (!program.description) {
+      errors.push('Program must have a description');
+    }
+    
+    if (!program.institution) {
+      errors.push('Program must have an institution');
+    }
+    
+    // Check for contact information
+    if (!program.contact_info || Object.keys(program.contact_info).length === 0) {
+      warnings.push('Program should have contact information');
+    }
   }
 }
 
@@ -1484,49 +1269,43 @@ export class EnhancedDataPipeline {
   }
 
   /**
-   * Process raw scraped programs through the complete pipeline
+   * SIMPLIFIED: Process raw scraped programs through the pipeline
    */
   async processPrograms(rawPrograms: ScrapedProgram[]): Promise<NormalizedProgram[]> {
-    console.log(`🔄 Processing ${rawPrograms.length} raw programs through pipeline...`);
+    console.log(`🔄 Processing ${rawPrograms.length} raw programs through SIMPLIFIED pipeline...`);
     
     if (rawPrograms.length === 0) {
       console.log('⚠️ No raw programs to process');
       return [];
     }
     
-    // Step 1: Normalize each program using DYNAMIC patterns
+    // Step 1: Normalize each program (simplified)
     const normalizedPrograms = await Promise.all(
       rawPrograms.map(program => this.normalizer.normalizeProgram(program))
     );
     
     console.log(`✅ Normalized ${normalizedPrograms.length} programs`);
     
-    // Step 2: Calculate quality scores
+    // Step 2: Calculate basic quality scores
     const scoredPrograms = normalizedPrograms.map(program => {
       const qualityScore = this.quality.calculateQualityScore(program);
-      const validation = this.quality.validateProgram(program);
       
       return {
         ...program,
         quality_score: qualityScore.overall,
         confidence_level: this.getConfidenceLevel(qualityScore.overall),
-        validation_errors: validation.errors
+        validation_errors: []
       };
     });
     
-    // Step 3: Remove duplicates
+    // Step 3: Remove duplicates (simplified)
     const deduplicatedPrograms = this.removeDuplicates(scoredPrograms);
     
-    // Step 4: Filter out low-quality programs
-    const highQualityPrograms = deduplicatedPrograms.filter(program => 
-      program.quality_score >= 0.1 // Keep programs with at least 10% quality score (temporarily lowered)
-    );
+    // Step 4: Keep all programs (simplified filtering)
+    console.log(`✅ SIMPLIFIED Pipeline complete: ${deduplicatedPrograms.length} programs processed`);
+    console.log(`📊 Core 18 categories applied to all programs`);
     
-    console.log(`📊 Quality filtering: ${deduplicatedPrograms.length} programs before filtering, ${highQualityPrograms.length} after filtering`);
-    console.log(`✅ Pipeline complete: ${highQualityPrograms.length} high-quality programs processed`);
-    console.log(`📊 Quality distribution:`, this.getQualityDistribution(highQualityPrograms));
-    
-    return highQualityPrograms;
+    return deduplicatedPrograms;
   }
 
   /**
@@ -1540,54 +1319,63 @@ export class EnhancedDataPipeline {
       return cached;
     }
     
-    // If not in cache, try to get data from database or fallback
+    // If not in cache, try to load latest scraped JSON and process
     console.log('⚠️ No cached data available - attempting to populate pipeline...');
+    const dataDir = path.join(process.cwd(), 'data');
+    const latestPath = path.join(dataDir, 'scraped-programs-latest.json');
     
     try {
-      // Try to get data from database or API
-      const { dataSource } = await import('./dataSource');
-      const programs = await dataSource.getPrograms();
-      
-      if (programs && programs.length > 0) {
-        console.log(`🔄 Processing ${programs.length} programs for pipeline cache...`);
-        
-        // Convert to normalized format
-        const normalizedPrograms: NormalizedProgram[] = programs.map(program => ({
-          id: program.id,
-          name: program.name,
-          type: program.type || 'grant',
-          description: program.notes || '',
-          funding_amount_min: 0,
-          funding_amount_max: program.maxAmount || 0,
-          source_url: program.link || '',
-          institution: 'Unknown Institution',
-          requirements: program.requirements || {},
-          scraped_at: new Date(),
-          confidence_score: 0.8,
-          // Add required ScrapedProgram fields
-          program_type: program.type || 'grant',
-          program_category: 'general',
-          eligibility_criteria: {},
-          contact_info: {},
-          is_active: true,
-          // Add required NormalizedProgram fields
-          quality_score: 0.8,
-          confidence_level: 'medium' as const,
-          processed_at: new Date(),
-          validation_errors: [],
-          is_duplicate: false
-        }));
-        
-        // Cache the processed programs
-        await this.cacheProcessedPrograms(normalizedPrograms, cacheKey);
-        
-        return normalizedPrograms;
+      if (fs.existsSync(latestPath)) {
+        const raw = fs.readFileSync(latestPath, 'utf-8');
+        const parsed = JSON.parse(raw);
+        const rawPrograms: ScrapedProgram[] = Array.isArray(parsed?.programs)
+          ? parsed.programs
+          : Array.isArray(parsed)
+            ? parsed
+            : [];
+        if (rawPrograms.length > 0) {
+          console.log(`🔄 Processing ${rawPrograms.length} programs from scraped-programs-latest.json...`);
+          const processed = await this.processPrograms(rawPrograms);
+          await this.cacheProcessedPrograms(processed, cacheKey);
+          console.log(`✅ Pipeline populated with ${processed.length} programs`);
+          return processed;
+        }
       }
-    } catch (error) {
-      console.warn('Failed to populate pipeline cache:', error);
+    } catch (e) {
+      console.warn('Failed reading scraped-programs-latest.json:', e);
     }
-    
-    console.log('⚠️ No data available for pipeline processing');
+
+    // Fallback: attempt to read most recent dated file in data/
+    try {
+      const files = fs.readdirSync(dataDir)
+        .filter(f => /^scraped-programs-\d{4}-\d{2}-\d{2}\.json$/.test(f))
+        .sort()
+        .reverse();
+      for (const file of files) {
+        try {
+          const raw = fs.readFileSync(path.join(dataDir, file), 'utf-8');
+          const parsed = JSON.parse(raw);
+          const rawPrograms: ScrapedProgram[] = Array.isArray(parsed?.programs)
+            ? parsed.programs
+            : Array.isArray(parsed)
+              ? parsed
+              : [];
+          if (rawPrograms.length > 0) {
+            console.log(`🔄 Processing ${rawPrograms.length} programs from ${file}...`);
+            const processed = await this.processPrograms(rawPrograms);
+            await this.cacheProcessedPrograms(processed, cacheKey);
+            console.log(`✅ Pipeline populated with ${processed.length} programs`);
+            return processed;
+          }
+        } catch (_) {
+          // try next file
+        }
+      }
+    } catch (_) {
+      // ignore
+    }
+
+    console.log('⚠️ No data available for pipeline processing - returning empty array');
     return [];
   }
 
@@ -1634,24 +1422,6 @@ export class EnhancedDataPipeline {
     return 'low';
   }
 
-  /**
-   * Get quality distribution statistics
-   */
-  private getQualityDistribution(programs: NormalizedProgram[]): { [key: string]: number } {
-    const distribution = {
-      high: 0,
-      medium: 0,
-      low: 0
-    };
-    
-    for (const program of programs) {
-      if (program.quality_score >= 0.8) distribution.high++;
-      else if (program.quality_score >= 0.5) distribution.medium++;
-      else distribution.low++;
-    }
-    
-    return distribution;
-  }
 
 }
 

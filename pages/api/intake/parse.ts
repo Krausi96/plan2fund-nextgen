@@ -1,7 +1,6 @@
 // Intake Parser API Endpoint
 import type { NextApiRequest, NextApiResponse } from 'next';
-import { intakeParser } from '@/lib/intakeParser';
-import { validateFundingProfile } from '@/lib/schemas/fundingProfile';
+import { IntakeEngine, validateFundingProfile } from '@/lib/intakeEngine';
 import analytics from '@/lib/analytics';
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
@@ -37,7 +36,8 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     });
 
     // Parse input
-    const result = await intakeParser.parseInput(input, sessionId, userId);
+    const intakeEngine = new IntakeEngine();
+    const result = await intakeEngine.parseInput(input, sessionId, userId);
 
     // Validate result
     const validatedProfile = validateFundingProfile(result.profile);
@@ -55,12 +55,12 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         overlayQuestions: result.overlayQuestions.length,
         processingTime: result.processingTime,
         confidence: {
-          sector: validatedProfile.confidence.sector,
-          stage: validatedProfile.confidence.stage,
-          team_size: validatedProfile.confidence.team_size,
-          location_city: validatedProfile.confidence.location_city,
-          funding_need_eur: validatedProfile.confidence.funding_need_eur,
-          program_type: validatedProfile.confidence.program_type
+          sector: result.profile.confidence.sector,
+          stage: result.profile.confidence.stage,
+          team_size: result.profile.confidence.team_size,
+          location_city: result.profile.confidence.location_city,
+          funding_need_eur: result.profile.confidence.funding_need_eur,
+          program_type: result.profile.confidence.program_type
         }
       }
     });

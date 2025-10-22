@@ -1,5 +1,6 @@
 // Removed static JSON import - using database instead
-import { Program, UserAnswers, ScoredProgram, ProgramType } from "../types";
+import { Program, ScoredProgram, ProgramType } from "../types/requirements";
+import { UserAnswers } from "../lib/schemas";
 import { dataSource } from "./dataSource";
 import { doctorDiagnostic } from "./doctorDiagnostic";
 

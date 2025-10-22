@@ -1,6 +1,6 @@
 // Doctor-Like Diagnostic Engine - Converts user input to funding diagnosis
 import { dataSource } from './dataSource';
-import { Program } from '../types';
+import { Program } from '../types/requirements';
 
 export interface Symptom {
   id: string;

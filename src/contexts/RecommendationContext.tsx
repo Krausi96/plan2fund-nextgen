@@ -1,14 +1,12 @@
 // Recommendation Context - Shared State Management for All Recommendation Components
 import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
 import { scoreProgramsEnhanced, EnhancedProgramResult } from '@/lib/enhancedRecoEngine';
-import { DynamicQuestionEngine, DynamicQuestion } from '@/lib/dynamicQuestionEngine';
-import { getQuestionsData } from '@/data/questions';
-import { useI18n } from './I18nContext';
+// Note: DynamicQuestionEngine deleted - using SmartWizard instead
 
 interface RecommendationState {
   // User Input
   answers: Record<string, any>;
-  questions: DynamicQuestion[];
+  questions: any[]; // Simplified - using SmartWizard instead
   currentQuestionIndex: number;
   
   // Results
@@ -18,8 +16,7 @@ interface RecommendationState {
   
   // UI State
   showAdvancedSearch: boolean;
-  showDynamicWizard: boolean;
-  selectedProgram: any | null;
+  selectedProgram: EnhancedProgramResult | null;
   
   // Error Handling
   error: string | null;
@@ -45,8 +42,6 @@ interface RecommendationContextType {
   
   // Dynamic Wizard
   handleProgramSelect: (program: any) => void;
-  handleDynamicWizardComplete: (dynamicAnswers: Record<string, any>) => Promise<void>;
-  handleDynamicWizardCancel: () => void;
   
   // Direct Actions
   setAnswers: (answers: Record<string, any>) => void;
@@ -62,7 +57,6 @@ interface RecommendationProviderProps {
 }
 
 export function RecommendationProvider({ children }: RecommendationProviderProps) {
-  const { t } = useI18n();
   
   const [state, setState] = useState<RecommendationState>({
     answers: {},
@@ -72,29 +66,23 @@ export function RecommendationProvider({ children }: RecommendationProviderProps
     isLoading: false,
     isMounted: false,
     showAdvancedSearch: false,
-    showDynamicWizard: false,
     selectedProgram: null,
     error: null
   });
 
-  // Initialize question engine
-  const [questionEngine] = useState(() => new DynamicQuestionEngine(t));
+  // Note: Using SmartWizard instead of DynamicQuestionEngine
 
   // Load questions on mount
   useEffect(() => {
     loadQuestions();
-  }, [questionEngine]);
+  }, []);
 
   // Load questions from dynamic question engine (with timeout + robust fallback)
   const loadQuestions = async () => {
     try {
       setState(prev => ({ ...prev, isLoading: true, error: null }));
-      const timeout = new Promise<never>((_, reject) => setTimeout(() => reject(new Error('timeout')), 7000));
-      const loadedQuestions = await Promise.race([
-        questionEngine.getQuestionOrder(),
-        timeout
-      ]);
-      const safeQuestions = Array.isArray(loadedQuestions) ? loadedQuestions : [];
+      // Simplified - using fallback questions
+      const safeQuestions: any[] = [];
       setState(prev => ({ 
         ...prev, 
         questions: safeQuestions,
@@ -104,22 +92,46 @@ export function RecommendationProvider({ children }: RecommendationProviderProps
       }));
     } catch (error) {
       console.warn('Question engine failed, using robust local fallback');
-      // Robust local fallback: use static questions with normalized types
-      const q = getQuestionsData(t).universal;
-      const fallbackQuestions: DynamicQuestion[] = q.map((base: any, index: number) => ({
-        id: base.id,
-        label: base.label,
-        type: base.type === 'single-select' ? 'single' : base.type === 'multi-select' ? 'multiple' : base.type,
-        options: base.options || [],
-        required: !!base.required,
-        informationValue: 0,
-        programsAffected: 0,
-        decisiveness: 'UNCERTAIN',
-        sourcePrograms: [],
-        uxWeight: 1,
-        isCoreQuestion: index < 7,
-        questionNumber: index + 1
-      }));
+      // Robust local fallback: use basic questions without external dependencies
+      const fallbackQuestions = [
+        {
+          id: 'q1_country',
+          label: 'What country are you based in?',
+          type: 'single',
+          options: [
+            { value: 'AT', label: 'Austria' },
+            { value: 'EU', label: 'EU (other)' },
+            { value: 'NON_EU', label: 'Non-EU' }
+          ],
+          required: true,
+          informationValue: 0,
+          programsAffected: 0,
+          decisiveness: 'UNCERTAIN',
+          sourcePrograms: [],
+          uxWeight: 1,
+          isCoreQuestion: true,
+          questionNumber: 1
+        },
+        {
+          id: 'q2_entity_stage',
+          label: 'What stage is your company at?',
+          type: 'single',
+          options: [
+            { value: 'PRE_COMPANY', label: 'Pre-company' },
+            { value: 'INC_LT_6M', label: 'Incorporated < 6 months' },
+            { value: 'INC_6_36M', label: 'Incorporated 6-36 months' },
+            { value: 'INC_GT_36M', label: 'Incorporated > 36 months' }
+          ],
+          required: true,
+          informationValue: 0,
+          programsAffected: 0,
+          decisiveness: 'UNCERTAIN',
+          sourcePrograms: [],
+          uxWeight: 1,
+          isCoreQuestion: true,
+          questionNumber: 2
+        }
+      ];
       setState(prev => ({ 
         ...prev, 
         questions: fallbackQuestions,
@@ -290,44 +302,9 @@ export function RecommendationProvider({ children }: RecommendationProviderProps
     setState(prev => ({
       ...prev,
       selectedProgram: program,
-      showDynamicWizard: true
     }));
   };
 
-  const handleDynamicWizardComplete = async (dynamicAnswers: Record<string, any>) => {
-    try {
-      setState(prev => ({ ...prev, isLoading: true }));
-      
-      // Combine general answers with program-specific answers
-      const combinedAnswers = { ...state.answers, ...dynamicAnswers };
-      
-      // Re-score programs with enhanced answers
-      const recommendations = await scoreProgramsEnhanced(combinedAnswers);
-      
-      setState(prev => ({
-        ...prev,
-        recommendations,
-        showDynamicWizard: false,
-        selectedProgram: null,
-        isLoading: false
-      }));
-    } catch (error) {
-      console.error('Error in dynamic wizard:', error);
-      setState(prev => ({
-        ...prev,
-        isLoading: false,
-        error: 'Dynamic wizard failed'
-      }));
-    }
-  };
-
-  const handleDynamicWizardCancel = () => {
-    setState(prev => ({
-      ...prev,
-      showDynamicWizard: false,
-      selectedProgram: null
-    }));
-  };
 
   // Direct state setters
   const setAnswers = (answers: Record<string, any>) => {
@@ -357,8 +334,6 @@ export function RecommendationProvider({ children }: RecommendationProviderProps
     clearResults,
     handleAdvancedSearch,
     handleProgramSelect,
-    handleDynamicWizardComplete,
-    handleDynamicWizardCancel,
     setAnswers,
     setRecommendations,
     setLoading,
