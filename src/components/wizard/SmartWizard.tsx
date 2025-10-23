@@ -370,7 +370,7 @@ const SmartWizard: React.FC<SmartWizardProps> = ({ onComplete, onProfileGenerate
               </div>
               <div className="wizard-question-body">
                 <h3 className="wizard-question-text">
-                  {t(state.currentQuestion.symptom)}
+                  {t(state.currentQuestion.symptom as any) || state.currentQuestion.symptom}
                 </h3>
                 
                 {state.currentQuestion.type === 'single-select' && state.currentQuestion.options && (
@@ -382,7 +382,7 @@ const SmartWizard: React.FC<SmartWizardProps> = ({ onComplete, onProfileGenerate
                         onClick={() => handleAnswer(option.value)}
                         style={{ animationDelay: `${index * 0.1}s` }}
                       >
-                        <span className="wizard-option-text">{t(option.label)}</span>
+                        <span className="wizard-option-text">{t(option.label as any) || option.label}</span>
                         <span className="wizard-option-arrow">→</span>
                       </button>
                     ))}
