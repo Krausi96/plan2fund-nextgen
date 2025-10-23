@@ -317,13 +317,13 @@ export class QuestionEngine {
       },
       {
         id: 'funding_amount',
-        symptom: 'What is your funding requirement?',
+        symptom: 'wizard.questions.fundingAmount',
         type: 'single-select',
         options: [
-          { value: 'under_50k', label: 'Under €50,000', fundingTypes: ['grants', 'loans'] },
-          { value: '50k_100k', label: '€50,000 - €100,000', fundingTypes: ['grants', 'loans', 'equity'] },
-          { value: '100k_500k', label: '€100,000 - €500,000', fundingTypes: ['grants', 'loans', 'equity'] },
-          { value: 'over_500k', label: 'Over €500,000', fundingTypes: ['loans', 'equity'] }
+          { value: 'under_50k', label: 'wizard.options.under50k', fundingTypes: ['grants', 'loans'] },
+          { value: '50k_100k', label: 'wizard.options.50k100k', fundingTypes: ['grants', 'loans', 'equity'] },
+          { value: '100k_500k', label: 'wizard.options.100k500k', fundingTypes: ['grants', 'loans', 'equity'] },
+          { value: 'over_500k', label: 'wizard.options.over500k', fundingTypes: ['loans', 'equity'] }
         ],
         required: true,
         category: 'specific_requirements',
@@ -331,13 +331,13 @@ export class QuestionEngine {
       },
       {
         id: 'organization_type',
-        symptom: 'What type of organization are you?',
+        symptom: 'wizard.questions.organizationType',
         type: 'single-select',
         options: [
-          { value: 'startup', label: 'Startup/New company', fundingTypes: ['grants', 'equity'] },
-          { value: 'sme', label: 'Small/Medium Enterprise', fundingTypes: ['grants', 'loans', 'equity'] },
-          { value: 'large', label: 'Large company', fundingTypes: ['loans', 'equity'] },
-          { value: 'research', label: 'Research institution', fundingTypes: ['grants'] }
+          { value: 'startup', label: 'wizard.options.startup', fundingTypes: ['grants', 'equity'] },
+          { value: 'sme', label: 'wizard.options.sme', fundingTypes: ['grants', 'loans', 'equity'] },
+          { value: 'large', label: 'wizard.options.large', fundingTypes: ['loans', 'equity'] },
+          { value: 'research', label: 'wizard.options.research', fundingTypes: ['grants'] }
         ],
         required: true,
         category: 'specific_requirements',
@@ -436,57 +436,57 @@ export class QuestionEngine {
     // Map categories to question types
     const categoryMappings = {
       'co_financing': {
-        symptom: 'Do you have co-financing or matching funds available?',
+        symptom: 'wizard.questions.coFinancing',
         type: 'boolean' as const,
         options: [
-          { value: 'yes', label: 'Yes, we have co-financing available' },
-          { value: 'no', label: 'No, we need full funding support' }
+          { value: 'yes', label: 'wizard.options.yesCoFinancing' },
+          { value: 'no', label: 'wizard.options.noCoFinancing' }
         ]
       },
       'trl_level': {
-        symptom: 'What is your current technology readiness level?',
+        symptom: 'wizard.questions.trlLevel',
         type: 'single-select' as const,
         options: [
-          { value: '1-3', label: 'Basic research and concept development (TRL 1-3)' },
-          { value: '4-6', label: 'Technology development and validation (TRL 4-6)' },
-          { value: '7-9', label: 'System demonstration and commercialization (TRL 7-9)' }
+          { value: '1-3', label: 'wizard.options.trl13' },
+          { value: '4-6', label: 'wizard.options.trl46' },
+          { value: '7-9', label: 'wizard.options.trl79' }
         ]
       },
       'impact': {
-        symptom: 'What type of impact does your project aim to achieve?',
+        symptom: 'wizard.questions.impact',
         type: 'multi-select' as const,
         options: [
-          { value: 'economic', label: 'Economic growth and job creation' },
-          { value: 'social', label: 'Social innovation and community benefit' },
-          { value: 'environmental', label: 'Environmental sustainability and climate action' }
+          { value: 'economic', label: 'wizard.options.economicImpact' },
+          { value: 'social', label: 'wizard.options.socialImpact' },
+          { value: 'environmental', label: 'wizard.options.environmentalImpact' }
         ]
       },
       'consortium': {
-        symptom: 'Do you have consortium partners or are you applying alone?',
+        symptom: 'wizard.questions.consortium',
         type: 'boolean' as const,
         options: [
-          { value: 'yes', label: 'Yes, we have consortium partners' },
-          { value: 'no', label: 'No, we are applying alone' }
+          { value: 'yes', label: 'wizard.options.yesConsortium' },
+          { value: 'no', label: 'wizard.options.noConsortium' }
         ]
       },
       'eligibility': {
-        symptom: 'What is your organization type?',
+        symptom: 'wizard.questions.eligibility',
         type: 'single-select' as const,
         options: [
-          { value: 'startup', label: 'Startup/New company' },
-          { value: 'sme', label: 'Small/Medium Enterprise' },
-          { value: 'large', label: 'Large company' },
-          { value: 'research', label: 'Research institution' }
+          { value: 'startup', label: 'wizard.options.startup' },
+          { value: 'sme', label: 'wizard.options.sme' },
+          { value: 'large', label: 'wizard.options.large' },
+          { value: 'research', label: 'wizard.options.research' }
         ]
       },
       'financial': {
-        symptom: 'What is your project budget range?',
+        symptom: 'wizard.questions.financial',
         type: 'single-select' as const,
         options: [
-          { value: 'under_50k', label: 'Under €50,000' },
-          { value: '50k_100k', label: '€50,000 - €100,000' },
-          { value: '100k_500k', label: '€100,000 - €500,000' },
-          { value: 'over_500k', label: 'Over €500,000' }
+          { value: 'under_50k', label: 'wizard.options.under50k' },
+          { value: '50k_100k', label: 'wizard.options.50k100k' },
+          { value: '100k_500k', label: 'wizard.options.100k500k' },
+          { value: 'over_500k', label: 'wizard.options.over500k' }
         ]
       }
     };

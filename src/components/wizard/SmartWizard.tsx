@@ -60,7 +60,6 @@ const SmartWizard: React.FC<SmartWizardProps> = ({ onComplete, onProfileGenerate
   const [intakeEngine, setIntakeEngine] = useState<IntakeEngine | null>(null);
   // Removed scoringEngine - using enhancedRecoEngine directly
   const [animationKey, setAnimationKey] = useState(0);
-  const [showAnswersSummary, setShowAnswersSummary] = useState(false);
   const containerRef = useRef<HTMLDivElement>(null);
 
 
@@ -469,27 +468,20 @@ const SmartWizard: React.FC<SmartWizardProps> = ({ onComplete, onProfileGenerate
             </div>
           </div>
 
-          {/* Answer Summary - Collapsible */}
+          {/* Answer Summary - Always Visible */}
           {Object.keys(state.answers).length > 0 && (
             <div className="wizard-answer-summary">
-              <button 
-                onClick={() => setShowAnswersSummary(!showAnswersSummary)}
-                className="wizard-summary-toggle"
-              >
+              <div className="wizard-summary-header">
                 <span className="wizard-summary-icon">✓</span>
                 <span className="wizard-summary-title">{t('wizard.answersSoFar')}</span>
                 <span className="wizard-summary-count">({Object.keys(state.answers).length})</span>
-                <span className="wizard-summary-arrow">
-                  {showAnswersSummary ? '▲' : '▼'}
-                </span>
-              </button>
+              </div>
               
-              {showAnswersSummary && (
-                <div className="wizard-summary-content">
-                  {/* Program Preview - Show only if available */}
-                  {state.programPreview && state.programPreview.length > 0 && (
-                    <div className="wizard-program-preview">
-                      <h4 className="wizard-preview-title">🎯 {t('wizard.topMatches')}</h4>
+              <div className="wizard-summary-content">
+                {/* Program Preview - Show only if available */}
+                {state.programPreview && state.programPreview.length > 0 && (
+                  <div className="wizard-program-preview">
+                    <h4 className="wizard-preview-title">🎯 {t('wizard.topMatches')}</h4>
                       <div className="wizard-preview-list">
                         {state.programPreview.slice(0, 3).map((program, index) => (
                           <div key={program.id || index} className="wizard-preview-item">
@@ -544,8 +536,7 @@ const SmartWizard: React.FC<SmartWizardProps> = ({ onComplete, onProfileGenerate
                       )}
                     </div>
                   )}
-                </div>
-              )}
+              </div>
             </div>
           )}
         </div>
@@ -664,17 +655,18 @@ const SmartWizard: React.FC<SmartWizardProps> = ({ onComplete, onProfileGenerate
         .wizard-advanced-search-link {
           color: white !important;
           background: linear-gradient(135deg, #3B82F6 0%, #1D4ED8 100%) !important;
-          text-decoration: none;
-          font-size: 1rem;
-          font-weight: 700;
-          padding: 1rem 2rem;
+          text-decoration: none !important;
+          font-size: 1rem !important;
+          font-weight: 700 !important;
+          padding: 1rem 2rem !important;
           border: none !important;
-          border-radius: 0.75rem;
-          transition: all 0.2s ease;
-          display: inline-block;
-          box-shadow: 0 6px 16px rgba(59, 130, 246, 0.4);
-          text-transform: uppercase;
-          letter-spacing: 0.5px;
+          border-radius: 0.75rem !important;
+          transition: all 0.2s ease !important;
+          display: inline-block !important;
+          box-shadow: 0 6px 16px rgba(59, 130, 246, 0.4) !important;
+          text-transform: uppercase !important;
+          letter-spacing: 0.5px !important;
+          cursor: pointer !important;
         }
 
         .wizard-advanced-search-link:hover {
@@ -1893,21 +1885,15 @@ const LoadingDisplay: React.FC = () => {
           overflow: hidden;
         }
 
-        .wizard-summary-toggle {
+        .wizard-summary-header {
           width: 100%;
           display: flex;
           align-items: center;
           gap: 0.75rem;
-          padding: 1rem 1.5rem;
-          background: transparent;
-          border: none;
-          cursor: pointer;
-          transition: background-color 0.2s ease;
-          text-align: left;
-        }
-
-        .wizard-summary-toggle:hover {
+          padding: 1.5rem;
           background: rgba(249, 250, 251, 0.5);
+          border-bottom: 1px solid #f3f4f6;
+          text-align: left;
         }
 
         .wizard-summary-icon {
@@ -1928,12 +1914,6 @@ const LoadingDisplay: React.FC = () => {
           font-weight: 500;
         }
 
-        .wizard-summary-arrow {
-          margin-left: auto;
-          color: #6b7280;
-          font-size: 0.875rem;
-          transition: transform 0.2s ease;
-        }
 
         .wizard-program-preview {
           margin-bottom: 1.5rem;
