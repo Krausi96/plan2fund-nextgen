@@ -6,27 +6,13 @@ import React, { useState, useEffect, useCallback, useMemo, useRef } from 'react'
 import { PlanDocument } from '@/types/plan';
 import { ProgramProfile } from '@/types/reco';
 import { useUser } from '@/contexts/UserContext';
-import { EditorProduct, UnifiedEditorSection } from '@/types/editor';
+import { EditorProduct } from '@/types/editor';
 import { EditorEngine } from '@/lib/editor/EditorEngine';
 import { EditorDataProvider } from '@/lib/editor/EditorDataProvider';
 
 // Phase 4 Components
-import EnhancedNavigation from './EnhancedNavigation';
 import EntryPointsManager from './EntryPointsManager';
-import CollaborationManager from './CollaborationManager';
-import SectionEditor from './SectionEditor';
 
-// Types for Phase 4 features
-interface SectionCustomizations {
-  title?: string;
-  guidance?: string;
-  minLength?: number;
-  maxLength?: number;
-  required?: boolean;
-  order?: number;
-  isVisible?: boolean;
-  template?: string;
-}
 
 // FormattingConfig interface removed - functionality moved to DocumentCustomizationPanel
 
@@ -36,8 +22,6 @@ interface Phase4IntegrationProps {
   onPlanChange?: (plan: PlanDocument) => void;
   onProgramProfileChange?: (profile: ProgramProfile) => void;
   onProductChange?: (product: EditorProduct) => void;
-  showAllFeatures?: boolean;
-  defaultViewMode?: 'dashboard' | 'editor' | 'single-page' | 'multi-step';
 }
 
 export default function Phase4Integration({
@@ -45,9 +29,7 @@ export default function Phase4Integration({
   programProfile,
   onPlanChange,
   onProgramProfileChange,
-  onProductChange,
-  showAllFeatures = true,
-  defaultViewMode = 'editor'
+  onProductChange
 }: Phase4IntegrationProps) {
   const { userProfile, isLoading: isUserLoading } = useUser();
   
@@ -58,15 +40,7 @@ export default function Phase4Integration({
   const [isLoading, setIsLoading] = useState(true);
   
   // Phase 4 UI state
-  const [viewMode, setViewMode] = useState<'dashboard' | 'editor' | 'single-page' | 'multi-step'>(defaultViewMode);
   const [showEntryPoints, setShowEntryPoints] = useState(false);
-  const [showTemplates, setShowTemplates] = useState(showAllFeatures);
-  const [showCollaboration, setShowCollaboration] = useState(showAllFeatures);
-  const [showCustomization, setShowCustomization] = useState(showAllFeatures);
-  const [showUniqueness] = useState(true);
-  
-  // Phase 4 feature state
-  const [sectionCustomizations, setSectionCustomizations] = useState<Record<string, SectionCustomizations>>({});
   
   // ============================================================================
   // INTEGRATED STATE MANAGEMENT (from EditorState)
@@ -75,11 +49,6 @@ export default function Phase4Integration({
   // Editor state (integrated from EditorState)
   const [product, setProductState] = useState<EditorProduct | null>(null);
   const [content, setContent] = useState<Record<string, string>>({});
-  const [progress, setProgress] = useState({
-    overall: 0,
-    sections: [] as any[],
-    lastUpdated: new Date()
-  });
   const [error, setError] = useState<string | null>(null);
   
   // Editor engine integration
@@ -98,6 +67,13 @@ export default function Phase4Integration({
       loadUserPlan();
     }
   }, [initialPlan, userProfile, isUserLoading]);
+
+  // Load program sections when programProfile changes
+  useEffect(() => {
+    if (programProfile && programProfile.programId) {
+      loadProgramSections(programProfile.programId);
+    }
+  }, [programProfile]);
 
   const loadUserPlan = async () => {
     setIsLoading(true);
@@ -126,6 +102,57 @@ export default function Phase4Integration({
       setSections(defaultPlan.sections || []);
     } catch (error) {
       console.error('Error loading user plan:', error);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const loadProgramSections = async (programId: string) => {
+    setIsLoading(true);
+    try {
+      console.log('Loading program sections for:', programId);
+      
+      // Load program data and sections
+      const programData = await editorEngineRef.current.loadProduct(programId);
+      const sections = await editorEngineRef.current.loadSections(programId);
+      
+      // Create a new plan with the program's sections
+      const newPlan: PlanDocument = {
+        id: `plan_${Date.now()}`,
+        ownerId: userProfile?.id || 'anonymous',
+        product: 'submission',
+        route: 'grant',
+        language: 'en',
+        tone: 'neutral',
+        targetLength: 'standard',
+        settings: {
+          includeTitlePage: true,
+          includePageNumbers: true,
+          citations: 'simple' as const,
+          captions: true,
+          graphs: {}
+        },
+        sections: sections.map(section => ({
+          key: section.id,
+          title: section.title || section.section_name || 'Untitled Section',
+          content: section.template || section.guidance || '',
+          status: 'missing' as const,
+          wordCount: 0,
+          required: section.required !== false,
+          order: 0
+        })),
+        addonPack: false,
+        versions: []
+      };
+      
+      setPlan(newPlan);
+      setSections(newPlan.sections);
+      setProductState(programData);
+      
+      console.log('Loaded program sections:', sections.length);
+    } catch (error) {
+      console.error('Error loading program sections:', error);
+      setError(error instanceof Error ? error.message : 'Failed to load program sections');
     } finally {
       setIsLoading(false);
     }
@@ -176,40 +203,11 @@ export default function Phase4Integration({
     }
   };
 
-  const handleSectionCustomize = (sectionKey: string, customizations: SectionCustomizations) => {
-    setSectionCustomizations(prev => ({
-      ...prev,
-      [sectionKey]: customizations
-    }));
-  };
-
-  const handleSectionReorder = (fromIndex: number, toIndex: number) => {
-    const newSections = [...sections];
-    const [movedSection] = newSections.splice(fromIndex, 1);
-    newSections.splice(toIndex, 0, movedSection);
-    setSections(newSections);
-    
-    if (plan) {
-      const updatedPlan = { ...plan, sections: newSections };
-      handlePlanChange(updatedPlan);
-    }
-  };
 
   // ============================================================================
   // INTEGRATED EDITOR STATE FUNCTIONS (from EditorState)
   // ============================================================================
 
-  // Debounced progress calculation to avoid calculating on every keystroke
-  const debouncedProgressCalculation = useMemo(() => {
-    let timeoutId: NodeJS.Timeout;
-    return (sections: UnifiedEditorSection[], content: Record<string, string>) => {
-      clearTimeout(timeoutId);
-      timeoutId = setTimeout(() => {
-        const progress = editorEngineRef.current.calculateProgress(sections, content);
-        setProgress(progress);
-      }, 300); // 300ms debounce
-    };
-  }, []);
 
   // Set product and load sections (exposed for parent components to use)
   // This function is available for parent components to call via ref or props
@@ -238,9 +236,6 @@ export default function Phase4Integration({
       }, { ...content });
       setContent(initialContent);
       
-      // Calculate initial progress
-      const progress = editorEngineRef.current.calculateProgress(sections, initialContent);
-      setProgress(progress);
       
     } catch (error) {
       setError(error instanceof Error ? error.message : 'Failed to load product');
@@ -257,45 +252,11 @@ export default function Phase4Integration({
     };
   }
 
-  // Update section content with debounced progress calculation
+  // Update section content
   const updateSection = useCallback((sectionId: string, newContent: string) => {
     setContent(prev => ({ ...prev, [sectionId]: newContent }));
-    
-    // Debounced progress calculation
-    const updatedContent = { ...content, [sectionId]: newContent };
-    debouncedProgressCalculation(sections as UnifiedEditorSection[], updatedContent);
-  }, [sections, content, debouncedProgressCalculation]);
+  }, []);
 
-  const handleViewModeChange = (mode: 'dashboard' | 'editor' | 'single-page' | 'multi-step') => {
-    setViewMode(mode);
-  };
-
-  // Template, formatting, and export handlers removed - functionality moved to DocumentCustomizationPanel
-
-  const handlePlanShare = (shareData: any) => {
-    console.log('Sharing plan:', shareData);
-    // In a real implementation, this would handle sharing
-  };
-
-  const handleVersionCreate = (version: any) => {
-    console.log('Creating version:', version);
-    // In a real implementation, this would save version
-  };
-
-  const handleVersionRestore = (versionId: string) => {
-    console.log('Restoring version:', versionId);
-    // In a real implementation, this would restore version
-  };
-
-  const handleTeamInvite = (email: string, role: any) => {
-    console.log('Inviting team member:', email, role);
-    // In a real implementation, this would send invitation
-  };
-
-  const handleAdvisorRequest = (advisorData: any) => {
-    console.log('Requesting advisor:', advisorData);
-    // In a real implementation, this would handle advisor request
-  };
 
   // Loading state
   if (isLoading || isUserLoading) {
@@ -327,115 +288,192 @@ export default function Phase4Integration({
   }
 
   return (
-    <div className="phase4-integration h-screen flex bg-gray-50">
-      {/* Enhanced Navigation Sidebar */}
-      <EnhancedNavigation
-        sections={sections}
-        activeSection={activeSection}
-        onSectionChange={setActiveSection}
-        onViewModeChange={handleViewModeChange}
-        currentViewMode={viewMode}
-        showProgress={true}
-        showUniqueness={showUniqueness}
-        onSectionReorder={handleSectionReorder}
-      />
-
-      {/* Main Content Area */}
-      <div className="flex-1 flex flex-col">
-        {/* Top Toolbar */}
-        <div className="bg-white border-b border-gray-200 p-4">
+    <div className="min-h-screen bg-gradient-to-br from-sky-50 via-white to-emerald-50">
+      {/* Modern Header */}
+      <div className="bg-white/80 backdrop-blur-sm border-b border-gray-200/50 sticky top-0 z-50">
+        <div className="max-w-7xl mx-auto px-6 py-4">
           <div className="flex items-center justify-between">
-            <div className="flex items-center space-x-4">
-              <h1 className="text-xl font-semibold text-gray-900">
-                {product ? `${product.name} - ${plan.route}` : `${plan.product} - ${plan.route}`}
-              </h1>
-              <div className="flex items-center space-x-2">
-                <button
-                  onClick={() => setShowEntryPoints(!showEntryPoints)}
-                  className={`px-3 py-1 text-sm rounded ${
-                    showEntryPoints ? 'bg-blue-100 text-blue-700' : 'bg-gray-100 text-gray-700'
-                  }`}
-                >
-                  Entry Points
-                </button>
-                <button
-                  onClick={() => setShowTemplates(!showTemplates)}
-                  className={`px-3 py-1 text-sm rounded ${
-                    showTemplates ? 'bg-blue-100 text-blue-700' : 'bg-gray-100 text-gray-700'
-                  }`}
-                >
-                  Templates
-                </button>
-                <button
-                  onClick={() => setShowCollaboration(!showCollaboration)}
-                  className={`px-3 py-1 text-sm rounded ${
-                    showCollaboration ? 'bg-blue-100 text-blue-700' : 'bg-gray-100 text-gray-700'
-                  }`}
-                >
-                  Collaboration
-                </button>
-                <button
-                  onClick={() => setShowCustomization(!showCustomization)}
-                  className={`px-3 py-1 text-sm rounded ${
-                    showCustomization ? 'bg-blue-100 text-blue-700' : 'bg-gray-100 text-gray-700'
-                  }`}
-                >
-                  Customize
-                </button>
+            <div className="flex items-center space-x-6">
+              <div className="flex items-center space-x-3">
+                <div className="w-10 h-10 bg-gradient-to-br from-blue-500 to-purple-600 rounded-xl flex items-center justify-center">
+                  <span className="text-white font-bold text-lg">P</span>
+                </div>
+                <div>
+                  <h1 className="text-xl font-bold text-gray-900">
+                    {product ? product.name : 'Business Plan Editor'}
+                  </h1>
+                  <p className="text-sm text-gray-500">
+                    {plan.route} • {sections.length} sections
+                  </p>
+                </div>
+              </div>
+              
+              {/* Progress Indicator */}
+              <div className="flex items-center space-x-3">
+                <div className="w-32 bg-gray-200 rounded-full h-2">
+                  <div 
+                    className="bg-gradient-to-r from-blue-500 to-purple-600 h-2 rounded-full transition-all duration-500"
+                    style={{ width: `${(sections.filter(s => s.status === 'aligned').length / sections.length) * 100}%` }}
+                  ></div>
+                </div>
+                <span className="text-sm font-medium text-gray-700">
+                  {sections.filter(s => s.status === 'aligned').length}/{sections.length}
+                </span>
               </div>
             </div>
             
-            <div className="flex items-center space-x-2">
-              <span className="text-sm text-gray-500">
-                {sections.filter(s => s.status === 'aligned').length} / {sections.length} complete
-              </span>
-              <button className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700">
+            <div className="flex items-center space-x-3">
+              <button className="px-4 py-2 text-gray-600 hover:text-gray-900 transition-colors">
+                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                </svg>
+              </button>
+              <button className="px-6 py-2 bg-gradient-to-r from-blue-600 to-purple-600 text-white rounded-xl hover:from-blue-700 hover:to-purple-700 transition-all duration-200 shadow-lg hover:shadow-xl">
                 Save
               </button>
             </div>
           </div>
         </div>
+      </div>
 
-        {/* Content Area */}
-        <div className="flex-1 overflow-y-auto p-6">
-          {/* Error Display */}
-          {error && (
-            <div className="mb-4 p-4 bg-red-50 border border-red-200 rounded-lg">
-              <div className="flex">
-                <div className="flex-shrink-0">
-                  <svg className="h-5 w-5 text-red-400" viewBox="0 0 20 20" fill="currentColor">
+      {/* Main Content */}
+      <div className="max-w-7xl mx-auto px-6 py-8">
+        <div className="grid grid-cols-1 lg:grid-cols-4 gap-8">
+          {/* Sidebar - Sections */}
+          <div className="lg:col-span-1">
+            <div className="bg-white/70 backdrop-blur-sm rounded-2xl border border-gray-200/50 p-6 sticky top-24">
+              <h3 className="text-lg font-semibold text-gray-900 mb-4">Sections</h3>
+              <div className="space-y-2">
+                {sections.map((section, index) => (
+                  <button
+                    key={section.key}
+                    onClick={() => setActiveSection(index)}
+                    className={`w-full text-left p-3 rounded-xl transition-all duration-200 ${
+                      index === activeSection
+                        ? 'bg-gradient-to-r from-blue-500 to-purple-600 text-white shadow-lg'
+                        : 'bg-gray-50 hover:bg-gray-100 text-gray-700'
+                    }`}
+                  >
+                    <div className="flex items-center justify-between">
+                      <span className="font-medium text-sm">{section.title}</span>
+                      <div className={`w-2 h-2 rounded-full ${
+                        section.status === 'aligned' ? 'bg-green-500' : 
+                        section.status === 'needs_fix' ? 'bg-yellow-500' : 'bg-gray-300'
+                      }`}></div>
+                    </div>
+                  </button>
+                ))}
+              </div>
+            </div>
+          </div>
+
+          {/* Main Editor Area */}
+          <div className="lg:col-span-3">
+
+            {/* Error Display */}
+            {error && (
+              <div className="mb-6 p-4 bg-red-50 border border-red-200 rounded-xl">
+                <div className="flex items-center">
+                  <svg className="h-5 w-5 text-red-400 mr-3" viewBox="0 0 20 20" fill="currentColor">
                     <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clipRule="evenodd" />
                   </svg>
-                </div>
-                <div className="ml-3">
-                  <h3 className="text-sm font-medium text-red-800">Error</h3>
-                  <div className="mt-2 text-sm text-red-700">
-                    <p>{error}</p>
+                  <div>
+                    <h3 className="text-sm font-medium text-red-800">Error</h3>
+                    <p className="text-sm text-red-700">{error}</p>
                   </div>
                 </div>
               </div>
-            </div>
-          )}
+            )}
 
-          {/* Progress Display */}
-          {progress.overall > 0 && (
-            <div className="mb-4 p-4 bg-blue-50 border border-blue-200 rounded-lg">
-              <div className="flex items-center justify-between">
-                <span className="text-sm font-medium text-blue-800">Progress</span>
-                <span className="text-sm text-blue-600">{Math.round(progress.overall)}%</span>
-              </div>
-              <div className="mt-2 w-full bg-blue-200 rounded-full h-2">
-                <div 
-                  className="bg-blue-600 h-2 rounded-full transition-all duration-300" 
-                  style={{ width: `${progress.overall}%` }}
-                ></div>
-              </div>
-            </div>
-          )}
+            {/* Section Editor */}
+            {sections.length > 0 && activeSection < sections.length && (
+              <div className="bg-white/70 backdrop-blur-sm rounded-2xl border border-gray-200/50 p-8">
+                <div className="mb-6">
+                  <h2 className="text-2xl font-bold text-gray-900 mb-2">
+                    {sections[activeSection]?.title}
+                  </h2>
+                  <p className="text-gray-600">
+                    {sections[activeSection]?.required ? 'Required section' : 'Optional section'}
+                  </p>
+                </div>
 
-          {/* Entry Points Panel */}
-          {showEntryPoints && (
-            <div className="mb-6">
+                <div className="space-y-6">
+                  {/* Section Content Editor */}
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                      Content
+                    </label>
+                    <textarea
+                      value={sections[activeSection]?.content || ''}
+                      onChange={(e) => handleSectionChange(sections[activeSection].key, e.target.value)}
+                      className="w-full h-64 p-4 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent resize-none"
+                      placeholder="Start writing your content here..."
+                    />
+                  </div>
+
+                  {/* Section Actions */}
+                  <div className="flex items-center justify-between pt-4 border-t border-gray-200">
+                    <div className="flex items-center space-x-4">
+                      <button
+                        onClick={() => handleSectionStatusChange(sections[activeSection].key, 'aligned')}
+                        className="px-4 py-2 bg-green-100 text-green-700 rounded-lg hover:bg-green-200 transition-colors"
+                      >
+                        Mark Complete
+                      </button>
+                      <button
+                        onClick={() => handleSectionStatusChange(sections[activeSection].key, 'needs_fix')}
+                        className="px-4 py-2 bg-yellow-100 text-yellow-700 rounded-lg hover:bg-yellow-200 transition-colors"
+                      >
+                        Needs Review
+                      </button>
+                    </div>
+                    
+                    <div className="text-sm text-gray-500">
+                      {sections[activeSection]?.content?.length || 0} characters
+                    </div>
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {/* No Sections State */}
+            {sections.length === 0 && (
+              <div className="bg-white/70 backdrop-blur-sm rounded-2xl border border-gray-200/50 p-12 text-center">
+                <div className="w-16 h-16 bg-gradient-to-br from-blue-500 to-purple-600 rounded-2xl flex items-center justify-center mx-auto mb-4">
+                  <svg className="w-8 h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                  </svg>
+                </div>
+                <h3 className="text-xl font-semibold text-gray-900 mb-2">No Sections Available</h3>
+                <p className="text-gray-600 mb-6">Select a program to load its sections and start creating your business plan.</p>
+                <button
+                  onClick={() => setShowEntryPoints(true)}
+                  className="px-6 py-3 bg-gradient-to-r from-blue-600 to-purple-600 text-white rounded-xl hover:from-blue-700 hover:to-purple-700 transition-all duration-200 shadow-lg hover:shadow-xl"
+                >
+                  Select Program
+                </button>
+              </div>
+            )}
+          </div>
+        </div>
+      </div>
+
+      {/* Entry Points Modal */}
+      {showEntryPoints && (
+        <div className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+          <div className="bg-white rounded-2xl max-w-2xl w-full max-h-[80vh] overflow-y-auto">
+            <div className="p-6">
+              <div className="flex items-center justify-between mb-6">
+                <h3 className="text-xl font-semibold text-gray-900">Entry Points</h3>
+                <button
+                  onClick={() => setShowEntryPoints(false)}
+                  className="text-gray-400 hover:text-gray-600"
+                >
+                  <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                  </svg>
+                </button>
+              </div>
               <EntryPointsManager
                 currentPlan={plan}
                 programProfile={programProfile}
@@ -446,112 +484,9 @@ export default function Phase4Integration({
                 showPlanSwitching={true}
               />
             </div>
-          )}
-
-          {/* Templates & Formatting Panel */}
-          {showTemplates && (
-            <div className="mb-6 p-4 bg-gray-100 rounded-lg">
-              <h3 className="text-lg font-semibold mb-2">Templates & Formatting</h3>
-              <p className="text-gray-600 text-sm">
-                Customization features are now available in the Document Customization Panel.
-              </p>
-            </div>
-          )}
-
-          {/* Collaboration Panel */}
-          {showCollaboration && userProfile && (
-            <div className="mb-6">
-              <CollaborationManager
-                currentPlan={plan}
-                currentUser={userProfile}
-                onPlanShare={handlePlanShare}
-                onVersionCreate={handleVersionCreate}
-                onVersionRestore={handleVersionRestore}
-                onTeamInvite={handleTeamInvite}
-                onAdvisorRequest={handleAdvisorRequest}
-                showTeamEditing={true}
-                showVersionControl={true}
-                showSharing={true}
-                showAdvisorIntegration={true}
-              />
-            </div>
-          )}
-
-          {/* Main Editor Content */}
-          {viewMode === 'editor' && (
-            <div className="space-y-6">
-              {sections.map((section, index) => (
-                <SectionEditor
-                  key={section.key}
-                  section={section}
-                  onContentChange={handleSectionChange}
-                  onStatusChange={handleSectionStatusChange}
-                  onSectionReorder={handleSectionReorder}
-                  onSectionCustomize={handleSectionCustomize}
-                  isActive={index === activeSection}
-                  showProgress={true}
-                  showCustomization={showCustomization}
-                  showUniqueness={showUniqueness}
-                  customizations={sectionCustomizations[section.key]}
-                />
-              ))}
-            </div>
-          )}
-
-          {/* Dashboard View */}
-          {viewMode === 'dashboard' && (
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-              <div className="bg-white p-6 rounded-lg border border-gray-200">
-                <h3 className="text-lg font-medium text-gray-900 mb-4">Progress Overview</h3>
-                <div className="space-y-3">
-                  <div className="flex justify-between">
-                    <span className="text-sm text-gray-600">Completed</span>
-                    <span className="text-sm font-medium">
-                      {sections.filter(s => s.status === 'aligned').length}
-                    </span>
-                  </div>
-                  <div className="flex justify-between">
-                    <span className="text-sm text-gray-600">In Progress</span>
-                    <span className="text-sm font-medium">
-                      {sections.filter(s => s.status === 'needs_fix').length}
-                    </span>
-                  </div>
-                  <div className="flex justify-between">
-                    <span className="text-sm text-gray-600">Not Started</span>
-                    <span className="text-sm font-medium">
-                      {sections.filter(s => s.status === 'missing').length}
-                    </span>
-                  </div>
-                </div>
-              </div>
-
-              <div className="bg-white p-6 rounded-lg border border-gray-200">
-                <h3 className="text-lg font-medium text-gray-900 mb-4">Quick Actions</h3>
-                <div className="space-y-2">
-                  <button className="w-full text-left px-3 py-2 text-sm text-blue-600 hover:bg-blue-50 rounded">
-                    Generate AI Content
-                  </button>
-                  <button className="w-full text-left px-3 py-2 text-sm text-blue-600 hover:bg-blue-50 rounded">
-                    Check Requirements
-                  </button>
-                  <button className="w-full text-left px-3 py-2 text-sm text-blue-600 hover:bg-blue-50 rounded">
-                    Export Document
-                  </button>
-                </div>
-              </div>
-
-              <div className="bg-white p-6 rounded-lg border border-gray-200">
-                <h3 className="text-lg font-medium text-gray-900 mb-4">Recent Activity</h3>
-                <div className="space-y-2 text-sm text-gray-600">
-                  <p>• Plan created</p>
-                  <p>• Section 1 updated</p>
-                  <p>• AI content generated</p>
-                </div>
-              </div>
-            </div>
-          )}
+          </div>
         </div>
-      </div>
+      )}
     </div>
   );
 }

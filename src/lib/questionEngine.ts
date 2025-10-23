@@ -273,12 +273,16 @@ export class QuestionEngine {
    */
   private initializeQuestions(): void {
     console.log('🔄 Generating DYNAMIC core questions from program data...');
+    console.log(`📊 Programs available: ${this.programs.length}`);
     
     // Analyze program data to generate core questions
     const programTypes = new Set(this.programs.map(p => p.type || (p as any).program_type));
     const fundingAmounts = this.programs
       .map(p => (p as any).funding_amount_max || (p as any).funding_amount || (p as any).maxAmount || 0)
       .filter(amount => amount > 0);
+    
+    console.log(`📊 Program types found: ${Array.from(programTypes).join(', ')}`);
+    console.log(`📊 Funding amounts found: ${fundingAmounts.length}`);
     
     this.questions = [];
     
@@ -644,6 +648,19 @@ export class QuestionEngine {
     }
     
     console.log(`✅ Generated ${this.questions.length} DYNAMIC core questions from ${this.programs.length} programs`);
+    
+    // Debug: Log the first few questions
+    if (this.questions.length > 0) {
+      console.log('🔍 First question:', {
+        id: this.questions[0].id,
+        symptom: this.questions[0].symptom,
+        type: this.questions[0].type,
+        options: this.questions[0].options?.length || 0,
+        required: this.questions[0].required
+      });
+    } else {
+      console.log('❌ No questions generated!');
+    }
   }
 
   /**
@@ -1133,6 +1150,13 @@ export class QuestionEngine {
   public async shouldStopQuestions(answers: Record<string, any>): Promise<boolean> {
     // Don't stop if we have no answers yet
     if (Object.keys(answers).length === 0) {
+      console.log('🔍 No answers yet, continuing with questions');
+      return false;
+    }
+    
+    // Don't stop if we have less than 3 answers (need minimum for meaningful scoring)
+    if (Object.keys(answers).length < 3) {
+      console.log('🔍 Not enough answers yet, continuing with questions');
       return false;
     }
     
@@ -1140,6 +1164,8 @@ export class QuestionEngine {
       // Import the scoring engine
       const { scoreProgramsEnhanced } = await import('./enhancedRecoEngine');
       const results = await scoreProgramsEnhanced(answers, "strict");
+      
+      console.log(`🔍 Checking match quality: ${results.length} results, top score: ${results[0]?.score || 0}%`);
       
       // If we have a 100% match, stop asking questions
       if (results.length > 0 && results[0].score >= 100) {
@@ -1153,6 +1179,7 @@ export class QuestionEngine {
         return true;
       }
       
+      console.log('🔍 Match quality not high enough, continuing with questions');
       return false;
     } catch (error) {
       console.warn('Failed to check match quality:', error);
@@ -1176,10 +1203,13 @@ export class QuestionEngine {
       return null;
     }
     
+    console.log('🔍 Continuing with question selection...');
+    
     // PRIORITY 1: Find unanswered core questions (reliable fallback)
     const coreQuestions = this.getCoreQuestions();
     console.log(`🔍 Checking ${coreQuestions.length} core questions`);
     for (const question of coreQuestions) {
+      console.log(`🔍 Checking core question: ${question.id}, required: ${question.required}, answered: ${!!answers[question.id]}`);
       if (question.required && !answers[question.id]) {
         console.log(`✅ Found unanswered core question: ${question.id}`);
         return this.enhanceQuestionWithStats(question);
@@ -1309,7 +1339,10 @@ export class QuestionEngine {
    * Get first question (for SmartWizard compatibility)
    */
   public async getFirstQuestion(): Promise<SymptomQuestion | null> {
-    return this.getNextQuestionEnhanced({});
+    console.log('🎯 Getting first question...');
+    const question = await this.getNextQuestionEnhanced({});
+    console.log('🎯 First question result:', question ? question.id : 'null');
+    return question;
   }
 
   /**
