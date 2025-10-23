@@ -432,30 +432,30 @@ export class QuestionEngine {
       // PHASE 1: BROAD SYMPTOMS (2-3 questions)
       {
         id: 'funding_need',
-        symptom: "What's your biggest challenge right now?",
+        symptom: "What is your primary funding objective?",
         type: 'single-select',
         options: [
           {
             value: 'need_money_start',
-            label: 'I need money to get started',
+            label: 'Launch a new business or product',
             fundingTypes: ['grants', 'equity'],
             nextQuestions: ['business_stage', 'innovation_level']
           },
           {
             value: 'need_money_grow',
-            label: 'I need money to grow my business',
+            label: 'Scale and expand existing operations',
             fundingTypes: ['loans', 'grants', 'equity'],
             nextQuestions: ['business_stage', 'revenue_level']
           },
           {
             value: 'need_money_research',
-            label: 'I need money for research/development',
+            label: 'Develop new technology or innovation',
             fundingTypes: ['grants', 'equity'],
             nextQuestions: ['innovation_level', 'research_focus']
           },
           {
             value: 'need_money_team',
-            label: 'I need money to hire people',
+            label: 'Build and strengthen our team',
             fundingTypes: ['grants', 'loans'],
             nextQuestions: ['team_size', 'business_stage']
           }
@@ -466,30 +466,30 @@ export class QuestionEngine {
       },
       {
         id: 'business_stage',
-        symptom: 'How far along is your business?',
+        symptom: 'What is your current business development stage?',
         type: 'single-select',
         options: [
           {
             value: 'just_idea',
-            label: 'I just have an idea',
+            label: 'Concept and planning phase',
             fundingTypes: ['grants', 'equity'],
             nextQuestions: ['innovation_level']
           },
           {
             value: 'building',
-            label: 'I\'m building something',
+            label: 'Product development and testing',
             fundingTypes: ['grants', 'equity', 'loans'],
             nextQuestions: ['innovation_level', 'team_size']
           },
           {
             value: 'selling',
-            label: 'I\'m already selling',
+            label: 'Market entry and early sales',
             fundingTypes: ['loans', 'grants', 'equity'],
             nextQuestions: ['revenue_level', 'team_size']
           },
           {
             value: 'growing',
-            label: 'I\'m growing fast',
+            label: 'Rapid growth and expansion',
             fundingTypes: ['loans', 'equity'],
             nextQuestions: ['revenue_level', 'expansion_plans']
           }
@@ -1497,46 +1497,46 @@ export class QuestionEngine {
     // Map category to question type and options
     const categoryMapping = {
       'co_financing': {
-        symptom: 'Do you have co-financing available?',
+        symptom: 'Do you have co-financing or matching funds available?',
         type: 'boolean' as const,
         options: [
-          { value: 'yes', label: 'Yes, I have co-financing' },
-          { value: 'no', label: 'No, I need full funding' }
+          { value: 'yes', label: 'Yes, we have co-financing available' },
+          { value: 'no', label: 'No, we need full funding support' }
         ]
       },
       'trl_level': {
-        symptom: 'What is your technology readiness level?',
+        symptom: 'What is your current technology readiness level?',
         type: 'single-select' as const,
         options: [
-          { value: '1-3', label: 'Basic research (TRL 1-3)' },
-          { value: '4-6', label: 'Development (TRL 4-6)' },
-          { value: '7-9', label: 'Commercialization (TRL 7-9)' }
+          { value: '1-3', label: 'Basic research and concept development (TRL 1-3)' },
+          { value: '4-6', label: 'Technology development and validation (TRL 4-6)' },
+          { value: '7-9', label: 'System demonstration and commercialization (TRL 7-9)' }
         ]
       },
       'impact': {
-        symptom: 'What type of impact are you targeting?',
+        symptom: 'What type of impact does your project aim to achieve?',
         type: 'multi-select' as const,
         options: [
-          { value: 'economic', label: 'Economic impact' },
-          { value: 'social', label: 'Social impact' },
-          { value: 'environmental', label: 'Environmental impact' }
+          { value: 'economic', label: 'Economic growth and job creation' },
+          { value: 'social', label: 'Social innovation and community benefit' },
+          { value: 'environmental', label: 'Environmental sustainability and climate action' }
         ]
       },
       'consortium': {
-        symptom: 'Do you have consortium partners?',
+        symptom: 'Do you have consortium partners or collaborators?',
         type: 'boolean' as const,
         options: [
-          { value: 'yes', label: 'Yes, I have partners' },
-          { value: 'no', label: 'No, I work alone' }
+          { value: 'yes', label: 'Yes, we have established partnerships' },
+          { value: 'no', label: 'No, we are working independently' }
         ]
       },
       'eligibility': {
-        symptom: 'What is your organization type?',
+        symptom: 'What type of organization are you?',
         type: 'single-select' as const,
         options: [
-          { value: 'startup', label: 'Startup' },
-          { value: 'sme', label: 'SME' },
-          { value: 'research', label: 'Research institution' }
+          { value: 'startup', label: 'Startup or early-stage company' },
+          { value: 'sme', label: 'Small or medium-sized enterprise (SME)' },
+          { value: 'research', label: 'Research institution or university' }
         ]
       }
     };
@@ -1624,20 +1624,20 @@ export class QuestionEngine {
     console.log(`🔍 Getting next question. Current answers:`, Object.keys(answers));
     console.log(`🔍 Available overlay questions: ${this.overlayQuestions.length}`);
     
-    // PRIORITY 1: Find unanswered overlay questions (generated from program data)
-    const overlayQuestions = this.getOverlayQuestions();
-    for (const question of overlayQuestions) {
-      if (question.required && !answers[question.id]) {
-        console.log(`✅ Found unanswered overlay question: ${question.id}`);
-        return this.enhanceQuestionWithStats(question);
-      }
-    }
-    
-    // PRIORITY 2: Find unanswered core questions (fallback)
+    // PRIORITY 1: Find unanswered core questions (reliable fallback)
     const coreQuestions = this.getCoreQuestions();
     for (const question of coreQuestions) {
       if (question.required && !answers[question.id]) {
         console.log(`✅ Found unanswered core question: ${question.id}`);
+        return this.enhanceQuestionWithStats(question);
+      }
+    }
+    
+    // PRIORITY 2: Find unanswered overlay questions (generated from program data)
+    const overlayQuestions = this.getOverlayQuestions();
+    for (const question of overlayQuestions) {
+      if (question.required && !answers[question.id] && question.options && question.options.length > 0) {
+        console.log(`✅ Found unanswered overlay question: ${question.id}`);
         return this.enhanceQuestionWithStats(question);
       }
     }
