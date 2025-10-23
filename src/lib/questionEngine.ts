@@ -364,7 +364,8 @@ export class QuestionEngine {
       // Filter out programs without meaningful categorized_requirements
       const hasValidRequirements = program.categorized_requirements && 
         Object.values(program.categorized_requirements).some(category => 
-          Array.isArray(category) && category.length > 0
+          (Array.isArray(category) && category.length > 0) ||
+          (typeof category === 'object' && category !== null && 'evidence' in category && Array.isArray(category.evidence) && category.evidence.length > 0)
         );
       
       return !isErrorPage && hasValidRequirements;
@@ -476,7 +477,15 @@ export class QuestionEngine {
     
     // Generate questions for each category
     for (const [category, mapping] of Object.entries(categoryMappings)) {
-      if (categories[category] && Array.isArray(categories[category]) && categories[category].length > 0) {
+      const categoryData = categories[category];
+      
+      // Check if category has meaningful data (either array with items or object with evidence)
+      const hasValidData = categoryData && (
+        (Array.isArray(categoryData) && categoryData.length > 0) ||
+        (typeof categoryData === 'object' && categoryData !== null && 'evidence' in categoryData && Array.isArray(categoryData.evidence) && categoryData.evidence.length > 0)
+      );
+      
+      if (hasValidData) {
         const question: SymptomQuestion = {
           id: `${program.id}_${category}`,
           symptom: mapping.symptom,

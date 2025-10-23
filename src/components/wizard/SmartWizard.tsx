@@ -18,6 +18,7 @@ interface WizardState {
   results: EnhancedProgramResult[];
   profile: any | null;
   showResults: boolean;
+  showFinalPreview: boolean;
   progress: number;
   programSpecificQuestions?: SymptomQuestion[];
   // NEW: Enhanced validation and guidance
@@ -46,6 +47,7 @@ const SmartWizard: React.FC<SmartWizardProps> = ({ onComplete, onProfileGenerate
     results: [],
     profile: null,
     showResults: false,
+    showFinalPreview: false,
     progress: 0,
     currentQuestionIndex: 0,
     totalQuestions: 0,
@@ -235,9 +237,27 @@ const SmartWizard: React.FC<SmartWizardProps> = ({ onComplete, onProfileGenerate
       programPreview: programPreview || prev.programPreview // Keep existing preview if no new one
     }));
 
-    // If no more questions, process results
+    // If no more questions, show final preview instead of results
     if (!nextQuestion) {
-      await processResults(newAnswers);
+      // Generate final program preview instead of going to results
+      try {
+        const { scoreProgramsEnhanced } = await import('@/lib/enhancedRecoEngine');
+        const finalResults = await scoreProgramsEnhanced(newAnswers, "strict");
+        const finalPreview = finalResults.slice(0, 5); // Top 5 programs for final preview
+        
+        setState(prev => ({
+          ...prev,
+          programPreview: finalPreview,
+          showFinalPreview: true, // New flag to show final preview
+          isProcessing: false
+        }));
+        
+        console.log('🎯 Final preview generated:', finalPreview.length, 'programs');
+      } catch (error) {
+        console.warn('Failed to generate final preview:', error);
+        // Fallback to results if preview fails
+        await processResults(newAnswers);
+      }
     } else {
       setAnimationKey(prev => prev + 1);
     }
@@ -282,6 +302,7 @@ const SmartWizard: React.FC<SmartWizardProps> = ({ onComplete, onProfileGenerate
       results: [],
       profile: null,
       showResults: false,
+      showFinalPreview: false,
       progress: 0,
       currentQuestionIndex: 0,
       totalQuestions: 0,
@@ -347,7 +368,7 @@ const SmartWizard: React.FC<SmartWizardProps> = ({ onComplete, onProfileGenerate
           <div className="wizard-question-card" key={animationKey}>
             {/* Progress Bar */}
             <div className="wizard-progress">
-              <div className="wizard-progress-text">{Math.round(state.progress)}%</div>
+              <div className="wizard-progress-text">{Math.round(state.progress)}% Complete</div>
               <div className="wizard-progress-bar">
                 <div 
                   className="wizard-progress-fill"
@@ -482,6 +503,21 @@ const SmartWizard: React.FC<SmartWizardProps> = ({ onComplete, onProfileGenerate
                           </div>
                         ))}
                       </div>
+                      
+                      {/* View Full Results Button - Show only when final preview is shown */}
+                      {state.showFinalPreview && (
+                        <div className="wizard-final-preview-actions">
+                          <button 
+                            className="wizard-view-results-btn"
+                            onClick={async () => {
+                              // Process full results and navigate to results page
+                              await processResults(state.answers);
+                            }}
+                          >
+                            📊 View Full Results ({state.programPreview.length} programs)
+                          </button>
+                        </div>
+                      )}
                     </div>
                   )}
                 </div>
@@ -556,22 +592,25 @@ const SmartWizard: React.FC<SmartWizardProps> = ({ onComplete, onProfileGenerate
 
         .wizard-progress {
           display: flex;
-          align-items: center;
-          gap: 1rem;
+          flex-direction: column;
+          gap: 0.75rem;
+          margin-bottom: 1.5rem;
         }
 
         .wizard-progress-text {
-          font-size: 0.875rem;
-          color: #6b7280;
-          font-weight: 500;
+          font-size: 1rem;
+          color: #374151;
+          font-weight: 600;
+          text-align: center;
         }
 
         .wizard-progress-bar {
-          width: 8rem;
-          height: 0.5rem;
+          width: 100%;
+          height: 0.75rem;
           background: #e5e7eb;
           border-radius: 9999px;
           overflow: hidden;
+          box-shadow: inset 0 1px 3px rgba(0, 0, 0, 0.1);
         }
 
         .wizard-progress-fill {
@@ -731,13 +770,15 @@ const SmartWizard: React.FC<SmartWizardProps> = ({ onComplete, onProfileGenerate
         }
 
         .wizard-question-card {
-          background: rgba(255, 255, 255, 0.8);
+          background: rgba(255, 255, 255, 0.95);
           backdrop-filter: blur(10px);
           border-radius: 1.5rem;
           border: 1px solid rgba(229, 231, 235, 0.5);
           box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1);
           overflow: hidden;
           animation: slideIn 0.4s ease-out;
+          margin-bottom: 2rem;
+          min-height: 400px;
         }
 
         @keyframes slideIn {
@@ -1885,25 +1926,28 @@ const LoadingDisplay: React.FC = () => {
         }
 
         .wizard-preview-list {
-          display: flex;
-          flex-direction: row;
+          display: grid;
+          grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
           gap: 1rem;
-          overflow-x: auto;
-          padding-bottom: 0.5rem;
+          margin-top: 1rem;
         }
 
         .wizard-preview-item {
           display: flex;
-          flex-direction: column;
+          flex-direction: row;
           align-items: center;
-          gap: 0.5rem;
+          gap: 1rem;
           padding: 1rem;
           background: white;
           border-radius: 0.75rem;
           border: 1px solid #7dd3fc;
           box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-          min-width: 200px;
-          flex-shrink: 0;
+          transition: all 0.2s ease;
+        }
+
+        .wizard-preview-item:hover {
+          transform: translateY(-2px);
+          box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
         }
 
         .wizard-preview-rank {
@@ -1921,15 +1965,15 @@ const LoadingDisplay: React.FC = () => {
         }
 
         .wizard-preview-content {
-          text-align: center;
-          width: 100%;
+          flex: 1;
+          text-align: left;
         }
 
         .wizard-preview-name {
           font-size: 0.875rem;
           font-weight: 600;
           color: #0c4a6e;
-          margin-bottom: 0.5rem;
+          margin-bottom: 0.25rem;
           line-height: 1.3;
         }
 
@@ -1937,6 +1981,33 @@ const LoadingDisplay: React.FC = () => {
           font-size: 0.75rem;
           color: #0369a1;
           font-weight: 500;
+        }
+
+        .wizard-final-preview-actions {
+          margin-top: 1.5rem;
+          text-align: center;
+        }
+
+        .wizard-view-results-btn {
+          background: linear-gradient(135deg, #3B82F6 0%, #1D4ED8 100%);
+          color: white;
+          border: none;
+          border-radius: 0.75rem;
+          padding: 1rem 2rem;
+          font-size: 1rem;
+          font-weight: 600;
+          cursor: pointer;
+          transition: all 0.2s ease;
+          box-shadow: 0 4px 12px rgba(59, 130, 246, 0.3);
+        }
+
+        .wizard-view-results-btn:hover {
+          transform: translateY(-2px);
+          box-shadow: 0 6px 16px rgba(59, 130, 246, 0.4);
+        }
+
+        .wizard-view-results-btn:active {
+          transform: translateY(0);
         }
 
         .wizard-answers-list {
