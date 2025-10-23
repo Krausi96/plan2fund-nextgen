@@ -1071,6 +1071,7 @@ const ResultsDisplay: React.FC<{
   profile: any | null;
   onReset: () => void;
 }> = ({ results, onReset }) => {
+  const { t } = useI18n();
   const [selectedResult, setSelectedResult] = useState<EnhancedProgramResult | null>(null);
 
   const getPriorityColor = (priority: string) => {
