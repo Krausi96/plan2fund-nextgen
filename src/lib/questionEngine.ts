@@ -375,12 +375,18 @@ export class QuestionEngine {
     
     // Debug: Log valid programs with their categorized_requirements
     validPrograms.forEach((program, index) => {
-      if (index < 3) { // Log first 3 programs for debugging
+      if (index < 5) { // Log first 5 programs for debugging
         console.log(`🔍 Program ${index + 1}: ${program.name}`, {
-          categorized_requirements: program.categorized_requirements
+          hasCategorizedRequirements: !!program.categorized_requirements,
+          categorizedRequirementsKeys: program.categorized_requirements ? Object.keys(program.categorized_requirements) : [],
+          categorizedRequirements: program.categorized_requirements
         });
       }
     });
+    
+    // Debug: Count programs with categorized_requirements
+    const programsWithRequirements = validPrograms.filter(p => p.categorized_requirements);
+    console.log(`📊 Programs with categorized_requirements: ${programsWithRequirements.length}/${validPrograms.length}`);
     
     // Performance optimization for large datasets
     const maxProgramsToProcess = Math.min(validPrograms.length, 100);
@@ -405,6 +411,12 @@ export class QuestionEngine {
     // Remove duplicates and sort by priority
     this.overlayQuestions = this.deduplicateQuestions(overlayQuestions);
     
+    // FALLBACK: If no overlay questions were generated, create some basic ones
+    if (this.overlayQuestions.length === 0) {
+      console.log('⚠️ No overlay questions generated, creating fallback questions...');
+      this.overlayQuestions = this.generateFallbackQuestions();
+    }
+    
     console.log(`✅ Computed ${this.overlayQuestions.length} overlay questions from ${programsToProcess.length} programs`);
     
     if (validPrograms.length > 50) {
@@ -417,6 +429,89 @@ export class QuestionEngine {
         efficiency: `${Math.round((this.overlayQuestions.length / programsToProcess.length) * 100)}%`
       });
     }
+  }
+
+  /**
+   * Generate fallback questions when no categorized_requirements are available
+   */
+  private generateFallbackQuestions(): SymptomQuestion[] {
+    console.log('🔄 Generating fallback questions...');
+    
+    return [
+      {
+        id: 'innovation_focus',
+        symptom: 'wizard.questions.innovationFocus',
+        type: 'single-select',
+        options: [
+          { value: 'deep_tech', label: 'wizard.options.deepTech', fundingTypes: ['grants', 'equity'] },
+          { value: 'digital_innovation', label: 'wizard.options.digitalInnovation', fundingTypes: ['grants', 'loans'] },
+          { value: 'social_impact', label: 'wizard.options.socialImpact', fundingTypes: ['grants'] },
+          { value: 'sustainability', label: 'wizard.options.sustainability', fundingTypes: ['grants', 'loans'] }
+        ],
+        required: false,
+        category: 'innovation_level',
+        phase: 2,
+        isCoreQuestion: false
+      },
+      {
+        id: 'project_duration',
+        symptom: 'wizard.questions.projectDuration',
+        type: 'single-select',
+        options: [
+          { value: 'under_6_months', label: 'wizard.options.under6Months', fundingTypes: ['grants'] },
+          { value: '6_12_months', label: 'wizard.options.6to12Months', fundingTypes: ['grants', 'loans'] },
+          { value: '1_2_years', label: 'wizard.options.1to2Years', fundingTypes: ['grants', 'loans', 'equity'] },
+          { value: 'over_2_years', label: 'wizard.options.over2Years', fundingTypes: ['grants', 'loans', 'equity'] }
+        ],
+        required: false,
+        category: 'specific_requirements',
+        phase: 2,
+        isCoreQuestion: false
+      },
+      {
+        id: 'market_readiness',
+        symptom: 'wizard.questions.marketReadiness',
+        type: 'single-select',
+        options: [
+          { value: 'research_phase', label: 'wizard.options.researchPhase', fundingTypes: ['grants'] },
+          { value: 'prototype_phase', label: 'wizard.options.prototypePhase', fundingTypes: ['grants', 'equity'] },
+          { value: 'market_validation', label: 'wizard.options.marketValidation', fundingTypes: ['grants', 'loans', 'equity'] },
+          { value: 'scaling_phase', label: 'wizard.options.scalingPhase', fundingTypes: ['loans', 'equity'] }
+        ],
+        required: false,
+        category: 'business_stage',
+        phase: 2,
+        isCoreQuestion: false
+      },
+      {
+        id: 'international_focus',
+        symptom: 'wizard.questions.internationalFocus',
+        type: 'boolean',
+        options: [
+          { value: 'yes', label: 'wizard.options.yesInternational', fundingTypes: ['grants', 'loans'] },
+          { value: 'no', label: 'wizard.options.noInternational', fundingTypes: ['grants', 'loans'] }
+        ],
+        required: false,
+        category: 'specific_requirements',
+        phase: 2,
+        isCoreQuestion: false
+      },
+      {
+        id: 'team_experience',
+        symptom: 'wizard.questions.teamExperience',
+        type: 'single-select',
+        options: [
+          { value: 'founded_before', label: 'wizard.options.foundedBefore', fundingTypes: ['loans', 'equity'] },
+          { value: 'first_time', label: 'wizard.options.firstTime', fundingTypes: ['grants'] },
+          { value: 'serial_entrepreneur', label: 'wizard.options.serialEntrepreneur', fundingTypes: ['grants', 'loans', 'equity'] },
+          { value: 'corporate_background', label: 'wizard.options.corporateBackground', fundingTypes: ['loans', 'equity'] }
+        ],
+        required: false,
+        category: 'team_size',
+        phase: 2,
+        isCoreQuestion: false
+      }
+    ];
   }
 
   /**

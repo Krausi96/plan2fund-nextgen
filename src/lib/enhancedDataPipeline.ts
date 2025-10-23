@@ -1409,9 +1409,13 @@ export class EnhancedDataPipeline {
   private async processPrograms(rawPrograms: ScrapedProgram[]): Promise<NormalizedProgram[]> {
     console.log('🔄 Processing programs through pipeline...');
     
-    // Step 1: Normalize programs
+    // Step 1: Filter out low-quality programs BEFORE normalization
+    const filteredPrograms = this.filterLowQualityPrograms(rawPrograms);
+    console.log(`📊 Data quality filter: ${rawPrograms.length} → ${filteredPrograms.length} programs`);
+    
+    // Step 2: Normalize programs
     const normalizedPrograms: NormalizedProgram[] = [];
-    for (const rawProgram of rawPrograms) {
+    for (const rawProgram of filteredPrograms) {
       try {
         const normalized = await this.normalizer.normalizeProgram(rawProgram);
         normalizedPrograms.push(normalized);
@@ -1420,14 +1424,66 @@ export class EnhancedDataPipeline {
       }
     }
     
-    // Step 2: Remove duplicates
+    // Step 3: Remove duplicates
     const uniquePrograms = this.removeDuplicates(normalizedPrograms);
     
-    // Step 3: Sort by quality score
+    // Step 4: Sort by quality score
     const sortedPrograms = uniquePrograms.sort((a, b) => b.quality_score - a.quality_score);
     
     console.log(`✅ Pipeline processing complete: ${sortedPrograms.length} programs`);
     return sortedPrograms;
+  }
+
+  /**
+   * Filter out low-quality programs (error pages, navigation, etc.)
+   */
+  private filterLowQualityPrograms(programs: ScrapedProgram[]): ScrapedProgram[] {
+    return programs.filter(program => {
+      const name = program.name?.toLowerCase() || '';
+      const description = program.description?.toLowerCase() || '';
+      
+      // Filter out error pages
+      const isErrorPage = 
+        name.includes('newsletter') ||
+        name.includes('metanavigation') ||
+        name.includes('not found') ||
+        name.includes('error') ||
+        name.includes('bad gateway') ||
+        name.includes('404') ||
+        name.includes('500') ||
+        description.includes('seite wurde nicht gefunden') ||
+        description.includes('page not found') ||
+        description.includes('error occurred');
+      
+      // Filter out navigation pages
+      const isNavigationPage = 
+        name.includes('navigation') ||
+        name.includes('menu') ||
+        name.includes('footer') ||
+        name.includes('header') ||
+        name.includes('sidebar');
+      
+      // Filter out programs with very short descriptions (likely not real programs)
+      const hasMinimalContent = 
+        !description || 
+        description.length < 50 ||
+        description.split(' ').length < 10;
+      
+      // Filter out programs without meaningful data
+      const hasNoMeaningfulData = 
+        !program.funding_amount_min && 
+        !program.funding_amount_max && 
+        !program.requirements &&
+        !program.eligibility_criteria;
+      
+      const isValid = !isErrorPage && !isNavigationPage && !hasMinimalContent && !hasNoMeaningfulData;
+      
+      if (!isValid) {
+        console.log(`🚫 Filtered out program: ${program.name} (${isErrorPage ? 'error page' : isNavigationPage ? 'navigation' : hasMinimalContent ? 'minimal content' : 'no meaningful data'})`);
+      }
+      
+      return isValid;
+    });
   }
 
 }
