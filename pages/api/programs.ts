@@ -20,9 +20,35 @@ try {
   console.warn('Database connection failed, using fallback data:', error);
 }
 
-// Fallback data from migrated programs
+// Fallback data from latest scraped programs
 function getFallbackData() {
   try {
+    // Try latest scraped data first
+    const latestDataPath = path.join(process.cwd(), 'data', 'scraped-programs-latest.json');
+    if (fs.existsSync(latestDataPath)) {
+      const data = fs.readFileSync(latestDataPath, 'utf8');
+      const jsonData = JSON.parse(data);
+      const programs = jsonData.programs || [];
+      
+      return programs.map((program: any) => ({
+        id: program.id,
+        name: program.name,
+        type: program.program_type || program.type || 'grant',
+        requirements: program.requirements || {},
+        notes: program.description,
+        maxAmount: program.funding_amount_max || program.funding_amount,
+        link: program.source_url || program.url,
+        // Preserve AI metadata
+        target_personas: program.target_personas || [],
+        tags: program.tags || [],
+        decision_tree_questions: program.decision_tree_questions || [],
+        editor_sections: program.editor_sections || [],
+        readiness_criteria: program.readiness_criteria || [],
+        ai_guidance: program.ai_guidance || null
+      }));
+    }
+    
+    // Fallback to migrated data
     const dataPath = path.join(process.cwd(), 'data', 'migrated-programs.json');
     const data = fs.readFileSync(dataPath, 'utf8');
     const jsonData = JSON.parse(data);

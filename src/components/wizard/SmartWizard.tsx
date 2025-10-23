@@ -29,6 +29,7 @@ interface WizardState {
   difficulty?: 'easy' | 'medium' | 'hard';
   aiGuidance?: string;
   programPreview?: any[]; // Top 3 programs preview
+  previewQuality?: { level: string; message: string; color: string }; // NEW: Preview quality analysis
   // NEW: Navigation state
   currentQuestionIndex: number;
   totalQuestions: number;
@@ -185,12 +186,24 @@ const SmartWizard: React.FC<SmartWizardProps> = ({ onComplete, onProfileGenerate
     
     // NEW: Get program preview after 3+ answers (every 2-3 questions)
     let programPreview = null;
+    let previewQuality = null;
     if (Object.keys(newAnswers).length >= 3 && Object.keys(newAnswers).length % 2 === 1) {
       try {
         const { scoreProgramsEnhanced } = await import('@/lib/enhancedRecoEngine');
         const previewResults = await scoreProgramsEnhanced(newAnswers, "strict");
         programPreview = previewResults.slice(0, 3); // Top 3 programs
-        console.log('📊 Program preview updated:', programPreview.length, 'programs');
+        
+        // NEW: Analyze preview quality for dynamic decision making
+        const topScore = previewResults[0]?.score || 0;
+        if (topScore >= 85) {
+          previewQuality = { level: 'excellent', message: '🎯 Excellent matches found!', color: 'green' };
+        } else if (topScore >= 60) {
+          previewQuality = { level: 'good', message: '📊 Good matches, more questions could help', color: 'blue' };
+        } else {
+          previewQuality = { level: 'poor', message: '❓ Need more info for better matches', color: 'orange' };
+        }
+        
+        console.log('📊 Program preview updated:', programPreview.length, 'programs, quality:', previewQuality.level);
       } catch (error) {
         console.warn('Failed to generate program preview:', error);
       }
@@ -233,7 +246,8 @@ const SmartWizard: React.FC<SmartWizardProps> = ({ onComplete, onProfileGenerate
       estimatedTime,
       difficulty,
       aiGuidance: nextQuestion?.aiGuidance,
-      programPreview: programPreview || prev.programPreview // Keep existing preview if no new one
+      programPreview: programPreview || prev.programPreview, // Keep existing preview if no new one
+      previewQuality: previewQuality || prev.previewQuality // Keep existing quality if no new one
     }));
 
     // If no more questions, show final preview instead of results
@@ -499,6 +513,15 @@ const SmartWizard: React.FC<SmartWizardProps> = ({ onComplete, onProfileGenerate
                 {/* Program Preview - Show only if available */}
                 {state.programPreview && state.programPreview.length > 0 && (
                   <div className="wizard-program-preview">
+                    {/* NEW: Preview Quality Indicator */}
+                    {state.previewQuality && (
+                      <div className={`wizard-quality-indicator wizard-quality-${state.previewQuality.color}`}>
+                        <span className="wizard-quality-message">{state.previewQuality.message}</span>
+                        <span className="wizard-quality-score">
+                          {state.programPreview[0]?.score ? `${Math.round(state.programPreview[0].score)}% match` : ''}
+                        </span>
+                      </div>
+                    )}
                     <h4 className="wizard-preview-title">🎯 {t('wizard.topMatches')}</h4>
                       <div className="grid gap-4">
                         {state.programPreview.slice(0, 3).map((program, index) => (
@@ -2253,6 +2276,46 @@ const LoadingDisplay: React.FC = () => {
           margin-top: 1.5rem;
           padding-top: 1.5rem;
           border-top: 1px solid rgba(229, 231, 235, 0.5);
+        }
+
+        /* NEW: Preview Quality Indicator Styles */
+        .wizard-quality-indicator {
+          display: flex;
+          justify-content: space-between;
+          align-items: center;
+          padding: 1rem 1.5rem;
+          border-radius: 0.75rem;
+          margin-bottom: 1rem;
+          font-weight: 600;
+          font-size: 0.875rem;
+        }
+
+        .wizard-quality-green {
+          background: linear-gradient(135deg, #d1fae5, #a7f3d0);
+          border: 1px solid #10b981;
+          color: #065f46;
+        }
+
+        .wizard-quality-blue {
+          background: linear-gradient(135deg, #dbeafe, #bfdbfe);
+          border: 1px solid #3b82f6;
+          color: #1e40af;
+        }
+
+        .wizard-quality-orange {
+          background: linear-gradient(135deg, #fed7aa, #fdba74);
+          border: 1px solid #f59e0b;
+          color: #92400e;
+        }
+
+        .wizard-quality-message {
+          font-size: 1rem;
+          font-weight: 700;
+        }
+
+        .wizard-quality-score {
+          font-size: 0.875rem;
+          opacity: 0.8;
         }
 
         .wizard-preview-title {

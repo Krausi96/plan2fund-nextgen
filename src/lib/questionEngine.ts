@@ -1067,10 +1067,49 @@ export class QuestionEngine {
   }
 
   /**
-   * Get overlay questions
+   * Get overlay questions with adaptive limiting
    */
-  public getOverlayQuestions(): SymptomQuestion[] {
-    return this.overlayQuestions.slice(0, 50);
+  public getOverlayQuestions(answers?: Record<string, any>): SymptomQuestion[] {
+    // If we have answers, we can be more selective
+    if (answers && Object.keys(answers).length > 0) {
+      // For users with many answers, limit overlay questions more aggressively
+      if (Object.keys(answers).length >= 8) {
+        return this.overlayQuestions.slice(0, 10); // Only 10 most important overlay questions
+      } else if (Object.keys(answers).length >= 5) {
+        return this.overlayQuestions.slice(0, 20); // 20 overlay questions for medium progress
+      }
+    }
+    
+    // Default: return up to 30 overlay questions
+    return this.overlayQuestions.slice(0, 30);
+  }
+
+  /**
+   * Check if we should stop asking questions based on match quality
+   */
+  public async shouldStopQuestions(answers: Record<string, any>): Promise<boolean> {
+    try {
+      // Import the scoring engine
+      const { scoreProgramsEnhanced } = await import('./enhancedRecoEngine');
+      const results = await scoreProgramsEnhanced(answers, "strict");
+      
+      // If we have a 100% match, stop asking questions
+      if (results.length > 0 && results[0].score >= 100) {
+        console.log('🎯 Perfect match found (100%), stopping questions');
+        return true;
+      }
+      
+      // If we have excellent matches (90%+) and enough answers, consider stopping
+      if (results.length > 0 && results[0].score >= 90 && Object.keys(answers).length >= 8) {
+        console.log('🎯 Excellent matches found (90%+), considering stopping');
+        return true;
+      }
+      
+      return false;
+    } catch (error) {
+      console.warn('Failed to check match quality:', error);
+      return false;
+    }
   }
 
   /**
@@ -1078,6 +1117,13 @@ export class QuestionEngine {
    */
   public async getNextQuestionEnhanced(answers: Record<string, any>): Promise<SymptomQuestion | null> {
     console.log(`🔍 Getting next question from ${Object.keys(answers).length} answers`);
+    
+    // NEW: Check if we should stop asking questions based on match quality
+    const shouldStop = await this.shouldStopQuestions(answers);
+    if (shouldStop) {
+      console.log('✅ Stopping questions due to excellent match quality');
+      return null;
+    }
     
     // PRIORITY 1: Find unanswered core questions (reliable fallback)
     const coreQuestions = this.getCoreQuestions();
@@ -1089,7 +1135,7 @@ export class QuestionEngine {
     }
     
     // PRIORITY 2: Find unanswered overlay questions (generated from program data)
-    const overlayQuestions = this.getOverlayQuestions();
+    const overlayQuestions = this.getOverlayQuestions(answers); // Pass answers for adaptive limiting
     for (const question of overlayQuestions) {
       if (!answers[question.id] && question.options && question.options.length > 0) {
         console.log(`✅ Found unanswered overlay question: ${question.id}`);

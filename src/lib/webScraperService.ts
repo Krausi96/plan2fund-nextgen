@@ -256,7 +256,7 @@ const SCRAPER_CONFIG = {
     timeout: 10000,
     retryAttempts: 3,
     userAgent: 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
-    headless: true,
+    headless: false, // Set to false for better compatibility
     args: [
       '--no-sandbox',
       '--disable-setuid-sandbox',
@@ -288,9 +288,9 @@ const SCRAPER_CONFIG = {
     },
     urlDiscovery: {
       enabled: true,
-      sitemapTimeout: 10000,
-      linkDiscoveryDepth: 2,
-      maxUrlsPerSource: 50
+      sitemapTimeout: 15000, // Increased timeout
+      linkDiscoveryDepth: 3, // Deeper discovery
+      maxUrlsPerSource: 100 // More URLs per source
     },
     validation: {
       enabled: true,

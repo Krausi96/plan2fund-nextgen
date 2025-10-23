@@ -1464,17 +1464,21 @@ export class EnhancedDataPipeline {
         name.includes('sidebar');
       
       // Filter out programs with very short descriptions (likely not real programs)
+      // More lenient filtering - only filter out truly minimal content
       const hasMinimalContent = 
         !description || 
-        description.length < 50 ||
-        description.split(' ').length < 10;
+        description.length < 20 ||  // Reduced from 50 to 20
+        description.split(' ').length < 5;  // Reduced from 10 to 5
       
       // Filter out programs without meaningful data
+      // More lenient - only filter if truly no data at all
       const hasNoMeaningfulData = 
         !program.funding_amount_min && 
         !program.funding_amount_max && 
         !program.requirements &&
-        !program.eligibility_criteria;
+        !program.eligibility_criteria &&
+        !program.name &&  // Also check if name exists
+        description.length < 10;  // And description is truly minimal
       
       const isValid = !isErrorPage && !isNavigationPage && !hasMinimalContent && !hasNoMeaningfulData;
       
