@@ -27,6 +27,7 @@ interface WizardState {
   estimatedTime?: number;
   difficulty?: 'easy' | 'medium' | 'hard';
   aiGuidance?: string;
+  programPreview?: any[]; // Top 3 programs preview
   // NEW: Navigation state
   currentQuestionIndex: number;
   totalQuestions: number;
@@ -205,6 +206,19 @@ const SmartWizard: React.FC<SmartWizardProps> = ({ onComplete, onProfileGenerate
     // NEW: Validate answers and get feedback
     const validation = questionEngine.validateAnswers(newAnswers);
     
+    // NEW: Get program preview after 3+ answers (every 2-3 questions)
+    let programPreview = null;
+    if (Object.keys(newAnswers).length >= 3 && Object.keys(newAnswers).length % 2 === 1) {
+      try {
+        const { scoreProgramsEnhanced } = await import('@/lib/enhancedRecoEngine');
+        const previewResults = await scoreProgramsEnhanced(newAnswers, "preview");
+        programPreview = previewResults.slice(0, 3); // Top 3 programs
+        console.log('📊 Program preview updated:', programPreview.length, 'programs');
+      } catch (error) {
+        console.warn('Failed to generate program preview:', error);
+      }
+    }
+    
     // Calculate estimated time and difficulty
     const estimatedTime = 0;
     const difficulty = 'easy' as 'easy' | 'medium' | 'hard';
@@ -225,7 +239,8 @@ const SmartWizard: React.FC<SmartWizardProps> = ({ onComplete, onProfileGenerate
       validationRecommendations: validation.recommendations,
       estimatedTime,
       difficulty,
-      aiGuidance: nextQuestion?.aiGuidance
+      aiGuidance: nextQuestion?.aiGuidance,
+      programPreview: programPreview || prev.programPreview // Keep existing preview if no new one
     }));
 
     // If no more questions, process results
@@ -493,6 +508,26 @@ const SmartWizard: React.FC<SmartWizardProps> = ({ onComplete, onProfileGenerate
                       </div>
                     ))}
                   </div>
+                  
+                  {/* Program Preview */}
+                  {state.programPreview && state.programPreview.length > 0 && (
+                    <div className="wizard-program-preview">
+                      <h4 className="wizard-preview-title">🎯 Top Matches So Far</h4>
+                      <div className="wizard-preview-grid">
+                        {state.programPreview.map((program, index) => (
+                          <div key={program.id || index} className="wizard-preview-item">
+                            <div className="wizard-preview-rank">#{index + 1}</div>
+                            <div className="wizard-preview-content">
+                              <div className="wizard-preview-name">{program.name}</div>
+                              <div className="wizard-preview-score">
+                                {Math.round(program.score * 100)}% match
+                              </div>
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  )}
                 </div>
               )}
             </div>
@@ -1916,6 +1951,73 @@ const LoadingDisplay: React.FC = () => {
           color: #111827;
           font-weight: 600;
           font-size: 0.875rem;
+        }
+
+        /* Program Preview Styles */
+        .wizard-program-preview {
+          margin-top: 1.5rem;
+          padding-top: 1.5rem;
+          border-top: 1px solid rgba(229, 231, 235, 0.5);
+        }
+
+        .wizard-preview-title {
+          font-size: 1rem;
+          font-weight: 600;
+          color: #111827;
+          margin: 0 0 1rem 0;
+        }
+
+        .wizard-preview-grid {
+          display: flex;
+          flex-direction: column;
+          gap: 0.75rem;
+        }
+
+        .wizard-preview-item {
+          display: flex;
+          align-items: center;
+          gap: 0.75rem;
+          padding: 0.75rem;
+          background: rgba(59, 130, 246, 0.05);
+          border: 1px solid rgba(59, 130, 246, 0.1);
+          border-radius: 0.5rem;
+          transition: all 0.2s ease;
+        }
+
+        .wizard-preview-item:hover {
+          background: rgba(59, 130, 246, 0.1);
+          border-color: rgba(59, 130, 246, 0.2);
+        }
+
+        .wizard-preview-rank {
+          flex-shrink: 0;
+          width: 2rem;
+          height: 2rem;
+          background: #3B82F6;
+          color: white;
+          border-radius: 50%;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          font-size: 0.75rem;
+          font-weight: 700;
+        }
+
+        .wizard-preview-content {
+          flex: 1;
+        }
+
+        .wizard-preview-name {
+          font-weight: 600;
+          color: #111827;
+          font-size: 0.875rem;
+          margin-bottom: 0.25rem;
+        }
+
+        .wizard-preview-score {
+          font-size: 0.75rem;
+          color: #6b7280;
+          font-weight: 500;
         }
       `}</style>
     </div>
