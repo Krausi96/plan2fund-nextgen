@@ -69,12 +69,17 @@ const SmartWizard: React.FC<SmartWizardProps> = ({ onComplete, onProfileGenerate
     const initEngines = async () => {
       try {
         // Fetch program data from API
+        console.log('🔄 Fetching program data from API...');
         const response = await fetch('/api/programs?enhanced=true');
         const data = await response.json();
         const programs = data.programs || [];
         
+        console.log(`📊 API Response: ${data.success ? 'SUCCESS' : 'FAILED'}`);
+        console.log(`📊 Programs loaded: ${programs.length}`);
+        console.log(`📊 Data source: ${data.source || 'unknown'}`);
+        
         if (programs.length === 0) {
-          console.warn('No programs loaded, using fallback');
+          console.warn('⚠️ No programs loaded, using fallback');
           // Fallback to empty array - engines will handle this gracefully
         }
         
@@ -98,7 +103,9 @@ const SmartWizard: React.FC<SmartWizardProps> = ({ onComplete, onProfileGenerate
           totalQuestions: estimatedTotal
         }));
       } catch (error) {
-        console.error('Failed to initialize engines:', error);
+        console.error('❌ Failed to initialize engines:', error);
+        console.error('❌ Error details:', error.message);
+        console.error('❌ Error stack:', error.stack);
         // Fallback initialization
         const intake = new IntakeEngine();
         const question = new QuestionEngine([]);

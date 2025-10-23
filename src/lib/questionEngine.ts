@@ -944,18 +944,21 @@ export class QuestionEngine {
           options: [
             { 
               value: 'small_scale', 
-              label: `wizard.options.smallScale (€0 - €${Math.round(minAmount).toLocaleString()})`, 
-              fundingTypes: ['grants'] 
+              label: 'wizard.options.smallScale', 
+              fundingTypes: ['grants'],
+              description: `€0 - €${Math.round(minAmount).toLocaleString()}`
             },
             { 
               value: 'medium_scale', 
-              label: `wizard.options.mediumScale (€${Math.round(minAmount).toLocaleString()} - €${Math.round(maxAmount/2).toLocaleString()})`, 
-              fundingTypes: ['grants', 'loans'] 
+              label: 'wizard.options.mediumScale', 
+              fundingTypes: ['grants', 'loans'],
+              description: `€${Math.round(minAmount).toLocaleString()} - €${Math.round(maxAmount/2).toLocaleString()}`
             },
             { 
               value: 'large_scale', 
-              label: `wizard.options.largeScale (€${Math.round(maxAmount/2).toLocaleString()}+)`, 
-              fundingTypes: ['loans', 'equity'] 
+              label: 'wizard.options.largeScale', 
+              fundingTypes: ['loans', 'equity'],
+              description: `€${Math.round(maxAmount/2).toLocaleString()}+`
             }
           ],
           required: false,
