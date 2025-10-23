@@ -296,7 +296,8 @@ export class QuestionEngine {
         required: true,
         category: 'funding_need',
         phase: 1,
-        isCoreQuestion: true
+        isCoreQuestion: true,
+        questionNumber: 1
       });
     }
     
@@ -329,7 +330,8 @@ export class QuestionEngine {
         required: true,
         category: 'specific_requirements',
         phase: 1,
-        isCoreQuestion: true
+        isCoreQuestion: true,
+        questionNumber: 2
       });
     }
     
@@ -382,7 +384,8 @@ export class QuestionEngine {
           required: true,
           category: 'specific_requirements',
           phase: 1,
-          isCoreQuestion: true
+          isCoreQuestion: true,
+          questionNumber: 3
         });
       }
     }
@@ -418,7 +421,8 @@ export class QuestionEngine {
         required: true,
         category: 'business_stage',
         phase: 1,
-        isCoreQuestion: true
+        isCoreQuestion: true,
+        questionNumber: 4
       });
     }
     
@@ -451,7 +455,148 @@ export class QuestionEngine {
         required: true,
         category: 'funding_need',
         phase: 1,
-        isCoreQuestion: true
+        isCoreQuestion: true,
+        questionNumber: 5
+      });
+    }
+    
+    // Core Question 6: Location (based on program geographic focus)
+    const hasAustrianPrograms = this.programs.some(p => 
+      (p as any).source_url?.includes('aws.at') ||
+      (p as any).institution?.toLowerCase().includes('austria') ||
+      (p as any).description?.toLowerCase().includes('österreich')
+    );
+    const hasEUPrograms = this.programs.some(p => 
+      (p as any).source_url?.includes('ec.europa.eu') ||
+      (p as any).description?.toLowerCase().includes('european') ||
+      (p as any).description?.toLowerCase().includes('eu')
+    );
+    
+    if (hasAustrianPrograms || hasEUPrograms) {
+      const locationOptions = [];
+      if (hasAustrianPrograms) {
+        locationOptions.push({ value: 'austria', label: 'wizard.options.austria', fundingTypes: ['grants', 'loans'] });
+      }
+      if (hasEUPrograms) {
+        locationOptions.push({ value: 'eu', label: 'wizard.options.eu', fundingTypes: ['grants', 'loans'] });
+      }
+      locationOptions.push({ value: 'international', label: 'wizard.options.international', fundingTypes: ['grants', 'loans', 'equity'] });
+      
+      this.questions.push({
+        id: 'location',
+        symptom: 'wizard.questions.location',
+        type: 'single-select',
+        options: locationOptions,
+        required: true,
+        category: 'specific_requirements',
+        phase: 1,
+        isCoreQuestion: true,
+        questionNumber: 6
+      });
+    }
+    
+    // Core Question 7: Team Size (based on program team requirements)
+    const hasTeamPrograms = this.programs.some(p => 
+      (p as any).description?.toLowerCase().includes('team') ||
+      (p as any).description?.toLowerCase().includes('personnel') ||
+      (p as any).description?.toLowerCase().includes('staff')
+    );
+    
+    if (hasTeamPrograms) {
+      this.questions.push({
+        id: 'team_size',
+        symptom: 'wizard.questions.teamSize',
+        type: 'single-select',
+        options: [
+          { value: 'solo', label: 'wizard.options.solo', fundingTypes: ['grants'] },
+          { value: 'small_team', label: 'wizard.options.smallTeam', fundingTypes: ['grants', 'loans'] },
+          { value: 'medium_team', label: 'wizard.options.mediumTeam', fundingTypes: ['grants', 'loans', 'equity'] },
+          { value: 'large_team', label: 'wizard.options.largeTeam', fundingTypes: ['loans', 'equity'] }
+        ],
+        required: true,
+        category: 'team_size',
+        phase: 1,
+        isCoreQuestion: true,
+        questionNumber: 7
+      });
+    }
+    
+    // Core Question 8: Innovation Level (based on program innovation focus)
+    const hasInnovationPrograms2 = this.programs.some(p => 
+      (p as any).description?.toLowerCase().includes('innovation') ||
+      (p as any).description?.toLowerCase().includes('research') ||
+      (p as any).description?.toLowerCase().includes('technology') ||
+      (p as any).description?.toLowerCase().includes('trl')
+    );
+    
+    if (hasInnovationPrograms2) {
+      this.questions.push({
+        id: 'innovation_level',
+        symptom: 'wizard.questions.innovationLevel',
+        type: 'single-select',
+        options: [
+          { value: 'basic', label: 'wizard.options.basicInnovation', fundingTypes: ['grants'] },
+          { value: 'advanced', label: 'wizard.options.advancedInnovation', fundingTypes: ['grants', 'loans'] },
+          { value: 'cutting_edge', label: 'wizard.options.cuttingEdgeInnovation', fundingTypes: ['grants', 'equity'] }
+        ],
+        required: true,
+        category: 'innovation_level',
+        phase: 1,
+        isCoreQuestion: true,
+        questionNumber: 8
+      });
+    }
+    
+    // Core Question 9: Timeline (based on program deadlines and duration)
+    const hasTimelinePrograms = this.programs.some(p => 
+      (p as any).deadline ||
+      (p as any).description?.toLowerCase().includes('deadline') ||
+      (p as any).description?.toLowerCase().includes('duration') ||
+      (p as any).description?.toLowerCase().includes('timeline')
+    );
+    
+    if (hasTimelinePrograms) {
+      this.questions.push({
+        id: 'timeline',
+        symptom: 'wizard.questions.timeline',
+        type: 'single-select',
+        options: [
+          { value: 'urgent', label: 'wizard.options.urgent', fundingTypes: ['grants', 'loans'] },
+          { value: 'soon', label: 'wizard.options.soon', fundingTypes: ['grants', 'loans', 'equity'] },
+          { value: 'flexible', label: 'wizard.options.flexible', fundingTypes: ['grants', 'loans', 'equity'] }
+        ],
+        required: true,
+        category: 'specific_requirements',
+        phase: 1,
+        isCoreQuestion: true,
+        questionNumber: 9
+      });
+    }
+    
+    // Core Question 10: Project Type (based on program focus areas)
+    const hasProjectPrograms = this.programs.some(p => 
+      (p as any).description?.toLowerCase().includes('project') ||
+      (p as any).description?.toLowerCase().includes('development') ||
+      (p as any).description?.toLowerCase().includes('research')
+    );
+    
+    if (hasProjectPrograms) {
+      this.questions.push({
+        id: 'project_type',
+        symptom: 'wizard.questions.projectType',
+        type: 'multi-select',
+        options: [
+          { value: 'product_development', label: 'wizard.options.productDevelopment', fundingTypes: ['grants', 'equity'] },
+          { value: 'market_expansion', label: 'wizard.options.marketExpansion', fundingTypes: ['loans', 'grants'] },
+          { value: 'research', label: 'wizard.options.research', fundingTypes: ['grants'] },
+          { value: 'infrastructure', label: 'wizard.options.infrastructure', fundingTypes: ['loans', 'grants'] },
+          { value: 'sustainability', label: 'wizard.options.sustainability', fundingTypes: ['grants', 'loans'] }
+        ],
+        required: true,
+        category: 'specific_requirements',
+        phase: 1,
+        isCoreQuestion: true,
+        questionNumber: 10
       });
     }
     
@@ -473,14 +618,11 @@ export class QuestionEngine {
                          program.name?.toLowerCase().includes('bad gateway') ||
                          (program as any).description?.toLowerCase().includes('seite wurde nicht gefunden');
       
-      // Filter out programs without meaningful categorized_requirements
-      const hasValidRequirements = program.categorized_requirements && 
-        Object.values(program.categorized_requirements).some(category => 
-          (Array.isArray(category) && category.length > 0) ||
-          (typeof category === 'object' && category !== null && 'evidence' in category && Array.isArray(category.evidence) && category.evidence.length > 0)
-        );
+      // More lenient filtering - accept programs with any meaningful data
+      const hasValidData = (program as any).description && (program as any).description.length > 50 &&
+                          program.name && program.name.length > 3;
       
-      return !isErrorPage && hasValidRequirements;
+      return !isErrorPage && hasValidData;
     });
     
     console.log(`📊 Filtered programs: ${this.programs.length} → ${validPrograms.length} valid programs`);
@@ -511,13 +653,21 @@ export class QuestionEngine {
     const overlayQuestions: SymptomQuestion[] = [];
     
     for (const program of programsToProcess) {
+      // Generate questions from categorized_requirements if available
       if (program.categorized_requirements) {
         const questions = this.generateQuestionsFromCategorizedRequirements(program);
         if (questions.length > 0) {
-          console.log(`✅ Generated ${questions.length} questions from program: ${program.name}`);
+          console.log(`✅ Generated ${questions.length} questions from categorized_requirements: ${program.name}`);
         }
         overlayQuestions.push(...questions);
       }
+      
+      // Generate questions from program description and requirements
+      const descriptionQuestions = this.generateQuestionsFromDescription(program);
+      if (descriptionQuestions.length > 0) {
+        console.log(`✅ Generated ${descriptionQuestions.length} questions from description: ${program.name}`);
+      }
+      overlayQuestions.push(...descriptionQuestions);
     }
     
     // Remove duplicates and sort by priority
@@ -541,6 +691,133 @@ export class QuestionEngine {
         efficiency: `${Math.round((this.overlayQuestions.length / programsToProcess.length) * 100)}%`
       });
     }
+  }
+
+  /**
+   * Generate questions from program description and requirements
+   */
+  private generateQuestionsFromDescription(program: Program): SymptomQuestion[] {
+    const questions: SymptomQuestion[] = [];
+    const description = (program as any).description?.toLowerCase() || '';
+    const requirements = (program as any).requirements || {};
+    
+    // Question 1: Co-financing requirement
+    if (description.includes('co-financing') || description.includes('eigenmittel') || description.includes('eigenkapital')) {
+      questions.push({
+        id: `co_financing_${program.id}`,
+        symptom: 'wizard.questions.coFinancing',
+        type: 'boolean',
+        options: [
+          { value: 'yes', label: 'wizard.options.yesCoFinancing' },
+          { value: 'no', label: 'wizard.options.noCoFinancing' }
+        ],
+        required: false,
+        category: 'specific_requirements',
+        phase: 2,
+        sourcePrograms: [program.id],
+        isCoreQuestion: false
+      });
+    }
+    
+    // Question 2: TRL Level requirement
+    if (description.includes('trl') || description.includes('technology readiness') || description.includes('technology level')) {
+      questions.push({
+        id: `trl_level_${program.id}`,
+        symptom: 'wizard.questions.trlLevel',
+        type: 'single-select',
+        options: [
+          { value: '1-3', label: 'wizard.options.trl13' },
+          { value: '4-6', label: 'wizard.options.trl46' },
+          { value: '7-9', label: 'wizard.options.trl79' }
+        ],
+        required: false,
+        category: 'innovation_level',
+        phase: 2,
+        sourcePrograms: [program.id],
+        isCoreQuestion: false
+      });
+    }
+    
+    // Question 3: Consortium requirement
+    if (description.includes('consortium') || description.includes('partnership') || description.includes('collaboration')) {
+      questions.push({
+        id: `consortium_${program.id}`,
+        symptom: 'wizard.questions.consortium',
+        type: 'boolean',
+        options: [
+          { value: 'yes', label: 'wizard.options.yesConsortium' },
+          { value: 'no', label: 'wizard.options.noConsortium' }
+        ],
+        required: false,
+        category: 'specific_requirements',
+        phase: 2,
+        sourcePrograms: [program.id],
+        isCoreQuestion: false
+      });
+    }
+    
+    // Question 4: Impact requirement
+    if (description.includes('impact') || description.includes('sustainability') || description.includes('environmental')) {
+      questions.push({
+        id: `impact_${program.id}`,
+        symptom: 'wizard.questions.impact',
+        type: 'multi-select',
+        options: [
+          { value: 'economic', label: 'wizard.options.economicImpact' },
+          { value: 'social', label: 'wizard.options.socialImpact' },
+          { value: 'environmental', label: 'wizard.options.environmentalImpact' }
+        ],
+        required: false,
+        category: 'specific_requirements',
+        phase: 2,
+        sourcePrograms: [program.id],
+        isCoreQuestion: false
+      });
+    }
+    
+    // Question 5: Document requirements
+    if (description.includes('business plan') || description.includes('pitch deck') || description.includes('financial') || 
+        requirements.business_plan || requirements.financial_projections) {
+      questions.push({
+        id: `documents_${program.id}`,
+        symptom: 'wizard.questions.documents',
+        type: 'multi-select',
+        options: [
+          { value: 'business_plan', label: 'wizard.options.businessPlan' },
+          { value: 'pitch_deck', label: 'wizard.options.pitchDeck' },
+          { value: 'financial_statements', label: 'wizard.options.financialStatements' },
+          { value: 'market_analysis', label: 'wizard.options.marketAnalysis' }
+        ],
+        required: false,
+        category: 'specific_requirements',
+        phase: 2,
+        sourcePrograms: [program.id],
+        isCoreQuestion: false
+      });
+    }
+    
+    // Question 6: Legal requirements
+    if (description.includes('legal') || description.includes('compliance') || description.includes('regulations') ||
+        requirements.legal_documents) {
+      questions.push({
+        id: `legal_${program.id}`,
+        symptom: 'wizard.questions.legal',
+        type: 'multi-select',
+        options: [
+          { value: 'privacy_policy', label: 'wizard.options.privacyPolicy' },
+          { value: 'insurance', label: 'wizard.options.insurance' },
+          { value: 'compliance', label: 'wizard.options.compliance' },
+          { value: 'licenses', label: 'wizard.options.licenses' }
+        ],
+        required: false,
+        category: 'specific_requirements',
+        phase: 2,
+        sourcePrograms: [program.id],
+        isCoreQuestion: false
+      });
+    }
+    
+    return questions;
   }
 
   /**
@@ -814,8 +1091,17 @@ export class QuestionEngine {
     // PRIORITY 2: Find unanswered overlay questions (generated from program data)
     const overlayQuestions = this.getOverlayQuestions();
     for (const question of overlayQuestions) {
-      if (question.required && !answers[question.id] && question.options && question.options.length > 0) {
+      if (!answers[question.id] && question.options && question.options.length > 0) {
         console.log(`✅ Found unanswered overlay question: ${question.id}`);
+        return this.enhanceQuestionWithStats(question);
+      }
+    }
+    
+    // PRIORITY 3: Find any unanswered questions (including non-required)
+    const allQuestions = [...coreQuestions, ...overlayQuestions];
+    for (const question of allQuestions) {
+      if (!answers[question.id] && question.options && question.options.length > 0) {
+        console.log(`✅ Found unanswered question: ${question.id}`);
         return this.enhanceQuestionWithStats(question);
       }
     }
@@ -884,8 +1170,8 @@ export class QuestionEngine {
    */
   public getEstimatedTotalQuestions(): number {
     const coreCount = this.getCoreQuestions().length;
-    const overlayCount = Math.min(this.getOverlayQuestions().length, 20);
-    return Math.min(coreCount + overlayCount, 25); // Cap at 25 for UX
+    const overlayCount = Math.min(this.getOverlayQuestions().length, 30);
+    return Math.min(coreCount + overlayCount, 40); // Cap at 40 for comprehensive coverage
   }
 
   /**
