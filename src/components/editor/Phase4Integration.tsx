@@ -351,7 +351,7 @@ export default function Phase4Integration({
                 <div>
                   <h1 className="text-xl font-bold text-gray-900">
                     {product ? product.name : 'Business Plan Editor'}
-                  </h1>
+              </h1>
                   <p className="text-sm text-gray-500">
                     {plan.route} • {sections.length} sections
                   </p>
@@ -478,8 +478,8 @@ export default function Phase4Integration({
           {/* Main Editor Area */}
           <div className="lg:col-span-3">
 
-            {/* Error Display */}
-            {error && (
+          {/* Error Display */}
+          {error && (
               <div className="mb-6 p-4 bg-red-50 border border-red-200 rounded-xl">
                 <div className="flex items-center">
                   <svg className="h-5 w-5 text-red-400 mr-3" viewBox="0 0 20 20" fill="currentColor">
@@ -604,10 +604,10 @@ export default function Phase4Integration({
                         Needs Review
                       </button>
                     </div>
-                  </div>
                 </div>
               </div>
-            )}
+            </div>
+          )}
 
             {/* No Sections State */}
             {sections.length === 0 && (
@@ -700,12 +700,12 @@ export default function Phase4Integration({
                 </div>
               </div>
             )}
-          </div>
-        </div>
-      )}
+              </div>
+            </div>
+          )}
 
       {/* Entry Points Modal */}
-      {showEntryPoints && (
+          {showEntryPoints && (
         <div className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center p-4">
           <div className="bg-white rounded-2xl max-w-2xl w-full max-h-[80vh] overflow-y-auto">
             <div className="p-6">
@@ -729,10 +729,10 @@ export default function Phase4Integration({
                 showDirectEditor={true}
                 showPlanSwitching={true}
               />
+                </div>
+              </div>
             </div>
-          </div>
-        </div>
-      )}
+          )}
     </div>
   );
 }
