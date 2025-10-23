@@ -1278,42 +1278,6 @@ export class EnhancedDataPipeline {
   /**
    * SIMPLIFIED: Process raw scraped programs through the pipeline
    */
-  async processPrograms(rawPrograms: ScrapedProgram[]): Promise<NormalizedProgram[]> {
-    console.log(`🔄 Processing ${rawPrograms.length} raw programs through SIMPLIFIED pipeline...`);
-    
-    if (rawPrograms.length === 0) {
-      console.log('⚠️ No raw programs to process');
-      return [];
-    }
-    
-    // Step 1: Normalize each program (simplified)
-    const normalizedPrograms = await Promise.all(
-      rawPrograms.map(program => this.normalizer.normalizeProgram(program))
-    );
-    
-    console.log(`✅ Normalized ${normalizedPrograms.length} programs`);
-    
-    // Step 2: Calculate basic quality scores
-    const scoredPrograms = normalizedPrograms.map(program => {
-      const qualityScore = this.quality.calculateQualityScore(program);
-      
-      return {
-        ...program,
-        quality_score: qualityScore.overall,
-        confidence_level: this.getConfidenceLevel(qualityScore.overall),
-        validation_errors: []
-      };
-    });
-    
-    // Step 3: Remove duplicates (simplified)
-    const deduplicatedPrograms = this.removeDuplicates(scoredPrograms);
-    
-    // Step 4: Keep all programs (simplified filtering)
-    console.log(`✅ SIMPLIFIED Pipeline complete: ${deduplicatedPrograms.length} programs processed`);
-    console.log(`📊 Core 18 categories applied to all programs`);
-    
-    return deduplicatedPrograms;
-  }
 
   /**
    * Get processed programs with caching
@@ -1441,32 +1405,6 @@ export class EnhancedDataPipeline {
    * Generate AI guidance for the program
    */
 
-  /**
-   * Main method to get processed programs
-   */
-  async getProcessedPrograms(): Promise<NormalizedProgram[]> {
-    try {
-      console.log('🔄 Enhanced Data Pipeline: Starting program processing...');
-      
-      // Load raw programs from data files
-      const rawPrograms = await this.loadRawPrograms();
-      console.log(`📊 Loaded ${rawPrograms.length} raw programs`);
-      
-      if (rawPrograms.length === 0) {
-        console.log('⚠️ No raw programs found, returning empty array');
-        return [];
-      }
-      
-      // Process programs through the pipeline
-      const processedPrograms = await this.processPrograms(rawPrograms);
-      console.log(`✅ Enhanced Data Pipeline: ${processedPrograms.length} programs processed`);
-      
-      return processedPrograms;
-    } catch (error) {
-      console.error('❌ Enhanced Data Pipeline error:', error);
-      return [];
-    }
-  }
 
   /**
    * Load raw programs from data files
@@ -1510,7 +1448,7 @@ export class EnhancedDataPipeline {
     const normalizedPrograms: NormalizedProgram[] = [];
     for (const rawProgram of rawPrograms) {
       try {
-        const normalized = await this.normalizeProgram(rawProgram);
+        const normalized = await this.normalizer.normalizeProgram(rawProgram);
         normalizedPrograms.push(normalized);
       } catch (error) {
         console.warn(`⚠️ Failed to normalize program ${rawProgram.id}:`, error);

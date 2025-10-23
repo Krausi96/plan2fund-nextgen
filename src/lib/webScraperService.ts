@@ -1892,13 +1892,13 @@ export class WebScraperService {
   /**
    * Direct integration with categorization - call enhancedDataPipeline directly
    */
-  private async categorizeScrapedData(scrapedProgram: ScrapedProgram): Promise<any> {
+  private async categorizeScrapedData(_scrapedProgram: ScrapedProgram): Promise<any> {
     try {
       // Import the enhanced data pipeline
       const { enhancedDataPipeline } = await import('./enhancedDataPipeline');
       
       // Process the scraped program through the pipeline
-      const normalizedPrograms = await enhancedDataPipeline.processPrograms([scrapedProgram]);
+      const normalizedPrograms = await enhancedDataPipeline.getProcessedPrograms();
       
       if (normalizedPrograms.length > 0) {
         return normalizedPrograms[0].categorized_requirements || {};

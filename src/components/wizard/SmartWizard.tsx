@@ -61,30 +61,6 @@ const SmartWizard: React.FC<SmartWizardProps> = ({ onComplete, onProfileGenerate
   const [showAnswersSummary, setShowAnswersSummary] = useState(false);
   const containerRef = useRef<HTMLDivElement>(null);
 
-  // Helper function to format answer keys into user-friendly labels
-  const formatAnswerKey = (key: string): string => {
-    const keyMap: Record<string, string> = {
-      'q1_funding_need': 'Funding Need',
-      'q2_entity_stage': 'Business Stage',
-      'q3_company_size': 'Company Size',
-      'q4_theme': 'Industry Focus',
-      'q5_location': 'Location',
-      'q6_innovation_level': 'Innovation Level',
-      'q7_collaboration': 'Research Collaboration',
-      'q8_funding_types': 'Funding Types',
-      'q9_timeline': 'Project Timeline',
-      'q10_budget': 'Budget Range'
-    };
-    return keyMap[key] || key.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase());
-  };
-
-  // Helper function to format answer values into user-friendly text
-  const formatAnswerValue = (_key: string, value: any): string => {
-    if (typeof value === 'string') {
-      return value.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase());
-    }
-    return String(value);
-  };
 
   // Initialize engines with program data
   useEffect(() => {
