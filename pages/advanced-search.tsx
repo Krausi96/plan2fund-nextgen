@@ -16,16 +16,69 @@ interface Chip {
   type: 'keyword' | 'category' | 'filter';
   removable?: boolean;
   required?: boolean;
+  confidence?: number;
 }
 
 export default function AdvancedSearch() {
   const { t } = useI18n();
   const { handleAdvancedSearch } = useRecommendation();
+  
+  // Add CSS styles for quality indicators
+  useEffect(() => {
+    const style = document.createElement('style');
+    style.textContent = `
+      .wizard-quality-indicator {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 1rem 1.5rem;
+        border-radius: 0.75rem;
+        margin-bottom: 1rem;
+        font-weight: 600;
+        font-size: 0.875rem;
+      }
+      .wizard-quality-green {
+        background: linear-gradient(135deg, #d1fae5, #a7f3d0);
+        border: 1px solid #10b981;
+        color: #065f46;
+      }
+      .wizard-quality-blue {
+        background: linear-gradient(135deg, #dbeafe, #bfdbfe);
+        border: 1px solid #3b82f6;
+        color: #1e40af;
+      }
+      .wizard-quality-orange {
+        background: linear-gradient(135deg, #fed7aa, #fdba74);
+        border: 1px solid #f59e0b;
+        color: #92400e;
+      }
+      .wizard-quality-message {
+        font-size: 1rem;
+        font-weight: 700;
+      }
+      .wizard-quality-score {
+        font-size: 0.875rem;
+        opacity: 0.8;
+      }
+      .line-clamp-2 {
+        display: -webkit-box;
+        -webkit-line-clamp: 2;
+        -webkit-box-orient: vertical;
+        overflow: hidden;
+      }
+    `;
+    document.head.appendChild(style);
+    return () => {
+      document.head.removeChild(style);
+    };
+  }, []);
   const [searchInput, setSearchInput] = useState('');
   const [chips, setChips] = useState<Chip[]>([]);
   const [clarifications, setClarifications] = useState<string[]>([]);
   const [loading, setLoading] = useState(false);
   const [mounted, setMounted] = useState(false);
+  const [programPreview, setProgramPreview] = useState<any[]>([]);
+  const [previewQuality, setPreviewQuality] = useState<{ level: string; message: string; color: string } | null>(null);
 
   useEffect(() => {
     setMounted(true);
@@ -38,7 +91,25 @@ export default function AdvancedSearch() {
     
     try {
       // Use the centralized recommendation context for advanced search
-      await handleAdvancedSearch(searchInput);
+      const result = await handleAdvancedSearch(searchInput);
+      
+      // Dynamic Hybrid Preview - Show program matches in real-time
+      if (result && Array.isArray(result) && result.length > 0) {
+        const previewResults = result.slice(0, 3); // Top 3 programs
+        setProgramPreview(previewResults);
+        
+        // Analyze preview quality for dynamic decision making
+        const topScore = previewResults[0]?.score || 0;
+        if (topScore >= 85) {
+          setPreviewQuality({ level: 'excellent', message: '🎯 Excellent specialized matches found!', color: 'green' });
+        } else if (topScore >= 60) {
+          setPreviewQuality({ level: 'good', message: '📊 Good matches, more details could help', color: 'blue' });
+        } else {
+          setPreviewQuality({ level: 'poor', message: '❓ Need more specific requirements', color: 'orange' });
+        }
+        
+        console.log('📊 Advanced Search Preview:', previewResults.length, 'programs, quality:', previewQuality?.level);
+      }
       
       // The context will handle the search and routing
       console.log('Advanced Search completed via RecommendationContext');
@@ -130,63 +201,95 @@ export default function AdvancedSearch() {
           </p>
         </div>
 
-        {/* Search Input */}
-        <Card className="p-6 mb-6">
-          <div className="space-y-4">
-            <div>
-              <label htmlFor="search" className="block text-sm font-medium text-gray-700 mb-2">
-                Describe your project
-              </label>
-              <input
-                id="search"
-                type="text"
-                value={searchInput}
-                onChange={(e) => setSearchInput(e.target.value)}
-                placeholder="e.g. Vienna, MVP, team 3, healthtech, €150k staff funding"
-                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                onKeyPress={(e) => e.key === 'Enter' && handleSearch()}
-              />
-              <p className="text-sm text-gray-500 mt-2">
-                Add these 5 items for best results: location, stage, team size, sector, funding need.
+        {/* Enhanced Search Input with SmartWizard Design */}
+        <div className="bg-white rounded-2xl shadow-xl border border-gray-200 overflow-hidden mb-6">
+          <div className="p-8">
+            <div className="text-center mb-6">
+              <h2 className="text-2xl font-bold text-gray-900 mb-2">
+                🤖 AI-Powered Advanced Search
+              </h2>
+              <p className="text-gray-600">
+                Describe your complex project requirements and let AI find specialized programs
               </p>
             </div>
 
-            <Button 
-              onClick={handleSearch}
-              disabled={loading || !searchInput.trim()}
-              className="w-full"
-            >
-              {loading ? 'Analyzing...' : 'Find Funding Programs'}
-            </Button>
-          </div>
-        </Card>
+            <div className="space-y-6">
+              <div>
+                <label htmlFor="search" className="block text-sm font-medium text-gray-700 mb-3">
+                  Complex Project Description
+                </label>
+                <textarea
+                  id="search"
+                  value={searchInput}
+                  onChange={(e) => setSearchInput(e.target.value)}
+                  placeholder="e.g. AI startup with university partnership for healthcare innovation in Vienna, need €150k for team expansion and technology development"
+                  className="w-full px-4 py-4 border-2 border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent resize-none"
+                  rows={4}
+                  onKeyPress={(e) => e.key === 'Enter' && !e.shiftKey && handleSearch()}
+                />
+                <p className="text-sm text-gray-500 mt-2">
+                  💡 <strong>AI Tips:</strong> Include partnerships, technology focus, industry specialization, geographic preferences, and funding requirements for best results.
+                </p>
+              </div>
 
-        {/* Chips Display */}
+              <Button 
+                onClick={handleSearch}
+                disabled={loading || !searchInput.trim()}
+                className="w-full bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white font-semibold py-4 px-6 rounded-xl transition-all duration-200 transform hover:scale-105 shadow-lg"
+              >
+                {loading ? (
+                  <div className="flex items-center justify-center">
+                    <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-white mr-2"></div>
+                    AI Analyzing...
+                  </div>
+                ) : (
+                  '🚀 Find Specialized Programs'
+                )}
+              </Button>
+            </div>
+          </div>
+        </div>
+
+        {/* Enhanced Chips Display with AI Insights */}
         {chips.length > 0 && (
-          <Card className="p-6 mb-6">
-            <h3 className="text-lg font-semibold text-gray-900 mb-4">Detected Information</h3>
-            <div className="flex flex-wrap gap-2">
+          <div className="bg-gradient-to-r from-blue-50 to-purple-50 rounded-2xl border border-blue-200 p-6 mb-6">
+            <div className="flex items-center justify-between mb-4">
+              <h3 className="text-lg font-semibold text-gray-900 flex items-center">
+                🤖 AI-Detected Requirements
+              </h3>
+              <span className="text-sm text-gray-600">
+                {chips.length} requirements found
+              </span>
+            </div>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
               {chips.map((chip) => (
                 <div
                   key={chip.id}
-                  className={`animate-fade-in-up px-3 py-1 rounded-full text-sm flex items-center gap-2 ${
+                  className={`animate-fade-in-up px-4 py-3 rounded-xl text-sm flex items-center justify-between ${
                     chip.required 
-                      ? 'bg-blue-100 text-blue-800' 
-                      : 'bg-gray-100 text-gray-700'
+                      ? 'bg-blue-100 border border-blue-300 text-blue-800' 
+                      : 'bg-white border border-gray-200 text-gray-700'
                   }`}
                 >
-                  <span className="font-medium">{chip.label}:</span>
-                  <span>{chip.value}</span>
+                  <div className="flex items-center gap-2">
+                    <span className="font-medium">{chip.label}:</span>
+                    <span className="font-semibold">{chip.value}</span>
+                    {chip.confidence && (
+                      <span className="text-xs bg-green-100 text-green-800 px-2 py-1 rounded-full">
+                        {Math.round(chip.confidence * 100)}% confidence
+                      </span>
+                    )}
+                  </div>
                   <button
                     onClick={() => removeChip(chip.id)}
-                    className="text-gray-500 hover:text-gray-700"
+                    className="text-gray-500 hover:text-red-600 transition-colors"
                   >
                     ×
                   </button>
                 </div>
               ))}
             </div>
-          </Card>
+          </div>
         )}
 
         {/* Clarifications */}
@@ -214,6 +317,61 @@ export default function AdvancedSearch() {
           </Card>
         )}
 
+        {/* Dynamic Hybrid Preview */}
+        {programPreview.length > 0 && (
+          <div className="bg-gradient-to-r from-green-50 to-blue-50 rounded-2xl border border-green-200 p-6 mb-6">
+            {/* Preview Quality Indicator */}
+            {previewQuality && (
+              <div className={`wizard-quality-indicator wizard-quality-${previewQuality.color} mb-4`}>
+                <span className="wizard-quality-message">{previewQuality.message}</span>
+                <span className="wizard-quality-score">
+                  {programPreview[0]?.score ? `${Math.round(programPreview[0].score)}% match` : ''}
+                </span>
+              </div>
+            )}
+            
+            <h3 className="text-xl font-semibold text-gray-900 mb-4 flex items-center">
+              🎯 AI-Powered Program Preview
+            </h3>
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+              {programPreview.map((program) => (
+                <div key={program.id} className="bg-white rounded-xl p-4 border border-gray-200 hover:shadow-md transition-shadow">
+                  <div className="flex justify-between items-start mb-3">
+                    <h4 className="text-sm font-semibold text-gray-900 line-clamp-2">{program.name}</h4>
+                    <div className="text-right ml-2">
+                      <div className="text-lg font-bold text-blue-600">{Math.round(program.score)}%</div>
+                      <div className="text-xs text-gray-500">Match</div>
+                    </div>
+                  </div>
+                  <p className="text-xs text-gray-600 mb-3 line-clamp-2">{program.notes}</p>
+                  <div className="flex justify-between items-center">
+                    <div className="text-xs text-gray-500">
+                      {program.maxAmount ? `€${program.maxAmount.toLocaleString()}` : 'N/A'}
+                    </div>
+                    <button 
+                      onClick={() => window.open(program.link, '_blank')}
+                      className="text-xs bg-blue-100 text-blue-700 px-2 py-1 rounded-full hover:bg-blue-200 transition-colors"
+                    >
+                      View
+                    </button>
+                  </div>
+                </div>
+              ))}
+            </div>
+            <div className="mt-4 text-center">
+              <button 
+                onClick={() => {
+                  // Navigate to results page with full recommendations
+                  localStorage.setItem("recoResults", JSON.stringify(programPreview));
+                  window.location.href = '/results';
+                }}
+                className="text-sm bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors"
+              >
+                View All Results →
+              </button>
+            </div>
+          </div>
+        )}
 
         {/* Back to Wizard */}
         <div className="text-center mt-8">
