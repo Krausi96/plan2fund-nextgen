@@ -214,27 +214,27 @@ export default function AdvancedSearch() {
             </div>
 
             <div className="space-y-6">
-              <div>
+            <div>
                 <label htmlFor="search" className="block text-sm font-medium text-gray-700 mb-3">
                   {t('advancedSearch.complexProjectLabel')}
-                </label>
+              </label>
                 <textarea
-                  id="search"
-                  value={searchInput}
-                  onChange={(e) => setSearchInput(e.target.value)}
+                id="search"
+                value={searchInput}
+                onChange={(e) => setSearchInput(e.target.value)}
                   placeholder={t('advancedSearch.placeholder')}
                   className="w-full px-4 py-4 border-2 border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent resize-none"
                   rows={4}
                   onKeyPress={(e) => e.key === 'Enter' && !e.shiftKey && handleSearch()}
-                />
-                <p className="text-sm text-gray-500 mt-2">
+              />
+              <p className="text-sm text-gray-500 mt-2">
                   {t('advancedSearch.aiTips')}
-                </p>
-              </div>
+              </p>
+            </div>
 
-              <Button 
-                onClick={handleSearch}
-                disabled={loading || !searchInput.trim()}
+            <Button 
+              onClick={handleSearch}
+              disabled={loading || !searchInput.trim()}
                 className="w-full bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white font-semibold py-4 px-6 rounded-xl transition-all duration-200 transform hover:scale-105 shadow-lg"
               >
                 {loading ? (
@@ -245,8 +245,8 @@ export default function AdvancedSearch() {
                 ) : (
                   t('advancedSearch.findPrograms')
                 )}
-              </Button>
-            </div>
+            </Button>
+          </div>
           </div>
         </div>
 
@@ -272,7 +272,7 @@ export default function AdvancedSearch() {
                   }`}
                 >
                   <div className="flex items-center gap-2">
-                    <span className="font-medium">{chip.label}:</span>
+                  <span className="font-medium">{chip.label}:</span>
                     <span className="font-semibold">{chip.value}</span>
                     {chip.confidence && (
                       <span className="text-xs bg-green-100 text-green-800 px-2 py-1 rounded-full">
@@ -389,7 +389,7 @@ export default function AdvancedSearch() {
                 className="inline-flex items-center text-blue-600 hover:text-blue-800 font-medium"
               >
                 {t('advancedSearch.startSmartWizard')}
-              </Link>
+          </Link>
             </div>
             <div className="bg-white rounded-xl p-4 border border-gray-200">
               <h4 className="font-semibold text-gray-900 mb-2">{t('advancedSearch.aiPoweredSearch')}</h4>
