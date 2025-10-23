@@ -211,7 +211,7 @@ const SmartWizard: React.FC<SmartWizardProps> = ({ onComplete, onProfileGenerate
     if (Object.keys(newAnswers).length >= 3 && Object.keys(newAnswers).length % 2 === 1) {
       try {
         const { scoreProgramsEnhanced } = await import('@/lib/enhancedRecoEngine');
-        const previewResults = await scoreProgramsEnhanced(newAnswers, "preview");
+        const previewResults = await scoreProgramsEnhanced(newAnswers, "strict");
         programPreview = previewResults.slice(0, 3); // Top 3 programs
         console.log('📊 Program preview updated:', programPreview.length, 'programs');
       } catch (error) {
@@ -312,32 +312,6 @@ const SmartWizard: React.FC<SmartWizardProps> = ({ onComplete, onProfileGenerate
     }
   };
 
-  const getPhaseIcon = (phase: number) => {
-    switch (phase) {
-      case 1: return '💡';
-      case 2: return '📊';
-      case 3: return '🚀';
-      default: return '✨';
-    }
-  };
-
-  const getPhaseTitle = (phase: number) => {
-    switch (phase) {
-      case 1: return t('wizard.phase1.title');
-      case 2: return t('wizard.phase2.title');
-      case 3: return t('wizard.phase3.title');
-      default: return t('wizard.phase.default.title');
-    }
-  };
-
-  const getPhaseDescription = (phase: number) => {
-    switch (phase) {
-      case 1: return t('wizard.phase1.description');
-      case 2: return t('wizard.phase2.description');
-      case 3: return t('wizard.phase3.description');
-      default: return t('wizard.phase.default.description');
-    }
-  };
 
   if (state.showResults && state.results.length > 0) {
     return <ResultsDisplay results={state.results} profile={state.profile} onReset={resetWizard} />;
