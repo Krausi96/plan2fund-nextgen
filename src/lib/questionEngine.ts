@@ -410,8 +410,13 @@ export class QuestionEngine {
   constructor(programs: Program[] = []) {
     this.programs = programs;
     this.initializeQuestions(); // Keep core questions for now
-    this.computeOverlayQuestions(); // NEW: Compute overlay questions from programs
     this.loadBranchingRules(); // NEW: Load branching rules
+    // Note: computeOverlayQuestions() will be called separately after construction
+  }
+
+  // NEW: Initialize overlay questions after construction
+  public async initializeOverlayQuestions(): Promise<void> {
+    await this.computeOverlayQuestions();
   }
 
 
@@ -1582,7 +1587,7 @@ export class QuestionEngine {
 
   // NEW: Get overlay questions (from dynamicQuestionEngine.ts)
   public getOverlayQuestions(): SymptomQuestion[] {
-    return this.overlayQuestions.slice(0, 3); // Top 3 overlay questions
+    return this.overlayQuestions.slice(0, 10); // Top 10 overlay questions
   }
 
   // NEW: Get next question with enhanced logic (from dynamicQuestionEngine.ts)

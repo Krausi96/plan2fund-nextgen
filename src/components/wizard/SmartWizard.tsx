@@ -103,6 +103,9 @@ const SmartWizard: React.FC<SmartWizardProps> = ({ onComplete, onProfileGenerate
         const intake = new IntakeEngine();
         const question = new QuestionEngine(programs);
         
+        // Initialize overlay questions from program data
+        await question.initializeOverlayQuestions();
+        
         setIntakeEngine(intake);
         setQuestionEngine(question);
         
@@ -118,6 +121,9 @@ const SmartWizard: React.FC<SmartWizardProps> = ({ onComplete, onProfileGenerate
         // Fallback initialization
         const intake = new IntakeEngine();
         const question = new QuestionEngine([]);
+        
+        // Initialize overlay questions (will be empty for fallback)
+        await question.initializeOverlayQuestions();
         
         setIntakeEngine(intake);
         setQuestionEngine(question);
