@@ -1441,6 +1441,92 @@ export class EnhancedDataPipeline {
    * Generate AI guidance for the program
    */
 
+  /**
+   * Main method to get processed programs
+   */
+  async getProcessedPrograms(): Promise<NormalizedProgram[]> {
+    try {
+      console.log('🔄 Enhanced Data Pipeline: Starting program processing...');
+      
+      // Load raw programs from data files
+      const rawPrograms = await this.loadRawPrograms();
+      console.log(`📊 Loaded ${rawPrograms.length} raw programs`);
+      
+      if (rawPrograms.length === 0) {
+        console.log('⚠️ No raw programs found, returning empty array');
+        return [];
+      }
+      
+      // Process programs through the pipeline
+      const processedPrograms = await this.processPrograms(rawPrograms);
+      console.log(`✅ Enhanced Data Pipeline: ${processedPrograms.length} programs processed`);
+      
+      return processedPrograms;
+    } catch (error) {
+      console.error('❌ Enhanced Data Pipeline error:', error);
+      return [];
+    }
+  }
+
+  /**
+   * Load raw programs from data files
+   */
+  private async loadRawPrograms(): Promise<ScrapedProgram[]> {
+    const dataDir = path.join(process.cwd(), 'data');
+    const files = [
+      'scraped-programs-latest.json',
+      'scraped-programs-2025-10-21.json',
+      'fallback-programs.json'
+    ];
+    
+    let allPrograms: ScrapedProgram[] = [];
+    
+    for (const file of files) {
+      const filePath = path.join(dataDir, file);
+      try {
+        if (fs.existsSync(filePath)) {
+          const data = JSON.parse(fs.readFileSync(filePath, 'utf8'));
+          const programs = data.programs || data;
+          if (Array.isArray(programs)) {
+            allPrograms = allPrograms.concat(programs);
+            console.log(`📁 Loaded ${programs.length} programs from ${file}`);
+          }
+        }
+      } catch (error) {
+        console.warn(`⚠️ Failed to load ${file}:`, error);
+      }
+    }
+    
+    return allPrograms;
+  }
+
+  /**
+   * Process programs through the pipeline
+   */
+  private async processPrograms(rawPrograms: ScrapedProgram[]): Promise<NormalizedProgram[]> {
+    console.log('🔄 Processing programs through pipeline...');
+    
+    // Step 1: Normalize programs
+    const normalizedPrograms: NormalizedProgram[] = [];
+    for (const rawProgram of rawPrograms) {
+      try {
+        const normalized = await this.normalizeProgram(rawProgram);
+        normalizedPrograms.push(normalized);
+      } catch (error) {
+        console.warn(`⚠️ Failed to normalize program ${rawProgram.id}:`, error);
+      }
+    }
+    
+    // Step 2: Remove duplicates
+    const uniquePrograms = this.removeDuplicates(normalizedPrograms);
+    
+    // Step 3: Sort by quality score
+    const sortedPrograms = uniquePrograms.sort((a, b) => b.quality_score - a.quality_score);
+    
+    console.log(`✅ Pipeline processing complete: ${sortedPrograms.length} programs`);
+    return sortedPrograms;
+  }
+
 }
 
 // ============================================================================
