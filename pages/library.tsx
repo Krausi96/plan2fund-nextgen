@@ -49,10 +49,10 @@ export default function Library() {
     <>
       <SEOHead pageKey="library" schema="faq" />
       
-      <main className="min-h-screen bg-gradient-to-br from-sky-50 via-white to-emerald-50">
-        <div className="max-w-4xl mx-auto px-6 py-2">
-          {/* Header */}
-          <div className="bg-white rounded-2xl shadow-lg border border-gray-200 p-8 mb-6">
+      <main className="bg-gray-50 min-h-screen">
+        {/* Header */}
+        <section className="bg-white py-12">
+          <div className="max-w-6xl mx-auto px-4">
             <div className="flex items-center gap-4 mb-6">
               <Link href="/pricing" className="flex items-center gap-2 text-gray-600 hover:text-blue-600 transition-colors">
                 <ArrowLeft className="w-5 h-5" />
@@ -66,10 +66,12 @@ export default function Library() {
               Explore all available funding programs. Click on any program to see detailed requirements and start your application.
             </p>
           </div>
+        </section>
 
-          {/* Loading State */}
-          {loading && (
-            <div className="bg-white rounded-2xl shadow-lg border border-gray-200 p-8 mb-6">
+        {/* Loading State */}
+        {loading && (
+          <section className="py-12">
+            <div className="max-w-6xl mx-auto px-4">
               <div className="flex items-center justify-center">
                 <div className="text-center">
                   <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto mb-4"></div>
@@ -77,11 +79,13 @@ export default function Library() {
                 </div>
               </div>
             </div>
-          )}
+          </section>
+        )}
 
-          {/* Error State */}
-          {error && (
-            <div className="bg-white rounded-2xl shadow-lg border border-gray-200 p-8 mb-6">
+        {/* Error State */}
+        {error && (
+          <section className="py-12">
+            <div className="max-w-6xl mx-auto px-4">
               <div className="bg-red-50 border border-red-200 rounded-lg p-6 text-center">
                 <p className="text-red-700">{error}</p>
                 <button 
@@ -92,23 +96,26 @@ export default function Library() {
                 </button>
               </div>
             </div>
-          )}
+          </section>
+        )}
 
-          {/* Program Categories */}
-          {!loading && !error && (
-            <div className="space-y-6">
-              {Object.entries(programCategories).map(([categoryName, categoryPrograms]) => (
-                <div key={categoryName} className="bg-white rounded-2xl shadow-lg border border-gray-200 p-8">
+        {/* Program Categories */}
+        {!loading && !error && (
+        <section className="py-16">
+          <div className="max-w-6xl mx-auto px-4">
+            <div className="space-y-12">
+                {Object.entries(programCategories).map(([categoryName, categoryPrograms]) => (
+                <div key={categoryName}>
                   <h2 className="text-2xl font-bold text-gray-900 mb-6 flex items-center gap-3">
                     <FileText className="w-6 h-6 text-blue-600" />
-                    {categoryName} ({categoryPrograms.length})
+                      {categoryName} ({categoryPrograms.length})
                   </h2>
                   <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                    {categoryPrograms.map((program) => (
-                      <div
-                        key={program.id}
-                        className="text-left p-6 bg-gray-50 rounded-xl border border-gray-200 hover:border-blue-300 hover:shadow-lg transition-all duration-300 group"
-                      >
+                      {categoryPrograms.map((program) => (
+                        <div
+                          key={program.id}
+                          className="text-left p-6 bg-white rounded-xl border border-gray-200 hover:border-blue-300 hover:shadow-lg transition-all duration-300 group"
+                        >
                           <div className="flex items-start justify-between mb-3">
                             <h3 className="font-semibold text-gray-900 group-hover:text-blue-600 transition-colors">
                               {program.name}
@@ -137,27 +144,25 @@ export default function Library() {
                   </div>
                 </div>
               ))}
-              </div>
-            ))}
+            </div>
           </div>
-          )}
+        </section>
+        )}
 
-          {/* General CTAs */}
-          <div className="bg-white rounded-2xl shadow-lg border border-gray-200 p-8">
-            <CTAStrip
-              title="Ready to Create Your Business Plan?"
-              subtitle="Browse programs above or start directly with our business plan editor."
-              primaryAction={{
-                label: "Get Recommendations",
-                href: "/reco"
-              }}
-              secondaryAction={{
-                label: "Start Editor",
-                href: "/editor"
-              }}
-            />
-          </div>
-        </div>
+        {/* General CTAs */}
+        <CTAStrip
+          title="Ready to Create Your Business Plan?"
+          subtitle="Browse programs above or start directly with our business plan editor."
+          primaryAction={{
+            label: "Get Recommendations",
+            href: "/reco"
+          }}
+          secondaryAction={{
+            label: "Start Editor",
+            href: "/editor"
+          }}
+        />
+
       </main>
     </>
   );

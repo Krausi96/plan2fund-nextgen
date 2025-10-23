@@ -49,35 +49,31 @@ export default function ResultsPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-sky-50 via-white to-emerald-50">
-      <div className="max-w-4xl mx-auto px-6 py-2">
-        <div className="bg-white rounded-2xl shadow-lg border border-gray-200 p-8 mb-6">
-          <div className="flex justify-between items-center mb-6">
-            <h2 className="text-2xl font-semibold text-gray-900">
-              {t('results.title')}
-            </h2>
-            <div className="flex items-center gap-4">
-              <Link href="/dashboard" className="text-blue-600 hover:text-blue-800 text-sm font-medium">
-                {t('results.dashboard')}
-              </Link>
-              <button
-                onClick={() => setShowInfoDrawer(true)}
-                className="text-blue-600 hover:text-blue-800 text-sm flex items-center gap-1 font-medium"
-              >
-                <span>ℹ️</span> {t('results.howItWorks')}
-              </button>
-            </div>
-          </div>
+    <div className="p-6 max-w-3xl mx-auto">
+      <div className="flex justify-between items-center mb-6">
+        <h2 className="text-2xl font-semibold">
+          {t('results.title')}
+        </h2>
+        <div className="flex items-center gap-4">
+          <Link href="/dashboard" className="text-blue-600 hover:text-blue-800 text-sm">
+            {t('results.dashboard')}
+          </Link>
+          <button
+            onClick={() => setShowInfoDrawer(true)}
+            className="text-blue-600 hover:text-blue-800 text-sm flex items-center gap-1"
+          >
+            <span>ℹ️</span> {t('results.howItWorks')}
+          </button>
         </div>
+      </div>
 
-        {/* No-match fallback: Nearest 3 + Proceed anyway */}
-        {hasAnyResults && !hasEligibleResults && (
-          <div className="bg-white rounded-2xl shadow-lg border border-gray-200 p-8 mb-6">
-            <div className="p-6 border border-orange-300 bg-orange-50 rounded-xl">
-              <h3 className="text-lg font-semibold text-orange-800 mb-2">{t('results.noMatches.title')}</h3>
-              <p className="text-orange-700 mb-4">
-                {t('results.noMatches.description')}
-              </p>
+      {/* No-match fallback: Nearest 3 + Proceed anyway */}
+      {hasAnyResults && !hasEligibleResults && (
+        <div className="p-6 border border-orange-300 bg-orange-50 rounded-lg mb-6">
+          <h3 className="text-lg font-semibold text-orange-800 mb-2">{t('results.noMatches.title')}</h3>
+          <p className="text-orange-700 mb-4">
+            {t('results.noMatches.description')}
+          </p>
           
           {/* Nearest 3 programs */}
           <div className="mb-4">
@@ -194,11 +190,11 @@ export default function ResultsPage() {
         </div>
       )}
 
-        {/* Results list */}
-        {results.length > 0 && (
-          <div className="space-y-6">
-            {results.map((program) => (
-              <div key={program.id} className="bg-white rounded-2xl shadow-lg border border-gray-200 p-8">
+      {/* Results list */}
+      {results.length > 0 && (
+        <div className="grid gap-4">
+          {results.map((program) => (
+            <Card key={program.id} className="p-4 shadow-md rounded-xl">
               <div className="flex justify-between items-center mb-3">
                 <div>
                   <h3 className="text-lg font-bold">{program.name}</h3>
@@ -436,10 +432,10 @@ export default function ResultsPage() {
                   {t('results.details')}
                 </Button>
               </div>
-              </div>
-            ))}
-          </div>
-        )}
+            </Card>
+          ))}
+        </div>
+      )}
 
 
       {/* Add Custom Program - removed, results managed by context */}
@@ -486,7 +482,6 @@ export default function ResultsPage() {
         }
       />
       
-      </div>
     </div>
   );
 }
