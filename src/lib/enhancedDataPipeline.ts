@@ -17,6 +17,23 @@ import * as path from 'path';
 // INTERFACES
 // ============================================================================
 
+export interface NormalizedProgram extends Omit<ScrapedProgram, 'description' | 'quality_score' | 'confidence_level' | 'processed_at' | 'validation_errors' | 'is_duplicate' | 'categorized_requirements'> {
+  description: string;
+  categorized_requirements?: any; // ← CRITICAL: Preserve this from raw data
+  decision_tree_questions?: any[];
+  editor_sections?: any[];
+  readiness_criteria?: any[];
+  target_personas?: string[];
+  tags?: string[];
+  ai_guidance?: any;
+  quality_score: number;
+  confidence_level: 'high' | 'medium' | 'low';
+  processed_at: Date;
+  validation_errors: string[];
+  is_duplicate: boolean;
+  duplicate_of?: string;
+}
+
 // CORE 18 CATEGORIES - SIMPLIFIED PATTERNS
 const CORE_18_CATEGORIES = {
   // 1. Eligibility
@@ -135,26 +152,6 @@ export interface NormalizedProgram extends ScrapedProgram {
   validation_errors: string[];
   is_duplicate: boolean;
   duplicate_of?: string;
-  categorized_requirements?: {
-    eligibility: any[];
-    documents: any[];
-    financial: any[];
-    technical: any[];
-    legal: any[];
-    timeline: any[];
-    geographic: any[];
-    team: any[];
-    project: any[];
-    compliance: any[];
-    impact: any[];
-    capex_opex: any[];
-    use_of_funds: any[];
-    revenue_model: any[];
-    market_size: any[];
-    co_financing: any[];
-    trl_level: any[];
-    consortium: any[];
-  };
 }
 
 export interface QualityScore {
@@ -212,7 +209,7 @@ export class DataNormalization {
     
     // 4. Standardize dates
     if (rawProgram.deadline) {
-      normalized.deadline = this.standardizeDate(rawProgram.deadline);
+      normalized.deadline = this.standardizeDate(rawProgram.deadline) as any;
     }
     
     // 5. Clean and standardize requirements
@@ -220,6 +217,12 @@ export class DataNormalization {
     
     // 6. Clean and standardize eligibility criteria
     normalized.eligibility_criteria = this.standardizeEligibility(rawProgram.eligibility_criteria);
+    
+    // 7. CRITICAL: Preserve categorized_requirements from raw data
+    if ((rawProgram as any).categorized_requirements) {
+      normalized.categorized_requirements = (rawProgram as any).categorized_requirements;
+      console.log(`✅ Preserved categorized_requirements for ${normalized.id}`);
+    }
     
     // 7. Generate AI-enhanced fields (decision tree questions, editor sections, readiness criteria)
     await this.generateAIEnhancedFields(normalized);
@@ -229,6 +232,10 @@ export class DataNormalization {
     
     return normalized;
   }
+
+  /**
+   * Generate AI-enhanced fields for the program
+   */
 
   /**
    * Clean program name (capitalization, trim, etc.)
@@ -797,7 +804,7 @@ export class DataNormalization {
     if (!program.eligibility_criteria) program.eligibility_criteria = {};
     if (!program.requirements) program.requirements = {};
     if (!program.contact_info) program.contact_info = {};
-    if (!program.scraped_at) program.scraped_at = new Date();
+    if (!program.scraped_at) program.scraped_at = new Date() as any;
     if (program.confidence_score === undefined) program.confidence_score = 0.5;
     if (program.is_active === undefined) program.is_active = true;
   }
@@ -1397,7 +1404,7 @@ export class EnhancedDataPipeline {
     const duplicates: NormalizedProgram[] = [];
     
     for (const program of programs) {
-      const key = `${program.name.toLowerCase()}_${program.institution.toLowerCase()}`;
+      const key = `${program.name.toLowerCase()}_${program.institution?.toLowerCase() || 'unknown'}`;
       
       if (seen.has(key)) {
         // Mark as duplicate
@@ -1422,6 +1429,74 @@ export class EnhancedDataPipeline {
     return 'low';
   }
 
+  /**
+   * Generate target personas based on program characteristics
+   */
+  private generateTargetPersonas(program: NormalizedProgram): string[] {
+    const personas: string[] = [];
+    
+    // Based on program type
+    if (program.program_type === 'grant') {
+      personas.push('startup', 'sme');
+    } else if (program.program_type === 'loan') {
+      personas.push('sme', 'established');
+    } else if (program.program_type === 'equity') {
+      personas.push('startup', 'scaleup');
+    }
+    
+    // Based on institution
+    if (program.institution?.includes('AWS')) {
+      personas.push('innovator', 'researcher');
+    } else if (program.institution?.includes('FFG')) {
+      personas.push('researcher', 'tech_startup');
+    }
+    
+    return personas.length > 0 ? personas : ['startup', 'sme'];
+  }
+
+  /**
+   * Generate tags based on program characteristics
+   */
+  private generateTags(program: NormalizedProgram): string[] {
+    const tags: string[] = [];
+    
+    tags.push(program.program_type || 'grant');
+    tags.push('funding');
+    
+    if (program.description?.toLowerCase().includes('innovation')) {
+      tags.push('innovation');
+    }
+    if (program.description?.toLowerCase().includes('research')) {
+      tags.push('research');
+    }
+    if (program.source_url?.includes('aws')) {
+      tags.push('aws');
+    }
+    if (program.source_url?.includes('ffg')) {
+      tags.push('ffg');
+    }
+    
+    return tags;
+  }
+
+  /**
+   * Generate AI guidance for the program
+   */
+  private generateAIGuidance(program: NormalizedProgram): any {
+    return {
+      context: `${program.name} program guidance`,
+      tone: 'professional',
+      key_points: [
+        'Check eligibility requirements carefully',
+        'Prepare necessary documents in advance',
+        'Focus on innovation and market potential'
+      ],
+      prompts: {
+        executive_summary: 'Highlight your unique value proposition and market opportunity',
+        business_plan: 'Include detailed financial projections and market analysis'
+      }
+    };
+  }
 
 }
 

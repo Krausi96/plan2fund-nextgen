@@ -409,7 +409,7 @@ export class QuestionEngine {
 
   constructor(programs: Program[] = []) {
     this.programs = programs;
-    this.initializeQuestions();
+    this.initializeQuestions(); // Keep core questions for now
     this.computeOverlayQuestions(); // NEW: Compute overlay questions from programs
     this.loadBranchingRules(); // NEW: Load branching rules
   }
@@ -1156,230 +1156,15 @@ export class QuestionEngine {
     return questions;
   }
 
-  // NEW: Generate questions from categorized requirements (from dynamicDecisionTree.ts)
-  private generateQuestionsFromCategorizedRequirements(
-    categorizedRequirements: any, 
-    programId: string
-  ): SymptomQuestion[] {
-    const questions: SymptomQuestion[] = [];
-    let questionIndex = 0;
 
-    Object.entries(categorizedRequirements).forEach(([category, data]: [string, any]) => {
-      if (data && Array.isArray(data) && data.length > 0) {
-        const categoryQuestions = this.createQuestionsForCategory(
-          category, 
-          data, 
-          questionIndex, 
-          programId
-        );
-        questions.push(...categoryQuestions);
-        questionIndex += categoryQuestions.length;
-      }
-    });
 
-    return questions;
-  }
 
-  // NEW: Create questions for specific category (from dynamicDecisionTree.ts)
-  private createQuestionsForCategory(
-    category: string, 
-    data: any[], 
-    startIndex: number, 
-    programId: string
-  ): SymptomQuestion[] {
-    const questions: SymptomQuestion[] = [];
 
-    switch (category) {
-      case 'co_financing':
-        questions.push(this.createCoFinancingQuestion(data, startIndex, programId));
-        break;
-      case 'trl_level':
-        questions.push(this.createTRLQuestion(data, startIndex, programId));
-        break;
-      case 'impact':
-        questions.push(this.createImpactQuestion(data, startIndex, programId));
-        break;
-      case 'consortium':
-        questions.push(this.createConsortiumQuestion(data, startIndex, programId));
-        break;
-      case 'eligibility':
-        questions.push(this.createEligibilityQuestion(data, startIndex, programId));
-        break;
-      case 'financial':
-        questions.push(this.createFinancialQuestion(data, startIndex, programId));
-        break;
-      case 'team':
-        questions.push(this.createTeamQuestion(data, startIndex, programId));
-        break;
-      case 'project':
-        questions.push(this.createProjectQuestion(data, startIndex, programId));
-        break;
-      case 'geographic':
-        questions.push(this.createGeographicQuestion(data, startIndex, programId));
-        break;
-      case 'timeline':
-        questions.push(this.createTimelineQuestion(data, startIndex, programId));
-        break;
-      case 'documentation':
-        questions.push(this.createDocumentationQuestion(data, startIndex, programId));
-        break;
-      case 'innovation':
-        questions.push(this.createInnovationQuestion(data, startIndex, programId));
-        break;
-      case 'sustainability':
-        questions.push(this.createSustainabilityQuestion(data, startIndex, programId));
-        break;
-      case 'market':
-        questions.push(this.createMarketQuestion(data, startIndex, programId));
-        break;
-      case 'technology':
-        questions.push(this.createTechnologyQuestion(data, startIndex, programId));
-        break;
-      case 'partnerships':
-        questions.push(this.createPartnershipsQuestion(data, startIndex, programId));
-        break;
-      case 'compliance':
-        questions.push(this.createComplianceQuestion(data, startIndex, programId));
-        break;
-      case 'intellectual_property':
-        questions.push(this.createIPQuestion(data, startIndex, programId));
-        break;
-      case 'risk_management':
-        questions.push(this.createRiskManagementQuestion(data, startIndex, programId));
-        break;
-    }
 
-    return questions;
-  }
 
-  // NEW: Helper methods for creating specific category questions
-  private createCoFinancingQuestion(_data: any[], startIndex: number, programId: string): SymptomQuestion {
-    return {
-      id: `co_financing_${programId}_${startIndex}`,
-      symptom: 'What percentage of co-financing can you provide?',
-      type: 'single-select',
-      options: [
-        { value: '0_10', label: '0-10%', fundingTypes: ['grants'] },
-        { value: '10_25', label: '10-25%', fundingTypes: ['grants', 'loans'] },
-        { value: '25_50', label: '25-50%', fundingTypes: ['grants', 'loans', 'equity'] },
-        { value: '50_plus', label: '50%+', fundingTypes: ['loans', 'equity'] }
-      ],
-      required: true,
-      category: 'specific_requirements',
-      phase: 3,
-      conditionalLogic: []
-    };
-  }
 
-  private createTRLQuestion(_data: any[], startIndex: number, programId: string): SymptomQuestion {
-    return {
-      id: `trl_level_${programId}_${startIndex}`,
-      symptom: 'What is your technology readiness level?',
-      type: 'single-select',
-      options: [
-        { value: 'trl_1_3', label: 'TRL 1-3 (Basic research)', fundingTypes: ['grants'] },
-        { value: 'trl_4_6', label: 'TRL 4-6 (Development)', fundingTypes: ['grants', 'loans'] },
-        { value: 'trl_7_9', label: 'TRL 7-9 (Commercial)', fundingTypes: ['loans', 'equity'] }
-      ],
-      required: true,
-      category: 'innovation_level',
-      phase: 2,
-      conditionalLogic: []
-    };
-  }
 
-  private createImpactQuestion(_data: any[], startIndex: number, programId: string): SymptomQuestion {
-    return {
-      id: `impact_${programId}_${startIndex}`,
-      symptom: 'What impact will your project have?',
-      type: 'multi-select',
-      options: [
-        { value: 'environmental', label: 'Environmental impact', fundingTypes: ['grants'] },
-        { value: 'social', label: 'Social impact', fundingTypes: ['grants'] },
-        { value: 'economic', label: 'Economic impact', fundingTypes: ['grants', 'loans'] },
-        { value: 'technological', label: 'Technological innovation', fundingTypes: ['grants', 'equity'] }
-      ],
-      required: true,
-      category: 'specific_requirements',
-      phase: 3,
-      conditionalLogic: []
-    };
-  }
 
-  private createConsortiumQuestion(_data: any[], startIndex: number, programId: string): SymptomQuestion {
-    return {
-      id: `consortium_${programId}_${startIndex}`,
-      symptom: 'Do you have consortium partners?',
-      type: 'single-select',
-      options: [
-        { value: 'yes', label: 'Yes, we have partners', fundingTypes: ['grants'] },
-        { value: 'no', label: 'No, we work alone', fundingTypes: ['loans', 'equity'] },
-        { value: 'looking', label: 'We are looking for partners', fundingTypes: ['grants'] }
-      ],
-      required: true,
-      category: 'specific_requirements',
-      phase: 3,
-      conditionalLogic: []
-    };
-  }
-
-  private createEligibilityQuestion(_data: any[], startIndex: number, programId: string): SymptomQuestion {
-    return {
-      id: `eligibility_${programId}_${startIndex}`,
-      symptom: 'Do you meet the basic eligibility criteria?',
-      type: 'single-select',
-      options: [
-        { value: 'yes', label: 'Yes, we meet all criteria', fundingTypes: ['grants', 'loans', 'equity'] },
-        { value: 'partially', label: 'We meet most criteria', fundingTypes: ['grants', 'loans'] },
-        { value: 'no', label: 'We need to check criteria', fundingTypes: [] }
-      ],
-      required: true,
-      category: 'specific_requirements',
-      phase: 2,
-      conditionalLogic: []
-    };
-  }
-
-  private createFinancialQuestion(_data: any[], startIndex: number, programId: string): SymptomQuestion {
-    return {
-      id: `financial_${programId}_${startIndex}`,
-      symptom: 'What is your financial situation?',
-      type: 'single-select',
-      options: [
-        { value: 'strong', label: 'Strong financial position', fundingTypes: ['loans', 'equity'] },
-        { value: 'stable', label: 'Stable financial position', fundingTypes: ['grants', 'loans', 'equity'] },
-        { value: 'challenging', label: 'Challenging financial position', fundingTypes: ['grants'] }
-      ],
-      required: true,
-      category: 'specific_requirements',
-      phase: 2,
-      conditionalLogic: []
-    };
-  }
-
-  // Add more category question creators as needed...
-  private createTeamQuestion(_data: any[], startIndex: number, programId: string): SymptomQuestion {
-    return {
-      id: `team_${programId}_${startIndex}`,
-      symptom: 'What is your team composition?',
-      type: 'multi-select',
-      options: [
-        { value: 'technical', label: 'Technical experts', fundingTypes: ['grants', 'loans', 'equity'] },
-        { value: 'business', label: 'Business experts', fundingTypes: ['loans', 'equity'] },
-        { value: 'research', label: 'Research experts', fundingTypes: ['grants'] },
-        { value: 'marketing', label: 'Marketing experts', fundingTypes: ['loans', 'equity'] }
-      ],
-      required: true,
-      category: 'team_size',
-      phase: 2,
-      conditionalLogic: []
-    };
-  }
-
-  // Placeholder methods for other categories (implement as needed)
-  private createProjectQuestion(_data: any[], startIndex: number, programId: string): SymptomQuestion {
-    return this.createGenericQuestion('project', 'What is your project about?', startIndex, programId);
-  }
 
   private createGeographicQuestion(_data: any[], startIndex: number, programId: string): SymptomQuestion {
     return this.createGenericQuestion('geographic', 'Where will your project take place?', startIndex, programId);
@@ -1591,18 +1376,30 @@ export class QuestionEngine {
 
   // NEW: Compute overlay questions from program data (from dynamicQuestionEngine.ts)
   private async computeOverlayQuestions(): Promise<void> {
-    if (this.programs.length === 0) return;
+    if (this.programs.length === 0) {
+      console.log('⚠️ No programs available for overlay questions');
+      return;
+    }
 
     const questionStats = new Map<string, QuestionStats>();
     const overlayQuestions: SymptomQuestion[] = [];
 
+    console.log(`🔄 Computing overlay questions from ${this.programs.length} programs...`);
+
     // Analyze each program's requirements to generate overlay questions
     for (const program of this.programs) {
-      if (program.categorized_requirements) {
+      console.log(`🔍 Processing program ${program.id}:`, {
+        hasCategorizedRequirements: !!program.categorized_requirements,
+        categorizedRequirementsKeys: program.categorized_requirements ? Object.keys(program.categorized_requirements) : []
+      });
+
+      if (program.categorized_requirements && Object.keys(program.categorized_requirements).length > 0) {
         const programQuestions = this.generateQuestionsFromCategorizedRequirements(
           program.categorized_requirements,
           program.id
         );
+
+        console.log(`✅ Generated ${programQuestions.length} questions from program ${program.id}`);
 
         // Calculate statistics for each question
         for (const question of programQuestions) {
@@ -1610,12 +1407,16 @@ export class QuestionEngine {
           questionStats.set(question.id, stats);
           overlayQuestions.push(question);
         }
+      } else {
+        console.log(`⚠️ Program ${program.id} has no categorized_requirements`);
       }
     }
 
     // Deduplicate and sort questions by information value
     this.overlayQuestions = this.deduplicateAndSortQuestions(overlayQuestions, questionStats);
     this.questionStats = questionStats;
+
+    console.log(`✅ Computed ${this.overlayQuestions.length} overlay questions`);
   }
 
   // NEW: Calculate question statistics (from dynamicQuestionEngine.ts)
@@ -1686,6 +1487,112 @@ export class QuestionEngine {
     return Math.round(weight * 100) / 100;
   }
 
+  // NEW: Generate questions from categorized requirements
+  private generateQuestionsFromCategorizedRequirements(
+    categorizedRequirements: any,
+    programId: string
+  ): SymptomQuestion[] {
+    const questions: SymptomQuestion[] = [];
+
+    console.log(`🔍 Generating questions from categorized requirements for program ${programId}:`, categorizedRequirements);
+
+    // Generate questions for each category
+    for (const [category, requirements] of Object.entries(categorizedRequirements)) {
+      if (Array.isArray(requirements) && requirements.length > 0) {
+        console.log(`📝 Processing category ${category} with ${requirements.length} requirements`);
+        const question = this.createQuestionFromCategory(category, requirements, programId);
+        if (question) {
+          console.log(`✅ Created question: ${question.id} for category ${category}`);
+          questions.push(question);
+        }
+      } else if (requirements && typeof requirements === 'object') {
+        console.log(`📝 Processing category ${category} with object requirements`);
+        const question = this.createQuestionFromCategory(category, [requirements], programId);
+        if (question) {
+          console.log(`✅ Created question: ${question.id} for category ${category}`);
+          questions.push(question);
+        }
+      }
+    }
+
+    console.log(`✅ Generated ${questions.length} questions from program ${programId}`);
+    return questions;
+  }
+
+  // NEW: Create question from category requirements
+  private createQuestionFromCategory(category: string, _requirements: any[], programId: string): SymptomQuestion | null {
+    const questionId = `${category}_${programId}`;
+    
+    // Map category to question type and options
+    const categoryMapping = {
+      'co_financing': {
+        symptom: 'Do you have co-financing available?',
+        type: 'boolean' as const,
+        options: [
+          { value: 'yes', label: 'Yes, I have co-financing' },
+          { value: 'no', label: 'No, I need full funding' }
+        ]
+      },
+      'trl_level': {
+        symptom: 'What is your technology readiness level?',
+        type: 'single-select' as const,
+        options: [
+          { value: '1-3', label: 'Basic research (TRL 1-3)' },
+          { value: '4-6', label: 'Development (TRL 4-6)' },
+          { value: '7-9', label: 'Commercialization (TRL 7-9)' }
+        ]
+      },
+      'impact': {
+        symptom: 'What type of impact are you targeting?',
+        type: 'multi-select' as const,
+        options: [
+          { value: 'economic', label: 'Economic impact' },
+          { value: 'social', label: 'Social impact' },
+          { value: 'environmental', label: 'Environmental impact' }
+        ]
+      },
+      'consortium': {
+        symptom: 'Do you have consortium partners?',
+        type: 'boolean' as const,
+        options: [
+          { value: 'yes', label: 'Yes, I have partners' },
+          { value: 'no', label: 'No, I work alone' }
+        ]
+      },
+      'eligibility': {
+        symptom: 'What is your organization type?',
+        type: 'single-select' as const,
+        options: [
+          { value: 'startup', label: 'Startup' },
+          { value: 'sme', label: 'SME' },
+          { value: 'research', label: 'Research institution' }
+        ]
+      }
+    };
+
+    const mapping = categoryMapping[category as keyof typeof categoryMapping];
+    if (!mapping) {
+      console.log(`⚠️ No mapping found for category: ${category}`);
+      return null;
+    }
+
+    return {
+      id: questionId,
+      symptom: mapping.symptom,
+      type: mapping.type,
+      options: mapping.options,
+      required: true,
+      category: category as any,
+      phase: 2, // Overlay questions are phase 2
+      sourcePrograms: [programId],
+      informationValue: 1.0,
+      programsAffected: 1,
+      decisiveness: 'UNCERTAIN' as const,
+      uxWeight: 1.0,
+      isCoreQuestion: false
+    };
+  }
+
   // NEW: Check if question is relevant to a program
   private isQuestionRelevantToProgram(question: SymptomQuestion, program: Program): boolean {
     // Check if program has requirements in this category
@@ -1743,30 +1650,37 @@ export class QuestionEngine {
     // Update context with current answers
     this.updateContext(answers);
     
-    // First, find unanswered core questions (prioritize these)
-    const coreQuestions = this.getCoreQuestions();
-    for (const question of coreQuestions) {
-      if (question.required && !answers[question.id]) {
-        return this.enhanceQuestionWithStats(question);
-      }
-    }
+    console.log(`🔍 Getting next question. Current answers:`, Object.keys(answers));
+    console.log(`🔍 Available overlay questions: ${this.overlayQuestions.length}`);
     
-    // Then, find unanswered profile-based questions
-    const profileQuestions = this.getProfileBasedQuestions(answers);
-    for (const question of profileQuestions) {
-      if (question.required && !answers[question.id]) {
-        return this.enhanceQuestionWithStats(question);
-      }
-    }
-    
-    // Then, find unanswered overlay questions (only if core questions are done)
+    // PRIORITY 1: Find unanswered overlay questions (generated from program data)
     const overlayQuestions = this.getOverlayQuestions();
     for (const question of overlayQuestions) {
       if (question.required && !answers[question.id]) {
+        console.log(`✅ Found unanswered overlay question: ${question.id}`);
         return this.enhanceQuestionWithStats(question);
       }
     }
     
+    // PRIORITY 2: Find unanswered core questions (fallback)
+    const coreQuestions = this.getCoreQuestions();
+    for (const question of coreQuestions) {
+      if (question.required && !answers[question.id]) {
+        console.log(`✅ Found unanswered core question: ${question.id}`);
+        return this.enhanceQuestionWithStats(question);
+      }
+    }
+    
+    // PRIORITY 3: Find unanswered profile-based questions
+    const profileQuestions = this.getProfileBasedQuestions(answers);
+    for (const question of profileQuestions) {
+      if (question.required && !answers[question.id]) {
+        console.log(`✅ Found unanswered profile question: ${question.id}`);
+        return this.enhanceQuestionWithStats(question);
+      }
+    }
+    
+    console.log(`✅ All questions answered`);
     return null; // All questions answered
   }
 

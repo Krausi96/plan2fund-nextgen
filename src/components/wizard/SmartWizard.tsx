@@ -144,11 +144,12 @@ const SmartWizard: React.FC<SmartWizardProps> = ({ onComplete, onProfileGenerate
     // Add current question to history
     const updatedHistory = [...state.questionHistory, state.currentQuestion.id];
     
-    // Check if we need to generate contextual questions using enhanced logic
+    // Use enhanced question logic (prioritizes program-generated questions)
     let nextQuestion = await questionEngine.getNextQuestionEnhanced(newAnswers);
     
     // If no more questions from enhanced logic, fall back to basic logic
     if (!nextQuestion) {
+      console.log('⚠️ No more enhanced questions, trying basic logic');
       nextQuestion = await questionEngine.getNextQuestion(newAnswers);
       
       // If still no questions, generate contextual questions based on user context

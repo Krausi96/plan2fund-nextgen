@@ -1,5 +1,5 @@
 // Enhanced Data Source - GPT-Enhanced with AI features
-import { Program } from "../types/requirements";
+import { Program, ProgramType } from "../types/requirements";
 import { enhancedDataPipeline } from './enhancedDataPipeline';
 
 // GPT-Enhanced Program interface
@@ -83,8 +83,8 @@ class HybridDataSource implements ProgramDataSource {
         const programs: Program[] = processedPrograms.map(program => ({
           id: program.id,
           name: program.name,
-          type: program.type || program.program_type || 'grant',
-          program_type: program.type || program.program_type || 'grant',
+          type: (program.type || program.program_type || 'grant') as ProgramType,
+          program_type: (program.type || program.program_type || 'grant') as ProgramType,
           program_category: program.program_category || 'general',
           requirements: program.requirements || {},
           notes: program.description || '',
