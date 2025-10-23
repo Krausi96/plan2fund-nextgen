@@ -600,6 +600,49 @@ export class QuestionEngine {
       });
     }
     
+    // FALLBACK: If no questions were generated, try to generate from any available data
+    if (this.questions.length === 0) {
+      console.log('⚠️ No questions generated, attempting to generate from minimal data');
+      
+      // Try to generate at least one question from any available program data
+      if (this.programs.length > 0) {
+        // Use the first program to generate a basic question
+        const firstProgram = this.programs[0];
+        this.questions.push({
+          id: 'funding_type',
+          symptom: 'wizard.questions.fundingType',
+          type: 'single-select',
+          options: [
+            { value: firstProgram.type || 'grant', label: `wizard.options.${firstProgram.type || 'grant'}`, fundingTypes: [firstProgram.type || 'grant'] }
+          ],
+          required: true,
+          category: 'funding_need',
+          phase: 1,
+          isCoreQuestion: true,
+          questionNumber: 1
+        });
+      } else {
+        // Last resort: create a generic question that works with any data
+        console.log('⚠️ No programs available, creating generic fallback question');
+        this.questions.push({
+          id: 'funding_objective',
+          symptom: 'wizard.questions.fundingObjective',
+          type: 'single-select',
+          options: [
+            { value: 'startup', label: 'wizard.options.launchBusiness', fundingTypes: ['grants', 'equity'] },
+            { value: 'growth', label: 'wizard.options.scaleOperations', fundingTypes: ['loans', 'equity'] },
+            { value: 'innovation', label: 'wizard.options.developTechnology', fundingTypes: ['grants'] },
+            { value: 'team', label: 'wizard.options.buildTeam', fundingTypes: ['grants', 'loans'] }
+          ],
+          required: true,
+          category: 'funding_need',
+          phase: 1,
+          isCoreQuestion: true,
+          questionNumber: 1
+        });
+      }
+    }
+    
     console.log(`✅ Generated ${this.questions.length} DYNAMIC core questions from ${this.programs.length} programs`);
   }
 
@@ -1088,6 +1131,11 @@ export class QuestionEngine {
    * Check if we should stop asking questions based on match quality
    */
   public async shouldStopQuestions(answers: Record<string, any>): Promise<boolean> {
+    // Don't stop if we have no answers yet
+    if (Object.keys(answers).length === 0) {
+      return false;
+    }
+    
     try {
       // Import the scoring engine
       const { scoreProgramsEnhanced } = await import('./enhancedRecoEngine');
@@ -1117,6 +1165,9 @@ export class QuestionEngine {
    */
   public async getNextQuestionEnhanced(answers: Record<string, any>): Promise<SymptomQuestion | null> {
     console.log(`🔍 Getting next question from ${Object.keys(answers).length} answers`);
+    console.log(`📊 Available programs: ${this.programs.length}`);
+    console.log(`📊 Core questions: ${this.questions.length}`);
+    console.log(`📊 Overlay questions: ${this.overlayQuestions.length}`);
     
     // NEW: Check if we should stop asking questions based on match quality
     const shouldStop = await this.shouldStopQuestions(answers);
@@ -1127,6 +1178,7 @@ export class QuestionEngine {
     
     // PRIORITY 1: Find unanswered core questions (reliable fallback)
     const coreQuestions = this.getCoreQuestions();
+    console.log(`🔍 Checking ${coreQuestions.length} core questions`);
     for (const question of coreQuestions) {
       if (question.required && !answers[question.id]) {
         console.log(`✅ Found unanswered core question: ${question.id}`);
@@ -1136,6 +1188,7 @@ export class QuestionEngine {
     
     // PRIORITY 2: Find unanswered overlay questions (generated from program data)
     const overlayQuestions = this.getOverlayQuestions(answers); // Pass answers for adaptive limiting
+    console.log(`🔍 Checking ${overlayQuestions.length} overlay questions`);
     for (const question of overlayQuestions) {
       if (!answers[question.id] && question.options && question.options.length > 0) {
         console.log(`✅ Found unanswered overlay question: ${question.id}`);
@@ -1145,6 +1198,7 @@ export class QuestionEngine {
     
     // PRIORITY 3: Find any unanswered questions (including non-required)
     const allQuestions = [...coreQuestions, ...overlayQuestions];
+    console.log(`🔍 Checking ${allQuestions.length} total questions`);
     for (const question of allQuestions) {
       if (!answers[question.id] && question.options && question.options.length > 0) {
         console.log(`✅ Found unanswered question: ${question.id}`);
@@ -1152,7 +1206,7 @@ export class QuestionEngine {
       }
     }
     
-    console.log('✅ No more questions to ask');
+    console.log('❌ No more questions to ask - this might be the issue!');
     return null;
   }
 

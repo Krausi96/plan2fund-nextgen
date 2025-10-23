@@ -6,6 +6,7 @@ import React, { useState, useRef } from 'react';
 import { PlanDocument } from '@/types/plan';
 import { ProgramProfile } from '@/types/reco';
 import { createAIHelper, createEnhancedAIHelper } from '@/lib/aiHelper';
+import { useI18n } from '../../contexts/I18nContext';
 // ProgramTemplate and TemplateSection types removed - using Enhanced Data Pipeline instead
 
 interface EnhancedAIChatProps {
@@ -44,6 +45,7 @@ export default function EnhancedAIChat({
   currentTemplateSection,
   aiGuidance
 }: EnhancedAIChatProps) {
+  const { t } = useI18n();
   const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [input, setInput] = useState('');
   const [isProcessing, setIsProcessing] = useState(false);
@@ -577,7 +579,7 @@ Please provide more specific details about what you'd like help with, and I'll p
         
         {isProcessing && (
           <div className="p-2 bg-gray-100 rounded text-xs">
-            <div className="animate-pulse">AI is thinking...</div>
+            <div className="animate-pulse">{t('ai.thinking')}</div>
           </div>
         )}
       </div>

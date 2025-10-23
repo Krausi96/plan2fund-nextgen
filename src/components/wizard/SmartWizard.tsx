@@ -196,11 +196,11 @@ const SmartWizard: React.FC<SmartWizardProps> = ({ onComplete, onProfileGenerate
         // NEW: Analyze preview quality for dynamic decision making
         const topScore = previewResults[0]?.score || 0;
         if (topScore >= 85) {
-          previewQuality = { level: 'excellent', message: '🎯 Excellent matches found!', color: 'green' };
+          previewQuality = { level: 'excellent', message: t('wizard.quality.excellent'), color: 'green' };
         } else if (topScore >= 60) {
-          previewQuality = { level: 'good', message: '📊 Good matches, more questions could help', color: 'blue' };
+          previewQuality = { level: 'good', message: t('wizard.quality.good'), color: 'blue' };
         } else {
-          previewQuality = { level: 'poor', message: '❓ Need more info for better matches', color: 'orange' };
+          previewQuality = { level: 'poor', message: t('wizard.quality.poor'), color: 'orange' };
         }
         
         console.log('📊 Program preview updated:', programPreview.length, 'programs, quality:', previewQuality.level);
@@ -399,7 +399,7 @@ const SmartWizard: React.FC<SmartWizardProps> = ({ onComplete, onProfileGenerate
           <div className="wizard-question-card" key={animationKey}>
             {/* Progress Bar */}
             <div className="wizard-progress">
-              <div className="wizard-progress-text">{Math.round(state.progress)}% Complete</div>
+              <div className="wizard-progress-text">{Math.round(state.progress)}% {t('wizard.complete')}</div>
               <div className="wizard-progress-bar">
                 <div 
                   className="wizard-progress-fill"
@@ -436,7 +436,7 @@ const SmartWizard: React.FC<SmartWizardProps> = ({ onComplete, onProfileGenerate
                 {state.currentQuestion.type === 'text' && (
                   <div className="wizard-text-input">
                     <textarea
-                      placeholder="Tell us more..."
+                      placeholder={t('wizard.tellUsMore')}
                       className="wizard-textarea"
                       onKeyDown={(e) => {
                         if (e.key === 'Enter' && !e.shiftKey) {
@@ -447,7 +447,7 @@ const SmartWizard: React.FC<SmartWizardProps> = ({ onComplete, onProfileGenerate
                       }}
                     />
                     <div className="wizard-text-hint">
-                      Press Enter to continue, Shift+Enter for new line
+                      {t('wizard.textHint')}
                     </div>
                   </div>
                 )}
@@ -456,7 +456,7 @@ const SmartWizard: React.FC<SmartWizardProps> = ({ onComplete, onProfileGenerate
                   <div className="wizard-number-input">
                     <input
                       type="number"
-                      placeholder="Enter amount..."
+                      placeholder={t('wizard.amountPlaceholder')}
                       className="wizard-input"
                       onKeyDown={(e) => {
                         if (e.key === 'Enter') {
@@ -1233,21 +1233,21 @@ const ResultsDisplay: React.FC<{
                   <span>{selectedResult.score}% Match</span>
                 </div>
                 <div className="results-modal-priority-text">
-                  {selectedResult.confidence} confidence recommendation
+                  {selectedResult.confidence} {t('results.confidenceRecommendation')}
                 </div>
               </div>
 
               {/* Description */}
               {selectedResult.notes && (
                 <div className="results-modal-section">
-                  <h3 className="results-modal-section-title">Description</h3>
+                  <h3 className="results-modal-section-title">{t('results.description')}</h3>
                   <p className="results-modal-description">{selectedResult.notes}</p>
                 </div>
               )}
 
               {/* Match Reasons */}
               <div className="results-modal-section">
-                <h3 className="results-modal-section-title">Why this matches you</h3>
+                <h3 className="results-modal-section-title">{t('results.whyMatches')}</h3>
                 <div className="results-modal-reasons">
                   {selectedResult.why?.map((reason: string, index: number) => (
                     <div key={index} className="results-modal-reason">
