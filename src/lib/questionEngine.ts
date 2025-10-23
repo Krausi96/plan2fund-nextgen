@@ -1103,7 +1103,7 @@ export class QuestionEngine {
           questions.push(this.createHealthcareQuestion());
           break;
         case 'technology':
-          questions.push(this.createTechnologyQuestion([], 0, 'default'));
+          questions.push(this.createSectorQuestion());
           break;
         case 'energy':
           questions.push(this.createEnergyQuestion());
@@ -1166,67 +1166,7 @@ export class QuestionEngine {
 
 
 
-  private createGeographicQuestion(_data: any[], startIndex: number, programId: string): SymptomQuestion {
-    return this.createGenericQuestion('geographic', 'Where will your project take place?', startIndex, programId);
-  }
 
-  private createTimelineQuestion(_data: any[], startIndex: number, programId: string): SymptomQuestion {
-    return this.createGenericQuestion('timeline', 'What is your project timeline?', startIndex, programId);
-  }
-
-  private createDocumentationQuestion(_data: any[], startIndex: number, programId: string): SymptomQuestion {
-    return this.createGenericQuestion('documentation', 'What documents do you have ready?', startIndex, programId);
-  }
-
-  private createInnovationQuestion(_data: any[], startIndex: number, programId: string): SymptomQuestion {
-    return this.createGenericQuestion('innovation', 'What makes your project innovative?', startIndex, programId);
-  }
-
-  private createSustainabilityQuestion(_data: any[], startIndex: number, programId: string): SymptomQuestion {
-    return this.createGenericQuestion('sustainability', 'How does your project promote sustainability?', startIndex, programId);
-  }
-
-  private createMarketQuestion(_data: any[], startIndex: number, programId: string): SymptomQuestion {
-    return this.createGenericQuestion('market', 'What is your target market?', startIndex, programId);
-  }
-
-  private createTechnologyQuestion(_data: any[], startIndex: number, programId: string): SymptomQuestion {
-    return this.createGenericQuestion('technology', 'What technology do you use?', startIndex, programId);
-  }
-
-  private createPartnershipsQuestion(_data: any[], startIndex: number, programId: string): SymptomQuestion {
-    return this.createGenericQuestion('partnerships', 'What partnerships do you have?', startIndex, programId);
-  }
-
-  private createComplianceQuestion(_data: any[], startIndex: number, programId: string): SymptomQuestion {
-    return this.createGenericQuestion('compliance', 'Do you meet compliance requirements?', startIndex, programId);
-  }
-
-  private createIPQuestion(_data: any[], startIndex: number, programId: string): SymptomQuestion {
-    return this.createGenericQuestion('ip', 'What intellectual property do you have?', startIndex, programId);
-  }
-
-  private createRiskManagementQuestion(_data: any[], startIndex: number, programId: string): SymptomQuestion {
-    return this.createGenericQuestion('risk', 'How do you manage project risks?', startIndex, programId);
-  }
-
-  // Generic question creator for simple categories
-  private createGenericQuestion(category: string, symptom: string, startIndex: number, programId: string): SymptomQuestion {
-    return {
-      id: `${category}_${programId}_${startIndex}`,
-      symptom,
-      type: 'single-select',
-      options: [
-        { value: 'yes', label: 'Yes', fundingTypes: ['grants', 'loans', 'equity'] },
-        { value: 'no', label: 'No', fundingTypes: [] },
-        { value: 'partial', label: 'Partially', fundingTypes: ['grants', 'loans'] }
-      ],
-      required: true,
-      category: 'specific_requirements',
-      phase: 3,
-      conditionalLogic: []
-    };
-  }
 
   // Smart question creators with context
   private createSectorQuestion(): SymptomQuestion {

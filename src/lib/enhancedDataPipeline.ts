@@ -1432,71 +1432,14 @@ export class EnhancedDataPipeline {
   /**
    * Generate target personas based on program characteristics
    */
-  private generateTargetPersonas(program: NormalizedProgram): string[] {
-    const personas: string[] = [];
-    
-    // Based on program type
-    if (program.program_type === 'grant') {
-      personas.push('startup', 'sme');
-    } else if (program.program_type === 'loan') {
-      personas.push('sme', 'established');
-    } else if (program.program_type === 'equity') {
-      personas.push('startup', 'scaleup');
-    }
-    
-    // Based on institution
-    if (program.institution?.includes('AWS')) {
-      personas.push('innovator', 'researcher');
-    } else if (program.institution?.includes('FFG')) {
-      personas.push('researcher', 'tech_startup');
-    }
-    
-    return personas.length > 0 ? personas : ['startup', 'sme'];
-  }
 
   /**
    * Generate tags based on program characteristics
    */
-  private generateTags(program: NormalizedProgram): string[] {
-    const tags: string[] = [];
-    
-    tags.push(program.program_type || 'grant');
-    tags.push('funding');
-    
-    if (program.description?.toLowerCase().includes('innovation')) {
-      tags.push('innovation');
-    }
-    if (program.description?.toLowerCase().includes('research')) {
-      tags.push('research');
-    }
-    if (program.source_url?.includes('aws')) {
-      tags.push('aws');
-    }
-    if (program.source_url?.includes('ffg')) {
-      tags.push('ffg');
-    }
-    
-    return tags;
-  }
 
   /**
    * Generate AI guidance for the program
    */
-  private generateAIGuidance(program: NormalizedProgram): any {
-    return {
-      context: `${program.name} program guidance`,
-      tone: 'professional',
-      key_points: [
-        'Check eligibility requirements carefully',
-        'Prepare necessary documents in advance',
-        'Focus on innovation and market potential'
-      ],
-      prompts: {
-        executive_summary: 'Highlight your unique value proposition and market opportunity',
-        business_plan: 'Include detailed financial projections and market analysis'
-      }
-    };
-  }
 
 }
 
