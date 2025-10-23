@@ -264,7 +264,13 @@ export class QuestionEngine {
 
   constructor(programs: Program[]) {
     this.programs = programs;
-    this.initializeQuestions();
+    try {
+      this.initializeQuestions();
+    } catch (error) {
+      console.error('❌ Error in initializeQuestions:', error);
+      console.error('❌ Error details:', error instanceof Error ? error.message : String(error));
+      console.error('❌ Error stack:', error instanceof Error ? error.stack : 'No stack trace');
+    }
     this.loadBranchingRules();
   }
 
@@ -945,20 +951,17 @@ export class QuestionEngine {
             { 
               value: 'small_scale', 
               label: 'wizard.options.smallScale', 
-              fundingTypes: ['grants'],
-              description: `€0 - €${Math.round(minAmount).toLocaleString()}`
+              fundingTypes: ['grants']
             },
             { 
               value: 'medium_scale', 
               label: 'wizard.options.mediumScale', 
-              fundingTypes: ['grants', 'loans'],
-              description: `€${Math.round(minAmount).toLocaleString()} - €${Math.round(maxAmount/2).toLocaleString()}`
+              fundingTypes: ['grants', 'loans']
             },
             { 
               value: 'large_scale', 
               label: 'wizard.options.largeScale', 
-              fundingTypes: ['loans', 'equity'],
-              description: `€${Math.round(maxAmount/2).toLocaleString()}+`
+              fundingTypes: ['loans', 'equity']
             }
           ],
           required: false,
@@ -1343,6 +1346,8 @@ export class QuestionEngine {
    */
   public async getFirstQuestion(): Promise<SymptomQuestion | null> {
     console.log('🎯 Getting first question...');
+    console.log('🎯 Available questions:', this.questions.length);
+    console.log('🎯 Available overlay questions:', this.overlayQuestions.length);
     const question = await this.getNextQuestionEnhanced({});
     console.log('🎯 First question result:', question ? question.id : 'null');
     return question;

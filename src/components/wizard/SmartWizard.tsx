@@ -84,11 +84,21 @@ const SmartWizard: React.FC<SmartWizardProps> = ({ onComplete, onProfileGenerate
         }
         
         // Initialize engines with program data
+        console.log('🔄 Creating IntakeEngine...');
         const intake = new IntakeEngine();
+        console.log('✅ IntakeEngine created successfully');
+        
+        console.log('🔄 Creating QuestionEngine with', programs.length, 'programs...');
+        console.log('🔍 Sample program data:', programs[0]);
         const question = new QuestionEngine(programs);
+        console.log('✅ QuestionEngine created successfully');
+        console.log('📊 QuestionEngine questions count:', question.getCoreQuestions().length);
+        console.log('🔍 QuestionEngine questions:', question.getCoreQuestions().map(q => q.id));
         
         // Initialize overlay questions from program data
+        console.log('🔄 Initializing overlay questions...');
         await question.initializeOverlayQuestions();
+        console.log('✅ Overlay questions initialized');
         
         setIntakeEngine(intake);
         setQuestionEngine(question);
@@ -104,8 +114,8 @@ const SmartWizard: React.FC<SmartWizardProps> = ({ onComplete, onProfileGenerate
         }));
       } catch (error) {
         console.error('❌ Failed to initialize engines:', error);
-        console.error('❌ Error details:', error.message);
-        console.error('❌ Error stack:', error.stack);
+        console.error('❌ Error details:', error instanceof Error ? error.message : String(error));
+        console.error('❌ Error stack:', error instanceof Error ? error.stack : 'No stack trace');
         // Fallback initialization
         const intake = new IntakeEngine();
         const question = new QuestionEngine([]);
@@ -242,7 +252,7 @@ const SmartWizard: React.FC<SmartWizardProps> = ({ onComplete, onProfileGenerate
       currentQuestion: nextQuestion,
       progress: nextQuestion ? (Object.keys(newAnswers).length / Math.max(state.totalQuestions, 10)) * 100 : 100, // Dynamic progress based on estimated total questions
       currentQuestionIndex: Object.keys(newAnswers).length, // Current question index = number of answers given
-      totalQuestions: Math.max(prev.totalQuestions, Object.keys(newAnswers).length + 1),
+      totalQuestions: prev.totalQuestions, // Keep the estimated total from QuestionEngine
       canGoBack: true,
       canGoForward: nextQuestion ? true : false,
       questionHistory: updatedHistory,
