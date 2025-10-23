@@ -433,7 +433,7 @@ export class QuestionEngine {
           symptom: mapping.symptom,
           type: mapping.type,
           options: mapping.options,
-          required: false,
+          required: true,
           category: 'specific_requirements',
           phase: 2,
           sourcePrograms: [program.id],
