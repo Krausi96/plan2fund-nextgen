@@ -432,86 +432,141 @@ export class QuestionEngine {
   }
 
   /**
-   * Generate fallback questions when no categorized_requirements are available
+   * Generate DYNAMIC fallback questions based on actual program data
    */
   private generateFallbackQuestions(): SymptomQuestion[] {
-    console.log('🔄 Generating fallback questions...');
+    console.log('🔄 Generating DYNAMIC fallback questions from program data...');
     
-    return [
-      {
-        id: 'innovation_focus',
-        symptom: 'wizard.questions.innovationFocus',
+    const questions: SymptomQuestion[] = [];
+    
+    // Analyze programs to generate questions dynamically
+    const programTypes = new Set(this.programs.map(p => p.type || (p as any).program_type));
+    const institutions = new Set(this.programs.map(p => (p as any).institution));
+    const fundingAmounts = this.programs
+      .map(p => (p as any).funding_amount_max || (p as any).funding_amount || (p as any).maxAmount || 0)
+      .filter(amount => amount > 0);
+    
+    // Question 1: Funding type based on actual program types
+    if (programTypes.size > 1) {
+      questions.push({
+        id: 'preferred_funding_type',
+        symptom: 'wizard.questions.preferredFundingType',
+        type: 'single-select',
+        options: Array.from(programTypes).map(type => ({
+          value: type,
+          label: `wizard.options.${type}`,
+          fundingTypes: [type]
+        })),
+        required: false,
+        category: 'funding_need',
+        phase: 2,
+        isCoreQuestion: false
+      });
+    }
+    
+    // Question 2: Institution preference based on actual institutions
+    if (institutions.size > 1) {
+      questions.push({
+        id: 'preferred_institution',
+        symptom: 'wizard.questions.preferredInstitution',
+        type: 'single-select',
+        options: Array.from(institutions).slice(0, 4).map(institution => ({
+          value: institution.toLowerCase().replace(/\s+/g, '_'),
+          label: institution,
+          fundingTypes: ['grants', 'loans', 'equity']
+        })),
+        required: false,
+        category: 'specific_requirements',
+        phase: 2,
+        isCoreQuestion: false
+      });
+    }
+    
+    // Question 3: Project scope based on funding amounts
+    if (fundingAmounts.length > 0) {
+      const maxAmount = Math.max(...fundingAmounts);
+      const minAmount = Math.min(...fundingAmounts);
+      
+      if (maxAmount > minAmount) {
+        questions.push({
+          id: 'project_scope',
+          symptom: 'wizard.questions.projectScope',
+          type: 'single-select',
+          options: [
+            { 
+              value: 'small_scale', 
+              label: `wizard.options.smallScale (€0 - €${Math.round(minAmount).toLocaleString()})`, 
+              fundingTypes: ['grants'] 
+            },
+            { 
+              value: 'medium_scale', 
+              label: `wizard.options.mediumScale (€${Math.round(minAmount).toLocaleString()} - €${Math.round(maxAmount/2).toLocaleString()})`, 
+              fundingTypes: ['grants', 'loans'] 
+            },
+            { 
+              value: 'large_scale', 
+              label: `wizard.options.largeScale (€${Math.round(maxAmount/2).toLocaleString()}+)`, 
+              fundingTypes: ['loans', 'equity'] 
+            }
+          ],
+          required: false,
+          category: 'specific_requirements',
+          phase: 2,
+          isCoreQuestion: false
+        });
+      }
+    }
+    
+    // Question 4: Innovation level based on program descriptions
+    const hasInnovationPrograms = this.programs.some(p => 
+      (p as any).description?.toLowerCase().includes('innovation') || 
+      (p as any).description?.toLowerCase().includes('research') ||
+      (p as any).description?.toLowerCase().includes('technology')
+    );
+    
+    if (hasInnovationPrograms) {
+      questions.push({
+        id: 'innovation_level',
+        symptom: 'wizard.questions.innovationLevel',
         type: 'single-select',
         options: [
-          { value: 'deep_tech', label: 'wizard.options.deepTech', fundingTypes: ['grants', 'equity'] },
-          { value: 'digital_innovation', label: 'wizard.options.digitalInnovation', fundingTypes: ['grants', 'loans'] },
-          { value: 'social_impact', label: 'wizard.options.socialImpact', fundingTypes: ['grants'] },
-          { value: 'sustainability', label: 'wizard.options.sustainability', fundingTypes: ['grants', 'loans'] }
+          { value: 'basic', label: 'wizard.options.basicInnovation', fundingTypes: ['grants'] },
+          { value: 'advanced', label: 'wizard.options.advancedInnovation', fundingTypes: ['grants', 'loans'] },
+          { value: 'cutting_edge', label: 'wizard.options.cuttingEdgeInnovation', fundingTypes: ['grants', 'equity'] }
         ],
         required: false,
         category: 'innovation_level',
         phase: 2,
         isCoreQuestion: false
-      },
-      {
-        id: 'project_duration',
-        symptom: 'wizard.questions.projectDuration',
+      });
+    }
+    
+    // Question 5: Geographic focus based on source URLs
+    const hasInternationalPrograms = this.programs.some(p => 
+      (p as any).source_url?.includes('ec.europa.eu') || 
+      (p as any).source_url?.includes('european') ||
+      (p as any).description?.toLowerCase().includes('international')
+    );
+    
+    if (hasInternationalPrograms) {
+      questions.push({
+        id: 'geographic_focus',
+        symptom: 'wizard.questions.geographicFocus',
         type: 'single-select',
         options: [
-          { value: 'under_6_months', label: 'wizard.options.under6Months', fundingTypes: ['grants'] },
-          { value: '6_12_months', label: 'wizard.options.6to12Months', fundingTypes: ['grants', 'loans'] },
-          { value: '1_2_years', label: 'wizard.options.1to2Years', fundingTypes: ['grants', 'loans', 'equity'] },
-          { value: 'over_2_years', label: 'wizard.options.over2Years', fundingTypes: ['grants', 'loans', 'equity'] }
+          { value: 'local', label: 'wizard.options.localFocus', fundingTypes: ['grants', 'loans'] },
+          { value: 'national', label: 'wizard.options.nationalFocus', fundingTypes: ['grants', 'loans'] },
+          { value: 'international', label: 'wizard.options.internationalFocus', fundingTypes: ['grants', 'loans', 'equity'] }
         ],
         required: false,
         category: 'specific_requirements',
         phase: 2,
         isCoreQuestion: false
-      },
-      {
-        id: 'market_readiness',
-        symptom: 'wizard.questions.marketReadiness',
-        type: 'single-select',
-        options: [
-          { value: 'research_phase', label: 'wizard.options.researchPhase', fundingTypes: ['grants'] },
-          { value: 'prototype_phase', label: 'wizard.options.prototypePhase', fundingTypes: ['grants', 'equity'] },
-          { value: 'market_validation', label: 'wizard.options.marketValidation', fundingTypes: ['grants', 'loans', 'equity'] },
-          { value: 'scaling_phase', label: 'wizard.options.scalingPhase', fundingTypes: ['loans', 'equity'] }
-        ],
-        required: false,
-        category: 'business_stage',
-        phase: 2,
-        isCoreQuestion: false
-      },
-      {
-        id: 'international_focus',
-        symptom: 'wizard.questions.internationalFocus',
-        type: 'boolean',
-        options: [
-          { value: 'yes', label: 'wizard.options.yesInternational', fundingTypes: ['grants', 'loans'] },
-          { value: 'no', label: 'wizard.options.noInternational', fundingTypes: ['grants', 'loans'] }
-        ],
-        required: false,
-        category: 'specific_requirements',
-        phase: 2,
-        isCoreQuestion: false
-      },
-      {
-        id: 'team_experience',
-        symptom: 'wizard.questions.teamExperience',
-        type: 'single-select',
-        options: [
-          { value: 'founded_before', label: 'wizard.options.foundedBefore', fundingTypes: ['loans', 'equity'] },
-          { value: 'first_time', label: 'wizard.options.firstTime', fundingTypes: ['grants'] },
-          { value: 'serial_entrepreneur', label: 'wizard.options.serialEntrepreneur', fundingTypes: ['grants', 'loans', 'equity'] },
-          { value: 'corporate_background', label: 'wizard.options.corporateBackground', fundingTypes: ['loans', 'equity'] }
-        ],
-        required: false,
-        category: 'team_size',
-        phase: 2,
-        isCoreQuestion: false
-      }
-    ];
+      });
+    }
+    
+    console.log(`✅ Generated ${questions.length} DYNAMIC fallback questions from ${this.programs.length} programs`);
+    return questions;
   }
 
   /**
