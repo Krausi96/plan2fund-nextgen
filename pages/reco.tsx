@@ -1,5 +1,4 @@
 ﻿import SmartWizard from "@/components/wizard/SmartWizard";
-import Link from "next/link";
 
 export default function RecoPage() {
   // Lightweight render timing to investigate slow loads

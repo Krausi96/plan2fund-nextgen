@@ -78,7 +78,7 @@ const SmartWizard: React.FC<SmartWizardProps> = ({ onComplete, onProfileGenerate
   };
 
   // Helper function to format answer values into user-friendly text
-  const formatAnswerValue = (key: string, value: any): string => {
+  const formatAnswerValue = (_key: string, value: any): string => {
     if (typeof value === 'string') {
       return value.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase());
     }
