@@ -228,8 +228,8 @@ const SmartWizard: React.FC<SmartWizardProps> = ({ onComplete, onProfileGenerate
       answers: newAnswers,
       currentQuestion: nextQuestion,
       progress: nextQuestion ? (Object.keys(newAnswers).length / Math.max(state.totalQuestions, 10)) * 100 : 100, // Dynamic progress based on estimated total questions
-      currentQuestionIndex: nextQuestion ? prev.currentQuestionIndex + 1 : prev.currentQuestionIndex,
-      totalQuestions: Math.max(prev.totalQuestions, prev.currentQuestionIndex + 2),
+      currentQuestionIndex: Object.keys(newAnswers).length, // Current question index = number of answers given
+      totalQuestions: Math.max(prev.totalQuestions, Object.keys(newAnswers).length + 1),
       canGoBack: true,
       canGoForward: nextQuestion ? true : false,
       questionHistory: updatedHistory,
@@ -344,17 +344,6 @@ const SmartWizard: React.FC<SmartWizardProps> = ({ onComplete, onProfileGenerate
               {t('nav.advancedSearch')}
             </Link>
           </div>
-          
-          {/* Progress Bar */}
-          <div className="wizard-progress">
-            <div className="wizard-progress-text">{Math.round(state.progress)}%</div>
-            <div className="wizard-progress-bar">
-              <div 
-                className="wizard-progress-fill"
-                style={{ width: `${state.progress}%` }}
-              />
-            </div>
-          </div>
         </div>
       </div>
 
@@ -364,13 +353,24 @@ const SmartWizard: React.FC<SmartWizardProps> = ({ onComplete, onProfileGenerate
 
           {/* Question Card */}
           <div className="wizard-question-card" key={animationKey}>
+            {/* Progress Bar */}
+            <div className="wizard-progress">
+              <div className="wizard-progress-text">{Math.round(state.progress)}%</div>
+              <div className="wizard-progress-bar">
+                <div 
+                  className="wizard-progress-fill"
+                  style={{ width: `${state.progress}%` }}
+                />
+              </div>
+            </div>
+            
             <div className="wizard-question-content">
               <div className="wizard-question-number">
                 {Object.keys(state.answers).length + 1}
               </div>
               <div className="wizard-question-body">
                 <h3 className="wizard-question-text">
-                  {state.currentQuestion.symptom}
+                  {t(state.currentQuestion.symptom)}
                 </h3>
                 
                 {state.currentQuestion.type === 'single-select' && state.currentQuestion.options && (
@@ -382,7 +382,7 @@ const SmartWizard: React.FC<SmartWizardProps> = ({ onComplete, onProfileGenerate
                         onClick={() => handleAnswer(option.value)}
                         style={{ animationDelay: `${index * 0.1}s` }}
                       >
-                        <span className="wizard-option-text">{option.label}</span>
+                        <span className="wizard-option-text">{t(option.label)}</span>
                         <span className="wizard-option-arrow">→</span>
                       </button>
                     ))}
@@ -602,13 +602,13 @@ const SmartWizard: React.FC<SmartWizardProps> = ({ onComplete, onProfileGenerate
         .wizard-main {
           max-width: 64rem;
           margin: 0 auto;
-          padding: 1rem 1.5rem;
+          padding: 0.5rem 1.5rem;
         }
 
         .wizard-content {
           display: flex;
           flex-direction: column;
-          gap: 1rem;
+          gap: 0.75rem;
         }
 
         .wizard-advanced-search {
@@ -621,18 +621,21 @@ const SmartWizard: React.FC<SmartWizardProps> = ({ onComplete, onProfileGenerate
           background: #3B82F6 !important;
           text-decoration: none;
           font-size: 0.875rem;
-          font-weight: 500;
-          padding: 0.5rem 1rem;
+          font-weight: 600;
+          padding: 0.75rem 1.5rem;
           border: 1px solid #3B82F6 !important;
-          border-radius: 0.5rem;
+          border-radius: 0.75rem;
           transition: all 0.2s ease;
           display: inline-block;
+          box-shadow: 0 2px 4px rgba(59, 130, 246, 0.2);
         }
 
         .wizard-advanced-search-link:hover {
           background: #2563EB !important;
           border-color: #2563EB !important;
           color: white !important;
+          box-shadow: 0 4px 8px rgba(59, 130, 246, 0.3);
+          transform: translateY(-1px);
         }
 
         .wizard-navigation {

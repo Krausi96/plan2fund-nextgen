@@ -432,30 +432,30 @@ export class QuestionEngine {
       // PHASE 1: BROAD SYMPTOMS (2-3 questions)
       {
         id: 'funding_need',
-        symptom: "What is your primary funding objective?",
+        symptom: "wizard.questions.fundingObjective",
         type: 'single-select',
         options: [
           {
             value: 'need_money_start',
-            label: 'Launch a new business or product',
+            label: 'wizard.options.launchBusiness',
             fundingTypes: ['grants', 'equity'],
             nextQuestions: ['business_stage', 'innovation_level']
           },
           {
             value: 'need_money_grow',
-            label: 'Scale and expand existing operations',
+            label: 'wizard.options.scaleOperations',
             fundingTypes: ['loans', 'grants', 'equity'],
             nextQuestions: ['business_stage', 'revenue_level']
           },
           {
             value: 'need_money_research',
-            label: 'Develop new technology or innovation',
+            label: 'wizard.options.developTechnology',
             fundingTypes: ['grants', 'equity'],
             nextQuestions: ['innovation_level', 'research_focus']
           },
           {
             value: 'need_money_team',
-            label: 'Build and strengthen our team',
+            label: 'wizard.options.buildTeam',
             fundingTypes: ['grants', 'loans'],
             nextQuestions: ['team_size', 'business_stage']
           }
@@ -466,30 +466,30 @@ export class QuestionEngine {
       },
       {
         id: 'business_stage',
-        symptom: 'What is your current business development stage?',
+        symptom: 'wizard.questions.businessStage',
         type: 'single-select',
         options: [
           {
             value: 'just_idea',
-            label: 'Concept and planning phase',
+            label: 'wizard.options.conceptPhase',
             fundingTypes: ['grants', 'equity'],
             nextQuestions: ['innovation_level']
           },
           {
             value: 'building',
-            label: 'Product development and testing',
+            label: 'wizard.options.developmentPhase',
             fundingTypes: ['grants', 'equity', 'loans'],
             nextQuestions: ['innovation_level', 'team_size']
           },
           {
             value: 'selling',
-            label: 'Market entry and early sales',
+            label: 'wizard.options.marketEntry',
             fundingTypes: ['loans', 'grants', 'equity'],
             nextQuestions: ['revenue_level', 'team_size']
           },
           {
             value: 'growing',
-            label: 'Rapid growth and expansion',
+            label: 'wizard.options.growthPhase',
             fundingTypes: ['loans', 'equity'],
             nextQuestions: ['revenue_level', 'expansion_plans']
           }
