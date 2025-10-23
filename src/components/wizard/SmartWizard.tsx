@@ -523,52 +523,13 @@ const SmartWizard: React.FC<SmartWizardProps> = ({ onComplete, onProfileGenerate
                       </div>
                     )}
                     <h4 className="wizard-preview-title">🎯 {t('wizard.topMatches')}</h4>
-                      <div className="grid gap-4">
+                      <div className="wizard-preview-grid">
                         {state.programPreview.slice(0, 3).map((program, index) => (
-                          <div key={program.id || index} className="p-4 shadow-md rounded-xl bg-white border border-gray-200">
-                            <div className="flex justify-between items-center mb-3">
-                              <div>
-                                <h3 className="text-lg font-bold text-gray-900">{program.name || 'Unknown Program'}</h3>
-                                <span className="text-sm text-gray-600 capitalize">{program.type || 'Funding Program'}</span>
-                              </div>
-                              <div className="text-right">
-                                <div className="text-2xl font-bold text-blue-600">{Math.round((program.score || 0) * 100)}%</div>
-                                <div className="text-xs text-gray-500">Match</div>
-                              </div>
-                            </div>
-
-                            {/* Why it fits */}
-                            <div className="mb-4">
-                              <h4 className="text-sm font-semibold text-gray-800 mb-2">Why this fits</h4>
-                              <div className="bg-green-50 border border-green-200 rounded-lg p-3">
-                                <ul className="text-sm text-gray-700 space-y-2">
-                                  <li className="flex items-start">
-                                    <span className="text-green-500 mr-2 mt-0.5">✓</span>
-                                    <span>Matches your funding requirements</span>
-                                  </li>
-                                  <li className="flex items-start">
-                                    <span className="text-green-500 mr-2 mt-0.5">✓</span>
-                                    <span>Aligned with your project goals</span>
-                                  </li>
-                                </ul>
-                              </div>
-                            </div>
-
-                            {/* Key details */}
-                            <div className="flex items-center justify-between text-sm">
-                              <div className="flex items-center space-x-4">
-                                <span className="flex items-center text-gray-600">
-                                  <span className="mr-1">🏛️</span>
-                                  {program.institution || 'Funding Institution'}
-                                </span>
-                                <span className="flex items-center text-gray-600">
-                                  <span className="mr-1">💰</span>
-                                  Grant
-                                </span>
-                              </div>
-                              <button className="text-blue-600 hover:text-blue-800 font-medium">
-                                View details →
-                              </button>
+                          <div key={program.id || index} className="wizard-preview-item">
+                            <div className="wizard-preview-rank">{index + 1}</div>
+                            <div className="wizard-preview-content">
+                              <div className="wizard-preview-name">{program.name || 'Unknown Program'}</div>
+                              <div className="wizard-preview-score">{Math.round(program.score || 0)}% match</div>
                             </div>
                           </div>
                         ))}

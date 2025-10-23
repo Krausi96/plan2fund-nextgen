@@ -173,7 +173,7 @@ export class AdvancedSearchDoctor {
         })
       });
 
-      if (response.ok) {
+            if (response.ok) {
         const aiResponse = await response.json();
         return this.parseAIEnhancedAnalysis(aiResponse.content, input);
       }
@@ -254,7 +254,7 @@ export class AdvancedSearchDoctor {
       });
     }
 
-    return {
+              return {
       discoveredRequirements,
       confidence: 0.8,
       insights: `AI analysis identified ${discoveredRequirements.length} complex requirements from your description.`
