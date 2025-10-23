@@ -206,29 +206,29 @@ export default function AdvancedSearch() {
           <div className="p-8">
             <div className="text-center mb-6">
               <h2 className="text-2xl font-bold text-gray-900 mb-2">
-                🤖 AI-Powered Advanced Search
+                {t('advancedSearch.aiPoweredTitle')}
               </h2>
               <p className="text-gray-600">
-                Describe your complex project requirements and let AI find specialized programs
+                {t('advancedSearch.aiPoweredSubtitle')}
               </p>
             </div>
 
             <div className="space-y-6">
               <div>
                 <label htmlFor="search" className="block text-sm font-medium text-gray-700 mb-3">
-                  Complex Project Description
+                  {t('advancedSearch.complexProjectLabel')}
                 </label>
                 <textarea
                   id="search"
                   value={searchInput}
                   onChange={(e) => setSearchInput(e.target.value)}
-                  placeholder="e.g. AI startup with university partnership for healthcare innovation in Vienna, need €150k for team expansion and technology development"
+                  placeholder={t('advancedSearch.placeholder')}
                   className="w-full px-4 py-4 border-2 border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent resize-none"
                   rows={4}
                   onKeyPress={(e) => e.key === 'Enter' && !e.shiftKey && handleSearch()}
                 />
                 <p className="text-sm text-gray-500 mt-2">
-                  💡 <strong>AI Tips:</strong> Include partnerships, technology focus, industry specialization, geographic preferences, and funding requirements for best results.
+                  {t('advancedSearch.aiTips')}
                 </p>
               </div>
 
@@ -240,10 +240,10 @@ export default function AdvancedSearch() {
                 {loading ? (
                   <div className="flex items-center justify-center">
                     <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-white mr-2"></div>
-                    AI Analyzing...
+                    {t('advancedSearch.analyzing')}
                   </div>
                 ) : (
-                  '🚀 Find Specialized Programs'
+                  t('advancedSearch.findPrograms')
                 )}
               </Button>
             </div>
@@ -255,10 +255,10 @@ export default function AdvancedSearch() {
           <div className="bg-gradient-to-r from-blue-50 to-purple-50 rounded-2xl border border-blue-200 p-6 mb-6">
             <div className="flex items-center justify-between mb-4">
               <h3 className="text-lg font-semibold text-gray-900 flex items-center">
-                🤖 AI-Detected Requirements
+                {t('advancedSearch.aiDetectedRequirements')}
               </h3>
               <span className="text-sm text-gray-600">
-                {chips.length} requirements found
+                {chips.length} {t('advancedSearch.requirementsFound')}
               </span>
             </div>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
@@ -276,7 +276,7 @@ export default function AdvancedSearch() {
                     <span className="font-semibold">{chip.value}</span>
                     {chip.confidence && (
                       <span className="text-xs bg-green-100 text-green-800 px-2 py-1 rounded-full">
-                        {Math.round(chip.confidence * 100)}% confidence
+                        {Math.round(chip.confidence * 100)}% {t('advancedSearch.confidence')}
                       </span>
                     )}
                   </div>
@@ -296,7 +296,7 @@ export default function AdvancedSearch() {
         {clarifications.length > 0 && (
           <Card className="p-6 mb-6 border-orange-200 bg-orange-50">
             <h3 className="text-lg font-semibold text-orange-800 mb-4">
-              Quick Clarifications
+              {t('advancedSearch.quickClarifications')}
             </h3>
             <div className="space-y-3">
               {clarifications.map((clarification, index) => (
@@ -310,7 +310,7 @@ export default function AdvancedSearch() {
                   variant="outline"
                   className="border-orange-300 text-orange-700 hover:bg-orange-100"
                 >
-                  Skip and Continue
+                  {t('advancedSearch.skipAndContinue')}
                 </Button>
               </div>
             </div>
@@ -331,7 +331,7 @@ export default function AdvancedSearch() {
             )}
             
             <h3 className="text-xl font-semibold text-gray-900 mb-4 flex items-center">
-              🎯 AI-Powered Program Preview
+              {t('advancedSearch.aiPoweredPreview')}
             </h3>
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
               {programPreview.map((program) => (
@@ -340,7 +340,7 @@ export default function AdvancedSearch() {
                     <h4 className="text-sm font-semibold text-gray-900 line-clamp-2">{program.name}</h4>
                     <div className="text-right ml-2">
                       <div className="text-lg font-bold text-blue-600">{Math.round(program.score)}%</div>
-                      <div className="text-xs text-gray-500">Match</div>
+                      <div className="text-xs text-gray-500">{t('advancedSearch.match')}</div>
                     </div>
                   </div>
                   <p className="text-xs text-gray-600 mb-3 line-clamp-2">{program.notes}</p>
@@ -352,7 +352,7 @@ export default function AdvancedSearch() {
                       onClick={() => window.open(program.link, '_blank')}
                       className="text-xs bg-blue-100 text-blue-700 px-2 py-1 rounded-full hover:bg-blue-200 transition-colors"
                     >
-                      View
+                      {t('advancedSearch.view')}
                     </button>
                   </div>
                 </div>
@@ -367,7 +367,7 @@ export default function AdvancedSearch() {
                 }}
                 className="text-sm bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors"
               >
-                View All Results →
+                {t('advancedSearch.viewAllResults')}
               </button>
             </div>
           </div>
@@ -376,28 +376,28 @@ export default function AdvancedSearch() {
         {/* Smart Routing Navigation */}
         <div className="bg-gradient-to-r from-purple-50 to-blue-50 rounded-2xl border border-purple-200 p-6 mt-8">
           <h3 className="text-lg font-semibold text-gray-900 mb-4 text-center">
-            🔄 Smart Routing
+            {t('advancedSearch.smartRouting')}
           </h3>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div className="bg-white rounded-xl p-4 border border-gray-200">
-              <h4 className="font-semibold text-gray-900 mb-2">📝 Detailed Questions</h4>
+              <h4 className="font-semibold text-gray-900 mb-2">{t('advancedSearch.detailedQuestions')}</h4>
               <p className="text-sm text-gray-600 mb-3">
-                Answer structured questions for comprehensive program discovery
+                {t('advancedSearch.detailedQuestionsDesc')}
               </p>
               <Link 
                 href="/reco" 
                 className="inline-flex items-center text-blue-600 hover:text-blue-800 font-medium"
               >
-                Start SmartWizard →
+                {t('advancedSearch.startSmartWizard')}
               </Link>
             </div>
             <div className="bg-white rounded-xl p-4 border border-gray-200">
-              <h4 className="font-semibold text-gray-900 mb-2">🤖 AI-Powered Search</h4>
+              <h4 className="font-semibold text-gray-900 mb-2">{t('advancedSearch.aiPoweredSearch')}</h4>
               <p className="text-sm text-gray-600 mb-3">
-                Describe complex requirements for specialized program matching
+                {t('advancedSearch.aiPoweredSearchDesc')}
               </p>
               <span className="inline-flex items-center text-green-600 font-medium">
-                ✓ You're here
+                {t('advancedSearch.youreHere')}
               </span>
             </div>
           </div>
