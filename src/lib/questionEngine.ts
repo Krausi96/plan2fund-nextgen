@@ -314,6 +314,34 @@ export class QuestionEngine {
         required: true,
         category: 'funding_need',
         phase: 1
+      },
+      {
+        id: 'funding_amount',
+        symptom: 'What is your funding requirement?',
+        type: 'single-select',
+        options: [
+          { value: 'under_50k', label: 'Under €50,000', fundingTypes: ['grants', 'loans'] },
+          { value: '50k_100k', label: '€50,000 - €100,000', fundingTypes: ['grants', 'loans', 'equity'] },
+          { value: '100k_500k', label: '€100,000 - €500,000', fundingTypes: ['grants', 'loans', 'equity'] },
+          { value: 'over_500k', label: 'Over €500,000', fundingTypes: ['loans', 'equity'] }
+        ],
+        required: true,
+        category: 'specific_requirements',
+        phase: 1
+      },
+      {
+        id: 'organization_type',
+        symptom: 'What type of organization are you?',
+        type: 'single-select',
+        options: [
+          { value: 'startup', label: 'Startup/New company', fundingTypes: ['grants', 'equity'] },
+          { value: 'sme', label: 'Small/Medium Enterprise', fundingTypes: ['grants', 'loans', 'equity'] },
+          { value: 'large', label: 'Large company', fundingTypes: ['loans', 'equity'] },
+          { value: 'research', label: 'Research institution', fundingTypes: ['grants'] }
+        ],
+        required: true,
+        category: 'specific_requirements',
+        phase: 1
       }
     ];
   }
@@ -324,12 +352,32 @@ export class QuestionEngine {
   public async computeOverlayQuestions(): Promise<void> {
     console.log('🔄 Computing overlay questions from program data...');
     
-    // Performance optimization for large datasets
-    const maxProgramsToProcess = Math.min(this.programs.length, 100);
-    const programsToProcess = this.programs.slice(0, maxProgramsToProcess);
+    // Filter out error pages and low-quality programs
+    const validPrograms = this.programs.filter(program => {
+      // Filter out error pages
+      const isErrorPage = program.name?.toLowerCase().includes('not found') ||
+                         program.name?.toLowerCase().includes('error') ||
+                         program.name?.toLowerCase().includes('newsletter') ||
+                         program.name?.toLowerCase().includes('bad gateway') ||
+                         (program as any).description?.toLowerCase().includes('seite wurde nicht gefunden');
+      
+      // Filter out programs without meaningful categorized_requirements
+      const hasValidRequirements = program.categorized_requirements && 
+        Object.values(program.categorized_requirements).some(category => 
+          Array.isArray(category) && category.length > 0
+        );
+      
+      return !isErrorPage && hasValidRequirements;
+    });
     
-    if (this.programs.length > 100) {
-      console.log(`⚠️ Large dataset detected (${this.programs.length} programs). Processing first 100 for performance.`);
+    console.log(`📊 Filtered programs: ${this.programs.length} → ${validPrograms.length} valid programs`);
+    
+    // Performance optimization for large datasets
+    const maxProgramsToProcess = Math.min(validPrograms.length, 100);
+    const programsToProcess = validPrograms.slice(0, maxProgramsToProcess);
+    
+    if (validPrograms.length > 100) {
+      console.log(`⚠️ Large dataset detected (${validPrograms.length} programs). Processing first 100 for performance.`);
     }
 
     const overlayQuestions: SymptomQuestion[] = [];
@@ -346,9 +394,10 @@ export class QuestionEngine {
     
     console.log(`✅ Computed ${this.overlayQuestions.length} overlay questions from ${programsToProcess.length} programs`);
     
-    if (this.programs.length > 50) {
+    if (validPrograms.length > 50) {
       console.log(`📊 Performance metrics:`, {
         totalPrograms: this.programs.length,
+        validPrograms: validPrograms.length,
         processedPrograms: programsToProcess.length,
         generatedQuestions: overlayQuestions.length,
         finalQuestions: this.overlayQuestions.length,
@@ -427,7 +476,7 @@ export class QuestionEngine {
     
     // Generate questions for each category
     for (const [category, mapping] of Object.entries(categoryMappings)) {
-      if (categories[category]) {
+      if (categories[category] && Array.isArray(categories[category]) && categories[category].length > 0) {
         const question: SymptomQuestion = {
           id: `${program.id}_${category}`,
           symptom: mapping.symptom,

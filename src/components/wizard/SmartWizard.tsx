@@ -195,6 +195,22 @@ const SmartWizard: React.FC<SmartWizardProps> = ({ onComplete, onProfileGenerate
       }
     }
     
+    // NEW: Show program preview instead of ending when we have enough answers but more questions available
+    const hasEnoughAnswersForPreview = Object.keys(newAnswers).length >= 5;
+    const hasMoreQuestions = nextQuestion !== null;
+    
+    if (hasEnoughAnswersForPreview && hasMoreQuestions && !programPreview) {
+      // Generate preview for current answers even if we have more questions
+      try {
+        const { scoreProgramsEnhanced } = await import('@/lib/enhancedRecoEngine');
+        const previewResults = await scoreProgramsEnhanced(newAnswers, "strict");
+        programPreview = previewResults.slice(0, 3);
+        console.log('📊 Generated preview for intermediate answers:', programPreview.length, 'programs');
+      } catch (error) {
+        console.warn('Failed to generate intermediate preview:', error);
+      }
+    }
+    
     // Calculate estimated time and difficulty
     const estimatedTime = 0;
     const difficulty = 'easy' as 'easy' | 'medium' | 'hard';
