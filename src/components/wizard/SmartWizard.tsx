@@ -352,38 +352,23 @@ const SmartWizard: React.FC<SmartWizardProps> = ({ onComplete, onProfileGenerate
   }
 
   return (
-    <div ref={containerRef} className="wizard-container">
+    <div ref={containerRef} className="min-h-screen bg-gradient-to-br from-sky-50 via-white to-emerald-50 font-sans">
       {/* Header */}
-      <div className="wizard-header">
-        <div className="wizard-header-content">
-          <div className="wizard-logo">
-            <div className="wizard-logo-icon">✨</div>
+      <div className="bg-white/80 backdrop-blur-lg border-b border-gray-200/50 sticky top-0 z-10">
+        <div className="max-w-4xl mx-auto px-6 py-6 flex items-center justify-between">
+          <div className="flex items-center gap-3">
+            <div className="p-2 bg-blue-600 rounded-xl text-2xl">✨</div>
             <div>
-              <h1 className="wizard-title">{t('reco.title')}</h1>
-              <p className="wizard-subtitle">{t('reco.subtitle')}</p>
+              <h1 className="text-2xl font-bold text-blue-600 m-0">{t('reco.title')}</h1>
+              <p className="text-sm text-gray-500 m-0">{t('reco.subtitle')}</p>
             </div>
           </div>
           
           {/* Advanced Search Link */}
-          <div className="wizard-advanced-search">
+          <div className="flex items-center">
             <Link 
               href="/advanced-search" 
-              className="wizard-advanced-search-link"
-              style={{
-                color: 'white',
-                background: 'linear-gradient(135deg, #3B82F6 0%, #1D4ED8 100%)',
-                textDecoration: 'none',
-                fontSize: '0.875rem',
-                fontWeight: '600',
-                fontFamily: 'Inter, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif',
-                padding: '0.75rem 1.5rem',
-                border: 'none',
-                borderRadius: '0.5rem',
-                display: 'inline-block',
-                boxShadow: '0 4px 12px rgba(59, 130, 246, 0.3)',
-                textTransform: 'uppercase',
-                letterSpacing: '0.3px'
-              }}
+              className="text-white bg-gradient-to-r from-blue-600 to-blue-700 no-underline text-sm font-semibold px-6 py-3 border-0 rounded-lg inline-block shadow-lg uppercase tracking-wide transition-all duration-200 hover:from-blue-700 hover:to-blue-800 hover:shadow-xl hover:-translate-y-0.5"
             >
               {t('nav.advancedSearch')}
             </Link>
@@ -392,52 +377,53 @@ const SmartWizard: React.FC<SmartWizardProps> = ({ onComplete, onProfileGenerate
       </div>
 
       {/* Main Content */}
-      <div className="wizard-main">
-        <div className="wizard-content">
+      <div className="max-w-4xl mx-auto px-6 py-2">
+        <div className="flex flex-col gap-6">
 
           {/* Question Card */}
-          <div className="wizard-question-card" key={animationKey}>
+          <div className="bg-white rounded-2xl shadow-lg border border-gray-200 p-8 transition-all duration-300 hover:shadow-xl" key={animationKey}>
             {/* Progress Bar */}
-            <div className="wizard-progress">
-              <div className="wizard-progress-text">{Math.round(state.progress)}% {t('wizard.complete')}</div>
-              <div className="wizard-progress-bar">
+            <div className="flex flex-col gap-3 mb-6">
+              <div className="text-base text-gray-700 font-semibold text-center">{Math.round(state.progress)}% {t('wizard.complete')}</div>
+              <div className="w-full h-3 bg-gray-200 rounded-full overflow-hidden shadow-inner">
                 <div 
-                  className="wizard-progress-fill"
+                  className="h-full bg-blue-600 rounded-full transition-all duration-500 ease-out"
                   style={{ width: `${state.progress}%` }}
                 />
               </div>
             </div>
             
-            <div className="wizard-question-content">
-              <div className="wizard-question-number">
+            <div className="flex gap-6">
+              <div className="flex-shrink-0 w-12 h-12 bg-blue-100 text-blue-600 rounded-full flex items-center justify-center text-lg font-bold">
                 {Object.keys(state.answers).length + 1}
               </div>
-              <div className="wizard-question-body">
-                <h3 className="wizard-question-text">
+              <div className="flex-1">
+                <h3 className="text-xl font-semibold text-gray-900 mb-6 leading-relaxed">
                   {t(state.currentQuestion.symptom as any) || state.currentQuestion.symptom}
                 </h3>
                 
                 {state.currentQuestion.type === 'single-select' && state.currentQuestion.options && (
-                  <div className="wizard-options">
+                  <div className="space-y-3">
                     {state.currentQuestion.options.map((option, index) => (
                       <button
                         key={option.value}
-                        className="wizard-option"
+                        className="w-full p-4 bg-white border-2 border-gray-200 rounded-xl hover:border-blue-300 hover:bg-blue-50 transition-all duration-200 flex items-center justify-between group"
                         onClick={() => handleAnswer(option.value)}
                         style={{ animationDelay: `${index * 0.1}s` }}
                       >
-                        <span className="wizard-option-text">{t(option.label as any) || option.label}</span>
-                        <span className="wizard-option-arrow">→</span>
+                        <span className="text-gray-700 font-medium group-hover:text-blue-700">{t(option.label as any) || option.label}</span>
+                        <span className="text-gray-400 group-hover:text-blue-600 group-hover:translate-x-1 transition-all duration-200">→</span>
                       </button>
                     ))}
                   </div>
                 )}
 
                 {state.currentQuestion.type === 'text' && (
-                  <div className="wizard-text-input">
+                  <div className="space-y-3">
                     <textarea
                       placeholder={t('wizard.tellUsMore')}
-                      className="wizard-textarea"
+                      className="w-full p-4 border-2 border-gray-200 rounded-xl focus:border-blue-500 focus:ring-2 focus:ring-blue-200 resize-none transition-all duration-200"
+                      rows={4}
                       onKeyDown={(e) => {
                         if (e.key === 'Enter' && !e.shiftKey) {
                           e.preventDefault();
@@ -446,18 +432,18 @@ const SmartWizard: React.FC<SmartWizardProps> = ({ onComplete, onProfileGenerate
                         }
                       }}
                     />
-                    <div className="wizard-text-hint">
+                    <div className="text-sm text-gray-500">
                       {t('wizard.textHint')}
                     </div>
                   </div>
                 )}
 
                 {state.currentQuestion.type === 'number' && (
-                  <div className="wizard-number-input">
+                  <div className="space-y-3">
                     <input
                       type="number"
                       placeholder={t('wizard.amountPlaceholder')}
-                      className="wizard-input"
+                      className="w-full p-4 border-2 border-gray-200 rounded-xl focus:border-blue-500 focus:ring-2 focus:ring-blue-200 transition-all duration-200"
                       onKeyDown={(e) => {
                         if (e.key === 'Enter') {
                           const value = (e.target as HTMLInputElement).value;
@@ -472,19 +458,19 @@ const SmartWizard: React.FC<SmartWizardProps> = ({ onComplete, onProfileGenerate
           </div>
 
           {/* Navigation Controls */}
-          <div className="wizard-navigation">
-            <div className="wizard-navigation-content">
+          <div className="bg-white rounded-2xl shadow-lg border border-gray-200 p-6">
+            <div className="flex items-center justify-between">
               <button 
                 onClick={goToPreviousQuestion}
                 disabled={!state.canGoBack}
-                className="wizard-nav-button wizard-nav-back"
+                className="flex items-center gap-2 px-4 py-2 text-gray-600 bg-gray-100 rounded-lg hover:bg-gray-200 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200"
               >
-                <span className="wizard-nav-icon">←</span>
+                <span className="text-lg">←</span>
                 {t('wizard.previous')}
               </button>
               
-              <div className="wizard-navigation-info">
-                <span className="wizard-question-counter">
+              <div className="text-center">
+                <span className="text-sm text-gray-600 font-medium">
                   {t('navigation.current')} {state.currentQuestionIndex + 1} {t('navigation.of')} {state.totalQuestions || '?'}
                 </span>
               </div>
@@ -492,44 +478,48 @@ const SmartWizard: React.FC<SmartWizardProps> = ({ onComplete, onProfileGenerate
               <button 
                 onClick={goToNextQuestion}
                 disabled={!state.canGoForward}
-                className="wizard-nav-button wizard-nav-next"
+                className="flex items-center gap-2 px-4 py-2 text-white bg-blue-600 rounded-lg hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200"
               >
                 {t('wizard.next')}
-                <span className="wizard-nav-icon">→</span>
+                <span className="text-lg">→</span>
               </button>
             </div>
           </div>
 
           {/* Answer Summary - Always Visible */}
           {Object.keys(state.answers).length > 0 && (
-            <div className="wizard-answer-summary">
-              <div className="wizard-summary-header">
-                <span className="wizard-summary-icon">✓</span>
-                <span className="wizard-summary-title">{t('wizard.answersSoFar')}</span>
-                <span className="wizard-summary-count">({Object.keys(state.answers).length})</span>
+            <div className="bg-white rounded-2xl shadow-lg border border-gray-200 p-6">
+              <div className="flex items-center gap-3 mb-4">
+                <span className="text-green-600 text-xl">✓</span>
+                <span className="text-lg font-semibold text-gray-900">{t('wizard.answersSoFar')}</span>
+                <span className="text-sm text-gray-500">({Object.keys(state.answers).length})</span>
               </div>
               
-              <div className="wizard-summary-content">
+              <div className="space-y-4">
                 {/* Program Preview - Show only if available */}
                 {state.programPreview && state.programPreview.length > 0 && (
-                  <div className="wizard-program-preview">
+                  <div className="bg-gradient-to-r from-green-50 to-blue-50 rounded-xl border border-green-200 p-4">
                     {/* NEW: Preview Quality Indicator */}
                     {state.previewQuality && (
-                      <div className={`wizard-quality-indicator wizard-quality-${state.previewQuality.color}`}>
-                        <span className="wizard-quality-message">{state.previewQuality.message}</span>
-                        <span className="wizard-quality-score">
+                      <div className={`flex justify-between items-center p-4 rounded-lg mb-4 font-semibold text-sm ${
+                        state.previewQuality.color === 'green' ? 'bg-gradient-to-r from-green-100 to-green-200 border border-green-300 text-green-800' :
+                        state.previewQuality.color === 'blue' ? 'bg-gradient-to-r from-blue-100 to-blue-200 border border-blue-300 text-blue-800' :
+                        'bg-gradient-to-r from-orange-100 to-orange-200 border border-orange-300 text-orange-800'
+                      }`}>
+                        <span className="text-base font-bold">{state.previewQuality.message}</span>
+                        <span className="text-sm opacity-80">
                           {state.programPreview[0]?.score ? `${Math.round(state.programPreview[0].score)}% match` : ''}
                         </span>
                       </div>
                     )}
-                    <h4 className="wizard-preview-title">🎯 {t('wizard.topMatches')}</h4>
-                      <div className="wizard-preview-grid">
+                    <h4 className="text-lg font-semibold text-gray-900 mb-4">🎯 {t('wizard.topMatches')}</h4>
+                      <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
                         {state.programPreview.slice(0, 3).map((program, index) => (
-                          <div key={program.id || index} className="wizard-preview-item">
-                            <div className="wizard-preview-rank">{index + 1}</div>
-                            <div className="wizard-preview-content">
-                              <div className="wizard-preview-name">{program.name || 'Unknown Program'}</div>
-                              <div className="wizard-preview-score">{Math.round(program.score || 0)}% match</div>
+                          <div key={program.id || index} className="bg-white rounded-lg p-3 border border-gray-200 flex items-center gap-3">
+                            <div className="w-8 h-8 bg-blue-100 text-blue-600 rounded-full flex items-center justify-center text-sm font-bold">{index + 1}</div>
+                            <div className="flex-1">
+                              <div className="text-sm font-medium text-gray-900 line-clamp-2">{program.name || 'Unknown Program'}</div>
+                              <div className="text-xs text-blue-600 font-semibold">{Math.round(program.score || 0)}% match</div>
                             </div>
                           </div>
                         ))}
@@ -537,9 +527,9 @@ const SmartWizard: React.FC<SmartWizardProps> = ({ onComplete, onProfileGenerate
                       
                       {/* View Full Results Button - Show only when final preview is shown */}
                       {state.showFinalPreview && (
-                        <div className="wizard-final-preview-actions">
+                        <div className="mt-4 text-center">
                           <button 
-                            className="wizard-view-results-btn"
+                            className="bg-blue-600 text-white px-6 py-3 rounded-lg hover:bg-blue-700 transition-all duration-200 font-semibold"
                             onClick={async () => {
                               // Process full results and navigate to results page
                               await processResults(state.answers);
