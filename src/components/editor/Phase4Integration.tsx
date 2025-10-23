@@ -12,6 +12,7 @@ import { EditorDataProvider } from '@/lib/editor/EditorDataProvider';
 
 // Phase 4 Components
 import EntryPointsManager from './EntryPointsManager';
+import DocumentCustomizationPanel from './DocumentCustomizationPanel';
 
 
 // FormattingConfig interface removed - functionality moved to DocumentCustomizationPanel
@@ -41,6 +42,7 @@ export default function Phase4Integration({
   
   // Phase 4 UI state
   const [showEntryPoints, setShowEntryPoints] = useState(false);
+  const [showDocumentCustomization, setShowDocumentCustomization] = useState(false);
   
   // ============================================================================
   // INTEGRATED STATE MANAGEMENT (from EditorState)
@@ -339,31 +341,89 @@ export default function Phase4Integration({
       {/* Main Content */}
       <div className="max-w-7xl mx-auto px-6 py-8">
         <div className="grid grid-cols-1 lg:grid-cols-4 gap-8">
-          {/* Sidebar - Sections */}
+          {/* Sidebar - Sections & Document Customization */}
           <div className="lg:col-span-1">
-            <div className="bg-white/70 backdrop-blur-sm rounded-2xl border border-gray-200/50 p-6 sticky top-24">
-              <h3 className="text-lg font-semibold text-gray-900 mb-4">Sections</h3>
-              <div className="space-y-2">
-                {sections.map((section, index) => (
+            <div className="space-y-4">
+              {/* Sections Panel */}
+              <div className="bg-white/70 backdrop-blur-sm rounded-2xl border border-gray-200/50 p-6 sticky top-24">
+                <div className="flex items-center justify-between mb-4">
+                  <h3 className="text-lg font-semibold text-gray-900">Sections</h3>
                   <button
-                    key={section.key}
-                    onClick={() => setActiveSection(index)}
-                    className={`w-full text-left p-3 rounded-xl transition-all duration-200 ${
-                      index === activeSection
-                        ? 'bg-gradient-to-r from-blue-500 to-purple-600 text-white shadow-lg'
-                        : 'bg-gray-50 hover:bg-gray-100 text-gray-700'
-                    }`}
+                    onClick={() => setShowDocumentCustomization(!showDocumentCustomization)}
+                    className="p-2 text-gray-500 hover:text-gray-700 hover:bg-gray-100 rounded-lg transition-colors"
+                    title="Document Settings"
                   >
-                    <div className="flex items-center justify-between">
-                      <span className="font-medium text-sm">{section.title}</span>
-                      <div className={`w-2 h-2 rounded-full ${
-                        section.status === 'aligned' ? 'bg-green-500' : 
-                        section.status === 'needs_fix' ? 'bg-yellow-500' : 'bg-gray-300'
-                      }`}></div>
-                    </div>
+                    <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" />
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                    </svg>
                   </button>
-                ))}
+                </div>
+                <div className="space-y-2">
+                  {sections.map((section, index) => (
+                    <button
+                      key={section.key}
+                      onClick={() => setActiveSection(index)}
+                      className={`w-full text-left p-3 rounded-xl transition-all duration-200 ${
+                        index === activeSection
+                          ? 'bg-gradient-to-r from-blue-500 to-purple-600 text-white shadow-lg'
+                          : 'bg-gray-50 hover:bg-gray-100 text-gray-700'
+                      }`}
+                    >
+                      <div className="flex items-center justify-between">
+                        <span className="font-medium text-sm">{section.title}</span>
+                        <div className={`w-2 h-2 rounded-full ${
+                          section.status === 'aligned' ? 'bg-green-500' : 
+                          section.status === 'needs_fix' ? 'bg-yellow-500' : 'bg-gray-300'
+                        }`}></div>
+                      </div>
+                    </button>
+                  ))}
+                </div>
               </div>
+
+              {/* Document Customization Panel */}
+              {showDocumentCustomization && (
+                <div className="bg-white/70 backdrop-blur-sm rounded-2xl border border-gray-200/50 p-6">
+                  <DocumentCustomizationPanel
+                    currentConfig={{
+                      tone: 'formal',
+                      language: 'en',
+                      tableOfContents: true,
+                      pageNumbers: true,
+                      fontFamily: 'Arial',
+                      fontSize: 12,
+                      lineSpacing: 1.5,
+                      margins: { top: 2.5, bottom: 2.5, left: 2.5, right: 2.5 },
+                      titlePage: {
+                        enabled: true,
+                        companyName: '',
+                        projectTitle: '',
+                        date: new Date().toLocaleDateString(),
+                      },
+                      citations: {
+                        enabled: true,
+                        style: 'apa',
+                      },
+                      figures: {
+                        enabled: true,
+                        tableOfFigures: true,
+                        chartDescriptions: true,
+                      },
+                    }}
+                    onConfigChange={(config) => {
+                      console.log('Document customization changed:', config);
+                      // Apply changes immediately
+                    }}
+                    onTemplateSelect={(template) => {
+                      console.log('Template selected:', template);
+                    }}
+                    onExport={(format) => {
+                      console.log('Export requested:', format);
+                    }}
+                  />
+                </div>
+              )}
             </div>
           </div>
 

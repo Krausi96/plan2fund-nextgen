@@ -1,6 +1,5 @@
 import { useState } from "react";
 import { useRouter } from "next/router";
-import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import Link from "next/link";
 import { Dialog, DialogContent, DialogTrigger, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
@@ -49,23 +48,34 @@ export default function ResultsPage() {
   }
 
   return (
-    <div className="p-6 max-w-3xl mx-auto">
-      <div className="flex justify-between items-center mb-6">
-        <h2 className="text-2xl font-semibold">
-          {t('results.title')}
-        </h2>
-        <div className="flex items-center gap-4">
-          <Link href="/dashboard" className="text-blue-600 hover:text-blue-800 text-sm">
-            {t('results.dashboard')}
-          </Link>
-          <button
-            onClick={() => setShowInfoDrawer(true)}
-            className="text-blue-600 hover:text-blue-800 text-sm flex items-center gap-1"
-          >
-            <span>ℹ️</span> {t('results.howItWorks')}
-          </button>
+    <div className="min-h-screen bg-gradient-to-br from-sky-50 via-white to-emerald-50 font-sans">
+      {/* Modern Header */}
+      <div className="bg-white/80 backdrop-blur-lg border-b border-gray-200/50 sticky top-0 z-10">
+        <div className="max-w-4xl mx-auto px-6 py-6 flex items-center justify-between">
+          <div className="flex items-center gap-3">
+            <div className="p-2 bg-green-600 rounded-xl text-2xl">✓</div>
+            <div>
+              <h1 className="text-2xl font-bold text-green-600 m-0">{t('results.title')}</h1>
+              <p className="text-sm text-gray-500 m-0">We found {results.length} funding opportunities for you</p>
+            </div>
+          </div>
+          
+          <div className="flex items-center gap-4">
+            <Link href="/dashboard" className="text-gray-600 hover:text-gray-900 text-sm font-medium">
+              {t('results.dashboard')}
+            </Link>
+            <button
+              onClick={() => setShowInfoDrawer(true)}
+              className="text-gray-600 hover:text-gray-900 text-sm flex items-center gap-1 font-medium"
+            >
+              <span>ℹ️</span> {t('results.howItWorks')}
+            </button>
+          </div>
         </div>
       </div>
+
+      {/* Main Content */}
+      <div className="max-w-4xl mx-auto px-6 py-8">
 
       {/* No-match fallback: Nearest 3 + Proceed anyway */}
       {hasAnyResults && !hasEligibleResults && (
@@ -192,17 +202,30 @@ export default function ResultsPage() {
 
       {/* Results list */}
       {results.length > 0 && (
-        <div className="grid gap-4">
-          {results.map((program) => (
-            <Card key={program.id} className="p-4 shadow-md rounded-xl">
-              <div className="flex justify-between items-center mb-3">
-                <div>
-                  <h3 className="text-lg font-bold">{program.name}</h3>
-                  <span className="text-sm text-gray-600 capitalize">{program.type}</span>
+        <div className="grid gap-6">
+          {results.map((program, index) => (
+            <div
+              key={program.id}
+              className="bg-white/80 backdrop-blur-sm rounded-2xl border border-gray-200/50 p-6 shadow-lg hover:shadow-xl transition-all duration-300 hover:-translate-y-1"
+              style={{ animationDelay: `${index * 0.1}s` }}
+            >
+              <div className="flex justify-between items-start mb-4">
+                <div className="flex-1">
+                  <div className="flex items-center gap-3 mb-2">
+                    <div className="w-8 h-8 bg-gradient-to-br from-blue-500 to-purple-600 rounded-lg flex items-center justify-center text-white font-bold text-sm">
+                      {index + 1}
+                    </div>
+                    <h3 className="text-xl font-bold text-gray-900">{program.name}</h3>
+                  </div>
+                  <div className="flex items-center gap-2 text-sm text-gray-600">
+                    <span className="px-2 py-1 bg-gray-100 rounded-full capitalize">{program.type}</span>
+                    <span>•</span>
+                    <span>{(program as any).institution || 'Various'}</span>
+                  </div>
                 </div>
                 <div className="text-right">
-                  <div className="text-2xl font-bold text-blue-600">{program.score}%</div>
-                  <div className="text-xs text-gray-500">Match</div>
+                  <div className="text-3xl font-bold text-blue-600 mb-1">{program.score}%</div>
+                  <div className="text-sm text-gray-500 font-medium">Match</div>
                 </div>
               </div>
 
@@ -379,20 +402,29 @@ export default function ResultsPage() {
 
 
 
-              <div className="mt-4 flex gap-2">
+              <div className="mt-6 flex gap-3">
                 <Dialog>
                   <DialogTrigger asChild>
-                    <Button className="flex-1" disabled={!hasEligibleResults}>{t('results.continueToPlan')}</Button>
+                    <button 
+                      className={`flex-1 px-6 py-3 rounded-xl font-semibold transition-all duration-200 ${
+                        hasEligibleResults 
+                          ? 'bg-gradient-to-r from-blue-600 to-purple-600 text-white hover:from-blue-700 hover:to-purple-700 shadow-lg hover:shadow-xl hover:-translate-y-0.5' 
+                          : 'bg-gray-300 text-gray-500 cursor-not-allowed'
+                      }`}
+                      disabled={!hasEligibleResults}
+                    >
+                      {t('results.continueToPlan')}
+                    </button>
                   </DialogTrigger>
-                  <DialogContent>
+                  <DialogContent className="rounded-2xl">
                     <DialogHeader>
-                      <DialogTitle>{t('results.useRecommendation')}</DialogTitle>
-                      <DialogDescription>
+                      <DialogTitle className="text-xl font-bold">{t('results.useRecommendation')}</DialogTitle>
+                      <DialogDescription className="text-gray-600">
                         {t('results.prefillDescription')}
                       </DialogDescription>
                     </DialogHeader>
-                    <Button 
-                      className="w-full mt-3"
+                    <button 
+                      className="w-full mt-4 px-6 py-3 bg-gradient-to-r from-blue-600 to-purple-600 text-white rounded-xl font-semibold hover:from-blue-700 hover:to-purple-700 transition-all duration-200 shadow-lg hover:shadow-xl"
                       onClick={() => {
                         // Derive signals and get top 3 programs
                         const { deriveSignals } = require('@/lib/enhancedRecoEngine');
@@ -421,24 +453,20 @@ export default function ResultsPage() {
                       }}
                     >
                       {t('results.prefillContinue')}
-                    </Button>
+                    </button>
                   </DialogContent>
                 </Dialog>
-                <Button 
-                  variant="outline" 
-                  size="sm"
+                <button 
+                  className="px-6 py-3 border-2 border-gray-300 text-gray-700 rounded-xl font-semibold hover:border-gray-400 hover:bg-gray-50 transition-all duration-200"
                   onClick={() => setSelectedProgram(program)}
                 >
                   {t('results.details')}
-                </Button>
+                </button>
               </div>
-            </Card>
+            </div>
           ))}
         </div>
       )}
-
-
-      {/* Add Custom Program - removed, results managed by context */}
 
       {/* Modals */}
       <ProgramDetailsModal
@@ -446,8 +474,6 @@ export default function ResultsPage() {
         onClose={() => setSelectedProgram(null)}
         program={selectedProgram}
       />
-
-      {/* ExplorationModal removed - results now managed by context */}
 
       <InfoDrawer
         isOpen={showInfoDrawer}
@@ -481,7 +507,7 @@ export default function ResultsPage() {
           </div>
         }
       />
-      
+      </div>
     </div>
   );
 }
