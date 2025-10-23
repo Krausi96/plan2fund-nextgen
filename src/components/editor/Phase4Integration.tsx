@@ -13,6 +13,7 @@ import { EditorDataProvider } from '@/lib/editor/EditorDataProvider';
 // Phase 4 Components
 import EntryPointsManager from './EntryPointsManager';
 import DocumentCustomizationPanel from './DocumentCustomizationPanel';
+import RichTextEditor from './RichTextEditor';
 
 
 // FormattingConfig interface removed - functionality moved to DocumentCustomizationPanel
@@ -445,34 +446,62 @@ export default function Phase4Integration({
               </div>
             )}
 
-            {/* Section Editor */}
+            {/* Section Wizard */}
             {sections.length > 0 && activeSection < sections.length && (
               <div className="bg-white/70 backdrop-blur-sm rounded-2xl border border-gray-200/50 p-8">
+                {/* Section Header */}
                 <div className="mb-6">
-                  <h2 className="text-2xl font-bold text-gray-900 mb-2">
-                    {sections[activeSection]?.title}
-                  </h2>
-                  <p className="text-gray-600">
-                    {sections[activeSection]?.required ? 'Required section' : 'Optional section'}
-                  </p>
+                  <div className="flex items-center justify-between mb-4">
+                    <div>
+                      <h2 className="text-2xl font-bold text-gray-900 mb-2">
+                        {sections[activeSection]?.title}
+                      </h2>
+                      <p className="text-gray-600">
+                        {sections[activeSection]?.required ? 'Required section' : 'Optional section'}
+                      </p>
+                    </div>
+                    <div className="text-sm font-medium text-gray-500 bg-gray-100 px-3 py-1 rounded-full">
+                      Section {activeSection + 1} of {sections.length}
+                    </div>
+                  </div>
                 </div>
 
+                {/* Rich Text Editor */}
                 <div className="space-y-6">
-                  {/* Section Content Editor */}
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
-                      Content
-                    </label>
-                    <textarea
-                      value={sections[activeSection]?.content || ''}
-                      onChange={(e) => handleSectionChange(sections[activeSection].key, e.target.value)}
-                      className="w-full h-64 p-4 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent resize-none"
-                      placeholder="Start writing your content here..."
-                    />
-                  </div>
+                  <RichTextEditor
+                    content={sections[activeSection]?.content || ''}
+                    onChange={(content) => handleSectionChange(sections[activeSection].key, content)}
+                    section={sections[activeSection]}
+                    guidance={sections[activeSection]?.guidance || ''}
+                    placeholder="Start writing your content here..."
+                    minLength={50}
+                    maxLength={5000}
+                    showWordCount={true}
+                    showGuidance={true}
+                    showFormatting={true}
+                  />
 
-                  {/* Section Actions */}
-                  <div className="flex items-center justify-between pt-4 border-t border-gray-200">
+                  {/* Section Navigation & Actions */}
+                  <div className="flex items-center justify-between pt-6 border-t border-gray-200">
+                    {/* Navigation Buttons */}
+                    <div className="flex items-center space-x-3">
+                      <button
+                        onClick={() => setActiveSection(Math.max(0, activeSection - 1))}
+                        disabled={activeSection === 0}
+                        className="px-4 py-2 text-gray-600 hover:text-gray-900 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                      >
+                        ← Previous
+                      </button>
+                      <button
+                        onClick={() => setActiveSection(Math.min(sections.length - 1, activeSection + 1))}
+                        disabled={activeSection === sections.length - 1}
+                        className="px-4 py-2 text-gray-600 hover:text-gray-900 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                      >
+                        Next →
+                      </button>
+                    </div>
+
+                    {/* Section Status Actions */}
                     <div className="flex items-center space-x-4">
                       <button
                         onClick={() => handleSectionStatusChange(sections[activeSection].key, 'aligned')}
@@ -486,10 +515,6 @@ export default function Phase4Integration({
                       >
                         Needs Review
                       </button>
-                    </div>
-                    
-                    <div className="text-sm text-gray-500">
-                      {sections[activeSection]?.content?.length || 0} characters
                     </div>
                   </div>
                 </div>
