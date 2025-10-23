@@ -15,6 +15,7 @@ import EntryPointsManager from './EntryPointsManager';
 import DocumentCustomizationPanel from './DocumentCustomizationPanel';
 import RichTextEditor from './RichTextEditor';
 import EnhancedAIChat from './EnhancedAIChat';
+import RequirementsChecker from './RequirementsChecker';
 
 
 // FormattingConfig interface removed - functionality moved to DocumentCustomizationPanel
@@ -47,10 +48,53 @@ export default function Phase4Integration({
   const [showDocumentCustomization, setShowDocumentCustomization] = useState(false);
   const [aiAssistantMuted, setAiAssistantMuted] = useState(false);
   const [showAiAssistant, setShowAiAssistant] = useState(true);
+  const [requirementsProgress, setRequirementsProgress] = useState(0);
+  const [requirementsStatus, setRequirementsStatus] = useState<'loading' | 'complete' | 'incomplete' | 'error'>('loading');
   
   // ============================================================================
   // INTEGRATED STATE MANAGEMENT (from EditorState)
   // ============================================================================
+
+  // Update requirements progress when content changes
+  const updateRequirementsProgress = async () => {
+    if (!plan || !programProfile) return;
+    
+    try {
+      setRequirementsStatus('loading');
+      
+      // Get current plan content for all sections
+      const planContent = sections.reduce((acc, section) => {
+        acc[section.key] = section.content || '';
+        return acc;
+      }, {} as Record<string, string>);
+      
+      // Use RequirementsChecker to validate
+      const { createReadinessValidator } = await import('@/lib/readiness');
+      const validator = await createReadinessValidator(programProfile.programId, planContent);
+      
+      if (validator) {
+        const checks = await validator.performReadinessCheck();
+        const completedChecks = checks.filter(check => check.status === 'complete').length;
+        const totalChecks = checks.length;
+        const progress = totalChecks > 0 ? Math.round((completedChecks / totalChecks) * 100) : 0;
+        
+        setRequirementsProgress(progress);
+        setRequirementsStatus(progress === 100 ? 'complete' : progress > 0 ? 'incomplete' : 'error');
+      } else {
+        setRequirementsStatus('error');
+      }
+    } catch (error) {
+      console.error('Error updating requirements progress:', error);
+      setRequirementsStatus('error');
+    }
+  };
+
+  // Update progress when sections change
+  useEffect(() => {
+    if (sections.length > 0) {
+      updateRequirementsProgress();
+    }
+  }, [sections, programProfile]);
   
   // Editor state (integrated from EditorState)
   const [product, setProductState] = useState<EditorProduct | null>(null);
@@ -483,6 +527,47 @@ export default function Phase4Integration({
                     showGuidance={true}
                     showFormatting={true}
                   />
+
+                  {/* Requirements Progress Bar */}
+                  <div className="mt-6 p-4 bg-white/50 backdrop-blur-sm rounded-xl border border-gray-200/50">
+                    <div className="flex items-center justify-between mb-3">
+                      <h3 className="text-sm font-semibold text-gray-700">Requirements Progress</h3>
+                      <div className="flex items-center space-x-2">
+                        <span className="text-xs text-gray-500">
+                          {requirementsStatus === 'loading' && 'Checking...'}
+                          {requirementsStatus === 'complete' && '✅ Complete'}
+                          {requirementsStatus === 'incomplete' && '⚠️ Incomplete'}
+                          {requirementsStatus === 'error' && '❌ Error'}
+                        </span>
+                        <span className="text-sm font-medium text-gray-700">
+                          {requirementsProgress}%
+                        </span>
+                      </div>
+                    </div>
+                    
+                    {/* Progress Bar */}
+                    <div className="w-full bg-gray-200 rounded-full h-2 mb-3">
+                      <div 
+                        className={`h-2 rounded-full transition-all duration-500 ${
+                          requirementsStatus === 'complete' ? 'bg-green-500' :
+                          requirementsStatus === 'incomplete' ? 'bg-yellow-500' :
+                          requirementsStatus === 'error' ? 'bg-red-500' : 'bg-blue-500'
+                        }`}
+                        style={{ width: `${requirementsProgress}%` }}
+                      />
+                    </div>
+                    
+                    {/* Requirements Checker Component */}
+                    {programProfile && (
+                      <RequirementsChecker
+                        programType={programProfile.programId}
+                        planContent={sections.reduce((acc, section) => {
+                          acc[section.key] = section.content || '';
+                          return acc;
+                        }, {} as Record<string, string>)}
+                      />
+                    )}
+                  </div>
 
                   {/* Section Navigation & Actions */}
                   <div className="flex items-center justify-between pt-6 border-t border-gray-200">
