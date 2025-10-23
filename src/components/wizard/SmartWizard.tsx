@@ -57,7 +57,33 @@ const SmartWizard: React.FC<SmartWizardProps> = ({ onComplete, onProfileGenerate
   const [intakeEngine, setIntakeEngine] = useState<IntakeEngine | null>(null);
   // Removed scoringEngine - using enhancedRecoEngine directly
   const [animationKey, setAnimationKey] = useState(0);
+  const [showAnswersSummary, setShowAnswersSummary] = useState(false);
   const containerRef = useRef<HTMLDivElement>(null);
+
+  // Helper function to format answer keys into user-friendly labels
+  const formatAnswerKey = (key: string): string => {
+    const keyMap: Record<string, string> = {
+      'q1_funding_need': 'Funding Need',
+      'q2_entity_stage': 'Business Stage',
+      'q3_company_size': 'Company Size',
+      'q4_theme': 'Industry Focus',
+      'q5_location': 'Location',
+      'q6_innovation_level': 'Innovation Level',
+      'q7_collaboration': 'Research Collaboration',
+      'q8_funding_types': 'Funding Types',
+      'q9_timeline': 'Project Timeline',
+      'q10_budget': 'Budget Range'
+    };
+    return keyMap[key] || key.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase());
+  };
+
+  // Helper function to format answer values into user-friendly text
+  const formatAnswerValue = (key: string, value: any): string => {
+    if (typeof value === 'string') {
+      return value.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase());
+    }
+    return String(value);
+  };
 
   // Initialize engines with program data
   useEffect(() => {
@@ -439,22 +465,34 @@ const SmartWizard: React.FC<SmartWizardProps> = ({ onComplete, onProfileGenerate
             </div>
           </div>
 
-          {/* Answer Summary */}
+          {/* Answer Summary - Collapsible */}
           {Object.keys(state.answers).length > 0 && (
             <div className="wizard-answer-summary">
-              <h4 className="wizard-summary-title">
+              <button 
+                onClick={() => setShowAnswersSummary(!showAnswersSummary)}
+                className="wizard-summary-toggle"
+              >
                 <span className="wizard-summary-icon">✓</span>
-                {t('wizard.answersSoFar')}
-              </h4>
-              <div className="wizard-summary-grid">
-                {Object.entries(state.answers).map(([key, value]) => (
-                  <div key={key} className="wizard-summary-item">
-                    <div className="wizard-summary-dot"></div>
-                    <span className="wizard-summary-label">{key.replace(/_/g, ' ')}:</span>
-                    <span className="wizard-summary-value">{String(value).replace(/_/g, ' ')}</span>
+                <span className="wizard-summary-title">{t('wizard.answersSoFar')}</span>
+                <span className="wizard-summary-count">({Object.keys(state.answers).length})</span>
+                <span className="wizard-summary-arrow">
+                  {showAnswersSummary ? '▲' : '▼'}
+                </span>
+              </button>
+              
+              {showAnswersSummary && (
+                <div className="wizard-summary-content">
+                  <div className="wizard-summary-grid">
+                    {Object.entries(state.answers).map(([key, value]) => (
+                      <div key={key} className="wizard-summary-item">
+                        <div className="wizard-summary-dot"></div>
+                        <span className="wizard-summary-label">{formatAnswerKey(key)}:</span>
+                        <span className="wizard-summary-value">{formatAnswerValue(key, value)}</span>
+                      </div>
+                    ))}
                   </div>
-                ))}
-              </div>
+                </div>
+              )}
             </div>
           )}
         </div>
@@ -1765,6 +1803,104 @@ const LoadingDisplay: React.FC = () => {
           color: #6b7280;
           font-size: 1.125rem;
           margin: 0;
+        }
+
+        /* Answer Summary Styles */
+        .wizard-answer-summary {
+          margin-top: 2rem;
+          background: rgba(255, 255, 255, 0.8);
+          backdrop-filter: blur(10px);
+          border-radius: 1rem;
+          border: 1px solid rgba(229, 231, 235, 0.5);
+          overflow: hidden;
+        }
+
+        .wizard-summary-toggle {
+          width: 100%;
+          display: flex;
+          align-items: center;
+          gap: 0.75rem;
+          padding: 1rem 1.5rem;
+          background: transparent;
+          border: none;
+          cursor: pointer;
+          transition: background-color 0.2s ease;
+          text-align: left;
+        }
+
+        .wizard-summary-toggle:hover {
+          background: rgba(249, 250, 251, 0.5);
+        }
+
+        .wizard-summary-icon {
+          color: #10b981;
+          font-weight: 700;
+          font-size: 1.125rem;
+        }
+
+        .wizard-summary-title {
+          font-weight: 600;
+          color: #111827;
+          font-size: 1rem;
+        }
+
+        .wizard-summary-count {
+          color: #6b7280;
+          font-size: 0.875rem;
+          font-weight: 500;
+        }
+
+        .wizard-summary-arrow {
+          margin-left: auto;
+          color: #6b7280;
+          font-size: 0.875rem;
+          transition: transform 0.2s ease;
+        }
+
+        .wizard-summary-content {
+          padding: 0 1.5rem 1.5rem 1.5rem;
+          border-top: 1px solid rgba(229, 231, 235, 0.5);
+        }
+
+        .wizard-summary-grid {
+          display: grid;
+          grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+          gap: 0.75rem;
+          margin-top: 1rem;
+        }
+
+        .wizard-summary-item {
+          display: flex;
+          align-items: center;
+          gap: 0.5rem;
+          padding: 0.75rem;
+          background: rgba(249, 250, 251, 0.5);
+          border-radius: 0.5rem;
+          transition: background-color 0.2s ease;
+        }
+
+        .wizard-summary-item:hover {
+          background: rgba(243, 244, 246, 0.8);
+        }
+
+        .wizard-summary-dot {
+          width: 0.375rem;
+          height: 0.375rem;
+          background: #6366f1;
+          border-radius: 50%;
+          flex-shrink: 0;
+        }
+
+        .wizard-summary-label {
+          font-weight: 500;
+          color: #6b7280;
+          font-size: 0.875rem;
+        }
+
+        .wizard-summary-value {
+          color: #111827;
+          font-weight: 600;
+          font-size: 0.875rem;
         }
       `}</style>
     </div>
