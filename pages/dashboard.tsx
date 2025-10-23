@@ -177,68 +177,73 @@ export default function DashboardPage() {
   }
 
   return (
-    <div className="max-w-6xl mx-auto px-4 py-8">
-      {/* Header */}
-      <div className="mb-8">
-        <div className="flex items-center justify-between">
-          <div>
-            <h1 className="text-3xl font-bold text-gray-900 mb-2">
-              Welcome back, {userProfile?.segment || 'User'}!
-            </h1>
-            <p className="text-gray-600">
-              Here's an overview of your funding journey and business plans.
-            </p>
-          </div>
-          <div className="hidden md:block">
-            <div className="bg-blue-50 px-4 py-2 rounded-lg">
-              <p className="text-sm text-blue-600 font-medium">My Account</p>
+    <div className="min-h-screen bg-gradient-to-br from-sky-50 via-white to-emerald-50">
+      <div className="max-w-4xl mx-auto px-6 py-2">
+        <div className="bg-white rounded-2xl shadow-lg border border-gray-200 p-8 mb-6">
+          {/* Header */}
+          <div className="mb-8">
+            <div className="flex items-center justify-between">
+              <div>
+                <h1 className="text-3xl font-bold text-gray-900 mb-2">
+                  Welcome back, {userProfile?.segment || 'User'}!
+                </h1>
+                <p className="text-gray-600">
+                  Here's an overview of your funding journey and business plans.
+                </p>
+              </div>
+              <div className="hidden md:block">
+                <div className="bg-blue-50 px-4 py-2 rounded-lg">
+                  <p className="text-sm text-blue-600 font-medium">My Account</p>
+                </div>
+              </div>
             </div>
           </div>
         </div>
-      </div>
 
-      {/* Stats Cards */}
-      <div className="grid md:grid-cols-4 gap-6 mb-8">
-        <Card className="p-6">
-          <div className="flex items-center">
-            <FileText className="w-8 h-8 text-blue-600 mr-4" />
-            <div>
-              <p className="text-sm text-gray-600">Total Plans</p>
-              <p className="text-2xl font-bold text-gray-900">{stats.totalPlans}</p>
+        {/* Stats Cards */}
+        <div className="bg-white rounded-2xl shadow-lg border border-gray-200 p-8 mb-6">
+          <div className="grid md:grid-cols-4 gap-6">
+            <div className="p-6 bg-gray-50 rounded-xl">
+              <div className="flex items-center">
+                <FileText className="w-8 h-8 text-blue-600 mr-4" />
+                <div>
+                  <p className="text-sm text-gray-600">Total Plans</p>
+                  <p className="text-2xl font-bold text-gray-900">{stats.totalPlans}</p>
+                </div>
+              </div>
+            </div>
+
+            <div className="p-6 bg-gray-50 rounded-xl">
+              <div className="flex items-center">
+                <CheckCircle className="w-8 h-8 text-green-600 mr-4" />
+                <div>
+                  <p className="text-sm text-gray-600">Completed</p>
+                  <p className="text-2xl font-bold text-gray-900">{stats.completedPlans}</p>
+                </div>
+              </div>
+            </div>
+
+            <div className="p-6 bg-gray-50 rounded-xl">
+              <div className="flex items-center">
+                <Target className="w-8 h-8 text-purple-600 mr-4" />
+                <div>
+                  <p className="text-sm text-gray-600">Active Applications</p>
+                  <p className="text-2xl font-bold text-gray-900">{stats.activeRecommendations}</p>
+                </div>
+              </div>
+            </div>
+
+            <div className="p-6 bg-gray-50 rounded-xl">
+              <div className="flex items-center">
+                <TrendingUp className="w-8 h-8 text-orange-600 mr-4" />
+                <div>
+                  <p className="text-sm text-gray-600">Success Rate</p>
+                  <p className="text-2xl font-bold text-gray-900">{stats.successRate}%</p>
+                </div>
+              </div>
             </div>
           </div>
-        </Card>
-
-        <Card className="p-6">
-          <div className="flex items-center">
-            <CheckCircle className="w-8 h-8 text-green-600 mr-4" />
-            <div>
-              <p className="text-sm text-gray-600">Completed</p>
-              <p className="text-2xl font-bold text-gray-900">{stats.completedPlans}</p>
-            </div>
-          </div>
-        </Card>
-
-        <Card className="p-6">
-          <div className="flex items-center">
-            <Target className="w-8 h-8 text-purple-600 mr-4" />
-            <div>
-              <p className="text-sm text-gray-600">Active Applications</p>
-              <p className="text-2xl font-bold text-gray-900">{stats.activeRecommendations}</p>
-            </div>
-          </div>
-        </Card>
-
-        <Card className="p-6">
-          <div className="flex items-center">
-            <TrendingUp className="w-8 h-8 text-orange-600 mr-4" />
-            <div>
-              <p className="text-sm text-gray-600">Success Rate</p>
-              <p className="text-2xl font-bold text-gray-900">{stats.successRate}%</p>
-            </div>
-          </div>
-        </Card>
-      </div>
+        </div>
 
       <div className="grid lg:grid-cols-2 gap-8">
         {/* Recent Plans */}
@@ -469,6 +474,7 @@ export default function DashboardPage() {
           </div>
         </Card>
       )}
+      </div>
     </div>
   );
 }
