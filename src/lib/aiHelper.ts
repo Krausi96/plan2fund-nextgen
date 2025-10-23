@@ -5,7 +5,7 @@
  */
 
 import { Program } from './prefill';
-import { ProgramTemplate, TemplateSection } from './programTemplates';
+// ProgramTemplate and TemplateSection types removed - using Enhanced Data Pipeline instead
 
 interface AIHelperConfig {
   maxWords: number;
@@ -16,8 +16,8 @@ interface AIHelperConfig {
   language?: 'de'|'en';
   // Phase 3 Enhancements
   decisionTreeAnswers?: Record<string, any>;
-  programTemplate?: ProgramTemplate;
-  currentSection?: TemplateSection;
+  programTemplate?: any; // Using Enhanced Data Pipeline instead
+  currentSection?: any; // Using Enhanced Data Pipeline instead
   aiGuidance?: {
     context: string;
     tone: 'professional' | 'academic' | 'enthusiastic' | 'technical';
@@ -259,8 +259,8 @@ export function createEnhancedAIHelper(
   tone: 'neutral' | 'formal' | 'concise' = 'neutral',
   language: 'de' | 'en' = 'en',
   decisionTreeAnswers?: Record<string, any>,
-  programTemplate?: ProgramTemplate,
-  currentSection?: TemplateSection,
+  programTemplate?: any, // Using Enhanced Data Pipeline instead
+  currentSection?: any, // Using Enhanced Data Pipeline instead
   aiGuidance?: {
     context: string;
     tone: 'professional' | 'academic' | 'enthusiastic' | 'technical';

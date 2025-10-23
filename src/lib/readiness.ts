@@ -5,7 +5,7 @@
  */
 
 import { dataSource } from './dataSource';
-import { ProgramTemplate } from './programTemplates';
+// ProgramTemplate type removed - using Enhanced Data Pipeline instead
 
 export interface ReadinessCheck {
   section: string;
@@ -49,7 +49,7 @@ export class ReadinessValidator {
   private planContent: Record<string, any>;
   // Phase 3 Enhancements
   private decisionTreeAnswers?: Record<string, any>;
-  private programTemplate?: ProgramTemplate;
+  private programTemplate?: any; // Using Enhanced Data Pipeline instead
   private aiGuidance?: any;
 
   constructor(
@@ -57,7 +57,7 @@ export class ReadinessValidator {
     planContent: Record<string, any>,
     // Phase 3 Enhancements
     decisionTreeAnswers?: Record<string, any>,
-    programTemplate?: ProgramTemplate,
+    programTemplate?: any, // Using Enhanced Data Pipeline instead
     aiGuidance?: any
   ) {
     this.programRequirements = programRequirements;
@@ -322,7 +322,7 @@ export class ReadinessValidator {
     const templateSections = this.programTemplate.sections || [];
     
     checks.forEach(check => {
-      const templateSection = templateSections.find(s => s.id === check.section);
+      const templateSection = templateSections.find((s: any) => s.id === check.section);
       
       if (templateSection) {
         // Check required fields from template
@@ -424,8 +424,8 @@ export class ReadinessValidator {
     // Adjust score based on program template compliance
     if (this.programTemplate) {
       const templateSections = this.programTemplate.sections || [];
-      const requiredSections = templateSections.filter(s => s.required);
-      const completedRequiredSections = requiredSections.filter(section => {
+      const requiredSections = templateSections.filter((s: any) => s.required);
+      const completedRequiredSections = requiredSections.filter((section: any) => {
         const content = this.planContent[section.id] || '';
         return content.trim().length > 50;
       });

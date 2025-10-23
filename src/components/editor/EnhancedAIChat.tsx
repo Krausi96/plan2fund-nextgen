@@ -6,7 +6,7 @@ import React, { useState, useRef } from 'react';
 import { PlanDocument } from '@/types/plan';
 import { ProgramProfile } from '@/types/reco';
 import { createAIHelper, createEnhancedAIHelper } from '@/lib/aiHelper';
-import { ProgramTemplate, TemplateSection } from '@/lib/programTemplates';
+// ProgramTemplate and TemplateSection types removed - using Enhanced Data Pipeline instead
 
 interface EnhancedAIChatProps {
   plan: PlanDocument;
@@ -15,8 +15,8 @@ interface EnhancedAIChatProps {
   onInsertContent: (content: string, section: string) => void;
   // Phase 3 Enhancements
   decisionTreeAnswers?: Record<string, any>;
-  programTemplate?: ProgramTemplate;
-  currentTemplateSection?: TemplateSection;
+  programTemplate?: any; // Using Enhanced Data Pipeline instead
+  currentTemplateSection?: any; // Using Enhanced Data Pipeline instead
   aiGuidance?: {
     context: string;
     tone: 'professional' | 'academic' | 'enthusiastic' | 'technical';
@@ -319,7 +319,7 @@ Please provide more specific details about what you'd like help with, and I'll p
           type: programProfile?.route || 'grant',
           amount: '€0',
           eligibility: [],
-          requirements: programTemplate.sections.map(s => s.id),
+          requirements: programTemplate?.sections?.map((s: any) => s.id) || [],
           score: 0,
           reasons: [],
           risks: []
