@@ -14,6 +14,7 @@ import { EditorDataProvider } from '@/lib/editor/EditorDataProvider';
 import EntryPointsManager from './EntryPointsManager';
 import DocumentCustomizationPanel from './DocumentCustomizationPanel';
 import RichTextEditor from './RichTextEditor';
+import EnhancedAIChat from './EnhancedAIChat';
 
 
 // FormattingConfig interface removed - functionality moved to DocumentCustomizationPanel
@@ -44,6 +45,8 @@ export default function Phase4Integration({
   // Phase 4 UI state
   const [showEntryPoints, setShowEntryPoints] = useState(false);
   const [showDocumentCustomization, setShowDocumentCustomization] = useState(false);
+  const [aiAssistantMuted, setAiAssistantMuted] = useState(false);
+  const [showAiAssistant, setShowAiAssistant] = useState(true);
   
   // ============================================================================
   // INTEGRATED STATE MANAGEMENT (from EditorState)
@@ -542,6 +545,79 @@ export default function Phase4Integration({
           </div>
         </div>
       </div>
+
+      {/* Floating AI Assistant */}
+      {showAiAssistant && plan && (
+        <div className="fixed bottom-6 right-6 z-40">
+          <div className={`bg-white/90 backdrop-blur-sm rounded-2xl border border-gray-200/50 shadow-xl transition-all duration-300 ${
+            aiAssistantMuted ? 'w-16 h-16' : 'w-80 h-96'
+          }`}>
+            {aiAssistantMuted ? (
+              /* Muted State - Just the character */
+              <button
+                onClick={() => setAiAssistantMuted(false)}
+                className="w-full h-full flex items-center justify-center rounded-2xl hover:bg-gray-50 transition-colors"
+                title="Unmute AI Assistant"
+              >
+                <div className="text-2xl">👔</div>
+              </button>
+            ) : (
+              /* Active State - Full chat interface */
+              <div className="h-full flex flex-col">
+                {/* AI Assistant Header */}
+                <div className="flex items-center justify-between p-4 border-b border-gray-200">
+                  <div className="flex items-center space-x-3">
+                    <div className="w-8 h-8 bg-gradient-to-br from-blue-500 to-purple-600 rounded-full flex items-center justify-center">
+                      <span className="text-white text-sm">👔</span>
+                    </div>
+                    <div>
+                      <h3 className="font-semibold text-gray-900 text-sm">AI Assistant</h3>
+                      <p className="text-xs text-gray-500">Virtual Funding Expert</p>
+                    </div>
+                  </div>
+                  <div className="flex items-center space-x-2">
+                    <button
+                      onClick={() => setAiAssistantMuted(true)}
+                      className="p-1 text-gray-400 hover:text-gray-600 transition-colors"
+                      title="Mute Assistant"
+                    >
+                      <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5.586 15H4a1 1 0 01-1-1v-4a1 1 0 011-1h1.586l4.707-4.707C10.923 3.663 12 4.109 12 5v14c0 .891-1.077 1.337-1.707.707L5.586 15z" />
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2" />
+                      </svg>
+                    </button>
+                    <button
+                      onClick={() => setShowAiAssistant(false)}
+                      className="p-1 text-gray-400 hover:text-gray-600 transition-colors"
+                      title="Close Assistant"
+                    >
+                      <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                      </svg>
+                    </button>
+                  </div>
+                </div>
+
+                {/* AI Chat Interface */}
+                <div className="flex-1 p-4">
+                  <EnhancedAIChat
+                    plan={plan}
+                    programProfile={programProfile || null}
+                    currentSection={sections[activeSection]?.key || ''}
+                    onInsertContent={(content, section) => {
+                      console.log('AI content inserted:', content, 'into section:', section);
+                      // Insert content into current section
+                      if (sections[activeSection]) {
+                        handleSectionChange(sections[activeSection].key, content);
+                      }
+                    }}
+                  />
+                </div>
+              </div>
+            )}
+          </div>
+        </div>
+      )}
 
       {/* Entry Points Modal */}
       {showEntryPoints && (
