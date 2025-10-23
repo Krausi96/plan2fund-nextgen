@@ -419,6 +419,13 @@ export class QuestionEngine {
     await this.computeOverlayQuestions();
   }
 
+  // NEW: Get estimated total questions for progress calculation
+  public getEstimatedTotalQuestions(): number {
+    const coreQuestions = this.getCoreQuestions().filter(q => q.required).length;
+    const overlayQuestions = this.getOverlayQuestions().filter(q => q.required).length;
+    return Math.min(coreQuestions + overlayQuestions, 25); // Cap at 25 for UX
+  }
+
 
   private initializeQuestions(): void {
     this.questions = [

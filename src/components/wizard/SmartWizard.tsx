@@ -111,10 +111,12 @@ const SmartWizard: React.FC<SmartWizardProps> = ({ onComplete, onProfileGenerate
         
         // Start with first question
         const firstQuestion = await question.getFirstQuestion();
+        const estimatedTotal = question.getEstimatedTotalQuestions();
         setState(prev => ({
           ...prev,
           currentQuestion: firstQuestion,
-          progress: 0
+          progress: 0,
+          totalQuestions: estimatedTotal
         }));
       } catch (error) {
         console.error('Failed to initialize engines:', error);
@@ -129,10 +131,12 @@ const SmartWizard: React.FC<SmartWizardProps> = ({ onComplete, onProfileGenerate
         setQuestionEngine(question);
         
         const firstQuestion = await question.getFirstQuestion();
+        const estimatedTotal = question.getEstimatedTotalQuestions();
         setState(prev => ({
           ...prev,
           currentQuestion: firstQuestion,
-          progress: 0
+          progress: 0,
+          totalQuestions: estimatedTotal
         }));
       }
     };
@@ -209,7 +213,7 @@ const SmartWizard: React.FC<SmartWizardProps> = ({ onComplete, onProfileGenerate
       ...prev,
       answers: newAnswers,
       currentQuestion: nextQuestion,
-      progress: prev.progress + (100 / 12), // Assuming 12 questions total (8 generic + 4 program-specific)
+      progress: nextQuestion ? (Object.keys(newAnswers).length / Math.max(state.totalQuestions, 10)) * 100 : 100, // Dynamic progress based on estimated total questions
       currentQuestionIndex: nextQuestion ? prev.currentQuestionIndex + 1 : prev.currentQuestionIndex,
       totalQuestions: Math.max(prev.totalQuestions, prev.currentQuestionIndex + 2),
       canGoBack: true,
