@@ -352,7 +352,24 @@ const SmartWizard: React.FC<SmartWizardProps> = ({ onComplete, onProfileGenerate
           
           {/* Advanced Search Link */}
           <div className="wizard-advanced-search">
-            <Link href="/advanced-search" className="wizard-advanced-search-link">
+            <Link 
+              href="/advanced-search" 
+              className="wizard-advanced-search-link"
+              style={{
+                color: 'white !important',
+                background: 'linear-gradient(135deg, #3B82F6 0%, #1D4ED8 100%) !important',
+                textDecoration: 'none !important',
+                fontSize: '1rem !important',
+                fontWeight: '700 !important',
+                padding: '1rem 2rem !important',
+                border: 'none !important',
+                borderRadius: '0.75rem !important',
+                display: 'inline-block !important',
+                boxShadow: '0 6px 16px rgba(59, 130, 246, 0.4) !important',
+                textTransform: 'uppercase !important',
+                letterSpacing: '0.5px !important'
+              }}
+            >
               {t('nav.advancedSearch')}
             </Link>
           </div>
@@ -652,7 +669,9 @@ const SmartWizard: React.FC<SmartWizardProps> = ({ onComplete, onProfileGenerate
           align-items: center;
         }
 
-        .wizard-advanced-search-link {
+        .wizard-advanced-search-link,
+        .wizard-advanced-search a,
+        .wizard-advanced-search .wizard-advanced-search-link {
           color: white !important;
           background: linear-gradient(135deg, #3B82F6 0%, #1D4ED8 100%) !important;
           text-decoration: none !important;
@@ -1934,22 +1953,22 @@ const LoadingDisplay: React.FC = () => {
         }
 
         .wizard-preview-list {
-          display: grid;
-          grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-          gap: 1.5rem;
-          margin-top: 1.5rem;
+          display: grid !important;
+          grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)) !important;
+          gap: 1.5rem !important;
+          margin-top: 1.5rem !important;
         }
 
         .wizard-preview-item {
-          background: rgba(255, 255, 255, 0.9);
-          backdrop-filter: blur(10px);
-          border-radius: 1.5rem;
-          border: 1px solid rgba(229, 231, 235, 0.5);
-          box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1);
-          overflow: hidden;
-          cursor: pointer;
-          transition: all 0.3s ease;
-          animation: slideInUp 0.6s ease-out both;
+          background: rgba(255, 255, 255, 0.9) !important;
+          backdrop-filter: blur(10px) !important;
+          border-radius: 1.5rem !important;
+          border: 1px solid rgba(229, 231, 235, 0.5) !important;
+          box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1) !important;
+          overflow: hidden !important;
+          cursor: pointer !important;
+          transition: all 0.3s ease !important;
+          animation: slideInUp 0.6s ease-out both !important;
           padding: 0;
         }
 
