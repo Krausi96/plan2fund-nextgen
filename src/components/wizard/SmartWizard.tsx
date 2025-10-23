@@ -2,6 +2,8 @@ import React, { useState, useEffect, useRef } from 'react';
 import { QuestionEngine, SymptomQuestion } from '../../lib/questionEngine';
 import { IntakeEngine } from '../../lib/intakeEngine';
 import { scoreProgramsEnhanced, EnhancedProgramResult } from '../../lib/enhancedRecoEngine';
+import { useI18n } from '../../contexts/I18nContext';
+import Link from 'next/link';
 
 interface SmartWizardProps {
   onComplete?: (results: EnhancedProgramResult[]) => void;
@@ -25,9 +27,16 @@ interface WizardState {
   estimatedTime?: number;
   difficulty?: 'easy' | 'medium' | 'hard';
   aiGuidance?: string;
+  // NEW: Navigation state
+  currentQuestionIndex: number;
+  totalQuestions: number;
+  canGoBack: boolean;
+  canGoForward: boolean;
+  questionHistory: string[];
 }
 
 const SmartWizard: React.FC<SmartWizardProps> = ({ onComplete, onProfileGenerated }) => {
+  const { t } = useI18n();
   const [state, setState] = useState<WizardState>({
     currentQuestion: null,
     answers: {},
@@ -36,7 +45,12 @@ const SmartWizard: React.FC<SmartWizardProps> = ({ onComplete, onProfileGenerate
     results: [],
     profile: null,
     showResults: false,
-    progress: 0
+    progress: 0,
+    currentQuestionIndex: 0,
+    totalQuestions: 0,
+    canGoBack: false,
+    canGoForward: true,
+    questionHistory: []
   });
 
   const [questionEngine, setQuestionEngine] = useState<QuestionEngine | null>(null);
@@ -94,10 +108,41 @@ const SmartWizard: React.FC<SmartWizardProps> = ({ onComplete, onProfileGenerate
     initEngines();
   }, []);
 
+  // Navigation functions
+  const goToPreviousQuestion = () => {
+    if (state.canGoBack && state.questionHistory.length > 0) {
+      const previousQuestionId = state.questionHistory[state.questionHistory.length - 1];
+      setState(prev => ({
+        ...prev,
+        currentQuestionIndex: prev.currentQuestionIndex - 1,
+        canGoBack: prev.currentQuestionIndex > 1,
+        canGoForward: true,
+        questionHistory: prev.questionHistory.slice(0, -1)
+      }));
+      // Load previous question
+      if (questionEngine) {
+        const question = questionEngine.getQuestionById(previousQuestionId);
+        if (question) {
+          setState(prev => ({ ...prev, currentQuestion: question }));
+        }
+      }
+    }
+  };
+
+  const goToNextQuestion = () => {
+    if (state.canGoForward && state.currentQuestion) {
+      // This will be handled by the normal question flow
+      // The handleAnswer function will move to the next question
+    }
+  };
+
   const handleAnswer = async (answer: any) => {
     if (!state.currentQuestion || !questionEngine || !intakeEngine) return;
 
     const newAnswers = { ...state.answers, [state.currentQuestion.id]: answer };
+    
+    // Add current question to history
+    const updatedHistory = [...state.questionHistory, state.currentQuestion.id];
     
     // Check if we need to generate contextual questions using enhanced logic
     let nextQuestion = await questionEngine.getNextQuestionEnhanced(newAnswers);
@@ -132,6 +177,11 @@ const SmartWizard: React.FC<SmartWizardProps> = ({ onComplete, onProfileGenerate
       answers: newAnswers,
       currentQuestion: nextQuestion,
       progress: prev.progress + (100 / 12), // Assuming 12 questions total (8 generic + 4 program-specific)
+      currentQuestionIndex: nextQuestion ? prev.currentQuestionIndex + 1 : prev.currentQuestionIndex,
+      totalQuestions: Math.max(prev.totalQuestions, prev.currentQuestionIndex + 2),
+      canGoBack: true,
+      canGoForward: nextQuestion ? true : false,
+      questionHistory: updatedHistory,
       // NEW: Enhanced validation and guidance
       validationErrors: validation.errors,
       validationWarnings: validation.warnings,
@@ -188,7 +238,12 @@ const SmartWizard: React.FC<SmartWizardProps> = ({ onComplete, onProfileGenerate
       results: [],
       profile: null,
       showResults: false,
-      progress: 0
+      progress: 0,
+      currentQuestionIndex: 0,
+      totalQuestions: 0,
+      canGoBack: false,
+      canGoForward: true,
+      questionHistory: []
     });
     setAnimationKey(prev => prev + 1);
     
@@ -216,19 +271,19 @@ const SmartWizard: React.FC<SmartWizardProps> = ({ onComplete, onProfileGenerate
 
   const getPhaseTitle = (phase: number) => {
     switch (phase) {
-      case 1: return "Discover Your Needs";
-      case 2: return "Refine Your Profile";
-      case 3: return "Perfect Match";
-      default: return "Getting Started";
+      case 1: return t('wizard.phase1.title');
+      case 2: return t('wizard.phase2.title');
+      case 3: return t('wizard.phase3.title');
+      default: return t('wizard.phase.default.title');
     }
   };
 
   const getPhaseDescription = (phase: number) => {
     switch (phase) {
-      case 1: return "Let's understand what you're looking for";
-      case 2: return "Help us understand your specific situation";
-      case 3: return "Final details to find your perfect match";
-      default: return "We'll guide you through finding the right funding";
+      case 1: return t('wizard.phase1.description');
+      case 2: return t('wizard.phase2.description');
+      case 3: return t('wizard.phase3.description');
+      default: return t('wizard.phase.default.description');
     }
   };
 
@@ -252,9 +307,16 @@ const SmartWizard: React.FC<SmartWizardProps> = ({ onComplete, onProfileGenerate
           <div className="wizard-logo">
             <div className="wizard-logo-icon">✨</div>
             <div>
-              <h1 className="wizard-title">Funding Wizard</h1>
-              <p className="wizard-subtitle">Find your perfect funding match</p>
+              <h1 className="wizard-title">{t('reco.title')}</h1>
+              <p className="wizard-subtitle">{t('reco.subtitle')}</p>
             </div>
+          </div>
+          
+          {/* Advanced Search Link */}
+          <div className="wizard-advanced-search">
+            <Link href="/advanced-search" className="wizard-advanced-search-link">
+              {t('nav.advancedSearch')}
+            </Link>
           </div>
           
           {/* Progress Bar */}
@@ -347,12 +409,41 @@ const SmartWizard: React.FC<SmartWizardProps> = ({ onComplete, onProfileGenerate
             </div>
           </div>
 
+          {/* Navigation Controls */}
+          <div className="wizard-navigation">
+            <div className="wizard-navigation-content">
+              <button 
+                onClick={goToPreviousQuestion}
+                disabled={!state.canGoBack}
+                className="wizard-nav-button wizard-nav-back"
+              >
+                <span className="wizard-nav-icon">←</span>
+                {t('wizard.previous')}
+              </button>
+              
+              <div className="wizard-navigation-info">
+                <span className="wizard-question-counter">
+                  {t('navigation.current')} {state.currentQuestionIndex + 1} {t('navigation.of')} {state.totalQuestions || '?'}
+                </span>
+              </div>
+              
+              <button 
+                onClick={goToNextQuestion}
+                disabled={!state.canGoForward}
+                className="wizard-nav-button wizard-nav-next"
+              >
+                {t('wizard.next')}
+                <span className="wizard-nav-icon">→</span>
+              </button>
+            </div>
+          </div>
+
           {/* Answer Summary */}
           {Object.keys(state.answers).length > 0 && (
             <div className="wizard-answer-summary">
               <h4 className="wizard-summary-title">
                 <span className="wizard-summary-icon">✓</span>
-                Your Answers So Far
+                {t('wizard.answersSoFar')}
               </h4>
               <div className="wizard-summary-grid">
                 {Object.entries(state.answers).map(([key, value]) => (
@@ -459,6 +550,103 @@ const SmartWizard: React.FC<SmartWizardProps> = ({ onComplete, onProfileGenerate
           display: flex;
           flex-direction: column;
           gap: 2rem;
+        }
+
+        .wizard-advanced-search {
+          display: flex;
+          align-items: center;
+        }
+
+        .wizard-advanced-search-link {
+          color: #6366f1;
+          text-decoration: none;
+          font-size: 0.875rem;
+          font-weight: 500;
+          padding: 0.5rem 1rem;
+          border: 1px solid #e5e7eb;
+          border-radius: 0.5rem;
+          transition: all 0.2s ease;
+        }
+
+        .wizard-advanced-search-link:hover {
+          background: #f8fafc;
+          border-color: #6366f1;
+        }
+
+        .wizard-navigation {
+          background: rgba(255, 255, 255, 0.8);
+          backdrop-filter: blur(10px);
+          border: 1px solid rgba(229, 231, 235, 0.5);
+          border-radius: 1rem;
+          padding: 1.5rem;
+          margin: 1rem 0;
+        }
+
+        .wizard-navigation-content {
+          display: flex;
+          align-items: center;
+          justify-content: space-between;
+          gap: 1rem;
+        }
+
+        .wizard-nav-button {
+          display: flex;
+          align-items: center;
+          gap: 0.5rem;
+          padding: 0.75rem 1.5rem;
+          border: none;
+          border-radius: 0.75rem;
+          font-size: 0.875rem;
+          font-weight: 500;
+          cursor: pointer;
+          transition: all 0.2s ease;
+        }
+
+        .wizard-nav-back {
+          background: #f8fafc;
+          color: #6b7280;
+          border: 1px solid #e5e7eb;
+        }
+
+        .wizard-nav-back:hover:not(:disabled) {
+          background: #f1f5f9;
+          color: #374151;
+        }
+
+        .wizard-nav-back:disabled {
+          opacity: 0.5;
+          cursor: not-allowed;
+        }
+
+        .wizard-nav-next {
+          background: linear-gradient(135deg, #6366f1, #8b5cf6);
+          color: white;
+        }
+
+        .wizard-nav-next:hover:not(:disabled) {
+          background: linear-gradient(135deg, #5b21b6, #7c3aed);
+        }
+
+        .wizard-nav-next:disabled {
+          opacity: 0.5;
+          cursor: not-allowed;
+        }
+
+        .wizard-navigation-info {
+          display: flex;
+          align-items: center;
+          justify-content: center;
+        }
+
+        .wizard-question-counter {
+          font-size: 0.875rem;
+          color: #6b7280;
+          font-weight: 500;
+        }
+
+        .wizard-nav-icon {
+          font-size: 1rem;
+          font-weight: bold;
         }
 
         .wizard-phase-indicator {
