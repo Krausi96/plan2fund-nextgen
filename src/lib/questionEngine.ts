@@ -373,6 +373,15 @@ export class QuestionEngine {
     
     console.log(`📊 Filtered programs: ${this.programs.length} → ${validPrograms.length} valid programs`);
     
+    // Debug: Log valid programs with their categorized_requirements
+    validPrograms.forEach((program, index) => {
+      if (index < 3) { // Log first 3 programs for debugging
+        console.log(`🔍 Program ${index + 1}: ${program.name}`, {
+          categorized_requirements: program.categorized_requirements
+        });
+      }
+    });
+    
     // Performance optimization for large datasets
     const maxProgramsToProcess = Math.min(validPrograms.length, 100);
     const programsToProcess = validPrograms.slice(0, maxProgramsToProcess);
@@ -386,6 +395,9 @@ export class QuestionEngine {
     for (const program of programsToProcess) {
       if (program.categorized_requirements) {
         const questions = this.generateQuestionsFromCategorizedRequirements(program);
+        if (questions.length > 0) {
+          console.log(`✅ Generated ${questions.length} questions from program: ${program.name}`);
+        }
         overlayQuestions.push(...questions);
       }
     }
@@ -413,9 +425,13 @@ export class QuestionEngine {
   private generateQuestionsFromCategorizedRequirements(program: Program): SymptomQuestion[] {
     const questions: SymptomQuestion[] = [];
     
-    if (!program.categorized_requirements) return questions;
+    if (!program.categorized_requirements) {
+      console.log(`⚠️ No categorized_requirements for program: ${program.name}`);
+      return questions;
+    }
     
     const categories = program.categorized_requirements;
+    console.log(`🔍 Processing categories for ${program.name}:`, Object.keys(categories));
     
     // Map categories to question types
     const categoryMappings = {

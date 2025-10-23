@@ -493,12 +493,36 @@ const SmartWizard: React.FC<SmartWizardProps> = ({ onComplete, onProfileGenerate
                       <div className="wizard-preview-list">
                         {state.programPreview.slice(0, 3).map((program, index) => (
                           <div key={program.id || index} className="wizard-preview-item">
-                            <div className="wizard-preview-rank">#{index + 1}</div>
-                            <div className="wizard-preview-content">
-                              <div className="wizard-preview-name">{program.name || 'Unknown Program'}</div>
-                              <div className="wizard-preview-score">
-                                {Math.round((program.score || 0) * 100)}% {t('wizard.match')}
+                            <div className="wizard-preview-header">
+                              <div className="wizard-preview-title-section">
+                                <div className="wizard-preview-name">{program.name || 'Unknown Program'}</div>
+                                <div className="wizard-preview-institution">
+                                  <span>🏛️</span>
+                                  <span>{program.institution || 'Funding Institution'}</span>
+                                </div>
                               </div>
+                              <div className="wizard-preview-score-section">
+                                <div className="wizard-preview-score-badge">
+                                  ⭐ {Math.round((program.score || 0) * 100)}%
+                                </div>
+                                <div className="wizard-preview-priority-text">High Match</div>
+                              </div>
+                            </div>
+                            
+                            <div className="wizard-preview-body">
+                              <div className="wizard-preview-description">
+                                {program.description || 'A great funding opportunity that matches your project requirements.'}
+                              </div>
+                              <div className="wizard-preview-tags">
+                                <span className="wizard-preview-tag">💰 {program.fundingType || 'Grant'}</span>
+                                <span className="wizard-preview-tag">🎯 {program.category || 'Innovation'}</span>
+                                <span className="wizard-preview-tag">📅 {program.deadline || 'Open'}</span>
+                              </div>
+                            </div>
+                            
+                            <div className="wizard-preview-footer">
+                              <span>Click to view details</span>
+                              <span className="wizard-preview-arrow">→</span>
                             </div>
                           </div>
                         ))}
@@ -639,24 +663,25 @@ const SmartWizard: React.FC<SmartWizardProps> = ({ onComplete, onProfileGenerate
 
         .wizard-advanced-search-link {
           color: white !important;
-          background: #2563EB !important;
+          background: linear-gradient(135deg, #3B82F6 0%, #1D4ED8 100%) !important;
           text-decoration: none;
-          font-size: 0.875rem;
-          font-weight: 600;
-          padding: 0.75rem 1.5rem;
-          border: 1px solid #2563EB !important;
+          font-size: 1rem;
+          font-weight: 700;
+          padding: 1rem 2rem;
+          border: none !important;
           border-radius: 0.75rem;
           transition: all 0.2s ease;
           display: inline-block;
-          box-shadow: 0 4px 8px rgba(37, 99, 235, 0.3);
+          box-shadow: 0 6px 16px rgba(59, 130, 246, 0.4);
+          text-transform: uppercase;
+          letter-spacing: 0.5px;
         }
 
         .wizard-advanced-search-link:hover {
-          background: #2563EB !important;
-          border-color: #2563EB !important;
+          background: linear-gradient(135deg, #1D4ED8 0%, #1E40AF 100%) !important;
           color: white !important;
-          box-shadow: 0 4px 8px rgba(59, 130, 246, 0.3);
-          transform: translateY(-1px);
+          box-shadow: 0 8px 20px rgba(59, 130, 246, 0.5);
+          transform: translateY(-2px);
         }
 
         .wizard-navigation {
@@ -1784,13 +1809,15 @@ const ProcessingDisplay: React.FC = () => {
 
 // Loading Display Component
 const LoadingDisplay: React.FC = () => {
+  const { t } = useI18n();
+  
   return (
     <div className="loading-container">
       <div className="loading-content">
         <div className="loading-spinner">✨</div>
-        <h2 className="loading-title">Preparing Your Journey</h2>
+        <h2 className="loading-title">{t('wizard.preparingJourney')}</h2>
         <p className="loading-description">
-          Setting up your personalized funding discovery experience...
+          {t('wizard.preparingJourneyDescription')}
         </p>
       </div>
 
@@ -1823,7 +1850,7 @@ const LoadingDisplay: React.FC = () => {
         .loading-spinner {
           width: 4rem;
           height: 4rem;
-          background: linear-gradient(135deg, #6366f1, #8b5cf6);
+          background: linear-gradient(135deg, #3B82F6, #1D4ED8);
           border-radius: 50%;
           display: flex;
           align-items: center;
@@ -1831,6 +1858,7 @@ const LoadingDisplay: React.FC = () => {
           font-size: 2rem;
           margin: 0 auto 1.5rem;
           animation: breathe 2s ease-in-out infinite;
+          box-shadow: 0 8px 25px rgba(59, 130, 246, 0.3);
         }
 
         @keyframes breathe {
@@ -1927,60 +1955,141 @@ const LoadingDisplay: React.FC = () => {
 
         .wizard-preview-list {
           display: grid;
-          grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-          gap: 1rem;
-          margin-top: 1rem;
+          grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+          gap: 1.5rem;
+          margin-top: 1.5rem;
         }
 
         .wizard-preview-item {
-          display: flex;
-          flex-direction: row;
-          align-items: center;
-          gap: 1rem;
-          padding: 1rem;
-          background: white;
-          border-radius: 0.75rem;
-          border: 1px solid #7dd3fc;
-          box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-          transition: all 0.2s ease;
+          background: rgba(255, 255, 255, 0.9);
+          backdrop-filter: blur(10px);
+          border-radius: 1.5rem;
+          border: 1px solid rgba(229, 231, 235, 0.5);
+          box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1);
+          overflow: hidden;
+          cursor: pointer;
+          transition: all 0.3s ease;
+          animation: slideInUp 0.6s ease-out both;
+          padding: 0;
         }
 
         .wizard-preview-item:hover {
-          transform: translateY(-2px);
-          box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
+          transform: translateY(-4px) scale(1.02);
+          box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
         }
 
-        .wizard-preview-rank {
-          flex-shrink: 0;
-          width: 2rem;
-          height: 2rem;
-          background: #0ea5e9;
-          color: white;
-          border-radius: 50%;
+        @keyframes slideInUp {
+          from {
+            opacity: 0;
+            transform: translateY(20px);
+          }
+          to {
+            opacity: 1;
+            transform: translateY(0);
+          }
+        }
+
+        .wizard-preview-header {
+          padding: 1.5rem;
+          border-bottom: 1px solid #f3f4f6;
           display: flex;
-          align-items: center;
-          justify-content: center;
-          font-size: 0.875rem;
-          font-weight: 700;
+          justify-content: space-between;
+          align-items: flex-start;
         }
 
-        .wizard-preview-content {
+        .wizard-preview-title-section {
           flex: 1;
-          text-align: left;
         }
 
         .wizard-preview-name {
-          font-size: 0.875rem;
-          font-weight: 600;
-          color: #0c4a6e;
-          margin-bottom: 0.25rem;
-          line-height: 1.3;
+          font-size: 1.25rem;
+          font-weight: 700;
+          color: #111827;
+          margin: 0 0 0.5rem 0;
+          transition: color 0.2s ease;
         }
 
-        .wizard-preview-score {
+        .wizard-preview-item:hover .wizard-preview-name {
+          color: #6366f1;
+        }
+
+        .wizard-preview-institution {
+          display: flex;
+          align-items: center;
+          gap: 0.5rem;
+          font-size: 0.875rem;
+          color: #6b7280;
+        }
+
+        .wizard-preview-score-section {
+          display: flex;
+          flex-direction: column;
+          align-items: flex-end;
+          gap: 0.5rem;
+        }
+
+        .wizard-preview-score-badge {
+          padding: 0.5rem 0.75rem;
+          border-radius: 9999px;
+          color: white;
+          font-size: 0.875rem;
+          font-weight: 700;
+          display: flex;
+          align-items: center;
+          gap: 0.25rem;
+          background: linear-gradient(135deg, #10b981, #059669);
+        }
+
+        .wizard-preview-priority-text {
           font-size: 0.75rem;
-          color: #0369a1;
+          color: #6b7280;
+          text-transform: capitalize;
+        }
+
+        .wizard-preview-body {
+          padding: 1.5rem;
+        }
+
+        .wizard-preview-description {
+          color: #6b7280;
+          line-height: 1.6;
+          font-size: 0.875rem;
+          margin-bottom: 1rem;
+        }
+
+        .wizard-preview-tags {
+          display: flex;
+          flex-wrap: wrap;
+          gap: 0.5rem;
+        }
+
+        .wizard-preview-tag {
+          padding: 0.25rem 0.75rem;
+          background: #f3f4f6;
+          color: #374151;
+          border-radius: 9999px;
+          font-size: 0.75rem;
           font-weight: 500;
+        }
+
+        .wizard-preview-footer {
+          padding: 1rem 1.5rem;
+          background: rgba(249, 250, 251, 0.5);
+          border-top: 1px solid #f3f4f6;
+          display: flex;
+          align-items: center;
+          justify-content: space-between;
+          font-size: 0.875rem;
+          color: #6b7280;
+        }
+
+        .wizard-preview-arrow {
+          transition: all 0.2s ease;
+        }
+
+        .wizard-preview-item:hover .wizard-preview-arrow {
+          color: #6366f1;
+          transform: translateX(4px);
         }
 
         .wizard-final-preview-actions {
