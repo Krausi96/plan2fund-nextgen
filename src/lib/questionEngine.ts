@@ -1330,9 +1330,17 @@ export class QuestionEngine {
     const overlayQuestions: SymptomQuestion[] = [];
 
     console.log(`🔄 Computing overlay questions from ${this.programs.length} programs...`);
+    
+    // Performance optimization for large datasets
+    const maxProgramsToProcess = Math.min(this.programs.length, 100); // Limit to 100 programs for performance
+    const programsToProcess = this.programs.slice(0, maxProgramsToProcess);
+    
+    if (this.programs.length > 100) {
+      console.log(`⚠️ Large dataset detected (${this.programs.length} programs). Processing first 100 for performance.`);
+    }
 
     // Analyze each program's requirements to generate overlay questions
-    for (const program of this.programs) {
+    for (const program of programsToProcess) {
       console.log(`🔍 Processing program ${program.id}:`, {
         hasCategorizedRequirements: !!program.categorized_requirements,
         categorizedRequirementsKeys: program.categorized_requirements ? Object.keys(program.categorized_requirements) : []
@@ -1361,7 +1369,18 @@ export class QuestionEngine {
     this.overlayQuestions = this.deduplicateAndSortQuestions(overlayQuestions, questionStats);
     this.questionStats = questionStats;
 
-    console.log(`✅ Computed ${this.overlayQuestions.length} overlay questions`);
+    console.log(`✅ Computed ${this.overlayQuestions.length} overlay questions from ${programsToProcess.length} programs`);
+    
+    // Log performance metrics for large datasets
+    if (this.programs.length > 50) {
+      console.log(`📊 Performance metrics:`, {
+        totalPrograms: this.programs.length,
+        processedPrograms: programsToProcess.length,
+        generatedQuestions: overlayQuestions.length,
+        finalQuestions: this.overlayQuestions.length,
+        efficiency: `${Math.round((this.overlayQuestions.length / programsToProcess.length) * 100)}%`
+      });
+    }
   }
 
   // NEW: Calculate question statistics (from dynamicQuestionEngine.ts)
@@ -1587,7 +1606,7 @@ export class QuestionEngine {
 
   // NEW: Get overlay questions (from dynamicQuestionEngine.ts)
   public getOverlayQuestions(): SymptomQuestion[] {
-    return this.overlayQuestions.slice(0, 10); // Top 10 overlay questions
+    return this.overlayQuestions.slice(0, 50); // Top 50 overlay questions for better coverage
   }
 
   // NEW: Get next question with enhanced logic (from dynamicQuestionEngine.ts)
