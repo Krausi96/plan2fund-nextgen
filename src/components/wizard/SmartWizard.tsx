@@ -356,18 +356,18 @@ const SmartWizard: React.FC<SmartWizardProps> = ({ onComplete, onProfileGenerate
               href="/advanced-search" 
               className="wizard-advanced-search-link"
               style={{
-                color: 'white !important',
-                background: 'linear-gradient(135deg, #3B82F6 0%, #1D4ED8 100%) !important',
-                textDecoration: 'none !important',
-                fontSize: '1rem !important',
-                fontWeight: '700 !important',
-                padding: '1rem 2rem !important',
-                border: 'none !important',
-                borderRadius: '0.75rem !important',
-                display: 'inline-block !important',
-                boxShadow: '0 6px 16px rgba(59, 130, 246, 0.4) !important',
-                textTransform: 'uppercase !important',
-                letterSpacing: '0.5px !important'
+                color: 'white',
+                background: 'linear-gradient(135deg, #3B82F6 0%, #1D4ED8 100%)',
+                textDecoration: 'none',
+                fontSize: '1rem',
+                fontWeight: '700',
+                padding: '1rem 2rem',
+                border: 'none',
+                borderRadius: '0.75rem',
+                display: 'inline-block',
+                boxShadow: '0 6px 16px rgba(59, 130, 246, 0.4)',
+                textTransform: 'uppercase',
+                letterSpacing: '0.5px'
               }}
             >
               {t('nav.advancedSearch')}
