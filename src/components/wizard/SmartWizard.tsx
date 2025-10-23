@@ -372,14 +372,6 @@ const SmartWizard: React.FC<SmartWizardProps> = ({ onComplete, onProfileGenerate
       {/* Main Content */}
       <div className="wizard-main">
         <div className="wizard-content">
-          {/* Phase Indicator */}
-          <div className="wizard-phase-indicator">
-            <div className="wizard-phase-icon">{getPhaseIcon(state.currentPhase)}</div>
-            <div>
-              <h2 className="wizard-phase-title">{getPhaseTitle(state.currentPhase)}</h2>
-              <p className="wizard-phase-description">{getPhaseDescription(state.currentPhase)}</p>
-            </div>
-          </div>
 
           {/* Question Card */}
           <div className="wizard-question-card" key={animationKey}>
@@ -515,6 +507,18 @@ const SmartWizard: React.FC<SmartWizardProps> = ({ onComplete, onProfileGenerate
           font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
         }
 
+        .wizard-main {
+          max-width: 64rem;
+          margin: 0 auto;
+          padding: 1rem 1.5rem;
+        }
+
+        .wizard-content {
+          display: flex;
+          flex-direction: column;
+          gap: 1.5rem;
+        }
+
         .wizard-header {
           background: rgba(255, 255, 255, 0.8);
           backdrop-filter: blur(10px);
@@ -607,19 +611,20 @@ const SmartWizard: React.FC<SmartWizardProps> = ({ onComplete, onProfileGenerate
         }
 
         .wizard-advanced-search-link {
-          color: #6366f1;
+          color: white;
+          background: #3B82F6;
           text-decoration: none;
           font-size: 0.875rem;
           font-weight: 500;
           padding: 0.5rem 1rem;
-          border: 1px solid #e5e7eb;
+          border: 1px solid #3B82F6;
           border-radius: 0.5rem;
           transition: all 0.2s ease;
         }
 
         .wizard-advanced-search-link:hover {
-          background: #f8fafc;
-          border-color: #6366f1;
+          background: #2563EB;
+          border-color: #2563EB;
         }
 
         .wizard-navigation {
@@ -668,12 +673,12 @@ const SmartWizard: React.FC<SmartWizardProps> = ({ onComplete, onProfileGenerate
         }
 
         .wizard-nav-next {
-          background: linear-gradient(135deg, #6366f1, #8b5cf6);
+          background: #3B82F6;
           color: white;
         }
 
         .wizard-nav-next:hover:not(:disabled) {
-          background: linear-gradient(135deg, #5b21b6, #7c3aed);
+          background: #2563EB;
         }
 
         .wizard-nav-next:disabled {
