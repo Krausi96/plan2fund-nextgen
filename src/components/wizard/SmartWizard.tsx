@@ -473,28 +473,18 @@ const SmartWizard: React.FC<SmartWizardProps> = ({ onComplete, onProfileGenerate
               
               {showAnswersSummary && (
                 <div className="wizard-summary-content">
-                  <div className="wizard-summary-grid">
-                    {Object.entries(state.answers).map(([key, value]) => (
-                      <div key={key} className="wizard-summary-item">
-                        <div className="wizard-summary-dot"></div>
-                        <span className="wizard-summary-label">{formatAnswerKey(key)}:</span>
-                        <span className="wizard-summary-value">{formatAnswerValue(key, value)}</span>
-                      </div>
-                    ))}
-                  </div>
-                  
-                  {/* Program Preview */}
+                  {/* Program Preview - Show first if available */}
                   {state.programPreview && state.programPreview.length > 0 && (
                     <div className="wizard-program-preview">
-                      <h4 className="wizard-preview-title">🎯 Top Matches So Far</h4>
-                      <div className="wizard-preview-grid">
-                        {state.programPreview.map((program, index) => (
+                      <h4 className="wizard-preview-title">🎯 {t('wizard.topMatches')}</h4>
+                      <div className="wizard-preview-list">
+                        {state.programPreview.slice(0, 3).map((program, index) => (
                           <div key={program.id || index} className="wizard-preview-item">
                             <div className="wizard-preview-rank">#{index + 1}</div>
                             <div className="wizard-preview-content">
-                              <div className="wizard-preview-name">{program.name}</div>
+                              <div className="wizard-preview-name">{program.name || 'Unknown Program'}</div>
                               <div className="wizard-preview-score">
-                                {Math.round(program.score * 100)}% match
+                                {Math.round((program.score || 0) * 100)}% {t('wizard.match')}
                               </div>
                             </div>
                           </div>
@@ -502,6 +492,19 @@ const SmartWizard: React.FC<SmartWizardProps> = ({ onComplete, onProfileGenerate
                       </div>
                     </div>
                   )}
+                  
+                  {/* Answer Summary - Show second */}
+                  <div className="wizard-answers-list">
+                    <h4 className="wizard-answers-title">{t('wizard.yourAnswers')}</h4>
+                    <div className="wizard-answers-grid">
+                      {Object.entries(state.answers).map(([key, value]) => (
+                        <div key={key} className="wizard-answer-item">
+                          <span className="wizard-answer-label">{formatAnswerKey(key)}:</span>
+                          <span className="wizard-answer-value">{formatAnswerValue(key, value)}</span>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
                 </div>
               )}
             </div>
@@ -618,16 +621,16 @@ const SmartWizard: React.FC<SmartWizardProps> = ({ onComplete, onProfileGenerate
 
         .wizard-advanced-search-link {
           color: white !important;
-          background: #3B82F6 !important;
+          background: #2563EB !important;
           text-decoration: none;
           font-size: 0.875rem;
           font-weight: 600;
           padding: 0.75rem 1.5rem;
-          border: 1px solid #3B82F6 !important;
+          border: 1px solid #2563EB !important;
           border-radius: 0.75rem;
           transition: all 0.2s ease;
           display: inline-block;
-          box-shadow: 0 2px 4px rgba(59, 130, 246, 0.2);
+          box-shadow: 0 4px 8px rgba(37, 99, 235, 0.3);
         }
 
         .wizard-advanced-search-link:hover {
@@ -1882,6 +1885,113 @@ const LoadingDisplay: React.FC = () => {
           color: #6b7280;
           font-size: 0.875rem;
           transition: transform 0.2s ease;
+        }
+
+        .wizard-program-preview {
+          margin-bottom: 1.5rem;
+          padding: 1rem;
+          background: linear-gradient(135deg, #f0f9ff, #e0f2fe);
+          border-radius: 0.75rem;
+          border: 1px solid #bae6fd;
+        }
+
+        .wizard-preview-title {
+          font-size: 1rem;
+          font-weight: 600;
+          color: #0c4a6e;
+          margin: 0 0 1rem 0;
+          display: flex;
+          align-items: center;
+          gap: 0.5rem;
+        }
+
+        .wizard-preview-list {
+          display: flex;
+          flex-direction: column;
+          gap: 0.75rem;
+        }
+
+        .wizard-preview-item {
+          display: flex;
+          align-items: center;
+          gap: 1rem;
+          padding: 0.75rem;
+          background: white;
+          border-radius: 0.5rem;
+          border: 1px solid #7dd3fc;
+          box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+        }
+
+        .wizard-preview-rank {
+          flex-shrink: 0;
+          width: 2rem;
+          height: 2rem;
+          background: #0ea5e9;
+          color: white;
+          border-radius: 50%;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          font-size: 0.875rem;
+          font-weight: 700;
+        }
+
+        .wizard-preview-content {
+          flex: 1;
+        }
+
+        .wizard-preview-name {
+          font-size: 0.875rem;
+          font-weight: 600;
+          color: #0c4a6e;
+          margin-bottom: 0.25rem;
+        }
+
+        .wizard-preview-score {
+          font-size: 0.75rem;
+          color: #0369a1;
+          font-weight: 500;
+        }
+
+        .wizard-answers-list {
+          margin-top: 1rem;
+        }
+
+        .wizard-answers-title {
+          font-size: 0.875rem;
+          font-weight: 600;
+          color: #374151;
+          margin: 0 0 0.75rem 0;
+        }
+
+        .wizard-answers-grid {
+          display: grid;
+          grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+          gap: 0.5rem;
+        }
+
+        .wizard-answer-item {
+          display: flex;
+          flex-direction: column;
+          gap: 0.25rem;
+          padding: 0.5rem;
+          background: #f9fafb;
+          border-radius: 0.375rem;
+          border: 1px solid #e5e7eb;
+        }
+
+        .wizard-answer-label {
+          font-size: 0.75rem;
+          font-weight: 500;
+          color: #6b7280;
+          text-transform: uppercase;
+          letter-spacing: 0.05em;
+        }
+
+        .wizard-answer-value {
+          font-size: 0.875rem;
+          font-weight: 500;
+          color: #374151;
         }
 
         .wizard-summary-content {

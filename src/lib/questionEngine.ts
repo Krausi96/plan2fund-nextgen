@@ -500,30 +500,30 @@ export class QuestionEngine {
       },
       {
         id: 'main_goal',
-        symptom: 'What\'s your main goal?',
+        symptom: 'wizard.questions.mainGoal',
         type: 'single-select',
         options: [
           {
             value: 'launch_product',
-            label: 'Launch my product/service',
+            label: 'wizard.options.launchProduct',
             fundingTypes: ['grants', 'equity'],
             nextQuestions: ['innovation_level']
           },
           {
             value: 'expand_market',
-            label: 'Expand to new markets',
+            label: 'wizard.options.expandMarket',
             fundingTypes: ['loans', 'grants'],
             nextQuestions: ['revenue_level', 'team_size']
           },
           {
             value: 'develop_tech',
-            label: 'Develop new technology',
+            label: 'wizard.options.developTech',
             fundingTypes: ['grants', 'equity'],
             nextQuestions: ['innovation_level', 'research_focus']
           },
           {
             value: 'hire_team',
-            label: 'Hire more people',
+            label: 'wizard.options.hireTeam',
             fundingTypes: ['grants', 'loans'],
             nextQuestions: ['team_size', 'business_stage']
           }
