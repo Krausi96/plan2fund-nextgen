@@ -33,6 +33,7 @@
   "wizard.questions.fundingObjective": "Was ist Ihr primäres Finanzierungsziel?",
   "wizard.questions.businessStage": "In welcher Entwicklungsphase befindet sich Ihr Unternehmen?",
   "wizard.questions.mainGoal": "Was ist Ihr Hauptgeschäftsziel?",
+  "wizard.questions.fundingType": "Welche Art von Finanzierung suchen Sie?",
   "wizard.questions.fundingAmount": "Wie hoch ist Ihr Finanzierungsbedarf?",
   "wizard.questions.organizationType": "Welche Art von Organisation sind Sie?",
   "wizard.questions.coFinancing": "Haben Sie Eigenmittel oder Matching-Funds verfügbar?",

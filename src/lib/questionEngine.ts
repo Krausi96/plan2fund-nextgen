@@ -269,81 +269,193 @@ export class QuestionEngine {
   }
 
   /**
-   * Initialize core questions
+   * Initialize DYNAMIC core questions based on actual program data
    */
   private initializeQuestions(): void {
-    this.questions = [
-      {
-        id: 'funding_need',
-        symptom: "wizard.questions.fundingObjective",
+    console.log('🔄 Generating DYNAMIC core questions from program data...');
+    
+    // Analyze program data to generate core questions
+    const programTypes = new Set(this.programs.map(p => p.type || (p as any).program_type));
+    const fundingAmounts = this.programs
+      .map(p => (p as any).funding_amount_max || (p as any).funding_amount || (p as any).maxAmount || 0)
+      .filter(amount => amount > 0);
+    
+    this.questions = [];
+    
+    // Core Question 1: Funding Type (based on actual program types)
+    if (programTypes.size > 0) {
+      this.questions.push({
+        id: 'funding_type',
+        symptom: 'wizard.questions.fundingType',
         type: 'single-select',
-        options: [
-          { value: 'need_money_start', label: 'wizard.options.launchBusiness', fundingTypes: ['grants', 'equity'], nextQuestions: ['business_stage', 'innovation_level'] },
-          { value: 'need_money_grow', label: 'wizard.options.scaleOperations', fundingTypes: ['loans', 'grants', 'equity'], nextQuestions: ['business_stage', 'revenue_level'] },
-          { value: 'need_money_research', label: 'wizard.options.developTechnology', fundingTypes: ['grants', 'equity'], nextQuestions: ['innovation_level', 'research_focus'] },
-          { value: 'need_money_team', label: 'wizard.options.buildTeam', fundingTypes: ['grants', 'loans'], nextQuestions: ['team_size', 'business_stage'] }
-        ],
+        options: Array.from(programTypes).map(type => ({
+          value: type,
+          label: `wizard.options.${type}`,
+          fundingTypes: [type]
+        })),
         required: true,
         category: 'funding_need',
-        phase: 1
-      },
-      {
-        id: 'business_stage',
-        symptom: 'wizard.questions.businessStage',
-        type: 'single-select',
-        options: [
-          { value: 'just_idea', label: 'wizard.options.conceptPhase', fundingTypes: ['grants', 'equity'], nextQuestions: ['innovation_level'] },
-          { value: 'building', label: 'wizard.options.developmentPhase', fundingTypes: ['grants', 'equity', 'loans'], nextQuestions: ['innovation_level', 'team_size'] },
-          { value: 'selling', label: 'wizard.options.marketEntry', fundingTypes: ['loans', 'grants', 'equity'], nextQuestions: ['revenue_level', 'team_size'] },
-          { value: 'growing', label: 'wizard.options.growthPhase', fundingTypes: ['loans', 'equity'], nextQuestions: ['revenue_level', 'expansion_plans'] }
-        ],
-        required: true,
-        category: 'business_stage',
-        phase: 1
-      },
-      {
-        id: 'main_goal',
-        symptom: 'wizard.questions.mainGoal',
-        type: 'single-select',
-        options: [
-          { value: 'launch_product', label: 'wizard.options.launchProduct', fundingTypes: ['grants', 'equity'], nextQuestions: ['innovation_level'] },
-          { value: 'expand_market', label: 'wizard.options.expandMarket', fundingTypes: ['loans', 'grants'], nextQuestions: ['revenue_level', 'team_size'] },
-          { value: 'develop_tech', label: 'wizard.options.developTech', fundingTypes: ['grants', 'equity'], nextQuestions: ['innovation_level', 'research_focus'] },
-          { value: 'hire_team', label: 'wizard.options.hireTeam', fundingTypes: ['grants', 'loans'], nextQuestions: ['team_size', 'business_stage'] }
-        ],
-        required: true,
-        category: 'funding_need',
-        phase: 1
-      },
-      {
-        id: 'funding_amount',
-        symptom: 'wizard.questions.fundingAmount',
-        type: 'single-select',
-        options: [
-          { value: 'under_50k', label: 'wizard.options.under50k', fundingTypes: ['grants', 'loans'] },
-          { value: '50k_100k', label: 'wizard.options.50k100k', fundingTypes: ['grants', 'loans', 'equity'] },
-          { value: '100k_500k', label: 'wizard.options.100k500k', fundingTypes: ['grants', 'loans', 'equity'] },
-          { value: 'over_500k', label: 'wizard.options.over500k', fundingTypes: ['loans', 'equity'] }
-        ],
-        required: true,
-        category: 'specific_requirements',
-        phase: 1
-      },
-      {
+        phase: 1,
+        isCoreQuestion: true
+      });
+    }
+    
+    // Core Question 2: Organization Type (based on program descriptions)
+    const hasStartupPrograms = this.programs.some(p => 
+      (p as any).description?.toLowerCase().includes('startup') ||
+      (p as any).description?.toLowerCase().includes('gründer')
+    );
+    const hasSMEPrograms = this.programs.some(p => 
+      (p as any).description?.toLowerCase().includes('kmu') ||
+      (p as any).description?.toLowerCase().includes('sme')
+    );
+    const hasResearchPrograms = this.programs.some(p => 
+      (p as any).description?.toLowerCase().includes('research') ||
+      (p as any).description?.toLowerCase().includes('forschung')
+    );
+    
+    if (hasStartupPrograms || hasSMEPrograms || hasResearchPrograms) {
+      const orgOptions = [];
+      if (hasStartupPrograms) orgOptions.push({ value: 'startup', label: 'wizard.options.startup', fundingTypes: ['grants', 'equity'] });
+      if (hasSMEPrograms) orgOptions.push({ value: 'sme', label: 'wizard.options.sme', fundingTypes: ['grants', 'loans', 'equity'] });
+      if (hasResearchPrograms) orgOptions.push({ value: 'research', label: 'wizard.options.research', fundingTypes: ['grants'] });
+      orgOptions.push({ value: 'large', label: 'wizard.options.large', fundingTypes: ['loans', 'equity'] });
+      
+      this.questions.push({
         id: 'organization_type',
         symptom: 'wizard.questions.organizationType',
         type: 'single-select',
-        options: [
-          { value: 'startup', label: 'wizard.options.startup', fundingTypes: ['grants', 'equity'] },
-          { value: 'sme', label: 'wizard.options.sme', fundingTypes: ['grants', 'loans', 'equity'] },
-          { value: 'large', label: 'wizard.options.large', fundingTypes: ['loans', 'equity'] },
-          { value: 'research', label: 'wizard.options.research', fundingTypes: ['grants'] }
-        ],
+        options: orgOptions,
         required: true,
         category: 'specific_requirements',
-        phase: 1
+        phase: 1,
+        isCoreQuestion: true
+      });
+    }
+    
+    // Core Question 3: Funding Amount (based on actual funding ranges)
+    if (fundingAmounts.length > 0) {
+      const maxAmount = Math.max(...fundingAmounts);
+      const minAmount = Math.min(...fundingAmounts);
+      
+      // Create dynamic funding amount ranges based on actual data
+      const amountOptions = [];
+      
+      if (minAmount < 50000) {
+        amountOptions.push({ 
+          value: 'under_50k', 
+          label: `wizard.options.under50k (€0 - €50,000)`, 
+          fundingTypes: ['grants', 'loans'] 
+        });
       }
-    ];
+      
+      if (maxAmount >= 50000) {
+        amountOptions.push({ 
+          value: '50k_100k', 
+          label: `wizard.options.50k100k (€50,000 - €100,000)`, 
+          fundingTypes: ['grants', 'loans', 'equity'] 
+        });
+      }
+      
+      if (maxAmount >= 100000) {
+        amountOptions.push({ 
+          value: '100k_500k', 
+          label: `wizard.options.100k500k (€100,000 - €500,000)`, 
+          fundingTypes: ['grants', 'loans', 'equity'] 
+        });
+      }
+      
+      if (maxAmount >= 500000) {
+        amountOptions.push({ 
+          value: 'over_500k', 
+          label: `wizard.options.over500k (€500,000+)`, 
+          fundingTypes: ['loans', 'equity'] 
+        });
+      }
+      
+      if (amountOptions.length > 0) {
+        this.questions.push({
+          id: 'funding_amount',
+          symptom: 'wizard.questions.fundingAmount',
+          type: 'single-select',
+          options: amountOptions,
+          required: true,
+          category: 'specific_requirements',
+          phase: 1,
+          isCoreQuestion: true
+        });
+      }
+    }
+    
+    // Core Question 4: Business Stage (based on program focus)
+    const hasEarlyStagePrograms = this.programs.some(p => 
+      (p as any).description?.toLowerCase().includes('idea') ||
+      (p as any).description?.toLowerCase().includes('concept') ||
+      (p as any).description?.toLowerCase().includes('startup')
+    );
+    const hasGrowthPrograms = this.programs.some(p => 
+      (p as any).description?.toLowerCase().includes('growth') ||
+      (p as any).description?.toLowerCase().includes('scale') ||
+      (p as any).description?.toLowerCase().includes('expansion')
+    );
+    
+    if (hasEarlyStagePrograms || hasGrowthPrograms) {
+      const stageOptions = [];
+      if (hasEarlyStagePrograms) {
+        stageOptions.push({ value: 'just_idea', label: 'wizard.options.conceptPhase', fundingTypes: ['grants', 'equity'] });
+        stageOptions.push({ value: 'building', label: 'wizard.options.developmentPhase', fundingTypes: ['grants', 'equity', 'loans'] });
+      }
+      stageOptions.push({ value: 'selling', label: 'wizard.options.marketEntry', fundingTypes: ['loans', 'grants', 'equity'] });
+      if (hasGrowthPrograms) {
+        stageOptions.push({ value: 'growing', label: 'wizard.options.growthPhase', fundingTypes: ['loans', 'equity'] });
+      }
+      
+      this.questions.push({
+        id: 'business_stage',
+        symptom: 'wizard.questions.businessStage',
+        type: 'single-select',
+        options: stageOptions,
+        required: true,
+        category: 'business_stage',
+        phase: 1,
+        isCoreQuestion: true
+      });
+    }
+    
+    // Core Question 5: Main Goal (based on program purposes)
+    const hasInnovationPrograms = this.programs.some(p => 
+      (p as any).description?.toLowerCase().includes('innovation') ||
+      (p as any).description?.toLowerCase().includes('technology')
+    );
+    const hasMarketPrograms = this.programs.some(p => 
+      (p as any).description?.toLowerCase().includes('market') ||
+      (p as any).description?.toLowerCase().includes('commercial')
+    );
+    
+    if (hasInnovationPrograms || hasMarketPrograms) {
+      const goalOptions = [];
+      if (hasInnovationPrograms) {
+        goalOptions.push({ value: 'develop_tech', label: 'wizard.options.developTech', fundingTypes: ['grants', 'equity'] });
+      }
+      goalOptions.push({ value: 'launch_product', label: 'wizard.options.launchProduct', fundingTypes: ['grants', 'equity'] });
+      if (hasMarketPrograms) {
+        goalOptions.push({ value: 'expand_market', label: 'wizard.options.expandMarket', fundingTypes: ['loans', 'grants'] });
+      }
+      goalOptions.push({ value: 'hire_team', label: 'wizard.options.hireTeam', fundingTypes: ['grants', 'loans'] });
+      
+      this.questions.push({
+        id: 'main_goal',
+        symptom: 'wizard.questions.mainGoal',
+        type: 'single-select',
+        options: goalOptions,
+        required: true,
+        category: 'funding_need',
+        phase: 1,
+        isCoreQuestion: true
+      });
+    }
+    
+    console.log(`✅ Generated ${this.questions.length} DYNAMIC core questions from ${this.programs.length} programs`);
   }
 
   /**

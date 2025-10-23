@@ -33,6 +33,7 @@
   "wizard.questions.fundingObjective": "What is your primary funding objective?",
   "wizard.questions.businessStage": "What is your current business development stage?",
   "wizard.questions.mainGoal": "What is your main business goal?",
+  "wizard.questions.fundingType": "What type of funding are you looking for?",
   "wizard.questions.fundingAmount": "What is your funding requirement?",
   "wizard.questions.organizationType": "What type of organization are you?",
   "wizard.questions.coFinancing": "Do you have co-financing or matching funds available?",
