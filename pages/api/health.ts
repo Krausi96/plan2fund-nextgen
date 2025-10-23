@@ -21,14 +21,14 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       SOURCE_REGISTER: true
     };
 
-    // Modules that read programs.json (single source of truth)
+    // Modules that use Enhanced Data Pipeline
     const programsModules = [
-      "src/components/reco/Wizard.tsx",
-      "pages/results.tsx",
+      "src/components/wizard/SmartWizard.tsx",
+      "pages/reco.tsx",
       "src/lib/enhancedRecoEngine.ts",
-      "src/lib/dynamicWizard.ts",
-      "src/lib/aiHelperGuardrails.ts",
-      "src/lib/coverageChecker.ts"
+      "src/lib/questionEngine.ts",
+      "src/lib/enhancedDataPipeline.ts",
+      "src/lib/dataSource.ts"
     ];
 
     // Check core system health
@@ -48,16 +48,16 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         uptime: process.uptime()
       },
       programs: {
-        source: "data/programs.json",
+        source: "Enhanced Data Pipeline",
         modules: programsModules,
-        version: "2025-09-05",
-        count: 9
+        version: "2025-01-15",
+        count: "dynamic"
       },
       endpoints: {
         recommend: "/api/recommend",
-        programs: "/api/data/programs",
-        questions: "/api/data/questions",
-        coverage: "/api/coverage"
+        programs: "/api/programs",
+        programs_ai: "/api/programs-ai",
+        health: "/api/health"
       }
     };
 

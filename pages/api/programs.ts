@@ -5,61 +5,8 @@ import fs from 'fs';
 import path from 'path';
 import { enhancedDataPipeline } from '../../src/lib/enhancedDataPipeline';
 
-// AI Field Generation Functions
-// function generateTargetPersonas(program: any): string[] {
-//   const personas = [];
-//   if (program.program_type === 'grant') {
-//     personas.push('startup', 'sme');
-//   }
-//   if (program.description?.toLowerCase().includes('research')) {
-//     personas.push('researcher');
-//   }
-//   if (program.source_url?.includes('vba')) {
-//     personas.push('solo_entrepreneur');
-//   }
-//   return personas.length > 0 ? personas : ['startup', 'sme'];
-// }
-
-// function generateTags(program: any): string[] {
-//   const tags = [];
-//   tags.push(program.program_type || 'grant');
-//   tags.push('funding');
-//   if (program.description?.toLowerCase().includes('innovation')) {
-//     tags.push('innovation');
-//   }
-//   if (program.description?.toLowerCase().includes('research')) {
-//     tags.push('research');
-//   }
-//   if (program.source_url?.includes('aws')) {
-//     tags.push('aws');
-//   }
-//   if (program.source_url?.includes('ffg')) {
-//     tags.push('ffg');
-//   }
-//   return tags;
-// }
-
-// Removed unused function - replaced by category converter system
-
-// Removed unused function - replaced by category converter system
-
-// Removed unused function - replaced by category converter system
-
-// function generateAIGuidance(program: any): any {
-//   return {
-//     context: `${program.name} program guidance`,
-//     tone: 'professional',
-//     key_points: [
-//       'Check eligibility requirements carefully',
-//       'Prepare necessary documents in advance',
-//       'Focus on innovation and market potential'
-//     ],
-//     prompts: {
-//       executive_summary: 'Highlight your unique value proposition and market opportunity',
-//       business_plan: 'Include detailed financial projections and market analysis'
-//     }
-//   };
-// }
+// Enhanced Data Pipeline Integration
+// All AI field generation is now handled by the Enhanced Data Pipeline
 
 // Database connection
 let pool: Pool | null = null;
