@@ -554,7 +554,7 @@ const SmartWizard: React.FC<SmartWizardProps> = ({ onComplete, onProfileGenerate
 
         .wizard-logo-icon {
           padding: 0.5rem;
-          background: linear-gradient(135deg, #6366f1, #8b5cf6);
+          background: #3B82F6;
           border-radius: 0.75rem;
           font-size: 2rem;
         }
@@ -562,10 +562,7 @@ const SmartWizard: React.FC<SmartWizardProps> = ({ onComplete, onProfileGenerate
         .wizard-title {
           font-size: 1.5rem;
           font-weight: 700;
-          background: linear-gradient(135deg, #6366f1, #8b5cf6);
-          -webkit-background-clip: text;
-          -webkit-text-fill-color: transparent;
-          background-clip: text;
+          color: #3B82F6;
           margin: 0;
         }
 
@@ -597,7 +594,7 @@ const SmartWizard: React.FC<SmartWizardProps> = ({ onComplete, onProfileGenerate
 
         .wizard-progress-fill {
           height: 100%;
-          background: linear-gradient(135deg, #6366f1, #8b5cf6);
+          background: #3B82F6;
           border-radius: 9999px;
           transition: width 0.5s ease-out;
         }
@@ -605,13 +602,13 @@ const SmartWizard: React.FC<SmartWizardProps> = ({ onComplete, onProfileGenerate
         .wizard-main {
           max-width: 64rem;
           margin: 0 auto;
-          padding: 3rem 1.5rem;
+          padding: 1rem 1.5rem;
         }
 
         .wizard-content {
           display: flex;
           flex-direction: column;
-          gap: 2rem;
+          gap: 1rem;
         }
 
         .wizard-advanced-search {
@@ -620,20 +617,22 @@ const SmartWizard: React.FC<SmartWizardProps> = ({ onComplete, onProfileGenerate
         }
 
         .wizard-advanced-search-link {
-          color: white;
-          background: #3B82F6;
+          color: white !important;
+          background: #3B82F6 !important;
           text-decoration: none;
           font-size: 0.875rem;
           font-weight: 500;
           padding: 0.5rem 1rem;
-          border: 1px solid #3B82F6;
+          border: 1px solid #3B82F6 !important;
           border-radius: 0.5rem;
           transition: all 0.2s ease;
+          display: inline-block;
         }
 
         .wizard-advanced-search-link:hover {
-          background: #2563EB;
-          border-color: #2563EB;
+          background: #2563EB !important;
+          border-color: #2563EB !important;
+          color: white !important;
         }
 
         .wizard-navigation {
@@ -682,12 +681,13 @@ const SmartWizard: React.FC<SmartWizardProps> = ({ onComplete, onProfileGenerate
         }
 
         .wizard-nav-next {
-          background: #3B82F6;
-          color: white;
+          background: #3B82F6 !important;
+          color: white !important;
         }
 
         .wizard-nav-next:hover:not(:disabled) {
-          background: #2563EB;
+          background: #2563EB !important;
+          color: white !important;
         }
 
         .wizard-nav-next:disabled {
@@ -776,7 +776,7 @@ const SmartWizard: React.FC<SmartWizardProps> = ({ onComplete, onProfileGenerate
           flex-shrink: 0;
           width: 3rem;
           height: 3rem;
-          background: linear-gradient(135deg, #6366f1, #8b5cf6);
+          background: #3B82F6;
           border-radius: 1rem;
           display: flex;
           align-items: center;
