@@ -56,8 +56,9 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       endpoints: {
         recommend: "/api/recommend",
         programs: "/api/programs",
-        programs_ai: "/api/programs-ai",
-        health: "/api/health"
+        health: "/api/health",
+        notifications: "/api/notifications",
+        pipeline_status: "/api/pipeline/status"
       }
     };
 
