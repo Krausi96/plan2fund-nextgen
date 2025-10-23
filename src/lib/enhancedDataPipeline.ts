@@ -1266,12 +1266,10 @@ export class DataCaching {
 
 export class EnhancedDataPipeline {
   private normalizer: DataNormalization;
-  private quality: DataQuality;
   private cache: DataCaching;
 
   constructor() {
     this.normalizer = new DataNormalization();
-    this.quality = new DataQuality();
     this.cache = new DataCaching();
   }
 
@@ -1387,11 +1385,6 @@ export class EnhancedDataPipeline {
   /**
    * Get confidence level based on quality score
    */
-  private getConfidenceLevel(score: number): 'high' | 'medium' | 'low' {
-    if (score >= 0.8) return 'high';
-    if (score >= 0.5) return 'medium';
-    return 'low';
-  }
 
   /**
    * Generate target personas based on program characteristics
@@ -1409,34 +1402,6 @@ export class EnhancedDataPipeline {
   /**
    * Load raw programs from data files
    */
-  private async loadRawPrograms(): Promise<ScrapedProgram[]> {
-    const dataDir = path.join(process.cwd(), 'data');
-    const files = [
-      'scraped-programs-latest.json',
-      'scraped-programs-2025-10-21.json',
-      'fallback-programs.json'
-    ];
-    
-    let allPrograms: ScrapedProgram[] = [];
-    
-    for (const file of files) {
-      const filePath = path.join(dataDir, file);
-      try {
-        if (fs.existsSync(filePath)) {
-          const data = JSON.parse(fs.readFileSync(filePath, 'utf8'));
-          const programs = data.programs || data;
-          if (Array.isArray(programs)) {
-            allPrograms = allPrograms.concat(programs);
-            console.log(`📁 Loaded ${programs.length} programs from ${file}`);
-          }
-        }
-      } catch (error) {
-        console.warn(`⚠️ Failed to load ${file}:`, error);
-      }
-    }
-    
-    return allPrograms;
-  }
 
   /**
    * Process programs through the pipeline

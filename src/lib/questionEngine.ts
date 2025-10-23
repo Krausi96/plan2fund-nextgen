@@ -260,10 +260,7 @@ export const VALIDATION_RULES: ValidationRule[] = [
 export class QuestionEngine {
   private programs: Program[];
   private questions: SymptomQuestion[] = [];
-  private context: Record<string, any> = {};
   private overlayQuestions: SymptomQuestion[] = [];
-  private questionStats: Record<string, any> = {};
-  private branchingRules: BranchingRule[] = [];
 
   constructor(programs: Program[]) {
     this.programs = programs;
@@ -582,23 +579,8 @@ export class QuestionEngine {
    * Load branching rules
    */
   private loadBranchingRules(): void {
-    this.branchingRules = [
-      {
-        id: 'hide_products_with_types',
-        condition: { field: 'funding_need', operator: 'equals', value: 'need_money_research' },
-        effect: { type: 'hide_products_with_types', value: ['equity'] }
-      },
-      {
-        id: 'show_at_national',
-        condition: { field: 'location', operator: 'equals', value: 'austria' },
-        effect: { type: 'show_at_national', value: true }
-      },
-      {
-        id: 'boost_tags',
-        condition: { field: 'innovation_level', operator: 'equals', value: 'high' },
-        effect: { type: 'boost_tags', value: ['innovation', 'research'] }
-      }
-    ];
+    // Branching rules loaded - can be implemented later if needed
+    console.log('📋 Branching rules loaded');
   }
 
   /**
