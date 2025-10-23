@@ -373,11 +373,34 @@ export default function AdvancedSearch() {
           </div>
         )}
 
-        {/* Back to Wizard */}
-        <div className="text-center mt-8">
-          <Link href="/reco" className="text-blue-600 hover:text-blue-800">
-            ← Back to Detailed Wizard
-          </Link>
+        {/* Smart Routing Navigation */}
+        <div className="bg-gradient-to-r from-purple-50 to-blue-50 rounded-2xl border border-purple-200 p-6 mt-8">
+          <h3 className="text-lg font-semibold text-gray-900 mb-4 text-center">
+            🔄 Smart Routing
+          </h3>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div className="bg-white rounded-xl p-4 border border-gray-200">
+              <h4 className="font-semibold text-gray-900 mb-2">📝 Detailed Questions</h4>
+              <p className="text-sm text-gray-600 mb-3">
+                Answer structured questions for comprehensive program discovery
+              </p>
+              <Link 
+                href="/reco" 
+                className="inline-flex items-center text-blue-600 hover:text-blue-800 font-medium"
+              >
+                Start SmartWizard →
+              </Link>
+            </div>
+            <div className="bg-white rounded-xl p-4 border border-gray-200">
+              <h4 className="font-semibold text-gray-900 mb-2">🤖 AI-Powered Search</h4>
+              <p className="text-sm text-gray-600 mb-3">
+                Describe complex requirements for specialized program matching
+              </p>
+              <span className="inline-flex items-center text-green-600 font-medium">
+                ✓ You're here
+              </span>
+            </div>
+          </div>
         </div>
       </div>
 
