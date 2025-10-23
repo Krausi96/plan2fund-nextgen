@@ -473,7 +473,7 @@ const SmartWizard: React.FC<SmartWizardProps> = ({ onComplete, onProfileGenerate
               
               {showAnswersSummary && (
                 <div className="wizard-summary-content">
-                  {/* Program Preview - Show first if available */}
+                  {/* Program Preview - Show only if available */}
                   {state.programPreview && state.programPreview.length > 0 && (
                     <div className="wizard-program-preview">
                       <h4 className="wizard-preview-title">🎯 {t('wizard.topMatches')}</h4>
@@ -492,19 +492,6 @@ const SmartWizard: React.FC<SmartWizardProps> = ({ onComplete, onProfileGenerate
                       </div>
                     </div>
                   )}
-                  
-                  {/* Answer Summary - Show second */}
-                  <div className="wizard-answers-list">
-                    <h4 className="wizard-answers-title">{t('wizard.yourAnswers')}</h4>
-                    <div className="wizard-answers-grid">
-                      {Object.entries(state.answers).map(([key, value]) => (
-                        <div key={key} className="wizard-answer-item">
-                          <span className="wizard-answer-label">{formatAnswerKey(key)}:</span>
-                          <span className="wizard-answer-value">{formatAnswerValue(key, value)}</span>
-                        </div>
-                      ))}
-                    </div>
-                  </div>
                 </div>
               )}
             </div>
@@ -1907,19 +1894,24 @@ const LoadingDisplay: React.FC = () => {
 
         .wizard-preview-list {
           display: flex;
-          flex-direction: column;
-          gap: 0.75rem;
+          flex-direction: row;
+          gap: 1rem;
+          overflow-x: auto;
+          padding-bottom: 0.5rem;
         }
 
         .wizard-preview-item {
           display: flex;
+          flex-direction: column;
           align-items: center;
-          gap: 1rem;
-          padding: 0.75rem;
+          gap: 0.5rem;
+          padding: 1rem;
           background: white;
-          border-radius: 0.5rem;
+          border-radius: 0.75rem;
           border: 1px solid #7dd3fc;
-          box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+          box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+          min-width: 200px;
+          flex-shrink: 0;
         }
 
         .wizard-preview-rank {
@@ -1937,14 +1929,16 @@ const LoadingDisplay: React.FC = () => {
         }
 
         .wizard-preview-content {
-          flex: 1;
+          text-align: center;
+          width: 100%;
         }
 
         .wizard-preview-name {
           font-size: 0.875rem;
           font-weight: 600;
           color: #0c4a6e;
-          margin-bottom: 0.25rem;
+          margin-bottom: 0.5rem;
+          line-height: 1.3;
         }
 
         .wizard-preview-score {
@@ -1992,6 +1986,35 @@ const LoadingDisplay: React.FC = () => {
           font-size: 0.875rem;
           font-weight: 500;
           color: #374151;
+        }
+
+        .wizard-progress {
+          display: flex;
+          align-items: center;
+          gap: 1rem;
+          margin-bottom: 1.5rem;
+        }
+
+        .wizard-progress-text {
+          font-size: 1rem;
+          font-weight: 700;
+          color: #374151;
+          min-width: 3.5rem;
+        }
+
+        .wizard-progress-bar {
+          flex: 1;
+          height: 0.75rem;
+          background: #e5e7eb;
+          border-radius: 9999px;
+          overflow: hidden;
+        }
+
+        .wizard-progress-fill {
+          height: 100%;
+          background: #3B82F6;
+          border-radius: 9999px;
+          transition: width 0.5s ease-out;
         }
 
         .wizard-summary-content {
