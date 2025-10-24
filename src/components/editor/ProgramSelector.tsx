@@ -134,17 +134,29 @@ export default function ProgramSelector({
     try {
       setState(prev => ({ ...prev, isLoading: true }));
       
-      // Load popular programs from API
-      const response = await fetch('/api/programs?popular=true&limit=6');
+      console.log('🔄 Loading programs for ProgramSelector...');
+      
+      // Load programs from API (get first 6 programs)
+      const response = await fetch('/api/programs?enhanced=true');
+      
+      if (!response.ok) {
+        throw new Error(`API request failed: ${response.status} ${response.statusText}`);
+      }
+      
       const data = await response.json();
+      console.log('📊 API Response:', data);
+      
+      // Take first 6 programs as "popular"
+      const programs = (data.programs || []).slice(0, 6);
+      console.log('📊 Programs loaded:', programs.length);
       
       setState(prev => ({
         ...prev,
-        programs: data.programs || [],
+        programs: programs,
         isLoading: false
       }));
     } catch (error) {
-      console.error('Failed to load programs:', error);
+      console.error('❌ Failed to load programs:', error);
       setState(prev => ({ ...prev, isLoading: false }));
     }
   };
@@ -175,6 +187,25 @@ export default function ProgramSelector({
 
   if (state.isLoading) {
     return <LoadingState />;
+  }
+
+  // If no programs loaded, show error state
+  if (state.programs.length === 0) {
+    return (
+      <div className="program-selector-container">
+        <div className="error-state">
+          <div className="error-icon">⚠️</div>
+          <h2>Unable to load programs</h2>
+          <p>Please try refreshing the page or use the wizard to find programs.</p>
+          <button 
+            onClick={handleWizardRedirect}
+            className="wizard-redirect-btn"
+          >
+            🧙‍♂️ Use Wizard Instead
+          </button>
+        </div>
+      </div>
+    );
   }
 
   return (
@@ -618,6 +649,54 @@ export default function ProgramSelector({
           color: #6b7280;
           font-size: 1.125rem;
           margin: 0;
+        }
+
+        /* Error State Styles */
+        .error-state {
+          text-align: center;
+          padding: 3rem 2rem;
+          background: rgba(255, 255, 255, 0.8);
+          backdrop-filter: blur(10px);
+          border-radius: 1.5rem;
+          border: 1px solid rgba(229, 231, 235, 0.5);
+          box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1);
+        }
+
+        .error-icon {
+          font-size: 3rem;
+          margin-bottom: 1rem;
+        }
+
+        .error-state h2 {
+          font-size: 1.5rem;
+          font-weight: 700;
+          color: #111827;
+          margin: 0 0 0.5rem 0;
+        }
+
+        .error-state p {
+          color: #6b7280;
+          margin: 0 0 2rem 0;
+          font-size: 1rem;
+        }
+
+        .wizard-redirect-btn {
+          background: linear-gradient(135deg, #3B82F6 0%, #1D4ED8 100%);
+          color: white;
+          border: none;
+          border-radius: 0.75rem;
+          padding: 1rem 2rem;
+          font-size: 1rem;
+          font-weight: 600;
+          cursor: pointer;
+          transition: all 0.2s ease;
+          box-shadow: 0 4px 12px rgba(59, 130, 246, 0.3);
+        }
+
+        .wizard-redirect-btn:hover {
+          background: linear-gradient(135deg, #1D4ED8 0%, #1E40AF 100%);
+          transform: translateY(-2px);
+          box-shadow: 0 6px 16px rgba(59, 130, 246, 0.4);
         }
       `}</style>
     </div>
