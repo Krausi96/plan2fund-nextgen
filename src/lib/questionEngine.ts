@@ -319,19 +319,37 @@ export class QuestionEngine {
     );
     console.log(`  - hasGoalPrograms: ${hasGoalPrograms}`);
     
+    // Debug: Check what fields are actually available in programs
+    console.log('🔍 Program data structure analysis:');
+    const sampleProgram = this.programs[0];
+    console.log('🔍 Sample program fields:', Object.keys(sampleProgram));
+    console.log('🔍 Sample program values:', {
+      type: sampleProgram.type,
+      program_type: (sampleProgram as any).program_type,
+      organization_type: (sampleProgram as any).organization_type,
+      org_type: (sampleProgram as any).org_type,
+      description: (sampleProgram as any).description,
+      notes: (sampleProgram as any).notes,
+      requirements: (sampleProgram as any).requirements,
+      eligibility_criteria: (sampleProgram as any).eligibility_criteria
+    });
+    
     this.questions = [];
     
     // Core Question 1: Funding Type (based on actual program types)
     if (programTypes.size > 0) {
+      // Even if we only have grants, create options for different funding types
+      const fundingTypeOptions = [
+        { value: 'grant', label: 'wizard.options.grant', fundingTypes: ['grants'] },
+        { value: 'loan', label: 'wizard.options.loan', fundingTypes: ['loans'] },
+        { value: 'equity', label: 'wizard.options.equity', fundingTypes: ['equity'] }
+      ];
+      
       this.questions.push({
         id: 'funding_type',
         symptom: 'wizard.questions.fundingType',
         type: 'single-select',
-        options: Array.from(programTypes).map(type => ({
-          value: type,
-          label: `wizard.options.${type}`,
-          fundingTypes: [type]
-        })),
+        options: fundingTypeOptions,
         required: true,
         category: 'funding_need',
         phase: 1,
@@ -340,42 +358,26 @@ export class QuestionEngine {
       });
     }
     
-    // Core Question 2: Organization Type (based on program descriptions)
-    const hasStartupPrograms = this.programs.some(p => 
-      (p as any).description?.toLowerCase().includes('startup') ||
-      (p as any).description?.toLowerCase().includes('gründer')
-    );
-    const hasSMEPrograms = this.programs.some(p => 
-      (p as any).description?.toLowerCase().includes('kmu') ||
-      (p as any).description?.toLowerCase().includes('sme')
-    );
-    const hasResearchPrograms = this.programs.some(p => 
-      (p as any).description?.toLowerCase().includes('research') ||
-      (p as any).description?.toLowerCase().includes('forschung')
-    );
+    // Core Question 2: Organization Type (always generate this question)
+    this.questions.push({
+      id: 'organization_type',
+      symptom: 'wizard.questions.organizationType',
+      type: 'single-select',
+      options: [
+        { value: 'startup', label: 'wizard.options.startup', fundingTypes: ['grants', 'equity'] },
+        { value: 'sme', label: 'wizard.options.sme', fundingTypes: ['grants', 'loans', 'equity'] },
+        { value: 'research', label: 'wizard.options.research', fundingTypes: ['grants'] },
+        { value: 'large', label: 'wizard.options.large', fundingTypes: ['loans', 'equity'] }
+      ],
+      required: true,
+      category: 'specific_requirements',
+      phase: 1,
+      isCoreQuestion: true,
+      questionNumber: 2
+    });
     
-    if (hasStartupPrograms || hasSMEPrograms || hasResearchPrograms) {
-      const orgOptions = [];
-      if (hasStartupPrograms) orgOptions.push({ value: 'startup', label: 'wizard.options.startup', fundingTypes: ['grants', 'equity'] });
-      if (hasSMEPrograms) orgOptions.push({ value: 'sme', label: 'wizard.options.sme', fundingTypes: ['grants', 'loans', 'equity'] });
-      if (hasResearchPrograms) orgOptions.push({ value: 'research', label: 'wizard.options.research', fundingTypes: ['grants'] });
-      orgOptions.push({ value: 'large', label: 'wizard.options.large', fundingTypes: ['loans', 'equity'] });
-      
-      this.questions.push({
-        id: 'organization_type',
-        symptom: 'wizard.questions.organizationType',
-        type: 'single-select',
-        options: orgOptions,
-        required: true,
-        category: 'specific_requirements',
-        phase: 1,
-        isCoreQuestion: true,
-        questionNumber: 2
-      });
-    }
-    
-    // Core Question 3: Funding Amount (based on actual funding ranges)
-    if (fundingAmounts.length > 0) {
+    // Core Question 3: Funding Amount (always generate this question)
+    // if (fundingAmounts.length > 0) {
       const maxAmount = Math.max(...fundingAmounts);
       const minAmount = Math.min(...fundingAmounts);
       
@@ -431,7 +433,7 @@ export class QuestionEngine {
           questionNumber: 3
         });
       }
-    }
+    // }
     
     // Core Question 4: Business Stage (based on program focus)
     const hasEarlyStagePrograms = this.programs.some(p => 
@@ -721,8 +723,16 @@ export class QuestionEngine {
       // Check both description and notes fields
       const description = (program as any).description || '';
       const notes = (program as any).notes || '';
-      const hasValidData = (description.length > 20 || notes.length > 20) &&
-                          program.name && program.name.length > 3;
+      const requirements = (program as any).requirements || {};
+      const eligibility = (program as any).eligibility_criteria || '';
+      
+      // Accept programs with ANY meaningful data
+      const hasValidData = (
+        (description.length > 10 || notes.length > 10) ||
+        Object.keys(requirements).length > 0 ||
+        eligibility.length > 10 ||
+        program.name && program.name.length > 3
+      );
       
       return !isErrorPage && hasValidData;
     });
