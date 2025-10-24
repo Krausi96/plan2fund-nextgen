@@ -354,27 +354,8 @@ export class QuestionEngine {
       questionNumber: 1
     });
     
-    // Core Question 2: Funding Type (MAJOR FILTER - Phase 1)
-    if (programTypes.size > 0) {
-      // Even if we only have grants, create options for different funding types
-      const fundingTypeOptions = [
-        { value: 'grant', label: 'wizard.options.grant', fundingTypes: ['grants'] },
-        { value: 'loan', label: 'wizard.options.loan', fundingTypes: ['loans'] },
-        { value: 'equity', label: 'wizard.options.equity', fundingTypes: ['equity'] }
-      ];
-      
-      this.questions.push({
-        id: 'funding_type',
-        symptom: 'wizard.questions.fundingType',
-        type: 'single-select',
-        options: fundingTypeOptions,
-        required: true,
-        category: 'funding_need',
-        phase: 1,
-        isCoreQuestion: true,
-        questionNumber: 1
-      });
-    }
+    // REMOVED: Funding Type is an OUTCOME, not a question
+    // The system will recommend the best funding type based on user answers
     
     // Core Question 2: Organization Type (always generate this question)
     this.questions.push({
@@ -391,7 +372,7 @@ export class QuestionEngine {
       category: 'specific_requirements',
       phase: 1,
       isCoreQuestion: true,
-      questionNumber: 3
+      questionNumber: 2
     });
     
     // Core Question 4: Funding Amount (always generate this question)
@@ -1410,6 +1391,101 @@ export class QuestionEngine {
   }
 
   /**
+   * MAJOR FILTER LOGIC: Filter programs based on major filter answers
+   */
+  public applyMajorFilters(answers: Record<string, any>): Program[] {
+    let filteredPrograms = [...this.programs];
+    
+    // MAJOR FILTER 1: Location (Hardcoded Rule)
+    if (answers.location) {
+      filteredPrograms = filteredPrograms.filter(program => {
+        const programLocation = (program as any).institution?.toLowerCase() || '';
+        const programDescription = (program as any).description?.toLowerCase() || '';
+        
+        switch (answers.location) {
+          case 'austria':
+            return programLocation.includes('austria') || 
+                   programLocation.includes('österreich') ||
+                   programDescription.includes('austria') ||
+                   programDescription.includes('österreich');
+          case 'germany':
+            return programLocation.includes('germany') || 
+                   programLocation.includes('deutschland') ||
+                   programDescription.includes('germany') ||
+                   programDescription.includes('deutschland');
+          case 'eu':
+            return programLocation.includes('eu') || 
+                   programLocation.includes('european') ||
+                   programDescription.includes('eu') ||
+                   programDescription.includes('european');
+          case 'international':
+            return true; // Show all programs
+          default:
+            return true;
+        }
+      });
+      console.log(`🌍 Location filter (${answers.location}): ${this.programs.length} → ${filteredPrograms.length} programs`);
+    }
+    
+    // MAJOR FILTER 2: Funding Type (Hardcoded Rule)
+    if (answers.funding_type) {
+      filteredPrograms = filteredPrograms.filter(program => {
+        const programType = program.type || (program as any).program_type || '';
+        
+        switch (answers.funding_type) {
+          case 'grant':
+            return programType === 'grant';
+          case 'loan':
+            return programType === 'loan';
+          case 'equity':
+            return programType === 'equity';
+          default:
+            return true;
+        }
+      });
+      console.log(`💰 Funding type filter (${answers.funding_type}): ${this.programs.length} → ${filteredPrograms.length} programs`);
+    }
+    
+    // MAJOR FILTER 3: Organization Type (Hardcoded Rule)
+    if (answers.organization_type) {
+      filteredPrograms = filteredPrograms.filter(program => {
+        const targetPersonas = (program as any).target_personas || [];
+        const tags = (program as any).tags || [];
+        const description = (program as any).description?.toLowerCase() || '';
+        
+        switch (answers.organization_type) {
+          case 'startup':
+            return targetPersonas.includes('startup') || 
+                   tags.includes('startup') ||
+                   description.includes('startup') ||
+                   description.includes('early stage');
+          case 'sme':
+            return targetPersonas.includes('sme') || 
+                   tags.includes('sme') ||
+                   description.includes('sme') ||
+                   description.includes('small business');
+          case 'research':
+            return targetPersonas.includes('researcher') || 
+                   targetPersonas.includes('university') ||
+                   tags.includes('research') ||
+                   description.includes('research') ||
+                   description.includes('university');
+          case 'university':
+            return targetPersonas.includes('university') || 
+                   tags.includes('university') ||
+                   description.includes('university') ||
+                   description.includes('academic');
+          default:
+            return true;
+        }
+      });
+      console.log(`🏢 Organization type filter (${answers.organization_type}): ${this.programs.length} → ${filteredPrograms.length} programs`);
+    }
+    
+    return filteredPrograms;
+  }
+
+  /**
    * Get overlay questions with adaptive limiting
    */
   public getOverlayQuestions(answers?: Record<string, any>): SymptomQuestion[] {
@@ -1488,13 +1564,14 @@ export class QuestionEngine {
     
     console.log('🔍 Continuing with question selection...');
     
-    // PRIORITY 1: Find unanswered core questions (reliable fallback)
-    const coreQuestions = this.getCoreQuestions();
-    console.log(`🔍 Checking ${coreQuestions.length} core questions`);
-    for (const question of coreQuestions) {
-      console.log(`🔍 Checking core question: ${question.id}, required: ${question.required}, answered: ${!!answers[question.id]}`);
-      if (question.required && !answers[question.id]) {
-        console.log(`✅ Found unanswered core question: ${question.id}`);
+    // PRIORITY 1: Find unanswered questions ordered by smart weighting (program frequency + context)
+    const smartWeightedQuestions = this.getQuestionsBySmartWeighting(answers);
+    console.log(`🔍 Checking ${smartWeightedQuestions.length} questions by smart weighting`);
+    for (const question of smartWeightedQuestions) {
+      const smartWeights = this.getSmartWeighting(answers);
+      console.log(`🔍 Checking question: ${question.id}, weight: ${smartWeights[question.id] || 0}, answered: ${!!answers[question.id]}`);
+      if (!answers[question.id] && question.options && question.options.length > 0) {
+        console.log(`✅ Found unanswered question with highest smart weight: ${question.id}`);
         return this.enhanceQuestionWithStats(question);
       }
     }
@@ -1510,7 +1587,7 @@ export class QuestionEngine {
     }
     
     // PRIORITY 3: Find any unanswered questions (including non-required)
-    const allQuestions = [...coreQuestions, ...overlayQuestions];
+    const allQuestions = [...this.questions, ...this.overlayQuestions];
     console.log(`🔍 Checking ${allQuestions.length} total questions`);
     for (const question of allQuestions) {
       if (!answers[question.id] && question.options && question.options.length > 0) {
@@ -1576,6 +1653,194 @@ export class QuestionEngine {
     if (question.phase === 1) weight += 0.2;
     if (question.required) weight += 0.1;
     return Math.min(weight, 1.0);
+  }
+
+  /**
+   * SMART INTELLIGENT WEIGHTING: Program frequency + User context
+   */
+  private getSmartWeighting(answers: Record<string, any>): { [key: string]: number } {
+    // STEP 1: Calculate program frequency weights (70% of final weight)
+    const programFrequencyWeights = this.calculateProgramFrequencyWeights();
+    
+    // STEP 2: Calculate user context weights (30% of final weight)
+    const contextWeights = this.calculateContextWeights(answers);
+    
+    // STEP 3: Combine weights intelligently
+    const smartWeights: { [key: string]: number } = {};
+    
+    // Get all possible question IDs
+    const allQuestionIds = [
+      ...this.questions.map(q => q.id),
+      ...this.overlayQuestions.map(q => q.id)
+    ];
+    
+    for (const questionId of allQuestionIds) {
+      const programWeight = programFrequencyWeights[questionId] || 0;
+      const contextWeight = contextWeights[questionId] || 0;
+      
+      // Combined weight: 70% program frequency + 30% context
+      smartWeights[questionId] = (programWeight * 0.7) + (contextWeight * 0.3);
+    }
+    
+    return smartWeights;
+  }
+
+  /**
+   * Calculate weights based on program frequency (how many programs require this)
+   */
+  private calculateProgramFrequencyWeights(): { [key: string]: number } {
+    const weights: { [key: string]: number } = {};
+    
+    // Analyze all programs to see what they require
+    const programRequirements = this.analyzeProgramRequirements();
+    
+    // Calculate weights based on frequency
+    for (const [requirement, frequency] of Object.entries(programRequirements)) {
+      // Convert frequency (0-1) to weight (0-100)
+      weights[requirement] = Math.round(frequency * 100);
+    }
+    
+    return weights;
+  }
+
+  /**
+   * Calculate weights based on user context and answers
+   */
+  private calculateContextWeights(answers: Record<string, any>): { [key: string]: number } {
+    // Base context weights (funding_type removed - it's an outcome, not a question)
+    const baseContextWeights = {
+      'location': 100,
+      'organization_type': 95,
+      'funding_amount': 90,
+      'business_stage': 70,
+      'innovation_level': 65,
+      'team_size': 60,
+      'main_goal': 55,
+      'co_financing': 40,
+      'trl_level': 35,
+      'impact': 30,
+      'consortium': 25,
+      'business_plan': 20,
+      'pitch_deck': 15,
+      'financial_projections': 10
+    };
+    
+    // Apply context-based adjustments
+    const adjustedWeights = { ...baseContextWeights };
+    
+    // Location-based adjustments
+    if (answers.location === 'austria') {
+      adjustedWeights['co_financing'] += 20; // Austrian grants need co-financing
+      adjustedWeights['impact'] += 15; // Austrian impact programs
+    }
+    
+    // Funding amount adjustments
+    if (answers.funding_amount === 'over500k' || answers.funding_amount === 'over1m') {
+      adjustedWeights['co_financing'] += 30; // High funding needs co-financing
+      adjustedWeights['business_plan'] += 30; // High funding needs business plan
+      adjustedWeights['financial_projections'] += 25; // High funding needs projections
+    }
+    
+    // Organization type adjustments
+    if (answers.organization_type === 'startup') {
+      adjustedWeights['business_stage'] += 20;
+      adjustedWeights['innovation_level'] += 15;
+      adjustedWeights['pitch_deck'] += 25; // Startups need pitch decks
+    }
+    
+    if (answers.organization_type === 'research' || answers.organization_type === 'university') {
+      adjustedWeights['trl_level'] += 30; // Research needs TRL
+      adjustedWeights['consortium'] += 25; // Research needs partners
+      adjustedWeights['impact'] += 20; // Research needs impact
+    }
+    
+    // Co-financing adjustments
+    if (answers.co_financing === 'no') {
+      adjustedWeights['co_financing'] += 40; // Critical question
+      // Note: Funding type is determined by the system, not user choice
+    }
+    
+    // Impact adjustments
+    if (answers.impact === 'high' || answers.impact === 'environmental') {
+      adjustedWeights['impact'] += 25;
+      adjustedWeights['consortium'] += 20; // Impact projects need partners
+    }
+    
+    return adjustedWeights;
+  }
+
+  /**
+   * Analyze what programs actually require
+   */
+  private analyzeProgramRequirements(): { [key: string]: number } {
+    const requirements: { [key: string]: number } = {};
+    const totalPrograms = this.programs.length;
+    
+    // Analyze each program's requirements
+    for (const program of this.programs) {
+      const programReqs = this.extractProgramRequirements(program);
+      
+      for (const req of programReqs) {
+        if (!requirements[req]) {
+          requirements[req] = 0;
+        }
+        requirements[req]++;
+      }
+    }
+    
+    // Convert counts to frequencies (0-1)
+    for (const [req, count] of Object.entries(requirements)) {
+      requirements[req] = count / totalPrograms;
+    }
+    
+    return requirements;
+  }
+
+  /**
+   * Extract requirements from a single program
+   */
+  private extractProgramRequirements(program: Program): string[] {
+    const requirements: string[] = [];
+    
+    // Check program data for requirements
+    if ((program as any).requirements) {
+      const reqs = (program as any).requirements;
+      if (reqs.business_plan) requirements.push('business_plan');
+      if (reqs.pitch_deck) requirements.push('pitch_deck');
+      if (reqs.financial_projections) requirements.push('financial_projections');
+      if (reqs.co_financing) requirements.push('co_financing');
+      if (reqs.consortium) requirements.push('consortium');
+      if (reqs.impact) requirements.push('impact');
+      if (reqs.trl_level) requirements.push('trl_level');
+    }
+    
+    // Check description for requirements
+    const description = (program as any).description?.toLowerCase() || '';
+    if (description.includes('business plan')) requirements.push('business_plan');
+    if (description.includes('pitch deck')) requirements.push('pitch_deck');
+    if (description.includes('co-financing')) requirements.push('co_financing');
+    if (description.includes('consortium')) requirements.push('consortium');
+    if (description.includes('impact')) requirements.push('impact');
+    if (description.includes('trl')) requirements.push('trl_level');
+    
+    return requirements;
+  }
+
+  /**
+   * Get questions ordered by smart weighting (program frequency + user context)
+   */
+  public getQuestionsBySmartWeighting(answers: Record<string, any>): SymptomQuestion[] {
+    const smartWeights = this.getSmartWeighting(answers);
+    
+    // Combine core and overlay questions
+    const allQuestions = [...this.questions, ...this.overlayQuestions];
+    
+    // Sort by smart weights (highest first)
+    return allQuestions.sort((a, b) => {
+      const aWeight = smartWeights[a.id] || 0;
+      const bWeight = smartWeights[b.id] || 0;
+      return bWeight - aWeight; // Highest weight first
+    });
   }
 
   /**

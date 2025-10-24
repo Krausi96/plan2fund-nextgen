@@ -471,6 +471,101 @@ function scoreCategorizedRequirements(
   return { score, matchedCriteria, gaps };
 }
 
+/**
+ * APPLY MAJOR FILTERS: Same logic as QuestionEngine for consistency
+ */
+function applyMajorFiltersToPrograms(programs: any[], answers: UserAnswers): any[] {
+  let filteredPrograms = [...programs];
+  
+  // MAJOR FILTER 1: Location (Hardcoded Rule)
+  if (answers.location) {
+    filteredPrograms = filteredPrograms.filter(program => {
+      const programLocation = program.institution?.toLowerCase() || '';
+      const programDescription = program.description?.toLowerCase() || '';
+      
+      switch (answers.location) {
+        case 'austria':
+          return programLocation.includes('austria') || 
+                 programLocation.includes('österreich') ||
+                 programDescription.includes('austria') ||
+                 programDescription.includes('österreich');
+        case 'germany':
+          return programLocation.includes('germany') || 
+                 programLocation.includes('deutschland') ||
+                 programDescription.includes('germany') ||
+                 programDescription.includes('deutschland');
+        case 'eu':
+          return programLocation.includes('eu') || 
+                 programLocation.includes('european') ||
+                 programDescription.includes('eu') ||
+                 programDescription.includes('european');
+        case 'international':
+          return true; // Show all programs
+        default:
+          return true;
+      }
+    });
+    console.log(`🌍 Location filter (${answers.location}): ${programs.length} → ${filteredPrograms.length} programs`);
+  }
+  
+  // MAJOR FILTER 2: Funding Type (Hardcoded Rule)
+  if (answers.funding_type) {
+    filteredPrograms = filteredPrograms.filter(program => {
+      const programType = program.type || program.program_type || '';
+      
+      switch (answers.funding_type) {
+        case 'grant':
+          return programType === 'grant';
+        case 'loan':
+          return programType === 'loan';
+        case 'equity':
+          return programType === 'equity';
+        default:
+          return true;
+      }
+    });
+    console.log(`💰 Funding type filter (${answers.funding_type}): ${programs.length} → ${filteredPrograms.length} programs`);
+  }
+  
+  // MAJOR FILTER 3: Organization Type (Hardcoded Rule)
+  if (answers.organization_type) {
+    filteredPrograms = filteredPrograms.filter(program => {
+      const targetPersonas = program.target_personas || [];
+      const tags = program.tags || [];
+      const description = program.description?.toLowerCase() || '';
+      
+      switch (answers.organization_type) {
+        case 'startup':
+          return targetPersonas.includes('startup') || 
+                 tags.includes('startup') ||
+                 description.includes('startup') ||
+                 description.includes('early stage');
+        case 'sme':
+          return targetPersonas.includes('sme') || 
+                 tags.includes('sme') ||
+                 description.includes('sme') ||
+                 description.includes('small business');
+        case 'research':
+          return targetPersonas.includes('researcher') || 
+                 targetPersonas.includes('university') ||
+                 tags.includes('research') ||
+                 description.includes('research') ||
+                 description.includes('university');
+        case 'university':
+          return targetPersonas.includes('university') || 
+                 tags.includes('university') ||
+                 description.includes('university') ||
+                 description.includes('academic');
+        default:
+          return true;
+      }
+    });
+    console.log(`🏢 Organization type filter (${answers.organization_type}): ${programs.length} → ${filteredPrograms.length} programs`);
+  }
+  
+  return filteredPrograms;
+}
+
 // Enhanced scoring with detailed explanations and trace generation
 export async function scoreProgramsEnhanced(
   answers: UserAnswers,
@@ -480,6 +575,10 @@ export async function scoreProgramsEnhanced(
     // Use GPT-enhanced data source (includes target_personas, tags, etc.)
     const programs = await dataSource.getGPTEnhancedPrograms();
     console.log('🔍 Debug: DataSource returned programs:', programs.length);
+    
+    // APPLY MAJOR FILTERS FIRST (Same logic as QuestionEngine)
+    let filteredPrograms = applyMajorFiltersToPrograms(programs, answers);
+    console.log(`🔍 Major filters applied: ${programs.length} → ${filteredPrograms.length} programs`);
     console.log('🔍 Debug: Sample program from dataSource:', {
       id: programs[0]?.id,
       hasDecisionTreeQuestions: programs[0]?.decision_tree_questions?.length || 0,
@@ -492,20 +591,24 @@ export async function scoreProgramsEnhanced(
     const symptoms = doctorDiagnostic.analyzeSymptoms(answers);
     const diagnosis = await doctorDiagnostic.makeDiagnosis(symptoms);
     
-    // Filter programs based on diagnosis if confidence is high
-    let filteredPrograms = programs;
-    console.log('🔍 Debug: Original programs count:', programs.length);
+    // Apply additional diagnosis filtering if confidence is high
+    let finalFilteredPrograms = filteredPrograms;
+    console.log('🔍 Debug: After major filters:', filteredPrograms.length);
     console.log('🔍 Debug: Diagnosis confidence:', diagnosis.confidence);
     console.log('🔍 Debug: Diagnosis programs count:', diagnosis.programs?.length || 0);
     
     if (diagnosis.confidence > 0.7) {
-      filteredPrograms = diagnosis.programs;
-      console.log('🔍 Debug: Using filtered programs from diagnosis');
+      // Apply diagnosis filtering to already major-filtered programs
+      const diagnosisFiltered = filteredPrograms.filter(program => 
+        diagnosis.programs?.some(diagProgram => diagProgram.id === program.id)
+      );
+      finalFilteredPrograms = diagnosisFiltered;
+      console.log('🔍 Debug: Using diagnosis-filtered programs:', finalFilteredPrograms.length);
     } else {
-      console.log('🔍 Debug: Using all programs (low confidence diagnosis)');
+      console.log('🔍 Debug: Using major-filtered programs (low confidence diagnosis)');
     }
     
-    const normalizedPrograms: Program[] = filteredPrograms.map((p) => ({
+    const normalizedPrograms: Program[] = finalFilteredPrograms.map((p) => ({
       id: p.id,
       name: p.name || p.id,
       type: p.type || "program",
