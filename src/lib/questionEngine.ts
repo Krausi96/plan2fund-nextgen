@@ -385,7 +385,8 @@ export class QuestionEngine {
       if (minAmount < 50000) {
         amountOptions.push({ 
           value: 'under_50k', 
-          label: `wizard.options.under50k (€0 - €50,000)`, 
+          label: 'wizard.options.under50k',
+          description: '€0 - €50,000',
           fundingTypes: ['grants', 'loans'] 
         });
       }
@@ -393,7 +394,8 @@ export class QuestionEngine {
       if (maxAmount >= 50000) {
         amountOptions.push({ 
           value: '50k_100k', 
-          label: `wizard.options.50k100k (€50,000 - €100,000)`, 
+          label: 'wizard.options.50k100k',
+          description: '€50,000 - €100,000',
           fundingTypes: ['grants', 'loans', 'equity'] 
         });
       }
@@ -401,7 +403,8 @@ export class QuestionEngine {
       if (maxAmount >= 100000) {
         amountOptions.push({ 
           value: '100k_500k', 
-          label: `wizard.options.100k500k (€100,000 - €500,000)`, 
+          label: 'wizard.options.100k500k',
+          description: '€100,000 - €500,000',
           fundingTypes: ['grants', 'loans', 'equity'] 
         });
       }
@@ -409,7 +412,8 @@ export class QuestionEngine {
       if (maxAmount >= 500000) {
         amountOptions.push({ 
           value: 'over_500k', 
-          label: `wizard.options.over500k (€500,000+)`, 
+          label: 'wizard.options.over500k',
+          description: '€500,000+',
           fundingTypes: ['loans', 'equity'] 
         });
       }
