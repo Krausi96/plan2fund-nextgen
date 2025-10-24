@@ -266,6 +266,8 @@ export class QuestionEngine {
     this.programs = programs;
     try {
       this.initializeQuestions();
+      // Initialize overlay questions asynchronously
+      this.initializeOverlayQuestions();
     } catch (error) {
       console.error('❌ Error in initializeQuestions:', error);
       console.error('❌ Error details:', error instanceof Error ? error.message : String(error));
@@ -1513,8 +1515,8 @@ export class QuestionEngine {
       return false;
     }
     
-    // Don't stop if we have less than 3 answers (need minimum for meaningful scoring)
-    if (Object.keys(answers).length < 3) {
+    // Don't stop if we have less than 5 answers (need minimum for meaningful scoring)
+    if (Object.keys(answers).length < 5) {
       console.log('🔍 Not enough answers yet, continuing with questions');
       return false;
     }
@@ -1532,9 +1534,9 @@ export class QuestionEngine {
         return true;
       }
       
-      // If we have excellent matches (90%+) and enough answers, consider stopping
-      if (results.length > 0 && results[0].score >= 90 && Object.keys(answers).length >= 8) {
-        console.log('🎯 Excellent matches found (90%+), considering stopping');
+      // If we have excellent matches (95%+) and enough answers, consider stopping
+      if (results.length > 0 && results[0].score >= 95 && Object.keys(answers).length >= 10) {
+        console.log('🎯 Excellent matches found (95%+), considering stopping');
         return true;
       }
       
