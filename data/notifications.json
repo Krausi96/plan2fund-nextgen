@@ -1,5 +1,97 @@
 [
   {
+    "id": "notif_1761325672591_nak0ve6bo",
+    "timestamp": "2025-10-24T17:07:52.591Z",
+    "level": "success",
+    "message": "Cron job completed in 1s: 503 scraped, 502 processed",
+    "layer": "system",
+    "resolved": false,
+    "data": {
+      "duration": 622,
+      "scraperPrograms": 503,
+      "pipelinePrograms": 502,
+      "success": true,
+      "mode": "quick"
+    }
+  },
+  {
+    "id": "notif_1761325672538_pb5d03sew",
+    "timestamp": "2025-10-24T17:07:52.538Z",
+    "level": "success",
+    "message": "Pipeline warmed up: 502 programs processed",
+    "layer": "pipeline",
+    "resolved": false,
+    "data": {
+      "programs": 502
+    }
+  },
+  {
+    "id": "notif_1761325672228_oyd2ro9sd",
+    "timestamp": "2025-10-24T17:07:52.229Z",
+    "level": "success",
+    "message": "Scraper completed: 503 programs found",
+    "layer": "scraper",
+    "resolved": false,
+    "data": {
+      "programs": 503,
+      "mode": "quick"
+    }
+  },
+  {
+    "id": "notif_1761325671971_rbrh2fzwj",
+    "timestamp": "2025-10-24T17:07:51.971Z",
+    "level": "info",
+    "message": "Starting quick scraper cron job",
+    "layer": "system",
+    "resolved": false
+  },
+  {
+    "id": "notif_1761325668329_gbq5or69h",
+    "timestamp": "2025-10-24T17:07:48.330Z",
+    "level": "success",
+    "message": "Cron job completed in 2s: 503 scraped, 502 processed",
+    "layer": "system",
+    "resolved": false,
+    "data": {
+      "duration": 2475,
+      "scraperPrograms": 503,
+      "pipelinePrograms": 502,
+      "success": true,
+      "mode": "quick"
+    }
+  },
+  {
+    "id": "notif_1761325668289_x526j1frr",
+    "timestamp": "2025-10-24T17:07:48.289Z",
+    "level": "success",
+    "message": "Pipeline warmed up: 502 programs processed",
+    "layer": "pipeline",
+    "resolved": false,
+    "data": {
+      "programs": 502
+    }
+  },
+  {
+    "id": "notif_1761325667128_4aq3qhhe2",
+    "timestamp": "2025-10-24T17:07:47.128Z",
+    "level": "success",
+    "message": "Scraper completed: 503 programs found",
+    "layer": "scraper",
+    "resolved": false,
+    "data": {
+      "programs": 503,
+      "mode": "quick"
+    }
+  },
+  {
+    "id": "notif_1761325666167_gxsbaagwv",
+    "timestamp": "2025-10-24T17:07:46.167Z",
+    "level": "info",
+    "message": "Starting quick scraper cron job",
+    "layer": "system",
+    "resolved": false
+  },
+  {
     "id": "notif_1761234721207_k6s01urql",
     "timestamp": "2025-10-23T15:52:01.207Z",
     "level": "success",

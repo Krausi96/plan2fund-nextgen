@@ -1,6 +1,6 @@
 // Enhanced Scraper Test - Quick Scraping
 import { NextApiRequest, NextApiResponse } from 'next';
-import { WebScraperService } from '../../src/lib/webScraperService';
+import { EnhancedWebScraperService } from '../../src/lib/enhancedWebScraperService';
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   if (req.method !== 'GET') {
@@ -10,11 +10,11 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   try {
     console.log('🔄 Running enhanced scraper test (quick)...');
     
-    // Initialize the real web scraper service
-    const scraperService = new WebScraperService();
+    // Initialize the ENHANCED web scraper service with real eligibility extraction
+    const scraperService = new EnhancedWebScraperService();
     
-    // Run the actual scraper to get fresh data
-    const programs = await scraperService.scrapeAllPrograms();
+    // Run the actual scraper to get fresh data with real eligibility criteria
+    const programs = await scraperService.scrapeAllProgramsWithLearningQuick();
     
     console.log(`✅ Enhanced scraper test (quick) completed: ${programs.length} programs`);
     

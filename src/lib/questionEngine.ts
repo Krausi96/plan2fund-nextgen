@@ -136,6 +136,12 @@ export class QuestionEngine {
         const age = eligibility.max_company_age;
         analysis.companyAge.set(age, (analysis.companyAge.get(age) || 0) + 1);
       }
+      
+      // Industry focus analysis
+      if (eligibility.industry_focus) {
+        const industry = eligibility.industry_focus;
+        analysis.other.set(`industry_${industry}`, (analysis.other.get(`industry_${industry}`) || 0) + 1);
+      }
 
       // Revenue analysis
       if (eligibility.revenue_min || eligibility.revenue_max) {
@@ -211,6 +217,26 @@ export class QuestionEngine {
       const collaborationQuestion = this.createInternationalCollaborationQuestion(analysis.internationalCollaboration);
       const totalPrograms = Array.from(analysis.internationalCollaboration.values()).reduce((a, b) => a + b, 0);
       questionCandidates.push({ question: collaborationQuestion, importance: 50 + (totalPrograms / this.programs.length) * 25 });
+    }
+
+    // Industry Focus question (from extracted criteria)
+    const industryPrograms = Array.from(analysis.other.entries()).filter(([key]) => key.startsWith('industry_'));
+    if (industryPrograms.length > 0) {
+      const industryQuestion = this.createIndustryFocusQuestion(industryPrograms);
+      const totalPrograms = industryPrograms.reduce((sum, [, count]) => sum + count, 0);
+      questionCandidates.push({ question: industryQuestion, importance: 55 + (totalPrograms / this.programs.length) * 20 });
+    }
+
+    // FALLBACK: If not enough questions from analysis, add standard questions
+    if (questionCandidates.length < 3) {
+      console.log(`⚠️ Only ${questionCandidates.length} questions from analysis, adding fallback questions`);
+      
+      // Add standard business questions
+      questionCandidates.push({ question: this.createBusinessStageQuestion(), importance: 80 });
+      questionCandidates.push({ question: this.createFundingNeedQuestion(), importance: 75 });
+      questionCandidates.push({ question: this.createInnovationLevelQuestion(), importance: 70 });
+      questionCandidates.push({ question: this.createTeamExperienceQuestion(), importance: 65 });
+      questionCandidates.push({ question: this.createMarketQuestion(), importance: 60 });
     }
 
     // Sort by importance (highest first) and assign question numbers
@@ -529,14 +555,23 @@ export class QuestionEngine {
    * Check if we should stop asking questions
    */
   public async shouldStopQuestions(answers: Record<string, any>): Promise<boolean> {
+    const answerCount = Object.keys(answers).length;
+    
     // Don't stop if we haven't asked enough questions yet
-    if (Object.keys(answers).length < 5) {
+    if (answerCount < 3) {
       return false;
     }
     
-    // Simple heuristic: if we have 10+ answers, we can stop
-    if (Object.keys(answers).length >= 10) {
-      console.log('✅ Sufficient answers provided (10+)');
+    // If we have 8+ answers, we can stop (reduced from 10)
+    if (answerCount >= 8) {
+      console.log(`✅ Sufficient answers provided (${answerCount})`);
+      return true;
+    }
+    
+    // Check if we have answered all available questions
+    const totalQuestions = this.questions.length + this.overlayQuestions.length;
+    if (answerCount >= totalQuestions) {
+      console.log(`✅ All ${totalQuestions} questions answered`);
       return true;
     }
     
@@ -661,5 +696,135 @@ export class QuestionEngine {
    */
   private loadBranchingRules(): void {
     console.log('📋 Branching rules loaded');
+  }
+
+  /**
+   * Create fallback business stage question
+   */
+  private createBusinessStageQuestion(): SymptomQuestion {
+    return {
+      id: 'business_stage',
+      symptom: 'wizard.questions.businessStage',
+      type: 'single-select',
+      options: [
+        { label: 'wizard.options.idea', value: 'idea' },
+        { label: 'wizard.options.mvp', value: 'mvp' },
+        { label: 'wizard.options.revenue', value: 'revenue' },
+        { label: 'wizard.options.scaling', value: 'scaling' }
+      ],
+      required: true,
+      category: 'business_stage',
+      phase: 1,
+      questionNumber: 0
+    };
+  }
+
+  /**
+   * Create fallback funding need question
+   */
+  private createFundingNeedQuestion(): SymptomQuestion {
+    return {
+      id: 'funding_need',
+      symptom: 'wizard.questions.fundingNeed',
+      type: 'single-select',
+      options: [
+        { label: 'wizard.options.seed', value: 'seed' },
+        { label: 'wizard.options.growth', value: 'growth' },
+        { label: 'wizard.options.expansion', value: 'expansion' },
+        { label: 'wizard.options.research', value: 'research' }
+      ],
+      required: true,
+      category: 'funding_need',
+      phase: 1,
+      questionNumber: 0
+    };
+  }
+
+  /**
+   * Create fallback innovation level question
+   */
+  private createInnovationLevelQuestion(): SymptomQuestion {
+    return {
+      id: 'innovation_level',
+      symptom: 'wizard.questions.innovationLevel',
+      type: 'single-select',
+      options: [
+        { label: 'wizard.options.breakthrough', value: 'breakthrough' },
+        { label: 'wizard.options.incremental', value: 'incremental' },
+        { label: 'wizard.options.improvement', value: 'improvement' },
+        { label: 'wizard.options.standard', value: 'standard' }
+      ],
+      required: true,
+      category: 'innovation_level',
+      phase: 2,
+      questionNumber: 0
+    };
+  }
+
+  /**
+   * Create fallback team experience question
+   */
+  private createTeamExperienceQuestion(): SymptomQuestion {
+    return {
+      id: 'team_experience',
+      symptom: 'wizard.questions.teamExperience',
+      type: 'single-select',
+      options: [
+        { label: 'wizard.options.experienced', value: 'experienced' },
+        { label: 'wizard.options.moderate', value: 'moderate' },
+        { label: 'wizard.options.junior', value: 'junior' },
+        { label: 'wizard.options.new', value: 'new' }
+      ],
+      required: true,
+      category: 'team_size',
+      phase: 2,
+      questionNumber: 0
+    };
+  }
+
+  /**
+   * Create fallback market question
+   */
+  private createMarketQuestion(): SymptomQuestion {
+    return {
+      id: 'market_focus',
+      symptom: 'wizard.questions.marketFocus',
+      type: 'single-select',
+      options: [
+        { label: 'wizard.options.local', value: 'local' },
+        { label: 'wizard.options.national', value: 'national' },
+        { label: 'wizard.options.european', value: 'european' },
+        { label: 'wizard.options.global', value: 'global' }
+      ],
+      required: true,
+      category: 'specific_requirements',
+      phase: 3,
+      questionNumber: 0
+    };
+  }
+
+  /**
+   * Create industry focus question from extracted criteria
+   */
+  private createIndustryFocusQuestion(industryPrograms: [string, number][]): SymptomQuestion {
+    const options = industryPrograms.map(([key, count]) => {
+      const industry = key.replace('industry_', '');
+      return {
+        label: `wizard.options.${industry}`,
+        value: industry,
+        description: `${count} programs available`
+      };
+    });
+
+    return {
+      id: 'industry_focus',
+      symptom: 'wizard.questions.industryFocus',
+      type: 'single-select',
+      options: options,
+      required: true,
+      category: 'specific_requirements',
+      phase: 2,
+      questionNumber: 0
+    };
   }
 }

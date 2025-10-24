@@ -1066,7 +1066,7 @@ export class EnhancedWebScraperService extends WebScraperService {
         source_url: url,
         institution: institution?.name || 'Unknown',
         program_category: institution?.category || 'grants',
-        eligibility_criteria: {},
+        eligibility_criteria: this.extractEligibilityCriteria(content, name, description),
         requirements: requirements,
         funding_amount_min: 0,
         funding_amount_max: 0,
@@ -1084,5 +1084,64 @@ export class EnhancedWebScraperService extends WebScraperService {
       console.warn(`⚠️ Quick scraping failed for ${url}:`, error instanceof Error ? error.message : 'Unknown error');
       return null;
     }
+  }
+
+  /**
+   * Extract eligibility criteria from scraped content
+   */
+  private extractEligibilityCriteria(content: string, name: string, description: string): any {
+    const criteria: any = {};
+    const text = `${content} ${name} ${description}`.toLowerCase();
+    
+    // Location criteria
+    if (text.includes('österreich') || text.includes('austria') || text.includes('at-')) {
+      criteria.location = 'Austria';
+    } else if (text.includes('deutschland') || text.includes('germany') || text.includes('de-')) {
+      criteria.location = 'Germany';
+    } else if (text.includes('schweiz') || text.includes('switzerland') || text.includes('ch-')) {
+      criteria.location = 'Switzerland';
+    } else if (text.includes('europa') || text.includes('europe') || text.includes('eu-')) {
+      criteria.location = 'Europe';
+    }
+    
+    // Company age criteria
+    const ageMatch = text.match(/(\d+)\s*(?:jahre?|years?|jahren?)\s*(?:alt|old|age)/i);
+    if (ageMatch) {
+      criteria.max_company_age = parseInt(ageMatch[1]);
+    }
+    
+    // Team size criteria
+    const teamMatch = text.match(/(\d+)\s*(?:mitarbeiter|employees?|team|personen)/i);
+    if (teamMatch) {
+      criteria.min_team_size = parseInt(teamMatch[1]);
+    }
+    
+    // Revenue criteria
+    const revenueMatch = text.match(/(\d+(?:\.\d+)?)\s*(?:million|mio|millionen)/i);
+    if (revenueMatch) {
+      criteria.revenue_min = parseFloat(revenueMatch[1]) * 1000000;
+    }
+    
+    // Research focus
+    if (text.includes('forschung') || text.includes('research') || text.includes('innovation') || text.includes('entwicklung')) {
+      criteria.research_focus = true;
+    }
+    
+    // International collaboration
+    if (text.includes('international') || text.includes('kollaboration') || text.includes('partnership') || text.includes('zusammenarbeit')) {
+      criteria.international_collaboration = true;
+    }
+    
+    // Industry focus
+    if (text.includes('technologie') || text.includes('technology') || text.includes('digital') || text.includes('it')) {
+      criteria.industry_focus = 'technology';
+    } else if (text.includes('biotech') || text.includes('life science') || text.includes('medizin')) {
+      criteria.industry_focus = 'biotech';
+    } else if (text.includes('energie') || text.includes('energy') || text.includes('klima') || text.includes('climate')) {
+      criteria.industry_focus = 'energy';
+    }
+    
+    console.log(`📊 Extracted eligibility criteria:`, criteria);
+    return criteria;
   }
 }
