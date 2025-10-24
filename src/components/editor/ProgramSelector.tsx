@@ -146,9 +146,24 @@ export default function ProgramSelector({
       const data = await response.json();
       console.log('📊 API Response:', data);
       
-      // Take first 6 programs as "popular"
-      const programs = (data.programs || []).slice(0, 6);
+      // Take first 6 programs as "popular" and clean the data
+      const rawPrograms = data.programs || [];
+      const programs = rawPrograms.slice(0, 6).map((program: any) => ({
+        id: program.id || 'unknown',
+        name: program.name || 'Unknown Program',
+        description: program.notes || program.description || 'No description available',
+        institution: program.source || 'Unknown Institution',
+        type: 'grant', // Fixed type
+        funding_type: 'grant', // Fixed funding type
+        tags: program.tags || [],
+        score: program.quality_score || 0,
+        funding_amount: program.maxAmount || 0,
+        deadline: program.deadline || null,
+        isActive: program.isActive !== false
+      }));
+      
       console.log('📊 Programs loaded:', programs.length);
+      console.log('📊 Sample program:', programs[0]);
       
       setState(prev => ({
         ...prev,
