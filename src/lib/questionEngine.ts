@@ -336,7 +336,25 @@ export class QuestionEngine {
     
     this.questions = [];
     
-    // Core Question 1: Funding Type (based on actual program types)
+    // Core Question 1: Geographical Location (MAJOR FILTER - Phase 1)
+    this.questions.push({
+      id: 'location',
+      symptom: 'wizard.questions.location',
+      type: 'single-select',
+      options: [
+        { value: 'austria', label: 'wizard.options.austria', fundingTypes: ['grants', 'loans'] },
+        { value: 'germany', label: 'wizard.options.germany', fundingTypes: ['grants', 'loans', 'equity'] },
+        { value: 'eu', label: 'wizard.options.eu', fundingTypes: ['grants', 'loans'] },
+        { value: 'international', label: 'wizard.options.international', fundingTypes: ['grants', 'loans', 'equity'] }
+      ],
+      required: true,
+      category: 'location',
+      phase: 1,
+      isCoreQuestion: true,
+      questionNumber: 1
+    });
+    
+    // Core Question 2: Funding Type (MAJOR FILTER - Phase 1)
     if (programTypes.size > 0) {
       // Even if we only have grants, create options for different funding types
       const fundingTypeOptions = [
@@ -373,10 +391,10 @@ export class QuestionEngine {
       category: 'specific_requirements',
       phase: 1,
       isCoreQuestion: true,
-      questionNumber: 2
+      questionNumber: 3
     });
     
-    // Core Question 3: Funding Amount (always generate this question)
+    // Core Question 4: Funding Amount (always generate this question)
     // if (fundingAmounts.length > 0) {
       const maxAmount = Math.max(...fundingAmounts);
       const minAmount = Math.min(...fundingAmounts);
@@ -1378,10 +1396,17 @@ export class QuestionEngine {
   }
 
   /**
-   * Get core questions
+   * Get core questions ordered by phase (top-down filtering)
    */
   public getCoreQuestions(): SymptomQuestion[] {
-    return this.questions;
+    // Sort questions by phase (1: Broad filters, 2: Specific, 3: Refinement)
+    // Within each phase, sort by questionNumber for consistent ordering
+    return this.questions.sort((a, b) => {
+      if (a.phase !== b.phase) {
+        return a.phase - b.phase; // Phase 1 first, then 2, then 3
+      }
+      return (a.questionNumber || 0) - (b.questionNumber || 0); // Then by question number
+    });
   }
 
   /**
