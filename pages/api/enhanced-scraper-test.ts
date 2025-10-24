@@ -1,6 +1,6 @@
 // Enhanced Scraper Test - Full Scraping
 import { NextApiRequest, NextApiResponse } from 'next';
-import { EnhancedWebScraperService } from '../../src/lib/enhancedWebScraperService';
+import { WebScraperService } from '../../src/lib/webScraperService';
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   if (req.method !== 'GET') {
@@ -10,11 +10,11 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   try {
     console.log('🔄 Running enhanced scraper test (full)...');
     
-    // Initialize the ENHANCED web scraper service with real eligibility extraction
-    const scraperService = new EnhancedWebScraperService();
+    // Initialize the ORIGINAL web scraper service with your keywords
+    const scraperService = new WebScraperService();
     
-    // Run the actual scraper to get fresh data with real eligibility criteria
-    const programs = await scraperService.scrapeAllProgramsWithLearning();
+    // Run the actual scraper to get fresh data with your configured keywords
+    const programs = await scraperService.scrapeAllPrograms();
     
     console.log(`✅ Enhanced scraper test completed: ${programs.length} programs`);
     

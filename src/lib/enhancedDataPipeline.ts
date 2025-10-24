@@ -1480,7 +1480,13 @@ export class EnhancedDataPipeline {
         !program.name &&  // Also check if name exists
         description.length < 10;  // And description is truly minimal
       
-      const isValid = !isErrorPage && !isNavigationPage && !hasMinimalContent && !hasNoMeaningfulData;
+      // SPECIAL CASE: Keep programs with eligibility criteria even if they're error pages
+      // This is needed for QuestionEngine to generate questions
+      const hasEligibilityCriteria = program.eligibility_criteria && 
+        Object.keys(program.eligibility_criteria).length > 0;
+      
+      const isValid = (!isErrorPage && !isNavigationPage && !hasMinimalContent && !hasNoMeaningfulData) ||
+                     (hasEligibilityCriteria && !hasNoMeaningfulData);
       
       if (!isValid) {
         console.log(`🚫 Filtered out program: ${program.name} (${isErrorPage ? 'error page' : isNavigationPage ? 'navigation' : hasMinimalContent ? 'minimal content' : 'no meaningful data'})`);
