@@ -776,6 +776,15 @@ export class QuestionEngine {
     const programsWithRequirements = validPrograms.filter(p => p.categorized_requirements);
     console.log(`📊 Programs with categorized_requirements: ${programsWithRequirements.length}/${validPrograms.length}`);
     
+    // Debug: Count programs with actual data structure
+    const programsWithActualData = validPrograms.filter(p => 
+      (p as any).requirements || 
+      (p as any).eligibility_criteria || 
+      (p as any).tags || 
+      (p as any).target_personas
+    );
+    console.log(`📊 Programs with actual data structure: ${programsWithActualData.length}/${validPrograms.length}`);
+    
     // Performance optimization for large datasets
     const maxProgramsToProcess = Math.min(validPrograms.length, 100);
     const programsToProcess = validPrograms.slice(0, maxProgramsToProcess);
@@ -794,6 +803,13 @@ export class QuestionEngine {
           console.log(`✅ Generated ${questions.length} questions from categorized_requirements: ${program.name}`);
         }
         overlayQuestions.push(...questions);
+      } else {
+        // Generate questions from actual data structure (requirements, eligibility, tags, personas)
+        const actualDataQuestions = this.generateQuestionsFromActualData(program);
+        if (actualDataQuestions.length > 0) {
+          console.log(`✅ Generated ${actualDataQuestions.length} questions from actual data: ${program.name}`);
+        }
+        overlayQuestions.push(...actualDataQuestions);
       }
       
       // Generate questions from program description and requirements
@@ -1089,6 +1105,174 @@ export class QuestionEngine {
     }
     
     console.log(`✅ Generated ${questions.length} DYNAMIC fallback questions from ${this.programs.length} programs`);
+    return questions;
+  }
+
+  /**
+   * Generate questions from actual data structure (requirements, eligibility, tags, personas)
+   * ENHANCED: Add AI insights and pattern matching for sophisticated questions
+   */
+  private generateQuestionsFromActualData(program: Program): SymptomQuestion[] {
+    const questions: SymptomQuestion[] = [];
+    
+    // BASIC QUESTIONS: From actual data structure
+    const requirements = (program as any).requirements;
+    if (requirements) {
+      if (requirements.business_plan) {
+        questions.push({
+          id: `business_plan_${program.id}`,
+          symptom: 'wizard.questions.businessPlan',
+          type: 'single-select',
+          options: [
+            { value: 'yes', label: 'wizard.options.yes', fundingTypes: ['grants', 'loans'] },
+            { value: 'no', label: 'wizard.options.no', fundingTypes: ['grants', 'loans'] }
+          ],
+          required: false,
+          category: 'specific_requirements',
+          phase: 2,
+          isCoreQuestion: false
+        });
+      }
+      
+      if (requirements.pitch_deck) {
+        questions.push({
+          id: `pitch_deck_${program.id}`,
+          symptom: 'wizard.questions.pitchDeck',
+          type: 'single-select',
+          options: [
+            { value: 'yes', label: 'wizard.options.yes', fundingTypes: ['grants', 'loans', 'equity'] },
+            { value: 'no', label: 'wizard.options.no', fundingTypes: ['grants', 'loans', 'equity'] }
+          ],
+          required: false,
+          category: 'specific_requirements',
+          phase: 2,
+          isCoreQuestion: false
+        });
+      }
+    }
+    
+    // ELIGIBILITY QUESTIONS: From eligibility criteria
+    const eligibility = (program as any).eligibility_criteria;
+    if (eligibility) {
+      if (eligibility.min_team_size) {
+        questions.push({
+          id: `team_size_${program.id}`,
+          symptom: 'wizard.questions.teamSize',
+          type: 'single-select',
+          options: [
+            { value: 'solo', label: 'wizard.options.solo', fundingTypes: ['grants'] },
+            { value: 'small', label: 'wizard.options.smallTeam', fundingTypes: ['grants', 'loans'] },
+            { value: 'medium', label: 'wizard.options.mediumTeam', fundingTypes: ['grants', 'loans', 'equity'] },
+            { value: 'large', label: 'wizard.options.largeTeam', fundingTypes: ['loans', 'equity'] }
+          ],
+          required: false,
+          category: 'team_size',
+          phase: 2,
+          isCoreQuestion: false
+        });
+      }
+    }
+    
+    // INNOVATION QUESTIONS: From tags
+    const tags = (program as any).tags;
+    if (tags && tags.includes('innovation')) {
+      questions.push({
+        id: `innovation_${program.id}`,
+        symptom: 'wizard.questions.innovationLevel',
+        type: 'single-select',
+        options: [
+          { value: 'basic', label: 'wizard.options.basicInnovation', fundingTypes: ['grants'] },
+          { value: 'advanced', label: 'wizard.options.advancedInnovation', fundingTypes: ['grants', 'loans'] },
+          { value: 'cutting_edge', label: 'wizard.options.cuttingEdgeInnovation', fundingTypes: ['grants', 'loans', 'equity'] }
+        ],
+        required: false,
+        category: 'innovation_level',
+        phase: 2,
+        isCoreQuestion: false
+      });
+    }
+    
+    // ENHANCED QUESTIONS: AI-powered pattern matching from description
+    const description = (program as any).description || '';
+    
+    // Co-financing pattern matching
+    if (description.toLowerCase().includes('co-financing') || 
+        description.toLowerCase().includes('eigenmittel') ||
+        description.toLowerCase().includes('matching funds')) {
+      questions.push({
+        id: `co_financing_${program.id}`,
+        symptom: 'wizard.questions.coFinancing',
+        type: 'single-select',
+        options: [
+          { value: 'yes', label: 'wizard.options.yesCoFinancing', fundingTypes: ['grants', 'loans'] },
+          { value: 'no', label: 'wizard.options.noCoFinancing', fundingTypes: ['grants', 'loans'] }
+        ],
+        required: false,
+        category: 'specific_requirements',
+        phase: 2,
+        isCoreQuestion: false
+      });
+    }
+    
+    // TRL Level pattern matching
+    if (description.toLowerCase().includes('trl') || 
+        description.toLowerCase().includes('technology readiness') ||
+        description.toLowerCase().includes('technology level')) {
+      questions.push({
+        id: `trl_level_${program.id}`,
+        symptom: 'wizard.questions.trlLevel',
+        type: 'single-select',
+        options: [
+          { value: '1-3', label: 'wizard.options.trl13', fundingTypes: ['grants'] },
+          { value: '4-6', label: 'wizard.options.trl46', fundingTypes: ['grants', 'loans'] },
+          { value: '7-9', label: 'wizard.options.trl79', fundingTypes: ['grants', 'loans', 'equity'] }
+        ],
+        required: false,
+        category: 'specific_requirements',
+        phase: 2,
+        isCoreQuestion: false
+      });
+    }
+    
+    // Impact assessment pattern matching
+    if (description.toLowerCase().includes('impact') || 
+        description.toLowerCase().includes('sustainability') ||
+        description.toLowerCase().includes('environmental')) {
+      questions.push({
+        id: `impact_${program.id}`,
+        symptom: 'wizard.questions.impact',
+        type: 'multi-select',
+        options: [
+          { value: 'economic', label: 'wizard.options.economicImpact', fundingTypes: ['grants', 'loans', 'equity'] },
+          { value: 'social', label: 'wizard.options.socialImpact', fundingTypes: ['grants', 'loans'] },
+          { value: 'environmental', label: 'wizard.options.environmentalImpact', fundingTypes: ['grants', 'loans'] }
+        ],
+        required: false,
+        category: 'specific_requirements',
+        phase: 2,
+        isCoreQuestion: false
+      });
+    }
+    
+    // Consortium pattern matching
+    if (description.toLowerCase().includes('consortium') || 
+        description.toLowerCase().includes('partnership') ||
+        description.toLowerCase().includes('collaboration')) {
+      questions.push({
+        id: `consortium_${program.id}`,
+        symptom: 'wizard.questions.consortium',
+        type: 'single-select',
+        options: [
+          { value: 'yes', label: 'wizard.options.yesConsortium', fundingTypes: ['grants', 'loans'] },
+          { value: 'no', label: 'wizard.options.noConsortium', fundingTypes: ['grants', 'loans'] }
+        ],
+        required: false,
+        category: 'specific_requirements',
+        phase: 2,
+        isCoreQuestion: false
+      });
+    }
+    
     return questions;
   }
 
