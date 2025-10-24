@@ -290,6 +290,10 @@ export class QuestionEngine {
     console.log(`📊 Program types found: ${Array.from(programTypes).join(', ')}`);
     console.log(`📊 Funding amounts found: ${fundingAmounts.length}`);
     
+    // Debug: Check what conditions are being met
+    console.log(`🔍 Condition checks:`);
+    console.log(`  - programTypes.size > 0: ${programTypes.size > 0} (${programTypes.size})`);
+    
     this.questions = [];
     
     // Core Question 1: Funding Type (based on actual program types)
@@ -685,7 +689,7 @@ export class QuestionEngine {
                          (program as any).description?.toLowerCase().includes('seite wurde nicht gefunden');
       
       // More lenient filtering - accept programs with any meaningful data
-      const hasValidData = (program as any).description && (program as any).description.length > 50 &&
+      const hasValidData = (program as any).description && (program as any).description.length > 20 &&
                           program.name && program.name.length > 3;
       
       return !isErrorPage && hasValidData;
