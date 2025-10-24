@@ -68,9 +68,20 @@ const SmartWizard: React.FC<SmartWizardProps> = ({ onComplete, onProfileGenerate
   useEffect(() => {
     const initEngines = async () => {
       try {
-        // Fetch program data from API
+        // Fetch program data from API with timeout
         console.log('🔄 Fetching program data from API...');
-        const response = await fetch('/api/programs?enhanced=true');
+        const controller = new AbortController();
+        const timeoutId = setTimeout(() => controller.abort(), 10000); // 10 second timeout
+        
+        const response = await fetch('/api/programs?enhanced=true', {
+          signal: controller.signal
+        });
+        clearTimeout(timeoutId);
+        
+        if (!response.ok) {
+          throw new Error(`API request failed: ${response.status} ${response.statusText}`);
+        }
+        
         const data = await response.json();
         const programs = data.programs || [];
         
@@ -106,17 +117,50 @@ const SmartWizard: React.FC<SmartWizardProps> = ({ onComplete, onProfileGenerate
         // Start with first question
         const firstQuestion = await question.getFirstQuestion();
         const estimatedTotal = question.getEstimatedTotalQuestions();
-        setState(prev => ({
-          ...prev,
-          currentQuestion: firstQuestion,
-          progress: 0,
-          totalQuestions: estimatedTotal
-        }));
+        
+        console.log('🎯 First question:', firstQuestion?.id || 'null');
+        console.log('🎯 Estimated total:', estimatedTotal);
+        
+        // If no question is generated, create a basic fallback question
+        if (!firstQuestion) {
+          console.warn('⚠️ No questions generated, creating fallback question');
+          const fallbackQuestion = {
+            id: 'location',
+            symptom: 'wizard.questions.location',
+            type: 'single-select' as const,
+            options: [
+              { label: 'wizard.options.germany', value: 'germany' },
+              { label: 'wizard.options.austria', value: 'austria' },
+              { label: 'wizard.options.switzerland', value: 'switzerland' },
+              { label: 'wizard.options.other', value: 'other' }
+            ],
+            required: true,
+            category: 'location' as const,
+            phase: 1 as const,
+            questionNumber: 1
+          };
+          
+          setState(prev => ({
+            ...prev,
+            currentQuestion: fallbackQuestion,
+            progress: 0,
+            totalQuestions: 1
+          }));
+        } else {
+          setState(prev => ({
+            ...prev,
+            currentQuestion: firstQuestion,
+            progress: 0,
+            totalQuestions: estimatedTotal
+          }));
+        }
       } catch (error) {
         console.error('❌ Failed to initialize engines:', error);
         console.error('❌ Error details:', error instanceof Error ? error.message : String(error));
         console.error('❌ Error stack:', error instanceof Error ? error.stack : 'No stack trace');
-        // Fallback initialization
+        
+        // Enhanced fallback initialization with better error handling
+        console.log('🔄 Using fallback initialization...');
         const intake = new IntakeEngine();
         const question = new QuestionEngine([]);
         
@@ -128,12 +172,43 @@ const SmartWizard: React.FC<SmartWizardProps> = ({ onComplete, onProfileGenerate
         
         const firstQuestion = await question.getFirstQuestion();
         const estimatedTotal = question.getEstimatedTotalQuestions();
-        setState(prev => ({
-          ...prev,
-          currentQuestion: firstQuestion,
-          progress: 0,
-          totalQuestions: estimatedTotal
-        }));
+        
+        console.log('🎯 Fallback first question:', firstQuestion?.id || 'null');
+        console.log('🎯 Fallback estimated total:', estimatedTotal);
+        
+        // If no question is generated, create a basic fallback question
+        if (!firstQuestion) {
+          console.warn('⚠️ No fallback questions generated, creating emergency fallback question');
+          const fallbackQuestion = {
+            id: 'location',
+            symptom: 'wizard.questions.location',
+            type: 'single-select' as const,
+            options: [
+              { label: 'wizard.options.germany', value: 'germany' },
+              { label: 'wizard.options.austria', value: 'austria' },
+              { label: 'wizard.options.switzerland', value: 'switzerland' },
+              { label: 'wizard.options.other', value: 'other' }
+            ],
+            required: true,
+            category: 'location' as const,
+            phase: 1 as const,
+            questionNumber: 1
+          };
+          
+          setState(prev => ({
+            ...prev,
+            currentQuestion: fallbackQuestion,
+            progress: 0,
+            totalQuestions: 1
+          }));
+        } else {
+          setState(prev => ({
+            ...prev,
+            currentQuestion: firstQuestion,
+            progress: 0,
+            totalQuestions: estimatedTotal
+          }));
+        }
       }
     };
     
