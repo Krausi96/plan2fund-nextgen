@@ -294,6 +294,31 @@ export class QuestionEngine {
     console.log(`🔍 Condition checks:`);
     console.log(`  - programTypes.size > 0: ${programTypes.size > 0} (${programTypes.size})`);
     
+    // Debug: Check all the other conditions that should generate more questions
+    const orgTypes = new Set(this.programs.map(p => (p as any).organization_type || (p as any).org_type));
+    const amounts = this.programs
+      .map(p => (p as any).funding_amount_max || (p as any).funding_amount || (p as any).maxAmount || 0)
+      .filter(amount => amount > 0);
+    
+    console.log(`  - orgTypes.size > 0: ${orgTypes.size > 0} (${orgTypes.size})`);
+    console.log(`  - amounts.length > 0: ${amounts.length > 0} (${amounts.length})`);
+    
+    // Check for business stage programs
+    const hasBusinessStagePrograms = this.programs.some(p => 
+      (p as any).description?.toLowerCase().includes('startup') ||
+      (p as any).description?.toLowerCase().includes('early stage') ||
+      (p as any).description?.toLowerCase().includes('seed')
+    );
+    console.log(`  - hasBusinessStagePrograms: ${hasBusinessStagePrograms}`);
+    
+    // Check for goal programs
+    const hasGoalPrograms = this.programs.some(p => 
+      (p as any).description?.toLowerCase().includes('funding') ||
+      (p as any).description?.toLowerCase().includes('investment') ||
+      (p as any).description?.toLowerCase().includes('support')
+    );
+    console.log(`  - hasGoalPrograms: ${hasGoalPrograms}`);
+    
     this.questions = [];
     
     // Core Question 1: Funding Type (based on actual program types)
@@ -689,13 +714,38 @@ export class QuestionEngine {
                          (program as any).description?.toLowerCase().includes('seite wurde nicht gefunden');
       
       // More lenient filtering - accept programs with any meaningful data
-      const hasValidData = (program as any).description && (program as any).description.length > 20 &&
+      // Check both description and notes fields
+      const description = (program as any).description || '';
+      const notes = (program as any).notes || '';
+      const hasValidData = (description.length > 20 || notes.length > 20) &&
                           program.name && program.name.length > 3;
       
       return !isErrorPage && hasValidData;
     });
     
     console.log(`📊 Filtered programs: ${this.programs.length} → ${validPrograms.length} valid programs`);
+    
+    // Debug: Check why programs are being filtered out
+    if (validPrograms.length === 0) {
+      console.log('🔍 Debug: Checking why all programs are filtered out...');
+      const sampleProgram = this.programs[0];
+      console.log('🔍 Sample program structure:', {
+        name: sampleProgram.name,
+        nameLength: sampleProgram.name?.length,
+        hasDescription: !!(sampleProgram as any).description,
+        descriptionLength: (sampleProgram as any).description?.length,
+        hasNotes: !!(sampleProgram as any).notes,
+        notesLength: (sampleProgram as any).notes?.length,
+        hasRequirements: !!(sampleProgram as any).requirements,
+        requirementsKeys: (sampleProgram as any).requirements ? Object.keys((sampleProgram as any).requirements) : [],
+        isErrorPage: sampleProgram.name?.toLowerCase().includes('not found') ||
+                    sampleProgram.name?.toLowerCase().includes('error') ||
+                    sampleProgram.name?.toLowerCase().includes('newsletter') ||
+                    sampleProgram.name?.toLowerCase().includes('bad gateway') ||
+                    (sampleProgram as any).description?.toLowerCase().includes('seite wurde nicht gefunden'),
+        allFields: Object.keys(sampleProgram)
+      });
+    }
     
     // Debug: Log valid programs with their categorized_requirements
     validPrograms.forEach((program, index) => {
