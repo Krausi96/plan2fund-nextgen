@@ -51,6 +51,18 @@ export interface QuestionCondition {
   logic?: 'AND' | 'OR'; // NEW: Support for AND/OR logic
 }
 
+export interface EligibilityAnalysis {
+  location: Map<string, number>;
+  companyAge: Map<number, number>;
+  revenue: Map<string, number>;
+  teamSize: Map<number, number>;
+  researchFocus: Map<string, number>;
+  internationalCollaboration: Map<string, number>;
+  impact: Map<string, number>;
+  documents: Map<string, number>;
+  other: Map<string, number>;
+}
+
 export interface BranchingRule {
   id: string;
   condition: {
@@ -278,35 +290,355 @@ export class QuestionEngine {
   }
 
   /**
-   * Initialize DYNAMIC core questions based on actual program data
+   * Analyze eligibility criteria from ALL programs to generate dynamic questions
    */
   private initializeQuestions(): void {
-    console.log('🔄 Generating DYNAMIC core questions from program data...');
+    console.log('🔄 Analyzing eligibility criteria from ALL programs...');
     console.log(`📊 Programs available: ${this.programs.length}`);
     
-    // Analyze program data to generate core questions
-    const programTypes = new Set(this.programs.map(p => p.type || (p as any).program_type));
-    const fundingAmounts = this.programs
-      .map(p => (p as any).funding_amount_max || (p as any).funding_amount || (p as any).maxAmount || 0)
-      .filter(amount => amount > 0);
+    // STEP 1: Extract ALL eligibility criteria from programs
+    const eligibilityAnalysis = this.analyzeEligibilityCriteria();
     
-    console.log(`📊 Program types found: ${Array.from(programTypes).join(', ')}`);
-    console.log(`📊 Funding amounts found: ${fundingAmounts.length}`);
+    // STEP 2: Generate questions based on frequency and importance
+    this.generateQuestionsFromEligibilityAnalysis(eligibilityAnalysis);
     
-    // Debug: Check what conditions are being met
-    console.log(`🔍 Condition checks:`);
-    console.log(`  - programTypes.size > 0: ${programTypes.size > 0} (${programTypes.size})`);
+    console.log(`✅ Generated ${this.questions.length} dynamic questions from eligibility criteria`);
+  }
+
+  /**
+   * Analyze all eligibility criteria from programs
+   */
+  private analyzeEligibilityCriteria(): EligibilityAnalysis {
+    const analysis: EligibilityAnalysis = {
+      location: new Map(),
+      companyAge: new Map(),
+      revenue: new Map(),
+      teamSize: new Map(),
+      researchFocus: new Map(),
+      internationalCollaboration: new Map(),
+      impact: new Map(),
+      documents: new Map(),
+      other: new Map()
+    };
+
+    for (const program of this.programs) {
+      const eligibility = (program as any).eligibility_criteria;
+      if (!eligibility) continue;
+
+      // Location analysis
+      if (eligibility.location) {
+        const location = eligibility.location.toLowerCase();
+        analysis.location.set(location, (analysis.location.get(location) || 0) + 1);
+      }
+
+      // Company age analysis
+      if (eligibility.max_company_age) {
+        const age = eligibility.max_company_age;
+        analysis.companyAge.set(age, (analysis.companyAge.get(age) || 0) + 1);
+      }
+
+      // Revenue analysis
+      if (eligibility.revenue_min || eligibility.revenue_max) {
+        const revenueRange = `${eligibility.revenue_min || 0}-${eligibility.revenue_max || 'unlimited'}`;
+        analysis.revenue.set(revenueRange, (analysis.revenue.get(revenueRange) || 0) + 1);
+      }
+
+      // Team size analysis
+      if (eligibility.min_team_size) {
+        const teamSize = eligibility.min_team_size;
+        analysis.teamSize.set(teamSize, (analysis.teamSize.get(teamSize) || 0) + 1);
+      }
+
+      // Research focus analysis
+      if (eligibility.research_focus) {
+        analysis.researchFocus.set('required', (analysis.researchFocus.get('required') || 0) + 1);
+      }
+
+      // International collaboration analysis
+      if (eligibility.international_collaboration) {
+        analysis.internationalCollaboration.set('required', (analysis.internationalCollaboration.get('required') || 0) + 1);
+      }
+    }
+
+    return analysis;
+  }
+
+  /**
+   * Generate questions from eligibility analysis
+   */
+  private generateQuestionsFromEligibilityAnalysis(analysis: EligibilityAnalysis): void {
+    this.questions = [];
+
+    // Question 1: Location (most frequent criteria)
+    if (analysis.location.size > 0) {
+      this.generateLocationQuestion(analysis.location);
+    }
+
+    // Question 2: Company Age (if significant frequency)
+    if (analysis.companyAge.size > 0) {
+      this.generateCompanyAgeQuestion(analysis.companyAge);
+    }
+
+    // Question 3: Revenue (if significant frequency)
+    if (analysis.revenue.size > 0) {
+      this.generateRevenueQuestion(analysis.revenue);
+    }
+
+    // Question 4: Team Size (if significant frequency)
+    if (analysis.teamSize.size > 0) {
+      this.generateTeamSizeQuestion(analysis.teamSize);
+    }
+
+    // Question 5: Research Focus (if significant frequency)
+    if (analysis.researchFocus.size > 0) {
+      this.generateResearchFocusQuestion(analysis.researchFocus);
+    }
+
+    // Question 6: International Collaboration (if significant frequency)
+    if (analysis.internationalCollaboration.size > 0) {
+      this.generateInternationalCollaborationQuestion(analysis.internationalCollaboration);
+    }
+  }
+
+  /**
+   * Generate location question from analysis
+   */
+  private generateLocationQuestion(locationMap: Map<string, number>): void {
+    const options = Array.from(locationMap.entries())
+      .sort(([,a], [,b]) => b - a) // Sort by frequency
+      .map(([location, frequency]) => ({
+        value: location,
+        label: `wizard.options.${location}`,
+        description: `${frequency} programs available`,
+        fundingTypes: ['grants', 'loans']
+      }));
+
+    this.questions.push({
+      id: 'location',
+      symptom: 'wizard.questions.location',
+      type: 'single-select',
+      options,
+      required: true,
+      category: 'location',
+      phase: 1,
+      isCoreQuestion: true,
+      questionNumber: 1
+    });
+  }
+
+  /**
+   * Generate company age question from analysis
+   */
+  private generateCompanyAgeQuestion(ageMap: Map<number, number>): void {
+    const ageRanges = this.createAgeRanges(ageMap);
+    const options = ageRanges.map(range => ({
+      value: range.value,
+      label: range.label,
+      description: `${range.programs} programs available`,
+      fundingTypes: ['grants', 'loans']
+    }));
+
+    this.questions.push({
+      id: 'company_age',
+      symptom: 'wizard.questions.companyAge',
+      type: 'single-select',
+      options,
+      required: true,
+      category: 'business_stage',
+      phase: 1,
+      isCoreQuestion: true,
+      questionNumber: 2
+    });
+  }
+
+  /**
+   * Generate revenue question from analysis
+   */
+  private generateRevenueQuestion(revenueMap: Map<string, number>): void {
+    const revenueRanges = this.createRevenueRanges(revenueMap);
+    const options = revenueRanges.map(range => ({
+      value: range.value,
+      label: range.label,
+      description: `${range.programs} programs available`,
+      fundingTypes: ['grants', 'loans', 'equity']
+    }));
+
+    this.questions.push({
+      id: 'current_revenue',
+      symptom: 'wizard.questions.currentRevenue',
+      type: 'single-select',
+      options,
+      required: true,
+      category: 'funding_need',
+      phase: 1,
+      isCoreQuestion: true,
+      questionNumber: 3
+    });
+  }
+
+  /**
+   * Generate team size question from analysis
+   */
+  private generateTeamSizeQuestion(teamSizeMap: Map<number, number>): void {
+    const teamRanges = this.createTeamRanges(teamSizeMap);
+    const options = teamRanges.map(range => ({
+      value: range.value,
+      label: range.label,
+      description: `${range.programs} programs available`,
+      fundingTypes: ['grants', 'loans']
+    }));
+
+    this.questions.push({
+      id: 'team_size',
+      symptom: 'wizard.questions.teamSize',
+      type: 'single-select',
+      options,
+      required: true,
+      category: 'team_size',
+      phase: 1,
+      isCoreQuestion: true,
+      questionNumber: 4
+    });
+  }
+
+  /**
+   * Generate research focus question from analysis
+   */
+  private generateResearchFocusQuestion(researchMap: Map<string, number>): void {
+    const totalPrograms = Array.from(researchMap.values()).reduce((a, b) => a + b, 0);
+    const options = [
+      {
+        value: 'yes',
+        label: 'wizard.options.yes',
+        description: `${totalPrograms} research programs available`,
+        fundingTypes: ['grants']
+      },
+      {
+        value: 'no',
+        label: 'wizard.options.no',
+        description: 'Commercial/market programs',
+        fundingTypes: ['grants', 'loans', 'equity']
+      }
+    ];
+
+    this.questions.push({
+      id: 'research_focus',
+      symptom: 'wizard.questions.researchFocus',
+      type: 'single-select',
+      options,
+      required: true,
+      category: 'specific_requirements',
+      phase: 2,
+      isCoreQuestion: true,
+      questionNumber: 5
+    });
+  }
+
+  /**
+   * Generate international collaboration question from analysis
+   */
+  private generateInternationalCollaborationQuestion(collaborationMap: Map<string, number>): void {
+    const totalPrograms = Array.from(collaborationMap.values()).reduce((a, b) => a + b, 0);
+    const options = [
+      {
+        value: 'yes',
+        label: 'wizard.options.yes',
+        description: `${totalPrograms} consortium programs available`,
+        fundingTypes: ['grants']
+      },
+      {
+        value: 'no',
+        label: 'wizard.options.no',
+        description: 'Individual application programs',
+        fundingTypes: ['grants', 'loans', 'equity']
+      }
+    ];
+
+    this.questions.push({
+      id: 'international_collaboration',
+      symptom: 'wizard.questions.internationalCollaboration',
+      type: 'single-select',
+      options,
+      required: true,
+      category: 'specific_requirements',
+      phase: 2,
+      isCoreQuestion: true,
+      questionNumber: 6
+    });
+  }
+
+  /**
+   * Create age ranges from company age data
+   */
+  private createAgeRanges(ageMap: Map<number, number>): Array<{value: string, label: string, programs: number}> {
+    const ages = Array.from(ageMap.keys()).sort((a, b) => a - b);
+    const ranges = [];
+
+    // Create ranges based on actual data
+    if (ages.some(age => age <= 2)) {
+      ranges.push({ value: 'under_2_years', label: 'wizard.options.under2Years', programs: ages.filter(age => age <= 2).reduce((sum, age) => sum + (ageMap.get(age) || 0), 0) });
+    }
+    if (ages.some(age => age > 2 && age <= 5)) {
+      ranges.push({ value: '2_5_years', label: 'wizard.options.2to5Years', programs: ages.filter(age => age > 2 && age <= 5).reduce((sum, age) => sum + (ageMap.get(age) || 0), 0) });
+    }
+    if (ages.some(age => age > 5 && age <= 10)) {
+      ranges.push({ value: '5_10_years', label: 'wizard.options.5to10Years', programs: ages.filter(age => age > 5 && age <= 10).reduce((sum, age) => sum + (ageMap.get(age) || 0), 0) });
+    }
+    if (ages.some(age => age > 10)) {
+      ranges.push({ value: 'over_10_years', label: 'wizard.options.over10Years', programs: ages.filter(age => age > 10).reduce((sum, age) => sum + (ageMap.get(age) || 0), 0) });
+    }
+
+    return ranges;
+  }
+
+  /**
+   * Create revenue ranges from revenue data
+   */
+  private createRevenueRanges(revenueMap: Map<string, number>): Array<{value: string, label: string, programs: number}> {
+    const ranges = [];
     
-    // Debug: Check all the other conditions that should generate more questions
-    const orgTypes = new Set(this.programs.map(p => (p as any).organization_type || (p as any).org_type));
-    const amounts = this.programs
-      .map(p => (p as any).funding_amount_max || (p as any).funding_amount || (p as any).maxAmount || 0)
-      .filter(amount => amount > 0);
-    
-    console.log(`  - orgTypes.size > 0: ${orgTypes.size > 0} (${orgTypes.size})`);
-    console.log(`  - amounts.length > 0: ${amounts.length > 0} (${amounts.length})`);
-    
-    // Check for business stage programs
+    // Analyze revenue ranges and create meaningful options
+    for (const [range, count] of revenueMap.entries()) {
+      const [min, max] = range.split('-');
+      const minNum = parseInt(min) || 0;
+      const maxNum = max === 'unlimited' ? Infinity : parseInt(max) || 0;
+      
+      if (minNum < 100000) {
+        ranges.push({ value: 'under_100k', label: 'wizard.options.under100k', programs: count });
+      } else if (minNum < 500000) {
+        ranges.push({ value: '100k_500k', label: 'wizard.options.100kto500k', programs: count });
+      } else if (minNum < 2000000) {
+        ranges.push({ value: '500k_2m', label: 'wizard.options.500kto2m', programs: count });
+      } else {
+        ranges.push({ value: 'over_2m', label: 'wizard.options.over2m', programs: count });
+      }
+    }
+
+    return ranges;
+  }
+
+  /**
+   * Create team size ranges from team size data
+   */
+  private createTeamRanges(teamSizeMap: Map<number, number>): Array<{value: string, label: string, programs: number}> {
+    const teamSizes = Array.from(teamSizeMap.keys()).sort((a, b) => a - b);
+    const ranges = [];
+
+    if (teamSizes.some(size => size <= 2)) {
+      ranges.push({ value: '1_2_people', label: 'wizard.options.1to2People', programs: teamSizes.filter(size => size <= 2).reduce((sum, size) => sum + (teamSizeMap.get(size) || 0), 0) });
+    }
+    if (teamSizes.some(size => size > 2 && size <= 5)) {
+      ranges.push({ value: '3_5_people', label: 'wizard.options.3to5People', programs: teamSizes.filter(size => size > 2 && size <= 5).reduce((sum, size) => sum + (teamSizeMap.get(size) || 0), 0) });
+    }
+    if (teamSizes.some(size => size > 5 && size <= 10)) {
+      ranges.push({ value: '6_10_people', label: 'wizard.options.6to10People', programs: teamSizes.filter(size => size > 5 && size <= 10).reduce((sum, size) => sum + (teamSizeMap.get(size) || 0), 0) });
+    }
+    if (teamSizes.some(size => size > 10)) {
+      ranges.push({ value: 'over_10_people', label: 'wizard.options.over10People', programs: teamSizes.filter(size => size > 10).reduce((sum, size) => sum + (teamSizeMap.get(size) || 0), 0) });
+    }
+
+    return ranges;
+  }
     const hasBusinessStagePrograms = this.programs.some(p => 
       (p as any).description?.toLowerCase().includes('startup') ||
       (p as any).description?.toLowerCase().includes('early stage') ||
