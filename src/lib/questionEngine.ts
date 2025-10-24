@@ -13,6 +13,7 @@ export interface SymptomQuestion {
   options: Array<{
     value: string;
     label: string;
+    description?: string; // Additional context for the option
     fundingTypes?: string[]; // Which funding types this answer suggests
     nextQuestions?: string[]; // Which questions to ask next
   }>;
@@ -338,16 +339,36 @@ export class QuestionEngine {
     
     this.questions = [];
     
-    // Core Question 1: Geographical Location (MAJOR FILTER - Phase 1)
+    // Core Question 1: Geographical Location (MAJOR FILTER - Phase 1) - IMPROVED with context
     this.questions.push({
       id: 'location',
       symptom: 'wizard.questions.location',
       type: 'single-select',
       options: [
-        { value: 'austria', label: 'wizard.options.austria', fundingTypes: ['grants', 'loans'] },
-        { value: 'germany', label: 'wizard.options.germany', fundingTypes: ['grants', 'loans', 'equity'] },
-        { value: 'eu', label: 'wizard.options.eu', fundingTypes: ['grants', 'loans'] },
-        { value: 'international', label: 'wizard.options.international', fundingTypes: ['grants', 'loans', 'equity'] }
+        { 
+          value: 'austria', 
+          label: 'wizard.options.austria', 
+          description: 'Austria-based organizations (AWS, FFG, VBA programs)',
+          fundingTypes: ['grants', 'loans'] 
+        },
+        { 
+          value: 'germany', 
+          label: 'wizard.options.germany', 
+          description: 'Germany-based organizations (German funding programs)',
+          fundingTypes: ['grants', 'loans', 'equity'] 
+        },
+        { 
+          value: 'eu', 
+          label: 'wizard.options.eu', 
+          description: 'EU member states (Horizon Europe, EIC programs)',
+          fundingTypes: ['grants', 'loans'] 
+        },
+        { 
+          value: 'international', 
+          label: 'wizard.options.international', 
+          description: 'Global organizations (International funding programs)',
+          fundingTypes: ['grants', 'loans', 'equity'] 
+        }
       ],
       required: true,
       category: 'location',
@@ -506,40 +527,8 @@ export class QuestionEngine {
       });
     }
     
-    // Core Question 6: Location (based on program geographic focus)
-    const hasAustrianPrograms = this.programs.some(p => 
-      (p as any).source_url?.includes('aws.at') ||
-      (p as any).institution?.toLowerCase().includes('austria') ||
-      (p as any).description?.toLowerCase().includes('österreich')
-    );
-    const hasEUPrograms = this.programs.some(p => 
-      (p as any).source_url?.includes('ec.europa.eu') ||
-      (p as any).description?.toLowerCase().includes('european') ||
-      (p as any).description?.toLowerCase().includes('eu')
-    );
-    
-    if (hasAustrianPrograms || hasEUPrograms) {
-      const locationOptions = [];
-      if (hasAustrianPrograms) {
-        locationOptions.push({ value: 'austria', label: 'wizard.options.austria', fundingTypes: ['grants', 'loans'] });
-      }
-      if (hasEUPrograms) {
-        locationOptions.push({ value: 'eu', label: 'wizard.options.eu', fundingTypes: ['grants', 'loans'] });
-      }
-      locationOptions.push({ value: 'international', label: 'wizard.options.international', fundingTypes: ['grants', 'loans', 'equity'] });
-      
-      this.questions.push({
-        id: 'location',
-        symptom: 'wizard.questions.location',
-        type: 'single-select',
-        options: locationOptions,
-        required: true,
-        category: 'specific_requirements',
-        phase: 1,
-        isCoreQuestion: true,
-        questionNumber: 6
-      });
-    }
+    // REMOVED: Duplicate location question - already generated as Core Question 1
+    // The first location question is sufficient and already has proper options
     
     // Core Question 7: Team Size (based on program team requirements)
     const hasTeamPrograms = this.programs.some(p => 
@@ -1028,32 +1017,8 @@ export class QuestionEngine {
       const minAmount = Math.min(...fundingAmounts);
       
       if (maxAmount > minAmount) {
-        questions.push({
-          id: 'project_scope',
-          symptom: 'wizard.questions.projectScope',
-          type: 'single-select',
-          options: [
-            { 
-              value: 'small_scale', 
-              label: 'wizard.options.smallScale', 
-              fundingTypes: ['grants']
-            },
-            { 
-              value: 'medium_scale', 
-              label: 'wizard.options.mediumScale', 
-              fundingTypes: ['grants', 'loans']
-            },
-            { 
-              value: 'large_scale', 
-              label: 'wizard.options.largeScale', 
-              fundingTypes: ['loans', 'equity']
-            }
-          ],
-          required: false,
-          category: 'specific_requirements',
-          phase: 2,
-          isCoreQuestion: false
-        });
+        // REMOVED: This creates duplicate funding questions
+        // The core funding_amount question is sufficient
       }
     }
     
