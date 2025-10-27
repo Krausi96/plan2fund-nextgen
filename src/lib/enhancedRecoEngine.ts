@@ -401,17 +401,19 @@ function scoreCategorizedRequirements(
   }> = [];
 
   // Define mapping between user answers and categorized requirements
+  // Map actual answer keys (from QuestionEngine) to requirement categories
   const answerMapping: Record<string, string[]> = {
-    'q1_country': ['geographic', 'eligibility'],
-    'q2_entity_stage': ['team', 'project'],
-    'q3_company_size': ['team', 'consortium'],
-    'q4_theme': ['impact', 'project'],
-    'q5_maturity_trl': ['trl_level', 'technical'],
-    'q6_funding_amount': ['financial', 'co_financing'],
-    'q7_timeline': ['timeline'],
-    'q8_industry': ['project', 'market_size'],
-    'q9_team_size': ['team', 'consortium'],
-    'q10_revenue_model': ['revenue_model', 'use_of_funds']
+    'location': ['geographic', 'eligibility'],
+    'company_age': ['company', 'eligibility'],
+    'current_revenue': ['financial', 'revenue'],
+    'team_size': ['team'],
+    'research_focus': ['project', 'impact'],
+    'international_collaboration': ['consortium', 'geographic'],
+    'business_stage': ['company', 'project'],
+    'funding_need': ['financial'],
+    'innovation_level': ['project', 'technical'],
+    'market_focus': ['market_size', 'revenue_model'],
+    'team_experience': ['team']
   };
 
   // Score each category
