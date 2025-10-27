@@ -694,8 +694,14 @@ export class QuestionEngine {
     
     // Location filter
     if (answers.location) {
+      const initialCount = filteredPrograms.length;
+      const programsWithLocation = filteredPrograms.filter(p => (p as any).eligibility_criteria?.location).length;
+      console.log(`🔍 Location filtering: ${answers.location}, Programs with location criteria: ${programsWithLocation}`);
+      
       filteredPrograms = filteredPrograms.filter(program => {
         const eligibility = (program as any).eligibility_criteria;
+        
+        // If no location criteria, include the program (available to all)
         if (!eligibility || !eligibility.location) return true;
         
         const programLocation = eligibility.location.toLowerCase();
@@ -714,6 +720,8 @@ export class QuestionEngine {
         
         return programLocation === userLocation;
       });
+      
+      console.log(`📊 Location filter: ${initialCount} → ${filteredPrograms.length} programs (${programsWithLocation} had location criteria)`);
     }
     
     console.log(`📊 Major filters applied: ${this.programs.length} → ${filteredPrograms.length} programs`);
