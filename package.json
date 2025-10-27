@@ -20,7 +20,8 @@
         "analyze:filesize": "node scripts/analysis/analyze-filesize.js",
         "analyze:bundle": "node scripts/analysis/analyze-bundle.js",
         "analyze:unused": "node scripts/analysis/analyze-unused.js",
-        "analyze:duplicates": "node scripts/analysis/analyze-duplicates.js"
+        "analyze:duplicates": "node scripts/analysis/analyze-duplicates.js",
+        "scraper:run": "npx tsx scripts/independent-scraper.ts"
     },
     "devDependencies": {
         "@next/eslint-plugin-next": "^15.5.4",
@@ -38,6 +39,7 @@
         "eslint-plugin-react-hooks": "^5.2.0",
         "postcss": "^8.4.31",
         "ts-unused-exports": "^11.0.1",
+        "tsx": "^4.20.6",
         "typescript": "^5.3.3"
     },
     "dependencies": {
