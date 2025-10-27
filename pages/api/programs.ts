@@ -212,7 +212,13 @@ async function getProgramsFromEnhancedPipeline(type?: string): Promise<any[]> {
       };
     });
     
-    console.log(`✅ Enhanced Pipeline: Converted ${apiPrograms.length} programs to API format`);
+    // DEBUG: Log sample program to see if categorized_requirements is being generated
+    if (apiPrograms.length > 0) {
+      console.log('✅ Enhanced Pipeline: Converted', apiPrograms.length, 'programs to API format');
+      console.log('🔍 DEBUG: Sample program categorized_requirements:', apiPrograms[0].categorized_requirements);
+      console.log('🔍 DEBUG: Sample program eligibility_criteria:', apiPrograms[0].eligibility_criteria);
+    }
+    
     return apiPrograms;
     
   } catch (error) {
