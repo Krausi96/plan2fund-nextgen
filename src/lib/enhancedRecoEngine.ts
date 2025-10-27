@@ -416,6 +416,13 @@ function scoreCategorizedRequirements(
     'team_experience': ['team']
   };
 
+  // Debug: Log what we're receiving
+  console.log('🔍 DEBUG scoreCategorizedRequirements:', {
+    categorizedRequirementsKeys: Object.keys(categorizedRequirements),
+    answersKeys: Object.keys(answers),
+    answers: answers
+  });
+
   // Score each category
   Object.entries(categorizedRequirements).forEach(([category, data]: [string, any]) => {
     if (!data || !Array.isArray(data) || data.length === 0) return;
@@ -426,6 +433,7 @@ function scoreCategorizedRequirements(
       .map(([answerKey, _]) => ({ key: answerKey, value: answers[answerKey] }))
       .filter(answer => answer.value !== undefined && answer.value !== null && answer.value !== '');
 
+    console.log(`🔍 DEBUG category "${category}": relevantAnswers:`, relevantAnswers);
     if (relevantAnswers.length === 0) return;
 
     // Score based on category type
