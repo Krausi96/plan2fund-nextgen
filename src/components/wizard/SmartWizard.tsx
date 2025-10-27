@@ -36,6 +36,8 @@ interface WizardState {
   canGoBack: boolean;
   canGoForward: boolean;
   questionHistory: string[];
+  // NEW: Program filtering feedback
+  remainingProgramCount?: number;
 }
 
 const SmartWizard: React.FC<SmartWizardProps> = ({ onComplete, onProfileGenerated }) => {
@@ -251,9 +253,12 @@ const SmartWizard: React.FC<SmartWizardProps> = ({ onComplete, onProfileGenerate
     // Add current question to history
     const updatedHistory = [...state.questionHistory, state.currentQuestion.id];
     
-    // Apply major filters to reduce program pool
+    // NEW: Apply major filters to reduce program pool
     const filteredPrograms = questionEngine.applyMajorFilters(newAnswers);
     console.log(`🔍 Major filters applied: ${filteredPrograms.length} programs remaining`);
+    
+    // NEW: Store program count for display
+    const remainingProgramCount = filteredPrograms.length;
     
     // Use enhanced question logic (prioritizes program-generated questions)
     let nextQuestion = await questionEngine.getNextQuestionEnhanced(newAnswers);
@@ -343,7 +348,9 @@ const SmartWizard: React.FC<SmartWizardProps> = ({ onComplete, onProfileGenerate
       difficulty,
       aiGuidance: nextQuestion?.aiGuidance,
       programPreview: programPreview || prev.programPreview, // Keep existing preview if no new one
-      previewQuality: previewQuality || prev.previewQuality // Keep existing quality if no new one
+      previewQuality: previewQuality || prev.previewQuality, // Keep existing quality if no new one
+      // NEW: Store program count
+      remainingProgramCount: remainingProgramCount
     }));
 
     // If no more questions, show final preview instead of results
@@ -487,6 +494,12 @@ const SmartWizard: React.FC<SmartWizardProps> = ({ onComplete, onProfileGenerate
                   style={{ width: `${state.progress}%` }}
                 />
               </div>
+              {/* NEW: Program count display */}
+              {state.remainingProgramCount !== undefined && (
+                <div className="text-sm text-gray-600 text-center mt-2">
+                  📊 <strong>{state.remainingProgramCount}</strong> {state.remainingProgramCount === 1 ? 'program' : 'programs'} {state.remainingProgramCount <= 15 ? 'matched so far' : 'remaining'}
+                </div>
+              )}
             </div>
             
             <div className="flex gap-6">

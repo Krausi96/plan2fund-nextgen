@@ -313,7 +313,8 @@ export class QuestionEngine {
       required: true,
       category: 'location',
       phase: 1,
-      isCoreQuestion: true
+      isCoreQuestion: true,
+      skipConditions: [] // Location is always asked first
     };
   }
 
@@ -337,7 +338,14 @@ export class QuestionEngine {
       required: true,
       category: 'business_stage',
       phase: 1,
-      isCoreQuestion: true
+      isCoreQuestion: true,
+      // NEW: Only ask this question if we have location context
+      skipConditions: [{
+        questionId: 'location',
+        operator: 'equals',
+        value: null,
+        action: 'hide'
+      }]
     };
   }
 
@@ -361,7 +369,8 @@ export class QuestionEngine {
       required: true,
       category: 'funding_need',
       phase: 1,
-      isCoreQuestion: true
+      isCoreQuestion: true,
+      skipConditions: [] // No skip conditions - can be asked anytime
     };
   }
 
@@ -385,7 +394,8 @@ export class QuestionEngine {
       required: true,
       category: 'team_size',
       phase: 1,
-      isCoreQuestion: true
+      isCoreQuestion: true,
+      skipConditions: [] // No skip conditions
     };
   }
 
@@ -417,7 +427,8 @@ export class QuestionEngine {
       required: true,
       category: 'specific_requirements',
       phase: 2,
-      isCoreQuestion: true
+      isCoreQuestion: true,
+      skipConditions: [] // Can be asked after basics are covered
     };
   }
 
@@ -538,13 +549,21 @@ export class QuestionEngine {
   }
 
   /**
-   * Get next question with enhanced logic
+   * Get next question with enhanced logic - PROGRESSIVE FILTERING
    */
   public async getNextQuestionEnhanced(answers: Record<string, any>): Promise<SymptomQuestion | null> {
     console.log(`🔍 Getting next question from ${Object.keys(answers).length} answers`);
-    console.log(`📊 Available programs: ${this.programs.length}`);
-    console.log(`📊 Core questions: ${this.questions.length}`);
-    console.log(`📊 Overlay questions: ${this.overlayQuestions.length}`);
+    console.log(`📊 Total programs: ${this.programs.length}`);
+    
+    // NEW: Calculate remaining programs after filtering
+    const remainingPrograms = this.applyMajorFilters(answers);
+    console.log(`📊 Programs remaining: ${remainingPrograms.length} / ${this.programs.length}`);
+    
+    // NEW: If enough programs are filtered, we can stop
+    if (remainingPrograms.length <= 15 && Object.keys(answers).length >= 5) {
+      console.log(`✅ Only ${remainingPrograms.length} programs remain, stopping questions`);
+      return null;
+    }
     
     // Check if we should stop asking questions based on match quality
     const shouldStop = await this.shouldStopQuestions(answers);
@@ -555,20 +574,47 @@ export class QuestionEngine {
     
     console.log('🔍 Continuing with question selection...');
     
-    // Check core questions first
+    // NEW: Select questions that narrow down the program pool most effectively
+    let bestQuestion: SymptomQuestion | null = null;
+    let bestQuestionScore = 0;
+    
+    // Check core questions with smart selection
     for (const question of this.questions) {
       if (!answers[question.id]) {
-        console.log(`✅ Found unanswered core question: ${question.id}`);
-        return question;
+        // NEW: Check if this question should be shown based on conditional logic
+        if (this.shouldShowQuestion(question, answers)) {
+          // NEW: Score this question by how well it narrows down programs
+          const informationValue = this.calculateInformationValue(question, answers, remainingPrograms);
+          console.log(`📊 Question ${question.id} score: ${informationValue.toFixed(2)}`);
+          
+          if (informationValue > bestQuestionScore) {
+            bestQuestion = question;
+            bestQuestionScore = informationValue;
+          }
+        }
       }
     }
     
-    // Check overlay questions
-    for (const question of this.overlayQuestions) {
-      if (!answers[question.id]) {
-        console.log(`✅ Found unanswered overlay question: ${question.id}`);
-        return question;
+    // If no better question found, try overlay questions
+    if (!bestQuestion) {
+      for (const question of this.overlayQuestions) {
+        if (!answers[question.id]) {
+          if (this.shouldShowQuestion(question, answers)) {
+            const informationValue = this.calculateInformationValue(question, answers, remainingPrograms);
+            console.log(`📊 Overlay question ${question.id} score: ${informationValue.toFixed(2)}`);
+            
+            if (informationValue > bestQuestionScore) {
+              bestQuestion = question;
+              bestQuestionScore = informationValue;
+            }
+          }
+        }
       }
+    }
+    
+    if (bestQuestion) {
+      console.log(`✅ Selected question: ${bestQuestion.id} (score: ${bestQuestionScore.toFixed(2)})`);
+      return bestQuestion;
     }
     
     console.log('❌ No more questions to ask');
@@ -720,6 +766,147 @@ export class QuestionEngine {
    */
   private loadBranchingRules(): void {
     console.log('📋 Branching rules loaded');
+  }
+
+  /**
+   * NEW: Check if a question should be shown based on conditional logic
+   */
+  private shouldShowQuestion(question: SymptomQuestion, answers: Record<string, any>): boolean {
+    // If no conditional logic, show the question
+    if (!question.skipConditions || question.skipConditions.length === 0) {
+      return true;
+    }
+    
+    // Check skip conditions
+    for (const condition of question.skipConditions) {
+      const answerValue = answers[condition.questionId];
+      
+      if (!answerValue) {
+        continue; // Question hasn't been answered yet, can't skip
+      }
+      
+      // Check if condition matches
+      let shouldSkip = false;
+      
+      if (condition.operator === 'equals' && answerValue === condition.value) {
+        shouldSkip = true;
+      } else if (condition.operator === 'contains' && 
+                 Array.isArray(condition.value) && 
+                 condition.value.includes(answerValue)) {
+        shouldSkip = true;
+      } else if (condition.operator === 'in' && 
+                 Array.isArray(condition.value) && 
+                 condition.value.includes(answerValue)) {
+        shouldSkip = true;
+      } else if (condition.operator === 'not_equals' && answerValue !== condition.value) {
+        shouldSkip = true;
+      } else if (condition.operator === 'not_in' && 
+                 Array.isArray(condition.value) && 
+                 !condition.value.includes(answerValue)) {
+        shouldSkip = true;
+      }
+      
+      if (shouldSkip && condition.action === 'hide') {
+        console.log(`🚫 Skipping question ${question.id} due to condition: ${condition.questionId} ${condition.operator} ${condition.value}`);
+        return false;
+      }
+    }
+    
+    return true;
+  }
+
+  /**
+   * NEW: Calculate information value - how much does this question narrow down the program pool?
+   */
+  private calculateInformationValue(
+    question: SymptomQuestion,
+    answers: Record<string, any>,
+    remainingPrograms: Program[]
+  ): number {
+    // Base score starts with question phase (earlier questions are more valuable)
+    let score = (4 - question.phase) * 30; // Phase 1 = 90, Phase 2 = 60, Phase 3 = 30
+    
+    // Check how many programs have requirements for this question's category
+    let relevantPrograms = 0;
+    
+    for (const program of remainingPrograms) {
+      const eligibility = (program as any).eligibility_criteria;
+      
+      if (!eligibility) {
+        relevantPrograms += 0.1; // No requirements = less relevant
+        continue;
+      }
+      
+      // Check if this question is relevant to this program
+      let isRelevant = false;
+      
+      switch (question.category) {
+        case 'location':
+          if (eligibility.location) isRelevant = true;
+          break;
+        case 'business_stage':
+          if (eligibility.max_company_age || eligibility.min_company_age) isRelevant = true;
+          break;
+        case 'funding_need':
+          if (eligibility.revenue_min || eligibility.revenue_max) isRelevant = true;
+          break;
+        case 'team_size':
+          if (eligibility.min_team_size || eligibility.max_team_size) isRelevant = true;
+          break;
+        case 'specific_requirements':
+          if (eligibility.research_focus || eligibility.international_collaboration) isRelevant = true;
+          break;
+        case 'innovation_level':
+          if (eligibility.industry_focus || eligibility.research_focus) isRelevant = true;
+          break;
+        default:
+          isRelevant = true; // Default to relevant
+      }
+      
+      if (isRelevant) {
+        relevantPrograms++;
+      }
+    }
+    
+    // Higher score if question is relevant to many programs
+    const relevanceScore = (relevantPrograms / remainingPrograms.length) * 50;
+    score += relevanceScore;
+    
+    // Penalize if we already answered similar questions (avoid redundant questions)
+    const similarAnswers = Object.keys(answers).filter(key => {
+      const keyCategory = question.category;
+      const answerCategory = this.getQuestionCategory(key);
+      return keyCategory === answerCategory;
+    });
+    
+    if (similarAnswers.length > 0) {
+      score -= similarAnswers.length * 10;
+    }
+    
+    // Boost score for core questions
+    if (question.isCoreQuestion) {
+      score += 20;
+    }
+    
+    // Penalize if we have enough answers already (encourage stopping)
+    const answerCount = Object.keys(answers).length;
+    if (answerCount >= 8) {
+      score *= 0.5; // Reduce score significantly after 8 answers
+    }
+    
+    return Math.max(0, score);
+  }
+
+  /**
+   * NEW: Get question category from question ID (helper for similarity checking)
+   */
+  private getQuestionCategory(questionId: string): string {
+    if (questionId === 'location') return 'location';
+    if (questionId.includes('age') || questionId.includes('stage')) return 'business_stage';
+    if (questionId.includes('revenue') || questionId.includes('funding')) return 'funding_need';
+    if (questionId.includes('team') || questionId.includes('size')) return 'team_size';
+    if (questionId.includes('research') || questionId.includes('innovation')) return 'innovation_level';
+    return 'specific_requirements';
   }
 
   /**
