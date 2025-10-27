@@ -137,47 +137,115 @@ export class QuestionEngine {
     
     for (const program of this.allPrograms) {
       const eligibility = (program as any).eligibility_criteria;
-      if (!eligibility) continue;
+      const categorized = (program as any).categorized_requirements;
+      
+      if (!eligibility && !categorized) continue;
       programsWithCriteria++;
 
       // Location analysis
-      if (eligibility.location) {
+      if (eligibility?.location) {
         const location = eligibility.location.toLowerCase();
         analysis.location.set(location, (analysis.location.get(location) || 0) + 1);
       }
 
       // Company age analysis
-      if (eligibility.max_company_age) {
+      if (eligibility?.max_company_age) {
         const age = eligibility.max_company_age;
         analysis.companyAge.set(age, (analysis.companyAge.get(age) || 0) + 1);
       }
       
-      // Industry focus analysis
-      if (eligibility.industry_focus) {
+      // Industry focus analysis (from eligibility OR categorized)
+      if (eligibility?.industry_focus) {
         const industry = eligibility.industry_focus;
         analysis.other.set(`industry_${industry}`, (analysis.other.get(`industry_${industry}`) || 0) + 1);
+      } else if (categorized?.project) {
+        const industryReq = categorized.project.find((req: any) => req.type === 'industry_focus');
+        if (industryReq) {
+          analysis.other.set(`industry_${industryReq.value}`, (analysis.other.get(`industry_${industryReq.value}`) || 0) + 1);
+        }
       }
 
-      // Revenue analysis
-      if (eligibility.revenue_min || eligibility.revenue_max) {
+      // Revenue analysis (from eligibility OR categorized)
+      if (eligibility?.revenue_min || eligibility?.revenue_max) {
         const revenueRange = `${eligibility.revenue_min || 0}-${eligibility.revenue_max || 'unlimited'}`;
         analysis.revenue.set(revenueRange, (analysis.revenue.get(revenueRange) || 0) + 1);
+      } else if (categorized?.financial) {
+        const revenueReq = categorized.financial.find((req: any) => req.type === 'revenue_range');
+        if (revenueReq && revenueReq.value) {
+          const revenueRange = `${revenueReq.value.min || 0}-${revenueReq.value.max || 'unlimited'}`;
+          analysis.revenue.set(revenueRange, (analysis.revenue.get(revenueRange) || 0) + 1);
+        }
       }
 
-      // Team size analysis
-      if (eligibility.min_team_size) {
+      // Team size analysis (from eligibility OR categorized)
+      if (eligibility?.min_team_size) {
         const teamSize = eligibility.min_team_size;
         analysis.teamSize.set(teamSize, (analysis.teamSize.get(teamSize) || 0) + 1);
+      } else if (categorized?.team) {
+        const teamReq = categorized.team.find((req: any) => req.type === 'min_team_size');
+        if (teamReq) {
+          analysis.teamSize.set(teamReq.value, (analysis.teamSize.get(teamReq.value) || 0) + 1);
+        }
       }
 
-      // Research focus analysis
-      if (eligibility.research_focus) {
+      // Research focus analysis (from eligibility OR categorized)
+      if (eligibility?.research_focus) {
         analysis.researchFocus.set('required', (analysis.researchFocus.get('required') || 0) + 1);
+      } else if (categorized?.project) {
+        const researchReq = categorized.project.find((req: any) => req.type === 'research_focus');
+        if (researchReq && researchReq.value) {
+          analysis.researchFocus.set('required', (analysis.researchFocus.get('required') || 0) + 1);
+        }
       }
 
-      // International collaboration analysis
-      if (eligibility.international_collaboration) {
+      // International collaboration analysis (from eligibility OR categorized)
+      if (eligibility?.international_collaboration) {
         analysis.internationalCollaboration.set('required', (analysis.internationalCollaboration.get('required') || 0) + 1);
+      } else if (categorized?.consortium) {
+        const collabReq = categorized.consortium.find((req: any) => req.type === 'international_collaboration');
+        if (collabReq && collabReq.value) {
+          analysis.internationalCollaboration.set('required', (analysis.internationalCollaboration.get('required') || 0) + 1);
+        }
+      }
+      
+      // Extract project type from categorized (NEW!)
+      if (categorized?.project) {
+        const projectTypeReq = categorized.project.find((req: any) => req.type === 'project_type');
+        if (projectTypeReq) {
+          analysis.other.set(`project_${projectTypeReq.value}`, (analysis.other.get(`project_${projectTypeReq.value}`) || 0) + 1);
+        }
+      }
+      
+      // Extract innovation level from categorized (NEW!)
+      if (categorized?.innovation) {
+        const innovationReq = categorized.innovation.find((req: any) => req.type === 'innovation_level');
+        if (innovationReq) {
+          analysis.other.set(`innovation_${innovationReq.value}`, (analysis.other.get(`innovation_${innovationReq.value}`) || 0) + 1);
+        }
+      }
+      
+      // Extract TRL level from categorized (NEW!)
+      if (categorized?.technical) {
+        const trlReq = categorized.technical.find((req: any) => req.type === 'trl_level');
+        if (trlReq) {
+          analysis.other.set(`trl_${trlReq.value}`, (analysis.other.get(`trl_${trlReq.value}`) || 0) + 1);
+        }
+      }
+      
+      // Extract market stage from categorized (NEW!)
+      if (categorized?.market) {
+        const marketReq = categorized.market.find((req: any) => req.type === 'market_stage');
+        if (marketReq) {
+          analysis.other.set(`market_${marketReq.value}`, (analysis.other.get(`market_${marketReq.value}`) || 0) + 1);
+        }
+      }
+      
+      // Extract co-financing from categorized (NEW!)
+      if (categorized?.financial) {
+        const coFinancingReq = categorized.financial.find((req: any) => req.type === 'co_financing');
+        if (coFinancingReq) {
+          analysis.other.set(`cofinancing_${coFinancingReq.value}`, (analysis.other.get(`cofinancing_${coFinancingReq.value}`) || 0) + 1);
+        }
       }
     }
 

@@ -57,39 +57,49 @@ try {
 // Fallback data from latest scraped programs
 function getFallbackData() {
   try {
-    // Try the GOOD scraped data first (503 real programs from Oct 23)
+    // Try the ENRICHED scraped data first (with categorized_requirements)
+    const enrichedDataPath = path.join(process.cwd(), 'data', 'scraped-programs-2025-10-23-enriched.json');
     const scrapedDataPath = path.join(process.cwd(), 'data', 'scraped-programs-2025-10-23.json');
-    if (fs.existsSync(scrapedDataPath)) {
-      console.log('✅ Using scraped-programs-2025-10-23.json (503 real programs)');
-      const data = fs.readFileSync(scrapedDataPath, 'utf8');
-      const jsonData = JSON.parse(data);
-      const programs = jsonData.programs || [];
-      
-      return programs.map((program: any) => ({
-        id: program.id,
-        name: program.name,
-        type: program.program_type || program.type || 'grant',
-        requirements: program.requirements || {},
-        notes: program.description,
-        maxAmount: program.funding_amount_max || program.funding_amount,
-        link: program.source_url || program.url,
-        eligibility_criteria: program.eligibility_criteria || {},
-        categorized_requirements: transformEligibilityToCategorized(program.eligibility_criteria),
-        // Preserve AI metadata
-        target_personas: program.target_personas || [],
-        tags: program.tags || [],
-        decision_tree_questions: program.decision_tree_questions || [],
-        editor_sections: program.editor_sections || [],
-        readiness_criteria: program.readiness_criteria || [],
-        ai_guidance: program.ai_guidance || null
-      }));
+    
+    let dataPath = enrichedDataPath;
+    if (!fs.existsSync(enrichedDataPath)) {
+      dataPath = scrapedDataPath;
+      if (!fs.existsSync(dataPath)) {
+        throw new Error('No data file found');
+      }
+      console.log('✅ Using scraped-programs-2025-10-23.json');
+    } else {
+      console.log('✅ Using scraped-programs-2025-10-23-enriched.json (with categorized_requirements)');
     }
     
+    const data = fs.readFileSync(dataPath, 'utf8');
+    const jsonData = JSON.parse(data);
+    const programs = jsonData.programs || [];
+    
+    return programs.map((program: any) => ({
+      id: program.id,
+      name: program.name,
+      type: program.program_type || program.type || 'grant',
+      requirements: program.requirements || {},
+      notes: program.description,
+      maxAmount: program.funding_amount_max || program.funding_amount,
+      link: program.source_url || program.url,
+      eligibility_criteria: program.eligibility_criteria || {},
+      categorized_requirements: program.categorized_requirements || transformEligibilityToCategorized(program.eligibility_criteria),
+      // Preserve AI metadata
+      target_personas: program.target_personas || [],
+      tags: program.tags || [],
+      decision_tree_questions: program.decision_tree_questions || [],
+      editor_sections: program.editor_sections || [],
+      readiness_criteria: program.readiness_criteria || [],
+      ai_guidance: program.ai_guidance || null
+    }));
+    
     // Fallback to migrated data (also has 503 programs)
-    const dataPath = path.join(process.cwd(), 'data', 'migrated-programs.json');
-    if (fs.existsSync(dataPath)) {
+    const migratedDataPath = path.join(process.cwd(), 'data', 'migrated-programs.json');
+    if (fs.existsSync(migratedDataPath)) {
       console.log('✅ Using migrated-programs.json (503 fallback programs)');
-      const data = fs.readFileSync(dataPath, 'utf8');
+      const data = fs.readFileSync(migratedDataPath, 'utf8');
       const jsonData = JSON.parse(data);
       
       // The data structure has programs in a 'programs' array

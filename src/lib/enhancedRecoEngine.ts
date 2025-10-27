@@ -1,7 +1,6 @@
 // Removed static JSON import - using database instead
 import { Program, ScoredProgram, ProgramType } from "../types/requirements";
 import { UserAnswers } from "../lib/schemas";
-import { dataSource } from "./dataSource";
 // Removed doctorDiagnostic - filtering handled by QuestionEngine
 
 // Eligibility trace interface
@@ -610,8 +609,10 @@ export async function scoreProgramsEnhanced(
       filteredPrograms = preFilteredPrograms;
     } else {
       // Fetch and filter programs (advanced search flow)
-      const programs = await dataSource.getGPTEnhancedPrograms();
-      console.log('🔍 Debug: DataSource returned programs:', programs.length);
+      const response = await fetch('/api/programs?enhanced=true');
+      const data = await response.json();
+      const programs = data.programs || [];
+      console.log('🔍 Debug: Fetched programs directly:', programs.length);
       
       // APPLY MAJOR FILTERS (for advanced search, not wizard)
       filteredPrograms = applyMajorFiltersToPrograms(programs, answers);
@@ -925,10 +926,12 @@ async function scoreProgramsFallback(
   _mode: "strict" | "explorer" = "strict"
 ): Promise<EnhancedProgramResult[]> {
   try {
-    const source = await dataSource.getPrograms();
+    const response = await fetch('/api/programs');
+    const data = await response.json();
+    const source = data.programs || [];
     
     // Simple fallback: return basic program information with minimal scoring
-    return source.slice(0, 10).map((p, index) => ({
+    return source.slice(0, 10).map((p: any, index: number) => ({
       id: p.id || `fallback-${index}`,
       name: p.name || p.id || `Program ${index + 1}`,
       type: (Array.isArray(p.tags) && p.tags.length > 0 ? p.tags[0] : (p.type || "program")) as ProgramType,
