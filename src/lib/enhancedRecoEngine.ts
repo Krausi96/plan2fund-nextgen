@@ -480,35 +480,33 @@ function applyMajorFiltersToPrograms(programs: any[], answers: UserAnswers): any
   // MAJOR FILTER 1: Location (Hardcoded Rule)
   if (answers.location) {
     filteredPrograms = filteredPrograms.filter(program => {
-      // CRITICAL: Check eligibility_criteria first (more reliable)
-      const eligibility = (program as any).eligibility_criteria;
-      if (eligibility && eligibility.location) {
-        const programLocation = eligibility.location.toLowerCase();
-        const userLocation = answers.location.toLowerCase();
-        
-        // Check if program location matches user location
-        if (programLocation === userLocation) return true;
-        if (userLocation === 'austria' && (programLocation === 'austria' || programLocation === 'vienna')) return true;
-        if (userLocation === 'eu' && (programLocation === 'eu' || programLocation === 'austria' || programLocation === 'vienna')) return true;
-      }
+      // Check eligibility_criteria.location first
+      const eligibilityLocation = (program as any).eligibility_criteria?.location?.toLowerCase() || '';
       
-      // Fallback: Check institution and description
+      // Also check institution and description fields
       const programLocation = program.institution?.toLowerCase() || '';
-      const programDescription = program.description?.toLowerCase() || program.notes?.toLowerCase() || '';
+      const programDescription = program.description?.toLowerCase() || '';
       
       switch (answers.location) {
         case 'austria':
-          return programLocation.includes('austria') || 
+          return eligibilityLocation === 'austria' ||
+                 eligibilityLocation.includes('austria') ||
+                 programLocation.includes('austria') || 
                  programLocation.includes('österreich') ||
                  programDescription.includes('austria') ||
                  programDescription.includes('österreich');
         case 'germany':
-          return programLocation.includes('germany') || 
+          return eligibilityLocation === 'germany' ||
+                 eligibilityLocation.includes('germany') ||
+                 programLocation.includes('germany') || 
                  programLocation.includes('deutschland') ||
                  programDescription.includes('germany') ||
                  programDescription.includes('deutschland');
         case 'eu':
-          return programLocation.includes('eu') || 
+          return eligibilityLocation === 'eu' ||
+                 eligibilityLocation.includes('eu') ||
+                 eligibilityLocation.includes('europe') ||
+                 programLocation.includes('eu') || 
                  programLocation.includes('european') ||
                  programDescription.includes('eu') ||
                  programDescription.includes('european');
