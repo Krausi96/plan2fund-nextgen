@@ -281,6 +281,152 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     
     // STEP 1.3: Use Enhanced Data Pipeline for intelligent data source
     if (enhanced === 'true' || source === 'pipeline') {
+      // FOR NOW: Bypass Enhanced Data Pipeline and read directly from scraped-programs-2025-10-23.json
+      // This ensures we have proper eligibility_criteria data
+      const dataPath = path.join(process.cwd(), 'data', 'scraped-programs-2025-10-23.json');
+      if (fs.existsSync(dataPath)) {
+        console.log('✅ Reading directly from scraped-programs-2025-10-23.json (bypassing pipeline)');
+        const data = fs.readFileSync(dataPath, 'utf8');
+        const jsonData = JSON.parse(data);
+        const rawPrograms = jsonData.programs || [];
+        
+        // Transform using our helper function
+        const transformToCategorizedRequirements = (eligibility: any) => {
+          const categorized: any = {
+            eligibility: [],
+            documents: [],
+            financial: [],
+            technical: [],
+            legal: [],
+            timeline: [],
+            geographic: [],
+            team: [],
+            project: [],
+            compliance: [],
+            impact: [],
+            capex_opex: [],
+            use_of_funds: [],
+            revenue_model: [],
+            market_size: [],
+            co_financing: [],
+            trl_level: [],
+            consortium: []
+          };
+          
+          if (!eligibility || Object.keys(eligibility).length === 0) return categorized;
+          
+          // Geographic requirements
+          if (eligibility.location) {
+            const normalizedLocation = typeof eligibility.location === 'string' ? eligibility.location.toLowerCase() : eligibility.location;
+            categorized.geographic.push({
+              type: 'location',
+              value: normalizedLocation,
+              required: true,
+              source: 'eligibility_criteria'
+            });
+          }
+          
+          // Team requirements
+          if (eligibility.min_team_size) {
+            categorized.team.push({
+              type: 'min_team_size',
+              value: eligibility.min_team_size,
+              required: true,
+              source: 'eligibility_criteria'
+            });
+          }
+          
+          // Company requirements (store under team for now)
+          if (eligibility.max_company_age) {
+            categorized.team.push({
+              type: 'max_company_age',
+              value: eligibility.max_company_age,
+              required: true,
+              source: 'eligibility_criteria'
+            });
+          }
+          
+          // Financial requirements
+          if (eligibility.revenue_min || eligibility.revenue_max) {
+            categorized.financial.push({
+              type: 'revenue_range',
+              value: { min: eligibility.revenue_min, max: eligibility.revenue_max },
+              required: true,
+              source: 'eligibility_criteria'
+            });
+          }
+          
+          // Research focus requirements
+          if (eligibility.research_focus) {
+            categorized.project.push({
+              type: 'research_focus',
+              value: eligibility.research_focus,
+              required: true,
+              source: 'eligibility_criteria'
+            });
+          }
+          
+          // International collaboration requirements
+          if (eligibility.international_collaboration) {
+            categorized.consortium.push({
+              type: 'international_collaboration',
+              value: eligibility.international_collaboration,
+              required: true,
+              source: 'eligibility_criteria'
+            });
+          }
+          
+          return categorized;
+        };
+        
+        const programs = rawPrograms.map((program: any) => {
+          const eligibility = program.eligibility_criteria || {};
+          const regeneratedCategorized = transformToCategorizedRequirements(eligibility);
+          
+          // DEBUG: Log sample program
+          if (program.id === rawPrograms[0].id) {
+            console.log('🔍 DEBUG: Sample program categorized_requirements:', regeneratedCategorized);
+            console.log('🔍 DEBUG: Sample program eligibility_criteria:', eligibility);
+          }
+          
+          return {
+            id: program.id,
+            name: program.name,
+            type: program.program_type || program.type || 'grant',
+            requirements: program.requirements || {},
+            notes: program.description || '',
+            maxAmount: program.funding_amount_max || 0,
+            minAmount: program.funding_amount_min || 0,
+            currency: program.currency || 'EUR',
+            link: program.source_url || '',
+            deadline: program.deadline,
+            isActive: program.is_active !== false,
+            scrapedAt: program.scraped_at,
+            eligibility_criteria: eligibility,
+            categorized_requirements: regeneratedCategorized,
+            target_personas: program.target_personas || [],
+            tags: program.tags || [],
+            decision_tree_questions: program.decision_tree_questions || [],
+            editor_sections: program.editor_sections || [],
+            readiness_criteria: program.readiness_criteria || [],
+            ai_guidance: program.ai_guidance || null
+          };
+        });
+        
+        const filteredPrograms = type 
+          ? programs.filter((p: any) => p.type === type)
+          : programs;
+        
+        return res.status(200).json({
+          success: true,
+          programs: filteredPrograms,
+          source: 'direct_json',
+          total: filteredPrograms.length,
+          timestamp: new Date().toISOString(),
+        });
+      }
+      
+      // Fallback to Enhanced Data Pipeline
       try {
         console.log('🔄 Using Enhanced Data Pipeline (Step 1.3)...');
         const programs = await getProgramsFromEnhancedPipeline(type as string);
