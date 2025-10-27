@@ -1,6 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { QuestionEngine, SymptomQuestion } from '../../lib/questionEngine';
-import { IntakeEngine } from '../../lib/intakeEngine';
 import { scoreProgramsEnhanced, EnhancedProgramResult } from '../../lib/enhancedRecoEngine';
 import { useI18n } from '../../contexts/I18nContext';
 import Link from 'next/link';
@@ -51,8 +50,6 @@ const SmartWizard: React.FC<SmartWizardProps> = ({ onComplete, onProfileGenerate
   });
 
   const [questionEngine, setQuestionEngine] = useState<QuestionEngine | null>(null);
-  const [intakeEngine, setIntakeEngine] = useState<IntakeEngine | null>(null);
-  // Removed scoringEngine - using enhancedRecoEngine directly
   const [animationKey, setAnimationKey] = useState(0);
   const containerRef = useRef<HTMLDivElement>(null);
 
@@ -88,10 +85,6 @@ const SmartWizard: React.FC<SmartWizardProps> = ({ onComplete, onProfileGenerate
         }
         
         // Initialize engines with program data
-        console.log('🔄 Creating IntakeEngine...');
-        const intake = new IntakeEngine();
-        console.log('✅ IntakeEngine created successfully');
-        
         console.log('🔄 Creating QuestionEngine with', programs.length, 'programs...');
         console.log('🔍 Sample program data:', programs[0]);
         const question = new QuestionEngine(programs);
@@ -99,12 +92,6 @@ const SmartWizard: React.FC<SmartWizardProps> = ({ onComplete, onProfileGenerate
         console.log('📊 QuestionEngine questions count:', question.getCoreQuestions().length);
         console.log('🔍 QuestionEngine questions:', question.getCoreQuestions().map(q => q.id));
         
-        // Initialize overlay questions from program data
-        console.log('🔄 Initializing overlay questions...');
-        await question.initializeOverlayQuestions();
-        console.log('✅ Overlay questions initialized');
-        
-        setIntakeEngine(intake);
         setQuestionEngine(question);
         
         // Start with first question
@@ -154,13 +141,8 @@ const SmartWizard: React.FC<SmartWizardProps> = ({ onComplete, onProfileGenerate
         
         // Enhanced fallback initialization with better error handling
         console.log('🔄 Using fallback initialization...');
-        const intake = new IntakeEngine();
         const question = new QuestionEngine([]);
         
-        // Initialize overlay questions (will be empty for fallback)
-        await question.initializeOverlayQuestions();
-        
-        setIntakeEngine(intake);
         setQuestionEngine(question);
         
         const firstQuestion = await question.getFirstQuestion();
@@ -230,7 +212,7 @@ const SmartWizard: React.FC<SmartWizardProps> = ({ onComplete, onProfileGenerate
   };
 
   const handleAnswer = async (answer: any) => {
-    if (!state.currentQuestion || !questionEngine || !intakeEngine) return;
+    if (!state.currentQuestion || !questionEngine) return;
 
     const newAnswers = { ...state.answers, [state.currentQuestion.id]: answer };
     
@@ -242,26 +224,7 @@ const SmartWizard: React.FC<SmartWizardProps> = ({ onComplete, onProfileGenerate
     console.log(`🔍 Major filters applied: ${remainingProgramCount} programs remaining`);
     
     // Use enhanced question logic (prioritizes program-generated questions)
-    let nextQuestion = await questionEngine.getNextQuestionEnhanced(newAnswers);
-    
-    // If no more questions from enhanced logic, fall back to basic logic
-    if (!nextQuestion) {
-      console.log('⚠️ No more enhanced questions, trying basic logic');
-      nextQuestion = await questionEngine.getNextQuestion(newAnswers);
-      
-      // If still no questions, generate contextual questions based on user context
-      if (!nextQuestion) {
-        const contextualQuestions = questionEngine.generateContextualQuestions(newAnswers);
-        if (contextualQuestions.length > 0) {
-          nextQuestion = contextualQuestions[0];
-          // Store contextual questions for later use
-          setState(prev => ({
-            ...prev,
-            programSpecificQuestions: contextualQuestions
-          }));
-        }
-      }
-    }
+    const nextQuestion = await questionEngine.getNextQuestionEnhanced(newAnswers);
     
     // REMOVED: Program preview generation - too slow, scoring 503 programs after each answer
     // Just store the program count instead
@@ -290,16 +253,20 @@ const SmartWizard: React.FC<SmartWizardProps> = ({ onComplete, onProfileGenerate
 
 
   const processResults = async (answers: Record<string, any>) => {
-    if (!intakeEngine || !questionEngine) return;
+    if (!questionEngine) return;
 
     setState(prev => ({ ...prev, isProcessing: true }));
 
     try {
-      // Parse answers to profile for compatibility
-      const profile = await intakeEngine.parseAnswers(answers, `session_${Date.now()}`);
-      
-      // Use enhancedRecoEngine directly with raw answers for better AI integration
+      // Score programs using enhanced reco engine
       const results = await scoreProgramsEnhanced(answers, "strict");
+      
+      // Simple profile for callback compatibility
+      const profile = {
+        answers,
+        sessionId: `session_${Date.now()}`,
+        timestamp: new Date().toISOString()
+      };
       
       setState(prev => ({
         ...prev,

@@ -74,7 +74,6 @@ export class QuestionEngine {
   private allPrograms: Program[]; // Keep original programs
   private remainingPrograms: Program[]; // Currently matching programs (DYNAMIC)
   private questions: SymptomQuestion[] = [];
-  private overlayQuestions: SymptomQuestion[] = [];
   private askedQuestions: string[] = []; // Track which questions we've asked
 
   constructor(programs: Program[]) {
@@ -95,7 +94,6 @@ export class QuestionEngine {
     
     try {
       this.initializeQuestions();
-      this.initializeOverlayQuestions();
     } catch (error) {
       console.error('❌ Error initializing QuestionEngine:', error);
       console.error('❌ Error stack:', error instanceof Error ? error.stack : 'No stack trace');
@@ -544,7 +542,6 @@ export class QuestionEngine {
   public async getFirstQuestion(): Promise<SymptomQuestion | null> {
     console.log('🎯 Getting first question...');
     console.log('🎯 Available questions:', this.questions.length);
-    console.log('🎯 Available overlay questions:', this.overlayQuestions.length);
     const question = await this.getNextQuestionEnhanced({});
     console.log('🎯 First question result:', question ? question.id : 'null');
     return question;
@@ -597,23 +594,6 @@ export class QuestionEngine {
       }
     }
     
-    // If no better question found, try overlay questions
-    if (!bestQuestion) {
-      for (const question of this.overlayQuestions) {
-        if (!answers[question.id] && !this.askedQuestions.includes(question.id)) {
-          if (this.shouldShowQuestion(question, answers)) {
-            const informationValue = this.calculateInformationValue(question, answers, this.remainingPrograms);
-            console.log(`📊 Overlay question ${question.id} score: ${informationValue.toFixed(2)}`);
-            
-            if (informationValue > bestQuestionScore) {
-              bestQuestion = question;
-              bestQuestionScore = informationValue;
-            }
-          }
-        }
-      }
-    }
-    
     if (bestQuestion) {
       // Track that we asked this question
       this.askedQuestions.push(bestQuestion.id);
@@ -643,7 +623,7 @@ export class QuestionEngine {
     }
     
     // Check if we have answered all available questions
-    const totalQuestions = this.questions.length + this.overlayQuestions.length;
+    const totalQuestions = this.questions.length;
     if (answerCount >= totalQuestions) {
       console.log(`✅ All ${totalQuestions} questions answered`);
       return true;
@@ -660,15 +640,6 @@ export class QuestionEngine {
   }
 
   /**
-   * Initialize overlay questions
-   */
-  public async initializeOverlayQuestions(): Promise<void> {
-    // Initialize overlay questions from program data
-    this.overlayQuestions = [];
-    console.log('✅ Overlay questions initialized');
-  }
-
-  /**
    * Get core questions
    */
   public getCoreQuestions(): SymptomQuestion[] {
@@ -679,15 +650,14 @@ export class QuestionEngine {
    * Get estimated total questions
    */
   public getEstimatedTotalQuestions(): number {
-    return Math.min(this.questions.length + this.overlayQuestions.length, 40);
+    return Math.min(this.questions.length, 40);
   }
 
   /**
    * Get question by ID
    */
   public getQuestionById(id: string): SymptomQuestion | undefined {
-    const allQuestions = [...this.questions, ...this.overlayQuestions];
-    return allQuestions.find(q => q.id === id);
+    return this.questions.find(q => q.id === id);
   }
 
   /**
@@ -815,14 +785,6 @@ export class QuestionEngine {
     if (answer.includes('6_10') || answer.includes('6-10')) return 6;
     if (answer.includes('over_10')) return 10;
     return 1;
-  }
-
-  /**
-   * Generate contextual questions
-   */
-  public generateContextualQuestions(answers: Record<string, any>): SymptomQuestion[] {
-    // Return overlay questions that haven't been answered yet
-    return this.overlayQuestions.filter(q => !answers[q.id]);
   }
 
   /**
