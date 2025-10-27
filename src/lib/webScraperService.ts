@@ -596,6 +596,9 @@ export class WebScraperService {
       // Extract requirements using the GOOD method
       const requirements = await this.extractComprehensiveRequirements(page, institution?.name || '');
       
+      // Extract categorized_requirements from requirements
+      const categorized_requirements = this.categorizeRequirementsData(requirements);
+      
       // Extract funding amounts
       const funding = this.extractFundingAmounts(content);
       
@@ -622,6 +625,8 @@ export class WebScraperService {
         program_category: detectedCategory || institution?.category || 'unknown',
         eligibility_criteria, // ← NOW EXTRACTED FROM CONTENT, NOT EMPTY!
         requirements,
+        // CRITICAL: Add categorized_requirements so SmartWizard can generate profound questions!
+        categorized_requirements: categorized_requirements,
         contact_info: this.extractContactInfo(content, institution?.baseUrl || ''),
         scraped_at: new Date(),
         confidence_score: this.calculateConfidence(content, eligibility_criteria, requirements),
@@ -902,6 +907,57 @@ export class WebScraperService {
   // ============================================================================
   // REQUIREMENTS EXTRACTION - Keep the GOOD method
   // ============================================================================
+
+  /**
+   * Convert extracted requirements to categorized_requirements format
+   */
+  private categorizeRequirementsData(requirements: any): any {
+    const categorized: any = {
+      eligibility: [], documents: [], financial: [], technical: [], legal: [],
+      timeline: [], geographic: [], team: [], project: [], compliance: [],
+      impact: [], capex_opex: [], use_of_funds: [], revenue_model: [],
+      market_size: [], co_financing: [], trl_level: [], consortium: []
+    };
+
+    // Map requirements to categories
+    if (requirements.co_financing) {
+      categorized.financial.push({
+        type: 'co_financing',
+        value: requirements.co_financing,
+        required: true,
+        source: 'dynamic_patterns'
+      });
+    }
+
+    if (requirements.trl_level) {
+      categorized.technical.push({
+        type: 'trl_level',
+        value: requirements.trl_level,
+        required: true,
+        source: 'dynamic_patterns'
+      });
+    }
+
+    if (requirements.impact) {
+      categorized.impact.push({
+        type: 'impact',
+        value: requirements.impact,
+        required: true,
+        source: 'dynamic_patterns'
+      });
+    }
+
+    if (requirements.consortium) {
+      categorized.consortium.push({
+        type: 'consortium',
+        value: requirements.consortium,
+        required: true,
+        source: 'dynamic_patterns'
+      });
+    }
+
+    return categorized;
+  }
 
   /**
    * Extract comprehensive requirements using dynamic patterns

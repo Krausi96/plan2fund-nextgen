@@ -20,6 +20,7 @@ export interface ScrapedProgram {
   category?: string; // Alias for program_category
   eligibility_criteria: any;
   requirements: any;
+  categorized_requirements?: any; // Added for dynamic question generation
   contact_info: any;
   scraped_at: Date;
   confidence_score: number;
