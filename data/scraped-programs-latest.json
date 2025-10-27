@@ -1,256 +1,169 @@
 {
-  "timestamp": "2025-10-27T16:26:23.366Z",
+  "timestamp": "2025-10-27T19:26:32.418Z",
   "totalPrograms": 3,
   "programs": [
     {
-      "id": "aws_preseed_fallback",
-      "name": "AWS Preseed Program (Fallback)",
-      "description": "Austria Wirtschaftsservice Preseed funding for innovative startups",
+      "id": "aws_preseed_with_reqs",
+      "name": "AWS Preseed Program",
+      "description": "Funding for early-stage startups",
       "type": "grant",
       "program_type": "grant",
       "funding_amount_min": 50000,
       "funding_amount_max": 200000,
       "currency": "EUR",
-      "institution": "Austria Wirtschaftsservice",
-      "program_category": "business_grants",
       "eligibility_criteria": {
-        "min_team_size": 2,
+        "location": "Austria",
         "max_company_age": 5,
-        "location": "Austria"
+        "min_team_size": 2,
+        "revenue_max": 500000
       },
-      "requirements": {
-        "business_plan": true,
-        "pitch_deck": true,
-        "financial_projections": true
-      },
-      "contact_info": {
-        "email": "info@aws.at",
-        "website": "https://aws.at"
-      },
-      "source_url": "https://aws.at/en/aws-preseed",
-      "confidence_score": 0.9,
-      "tags": [
-        "innovation",
-        "startup",
-        "non-dilutive",
-        "aws"
-      ],
-      "target_personas": [
-        "startup",
-        "sme"
-      ],
-      "decision_tree_questions": [
-        {
-          "id": "q1",
-          "question": "What is your company stage?",
-          "type": "single",
-          "options": [
-            {
-              "value": "idea",
-              "label": "Idea Stage"
-            },
-            {
-              "value": "mvp",
-              "label": "MVP/Prototype"
-            },
-            {
-              "value": "revenue",
-              "label": "Generating Revenue"
-            }
-          ]
-        }
-      ],
-      "editor_sections": [
-        {
-          "id": "executive_summary",
-          "title": "Executive Summary",
-          "required": true,
-          "ai_prompts": [
-            "Summarize your business idea and market opportunity"
-          ]
-        }
-      ],
-      "readiness_criteria": [
-        {
-          "id": "team_complete",
-          "description": "Complete founding team",
-          "required": true
-        }
-      ],
-      "ai_guidance": {
-        "context": "AWS Preseed program guidance",
-        "prompts": [
-          "Focus on innovation and market potential"
+      "categorized_requirements": {
+        "financial": [
+          {
+            "type": "co_financing",
+            "value": "50%",
+            "required": true,
+            "source": "dynamic_patterns"
+          }
+        ],
+        "technical": [
+          {
+            "type": "trl_level",
+            "value": "3-7",
+            "required": true,
+            "source": "dynamic_patterns"
+          }
+        ],
+        "impact": [
+          {
+            "type": "innovation",
+            "value": "high",
+            "required": true,
+            "source": "dynamic_patterns"
+          }
+        ],
+        "consortium": [
+          {
+            "type": "required",
+            "value": "no",
+            "required": false,
+            "source": "dynamic_patterns"
+          }
+        ],
+        "industry": [
+          {
+            "type": "technology",
+            "value": "digital",
+            "required": true,
+            "source": "dynamic_patterns"
+          }
         ]
       },
-      "scraped_at": "2025-10-27T16:26:23.365Z",
+      "source_url": "https://aws.at",
+      "institution": "AWS",
+      "program_category": "startup_grants",
+      "scraped_at": "2025-10-27T19:26:32.417Z",
+      "confidence_score": 0.9,
       "is_active": true
     },
     {
-      "id": "ffg_basisprogramm_live",
+      "id": "ffg_basisprogramm_with_reqs",
       "name": "FFG Basisprogramm",
-      "description": "Austrian Research Promotion Agency basic program for R&D projects",
+      "description": "R&D funding for research projects",
       "type": "grant",
       "program_type": "grant",
       "funding_amount_min": 100000,
       "funding_amount_max": 1000000,
       "currency": "EUR",
-      "institution": "Austrian Research Promotion Agency",
-      "program_category": "research_grants",
       "eligibility_criteria": {
-        "min_team_size": 3,
-        "max_company_age": 10,
         "location": "Austria",
         "research_focus": true
       },
-      "requirements": {
-        "business_plan": true,
-        "technical_documentation": true,
-        "market_analysis": true,
-        "financial_projections": true
-      },
-      "contact_info": {
-        "email": "info@ffg.at",
-        "website": "https://www.ffg.at"
-      },
-      "source_url": "https://www.ffg.at/en/basisprogramm",
-      "confidence_score": 0.9,
-      "tags": [
-        "innovation",
-        "research",
-        "technology",
-        "ffg"
-      ],
-      "target_personas": [
-        "startup",
-        "sme",
-        "researcher"
-      ],
-      "decision_tree_questions": [
-        {
-          "id": "q1",
-          "question": "What is your research focus?",
-          "type": "single",
-          "options": [
-            {
-              "value": "technology",
-              "label": "Technology Innovation"
-            },
-            {
-              "value": "life_sciences",
-              "label": "Life Sciences"
-            },
-            {
-              "value": "digital",
-              "label": "Digital Technologies"
-            }
-          ]
-        }
-      ],
-      "editor_sections": [
-        {
-          "id": "executive_summary",
-          "title": "Executive Summary",
-          "required": true,
-          "ai_prompts": [
-            "Summarize your research project and innovation potential"
-          ]
-        }
-      ],
-      "readiness_criteria": [
-        {
-          "id": "research_team",
-          "description": "Qualified research team",
-          "required": true
-        }
-      ],
-      "ai_guidance": {
-        "context": "FFG Basisprogramm guidance",
-        "prompts": [
-          "Focus on research excellence and innovation"
+      "categorized_requirements": {
+        "technical": [
+          {
+            "type": "trl_level",
+            "value": "5-9",
+            "required": true
+          }
+        ],
+        "impact": [
+          {
+            "type": "scientific",
+            "value": "high",
+            "required": true
+          }
+        ],
+        "consortium": [
+          {
+            "type": "required",
+            "value": "yes",
+            "required": true
+          }
+        ],
+        "financial": [
+          {
+            "type": "co_financing",
+            "value": "30%",
+            "required": true
+          }
         ]
       },
-      "scraped_at": "2025-10-27T16:26:23.365Z",
+      "source_url": "https://ffg.at",
+      "institution": "FFG",
+      "program_category": "research_grants",
+      "scraped_at": "2025-10-27T19:26:32.418Z",
+      "confidence_score": 0.9,
       "is_active": true
     },
     {
-      "id": "vba_startup_live",
-      "name": "Vienna Business Agency Startup Funding",
-      "description": "VBA funding programs for Vienna-based startups",
+      "id": "aws_digitalization_with_reqs",
+      "name": "AWS Digitalization Grant",
+      "description": "Funding for digital transformation",
       "type": "grant",
       "program_type": "grant",
-      "funding_amount_min": 25000,
+      "funding_amount_min": 30000,
       "funding_amount_max": 150000,
       "currency": "EUR",
-      "institution": "Vienna Business Agency",
-      "program_category": "startup_grants",
       "eligibility_criteria": {
-        "min_team_size": 1,
-        "max_company_age": 7,
-        "location": "Vienna"
+        "location": "Austria",
+        "industry_focus": "digital"
       },
-      "requirements": {
-        "business_plan": true,
-        "pitch_deck": true,
-        "market_analysis": true
-      },
-      "contact_info": {
-        "email": "info@viennabusinessagency.at",
-        "website": "https://www.viennabusinessagency.at"
-      },
-      "source_url": "https://www.viennabusinessagency.at/en/funding",
-      "confidence_score": 0.9,
-      "tags": [
-        "innovation",
-        "startup",
-        "vienna",
-        "vba"
-      ],
-      "target_personas": [
-        "startup",
-        "solo_entrepreneur"
-      ],
-      "decision_tree_questions": [
-        {
-          "id": "q1",
-          "question": "Are you based in Vienna?",
-          "type": "single",
-          "options": [
-            {
-              "value": "yes",
-              "label": "Yes"
-            },
-            {
-              "value": "no",
-              "label": "No"
-            }
-          ]
-        }
-      ],
-      "editor_sections": [
-        {
-          "id": "executive_summary",
-          "title": "Executive Summary",
-          "required": true,
-          "ai_prompts": [
-            "Describe your business idea and Vienna connection"
-          ]
-        }
-      ],
-      "readiness_criteria": [
-        {
-          "id": "vienna_location",
-          "description": "Business located in Vienna",
-          "required": true
-        }
-      ],
-      "ai_guidance": {
-        "context": "VBA program guidance",
-        "prompts": [
-          "Emphasize Vienna location and local impact"
+      "categorized_requirements": {
+        "industry": [
+          {
+            "type": "digital",
+            "value": "services",
+            "required": true
+          }
+        ],
+        "financial": [
+          {
+            "type": "co_financing",
+            "value": "20%",
+            "required": true
+          }
+        ],
+        "impact": [
+          {
+            "type": "digital_transformation",
+            "value": "high",
+            "required": true
+          }
+        ],
+        "use_of_funds": [
+          {
+            "type": "software",
+            "value": "digital_tools",
+            "required": true
+          }
         ]
       },
-      "scraped_at": "2025-10-27T16:26:23.365Z",
+      "source_url": "https://aws.at",
+      "institution": "AWS",
+      "program_category": "digital_grants",
+      "scraped_at": "2025-10-27T19:26:32.418Z",
+      "confidence_score": 0.9,
       "is_active": true
     }
   ]
