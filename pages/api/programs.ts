@@ -163,11 +163,13 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     
     // STEP 1.3: Use Enhanced Data Pipeline for intelligent data source
     if (enhanced === 'true' || source === 'pipeline') {
-      // FOR NOW: Bypass Enhanced Data Pipeline and read directly from scraped-programs-2025-10-23.json
-      // This ensures we have proper eligibility_criteria data
-      const dataPath = path.join(process.cwd(), 'data', 'scraped-programs-2025-10-23.json');
+      // Read enriched data if available, otherwise fall back to original
+      const enrichedPath = path.join(process.cwd(), 'data', 'scraped-programs-2025-10-23-enriched.json');
+      const originalPath = path.join(process.cwd(), 'data', 'scraped-programs-2025-10-23.json');
+      
+      const dataPath = fs.existsSync(enrichedPath) ? enrichedPath : originalPath;
       if (fs.existsSync(dataPath)) {
-        console.log('✅ Reading directly from scraped-programs-2025-10-23.json (bypassing pipeline)');
+        console.log(`✅ Reading from ${fs.existsSync(enrichedPath) ? 'ENRICHED' : 'original'} data file`);
         const data = fs.readFileSync(dataPath, 'utf8');
         const jsonData = JSON.parse(data);
         const rawPrograms = jsonData.programs || [];
@@ -196,7 +198,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
             isActive: program.is_active !== false,
             scrapedAt: program.scraped_at,
             eligibility_criteria: eligibility,
-            categorized_requirements: regeneratedCategorized,
+            categorized_requirements: program.categorized_requirements || regeneratedCategorized,
             target_personas: program.target_personas || [],
             tags: program.tags || [],
             decision_tree_questions: program.decision_tree_questions || [],
