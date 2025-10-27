@@ -179,7 +179,16 @@ async function getProgramsFromEnhancedPipeline(type?: string): Promise<any[]> {
     // Convert to API format
     const apiPrograms = filteredPrograms.map(program => {
       const eligibility = program.eligibility_criteria || {};
-      const hasCategorized = program.categorized_requirements && Object.keys(program.categorized_requirements).length > 0;
+      
+      // Check if existing categorized_requirements has actual data
+      const existingCategorized = program.categorized_requirements || {};
+      const existingKeys = Object.keys(existingCategorized);
+      const hasActualData = existingKeys.some(key => 
+        Array.isArray(existingCategorized[key]) && existingCategorized[key].length > 0
+      );
+      
+      // DEBUG: Check what we have
+      console.log('🔍 DEBUG program:', program.id, 'has eligibility:', Object.keys(eligibility).length > 0, 'has categorized data:', hasActualData);
       
       return {
         id: program.id,
@@ -196,8 +205,8 @@ async function getProgramsFromEnhancedPipeline(type?: string): Promise<any[]> {
         scrapedAt: program.scraped_at,
         // CRITICAL: Include eligibility_criteria so QuestionEngine can generate questions
         eligibility_criteria: eligibility,
-        // Auto-generate categorized_requirements from eligibility_criteria if missing
-        categorized_requirements: hasCategorized ? program.categorized_requirements : transformToCategorizedRequirements(eligibility),
+        // Auto-generate categorized_requirements from eligibility_criteria if missing data
+        categorized_requirements: hasActualData ? existingCategorized : transformToCategorizedRequirements(eligibility),
         // Enhanced fields from pipeline
         target_personas: program.target_personas || [],
         tags: program.tags || [],
