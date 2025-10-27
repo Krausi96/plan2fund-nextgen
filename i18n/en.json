@@ -153,6 +153,7 @@
   "wizard.questions.innovationLevel": "What is your innovation level?",
   "wizard.questions.geographicFocus": "What is your geographic focus?",
   "wizard.options.austria": "Austria",
+  "wizard.options.vienna": "Vienna",
   "wizard.options.germany": "Germany", 
   "wizard.options.eu": "EU (other countries)",
   "wizard.options.international": "International",
