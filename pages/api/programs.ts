@@ -57,19 +57,21 @@ try {
 // Fallback data from latest scraped programs
 function getFallbackData() {
   try {
-    // Try the ENRICHED scraped data first (with categorized_requirements)
-    const enrichedDataPath = path.join(process.cwd(), 'data', 'scraped-programs-2025-10-23-enriched.json');
-    const scrapedDataPath = path.join(process.cwd(), 'data', 'scraped-programs-2025-10-23.json');
+    // Always use latest scraped data (what scraper just saved)
+    const latestDataPath = path.join(process.cwd(), 'data', 'scraped-programs-latest.json');
+    const fallbackPath = path.join(process.cwd(), 'data', 'migrated-programs.json');
     
-    let dataPath = enrichedDataPath;
-    if (!fs.existsSync(enrichedDataPath)) {
-      dataPath = scrapedDataPath;
-      if (!fs.existsSync(dataPath)) {
+    let dataPath = latestDataPath;
+    if (!fs.existsSync(latestDataPath)) {
+      // Fallback to migrated data if latest doesn't exist
+      if (fs.existsSync(fallbackPath)) {
+        dataPath = fallbackPath;
+        console.log('✅ Using migrated-programs.json (fallback)');
+      } else {
         throw new Error('No data file found');
       }
-      console.log('✅ Using scraped-programs-2025-10-23.json');
     } else {
-      console.log('✅ Using scraped-programs-2025-10-23-enriched.json (with categorized_requirements)');
+      console.log('✅ Using scraped-programs-latest.json');
     }
     
     const data = fs.readFileSync(dataPath, 'utf8');
@@ -163,14 +165,14 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     
     // STEP 1.3: Use Enhanced Data Pipeline for intelligent data source
     if (enhanced === 'true' || source === 'pipeline') {
-      // Read enriched data if available, otherwise fall back to original
-      const enrichedPath = path.join(process.cwd(), 'data', 'scraped-programs-2025-10-23-enriched.json');
-      const originalPath = path.join(process.cwd(), 'data', 'scraped-programs-2025-10-23.json');
+      // Use latest scraped data (what scraper just saved)
+      const dataPath = path.join(process.cwd(), 'data', 'scraped-programs-latest.json');
+      const fallbackPath = path.join(process.cwd(), 'data', 'migrated-programs.json');
       
-      const dataPath = fs.existsSync(enrichedPath) ? enrichedPath : originalPath;
-      if (fs.existsSync(dataPath)) {
-        console.log(`✅ Reading from ${fs.existsSync(enrichedPath) ? 'ENRICHED' : 'original'} data file`);
-        const data = fs.readFileSync(dataPath, 'utf8');
+      const actualDataPath = fs.existsSync(dataPath) ? dataPath : fallbackPath;
+      if (fs.existsSync(actualDataPath)) {
+        console.log(`✅ Reading from ${fs.existsSync(dataPath) ? 'scraped-programs-latest.json' : 'migrated-programs.json (fallback)'}`);
+        const data = fs.readFileSync(actualDataPath, 'utf8');
         const jsonData = JSON.parse(data);
         const rawPrograms = jsonData.programs || [];
         

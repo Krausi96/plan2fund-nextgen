@@ -131,6 +131,45 @@ export class QuestionEngine {
       documents: new Map(),
       other: new Map()
     };
+    
+    // NEW: Also analyze categorized_requirements for deeper requirements
+    let programsWithCategorizedRequirements = 0;
+    for (const program of this.allPrograms) {
+      const categorized = (program as any).categorized_requirements;
+      if (categorized && Object.keys(categorized).length > 0) {
+        programsWithCategorizedRequirements++;
+        
+        // Analyze co_financing
+        if (categorized?.financial) {
+          const coFinancing = categorized.financial.find((req: any) => req.type === 'co_financing');
+          if (coFinancing) {
+            analysis.other.set(`cofinancing_${coFinancing.value}`, (analysis.other.get(`cofinancing_${coFinancing.value}`) || 0) + 1);
+          }
+        }
+        
+        // Analyze trl_level
+        if (categorized?.technical) {
+          const trlLevel = categorized.technical.find((req: any) => req.type === 'trl_level');
+          if (trlLevel) {
+            analysis.other.set(`trl_${trlLevel.value}`, (analysis.other.get(`trl_${trlLevel.value}`) || 0) + 1);
+          }
+        }
+        
+        // Analyze impact
+        if (categorized?.impact && categorized.impact.length > 0) {
+          categorized.impact.forEach((req: any) => {
+            analysis.other.set(`impact_${req.value}`, (analysis.other.get(`impact_${req.value}`) || 0) + 1);
+          });
+        }
+        
+        // Analyze consortium
+        if (categorized?.consortium && categorized.consortium.length > 0) {
+          const consortiumReq = categorized.consortium[0];
+          analysis.other.set(`consortium_${consortiumReq.value}`, (analysis.other.get(`consortium_${consortiumReq.value}`) || 0) + 1);
+        }
+      }
+    }
+    console.log(`✅ Found ${programsWithCategorizedRequirements} programs with categorized_requirements`);
 
     console.log('🔍 Analyzing eligibility criteria from programs...');
     let programsWithCriteria = 0;
@@ -324,6 +363,63 @@ export class QuestionEngine {
       const industryQuestion = this.createIndustryFocusQuestion(industryPrograms);
       const totalPrograms = industryPrograms.reduce((sum, [, count]) => sum + count, 0);
       questionCandidates.push({ question: industryQuestion, importance: 55 + (totalPrograms / this.allPrograms.length) * 20 });
+    }
+
+    // NEW: Co-financing question (how much own money do you have?)
+    const coFinancingPrograms = Array.from(analysis.other.entries()).filter(([key]) => key.startsWith('cofinancing_'));
+    if (coFinancingPrograms.length > 0) {
+      const coFinancingQuestion = this.createCoFinancingQuestion(coFinancingPrograms);
+      const totalPrograms = coFinancingPrograms.reduce((sum, [, count]) => sum + count, 0);
+      questionCandidates.push({ question: coFinancingQuestion, importance: 60 + (totalPrograms / this.allPrograms.length) * 20 });
+    }
+
+    // NEW: TRL Level question (how developed is your project?)
+    const trlPrograms = Array.from(analysis.other.entries()).filter(([key]) => key.startsWith('trl_'));
+    if (trlPrograms.length > 0) {
+      const trlQuestion = this.createTRLQuestion(trlPrograms);
+      const totalPrograms = trlPrograms.reduce((sum, [, count]) => sum + count, 0);
+      questionCandidates.push({ question: trlQuestion, importance: 65 + (totalPrograms / this.allPrograms.length) * 15 });
+    }
+
+    // NEW: Impact question (what will your project achieve?)
+    const impactPrograms = Array.from(analysis.other.entries()).filter(([key]) => key.startsWith('impact_'));
+    if (impactPrograms.length > 0) {
+      const impactQuestion = this.createImpactQuestion(impactPrograms);
+      const totalPrograms = impactPrograms.reduce((sum, [, count]) => sum + count, 0);
+      questionCandidates.push({ question: impactQuestion, importance: 55 + (totalPrograms / this.allPrograms.length) * 20 });
+    }
+
+    // NEW: Consortium question (do you have partners?)
+    const consortiumPrograms = Array.from(analysis.other.entries()).filter(([key]) => key.startsWith('consortium_'));
+    if (consortiumPrograms.length > 0) {
+      const consortiumQuestion = this.createConsortiumQuestion(consortiumPrograms);
+      const totalPrograms = consortiumPrograms.reduce((sum, [, count]) => sum + count, 0);
+      questionCandidates.push({ question: consortiumQuestion, importance: 50 + (totalPrograms / this.allPrograms.length) * 25 });
+    }
+
+    // AUTO-GENERATED: Create questions for ANY other requirement type found
+    console.log('🔍 Auto-generating questions from all requirement types found...');
+    const requirementTypes = new Set(Array.from(analysis.other.keys()).map(key => key.split('_')[0]));
+    
+    for (const requirementType of requirementTypes) {
+      // Skip already handled categories
+      if (['industry', 'cofinancing', 'trl', 'impact', 'consortium'].includes(requirementType)) {
+        continue;
+      }
+
+      const programsForType = [...analysis.other.entries()].filter(([k]) => k.startsWith(requirementType + '_'));
+      const totalCount = programsForType.reduce((sum, [, count]) => sum + count, 0);
+      
+      if (totalCount >= 3) { // Only if at least 3 programs require this
+        const autoQuestion = this.createAutoQuestion(requirementType, '', totalCount, programsForType);
+        if (autoQuestion) {
+          console.log(`✅ Auto-generated question for: ${requirementType} (${totalCount} programs)`);
+          questionCandidates.push({ 
+            question: autoQuestion, 
+            importance: 40 + (totalCount / this.allPrograms.length) * 30 
+          });
+        }
+      }
     }
 
     // FALLBACK: If not enough questions from analysis, add standard questions
@@ -955,7 +1051,8 @@ export class QuestionEngine {
     remainingPrograms: Program[]
   ): number {
     // Base score starts with question phase (earlier questions are more valuable)
-    let score = (4 - question.phase) * 30; // Phase 1 = 90, Phase 2 = 60, Phase 3 = 30
+    // REDUCED PHASE WEIGHT: Let relevance score dominate instead
+    let score = (4 - question.phase) * 10; // Phase 1 = 30, Phase 2 = 20, Phase 3 = 10
     
     // Check how many programs have requirements for this question's category
     let relevantPrograms = 0;
@@ -1013,7 +1110,8 @@ export class QuestionEngine {
     }
     
     // Higher score if question is relevant to many programs
-    const relevanceScore = (relevantPrograms / remainingPrograms.length) * 50;
+    // INCREASED RELEVANCE WEIGHT: This should be the main factor
+    const relevanceScore = (relevantPrograms / remainingPrograms.length) * 100;
     score += relevanceScore;
     
     // Penalize if we already answered similar questions (avoid redundant questions)
@@ -1181,5 +1279,145 @@ export class QuestionEngine {
       phase: 2,
       questionNumber: 0
     };
+  }
+
+  private createCoFinancingQuestion(cofinancingPrograms: [string, number][]): SymptomQuestion {
+    const options = cofinancingPrograms.map(([key, count]) => {
+      const percent = key.replace('cofinancing_', '');
+      return {
+        label: `≥${percent}%`,
+        value: percent,
+        description: `${count} programs require this`
+      };
+    });
+
+    return {
+      id: 'co_financing',
+      symptom: 'How much of your own money can you invest?',
+      type: 'single-select',
+      options,
+      required: true,
+      category: 'funding_need',
+      phase: 2
+    };
+  }
+
+  private createTRLQuestion(trlPrograms: [string, number][]): SymptomQuestion {
+    const options = trlPrograms.map(([key, count]) => {
+      const trl = key.replace('trl_', '');
+      return {
+        label: `TRL ${trl}`,
+        value: trl,
+        description: `${count} programs require this level`
+      };
+    });
+
+    return {
+      id: 'trl_level',
+      symptom: 'How developed is your project?',
+      type: 'single-select',
+      options,
+      required: true,
+      category: 'specific_requirements',
+      phase: 2
+    };
+  }
+
+  private createImpactQuestion(impactPrograms: [string, number][]): SymptomQuestion {
+    const options = impactPrograms.map(([key, count]) => {
+      const impact = key.replace('impact_', '');
+      return {
+        label: impact,
+        value: impact,
+        description: `${count} programs targeting this`
+      };
+    });
+
+    return {
+      id: 'impact',
+      symptom: 'What impact will your project create?',
+      type: 'multi-select',
+      options,
+      required: false,
+      category: 'specific_requirements',
+      phase: 2
+    };
+  }
+
+  private createConsortiumQuestion(_consortiumPrograms: [string, number][]): SymptomQuestion {
+    return {
+      id: 'consortium',
+      symptom: 'Do you have partners working with you?',
+      type: 'single-select',
+      options: [
+        { label: 'Yes, we have partners', value: 'yes' },
+        { label: 'No, working alone', value: 'no' }
+      ],
+      required: false,
+      category: 'specific_requirements',
+      phase: 2
+    };
+  }
+
+  /**
+   * AUTO-GENERATE question for ANY requirement type
+   * This ensures questions adapt to new requirements automatically
+   */
+  private createAutoQuestion(
+    requirementType: string,
+    _category: string,
+    count: number,
+    allProgramsForType: [string, number][]
+  ): SymptomQuestion | null {
+    if (count < 3) return null; // Skip if too few programs
+
+    const options = allProgramsForType.map(([key, programCount]) => {
+      const value = key.replace(`${requirementType}_`, '');
+      return {
+        label: this.formatQuestionLabel(requirementType, value),
+        value: value,
+        description: `${programCount} programs require this`
+      };
+    });
+
+    return {
+      id: requirementType,
+      symptom: this.formatQuestionPrompt(requirementType),
+      type: requirementType.includes('multiple') ? 'multi-select' : 'single-select',
+      options,
+      required: count > this.allPrograms.length * 0.5, // Required if >50% of programs need it
+      category: 'specific_requirements',
+      phase: 2,
+      questionNumber: 0
+    };
+  }
+
+  private formatQuestionLabel(requirementType: string, value: string): string {
+    // Format label based on requirement type
+    if (requirementType === 'target_group') {
+      return value.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase());
+    }
+    if (requirementType === 'funding_type') {
+      return value.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase());
+    }
+    if (requirementType === 'market_size') {
+      return value.replace(/_/g, ' ');
+    }
+    return value;
+  }
+
+  private formatQuestionPrompt(requirementType: string): string {
+    const prompts: Record<string, string> = {
+      'target_group': 'Who is your target group?',
+      'funding_type': 'What type of funding are you seeking?',
+      'market_size': 'What is your target market size?',
+      'use_of_funds': 'How will you use the funds?',
+      'revenue_model': 'What is your revenue model?',
+      'capex_opex': 'Are you seeking CAPEX or OPEX funding?',
+      'compliance': 'Do you need compliance certifications?',
+      'documents': 'Do you have the required documents?'
+    };
+
+    return prompts[requirementType] || `What is your ${requirementType.replace(/_/g, ' ')}?`;
   }
 }
