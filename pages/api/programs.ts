@@ -31,6 +31,31 @@ function getFallbackData() {
       const jsonData = JSON.parse(data);
       const programs = jsonData.programs || [];
       
+      // Helper to transform eligibility_criteria to categorized_requirements
+      const transformEligibility = (eligibility: any) => {
+        const categorized: any = {
+          eligibility: [], documents: [], financial: [], technical: [], legal: [],
+          timeline: [], geographic: [], team: [], project: [], compliance: [],
+          impact: [], capex_opex: [], use_of_funds: [], revenue_model: [],
+          market_size: [], co_financing: [], trl_level: [], consortium: []
+        };
+        
+        if (!eligibility || Object.keys(eligibility).length === 0) return categorized;
+        
+        if (eligibility.location) {
+          const normalizedLocation = typeof eligibility.location === 'string' ? eligibility.location.toLowerCase() : eligibility.location;
+          categorized.geographic.push({ type: 'location', value: normalizedLocation, required: true, source: 'eligibility_criteria' });
+        }
+        if (eligibility.min_team_size) {
+          categorized.team.push({ type: 'min_team_size', value: eligibility.min_team_size, required: true, source: 'eligibility_criteria' });
+        }
+        if (eligibility.max_company_age) {
+          categorized.team.push({ type: 'max_company_age', value: eligibility.max_company_age, required: true, source: 'eligibility_criteria' });
+        }
+        
+        return categorized;
+      };
+      
       return programs.map((program: any) => ({
         id: program.id,
         name: program.name,
@@ -40,6 +65,7 @@ function getFallbackData() {
         maxAmount: program.funding_amount_max || program.funding_amount,
         link: program.source_url || program.url,
         eligibility_criteria: program.eligibility_criteria || {},
+        categorized_requirements: transformEligibility(program.eligibility_criteria),
         // Preserve AI metadata
         target_personas: program.target_personas || [],
         tags: program.tags || [],
@@ -60,6 +86,31 @@ function getFallbackData() {
       // The data structure has programs in a 'programs' array
       const programs = jsonData.programs || [];
       
+      // Helper to transform eligibility_criteria to categorized_requirements
+      const transformEligibility = (eligibility: any) => {
+        const categorized: any = {
+          eligibility: [], documents: [], financial: [], technical: [], legal: [],
+          timeline: [], geographic: [], team: [], project: [], compliance: [],
+          impact: [], capex_opex: [], use_of_funds: [], revenue_model: [],
+          market_size: [], co_financing: [], trl_level: [], consortium: []
+        };
+        
+        if (!eligibility || Object.keys(eligibility).length === 0) return categorized;
+        
+        if (eligibility.location) {
+          const normalizedLocation = typeof eligibility.location === 'string' ? eligibility.location.toLowerCase() : eligibility.location;
+          categorized.geographic.push({ type: 'location', value: normalizedLocation, required: true, source: 'eligibility_criteria' });
+        }
+        if (eligibility.min_team_size) {
+          categorized.team.push({ type: 'min_team_size', value: eligibility.min_team_size, required: true, source: 'eligibility_criteria' });
+        }
+        if (eligibility.max_company_age) {
+          categorized.team.push({ type: 'max_company_age', value: eligibility.max_company_age, required: true, source: 'eligibility_criteria' });
+        }
+        
+        return categorized;
+      };
+      
       return programs.map((program: any) => ({
         id: program.id,
         name: program.name,
@@ -69,6 +120,7 @@ function getFallbackData() {
         maxAmount: program.funding_amount_max || program.funding_amount,
         link: program.source_url || program.url,
         eligibility_criteria: program.eligibility_criteria || {},
+        categorized_requirements: transformEligibility(program.eligibility_criteria),
         // Preserve AI metadata
         target_personas: program.target_personas || [],
         tags: program.tags || [],
