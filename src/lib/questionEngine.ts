@@ -81,15 +81,20 @@ export class QuestionEngine {
     this.remainingPrograms = programs; // Start with all programs
     console.log(`🔄 Initializing QuestionEngine with ${programs.length} programs`);
     
-    // DEBUG: Check if programs have eligibility_criteria
+    // DEBUG: Check if programs have eligibility_criteria AND categorized_requirements
     if (programs.length > 0) {
+      const sample = programs[0] as any;
       console.log('🔍 DEBUG: First program sample:', {
-        id: programs[0].id,
-        name: programs[0].name,
-        hasEligibilityCriteria: !!(programs[0] as any).eligibility_criteria,
-        eligibilityKeys: programs[0] ? Object.keys((programs[0] as any).eligibility_criteria || {}) : []
+        id: sample.id,
+        name: sample.name,
+        hasEligibilityCriteria: !!sample.eligibility_criteria,
+        hasCategorizedRequirements: !!sample.categorized_requirements,
+        eligibilityKeys: Object.keys(sample.eligibility_criteria || {}),
+        categorizedKeys: Object.keys(sample.categorized_requirements || {})
       });
-      console.log('🔍 DEBUG: Full eligibility_criteria:', (programs[0] as any).eligibility_criteria);
+      console.log('🔍 DEBUG: Full eligibility_criteria:', sample.eligibility_criteria);
+      console.log('🔍 DEBUG: Full categorized_requirements:', sample.categorized_requirements);
+      console.log('🔍 DEBUG: Total programs:', programs.length);
     }
     
     try {
