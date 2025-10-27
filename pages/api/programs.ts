@@ -1,14 +1,48 @@
-// Programs API endpoint with Enhanced Data Pipeline Integration
+// Programs API endpoint
 import { NextApiRequest, NextApiResponse } from 'next';
 import { Pool } from 'pg';
 import fs from 'fs';
 import path from 'path';
-import { enhancedDataPipeline } from '../../src/lib/enhancedDataPipeline';
 
-// Enhanced Data Pipeline Integration
-// All AI field generation is now handled by the Enhanced Data Pipeline
+// ============================================================================
+// SHARED TRANSFORMATION LOGIC (Single Source of Truth)
+// ============================================================================
 
-// Database connection
+/**
+ * Transform eligibility_criteria to categorized_requirements
+ * Used by ALL data reading paths - centralized to avoid duplication
+ */
+function transformEligibilityToCategorized(eligibility: any): any {
+  const categorized: any = {
+    eligibility: [], documents: [], financial: [], technical: [], legal: [],
+    timeline: [], geographic: [], team: [], project: [], compliance: [],
+    impact: [], capex_opex: [], use_of_funds: [], revenue_model: [],
+    market_size: [], co_financing: [], trl_level: [], consortium: []
+  };
+  
+  if (!eligibility || Object.keys(eligibility).length === 0) return categorized;
+  
+  if (eligibility.location) {
+    const normalizedLocation = typeof eligibility.location === 'string' ? eligibility.location.toLowerCase() : eligibility.location;
+    categorized.geographic.push({ type: 'location', value: normalizedLocation, required: true, source: 'eligibility_criteria' });
+  }
+  if (eligibility.min_team_size) {
+    categorized.team.push({ type: 'min_team_size', value: eligibility.min_team_size, required: true, source: 'eligibility_criteria' });
+  }
+  if (eligibility.max_company_age) {
+    categorized.team.push({ type: 'max_company_age', value: eligibility.max_company_age, required: true, source: 'eligibility_criteria' });
+  }
+  if (eligibility.revenue_min || eligibility.revenue_max) {
+    categorized.financial.push({ type: 'revenue', value: { min: eligibility.revenue_min, max: eligibility.revenue_max }, required: true, source: 'eligibility_criteria' });
+  }
+  
+  return categorized;
+}
+
+// ============================================================================
+// DATABASE CONNECTION
+// ============================================================================
+
 let pool: Pool | null = null;
 
 try {
@@ -31,31 +65,6 @@ function getFallbackData() {
       const jsonData = JSON.parse(data);
       const programs = jsonData.programs || [];
       
-      // Helper to transform eligibility_criteria to categorized_requirements
-      const transformEligibility = (eligibility: any) => {
-        const categorized: any = {
-          eligibility: [], documents: [], financial: [], technical: [], legal: [],
-          timeline: [], geographic: [], team: [], project: [], compliance: [],
-          impact: [], capex_opex: [], use_of_funds: [], revenue_model: [],
-          market_size: [], co_financing: [], trl_level: [], consortium: []
-        };
-        
-        if (!eligibility || Object.keys(eligibility).length === 0) return categorized;
-        
-        if (eligibility.location) {
-          const normalizedLocation = typeof eligibility.location === 'string' ? eligibility.location.toLowerCase() : eligibility.location;
-          categorized.geographic.push({ type: 'location', value: normalizedLocation, required: true, source: 'eligibility_criteria' });
-        }
-        if (eligibility.min_team_size) {
-          categorized.team.push({ type: 'min_team_size', value: eligibility.min_team_size, required: true, source: 'eligibility_criteria' });
-        }
-        if (eligibility.max_company_age) {
-          categorized.team.push({ type: 'max_company_age', value: eligibility.max_company_age, required: true, source: 'eligibility_criteria' });
-        }
-        
-        return categorized;
-      };
-      
       return programs.map((program: any) => ({
         id: program.id,
         name: program.name,
@@ -65,7 +74,7 @@ function getFallbackData() {
         maxAmount: program.funding_amount_max || program.funding_amount,
         link: program.source_url || program.url,
         eligibility_criteria: program.eligibility_criteria || {},
-        categorized_requirements: transformEligibility(program.eligibility_criteria),
+        categorized_requirements: transformEligibilityToCategorized(program.eligibility_criteria),
         // Preserve AI metadata
         target_personas: program.target_personas || [],
         tags: program.tags || [],
@@ -86,31 +95,6 @@ function getFallbackData() {
       // The data structure has programs in a 'programs' array
       const programs = jsonData.programs || [];
       
-      // Helper to transform eligibility_criteria to categorized_requirements
-      const transformEligibility = (eligibility: any) => {
-        const categorized: any = {
-          eligibility: [], documents: [], financial: [], technical: [], legal: [],
-          timeline: [], geographic: [], team: [], project: [], compliance: [],
-          impact: [], capex_opex: [], use_of_funds: [], revenue_model: [],
-          market_size: [], co_financing: [], trl_level: [], consortium: []
-        };
-        
-        if (!eligibility || Object.keys(eligibility).length === 0) return categorized;
-        
-        if (eligibility.location) {
-          const normalizedLocation = typeof eligibility.location === 'string' ? eligibility.location.toLowerCase() : eligibility.location;
-          categorized.geographic.push({ type: 'location', value: normalizedLocation, required: true, source: 'eligibility_criteria' });
-        }
-        if (eligibility.min_team_size) {
-          categorized.team.push({ type: 'min_team_size', value: eligibility.min_team_size, required: true, source: 'eligibility_criteria' });
-        }
-        if (eligibility.max_company_age) {
-          categorized.team.push({ type: 'max_company_age', value: eligibility.max_company_age, required: true, source: 'eligibility_criteria' });
-        }
-        
-        return categorized;
-      };
-      
       return programs.map((program: any) => ({
         id: program.id,
         name: program.name,
@@ -120,7 +104,7 @@ function getFallbackData() {
         maxAmount: program.funding_amount_max || program.funding_amount,
         link: program.source_url || program.url,
         eligibility_criteria: program.eligibility_criteria || {},
-        categorized_requirements: transformEligibility(program.eligibility_criteria),
+        categorized_requirements: transformEligibilityToCategorized(program.eligibility_criteria),
         // Preserve AI metadata
         target_personas: program.target_personas || [],
         tags: program.tags || [],
@@ -139,175 +123,11 @@ function getFallbackData() {
   }
 }
 
-// NEW: Get programs using Enhanced Data Pipeline (Step 1.3)
-async function getProgramsFromEnhancedPipeline(type?: string): Promise<any[]> {
-  try {
-    console.log('🔄 Using Enhanced Data Pipeline for program processing...');
-    
-    // Get processed programs from the pipeline
-    const processedPrograms = await enhancedDataPipeline.getProcessedPrograms();
-    
-    console.log(`✅ Enhanced Pipeline: ${processedPrograms.length} programs processed`);
-    
-    // Filter by type if specified
-    let filteredPrograms = processedPrograms;
-    if (type) {
-      filteredPrograms = processedPrograms.filter(program => 
-        program.type === type || program.program_type === type
-      );
-    }
-    
-    // Helper function to transform eligibility_criteria to categorized_requirements
-    const transformToCategorizedRequirements = (eligibility: any) => {
-      const categorized: any = {
-        eligibility: [],
-        documents: [],
-        financial: [],
-        technical: [],
-        legal: [],
-        timeline: [],
-        geographic: [],
-        team: [],
-        project: [],
-        compliance: [],
-        impact: [],
-        capex_opex: [],
-        use_of_funds: [],
-        revenue_model: [],
-        market_size: [],
-        co_financing: [],
-        trl_level: [],
-        consortium: []
-      };
-      
-      if (!eligibility || Object.keys(eligibility).length === 0) return categorized;
-      
-      // Geographic requirements
-      if (eligibility.location) {
-        // Normalize location to lowercase for consistent matching
-        const normalizedLocation = typeof eligibility.location === 'string' ? eligibility.location.toLowerCase() : eligibility.location;
-        categorized.geographic.push({
-          type: 'location',
-          value: normalizedLocation,
-          required: true,
-          source: 'eligibility_criteria'
-        });
-      }
-      
-      // Team requirements
-      if (eligibility.min_team_size) {
-        categorized.team.push({
-          type: 'min_team_size',
-          value: eligibility.min_team_size,
-          required: true,
-          source: 'eligibility_criteria'
-        });
-      }
-      
-      // Company requirements (store under team for now)
-      if (eligibility.max_company_age) {
-        categorized.team.push({
-          type: 'max_company_age',
-          value: eligibility.max_company_age,
-          required: true,
-          source: 'eligibility_criteria'
-        });
-      }
-      
-      // Financial requirements
-      if (eligibility.revenue_min || eligibility.revenue_max) {
-        categorized.financial.push({
-          type: 'revenue_range',
-          value: { min: eligibility.revenue_min, max: eligibility.revenue_max },
-          required: true,
-          source: 'eligibility_criteria'
-        });
-      }
-      
-      // Research focus requirements
-      if (eligibility.research_focus) {
-        categorized.project.push({
-          type: 'research_focus',
-          value: eligibility.research_focus,
-          required: true,
-          source: 'eligibility_criteria'
-        });
-      }
-      
-      // International collaboration requirements
-      if (eligibility.international_collaboration) {
-        categorized.consortium.push({
-          type: 'international_collaboration',
-          value: eligibility.international_collaboration,
-          required: true,
-          source: 'eligibility_criteria'
-        });
-      }
-      
-      return categorized;
-    };
-    
-    // Convert to API format
-    const apiPrograms = filteredPrograms.map(program => {
-      const eligibility = program.eligibility_criteria || {};
-      
-      // ALWAYS regenerate categorized_requirements from eligibility_criteria
-      // This ensures fresh data based on the latest eligibility criteria
-      const regeneratedCategorized = transformToCategorizedRequirements(eligibility);
-      
-      // Merge with existing categorized data if it has valid data
-      const existingCategorized = program.categorized_requirements || {};
-      Object.keys(existingCategorized).forEach(category => {
-        if (Array.isArray(existingCategorized[category]) && existingCategorized[category].length > 0) {
-          if (!regeneratedCategorized[category]) regeneratedCategorized[category] = [];
-          regeneratedCategorized[category].push(...existingCategorized[category]);
-        }
-      });
-      
-      return {
-        id: program.id,
-        name: program.name,
-        type: program.type || program.program_type || 'grant',
-        requirements: program.requirements || {},
-        notes: program.description || '',
-        maxAmount: program.funding_amount_max || 0,
-        minAmount: program.funding_amount_min || 0,
-        currency: program.currency || 'EUR',
-        link: program.source_url || '',
-        deadline: program.deadline,
-        isActive: program.is_active !== false,
-        scrapedAt: program.scraped_at,
-        // CRITICAL: Include eligibility_criteria so QuestionEngine can generate questions
-        eligibility_criteria: eligibility,
-        // ALWAYS use regenerated categorized_requirements
-        categorized_requirements: regeneratedCategorized,
-        // Enhanced fields from pipeline
-        target_personas: program.target_personas || [],
-        tags: program.tags || [],
-        decision_tree_questions: program.decision_tree_questions || [],
-        editor_sections: program.editor_sections || [],
-        readiness_criteria: program.readiness_criteria || [],
-        ai_guidance: program.ai_guidance || null,
-        // Quality metrics
-        quality_score: program.quality_score,
-        confidence_level: program.confidence_level,
-        processed_at: program.processed_at
-      };
-    });
-    
-    // DEBUG: Log sample program to see if categorized_requirements is being generated
-    if (apiPrograms.length > 0) {
-      console.log('✅ Enhanced Pipeline: Converted', apiPrograms.length, 'programs to API format');
-      console.log('🔍 DEBUG: Sample program categorized_requirements:', apiPrograms[0].categorized_requirements);
-      console.log('🔍 DEBUG: Sample program eligibility_criteria:', apiPrograms[0].eligibility_criteria);
-    }
-    
-    return apiPrograms;
-    
-  } catch (error) {
-    console.error('Enhanced Data Pipeline error:', error);
-    throw error;
-  }
+// UNUSED: Enhanced Data Pipeline function (removed import to fix errors)
+// API reads JSON directly which works fine
+async function getProgramsFromEnhancedPipeline(_type?: string): Promise<any[]> {
+  // This function is not called - API reads JSON directly
+  return [];
 }
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
@@ -342,98 +162,9 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         const jsonData = JSON.parse(data);
         const rawPrograms = jsonData.programs || [];
         
-        // Transform using our helper function
-        const transformToCategorizedRequirements = (eligibility: any) => {
-          const categorized: any = {
-            eligibility: [],
-            documents: [],
-            financial: [],
-            technical: [],
-            legal: [],
-            timeline: [],
-            geographic: [],
-            team: [],
-            project: [],
-            compliance: [],
-            impact: [],
-            capex_opex: [],
-            use_of_funds: [],
-            revenue_model: [],
-            market_size: [],
-            co_financing: [],
-            trl_level: [],
-            consortium: []
-          };
-          
-          if (!eligibility || Object.keys(eligibility).length === 0) return categorized;
-          
-          // Geographic requirements
-          if (eligibility.location) {
-            const normalizedLocation = typeof eligibility.location === 'string' ? eligibility.location.toLowerCase() : eligibility.location;
-            categorized.geographic.push({
-              type: 'location',
-              value: normalizedLocation,
-              required: true,
-              source: 'eligibility_criteria'
-            });
-          }
-          
-          // Team requirements
-          if (eligibility.min_team_size) {
-            categorized.team.push({
-              type: 'min_team_size',
-              value: eligibility.min_team_size,
-              required: true,
-              source: 'eligibility_criteria'
-            });
-          }
-          
-          // Company requirements (store under team for now)
-          if (eligibility.max_company_age) {
-            categorized.team.push({
-              type: 'max_company_age',
-              value: eligibility.max_company_age,
-              required: true,
-              source: 'eligibility_criteria'
-            });
-          }
-          
-          // Financial requirements
-          if (eligibility.revenue_min || eligibility.revenue_max) {
-            categorized.financial.push({
-              type: 'revenue_range',
-              value: { min: eligibility.revenue_min, max: eligibility.revenue_max },
-              required: true,
-              source: 'eligibility_criteria'
-            });
-          }
-          
-          // Research focus requirements
-          if (eligibility.research_focus) {
-            categorized.project.push({
-              type: 'research_focus',
-              value: eligibility.research_focus,
-              required: true,
-              source: 'eligibility_criteria'
-            });
-          }
-          
-          // International collaboration requirements
-          if (eligibility.international_collaboration) {
-            categorized.consortium.push({
-              type: 'international_collaboration',
-              value: eligibility.international_collaboration,
-              required: true,
-              source: 'eligibility_criteria'
-            });
-          }
-          
-          return categorized;
-        };
-        
         const programs = rawPrograms.map((program: any) => {
           const eligibility = program.eligibility_criteria || {};
-          const regeneratedCategorized = transformToCategorizedRequirements(eligibility);
+          const regeneratedCategorized = transformEligibilityToCategorized(eligibility);
           
           // DEBUG: Log sample program
           if (program.id === rawPrograms[0].id) {

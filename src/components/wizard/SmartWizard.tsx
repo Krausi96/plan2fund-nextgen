@@ -2,6 +2,8 @@ import React, { useState, useEffect, useRef } from 'react';
 import { QuestionEngine, SymptomQuestion } from '../../lib/questionEngine';
 import { scoreProgramsEnhanced, EnhancedProgramResult } from '../../lib/enhancedRecoEngine';
 import { useI18n } from '../../contexts/I18nContext';
+import { useRecommendation } from '../../contexts/RecommendationContext';
+import { useRouter } from 'next/router';
 import Link from 'next/link';
 
 interface SmartWizardProps {
@@ -32,6 +34,8 @@ interface WizardState {
 
 const SmartWizard: React.FC<SmartWizardProps> = ({ onComplete, onProfileGenerated }) => {
   const { t } = useI18n();
+  const router = useRouter();
+  const { setRecommendations } = useRecommendation();
   const [state, setState] = useState<WizardState>({
     currentQuestion: null,
     answers: {},
@@ -258,8 +262,15 @@ const SmartWizard: React.FC<SmartWizardProps> = ({ onComplete, onProfileGenerate
     setState(prev => ({ ...prev, isProcessing: true }));
 
     try {
-      // Score programs using enhanced reco engine
-      const results = await scoreProgramsEnhanced(answers, "strict");
+      // Get remaining programs from QuestionEngine (already filtered!)
+      const remainingPrograms = questionEngine.getRemainingPrograms();
+      console.log(`✅ Wizard: Using ${remainingPrograms.length} pre-filtered programs from QuestionEngine`);
+      
+      // Score programs using enhanced reco engine with pre-filtered programs
+      const results = await scoreProgramsEnhanced(answers, "strict", remainingPrograms);
+      
+      // Store results in context (for /results page)
+      setRecommendations(results);
       
       // Simple profile for callback compatibility
       const profile = {
@@ -279,6 +290,9 @@ const SmartWizard: React.FC<SmartWizardProps> = ({ onComplete, onProfileGenerate
 
       onProfileGenerated?.(profile);
       onComplete?.(results);
+      
+      // Navigate to results page
+      router.push('/results');
     } catch (error) {
       console.error('Error processing results:', error);
       setState(prev => ({ ...prev, isProcessing: false }));

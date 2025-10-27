@@ -22,14 +22,20 @@ export default function ResultsPage() {
   const [selectedProgram, setSelectedProgram] = useState<ProgramResult | null>(null);
   
   // Use results from context instead of local state
-  const results = state.recommendations;
+  // Also check localStorage as fallback (for direct navigation to /results)
+  const contextResults = state.recommendations;
+  const storageResults = typeof window !== 'undefined' 
+    ? JSON.parse(localStorage.getItem('recoResults') || '[]')
+    : [];
+  
+  const results = contextResults.length > 0 ? contextResults : storageResults;
   const loading = state.isLoading;
   // const userAnswers = state.answers;
 
   // Results are now managed by the RecommendationContext
   // No need for localStorage loading here
 
-  const eligibleResults = results.filter(r => r.eligibility === t("results.eligible"));
+  const eligibleResults = results.filter((r: any) => r.eligibility === t("results.eligible"));
   const hasEligibleResults = eligibleResults.length > 0;
   const hasAnyResults = results.length > 0;
 
@@ -89,7 +95,7 @@ export default function ResultsPage() {
           <div className="mb-4">
             <h4 className="font-semibold text-orange-800 mb-2">{t('results.noMatches.nearest3')}</h4>
             <div className="space-y-2">
-              {results.slice(0, 3).map((program) => (
+              {results.slice(0, 3).map((program: any) => (
                 <div key={program.id} className="p-3 bg-white border border-orange-200 rounded">
                   <div className="flex justify-between items-center">
                     <div>
@@ -114,7 +120,7 @@ export default function ResultsPage() {
           <div className="mb-4">
             <h4 className="font-semibold text-orange-800 mb-2">{t('results.noMatches.whatToChange')}</h4>
             <ul className="text-sm text-orange-700 space-y-1">
-              {results.slice(0, 3).map((program, idx) => (
+              {results.slice(0, 3).map((program: any, idx: number) => (
                 <li key={idx} className="flex items-start">
                   <span className="text-orange-500 mr-2">•</span>
                   <strong>{program.name}:</strong> {program.gaps && program.gaps.length > 0 ? 
@@ -138,7 +144,7 @@ export default function ResultsPage() {
                 // Derive signals and get top 3 programs
                 const { deriveSignals } = require('@/lib/enhancedRecoEngine');
                 const derivedSignals = deriveSignals(state.answers);
-                const top3ProgramIds = results.slice(0, 3).map(p => p.id);
+                         const top3ProgramIds = results.slice(0, 3).map((p: any) => p.id);
                 
                 // Create enhanced payload with all derived signals
                 const enhancedPayload = {
@@ -203,7 +209,7 @@ export default function ResultsPage() {
       {/* Results list */}
       {results.length > 0 && (
         <div className="grid gap-6">
-          {results.map((program, index) => (
+          {results.map((program: any, index: number) => (
             <div
               key={program.id}
               className="bg-white/80 backdrop-blur-sm rounded-2xl border border-gray-200/50 p-6 shadow-lg hover:shadow-xl transition-all duration-300 hover:-translate-y-1"
@@ -235,7 +241,7 @@ export default function ResultsPage() {
                 <div className="bg-green-50 border border-green-200 rounded-lg p-3">
                   <ul className="text-sm text-gray-700 space-y-2">
                     {program.founderFriendlyReasons && program.founderFriendlyReasons.length > 0 ? (
-                      program.founderFriendlyReasons.slice(0, 3).map((reason, idx) => (
+                        program.founderFriendlyReasons.slice(0, 3).map((reason: any, idx: number) => (
                         <li key={idx} className="flex items-start">
                           <span className="text-green-500 mr-2 mt-0.5">✓</span>
                           <span>{reason}</span>
@@ -264,7 +270,7 @@ export default function ResultsPage() {
                     <div className="mb-2">
                       <div className="text-xs font-medium text-green-700 mb-1">{t('results.youMeet')}</div>
                       <ul className="text-xs text-green-600 space-y-1">
-                        {program.trace.passed.slice(0, 2).map((item, idx) => (
+                        {program.trace.passed.slice(0, 2).map((item: any, idx: number) => (
                           <li key={idx} className="flex items-start">
                             <span className="text-green-500 mr-2">✓</span>
                             {item.replace(/answers\.(q\d+_\w+)\s+matches\s+requirement\s+\(([^)]+)\)/, '$2')}
@@ -279,7 +285,7 @@ export default function ResultsPage() {
                     <div className="mb-2">
                       <div className="text-xs font-medium text-red-700 mb-1">{t('results.missing')}</div>
                       <ul className="text-xs text-red-600 space-y-1">
-                        {program.trace.failed.slice(0, 1).map((item, idx) => (
+                        {program.trace.failed.slice(0, 1).map((item: any, idx: number) => (
                           <li key={idx} className="flex items-start">
                             <span className="text-red-500 mr-2">✗</span>
                             {item.replace(/answers\.(q\d+_\w+)\s+does\s+not\s+match\s+requirement\s+\(([^)]+)\)/, '$2')}
@@ -294,7 +300,7 @@ export default function ResultsPage() {
                     <div className="mb-2">
                       <div className="text-xs font-medium text-blue-700 mb-1">{t('results.toImproveEligibility')}</div>
                       <ul className="text-xs text-blue-600 space-y-1">
-                        {program.trace.counterfactuals.slice(0, 2).map((item, idx) => (
+                        {program.trace.counterfactuals.slice(0, 2).map((item: any, idx: number) => (
                           <li key={idx} className="flex items-start">
                             <span className="text-blue-500 mr-2">→</span>
                             {item}
@@ -311,7 +317,7 @@ export default function ResultsPage() {
                 <h4 className="text-sm font-semibold text-gray-800 mb-2">{t('results.risksNextSteps')}</h4>
                 <ul className="text-sm text-gray-700 space-y-1">
                   {program.founderFriendlyRisks && program.founderFriendlyRisks.length > 0 ? (
-                    program.founderFriendlyRisks.slice(0, 1).map((risk, idx) => (
+                    program.founderFriendlyRisks.slice(0, 1).map((risk: any, idx: number) => (
                       <li key={idx} className="flex items-start">
                         <span className="text-yellow-500 mr-2">•</span>
                         {risk}
@@ -325,7 +331,7 @@ export default function ResultsPage() {
                   )}
                 </ul>
               </div>
-              {program.unmetRequirements && program.unmetRequirements.some(r => r.includes("missing")) && (
+              {program.unmetRequirements && program.unmetRequirements.some((r: any) => r.includes("missing")) && (
                 <p className="text-xs text-yellow-700 mt-1">{t('results.requirementsUnknown')}</p>
               )}
 
@@ -333,7 +339,7 @@ export default function ResultsPage() {
               {/* Unmet requirements */}
               {program.unmetRequirements && program.unmetRequirements.length > 0 && (
                 <ul className="text-xs text-red-600 list-disc ml-5 mb-2">
-                  {program.unmetRequirements.map((req, idx) => (
+                  {program.unmetRequirements.map((req: any, idx: number) => (
                     <li key={idx}>{req}</li>
                   ))}
                 </ul>
@@ -429,7 +435,7 @@ export default function ResultsPage() {
                         // Derive signals and get top 3 programs
                         const { deriveSignals } = require('@/lib/enhancedRecoEngine');
                         const derivedSignals = deriveSignals(state.answers);
-                        const top3ProgramIds = results.slice(0, 3).map(p => p.id);
+                         const top3ProgramIds = results.slice(0, 3).map((p: any) => p.id);
                         
                         // Create enhanced payload
                         const enhancedPayload = {

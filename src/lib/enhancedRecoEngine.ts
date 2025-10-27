@@ -597,21 +597,32 @@ function applyMajorFiltersToPrograms(programs: any[], answers: UserAnswers): any
 // Enhanced scoring with detailed explanations and trace generation
 export async function scoreProgramsEnhanced(
   answers: UserAnswers,
-  mode: "strict" | "explorer" = "strict"
+  mode: "strict" | "explorer" = "strict",
+  preFilteredPrograms?: Program[] // NEW: Optional pre-filtered programs from QuestionEngine
 ): Promise<EnhancedProgramResult[]> {
   try {
-    // Use GPT-enhanced data source (includes target_personas, tags, etc.)
-    const programs = await dataSource.getGPTEnhancedPrograms();
-    console.log('🔍 Debug: DataSource returned programs:', programs.length);
+    // Use pre-filtered programs if provided (from QuestionEngine), otherwise fetch and filter
+    let filteredPrograms: Program[];
     
-    // APPLY MAJOR FILTERS FIRST (Same logic as QuestionEngine)
-    let filteredPrograms = applyMajorFiltersToPrograms(programs, answers);
-    console.log(`🔍 Major filters applied: ${programs.length} → ${filteredPrograms.length} programs`);
+    if (preFilteredPrograms && preFilteredPrograms.length > 0) {
+      // Use programs already filtered by QuestionEngine (wizard flow)
+      console.log('✅ Using pre-filtered programs from QuestionEngine:', preFilteredPrograms.length);
+      filteredPrograms = preFilteredPrograms;
+    } else {
+      // Fetch and filter programs (advanced search flow)
+      const programs = await dataSource.getGPTEnhancedPrograms();
+      console.log('🔍 Debug: DataSource returned programs:', programs.length);
+      
+      // APPLY MAJOR FILTERS (for advanced search, not wizard)
+      filteredPrograms = applyMajorFiltersToPrograms(programs, answers);
+      console.log(`🔍 Major filters applied: ${programs.length} → ${filteredPrograms.length} programs`);
+    }
+    
     console.log('🔍 Debug: Sample program from dataSource:', {
-      id: programs[0]?.id,
-      hasDecisionTreeQuestions: programs[0]?.decision_tree_questions?.length || 0,
-      hasEditorSections: programs[0]?.editor_sections?.length || 0,
-      hasReadinessCriteria: programs[0]?.readiness_criteria?.length || 0
+      id: filteredPrograms[0]?.id,
+      hasDecisionTreeQuestions: filteredPrograms[0]?.decision_tree_questions?.length || 0,
+      hasEditorSections: filteredPrograms[0]?.editor_sections?.length || 0,
+      hasReadinessCriteria: filteredPrograms[0]?.readiness_criteria?.length || 0
     });
     const derivedSignals = deriveSignals(answers);
     
