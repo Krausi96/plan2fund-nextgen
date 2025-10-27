@@ -107,7 +107,26 @@ async function getProgramsFromEnhancedPipeline(type?: string): Promise<any[]> {
     
     // Helper function to transform eligibility_criteria to categorized_requirements
     const transformToCategorizedRequirements = (eligibility: any) => {
-      const categorized: any = {};
+      const categorized: any = {
+        eligibility: [],
+        documents: [],
+        financial: [],
+        technical: [],
+        legal: [],
+        timeline: [],
+        geographic: [],
+        team: [],
+        project: [],
+        compliance: [],
+        impact: [],
+        capex_opex: [],
+        use_of_funds: [],
+        revenue_model: [],
+        market_size: [],
+        co_financing: [],
+        trl_level: [],
+        consortium: []
+      };
       
       if (!eligibility || Object.keys(eligibility).length === 0) return categorized;
       
@@ -115,62 +134,62 @@ async function getProgramsFromEnhancedPipeline(type?: string): Promise<any[]> {
       if (eligibility.location) {
         // Normalize location to lowercase for consistent matching
         const normalizedLocation = typeof eligibility.location === 'string' ? eligibility.location.toLowerCase() : eligibility.location;
-        categorized.geographic = [{
+        categorized.geographic.push({
           type: 'location',
           value: normalizedLocation,
           required: true,
           source: 'eligibility_criteria'
-        }];
+        });
       }
       
       // Team requirements
       if (eligibility.min_team_size) {
-        categorized.team = [{
+        categorized.team.push({
           type: 'min_team_size',
           value: eligibility.min_team_size,
           required: true,
           source: 'eligibility_criteria'
-        }];
+        });
       }
       
-      // Company requirements
+      // Company requirements (store under team for now)
       if (eligibility.max_company_age) {
-        categorized.company = [{
+        categorized.team.push({
           type: 'max_company_age',
           value: eligibility.max_company_age,
           required: true,
           source: 'eligibility_criteria'
-        }];
+        });
       }
       
       // Financial requirements
       if (eligibility.revenue_min || eligibility.revenue_max) {
-        categorized.financial = [{
+        categorized.financial.push({
           type: 'revenue_range',
           value: { min: eligibility.revenue_min, max: eligibility.revenue_max },
           required: true,
           source: 'eligibility_criteria'
-        }];
+        });
       }
       
       // Research focus requirements
       if (eligibility.research_focus) {
-        categorized.project = [{
+        categorized.project.push({
           type: 'research_focus',
           value: eligibility.research_focus,
           required: true,
           source: 'eligibility_criteria'
-        }];
+        });
       }
       
       // International collaboration requirements
       if (eligibility.international_collaboration) {
-        categorized.consortium = [{
+        categorized.consortium.push({
           type: 'international_collaboration',
           value: eligibility.international_collaboration,
           required: true,
           source: 'eligibility_criteria'
-        }];
+        });
       }
       
       return categorized;
