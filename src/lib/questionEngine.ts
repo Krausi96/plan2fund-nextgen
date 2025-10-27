@@ -559,9 +559,9 @@ export class QuestionEngine {
     const remainingPrograms = this.applyMajorFilters(answers);
     console.log(`📊 Programs remaining: ${remainingPrograms.length} / ${this.programs.length}`);
     
-    // NEW: If enough programs are filtered, we can stop
-    if (remainingPrograms.length <= 15 && Object.keys(answers).length >= 5) {
-      console.log(`✅ Only ${remainingPrograms.length} programs remain, stopping questions`);
+    // NEW: Only stop early if we have ≤10 programs AND answered at least 5 questions
+    if (remainingPrograms.length <= 10 && Object.keys(answers).length >= 5) {
+      console.log(`✅ Only ${remainingPrograms.length} programs remain (well narrowed), stopping questions early`);
       return null;
     }
     
