@@ -467,6 +467,12 @@ export class WebScraperService {
   async scrapeAllPrograms(): Promise<ScrapedProgram[]> {
     console.log('🚀 Starting unified web scraper...');
     
+    // CRITICAL: Initialize browser first!
+    if (!this.browser) {
+      console.log('🔧 Browser not initialized, initializing now...');
+      await this.init();
+    }
+    
     let programs: ScrapedProgram[] = [];
     
     try {
@@ -488,6 +494,12 @@ export class WebScraperService {
       programs = await this.loadFallbackData();
       console.log(`📁 Loaded ${programs.length} programs from fallback data`);
       return programs;
+    } finally {
+      // Clean up browser
+      if (this.browser) {
+        await this.browser.close();
+        this.browser = null;
+      }
     }
   }
 
@@ -499,8 +511,8 @@ export class WebScraperService {
     const programs: ScrapedProgram[] = [];
     
     if (!this.browser) {
-      console.log('📡 Browser not initialized, falling back to JSON data');
-      return await this.scrapeProgramsViaAPI();
+      console.log('📡 Browser not initialized, initializing now...');
+      await this.init();
     }
 
     try {
