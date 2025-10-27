@@ -446,13 +446,23 @@ function scoreCategorizedRequirements(
       let matchReason = '';
 
       relevantAnswers.forEach(answer => {
-        if (typeof itemValue === 'string' && itemValue.toLowerCase().includes(answer.value.toLowerCase())) {
+        const answerValueStr = String(answer.value).toLowerCase();
+        const itemValueStr = String(itemValue).toLowerCase();
+        
+        // Match if values match (case-insensitive)
+        if (itemValueStr === answerValueStr || itemValueStr.includes(answerValueStr) || answerValueStr.includes(itemValueStr)) {
           matched = true;
-          matchReason = `${answer.key} matches ${category} requirement`;
-        } else if (Array.isArray(item.value) && item.value.some((v: string) => 
-          v.toLowerCase().includes(answer.value.toLowerCase()))) {
-          matched = true;
-          matchReason = `${answer.key} matches ${category} requirement`;
+          matchReason = `${answer.key} (${answer.value}) matches ${category} requirement (${itemValue})`;
+        } else if (Array.isArray(item.value)) {
+          // Check array items
+          const arrayMatch = item.value.some((v: any) => {
+            const vStr = String(v).toLowerCase();
+            return vStr === answerValueStr || vStr.includes(answerValueStr) || answerValueStr.includes(vStr);
+          });
+          if (arrayMatch) {
+            matched = true;
+            matchReason = `${answer.key} (${answer.value}) matches ${category} requirement in array`;
+          }
         }
       });
 
