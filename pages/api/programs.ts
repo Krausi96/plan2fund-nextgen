@@ -119,6 +119,8 @@ async function getProgramsFromEnhancedPipeline(type?: string): Promise<any[]> {
       deadline: program.deadline,
       isActive: program.is_active !== false,
       scrapedAt: program.scraped_at,
+      // CRITICAL: Include eligibility_criteria so QuestionEngine can generate questions
+      eligibility_criteria: program.eligibility_criteria || {},
       // Enhanced fields from pipeline
       target_personas: program.target_personas || [],
       tags: program.tags || [],
