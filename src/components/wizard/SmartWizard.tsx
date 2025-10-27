@@ -285,46 +285,8 @@ const SmartWizard: React.FC<SmartWizardProps> = ({ onComplete, onProfileGenerate
     // NEW: Validate answers and get feedback
     const validation = questionEngine.validateAnswers(newAnswers);
     
-    // NEW: Get program preview after 3+ answers (every 2-3 questions)
-    let programPreview = null;
-    let previewQuality = null;
-    if (Object.keys(newAnswers).length >= 3 && Object.keys(newAnswers).length % 2 === 1) {
-      try {
-        const { scoreProgramsEnhanced } = await import('@/lib/enhancedRecoEngine');
-        const previewResults = await scoreProgramsEnhanced(newAnswers, "strict");
-        programPreview = previewResults.slice(0, 3); // Top 3 programs
-        
-        // NEW: Analyze preview quality for dynamic decision making
-        const topScore = previewResults[0]?.score || 0;
-        if (topScore >= 85) {
-          previewQuality = { level: 'excellent', message: t('wizard.quality.excellent'), color: 'green' };
-        } else if (topScore >= 60) {
-          previewQuality = { level: 'good', message: t('wizard.quality.good'), color: 'blue' };
-        } else {
-          previewQuality = { level: 'poor', message: t('wizard.quality.poor'), color: 'orange' };
-        }
-        
-        console.log('📊 Program preview updated:', programPreview.length, 'programs, quality:', previewQuality.level);
-      } catch (error) {
-        console.warn('Failed to generate program preview:', error);
-      }
-    }
-    
-    // NEW: Show program preview instead of ending when we have enough answers but more questions available
-    const hasEnoughAnswersForPreview = Object.keys(newAnswers).length >= 5;
-    const hasMoreQuestions = nextQuestion !== null;
-    
-    if (hasEnoughAnswersForPreview && hasMoreQuestions && !programPreview) {
-      // Generate preview for current answers even if we have more questions
-      try {
-        const { scoreProgramsEnhanced } = await import('@/lib/enhancedRecoEngine');
-        const previewResults = await scoreProgramsEnhanced(newAnswers, "strict");
-        programPreview = previewResults.slice(0, 3);
-        console.log('📊 Generated preview for intermediate answers:', programPreview.length, 'programs');
-      } catch (error) {
-        console.warn('Failed to generate intermediate preview:', error);
-      }
-    }
+    // REMOVED: Program preview generation - too slow, scoring 503 programs after each answer
+    // Just store the program count instead
     
     // Calculate estimated time and difficulty
     const estimatedTime = 0;
@@ -347,33 +309,13 @@ const SmartWizard: React.FC<SmartWizardProps> = ({ onComplete, onProfileGenerate
       estimatedTime,
       difficulty,
       aiGuidance: nextQuestion?.aiGuidance,
-      programPreview: programPreview || prev.programPreview, // Keep existing preview if no new one
-      previewQuality: previewQuality || prev.previewQuality, // Keep existing quality if no new one
       // NEW: Store program count
       remainingProgramCount: remainingProgramCount
     }));
 
-    // If no more questions, show final preview instead of results
+    // If no more questions, process results
     if (!nextQuestion) {
-      // Generate final program preview instead of going to results
-      try {
-        const { scoreProgramsEnhanced } = await import('@/lib/enhancedRecoEngine');
-        const finalResults = await scoreProgramsEnhanced(newAnswers, "strict");
-        const finalPreview = finalResults.slice(0, 5); // Top 5 programs for final preview
-        
-        setState(prev => ({
-          ...prev,
-          programPreview: finalPreview,
-          showFinalPreview: true, // New flag to show final preview
-          isProcessing: false
-        }));
-        
-        console.log('🎯 Final preview generated:', finalPreview.length, 'programs');
-      } catch (error) {
-        console.warn('Failed to generate final preview:', error);
-        // Fallback to results if preview fails
-        await processResults(newAnswers);
-      }
+      await processResults(newAnswers);
     } else {
       setAnimationKey(prev => prev + 1);
     }
