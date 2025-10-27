@@ -79,6 +79,17 @@ export class QuestionEngine {
     this.programs = programs;
     console.log(`🔄 Initializing QuestionEngine with ${programs.length} programs`);
     
+    // DEBUG: Check if programs have eligibility_criteria
+    if (programs.length > 0) {
+      console.log('🔍 DEBUG: First program sample:', {
+        id: programs[0].id,
+        name: programs[0].name,
+        hasEligibilityCriteria: !!(programs[0] as any).eligibility_criteria,
+        eligibilityKeys: programs[0] ? Object.keys((programs[0] as any).eligibility_criteria || {}) : []
+      });
+      console.log('🔍 DEBUG: Full eligibility_criteria:', (programs[0] as any).eligibility_criteria);
+    }
+    
     try {
       this.initializeQuestions();
       this.initializeOverlayQuestions();
