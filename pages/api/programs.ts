@@ -113,9 +113,11 @@ async function getProgramsFromEnhancedPipeline(type?: string): Promise<any[]> {
       
       // Geographic requirements
       if (eligibility.location) {
+        // Normalize location to lowercase for consistent matching
+        const normalizedLocation = typeof eligibility.location === 'string' ? eligibility.location.toLowerCase() : eligibility.location;
         categorized.geographic = [{
           type: 'location',
-          value: eligibility.location,
+          value: normalizedLocation,
           required: true,
           source: 'eligibility_criteria'
         }];
