@@ -59,17 +59,10 @@ function getFallbackData() {
   try {
     // Always use latest scraped data (what scraper just saved)
     const latestDataPath = path.join(process.cwd(), 'data', 'scraped-programs-latest.json');
-    const fallbackPath = path.join(process.cwd(), 'data', 'migrated-programs.json');
     
     let dataPath = latestDataPath;
     if (!fs.existsSync(latestDataPath)) {
-      // Fallback to migrated data if latest doesn't exist
-      if (fs.existsSync(fallbackPath)) {
-        dataPath = fallbackPath;
-        console.log('✅ Using migrated-programs.json (fallback)');
-      } else {
-        throw new Error('No data file found');
-      }
+      throw new Error('No scraped data found. Run: npm run scraper:run');
     } else {
       console.log('✅ Using scraped-programs-latest.json');
     }

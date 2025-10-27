@@ -1320,12 +1320,6 @@ export class WebScraperService {
         return data.programs;
       }
       
-      const fallbackFilepath = path.join(process.cwd(), 'data', 'fallback-programs.json');
-      if (fs.existsSync(fallbackFilepath)) {
-        const data = JSON.parse(fs.readFileSync(fallbackFilepath, 'utf8'));
-        return data;
-      }
-      
       return [];
     } catch (error) {
       console.error('❌ Failed to load fallback data:', error);
