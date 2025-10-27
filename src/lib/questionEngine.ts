@@ -691,13 +691,11 @@ export class QuestionEngine {
    */
   public applyMajorFilters(answers: Record<string, any>): Program[] {
     let filteredPrograms = [...this.programs];
+    const initialCount = filteredPrograms.length;
     
     // Location filter
     if (answers.location) {
-      const initialCount = filteredPrograms.length;
-      const programsWithLocation = filteredPrograms.filter(p => (p as any).eligibility_criteria?.location).length;
-      console.log(`🔍 Location filtering: ${answers.location}, Programs with location criteria: ${programsWithLocation}`);
-      
+      const beforeLocation = filteredPrograms.length;
       filteredPrograms = filteredPrograms.filter(program => {
         const eligibility = (program as any).eligibility_criteria;
         
@@ -721,11 +719,84 @@ export class QuestionEngine {
         return programLocation === userLocation;
       });
       
-      console.log(`📊 Location filter: ${initialCount} → ${filteredPrograms.length} programs (${programsWithLocation} had location criteria)`);
+      console.log(`📊 Location filter (${answers.location}): ${beforeLocation} → ${filteredPrograms.length} programs`);
     }
     
-    console.log(`📊 Major filters applied: ${this.programs.length} → ${filteredPrograms.length} programs`);
+    // Company age filter
+    if (answers.company_age) {
+      const beforeAge = filteredPrograms.length;
+      filteredPrograms = filteredPrograms.filter(program => {
+        const eligibility = (program as any).eligibility_criteria;
+        if (!eligibility || !eligibility.max_company_age) return true; // No age restriction = available
+        
+        // Parse the answer to get age in years
+        const userAge = this.parseAgeAnswer(answers.company_age);
+        const maxAge = eligibility.max_company_age;
+        
+        return userAge <= maxAge;
+      });
+      console.log(`📊 Company age filter (${answers.company_age}): ${beforeAge} → ${filteredPrograms.length} programs`);
+    }
+    
+    // Revenue filter
+    if (answers.current_revenue) {
+      const beforeRevenue = filteredPrograms.length;
+      filteredPrograms = filteredPrograms.filter(program => {
+        const eligibility = (program as any).eligibility_criteria;
+        if (!eligibility || (!eligibility.revenue_min && !eligibility.revenue_max)) return true;
+        
+        const userRevenue = this.parseRevenueAnswer(answers.current_revenue);
+        if (eligibility.revenue_min && userRevenue < eligibility.revenue_min) return false;
+        if (eligibility.revenue_max && userRevenue > eligibility.revenue_max) return false;
+        
+        return true;
+      });
+      console.log(`📊 Revenue filter (${answers.current_revenue}): ${beforeRevenue} → ${filteredPrograms.length} programs`);
+    }
+    
+    // Team size filter
+    if (answers.team_size) {
+      const beforeTeam = filteredPrograms.length;
+      filteredPrograms = filteredPrograms.filter(program => {
+        const eligibility = (program as any).eligibility_criteria;
+        if (!eligibility || !eligibility.min_team_size) return true;
+        
+        const userTeamSize = this.parseTeamSizeAnswer(answers.team_size);
+        const minTeamSize = eligibility.min_team_size;
+        
+        return userTeamSize >= minTeamSize;
+      });
+      console.log(`📊 Team size filter (${answers.team_size}): ${beforeTeam} → ${filteredPrograms.length} programs`);
+    }
+    
+    console.log(`📊 Total filtering: ${initialCount} → ${filteredPrograms.length} programs`);
     return filteredPrograms;
+  }
+
+  private parseAgeAnswer(answer: string): number {
+    // Convert answer like 'under_2_years', '2_5_years' to max age
+    if (answer.includes('under_2') || answer.includes('2_years')) return 2;
+    if (answer.includes('2_5') || answer.includes('5_years')) return 5;
+    if (answer.includes('5_10') || answer.includes('10_years')) return 10;
+    return 20; // older companies
+  }
+
+  private parseRevenueAnswer(answer: string): number {
+    // Convert answer to approximate revenue number
+    if (answer.includes('under_100')) return 50000;
+    if (answer.includes('100k_500')) return 250000;
+    if (answer.includes('500k_2m')) return 1000000;
+    if (answer.includes('over_2m')) return 5000000;
+    return 0;
+  }
+
+  private parseTeamSizeAnswer(answer: string): number {
+    // Convert answer like '1_2_people', '3_5_people' to min size
+    if (answer.includes('1_2') || answer.includes('1-2')) return 1;
+    if (answer.includes('3_5') || answer.includes('3-5')) return 3;
+    if (answer.includes('6_10') || answer.includes('6-10')) return 6;
+    if (answer.includes('over_10')) return 10;
+    return 1;
   }
 
   /**
