@@ -82,9 +82,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         ? `https://${process.env.VERCEL_URL}` 
         : 'http://localhost:3000';
       
-      const scraperUrl = mode === 'quick' 
-        ? `${baseUrl}/api/enhanced-scraper-test-quick`
-        : `${baseUrl}/api/enhanced-scraper-test`;
+      const scraperUrl = `${baseUrl}/api/enhanced-scraper-test-quick`;
       
       console.log(`🔄 Running ${mode} scraper...`);
       const scraperResponse = await fetch(scraperUrl, {
