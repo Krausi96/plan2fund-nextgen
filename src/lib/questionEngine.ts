@@ -100,7 +100,6 @@ export class QuestionEngine {
       console.error('❌ Error initializing QuestionEngine:', error);
       console.error('❌ Error stack:', error instanceof Error ? error.stack : 'No stack trace');
     }
-    this.loadBranchingRules();
   }
 
   /**
@@ -857,13 +856,6 @@ export class QuestionEngine {
       warnings,
       recommendations
     };
-  }
-
-  /**
-   * Load branching rules
-   */
-  private loadBranchingRules(): void {
-    console.log('📋 Branching rules loaded');
   }
 
   /**

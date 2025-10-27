@@ -21,16 +21,7 @@ interface WizardState {
   showFinalPreview: boolean;
   progress: number;
   programSpecificQuestions?: SymptomQuestion[];
-  // NEW: Enhanced validation and guidance
-  validationErrors?: string[];
-  validationWarnings?: string[];
-  validationRecommendations?: string[];
-  estimatedTime?: number;
-  difficulty?: 'easy' | 'medium' | 'hard';
-  aiGuidance?: string;
-  programPreview?: any[]; // Top 3 programs preview
-  previewQuality?: { level: string; message: string; color: string }; // NEW: Preview quality analysis
-  // NEW: Navigation state
+  // Navigation state
   currentQuestionIndex: number;
   totalQuestions: number;
   canGoBack: boolean;
@@ -238,13 +229,6 @@ const SmartWizard: React.FC<SmartWizardProps> = ({ onComplete, onProfileGenerate
     }
   };
 
-  const goToNextQuestion = () => {
-    if (state.canGoForward && state.currentQuestion) {
-      // This will be handled by the normal question flow
-      // The handleAnswer function will move to the next question
-    }
-  };
-
   const handleAnswer = async (answer: any) => {
     if (!state.currentQuestion || !questionEngine || !intakeEngine) return;
 
@@ -279,16 +263,9 @@ const SmartWizard: React.FC<SmartWizardProps> = ({ onComplete, onProfileGenerate
       }
     }
     
-    // NEW: Validate answers and get feedback
-    const validation = questionEngine.validateAnswers(newAnswers);
-    
     // REMOVED: Program preview generation - too slow, scoring 503 programs after each answer
     // Just store the program count instead
     
-    // Calculate estimated time and difficulty
-    const estimatedTime = 0;
-    const difficulty = 'easy' as 'easy' | 'medium' | 'hard';
-
     setState(prev => ({
       ...prev,
       answers: newAnswers,
@@ -299,14 +276,7 @@ const SmartWizard: React.FC<SmartWizardProps> = ({ onComplete, onProfileGenerate
       canGoBack: true,
       canGoForward: nextQuestion ? true : false,
       questionHistory: updatedHistory,
-      // NEW: Enhanced validation and guidance
-      validationErrors: validation.errors,
-      validationWarnings: validation.warnings,
-      validationRecommendations: validation.recommendations,
-      estimatedTime,
-      difficulty,
-      aiGuidance: nextQuestion?.aiGuidance,
-      // NEW: Store program count
+      // Store program count
       remainingProgramCount: remainingProgramCount
     }));
 
@@ -524,7 +494,6 @@ const SmartWizard: React.FC<SmartWizardProps> = ({ onComplete, onProfileGenerate
               </div>
               
               <button 
-                onClick={goToNextQuestion}
                 disabled={!state.canGoForward}
                 className="flex items-center gap-2 px-4 py-2 text-white bg-blue-600 rounded-lg hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200"
               >
@@ -544,51 +513,7 @@ const SmartWizard: React.FC<SmartWizardProps> = ({ onComplete, onProfileGenerate
               </div>
               
               <div className="space-y-4">
-                {/* Program Preview - Show only if available */}
-                {state.programPreview && state.programPreview.length > 0 && (
-                  <div className="bg-gradient-to-r from-green-50 to-blue-50 rounded-xl border border-green-200 p-4">
-                    {/* NEW: Preview Quality Indicator */}
-                    {state.previewQuality && (
-                      <div className={`flex justify-between items-center p-4 rounded-lg mb-4 font-semibold text-sm ${
-                        state.previewQuality.color === 'green' ? 'bg-gradient-to-r from-green-100 to-green-200 border border-green-300 text-green-800' :
-                        state.previewQuality.color === 'blue' ? 'bg-gradient-to-r from-blue-100 to-blue-200 border border-blue-300 text-blue-800' :
-                        'bg-gradient-to-r from-orange-100 to-orange-200 border border-orange-300 text-orange-800'
-                      }`}>
-                        <span className="text-base font-bold">{state.previewQuality.message}</span>
-                        <span className="text-sm opacity-80">
-                          {state.programPreview[0]?.score ? `${Math.round(state.programPreview[0].score)}% match` : ''}
-                        </span>
-                      </div>
-                    )}
-                    <h4 className="text-lg font-semibold text-gray-900 mb-4">🎯 {t('wizard.topMatches')}</h4>
-                      <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
-                        {state.programPreview.slice(0, 3).map((program, index) => (
-                          <div key={program.id || index} className="bg-white rounded-lg p-3 border border-gray-200 flex items-center gap-3">
-                            <div className="w-8 h-8 bg-blue-100 text-blue-600 rounded-full flex items-center justify-center text-sm font-bold">{index + 1}</div>
-                            <div className="flex-1">
-                              <div className="text-sm font-medium text-gray-900 line-clamp-2">{program.name || 'Unknown Program'}</div>
-                              <div className="text-xs text-blue-600 font-semibold">{Math.round(program.score || 0)}% match</div>
-                            </div>
-                          </div>
-                        ))}
-                      </div>
-                      
-                      {/* View Full Results Button - Show only when final preview is shown */}
-                      {state.showFinalPreview && (
-                        <div className="mt-4 text-center">
-                          <button 
-                            className="bg-blue-600 text-white px-6 py-3 rounded-lg hover:bg-blue-700 transition-all duration-200 font-semibold"
-                            onClick={async () => {
-                              // Process full results and navigate to results page
-                              await processResults(state.answers);
-                            }}
-                          >
-                            📊 View Full Results ({state.programPreview.length} programs)
-                          </button>
-                        </div>
-                      )}
-                    </div>
-                  )}
+                {/* Answer summary would go here */}
               </div>
             </div>
           )}
