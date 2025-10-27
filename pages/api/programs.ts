@@ -199,15 +199,18 @@ async function getProgramsFromEnhancedPipeline(type?: string): Promise<any[]> {
     const apiPrograms = filteredPrograms.map(program => {
       const eligibility = program.eligibility_criteria || {};
       
-      // Check if existing categorized_requirements has actual data
-      const existingCategorized = program.categorized_requirements || {};
-      const existingKeys = Object.keys(existingCategorized);
-      const hasActualData = existingKeys.some(key => 
-        Array.isArray(existingCategorized[key]) && existingCategorized[key].length > 0
-      );
+      // ALWAYS regenerate categorized_requirements from eligibility_criteria
+      // This ensures fresh data based on the latest eligibility criteria
+      const regeneratedCategorized = transformToCategorizedRequirements(eligibility);
       
-      // DEBUG: Check what we have
-      console.log('🔍 DEBUG program:', program.id, 'has eligibility:', Object.keys(eligibility).length > 0, 'has categorized data:', hasActualData);
+      // Merge with existing categorized data if it has valid data
+      const existingCategorized = program.categorized_requirements || {};
+      Object.keys(existingCategorized).forEach(category => {
+        if (Array.isArray(existingCategorized[category]) && existingCategorized[category].length > 0) {
+          if (!regeneratedCategorized[category]) regeneratedCategorized[category] = [];
+          regeneratedCategorized[category].push(...existingCategorized[category]);
+        }
+      });
       
       return {
         id: program.id,
@@ -224,8 +227,8 @@ async function getProgramsFromEnhancedPipeline(type?: string): Promise<any[]> {
         scrapedAt: program.scraped_at,
         // CRITICAL: Include eligibility_criteria so QuestionEngine can generate questions
         eligibility_criteria: eligibility,
-        // Auto-generate categorized_requirements from eligibility_criteria if missing data
-        categorized_requirements: hasActualData ? existingCategorized : transformToCategorizedRequirements(eligibility),
+        // ALWAYS use regenerated categorized_requirements
+        categorized_requirements: regeneratedCategorized,
         // Enhanced fields from pipeline
         target_personas: program.target_personas || [],
         tags: program.tags || [],
