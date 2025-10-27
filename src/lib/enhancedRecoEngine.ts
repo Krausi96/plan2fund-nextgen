@@ -480,8 +480,21 @@ function applyMajorFiltersToPrograms(programs: any[], answers: UserAnswers): any
   // MAJOR FILTER 1: Location (Hardcoded Rule)
   if (answers.location) {
     filteredPrograms = filteredPrograms.filter(program => {
+      // CRITICAL: Check eligibility_criteria first (more reliable)
+      const eligibility = (program as any).eligibility_criteria;
+      if (eligibility && eligibility.location) {
+        const programLocation = eligibility.location.toLowerCase();
+        const userLocation = answers.location.toLowerCase();
+        
+        // Check if program location matches user location
+        if (programLocation === userLocation) return true;
+        if (userLocation === 'austria' && (programLocation === 'austria' || programLocation === 'vienna')) return true;
+        if (userLocation === 'eu' && (programLocation === 'eu' || programLocation === 'austria' || programLocation === 'vienna')) return true;
+      }
+      
+      // Fallback: Check institution and description
       const programLocation = program.institution?.toLowerCase() || '';
-      const programDescription = program.description?.toLowerCase() || '';
+      const programDescription = program.description?.toLowerCase() || program.notes?.toLowerCase() || '';
       
       switch (answers.location) {
         case 'austria':
