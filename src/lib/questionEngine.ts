@@ -539,10 +539,10 @@ export class QuestionEngine {
     const ages = Array.from(ageMap.keys()).sort((a, b) => a - b);
     const ranges = [];
 
-    // Create ranges based on actual data
-    if (ages.some(age => age <= 2)) {
-      ranges.push({ value: 'under_2_years', label: 'wizard.options.under2Years', programs: ages.filter(age => age <= 2).reduce((sum, age) => sum + (ageMap.get(age) || 0), 0) });
-    }
+    // ALWAYS include 0-2 years option (even if no programs have max_age <= 2, companies can still be that young)
+    const ageUnder2 = ages.filter(age => age <= 2).reduce((sum, age) => sum + (ageMap.get(age) || 0), 0);
+    ranges.push({ value: '0_2_years', label: 'wizard.options.0to2Years', programs: ageUnder2 || 100 }); // Default 100 if no data
+
     if (ages.some(age => age > 2 && age <= 5)) {
       ranges.push({ value: '2_5_years', label: 'wizard.options.2to5Years', programs: ages.filter(age => age > 2 && age <= 5).reduce((sum, age) => sum + (ageMap.get(age) || 0), 0) });
     }
@@ -641,26 +641,28 @@ export class QuestionEngine {
     
     console.log('🔍 Continuing with question selection...');
     
-    // NEW: Select questions that narrow down the program pool most effectively
-    let bestQuestion: SymptomQuestion | null = null;
-    let bestQuestionScore = 0;
+    // DYNAMIC: Score ALL unanswered questions and select best
+    const unansweredQuestions = this.questions.filter(q => 
+      !answers[q.id] && !this.askedQuestions.includes(q.id) && this.shouldShowQuestion(q, answers)
+    );
     
-    // Check core questions with smart selection
-    for (const question of this.questions) {
-      if (!answers[question.id] && !this.askedQuestions.includes(question.id)) {
-        // NEW: Check if this question should be shown based on conditional logic
-        if (this.shouldShowQuestion(question, answers)) {
-          // NEW: Score this question by how well it narrows down programs
-          const informationValue = this.calculateInformationValue(question, answers, this.remainingPrograms);
-          console.log(`📊 Question ${question.id} score: ${informationValue.toFixed(2)}`);
-          
-          if (informationValue > bestQuestionScore) {
-            bestQuestion = question;
-            bestQuestionScore = informationValue;
-          }
-        }
-      }
-    }
+    // Score each question dynamically based on CURRENT program pool
+    const scoredQuestions = unansweredQuestions.map(question => ({
+      question,
+      score: this.calculateInformationValue(question, answers, this.remainingPrograms)
+    }));
+    
+    // Sort by score (highest first) - THIS IS THE DYNAMIC PART
+    scoredQuestions.sort((a, b) => b.score - a.score);
+    
+    console.log('📊 Question rankings:');
+    scoredQuestions.slice(0, 5).forEach(({question, score}, idx) => {
+      console.log(`  ${idx + 1}. ${question.id}: ${score.toFixed(2)}`);
+    });
+    
+    // Select highest scoring question
+    const bestQuestion = scoredQuestions[0]?.question || null;
+    const bestQuestionScore = scoredQuestions[0]?.score || 0;
     
     if (bestQuestion) {
       // Track that we asked this question
@@ -960,27 +962,40 @@ export class QuestionEngine {
       // Check if this question is relevant to this program
       let isRelevant = false;
       
+      // Check both eligibility_criteria AND categorized_requirements
+      const categorized = (program as any).categorized_requirements;
+      
       switch (question.category) {
         case 'location':
-          if (eligibility.location) isRelevant = true;
+          if (eligibility.location || categorized?.geographic) isRelevant = true;
           break;
         case 'business_stage':
           if (eligibility.max_company_age || eligibility.min_company_age) isRelevant = true;
           break;
         case 'funding_need':
-          if (eligibility.revenue_min || eligibility.revenue_max) isRelevant = true;
+          if (eligibility.revenue_min || eligibility.revenue_max || categorized?.financial) isRelevant = true;
           break;
         case 'team_size':
-          if (eligibility.min_team_size || eligibility.max_team_size) isRelevant = true;
+          if (eligibility.min_team_size || eligibility.max_team_size || categorized?.team) isRelevant = true;
           break;
         case 'specific_requirements':
-          if (eligibility.research_focus || eligibility.international_collaboration) isRelevant = true;
+          if (eligibility.research_focus || eligibility.international_collaboration || 
+              categorized?.project || categorized?.consortium) isRelevant = true;
           break;
         case 'innovation_level':
-          if (eligibility.industry_focus || eligibility.research_focus) isRelevant = true;
+          if (eligibility.industry_focus || eligibility.research_focus || 
+              categorized?.innovation || categorized?.technical) isRelevant = true;
           break;
         default:
           isRelevant = true; // Default to relevant
+      }
+      
+      // Check for categorized fields based on question ID
+      if (!isRelevant && categorized) {
+        if (question.id.includes('project') && categorized.project?.length > 0) isRelevant = true;
+        if (question.id.includes('innovation') && categorized.innovation?.length > 0) isRelevant = true;
+        if (question.id.includes('trl') && categorized.technical?.length > 0) isRelevant = true;
+        if (question.id.includes('market') && categorized.market?.length > 0) isRelevant = true;
       }
       
       if (isRelevant) {
