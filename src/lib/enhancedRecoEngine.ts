@@ -2,7 +2,7 @@
 import { Program, ScoredProgram, ProgramType } from "../types/requirements";
 import { UserAnswers } from "../lib/schemas";
 import { dataSource } from "./dataSource";
-import { doctorDiagnostic } from "./doctorDiagnostic";
+// Removed doctorDiagnostic - filtering handled by QuestionEngine
 
 // Eligibility trace interface
 export interface EligibilityTrace {
@@ -40,10 +40,7 @@ export interface EnhancedProgramResult extends ScoredProgram {
   founderFriendlyRisks?: string[];
   trace?: EligibilityTrace;
   // Doctor diagnostic fields
-  diagnosis?: string;
-  diagnosisConfidence?: number;
-  diagnosisReasoning?: string;
-  nextQuestions?: string[];
+      // Diagnosis fields removed - not used in unified flow
 }
 
 export function normalizeAnswers(answers: UserAnswers): UserAnswers {
@@ -618,26 +615,10 @@ export async function scoreProgramsEnhanced(
     });
     const derivedSignals = deriveSignals(answers);
     
-    // Use doctor diagnostic for better matching
-    const symptoms = doctorDiagnostic.analyzeSymptoms(answers);
-    const diagnosis = await doctorDiagnostic.makeDiagnosis(symptoms);
-    
-    // Apply additional diagnosis filtering if confidence is high
+    // FILTERING NOW HANDLED BY QUESTIONENGINE DURING WIZARD
+    // Just use the filtered programs without additional diagnosis filtering
     let finalFilteredPrograms = filteredPrograms;
-    console.log('🔍 Debug: After major filters:', filteredPrograms.length);
-    console.log('🔍 Debug: Diagnosis confidence:', diagnosis.confidence);
-    console.log('🔍 Debug: Diagnosis programs count:', diagnosis.programs?.length || 0);
-    
-    if (diagnosis.confidence > 0.7) {
-      // Apply diagnosis filtering to already major-filtered programs
-      const diagnosisFiltered = filteredPrograms.filter(program => 
-        diagnosis.programs?.some(diagProgram => diagProgram.id === program.id)
-      );
-      finalFilteredPrograms = diagnosisFiltered;
-      console.log('🔍 Debug: Using diagnosis-filtered programs:', finalFilteredPrograms.length);
-    } else {
-      console.log('🔍 Debug: Using major-filtered programs (low confidence diagnosis)');
-    }
+    console.log('🔍 Debug: Using major-filtered programs for scoring:', finalFilteredPrograms.length);
     
     const normalizedPrograms: Program[] = finalFilteredPrograms.map((p) => ({
       id: p.id,
@@ -918,12 +899,7 @@ export async function scoreProgramsEnhanced(
         fallbackGaps: gaps.map(g => g.description),
         founderFriendlyReasons,
         founderFriendlyRisks,
-        trace, // Add trace information
-        // Add doctor diagnostic information
-        diagnosis: diagnosis.primary,
-        diagnosisConfidence: diagnosis.confidence,
-        diagnosisReasoning: diagnosis.reasoning,
-        nextQuestions: diagnosis.nextQuestions
+        trace // Add trace information
       };
     }).sort((a, b) => b.score - a.score);
   } catch (error) {
