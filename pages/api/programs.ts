@@ -105,35 +105,110 @@ async function getProgramsFromEnhancedPipeline(type?: string): Promise<any[]> {
       );
     }
     
+    // Helper function to transform eligibility_criteria to categorized_requirements
+    const transformToCategorizedRequirements = (eligibility: any) => {
+      const categorized: any = {};
+      
+      if (!eligibility || Object.keys(eligibility).length === 0) return categorized;
+      
+      // Geographic requirements
+      if (eligibility.location) {
+        categorized.geographic = [{
+          type: 'location',
+          value: eligibility.location,
+          required: true,
+          source: 'eligibility_criteria'
+        }];
+      }
+      
+      // Team requirements
+      if (eligibility.min_team_size) {
+        categorized.team = [{
+          type: 'min_team_size',
+          value: eligibility.min_team_size,
+          required: true,
+          source: 'eligibility_criteria'
+        }];
+      }
+      
+      // Company requirements
+      if (eligibility.max_company_age) {
+        categorized.company = [{
+          type: 'max_company_age',
+          value: eligibility.max_company_age,
+          required: true,
+          source: 'eligibility_criteria'
+        }];
+      }
+      
+      // Financial requirements
+      if (eligibility.revenue_min || eligibility.revenue_max) {
+        categorized.financial = [{
+          type: 'revenue_range',
+          value: { min: eligibility.revenue_min, max: eligibility.revenue_max },
+          required: true,
+          source: 'eligibility_criteria'
+        }];
+      }
+      
+      // Research focus requirements
+      if (eligibility.research_focus) {
+        categorized.project = [{
+          type: 'research_focus',
+          value: eligibility.research_focus,
+          required: true,
+          source: 'eligibility_criteria'
+        }];
+      }
+      
+      // International collaboration requirements
+      if (eligibility.international_collaboration) {
+        categorized.consortium = [{
+          type: 'international_collaboration',
+          value: eligibility.international_collaboration,
+          required: true,
+          source: 'eligibility_criteria'
+        }];
+      }
+      
+      return categorized;
+    };
+    
     // Convert to API format
-    const apiPrograms = filteredPrograms.map(program => ({
-      id: program.id,
-      name: program.name,
-      type: program.type || program.program_type || 'grant',
-      requirements: program.requirements || {},
-      notes: program.description || '',
-      maxAmount: program.funding_amount_max || 0,
-      minAmount: program.funding_amount_min || 0,
-      currency: program.currency || 'EUR',
-      link: program.source_url || '',
-      deadline: program.deadline,
-      isActive: program.is_active !== false,
-      scrapedAt: program.scraped_at,
-      // CRITICAL: Include eligibility_criteria so QuestionEngine can generate questions
-      eligibility_criteria: program.eligibility_criteria || {},
-      // Enhanced fields from pipeline
-      target_personas: program.target_personas || [],
-      tags: program.tags || [],
-      decision_tree_questions: program.decision_tree_questions || [],
-      editor_sections: program.editor_sections || [],
-      readiness_criteria: program.readiness_criteria || [],
-      ai_guidance: program.ai_guidance || null,
-      categorized_requirements: program.categorized_requirements || {},
-      // Quality metrics
-      quality_score: program.quality_score,
-      confidence_level: program.confidence_level,
-      processed_at: program.processed_at
-    }));
+    const apiPrograms = filteredPrograms.map(program => {
+      const eligibility = program.eligibility_criteria || {};
+      const hasCategorized = program.categorized_requirements && Object.keys(program.categorized_requirements).length > 0;
+      
+      return {
+        id: program.id,
+        name: program.name,
+        type: program.type || program.program_type || 'grant',
+        requirements: program.requirements || {},
+        notes: program.description || '',
+        maxAmount: program.funding_amount_max || 0,
+        minAmount: program.funding_amount_min || 0,
+        currency: program.currency || 'EUR',
+        link: program.source_url || '',
+        deadline: program.deadline,
+        isActive: program.is_active !== false,
+        scrapedAt: program.scraped_at,
+        // CRITICAL: Include eligibility_criteria so QuestionEngine can generate questions
+        eligibility_criteria: eligibility,
+        // Auto-generate categorized_requirements from eligibility_criteria if missing
+        categorized_requirements: hasCategorized ? program.categorized_requirements : transformToCategorizedRequirements(eligibility),
+        // Enhanced fields from pipeline
+        target_personas: program.target_personas || [],
+        tags: program.tags || [],
+        decision_tree_questions: program.decision_tree_questions || [],
+        editor_sections: program.editor_sections || [],
+        readiness_criteria: program.readiness_criteria || [],
+        ai_guidance: program.ai_guidance || null,
+        // Quality metrics
+        quality_score: program.quality_score,
+        confidence_level: program.confidence_level,
+        processed_at: program.processed_at
+      };
+    });
     
     console.log(`✅ Enhanced Pipeline: Converted ${apiPrograms.length} programs to API format`);
     return apiPrograms;
