@@ -121,9 +121,13 @@ export class QuestionEngine {
       other: new Map()
     };
 
+    console.log('🔍 Analyzing eligibility criteria from programs...');
+    let programsWithCriteria = 0;
+    
     for (const program of this.programs) {
       const eligibility = (program as any).eligibility_criteria;
       if (!eligibility) continue;
+      programsWithCriteria++;
 
       // Location analysis
       if (eligibility.location) {
@@ -165,6 +169,15 @@ export class QuestionEngine {
         analysis.internationalCollaboration.set('required', (analysis.internationalCollaboration.get('required') || 0) + 1);
       }
     }
+
+    console.log(`✅ Found ${programsWithCriteria} programs with eligibility criteria`);
+    console.log('📊 Analysis results:');
+    console.log(`  - Location: ${analysis.location.size} unique values`);
+    console.log(`  - Company Age: ${analysis.companyAge.size} unique values`);
+    console.log(`  - Revenue: ${analysis.revenue.size} unique values`);
+    console.log(`  - Team Size: ${analysis.teamSize.size} unique values`);
+    console.log(`  - Research Focus: ${analysis.researchFocus.size} unique values`);
+    console.log(`  - International Collaboration: ${analysis.internationalCollaboration.size} unique values`);
 
     return analysis;
   }
