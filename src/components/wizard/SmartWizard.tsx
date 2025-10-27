@@ -253,12 +253,9 @@ const SmartWizard: React.FC<SmartWizardProps> = ({ onComplete, onProfileGenerate
     // Add current question to history
     const updatedHistory = [...state.questionHistory, state.currentQuestion.id];
     
-    // NEW: Apply major filters to reduce program pool
-    const filteredPrograms = questionEngine.applyMajorFilters(newAnswers);
-    console.log(`🔍 Major filters applied: ${filteredPrograms.length} programs remaining`);
-    
-    // NEW: Store program count for display
-    const remainingProgramCount = filteredPrograms.length;
+    // NEW: Get program count from QuestionEngine (it filters internally)
+    const remainingProgramCount = questionEngine.getRemainingProgramCount();
+    console.log(`🔍 Major filters applied: ${remainingProgramCount} programs remaining`);
     
     // Use enhanced question logic (prioritizes program-generated questions)
     let nextQuestion = await questionEngine.getNextQuestionEnhanced(newAnswers);

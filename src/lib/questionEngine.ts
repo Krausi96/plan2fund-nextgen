@@ -71,12 +71,15 @@ export interface BranchingRule {
 // ============================================================================
 
 export class QuestionEngine {
-  private programs: Program[];
+  private allPrograms: Program[]; // Keep original programs
+  private remainingPrograms: Program[]; // Currently matching programs (DYNAMIC)
   private questions: SymptomQuestion[] = [];
   private overlayQuestions: SymptomQuestion[] = [];
+  private askedQuestions: string[] = []; // Track which questions we've asked
 
   constructor(programs: Program[]) {
-    this.programs = programs;
+    this.allPrograms = programs;
+    this.remainingPrograms = programs; // Start with all programs
     console.log(`🔄 Initializing QuestionEngine with ${programs.length} programs`);
     
     // DEBUG: Check if programs have eligibility_criteria
@@ -105,7 +108,7 @@ export class QuestionEngine {
    */
   private initializeQuestions(): void {
     console.log('🔄 Analyzing eligibility criteria from ALL programs...');
-    console.log(`📊 Programs available: ${this.programs.length}`);
+    console.log(`📊 Programs available: ${this.allPrograms.length}`);
     
     // STEP 1: Extract ALL eligibility criteria from programs
     const eligibilityAnalysis = this.analyzeEligibilityCriteria();
@@ -135,7 +138,7 @@ export class QuestionEngine {
     console.log('🔍 Analyzing eligibility criteria from programs...');
     let programsWithCriteria = 0;
     
-    for (const program of this.programs) {
+    for (const program of this.allPrograms) {
       const eligibility = (program as any).eligibility_criteria;
       if (!eligibility) continue;
       programsWithCriteria++;
@@ -212,35 +215,35 @@ export class QuestionEngine {
     if (analysis.companyAge.size > 0) {
       const companyAgeQuestion = this.createCompanyAgeQuestion(analysis.companyAge);
       const totalPrograms = Array.from(analysis.companyAge.values()).reduce((a, b) => a + b, 0);
-      questionCandidates.push({ question: companyAgeQuestion, importance: 90 + (totalPrograms / this.programs.length) * 10 });
+      questionCandidates.push({ question: companyAgeQuestion, importance: 90 + (totalPrograms / this.allPrograms.length) * 10 });
     }
 
     // Revenue question (high importance - major filter)
     if (analysis.revenue.size > 0) {
       const revenueQuestion = this.createRevenueQuestion(analysis.revenue);
       const totalPrograms = Array.from(analysis.revenue.values()).reduce((a, b) => a + b, 0);
-      questionCandidates.push({ question: revenueQuestion, importance: 85 + (totalPrograms / this.programs.length) * 10 });
+      questionCandidates.push({ question: revenueQuestion, importance: 85 + (totalPrograms / this.allPrograms.length) * 10 });
     }
 
     // Team Size question (medium importance)
     if (analysis.teamSize.size > 0) {
       const teamSizeQuestion = this.createTeamSizeQuestion(analysis.teamSize);
       const totalPrograms = Array.from(analysis.teamSize.values()).reduce((a, b) => a + b, 0);
-      questionCandidates.push({ question: teamSizeQuestion, importance: 70 + (totalPrograms / this.programs.length) * 15 });
+      questionCandidates.push({ question: teamSizeQuestion, importance: 70 + (totalPrograms / this.allPrograms.length) * 15 });
     }
 
     // Research Focus question (medium importance)
     if (analysis.researchFocus.size > 0) {
       const researchQuestion = this.createResearchFocusQuestion(analysis.researchFocus);
       const totalPrograms = Array.from(analysis.researchFocus.values()).reduce((a, b) => a + b, 0);
-      questionCandidates.push({ question: researchQuestion, importance: 60 + (totalPrograms / this.programs.length) * 20 });
+      questionCandidates.push({ question: researchQuestion, importance: 60 + (totalPrograms / this.allPrograms.length) * 20 });
     }
 
     // International Collaboration question (lower importance)
     if (analysis.internationalCollaboration.size > 0) {
       const collaborationQuestion = this.createInternationalCollaborationQuestion(analysis.internationalCollaboration);
       const totalPrograms = Array.from(analysis.internationalCollaboration.values()).reduce((a, b) => a + b, 0);
-      questionCandidates.push({ question: collaborationQuestion, importance: 50 + (totalPrograms / this.programs.length) * 25 });
+      questionCandidates.push({ question: collaborationQuestion, importance: 50 + (totalPrograms / this.allPrograms.length) * 25 });
     }
 
     // Industry Focus question (from extracted criteria)
@@ -248,7 +251,7 @@ export class QuestionEngine {
     if (industryPrograms.length > 0) {
       const industryQuestion = this.createIndustryFocusQuestion(industryPrograms);
       const totalPrograms = industryPrograms.reduce((sum, [, count]) => sum + count, 0);
-      questionCandidates.push({ question: industryQuestion, importance: 55 + (totalPrograms / this.programs.length) * 20 });
+      questionCandidates.push({ question: industryQuestion, importance: 55 + (totalPrograms / this.allPrograms.length) * 20 });
     }
 
     // FALLBACK: If not enough questions from analysis, add standard questions
@@ -553,15 +556,15 @@ export class QuestionEngine {
    */
   public async getNextQuestionEnhanced(answers: Record<string, any>): Promise<SymptomQuestion | null> {
     console.log(`🔍 Getting next question from ${Object.keys(answers).length} answers`);
-    console.log(`📊 Total programs: ${this.programs.length}`);
+    console.log(`📊 Total programs: ${this.allPrograms.length}`);
     
-    // NEW: Calculate remaining programs after filtering
-    const remainingPrograms = this.applyMajorFilters(answers);
-    console.log(`📊 Programs remaining: ${remainingPrograms.length} / ${this.programs.length}`);
+    // NEW: Calculate remaining programs after filtering AND UPDATE STATE
+    this.remainingPrograms = this.applyMajorFilters(answers);
+    console.log(`📊 Programs remaining: ${this.remainingPrograms.length} / ${this.allPrograms.length}`);
     
     // NEW: Only stop early if we have ≤10 programs AND answered at least 5 questions
-    if (remainingPrograms.length <= 10 && Object.keys(answers).length >= 5) {
-      console.log(`✅ Only ${remainingPrograms.length} programs remain (well narrowed), stopping questions early`);
+    if (this.remainingPrograms.length <= 10 && Object.keys(answers).length >= 5) {
+      console.log(`✅ Only ${this.remainingPrograms.length} programs remain (well narrowed), stopping questions early`);
       return null;
     }
     
@@ -580,11 +583,11 @@ export class QuestionEngine {
     
     // Check core questions with smart selection
     for (const question of this.questions) {
-      if (!answers[question.id]) {
+      if (!answers[question.id] && !this.askedQuestions.includes(question.id)) {
         // NEW: Check if this question should be shown based on conditional logic
         if (this.shouldShowQuestion(question, answers)) {
           // NEW: Score this question by how well it narrows down programs
-          const informationValue = this.calculateInformationValue(question, answers, remainingPrograms);
+          const informationValue = this.calculateInformationValue(question, answers, this.remainingPrograms);
           console.log(`📊 Question ${question.id} score: ${informationValue.toFixed(2)}`);
           
           if (informationValue > bestQuestionScore) {
@@ -598,9 +601,9 @@ export class QuestionEngine {
     // If no better question found, try overlay questions
     if (!bestQuestion) {
       for (const question of this.overlayQuestions) {
-        if (!answers[question.id]) {
+        if (!answers[question.id] && !this.askedQuestions.includes(question.id)) {
           if (this.shouldShowQuestion(question, answers)) {
-            const informationValue = this.calculateInformationValue(question, answers, remainingPrograms);
+            const informationValue = this.calculateInformationValue(question, answers, this.remainingPrograms);
             console.log(`📊 Overlay question ${question.id} score: ${informationValue.toFixed(2)}`);
             
             if (informationValue > bestQuestionScore) {
@@ -613,6 +616,8 @@ export class QuestionEngine {
     }
     
     if (bestQuestion) {
+      // Track that we asked this question
+      this.askedQuestions.push(bestQuestion.id);
       console.log(`✅ Selected question: ${bestQuestion.id} (score: ${bestQuestionScore.toFixed(2)})`);
       return bestQuestion;
     }
@@ -687,10 +692,17 @@ export class QuestionEngine {
   }
 
   /**
+   * Get current remaining program count
+   */
+  public getRemainingProgramCount(): number {
+    return this.remainingPrograms.length;
+  }
+
+  /**
    * Apply major filters to programs
    */
   public applyMajorFilters(answers: Record<string, any>): Program[] {
-    let filteredPrograms = [...this.programs];
+    let filteredPrograms = [...this.allPrograms];
     const initialCount = filteredPrograms.length;
     
     // Location filter
@@ -771,6 +783,13 @@ export class QuestionEngine {
     
     console.log(`📊 Total filtering: ${initialCount} → ${filteredPrograms.length} programs`);
     return filteredPrograms;
+  }
+
+  /**
+   * Get all remaining programs (for final scoring)
+   */
+  public getRemainingPrograms(): Program[] {
+    return this.remainingPrograms;
   }
 
   private parseAgeAnswer(answer: string): number {
