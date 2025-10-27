@@ -399,6 +399,7 @@ function scoreCategorizedRequirements(
   // Define mapping between user answers and categorized requirements
   // Map actual answer keys (from QuestionEngine) to requirement categories
   const answerMapping: Record<string, string[]> = {
+    // QuestionEngine uses these keys (add more as needed):
     'location': ['geographic', 'eligibility'],
     'company_age': ['company', 'eligibility'],
     'current_revenue': ['financial', 'revenue'],
@@ -409,7 +410,11 @@ function scoreCategorizedRequirements(
     'funding_need': ['financial'],
     'innovation_level': ['project', 'technical'],
     'market_focus': ['market_size', 'revenue_model'],
-    'team_experience': ['team']
+    'team_experience': ['team'],
+    // Also handle legacy keys in case:
+    'q1_country': ['geographic', 'eligibility'],
+    'q2_team': ['team'],
+    'q3_funding': ['financial']
   };
 
   // Debug: Log what we're receiving
@@ -863,10 +868,9 @@ export async function scoreProgramsEnhanced(
         scorePercent = totalRequirements > 0 ? Math.round((score / totalRequirements) * 100) : score;
       }
       
-      // Ensure minimum score for programs
-      if (scorePercent === 0) {
-        scorePercent = 30; // Base score for all programs
-      }
+      // Don't artificially inflate scores with base score
+      // If scorePercent === 0, it means no matches found - that's honest feedback
+      // scorePercent remains 0 if no matches
       
       // Add bonus for GPT-enhanced matches
       if (matchedCriteria.length > 0) {

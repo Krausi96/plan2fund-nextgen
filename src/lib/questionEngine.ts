@@ -273,21 +273,28 @@ export class QuestionEngine {
     // Location question (always most important - major filter)
     if (analysis.location.size > 0) {
       const locationQuestion = this.createLocationQuestion(analysis.location);
-      questionCandidates.push({ question: locationQuestion, importance: 100 });
+      // Calculate importance dynamically: how much does location filter programs?
+      const locationPrograms = analysis.location.size;
+      const filterPower = (locationPrograms / this.allPrograms.length) * 100;
+      questionCandidates.push({ question: locationQuestion, importance: filterPower });
     }
 
     // Company Age question (high importance - major filter)
     if (analysis.companyAge.size > 0) {
       const companyAgeQuestion = this.createCompanyAgeQuestion(analysis.companyAge);
       const totalPrograms = Array.from(analysis.companyAge.values()).reduce((a, b) => a + b, 0);
-      questionCandidates.push({ question: companyAgeQuestion, importance: 90 + (totalPrograms / this.allPrograms.length) * 10 });
+      // Calculate filter power dynamically
+      const filterPower = (totalPrograms / this.allPrograms.length) * 90;
+      questionCandidates.push({ question: companyAgeQuestion, importance: filterPower });
     }
 
     // Revenue question (high importance - major filter)
     if (analysis.revenue.size > 0) {
       const revenueQuestion = this.createRevenueQuestion(analysis.revenue);
       const totalPrograms = Array.from(analysis.revenue.values()).reduce((a, b) => a + b, 0);
-      questionCandidates.push({ question: revenueQuestion, importance: 85 + (totalPrograms / this.allPrograms.length) * 10 });
+      // Calculate filter power dynamically
+      const filterPower = (totalPrograms / this.allPrograms.length) * 85;
+      questionCandidates.push({ question: revenueQuestion, importance: filterPower });
     }
 
     // Team Size question (medium importance)
@@ -610,6 +617,8 @@ export class QuestionEngine {
   public async getFirstQuestion(): Promise<SymptomQuestion | null> {
     console.log('🎯 Getting first question...');
     console.log('🎯 Available questions:', this.questions.length);
+    
+    // Use dynamic scoring even for first question (based on ALL programs)
     const question = await this.getNextQuestionEnhanced({});
     console.log('🎯 First question result:', question ? question.id : 'null');
     return question;
