@@ -36,6 +36,14 @@ function transformEligibilityToCategorized(eligibility: any): any {
     categorized.financial.push({ type: 'revenue', value: { min: eligibility.revenue_min, max: eligibility.revenue_max }, required: true, source: 'eligibility_criteria' });
   }
   
+  // FIX: Map all eligibility fields to categorized_requirements
+  if (eligibility.industry_focus) categorized.project.push({ type: 'industry_focus', value: eligibility.industry_focus, required: true, source: 'eligibility_criteria' });
+  if (eligibility.research_focus) categorized.project.push({ type: 'research_focus', value: eligibility.research_focus, required: true, source: 'eligibility_criteria' });
+  if (eligibility.international_collaboration) categorized.consortium.push({ type: 'international_collaboration', value: eligibility.international_collaboration, required: true, source: 'eligibility_criteria' });
+  if (eligibility.co_financing) categorized.financial.push({ type: 'co_financing', value: eligibility.co_financing, required: true, source: 'eligibility_criteria' });
+  if (eligibility.trl_level) categorized.technical.push({ type: 'trl_level', value: eligibility.trl_level, required: true, source: 'eligibility_criteria' });
+  if (eligibility.impact) categorized.impact.push({ type: 'impact', value: eligibility.impact, required: true, source: 'eligibility_criteria' });
+  
   return categorized;
 }
 

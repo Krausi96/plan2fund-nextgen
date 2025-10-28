@@ -172,6 +172,49 @@ export class QuestionEngine {
           const consortiumReq = categorized.consortium[0];
           analysis.other.set(`consortium_${consortiumReq.value}`, (analysis.other.get(`consortium_${consortiumReq.value}`) || 0) + 1);
         }
+        
+        // FIX: Analyze ALL 18 categories
+        if (categorized?.documents && categorized.documents.length > 0) {
+          categorized.documents.forEach((req: any) => {
+            analysis.other.set(`documents_${req.type}`, (analysis.other.get(`documents_${req.type}`) || 0) + 1);
+          });
+        }
+        
+        if (categorized?.legal && categorized.legal.length > 0) {
+          categorized.legal.forEach((req: any) => {
+            analysis.other.set(`legal_${req.type}`, (analysis.other.get(`legal_${req.type}`) || 0) + 1);
+          });
+        }
+        
+        if (categorized?.timeline && categorized.timeline.length > 0) {
+          categorized.timeline.forEach((req: any) => {
+            analysis.other.set(`timeline_${req.type}`, (analysis.other.get(`timeline_${req.type}`) || 0) + 1);
+          });
+        }
+        
+        if (categorized?.capex_opex && categorized.capex_opex.length > 0) {
+          categorized.capex_opex.forEach((req: any) => {
+            analysis.other.set(`capex_opex_${req.type}`, (analysis.other.get(`capex_opex_${req.type}`) || 0) + 1);
+          });
+        }
+        
+        if (categorized?.use_of_funds && categorized.use_of_funds.length > 0) {
+          categorized.use_of_funds.forEach((req: any) => {
+            analysis.other.set(`use_of_funds_${req.type}`, (analysis.other.get(`use_of_funds_${req.type}`) || 0) + 1);
+          });
+        }
+        
+        if (categorized?.revenue_model && categorized.revenue_model.length > 0) {
+          categorized.revenue_model.forEach((req: any) => {
+            analysis.other.set(`revenue_model_${req.type}`, (analysis.other.get(`revenue_model_${req.type}`) || 0) + 1);
+          });
+        }
+        
+        if (categorized?.market_size && categorized.market_size.length > 0) {
+          categorized.market_size.forEach((req: any) => {
+            analysis.other.set(`market_size_${req.type}`, (analysis.other.get(`market_size_${req.type}`) || 0) + 1);
+          });
+        }
       }
     }
     console.log(`✅ Found ${programsWithCategorizedRequirements} programs with categorized_requirements`);
@@ -751,6 +794,9 @@ export class QuestionEngine {
     
     console.log('🔍 Continuing with question selection...');
     
+    // NEW: Generate contextual follow-up questions based on answers
+    this.generateContextualQuestions(answers);
+    
     // DYNAMIC: Score ALL unanswered questions and select best
     const unansweredQuestions = this.questions.filter(q => 
       !answers[q.id] && !this.askedQuestions.includes(q.id) && this.shouldShowQuestion(q, answers)
@@ -1057,7 +1103,7 @@ export class QuestionEngine {
   ): number {
     // Base score starts with question phase (earlier questions are more valuable)
     // REDUCED PHASE WEIGHT: Let relevance score dominate instead
-    let score = (4 - question.phase) * 10; // Phase 1 = 30, Phase 2 = 20, Phase 3 = 10
+    let score = (4 - question.phase) * 5; // Phase 1 = 15, Phase 2 = 10, Phase 3 = 5 (reduced from 30/20/10)
     
     // Check how many programs have requirements for this question's category
     let relevantPrograms = 0;
@@ -1116,7 +1162,7 @@ export class QuestionEngine {
     
     // Higher score if question is relevant to many programs
     // INCREASED RELEVANCE WEIGHT: This should be the main factor
-    const relevanceScore = (relevantPrograms / remainingPrograms.length) * 100;
+    const relevanceScore = (relevantPrograms / remainingPrograms.length) * 150; // Increased from 100 to 150
     score += relevanceScore;
     
     // Penalize if we already answered similar questions (avoid redundant questions)
@@ -1422,7 +1468,175 @@ export class QuestionEngine {
       'compliance': 'Do you need compliance certifications?',
       'documents': 'Do you have the required documents?'
     };
+    return prompts[requirementType] || `What is your ${requirementType}?`;
+  }
 
-    return prompts[requirementType] || `What is your ${requirementType.replace(/_/g, ' ')}?`;
+  /**
+   * DYNAMIC: Generate contextual follow-up questions based on remaining programs
+   * Analyzes what requirements need clarification instead of hardcoded checks
+   */
+  private generateContextualQuestions(answers: Record<string, any>): void {
+    const needsClarification = this.analyzeRemainingProgramRequirements(answers);
+    
+    for (const need of needsClarification) {
+      const question = this.createDynamicContextualQuestion(need);
+      if (!this.questions.find(q => q.id === question.id)) {
+        this.questions.push(question);
+        console.log(`📋 Added contextual question: ${question.id} from ${need.programCount} programs needing clarification`);
+      }
+    }
+  }
+
+  /**
+   * NEW: Analyze remainingPrograms for requirements needing clarification
+   */
+  private analyzeRemainingProgramRequirements(answers: Record<string, any>): Array<{field: string, category: string, programCount: number, values: string[]}> {
+    const needsClarification: Array<{field: string, category: string, programCount: number, values: string[]}> = [];
+    const valueFrequency = new Map<string, number>();
+    
+    for (const program of this.remainingPrograms) {
+      const categorized = (program as any).categorized_requirements;
+      
+      if (!categorized) continue;
+
+      // Check geographic detail if location answered but not detail
+      if (answers.location && categorized.geographic && !answers.geographic_detail) {
+        for (const geoReq of categorized.geographic) {
+          if (geoReq.type === 'location_detail' || geoReq.type === 'region' || geoReq.type === 'city') {
+            const key = `geographic_${geoReq.value}`;
+            valueFrequency.set(key, (valueFrequency.get(key) || 0) + 1);
+          }
+        }
+      }
+      
+      // Check consortium detail if consortium answered but not detail
+      if (answers.consortium && categorized.consortium && !answers.consortium_detail) {
+        for (const consReq of categorized.consortium) {
+          if (consReq.type === 'partner_count' || consReq.type === 'team_size') {
+            const key = `consortium_${consReq.value}`;
+            valueFrequency.set(key, (valueFrequency.get(key) || 0) + 1);
+          }
+        }
+      }
+      
+      // Check funding amount detail if type answered but not range
+      if (answers.funding_type && categorized.financial && !answers.funding_range) {
+        for (const finReq of categorized.financial) {
+          if (finReq.type === 'funding_range' || finReq.type === 'amount') {
+            const key = `financial_${finReq.value}`;
+            valueFrequency.set(key, (valueFrequency.get(key) || 0) + 1);
+          }
+        }
+      }
+    }
+    
+    // Add to needsClarification if significant programs need it
+    if (valueFrequency.has('geographic_') || Array.from(valueFrequency.keys()).some(k => k.startsWith('geographic_'))) {
+      const geoValues = Array.from(valueFrequency.entries())
+        .filter(([key]) => key.startsWith('geographic_'))
+        .map(([key, count]) => ({ value: key.replace('geographic_', ''), count }));
+      
+      if (geoValues.length >= 2) {
+        needsClarification.push({
+          field: 'geographic_detail',
+          category: 'geographic',
+          programCount: geoValues.reduce((sum, v) => sum + v.count, 0),
+          values: geoValues.map(v => v.value)
+        });
+      }
+    }
+    
+    if (valueFrequency.has('consortium_') || Array.from(valueFrequency.keys()).some(k => k.startsWith('consortium_'))) {
+      const consValues = Array.from(valueFrequency.entries())
+        .filter(([key]) => key.startsWith('consortium_'))
+        .map(([key, count]) => ({ value: key.replace('consortium_', ''), count }));
+      
+      if (consValues.length >= 2) {
+        needsClarification.push({
+          field: 'consortium_detail',
+          category: 'consortium',
+          programCount: consValues.reduce((sum, v) => sum + v.count, 0),
+          values: consValues.map(v => v.value)
+        });
+      }
+    }
+    
+    return needsClarification;
+  }
+
+  /**
+   * NEW: Create contextual question dynamically from requirement analysis
+   */
+  private createDynamicContextualQuestion(need: {field: string, category: string, programCount: number, values: string[]}): SymptomQuestion {
+    const options = this.extractOptionsFromPrograms(need);
+    
+    return {
+      id: need.field,
+      symptom: this.getContextualQuestionPrompt(need.field),
+      type: 'single-select',
+      options,
+      required: false,
+      category: need.category as any,
+      phase: 2,
+      questionNumber: 0
+    };
+  }
+
+  /**
+   * NEW: Extract options from programs dynamically
+   */
+  private extractOptionsFromPrograms(need: {field: string, category: string, programCount: number, values: string[]}): Array<{value: string, label: string, description?: string}> {
+    const valueCount = new Map<string, number>();
+    
+    for (const program of this.remainingPrograms) {
+      const categorized = (program as any).categorized_requirements;
+      if (!categorized) continue;
+      
+      if (need.category === 'geographic' && categorized.geographic) {
+        for (const req of categorized.geographic) {
+          if (req.type === 'location_detail' || req.type === 'region' || req.type === 'city') {
+            const count = valueCount.get(req.value) || 0;
+            valueCount.set(req.value, count + 1);
+          }
+        }
+      }
+      
+      if (need.category === 'consortium' && categorized.consortium) {
+        for (const req of categorized.consortium) {
+          if (req.type === 'partner_count' || req.type === 'team_size') {
+            const count = valueCount.get(req.value) || 0;
+            valueCount.set(req.value, count + 1);
+          }
+        }
+      }
+    }
+    
+    // Convert to options, sorted by frequency
+    return Array.from(valueCount.entries())
+      .sort((a, b) => b[1] - a[1])
+      .map(([value, count]) => ({
+        value,
+        label: this.formatLabel(value),
+        description: `${count} programs require this`
+      }));
+  }
+
+  /**
+   * NEW: Get question prompt based on field
+   */
+  private getContextualQuestionPrompt(field: string): string {
+    const prompts: Record<string, string> = {
+      'geographic_detail': 'What is your specific location?',
+      'consortium_detail': 'How many partners do you need?',
+      'funding_range': 'What funding range are you seeking?',
+      'partner_count': 'How many partners do you have?'
+    };
+    return prompts[field] || `What is your ${field}?`;
+  }
+
+  private formatLabel(value: string): string {
+    return value
+      .replace(/_/g, ' ')
+      .replace(/\b\w/g, l => l.toUpperCase());
   }
 }
