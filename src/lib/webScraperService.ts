@@ -64,7 +64,7 @@ export class WebScraperService {
         
         // Test browser with a simple page
         try {
-          const testPage = await this.browser.newPage();
+          const testPage = await this.browser!.newPage();
           await testPage.goto('https://httpbin.org/get', { waitUntil: 'domcontentloaded', timeout: 10000 });
           console.log('✅ Browser test successful');
           await testPage.close();
@@ -108,10 +108,10 @@ export class WebScraperService {
               console.log(`✅ Extracted: ${program.name}`);
             } else if (program) {
               console.log(`❌ Invalid program filtered: ${program.name}`);
-            } else {
+      } else {
               console.log(`⚠️ No program extracted from: ${url}`);
             }
-          } catch (error) {
+    } catch (error) {
             console.error(`❌ Error scraping ${url}:`, error);
           }
         }
@@ -190,17 +190,18 @@ export class WebScraperService {
           await page.close();
           
           // Add discovered URLs
-          const discoveredUrls = links.filter(url => 
-            url && 
+          const discoveredUrls = links.filter((url): url is string => 
+            url !== null && 
+            url !== undefined &&
             url !== seedUrl && 
             this.isRealProgramUrl(url)
           );
           
           programUrls.push(...discoveredUrls);
-          console.log(`  🔗 Found ${discoveredUrls.length} additional URLs from ${seedUrl}`);
+          console.log(`  🔗 Found ${discoveredUrls.length} additional URLs from ${seedUrl || 'unknown'}`);
           
         } catch (error) {
-          console.error(`❌ Error in auto-discovery from ${seedUrl}:`, error);
+          console.error(`❌ Error in auto-discovery from ${seedUrl || 'unknown'}:`, error);
         }
       }
     }
@@ -208,57 +209,6 @@ export class WebScraperService {
     return [...new Set(programUrls)]; // Remove duplicates
   }
 
-  private async autoDiscoverAdditionalUrls(institution: InstitutionConfig, baseUrl: string): Promise<string[]> {
-    try {
-      const page = await this.browser!.newPage();
-      await page.setUserAgent('Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36');
-      await page.goto(baseUrl, { waitUntil: 'domcontentloaded', timeout: 15000 });
-      
-      // Look for sitemaps
-      const sitemapLinks = await page.evaluate(() => {
-        const sitemapElements = Array.from(document.querySelectorAll('a[href*="sitemap"], a[href*="program"], a[href*="foerderung"]'));
-        return sitemapElements
-          .map(el => el.getAttribute('href'))
-          .filter(href => href && href.includes('sitemap'))
-          .map(href => {
-            if (href?.startsWith('/')) {
-              return new URL(href, window.location.origin).href;
-            }
-            return href;
-          })
-          .filter(href => href && href.startsWith('http'));
-      });
-      
-      await page.close();
-      
-      // Process sitemaps if found
-      const additionalUrls: string[] = [];
-      for (const sitemapUrl of sitemapLinks.slice(0, 2)) { // Limit to 2 sitemaps
-        try {
-          const sitemapPage = await this.browser!.newPage();
-          await sitemapPage.goto(sitemapUrl, { waitUntil: 'domcontentloaded', timeout: 10000 });
-          
-          const sitemapUrls = await sitemapPage.evaluate((keywords) => {
-            const links = Array.from(document.querySelectorAll('a[href], loc'));
-            return links
-              .map(el => el.textContent || el.getAttribute('href'))
-              .filter(href => href && keywords.some(keyword => href.toLowerCase().includes(keyword)))
-              .filter(href => href && href.startsWith('http'));
-          }, institution.keywords);
-          
-          await sitemapPage.close();
-          additionalUrls.push(...sitemapUrls.slice(0, 10)); // Limit to 10 per sitemap
-        } catch (error) {
-          console.error(`❌ Error processing sitemap ${sitemapUrl}:`, error);
-        }
-      }
-      
-      return additionalUrls;
-    } catch (error) {
-      console.error(`❌ Error in auto-discovery:`, error);
-      return [];
-    }
-  }
 
   private isRealProgramUrl(url: string): boolean {
     const programKeywords = [
@@ -412,6 +362,8 @@ export class WebScraperService {
     return '';
   }
 
+  // Unused function - kept for reference
+  /*
   private extract18Categories($: cheerio.Root, selectors: any): any {
     const categorized: any = {};
     
@@ -435,6 +387,7 @@ export class WebScraperService {
     
     return categorized;
   }
+  */
 
   private extract18CategoriesEnhanced($: cheerio.Root, selectors: any, content: string): any {
     const categorized: any = {};
@@ -468,7 +421,7 @@ export class WebScraperService {
     return categorized;
   }
 
-  private extractAllRelevantText($: cheerio.Root, content: string): string {
+  private extractAllRelevantText($: cheerio.Root, _content: string): string {
     // Extract text from multiple sources
     const textSources = [
       $('body').text(),

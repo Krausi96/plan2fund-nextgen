@@ -351,6 +351,7 @@ export const institutions: InstitutionConfig[] = [
       contact: ['.contact', '.ansprechpartner', '.kontakt']
     },
     fundingTypes: ['grant', 'research', 'innovation'],
+    programFocus: [], // Will be auto-detected
     region: 'EU',
     autoDiscovery: true,  // ✅ Auto-discovery enabled
     keywords: ['horizon', 'europe', 'research', 'innovation', 'grant']
