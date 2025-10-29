@@ -704,21 +704,39 @@ export class WebScraperService {
       });
     }
     
-    // FINANCIAL
-    if (lowerText.includes('eigenmittel') || lowerText.includes('eigenkapital') || lowerText.includes('co-financing')) {
-      categorized.financial.push({
+    // FINANCIAL - Enhanced co_financing detection
+    const coFinancingKeywords = [
+      'eigenmittel', 'eigenkapital', 'co-financing', 'cofinanzierung', 
+      'eigenanteil', 'mitfinanzierung', 'eigenbeitrag', 'selbstfinanzierung',
+      'eigenbeteiligung', 'eigenfinanzierung', 'eigenleistung', 'eigenmitteln',
+      'eigenfinanzierungsanteil', 'selbstbeteiligung', 'co-finance', 'co finance'
+    ];
+    if (coFinancingKeywords.some(keyword => lowerText.includes(keyword))) {
+      // Try to extract percentage value
+      const percentageMatch = text.match(/(\d{1,3})[%\s]*(?:eigen|co-financ|mitfinanz|eigenbeitrag)/i);
+      const percentage = percentageMatch ? percentageMatch[1] + '%' : 'Required';
+      categorized.co_financing.push({
         type: 'co_financing',
-        value: 'Required',
+        value: percentage,
         required: true,
         source: 'full_page_content'
       });
     }
     
-    // TECHNICAL
-    if (lowerText.includes('trl') || lowerText.includes('technology readiness')) {
-      categorized.technical.push({
+    // TECHNICAL - Enhanced TRL detection
+    const trlKeywords = [
+      'trl', 'technology readiness', 'technology readiness level',
+      'reifegrad', 'technologiereifegrad', 'technologie-reifegrad',
+      'technological readiness', 'readiness level', 'trl-level',
+      'trl level', 'trl 1', 'trl 2', 'trl 3', 'trl 4', 'trl 5', 'trl 6', 'trl 7', 'trl 8', 'trl 9'
+    ];
+    if (trlKeywords.some(keyword => lowerText.includes(keyword))) {
+      // Extract TRL level if possible
+      const trlMatch = text.match(/trl[\s\-]?(\d{1})/i) || text.match(/technology readiness level[\s\-]?(\d{1})/i);
+      const trlValue = trlMatch ? 'TRL ' + trlMatch[1] : this.extractTRL(text);
+      categorized.trl_level.push({
         type: 'trl_level',
-        value: 'Technology readiness required',
+        value: trlValue,
         required: true,
         source: 'full_page_content'
       });
@@ -1083,11 +1101,20 @@ export class WebScraperService {
   private parseEligibilityText(text: string, categorized: any): void {
     const lowerText = text.toLowerCase();
     
-    // Financial requirements - Enhanced detection
-    if (lowerText.includes('co-financing') || lowerText.includes('eigenmittel') || lowerText.includes('eigenkapital')) {
-      categorized.financial.push({
+    // Financial requirements - Enhanced co_financing detection
+    const coFinancingKeywords = [
+      'eigenmittel', 'eigenkapital', 'co-financing', 'cofinanzierung', 
+      'eigenanteil', 'mitfinanzierung', 'eigenbeitrag', 'selbstfinanzierung',
+      'eigenbeteiligung', 'eigenfinanzierung', 'eigenleistung', 'eigenmitteln',
+      'eigenfinanzierungsanteil', 'selbstbeteiligung', 'co-finance', 'co finance'
+    ];
+    if (coFinancingKeywords.some(keyword => lowerText.includes(keyword))) {
+      // Try to extract percentage value
+      const percentageMatch = text.match(/(\d{1,3})[%\s]*(?:eigen|co-financ|mitfinanz|eigenbeitrag)/i);
+      const percentage = percentageMatch ? percentageMatch[1] + '%' : this.extractPercentage(text) || this.extractNumber(text) + '%';
+      categorized.co_financing.push({
         type: 'co_financing',
-        value: this.extractPercentage(text) || this.extractNumber(text) + '%',
+        value: percentage,
         required: true,
         source: 'eligibility_text'
       });
@@ -1169,10 +1196,20 @@ export class WebScraperService {
       });
     }
     
-    if (lowerText.includes('trl') || lowerText.includes('technology readiness')) {
-      categorized.technical.push({
+    // Enhanced TRL detection
+    const trlKeywords = [
+      'trl', 'technology readiness', 'technology readiness level',
+      'reifegrad', 'technologiereifegrad', 'technologie-reifegrad',
+      'technological readiness', 'readiness level', 'trl-level',
+      'trl level', 'trl 1', 'trl 2', 'trl 3', 'trl 4', 'trl 5', 'trl 6', 'trl 7', 'trl 8', 'trl 9'
+    ];
+    if (trlKeywords.some(keyword => lowerText.includes(keyword))) {
+      // Extract TRL level if possible
+      const trlMatch = text.match(/trl[\s\-]?(\d{1})/i) || text.match(/technology readiness level[\s\-]?(\d{1})/i);
+      const trlValue = trlMatch ? 'TRL ' + trlMatch[1] : this.extractTRL(text);
+      categorized.trl_level.push({
         type: 'trl_level',
-        value: this.extractTRL(text),
+        value: trlValue,
         required: true,
         source: 'eligibility_text'
       });
@@ -1235,6 +1272,42 @@ export class WebScraperService {
       categorized.legal.push({
         type: 'legal_compliance',
         value: 'Legal compliance required',
+        required: true,
+        source: 'requirements_text'
+      });
+    }
+    
+    // Enhanced co_financing detection in requirements
+    const coFinancingKeywords = [
+      'eigenmittel', 'eigenkapital', 'co-financing', 'cofinanzierung', 
+      'eigenanteil', 'mitfinanzierung', 'eigenbeitrag', 'selbstfinanzierung',
+      'eigenbeteiligung', 'eigenfinanzierung', 'eigenleistung', 'eigenmitteln',
+      'eigenfinanzierungsanteil', 'selbstbeteiligung', 'co-finance', 'co finance'
+    ];
+    if (coFinancingKeywords.some(keyword => lowerText.includes(keyword))) {
+      const percentageMatch = text.match(/(\d{1,3})[%\s]*(?:eigen|co-financ|mitfinanz|eigenbeitrag)/i);
+      const percentage = percentageMatch ? percentageMatch[1] + '%' : this.extractPercentage(text) || this.extractNumber(text) + '%';
+      categorized.co_financing.push({
+        type: 'co_financing',
+        value: percentage,
+        required: true,
+        source: 'requirements_text'
+      });
+    }
+    
+    // Enhanced TRL detection in requirements
+    const trlKeywords = [
+      'trl', 'technology readiness', 'technology readiness level',
+      'reifegrad', 'technologiereifegrad', 'technologie-reifegrad',
+      'technological readiness', 'readiness level', 'trl-level',
+      'trl level', 'trl 1', 'trl 2', 'trl 3', 'trl 4', 'trl 5', 'trl 6', 'trl 7', 'trl 8', 'trl 9'
+    ];
+    if (trlKeywords.some(keyword => lowerText.includes(keyword))) {
+      const trlMatch = text.match(/trl[\s\-]?(\d{1})/i) || text.match(/technology readiness level[\s\-]?(\d{1})/i);
+      const trlValue = trlMatch ? 'TRL ' + trlMatch[1] : this.extractTRL(text);
+      categorized.trl_level.push({
+        type: 'trl_level',
+        value: trlValue,
         required: true,
         source: 'requirements_text'
       });

@@ -249,7 +249,8 @@ export const institutions: InstitutionConfig[] = [
     baseUrl: 'https://www.bmwk.de',
     programUrls: [
       'https://www.bmwk.de/Redaktion/DE/Artikel/Foerderprogramme/foerderprogramme.html',
-      'https://www.bmwk.de/Redaktion/DE/Artikel/Innovation/innovation.html'
+      'https://www.bmwk.de/Redaktion/DE/Artikel/Innovation/innovation.html',
+      'https://www.bmwk.de/Redaktion/DE/Artikel/Energie/foerderprogramme.html'  // Merged from duplicate entry
     ],
     selectors: {
       name: ['h1', '.program-title', '.foerderung-title'],
@@ -258,10 +259,10 @@ export const institutions: InstitutionConfig[] = [
       requirements: ['.requirements', '.dokumente', '.unterlagen'],
       contact: ['.contact', '.ansprechpartner', '.kontakt']
     },
-    fundingTypes: ['grant'],
+    fundingTypes: ['grant', 'subsidy'],  // Merged from duplicate entry
     region: 'Germany',
     autoDiscovery: true,  // ✅ Auto-discovery enabled
-    keywords: ['foerderung', 'innovation', 'forschung', 'startup', 'klimaschutz']
+    keywords: ['foerderung', 'innovation', 'forschung', 'startup', 'klimaschutz', 'energie']  // Added 'energie' from duplicate
   },
   {
     name: 'KfW Bankengruppe',
@@ -453,86 +454,6 @@ export const institutions: InstitutionConfig[] = [
   
   // === GERMAN INSTITUTIONS ===
   
-  {
-    name: 'BMWK - German Federal Ministry for Economic Affairs',
-    baseUrl: 'https://www.bmwk.de',
-    programUrls: [
-      'https://www.bmwk.de/Redaktion/DE/Artikel/Energie/foerderprogramme.html'
-    ],
-    selectors: {
-      name: ['h1', '.program-title'],
-      description: ['.program-description', 'p'],
-      eligibility: ['.eligibility', '.voraussetzungen'],
-      requirements: ['.requirements', '.dokumente'],
-      contact: ['.contact', '.ansprechpartner']
-    },
-    fundingTypes: ['grant', 'subsidy'],
-    region: 'Germany',
-    autoDiscovery: true,  // ✅ Auto-discovery enabled
-    keywords: ['foerderung', 'energie', 'innovation', 'forschung']
-  },
-  
-  {
-    name: 'KfW - German Development Bank',
-    baseUrl: 'https://www.kfw.de',
-    programUrls: [
-      'https://www.kfw.de/inlandsfoerderung/'
-    ],
-    selectors: {
-      name: ['h1', '.program-title'],
-      description: ['.program-description', 'p'],
-      eligibility: ['.eligibility', '.voraussetzungen'],
-      requirements: ['.requirements', '.dokumente'],
-      contact: ['.contact', '.ansprechpartner']
-    },
-    fundingTypes: ['loan', 'grant'],
-    region: 'Germany',
-    autoDiscovery: true,  // ✅ Auto-discovery enabled
-    keywords: ['foerderung', 'kredit', 'darlehen', 'finanzierung']
-  },
-  
-  // === FRENCH INSTITUTIONS ===
-  
-  {
-    name: 'Bpifrance - French Public Investment Bank',
-    baseUrl: 'https://www.bpifrance.fr',
-    programUrls: [
-      'https://www.bpifrance.fr/nos-solutions/financement'
-    ],
-    selectors: {
-      name: ['h1', '.program-title'],
-      description: ['.program-description', 'p'],
-      eligibility: ['.eligibility', '.conditions'],
-      requirements: ['.requirements', '.documents'],
-      contact: ['.contact', '.conseiller']
-    },
-    fundingTypes: ['loan', 'equity', 'grant'],
-    region: 'France',
-    autoDiscovery: true,  // ✅ Auto-discovery enabled
-    keywords: ['financement', 'pret', 'investissement', 'innovation']
-  },
-  
-  // === EU INSTITUTIONS ===
-  
-  {
-    name: 'Horizon Europe',
-    baseUrl: 'https://ec.europa.eu',
-    programUrls: [
-      'https://ec.europa.eu/info/research-and-innovation/funding/funding-opportunities/funding-programmes-and-open-calls/horizon-europe_en'
-    ],
-    selectors: {
-      name: ['h1', '.program-title'],
-      description: ['.program-description', 'p'],
-      eligibility: ['.eligibility', '.conditions'],
-      requirements: ['.requirements', '.documents'],
-      contact: ['.contact', '.helpdesk']
-    },
-    fundingTypes: ['grant'],
-    region: 'EU',
-    autoDiscovery: true,  // ✅ Auto-discovery enabled
-    keywords: ['research', 'innovation', 'funding', 'grant']
-  },
-  
   // === MORE AUSTRIAN INSTITUTIONS ===
   
   {
@@ -552,25 +473,6 @@ export const institutions: InstitutionConfig[] = [
     region: 'Austria',
     autoDiscovery: true,  // ✅ Auto-discovery enabled
     keywords: ['foerderung', 'kredit', 'finanzierung']
-  },
-  
-  {
-    name: 'Austrian Federal Economic Chamber (WKO)',
-    baseUrl: 'https://www.wko.at',
-    programUrls: [
-      'https://www.wko.at/service/foerderungen'
-    ],
-    selectors: {
-      name: ['h1', '.program-title'],
-      description: ['.program-description', 'p'],
-      eligibility: ['.eligibility', '.voraussetzungen'],
-      requirements: ['.requirements', '.dokumente'],
-      contact: ['.contact', '.ansprechpartner']
-    },
-    fundingTypes: ['grant', 'subsidy'],
-    region: 'Austria',
-    autoDiscovery: true,  // ✅ Auto-discovery enabled
-    keywords: ['foerderung', 'subvention', 'beihilfe']
   },
   
   // === MORE GERMAN INSTITUTIONS ===

@@ -43,7 +43,7 @@ institutions.forEach(inst => {
 
 // Check if we're hitting limits
 console.log('\n⚙️  DISCOVERY LIMITS:\n');
-console.log(`   Max URLs to discover: 100 per institution`);
-console.log(`   Max depth: 2 levels`);
-console.log(`   Status: ${institutions.some(inst => state[inst].knownUrls.length >= 90) ? '⚠️  Near limit' : '✅ Under limit'}`);
+console.log(`   Max URLs to discover: 200 per institution`);
+console.log(`   Max depth: 3 levels`);
+console.log(`   Status: ${institutions.some(inst => state[inst].knownUrls.length >= 180) ? '⚠️  Near limit' : '✅ Under limit'}`);
 

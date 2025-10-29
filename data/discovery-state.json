@@ -1,10 +1,10 @@
 {
   "Austria Wirtschaftsservice (AWS)": {
-    "lastFullScan": "2025-10-29T10:18:29.982Z",
+    "lastFullScan": "2025-10-29T10:42:30.409Z",
     "exploredSections": [
       {
         "seedUrl": "https://aws.at/de/foerderungen",
-        "lastExplored": "2025-10-29T10:18:29.982Z",
+        "lastExplored": "2025-10-29T10:42:30.409Z",
         "discoveredUrls": [
           "https://aws.at/de/foerderungen",
           "https://aws.at/spezialprogramme/",
@@ -62,25 +62,19 @@
       "https://aws.at/foerderungen-der-eu/",
       "https://aws.at/ukraine-krieg-sonder-foerderungsprogramme/",
       "https://aws.at/ukraine-krieg-sonder-foerderungsprogramme/kapazitaetskostenunterstuetzung-gasdiversifizierung/",
-      "https://aws.at/ukraine-krieg-sonder-foerderungsprogramme/aws-energiekostenzuschuss-2/",
-      "https://aws.at/en/spezialprogramme/",
-      "https://aws.at/en/spezialprogramme/investors-incubators/",
-      "https://aws.at/en/special-programmes/competitions/",
       "https://aws.at/staatspreis-innovation/",
-      "https://aws.at/en/spezialprogramme/universities-and-universities-of-applied-sciences/",
       "https://aws.at/wings4innovation/",
-      "https://aws.at/en/spezialprogramme/others/",
       "https://aws.at/wfoeg-wasserstofffoerderungsgesetz/",
       "https://aws.at/mint-regionen-foerderung/",
       "https://aws.at/hochwasser-sonder-foerderungsprogramm/"
     ]
   },
   "Austrian Research Promotion Agency (FFG)": {
-    "lastFullScan": "2025-10-29T10:19:49.405Z",
+    "lastFullScan": "2025-10-29T10:43:31.966Z",
     "exploredSections": [
       {
         "seedUrl": "https://www.ffg.at/foerderungen",
-        "lastExplored": "2025-10-29T10:19:49.405Z",
+        "lastExplored": "2025-10-29T10:43:31.965Z",
         "discoveredUrls": [
           "https://www.ffg.at/foerderungen"
         ],
@@ -93,11 +87,11 @@
     "unscrapedUrls": []
   },
   "Vienna Business Agency (VBA)": {
-    "lastFullScan": "2025-10-29T10:19:59.995Z",
+    "lastFullScan": "2025-10-29T10:43:42.160Z",
     "exploredSections": [
       {
         "seedUrl": "https://www.vba.at/foerderungen",
-        "lastExplored": "2025-10-29T10:19:59.995Z",
+        "lastExplored": "2025-10-29T10:43:42.159Z",
         "discoveredUrls": [
           "https://www.vba.at/foerderungen",
           "https://www.vba.at/events-workshops/vienna-startup-package-2026/",
@@ -117,11 +111,11 @@
     ]
   },
   "AMS (Arbeitsmarktservice)": {
-    "lastFullScan": "2025-10-29T10:20:09.442Z",
+    "lastFullScan": "2025-10-29T10:43:58.758Z",
     "exploredSections": [
       {
         "seedUrl": "https://www.ams.at/foerderungen",
-        "lastExplored": "2025-10-29T10:20:07.601Z",
+        "lastExplored": "2025-10-29T10:43:56.513Z",
         "discoveredUrls": [
           "https://www.ams.at/foerderungen",
           "https://www.ams.at/arbeitsmarkt-foerderungen",
@@ -131,7 +125,7 @@
       },
       {
         "seedUrl": "https://www.ams.at/arbeitsmarkt-foerderungen",
-        "lastExplored": "2025-10-29T10:20:08.582Z",
+        "lastExplored": "2025-10-29T10:43:57.498Z",
         "discoveredUrls": [
           "https://www.ams.at/foerderungen",
           "https://www.ams.at/arbeitsmarkt-foerderungen",
@@ -141,7 +135,7 @@
       },
       {
         "seedUrl": "https://www.ams.at/ausbildung-foerderungen",
-        "lastExplored": "2025-10-29T10:20:09.442Z",
+        "lastExplored": "2025-10-29T10:43:58.758Z",
         "discoveredUrls": [
           "https://www.ams.at/foerderungen",
           "https://www.ams.at/arbeitsmarkt-foerderungen",
@@ -162,11 +156,11 @@
     ]
   },
   "WKO (Wirtschaftskammer Österreich)": {
-    "lastFullScan": "2025-10-29T10:20:12.859Z",
+    "lastFullScan": "2025-10-29T10:44:03.743Z",
     "exploredSections": [
       {
         "seedUrl": "https://www.wko.at/foerderungen",
-        "lastExplored": "2025-10-29T10:20:12.859Z",
+        "lastExplored": "2025-10-29T10:44:03.743Z",
         "discoveredUrls": [
           "https://www.wko.at/foerderungen"
         ],
@@ -179,17 +173,17 @@
     "unscrapedUrls": []
   },
   "ÖBS (Österreichische Bundesbahnen)": {
-    "lastFullScan": "2025-10-29T10:20:12.897Z",
+    "lastFullScan": "2025-10-29T10:44:03.778Z",
     "exploredSections": [],
     "knownUrls": [],
     "unscrapedUrls": []
   },
   "Bank Austria": {
-    "lastFullScan": "2025-10-29T10:20:17.591Z",
+    "lastFullScan": "2025-10-29T10:44:08.988Z",
     "exploredSections": [
       {
         "seedUrl": "https://www.bankaustria.at/unternehmen/kredite",
-        "lastExplored": "2025-10-29T10:20:15.231Z",
+        "lastExplored": "2025-10-29T10:44:06.425Z",
         "discoveredUrls": [
           "https://www.bankaustria.at/unternehmen/kredite",
           "https://www.bankaustria.at/unternehmen/finanzierung"
@@ -198,7 +192,7 @@
       },
       {
         "seedUrl": "https://www.bankaustria.at/unternehmen/finanzierung",
-        "lastExplored": "2025-10-29T10:20:17.591Z",
+        "lastExplored": "2025-10-29T10:44:08.988Z",
         "discoveredUrls": [
           "https://www.bankaustria.at/unternehmen/kredite",
           "https://www.bankaustria.at/unternehmen/finanzierung"
@@ -216,11 +210,11 @@
     ]
   },
   "Erste Bank": {
-    "lastFullScan": "2025-10-29T10:20:36.313Z",
+    "lastFullScan": "2025-10-29T10:44:30.726Z",
     "exploredSections": [
       {
         "seedUrl": "https://www.erstebank.at/unternehmen/kredite",
-        "lastExplored": "2025-10-29T10:20:26.117Z",
+        "lastExplored": "2025-10-29T10:44:16.899Z",
         "discoveredUrls": [
           "https://www.erstebank.at/unternehmen/kredite",
           "https://www.erstebank.at/unternehmen/finanzierung",
@@ -230,7 +224,7 @@
       },
       {
         "seedUrl": "https://www.erstebank.at/unternehmen/finanzierung",
-        "lastExplored": "2025-10-29T10:20:29.099Z",
+        "lastExplored": "2025-10-29T10:44:28.909Z",
         "discoveredUrls": [
           "https://www.erstebank.at/unternehmen/kredite",
           "https://www.erstebank.at/unternehmen/finanzierung",
@@ -240,7 +234,7 @@
       },
       {
         "seedUrl": "https://www.erstebank.at/unternehmen/leasing",
-        "lastExplored": "2025-10-29T10:20:36.313Z",
+        "lastExplored": "2025-10-29T10:44:30.726Z",
         "discoveredUrls": [
           "https://www.erstebank.at/unternehmen/kredite",
           "https://www.erstebank.at/unternehmen/finanzierung",
@@ -259,11 +253,11 @@
     ]
   },
   "Raiffeisen Bank": {
-    "lastFullScan": "2025-10-29T10:20:50.027Z",
+    "lastFullScan": "2025-10-29T10:44:41.971Z",
     "exploredSections": [
       {
         "seedUrl": "https://www.raiffeisen.at/unternehmen/kredite",
-        "lastExplored": "2025-10-29T10:20:40.604Z",
+        "lastExplored": "2025-10-29T10:44:34.939Z",
         "discoveredUrls": [
           "https://www.raiffeisen.at/unternehmen/kredite",
           "https://www.raiffeisen.at/unternehmen/finanzierung",
@@ -273,7 +267,7 @@
       },
       {
         "seedUrl": "https://www.raiffeisen.at/unternehmen/finanzierung",
-        "lastExplored": "2025-10-29T10:20:45.017Z",
+        "lastExplored": "2025-10-29T10:44:37.441Z",
         "discoveredUrls": [
           "https://www.raiffeisen.at/unternehmen/kredite",
           "https://www.raiffeisen.at/unternehmen/finanzierung",
@@ -283,7 +277,7 @@
       },
       {
         "seedUrl": "https://www.raiffeisen.at/unternehmen/leasing",
-        "lastExplored": "2025-10-29T10:20:50.027Z",
+        "lastExplored": "2025-10-29T10:44:41.971Z",
         "discoveredUrls": [
           "https://www.raiffeisen.at/unternehmen/kredite",
           "https://www.raiffeisen.at/unternehmen/finanzierung",
@@ -302,7 +296,7 @@
     ]
   },
   "Kickstarter": {
-    "lastFullScan": "2025-10-29T10:20:55.384Z",
+    "lastFullScan": "2025-10-29T10:44:46.534Z",
     "exploredSections": [],
     "knownUrls": [],
     "unscrapedUrls": []

@@ -1,68 +1,44 @@
-# Plan2Fund Scripts
+# Scraper Test Scripts
 
-This directory contains essential automation scripts for database management and system utilities.
+## Analysis Scripts
 
-## 📁 Directory Structure
+### `analyze-requirements.js` ✅ **KEEP**
+**Purpose**: Analyzes requirement category population across all programs
+- Shows which categories are under-populated
+- Shows top programs by requirements count
+- Shows programs with structured data
+- **Run**: `node scripts/analyze-requirements.js`
+- **When to use**: After each scraper run to check requirements quality
 
-### `/database/` - Database Management
-- **setup-database.sql** - Initial database schema creation
-- **migrate-database.sql** - Database migration scripts
-- **migrate-enhanced-requirements.sql** - Requirements migration
-- **add-categorized-requirements.js** - Category migration
-- **migrate.js** - Migration runner
-- **fix-json-data.sql** - Data correction scripts
+### `test-discovery.js` ✅ **KEEP**
+**Purpose**: Analyzes discovery state per institution
+- Shows how many URLs discovered vs scraped
+- Shows unscraped URLs per institution
+- Helps identify institutions with untapped URLs
+- **Run**: `node scripts/test-discovery.js`
+- **When to use**: Before/after scraper runs to see discovery progress
 
-### Core Scripts - System Utilities
-- **run-tests.mjs** - Test runner
-- **ci-coverage.mjs** - Coverage reporting
-- **generate-source-register.mjs** - Source registration
-- **migrate-to-json.js** - Data migration utility
-- **update-fallback-data.js** - Fallback data updates
+### `test-specific-urls.js` ✅ **KEEP**
+**Purpose**: Tests why specific unscraped URLs are being rejected
+- Tests URL validation (status, content, program signals)
+- Tests detail page detection
+- Shows why URLs fail checks
+- **Run**: `node scripts/test-specific-urls.js`
+- **When to use**: Debugging why discovered URLs aren't being scraped
 
-## 🚀 Quick Start
+## Redundant Scripts (Delete)
 
-### Database Setup
-```bash
-# Run in NEON SQL editor
-cat scripts/database/setup-database.sql
-```
+### `debug-validate-url.js` ❌ **DELETE**
+- Manual validation of AWS URLs
+- **Redundant with**: `test-specific-urls.js` (does the same thing better)
 
-### Database Migration
-```bash
-# Run database migrations
-node scripts/database/migrate.js
-```
+### `compare-runs.js` ⚠️ **REVIEW**
+- Shows programs grouped by scrape date
+- **Decision**: If you only need current state, use `analyze-requirements.js`
+- **Keep if**: You need historical comparison of scrape dates
 
-### Testing
-```bash
-# Run tests
-npm run test
+## Other Scripts (Not for Testing)
 
-# Generate coverage report
-npm run coverage
-```
-
-### Data Management
-```bash
-# Update fallback data
-node scripts/update-fallback-data.js
-
-# Generate source register
-npm run source:register
-```
-
-## 📋 Script Categories
-
-### Database Scripts
-- **Setup**: Create tables and initial data
-- **Migration**: Add new columns and features
-- **Fix**: Correct data issues
-
-### Core Utilities
-- **Testing**: Test runner and coverage
-- **Data Management**: Fallback data and source registration
-- **Migration**: Data format conversions
-
-## 🔧 Usage
-
-All scripts are designed to be run from the project root directory. Use npm scripts when available for better integration.
+- `trigger-full-scraper.js` - Main scraper trigger
+- `test-extraction.ts` - TypeScript extraction test
+- Database migration scripts - Not related to scraper testing
