@@ -22,6 +22,13 @@ interface ScrapedProgram {
   scraped_at: Date;
   confidence_score: number;
   is_active: boolean;
+  // Enhanced structured data fields
+  funding_amount_min?: number | null;
+  funding_amount_max?: number | null;
+  currency?: string;
+  deadline?: string | null;
+  contact_email?: string | null;
+  contact_phone?: string | null;
 }
 
 // 18 Categories for Requirements
@@ -31,6 +38,25 @@ const REQUIREMENT_CATEGORIES = [
   'impact', 'capex_opex', 'use_of_funds', 'revenue_model', 
   'market_size', 'co_financing', 'trl_level', 'consortium'
 ];
+
+// Discovery State Management
+interface ExploredSection {
+  seedUrl: string;
+  lastExplored: string; // ISO date string
+  discoveredUrls: string[];
+  depth: number;
+}
+
+interface InstitutionDiscoveryState {
+  lastFullScan: string | null;
+  exploredSections: ExploredSection[];
+  knownUrls: string[];
+  unscrapedUrls: string[];
+}
+
+interface DiscoveryStateCache {
+  [institutionName: string]: InstitutionDiscoveryState;
+}
 
 export class WebScraperService {
   private browser: Browser | null = null;
@@ -51,10 +77,20 @@ export class WebScraperService {
     });
   }
 
-  async scrapeAllPrograms(cycleOnly: boolean = false): Promise<ScrapedProgram[]> {
+  async scrapeAllPrograms(
+    cycleOnly: boolean = false, 
+    discoveryMode: 'incremental' | 'deep' = 'incremental'
+  ): Promise<ScrapedProgram[]> {
     console.log('🚀 Enhanced scraper with cycle support and skip logic...');
     console.log(`📊 Total institutions: ${institutions.length}`);
     console.log(`📊 Cycle mode: ${cycleOnly}`);
+    console.log(`📊 Discovery mode: ${discoveryMode.toUpperCase()}`);
+    
+    // Deep mode: Clear discovery state for full re-exploration
+    if (discoveryMode === 'deep') {
+      console.log('🔍 [DISCOVERY] Deep mode: Clearing discovery state for full re-exploration');
+      this.clearDiscoveryState();
+    }
     
     try {
       if (!this.browser) {
@@ -81,39 +117,66 @@ export class WebScraperService {
       const programs: ScrapedProgram[] = [];
       let skippedCount = 0;
       
-      // Process 3 institutions per cycle if cycleOnly=true
-      const institutionsToProcess = cycleOnly ? institutions.slice(0, 3) : institutions;
+      // Process MORE institutions per cycle - not just 3!
+      const institutionsToProcess = cycleOnly ? institutions.slice(0, 10) : institutions;
       console.log(`📊 Processing ${institutionsToProcess.length} institutions in ${cycleOnly ? 'CYCLE' : 'FULL'} mode`);
       
       for (const institution of institutionsToProcess) {
-        console.log(`🔍 Processing institution: ${institution.name}`);
-        console.log(`🔍 Institution URLs: ${institution.programUrls.length}`);
+        console.log(`\n━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━`);
+        console.log(`🔍 [INSTITUTION] Processing: ${institution.name}`);
+        console.log(`🔍 [INSTITUTION] Base URL: ${institution.baseUrl}`);
+        console.log(`🔍 [INSTITUTION] Seed URLs: ${institution.programUrls.length}`);
+        institution.programUrls.forEach((url, idx) => {
+          console.log(`  ${idx + 1}. ${url}`);
+        });
+        console.log(`🔍 [INSTITUTION] Auto-discovery: ${institution.autoDiscovery ? 'ENABLED' : 'DISABLED'}`);
+        console.log(`🔍 [INSTITUTION] Keywords: ${institution.keywords.join(', ')}`);
         
-        const programUrls = await this.discoverRealProgramUrls(institution);
-        console.log(`📍 Found ${programUrls.length} program URLs`);
+        const programUrls = await this.discoverRealProgramUrls(institution, discoveryMode);
+        console.log(`📍 [DISCOVERY] Found ${programUrls.length} total program URLs (taking first 15)`);
         
-        for (const url of programUrls.slice(0, 3)) { // Reduced to 3 for faster testing
+        // Prioritize: unscraped URLs first, then new discoveries
+        const prioritizedUrls = this.prioritizeUrls(programUrls, existingUrls);
+        // INCREASED: Process more URLs per institution (was 15, now 50)
+        const urlsToProcess = prioritizedUrls.slice(0, 50);
+        console.log(`📍 [DISCOVERY] Processing ${urlsToProcess.length} URLs...\n`);
+        
+        for (let idx = 0; idx < urlsToProcess.length; idx++) {
+          const url = urlsToProcess[idx];
+          console.log(`  ──────────────────────────────────────`);
+          console.log(`  📌 [${idx + 1}/${urlsToProcess.length}] URL: ${url}`);
+          
           // Skip if already exists
           if (existingUrls.has(url)) {
             skippedCount++;
-            console.log(`  ⏭️ Skipping (already exists): ${url}`);
+            console.log(`  ⏭️  [SKIP] Already exists in database`);
             continue;
           }
           
-          console.log(`  📍 Processing: ${url}`);
+          // ENHANCED: Pre-validate URL before scraping
+          console.log(`  🔍 [CHECK] Pre-validating URL...`);
+          const isValidUrl = await this.preValidateUrl(url);
+          if (!isValidUrl) {
+            console.log(`  ❌ [SKIP] URL failed validation`);
+            continue;
+          }
+          
+          console.log(`  📍 [SCRAPE] Starting scraping...`);
           try {
             const program = await this.scrapeProgramFromUrl(url, institution);
             if (program && this.isValidProgram(program)) {
               programs.push(program);
-              console.log(`✅ Extracted: ${program.name}`);
+              console.log(`  ✅ [SUCCESS] Extracted program: "${program.name}"`);
+              console.log(`     Type: ${program.type}, Institution: ${program.institution}`);
             } else if (program) {
-              console.log(`❌ Invalid program filtered: ${program.name}`);
-      } else {
-              console.log(`⚠️ No program extracted from: ${url}`);
+              console.log(`  ❌ [FILTER] Program filtered out: "${program.name}"`);
+            } else {
+              console.log(`  ⚠️  [EMPTY] No program extracted from URL`);
             }
-    } catch (error) {
-            console.error(`❌ Error scraping ${url}:`, error);
+          } catch (error) {
+            console.error(`  ❌ [ERROR] Scraping failed:`, error instanceof Error ? error.message : error);
           }
+          console.log(`  ──────────────────────────────────────\n`);
         }
       }
 
@@ -140,73 +203,148 @@ export class WebScraperService {
     }
   }
 
-  private async discoverRealProgramUrls(institution: InstitutionConfig): Promise<string[]> {
-    const programUrls: string[] = [];
+  private async discoverRealProgramUrls(
+    institution: InstitutionConfig,
+    discoveryMode: 'incremental' | 'deep' = 'incremental'
+  ): Promise<string[]> {
+    console.log(`  🔍 [DISCOVERY] Starting ${discoveryMode} URL discovery...`);
     
-    // Use predefined URLs as seed URLs
-    for (const url of institution.programUrls) {
-      if (this.isRealProgramUrl(url)) {
-        programUrls.push(url);
-        console.log(`  ✅ Added seed URL: ${url}`);
+    // Load discovery state for this institution
+    const state = this.loadDiscoveryState(institution.name);
+    const discoveredUrls = new Set<string>();
+    const urlQueue: Array<{url: string, depth: number, seedUrl?: string}> = [];
+    
+    // Add seed URLs to queue (if not fully explored in incremental mode)
+    for (const seedUrl of institution.programUrls) {
+      if (!this.isRealProgramUrl(seedUrl)) {
+        console.log(`  ⚠️  [DISCOVERY] Seed URL filtered: ${seedUrl}`);
+        continue;
       }
-    }
-    
-    // Enable auto-discovery to find more program URLs
-    if (institution.autoDiscovery && programUrls.length > 0) {
-      console.log(`  🔍 Auto-discovering additional URLs...`);
       
-      for (const seedUrl of programUrls.slice(0, 2)) { // Use first 2 seed URLs
-        try {
-          const page = await this.browser!.newPage();
-          await page.setUserAgent('Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36');
-          await page.goto(seedUrl, { waitUntil: 'domcontentloaded', timeout: 10000 });
-          
-          // Find program links on the overview page
-          const links = await page.evaluate((keywords, exclusionKeywords) => {
-            const linkElements = Array.from(document.querySelectorAll('a[href]'));
-            return linkElements
-              .map(el => el.getAttribute('href'))
-              .filter(href => href && (
-                keywords.some(keyword => href.toLowerCase().includes(keyword)) ||
-                href.includes('foerderung') || 
-                href.includes('program') || 
-                href.includes('grant') ||
-                href.includes('funding') ||
-                href.includes('startup') ||
-                href.includes('innovation')
-              ))
-              .filter(href => href && 
-                !exclusionKeywords.some(keyword => href.toLowerCase().includes(keyword))
-              )
-              .map(href => {
-                if (href?.startsWith('/')) {
-                  return new URL(href, window.location.origin).href;
-                }
-                return href;
-              })
-              .filter(href => href && href.startsWith('http'));
-          }, institution.keywords, autoDiscoveryPatterns.exclusionKeywords);
-          
-          await page.close();
-          
-          // Add discovered URLs
-          const discoveredUrls = links.filter((url): url is string => 
-            url !== null && 
-            url !== undefined &&
-            url !== seedUrl && 
-            this.isRealProgramUrl(url)
-          );
-          
-          programUrls.push(...discoveredUrls);
-          console.log(`  🔗 Found ${discoveredUrls.length} additional URLs from ${seedUrl || 'unknown'}`);
-          
-        } catch (error) {
-          console.error(`❌ Error in auto-discovery from ${seedUrl || 'unknown'}:`, error);
+      // SIMPLIFIED: Always explore seed URLs (no skip logic needed - unscrapedUrls already handles duplicates)
+      // In incremental mode, unscraped URLs from previous runs are already added below (line 261-267)
+      urlQueue.push({url: seedUrl, depth: 0, seedUrl});
+      discoveredUrls.add(seedUrl);
+      console.log(`  ✅ [DISCOVERY] Added seed URL to queue: ${seedUrl}`);
+    }
+    
+    console.log(`  🔍 [DISCOVERY] Queue initialized with ${urlQueue.length} URLs to explore`);
+    
+    // Breadth-first exploration with pagination support
+    const maxDepth = 2; // Max depth for exploration
+    const maxUrlsToDiscover = 100; // Increased limit for better discovery
+    
+    // First, add any unscraped URLs from already-explored sections to discoveredUrls
+    const existingPrograms = this.loadExistingPrograms();
+    const existingUrlsSet = new Set(existingPrograms.map(p => p.source_url));
+    
+    for (const section of state.exploredSections) {
+      const unscrapedFromSection = section.discoveredUrls.filter(url => !existingUrlsSet.has(url));
+      unscrapedFromSection.forEach(url => {
+        discoveredUrls.add(url);
+        console.log(`  ➕ [DISCOVERY] Added unscraped URL from explored section: ${url}`);
+      });
+    }
+    
+    while (urlQueue.length > 0 && discoveredUrls.size < maxUrlsToDiscover) {
+      const {url, depth, seedUrl: parentSeedUrl} = urlQueue.shift()!;
+      
+      if (depth > maxDepth) {
+        console.log(`  ⏭️  [DISCOVERY] Skipping ${url} (depth ${depth} > ${maxDepth})`);
+        continue;
+      }
+      
+      console.log(`  🔍 [DISCOVERY] Exploring [depth ${depth}]: ${url}`);
+      
+      try {
+        const links = await this.extractLinksFromPage(url, institution);
+        const currentSeed = parentSeedUrl || url;
+        
+        // Separate pagination/category links from program detail links
+        const paginationLinks = this.findPaginationLinks(links, url);
+        const categoryLinks = links.filter(link => 
+          link !== url && 
+          this.isRealProgramUrl(link) &&
+          !this.isProgramDetailPage(link) &&
+          !discoveredUrls.has(link)
+        );
+        const programDetailLinks = links.filter(link => 
+          link !== url && 
+          this.isProgramDetailPage(link) &&
+          !discoveredUrls.has(link)
+        );
+        
+        // Add pagination/category links to queue (explore them to find detail pages)
+        const allExplorationLinks = [...paginationLinks, ...categoryLinks];
+        for (const exploreLink of allExplorationLinks) {
+          if (!discoveredUrls.has(exploreLink) && depth < maxDepth) {
+            urlQueue.push({url: exploreLink, depth: depth + 1, seedUrl: currentSeed});
+            discoveredUrls.add(exploreLink);
+            console.log(`  ➕ [DISCOVERY] Added exploration link (category/pagination, depth ${depth + 1}): ${exploreLink}`);
+          }
         }
+        
+        // Add program DETAIL links directly (these are what we want to scrape)
+        for (const detailLink of programDetailLinks) {
+          discoveredUrls.add(detailLink);
+          console.log(`  ✅ [DISCOVERY] Found program DETAIL page: ${detailLink}`);
+        }
+        
+        // Update discovery state for this section
+        if (parentSeedUrl || depth === 0) {
+          const sectionUrl = parentSeedUrl || url;
+          const sectionIndex = state.exploredSections.findIndex(s => s.seedUrl === sectionUrl);
+          const discovered = Array.from(discoveredUrls);
+          
+          if (sectionIndex >= 0) {
+            // Update existing section
+            state.exploredSections[sectionIndex].lastExplored = new Date().toISOString();
+            state.exploredSections[sectionIndex].discoveredUrls = discovered;
+            state.exploredSections[sectionIndex].depth = Math.max(state.exploredSections[sectionIndex].depth, depth);
+          } else {
+            // Add new section
+            state.exploredSections.push({
+              seedUrl: sectionUrl,
+              lastExplored: new Date().toISOString(),
+              discoveredUrls: discovered,
+              depth: depth
+            });
+          }
+        }
+        
+      } catch (error) {
+        console.error(`  ❌ [DISCOVERY] Error exploring ${url}:`, error instanceof Error ? error.message : error);
       }
     }
     
-    return [...new Set(programUrls)]; // Remove duplicates
+    // Save updated discovery state
+    state.knownUrls = Array.from(discoveredUrls);
+    
+    // Calculate unscraped URLs: known URLs that are NOT in existing programs database
+    // Use already-loaded existingPrograms to avoid double-loading
+    state.unscrapedUrls = state.knownUrls.filter(url => !existingUrlsSet.has(url));
+    
+    if (discoveryMode === 'deep') {
+      state.lastFullScan = new Date().toISOString();
+    }
+    this.saveDiscoveryState(institution.name, state);
+    
+    // Return unscraped URLs first, then all discovered URLs
+    // This ensures new URLs are prioritized
+    const uniqueUrls = Array.from(discoveredUrls);
+    const unscraped = state.unscrapedUrls;
+    const sortedUrls = [
+      ...unscraped.filter(url => uniqueUrls.includes(url)), // Unscraped first
+      ...uniqueUrls.filter(url => !unscraped.includes(url)) // Then already-scraped
+    ];
+    
+    console.log(`  ✅ [DISCOVERY] Final URL count: ${uniqueUrls.length}`);
+    console.log(`  📊 [DISCOVERY] Unscraped URLs: ${unscraped.length} of ${uniqueUrls.length}`);
+    if (unscraped.length > 0) {
+      console.log(`  🎯 [DISCOVERY] Prioritizing ${unscraped.length} unscraped URLs for scraping`);
+    }
+    
+    return sortedUrls.length > 0 ? sortedUrls : uniqueUrls;
   }
 
 
@@ -214,7 +352,8 @@ export class WebScraperService {
     const programKeywords = [
       'foerderung', 'program', 'grant', 'funding', 'startup', 'innovation',
       'research', 'development', 'investment', 'loan', 'equity', 'kredit',
-      'finanzierung', 'darlehen', 'subvention', 'beihilfe'
+      'finanzierung', 'darlehen', 'subvention', 'beihilfe', 'leasing',
+      'export', 'ausbildung', 'innovation', 'forschung'
     ];
     
     const blacklistKeywords = [
@@ -224,7 +363,16 @@ export class WebScraperService {
       'legal', 'terms', 'conditions', 'agreement', 'policy',
       'sitemap', 'search', 'menu', 'navigation', 'footer', 'header',
       '404', 'error', 'not-found', 'nicht-gefunden', 'tut-leid',
-      'welcome', 'willkommen', 'home', 'start', 'index'
+      'welcome', 'willkommen', 'home', 'start', 'index',
+      'kreditkarte', 'credit-card', 'wohnmesse', 'wohnfinanzierung',
+      'privatkunden', 'sparkasse', 'redes-sociales', 'social-media',
+      'facebook', 'twitter', 'linkedin', 'youtube', 'instagram',
+      'mailing', 'subscribe', 'unsubscribe', 'opt-out', 'opt-in',
+      'marketing', 'werbung', 'banner', 'popup', 'modal', 'overlay',
+      'gdpr', 'dsgvo', 'faq', 'help', 'support', 'feedback',
+      // Enhanced: Additional patterns from observed failures
+      'kreditrechner', 'calculator', 'kampagne', '.jsp',
+      '/lehre/', '/oe/', '/immo/', 'wohnfinanzierung'
     ];
     
     const urlLower = url.toLowerCase();
@@ -235,14 +383,341 @@ export class WebScraperService {
     // Must NOT contain blacklist keywords
     const hasBlacklistKeyword = blacklistKeywords.some(keyword => urlLower.includes(keyword));
     
-    return hasProgramKeyword && !hasBlacklistKeyword;
+    // Additional validation: URL structure
+    const hasValidStructure = !urlLower.includes('?') || 
+                             (urlLower.includes('?') && !urlLower.includes('field_') && !urlLower.includes('filter'));
+    
+    // Must be a real page, not a query parameter page
+    const isNotQueryPage = !urlLower.match(/[?&]field_[^=&]*=[^=&]*/);
+    
+    return hasProgramKeyword && !hasBlacklistKeyword && hasValidStructure && isNotQueryPage;
+  }
+
+  // NEW: Check if URL is a program DETAIL page (not a category/listing page)
+  private isProgramDetailPage(url: string): boolean {
+    if (!this.isRealProgramUrl(url)) {
+      return false;
+    }
+    
+    const urlPath = new URL(url).pathname.toLowerCase();
+    
+    // Category/listing page indicators (exclude these)
+    const categoryIndicators = [
+      '/foerderungen', '/foerderung', // Plural/list pages
+      '/programme', '/programs', '/program', // Generic program listings
+      '/spezialprogramme', '/special-programmes', '/special-programms', // Category pages
+      '/alle-', '/all-', '/overview', '/liste', '/list',
+      '/wettbewerbe', '/competitions', '/universitaeten', '/universities', '/weitere', '/others', // Category pages
+      '/archiv', '/archive',
+      '/investors-incubators', '/investoren-inkubatoren' // Category pages
+    ];
+    
+    // Check if URL ends with a category indicator (likely a listing page)
+    const isCategoryPage = categoryIndicators.some(indicator => 
+      urlPath.endsWith(indicator + '/') || 
+      urlPath.endsWith(indicator) || 
+      urlPath === indicator || 
+      urlPath === indicator + '/'
+    );
+    
+    if (isCategoryPage) {
+      return false;
+    }
+    
+    // Detail page indicators (include these)
+    // URLs with specific program names/IDs in the path
+    const hasSpecificIdentifier = !!urlPath.match(/\/([a-z0-9\-]{10,}|[a-z]{3,}\-[a-z]{3,})/); // Long identifiers or compound names
+    
+    // URLs that are NOT just category listings
+    // If it's a deep path (3+ segments) or has a specific program identifier
+    const pathSegments = urlPath.split('/').filter(s => s.length > 0);
+    const hasDepth = pathSegments.length >= 3; // e.g., /spezialprogramme/investoren-inkubatoren/
+    
+    // Detail pages typically have either:
+    // 1. Deep path structure (category/subcategory/program)
+    // 2. Specific program identifier (not generic category name)
+    const isDetailPage = hasDepth || hasSpecificIdentifier;
+    
+    return isDetailPage;
+  }
+
+  // ENHANCED: Extract structured data (amounts, deadlines, contact)
+  private extractStructuredData(content: string): any {
+    const structuredData: any = {
+      funding_amount_min: null,
+      funding_amount_max: null,
+      currency: 'EUR',
+      deadline: null,
+      contact_email: null,
+      contact_phone: null
+    };
+    
+    const text = content.toLowerCase();
+    
+    // Extract funding amounts - IMPROVED patterns
+    const amountPatterns = [
+      // German patterns
+      /(?:bis zu|maximal|höchstens|bis zu|up to|maximum|max\.?)\s*€?\s*(\d{1,3}(?:[.,]\d{3})*(?:[.,]\d{2})?)\s*(?:\.|,)?\s*(?:euro|€|eur)?/gi,
+      /€?\s*(\d{1,3}(?:[.,]\d{3})*(?:[.,]\d{2})?)\s*(?:\.|,)?\s*(?:euro|€|eur)/gi,
+      /(\d{1,3}(?:[.,]\d{3})*(?:[.,]\d{2})?)\s*(?:\.|,)?\s*€/gi,
+      // English patterns
+      /(?:up to|maximum|max\.?)\s*€?\s*(\d{1,3}(?:[.,]\d{3})*(?:[.,]\d{2})?)\s*(?:\.|,)?\s*(?:euro|€|eur)?/gi,
+      // Specific patterns
+      /(?:förderhöhe|förderbetrag|förderung)\s*:?\s*€?\s*(\d{1,3}(?:[.,]\d{3})*(?:[.,]\d{2})?)/gi,
+      /(?:finanzierung|kredit|darlehen)\s*(?:bis zu|maximal)\s*€?\s*(\d{1,3}(?:[.,]\d{3})*(?:[.,]\d{2})?)/gi
+    ];
+    
+    for (const pattern of amountPatterns) {
+      const matches = [...text.matchAll(pattern)];
+      if (matches.length > 0) {
+        for (const match of matches) {
+          const amountStr = match[1].replace(/[^\d.,]/g, '').replace(',', '.');
+          const numAmount = parseFloat(amountStr);
+          if (numAmount > 0 && numAmount < 10000000) { // Reasonable range
+            structuredData.funding_amount_max = numAmount;
+            break;
+          }
+        }
+        if (structuredData.funding_amount_max) break;
+      }
+    }
+    
+    // Extract deadlines - IMPROVED patterns
+    const deadlinePatterns = [
+      // German patterns
+      /(?:bewerbungsfrist|deadline|einreichung|application|antragsfrist)\s*:?\s*(\d{1,2}[.\-/]\d{1,2}[.\-/]\d{2,4})/gi,
+      /(?:bis zum|bis|deadline)\s*(\d{1,2}[.\-/]\d{1,2}[.\-/]\d{2,4})/gi,
+      // English patterns
+      /(?:deadline|application|due)\s*(?:by|until)?\s*(\d{1,2}[.\-/]\d{1,2}[.\-/]\d{2,4})/gi,
+      // General date patterns
+      /(\d{1,2}[.\-/]\d{1,2}[.\-/]\d{2,4})/g
+    ];
+    
+    for (const pattern of deadlinePatterns) {
+      const matches = [...text.matchAll(pattern)];
+      if (matches.length > 0) {
+        // Take the first reasonable date
+        for (const match of matches) {
+          const dateStr = match[1];
+          if (this.isValidDate(dateStr)) {
+            structuredData.deadline = this.formatDate(dateStr);
+            break;
+          }
+        }
+        if (structuredData.deadline) break;
+      }
+    }
+    
+    // Extract contact info - IMPROVED patterns
+    const emailMatch = text.match(/([a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,})/);
+    if (emailMatch) {
+      structuredData.contact_email = emailMatch[1];
+    }
+    
+    const phonePatterns = [
+      /(?:\+43|\+49|\+33)?\s*(\d{2,4}\s*\d{3,4}\s*\d{3,4})/g,
+      /(?:0\d{3,4}\s*\d{3,4}\s*\d{3,4})/g,
+      /(?:\+43\s*\d{3,4}\s*\d{3,4}\s*\d{3,4})/g
+    ];
+    
+    for (const pattern of phonePatterns) {
+      const phoneMatch = text.match(pattern);
+      if (phoneMatch) {
+        const phone = phoneMatch[0].replace(/\s/g, '');
+        // Better validation: reasonable phone number length
+        if (phone.length >= 8 && phone.length <= 15) {
+          structuredData.contact_phone = phone;
+          break;
+        }
+      }
+    }
+    
+    return structuredData;
+  }
+  
+  // Helper method to validate dates
+  private isValidDate(dateStr: string): boolean {
+    const date = new Date(dateStr.replace(/[.\-]/g, '/'));
+    return !isNaN(date.getTime()) && date > new Date() && date < new Date('2030-12-31');
+  }
+  
+  // Helper method to format dates consistently
+  private formatDate(dateStr: string): string {
+    try {
+      const date = new Date(dateStr.replace(/[.\-]/g, '/'));
+      if (isNaN(date.getTime())) return dateStr;
+      
+      // Return in DD.MM.YYYY format
+      const day = date.getDate().toString().padStart(2, '0');
+      const month = (date.getMonth() + 1).toString().padStart(2, '0');
+      const year = date.getFullYear();
+      
+      return `${day}.${month}.${year}`;
+    } catch (error) {
+      return dateStr;
+    }
+  }
+  
+  // ENHANCED: Pre-validate URL before scraping with program signals check
+  private async preValidateUrl(url: string): Promise<boolean> {
+    console.log(`  🔍 [VALIDATE] Starting validation for: ${url}`);
+    try {
+      const page = await this.browser!.newPage();
+      await page.setUserAgent('Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36');
+      
+      // Quick check with short timeout
+      console.log(`  🔍 [VALIDATE] Fetching page...`);
+      const response = await page.goto(url, { 
+        waitUntil: 'domcontentloaded', 
+        timeout: 5000 
+      });
+      
+      const status = response?.status();
+      const title = await page.title();
+      const content = await page.content();
+      
+      await page.close();
+      
+      console.log(`  🔍 [VALIDATE] Status: ${status}, Title length: ${title.length}, Content length: ${content.length}`);
+      
+      // Check for valid response
+      if (!status || status < 200 || status >= 400) {
+        console.log(`  ❌ [VALIDATE] Invalid status ${status} for ${url}`);
+        return false;
+      }
+      
+      // Check for error pages
+      const errorIndicators = [
+        '404', 'not found', 'nicht gefunden', 'seite nicht gefunden',
+        'error', 'fehler', 'tut uns leid', 'welcome', 'willkommen'
+      ];
+      
+      const titleLower = title.toLowerCase();
+      const contentLower = content.toLowerCase();
+      
+      const hasError = errorIndicators.some(indicator => 
+        titleLower.includes(indicator) || contentLower.includes(indicator)
+      );
+      
+      if (hasError) {
+        console.log(`  ❌ [VALIDATE] Error page detected for ${url}`);
+        return false;
+      }
+      
+      // Check for meaningful content
+      const hasContent = content.length > 1000 && title.length > 5;
+      
+      if (!hasContent) {
+        console.log(`  ❌ [VALIDATE] Insufficient content (content: ${content.length}, title: ${title.length}) for ${url}`);
+        return false;
+      }
+      
+      // ENHANCED: Check for program signals (accepts all funding types)
+      const programSignals = [
+        'foerderung', 'foerderhoehe', 'foerder', 'grant', 'subsid', 'beihilfe',
+        'kredit', 'darlehen', 'leasing', 'beteiligung', 'equity', 
+        'garantie', 'buergschaft', 'investment', 'steuer', 'incentive',
+        'eligibility', 'voraussetzungen', 'requirements', 'bedingungen',
+        'einreichung', 'bewerbung', 'application', 'antrag',
+        'deadline', 'antragsfrist', 'frist', 'bewerbungsfrist',
+        '€', 'euro', 'eur', 'betrag', 'summe', 'hohe'
+      ];
+      
+      const contentText = contentLower;
+      const foundSignals = programSignals.filter(signal => contentText.includes(signal));
+      const signalCount = foundSignals.length;
+      
+      console.log(`  🔍 [VALIDATE] Program signals found: ${signalCount} of ${programSignals.length} (${foundSignals.slice(0, 5).join(', ')}${foundSignals.length > 5 ? '...' : ''})`);
+      
+      // Require at least 2 program signals to be a valid program page
+      if (signalCount < 2) {
+        console.log(`  ❌ [VALIDATE] Too few program signals (${signalCount} < 2) for ${url}`);
+        return false;
+      }
+      
+      console.log(`  ✅ [VALIDATE] URL validated with ${signalCount} program signals: ${url}`);
+      return true;
+      
+    } catch (error) {
+      console.log(`  ❌ [VALIDATE] Validation failed for ${url}:`, error instanceof Error ? error.message : error);
+      return false;
+    }
+  }
+
+  // SIMPLIFIED: Basic full page parsing for 18 categories
+  private parseFullPageContent(text: string, categorized: any): void {
+    const lowerText = text.toLowerCase();
+    
+    // ELIGIBILITY
+    if (lowerText.includes('startup') || lowerText.includes('neugründung') || lowerText.includes('gründung')) {
+      categorized.eligibility.push({
+        type: 'company_type',
+        value: 'Startup',
+        required: true,
+        source: 'full_page_content'
+      });
+    }
+    if (lowerText.includes('unternehmen') || lowerText.includes('firma') || lowerText.includes('company')) {
+      categorized.eligibility.push({
+        type: 'company_type',
+        value: 'Company',
+        required: true,
+        source: 'full_page_content'
+      });
+    }
+    
+    // DOCUMENTS
+    if (lowerText.includes('dokument') || lowerText.includes('unterlagen') || lowerText.includes('antrag')) {
+      categorized.documents.push({
+        type: 'required_documents',
+        value: 'Various documents required',
+        required: true,
+        source: 'full_page_content'
+      });
+    }
+    
+    // FINANCIAL
+    if (lowerText.includes('eigenmittel') || lowerText.includes('eigenkapital') || lowerText.includes('co-financing')) {
+      categorized.financial.push({
+        type: 'co_financing',
+        value: 'Required',
+        required: true,
+        source: 'full_page_content'
+      });
+    }
+    
+    // TECHNICAL
+    if (lowerText.includes('trl') || lowerText.includes('technology readiness')) {
+      categorized.technical.push({
+        type: 'trl_level',
+        value: 'Technology readiness required',
+        required: true,
+        source: 'full_page_content'
+      });
+    }
+    
+    // GEOGRAPHIC
+    if (lowerText.includes('österreich') || lowerText.includes('austria')) {
+      categorized.geographic.push({
+        type: 'location',
+        value: 'Austria',
+        required: true,
+        source: 'full_page_content'
+      });
+    }
+    
+    // Add more categories as needed...
   }
 
   private isValidProgram(program: ScrapedProgram): boolean {
     const blacklistNames = [
       'cookie consent', 'seite wurde nicht gefunden', '404', 'error',
       'not found', 'nicht gefunden', 'tut uns leid', 'welcome',
-      'willkommen', 'home', 'start', 'index', 'newsletter'
+      'willkommen', 'home', 'start', 'index', 'newsletter',
+      'sprungmarken-navigation', 'redes sociales', 'datenschutz',
+      'impressum', 'kontakt', 'about', 'privacy', 'legal',
+      'kreditkarten', 'credit card', 'kreditkarte', 'sparkasse',
+      'wohnmesse', 'wohnfinanzierung', 'privatkunden'
     ];
     
     const nameLower = program.name.toLowerCase();
@@ -253,14 +728,22 @@ export class WebScraperService {
       nameLower.includes(term) || descriptionLower.includes(term)
     );
     
-    return !hasBlacklistedName && program.name.length > 3;
+    // Must have meaningful content
+    const hasMeaningfulContent = program.name.length > 10 && 
+                                 program.description.length > 20 &&
+                                 !nameLower.includes('untitled') &&
+                                 !descriptionLower.includes('placeholder');
+    
+    return !hasBlacklistedName && hasMeaningfulContent;
   }
 
   private async scrapeProgramFromUrl(url: string, institution: InstitutionConfig): Promise<ScrapedProgram | null> {
+    console.log(`    🔍 [SCRAPE] Opening page...`);
     const page = await this.browser!.newPage();
     
     try {
       // Stealth measures
+      console.log(`    🔍 [SCRAPE] Setting up browser...`);
       await page.setUserAgent('Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36');
       await page.setViewport({ width: 1920, height: 1080 });
       await page.setExtraHTTPHeaders({
@@ -268,44 +751,77 @@ export class WebScraperService {
       });
       
       // Normal delay for better extraction
+      console.log(`    🔍 [SCRAPE] Waiting 1s for page load...`);
       await new Promise(resolve => setTimeout(resolve, 1000));
       
+      console.log(`    🔍 [SCRAPE] Navigating to ${url}...`);
       await page.goto(url, { waitUntil: 'domcontentloaded', timeout: 15000 });
       
+      console.log(`    🔍 [SCRAPE] Extracting page content...`);
       const content = await page.content();
       const $ = cheerio.load(content);
       
-      // Phase 3: Enhanced content extraction
-      const name = this.extractEnhancedText($, institution.selectors.name) || 'Unknown Program';
-      const description = this.extractEnhancedText($, institution.selectors.description) || 'No description available';
+      // SIMPLIFIED: Basic content extraction
+      console.log(`    🔍 [SCRAPE] Extracting title...`);
+      const name = this.extractTitle($, institution.selectors.name);
+      console.log(`    🔍 [SCRAPE] Title: "${name.substring(0, 60)}${name.length > 60 ? '...' : ''}"`);
       
-      // Extract 18 categories with enhanced parsing
-      const categorized_requirements = this.extract18CategoriesEnhanced($, institution.selectors, content);
+      console.log(`    🔍 [SCRAPE] Extracting description...`);
+      const description = this.extractDescription($, institution.selectors.description);
+      console.log(`    🔍 [SCRAPE] Description length: ${description.length} chars`);
       
-      // Auto-detect program focus
+      // ENHANCED: Extract structured data
+      console.log(`    🔍 [SCRAPE] Extracting structured data (amounts, deadlines)...`);
+      const structuredData = this.extractStructuredData(content);
+      if (structuredData.funding_amount_max) {
+        console.log(`    💰 [DATA] Funding max: ${structuredData.funding_amount_max} ${structuredData.currency}`);
+      }
+      if (structuredData.deadline) {
+        console.log(`    📅 [DATA] Deadline: ${structuredData.deadline}`);
+      }
+      
+      // SIMPLIFIED: Basic 18 categories extraction
+      console.log(`    🔍 [SCRAPE] Extracting 18 categories...`);
+      const categorized_requirements = this.extract18Categories($, institution.selectors, content);
+      const categoryCount = Object.keys(categorized_requirements).reduce((sum, key) => sum + categorized_requirements[key].length, 0);
+      console.log(`    📊 [DATA] Categories extracted: ${categoryCount} total requirements`);
+      
+      // SIMPLIFIED: Basic program focus detection
+      console.log(`    🔍 [SCRAPE] Detecting program focus...`);
       const programFocus = this.detectProgramFocus(content, institution);
+      console.log(`    🎯 [DATA] Program focus: ${programFocus.length > 0 ? programFocus.join(', ') : 'none detected'}`);
       
-      // Detect funding type from content
+      // SIMPLIFIED: Basic funding type detection
+      console.log(`    🔍 [SCRAPE] Detecting funding type...`);
       const fundingType = this.detectFundingType(content, institution.fundingTypes);
+      console.log(`    💵 [DATA] Funding type: ${fundingType}`);
       
       await page.close();
+      console.log(`    ✅ [SCRAPE] Page closed, extraction complete`);
       
-      return {
-        id: `program_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
+        return {
+          id: `program_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
         name,
         description,
-        type: fundingType,
-        program_type: fundingType,
+          type: fundingType,
+          program_type: fundingType,
         source_url: url,
-        institution: institution.name,
-        program_category: fundingType,
-        funding_types: institution.fundingTypes,
-        program_focus: programFocus,
-        eligibility_criteria: this.extractEligibilityCriteria($, institution.selectors),
-        categorized_requirements,
-        contact_info: this.extractContactInfo($, institution.selectors),
+          institution: institution.name,
+          program_category: fundingType,
+          funding_types: institution.fundingTypes,
+          program_focus: programFocus,
+          eligibility_criteria: this.extractEligibilityCriteria($, institution.selectors),
+          categorized_requirements,
+          // ENHANCED: Add structured data
+          funding_amount_min: structuredData.funding_amount_min,
+          funding_amount_max: structuredData.funding_amount_max,
+          currency: structuredData.currency,
+          deadline: structuredData.deadline,
+          contact_email: structuredData.contact_email,
+          contact_phone: structuredData.contact_phone,
+          contact_info: this.extractContactInfo($, institution.selectors),
         scraped_at: new Date(),
-        confidence_score: 0.8,
+          confidence_score: 0.8,
         is_active: true
       };
     } catch (error) {
@@ -327,6 +843,44 @@ export class WebScraperService {
     return '';
   }
 
+  // SIMPLIFIED METHODS - Phase 1
+  private extractTitle($: cheerio.Root, selectors: string[]): string {
+    const title = this.extractText($, selectors);
+    return title || 'Unknown Program';
+  }
+
+  private extractDescription($: cheerio.Root, selectors: string[]): string {
+    const description = this.extractText($, selectors);
+    return description || 'No description available';
+  }
+
+  private extract18Categories($: cheerio.Root, selectors: any, content: string): any {
+    const categorized: any = {};
+    
+    // Initialize all 18 categories
+    REQUIREMENT_CATEGORIES.forEach(category => {
+      categorized[category] = [];
+    });
+    
+    // SIMPLIFIED: Extract from basic selectors only
+    const eligibilityText = this.extractText($, selectors.eligibility);
+    if (eligibilityText) {
+      this.parseEligibilityText(eligibilityText, categorized);
+    }
+    
+    const requirementsText = this.extractText($, selectors.requirements);
+    if (requirementsText) {
+      this.parseRequirementsText(requirementsText, categorized);
+    }
+    
+    // SIMPLIFIED: Basic full page parsing
+    this.parseFullPageContent(content, categorized);
+    
+    return categorized;
+  }
+
+  // REMOVED: Complex enhanced methods (Phase 1 simplification)
+  /*
   private extractEnhancedText($: cheerio.Root, selectors: string[]): string {
     // Try multiple strategies for better text extraction
     for (const selector of selectors) {
@@ -389,38 +943,8 @@ export class WebScraperService {
   }
   */
 
-  private extract18CategoriesEnhanced($: cheerio.Root, selectors: any, content: string): any {
-    const categorized: any = {};
-    
-    // Initialize all 18 categories
-    REQUIREMENT_CATEGORIES.forEach(category => {
-      categorized[category] = [];
-    });
-    
-    // Phase 3: Enhanced extraction from multiple sources
-    const allText = this.extractAllRelevantText($, content);
-    
-    // Parse from eligibility section
-    const eligibilityText = this.extractEnhancedText($, selectors.eligibility);
-    if (eligibilityText) {
-      this.parseEligibilityTextEnhanced(eligibilityText, categorized);
-    }
-    
-    // Parse from requirements section
-    const requirementsText = this.extractEnhancedText($, selectors.requirements);
-    if (requirementsText) {
-      this.parseRequirementsTextEnhanced(requirementsText, categorized);
-    }
-    
-    // Parse from full page content
-    this.parseFullPageContent(allText, categorized);
-    
-    // Extract from specific page elements
-    this.extractFromPageElements($, categorized);
-    
-    return categorized;
-  }
-
+  // REMOVED: extract18CategoriesEnhanced (replaced with simplified extract18Categories)
+  /*
   private extractAllRelevantText($: cheerio.Root, _content: string): string {
     // Extract text from multiple sources
     const textSources = [
@@ -484,316 +1008,49 @@ export class WebScraperService {
   private parseFullPageContent(text: string, categorized: any): void {
     const lowerText = text.toLowerCase();
     
-    // Phase 4: Complete 18 categories parsing
+    // SIMPLIFIED: Basic keyword matching for 18 categories
     
-    // 1. ELIGIBILITY
-    if (lowerText.includes('startup') || lowerText.includes('neugründung') || lowerText.includes('gründung')) {
-      categorized.eligibility.push({
-        type: 'company_type',
-        value: 'Startup',
-        required: true,
-        source: 'full_page_content'
-      });
-    }
-    if (lowerText.includes('unternehmen') || lowerText.includes('firma') || lowerText.includes('company')) {
-      categorized.eligibility.push({
-        type: 'company_type',
-        value: 'Company',
-        required: true,
-        source: 'full_page_content'
-      });
+    // ELIGIBILITY
+    if (lowerText.includes('startup') || lowerText.includes('neugründung')) {
+      categorized.eligibility.push({ type: 'company_type', value: 'Startup', required: true, source: 'full_page_content' });
     }
     
-    // 2. DOCUMENTS
-    if (lowerText.includes('dokument') || lowerText.includes('unterlagen') || lowerText.includes('antrag')) {
-      categorized.documents.push({
-        type: 'required_documents',
-        value: 'Various documents required',
-        required: true,
-        source: 'full_page_content'
-      });
-    }
-    if (lowerText.includes('business plan') || lowerText.includes('geschäftsplan')) {
-      categorized.documents.push({
-        type: 'business_plan',
-        value: 'Business plan required',
-        required: true,
-        source: 'full_page_content'
-      });
+    // FINANCIAL
+    if (lowerText.includes('€') || lowerText.includes('euro') || lowerText.includes('finanzierung')) {
+      categorized.financial.push({ type: 'funding_available', value: 'Funding available', required: true, source: 'full_page_content' });
     }
     
-    // 3. FINANCIAL
-    if (lowerText.includes('eigenmittel') || lowerText.includes('eigenkapital') || lowerText.includes('co-financing')) {
-      categorized.financial.push({
-        type: 'co_financing',
-        value: this.extractPercentage(text) || 'Required',
-        required: true,
-        source: 'full_page_content'
-      });
-    }
-    if (lowerText.includes('förderhöhe') || lowerText.includes('maximal') || lowerText.includes('bis zu')) {
-      categorized.financial.push({
-        type: 'funding_amount',
-        value: this.extractAmount(text),
-        required: true,
-        source: 'full_page_content'
-      });
-    }
-    if (lowerText.includes('umsatz') || lowerText.includes('revenue') || lowerText.includes('turnover')) {
-      categorized.financial.push({
-        type: 'revenue_requirement',
-        value: this.extractAmount(text),
-        required: true,
-        source: 'full_page_content'
-      });
-    }
-    
-    // 4. TECHNICAL
-    if (lowerText.includes('trl') || lowerText.includes('technology readiness')) {
-      categorized.technical.push({
-        type: 'trl_level',
-        value: this.extractTRL(text),
-        required: true,
-        source: 'full_page_content'
-      });
-    }
-    if (lowerText.includes('technologie') || lowerText.includes('technology') || lowerText.includes('digital')) {
-      categorized.technical.push({
-        type: 'technology_focus',
-        value: 'Technology focus required',
-        required: true,
-        source: 'full_page_content'
-      });
-    }
-    
-    // 5. LEGAL
-    if (lowerText.includes('rechtlich') || lowerText.includes('legal') || lowerText.includes('compliance')) {
-      categorized.legal.push({
-        type: 'legal_compliance',
-        value: 'Legal compliance required',
-        required: true,
-        source: 'full_page_content'
-      });
-    }
-    
-    // 6. TIMELINE
-    if (lowerText.includes('laufzeit') || lowerText.includes('duration') || lowerText.includes('zeitraum')) {
-      categorized.timeline.push({
-        type: 'duration',
-        value: this.extractDuration(text),
-        required: true,
-        source: 'full_page_content'
-      });
-    }
-    if (lowerText.includes('deadline') || lowerText.includes('bewerbung') || lowerText.includes('einreichung')) {
-      categorized.timeline.push({
-        type: 'deadline',
-        value: 'Application deadline exists',
-        required: true,
-        source: 'full_page_content'
-      });
-    }
-    
-    // 7. GEOGRAPHIC
+    // GEOGRAPHIC
     if (lowerText.includes('österreich') || lowerText.includes('austria')) {
-      categorized.geographic.push({
-        type: 'location',
-        value: 'Austria',
-            required: true,
-        source: 'full_page_content'
-      });
-    }
-    if (lowerText.includes('wien') || lowerText.includes('vienna')) {
-      categorized.geographic.push({
-        type: 'specific_location',
-        value: 'Vienna',
-        required: true,
-        source: 'full_page_content'
-      });
-    }
-    if (lowerText.includes('deutschland') || lowerText.includes('germany')) {
-      categorized.geographic.push({
-        type: 'location',
-        value: 'Germany',
-        required: true,
-        source: 'full_page_content'
-      });
-    }
-    if (lowerText.includes('frankreich') || lowerText.includes('france')) {
-      categorized.geographic.push({
-        type: 'location',
-        value: 'France',
-              required: true,
-        source: 'full_page_content'
-      });
-    }
-    if (lowerText.includes('eu') || lowerText.includes('europe')) {
-      categorized.geographic.push({
-        type: 'location',
-        value: 'EU',
-        required: true,
-        source: 'full_page_content'
-      });
+      categorized.geographic.push({ type: 'location', value: 'Austria', required: true, source: 'full_page_content' });
     }
     
-    // 8. TEAM
-    if (lowerText.includes('team') || lowerText.includes('mitarbeiter') || lowerText.includes('personal')) {
-      categorized.team.push({
-        type: 'team_size',
-        value: this.extractNumber(text) || 'Multiple',
-        required: true,
-        source: 'full_page_content'
-      });
-    }
-    if (lowerText.includes('qualifikation') || lowerText.includes('ausbildung') || lowerText.includes('studium')) {
-      categorized.team.push({
-        type: 'qualification',
-        value: 'Specific qualifications required',
-        required: true,
-        source: 'full_page_content'
-      });
+    // TEAM
+    if (lowerText.includes('team') || lowerText.includes('mitarbeiter')) {
+      categorized.team.push({ type: 'team_required', value: 'Team required', required: true, source: 'full_page_content' });
     }
     
-    // 9. PROJECT
-    if (lowerText.includes('innovation') || lowerText.includes('forschung') || lowerText.includes('entwicklung')) {
-      categorized.project.push({
-        type: 'innovation_focus',
-        value: 'Innovation/Research required',
-        required: true,
-        source: 'full_page_content'
-      });
-    }
-    if (lowerText.includes('nachhaltigkeit') || lowerText.includes('sustainability') || lowerText.includes('klima')) {
-      categorized.project.push({
-        type: 'sustainability_focus',
-        value: 'Sustainability focus required',
-        required: true,
-        source: 'full_page_content'
-      });
+    // PROJECT
+    if (lowerText.includes('innovation') || lowerText.includes('forschung') || lowerText.includes('research')) {
+      categorized.project.push({ type: 'innovation_focus', value: 'Innovation/Research', required: true, source: 'full_page_content' });
     }
     
-    // 10. COMPLIANCE
-    if (lowerText.includes('compliance') || lowerText.includes('regulierung') || lowerText.includes('regulation')) {
-      categorized.compliance.push({
-        type: 'regulatory_compliance',
-        value: 'Regulatory compliance required',
-        required: true,
-        source: 'full_page_content'
-      });
+    // DOCUMENTS
+    if (lowerText.includes('antrag') || lowerText.includes('bewerbung') || lowerText.includes('application')) {
+      categorized.documents.push({ type: 'application_required', value: 'Application required', required: true, source: 'full_page_content' });
     }
     
-    // 11. IMPACT
-    if (lowerText.includes('nachhaltigkeit') || lowerText.includes('sustainability')) {
-      categorized.impact.push({
-        type: 'sustainability',
-        value: 'Sustainability impact required',
-        required: true,
-        source: 'full_page_content'
-      });
-    }
-    if (lowerText.includes('arbeitsplätze') || lowerText.includes('jobs') || lowerText.includes('employment')) {
-      categorized.impact.push({
-        type: 'employment_impact',
-        value: 'Job creation impact',
-        required: true,
-        source: 'full_page_content'
-      });
+    // TIMELINE
+    if (lowerText.includes('deadline') || lowerText.includes('frist') || lowerText.includes('termin')) {
+      categorized.timeline.push({ type: 'deadline', value: 'Deadline specified', required: true, source: 'full_page_content' });
     }
     
-    // 12. CAPEX_OPEX
-    if (lowerText.includes('investition') || lowerText.includes('investment') || lowerText.includes('kapital')) {
-      categorized.capex_opex.push({
-        type: 'investment_type',
-        value: 'Capital investment required',
-        required: true,
-        source: 'full_page_content'
-      });
-    }
-    if (lowerText.includes('betriebskosten') || lowerText.includes('operating') || lowerText.includes('opex')) {
-      categorized.capex_opex.push({
-        type: 'operating_costs',
-        value: 'Operating cost coverage',
-        required: true,
-        source: 'full_page_content'
-      });
-    }
-    
-    // 13. USE_OF_FUNDS
-    if (lowerText.includes('verwendung') || lowerText.includes('use of funds') || lowerText.includes('zweck')) {
-      categorized.use_of_funds.push({
-        type: 'fund_usage',
-        value: 'Specific fund usage required',
-        required: true,
-        source: 'full_page_content'
-      });
-    }
-    if (lowerText.includes('forschung') || lowerText.includes('research') || lowerText.includes('entwicklung')) {
-      categorized.use_of_funds.push({
-        type: 'research_funding',
-        value: 'Research and development funding',
-        required: true,
-        source: 'full_page_content'
-      });
-    }
-    
-    // 14. REVENUE_MODEL
-    if (lowerText.includes('umsatz') || lowerText.includes('revenue') || lowerText.includes('einnahmen')) {
-      categorized.revenue_model.push({
-        type: 'revenue_requirement',
-        value: 'Revenue generation required',
-        required: true,
-        source: 'full_page_content'
-      });
-    }
-    if (lowerText.includes('profit') || lowerText.includes('gewinn') || lowerText.includes('rentabilität')) {
-      categorized.revenue_model.push({
-        type: 'profitability',
-        value: 'Profitability required',
-        required: true,
-        source: 'full_page_content'
-      });
-    }
-    
-    // 15. MARKET_SIZE
-    if (lowerText.includes('markt') || lowerText.includes('market') || lowerText.includes('zielgruppe')) {
-      categorized.market_size.push({
-        type: 'market_requirement',
-        value: 'Market size requirement',
-        required: true,
-        source: 'full_page_content'
-      });
-    }
-    if (lowerText.includes('international') || lowerText.includes('global') || lowerText.includes('weltweit')) {
-      categorized.market_size.push({
-        type: 'market_scope',
-        value: 'International market scope',
-        required: true,
-        source: 'full_page_content'
-      });
-    }
-    
-    // 16. CO_FINANCING (already covered in financial)
-    
-    // 17. TRL_LEVEL (already covered in technical)
-    
-    // 18. CONSORTIUM
-    if (lowerText.includes('konsortium') || lowerText.includes('consortium') || lowerText.includes('partnerschaft')) {
-      categorized.consortium.push({
-        type: 'consortium_required',
-        value: 'Consortium partnership required',
-        required: true,
-        source: 'full_page_content'
-      });
-    }
-    if (lowerText.includes('kooperation') || lowerText.includes('cooperation') || lowerText.includes('zusammenarbeit')) {
-      categorized.consortium.push({
-        type: 'cooperation',
-        value: 'Cooperation required',
-        required: true,
-        source: 'full_page_content'
-      });
+    // LEGAL
+    if (lowerText.includes('rechtlich') || lowerText.includes('legal') || lowerText.includes('gesetz')) {
+      categorized.legal.push({ type: 'legal_compliance', value: 'Legal compliance required', required: true, source: 'full_page_content' });
     }
   }
+  */
 
   private parseEligibilityText(text: string, categorized: any): void {
     const lowerText = text.toLowerCase();
@@ -860,7 +1117,7 @@ export class WebScraperService {
       categorized.timeline.push({
         type: 'duration',
         value: this.extractDuration(text),
-        required: true,
+            required: true,
         source: 'eligibility_text'
       });
     }
@@ -869,7 +1126,7 @@ export class WebScraperService {
       categorized.timeline.push({
         type: 'deadline',
         value: 'Application deadline exists',
-        required: true,
+              required: true,
         source: 'eligibility_text'
       });
     }
@@ -956,75 +1213,9 @@ export class WebScraperService {
     }
   }
 
-  private parseEligibilityTextEnhanced(text: string, categorized: any): void {
-    // Enhanced version of parseEligibilityText with more patterns
-    this.parseEligibilityText(text, categorized);
-    
-    const lowerText = text.toLowerCase();
-    
-    // Additional patterns for Phase 3
-    if (lowerText.includes('unternehmen') || lowerText.includes('firma') || lowerText.includes('company')) {
-      categorized.eligibility.push({
-        type: 'company_type',
-        value: 'Company required',
-        required: true,
-        source: 'enhanced_eligibility'
-      });
-    }
-    
-    if (lowerText.includes('startup') || lowerText.includes('neugründung') || lowerText.includes('gründung')) {
-      categorized.eligibility.push({
-        type: 'company_type',
-        value: 'Startup',
-        required: true,
-        source: 'enhanced_eligibility'
-      });
-    }
-    
-    if (lowerText.includes('umsatz') || lowerText.includes('revenue') || lowerText.includes('turnover')) {
-      categorized.financial.push({
-        type: 'revenue_requirement',
-        value: this.extractAmount(text),
-        required: true,
-        source: 'enhanced_eligibility'
-      });
-    }
-  }
-
-  private parseRequirementsTextEnhanced(text: string, categorized: any): void {
-    // Enhanced version of parseRequirementsText
-    this.parseRequirementsText(text, categorized);
-    
-    const lowerText = text.toLowerCase();
-    
-    // Additional patterns for Phase 3
-    if (lowerText.includes('bewerbung') || lowerText.includes('application') || lowerText.includes('antrag')) {
-      categorized.documents.push({
-        type: 'application_documents',
-        value: 'Application documents required',
-        required: true,
-        source: 'enhanced_requirements'
-      });
-    }
-    
-    if (lowerText.includes('business plan') || lowerText.includes('geschäftsplan')) {
-      categorized.documents.push({
-        type: 'business_plan',
-        value: 'Business plan required',
-        required: true,
-        source: 'enhanced_requirements'
-      });
-    }
-    
-    if (lowerText.includes('finanzplan') || lowerText.includes('financial plan')) {
-      categorized.financial.push({
-        type: 'financial_plan',
-        value: 'Financial plan required',
-        required: true,
-        source: 'enhanced_requirements'
-      });
-    }
-  }
+  // REMOVED: parseEligibilityTextEnhanced and parseRequirementsTextEnhanced
+  // These were never used - base functions (parseEligibilityText, parseRequirementsText) 
+  // plus parseFullPageContent handle all parsing needs
 
   private extractEligibilityCriteria($: cheerio.Root, selectors: any): any {
     const eligibilityText = this.extractText($, selectors.eligibility);
@@ -1170,6 +1361,180 @@ export class WebScraperService {
     }
     
     return [...new Set(detectedFocus)]; // Remove duplicates
+  }
+
+  // Discovery State Management Methods
+  private loadDiscoveryState(institutionName: string): InstitutionDiscoveryState {
+    const statePath = path.join(process.cwd(), 'data', 'discovery-state.json');
+    
+    if (!fs.existsSync(statePath)) {
+      return {
+        lastFullScan: null,
+        exploredSections: [],
+        knownUrls: [],
+        unscrapedUrls: []
+      };
+    }
+    
+    try {
+      const cache: DiscoveryStateCache = JSON.parse(fs.readFileSync(statePath, 'utf8'));
+      return cache[institutionName] || {
+        lastFullScan: null,
+        exploredSections: [],
+        knownUrls: [],
+        unscrapedUrls: []
+      };
+    } catch (error) {
+      console.error(`Error loading discovery state for ${institutionName}:`, error);
+      return {
+        lastFullScan: null,
+        exploredSections: [],
+        knownUrls: [],
+        unscrapedUrls: []
+      };
+    }
+  }
+
+  private saveDiscoveryState(institutionName: string, state: InstitutionDiscoveryState): void {
+    const dataDir = path.join(process.cwd(), 'data');
+    if (!fs.existsSync(dataDir)) {
+      fs.mkdirSync(dataDir, { recursive: true });
+    }
+    
+    const statePath = path.join(dataDir, 'discovery-state.json');
+    let cache: DiscoveryStateCache = {};
+    
+    // Load existing cache
+    if (fs.existsSync(statePath)) {
+      try {
+        cache = JSON.parse(fs.readFileSync(statePath, 'utf8'));
+      } catch (error) {
+        console.error('Error loading discovery state cache:', error);
+        cache = {};
+      }
+    }
+    
+    // Update cache for this institution
+    cache[institutionName] = state;
+    
+    // Save updated cache
+    fs.writeFileSync(statePath, JSON.stringify(cache, null, 2));
+    console.log(`  💾 [DISCOVERY] Saved discovery state for ${institutionName}`);
+  }
+
+  private clearDiscoveryState(): void {
+    const statePath = path.join(process.cwd(), 'data', 'discovery-state.json');
+    if (fs.existsSync(statePath)) {
+      fs.writeFileSync(statePath, JSON.stringify({}, null, 2));
+      console.log('  🗑️  [DISCOVERY] Cleared all discovery state');
+    }
+  }
+
+  // REMOVED: isSectionFullyExplored() - Redundant with unscrapedUrls tracking
+  // The unscrapedUrls array already filters out URLs that were already scraped,
+  // so we don't need separate logic to skip "fully explored" sections
+
+  private async extractLinksFromPage(
+    url: string, 
+    institution: InstitutionConfig
+  ): Promise<string[]> {
+    try {
+      const page = await this.browser!.newPage();
+      await page.setUserAgent('Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36');
+      
+      await page.goto(url, { waitUntil: 'domcontentloaded', timeout: 10000 });
+      
+      const links = await page.evaluate((keywords, exclusionKeywords) => {
+        const linkElements = Array.from(document.querySelectorAll('a[href]'));
+        return linkElements
+          .map(el => el.getAttribute('href'))
+          .filter((href): href is string => !!href && (
+            keywords.some(keyword => href.toLowerCase().includes(keyword)) ||
+            href.includes('foerderung') || 
+            href.includes('program') || 
+            href.includes('grant') ||
+            href.includes('funding') ||
+            href.includes('startup') ||
+            href.includes('innovation') ||
+            href.includes('kredit') ||
+            href.includes('darlehen')
+          ))
+          .filter((href): href is string => 
+            !!href && 
+            !exclusionKeywords.some(keyword => href.toLowerCase().includes(keyword))
+          )
+          .map((href): string => {
+            if (href.startsWith('/')) {
+              return new URL(href, window.location.origin).href;
+            }
+            return href;
+          })
+          .filter((href): href is string => !!href && href.startsWith('http'));
+      }, institution.keywords, autoDiscoveryPatterns.exclusionKeywords);
+      
+      await page.close();
+      return links;
+    } catch (error) {
+      console.error(`Error extracting links from ${url}:`, error);
+      return [];
+    }
+  }
+
+  private findPaginationLinks(links: string[], currentUrl: string): string[] {
+    const currentUrlObj = new URL(currentUrl);
+    const basePath = currentUrlObj.pathname;
+    
+    const paginationKeywords = [
+      'next', 'weiter', 'suivant', 'seguente', 'siguiente', 'volgende',
+      'page', 'seite', 'page', 'pagina', 'pagina', 'pagina',
+      'mehr', 'more', 'plus', 'più', 'más', 'meer',
+      '2', '3', '4', // Page numbers
+      'archive', 'archiv', 'archives'
+    ];
+    
+    return links.filter(link => {
+      try {
+        const linkUrl = new URL(link);
+        const linkPath = linkUrl.pathname.toLowerCase();
+        const linkText = link.toLowerCase();
+        
+        // Must be same domain
+        if (linkUrl.origin !== currentUrlObj.origin) return false;
+        
+        // Must contain pagination keywords
+        const hasPaginationKeyword = paginationKeywords.some(keyword => 
+          linkText.includes(keyword) || linkPath.includes(keyword)
+        );
+        
+        // Must be different from current URL (but related path)
+        const isRelatedPath = linkPath.startsWith(basePath.split('/').slice(0, -1).join('/')) ||
+                              basePath.startsWith(linkPath.split('/').slice(0, -1).join('/'));
+        
+        return hasPaginationKeyword && isRelatedPath;
+      } catch {
+        return false;
+      }
+    });
+  }
+
+  private prioritizeUrls(urls: string[], existingUrls: Set<string>): string[] {
+    return urls.sort((a, b) => {
+      // Priority 1: Never scraped before
+      const aExists = existingUrls.has(a);
+      const bExists = existingUrls.has(b);
+      if (aExists !== bExists) {
+        return aExists ? 1 : -1; // Unscraped URLs first
+      }
+      
+      // Priority 2: Program pages (have specific program keywords) > category pages
+      const aIsProgram = a.match(/\/(program|foerderung|grant|kredit|darlehen)[^\/]*$/i) !== null;
+      const bIsProgram = b.match(/\/(program|foerderung|grant|kredit|darlehen)[^\/]*$/i) !== null;
+      if (aIsProgram !== bIsProgram) {
+        return aIsProgram ? -1 : 1; // Program pages first
+      }
+      
+      return 0; // Equal priority
+    });
   }
 
   private loadExistingPrograms(): ScrapedProgram[] {

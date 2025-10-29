@@ -7,15 +7,16 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   }
 
   try {
-    const { cycleOnly } = req.body;
+    const { cycleOnly, discoveryMode } = req.body;
+    const mode = discoveryMode === 'deep' ? 'deep' : 'incremental';
     
-    console.log(`🚀 Starting scraper (cycleOnly: ${cycleOnly || false})...`);
+    console.log(`🚀 Starting scraper (cycleOnly: ${cycleOnly || false}, discoveryMode: ${mode})...`);
     console.log(`📊 Request body:`, req.body);
     
     const scraper = new WebScraperService();
     console.log(`📊 Scraper instance created`);
     
-    const programs = await scraper.scrapeAllPrograms(cycleOnly);
+    const programs = await scraper.scrapeAllPrograms(cycleOnly, mode);
     console.log(`✅ Scraped ${programs.length} programs with 18 categories`);
 
     return res.status(200).json({

@@ -1,6 +1,6 @@
 {
-  "timestamp": "2025-10-28T20:26:06.924Z",
-  "totalPrograms": 27,
+  "timestamp": "2025-10-29T10:13:46.809Z",
+  "totalPrograms": 49,
   "programs": [
     {
       "id": "program_1761682088015_7so9bfw0x",
@@ -3911,6 +3911,1832 @@
         "phone": ""
       },
       "scraped_at": "2025-10-28T20:26:05.343Z",
+      "confidence_score": 0.8,
+      "is_active": true
+    },
+    {
+      "id": "program_1761690850641_aei90w9zv",
+      "name": "Energiekostenzuschuss I und II",
+      "description": "Die Möglichkeit zur Antragsstellung endete am 15.02.2023",
+      "type": "grant",
+      "program_type": "grant",
+      "source_url": "https://www.aws.at/ukraine-krieg-sonder-foerderungsprogramme/aws-energiekostenzuschuss-2/",
+      "institution": "Austria Wirtschaftsservice (AWS)",
+      "program_category": "grant",
+      "funding_types": [
+        "grant",
+        "loan",
+        "equity"
+      ],
+      "program_focus": [
+        "innovation",
+        "employment",
+        "training",
+        "business",
+        "technology",
+        "digital",
+        "environment",
+        "energy",
+        "startup",
+        "export"
+      ],
+      "eligibility_criteria": {},
+      "categorized_requirements": {
+        "eligibility": [
+          {
+            "type": "company_type",
+            "value": "Startup",
+            "required": true,
+            "source": "full_page_content"
+          },
+          {
+            "type": "company_type",
+            "value": "Company",
+            "required": true,
+            "source": "full_page_content"
+          }
+        ],
+        "documents": [
+          {
+            "type": "required_documents",
+            "value": "Various documents required",
+            "required": true,
+            "source": "full_page_content"
+          }
+        ],
+        "financial": [],
+        "technical": [],
+        "legal": [],
+        "timeline": [],
+        "geographic": [
+          {
+            "type": "location",
+            "value": "Austria",
+            "required": true,
+            "source": "full_page_content"
+          }
+        ],
+        "team": [],
+        "project": [],
+        "compliance": [],
+        "impact": [],
+        "capex_opex": [],
+        "use_of_funds": [],
+        "revenue_model": [],
+        "market_size": [],
+        "co_financing": [],
+        "trl_level": [],
+        "consortium": []
+      },
+      "funding_amount_min": null,
+      "funding_amount_max": null,
+      "currency": "EUR",
+      "deadline": "1-0-10",
+      "contact_email": "24h-auskunft@aws.at",
+      "contact_phone": "1761645526",
+      "contact_info": {
+        "text": "",
+        "email": "",
+        "phone": ""
+      },
+      "scraped_at": "2025-10-28T22:34:10.650Z",
+      "confidence_score": 0.8,
+      "is_active": true
+    },
+    {
+      "id": "program_1761690991097_t72fy5zig",
+      "name": "Finanzierungen & Kredite",
+      "description": "Erledigen Sie Ihre Bankgeschäfte\nauf dem Smartphone.",
+      "type": "grant",
+      "program_type": "grant",
+      "source_url": "https://www.bankaustria.at/privatkunden-finanzieren-und-kredite.jsp",
+      "institution": "Bank Austria",
+      "program_category": "grant",
+      "funding_types": [
+        "bank_loan"
+      ],
+      "program_focus": [
+        "research",
+        "export",
+        "training",
+        "business",
+        "sustainability",
+        "transport",
+        "digital",
+        "environment",
+        "energy",
+        "startup"
+      ],
+      "eligibility_criteria": {},
+      "categorized_requirements": {
+        "eligibility": [
+          {
+            "type": "company_type",
+            "value": "Company",
+            "required": true,
+            "source": "full_page_content"
+          }
+        ],
+        "documents": [
+          {
+            "type": "required_documents",
+            "value": "Various documents required",
+            "required": true,
+            "source": "full_page_content"
+          }
+        ],
+        "financial": [],
+        "technical": [],
+        "legal": [],
+        "timeline": [],
+        "geographic": [
+          {
+            "type": "location",
+            "value": "Austria",
+            "required": true,
+            "source": "full_page_content"
+          }
+        ],
+        "team": [],
+        "project": [],
+        "compliance": [],
+        "impact": [],
+        "capex_opex": [],
+        "use_of_funds": [],
+        "revenue_model": [],
+        "market_size": [],
+        "co_financing": [],
+        "trl_level": [],
+        "consortium": []
+      },
+      "funding_amount_min": null,
+      "funding_amount_max": 40,
+      "currency": "EUR",
+      "deadline": null,
+      "contact_email": null,
+      "contact_phone": "1801887694",
+      "contact_info": {
+        "text": "",
+        "email": "",
+        "phone": ""
+      },
+      "scraped_at": "2025-10-28T22:36:31.123Z",
+      "confidence_score": 0.8,
+      "is_active": true
+    },
+    {
+      "id": "program_1761690996905_5xysjod5l",
+      "name": "Kreditrechner",
+      "description": "Ihre Wunschfinanzierung online berechnen",
+      "type": "grant",
+      "program_type": "grant",
+      "source_url": "https://www.sparkasse.at/erstebank/privatkunden/wohnen-finanzieren/kreditrechner",
+      "institution": "Erste Bank",
+      "program_category": "grant",
+      "funding_types": [
+        "bank_loan",
+        "leasing"
+      ],
+      "program_focus": [
+        "research",
+        "training",
+        "business",
+        "digital",
+        "environment",
+        "energy",
+        "healthcare",
+        "education",
+        "startup"
+      ],
+      "eligibility_criteria": {},
+      "categorized_requirements": {
+        "eligibility": [
+          {
+            "type": "company_type",
+            "value": "Company",
+            "required": true,
+            "source": "full_page_content"
+          }
+        ],
+        "documents": [
+          {
+            "type": "required_documents",
+            "value": "Various documents required",
+            "required": true,
+            "source": "full_page_content"
+          }
+        ],
+        "financial": [
+          {
+            "type": "co_financing",
+            "value": "Required",
+            "required": true,
+            "source": "full_page_content"
+          }
+        ],
+        "technical": [],
+        "legal": [],
+        "timeline": [],
+        "geographic": [
+          {
+            "type": "location",
+            "value": "Austria",
+            "required": true,
+            "source": "full_page_content"
+          }
+        ],
+        "team": [],
+        "project": [],
+        "compliance": [],
+        "impact": [],
+        "capex_opex": [],
+        "use_of_funds": [],
+        "revenue_model": [],
+        "market_size": [],
+        "co_financing": [],
+        "trl_level": [],
+        "consortium": []
+      },
+      "funding_amount_min": null,
+      "funding_amount_max": null,
+      "currency": "EUR",
+      "deadline": null,
+      "contact_email": null,
+      "contact_phone": "83397320",
+      "contact_info": {
+        "text": "",
+        "email": "",
+        "phone": ""
+      },
+      "scraped_at": "2025-10-28T22:36:36.949Z",
+      "confidence_score": 0.8,
+      "is_active": true
+    },
+    {
+      "id": "program_1761691006203_izvq4j3w2",
+      "name": "Kredit & Leasing – Finanzierungen von Raiffeisen",
+      "description": "Ihr Suchbegriff ergab keine Treffer.",
+      "type": "grant",
+      "program_type": "grant",
+      "source_url": "https://www.raiffeisen.at/de/privatkunden/kredit-leasing.html",
+      "institution": "Raiffeisen Bank",
+      "program_category": "grant",
+      "funding_types": [
+        "bank_loan",
+        "leasing"
+      ],
+      "program_focus": [
+        "export",
+        "training",
+        "business",
+        "sustainability",
+        "transport",
+        "digital",
+        "energy",
+        "education",
+        "startup"
+      ],
+      "eligibility_criteria": {},
+      "categorized_requirements": {
+        "eligibility": [
+          {
+            "type": "company_type",
+            "value": "Startup",
+            "required": true,
+            "source": "full_page_content"
+          },
+          {
+            "type": "company_type",
+            "value": "Company",
+            "required": true,
+            "source": "full_page_content"
+          }
+        ],
+        "documents": [
+          {
+            "type": "required_documents",
+            "value": "Various documents required",
+            "required": true,
+            "source": "full_page_content"
+          }
+        ],
+        "financial": [
+          {
+            "type": "co_financing",
+            "value": "Required",
+            "required": true,
+            "source": "full_page_content"
+          }
+        ],
+        "technical": [],
+        "legal": [],
+        "timeline": [],
+        "geographic": [],
+        "team": [],
+        "project": [],
+        "compliance": [],
+        "impact": [],
+        "capex_opex": [],
+        "use_of_funds": [],
+        "revenue_model": [],
+        "market_size": [],
+        "co_financing": [],
+        "trl_level": [],
+        "consortium": []
+      },
+      "funding_amount_min": null,
+      "funding_amount_max": 13,
+      "currency": "EUR",
+      "deadline": "18.2.14",
+      "contact_email": "info@raiffeisen.at",
+      "contact_phone": "162038737137",
+      "contact_info": {
+        "text": "",
+        "email": "",
+        "phone": ""
+      },
+      "scraped_at": "2025-10-28T22:36:46.244Z",
+      "confidence_score": 0.8,
+      "is_active": true
+    },
+    {
+      "id": "program_1761691010434_1jgy0i75y",
+      "name": "Finanzieren Sie Ihre Wünsche mit dem Konsumkredit von Raiffeisen",
+      "description": "Ihr Suchbegriff ergab keine Treffer.",
+      "type": "grant",
+      "program_type": "grant",
+      "source_url": "https://www.raiffeisen.at/de/privatkunden/kredit-leasing/konsumkredit.html",
+      "institution": "Raiffeisen Bank",
+      "program_category": "grant",
+      "funding_types": [
+        "bank_loan",
+        "leasing"
+      ],
+      "program_focus": [
+        "export",
+        "training",
+        "business",
+        "sustainability",
+        "transport",
+        "technology",
+        "digital",
+        "energy",
+        "healthcare",
+        "education",
+        "startup"
+      ],
+      "eligibility_criteria": {},
+      "categorized_requirements": {
+        "eligibility": [
+          {
+            "type": "company_type",
+            "value": "Startup",
+            "required": true,
+            "source": "full_page_content"
+          },
+          {
+            "type": "company_type",
+            "value": "Company",
+            "required": true,
+            "source": "full_page_content"
+          }
+        ],
+        "documents": [
+          {
+            "type": "required_documents",
+            "value": "Various documents required",
+            "required": true,
+            "source": "full_page_content"
+          }
+        ],
+        "financial": [],
+        "technical": [],
+        "legal": [],
+        "timeline": [],
+        "geographic": [],
+        "team": [],
+        "project": [],
+        "compliance": [],
+        "impact": [],
+        "capex_opex": [],
+        "use_of_funds": [],
+        "revenue_model": [],
+        "market_size": [],
+        "co_financing": [],
+        "trl_level": [],
+        "consortium": []
+      },
+      "funding_amount_min": null,
+      "funding_amount_max": null,
+      "currency": "EUR",
+      "deadline": "67-15.657",
+      "contact_email": "info@raiffeisen.at",
+      "contact_phone": "162038737137",
+      "contact_info": {
+        "text": "",
+        "email": "",
+        "phone": ""
+      },
+      "scraped_at": "2025-10-28T22:36:50.497Z",
+      "confidence_score": 0.8,
+      "is_active": true
+    },
+    {
+      "id": "program_1761691013753_u74oyl355",
+      "name": "Der Sofort Kredit für Raiffeisenkund:innen - einfach per App",
+      "description": "Ihr Suchbegriff ergab keine Treffer.",
+      "type": "grant",
+      "program_type": "grant",
+      "source_url": "https://www.raiffeisen.at/de/privatkunden/kredit-leasing/sofort-kredit.html",
+      "institution": "Raiffeisen Bank",
+      "program_category": "grant",
+      "funding_types": [
+        "bank_loan",
+        "leasing"
+      ],
+      "program_focus": [
+        "export",
+        "training",
+        "business",
+        "sustainability",
+        "transport",
+        "digital",
+        "energy",
+        "education",
+        "startup"
+      ],
+      "eligibility_criteria": {},
+      "categorized_requirements": {
+        "eligibility": [
+          {
+            "type": "company_type",
+            "value": "Startup",
+            "required": true,
+            "source": "full_page_content"
+          },
+          {
+            "type": "company_type",
+            "value": "Company",
+            "required": true,
+            "source": "full_page_content"
+          }
+        ],
+        "documents": [
+          {
+            "type": "required_documents",
+            "value": "Various documents required",
+            "required": true,
+            "source": "full_page_content"
+          }
+        ],
+        "financial": [],
+        "technical": [],
+        "legal": [],
+        "timeline": [],
+        "geographic": [
+          {
+            "type": "location",
+            "value": "Austria",
+            "required": true,
+            "source": "full_page_content"
+          }
+        ],
+        "team": [],
+        "project": [],
+        "compliance": [],
+        "impact": [],
+        "capex_opex": [],
+        "use_of_funds": [],
+        "revenue_model": [],
+        "market_size": [],
+        "co_financing": [],
+        "trl_level": [],
+        "consortium": []
+      },
+      "funding_amount_min": null,
+      "funding_amount_max": null,
+      "currency": "EUR",
+      "deadline": null,
+      "contact_email": "info@raiffeisen.at",
+      "contact_phone": "162038737137",
+      "contact_info": {
+        "text": "",
+        "email": "",
+        "phone": ""
+      },
+      "scraped_at": "2025-10-28T22:36:53.795Z",
+      "confidence_score": 0.8,
+      "is_active": true
+    },
+    {
+      "id": "program_1761691020001_ms3l3z931",
+      "name": "Die Raiffeisen Bausparfinanzierung lässt keine Wünsche offen",
+      "description": "Ihr Suchbegriff ergab keine Treffer.",
+      "type": "grant",
+      "program_type": "grant",
+      "source_url": "https://www.raiffeisen.at/de/privatkunden/kredit-leasing/bausparfinanzierung.html",
+      "institution": "Raiffeisen Bank",
+      "program_category": "grant",
+      "funding_types": [
+        "bank_loan",
+        "leasing"
+      ],
+      "program_focus": [
+        "export",
+        "training",
+        "business",
+        "sustainability",
+        "transport",
+        "technology",
+        "digital",
+        "energy",
+        "healthcare",
+        "education",
+        "startup"
+      ],
+      "eligibility_criteria": {},
+      "categorized_requirements": {
+        "eligibility": [
+          {
+            "type": "company_type",
+            "value": "Startup",
+            "required": true,
+            "source": "full_page_content"
+          },
+          {
+            "type": "company_type",
+            "value": "Company",
+            "required": true,
+            "source": "full_page_content"
+          }
+        ],
+        "documents": [
+          {
+            "type": "required_documents",
+            "value": "Various documents required",
+            "required": true,
+            "source": "full_page_content"
+          }
+        ],
+        "financial": [
+          {
+            "type": "co_financing",
+            "value": "Required",
+            "required": true,
+            "source": "full_page_content"
+          }
+        ],
+        "technical": [],
+        "legal": [],
+        "timeline": [],
+        "geographic": [],
+        "team": [],
+        "project": [],
+        "compliance": [],
+        "impact": [],
+        "capex_opex": [],
+        "use_of_funds": [],
+        "revenue_model": [],
+        "market_size": [],
+        "co_financing": [],
+        "trl_level": [],
+        "consortium": []
+      },
+      "funding_amount_min": null,
+      "funding_amount_max": 35,
+      "currency": "EUR",
+      "deadline": "05-7.043",
+      "contact_email": "info@raiffeisen.at",
+      "contact_phone": "162038737137",
+      "contact_info": {
+        "text": "",
+        "email": "",
+        "phone": ""
+      },
+      "scraped_at": "2025-10-28T22:37:00.070Z",
+      "confidence_score": 0.8,
+      "is_active": true
+    },
+    {
+      "id": "program_1761691024086_3vg7xebk1",
+      "name": "Auto-Leasing von Raiffeisen für Neu- und Gebrauchtwagen",
+      "description": "Ihr Suchbegriff ergab keine Treffer.",
+      "type": "grant",
+      "program_type": "grant",
+      "source_url": "https://www.raiffeisen.at/de/privatkunden/kredit-leasing/auto-leasing.html",
+      "institution": "Raiffeisen Bank",
+      "program_category": "grant",
+      "funding_types": [
+        "bank_loan",
+        "leasing"
+      ],
+      "program_focus": [
+        "export",
+        "training",
+        "business",
+        "sustainability",
+        "transport",
+        "technology",
+        "digital",
+        "energy",
+        "education",
+        "startup"
+      ],
+      "eligibility_criteria": {},
+      "categorized_requirements": {
+        "eligibility": [
+          {
+            "type": "company_type",
+            "value": "Startup",
+            "required": true,
+            "source": "full_page_content"
+          },
+          {
+            "type": "company_type",
+            "value": "Company",
+            "required": true,
+            "source": "full_page_content"
+          }
+        ],
+        "documents": [
+          {
+            "type": "required_documents",
+            "value": "Various documents required",
+            "required": true,
+            "source": "full_page_content"
+          }
+        ],
+        "financial": [
+          {
+            "type": "co_financing",
+            "value": "Required",
+            "required": true,
+            "source": "full_page_content"
+          }
+        ],
+        "technical": [],
+        "legal": [],
+        "timeline": [],
+        "geographic": [],
+        "team": [],
+        "project": [],
+        "compliance": [],
+        "impact": [],
+        "capex_opex": [],
+        "use_of_funds": [],
+        "revenue_model": [],
+        "market_size": [],
+        "co_financing": [],
+        "trl_level": [],
+        "consortium": []
+      },
+      "funding_amount_min": null,
+      "funding_amount_max": 6,
+      "currency": "EUR",
+      "deadline": "67-15.657",
+      "contact_email": "info@raiffeisen.at",
+      "contact_phone": "162038737137",
+      "contact_info": {
+        "text": "",
+        "email": "",
+        "phone": ""
+      },
+      "scraped_at": "2025-10-28T22:37:04.124Z",
+      "confidence_score": 0.8,
+      "is_active": true
+    },
+    {
+      "id": "program_1761691028948_bwz4tzeva",
+      "name": "Raiffeisen Kreditrechner",
+      "description": "Ihr Suchbegriff ergab keine Treffer.",
+      "type": "grant",
+      "program_type": "grant",
+      "source_url": "https://www.raiffeisen.at/de/privatkunden/kredit-leasing/kreditrechner.html",
+      "institution": "Raiffeisen Bank",
+      "program_category": "grant",
+      "funding_types": [
+        "bank_loan",
+        "leasing"
+      ],
+      "program_focus": [
+        "export",
+        "training",
+        "business",
+        "sustainability",
+        "transport",
+        "digital",
+        "energy",
+        "education",
+        "startup"
+      ],
+      "eligibility_criteria": {},
+      "categorized_requirements": {
+        "eligibility": [
+          {
+            "type": "company_type",
+            "value": "Startup",
+            "required": true,
+            "source": "full_page_content"
+          },
+          {
+            "type": "company_type",
+            "value": "Company",
+            "required": true,
+            "source": "full_page_content"
+          }
+        ],
+        "documents": [
+          {
+            "type": "required_documents",
+            "value": "Various documents required",
+            "required": true,
+            "source": "full_page_content"
+          }
+        ],
+        "financial": [],
+        "technical": [],
+        "legal": [],
+        "timeline": [],
+        "geographic": [],
+        "team": [],
+        "project": [],
+        "compliance": [],
+        "impact": [],
+        "capex_opex": [],
+        "use_of_funds": [],
+        "revenue_model": [],
+        "market_size": [],
+        "co_financing": [],
+        "trl_level": [],
+        "consortium": []
+      },
+      "funding_amount_min": null,
+      "funding_amount_max": null,
+      "currency": "EUR",
+      "deadline": "18.2.14",
+      "contact_email": "info@raiffeisen.at",
+      "contact_phone": "162038737137",
+      "contact_info": {
+        "text": "",
+        "email": "",
+        "phone": ""
+      },
+      "scraped_at": "2025-10-28T22:37:08.983Z",
+      "confidence_score": 0.8,
+      "is_active": true
+    },
+    {
+      "id": "program_1761691033151_g8ydoxv46",
+      "name": "Projektfinanzierung von Raiffeisen",
+      "description": "Ihr Suchbegriff ergab keine Treffer.",
+      "type": "grant",
+      "program_type": "grant",
+      "source_url": "https://www.raiffeisen.at/de/firmenkunden/finanzieren/projektfinanzierung.html",
+      "institution": "Raiffeisen Bank",
+      "program_category": "grant",
+      "funding_types": [
+        "bank_loan",
+        "leasing"
+      ],
+      "program_focus": [
+        "export",
+        "training",
+        "business",
+        "sustainability",
+        "transport",
+        "digital",
+        "energy",
+        "education",
+        "startup"
+      ],
+      "eligibility_criteria": {},
+      "categorized_requirements": {
+        "eligibility": [
+          {
+            "type": "company_type",
+            "value": "Startup",
+            "required": true,
+            "source": "full_page_content"
+          },
+          {
+            "type": "company_type",
+            "value": "Company",
+            "required": true,
+            "source": "full_page_content"
+          }
+        ],
+        "documents": [
+          {
+            "type": "required_documents",
+            "value": "Various documents required",
+            "required": true,
+            "source": "full_page_content"
+          }
+        ],
+        "financial": [],
+        "technical": [],
+        "legal": [],
+        "timeline": [],
+        "geographic": [],
+        "team": [],
+        "project": [],
+        "compliance": [],
+        "impact": [],
+        "capex_opex": [],
+        "use_of_funds": [],
+        "revenue_model": [],
+        "market_size": [],
+        "co_financing": [],
+        "trl_level": [],
+        "consortium": []
+      },
+      "funding_amount_min": null,
+      "funding_amount_max": null,
+      "currency": "EUR",
+      "deadline": null,
+      "contact_email": "info@raiffeisen.at",
+      "contact_phone": "162038737137",
+      "contact_info": {
+        "text": "",
+        "email": "",
+        "phone": ""
+      },
+      "scraped_at": "2025-10-28T22:37:13.204Z",
+      "confidence_score": 0.8,
+      "is_active": true
+    },
+    {
+      "id": "program_1761691039354_p06v5h9bu",
+      "name": "Förderungen für Unternehmen mit Raiffeisen",
+      "description": "Ihr Suchbegriff ergab keine Treffer.",
+      "type": "grant",
+      "program_type": "grant",
+      "source_url": "https://www.raiffeisen.at/de/firmenkunden/finanzieren/foerderungen.html",
+      "institution": "Raiffeisen Bank",
+      "program_category": "grant",
+      "funding_types": [
+        "bank_loan",
+        "leasing"
+      ],
+      "program_focus": [
+        "research",
+        "export",
+        "training",
+        "business",
+        "sustainability",
+        "transport",
+        "technology",
+        "digital",
+        "energy",
+        "education",
+        "startup"
+      ],
+      "eligibility_criteria": {},
+      "categorized_requirements": {
+        "eligibility": [
+          {
+            "type": "company_type",
+            "value": "Startup",
+            "required": true,
+            "source": "full_page_content"
+          },
+          {
+            "type": "company_type",
+            "value": "Company",
+            "required": true,
+            "source": "full_page_content"
+          }
+        ],
+        "documents": [
+          {
+            "type": "required_documents",
+            "value": "Various documents required",
+            "required": true,
+            "source": "full_page_content"
+          }
+        ],
+        "financial": [],
+        "technical": [],
+        "legal": [],
+        "timeline": [],
+        "geographic": [
+          {
+            "type": "location",
+            "value": "Austria",
+            "required": true,
+            "source": "full_page_content"
+          }
+        ],
+        "team": [],
+        "project": [],
+        "compliance": [],
+        "impact": [],
+        "capex_opex": [],
+        "use_of_funds": [],
+        "revenue_model": [],
+        "market_size": [],
+        "co_financing": [],
+        "trl_level": [],
+        "consortium": []
+      },
+      "funding_amount_min": null,
+      "funding_amount_max": null,
+      "currency": "EUR",
+      "deadline": "18.2.14",
+      "contact_email": "rudolf.krispel@raiffeisen-burgenland.at",
+      "contact_phone": "162038737137",
+      "contact_info": {
+        "text": "",
+        "email": "",
+        "phone": ""
+      },
+      "scraped_at": "2025-10-28T22:37:19.394Z",
+      "confidence_score": 0.8,
+      "is_active": true
+    },
+    {
+      "id": "program_1761691042336_pectmsn3c",
+      "name": "Exportfinanzierung von Raiffeisen",
+      "description": "Ihr Suchbegriff ergab keine Treffer.",
+      "type": "grant",
+      "program_type": "grant",
+      "source_url": "https://www.raiffeisen.at/de/firmenkunden/auslandsgeschaeft/exportfinanzierung.html",
+      "institution": "Raiffeisen Bank",
+      "program_category": "grant",
+      "funding_types": [
+        "bank_loan",
+        "leasing"
+      ],
+      "program_focus": [
+        "export",
+        "training",
+        "business",
+        "sustainability",
+        "transport",
+        "digital",
+        "energy",
+        "education",
+        "startup"
+      ],
+      "eligibility_criteria": {},
+      "categorized_requirements": {
+        "eligibility": [
+          {
+            "type": "company_type",
+            "value": "Startup",
+            "required": true,
+            "source": "full_page_content"
+          },
+          {
+            "type": "company_type",
+            "value": "Company",
+            "required": true,
+            "source": "full_page_content"
+          }
+        ],
+        "documents": [
+          {
+            "type": "required_documents",
+            "value": "Various documents required",
+            "required": true,
+            "source": "full_page_content"
+          }
+        ],
+        "financial": [],
+        "technical": [],
+        "legal": [],
+        "timeline": [],
+        "geographic": [
+          {
+            "type": "location",
+            "value": "Austria",
+            "required": true,
+            "source": "full_page_content"
+          }
+        ],
+        "team": [],
+        "project": [],
+        "compliance": [],
+        "impact": [],
+        "capex_opex": [],
+        "use_of_funds": [],
+        "revenue_model": [],
+        "market_size": [],
+        "co_financing": [],
+        "trl_level": [],
+        "consortium": []
+      },
+      "funding_amount_min": null,
+      "funding_amount_max": null,
+      "currency": "EUR",
+      "deadline": null,
+      "contact_email": "info@raiffeisen.at",
+      "contact_phone": "162038737137",
+      "contact_info": {
+        "text": "",
+        "email": "",
+        "phone": ""
+      },
+      "scraped_at": "2025-10-28T22:37:22.368Z",
+      "confidence_score": 0.8,
+      "is_active": true
+    },
+    {
+      "id": "program_1761691044911_55eb0z2r9",
+      "name": "Kreditbesicherung zur Absicherung von Risiken",
+      "description": "Ihr Suchbegriff ergab keine Treffer.",
+      "type": "grant",
+      "program_type": "grant",
+      "source_url": "https://www.raiffeisen.at/de/firmenkunden/vorsorge-veranlagen/kreditbesicherung.html",
+      "institution": "Raiffeisen Bank",
+      "program_category": "grant",
+      "funding_types": [
+        "bank_loan",
+        "leasing"
+      ],
+      "program_focus": [
+        "innovation",
+        "export",
+        "training",
+        "business",
+        "sustainability",
+        "transport",
+        "digital",
+        "energy",
+        "education",
+        "startup"
+      ],
+      "eligibility_criteria": {},
+      "categorized_requirements": {
+        "eligibility": [
+          {
+            "type": "company_type",
+            "value": "Startup",
+            "required": true,
+            "source": "full_page_content"
+          },
+          {
+            "type": "company_type",
+            "value": "Company",
+            "required": true,
+            "source": "full_page_content"
+          }
+        ],
+        "documents": [
+          {
+            "type": "required_documents",
+            "value": "Various documents required",
+            "required": true,
+            "source": "full_page_content"
+          }
+        ],
+        "financial": [],
+        "technical": [],
+        "legal": [],
+        "timeline": [],
+        "geographic": [],
+        "team": [],
+        "project": [],
+        "compliance": [],
+        "impact": [],
+        "capex_opex": [],
+        "use_of_funds": [],
+        "revenue_model": [],
+        "market_size": [],
+        "co_financing": [],
+        "trl_level": [],
+        "consortium": []
+      },
+      "funding_amount_min": null,
+      "funding_amount_max": null,
+      "currency": "EUR",
+      "deadline": null,
+      "contact_email": "info@raiffeisen.at",
+      "contact_phone": "162038737137",
+      "contact_info": {
+        "text": "",
+        "email": "",
+        "phone": ""
+      },
+      "scraped_at": "2025-10-28T22:37:25.010Z",
+      "confidence_score": 0.8,
+      "is_active": true
+    },
+    {
+      "id": "program_1761691048997_ychpdkvx9",
+      "name": "Immobilien-Finanzierungen von Raiffeisen",
+      "description": "Ihr Suchbegriff ergab keine Treffer.",
+      "type": "grant",
+      "program_type": "grant",
+      "source_url": "https://www.raiffeisen.at/de/immobilien/finanzierungen.html",
+      "institution": "Raiffeisen Bank",
+      "program_category": "grant",
+      "funding_types": [
+        "bank_loan",
+        "leasing"
+      ],
+      "program_focus": [
+        "export",
+        "training",
+        "business",
+        "sustainability",
+        "transport",
+        "digital",
+        "energy",
+        "education",
+        "startup"
+      ],
+      "eligibility_criteria": {},
+      "categorized_requirements": {
+        "eligibility": [
+          {
+            "type": "company_type",
+            "value": "Startup",
+            "required": true,
+            "source": "full_page_content"
+          },
+          {
+            "type": "company_type",
+            "value": "Company",
+            "required": true,
+            "source": "full_page_content"
+          }
+        ],
+        "documents": [
+          {
+            "type": "required_documents",
+            "value": "Various documents required",
+            "required": true,
+            "source": "full_page_content"
+          }
+        ],
+        "financial": [
+          {
+            "type": "co_financing",
+            "value": "Required",
+            "required": true,
+            "source": "full_page_content"
+          }
+        ],
+        "technical": [],
+        "legal": [],
+        "timeline": [],
+        "geographic": [
+          {
+            "type": "location",
+            "value": "Austria",
+            "required": true,
+            "source": "full_page_content"
+          }
+        ],
+        "team": [],
+        "project": [],
+        "compliance": [],
+        "impact": [],
+        "capex_opex": [],
+        "use_of_funds": [],
+        "revenue_model": [],
+        "market_size": [],
+        "co_financing": [],
+        "trl_level": [],
+        "consortium": []
+      },
+      "funding_amount_min": null,
+      "funding_amount_max": 18,
+      "currency": "EUR",
+      "deadline": "18.2.14",
+      "contact_email": "info@raiffeisen.at",
+      "contact_phone": "162038737137",
+      "contact_info": {
+        "text": "",
+        "email": "",
+        "phone": ""
+      },
+      "scraped_at": "2025-10-28T22:37:29.025Z",
+      "confidence_score": 0.8,
+      "is_active": true
+    },
+    {
+      "id": "program_1761691460745_quczb8mdw",
+      "name": "Leasing für Unternehmer:innen – mit Raiffeisen",
+      "description": "Ihr Suchbegriff ergab keine Treffer.",
+      "type": "grant",
+      "program_type": "grant",
+      "source_url": "https://www.raiffeisen.at/de/firmenkunden/finanzieren/leasing.html",
+      "institution": "Raiffeisen Bank",
+      "program_category": "grant",
+      "funding_types": [
+        "bank_loan",
+        "leasing"
+      ],
+      "program_focus": [
+        "export",
+        "training",
+        "business",
+        "sustainability",
+        "transport",
+        "digital",
+        "energy",
+        "education",
+        "startup"
+      ],
+      "eligibility_criteria": {},
+      "categorized_requirements": {
+        "eligibility": [
+          {
+            "type": "company_type",
+            "value": "Startup",
+            "required": true,
+            "source": "full_page_content"
+          },
+          {
+            "type": "company_type",
+            "value": "Company",
+            "required": true,
+            "source": "full_page_content"
+          }
+        ],
+        "documents": [
+          {
+            "type": "required_documents",
+            "value": "Various documents required",
+            "required": true,
+            "source": "full_page_content"
+          }
+        ],
+        "financial": [
+          {
+            "type": "co_financing",
+            "value": "Required",
+            "required": true,
+            "source": "full_page_content"
+          }
+        ],
+        "technical": [],
+        "legal": [],
+        "timeline": [],
+        "geographic": [],
+        "team": [],
+        "project": [],
+        "compliance": [],
+        "impact": [],
+        "capex_opex": [],
+        "use_of_funds": [],
+        "revenue_model": [],
+        "market_size": [],
+        "co_financing": [],
+        "trl_level": [],
+        "consortium": []
+      },
+      "funding_amount_min": null,
+      "funding_amount_max": null,
+      "currency": "EUR",
+      "deadline": null,
+      "contact_email": "info@raiffeisen.at",
+      "contact_phone": "162038737137",
+      "contact_info": {
+        "text": "",
+        "email": "",
+        "phone": ""
+      },
+      "scraped_at": "2025-10-28T22:44:20.776Z",
+      "confidence_score": 0.8,
+      "is_active": true
+    },
+    {
+      "id": "program_1761691467104_mnnkl1ei2",
+      "name": "Förderungen fürs Bauen & Wohnen",
+      "description": "Ihr Suchbegriff ergab keine Treffer.",
+      "type": "grant",
+      "program_type": "grant",
+      "source_url": "https://www.raiffeisen.at/de/immobilien/finanzierungen/foerderungen.html",
+      "institution": "Raiffeisen Bank",
+      "program_category": "grant",
+      "funding_types": [
+        "bank_loan",
+        "leasing"
+      ],
+      "program_focus": [
+        "export",
+        "training",
+        "business",
+        "sustainability",
+        "transport",
+        "digital",
+        "energy",
+        "education",
+        "startup"
+      ],
+      "eligibility_criteria": {},
+      "categorized_requirements": {
+        "eligibility": [
+          {
+            "type": "company_type",
+            "value": "Startup",
+            "required": true,
+            "source": "full_page_content"
+          },
+          {
+            "type": "company_type",
+            "value": "Company",
+            "required": true,
+            "source": "full_page_content"
+          }
+        ],
+        "documents": [
+          {
+            "type": "required_documents",
+            "value": "Various documents required",
+            "required": true,
+            "source": "full_page_content"
+          }
+        ],
+        "financial": [],
+        "technical": [],
+        "legal": [],
+        "timeline": [],
+        "geographic": [
+          {
+            "type": "location",
+            "value": "Austria",
+            "required": true,
+            "source": "full_page_content"
+          }
+        ],
+        "team": [],
+        "project": [],
+        "compliance": [],
+        "impact": [],
+        "capex_opex": [],
+        "use_of_funds": [],
+        "revenue_model": [],
+        "market_size": [],
+        "co_financing": [],
+        "trl_level": [],
+        "consortium": []
+      },
+      "funding_amount_min": null,
+      "funding_amount_max": null,
+      "currency": "EUR",
+      "deadline": null,
+      "contact_email": "info@raiffeisen.at",
+      "contact_phone": "162038737137",
+      "contact_info": {
+        "text": "",
+        "email": "",
+        "phone": ""
+      },
+      "scraped_at": "2025-10-28T22:44:27.130Z",
+      "confidence_score": 0.8,
+      "is_active": true
+    },
+    {
+      "id": "program_1761691479937_ctve6o1vl",
+      "name": "Gewerbliche Immobilien bei Raiffeisen",
+      "description": "Ihr Suchbegriff ergab keine Treffer.",
+      "type": "grant",
+      "program_type": "grant",
+      "source_url": "https://www.raiffeisen.at/de/immobilien/finanzierungen/gewerbliche-immobilien.html",
+      "institution": "Raiffeisen Bank",
+      "program_category": "grant",
+      "funding_types": [
+        "bank_loan",
+        "leasing"
+      ],
+      "program_focus": [
+        "export",
+        "training",
+        "business",
+        "sustainability",
+        "transport",
+        "digital",
+        "energy",
+        "education",
+        "startup"
+      ],
+      "eligibility_criteria": {},
+      "categorized_requirements": {
+        "eligibility": [
+          {
+            "type": "company_type",
+            "value": "Startup",
+            "required": true,
+            "source": "full_page_content"
+          },
+          {
+            "type": "company_type",
+            "value": "Company",
+            "required": true,
+            "source": "full_page_content"
+          }
+        ],
+        "documents": [
+          {
+            "type": "required_documents",
+            "value": "Various documents required",
+            "required": true,
+            "source": "full_page_content"
+          }
+        ],
+        "financial": [],
+        "technical": [],
+        "legal": [],
+        "timeline": [],
+        "geographic": [],
+        "team": [],
+        "project": [],
+        "compliance": [],
+        "impact": [],
+        "capex_opex": [],
+        "use_of_funds": [],
+        "revenue_model": [],
+        "market_size": [],
+        "co_financing": [],
+        "trl_level": [],
+        "consortium": []
+      },
+      "funding_amount_min": null,
+      "funding_amount_max": null,
+      "currency": "EUR",
+      "deadline": null,
+      "contact_email": "info@raiffeisen.at",
+      "contact_phone": "162038737137",
+      "contact_info": {
+        "text": "",
+        "email": "",
+        "phone": ""
+      },
+      "scraped_at": "2025-10-28T22:44:40.012Z",
+      "confidence_score": 0.8,
+      "is_active": true
+    },
+    {
+      "id": "program_1761731094935_nz5rebhsu",
+      "name": "Unknown Program",
+      "description": "Austria Wirtschaftsservice Gesellschaft mbH (aws) is the promotional bank of the Austrian federal government and is 100% owned by the Republic of Austria. The Federal Ministry of Economy, Energy and Tourism (BMWET) and the Federal Ministry of Innovation, Mobility and Infrastructur (BMIMI) act as its owner representatives. The aws renders its services as part of its public mandate. Its clients include its owner representatives, the BMWET and BMIMI, as well as other Austrian federal ministries, states, public authorities and interest groups.",
+      "type": "grant",
+      "program_type": "grant",
+      "source_url": "https://www.aws.at/en/spezialprogramme/",
+      "institution": "Austria Wirtschaftsservice (AWS)",
+      "program_category": "grant",
+      "funding_types": [
+        "grant",
+        "loan",
+        "equity"
+      ],
+      "program_focus": [
+        "innovation",
+        "training",
+        "business",
+        "digital",
+        "energy",
+        "startup",
+        "export"
+      ],
+      "eligibility_criteria": {},
+      "categorized_requirements": {
+        "eligibility": [
+          {
+            "type": "company_type",
+            "value": "Company",
+            "required": true,
+            "source": "full_page_content"
+          }
+        ],
+        "documents": [],
+        "financial": [],
+        "technical": [],
+        "legal": [],
+        "timeline": [],
+        "geographic": [
+          {
+            "type": "location",
+            "value": "Austria",
+            "required": true,
+            "source": "full_page_content"
+          }
+        ],
+        "team": [],
+        "project": [],
+        "compliance": [],
+        "impact": [],
+        "capex_opex": [],
+        "use_of_funds": [],
+        "revenue_model": [],
+        "market_size": [],
+        "co_financing": [],
+        "trl_level": [],
+        "consortium": []
+      },
+      "funding_amount_min": null,
+      "funding_amount_max": null,
+      "currency": "EUR",
+      "deadline": null,
+      "contact_email": "24h-auskunft@aws.at",
+      "contact_phone": "1761645526",
+      "contact_info": {
+        "text": "",
+        "email": "",
+        "phone": ""
+      },
+      "scraped_at": "2025-10-29T09:44:54.938Z",
+      "confidence_score": 0.8,
+      "is_active": true
+    },
+    {
+      "id": "program_1761731097917_0c5hhns4s",
+      "name": "Unknown Program",
+      "description": "No description available",
+      "type": "research",
+      "program_type": "research",
+      "source_url": "https://www.aws.at/en/special-programmes/competitions/",
+      "institution": "Austria Wirtschaftsservice (AWS)",
+      "program_category": "research",
+      "funding_types": [
+        "grant",
+        "loan",
+        "equity"
+      ],
+      "program_focus": [
+        "innovation",
+        "research",
+        "startup",
+        "training",
+        "business",
+        "digital",
+        "energy",
+        "export"
+      ],
+      "eligibility_criteria": {},
+      "categorized_requirements": {
+        "eligibility": [
+          {
+            "type": "company_type",
+            "value": "Company",
+            "required": true,
+            "source": "full_page_content"
+          }
+        ],
+        "documents": [],
+        "financial": [],
+        "technical": [],
+        "legal": [],
+        "timeline": [],
+        "geographic": [
+          {
+            "type": "location",
+            "value": "Austria",
+            "required": true,
+            "source": "full_page_content"
+          }
+        ],
+        "team": [],
+        "project": [],
+        "compliance": [],
+        "impact": [],
+        "capex_opex": [],
+        "use_of_funds": [],
+        "revenue_model": [],
+        "market_size": [],
+        "co_financing": [],
+        "trl_level": [],
+        "consortium": []
+      },
+      "funding_amount_min": null,
+      "funding_amount_max": null,
+      "currency": "EUR",
+      "deadline": null,
+      "contact_email": "24h-auskunft@aws.at",
+      "contact_phone": "1761645526",
+      "contact_info": {
+        "text": "",
+        "email": "",
+        "phone": ""
+      },
+      "scraped_at": "2025-10-29T09:44:57.919Z",
+      "confidence_score": 0.8,
+      "is_active": true
+    },
+    {
+      "id": "program_1761731104407_84ijjuk36",
+      "name": "Unknown Program",
+      "description": "No description available",
+      "type": "research",
+      "program_type": "research",
+      "source_url": "https://www.aws.at/en/spezialprogramme/universities-and-universities-of-applied-sciences/",
+      "institution": "Austria Wirtschaftsservice (AWS)",
+      "program_category": "research",
+      "funding_types": [
+        "grant",
+        "loan",
+        "equity"
+      ],
+      "program_focus": [
+        "innovation",
+        "research",
+        "training",
+        "business",
+        "digital",
+        "energy",
+        "startup",
+        "export"
+      ],
+      "eligibility_criteria": {},
+      "categorized_requirements": {
+        "eligibility": [
+          {
+            "type": "company_type",
+            "value": "Company",
+            "required": true,
+            "source": "full_page_content"
+          }
+        ],
+        "documents": [],
+        "financial": [],
+        "technical": [],
+        "legal": [],
+        "timeline": [],
+        "geographic": [
+          {
+            "type": "location",
+            "value": "Austria",
+            "required": true,
+            "source": "full_page_content"
+          }
+        ],
+        "team": [],
+        "project": [],
+        "compliance": [],
+        "impact": [],
+        "capex_opex": [],
+        "use_of_funds": [],
+        "revenue_model": [],
+        "market_size": [],
+        "co_financing": [],
+        "trl_level": [],
+        "consortium": []
+      },
+      "funding_amount_min": null,
+      "funding_amount_max": null,
+      "currency": "EUR",
+      "deadline": null,
+      "contact_email": "24h-auskunft@aws.at",
+      "contact_phone": "1761645526",
+      "contact_info": {
+        "text": "",
+        "email": "",
+        "phone": ""
+      },
+      "scraped_at": "2025-10-29T09:45:04.411Z",
+      "confidence_score": 0.8,
+      "is_active": true
+    },
+    {
+      "id": "program_1761731110330_8cte29of0",
+      "name": "Unknown Program",
+      "description": "No description available",
+      "type": "research",
+      "program_type": "research",
+      "source_url": "https://www.aws.at/en/spezialprogramme/others/",
+      "institution": "Austria Wirtschaftsservice (AWS)",
+      "program_category": "research",
+      "funding_types": [
+        "grant",
+        "loan",
+        "equity"
+      ],
+      "program_focus": [
+        "innovation",
+        "research",
+        "startup",
+        "training",
+        "business",
+        "digital",
+        "energy",
+        "export"
+      ],
+      "eligibility_criteria": {},
+      "categorized_requirements": {
+        "eligibility": [
+          {
+            "type": "company_type",
+            "value": "Company",
+            "required": true,
+            "source": "full_page_content"
+          }
+        ],
+        "documents": [],
+        "financial": [],
+        "technical": [],
+        "legal": [],
+        "timeline": [],
+        "geographic": [
+          {
+            "type": "location",
+            "value": "Austria",
+            "required": true,
+            "source": "full_page_content"
+          }
+        ],
+        "team": [],
+        "project": [],
+        "compliance": [],
+        "impact": [],
+        "capex_opex": [],
+        "use_of_funds": [],
+        "revenue_model": [],
+        "market_size": [],
+        "co_financing": [],
+        "trl_level": [],
+        "consortium": []
+      },
+      "funding_amount_min": null,
+      "funding_amount_max": null,
+      "currency": "EUR",
+      "deadline": null,
+      "contact_email": "24h-auskunft@aws.at",
+      "contact_phone": "1761645526",
+      "contact_info": {
+        "text": "",
+        "email": "",
+        "phone": ""
+      },
+      "scraped_at": "2025-10-29T09:45:10.332Z",
+      "confidence_score": 0.8,
+      "is_active": true
+    },
+    {
+      "id": "program_1761731404195_j3ghb0cn6",
+      "name": "Unknown Program",
+      "description": "No description available",
+      "type": "research",
+      "program_type": "research",
+      "source_url": "https://www.aws.at/en/spezialprogramme/investors-incubators/",
+      "institution": "Austria Wirtschaftsservice (AWS)",
+      "program_category": "research",
+      "funding_types": [
+        "grant",
+        "loan",
+        "equity"
+      ],
+      "program_focus": [
+        "innovation",
+        "research",
+        "startup",
+        "training",
+        "business",
+        "technology",
+        "digital",
+        "energy",
+        "export"
+      ],
+      "eligibility_criteria": {},
+      "categorized_requirements": {
+        "eligibility": [
+          {
+            "type": "company_type",
+            "value": "Company",
+            "required": true,
+            "source": "full_page_content"
+          }
+        ],
+        "documents": [],
+        "financial": [],
+        "technical": [],
+        "legal": [],
+        "timeline": [],
+        "geographic": [
+          {
+            "type": "location",
+            "value": "Austria",
+            "required": true,
+            "source": "full_page_content"
+          }
+        ],
+        "team": [],
+        "project": [],
+        "compliance": [],
+        "impact": [],
+        "capex_opex": [],
+        "use_of_funds": [],
+        "revenue_model": [],
+        "market_size": [],
+        "co_financing": [],
+        "trl_level": [],
+        "consortium": []
+      },
+      "funding_amount_min": null,
+      "funding_amount_max": null,
+      "currency": "EUR",
+      "deadline": null,
+      "contact_email": "24h-auskunft@aws.at",
+      "contact_phone": "1761645526",
+      "contact_info": {
+        "text": "",
+        "email": "",
+        "phone": ""
+      },
+      "scraped_at": "2025-10-29T09:50:04.201Z",
       "confidence_score": 0.8,
       "is_active": true
     }

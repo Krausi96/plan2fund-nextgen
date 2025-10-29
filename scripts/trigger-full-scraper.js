@@ -1,9 +1,10 @@
 const http = require('http');
 
-// Get cycleOnly parameter from command line
+// Get cycleOnly and discoveryMode parameters from command line
 const cycleOnly = process.argv[2] === 'cycle';
+const discoveryMode = process.argv[3] === 'deep' ? 'deep' : 'incremental';
 
-const postData = JSON.stringify({ cycleOnly });
+const postData = JSON.stringify({ cycleOnly, discoveryMode });
 const options = {
   hostname: 'localhost',
   port: 3000,
@@ -16,9 +17,10 @@ const options = {
       timeout: 300000 // 5 minutes
 };
 
-console.log(`🚀 Triggering WebScraperService (${cycleOnly ? 'CYCLE MODE' : 'FULL MODE'})...`);
+console.log(`🚀 Triggering WebScraperService (${cycleOnly ? 'CYCLE MODE' : 'FULL MODE'}, ${discoveryMode.toUpperCase()})...`);
 console.log('⏰ Started at:', new Date().toISOString());
 console.log('📊 Mode:', cycleOnly ? 'Cycle - One institution at a time (faster)' : 'Full - All institutions (slower)');
+console.log('📊 Discovery:', discoveryMode === 'deep' ? 'Deep - Full re-exploration' : 'Incremental - Skip explored sections');
 
 const req = http.request(options, (res) => {
   let data = '';

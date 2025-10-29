@@ -10,7 +10,7 @@ export interface InstitutionConfig {
     contact: string[];
   };
   fundingTypes: string[]; // Only financial mechanisms
-  programFocus: string[]; // Program categories/focus areas
+  programFocus?: string[]; // Optional: Program categories/focus areas (auto-detected if not provided)
   region: string;
   autoDiscovery: boolean; // Phase 4: Enable auto-discovery
   keywords: string[]; // Keywords for program detection
@@ -34,7 +34,6 @@ export const institutions: InstitutionConfig[] = [
       contact: ['.contact', '.ansprechpartner', '.kontakt']
     },
     fundingTypes: ['grant', 'loan', 'equity'],
-    programFocus: [], // Will be auto-detected
     region: 'Austria',
     autoDiscovery: true,  // ✅ Auto-discovery enabled
     keywords: ['foerderung', 'grant', 'startup', 'innovation', 'investition', 'export']
@@ -53,7 +52,6 @@ export const institutions: InstitutionConfig[] = [
       contact: ['.contact', '.ansprechpartner', '.kontakt']
     },
     fundingTypes: ['grant'],
-    programFocus: [], // Will be auto-detected
     region: 'Austria',
     autoDiscovery: true,  // ✅ Auto-discovery enabled
     keywords: ['foerderung', 'research', 'innovation', 'development', 'trl', 'basisprogramm']
@@ -72,7 +70,6 @@ export const institutions: InstitutionConfig[] = [
       contact: ['.contact', '.ansprechpartner', '.kontakt']
     },
     fundingTypes: ['grant'],
-    programFocus: [], // Will be auto-detected
     region: 'Vienna',
     autoDiscovery: true,  // ✅ Auto-discovery enabled
     keywords: ['foerderung', 'startup', 'innovation', 'business', 'vienna', 'export']
@@ -94,7 +91,6 @@ export const institutions: InstitutionConfig[] = [
       contact: ['.contact', '.ansprechpartner', '.kontakt']
     },
     fundingTypes: ['grant'],
-    programFocus: [], // Will be auto-detected
     region: 'Austria',
     autoDiscovery: true,  // ✅ Auto-discovery enabled
     keywords: ['foerderung', 'employment', 'training', 'arbeitsmarkt', 'job', 'ausbildung']
@@ -103,11 +99,8 @@ export const institutions: InstitutionConfig[] = [
     name: 'WKO (Wirtschaftskammer Österreich)',
     baseUrl: 'https://www.wko.at',
     programUrls: [
-      'https://www.wko.at/foerderungen',
-      'https://www.wko.at/startup-foerderungen',
-      'https://www.wko.at/innovation-foerderungen',
-      'https://www.wko.at/export-foerderungen',
-      'https://www.wko.at/ausbildung-foerderungen'
+      'https://www.wko.at/foerderungen'  // Auto-discovery will find the rest
+      // Removed: startup-foerderungen, innovation-foerderungen, export-foerderungen, ausbildung-foerderungen (404)
     ],
     selectors: {
       name: ['h1', '.program-title', '.foerderung-title'],
@@ -117,7 +110,6 @@ export const institutions: InstitutionConfig[] = [
       contact: ['.contact', '.ansprechpartner', '.kontakt']
     },
     fundingTypes: ['grant'],
-    programFocus: [], // Will be auto-detected
     region: 'Austria',
     autoDiscovery: true,  // ✅ Auto-discovery enabled
     keywords: ['foerderung', 'business', 'innovation', 'export', 'ausbildung', 'wirtschaft']
@@ -126,9 +118,7 @@ export const institutions: InstitutionConfig[] = [
     name: 'ÖBS (Österreichische Bundesbahnen)',
     baseUrl: 'https://www.oebb.at',
     programUrls: [
-      'https://www.oebb.at/unternehmen/foerderungen',
-      'https://www.oebb.at/innovation/foerderungen',
-      'https://www.oebb.at/nachhaltigkeit/foerderungen'
+      // All removed - all return 404. Auto-discovery will try to find valid pages.
     ],
     selectors: {
       name: ['h1', '.program-title', '.foerderung-title'],
@@ -138,7 +128,6 @@ export const institutions: InstitutionConfig[] = [
       contact: ['.contact', '.ansprechpartner', '.kontakt']
     },
     fundingTypes: ['grant'],
-    programFocus: [], // Will be auto-detected
     region: 'Austria',
     autoDiscovery: true,  // ✅ Auto-discovery enabled
     keywords: ['foerderung', 'innovation', 'nachhaltigkeit', 'transport', 'bahn', 'mobilität']
@@ -152,20 +141,8 @@ export const institutions: InstitutionConfig[] = [
     baseUrl: 'https://www.bankaustria.at',
     programUrls: [
       'https://www.bankaustria.at/unternehmen/kredite',
-      'https://www.bankaustria.at/unternehmen/finanzierung',
-      'https://www.bankaustria.at/unternehmen/startup-finanzierung',
-      'https://www.bankaustria.at/unternehmen/export-finanzierung',
-      'https://www.bankaustria.at/unternehmen/kredite/betriebsmittelkredit',
-      'https://www.bankaustria.at/unternehmen/kredite/investitionskredit',
-      'https://www.bankaustria.at/unternehmen/kredite/immobilienkredit',
-      'https://www.bankaustria.at/unternehmen/kredite/leasing',
-      'https://www.bankaustria.at/unternehmen/kredite/factoring',
-      'https://www.bankaustria.at/unternehmen/kredite/buergschaft',
-      'https://www.bankaustria.at/unternehmen/kredite/exportfinanzierung',
-      'https://www.bankaustria.at/unternehmen/kredite/startup-kredit',
-      'https://www.bankaustria.at/unternehmen/kredite/innovation-kredit',
-      'https://www.bankaustria.at/unternehmen/kredite/nachhaltigkeits-kredit',
-      'https://www.bankaustria.at/unternehmen/kredite/digitalisierungs-kredit'
+      'https://www.bankaustria.at/unternehmen/finanzierung'
+      // Removed deep subpages - all return 404. Auto-discovery will find valid program pages from these seeds.
     ],
     selectors: {
       name: ['h1', '.program-title', '.kredit-title'],
@@ -175,7 +152,6 @@ export const institutions: InstitutionConfig[] = [
       contact: ['.contact', '.ansprechpartner', '.kontakt']
     },
     fundingTypes: ['bank_loan'],
-    programFocus: [], // Will be auto-detected
     region: 'Austria',
     autoDiscovery: true,  // ✅ Auto-discovery enabled
     keywords: ['kredit', 'darlehen', 'finanzierung', 'startup', 'export', 'unternehmen']
@@ -197,7 +173,6 @@ export const institutions: InstitutionConfig[] = [
       contact: ['.contact', '.ansprechpartner', '.kontakt']
     },
     fundingTypes: ['bank_loan', 'leasing'],
-    programFocus: [], // Will be auto-detected
     region: 'Austria',
     autoDiscovery: true,  // ✅ Auto-discovery enabled
     keywords: ['kredit', 'darlehen', 'finanzierung', 'startup', 'leasing', 'unternehmen']
@@ -219,7 +194,6 @@ export const institutions: InstitutionConfig[] = [
       contact: ['.contact', '.ansprechpartner', '.kontakt']
     },
     fundingTypes: ['bank_loan', 'leasing'],
-    programFocus: [], // Will be auto-detected
     region: 'Austria',
     autoDiscovery: true,  // ✅ Auto-discovery enabled
     keywords: ['kredit', 'darlehen', 'finanzierung', 'startup', 'leasing', 'unternehmen']
@@ -243,7 +217,6 @@ export const institutions: InstitutionConfig[] = [
       contact: ['.contact', '.support', '.help']
     },
     fundingTypes: ['crowdfunding'],
-    programFocus: [], // Will be auto-detected
     region: 'International',
     autoDiscovery: true,  // ✅ Auto-discovery enabled
     keywords: ['crowdfunding', 'kickstarter', 'project', 'funding', 'campaign']
@@ -263,7 +236,6 @@ export const institutions: InstitutionConfig[] = [
       contact: ['.contact', '.support', '.help']
     },
     fundingTypes: ['crowdfunding'],
-    programFocus: [], // Will be auto-detected
     region: 'International',
     autoDiscovery: true,  // ✅ Auto-discovery enabled
     keywords: ['crowdfunding', 'indiegogo', 'project', 'funding', 'campaign']
@@ -287,7 +259,6 @@ export const institutions: InstitutionConfig[] = [
       contact: ['.contact', '.ansprechpartner', '.kontakt']
     },
     fundingTypes: ['grant'],
-    programFocus: [], // Will be auto-detected
     region: 'Germany',
     autoDiscovery: true,  // ✅ Auto-discovery enabled
     keywords: ['foerderung', 'innovation', 'forschung', 'startup', 'klimaschutz']
@@ -307,7 +278,6 @@ export const institutions: InstitutionConfig[] = [
       contact: ['.contact', '.ansprechpartner', '.kontakt']
     },
     fundingTypes: ['loan', 'grant'],
-    programFocus: [], // Will be auto-detected
     region: 'Germany',
     autoDiscovery: true,  // ✅ Auto-discovery enabled
     keywords: ['kredit', 'darlehen', 'foerderung', 'investition', 'startup']
@@ -329,7 +299,6 @@ export const institutions: InstitutionConfig[] = [
       contact: ['.contact', '.ansprechpartner', '.kontakt']
     },
     fundingTypes: ['loan', 'equity', 'grant'],
-    programFocus: [], // Will be auto-detected
     region: 'France',
     autoDiscovery: true,  // ✅ Auto-discovery enabled
     keywords: ['financement', 'pret', 'investissement', 'startup', 'innovation']
@@ -351,7 +320,6 @@ export const institutions: InstitutionConfig[] = [
       contact: ['.contact', '.ansprechpartner', '.kontakt']
     },
     fundingTypes: ['grant', 'research', 'innovation'],
-    programFocus: [], // Will be auto-detected
     region: 'EU',
     autoDiscovery: true,  // ✅ Auto-discovery enabled
     keywords: ['horizon', 'europe', 'research', 'innovation', 'grant']
@@ -374,7 +342,6 @@ export const institutions: InstitutionConfig[] = [
       contact: ['.contacto', '.informacion', '.datos-contacto']
     },
     fundingTypes: ['grant', 'loan'],
-    programFocus: [], // Will be auto-detected
     region: 'Spain',
     autoDiscovery: true,  // ✅ Auto-discovery enabled
     keywords: ['ayuda', 'subvencion', 'financiacion', 'innovacion', 'investigacion']
@@ -395,7 +362,6 @@ export const institutions: InstitutionConfig[] = [
       contact: ['.contacto', '.informacion', '.datos-contacto']
     },
     fundingTypes: ['equity', 'loan'],
-    programFocus: [], // Will be auto-detected
     region: 'Spain',
     autoDiscovery: true,  // ✅ Auto-discovery enabled
     keywords: ['financiacion', 'participacion', 'garantia', 'inversion', 'startup']
@@ -418,7 +384,6 @@ export const institutions: InstitutionConfig[] = [
       contact: ['.contatto', '.informazioni', '.dati-contatto']
     },
     fundingTypes: ['grant', 'loan'],
-    programFocus: [], // Will be auto-detected
     region: 'Italy',
     autoDiscovery: true,  // ✅ Auto-discovery enabled
     keywords: ['incentivo', 'bando', 'finanziamento', 'startup', 'innovazione']
@@ -439,7 +404,6 @@ export const institutions: InstitutionConfig[] = [
       contact: ['.contatto', '.informazioni', '.dati-contatto']
     },
     fundingTypes: ['loan'],
-    programFocus: [], // Will be auto-detected
     region: 'Italy',
     autoDiscovery: true,  // ✅ Auto-discovery enabled
     keywords: ['finanziamento', 'investimento', 'sostenibilita', 'innovazione']
@@ -462,7 +426,6 @@ export const institutions: InstitutionConfig[] = [
       contact: ['.contact', '.informatie', '.contactgegevens']
     },
     fundingTypes: ['grant', 'subsidy'],
-    programFocus: [], // Will be auto-detected
     region: 'Netherlands',
     autoDiscovery: true,  // ✅ Auto-discovery enabled
     keywords: ['subsidie', 'regeling', 'innovatie', 'startup', 'financiering']
@@ -483,7 +446,6 @@ export const institutions: InstitutionConfig[] = [
       contact: ['.contact', '.informatie', '.contactgegevens']
     },
     fundingTypes: ['equity', 'venture_capital'],
-    programFocus: [], // Will be auto-detected
     region: 'Netherlands',
     autoDiscovery: true,  // ✅ Auto-discovery enabled
     keywords: ['investering', 'venture', 'kapitaal', 'impact', 'startup']
@@ -505,7 +467,6 @@ export const institutions: InstitutionConfig[] = [
       contact: ['.contact', '.ansprechpartner']
     },
     fundingTypes: ['grant', 'subsidy'],
-    programFocus: [],
     region: 'Germany',
     autoDiscovery: true,  // ✅ Auto-discovery enabled
     keywords: ['foerderung', 'energie', 'innovation', 'forschung']
@@ -525,7 +486,6 @@ export const institutions: InstitutionConfig[] = [
       contact: ['.contact', '.ansprechpartner']
     },
     fundingTypes: ['loan', 'grant'],
-    programFocus: [],
     region: 'Germany',
     autoDiscovery: true,  // ✅ Auto-discovery enabled
     keywords: ['foerderung', 'kredit', 'darlehen', 'finanzierung']
@@ -547,7 +507,6 @@ export const institutions: InstitutionConfig[] = [
       contact: ['.contact', '.conseiller']
     },
     fundingTypes: ['loan', 'equity', 'grant'],
-    programFocus: [],
     region: 'France',
     autoDiscovery: true,  // ✅ Auto-discovery enabled
     keywords: ['financement', 'pret', 'investissement', 'innovation']
@@ -569,7 +528,6 @@ export const institutions: InstitutionConfig[] = [
       contact: ['.contact', '.helpdesk']
     },
     fundingTypes: ['grant'],
-    programFocus: [],
     region: 'EU',
     autoDiscovery: true,  // ✅ Auto-discovery enabled
     keywords: ['research', 'innovation', 'funding', 'grant']
@@ -591,7 +549,6 @@ export const institutions: InstitutionConfig[] = [
       contact: ['.contact', '.ansprechpartner']
     },
     fundingTypes: ['loan', 'grant'],
-    programFocus: [],
     region: 'Austria',
     autoDiscovery: true,  // ✅ Auto-discovery enabled
     keywords: ['foerderung', 'kredit', 'finanzierung']
@@ -611,7 +568,6 @@ export const institutions: InstitutionConfig[] = [
       contact: ['.contact', '.ansprechpartner']
     },
     fundingTypes: ['grant', 'subsidy'],
-    programFocus: [],
     region: 'Austria',
     autoDiscovery: true,  // ✅ Auto-discovery enabled
     keywords: ['foerderung', 'subvention', 'beihilfe']
@@ -633,7 +589,6 @@ export const institutions: InstitutionConfig[] = [
       contact: ['.contact', '.beratung']
     },
     fundingTypes: ['bank_loan'],
-    programFocus: [],
     region: 'Germany',
     autoDiscovery: true,  // ✅ Auto-discovery enabled
     keywords: ['kredit', 'finanzierung', 'darlehen']
@@ -653,7 +608,6 @@ export const institutions: InstitutionConfig[] = [
       contact: ['.contact', '.beratung']
     },
     fundingTypes: ['bank_loan'],
-    programFocus: [],
     region: 'Germany',
     autoDiscovery: true,  // ✅ Auto-discovery enabled
     keywords: ['kredit', 'finanzierung', 'darlehen']
@@ -675,7 +629,6 @@ export const institutions: InstitutionConfig[] = [
       contact: ['.contact', '.helpdesk']
     },
     fundingTypes: ['loan', 'grant'],
-    programFocus: [],
     region: 'EU',
     autoDiscovery: true,  // ✅ Auto-discovery enabled
     keywords: ['loan', 'funding', 'investment']
@@ -695,10 +648,139 @@ export const institutions: InstitutionConfig[] = [
       contact: ['.contact', '.helpdesk']
     },
     fundingTypes: ['equity', 'venture_capital'],
-    programFocus: [],
     region: 'EU',
     autoDiscovery: true,  // ✅ Auto-discovery enabled
     keywords: ['equity', 'venture', 'capital', 'investment']
+  },
+  
+  // === ADDITIONAL AUSTRIAN INSTITUTIONS ===
+  
+  {
+    name: 'Austrian Federal Ministry of Education, Science and Research (BMBWF)',
+    baseUrl: 'https://www.bmbwf.gv.at',
+    programUrls: [
+      'https://www.bmbwf.gv.at/Themen/forschung/foerderungen.html',
+      'https://www.bmbwf.gv.at/Themen/forschung/universitaeten.html',
+      'https://www.bmbwf.gv.at/Themen/forschung/innovation.html'
+    ],
+    selectors: {
+      name: ['h1', '.program-title'],
+      description: ['.program-description', 'p'],
+      eligibility: ['.eligibility', '.voraussetzungen'],
+      requirements: ['.requirements', '.dokumente'],
+      contact: ['.contact', '.ansprechpartner']
+    },
+    fundingTypes: ['grant', 'research'],
+    region: 'Austria',
+    autoDiscovery: true,
+    keywords: ['foerderung', 'forschung', 'innovation', 'universitaet', 'wissenschaft']
+  },
+  
+  {
+    name: 'Austrian Federal Ministry of Climate Action (BMK)',
+    baseUrl: 'https://www.bmk.gv.at',
+    programUrls: [
+      'https://www.bmk.gv.at/themen/klima/foerderungen.html',
+      'https://www.bmk.gv.at/themen/energie/foerderungen.html',
+      'https://www.bmk.gv.at/themen/umwelt/foerderungen.html'
+    ],
+    selectors: {
+      name: ['h1', '.program-title'],
+      description: ['.program-description', 'p'],
+      eligibility: ['.eligibility', '.voraussetzungen'],
+      requirements: ['.requirements', '.dokumente'],
+      contact: ['.contact', '.ansprechpartner']
+    },
+    fundingTypes: ['grant', 'subsidy'],
+    region: 'Austria',
+    autoDiscovery: true,
+    keywords: ['foerderung', 'klima', 'energie', 'umwelt', 'nachhaltigkeit']
+  },
+  
+  {
+    name: 'Austrian Federal Ministry of Digital and Economic Affairs (BMDW)',
+    baseUrl: 'https://www.bmdw.gv.at',
+    programUrls: [
+      'https://www.bmdw.gv.at/Themen/Digitalisierung/foerderungen.html',
+      'https://www.bmdw.gv.at/Themen/Wirtschaft/foerderungen.html',
+      'https://www.bmdw.gv.at/Themen/Tourismus/foerderungen.html'
+    ],
+    selectors: {
+      name: ['h1', '.program-title'],
+      description: ['.program-description', 'p'],
+      eligibility: ['.eligibility', '.voraussetzungen'],
+      requirements: ['.requirements', '.dokumente'],
+      contact: ['.contact', '.ansprechpartner']
+    },
+    fundingTypes: ['grant', 'subsidy'],
+    region: 'Austria',
+    autoDiscovery: true,
+    keywords: ['foerderung', 'digitalisierung', 'wirtschaft', 'tourismus', 'innovation']
+  },
+  
+  {
+    name: 'Austrian Research and Technology Development Fund (FWF)',
+    baseUrl: 'https://www.fwf.ac.at',
+    programUrls: [
+      'https://www.fwf.ac.at/en/funding/',
+      'https://www.fwf.ac.at/en/funding/programmes/',
+      'https://www.fwf.ac.at/en/funding/calls/'
+    ],
+    selectors: {
+      name: ['h1', '.program-title'],
+      description: ['.program-description', 'p'],
+      eligibility: ['.eligibility', '.voraussetzungen'],
+      requirements: ['.requirements', '.dokumente'],
+      contact: ['.contact', '.ansprechpartner']
+    },
+    fundingTypes: ['grant', 'research'],
+    region: 'Austria',
+    autoDiscovery: true,
+    keywords: ['fwf', 'forschung', 'wissenschaft', 'research', 'wissenschaftsfonds']
+  },
+  
+  // === ADDITIONAL EU INSTITUTIONS ===
+  
+  {
+    name: 'European Regional Development Fund (ERDF)',
+    baseUrl: 'https://ec.europa.eu',
+    programUrls: [
+      'https://ec.europa.eu/regional_policy/en/funding/erdf/',
+      'https://ec.europa.eu/regional_policy/en/funding/erdf/2014-2020/',
+      'https://ec.europa.eu/regional_policy/en/funding/erdf/2021-2027/'
+    ],
+    selectors: {
+      name: ['h1', '.program-title'],
+      description: ['.program-description', 'p'],
+      eligibility: ['.eligibility', '.conditions'],
+      requirements: ['.requirements', '.documents'],
+      contact: ['.contact', '.helpdesk']
+    },
+    fundingTypes: ['grant', 'subsidy'],
+    region: 'EU',
+    autoDiscovery: true,
+    keywords: ['erdf', 'regional', 'development', 'funding', 'cohesion']
+  },
+  
+  {
+    name: 'European Social Fund (ESF)',
+    baseUrl: 'https://ec.europa.eu',
+    programUrls: [
+      'https://ec.europa.eu/esf/main.jsp?catId=1&langId=en',
+      'https://ec.europa.eu/esf/main.jsp?catId=2&langId=en',
+      'https://ec.europa.eu/esf/main.jsp?catId=3&langId=en'
+    ],
+    selectors: {
+      name: ['h1', '.program-title'],
+      description: ['.program-description', 'p'],
+      eligibility: ['.eligibility', '.conditions'],
+      requirements: ['.requirements', '.documents'],
+      contact: ['.contact', '.helpdesk']
+    },
+    fundingTypes: ['grant', 'subsidy'],
+    region: 'EU',
+    autoDiscovery: true,
+    keywords: ['esf', 'social', 'employment', 'training', 'education']
   }
 ];
 
