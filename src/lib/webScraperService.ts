@@ -133,7 +133,7 @@ export class WebScraperService {
         console.log(`🔍 [INSTITUTION] Keywords: ${institution.keywords.join(', ')}`);
         
         const programUrls = await this.discoverRealProgramUrls(institution, discoveryMode);
-        console.log(`📍 [DISCOVERY] Found ${programUrls.length} total program URLs (taking first 15)`);
+        console.log(`📍 [DISCOVERY] Found ${programUrls.length} total program URLs`);
         
         // Prioritize: unscraped URLs first, then new discoveries
         const prioritizedUrls = this.prioritizeUrls(programUrls, existingUrls);
@@ -231,8 +231,8 @@ export class WebScraperService {
     console.log(`  🔍 [DISCOVERY] Queue initialized with ${urlQueue.length} URLs to explore`);
     
     // Breadth-first exploration with pagination support
-    const maxDepth = 2; // Max depth for exploration
-    const maxUrlsToDiscover = 100; // Increased limit for better discovery
+    const maxDepth = 3; // INCREASED: Max depth for exploration (was 2) - need to go deeper in category pages
+    const maxUrlsToDiscover = 200; // INCREASED: Limit for better discovery (was 100)
     
     // First, add any unscraped URLs from already-explored sections to discoveredUrls
     const existingPrograms = this.loadExistingPrograms();
@@ -275,12 +275,40 @@ export class WebScraperService {
         );
         
         // Add pagination/category links to queue (explore them to find detail pages)
+        // FIXED: Category pages MUST be explored deeper to find detail links
         const allExplorationLinks = [...paginationLinks, ...categoryLinks];
         for (const exploreLink of allExplorationLinks) {
           if (!discoveredUrls.has(exploreLink) && depth < maxDepth) {
             urlQueue.push({url: exploreLink, depth: depth + 1, seedUrl: currentSeed});
             discoveredUrls.add(exploreLink);
             console.log(`  ➕ [DISCOVERY] Added exploration link (category/pagination, depth ${depth + 1}): ${exploreLink}`);
+          } else if (!discoveredUrls.has(exploreLink)) {
+            // Even if depth limit reached, track it
+            discoveredUrls.add(exploreLink);
+          }
+        }
+        
+        // FIXED: Also extract ANY additional links from category pages that might be program links
+        // Some program links might not have been caught by initial filtering
+        if (categoryLinks.length > 0) {
+          const additionalLinks = links.filter(link => 
+            link !== url &&
+            !discoveredUrls.has(link) &&
+            this.isRealProgramUrl(link) &&
+            // Include if it looks like a program detail page OR if it's deep enough
+            (this.isProgramDetailPage(link) || new URL(link).pathname.split('/').filter(s => s).length >= 3)
+          );
+          for (const additionalLink of additionalLinks) {
+            if (!discoveredUrls.has(additionalLink)) {
+              discoveredUrls.add(additionalLink);
+              // If it's a detail page, mark it directly; otherwise add to queue if depth allows
+              if (this.isProgramDetailPage(additionalLink)) {
+                console.log(`  ✅ [DISCOVERY] Found program DETAIL page from category page: ${additionalLink}`);
+              } else if (depth < maxDepth) {
+                urlQueue.push({url: additionalLink, depth: depth + 1, seedUrl: currentSeed});
+                console.log(`  ➕ [DISCOVERY] Added additional link for exploration (depth ${depth + 1}): ${additionalLink}`);
+              }
+            }
           }
         }
         
@@ -1444,12 +1472,19 @@ export class WebScraperService {
       
       await page.goto(url, { waitUntil: 'domcontentloaded', timeout: 10000 });
       
-      const links = await page.evaluate((keywords, exclusionKeywords) => {
+      // IMPROVED: Extract links from category pages more aggressively
+      // Look in article cards, list items, and content areas where programs are typically listed
+      const links = await page.evaluate((keywords, exclusionKeywords, baseUrl) => {
         const linkElements = Array.from(document.querySelectorAll('a[href]'));
-        return linkElements
-          .map(el => el.getAttribute('href'))
-          .filter((href): href is string => !!href && (
-            keywords.some(keyword => href.toLowerCase().includes(keyword)) ||
+        const allLinks = new Set<string>();
+        
+        // First pass: Get all links with keywords (as before)
+        linkElements.forEach(el => {
+          const href = el.getAttribute('href');
+          if (!href) return;
+          
+          const hrefLower = href.toLowerCase();
+          const hasKeyword = keywords.some(keyword => hrefLower.includes(keyword)) ||
             href.includes('foerderung') || 
             href.includes('program') || 
             href.includes('grant') ||
@@ -1457,22 +1492,87 @@ export class WebScraperService {
             href.includes('startup') ||
             href.includes('innovation') ||
             href.includes('kredit') ||
-            href.includes('darlehen')
-          ))
-          .filter((href): href is string => 
-            !!href && 
-            !exclusionKeywords.some(keyword => href.toLowerCase().includes(keyword))
-          )
-          .map((href): string => {
-            if (href.startsWith('/')) {
-              return new URL(href, window.location.origin).href;
+            href.includes('darlehen');
+          
+          if (hasKeyword) {
+            const hasBlacklist = exclusionKeywords.some(keyword => hrefLower.includes(keyword));
+            if (!hasBlacklist) {
+              let fullUrl: string;
+              if (href.startsWith('/')) {
+                try {
+                  fullUrl = new URL(href, baseUrl).href;
+                } catch {
+                  return;
+                }
+              } else if (href.startsWith('http')) {
+                fullUrl = href;
+              } else {
+                return;
+              }
+              if (fullUrl && fullUrl.startsWith('http')) {
+                allLinks.add(fullUrl);
+              }
             }
-            return href;
-          })
-          .filter((href): href is string => !!href && href.startsWith('http'));
-      }, institution.keywords, autoDiscoveryPatterns.exclusionKeywords);
+          }
+        });
+        
+        // Second pass: Get links from content areas (article cards, list items, etc.)
+        // These might not have keywords in URL but are program links
+        const contentSelectors = [
+          'article a[href]',
+          '.content a[href]',
+          '.program-list a[href]',
+          '.foerderung-list a[href]',
+          'li a[href]',
+          '.card a[href]',
+          '.teaser a[href]',
+          'main a[href]'
+        ];
+        
+        contentSelectors.forEach(selector => {
+          const elements = document.querySelectorAll(selector);
+          elements.forEach((el: Element) => {
+            const href = (el as HTMLAnchorElement).getAttribute('href');
+            if (!href) return;
+            
+            const hrefLower = href.toLowerCase();
+            const hasBlacklist = exclusionKeywords.some(keyword => hrefLower.includes(keyword));
+            if (hasBlacklist) return;
+            
+            // If link is in content area and is deep enough path, include it
+            const path = new URL(href.startsWith('/') ? new URL(href, baseUrl).href : href).pathname.toLowerCase();
+            const pathDepth = path.split('/').filter(s => s.length > 0).length;
+            
+            // Include if deep path (likely program detail page) or has program-related parent text
+            const parentText = el.closest('article, .card, .teaser, li')?.textContent?.toLowerCase() || '';
+            const hasProgramText = parentText.includes('foerderung') || parentText.includes('program') || 
+                                  parentText.includes('grant') || parentText.includes('funding');
+            
+            if (pathDepth >= 2 && (pathDepth >= 3 || hasProgramText)) {
+              let fullUrl: string;
+              try {
+                if (href.startsWith('/')) {
+                  fullUrl = new URL(href, baseUrl).href;
+                } else if (href.startsWith('http')) {
+                  fullUrl = href;
+                } else {
+                  return;
+                }
+                if (fullUrl && fullUrl.startsWith('http') && fullUrl.includes(new URL(baseUrl).hostname)) {
+                  allLinks.add(fullUrl);
+                }
+              } catch {
+                return;
+              }
+            }
+          });
+        });
+        
+        return Array.from(allLinks);
+      }, institution.keywords, autoDiscoveryPatterns.exclusionKeywords, institution.baseUrl);
       
       await page.close();
+      console.log(`    📎 [EXTRACT] Found ${links.length} links from ${url}`);
       return links;
     } catch (error) {
       console.error(`Error extracting links from ${url}:`, error);

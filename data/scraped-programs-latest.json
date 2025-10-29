@@ -1,6 +1,6 @@
 {
-  "timestamp": "2025-10-29T10:13:46.809Z",
-  "totalPrograms": 49,
+  "timestamp": "2025-10-29T10:20:57.327Z",
+  "totalPrograms": 55,
   "programs": [
     {
       "id": "program_1761682088015_7so9bfw0x",
@@ -5737,6 +5737,465 @@
         "phone": ""
       },
       "scraped_at": "2025-10-29T09:50:04.201Z",
+      "confidence_score": 0.8,
+      "is_active": true
+    },
+    {
+      "id": "program_1761733146347_2i02o2h07",
+      "name": "Energiekostenzuschuss I und II",
+      "description": "Die Möglichkeit zur Antragsstellung endete am 15.02.2023",
+      "type": "grant",
+      "program_type": "grant",
+      "source_url": "https://aws.at/ukraine-krieg-sonder-foerderungsprogramme/aws-energiekostenzuschuss-2/",
+      "institution": "Austria Wirtschaftsservice (AWS)",
+      "program_category": "grant",
+      "funding_types": [
+        "grant",
+        "loan",
+        "equity"
+      ],
+      "program_focus": [
+        "innovation",
+        "employment",
+        "training",
+        "business",
+        "technology",
+        "digital",
+        "environment",
+        "energy",
+        "startup",
+        "export"
+      ],
+      "eligibility_criteria": {},
+      "categorized_requirements": {
+        "eligibility": [
+          {
+            "type": "company_type",
+            "value": "Startup",
+            "required": true,
+            "source": "full_page_content"
+          },
+          {
+            "type": "company_type",
+            "value": "Company",
+            "required": true,
+            "source": "full_page_content"
+          }
+        ],
+        "documents": [
+          {
+            "type": "required_documents",
+            "value": "Various documents required",
+            "required": true,
+            "source": "full_page_content"
+          }
+        ],
+        "financial": [],
+        "technical": [],
+        "legal": [],
+        "timeline": [],
+        "geographic": [
+          {
+            "type": "location",
+            "value": "Austria",
+            "required": true,
+            "source": "full_page_content"
+          }
+        ],
+        "team": [],
+        "project": [],
+        "compliance": [],
+        "impact": [],
+        "capex_opex": [],
+        "use_of_funds": [],
+        "revenue_model": [],
+        "market_size": [],
+        "co_financing": [],
+        "trl_level": [],
+        "consortium": []
+      },
+      "funding_amount_min": null,
+      "funding_amount_max": null,
+      "currency": "EUR",
+      "deadline": null,
+      "contact_email": "24h-auskunft@aws.at",
+      "contact_phone": "1761645526",
+      "contact_info": {
+        "text": "",
+        "email": "",
+        "phone": ""
+      },
+      "scraped_at": "2025-10-29T10:19:06.360Z",
+      "confidence_score": 0.8,
+      "is_active": true
+    },
+    {
+      "id": "program_1761733152031_5oskbcunt",
+      "name": "Unknown Program",
+      "description": "Austria Wirtschaftsservice Gesellschaft mbH (aws) is the promotional bank of the Austrian federal government and is 100% owned by the Republic of Austria. The Federal Ministry of Economy, Energy and Tourism (BMWET) and the Federal Ministry of Innovation, Mobility and Infrastructur (BMIMI) act as its owner representatives. The aws renders its services as part of its public mandate. Its clients include its owner representatives, the BMWET and BMIMI, as well as other Austrian federal ministries, states, public authorities and interest groups.",
+      "type": "grant",
+      "program_type": "grant",
+      "source_url": "https://aws.at/en/spezialprogramme/",
+      "institution": "Austria Wirtschaftsservice (AWS)",
+      "program_category": "grant",
+      "funding_types": [
+        "grant",
+        "loan",
+        "equity"
+      ],
+      "program_focus": [
+        "innovation",
+        "training",
+        "business",
+        "digital",
+        "energy",
+        "startup",
+        "export"
+      ],
+      "eligibility_criteria": {},
+      "categorized_requirements": {
+        "eligibility": [
+          {
+            "type": "company_type",
+            "value": "Company",
+            "required": true,
+            "source": "full_page_content"
+          }
+        ],
+        "documents": [],
+        "financial": [],
+        "technical": [],
+        "legal": [],
+        "timeline": [],
+        "geographic": [
+          {
+            "type": "location",
+            "value": "Austria",
+            "required": true,
+            "source": "full_page_content"
+          }
+        ],
+        "team": [],
+        "project": [],
+        "compliance": [],
+        "impact": [],
+        "capex_opex": [],
+        "use_of_funds": [],
+        "revenue_model": [],
+        "market_size": [],
+        "co_financing": [],
+        "trl_level": [],
+        "consortium": []
+      },
+      "funding_amount_min": null,
+      "funding_amount_max": null,
+      "currency": "EUR",
+      "deadline": null,
+      "contact_email": "24h-auskunft@aws.at",
+      "contact_phone": "1761645526",
+      "contact_info": {
+        "text": "",
+        "email": "",
+        "phone": ""
+      },
+      "scraped_at": "2025-10-29T10:19:12.041Z",
+      "confidence_score": 0.8,
+      "is_active": true
+    },
+    {
+      "id": "program_1761733155972_z7924pgpe",
+      "name": "Unknown Program",
+      "description": "No description available",
+      "type": "research",
+      "program_type": "research",
+      "source_url": "https://aws.at/en/spezialprogramme/investors-incubators/",
+      "institution": "Austria Wirtschaftsservice (AWS)",
+      "program_category": "research",
+      "funding_types": [
+        "grant",
+        "loan",
+        "equity"
+      ],
+      "program_focus": [
+        "innovation",
+        "research",
+        "startup",
+        "training",
+        "business",
+        "technology",
+        "digital",
+        "energy",
+        "export"
+      ],
+      "eligibility_criteria": {},
+      "categorized_requirements": {
+        "eligibility": [
+          {
+            "type": "company_type",
+            "value": "Company",
+            "required": true,
+            "source": "full_page_content"
+          }
+        ],
+        "documents": [],
+        "financial": [],
+        "technical": [],
+        "legal": [],
+        "timeline": [],
+        "geographic": [
+          {
+            "type": "location",
+            "value": "Austria",
+            "required": true,
+            "source": "full_page_content"
+          }
+        ],
+        "team": [],
+        "project": [],
+        "compliance": [],
+        "impact": [],
+        "capex_opex": [],
+        "use_of_funds": [],
+        "revenue_model": [],
+        "market_size": [],
+        "co_financing": [],
+        "trl_level": [],
+        "consortium": []
+      },
+      "funding_amount_min": null,
+      "funding_amount_max": null,
+      "currency": "EUR",
+      "deadline": null,
+      "contact_email": "24h-auskunft@aws.at",
+      "contact_phone": "1761645526",
+      "contact_info": {
+        "text": "",
+        "email": "",
+        "phone": ""
+      },
+      "scraped_at": "2025-10-29T10:19:15.976Z",
+      "confidence_score": 0.8,
+      "is_active": true
+    },
+    {
+      "id": "program_1761733159812_lzm9zqz30",
+      "name": "Unknown Program",
+      "description": "No description available",
+      "type": "research",
+      "program_type": "research",
+      "source_url": "https://aws.at/en/special-programmes/competitions/",
+      "institution": "Austria Wirtschaftsservice (AWS)",
+      "program_category": "research",
+      "funding_types": [
+        "grant",
+        "loan",
+        "equity"
+      ],
+      "program_focus": [
+        "innovation",
+        "research",
+        "startup",
+        "training",
+        "business",
+        "digital",
+        "energy",
+        "export"
+      ],
+      "eligibility_criteria": {},
+      "categorized_requirements": {
+        "eligibility": [
+          {
+            "type": "company_type",
+            "value": "Company",
+            "required": true,
+            "source": "full_page_content"
+          }
+        ],
+        "documents": [],
+        "financial": [],
+        "technical": [],
+        "legal": [],
+        "timeline": [],
+        "geographic": [
+          {
+            "type": "location",
+            "value": "Austria",
+            "required": true,
+            "source": "full_page_content"
+          }
+        ],
+        "team": [],
+        "project": [],
+        "compliance": [],
+        "impact": [],
+        "capex_opex": [],
+        "use_of_funds": [],
+        "revenue_model": [],
+        "market_size": [],
+        "co_financing": [],
+        "trl_level": [],
+        "consortium": []
+      },
+      "funding_amount_min": null,
+      "funding_amount_max": null,
+      "currency": "EUR",
+      "deadline": null,
+      "contact_email": "24h-auskunft@aws.at",
+      "contact_phone": "1761645526",
+      "contact_info": {
+        "text": "",
+        "email": "",
+        "phone": ""
+      },
+      "scraped_at": "2025-10-29T10:19:19.827Z",
+      "confidence_score": 0.8,
+      "is_active": true
+    },
+    {
+      "id": "program_1761733168723_s2lzpnuur",
+      "name": "Unknown Program",
+      "description": "No description available",
+      "type": "research",
+      "program_type": "research",
+      "source_url": "https://aws.at/en/spezialprogramme/universities-and-universities-of-applied-sciences/",
+      "institution": "Austria Wirtschaftsservice (AWS)",
+      "program_category": "research",
+      "funding_types": [
+        "grant",
+        "loan",
+        "equity"
+      ],
+      "program_focus": [
+        "innovation",
+        "research",
+        "training",
+        "business",
+        "digital",
+        "energy",
+        "startup",
+        "export"
+      ],
+      "eligibility_criteria": {},
+      "categorized_requirements": {
+        "eligibility": [
+          {
+            "type": "company_type",
+            "value": "Company",
+            "required": true,
+            "source": "full_page_content"
+          }
+        ],
+        "documents": [],
+        "financial": [],
+        "technical": [],
+        "legal": [],
+        "timeline": [],
+        "geographic": [
+          {
+            "type": "location",
+            "value": "Austria",
+            "required": true,
+            "source": "full_page_content"
+          }
+        ],
+        "team": [],
+        "project": [],
+        "compliance": [],
+        "impact": [],
+        "capex_opex": [],
+        "use_of_funds": [],
+        "revenue_model": [],
+        "market_size": [],
+        "co_financing": [],
+        "trl_level": [],
+        "consortium": []
+      },
+      "funding_amount_min": null,
+      "funding_amount_max": null,
+      "currency": "EUR",
+      "deadline": null,
+      "contact_email": "24h-auskunft@aws.at",
+      "contact_phone": "1761645526",
+      "contact_info": {
+        "text": "",
+        "email": "",
+        "phone": ""
+      },
+      "scraped_at": "2025-10-29T10:19:28.728Z",
+      "confidence_score": 0.8,
+      "is_active": true
+    },
+    {
+      "id": "program_1761733176483_uxnloyze1",
+      "name": "Unknown Program",
+      "description": "No description available",
+      "type": "research",
+      "program_type": "research",
+      "source_url": "https://aws.at/en/spezialprogramme/others/",
+      "institution": "Austria Wirtschaftsservice (AWS)",
+      "program_category": "research",
+      "funding_types": [
+        "grant",
+        "loan",
+        "equity"
+      ],
+      "program_focus": [
+        "innovation",
+        "research",
+        "startup",
+        "training",
+        "business",
+        "digital",
+        "energy",
+        "export"
+      ],
+      "eligibility_criteria": {},
+      "categorized_requirements": {
+        "eligibility": [
+          {
+            "type": "company_type",
+            "value": "Company",
+            "required": true,
+            "source": "full_page_content"
+          }
+        ],
+        "documents": [],
+        "financial": [],
+        "technical": [],
+        "legal": [],
+        "timeline": [],
+        "geographic": [
+          {
+            "type": "location",
+            "value": "Austria",
+            "required": true,
+            "source": "full_page_content"
+          }
+        ],
+        "team": [],
+        "project": [],
+        "compliance": [],
+        "impact": [],
+        "capex_opex": [],
+        "use_of_funds": [],
+        "revenue_model": [],
+        "market_size": [],
+        "co_financing": [],
+        "trl_level": [],
+        "consortium": []
+      },
+      "funding_amount_min": null,
+      "funding_amount_max": null,
+      "currency": "EUR",
+      "deadline": null,
+      "contact_email": "24h-auskunft@aws.at",
+      "contact_phone": "1761645526",
+      "contact_info": {
+        "text": "",
+        "email": "",
+        "phone": ""
+      },
+      "scraped_at": "2025-10-29T10:19:36.489Z",
       "confidence_score": 0.8,
       "is_active": true
     }
