@@ -1,4 +1,5 @@
 export interface InstitutionConfig {
+  id?: string;              // UNIQUE ID (per contract review) - optional for backward compatibility
   name: string;
   baseUrl: string;
   programUrls: string[];
@@ -9,11 +10,12 @@ export interface InstitutionConfig {
     requirements: string[];
     contact: string[];
   };
-  fundingTypes: string[]; // Only financial mechanisms
+  fundingTypes: string[]; // Only financial mechanisms (grant, loan, equity, etc.)
   programFocus?: string[]; // Optional: Program categories/focus areas (auto-detected if not provided)
-  region: string;
+  region: string | string[]; // Support array for multi-region institutions (per contract review)
   autoDiscovery: boolean; // Phase 4: Enable auto-discovery
   keywords: string[]; // Keywords for program detection
+  lastUpdated?: string;    // Track staleness (per contract review)
 }
 
 export const institutions: InstitutionConfig[] = [
@@ -21,6 +23,7 @@ export const institutions: InstitutionConfig[] = [
   
   // Austrian Government Institutions
   {
+    id: 'institution_aws',  // Unique ID per contract review
     name: 'Austria Wirtschaftsservice (AWS)',
     baseUrl: 'https://aws.at',
     programUrls: [
@@ -39,6 +42,7 @@ export const institutions: InstitutionConfig[] = [
     keywords: ['foerderung', 'grant', 'startup', 'innovation', 'investition', 'export']
   },
   {
+    id: 'institution_ffg',
     name: 'Austrian Research Promotion Agency (FFG)',
     baseUrl: 'https://www.ffg.at',
     programUrls: [
@@ -96,6 +100,7 @@ export const institutions: InstitutionConfig[] = [
     keywords: ['foerderung', 'employment', 'training', 'arbeitsmarkt', 'job', 'ausbildung']
   },
   {
+    id: 'institution_wko',
     name: 'WKO (Wirtschaftskammer Österreich)',
     baseUrl: 'https://www.wko.at',
     programUrls: [

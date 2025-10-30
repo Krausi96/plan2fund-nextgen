@@ -2,6 +2,8 @@
 import { NextApiRequest, NextApiResponse } from 'next';
 import { Pool } from 'pg';
 import { categoryConverter, CategorizedRequirements } from '../../../../src/lib/categoryConverters';
+import { getDocumentBundle } from '../../../../src/data/documentBundles';
+import { getDocumentById } from '../../../../src/data/documentDescriptions';
 
 const pool = new Pool({
   connectionString: process.env.DATABASE_URL,
@@ -78,11 +80,13 @@ async function getProgramRequirements(programId: string) {
       const editor = categoryConverter.convertToEditorSections(categorizedRequirements, programType);
       const library = [categoryConverter.convertToLibraryData(categorizedRequirements, program)];
 
+      const additionalDocuments = buildAdditionalDocuments(program, categorizedRequirements);
       return {
         program_id: programId,
         decision_tree: decisionTree,
         editor: editor,
         library: library,
+        additionalDocuments,
         data_source: 'categorized_requirements' // Flag to indicate we used new system
       };
     } else {
@@ -123,17 +127,58 @@ async function getProgramRequirements(programId: string) {
         contact_info: program.contact_info || {}
       }];
 
+      const additionalDocuments = buildAdditionalDocuments(program, null);
       return {
         program_id: programId,
         decision_tree: decisionTree,
         editor: editor,
         library: library,
+        additionalDocuments,
         data_source: 'legacy' // Flag to indicate we used legacy system
       };
     }
   } finally {
     client.release();
   }
+}
+
+function buildAdditionalDocuments(program: any, categorizedRequirements: CategorizedRequirements | null) {
+  const product: 'submission' | 'strategy' | 'review' = 'submission';
+  const route: 'grant' | 'loan' | 'equity' | 'visa' | 'bankLoans' | 'grants' =
+    (program.program_type === 'loan' ? 'loan' : program.program_type === 'equity' ? 'equity' : 'grant');
+
+  // Static bundle fallback
+  const bundle = getDocumentBundle(product as any, (route === 'grant' ? 'grants' : route) as any);
+  const staticDocs = (bundle?.documents || []).map((docId: string) => {
+    const spec = getDocumentById(docId);
+    return {
+      id: docId,
+      title: spec?.title || docId,
+      description: spec?.short || '',
+      format: (spec?.formatHints && spec.formatHints[0]) || 'PDF',
+      source: 'bundle'
+    };
+  });
+
+  // Program-specific docs from categorized data if available
+  const programDocs = categorizedRequirements && (categorizedRequirements as any).documents_required
+    ? (categorizedRequirements as any).documents_required.map((d: any, idx: number) => ({
+        id: d.id || `prog_doc_${idx}`,
+        title: d.title || 'Required Document',
+        description: d.description || d.note || '',
+        format: d.format || 'PDF',
+        source: 'program'
+      }))
+    : [];
+
+  // Merge and dedupe by id
+  const byId: Record<string, any> = {};
+  [...programDocs, ...staticDocs].forEach(doc => {
+    if (!byId[doc.id]) byId[doc.id] = doc; else {
+      byId[doc.id] = { ...byId[doc.id], ...doc };
+    }
+  });
+  return Object.values(byId);
 }
 
 async function updateProgramRequirements(

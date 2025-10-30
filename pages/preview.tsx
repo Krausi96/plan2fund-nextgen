@@ -1,5 +1,6 @@
 ﻿import Link from "next/link";
 import { useState, useEffect } from "react";
+import { useRouter } from "next/router";
 import featureFlags from "@/lib/featureFlags";
 import { loadPlanSections, type PlanSection } from "@/lib/planStore";
 import { chapterTemplates } from "@/lib/templates/chapters";
@@ -13,6 +14,7 @@ import { getDocumentById } from "@/data/documentDescriptions";
 
 export default function Preview() {
   const { t } = useI18n();
+  const router = useRouter();
   const [sections, setSections] = useState<PlanSection[]>([]);
   const [loading, setLoading] = useState(true);
   const [additionalDocuments, setAdditionalDocuments] = useState<any[]>([]);
@@ -30,12 +32,20 @@ export default function Preview() {
     }
     setLoading(false);
 
-    // Load additional documents based on product/route
+    // Load additional documents based on product/route and program if available
     loadAdditionalDocuments();
+    const { programId } = router.query as { programId?: string };
+    if (programId) {
+      fetch(`/api/programmes/${programId}/requirements`).then(r => r.ok ? r.json() : null).then((data) => {
+        if (data && Array.isArray(data.additionalDocuments)) {
+          setAdditionalDocuments((prev) => mergeDocs(prev, data.additionalDocuments));
+        }
+      }).catch(() => {});
+    }
 
     // Track preview view
     analytics.trackSuccessHubView("preview");
-  }, []);
+  }, [router.query]);
 
   const loadAdditionalDocuments = () => {
     try {
@@ -60,6 +70,12 @@ export default function Preview() {
       setAdditionalDocuments([]);
     }
   };
+
+  function mergeDocs(staticDocs: any[], programDocs: any[]) {
+    const byId: Record<string, any> = {};
+    [...programDocs, ...staticDocs].forEach(d => { if (!byId[d.id]) byId[d.id] = d; else byId[d.id] = { ...byId[d.id], ...d }; });
+    return Object.values(byId);
+  }
 
   const sectionsFilled = sections.filter(s => s.content && s.content.trim().length > 0).length;
   const totalSections = sections.length;
@@ -218,7 +234,9 @@ export default function Preview() {
                   key: section.id,
                   title: section.title,
                   content: section.content,
-                  status: "missing" as const
+                  status: "missing" as const,
+                  tables: (section as any).tables,
+                  figures: (section as any).figures
                 })),
                 addonPack: false,
                 versions: []

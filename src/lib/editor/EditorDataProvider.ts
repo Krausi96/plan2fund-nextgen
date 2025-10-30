@@ -3,6 +3,7 @@
 // Handles API calls and data transformation
 
 import { EditorProduct, EditorTemplate, UnifiedEditorSection } from '../../types/editor';
+import { PRODUCT_SECTION_TEMPLATES } from '../templates/productSectionTemplates';
 
 export class EditorDataProvider {
   private baseUrl: string;
@@ -27,13 +28,46 @@ export class EditorDataProvider {
       }
       
       const data = await response.json();
+      // Base fields from API
+      const programType = (data.program_type || 'grant') as string;
+      const fundingType: 'grants' | 'bankLoans' | 'equity' | 'visa' =
+        programType.includes('loan') ? 'bankLoans' : programType.includes('equity') ? 'equity' : programType.includes('visa') ? 'visa' : 'grants';
+      const productType: 'submission' | 'strategy' | 'review' = 'submission';
+      // Fallback template for gap-filling
+      const fallback = PRODUCT_SECTION_TEMPLATES[productType]?.[fundingType];
+      const fallbackById: Record<string, UnifiedEditorSection> = {};
+      if (fallback) {
+        fallback.sections.forEach((s: any) => { fallbackById[s.id] = s; });
+      }
+      // Merge API sections with fallback prompts/guidance if partial
+      const apiSections: any[] = Array.isArray(data.editor) ? data.editor : [];
+      const mergedSections: UnifiedEditorSection[] = apiSections.length > 0
+        ? apiSections.map((s: any) => {
+            const back = fallbackById[s.id] || {} as any;
+            return {
+              id: s.id || back.id,
+              title: s.section_name || back.title || 'Untitled Section',
+              required: s.required !== false,
+              template: s.template || s.prompt || back.template || (((back as any).prompts ? (back as any).prompts.join(' ') : '')),
+              guidance: s.guidance || back.guidance || back.description || '',
+              requirements: s.validation_rules || back.requirements || [],
+              prefillData: {},
+              section_name: s.section_name || back.title,
+              description: s.placeholder || back.description || '',
+              hints: s.hints || back.hints || [],
+              word_count_min: s.word_count_min ?? back.word_count_min,
+              word_count_max: s.word_count_max ?? back.word_count_max,
+              ai_guidance: s.ai_guidance || (((back as any).prompts ? (back as any).prompts.join(' ') : ''))
+            } as any;
+          })
+        : (fallback ? fallback.sections as any : []);
       
       return {
         id: productId,
         name: data.program_name || `Program ${productId}`,
-        type: data.program_type || 'grant',
+        type: (programType.includes('loan') ? 'loan' : programType.includes('equity') ? 'equity' : programType.includes('visa') ? 'visa' : programType.includes('grant') ? 'grant' : 'other') as any,
         description: data.description,
-        sections: data.editor || [],
+        sections: mergedSections,
         requirements: data
       };
     } catch (error) {
@@ -345,7 +379,7 @@ export class EditorDataProvider {
    */
   async getAIResponse(message: string, context: any): Promise<string> {
     try {
-      const response = await fetch(`${this.baseUrl}/api/ai/assistant`, {
+      const response = await fetch(`${this.baseUrl}/api/ai/openai`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

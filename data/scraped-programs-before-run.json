@@ -1,0 +1,6510 @@
+{
+  "timestamp": "2025-10-29T11:07:41.525Z",
+  "totalPrograms": 59,
+  "programs": [
+    {
+      "id": "program_1761682088015_7so9bfw0x",
+      "name": "Investoren, Inkubatoren",
+      "description": "Investoren, Inkubatoren",
+      "type": "grant",
+      "program_type": "grant",
+      "source_url": "https://www.aws.at/spezialprogramme/investoren-inkubatoren/",
+      "institution": "Austria Wirtschaftsservice (AWS)",
+      "program_category": "grant",
+      "funding_types": [
+        "grant",
+        "loan",
+        "equity"
+      ],
+      "program_focus": [
+        "innovation",
+        "research",
+        "startup",
+        "employment",
+        "training",
+        "business",
+        "technology",
+        "digital",
+        "environment",
+        "energy",
+        "export"
+      ],
+      "eligibility_criteria": {},
+      "categorized_requirements": {
+        "eligibility": [
+          {
+            "type": "company_type",
+            "value": "Startup",
+            "required": true,
+            "source": "full_page_content"
+          },
+          {
+            "type": "company_type",
+            "value": "Company",
+            "required": true,
+            "source": "full_page_content"
+          }
+        ],
+        "documents": [],
+        "financial": [],
+        "technical": [
+          {
+            "type": "technology_focus",
+            "value": "Technology focus required",
+            "required": true,
+            "source": "full_page_content"
+          }
+        ],
+        "legal": [
+          {
+            "type": "legal_compliance",
+            "value": "Legal compliance required",
+            "required": true,
+            "source": "full_page_content"
+          }
+        ],
+        "timeline": [
+          {
+            "type": "duration",
+            "value": "13 Monat",
+            "required": true,
+            "source": "full_page_content"
+          }
+        ],
+        "geographic": [
+          {
+            "type": "location",
+            "value": "Austria",
+            "required": true,
+            "source": "full_page_content"
+          },
+          {
+            "type": "location",
+            "value": "EU",
+            "required": true,
+            "source": "full_page_content"
+          }
+        ],
+        "team": [],
+        "project": [
+          {
+            "type": "innovation_focus",
+            "value": "Innovation/Research required",
+            "required": true,
+            "source": "full_page_content"
+          }
+        ],
+        "compliance": [],
+        "impact": [],
+        "capex_opex": [
+          {
+            "type": "investment_type",
+            "value": "Capital investment required",
+            "required": true,
+            "source": "full_page_content"
+          }
+        ],
+        "use_of_funds": [
+          {
+            "type": "fund_usage",
+            "value": "Specific fund usage required",
+            "required": true,
+            "source": "full_page_content"
+          },
+          {
+            "type": "research_funding",
+            "value": "Research and development funding",
+            "required": true,
+            "source": "full_page_content"
+          }
+        ],
+        "revenue_model": [
+          {
+            "type": "profitability",
+            "value": "Profitability required",
+            "required": true,
+            "source": "full_page_content"
+          }
+        ],
+        "market_size": [
+          {
+            "type": "market_scope",
+            "value": "International market scope",
+            "required": true,
+            "source": "full_page_content"
+          }
+        ],
+        "co_financing": [],
+        "trl_level": [],
+        "consortium": []
+      },
+      "contact_info": {
+        "text": "",
+        "email": "",
+        "phone": ""
+      },
+      "scraped_at": "2025-10-28T20:08:08.020Z",
+      "confidence_score": 0.8,
+      "is_active": true
+    },
+    {
+      "id": "program_1761682090970_bb1ci6ni5",
+      "name": "Alle Förderungen",
+      "description": "Wir fördern Forschungs-, Entwicklungs- und Innovationsprojekte - ob thematisch breit aufgestellt oder mit spezifischer Schwerpunktsetzung. Wir bieten Förderung und Unterstützung für Einsteiger:innen, Einzelprojekte und große kooperative Initiativen sowie Exzellenzzentren. Zudem stärken wir die Internationalisierung der heimischen Wissenschaft, Forschung und Technologie, sind die nationale Kontaktstelle für Horizon Europe und engagiert in internationalen Netzwerken und Initiativen.",
+      "type": "grant",
+      "program_type": "grant",
+      "source_url": "https://www.ffg.at/foerderungen",
+      "institution": "Austrian Research Promotion Agency (FFG)",
+      "program_category": "grant",
+      "funding_types": [
+        "grant"
+      ],
+      "program_focus": [
+        "innovation",
+        "research",
+        "startup",
+        "export",
+        "training",
+        "business",
+        "technology",
+        "digital",
+        "environment",
+        "energy",
+        "healthcare"
+      ],
+      "eligibility_criteria": {},
+      "categorized_requirements": {
+        "eligibility": [
+          {
+            "type": "company_type",
+            "value": "Startup",
+            "required": true,
+            "source": "full_page_content"
+          },
+          {
+            "type": "company_type",
+            "value": "Company",
+            "required": true,
+            "source": "full_page_content"
+          }
+        ],
+        "documents": [
+          {
+            "type": "required_documents",
+            "value": "Various documents required",
+            "required": true,
+            "source": "full_page_content"
+          }
+        ],
+        "financial": [],
+        "technical": [
+          {
+            "type": "trl_level",
+            "value": "Unknown TRL",
+            "required": true,
+            "source": "full_page_content"
+          },
+          {
+            "type": "technology_focus",
+            "value": "Technology focus required",
+            "required": true,
+            "source": "full_page_content"
+          }
+        ],
+        "legal": [
+          {
+            "type": "legal_compliance",
+            "value": "Legal compliance required",
+            "required": true,
+            "source": "full_page_content"
+          }
+        ],
+        "timeline": [
+          {
+            "type": "duration",
+            "value": "Unknown duration",
+            "required": true,
+            "source": "full_page_content"
+          },
+          {
+            "type": "deadline",
+            "value": "Application deadline exists",
+            "required": true,
+            "source": "full_page_content"
+          }
+        ],
+        "geographic": [
+          {
+            "type": "location",
+            "value": "Austria",
+            "required": true,
+            "source": "full_page_content"
+          },
+          {
+            "type": "location",
+            "value": "EU",
+            "required": true,
+            "source": "full_page_content"
+          }
+        ],
+        "team": [],
+        "project": [
+          {
+            "type": "innovation_focus",
+            "value": "Innovation/Research required",
+            "required": true,
+            "source": "full_page_content"
+          },
+          {
+            "type": "sustainability_focus",
+            "value": "Sustainability focus required",
+            "required": true,
+            "source": "full_page_content"
+          }
+        ],
+        "compliance": [
+          {
+            "type": "regulatory_compliance",
+            "value": "Regulatory compliance required",
+            "required": true,
+            "source": "full_page_content"
+          }
+        ],
+        "impact": [
+          {
+            "type": "employment_impact",
+            "value": "Job creation impact",
+            "required": true,
+            "source": "full_page_content"
+          }
+        ],
+        "capex_opex": [],
+        "use_of_funds": [
+          {
+            "type": "research_funding",
+            "value": "Research and development funding",
+            "required": true,
+            "source": "full_page_content"
+          }
+        ],
+        "revenue_model": [
+          {
+            "type": "profitability",
+            "value": "Profitability required",
+            "required": true,
+            "source": "full_page_content"
+          }
+        ],
+        "market_size": [
+          {
+            "type": "market_requirement",
+            "value": "Market size requirement",
+            "required": true,
+            "source": "full_page_content"
+          },
+          {
+            "type": "market_scope",
+            "value": "International market scope",
+            "required": true,
+            "source": "full_page_content"
+          }
+        ],
+        "co_financing": [],
+        "trl_level": [],
+        "consortium": [
+          {
+            "type": "consortium_required",
+            "value": "Consortium partnership required",
+            "required": true,
+            "source": "full_page_content"
+          },
+          {
+            "type": "cooperation",
+            "value": "Cooperation required",
+            "required": true,
+            "source": "full_page_content"
+          }
+        ]
+      },
+      "contact_info": {
+        "text": "",
+        "email": "",
+        "phone": ""
+      },
+      "scraped_at": "2025-10-28T20:08:10.987Z",
+      "confidence_score": 0.8,
+      "is_active": true
+    },
+    {
+      "id": "program_1761682094025_mrj9hr4zx",
+      "name": "All fundings",
+      "description": "We fund research, development and innovation projects that are thematically broad and open or require a thematic focus. We offer support for newcomers, individual projects and large cooperative initiatives, as well as centers of excellence. We also promote the internationalization of domestic science, research and technology. We are the national contact point for Horizon 2020, also manage programs such as EUREKA, Eurostars and COST and are active in many international initiatives.",
+      "type": "grant",
+      "program_type": "grant",
+      "source_url": "https://www.ffg.at/en/fundings",
+      "institution": "Austrian Research Promotion Agency (FFG)",
+      "program_category": "grant",
+      "funding_types": [
+        "grant"
+      ],
+      "program_focus": [
+        "innovation",
+        "research",
+        "startup",
+        "training",
+        "technology",
+        "environment",
+        "energy",
+        "education"
+      ],
+      "eligibility_criteria": {},
+      "categorized_requirements": {
+        "eligibility": [
+          {
+            "type": "company_type",
+            "value": "Startup",
+            "required": true,
+            "source": "full_page_content"
+          },
+          {
+            "type": "company_type",
+            "value": "Company",
+            "required": true,
+            "source": "full_page_content"
+          }
+        ],
+        "documents": [],
+        "financial": [],
+        "technical": [
+          {
+            "type": "technology_focus",
+            "value": "Technology focus required",
+            "required": true,
+            "source": "full_page_content"
+          }
+        ],
+        "legal": [
+          {
+            "type": "legal_compliance",
+            "value": "Legal compliance required",
+            "required": true,
+            "source": "full_page_content"
+          }
+        ],
+        "timeline": [
+          {
+            "type": "deadline",
+            "value": "Application deadline exists",
+            "required": true,
+            "source": "full_page_content"
+          }
+        ],
+        "geographic": [
+          {
+            "type": "location",
+            "value": "Austria",
+            "required": true,
+            "source": "full_page_content"
+          },
+          {
+            "type": "location",
+            "value": "EU",
+            "required": true,
+            "source": "full_page_content"
+          }
+        ],
+        "team": [],
+        "project": [
+          {
+            "type": "innovation_focus",
+            "value": "Innovation/Research required",
+            "required": true,
+            "source": "full_page_content"
+          }
+        ],
+        "compliance": [
+          {
+            "type": "regulatory_compliance",
+            "value": "Regulatory compliance required",
+            "required": true,
+            "source": "full_page_content"
+          }
+        ],
+        "impact": [
+          {
+            "type": "employment_impact",
+            "value": "Job creation impact",
+            "required": true,
+            "source": "full_page_content"
+          }
+        ],
+        "capex_opex": [],
+        "use_of_funds": [
+          {
+            "type": "research_funding",
+            "value": "Research and development funding",
+            "required": true,
+            "source": "full_page_content"
+          }
+        ],
+        "revenue_model": [],
+        "market_size": [
+          {
+            "type": "market_requirement",
+            "value": "Market size requirement",
+            "required": true,
+            "source": "full_page_content"
+          },
+          {
+            "type": "market_scope",
+            "value": "International market scope",
+            "required": true,
+            "source": "full_page_content"
+          }
+        ],
+        "co_financing": [],
+        "trl_level": [],
+        "consortium": [
+          {
+            "type": "cooperation",
+            "value": "Cooperation required",
+            "required": true,
+            "source": "full_page_content"
+          }
+        ]
+      },
+      "contact_info": {
+        "text": "",
+        "email": "",
+        "phone": ""
+      },
+      "scraped_at": "2025-10-28T20:08:14.038Z",
+      "confidence_score": 0.8,
+      "is_active": true
+    },
+    {
+      "id": "program_1761682097349_mnfk7bnz7",
+      "name": "Basisprogramm",
+      "description": "Beratungsangebot",
+      "type": "grant",
+      "program_type": "grant",
+      "source_url": "https://www.ffg.at/initiative/basisprogramm",
+      "institution": "Austrian Research Promotion Agency (FFG)",
+      "program_category": "grant",
+      "funding_types": [
+        "grant"
+      ],
+      "program_focus": [
+        "innovation",
+        "research",
+        "startup",
+        "training",
+        "business",
+        "sustainability",
+        "technology",
+        "digital",
+        "environment",
+        "energy",
+        "healthcare"
+      ],
+      "eligibility_criteria": {},
+      "categorized_requirements": {
+        "eligibility": [
+          {
+            "type": "company_type",
+            "value": "Startup",
+            "required": true,
+            "source": "full_page_content"
+          },
+          {
+            "type": "company_type",
+            "value": "Company",
+            "required": true,
+            "source": "full_page_content"
+          }
+        ],
+        "documents": [
+          {
+            "type": "required_documents",
+            "value": "Various documents required",
+            "required": true,
+            "source": "full_page_content"
+          }
+        ],
+        "financial": [
+          {
+            "type": "funding_amount",
+            "value": "096K",
+            "required": true,
+            "source": "full_page_content"
+          }
+        ],
+        "technical": [
+          {
+            "type": "technology_focus",
+            "value": "Technology focus required",
+            "required": true,
+            "source": "full_page_content"
+          }
+        ],
+        "legal": [
+          {
+            "type": "legal_compliance",
+            "value": "Legal compliance required",
+            "required": true,
+            "source": "full_page_content"
+          }
+        ],
+        "timeline": [
+          {
+            "type": "duration",
+            "value": "Unknown duration",
+            "required": true,
+            "source": "full_page_content"
+          },
+          {
+            "type": "deadline",
+            "value": "Application deadline exists",
+            "required": true,
+            "source": "full_page_content"
+          }
+        ],
+        "geographic": [
+          {
+            "type": "location",
+            "value": "Austria",
+            "required": true,
+            "source": "full_page_content"
+          },
+          {
+            "type": "specific_location",
+            "value": "Vienna",
+            "required": true,
+            "source": "full_page_content"
+          },
+          {
+            "type": "location",
+            "value": "EU",
+            "required": true,
+            "source": "full_page_content"
+          }
+        ],
+        "team": [
+          {
+            "type": "team_size",
+            "value": "2025",
+            "required": true,
+            "source": "full_page_content"
+          }
+        ],
+        "project": [
+          {
+            "type": "innovation_focus",
+            "value": "Innovation/Research required",
+            "required": true,
+            "source": "full_page_content"
+          },
+          {
+            "type": "sustainability_focus",
+            "value": "Sustainability focus required",
+            "required": true,
+            "source": "full_page_content"
+          }
+        ],
+        "compliance": [
+          {
+            "type": "regulatory_compliance",
+            "value": "Regulatory compliance required",
+            "required": true,
+            "source": "full_page_content"
+          }
+        ],
+        "impact": [
+          {
+            "type": "sustainability",
+            "value": "Sustainability impact required",
+            "required": true,
+            "source": "full_page_content"
+          },
+          {
+            "type": "employment_impact",
+            "value": "Job creation impact",
+            "required": true,
+            "source": "full_page_content"
+          }
+        ],
+        "capex_opex": [],
+        "use_of_funds": [
+          {
+            "type": "research_funding",
+            "value": "Research and development funding",
+            "required": true,
+            "source": "full_page_content"
+          }
+        ],
+        "revenue_model": [
+          {
+            "type": "profitability",
+            "value": "Profitability required",
+            "required": true,
+            "source": "full_page_content"
+          }
+        ],
+        "market_size": [
+          {
+            "type": "market_requirement",
+            "value": "Market size requirement",
+            "required": true,
+            "source": "full_page_content"
+          },
+          {
+            "type": "market_scope",
+            "value": "International market scope",
+            "required": true,
+            "source": "full_page_content"
+          }
+        ],
+        "co_financing": [],
+        "trl_level": [],
+        "consortium": [
+          {
+            "type": "consortium_required",
+            "value": "Consortium partnership required",
+            "required": true,
+            "source": "full_page_content"
+          },
+          {
+            "type": "cooperation",
+            "value": "Cooperation required",
+            "required": true,
+            "source": "full_page_content"
+          }
+        ]
+      },
+      "contact_info": {
+        "text": "",
+        "email": "",
+        "phone": ""
+      },
+      "scraped_at": "2025-10-28T20:08:17.369Z",
+      "confidence_score": 0.8,
+      "is_active": true
+    },
+    {
+      "id": "program_1761682107144_ulbdsmes6",
+      "name": "Let’s meet Vienna. And launch your European business dream.",
+      "description": "Let’s meet Vienna.",
+      "type": "grant",
+      "program_type": "grant",
+      "source_url": "https://www.vba.at/foerderungen",
+      "institution": "Vienna Business Agency (VBA)",
+      "program_category": "grant",
+      "funding_types": [
+        "grant"
+      ],
+      "program_focus": [
+        "innovation",
+        "research",
+        "startup",
+        "training",
+        "business",
+        "sustainability",
+        "transport",
+        "technology",
+        "energy",
+        "export"
+      ],
+      "eligibility_criteria": {},
+      "categorized_requirements": {
+        "eligibility": [
+          {
+            "type": "company_type",
+            "value": "Startup",
+            "required": true,
+            "source": "full_page_content"
+          },
+          {
+            "type": "company_type",
+            "value": "Company",
+            "required": true,
+            "source": "full_page_content"
+          }
+        ],
+        "documents": [],
+        "financial": [
+          {
+            "type": "revenue_requirement",
+            "value": "2 million",
+            "required": true,
+            "source": "full_page_content"
+          }
+        ],
+        "technical": [
+          {
+            "type": "technology_focus",
+            "value": "Technology focus required",
+            "required": true,
+            "source": "full_page_content"
+          }
+        ],
+        "legal": [],
+        "timeline": [],
+        "geographic": [
+          {
+            "type": "specific_location",
+            "value": "Vienna",
+            "required": true,
+            "source": "eligibility_text"
+          },
+          {
+            "type": "location",
+            "value": "Austria",
+            "required": true,
+            "source": "full_page_content"
+          },
+          {
+            "type": "specific_location",
+            "value": "Vienna",
+            "required": true,
+            "source": "full_page_content"
+          },
+          {
+            "type": "location",
+            "value": "EU",
+            "required": true,
+            "source": "full_page_content"
+          }
+        ],
+        "team": [
+          {
+            "type": "team_size",
+            "value": "2024",
+            "required": true,
+            "source": "full_page_content"
+          }
+        ],
+        "project": [
+          {
+            "type": "innovation_focus",
+            "value": "Innovation/Research required",
+            "required": true,
+            "source": "full_page_content"
+          },
+          {
+            "type": "sustainability_focus",
+            "value": "Sustainability focus required",
+            "required": true,
+            "source": "full_page_content"
+          }
+        ],
+        "compliance": [],
+        "impact": [
+          {
+            "type": "sustainability",
+            "value": "Sustainability impact required",
+            "required": true,
+            "source": "full_page_content"
+          }
+        ],
+        "capex_opex": [],
+        "use_of_funds": [
+          {
+            "type": "research_funding",
+            "value": "Research and development funding",
+            "required": true,
+            "source": "full_page_content"
+          }
+        ],
+        "revenue_model": [
+          {
+            "type": "revenue_requirement",
+            "value": "Revenue generation required",
+            "required": true,
+            "source": "full_page_content"
+          }
+        ],
+        "market_size": [
+          {
+            "type": "market_requirement",
+            "value": "Market size requirement",
+            "required": true,
+            "source": "full_page_content"
+          },
+          {
+            "type": "market_scope",
+            "value": "International market scope",
+            "required": true,
+            "source": "full_page_content"
+          }
+        ],
+        "co_financing": [],
+        "trl_level": [],
+        "consortium": []
+      },
+      "contact_info": {
+        "text": "",
+        "email": "",
+        "phone": ""
+      },
+      "scraped_at": "2025-10-28T20:08:27.153Z",
+      "confidence_score": 0.8,
+      "is_active": true
+    },
+    {
+      "id": "program_1761683017128_q6p9u3qsg",
+      "name": "Förderungen",
+      "description": "Förderungen",
+      "type": "grant",
+      "program_type": "grant",
+      "source_url": "https://www.wko.at/foerderungen",
+      "institution": "WKO (Wirtschaftskammer Österreich)",
+      "program_category": "grant",
+      "funding_types": [
+        "grant"
+      ],
+      "program_focus": [
+        "innovation",
+        "export",
+        "training",
+        "business",
+        "sustainability",
+        "technology",
+        "digital",
+        "environment",
+        "energy",
+        "education"
+      ],
+      "eligibility_criteria": {},
+      "categorized_requirements": {
+        "eligibility": [
+          {
+            "type": "company_type",
+            "value": "Startup",
+            "required": true,
+            "source": "full_page_content"
+          },
+          {
+            "type": "company_type",
+            "value": "Company",
+            "required": true,
+            "source": "full_page_content"
+          }
+        ],
+        "documents": [],
+        "financial": [],
+        "technical": [
+          {
+            "type": "technology_focus",
+            "value": "Technology focus required",
+            "required": true,
+            "source": "full_page_content"
+          }
+        ],
+        "legal": [
+          {
+            "type": "legal_compliance",
+            "value": "Legal compliance required",
+            "required": true,
+            "source": "full_page_content"
+          }
+        ],
+        "timeline": [],
+        "geographic": [
+          {
+            "type": "location",
+            "value": "Austria",
+            "required": true,
+            "source": "full_page_content"
+          },
+          {
+            "type": "specific_location",
+            "value": "Vienna",
+            "required": true,
+            "source": "full_page_content"
+          },
+          {
+            "type": "location",
+            "value": "EU",
+            "required": true,
+            "source": "full_page_content"
+          }
+        ],
+        "team": [
+          {
+            "type": "team_size",
+            "value": "1",
+            "required": true,
+            "source": "full_page_content"
+          }
+        ],
+        "project": [
+          {
+            "type": "innovation_focus",
+            "value": "Innovation/Research required",
+            "required": true,
+            "source": "full_page_content"
+          },
+          {
+            "type": "sustainability_focus",
+            "value": "Sustainability focus required",
+            "required": true,
+            "source": "full_page_content"
+          }
+        ],
+        "compliance": [],
+        "impact": [
+          {
+            "type": "sustainability",
+            "value": "Sustainability impact required",
+            "required": true,
+            "source": "full_page_content"
+          },
+          {
+            "type": "employment_impact",
+            "value": "Job creation impact",
+            "required": true,
+            "source": "full_page_content"
+          }
+        ],
+        "capex_opex": [
+          {
+            "type": "investment_type",
+            "value": "Capital investment required",
+            "required": true,
+            "source": "full_page_content"
+          }
+        ],
+        "use_of_funds": [],
+        "revenue_model": [],
+        "market_size": [
+          {
+            "type": "market_scope",
+            "value": "International market scope",
+            "required": true,
+            "source": "full_page_content"
+          }
+        ],
+        "co_financing": [],
+        "trl_level": [],
+        "consortium": []
+      },
+      "contact_info": {
+        "text": "",
+        "email": "",
+        "phone": ""
+      },
+      "scraped_at": "2025-10-28T20:23:37.134Z",
+      "confidence_score": 0.8,
+      "is_active": true
+    },
+    {
+      "id": "program_1761683042620_mv6ayzb5x",
+      "name": "Neue Zeiten,neues Sparen",
+      "description": "Investieren für die, die Ihnen wichtig sind",
+      "type": "grant",
+      "program_type": "grant",
+      "source_url": "https://www.erstebank.at/unternehmen/kredite",
+      "institution": "Erste Bank",
+      "program_category": "grant",
+      "funding_types": [
+        "bank_loan",
+        "leasing"
+      ],
+      "program_focus": [
+        "innovation",
+        "research",
+        "training",
+        "business",
+        "digital",
+        "environment",
+        "healthcare",
+        "education",
+        "startup"
+      ],
+      "eligibility_criteria": {},
+      "categorized_requirements": {
+        "eligibility": [
+          {
+            "type": "company_type",
+            "value": "Company",
+            "required": true,
+            "source": "full_page_content"
+          }
+        ],
+        "documents": [
+          {
+            "type": "required_documents",
+            "value": "Various documents required",
+            "required": true,
+            "source": "full_page_content"
+          }
+        ],
+        "financial": [],
+        "technical": [
+          {
+            "type": "technology_focus",
+            "value": "Technology focus required",
+            "required": true,
+            "source": "full_page_content"
+          }
+        ],
+        "legal": [
+          {
+            "type": "legal_compliance",
+            "value": "Legal compliance required",
+            "required": true,
+            "source": "full_page_content"
+          }
+        ],
+        "timeline": [
+          {
+            "type": "duration",
+            "value": "100 Jahr",
+            "required": true,
+            "source": "full_page_content"
+          }
+        ],
+        "geographic": [
+          {
+            "type": "location",
+            "value": "Austria",
+            "required": true,
+            "source": "full_page_content"
+          },
+          {
+            "type": "location",
+            "value": "EU",
+            "required": true,
+            "source": "full_page_content"
+          }
+        ],
+        "team": [
+          {
+            "type": "team_size",
+            "value": "1",
+            "required": true,
+            "source": "full_page_content"
+          },
+          {
+            "type": "qualification",
+            "value": "Specific qualifications required",
+            "required": true,
+            "source": "full_page_content"
+          }
+        ],
+        "project": [],
+        "compliance": [],
+        "impact": [],
+        "capex_opex": [
+          {
+            "type": "investment_type",
+            "value": "Capital investment required",
+            "required": true,
+            "source": "full_page_content"
+          }
+        ],
+        "use_of_funds": [
+          {
+            "type": "research_funding",
+            "value": "Research and development funding",
+            "required": true,
+            "source": "full_page_content"
+          }
+        ],
+        "revenue_model": [],
+        "market_size": [
+          {
+            "type": "market_requirement",
+            "value": "Market size requirement",
+            "required": true,
+            "source": "full_page_content"
+          }
+        ],
+        "co_financing": [],
+        "trl_level": [],
+        "consortium": []
+      },
+      "contact_info": {
+        "text": "",
+        "email": "",
+        "phone": ""
+      },
+      "scraped_at": "2025-10-28T20:24:02.626Z",
+      "confidence_score": 0.8,
+      "is_active": true
+    },
+    {
+      "id": "program_1761683044130_pkp8eb31r",
+      "name": "Neue Zeiten,neues Sparen",
+      "description": "Investieren für die, die Ihnen wichtig sind",
+      "type": "grant",
+      "program_type": "grant",
+      "source_url": "https://www.erstebank.at/unternehmen/finanzierung",
+      "institution": "Erste Bank",
+      "program_category": "grant",
+      "funding_types": [
+        "bank_loan",
+        "leasing"
+      ],
+      "program_focus": [
+        "innovation",
+        "research",
+        "training",
+        "business",
+        "digital",
+        "environment",
+        "healthcare",
+        "education",
+        "startup"
+      ],
+      "eligibility_criteria": {},
+      "categorized_requirements": {
+        "eligibility": [
+          {
+            "type": "company_type",
+            "value": "Company",
+            "required": true,
+            "source": "full_page_content"
+          }
+        ],
+        "documents": [
+          {
+            "type": "required_documents",
+            "value": "Various documents required",
+            "required": true,
+            "source": "full_page_content"
+          }
+        ],
+        "financial": [],
+        "technical": [
+          {
+            "type": "technology_focus",
+            "value": "Technology focus required",
+            "required": true,
+            "source": "full_page_content"
+          }
+        ],
+        "legal": [
+          {
+            "type": "legal_compliance",
+            "value": "Legal compliance required",
+            "required": true,
+            "source": "full_page_content"
+          }
+        ],
+        "timeline": [
+          {
+            "type": "duration",
+            "value": "100 Jahr",
+            "required": true,
+            "source": "full_page_content"
+          }
+        ],
+        "geographic": [
+          {
+            "type": "location",
+            "value": "Austria",
+            "required": true,
+            "source": "full_page_content"
+          },
+          {
+            "type": "location",
+            "value": "EU",
+            "required": true,
+            "source": "full_page_content"
+          }
+        ],
+        "team": [
+          {
+            "type": "team_size",
+            "value": "1",
+            "required": true,
+            "source": "full_page_content"
+          },
+          {
+            "type": "qualification",
+            "value": "Specific qualifications required",
+            "required": true,
+            "source": "full_page_content"
+          }
+        ],
+        "project": [],
+        "compliance": [],
+        "impact": [],
+        "capex_opex": [
+          {
+            "type": "investment_type",
+            "value": "Capital investment required",
+            "required": true,
+            "source": "full_page_content"
+          }
+        ],
+        "use_of_funds": [
+          {
+            "type": "research_funding",
+            "value": "Research and development funding",
+            "required": true,
+            "source": "full_page_content"
+          }
+        ],
+        "revenue_model": [],
+        "market_size": [
+          {
+            "type": "market_requirement",
+            "value": "Market size requirement",
+            "required": true,
+            "source": "full_page_content"
+          }
+        ],
+        "co_financing": [],
+        "trl_level": [],
+        "consortium": []
+      },
+      "contact_info": {
+        "text": "",
+        "email": "",
+        "phone": ""
+      },
+      "scraped_at": "2025-10-28T20:24:04.147Z",
+      "confidence_score": 0.8,
+      "is_active": true
+    },
+    {
+      "id": "program_1761683046107_c0fwd3n3b",
+      "name": "Erste Wohnmesse 2025",
+      "description": "16.11.2025 | 10 bis 18 Uhr | Erste Campus",
+      "type": "grant",
+      "program_type": "grant",
+      "source_url": "https://www.sparkasse.at/erstebank/privatkunden/wohnen-finanzieren/wohnfinanzierung/kampagne/wohnmesse",
+      "institution": "Erste Bank",
+      "program_category": "grant",
+      "funding_types": [
+        "bank_loan",
+        "leasing"
+      ],
+      "program_focus": [
+        "research",
+        "training",
+        "business",
+        "digital",
+        "environment",
+        "healthcare",
+        "education",
+        "startup"
+      ],
+      "eligibility_criteria": {},
+      "categorized_requirements": {
+        "eligibility": [
+          {
+            "type": "company_type",
+            "value": "Company",
+            "required": true,
+            "source": "full_page_content"
+          }
+        ],
+        "documents": [
+          {
+            "type": "required_documents",
+            "value": "Various documents required",
+            "required": true,
+            "source": "full_page_content"
+          }
+        ],
+        "financial": [
+          {
+            "type": "funding_amount",
+            "value": "1k",
+            "required": true,
+            "source": "full_page_content"
+          }
+        ],
+        "technical": [
+          {
+            "type": "technology_focus",
+            "value": "Technology focus required",
+            "required": true,
+            "source": "full_page_content"
+          }
+        ],
+        "legal": [
+          {
+            "type": "legal_compliance",
+            "value": "Legal compliance required",
+            "required": true,
+            "source": "full_page_content"
+          }
+        ],
+        "timeline": [
+          {
+            "type": "duration",
+            "value": "Unknown duration",
+            "required": true,
+            "source": "full_page_content"
+          }
+        ],
+        "geographic": [
+          {
+            "type": "location",
+            "value": "Austria",
+            "required": true,
+            "source": "full_page_content"
+          },
+          {
+            "type": "specific_location",
+            "value": "Vienna",
+            "required": true,
+            "source": "full_page_content"
+          },
+          {
+            "type": "location",
+            "value": "EU",
+            "required": true,
+            "source": "full_page_content"
+          }
+        ],
+        "team": [],
+        "project": [
+          {
+            "type": "sustainability_focus",
+            "value": "Sustainability focus required",
+            "required": true,
+            "source": "full_page_content"
+          }
+        ],
+        "compliance": [],
+        "impact": [],
+        "capex_opex": [
+          {
+            "type": "investment_type",
+            "value": "Capital investment required",
+            "required": true,
+            "source": "full_page_content"
+          }
+        ],
+        "use_of_funds": [
+          {
+            "type": "research_funding",
+            "value": "Research and development funding",
+            "required": true,
+            "source": "full_page_content"
+          }
+        ],
+        "revenue_model": [],
+        "market_size": [
+          {
+            "type": "market_requirement",
+            "value": "Market size requirement",
+            "required": true,
+            "source": "full_page_content"
+          }
+        ],
+        "co_financing": [],
+        "trl_level": [],
+        "consortium": []
+      },
+      "contact_info": {
+        "text": "",
+        "email": "",
+        "phone": ""
+      },
+      "scraped_at": "2025-10-28T20:24:06.117Z",
+      "confidence_score": 0.8,
+      "is_active": true
+    },
+    {
+      "id": "program_1761683053297_imba3exh9",
+      "name": "Diese Seite konnten wir leider nicht finden.",
+      "description": "Ihr Suchbegriff ergab keine Treffer.",
+      "type": "grant",
+      "program_type": "grant",
+      "source_url": "https://www.raiffeisen.at/unternehmen/kredite",
+      "institution": "Raiffeisen Bank",
+      "program_category": "grant",
+      "funding_types": [
+        "bank_loan",
+        "leasing"
+      ],
+      "program_focus": [
+        "innovation",
+        "export",
+        "training",
+        "business",
+        "sustainability",
+        "transport",
+        "digital",
+        "energy",
+        "education",
+        "startup"
+      ],
+      "eligibility_criteria": {},
+      "categorized_requirements": {
+        "eligibility": [
+          {
+            "type": "company_type",
+            "value": "Startup",
+            "required": true,
+            "source": "full_page_content"
+          },
+          {
+            "type": "company_type",
+            "value": "Company",
+            "required": true,
+            "source": "full_page_content"
+          }
+        ],
+        "documents": [],
+        "financial": [],
+        "technical": [
+          {
+            "type": "technology_focus",
+            "value": "Technology focus required",
+            "required": true,
+            "source": "full_page_content"
+          }
+        ],
+        "legal": [],
+        "timeline": [],
+        "geographic": [
+          {
+            "type": "location",
+            "value": "EU",
+            "required": true,
+            "source": "full_page_content"
+          }
+        ],
+        "team": [],
+        "project": [
+          {
+            "type": "sustainability_focus",
+            "value": "Sustainability focus required",
+            "required": true,
+            "source": "full_page_content"
+          }
+        ],
+        "compliance": [],
+        "impact": [
+          {
+            "type": "sustainability",
+            "value": "Sustainability impact required",
+            "required": true,
+            "source": "full_page_content"
+          }
+        ],
+        "capex_opex": [
+          {
+            "type": "investment_type",
+            "value": "Capital investment required",
+            "required": true,
+            "source": "full_page_content"
+          }
+        ],
+        "use_of_funds": [],
+        "revenue_model": [
+          {
+            "type": "revenue_requirement",
+            "value": "Revenue generation required",
+            "required": true,
+            "source": "full_page_content"
+          },
+          {
+            "type": "profitability",
+            "value": "Profitability required",
+            "required": true,
+            "source": "full_page_content"
+          }
+        ],
+        "market_size": [
+          {
+            "type": "market_scope",
+            "value": "International market scope",
+            "required": true,
+            "source": "full_page_content"
+          }
+        ],
+        "co_financing": [],
+        "trl_level": [],
+        "consortium": []
+      },
+      "contact_info": {
+        "text": "",
+        "email": "",
+        "phone": ""
+      },
+      "scraped_at": "2025-10-28T20:24:13.312Z",
+      "confidence_score": 0.8,
+      "is_active": true
+    },
+    {
+      "id": "program_1761683058439_h4ruvyi1p",
+      "name": "Diese Seite konnten wir leider nicht finden.",
+      "description": "Ihr Suchbegriff ergab keine Treffer.",
+      "type": "grant",
+      "program_type": "grant",
+      "source_url": "https://www.raiffeisen.at/unternehmen/finanzierung",
+      "institution": "Raiffeisen Bank",
+      "program_category": "grant",
+      "funding_types": [
+        "bank_loan",
+        "leasing"
+      ],
+      "program_focus": [
+        "innovation",
+        "export",
+        "training",
+        "business",
+        "sustainability",
+        "transport",
+        "digital",
+        "energy",
+        "education",
+        "startup"
+      ],
+      "eligibility_criteria": {},
+      "categorized_requirements": {
+        "eligibility": [
+          {
+            "type": "company_type",
+            "value": "Startup",
+            "required": true,
+            "source": "full_page_content"
+          },
+          {
+            "type": "company_type",
+            "value": "Company",
+            "required": true,
+            "source": "full_page_content"
+          }
+        ],
+        "documents": [],
+        "financial": [],
+        "technical": [
+          {
+            "type": "technology_focus",
+            "value": "Technology focus required",
+            "required": true,
+            "source": "full_page_content"
+          }
+        ],
+        "legal": [],
+        "timeline": [],
+        "geographic": [
+          {
+            "type": "location",
+            "value": "EU",
+            "required": true,
+            "source": "full_page_content"
+          }
+        ],
+        "team": [],
+        "project": [
+          {
+            "type": "sustainability_focus",
+            "value": "Sustainability focus required",
+            "required": true,
+            "source": "full_page_content"
+          }
+        ],
+        "compliance": [],
+        "impact": [
+          {
+            "type": "sustainability",
+            "value": "Sustainability impact required",
+            "required": true,
+            "source": "full_page_content"
+          }
+        ],
+        "capex_opex": [
+          {
+            "type": "investment_type",
+            "value": "Capital investment required",
+            "required": true,
+            "source": "full_page_content"
+          }
+        ],
+        "use_of_funds": [],
+        "revenue_model": [
+          {
+            "type": "revenue_requirement",
+            "value": "Revenue generation required",
+            "required": true,
+            "source": "full_page_content"
+          },
+          {
+            "type": "profitability",
+            "value": "Profitability required",
+            "required": true,
+            "source": "full_page_content"
+          }
+        ],
+        "market_size": [
+          {
+            "type": "market_scope",
+            "value": "International market scope",
+            "required": true,
+            "source": "full_page_content"
+          }
+        ],
+        "co_financing": [],
+        "trl_level": [],
+        "consortium": []
+      },
+      "contact_info": {
+        "text": "",
+        "email": "",
+        "phone": ""
+      },
+      "scraped_at": "2025-10-28T20:24:18.483Z",
+      "confidence_score": 0.8,
+      "is_active": true
+    },
+    {
+      "id": "program_1761683063810_7amz9m6ot",
+      "name": "Kreditkarten von Raiffeisen",
+      "description": "Ihr Suchbegriff ergab keine Treffer.",
+      "type": "grant",
+      "program_type": "grant",
+      "source_url": "https://www.raiffeisen.at/de/privatkunden/karte/kreditkarte.html",
+      "institution": "Raiffeisen Bank",
+      "program_category": "grant",
+      "funding_types": [
+        "bank_loan",
+        "leasing"
+      ],
+      "program_focus": [
+        "export",
+        "training",
+        "business",
+        "sustainability",
+        "transport",
+        "digital",
+        "energy",
+        "education",
+        "startup"
+      ],
+      "eligibility_criteria": {},
+      "categorized_requirements": {
+        "eligibility": [
+          {
+            "type": "company_type",
+            "value": "Startup",
+            "required": true,
+            "source": "full_page_content"
+          },
+          {
+            "type": "company_type",
+            "value": "Company",
+            "required": true,
+            "source": "full_page_content"
+          }
+        ],
+        "documents": [],
+        "financial": [
+          {
+            "type": "funding_amount",
+            "value": "697 k",
+            "required": true,
+            "source": "full_page_content"
+          },
+          {
+            "type": "revenue_requirement",
+            "value": "697 k",
+            "required": true,
+            "source": "full_page_content"
+          }
+        ],
+        "technical": [
+          {
+            "type": "technology_focus",
+            "value": "Technology focus required",
+            "required": true,
+            "source": "full_page_content"
+          }
+        ],
+        "legal": [],
+        "timeline": [],
+        "geographic": [
+          {
+            "type": "location",
+            "value": "Austria",
+            "required": true,
+            "source": "full_page_content"
+          },
+          {
+            "type": "specific_location",
+            "value": "Vienna",
+            "required": true,
+            "source": "full_page_content"
+          },
+          {
+            "type": "location",
+            "value": "Germany",
+            "required": true,
+            "source": "full_page_content"
+          },
+          {
+            "type": "location",
+            "value": "EU",
+            "required": true,
+            "source": "full_page_content"
+          }
+        ],
+        "team": [
+          {
+            "type": "team_size",
+            "value": "09",
+            "required": true,
+            "source": "full_page_content"
+          }
+        ],
+        "project": [
+          {
+            "type": "sustainability_focus",
+            "value": "Sustainability focus required",
+            "required": true,
+            "source": "full_page_content"
+          }
+        ],
+        "compliance": [],
+        "impact": [
+          {
+            "type": "sustainability",
+            "value": "Sustainability impact required",
+            "required": true,
+            "source": "full_page_content"
+          }
+        ],
+        "capex_opex": [
+          {
+            "type": "investment_type",
+            "value": "Capital investment required",
+            "required": true,
+            "source": "full_page_content"
+          }
+        ],
+        "use_of_funds": [],
+        "revenue_model": [
+          {
+            "type": "revenue_requirement",
+            "value": "Revenue generation required",
+            "required": true,
+            "source": "full_page_content"
+          },
+          {
+            "type": "profitability",
+            "value": "Profitability required",
+            "required": true,
+            "source": "full_page_content"
+          }
+        ],
+        "market_size": [
+          {
+            "type": "market_scope",
+            "value": "International market scope",
+            "required": true,
+            "source": "full_page_content"
+          }
+        ],
+        "co_financing": [],
+        "trl_level": [],
+        "consortium": [
+          {
+            "type": "cooperation",
+            "value": "Cooperation required",
+            "required": true,
+            "source": "full_page_content"
+          }
+        ]
+      },
+      "contact_info": {
+        "text": "",
+        "email": "",
+        "phone": ""
+      },
+      "scraped_at": "2025-10-28T20:24:23.863Z",
+      "confidence_score": 0.8,
+      "is_active": true
+    },
+    {
+      "id": "program_1761683078864_9la3036yo",
+      "name": "Sprungmarken-Navigation",
+      "description": "Das Ministerium präsentiert seine Arbeit auf dieser Webseite auch in Form von Videos. Diese werden vom deutschen Anbieter TV1 mit Hilfe des JW-Players mit Sitz in den USA ausgeliefert. Bitte willigen Sie in die Übertragung Ihrer IP-Adresse und anderer technischer Daten an den JW-Player ein, und erlauben Sie JW-Player, Cookies auf Ihrem Endgerät zu setzen, wenn Sie unser Video-Angebot nutzen wollen. Verantwortlich für diese Verarbeitung Ihrer Daten ist das Bundesministerium für Wirtschaft und Energie. Unsere Datenschutzbeauftragte erreichen Sie unter datenschutzbeauftragte@bmwk.bund.de. Als Rechtsgrundlage dient uns Ihre Einwilligung nach § 25 Abs. 1 TTDSG i. V. m. Artikel 6 Abs. 1 lit. a) DSGVO und § 3 Abs. 1 EGovG. Wir haben sichergestellt, dass Sie Ihre Einwilligung jederzeit für die Zukunft widerrufen können. Über die Einwilligungsverwaltung am Ende der Seite können Sie jederzeit steuern, ob Sie den Videodienst JW-Player zur Übertragung freigeben oder nicht.",
+      "type": "grant",
+      "program_type": "grant",
+      "source_url": "https://www.bundeswirtschaftsministerium.de/Redaktion/DE/Dossier/100-tage-weichen-gestellt-fuer-wachstum-und-innovation.html",
+      "institution": "Bundesministerium für Wirtschaft und Klimaschutz (BMWK)",
+      "program_category": "grant",
+      "funding_types": [
+        "grant"
+      ],
+      "program_focus": [
+        "innovation",
+        "research",
+        "startup",
+        "export",
+        "training",
+        "business",
+        "sustainability",
+        "transport",
+        "technology",
+        "digital",
+        "energy",
+        "healthcare",
+        "education"
+      ],
+      "eligibility_criteria": {},
+      "categorized_requirements": {
+        "eligibility": [
+          {
+            "type": "company_type",
+            "value": "Startup",
+            "required": true,
+            "source": "full_page_content"
+          },
+          {
+            "type": "company_type",
+            "value": "Company",
+            "required": true,
+            "source": "full_page_content"
+          }
+        ],
+        "documents": [],
+        "financial": [],
+        "technical": [
+          {
+            "type": "technology_focus",
+            "value": "Technology focus required",
+            "required": true,
+            "source": "full_page_content"
+          }
+        ],
+        "legal": [
+          {
+            "type": "legal_compliance",
+            "value": "Legal compliance required",
+            "required": true,
+            "source": "full_page_content"
+          }
+        ],
+        "timeline": [
+          {
+            "type": "deadline",
+            "value": "Application deadline exists",
+            "required": true,
+            "source": "full_page_content"
+          }
+        ],
+        "geographic": [
+          {
+            "type": "location",
+            "value": "Germany",
+            "required": true,
+            "source": "full_page_content"
+          },
+          {
+            "type": "location",
+            "value": "EU",
+            "required": true,
+            "source": "full_page_content"
+          }
+        ],
+        "team": [
+          {
+            "type": "qualification",
+            "value": "Specific qualifications required",
+            "required": true,
+            "source": "full_page_content"
+          }
+        ],
+        "project": [
+          {
+            "type": "innovation_focus",
+            "value": "Innovation/Research required",
+            "required": true,
+            "source": "full_page_content"
+          },
+          {
+            "type": "sustainability_focus",
+            "value": "Sustainability focus required",
+            "required": true,
+            "source": "full_page_content"
+          }
+        ],
+        "compliance": [],
+        "impact": [
+          {
+            "type": "sustainability",
+            "value": "Sustainability impact required",
+            "required": true,
+            "source": "full_page_content"
+          }
+        ],
+        "capex_opex": [
+          {
+            "type": "investment_type",
+            "value": "Capital investment required",
+            "required": true,
+            "source": "full_page_content"
+          }
+        ],
+        "use_of_funds": [
+          {
+            "type": "research_funding",
+            "value": "Research and development funding",
+            "required": true,
+            "source": "full_page_content"
+          }
+        ],
+        "revenue_model": [],
+        "market_size": [
+          {
+            "type": "market_requirement",
+            "value": "Market size requirement",
+            "required": true,
+            "source": "full_page_content"
+          },
+          {
+            "type": "market_scope",
+            "value": "International market scope",
+            "required": true,
+            "source": "full_page_content"
+          }
+        ],
+        "co_financing": [],
+        "trl_level": [],
+        "consortium": [
+          {
+            "type": "consortium_required",
+            "value": "Consortium partnership required",
+            "required": true,
+            "source": "full_page_content"
+          }
+        ]
+      },
+      "contact_info": {
+        "text": "",
+        "email": "",
+        "phone": ""
+      },
+      "scraped_at": "2025-10-28T20:24:38.927Z",
+      "confidence_score": 0.8,
+      "is_active": true
+    },
+    {
+      "id": "program_1761683094635_w0adlc1ps",
+      "name": "Unser Förderangebot für Unternehmen",
+      "description": "Für Unternehmen gibt es viele gute Gründe zu investieren. Dafür können Sie die vielfältige Förderung der KfW nutzen.",
+      "type": "grant",
+      "program_type": "grant",
+      "source_url": "https://www.kfw.de/inlandsfoerderung/Unternehmen/",
+      "institution": "KfW Bankengruppe",
+      "program_category": "grant",
+      "funding_types": [
+        "loan",
+        "grant"
+      ],
+      "program_focus": [
+        "innovation",
+        "research",
+        "training",
+        "business",
+        "sustainability",
+        "technology",
+        "digital",
+        "environment",
+        "energy",
+        "education",
+        "startup"
+      ],
+      "eligibility_criteria": {},
+      "categorized_requirements": {
+        "eligibility": [
+          {
+            "type": "company_type",
+            "value": "Company",
+            "required": true,
+            "source": "eligibility_text"
+          },
+          {
+            "type": "company_type",
+            "value": "Company required",
+            "required": true,
+            "source": "enhanced_eligibility"
+          },
+          {
+            "type": "company_type",
+            "value": "Startup",
+            "required": true,
+            "source": "full_page_content"
+          },
+          {
+            "type": "company_type",
+            "value": "Company",
+            "required": true,
+            "source": "full_page_content"
+          }
+        ],
+        "documents": [],
+        "financial": [],
+        "technical": [
+          {
+            "type": "technology_focus",
+            "value": "Technology focus required",
+            "required": true,
+            "source": "full_page_content"
+          }
+        ],
+        "legal": [
+          {
+            "type": "legal_compliance",
+            "value": "Legal compliance required",
+            "required": true,
+            "source": "full_page_content"
+          }
+        ],
+        "timeline": [],
+        "geographic": [
+          {
+            "type": "location",
+            "value": "EU",
+            "required": true,
+            "source": "full_page_content"
+          }
+        ],
+        "team": [],
+        "project": [
+          {
+            "type": "innovation_focus",
+            "value": "Innovation/Research required",
+            "required": true,
+            "source": "full_page_content"
+          },
+          {
+            "type": "sustainability_focus",
+            "value": "Sustainability focus required",
+            "required": true,
+            "source": "full_page_content"
+          }
+        ],
+        "compliance": [],
+        "impact": [],
+        "capex_opex": [
+          {
+            "type": "investment_type",
+            "value": "Capital investment required",
+            "required": true,
+            "source": "full_page_content"
+          }
+        ],
+        "use_of_funds": [
+          {
+            "type": "research_funding",
+            "value": "Research and development funding",
+            "required": true,
+            "source": "full_page_content"
+          }
+        ],
+        "revenue_model": [],
+        "market_size": [
+          {
+            "type": "market_requirement",
+            "value": "Market size requirement",
+            "required": true,
+            "source": "full_page_content"
+          },
+          {
+            "type": "market_scope",
+            "value": "International market scope",
+            "required": true,
+            "source": "full_page_content"
+          }
+        ],
+        "co_financing": [],
+        "trl_level": [],
+        "consortium": []
+      },
+      "contact_info": {
+        "text": "",
+        "email": "",
+        "phone": ""
+      },
+      "scraped_at": "2025-10-28T20:24:54.639Z",
+      "confidence_score": 0.8,
+      "is_active": true
+    },
+    {
+      "id": "program_1761683111473_r6bbyjkhu",
+      "name": "Redes Sociales",
+      "description": "¡Hola! ¿Podríamos habilitar algunos servicios adicionales para Analítica? Siempre podrá cambiar o retirar su consentimiento más tarde.",
+      "type": "research",
+      "program_type": "research",
+      "source_url": "https://www.cdti.es/oportunidades/programas",
+      "institution": "CDTI (Centro para el Desarrollo Tecnológico Industrial)",
+      "program_category": "research",
+      "funding_types": [
+        "grant",
+        "loan"
+      ],
+      "program_focus": [
+        "innovation",
+        "research",
+        "employment",
+        "training",
+        "technology",
+        "digital"
+      ],
+      "eligibility_criteria": {},
+      "categorized_requirements": {
+        "eligibility": [],
+        "documents": [],
+        "financial": [],
+        "technical": [
+          {
+            "type": "technology_focus",
+            "value": "Technology focus required",
+            "required": true,
+            "source": "full_page_content"
+          }
+        ],
+        "legal": [
+          {
+            "type": "legal_compliance",
+            "value": "Legal compliance required",
+            "required": true,
+            "source": "full_page_content"
+          }
+        ],
+        "timeline": [],
+        "geographic": [
+          {
+            "type": "location",
+            "value": "EU",
+            "required": true,
+            "source": "full_page_content"
+          }
+        ],
+        "team": [],
+        "project": [
+          {
+            "type": "innovation_focus",
+            "value": "Innovation/Research required",
+            "required": true,
+            "source": "full_page_content"
+          }
+        ],
+        "compliance": [],
+        "impact": [],
+        "capex_opex": [],
+        "use_of_funds": [],
+        "revenue_model": [],
+        "market_size": [
+          {
+            "type": "market_requirement",
+            "value": "Market size requirement",
+            "required": true,
+            "source": "full_page_content"
+          }
+        ],
+        "co_financing": [],
+        "trl_level": [],
+        "consortium": []
+      },
+      "contact_info": {
+        "text": "",
+        "email": "",
+        "phone": ""
+      },
+      "scraped_at": "2025-10-28T20:25:11.492Z",
+      "confidence_score": 0.8,
+      "is_active": true
+    },
+    {
+      "id": "program_1761683114104_0t7mjw0o1",
+      "name": "Innovation Growth Lab (IGL)",
+      "description": "El CDTI Innovación forma parte de Innovation Growth Lab (IGL), la iniciativa global que trabaja para incrementar el impacto de las políticas de innovación y crecimiento sobre la incorporación de nuevas ideas y evidencias que se prueban a nivel experimental y cuya investigación arroja resultados de alto impacto para mejorar el diseño de programas y políticas de las instituciones centradas en hacer que las economías sean más innovadoras y productivas.",
+      "type": "grant",
+      "program_type": "grant",
+      "source_url": "https://www.cdti.es/igl-innovation-growth-lab",
+      "institution": "CDTI (Centro para el Desarrollo Tecnológico Industrial)",
+      "program_category": "grant",
+      "funding_types": [
+        "grant",
+        "loan"
+      ],
+      "program_focus": [
+        "innovation",
+        "research",
+        "employment",
+        "training",
+        "business",
+        "technology",
+        "digital"
+      ],
+      "eligibility_criteria": {},
+      "categorized_requirements": {
+        "eligibility": [],
+        "documents": [],
+        "financial": [],
+        "technical": [
+          {
+            "type": "technology_focus",
+            "value": "Technology focus required",
+            "required": true,
+            "source": "full_page_content"
+          }
+        ],
+        "legal": [
+          {
+            "type": "legal_compliance",
+            "value": "Legal compliance required",
+            "required": true,
+            "source": "full_page_content"
+          }
+        ],
+        "timeline": [],
+        "geographic": [
+          {
+            "type": "location",
+            "value": "EU",
+            "required": true,
+            "source": "full_page_content"
+          }
+        ],
+        "team": [],
+        "project": [
+          {
+            "type": "innovation_focus",
+            "value": "Innovation/Research required",
+            "required": true,
+            "source": "eligibility_text"
+          },
+          {
+            "type": "innovation_focus",
+            "value": "Innovation/Research required",
+            "required": true,
+            "source": "full_page_content"
+          }
+        ],
+        "compliance": [],
+        "impact": [],
+        "capex_opex": [],
+        "use_of_funds": [],
+        "revenue_model": [],
+        "market_size": [
+          {
+            "type": "market_requirement",
+            "value": "Market size requirement",
+            "required": true,
+            "source": "full_page_content"
+          },
+          {
+            "type": "market_scope",
+            "value": "International market scope",
+            "required": true,
+            "source": "full_page_content"
+          }
+        ],
+        "co_financing": [],
+        "trl_level": [],
+        "consortium": []
+      },
+      "contact_info": {
+        "text": "",
+        "email": "",
+        "phone": ""
+      },
+      "scraped_at": "2025-10-28T20:25:14.116Z",
+      "confidence_score": 0.8,
+      "is_active": true
+    },
+    {
+      "id": "program_1761683116761_9emqoxa7j",
+      "name": "Programa Innvierte",
+      "description": "El programa INNVIERTE forma parte de la Estrategia Española de Ciencia y Tecnología y de Innovación, aprobada por Acuerdo del Consejo de Ministros, el 1 de febrero de 2013. Esta Estrategia contiene los objetivos, las reformas y las medidas que deben adoptarse en todo el ámbito de la I+D+i con el fin de impulsar su crecimiento e impacto, y es uno de los pilares sobre los que se asienta el diseño de la política del Gobierno en I+D+i para los próximos años.",
+      "type": "research",
+      "program_type": "research",
+      "source_url": "https://www.cdti.es/programa-innvierte",
+      "institution": "CDTI (Centro para el Desarrollo Tecnológico Industrial)",
+      "program_category": "research",
+      "funding_types": [
+        "grant",
+        "loan"
+      ],
+      "program_focus": [
+        "innovation",
+        "research",
+        "startup",
+        "employment",
+        "training",
+        "business",
+        "technology",
+        "digital"
+      ],
+      "eligibility_criteria": {},
+      "categorized_requirements": {
+        "eligibility": [],
+        "documents": [],
+        "financial": [],
+        "technical": [
+          {
+            "type": "technology_focus",
+            "value": "Technology focus required",
+            "required": true,
+            "source": "full_page_content"
+          }
+        ],
+        "legal": [
+          {
+            "type": "legal_compliance",
+            "value": "Legal compliance required",
+            "required": true,
+            "source": "full_page_content"
+          }
+        ],
+        "timeline": [],
+        "geographic": [
+          {
+            "type": "location",
+            "value": "EU",
+            "required": true,
+            "source": "full_page_content"
+          }
+        ],
+        "team": [],
+        "project": [
+          {
+            "type": "innovation_focus",
+            "value": "Innovation/Research required",
+            "required": true,
+            "source": "full_page_content"
+          }
+        ],
+        "compliance": [],
+        "impact": [],
+        "capex_opex": [],
+        "use_of_funds": [],
+        "revenue_model": [],
+        "market_size": [
+          {
+            "type": "market_requirement",
+            "value": "Market size requirement",
+            "required": true,
+            "source": "full_page_content"
+          },
+          {
+            "type": "market_scope",
+            "value": "International market scope",
+            "required": true,
+            "source": "full_page_content"
+          }
+        ],
+        "co_financing": [],
+        "trl_level": [],
+        "consortium": []
+      },
+      "contact_info": {
+        "text": "",
+        "email": "",
+        "phone": ""
+      },
+      "scraped_at": "2025-10-28T20:25:16.769Z",
+      "confidence_score": 0.8,
+      "is_active": true
+    },
+    {
+      "id": "program_1761683118975_p3ogixeyk",
+      "name": "Unknown Program",
+      "description": "No description available",
+      "type": "startup",
+      "program_type": "startup",
+      "source_url": "https://www.invest-nl.nl/investments",
+      "institution": "Invest-NL",
+      "program_category": "startup",
+      "funding_types": [
+        "equity",
+        "venture_capital"
+      ],
+      "program_focus": [
+        "innovation",
+        "startup",
+        "business",
+        "sustainability",
+        "transport",
+        "technology",
+        "environment",
+        "energy",
+        "healthcare"
+      ],
+      "eligibility_criteria": {},
+      "categorized_requirements": {
+        "eligibility": [
+          {
+            "type": "company_type",
+            "value": "Startup",
+            "required": true,
+            "source": "full_page_content"
+          },
+          {
+            "type": "company_type",
+            "value": "Company",
+            "required": true,
+            "source": "full_page_content"
+          }
+        ],
+        "documents": [],
+        "financial": [],
+        "technical": [
+          {
+            "type": "technology_focus",
+            "value": "Technology focus required",
+            "required": true,
+            "source": "full_page_content"
+          }
+        ],
+        "legal": [],
+        "timeline": [],
+        "geographic": [
+          {
+            "type": "location",
+            "value": "EU",
+            "required": true,
+            "source": "full_page_content"
+          }
+        ],
+        "team": [
+          {
+            "type": "team_size",
+            "value": "0",
+            "required": true,
+            "source": "full_page_content"
+          }
+        ],
+        "project": [
+          {
+            "type": "sustainability_focus",
+            "value": "Sustainability focus required",
+            "required": true,
+            "source": "full_page_content"
+          }
+        ],
+        "compliance": [],
+        "impact": [],
+        "capex_opex": [
+          {
+            "type": "investment_type",
+            "value": "Capital investment required",
+            "required": true,
+            "source": "full_page_content"
+          }
+        ],
+        "use_of_funds": [],
+        "revenue_model": [],
+        "market_size": [
+          {
+            "type": "market_requirement",
+            "value": "Market size requirement",
+            "required": true,
+            "source": "full_page_content"
+          },
+          {
+            "type": "market_scope",
+            "value": "International market scope",
+            "required": true,
+            "source": "full_page_content"
+          }
+        ],
+        "co_financing": [],
+        "trl_level": [],
+        "consortium": []
+      },
+      "contact_info": {
+        "text": "",
+        "email": "",
+        "phone": ""
+      },
+      "scraped_at": "2025-10-28T20:25:18.976Z",
+      "confidence_score": 0.8,
+      "is_active": true
+    },
+    {
+      "id": "program_1761683124185_3it8g1q2y",
+      "name": "Sprungmarken-Navigation",
+      "description": "Das Ministerium präsentiert seine Arbeit auf dieser Webseite auch in Form von Videos. Diese werden vom deutschen Anbieter TV1 mit Hilfe des JW-Players mit Sitz in den USA ausgeliefert. Bitte willigen Sie in die Übertragung Ihrer IP-Adresse und anderer technischer Daten an den JW-Player ein, und erlauben Sie JW-Player, Cookies auf Ihrem Endgerät zu setzen, wenn Sie unser Video-Angebot nutzen wollen. Verantwortlich für diese Verarbeitung Ihrer Daten ist das Bundesministerium für Wirtschaft und Energie. Unsere Datenschutzbeauftragte erreichen Sie unter datenschutzbeauftragte@bmwk.bund.de. Als Rechtsgrundlage dient uns Ihre Einwilligung nach § 25 Abs. 1 TTDSG i. V. m. Artikel 6 Abs. 1 lit. a) DSGVO und § 3 Abs. 1 EGovG. Wir haben sichergestellt, dass Sie Ihre Einwilligung jederzeit für die Zukunft widerrufen können. Über die Einwilligungsverwaltung am Ende der Seite können Sie jederzeit steuern, ob Sie den Videodienst JW-Player zur Übertragung freigeben oder nicht.",
+      "type": "grant",
+      "program_type": "grant",
+      "source_url": "https://www.bundeswirtschaftsministerium.de/Redaktion/DE/Dossier/100-tage-weichen-gestellt-fuer-wachstum-und-innovation.html",
+      "institution": "BMWK - German Federal Ministry for Economic Affairs",
+      "program_category": "grant",
+      "funding_types": [
+        "grant",
+        "subsidy"
+      ],
+      "program_focus": [
+        "innovation",
+        "research",
+        "startup",
+        "export",
+        "training",
+        "business",
+        "sustainability",
+        "transport",
+        "technology",
+        "digital",
+        "energy",
+        "healthcare",
+        "education"
+      ],
+      "eligibility_criteria": {},
+      "categorized_requirements": {
+        "eligibility": [
+          {
+            "type": "company_type",
+            "value": "Startup",
+            "required": true,
+            "source": "full_page_content"
+          },
+          {
+            "type": "company_type",
+            "value": "Company",
+            "required": true,
+            "source": "full_page_content"
+          }
+        ],
+        "documents": [],
+        "financial": [],
+        "technical": [
+          {
+            "type": "technology_focus",
+            "value": "Technology focus required",
+            "required": true,
+            "source": "full_page_content"
+          }
+        ],
+        "legal": [
+          {
+            "type": "legal_compliance",
+            "value": "Legal compliance required",
+            "required": true,
+            "source": "full_page_content"
+          }
+        ],
+        "timeline": [
+          {
+            "type": "deadline",
+            "value": "Application deadline exists",
+            "required": true,
+            "source": "full_page_content"
+          }
+        ],
+        "geographic": [
+          {
+            "type": "location",
+            "value": "Germany",
+            "required": true,
+            "source": "full_page_content"
+          },
+          {
+            "type": "location",
+            "value": "EU",
+            "required": true,
+            "source": "full_page_content"
+          }
+        ],
+        "team": [
+          {
+            "type": "qualification",
+            "value": "Specific qualifications required",
+            "required": true,
+            "source": "full_page_content"
+          }
+        ],
+        "project": [
+          {
+            "type": "innovation_focus",
+            "value": "Innovation/Research required",
+            "required": true,
+            "source": "full_page_content"
+          },
+          {
+            "type": "sustainability_focus",
+            "value": "Sustainability focus required",
+            "required": true,
+            "source": "full_page_content"
+          }
+        ],
+        "compliance": [],
+        "impact": [
+          {
+            "type": "sustainability",
+            "value": "Sustainability impact required",
+            "required": true,
+            "source": "full_page_content"
+          }
+        ],
+        "capex_opex": [
+          {
+            "type": "investment_type",
+            "value": "Capital investment required",
+            "required": true,
+            "source": "full_page_content"
+          }
+        ],
+        "use_of_funds": [
+          {
+            "type": "research_funding",
+            "value": "Research and development funding",
+            "required": true,
+            "source": "full_page_content"
+          }
+        ],
+        "revenue_model": [],
+        "market_size": [
+          {
+            "type": "market_requirement",
+            "value": "Market size requirement",
+            "required": true,
+            "source": "full_page_content"
+          },
+          {
+            "type": "market_scope",
+            "value": "International market scope",
+            "required": true,
+            "source": "full_page_content"
+          }
+        ],
+        "co_financing": [],
+        "trl_level": [],
+        "consortium": [
+          {
+            "type": "consortium_required",
+            "value": "Consortium partnership required",
+            "required": true,
+            "source": "full_page_content"
+          }
+        ]
+      },
+      "contact_info": {
+        "text": "",
+        "email": "",
+        "phone": ""
+      },
+      "scraped_at": "2025-10-28T20:25:24.210Z",
+      "confidence_score": 0.8,
+      "is_active": true
+    },
+    {
+      "id": "program_1761683127090_ersmvy6ul",
+      "name": "Sprungmarken-Navigation",
+      "description": "Das Ministerium präsentiert seine Arbeit auf dieser Webseite auch in Form von Videos. Diese werden vom deutschen Anbieter TV1 mit Hilfe des JW-Players mit Sitz in den USA ausgeliefert. Bitte willigen Sie in die Übertragung Ihrer IP-Adresse und anderer technischer Daten an den JW-Player ein, und erlauben Sie JW-Player, Cookies auf Ihrem Endgerät zu setzen, wenn Sie unser Video-Angebot nutzen wollen. Verantwortlich für diese Verarbeitung Ihrer Daten ist das Bundesministerium für Wirtschaft und Energie. Unsere Datenschutzbeauftragte erreichen Sie unter datenschutzbeauftragte@bmwk.bund.de. Als Rechtsgrundlage dient uns Ihre Einwilligung nach § 25 Abs. 1 TTDSG i. V. m. Artikel 6 Abs. 1 lit. a) DSGVO und § 3 Abs. 1 EGovG. Wir haben sichergestellt, dass Sie Ihre Einwilligung jederzeit für die Zukunft widerrufen können. Über die Einwilligungsverwaltung am Ende der Seite können Sie jederzeit steuern, ob Sie den Videodienst JW-Player zur Übertragung freigeben oder nicht.",
+      "type": "grant",
+      "program_type": "grant",
+      "source_url": "https://www.bundeswirtschaftsministerium.de/Redaktion/DE/Dossier/energieforschung-und-innovation.html",
+      "institution": "BMWK - German Federal Ministry for Economic Affairs",
+      "program_category": "grant",
+      "funding_types": [
+        "grant",
+        "subsidy"
+      ],
+      "program_focus": [
+        "innovation",
+        "research",
+        "export",
+        "employment",
+        "training",
+        "business",
+        "sustainability",
+        "transport",
+        "technology",
+        "digital",
+        "energy",
+        "healthcare",
+        "education"
+      ],
+      "eligibility_criteria": {},
+      "categorized_requirements": {
+        "eligibility": [
+          {
+            "type": "company_type",
+            "value": "Startup",
+            "required": true,
+            "source": "full_page_content"
+          },
+          {
+            "type": "company_type",
+            "value": "Company",
+            "required": true,
+            "source": "full_page_content"
+          }
+        ],
+        "documents": [
+          {
+            "type": "required_documents",
+            "value": "Various documents required",
+            "required": true,
+            "source": "full_page_content"
+          }
+        ],
+        "financial": [
+          {
+            "type": "funding_amount",
+            "value": "2045 k",
+            "required": true,
+            "source": "full_page_content"
+          }
+        ],
+        "technical": [
+          {
+            "type": "trl_level",
+            "value": "TRL 3",
+            "required": true,
+            "source": "full_page_content"
+          },
+          {
+            "type": "technology_focus",
+            "value": "Technology focus required",
+            "required": true,
+            "source": "full_page_content"
+          }
+        ],
+        "legal": [],
+        "timeline": [
+          {
+            "type": "duration",
+            "value": "Unknown duration",
+            "required": true,
+            "source": "full_page_content"
+          },
+          {
+            "type": "deadline",
+            "value": "Application deadline exists",
+            "required": true,
+            "source": "full_page_content"
+          }
+        ],
+        "geographic": [
+          {
+            "type": "location",
+            "value": "Germany",
+            "required": true,
+            "source": "full_page_content"
+          },
+          {
+            "type": "location",
+            "value": "EU",
+            "required": true,
+            "source": "full_page_content"
+          }
+        ],
+        "team": [
+          {
+            "type": "qualification",
+            "value": "Specific qualifications required",
+            "required": true,
+            "source": "full_page_content"
+          }
+        ],
+        "project": [
+          {
+            "type": "innovation_focus",
+            "value": "Innovation/Research required",
+            "required": true,
+            "source": "full_page_content"
+          },
+          {
+            "type": "sustainability_focus",
+            "value": "Sustainability focus required",
+            "required": true,
+            "source": "full_page_content"
+          }
+        ],
+        "compliance": [
+          {
+            "type": "regulatory_compliance",
+            "value": "Regulatory compliance required",
+            "required": true,
+            "source": "full_page_content"
+          }
+        ],
+        "impact": [
+          {
+            "type": "sustainability",
+            "value": "Sustainability impact required",
+            "required": true,
+            "source": "full_page_content"
+          },
+          {
+            "type": "employment_impact",
+            "value": "Job creation impact",
+            "required": true,
+            "source": "full_page_content"
+          }
+        ],
+        "capex_opex": [
+          {
+            "type": "investment_type",
+            "value": "Capital investment required",
+            "required": true,
+            "source": "full_page_content"
+          }
+        ],
+        "use_of_funds": [
+          {
+            "type": "research_funding",
+            "value": "Research and development funding",
+            "required": true,
+            "source": "full_page_content"
+          }
+        ],
+        "revenue_model": [
+          {
+            "type": "profitability",
+            "value": "Profitability required",
+            "required": true,
+            "source": "full_page_content"
+          }
+        ],
+        "market_size": [
+          {
+            "type": "market_requirement",
+            "value": "Market size requirement",
+            "required": true,
+            "source": "full_page_content"
+          },
+          {
+            "type": "market_scope",
+            "value": "International market scope",
+            "required": true,
+            "source": "full_page_content"
+          }
+        ],
+        "co_financing": [],
+        "trl_level": [],
+        "consortium": [
+          {
+            "type": "consortium_required",
+            "value": "Consortium partnership required",
+            "required": true,
+            "source": "full_page_content"
+          },
+          {
+            "type": "cooperation",
+            "value": "Cooperation required",
+            "required": true,
+            "source": "full_page_content"
+          }
+        ]
+      },
+      "contact_info": {
+        "text": "",
+        "email": "",
+        "phone": ""
+      },
+      "scraped_at": "2025-10-28T20:25:27.104Z",
+      "confidence_score": 0.8,
+      "is_active": true
+    },
+    {
+      "id": "program_1761683139412_wxx56a3oe",
+      "name": "Die Internetseite der KfW: das Wichtigste in Gebärdensprache",
+      "description": "Wünschen Sie sich erste Informationen über kfw.de in Deutscher Gebärden­sprache? Dann sind Sie hier richtig. In unserem Video für Menschen mit einge­schränk­tem Hörvermögen erklären wir, welche Inhalte Sie hier finden und wie Sie dorthin gelangen.",
+      "type": "grant",
+      "program_type": "grant",
+      "source_url": "https://www.kfw.de/inlandsfoerderung/Gebaerdensprache.html",
+      "institution": "KfW - German Development Bank",
+      "program_category": "grant",
+      "funding_types": [
+        "loan",
+        "grant"
+      ],
+      "program_focus": [
+        "research",
+        "training",
+        "business",
+        "sustainability",
+        "energy",
+        "education"
+      ],
+      "eligibility_criteria": {},
+      "categorized_requirements": {
+        "eligibility": [
+          {
+            "type": "company_type",
+            "value": "Company",
+            "required": true,
+            "source": "full_page_content"
+          }
+        ],
+        "documents": [],
+        "financial": [],
+        "technical": [],
+        "legal": [
+          {
+            "type": "legal_compliance",
+            "value": "Legal compliance required",
+            "required": true,
+            "source": "full_page_content"
+          }
+        ],
+        "timeline": [],
+        "geographic": [
+          {
+            "type": "location",
+            "value": "EU",
+            "required": true,
+            "source": "full_page_content"
+          }
+        ],
+        "team": [],
+        "project": [],
+        "compliance": [],
+        "impact": [],
+        "capex_opex": [],
+        "use_of_funds": [],
+        "revenue_model": [],
+        "market_size": [
+          {
+            "type": "market_requirement",
+            "value": "Market size requirement",
+            "required": true,
+            "source": "full_page_content"
+          },
+          {
+            "type": "market_scope",
+            "value": "International market scope",
+            "required": true,
+            "source": "full_page_content"
+          }
+        ],
+        "co_financing": [],
+        "trl_level": [],
+        "consortium": []
+      },
+      "contact_info": {
+        "text": "",
+        "email": "",
+        "phone": ""
+      },
+      "scraped_at": "2025-10-28T20:25:39.416Z",
+      "confidence_score": 0.8,
+      "is_active": true
+    },
+    {
+      "id": "program_1761683143646_zdv6srapb",
+      "name": "Investitionsfinanzierung",
+      "description": "Die OeEB finanziert privatwirtschaftliche Investitionsprojekte in Entwicklungs- und Schwellenländern. Wir bieten maßgeschneiderte Lösungen zu marktnahen Konditionen und mit langfristigen Laufzeiten für Projekte, die wirtschaftlich rentabel und entwicklungspolitisch sinnvoll sind.",
+      "type": "loan",
+      "program_type": "loan",
+      "source_url": "https://www.oe-eb.at/unsere-services/investitionsfinanzierung.html",
+      "institution": "Österreichische Entwicklungsbank (OeEB)",
+      "program_category": "loan",
+      "funding_types": [
+        "loan",
+        "grant"
+      ],
+      "program_focus": [
+        "training",
+        "business",
+        "sustainability",
+        "energy"
+      ],
+      "eligibility_criteria": {},
+      "categorized_requirements": {
+        "eligibility": [
+          {
+            "type": "company_type",
+            "value": "Company",
+            "required": true,
+            "source": "full_page_content"
+          }
+        ],
+        "documents": [],
+        "financial": [
+          {
+            "type": "co_financing",
+            "value": "Unknown",
+            "required": true,
+            "source": "full_page_content"
+          },
+          {
+            "type": "funding_amount",
+            "value": "25 Mio",
+            "required": true,
+            "source": "full_page_content"
+          }
+        ],
+        "technical": [],
+        "legal": [],
+        "timeline": [
+          {
+            "type": "duration",
+            "value": "15 Jahr",
+            "required": true,
+            "source": "full_page_content"
+          }
+        ],
+        "geographic": [
+          {
+            "type": "location",
+            "value": "Austria",
+            "required": true,
+            "source": "full_page_content"
+          },
+          {
+            "type": "location",
+            "value": "EU",
+            "required": true,
+            "source": "full_page_content"
+          }
+        ],
+        "team": [],
+        "project": [
+          {
+            "type": "innovation_focus",
+            "value": "Innovation/Research required",
+            "required": true,
+            "source": "full_page_content"
+          },
+          {
+            "type": "sustainability_focus",
+            "value": "Sustainability focus required",
+            "required": true,
+            "source": "full_page_content"
+          }
+        ],
+        "compliance": [],
+        "impact": [
+          {
+            "type": "sustainability",
+            "value": "Sustainability impact required",
+            "required": true,
+            "source": "full_page_content"
+          },
+          {
+            "type": "employment_impact",
+            "value": "Job creation impact",
+            "required": true,
+            "source": "full_page_content"
+          }
+        ],
+        "capex_opex": [
+          {
+            "type": "investment_type",
+            "value": "Capital investment required",
+            "required": true,
+            "source": "full_page_content"
+          }
+        ],
+        "use_of_funds": [
+          {
+            "type": "fund_usage",
+            "value": "Specific fund usage required",
+            "required": true,
+            "source": "full_page_content"
+          },
+          {
+            "type": "research_funding",
+            "value": "Research and development funding",
+            "required": true,
+            "source": "full_page_content"
+          }
+        ],
+        "revenue_model": [],
+        "market_size": [
+          {
+            "type": "market_requirement",
+            "value": "Market size requirement",
+            "required": true,
+            "source": "full_page_content"
+          }
+        ],
+        "co_financing": [],
+        "trl_level": [],
+        "consortium": [
+          {
+            "type": "cooperation",
+            "value": "Cooperation required",
+            "required": true,
+            "source": "full_page_content"
+          }
+        ]
+      },
+      "contact_info": {
+        "text": "",
+        "email": "",
+        "phone": ""
+      },
+      "scraped_at": "2025-10-28T20:25:43.651Z",
+      "confidence_score": 0.8,
+      "is_active": true
+    },
+    {
+      "id": "program_1761683148013_e8yzgc527",
+      "name": "Förderungen",
+      "description": "Förderungen",
+      "type": "grant",
+      "program_type": "grant",
+      "source_url": "https://www.wko.at/foerderung/foerderungen",
+      "institution": "Austrian Federal Economic Chamber (WKO)",
+      "program_category": "grant",
+      "funding_types": [
+        "grant",
+        "subsidy"
+      ],
+      "program_focus": [
+        "innovation",
+        "export",
+        "training",
+        "business",
+        "sustainability",
+        "technology",
+        "digital",
+        "environment",
+        "energy",
+        "education"
+      ],
+      "eligibility_criteria": {},
+      "categorized_requirements": {
+        "eligibility": [
+          {
+            "type": "company_type",
+            "value": "Startup",
+            "required": true,
+            "source": "full_page_content"
+          },
+          {
+            "type": "company_type",
+            "value": "Company",
+            "required": true,
+            "source": "full_page_content"
+          }
+        ],
+        "documents": [],
+        "financial": [],
+        "technical": [
+          {
+            "type": "technology_focus",
+            "value": "Technology focus required",
+            "required": true,
+            "source": "full_page_content"
+          }
+        ],
+        "legal": [
+          {
+            "type": "legal_compliance",
+            "value": "Legal compliance required",
+            "required": true,
+            "source": "full_page_content"
+          }
+        ],
+        "timeline": [],
+        "geographic": [
+          {
+            "type": "location",
+            "value": "Austria",
+            "required": true,
+            "source": "full_page_content"
+          },
+          {
+            "type": "specific_location",
+            "value": "Vienna",
+            "required": true,
+            "source": "full_page_content"
+          },
+          {
+            "type": "location",
+            "value": "EU",
+            "required": true,
+            "source": "full_page_content"
+          }
+        ],
+        "team": [
+          {
+            "type": "team_size",
+            "value": "1",
+            "required": true,
+            "source": "full_page_content"
+          }
+        ],
+        "project": [
+          {
+            "type": "innovation_focus",
+            "value": "Innovation/Research required",
+            "required": true,
+            "source": "full_page_content"
+          },
+          {
+            "type": "sustainability_focus",
+            "value": "Sustainability focus required",
+            "required": true,
+            "source": "full_page_content"
+          }
+        ],
+        "compliance": [],
+        "impact": [
+          {
+            "type": "sustainability",
+            "value": "Sustainability impact required",
+            "required": true,
+            "source": "full_page_content"
+          },
+          {
+            "type": "employment_impact",
+            "value": "Job creation impact",
+            "required": true,
+            "source": "full_page_content"
+          }
+        ],
+        "capex_opex": [
+          {
+            "type": "investment_type",
+            "value": "Capital investment required",
+            "required": true,
+            "source": "full_page_content"
+          }
+        ],
+        "use_of_funds": [],
+        "revenue_model": [],
+        "market_size": [
+          {
+            "type": "market_scope",
+            "value": "International market scope",
+            "required": true,
+            "source": "full_page_content"
+          }
+        ],
+        "co_financing": [],
+        "trl_level": [],
+        "consortium": []
+      },
+      "contact_info": {
+        "text": "",
+        "email": "",
+        "phone": ""
+      },
+      "scraped_at": "2025-10-28T20:25:48.016Z",
+      "confidence_score": 0.8,
+      "is_active": true
+    },
+    {
+      "id": "program_1761683152167_1ine1s9cz",
+      "name": "Die von Ihnen aufgerufene Seite gehört nicht zu unserem gültigen Angebot oder ist vorübergehend nicht erreichbar.",
+      "description": "Vor Ort für Sie da.",
+      "type": "grant",
+      "program_type": "grant",
+      "source_url": "https://www.deutsche-bank.de/de/unternehmen/kredite",
+      "institution": "Deutsche Bank",
+      "program_category": "grant",
+      "funding_types": [
+        "bank_loan"
+      ],
+      "program_focus": [
+        "research",
+        "startup",
+        "training",
+        "business",
+        "sustainability",
+        "transport",
+        "digital",
+        "environment",
+        "healthcare"
+      ],
+      "eligibility_criteria": {},
+      "categorized_requirements": {
+        "eligibility": [
+          {
+            "type": "company_type",
+            "value": "Startup",
+            "required": true,
+            "source": "full_page_content"
+          },
+          {
+            "type": "company_type",
+            "value": "Company",
+            "required": true,
+            "source": "full_page_content"
+          }
+        ],
+        "documents": [],
+        "financial": [],
+        "technical": [
+          {
+            "type": "technology_focus",
+            "value": "Technology focus required",
+            "required": true,
+            "source": "full_page_content"
+          }
+        ],
+        "legal": [
+          {
+            "type": "legal_compliance",
+            "value": "Legal compliance required",
+            "required": true,
+            "source": "full_page_content"
+          }
+        ],
+        "timeline": [
+          {
+            "type": "duration",
+            "value": "Unknown duration",
+            "required": true,
+            "source": "full_page_content"
+          }
+        ],
+        "geographic": [
+          {
+            "type": "location",
+            "value": "Germany",
+            "required": true,
+            "source": "full_page_content"
+          },
+          {
+            "type": "location",
+            "value": "EU",
+            "required": true,
+            "source": "full_page_content"
+          }
+        ],
+        "team": [
+          {
+            "type": "team_size",
+            "value": "24",
+            "required": true,
+            "source": "full_page_content"
+          }
+        ],
+        "project": [
+          {
+            "type": "sustainability_focus",
+            "value": "Sustainability focus required",
+            "required": true,
+            "source": "full_page_content"
+          }
+        ],
+        "compliance": [],
+        "impact": [
+          {
+            "type": "sustainability",
+            "value": "Sustainability impact required",
+            "required": true,
+            "source": "full_page_content"
+          }
+        ],
+        "capex_opex": [
+          {
+            "type": "investment_type",
+            "value": "Capital investment required",
+            "required": true,
+            "source": "full_page_content"
+          }
+        ],
+        "use_of_funds": [],
+        "revenue_model": [],
+        "market_size": [
+          {
+            "type": "market_requirement",
+            "value": "Market size requirement",
+            "required": true,
+            "source": "full_page_content"
+          },
+          {
+            "type": "market_scope",
+            "value": "International market scope",
+            "required": true,
+            "source": "full_page_content"
+          }
+        ],
+        "co_financing": [],
+        "trl_level": [],
+        "consortium": [
+          {
+            "type": "cooperation",
+            "value": "Cooperation required",
+            "required": true,
+            "source": "full_page_content"
+          }
+        ]
+      },
+      "contact_info": {
+        "text": "",
+        "email": "",
+        "phone": ""
+      },
+      "scraped_at": "2025-10-28T20:25:52.173Z",
+      "confidence_score": 0.8,
+      "is_active": true
+    },
+    {
+      "id": "program_1761683156429_3sdlfsp82",
+      "name": "Online-PrivatKredit: Sie haben Wünsche, wir den Weg",
+      "description": "Vor Ort für Sie da.",
+      "type": "grant",
+      "program_type": "grant",
+      "source_url": "https://www.deutsche-bank.de/pk/kredit-und-immobilien/kredit/privatkredit.html",
+      "institution": "Deutsche Bank",
+      "program_category": "grant",
+      "funding_types": [
+        "bank_loan"
+      ],
+      "program_focus": [
+        "research",
+        "employment",
+        "training",
+        "business",
+        "sustainability",
+        "digital",
+        "environment",
+        "healthcare"
+      ],
+      "eligibility_criteria": {},
+      "categorized_requirements": {
+        "eligibility": [
+          {
+            "type": "company_type",
+            "value": "Company",
+            "required": true,
+            "source": "full_page_content"
+          }
+        ],
+        "documents": [
+          {
+            "type": "required_documents",
+            "value": "Various documents required",
+            "required": true,
+            "source": "full_page_content"
+          }
+        ],
+        "financial": [
+          {
+            "type": "funding_amount",
+            "value": "25.000 Eur",
+            "required": true,
+            "source": "full_page_content"
+          }
+        ],
+        "technical": [
+          {
+            "type": "trl_level",
+            "value": "Unknown TRL",
+            "required": true,
+            "source": "full_page_content"
+          },
+          {
+            "type": "technology_focus",
+            "value": "Technology focus required",
+            "required": true,
+            "source": "full_page_content"
+          }
+        ],
+        "legal": [
+          {
+            "type": "legal_compliance",
+            "value": "Legal compliance required",
+            "required": true,
+            "source": "full_page_content"
+          }
+        ],
+        "timeline": [
+          {
+            "type": "duration",
+            "value": "120 Monat",
+            "required": true,
+            "source": "full_page_content"
+          }
+        ],
+        "geographic": [
+          {
+            "type": "location",
+            "value": "Germany",
+            "required": true,
+            "source": "full_page_content"
+          },
+          {
+            "type": "location",
+            "value": "EU",
+            "required": true,
+            "source": "full_page_content"
+          }
+        ],
+        "team": [
+          {
+            "type": "team_size",
+            "value": "1",
+            "required": true,
+            "source": "full_page_content"
+          },
+          {
+            "type": "qualification",
+            "value": "Specific qualifications required",
+            "required": true,
+            "source": "full_page_content"
+          }
+        ],
+        "project": [
+          {
+            "type": "sustainability_focus",
+            "value": "Sustainability focus required",
+            "required": true,
+            "source": "full_page_content"
+          }
+        ],
+        "compliance": [],
+        "impact": [
+          {
+            "type": "sustainability",
+            "value": "Sustainability impact required",
+            "required": true,
+            "source": "full_page_content"
+          }
+        ],
+        "capex_opex": [
+          {
+            "type": "investment_type",
+            "value": "Capital investment required",
+            "required": true,
+            "source": "full_page_content"
+          }
+        ],
+        "use_of_funds": [
+          {
+            "type": "fund_usage",
+            "value": "Specific fund usage required",
+            "required": true,
+            "source": "full_page_content"
+          },
+          {
+            "type": "research_funding",
+            "value": "Research and development funding",
+            "required": true,
+            "source": "full_page_content"
+          }
+        ],
+        "revenue_model": [
+          {
+            "type": "revenue_requirement",
+            "value": "Revenue generation required",
+            "required": true,
+            "source": "full_page_content"
+          },
+          {
+            "type": "profitability",
+            "value": "Profitability required",
+            "required": true,
+            "source": "full_page_content"
+          }
+        ],
+        "market_size": [
+          {
+            "type": "market_requirement",
+            "value": "Market size requirement",
+            "required": true,
+            "source": "full_page_content"
+          },
+          {
+            "type": "market_scope",
+            "value": "International market scope",
+            "required": true,
+            "source": "full_page_content"
+          }
+        ],
+        "co_financing": [],
+        "trl_level": [],
+        "consortium": [
+          {
+            "type": "cooperation",
+            "value": "Cooperation required",
+            "required": true,
+            "source": "full_page_content"
+          }
+        ]
+      },
+      "contact_info": {
+        "text": "",
+        "email": "",
+        "phone": ""
+      },
+      "scraped_at": "2025-10-28T20:25:56.462Z",
+      "confidence_score": 0.8,
+      "is_active": true
+    },
+    {
+      "id": "program_1761683159172_hli1ahy6l",
+      "name": "DispoKredit1 - Ihre unkomplizierte Reserve",
+      "description": "Vor Ort für Sie da.",
+      "type": "grant",
+      "program_type": "grant",
+      "source_url": "https://www.deutsche-bank.de/pk/kredit-und-immobilien/kredit/dispokredit.html",
+      "institution": "Deutsche Bank",
+      "program_category": "grant",
+      "funding_types": [
+        "bank_loan"
+      ],
+      "program_focus": [
+        "research",
+        "training",
+        "business",
+        "sustainability",
+        "digital",
+        "environment",
+        "healthcare"
+      ],
+      "eligibility_criteria": {},
+      "categorized_requirements": {
+        "eligibility": [
+          {
+            "type": "company_type",
+            "value": "Company",
+            "required": true,
+            "source": "full_page_content"
+          }
+        ],
+        "documents": [
+          {
+            "type": "required_documents",
+            "value": "Various documents required",
+            "required": true,
+            "source": "full_page_content"
+          }
+        ],
+        "financial": [
+          {
+            "type": "funding_amount",
+            "value": "1 k",
+            "required": true,
+            "source": "full_page_content"
+          }
+        ],
+        "technical": [
+          {
+            "type": "trl_level",
+            "value": "Unknown TRL",
+            "required": true,
+            "source": "full_page_content"
+          },
+          {
+            "type": "technology_focus",
+            "value": "Technology focus required",
+            "required": true,
+            "source": "full_page_content"
+          }
+        ],
+        "legal": [
+          {
+            "type": "legal_compliance",
+            "value": "Legal compliance required",
+            "required": true,
+            "source": "full_page_content"
+          }
+        ],
+        "timeline": [
+          {
+            "type": "duration",
+            "value": "18 Jahr",
+            "required": true,
+            "source": "full_page_content"
+          }
+        ],
+        "geographic": [
+          {
+            "type": "location",
+            "value": "Germany",
+            "required": true,
+            "source": "full_page_content"
+          },
+          {
+            "type": "location",
+            "value": "EU",
+            "required": true,
+            "source": "full_page_content"
+          }
+        ],
+        "team": [
+          {
+            "type": "team_size",
+            "value": "1",
+            "required": true,
+            "source": "full_page_content"
+          },
+          {
+            "type": "qualification",
+            "value": "Specific qualifications required",
+            "required": true,
+            "source": "full_page_content"
+          }
+        ],
+        "project": [
+          {
+            "type": "sustainability_focus",
+            "value": "Sustainability focus required",
+            "required": true,
+            "source": "full_page_content"
+          }
+        ],
+        "compliance": [],
+        "impact": [
+          {
+            "type": "sustainability",
+            "value": "Sustainability impact required",
+            "required": true,
+            "source": "full_page_content"
+          }
+        ],
+        "capex_opex": [
+          {
+            "type": "investment_type",
+            "value": "Capital investment required",
+            "required": true,
+            "source": "full_page_content"
+          }
+        ],
+        "use_of_funds": [
+          {
+            "type": "fund_usage",
+            "value": "Specific fund usage required",
+            "required": true,
+            "source": "full_page_content"
+          },
+          {
+            "type": "research_funding",
+            "value": "Research and development funding",
+            "required": true,
+            "source": "full_page_content"
+          }
+        ],
+        "revenue_model": [
+          {
+            "type": "profitability",
+            "value": "Profitability required",
+            "required": true,
+            "source": "full_page_content"
+          }
+        ],
+        "market_size": [
+          {
+            "type": "market_requirement",
+            "value": "Market size requirement",
+            "required": true,
+            "source": "full_page_content"
+          },
+          {
+            "type": "market_scope",
+            "value": "International market scope",
+            "required": true,
+            "source": "full_page_content"
+          }
+        ],
+        "co_financing": [],
+        "trl_level": [],
+        "consortium": [
+          {
+            "type": "cooperation",
+            "value": "Cooperation required",
+            "required": true,
+            "source": "full_page_content"
+          }
+        ]
+      },
+      "contact_info": {
+        "text": "",
+        "email": "",
+        "phone": ""
+      },
+      "scraped_at": "2025-10-28T20:25:59.186Z",
+      "confidence_score": 0.8,
+      "is_active": true
+    },
+    {
+      "id": "program_1761683165335_ye50jdsho",
+      "name": "Oops: Hier ist etwas schief gegangen.",
+      "description": "Ihre letzte Nutzung endete am:",
+      "type": "loan",
+      "program_type": "loan",
+      "source_url": "https://www.commerzbank.de/unternehmen/kredite",
+      "institution": "Commerzbank",
+      "program_category": "loan",
+      "funding_types": [
+        "bank_loan"
+      ],
+      "program_focus": [
+        "training",
+        "technology",
+        "digital",
+        "education"
+      ],
+      "eligibility_criteria": {},
+      "categorized_requirements": {
+        "eligibility": [],
+        "documents": [
+          {
+            "type": "required_documents",
+            "value": "Various documents required",
+            "required": true,
+            "source": "full_page_content"
+          }
+        ],
+        "financial": [],
+        "technical": [
+          {
+            "type": "technology_focus",
+            "value": "Technology focus required",
+            "required": true,
+            "source": "full_page_content"
+          }
+        ],
+        "legal": [
+          {
+            "type": "legal_compliance",
+            "value": "Legal compliance required",
+            "required": true,
+            "source": "full_page_content"
+          }
+        ],
+        "timeline": [],
+        "geographic": [
+          {
+            "type": "location",
+            "value": "Germany",
+            "required": true,
+            "source": "full_page_content"
+          },
+          {
+            "type": "location",
+            "value": "EU",
+            "required": true,
+            "source": "full_page_content"
+          }
+        ],
+        "team": [
+          {
+            "type": "team_size",
+            "value": "4",
+            "required": true,
+            "source": "full_page_content"
+          }
+        ],
+        "project": [],
+        "compliance": [],
+        "impact": [],
+        "capex_opex": [],
+        "use_of_funds": [
+          {
+            "type": "fund_usage",
+            "value": "Specific fund usage required",
+            "required": true,
+            "source": "full_page_content"
+          }
+        ],
+        "revenue_model": [],
+        "market_size": [
+          {
+            "type": "market_requirement",
+            "value": "Market size requirement",
+            "required": true,
+            "source": "full_page_content"
+          }
+        ],
+        "co_financing": [],
+        "trl_level": [],
+        "consortium": []
+      },
+      "contact_info": {
+        "text": "",
+        "email": "",
+        "phone": ""
+      },
+      "scraped_at": "2025-10-28T20:26:05.343Z",
+      "confidence_score": 0.8,
+      "is_active": true
+    },
+    {
+      "id": "program_1761690850641_aei90w9zv",
+      "name": "Energiekostenzuschuss I und II",
+      "description": "Die Möglichkeit zur Antragsstellung endete am 15.02.2023",
+      "type": "grant",
+      "program_type": "grant",
+      "source_url": "https://www.aws.at/ukraine-krieg-sonder-foerderungsprogramme/aws-energiekostenzuschuss-2/",
+      "institution": "Austria Wirtschaftsservice (AWS)",
+      "program_category": "grant",
+      "funding_types": [
+        "grant",
+        "loan",
+        "equity"
+      ],
+      "program_focus": [
+        "innovation",
+        "employment",
+        "training",
+        "business",
+        "technology",
+        "digital",
+        "environment",
+        "energy",
+        "startup",
+        "export"
+      ],
+      "eligibility_criteria": {},
+      "categorized_requirements": {
+        "eligibility": [
+          {
+            "type": "company_type",
+            "value": "Startup",
+            "required": true,
+            "source": "full_page_content"
+          },
+          {
+            "type": "company_type",
+            "value": "Company",
+            "required": true,
+            "source": "full_page_content"
+          }
+        ],
+        "documents": [
+          {
+            "type": "required_documents",
+            "value": "Various documents required",
+            "required": true,
+            "source": "full_page_content"
+          }
+        ],
+        "financial": [],
+        "technical": [],
+        "legal": [],
+        "timeline": [],
+        "geographic": [
+          {
+            "type": "location",
+            "value": "Austria",
+            "required": true,
+            "source": "full_page_content"
+          }
+        ],
+        "team": [],
+        "project": [],
+        "compliance": [],
+        "impact": [],
+        "capex_opex": [],
+        "use_of_funds": [],
+        "revenue_model": [],
+        "market_size": [],
+        "co_financing": [],
+        "trl_level": [],
+        "consortium": []
+      },
+      "funding_amount_min": null,
+      "funding_amount_max": null,
+      "currency": "EUR",
+      "deadline": "1-0-10",
+      "contact_email": "24h-auskunft@aws.at",
+      "contact_phone": "1761645526",
+      "contact_info": {
+        "text": "",
+        "email": "",
+        "phone": ""
+      },
+      "scraped_at": "2025-10-28T22:34:10.650Z",
+      "confidence_score": 0.8,
+      "is_active": true
+    },
+    {
+      "id": "program_1761690991097_t72fy5zig",
+      "name": "Finanzierungen & Kredite",
+      "description": "Erledigen Sie Ihre Bankgeschäfte\nauf dem Smartphone.",
+      "type": "grant",
+      "program_type": "grant",
+      "source_url": "https://www.bankaustria.at/privatkunden-finanzieren-und-kredite.jsp",
+      "institution": "Bank Austria",
+      "program_category": "grant",
+      "funding_types": [
+        "bank_loan"
+      ],
+      "program_focus": [
+        "research",
+        "export",
+        "training",
+        "business",
+        "sustainability",
+        "transport",
+        "digital",
+        "environment",
+        "energy",
+        "startup"
+      ],
+      "eligibility_criteria": {},
+      "categorized_requirements": {
+        "eligibility": [
+          {
+            "type": "company_type",
+            "value": "Company",
+            "required": true,
+            "source": "full_page_content"
+          }
+        ],
+        "documents": [
+          {
+            "type": "required_documents",
+            "value": "Various documents required",
+            "required": true,
+            "source": "full_page_content"
+          }
+        ],
+        "financial": [],
+        "technical": [],
+        "legal": [],
+        "timeline": [],
+        "geographic": [
+          {
+            "type": "location",
+            "value": "Austria",
+            "required": true,
+            "source": "full_page_content"
+          }
+        ],
+        "team": [],
+        "project": [],
+        "compliance": [],
+        "impact": [],
+        "capex_opex": [],
+        "use_of_funds": [],
+        "revenue_model": [],
+        "market_size": [],
+        "co_financing": [],
+        "trl_level": [],
+        "consortium": []
+      },
+      "funding_amount_min": null,
+      "funding_amount_max": 40,
+      "currency": "EUR",
+      "deadline": null,
+      "contact_email": null,
+      "contact_phone": "1801887694",
+      "contact_info": {
+        "text": "",
+        "email": "",
+        "phone": ""
+      },
+      "scraped_at": "2025-10-28T22:36:31.123Z",
+      "confidence_score": 0.8,
+      "is_active": true
+    },
+    {
+      "id": "program_1761690996905_5xysjod5l",
+      "name": "Kreditrechner",
+      "description": "Ihre Wunschfinanzierung online berechnen",
+      "type": "grant",
+      "program_type": "grant",
+      "source_url": "https://www.sparkasse.at/erstebank/privatkunden/wohnen-finanzieren/kreditrechner",
+      "institution": "Erste Bank",
+      "program_category": "grant",
+      "funding_types": [
+        "bank_loan",
+        "leasing"
+      ],
+      "program_focus": [
+        "research",
+        "training",
+        "business",
+        "digital",
+        "environment",
+        "energy",
+        "healthcare",
+        "education",
+        "startup"
+      ],
+      "eligibility_criteria": {},
+      "categorized_requirements": {
+        "eligibility": [
+          {
+            "type": "company_type",
+            "value": "Company",
+            "required": true,
+            "source": "full_page_content"
+          }
+        ],
+        "documents": [
+          {
+            "type": "required_documents",
+            "value": "Various documents required",
+            "required": true,
+            "source": "full_page_content"
+          }
+        ],
+        "financial": [
+          {
+            "type": "co_financing",
+            "value": "Required",
+            "required": true,
+            "source": "full_page_content"
+          }
+        ],
+        "technical": [],
+        "legal": [],
+        "timeline": [],
+        "geographic": [
+          {
+            "type": "location",
+            "value": "Austria",
+            "required": true,
+            "source": "full_page_content"
+          }
+        ],
+        "team": [],
+        "project": [],
+        "compliance": [],
+        "impact": [],
+        "capex_opex": [],
+        "use_of_funds": [],
+        "revenue_model": [],
+        "market_size": [],
+        "co_financing": [],
+        "trl_level": [],
+        "consortium": []
+      },
+      "funding_amount_min": null,
+      "funding_amount_max": null,
+      "currency": "EUR",
+      "deadline": null,
+      "contact_email": null,
+      "contact_phone": "83397320",
+      "contact_info": {
+        "text": "",
+        "email": "",
+        "phone": ""
+      },
+      "scraped_at": "2025-10-28T22:36:36.949Z",
+      "confidence_score": 0.8,
+      "is_active": true
+    },
+    {
+      "id": "program_1761691006203_izvq4j3w2",
+      "name": "Kredit & Leasing – Finanzierungen von Raiffeisen",
+      "description": "Ihr Suchbegriff ergab keine Treffer.",
+      "type": "grant",
+      "program_type": "grant",
+      "source_url": "https://www.raiffeisen.at/de/privatkunden/kredit-leasing.html",
+      "institution": "Raiffeisen Bank",
+      "program_category": "grant",
+      "funding_types": [
+        "bank_loan",
+        "leasing"
+      ],
+      "program_focus": [
+        "export",
+        "training",
+        "business",
+        "sustainability",
+        "transport",
+        "digital",
+        "energy",
+        "education",
+        "startup"
+      ],
+      "eligibility_criteria": {},
+      "categorized_requirements": {
+        "eligibility": [
+          {
+            "type": "company_type",
+            "value": "Startup",
+            "required": true,
+            "source": "full_page_content"
+          },
+          {
+            "type": "company_type",
+            "value": "Company",
+            "required": true,
+            "source": "full_page_content"
+          }
+        ],
+        "documents": [
+          {
+            "type": "required_documents",
+            "value": "Various documents required",
+            "required": true,
+            "source": "full_page_content"
+          }
+        ],
+        "financial": [
+          {
+            "type": "co_financing",
+            "value": "Required",
+            "required": true,
+            "source": "full_page_content"
+          }
+        ],
+        "technical": [],
+        "legal": [],
+        "timeline": [],
+        "geographic": [],
+        "team": [],
+        "project": [],
+        "compliance": [],
+        "impact": [],
+        "capex_opex": [],
+        "use_of_funds": [],
+        "revenue_model": [],
+        "market_size": [],
+        "co_financing": [],
+        "trl_level": [],
+        "consortium": []
+      },
+      "funding_amount_min": null,
+      "funding_amount_max": 13,
+      "currency": "EUR",
+      "deadline": "18.2.14",
+      "contact_email": "info@raiffeisen.at",
+      "contact_phone": "162038737137",
+      "contact_info": {
+        "text": "",
+        "email": "",
+        "phone": ""
+      },
+      "scraped_at": "2025-10-28T22:36:46.244Z",
+      "confidence_score": 0.8,
+      "is_active": true
+    },
+    {
+      "id": "program_1761691010434_1jgy0i75y",
+      "name": "Finanzieren Sie Ihre Wünsche mit dem Konsumkredit von Raiffeisen",
+      "description": "Ihr Suchbegriff ergab keine Treffer.",
+      "type": "grant",
+      "program_type": "grant",
+      "source_url": "https://www.raiffeisen.at/de/privatkunden/kredit-leasing/konsumkredit.html",
+      "institution": "Raiffeisen Bank",
+      "program_category": "grant",
+      "funding_types": [
+        "bank_loan",
+        "leasing"
+      ],
+      "program_focus": [
+        "export",
+        "training",
+        "business",
+        "sustainability",
+        "transport",
+        "technology",
+        "digital",
+        "energy",
+        "healthcare",
+        "education",
+        "startup"
+      ],
+      "eligibility_criteria": {},
+      "categorized_requirements": {
+        "eligibility": [
+          {
+            "type": "company_type",
+            "value": "Startup",
+            "required": true,
+            "source": "full_page_content"
+          },
+          {
+            "type": "company_type",
+            "value": "Company",
+            "required": true,
+            "source": "full_page_content"
+          }
+        ],
+        "documents": [
+          {
+            "type": "required_documents",
+            "value": "Various documents required",
+            "required": true,
+            "source": "full_page_content"
+          }
+        ],
+        "financial": [],
+        "technical": [],
+        "legal": [],
+        "timeline": [],
+        "geographic": [],
+        "team": [],
+        "project": [],
+        "compliance": [],
+        "impact": [],
+        "capex_opex": [],
+        "use_of_funds": [],
+        "revenue_model": [],
+        "market_size": [],
+        "co_financing": [],
+        "trl_level": [],
+        "consortium": []
+      },
+      "funding_amount_min": null,
+      "funding_amount_max": null,
+      "currency": "EUR",
+      "deadline": "67-15.657",
+      "contact_email": "info@raiffeisen.at",
+      "contact_phone": "162038737137",
+      "contact_info": {
+        "text": "",
+        "email": "",
+        "phone": ""
+      },
+      "scraped_at": "2025-10-28T22:36:50.497Z",
+      "confidence_score": 0.8,
+      "is_active": true
+    },
+    {
+      "id": "program_1761691013753_u74oyl355",
+      "name": "Der Sofort Kredit für Raiffeisenkund:innen - einfach per App",
+      "description": "Ihr Suchbegriff ergab keine Treffer.",
+      "type": "grant",
+      "program_type": "grant",
+      "source_url": "https://www.raiffeisen.at/de/privatkunden/kredit-leasing/sofort-kredit.html",
+      "institution": "Raiffeisen Bank",
+      "program_category": "grant",
+      "funding_types": [
+        "bank_loan",
+        "leasing"
+      ],
+      "program_focus": [
+        "export",
+        "training",
+        "business",
+        "sustainability",
+        "transport",
+        "digital",
+        "energy",
+        "education",
+        "startup"
+      ],
+      "eligibility_criteria": {},
+      "categorized_requirements": {
+        "eligibility": [
+          {
+            "type": "company_type",
+            "value": "Startup",
+            "required": true,
+            "source": "full_page_content"
+          },
+          {
+            "type": "company_type",
+            "value": "Company",
+            "required": true,
+            "source": "full_page_content"
+          }
+        ],
+        "documents": [
+          {
+            "type": "required_documents",
+            "value": "Various documents required",
+            "required": true,
+            "source": "full_page_content"
+          }
+        ],
+        "financial": [],
+        "technical": [],
+        "legal": [],
+        "timeline": [],
+        "geographic": [
+          {
+            "type": "location",
+            "value": "Austria",
+            "required": true,
+            "source": "full_page_content"
+          }
+        ],
+        "team": [],
+        "project": [],
+        "compliance": [],
+        "impact": [],
+        "capex_opex": [],
+        "use_of_funds": [],
+        "revenue_model": [],
+        "market_size": [],
+        "co_financing": [],
+        "trl_level": [],
+        "consortium": []
+      },
+      "funding_amount_min": null,
+      "funding_amount_max": null,
+      "currency": "EUR",
+      "deadline": null,
+      "contact_email": "info@raiffeisen.at",
+      "contact_phone": "162038737137",
+      "contact_info": {
+        "text": "",
+        "email": "",
+        "phone": ""
+      },
+      "scraped_at": "2025-10-28T22:36:53.795Z",
+      "confidence_score": 0.8,
+      "is_active": true
+    },
+    {
+      "id": "program_1761691020001_ms3l3z931",
+      "name": "Die Raiffeisen Bausparfinanzierung lässt keine Wünsche offen",
+      "description": "Ihr Suchbegriff ergab keine Treffer.",
+      "type": "grant",
+      "program_type": "grant",
+      "source_url": "https://www.raiffeisen.at/de/privatkunden/kredit-leasing/bausparfinanzierung.html",
+      "institution": "Raiffeisen Bank",
+      "program_category": "grant",
+      "funding_types": [
+        "bank_loan",
+        "leasing"
+      ],
+      "program_focus": [
+        "export",
+        "training",
+        "business",
+        "sustainability",
+        "transport",
+        "technology",
+        "digital",
+        "energy",
+        "healthcare",
+        "education",
+        "startup"
+      ],
+      "eligibility_criteria": {},
+      "categorized_requirements": {
+        "eligibility": [
+          {
+            "type": "company_type",
+            "value": "Startup",
+            "required": true,
+            "source": "full_page_content"
+          },
+          {
+            "type": "company_type",
+            "value": "Company",
+            "required": true,
+            "source": "full_page_content"
+          }
+        ],
+        "documents": [
+          {
+            "type": "required_documents",
+            "value": "Various documents required",
+            "required": true,
+            "source": "full_page_content"
+          }
+        ],
+        "financial": [
+          {
+            "type": "co_financing",
+            "value": "Required",
+            "required": true,
+            "source": "full_page_content"
+          }
+        ],
+        "technical": [],
+        "legal": [],
+        "timeline": [],
+        "geographic": [],
+        "team": [],
+        "project": [],
+        "compliance": [],
+        "impact": [],
+        "capex_opex": [],
+        "use_of_funds": [],
+        "revenue_model": [],
+        "market_size": [],
+        "co_financing": [],
+        "trl_level": [],
+        "consortium": []
+      },
+      "funding_amount_min": null,
+      "funding_amount_max": 35,
+      "currency": "EUR",
+      "deadline": "05-7.043",
+      "contact_email": "info@raiffeisen.at",
+      "contact_phone": "162038737137",
+      "contact_info": {
+        "text": "",
+        "email": "",
+        "phone": ""
+      },
+      "scraped_at": "2025-10-28T22:37:00.070Z",
+      "confidence_score": 0.8,
+      "is_active": true
+    },
+    {
+      "id": "program_1761691024086_3vg7xebk1",
+      "name": "Auto-Leasing von Raiffeisen für Neu- und Gebrauchtwagen",
+      "description": "Ihr Suchbegriff ergab keine Treffer.",
+      "type": "grant",
+      "program_type": "grant",
+      "source_url": "https://www.raiffeisen.at/de/privatkunden/kredit-leasing/auto-leasing.html",
+      "institution": "Raiffeisen Bank",
+      "program_category": "grant",
+      "funding_types": [
+        "bank_loan",
+        "leasing"
+      ],
+      "program_focus": [
+        "export",
+        "training",
+        "business",
+        "sustainability",
+        "transport",
+        "technology",
+        "digital",
+        "energy",
+        "education",
+        "startup"
+      ],
+      "eligibility_criteria": {},
+      "categorized_requirements": {
+        "eligibility": [
+          {
+            "type": "company_type",
+            "value": "Startup",
+            "required": true,
+            "source": "full_page_content"
+          },
+          {
+            "type": "company_type",
+            "value": "Company",
+            "required": true,
+            "source": "full_page_content"
+          }
+        ],
+        "documents": [
+          {
+            "type": "required_documents",
+            "value": "Various documents required",
+            "required": true,
+            "source": "full_page_content"
+          }
+        ],
+        "financial": [
+          {
+            "type": "co_financing",
+            "value": "Required",
+            "required": true,
+            "source": "full_page_content"
+          }
+        ],
+        "technical": [],
+        "legal": [],
+        "timeline": [],
+        "geographic": [],
+        "team": [],
+        "project": [],
+        "compliance": [],
+        "impact": [],
+        "capex_opex": [],
+        "use_of_funds": [],
+        "revenue_model": [],
+        "market_size": [],
+        "co_financing": [],
+        "trl_level": [],
+        "consortium": []
+      },
+      "funding_amount_min": null,
+      "funding_amount_max": 6,
+      "currency": "EUR",
+      "deadline": "67-15.657",
+      "contact_email": "info@raiffeisen.at",
+      "contact_phone": "162038737137",
+      "contact_info": {
+        "text": "",
+        "email": "",
+        "phone": ""
+      },
+      "scraped_at": "2025-10-28T22:37:04.124Z",
+      "confidence_score": 0.8,
+      "is_active": true
+    },
+    {
+      "id": "program_1761691028948_bwz4tzeva",
+      "name": "Raiffeisen Kreditrechner",
+      "description": "Ihr Suchbegriff ergab keine Treffer.",
+      "type": "grant",
+      "program_type": "grant",
+      "source_url": "https://www.raiffeisen.at/de/privatkunden/kredit-leasing/kreditrechner.html",
+      "institution": "Raiffeisen Bank",
+      "program_category": "grant",
+      "funding_types": [
+        "bank_loan",
+        "leasing"
+      ],
+      "program_focus": [
+        "export",
+        "training",
+        "business",
+        "sustainability",
+        "transport",
+        "digital",
+        "energy",
+        "education",
+        "startup"
+      ],
+      "eligibility_criteria": {},
+      "categorized_requirements": {
+        "eligibility": [
+          {
+            "type": "company_type",
+            "value": "Startup",
+            "required": true,
+            "source": "full_page_content"
+          },
+          {
+            "type": "company_type",
+            "value": "Company",
+            "required": true,
+            "source": "full_page_content"
+          }
+        ],
+        "documents": [
+          {
+            "type": "required_documents",
+            "value": "Various documents required",
+            "required": true,
+            "source": "full_page_content"
+          }
+        ],
+        "financial": [],
+        "technical": [],
+        "legal": [],
+        "timeline": [],
+        "geographic": [],
+        "team": [],
+        "project": [],
+        "compliance": [],
+        "impact": [],
+        "capex_opex": [],
+        "use_of_funds": [],
+        "revenue_model": [],
+        "market_size": [],
+        "co_financing": [],
+        "trl_level": [],
+        "consortium": []
+      },
+      "funding_amount_min": null,
+      "funding_amount_max": null,
+      "currency": "EUR",
+      "deadline": "18.2.14",
+      "contact_email": "info@raiffeisen.at",
+      "contact_phone": "162038737137",
+      "contact_info": {
+        "text": "",
+        "email": "",
+        "phone": ""
+      },
+      "scraped_at": "2025-10-28T22:37:08.983Z",
+      "confidence_score": 0.8,
+      "is_active": true
+    },
+    {
+      "id": "program_1761691033151_g8ydoxv46",
+      "name": "Projektfinanzierung von Raiffeisen",
+      "description": "Ihr Suchbegriff ergab keine Treffer.",
+      "type": "grant",
+      "program_type": "grant",
+      "source_url": "https://www.raiffeisen.at/de/firmenkunden/finanzieren/projektfinanzierung.html",
+      "institution": "Raiffeisen Bank",
+      "program_category": "grant",
+      "funding_types": [
+        "bank_loan",
+        "leasing"
+      ],
+      "program_focus": [
+        "export",
+        "training",
+        "business",
+        "sustainability",
+        "transport",
+        "digital",
+        "energy",
+        "education",
+        "startup"
+      ],
+      "eligibility_criteria": {},
+      "categorized_requirements": {
+        "eligibility": [
+          {
+            "type": "company_type",
+            "value": "Startup",
+            "required": true,
+            "source": "full_page_content"
+          },
+          {
+            "type": "company_type",
+            "value": "Company",
+            "required": true,
+            "source": "full_page_content"
+          }
+        ],
+        "documents": [
+          {
+            "type": "required_documents",
+            "value": "Various documents required",
+            "required": true,
+            "source": "full_page_content"
+          }
+        ],
+        "financial": [],
+        "technical": [],
+        "legal": [],
+        "timeline": [],
+        "geographic": [],
+        "team": [],
+        "project": [],
+        "compliance": [],
+        "impact": [],
+        "capex_opex": [],
+        "use_of_funds": [],
+        "revenue_model": [],
+        "market_size": [],
+        "co_financing": [],
+        "trl_level": [],
+        "consortium": []
+      },
+      "funding_amount_min": null,
+      "funding_amount_max": null,
+      "currency": "EUR",
+      "deadline": null,
+      "contact_email": "info@raiffeisen.at",
+      "contact_phone": "162038737137",
+      "contact_info": {
+        "text": "",
+        "email": "",
+        "phone": ""
+      },
+      "scraped_at": "2025-10-28T22:37:13.204Z",
+      "confidence_score": 0.8,
+      "is_active": true
+    },
+    {
+      "id": "program_1761691039354_p06v5h9bu",
+      "name": "Förderungen für Unternehmen mit Raiffeisen",
+      "description": "Ihr Suchbegriff ergab keine Treffer.",
+      "type": "grant",
+      "program_type": "grant",
+      "source_url": "https://www.raiffeisen.at/de/firmenkunden/finanzieren/foerderungen.html",
+      "institution": "Raiffeisen Bank",
+      "program_category": "grant",
+      "funding_types": [
+        "bank_loan",
+        "leasing"
+      ],
+      "program_focus": [
+        "research",
+        "export",
+        "training",
+        "business",
+        "sustainability",
+        "transport",
+        "technology",
+        "digital",
+        "energy",
+        "education",
+        "startup"
+      ],
+      "eligibility_criteria": {},
+      "categorized_requirements": {
+        "eligibility": [
+          {
+            "type": "company_type",
+            "value": "Startup",
+            "required": true,
+            "source": "full_page_content"
+          },
+          {
+            "type": "company_type",
+            "value": "Company",
+            "required": true,
+            "source": "full_page_content"
+          }
+        ],
+        "documents": [
+          {
+            "type": "required_documents",
+            "value": "Various documents required",
+            "required": true,
+            "source": "full_page_content"
+          }
+        ],
+        "financial": [],
+        "technical": [],
+        "legal": [],
+        "timeline": [],
+        "geographic": [
+          {
+            "type": "location",
+            "value": "Austria",
+            "required": true,
+            "source": "full_page_content"
+          }
+        ],
+        "team": [],
+        "project": [],
+        "compliance": [],
+        "impact": [],
+        "capex_opex": [],
+        "use_of_funds": [],
+        "revenue_model": [],
+        "market_size": [],
+        "co_financing": [],
+        "trl_level": [],
+        "consortium": []
+      },
+      "funding_amount_min": null,
+      "funding_amount_max": null,
+      "currency": "EUR",
+      "deadline": "18.2.14",
+      "contact_email": "rudolf.krispel@raiffeisen-burgenland.at",
+      "contact_phone": "162038737137",
+      "contact_info": {
+        "text": "",
+        "email": "",
+        "phone": ""
+      },
+      "scraped_at": "2025-10-28T22:37:19.394Z",
+      "confidence_score": 0.8,
+      "is_active": true
+    },
+    {
+      "id": "program_1761691042336_pectmsn3c",
+      "name": "Exportfinanzierung von Raiffeisen",
+      "description": "Ihr Suchbegriff ergab keine Treffer.",
+      "type": "grant",
+      "program_type": "grant",
+      "source_url": "https://www.raiffeisen.at/de/firmenkunden/auslandsgeschaeft/exportfinanzierung.html",
+      "institution": "Raiffeisen Bank",
+      "program_category": "grant",
+      "funding_types": [
+        "bank_loan",
+        "leasing"
+      ],
+      "program_focus": [
+        "export",
+        "training",
+        "business",
+        "sustainability",
+        "transport",
+        "digital",
+        "energy",
+        "education",
+        "startup"
+      ],
+      "eligibility_criteria": {},
+      "categorized_requirements": {
+        "eligibility": [
+          {
+            "type": "company_type",
+            "value": "Startup",
+            "required": true,
+            "source": "full_page_content"
+          },
+          {
+            "type": "company_type",
+            "value": "Company",
+            "required": true,
+            "source": "full_page_content"
+          }
+        ],
+        "documents": [
+          {
+            "type": "required_documents",
+            "value": "Various documents required",
+            "required": true,
+            "source": "full_page_content"
+          }
+        ],
+        "financial": [],
+        "technical": [],
+        "legal": [],
+        "timeline": [],
+        "geographic": [
+          {
+            "type": "location",
+            "value": "Austria",
+            "required": true,
+            "source": "full_page_content"
+          }
+        ],
+        "team": [],
+        "project": [],
+        "compliance": [],
+        "impact": [],
+        "capex_opex": [],
+        "use_of_funds": [],
+        "revenue_model": [],
+        "market_size": [],
+        "co_financing": [],
+        "trl_level": [],
+        "consortium": []
+      },
+      "funding_amount_min": null,
+      "funding_amount_max": null,
+      "currency": "EUR",
+      "deadline": null,
+      "contact_email": "info@raiffeisen.at",
+      "contact_phone": "162038737137",
+      "contact_info": {
+        "text": "",
+        "email": "",
+        "phone": ""
+      },
+      "scraped_at": "2025-10-28T22:37:22.368Z",
+      "confidence_score": 0.8,
+      "is_active": true
+    },
+    {
+      "id": "program_1761691044911_55eb0z2r9",
+      "name": "Kreditbesicherung zur Absicherung von Risiken",
+      "description": "Ihr Suchbegriff ergab keine Treffer.",
+      "type": "grant",
+      "program_type": "grant",
+      "source_url": "https://www.raiffeisen.at/de/firmenkunden/vorsorge-veranlagen/kreditbesicherung.html",
+      "institution": "Raiffeisen Bank",
+      "program_category": "grant",
+      "funding_types": [
+        "bank_loan",
+        "leasing"
+      ],
+      "program_focus": [
+        "innovation",
+        "export",
+        "training",
+        "business",
+        "sustainability",
+        "transport",
+        "digital",
+        "energy",
+        "education",
+        "startup"
+      ],
+      "eligibility_criteria": {},
+      "categorized_requirements": {
+        "eligibility": [
+          {
+            "type": "company_type",
+            "value": "Startup",
+            "required": true,
+            "source": "full_page_content"
+          },
+          {
+            "type": "company_type",
+            "value": "Company",
+            "required": true,
+            "source": "full_page_content"
+          }
+        ],
+        "documents": [
+          {
+            "type": "required_documents",
+            "value": "Various documents required",
+            "required": true,
+            "source": "full_page_content"
+          }
+        ],
+        "financial": [],
+        "technical": [],
+        "legal": [],
+        "timeline": [],
+        "geographic": [],
+        "team": [],
+        "project": [],
+        "compliance": [],
+        "impact": [],
+        "capex_opex": [],
+        "use_of_funds": [],
+        "revenue_model": [],
+        "market_size": [],
+        "co_financing": [],
+        "trl_level": [],
+        "consortium": []
+      },
+      "funding_amount_min": null,
+      "funding_amount_max": null,
+      "currency": "EUR",
+      "deadline": null,
+      "contact_email": "info@raiffeisen.at",
+      "contact_phone": "162038737137",
+      "contact_info": {
+        "text": "",
+        "email": "",
+        "phone": ""
+      },
+      "scraped_at": "2025-10-28T22:37:25.010Z",
+      "confidence_score": 0.8,
+      "is_active": true
+    },
+    {
+      "id": "program_1761691048997_ychpdkvx9",
+      "name": "Immobilien-Finanzierungen von Raiffeisen",
+      "description": "Ihr Suchbegriff ergab keine Treffer.",
+      "type": "grant",
+      "program_type": "grant",
+      "source_url": "https://www.raiffeisen.at/de/immobilien/finanzierungen.html",
+      "institution": "Raiffeisen Bank",
+      "program_category": "grant",
+      "funding_types": [
+        "bank_loan",
+        "leasing"
+      ],
+      "program_focus": [
+        "export",
+        "training",
+        "business",
+        "sustainability",
+        "transport",
+        "digital",
+        "energy",
+        "education",
+        "startup"
+      ],
+      "eligibility_criteria": {},
+      "categorized_requirements": {
+        "eligibility": [
+          {
+            "type": "company_type",
+            "value": "Startup",
+            "required": true,
+            "source": "full_page_content"
+          },
+          {
+            "type": "company_type",
+            "value": "Company",
+            "required": true,
+            "source": "full_page_content"
+          }
+        ],
+        "documents": [
+          {
+            "type": "required_documents",
+            "value": "Various documents required",
+            "required": true,
+            "source": "full_page_content"
+          }
+        ],
+        "financial": [
+          {
+            "type": "co_financing",
+            "value": "Required",
+            "required": true,
+            "source": "full_page_content"
+          }
+        ],
+        "technical": [],
+        "legal": [],
+        "timeline": [],
+        "geographic": [
+          {
+            "type": "location",
+            "value": "Austria",
+            "required": true,
+            "source": "full_page_content"
+          }
+        ],
+        "team": [],
+        "project": [],
+        "compliance": [],
+        "impact": [],
+        "capex_opex": [],
+        "use_of_funds": [],
+        "revenue_model": [],
+        "market_size": [],
+        "co_financing": [],
+        "trl_level": [],
+        "consortium": []
+      },
+      "funding_amount_min": null,
+      "funding_amount_max": 18,
+      "currency": "EUR",
+      "deadline": "18.2.14",
+      "contact_email": "info@raiffeisen.at",
+      "contact_phone": "162038737137",
+      "contact_info": {
+        "text": "",
+        "email": "",
+        "phone": ""
+      },
+      "scraped_at": "2025-10-28T22:37:29.025Z",
+      "confidence_score": 0.8,
+      "is_active": true
+    },
+    {
+      "id": "program_1761691460745_quczb8mdw",
+      "name": "Leasing für Unternehmer:innen – mit Raiffeisen",
+      "description": "Ihr Suchbegriff ergab keine Treffer.",
+      "type": "grant",
+      "program_type": "grant",
+      "source_url": "https://www.raiffeisen.at/de/firmenkunden/finanzieren/leasing.html",
+      "institution": "Raiffeisen Bank",
+      "program_category": "grant",
+      "funding_types": [
+        "bank_loan",
+        "leasing"
+      ],
+      "program_focus": [
+        "export",
+        "training",
+        "business",
+        "sustainability",
+        "transport",
+        "digital",
+        "energy",
+        "education",
+        "startup"
+      ],
+      "eligibility_criteria": {},
+      "categorized_requirements": {
+        "eligibility": [
+          {
+            "type": "company_type",
+            "value": "Startup",
+            "required": true,
+            "source": "full_page_content"
+          },
+          {
+            "type": "company_type",
+            "value": "Company",
+            "required": true,
+            "source": "full_page_content"
+          }
+        ],
+        "documents": [
+          {
+            "type": "required_documents",
+            "value": "Various documents required",
+            "required": true,
+            "source": "full_page_content"
+          }
+        ],
+        "financial": [
+          {
+            "type": "co_financing",
+            "value": "Required",
+            "required": true,
+            "source": "full_page_content"
+          }
+        ],
+        "technical": [],
+        "legal": [],
+        "timeline": [],
+        "geographic": [],
+        "team": [],
+        "project": [],
+        "compliance": [],
+        "impact": [],
+        "capex_opex": [],
+        "use_of_funds": [],
+        "revenue_model": [],
+        "market_size": [],
+        "co_financing": [],
+        "trl_level": [],
+        "consortium": []
+      },
+      "funding_amount_min": null,
+      "funding_amount_max": null,
+      "currency": "EUR",
+      "deadline": null,
+      "contact_email": "info@raiffeisen.at",
+      "contact_phone": "162038737137",
+      "contact_info": {
+        "text": "",
+        "email": "",
+        "phone": ""
+      },
+      "scraped_at": "2025-10-28T22:44:20.776Z",
+      "confidence_score": 0.8,
+      "is_active": true
+    },
+    {
+      "id": "program_1761691467104_mnnkl1ei2",
+      "name": "Förderungen fürs Bauen & Wohnen",
+      "description": "Ihr Suchbegriff ergab keine Treffer.",
+      "type": "grant",
+      "program_type": "grant",
+      "source_url": "https://www.raiffeisen.at/de/immobilien/finanzierungen/foerderungen.html",
+      "institution": "Raiffeisen Bank",
+      "program_category": "grant",
+      "funding_types": [
+        "bank_loan",
+        "leasing"
+      ],
+      "program_focus": [
+        "export",
+        "training",
+        "business",
+        "sustainability",
+        "transport",
+        "digital",
+        "energy",
+        "education",
+        "startup"
+      ],
+      "eligibility_criteria": {},
+      "categorized_requirements": {
+        "eligibility": [
+          {
+            "type": "company_type",
+            "value": "Startup",
+            "required": true,
+            "source": "full_page_content"
+          },
+          {
+            "type": "company_type",
+            "value": "Company",
+            "required": true,
+            "source": "full_page_content"
+          }
+        ],
+        "documents": [
+          {
+            "type": "required_documents",
+            "value": "Various documents required",
+            "required": true,
+            "source": "full_page_content"
+          }
+        ],
+        "financial": [],
+        "technical": [],
+        "legal": [],
+        "timeline": [],
+        "geographic": [
+          {
+            "type": "location",
+            "value": "Austria",
+            "required": true,
+            "source": "full_page_content"
+          }
+        ],
+        "team": [],
+        "project": [],
+        "compliance": [],
+        "impact": [],
+        "capex_opex": [],
+        "use_of_funds": [],
+        "revenue_model": [],
+        "market_size": [],
+        "co_financing": [],
+        "trl_level": [],
+        "consortium": []
+      },
+      "funding_amount_min": null,
+      "funding_amount_max": null,
+      "currency": "EUR",
+      "deadline": null,
+      "contact_email": "info@raiffeisen.at",
+      "contact_phone": "162038737137",
+      "contact_info": {
+        "text": "",
+        "email": "",
+        "phone": ""
+      },
+      "scraped_at": "2025-10-28T22:44:27.130Z",
+      "confidence_score": 0.8,
+      "is_active": true
+    },
+    {
+      "id": "program_1761691479937_ctve6o1vl",
+      "name": "Gewerbliche Immobilien bei Raiffeisen",
+      "description": "Ihr Suchbegriff ergab keine Treffer.",
+      "type": "grant",
+      "program_type": "grant",
+      "source_url": "https://www.raiffeisen.at/de/immobilien/finanzierungen/gewerbliche-immobilien.html",
+      "institution": "Raiffeisen Bank",
+      "program_category": "grant",
+      "funding_types": [
+        "bank_loan",
+        "leasing"
+      ],
+      "program_focus": [
+        "export",
+        "training",
+        "business",
+        "sustainability",
+        "transport",
+        "digital",
+        "energy",
+        "education",
+        "startup"
+      ],
+      "eligibility_criteria": {},
+      "categorized_requirements": {
+        "eligibility": [
+          {
+            "type": "company_type",
+            "value": "Startup",
+            "required": true,
+            "source": "full_page_content"
+          },
+          {
+            "type": "company_type",
+            "value": "Company",
+            "required": true,
+            "source": "full_page_content"
+          }
+        ],
+        "documents": [
+          {
+            "type": "required_documents",
+            "value": "Various documents required",
+            "required": true,
+            "source": "full_page_content"
+          }
+        ],
+        "financial": [],
+        "technical": [],
+        "legal": [],
+        "timeline": [],
+        "geographic": [],
+        "team": [],
+        "project": [],
+        "compliance": [],
+        "impact": [],
+        "capex_opex": [],
+        "use_of_funds": [],
+        "revenue_model": [],
+        "market_size": [],
+        "co_financing": [],
+        "trl_level": [],
+        "consortium": []
+      },
+      "funding_amount_min": null,
+      "funding_amount_max": null,
+      "currency": "EUR",
+      "deadline": null,
+      "contact_email": "info@raiffeisen.at",
+      "contact_phone": "162038737137",
+      "contact_info": {
+        "text": "",
+        "email": "",
+        "phone": ""
+      },
+      "scraped_at": "2025-10-28T22:44:40.012Z",
+      "confidence_score": 0.8,
+      "is_active": true
+    },
+    {
+      "id": "program_1761731094935_nz5rebhsu",
+      "name": "Unknown Program",
+      "description": "Austria Wirtschaftsservice Gesellschaft mbH (aws) is the promotional bank of the Austrian federal government and is 100% owned by the Republic of Austria. The Federal Ministry of Economy, Energy and Tourism (BMWET) and the Federal Ministry of Innovation, Mobility and Infrastructur (BMIMI) act as its owner representatives. The aws renders its services as part of its public mandate. Its clients include its owner representatives, the BMWET and BMIMI, as well as other Austrian federal ministries, states, public authorities and interest groups.",
+      "type": "grant",
+      "program_type": "grant",
+      "source_url": "https://www.aws.at/en/spezialprogramme/",
+      "institution": "Austria Wirtschaftsservice (AWS)",
+      "program_category": "grant",
+      "funding_types": [
+        "grant",
+        "loan",
+        "equity"
+      ],
+      "program_focus": [
+        "innovation",
+        "training",
+        "business",
+        "digital",
+        "energy",
+        "startup",
+        "export"
+      ],
+      "eligibility_criteria": {},
+      "categorized_requirements": {
+        "eligibility": [
+          {
+            "type": "company_type",
+            "value": "Company",
+            "required": true,
+            "source": "full_page_content"
+          }
+        ],
+        "documents": [],
+        "financial": [],
+        "technical": [],
+        "legal": [],
+        "timeline": [],
+        "geographic": [
+          {
+            "type": "location",
+            "value": "Austria",
+            "required": true,
+            "source": "full_page_content"
+          }
+        ],
+        "team": [],
+        "project": [],
+        "compliance": [],
+        "impact": [],
+        "capex_opex": [],
+        "use_of_funds": [],
+        "revenue_model": [],
+        "market_size": [],
+        "co_financing": [],
+        "trl_level": [],
+        "consortium": []
+      },
+      "funding_amount_min": null,
+      "funding_amount_max": null,
+      "currency": "EUR",
+      "deadline": null,
+      "contact_email": "24h-auskunft@aws.at",
+      "contact_phone": "1761645526",
+      "contact_info": {
+        "text": "",
+        "email": "",
+        "phone": ""
+      },
+      "scraped_at": "2025-10-29T09:44:54.938Z",
+      "confidence_score": 0.8,
+      "is_active": true
+    },
+    {
+      "id": "program_1761731097917_0c5hhns4s",
+      "name": "Unknown Program",
+      "description": "No description available",
+      "type": "research",
+      "program_type": "research",
+      "source_url": "https://www.aws.at/en/special-programmes/competitions/",
+      "institution": "Austria Wirtschaftsservice (AWS)",
+      "program_category": "research",
+      "funding_types": [
+        "grant",
+        "loan",
+        "equity"
+      ],
+      "program_focus": [
+        "innovation",
+        "research",
+        "startup",
+        "training",
+        "business",
+        "digital",
+        "energy",
+        "export"
+      ],
+      "eligibility_criteria": {},
+      "categorized_requirements": {
+        "eligibility": [
+          {
+            "type": "company_type",
+            "value": "Company",
+            "required": true,
+            "source": "full_page_content"
+          }
+        ],
+        "documents": [],
+        "financial": [],
+        "technical": [],
+        "legal": [],
+        "timeline": [],
+        "geographic": [
+          {
+            "type": "location",
+            "value": "Austria",
+            "required": true,
+            "source": "full_page_content"
+          }
+        ],
+        "team": [],
+        "project": [],
+        "compliance": [],
+        "impact": [],
+        "capex_opex": [],
+        "use_of_funds": [],
+        "revenue_model": [],
+        "market_size": [],
+        "co_financing": [],
+        "trl_level": [],
+        "consortium": []
+      },
+      "funding_amount_min": null,
+      "funding_amount_max": null,
+      "currency": "EUR",
+      "deadline": null,
+      "contact_email": "24h-auskunft@aws.at",
+      "contact_phone": "1761645526",
+      "contact_info": {
+        "text": "",
+        "email": "",
+        "phone": ""
+      },
+      "scraped_at": "2025-10-29T09:44:57.919Z",
+      "confidence_score": 0.8,
+      "is_active": true
+    },
+    {
+      "id": "program_1761731104407_84ijjuk36",
+      "name": "Unknown Program",
+      "description": "No description available",
+      "type": "research",
+      "program_type": "research",
+      "source_url": "https://www.aws.at/en/spezialprogramme/universities-and-universities-of-applied-sciences/",
+      "institution": "Austria Wirtschaftsservice (AWS)",
+      "program_category": "research",
+      "funding_types": [
+        "grant",
+        "loan",
+        "equity"
+      ],
+      "program_focus": [
+        "innovation",
+        "research",
+        "training",
+        "business",
+        "digital",
+        "energy",
+        "startup",
+        "export"
+      ],
+      "eligibility_criteria": {},
+      "categorized_requirements": {
+        "eligibility": [
+          {
+            "type": "company_type",
+            "value": "Company",
+            "required": true,
+            "source": "full_page_content"
+          }
+        ],
+        "documents": [],
+        "financial": [],
+        "technical": [],
+        "legal": [],
+        "timeline": [],
+        "geographic": [
+          {
+            "type": "location",
+            "value": "Austria",
+            "required": true,
+            "source": "full_page_content"
+          }
+        ],
+        "team": [],
+        "project": [],
+        "compliance": [],
+        "impact": [],
+        "capex_opex": [],
+        "use_of_funds": [],
+        "revenue_model": [],
+        "market_size": [],
+        "co_financing": [],
+        "trl_level": [],
+        "consortium": []
+      },
+      "funding_amount_min": null,
+      "funding_amount_max": null,
+      "currency": "EUR",
+      "deadline": null,
+      "contact_email": "24h-auskunft@aws.at",
+      "contact_phone": "1761645526",
+      "contact_info": {
+        "text": "",
+        "email": "",
+        "phone": ""
+      },
+      "scraped_at": "2025-10-29T09:45:04.411Z",
+      "confidence_score": 0.8,
+      "is_active": true
+    },
+    {
+      "id": "program_1761731110330_8cte29of0",
+      "name": "Unknown Program",
+      "description": "No description available",
+      "type": "research",
+      "program_type": "research",
+      "source_url": "https://www.aws.at/en/spezialprogramme/others/",
+      "institution": "Austria Wirtschaftsservice (AWS)",
+      "program_category": "research",
+      "funding_types": [
+        "grant",
+        "loan",
+        "equity"
+      ],
+      "program_focus": [
+        "innovation",
+        "research",
+        "startup",
+        "training",
+        "business",
+        "digital",
+        "energy",
+        "export"
+      ],
+      "eligibility_criteria": {},
+      "categorized_requirements": {
+        "eligibility": [
+          {
+            "type": "company_type",
+            "value": "Company",
+            "required": true,
+            "source": "full_page_content"
+          }
+        ],
+        "documents": [],
+        "financial": [],
+        "technical": [],
+        "legal": [],
+        "timeline": [],
+        "geographic": [
+          {
+            "type": "location",
+            "value": "Austria",
+            "required": true,
+            "source": "full_page_content"
+          }
+        ],
+        "team": [],
+        "project": [],
+        "compliance": [],
+        "impact": [],
+        "capex_opex": [],
+        "use_of_funds": [],
+        "revenue_model": [],
+        "market_size": [],
+        "co_financing": [],
+        "trl_level": [],
+        "consortium": []
+      },
+      "funding_amount_min": null,
+      "funding_amount_max": null,
+      "currency": "EUR",
+      "deadline": null,
+      "contact_email": "24h-auskunft@aws.at",
+      "contact_phone": "1761645526",
+      "contact_info": {
+        "text": "",
+        "email": "",
+        "phone": ""
+      },
+      "scraped_at": "2025-10-29T09:45:10.332Z",
+      "confidence_score": 0.8,
+      "is_active": true
+    },
+    {
+      "id": "program_1761731404195_j3ghb0cn6",
+      "name": "Unknown Program",
+      "description": "No description available",
+      "type": "research",
+      "program_type": "research",
+      "source_url": "https://www.aws.at/en/spezialprogramme/investors-incubators/",
+      "institution": "Austria Wirtschaftsservice (AWS)",
+      "program_category": "research",
+      "funding_types": [
+        "grant",
+        "loan",
+        "equity"
+      ],
+      "program_focus": [
+        "innovation",
+        "research",
+        "startup",
+        "training",
+        "business",
+        "technology",
+        "digital",
+        "energy",
+        "export"
+      ],
+      "eligibility_criteria": {},
+      "categorized_requirements": {
+        "eligibility": [
+          {
+            "type": "company_type",
+            "value": "Company",
+            "required": true,
+            "source": "full_page_content"
+          }
+        ],
+        "documents": [],
+        "financial": [],
+        "technical": [],
+        "legal": [],
+        "timeline": [],
+        "geographic": [
+          {
+            "type": "location",
+            "value": "Austria",
+            "required": true,
+            "source": "full_page_content"
+          }
+        ],
+        "team": [],
+        "project": [],
+        "compliance": [],
+        "impact": [],
+        "capex_opex": [],
+        "use_of_funds": [],
+        "revenue_model": [],
+        "market_size": [],
+        "co_financing": [],
+        "trl_level": [],
+        "consortium": []
+      },
+      "funding_amount_min": null,
+      "funding_amount_max": null,
+      "currency": "EUR",
+      "deadline": null,
+      "contact_email": "24h-auskunft@aws.at",
+      "contact_phone": "1761645526",
+      "contact_info": {
+        "text": "",
+        "email": "",
+        "phone": ""
+      },
+      "scraped_at": "2025-10-29T09:50:04.201Z",
+      "confidence_score": 0.8,
+      "is_active": true
+    },
+    {
+      "id": "program_1761733146347_2i02o2h07",
+      "name": "Energiekostenzuschuss I und II",
+      "description": "Die Möglichkeit zur Antragsstellung endete am 15.02.2023",
+      "type": "grant",
+      "program_type": "grant",
+      "source_url": "https://aws.at/ukraine-krieg-sonder-foerderungsprogramme/aws-energiekostenzuschuss-2/",
+      "institution": "Austria Wirtschaftsservice (AWS)",
+      "program_category": "grant",
+      "funding_types": [
+        "grant",
+        "loan",
+        "equity"
+      ],
+      "program_focus": [
+        "innovation",
+        "employment",
+        "training",
+        "business",
+        "technology",
+        "digital",
+        "environment",
+        "energy",
+        "startup",
+        "export"
+      ],
+      "eligibility_criteria": {},
+      "categorized_requirements": {
+        "eligibility": [
+          {
+            "type": "company_type",
+            "value": "Startup",
+            "required": true,
+            "source": "full_page_content"
+          },
+          {
+            "type": "company_type",
+            "value": "Company",
+            "required": true,
+            "source": "full_page_content"
+          }
+        ],
+        "documents": [
+          {
+            "type": "required_documents",
+            "value": "Various documents required",
+            "required": true,
+            "source": "full_page_content"
+          }
+        ],
+        "financial": [],
+        "technical": [],
+        "legal": [],
+        "timeline": [],
+        "geographic": [
+          {
+            "type": "location",
+            "value": "Austria",
+            "required": true,
+            "source": "full_page_content"
+          }
+        ],
+        "team": [],
+        "project": [],
+        "compliance": [],
+        "impact": [],
+        "capex_opex": [],
+        "use_of_funds": [],
+        "revenue_model": [],
+        "market_size": [],
+        "co_financing": [],
+        "trl_level": [],
+        "consortium": []
+      },
+      "funding_amount_min": null,
+      "funding_amount_max": null,
+      "currency": "EUR",
+      "deadline": null,
+      "contact_email": "24h-auskunft@aws.at",
+      "contact_phone": "1761645526",
+      "contact_info": {
+        "text": "",
+        "email": "",
+        "phone": ""
+      },
+      "scraped_at": "2025-10-29T10:19:06.360Z",
+      "confidence_score": 0.8,
+      "is_active": true
+    },
+    {
+      "id": "program_1761733152031_5oskbcunt",
+      "name": "Unknown Program",
+      "description": "Austria Wirtschaftsservice Gesellschaft mbH (aws) is the promotional bank of the Austrian federal government and is 100% owned by the Republic of Austria. The Federal Ministry of Economy, Energy and Tourism (BMWET) and the Federal Ministry of Innovation, Mobility and Infrastructur (BMIMI) act as its owner representatives. The aws renders its services as part of its public mandate. Its clients include its owner representatives, the BMWET and BMIMI, as well as other Austrian federal ministries, states, public authorities and interest groups.",
+      "type": "grant",
+      "program_type": "grant",
+      "source_url": "https://aws.at/en/spezialprogramme/",
+      "institution": "Austria Wirtschaftsservice (AWS)",
+      "program_category": "grant",
+      "funding_types": [
+        "grant",
+        "loan",
+        "equity"
+      ],
+      "program_focus": [
+        "innovation",
+        "training",
+        "business",
+        "digital",
+        "energy",
+        "startup",
+        "export"
+      ],
+      "eligibility_criteria": {},
+      "categorized_requirements": {
+        "eligibility": [
+          {
+            "type": "company_type",
+            "value": "Company",
+            "required": true,
+            "source": "full_page_content"
+          }
+        ],
+        "documents": [],
+        "financial": [],
+        "technical": [],
+        "legal": [],
+        "timeline": [],
+        "geographic": [
+          {
+            "type": "location",
+            "value": "Austria",
+            "required": true,
+            "source": "full_page_content"
+          }
+        ],
+        "team": [],
+        "project": [],
+        "compliance": [],
+        "impact": [],
+        "capex_opex": [],
+        "use_of_funds": [],
+        "revenue_model": [],
+        "market_size": [],
+        "co_financing": [],
+        "trl_level": [],
+        "consortium": []
+      },
+      "funding_amount_min": null,
+      "funding_amount_max": null,
+      "currency": "EUR",
+      "deadline": null,
+      "contact_email": "24h-auskunft@aws.at",
+      "contact_phone": "1761645526",
+      "contact_info": {
+        "text": "",
+        "email": "",
+        "phone": ""
+      },
+      "scraped_at": "2025-10-29T10:19:12.041Z",
+      "confidence_score": 0.8,
+      "is_active": true
+    },
+    {
+      "id": "program_1761733155972_z7924pgpe",
+      "name": "Unknown Program",
+      "description": "No description available",
+      "type": "research",
+      "program_type": "research",
+      "source_url": "https://aws.at/en/spezialprogramme/investors-incubators/",
+      "institution": "Austria Wirtschaftsservice (AWS)",
+      "program_category": "research",
+      "funding_types": [
+        "grant",
+        "loan",
+        "equity"
+      ],
+      "program_focus": [
+        "innovation",
+        "research",
+        "startup",
+        "training",
+        "business",
+        "technology",
+        "digital",
+        "energy",
+        "export"
+      ],
+      "eligibility_criteria": {},
+      "categorized_requirements": {
+        "eligibility": [
+          {
+            "type": "company_type",
+            "value": "Company",
+            "required": true,
+            "source": "full_page_content"
+          }
+        ],
+        "documents": [],
+        "financial": [],
+        "technical": [],
+        "legal": [],
+        "timeline": [],
+        "geographic": [
+          {
+            "type": "location",
+            "value": "Austria",
+            "required": true,
+            "source": "full_page_content"
+          }
+        ],
+        "team": [],
+        "project": [],
+        "compliance": [],
+        "impact": [],
+        "capex_opex": [],
+        "use_of_funds": [],
+        "revenue_model": [],
+        "market_size": [],
+        "co_financing": [],
+        "trl_level": [],
+        "consortium": []
+      },
+      "funding_amount_min": null,
+      "funding_amount_max": null,
+      "currency": "EUR",
+      "deadline": null,
+      "contact_email": "24h-auskunft@aws.at",
+      "contact_phone": "1761645526",
+      "contact_info": {
+        "text": "",
+        "email": "",
+        "phone": ""
+      },
+      "scraped_at": "2025-10-29T10:19:15.976Z",
+      "confidence_score": 0.8,
+      "is_active": true
+    },
+    {
+      "id": "program_1761733159812_lzm9zqz30",
+      "name": "Unknown Program",
+      "description": "No description available",
+      "type": "research",
+      "program_type": "research",
+      "source_url": "https://aws.at/en/special-programmes/competitions/",
+      "institution": "Austria Wirtschaftsservice (AWS)",
+      "program_category": "research",
+      "funding_types": [
+        "grant",
+        "loan",
+        "equity"
+      ],
+      "program_focus": [
+        "innovation",
+        "research",
+        "startup",
+        "training",
+        "business",
+        "digital",
+        "energy",
+        "export"
+      ],
+      "eligibility_criteria": {},
+      "categorized_requirements": {
+        "eligibility": [
+          {
+            "type": "company_type",
+            "value": "Company",
+            "required": true,
+            "source": "full_page_content"
+          }
+        ],
+        "documents": [],
+        "financial": [],
+        "technical": [],
+        "legal": [],
+        "timeline": [],
+        "geographic": [
+          {
+            "type": "location",
+            "value": "Austria",
+            "required": true,
+            "source": "full_page_content"
+          }
+        ],
+        "team": [],
+        "project": [],
+        "compliance": [],
+        "impact": [],
+        "capex_opex": [],
+        "use_of_funds": [],
+        "revenue_model": [],
+        "market_size": [],
+        "co_financing": [],
+        "trl_level": [],
+        "consortium": []
+      },
+      "funding_amount_min": null,
+      "funding_amount_max": null,
+      "currency": "EUR",
+      "deadline": null,
+      "contact_email": "24h-auskunft@aws.at",
+      "contact_phone": "1761645526",
+      "contact_info": {
+        "text": "",
+        "email": "",
+        "phone": ""
+      },
+      "scraped_at": "2025-10-29T10:19:19.827Z",
+      "confidence_score": 0.8,
+      "is_active": true
+    },
+    {
+      "id": "program_1761733168723_s2lzpnuur",
+      "name": "Unknown Program",
+      "description": "No description available",
+      "type": "research",
+      "program_type": "research",
+      "source_url": "https://aws.at/en/spezialprogramme/universities-and-universities-of-applied-sciences/",
+      "institution": "Austria Wirtschaftsservice (AWS)",
+      "program_category": "research",
+      "funding_types": [
+        "grant",
+        "loan",
+        "equity"
+      ],
+      "program_focus": [
+        "innovation",
+        "research",
+        "training",
+        "business",
+        "digital",
+        "energy",
+        "startup",
+        "export"
+      ],
+      "eligibility_criteria": {},
+      "categorized_requirements": {
+        "eligibility": [
+          {
+            "type": "company_type",
+            "value": "Company",
+            "required": true,
+            "source": "full_page_content"
+          }
+        ],
+        "documents": [],
+        "financial": [],
+        "technical": [],
+        "legal": [],
+        "timeline": [],
+        "geographic": [
+          {
+            "type": "location",
+            "value": "Austria",
+            "required": true,
+            "source": "full_page_content"
+          }
+        ],
+        "team": [],
+        "project": [],
+        "compliance": [],
+        "impact": [],
+        "capex_opex": [],
+        "use_of_funds": [],
+        "revenue_model": [],
+        "market_size": [],
+        "co_financing": [],
+        "trl_level": [],
+        "consortium": []
+      },
+      "funding_amount_min": null,
+      "funding_amount_max": null,
+      "currency": "EUR",
+      "deadline": null,
+      "contact_email": "24h-auskunft@aws.at",
+      "contact_phone": "1761645526",
+      "contact_info": {
+        "text": "",
+        "email": "",
+        "phone": ""
+      },
+      "scraped_at": "2025-10-29T10:19:28.728Z",
+      "confidence_score": 0.8,
+      "is_active": true
+    },
+    {
+      "id": "program_1761733176483_uxnloyze1",
+      "name": "Unknown Program",
+      "description": "No description available",
+      "type": "research",
+      "program_type": "research",
+      "source_url": "https://aws.at/en/spezialprogramme/others/",
+      "institution": "Austria Wirtschaftsservice (AWS)",
+      "program_category": "research",
+      "funding_types": [
+        "grant",
+        "loan",
+        "equity"
+      ],
+      "program_focus": [
+        "innovation",
+        "research",
+        "startup",
+        "training",
+        "business",
+        "digital",
+        "energy",
+        "export"
+      ],
+      "eligibility_criteria": {},
+      "categorized_requirements": {
+        "eligibility": [
+          {
+            "type": "company_type",
+            "value": "Company",
+            "required": true,
+            "source": "full_page_content"
+          }
+        ],
+        "documents": [],
+        "financial": [],
+        "technical": [],
+        "legal": [],
+        "timeline": [],
+        "geographic": [
+          {
+            "type": "location",
+            "value": "Austria",
+            "required": true,
+            "source": "full_page_content"
+          }
+        ],
+        "team": [],
+        "project": [],
+        "compliance": [],
+        "impact": [],
+        "capex_opex": [],
+        "use_of_funds": [],
+        "revenue_model": [],
+        "market_size": [],
+        "co_financing": [],
+        "trl_level": [],
+        "consortium": []
+      },
+      "funding_amount_min": null,
+      "funding_amount_max": null,
+      "currency": "EUR",
+      "deadline": null,
+      "contact_email": "24h-auskunft@aws.at",
+      "contact_phone": "1761645526",
+      "contact_info": {
+        "text": "",
+        "email": "",
+        "phone": ""
+      },
+      "scraped_at": "2025-10-29T10:19:36.489Z",
+      "confidence_score": 0.8,
+      "is_active": true
+    },
+    {
+      "id": "program_1761735897375_uqveyb79k",
+      "name": "Josef Hesoun Aus­bil­dungs­zentrum",
+      "description": "Noch mehr Ausbildungen des BFI NÖ finden Sie hier!",
+      "type": "grant",
+      "program_type": "grant",
+      "source_url": "https://www.bfinoe-bildungszentren.at/bildungszentren/josef-hesoun-ausbildungszentrum/",
+      "institution": "AMS (Arbeitsmarktservice)",
+      "program_category": "grant",
+      "funding_types": [
+        "grant"
+      ],
+      "program_focus": [
+        "training",
+        "education"
+      ],
+      "eligibility_criteria": {},
+      "categorized_requirements": {
+        "eligibility": [],
+        "documents": [],
+        "financial": [],
+        "technical": [],
+        "legal": [],
+        "timeline": [],
+        "geographic": [
+          {
+            "type": "location",
+            "value": "Austria",
+            "required": true,
+            "source": "full_page_content"
+          }
+        ],
+        "team": [],
+        "project": [],
+        "compliance": [],
+        "impact": [],
+        "capex_opex": [],
+        "use_of_funds": [],
+        "revenue_model": [],
+        "market_size": [],
+        "co_financing": [],
+        "trl_level": [
+          {
+            "type": "trl_level",
+            "value": "Unknown TRL",
+            "required": true,
+            "source": "full_page_content"
+          }
+        ],
+        "consortium": []
+      },
+      "funding_amount_min": null,
+      "funding_amount_max": null,
+      "currency": "EUR",
+      "deadline": "06.02.2027",
+      "contact_email": "abz@bfinoe.at",
+      "contact_phone": "1761050914",
+      "contact_info": {
+        "text": "",
+        "email": "",
+        "phone": ""
+      },
+      "scraped_at": "2025-10-29T11:04:57.388Z",
+      "confidence_score": 0.8,
+      "is_active": true
+    },
+    {
+      "id": "program_1761735901595_of005sbox",
+      "name": "Hand­werk­liches Aus­bil­dungs­center Gloggnitz",
+      "description": "Noch mehr Ausbildungen des BFI NÖ finden Sie hier!",
+      "type": "grant",
+      "program_type": "grant",
+      "source_url": "https://www.bfinoe-bildungszentren.at/bildungszentren/handwerkliches-ausbildungscenter-gloggnitz/",
+      "institution": "AMS (Arbeitsmarktservice)",
+      "program_category": "grant",
+      "funding_types": [
+        "grant"
+      ],
+      "program_focus": [
+        "training",
+        "education"
+      ],
+      "eligibility_criteria": {},
+      "categorized_requirements": {
+        "eligibility": [],
+        "documents": [],
+        "financial": [],
+        "technical": [],
+        "legal": [],
+        "timeline": [],
+        "geographic": [
+          {
+            "type": "location",
+            "value": "Austria",
+            "required": true,
+            "source": "full_page_content"
+          }
+        ],
+        "team": [],
+        "project": [],
+        "compliance": [],
+        "impact": [],
+        "capex_opex": [],
+        "use_of_funds": [],
+        "revenue_model": [],
+        "market_size": [],
+        "co_financing": [],
+        "trl_level": [
+          {
+            "type": "trl_level",
+            "value": "Unknown TRL",
+            "required": true,
+            "source": "full_page_content"
+          }
+        ],
+        "consortium": []
+      },
+      "funding_amount_min": null,
+      "funding_amount_max": null,
+      "currency": "EUR",
+      "deadline": "06.02.2027",
+      "contact_email": "office@hac-noe.at",
+      "contact_phone": "1761050914",
+      "contact_info": {
+        "text": "",
+        "email": "",
+        "phone": ""
+      },
+      "scraped_at": "2025-10-29T11:05:01.602Z",
+      "confidence_score": 0.8,
+      "is_active": true
+    },
+    {
+      "id": "program_1761736052595_vzrraa5mj",
+      "name": "Raiffeisen Exportabsicherung",
+      "description": "Ihr Suchbegriff ergab keine Treffer.",
+      "type": "grant",
+      "program_type": "grant",
+      "source_url": "https://www.raiffeisen.at/de/firmenkunden/auslandsgeschaeft/exportabsicherung.html",
+      "institution": "Raiffeisen Bank",
+      "program_category": "grant",
+      "funding_types": [
+        "bank_loan",
+        "leasing"
+      ],
+      "program_focus": [
+        "export",
+        "training",
+        "business",
+        "sustainability",
+        "transport",
+        "digital",
+        "energy",
+        "education",
+        "startup"
+      ],
+      "eligibility_criteria": {},
+      "categorized_requirements": {
+        "eligibility": [
+          {
+            "type": "company_type",
+            "value": "Startup",
+            "required": true,
+            "source": "full_page_content"
+          },
+          {
+            "type": "company_type",
+            "value": "Company",
+            "required": true,
+            "source": "full_page_content"
+          }
+        ],
+        "documents": [
+          {
+            "type": "required_documents",
+            "value": "Various documents required",
+            "required": true,
+            "source": "full_page_content"
+          }
+        ],
+        "financial": [],
+        "technical": [],
+        "legal": [],
+        "timeline": [],
+        "geographic": [
+          {
+            "type": "location",
+            "value": "Austria",
+            "required": true,
+            "source": "full_page_content"
+          }
+        ],
+        "team": [],
+        "project": [],
+        "compliance": [],
+        "impact": [],
+        "capex_opex": [],
+        "use_of_funds": [],
+        "revenue_model": [],
+        "market_size": [],
+        "co_financing": [],
+        "trl_level": [],
+        "consortium": []
+      },
+      "funding_amount_min": null,
+      "funding_amount_max": null,
+      "currency": "EUR",
+      "deadline": null,
+      "contact_email": "info@raiffeisen.at",
+      "contact_phone": "162038737137",
+      "contact_info": {
+        "text": "",
+        "email": "",
+        "phone": ""
+      },
+      "scraped_at": "2025-10-29T11:07:32.619Z",
+      "confidence_score": 0.8,
+      "is_active": true
+    },
+    {
+      "id": "program_1761736059856_9sqxweomz",
+      "name": "Aus- und Weiterbildung am Raiffeisen Campus",
+      "description": "Ihr Suchbegriff ergab keine Treffer.",
+      "type": "grant",
+      "program_type": "grant",
+      "source_url": "https://www.raiffeisen.at/de/meine-bank/karriere/ausbildung-weiterbildung.html",
+      "institution": "Raiffeisen Bank",
+      "program_category": "grant",
+      "funding_types": [
+        "bank_loan",
+        "leasing"
+      ],
+      "program_focus": [
+        "export",
+        "training",
+        "business",
+        "sustainability",
+        "transport",
+        "digital",
+        "energy",
+        "healthcare",
+        "education",
+        "startup"
+      ],
+      "eligibility_criteria": {},
+      "categorized_requirements": {
+        "eligibility": [
+          {
+            "type": "company_type",
+            "value": "Startup",
+            "required": true,
+            "source": "full_page_content"
+          },
+          {
+            "type": "company_type",
+            "value": "Company",
+            "required": true,
+            "source": "full_page_content"
+          }
+        ],
+        "documents": [
+          {
+            "type": "required_documents",
+            "value": "Various documents required",
+            "required": true,
+            "source": "full_page_content"
+          }
+        ],
+        "financial": [],
+        "technical": [],
+        "legal": [],
+        "timeline": [],
+        "geographic": [
+          {
+            "type": "location",
+            "value": "Austria",
+            "required": true,
+            "source": "full_page_content"
+          }
+        ],
+        "team": [],
+        "project": [],
+        "compliance": [],
+        "impact": [],
+        "capex_opex": [],
+        "use_of_funds": [],
+        "revenue_model": [],
+        "market_size": [],
+        "co_financing": [],
+        "trl_level": [],
+        "consortium": []
+      },
+      "funding_amount_min": null,
+      "funding_amount_max": null,
+      "currency": "EUR",
+      "deadline": null,
+      "contact_email": "info@raiffeisen.at",
+      "contact_phone": "162038737137",
+      "contact_info": {
+        "text": "",
+        "email": "",
+        "phone": ""
+      },
+      "scraped_at": "2025-10-29T11:07:39.881Z",
+      "confidence_score": 0.8,
+      "is_active": true
+    }
+  ]
+}

@@ -1,13 +1,16 @@
 ﻿import React, { useState } from "react";
 import Link from "next/link";
+import { useRouter } from "next/router";
 import featureFlags from "@/lib/featureFlags";
 import { loadPlanSections, type PlanSection } from "@/lib/planStore";
 import analytics from "@/lib/analytics";
 import { getDocumentBundle } from "@/data/documentBundles";
 import { getDocumentById } from "@/data/documentDescriptions";
+import { exportManager } from "@/lib/export";
 
 export default function Export() {
   const EXPORT_ENABLED = featureFlags.isEnabled('EXPORT_ENABLED')
+  const router = useRouter();
   const [sections, setSections] = useState<PlanSection[]>([]);
   const [exporting, setExporting] = useState(false);
   const [format, setFormat] = useState<"pdf" | "docx">("pdf");
@@ -23,13 +26,21 @@ export default function Export() {
     
     // Load additional documents
     loadAdditionalDocuments();
+    const { programId } = router.query as { programId?: string };
+    if (programId) {
+      fetch(`/api/programmes/${programId}/requirements`).then(r => r.ok ? r.json() : null).then((data) => {
+        if (data && Array.isArray(data.additionalDocuments)) {
+          setAdditionalDocuments((prev) => mergeDocs(prev, data.additionalDocuments));
+        }
+      }).catch(() => {});
+    }
     
     // Track export page view
     analytics.trackEvent({ 
       event: 'export_page_view', 
       properties: { sections_count: loadedSections.length } 
     });
-  }, []);
+  }, [router.query]);
 
   const loadAdditionalDocuments = () => {
     try {
@@ -54,6 +65,12 @@ export default function Export() {
       setAdditionalDocuments([]);
     }
   };
+
+  function mergeDocs(staticDocs: any[], programDocs: any[]) {
+    const byId: Record<string, any> = {};
+    [...programDocs, ...staticDocs].forEach(d => { if (!byId[d.id]) byId[d.id] = d; else byId[d.id] = { ...byId[d.id], ...d }; });
+    return Object.values(byId);
+  }
 
   if (!EXPORT_ENABLED) {
     return (
@@ -152,22 +169,36 @@ export default function Export() {
               }
             });
 
-            // Generate content
-            const content = sections.map(s => `# ${s.title}\n\n${s.content || 'No content yet'}`).join('\n\n---\n\n');
-            
-            if (format === 'pdf') {
-              // For now, download as text file (PDF generation would require server-side implementation)
-              const blob = new Blob([content], { type: 'text/plain' });
-              const url = URL.createObjectURL(blob);
-              const a = document.createElement('a');
-              a.href = url;
-              a.download = `business-plan.${format}`;
-              a.click();
-              URL.revokeObjectURL(url);
-            } else {
-              // DOCX would require a library like docx
-              alert('DOCX export not yet implemented. Please use PDF format.');
-            }
+            // Build PlanDocument-like object from sections
+            const plan = {
+              id: `export_${Date.now()}`,
+              ownerId: 'user',
+              product: 'submission' as const,
+              route: 'grant' as const,
+              language: 'en' as const,
+              tone: 'neutral' as const,
+              targetLength: 'standard' as const,
+              settings: {
+                includeTitlePage: true,
+                includePageNumbers: true,
+                citations: 'simple' as const,
+                captions: true,
+                graphs: {}
+              },
+              sections: sections.map(s => ({ key: s.id, title: s.title, content: s.content || '', status: 'missing' as const, tables: (s as any).tables, figures: (s as any).figures })),
+              addonPack: false,
+              versions: []
+            };
+
+            const result = await exportManager.exportPlan(plan as any, {
+              format: (format.toUpperCase() as any),
+              includeWatermark: !isPaid,
+              isPaid,
+              quality: 'standard',
+              includeToC: true,
+              includeListOfFigures: true
+            });
+            if (!result.success) throw new Error(result.error || 'Export failed');
 
             // Track successful export
             analytics.trackEvent({ 

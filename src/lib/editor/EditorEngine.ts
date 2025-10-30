@@ -59,12 +59,12 @@ export class EditorEngine {
     try {
       // Try to load from program data first
       const product = await this.loadProduct(productId);
-      let sections = product.sections || [];
+      let sections = (product.sections || []).map(s => this.sanitizeSection(s));
 
       // If template is specified, merge with template sections
       if (templateId) {
         const template = await this.loadTemplate(templateId);
-        sections = this.mergeSections(sections, template.sections);
+        sections = this.mergeSections(sections, template.sections.map(s => this.sanitizeSection(s)));
       }
 
       // If we have sections from program data, return them
@@ -117,11 +117,15 @@ export class EditorEngine {
    * Map product ID to product type
    */
   private mapProductIdToType(productId: string): 'strategy' | 'review' | 'submission' {
-    // This is a simple mapping - could be improved with a proper mapping system
-    if (productId.includes('strategy') || productId.includes('Strategy')) return 'strategy';
-    if (productId.includes('review') || productId.includes('Review')) return 'review';
-    if (productId.includes('submission') || productId.includes('Submission')) return 'submission';
-    return 'strategy'; // Default
+    // Prefer exact matches, then substring heuristics
+    const id = productId.toLowerCase();
+    if (id === 'submission') return 'submission';
+    if (id === 'review') return 'review';
+    if (id === 'strategy') return 'strategy';
+    if (id.includes('submission')) return 'submission';
+    if (id.includes('review')) return 'review';
+    if (id.includes('strategy')) return 'strategy';
+    return 'submission';
   }
 
   /**
@@ -178,24 +182,66 @@ export class EditorEngine {
    * Merge product sections with template sections
    */
   private mergeSections(productSections: UnifiedEditorSection[], templateSections: UnifiedEditorSection[]): UnifiedEditorSection[] {
-    const merged = [...productSections];
+    const merged = productSections.map(s => this.sanitizeSection(s));
     
     templateSections.forEach(templateSection => {
       const existingIndex = merged.findIndex(section => section.id === templateSection.id);
       if (existingIndex >= 0) {
         // Merge with existing section
-        merged[existingIndex] = {
-          ...merged[existingIndex],
-          ...templateSection,
-          required: merged[existingIndex].required || templateSection.required
-        };
+        const existing = merged[existingIndex];
+        const combined: UnifiedEditorSection = {
+          ...existing,
+          // prefer existing title if present, else template
+          title: existing.title || templateSection.title,
+          section_name: existing.section_name || templateSection.section_name || existing.title || templateSection.title,
+          required: existing.required || templateSection.required,
+          // fill missing content with template prompts/guidance
+          template: existing.template && existing.template.trim().length > 0 ? existing.template : (templateSection.template || templateSection.ai_guidance || ''),
+          guidance: existing.guidance || templateSection.guidance || templateSection.description || '',
+          description: existing.description || templateSection.description || '',
+          ai_guidance: existing.ai_guidance || templateSection.ai_guidance || '',
+          hints: (existing.hints && existing.hints.length > 0) ? existing.hints : (templateSection.hints || []),
+          word_count_min: existing.word_count_min ?? templateSection.word_count_min,
+          word_count_max: existing.word_count_max ?? templateSection.word_count_max,
+          requirements: existing.requirements && existing.requirements.length ? existing.requirements : (templateSection.requirements || []),
+          prefillData: existing.prefillData || templateSection.prefillData || {}
+        } as any;
+        merged[existingIndex] = this.sanitizeSection(combined);
       } else {
         // Add new section
-        merged.push(templateSection);
+        merged.push(this.sanitizeSection(templateSection));
       }
     });
     
     return merged;
+  }
+
+  /**
+   * Ensure a section has viable defaults for all fields
+   */
+  private sanitizeSection(section: UnifiedEditorSection): UnifiedEditorSection {
+    const title = section.title || section.section_name || 'Untitled Section';
+    const template = section.template || section.ai_guidance || section.description || '';
+    const guidance = section.guidance || section.description || '';
+    const hints = section.hints || [];
+    const requirements = section.requirements || [];
+    const prefillData = section.prefillData || {};
+    const required = section.required !== false;
+    const word_count_min = section.word_count_min ?? 150;
+    const word_count_max = section.word_count_max ?? 600;
+    return {
+      ...section,
+      title,
+      section_name: section.section_name || title,
+      template,
+      guidance,
+      hints,
+      requirements,
+      prefillData,
+      required,
+      word_count_min,
+      word_count_max
+    };
   }
 
   // ============================================================================

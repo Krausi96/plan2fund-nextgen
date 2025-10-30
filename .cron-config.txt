@@ -1,4 +1,0 @@
-# Add this to crontab: crontab -e
-# Run scraper every 6 hours
-0 */6 * * * cd /full/path/to/plan2fund-nextgen && /bin/bash scripts/run-cron.sh
-

@@ -14,7 +14,7 @@ const options = {
     'Content-Type': 'application/json',
     'Content-Length': Buffer.byteLength(postData)
   },
-      timeout: 300000 // 5 minutes
+      timeout: 600000 // 10 minutes (increased due to networkidle2 waits)
 };
 
 console.log(`🚀 Triggering WebScraperService (${cycleOnly ? 'CYCLE MODE' : 'FULL MODE'}, ${discoveryMode.toUpperCase()})...`);

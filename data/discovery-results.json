@@ -1,0 +1,270 @@
+{
+  "summary": {
+    "totalNewDetailPages": 420,
+    "totalDetailPages": 469,
+    "totalNewUrls": -257,
+    "totalTime": 338492,
+    "successful": 17,
+    "totalInstitutions": 32
+  },
+  "results": [
+    {
+      "institution": "Austrian Federal Ministry of Climate Action (BMK)",
+      "newDetailPages": 215,
+      "newTotalUrls": -12,
+      "totalDetailPages": 254,
+      "totalUrls": 254,
+      "timeElapsed": 48457
+    },
+    {
+      "institution": "Austrian Research and Technology Development Fund (FWF)",
+      "newDetailPages": 110,
+      "newTotalUrls": -148,
+      "totalDetailPages": 110,
+      "totalUrls": 110,
+      "timeElapsed": 47540
+    },
+    {
+      "institution": "Austrian Research Promotion Agency (FFG)",
+      "newDetailPages": 22,
+      "newTotalUrls": -78,
+      "totalDetailPages": 22,
+      "totalUrls": 22,
+      "timeElapsed": 61747
+    },
+    {
+      "institution": "KfW Bankengruppe",
+      "newDetailPages": 19,
+      "newTotalUrls": -17,
+      "totalDetailPages": 21,
+      "totalUrls": 21,
+      "timeElapsed": 45676
+    },
+    {
+      "institution": "Deutsche Bank",
+      "newDetailPages": 13,
+      "newTotalUrls": 0,
+      "totalDetailPages": 13,
+      "totalUrls": 13,
+      "timeElapsed": 18148
+    },
+    {
+      "institution": "Raiffeisen Bank",
+      "newDetailPages": 11,
+      "newTotalUrls": 0,
+      "totalDetailPages": 11,
+      "totalUrls": 11,
+      "timeElapsed": 13472
+    },
+    {
+      "institution": "Austrian Federal Ministry of Education, Science and Research (BMBWF)",
+      "newDetailPages": 9,
+      "newTotalUrls": 0,
+      "totalDetailPages": 11,
+      "totalUrls": 11,
+      "timeElapsed": 10928
+    },
+    {
+      "institution": "AMS (Arbeitsmarktservice)",
+      "newDetailPages": 7,
+      "newTotalUrls": 0,
+      "totalDetailPages": 7,
+      "totalUrls": 7,
+      "timeElapsed": 6965
+    },
+    {
+      "institution": "WKO (Wirtschaftskammer Österreich)",
+      "newDetailPages": 3,
+      "newTotalUrls": 0,
+      "totalDetailPages": 3,
+      "totalUrls": 3,
+      "timeElapsed": 7420
+    },
+    {
+      "institution": "Erste Bank",
+      "newDetailPages": 3,
+      "newTotalUrls": 0,
+      "totalDetailPages": 3,
+      "totalUrls": 3,
+      "timeElapsed": 8637
+    },
+    {
+      "institution": "Bank Austria",
+      "newDetailPages": 2,
+      "newTotalUrls": 0,
+      "totalDetailPages": 2,
+      "totalUrls": 2,
+      "timeElapsed": 9404
+    },
+    {
+      "institution": "Austria Wirtschaftsservice (AWS)",
+      "newDetailPages": 1,
+      "newTotalUrls": 0,
+      "totalDetailPages": 1,
+      "totalUrls": 1,
+      "timeElapsed": 15376
+    },
+    {
+      "institution": "Vienna Business Agency (VBA)",
+      "newDetailPages": 1,
+      "newTotalUrls": -2,
+      "totalDetailPages": 1,
+      "totalUrls": 1,
+      "timeElapsed": 16446
+    },
+    {
+      "institution": "CDTI (Centro para el Desarrollo Tecnológico Industrial)",
+      "newDetailPages": 1,
+      "newTotalUrls": 0,
+      "totalDetailPages": 1,
+      "totalUrls": 1,
+      "timeElapsed": 6356
+    },
+    {
+      "institution": "Invest-NL",
+      "newDetailPages": 1,
+      "newTotalUrls": 0,
+      "totalDetailPages": 1,
+      "totalUrls": 1,
+      "timeElapsed": 1431
+    },
+    {
+      "institution": "Österreichische Entwicklungsbank (OeEB)",
+      "newDetailPages": 1,
+      "newTotalUrls": 0,
+      "totalDetailPages": 1,
+      "totalUrls": 1,
+      "timeElapsed": 4345
+    },
+    {
+      "institution": "Commerzbank",
+      "newDetailPages": 1,
+      "newTotalUrls": 0,
+      "totalDetailPages": 1,
+      "totalUrls": 1,
+      "timeElapsed": 3683
+    },
+    {
+      "institution": "ÖBS (Österreichische Bundesbahnen)",
+      "newDetailPages": 0,
+      "newTotalUrls": 0,
+      "totalDetailPages": 0,
+      "totalUrls": 0,
+      "timeElapsed": 362
+    },
+    {
+      "institution": "Kickstarter",
+      "newDetailPages": 0,
+      "newTotalUrls": 0,
+      "totalDetailPages": 0,
+      "totalUrls": 0,
+      "timeElapsed": 170
+    },
+    {
+      "institution": "Indiegogo",
+      "newDetailPages": 0,
+      "newTotalUrls": 0,
+      "totalDetailPages": 0,
+      "totalUrls": 0,
+      "timeElapsed": 141
+    },
+    {
+      "institution": "Bundesministerium für Wirtschaft und Klimaschutz (BMWK)",
+      "newDetailPages": 0,
+      "newTotalUrls": 0,
+      "totalDetailPages": 3,
+      "totalUrls": 3,
+      "timeElapsed": 4850
+    },
+    {
+      "institution": "Bpifrance",
+      "newDetailPages": 0,
+      "newTotalUrls": 0,
+      "totalDetailPages": 0,
+      "totalUrls": 0,
+      "timeElapsed": 287
+    },
+    {
+      "institution": "Horizon Europe",
+      "newDetailPages": 0,
+      "newTotalUrls": 0,
+      "totalDetailPages": 0,
+      "totalUrls": 0,
+      "timeElapsed": 264
+    },
+    {
+      "institution": "ENISA (Empresa Nacional de Innovación)",
+      "newDetailPages": 0,
+      "newTotalUrls": 0,
+      "totalDetailPages": 0,
+      "totalUrls": 0,
+      "timeElapsed": 218
+    },
+    {
+      "institution": "Invitalia (Agenzia Nazionale per l'Attrazione degli Investimenti)",
+      "newDetailPages": 0,
+      "newTotalUrls": 0,
+      "totalDetailPages": 0,
+      "totalUrls": 0,
+      "timeElapsed": 169
+    },
+    {
+      "institution": "Cassa Depositi e Prestiti (CDP)",
+      "newDetailPages": 0,
+      "newTotalUrls": 0,
+      "totalDetailPages": 0,
+      "totalUrls": 0,
+      "timeElapsed": 264
+    },
+    {
+      "institution": "RVO (Rijksdienst voor Ondernemend Nederland)",
+      "newDetailPages": 0,
+      "newTotalUrls": 0,
+      "totalDetailPages": 0,
+      "totalUrls": 0,
+      "timeElapsed": 175
+    },
+    {
+      "institution": "European Investment Bank (EIB)",
+      "newDetailPages": 0,
+      "newTotalUrls": 0,
+      "totalDetailPages": 0,
+      "totalUrls": 0,
+      "timeElapsed": 860
+    },
+    {
+      "institution": "European Investment Fund (EIF)",
+      "newDetailPages": 0,
+      "newTotalUrls": 0,
+      "totalDetailPages": 0,
+      "totalUrls": 0,
+      "timeElapsed": 556
+    },
+    {
+      "institution": "Austrian Federal Ministry of Digital and Economic Affairs (BMDW)",
+      "newDetailPages": 0,
+      "newTotalUrls": 0,
+      "totalDetailPages": 3,
+      "totalUrls": 3,
+      "timeElapsed": 3788
+    },
+    {
+      "institution": "European Regional Development Fund (ERDF)",
+      "newDetailPages": 0,
+      "newTotalUrls": 0,
+      "totalDetailPages": 0,
+      "totalUrls": 0,
+      "timeElapsed": 200
+    },
+    {
+      "institution": "European Social Fund (ESF)",
+      "newDetailPages": 0,
+      "newTotalUrls": 0,
+      "totalDetailPages": 0,
+      "totalUrls": 0,
+      "timeElapsed": 157
+    }
+  ],
+  "generatedAt": "2025-10-30T10:45:55.760Z",
+  "discoveryMode": "incremental"
+}

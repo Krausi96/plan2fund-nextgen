@@ -316,7 +316,7 @@ export default function ProgramSelector({
         }
 
         .program-selector-title {
-          max-width: 6rem;
+          max-width: 72rem;
           margin: 0 auto;
           text-align: center;
           padding: 0 1.5rem;
@@ -336,7 +336,7 @@ export default function ProgramSelector({
         }
 
         .program-selector-content {
-          max-width: 6rem;
+          max-width: 72rem;
           margin: 0 auto;
           padding: 2rem 1.5rem;
         }

@@ -3,12 +3,14 @@
 // NOW WITH INTEGRATED STATE MANAGEMENT (replaces EditorState)
 
 import React, { useState, useEffect, useCallback, useMemo, useRef } from 'react';
+import { useRouter } from 'next/router';
 import { PlanDocument } from '@/types/plan';
 import { ProgramProfile } from '@/types/reco';
 import { useUser } from '@/contexts/UserContext';
 import { EditorProduct } from '@/types/editor';
 import { EditorEngine } from '@/lib/editor/EditorEngine';
 import { EditorDataProvider } from '@/lib/editor/EditorDataProvider';
+import { savePlanSections } from '@/lib/planStore';
 
 // Phase 4 Components
 import EntryPointsManager from './EntryPointsManager';
@@ -36,6 +38,7 @@ export default function Phase4Integration({
   onProductChange
 }: Phase4IntegrationProps) {
   const { userProfile, isLoading: isUserLoading } = useUser();
+  const router = useRouter();
   
   // Core state
   const [plan, setPlan] = useState<PlanDocument | null>(initialPlan || null);
@@ -50,6 +53,7 @@ export default function Phase4Integration({
   const [showAiAssistant, setShowAiAssistant] = useState(true);
   const [requirementsProgress, setRequirementsProgress] = useState(0);
   const [requirementsStatus, setRequirementsStatus] = useState<'loading' | 'complete' | 'incomplete' | 'error'>('loading');
+  const saveDebounceRef = useRef<any>(null);
   
   // ============================================================================
   // INTEGRATED STATE MANAGEMENT (from EditorState)
@@ -239,6 +243,21 @@ export default function Phase4Integration({
       const updatedPlan = { ...plan, sections: updatedSections };
       handlePlanChange(updatedPlan);
     }
+
+    // Debounced persist to storage and planStore
+    if (saveDebounceRef.current) clearTimeout(saveDebounceRef.current);
+    saveDebounceRef.current = setTimeout(async () => {
+      try {
+        const contentMap = updatedSections.reduce((acc: Record<string,string>, s: any) => {
+          acc[s.key] = s.content || '';
+          return acc;
+        }, {});
+        await editorEngineRef.current.saveContent(contentMap);
+        savePlanSections(updatedSections.map((s: any) => ({ id: s.key, title: s.title, content: s.content || '', tables: s.tables, figures: s.figures })));
+      } catch (e) {
+        console.warn('Save (debounced) failed, fallback handled by provider/planStore');
+      }
+    }, 400);
   };
 
   const handleSectionStatusChange = (sectionKey: string, status: 'missing' | 'needs_fix' | 'aligned') => {
@@ -378,7 +397,22 @@ export default function Phase4Integration({
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
                 </svg>
               </button>
-              <button className="px-6 py-2 bg-gradient-to-r from-blue-600 to-purple-600 text-white rounded-xl hover:from-blue-700 hover:to-purple-700 transition-all duration-200 shadow-lg hover:shadow-xl">
+              <button
+                onClick={() => router.push('/preview')}
+                className="px-4 py-2 text-gray-700 border rounded-lg hover:bg-gray-50"
+                title="Preview"
+              >
+                Preview
+              </button>
+              <button
+                onClick={() => {
+                  // manual save now
+                  const contentMap = sections.reduce((acc: Record<string,string>, s: any) => { acc[s.key] = s.content || ''; return acc; }, {});
+                  editorEngineRef.current.saveContent(contentMap).catch(()=>{});
+                  savePlanSections(sections.map((s: any) => ({ id: s.key, title: s.title, content: s.content || '' })));
+                }}
+                className="px-6 py-2 bg-gradient-to-r from-blue-600 to-purple-600 text-white rounded-xl hover:from-blue-700 hover:to-purple-700 transition-all duration-200 shadow-lg hover:shadow-xl"
+              >
                 Save
               </button>
             </div>
@@ -435,22 +469,22 @@ export default function Phase4Integration({
                 <div className="bg-white/70 backdrop-blur-sm rounded-2xl border border-gray-200/50 p-6">
                   <DocumentCustomizationPanel
                     currentConfig={{
-                      tone: 'formal',
-                      language: 'en',
+                      tone: (plan?.tone || 'neutral') as any,
+                      language: plan?.language || 'en',
                       tableOfContents: true,
-                      pageNumbers: true,
+                      pageNumbers: !!plan?.settings?.includePageNumbers,
                       fontFamily: 'Arial',
                       fontSize: 12,
                       lineSpacing: 1.5,
                       margins: { top: 2.5, bottom: 2.5, left: 2.5, right: 2.5 },
                       titlePage: {
-                        enabled: true,
+                        enabled: !!plan?.settings?.includeTitlePage,
                         companyName: '',
                         projectTitle: '',
                         date: new Date().toLocaleDateString(),
                       },
                       citations: {
-                        enabled: true,
+                        enabled: (plan?.settings?.citations || 'simple') === 'simple',
                         style: 'apa',
                       },
                       figures: {
@@ -460,8 +494,25 @@ export default function Phase4Integration({
                       },
                     }}
                     onConfigChange={(config) => {
-                      console.log('Document customization changed:', config);
-                      // Apply changes immediately
+                      try {
+                        if (!plan) return;
+                        const updated = {
+                          ...plan,
+                          tone: (config.tone as any) || plan.tone,
+                          language: (config.language as any) || plan.language,
+                          settings: {
+                            ...plan.settings,
+                            includeTitlePage: !!config.titlePage?.enabled,
+                            includePageNumbers: !!config.pageNumbers,
+                            citations: config.citations?.enabled ? 'simple' : 'none',
+                            captions: true,
+                            graphs: plan.settings.graphs || {}
+                          }
+                        } as PlanDocument;
+                        handlePlanChange(updated);
+                        // persist immediately
+                        savePlanSections((updated.sections || []).map((s: any) => ({ id: s.key, title: s.title, content: s.content || '', tables: s.tables, figures: s.figures })));
+                      } catch {}
                     }}
                     onTemplateSelect={(template) => {
                       console.log('Template selected:', template);
@@ -589,8 +640,8 @@ export default function Phase4Integration({
                       </button>
                     </div>
 
-                    {/* Section Status Actions */}
-                    <div className="flex items-center space-x-4">
+                {/* Section Status & Insert Actions */}
+                <div className="flex items-center space-x-4">
                       <button
                         onClick={() => handleSectionStatusChange(sections[activeSection].key, 'aligned')}
                         className="px-4 py-2 bg-green-100 text-green-700 rounded-lg hover:bg-green-200 transition-colors"
@@ -602,6 +653,49 @@ export default function Phase4Integration({
                         className="px-4 py-2 bg-yellow-100 text-yellow-700 rounded-lg hover:bg-yellow-200 transition-colors"
                       >
                         Needs Review
+                      </button>
+                      <button
+                        onClick={() => {
+                          const section = sections[activeSection];
+                          const next = {
+                            ...section,
+                            tables: {
+                              ...(section.tables || {}),
+                              financials: {
+                                columns: ['Year 1', 'Year 2', 'Year 3'],
+                                rows: [
+                                  { label: 'Revenue', values: [0, 0, 0] },
+                                  { label: 'Costs', values: [0, 0, 0] },
+                                  { label: 'Profit', values: [0, 0, 0] }
+                                ]
+                              }
+                            }
+                          } as any;
+                          const updated = sections.map((s: any, i: number) => i === activeSection ? next : s);
+                          setSections(updated);
+                          if (plan) handlePlanChange({ ...plan, sections: updated });
+                        }}
+                        className="px-4 py-2 bg-blue-100 text-blue-700 rounded-lg hover:bg-blue-200 transition-colors"
+                      >
+                        + Financial Table
+                      </button>
+                      <button
+                        onClick={() => {
+                          const section = sections[activeSection];
+                          const next = {
+                            ...section,
+                            figures: [
+                              ...(section.figures || []),
+                              { type: 'bar', dataRef: 'sample_series', caption: 'Sample Figure' }
+                            ]
+                          } as any;
+                          const updated = sections.map((s: any, i: number) => i === activeSection ? next : s);
+                          setSections(updated);
+                          if (plan) handlePlanChange({ ...plan, sections: updated });
+                        }}
+                        className="px-4 py-2 bg-purple-100 text-purple-700 rounded-lg hover:bg-purple-200 transition-colors"
+                      >
+                        + Figure
                       </button>
                   </div>
                 </div>
@@ -733,6 +827,7 @@ export default function Phase4Integration({
               </div>
             </div>
           )}
+      {false && plan && null}
     </div>
   );
 }

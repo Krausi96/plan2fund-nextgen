@@ -1,0 +1,172 @@
+{
+  "timestamp": "2025-10-29T18:22:14.171Z",
+  "totalTested": 10,
+  "results": [
+    {
+      "original": {
+        "funding_amount_max": null,
+        "deadline": null
+      },
+      "scraped": {
+        "funding_amount_max": null,
+        "deadline": null
+      },
+      "improved": {
+        "funding": null,
+        "deadline": null
+      },
+      "url": "https://www.aws.at/spezialprogramme/investoren-inkubatoren/",
+      "name": "Investoren, Inkubatoren"
+    },
+    {
+      "original": {
+        "funding_amount_max": null,
+        "deadline": null
+      },
+      "scraped": {
+        "funding_amount_max": 31,
+        "deadline": null
+      },
+      "improved": {
+        "funding": 31,
+        "deadline": null
+      },
+      "url": "https://www.ffg.at/foerderungen",
+      "name": "Alle Förderungen"
+    },
+    {
+      "original": {
+        "funding_amount_max": null,
+        "deadline": null
+      },
+      "scraped": {
+        "funding_amount_max": null,
+        "deadline": null
+      },
+      "improved": {
+        "funding": null,
+        "deadline": null
+      },
+      "url": "https://www.ffg.at/en/fundings",
+      "name": "All fundings"
+    },
+    {
+      "original": {
+        "funding_amount_max": null,
+        "deadline": null
+      },
+      "scraped": {
+        "funding_amount_max": 202,
+        "deadline": null
+      },
+      "improved": {
+        "funding": 202,
+        "deadline": null
+      },
+      "url": "https://www.ffg.at/initiative/basisprogramm",
+      "name": "Basisprogramm"
+    },
+    {
+      "original": {
+        "funding_amount_max": null,
+        "deadline": null
+      },
+      "scraped": {
+        "funding_amount_max": 2000000,
+        "deadline": null
+      },
+      "improved": {
+        "funding": 2000000,
+        "deadline": null
+      },
+      "url": "https://www.vba.at/foerderungen",
+      "name": "Let’s meet Vienna. And launch your European business dream."
+    },
+    {
+      "original": {
+        "funding_amount_max": null,
+        "deadline": null
+      },
+      "scraped": {
+        "funding_amount_max": null,
+        "deadline": null
+      },
+      "improved": {
+        "funding": null,
+        "deadline": null
+      },
+      "url": "https://www.wko.at/foerderungen",
+      "name": "Förderungen"
+    },
+    {
+      "original": {
+        "funding_amount_max": null,
+        "deadline": null
+      },
+      "scraped": {
+        "funding_amount_max": null,
+        "deadline": null
+      },
+      "improved": {
+        "funding": null,
+        "deadline": null
+      },
+      "url": "https://www.erstebank.at/unternehmen/kredite",
+      "name": "Neue Zeiten,neues Sparen"
+    },
+    {
+      "original": {
+        "funding_amount_max": null,
+        "deadline": null
+      },
+      "scraped": {
+        "funding_amount_max": null,
+        "deadline": null
+      },
+      "improved": {
+        "funding": null,
+        "deadline": null
+      },
+      "url": "https://www.erstebank.at/unternehmen/finanzierung",
+      "name": "Neue Zeiten,neues Sparen"
+    },
+    {
+      "original": {
+        "funding_amount_max": null,
+        "deadline": null
+      },
+      "scraped": {
+        "funding_amount_max": null,
+        "deadline": null
+      },
+      "improved": {
+        "funding": null,
+        "deadline": null
+      },
+      "url": "https://www.sparkasse.at/erstebank/privatkunden/wohnen-finanzieren/wohnfinanzierung/kampagne/wohnmesse",
+      "name": "Erste Wohnmesse 2025"
+    },
+    {
+      "original": {
+        "funding_amount_max": null,
+        "deadline": null
+      },
+      "scraped": {
+        "funding_amount_max": null,
+        "deadline": null
+      },
+      "improved": {
+        "funding": null,
+        "deadline": null
+      },
+      "url": "https://www.raiffeisen.at/unternehmen/kredite",
+      "name": "Diese Seite konnten wir leider nicht finden."
+    }
+  ],
+  "summary": {
+    "withFunding": 3,
+    "withDeadline": 0,
+    "improvedFunding": 3,
+    "improvedDeadline": 0
+  }
+}
