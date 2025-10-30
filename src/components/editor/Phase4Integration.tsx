@@ -166,8 +166,14 @@ export default function Phase4Integration({
     try {
       console.log('Loading program sections for:', programId);
       
-      // Load program data and sections
-      const programData = await editorEngineRef.current.loadProduct(programId);
+      // Try to load program data (non-fatal)
+      let programData: any = null;
+      try {
+        programData = await editorEngineRef.current.loadProduct(programId);
+      } catch (e) {
+        console.warn('Program data not available, continuing with template fallback');
+      }
+      // Always attempt to load sections (will fallback to templates if API missing)
       const sections = await editorEngineRef.current.loadSections(programId);
       
       // Create a new plan with the program's sections
@@ -201,7 +207,7 @@ export default function Phase4Integration({
       
       setPlan(newPlan);
       setSections(newPlan.sections);
-      setProductState(programData);
+      if (programData) setProductState(programData);
       
       console.log('Loaded program sections:', sections.length);
     } catch (error) {
