@@ -250,5 +250,61 @@
         "percent": "4.4"
       }
     }
+  },
+  {
+    "cycle": 1,
+    "timestamp": "2025-10-30T11:45:20.852Z",
+    "beforeCount": 341,
+    "afterCount": 341,
+    "newPrograms": 0,
+    "extraction": {
+      "funding": {
+        "count": 0,
+        "percent": 0
+      },
+      "deadline": {
+        "count": 0,
+        "percent": 0
+      }
+    },
+    "overall": {
+      "total": 341,
+      "withFunding": {
+        "count": 99,
+        "percent": "29.0"
+      },
+      "withDeadline": {
+        "count": 15,
+        "percent": "4.4"
+      }
+    }
+  },
+  {
+    "cycle": 1,
+    "timestamp": "2025-10-30T12:10:11.510Z",
+    "beforeCount": 341,
+    "afterCount": 341,
+    "newPrograms": 0,
+    "extraction": {
+      "funding": {
+        "count": 0,
+        "percent": 0
+      },
+      "deadline": {
+        "count": 0,
+        "percent": 0
+      }
+    },
+    "overall": {
+      "total": 341,
+      "withFunding": {
+        "count": 99,
+        "percent": "29.0"
+      },
+      "withDeadline": {
+        "count": 15,
+        "percent": "4.4"
+      }
+    }
   }
 ]

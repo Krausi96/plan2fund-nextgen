@@ -201,6 +201,15 @@ export class WebScraperService {
           // Skip query URLs and PDFs
           if (url.includes('?') && (url.includes('field_') || url.includes('filter'))) return false;
           if (url.match(/\.(pdf|docx?|xlsx?|ppt)$/i)) return false;
+
+          // Business relevance deny-list (skip obvious non-SME/solo topics)
+          const lowerUrl = url.toLowerCase();
+          const denyFragments = [
+            'wohn', 'miete', 'privat', 'haushalt', 'familie', 'schule', 'student',
+            '/awards/', '/award', '/preis', '/preise/', '/events/', '/veranstaltungen/', '/news/', '/press',
+            '/downloads/', '/download/', '/fileadmin/', '/media/', '/blog/'
+          ];
+          if (denyFragments.some(f => lowerUrl.includes(f))) return false;
           if (!this.isProgramDetailPage(url)) return false;
           
           return true;

@@ -128,6 +128,7 @@ async function runCycles() {
   
   const cycleResults = [];
   
+  const discoveryModeEnv = process.env.SCRAPE_ONLY === '1' ? 'none' : 'incremental';
   for (let i = 1; i <= numCycles; i++) {
     console.log(`\n${'='.repeat(60)}`);
     console.log(`🔄 CYCLE ${i} of ${numCycles}`);
@@ -136,7 +137,7 @@ async function runCycles() {
     const cycleStart = Date.now();
     
     try {
-      const programs = await scraper.scrapeAllPrograms(true, 'incremental'); // cycle mode, incremental discovery
+      const programs = await scraper.scrapeAllPrograms(true, discoveryModeEnv); // cycle mode, env-controlled discovery
       const cycleTime = ((Date.now() - cycleStart) / 1000 / 60).toFixed(1);
       
       console.log(`\n✅ Cycle ${i} completed in ${cycleTime} minutes`);

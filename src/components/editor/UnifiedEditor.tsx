@@ -97,9 +97,6 @@ export default function UnifiedEditor({
           onProgramSelect={(programId, product, route) => {
             router.push(`/editor?programId=${programId}&product=${product}&route=${route}`);
           }}
-          onQuickStart={(product, route) => {
-            router.push(`/editor?product=${product}&route=${route}`);
-          }}
           onWizardRedirect={() => {
             router.push('/reco?product=submission');
           }}
