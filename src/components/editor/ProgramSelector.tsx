@@ -25,7 +25,7 @@ interface SelectorState {
   programs: ProgramData[];
   isLoading: boolean;
   selectedProgram: ProgramData | null;
-  selectedProduct: 'strategy' | 'review' | 'submission';
+  selectedProduct: 'strategy' | 'review' | 'submission' | null;
   selectedRoute: 'grant' | 'loan' | 'equity' | 'visa';
 }
 
@@ -108,9 +108,10 @@ export default function ProgramSelector({
     programs: [],
     isLoading: true,
     selectedProgram: null,
-    selectedProduct: 'submission',
+    selectedProduct: null,
     selectedRoute: 'grant'
   });
+  const [mustChooseProduct, setMustChooseProduct] = useState(false);
 
   // Load popular programs
   useEffect(() => {
@@ -180,6 +181,10 @@ export default function ProgramSelector({
   };
 
   const handleProgramSelect = (program: ProgramData) => {
+    if (!state.selectedProduct) {
+      setMustChooseProduct(true);
+      return;
+    }
     if (onProgramSelect) {
       onProgramSelect(program.id, state.selectedProduct, program.type);
     } else {
@@ -231,13 +236,31 @@ export default function ProgramSelector({
       </div>
 
       <div className="program-selector-content">
+        {/* Primary action */}
+        <div style={{display:'flex',justifyContent:'flex-end',marginBottom:'0.75rem'}}>
+          <button
+            type="button"
+            disabled={!state.selectedProduct}
+            onClick={() => {
+              if (!state.selectedProduct) { setMustChooseProduct(true); return; }
+              router.push(`/editor?product=${state.selectedProduct}&route=${state.selectedRoute}`)
+            }}
+            className={`px-4 py-2 rounded-lg ${state.selectedProduct ? 'bg-blue-600 text-white hover:bg-blue-700' : 'bg-gray-200 text-gray-500 cursor-not-allowed'}`}
+            title="Continue with selected product / Mit ausgewähltem Dokument fortfahren"
+          >
+            Continue / Fortfahren
+          </button>
+        </div>
         {/* Product Selection */}
         <div className="product-selection-section">
           <h2>📋 Choose Document Type</h2>
+          {mustChooseProduct && (
+            <div className="product-warning" role="alert">Please choose a document type / Bitte Dokumenttyp wählen</div>
+          )}
           <div className="product-options">
             <button 
               className={`product-option ${state.selectedProduct === 'submission' ? 'selected' : ''}`}
-              onClick={() => setState(prev => ({ ...prev, selectedProduct: 'submission' }))}
+              onClick={() => { setMustChooseProduct(false); setState(prev => ({ ...prev, selectedProduct: 'submission' })); }}
             >
               <div className="product-icon">📋</div>
               <div className="product-title">Business Plan</div>
@@ -246,7 +269,7 @@ export default function ProgramSelector({
             
             <button 
               className={`product-option ${state.selectedProduct === 'strategy' ? 'selected' : ''}`}
-              onClick={() => setState(prev => ({ ...prev, selectedProduct: 'strategy' }))}
+              onClick={() => { setMustChooseProduct(false); setState(prev => ({ ...prev, selectedProduct: 'strategy' })); }}
             >
               <div className="product-icon">🎯</div>
               <div className="product-title">Strategy Plan</div>
@@ -255,7 +278,7 @@ export default function ProgramSelector({
             
             <button 
               className={`product-option ${state.selectedProduct === 'review' ? 'selected' : ''}`}
-              onClick={() => setState(prev => ({ ...prev, selectedProduct: 'review' }))}
+              onClick={() => { setMustChooseProduct(false); setState(prev => ({ ...prev, selectedProduct: 'review' })); }}
             >
               <div className="product-icon">📊</div>
               <div className="product-title">Review Plan</div>
@@ -277,6 +300,11 @@ export default function ProgramSelector({
               />
             ))}
           </div>
+          {!state.selectedProduct && (
+            <div className="grid-overlay" aria-hidden="true">
+              <div className="grid-overlay-panel">Choose document type to enable program selection</div>
+            </div>
+          )}
         </div>
       </div>
 
@@ -337,6 +365,7 @@ export default function ProgramSelector({
         }
         .product-option:hover { transform: translateY(-2px); box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1); }
         .product-option.selected { border-color: #3B82F6; background: rgba(59, 130, 246, 0.05); }
+        .product-warning { margin-bottom: 0.75rem; font-size: 0.9rem; color: #b45309; background: #fff7ed; border: 1px solid #ffedd5; padding: 0.5rem 0.75rem; border-radius: 0.5rem; }
         .product-icon { font-size: 2rem; margin-bottom: 0.5rem; }
         .product-title { font-size: 1.125rem; font-weight: 600; color: #111827; margin-bottom: 0.5rem; }
         .product-description { font-size: 0.875rem; color: #6b7280; }
@@ -345,6 +374,10 @@ export default function ProgramSelector({
         .program-selection-section h2 { font-size: 1.5rem; font-weight: 600; color: #111827; margin: 0 0 1.5rem 0; }
 
         .program-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); gap: 1.25rem; }
+
+        .program-selection-section { position: relative; }
+        .grid-overlay { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; background: rgba(255,255,255,0.6); backdrop-filter: blur(2px); border-radius: 0.75rem; pointer-events: none; }
+        .grid-overlay-panel { background: rgba(17,24,39,0.85); color: #fff; padding: 0.5rem 0.75rem; border-radius: 0.5rem; font-size: 0.875rem; }
 
         .program-card {
           background: rgba(255, 255, 255, 0.9);

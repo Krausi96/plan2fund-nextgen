@@ -138,8 +138,17 @@ export class WebScraperService {
       
       // FIXED: Process ALL institutions (not just first 10)
       // In cycle mode, we limit URLs per institution to keep cycles fast
-      const institutionsToProcess = institutions; // Process all institutions
-      console.log(`📊 Processing ${institutionsToProcess.length} institutions in ${cycleOnly ? 'CYCLE' : 'FULL'} mode`);
+      // Optional targeting via env: comma-separated names or ids
+      const targetListRaw = process.env.TARGET_INSTITUTIONS || '';
+      const targetList = targetListRaw.split(',').map(s => s.trim().toLowerCase()).filter(Boolean);
+      const institutionsToProcess = targetList.length > 0
+        ? institutions.filter(inst => {
+            const idLower = (inst.id || '').toLowerCase();
+            const nameLower = (inst.name || '').toLowerCase();
+            return targetList.includes(idLower) || targetList.includes(nameLower);
+          })
+        : institutions; // Process all institutions by default
+      console.log(`📊 Processing ${institutionsToProcess.length} institutions in ${cycleOnly ? 'CYCLE' : 'FULL'} mode${targetList.length>0 ? ' (targeted)' : ''}`);
       
       const learned = this.loadLearnedKeywords();
       for (const originalInst of institutionsToProcess) {
@@ -165,7 +174,7 @@ export class WebScraperService {
         const skipDiscovery = process.env.SCRAPE_ONLY === '1';
         let newlyDiscoveredUrls: string[] = [];
         if (!skipDiscovery) {
-          // Discover new URLs (adds to unscrapedUrls)
+        // Discover new URLs (adds to unscrapedUrls)
           newlyDiscoveredUrls = await this.discoverRealProgramUrls(institution, discoveryMode);
         } else {
           console.log(`⏭️  [DISCOVERY] Skipped (scrape-only mode)`);
@@ -180,12 +189,13 @@ export class WebScraperService {
         
         // HIGH-PERFORMANCE: Process more URLs per institution (parallelization handles speed)
         const unscrapedCount = prioritizedUrls.filter(url => !existingUrls.has(url)).length;
-        const urlsPerInstitution = cycleOnly ? 100 : 250; // 100 in cycle mode, 250 in full mode (parallelized)
+        const shortCycle = process.env.SHORT_CYCLE === '1';
+        const urlsPerInstitution = cycleOnly ? (shortCycle ? 10 : 100) : 250; // Short cycle drastically limits per institution
         const urlsToProcess = prioritizedUrls.slice(0, urlsPerInstitution);
         console.log(`📍 [BATCH] Processing ${urlsToProcess.length} URLs from ${institution.name} (${unscrapedCount} total unscraped remaining for this institution)...\n`);
         
-        // HIGH-PERFORMANCE: Parallel scraping - 35 concurrent workers
-        const CONCURRENT_LIMIT = 35; // Tune per environment/network
+        // HIGH-PERFORMANCE: Parallel scraping - 35 concurrent workers (20 in short cycle)
+        const CONCURRENT_LIMIT = shortCycle ? 20 : 35; // Tune per environment/network
         const filteredUrls = urlsToProcess.filter(url => {
           // Quick filters (synchronous checks only)
           if (existingUrls.has(url)) return false;
@@ -210,6 +220,10 @@ export class WebScraperService {
             '/downloads/', '/download/', '/fileadmin/', '/media/', '/blog/'
           ];
           if (denyFragments.some(f => lowerUrl.includes(f))) return false;
+          const allowFragments = [
+            'foerder', 'förder', 'grant', 'funding', 'programm', 'programme', 'support', 'unternehmen', 'kmu', 'sme', 'startup', 'apply', 'antrag'
+          ];
+          if (!allowFragments.some(f => lowerUrl.includes(f))) return false;
           if (!this.isProgramDetailPage(url)) return false;
           
           return true;
@@ -227,13 +241,13 @@ export class WebScraperService {
           
           // Process batch in parallel (skip validation for speed - URLs already filtered)
           const batchPromises = batch.map(async (url) => {
-            try {
-              const program = await this.scrapeProgramFromUrl(url, institution);
-              if (program && this.isValidProgram(program)) {
+          try {
+            const program = await this.scrapeProgramFromUrl(url, institution);
+            if (program && this.isValidProgram(program)) {
                 return { success: true, program };
               }
               return { success: false, reason: program ? 'filtered' : 'empty' };
-            } catch (error) {
+          } catch (error) {
               return { success: false, reason: 'error', error: error instanceof Error ? error.message : String(error) };
             }
           });
@@ -855,10 +869,10 @@ export class WebScraperService {
           const dateStr = match[1].trim();
           if (dateStr && dateStr.length >= 6) {
             // Validate it's a reasonable date
-            if (this.isValidDate(dateStr)) {
+          if (this.isValidDate(dateStr)) {
               foundDeadlines.push(dateStr);
-            }
           }
+        }
         }
       }
     }
@@ -1174,7 +1188,7 @@ export class WebScraperService {
           headers: {
             'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36',
             'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8',
-            'Accept-Language': 'de-DE,de;q=0.9,en;q=0.8'
+        'Accept-Language': 'de-DE,de;q=0.9,en;q=0.8'
           },
           signal: AbortSignal.timeout(5000) // 5s timeout for HTTP
         });
@@ -1224,32 +1238,32 @@ export class WebScraperService {
       const programFocus = this.detectProgramFocus(content, institution);
       const fundingType = this.detectFundingType(content, institution.fundingTypes);
       
-      return {
-        id: `program_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
+        return {
+          id: `program_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
         name,
         description,
-        type: fundingType,
-        program_type: fundingType,
+          type: fundingType,
+          program_type: fundingType,
         source_url: url,
-        institution: institution.name,
-        program_category: fundingType,
-        funding_types: institution.fundingTypes,
-        program_focus: programFocus,
-        eligibility_criteria: this.extractEligibilityCriteria($, institution.selectors),
-        categorized_requirements,
-        // ENHANCED: Add structured data
-        funding_amount_min: structuredData.funding_amount_min,
-        funding_amount_max: structuredData.funding_amount_max,
-        currency: structuredData.currency,
-        deadline: structuredData.deadline,
-        contact_email: structuredData.contact_email,
-        contact_phone: structuredData.contact_phone,
-        contact_info: this.extractContactInfo($, institution.selectors),
-        // NORMALIZED: Use standard field names per contract review (cofinancing_pct vs co_financing)
-        cofinancing_pct: this.extractCoFinancingPct(categorized_requirements.co_financing || [], structuredData),
-        scraped_at: new Date(),
-        confidence_score: 0.8,
-        is_active: true
+          institution: institution.name,
+          program_category: fundingType,
+          funding_types: institution.fundingTypes,
+          program_focus: programFocus,
+          eligibility_criteria: this.extractEligibilityCriteria($, institution.selectors),
+          categorized_requirements,
+          // ENHANCED: Add structured data
+          funding_amount_min: structuredData.funding_amount_min,
+          funding_amount_max: structuredData.funding_amount_max,
+          currency: structuredData.currency,
+          deadline: structuredData.deadline,
+          contact_email: structuredData.contact_email,
+          contact_phone: structuredData.contact_phone,
+          contact_info: this.extractContactInfo($, institution.selectors),
+          // NORMALIZED: Use standard field names per contract review (cofinancing_pct vs co_financing)
+          cofinancing_pct: this.extractCoFinancingPct(categorized_requirements.co_financing || [], structuredData),
+          scraped_at: new Date(),
+          confidence_score: 0.8,
+          is_active: true
       };
     } catch (error) {
       // Error already logged if Puppeteer was used
@@ -1281,7 +1295,7 @@ export class WebScraperService {
       const text = $(selector).first().text().trim();
       if (text && text.length > 5 && !text.toLowerCase().includes('newsletter') && !text.toLowerCase().includes('404')) {
         return text;
-      }
+    }
     }
     
     return '';
@@ -2219,26 +2233,26 @@ export class WebScraperService {
         linkElements.forEach(el => {
           const href = el.getAttribute('href');
           if (!href || href.startsWith('#') || href.startsWith('javascript:')) return;
-          
-          const hrefLower = href.toLowerCase();
+            
+            const hrefLower = href.toLowerCase();
           
           // Skip blacklisted URLs
-          const hasBlacklist = exclusionKeywords.some(keyword => hrefLower.includes(keyword));
-          if (hasBlacklist) return;
-          
+            const hasBlacklist = exclusionKeywords.some(keyword => hrefLower.includes(keyword));
+            if (hasBlacklist) return;
+            
           // Convert to full URL
-          let fullUrl: string;
-          try {
-            if (href.startsWith('/')) {
-              fullUrl = new URL(href, baseUrl).href;
-            } else if (href.startsWith('http')) {
-              fullUrl = href;
-            } else {
+                let fullUrl: string;
+                try {
+                  if (href.startsWith('/')) {
+                    fullUrl = new URL(href, baseUrl).href;
+                  } else if (href.startsWith('http')) {
+                    fullUrl = href;
+                  } else {
               return; // Skip relative URLs that aren't absolute or root-relative
-            }
-          } catch {
-            return;
-          }
+                  }
+                } catch {
+                  return;
+                }
           
           // Only include same-domain URLs
           try {
@@ -2258,8 +2272,8 @@ export class WebScraperService {
               // Strategy 1: Check if it's clearly a detail page pattern
               if (isDetailPagePattern(urlPath)) {
                 allLinks.add(fullUrl);
-                return;
-              }
+              return;
+            }
               
               // Strategy 2: Check parent element (cards, articles, list items with program content)
               const parentSelectors = [
@@ -2302,7 +2316,7 @@ export class WebScraperService {
                 // 2. Has funding amount/deadline AND path depth >= 3
                 if (hasStrongProgramText && pathDepth >= 2) {
                   allLinks.add(fullUrl);
-                  return;
+                return;
                 }
                 if ((hasFundingAmount || hasDeadline) && pathDepth >= 3) {
                   allLinks.add(fullUrl);
@@ -2328,12 +2342,12 @@ export class WebScraperService {
                 if (pathDepth >= 2) {
                   allLinks.add(fullUrl);
                 }
+                }
               }
+            } catch {
+              return;
             }
-          } catch {
-            return;
-          }
-        });
+          });
         
         return Array.from(allLinks);
       }, institution.keywords, autoDiscoveryPatterns.exclusionKeywords, institution.baseUrl, url);

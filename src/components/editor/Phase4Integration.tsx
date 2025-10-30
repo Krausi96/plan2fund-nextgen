@@ -218,6 +218,22 @@ export default function Phase4Integration({
     }
   };
 
+  // If no program selected, load fallback template sections for default product
+  useEffect(() => {
+    if (!programProfile && sections.length === 0) {
+      // Defer until setProduct is defined
+      const doLoad = async () => {
+        try {
+          await setProduct({ id: 'submission', name: 'Business Plan', type: 'grant', description: 'Default template' } as any);
+        } catch (e) {
+          console.warn('Fallback template load failed', e);
+        }
+      };
+      doLoad();
+    }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [programProfile, sections.length]);
+
   const handlePlanChange = (newPlan: PlanDocument) => {
     setPlan(newPlan);
     setSections(newPlan.sections || []);
@@ -472,7 +488,7 @@ export default function Phase4Integration({
 
               {/* Document Customization Panel */}
               {showDocumentCustomization && (
-                <div className="bg-white/70 backdrop-blur-sm rounded-2xl border border-gray-200/50 p-6">
+                <div className="bg-white/90 rounded-2xl border border-gray-200 p-6 space-y-4">
                   <DocumentCustomizationPanel
                     currentConfig={{
                       tone: (plan?.tone || 'neutral') as any,
@@ -615,7 +631,7 @@ export default function Phase4Integration({
                     </div>
                     
                     {/* Requirements Checker Component */}
-                    {programProfile && (
+                    {programProfile ? (
                       <RequirementsChecker
                         programType={programProfile.programId}
                         planContent={sections.reduce((acc, section) => {
@@ -623,6 +639,16 @@ export default function Phase4Integration({
                           return acc;
                         }, {} as Record<string, string>)}
                       />
+                    ) : (
+                      <div className="mt-3 p-3 bg-amber-50 border border-amber-200 rounded-lg text-sm text-amber-800 flex items-center justify-between">
+                        <span>Enable program-specific checks / Programmbezogene Checks aktivieren</span>
+                        <button
+                          onClick={() => setShowEntryPoints(true)}
+                          className="px-3 py-1 bg-amber-600 text-white rounded-md hover:bg-amber-700"
+                        >
+                          Choose Program
+                        </button>
+                      </div>
                     )}
                   </div>
 
