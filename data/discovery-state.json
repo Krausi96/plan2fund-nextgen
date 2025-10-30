@@ -4,7 +4,7 @@
     "exploredSections": [
       {
         "seedUrl": "https://aws.at/de/foerderungen",
-        "lastExplored": "2025-10-30T10:42:29.781Z",
+        "lastExplored": "2025-10-30T11:03:45.542Z",
         "discoveredUrls": [
           "https://aws.at/de/foerderungen"
         ],
@@ -14,16 +14,14 @@
     "knownUrls": [
       "https://aws.at/de/foerderungen"
     ],
-    "unscrapedUrls": [
-      "https://aws.at/de/foerderungen"
-    ]
+    "unscrapedUrls": []
   },
   "Austrian Research Promotion Agency (FFG)": {
     "lastFullScan": "2025-10-29T18:23:17.157Z",
     "exploredSections": [
       {
         "seedUrl": "https://www.ffg.at/foerderungen",
-        "lastExplored": "2025-10-30T10:43:16.246Z",
+        "lastExplored": "2025-10-30T11:05:41.664Z",
         "discoveredUrls": [
           "https://www.ffg.at/foerderungen",
           "https://www.ffg.at/sites/default/files/allgemeine_downloads/thematische%20programme/Energie/Infoveranstaltung_Pionierstadt-Partnerschaft_AS2025_final.pdf",
@@ -35,7 +33,6 @@
           "https://www.ffg.at/sites/default/files/allgemeine_downloads/basisprogramme/bilder/%C3%84nderungsantrag_V2025.docx",
           "https://www.ffg.at/node/202348",
           "https://www.ffg.at/europa/ausschreibungen/eureka_celtic_call2025",
-          "https://www.ffg.at/pionierstadt/AS2025",
           "https://www.ffg.at/europa/ausschreibungen/eureka_eurogia_call2025",
           "https://www.ffg.at/europa/ausschreibungen/eureka-resilience-2025",
           "https://www.ffg.at/europa/ausschreibungen/eureka_itea_call2025",
@@ -43,10 +40,93 @@
           "https://www.ffg.at/europa/heu/cluster3/calls/2025/01",
           "https://www.ffg.at/europa/heu/neb/call2025",
           "https://www.ffg.at/europa/heu/cluster3/calls/2025/03",
+          "https://www.ffg.at/ausschreibung/comet-zentren-ausschreibung-2025",
           "https://www.ffg.at/node/202361",
           "https://www.ffg.at/initiative/basisprogramm",
           "https://www.ffg.at/programme/InnovationsscheckmitSelbstbehalt",
-          "https://www.ffg.at/dissertationsprogramm-tirol/ausschreibung2025"
+          "https://www.ffg.at/dissertationsprogramm-tirol/ausschreibung2025",
+          "https://www.ffg.at/comet/programm",
+          "https://www.ffg.at/initiative/basisprogramm?combine_ort%5B0%5D=2",
+          "https://www.ffg.at/services/basisprogramm-beratung-einreichung-abwicklung",
+          "https://www.ffg.at/content/basisprogramm-foerdersitzungen-und-beirat",
+          "https://www.ffg.at/programm/impactinnovation",
+          "https://www.ffg.at/content/basisprogramme-beratungsangebot-termine",
+          "https://www.ffg.at/initiative/basisprogramm?combine_ort%5B0%5D=1",
+          "https://www.ffg.at/content/basisprogramm-f-rdersitzungen-und-beirat",
+          "https://www.ffg.at/ausschreibung/basisprogramm-2025",
+          "https://www.ffg.at/ausschreibung/basisprogramm-2026",
+          "https://www.ffg.at/programme/InnovationsscheckmitSelbstbehalt?combine_ort%5B0%5D=2",
+          "https://www.ffg.at/programme/InnovationsscheckmitSelbstbehalt?combine_ort%5B0%5D=1",
+          "https://www.ffg.at/recht-finanzen/rechtliches_service_de-minimis-beihilfen",
+          "https://www.ffg.at/ausschreibung/innovationsscheck-mit-selbstbehalt-2025",
+          "https://www.ffg.at/dissertationsprogramm-tirol/ausschreibung2025?type%5B0%5D=call",
+          "https://www.ffg.at/dissertationsprogramm-tirol/ausschreibung2025?type%5B0%5D=service",
+          "https://www.ffg.at/dissertationsprogramm-tirol/ausschreibung2025?custom_search_date%5B0%5D=2",
+          "https://www.ffg.at/sites/default/files/allgemeine_downloads/strukturprogramme/evaluierungskonzept_comet_2016_final_0.pdf",
+          "https://www.ffg.at/sites/default/files/allgemeine_downloads/strukturprogramme/finaler_endbericht_wirkungsanalyse.pdf",
+          "https://www.ffg.at/sites/default/files/allgemeine_downloads/strukturprogramme/comet_wirkungsanalyse_endbericht.pdf",
+          "https://www.ffg.at/initiative/basisprogramm?combine_ort%5B0%5D=2&combine_ort%5B1%5D=1",
+          "https://www.ffg.at/services/basisprogramm-beratung-einreichung-abwicklung?combine_ort%5B0%5D=2",
+          "https://www.ffg.at/services/basisprogramm-beratung-einreichung-abwicklung?page=1",
+          "https://www.ffg.at/programm/WirksamWerden",
+          "https://www.ffg.at/programm/patentscheck",
+          "https://www.ffg.at/programm/kleinprojekt",
+          "https://www.ffg.at/programm/frontrunner",
+          "https://www.ffg.at/programm/bridge",
+          "https://www.ffg.at/content/fiananzierungsmix-im-basisprogramm",
+          "https://www.ffg.at/content/laenderkooperationen-im-basisprogramm",
+          "https://www.ffg.at/content/ausschreibungsdokumente-der-basisprogramme",
+          "https://www.ffg.at/services/basisprogramm-beratung-einreichung-abwicklung?combine_ort%5B0%5D=1",
+          "https://www.ffg.at/programm/impactinnovation?combine_ort%5B0%5D=2",
+          "https://www.ffg.at/thema/forschungsinfrastruktur",
+          "https://www.ffg.at/thema/kooperation-forschungsinfrastruktur",
+          "https://www.ffg.at/ausschreibung/impact-innovation-2025-1",
+          "https://www.ffg.at/ausschreibung/impact-innovation-2026",
+          "https://www.ffg.at/initiative/basisprogramm?combine_ort%5B0%5D=1&combine_ort%5B1%5D=2",
+          "https://www.ffg.at/programme/InnovationsscheckmitSelbstbehalt?combine_ort%5B0%5D=2&combine_ort%5B1%5D=1",
+          "https://www.ffg.at/programme/InnovationsscheckmitSelbstbehalt?combine_ort%5B0%5D=1&combine_ort%5B1%5D=2",
+          "https://www.ffg.at/recht-finanzen/FFG-Programme-de-minimis",
+          "https://www.ffg.at/dissertationsprogramm-tirol/ausschreibung2025?type%5B0%5D=call&type%5B1%5D=service",
+          "https://www.ffg.at/dissertationsprogramm-tirol/ausschreibung2025?type%5B0%5D=call&custom_search_date%5B0%5D=1",
+          "https://www.ffg.at/dissertationsprogramm-tirol/ausschreibung2025?type%5B0%5D=call&custom_search_date%5B0%5D=2",
+          "https://www.ffg.at/ausschreibung/coin-kmu-innovationsnetzwerke-2025",
+          "https://www.ffg.at/dissertationsprogramm-tirol/ausschreibung2025?type%5B0%5D=service&type%5B1%5D=call",
+          "https://www.ffg.at/dissertationsprogramm-tirol/ausschreibung2025?type%5B0%5D=service&custom_search_date%5B0%5D=1",
+          "https://www.ffg.at/dissertationsprogramm-tirol/ausschreibung2025?type%5B0%5D=service&custom_search_date%5B0%5D=2",
+          "https://www.ffg.at/dissertationsprogramm-tirol/ausschreibung2025?custom_search_date%5B0%5D=2&type%5B0%5D=call",
+          "https://www.ffg.at/dissertationsprogramm-tirol/ausschreibung2025?custom_search_date%5B0%5D=2&custom_search_date%5B1%5D=1",
+          "https://www.ffg.at/initiative/basisprogramm?combine_ort%5B1%5D=1",
+          "https://www.ffg.at/services/basisprogramm-beratung-einreichung-abwicklung?combine_ort%5B0%5D=2&combine_ort%5B1%5D=1",
+          "https://www.ffg.at/programm/patentscheck?combine_ort%5B0%5D=2",
+          "https://www.ffg.at/programm/kleinprojekt?combine_ort%5B0%5D=2",
+          "https://www.ffg.at/programm/kleinprojekt?combine_ort%5B0%5D=1",
+          "https://www.ffg.at/ausschreibung/basisprogramm-kleinprojekt-2025",
+          "https://www.ffg.at/ausschreibung/basisprogramm-kleinprojekt-2026",
+          "https://www.ffg.at/programm/frontrunner?combine_ort%5B0%5D=2",
+          "https://www.ffg.at/programm/cornet",
+          "https://www.ffg.at/programm/tecxport",
+          "https://www.ffg.at/ausschreibung/thinkwood-1-ausschreibung-2021-innovationsprojekte",
+          "https://www.ffg.at/services/basisprogramm-beratung-einreichung-abwicklung?combine_ort%5B0%5D=1&combine_ort%5B1%5D=2",
+          "https://www.ffg.at/ausschreibung/technologieinfrastrukturfoerderung-2025",
+          "https://www.ffg.at/ausschreibung/laendliche-innovationssysteme-im-rahmen-der-europaeischen-innovationspartnerschaft-77",
+          "https://www.ffg.at/initiative/basisprogramm?combine_ort%5B1%5D=2",
+          "https://www.ffg.at/programme/InnovationsscheckmitSelbstbehalt?combine_ort%5B1%5D=1",
+          "https://www.ffg.at/programme/InnovationsscheckmitSelbstbehalt?combine_ort%5B1%5D=2",
+          "https://www.ffg.at/programme/gin",
+          "https://www.ffg.at/ausschreibungen/Innovationscamps-S-1-Ausschreibung",
+          "https://www.ffg.at/dissertationsprogramm-tirol/ausschreibung2025?type%5B1%5D=service",
+          "https://www.ffg.at/dissertationsprogramm-tirol/ausschreibung2025?type%5B0%5D=call&type%5B1%5D=service&custom_search_date%5B0%5D=1",
+          "https://www.ffg.at/dissertationsprogramm-tirol/ausschreibung2025?type%5B0%5D=call&type%5B1%5D=service&custom_search_date%5B0%5D=2",
+          "https://www.ffg.at/dissertationsprogramm-tirol/ausschreibung2025?custom_search_date%5B0%5D=1",
+          "https://www.ffg.at/dissertationsprogramm-tirol/ausschreibung2025?type%5B0%5D=call&custom_search_date%5B0%5D=1&custom_search_date%5B1%5D=2",
+          "https://www.ffg.at/dissertationsprogramm-tirol/ausschreibung2025?type%5B0%5D=call&custom_search_date%5B0%5D=2&custom_search_date%5B1%5D=1",
+          "https://www.ffg.at/dissertationsprogramm-tirol/ausschreibung2025?type%5B1%5D=call",
+          "https://www.ffg.at/dissertationsprogramm-tirol/ausschreibung2025?type%5B0%5D=service&type%5B1%5D=call&custom_search_date%5B0%5D=1",
+          "https://www.ffg.at/dissertationsprogramm-tirol/ausschreibung2025?type%5B0%5D=service&type%5B1%5D=call&custom_search_date%5B0%5D=2",
+          "https://www.ffg.at/dissertationsprogramm-tirol/ausschreibung2025?type%5B0%5D=service&custom_search_date%5B0%5D=1&custom_search_date%5B1%5D=2",
+          "https://www.ffg.at/dissertationsprogramm-tirol/ausschreibung2025?custom_search_date%5B0%5D=2&custom_search_date%5B1%5D=1&type%5B0%5D=call",
+          "https://www.ffg.at/dissertationsprogramm-tirol/ausschreibung2025?custom_search_date%5B0%5D=2&custom_search_date%5B1%5D=1&type%5B0%5D=service",
+          "https://www.ffg.at/dissertationsprogramm-tirol/ausschreibung2025?custom_search_date%5B1%5D=1"
         ],
         "depth": 4
       }
@@ -62,7 +142,6 @@
       "https://www.ffg.at/sites/default/files/allgemeine_downloads/basisprogramme/bilder/%C3%84nderungsantrag_V2025.docx",
       "https://www.ffg.at/node/202348",
       "https://www.ffg.at/europa/ausschreibungen/eureka_celtic_call2025",
-      "https://www.ffg.at/pionierstadt/AS2025",
       "https://www.ffg.at/europa/ausschreibungen/eureka_eurogia_call2025",
       "https://www.ffg.at/europa/ausschreibungen/eureka-resilience-2025",
       "https://www.ffg.at/europa/ausschreibungen/eureka_itea_call2025",
@@ -70,61 +149,123 @@
       "https://www.ffg.at/europa/heu/cluster3/calls/2025/01",
       "https://www.ffg.at/europa/heu/neb/call2025",
       "https://www.ffg.at/europa/heu/cluster3/calls/2025/03",
+      "https://www.ffg.at/ausschreibung/comet-zentren-ausschreibung-2025",
       "https://www.ffg.at/node/202361",
       "https://www.ffg.at/initiative/basisprogramm",
       "https://www.ffg.at/programme/InnovationsscheckmitSelbstbehalt",
-      "https://www.ffg.at/dissertationsprogramm-tirol/ausschreibung2025"
+      "https://www.ffg.at/dissertationsprogramm-tirol/ausschreibung2025",
+      "https://www.ffg.at/comet/programm",
+      "https://www.ffg.at/initiative/basisprogramm?combine_ort%5B0%5D=2",
+      "https://www.ffg.at/services/basisprogramm-beratung-einreichung-abwicklung",
+      "https://www.ffg.at/content/basisprogramm-foerdersitzungen-und-beirat",
+      "https://www.ffg.at/programm/impactinnovation",
+      "https://www.ffg.at/content/basisprogramme-beratungsangebot-termine",
+      "https://www.ffg.at/initiative/basisprogramm?combine_ort%5B0%5D=1",
+      "https://www.ffg.at/content/basisprogramm-f-rdersitzungen-und-beirat",
+      "https://www.ffg.at/ausschreibung/basisprogramm-2025",
+      "https://www.ffg.at/ausschreibung/basisprogramm-2026",
+      "https://www.ffg.at/programme/InnovationsscheckmitSelbstbehalt?combine_ort%5B0%5D=2",
+      "https://www.ffg.at/programme/InnovationsscheckmitSelbstbehalt?combine_ort%5B0%5D=1",
+      "https://www.ffg.at/recht-finanzen/rechtliches_service_de-minimis-beihilfen",
+      "https://www.ffg.at/ausschreibung/innovationsscheck-mit-selbstbehalt-2025",
+      "https://www.ffg.at/dissertationsprogramm-tirol/ausschreibung2025?type%5B0%5D=call",
+      "https://www.ffg.at/dissertationsprogramm-tirol/ausschreibung2025?type%5B0%5D=service",
+      "https://www.ffg.at/dissertationsprogramm-tirol/ausschreibung2025?custom_search_date%5B0%5D=2",
+      "https://www.ffg.at/sites/default/files/allgemeine_downloads/strukturprogramme/evaluierungskonzept_comet_2016_final_0.pdf",
+      "https://www.ffg.at/sites/default/files/allgemeine_downloads/strukturprogramme/finaler_endbericht_wirkungsanalyse.pdf",
+      "https://www.ffg.at/sites/default/files/allgemeine_downloads/strukturprogramme/comet_wirkungsanalyse_endbericht.pdf",
+      "https://www.ffg.at/initiative/basisprogramm?combine_ort%5B0%5D=2&combine_ort%5B1%5D=1",
+      "https://www.ffg.at/services/basisprogramm-beratung-einreichung-abwicklung?combine_ort%5B0%5D=2",
+      "https://www.ffg.at/services/basisprogramm-beratung-einreichung-abwicklung?page=1",
+      "https://www.ffg.at/programm/WirksamWerden",
+      "https://www.ffg.at/programm/patentscheck",
+      "https://www.ffg.at/programm/kleinprojekt",
+      "https://www.ffg.at/programm/frontrunner",
+      "https://www.ffg.at/programm/bridge",
+      "https://www.ffg.at/content/fiananzierungsmix-im-basisprogramm",
+      "https://www.ffg.at/content/laenderkooperationen-im-basisprogramm",
+      "https://www.ffg.at/content/ausschreibungsdokumente-der-basisprogramme",
+      "https://www.ffg.at/services/basisprogramm-beratung-einreichung-abwicklung?combine_ort%5B0%5D=1",
+      "https://www.ffg.at/programm/impactinnovation?combine_ort%5B0%5D=2",
+      "https://www.ffg.at/thema/forschungsinfrastruktur",
+      "https://www.ffg.at/thema/kooperation-forschungsinfrastruktur",
+      "https://www.ffg.at/ausschreibung/impact-innovation-2025-1",
+      "https://www.ffg.at/ausschreibung/impact-innovation-2026",
+      "https://www.ffg.at/initiative/basisprogramm?combine_ort%5B0%5D=1&combine_ort%5B1%5D=2",
+      "https://www.ffg.at/programme/InnovationsscheckmitSelbstbehalt?combine_ort%5B0%5D=2&combine_ort%5B1%5D=1",
+      "https://www.ffg.at/programme/InnovationsscheckmitSelbstbehalt?combine_ort%5B0%5D=1&combine_ort%5B1%5D=2",
+      "https://www.ffg.at/recht-finanzen/FFG-Programme-de-minimis",
+      "https://www.ffg.at/dissertationsprogramm-tirol/ausschreibung2025?type%5B0%5D=call&type%5B1%5D=service",
+      "https://www.ffg.at/dissertationsprogramm-tirol/ausschreibung2025?type%5B0%5D=call&custom_search_date%5B0%5D=1",
+      "https://www.ffg.at/dissertationsprogramm-tirol/ausschreibung2025?type%5B0%5D=call&custom_search_date%5B0%5D=2",
+      "https://www.ffg.at/ausschreibung/coin-kmu-innovationsnetzwerke-2025",
+      "https://www.ffg.at/dissertationsprogramm-tirol/ausschreibung2025?type%5B0%5D=service&type%5B1%5D=call",
+      "https://www.ffg.at/dissertationsprogramm-tirol/ausschreibung2025?type%5B0%5D=service&custom_search_date%5B0%5D=1",
+      "https://www.ffg.at/dissertationsprogramm-tirol/ausschreibung2025?type%5B0%5D=service&custom_search_date%5B0%5D=2",
+      "https://www.ffg.at/dissertationsprogramm-tirol/ausschreibung2025?custom_search_date%5B0%5D=2&type%5B0%5D=call",
+      "https://www.ffg.at/dissertationsprogramm-tirol/ausschreibung2025?custom_search_date%5B0%5D=2&custom_search_date%5B1%5D=1",
+      "https://www.ffg.at/initiative/basisprogramm?combine_ort%5B1%5D=1",
+      "https://www.ffg.at/services/basisprogramm-beratung-einreichung-abwicklung?combine_ort%5B0%5D=2&combine_ort%5B1%5D=1",
+      "https://www.ffg.at/programm/patentscheck?combine_ort%5B0%5D=2",
+      "https://www.ffg.at/programm/kleinprojekt?combine_ort%5B0%5D=2",
+      "https://www.ffg.at/programm/kleinprojekt?combine_ort%5B0%5D=1",
+      "https://www.ffg.at/ausschreibung/basisprogramm-kleinprojekt-2025",
+      "https://www.ffg.at/ausschreibung/basisprogramm-kleinprojekt-2026",
+      "https://www.ffg.at/programm/frontrunner?combine_ort%5B0%5D=2",
+      "https://www.ffg.at/programm/cornet",
+      "https://www.ffg.at/programm/tecxport",
+      "https://www.ffg.at/ausschreibung/thinkwood-1-ausschreibung-2021-innovationsprojekte",
+      "https://www.ffg.at/services/basisprogramm-beratung-einreichung-abwicklung?combine_ort%5B0%5D=1&combine_ort%5B1%5D=2",
+      "https://www.ffg.at/ausschreibung/technologieinfrastrukturfoerderung-2025",
+      "https://www.ffg.at/ausschreibung/laendliche-innovationssysteme-im-rahmen-der-europaeischen-innovationspartnerschaft-77",
+      "https://www.ffg.at/initiative/basisprogramm?combine_ort%5B1%5D=2",
+      "https://www.ffg.at/programme/InnovationsscheckmitSelbstbehalt?combine_ort%5B1%5D=1",
+      "https://www.ffg.at/programme/InnovationsscheckmitSelbstbehalt?combine_ort%5B1%5D=2",
+      "https://www.ffg.at/programme/gin",
+      "https://www.ffg.at/ausschreibungen/Innovationscamps-S-1-Ausschreibung",
+      "https://www.ffg.at/dissertationsprogramm-tirol/ausschreibung2025?type%5B1%5D=service",
+      "https://www.ffg.at/dissertationsprogramm-tirol/ausschreibung2025?type%5B0%5D=call&type%5B1%5D=service&custom_search_date%5B0%5D=1",
+      "https://www.ffg.at/dissertationsprogramm-tirol/ausschreibung2025?type%5B0%5D=call&type%5B1%5D=service&custom_search_date%5B0%5D=2",
+      "https://www.ffg.at/dissertationsprogramm-tirol/ausschreibung2025?custom_search_date%5B0%5D=1",
+      "https://www.ffg.at/dissertationsprogramm-tirol/ausschreibung2025?type%5B0%5D=call&custom_search_date%5B0%5D=1&custom_search_date%5B1%5D=2",
+      "https://www.ffg.at/dissertationsprogramm-tirol/ausschreibung2025?type%5B0%5D=call&custom_search_date%5B0%5D=2&custom_search_date%5B1%5D=1",
+      "https://www.ffg.at/dissertationsprogramm-tirol/ausschreibung2025?type%5B1%5D=call",
+      "https://www.ffg.at/dissertationsprogramm-tirol/ausschreibung2025?type%5B0%5D=service&type%5B1%5D=call&custom_search_date%5B0%5D=1",
+      "https://www.ffg.at/dissertationsprogramm-tirol/ausschreibung2025?type%5B0%5D=service&type%5B1%5D=call&custom_search_date%5B0%5D=2",
+      "https://www.ffg.at/dissertationsprogramm-tirol/ausschreibung2025?type%5B0%5D=service&custom_search_date%5B0%5D=1&custom_search_date%5B1%5D=2",
+      "https://www.ffg.at/dissertationsprogramm-tirol/ausschreibung2025?custom_search_date%5B0%5D=2&custom_search_date%5B1%5D=1&type%5B0%5D=call",
+      "https://www.ffg.at/dissertationsprogramm-tirol/ausschreibung2025?custom_search_date%5B0%5D=2&custom_search_date%5B1%5D=1&type%5B0%5D=service",
+      "https://www.ffg.at/dissertationsprogramm-tirol/ausschreibung2025?custom_search_date%5B1%5D=1"
     ],
-    "unscrapedUrls": [
-      "https://www.ffg.at/foerderungen",
-      "https://www.ffg.at/sites/default/files/allgemeine_downloads/thematische%20programme/Energie/Infoveranstaltung_Pionierstadt-Partnerschaft_AS2025_final.pdf",
-      "https://www.ffg.at/sites/default/files/allgemeine_downloads/basisprogramme/forschungserfolge/ALINAGmbH.pdf",
-      "https://www.ffg.at/sites/default/files/allgemeine_downloads/basisprogramme/forschungserfolge/DasGesundheitshausGmbH.pdf",
-      "https://www.ffg.at/sites/default/files/allgemeine_downloads/basisprogramme/forschungserfolge/FrauscherMotorsGmbH.pdf",
-      "https://www.ffg.at/sites/default/files/allgemeine_downloads/basisprogramme/forschungserfolge/IntalesGmbH.pdf",
-      "https://www.ffg.at/sites/default/files/allgemeine_downloads/basisprogramme/forschungserfolge/ChristianSeiwald.pdf",
-      "https://www.ffg.at/sites/default/files/allgemeine_downloads/basisprogramme/bilder/%C3%84nderungsantrag_V2025.docx",
-      "https://www.ffg.at/node/202348",
-      "https://www.ffg.at/europa/ausschreibungen/eureka_celtic_call2025",
-      "https://www.ffg.at/pionierstadt/AS2025",
-      "https://www.ffg.at/europa/ausschreibungen/eureka_eurogia_call2025",
-      "https://www.ffg.at/europa/ausschreibungen/eureka-resilience-2025",
-      "https://www.ffg.at/europa/ausschreibungen/eureka_itea_call2025",
-      "https://www.ffg.at/ausschreibung/chips-ju-quantum-chips-pilots-2025",
-      "https://www.ffg.at/europa/heu/cluster3/calls/2025/01",
-      "https://www.ffg.at/europa/heu/neb/call2025",
-      "https://www.ffg.at/europa/heu/cluster3/calls/2025/03",
-      "https://www.ffg.at/node/202361",
-      "https://www.ffg.at/initiative/basisprogramm",
-      "https://www.ffg.at/programme/InnovationsscheckmitSelbstbehalt",
-      "https://www.ffg.at/dissertationsprogramm-tirol/ausschreibung2025"
-    ]
+    "unscrapedUrls": []
   },
   "Vienna Business Agency (VBA)": {
     "lastFullScan": "2025-10-29T18:22:53.843Z",
     "exploredSections": [
       {
         "seedUrl": "https://www.vba.at/foerderungen",
-        "lastExplored": "2025-10-30T10:42:30.891Z",
+        "lastExplored": "2025-10-30T11:05:53.156Z",
         "discoveredUrls": [
-          "https://www.vba.at/foerderungen"
+          "https://www.vba.at/foerderungen",
+          "https://www.vba.at/events-workshops/bio-europe-2025/",
+          "https://www.vba.at/events-workshops/wien-energie-innovation-challenge-9/"
         ],
         "depth": 2
       }
     ],
     "knownUrls": [
-      "https://www.vba.at/foerderungen"
+      "https://www.vba.at/foerderungen",
+      "https://www.vba.at/events-workshops/bio-europe-2025/",
+      "https://www.vba.at/events-workshops/wien-energie-innovation-challenge-9/"
     ],
-    "unscrapedUrls": [
-      "https://www.vba.at/foerderungen"
-    ]
+    "unscrapedUrls": []
   },
   "AMS (Arbeitsmarktservice)": {
     "lastFullScan": "2025-10-29T18:23:21.212Z",
     "exploredSections": [
       {
         "seedUrl": "https://www.ams.at/foerderungen",
-        "lastExplored": "2025-10-30T10:43:20.590Z",
+        "lastExplored": "2025-10-30T11:05:55.346Z",
         "discoveredUrls": [
           "https://www.ams.at/foerderungen",
           "https://www.ams.at/arbeitsmarkt-foerderungen",
@@ -138,7 +279,7 @@
       },
       {
         "seedUrl": "https://www.ams.at/arbeitsmarkt-foerderungen",
-        "lastExplored": "2025-10-30T10:43:22.051Z",
+        "lastExplored": "2025-10-30T11:05:56.377Z",
         "discoveredUrls": [
           "https://www.ams.at/foerderungen",
           "https://www.ams.at/arbeitsmarkt-foerderungen",
@@ -152,7 +293,7 @@
       },
       {
         "seedUrl": "https://www.ams.at/ausbildung-foerderungen",
-        "lastExplored": "2025-10-30T10:43:23.386Z",
+        "lastExplored": "2025-10-30T11:05:57.113Z",
         "discoveredUrls": [
           "https://www.ams.at/foerderungen",
           "https://www.ams.at/arbeitsmarkt-foerderungen",
@@ -174,22 +315,14 @@
       "https://www.ams.at/content/dam/download/flyer-folder-broschueren/oesterreichweit/abi-broschueren/001_berufswahl_ausbildung_bsk_t.pdf",
       "https://www.ams.at/arbeitsmarktdaten-und-medien/arbeitsmarkt-daten-und-arbeitsmarkt-forschung/unser-statistik-team"
     ],
-    "unscrapedUrls": [
-      "https://www.ams.at/foerderungen",
-      "https://www.ams.at/arbeitsmarkt-foerderungen",
-      "https://www.ams.at/ausbildung-foerderungen",
-      "https://www.ams.at/content/dam/download/allgemeine-informationen/001_fit_ausbildungsliste.pdf",
-      "https://www.ams.at/content/dam/download/flyer-folder-broschueren/oesterreichweit/abi-broschueren/001_berufswahl_ausbildung_deutsch.pdf",
-      "https://www.ams.at/content/dam/download/flyer-folder-broschueren/oesterreichweit/abi-broschueren/001_berufswahl_ausbildung_bsk_t.pdf",
-      "https://www.ams.at/arbeitsmarktdaten-und-medien/arbeitsmarkt-daten-und-arbeitsmarkt-forschung/unser-statistik-team"
-    ]
+    "unscrapedUrls": []
   },
   "WKO (Wirtschaftskammer Österreich)": {
     "lastFullScan": "2025-10-29T18:23:20.729Z",
     "exploredSections": [
       {
         "seedUrl": "https://www.wko.at/foerderungen",
-        "lastExplored": "2025-10-30T10:43:24.064Z",
+        "lastExplored": "2025-10-30T11:05:59.528Z",
         "discoveredUrls": [
           "https://www.wko.at/foerderungen",
           "https://www.wko.at/oe/oesterreich/gewinnfreibetrag-erhoehung-2024",
@@ -203,11 +336,7 @@
       "https://www.wko.at/oe/oesterreich/gewinnfreibetrag-erhoehung-2024",
       "https://www.wko.at/foerderung/foerderungen"
     ],
-    "unscrapedUrls": [
-      "https://www.wko.at/foerderungen",
-      "https://www.wko.at/oe/oesterreich/gewinnfreibetrag-erhoehung-2024",
-      "https://www.wko.at/foerderung/foerderungen"
-    ]
+    "unscrapedUrls": []
   },
   "ÖBS (Österreichische Bundesbahnen)": {
     "lastFullScan": "2025-10-29T18:23:17.256Z",
@@ -220,7 +349,7 @@
     "exploredSections": [
       {
         "seedUrl": "https://www.bankaustria.at/unternehmen/kredite",
-        "lastExplored": "2025-10-30T10:43:30.251Z",
+        "lastExplored": "2025-10-30T11:06:01.471Z",
         "discoveredUrls": [
           "https://www.bankaustria.at/unternehmen/kredite",
           "https://www.bankaustria.at/unternehmen/finanzierung"
@@ -229,7 +358,7 @@
       },
       {
         "seedUrl": "https://www.bankaustria.at/unternehmen/finanzierung",
-        "lastExplored": "2025-10-30T10:43:33.476Z",
+        "lastExplored": "2025-10-30T11:06:04.766Z",
         "discoveredUrls": [
           "https://www.bankaustria.at/unternehmen/kredite",
           "https://www.bankaustria.at/unternehmen/finanzierung"
@@ -241,17 +370,14 @@
       "https://www.bankaustria.at/unternehmen/kredite",
       "https://www.bankaustria.at/unternehmen/finanzierung"
     ],
-    "unscrapedUrls": [
-      "https://www.bankaustria.at/unternehmen/kredite",
-      "https://www.bankaustria.at/unternehmen/finanzierung"
-    ]
+    "unscrapedUrls": []
   },
   "Erste Bank": {
     "lastFullScan": "2025-10-29T18:23:26.144Z",
     "exploredSections": [
       {
         "seedUrl": "https://www.erstebank.at/unternehmen/kredite",
-        "lastExplored": "2025-10-30T10:43:28.295Z",
+        "lastExplored": "2025-10-30T11:06:07.597Z",
         "discoveredUrls": [
           "https://www.erstebank.at/unternehmen/kredite",
           "https://www.erstebank.at/unternehmen/finanzierung",
@@ -261,7 +387,7 @@
       },
       {
         "seedUrl": "https://www.erstebank.at/unternehmen/finanzierung",
-        "lastExplored": "2025-10-30T10:43:30.991Z",
+        "lastExplored": "2025-10-30T11:06:09.521Z",
         "discoveredUrls": [
           "https://www.erstebank.at/unternehmen/kredite",
           "https://www.erstebank.at/unternehmen/finanzierung",
@@ -271,7 +397,7 @@
       },
       {
         "seedUrl": "https://www.erstebank.at/unternehmen/leasing",
-        "lastExplored": "2025-10-30T10:43:32.747Z",
+        "lastExplored": "2025-10-30T11:06:10.577Z",
         "discoveredUrls": [
           "https://www.erstebank.at/unternehmen/kredite",
           "https://www.erstebank.at/unternehmen/finanzierung",
@@ -285,18 +411,14 @@
       "https://www.erstebank.at/unternehmen/finanzierung",
       "https://www.erstebank.at/unternehmen/leasing"
     ],
-    "unscrapedUrls": [
-      "https://www.erstebank.at/unternehmen/kredite",
-      "https://www.erstebank.at/unternehmen/finanzierung",
-      "https://www.erstebank.at/unternehmen/leasing"
-    ]
+    "unscrapedUrls": []
   },
   "Raiffeisen Bank": {
     "lastFullScan": "2025-10-29T18:23:31.591Z",
     "exploredSections": [
       {
         "seedUrl": "https://www.raiffeisen.at/unternehmen/kredite",
-        "lastExplored": "2025-10-30T10:43:27.417Z",
+        "lastExplored": "2025-10-30T11:06:13.505Z",
         "discoveredUrls": [
           "https://www.raiffeisen.at/unternehmen/kredite",
           "https://www.raiffeisen.at/unternehmen/finanzierung",
@@ -314,7 +436,7 @@
       },
       {
         "seedUrl": "https://www.raiffeisen.at/unternehmen/finanzierung",
-        "lastExplored": "2025-10-30T10:43:32.829Z",
+        "lastExplored": "2025-10-30T11:06:17.193Z",
         "discoveredUrls": [
           "https://www.raiffeisen.at/unternehmen/kredite",
           "https://www.raiffeisen.at/unternehmen/finanzierung",
@@ -332,7 +454,7 @@
       },
       {
         "seedUrl": "https://www.raiffeisen.at/unternehmen/leasing",
-        "lastExplored": "2025-10-30T10:43:37.617Z",
+        "lastExplored": "2025-10-30T11:06:19.678Z",
         "discoveredUrls": [
           "https://www.raiffeisen.at/unternehmen/kredite",
           "https://www.raiffeisen.at/unternehmen/finanzierung",
@@ -362,19 +484,7 @@
       "https://www.raiffeisen.at/de/immobilien/finanzierungen/foerderungen.html",
       "https://www.raiffeisen.at/de/immobilien/finanzierungen/gewerbliche-immobilien.html"
     ],
-    "unscrapedUrls": [
-      "https://www.raiffeisen.at/unternehmen/kredite",
-      "https://www.raiffeisen.at/unternehmen/finanzierung",
-      "https://www.raiffeisen.at/unternehmen/leasing",
-      "https://www.raiffeisen.at/de/firmenkunden/finanzieren/projektfinanzierung.html",
-      "https://www.raiffeisen.at/de/firmenkunden/finanzieren/foerderungen.html",
-      "https://www.raiffeisen.at/de/firmenkunden/finanzieren/leasing.html",
-      "https://www.raiffeisen.at/de/firmenkunden/auslandsgeschaeft/exportfinanzierung.html",
-      "https://www.raiffeisen.at/de/firmenkunden/vorsorge-veranlagen/kreditbesicherung.html",
-      "https://www.raiffeisen.at/de/immobilien/finanzierungen.html",
-      "https://www.raiffeisen.at/de/immobilien/finanzierungen/foerderungen.html",
-      "https://www.raiffeisen.at/de/immobilien/finanzierungen/gewerbliche-immobilien.html"
-    ]
+    "unscrapedUrls": []
   },
   "Kickstarter": {
     "lastFullScan": "2025-10-29T18:23:31.642Z",
@@ -393,7 +503,7 @@
     "exploredSections": [
       {
         "seedUrl": "https://www.bmwk.de/Redaktion/DE/Artikel/Foerderprogramme/foerderprogramme.html",
-        "lastExplored": "2025-10-30T10:43:39.678Z",
+        "lastExplored": "2025-10-30T11:06:21.736Z",
         "discoveredUrls": [
           "https://www.bmwk.de/Redaktion/DE/Artikel/Foerderprogramme/foerderprogramme.html",
           "https://www.bmwk.de/Redaktion/DE/Artikel/Innovation/innovation.html",
@@ -403,7 +513,7 @@
       },
       {
         "seedUrl": "https://www.bmwk.de/Redaktion/DE/Artikel/Innovation/innovation.html",
-        "lastExplored": "2025-10-30T10:43:41.168Z",
+        "lastExplored": "2025-10-30T11:06:23.066Z",
         "discoveredUrls": [
           "https://www.bmwk.de/Redaktion/DE/Artikel/Foerderprogramme/foerderprogramme.html",
           "https://www.bmwk.de/Redaktion/DE/Artikel/Innovation/innovation.html",
@@ -413,7 +523,7 @@
       },
       {
         "seedUrl": "https://www.bmwk.de/Redaktion/DE/Artikel/Energie/foerderprogramme.html",
-        "lastExplored": "2025-10-30T10:43:42.509Z",
+        "lastExplored": "2025-10-30T11:06:24.015Z",
         "discoveredUrls": [
           "https://www.bmwk.de/Redaktion/DE/Artikel/Foerderprogramme/foerderprogramme.html",
           "https://www.bmwk.de/Redaktion/DE/Artikel/Innovation/innovation.html",
@@ -450,7 +560,7 @@
     "exploredSections": [
       {
         "seedUrl": "https://www.kfw.de/inlandsfoerderung/",
-        "lastExplored": "2025-10-30T10:44:12.137Z",
+        "lastExplored": "2025-10-30T11:06:37.194Z",
         "discoveredUrls": [
           "https://www.kfw.de/inlandsfoerderung/",
           "https://www.kfw.de/inlandsfoerderung/Unternehmen/",
@@ -473,7 +583,7 @@
       },
       {
         "seedUrl": "https://www.kfw.de/inlandsfoerderung/Unternehmen/",
-        "lastExplored": "2025-10-30T10:44:28.420Z",
+        "lastExplored": "2025-10-30T11:07:01.906Z",
         "discoveredUrls": [
           "https://www.kfw.de/inlandsfoerderung/",
           "https://www.kfw.de/inlandsfoerderung/Unternehmen/",
@@ -495,7 +605,24 @@
           "https://www.kfw.de/inlandsfoerderung/Unternehmen/Investitionen-und-Wachstum/F%C3%B6rderprodukte/ERP-Beteiligungsprogramm-(100-104)/",
           "https://www.kfw.de/inlandsfoerderung/Unternehmen/Gr%C3%BCnden-Nachfolgen/F%C3%B6rderprodukte/",
           "https://www.kfw.de/inlandsfoerderung/Unternehmen/Gründung-und-Nachfolge/Gründung/",
-          "https://www.kfw.de/inlandsfoerderung/Unternehmen/Gründung-und-Nachfolge/Nachfolge/"
+          "https://www.kfw.de/inlandsfoerderung/Unternehmen/Gründung-und-Nachfolge/Nachfolge/",
+          "https://www.kfw.de/inlandsfoerderung/Unternehmen/Energie-Umwelt/F%C3%B6rderprodukte/F%C3%B6rderprodukte-(S3).html",
+          "https://www.kfw.de/inlandsfoerderung/Unternehmen/Energie-und-Umwelt/Photovoltaik/",
+          "https://www.kfw.de/inlandsfoerderung/Unternehmen/Energie-und-Umwelt/Nachhaltig-Mobil/",
+          "https://www.kfw.de/inlandsfoerderung/Public-institutions/",
+          "https://www.kfw.de/inlandsfoerderung/Öffentliche-Einrichtungen/Digitalisierung/",
+          "https://www.kfw.de/inlandsfoerderung/Öffentliche-Einrichtungen/IKK-Zinsen.html",
+          "https://www.kfw.de/inlandsfoerderung/Öffentliche-Einrichtungen/Gebäude-und-Einrichtungen/",
+          "https://www.kfw.de/inlandsfoerderung/Öffentliche-Einrichtungen/Verkehr-und-Fahrzeuge/",
+          "https://www.kfw.de/inlandsfoerderung/Öffentliche-Einrichtungen/Energie-Versorgung-und-Netze/",
+          "https://www.kfw.de/inlandsfoerderung/Öffentliche-Einrichtungen/Städte-und-Gemeinden-gestalten/",
+          "https://www.kfw.de/inlandsfoerderung/Öffentliche-Einrichtungen/Mittel-zum-Betrieb/",
+          "https://www.kfw.de/inlandsfoerderung/%C3%96ffentliche-Einrichtungen/",
+          "https://www.kfw.de/inlandsfoerderung/Öffentliche-Einrichtungen/Digitalisierung/Breitbandausbau/",
+          "https://www.kfw.de/inlandsfoerderung/Öffentliche-Einrichtungen/Digitalisierung/Öffentliche-Digitalisierung/",
+          "https://www.kfw.de/inlandsfoerderung/Öffentliche-Einrichtungen/Basisförderung/Investitionskredit-Kommunen-(208)/",
+          "https://www.kfw.de/inlandsfoerderung/Öffentliche-Einrichtungen/Gebäude-und-Einrichtungen/Förderprodukte/Kommunen-–-Kredit-(264)/",
+          "https://www.kfw.de/inlandsfoerderung/Öffentliche-Einrichtungen/Verkehr-und-Fahrzeuge/Förderprodukte/IKK-Nachhaltige-Mobilität-(267)/"
         ],
         "depth": 3
       }
@@ -521,30 +648,28 @@
       "https://www.kfw.de/inlandsfoerderung/Unternehmen/Investitionen-und-Wachstum/F%C3%B6rderprodukte/ERP-Beteiligungsprogramm-(100-104)/",
       "https://www.kfw.de/inlandsfoerderung/Unternehmen/Gr%C3%BCnden-Nachfolgen/F%C3%B6rderprodukte/",
       "https://www.kfw.de/inlandsfoerderung/Unternehmen/Gründung-und-Nachfolge/Gründung/",
-      "https://www.kfw.de/inlandsfoerderung/Unternehmen/Gründung-und-Nachfolge/Nachfolge/"
+      "https://www.kfw.de/inlandsfoerderung/Unternehmen/Gründung-und-Nachfolge/Nachfolge/",
+      "https://www.kfw.de/inlandsfoerderung/Unternehmen/Energie-Umwelt/F%C3%B6rderprodukte/F%C3%B6rderprodukte-(S3).html",
+      "https://www.kfw.de/inlandsfoerderung/Unternehmen/Energie-und-Umwelt/Photovoltaik/",
+      "https://www.kfw.de/inlandsfoerderung/Unternehmen/Energie-und-Umwelt/Nachhaltig-Mobil/",
+      "https://www.kfw.de/inlandsfoerderung/Public-institutions/",
+      "https://www.kfw.de/inlandsfoerderung/Öffentliche-Einrichtungen/Digitalisierung/",
+      "https://www.kfw.de/inlandsfoerderung/Öffentliche-Einrichtungen/IKK-Zinsen.html",
+      "https://www.kfw.de/inlandsfoerderung/Öffentliche-Einrichtungen/Gebäude-und-Einrichtungen/",
+      "https://www.kfw.de/inlandsfoerderung/Öffentliche-Einrichtungen/Verkehr-und-Fahrzeuge/",
+      "https://www.kfw.de/inlandsfoerderung/Öffentliche-Einrichtungen/Energie-Versorgung-und-Netze/",
+      "https://www.kfw.de/inlandsfoerderung/Öffentliche-Einrichtungen/Städte-und-Gemeinden-gestalten/",
+      "https://www.kfw.de/inlandsfoerderung/Öffentliche-Einrichtungen/Mittel-zum-Betrieb/",
+      "https://www.kfw.de/inlandsfoerderung/%C3%96ffentliche-Einrichtungen/",
+      "https://www.kfw.de/inlandsfoerderung/Öffentliche-Einrichtungen/Digitalisierung/Breitbandausbau/",
+      "https://www.kfw.de/inlandsfoerderung/Öffentliche-Einrichtungen/Digitalisierung/Öffentliche-Digitalisierung/",
+      "https://www.kfw.de/inlandsfoerderung/Öffentliche-Einrichtungen/Basisförderung/Investitionskredit-Kommunen-(208)/",
+      "https://www.kfw.de/inlandsfoerderung/Öffentliche-Einrichtungen/Gebäude-und-Einrichtungen/Förderprodukte/Kommunen-–-Kredit-(264)/",
+      "https://www.kfw.de/inlandsfoerderung/Öffentliche-Einrichtungen/Verkehr-und-Fahrzeuge/Förderprodukte/IKK-Nachhaltige-Mobilität-(267)/"
     ],
     "unscrapedUrls": [
       "https://www.kfw.de/inlandsfoerderung/Privatpersonen/Studieren-Qualifizieren/Online-Kreditportal/",
-      "https://www.kfw.de/inlandsfoerderung/Unternehmen/Investitionen-und-Wachstum/F%C3%B6rderprodukte/ERP-F%C3%B6rderkredit-KMU-(365-366)/",
-      "https://www.kfw.de/inlandsfoerderung/",
-      "https://www.kfw.de/inlandsfoerderung/Unternehmen/",
-      "https://www.kfw.de/inlandsfoerderung/Leichte-Sprache.html",
-      "https://www.kfw.de/inlandsfoerderung/Gebaerdensprache.html",
-      "https://www.kfw.de/inlandsfoerderung/Steuerdisclaimer.html",
-      "https://www.kfw.de/inlandsfoerderung/Phishing-Warnung/",
-      "https://www.kfw.de/inlandsfoerderung/Companies/",
-      "https://www.kfw.de/inlandsfoerderung/Unternehmen/Investitionen-und-Wachstum/",
-      "https://www.kfw.de/inlandsfoerderung/Unternehmen/Gründung-und-Nachfolge/",
-      "https://www.kfw.de/inlandsfoerderung/Unternehmen/Energie-und-Umwelt/",
-      "https://www.kfw.de/inlandsfoerderung/Öffentliche-Einrichtungen/",
-      "https://www.kfw.de/inlandsfoerderung/Unternehmen/Innovation-und-Digitalisierung/Innovation-und-Digitalisierung.html",
-      "https://www.kfw.de/inlandsfoerderung/Unternehmen/Wohnwirtschaft/Wohnwirtschaft.html",
-      "https://www.kfw.de/inlandsfoerderung/Privatpersonen/Studieren-Qualifizieren/KfW-Studienkredit/Studienkredit-beantragen/",
-      "https://www.kfw.de/inlandsfoerderung/Unternehmen/Investitionen-und-Wachstum/F%C3%B6rderprodukte/KfW-F%C3%B6rderkredit-gro%C3%9Fer-Mittelstand-(375-376)/",
-      "https://www.kfw.de/inlandsfoerderung/Unternehmen/Investitionen-und-Wachstum/F%C3%B6rderprodukte/ERP-Beteiligungsprogramm-(100-104)/",
-      "https://www.kfw.de/inlandsfoerderung/Unternehmen/Gr%C3%BCnden-Nachfolgen/F%C3%B6rderprodukte/",
-      "https://www.kfw.de/inlandsfoerderung/Unternehmen/Gründung-und-Nachfolge/Gründung/",
-      "https://www.kfw.de/inlandsfoerderung/Unternehmen/Gründung-und-Nachfolge/Nachfolge/"
+      "https://www.kfw.de/inlandsfoerderung/Unternehmen/Investitionen-und-Wachstum/F%C3%B6rderprodukte/ERP-F%C3%B6rderkredit-KMU-(365-366)/"
     ]
   },
   "ENISA (Empresa Nacional de Innovación)": {
@@ -564,7 +689,7 @@
     "exploredSections": [
       {
         "seedUrl": "https://www.cdti.es/oportunidades/programas",
-        "lastExplored": "2025-10-30T10:44:34.739Z",
+        "lastExplored": "2025-10-30T11:07:05.701Z",
         "discoveredUrls": [
           "https://www.cdti.es/oportunidades/programas"
         ],
@@ -574,9 +699,7 @@
     "knownUrls": [
       "https://www.cdti.es/oportunidades/programas"
     ],
-    "unscrapedUrls": [
-      "https://www.cdti.es/oportunidades/programas"
-    ]
+    "unscrapedUrls": []
   },
   "Cassa Depositi e Prestiti (CDP)": {
     "lastFullScan": "2025-10-29T18:24:17.146Z",
@@ -595,7 +718,7 @@
     "exploredSections": [
       {
         "seedUrl": "https://www.invest-nl.nl/investments",
-        "lastExplored": "2025-10-30T10:44:36.527Z",
+        "lastExplored": "2025-10-30T11:07:06.680Z",
         "discoveredUrls": [
           "https://www.invest-nl.nl/investments"
         ],
@@ -605,16 +728,14 @@
     "knownUrls": [
       "https://www.invest-nl.nl/investments"
     ],
-    "unscrapedUrls": [
-      "https://www.invest-nl.nl/investments"
-    ]
+    "unscrapedUrls": []
   },
   "Österreichische Entwicklungsbank (OeEB)": {
     "lastFullScan": "2025-10-29T18:24:20.218Z",
     "exploredSections": [
       {
         "seedUrl": "https://www.oeeb.at/de/foerderungen",
-        "lastExplored": "2025-10-30T10:44:40.773Z",
+        "lastExplored": "2025-10-30T11:07:07.843Z",
         "discoveredUrls": [
           "https://www.oeeb.at/de/foerderungen"
         ],
@@ -624,16 +745,14 @@
     "knownUrls": [
       "https://www.oeeb.at/de/foerderungen"
     ],
-    "unscrapedUrls": [
-      "https://www.oeeb.at/de/foerderungen"
-    ]
+    "unscrapedUrls": []
   },
   "Commerzbank": {
     "lastFullScan": "2025-10-29T18:24:25.693Z",
     "exploredSections": [
       {
         "seedUrl": "https://www.commerzbank.de/unternehmen/kredite",
-        "lastExplored": "2025-10-30T10:44:40.368Z",
+        "lastExplored": "2025-10-30T11:07:16.455Z",
         "discoveredUrls": [
           "https://www.commerzbank.de/unternehmen/kredite"
         ],
@@ -643,16 +762,14 @@
     "knownUrls": [
       "https://www.commerzbank.de/unternehmen/kredite"
     ],
-    "unscrapedUrls": [
-      "https://www.commerzbank.de/unternehmen/kredite"
-    ]
+    "unscrapedUrls": []
   },
   "Deutsche Bank": {
     "lastFullScan": "2025-10-29T18:24:28.851Z",
     "exploredSections": [
       {
         "seedUrl": "https://www.deutsche-bank.de/de/unternehmen/kredite",
-        "lastExplored": "2025-10-30T10:44:54.740Z",
+        "lastExplored": "2025-10-30T11:07:15.013Z",
         "discoveredUrls": [
           "https://www.deutsche-bank.de/de/unternehmen/kredite",
           "https://www.deutsche-bank.de/pk/kredit-und-immobilien/kredit/privatkredit.html",
@@ -686,21 +803,7 @@
       "https://www.deutsche-bank.de/pk/kredit-und-immobilien/immobilien-als-kapitalanlage/finanzierung.html",
       "https://www.deutsche-bank.de/pk/kredit-und-immobilien/kredit/privatkredit-mit-beratung.html"
     ],
-    "unscrapedUrls": [
-      "https://www.deutsche-bank.de/de/unternehmen/kredite",
-      "https://www.deutsche-bank.de/pk/kredit-und-immobilien/kredit/privatkredit.html",
-      "https://www.deutsche-bank.de/pk/kredit-und-immobilien/kredit/dispokredit.html",
-      "https://www.deutsche-bank.de/pk/kredit-und-immobilien/eigenheim/baufinanzierung.html",
-      "https://www.deutsche-bank.de/pk/kredit-und-immobilien/eigenheim/wohneigentum-modernisieren.html",
-      "https://www.deutsche-bank.de/pk/kredit-und-immobilien/eigenheim/staatliche-foerderung.html",
-      "https://www.deutsche-bank.de/pk/kredit-und-immobilien/eigenheim/bauspar-angebote.html",
-      "https://www.deutsche-bank.de/pk/kredit-und-immobilien/eigenheim/nachhaltige-immobilie.html",
-      "https://www.deutsche-bank.de/pk/kredit-und-immobilien/services/immobilienpreise-mietpreise.html",
-      "https://www.deutsche-bank.de/pk/kredit-und-immobilien/services/immobilie-suchen.html",
-      "https://www.deutsche-bank.de/pk/kredit-und-immobilien/services/marktpreiseinschaetzung.html",
-      "https://www.deutsche-bank.de/pk/kredit-und-immobilien/immobilien-als-kapitalanlage/finanzierung.html",
-      "https://www.deutsche-bank.de/pk/kredit-und-immobilien/kredit/privatkredit-mit-beratung.html"
-    ]
+    "unscrapedUrls": []
   },
   "European Investment Bank (EIB)": {
     "lastFullScan": "2025-10-29T18:24:28.938Z",
@@ -719,7 +822,7 @@
     "exploredSections": [
       {
         "seedUrl": "https://www.bmbwf.gv.at/Themen/forschung/foerderungen.html",
-        "lastExplored": "2025-10-30T10:45:06.597Z",
+        "lastExplored": "2025-10-30T11:07:21.913Z",
         "discoveredUrls": [
           "https://www.bmbwf.gv.at/Themen/forschung/foerderungen.html",
           "https://www.bmbwf.gv.at/Themen/forschung/universitaeten.html",
@@ -737,7 +840,7 @@
       },
       {
         "seedUrl": "https://www.bmbwf.gv.at/Themen/forschung/universitaeten.html",
-        "lastExplored": "2025-10-30T10:45:02.173Z",
+        "lastExplored": "2025-10-30T11:07:19.498Z",
         "discoveredUrls": [
           "https://www.bmbwf.gv.at/Themen/forschung/foerderungen.html",
           "https://www.bmbwf.gv.at/Themen/forschung/universitaeten.html",
@@ -755,7 +858,7 @@
       },
       {
         "seedUrl": "https://www.bmbwf.gv.at/Themen/forschung/innovation.html",
-        "lastExplored": "2025-10-30T10:45:04.410Z",
+        "lastExplored": "2025-10-30T11:07:20.756Z",
         "discoveredUrls": [
           "https://www.bmbwf.gv.at/Themen/forschung/foerderungen.html",
           "https://www.bmbwf.gv.at/Themen/forschung/universitaeten.html",
@@ -787,16 +890,7 @@
     ],
     "unscrapedUrls": [
       "https://www.bmbwf.gv.at/Themen/forschung/foerderungen.html",
-      "https://www.bmbwf.gv.at/Themen/forschung/universitaeten.html",
-      "https://www.bmbwf.gv.at/Themen/forschung/innovation.html",
-      "https://www.bmbwf.gv.at/dam/jcr:95e2299d-dd9d-472b-8224-e16230058bea/regierungsprogramm_2025.pdf",
-      "https://www.bmbwf.gv.at/Themen/regierungsprogramm.html",
-      "https://www.bmbwf.gv.at/service/formulare/grundausbildung.html",
-      "https://www.bmbwf.gv.at/Themen/schule/schulpraxis/prinz/gesundheitsfoerderung.html",
-      "https://www.bmbwf.gv.at/Themen/schule/schulpraxis/ba/begabungsfoerderung.html",
-      "https://www.bmbwf.gv.at/Themen/schule/schulpraxis/ba/begabungsfoerderung/vifzackacademy.html",
-      "https://www.bmbwf.gv.at/Themen/schule/schulpraxis/schwerpunkte/sprachfoerderung.html",
-      "https://www.bmbwf.gv.at/Themen/euint/anerk_schulausbildungen.html"
+      "https://www.bmbwf.gv.at/Themen/forschung/universitaeten.html"
     ]
   },
   "Austrian Federal Ministry of Digital and Economic Affairs (BMDW)": {

@@ -90,7 +90,7 @@ export default function UnifiedEditor({
     return (
       <>
         <Head>
-          <title>{t('editor.title')}</title>
+          <title>Choose Your Plan | Wähle deinen Pfad</title>
           <meta name="description" content={t('editor.description')} />
         </Head>
         <ProgramSelector

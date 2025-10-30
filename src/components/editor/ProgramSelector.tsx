@@ -4,6 +4,7 @@
 
 import React, { useState, useEffect } from 'react';
 import { useRouter } from 'next/router';
+import Head from 'next/head';
 
 // Types
 interface ProgramData {
@@ -11,8 +12,8 @@ interface ProgramData {
   name: string;
   description: string;
   institution: string;
-  type: string;
-  funding_type: string;
+  type: 'grant' | 'loan' | 'equity' | 'visa' | 'other';
+  funding_type: 'grant' | 'loan' | 'equity' | 'visa' | 'other';
   tags: string[];
   score?: number;
   funding_amount?: number;
@@ -146,21 +147,37 @@ export default function ProgramSelector({
       const data = await response.json();
       console.log('📊 API Response:', data);
       
-      // Take first 6 programs as "popular" and clean the data
-      const rawPrograms = data.programs || [];
-      const programs = rawPrograms.slice(0, 6).map((program: any) => ({
-        id: program.id || 'unknown',
-        name: program.name || 'Unknown Program',
-        description: program.notes || program.description || 'No description available',
-        institution: program.source || 'Unknown Institution',
-        type: 'grant', // Fixed type
-        funding_type: 'grant', // Fixed funding type
-        tags: program.tags || [],
-        score: program.quality_score || 0,
-        funding_amount: program.maxAmount || 0,
-        deadline: program.deadline || null,
-        isActive: program.isActive !== false
-      }));
+      // Clean & filter programs: require valid id and name
+      const rawPrograms = Array.isArray(data.programs) ? data.programs : [];
+      const mapType = (pt: any): ProgramData['type'] => {
+        const t = String(pt || '').toLowerCase();
+        if (t.includes('loan')) return 'loan';
+        if (t.includes('equity')) return 'equity';
+        if (t.includes('visa')) return 'visa';
+        if (t.includes('grant')) return 'grant';
+        return 'other';
+      };
+      const programs = rawPrograms
+        .filter((p: any) => p && p.id && (p.name || p.title))
+        .slice(0, 12)
+        .map((program: any) => {
+          const type = mapType(program.type || program.program_type);
+          const desc = program.description || program.notes || '';
+          const description = desc.length > 280 ? (desc.slice(0, 277) + '...') : (desc || '');
+          return {
+            id: program.id,
+            name: program.name || program.title || 'Program',
+            description: description || '—',
+            institution: program.provider || program.organization || program.source || 'Institution',
+            type,
+            funding_type: type,
+            tags: Array.isArray(program.tags) ? program.tags : [],
+            score: program.quality_score || 0,
+            funding_amount: program.maxAmount || 0,
+            deadline: program.deadline || null,
+            isActive: program.isActive !== false
+          } as ProgramData;
+        });
       
       console.log('📊 Programs loaded:', programs.length);
       console.log('📊 Sample program:', programs[0]);
@@ -225,9 +242,12 @@ export default function ProgramSelector({
 
   return (
     <div className="program-selector-container">
+      <Head>
+        <title>Choose Your Plan | Wähle deinen Pfad</title>
+      </Head>
       <div className="program-selector-header">
         <div className="program-selector-title">
-          <h1>Create Your Business Plan</h1>
+          <h1>Choose Your Plan | Wähle deinen Pfad</h1>
           <p>Choose a program to get started with tailored guidance</p>
         </div>
       </div>
