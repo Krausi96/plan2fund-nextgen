@@ -190,7 +190,11 @@ export class WebScraperService {
         // HIGH-PERFORMANCE: Process more URLs per institution (parallelization handles speed)
         const unscrapedCount = prioritizedUrls.filter(url => !existingUrls.has(url)).length;
         const shortCycle = process.env.SHORT_CYCLE === '1';
-        const urlsPerInstitution = cycleOnly ? (shortCycle ? 10 : 100) : 250; // Short cycle drastically limits per institution
+        // Allow overriding via env MAX_URLS for deterministic batches
+        const maxUrlsOverride = process.env.MAX_URLS ? parseInt(process.env.MAX_URLS, 10) : NaN;
+        const urlsPerInstitution = !isNaN(maxUrlsOverride)
+          ? Math.max(1, maxUrlsOverride)
+          : (cycleOnly ? (shortCycle ? 10 : 100) : 250); // Short cycle drastically limits per institution
         const urlsToProcess = prioritizedUrls.slice(0, urlsPerInstitution);
         console.log(`📍 [BATCH] Processing ${urlsToProcess.length} URLs from ${institution.name} (${unscrapedCount} total unscraped remaining for this institution)...\n`);
         

@@ -20,12 +20,29 @@ async function runScraperDirect() {
   // Parse arguments
   const cycleOnly = process.argv[2] === 'cycle' || process.argv[2] === undefined;
   const discoveryMode = process.argv[3] === 'deep' ? 'deep' : 'incremental';
+
+  // Extra flags: --short, --target name1,name2, --scrape-only, --max-urls N
+  const argv = process.argv.slice(2);
+  const hasShortFlag = argv.includes('--short') || argv.includes('--shortCycle');
+  const targetIdx = argv.findIndex(a => a === '--target' || a === '--targets');
+  const targetValue = targetIdx >= 0 ? (argv[targetIdx + 1] || '') : '';
+  const scrapeOnly = argv.includes('--scrape-only');
+  const maxUrlsIdx = argv.findIndex(a => a === '--max-urls');
+  const maxUrls = maxUrlsIdx >= 0 ? parseInt(argv[maxUrlsIdx + 1], 10) : NaN;
+  if (hasShortFlag) process.env.SHORT_CYCLE = '1';
+  if (targetValue) process.env.TARGET_INSTITUTIONS = targetValue;
+  if (scrapeOnly) process.env.SCRAPE_ONLY = '1';
+  if (!isNaN(maxUrls)) process.env.MAX_URLS = String(maxUrls);
   
   console.log('🚀 DIRECT SCRAPER (bypasses API)');
   console.log('=' .repeat(60));
   console.log(`📊 Mode: ${cycleOnly ? 'CYCLE' : 'FULL'}`);
   console.log(`📊 Discovery: ${discoveryMode.toUpperCase()}`);
   console.log(`📊 Total Institutions: ${institutions.length}`);
+  if (process.env.SHORT_CYCLE === '1') console.log('📌 SHORT_CYCLE: ON (reduced per-institution URLs)');
+  if (process.env.TARGET_INSTITUTIONS) console.log(`📌 TARGETS: ${process.env.TARGET_INSTITUTIONS}`);
+  if (process.env.SCRAPE_ONLY === '1') console.log('📌 SCRAPE_ONLY: ON (skip discovery)');
+  if (process.env.MAX_URLS) console.log(`📌 MAX_URLS per institution: ${process.env.MAX_URLS}`);
   console.log(`⏰ Started at: ${new Date().toISOString()}\n`);
   
   const scraper = new WebScraperService();

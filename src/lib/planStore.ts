@@ -1,4 +1,4 @@
-export type PlanSection = { id: string; title: string; content: string; tables?: any; figures?: any[] }
+export type PlanSection = { id: string; title: string; content: string; tables?: any; figures?: any[]; sources?: Array<{ title: string; url: string }> }
 type Stored = { v: number; sections: PlanSection[] }
 
 function getSessionId(): string {

@@ -95,6 +95,24 @@ export default function Preview() {
     showPageNumbers: true,
     showTableOfContents: true
   });
+
+  // Read live settings from localStorage when available
+  useEffect(() => {
+    try {
+      const raw = localStorage.getItem('plan_settings');
+      if (raw) {
+        const ps = JSON.parse(raw);
+        setFormattingOptions(prev => ({
+          ...prev,
+          theme: ps.theme === 'serif' ? 'serif' : 'sans',
+          fontSize: ps.fontSize >= 16 ? 'large' : ps.fontSize <= 12 ? 'small' : 'medium',
+          spacing: ps.spacing <= 1.5 ? 'compact' : ps.spacing >= 1.8 ? 'relaxed' : 'normal',
+          showPageNumbers: !!ps.showPageNumbers,
+          showTableOfContents: !!ps.showTableOfContents
+        }));
+      }
+    } catch {}
+  }, []);
   const [selectedSections] = useState<Set<string>>(new Set());
   const [previewSettings, setPreviewSettings] = useState({
     showWordCount: true,
@@ -246,6 +264,9 @@ export default function Preview() {
               previewMode={previewMode}
               selectedSections={selectedSections.size > 0 ? selectedSections : undefined}
               previewSettings={previewSettings}
+              // Pass formatting through via props mapping
+              // ExportRenderer will interpret theme/font/spacing
+              // We propagate with Preview options as state
             />
           </div>
         ) : (

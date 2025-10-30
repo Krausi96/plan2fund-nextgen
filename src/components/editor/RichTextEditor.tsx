@@ -76,6 +76,23 @@ export default function RichTextEditor({
     onChange(newContent);
   };
 
+  const wrapSelection = (before: string, after: string = before) => {
+    const ta = textareaRef.current;
+    if (!ta) return;
+    const start = ta.selectionStart || 0;
+    const end = ta.selectionEnd || 0;
+    const sel = content.substring(start, end);
+    const replaced = content.substring(0, start) + before + sel + after + content.substring(end);
+    onChange(replaced);
+    // restore selection roughly
+    requestAnimationFrame(() => {
+      if (!textareaRef.current) return;
+      const pos = start + before.length + sel.length + after.length;
+      textareaRef.current.selectionStart = textareaRef.current.selectionEnd = pos;
+      textareaRef.current.focus();
+    });
+  };
+
   const getStatusColor = () => {
     if (charCount < minLength) return 'text-red-500';
     if (charCount > maxLength * 0.9) return 'text-yellow-500';
@@ -232,6 +249,16 @@ export default function RichTextEditor({
           </div>
         </Card>
       )}
+
+      {/* Compact Toolbar */}
+      <div className="flex items-center gap-2 text-xs">
+        <Button variant="outline" size="sm" onClick={() => wrapSelection('**')}>Bold</Button>
+        <Button variant="outline" size="sm" onClick={() => wrapSelection('*')}>Italic</Button>
+        <Button variant="outline" size="sm" onClick={() => wrapSelection('`')}>Code</Button>
+        <Button variant="outline" size="sm" onClick={() => wrapSelection('\n- ', '')}>• List</Button>
+        <Button variant="outline" size="sm" onClick={() => wrapSelection('\n1. ', '')}>1. List</Button>
+        <Button variant="outline" size="sm" onClick={() => wrapSelection('[', '](https://)')}>Link</Button>
+      </div>
 
       {/* Guidance */}
       {showGuidance && guidance && (

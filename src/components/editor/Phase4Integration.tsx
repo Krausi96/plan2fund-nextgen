@@ -3,7 +3,7 @@
 // NOW WITH INTEGRATED STATE MANAGEMENT (replaces EditorState)
 
 import React, { useState, useEffect, useCallback, useMemo, useRef } from 'react';
-import { useRouter } from 'next/router';
+import ExportRenderer from '@/export/renderer';
 import { PlanDocument } from '@/types/plan';
 import { ProgramProfile } from '@/types/reco';
 import { useUser } from '@/contexts/UserContext';
@@ -38,7 +38,6 @@ export default function Phase4Integration({
   onProductChange
 }: Phase4IntegrationProps) {
   const { userProfile, isLoading: isUserLoading } = useUser();
-  const router = useRouter();
   
   // Core state
   const [plan, setPlan] = useState<PlanDocument | null>(initialPlan || null);
@@ -54,6 +53,9 @@ export default function Phase4Integration({
   const [requirementsProgress, setRequirementsProgress] = useState(0);
   const [requirementsStatus, setRequirementsStatus] = useState<'loading' | 'complete' | 'incomplete' | 'error'>('loading');
   const saveDebounceRef = useRef<any>(null);
+  const [showInlinePreview, setShowInlinePreview] = useState(false);
+  const [isSaving, setIsSaving] = useState(false);
+  const [previewStyle, setPreviewStyle] = useState<{ fontFamily?: string; fontSize?: number; lineHeight?: number }>({});
   
   // ============================================================================
   // INTEGRATED STATE MANAGEMENT (from EditorState)
@@ -121,6 +123,27 @@ export default function Phase4Integration({
       loadUserPlan();
     }
   }, [initialPlan, userProfile, isUserLoading]);
+
+  // Keyboard shortcuts: Ctrl/Cmd+S to save, ArrowUp/Down to navigate sections
+  useEffect(() => {
+    const onKey = (e: KeyboardEvent) => {
+      const isSave = (e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 's';
+      if (isSave) {
+        e.preventDefault();
+        const contentMap = sections.reduce((acc: Record<string,string>, s: any) => { acc[s.key] = s.content || ''; return acc; }, {});
+        setIsSaving(true);
+        editorEngineRef.current.saveContent(contentMap).catch(()=>{}).finally(()=>setIsSaving(false));
+        return;
+      }
+      if (e.key === 'ArrowUp') {
+        setActiveSection((idx) => Math.max(0, idx - 1));
+      } else if (e.key === 'ArrowDown') {
+        setActiveSection((idx) => Math.min(sections.length - 1, idx + 1));
+      }
+    };
+    window.addEventListener('keydown', onKey);
+    return () => window.removeEventListener('keydown', onKey);
+  }, [sections]);
 
   // Load program sections when programProfile changes
   useEffect(() => {
@@ -270,14 +293,17 @@ export default function Phase4Integration({
     if (saveDebounceRef.current) clearTimeout(saveDebounceRef.current);
     saveDebounceRef.current = setTimeout(async () => {
       try {
+        setIsSaving(true);
         const contentMap = updatedSections.reduce((acc: Record<string,string>, s: any) => {
           acc[s.key] = s.content || '';
           return acc;
         }, {});
         await editorEngineRef.current.saveContent(contentMap);
-        savePlanSections(updatedSections.map((s: any) => ({ id: s.key, title: s.title, content: s.content || '', tables: s.tables, figures: s.figures })));
+        savePlanSections(updatedSections.map((s: any) => ({ id: s.key, title: s.title, content: s.content || '', tables: s.tables, figures: s.figures, sources: s.sources })));
       } catch (e) {
         console.warn('Save (debounced) failed, fallback handled by provider/planStore');
+      } finally {
+        setIsSaving(false);
       }
     }, 400);
   };
@@ -420,7 +446,7 @@ export default function Phase4Integration({
                 </svg>
               </button>
               <button
-                onClick={() => router.push('/preview')}
+                onClick={() => setShowInlinePreview(true)}
                 className="px-4 py-2 text-gray-700 border rounded-lg hover:bg-gray-50"
                 title="Preview"
               >
@@ -430,13 +456,15 @@ export default function Phase4Integration({
                 onClick={() => {
                   // manual save now
                   const contentMap = sections.reduce((acc: Record<string,string>, s: any) => { acc[s.key] = s.content || ''; return acc; }, {});
-                  editorEngineRef.current.saveContent(contentMap).catch(()=>{});
+                  setIsSaving(true);
+                  editorEngineRef.current.saveContent(contentMap).catch(()=>{}).finally(()=>setIsSaving(false));
                   savePlanSections(sections.map((s: any) => ({ id: s.key, title: s.title, content: s.content || '' })));
                 }}
                 className="px-6 py-2 bg-gradient-to-r from-blue-600 to-purple-600 text-white rounded-xl hover:from-blue-700 hover:to-purple-700 transition-all duration-200 shadow-lg hover:shadow-xl"
               >
                 Save
               </button>
+              <span className="text-xs text-gray-500">{isSaving ? 'Saving…' : 'Saved'}</span>
             </div>
           </div>
         </div>
@@ -534,6 +562,22 @@ export default function Phase4Integration({
                         handlePlanChange(updated);
                         // persist immediately
                         savePlanSections((updated.sections || []).map((s: any) => ({ id: s.key, title: s.title, content: s.content || '', tables: s.tables, figures: s.figures })));
+                        // store minimal preview settings for Preview page
+                        try {
+                          const previewSettings = {
+                            theme: config.fontFamily ? (config.fontFamily.toLowerCase().includes('serif') ? 'serif' : 'sans') : 'sans',
+                            fontSize: (config.fontSize || 14),
+                            spacing: (config.lineSpacing || 1.6),
+                            showTableOfContents: !!config.tableOfContents,
+                            showPageNumbers: !!config.pageNumbers
+                          };
+                          localStorage.setItem('plan_settings', JSON.stringify(previewSettings));
+                          setPreviewStyle({
+                            fontFamily: config.fontFamily,
+                            fontSize: config.fontSize,
+                            lineHeight: config.lineSpacing
+                          });
+                        } catch {}
                       } catch {}
                     }}
                     onTemplateSelect={(template) => {
@@ -600,6 +644,155 @@ export default function Phase4Integration({
                     showGuidance={true}
                     showFormatting={true}
                   />
+
+                  {/* Attachments Editor */}
+                  <div className="p-4 bg-gray-50 rounded-lg border border-gray-200/70 space-y-4">
+                    {/* Financial Table quick editor */}
+                    {sections[activeSection]?.tables?.financials && (
+                      <div>
+                        <div className="font-medium text-gray-800 mb-2">Financials (quick edit)</div>
+                        <div className="overflow-x-auto">
+                          <table className="min-w-full text-sm">
+                            <thead>
+                              <tr>
+                                <th className="text-left p-2">Item</th>
+                                {sections[activeSection].tables.financials.columns.map((c: string, idx: number) => (
+                                  <th key={idx} className="text-right p-2">{c}</th>
+                                ))}
+                              </tr>
+                            </thead>
+                            <tbody>
+                              {sections[activeSection].tables.financials.rows.map((row: any, rIdx: number) => (
+                                <tr key={rIdx}>
+                                  <td className="p-2">{row.label}</td>
+                                  {row.values.map((v: number, cIdx: number) => (
+                                    <td key={cIdx} className="p-2 text-right">
+                                      <input
+                                        type="number"
+                                        className="w-24 border rounded px-2 py-1 text-right"
+                                        value={v}
+                                        onChange={(e) => {
+                                          const next = [...sections];
+                                          const val = Number(e.target.value || 0);
+                                          next[activeSection] = { ...next[activeSection], tables: { ...next[activeSection].tables, financials: { ...next[activeSection].tables.financials, rows: next[activeSection].tables.financials.rows.map((rr: any, i: number) => i===rIdx ? { ...rr, values: rr.values.map((vv: number, j: number) => j===cIdx ? val : vv) } : rr) } } };
+                                          setSections(next);
+                                          if (plan) handlePlanChange({ ...plan, sections: next });
+                                        }}
+                                      />
+                                    </td>
+                                  ))}
+                                </tr>
+                              ))}
+                            </tbody>
+                          </table>
+                        </div>
+                      </div>
+                    )}
+
+                    {/* Figures quick editor */}
+                    {sections[activeSection]?.figures && (
+                      <div>
+                        <div className="font-medium text-gray-800 mb-2">Figures</div>
+                        <div className="space-y-2">
+                          {sections[activeSection].figures.map((fig: any, idx: number) => (
+                            <div key={idx} className="flex items-center gap-2">
+                              <select
+                                value={fig.type}
+                                onChange={(e) => {
+                                  const next = [...sections];
+                                  const f = { ...fig, type: e.target.value };
+                                  next[activeSection] = { ...next[activeSection], figures: next[activeSection].figures.map((ff: any, i: number) => i===idx ? f : ff) } as any;
+                                  setSections(next);
+                                  if (plan) handlePlanChange({ ...plan, sections: next });
+                                }}
+                                className="border rounded px-2 py-1"
+                              >
+                                <option value="bar">Bar</option>
+                                <option value="line">Line</option>
+                                <option value="donut">Donut</option>
+                              </select>
+                              <input
+                                className="flex-1 border rounded px-2 py-1"
+                                placeholder="Caption"
+                                value={fig.caption || ''}
+                                onChange={(e) => {
+                                  const next = [...sections];
+                                  const f = { ...fig, caption: e.target.value };
+                                  next[activeSection] = { ...next[activeSection], figures: next[activeSection].figures.map((ff: any, i: number) => i===idx ? f : ff) } as any;
+                                  setSections(next);
+                                  if (plan) handlePlanChange({ ...plan, sections: next });
+                                }}
+                              />
+                              <input
+                                className="flex-1 border rounded px-2 py-1"
+                                placeholder="Alt text"
+                                value={fig.altText || ''}
+                                onChange={(e) => {
+                                  const next = [...sections];
+                                  const f = { ...fig, altText: e.target.value };
+                                  next[activeSection] = { ...next[activeSection], figures: next[activeSection].figures.map((ff: any, i: number) => i===idx ? f : ff) } as any;
+                                  setSections(next);
+                                  if (plan) handlePlanChange({ ...plan, sections: next });
+                                }}
+                              />
+                              <button
+                                className="px-2 py-1 text-red-700 border border-red-300 rounded"
+                                onClick={() => {
+                                  const next = [...sections];
+                                  next[activeSection] = { ...next[activeSection], figures: next[activeSection].figures.filter((_: any, i: number) => i!==idx) } as any;
+                                  setSections(next);
+                                  if (plan) handlePlanChange({ ...plan, sections: next });
+                                }}
+                              >
+                                Remove
+                              </button>
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                    )}
+
+                    {/* Sources editor */}
+                    <div>
+                      <div className="font-medium text-gray-800 mb-2">Sources</div>
+                      <div className="space-y-2">
+                        {(sections[activeSection]?.sources || []).map((src: any, idx: number) => (
+                          <div key={idx} className="flex items-center gap-2">
+                            <input className="flex-1 border rounded px-2 py-1" placeholder="Title" value={src.title || ''} onChange={(e)=>{
+                              const next = [...sections];
+                              const list = [...(next[activeSection].sources||[])];
+                              list[idx] = { ...list[idx], title: e.target.value };
+                              next[activeSection] = { ...next[activeSection], sources: list } as any;
+                              setSections(next);
+                              if (plan) handlePlanChange({ ...plan, sections: next });
+                            }} />
+                            <input className="flex-1 border rounded px-2 py-1" placeholder="URL" value={src.url || ''} onChange={(e)=>{
+                              const next = [...sections];
+                              const list = [...(next[activeSection].sources||[])];
+                              list[idx] = { ...list[idx], url: e.target.value };
+                              next[activeSection] = { ...next[activeSection], sources: list } as any;
+                              setSections(next);
+                              if (plan) handlePlanChange({ ...plan, sections: next });
+                            }} />
+                            <button className="px-2 py-1 text-red-700 border border-red-300 rounded" onClick={()=>{
+                              const next = [...sections];
+                              const list = (next[activeSection].sources||[]).filter((_: any, i: number)=> i!==idx);
+                              next[activeSection] = { ...next[activeSection], sources: list } as any;
+                              setSections(next);
+                              if (plan) handlePlanChange({ ...plan, sections: next });
+                            }}>Remove</button>
+                          </div>
+                        ))}
+                        <button className="px-3 py-1 border rounded text-sm" onClick={()=>{
+                          const next = [...sections];
+                          const list = [ ...(next[activeSection].sources||[]), { title: '', url: '' } ];
+                          next[activeSection] = { ...next[activeSection], sources: list } as any;
+                          setSections(next);
+                          if (plan) handlePlanChange({ ...plan, sections: next });
+                        }}>+ Add source</button>
+                      </div>
+                    </div>
+                  </div>
 
                   {/* Requirements Progress Bar */}
                   <div className="mt-6 p-4 bg-white/50 backdrop-blur-sm rounded-xl border border-gray-200/50">
@@ -859,7 +1052,29 @@ export default function Phase4Integration({
               </div>
             </div>
           )}
-      {false && plan && null}
+      {/* Inline Preview Drawer */}
+      {showInlinePreview && plan && (
+        <div className="fixed inset-0 z-50">
+          <div className="absolute inset-0 bg-black/30" onClick={()=>setShowInlinePreview(false)} />
+          <div className="absolute top-0 right-0 h-full w-full md:w-[520px] bg-white shadow-xl overflow-y-auto">
+            <div className="p-4 border-b flex items-center justify-between">
+              <div className="font-semibold">Formatted Preview</div>
+              <button className="text-gray-500 hover:text-gray-800" onClick={()=>setShowInlinePreview(false)}>✕</button>
+            </div>
+            <div className="p-4" style={{ fontFamily: previewStyle.fontFamily || undefined, fontSize: previewStyle.fontSize ? `${previewStyle.fontSize}px` : undefined, lineHeight: previewStyle.lineHeight ? String(previewStyle.lineHeight) : undefined }}>
+              <ExportRenderer
+                plan={{
+                  ...plan,
+                  sections: sections.map((s: any) => ({ key: s.key, title: s.title, content: s.content || '', status: s.status, tables: s.tables, figures: s.figures }))
+                } as any}
+                showWatermark={false}
+                previewMode={'formatted'}
+                previewSettings={{ showWordCount: false, showCharacterCount: false, showCompletionStatus: false, enableRealTimePreview: false }}
+              />
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
