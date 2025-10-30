@@ -260,6 +260,8 @@ export class WebScraperService {
             if (result.success && result.program) {
               programs.push(result.program);
               console.log(`  ✅ [${i + idx + 1}/${filteredUrls.length}] "${result.program.name}"`);
+              // Mark URL as scraped to avoid re-processing in future runs
+              this.markUrlAsScraped(institution.name, url);
             } else {
               console.log(`  ❌ [${i + idx + 1}/${filteredUrls.length}] ${url.substring(0, 60)}... - ${result.reason}`);
             }
@@ -700,8 +702,16 @@ export class WebScraperService {
       }
     }
     
-    // Default: if it's a deep path (4+ segments) and not a category page, likely a detail page
-    return pathSegments.length >= 4;
+    // Default fallback: treat sufficiently deep, non-category paths as detail pages
+    // Criteria: at least 3 segments and last segment not a known category term
+    if (pathSegments.length >= 3) {
+      const lastSegment = pathSegments[pathSegments.length - 1];
+      const categoryTerms = ['foerderungen', 'programme', 'programs', 'initiative', 'thema', 'kredite', 'unternehmen'];
+      if (!categoryTerms.includes(lastSegment)) {
+        return true;
+      }
+    }
+    return false;
   }
 
   // ENHANCED: Extract structured data (amounts, deadlines, contact)
@@ -1388,10 +1398,43 @@ export class WebScraperService {
       this.parseRequirementsText(requirementsText, categorized);
     }
     
+    // NEW: Extract requirements blocks that follow common headings
+    this.extractRequirementsByHeadings($, categorized);
+    
     // Extract from full page with better pattern matching
     this.parseFullPageContent(content, categorized);
     
     return categorized;
+  }
+
+  // NEW: Capture content under headings like "Voraussetzungen", "Anforderungen", etc., and parse it
+  private extractRequirementsByHeadings($: cheerio.Root, categorized: any): void {
+    const headingSelectors = 'h1, h2, h3, h4, .heading, .title';
+    const requirementHeadings = [
+      'voraussetzungen', 'anforderungen', 'requirements', 'eligibility', 'teilnahme', 'bedingungen',
+      'wer kann sich bewerben', 'wer ist förderfähig', 'einreichung', 'bewerbung'
+    ];
+    $(headingSelectors).each((_, el) => {
+      const headingText = ($(el).text() || '').trim().toLowerCase();
+      if (!headingText) return;
+      if (!requirementHeadings.some(k => headingText.includes(k))) return;
+      // Collect sibling text until next heading
+      let collected = '';
+      let node = $(el).next();
+      let steps = 0;
+      while (node && node.length && steps < 12) { // limit to avoid runaway
+        if (node.is('h1, h2, h3, h4, .heading, .title')) break;
+        const text = node.text().trim();
+        if (text) collected += '\n' + text;
+        node = node.next();
+        steps++;
+      }
+      if (collected.trim().length > 20) {
+        // Parse collected text into categories
+        this.parseEligibilityText(collected, categorized);
+        this.parseRequirementsText(collected, categorized);
+      }
+    });
   }
   
   // NEW: Extract structured requirements from HTML elements (tables, lists, etc.)
@@ -2148,6 +2191,25 @@ export class WebScraperService {
     // Save updated cache
     fs.writeFileSync(statePath, JSON.stringify(cache, null, 2));
     console.log(`  💾 [DISCOVERY] Saved discovery state for ${institutionName}`);
+  }
+
+  // NEW: Mark a URL as scraped by removing it from unscrapedUrls for the institution
+  private markUrlAsScraped(institutionName: string, url: string): void {
+    try {
+      const state = this.loadDiscoveryState(institutionName);
+      const before = state.unscrapedUrls.length;
+      state.unscrapedUrls = (state.unscrapedUrls || []).filter(u => u !== url);
+      if (!state.knownUrls.includes(url)) {
+        state.knownUrls.push(url);
+      }
+      const after = state.unscrapedUrls.length;
+      if (after !== before) {
+        this.saveDiscoveryState(institutionName, state);
+        console.log(`  🧹 [DISCOVERY] Marked scraped and removed from queue: ${url}`);
+      }
+    } catch (e) {
+      console.warn('  ⚠️  [DISCOVERY] Failed to mark URL as scraped:', e instanceof Error ? e.message : String(e));
+    }
   }
 
   private clearDiscoveryState(): void {

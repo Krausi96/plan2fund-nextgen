@@ -22,7 +22,9 @@
         "analyze:unused": "node scripts/analysis/analyze-unused.js",
         "analyze:duplicates": "node scripts/analysis/analyze-duplicates.js",
         "scraper": "node scripts/trigger-full-scraper.js",
-        "scraper:cycle": "node scripts/trigger-full-scraper.js cycle"
+        "scraper:cycle": "node scripts/trigger-full-scraper.js cycle",
+        "scrape:short": "node scripts/run-scraper-direct.js cycle incremental",
+        "scrape:short:target": "node scripts/run-scraper-direct.js cycle incremental --short --target"
     },
     "devDependencies": {
         "@next/eslint-plugin-next": "^15.5.4",
