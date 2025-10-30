@@ -35,15 +35,20 @@ interface ProgramSelectorProps {
   onWizardRedirect?: () => void;
 }
 
-// Program Card Component
+// Program Card Component (button for reliable click)
 const ProgramCard = ({ program, isSelected, onSelect }: {
   program: ProgramData;
   isSelected: boolean;
   onSelect: () => void;
 }) => (
-  <div 
-    className={`program-card ${isSelected ? 'selected' : ''}`}
+  <button
+    type="button"
+    role="button"
+    tabIndex={0}
+    className={`program-card ${isSelected ? 'selected' : ''} focus:outline-none focus:ring-2 focus:ring-blue-500`}
     onClick={onSelect}
+    onKeyDown={(e) => { if ((e as any).key === 'Enter') onSelect(); }}
+    aria-label={`Open editor for ${program.name}`}
   >
     <div className="program-card-header">
       <div className="program-card-title-section">
@@ -63,23 +68,23 @@ const ProgramCard = ({ program, isSelected, onSelect }: {
         </div>
       </div>
     </div>
-    
     <div className="program-card-body">
       <div className="program-card-description">
         {program.description}
       </div>
-      <div className="program-card-tags">
-        {program.tags.map(tag => (
-          <span key={tag} className="program-card-tag">{tag}</span>
-        ))}
-      </div>
+      {!!program.tags?.length && (
+        <div className="program-card-tags">
+          {program.tags.slice(0,4).map(tag => (
+            <span key={tag} className="program-card-tag">{tag}</span>
+          ))}
+        </div>
+      )}
     </div>
-    
     <div className="program-card-footer">
       <span>Click to start editor</span>
       <span className="program-card-arrow">→</span>
     </div>
-  </div>
+  </button>
 );
 
 // Quick Start Card Component
@@ -301,24 +306,7 @@ export default function ProgramSelector({
           </div>
         </div>
 
-        {/* Quick Start Options */}
-        <div className="quick-start-section">
-          <h2>⚡ Quick Start</h2>
-          <div className="quick-start-grid">
-            <QuickStartCard
-              title="Generic Business Plan"
-              description="Start with a standard business plan template"
-              icon="📋"
-              onClick={handleQuickStart}
-            />
-            <QuickStartCard
-              title="Find Perfect Match"
-              description="Use our SmartWizard to find the best program"
-              icon="🔍"
-              onClick={handleWizardRedirect}
-            />
-          </div>
-        </div>
+        {/* Quick Start removed */}
       </div>
 
       <style jsx>{`
@@ -429,8 +417,8 @@ export default function ProgramSelector({
 
         .program-grid {
           display: grid;
-          grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
-          gap: 1.5rem;
+          grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+          gap: 1.25rem;
         }
 
         .program-card {

@@ -1,9 +1,9 @@
 {
   "summary": {
-    "totalNewDetailPages": 420,
-    "totalDetailPages": 469,
-    "totalNewUrls": -257,
-    "totalTime": 338492,
+    "totalNewDetailPages": 421,
+    "totalDetailPages": 470,
+    "totalNewUrls": -260,
+    "totalTime": 386222,
     "successful": 17,
     "totalInstitutions": 32
   },
@@ -14,31 +14,31 @@
       "newTotalUrls": -12,
       "totalDetailPages": 254,
       "totalUrls": 254,
-      "timeElapsed": 48457
+      "timeElapsed": 45251
     },
     {
       "institution": "Austrian Research and Technology Development Fund (FWF)",
-      "newDetailPages": 110,
-      "newTotalUrls": -148,
-      "totalDetailPages": 110,
-      "totalUrls": 110,
-      "timeElapsed": 47540
+      "newDetailPages": 105,
+      "newTotalUrls": -153,
+      "totalDetailPages": 105,
+      "totalUrls": 105,
+      "timeElapsed": 47553
     },
     {
       "institution": "Austrian Research Promotion Agency (FFG)",
-      "newDetailPages": 22,
-      "newTotalUrls": -78,
-      "totalDetailPages": 22,
-      "totalUrls": 22,
-      "timeElapsed": 61747
+      "newDetailPages": 25,
+      "newTotalUrls": -79,
+      "totalDetailPages": 25,
+      "totalUrls": 25,
+      "timeElapsed": 50444
     },
     {
       "institution": "KfW Bankengruppe",
-      "newDetailPages": 19,
-      "newTotalUrls": -17,
-      "totalDetailPages": 21,
-      "totalUrls": 21,
-      "timeElapsed": 45676
+      "newDetailPages": 22,
+      "newTotalUrls": -14,
+      "totalDetailPages": 24,
+      "totalUrls": 24,
+      "timeElapsed": 47655
     },
     {
       "institution": "Deutsche Bank",
@@ -46,7 +46,7 @@
       "newTotalUrls": 0,
       "totalDetailPages": 13,
       "totalUrls": 13,
-      "timeElapsed": 18148
+      "timeElapsed": 24005
     },
     {
       "institution": "Raiffeisen Bank",
@@ -54,7 +54,7 @@
       "newTotalUrls": 0,
       "totalDetailPages": 11,
       "totalUrls": 11,
-      "timeElapsed": 13472
+      "timeElapsed": 29200
     },
     {
       "institution": "Austrian Federal Ministry of Education, Science and Research (BMBWF)",
@@ -62,7 +62,7 @@
       "newTotalUrls": 0,
       "totalDetailPages": 11,
       "totalUrls": 11,
-      "timeElapsed": 10928
+      "timeElapsed": 11690
     },
     {
       "institution": "AMS (Arbeitsmarktservice)",
@@ -70,7 +70,7 @@
       "newTotalUrls": 0,
       "totalDetailPages": 7,
       "totalUrls": 7,
-      "timeElapsed": 6965
+      "timeElapsed": 9292
     },
     {
       "institution": "WKO (Wirtschaftskammer Österreich)",
@@ -78,7 +78,7 @@
       "newTotalUrls": 0,
       "totalDetailPages": 3,
       "totalUrls": 3,
-      "timeElapsed": 7420
+      "timeElapsed": 9733
     },
     {
       "institution": "Erste Bank",
@@ -86,7 +86,7 @@
       "newTotalUrls": 0,
       "totalDetailPages": 3,
       "totalUrls": 3,
-      "timeElapsed": 8637
+      "timeElapsed": 23581
     },
     {
       "institution": "Bank Austria",
@@ -94,7 +94,7 @@
       "newTotalUrls": 0,
       "totalDetailPages": 2,
       "totalUrls": 2,
-      "timeElapsed": 9404
+      "timeElapsed": 24545
     },
     {
       "institution": "Austria Wirtschaftsservice (AWS)",
@@ -102,7 +102,7 @@
       "newTotalUrls": 0,
       "totalDetailPages": 1,
       "totalUrls": 1,
-      "timeElapsed": 15376
+      "timeElapsed": 7124
     },
     {
       "institution": "Vienna Business Agency (VBA)",
@@ -110,7 +110,7 @@
       "newTotalUrls": -2,
       "totalDetailPages": 1,
       "totalUrls": 1,
-      "timeElapsed": 16446
+      "timeElapsed": 15224
     },
     {
       "institution": "CDTI (Centro para el Desarrollo Tecnológico Industrial)",
@@ -118,7 +118,7 @@
       "newTotalUrls": 0,
       "totalDetailPages": 1,
       "totalUrls": 1,
-      "timeElapsed": 6356
+      "timeElapsed": 7194
     },
     {
       "institution": "Invest-NL",
@@ -126,7 +126,7 @@
       "newTotalUrls": 0,
       "totalDetailPages": 1,
       "totalUrls": 1,
-      "timeElapsed": 1431
+      "timeElapsed": 2197
     },
     {
       "institution": "Österreichische Entwicklungsbank (OeEB)",
@@ -134,7 +134,7 @@
       "newTotalUrls": 0,
       "totalDetailPages": 1,
       "totalUrls": 1,
-      "timeElapsed": 4345
+      "timeElapsed": 6897
     },
     {
       "institution": "Commerzbank",
@@ -142,7 +142,7 @@
       "newTotalUrls": 0,
       "totalDetailPages": 1,
       "totalUrls": 1,
-      "timeElapsed": 3683
+      "timeElapsed": 6595
     },
     {
       "institution": "ÖBS (Österreichische Bundesbahnen)",
@@ -150,7 +150,7 @@
       "newTotalUrls": 0,
       "totalDetailPages": 0,
       "totalUrls": 0,
-      "timeElapsed": 362
+      "timeElapsed": 124
     },
     {
       "institution": "Kickstarter",
@@ -158,7 +158,7 @@
       "newTotalUrls": 0,
       "totalDetailPages": 0,
       "totalUrls": 0,
-      "timeElapsed": 170
+      "timeElapsed": 323
     },
     {
       "institution": "Indiegogo",
@@ -166,7 +166,7 @@
       "newTotalUrls": 0,
       "totalDetailPages": 0,
       "totalUrls": 0,
-      "timeElapsed": 141
+      "timeElapsed": 292
     },
     {
       "institution": "Bundesministerium für Wirtschaft und Klimaschutz (BMWK)",
@@ -174,7 +174,7 @@
       "newTotalUrls": 0,
       "totalDetailPages": 3,
       "totalUrls": 3,
-      "timeElapsed": 4850
+      "timeElapsed": 7713
     },
     {
       "institution": "Bpifrance",
@@ -182,7 +182,7 @@
       "newTotalUrls": 0,
       "totalDetailPages": 0,
       "totalUrls": 0,
-      "timeElapsed": 287
+      "timeElapsed": 152
     },
     {
       "institution": "Horizon Europe",
@@ -190,7 +190,7 @@
       "newTotalUrls": 0,
       "totalDetailPages": 0,
       "totalUrls": 0,
-      "timeElapsed": 264
+      "timeElapsed": 174
     },
     {
       "institution": "ENISA (Empresa Nacional de Innovación)",
@@ -198,7 +198,7 @@
       "newTotalUrls": 0,
       "totalDetailPages": 0,
       "totalUrls": 0,
-      "timeElapsed": 218
+      "timeElapsed": 278
     },
     {
       "institution": "Invitalia (Agenzia Nazionale per l'Attrazione degli Investimenti)",
@@ -206,7 +206,7 @@
       "newTotalUrls": 0,
       "totalDetailPages": 0,
       "totalUrls": 0,
-      "timeElapsed": 169
+      "timeElapsed": 207
     },
     {
       "institution": "Cassa Depositi e Prestiti (CDP)",
@@ -214,7 +214,7 @@
       "newTotalUrls": 0,
       "totalDetailPages": 0,
       "totalUrls": 0,
-      "timeElapsed": 264
+      "timeElapsed": 369
     },
     {
       "institution": "RVO (Rijksdienst voor Ondernemend Nederland)",
@@ -222,7 +222,7 @@
       "newTotalUrls": 0,
       "totalDetailPages": 0,
       "totalUrls": 0,
-      "timeElapsed": 175
+      "timeElapsed": 275
     },
     {
       "institution": "European Investment Bank (EIB)",
@@ -230,7 +230,7 @@
       "newTotalUrls": 0,
       "totalDetailPages": 0,
       "totalUrls": 0,
-      "timeElapsed": 860
+      "timeElapsed": 311
     },
     {
       "institution": "European Investment Fund (EIF)",
@@ -238,7 +238,7 @@
       "newTotalUrls": 0,
       "totalDetailPages": 0,
       "totalUrls": 0,
-      "timeElapsed": 556
+      "timeElapsed": 274
     },
     {
       "institution": "Austrian Federal Ministry of Digital and Economic Affairs (BMDW)",
@@ -246,7 +246,7 @@
       "newTotalUrls": 0,
       "totalDetailPages": 3,
       "totalUrls": 3,
-      "timeElapsed": 3788
+      "timeElapsed": 6808
     },
     {
       "institution": "European Regional Development Fund (ERDF)",
@@ -254,7 +254,7 @@
       "newTotalUrls": 0,
       "totalDetailPages": 0,
       "totalUrls": 0,
-      "timeElapsed": 200
+      "timeElapsed": 406
     },
     {
       "institution": "European Social Fund (ESF)",
@@ -262,9 +262,9 @@
       "newTotalUrls": 0,
       "totalDetailPages": 0,
       "totalUrls": 0,
-      "timeElapsed": 157
+      "timeElapsed": 336
     }
   ],
-  "generatedAt": "2025-10-30T10:45:55.760Z",
+  "generatedAt": "2025-10-30T11:31:16.971Z",
   "discoveryMode": "incremental"
 }
