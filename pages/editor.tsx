@@ -23,8 +23,8 @@ export default function EditorPage() {
   return (
     <UnifiedEditor
       programId={programId as string}
-      route={route as string}
-      product={product as string}
+      route={(route as string) || 'grant'}
+      product={(product as string) || 'submission'}
       answers={answers ? JSON.parse(decodeURIComponent(answers as string)) : undefined}
     />
   );

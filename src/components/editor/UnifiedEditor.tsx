@@ -49,8 +49,11 @@ export default function UnifiedEditor({
     });
   }, [propProgramId, propRoute, propProduct, propAnswers, propPayload, propRestore]);
 
-  // State for filter selections
-  const [filterProgramId] = useState<string | null>(normalizedData.programId);
+  // State for filter selections (react to URL/query changes)
+  const [filterProgramId, setFilterProgramId] = useState<string | null>(normalizedData.programId);
+  useEffect(() => {
+    setFilterProgramId(normalizedData.programId || null);
+  }, [normalizedData.programId]);
   
   // UI State
   const [showExportSettings, setShowExportSettings] = useState(false);
