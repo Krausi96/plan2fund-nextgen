@@ -153,12 +153,15 @@ These are analysis results, not scripts:
 - [x] i18n moved to shared/i18n/translations with import fixes
 - [x] TypeScript verification passed (0 errors)
 - [x] Git commit & push successful (commit afd71de)
-- [x] RequirementsChecker moved to shared/components/common/
+- [x] RequirementsChecker moved from shared/components/common/ to features/editor/components/ (was editor-specific)
 - [x] Legacy data files moved to scraper-lite/data/legacy/
 - [x] Old docs archived to docs/archive/
 - [x] API paths updated for new data locations
 - [x] Fixed scraper paths to use scraper-lite/data/lite (removed orphaned root data/lite)
 - [x] Consolidated root MD files - only CLEANUP_REPORT.md remains
+- [x] Moved RequirementsChecker from shared/components/common to features/editor/components (editor-specific)
+- [x] Verified data migration - root data/lite was orphaned old data (485 files), scraper uses scraper-lite/data/lite (1658 files)
+- [x] Verified all shared components are correctly placed (used by multiple pages)
 - [ ] Final documentation (comprehensive repo map + scraper deep dive)
 
 ---
