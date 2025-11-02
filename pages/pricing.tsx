@@ -16,6 +16,7 @@ import { FilterTabContent } from "@/components/pricing/FilterTabContent";
 import { ProofSection } from "@/components/pricing/ProofSection";
 import { AddonsSection } from "@/components/pricing/AddonsSection";
 import { type Product, type FundingType, type TargetGroup } from "@/data/basisPack";
+import analytics from "@/lib/analytics";
 
 
 // Helper function to map target group detection to BASIS PACK types
@@ -42,6 +43,7 @@ export default function Pricing() {
   useEffect(() => {
     const detection = detectTargetGroup();
     setTargetGroup(mapTargetGroup(detection.targetGroup));
+    analytics.trackPageView('/pricing', 'Pricing');
   }, []);
 
   // Core Products Data - Updated with new structure

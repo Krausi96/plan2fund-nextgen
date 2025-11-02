@@ -82,11 +82,18 @@ class ExportRenderer {
         
         <div className="relative z-10 space-y-8">
           {/* Title Page */}
-          <div className="text-center py-12 border-b">
-            <h1 className="text-4xl font-bold text-gray-900 mb-4">Business Plan</h1>
-            <p className="text-lg text-gray-600 mb-2">Created by User</p>
-            <p className="text-sm text-gray-500">{new Date().toLocaleDateString()}</p>
-          </div>
+          {plan.settings.includeTitlePage && (
+            <div className="text-center py-12 border-b">
+              <h1 className="text-4xl font-bold text-gray-900 mb-2">{plan.settings.titlePage?.title || 'Business Plan'}</h1>
+              {plan.settings.titlePage?.subtitle && (
+                <p className="text-lg text-gray-700 mb-1">{plan.settings.titlePage.subtitle}</p>
+              )}
+              {plan.settings.titlePage?.author && (
+                <p className="text-base text-gray-600 mb-1">{plan.settings.titlePage.author}</p>
+              )}
+              <p className="text-sm text-gray-500">{plan.settings.titlePage?.date || new Date().toLocaleDateString()}</p>
+            </div>
+          )}
 
           {/* Table of Contents */}
           <div className="space-y-2">
@@ -247,26 +254,23 @@ class ExportRenderer {
       if (plan.settings.includeTitlePage) {
         children.push(
           new Paragraph({
-            text: plan.sections.find(s => s.key === 'execSummary')?.title || 'Business Plan',
+            text: plan.settings.titlePage?.title || 'Business Plan',
             heading: HeadingLevel.TITLE,
             alignment: AlignmentType.CENTER,
             spacing: { after: 400 }
           })
         );
 
-        if (plan.programId) {
-          children.push(
-            new Paragraph({
-              text: `Program: ${plan.programId}`,
-              alignment: AlignmentType.CENTER,
-              spacing: { after: 200 }
-            })
-          );
+        if (plan.settings.titlePage?.subtitle) {
+          children.push(new Paragraph({ text: plan.settings.titlePage.subtitle, alignment: AlignmentType.CENTER, spacing: { after: 200 } }));
+        }
+        if (plan.settings.titlePage?.author) {
+          children.push(new Paragraph({ text: plan.settings.titlePage.author, alignment: AlignmentType.CENTER, spacing: { after: 200 } }));
         }
 
         children.push(
           new Paragraph({
-            text: `Created: ${new Date().toLocaleDateString()}`,
+            text: `${plan.settings.titlePage?.date || new Date().toLocaleDateString()}`,
             alignment: AlignmentType.CENTER,
             spacing: { after: 400 }
           }),
@@ -505,12 +509,10 @@ class ExportRenderer {
     if (plan.settings.includeTitlePage) {
       html += `
         <div class="title-page">
-          <h1>${plan.id}</h1>
-          <p>${plan.product === 'strategy' ? 'Strategy Document' : 
-              plan.product === 'review' ? 'Update & Review' : 
-              'Submission-Ready Business Plan'}</p>
-          <p>Route: ${plan.route.toUpperCase()}</p>
-          <p>Date: ${new Date().toLocaleDateString()}</p>
+          <h1>${plan.settings.titlePage?.title || 'Business Plan'}</h1>
+          ${plan.settings.titlePage?.subtitle ? `<p>${plan.settings.titlePage.subtitle}</p>` : ''}
+          ${plan.settings.titlePage?.author ? `<p>${plan.settings.titlePage.author}</p>` : ''}
+          <p>${plan.settings.titlePage?.date || new Date().toLocaleDateString()}</p>
         </div>
       `;
     }

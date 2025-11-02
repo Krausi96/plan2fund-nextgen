@@ -27,7 +27,7 @@ export const institutions: InstitutionConfig[] = [
     name: 'Austria Wirtschaftsservice (AWS)',
     baseUrl: 'https://aws.at',
     programUrls: [
-      'https://aws.at/de/foerderungen'  // Let auto-discovery find the rest
+      'https://www.aws.at/foerderungen/'  // Updated entry point per recommendation
     ],
     selectors: {
       name: ['h1', '.program-title', '.foerderung-title'],
@@ -46,7 +46,8 @@ export const institutions: InstitutionConfig[] = [
     name: 'Austrian Research Promotion Agency (FFG)',
     baseUrl: 'https://www.ffg.at',
     programUrls: [
-      'https://www.ffg.at/foerderungen'  // Let auto-discovery find the rest
+      'https://www.ffg.at/foerderungen',
+      'https://www.ffg.at/programm-suche'  // Added program search per recommendation
     ],
     selectors: {
       name: ['h1', '.program-title', '.foerderung-title'],
@@ -82,10 +83,7 @@ export const institutions: InstitutionConfig[] = [
     name: 'AMS (Arbeitsmarktservice)',
     baseUrl: 'https://www.ams.at',
     programUrls: [
-      'https://www.ams.at/foerderungen',
-      'https://www.ams.at/startup-foerderungen',
-      'https://www.ams.at/arbeitsmarkt-foerderungen',
-      'https://www.ams.at/ausbildung-foerderungen'
+      'https://www.ams.at/unternehmen/personalsuche-und-foerderungen'
     ],
     selectors: {
       name: ['h1', '.program-title', '.foerderung-title'],
@@ -104,8 +102,7 @@ export const institutions: InstitutionConfig[] = [
     name: 'WKO (Wirtschaftskammer Österreich)',
     baseUrl: 'https://www.wko.at',
     programUrls: [
-      'https://www.wko.at/foerderungen'  // Auto-discovery will find the rest
-      // Removed: startup-foerderungen, innovation-foerderungen, export-foerderungen, ausbildung-foerderungen (404)
+      'https://www.wko.at/service/foerderungen.html'  // Updated seed URL per recommendation
     ],
     selectors: {
       name: ['h1', '.program-title', '.foerderung-title'],
@@ -727,18 +724,21 @@ export const autoDiscoveryPatterns = {
     'research', 'forschung', 'recherche', 'ricerca',
     'leasing', 'leasing', 'leasing', 'leasing',
     'bank_loan', 'bankkredit', 'prêt bancaire', 'prestito bancario',
-    'subsidy', 'subvention', 'sussidio', 'subsidie'
+    'subsidy', 'subvention', 'sussidio', 'subsidie',
+    'stipendium', 'stipendien', 'zuschuss', 'förderquote'
   ],
   programKeywords: [
     'program', 'programme', 'programma', 'programm',
     'initiative', 'initiative', 'iniziativa',
     'scheme', 'regime', 'regime', 'regime',
-    'call', 'aufruf', 'appel', 'bando'
+    'call', 'aufruf', 'appel', 'bando',
+    'ausschreibung', 'fördercall', 'förderschiene', 'fördermodell', 'stipendienprogramm'
   ],
   exclusionKeywords: [
     'newsletter', 'news', 'press', 'media', 'contact',
     'about', 'ueber', 'about', 'chi-siamo',
     'imprint', 'impressum', 'mentions-legales', 'note-legali',
-    'privacy', 'datenschutz', 'confidentialite', 'privacy'
+    'privacy', 'datenschutz', 'confidentialite', 'privacy',
+    'services', 'service', 'themen', 'aktuell'
   ]
 };

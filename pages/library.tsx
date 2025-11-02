@@ -5,6 +5,7 @@ import Link from 'next/link';
 import { useRouter } from 'next/router';
 import ProgramDetails from '@/components/library/ProgramDetails';
 import CTAStrip from '@/components/common/CTAStrip';
+import analytics from '@/lib/analytics';
 
 
 export default function Library() {
@@ -16,6 +17,7 @@ export default function Library() {
   // Load programs from the new categorized data
   useEffect(() => {
     loadPrograms();
+    analytics.trackPageView('/library', 'Library');
   }, []);
 
   const loadPrograms = async () => {

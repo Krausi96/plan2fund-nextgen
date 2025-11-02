@@ -1,7 +1,8 @@
 ﻿import { Button } from "@/components/ui/button";
 import Link from "next/link";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useI18n } from "@/contexts/I18nContext";
+import analytics from "@/lib/analytics";
 
 export default function SuccessHubPage() {
   const { t } = useI18n();
@@ -14,6 +15,9 @@ export default function SuccessHubPage() {
   const [showRevisionForm, setShowRevisionForm] = useState(false);
   const [revisionMessage, setRevisionMessage] = useState("");
   const [selectedSections, setSelectedSections] = useState<string[]>([]);
+  useEffect(() => {
+    analytics.trackPageView('/thank-you', 'Thank You');
+  }, []);
   return (
     <div className="max-w-3xl mx-auto p-6 space-y-8 text-center">
       <h1 className="text-3xl font-bold text-green-600">🚀 Success Hub</h1>

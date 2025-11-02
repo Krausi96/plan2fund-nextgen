@@ -37,8 +37,9 @@ interface CustomizationConfig {
   // Title Page
   titlePage: {
     enabled: boolean;
-    companyName: string;
-    projectTitle: string;
+    title: string;
+    subtitle: string;
+    author: string;
     date: string;
   };
   
@@ -74,8 +75,9 @@ const DEFAULT_CONFIG: CustomizationConfig = {
   margins: { top: 2.5, bottom: 2.5, left: 2.5, right: 2.5 },
   titlePage: {
     enabled: true,
-    companyName: '',
-    projectTitle: '',
+    title: 'Business Plan',
+    subtitle: '',
+    author: '',
     date: new Date().toLocaleDateString(),
   },
   citations: {
@@ -369,21 +371,39 @@ export default function DocumentCustomizationPanel({
               {config.titlePage.enabled && (
                 <>
                   <div>
-                    <Label htmlFor="company-name">Company Name</Label>
+                    <Label htmlFor="tp-title">Title</Label>
                     <Input
-                      id="company-name"
-                      value={config.titlePage.companyName}
-                      onChange={(e) => handleNestedConfigChange('titlePage', 'companyName', e.target.value)}
-                      placeholder="Your Company Name"
+                      id="tp-title"
+                      value={config.titlePage.title}
+                      onChange={(e) => handleNestedConfigChange('titlePage', 'title', e.target.value)}
+                      placeholder="Business Plan"
                     />
                   </div>
                   <div>
-                    <Label htmlFor="project-title">Project Title</Label>
+                    <Label htmlFor="tp-subtitle">Subtitle</Label>
                     <Input
-                      id="project-title"
-                      value={config.titlePage.projectTitle}
-                      onChange={(e) => handleNestedConfigChange('titlePage', 'projectTitle', e.target.value)}
-                      placeholder="Business Plan Title"
+                      id="tp-subtitle"
+                      value={config.titlePage.subtitle}
+                      onChange={(e) => handleNestedConfigChange('titlePage', 'subtitle', e.target.value)}
+                      placeholder="Project / Product"
+                    />
+                  </div>
+                  <div>
+                    <Label htmlFor="tp-author">Author</Label>
+                    <Input
+                      id="tp-author"
+                      value={config.titlePage.author}
+                      onChange={(e) => handleNestedConfigChange('titlePage', 'author', e.target.value)}
+                      placeholder="Company or Person"
+                    />
+                  </div>
+                  <div>
+                    <Label htmlFor="tp-date">Date</Label>
+                    <Input
+                      id="tp-date"
+                      value={config.titlePage.date}
+                      onChange={(e) => handleNestedConfigChange('titlePage', 'date', e.target.value)}
+                      placeholder="YYYY-MM-DD"
                     />
                   </div>
                 </>

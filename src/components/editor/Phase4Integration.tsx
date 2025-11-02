@@ -529,9 +529,10 @@ export default function Phase4Integration({
                       margins: { top: 2.5, bottom: 2.5, left: 2.5, right: 2.5 },
                       titlePage: {
                         enabled: !!plan?.settings?.includeTitlePage,
-                        companyName: '',
-                        projectTitle: '',
-                        date: new Date().toLocaleDateString(),
+                        title: plan?.settings?.titlePage?.title || 'Business Plan',
+                        subtitle: plan?.settings?.titlePage?.subtitle || '',
+                        author: plan?.settings?.titlePage?.author || '',
+                        date: plan?.settings?.titlePage?.date || new Date().toLocaleDateString(),
                       },
                       citations: {
                         enabled: (plan?.settings?.citations || 'simple') === 'simple',
@@ -556,7 +557,13 @@ export default function Phase4Integration({
                             includePageNumbers: !!config.pageNumbers,
                             citations: config.citations?.enabled ? 'simple' : 'none',
                             captions: true,
-                            graphs: plan.settings.graphs || {}
+                            graphs: plan.settings.graphs || {},
+                            titlePage: {
+                              title: config.titlePage?.title,
+                              subtitle: config.titlePage?.subtitle,
+                              author: config.titlePage?.author,
+                              date: config.titlePage?.date
+                            }
                           }
                         } as PlanDocument;
                         handlePlanChange(updated);

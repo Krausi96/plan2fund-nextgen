@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useRouter } from "next/router";
 import { Button } from "@/components/ui/button";
 import Link from "next/link";
@@ -9,6 +9,7 @@ import InfoDrawer from "@/components/common/InfoDrawer";
 import { useRecommendation } from "@/contexts/RecommendationContext";
 import { useI18n } from "@/contexts/I18nContext";
 import StructuredRequirementsDisplay from "@/components/results/StructuredRequirementsDisplay";
+import analytics from "@/lib/analytics";
 
 // Enhanced program result type with detailed explanations
 type ProgramResult = any; // Using any for now to avoid import issues
@@ -30,6 +31,11 @@ export default function ResultsPage() {
   
   const results = contextResults.length > 0 ? contextResults : storageResults;
   const loading = state.isLoading;
+  useEffect(() => {
+    analytics.trackPageView('/results', 'Results');
+    analytics.trackUserAction('results_viewed', { count: results.length });
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
   // const userAnswers = state.answers;
 
   // Results are now managed by the RecommendationContext

@@ -2,10 +2,15 @@
 import featureFlags from "@/lib/featureFlags";
 import CartSummary from "@/components/common/CartSummary";
 import { useI18n } from "@/contexts/I18nContext";
+import { useEffect } from "react";
+import analytics from "@/lib/analytics";
 
 export default function Checkout() {
   const { t } = useI18n();
   const CHECKOUT_ENABLED = featureFlags.isEnabled('CHECKOUT_ENABLED')
+  useEffect(() => {
+    analytics.trackPageView('/checkout', 'Checkout');
+  }, []);
   if (!CHECKOUT_ENABLED) {
     return (
       <main className="max-w-3xl mx-auto py-12 space-y-6">

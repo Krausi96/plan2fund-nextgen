@@ -37,7 +37,8 @@ const REQUIREMENT_CATEGORIES = [
   'eligibility', 'documents', 'financial', 'technical', 'legal', 
   'timeline', 'geographic', 'team', 'project', 'compliance', 
   'impact', 'capex_opex', 'use_of_funds', 'revenue_model', 
-  'market_size', 'co_financing', 'trl_level', 'consortium'
+  'market_size', 'co_financing', 'trl_level', 'consortium',
+  'diversity'
 ];
 
 // Discovery State Management
@@ -357,18 +358,12 @@ export class WebScraperService {
     const discoveredUrls = new Set<string>();
     const urlQueue: Array<{url: string, depth: number, seedUrl?: string}> = [];
     
-    // Add seed URLs to queue (if not fully explored in incremental mode)
+    // Add seed URLs to queue for exploration ALWAYS (even if not matching heuristics)
     for (const seedUrl of institution.programUrls) {
-      if (!this.isRealProgramUrl(seedUrl)) {
-        console.log(`  ⚠️  [DISCOVERY] Seed URL filtered: ${seedUrl}`);
-        continue;
-      }
-      
-      // SIMPLIFIED: Always explore seed URLs (no skip logic needed - unscrapedUrls already handles duplicates)
-      // In incremental mode, unscraped URLs from previous runs are already added below (line 261-267)
+      // Seeds can be listing hubs; enqueue for exploration regardless of heuristics
       urlQueue.push({url: seedUrl, depth: 0, seedUrl});
       discoveredUrls.add(seedUrl);
-      console.log(`  ✅ [DISCOVERY] Added seed URL to queue: ${seedUrl}`);
+      console.log(`  ✅ [DISCOVERY] Added seed URL to queue (forced): ${seedUrl}`);
     }
     
     console.log(`  🔍 [DISCOVERY] Queue initialized with ${urlQueue.length} URLs to explore`);
@@ -598,11 +593,25 @@ export class WebScraperService {
       return hasProgramKeyword && !hasBlacklistKeyword;
     }
     
+    // Exclude obvious non-detail/document endpoints
+    if (urlLower.match(/\.(pdf|docx?|xlsx?|ppt)$/)) return false;
+    if (urlLower.includes('download') || urlLower.includes('file=')) return false;
+    if (urlLower.includes('suche') || urlLower.includes('search')) return false;
+
     // For non-query URLs, use standard validation
     const hasValidStructure = !hasQueryParams || 
                              (hasQueryParams && !urlLower.includes('field_') && !urlLower.includes('filter'));
     
-    return hasProgramKeyword && !hasBlacklistKeyword && hasValidStructure;
+    // Require some minimal path depth to avoid top-level hubs
+    let sufficientDepth = true;
+    try {
+      const segs = new URL(url).pathname.split('/').filter(s => s);
+      sufficientDepth = segs.length >= 3;
+    } catch {
+      // ignore URL parse errors
+    }
+    
+    return hasProgramKeyword && !hasBlacklistKeyword && hasValidStructure && sufficientDepth;
   }
 
   // ENHANCED: Check if URL is a program DETAIL page (not a category/listing page)
@@ -615,8 +624,13 @@ export class WebScraperService {
     if (url.includes('?') && (url.includes('field_') || url.includes('filter') || url.includes('name%5B') || url.includes('status%5B'))) {
       return false;
     }
+    // Exclude downloads/documents
+    if (url.match(/\.(pdf|docx?|xlsx?|ppt)$/i) || url.toLowerCase().includes('download')) {
+      return false;
+    }
     
-    const urlPath = new URL(url).pathname.toLowerCase();
+    const urlObj = new URL(url);
+    const urlPath = urlObj.pathname.toLowerCase();
     const pathSegments = urlPath.split('/').filter(s => s.length > 0);
     
     // ENHANCED: Category/listing page indicators (exclude these more comprehensively)
@@ -684,6 +698,17 @@ export class WebScraperService {
       }
     }
     
+    // FFG-specific relaxed rules: accept common detail patterns
+    const host = urlObj.hostname.toLowerCase();
+    if (host.includes('ffg.at')) {
+      if ((urlPath.includes('/ausschreibung/') || urlPath.includes('/programm/')) && !urlPath.endsWith('/')) {
+        if (pathSegments.length >= 2) return true;
+      }
+      if (urlPath.includes('/europa/heu/') && urlPath.includes('/calls/') && pathSegments.length >= 4) {
+        return true;
+      }
+    }
+
     // 3. Check for specific program patterns in path
     // Examples: /programme/Innovationsscheck, /europa/dep/calls/SO1_2025
     if (pathSegments.length >= 2) {
@@ -1908,6 +1933,18 @@ export class WebScraperService {
       });
     }
     
+    // Documents detailed detection
+    const docTerms = ['pitch deck', 'businessplan', 'antragsformular', 'finanzplan', 'cv', 'lebenslauf', 'prototyp', 'meilensteinplan', 'projektbeschreibung'];
+    if (docTerms.some(t => lowerText.includes(t))) {
+      const matched = docTerms.filter(t => lowerText.includes(t)).join(', ');
+      categorized.documents.push({
+        type: 'documents_required',
+        value: matched,
+        required: true,
+        source: 'requirements_text'
+      });
+    }
+    
     // Enhanced co_financing detection in requirements
     const coFinancingKeywords = [
       'eigenmittel', 'eigenkapital', 'co-financing', 'cofinanzierung', 
@@ -1934,8 +1971,10 @@ export class WebScraperService {
       'trl level', 'trl 1', 'trl 2', 'trl 3', 'trl 4', 'trl 5', 'trl 6', 'trl 7', 'trl 8', 'trl 9'
     ];
     if (trlKeywords.some(keyword => lowerText.includes(keyword))) {
+      // Support ranges like TRL 1-3 or Reifegrad 3–6
+      const trlRange = text.match(/trl\s*(\d)\s*[–-]\s*(\d)/i) || text.match(/reifegrad\s*(\d)\s*[–-]\s*(\d)/i);
       const trlMatch = text.match(/trl[\s\-]?(\d{1})/i) || text.match(/technology readiness level[\s\-]?(\d{1})/i);
-      const trlValue = trlMatch ? 'TRL ' + trlMatch[1] : this.extractTRL(text);
+      const trlValue = trlRange ? `TRL ${trlRange[1]}-${trlRange[2]}` : (trlMatch ? 'TRL ' + trlMatch[1] : this.extractTRL(text));
       categorized.trl_level.push({
         type: 'trl_level',
         value: trlValue,
@@ -1943,6 +1982,35 @@ export class WebScraperService {
         source: 'requirements_text'
       });
     }
+
+    // Diversity / gender terms
+    if (lowerText.includes('frauen') || lowerText.includes('female') || lowerText.includes('divers') || lowerText.includes('diversität') || lowerText.includes('gender') || lowerText.includes('esg')) {
+      categorized.diversity.push({
+        type: 'diversity_requirement',
+        value: 'Diversity/Gender related requirement',
+        required: false,
+        source: 'requirements_text'
+      });
+    }
+
+    // Geographic regional hints
+    const regions = [
+      { key: 'wien', value: 'Vienna' },
+      { key: 'steiermark', value: 'Styria' },
+      { key: 'österreich', value: 'Austria' },
+      { key: 'austria', value: 'Austria' },
+      { key: 'eu', value: 'EU' }
+    ];
+    regions.forEach(r => {
+      if (lowerText.includes(r.key)) {
+        categorized.geographic.push({
+          type: 'location',
+          value: r.value,
+          required: true,
+          source: 'requirements_text'
+        });
+      }
+    });
   }
 
   // REMOVED: parseEligibilityTextEnhanced and parseRequirementsTextEnhanced

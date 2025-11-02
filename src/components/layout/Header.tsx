@@ -62,19 +62,14 @@ export default function Header() {
               <User className="w-4 h-4" />
               My Account
             </Link>
-          ) : null}
-          <Link 
-            href="/reco" 
-            className="px-4 py-2 text-primary border border-primary rounded-lg hover:bg-primary hover:text-white transition-colors font-medium"
-          >
-            Find Funding
-          </Link>
-          <Link 
-            href="/reco?product=submission" 
-            className="px-6 py-2 bg-primary text-white rounded-lg hover:bg-primaryHover transition-colors font-medium shadow-md hover:shadow-lg"
-          >
-            {t('nav.startPlan')}
-          </Link>
+          ) : (
+            <Link 
+              href="/login" 
+              className="px-5 py-2 border border-primary text-primary rounded-lg hover:bg-primary hover:text-white transition-colors font-medium"
+            >
+              Log in
+            </Link>
+          )}
           <LanguageSwitcher />
         </nav>
 
@@ -125,21 +120,15 @@ export default function Header() {
                 <User className="w-4 h-4" />
                 {t('nav.myAccount')}
               </Link>
-            ) : null}
-            <Link 
-              href="/reco" 
-              className="px-4 py-2 text-blue-600 border border-blue-600 rounded-lg hover:bg-blue-600 hover:text-white transition-colors font-medium text-center"
-              onClick={() => setOpen(false)}
-            >
-              Find Funding
-            </Link>
-            <Link 
-              href="/reco?product=submission" 
-              className="px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors font-medium text-center mt-2 shadow-md hover:shadow-lg"
-              onClick={() => setOpen(false)}
-            >
-              {t('nav.startPlan')}
-            </Link>
+            ) : (
+              <Link 
+                href="/login" 
+                className="px-4 py-2 text-blue-600 border border-blue-600 rounded-lg hover:bg-blue-600 hover:text-white transition-colors font-medium text-center"
+                onClick={() => setOpen(false)}
+              >
+                Log in
+              </Link>
+            )}
             <div className="pt-4 border-t">
               <LanguageSwitcher compact />
             </div>

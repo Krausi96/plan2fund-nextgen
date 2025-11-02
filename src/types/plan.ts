@@ -50,6 +50,12 @@ export type PlanDocument = {
       revenueCosts?: boolean, 
       cashflow?: boolean, 
       useOfFunds?: boolean 
+    },
+    titlePage?: {
+      title?: string,
+      subtitle?: string,
+      author?: string,
+      date?: string
     }
   },
   sections: PlanSection[],

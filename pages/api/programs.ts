@@ -474,47 +474,72 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       }
     }
     
-    // Try database first, fallback to JSON data
-    if (pool) {
-      try {
-        let query = `
-          SELECT id, name, description, program_type, funding_amount_min, funding_amount_max, 
-                 source_url, deadline, is_active, scraped_at
-          FROM programs 
-          WHERE is_active = true
-        `;
+    // Try NEON database (scraper-lite pages table)
+    try {
+      const { searchPages, getAllPages } = require('../../scraper-lite/src/db/page-repository');
+      
+      const pages = type 
+        ? await searchPages({ region: type, limit: 1000 }) // Using region as proxy for type for now
+        : await getAllPages(1000);
+      
+      // Transform pages to programs format
+      const programs = await Promise.all(pages.map(async (page) => {
+        // Get requirements
+        const { getPool } = require('../../scraper-lite/src/db/neon-client');
+        const pool = getPool();
+        const reqResult = await pool.query(
+          'SELECT category, type, value, required, source FROM requirements WHERE page_id = $1',
+          [page.id]
+        );
         
-        const params = [];
-        if (type) {
-          query += ` AND program_type = $1`;
-          params.push(type);
-        }
-        
-        query += ` ORDER BY scraped_at DESC`;
-        
-        const result = await pool.query(query, params);
-        
-        const programs = result.rows.map(row => ({
-          id: row.id,
-          name: row.name,
-          type: row.program_type,
-          requirements: {},
-          notes: row.description,
-          maxAmount: row.funding_amount_max,
-          link: row.source_url
-        }));
-        
-        return res.status(200).json({
-          success: true,
-          programs,
-          count: programs.length,
-          message: `Found ${programs.length} programs from database`,
-          source: 'database'
+        const categorized_requirements = {};
+        reqResult.rows.forEach(row => {
+          if (!categorized_requirements[row.category]) {
+            categorized_requirements[row.category] = [];
+          }
+          categorized_requirements[row.category].push({
+            type: row.type,
+            value: row.value,
+            required: row.required,
+            source: row.source
+          });
         });
-      } catch (dbError) {
-        console.warn('Database query failed, using fallback data:', dbError);
-        // Fall through to fallback data
-      }
+        
+        return {
+          id: `page_${page.id}`,
+          name: page.title || page.url,
+          type: type || 'grant',
+          program_type: type || 'grant',
+          description: page.description,
+          funding_amount_min: page.funding_amount_min,
+          funding_amount_max: page.funding_amount_max,
+          source_url: page.url,
+          url: page.url,
+          deadline: page.deadline,
+          open_deadline: page.open_deadline,
+          contact_email: page.contact_email,
+          contact_phone: page.contact_phone,
+          requirements: {},
+          categorized_requirements,
+          notes: page.description,
+          maxAmount: page.funding_amount_max,
+          link: page.url,
+          region: page.region,
+          funding_types: page.funding_types || [],
+          program_focus: page.program_focus || []
+        };
+      }));
+      
+      return res.status(200).json({
+        success: true,
+        programs,
+        count: programs.length,
+        message: `Found ${programs.length} programs from NEON database`,
+        source: 'neon-database'
+      });
+    } catch (dbError) {
+      console.warn('NEON database query failed, using fallback data:', dbError);
+      // Fall through to fallback data
     }
     
     // Fallback to JSON data

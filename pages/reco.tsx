@@ -1,6 +1,12 @@
 ﻿import SmartWizard from "@/components/wizard/SmartWizard";
+import { useEffect } from "react";
+import analytics from "@/lib/analytics";
 
 export default function RecoPage() {
+  useEffect(() => {
+    analytics.trackPageView('/reco', 'Recommendations');
+    analytics.trackUserAction('reco_started', {});
+  }, []);
   // Lightweight render timing to investigate slow loads
   if (typeof window !== 'undefined') {
     performance.mark('reco-render-start');

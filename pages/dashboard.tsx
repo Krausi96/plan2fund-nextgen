@@ -24,10 +24,17 @@ interface Recommendation {
   deadline?: string;
 }
 
+interface ClientWorkspace {
+  id: string;
+  name: string;
+}
+
 export default function DashboardPage() {
   const { userProfile, isLoading } = useUser();
   const [plans, setPlans] = useState<Plan[]>([]);
   const [recommendations, setRecommendations] = useState<Recommendation[]>([]);
+  const [clients, setClients] = useState<ClientWorkspace[]>([]);
+  const [activeClientId, setActiveClientId] = useState<string | null>(null);
   const [stats, setStats] = useState({
     totalPlans: 0,
     completedPlans: 0,
@@ -69,6 +76,13 @@ export default function DashboardPage() {
     const savedRecommendations = JSON.parse(localStorage.getItem('userRecommendations') || '[]');
     setRecommendations(savedRecommendations);
 
+    // Load clients (consultant workspaces) from localStorage
+    const savedClients = JSON.parse(localStorage.getItem('pf_clients') || '[]');
+    if (Array.isArray(savedClients) && savedClients.length > 0) {
+      setClients(savedClients);
+      setActiveClientId(savedClients[0].id);
+    }
+
     // Calculate stats
     const completedPlans = savedPlans.filter((plan: Plan) => plan.status === 'completed').length;
     const activeRecommendations = savedRecommendations.filter((rec: Recommendation) => rec.status === 'pending' || rec.status === 'applied').length;
@@ -80,6 +94,10 @@ export default function DashboardPage() {
       successRate: savedPlans.length > 0 ? Math.round((completedPlans / savedPlans.length) * 100) : 0
     });
   };
+
+  const filteredPlans = activeClientId
+    ? plans.filter((p: any) => p.clientId === activeClientId)
+    : plans;
 
   const getStatusColor = (status: string) => {
     switch (status) {
@@ -189,10 +207,30 @@ export default function DashboardPage() {
               Here's an overview of your funding journey and business plans.
             </p>
           </div>
-          <div className="hidden md:block">
-            <div className="bg-blue-50 px-4 py-2 rounded-lg">
-              <p className="text-sm text-blue-600 font-medium">My Account</p>
-            </div>
+          <div className="hidden md:flex items-center gap-3">
+            {clients.length > 0 && (
+              <div className="flex items-center gap-2">
+                <span className="text-sm text-gray-600">Client:</span>
+                <select
+                  className="px-2 py-1 border rounded text-sm"
+                  value={activeClientId || ''}
+                  onChange={(e)=>{
+                    setActiveClientId(e.target.value || null);
+                    analytics.trackUserAction('dashboard_client_switched', { clientId: e.target.value });
+                  }}
+                >
+                  {clients.map(c => (
+                    <option key={c.id} value={c.id}>{c.name}</option>
+                  ))}
+                </select>
+              </div>
+            )}
+            <Link href="/pricing" onClick={()=>analytics.trackUserAction('dashboard_upgrade_click', {})}>
+              <div className="px-4 py-2 rounded-lg text-sm font-medium border border-blue-600 text-blue-600 hover:bg-blue-600 hover:text-white transition-colors">
+                Upgrade
+              </div>
+            </Link>
+            <div className="bg-blue-50 px-4 py-2 rounded-lg text-sm text-blue-600 font-medium">My Account</div>
           </div>
         </div>
       </div>
@@ -246,13 +284,13 @@ export default function DashboardPage() {
           <div className="flex items-center justify-between mb-6">
             <h2 className="text-xl font-semibold">Recent Business Plans</h2>
             <div className="flex gap-2">
-              <Link href="/reco">
+              <Link href="/reco" onClick={()=>analytics.trackUserAction('dashboard_cta_recommendations', {})}>
                 <Button size="sm" variant="outline">
                   <Plus className="w-4 h-4 mr-2" />
                   Get Recommendations
                 </Button>
               </Link>
-              <Link href="/editor?product=submission&route=grant">
+              <Link href="/editor?product=submission&route=grant" onClick={()=>analytics.trackUserAction('dashboard_cta_new_plan', {})}>
                 <Button size="sm" className="bg-blue-600 hover:bg-blue-700">
                   <Plus className="w-4 h-4 mr-2" />
                   New Plan
@@ -261,7 +299,7 @@ export default function DashboardPage() {
             </div>
           </div>
 
-          {plans.length === 0 ? (
+          {filteredPlans.length === 0 ? (
             <div className="text-center py-8">
               <FileText className="w-12 h-12 text-gray-400 mx-auto mb-4" />
               <p className="text-gray-600 mb-4">No business plans yet</p>
@@ -280,7 +318,7 @@ export default function DashboardPage() {
             </div>
           ) : (
             <div className="space-y-4">
-              {plans.slice(0, 5).map((plan) => (
+              {filteredPlans.slice(0, 5).map((plan) => (
                 <div key={plan.id} className="flex items-center justify-between p-4 border rounded-lg">
                   <div className="flex-1">
                     <h3 className="font-medium text-gray-900">{plan.title}</h3>
@@ -353,20 +391,20 @@ export default function DashboardPage() {
       <Card className="p-6 mt-8">
         <h2 className="text-xl font-semibold mb-6">Quick Actions</h2>
         <div className="grid md:grid-cols-3 gap-4">
-          <Link href="/reco">
+          <Link href="/reco" onClick={()=>analytics.trackUserAction('dashboard_quick_find_funding', {})}>
             <Button variant="outline" className="w-full h-20 flex flex-col items-center justify-center">
               <Target className="w-6 h-6 mb-2" />
               Find Funding
             </Button>
           </Link>
           <div className="space-y-2">
-            <Link href="/reco">
+            <Link href="/reco" onClick={()=>analytics.trackUserAction('dashboard_quick_get_recommendations', {})}>
               <Button variant="outline" className="w-full h-16 flex flex-col items-center justify-center">
                 <FileText className="w-6 h-6 mb-2" />
                 Get Recommendations
               </Button>
             </Link>
-            <Link href="/editor?product=submission&route=grant">
+            <Link href="/editor?product=submission&route=grant" onClick={()=>analytics.trackUserAction('dashboard_quick_create_plan', {})}>
               <Button variant="outline" className="w-full h-16 flex flex-col items-center justify-center">
                 <FileText className="w-6 h-6 mb-2" />
                 Create Plan

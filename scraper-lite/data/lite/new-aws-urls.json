@@ -1,0 +1,28 @@
+{
+  "institution": "Austria Wirtschaftsservice (aws)",
+  "baseUrl": "https://www.aws.at",
+  "programUrls": [
+    "https://www.aws.at/en/aws-guarantee/",
+    "https://www.aws.at/en/aws-guarantee/young-enterprises/",
+    "https://www.aws.at/en/aws-guarantee/equity-leverage/",
+    "https://www.aws.at/en/aws-guarantee/internationalisation/",
+    "https://www.aws.at/en/aws-guarantee/consolidation/",
+    "https://www.aws.at/en/aws-erp-loan/",
+    "https://www.aws.at/en/aws-erp-kredit/tourismus/",
+    "https://www.aws.at/en/aws-preseed-innovative-solutions/",
+    "https://www.aws.at/en/aws-preseed-deep-tech/",
+    "https://www.aws.at/en/aws-seedfinancing-innovative-solutions/",
+    "https://www.aws.at/en/aws-seedfinancing-deep-tech/",
+    "https://www.aws.at/en/aws-innovation-protection/",
+    "https://www.aws.at/en/aws-innovation-protection/schluesseltechnologien/",
+    "https://www.aws.at/en/aws-equity/",
+    "https://www.aws.at/en/aws-digitalization/",
+    "https://www.aws.at/en/aws-digitalization/ai-start/",
+    "https://www.aws.at/en/aws-digitalisierung/ai-unternehmen-wachstum/ai-adoption/"
+  ],
+  "fundingTypes": ["grant", "loan", "equity"],
+  "region": "Austria",
+  "keywords": ["aws", "Förderung", "innovation", "startup"]
+}
+
+

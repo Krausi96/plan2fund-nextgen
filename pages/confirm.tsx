@@ -1,12 +1,16 @@
 import Link from "next/link"
-import { useState } from "react"
+import { useEffect, useState } from "react"
 import featureFlags from "@/lib/featureFlags"
 import { Button } from "@/components/ui/button"
 import { useI18n } from "@/contexts/I18nContext"
+import analytics from "@/lib/analytics"
 
 export default function ConfirmPage() {
   const { t } = useI18n();
   const CHECKOUT_ENABLED = featureFlags.isEnabled('CHECKOUT_ENABLED')
+  useEffect(() => {
+    analytics.trackPageView('/confirm', 'Confirm');
+  }, []);
   const attachmentTodos = t("confirm.attachmentTodos").split(", ")
   const tier = t("confirm.tier")
   const [email, setEmail] = useState("")

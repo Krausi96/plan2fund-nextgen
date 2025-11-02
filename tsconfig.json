@@ -21,9 +21,29 @@
     "noFallthroughCasesInSwitch": true,
     "baseUrl": ".",
     "paths": {
-      "@/*": [
-        "src/*"
-      ]
+      // Legacy support (during migration)
+      "@/*": ["src/*"],
+      
+      // Features (organized by function)
+      "@/features/*": ["./features/*"],
+      "@/features/reco/*": ["./features/reco/*"],
+      "@/features/editor/*": ["./features/editor/*"],
+      "@/features/intake/*": ["./features/intake/*"],
+      "@/features/export/*": ["./features/export/*"],
+      "@/features/library/*": ["./features/library/*"],
+      
+      // Shared code
+      "@/shared/*": ["./shared/*"],
+      "@/shared/components/*": ["./shared/components/*"],
+      "@/shared/lib/*": ["./shared/lib/*"],
+      "@/shared/types/*": ["./shared/types/*"],
+      "@/shared/data/*": ["./shared/data/*"],
+      
+      // Database
+      "@/database/*": ["./database/*"],
+      
+      // Scraper
+      "@/scraper/*": ["./apps/scraper/src/*"]
     },
     "allowJs": true,
     "incremental": true,
