@@ -138,22 +138,12 @@ async function getProgramRequirements(programId: string) {
       console.log('⚠️ No categorized_requirements found, using minimal data');
       
       // Fallback: minimal structure if no requirements
-      const programData = {
-        id: `page_${page.id}`,
-        name: page.title || page.url,
-        description: page.description,
-        funding_amount_min: page.funding_amount_min,
-        funding_amount_max: page.funding_amount_max,
-        currency: page.currency || 'EUR',
-        deadline: page.deadline,
-        open_deadline: page.open_deadline || false,
-        contact_email: page.contact_email,
-        contact_phone: page.contact_phone,
-        source_url: page.url
-      };
-      
       return {
         program_id: programId,
+        program_name: page.title || page.url,
+        program_type: (page.funding_types && page.funding_types.length > 0) 
+          ? page.funding_types[0] 
+          : 'grants',
         decision_tree: [],
         editor: [],
         library: [{
