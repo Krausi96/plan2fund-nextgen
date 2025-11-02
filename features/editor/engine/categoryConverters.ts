@@ -236,8 +236,17 @@ export class CategoryConverter {
     return "Eligibility requirements based on categorized data";
   }
 
-  private extractDocuments(_categorizedRequirements: CategorizedRequirements): string[] {
-    return [];
+  private extractDocuments(categorizedRequirements: CategorizedRequirements): string[] {
+    const docs = categorizedRequirements.documents || [];
+    return docs.map(doc => {
+      let text = doc.value || '';
+      if (doc.description) text += ` (${doc.description})`;
+      if (doc.format) text += ` [${doc.format}]`;
+      if (doc.requirements && doc.requirements.length > 0) {
+        text += ` - Requirements: ${doc.requirements.slice(0, 2).join(', ')}`;
+      }
+      return text;
+    });
   }
 
   private extractFundingAmount(_categorizedRequirements: CategorizedRequirements): string {
