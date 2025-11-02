@@ -1,14 +1,10 @@
 // API endpoint for program requirements (Decision Tree, Editor, Library)
 import { NextApiRequest, NextApiResponse } from 'next';
-import { Pool } from 'pg';
 import { categoryConverter, CategorizedRequirements } from '@/features/editor/engine/categoryConverters';
 import { getDocumentBundle } from '@/shared/data/documentBundles';
 import { getDocumentById } from '@/shared/data/documentDescriptions';
 
-const pool = new Pool({
-  connectionString: process.env.DATABASE_URL,
-  ssl: process.env.NODE_ENV === 'production' ? { rejectUnauthorized: false } : false,
-});
+// Database connection handled by scraper-lite/src/db/neon-client.ts
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   const { id } = req.query;
@@ -40,115 +36,159 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 }
 
 async function getProgramRequirements(programId: string) {
-  const client = await pool.connect();
+  // Use scraper-lite database connection (pages + requirements tables)
+  const { getPool } = require('../../../scraper-lite/src/db/neon-client');
+  const pool = getPool();
   
   try {
-    // Get program data from main table with JSONB columns including categorized_requirements
-    const programQuery = `
-      SELECT id, name, description, program_type, funding_amount_min, funding_amount_max,
-             currency, deadline, eligibility_criteria, requirements, contact_info,
-             source_url, target_personas, tags, decision_tree_questions, editor_sections, 
-             readiness_criteria, ai_guidance, categorized_requirements
-      FROM programs 
-      WHERE id = $1 AND is_active = true
+    // Extract page ID from program ID (format: "page_123" or just "123")
+    const pageId = programId.replace('page_', '');
+    
+    // Get page data from pages table (scraper-lite schema)
+    const pageQuery = `
+      SELECT id, url, title, description, funding_amount_min, funding_amount_max,
+             currency, deadline, open_deadline, contact_email, contact_phone,
+             region, funding_types, program_focus, fetched_at
+      FROM pages 
+      WHERE id = $1
     `;
-    const programResult = await client.query(programQuery, [programId]);
-
-    if (programResult.rows.length === 0) {
-      throw new Error('Program not found');
+    const pageResult = await pool.query(pageQuery, [pageId]);
+    
+    if (pageResult.rows.length === 0) {
+      throw new Error(`Program not found (page_id: ${pageId})`);
     }
+    
+    const page = pageResult.rows[0];
+    
+    // Get requirements from requirements table (18 categories)
+    const reqQuery = `
+      SELECT category, type, value, required, source, description, format
+      FROM requirements
+      WHERE page_id = $1
+      ORDER BY category, type
+    `;
+    const reqResult = await pool.query(reqQuery, [pageId]);
+    
+    // Transform requirements to categorized_requirements format
+    const categorizedRequirements: any = {};
+    reqResult.rows.forEach((row: any) => {
+      if (!categorizedRequirements[row.category]) {
+        categorizedRequirements[row.category] = [];
+      }
+      categorizedRequirements[row.category].push({
+        type: row.type,
+        value: row.value,
+        required: row.required,
+        source: row.source,
+        description: row.description,
+        format: row.format
+      });
+    });
 
-    const program = programResult.rows[0];
-
-    // Check if we have categorized_requirements from Layer 1&2
-    if (program.categorized_requirements && Object.keys(program.categorized_requirements).length > 0) {
-      console.log('🔄 Using categorized_requirements from Layer 1&2');
-      
-      // Use decision tree engine to generate questions from categorized data
-      const categorizedRequirements = program.categorized_requirements as CategorizedRequirements;
-      
-      // Import question engine
-      const { QuestionEngine } = await import('@/features/reco/engine/questionEngine');
-      
-      // Create question engine from program data
-      const questionEngine = new QuestionEngine([program]);
-      const decisionTree = questionEngine.getCoreQuestions();
+    // Check if we have categorized_requirements
+    if (Object.keys(categorizedRequirements).length > 0) {
+      console.log('🔄 Using categorized_requirements from database');
       
       // Determine program type for template selection
-      const programType = program.program_type || 'grants';
+      const programType = (page.funding_types && page.funding_types.length > 0) 
+        ? page.funding_types[0] 
+        : 'grants';
       
-      const editor = categoryConverter.convertToEditorSections(categorizedRequirements, programType);
-      const library = [categoryConverter.convertToLibraryData(categorizedRequirements, program)];
+      // Create program-like object for converters
+      const programData = {
+        id: `page_${page.id}`,
+        name: page.title || page.url,
+        description: page.description,
+        funding_amount_min: page.funding_amount_min,
+        funding_amount_max: page.funding_amount_max,
+        currency: page.currency || 'EUR',
+        deadline: page.deadline,
+        open_deadline: page.open_deadline || false,
+        contact_email: page.contact_email,
+        contact_phone: page.contact_phone,
+        source_url: page.url,
+        region: page.region,
+        funding_types: page.funding_types || [],
+        program_focus: page.program_focus || [],
+        categorized_requirements: categorizedRequirements
+      };
+      
+      // Use question engine to generate decision tree questions
+      const { QuestionEngine } = await import('@/features/reco/engine/questionEngine');
+      const questionEngine = new QuestionEngine([programData as any]);
+      const decisionTree = questionEngine.getCoreQuestions();
+      
+      // Convert to editor and library formats
+      const editor = categoryConverter.convertToEditorSections(categorizedRequirements as CategorizedRequirements, programType);
+      const library = [categoryConverter.convertToLibraryData(categorizedRequirements as CategorizedRequirements, programData as any)];
 
-      const additionalDocuments = buildAdditionalDocuments(program, categorizedRequirements);
+      const additionalDocuments = buildAdditionalDocuments(programData, categorizedRequirements);
+      
       return {
         program_id: programId,
         decision_tree: decisionTree,
         editor: editor,
         library: library,
         additionalDocuments,
-        data_source: 'categorized_requirements' // Flag to indicate we used new system
+        data_source: 'database' // Flag to indicate we used database
       };
     } else {
-      console.log('⚠️ No categorized_requirements found, falling back to legacy data');
+      console.log('⚠️ No categorized_requirements found, using minimal data');
       
-      // Fallback to legacy transformation for programs without categorized_requirements
-      const decisionTree = (program.decision_tree_questions || []).map((q: any, index: number) => ({
-        id: q.id || `q_${index}`,
-        question_text: q.question,
-        answer_options: q.options || [],
-        next_question_id: q.follow_up_questions && q.follow_up_questions[0] ? q.follow_up_questions[0].replace('q_', '') : null,
-        validation_rules: q.validation_rules || [],
-        skip_logic: {},
-        required: q.required !== false,
-        category: q.ai_guidance || 'eligibility'
-      }));
-
-      const editor = (program.editor_sections || []).map((s: any, index: number) => ({
-        id: s.id || `section_${index}`,
-        section_name: s.title,
-        prompt: s.guidance || '',
-        hints: s.hints || [],
-        word_count_min: s.word_count_min,
-        word_count_max: s.word_count_max,
-        required: s.required !== false,
-        ai_guidance: s.guidance,
-        template: s.template || ''
-      }));
-
-      const library = [{
-        id: 'library_1',
-        eligibility_text: (program.eligibility_criteria && program.eligibility_criteria.text) || program.description || '',
-        documents: (program.requirements && program.requirements.documents) || [],
-        funding_amount: `${program.funding_amount_min || 0} - ${program.funding_amount_max || 0} ${program.currency || 'EUR'}`,
-        deadlines: program.deadline ? [program.deadline] : [],
-        application_procedures: (program.requirements && program.requirements.procedures) || [],
-        compliance_requirements: (program.requirements && program.requirements.compliance) || [],
-        contact_info: program.contact_info || {}
-      }];
-
-      const additionalDocuments = buildAdditionalDocuments(program, null);
+      // Fallback: minimal structure if no requirements
+      const programData = {
+        id: `page_${page.id}`,
+        name: page.title || page.url,
+        description: page.description,
+        funding_amount_min: page.funding_amount_min,
+        funding_amount_max: page.funding_amount_max,
+        currency: page.currency || 'EUR',
+        deadline: page.deadline,
+        open_deadline: page.open_deadline || false,
+        contact_email: page.contact_email,
+        contact_phone: page.contact_phone,
+        source_url: page.url
+      };
+      
       return {
         program_id: programId,
-        decision_tree: decisionTree,
-        editor: editor,
-        library: library,
-        additionalDocuments,
-        data_source: 'legacy' // Flag to indicate we used legacy system
+        decision_tree: [],
+        editor: [],
+        library: [{
+          id: 'library_1',
+          eligibility_text: page.description || '',
+          documents: [],
+          funding_amount: `${page.funding_amount_min || 0} - ${page.funding_amount_max || 0} ${page.currency || 'EUR'}`,
+          deadlines: page.deadline ? [page.deadline] : [],
+          application_procedures: [],
+          compliance_requirements: [],
+          contact_info: {
+            email: page.contact_email,
+            phone: page.contact_phone
+          }
+        }],
+        additionalDocuments: [],
+        data_source: 'database_minimal'
       };
     }
-  } finally {
-    client.release();
+  } catch (error) {
+    console.error('Error fetching program requirements:', error);
+    throw error;
   }
 }
 
 function buildAdditionalDocuments(program: any, categorizedRequirements: CategorizedRequirements | null) {
   const product: 'submission' | 'strategy' | 'review' = 'submission';
-  const route: 'grant' | 'loan' | 'equity' | 'visa' | 'bankLoans' | 'grants' =
-    (program.program_type === 'loan' ? 'loan' : program.program_type === 'equity' ? 'equity' : 'grant');
+  
+  // Determine route from funding_types or program structure
+  const fundingTypes = program.funding_types || [];
+  let route: 'grant' | 'loan' | 'equity' | 'visa' | 'bankLoans' | 'grants' = 'grants';
+  if (fundingTypes.includes('loan')) route = 'loan';
+  else if (fundingTypes.includes('equity')) route = 'equity';
 
   // Static bundle fallback
-  const bundle = getDocumentBundle(product as any, (route === 'grant' ? 'grants' : route) as any);
+  const bundleRoute = route === 'grant' ? 'grants' : route;
+  const bundle = getDocumentBundle(product as any, bundleRoute as any);
   const staticDocs = (bundle?.documents || []).map((docId: string) => {
     const spec = getDocumentById(docId);
     return {
@@ -189,10 +229,20 @@ async function updateProgramRequirements(
     library?: any[];
   }
 ) {
-  const client = await pool.connect();
+  // Note: This function updates legacy tables that may not exist in scraper-lite schema
+  // Consider deprecating or migrating to pages/requirements schema
+  console.warn('updateProgramRequirements: Using legacy schema - consider migration to pages/requirements');
+  console.warn('updateProgramRequirements: This function may not work with current database schema');
+  
+  // TODO: Implement using pages/requirements schema or deprecate this endpoint
+  throw new Error('updateProgramRequirements is not yet migrated to pages/requirements schema');
+  
+  /* Legacy code - disabled until migration
+  const { getPool } = require('../../../scraper-lite/src/db/neon-client');
+  const pool = getPool();
   
   try {
-    await client.query('BEGIN');
+    await pool.query('BEGIN');
 
     // Update decision tree questions
     if (requirements.decisionTree) {
@@ -270,11 +320,10 @@ async function updateProgramRequirements(
       }
     }
 
-    await client.query('COMMIT');
+    await pool.query('COMMIT');
   } catch (error) {
-    await client.query('ROLLBACK');
+    await pool.query('ROLLBACK');
     throw error;
-  } finally {
-    client.release();
   }
+  */
 }
