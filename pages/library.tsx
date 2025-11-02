@@ -1,11 +1,11 @@
 import React, { useState, useEffect } from 'react';
-import SEOHead from '@/components/common/SEOHead';
+import SEOHead from '@/shared/components/common/SEOHead';
 import { ArrowLeft, FileText, CheckCircle } from 'lucide-react';
 import Link from 'next/link';
 import { useRouter } from 'next/router';
-import ProgramDetails from '@/components/library/ProgramDetails';
-import CTAStrip from '@/components/common/CTAStrip';
-import analytics from '@/lib/analytics';
+import ProgramDetails from '@/features/library/components/ProgramDetails';
+import CTAStrip from '@/shared/components/common/CTAStrip';
+import analytics from '@/shared/lib/analytics';
 
 
 export default function Library() {

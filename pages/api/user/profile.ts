@@ -1,7 +1,7 @@
 // User Profile API Endpoints
 import type { NextApiRequest, NextApiResponse } from 'next';
-import { validateUserProfile } from '@/lib/schemas/userProfile';
-import analytics from '@/lib/analytics';
+import { validateUserProfile } from '@/shared/lib/schemas/userProfile';
+import analytics from '@/shared/lib/analytics';
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   const { method } = req;

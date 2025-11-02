@@ -1,15 +1,15 @@
 import { useEffect, useState } from "react";
 import { useRouter } from "next/router";
-import { Button } from "@/components/ui/button";
+import { Button } from "@/shared/components/ui/button";
 import Link from "next/link";
-import { Dialog, DialogContent, DialogTrigger, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
-import ProgramDetailsModal from "@/components/reco/ProgramDetailsModal";
-// import ExplorationModal from "@/components/reco/ExplorationModal"; // Removed - results managed by context
-import InfoDrawer from "@/components/common/InfoDrawer";
-import { useRecommendation } from "@/contexts/RecommendationContext";
-import { useI18n } from "@/contexts/I18nContext";
-import StructuredRequirementsDisplay from "@/components/results/StructuredRequirementsDisplay";
-import analytics from "@/lib/analytics";
+import { Dialog, DialogContent, DialogTrigger, DialogHeader, DialogTitle, DialogDescription } from "@/shared/components/ui/dialog";
+import ProgramDetailsModal from "@/features/reco/components/ProgramDetailsModal";
+// import ExplorationModal from "@/features/reco/components/ExplorationModal"; // Removed - results managed by context
+import InfoDrawer from '@/shared/components/common/InfoDrawer';
+import { useRecommendation } from "@/features/reco/contexts/RecommendationContext";
+import { useI18n } from "@/shared/contexts/I18nContext";
+import StructuredRequirementsDisplay from "@/shared/components/common/StructuredRequirementsDisplay";
+import analytics from "@/shared/lib/analytics";
 
 // Enhanced program result type with detailed explanations
 type ProgramResult = any; // Using any for now to avoid import issues
@@ -148,7 +148,7 @@ export default function ResultsPage() {
                 const selectedProgram = results[0]; // Use first program as default
                 
                 // Derive signals and get top 3 programs
-                const { deriveSignals } = require('@/lib/enhancedRecoEngine');
+                const { deriveSignals } = require('@/features/reco/engine/enhancedRecoEngine');
                 const derivedSignals = deriveSignals(state.answers);
                          const top3ProgramIds = results.slice(0, 3).map((p: any) => p.id);
                 
@@ -439,7 +439,7 @@ export default function ResultsPage() {
                       className="w-full mt-4 px-6 py-3 bg-gradient-to-r from-blue-600 to-purple-600 text-white rounded-xl font-semibold hover:from-blue-700 hover:to-purple-700 transition-all duration-200 shadow-lg hover:shadow-xl"
                       onClick={() => {
                         // Derive signals and get top 3 programs
-                        const { deriveSignals } = require('@/lib/enhancedRecoEngine');
+                        const { deriveSignals } = require('@/features/reco/engine/enhancedRecoEngine');
                         const derivedSignals = deriveSignals(state.answers);
                          const top3ProgramIds = results.slice(0, 3).map((p: any) => p.id);
                         

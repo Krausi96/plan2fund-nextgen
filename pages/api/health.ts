@@ -25,10 +25,10 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     const programsModules = [
       "src/components/wizard/SmartWizard.tsx",
       "pages/reco.tsx",
-      "src/lib/enhancedRecoEngine.ts",
-      "src/lib/questionEngine.ts",
-      "src/lib/enhancedDataPipeline.ts",
-      "src/lib/dataSource.ts"
+      "shared/lib/enhancedRecoEngine.ts",
+      "shared/lib/questionEngine.ts",
+      "shared/lib/enhancedDataPipeline.ts",
+      "shared/lib/dataSource.ts"
     ];
 
     // Check core system health

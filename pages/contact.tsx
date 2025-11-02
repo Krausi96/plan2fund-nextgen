@@ -1,11 +1,11 @@
-import { Card } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Textarea } from "@/components/ui/textarea";
+import { Card } from "@/shared/components/ui/card";
+import { Button } from "@/shared/components/ui/button";
+import { Input } from "@/shared/components/ui/input";
+import { Textarea } from "@/shared/components/ui/textarea";
 import { Mail, Phone, MapPin, Clock, MessageCircle, HelpCircle } from "lucide-react";
 import { useState } from "react";
-import SEOHead from "@/components/common/SEOHead";
-import { useI18n } from "@/contexts/I18nContext";
+import SEOHead from '@/shared/components/common/SEOHead';
+import { useI18n } from "@/shared/contexts/I18nContext";
 
 export default function ContactPage() {
   const { t } = useI18n();

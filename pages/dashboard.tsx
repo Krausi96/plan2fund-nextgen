@@ -1,10 +1,10 @@
-import { Card } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
+import { Card } from "@/shared/components/ui/card";
+import { Button } from "@/shared/components/ui/button";
 import Link from "next/link";
-import { useUser } from "@/contexts/UserContext";
+import { useUser } from "@/shared/contexts/UserContext";
 import { FileText, Target, TrendingUp, Clock, CheckCircle, AlertCircle, Plus, RefreshCw, Database, Settings } from "lucide-react";
 import { useEffect, useState } from "react";
-import analytics from "@/lib/analytics";
+import analytics from "@/shared/lib/analytics";
 
 interface Plan {
   id: string;

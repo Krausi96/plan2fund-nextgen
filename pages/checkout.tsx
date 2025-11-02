@@ -1,9 +1,9 @@
 ﻿import Link from "next/link";
-import featureFlags from "@/lib/featureFlags";
-import CartSummary from "@/components/common/CartSummary";
-import { useI18n } from "@/contexts/I18nContext";
+import featureFlags from "@/shared/lib/featureFlags";
+import CartSummary from '@/features/export/components/CartSummary';
+import { useI18n } from "@/shared/contexts/I18nContext";
 import { useEffect } from "react";
-import analytics from "@/lib/analytics";
+import analytics from "@/shared/lib/analytics";
 
 export default function Checkout() {
   const { t } = useI18n();

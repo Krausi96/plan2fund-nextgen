@@ -1,6 +1,6 @@
 ﻿import Head from "next/head";
 import { useState } from "react";
-import { useI18n } from "@/contexts/I18nContext";
+import { useI18n } from "@/shared/contexts/I18nContext";
 
 export default function Legal() {
   const { t } = useI18n();

@@ -1,6 +1,6 @@
 import Head from "next/head";
-import { Card } from "@/components/ui/card";
-import { useI18n } from "@/contexts/I18nContext";
+import { Card } from "@/shared/components/ui/card";
+import { useI18n } from "@/shared/contexts/I18nContext";
 
 export default function TermsPage() {
   const { t } = useI18n();

@@ -1,3 +1,14 @@
+/**
+ * ⚠️ DISABLED - DOCUMENTATION ONLY ⚠️
+ * 
+ * This file is kept for reference/documentation purposes only.
+ * The active scraper is in scraper-lite/ (using axios + cheerio instead of Puppeteer).
+ * 
+ * Do not use or import this file in active code.
+ * All functionality has been ported to scraper-lite/src/scraper.ts
+ */
+
+/* DISABLED CODE START - KEPT FOR DOCUMENTATION ONLY
 // Phase 1: Stealth Scraper with 18 Categories
 import puppeteer, { Browser } from 'puppeteer';
 import * as cheerio from 'cheerio';
@@ -2526,3 +2537,4 @@ export class WebScraperService {
     console.log(`💾 Saved ${programs.length} programs with 18 categories`);
   }
 }
+DISABLED CODE END */

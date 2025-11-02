@@ -1,16 +1,16 @@
-﻿import { Hero } from "@/components/common/Hero"
-import { HowItWorks } from "@/components/common/HowItWorks"
-import { WhoItsFor } from "@/components/common/WhoItsFor"
-import { PlanTypes } from "@/components/common/PlanTypes"
-import { WhyPlan2Fund } from "@/components/common/WhyPlan2Fund"
-import { WhyAustria } from "@/components/common/WhyAustria"
-import CTAStrip from "@/components/common/CTAStrip"
-import SEOHead from "@/components/common/SEOHead"
-import { useI18n } from "@/contexts/I18nContext"
+﻿import { Hero } from '@/shared/components/common/Hero'
+import { HowItWorks } from '@/shared/components/common/HowItWorks'
+import { WhoItsFor } from '@/shared/components/common/WhoItsFor'
+import { PlanTypes } from '@/shared/components/common/PlanTypes'
+import { WhyPlan2Fund } from '@/shared/components/common/WhyPlan2Fund'
+import { WhyAustria } from '@/shared/components/common/WhyAustria'
+import CTAStrip from '@/shared/components/common/CTAStrip'
+import SEOHead from '@/shared/components/common/SEOHead'
+import { useI18n } from "@/shared/contexts/I18nContext"
 import { useEffect, useState } from "react"
-import analytics from "@/lib/analytics"
+import analytics from "@/shared/lib/analytics"
 import { useRouter } from "next/router"
-import { detectTargetGroup, storeTargetGroupSelection } from '@/lib/targetGroupDetection'
+import { detectTargetGroup, storeTargetGroupSelection } from '@/features/intake/engine/targetGroupDetection'
 
 export default function Home() {
   const { t } = useI18n();

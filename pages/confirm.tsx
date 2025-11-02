@@ -1,9 +1,9 @@
 import Link from "next/link"
 import { useEffect, useState } from "react"
-import featureFlags from "@/lib/featureFlags"
-import { Button } from "@/components/ui/button"
-import { useI18n } from "@/contexts/I18nContext"
-import analytics from "@/lib/analytics"
+import featureFlags from "@/shared/lib/featureFlags"
+import { Button } from "@/shared/components/ui/button"
+import { useI18n } from "@/shared/contexts/I18nContext"
+import analytics from "@/shared/lib/analytics"
 
 export default function ConfirmPage() {
   const { t } = useI18n();

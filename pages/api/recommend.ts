@@ -1,6 +1,6 @@
 import type { NextApiRequest, NextApiResponse } from "next";
-import { scoreProgramsEnhanced } from "@/lib/enhancedRecoEngine";
-import analytics from "@/lib/analytics";
+import { scoreProgramsEnhanced } from "@/features/reco/engine/enhancedRecoEngine";
+import analytics from "@/shared/lib/analytics";
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   if (req.method !== "POST") {

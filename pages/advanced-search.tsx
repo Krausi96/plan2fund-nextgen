@@ -1,11 +1,11 @@
 import { useState, useEffect } from 'react';
-import { Button } from '@/components/ui/button';
-import { Card } from '@/components/ui/card';
+import { Button } from '@/shared/components/ui/button';
+import { Card } from '@/shared/components/ui/card';
 import Link from 'next/link';
 // Removed framer-motion import - using CSS animations instead
-// import { Chip } from '@/lib/aiChipParser'; // Removed - file deleted
-import { useRecommendation } from '@/contexts/RecommendationContext';
-import { useI18n } from '@/contexts/I18nContext';
+// import { Chip } from '@/shared/lib/aiChipParser'; // Removed - file deleted
+import { useRecommendation } from '@/features/reco/contexts/RecommendationContext';
+import { useI18n } from '@/shared/contexts/I18nContext';
 
 // Define Chip type locally since aiChipParser was deleted
 interface Chip {

@@ -1,8 +1,8 @@
-﻿import { Card } from "@/components/ui/card";
-import HeroLite from "@/components/common/HeroLite";
-import CTAStrip from "@/components/common/CTAStrip";
-import SEOHead from "@/components/common/SEOHead";
-import { useI18n } from "@/contexts/I18nContext";
+﻿import { Card } from "@/shared/components/ui/card";
+import HeroLite from '@/shared/components/common/HeroLite';
+import CTAStrip from '@/shared/components/common/CTAStrip';
+import SEOHead from '@/shared/components/common/SEOHead';
+import { useI18n } from "@/shared/contexts/I18nContext";
 import { Mail, ArrowRight } from "lucide-react";
 import Link from "next/link";
 

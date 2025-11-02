@@ -1,12 +1,12 @@
 ﻿import React, { useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/router";
-import featureFlags from "@/lib/featureFlags";
-import { loadPlanSections, type PlanSection } from "@/lib/planStore";
-import analytics from "@/lib/analytics";
-import { getDocumentBundle } from "@/data/documentBundles";
-import { getDocumentById } from "@/data/documentDescriptions";
-import { exportManager } from "@/lib/export";
+import featureFlags from "@/shared/lib/featureFlags";
+import { loadPlanSections, type PlanSection } from "@/shared/lib/planStore";
+import analytics from "@/shared/lib/analytics";
+import { getDocumentBundle } from "@/shared/data/documentBundles";
+import { getDocumentById } from "@/shared/data/documentDescriptions";
+import { exportManager } from "@/features/export/engine/export";
 
 export default function Export() {
   const EXPORT_ENABLED = featureFlags.isEnabled('EXPORT_ENABLED')

@@ -1,13 +1,13 @@
 ﻿import "../styles/globals.css"
 import type { AppProps } from "next/app"
-import AppShell from "@/components/layout/AppShell"
-import { UserProvider } from "@/contexts/UserContext"
-import { I18nProvider } from "@/contexts/I18nContext"
-import { RecommendationProvider } from "@/contexts/RecommendationContext"
+import AppShell from '@/shared/components/layout/AppShell'
+import { UserProvider } from "@/shared/contexts/UserContext"
+import { I18nProvider } from "@/shared/contexts/I18nContext"
+import { RecommendationProvider } from "@/features/reco/contexts/RecommendationContext"
 import { useEffect } from "react"
 import Script from "next/script"
 import { useRouter } from "next/router"
-import analytics from "@/lib/analytics"
+import analytics from "@/shared/lib/analytics"
 
 function AnalyticsWrapper({ children }: { children: React.ReactNode }) {
   const router = useRouter();

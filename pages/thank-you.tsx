@@ -1,8 +1,8 @@
-﻿import { Button } from "@/components/ui/button";
+﻿import { Button } from "@/shared/components/ui/button";
 import Link from "next/link";
 import { useEffect, useState } from "react";
-import { useI18n } from "@/contexts/I18nContext";
-import analytics from "@/lib/analytics";
+import { useI18n } from "@/shared/contexts/I18nContext";
+import analytics from "@/shared/lib/analytics";
 
 export default function SuccessHubPage() {
   const { t } = useI18n();

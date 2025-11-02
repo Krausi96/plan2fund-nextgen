@@ -1,7 +1,7 @@
 import { useState } from 'react'
 import { useRouter } from 'next/router'
-import { useUser } from '@/contexts/UserContext'
-import SEOHead from '@/components/common/SEOHead'
+import { useUser } from '@/shared/contexts/UserContext'
+import SEOHead from '@/shared/components/common/SEOHead'
 
 export default function LoginPage() {
   const router = useRouter()

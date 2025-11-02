@@ -1,16 +1,16 @@
 ﻿import Link from "next/link";
 import { useState, useEffect } from "react";
 import { useRouter } from "next/router";
-import featureFlags from "@/lib/featureFlags";
-import { loadPlanSections, type PlanSection } from "@/lib/planStore";
-import { chapterTemplates } from "@/lib/templates/chapters";
-import analytics from "@/lib/analytics";
-import { useI18n } from "@/contexts/I18nContext";
-import { Switch } from "@/components/ui/switch";
-import { Label } from "@/components/ui/label";
-import ExportRenderer from "@/export/renderer";
-import { getDocumentBundle } from "@/data/documentBundles";
-import { getDocumentById } from "@/data/documentDescriptions";
+import featureFlags from "@/shared/lib/featureFlags";
+import { loadPlanSections, type PlanSection } from "@/shared/lib/planStore";
+import { chapterTemplates } from "@/features/editor/templates/chapters";
+import analytics from "@/shared/lib/analytics";
+import { useI18n } from "@/shared/contexts/I18nContext";
+import { Switch } from "@/shared/components/ui/switch";
+import { Label } from "@/shared/components/ui/label";
+import ExportRenderer from "@/features/export/renderer/renderer";
+import { getDocumentBundle } from "@/shared/data/documentBundles";
+import { getDocumentById } from "@/shared/data/documentDescriptions";
 
 export default function Preview() {
   const { t } = useI18n();

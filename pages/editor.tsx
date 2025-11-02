@@ -2,7 +2,7 @@
 // Main editor page with proper provider wrapping
 
 import { useRouter } from 'next/router';
-import UnifiedEditor from '../src/components/editor/UnifiedEditor';
+import UnifiedEditor from '@/features/editor/components/UnifiedEditor';
 
 export default function EditorPage() {
   const router = useRouter();

@@ -483,7 +483,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         : await getAllPages(1000);
       
       // Transform pages to programs format
-      const programs = await Promise.all(pages.map(async (page) => {
+      const programs = await Promise.all(pages.map(async (page: any) => {
         // Get requirements
         const { getPool } = require('../../scraper-lite/src/db/neon-client');
         const pool = getPool();
@@ -492,8 +492,8 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
           [page.id]
         );
         
-        const categorized_requirements = {};
-        reqResult.rows.forEach(row => {
+        const categorized_requirements: Record<string, any[]> = {};
+        reqResult.rows.forEach((row: any) => {
           if (!categorized_requirements[row.category]) {
             categorized_requirements[row.category] = [];
           }

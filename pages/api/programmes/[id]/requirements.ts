@@ -1,9 +1,9 @@
 // API endpoint for program requirements (Decision Tree, Editor, Library)
 import { NextApiRequest, NextApiResponse } from 'next';
 import { Pool } from 'pg';
-import { categoryConverter, CategorizedRequirements } from '../../../../src/lib/categoryConverters';
-import { getDocumentBundle } from '../../../../src/data/documentBundles';
-import { getDocumentById } from '../../../../src/data/documentDescriptions';
+import { categoryConverter, CategorizedRequirements } from '@/features/editor/engine/categoryConverters';
+import { getDocumentBundle } from '@/shared/data/documentBundles';
+import { getDocumentById } from '@/shared/data/documentDescriptions';
 
 const pool = new Pool({
   connectionString: process.env.DATABASE_URL,
@@ -68,7 +68,7 @@ async function getProgramRequirements(programId: string) {
       const categorizedRequirements = program.categorized_requirements as CategorizedRequirements;
       
       // Import question engine
-      const { QuestionEngine } = await import('../../../../src/lib/questionEngine');
+      const { QuestionEngine } = await import('@/features/reco/engine/questionEngine');
       
       // Create question engine from program data
       const questionEngine = new QuestionEngine([program]);

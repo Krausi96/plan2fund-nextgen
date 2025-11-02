@@ -1,6 +1,6 @@
 // GDPR Data Deletion Endpoint
 import type { NextApiRequest, NextApiResponse } from 'next';
-import analytics from '@/lib/analytics';
+import analytics from '@/shared/lib/analytics';
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   if (req.method !== 'POST') {

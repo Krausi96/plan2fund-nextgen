@@ -1,7 +1,7 @@
 // Intake Parser API Endpoint
 import type { NextApiRequest, NextApiResponse } from 'next';
-import { IntakeEngine, validateFundingProfile } from '@/lib/intakeEngine';
-import analytics from '@/lib/analytics';
+import { IntakeEngine, validateFundingProfile } from '@/features/intake/engine/intakeEngine';
+import analytics from '@/shared/lib/analytics';
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   if (req.method !== 'POST') {

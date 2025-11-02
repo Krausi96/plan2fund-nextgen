@@ -1,7 +1,7 @@
 // Privacy Settings Page
 import React, { useState, useEffect } from 'react';
-import { useUser } from '@/contexts/UserContext';
-import analytics from '@/lib/analytics';
+import { useUser } from '@/shared/contexts/UserContext';
+import analytics from '@/shared/lib/analytics';
 
 export default function PrivacySettings() {
   const { userProfile } = useUser();

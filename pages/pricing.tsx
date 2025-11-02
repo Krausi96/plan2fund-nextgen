@@ -1,22 +1,22 @@
 ﻿import Link from "next/link";
-import { Button } from "@/components/ui/button";
-import CTAStrip from "@/components/common/CTAStrip";
-import SEOHead from "@/components/common/SEOHead";
-import { useI18n } from "@/contexts/I18nContext";
-import { detectTargetGroup } from "@/lib/targetGroupDetection";
+import { Button } from "@/shared/components/ui/button";
+import CTAStrip from '@/shared/components/common/CTAStrip';
+import SEOHead from '@/shared/components/common/SEOHead';
+import { useI18n } from "@/shared/contexts/I18nContext";
+import { detectTargetGroup } from "@/features/intake/engine/targetGroupDetection";
 import { useState, useEffect } from "react";
 import { 
   ArrowRight, 
   ChevronDown,
   ChevronUp
 } from "lucide-react";
-import { RequirementsDisplay } from "@/components/pricing/RequirementsDisplay";
-import { FilterTabs } from "@/components/pricing/FilterTabs";
-import { FilterTabContent } from "@/components/pricing/FilterTabContent";
-import { ProofSection } from "@/components/pricing/ProofSection";
-import { AddonsSection } from "@/components/pricing/AddonsSection";
-import { type Product, type FundingType, type TargetGroup } from "@/data/basisPack";
-import analytics from "@/lib/analytics";
+import { RequirementsDisplay } from "@/features/export/components/pricing/RequirementsDisplay";
+import { FilterTabs } from "@/features/export/components/pricing/FilterTabs";
+import { FilterTabContent } from "@/features/export/components/pricing/FilterTabContent";
+import { ProofSection } from "@/features/export/components/pricing/ProofSection";
+import { AddonsSection } from "@/features/export/components/pricing/AddonsSection";
+import { type Product, type FundingType, type TargetGroup } from "@/shared/data/basisPack";
+import analytics from "@/shared/lib/analytics";
 
 
 // Helper function to map target group detection to BASIS PACK types

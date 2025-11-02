@@ -1,6 +1,6 @@
-﻿import SmartWizard from "@/components/wizard/SmartWizard";
+﻿import SmartWizard from "@/features/reco/components/wizard/SmartWizard";
 import { useEffect } from "react";
-import analytics from "@/lib/analytics";
+import analytics from "@/shared/lib/analytics";
 
 export default function RecoPage() {
   useEffect(() => {

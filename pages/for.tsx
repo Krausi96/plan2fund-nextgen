@@ -1,10 +1,10 @@
 import { useState, useEffect } from "react";
 import { useRouter } from "next/router";
-import HeroLite from "@/components/common/HeroLite";
-import CTAStrip from "@/components/common/CTAStrip";
-import SEOHead from "@/components/common/SEOHead";
-import analytics from "@/lib/analytics";
-import { useI18n } from "@/contexts/I18nContext";
+import HeroLite from '@/shared/components/common/HeroLite';
+import CTAStrip from '@/shared/components/common/CTAStrip';
+import SEOHead from '@/shared/components/common/SEOHead';
+import analytics from "@/shared/lib/analytics";
+import { useI18n } from "@/shared/contexts/I18nContext";
 import { 
   Building, 
   Shield, 
@@ -50,7 +50,7 @@ interface UserType {
   };
 }
 
-const getUserTypes = (t: (key: keyof typeof import('../i18n/en.json')) => string): UserType[] => [
+const getUserTypes = (t: (key: keyof typeof import('../shared/i18n/translations/en.json')) => string): UserType[] => [
   {
     id: "banks",
     title: t("for.banks.title"),
