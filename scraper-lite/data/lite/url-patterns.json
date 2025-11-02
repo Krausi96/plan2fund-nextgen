@@ -35,7 +35,7 @@
       "goodPages": 21,
       "badPages": 0,
       "goodRate": 100,
-      "lastUpdated": "2025-11-01T10:20:21.385Z"
+      "lastUpdated": "2025-11-02T14:23:36.071Z"
     }
   },
   "ffg.at": {
@@ -87,11 +87,11 @@
       "https://www.ffg.at/en/programme/bridge"
     ],
     "stats": {
-      "totalPages": 220,
-      "goodPages": 220,
+      "totalPages": 259,
+      "goodPages": 259,
       "badPages": 0,
       "goodRate": 100,
-      "lastUpdated": "2025-11-01T10:20:21.380Z"
+      "lastUpdated": "2025-11-02T14:23:35.868Z"
     }
   },
   "viennabusinessagency.at": {
@@ -124,7 +124,7 @@
       "goodPages": 20,
       "badPages": 0,
       "goodRate": 100,
-      "lastUpdated": "2025-11-01T10:20:21.383Z"
+      "lastUpdated": "2025-11-02T14:23:36.007Z"
     }
   },
   "sfg.at": {
@@ -159,7 +159,7 @@
       "goodPages": 17,
       "badPages": 0,
       "goodRate": 100,
-      "lastUpdated": "2025-11-01T10:20:21.405Z"
+      "lastUpdated": "2025-11-02T14:23:37.085Z"
     }
   },
   "ams.at": {
@@ -203,7 +203,10 @@
         "/service/.+",
         "/service/[^/]+$",
         "/foerderung[s]?/[^/]+",
-        "/funding[s]?/[^/]+"
+        "/funding[s]?/[^/]+",
+        "/foerderung/[^/]+",
+        "/foerderung/[^/]+$",
+        "/foerderung/.+"
       ],
       "exclude": []
     },
@@ -216,11 +219,11 @@
       "https://www.wko.at/site/kmu-digital/umsetzung.html"
     ],
     "stats": {
-      "totalPages": 22,
-      "goodPages": 22,
+      "totalPages": 30,
+      "goodPages": 30,
       "badPages": 0,
       "goodRate": 100,
-      "lastUpdated": "2025-11-01T10:20:21.405Z"
+      "lastUpdated": "2025-11-02T14:23:37.006Z"
     }
   },
   "bankaustria.at": {
@@ -273,7 +276,7 @@
       "goodPages": 4,
       "badPages": 0,
       "goodRate": 100,
-      "lastUpdated": "2025-11-01T10:20:21.409Z"
+      "lastUpdated": "2025-11-02T14:23:38.326Z"
     }
   },
   "sparkasse.at": {
@@ -305,7 +308,7 @@
       "goodPages": 13,
       "badPages": 3,
       "goodRate": 81,
-      "lastUpdated": "2025-11-01T10:20:21.396Z"
+      "lastUpdated": "2025-11-02T14:23:36.542Z"
     }
   },
   "raiffeisen.at": {
@@ -340,7 +343,7 @@
       "goodPages": 64,
       "badPages": 0,
       "goodRate": 100,
-      "lastUpdated": "2025-11-01T10:20:21.397Z"
+      "lastUpdated": "2025-11-02T14:23:36.588Z"
     }
   },
   "kickstarter.com": {
@@ -419,7 +422,7 @@
       "goodPages": 15,
       "badPages": 0,
       "goodRate": 100,
-      "lastUpdated": "2025-11-01T10:20:21.386Z"
+      "lastUpdated": "2025-11-02T14:23:36.122Z"
     }
   },
   "bpifrance.fr": {
@@ -442,7 +445,7 @@
       "goodPages": 19,
       "badPages": 0,
       "goodRate": 100,
-      "lastUpdated": "2025-11-01T10:20:21.387Z"
+      "lastUpdated": "2025-11-02T14:23:36.170Z"
     }
   },
   "ec.europa.eu": {
@@ -453,7 +456,9 @@
         "/esf/[^/]+",
         "/regional_policy/[^/]+",
         "/regional_policy/[^/]+$",
-        "/regional_policy/.+"
+        "/regional_policy/.+",
+        "/foerderung[s]?/[^/]+",
+        "/funding[s]?/[^/]+"
       ],
       "exclude": []
     },
@@ -463,11 +468,11 @@
       "https://ec.europa.eu/esf/main.jsp?catId=3&langId=en"
     ],
     "stats": {
-      "totalPages": 31,
-      "goodPages": 5,
+      "totalPages": 57,
+      "goodPages": 31,
       "badPages": 26,
-      "goodRate": 16,
-      "lastUpdated": "2025-11-01T10:20:21.390Z"
+      "goodRate": 54,
+      "lastUpdated": "2025-11-02T14:23:36.295Z"
     }
   },
   "eic.ec.europa.eu": {
@@ -493,7 +498,7 @@
       "goodPages": 11,
       "badPages": 0,
       "goodRate": 100,
-      "lastUpdated": "2025-11-01T10:20:21.391Z"
+      "lastUpdated": "2025-11-02T14:23:36.328Z"
     }
   },
   "kmudigital.at": {
@@ -518,7 +523,7 @@
       "goodPages": 2,
       "badPages": 0,
       "goodRate": 100,
-      "lastUpdated": "2025-11-01T10:20:21.392Z"
+      "lastUpdated": "2025-11-02T14:23:36.423Z"
     }
   },
   "speedinvest.com": {
@@ -583,7 +588,7 @@
       "goodPages": 1,
       "badPages": 0,
       "goodRate": 100,
-      "lastUpdated": "2025-11-01T10:20:21.410Z"
+      "lastUpdated": "2025-11-02T14:23:38.757Z"
     }
   },
   "standort-tirol.at": {
@@ -607,7 +612,7 @@
       "goodPages": 55,
       "badPages": 0,
       "goodRate": 100,
-      "lastUpdated": "2025-11-01T10:20:21.406Z"
+      "lastUpdated": "2025-11-02T14:23:37.239Z"
     }
   },
   "land-oberoesterreich.gv.at": {
@@ -659,7 +664,7 @@
       "goodPages": 18,
       "badPages": 0,
       "goodRate": 100,
-      "lastUpdated": "2025-11-01T10:20:21.391Z"
+      "lastUpdated": "2025-11-02T14:23:36.358Z"
     }
   },
   "wirtschaftsagentur-burgenland.at": {
@@ -700,7 +705,7 @@
       "goodPages": 5,
       "badPages": 0,
       "goodRate": 100,
-      "lastUpdated": "2025-11-01T10:20:21.392Z"
+      "lastUpdated": "2025-11-02T14:23:36.399Z"
     }
   },
   "klimafonds.gv.at": {
@@ -728,7 +733,7 @@
       "goodPages": 4,
       "badPages": 0,
       "goodRate": 100,
-      "lastUpdated": "2025-11-01T10:20:21.411Z"
+      "lastUpdated": "2025-11-02T14:23:38.896Z"
     }
   },
   "cdti.es": {
@@ -770,7 +775,7 @@
       "goodPages": 1,
       "badPages": 8,
       "goodRate": 11,
-      "lastUpdated": "2025-11-01T10:20:21.388Z"
+      "lastUpdated": "2025-11-02T14:23:36.196Z"
     }
   },
   "invitalia.it": {
@@ -816,7 +821,7 @@
       "goodPages": 3,
       "badPages": 0,
       "goodRate": 100,
-      "lastUpdated": "2025-11-01T10:20:21.410Z"
+      "lastUpdated": "2025-11-02T14:23:38.473Z"
     }
   },
   "rvo.nl": {
@@ -857,11 +862,11 @@
       "https://www.rvo.nl/startups"
     ],
     "stats": {
-      "totalPages": 16,
-      "goodPages": 16,
+      "totalPages": 26,
+      "goodPages": 26,
       "badPages": 0,
       "goodRate": 100,
-      "lastUpdated": "2025-11-01T10:20:21.410Z"
+      "lastUpdated": "2025-11-02T14:23:38.627Z"
     }
   },
   "invest-nl.nl": {
@@ -881,11 +886,11 @@
       "https://www.invest-nl.nl/impact"
     ],
     "stats": {
-      "totalPages": 8,
-      "goodPages": 8,
+      "totalPages": 26,
+      "goodPages": 26,
       "badPages": 0,
       "goodRate": 100,
-      "lastUpdated": "2025-11-01T10:20:21.388Z"
+      "lastUpdated": "2025-11-02T14:23:36.222Z"
     }
   },
   "oeeb.at": {
@@ -959,7 +964,7 @@
       "goodPages": 48,
       "badPages": 0,
       "goodRate": 100,
-      "lastUpdated": "2025-11-01T10:20:21.389Z"
+      "lastUpdated": "2025-11-02T14:23:36.245Z"
     }
   },
   "eif.org": {
@@ -1055,7 +1060,7 @@
       "goodPages": 11,
       "badPages": 0,
       "goodRate": 100,
-      "lastUpdated": "2025-11-01T10:20:21.404Z"
+      "lastUpdated": "2025-11-02T14:23:36.934Z"
     }
   },
   "bmwet.gv.at": {
@@ -1077,7 +1082,7 @@
       "goodPages": 16,
       "badPages": 0,
       "goodRate": 100,
-      "lastUpdated": "2025-11-01T10:20:21.392Z"
+      "lastUpdated": "2025-11-02T14:23:36.438Z"
     }
   },
   "oeht.at": {
@@ -1107,7 +1112,7 @@
       "goodPages": 15,
       "badPages": 0,
       "goodRate": 100,
-      "lastUpdated": "2025-11-01T10:20:21.398Z"
+      "lastUpdated": "2025-11-02T14:23:36.616Z"
     }
   },
   "s-leasing.at": {
@@ -1218,7 +1223,7 @@
       "goodPages": 37,
       "badPages": 1,
       "goodRate": 97,
-      "lastUpdated": "2025-11-01T10:20:21.398Z"
+      "lastUpdated": "2025-11-02T14:23:36.630Z"
     }
   },
   "volksbank.at": {
@@ -1246,7 +1251,7 @@
       "goodPages": 18,
       "badPages": 0,
       "goodRate": 100,
-      "lastUpdated": "2025-11-01T10:20:21.399Z"
+      "lastUpdated": "2025-11-02T14:23:36.658Z"
     }
   },
   "hyponoe.at": {
@@ -1275,7 +1280,7 @@
       "goodPages": 32,
       "badPages": 0,
       "goodRate": 100,
-      "lastUpdated": "2025-11-01T10:20:21.400Z"
+      "lastUpdated": "2025-11-02T14:23:36.717Z"
     }
   },
   "hypotirol.com": {
@@ -1301,7 +1306,7 @@
       "goodPages": 11,
       "badPages": 0,
       "goodRate": 100,
-      "lastUpdated": "2025-11-01T10:20:21.401Z"
+      "lastUpdated": "2025-11-02T14:23:36.730Z"
     }
   },
   "bank-bgld.at": {
@@ -1329,7 +1334,7 @@
       "goodPages": 48,
       "badPages": 0,
       "goodRate": 100,
-      "lastUpdated": "2025-11-01T10:20:21.402Z"
+      "lastUpdated": "2025-11-02T14:23:36.811Z"
     }
   },
   "oekb.at": {
@@ -1357,7 +1362,7 @@
       "goodPages": 72,
       "badPages": 0,
       "goodRate": 100,
-      "lastUpdated": "2025-11-01T10:20:21.404Z"
+      "lastUpdated": "2025-11-02T14:23:36.886Z"
     }
   },
   "oeaw.ac.at": {
@@ -1381,7 +1386,7 @@
       "goodPages": 3,
       "badPages": 0,
       "goodRate": 100,
-      "lastUpdated": "2025-11-01T10:20:21.394Z"
+      "lastUpdated": "2025-11-02T14:23:36.471Z"
     }
   },
   "oead.at": {
@@ -1403,7 +1408,7 @@
       "goodPages": 35,
       "badPages": 0,
       "goodRate": 100,
-      "lastUpdated": "2025-11-01T10:20:21.395Z"
+      "lastUpdated": "2025-11-02T14:23:36.485Z"
     }
   },
   "wwtf.at": {
@@ -1428,7 +1433,7 @@
       "goodPages": 7,
       "badPages": 0,
       "goodRate": 100,
-      "lastUpdated": "2025-11-01T10:20:21.395Z"
+      "lastUpdated": "2025-11-02T14:23:36.495Z"
     }
   },
   "migration.gv.at": {
@@ -1450,7 +1455,7 @@
       "goodPages": 2,
       "badPages": 0,
       "goodRate": 100,
-      "lastUpdated": "2025-11-01T10:20:21.395Z"
+      "lastUpdated": "2025-11-02T14:23:36.514Z"
     }
   },
   "noebeg.at": {
@@ -1476,7 +1481,7 @@
       "goodPages": 6,
       "badPages": 0,
       "goodRate": 100,
-      "lastUpdated": "2025-11-01T10:20:21.409Z"
+      "lastUpdated": "2025-11-02T14:23:38.251Z"
     }
   },
   "wkbg.at": {
@@ -1511,7 +1516,7 @@
       "goodPages": 7,
       "badPages": 0,
       "goodRate": 100,
-      "lastUpdated": "2025-11-01T10:20:21.407Z"
+      "lastUpdated": "2025-11-02T14:23:37.563Z"
     }
   },
   "conda.at": {
@@ -1534,7 +1539,7 @@
       "goodPages": 11,
       "badPages": 0,
       "goodRate": 100,
-      "lastUpdated": "2025-11-01T10:20:21.408Z"
+      "lastUpdated": "2025-11-02T14:23:37.806Z"
     }
   },
   "tecnet.at": {
@@ -1556,7 +1561,7 @@
       "goodPages": 36,
       "badPages": 0,
       "goodRate": 100,
-      "lastUpdated": "2025-11-01T10:20:21.408Z"
+      "lastUpdated": "2025-11-02T14:23:38.172Z"
     }
   },
   "usp.gv.at": {
@@ -1574,7 +1579,7 @@
       "goodPages": 25,
       "badPages": 0,
       "goodRate": 100,
-      "lastUpdated": "2025-11-01T10:20:21.393Z"
+      "lastUpdated": "2025-11-02T14:23:36.460Z"
     }
   },
   "ecall.ffg.at": {
@@ -1588,7 +1593,7 @@
       "goodPages": 2,
       "badPages": 0,
       "goodRate": 100,
-      "lastUpdated": "2025-11-01T10:20:21.407Z"
+      "lastUpdated": "2025-11-02T14:23:37.401Z"
     }
   }
 }
