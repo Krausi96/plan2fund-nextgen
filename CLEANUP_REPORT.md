@@ -124,6 +124,14 @@ These are analysis results, not scripts:
 **Duplicate Code (1):**
 - ✅ `shared/lib/webScraperService.ts` (duplicate of legacy version)
 
+### ⚠️ Files to KEEP (Still in Use)
+
+**DO NOT DELETE - Active Files:**
+- ✅ `shared/lib/institutionConfig.ts` - Used by scraper-lite/config.ts and legacy webScraperService
+- ✅ `shared/lib/submissionPack.ts` - Used by pages/export.tsx for submission pack generation
+- ✅ `shared/lib/multiUserDataManager.ts` - Multi-user data management (may be used in future)
+- ✅ `shared/lib/sourceRegister.ts` - Source register with program data tracking
+
 ---
 
 ---
