@@ -157,6 +157,8 @@ These are analysis results, not scripts:
 - [x] Legacy data files moved to scraper-lite/data/legacy/
 - [x] Old docs archived to docs/archive/
 - [x] API paths updated for new data locations
+- [x] Fixed scraper paths to use scraper-lite/data/lite (removed orphaned root data/lite)
+- [x] Consolidated root MD files - only CLEANUP_REPORT.md remains
 - [ ] Final documentation (comprehensive repo map + scraper deep dive)
 
 ---
@@ -172,10 +174,10 @@ These are analysis results, not scripts:
 - **Status:** ✅ Actively used
 
 #### `data/` folder (root)
-- **Files:** Scraper data JSONs (scraped-programs-*.json, discovery-state.json, etc.)
-- **Usage:** Legacy scraper data, some may still be used as fallback
-- **Decision:** Move to `scraper-lite/data/` to consolidate all scraper data
-- **Status:** ⚠️ Needs consolidation
+- **Files:** App data (`migrated-programs.json`, `notifications.json`)
+- **Usage:** Application data (not scraper data)
+- **Decision:** ✅ Keep root `data/` for app data (separate from scraper data)
+- **Status:** ✅ Cleaned up - removed orphaned `data/lite` (scraper now uses `scraper-lite/data/lite`)
 
 #### `docs/` folder (root)
 - **Files:** 11 documentation files
@@ -204,9 +206,10 @@ These are analysis results, not scripts:
 3. Update all imports
 
 #### Phase 3: Documentation
-1. Keep essential docs: `REPOSITORY_STRUCTURE.md`, `COLLEAGUE_ONBOARDING_RESTRUCTURE.md`, `CLEANUP_REPORT.md`
-2. Archive old docs to `docs/archive/` or consolidate
-3. Create comprehensive guide combining repo map + scraper deep dive
+1. ✅ Keep only `CLEANUP_REPORT.md` in root (single source of truth)
+2. ✅ Moved `REPOSITORY_STRUCTURE.md` and `COLLEAGUE_ONBOARDING_RESTRUCTURE.md` to `docs/`
+3. Archive old docs to `docs/archive/` or consolidate
+4. Create comprehensive guide combining repo map + scraper deep dive
 
 #### Phase 4: Clean Structure
 1. Ensure all files in logical subdirectories

@@ -41,7 +41,7 @@ interface LiteState {
   seen: Record<string, boolean>;
 }
 
-const dataDir = path.join(process.cwd(), 'data', 'lite');
+const dataDir = path.join(__dirname, '..', 'data', 'lite');
 const statePath = path.join(dataDir, 'state.json');
 
 export function loadState(): LiteState {

@@ -391,7 +391,7 @@ export function isProgramDetailPage(url: string): boolean {
 // HTML STORAGE
 // ============================================================================
 
-const RAW_DIR = path.join(process.cwd(), 'data', 'lite', 'raw');
+const RAW_DIR = path.join(__dirname, '..', 'data', 'lite', 'raw');
 
 export function ensureRawDir(): void {
   if (!fs.existsSync(RAW_DIR)) {
