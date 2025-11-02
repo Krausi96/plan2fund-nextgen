@@ -1,6 +1,5 @@
 // Programs API endpoint
 import { NextApiRequest, NextApiResponse } from 'next';
-import { Pool } from 'pg';
 import fs from 'fs';
 import path from 'path';
 
@@ -166,16 +165,8 @@ export function isProgramFresh(program: any, windowHours: number = 24): boolean 
 // DATABASE CONNECTION
 // ============================================================================
 
-let pool: Pool | null = null;
-
-try {
-  pool = new Pool({
-    connectionString: process.env.DATABASE_URL,
-    ssl: false
-  });
-} catch (error) {
-  console.warn('Database connection failed, using fallback data:', error);
-}
+// Database connection handled by scraper-lite/src/db/neon-client.ts
+// No need for separate pool here
 
 // Fallback data from latest scraped programs
 function getFallbackData() {
@@ -251,12 +242,7 @@ function getFallbackData() {
   }
 }
 
-// UNUSED: Enhanced Data Pipeline function (removed import to fix errors)
-// API reads JSON directly which works fine
-async function getProgramsFromEnhancedPipeline(_type?: string): Promise<any[]> {
-  // This function is not called - API reads JSON directly
-  return [];
-}
+// Removed: Enhanced Data Pipeline function (database is now primary source)
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   // Handle CORS preflight (OPTIONS)
@@ -277,204 +263,10 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   res.setHeader('Access-Control-Allow-Headers', 'Content-Type, cache-control');
 
   try {
-    const { type, enhanced, source } = req.query;
+    const { type, enhanced } = req.query;
     
-    // STEP 1.3: Use Enhanced Data Pipeline for intelligent data source
-    if (enhanced === 'true' || source === 'pipeline') {
-      // Use latest scraped data (what scraper just saved)
-      const dataPath = path.join(process.cwd(), 'scraper-lite', 'data', 'legacy', 'scraped-programs-latest.json');
-      const fallbackPath = path.join(process.cwd(), 'scraper-lite', 'data', 'legacy', 'migrated-programs.json');
-      
-      const actualDataPath = fs.existsSync(dataPath) ? dataPath : fallbackPath;
-      if (fs.existsSync(actualDataPath)) {
-        console.log(`✅ Reading from ${fs.existsSync(dataPath) ? 'scraped-programs-latest.json' : 'migrated-programs.json (fallback)'}`);
-        const data = fs.readFileSync(actualDataPath, 'utf8');
-        const jsonData = JSON.parse(data);
-        const rawPrograms = jsonData.programs || [];
-        
-        const programs = rawPrograms.map((program: any) => {
-          const eligibility = program.eligibility_criteria || {};
-          const regeneratedCategorized = transformEligibilityToCategorized(eligibility);
-          
-          // DEBUG: Log sample program
-          if (program.id === rawPrograms[0].id) {
-            console.log('🔍 DEBUG: Sample program categorized_requirements:', regeneratedCategorized);
-            console.log('🔍 DEBUG: Sample program eligibility_criteria:', eligibility);
-          }
-          
-          return {
-            id: program.id,
-            name: program.name,
-            type: program.program_type || program.type || 'grant',
-            requirements: program.requirements || {},
-            notes: program.description || '',
-            maxAmount: program.funding_amount_max || 0,
-            minAmount: program.funding_amount_min || 0,
-            currency: program.currency || 'EUR',
-            link: program.source_url || '',
-            deadline: program.deadline,
-            isActive: program.is_active !== false,
-            scrapedAt: program.scraped_at,
-            eligibility_criteria: eligibility,
-            categorized_requirements: program.categorized_requirements || regeneratedCategorized,
-            target_personas: program.target_personas || [],
-            tags: program.tags || [],
-            decision_tree_questions: program.decision_tree_questions || [],
-            editor_sections: program.editor_sections || [],
-            readiness_criteria: program.readiness_criteria || [],
-            ai_guidance: program.ai_guidance || null
-          };
-        });
-        
-        const filteredPrograms = type 
-          ? programs.filter((p: any) => p.type === type)
-          : programs;
-        
-        // Calculate completeness and freshness per contract review
-        const programsWithScores = filteredPrograms.map((p: any) => ({
-          ...p,
-          completenessScore: calculateCompletenessScore(p),
-          fresh: isProgramFresh(p)
-        }));
-        
-        const overallCompletenessScore = programsWithScores.length > 0
-          ? Math.round(programsWithScores.reduce((sum: number, p: any) => sum + p.completenessScore, 0) / programsWithScores.length)
-          : 0;
-        
-        return res.status(200).json({
-          success: true,
-          programs: programsWithScores,
-          source: 'direct_json',
-          total: programsWithScores.length,
-          completenessScore: overallCompletenessScore,
-          fresh: programsWithScores.some((p: any) => p.fresh),
-          timestamp: new Date().toISOString(),
-        });
-      }
-      
-      // Fallback to Enhanced Data Pipeline
-      try {
-        console.log('🔄 Using Enhanced Data Pipeline (Step 1.3)...');
-        const programs = await getProgramsFromEnhancedPipeline(type as string);
-        
-        return res.status(200).json({
-          success: true,
-          programs,
-          source: 'enhanced_pipeline',
-          total: programs.length,
-          timestamp: new Date().toISOString(),
-          pipeline: {
-            quality_scores: programs.map(p => p.quality_score),
-            confidence_levels: programs.map(p => p.confidence_level),
-            categories_applied: true,
-            dynamic_learning: true
-          }
-        });
-      } catch (error) {
-        console.error('Enhanced Pipeline failed, falling back to database:', error);
-        // Fall through to database fallback
-      }
-    }
-    
-    // Fallback: If enhanced data is requested, use database with AI enhancement
-    if (enhanced === 'true') {
-      try {
-        console.log('🔍 Fetching enhanced programs from database...');
-        
-        // Try database first for enhanced data
-        if (pool) {
-          try {
-            let query = `
-              SELECT id, name, description, program_type, funding_amount_min, funding_amount_max, 
-                     source_url, deadline, is_active, scraped_at,
-                     target_personas, tags, decision_tree_questions, editor_sections, 
-                     readiness_criteria, ai_guidance, categorized_requirements
-              FROM programs 
-              WHERE is_active = true
-            `;
-            
-            const params = [];
-            if (type) {
-              query += ` AND program_type = $1`;
-              params.push(type);
-            }
-            
-            query += ` ORDER BY scraped_at DESC`; // Remove limit to get all programs
-            
-            const result = await pool.query(query, params);
-            
-            const enhancedPrograms = result.rows.map(row => {
-              return {
-                id: row.id,
-                name: row.name,
-                type: row.program_type || 'grant',
-                requirements: row.requirements || {},
-                notes: row.description || '',
-                maxAmount: row.funding_amount_max || 0,
-                link: row.source_url || '',
-                // Use existing AI-enhanced fields from database
-                target_personas: row.target_personas || [],
-                tags: row.tags || [],
-                decision_tree_questions: row.decision_tree_questions || [],
-                editor_sections: row.editor_sections || [],
-                readiness_criteria: row.readiness_criteria || [],
-                ai_guidance: row.ai_guidance || null,
-                // Include categorized requirements from Layer 1&2
-                categorized_requirements: row.categorized_requirements || null
-              };
-            });
-            
-            return res.status(200).json({
-              success: true,
-              programs: enhancedPrograms,
-              count: enhancedPrograms.length,
-              message: `Found ${enhancedPrograms.length} GPT-enhanced programs from database`,
-              source: 'database_enhanced',
-              enhanced: true
-            });
-          } catch (dbError) {
-            console.warn('Database enhanced query failed, using fallback:', dbError);
-            // Fall through to fallback
-          }
-        }
-        
-        // Fallback to basic programs with AI enhancement
-        const basicPrograms = getFallbackData();
-        const enhancedPrograms = basicPrograms.map((program: any) => ({
-          ...program,
-          target_personas: ['startup', 'sme'],
-          tags: [program.type, 'funding'],
-          decision_tree_questions: [],
-          editor_sections: [],
-          readiness_criteria: [],
-          ai_guidance: {
-            context: 'AI-enhanced program data',
-            tone: 'professional',
-            key_points: ['Check eligibility requirements', 'Prepare necessary documents'],
-            prompts: {}
-          }
-        }));
-        
-        const filteredPrograms = type 
-          ? enhancedPrograms.filter((p: any) => p.type === type)
-          : enhancedPrograms;
-        
-        return res.status(200).json({
-          success: true,
-          programs: filteredPrograms,
-          count: filteredPrograms.length,
-          message: `Found ${filteredPrograms.length} GPT-enhanced programs from fallback`,
-          source: 'fallback_enhanced',
-          enhanced: true
-        });
-        
-      } catch (enhancedError) {
-        console.warn('Enhanced data fetch failed, falling back to basic data:', enhancedError);
-        // Fall through to basic data
-      }
-    }
-    
-    // Try NEON database (scraper-lite pages table)
+    // PRIMARY: Try NEON database first (scraper-lite pages table)
+    // This is the source of truth - always use database if available
     try {
       const { searchPages, getAllPages } = require('../../scraper-lite/src/db/page-repository');
       
@@ -482,16 +274,22 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         ? await searchPages({ region: type, limit: 1000 }) // Using region as proxy for type for now
         : await getAllPages(1000);
       
-      // Transform pages to programs format
+      if (pages.length === 0) {
+        console.warn('⚠️ No pages found in database, using JSON fallback');
+        throw new Error('No pages in database');
+      }
+      
+      // Transform pages to programs format with requirements
       const programs = await Promise.all(pages.map(async (page: any) => {
-        // Get requirements
+        // Get requirements for this page
         const { getPool } = require('../../scraper-lite/src/db/neon-client');
         const pool = getPool();
         const reqResult = await pool.query(
-          'SELECT category, type, value, required, source FROM requirements WHERE page_id = $1',
+          'SELECT category, type, value, required, source, description, format FROM requirements WHERE page_id = $1',
           [page.id]
         );
         
+        // Group requirements by category
         const categorized_requirements: Record<string, any[]> = {};
         reqResult.rows.forEach((row: any) => {
           if (!categorized_requirements[row.category]) {
@@ -501,41 +299,76 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
             type: row.type,
             value: row.value,
             required: row.required,
-            source: row.source
+            source: row.source,
+            description: row.description,
+            format: row.format
           });
         });
         
-        return {
+        // Determine program type from funding_types or use query param
+        const programType = (page.funding_types && page.funding_types.length > 0) 
+          ? page.funding_types[0] 
+          : (type as string) || 'grant';
+        
+        const program: any = {
           id: `page_${page.id}`,
           name: page.title || page.url,
-          type: type || 'grant',
-          program_type: type || 'grant',
+          type: programType,
+          program_type: programType,
           description: page.description,
           funding_amount_min: page.funding_amount_min,
           funding_amount_max: page.funding_amount_max,
+          currency: page.currency || 'EUR',
           source_url: page.url,
           url: page.url,
           deadline: page.deadline,
-          open_deadline: page.open_deadline,
+          open_deadline: page.open_deadline || false,
           contact_email: page.contact_email,
           contact_phone: page.contact_phone,
           requirements: {},
+          eligibility_criteria: {}, // Can be derived from categorized_requirements if needed
           categorized_requirements,
           notes: page.description,
-          maxAmount: page.funding_amount_max,
+          maxAmount: page.funding_amount_max || 0,
+          minAmount: page.funding_amount_min || 0,
           link: page.url,
           region: page.region,
           funding_types: page.funding_types || [],
-          program_focus: page.program_focus || []
+          program_focus: page.program_focus || [],
+          scrapedAt: page.fetched_at,
+          isActive: true
         };
+        
+        // Add enhanced fields if requested
+        if (enhanced === 'true') {
+          program.completenessScore = calculateCompletenessScore(program);
+          program.fresh = isProgramFresh(program);
+        }
+        
+        return program;
       }));
+      
+      // Filter by type if specified
+      const filteredPrograms = type 
+        ? programs.filter((p: any) => p.type === type || (p.funding_types && p.funding_types.includes(type)))
+        : programs;
+      
+      const overallCompletenessScore = enhanced === 'true' && filteredPrograms.length > 0
+        ? Math.round(filteredPrograms.reduce((sum: number, p: any) => sum + (p.completenessScore || 0), 0) / filteredPrograms.length)
+        : 0;
+      
+      console.log(`✅ Returning ${filteredPrograms.length} programs from database`);
       
       return res.status(200).json({
         success: true,
-        programs,
-        count: programs.length,
-        message: `Found ${programs.length} programs from NEON database`,
-        source: 'neon-database'
+        programs: filteredPrograms,
+        count: filteredPrograms.length,
+        total: filteredPrograms.length,
+        message: `Found ${filteredPrograms.length} programs from NEON database`,
+        source: 'database',
+        completenessScore: enhanced === 'true' ? overallCompletenessScore : undefined,
+        fresh: enhanced === 'true' ? filteredPrograms.some((p: any) => p.fresh) : undefined,
+        timestamp: new Date().toISOString(),
       });
     } catch (dbError) {
       console.warn('NEON database query failed, using fallback data:', dbError);
