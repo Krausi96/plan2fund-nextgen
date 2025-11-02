@@ -140,11 +140,16 @@ These are analysis results, not scripts:
 - [x] Database review complete
 - [x] Obsolete scripts removed
 - [x] Markdown consolidation
-- [ ] File tree analysis (in progress)
-- [ ] Restructure planning
-- [ ] File moves with import fixes
-- [ ] TypeScript verification
-- [ ] Final documentation
+- [x] File tree analysis complete
+- [x] Restructure planning complete
+- [x] i18n moved to shared/i18n/translations with import fixes
+- [x] TypeScript verification passed (0 errors)
+- [x] Git commit & push successful (commit afd71de)
+- [x] RequirementsChecker moved to shared/components/common/
+- [x] Legacy data files moved to scraper-lite/data/legacy/
+- [x] Old docs archived to docs/archive/
+- [x] API paths updated for new data locations
+- [ ] Final documentation (comprehensive repo map + scraper deep dive)
 
 ---
 

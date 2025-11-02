@@ -17,7 +17,7 @@ import EntryPointsManager from './EntryPointsManager';
 import DocumentCustomizationPanel from './DocumentCustomizationPanel';
 import RichTextEditor from './RichTextEditor';
 import EnhancedAIChat from './EnhancedAIChat';
-import RequirementsChecker from './RequirementsChecker';
+import RequirementsChecker from '@/shared/components/common/RequirementsChecker';
 
 
 // FormattingConfig interface removed - functionality moved to DocumentCustomizationPanel

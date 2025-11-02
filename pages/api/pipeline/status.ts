@@ -39,6 +39,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
     // Check Scraper Layer
     try {
+      const dataDir = path.join(process.cwd(), 'scraper-lite', 'data', 'legacy');
       const latestFile = path.join(dataDir, 'scraped-programs-latest.json');
       if (fs.existsSync(latestFile)) {
         const stats = fs.statSync(latestFile);

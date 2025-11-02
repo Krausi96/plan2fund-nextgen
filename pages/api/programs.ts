@@ -181,7 +181,7 @@ try {
 function getFallbackData() {
   try {
     // Always use latest scraped data (what scraper just saved)
-    const latestDataPath = path.join(process.cwd(), 'data', 'scraped-programs-latest.json');
+    const latestDataPath = path.join(process.cwd(), 'scraper-lite', 'data', 'legacy', 'scraped-programs-latest.json');
     
     let dataPath = latestDataPath;
     if (!fs.existsSync(latestDataPath)) {
@@ -282,8 +282,8 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     // STEP 1.3: Use Enhanced Data Pipeline for intelligent data source
     if (enhanced === 'true' || source === 'pipeline') {
       // Use latest scraped data (what scraper just saved)
-      const dataPath = path.join(process.cwd(), 'data', 'scraped-programs-latest.json');
-      const fallbackPath = path.join(process.cwd(), 'data', 'migrated-programs.json');
+      const dataPath = path.join(process.cwd(), 'scraper-lite', 'data', 'legacy', 'scraped-programs-latest.json');
+      const fallbackPath = path.join(process.cwd(), 'scraper-lite', 'data', 'legacy', 'migrated-programs.json');
       
       const actualDataPath = fs.existsSync(dataPath) ? dataPath : fallbackPath;
       if (fs.existsSync(actualDataPath)) {
