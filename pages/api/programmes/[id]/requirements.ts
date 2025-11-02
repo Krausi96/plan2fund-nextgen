@@ -126,6 +126,8 @@ async function getProgramRequirements(programId: string) {
       
       return {
         program_id: programId,
+        program_name: programData.name,
+        program_type: programType,
         decision_tree: decisionTree,
         editor: editor,
         library: library,
@@ -186,8 +188,8 @@ function buildAdditionalDocuments(program: any, categorizedRequirements: Categor
   if (fundingTypes.includes('loan')) route = 'loan';
   else if (fundingTypes.includes('equity')) route = 'equity';
 
-  // Static bundle fallback
-  const bundleRoute = route === 'grant' ? 'grants' : route;
+  // Static bundle fallback (route is already 'grants' if not loan/equity)
+  const bundleRoute = (route === 'grant' || route === 'grants') ? 'grants' : route;
   const bundle = getDocumentBundle(product as any, bundleRoute as any);
   const staticDocs = (bundle?.documents || []).map((docId: string) => {
     const spec = getDocumentById(docId);
@@ -222,8 +224,8 @@ function buildAdditionalDocuments(program: any, categorizedRequirements: Categor
 }
 
 async function updateProgramRequirements(
-  programId: string, 
-  requirements: {
+  _programId: string, 
+  _requirements: {
     decisionTree?: any[];
     editor?: any[];
     library?: any[];
