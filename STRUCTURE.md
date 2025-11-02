@@ -155,24 +155,51 @@ plan2fund-nextgen/
 │   ├── library.tsx                     # STAYS HERE - imports from features/library/components
 │   └── ...
 │
-├── apps/
-│   └── scraper/                        # SCRAPER APPLICATION (backend)
-│       ├── src/
-│       │   ├── extract.ts
-│       │   ├── scraper.ts
-│       │   ├── config.ts
-│       │   └── utils.ts
-│       ├── scripts/
-│       ├── data/
-│       └── docs/
+├── scraper-lite/                       # SCRAPER APPLICATION (Backend Data Collection)
+│   ├── src/                           # Scraper Source Code (8 files)
+│   │   ├── extract.ts                # Metadata & requirements extraction
+│   │   ├── scraper.ts                # Main scraping logic (discovers URLs, scrapes pages)
+│   │   ├── config.ts                 # Configuration loader (institution config)
+│   │   ├── utils.ts                 # Utility functions (URL normalization, etc.)
+│   │   └── db/                      # Database Layer (5 files) ✅ INTEGRATED
+│   │       ├── neon-client.ts        # Database connection (NEON PostgreSQL)
+│   │       ├── page-repository.ts    # Page data operations (save/read pages)
+│   │       ├── job-repository.ts     # Job queue operations (track scraping jobs)
+│   │       ├── neon-schema.sql       # Database schema (tables: pages, requirements, jobs)
+│   │       └── README.md            # Database setup guide
+│   │
+│   ├── scripts/                      # Scraper Scripts (22 files)
+│   │   ├── auto-cycle.js            # Automated scraping cycles
+│   │   ├── migrate-to-neon.js        # JSON → Database migration ✅
+│   │   ├── test-neon-connection.js   # Database connection test ✅
+│   │   ├── evaluate-unseen-urls.js  # URL quality evaluation
+│   │   ├── learn-patterns-from-scraped.js # Pattern learning
+│   │   ├── monitor-improvements.js   # Quality monitoring
+│   │   └── ... (15 more utility scripts)
+│   │
+│   ├── docs/                         # Scraper Documentation (4 files)
+│   │   ├── DATABASE_INTEGRATION.md  # Database setup guide ✅
+│   │   ├── QUALITY_ANALYSIS_RESULTS.md
+│   │   └── ...
+│   │
+│   ├── data/                         # Scraper Data Storage
+│   │   └── lite/                    # Scraped data
+│   │       ├── raw/                 # Raw HTML files (1658+ files)
+│   │       └── state.json           # Scraping state (legacy, database is primary)
+│   │
+│   ├── run-lite.js                  # Main scraper entry point
+│   └── README.md                    # Scraper documentation
 │
-├── database/                           # DATABASE LAYER
-│   ├── client/
-│   │   └── neon-client.ts
-│   ├── repositories/
-│   │   ├── page-repository.ts
-│   │   └── job-repository.ts
-│   └── schema.sql
+├── database/                          # DATABASE LAYER (PostgreSQL/NEON) ✅
+│   │                                 # NOTE: Currently in scraper-lite/src/db/
+│   │                                 # TODO: Consolidate to database/ during migration
+│   ├── client/                       # Database Connection (To Be Created)
+│   │   └── neon-client.ts           # Move from scraper-lite/src/db/neon-client.ts
+│   ├── repositories/                 # Data Access Layer (To Be Created)
+│   │   ├── page-repository.ts        # Move from scraper-lite/src/db/page-repository.ts
+│   │   └── job-repository.ts        # Move from scraper-lite/src/db/job-repository.ts
+│   └── schema.sql                   # Database Schema (To Be Created)
+│                                     # Move from scraper-lite/src/db/neon-schema.sql
 │
 └── legacy/                             # Legacy code (reference only)
 ```
@@ -193,10 +220,13 @@ import { RequirementsDisplay } from '@/shared/components/pricing/RequirementsDis
 // Shared libraries
 import { dataSource } from '@/shared/lib/dataSource';
 
-// Database
+// Database (After Migration)
 import { savePage } from '@/database/repositories/page-repository';
+import { getPool } from '@/database/client/neon-client';
 
-// Scraper
+// Scraper (Current)
+import { scrape } from '@/scraper-lite/src/scraper';
+// After migration:
 import { scrape } from '@/scraper/src/scraper';
 ```
 
@@ -245,10 +275,38 @@ import { scrape } from '@/scraper/src/scraper';
 **NEVER MOVE:**
 - `pages/*.tsx` - Next.js requires pages here
 - `pages/api/programs.ts` - Main API (may stay or be reviewed later)
+- `scraper-lite/` - Keep structure intact until migration complete
 
 **MUST MOVE:**
 - Feature APIs → `features/*/api/`
 - Feature logic → `features/*/engine/`
 - Feature components → `features/*/components/`
 - Shared components → `shared/components/[category]/`
+- Database files → `database/` (from `scraper-lite/src/db/`) ✅ Planned
+
+## Database Integration Status ✅
+
+**Current State:** Database integration is **COMPLETE** and working
+
+**Files:**
+- ✅ `scraper-lite/src/db/neon-client.ts` - Database connection (NEON PostgreSQL)
+- ✅ `scraper-lite/src/db/page-repository.ts` - Page CRUD operations
+- ✅ `scraper-lite/src/db/job-repository.ts` - Job queue operations
+- ✅ `scraper-lite/src/db/neon-schema.sql` - Database schema
+- ✅ `scraper-lite/scripts/migrate-to-neon.js` - Migration script
+
+**How It Works:**
+1. **Scraper** writes to database via `page-repository.ts` when scraping
+2. **API** (`pages/api/programs.ts`) reads from database
+3. **Web App** fetches data via API endpoint
+
+**Migration Notes:**
+- Database files currently in `scraper-lite/src/db/` (working fine)
+- Plan: Move to `database/` folder during restructure
+- No import errors: Use path aliases `@/database/*` → `database/*`
+- Both scraper and web app will import from `@/database/repositories/page-repository`
+
+**File Count:**
+- Scraper total: **39 files** (8 src, 22 scripts, 4 docs, 5 database)
+- Database layer: **5 files** (4 TypeScript, 1 SQL)
 
