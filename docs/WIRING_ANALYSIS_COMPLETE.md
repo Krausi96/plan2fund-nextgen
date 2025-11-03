@@ -128,40 +128,63 @@ async function updateProgramRequirements() {
 
 ---
 
-## 🎯 **ACTION ITEMS**
+## 🎯 **ACTION ITEMS - UPDATED WITH COMPREHENSIVE AUDIT**
 
-### **High Priority**
+### **Priority 1: Fix Broken API** 🔴 CRITICAL
 
-1. **Remove Empty Folder**
-   - Delete `pages/api/scraper/` folder
+1. **Remove or Fix POST /api/programmes/[id]/requirements**
+   - **Status:** ❌ BROKEN - throws error
+   - **Location:** `pages/api/programmes/[id]/requirements.ts` line 276
+   - **Action:** Remove POST handler (no component uses it) OR implement properly
+   - **Fix:** Either remove lines 21-28 OR implement `updateProgramRequirements()` using scraper-lite schema
 
-2. **Fix POST /api/programmes/[id]/requirements**
-   - Remove POST handler if not needed
-   - Or migrate to pages/requirements schema
-   - Or implement properly
+2. **Remove Empty Folder**
+   - **Location:** `pages/api/scraper/` 
+   - **Action:** DELETE folder
 
-3. **Verify Unused Components**
-   - Check if `RecommendationContext`, `ProgramDetailsModal`, `Phase4Integration`, etc. are needed
-   - Remove if not used
-   - Wire if needed
+### **Priority 2: Fix User Navigation Flow** 🔴 CRITICAL
 
-### **Medium Priority**
+**Problem:** Users cannot complete end-to-end flow
 
-4. **Wire or Remove Unused APIs**
-   - `/api/notifications` - Wire to dashboard or remove
-   - `/api/pipeline/status` - Wire to admin panel or remove
+3. **Wizard → Editor Flow** ✅ WORKING
+   - **Status:** ✅ SmartWizard routes to `/results` → Results page routes to `/editor?programId=X`
+   - **Verified:** Results page has "Continue to Plan" button (line 428-469) that routes correctly
 
-5. **Complete Page Wiring**
-   - Check `pages/index.tsx` wiring
-   - Check `pages/results.tsx` wiring
-   - Ensure all pages use database-backed APIs
+4. **Editor → Export Flow** ❌ MISSING
+   - **Problem:** No visible "Export" button in editor
+   - **Location:** `features/editor/components/Phase4Integration.tsx`
+   - **Fix Needed:** Add export button that routes to `/export?programId=X`
+   - **Note:** ExportRenderer exists but button not visible
 
-### **Low Priority**
+5. **Home Page CTAs** ⚠️ UNCLEAR
+   - **Current:** Routes to both `/editor` and `/reco`
+   - **Fix:** Make flow clear: Home → `/reco` (wizard) → `/results` → `/editor` → `/export`
 
-6. **Documentation**
-   - Document all wired components
-   - Document API endpoint usage
-   - Create component dependency graph
+### **Priority 3: Verify & Remove Unused Code** 🟡
+
+6. **Pages Audit:**
+   - `/results` - ✅ **USED** - Wizard routes here
+   - `/library` - ✅ **USED** - Program browser
+   - `/preview` - ✅ **USED** - Preview page (but unclear flow)
+   - **Action:** Keep all, but clarify flow
+
+7. **Unused APIs:**
+   - `/api/notifications` - ❌ Not called anywhere
+   - `/api/pipeline/status` - ❌ Not called anywhere
+   - **Action:** Remove OR wire to admin/dashboard
+
+### **Priority 4: Complete Component Wiring** 🟢
+
+8. **All components ARE wired** ✅
+   - RequirementsChecker - ✅ **FIXED** - Now uses scraper-lite data
+   - EditorDataProvider - ✅ Uses database
+   - All other components - ✅ Wired
+
+### **Priority 5: Test End-to-End Flow** 🔵
+
+9. **Test Complete Journey:**
+   - Home → Wizard (`/reco`) → Results (`/results`) → Editor (`/editor`) → Write → Export (`/export`) → Download
+   - **Action:** Test each step and document what breaks
 
 ---
 

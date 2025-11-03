@@ -3,6 +3,7 @@
 // NOW WITH INTEGRATED STATE MANAGEMENT (replaces EditorState)
 
 import React, { useState, useEffect, useCallback, useMemo, useRef } from 'react';
+import { useRouter } from 'next/router';
 import ExportRenderer from '@/features/export/renderer/renderer';
 import { PlanDocument } from '@/shared/types/plan';
 import { ProgramProfile } from '@/features/reco/types/reco';
@@ -37,6 +38,7 @@ export default function Phase4Integration({
   onProgramProfileChange,
   onProductChange
 }: Phase4IntegrationProps) {
+  const router = useRouter();
   const { userProfile, isLoading: isUserLoading } = useUser();
   
   // Core state
@@ -474,11 +476,16 @@ export default function Phase4Integration({
                 </svg>
               </button>
               <button
-                onClick={() => setShowInlinePreview(true)}
-                className="px-4 py-2 text-gray-700 border rounded-lg hover:bg-gray-50"
-                title="Preview"
+                onClick={() => {
+                  const previewUrl = programProfile?.programId 
+                    ? `/preview?programId=${programProfile.programId}`
+                    : '/preview';
+                  router.push(previewUrl);
+                }}
+                className="px-4 py-2 bg-gradient-to-r from-blue-600 to-purple-600 text-white rounded-lg hover:from-blue-700 hover:to-purple-700 transition-colors shadow-md hover:shadow-lg"
+                title="Preview your business plan before exporting"
               >
-                Preview
+                📄 Preview
               </button>
               <button
                 onClick={() => {
