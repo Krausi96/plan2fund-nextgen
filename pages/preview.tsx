@@ -420,9 +420,20 @@ export default function Preview() {
         <Link href="/editor?restore=true" className="text-blue-600 hover:underline">
           ← Back to Editor
         </Link>
-        <Link href="/confirm" className="text-blue-600 hover:underline">
-          Continue to Confirm →
-        </Link>
+        <div className="flex gap-3">
+          <button
+            onClick={() => {
+              const { programId } = router.query;
+              router.push(`/export?programId=${programId || ''}`);
+            }}
+            className="px-6 py-2 bg-gradient-to-r from-blue-600 to-purple-600 text-white rounded-lg hover:from-blue-700 hover:to-purple-700 transition-colors shadow-md hover:shadow-lg"
+          >
+            📄 Export Plan
+          </button>
+          <Link href="/confirm" className="px-6 py-2 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300 transition-colors text-center">
+            Continue to Confirm →
+          </Link>
+        </div>
       </div>
       </div>
       <aside className="space-y-4">

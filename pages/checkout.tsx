@@ -1,4 +1,5 @@
 ﻿import Link from "next/link";
+import { useRouter } from "next/router";
 import featureFlags from "@/shared/lib/featureFlags";
 import CartSummary from '@/features/export/components/CartSummary';
 import { useI18n } from "@/shared/contexts/I18nContext";
@@ -6,6 +7,7 @@ import { useEffect } from "react";
 import analytics from "@/shared/lib/analytics";
 
 export default function Checkout() {
+  const router = useRouter();
   const { t } = useI18n();
   const CHECKOUT_ENABLED = featureFlags.isEnabled('CHECKOUT_ENABLED')
   useEffect(() => {
@@ -58,7 +60,14 @@ export default function Checkout() {
           placeholder="CVC"
           className="w-full p-2 border rounded"
         />
-        <button className="w-full py-2 rounded bg-blue-600 text-white hover:bg-blue-700">
+        <button 
+          onClick={() => {
+            // Process payment (stub for now)
+            // After success, route to thank-you page
+            router.push('/thank-you?payment=success');
+          }}
+          className="w-full py-2 rounded bg-blue-600 text-white hover:bg-blue-700"
+        >
           Pay Now (Stub)
         </button>
       </div>

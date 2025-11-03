@@ -227,9 +227,93 @@ export default function Phase4Integration({
         console.warn('Program data not available, continuing with template fallback');
       }
       // Always attempt to load sections (will fallback to templates if API missing)
-      const sections = await editorEngineRef.current.loadSections(programId);
+      let sections = await editorEngineRef.current.loadSections(programId);
       
-      // Create a new plan with the program's sections
+      // CRITICAL FIX: Prefill sections with wizard answers from localStorage
+      try {
+        if (typeof window !== 'undefined') {
+          const userAnswersStr = localStorage.getItem('userAnswers');
+          const enhancedPayloadStr = localStorage.getItem('enhancedPayload');
+          
+          if (userAnswersStr) {
+            const userAnswers = JSON.parse(userAnswersStr);
+            const enhancedPayload = enhancedPayloadStr ? JSON.parse(enhancedPayloadStr) : {};
+            
+            // Use prefill engine to generate content from answers
+            if (Object.keys(userAnswers).length > 0 && programData) {
+              try {
+                const { mapAnswersToSections } = await import('@/features/intake/engine/prefill');
+                
+                // Create program object for prefill
+                const programForPrefill = {
+                  id: programData.id,
+                  name: programData.name || programData.title,
+                  type: programData.type || 'grant',
+                  amount: programData.funding_amount_min ? `${programData.funding_amount_min}-${programData.funding_amount_max || ''}` : '',
+                  eligibility: [],
+                  requirements: [],
+                  score: 100,
+                  reasons: [],
+                  risks: []
+                };
+                
+                // Generate prefilled content
+                const prefilledSections = mapAnswersToSections(userAnswers, programForPrefill);
+                
+                // Merge prefilled content into sections
+                sections = sections.map(section => {
+                  // Try matching by section ID/key
+                  const sectionId = section.id || section.key || '';
+                  const sectionKeyLower = sectionId.toLowerCase();
+                  
+                  // Find matching prefill (try exact match first, then partial)
+                  let prefill: any = null;
+                  
+                  // Try exact match
+                  if (prefilledSections[sectionId]) {
+                    prefill = prefilledSections[sectionId];
+                  }
+                  // Try by section key variations
+                  else if (sectionKeyLower.includes('executive') || sectionKeyLower.includes('summary')) {
+                    prefill = prefilledSections.executive_summary;
+                  } else if (sectionKeyLower.includes('business') || sectionKeyLower.includes('description')) {
+                    prefill = prefilledSections.business_description;
+                  } else if (sectionKeyLower.includes('market')) {
+                    prefill = prefilledSections.market_analysis;
+                  } else if (sectionKeyLower.includes('financial')) {
+                    prefill = prefilledSections.financial_projections;
+                  } else if (sectionKeyLower.includes('team')) {
+                    prefill = prefilledSections.team;
+                  } else if (sectionKeyLower.includes('timeline')) {
+                    prefill = prefilledSections.timeline;
+                  }
+                  
+                  // Apply prefill if found
+                  if (prefill && prefill.content) {
+                    return {
+                      ...section,
+                      content: prefill.content,
+                      status: prefill.hasTBD ? 'needs_fix' as const : 'aligned' as const
+                    };
+                  }
+                  
+                  return section;
+                });
+                
+                console.log('✅ Prefilled sections with wizard answers');
+              } catch (prefillError) {
+                console.warn('Could not prefill sections:', prefillError);
+                // Continue without prefill - non-fatal
+              }
+            }
+          }
+        }
+      } catch (localStorageError) {
+        console.warn('Could not read localStorage for prefill:', localStorageError);
+        // Continue without prefill - non-fatal
+      }
+      
+      // Create a new plan with the program's sections (now prefilled if available)
       const newPlan: PlanDocument = {
         id: `plan_${Date.now()}`,
         ownerId: userProfile?.id || 'anonymous',
@@ -248,9 +332,9 @@ export default function Phase4Integration({
         sections: sections.map(section => ({
           key: section.id,
           title: section.title || section.section_name || 'Untitled Section',
-          content: section.template || section.guidance || '',
-          status: 'missing' as const,
-          wordCount: 0,
+          content: section.template || section.guidance || section.content || '',
+          status: (section.status || (section.content ? 'aligned' : 'missing')) as const,
+          wordCount: section.content ? section.content.split(/\s+/).length : 0,
           required: section.required !== false,
           order: 0
         })),
