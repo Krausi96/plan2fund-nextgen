@@ -380,6 +380,34 @@ export function isProgramDetailPage(url: string): boolean {
       return false;
     }
     
+    // IMPROVEMENT: For known institutions, be more lenient
+    // Check if URL is from a known institution
+    const knownHosts = [
+      'ffg.at', 'aws.at', 'vba.at', 'wko.at', 'sfg.at', 'ams.at',
+      'speedinvest.com', 'eic.ec.europa.eu', 'tecnet.at', 'noebeg.at', 
+      'wkbg.at', 'conda.at', 'kfw.de', 'bpi.fr', 'eib.org', 'eif.org',
+      'horizon', 'europa.eu', 'eif.org', 'bmwk.de', 'rvo.nl', 'invest-nl.nl'
+    ];
+    
+    const isKnownInstitution = knownHosts.some(knownHost => hostname.includes(knownHost));
+    
+    if (isKnownInstitution) {
+      // For known institutions, accept more patterns
+      // Check for funding/program keywords in URL
+      const fundingKeywords = ['funding', 'foerderung', 'programm', 'program', 'ausschreibung', 'call', 'grant', 'loan', 'equity', 'subsidy', 'financing'];
+      const hasFundingKeyword = fundingKeywords.some(keyword => urlPath.includes(keyword));
+      
+      // Accept if has funding keyword AND has depth (not just root/category page)
+      if (hasFundingKeyword && pathSegments.length >= 2) {
+        // Additional check: not a known category-only page
+        const categoryOnly = ['category', 'taxonomy', 'tag', 'events', 'news', 'blog', 'contact', 'about'];
+        const isCategoryOnly = categoryOnly.some(cat => urlPath.includes(`/${cat}/`) || urlPath.endsWith(`/${cat}`));
+        if (!isCategoryOnly) {
+          return true;
+        }
+      }
+    }
+    
     // DEFAULT: EXCLUDE (be strict - only include what we're confident about)
     return false;
   } catch {

@@ -85,7 +85,8 @@ export const institutions: InstitutionConfig[] = [
       requirements: ['.requirements', '.dokumente', '.unterlagen'],
       contact: ['.contact', '.ansprechpartner', '.kontakt']
     },
-    fundingTypes: ['grant', 'research'],
+    fundingTypes: ['grant'],
+    programFocus: ['research'],
     region: 'Austria',
     autoDiscovery: true,  // ✅ Auto-discovery enabled
     keywords: ['R&D infrastructure funding', 'research infrastructure', 'FFG', 'Forschungsförderung', 'innovation voucher', 'startup funding']
@@ -139,7 +140,11 @@ export const institutions: InstitutionConfig[] = [
       'https://www.sfg.at/foerderung/lebensnah/',
       'https://www.sfg.at/foerderung/greensinvest/',
       'https://www.sfg.at/foerderung/cybersicher/',
-      'https://www.sfg.at/foerderung/startklar/'
+      'https://www.sfg.at/foerderung/startklar/',
+      'https://www.sfg.at/f/finanzierung-fuer-kmu/',
+      'https://www.sfg.at/f/risikokapital/',
+      'https://www.sfg.at/f/stille-beteiligung/',
+      'https://www.sfg.at/f/venture-capital/'
     ],
     selectors: {
       name: ['h1', '.program-title', '.foerderung-title'],
@@ -148,7 +153,7 @@ export const institutions: InstitutionConfig[] = [
       requirements: ['.requirements', '.dokumente', '.unterlagen'],
       contact: ['.contact', '.ansprechpartner', '.kontakt']
     },
-    fundingTypes: ['grant', 'subsidy'],
+    fundingTypes: ['grant', 'subsidy', 'equity', 'venture_capital'],
     region: 'Styria, Austria',
     autoDiscovery: true,  // ✅ Auto-discovery enabled
     keywords: ['SFG', 'Steiermark', 'Förderung', 'KMU', 'Startup', 'Start!Klar', 'Ideen!Reich', 'Wachstums!Schritt']
@@ -454,7 +459,8 @@ export const institutions: InstitutionConfig[] = [
       requirements: ['.requirements', '.dokumente', '.unterlagen'],
       contact: ['.contact', '.ansprechpartner', '.kontakt']
     },
-    fundingTypes: ['grant', 'research', 'innovation'],
+    fundingTypes: ['grant'],
+    programFocus: ['research', 'innovation'],
     region: 'EU',
     autoDiscovery: true,  // ✅ Auto-discovery enabled
     keywords: ['horizon', 'europe', 'research', 'innovation', 'grant']
@@ -503,8 +509,8 @@ export const institutions: InstitutionConfig[] = [
     name: 'Speedinvest (VC fund)',
     baseUrl: 'https://www.speedinvest.com',
     programUrls: [
-      'https://www.speedinvest.com/pre-seed-and-seed-funding',
-      'https://www.speedinvest.com/contact'
+      'https://www.speedinvest.com/funds/seed-fund/',
+      'https://www.speedinvest.com/funds/early-stage-fund/'
     ],
     selectors: {
       name: ['h1', '.program-title', '.funding-title'],
@@ -935,7 +941,8 @@ export const institutions: InstitutionConfig[] = [
       requirements: ['.requirements', '.dokumente'],
       contact: ['.contact', '.ansprechpartner']
     },
-    fundingTypes: ['grant', 'research'],
+    fundingTypes: ['grant'],
+    programFocus: ['research'],
     region: 'Austria',
     autoDiscovery: true,
     keywords: ['foerderung', 'forschung', 'innovation', 'universitaet', 'wissenschaft']
@@ -998,7 +1005,8 @@ export const institutions: InstitutionConfig[] = [
       requirements: ['.requirements', '.dokumente'],
       contact: ['.contact', '.ansprechpartner']
     },
-    fundingTypes: ['grant', 'research'],
+    fundingTypes: ['grant'],
+    programFocus: ['research'],
     region: 'Austria',
     autoDiscovery: true,
     keywords: ['fwf', 'forschung', 'wissenschaft', 'research', 'wissenschaftsfonds']
@@ -1276,7 +1284,8 @@ export const institutions: InstitutionConfig[] = [
       requirements: ['.requirements', '.dokumente', '.unterlagen'],
       contact: ['.contact', '.ansprechpartner', '.kontakt']
     },
-    fundingTypes: ['grant', 'research'],
+    fundingTypes: ['grant'],
+    programFocus: ['research'],
     region: 'Austria',
     autoDiscovery: true,
     keywords: ['Anniversary Fund', 'Call 2025', 'research', 'OeAW']
@@ -1295,7 +1304,8 @@ export const institutions: InstitutionConfig[] = [
       requirements: ['.requirements', '.dokumente', '.unterlagen'],
       contact: ['.contact', '.ansprechpartner', '.kontakt']
     },
-    fundingTypes: ['grant', 'research'],
+    fundingTypes: ['grant'],
+    programFocus: ['research'],
     region: 'Austria',
     autoDiscovery: true,
     keywords: ['KoEF', 'cooperation development research', '6th call', 'Global South', 'OeAD']
@@ -1315,7 +1325,8 @@ export const institutions: InstitutionConfig[] = [
       requirements: ['.requirements', '.dokumente', '.unterlagen'],
       contact: ['.contact', '.ansprechpartner', '.kontakt']
     },
-    fundingTypes: ['grant', 'research'],
+    fundingTypes: ['grant'],
+    programFocus: ['research'],
     region: 'Vienna, Austria',
     autoDiscovery: true,
     keywords: ['ME/CFS fellowships', 'Vienna Research Groups', 'environmental systems research', 'WWTF open calls']

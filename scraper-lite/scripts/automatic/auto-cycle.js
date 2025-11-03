@@ -14,8 +14,8 @@
 
 require('ts-node').register({ transpileOnly: true, compilerOptions: { module: 'commonjs', moduleResolution: 'node', esModuleInterop: true } });
 
-const { discover, scrape, loadState, saveState } = require('../src/scraper.ts');
-const { getAllSeedUrls, institutions } = require('../src/config.ts');
+const { discover, scrape, loadState, saveState } = require('../../src/scraper.ts');
+const { getAllSeedUrls, institutions } = require('../../src/config.ts');
 const fs = require('fs');
 const path = require('path');
 

@@ -81,7 +81,7 @@ async function main() {
     console.log('✅ Scrape complete');
   } else if (mode === 'auto' || mode === 'auto-cycle') {
     // Fully automated self-running cycle
-    const { autoCycle } = require('./scripts/auto-cycle.js');
+    const { autoCycle } = require('./scripts/automatic/auto-cycle.js');
     await autoCycle();
   } else {
     console.log('Usage: node scraper-lite/run-lite.js [discover|scrape|full-cycle|auto]');

@@ -109,7 +109,8 @@ export async function discover(seeds: string[], maxDepth = 1, maxPages = 20): Pr
       }
       
       // Normal discovery: process links from non-overview pages
-      const anchors = $('a[href]').slice(0, 100).toArray(); // Only check first 100 links per page
+      // IMPROVEMENT: Check ALL links (not just first 100) for complete coverage
+      const anchors = $('a[href]').toArray(); // Check all links for 100% coverage
       for (const a of anchors) {
         const href = $(a).attr('href') || '';
         const full = normalizeUrl(url, href);
@@ -202,10 +203,31 @@ export async function scrape(maxUrls = 10, targets: string[] = []): Promise<void
       const institution = findInstitutionByUrl(job.url);
       const fundingTypes = institution?.fundingTypes || [];
       
+      // CRITICAL FIX: Always assign funding_type (never null)
+      // Helper to extract funding type from URL if not found
+      function extractFundingTypeFromUrl(url: string): string | null {
+        const urlLower = url.toLowerCase();
+        if (urlLower.includes('/equity/') || urlLower.includes('venture') || urlLower.includes('/vc-') || urlLower.includes('/funds/')) return 'equity';
+        if (urlLower.includes('/loan/') || urlLower.includes('/kredit/') || urlLower.includes('/darlehen/') || urlLower.includes('financing')) return 'loan';
+        if (urlLower.includes('/grant/') || urlLower.includes('/foerderung/') || urlLower.includes('/subsidy/') || urlLower.includes('funding')) return 'grant';
+        if (urlLower.includes('/leasing/')) return 'leasing';
+        if (urlLower.includes('/guarantee/') || urlLower.includes('/buergschaft/')) return 'guarantee';
+        if (urlLower.includes('/crowdfunding/') || urlLower.includes('crowdinvesting')) return 'crowdfunding';
+        if (urlLower.includes('bank')) return 'bank_loan';
+        return null;
+      }
+      
+      // Try: institution fundingTypes → metadata funding_type → extract from URL → 'unknown'
+      const fundingType = fundingTypes.length > 0 
+        ? fundingTypes[0] 
+        : (meta.metadata_json?.funding_type 
+          || extractFundingTypeFromUrl(job.url)
+          || 'unknown');
+      
       // Build metadata_json with funding_type (singular) for easier querying
       const metadataJson = {
         ...(meta.metadata_json || {}),
-        funding_type: fundingTypes.length > 0 ? fundingTypes[0] : null, // Primary funding type
+        funding_type: fundingType, // Always assigned (never null)
         institution: institution?.name || null,
         application_method: meta.metadata_json?.application_method || null,
         requires_account: meta.metadata_json?.requires_account || false,

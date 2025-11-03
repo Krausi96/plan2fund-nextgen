@@ -3,7 +3,7 @@
 const fs = require('fs');
 const path = require('path');
 
-const STATE_FILE = path.join(__dirname, '..', 'data', 'lite', 'state.json');
+const STATE_FILE = path.join(__dirname, '..', '..', 'data', 'lite', 'state.json');
 
 const args = process.argv.slice(2);
 const command = args[0] || 'help';
