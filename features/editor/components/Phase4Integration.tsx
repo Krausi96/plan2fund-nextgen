@@ -229,15 +229,14 @@ export default function Phase4Integration({
       // Always attempt to load sections (will fallback to templates if API missing)
       let sections = await editorEngineRef.current.loadSections(programId);
       
-      // CRITICAL FIX: Prefill sections with wizard answers from localStorage
+      // CRITICAL FIX: Prefill sections with wizard answers from appStore (single source of truth)
       try {
         if (typeof window !== 'undefined') {
-          const userAnswersStr = localStorage.getItem('userAnswers');
-          const enhancedPayloadStr = localStorage.getItem('enhancedPayload');
+          const { loadUserAnswers, loadEnhancedPayload } = await import('@/shared/lib/appStore');
+          const userAnswers = loadUserAnswers();
+          const enhancedPayload = loadEnhancedPayload();
           
-          if (userAnswersStr) {
-            const userAnswers = JSON.parse(userAnswersStr);
-            const enhancedPayload = enhancedPayloadStr ? JSON.parse(enhancedPayloadStr) : {};
+          if (Object.keys(userAnswers).length > 0) {
             
             // Use prefill engine to generate content from answers
             if (Object.keys(userAnswers).length > 0 && programData) {
@@ -697,7 +696,9 @@ export default function Phase4Integration({
                             showTableOfContents: !!config.tableOfContents,
                             showPageNumbers: !!config.pageNumbers
                           };
-                          localStorage.setItem('plan_settings', JSON.stringify(previewSettings));
+                          // Use appStore as single source of truth
+                          const { savePlanSettings } = await import('@/shared/lib/appStore');
+                          savePlanSettings(previewSettings);
                           setPreviewStyle({
                             fontFamily: config.fontFamily,
                             fontSize: config.fontSize,

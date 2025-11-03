@@ -61,14 +61,51 @@ export default function Checkout() {
           className="w-full p-2 border rounded"
         />
         <button 
-          onClick={() => {
-            // Process payment (stub for now)
-            // After success, route to thank-you page
-            router.push('/thank-you?payment=success');
+          onClick={async () => {
+            try {
+              // Get cart items from CartSummary/state
+              const items = [
+                {
+                  name: 'Business Plan Export',
+                  description: 'Full business plan with all sections',
+                  amount: 99, // Price in EUR
+                  quantity: 1,
+                  currency: 'eur'
+                }
+              ];
+
+              // Create Stripe checkout session
+              const response = await fetch('/api/payments/create-session', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                  items,
+                  successUrl: `${window.location.origin}/thank-you?session_id={CHECKOUT_SESSION_ID}`,
+                  cancelUrl: `${window.location.origin}/checkout?canceled=true`,
+                  customerEmail: '', // Get from user context
+                })
+              });
+
+              if (!response.ok) {
+                throw new Error('Failed to create checkout session');
+              }
+
+              const { url } = await response.json();
+              
+              // Redirect to Stripe checkout
+              if (url) {
+                window.location.href = url;
+              } else {
+                throw new Error('No checkout URL received');
+              }
+            } catch (error) {
+              console.error('Payment error:', error);
+              alert('Failed to start checkout. Please try again.');
+            }
           }}
           className="w-full py-2 rounded bg-blue-600 text-white hover:bg-blue-700"
         >
-          Pay Now (Stub)
+          Pay Now
         </button>
       </div>
 

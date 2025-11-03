@@ -100,9 +100,10 @@ export default function Preview() {
   // Read live settings from localStorage when available
   useEffect(() => {
     try {
-      const raw = localStorage.getItem('plan_settings');
-      if (raw) {
-        const ps = JSON.parse(raw);
+      // Use appStore as single source of truth
+      const { loadPlanSettings } = await import('@/shared/lib/appStore');
+      const ps = loadPlanSettings();
+      if (ps && Object.keys(ps).length > 0) {
         setFormattingOptions(prev => ({
           ...prev,
           theme: ps.theme === 'serif' ? 'serif' : 'sans',

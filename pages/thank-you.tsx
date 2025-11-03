@@ -1,11 +1,14 @@
 ﻿import { Button } from "@/shared/components/ui/button";
 import Link from "next/link";
+import { useRouter } from "next/router";
 import { useEffect, useState } from "react";
 import { useI18n } from "@/shared/contexts/I18nContext";
 import analytics from "@/shared/lib/analytics";
 
 export default function SuccessHubPage() {
+  const router = useRouter();
   const { t } = useI18n();
+  const { session_id, payment } = router.query;
   const [revisionRequests, setRevisionRequests] = useState<Array<{
     id: number;
     message: string;
@@ -15,9 +18,40 @@ export default function SuccessHubPage() {
   const [showRevisionForm, setShowRevisionForm] = useState(false);
   const [revisionMessage, setRevisionMessage] = useState("");
   const [selectedSections, setSelectedSections] = useState<string[]>([]);
+  const [paymentVerified, setPaymentVerified] = useState(false);
+  
   useEffect(() => {
     analytics.trackPageView('/thank-you', 'Thank You');
-  }, []);
+    
+    // Verify payment if session_id is present
+    if (session_id && typeof session_id === 'string') {
+      verifyPayment(session_id);
+    } else if (payment === 'success') {
+      // Legacy stub payment
+      setPaymentVerified(true);
+    }
+  }, [session_id, payment]);
+
+  const verifyPayment = async (sessionId: string) => {
+    try {
+      const response = await fetch('/api/payments/success', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ sessionId })
+      });
+
+      if (response.ok) {
+        const data = await response.json();
+        setPaymentVerified(true);
+        analytics.trackEvent({
+          event: 'payment_verified',
+          properties: { amount: data.amount, currency: data.currency }
+        });
+      }
+    } catch (error) {
+      console.error('Payment verification failed:', error);
+    }
+  };
   return (
     <div className="max-w-3xl mx-auto p-6 space-y-8 text-center">
       <h1 className="text-3xl font-bold text-green-600">🚀 Success Hub</h1>

@@ -182,9 +182,11 @@ export default function ResultsPage() {
                   timelineFit: derivedSignals.timelineFit
                 };
                 
-                localStorage.setItem('selectedProgram', JSON.stringify(selectedProgram));
-                localStorage.setItem('userAnswers', JSON.stringify(state.answers));
-                localStorage.setItem('enhancedPayload', JSON.stringify(enhancedPayload));
+                // Use unified appStore as single source of truth
+                const { saveSelectedProgram, saveUserAnswers, saveEnhancedPayload } = await import('@/shared/lib/appStore');
+                saveSelectedProgram(selectedProgram);
+                saveUserAnswers(state.answers);
+                saveEnhancedPayload(enhancedPayload);
                 
                 // Extract route from program type and set product
                 const route = selectedProgram.type?.toLowerCase() || 'grant';
@@ -453,9 +455,11 @@ export default function ResultsPage() {
                           derivedSignals: derivedSignals
                         };
                         
-                        localStorage.setItem('selectedProgram', JSON.stringify(program));
-                        localStorage.setItem('userAnswers', JSON.stringify(state.answers));
-                        localStorage.setItem('enhancedPayload', JSON.stringify(enhancedPayload));
+                        // Use unified appStore as single source of truth
+                        const { saveSelectedProgram, saveUserAnswers, saveEnhancedPayload } = await import('@/shared/lib/appStore');
+                        saveSelectedProgram(program);
+                        saveUserAnswers(state.answers);
+                        saveEnhancedPayload(enhancedPayload);
                         
                         // Extract route from program type and set product
                         const route = program.type?.toLowerCase() || 'grant';
