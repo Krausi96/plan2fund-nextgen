@@ -403,20 +403,28 @@ export function extractMeta(html: string, url?: string): ExtractedMeta {
   if (!description) description = $('meta[name="description"]').attr('content') || '';
   if (!description) description = $('main p, article p, .content p').first().text().trim();
 
-  const bodyText = $('body').clone().find('script,style,noscript').remove().end().text();
-  // Ensure we have a primitive string - cheerio text() might return special objects
-  // Use explicit primitive string conversion
-  let safeTextForMatch: string;
-  if (bodyText == null) {
-    safeTextForMatch = '';
-  } else if (typeof bodyText === 'string') {
-    safeTextForMatch = bodyText;
-  } else {
-    // Force to primitive string
-    safeTextForMatch = '' + bodyText;
-  }
-  // Final safety check: ensure it's really a string
-  if (typeof safeTextForMatch !== 'string') {
+  // Extract body text with better error handling (fixes "Cannot read properties of undefined" errors)
+  let safeTextForMatch: string = '';
+  try {
+    const bodyText = $('body').clone().find('script,style,noscript').remove().end().text();
+    // Ensure we have a primitive string - cheerio text() might return special objects
+    if (bodyText == null || bodyText === undefined) {
+      safeTextForMatch = '';
+    } else if (typeof bodyText === 'string') {
+      safeTextForMatch = bodyText;
+    } else if (typeof bodyText === 'object' && bodyText !== null) {
+      // Handle cheerio objects or other special cases
+      safeTextForMatch = String(bodyText);
+    } else {
+      safeTextForMatch = String(bodyText || '');
+    }
+    // Final safety check
+    if (typeof safeTextForMatch !== 'string') {
+      safeTextForMatch = '';
+    }
+  } catch (e: any) {
+    // If any conversion fails, default to empty string
+    console.warn(`Warning: Failed to extract body text for ${url || 'unknown'}:`, e?.message || String(e));
     safeTextForMatch = '';
   }
   const text = safeTextForMatch; // Keep for backward compatibility
@@ -643,14 +651,26 @@ export function extractMeta(html: string, url?: string): ExtractedMeta {
       /(?:bis|until|by|spätestens|letzter\s+termin|deadline|frist|einsendeschluss|application deadline|bewerbungsschluss)[\s]+(\d{1,2})[.\/\-\s]+(\d{1,2})[.\/\-\s]+(\d{2,4})/gi,
       /(\d{1,2})[.\/\-\s]+(\d{1,2})[.\/\-\s]+(\d{2,4})[\s]+(?:ist|deadline|frist|abgabe|schluss)/gi,
       // Month name formats
-      /(?:deadline|frist|bis|until|by)[\s:]+(\d{1,2})[\s.,]+(januar|februar|märz|april|mai|juni|juli|august|september|oktober|november|dezember|jan|feb|mar|apr|may|jun|jul|aug|sep|oct|nov|dec)[\s.,]+(\d{2,4})/gi
+      /(?:deadline|frist|bis|until|by|bewerbungsschluss|einsendeschluss)[\s:]+(\d{1,2})[\s.,]+(januar|februar|märz|april|mai|juni|juli|august|september|oktober|november|dezember|january|february|march|april|may|june|july|august|september|october|november|december|jan|feb|mar|apr|may|jun|jul|aug|sep|oct|nov|dec)[\s.,]+(\d{2,4})/gi,
+      // Table format: <td>Deadline</td><td>15.03.2025</td>
+      /(?:deadline|frist|bewerbungsschluss)[\s:]*[\s\n]*(\d{1,2})[.\/\-\s]+(\d{1,2})[.\/\-\s]+(\d{2,4})/gi,
+      // Open deadlines
+      /(?:rolling|kontinuierlich|offen|open|continuous|no\s+deadline|keine\s+frist|laufend)/gi
     ];
     
     const monthNames: Record<string, number> = {
-      'januar': 1, 'jan': 1, 'februar': 2, 'feb': 2, 'märz': 3, 'mar': 3,
-      'april': 4, 'apr': 4, 'mai': 5, 'may': 5, 'juni': 6, 'jun': 6,
-      'juli': 7, 'jul': 7, 'august': 8, 'aug': 8, 'september': 9, 'sep': 9,
-      'oktober': 10, 'oct': 10, 'november': 11, 'nov': 11, 'dezember': 12, 'dec': 12
+      'januar': 1, 'january': 1, 'jan': 1, 
+      'februar': 2, 'february': 2, 'feb': 2, 
+      'märz': 3, 'march': 3, 'mar': 3,
+      'april': 4, 'apr': 4, 
+      'mai': 5, 'may': 5, 
+      'juni': 6, 'june': 6, 'jun': 6,
+      'juli': 7, 'july': 7, 'jul': 7, 
+      'august': 8, 'aug': 8, 
+      'september': 9, 'sep': 9, 
+      'oktober': 10, 'october': 10, 'oct': 10, 
+      'november': 11, 'nov': 11, 
+      'dezember': 12, 'december': 12, 'dec': 12
     };
   
     for (const pattern of deadlineKeywordPatterns) {
@@ -717,10 +737,18 @@ export function extractMeta(html: string, url?: string): ExtractedMeta {
       safeTextForMatch.match(/(\d{1,2})\s+(januar|februar|märz|april|mai|juni|juli|august|september|oktober|november|december|jan|feb|mar|apr|may|jun|jul|aug|sep|oct|nov|dec)\s+(\d{2,4})/i), // DD Month YYYY
     ];
     const monthNames: Record<string, number> = {
-      'januar': 1, 'jan': 1, 'februar': 2, 'feb': 2, 'märz': 3, 'mar': 3,
-      'april': 4, 'apr': 4, 'mai': 5, 'may': 5, 'juni': 6, 'jun': 6,
-      'juli': 7, 'jul': 7, 'august': 8, 'aug': 8, 'september': 9, 'sep': 9,
-      'oktober': 10, 'oct': 10, 'november': 11, 'nov': 11, 'dezember': 12, 'dec': 12
+      'januar': 1, 'january': 1, 'jan': 1, 
+      'februar': 2, 'february': 2, 'feb': 2, 
+      'märz': 3, 'march': 3, 'mar': 3,
+      'april': 4, 'apr': 4, 
+      'mai': 5, 'may': 5, 
+      'juni': 6, 'june': 6, 'jun': 6,
+      'juli': 7, 'july': 7, 'jul': 7, 
+      'august': 8, 'aug': 8, 
+      'september': 9, 'sep': 9, 
+      'oktober': 10, 'october': 10, 'oct': 10, 
+      'november': 11, 'nov': 11, 
+      'dezember': 12, 'december': 12, 'dec': 12
     };
     
     for (const dateMatch of dateFormats) {
@@ -2351,8 +2379,20 @@ function extractStructuredRequirements(html: string, categorized: Record<string,
         
         // Prefer list if available (more structured)
         if ($list.length > 0) {
-          const listItems = $list.find('li').slice(0, 5).map((_, li) => $(li).text().trim()).get();
-          value = listItems.filter(item => item.length > 5 && item.length < 200).join('; ');
+          try {
+            const listItems = $list.find('li').slice(0, 5).map((_, li) => {
+              try {
+                return $(li).text().trim();
+              } catch (e) {
+                return '';
+              }
+            }).get();
+            value = listItems.filter(item => item && item.length > 5 && item.length < 200).join('; ');
+          } catch (e: any) {
+            // If list processing fails, fall back to text extraction
+            console.warn(`Warning: Failed to process list items:`, e?.message || String(e));
+            value = '';
+          }
         }
         
         // If no list or list too short, use text
@@ -2739,8 +2779,10 @@ function extractStructuredRequirements(html: string, categorized: Record<string,
   ];
   
   structuredSections.forEach(({ selector, category, type }) => {
-    $(selector).each((_, el) => {
-      const text = $(el).text().trim();
+    try {
+      $(selector).each((_, el) => {
+        try {
+          const text = $(el).text().trim();
       if (text && text.length > 5 && text.length < 300) {
         // Only add if value contains actual data (not just labels)
         if (text.match(/\d+/) || text.length > 20) {
