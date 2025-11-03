@@ -280,6 +280,23 @@ export async function discover(seeds: string[], maxDepth = 1, maxPages = 20): Pr
 // ============================================================================
 
 export async function scrape(maxUrls = 10, targets: string[] = []): Promise<void> {
+  // VERIFY DATABASE CONNECTION AT START
+  if (process.env.DATABASE_URL) {
+    try {
+      const { testConnection } = require('./db/neon-client');
+      const dbConnected = await testConnection();
+      if (dbConnected) {
+        console.log('✅ Database connection verified');
+      } else {
+        console.warn('⚠️  Database connection failed - will use JSON fallback');
+      }
+    } catch (e: any) {
+      console.warn(`⚠️  Database check failed: ${e.message} - will use JSON fallback`);
+    }
+  } else {
+    console.warn('⚠️  DATABASE_URL not set - using JSON fallback only');
+  }
+  
   const state = loadState();
   let jobs = state.jobs.filter(j => j.status === 'queued');
   
@@ -305,7 +322,16 @@ export async function scrape(maxUrls = 10, targets: string[] = []): Promise<void
       }
       
       const fetchResult = await fetchHtml(job.url);
-      const meta = extractMeta(fetchResult.html, job.url);
+      
+      // COMPREHENSIVE ERROR HANDLING: Wrap extraction in try-catch to prevent .rea errors
+      let meta;
+      try {
+        meta = extractMeta(fetchResult.html, job.url);
+      } catch (extractError: any) {
+        const errorMsg = extractError?.message || String(extractError);
+        console.error(`  ❌ Extraction failed for ${job.url.slice(0, 60)}...: ${errorMsg}`);
+        throw new Error(`Extraction failed: ${errorMsg}`);
+      }
       
       // DEBUG: Log extraction results
       if (meta.funding_amount_min || meta.funding_amount_max || meta.deadline || meta.contact_email || meta.contact_phone) {
