@@ -186,6 +186,197 @@ function extractMicrodata($: cheerio.CheerioAPI): Record<string, any> {
   return Object.keys(microdata).length > 0 ? { microdata } : {};
 }
 
+// ============================================================================
+// SMART DISCOVERY HELPER FUNCTIONS
+// ============================================================================
+
+/**
+ * Extract structured geography (country, region, subregion, city) from text and geographic requirements
+ */
+function extractStructuredGeography(text: string, geographicReqs: RequirementItem[]): {
+  country?: string;
+  region?: string;
+  subregion?: string;
+  city?: string;
+  eu_eligible?: boolean;
+} | null {
+  const lower = text.toLowerCase();
+  const result: any = {};
+  
+  // Check for EU eligibility
+  if (/\b(eu|european union|europa|europe)\b/i.test(text)) {
+    result.eu_eligible = true;
+  }
+  
+  // Extract from geographic requirements first
+  for (const req of geographicReqs) {
+    const val = req.value.toLowerCase();
+    // Country
+    if (/\b(austria|österreich)\b/.test(val) && !result.country) {
+      result.country = 'Austria';
+    }
+    // Major regions (Bundesländer)
+    const regionMap: Record<string, string> = {
+      'steiermark': 'Styria', 'styria': 'Styria',
+      'oberösterreich': 'Upper Austria', 'upper austria': 'Upper Austria',
+      'niederösterreich': 'Lower Austria', 'lower austria': 'Lower Austria',
+      'tirol': 'Tyrol', 'tyrol': 'Tyrol',
+      'vorarlberg': 'Vorarlberg',
+      'burgenland': 'Burgenland',
+      'kärnten': 'Carinthia', 'carinthia': 'Carinthia',
+      'salzburg': 'Salzburg'
+    };
+    for (const [key, value] of Object.entries(regionMap)) {
+      if (val.includes(key) && !result.region) {
+        result.region = value;
+        break;
+      }
+    }
+    // Cities
+    const cityMap: Record<string, string> = {
+      'wien': 'Vienna', 'vienna': 'Vienna',
+      'salzburg': 'Salzburg',
+      'graz': 'Graz',
+      'linz': 'Linz',
+      'innsbruck': 'Innsbruck',
+      'klagenfurt': 'Klagenfurt'
+    };
+    for (const [key, value] of Object.entries(cityMap)) {
+      if (val.includes(key) && !result.city) {
+        result.city = value;
+        break;
+      }
+    }
+    // Subregions
+    if (/\b(mostviertel|waldviertel|mühlviertel|innviertel)\b/i.test(val) && !result.subregion) {
+      const match = val.match(/\b(mostviertel|waldviertel|mühlviertel|innviertel)\b/i);
+      if (match) result.subregion = match[1];
+    }
+  }
+  
+  // Fallback: Extract directly from text if not found in requirements
+  if (!result.country && /\b(austria|österreich)\b/i.test(text)) {
+    result.country = 'Austria';
+  }
+  
+  return Object.keys(result).length > 0 ? result : null;
+}
+
+/**
+ * Extract funding type from content (grant, loan, equity, guarantee, etc.)
+ */
+function extractFundingType(text: string): string | null {
+  const lower = text.toLowerCase();
+  
+  // Priority order (most specific first)
+  if (/\b(grant|zuschuss|förderung|subvention|beihilfe|scholarship)\b/i.test(lower)) {
+    return 'grant';
+  }
+  if (/\b(loan|kredit|darlehen|finanzierungskredit)\b/i.test(lower) && !/\b(guarantee|bürgschaft)\b/i.test(lower)) {
+    return 'loan';
+  }
+  if (/\b(equity|beteiligung|kapitalbeteiligung|investition)\b/i.test(lower)) {
+    return 'equity';
+  }
+  if (/\b(guarantee|bürgschaft|garantie|aval)\b/i.test(lower)) {
+    return 'guarantee';
+  }
+  if (/\b(venture capital|risikokapital|wagniskapital)\b/i.test(lower)) {
+    return 'venture_capital';
+  }
+  if (/\b(microcredit|mikrokredit)\b/i.test(lower)) {
+    return 'microcredit';
+  }
+  
+  return null;
+}
+
+/**
+ * Extract industry/sector focus from content
+ */
+function extractIndustries(text: string): string[] {
+  const lower = text.toLowerCase();
+  const industries: string[] = [];
+  
+  const industryKeywords: Record<string, string[]> = {
+    'manufacturing': ['manufacturing', 'produktion', 'industrie', 'fertigung'],
+    'technology': ['technology', 'technologie', 'tech', 'it', 'software', 'hardware'],
+    'healthcare': ['healthcare', 'gesundheitswesen', 'medizin', 'health', 'pharma'],
+    'energy': ['energy', 'energie', 'solar', 'wind', 'renewable', 'erneuerbar'],
+    'agriculture': ['agriculture', 'landwirtschaft', 'agrar', 'food', 'lebensmittel'],
+    'tourism': ['tourism', 'tourismus', 'travel', 'hotel', 'gastronomie'],
+    'construction': ['construction', 'bau', 'infrastructure', 'infrastruktur'],
+    'retail': ['retail', 'handel', 'commerce', 'e-commerce'],
+    'education': ['education', 'bildung', 'schule', 'university', 'universität'],
+    'biotech': ['biotech', 'biotechnologie', 'biotech', 'life sciences']
+  };
+  
+  for (const [industry, keywords] of Object.entries(industryKeywords)) {
+    if (keywords.some(kw => lower.includes(kw)) && !industries.includes(industry)) {
+      industries.push(industry);
+    }
+  }
+  
+  return industries;
+}
+
+/**
+ * Extract technology focus areas from content
+ */
+function extractTechnologyFocus(text: string): string[] {
+  const lower = text.toLowerCase();
+  const tech: string[] = [];
+  
+  const techKeywords: Record<string, string[]> = {
+    'ai': ['artificial intelligence', 'ai', 'machine learning', 'ml', 'deep learning', 'künstliche intelligenz', 'ki'],
+    'iot': ['iot', 'internet of things', 'internet der dinge', 'smart devices', 'connected devices'],
+    'blockchain': ['blockchain', 'distributed ledger', 'crypto', 'bitcoin', 'ethereum'],
+    'cloud': ['cloud', 'cloud computing', 'saas', 'paas', 'iaas'],
+    'cybersecurity': ['cybersecurity', 'cyber security', 'sicherheit', 'security', 'data protection'],
+    'data_analytics': ['data analytics', 'big data', 'data science', 'business intelligence', 'bi'],
+    'robotics': ['robotics', 'roboter', 'automation', 'automation'],
+    'ar_vr': ['ar', 'vr', 'augmented reality', 'virtual reality', 'mixed reality'],
+    'fintech': ['fintech', 'financial technology', 'payments', 'banking tech'],
+    'cleantech': ['cleantech', 'clean tech', 'green tech', 'sustainability tech']
+  };
+  
+  for (const [technology, keywords] of Object.entries(techKeywords)) {
+    if (keywords.some(kw => lower.includes(kw)) && !tech.includes(technology)) {
+      tech.push(technology);
+    }
+  }
+  
+  return tech;
+}
+
+/**
+ * Extract program topics/themes from content
+ */
+function extractProgramTopics(text: string): string[] {
+  const lower = text.toLowerCase();
+  const topics: string[] = [];
+  
+  const topicKeywords: Record<string, string[]> = {
+    'innovation': ['innovation', 'forschung', 'research', 'development', 'entwicklung'],
+    'sustainability': ['sustainability', 'nachhaltigkeit', 'climate', 'klima', 'environment', 'umwelt'],
+    'digitalization': ['digitalization', 'digitalisierung', 'digital transformation', 'digitale transformation'],
+    'startup': ['startup', 'start-up', 'neugründung', 'neue unternehmen', 'gründung'],
+    'sme': ['sme', 'small business', 'mittelstand', 'km unternehmen', 'small and medium'],
+    'export': ['export', 'international', 'internationalisierung', 'auslandsmärkte'],
+    'rd': ['rd', 'r&d', 'research and development', 'forschung und entwicklung'],
+    'growth': ['growth', 'wachstum', 'expansion', 'scaling', 'skalierung'],
+    'inclusion': ['inclusion', 'diversity', 'vielfalt', 'equality', 'gleichstellung']
+  };
+  
+  for (const [topic, keywords] of Object.entries(topicKeywords)) {
+    if (keywords.some(kw => lower.includes(kw)) && !topics.includes(topic)) {
+      topics.push(topic);
+    }
+  }
+  
+  return topics;
+}
+
 export function extractMeta(html: string, url?: string): ExtractedMeta {
   const $ = cheerio.load(html);
   
@@ -411,25 +602,75 @@ export function extractMeta(html: string, url?: string): ExtractedMeta {
   const funding_amount_min = amounts.length ? Math.min(...amounts) : null;
   const funding_amount_max = amounts.length ? Math.max(...amounts) : null;
 
-  // Deadlines - Enhanced patterns with better context matching
-  let open_deadline = /(laufend|rolling|ongoing|bis auf weiteres|continuously|open|keine frist|permanent|dauerhaft)/i.test(lower);
+  // Deadlines - Enhanced patterns with better context matching and HTML structure extraction
+  let open_deadline = /(laufend|rolling|ongoing|bis auf weiteres|continuously|open|keine frist|permanent|dauerhaft|open-ended|kontinuierlich)/i.test(lower);
   let deadline: string | null = null;
   
-  // Enhanced: Look for dates in context with deadline keywords first
-  const deadlineKeywordPatterns = [
-    /(deadline|frist|einreichfrist|bewerbungsfrist|einsendefrist|antragsfrist|abgabefrist|meldungsfrist|anmeldefrist)[\s:]+(?:bis\s+)?(\d{1,2})[.\/\-\s]+(\d{1,2})[.\/\-\s]+(\d{2,4})/gi,
-    /(?:bis|until|by|spätestens|letzter\s+termin)[\s]+(\d{1,2})[.\/\-\s]+(\d{1,2})[.\/\-\s]+(\d{2,4})/gi,
-    /(\d{1,2})[.\/\-\s]+(\d{1,2})[.\/\-\s]+(\d{2,4})[\s]+(?:ist|deadline|frist|abgabe)/gi
-  ];
+  // ENHANCED: Extract from HTML structure first (deadline-specific classes/IDs)
+  try {
+    const deadlineSelectors = [
+      '.deadline', '.frist', '.einreichfrist', '.bewerbungsfrist',
+      '[class*="deadline"]', '[class*="frist"]', '[id*="deadline"]', '[id*="frist"]',
+      '.application-deadline', '.submission-deadline', '.due-date'
+    ];
+    for (const selector of deadlineSelectors) {
+      $(selector).each((_, el) => {
+        const deadlineText = $(el).text().trim();
+        if (deadlineText && !deadline) {
+          // Try to extract date from this element
+          const dateMatch = deadlineText.match(/(\d{1,2})[.\/\-\s]+(\d{1,2})[.\/\-\s]+(\d{2,4})/);
+          if (dateMatch) {
+            const d = parseInt(dateMatch[1], 10);
+            const mo = parseInt(dateMatch[2], 10);
+            const y = parseInt(dateMatch[3], 10) + (parseInt(dateMatch[3], 10) < 100 ? 2000 : 0);
+            if (d >= 1 && d <= 31 && mo >= 1 && mo <= 12 && y >= 2020 && y <= 2030) {
+              deadline = `${String(d).padStart(2,'0')}.${String(mo).padStart(2,'0')}.${y}`;
+              return false; // Break loop
+            }
+          }
+        }
+      });
+      if (deadline) break;
+    }
+  } catch (e) {
+    // Ignore errors
+  }
   
-  for (const pattern of deadlineKeywordPatterns) {
-    const matches = safeMatchAll(safeTextForMatch, pattern);
-    for (const match of matches) {
-      const d = parseInt(match[1] || match[2] || match[0], 10);
-      const mo = parseInt(match[2] || match[3] || match[1], 10);
-      const yStr = match[3] || match[4] || match[2] || match[0];
-      const y = parseInt(yStr, 10) + (parseInt(yStr, 10) < 100 ? 2000 : 0);
-      if (d >= 1 && d <= 31 && mo >= 1 && mo <= 12 && y >= 2020 && y <= 2030) {
+  // Enhanced: Look for dates in context with deadline keywords first
+  if (!deadline && !open_deadline) {
+    const deadlineKeywordPatterns = [
+      /(deadline|frist|einreichfrist|bewerbungsfrist|einsendefrist|antragsfrist|abgabefrist|meldungsfrist|anmeldefrist|bewerbungsschluss|einsendeschluss|abgabeschluss)[\s:]+(?:bis\s+)?(\d{1,2})[.\/\-\s]+(\d{1,2})[.\/\-\s]+(\d{2,4})/gi,
+      /(?:bis|until|by|spätestens|letzter\s+termin|deadline|frist|einsendeschluss|application deadline|bewerbungsschluss)[\s]+(\d{1,2})[.\/\-\s]+(\d{1,2})[.\/\-\s]+(\d{2,4})/gi,
+      /(\d{1,2})[.\/\-\s]+(\d{1,2})[.\/\-\s]+(\d{2,4})[\s]+(?:ist|deadline|frist|abgabe|schluss)/gi,
+      // Month name formats
+      /(?:deadline|frist|bis|until|by)[\s:]+(\d{1,2})[\s.,]+(januar|februar|märz|april|mai|juni|juli|august|september|oktober|november|dezember|jan|feb|mar|apr|may|jun|jul|aug|sep|oct|nov|dec)[\s.,]+(\d{2,4})/gi
+    ];
+    
+    const monthNames: Record<string, number> = {
+      'januar': 1, 'jan': 1, 'februar': 2, 'feb': 2, 'märz': 3, 'mar': 3,
+      'april': 4, 'apr': 4, 'mai': 5, 'may': 5, 'juni': 6, 'jun': 6,
+      'juli': 7, 'jul': 7, 'august': 8, 'aug': 8, 'september': 9, 'sep': 9,
+      'oktober': 10, 'oct': 10, 'november': 11, 'nov': 11, 'dezember': 12, 'dec': 12
+    };
+  
+    for (const pattern of deadlineKeywordPatterns) {
+      const matches = safeMatchAll(safeTextForMatch, pattern);
+      for (const match of matches) {
+        let d: number, mo: number, y: number;
+        
+        // Check if it's a month name format
+        if (match[2] && monthNames[match[2].toLowerCase()]) {
+          d = parseInt(match[1], 10);
+          mo = monthNames[match[2].toLowerCase()];
+          y = parseInt(match[3] || match[4] || '2025', 10);
+        } else {
+          d = parseInt(match[1] || match[2] || match[0], 10);
+          mo = parseInt(match[2] || match[3] || match[1], 10);
+          const yStr = match[3] || match[4] || match[2] || match[0];
+          y = parseInt(yStr, 10) + (parseInt(yStr, 10) < 100 ? 2000 : 0);
+        }
+        
+        if (d >= 1 && d <= 31 && mo >= 1 && mo <= 12 && y >= 2020 && y <= 2030) {
         const deadlineDate = new Date(y, mo - 1, d);
         const now = new Date();
         // If deadline is in the past, check if it's more than 1 year old
@@ -447,12 +688,14 @@ export function extractMeta(html: string, url?: string): ExtractedMeta {
           // Future deadline - valid
           deadline = `${String(d).padStart(2,'0')}.${String(mo).padStart(2,'0')}.${y}`;
         }
-        break;
+          break;
+        }
       }
+      if (deadline) break;
     }
-    if (deadline) break;
   }
   
+  // Fallback: Try multiple date formats (if no deadline found yet)
   if (!deadline && !open_deadline) {
     // Try multiple date formats (fallback)
     const dateFormats = [
@@ -617,6 +860,44 @@ export function extractMeta(html: string, url?: string): ExtractedMeta {
     if (formFields.length > 0) {
       metadata_json.form_fields = formFields.slice(0, 10);
     }
+  }
+
+  // ============================================================================
+  // SMART DISCOVERIES: Intelligent extraction of program characteristics
+  // ============================================================================
+  
+  // 1. STRUCTURED GEOGRAPHY: Extract country, region, subregion, city separately
+  const structuredGeography = extractStructuredGeography(safeTextForMatch, categorized.geographic);
+  if (structuredGeography) {
+    metadata_json.geography = structuredGeography;
+    // Also set region field if not already set (for backward compatibility)
+    if (!metadata_json.region && structuredGeography.region) {
+      metadata_json.region = structuredGeography.region;
+    }
+  }
+  
+  // 2. FUNDING TYPE: Detect from content (grant, loan, equity, guarantee, etc.)
+  const fundingType = extractFundingType(safeTextForMatch);
+  if (fundingType && !metadata_json.funding_type) {
+    metadata_json.funding_type = fundingType;
+  }
+  
+  // 3. INDUSTRY/SECTOR: Extract industry focus areas
+  const industries = extractIndustries(safeTextForMatch);
+  if (industries.length > 0) {
+    metadata_json.industries = industries;
+  }
+  
+  // 4. TECHNOLOGY FOCUS: Extract technology areas (AI, IoT, Blockchain, etc.)
+  const techFocus = extractTechnologyFocus(safeTextForMatch);
+  if (techFocus.length > 0) {
+    metadata_json.technology_focus = techFocus;
+  }
+  
+  // 5. PROGRAM TOPICS/THEMES: Extract program focus areas
+  const topics = extractProgramTopics(safeTextForMatch);
+  if (topics.length > 0) {
+    metadata_json.program_topics = topics;
   }
 
   return {

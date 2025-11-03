@@ -353,10 +353,10 @@ export async function scrape(maxUrls = 10, targets: string[] = []): Promise<void
         categorized_requirements: meta.categorized_requirements,
         metadata_json: metadataJson,
         raw_html_path: fetchResult.rawHtmlPath || null,
-        // Institution-assigned fields
-        funding_types: fundingTypes,
-        region: institution?.region || null,
-        program_focus: institution?.programFocus || [],
+        // Institution-assigned fields (fallback to extracted data if not set)
+        funding_types: fundingTypes.length > 0 ? fundingTypes : (metadataJson.funding_type ? [metadataJson.funding_type] : []),
+        region: institution?.region || metadataJson.geography?.region || metadataJson.region || null,
+        program_focus: institution?.programFocus.length > 0 ? institution.programFocus : (metadataJson.program_topics || []),
         fetched_at: new Date().toISOString()
       };
       
