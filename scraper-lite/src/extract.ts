@@ -760,14 +760,18 @@ export function extractMeta(html: string, url?: string): ExtractedMeta {
   const emails = Array.from(emailMatches)
     .map(m => {
       let email = m[0];
-      // Clean trailing invalid characters (common issue: email@domain.comText)
-      // Extract valid email part by matching up to TLD + removing everything after
-      // Pattern: capture email@domain.tld and stop before any non-alphanumeric character
+      // Enhanced: Better cleaning - stop at first non-email character after TLD
+      // Pattern: capture email@domain.tld and stop before any letter/number that continues
+      // Look for TLD (2-4 chars) followed by capital letter or number (start of next word)
+      const betterClean = email.match(/^([a-zA-Z0-9.!#$%&'*+\/=?^_`{|}~-]+@[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?(?:\.[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?)+\.([a-z]{2,4}))(?=[A-Z0-9]|$)/i);
+      if (betterClean && betterClean[1]) {
+        return betterClean[1]; // Return cleaned email
+      }
+      // Fallback: Original method
       const tldMatch = email.match(/^(.+@[a-zA-Z0-9.-]+\.([a-z]{2,}))([^a-z0-9].*)?$/i);
       if (tldMatch && tldMatch[1]) {
-        return tldMatch[1]; // Return email@domain.tld without trailing junk
+        return tldMatch[1];
       }
-      // Fallback: remove trailing non-email characters after last dot + 2+ letters
       email = email.replace(/^(.+@.+\.[a-z]{2,})[^a-z0-9].*$/i, '$1');
       return email.trim();
     })
@@ -782,6 +786,10 @@ export function extractMeta(html: string, url?: string): ExtractedMeta {
       if (!tld || tld.length < 2) return false;
       // Exclude test/example domains
       if (e.includes('example.com') || e.includes('test@') || e.includes('noreply')) return false;
+      // ENHANCED: Exclude date ranges (e.g., "2022-2026" mistaken as email)
+      if (/^\d{4}-\d{4}$/.test(e.split('@')[0])) return false;
+      // ENHANCED: Exclude if starts with numbers followed by dash (likely date)
+      if (/^\d{4}-\d/.test(e)) return false;
       // Valid email regex check
       const emailRegex = /^[a-zA-Z0-9.!#$%&'*+\/=?^_`{|}~-]+@[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?(?:\.[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?)+$/;
       return emailRegex.test(e);

@@ -34,7 +34,8 @@ export function isDownload(url: string): boolean {
 export function isQueryListing(url: string): boolean {
   const lower = url.toLowerCase();
   if (!lower.includes('?')) return false;
-  return /(filter|field_|search|suche|query|sort=)/.test(lower);
+  // Enhanced: Catch more query parameter patterns (filter, sort, page, type, year, combine, etc.)
+  return /(filter|field_|search|suche|query|sort=|type%5B|year%5B|combine_|combine%5B|page=|offset=|limit=|year=|type=|category=)/.test(lower);
 }
 
 /**
