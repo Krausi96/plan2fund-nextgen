@@ -442,37 +442,59 @@ export function extractMeta(html: string, url?: string): ExtractedMeta {
   const rangeRe = /(?:von|from|zwischen|between|minimum|minimum of|mindestens|at least)\s*€?\s*(\d{1,3}(?:[.,\s]\d{3})*(?:[.,]\d{2})?)\s*(?:bis|to|-|und|and|maximum)\s*€?\s*(\d{1,3}(?:[.,\s]\d{3})*(?:[.,]\d{2})?)/gi;
   // Additional: percentage-based amounts (e.g., "50% up to 100,000 EUR")
   const percentAmountRe = /(\d{1,3})\s*%[^.]{0,50}?(?:bis zu|up to|maximal|maximum)\s*€?\s*(\d{1,3}(?:[.,\s]\d{3})*(?:[.,]\d{2})?)/gi;
-  // Validate funding amount - filter out years, page numbers, and suspicious values
+  // IMPROVED: Validate funding amount - filter out years, page numbers, and suspicious values
+  // More precise but not too strict - ensure we capture real funding amounts
   const isValidFundingAmount = (value: number, context: string): boolean => {
     // Filter years (2020-2030 range) - commonly mistaken as amounts
     if (value >= 2020 && value <= 2030) {
       return false;
     }
     
-    // Filter very small round numbers (< 1,000) that are likely page numbers or IDs
-    if (value < 1000 && value % 100 === 0) {
-      // Common page number patterns
+    const contextLower = context.toLowerCase();
+    
+    // Filter very small amounts (< 100 EUR) unless explicitly in funding context
+    if (value < 100) {
+      // Only allow if context clearly indicates funding (not page numbers, years, etc.)
+      const hasFundingContext = /\b(förderung|funding|finanzierung|grant|betrag|amount|euro|€|subvention|zuschuss)\b/i.test(context);
+      if (!hasFundingContext) {
+        return false;
+      }
+    }
+    
+    // Filter small round numbers (100-999) that are likely page numbers or IDs
+    if (value >= 100 && value < 1000 && value % 100 === 0) {
+      // Common page number patterns (200, 300, etc.) - filter unless in funding context
       if ([100, 200, 300, 400, 500, 600, 700, 800, 900].includes(value)) {
-        return false;
-      }
-      // Very small round numbers without million context
-      if (value < 1000 && !/\b(million|millionen|mio)\b/i.test(context)) {
-        return false;
+        const hasFundingContext = /\b(förderung|funding|finanzierung|grant|betrag|amount|euro|€)\b/i.test(context);
+        if (!hasFundingContext) {
+          return false;
+        }
       }
     }
     
-    // Filter amounts that match common page number patterns (e.g., 202, 203, 508)
-    if (value < 10000 && (value % 100 === value % 1000 || value.toString().length === 3)) {
-      // Check if context suggests it's actually a page number or year
-      const contextLower = context.toLowerCase();
+    // Filter amounts 202-203, 508, etc. that are likely page numbers or years
+    if (value >= 200 && value < 1000) {
+      // Check if context suggests it's actually a page number, year, or phone number
       if (contextLower.includes('page') || contextLower.includes('seite') || 
-          contextLower.includes('horizon 202') || contextLower.includes('version')) {
+          contextLower.includes('horizon 202') || contextLower.includes('version') ||
+          contextLower.includes('tel') || contextLower.includes('phone') ||
+          /\b\d{3}-\d{3}\b/.test(context)) { // Phone number pattern
+        return false;
+      }
+      // If it's 202-209 range and no funding keywords, likely year/page number
+      if (value >= 202 && value <= 209 && !/\b(förderung|funding|finanzierung|euro|€)\b/i.test(context)) {
         return false;
       }
     }
     
-    // Must be within reasonable bounds
-    if (value < 1 || value > 1_000_000_000_000) {
+    // Filter very large amounts that are likely errors (unless in million context)
+    if (value > 1_000_000_000 && !/\b(million|millionen|mio|billion)\b/i.test(context)) {
+      // Only allow if context mentions millions/billions
+      return false;
+    }
+    
+    // Must be within reasonable bounds for funding programs
+    if (value < 1 || value > 10_000_000_000_000) {
       return false;
     }
     
@@ -607,8 +629,50 @@ export function extractMeta(html: string, url?: string): ExtractedMeta {
     }
   }
 
-  const funding_amount_min = amounts.length ? Math.min(...amounts) : null;
-  const funding_amount_max = amounts.length ? Math.max(...amounts) : null;
+  // IMPROVED: Calculate min/max with validation - filter out unrealistic values
+  let funding_amount_min: number | null = null;
+  let funding_amount_max: number | null = null;
+  
+  if (amounts.length > 0) {
+    // Filter out unrealistic values (too small or suspicious patterns)
+    const validAmounts = amounts.filter(amt => {
+      // Remove amounts < 100 EUR (unless clearly in funding context)
+      if (amt < 100) {
+        // Check if any context mentions funding
+        const hasFundingContext = amountContext.some(ctx => 
+          ctx.value === amt && /\b(förderung|funding|finanzierung|grant|betrag|amount|euro|€|subvention|zuschuss)\b/i.test(ctx.context)
+        );
+        return hasFundingContext;
+      }
+      // Remove extremely large amounts (> 1 trillion) unless in billion context
+      if (amt > 1_000_000_000_000) {
+        const hasBillionContext = amountContext.some(ctx => 
+          ctx.value === amt && /\b(billion|milliarde)\b/i.test(ctx.context)
+        );
+        return hasBillionContext;
+      }
+      return true;
+    });
+    
+    if (validAmounts.length > 0) {
+      funding_amount_min = Math.min(...validAmounts);
+      funding_amount_max = Math.max(...validAmounts);
+      
+      // Sanity check: if min and max are very close and both small (< 1000), might be wrong
+      if (funding_amount_max - funding_amount_min < 100 && funding_amount_max < 1000) {
+        // Check if we have good context - might be page numbers
+        const hasGoodContext = amountContext.some(ctx => 
+          (ctx.value === funding_amount_min || ctx.value === funding_amount_max) &&
+          /\b(förderung|funding|finanzierung|grant|betrag|amount|euro|€|subvention|zuschuss)\b/i.test(ctx.context)
+        );
+        if (!hasGoodContext) {
+          // Likely page numbers or other non-funding values
+          funding_amount_min = null;
+          funding_amount_max = null;
+        }
+      }
+    }
+  }
 
   // Deadlines - Enhanced patterns with better context matching and HTML structure extraction
   let open_deadline = /(laufend|rolling|ongoing|bis auf weiteres|continuously|open|keine frist|permanent|dauerhaft|open-ended|kontinuierlich)/i.test(lower);
@@ -829,8 +893,18 @@ export function extractMeta(html: string, url?: string): ExtractedMeta {
       if (e.includes('example.com') || e.includes('test@') || e.includes('noreply')) return false;
       // ENHANCED: Exclude date ranges anywhere in email (e.g., "2022-2026" mistaken as email)
       const emailLower = e.toLowerCase();
+      // Filter date ranges like "2021-2027", "2020-2030"
       if (/\d{4}-\d{4}/.test(emailLower)) return false; // Any date range in email
-      if (/^(\d{4}-\d{2,4}|199\d|200\d|201\d|202\d)@/.test(emailLower)) return false; // Starts with year
+      if (/^\d{4}-\d{4}@/.test(emailLower)) return false; // Date range before @
+      // Filter if starts with year patterns
+      if (/^(199\d|200\d|201\d|202\d|203\d)/.test(emailLower)) {
+        // Allow if it's clearly an email (has @domain.tld structure)
+        if (!/@[a-z0-9.-]+\.[a-z]{2,}/.test(emailLower)) {
+          return false;
+        }
+      }
+      // Filter emails that are just date ranges
+      if (/^\d{4}-\d{2,4}$/.test(emailLower.split('@')[0])) return false;
       if (/^\d{4}-\d/.test(e)) return false; // Starts with numbers followed by dash
       // Valid email regex check
       const emailRegex = /^[a-zA-Z0-9.!#$%&'*+\/=?^_`{|}~-]+@[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?(?:\.[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?)+$/;

@@ -327,10 +327,64 @@ export async function scrape(maxUrls = 10, targets: string[] = []): Promise<void
       let meta;
       try {
         meta = extractMeta(fetchResult.html, job.url);
+        
+        // VALIDATE: Ensure extracted data makes sense
+        // Check if funding amounts are reasonable
+        if (meta.funding_amount_min !== null && meta.funding_amount_min !== undefined) {
+          if (meta.funding_amount_min < 100 && meta.funding_amount_max && meta.funding_amount_max < 1000) {
+            // Very small amounts - might be wrong (page numbers, years, etc.)
+            // Only keep if we have strong context (e.g., description mentions funding)
+            const hasFundingContext = meta.description && /\b(förderung|funding|finanzierung|grant|subvention|zuschuss)\b/i.test(meta.description);
+            if (!hasFundingContext) {
+              meta.funding_amount_min = null;
+              meta.funding_amount_max = null;
+            }
+          }
+        }
+        
+        // Validate deadline makes sense
+        if (meta.deadline) {
+          // Check if deadline is reasonable (not a year like "2025")
+          if (/^\d{4}$/.test(meta.deadline.trim())) {
+            meta.deadline = null;
+          }
+        }
+        
+        // Validate contact email is not a date range
+        if (meta.contact_email) {
+          if (/^\d{4}-\d{4}$/.test(meta.contact_email.trim())) {
+            meta.contact_email = null;
+          }
+        }
+        
       } catch (extractError: any) {
         const errorMsg = extractError?.message || String(extractError);
-        console.error(`  ❌ Extraction failed for ${job.url.slice(0, 60)}...: ${errorMsg}`);
-        throw new Error(`Extraction failed: ${errorMsg}`);
+        // Check if it's the .rea error - add more context
+        if (errorMsg.includes('rea') || errorMsg.includes('undefined')) {
+          console.error(`  ❌ Extraction error (likely HTML structure issue) for ${job.url.slice(0, 60)}...`);
+          // Try to extract at least basic metadata even if full extraction fails
+          try {
+            const $ = require('cheerio').load(fetchResult.html);
+            const title = $('title').text() || $('h1').first().text() || '';
+            const description = $('meta[name="description"]').attr('content') || $('p').first().text() || '';
+            meta = {
+              title: title.trim() || null,
+              description: description.trim() || null,
+              funding_amount_min: null,
+              funding_amount_max: null,
+              deadline: null,
+              contact_email: null,
+              contact_phone: null,
+              categorized_requirements: {},
+              metadata_json: {}
+            };
+            console.log(`  ⚠️  Extracted minimal metadata (full extraction failed)`);
+          } catch (fallbackError: any) {
+            throw new Error(`Extraction failed: ${errorMsg}`);
+          }
+        } else {
+          throw new Error(`Extraction failed: ${errorMsg}`);
+        }
       }
       
       // DEBUG: Log extraction results
