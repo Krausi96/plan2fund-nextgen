@@ -415,3 +415,248 @@ ls data/lite/raw/*.html | head -1 | xargs cat | grep -i "foerderung\|grant\|prog
 **Time to validate:** ~7 minutes (discover 2min + scrape 5min)  
 **If no data:** Stop after 7 min, debug, fix, retry  
 **No more 2-hour runs with zero results!** ✅
+
+---
+
+## 📜 Scripts Reference
+
+### 🚀 Main Entry Points
+
+#### **1. Automatic Full Cycle (Recommended)**
+```bash
+cd scraper-lite
+$env:LITE_ALL_INSTITUTIONS=1
+node scripts/automatic/auto-cycle.js
+```
+**What it does:** Fully automated cycle that runs discovery → scraping → learning → retry automatically. Includes all new smart discoveries (geography, funding type, industries, tech focus, topics). Stops when no new URLs found or MAX_CYCLES reached.
+
+**Alternative via wrapper:**
+```powershell
+# PowerShell
+cd scraper-lite
+.\run-cycle.ps1
+
+# Or Batch (Windows CMD)
+cd scraper-lite
+run-cycle.bat
+```
+
+**Via main entry point:**
+```bash
+cd scraper-lite
+$env:LITE_ALL_INSTITUTIONS=1
+node manual auto
+```
+
+---
+
+#### **2. Manual Full Cycle (Single Run)**
+```bash
+cd scraper-lite
+node manual full-cycle
+```
+**What it does:** Runs discovery → scraping once (not a loop). Good for testing or manual control.
+
+---
+
+#### **3. Discovery Only**
+```bash
+cd scraper-lite
+$env:LITE_MAX_DISCOVERY_PAGES=50
+node manual discover
+```
+**What it does:** Only discovers new URLs, doesn't scrape them. URLs are queued for later scraping.
+
+---
+
+#### **4. Scrape Only**
+```bash
+cd scraper-lite
+$env:LITE_MAX_URLS=50
+node manual scrape
+```
+**What it does:** Only scrapes queued URLs. Doesn't discover new ones. Good for processing existing queue.
+
+---
+
+### 🔄 Re-scraping Existing Pages
+
+#### **5. Re-scrape All Pages (Update Existing with New Fields)**
+```bash
+cd scraper-lite
+node scripts/manual/rescrape-pages.js
+```
+**What it does:** Re-queues all existing pages from state.json for scraping. Use this to populate existing pages with new metadata fields (geography, funding_type, industries, etc.).
+
+**Options:**
+```bash
+# Only pages missing metadata
+node scripts/manual/rescrape-pages.js --missing-only
+
+# Dry run (show what would be queued)
+node scripts/manual/rescrape-pages.js --dry-run
+```
+
+---
+
+### 📊 Quality & Validation Scripts
+
+#### **6. Validate Improvements**
+```bash
+cd scraper-lite
+node scripts/manual/validate-improvements.js
+```
+**What it does:** Tests all new smart discoveries (geography, funding type, industries, tech focus, topics). Shows coverage metrics and validates extraction is working.
+
+---
+
+#### **7. Verify Database Quality**
+```bash
+cd scraper-lite
+node scripts/manual/verify-database-quality.js
+```
+**What it does:** Analyzes database for completeness, category coverage, metadata quality. Shows stats on requirements, pages, categories.
+
+---
+
+#### **8. Quick Summary**
+```bash
+cd scraper-lite
+node scripts/manual/quick-summary.js
+```
+**What it does:** Quick overview of scraped pages, requirements, category coverage.
+
+---
+
+#### **9. Comprehensive Quality Analysis**
+```bash
+cd scraper-lite
+node scripts/manual/comprehensive-quality-analysis.js
+```
+**What it does:** Detailed analysis of extraction quality, category usefulness, gaps, recommendations.
+
+---
+
+### 🔍 Debugging & Testing Scripts
+
+#### **10. Test Database Connection**
+```bash
+cd scraper-lite
+node scripts/manual/test-neon-connection.js
+```
+**What it does:** Tests NEON PostgreSQL connection, verifies database is accessible.
+
+---
+
+#### **11. Debug Discovery**
+```bash
+cd scraper-lite
+node scripts/manual/debug-discovery.js
+```
+**What it does:** Shows discovery status, seed URLs, queued jobs, seen URLs count.
+
+---
+
+#### **12. Debug Extraction**
+```bash
+cd scraper-lite
+node scripts/manual/debug-extraction.js [URL]
+```
+**What it does:** Tests extraction on a specific URL, shows what metadata is extracted.
+
+---
+
+#### **13. Test API Endpoints**
+```bash
+cd scraper-lite
+node scripts/manual/test-api-endpoints.js
+```
+**What it does:** Tests `/api/programs` and `/api/programmes/[id]/requirements` endpoints.
+
+---
+
+### 🛠️ Maintenance Scripts
+
+#### **14. Reset State**
+```bash
+cd scraper-lite
+# Show stats
+node scripts/manual/reset-state.js stats
+
+# Clean completed/failed jobs
+node scripts/manual/reset-state.js clean-jobs
+
+# Full reset (with backup)
+node scripts/manual/reset-state.js reset
+```
+**What it does:** Manages state.json - shows stats, cleans old jobs, or resets everything (with backup).
+
+---
+
+#### **15. Cleanup Storage**
+```bash
+cd scraper-lite
+node scripts/manual/cleanup-storage.js
+```
+**What it does:** Cleans up old raw HTML files, orphaned data, frees disk space.
+
+---
+
+### 🤖 Production Automation (PM2)
+
+#### **16. PM2 Scheduler (Hourly Runs)**
+```bash
+npm install -g pm2
+cd scraper-lite
+$env:LITE_ALL_INSTITUTIONS=1
+pm2 start scripts/automatic/auto-cycle-scheduler.js --name scraper-hourly --cron "0 * * * *" --no-autorestart
+```
+**What it does:** Runs automatic cycle every hour via PM2. Good for production/background operation.
+
+**PM2 Management:**
+```bash
+pm2 list              # Show running processes
+pm2 logs scraper-hourly  # View logs
+pm2 stop scraper-hourly  # Stop
+pm2 delete scraper-hourly # Remove
+```
+
+---
+
+### 📋 Quick Reference Table
+
+| Script | Command | Purpose |
+|--------|---------|---------|
+| **Auto Cycle** | `node scripts/automatic/auto-cycle.js` | Full automated cycle (recommended) |
+| **Full Cycle** | `node manual full-cycle` | Single discovery + scrape run |
+| **Discover** | `node manual discover` | Find new URLs only |
+| **Scrape** | `node manual scrape` | Scrape queued URLs only |
+| **Re-scrape** | `node scripts/manual/rescrape-pages.js` | Update existing pages with new fields |
+| **Validate** | `node scripts/manual/validate-improvements.js` | Test new extraction features |
+| **Quality** | `node scripts/manual/verify-database-quality.js` | Check data quality |
+| **PM2** | `pm2 start scripts/automatic/auto-cycle-scheduler.js ...` | Hourly scheduled runs |
+
+---
+
+### ⚙️ Environment Variables
+
+All scripts respect these environment variables:
+
+```bash
+# Use all institutions (not just first 3)
+$env:LITE_ALL_INSTITUTIONS=1
+
+# Custom seed URLs (comma-separated)
+$env:LITE_SEEDS="https://www.ffg.at/en/fundings,https://www.aws.at/foerderungen"
+
+# Max URLs to scrape per run
+$env:LITE_MAX_URLS=50
+
+# Max pages to discover per cycle
+$env:LITE_MAX_DISCOVERY_PAGES=200
+
+# For auto-cycle.js only:
+$env:MAX_CYCLES=10              # Number of cycles to run
+$env:SCRAPE_BATCH_SIZE=100      # Batch size for scraping
+$env:MIN_NEW_URLS=5             # Minimum new URLs to continue
+```
