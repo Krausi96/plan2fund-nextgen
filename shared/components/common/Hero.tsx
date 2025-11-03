@@ -216,10 +216,10 @@ export function Hero({
 
   return (
     <section 
-      className="relative min-h-[50vh] flex items-center overflow-hidden"
+      className="relative min-h-[50vh] flex items-center overflow-hidden bg-gradient-to-b from-blue-600 via-blue-700 to-blue-800"
       aria-label="Hero section with main value proposition"
     >
-      {/* Background - Dark blue gradient with blueprint grid */}
+      {/* Background - Blueprint grid overlay on blue gradient */}
       <BlueprintGrid />
 
       {/* Main Content */}
