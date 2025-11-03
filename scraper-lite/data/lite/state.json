@@ -1,5 +1,834 @@
 {
-  "jobs": [],
+  "jobs": [
+    {
+      "url": "https://www.ffg.at/en/node/202455",
+      "status": "queued",
+      "depth": 1,
+      "seed": "https://www.ffg.at/en/foerderungen"
+    },
+    {
+      "url": "https://www.ffg.at/en/node/202386",
+      "status": "queued",
+      "depth": 1,
+      "seed": "https://www.ffg.at/en/foerderungen"
+    },
+    {
+      "url": "https://www.ffg.at/en/events",
+      "status": "queued",
+      "depth": 1,
+      "seed": "https://www.ffg.at/en/foerderungen"
+    },
+    {
+      "url": "https://www.ffg.at/en/node/202372",
+      "status": "queued",
+      "depth": 1,
+      "seed": "https://www.ffg.at/en/foerderungen"
+    },
+    {
+      "url": "https://www.ffg.at/en/fundings",
+      "status": "queued",
+      "depth": 1,
+      "seed": "https://www.ffg.at/en/foerderungen"
+    },
+    {
+      "url": "https://www.ffg.at/en/themen",
+      "status": "queued",
+      "depth": 1,
+      "seed": "https://www.ffg.at/en/foerderungen"
+    },
+    {
+      "url": "https://www.ffg.at/en/taxonomy/term/1391",
+      "status": "queued",
+      "depth": 1,
+      "seed": "https://www.ffg.at/en/foerderungen"
+    },
+    {
+      "url": "https://www.ffg.at/en/category/forschungsschwerpunkt/informationstechnologie",
+      "status": "queued",
+      "depth": 1,
+      "seed": "https://www.ffg.at/en/foerderungen"
+    },
+    {
+      "url": "https://www.ffg.at/en/taxonomy/term/1395",
+      "status": "queued",
+      "depth": 1,
+      "seed": "https://www.ffg.at/en/foerderungen"
+    },
+    {
+      "url": "https://www.ffg.at/en/category/forschungsschwerpunkt/lebenswissenschaften",
+      "status": "queued",
+      "depth": 1,
+      "seed": "https://www.ffg.at/en/foerderungen"
+    },
+    {
+      "url": "https://www.ffg.at/en/thema/production-and-materials",
+      "status": "queued",
+      "depth": 1,
+      "seed": "https://www.ffg.at/en/foerderungen"
+    },
+    {
+      "url": "https://www.ffg.at/en/thema/social-and-culture",
+      "status": "queued",
+      "depth": 1,
+      "seed": "https://www.ffg.at/en/foerderungen"
+    },
+    {
+      "url": "https://www.ffg.at/en/category/forschungsschwerpunkt/weltraum",
+      "status": "queued",
+      "depth": 1,
+      "seed": "https://www.ffg.at/en/foerderungen"
+    },
+    {
+      "url": "https://www.ffg.at/en/beratung",
+      "status": "queued",
+      "depth": 1,
+      "seed": "https://www.ffg.at/en/foerderungen"
+    },
+    {
+      "url": "https://www.ffg.at/en/initiatives",
+      "status": "queued",
+      "depth": 1,
+      "seed": "https://www.ffg.at/en/foerderungen"
+    },
+    {
+      "url": "https://www.ffg.at/en/node/202370",
+      "status": "queued",
+      "depth": 1,
+      "seed": "https://www.ffg.at/en/foerderungen"
+    },
+    {
+      "url": "https://www.ffg.at/en/service",
+      "status": "queued",
+      "depth": 1,
+      "seed": "https://www.ffg.at/en/foerderungen"
+    },
+    {
+      "url": "https://www.ffg.at/en/node/15195",
+      "status": "queued",
+      "depth": 1,
+      "seed": "https://www.ffg.at/en/foerderungen"
+    },
+    {
+      "url": "https://www.ffg.at/europa/een",
+      "status": "queued",
+      "depth": 1,
+      "seed": "https://www.ffg.at/en/foerderungen"
+    },
+    {
+      "url": "https://www.ffg.at/en/service/female-innovators",
+      "status": "queued",
+      "depth": 1,
+      "seed": "https://www.ffg.at/en/foerderungen"
+    },
+    {
+      "url": "https://www.ffg.at/en/success-stories",
+      "status": "queued",
+      "depth": 1,
+      "seed": "https://www.ffg.at/en/foerderungen"
+    },
+    {
+      "url": "https://www.ffg.at/en/accessibility-statement",
+      "status": "queued",
+      "depth": 1,
+      "seed": "https://www.ffg.at/en/foerderungen"
+    },
+    {
+      "url": "https://www.ffg.at/en/whistleblower-system",
+      "status": "queued",
+      "depth": 1,
+      "seed": "https://www.ffg.at/en/foerderungen"
+    },
+    {
+      "url": "https://www.ffg.at/en/team",
+      "status": "queued",
+      "depth": 2,
+      "seed": "https://www.ffg.at/en/foerderungen"
+    },
+    {
+      "url": "https://www.ffg.at/en/node/202455?letter=A",
+      "status": "queued",
+      "depth": 2,
+      "seed": "https://www.ffg.at/en/foerderungen"
+    },
+    {
+      "url": "https://www.ffg.at/en/node/202455?letter=B",
+      "status": "queued",
+      "depth": 2,
+      "seed": "https://www.ffg.at/en/foerderungen"
+    },
+    {
+      "url": "https://www.ffg.at/en/node/202455?letter=C",
+      "status": "queued",
+      "depth": 2,
+      "seed": "https://www.ffg.at/en/foerderungen"
+    },
+    {
+      "url": "https://www.ffg.at/en/node/202455?letter=D",
+      "status": "queued",
+      "depth": 2,
+      "seed": "https://www.ffg.at/en/foerderungen"
+    },
+    {
+      "url": "https://www.ffg.at/en/node/202455?letter=E",
+      "status": "queued",
+      "depth": 2,
+      "seed": "https://www.ffg.at/en/foerderungen"
+    },
+    {
+      "url": "https://www.ffg.at/en/node/202455?letter=F",
+      "status": "queued",
+      "depth": 2,
+      "seed": "https://www.ffg.at/en/foerderungen"
+    },
+    {
+      "url": "https://www.ffg.at/en/node/202455?letter=G",
+      "status": "queued",
+      "depth": 2,
+      "seed": "https://www.ffg.at/en/foerderungen"
+    },
+    {
+      "url": "https://www.ffg.at/en/node/202455?letter=H",
+      "status": "queued",
+      "depth": 2,
+      "seed": "https://www.ffg.at/en/foerderungen"
+    },
+    {
+      "url": "https://www.ffg.at/en/node/202455?letter=I",
+      "status": "queued",
+      "depth": 2,
+      "seed": "https://www.ffg.at/en/foerderungen"
+    },
+    {
+      "url": "https://www.ffg.at/en/node/202455?letter=J",
+      "status": "queued",
+      "depth": 2,
+      "seed": "https://www.ffg.at/en/foerderungen"
+    },
+    {
+      "url": "https://www.ffg.at/en/node/202455?letter=K",
+      "status": "queued",
+      "depth": 2,
+      "seed": "https://www.ffg.at/en/foerderungen"
+    },
+    {
+      "url": "https://www.ffg.at/en/node/202455?letter=L",
+      "status": "queued",
+      "depth": 2,
+      "seed": "https://www.ffg.at/en/foerderungen"
+    },
+    {
+      "url": "https://www.ffg.at/en/node/202455?letter=M",
+      "status": "queued",
+      "depth": 2,
+      "seed": "https://www.ffg.at/en/foerderungen"
+    },
+    {
+      "url": "https://www.ffg.at/en/node/202455?letter=N",
+      "status": "queued",
+      "depth": 2,
+      "seed": "https://www.ffg.at/en/foerderungen"
+    },
+    {
+      "url": "https://www.ffg.at/en/node/202455?letter=O",
+      "status": "queued",
+      "depth": 2,
+      "seed": "https://www.ffg.at/en/foerderungen"
+    },
+    {
+      "url": "https://www.ffg.at/en/node/202455?letter=%C3%96",
+      "status": "queued",
+      "depth": 2,
+      "seed": "https://www.ffg.at/en/foerderungen"
+    },
+    {
+      "url": "https://www.ffg.at/en/node/202455?letter=P",
+      "status": "queued",
+      "depth": 2,
+      "seed": "https://www.ffg.at/en/foerderungen"
+    },
+    {
+      "url": "https://www.ffg.at/en/node/202455?letter=R",
+      "status": "queued",
+      "depth": 2,
+      "seed": "https://www.ffg.at/en/foerderungen"
+    },
+    {
+      "url": "https://www.ffg.at/en/node/202455?letter=S",
+      "status": "queued",
+      "depth": 2,
+      "seed": "https://www.ffg.at/en/foerderungen"
+    },
+    {
+      "url": "https://www.ffg.at/en/node/202455?letter=T",
+      "status": "queued",
+      "depth": 2,
+      "seed": "https://www.ffg.at/en/foerderungen"
+    },
+    {
+      "url": "https://www.ffg.at/en/node/202455?letter=V",
+      "status": "queued",
+      "depth": 2,
+      "seed": "https://www.ffg.at/en/foerderungen"
+    },
+    {
+      "url": "https://www.ffg.at/en/node/202455?letter=W",
+      "status": "queued",
+      "depth": 2,
+      "seed": "https://www.ffg.at/en/foerderungen"
+    },
+    {
+      "url": "https://www.ffg.at/en/node/202455?letter=Z",
+      "status": "queued",
+      "depth": 2,
+      "seed": "https://www.ffg.at/en/foerderungen"
+    },
+    {
+      "url": "https://www.ffg.at/en/node/202455?organization=Aeronautics%20and%20Space%20Agency",
+      "status": "queued",
+      "depth": 2,
+      "seed": "https://www.ffg.at/en/foerderungen"
+    },
+    {
+      "url": "https://www.ffg.at/en/node/202455?organization=Audit%20Unit",
+      "status": "queued",
+      "depth": 2,
+      "seed": "https://www.ffg.at/en/foerderungen"
+    },
+    {
+      "url": "https://www.ffg.at/en/node/202455?organization=Corporate%20Communications",
+      "status": "queued",
+      "depth": 2,
+      "seed": "https://www.ffg.at/en/foerderungen"
+    },
+    {
+      "url": "https://www.ffg.at/en/node/202455?organization=Corporate%20Finances",
+      "status": "queued",
+      "depth": 2,
+      "seed": "https://www.ffg.at/en/foerderungen"
+    },
+    {
+      "url": "https://www.ffg.at/en/node/202455?organization=European%20and%20International%20Programmes",
+      "status": "queued",
+      "depth": 2,
+      "seed": "https://www.ffg.at/en/foerderungen"
+    },
+    {
+      "url": "https://www.ffg.at/en/node/202455?organization=General%20Programmes",
+      "status": "queued",
+      "depth": 2,
+      "seed": "https://www.ffg.at/en/foerderungen"
+    },
+    {
+      "url": "https://www.ffg.at/en/node/202455?organization=Human%20Resources%20and%20Organisation",
+      "status": "queued",
+      "depth": 2,
+      "seed": "https://www.ffg.at/en/foerderungen"
+    },
+    {
+      "url": "https://www.ffg.at/en/node/202455?organization=Legal%20Department%2C%20Compliance%20and%20Internal%20Audits",
+      "status": "queued",
+      "depth": 2,
+      "seed": "https://www.ffg.at/en/foerderungen"
+    },
+    {
+      "url": "https://www.ffg.at/en/node/202455?organization=Management%20board",
+      "status": "queued",
+      "depth": 2,
+      "seed": "https://www.ffg.at/en/foerderungen"
+    },
+    {
+      "url": "https://www.ffg.at/en/node/202455?organization=Operations%20Management",
+      "status": "queued",
+      "depth": 2,
+      "seed": "https://www.ffg.at/en/foerderungen"
+    },
+    {
+      "url": "https://www.ffg.at/en/node/202455?organization=Strategy%20Unit%2C%20Data%20Analysis%20and%20Business%20Development",
+      "status": "queued",
+      "depth": 2,
+      "seed": "https://www.ffg.at/en/foerderungen"
+    },
+    {
+      "url": "https://www.ffg.at/en/node/202455?organization=Structural%20Programmes",
+      "status": "queued",
+      "depth": 2,
+      "seed": "https://www.ffg.at/en/foerderungen"
+    },
+    {
+      "url": "https://www.ffg.at/en/node/202455?organization=Thematic%20Programmes",
+      "status": "queued",
+      "depth": 2,
+      "seed": "https://www.ffg.at/en/foerderungen"
+    },
+    {
+      "url": "https://www.ffg.at/en/node/202881",
+      "status": "queued",
+      "depth": 2,
+      "seed": "https://www.ffg.at/en/foerderungen"
+    },
+    {
+      "url": "https://www.ffg.at/en/team/agiovlasitis-iraklis",
+      "status": "queued",
+      "depth": 2,
+      "seed": "https://www.ffg.at/en/foerderungen"
+    },
+    {
+      "url": "https://www.ffg.at/en/node/44486",
+      "status": "queued",
+      "depth": 2,
+      "seed": "https://www.ffg.at/en/foerderungen"
+    },
+    {
+      "url": "https://www.ffg.at/en/node/10821",
+      "status": "queued",
+      "depth": 2,
+      "seed": "https://www.ffg.at/en/foerderungen"
+    },
+    {
+      "url": "https://www.ffg.at/en/node/5520",
+      "status": "queued",
+      "depth": 2,
+      "seed": "https://www.ffg.at/en/foerderungen"
+    },
+    {
+      "url": "https://www.ffg.at/en/node/201923",
+      "status": "queued",
+      "depth": 2,
+      "seed": "https://www.ffg.at/en/foerderungen"
+    },
+    {
+      "url": "https://www.ffg.at/en/node/5521",
+      "status": "queued",
+      "depth": 2,
+      "seed": "https://www.ffg.at/en/foerderungen"
+    },
+    {
+      "url": "https://www.ffg.at/en/node/50740",
+      "status": "queued",
+      "depth": 2,
+      "seed": "https://www.ffg.at/en/foerderungen"
+    },
+    {
+      "url": "https://www.ffg.at/en/node/186571",
+      "status": "queued",
+      "depth": 2,
+      "seed": "https://www.ffg.at/en/foerderungen"
+    },
+    {
+      "url": "https://www.ffg.at/en/node/203302",
+      "status": "queued",
+      "depth": 2,
+      "seed": "https://www.ffg.at/en/foerderungen"
+    },
+    {
+      "url": "https://www.ffg.at/en/node/5338",
+      "status": "queued",
+      "depth": 2,
+      "seed": "https://www.ffg.at/en/foerderungen"
+    },
+    {
+      "url": "https://www.ffg.at/en/node/105794",
+      "status": "queued",
+      "depth": 2,
+      "seed": "https://www.ffg.at/en/foerderungen"
+    },
+    {
+      "url": "https://www.ffg.at/en/node/59956",
+      "status": "queued",
+      "depth": 2,
+      "seed": "https://www.ffg.at/en/foerderungen"
+    },
+    {
+      "url": "https://www.ffg.at/en/node/68670",
+      "status": "queued",
+      "depth": 2,
+      "seed": "https://www.ffg.at/en/foerderungen"
+    },
+    {
+      "url": "https://www.ffg.at/en/node/195100",
+      "status": "queued",
+      "depth": 2,
+      "seed": "https://www.ffg.at/en/foerderungen"
+    },
+    {
+      "url": "https://www.ffg.at/en/node/101594",
+      "status": "queued",
+      "depth": 2,
+      "seed": "https://www.ffg.at/en/foerderungen"
+    },
+    {
+      "url": "https://www.ffg.at/en/node/182394",
+      "status": "queued",
+      "depth": 2,
+      "seed": "https://www.ffg.at/en/foerderungen"
+    },
+    {
+      "url": "https://www.ffg.at/en/node/6833",
+      "status": "queued",
+      "depth": 2,
+      "seed": "https://www.ffg.at/en/foerderungen"
+    },
+    {
+      "url": "https://www.ffg.at/en/node/65844",
+      "status": "queued",
+      "depth": 2,
+      "seed": "https://www.ffg.at/en/foerderungen"
+    },
+    {
+      "url": "https://www.ffg.at/en/node/45926",
+      "status": "queued",
+      "depth": 2,
+      "seed": "https://www.ffg.at/en/foerderungen"
+    },
+    {
+      "url": "https://www.ffg.at/en/node/5515",
+      "status": "queued",
+      "depth": 2,
+      "seed": "https://www.ffg.at/en/foerderungen"
+    },
+    {
+      "url": "https://www.ffg.at/en/node/202573",
+      "status": "queued",
+      "depth": 2,
+      "seed": "https://www.ffg.at/en/foerderungen"
+    },
+    {
+      "url": "https://www.ffg.at/en/node/5511",
+      "status": "queued",
+      "depth": 2,
+      "seed": "https://www.ffg.at/en/foerderungen"
+    },
+    {
+      "url": "https://www.ffg.at/en/node/40144",
+      "status": "queued",
+      "depth": 2,
+      "seed": "https://www.ffg.at/en/foerderungen"
+    },
+    {
+      "url": "https://www.ffg.at/en/node/5509",
+      "status": "queued",
+      "depth": 2,
+      "seed": "https://www.ffg.at/en/foerderungen"
+    },
+    {
+      "url": "https://www.ffg.at/en/node/197686",
+      "status": "queued",
+      "depth": 2,
+      "seed": "https://www.ffg.at/en/foerderungen"
+    },
+    {
+      "url": "https://www.ffg.at/en/node/5504",
+      "status": "queued",
+      "depth": 2,
+      "seed": "https://www.ffg.at/en/foerderungen"
+    },
+    {
+      "url": "https://www.ffg.at/en/node/188432",
+      "status": "queued",
+      "depth": 2,
+      "seed": "https://www.ffg.at/en/foerderungen"
+    },
+    {
+      "url": "https://www.ffg.at/en/node/202079",
+      "status": "queued",
+      "depth": 2,
+      "seed": "https://www.ffg.at/en/foerderungen"
+    },
+    {
+      "url": "https://www.ffg.at/en/team/berger-matthias",
+      "status": "queued",
+      "depth": 2,
+      "seed": "https://www.ffg.at/en/foerderungen"
+    },
+    {
+      "url": "https://www.ffg.at/en/node/5506",
+      "status": "queued",
+      "depth": 2,
+      "seed": "https://www.ffg.at/en/foerderungen"
+    },
+    {
+      "url": "https://www.ffg.at/en/node/5507",
+      "status": "queued",
+      "depth": 2,
+      "seed": "https://www.ffg.at/en/foerderungen"
+    },
+    {
+      "url": "https://www.ffg.at/en/node/5508",
+      "status": "queued",
+      "depth": 2,
+      "seed": "https://www.ffg.at/en/foerderungen"
+    },
+    {
+      "url": "https://www.ffg.at/en/node/5500",
+      "status": "queued",
+      "depth": 2,
+      "seed": "https://www.ffg.at/en/foerderungen"
+    },
+    {
+      "url": "https://www.ffg.at/en/node/20571",
+      "status": "queued",
+      "depth": 2,
+      "seed": "https://www.ffg.at/en/foerderungen"
+    },
+    {
+      "url": "https://www.ffg.at/en/node/5501",
+      "status": "queued",
+      "depth": 2,
+      "seed": "https://www.ffg.at/en/foerderungen"
+    },
+    {
+      "url": "https://www.ffg.at/en/node/146871",
+      "status": "queued",
+      "depth": 2,
+      "seed": "https://www.ffg.at/en/foerderungen"
+    },
+    {
+      "url": "https://www.ffg.at/en/node/7564",
+      "status": "queued",
+      "depth": 2,
+      "seed": "https://www.ffg.at/en/foerderungen"
+    },
+    {
+      "url": "https://www.ffg.at/en/node/5503",
+      "status": "queued",
+      "depth": 2,
+      "seed": "https://www.ffg.at/en/foerderungen"
+    },
+    {
+      "url": "https://www.ffg.at/en/node/202028",
+      "status": "queued",
+      "depth": 2,
+      "seed": "https://www.ffg.at/en/foerderungen"
+    },
+    {
+      "url": "https://www.ffg.at/en/node/14688",
+      "status": "queued",
+      "depth": 2,
+      "seed": "https://www.ffg.at/en/foerderungen"
+    },
+    {
+      "url": "https://www.ffg.at/en/node/5499",
+      "status": "queued",
+      "depth": 2,
+      "seed": "https://www.ffg.at/en/foerderungen"
+    },
+    {
+      "url": "https://www.ffg.at/en/node/5497",
+      "status": "queued",
+      "depth": 2,
+      "seed": "https://www.ffg.at/en/foerderungen"
+    },
+    {
+      "url": "https://www.ffg.at/en/node/56274",
+      "status": "queued",
+      "depth": 2,
+      "seed": "https://www.ffg.at/en/foerderungen"
+    },
+    {
+      "url": "https://www.ffg.at/en/node/5495",
+      "status": "queued",
+      "depth": 2,
+      "seed": "https://www.ffg.at/en/foerderungen"
+    },
+    {
+      "url": "https://www.ffg.at/en/node/5496",
+      "status": "queued",
+      "depth": 2,
+      "seed": "https://www.ffg.at/en/foerderungen"
+    },
+    {
+      "url": "https://www.ffg.at/en/node/203330",
+      "status": "queued",
+      "depth": 2,
+      "seed": "https://www.ffg.at/en/foerderungen"
+    },
+    {
+      "url": "https://www.ffg.at/en/node/5489",
+      "status": "queued",
+      "depth": 2,
+      "seed": "https://www.ffg.at/en/foerderungen"
+    },
+    {
+      "url": "https://www.ffg.at/en/node/201513",
+      "status": "queued",
+      "depth": 2,
+      "seed": "https://www.ffg.at/en/foerderungen"
+    },
+    {
+      "url": "https://www.ffg.at/en/node/5490",
+      "status": "queued",
+      "depth": 2,
+      "seed": "https://www.ffg.at/en/foerderungen"
+    },
+    {
+      "url": "https://www.ffg.at/node/202361",
+      "status": "queued",
+      "depth": 2,
+      "seed": "https://www.ffg.at/en/foerderungen"
+    },
+    {
+      "url": "https://www.ffg.at/en/FFG-Newsletter",
+      "status": "queued",
+      "depth": 2,
+      "seed": "https://www.ffg.at/en/foerderungen"
+    },
+    {
+      "url": "https://www.ffg.at/en/node/202386?type%5B0%5D=news",
+      "status": "queued",
+      "depth": 2,
+      "seed": "https://www.ffg.at/en/foerderungen"
+    },
+    {
+      "url": "https://www.ffg.at/en/node/202386?type%5B0%5D=pressemitteilung",
+      "status": "queued",
+      "depth": 2,
+      "seed": "https://www.ffg.at/en/foerderungen"
+    },
+    {
+      "url": "https://www.ffg.at/en/node/202386?year%5B0%5D=2025",
+      "status": "queued",
+      "depth": 2,
+      "seed": "https://www.ffg.at/en/foerderungen"
+    },
+    {
+      "url": "https://www.ffg.at/en/node/202386?year%5B0%5D=2024",
+      "status": "queued",
+      "depth": 2,
+      "seed": "https://www.ffg.at/en/foerderungen"
+    },
+    {
+      "url": "https://www.ffg.at/en/node/202386?year%5B0%5D=2023",
+      "status": "queued",
+      "depth": 2,
+      "seed": "https://www.ffg.at/en/foerderungen"
+    },
+    {
+      "url": "https://www.ffg.at/en/node/202386?year%5B0%5D=2022",
+      "status": "queued",
+      "depth": 2,
+      "seed": "https://www.ffg.at/en/foerderungen"
+    },
+    {
+      "url": "https://www.ffg.at/en/node/202386?year%5B0%5D=2021",
+      "status": "queued",
+      "depth": 2,
+      "seed": "https://www.ffg.at/en/foerderungen"
+    },
+    {
+      "url": "https://www.ffg.at/en/node/202386?year%5B0%5D=2020",
+      "status": "queued",
+      "depth": 2,
+      "seed": "https://www.ffg.at/en/foerderungen"
+    },
+    {
+      "url": "https://www.ffg.at/en/node/202386?year%5B0%5D=2019",
+      "status": "queued",
+      "depth": 2,
+      "seed": "https://www.ffg.at/en/foerderungen"
+    },
+    {
+      "url": "https://www.ffg.at/en/node/202386?year%5B0%5D=2018",
+      "status": "queued",
+      "depth": 2,
+      "seed": "https://www.ffg.at/en/foerderungen"
+    },
+    {
+      "url": "https://www.ffg.at/en/press/boosting-space-ecosystem-space-driver-innovation",
+      "status": "queued",
+      "depth": 2,
+      "seed": "https://www.ffg.at/en/foerderungen"
+    },
+    {
+      "url": "https://www.ffg.at/en/news/ERC-PoC-2024",
+      "status": "queued",
+      "depth": 2,
+      "seed": "https://www.ffg.at/en/foerderungen"
+    },
+    {
+      "url": "https://www.ffg.at/en/press/spin-fellowships-strengthening-entrepreneurial-spirit-universities-and-research-institutions",
+      "status": "queued",
+      "depth": 2,
+      "seed": "https://www.ffg.at/en/foerderungen"
+    },
+    {
+      "url": "https://www.ffg.at/en/press/erc-awards-15-consolidator-grants-researchers-austria",
+      "status": "queued",
+      "depth": 2,
+      "seed": "https://www.ffg.at/en/foerderungen"
+    },
+    {
+      "url": "https://www.ffg.at/en/news/electric-mobility-ministry-climate-action-funds-further-118-zero-emission-buses-six-provinces",
+      "status": "queued",
+      "depth": 2,
+      "seed": "https://www.ffg.at/en/foerderungen"
+    },
+    {
+      "url": "https://www.ffg.at/en/news/once-again-four-austrian-companies-among-europes-top-innovators",
+      "status": "queued",
+      "depth": 2,
+      "seed": "https://www.ffg.at/en/foerderungen"
+    },
+    {
+      "url": "https://www.ffg.at/en/press/research-start-ups-strengthening-entrepreneurship",
+      "status": "queued",
+      "depth": 2,
+      "seed": "https://www.ffg.at/en/foerderungen"
+    },
+    {
+      "url": "https://www.ffg.at/en/news/minister-polaschek-congratulates-scientists-17-erc-starting-grants",
+      "status": "queued",
+      "depth": 2,
+      "seed": "https://www.ffg.at/en/foerderungen"
+    },
+    {
+      "url": "https://www.ffg.at/en/news/second-major-european-hydrogen-initiative-launched-austrian-participation",
+      "status": "queued",
+      "depth": 2,
+      "seed": "https://www.ffg.at/en/foerderungen"
+    },
+    {
+      "url": "https://www.ffg.at/en/press/ffg-forum-2022-research-funding-success-story",
+      "status": "queued",
+      "depth": 2,
+      "seed": "https://www.ffg.at/en/foerderungen"
+    },
+    {
+      "url": "https://www.ffg.at/en/news/federal-government-invests-900-million-euros-broadband-expansion-2022",
+      "status": "queued",
+      "depth": 2,
+      "seed": "https://www.ffg.at/en/foerderungen"
+    },
+    {
+      "url": "https://www.ffg.at/en/press/schrambock-50-million-euro-investment-package-austrias-pharmaceutical-sector",
+      "status": "queued",
+      "depth": 2,
+      "seed": "https://www.ffg.at/en/foerderungen"
+    },
+    {
+      "url": "https://www.ffg.at/en/node/202386?page=1",
+      "status": "queued",
+      "depth": 2,
+      "seed": "https://www.ffg.at/en/foerderungen"
+    },
+    {
+      "url": "https://www.ffg.at/en/events?combine_ort%5B0%5D=1",
+      "status": "queued",
+      "depth": 2,
+      "seed": "https://www.ffg.at/en/foerderungen"
+    },
+    {
+      "url": "https://www.ffg.at/en/events?combine_ort%5B0%5D=2",
+      "status": "queued",
+      "depth": 2,
+      "seed": "https://www.ffg.at/en/foerderungen"
+    },
+    {
+      "url": "https://www.ffg.at/europa/verstaltung/digital/Infosession/2025-11-05",
+      "status": "queued",
+      "depth": 2,
+      "seed": "https://www.ffg.at/en/foerderungen"
+    }
+  ],
   "pages": [],
   "seen": {
     "https://www.aws.at/en/aws-digitalisierung/ai-unternehmen-wachstum/ai-adoption/": true,
@@ -267,6 +1096,163 @@
     "https://www.wkbg.at/buergschaftsbank-wien-kredite/": true,
     "https://www.conda.at/en/about-crowdinvesting/": true,
     "https://www.conda.at/en/unternehmen-finanzieren-en/": true,
-    "https://tecnet.at/en/venture-capital#safe": true
+    "https://tecnet.at/en/venture-capital#safe": true,
+    "https://www.ffg.at/en/foerderungen": true,
+    "https://www.ffg.at/en/node/202455": true,
+    "https://www.ffg.at/en/node/202386": true,
+    "https://www.ffg.at/en/events": true,
+    "https://www.ffg.at/en/node/202372": true,
+    "https://www.ffg.at/en/content/ueber-uns": true,
+    "https://www.ffg.at/en/presse": true,
+    "https://www.ffg.at/beratung": true,
+    "https://www.ffg.at/faq": true,
+    "https://www.ffg.at/suche": true,
+    "https://www.ffg.at/foerderungen": true,
+    "https://www.ffg.at/en": true,
+    "https://www.ffg.at/en/fundings": true,
+    "https://www.ffg.at/en/themen": true,
+    "https://www.ffg.at/en/taxonomy/term/1391": true,
+    "https://www.ffg.at/en/category/forschungsschwerpunkt/informationstechnologie": true,
+    "https://www.ffg.at/thema/energiewende": true,
+    "https://www.ffg.at/thema/kreislaufwirtschaft": true,
+    "https://www.ffg.at/en/taxonomy/term/1395": true,
+    "https://www.ffg.at/en/category/forschungsschwerpunkt/lebenswissenschaften": true,
+    "https://www.ffg.at/thema/mobilitaetswende": true,
+    "https://www.ffg.at/thema/kooperation-forschungsinfrastruktur": true,
+    "https://www.ffg.at/en/thema/production-and-materials": true,
+    "https://www.ffg.at/en/thema/research-infrastructure": true,
+    "https://www.ffg.at/thema/gesellschaft-und-sicherheit": true,
+    "https://www.ffg.at/en/thema/social-and-culture": true,
+    "https://www.ffg.at/en/category/forschungsschwerpunkt/weltraum": true,
+    "https://www.ffg.at/thema/menschen-qualifikation-und-gender": true,
+    "https://www.ffg.at/en/beratung": true,
+    "https://www.ffg.at/en/initiatives": true,
+    "https://www.ffg.at/en/node/202370": true,
+    "https://www.ffg.at/en/service": true,
+    "https://www.ffg.at/en/node/15195": true,
+    "https://www.ffg.at/europa/een": true,
+    "https://www.ffg.at/en/service/female-innovators": true,
+    "https://www.ffg.at/en/success-stories": true,
+    "https://www.ffg.at/en/imprint": true,
+    "https://www.ffg.at/en/privacy-policy": true,
+    "https://www.ffg.at/en/accessibility-statement": true,
+    "https://www.ffg.at/en/whistleblower-system": true,
+    "https://www.ffg.at/unser-team": true,
+    "https://www.ffg.at/en/team": true,
+    "https://www.ffg.at/en/node/202455?letter=A": true,
+    "https://www.ffg.at/en/node/202455?letter=B": true,
+    "https://www.ffg.at/en/node/202455?letter=C": true,
+    "https://www.ffg.at/en/node/202455?letter=D": true,
+    "https://www.ffg.at/en/node/202455?letter=E": true,
+    "https://www.ffg.at/en/node/202455?letter=F": true,
+    "https://www.ffg.at/en/node/202455?letter=G": true,
+    "https://www.ffg.at/en/node/202455?letter=H": true,
+    "https://www.ffg.at/en/node/202455?letter=I": true,
+    "https://www.ffg.at/en/node/202455?letter=J": true,
+    "https://www.ffg.at/en/node/202455?letter=K": true,
+    "https://www.ffg.at/en/node/202455?letter=L": true,
+    "https://www.ffg.at/en/node/202455?letter=M": true,
+    "https://www.ffg.at/en/node/202455?letter=N": true,
+    "https://www.ffg.at/en/node/202455?letter=O": true,
+    "https://www.ffg.at/en/node/202455?letter=%C3%96": true,
+    "https://www.ffg.at/en/node/202455?letter=P": true,
+    "https://www.ffg.at/en/node/202455?letter=R": true,
+    "https://www.ffg.at/en/node/202455?letter=S": true,
+    "https://www.ffg.at/en/node/202455?letter=T": true,
+    "https://www.ffg.at/en/node/202455?letter=V": true,
+    "https://www.ffg.at/en/node/202455?letter=W": true,
+    "https://www.ffg.at/en/node/202455?letter=Z": true,
+    "https://www.ffg.at/en/node/202455?organization=Aeronautics%20and%20Space%20Agency": true,
+    "https://www.ffg.at/en/node/202455?organization=Audit%20Unit": true,
+    "https://www.ffg.at/en/node/202455?organization=Corporate%20Communications": true,
+    "https://www.ffg.at/en/node/202455?organization=Corporate%20Finances": true,
+    "https://www.ffg.at/en/node/202455?organization=European%20and%20International%20Programmes": true,
+    "https://www.ffg.at/en/node/202455?organization=General%20Programmes": true,
+    "https://www.ffg.at/en/node/202455?organization=Human%20Resources%20and%20Organisation": true,
+    "https://www.ffg.at/en/node/202455?organization=Legal%20Department%2C%20Compliance%20and%20Internal%20Audits": true,
+    "https://www.ffg.at/en/node/202455?organization=Management%20board": true,
+    "https://www.ffg.at/en/node/202455?organization=Operations%20Management": true,
+    "https://www.ffg.at/en/node/202455?organization=Research%20and%20Development%20Allowance": true,
+    "https://www.ffg.at/en/node/202455?organization=Strategy%20Unit%2C%20Data%20Analysis%20and%20Business%20Development": true,
+    "https://www.ffg.at/en/node/202455?organization=Structural%20Programmes": true,
+    "https://www.ffg.at/en/node/202455?organization=Thematic%20Programmes": true,
+    "https://www.ffg.at/en/node/202881": true,
+    "https://www.ffg.at/en/team/agiovlasitis-iraklis": true,
+    "https://www.ffg.at/en/node/44486": true,
+    "https://www.ffg.at/en/node/10821": true,
+    "https://www.ffg.at/en/node/5520": true,
+    "https://www.ffg.at/en/node/201923": true,
+    "https://www.ffg.at/en/node/5521": true,
+    "https://www.ffg.at/en/node/50740": true,
+    "https://www.ffg.at/en/node/186571": true,
+    "https://www.ffg.at/en/node/203302": true,
+    "https://www.ffg.at/en/node/5338": true,
+    "https://www.ffg.at/en/node/105794": true,
+    "https://www.ffg.at/en/node/59956": true,
+    "https://www.ffg.at/en/node/68670": true,
+    "https://www.ffg.at/en/node/195100": true,
+    "https://www.ffg.at/en/node/101594": true,
+    "https://www.ffg.at/en/node/182394": true,
+    "https://www.ffg.at/en/node/6833": true,
+    "https://www.ffg.at/en/node/65844": true,
+    "https://www.ffg.at/en/node/45926": true,
+    "https://www.ffg.at/en/node/5515": true,
+    "https://www.ffg.at/en/node/202573": true,
+    "https://www.ffg.at/en/node/5511": true,
+    "https://www.ffg.at/en/node/40144": true,
+    "https://www.ffg.at/en/node/5509": true,
+    "https://www.ffg.at/en/node/197686": true,
+    "https://www.ffg.at/en/node/5504": true,
+    "https://www.ffg.at/en/node/188432": true,
+    "https://www.ffg.at/en/node/202079": true,
+    "https://www.ffg.at/en/team/berger-matthias": true,
+    "https://www.ffg.at/en/node/5506": true,
+    "https://www.ffg.at/en/node/5507": true,
+    "https://www.ffg.at/en/node/5508": true,
+    "https://www.ffg.at/en/node/5500": true,
+    "https://www.ffg.at/en/node/20571": true,
+    "https://www.ffg.at/en/node/5501": true,
+    "https://www.ffg.at/en/node/146871": true,
+    "https://www.ffg.at/en/node/7564": true,
+    "https://www.ffg.at/en/node/5503": true,
+    "https://www.ffg.at/en/node/202028": true,
+    "https://www.ffg.at/en/node/14688": true,
+    "https://www.ffg.at/en/node/5499": true,
+    "https://www.ffg.at/en/node/5497": true,
+    "https://www.ffg.at/en/node/56274": true,
+    "https://www.ffg.at/en/node/5495": true,
+    "https://www.ffg.at/en/node/5496": true,
+    "https://www.ffg.at/en/node/203330": true,
+    "https://www.ffg.at/en/node/5489": true,
+    "https://www.ffg.at/en/node/201513": true,
+    "https://www.ffg.at/en/node/5490": true,
+    "https://www.ffg.at/node/202361": true,
+    "https://www.ffg.at/en/FFG-Newsletter": true,
+    "https://www.ffg.at/en/node/202386?type%5B0%5D=news": true,
+    "https://www.ffg.at/en/node/202386?type%5B0%5D=pressemitteilung": true,
+    "https://www.ffg.at/en/node/202386?year%5B0%5D=2025": true,
+    "https://www.ffg.at/en/node/202386?year%5B0%5D=2024": true,
+    "https://www.ffg.at/en/node/202386?year%5B0%5D=2023": true,
+    "https://www.ffg.at/en/node/202386?year%5B0%5D=2022": true,
+    "https://www.ffg.at/en/node/202386?year%5B0%5D=2021": true,
+    "https://www.ffg.at/en/node/202386?year%5B0%5D=2020": true,
+    "https://www.ffg.at/en/node/202386?year%5B0%5D=2019": true,
+    "https://www.ffg.at/en/node/202386?year%5B0%5D=2018": true,
+    "https://www.ffg.at/en/press/boosting-space-ecosystem-space-driver-innovation": true,
+    "https://www.ffg.at/en/news/ERC-PoC-2024": true,
+    "https://www.ffg.at/en/press/spin-fellowships-strengthening-entrepreneurial-spirit-universities-and-research-institutions": true,
+    "https://www.ffg.at/en/press/erc-awards-15-consolidator-grants-researchers-austria": true,
+    "https://www.ffg.at/en/news/electric-mobility-ministry-climate-action-funds-further-118-zero-emission-buses-six-provinces": true,
+    "https://www.ffg.at/en/news/once-again-four-austrian-companies-among-europes-top-innovators": true,
+    "https://www.ffg.at/en/press/research-start-ups-strengthening-entrepreneurship": true,
+    "https://www.ffg.at/en/news/minister-polaschek-congratulates-scientists-17-erc-starting-grants": true,
+    "https://www.ffg.at/en/news/second-major-european-hydrogen-initiative-launched-austrian-participation": true,
+    "https://www.ffg.at/en/press/ffg-forum-2022-research-funding-success-story": true,
+    "https://www.ffg.at/en/news/federal-government-invests-900-million-euros-broadband-expansion-2022": true,
+    "https://www.ffg.at/en/press/schrambock-50-million-euro-investment-package-austrias-pharmaceutical-sector": true,
+    "https://www.ffg.at/en/node/202386?page=1": true,
+    "https://www.ffg.at/en/events?combine_ort%5B0%5D=1": true,
+    "https://www.ffg.at/en/events?combine_ort%5B0%5D=2": true,
+    "https://www.ffg.at/europa/verstaltung/digital/Infosession/2025-11-05": true
   }
 }

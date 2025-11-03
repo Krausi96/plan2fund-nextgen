@@ -5,7 +5,7 @@ import * as path from 'path';
 import { fetchHtml } from './utils';
 import { extractMeta } from './extract';
 import { normalizeMetadata } from './extract';
-import { normalizeUrl, sameHost, isDownload, isQueryListing, isProgramDetailPage } from './utils';
+import { normalizeUrl, sameHost, isDownload, isQueryListing, isProgramDetailPage, isOverviewPage } from './utils';
 import { autoDiscoveryPatterns, findInstitutionByUrl } from './config';
 
 // ============================================================================
@@ -247,11 +247,11 @@ export async function discover(seeds: string[], maxDepth = 1, maxPages = 20): Pr
           diagnostics.rejected.notDetailPage++;
         }
       }
-      maxPages--;
-    } catch (e) {
-      // ignore individual page failures
-    }
-  }
+            maxPages--;
+          } catch (e) {
+            // ignore individual page failures
+          }
+        }
   
   // Print discovery diagnostics
   console.log(`\n📊 Discovery Diagnostics:`);
