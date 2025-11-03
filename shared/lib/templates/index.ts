@@ -59,26 +59,28 @@ export async function getDocuments(
 /**
  * Get specific document by ID
  */
-export function getDocument(
+export async function getDocument(
   fundingType: string,
   productType: string,
   docId: string,
-  programId?: string
-): DocumentTemplate | undefined {
-  const docs = getDocuments(fundingType, productType, programId);
-  return docs.find(d => d.id === docId);
+  programId?: string,
+  baseUrl?: string
+): Promise<DocumentTemplate | undefined> {
+  const docs = await getDocuments(fundingType, productType, programId, baseUrl);
+  return docs.find((d: DocumentTemplate) => d.id === docId);
 }
 
 /**
  * Get specific section by ID
  */
-export function getSection(
+export async function getSection(
   fundingType: string,
   sectionId: string,
-  programId?: string
-): SectionTemplate | undefined {
-  const sections = getSections(fundingType, programId);
-  return sections.find(s => s.id === sectionId);
+  programId?: string,
+  baseUrl?: string
+): Promise<SectionTemplate | undefined> {
+  const sections = await getSections(fundingType, programId, baseUrl);
+  return sections.find((s: SectionTemplate) => s.id === sectionId);
 }
 
 // Export master templates for direct access

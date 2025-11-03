@@ -3,7 +3,7 @@
 // Handles API calls and data transformation
 
 import { EditorProduct, EditorTemplate, UnifiedEditorSection } from '@/features/editor/types/editor';
-import { PRODUCT_SECTION_TEMPLATES } from '../templates/productSectionTemplates';
+import { getSections } from '@/shared/lib/templates';
 
 export class EditorDataProvider {
   private baseUrl: string;
@@ -32,12 +32,34 @@ export class EditorDataProvider {
       const programType = (data.program_type || 'grant') as string;
       const fundingType: 'grants' | 'bankLoans' | 'equity' | 'visa' =
         programType.includes('loan') ? 'bankLoans' : programType.includes('equity') ? 'equity' : programType.includes('visa') ? 'visa' : 'grants';
-      const productType: 'submission' | 'strategy' | 'review' = 'submission';
-      // Fallback template for gap-filling
-      const fallback = PRODUCT_SECTION_TEMPLATES[productType]?.[fundingType];
-      const fallbackById: Record<string, UnifiedEditorSection> = {};
-      if (fallback) {
-        fallback.sections.forEach((s: any) => { fallbackById[s.id] = s; });
+      // Fallback template for gap-filling - use unified system
+      let fallbackById: Record<string, UnifiedEditorSection> = {};
+      try {
+        const fallbackSections = await getSections(fundingType);
+        fallbackSections.forEach((s) => {
+          fallbackById[s.id] = {
+            id: s.id,
+            title: s.title,
+            placeholder: s.description || '',
+            required: s.required !== false,
+            wordCountMin: s.wordCountMin || 200,
+            wordCountMax: s.wordCountMax || 800,
+            hints: s.prompts || [],
+            validationRules: s.validationRules || { requiredFields: [], formatRequirements: [] },
+            template: s.prompts?.join(' ') || '',
+            guidance: s.description || '',
+            requirements: [s.category],
+            prefillData: {},
+            section_name: s.title,
+            description: s.description,
+            word_count_min: s.wordCountMin || 200,
+            word_count_max: s.wordCountMax || 800,
+            ai_guidance: s.prompts?.join(' ') || '',
+            order: s.order || 0
+          } as UnifiedEditorSection;
+        });
+      } catch (error) {
+        console.warn('Could not load fallback sections:', error);
       }
       // Merge API sections with fallback prompts/guidance if partial
       const apiSections: any[] = Array.isArray(data.editor) ? data.editor : [];
@@ -60,7 +82,7 @@ export class EditorDataProvider {
               ai_guidance: s.ai_guidance || (((back as any).prompts ? (back as any).prompts.join(' ') : ''))
             } as any;
           })
-        : (fallback ? fallback.sections as any : []);
+        : [];
       
       return {
         id: productId,

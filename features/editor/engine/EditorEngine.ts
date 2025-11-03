@@ -3,7 +3,7 @@
 
 import { EditorProduct, EditorTemplate, UnifiedEditorSection, EditorProgress, SectionProgress } from '@/features/editor/types/editor';
 import { EditorDataProvider } from './EditorDataProvider';
-import { PRODUCT_SECTION_TEMPLATES } from '../templates/productSectionTemplates';
+import { getSections } from '@/shared/lib/templates';
 
 export class EditorEngine {
   private dataProvider: EditorDataProvider;
@@ -76,49 +76,57 @@ export class EditorEngine {
     }
 
     // Fallback to template system based on product type
-    return this.loadSectionsFromTemplates(productId, templateId);
+    return await this.loadSectionsFromTemplates(productId, templateId);
   }
 
   /**
    * Load sections from template system when program data is not available
    */
-  private loadSectionsFromTemplates(productId: string, templateId?: string): UnifiedEditorSection[] {
+  private async loadSectionsFromTemplates(_productId: string, templateId?: string): Promise<UnifiedEditorSection[]> {
     // Map productId to product type (this could be improved with a mapping)
-    const productType = this.mapProductIdToType(productId);
+    // Not needed anymore - using unified system
     const fundingType = templateId ? this.mapTemplateIdToFundingType(templateId) : 'grants';
     
-    // Get template for product type and funding type
-    const template = PRODUCT_SECTION_TEMPLATES[productType]?.[fundingType];
-    
-    if (!template) {
-      console.warn(`No template found for productType: ${productType}, fundingType: ${fundingType}`);
+    // Use unified template system
+    try {
+      const sections = await getSections(fundingType);
+      
+      if (!sections || sections.length === 0) {
+        console.warn(`No sections found for fundingType: ${fundingType}`);
+        return this.getDefaultSections();
+      }
+
+      // Convert unified sections to UnifiedEditorSection format
+      return sections.map(section => ({
+        id: section.id,
+        title: section.title,
+        required: section.required,
+        template: section.prompts.join(' ') || '',
+        guidance: section.description,
+        requirements: [section.category],
+        prefillData: {},
+        section_name: section.title,
+        description: section.description,
+        word_count_min: section.wordCountMin,
+        word_count_max: section.wordCountMax,
+        ai_guidance: section.prompts.join(' '),
+        hints: section.prompts
+      }));
+    } catch (error) {
+      console.error('Error loading sections from unified templates:', error);
       return this.getDefaultSections();
     }
-
-    // Convert template sections to UnifiedEditorSection format
-    return template.sections.map(section => ({
-      id: section.id,
-      title: section.title,
-      required: section.required,
-      template: section.prompts.join(' ') || '',
-      guidance: section.description,
-      requirements: [section.category],
-      prefillData: {},
-      section_name: section.title,
-      description: section.description,
-      word_count_min: section.wordCountMin,
-      word_count_max: section.wordCountMax,
-      ai_guidance: section.prompts.join(' '),
-      hints: section.prompts
-    }));
   }
 
   /**
    * Map product ID to product type
+   * @deprecated Not used anymore - kept for potential future use
    */
-  private mapProductIdToType(productId: string): 'strategy' | 'review' | 'submission' {
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  // @ts-expect-error - Intentionally unused for now
+  private _mapProductIdToType(_productId: string): 'strategy' | 'review' | 'submission' {
     // Prefer exact matches, then substring heuristics
-    const id = productId.toLowerCase();
+    const id = _productId.toLowerCase();
     if (id === 'submission') return 'submission';
     if (id === 'review') return 'review';
     if (id === 'strategy') return 'strategy';

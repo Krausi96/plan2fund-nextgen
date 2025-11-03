@@ -285,7 +285,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         const { getPool } = require('../../scraper-lite/src/db/neon-client');
         const pool = getPool();
         const reqResult = await pool.query(
-          'SELECT category, type, value, required, source, description, format FROM requirements WHERE page_id = $1',
+          'SELECT category, type, value, required, source, description, format, requirements FROM requirements WHERE page_id = $1',
           [page.id]
         );
         
@@ -295,15 +295,92 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
           if (!categorized_requirements[row.category]) {
             categorized_requirements[row.category] = [];
           }
+          // Parse value if it's JSON stored as TEXT
+          let parsedValue: any = row.value;
+          try {
+            if (typeof row.value === 'string' && (row.value.startsWith('{') || row.value.startsWith('['))) {
+              parsedValue = JSON.parse(row.value);
+            }
+          } catch (e) {
+            // Not JSON, use as-is
+          }
+          
           categorized_requirements[row.category].push({
             type: row.type,
-            value: row.value,
+            value: parsedValue,
             required: row.required,
             source: row.source,
             description: row.description,
-            format: row.format
+            format: row.format,
+            // Include nested requirements if present
+            requirements: row.requirements ? (typeof row.requirements === 'string' ? JSON.parse(row.requirements) : row.requirements) : undefined
           });
         });
+        
+        // Build eligibility_criteria from categorized_requirements for backward compatibility
+        // QuestionEngine checks BOTH eligibility_criteria AND categorized_requirements
+        const eligibility_criteria: any = {};
+        
+        // Geographic requirements
+        if (categorized_requirements.geographic) {
+          const location = categorized_requirements.geographic.find((r: any) => r.type === 'location');
+          if (location) eligibility_criteria.location = location.value;
+        }
+        
+        // Team/Age requirements
+        if (categorized_requirements.team) {
+          const maxAge = categorized_requirements.team.find((r: any) => r.type === 'max_company_age');
+          if (maxAge) {
+            eligibility_criteria.max_company_age = typeof maxAge.value === 'number' ? maxAge.value : parseInt(String(maxAge.value)) || null;
+          }
+          
+          const minTeam = categorized_requirements.team.find((r: any) => r.type === 'min_team_size');
+          if (minTeam) {
+            eligibility_criteria.min_team_size = typeof minTeam.value === 'number' ? minTeam.value : parseInt(String(minTeam.value)) || null;
+          }
+        }
+        
+        // Financial requirements
+        if (categorized_requirements.financial) {
+          const revenue = categorized_requirements.financial.find((r: any) => r.type === 'revenue_range' || r.type === 'revenue');
+          if (revenue && typeof revenue.value === 'object' && revenue.value !== null) {
+            eligibility_criteria.revenue_min = revenue.value.min;
+            eligibility_criteria.revenue_max = revenue.value.max;
+          }
+          
+          const coFinancing = categorized_requirements.financial.find((r: any) => r.type === 'co_financing');
+          if (coFinancing) {
+            eligibility_criteria.cofinancing_pct = typeof coFinancing.value === 'number' ? coFinancing.value : parseFloat(String(coFinancing.value)) || null;
+          }
+        }
+        
+        // Project requirements
+        if (categorized_requirements.project) {
+          const industry = categorized_requirements.project.find((r: any) => r.type === 'industry_focus');
+          if (industry) eligibility_criteria.industry_focus = industry.value;
+          
+          const research = categorized_requirements.project.find((r: any) => r.type === 'research_focus');
+          if (research) eligibility_criteria.research_focus = research.value;
+        }
+        
+        // Technical requirements
+        if (categorized_requirements.technical || categorized_requirements.trl_level) {
+          const trl = (categorized_requirements.technical || []).find((r: any) => r.type === 'trl_level') ||
+                     (categorized_requirements.trl_level || []).find((r: any) => r.type === 'trl_level');
+          if (trl) eligibility_criteria.trl_level = trl.value;
+        }
+        
+        // Consortium requirements
+        if (categorized_requirements.consortium) {
+          const collab = categorized_requirements.consortium.find((r: any) => r.type === 'international_collaboration');
+          if (collab) eligibility_criteria.international_collaboration = collab.value;
+        }
+        
+        // Impact requirements
+        if (categorized_requirements.impact) {
+          const impact = categorized_requirements.impact.find((r: any) => r.type === 'impact');
+          if (impact) eligibility_criteria.impact = impact.value;
+        }
         
         // Determine program type from funding_types or use query param
         const programType = (page.funding_types && page.funding_types.length > 0) 
@@ -341,7 +418,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
           contact_email: page.contact_email,
           contact_phone: page.contact_phone,
           requirements: {},
-          eligibility_criteria: {}, // Can be derived from categorized_requirements if needed
+          eligibility_criteria, // Now properly derived from categorized_requirements
           categorized_requirements,
           notes: page.description,
           maxAmount: page.funding_amount_max || 0,

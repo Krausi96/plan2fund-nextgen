@@ -3,7 +3,7 @@
 // Input: categorized_requirements (18 categories)
 // Output: editor, library formats (decision tree moved to dynamicDecisionTree.ts)
 
-import { getStandardSections, StandardSection } from '@/shared/lib/standardSectionTemplates';
+import { getStandardSections, StandardSection } from '@/shared/lib/templates/sections';
 
 // ============================================================================
 // INTERFACES

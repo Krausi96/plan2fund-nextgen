@@ -64,7 +64,7 @@ async function getProgramRequirements(programId: string) {
     
     // Get requirements from requirements table (18 categories)
     const reqQuery = `
-      SELECT category, type, value, required, source, description, format
+      SELECT category, type, value, required, source, description, format, requirements
       FROM requirements
       WHERE page_id = $1
       ORDER BY category, type
@@ -77,13 +77,26 @@ async function getProgramRequirements(programId: string) {
       if (!categorizedRequirements[row.category]) {
         categorizedRequirements[row.category] = [];
       }
+      
+      // Parse value if it's JSON stored as TEXT
+      let parsedValue: any = row.value;
+      try {
+        if (typeof row.value === 'string' && (row.value.startsWith('{') || row.value.startsWith('['))) {
+          parsedValue = JSON.parse(row.value);
+        }
+      } catch (e) {
+        // Not JSON, use as-is
+      }
+      
       categorizedRequirements[row.category].push({
         type: row.type,
-        value: row.value,
+        value: parsedValue,
         required: row.required,
         source: row.source,
         description: row.description,
-        format: row.format
+        format: row.format,
+        // Include nested requirements if present
+        requirements: row.requirements ? (typeof row.requirements === 'string' ? JSON.parse(row.requirements) : row.requirements) : undefined
       });
     });
 
@@ -121,14 +134,14 @@ async function getProgramRequirements(programId: string) {
       const decisionTree = questionEngine.getCoreQuestions();
       
       // Use unified template system: Get master + program-specific merge
-      const { getSections, getDocuments } = await import('@/shared/lib/templates');
+      const { getDocuments } = await import('@/shared/lib/templates');
       
       // Get base URL for server-side API calls
       const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || `http://localhost:${process.env.PORT || 3000}`;
       
-      // Get sections (master + program-specific merge)
-      const masterSections = await getSections(programType, undefined, baseUrl);
-      const programSections = await getSections(programType, programId, baseUrl);
+      // Get sections via unified system (already handles master + program-specific merge)
+      // const masterSections = await getSections(programType, undefined, baseUrl);
+      // const programSections = await getSections(programType, programId, baseUrl);
       
       // Convert to editor format (backward compatibility)
       const editor = categoryConverter.convertToEditorSections(categorizedRequirements as CategorizedRequirements, programType);

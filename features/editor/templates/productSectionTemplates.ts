@@ -2,8 +2,8 @@
 // Product-specific section definitions for Strategy, Review, and Submission
 // Based on GPT agent comprehensive instructions
 
-import { StandardSection } from '@/shared/lib/standardSectionTemplates';
-import { AdditionalDocument } from './additionalDocuments';
+import { SectionTemplate as StandardSection } from '@/shared/lib/templates/types';
+import { DocumentTemplate as AdditionalDocument } from '@/shared/lib/templates/types';
 
 export interface ConditionalRule {
   condition: string;
@@ -21,7 +21,7 @@ export interface ProductSection {
   productType: 'strategy' | 'review' | 'submission';
   fundingType: 'grants' | 'bankLoans' | 'equity' | 'visa';
   sections: StandardSection[];   // List of sections to display
-  additionalDocuments: AdditionalDocument[];
+  additionalDocuments: Array<Omit<AdditionalDocument, 'category' | 'fundingTypes'> & Partial<Pick<AdditionalDocument, 'category' | 'fundingTypes'>>>;
   workflow: WorkflowStep[];      // Sequence of steps (e.g., fill forms, review, export)
 }
 
@@ -958,5 +958,6 @@ export function getWorkflowSteps(productType: string, fundingType: string): Work
  */
 export function getAdditionalDocuments(productType: string, fundingType: string): AdditionalDocument[] {
   const productSection = getProductSection(productType, fundingType);
-  return productSection?.additionalDocuments || [];
+  // Type assertion needed because ProductSection uses relaxed type
+  return (productSection?.additionalDocuments || []) as unknown as AdditionalDocument[];
 }

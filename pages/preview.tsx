@@ -3,7 +3,7 @@ import { useState, useEffect } from "react";
 import { useRouter } from "next/router";
 import featureFlags from "@/shared/lib/featureFlags";
 import { loadPlanSections, type PlanSection } from "@/shared/lib/planStore";
-import { chapterTemplates } from "@/features/editor/templates/chapters";
+// chapters.ts removed - use unified template system instead
 import analytics from "@/shared/lib/analytics";
 import { useI18n } from "@/shared/contexts/I18nContext";
 import { Switch } from "@/shared/components/ui/switch";
@@ -26,7 +26,8 @@ export default function Preview() {
       setSections(loadedSections);
     } else {
       // Initialize with empty sections if none exist
-      const emptySections = chapterTemplates.map(t => ({ id: t.id, title: t.title, content: "" }));
+      // Use unified sections as fallback instead of legacy chapters
+      const emptySections: PlanSection[] = [];
       setSections(emptySections);
     }
     setLoading(false);
