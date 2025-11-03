@@ -218,13 +218,18 @@ export async function discover(seeds: string[], maxDepth = 1, maxPages = 20): Pr
           urlLower.includes(k.toLowerCase()) || pathLower.includes(k.toLowerCase())
         );
         
-        // IMPROVEMENT: Adaptive depth - continue exploring if finding programs
+        // IMPROVEMENT: More lenient exploration - explore more URLs even if not detail pages
+        // We can explore intermediate pages to find detail pages deeper in the structure
         const shouldExplore = depth < maxDepth && !isQueryListing(full);
         // If we found programs at this depth and depth < maxDepth, allow one more level
         const adaptiveMaxDepth = programsFoundAtCurrentDepth > 2 ? Math.min(maxDepth + 1, 5) : maxDepth;
         const canExplore = depth < adaptiveMaxDepth && !isQueryListing(full);
         
-        if (shouldExplore || canExplore) {
+        // IMPROVEMENT: Also explore if URL has funding keywords (might lead to detail pages)
+        const hasRelevantKeyword = hasFundingKeyword || hasProgramKeyword || hasInstitutionKeyword;
+        const shouldExploreForKeywords = hasRelevantKeyword && depth < Math.max(maxDepth, 4) && !isQueryListing(full);
+        
+        if (shouldExplore || canExplore || shouldExploreForKeywords) {
           queue.push({ url: full, depth: depth + 1, seed });
           diagnostics.queuedForDepth++;
         }

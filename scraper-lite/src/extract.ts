@@ -1022,12 +1022,19 @@ export function extractAllRequirements(text: string, html?: string): Record<stri
     }
   });
   
-  // Fallback: Keyword-based document detection
+  // Fallback: Keyword-based document detection (expanded)
   const docTerms = [
     'pitch deck', 'businessplan', 'antragsformular', 'finanzplan', 'cv', 'lebenslauf',
     'prototyp', 'meilensteinplan', 'projektbeschreibung', 'geschäftsmodell',
     'bewerbung', 'antrag', 'unterlagen', 'dokumente', 'nachweis', 'zeugnis',
-    'referenz', 'portfolio', 'konzept', 'exposé'
+    'referenz', 'portfolio', 'konzept', 'exposé', 'unternehmenskonzept',
+    'marktanalyse', 'market analysis', 'konkurrenzanalyse', 'competitor analysis',
+    'finanzierungsplan', 'funding plan', 'cashflow', 'cash flow', 'prognose',
+    'forecast', 'prognose', 'bilanzen', 'balance sheet', 'guv', 'p&l',
+    'rechnungslegung', 'accounting', 'steuerbescheid', 'tax certificate',
+    'handelsregisterauszug', 'commercial register', 'gesellschaftsvertrag',
+    'articles of association', 'patent', 'patent', 'marke', 'trademark',
+    'zertifikat', 'certificate', 'akkreditierung', 'accreditation'
   ];
   const foundDocs = docTerms.filter(t => lowerText.includes(t));
   if (foundDocs.length > 0 && !categorized.documents.some(d => d.source === 'context_extraction')) {
@@ -1039,19 +1046,28 @@ export function extractAllRequirements(text: string, html?: string): Record<stri
     });
   }
   
-  // CO-FINANCING - Enhanced: More comprehensive extraction
+  // CO-FINANCING - Enhanced: More comprehensive extraction with more patterns
   const coFinancingKeywords = [
     'eigenmittel', 'eigenkapital', 'co-financing', 'cofinanzierung', 
     'eigenanteil', 'mitfinanzierung', 'eigenbeitrag', 'selbstfinanzierung',
-    'eigenfinanzierung', 'cofinancing', 'eigenfinanzierung', 'anteil', 'eigenbeitrag'
+    'eigenfinanzierung', 'cofinancing', 'eigenfinanzierung', 'anteil', 'eigenbeitrag',
+    'selbstbehalt', 'eigenleistung', 'eigenquote', 'matching funds', 'counterpart funding'
   ];
   
   // Pattern 1: Percentage with keywords (e.g., "30% eigenmittel", "eigenanteil von 50%")
   const coFinancingMatches = [
-    ...safeMatchAll(safeText, /(\d{1,3})[%\s]*(?:eigen|co-financ|mitfinanz|eigenbeitrag|eigenanteil|selbstfinanz)/i),
-    ...safeMatchAll(safeText, /(?:eigenmittel|eigenanteil|eigenkapital|mitfinanzierung|co-financ)[\s:]+(?:von|of|bis|up to|min\.?|minimal|mindestens|at least)[\s:]*(\d{1,3})[%\s]*/gi),
-    ...safeMatchAll(safeText, /(?:eigenmittel|eigenanteil|eigenkapital)[\s]+(?:von|of|beträgt|betragen|is|are)[\s]+(\d{1,3})[%\s]*/gi),
-    ...safeMatchAll(safeText, /(\d{1,3})[%\s]*(?:eigen|co-financ|mitfinanz)[\s]*(?:erforderlich|required|notwendig)/i)
+    ...safeMatchAll(safeText, /(\d{1,3})[%\s]*(?:eigen|co-financ|mitfinanz|eigenbeitrag|eigenanteil|selbstfinanz|selbstbehalt|eigenleistung)/i),
+    ...safeMatchAll(safeText, /(?:eigenmittel|eigenanteil|eigenkapital|mitfinanzierung|co-financ|eigenbeitrag|selbstbehalt)[\s:]+(?:von|of|bis|up to|min\.?|minimal|mindestens|at least|beträgt|betragen|is|are)[\s:]*(\d{1,3})[%\s]*/gi),
+    ...safeMatchAll(safeText, /(?:eigenmittel|eigenanteil|eigenkapital|mitfinanzierung)[\s]+(?:von|of|beträgt|betragen|is|are|in höhe von|in the amount of)[\s]+(?:von\s+)?(\d{1,3})[%\s]*/gi),
+    ...safeMatchAll(safeText, /(\d{1,3})[%\s]*(?:eigen|co-financ|mitfinanz|eigenbeitrag|eigenanteil)[\s]*(?:erforderlich|required|notwendig|notwendig|muss|müssen)/i),
+    ...safeMatchAll(safeText, /(?:minimum|mindestens|at least|minimal)[\s]+(\d{1,3})[%\s]*(?:eigen|eigenmittel|eigenanteil|eigenkapital)/i),
+    ...safeMatchAll(safeText, /(?:financing|finanzierung)[\s]+(?:ratio|verhältnis|quote)[\s:]+(\d{1,3})[%\s]*(?:eigen|eigenmittel)/i),
+    ...safeMatchAll(safeText, /(?:funding|förderung)[\s]+(?:covers|deckt|abdeckt)[\s]+(\d{1,3})[%\s]*(?:of|von|der)/i),
+    ...safeMatchAll(safeText, /(\d{1,3})[%\s]*(\d{1,3})[%\s]*/gi).filter(m => {
+      // Check if context mentions co-financing
+      const context = safeText.substring(Math.max(0, safeText.indexOf(m[0]) - 50), safeText.indexOf(m[0]) + 50).toLowerCase();
+      return context.includes('eigen') || context.includes('co-financ') || context.includes('mitfinanz');
+    })
   ];
   
   if (coFinancingMatches.length > 0 || coFinancingKeywords.some(keyword => lowerText.includes(keyword))) {
@@ -1104,19 +1120,25 @@ export function extractAllRequirements(text: string, html?: string): Record<stri
     }
   }
   
-  // TRL LEVEL - Enhanced: More comprehensive extraction
+  // TRL LEVEL - Enhanced: More comprehensive extraction with more patterns
   const trlKeywords = [
     'trl', 'technology readiness', 'reifegrad', 'technologiereifegrad',
-    'technology readiness level', 'trl-level', 'trl level', 'technology maturity'
+    'technology readiness level', 'trl-level', 'trl level', 'technology maturity',
+    'tech readiness', 'tech readiness level', 'reifegradstufe', 'technology reifegrad'
   ];
   
-  // Pattern 1: TRL X or TRL X-Y
+  // Pattern 1: TRL X or TRL X-Y (more flexible patterns)
   const trlMatches = [
     ...safeMatchAll(safeText, /trl[\s\-]?level?[\s\-]?(\d{1})[\s\-]?[–-]?[\s\-]?(\d{1})?/gi),
     ...safeMatchAll(safeText, /trl[\s\-]?(\d{1})[\s\-]?[–-]?[\s\-]?(\d{1})?/gi),
     ...safeMatchAll(safeText, /technology[\s]+readiness[\s]+level[\s\-]?(\d{1})[\s\-]?[–-]?[\s\-]?(\d{1})?/gi),
     ...safeMatchAll(safeText, /reifegrad[\s\-]?(\d{1})[\s\-]?[–-]?[\s\-]?(\d{1})?/gi),
-    ...safeMatchAll(safeText, /technologiereifegrad[\s\-]?(\d{1})[\s\-]?[–-]?[\s\-]?(\d{1})?/gi)
+    ...safeMatchAll(safeText, /technologiereifegrad[\s\-]?(\d{1})[\s\-]?[–-]?[\s\-]?(\d{1})?/gi),
+    ...safeMatchAll(safeText, /reifegradstufe[\s\-]?(\d{1})[\s\-]?[–-]?[\s\-]?(\d{1})?/gi),
+    ...safeMatchAll(safeText, /(?:technology|tech)[\s]+(?:readiness|reifegrad)[\s]+(?:level|stufe)?[\s\-]?(\d{1})/gi),
+    ...safeMatchAll(safeText, /(?:minimum|mindestens|at least|min\.|ab)[\s]+trl[\s\-]?(\d{1})/gi),
+    ...safeMatchAll(safeText, /trl[\s\-]?(\d{1})[\s\-]?(?:oder|or|bis|up to)[\s\-]?(\d{1})/gi),
+    ...safeMatchAll(safeText, /(?:technologie|technology)[\s]+(?:muss|must|should|sollte)[\s]+(?:mindestens|at least)[\s]+(?:reifegrad|trl)[\s\-]?(\d{1})/gi)
   ];
   
   if (trlMatches.length > 0 || trlKeywords.some(keyword => lowerText.includes(keyword))) {
@@ -1361,19 +1383,21 @@ export function extractAllRequirements(text: string, html?: string): Record<stri
   // TIMELINE - Enhanced: Better date and duration extraction with more patterns
   const timelineMatches = [
     // Deadline patterns with keywords
-    ...safeMatchAll(safeText, /(?:deadline|frist|einreichfrist|bewerbungsfrist|application deadline|abgabefrist|meldungsfrist|anmeldefrist|submit by|einreichen bis)[\s:]+([^\.\n]{5,150})/gi),
-    ...safeMatchAll(safeText, /(?:laufzeit|duration|zeitraum|project duration|program duration)[\s:]+([^\.\n]{5,150})/gi),
+    ...safeMatchAll(safeText, /(?:deadline|frist|einreichfrist|bewerbungsfrist|application deadline|abgabefrist|meldungsfrist|anmeldefrist|submit by|einreichen bis|letzter termin|last date)[\s:]+([^\.\n]{5,150})/gi),
+    ...safeMatchAll(safeText, /(?:laufzeit|duration|zeitraum|project duration|program duration|projektlaufzeit|förderdauer|funding period|programmlaufzeit)[\s:]+([^\.\n]{5,150})/gi),
     // Date ranges
-    ...safeMatchAll(safeText, /(?:von|from|ab|starting|beginning)[\s]+(\d{1,2}[\.\/\-]\d{1,2}[\.\/\-]\d{2,4})[\s]*(?:bis|to|until|ending|\-)[\s]+(\d{1,2}[\.\/\-]\d{1,2}[\.\/\-]\d{2,4})/gi),
+    ...safeMatchAll(safeText, /(?:von|from|ab|starting|beginning|gültig ab|valid from)[\s]+(\d{1,2}[\.\/\-]\d{1,2}[\.\/\-]\d{2,4})[\s]*(?:bis|to|until|ending|\-)[\s]+(\d{1,2}[\.\/\-]\d{1,2}[\.\/\-]\d{2,4})/gi),
     ...safeMatchAll(safeText, /(\d{1,2}[\.\/\-]\d{1,2}[\.\/\-]\d{2,4})[\s]*(?:-\s*|\s+to\s+|\s+bis\s+|\s+until\s+)(\d{1,2}[\.\/\-]\d{1,2}[\.\/\-]\d{2,4})/gi),
     // Single dates with context
-    ...safeMatchAll(safeText, /(?:bis|until|by|spätestens|letzter\s+termin|deadline|frist|einsendeschluss)[\s]+(\d{1,2}[\.\/\-]\d{1,2}[\.\/\-]\d{2,4})/gi),
+    ...safeMatchAll(safeText, /(?:bis|until|by|spätestens|letzter\s+termin|deadline|frist|einsendeschluss|application deadline|bewerbungsschluss)[\s]+(\d{1,2}[\.\/\-]\d{1,2}[\.\/\-]\d{2,4})/gi),
     // Timeline sections
-    ...safeMatchAll(safeText, /(?:zeitplan|timeline|ablauf|procedure|process|verfahren)[\s:]+([^\.\n]{10,200})/gi),
+    ...safeMatchAll(safeText, /(?:zeitplan|timeline|ablauf|procedure|process|verfahren|timeline|fristen|dates|termine)[\s:]+([^\.\n]{10,200})/gi),
     // Evaluation/decision dates
-    ...safeMatchAll(safeText, /(?:entscheidung|decision|bewilligung|approval|bekanntgabe|announcement)[\s:]+([^\.\n]{5,150})/gi),
+    ...safeMatchAll(safeText, /(?:entscheidung|decision|bewilligung|approval|bekanntgabe|announcement|notification)[\s:]+([^\.\n]{5,150})/gi),
     // Submission periods
-    ...safeMatchAll(safeText, /(?:einreichung|submission|bewerbung|application)[\s]+(?:möglich|possible|open|von|from)[\s]+([^\.\n]{5,150})/gi)
+    ...safeMatchAll(safeText, /(?:einreichung|submission|bewerbung|application)[\s]+(?:möglich|possible|open|von|from|between)[\s]+([^\.\n]{5,150})/gi),
+    // Specific time periods (e.g., "from January to March")
+    ...safeMatchAll(safeText, /(?:von|from)\s+(?:januar|februar|märz|april|mai|juni|juli|august|september|oktober|november|dezember|january|february|march|may|june|july|august|september|october|november|december)[\s]+(?:bis|to|until)\s+(?:januar|februar|märz|april|mai|juni|juli|august|september|oktober|november|dezember|january|february|march|may|june|july|august|september|october|november|december)/gi)
   ];
   
   if (timelineMatches.length > 0) {
@@ -1399,11 +1423,15 @@ export function extractAllRequirements(text: string, html?: string): Record<stri
     }
   }
   
-  // Duration extraction - Enhanced patterns
+  // Duration extraction - Enhanced patterns with more variations
   const durationMatches = [
-    ...safeMatchAll(safeText, /(?:laufzeit|duration|dauer|programm duration|project duration)[\s:]+([^\.\n]{5,100})/gi),
-    ...safeMatchAll(safeText, /(\d+)\s*(?:jahr|jahre|year|years|month|monat|monate|months|woche|weeks|tag|days)[\s]*(?:laufzeit|duration|dauer)?/i),
-    ...safeMatchAll(safeText, /(\d+)\s*-\s*(\d+)\s*(?:jahr|jahre|year|years|month|monat|monate|months)/i)
+    ...safeMatchAll(safeText, /(?:laufzeit|duration|dauer|programm duration|project duration|förderdauer|programmlaufzeit|projektlaufzeit)[\s:]+([^\.\n]{5,100})/gi),
+    ...safeMatchAll(safeText, /(\d+)\s*(?:jahr|jahre|year|years|month|monat|monate|months|woche|weeks|tag|days)[\s]*(?:laufzeit|duration|dauer|lang|long)?/i),
+    ...safeMatchAll(safeText, /(\d+)\s*-\s*(\d+)\s*(?:jahr|jahre|year|years|month|monat|monate|months)/i),
+    ...safeMatchAll(safeText, /(?:zwischen|between)\s+(\d+)\s*(?:und|and)\s+(\d+)\s*(?:jahr|jahre|year|years|month|monat|monate|months)/i),
+    ...safeMatchAll(safeText, /(?:maximum|maximal|max\.|bis zu|up to)\s+(\d+)\s*(?:jahr|jahre|year|years|month|monat|monate|months)/i),
+    ...safeMatchAll(safeText, /(?:minimum|mindestens|min\.|at least)\s+(\d+)\s*(?:jahr|jahre|year|years|month|monat|monate|months)/i),
+    ...safeMatchAll(safeText, /(?:project|projekt|program|programm)[\s]+(?:duration|laufzeit|dauer)[\s:]+([^\.\n]{5,100})/gi)
   ];
   
   durationMatches.forEach(match => {
@@ -1879,9 +1907,12 @@ export function extractAllRequirements(text: string, html?: string): Record<stri
   }
   // Don't add generic placeholder - only add if we found meaningful content
   
-  // MARKET SIZE - Enhanced: Extract market size requirements
+  // MARKET SIZE - Enhanced: Extract market size requirements with more patterns
   const marketMatches = [
-    ...safeMatchAll(safeText, /(?:marktgröße|market size|marktpotenzial|market potential)[\s:]+([^\.\n]{15,200})/gi)
+    ...safeMatchAll(safeText, /(?:marktgröße|market size|marktpotenzial|market potential|marktvolumen|market volume|marktnachfrage|market demand)[\s:]+([^\.\n]{15,200})/gi),
+    ...safeMatchAll(safeText, /(?:target market|zielmarkt|addressable market|adressierbarer markt|total addressable market|tam)[\s:]+([^\.\n]{15,200})/gi),
+    ...safeMatchAll(safeText, /(?:market|markt)[\s]+(?:size|größe|potential|potenzial)[\s:]+([^\.\n]{15,200})/gi),
+    ...safeMatchAll(safeText, /(?:minimum|mindestens|at least)[\s]+(?:market|markt)[\s]+(?:size|größe)[\s:]+([^\.\n]{15,200})/gi)
   ];
   if (marketMatches.length > 0) {
     const bestMatch = marketMatches.find(m => m[1] && m[1].trim().length > 15);
