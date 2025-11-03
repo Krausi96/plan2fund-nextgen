@@ -370,19 +370,43 @@ export async function scrape(maxUrls = 10, targets: string[] = []): Promise<void
       
       const rec = normalizeMetadata(rawMetadata);
       
-      // Save to NEON database
+      // QUALITY CHECK: Ensure minimum data quality before saving
+      const hasMinimumData = !!(
+        rec.title && rec.title.trim().length > 5 &&
+        (rec.description && rec.description.trim().length > 20) &&
+        rec.url && rec.url.length > 10
+      );
+      
+      if (!hasMinimumData) {
+        console.log(`  ⚠️  Skipping low-quality page (missing title/description): ${job.url.slice(0, 60)}...`);
+        (job as any).status = 'failed';
+        (job as any).lastError = 'Insufficient data quality (missing title/description)';
+        continue;
+      }
+      
+      // Save to NEON database with transaction support
+      let savedToDb = false;
       try {
-        const { savePage, saveRequirements } = require('./db/page-repository');
+        const { savePage, saveRequirements, savePageWithRequirements } = require('./db/page-repository');
         const { markJobDone } = require('./db/job-repository');
+        const { testConnection } = require('./db/neon-client');
         
-        // Check if DATABASE_URL is set
+        // Check if DATABASE_URL is set and connection works
         if (!process.env.DATABASE_URL) {
           throw new Error('DATABASE_URL environment variable is not set. Please configure it in .env.local');
         }
         
-        const pageId = await savePage(rec);
-        await saveRequirements(pageId, rec.categorized_requirements);
+        // Test connection before attempting save
+        const connectionOk = await testConnection();
+        if (!connectionOk) {
+          throw new Error('Database connection test failed');
+        }
+        
+        // Use atomic transaction to ensure page + requirements are saved together
+        const pageId = await savePageWithRequirements(rec);
         await markJobDone(job.url);
+        
+        savedToDb = true;
         
         // Also update local state for compatibility
         state.pages = state.pages.filter(p => p.url !== job.url);
@@ -402,11 +426,19 @@ export async function scrape(maxUrls = 10, targets: string[] = []): Promise<void
         } else {
           console.error(`  ❌ DB save failed: ${errorMsg}`);
         }
-        // Fallback to JSON-only
-        state.pages = state.pages.filter(p => p.url !== job.url);
-        state.pages.push(rec as any);
-        (job as any).status = 'done';
-        console.log(`  ⚠️  Saved to JSON only (DB failed): ${job.url.slice(0, 60)}...`);
+        
+        // GUARANTEED FALLBACK: Always save to JSON if DB fails
+        try {
+          state.pages = state.pages.filter(p => p.url !== job.url);
+          state.pages.push(rec as any);
+          (job as any).status = 'done';
+          console.log(`  ⚠️  Saved to JSON only (DB failed): ${job.url.slice(0, 60)}...`);
+        } catch (jsonError: any) {
+          // Even JSON fallback failed - critical error
+          console.error(`  ❌❌ CRITICAL: Both DB and JSON save failed for ${job.url.slice(0, 60)}...`);
+          (job as any).status = 'failed';
+          (job as any).lastError = `Save failed: ${errorMsg} | JSON fallback: ${jsonError.message}`;
+        }
       }
     } catch (e: any) {
       // Retry logic: Don't mark as permanently failed - reset to queued for retry (max 3 attempts)

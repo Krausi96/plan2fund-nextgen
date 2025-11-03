@@ -31,8 +31,14 @@ export function getPool(): Pool {
 
 export async function testConnection(): Promise<boolean> {
   try {
+    if (!process.env.DATABASE_URL) {
+      return false;
+    }
     const pool = getPool();
-    await pool.query('SELECT NOW()');
+    const result = await pool.query('SELECT NOW() as current_time');
+    if (!result || !result.rows || result.rows.length === 0) {
+      return false;
+    }
     return true;
   } catch (e: any) {
     console.error('Database connection test failed:', e.message);

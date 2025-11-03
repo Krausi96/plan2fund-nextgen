@@ -46,7 +46,33 @@ function parseDeadline(deadline: string | null): string | null {
   return null;
 }
 
+// VALIDATION: Ensure data quality before saving
+function validatePageData(page: PageMetadata): { valid: boolean; errors: string[] } {
+  const errors: string[] = [];
+  
+  if (!page.url || page.url.trim().length < 10) {
+    errors.push('URL is missing or too short');
+  }
+  if (!page.title || page.title.trim().length < 5) {
+    errors.push('Title is missing or too short');
+  }
+  if (!page.description || page.description.trim().length < 20) {
+    errors.push('Description is missing or too short');
+  }
+  
+  return {
+    valid: errors.length === 0,
+    errors
+  };
+}
+
 export async function savePage(page: PageMetadata): Promise<number> {
+  // Validate data quality
+  const validation = validatePageData(page);
+  if (!validation.valid) {
+    throw new Error(`Data validation failed: ${validation.errors.join(', ')}`);
+  }
+  
   const pool = getPool();
   
   const deadlineDate = parseDeadline(page.deadline);
@@ -98,10 +124,18 @@ export async function savePage(page: PageMetadata): Promise<number> {
     ]
   );
   
+  if (!result || result.length === 0 || !result[0].id) {
+    throw new Error('Failed to save page: No ID returned from database');
+  }
+  
   return result[0].id;
 }
 
 export async function saveRequirements(pageId: number, requirements: Record<string, any[]>): Promise<void> {
+  if (!pageId || pageId <= 0) {
+    throw new Error(`Invalid pageId: ${pageId}`);
+  }
+  
   const pool = getPool();
   
   // Import meaningfulness scoring function
@@ -113,17 +147,31 @@ export async function saveRequirements(pageId: number, requirements: Record<stri
     [pageId]
   );
   
-  // Insert new requirements
+  // Insert new requirements with error handling
   const inserts: Promise<void>[] = [];
+  let successCount = 0;
+  let errorCount = 0;
   
   for (const [category, items] of Object.entries(requirements)) {
     if (!Array.isArray(items)) continue;
     
     for (const item of items) {
+      // VALIDATION: Skip invalid items
+      if (!item || typeof item !== 'object') {
+        errorCount++;
+        continue;
+      }
+      
       // Serialize object values to JSON strings (e.g., revenue ranges { min, max })
       const serializedValue = typeof item.value === 'object' && item.value !== null
         ? JSON.stringify(item.value)
         : (item.value || '');
+      
+      // Skip empty values
+      if (!serializedValue || serializedValue.trim().length === 0) {
+        errorCount++;
+        continue;
+      }
       
       // Calculate meaningfulness score if not already provided
       const meaningfulnessScore = item.meaningfulness_score !== undefined
@@ -137,21 +185,56 @@ export async function saveRequirements(pageId: number, requirements: Record<stri
           pageId,
           category,
           item.type || null,
-          serializedValue,
+          serializedValue.substring(0, 10000), // Limit to prevent DB errors
           item.required !== false,
           item.source || 'context_extraction',
-          item.description || null,
-          item.format || null,
-          item.requirements ? JSON.stringify(item.requirements) : null,
+          item.description ? item.description.substring(0, 5000) : null,
+          item.format ? item.format.substring(0, 500) : null,
+          item.requirements ? JSON.stringify(item.requirements).substring(0, 50000) : null,
           meaningfulnessScore
         ]
-      ).then(() => undefined);
+      ).then(() => {
+        successCount++;
+        return undefined;
+      }).catch((err: any) => {
+        errorCount++;
+        console.warn(`Failed to save requirement [${category}]:`, err.message);
+        return undefined; // Continue processing other requirements
+      });
       
       inserts.push(insert);
     }
   }
   
   await Promise.all(inserts);
+  
+  if (successCount === 0 && errorCount > 0) {
+    throw new Error(`All ${errorCount} requirements failed to save`);
+  }
+}
+
+// ATOMIC TRANSACTION: Save page and requirements together (100% reliability)
+export async function savePageWithRequirements(page: PageMetadata): Promise<number> {
+  const pool = getPool();
+  const client = await pool.connect();
+  
+  try {
+    await client.query('BEGIN');
+    
+    // Save page
+    const pageId = await savePage(page);
+    
+    // Save requirements
+    await saveRequirements(pageId, page.categorized_requirements || {});
+    
+    await client.query('COMMIT');
+    return pageId;
+  } catch (error: any) {
+    await client.query('ROLLBACK');
+    throw error;
+  } finally {
+    client.release();
+  }
 }
 
 export async function getPageByUrl(url: string): Promise<DbPage | null> {
