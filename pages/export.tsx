@@ -4,8 +4,7 @@ import { useRouter } from "next/router";
 import featureFlags from "@/shared/lib/featureFlags";
 import { loadPlanSections, type PlanSection } from "@/shared/lib/planStore";
 import analytics from "@/shared/lib/analytics";
-import { getDocumentBundle } from "@/shared/data/documentBundles";
-import { getDocumentById } from "@/shared/data/documentDescriptions";
+import { getDocuments } from "@/shared/lib/templates";
 import { exportManager } from "@/features/export/engine/export";
 
 export default function Export() {
@@ -48,26 +47,27 @@ export default function Export() {
     });
   }, [router.query]);
 
-  const loadAdditionalDocuments = () => {
+  const loadAdditionalDocuments = async () => {
     try {
-      // Get document bundle for current product/route
-      const bundle = getDocumentBundle(product as any, route as any);
-      if (bundle) {
-        // Get document details for each document ID
-        const documents = bundle.documents.map((docId: string) => {
-          const docSpec = getDocumentById(docId);
-          return {
-            id: docId,
-            title: docSpec?.title || docId,
-            description: docSpec?.short || '',
-            format: docSpec?.formatHints?.[0] || 'PDF',
-            status: 'ready' // Mock status
-          };
-        });
-        setAdditionalDocuments(documents);
-        // auto-select all by default
-        setSelectedDocs(new Set(documents.map((d: any) => d.id)));
-      }
+      // Use unified template system
+      const { programId } = router.query as { programId?: string };
+      const productType = product || 'submission';
+      const fundingType = route || 'grants';
+      
+      const docs = await getDocuments(fundingType, productType, programId);
+      
+      // Convert to export format
+      const documents = docs.map(doc => ({
+        id: doc.id,
+        title: doc.name,
+        description: doc.description || '',
+        format: doc.format.toUpperCase(),
+        status: 'ready'
+      }));
+      
+      setAdditionalDocuments(documents);
+      // auto-select all by default
+      setSelectedDocs(new Set(documents.map((d: any) => d.id)));
     } catch (error) {
       console.error('Error loading additional documents:', error);
       setAdditionalDocuments([]);

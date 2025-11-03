@@ -9,8 +9,7 @@ import { useI18n } from "@/shared/contexts/I18nContext";
 import { Switch } from "@/shared/components/ui/switch";
 import { Label } from "@/shared/components/ui/label";
 import ExportRenderer from "@/features/export/renderer/renderer";
-import { getDocumentBundle } from "@/shared/data/documentBundles";
-import { getDocumentById } from "@/shared/data/documentDescriptions";
+import { getDocuments } from "@/shared/lib/templates";
 
 export default function Preview() {
   const { t } = useI18n();
@@ -47,24 +46,25 @@ export default function Preview() {
     analytics.trackSuccessHubView("preview");
   }, [router.query]);
 
-  const loadAdditionalDocuments = () => {
+  const loadAdditionalDocuments = async () => {
     try {
-      // Get document bundle for current product/route
-      const bundle = getDocumentBundle(product as any, route as any);
-      if (bundle) {
-        // Get document details for each document ID
-        const documents = bundle.documents.map((docId: string) => {
-          const docSpec = getDocumentById(docId);
-          return {
-            id: docId,
-            title: docSpec?.title || docId,
-            description: docSpec?.short || '',
-            format: docSpec?.formatHints?.[0] || 'PDF',
-            status: 'ready' // Mock status
-          };
-        });
-        setAdditionalDocuments(documents);
-      }
+      // Use unified template system
+      const { programId } = router.query as { programId?: string };
+      const productType = product || 'submission';
+      const fundingType = route || 'grants';
+      
+      const docs = await getDocuments(fundingType, productType, programId);
+      
+      // Convert to preview format
+      const documents = docs.map(doc => ({
+        id: doc.id,
+        title: doc.name,
+        description: doc.description || '',
+        format: doc.format.toUpperCase(),
+        status: 'ready'
+      }));
+      
+      setAdditionalDocuments(documents);
     } catch (error) {
       console.error('Error loading additional documents:', error);
       setAdditionalDocuments([]);
