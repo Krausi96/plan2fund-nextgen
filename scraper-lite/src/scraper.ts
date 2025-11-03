@@ -296,6 +296,14 @@ export async function scrape(maxUrls = 10, targets: string[] = []): Promise<void
   for (const job of jobs) {
     (job as any).status = 'running';
     try {
+      // Filter query parameter URLs during scraping too (catch URLs added before fix)
+      if (isQueryListing(job.url)) {
+        console.log(`  ⚠️  Skipping query parameter URL: ${job.url.slice(0, 60)}...`);
+        (job as any).status = 'failed';
+        (job as any).lastError = 'Query parameter listing page (filtered)';
+        continue;
+      }
+      
       const fetchResult = await fetchHtml(job.url);
       const meta = extractMeta(fetchResult.html, job.url);
       
