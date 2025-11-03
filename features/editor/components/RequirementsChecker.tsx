@@ -9,17 +9,19 @@ import { Button } from '@/shared/components/ui/button';
 import { Badge } from '@/shared/components/ui/badge';
 import { Progress } from '@/shared/components/ui/progress';
 import { Card } from '@/shared/components/ui/card';
-import { ReadinessCheck, createReadinessValidator } from '@/shared/lib/readiness';
+import { ReadinessCheck, createReadinessValidator, ReadinessValidator, transformCategorizedToProgramRequirements } from '@/shared/lib/readiness';
 import { useI18n } from '@/shared/contexts/I18nContext';
 
 interface RequirementsCheckerProps {
-  programType: string;
+  programType?: string; // Now optional - can be programId
+  programId?: string; // NEW: Specific program ID to fetch from scraper-lite
   planContent: Record<string, any>;
   onRequirementClick?: (section: string, requirement: string) => void;
 }
 
 export default function RequirementsChecker({ 
   programType, 
+  programId,
   planContent, 
   onRequirementClick 
 }: RequirementsCheckerProps) {
@@ -27,15 +29,69 @@ export default function RequirementsChecker({
   const [checks, setChecks] = useState<ReadinessCheck[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [expandedSections, setExpandedSections] = useState<Set<string>>(new Set());
+  const [programRequirements, setProgramRequirements] = useState<any>(null);
 
+  // PRIORITY: Fetch requirements from scraper-lite if programId is provided
   useEffect(() => {
-    performReadinessCheck();
-  }, [programType, planContent]);
+    if (programId) {
+      fetchProgramRequirements(programId);
+    } else if (programType) {
+      // Fallback to old method if only programType provided
+      performReadinessCheck();
+    }
+  }, [programId, programType, planContent]);
 
+  // Fetch actual program requirements from scraper-lite database
+  const fetchProgramRequirements = async (id: string) => {
+    setIsLoading(true);
+    try {
+      const response = await fetch(`/api/programmes/${id}/requirements`);
+      if (!response.ok) {
+        throw new Error(`Failed to fetch requirements: ${response.statusText}`);
+      }
+      
+      const data = await response.json();
+      
+      // Extract categorized_requirements from API response
+      const categorizedRequirements = data.categorized_requirements || {};
+      
+      // Transform categorized_requirements to ProgramRequirements format for validator
+      const transformedRequirements = transformCategorizedToProgramRequirements(
+        categorizedRequirements,
+        data
+      );
+      
+      if (transformedRequirements) {
+        setProgramRequirements(transformedRequirements);
+        // Perform validation with actual scraper-lite data
+        const validator = new ReadinessValidator(transformedRequirements, planContent);
+        const results = await validator.performReadinessCheck();
+        setChecks(results);
+      } else {
+        // Fallback if transformation fails
+        console.warn('Could not transform requirements, using fallback');
+        const validator = await createReadinessValidator(programType || 'grant', planContent);
+        if (validator) {
+          const results = await validator.performReadinessCheck();
+          setChecks(results);
+        }
+      }
+    } catch (error) {
+      console.error('Error fetching program requirements:', error);
+      // Fallback to old method
+      if (programType) {
+        performReadinessCheck();
+      }
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  // Fallback method (old implementation)
   const performReadinessCheck = async () => {
     setIsLoading(true);
     try {
-      const validator = await createReadinessValidator(programType, planContent);
+      const validator = await createReadinessValidator(programType || 'grant', planContent);
       if (validator) {
         const results = await validator.performReadinessCheck();
         setChecks(results);
@@ -46,6 +102,18 @@ export default function RequirementsChecker({
       setIsLoading(false);
     }
   };
+
+  // Update checks when planContent changes and we have requirements
+  useEffect(() => {
+    if (programRequirements && planContent) {
+      const validator = new ReadinessValidator(programRequirements, planContent);
+      validator.performReadinessCheck().then(results => {
+        setChecks(results);
+      }).catch(err => {
+        console.error('Error updating checks:', err);
+      });
+    }
+  }, [planContent, programRequirements]);
 
   const getStatusIcon = (status: string) => {
     switch (status) {

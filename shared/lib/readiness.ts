@@ -805,6 +805,200 @@ export async function getProgramRequirements(type: string): Promise<ProgramRequi
 }
 
 /**
+ * Transform categorized_requirements (18 categories) from scraper-lite
+ * to ProgramRequirements format for ReadinessValidator
+ */
+export function transformCategorizedToProgramRequirements(
+  categorizedRequirements: any,
+  programData?: any
+): ProgramRequirements | null {
+  try {
+    const requirements: Record<string, {
+      mandatory: string[];
+      recommended: string[];
+      optional: string[];
+    }> = {};
+
+    // Documents category → documents section
+    if (categorizedRequirements.documents && Array.isArray(categorizedRequirements.documents)) {
+      const mandatoryDocs: string[] = [];
+      const recommendedDocs: string[] = [];
+      categorizedRequirements.documents.forEach((doc: any) => {
+        const docName = typeof doc.value === 'string' ? doc.value : doc.description || 'Document';
+        if (doc.required) {
+          mandatoryDocs.push(docName);
+        } else {
+          recommendedDocs.push(docName);
+        }
+      });
+      if (mandatoryDocs.length > 0 || recommendedDocs.length > 0) {
+        requirements['documents'] = {
+          mandatory: mandatoryDocs,
+          recommended: recommendedDocs,
+          optional: []
+        };
+      }
+    }
+
+    // Eligibility category → eligibility section
+    if (categorizedRequirements.eligibility && Array.isArray(categorizedRequirements.eligibility)) {
+      const mandatory: string[] = [];
+      const recommended: string[] = [];
+      categorizedRequirements.eligibility.forEach((req: any) => {
+        const reqName = typeof req.value === 'string' ? req.value : req.description || 'Requirement';
+        if (req.required) {
+          mandatory.push(reqName);
+        } else {
+          recommended.push(reqName);
+        }
+      });
+      if (mandatory.length > 0 || recommended.length > 0) {
+        requirements['eligibility'] = { mandatory, recommended, optional: [] };
+      }
+    }
+
+    // Financial category → financial_projections section
+    if (categorizedRequirements.financial && Array.isArray(categorizedRequirements.financial)) {
+      const mandatory: string[] = [];
+      const recommended: string[] = [];
+      categorizedRequirements.financial.forEach((req: any) => {
+        const reqName = typeof req.value === 'string' ? req.value : req.description || 'Financial requirement';
+        if (req.required) {
+          mandatory.push(reqName);
+        } else {
+          recommended.push(reqName);
+        }
+      });
+      if (mandatory.length > 0 || recommended.length > 0) {
+        requirements['financial_projections'] = { mandatory, recommended, optional: [] };
+      }
+    }
+
+    // Timeline category → timeline section
+    if (categorizedRequirements.timeline && Array.isArray(categorizedRequirements.timeline)) {
+      const mandatory: string[] = [];
+      const recommended: string[] = [];
+      categorizedRequirements.timeline.forEach((req: any) => {
+        const reqName = typeof req.value === 'string' ? req.value : req.description || 'Timeline requirement';
+        if (req.required) {
+          mandatory.push(reqName);
+        } else {
+          recommended.push(reqName);
+        }
+      });
+      if (mandatory.length > 0 || recommended.length > 0) {
+        requirements['timeline'] = { mandatory, recommended, optional: [] };
+      }
+    }
+
+    // Team category → team section
+    if (categorizedRequirements.team && Array.isArray(categorizedRequirements.team)) {
+      const mandatory: string[] = [];
+      const recommended: string[] = [];
+      categorizedRequirements.team.forEach((req: any) => {
+        const reqName = typeof req.value === 'string' ? req.value : req.description || 'Team requirement';
+        if (req.required) {
+          mandatory.push(reqName);
+        } else {
+          recommended.push(reqName);
+        }
+      });
+      if (mandatory.length > 0 || recommended.length > 0) {
+        requirements['team'] = { mandatory, recommended, optional: [] };
+      }
+    }
+
+    // Project category → business_description section
+    if (categorizedRequirements.project && Array.isArray(categorizedRequirements.project)) {
+      const mandatory: string[] = [];
+      const recommended: string[] = [];
+      categorizedRequirements.project.forEach((req: any) => {
+        const reqName = typeof req.value === 'string' ? req.value : req.description || 'Project requirement';
+        if (req.required) {
+          mandatory.push(reqName);
+        } else {
+          recommended.push(reqName);
+        }
+      });
+      if (mandatory.length > 0 || recommended.length > 0) {
+        requirements['business_description'] = { mandatory, recommended, optional: [] };
+      }
+    }
+
+    // Market analysis section (from market_size, revenue_model)
+    const marketRequirements: string[] = [];
+    if (categorizedRequirements.market_size) {
+      categorizedRequirements.market_size.forEach((req: any) => {
+        const reqName = typeof req.value === 'string' ? req.value : req.description || 'Market requirement';
+        marketRequirements.push(reqName);
+      });
+    }
+    if (categorizedRequirements.revenue_model) {
+      categorizedRequirements.revenue_model.forEach((req: any) => {
+        const reqName = typeof req.value === 'string' ? req.value : req.description || 'Revenue requirement';
+        marketRequirements.push(reqName);
+      });
+    }
+    if (marketRequirements.length > 0) {
+      requirements['market_analysis'] = {
+        mandatory: marketRequirements.slice(0, Math.ceil(marketRequirements.length / 2)),
+        recommended: marketRequirements.slice(Math.ceil(marketRequirements.length / 2)),
+        optional: []
+      };
+    }
+
+    // Build eligibility object
+    const eligibility: Record<string, any> = {};
+    if (categorizedRequirements.geographic) {
+      const location = categorizedRequirements.geographic.find((r: any) => r.type === 'location');
+      if (location) eligibility.location = location.value;
+    }
+    if (categorizedRequirements.team) {
+      const maxAge = categorizedRequirements.team.find((r: any) => r.type === 'max_company_age');
+      if (maxAge) eligibility.company_age = maxAge.value;
+      const minTeam = categorizedRequirements.team.find((r: any) => r.type === 'min_team_size');
+      if (minTeam) eligibility.team_size = minTeam.value;
+    }
+    if (categorizedRequirements.financial) {
+      const revenue = categorizedRequirements.financial.find((r: any) => r.type === 'revenue_range' || r.type === 'revenue');
+      if (revenue && typeof revenue.value === 'object') {
+        eligibility.revenue_min = revenue.value.min;
+        eligibility.revenue_max = revenue.value.max;
+      }
+      const coFinancing = categorizedRequirements.financial.find((r: any) => r.type === 'co_financing');
+      if (coFinancing) eligibility.cofinancing_pct = coFinancing.value;
+    }
+
+    // Determine program type
+    const programType = programData?.funding_types?.[0] || programData?.type || 'grant';
+
+    // Build scoring (simple equal weighting)
+    const scoring: Record<string, Record<string, number>> = {};
+    Object.keys(requirements).forEach(section => {
+      scoring[section] = {};
+      const sectionReqs = requirements[section];
+      const totalReqs = sectionReqs.mandatory.length + sectionReqs.recommended.length;
+      const weight = totalReqs > 0 ? 100 / totalReqs : 0;
+      [...sectionReqs.mandatory, ...sectionReqs.recommended].forEach((req) => {
+        scoring[section][req] = Math.round(weight);
+      });
+    });
+
+    return {
+      id: programData?.id || 'unknown',
+      name: programData?.name || programData?.title || 'Program',
+      type: programType as 'grant' | 'loan' | 'equity' | 'visa',
+      requirements,
+      eligibility,
+      scoring
+    };
+  } catch (error) {
+    console.error('Error transforming categorized requirements:', error);
+    return null;
+  }
+}
+
+/**
  * Create readiness validator
  */
 export async function createReadinessValidator(programType: string, planContent: Record<string, any>): Promise<ReadinessValidator | null> {

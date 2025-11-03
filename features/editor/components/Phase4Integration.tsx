@@ -45,11 +45,11 @@ export default function Phase4Integration({
   const [activeSection, setActiveSection] = useState(0);
   const [isLoading, setIsLoading] = useState(true);
   
-  // Phase 4 UI state
-  const [showEntryPoints, setShowEntryPoints] = useState(false);
-  const [showDocumentCustomization, setShowDocumentCustomization] = useState(false);
+  // Phase 4 UI state - SIMPLIFIED: Hidden by default to reduce clutter
+  const [showEntryPoints, setShowEntryPoints] = useState(false); // Hidden by default
+  const [showDocumentCustomization, setShowDocumentCustomization] = useState(false); // Hidden by default
   const [aiAssistantMuted, setAiAssistantMuted] = useState(false);
-  const [showAiAssistant, setShowAiAssistant] = useState(true);
+  const [showAiAssistant, setShowAiAssistant] = useState(false); // Changed: Show as floating button instead
   const [requirementsProgress, setRequirementsProgress] = useState(0);
   const [requirementsStatus, setRequirementsStatus] = useState<'loading' | 'complete' | 'incomplete' | 'error'>('loading');
   const saveDebounceRef = useRef<any>(null);
@@ -74,9 +74,37 @@ export default function Phase4Integration({
         return acc;
       }, {} as Record<string, string>);
       
-      // Use RequirementsChecker to validate
+      // Fetch requirements from API and validate (FIXED: now uses scraper-lite data)
+      try {
+        const response = await fetch(`/api/programmes/${programProfile.programId}/requirements`);
+        if (response.ok) {
+          const data = await response.json();
+          const { transformCategorizedToProgramRequirements, ReadinessValidator } = await import('@/shared/lib/readiness');
+          
+          const transformed = transformCategorizedToProgramRequirements(
+            data.categorized_requirements || {},
+            { id: programProfile.programId, ...data }
+          );
+          
+          if (transformed) {
+            const validator = new ReadinessValidator(transformed, planContent);
+            const checks = await validator.performReadinessCheck();
+            const completedChecks = checks.filter(check => check.status === 'complete').length;
+            const totalChecks = checks.length;
+            const progress = totalChecks > 0 ? Math.round((completedChecks / totalChecks) * 100) : 0;
+            
+            setRequirementsProgress(progress);
+            setRequirementsStatus(progress === 100 ? 'complete' : progress > 0 ? 'incomplete' : 'error');
+            return; // Success - exit early
+          }
+        }
+      } catch (apiError) {
+        console.warn('Could not fetch requirements from API, using fallback:', apiError);
+      }
+      
+      // Fallback to old method if API fails
       const { createReadinessValidator } = await import('@/shared/lib/readiness');
-      const validator = await createReadinessValidator(programProfile.programId, planContent);
+      const validator = await createReadinessValidator(programProfile.route || 'grant', planContent);
       
       if (validator) {
         const checks = await validator.performReadinessCheck();
@@ -833,7 +861,8 @@ export default function Phase4Integration({
                     {/* Requirements Checker Component */}
                     {programProfile ? (
                       <RequirementsChecker
-                        programType={programProfile.programId}
+                        programId={programProfile.programId}
+                        programType={programProfile.route || 'grant'}
                         planContent={sections.reduce((acc, section) => {
                           acc[section.key] = section.content || '';
                           return acc;
@@ -956,6 +985,17 @@ export default function Phase4Integration({
           </div>
         </div>
       </div>
+
+      {/* Floating AI Assistant Button - Only show when not already open */}
+      {!showAiAssistant && plan && (
+        <button
+          onClick={() => setShowAiAssistant(true)}
+          className="fixed bottom-6 right-6 z-40 w-14 h-14 bg-gradient-to-br from-blue-500 to-purple-600 rounded-full shadow-xl hover:shadow-2xl transition-all duration-300 flex items-center justify-center text-white text-2xl hover:scale-110"
+          title="Open AI Assistant"
+        >
+          👔
+        </button>
+      )}
 
       {/* Floating AI Assistant */}
       {showAiAssistant && plan && (
