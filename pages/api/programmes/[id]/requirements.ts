@@ -120,11 +120,55 @@ async function getProgramRequirements(programId: string) {
       const questionEngine = new QuestionEngine([programData as any]);
       const decisionTree = questionEngine.getCoreQuestions();
       
-      // Convert to editor and library formats
+      // Use unified template system: Get master + program-specific merge
+      const { getSections, getDocuments } = await import('@/shared/lib/templates');
+      
+      // Get base URL for server-side API calls
+      const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || `http://localhost:${process.env.PORT || 3000}`;
+      
+      // Get sections (master + program-specific merge)
+      const masterSections = await getSections(programType, undefined, baseUrl);
+      const programSections = await getSections(programType, programId, baseUrl);
+      
+      // Convert to editor format (backward compatibility)
       const editor = categoryConverter.convertToEditorSections(categorizedRequirements as CategorizedRequirements, programType);
       const library = [categoryConverter.convertToLibraryData(categorizedRequirements as CategorizedRequirements, programData as any)];
 
-      const additionalDocuments = buildAdditionalDocuments(programData, categorizedRequirements);
+      // Get documents using unified system (master + program-specific merge)
+      const unifiedDocuments = await getDocuments(programType, 'submission', programId, baseUrl);
+      
+      // Convert unified documents to API format (backward compatibility)
+      const additionalDocuments = unifiedDocuments.map(doc => ({
+        id: doc.id,
+        title: doc.name,
+        description: doc.description,
+        format: doc.format.toUpperCase(),
+        source: doc.source?.officialProgram ? 'program' : 'master'
+      }));
+      
+      // Also include legacy buildAdditionalDocuments for compatibility
+      const legacyDocs = buildAdditionalDocuments(programData, categorizedRequirements);
+      
+      // Merge and dedupe
+      const docById = new Map(unifiedDocuments.map(d => [d.id, d]));
+      legacyDocs.forEach(legacy => {
+        if (!docById.has(legacy.id)) {
+          docById.set(legacy.id, {
+            id: legacy.id,
+            name: legacy.title || legacy.id,
+            description: legacy.description || '',
+            required: false,
+            format: (legacy.format?.toLowerCase() as any) || 'pdf',
+            maxSize: '10MB',
+            template: `# ${legacy.title || legacy.id}\n\n${legacy.description || ''}`,
+            instructions: [],
+            examples: [],
+            commonMistakes: [],
+            category: 'submission',
+            fundingTypes: [programType]
+          });
+        }
+      });
       
       return {
         program_id: programId,

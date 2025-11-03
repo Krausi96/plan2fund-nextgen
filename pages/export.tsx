@@ -426,15 +426,53 @@ export default function Export() {
               await exportManager.exportPlan(plan as any, { format: (format.toUpperCase() as any), includeWatermark: !isPaid, isPaid, quality: 'standard', includeToC: true, includeListOfFigures: true });
             }
 
-            // 2) additional documents (separate PDFs via simple renderer)
+            // 2) additional documents (separate PDFs via unified template system)
+            const { getDocument } = await import('@/shared/lib/templates');
+            const productType = product || 'submission';
+            const fundingType = route || 'grants';
+            const currentProgramId = router.query.programId as string | undefined;
+            
             for (const doc of additionalDocuments) {
               if (!selectedDocs.has(doc.id)) continue;
-              await generateSimplePdf(`${doc.title}`, `
-                <h1 style='font-family:Arial;margin:0 0 16px 0;'>${doc.title}</h1>
-                <p style='font-family:Arial;color:#374151;'>${doc.description || ''}</p>
-                <hr/>
-                <p style='font-family:Arial;color:#6b7280;'>Generated from your plan selection.</p>
-              `, `${sanitizeFilename(doc.title)}.pdf`);
+              
+              // Try to get full template from unified system
+              const template = await getDocument(fundingType, productType, doc.id, currentProgramId);
+              
+              if (template && template.template) {
+                // Use full template (master or program-specific)
+                // Populate template with user data from sections
+                let populatedTemplate = template.template;
+                
+                // Simple placeholder replacement from sections
+                sections.forEach(section => {
+                  const content = section.content || '';
+                  populatedTemplate = populatedTemplate.replace(
+                    `[${section.title}]`,
+                    content.slice(0, 200) // First 200 chars
+                  );
+                });
+                
+                // Convert markdown to HTML for PDF
+                const htmlTemplate = populatedTemplate
+                  .replace(/# (.*)/g, '<h1 style="font-family:Arial;margin:0 0 16px 0;">$1</h1>')
+                  .replace(/## (.*)/g, '<h2 style="font-family:Arial;margin:0 0 12px 0;">$1</h2>')
+                  .replace(/\|(.+)\|/g, '<table style="font-family:Arial;border-collapse:collapse;"><tr><td>$1</td></tr></table>')
+                  .replace(/\n/g, '<br/>');
+                
+                await generateSimplePdf(
+                  template.name,
+                  `<div style='font-family:Arial;padding:20px;'>${htmlTemplate}</div>`,
+                  `${sanitizeFilename(template.name)}.pdf`
+                );
+              } else {
+                // Fallback to simple version if no template found
+                await generateSimplePdf(`${doc.title}`, `
+                  <h1 style='font-family:Arial;margin:0 0 16px 0;'>${doc.title}</h1>
+                  <p style='font-family:Arial;color:#374151;'>${doc.description || ''}</p>
+                  <hr/>
+                  <p style='font-family:Arial;color:#6b7280;'>Generated from your plan selection.</p>
+                `, `${sanitizeFilename(doc.title)}.pdf`);
+              }
             }
 
             // 3) add-on one-pager
