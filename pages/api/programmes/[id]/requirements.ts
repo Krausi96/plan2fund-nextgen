@@ -37,7 +37,9 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
 async function getProgramRequirements(programId: string) {
   // Use scraper-lite database connection (pages + requirements tables)
-  const { getPool } = require('../../../scraper-lite/src/db/neon-client');
+  const path = require('path');
+  const neonClientPath = path.join(process.cwd(), 'scraper-lite', 'src', 'db', 'neon-client.ts');
+  const { getPool } = require(neonClientPath);
   const pool = getPool();
   
   try {
@@ -179,6 +181,7 @@ function buildAdditionalDocuments(program: any, categorizedRequirements: Categor
   else if (fundingTypes.includes('equity')) route = 'equity';
 
   // Static bundle fallback (route is already 'grants' if not loan/equity)
+  // Fix: Remove redundant comparison with 'grant' (route can't be 'grant' based on type)
   const bundleRoute = route === 'grants' ? 'grants' : route;
   const bundle = getDocumentBundle(product as any, bundleRoute as any);
   const staticDocs = (bundle?.documents || []).map((docId: string) => {
