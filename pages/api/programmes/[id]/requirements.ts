@@ -179,7 +179,7 @@ function buildAdditionalDocuments(program: any, categorizedRequirements: Categor
   else if (fundingTypes.includes('equity')) route = 'equity';
 
   // Static bundle fallback (route is already 'grants' if not loan/equity)
-  const bundleRoute = (route === 'grant' || route === 'grants') ? 'grants' : route;
+  const bundleRoute = route === 'grants' ? 'grants' : route;
   const bundle = getDocumentBundle(product as any, bundleRoute as any);
   const staticDocs = (bundle?.documents || []).map((docId: string) => {
     const spec = getDocumentById(docId);

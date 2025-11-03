@@ -311,7 +311,12 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
           : (type as string) || 'grant';
         
         // Parse metadata_json if it's a string
-        let metadata = {};
+        let metadata: {
+          application_method?: string | null;
+          requires_account?: boolean;
+          form_fields?: Array<{name?: string, label?: string, required: boolean}>;
+          [key: string]: any;
+        } = {};
         try {
           metadata = typeof page.metadata_json === 'string' 
             ? JSON.parse(page.metadata_json) 

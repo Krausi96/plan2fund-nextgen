@@ -96,7 +96,7 @@ async function verifySync() {
     
     // 5. Check for JSON-only programs
     console.log('\n🔍 Checking for JSON-Only Programs:');
-    const allJsonPrograms: any[] = [];
+    const allJsonPrograms = [];
     for (const jsonPath of jsonPaths) {
       if (fs.existsSync(jsonPath)) {
         const data = JSON.parse(fs.readFileSync(jsonPath, 'utf8'));

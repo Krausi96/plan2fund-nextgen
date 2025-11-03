@@ -11,12 +11,16 @@ import { getStandardSections, StandardSection } from '@/shared/lib/standardSecti
 
 export interface CategoryData {
   type: string;
-  value: string[];
+  value: string | string[]; // Can be string (from database) or string[] (from legacy)
   required: boolean;
-  confidence: number;
-  evidence: string[];
+  confidence?: number;
+  evidence?: string[];
   source?: string;
   institutions?: string[];
+  // Database fields for documents
+  description?: string;
+  format?: string;
+  requirements?: string[];
 }
 
 export interface CategorizedRequirements {
@@ -166,7 +170,8 @@ export class CategoryConverter {
     // Add requirement-specific prompts
     requirements.forEach(req => {
       if (req.value && req.value.length > 0) {
-        prompts.push(`Consider: ${req.value.join(', ')}`);
+        const valueText = Array.isArray(req.value) ? req.value.join(', ') : req.value;
+        prompts.push(`Consider: ${valueText}`);
       }
     });
 
@@ -227,7 +232,7 @@ export class CategoryConverter {
 
   private calculateAverageConfidence(allData: CategoryData[]): number {
     if (allData.length === 0) return 0;
-    const totalConfidence = allData.reduce((sum, data) => sum + data.confidence, 0);
+    const totalConfidence = allData.reduce((sum, data) => sum + (data.confidence || 0), 0);
     return totalConfidence / allData.length;
   }
 
@@ -239,10 +244,12 @@ export class CategoryConverter {
   private extractDocuments(categorizedRequirements: CategorizedRequirements): string[] {
     const docs = categorizedRequirements.documents || [];
     return docs.map(doc => {
-      let text = doc.value || '';
+      // Handle both string and string[] for value
+      const value = Array.isArray(doc.value) ? doc.value.join(', ') : (doc.value || '');
+      let text = value;
       if (doc.description) text += ` (${doc.description})`;
       if (doc.format) text += ` [${doc.format}]`;
-      if (doc.requirements && doc.requirements.length > 0) {
+      if (doc.requirements && Array.isArray(doc.requirements) && doc.requirements.length > 0) {
         text += ` - Requirements: ${doc.requirements.slice(0, 2).join(', ')}`;
       }
       return text;
