@@ -654,15 +654,28 @@ export function extractMeta(html: string, url?: string): ExtractedMeta {
     };
   
     for (const pattern of deadlineKeywordPatterns) {
+      // Check for open/rolling deadlines first
+      if (pattern.source.includes('rolling|kontinuierlich|offen|open|continuous')) {
+        const openMatch = safeTextForMatch.match(/(?:rolling|kontinuierlich|offen|open|continuous|no\s+deadline|keine\s+frist|laufend)/i);
+        if (openMatch) {
+          open_deadline = true;
+          deadline = null;
+          break;
+        }
+        continue;
+      }
+      
       const matches = safeMatchAll(safeTextForMatch, pattern);
       for (const match of matches) {
         let d: number, mo: number, y: number;
         
         // Check if it's a month name format
-        if (match[2] && monthNames[match[2].toLowerCase()]) {
+        const monthName = match[2] || match[3];
+        if (monthName && monthNames[monthName.toLowerCase()]) {
           d = parseInt(match[1], 10);
-          mo = monthNames[match[2].toLowerCase()];
+          mo = monthNames[monthName.toLowerCase()];
           y = parseInt(match[3] || match[4] || '2025', 10);
+          if (y < 100) y += 2000;
         } else {
           d = parseInt(match[1] || match[2] || match[0], 10);
           mo = parseInt(match[2] || match[3] || match[1], 10);
@@ -671,27 +684,27 @@ export function extractMeta(html: string, url?: string): ExtractedMeta {
         }
         
         if (d >= 1 && d <= 31 && mo >= 1 && mo <= 12 && y >= 2020 && y <= 2030) {
-        const deadlineDate = new Date(y, mo - 1, d);
-        const now = new Date();
-        // If deadline is in the past, check if it's more than 1 year old
-        if (deadlineDate < now) {
-          const daysPast = Math.floor((now.getTime() - deadlineDate.getTime()) / (1000 * 60 * 60 * 24));
-          // More than 1 year old (365 days) - likely expired, set as open_deadline instead
-          if (daysPast > 365) {
-            open_deadline = true;
-            deadline = null;
+          const deadlineDate = new Date(y, mo - 1, d);
+          const now = new Date();
+          // If deadline is in the past, check if it's more than 1 year old
+          if (deadlineDate < now) {
+            const daysPast = Math.floor((now.getTime() - deadlineDate.getTime()) / (1000 * 60 * 60 * 24));
+            // More than 1 year old (365 days) - likely expired, set as open_deadline instead
+            if (daysPast > 365) {
+              open_deadline = true;
+              deadline = null;
+            } else {
+              // Recent past deadline (<1 year) - keep as deadline (may be valid for historical reference)
+              deadline = `${String(d).padStart(2,'0')}.${String(mo).padStart(2,'0')}.${y}`;
+            }
           } else {
-            // Recent past deadline (<1 year) - keep as deadline (may be valid for historical reference)
+            // Future deadline - valid
             deadline = `${String(d).padStart(2,'0')}.${String(mo).padStart(2,'0')}.${y}`;
           }
-        } else {
-          // Future deadline - valid
-          deadline = `${String(d).padStart(2,'0')}.${String(mo).padStart(2,'0')}.${y}`;
-        }
           break;
         }
       }
-      if (deadline) break;
+      if (deadline || open_deadline) break;
     }
   }
   
@@ -786,10 +799,11 @@ export function extractMeta(html: string, url?: string): ExtractedMeta {
       if (!tld || tld.length < 2) return false;
       // Exclude test/example domains
       if (e.includes('example.com') || e.includes('test@') || e.includes('noreply')) return false;
-      // ENHANCED: Exclude date ranges (e.g., "2022-2026" mistaken as email)
-      if (/^\d{4}-\d{4}$/.test(e.split('@')[0])) return false;
-      // ENHANCED: Exclude if starts with numbers followed by dash (likely date)
-      if (/^\d{4}-\d/.test(e)) return false;
+      // ENHANCED: Exclude date ranges anywhere in email (e.g., "2022-2026" mistaken as email)
+      const emailLower = e.toLowerCase();
+      if (/\d{4}-\d{4}/.test(emailLower)) return false; // Any date range in email
+      if (/^(\d{4}-\d{2,4}|199\d|200\d|201\d|202\d)@/.test(emailLower)) return false; // Starts with year
+      if (/^\d{4}-\d/.test(e)) return false; // Starts with numbers followed by dash
       // Valid email regex check
       const emailRegex = /^[a-zA-Z0-9.!#$%&'*+\/=?^_`{|}~-]+@[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?(?:\.[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?)+$/;
       return emailRegex.test(e);
