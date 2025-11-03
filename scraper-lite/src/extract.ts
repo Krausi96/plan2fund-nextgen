@@ -2783,18 +2783,26 @@ function extractStructuredRequirements(html: string, categorized: Record<string,
       $(selector).each((_, el) => {
         try {
           const text = $(el).text().trim();
-      if (text && text.length > 5 && text.length < 300) {
-        // Only add if value contains actual data (not just labels)
-        if (text.match(/\d+/) || text.length > 20) {
-          categorized[category].push({
-            type,
-            value: text,
-            required: true,
-            source: 'structured_section'
-          });
+          if (text && text.length > 5 && text.length < 300) {
+            // Only add if value contains actual data (not just labels)
+            if (text.match(/\d+/) || text.length > 20) {
+              categorized[category].push({
+                type,
+                value: text,
+                required: true,
+                source: 'structured_section'
+              });
+            }
+          }
+        } catch (e: any) {
+          // Skip this element if processing fails
+          return;
         }
-      }
-    });
+      });
+    } catch (e: any) {
+      // Skip this selector if processing fails
+      console.warn(`Warning: Failed to process selector ${selector}:`, e?.message || String(e));
+    }
   });
   
   // Extract from headings followed by content (e.g., "Voraussetzungen", "Anforderungen")
