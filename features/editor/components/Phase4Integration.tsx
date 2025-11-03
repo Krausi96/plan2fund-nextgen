@@ -232,7 +232,7 @@ export default function Phase4Integration({
       // CRITICAL FIX: Prefill sections with wizard answers from appStore (single source of truth)
       try {
         if (typeof window !== 'undefined') {
-          const { loadUserAnswers, loadEnhancedPayload } = await import('@/shared/lib/appStore');
+          const { loadUserAnswers, loadEnhancedPayload } = await import('@/shared/lib/planStore');
           const userAnswers = loadUserAnswers();
           const enhancedPayload = loadEnhancedPayload();
           
@@ -697,7 +697,7 @@ export default function Phase4Integration({
                             showPageNumbers: !!config.pageNumbers
                           };
                           // Use appStore as single source of truth
-                          const { savePlanSettings } = await import('@/shared/lib/appStore');
+                          const { savePlanSettings } = await import('@/shared/lib/planStore');
                           savePlanSettings(previewSettings);
                           setPreviewStyle({
                             fontFamily: config.fontFamily,

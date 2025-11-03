@@ -101,7 +101,7 @@ export default function Preview() {
   useEffect(() => {
     try {
       // Use appStore as single source of truth
-      const { loadPlanSettings } = await import('@/shared/lib/appStore');
+      const { loadPlanSettings } = await import('@/shared/lib/planStore');
       const ps = loadPlanSettings();
       if (ps && Object.keys(ps).length > 0) {
         setFormattingOptions(prev => ({

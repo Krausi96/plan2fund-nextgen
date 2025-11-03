@@ -182,8 +182,8 @@ export default function ResultsPage() {
                   timelineFit: derivedSignals.timelineFit
                 };
                 
-                // Use unified appStore as single source of truth
-                const { saveSelectedProgram, saveUserAnswers, saveEnhancedPayload } = await import('@/shared/lib/appStore');
+                // Use planStore as single source of truth
+                const { saveSelectedProgram, saveUserAnswers, saveEnhancedPayload } = await import('@/shared/lib/planStore');
                 saveSelectedProgram(selectedProgram);
                 saveUserAnswers(state.answers);
                 saveEnhancedPayload(enhancedPayload);
@@ -455,8 +455,8 @@ export default function ResultsPage() {
                           derivedSignals: derivedSignals
                         };
                         
-                        // Use unified appStore as single source of truth
-                        const { saveSelectedProgram, saveUserAnswers, saveEnhancedPayload } = await import('@/shared/lib/appStore');
+                        // Use planStore as single source of truth
+                        const { saveSelectedProgram, saveUserAnswers, saveEnhancedPayload } = await import('@/shared/lib/planStore');
                         saveSelectedProgram(program);
                         saveUserAnswers(state.answers);
                         saveEnhancedPayload(enhancedPayload);

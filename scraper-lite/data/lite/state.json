@@ -13748,42 +13748,42 @@
     },
     {
       "url": "https://www.noe.gv.at/noe/Ottenthal.html",
-      "status": "failed",
+      "status": "queued",
       "depth": 1,
       "seed": "https://www.noe.gv.at/noe/Wirtschaft-Tourismus-Technologie/Unternehmerische_Investition.html",
-      "attempts": 2,
+      "attempts": 3,
       "lastError": "Cannot read properties of undefined (reading 'length')"
     },
     {
       "url": "https://www.noe.gv.at/noe/Otterthal.html",
-      "status": "failed",
+      "status": "queued",
       "depth": 1,
       "seed": "https://www.noe.gv.at/noe/Wirtschaft-Tourismus-Technologie/Unternehmerische_Investition.html",
-      "attempts": 2,
+      "attempts": 3,
       "lastError": "Cannot read properties of undefined (reading 'length')"
     },
     {
       "url": "https://www.noe.gv.at/noe/Palterndorf-Dobermannsdorf.html",
-      "status": "failed",
+      "status": "queued",
       "depth": 1,
       "seed": "https://www.noe.gv.at/noe/Wirtschaft-Tourismus-Technologie/Unternehmerische_Investition.html",
-      "attempts": 2,
+      "attempts": 3,
       "lastError": "Cannot read properties of undefined (reading 'length')"
     },
     {
       "url": "https://www.noe.gv.at/noe/Parbasdorf.html",
-      "status": "failed",
+      "status": "queued",
       "depth": 1,
       "seed": "https://www.noe.gv.at/noe/Wirtschaft-Tourismus-Technologie/Unternehmerische_Investition.html",
-      "attempts": 2,
+      "attempts": 3,
       "lastError": "Cannot read properties of undefined (reading 'length')"
     },
     {
       "url": "https://www.noe.gv.at/noe/Paudorf.html",
-      "status": "failed",
+      "status": "queued",
       "depth": 1,
       "seed": "https://www.noe.gv.at/noe/Wirtschaft-Tourismus-Technologie/Unternehmerische_Investition.html",
-      "attempts": 2,
+      "attempts": 3,
       "lastError": "Cannot read properties of undefined (reading 'length')"
     },
     {
@@ -13791,7 +13791,7 @@
       "status": "queued",
       "depth": 1,
       "seed": "https://www.noe.gv.at/noe/Wirtschaft-Tourismus-Technologie/Unternehmerische_Investition.html",
-      "attempts": 1,
+      "attempts": 3,
       "lastError": "Cannot read properties of undefined (reading 'length')"
     },
     {
@@ -13799,7 +13799,7 @@
       "status": "queued",
       "depth": 1,
       "seed": "https://www.noe.gv.at/noe/Wirtschaft-Tourismus-Technologie/Unternehmerische_Investition.html",
-      "attempts": 1,
+      "attempts": 3,
       "lastError": "Cannot read properties of undefined (reading 'length')"
     },
     {
@@ -13807,7 +13807,7 @@
       "status": "queued",
       "depth": 1,
       "seed": "https://www.noe.gv.at/noe/Wirtschaft-Tourismus-Technologie/Unternehmerische_Investition.html",
-      "attempts": 1,
+      "attempts": 3,
       "lastError": "Cannot read properties of undefined (reading 'length')"
     },
     {
@@ -13815,7 +13815,7 @@
       "status": "queued",
       "depth": 1,
       "seed": "https://www.noe.gv.at/noe/Wirtschaft-Tourismus-Technologie/Unternehmerische_Investition.html",
-      "attempts": 1,
+      "attempts": 3,
       "lastError": "Cannot read properties of undefined (reading 'length')"
     },
     {
@@ -13823,7 +13823,7 @@
       "status": "queued",
       "depth": 1,
       "seed": "https://www.noe.gv.at/noe/Wirtschaft-Tourismus-Technologie/Unternehmerische_Investition.html",
-      "attempts": 1,
+      "attempts": 3,
       "lastError": "Cannot read properties of undefined (reading 'length')"
     },
     {
@@ -13831,7 +13831,7 @@
       "status": "queued",
       "depth": 1,
       "seed": "https://www.noe.gv.at/noe/Wirtschaft-Tourismus-Technologie/Unternehmerische_Investition.html",
-      "attempts": 1,
+      "attempts": 3,
       "lastError": "Cannot read properties of undefined (reading 'length')"
     },
     {
@@ -13839,7 +13839,7 @@
       "status": "queued",
       "depth": 1,
       "seed": "https://www.noe.gv.at/noe/Wirtschaft-Tourismus-Technologie/Unternehmerische_Investition.html",
-      "attempts": 1,
+      "attempts": 3,
       "lastError": "Cannot read properties of undefined (reading 'length')"
     },
     {
@@ -13847,7 +13847,7 @@
       "status": "queued",
       "depth": 1,
       "seed": "https://www.noe.gv.at/noe/Wirtschaft-Tourismus-Technologie/Unternehmerische_Investition.html",
-      "attempts": 1,
+      "attempts": 3,
       "lastError": "Cannot read properties of undefined (reading 'length')"
     },
     {
@@ -13855,7 +13855,7 @@
       "status": "queued",
       "depth": 1,
       "seed": "https://www.noe.gv.at/noe/Wirtschaft-Tourismus-Technologie/Unternehmerische_Investition.html",
-      "attempts": 1,
+      "attempts": 3,
       "lastError": "Cannot read properties of undefined (reading 'length')"
     },
     {
@@ -13863,7 +13863,7 @@
       "status": "queued",
       "depth": 1,
       "seed": "https://www.noe.gv.at/noe/Wirtschaft-Tourismus-Technologie/Unternehmerische_Investition.html",
-      "attempts": 1,
+      "attempts": 3,
       "lastError": "Cannot read properties of undefined (reading 'length')"
     },
     {
@@ -13871,7 +13871,7 @@
       "status": "queued",
       "depth": 1,
       "seed": "https://www.noe.gv.at/noe/Wirtschaft-Tourismus-Technologie/Unternehmerische_Investition.html",
-      "attempts": 1,
+      "attempts": 3,
       "lastError": "Cannot read properties of undefined (reading 'length')"
     },
     {
@@ -13879,7 +13879,7 @@
       "status": "queued",
       "depth": 1,
       "seed": "https://www.noe.gv.at/noe/Wirtschaft-Tourismus-Technologie/Unternehmerische_Investition.html",
-      "attempts": 1,
+      "attempts": 3,
       "lastError": "Cannot read properties of undefined (reading 'length')"
     },
     {
@@ -13887,7 +13887,7 @@
       "status": "queued",
       "depth": 1,
       "seed": "https://www.noe.gv.at/noe/Wirtschaft-Tourismus-Technologie/Unternehmerische_Investition.html",
-      "attempts": 1,
+      "attempts": 3,
       "lastError": "Cannot read properties of undefined (reading 'length')"
     },
     {
@@ -13895,7 +13895,7 @@
       "status": "queued",
       "depth": 1,
       "seed": "https://www.noe.gv.at/noe/Wirtschaft-Tourismus-Technologie/Unternehmerische_Investition.html",
-      "attempts": 1,
+      "attempts": 3,
       "lastError": "Cannot read properties of undefined (reading 'length')"
     },
     {
@@ -13903,7 +13903,7 @@
       "status": "queued",
       "depth": 1,
       "seed": "https://www.noe.gv.at/noe/Wirtschaft-Tourismus-Technologie/Unternehmerische_Investition.html",
-      "attempts": 1,
+      "attempts": 3,
       "lastError": "Cannot read properties of undefined (reading 'length')"
     },
     {
@@ -13911,7 +13911,7 @@
       "status": "queued",
       "depth": 1,
       "seed": "https://www.noe.gv.at/noe/Wirtschaft-Tourismus-Technologie/Unternehmerische_Investition.html",
-      "attempts": 1,
+      "attempts": 3,
       "lastError": "Cannot read properties of undefined (reading 'length')"
     },
     {
@@ -13919,7 +13919,7 @@
       "status": "queued",
       "depth": 1,
       "seed": "https://www.noe.gv.at/noe/Wirtschaft-Tourismus-Technologie/Unternehmerische_Investition.html",
-      "attempts": 1,
+      "attempts": 3,
       "lastError": "Cannot read properties of undefined (reading 'length')"
     },
     {
@@ -13927,7 +13927,7 @@
       "status": "queued",
       "depth": 1,
       "seed": "https://www.noe.gv.at/noe/Wirtschaft-Tourismus-Technologie/Unternehmerische_Investition.html",
-      "attempts": 1,
+      "attempts": 3,
       "lastError": "Cannot read properties of undefined (reading 'length')"
     },
     {
@@ -13935,7 +13935,7 @@
       "status": "queued",
       "depth": 1,
       "seed": "https://www.noe.gv.at/noe/Wirtschaft-Tourismus-Technologie/Unternehmerische_Investition.html",
-      "attempts": 1,
+      "attempts": 3,
       "lastError": "Cannot read properties of undefined (reading 'length')"
     },
     {
@@ -13943,7 +13943,7 @@
       "status": "queued",
       "depth": 1,
       "seed": "https://www.noe.gv.at/noe/Wirtschaft-Tourismus-Technologie/Unternehmerische_Investition.html",
-      "attempts": 1,
+      "attempts": 3,
       "lastError": "Cannot read properties of undefined (reading 'length')"
     },
     {
@@ -13951,7 +13951,7 @@
       "status": "queued",
       "depth": 1,
       "seed": "https://www.noe.gv.at/noe/Wirtschaft-Tourismus-Technologie/Unternehmerische_Investition.html",
-      "attempts": 1,
+      "attempts": 3,
       "lastError": "Cannot read properties of undefined (reading 'length')"
     },
     {
@@ -13959,7 +13959,7 @@
       "status": "queued",
       "depth": 1,
       "seed": "https://www.noe.gv.at/noe/Wirtschaft-Tourismus-Technologie/Unternehmerische_Investition.html",
-      "attempts": 1,
+      "attempts": 3,
       "lastError": "Cannot read properties of undefined (reading 'length')"
     },
     {
@@ -13967,7 +13967,7 @@
       "status": "queued",
       "depth": 1,
       "seed": "https://www.noe.gv.at/noe/Wirtschaft-Tourismus-Technologie/Unternehmerische_Investition.html",
-      "attempts": 1,
+      "attempts": 3,
       "lastError": "Cannot read properties of undefined (reading 'length')"
     },
     {
@@ -13975,7 +13975,7 @@
       "status": "queued",
       "depth": 1,
       "seed": "https://www.noe.gv.at/noe/Wirtschaft-Tourismus-Technologie/Unternehmerische_Investition.html",
-      "attempts": 1,
+      "attempts": 3,
       "lastError": "Cannot read properties of undefined (reading 'length')"
     },
     {
@@ -13983,7 +13983,7 @@
       "status": "queued",
       "depth": 1,
       "seed": "https://www.noe.gv.at/noe/Wirtschaft-Tourismus-Technologie/Unternehmerische_Investition.html",
-      "attempts": 1,
+      "attempts": 3,
       "lastError": "Cannot read properties of undefined (reading 'length')"
     },
     {
@@ -13991,7 +13991,7 @@
       "status": "queued",
       "depth": 1,
       "seed": "https://www.noe.gv.at/noe/Wirtschaft-Tourismus-Technologie/Unternehmerische_Investition.html",
-      "attempts": 1,
+      "attempts": 3,
       "lastError": "Cannot read properties of undefined (reading 'length')"
     },
     {
@@ -13999,7 +13999,7 @@
       "status": "queued",
       "depth": 1,
       "seed": "https://www.noe.gv.at/noe/Wirtschaft-Tourismus-Technologie/Unternehmerische_Investition.html",
-      "attempts": 1,
+      "attempts": 3,
       "lastError": "Cannot read properties of undefined (reading 'length')"
     },
     {
@@ -14007,7 +14007,7 @@
       "status": "queued",
       "depth": 1,
       "seed": "https://www.noe.gv.at/noe/Wirtschaft-Tourismus-Technologie/Unternehmerische_Investition.html",
-      "attempts": 1,
+      "attempts": 3,
       "lastError": "Cannot read properties of undefined (reading 'length')"
     },
     {
@@ -14015,7 +14015,7 @@
       "status": "queued",
       "depth": 1,
       "seed": "https://www.noe.gv.at/noe/Wirtschaft-Tourismus-Technologie/Unternehmerische_Investition.html",
-      "attempts": 1,
+      "attempts": 3,
       "lastError": "Cannot read properties of undefined (reading 'length')"
     },
     {
@@ -14023,7 +14023,7 @@
       "status": "queued",
       "depth": 1,
       "seed": "https://www.noe.gv.at/noe/Wirtschaft-Tourismus-Technologie/Unternehmerische_Investition.html",
-      "attempts": 1,
+      "attempts": 3,
       "lastError": "Cannot read properties of undefined (reading 'length')"
     },
     {
@@ -14031,7 +14031,7 @@
       "status": "queued",
       "depth": 1,
       "seed": "https://www.noe.gv.at/noe/Wirtschaft-Tourismus-Technologie/Unternehmerische_Investition.html",
-      "attempts": 1,
+      "attempts": 3,
       "lastError": "Cannot read properties of undefined (reading 'length')"
     },
     {
@@ -14039,7 +14039,7 @@
       "status": "queued",
       "depth": 1,
       "seed": "https://www.noe.gv.at/noe/Wirtschaft-Tourismus-Technologie/Unternehmerische_Investition.html",
-      "attempts": 1,
+      "attempts": 3,
       "lastError": "Cannot read properties of undefined (reading 'length')"
     },
     {
@@ -14047,7 +14047,7 @@
       "status": "queued",
       "depth": 1,
       "seed": "https://www.noe.gv.at/noe/Wirtschaft-Tourismus-Technologie/Unternehmerische_Investition.html",
-      "attempts": 1,
+      "attempts": 3,
       "lastError": "Cannot read properties of undefined (reading 'length')"
     },
     {
@@ -14055,7 +14055,7 @@
       "status": "queued",
       "depth": 1,
       "seed": "https://www.noe.gv.at/noe/Wirtschaft-Tourismus-Technologie/Unternehmerische_Investition.html",
-      "attempts": 1,
+      "attempts": 3,
       "lastError": "Cannot read properties of undefined (reading 'length')"
     },
     {
@@ -14063,7 +14063,7 @@
       "status": "queued",
       "depth": 1,
       "seed": "https://www.noe.gv.at/noe/Wirtschaft-Tourismus-Technologie/Unternehmerische_Investition.html",
-      "attempts": 1,
+      "attempts": 3,
       "lastError": "Cannot read properties of undefined (reading 'length')"
     },
     {
@@ -14071,7 +14071,7 @@
       "status": "queued",
       "depth": 1,
       "seed": "https://www.noe.gv.at/noe/Wirtschaft-Tourismus-Technologie/Unternehmerische_Investition.html",
-      "attempts": 1,
+      "attempts": 3,
       "lastError": "Cannot read properties of undefined (reading 'length')"
     },
     {
@@ -14079,7 +14079,7 @@
       "status": "queued",
       "depth": 1,
       "seed": "https://www.noe.gv.at/noe/Wirtschaft-Tourismus-Technologie/Unternehmerische_Investition.html",
-      "attempts": 1,
+      "attempts": 3,
       "lastError": "Cannot read properties of undefined (reading 'length')"
     },
     {
@@ -14087,7 +14087,7 @@
       "status": "queued",
       "depth": 1,
       "seed": "https://www.noe.gv.at/noe/Wirtschaft-Tourismus-Technologie/Unternehmerische_Investition.html",
-      "attempts": 1,
+      "attempts": 3,
       "lastError": "Cannot read properties of undefined (reading 'length')"
     },
     {
@@ -14095,7 +14095,7 @@
       "status": "queued",
       "depth": 1,
       "seed": "https://www.noe.gv.at/noe/Wirtschaft-Tourismus-Technologie/Unternehmerische_Investition.html",
-      "attempts": 1,
+      "attempts": 3,
       "lastError": "Cannot read properties of undefined (reading 'length')"
     },
     {
@@ -14103,7 +14103,7 @@
       "status": "queued",
       "depth": 1,
       "seed": "https://www.noe.gv.at/noe/Wirtschaft-Tourismus-Technologie/Unternehmerische_Investition.html",
-      "attempts": 1,
+      "attempts": 3,
       "lastError": "Cannot read properties of undefined (reading 'length')"
     },
     {
@@ -14111,7 +14111,7 @@
       "status": "queued",
       "depth": 1,
       "seed": "https://www.noe.gv.at/noe/Wirtschaft-Tourismus-Technologie/Unternehmerische_Investition.html",
-      "attempts": 1,
+      "attempts": 3,
       "lastError": "Cannot read properties of undefined (reading 'length')"
     },
     {
@@ -14119,7 +14119,7 @@
       "status": "queued",
       "depth": 1,
       "seed": "https://www.noe.gv.at/noe/Wirtschaft-Tourismus-Technologie/Unternehmerische_Investition.html",
-      "attempts": 1,
+      "attempts": 3,
       "lastError": "Cannot read properties of undefined (reading 'length')"
     },
     {
@@ -14127,7 +14127,7 @@
       "status": "queued",
       "depth": 1,
       "seed": "https://www.noe.gv.at/noe/Wirtschaft-Tourismus-Technologie/Unternehmerische_Investition.html",
-      "attempts": 1,
+      "attempts": 3,
       "lastError": "Cannot read properties of undefined (reading 'length')"
     },
     {
@@ -14135,7 +14135,7 @@
       "status": "queued",
       "depth": 1,
       "seed": "https://www.noe.gv.at/noe/Wirtschaft-Tourismus-Technologie/Unternehmerische_Investition.html",
-      "attempts": 1,
+      "attempts": 3,
       "lastError": "Cannot read properties of undefined (reading 'length')"
     },
     {
@@ -14143,7 +14143,7 @@
       "status": "queued",
       "depth": 1,
       "seed": "https://www.noe.gv.at/noe/Wirtschaft-Tourismus-Technologie/Unternehmerische_Investition.html",
-      "attempts": 1,
+      "attempts": 3,
       "lastError": "Cannot read properties of undefined (reading 'length')"
     },
     {
@@ -14151,7 +14151,7 @@
       "status": "queued",
       "depth": 1,
       "seed": "https://www.noe.gv.at/noe/Wirtschaft-Tourismus-Technologie/Unternehmerische_Investition.html",
-      "attempts": 1,
+      "attempts": 3,
       "lastError": "Cannot read properties of undefined (reading 'length')"
     },
     {
@@ -14159,7 +14159,7 @@
       "status": "queued",
       "depth": 1,
       "seed": "https://www.noe.gv.at/noe/Wirtschaft-Tourismus-Technologie/Unternehmerische_Investition.html",
-      "attempts": 1,
+      "attempts": 3,
       "lastError": "Cannot read properties of undefined (reading 'length')"
     },
     {
@@ -14167,7 +14167,7 @@
       "status": "queued",
       "depth": 1,
       "seed": "https://www.noe.gv.at/noe/Wirtschaft-Tourismus-Technologie/Unternehmerische_Investition.html",
-      "attempts": 1,
+      "attempts": 3,
       "lastError": "Cannot read properties of undefined (reading 'length')"
     },
     {
@@ -14175,7 +14175,7 @@
       "status": "queued",
       "depth": 1,
       "seed": "https://www.noe.gv.at/noe/Wirtschaft-Tourismus-Technologie/Unternehmerische_Investition.html",
-      "attempts": 1,
+      "attempts": 3,
       "lastError": "Cannot read properties of undefined (reading 'length')"
     },
     {
@@ -14183,7 +14183,7 @@
       "status": "queued",
       "depth": 1,
       "seed": "https://www.noe.gv.at/noe/Wirtschaft-Tourismus-Technologie/Unternehmerische_Investition.html",
-      "attempts": 1,
+      "attempts": 3,
       "lastError": "Cannot read properties of undefined (reading 'length')"
     },
     {
@@ -14191,7 +14191,7 @@
       "status": "queued",
       "depth": 1,
       "seed": "https://www.noe.gv.at/noe/Wirtschaft-Tourismus-Technologie/Unternehmerische_Investition.html",
-      "attempts": 1,
+      "attempts": 3,
       "lastError": "Cannot read properties of undefined (reading 'length')"
     },
     {
@@ -14199,7 +14199,7 @@
       "status": "queued",
       "depth": 1,
       "seed": "https://www.noe.gv.at/noe/Wirtschaft-Tourismus-Technologie/Unternehmerische_Investition.html",
-      "attempts": 1,
+      "attempts": 3,
       "lastError": "Cannot read properties of undefined (reading 'length')"
     },
     {
@@ -14207,7 +14207,7 @@
       "status": "queued",
       "depth": 1,
       "seed": "https://www.noe.gv.at/noe/Wirtschaft-Tourismus-Technologie/Unternehmerische_Investition.html",
-      "attempts": 1,
+      "attempts": 3,
       "lastError": "Cannot read properties of undefined (reading 'length')"
     },
     {
@@ -14215,7 +14215,7 @@
       "status": "queued",
       "depth": 1,
       "seed": "https://www.noe.gv.at/noe/Wirtschaft-Tourismus-Technologie/Unternehmerische_Investition.html",
-      "attempts": 1,
+      "attempts": 3,
       "lastError": "Cannot read properties of undefined (reading 'length')"
     },
     {
@@ -14223,7 +14223,7 @@
       "status": "queued",
       "depth": 1,
       "seed": "https://www.noe.gv.at/noe/Wirtschaft-Tourismus-Technologie/Unternehmerische_Investition.html",
-      "attempts": 1,
+      "attempts": 3,
       "lastError": "Cannot read properties of undefined (reading 'length')"
     },
     {
@@ -14231,7 +14231,7 @@
       "status": "queued",
       "depth": 1,
       "seed": "https://www.noe.gv.at/noe/Wirtschaft-Tourismus-Technologie/Unternehmerische_Investition.html",
-      "attempts": 1,
+      "attempts": 3,
       "lastError": "Cannot read properties of undefined (reading 'length')"
     },
     {
@@ -14239,7 +14239,7 @@
       "status": "queued",
       "depth": 1,
       "seed": "https://www.noe.gv.at/noe/Wirtschaft-Tourismus-Technologie/Unternehmerische_Investition.html",
-      "attempts": 1,
+      "attempts": 3,
       "lastError": "Cannot read properties of undefined (reading 'length')"
     },
     {
@@ -14247,7 +14247,7 @@
       "status": "queued",
       "depth": 1,
       "seed": "https://www.noe.gv.at/noe/Wirtschaft-Tourismus-Technologie/Unternehmerische_Investition.html",
-      "attempts": 1,
+      "attempts": 3,
       "lastError": "Cannot read properties of undefined (reading 'length')"
     },
     {
@@ -14255,7 +14255,7 @@
       "status": "queued",
       "depth": 1,
       "seed": "https://www.noe.gv.at/noe/Wirtschaft-Tourismus-Technologie/Unternehmerische_Investition.html",
-      "attempts": 1,
+      "attempts": 3,
       "lastError": "Cannot read properties of undefined (reading 'length')"
     },
     {
@@ -14263,7 +14263,7 @@
       "status": "queued",
       "depth": 1,
       "seed": "https://www.noe.gv.at/noe/Wirtschaft-Tourismus-Technologie/Unternehmerische_Investition.html",
-      "attempts": 1,
+      "attempts": 3,
       "lastError": "Cannot read properties of undefined (reading 'length')"
     },
     {
@@ -14271,7 +14271,7 @@
       "status": "queued",
       "depth": 1,
       "seed": "https://www.noe.gv.at/noe/Wirtschaft-Tourismus-Technologie/Unternehmerische_Investition.html",
-      "attempts": 1,
+      "attempts": 3,
       "lastError": "Cannot read properties of undefined (reading 'length')"
     },
     {
@@ -14279,7 +14279,7 @@
       "status": "queued",
       "depth": 1,
       "seed": "https://www.noe.gv.at/noe/Wirtschaft-Tourismus-Technologie/Unternehmerische_Investition.html",
-      "attempts": 1,
+      "attempts": 3,
       "lastError": "Cannot read properties of undefined (reading 'length')"
     },
     {
@@ -14287,7 +14287,7 @@
       "status": "queued",
       "depth": 1,
       "seed": "https://www.noe.gv.at/noe/Wirtschaft-Tourismus-Technologie/Unternehmerische_Investition.html",
-      "attempts": 1,
+      "attempts": 3,
       "lastError": "Cannot read properties of undefined (reading 'length')"
     },
     {
@@ -14295,7 +14295,7 @@
       "status": "queued",
       "depth": 1,
       "seed": "https://www.noe.gv.at/noe/Wirtschaft-Tourismus-Technologie/Unternehmerische_Investition.html",
-      "attempts": 1,
+      "attempts": 3,
       "lastError": "Cannot read properties of undefined (reading 'length')"
     },
     {
@@ -14303,7 +14303,7 @@
       "status": "queued",
       "depth": 1,
       "seed": "https://www.noe.gv.at/noe/Wirtschaft-Tourismus-Technologie/Unternehmerische_Investition.html",
-      "attempts": 1,
+      "attempts": 3,
       "lastError": "Cannot read properties of undefined (reading 'length')"
     },
     {
@@ -14311,7 +14311,7 @@
       "status": "queued",
       "depth": 1,
       "seed": "https://www.noe.gv.at/noe/Wirtschaft-Tourismus-Technologie/Unternehmerische_Investition.html",
-      "attempts": 1,
+      "attempts": 3,
       "lastError": "Cannot read properties of undefined (reading 'length')"
     },
     {
@@ -14319,7 +14319,7 @@
       "status": "queued",
       "depth": 1,
       "seed": "https://www.noe.gv.at/noe/Wirtschaft-Tourismus-Technologie/Unternehmerische_Investition.html",
-      "attempts": 1,
+      "attempts": 3,
       "lastError": "Cannot read properties of undefined (reading 'length')"
     },
     {
@@ -14327,7 +14327,7 @@
       "status": "queued",
       "depth": 1,
       "seed": "https://www.noe.gv.at/noe/Wirtschaft-Tourismus-Technologie/Unternehmerische_Investition.html",
-      "attempts": 1,
+      "attempts": 3,
       "lastError": "Cannot read properties of undefined (reading 'length')"
     },
     {
@@ -14335,7 +14335,7 @@
       "status": "queued",
       "depth": 1,
       "seed": "https://www.noe.gv.at/noe/Wirtschaft-Tourismus-Technologie/Unternehmerische_Investition.html",
-      "attempts": 1,
+      "attempts": 3,
       "lastError": "Cannot read properties of undefined (reading 'length')"
     },
     {
@@ -14343,7 +14343,7 @@
       "status": "queued",
       "depth": 1,
       "seed": "https://www.noe.gv.at/noe/Wirtschaft-Tourismus-Technologie/Unternehmerische_Investition.html",
-      "attempts": 1,
+      "attempts": 3,
       "lastError": "Cannot read properties of undefined (reading 'length')"
     },
     {
@@ -14351,7 +14351,7 @@
       "status": "queued",
       "depth": 1,
       "seed": "https://www.noe.gv.at/noe/Wirtschaft-Tourismus-Technologie/Unternehmerische_Investition.html",
-      "attempts": 1,
+      "attempts": 3,
       "lastError": "Cannot read properties of undefined (reading 'length')"
     },
     {
@@ -14359,7 +14359,7 @@
       "status": "queued",
       "depth": 1,
       "seed": "https://www.noe.gv.at/noe/Wirtschaft-Tourismus-Technologie/Unternehmerische_Investition.html",
-      "attempts": 1,
+      "attempts": 3,
       "lastError": "Cannot read properties of undefined (reading 'length')"
     },
     {
@@ -14367,7 +14367,7 @@
       "status": "queued",
       "depth": 1,
       "seed": "https://www.noe.gv.at/noe/Wirtschaft-Tourismus-Technologie/Unternehmerische_Investition.html",
-      "attempts": 1,
+      "attempts": 3,
       "lastError": "Cannot read properties of undefined (reading 'length')"
     },
     {
@@ -14375,7 +14375,7 @@
       "status": "queued",
       "depth": 1,
       "seed": "https://www.noe.gv.at/noe/Wirtschaft-Tourismus-Technologie/Unternehmerische_Investition.html",
-      "attempts": 1,
+      "attempts": 3,
       "lastError": "Cannot read properties of undefined (reading 'length')"
     },
     {
@@ -14383,7 +14383,7 @@
       "status": "queued",
       "depth": 1,
       "seed": "https://www.noe.gv.at/noe/Wirtschaft-Tourismus-Technologie/Unternehmerische_Investition.html",
-      "attempts": 1,
+      "attempts": 3,
       "lastError": "Cannot read properties of undefined (reading 'length')"
     },
     {
@@ -14391,7 +14391,7 @@
       "status": "queued",
       "depth": 1,
       "seed": "https://www.noe.gv.at/noe/Wirtschaft-Tourismus-Technologie/Unternehmerische_Investition.html",
-      "attempts": 1,
+      "attempts": 3,
       "lastError": "Cannot read properties of undefined (reading 'length')"
     },
     {
@@ -14399,7 +14399,7 @@
       "status": "queued",
       "depth": 1,
       "seed": "https://www.noe.gv.at/noe/Wirtschaft-Tourismus-Technologie/Unternehmerische_Investition.html",
-      "attempts": 1,
+      "attempts": 3,
       "lastError": "Cannot read properties of undefined (reading 'length')"
     },
     {
@@ -14407,7 +14407,7 @@
       "status": "queued",
       "depth": 1,
       "seed": "https://www.noe.gv.at/noe/Wirtschaft-Tourismus-Technologie/Unternehmerische_Investition.html",
-      "attempts": 1,
+      "attempts": 3,
       "lastError": "Cannot read properties of undefined (reading 'length')"
     },
     {
@@ -14415,7 +14415,7 @@
       "status": "queued",
       "depth": 1,
       "seed": "https://www.noe.gv.at/noe/Wirtschaft-Tourismus-Technologie/Unternehmerische_Investition.html",
-      "attempts": 1,
+      "attempts": 3,
       "lastError": "Cannot read properties of undefined (reading 'length')"
     },
     {
@@ -14423,7 +14423,7 @@
       "status": "queued",
       "depth": 1,
       "seed": "https://www.noe.gv.at/noe/Wirtschaft-Tourismus-Technologie/Unternehmerische_Investition.html",
-      "attempts": 1,
+      "attempts": 3,
       "lastError": "Cannot read properties of undefined (reading 'length')"
     },
     {
@@ -14431,7 +14431,7 @@
       "status": "queued",
       "depth": 1,
       "seed": "https://www.noe.gv.at/noe/Wirtschaft-Tourismus-Technologie/Unternehmerische_Investition.html",
-      "attempts": 1,
+      "attempts": 3,
       "lastError": "Cannot read properties of undefined (reading 'length')"
     },
     {
@@ -14439,7 +14439,7 @@
       "status": "queued",
       "depth": 1,
       "seed": "https://www.noe.gv.at/noe/Wirtschaft-Tourismus-Technologie/Unternehmerische_Investition.html",
-      "attempts": 1,
+      "attempts": 3,
       "lastError": "Cannot read properties of undefined (reading 'length')"
     },
     {
@@ -14447,7 +14447,7 @@
       "status": "queued",
       "depth": 1,
       "seed": "https://www.noe.gv.at/noe/Wirtschaft-Tourismus-Technologie/Unternehmerische_Investition.html",
-      "attempts": 1,
+      "attempts": 3,
       "lastError": "Cannot read properties of undefined (reading 'length')"
     },
     {
@@ -14455,7 +14455,7 @@
       "status": "queued",
       "depth": 1,
       "seed": "https://www.noe.gv.at/noe/Wirtschaft-Tourismus-Technologie/Unternehmerische_Investition.html",
-      "attempts": 1,
+      "attempts": 3,
       "lastError": "Cannot read properties of undefined (reading 'length')"
     },
     {
@@ -14463,7 +14463,7 @@
       "status": "queued",
       "depth": 1,
       "seed": "https://www.noe.gv.at/noe/Wirtschaft-Tourismus-Technologie/Unternehmerische_Investition.html",
-      "attempts": 1,
+      "attempts": 3,
       "lastError": "Cannot read properties of undefined (reading 'length')"
     },
     {
@@ -14471,7 +14471,7 @@
       "status": "queued",
       "depth": 1,
       "seed": "https://www.noe.gv.at/noe/Wirtschaft-Tourismus-Technologie/Unternehmerische_Investition.html",
-      "attempts": 1,
+      "attempts": 3,
       "lastError": "Cannot read properties of undefined (reading 'length')"
     },
     {
@@ -14479,7 +14479,7 @@
       "status": "queued",
       "depth": 1,
       "seed": "https://www.noe.gv.at/noe/Wirtschaft-Tourismus-Technologie/Unternehmerische_Investition.html",
-      "attempts": 1,
+      "attempts": 3,
       "lastError": "Cannot read properties of undefined (reading 'length')"
     },
     {
@@ -14487,7 +14487,7 @@
       "status": "queued",
       "depth": 1,
       "seed": "https://www.noe.gv.at/noe/Wirtschaft-Tourismus-Technologie/Unternehmerische_Investition.html",
-      "attempts": 1,
+      "attempts": 3,
       "lastError": "Cannot read properties of undefined (reading 'length')"
     },
     {
@@ -14495,7 +14495,7 @@
       "status": "queued",
       "depth": 1,
       "seed": "https://www.noe.gv.at/noe/Wirtschaft-Tourismus-Technologie/Unternehmerische_Investition.html",
-      "attempts": 1,
+      "attempts": 3,
       "lastError": "Cannot read properties of undefined (reading 'length')"
     },
     {
@@ -14503,7 +14503,7 @@
       "status": "queued",
       "depth": 1,
       "seed": "https://www.noe.gv.at/noe/Wirtschaft-Tourismus-Technologie/Unternehmerische_Investition.html",
-      "attempts": 1,
+      "attempts": 3,
       "lastError": "Cannot read properties of undefined (reading 'length')"
     },
     {
@@ -14511,7 +14511,7 @@
       "status": "queued",
       "depth": 1,
       "seed": "https://www.noe.gv.at/noe/Wirtschaft-Tourismus-Technologie/Unternehmerische_Investition.html",
-      "attempts": 1,
+      "attempts": 3,
       "lastError": "Cannot read properties of undefined (reading 'length')"
     },
     {
@@ -14519,7 +14519,7 @@
       "status": "queued",
       "depth": 1,
       "seed": "https://www.noe.gv.at/noe/Wirtschaft-Tourismus-Technologie/Unternehmerische_Investition.html",
-      "attempts": 1,
+      "attempts": 3,
       "lastError": "Cannot read properties of undefined (reading 'length')"
     },
     {
@@ -14527,7 +14527,7 @@
       "status": "queued",
       "depth": 1,
       "seed": "https://www.noe.gv.at/noe/Wirtschaft-Tourismus-Technologie/Unternehmerische_Investition.html",
-      "attempts": 1,
+      "attempts": 3,
       "lastError": "Cannot read properties of undefined (reading 'length')"
     },
     {
@@ -14535,7 +14535,7 @@
       "status": "queued",
       "depth": 1,
       "seed": "https://www.noe.gv.at/noe/Wirtschaft-Tourismus-Technologie/Unternehmerische_Investition.html",
-      "attempts": 1,
+      "attempts": 3,
       "lastError": "Cannot read properties of undefined (reading 'length')"
     },
     {
@@ -14543,638 +14543,848 @@
       "status": "queued",
       "depth": 1,
       "seed": "https://www.noe.gv.at/noe/Wirtschaft-Tourismus-Technologie/Unternehmerische_Investition.html",
-      "attempts": 1,
+      "attempts": 3,
       "lastError": "Cannot read properties of undefined (reading 'length')"
     },
     {
       "url": "https://www.noe.gv.at/noe/Sooss.html",
       "status": "queued",
       "depth": 1,
-      "seed": "https://www.noe.gv.at/noe/Wirtschaft-Tourismus-Technologie/Unternehmerische_Investition.html"
+      "seed": "https://www.noe.gv.at/noe/Wirtschaft-Tourismus-Technologie/Unternehmerische_Investition.html",
+      "attempts": 3,
+      "lastError": "Cannot read properties of undefined (reading 'length')"
     },
     {
       "url": "https://www.noe.gv.at/noe/Spannberg.html",
       "status": "queued",
       "depth": 1,
-      "seed": "https://www.noe.gv.at/noe/Wirtschaft-Tourismus-Technologie/Unternehmerische_Investition.html"
+      "seed": "https://www.noe.gv.at/noe/Wirtschaft-Tourismus-Technologie/Unternehmerische_Investition.html",
+      "attempts": 3,
+      "lastError": "Cannot read properties of undefined (reading 'length')"
     },
     {
       "url": "https://www.noe.gv.at/noe/Spillern.html",
       "status": "queued",
       "depth": 1,
-      "seed": "https://www.noe.gv.at/noe/Wirtschaft-Tourismus-Technologie/Unternehmerische_Investition.html"
+      "seed": "https://www.noe.gv.at/noe/Wirtschaft-Tourismus-Technologie/Unternehmerische_Investition.html",
+      "attempts": 3,
+      "lastError": "Cannot read properties of undefined (reading 'length')"
     },
     {
       "url": "https://www.noe.gv.at/noe/Spitz.html",
       "status": "queued",
       "depth": 1,
-      "seed": "https://www.noe.gv.at/noe/Wirtschaft-Tourismus-Technologie/Unternehmerische_Investition.html"
+      "seed": "https://www.noe.gv.at/noe/Wirtschaft-Tourismus-Technologie/Unternehmerische_Investition.html",
+      "attempts": 3,
+      "lastError": "Cannot read properties of undefined (reading 'length')"
     },
     {
       "url": "https://www.noe.gv.at/noe/St._Aegyd_am_Neuwalde.html",
       "status": "queued",
       "depth": 1,
-      "seed": "https://www.noe.gv.at/noe/Wirtschaft-Tourismus-Technologie/Unternehmerische_Investition.html"
+      "seed": "https://www.noe.gv.at/noe/Wirtschaft-Tourismus-Technologie/Unternehmerische_Investition.html",
+      "attempts": 3,
+      "lastError": "Cannot read properties of undefined (reading 'length')"
     },
     {
       "url": "https://www.noe.gv.at/noe/St._Andrae-Woerdern.html",
       "status": "queued",
       "depth": 1,
-      "seed": "https://www.noe.gv.at/noe/Wirtschaft-Tourismus-Technologie/Unternehmerische_Investition.html"
+      "seed": "https://www.noe.gv.at/noe/Wirtschaft-Tourismus-Technologie/Unternehmerische_Investition.html",
+      "attempts": 2,
+      "lastError": "Cannot read properties of undefined (reading 'length')"
     },
     {
       "url": "https://www.noe.gv.at/noe/St._Anton_an_der_Jessnitz.html",
       "status": "queued",
       "depth": 1,
-      "seed": "https://www.noe.gv.at/noe/Wirtschaft-Tourismus-Technologie/Unternehmerische_Investition.html"
+      "seed": "https://www.noe.gv.at/noe/Wirtschaft-Tourismus-Technologie/Unternehmerische_Investition.html",
+      "attempts": 2,
+      "lastError": "Cannot read properties of undefined (reading 'length')"
     },
     {
       "url": "https://www.noe.gv.at/noe/St._Bernhard-Frauenhofen.html",
       "status": "queued",
       "depth": 1,
-      "seed": "https://www.noe.gv.at/noe/Wirtschaft-Tourismus-Technologie/Unternehmerische_Investition.html"
+      "seed": "https://www.noe.gv.at/noe/Wirtschaft-Tourismus-Technologie/Unternehmerische_Investition.html",
+      "attempts": 2,
+      "lastError": "Cannot read properties of undefined (reading 'length')"
     },
     {
       "url": "https://www.noe.gv.at/noe/St._Corona_am_Wechsel.html",
       "status": "queued",
       "depth": 1,
-      "seed": "https://www.noe.gv.at/noe/Wirtschaft-Tourismus-Technologie/Unternehmerische_Investition.html"
+      "seed": "https://www.noe.gv.at/noe/Wirtschaft-Tourismus-Technologie/Unternehmerische_Investition.html",
+      "attempts": 2,
+      "lastError": "Cannot read properties of undefined (reading 'length')"
     },
     {
       "url": "https://www.noe.gv.at/noe/St._Egyden_am_Steinfeld.html",
       "status": "queued",
       "depth": 1,
-      "seed": "https://www.noe.gv.at/noe/Wirtschaft-Tourismus-Technologie/Unternehmerische_Investition.html"
+      "seed": "https://www.noe.gv.at/noe/Wirtschaft-Tourismus-Technologie/Unternehmerische_Investition.html",
+      "attempts": 2,
+      "lastError": "Cannot read properties of undefined (reading 'length')"
     },
     {
       "url": "https://www.noe.gv.at/noe/St._Georgen_am_Reith.html",
       "status": "queued",
       "depth": 1,
-      "seed": "https://www.noe.gv.at/noe/Wirtschaft-Tourismus-Technologie/Unternehmerische_Investition.html"
+      "seed": "https://www.noe.gv.at/noe/Wirtschaft-Tourismus-Technologie/Unternehmerische_Investition.html",
+      "attempts": 2,
+      "lastError": "Cannot read properties of undefined (reading 'length')"
     },
     {
       "url": "https://www.noe.gv.at/noe/St._Georgen_am_Ybbsfelde.html",
       "status": "queued",
       "depth": 1,
-      "seed": "https://www.noe.gv.at/noe/Wirtschaft-Tourismus-Technologie/Unternehmerische_Investition.html"
+      "seed": "https://www.noe.gv.at/noe/Wirtschaft-Tourismus-Technologie/Unternehmerische_Investition.html",
+      "attempts": 2,
+      "lastError": "Cannot read properties of undefined (reading 'length')"
     },
     {
       "url": "https://www.noe.gv.at/noe/St._Georgen_an_der_Leys.html",
       "status": "queued",
       "depth": 1,
-      "seed": "https://www.noe.gv.at/noe/Wirtschaft-Tourismus-Technologie/Unternehmerische_Investition.html"
+      "seed": "https://www.noe.gv.at/noe/Wirtschaft-Tourismus-Technologie/Unternehmerische_Investition.html",
+      "attempts": 2,
+      "lastError": "Cannot read properties of undefined (reading 'length')"
     },
     {
       "url": "https://www.noe.gv.at/noe/St._Leonhard_am_Forst.html",
       "status": "queued",
       "depth": 1,
-      "seed": "https://www.noe.gv.at/noe/Wirtschaft-Tourismus-Technologie/Unternehmerische_Investition.html"
+      "seed": "https://www.noe.gv.at/noe/Wirtschaft-Tourismus-Technologie/Unternehmerische_Investition.html",
+      "attempts": 2,
+      "lastError": "Cannot read properties of undefined (reading 'length')"
     },
     {
       "url": "https://www.noe.gv.at/noe/St._Leonhard_am_Hornerwald.html",
       "status": "queued",
       "depth": 1,
-      "seed": "https://www.noe.gv.at/noe/Wirtschaft-Tourismus-Technologie/Unternehmerische_Investition.html"
+      "seed": "https://www.noe.gv.at/noe/Wirtschaft-Tourismus-Technologie/Unternehmerische_Investition.html",
+      "attempts": 2,
+      "lastError": "Cannot read properties of undefined (reading 'length')"
     },
     {
       "url": "https://www.noe.gv.at/noe/St._Margarethen_an_der_Sierning.html",
       "status": "queued",
       "depth": 1,
-      "seed": "https://www.noe.gv.at/noe/Wirtschaft-Tourismus-Technologie/Unternehmerische_Investition.html"
+      "seed": "https://www.noe.gv.at/noe/Wirtschaft-Tourismus-Technologie/Unternehmerische_Investition.html",
+      "attempts": 2,
+      "lastError": "Cannot read properties of undefined (reading 'length')"
     },
     {
       "url": "https://www.noe.gv.at/noe/St._Martin.html",
       "status": "queued",
       "depth": 1,
-      "seed": "https://www.noe.gv.at/noe/Wirtschaft-Tourismus-Technologie/Unternehmerische_Investition.html"
+      "seed": "https://www.noe.gv.at/noe/Wirtschaft-Tourismus-Technologie/Unternehmerische_Investition.html",
+      "attempts": 2,
+      "lastError": "Cannot read properties of undefined (reading 'length')"
     },
     {
       "url": "https://www.noe.gv.at/noe/St._Martin-Karlsbach.html",
       "status": "queued",
       "depth": 1,
-      "seed": "https://www.noe.gv.at/noe/Wirtschaft-Tourismus-Technologie/Unternehmerische_Investition.html"
+      "seed": "https://www.noe.gv.at/noe/Wirtschaft-Tourismus-Technologie/Unternehmerische_Investition.html",
+      "attempts": 2,
+      "lastError": "Cannot read properties of undefined (reading 'length')"
     },
     {
       "url": "https://www.noe.gv.at/noe/St._Oswald.html",
       "status": "queued",
       "depth": 1,
-      "seed": "https://www.noe.gv.at/noe/Wirtschaft-Tourismus-Technologie/Unternehmerische_Investition.html"
+      "seed": "https://www.noe.gv.at/noe/Wirtschaft-Tourismus-Technologie/Unternehmerische_Investition.html",
+      "attempts": 2,
+      "lastError": "Cannot read properties of undefined (reading 'length')"
     },
     {
       "url": "https://www.noe.gv.at/noe/St._Pantaleon-Erla.html",
       "status": "queued",
       "depth": 1,
-      "seed": "https://www.noe.gv.at/noe/Wirtschaft-Tourismus-Technologie/Unternehmerische_Investition.html"
+      "seed": "https://www.noe.gv.at/noe/Wirtschaft-Tourismus-Technologie/Unternehmerische_Investition.html",
+      "attempts": 2,
+      "lastError": "Cannot read properties of undefined (reading 'length')"
     },
     {
       "url": "https://www.noe.gv.at/noe/St._Peter_in_der_Au.html",
       "status": "queued",
       "depth": 1,
-      "seed": "https://www.noe.gv.at/noe/Wirtschaft-Tourismus-Technologie/Unternehmerische_Investition.html"
+      "seed": "https://www.noe.gv.at/noe/Wirtschaft-Tourismus-Technologie/Unternehmerische_Investition.html",
+      "attempts": 2,
+      "lastError": "Cannot read properties of undefined (reading 'length')"
     },
     {
       "url": "https://www.noe.gv.at/noe/St._Poelten.html",
       "status": "queued",
       "depth": 1,
-      "seed": "https://www.noe.gv.at/noe/Wirtschaft-Tourismus-Technologie/Unternehmerische_Investition.html"
+      "seed": "https://www.noe.gv.at/noe/Wirtschaft-Tourismus-Technologie/Unternehmerische_Investition.html",
+      "attempts": 2,
+      "lastError": "Cannot read properties of undefined (reading 'length')"
     },
     {
       "url": "https://www.noe.gv.at/noe/St._Valentin.html",
       "status": "queued",
       "depth": 1,
-      "seed": "https://www.noe.gv.at/noe/Wirtschaft-Tourismus-Technologie/Unternehmerische_Investition.html"
+      "seed": "https://www.noe.gv.at/noe/Wirtschaft-Tourismus-Technologie/Unternehmerische_Investition.html",
+      "attempts": 2,
+      "lastError": "Cannot read properties of undefined (reading 'length')"
     },
     {
       "url": "https://www.noe.gv.at/noe/St._Veit_an_der_Goelsen.html",
       "status": "queued",
       "depth": 1,
-      "seed": "https://www.noe.gv.at/noe/Wirtschaft-Tourismus-Technologie/Unternehmerische_Investition.html"
+      "seed": "https://www.noe.gv.at/noe/Wirtschaft-Tourismus-Technologie/Unternehmerische_Investition.html",
+      "attempts": 2,
+      "lastError": "Cannot read properties of undefined (reading 'length')"
     },
     {
       "url": "https://www.noe.gv.at/noe/Staatz.html",
       "status": "queued",
       "depth": 1,
-      "seed": "https://www.noe.gv.at/noe/Wirtschaft-Tourismus-Technologie/Unternehmerische_Investition.html"
+      "seed": "https://www.noe.gv.at/noe/Wirtschaft-Tourismus-Technologie/Unternehmerische_Investition.html",
+      "attempts": 2,
+      "lastError": "Cannot read properties of undefined (reading 'length')"
     },
     {
       "url": "https://www.noe.gv.at/noe/Statzendorf.html",
       "status": "queued",
       "depth": 1,
-      "seed": "https://www.noe.gv.at/noe/Wirtschaft-Tourismus-Technologie/Unternehmerische_Investition.html"
+      "seed": "https://www.noe.gv.at/noe/Wirtschaft-Tourismus-Technologie/Unternehmerische_Investition.html",
+      "attempts": 2,
+      "lastError": "Cannot read properties of undefined (reading 'length')"
     },
     {
       "url": "https://www.noe.gv.at/noe/Steinakirchen_am_Forst.html",
       "status": "queued",
       "depth": 1,
-      "seed": "https://www.noe.gv.at/noe/Wirtschaft-Tourismus-Technologie/Unternehmerische_Investition.html"
+      "seed": "https://www.noe.gv.at/noe/Wirtschaft-Tourismus-Technologie/Unternehmerische_Investition.html",
+      "attempts": 2,
+      "lastError": "Cannot read properties of undefined (reading 'length')"
     },
     {
       "url": "https://www.noe.gv.at/noe/Stetteldorf_am_Wagram.html",
       "status": "queued",
       "depth": 1,
-      "seed": "https://www.noe.gv.at/noe/Wirtschaft-Tourismus-Technologie/Unternehmerische_Investition.html"
+      "seed": "https://www.noe.gv.at/noe/Wirtschaft-Tourismus-Technologie/Unternehmerische_Investition.html",
+      "attempts": 2,
+      "lastError": "Cannot read properties of undefined (reading 'length')"
     },
     {
       "url": "https://www.noe.gv.at/noe/Stetten.html",
       "status": "queued",
       "depth": 1,
-      "seed": "https://www.noe.gv.at/noe/Wirtschaft-Tourismus-Technologie/Unternehmerische_Investition.html"
+      "seed": "https://www.noe.gv.at/noe/Wirtschaft-Tourismus-Technologie/Unternehmerische_Investition.html",
+      "attempts": 2,
+      "lastError": "Cannot read properties of undefined (reading 'length')"
     },
     {
       "url": "https://www.noe.gv.at/noe/Stockerau.html",
       "status": "queued",
       "depth": 1,
-      "seed": "https://www.noe.gv.at/noe/Wirtschaft-Tourismus-Technologie/Unternehmerische_Investition.html"
+      "seed": "https://www.noe.gv.at/noe/Wirtschaft-Tourismus-Technologie/Unternehmerische_Investition.html",
+      "attempts": 2,
+      "lastError": "Cannot read properties of undefined (reading 'length')"
     },
     {
       "url": "https://www.noe.gv.at/noe/Straning-Grafenberg.html",
       "status": "queued",
       "depth": 1,
-      "seed": "https://www.noe.gv.at/noe/Wirtschaft-Tourismus-Technologie/Unternehmerische_Investition.html"
+      "seed": "https://www.noe.gv.at/noe/Wirtschaft-Tourismus-Technologie/Unternehmerische_Investition.html",
+      "attempts": 2,
+      "lastError": "Cannot read properties of undefined (reading 'length')"
     },
     {
       "url": "https://www.noe.gv.at/noe/Strasshof_an_der_Nordbahn.html",
       "status": "queued",
       "depth": 1,
-      "seed": "https://www.noe.gv.at/noe/Wirtschaft-Tourismus-Technologie/Unternehmerische_Investition.html"
+      "seed": "https://www.noe.gv.at/noe/Wirtschaft-Tourismus-Technologie/Unternehmerische_Investition.html",
+      "attempts": 2,
+      "lastError": "Cannot read properties of undefined (reading 'length')"
     },
     {
       "url": "https://www.noe.gv.at/noe/Stratzing.html",
       "status": "queued",
       "depth": 1,
-      "seed": "https://www.noe.gv.at/noe/Wirtschaft-Tourismus-Technologie/Unternehmerische_Investition.html"
+      "seed": "https://www.noe.gv.at/noe/Wirtschaft-Tourismus-Technologie/Unternehmerische_Investition.html",
+      "attempts": 2,
+      "lastError": "Cannot read properties of undefined (reading 'length')"
     },
     {
       "url": "https://www.noe.gv.at/noe/Strass_im_Strassertale.html",
       "status": "queued",
       "depth": 1,
-      "seed": "https://www.noe.gv.at/noe/Wirtschaft-Tourismus-Technologie/Unternehmerische_Investition.html"
+      "seed": "https://www.noe.gv.at/noe/Wirtschaft-Tourismus-Technologie/Unternehmerische_Investition.html",
+      "attempts": 2,
+      "lastError": "Cannot read properties of undefined (reading 'length')"
     },
     {
       "url": "https://www.noe.gv.at/noe/Strengberg.html",
       "status": "queued",
       "depth": 1,
-      "seed": "https://www.noe.gv.at/noe/Wirtschaft-Tourismus-Technologie/Unternehmerische_Investition.html"
+      "seed": "https://www.noe.gv.at/noe/Wirtschaft-Tourismus-Technologie/Unternehmerische_Investition.html",
+      "attempts": 2,
+      "lastError": "Cannot read properties of undefined (reading 'length')"
     },
     {
       "url": "https://www.noe.gv.at/noe/Stronsdorf.html",
       "status": "queued",
       "depth": 1,
-      "seed": "https://www.noe.gv.at/noe/Wirtschaft-Tourismus-Technologie/Unternehmerische_Investition.html"
+      "seed": "https://www.noe.gv.at/noe/Wirtschaft-Tourismus-Technologie/Unternehmerische_Investition.html",
+      "attempts": 2,
+      "lastError": "Cannot read properties of undefined (reading 'length')"
     },
     {
       "url": "https://www.noe.gv.at/noe/Stoessing.html",
       "status": "queued",
       "depth": 1,
-      "seed": "https://www.noe.gv.at/noe/Wirtschaft-Tourismus-Technologie/Unternehmerische_Investition.html"
+      "seed": "https://www.noe.gv.at/noe/Wirtschaft-Tourismus-Technologie/Unternehmerische_Investition.html",
+      "attempts": 2,
+      "lastError": "Cannot read properties of undefined (reading 'length')"
     },
     {
       "url": "https://www.noe.gv.at/noe/Sulz_im_Weinviertel.html",
       "status": "queued",
       "depth": 1,
-      "seed": "https://www.noe.gv.at/noe/Wirtschaft-Tourismus-Technologie/Unternehmerische_Investition.html"
+      "seed": "https://www.noe.gv.at/noe/Wirtschaft-Tourismus-Technologie/Unternehmerische_Investition.html",
+      "attempts": 2,
+      "lastError": "Cannot read properties of undefined (reading 'length')"
     },
     {
       "url": "https://www.noe.gv.at/noe/Tattendorf.html",
       "status": "queued",
       "depth": 1,
-      "seed": "https://www.noe.gv.at/noe/Wirtschaft-Tourismus-Technologie/Unternehmerische_Investition.html"
+      "seed": "https://www.noe.gv.at/noe/Wirtschaft-Tourismus-Technologie/Unternehmerische_Investition.html",
+      "attempts": 2,
+      "lastError": "Cannot read properties of undefined (reading 'length')"
     },
     {
       "url": "https://www.noe.gv.at/noe/Teesdorf.html",
       "status": "queued",
       "depth": 1,
-      "seed": "https://www.noe.gv.at/noe/Wirtschaft-Tourismus-Technologie/Unternehmerische_Investition.html"
+      "seed": "https://www.noe.gv.at/noe/Wirtschaft-Tourismus-Technologie/Unternehmerische_Investition.html",
+      "attempts": 2,
+      "lastError": "Cannot read properties of undefined (reading 'length')"
     },
     {
       "url": "https://www.noe.gv.at/noe/Ternitz.html",
       "status": "queued",
       "depth": 1,
-      "seed": "https://www.noe.gv.at/noe/Wirtschaft-Tourismus-Technologie/Unternehmerische_Investition.html"
+      "seed": "https://www.noe.gv.at/noe/Wirtschaft-Tourismus-Technologie/Unternehmerische_Investition.html",
+      "attempts": 2,
+      "lastError": "Cannot read properties of undefined (reading 'length')"
     },
     {
       "url": "https://www.noe.gv.at/noe/Texingtal.html",
       "status": "queued",
       "depth": 1,
-      "seed": "https://www.noe.gv.at/noe/Wirtschaft-Tourismus-Technologie/Unternehmerische_Investition.html"
+      "seed": "https://www.noe.gv.at/noe/Wirtschaft-Tourismus-Technologie/Unternehmerische_Investition.html",
+      "attempts": 2,
+      "lastError": "Cannot read properties of undefined (reading 'length')"
     },
     {
       "url": "https://www.noe.gv.at/noe/Thaya.html",
       "status": "queued",
       "depth": 1,
-      "seed": "https://www.noe.gv.at/noe/Wirtschaft-Tourismus-Technologie/Unternehmerische_Investition.html"
+      "seed": "https://www.noe.gv.at/noe/Wirtschaft-Tourismus-Technologie/Unternehmerische_Investition.html",
+      "attempts": 2,
+      "lastError": "Cannot read properties of undefined (reading 'length')"
     },
     {
       "url": "https://www.noe.gv.at/noe/Theresienfeld.html",
       "status": "queued",
       "depth": 1,
-      "seed": "https://www.noe.gv.at/noe/Wirtschaft-Tourismus-Technologie/Unternehmerische_Investition.html"
+      "seed": "https://www.noe.gv.at/noe/Wirtschaft-Tourismus-Technologie/Unternehmerische_Investition.html",
+      "attempts": 2,
+      "lastError": "Cannot read properties of undefined (reading 'length')"
     },
     {
       "url": "https://www.noe.gv.at/noe/Thomasberg.html",
       "status": "queued",
       "depth": 1,
-      "seed": "https://www.noe.gv.at/noe/Wirtschaft-Tourismus-Technologie/Unternehmerische_Investition.html"
+      "seed": "https://www.noe.gv.at/noe/Wirtschaft-Tourismus-Technologie/Unternehmerische_Investition.html",
+      "attempts": 2,
+      "lastError": "Cannot read properties of undefined (reading 'length')"
     },
     {
       "url": "https://www.noe.gv.at/noe/Traisen.html",
       "status": "queued",
       "depth": 1,
-      "seed": "https://www.noe.gv.at/noe/Wirtschaft-Tourismus-Technologie/Unternehmerische_Investition.html"
+      "seed": "https://www.noe.gv.at/noe/Wirtschaft-Tourismus-Technologie/Unternehmerische_Investition.html",
+      "attempts": 2,
+      "lastError": "Cannot read properties of undefined (reading 'length')"
     },
     {
       "url": "https://www.noe.gv.at/noe/Traiskirchen.html",
       "status": "queued",
       "depth": 1,
-      "seed": "https://www.noe.gv.at/noe/Wirtschaft-Tourismus-Technologie/Unternehmerische_Investition.html"
+      "seed": "https://www.noe.gv.at/noe/Wirtschaft-Tourismus-Technologie/Unternehmerische_Investition.html",
+      "attempts": 2,
+      "lastError": "Cannot read properties of undefined (reading 'length')"
     },
     {
       "url": "https://www.noe.gv.at/noe/Traismauer.html",
       "status": "queued",
       "depth": 1,
-      "seed": "https://www.noe.gv.at/noe/Wirtschaft-Tourismus-Technologie/Unternehmerische_Investition.html"
+      "seed": "https://www.noe.gv.at/noe/Wirtschaft-Tourismus-Technologie/Unternehmerische_Investition.html",
+      "attempts": 2,
+      "lastError": "Cannot read properties of undefined (reading 'length')"
     },
     {
       "url": "https://www.noe.gv.at/noe/Trattenbach.html",
       "status": "queued",
       "depth": 1,
-      "seed": "https://www.noe.gv.at/noe/Wirtschaft-Tourismus-Technologie/Unternehmerische_Investition.html"
+      "seed": "https://www.noe.gv.at/noe/Wirtschaft-Tourismus-Technologie/Unternehmerische_Investition.html",
+      "attempts": 2,
+      "lastError": "Cannot read properties of undefined (reading 'length')"
     },
     {
       "url": "https://www.noe.gv.at/noe/Trautmannsdorf_an_der_Leitha.html",
       "status": "queued",
       "depth": 1,
-      "seed": "https://www.noe.gv.at/noe/Wirtschaft-Tourismus-Technologie/Unternehmerische_Investition.html"
+      "seed": "https://www.noe.gv.at/noe/Wirtschaft-Tourismus-Technologie/Unternehmerische_Investition.html",
+      "attempts": 2,
+      "lastError": "Cannot read properties of undefined (reading 'length')"
     },
     {
       "url": "https://www.noe.gv.at/noe/Trumau.html",
       "status": "queued",
       "depth": 1,
-      "seed": "https://www.noe.gv.at/noe/Wirtschaft-Tourismus-Technologie/Unternehmerische_Investition.html"
+      "seed": "https://www.noe.gv.at/noe/Wirtschaft-Tourismus-Technologie/Unternehmerische_Investition.html",
+      "attempts": 2,
+      "lastError": "Cannot read properties of undefined (reading 'length')"
     },
     {
       "url": "https://www.noe.gv.at/noe/Tulbing.html",
       "status": "queued",
       "depth": 1,
-      "seed": "https://www.noe.gv.at/noe/Wirtschaft-Tourismus-Technologie/Unternehmerische_Investition.html"
+      "seed": "https://www.noe.gv.at/noe/Wirtschaft-Tourismus-Technologie/Unternehmerische_Investition.html",
+      "attempts": 2,
+      "lastError": "Cannot read properties of undefined (reading 'length')"
     },
     {
       "url": "https://www.noe.gv.at/noe/Tulln_an_der_Donau.html",
       "status": "queued",
       "depth": 1,
-      "seed": "https://www.noe.gv.at/noe/Wirtschaft-Tourismus-Technologie/Unternehmerische_Investition.html"
+      "seed": "https://www.noe.gv.at/noe/Wirtschaft-Tourismus-Technologie/Unternehmerische_Investition.html",
+      "attempts": 2,
+      "lastError": "Cannot read properties of undefined (reading 'length')"
     },
     {
       "url": "https://www.noe.gv.at/noe/Tullnerbach.html",
       "status": "queued",
       "depth": 1,
-      "seed": "https://www.noe.gv.at/noe/Wirtschaft-Tourismus-Technologie/Unternehmerische_Investition.html"
+      "seed": "https://www.noe.gv.at/noe/Wirtschaft-Tourismus-Technologie/Unternehmerische_Investition.html",
+      "attempts": 2,
+      "lastError": "Cannot read properties of undefined (reading 'length')"
     },
     {
       "url": "https://www.noe.gv.at/noe/Tuernitz.html",
       "status": "queued",
       "depth": 1,
-      "seed": "https://www.noe.gv.at/noe/Wirtschaft-Tourismus-Technologie/Unternehmerische_Investition.html"
+      "seed": "https://www.noe.gv.at/noe/Wirtschaft-Tourismus-Technologie/Unternehmerische_Investition.html",
+      "attempts": 2,
+      "lastError": "Cannot read properties of undefined (reading 'length')"
     },
     {
       "url": "https://www.noe.gv.at/noe/Ulrichskirchen-Schleinbach.html",
       "status": "queued",
       "depth": 1,
-      "seed": "https://www.noe.gv.at/noe/Wirtschaft-Tourismus-Technologie/Unternehmerische_Investition.html"
+      "seed": "https://www.noe.gv.at/noe/Wirtschaft-Tourismus-Technologie/Unternehmerische_Investition.html",
+      "attempts": 2,
+      "lastError": "Cannot read properties of undefined (reading 'length')"
     },
     {
       "url": "https://www.noe.gv.at/noe/Unserfrau-Altweitra.html",
       "status": "queued",
       "depth": 1,
-      "seed": "https://www.noe.gv.at/noe/Wirtschaft-Tourismus-Technologie/Unternehmerische_Investition.html"
+      "seed": "https://www.noe.gv.at/noe/Wirtschaft-Tourismus-Technologie/Unternehmerische_Investition.html",
+      "attempts": 2,
+      "lastError": "Cannot read properties of undefined (reading 'length')"
     },
     {
       "url": "https://www.noe.gv.at/noe/Untersiebenbrunn.html",
       "status": "queued",
       "depth": 1,
-      "seed": "https://www.noe.gv.at/noe/Wirtschaft-Tourismus-Technologie/Unternehmerische_Investition.html"
+      "seed": "https://www.noe.gv.at/noe/Wirtschaft-Tourismus-Technologie/Unternehmerische_Investition.html",
+      "attempts": 2,
+      "lastError": "Cannot read properties of undefined (reading 'length')"
     },
     {
       "url": "https://www.noe.gv.at/noe/Unterstinkenbrunn.html",
       "status": "queued",
       "depth": 1,
-      "seed": "https://www.noe.gv.at/noe/Wirtschaft-Tourismus-Technologie/Unternehmerische_Investition.html"
+      "seed": "https://www.noe.gv.at/noe/Wirtschaft-Tourismus-Technologie/Unternehmerische_Investition.html",
+      "attempts": 2,
+      "lastError": "Cannot read properties of undefined (reading 'length')"
     },
     {
       "url": "https://www.noe.gv.at/noe/Velm-Goetzendorf.html",
       "status": "queued",
       "depth": 1,
-      "seed": "https://www.noe.gv.at/noe/Wirtschaft-Tourismus-Technologie/Unternehmerische_Investition.html"
+      "seed": "https://www.noe.gv.at/noe/Wirtschaft-Tourismus-Technologie/Unternehmerische_Investition.html",
+      "attempts": 2,
+      "lastError": "Cannot read properties of undefined (reading 'length')"
     },
     {
       "url": "https://www.noe.gv.at/noe/Viehdorf.html",
       "status": "queued",
       "depth": 1,
-      "seed": "https://www.noe.gv.at/noe/Wirtschaft-Tourismus-Technologie/Unternehmerische_Investition.html"
+      "seed": "https://www.noe.gv.at/noe/Wirtschaft-Tourismus-Technologie/Unternehmerische_Investition.html",
+      "attempts": 2,
+      "lastError": "Cannot read properties of undefined (reading 'length')"
     },
     {
       "url": "https://www.noe.gv.at/noe/Vitis.html",
       "status": "queued",
       "depth": 1,
-      "seed": "https://www.noe.gv.at/noe/Wirtschaft-Tourismus-Technologie/Unternehmerische_Investition.html"
+      "seed": "https://www.noe.gv.at/noe/Wirtschaft-Tourismus-Technologie/Unternehmerische_Investition.html",
+      "attempts": 2,
+      "lastError": "Cannot read properties of undefined (reading 'length')"
     },
     {
       "url": "https://www.noe.gv.at/noe/Voesendorf.html",
       "status": "queued",
       "depth": 1,
-      "seed": "https://www.noe.gv.at/noe/Wirtschaft-Tourismus-Technologie/Unternehmerische_Investition.html"
+      "seed": "https://www.noe.gv.at/noe/Wirtschaft-Tourismus-Technologie/Unternehmerische_Investition.html",
+      "attempts": 2,
+      "lastError": "Cannot read properties of undefined (reading 'length')"
     },
     {
       "url": "https://www.noe.gv.at/noe/Waidhofen_an_der_Thaya.html",
       "status": "queued",
       "depth": 1,
-      "seed": "https://www.noe.gv.at/noe/Wirtschaft-Tourismus-Technologie/Unternehmerische_Investition.html"
+      "seed": "https://www.noe.gv.at/noe/Wirtschaft-Tourismus-Technologie/Unternehmerische_Investition.html",
+      "attempts": 2,
+      "lastError": "Cannot read properties of undefined (reading 'length')"
     },
     {
       "url": "https://www.noe.gv.at/noe/Waidhofen_an_der_Thaya-Land.html",
       "status": "queued",
       "depth": 1,
-      "seed": "https://www.noe.gv.at/noe/Wirtschaft-Tourismus-Technologie/Unternehmerische_Investition.html"
+      "seed": "https://www.noe.gv.at/noe/Wirtschaft-Tourismus-Technologie/Unternehmerische_Investition.html",
+      "attempts": 2,
+      "lastError": "Cannot read properties of undefined (reading 'length')"
     },
     {
       "url": "https://www.noe.gv.at/noe/Waidhofen_an_der_Ybbs.html",
       "status": "queued",
       "depth": 1,
-      "seed": "https://www.noe.gv.at/noe/Wirtschaft-Tourismus-Technologie/Unternehmerische_Investition.html"
+      "seed": "https://www.noe.gv.at/noe/Wirtschaft-Tourismus-Technologie/Unternehmerische_Investition.html",
+      "attempts": 2,
+      "lastError": "Cannot read properties of undefined (reading 'length')"
     },
     {
       "url": "https://www.noe.gv.at/noe/Waidmannsfeld.html",
       "status": "queued",
       "depth": 1,
-      "seed": "https://www.noe.gv.at/noe/Wirtschaft-Tourismus-Technologie/Unternehmerische_Investition.html"
+      "seed": "https://www.noe.gv.at/noe/Wirtschaft-Tourismus-Technologie/Unternehmerische_Investition.html",
+      "attempts": 2,
+      "lastError": "Cannot read properties of undefined (reading 'length')"
     },
     {
       "url": "https://www.noe.gv.at/noe/Waldegg.html",
       "status": "queued",
       "depth": 1,
-      "seed": "https://www.noe.gv.at/noe/Wirtschaft-Tourismus-Technologie/Unternehmerische_Investition.html"
+      "seed": "https://www.noe.gv.at/noe/Wirtschaft-Tourismus-Technologie/Unternehmerische_Investition.html",
+      "attempts": 2,
+      "lastError": "Cannot read properties of undefined (reading 'length')"
     },
     {
       "url": "https://www.noe.gv.at/noe/Waldenstein.html",
       "status": "queued",
       "depth": 1,
-      "seed": "https://www.noe.gv.at/noe/Wirtschaft-Tourismus-Technologie/Unternehmerische_Investition.html"
+      "seed": "https://www.noe.gv.at/noe/Wirtschaft-Tourismus-Technologie/Unternehmerische_Investition.html",
+      "attempts": 2,
+      "lastError": "Cannot read properties of undefined (reading 'length')"
     },
     {
       "url": "https://www.noe.gv.at/noe/Waldhausen.html",
       "status": "queued",
       "depth": 1,
-      "seed": "https://www.noe.gv.at/noe/Wirtschaft-Tourismus-Technologie/Unternehmerische_Investition.html"
+      "seed": "https://www.noe.gv.at/noe/Wirtschaft-Tourismus-Technologie/Unternehmerische_Investition.html",
+      "attempts": 2,
+      "lastError": "Cannot read properties of undefined (reading 'length')"
     },
     {
       "url": "https://www.noe.gv.at/noe/Waldkirchen_an_der_Thaya.html",
       "status": "queued",
       "depth": 1,
-      "seed": "https://www.noe.gv.at/noe/Wirtschaft-Tourismus-Technologie/Unternehmerische_Investition.html"
+      "seed": "https://www.noe.gv.at/noe/Wirtschaft-Tourismus-Technologie/Unternehmerische_Investition.html",
+      "attempts": 2,
+      "lastError": "Cannot read properties of undefined (reading 'length')"
     },
     {
       "url": "https://www.noe.gv.at/noe/Wallsee-Sindelburg.html",
       "status": "queued",
       "depth": 1,
-      "seed": "https://www.noe.gv.at/noe/Wirtschaft-Tourismus-Technologie/Unternehmerische_Investition.html"
+      "seed": "https://www.noe.gv.at/noe/Wirtschaft-Tourismus-Technologie/Unternehmerische_Investition.html",
+      "attempts": 2,
+      "lastError": "Cannot read properties of undefined (reading 'length')"
     },
     {
       "url": "https://www.noe.gv.at/noe/Walpersbach.html",
       "status": "queued",
       "depth": 1,
-      "seed": "https://www.noe.gv.at/noe/Wirtschaft-Tourismus-Technologie/Unternehmerische_Investition.html"
+      "seed": "https://www.noe.gv.at/noe/Wirtschaft-Tourismus-Technologie/Unternehmerische_Investition.html",
+      "attempts": 2,
+      "lastError": "Cannot read properties of undefined (reading 'length')"
     },
     {
       "url": "https://www.noe.gv.at/noe/Wang.html",
       "status": "queued",
       "depth": 1,
-      "seed": "https://www.noe.gv.at/noe/Wirtschaft-Tourismus-Technologie/Unternehmerische_Investition.html"
+      "seed": "https://www.noe.gv.at/noe/Wirtschaft-Tourismus-Technologie/Unternehmerische_Investition.html",
+      "attempts": 2,
+      "lastError": "Cannot read properties of undefined (reading 'length')"
     },
     {
       "url": "https://www.noe.gv.at/noe/Warth.html",
       "status": "queued",
       "depth": 1,
-      "seed": "https://www.noe.gv.at/noe/Wirtschaft-Tourismus-Technologie/Unternehmerische_Investition.html"
+      "seed": "https://www.noe.gv.at/noe/Wirtschaft-Tourismus-Technologie/Unternehmerische_Investition.html",
+      "attempts": 2,
+      "lastError": "Cannot read properties of undefined (reading 'length')"
     },
     {
       "url": "https://www.noe.gv.at/noe/Wartmannstetten.html",
       "status": "queued",
       "depth": 1,
-      "seed": "https://www.noe.gv.at/noe/Wirtschaft-Tourismus-Technologie/Unternehmerische_Investition.html"
+      "seed": "https://www.noe.gv.at/noe/Wirtschaft-Tourismus-Technologie/Unternehmerische_Investition.html",
+      "attempts": 2,
+      "lastError": "Cannot read properties of undefined (reading 'length')"
     },
     {
       "url": "https://www.noe.gv.at/noe/Weiden_an_der_March.html",
       "status": "queued",
       "depth": 1,
-      "seed": "https://www.noe.gv.at/noe/Wirtschaft-Tourismus-Technologie/Unternehmerische_Investition.html"
+      "seed": "https://www.noe.gv.at/noe/Wirtschaft-Tourismus-Technologie/Unternehmerische_Investition.html",
+      "attempts": 2,
+      "lastError": "Cannot read properties of undefined (reading 'length')"
     },
     {
       "url": "https://www.noe.gv.at/noe/Weikendorf.html",
       "status": "queued",
       "depth": 1,
-      "seed": "https://www.noe.gv.at/noe/Wirtschaft-Tourismus-Technologie/Unternehmerische_Investition.html"
+      "seed": "https://www.noe.gv.at/noe/Wirtschaft-Tourismus-Technologie/Unternehmerische_Investition.html",
+      "attempts": 2,
+      "lastError": "Cannot read properties of undefined (reading 'length')"
     },
     {
       "url": "https://www.noe.gv.at/noe/Weikersdorf_am_Steinfelde.html",
       "status": "queued",
       "depth": 1,
-      "seed": "https://www.noe.gv.at/noe/Wirtschaft-Tourismus-Technologie/Unternehmerische_Investition.html"
+      "seed": "https://www.noe.gv.at/noe/Wirtschaft-Tourismus-Technologie/Unternehmerische_Investition.html",
+      "attempts": 2,
+      "lastError": "Cannot read properties of undefined (reading 'length')"
     },
     {
       "url": "https://www.noe.gv.at/noe/Weinburg.html",
       "status": "queued",
       "depth": 1,
-      "seed": "https://www.noe.gv.at/noe/Wirtschaft-Tourismus-Technologie/Unternehmerische_Investition.html"
+      "seed": "https://www.noe.gv.at/noe/Wirtschaft-Tourismus-Technologie/Unternehmerische_Investition.html",
+      "attempts": 2,
+      "lastError": "Cannot read properties of undefined (reading 'length')"
     },
     {
       "url": "https://www.noe.gv.at/noe/Weinzierl_am_Walde.html",
       "status": "queued",
       "depth": 1,
-      "seed": "https://www.noe.gv.at/noe/Wirtschaft-Tourismus-Technologie/Unternehmerische_Investition.html"
+      "seed": "https://www.noe.gv.at/noe/Wirtschaft-Tourismus-Technologie/Unternehmerische_Investition.html",
+      "attempts": 2,
+      "lastError": "Cannot read properties of undefined (reading 'length')"
     },
     {
       "url": "https://www.noe.gv.at/noe/Weissenbach_an_der_Triesting.html",
       "status": "queued",
       "depth": 1,
-      "seed": "https://www.noe.gv.at/noe/Wirtschaft-Tourismus-Technologie/Unternehmerische_Investition.html"
+      "seed": "https://www.noe.gv.at/noe/Wirtschaft-Tourismus-Technologie/Unternehmerische_Investition.html",
+      "attempts": 2,
+      "lastError": "Cannot read properties of undefined (reading 'length')"
     },
     {
       "url": "https://www.noe.gv.at/noe/Weistrach.html",
       "status": "queued",
       "depth": 1,
-      "seed": "https://www.noe.gv.at/noe/Wirtschaft-Tourismus-Technologie/Unternehmerische_Investition.html"
+      "seed": "https://www.noe.gv.at/noe/Wirtschaft-Tourismus-Technologie/Unternehmerische_Investition.html",
+      "attempts": 2,
+      "lastError": "Cannot read properties of undefined (reading 'length')"
     },
     {
       "url": "https://www.noe.gv.at/noe/Weiten.html",
       "status": "queued",
       "depth": 1,
-      "seed": "https://www.noe.gv.at/noe/Wirtschaft-Tourismus-Technologie/Unternehmerische_Investition.html"
+      "seed": "https://www.noe.gv.at/noe/Wirtschaft-Tourismus-Technologie/Unternehmerische_Investition.html",
+      "attempts": 2,
+      "lastError": "Cannot read properties of undefined (reading 'length')"
     },
     {
       "url": "https://www.noe.gv.at/noe/Weitersfeld.html",
       "status": "queued",
       "depth": 1,
-      "seed": "https://www.noe.gv.at/noe/Wirtschaft-Tourismus-Technologie/Unternehmerische_Investition.html"
+      "seed": "https://www.noe.gv.at/noe/Wirtschaft-Tourismus-Technologie/Unternehmerische_Investition.html",
+      "attempts": 2,
+      "lastError": "Cannot read properties of undefined (reading 'length')"
     },
     {
       "url": "https://www.noe.gv.at/noe/Weitra.html",
       "status": "queued",
       "depth": 1,
-      "seed": "https://www.noe.gv.at/noe/Wirtschaft-Tourismus-Technologie/Unternehmerische_Investition.html"
+      "seed": "https://www.noe.gv.at/noe/Wirtschaft-Tourismus-Technologie/Unternehmerische_Investition.html",
+      "attempts": 2,
+      "lastError": "Cannot read properties of undefined (reading 'length')"
     },
     {
       "url": "https://www.noe.gv.at/noe/Weissenkirchen_in_der_Wachau.html",
       "status": "queued",
       "depth": 1,
-      "seed": "https://www.noe.gv.at/noe/Wirtschaft-Tourismus-Technologie/Unternehmerische_Investition.html"
+      "seed": "https://www.noe.gv.at/noe/Wirtschaft-Tourismus-Technologie/Unternehmerische_Investition.html",
+      "attempts": 2,
+      "lastError": "Cannot read properties of undefined (reading 'length')"
     },
     {
       "url": "https://www.noe.gv.at/noe/Wiener_Neudorf.html",
       "status": "queued",
       "depth": 1,
-      "seed": "https://www.noe.gv.at/noe/Wirtschaft-Tourismus-Technologie/Unternehmerische_Investition.html"
+      "seed": "https://www.noe.gv.at/noe/Wirtschaft-Tourismus-Technologie/Unternehmerische_Investition.html",
+      "attempts": 2,
+      "lastError": "Cannot read properties of undefined (reading 'length')"
     },
     {
       "url": "https://www.noe.gv.at/noe/Wiener_Neustadt.html",
       "status": "queued",
       "depth": 1,
-      "seed": "https://www.noe.gv.at/noe/Wirtschaft-Tourismus-Technologie/Unternehmerische_Investition.html"
+      "seed": "https://www.noe.gv.at/noe/Wirtschaft-Tourismus-Technologie/Unternehmerische_Investition.html",
+      "attempts": 2,
+      "lastError": "Cannot read properties of undefined (reading 'length')"
     },
     {
       "url": "https://www.noe.gv.at/noe/Wienerwald.html",
       "status": "queued",
       "depth": 1,
-      "seed": "https://www.noe.gv.at/noe/Wirtschaft-Tourismus-Technologie/Unternehmerische_Investition.html"
+      "seed": "https://www.noe.gv.at/noe/Wirtschaft-Tourismus-Technologie/Unternehmerische_Investition.html",
+      "attempts": 2,
+      "lastError": "Cannot read properties of undefined (reading 'length')"
     },
     {
       "url": "https://www.noe.gv.at/noe/Wieselburg.html",
       "status": "queued",
       "depth": 1,
-      "seed": "https://www.noe.gv.at/noe/Wirtschaft-Tourismus-Technologie/Unternehmerische_Investition.html"
+      "seed": "https://www.noe.gv.at/noe/Wirtschaft-Tourismus-Technologie/Unternehmerische_Investition.html",
+      "attempts": 2,
+      "lastError": "Cannot read properties of undefined (reading 'length')"
     },
     {
       "url": "https://www.noe.gv.at/noe/Wieselburg-Land.html",
       "status": "queued",
       "depth": 1,
-      "seed": "https://www.noe.gv.at/noe/Wirtschaft-Tourismus-Technologie/Unternehmerische_Investition.html"
+      "seed": "https://www.noe.gv.at/noe/Wirtschaft-Tourismus-Technologie/Unternehmerische_Investition.html",
+      "attempts": 2,
+      "lastError": "Cannot read properties of undefined (reading 'length')"
     },
     {
       "url": "https://www.noe.gv.at/noe/Wiesmath.html",
       "status": "queued",
       "depth": 1,
-      "seed": "https://www.noe.gv.at/noe/Wirtschaft-Tourismus-Technologie/Unternehmerische_Investition.html"
+      "seed": "https://www.noe.gv.at/noe/Wirtschaft-Tourismus-Technologie/Unternehmerische_Investition.html",
+      "attempts": 2,
+      "lastError": "Cannot read properties of undefined (reading 'length')"
     },
     {
       "url": "https://www.noe.gv.at/noe/Wildenduernbach.html",
       "status": "queued",
       "depth": 1,
-      "seed": "https://www.noe.gv.at/noe/Wirtschaft-Tourismus-Technologie/Unternehmerische_Investition.html"
+      "seed": "https://www.noe.gv.at/noe/Wirtschaft-Tourismus-Technologie/Unternehmerische_Investition.html",
+      "attempts": 2,
+      "lastError": "Cannot read properties of undefined (reading 'length')"
     },
     {
       "url": "https://www.noe.gv.at/noe/Wilfersdorf.html",
       "status": "queued",
       "depth": 1,
-      "seed": "https://www.noe.gv.at/noe/Wirtschaft-Tourismus-Technologie/Unternehmerische_Investition.html"
+      "seed": "https://www.noe.gv.at/noe/Wirtschaft-Tourismus-Technologie/Unternehmerische_Investition.html",
+      "attempts": 2,
+      "lastError": "Cannot read properties of undefined (reading 'length')"
     },
     {
       "url": "https://www.noe.gv.at/noe/Wilhelmsburg.html",
       "status": "queued",
       "depth": 1,
-      "seed": "https://www.noe.gv.at/noe/Wirtschaft-Tourismus-Technologie/Unternehmerische_Investition.html"
+      "seed": "https://www.noe.gv.at/noe/Wirtschaft-Tourismus-Technologie/Unternehmerische_Investition.html",
+      "attempts": 2,
+      "lastError": "Cannot read properties of undefined (reading 'length')"
     },
     {
       "url": "https://www.noe.gv.at/noe/Willendorf.html",
       "status": "queued",
       "depth": 1,
-      "seed": "https://www.noe.gv.at/noe/Wirtschaft-Tourismus-Technologie/Unternehmerische_Investition.html"
+      "seed": "https://www.noe.gv.at/noe/Wirtschaft-Tourismus-Technologie/Unternehmerische_Investition.html",
+      "attempts": 2,
+      "lastError": "Cannot read properties of undefined (reading 'length')"
     },
     {
       "url": "https://www.noe.gv.at/noe/Wimpassing_im_Schwarzatale.html",
       "status": "queued",
       "depth": 1,
-      "seed": "https://www.noe.gv.at/noe/Wirtschaft-Tourismus-Technologie/Unternehmerische_Investition.html"
+      "seed": "https://www.noe.gv.at/noe/Wirtschaft-Tourismus-Technologie/Unternehmerische_Investition.html",
+      "attempts": 2,
+      "lastError": "Cannot read properties of undefined (reading 'length')"
     },
     {
       "url": "https://www.noe.gv.at/noe/Windigsteig.html",
       "status": "queued",
       "depth": 1,
-      "seed": "https://www.noe.gv.at/noe/Wirtschaft-Tourismus-Technologie/Unternehmerische_Investition.html"
+      "seed": "https://www.noe.gv.at/noe/Wirtschaft-Tourismus-Technologie/Unternehmerische_Investition.html",
+      "attempts": 2,
+      "lastError": "Cannot read properties of undefined (reading 'length')"
     },
     {
       "url": "https://www.noe.gv.at/noe/Winklarn.html",
       "status": "queued",
       "depth": 1,
-      "seed": "https://www.noe.gv.at/noe/Wirtschaft-Tourismus-Technologie/Unternehmerische_Investition.html"
+      "seed": "https://www.noe.gv.at/noe/Wirtschaft-Tourismus-Technologie/Unternehmerische_Investition.html",
+      "attempts": 2,
+      "lastError": "Cannot read properties of undefined (reading 'length')"
     },
     {
       "url": "https://www.noe.gv.at/noe/Winzendorf-Muthmannsdorf.html",
       "status": "queued",
       "depth": 1,
-      "seed": "https://www.noe.gv.at/noe/Wirtschaft-Tourismus-Technologie/Unternehmerische_Investition.html"
+      "seed": "https://www.noe.gv.at/noe/Wirtschaft-Tourismus-Technologie/Unternehmerische_Investition.html",
+      "attempts": 1,
+      "lastError": "Cannot read properties of undefined (reading 'length')"
     },
     {
       "url": "https://www.noe.gv.at/noe/Wolfpassing.html",
       "status": "queued",
       "depth": 1,
-      "seed": "https://www.noe.gv.at/noe/Wirtschaft-Tourismus-Technologie/Unternehmerische_Investition.html"
+      "seed": "https://www.noe.gv.at/noe/Wirtschaft-Tourismus-Technologie/Unternehmerische_Investition.html",
+      "attempts": 1,
+      "lastError": "Cannot read properties of undefined (reading 'length')"
     },
     {
       "url": "https://www.noe.gv.at/noe/Wolfsbach.html",
       "status": "queued",
       "depth": 1,
-      "seed": "https://www.noe.gv.at/noe/Wirtschaft-Tourismus-Technologie/Unternehmerische_Investition.html"
+      "seed": "https://www.noe.gv.at/noe/Wirtschaft-Tourismus-Technologie/Unternehmerische_Investition.html",
+      "attempts": 1,
+      "lastError": "Cannot read properties of undefined (reading 'length')"
     },
     {
       "url": "https://www.noe.gv.at/noe/Wolfsgraben.html",
       "status": "queued",
       "depth": 1,
-      "seed": "https://www.noe.gv.at/noe/Wirtschaft-Tourismus-Technologie/Unternehmerische_Investition.html"
+      "seed": "https://www.noe.gv.at/noe/Wirtschaft-Tourismus-Technologie/Unternehmerische_Investition.html",
+      "attempts": 1,
+      "lastError": "Cannot read properties of undefined (reading 'length')"
     },
     {
       "url": "https://www.noe.gv.at/noe/Wolfsthal.html",
       "status": "queued",
       "depth": 1,
-      "seed": "https://www.noe.gv.at/noe/Wirtschaft-Tourismus-Technologie/Unternehmerische_Investition.html"
+      "seed": "https://www.noe.gv.at/noe/Wirtschaft-Tourismus-Technologie/Unternehmerische_Investition.html",
+      "attempts": 1,
+      "lastError": "Cannot read properties of undefined (reading 'length')"
     },
     {
       "url": "https://www.noe.gv.at/noe/Wolkersdorf_im_Weinviertel.html",
