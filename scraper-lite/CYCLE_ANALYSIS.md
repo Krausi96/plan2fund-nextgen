@@ -146,33 +146,43 @@ if (tldMatch && tldMatch[1]) {
 
 ---
 
-## 🔧 Recommended Fixes
+## 🔧 Fixes Applied ✅
 
-### Priority 1: Fix Query Parameter Filtering
+### ✅ Priority 1: Fixed Query Parameter Filtering
 **File:** `scraper-lite/src/utils.ts` → `isQueryListing()`
 
-**Add patterns:**
+**Applied:** Enhanced to catch more patterns:
 ```typescript
 export function isQueryListing(url: string): boolean {
   const lower = url.toLowerCase();
-  // Existing checks...
-  return /(filter|field_|search|suche|query|sort=|type%5B|year%5B|combine_|page=|offset=)/.test(lower);
+  if (!lower.includes('?')) return false;
+  return /(filter|field_|search|suche|query|sort=|type%5B|year%5B|combine_|combine%5B|page=|offset=|limit=|year=|type=|category=)/.test(lower);
 }
 ```
 
-### Priority 2: Improve Contact Email Cleaning
+**Result:** Now filters out `?type%5B0%5DD=news`, `?year%5B0%5DD=2025`, `?combine_ort%5B0%%5D=1`, etc.
+
+---
+
+### ✅ Priority 2: Improved Contact Email Cleaning
 **File:** `scraper-lite/src/extract.ts` → Email extraction
 
-**Better validation:**
-- Exclude dates (YYYY-YYYY patterns)
-- Better word boundary detection
-- More aggressive trailing text removal
+**Applied:**
+- Enhanced cleaning: Better TLD boundary detection
+- Exclude date ranges: Filters out `2022-2026` patterns
+- Better trailing text removal: Handles `email@domain.comText` cases
 
-### Priority 3: Reset Discovery for Fresh URLs
-**Action:**
-- Consider resetting `state.seen` for specific domains
+**Result:** Now properly excludes dates and cleans trailing text
+
+---
+
+### ⚠️ Priority 3: Discovery State Management
+**Status:** Needs manual action
+
+**Recommendation:**
+- Reset `state.seen` for specific domains if re-discovering
 - Or use new seed URLs
-- Or increase discovery depth/pages
+- Or increase discovery depth/pages (`LITE_MAX_DISCOVERY_PAGES`)
 
 ---
 
