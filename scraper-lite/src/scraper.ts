@@ -228,6 +228,11 @@ export async function scrape(maxUrls = 10, targets: string[] = []): Promise<void
         const { savePage, saveRequirements } = require('./db/page-repository');
         const { markJobDone } = require('./db/job-repository');
         
+        // Check if DATABASE_URL is set
+        if (!process.env.DATABASE_URL) {
+          throw new Error('DATABASE_URL environment variable is not set. Please configure it in .env.local');
+        }
+        
         const pageId = await savePage(rec);
         await saveRequirements(pageId, rec.categorized_requirements);
         await markJobDone(job.url);
@@ -243,7 +248,13 @@ export async function scrape(maxUrls = 10, targets: string[] = []): Promise<void
         }
         console.log(`  ✅ ${job.url.slice(0, 60)}...`);
       } catch (dbError: any) {
-        console.error(`  ❌ DB save failed: ${dbError.message}`);
+        const errorMsg = dbError.message || String(dbError);
+        if (errorMsg.includes('DATABASE_URL')) {
+          console.error(`  ❌ DB save failed: ${errorMsg}`);
+          console.error(`  ⚠️  Please set DATABASE_URL in .env.local to enable database storage`);
+        } else {
+          console.error(`  ❌ DB save failed: ${errorMsg}`);
+        }
         // Fallback to JSON-only
         state.pages = state.pages.filter(p => p.url !== job.url);
         state.pages.push(rec as any);

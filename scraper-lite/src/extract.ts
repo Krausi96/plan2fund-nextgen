@@ -163,6 +163,43 @@ export function extractMeta(html: string, url?: string): ExtractedMeta {
   const rangeRe = /(?:von|from|zwischen|between|minimum|minimum of|mindestens|at least)\s*€?\s*(\d{1,3}(?:[.,\s]\d{3})*(?:[.,]\d{2})?)\s*(?:bis|to|-|und|and|maximum)\s*€?\s*(\d{1,3}(?:[.,\s]\d{3})*(?:[.,]\d{2})?)/gi;
   // Additional: percentage-based amounts (e.g., "50% up to 100,000 EUR")
   const percentAmountRe = /(\d{1,3})\s*%[^.]{0,50}?(?:bis zu|up to|maximal|maximum)\s*€?\s*(\d{1,3}(?:[.,\s]\d{3})*(?:[.,]\d{2})?)/gi;
+  // Validate funding amount - filter out years, page numbers, and suspicious values
+  const isValidFundingAmount = (value: number, context: string): boolean => {
+    // Filter years (2020-2030 range) - commonly mistaken as amounts
+    if (value >= 2020 && value <= 2030) {
+      return false;
+    }
+    
+    // Filter very small round numbers (< 1,000) that are likely page numbers or IDs
+    if (value < 1000 && value % 100 === 0) {
+      // Common page number patterns
+      if ([100, 200, 300, 400, 500, 600, 700, 800, 900].includes(value)) {
+        return false;
+      }
+      // Very small round numbers without million context
+      if (value < 1000 && !/\b(million|millionen|mio)\b/i.test(context)) {
+        return false;
+      }
+    }
+    
+    // Filter amounts that match common page number patterns (e.g., 202, 203, 508)
+    if (value < 10000 && (value % 100 === value % 1000 || value.toString().length === 3)) {
+      // Check if context suggests it's actually a page number or year
+      const contextLower = context.toLowerCase();
+      if (contextLower.includes('page') || contextLower.includes('seite') || 
+          contextLower.includes('horizon 202') || contextLower.includes('version')) {
+        return false;
+      }
+    }
+    
+    // Must be within reasonable bounds
+    if (value < 1 || value > 1_000_000_000_000) {
+      return false;
+    }
+    
+    return true;
+  };
+
   const pushParsed = (raw: string, ctx: string) => {
     let s = raw.replace(/[^\d.,\s]/g, '').replace(/\s+/g, '');
     if (s.length === 0) return;
@@ -172,8 +209,8 @@ export function extractMeta(html: string, url?: string): ExtractedMeta {
     const n = parseFloat(s);
     if (!isNaN(n) && n > 0) {
       const value = /\b(million|millionen|mio)\b/i.test(ctx) ? Math.round(n * 1_000_000) : Math.round(n);
-      // Filter out unreasonable values (likely errors: too small or too large)
-      if (value >= 1 && value <= 1_000_000_000_000) {
+      // Validate funding amount - filter out years, page numbers, suspicious values
+      if (isValidFundingAmount(value, ctx)) {
         amounts.push(value);
         amountContext.push({value, context: ctx.substring(0, 100)});
       }
@@ -451,6 +488,56 @@ export function extractMeta(html: string, url?: string): ExtractedMeta {
 
   // Requirements: Extract all 18 categories using comprehensive extractor
   const categorized = extractAllRequirements(text || '', html || '');
+
+  // FORM-BASED APPLICATION DETECTION
+  // Detect if application requires login/account or form-based submission
+  const loginPatterns = [
+    /(?:login|anmelden|registrieren|register|account|benutzerkonto|user account)/i,
+    /(?:bewerbung|application)[\s]+(?:über|via|through)[\s]+(?:portal|system|plattform|platform)/i,
+    /(?:online|digital)[\s]+(?:bewerbung|application)[\s]+(?:erforderlich|required|necessary)/i,
+    /(?:erst|first)[\s]+(?:registrieren|register|anmelden|login)/i
+  ];
+  
+  const hasLoginIndicator = loginPatterns.some(pattern => pattern.test(lower || ''));
+  
+  // Detect form fields in HTML
+  let hasFormFields = false;
+  let formFields: Array<{name?: string, label?: string, required: boolean}> = [];
+  
+  try {
+    const inputs = $('input[type="text"], input[type="email"], select, textarea');
+    if (inputs.length > 0) {
+      hasFormFields = true;
+      inputs.slice(0, 10).each((_, el) => {
+        const $el = $(el);
+        const name = $el.attr('name') || '';
+        const type = $el.attr('type') || $el.prop('tagName').toLowerCase();
+        const label = $el.prev('label').text().trim() || 
+                     $el.closest('label').text().trim() ||
+                     $el.attr('placeholder') || '';
+        const required = $el.attr('required') !== undefined;
+        
+        if (name || label) {
+          formFields.push({
+            name: name.substring(0, 50),
+            label: label.substring(0, 100),
+            required
+          });
+        }
+      });
+    }
+  } catch (e) {
+    // Ignore errors
+  }
+  
+  // Add application method to metadata
+  if (hasLoginIndicator || hasFormFields) {
+    metadata_json.application_method = hasLoginIndicator ? 'online_portal' : 'online_form';
+    metadata_json.requires_account = hasLoginIndicator;
+    if (formFields.length > 0) {
+      metadata_json.form_fields = formFields.slice(0, 10);
+    }
+  }
 
   return {
     title,
@@ -905,12 +992,26 @@ export function extractAllRequirements(text: string, html?: string): Record<stri
     }
     
     if (bestPercentage || coFinancingKeywords.some(keyword => lowerText.includes(keyword))) {
-      categorized.co_financing.push({
-        type: 'co_financing_percentage',
-        value: bestPercentage || 'required',
-        required: true,
-        source: bestPercentage ? 'context_extraction' : 'full_page_content'
-      });
+      // Only add if we have a meaningful percentage, not generic "required"
+      if (bestPercentage) {
+        categorized.co_financing.push({
+          type: 'co_financing_percentage',
+          value: `Co-financing requirement: ${bestPercentage}`,
+          required: true,
+          source: 'context_extraction'
+        });
+      } else {
+        // Extract context around co-financing keywords to make it meaningful
+        const contextMatch = safeText.match(/(?:eigenmittel|eigenanteil|eigenkapital|mitfinanzierung|co-financ)[^.]{0,100}/i);
+        if (contextMatch && contextMatch[0].length > 20) {
+          categorized.co_financing.push({
+            type: 'co_financing_percentage',
+            value: contextMatch[0].trim(),
+            required: true,
+            source: 'context_extraction'
+          });
+        }
+      }
     }
   }
   
@@ -959,12 +1060,26 @@ export function extractAllRequirements(text: string, html?: string): Record<stri
     }
     
     if (bestTRL || trlKeywords.some(keyword => lowerText.includes(keyword))) {
-      categorized.trl_level.push({
-        type: 'trl_level',
-        value: bestTRL || 'TRL specified',
-        required: true,
-        source: bestTRL ? 'context_extraction' : 'full_page_content'
-      });
+      // Only add if we have a meaningful TRL value, not generic "TRL specified"
+      if (bestTRL) {
+        categorized.trl_level.push({
+          type: 'trl_level',
+          value: bestTRL,
+          required: true,
+          source: 'context_extraction'
+        });
+      } else {
+        // Extract context around TRL keywords to make it meaningful
+        const contextMatch = safeText.match(/(?:trl|reifegrad|technology[\s]+readiness)[^.]{0,100}/i);
+        if (contextMatch && contextMatch[0].length > 15) {
+          categorized.trl_level.push({
+            type: 'trl_level',
+            value: contextMatch[0].trim(),
+            required: true,
+            source: 'context_extraction'
+          });
+        }
+      }
     }
   }
   

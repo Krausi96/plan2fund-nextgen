@@ -310,6 +310,16 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
           ? page.funding_types[0] 
           : (type as string) || 'grant';
         
+        // Parse metadata_json if it's a string
+        let metadata = {};
+        try {
+          metadata = typeof page.metadata_json === 'string' 
+            ? JSON.parse(page.metadata_json) 
+            : (page.metadata_json || {});
+        } catch (e) {
+          metadata = {};
+        }
+
         const program: any = {
           id: `page_${page.id}`,
           name: page.title || page.url,
@@ -336,7 +346,11 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
           funding_types: page.funding_types || [],
           program_focus: page.program_focus || [],
           scrapedAt: page.fetched_at,
-          isActive: true
+          isActive: true,
+          // Application method from metadata
+          application_method: metadata.application_method || null,
+          requires_account: metadata.requires_account || false,
+          form_fields: metadata.form_fields || []
         };
         
         // Add enhanced fields if requested
