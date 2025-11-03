@@ -27,6 +27,8 @@ export interface RequirementItem {
   format?: string;
   // For documents: nested requirements (what the document must contain)
   requirements?: string[];
+  // Meaningfulness score (0-100): How specific and actionable is this requirement
+  meaningfulness_score?: number;
 }
 
 // ============================================================================
@@ -48,6 +50,84 @@ function safeMatchAll(str: string, regex: RegExp): RegExpMatchArray[] {
     const match = str.match(regex);
     return match ? [match as RegExpMatchArray] : [];
   }
+}
+
+/**
+ * Calculate meaningfulness score (0-100) for a requirement value
+ * Higher score = more specific, actionable, and valuable
+ */
+export function calculateMeaningfulnessScore(value: string | number | object): number {
+  if (value == null) return 0;
+  
+  const valStr = typeof value === 'string' ? value : typeof value === 'object' ? JSON.stringify(value) : String(value);
+  const lower = valStr.toLowerCase().trim();
+  
+  // Empty or too short
+  if (valStr.length < 10) return 10;
+  
+  // Generic placeholder words (low score)
+  const genericWords = ['specified', 'available', 'required', 'see below', 'see above', 'contact', 'n/a', 'tbd'];
+  if (genericWords.some(word => lower.includes(word) && lower.length < 50)) return 20;
+  
+  // Institution names or company names (noise)
+  const noisePatterns = [
+    /\b(ffg|aws|mbh|gmbh|inc\.|ltd\.|corporation|austrian\s*(?:research|science|business))\b/i,
+    /^(?:the|die|der|das)\s+(?:program|programm|funding|förderung|institution)/i
+  ];
+  if (noisePatterns.some(pattern => pattern.test(valStr)) && valStr.length < 100) return 15;
+  
+  let score = 50; // Base score
+  
+  // Length bonus (specific details are usually longer)
+  if (valStr.length >= 20) score += 10;
+  if (valStr.length >= 50) score += 10;
+  if (valStr.length >= 100) score += 5;
+  
+  // Quantifiers and numbers (high value)
+  if (/\d+/.test(valStr)) score += 15;
+  if (/\d+%/.test(valStr) || /\d+,\d+/.test(valStr) || /\d+\.\d+/.test(valStr)) score += 10;
+  
+  // Specific action words (actionable)
+  const actionWords = ['must', 'required', 'need', 'should', 'min', 'max', 'between', 'from', 'to'];
+  if (actionWords.some(word => lower.includes(word))) score += 10;
+  
+  // Specific entities (locations, types, etc.)
+  if (/\b(eur|€|usd|\$|gbp|£)/i.test(valStr)) score += 5;
+  if (/\b(years?|months?|days?|weeks?)\b/i.test(valStr)) score += 5;
+  if (/\b(austria|vienna|germany|france|spain|italy|netherlands|eu|european)\b/i.test(valStr)) score += 5;
+  
+  // Penalize if too generic
+  if (lower === 'required' || lower === 'yes' || lower === 'no') score = 20;
+  
+  // Cap at 100
+  return Math.min(100, Math.max(0, score));
+}
+
+/**
+ * Helper to create a requirement item with automatic meaningfulness scoring
+ */
+function createRequirementItem(
+  type: string,
+  value: string | number | object,
+  required: boolean = true,
+  source: string = 'context_extraction',
+  description?: string,
+  format?: string,
+  requirements?: string[]
+): RequirementItem {
+  const item: RequirementItem = {
+    type,
+    value: typeof value === 'object' ? JSON.stringify(value) : String(value),
+    required,
+    source,
+    meaningfulness_score: calculateMeaningfulnessScore(value)
+  };
+  
+  if (description) item.description = description;
+  if (format) item.format = format;
+  if (requirements) item.requirements = requirements;
+  
+  return item;
 }
 
 export interface ExtractedMeta {

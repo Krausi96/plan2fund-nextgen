@@ -104,6 +104,9 @@ export async function savePage(page: PageMetadata): Promise<number> {
 export async function saveRequirements(pageId: number, requirements: Record<string, any[]>): Promise<void> {
   const pool = getPool();
   
+  // Import meaningfulness scoring function
+  const { calculateMeaningfulnessScore } = require('../extract');
+  
   // Delete existing requirements for this page
   await queryWithRetry(
     'DELETE FROM requirements WHERE page_id = $1',
@@ -117,19 +120,30 @@ export async function saveRequirements(pageId: number, requirements: Record<stri
     if (!Array.isArray(items)) continue;
     
     for (const item of items) {
+      // Serialize object values to JSON strings (e.g., revenue ranges { min, max })
+      const serializedValue = typeof item.value === 'object' && item.value !== null
+        ? JSON.stringify(item.value)
+        : (item.value || '');
+      
+      // Calculate meaningfulness score if not already provided
+      const meaningfulnessScore = item.meaningfulness_score !== undefined
+        ? item.meaningfulness_score
+        : calculateMeaningfulnessScore(item.value);
+      
       const insert = queryWithRetry(
-        `INSERT INTO requirements (page_id, category, type, value, required, source, description, format, requirements)
-         VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)`,
+        `INSERT INTO requirements (page_id, category, type, value, required, source, description, format, requirements, meaningfulness_score)
+         VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)`,
         [
           pageId,
           category,
           item.type || null,
-          item.value || '',
+          serializedValue,
           item.required !== false,
           item.source || 'context_extraction',
           item.description || null,
           item.format || null,
-          item.requirements ? JSON.stringify(item.requirements) : null
+          item.requirements ? JSON.stringify(item.requirements) : null,
+          meaningfulnessScore
         ]
       ).then(() => undefined);
       

@@ -70,6 +70,28 @@ export function saveState(s: LiteState): void {
 export async function discover(seeds: string[], maxDepth = 1, maxPages = 20): Promise<void> {
   const state = loadState();
   const queue: Array<{ url: string; depth: number; seed: string } > = [];
+  
+  // Discovery diagnostics tracking
+  const diagnostics = {
+    totalLinks: 0,
+    rejected: {
+      emailProtection: 0,
+      differentHost: 0,
+      download: 0,
+      alreadySeen: 0,
+      exclusionKeyword: 0,
+      notDetailPage: 0,
+      queryListing: 0
+    },
+    accepted: 0,
+    queuedForDepth: 0,
+    programsFoundByDepth: {} as Record<number, number>
+  };
+  
+  // Adaptive depth: Track if we're finding programs at current depth
+  let programsFoundAtCurrentDepth = 0;
+  let currentDepth = 0;
+  
   for (const s of seeds) {
     queue.push({ url: s, depth: 0, seed: s });
     state.seen[s] = true;
@@ -77,6 +99,17 @@ export async function discover(seeds: string[], maxDepth = 1, maxPages = 20): Pr
 
   while (queue.length && maxPages > 0) {
     const { url, depth, seed } = queue.shift()!;
+    
+    // Track depth changes for adaptive behavior
+    if (depth !== currentDepth) {
+      if (programsFoundAtCurrentDepth > 0 && depth > currentDepth) {
+        // Found programs at previous depth, continue exploring
+        console.log(`  ✅ Found ${programsFoundAtCurrentDepth} programs at depth ${currentDepth}, continuing exploration`);
+      }
+      currentDepth = depth;
+      programsFoundAtCurrentDepth = 0;
+    }
+    
     try {
       const fetchResult = await fetchHtml(url);
       const $ = cheerio.load(fetchResult.html);
@@ -90,17 +123,36 @@ export async function discover(seeds: string[], maxDepth = 1, maxPages = 20): Pr
         $('a[href]').each((_, a) => {
           const href = $(a).attr('href') || '';
           const full = normalizeUrl(url, href);
+          diagnostics.totalLinks++;
+          
           if (!full) return;
-          if (full.includes('email-protection') || full.includes('cdn-cgi')) return;
-          if (!sameHost(seed, full)) return;
-          if (isDownload(full)) return;
-          if (state.seen[full]) return;
+          if (full.includes('email-protection') || full.includes('cdn-cgi')) {
+            diagnostics.rejected.emailProtection++;
+            return;
+          }
+          if (!sameHost(seed, full)) {
+            diagnostics.rejected.differentHost++;
+            return;
+          }
+          if (isDownload(full)) {
+            diagnostics.rejected.download++;
+            return;
+          }
+          if (state.seen[full]) {
+            diagnostics.rejected.alreadySeen++;
+            return;
+          }
           
           // Check if it's a program detail page
           if (isProgramDetailPage(full) && !isQueryListing(full)) {
             state.seen[full] = true;
             state.jobs.push({ url: full, status: 'queued', depth: depth + 1, seed });
             extractedFromOverview++;
+            diagnostics.accepted++;
+            diagnostics.programsFoundByDepth[depth + 1] = (diagnostics.programsFoundByDepth[depth + 1] || 0) + 1;
+            programsFoundAtCurrentDepth++;
+          } else {
+            diagnostics.rejected.notDetailPage++;
           }
         });
         console.log(`     Extracted ${extractedFromOverview} program links from overview page`);
@@ -114,12 +166,26 @@ export async function discover(seeds: string[], maxDepth = 1, maxPages = 20): Pr
       for (const a of anchors) {
         const href = $(a).attr('href') || '';
         const full = normalizeUrl(url, href);
+        diagnostics.totalLinks++;
+        
         if (!full) continue;
         // Skip email protection and other junk URLs
-        if (full.includes('email-protection') || full.includes('cdn-cgi')) continue;
-        if (!sameHost(seed, full)) continue;
-        if (isDownload(full)) continue;
-        if (state.seen[full]) continue;
+        if (full.includes('email-protection') || full.includes('cdn-cgi')) {
+          diagnostics.rejected.emailProtection++;
+          continue;
+        }
+        if (!sameHost(seed, full)) {
+          diagnostics.rejected.differentHost++;
+          continue;
+        }
+        if (isDownload(full)) {
+          diagnostics.rejected.download++;
+          continue;
+        }
+        if (state.seen[full]) {
+          diagnostics.rejected.alreadySeen++;
+          continue;
+        }
         state.seen[full] = true;
         
         // KEYWORD-BASED FILTERING
@@ -130,7 +196,10 @@ export async function discover(seeds: string[], maxDepth = 1, maxPages = 20): Pr
         const hasExclusionKeyword = autoDiscoveryPatterns.exclusionKeywords.some(k => 
           urlLower.includes(k.toLowerCase()) || pathLower.includes(k.toLowerCase())
         );
-        if (hasExclusionKeyword) continue;
+        if (hasExclusionKeyword) {
+          diagnostics.rejected.exclusionKeyword++;
+          continue;
+        }
         
         // INSTITUTION-SPECIFIC KEYWORDS (priority match)
         const institution = findInstitutionByUrl(full);
@@ -149,9 +218,15 @@ export async function discover(seeds: string[], maxDepth = 1, maxPages = 20): Pr
           urlLower.includes(k.toLowerCase()) || pathLower.includes(k.toLowerCase())
         );
         
-        // Queue deeper exploration (if no exclusion keywords)
-        if (depth < maxDepth && !isQueryListing(full)) {
+        // IMPROVEMENT: Adaptive depth - continue exploring if finding programs
+        const shouldExplore = depth < maxDepth && !isQueryListing(full);
+        // If we found programs at this depth and depth < maxDepth, allow one more level
+        const adaptiveMaxDepth = programsFoundAtCurrentDepth > 2 ? Math.min(maxDepth + 1, 5) : maxDepth;
+        const canExplore = depth < adaptiveMaxDepth && !isQueryListing(full);
+        
+        if (shouldExplore || canExplore) {
           queue.push({ url: full, depth: depth + 1, seed });
+          diagnostics.queuedForDepth++;
         }
         
         // ONLY queue detail pages (not category/overview pages)
@@ -160,6 +235,11 @@ export async function discover(seeds: string[], maxDepth = 1, maxPages = 20): Pr
         
         if (isDetailPage && !isQueryListing(full)) {
           state.jobs.push({ url: full, status: 'queued', depth: depth + 1, seed });
+          diagnostics.accepted++;
+          diagnostics.programsFoundByDepth[depth + 1] = (diagnostics.programsFoundByDepth[depth + 1] || 0) + 1;
+          programsFoundAtCurrentDepth++;
+        } else {
+          diagnostics.rejected.notDetailPage++;
         }
       }
       maxPages--;
@@ -167,6 +247,26 @@ export async function discover(seeds: string[], maxDepth = 1, maxPages = 20): Pr
       // ignore individual page failures
     }
   }
+  
+  // Print discovery diagnostics
+  console.log(`\n📊 Discovery Diagnostics:`);
+  console.log(`   Total links processed: ${diagnostics.totalLinks}`);
+  console.log(`   Programs found: ${diagnostics.accepted}`);
+  console.log(`   Queued for deeper exploration: ${diagnostics.queuedForDepth}`);
+  console.log(`   Rejected:`);
+  console.log(`     - Exclusion keywords: ${diagnostics.rejected.exclusionKeyword}`);
+  console.log(`     - Not detail pages: ${diagnostics.rejected.notDetailPage}`);
+  console.log(`     - Already seen: ${diagnostics.rejected.alreadySeen}`);
+  console.log(`     - Different host: ${diagnostics.rejected.differentHost}`);
+  console.log(`     - Downloads: ${diagnostics.rejected.download}`);
+  console.log(`   Programs by depth:`, diagnostics.programsFoundByDepth);
+  
+  // Warning if low acceptance rate
+  const acceptanceRate = diagnostics.totalLinks > 0 ? (diagnostics.accepted / diagnostics.totalLinks * 100).toFixed(1) : 0;
+  if (parseFloat(acceptanceRate) < 1) {
+    console.log(`   ⚠️  Low acceptance rate: ${acceptanceRate}% - may need to relax URL filtering`);
+  }
+  
   saveState(state);
 }
 

@@ -55,6 +55,7 @@ CREATE TABLE IF NOT EXISTS requirements (
   description TEXT,
   format TEXT, -- For documents: 'PDF', 'max 10 pages', etc.
   requirements JSONB, -- For nested requirements
+  meaningfulness_score INTEGER, -- 0-100: How specific and actionable is this requirement
   
   created_at TIMESTAMP DEFAULT NOW()
 );
