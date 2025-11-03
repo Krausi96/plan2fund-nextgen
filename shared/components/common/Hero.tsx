@@ -215,11 +215,11 @@ export function Hero({
   const heroSecondaryButton = t('hero.button.secondary');
 
   return (
-            <section 
-              className="relative min-h-[50vh] flex items-center overflow-hidden bg-gradient-to-b from-blue-600 via-blue-700 to-blue-800"
-              aria-label="Hero section with main value proposition"
-            >
-      {/* Background */}
+    <section 
+      className="relative min-h-[50vh] flex items-center overflow-hidden"
+      aria-label="Hero section with main value proposition"
+    >
+      {/* Background - Dark blue gradient with blueprint grid */}
       <BlueprintGrid />
 
       {/* Main Content */}
