@@ -129,5 +129,10 @@ async function testQuestionEngineData() {
   }
 }
 
-testQuestionEngineData();
+// Export for use in auto-cycle
+if (require.main === module) {
+  testQuestionEngineData();
+} else {
+  module.exports = { testQuestionEngineData };
+}
 

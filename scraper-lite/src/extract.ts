@@ -891,12 +891,14 @@ export function extractAllRequirements(text: string, html?: string): Record<stri
     }
   });
   
-  // DOCUMENTS - Enhanced: Extract actual document lists from context with more depth
+  // DOCUMENTS - Enhanced: Extract actual document lists from context with more depth and better patterns
   const docMatches = [
-    ...safeMatchAll(safeText, /(?:unterlagen|dokumente|bewerbung|antrag|nachweis|document|application|formulare|belege)[\s:]+([^\.\n]{20,400})/gi),
-    ...safeMatchAll(safeText, /(?:erforderlich|required|benötigt|notwendig|mitzubringen|einzureichen)[\s:]+([^\.\n]{20,400})/gi),
-    ...safeMatchAll(safeText, /(?:folgende|following|nachfolgende)[\s]+(?:unterlagen|dokumente|belege|nachweise)[\s:]+([^\.\n]{20,400})/gi),
-    ...safeMatchAll(safeText, /(?:bitte|please)[\s]+(?:reichen|submit|send|provide)[\s]+(?:sie|you)?[\s]+(?:folgende|the following|ein)[\s:]+([^\.\n]{20,400})/gi)
+    ...safeMatchAll(safeText, /(?:unterlagen|dokumente|bewerbung|antrag|nachweis|document|application|formulare|belege|antragsunterlagen|bewerbungsunterlagen)[\s:]+([^\.\n]{20,400})/gi),
+    ...safeMatchAll(safeText, /(?:erforderlich|required|benötigt|notwendig|mitzubringen|einzureichen|beizufügen|beizulegen)[\s:]+([^\.\n]{20,400})/gi),
+    ...safeMatchAll(safeText, /(?:folgende|following|nachfolgende)[\s]+(?:unterlagen|dokumente|belege|nachweise|dokumentation)[\s:]+([^\.\n]{20,400})/gi),
+    ...safeMatchAll(safeText, /(?:bitte|please)[\s]+(?:reichen|submit|send|provide|einzureichen|beizufügen)[\s]+(?:sie|you|folgende|the following|ein)[\s:]+([^\.\n]{20,400})/gi),
+    ...safeMatchAll(safeText, /(?:einreichen|submit|send|provide|beifügen)[\s]+(?:sie|bitte|please)?[\s]+(?:folgende|the following|nachfolgende|einige)[\s]+(?:unterlagen|dokumente)[\s:]+([^\.\n]{20,400})/gi),
+    ...safeMatchAll(safeText, /(?:checkliste|checklist|liste|list)[\s]+(?:für|for|der|of)[\s]+(?:unterlagen|dokumente|bewerbung)[\s:]+([^\.\n]{20,400})/gi)
   ];
   
   // Process all matches, not just the first one
@@ -909,12 +911,14 @@ export function extractAllRequirements(text: string, html?: string): Record<stri
     })
     .filter(item => item.value.length > 20 && item.value.length < 500);
   
-  // Check if it looks like a document list
+  // Check if it looks like a document list - Enhanced detection
   validDocMatches.forEach(item => {
-    const hasDocTerms = /businessplan|cv|lebenslauf|antrag|prototyp|finanzplan|pitch|unterlagen|dokumente|formular|nachweis|zeugnis|referenz/i.test(item.value);
-    const hasListStructure = item.value.includes(',') || item.value.includes(';') || item.value.includes('•') || item.value.includes('-') || item.value.split(/\s+/).length > 5;
+    const hasDocTerms = /businessplan|business\s+plan|cv|lebenslauf|curriculum|vitae|antrag|prototyp|finanzplan|financial\s+plan|pitch|deck|unterlagen|dokumente|formular|nachweis|zeugnis|referenz|portfolio|konzept|exposé|projektbeschreibung|project\s+description|geschäftsmodell|business\s+model|meilenstein|milestone/i.test(item.value);
+    const hasListStructure = item.value.includes(',') || item.value.includes(';') || item.value.includes('•') || item.value.includes('-') || item.value.includes('\n') || item.value.split(/\s+/).length > 5;
+    // Check for document-specific indicators
+    const hasDocumentIndicators = /(?:max|maximal|bis zu|up to|format|als|in)\s*(?:\d+|pdf|doc|docx|word|mb|kb|seiten|pages)/i.test(item.value);
     
-    if (hasDocTerms || hasListStructure) {
+    if (hasDocTerms || (hasListStructure && hasDocumentIndicators)) {
       // Don't add duplicates
       const isDuplicate = categorized.documents.some(d => {
         const similarity = d.value.toLowerCase().includes(item.value.substring(0, 30).toLowerCase()) ||
@@ -923,11 +927,16 @@ export function extractAllRequirements(text: string, html?: string): Record<stri
       });
       
       if (!isDuplicate) {
+        // Try to extract format if present
+        const formatMatch = item.value.match(/(?:format|als|in|max\.?|maximal)\s*([^,;:]+(?:pdf|doc|docx|page|seite|mb|kb|format)[^,;:]*(?:,|;|$)?)/i);
+        const format = formatMatch ? formatMatch[1].trim() : undefined;
+        
         categorized.documents.push({
           type: 'documents_required',
-          value: item.value,
+          value: item.value.substring(0, 400), // Limit length
           required: true,
-          source: 'context_extraction'
+          source: 'context_extraction',
+          format: format
         });
       }
     }
@@ -1269,25 +1278,40 @@ export function extractAllRequirements(text: string, html?: string): Record<stri
     }
   });
   
-  // TIMELINE - Enhanced: Better date and duration extraction
+  // TIMELINE - Enhanced: Better date and duration extraction with more patterns
   const timelineMatches = [
-    ...safeMatchAll(safeText, /(?:laufzeit|duration|zeitraum|deadline|frist|bewerbungsfrist|application deadline)[\s:]+([^\.\n]{10,150})/gi),
-    ...safeMatchAll(safeText, /(?:von|from|bis|to|until)\s+(\d{1,2}[\.\/]\d{1,2}[\.\/]\d{2,4})/gi),
-    ...safeMatchAll(safeText, /(\d{1,2}[\.\/]\d{1,2}[\.\/]\d{2,4})\s*(?:-\s*|\s+to\s+|\s+bis\s+)(\d{1,2}[\.\/]\d{1,2}[\.\/]\d{2,4})/gi)
+    // Deadline patterns with keywords
+    ...safeMatchAll(safeText, /(?:deadline|frist|einreichfrist|bewerbungsfrist|application deadline|abgabefrist|meldungsfrist|anmeldefrist|submit by|einreichen bis)[\s:]+([^\.\n]{5,150})/gi),
+    ...safeMatchAll(safeText, /(?:laufzeit|duration|zeitraum|project duration|program duration)[\s:]+([^\.\n]{5,150})/gi),
+    // Date ranges
+    ...safeMatchAll(safeText, /(?:von|from|ab|starting|beginning)[\s]+(\d{1,2}[\.\/\-]\d{1,2}[\.\/\-]\d{2,4})[\s]*(?:bis|to|until|ending|\-)[\s]+(\d{1,2}[\.\/\-]\d{1,2}[\.\/\-]\d{2,4})/gi),
+    ...safeMatchAll(safeText, /(\d{1,2}[\.\/\-]\d{1,2}[\.\/\-]\d{2,4})[\s]*(?:-\s*|\s+to\s+|\s+bis\s+|\s+until\s+)(\d{1,2}[\.\/\-]\d{1,2}[\.\/\-]\d{2,4})/gi),
+    // Single dates with context
+    ...safeMatchAll(safeText, /(?:bis|until|by|spätestens|letzter\s+termin|deadline|frist|einsendeschluss)[\s]+(\d{1,2}[\.\/\-]\d{1,2}[\.\/\-]\d{2,4})/gi),
+    // Timeline sections
+    ...safeMatchAll(safeText, /(?:zeitplan|timeline|ablauf|procedure|process|verfahren)[\s:]+([^\.\n]{10,200})/gi),
+    // Evaluation/decision dates
+    ...safeMatchAll(safeText, /(?:entscheidung|decision|bewilligung|approval|bekanntgabe|announcement)[\s:]+([^\.\n]{5,150})/gi),
+    // Submission periods
+    ...safeMatchAll(safeText, /(?:einreichung|submission|bewerbung|application)[\s]+(?:möglich|possible|open|von|from)[\s]+([^\.\n]{5,150})/gi)
   ];
   
   if (timelineMatches.length > 0) {
     // Prefer date ranges or deadlines
-    const dateRangeMatch = timelineMatches.find(m => m[0].match(/\d{1,2}[\.\/]\d{1,2}[\.\/]\d{2,4}/) && m[2]);
-    const deadlineMatch = timelineMatches.find(m => m[0].toLowerCase().includes('deadline') || m[0].toLowerCase().includes('frist'));
+    const dateRangeMatch = timelineMatches.find(m => m[0].match(/\d{1,2}[\.\/\-]\d{1,2}[\.\/\-]\d{2,4}/) && (m[2] || m[0].includes('bis') || m[0].includes('to') || m[0].includes('until')));
+    const deadlineMatch = timelineMatches.find(m => m[0].toLowerCase().includes('deadline') || m[0].toLowerCase().includes('frist') || m[0].toLowerCase().includes('bis'));
     const bestMatch = dateRangeMatch || deadlineMatch || timelineMatches[0];
     
     if (bestMatch && bestMatch[1]) {
       const value = bestMatch[0].trim();
-      if (value.length > 5 && value.length < 200 && !value.toLowerCase().includes('specified')) {
+      // Extract actual date or meaningful timeline info
+      const hasDate = /\d{1,2}[\.\/\-]\d{1,2}[\.\/\-]\d{2,4}/.test(value);
+      const hasTimelineKeyword = /(?:laufzeit|duration|zeitraum|deadline|frist|zeitplan|timeline|ablauf)/i.test(value);
+      
+      if (value.length > 5 && value.length < 250 && (hasDate || hasTimelineKeyword) && !value.toLowerCase().includes('specified') && !value.toLowerCase().includes('available upon request')) {
         categorized.timeline.push({
-          type: dateRangeMatch ? 'date_range' : (deadlineMatch ? 'deadline' : 'duration'),
-          value: value,
+          type: dateRangeMatch ? 'date_range' : (deadlineMatch ? 'deadline' : (hasDate ? 'deadline' : 'duration')),
+          value: value.substring(0, 200), // Limit length
           required: true,
           source: 'context_extraction'
         });
@@ -1295,12 +1319,35 @@ export function extractAllRequirements(text: string, html?: string): Record<stri
     }
   }
   
-  // Duration extraction
-  const durationMatch = text.match(/(\d+)\s*(?:jahr|jahre|year|years|month|monat|monate|months)/i);
-  if (durationMatch && !categorized.timeline.some(t => t.value.includes(durationMatch[1]))) {
+  // Duration extraction - Enhanced patterns
+  const durationMatches = [
+    ...safeMatchAll(safeText, /(?:laufzeit|duration|dauer|programm duration|project duration)[\s:]+([^\.\n]{5,100})/gi),
+    ...safeMatchAll(safeText, /(\d+)\s*(?:jahr|jahre|year|years|month|monat|monate|months|woche|weeks|tag|days)[\s]*(?:laufzeit|duration|dauer)?/i),
+    ...safeMatchAll(safeText, /(\d+)\s*-\s*(\d+)\s*(?:jahr|jahre|year|years|month|monat|monate|months)/i)
+  ];
+  
+  durationMatches.forEach(match => {
+    const value = match[0] || match[1] || '';
+    if (value && !categorized.timeline.some(t => t.value.includes(match[1] || match[0]))) {
+      const durationText = value.trim();
+      if (durationText.length > 3 && durationText.length < 100) {
+        categorized.timeline.push({
+          type: 'duration',
+          value: durationText,
+          required: true,
+          source: 'context_extraction'
+        });
+      }
+    }
+  });
+  
+  // Additional: Extract specific months/years mentioned with timeline context
+  const monthYearPattern = /(?:deadline|frist|bis|until|by)[\s:]+(?:der\s+)?(\d{1,2})\.\s*(januar|februar|märz|april|mai|juni|juli|august|september|oktober|november|december|jan|feb|mar|apr|may|jun|jul|aug|sep|oct|nov|dec)[\s,]*(\d{2,4})?/i;
+  const monthYearMatch = safeText.match(monthYearPattern);
+  if (monthYearMatch && !categorized.timeline.some(t => t.value.includes(monthYearMatch[0]))) {
     categorized.timeline.push({
-      type: 'duration',
-      value: durationMatch[0],
+      type: 'deadline',
+      value: monthYearMatch[0].trim(),
       required: true,
       source: 'context_extraction'
     });
@@ -2340,9 +2387,25 @@ function extractStructuredRequirements(html: string, categorized: Record<string,
                 itemText = $li.clone().children('ul, ol').remove().end().text().trim().replace(/^[\d.\-\•\*\u2022]\s*/, '');
               }
               
-              // Extract format requirements (PDF, max pages, file size, etc.)
-              const formatMatch = itemText.match(/(?:format|als|in|max\.?|maximal|max\.?)\s*([^,;:]+(?:pdf|doc|docx|page|seite|mb|kb|format)[^,;:]*(?:,|;|$)?)/i);
-              const format = formatMatch ? formatMatch[1].trim() : undefined;
+              // Extract format requirements (PDF, max pages, file size, etc.) - Enhanced patterns
+              const formatPatterns = [
+                /(?:format|als|in|im)\s*(?:Format\s+)?([^,;:]+(?:pdf|doc|docx|word|excel|xls|ppt|powerpoint|txt|rtf)[^,;:]*(?:,|;|$)?)/i,
+                /(?:max\.?|maximal|max\.?|höchstens|bis zu)\s*(\d+)\s*(?:seite|pages?|seiten)?/i,
+                /(?:max\.?|maximal)\s*([^,;:]+(?:mb|kb|gb|bytes?|size|größe)[^,;:]*(?:,|;|$)?)/i,
+                /(?:maximal|max\.?)\s*(\d+)\s*(?:zeilen|lines|characters?|zeichen)/i,
+                /(?:im\s+)?([a-z]{3,4})\s*(?:format|file|datei)/i,
+                /([a-z]{3,4})\s*(?:datei|file|format|dokument)/i
+              ];
+              
+              let format: string | undefined = undefined;
+              for (const pattern of formatPatterns) {
+                const match = itemText.match(pattern);
+                if (match) {
+                  format = match[1] || match[0];
+                  if (format.length > 50) format = format.substring(0, 50);
+                  break;
+                }
+              }
               
               // Extract description (text after colon, dash, or in parentheses)
               const colonMatch = itemText.match(/^([^:]+?):\s*(.+)$/);

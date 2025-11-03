@@ -3,12 +3,14 @@
  * Verify Database Data Quality
  * Checks requirement distribution, data completeness, and component readiness
  */
-require('dotenv').config({ path: require('path').join(__dirname, '../../.env.local') });
+const path = require('path');
+require('dotenv').config({ path: path.join(__dirname, '../../../.env.local') });
+require('dotenv').config({ path: path.join(__dirname, '../../.env.local') });
 require('dotenv').config();
 
 require('ts-node').register({ transpileOnly: true, compilerOptions: { module: 'commonjs', moduleResolution: 'node', esModuleInterop: true } });
 
-const { getPool } = require('../src/db/neon-client.ts');
+const { getPool } = require(path.join(__dirname, '../../src/db/neon-client.ts'));
 
 const EXPECTED_CATEGORIES = [
   'eligibility', 'documents', 'financial', 'technical', 'legal',
@@ -144,5 +146,10 @@ async function verifyQuality() {
   }
 }
 
-verifyQuality();
+// Export for use in auto-cycle
+if (require.main === module) {
+  verifyQuality();
+} else {
+  module.exports = { verifyQuality };
+}
 

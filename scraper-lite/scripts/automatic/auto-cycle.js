@@ -51,6 +51,83 @@ async function retryFailedJobs(maxRetries = 3) {
   return failed.length;
 }
 
+async function autoRescrapeLowQualityPages() {
+  // Check database for pages with missing critical categories
+  const path = require('path');
+  require('dotenv').config({ path: path.join(__dirname, '../../../.env.local') });
+  require('ts-node').register({ transpileOnly: true, compilerOptions: { module: 'commonjs', moduleResolution: 'node', esModuleInterop: true } });
+  
+  const { getPool } = require(path.join(__dirname, '../../src/db/neon-client.ts'));
+  const pool = getPool();
+  
+  try {
+    // Find pages missing critical categories (eligibility, financial, documents, timeline, project)
+    const result = await pool.query(`
+      WITH page_categories AS (
+        SELECT 
+          p.id,
+          p.url,
+          COUNT(DISTINCT CASE WHEN r.category = 'eligibility' THEN 1 END) as has_eligibility,
+          COUNT(DISTINCT CASE WHEN r.category = 'financial' THEN 1 END) as has_financial,
+          COUNT(DISTINCT CASE WHEN r.category = 'documents' THEN 1 END) as has_documents,
+          COUNT(DISTINCT CASE WHEN r.category = 'timeline' THEN 1 END) as has_timeline,
+          COUNT(DISTINCT CASE WHEN r.category = 'project' THEN 1 END) as has_project
+        FROM pages p
+        LEFT JOIN requirements r ON p.id = r.page_id
+        GROUP BY p.id, p.url
+      )
+      SELECT url
+      FROM page_categories
+      WHERE (has_eligibility = 0 OR has_financial = 0 OR has_documents = 0 OR has_timeline = 0 OR has_project = 0)
+      LIMIT 20
+    `);
+    
+    if (result.rows.length > 0) {
+      console.log(`  🔍 Found ${result.rows.length} pages with missing critical categories`);
+      
+      // Add to queue for rescraping
+      const state = loadState();
+      const urlsToRescrape = result.rows.map(r => r.url);
+      let addedCount = 0;
+      
+      urlsToRescrape.forEach(url => {
+        // Only add if not already in queue or done
+        const exists = state.jobs.find(j => j.url === url && (j.status === 'queued' || j.status === 'running' || j.status === 'done'));
+        const inPages = state.pages.find(p => p.url === url);
+        
+        if (!exists && !inPages) {
+          state.jobs.push({
+            url: url,
+            status: 'queued',
+            depth: 0,
+            seed: url,
+            attempts: 0
+          });
+          addedCount++;
+        }
+      });
+      
+      if (addedCount > 0) {
+        saveState(state);
+        console.log(`  ✅ Added ${addedCount} low-quality pages to queue for rescraping`);
+      } else {
+        console.log(`  ℹ️  All low-quality pages already in queue or processed`);
+      }
+    } else {
+      console.log(`  ✅ All pages have critical categories - no rescraping needed`);
+    }
+    
+    await pool.end();
+  } catch (e) {
+    console.log(`  ⚠️  Could not check for low-quality pages: ${e.message}`);
+    if (pool) {
+      try {
+        await pool.end();
+      } catch {}
+    }
+  }
+}
+
 async function autoCycle() {
   console.log('\n' + '='.repeat(70));
   console.log('🤖 FULLY AUTOMATED SCRAPER CYCLE');
@@ -154,17 +231,45 @@ async function autoCycle() {
     if (cyclesRun % 3 === 0 || cyclesRun === 1) {
       console.log('\n🔬 STEP 3b: EXTRACTION QUALITY ANALYSIS');
       try {
-        require('./improve-extraction.js');
+        require('../manual/improve-extraction.js');
       } catch (e) {
         console.log(`⚠️  Extraction analysis error: ${e.message}`);
       }
     }
     
-    // STEP 4: Retry Failed Jobs
+    // STEP 4: Database Quality Check & Component Data Verification
+    if (cyclesRun % 2 === 0 || cyclesRun === 1) {
+      console.log('\n✅ STEP 4: DATABASE QUALITY CHECK');
+      try {
+        require('../manual/verify-database-quality.js');
+      } catch (e) {
+        console.log(`⚠️  Quality check error: ${e.message}`);
+      }
+      
+      // Verify component data format
+      console.log('\n✅ STEP 4b: COMPONENT DATA VERIFICATION');
+      try {
+        require('../manual/test-question-engine-data.js');
+      } catch (e) {
+        console.log(`⚠️  Component verification error: ${e.message}`);
+      }
+    }
+    
+    // STEP 5: Auto-Rescrape Pages with Missing Critical Categories
+    if (cyclesRun % 4 === 0 && cyclesRun > 2) {
+      console.log('\n🔄 STEP 5: AUTO-RESCRAPE LOW QUALITY PAGES');
+      try {
+        await autoRescrapeLowQualityPages();
+      } catch (e) {
+        console.log(`⚠️  Auto-rescrape error: ${e.message}`);
+      }
+    }
+    
+    // STEP 6: Retry Failed Jobs
     await retryFailedJobs(3);
     
-    // STEP 5: Analysis & Status
-    console.log('\n📊 STEP 5: ANALYSIS & STATUS');
+    // STEP 7: Analysis & Status
+    console.log('\n📊 STEP 7: ANALYSIS & STATUS');
     const finalState = loadState();
     const finalPageCount = finalState.pages.length;
     const finalQueuedJobs = finalState.jobs.filter(j => j.status === 'queued').length;

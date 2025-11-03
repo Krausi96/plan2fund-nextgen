@@ -200,6 +200,18 @@ export async function scrape(maxUrls = 10, targets: string[] = []): Promise<void
       
       // Assign institution metadata
       const institution = findInstitutionByUrl(job.url);
+      const fundingTypes = institution?.fundingTypes || [];
+      
+      // Build metadata_json with funding_type (singular) for easier querying
+      const metadataJson = {
+        ...(meta.metadata_json || {}),
+        funding_type: fundingTypes.length > 0 ? fundingTypes[0] : null, // Primary funding type
+        institution: institution?.name || null,
+        application_method: meta.metadata_json?.application_method || null,
+        requires_account: meta.metadata_json?.requires_account || false,
+        form_fields: meta.metadata_json?.form_fields || null
+      };
+      
       const rawMetadata = {
         url: job.url,
         title: meta.title,
@@ -212,10 +224,10 @@ export async function scrape(maxUrls = 10, targets: string[] = []): Promise<void
         contact_email: meta.contact_email ?? null,
         contact_phone: meta.contact_phone ?? null,
         categorized_requirements: meta.categorized_requirements,
-        metadata_json: meta.metadata_json || {},
+        metadata_json: metadataJson,
         raw_html_path: fetchResult.rawHtmlPath || null,
         // Institution-assigned fields
-        funding_types: institution?.fundingTypes || [],
+        funding_types: fundingTypes,
         region: institution?.region || null,
         program_focus: institution?.programFocus || [],
         fetched_at: new Date().toISOString()
