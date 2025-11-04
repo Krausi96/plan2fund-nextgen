@@ -234,11 +234,13 @@ export async function discover(seeds: string[], maxDepth = 1, maxPages = 20): Pr
           diagnostics.queuedForDepth++;
         }
         
-        // ONLY queue detail pages (not category/overview pages)
-        // This is critical - we only want to scrape actual program detail pages
+        // RELAXED: Accept URLs with relevant keywords even if not strict detail pages
+        // This helps discover more program pages that might have different URL structures
         const isDetailPage = isProgramDetailPage(full);
+        const hasRelevantContent = hasFundingKeyword || hasProgramKeyword || hasInstitutionKeyword;
         
-        if (isDetailPage && !isQueryListing(full)) {
+        // Accept if: strict detail page OR (has relevant keywords AND not excluded)
+        if ((isDetailPage || hasRelevantContent) && !isQueryListing(full)) {
           state.jobs.push({ url: full, status: 'queued', depth: depth + 1, seed });
           diagnostics.accepted++;
           diagnostics.programsFoundByDepth[depth + 1] = (diagnostics.programsFoundByDepth[depth + 1] || 0) + 1;
@@ -483,6 +485,7 @@ export async function scrape(maxUrls = 10, targets: string[] = []): Promise<void
         }
         
         // Use atomic transaction to ensure page + requirements are saved together
+        console.log(`  💾 Attempting to save to database: ${job.url.slice(0, 60)}...`);
         const pageId = await savePageWithRequirements(rec);
         await markJobDone(job.url);
         
@@ -495,16 +498,20 @@ export async function scrape(maxUrls = 10, targets: string[] = []): Promise<void
         
         const recHasMeta = !!(rec.funding_amount_min || rec.funding_amount_max || rec.deadline || rec.contact_email || rec.contact_phone);
         if (recHasMeta) {
-          console.log(`  ✅ Saved to DB: ${rec.funding_amount_min || 'N/A'}-${rec.funding_amount_max || 'N/A'} EUR, deadline: ${rec.deadline || (rec.open_deadline ? 'Open' : 'N/A')}`);
+          console.log(`  ✅ Saved to DB (ID: ${pageId}): ${rec.funding_amount_min || 'N/A'}-${rec.funding_amount_max || 'N/A'} EUR, deadline: ${rec.deadline || (rec.open_deadline ? 'Open' : 'N/A')}`);
+        } else {
+          console.log(`  ✅ Saved to DB (ID: ${pageId}): ${job.url.slice(0, 60)}...`);
         }
-        console.log(`  ✅ ${job.url.slice(0, 60)}...`);
       } catch (dbError: any) {
         const errorMsg = dbError.message || String(dbError);
+        console.error(`  ❌ DB save failed for ${job.url.slice(0, 60)}...`);
+        console.error(`     Error: ${errorMsg}`);
         if (errorMsg.includes('DATABASE_URL')) {
-          console.error(`  ❌ DB save failed: ${errorMsg}`);
           console.error(`  ⚠️  Please set DATABASE_URL in .env.local to enable database storage`);
-        } else {
-          console.error(`  ❌ DB save failed: ${errorMsg}`);
+        } else if (errorMsg.includes('validation')) {
+          console.error(`  ⚠️  Data validation failed - check title, description, and URL`);
+        } else if (errorMsg.includes('connection')) {
+          console.error(`  ⚠️  Database connection issue - check DATABASE_URL and network`);
         }
         
         // GUARANTEED FALLBACK: Always save to JSON if DB fails

@@ -184,25 +184,25 @@ export class QuestionEngine {
       return 'use_of_funds';
     }
 
-    // Financial - CAPEX/OPEX
-    if (category === 'capex_opex' || (category === 'financial' && (type.includes('capex') || type.includes('opex') || type.includes('investition')))) {
-      return 'investment_type';
-    }
+    // Financial - CAPEX/OPEX - REMOVED: Too technical (users don't know CAPEX vs OPEX)
+    // if (category === 'capex_opex' || (category === 'financial' && (type.includes('capex') || type.includes('opex') || type.includes('investition')))) {
+    //   return 'investment_type';
+    // }
 
     // Project - Research focus
     if (category === 'project' && (type === 'research_focus' || type.includes('research') || type.includes('forschung'))) {
       return 'research_focus';
     }
 
-    // Project - Innovation focus
-    if (category === 'project' && (type === 'innovation_focus' || type.includes('innovation') || type.includes('innovation'))) {
-      return 'innovation_focus';
-    }
+    // Project - Innovation focus - REMOVED: Too vague (what does "innovation focus" mean?)
+    // if (category === 'project' && (type === 'innovation_focus' || type.includes('innovation') || type.includes('innovation'))) {
+    //   return 'innovation_focus';
+    // }
 
-    // Project - Sustainability focus
-    if (category === 'project' && (type === 'sustainability_focus' || type.includes('sustainability') || type.includes('nachhaltigkeit'))) {
-      return 'sustainability_focus';
-    }
+    // Project - Sustainability focus - REMOVED: Too vague (what does "sustainability focus" mean?)
+    // if (category === 'project' && (type === 'sustainability_focus' || type.includes('sustainability') || type.includes('nachhaltigkeit'))) {
+    //   return 'sustainability_focus';
+    // }
 
     // Project - Industry focus
     if (category === 'project' && (type === 'industry_focus' || type.includes('industry') || type.includes('branche'))) {
@@ -214,10 +214,10 @@ export class QuestionEngine {
       return 'consortium';
     }
 
-    // Technical - TRL level
-    if (category === 'technical' && (type === 'trl_level' || type.includes('trl') || type.includes('reifegrad'))) {
-      return 'trl_level';
-    }
+    // Technical - TRL level - REMOVED: Too technical (users don't know what TRL means)
+    // if (category === 'technical' && (type === 'trl_level' || type.includes('trl') || type.includes('reifegrad'))) {
+    //   return 'trl_level';
+    // }
 
     // Technical - Technology focus
     if (category === 'technical' && (type === 'technology_focus' || type.includes('technology') || type.includes('technologie'))) {
@@ -400,77 +400,30 @@ export class QuestionEngine {
       };
     }
 
-    // TRL level question
-    if (questionId === 'trl_level') {
-      const trls = Array.from(req.values.keys())
-        .map(v => this.parseTRLFromValue(v))
-        .filter(t => t > 0)
-        .sort((a, b) => a - b);
-      
-      if (trls.length > 0) {
-        return {
-          id: 'trl_level',
-          symptom: 'wizard.questions.trlLevel',
-          type: 'single-select',
-          options: this.createTRLOptions(trls),
-          required: false,
-          category: 'specific_requirements',
-          priority
-        };
-      }
-    }
+    // TRL level question - REMOVED: Too technical (users don't know what TRL means)
+    // if (questionId === 'trl_level') { ... }
 
-    // Co-financing question
+    // Co-financing question - SIMPLIFIED: Changed to yes/no instead of percentage
     if (questionId === 'co_financing') {
-      const percentages = Array.from(req.values.keys())
-        .map(v => this.parsePercentageFromValue(v))
-        .filter(p => !isNaN(p))
-        .sort((a, b) => a - b);
-      
-      if (percentages.length > 0) {
-        return {
-          id: 'co_financing',
-          symptom: 'wizard.questions.coFinancing',
-          type: 'single-select',
-          options: this.createCoFinancingOptions(percentages),
-          required: false,
-          category: 'funding_need',
-          priority
-        };
-      }
-    }
-
-    // Innovation focus question
-    if (questionId === 'innovation_focus') {
       return {
-        id: 'innovation_focus',
-        symptom: 'wizard.questions.innovationFocus',
+        id: 'co_financing',
+        symptom: 'wizard.questions.coFinancing',
         type: 'single-select',
         options: [
           { value: 'yes', label: 'wizard.options.yes' },
           { value: 'no', label: 'wizard.options.no' }
         ],
         required: false,
-        category: 'specific_requirements',
+        category: 'funding_need',
         priority
       };
     }
 
-    // Sustainability focus question
-    if (questionId === 'sustainability_focus') {
-      return {
-        id: 'sustainability_focus',
-        symptom: 'wizard.questions.sustainabilityFocus',
-        type: 'single-select',
-        options: [
-          { value: 'yes', label: 'wizard.options.yes' },
-          { value: 'no', label: 'wizard.options.no' }
-        ],
-        required: false,
-        category: 'specific_requirements',
-        priority
-      };
-    }
+    // Innovation focus question - REMOVED: Too vague (what does "innovation focus" mean?)
+    // if (questionId === 'innovation_focus') { ... }
+
+    // Sustainability focus question - REMOVED: Too vague (what does "sustainability focus" mean?)
+    // if (questionId === 'sustainability_focus') { ... }
 
     // Industry focus question
     if (questionId === 'industry_focus') {
@@ -672,22 +625,8 @@ export class QuestionEngine {
       };
     }
 
-    // Investment type question (CAPEX/OPEX)
-    if (questionId === 'investment_type') {
-      return {
-        id: 'investment_type',
-        symptom: 'wizard.questions.investmentType',
-        type: 'single-select',
-        options: [
-          { value: 'capex', label: 'wizard.options.capex' },
-          { value: 'opex', label: 'wizard.options.opex' },
-          { value: 'both', label: 'wizard.options.both' }
-        ],
-        required: false,
-        category: 'financial',
-        priority
-      };
-    }
+    // Investment type question (CAPEX/OPEX) - REMOVED: Too technical (users don't know CAPEX vs OPEX)
+    // if (questionId === 'investment_type') { ... }
 
     // Legal compliance question
     if (questionId === 'legal_compliance') {
@@ -789,21 +728,44 @@ export class QuestionEngine {
       this.generateConditionalQuestions(15, 20);
     }
     
-    // If we've filtered down significantly, stop asking
-    if (this.remainingPrograms.length <= 5 && Object.keys(answers).length >= 5) {
-      console.log(`✅ Filtered to ${this.remainingPrograms.length} programs, stopping questions`);
+    // If we've filtered down significantly, stop asking (but require at least 3 questions)
+    if (this.remainingPrograms.length <= 5 && Object.keys(answers).length >= 3) {
+      console.log(`✅ Filtered to ${this.remainingPrograms.length} programs, stopping questions (after ${Object.keys(answers).length} answers)`);
       return null;
     }
-
+    
+    // Don't stop too early - ensure at least 5 questions are asked (unless filtered down significantly)
+    const minQuestions = 5;
+    const hasAskedEnough = Object.keys(answers).length >= minQuestions;
+    const hasManyPrograms = this.remainingPrograms.length > 10;
+    
+    console.log(`🔍 Question decision: ${Object.keys(answers).length} answers, ${this.remainingPrograms.length} programs remaining, ${this.questions.length} total questions`);
+    
     // Find first unanswered required question
     const unanswered = this.questions.find(q => q.required && !answers[q.id]);
-    if (unanswered) return unanswered;
+    if (unanswered) {
+      console.log(`✅ Found unanswered required question: ${unanswered.id}`);
+      return unanswered;
+    }
     
     // Then find first unanswered optional question
     const optional = this.questions.find(q => !q.required && !answers[q.id]);
-    if (optional) return optional;
+    if (optional) {
+      // Only ask more optional questions if we haven't asked enough OR many programs remain
+      if (!hasAskedEnough || hasManyPrograms) {
+        console.log(`✅ Found unanswered optional question: ${optional.id} (hasAskedEnough: ${hasAskedEnough}, hasManyPrograms: ${hasManyPrograms})`);
+        return optional;
+      } else {
+        console.log(`⏸️ Skipping optional question ${optional.id} (asked enough: ${hasAskedEnough}, programs: ${this.remainingPrograms.length})`);
+      }
+    }
     
-    // All answered
+    // All answered (or we've asked enough questions and filtered enough)
+    if (hasAskedEnough) {
+      console.log(`✅ Asked ${Object.keys(answers).length} questions, stopping`);
+    } else {
+      console.log(`⚠️ No more questions available after ${Object.keys(answers).length} answers`);
+    }
     return null;
   }
 
@@ -934,39 +896,28 @@ export class QuestionEngine {
       console.log(`🔍 Funding amount filter (${answers.funding_amount}): ${before} → ${after} (${before - after} filtered)`);
     }
 
-    // TRL level filter
-    if (answers.trl_level) {
-      const before = filtered.length;
-      const userTRL = this.parseTRL(answers.trl_level);
-      filtered = filtered.filter(program => this.matchesTRL(program, userTRL));
-      const after = filtered.length;
-      console.log(`🔍 TRL level filter (${answers.trl_level}): ${before} → ${after} (${before - after} filtered)`);
-    }
+    // TRL level filter - REMOVED: Question removed (too technical)
+    // if (answers.trl_level) { ... }
 
-    // Co-financing filter
+    // Co-financing filter - SIMPLIFIED: Now handles yes/no instead of percentage
     if (answers.co_financing) {
       const before = filtered.length;
-      const userPercent = this.parsePercentage(answers.co_financing);
-      filtered = filtered.filter(program => this.matchesCoFinancing(program, userPercent));
+      if (answers.co_financing === 'yes') {
+        // If user has co-financing, filter to programs that allow/require it
+        filtered = filtered.filter(program => this.hasCoFinancingRequirement(program));
+      } else {
+        // If user has no co-financing, filter to programs that don't require it
+        filtered = filtered.filter(program => !this.requiresCoFinancing(program));
+      }
       const after = filtered.length;
-      console.log(`🔍 Co-financing filter (${answers.co_financing}%): ${before} → ${after} (${before - after} filtered)`);
+      console.log(`🔍 Co-financing filter (${answers.co_financing}): ${before} → ${after} (${before - after} filtered)`);
     }
 
-    // Innovation focus filter (align with enhancedRecoEngine)
-    if (answers.innovation_focus === 'no') {
-      const before = filtered.length;
-      filtered = filtered.filter(program => !this.requiresInnovation(program));
-      const after = filtered.length;
-      console.log(`🔍 Innovation focus filter (no): ${before} → ${after} (${before - after} filtered)`);
-    }
+    // Innovation focus filter - REMOVED: Question removed (too vague)
+    // if (answers.innovation_focus === 'no') { ... }
 
-    // Sustainability focus filter
-    if (answers.sustainability_focus === 'no') {
-      const before = filtered.length;
-      filtered = filtered.filter(program => !this.requiresSustainability(program));
-      const after = filtered.length;
-      console.log(`🔍 Sustainability focus filter (no): ${before} → ${after} (${before - after} filtered)`);
-    }
+    // Sustainability focus filter - REMOVED: Question removed (too vague)
+    // if (answers.sustainability_focus === 'no') { ... }
 
     // Industry focus filter
     if (answers.industry_focus) {
@@ -1016,13 +967,8 @@ export class QuestionEngine {
       console.log(`🔍 Market size filter (${answers.market_size}): ${before} → ${after} (${before - after} filtered)`);
     }
 
-    // Investment type filter (CAPEX/OPEX)
-    if (answers.investment_type) {
-      const before = filtered.length;
-      filtered = filtered.filter(program => this.matchesInvestmentType(program, answers.investment_type));
-      const after = filtered.length;
-      console.log(`🔍 Investment type filter (${answers.investment_type}): ${before} → ${after} (${before - after} filtered)`);
-    }
+    // Investment type filter (CAPEX/OPEX) - REMOVED: Question removed (too technical)
+    // if (answers.investment_type) { ... }
 
     return filtered;
   }
@@ -1159,28 +1105,34 @@ export class QuestionEngine {
     return userAmount >= min && userAmount <= max;
   }
 
-  private matchesTRL(program: Program, userTRL: number): boolean {
+  // Removed: matchesTRL - TRL question removed (too technical)
+  // Removed: matchesCoFinancing - Replaced with simplified yes/no logic
+
+  // @ts-ignore - Used in filterPrograms
+  // Check if program has a co-financing requirement (for yes/no question)
+  private hasCoFinancingRequirement(program: Program): boolean {
     const categorized = (program as any).categorized_requirements;
-    if (categorized?.technical) {
-      const trlReqs = categorized.technical.filter((r: any) => r.type === 'trl_level');
-      if (trlReqs.length > 0) {
-        const reqTRL = this.parseTRLFromValue(trlReqs[0].value);
-        return userTRL >= reqTRL; // User TRL must be at least the required level
-      }
+    if (categorized?.financial) {
+      const coFinReqs = categorized.financial.filter((r: any) => r.type === 'co_financing');
+      return coFinReqs.length > 0; // Program mentions co-financing
     }
-    return true;
+    return true; // If no requirement, include program (fair filtering)
   }
 
-  private matchesCoFinancing(program: Program, userPercent: number): boolean {
+  // @ts-ignore - Used in filterPrograms
+  // Check if program requires co-financing (for filtering out programs that require it when user says "no")
+  private requiresCoFinancing(program: Program): boolean {
     const categorized = (program as any).categorized_requirements;
     if (categorized?.financial) {
       const coFinReqs = categorized.financial.filter((r: any) => r.type === 'co_financing');
       if (coFinReqs.length > 0) {
+        // Check if requirement value indicates mandatory co-financing
+        // If it's a percentage or mentions co-financing, consider it required
         const reqPercent = this.parsePercentageFromValue(coFinReqs[0].value);
-        return userPercent >= reqPercent; // User must provide at least required percentage
+        return !isNaN(reqPercent) && reqPercent > 0; // Program requires some co-financing
       }
     }
-    return true;
+    return false; // Program doesn't require co-financing
   }
 
   // @ts-ignore - Used in filterPrograms via dynamic calls
@@ -1390,19 +1342,8 @@ export class QuestionEngine {
     ];
   }
 
-  private createTRLOptions(trls: number[]): Array<{value: string, label: string}> {
-    return trls.map(trl => ({
-      value: String(trl),
-      label: `TRL ${trl}`
-    }));
-  }
-
-  private createCoFinancingOptions(percentages: number[]): Array<{value: string, label: string}> {
-    return percentages.map(p => ({
-      value: String(p),
-      label: `≥${p}%`
-    }));
-  }
+  // Removed: createTRLOptions - TRL question removed (too technical)
+  // Removed: createCoFinancingOptions - Co-financing now uses yes/no instead of percentages
 
   // Parsing functions
   private parseAgeFromValue(value: any): number {
@@ -1419,12 +1360,7 @@ export class QuestionEngine {
     return match ? parseInt(match[1]) : NaN;
   }
 
-  private parseTRLFromValue(value: any): number {
-    if (typeof value === 'number') return value;
-    const str = String(value).toLowerCase().replace('trl', '').trim();
-    const match = str.match(/(\d+)/);
-    return match ? parseInt(match[1]) : NaN;
-  }
+  // Removed: parseTRLFromValue - TRL question removed (too technical)
 
   private parsePercentageFromValue(value: any): number {
     if (typeof value === 'number') return value;
@@ -1461,15 +1397,8 @@ export class QuestionEngine {
     return 750000;
   }
 
-  private parseTRL(answer: string): number {
-    const match = answer.match(/(\d+)/);
-    return match ? parseInt(match[1]) : 0;
-  }
-
-  private parsePercentage(answer: string): number {
-    const match = answer.match(/(\d+)/);
-    return match ? parseInt(match[1]) : 0;
-  }
+  // Removed: parseTRL - TRL question removed (too technical)
+  // Removed: parsePercentage - Co-financing now uses yes/no instead of percentages
 
   private parseDurationFromValue(value: any): number {
     if (typeof value === 'number') return value;

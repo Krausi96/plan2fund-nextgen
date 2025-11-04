@@ -268,9 +268,19 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     // PRIMARY: Try NEON database first (scraper-lite pages table)
     // This is the source of truth - always use database if available
     try {
-      const { searchPages, getAllPages } = require('../../scraper-lite/src/db/page-repository');
+      // Check DATABASE_URL first
+      if (!process.env.DATABASE_URL) {
+        console.warn('⚠️ DATABASE_URL not set, using JSON fallback');
+        throw new Error('DATABASE_URL not configured');
+      }
       
-      const pages = type 
+      // Use dynamic import for TypeScript modules (works better with Next.js)
+      // This matches the pattern used in pages/api/user/profile.ts
+      const pageRepo = await import('../../scraper-lite/src/db/page-repository');
+      const searchPages = pageRepo.searchPages;
+      const getAllPages = pageRepo.getAllPages;
+      
+      const pages = type && typeof type === 'string'
         ? await searchPages({ region: type, limit: 1000 }) // Using region as proxy for type for now
         : await getAllPages(1000);
       
@@ -282,7 +292,9 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       // Transform pages to programs format with requirements
       const programs = await Promise.all(pages.map(async (page: any) => {
         // Get requirements for this page
-        const { getPool } = require('../../scraper-lite/src/db/neon-client');
+        // Use dynamic import for TypeScript modules (works better with Next.js)
+        // This matches the pattern used in pages/api/user/profile.ts
+        const { getPool } = await import('../../scraper-lite/src/db/neon-client');
         const pool = getPool();
         const reqResult = await pool.query(
           'SELECT category, type, value, required, source, description, format, requirements FROM requirements WHERE page_id = $1',
@@ -466,8 +478,29 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         fresh: enhanced === 'true' ? filteredPrograms.some((p: any) => p.fresh) : undefined,
         timestamp: new Date().toISOString(),
       });
-    } catch (dbError) {
-      console.warn('NEON database query failed, using fallback data:', dbError);
+    } catch (dbError: any) {
+      console.warn('⚠️ NEON database query failed, using fallback data...');
+      console.warn('   Error type:', dbError?.constructor?.name || 'Unknown');
+      console.warn('   Error message:', dbError?.message || String(dbError));
+      
+      // Provide specific diagnostics
+      if (dbError?.message?.includes('Cannot find module') || dbError?.message?.includes('Failed to load')) {
+        console.error('❌ CRITICAL: Database module loading failed.');
+        console.error('   Possible fixes:');
+        console.error('   1. Restart Next.js dev server (npm run dev)');
+        console.error('   2. Check that scraper-lite/src/db/*.ts files exist');
+        console.error('   3. Verify tsconfig.json includes scraper-lite directory');
+      } else if (dbError?.message?.includes('DATABASE_URL')) {
+        console.error('❌ CRITICAL: DATABASE_URL not configured.');
+        console.error('   Add DATABASE_URL to .env.local file');
+      } else if (dbError?.message?.includes('connection') || dbError?.message?.includes('ECONNREFUSED') || dbError?.code === 'ECONNREFUSED') {
+        console.error('❌ CRITICAL: Database connection failed.');
+        console.error('   Check DATABASE_URL and network connectivity');
+        console.error('   Connection string:', process.env.DATABASE_URL ? 'Set' : 'NOT SET');
+      } else if (dbError?.stack) {
+        console.warn('   Stack trace:', dbError.stack.split('\n').slice(0, 3).join('\n'));
+      }
+      
       // Fall through to fallback data
     }
     

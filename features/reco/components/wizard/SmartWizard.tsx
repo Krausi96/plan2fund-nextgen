@@ -496,8 +496,50 @@ const SmartWizard: React.FC<SmartWizardProps> = ({ onComplete, onProfileGenerate
                 <span className="text-sm text-gray-500">({Object.keys(state.answers).length})</span>
               </div>
               
-              <div className="space-y-4">
-                {/* Answer summary would go here */}
+              <div className="space-y-3">
+                {Object.entries(state.answers).map(([questionId, answer]) => {
+                  const question = questionEngine?.getQuestionById(questionId);
+                  const questionText = question ? (t(question.symptom as any) || question.symptom) : questionId;
+                  let answerText = '';
+                  
+                  if (question && question.options) {
+                    const option = question.options.find((opt: any) => opt.value === answer);
+                    answerText = option ? (t(option.label as any) || option.label) : String(answer);
+                  } else {
+                    answerText = String(answer);
+                  }
+                  
+                  return (
+                    <div key={questionId} className="flex items-start justify-between p-3 bg-gray-50 rounded-lg">
+                      <div className="flex-1">
+                        <div className="text-sm font-medium text-gray-700">{questionText}</div>
+                        <div className="text-sm text-gray-600 mt-1">{answerText}</div>
+                      </div>
+                      <button
+                        onClick={() => {
+                          const newAnswers = { ...state.answers };
+                          delete newAnswers[questionId];
+                          setState(prev => ({
+                            ...prev,
+                            answers: newAnswers,
+                            currentQuestionIndex: Object.keys(newAnswers).length
+                          }));
+                          // Reset to previous question if needed
+                          if (questionEngine) {
+                            const nextQuestion = questionEngine.getQuestionById(questionId);
+                            if (nextQuestion) {
+                              setState(prev => ({ ...prev, currentQuestion: nextQuestion }));
+                            }
+                          }
+                        }}
+                        className="ml-4 text-red-500 hover:text-red-700 text-sm"
+                        title="Remove answer"
+                      >
+                        ✕
+                      </button>
+                    </div>
+                  );
+                })}
               </div>
             </div>
           )}

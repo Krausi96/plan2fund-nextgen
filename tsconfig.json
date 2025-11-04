@@ -35,7 +35,8 @@
     "src",
     "pages",
     "features",
-    "shared"
+    "shared",
+    "scraper-lite/src"
   ],
   "exclude": [
     "node_modules",

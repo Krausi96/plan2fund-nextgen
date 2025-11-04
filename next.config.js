@@ -41,6 +41,12 @@ const nextConfig = {
         os: false,
         path: false,
       };
+    } else {
+      // Server-side: Allow TypeScript files from scraper-lite
+      config.resolve.extensionAlias = {
+        '.js': ['.ts', '.tsx', '.js', '.jsx'],
+        '.jsx': ['.tsx', '.jsx'],
+      };
     }
     return config;
   },

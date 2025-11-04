@@ -4,6 +4,7 @@
  */
 import { getPool, queryWithRetry } from './neon-client';
 import { PageMetadata } from '../extract';
+import { PoolClient } from 'pg';
 
 export interface DbPage {
   id: number;
@@ -66,18 +67,32 @@ function validatePageData(page: PageMetadata): { valid: boolean; errors: string[
   };
 }
 
-export async function savePage(page: PageMetadata): Promise<number> {
+// Helper to execute query with optional transaction client
+async function executeQuery<T = any>(
+  query: string,
+  params?: any[],
+  client?: PoolClient
+): Promise<T[]> {
+  if (client) {
+    // Use transaction client if provided
+    const result = await client.query(query, params);
+    return result.rows;
+  } else {
+    // Use pool with retry logic
+    return queryWithRetry<T>(query, params);
+  }
+}
+
+export async function savePage(page: PageMetadata, client?: PoolClient): Promise<number> {
   // Validate data quality
   const validation = validatePageData(page);
   if (!validation.valid) {
     throw new Error(`Data validation failed: ${validation.errors.join(', ')}`);
   }
   
-  const pool = getPool();
-  
   const deadlineDate = parseDeadline(page.deadline);
   
-  const result = await queryWithRetry<{ id: number }>(
+  const result = await executeQuery<{ id: number }>(
     `INSERT INTO pages (
       url, title, description,
       funding_amount_min, funding_amount_max, currency,
@@ -121,7 +136,8 @@ export async function savePage(page: PageMetadata): Promise<number> {
       JSON.stringify(page.metadata_json || {}),
       page.raw_html_path,
       page.fetched_at || new Date().toISOString()
-    ]
+    ],
+    client
   );
   
   if (!result || result.length === 0 || !result[0].id) {
@@ -131,20 +147,19 @@ export async function savePage(page: PageMetadata): Promise<number> {
   return result[0].id;
 }
 
-export async function saveRequirements(pageId: number, requirements: Record<string, any[]>): Promise<void> {
+export async function saveRequirements(pageId: number, requirements: Record<string, any[]>, client?: PoolClient): Promise<void> {
   if (!pageId || pageId <= 0) {
     throw new Error(`Invalid pageId: ${pageId}`);
   }
-  
-  const pool = getPool();
   
   // Import meaningfulness scoring function
   const { calculateMeaningfulnessScore } = require('../extract');
   
   // Delete existing requirements for this page
-  await queryWithRetry(
+  await executeQuery(
     'DELETE FROM requirements WHERE page_id = $1',
-    [pageId]
+    [pageId],
+    client
   );
   
   // Insert new requirements with error handling
@@ -178,7 +193,7 @@ export async function saveRequirements(pageId: number, requirements: Record<stri
         ? item.meaningfulness_score
         : calculateMeaningfulnessScore(item.value);
       
-      const insert = queryWithRetry(
+      const insert = executeQuery(
         `INSERT INTO requirements (page_id, category, type, value, required, source, description, format, requirements, meaningfulness_score)
          VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)`,
         [
@@ -192,7 +207,8 @@ export async function saveRequirements(pageId: number, requirements: Record<stri
           item.format ? item.format.substring(0, 500) : null,
           item.requirements ? JSON.stringify(item.requirements).substring(0, 50000) : null,
           meaningfulnessScore
-        ]
+        ],
+        client
       ).then(() => {
         successCount++;
         return undefined;
@@ -221,16 +237,18 @@ export async function savePageWithRequirements(page: PageMetadata): Promise<numb
   try {
     await client.query('BEGIN');
     
-    // Save page
-    const pageId = await savePage(page);
+    // Save page (using transaction client)
+    const pageId = await savePage(page, client);
     
-    // Save requirements
-    await saveRequirements(pageId, page.categorized_requirements || {});
+    // Save requirements (using transaction client)
+    await saveRequirements(pageId, page.categorized_requirements || {}, client);
     
     await client.query('COMMIT');
+    console.log(`✅ Successfully saved page ${pageId} with requirements to database`);
     return pageId;
   } catch (error: any) {
     await client.query('ROLLBACK');
+    console.error(`❌ Transaction failed for page ${page.url?.substring(0, 60)}:`, error.message);
     throw error;
   } finally {
     client.release();
