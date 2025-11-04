@@ -269,7 +269,7 @@ export async function discover(seeds: string[], maxDepth = 1, maxPages = 20): Pr
   console.log(`   Programs by depth:`, diagnostics.programsFoundByDepth);
   
   // Warning if low acceptance rate
-  const acceptanceRate = diagnostics.totalLinks > 0 ? (diagnostics.accepted / diagnostics.totalLinks * 100).toFixed(1) : 0;
+  const acceptanceRate = diagnostics.totalLinks > 0 ? (diagnostics.accepted / diagnostics.totalLinks * 100).toFixed(1) : '0';
   if (parseFloat(acceptanceRate) < 1) {
     console.log(`   ⚠️  Low acceptance rate: ${acceptanceRate}% - may need to relax URL filtering`);
   }
@@ -413,20 +413,21 @@ export async function scrape(maxUrls = 10, targets: string[] = []): Promise<void
       }
       
       // Try: institution fundingTypes → metadata funding_type → extract from URL → 'unknown'
+      const metadataJsonRaw = meta.metadata_json || {};
       const fundingType = fundingTypes.length > 0 
         ? fundingTypes[0] 
-        : (meta.metadata_json?.funding_type 
+        : ((metadataJsonRaw as any)?.funding_type 
           || extractFundingTypeFromUrl(job.url)
           || 'unknown');
       
       // Build metadata_json with funding_type (singular) for easier querying
-      const metadataJson = {
-        ...(meta.metadata_json || {}),
+      const metadataJson: any = {
+        ...metadataJsonRaw,
         funding_type: fundingType, // Always assigned (never null)
         institution: institution?.name || null,
-        application_method: meta.metadata_json?.application_method || null,
-        requires_account: meta.metadata_json?.requires_account || false,
-        form_fields: meta.metadata_json?.form_fields || null
+        application_method: (metadataJsonRaw as any)?.application_method || null,
+        requires_account: (metadataJsonRaw as any)?.requires_account || false,
+        form_fields: (metadataJsonRaw as any)?.form_fields || null
       };
       
       const rawMetadata = {
@@ -445,8 +446,8 @@ export async function scrape(maxUrls = 10, targets: string[] = []): Promise<void
         raw_html_path: fetchResult.rawHtmlPath || null,
         // Institution-assigned fields (fallback to extracted data if not set)
         funding_types: fundingTypes.length > 0 ? fundingTypes : (metadataJson.funding_type ? [metadataJson.funding_type] : []),
-        region: institution?.region || metadataJson.geography?.region || metadataJson.region || null,
-        program_focus: institution?.programFocus.length > 0 ? institution.programFocus : (metadataJson.program_topics || []),
+        region: institution?.region || (metadataJson.geography as any)?.region || metadataJson.region || null,
+        program_focus: (institution?.programFocus && institution.programFocus.length > 0) ? institution.programFocus : (metadataJson.program_topics || []),
         fetched_at: new Date().toISOString()
       };
       
@@ -467,9 +468,8 @@ export async function scrape(maxUrls = 10, targets: string[] = []): Promise<void
       }
       
       // Save to NEON database with transaction support
-      let savedToDb = false;
       try {
-        const { savePage, saveRequirements, savePageWithRequirements } = require('./db/page-repository');
+        const { savePageWithRequirements } = require('./db/page-repository');
         const { markJobDone } = require('./db/job-repository');
         const { testConnection } = require('./db/neon-client');
         
@@ -488,8 +488,6 @@ export async function scrape(maxUrls = 10, targets: string[] = []): Promise<void
         console.log(`  💾 Attempting to save to database: ${job.url.slice(0, 60)}...`);
         const pageId = await savePageWithRequirements(rec);
         await markJobDone(job.url);
-        
-        savedToDb = true;
         
         // Also update local state for compatibility
         state.pages = state.pages.filter(p => p.url !== job.url);
@@ -564,7 +562,6 @@ export async function scrape(maxUrls = 10, targets: string[] = []): Promise<void
     
     // Auto-blacklist: URLs with 0 requirements (likely category/info pages, not program detail pages)
     const reqs = p.categorized_requirements || {};
-    const totalRequirements = Object.values(reqs).flat().filter(Array.isArray).reduce((sum, items) => sum + items.length, 0);
     
     // CRITICAL categories - at least one must be present for page to be valuable
     const criticalCategories = ['eligibility', 'financial', 'documents', 'project', 'timeline'];

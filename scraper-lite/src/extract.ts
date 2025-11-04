@@ -105,8 +105,10 @@ export function calculateMeaningfulnessScore(value: string | number | object): n
 
 /**
  * Helper to create a requirement item with automatic meaningfulness scoring
+ * (Currently unused - kept for potential future use)
  */
-function createRequirementItem(
+/*
+function _createRequirementItem(
   type: string,
   value: string | number | object,
   required: boolean = true,
@@ -129,6 +131,7 @@ function createRequirementItem(
   
   return item;
 }
+*/
 
 export interface ExtractedMeta {
   title: string;
@@ -200,7 +203,7 @@ function extractStructuredGeography(text: string, geographicReqs: RequirementIte
   city?: string;
   eu_eligible?: boolean;
 } | null {
-  const lower = text.toLowerCase();
+  // const lower = text.toLowerCase(); // Unused
   const result: any = {};
   
   // Check for EU eligibility
@@ -958,7 +961,7 @@ export function extractMeta(html: string, url?: string): ExtractedMeta {
       inputs.slice(0, 10).each((_, el) => {
         const $el = $(el);
         const name = $el.attr('name') || '';
-        const type = $el.attr('type') || $el.prop('tagName').toLowerCase();
+        // const type = $el.attr('type') || $el.prop('tagName').toLowerCase(); // Unused
         const label = $el.prev('label').text().trim() || 
                      $el.closest('label').text().trim() ||
                      $el.attr('placeholder') || '';
@@ -1239,18 +1242,18 @@ export function extractAllRequirements(text: string, html?: string): Record<stri
       const cheerio = require('cheerio');
       const $h = cheerio.load(html);
       // Look for headings that indicate eligibility sections
-      const eligibilityHeadings = $h('h1, h2, h3, h4').filter((_, el) => {
+      const eligibilityHeadings = $h('h1, h2, h3, h4').filter((_: any, el: any) => {
         const text = $h(el).text().toLowerCase();
         return eligibilityKeywords.some(k => text.includes(k)) ||
                /teilnahmevoraussetzung|eligibility|voraussetzung/i.test(text);
       });
       
-      eligibilityHeadings.each((_, heading) => {
+      eligibilityHeadings.each((_: any, heading: any) => {
         const $heading = $h(heading);
         const sectionText = $heading.nextUntil('h1, h2, h3').text().trim();
         if (sectionText.length > 15 && sectionText.length < 500) {
           // Extract first meaningful paragraph
-          const firstPara = sectionText.split('\n').find(p => p.trim().length > 15) || sectionText.substring(0, 300);
+          const firstPara = sectionText.split('\n').find((p: string) => p.trim().length > 15) || sectionText.substring(0, 300);
           if (firstPara && !firstPara.toLowerCase().includes('specified') && !firstPara.toLowerCase().includes('see below')) {
             categorized.eligibility.push({
               type: 'eligibility_criteria',

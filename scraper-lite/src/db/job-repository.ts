@@ -2,7 +2,7 @@
  * Job Repository
  * Database operations for scraping jobs queue
  */
-import { getPool, queryWithRetry } from './neon-client';
+import { queryWithRetry } from './neon-client';
 
 export interface DbJob {
   id: number;
@@ -26,8 +26,6 @@ export async function saveJob(job: {
   attempts?: number;
   lastError?: string;
 }): Promise<number> {
-  const pool = getPool();
-  
   const result = await queryWithRetry<{ id: number }>(
     `INSERT INTO scraping_jobs (url, status, depth, seed_url, attempts, last_error)
      VALUES ($1, $2, $3, $4, $5, $6)
@@ -65,8 +63,6 @@ export async function updateJobStatus(
   status: string,
   error?: string
 ): Promise<void> {
-  const pool = getPool();
-  
   await queryWithRetry(
     `UPDATE scraping_jobs 
      SET status = $1, last_error = $2, last_fetched_at = NOW(), updated_at = NOW(), attempts = attempts + 1

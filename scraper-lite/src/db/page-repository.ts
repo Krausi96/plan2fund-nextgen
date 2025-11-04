@@ -90,7 +90,7 @@ export async function savePage(page: PageMetadata, client?: PoolClient): Promise
     throw new Error(`Data validation failed: ${validation.errors.join(', ')}`);
   }
   
-  const deadlineDate = parseDeadline(page.deadline);
+  const deadlineDate = parseDeadline(page.deadline ?? null);
   
   const result = await executeQuery<{ id: number }>(
     `INSERT INTO pages (

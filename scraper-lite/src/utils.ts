@@ -73,7 +73,7 @@ export function isOverviewPage(url: string, html?: string): boolean {
       
       // Count program detail links
       let programLinkCount = 0;
-      $('a[href]').each((_, el) => {
+      $('a[href]').each((_: any, el: any) => {
         const href = $(el).attr('href') || '';
         let fullUrl = href;
         if (href.startsWith('/')) {
@@ -391,6 +391,7 @@ export function isProgramDetailPage(url: string): boolean {
       'horizon', 'europa.eu', 'eif.org', 'bmwk.de', 'rvo.nl', 'invest-nl.nl'
     ];
     
+    const hostname = u.hostname.toLowerCase();
     const isKnownInstitution = knownHosts.some(knownHost => hostname.includes(knownHost));
     
     if (isKnownInstitution) {

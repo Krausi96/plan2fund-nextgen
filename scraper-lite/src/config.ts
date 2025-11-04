@@ -3,8 +3,7 @@ import {
   institutions as legacyInstitutions, 
   fundingTypes,
   programFocus,
-  autoDiscoveryPatterns,
-  type InstitutionConfig 
+  autoDiscoveryPatterns
 } from '../../legacy/institutionConfig';
 
 export interface LiteInstitutionConfig {
