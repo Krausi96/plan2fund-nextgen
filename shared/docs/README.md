@@ -1,12 +1,27 @@
 # Plan2Fund Documentation
 
-## Unified Documentation
+Essential documentation for the Plan2Fund application.
 
-**👉 See: [`../MASTER_DOCUMENTATION.md`](../MASTER_DOCUMENTATION.md)** - Complete guide to the system
+## Quick Start
 
-This is the single source of truth for:
-- How the complete pipeline works
-- How the web scraper extracts data
-- How SmartWizard asks questions
-- How to run and automate
-- Current status and next steps
+- **[Configuration Guide](./CONFIGURATION_GUIDE.md)** - Setup email, payments, and database
+- **[Test Email Guide](./TEST_EMAIL_GUIDE.md)** - How to test email functionality and where data is saved
+- **[Dashboard Guide](./DASHBOARD_DATA_AND_ADMIN_GUIDE.md)** - Dashboard features, admin access, and data storage
+
+## Core Documentation
+
+### Setup & Configuration
+- [Configuration Guide](./CONFIGURATION_GUIDE.md) - Complete setup for email, payments, database
+- [Test Email Guide](./TEST_EMAIL_GUIDE.md) - Email testing and data storage locations
+
+### Features & Usage
+- [Dashboard Data & Admin Guide](./DASHBOARD_DATA_AND_ADMIN_GUIDE.md) - Dashboard features, multi-user workspaces, admin panel
+
+### Technical Specifications
+- [Master Template Specification](./MASTER_TEMPLATE_SPECIFICATION.md) - Business plan template structure
+- [Additional Documents Specification](./ADDITIONAL_DOCUMENTS_SPECIFICATION.md) - Additional document types and generation
+- [Architecture Explanation](./ARCHITECTURE_EXPLANATION.md) - System architecture overview
+
+## Archived Documentation
+
+Historical analysis and audit files are archived in `archive/` directory.

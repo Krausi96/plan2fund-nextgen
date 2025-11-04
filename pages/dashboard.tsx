@@ -298,42 +298,26 @@ function DashboardPage() {
           </div>
           {isMounted && (
             <div className="hidden md:flex items-center gap-3">
-              <div className="flex items-center gap-2">
-                <ClientManager
-                  clients={clients}
-                  onClientsChange={(newClients) => {
-                    setClients(newClients);
-                    if (newClients.length > 0 && !activeClientId) {
-                      setActiveClientId(newClients[0].id);
-                    }
-                  }}
-                  activeClientId={activeClientId}
-                  onActiveClientChange={(clientId) => {
-                    setActiveClientId(clientId);
-                    if (clientId) {
-                      analytics.trackUserAction('dashboard_client_switched', { clientId });
-                    }
-                  }}
-                />
-                {clients.length > 0 && (
-                  <select
-                    className="px-3 py-1.5 border border-gray-300 rounded-lg text-sm font-medium bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors shadow-sm"
-                    value={activeClientId || ''}
-                    onChange={(e)=>{
-                      setActiveClientId(e.target.value || null);
-                      analytics.trackUserAction('dashboard_client_switched', { clientId: e.target.value });
-                    }}
-                  >
-                    {clients.map(c => (
-                      <option key={c.id} value={c.id}>{c.name}</option>
-                    ))}
-                  </select>
-                )}
-              </div>
+              <ClientManager
+                clients={clients}
+                onClientsChange={(newClients) => {
+                  setClients(newClients);
+                  if (newClients.length > 0 && !activeClientId) {
+                    setActiveClientId(newClients[0].id);
+                  }
+                }}
+                activeClientId={activeClientId}
+                onActiveClientChange={(clientId) => {
+                  setActiveClientId(clientId);
+                  if (clientId) {
+                    analytics.trackUserAction('dashboard_client_switched', { clientId });
+                  }
+                }}
+              />
               <Link href="/pricing" onClick={()=>analytics.trackUserAction('dashboard_upgrade_click', {})}>
-                <div className="px-4 py-2 rounded-lg text-sm font-medium border border-blue-600 text-blue-600 hover:bg-blue-600 hover:text-white transition-all duration-200 shadow-sm hover:shadow-md">
+                <Button variant="outline" size="sm">
                   Upgrade
-                </div>
+                </Button>
               </Link>
               <div className="bg-blue-50 px-4 py-2 rounded-lg text-sm text-blue-600 font-medium shadow-sm">My Account</div>
             </div>
@@ -393,18 +377,18 @@ function DashboardPage() {
           <div className="flex items-center justify-between mb-6">
             <h2 className="text-xl font-semibold">Recent Business Plans</h2>
             <div className="flex gap-2">
-              <Link href="/reco" onClick={()=>analytics.trackUserAction('dashboard_cta_recommendations', {})}>
-                <Button size="sm" variant="outline">
+              <Button size="sm" variant="outline" asChild>
+                <Link href="/reco" onClick={()=>analytics.trackUserAction('dashboard_cta_recommendations', {})}>
                   <Plus className="w-4 h-4 mr-2" />
                   Get Recommendations
-                </Button>
-              </Link>
-              <Link href="/editor?product=submission&route=grant" onClick={()=>analytics.trackUserAction('dashboard_cta_new_plan', {})}>
-                <Button size="sm" className="bg-blue-600 hover:bg-blue-700">
+                </Link>
+              </Button>
+              <Button size="sm" className="bg-blue-600 hover:bg-blue-700" asChild>
+                <Link href="/editor?product=submission&route=grant" onClick={()=>analytics.trackUserAction('dashboard_cta_new_plan', {})}>
                   <Plus className="w-4 h-4 mr-2" />
                   New Plan
-                </Button>
-              </Link>
+                </Link>
+              </Button>
             </div>
           </div>
 
@@ -413,16 +397,16 @@ function DashboardPage() {
               <FileText className="w-12 h-12 text-gray-400 mx-auto mb-4" />
               <p className="text-gray-600 mb-4">No business plans yet</p>
               <div className="flex flex-col sm:flex-row gap-2">
-                <Link href="/reco">
-                  <Button variant="outline">
+                <Button variant="outline" asChild>
+                  <Link href="/reco">
                     Get Recommendations
-                  </Button>
-                </Link>
-                <Link href="/editor?product=submission&route=grant">
-                  <Button className="bg-blue-600 hover:bg-blue-700">
+                  </Link>
+                </Button>
+                <Button className="bg-blue-600 hover:bg-blue-700" asChild>
+                  <Link href="/editor?product=submission&route=grant">
                     Create Your First Plan
-                  </Button>
-                </Link>
+                  </Link>
+                </Button>
               </div>
             </div>
           ) : (
@@ -450,11 +434,11 @@ function DashboardPage() {
                     </div>
                     <div className="flex items-center ml-4 gap-2">
                       {!paymentStatus.isPaid && plan.status === 'completed' && (
-                        <Link href={`/checkout?planId=${plan.id}`}>
-                          <Button size="sm" variant="outline" className="text-xs">
+                        <Button size="sm" variant="outline" className="text-xs" asChild>
+                          <Link href={`/checkout?planId=${plan.id}`}>
                             Unlock Export
-                          </Button>
-                        </Link>
+                          </Link>
+                        </Button>
                       )}
                       <span className={`px-2 py-1 rounded-full text-xs font-medium flex items-center ${getStatusColor(plan.status)}`}>
                         {getStatusIcon(plan.status)}
@@ -472,22 +456,22 @@ function DashboardPage() {
           <Card className="p-6">
             <div className="flex items-center justify-between mb-6">
               <h2 className="text-xl font-semibold">Active Applications</h2>
-              <Link href="/reco">
-                <Button size="sm" variant="outline">
+              <Button size="sm" variant="outline" asChild>
+                <Link href="/reco">
                   Find More
-                </Button>
-              </Link>
+                </Link>
+              </Button>
             </div>
 
             {recommendations.length === 0 ? (
             <div className="text-center py-8">
               <Target className="w-12 h-12 text-gray-400 mx-auto mb-4" />
               <p className="text-gray-600 mb-4">No active applications</p>
-              <Link href="/reco">
-                <Button className="bg-blue-600 hover:bg-blue-700">
+              <Button className="bg-blue-600 hover:bg-blue-700" asChild>
+                <Link href="/reco">
                   Find Funding Opportunities
-                </Button>
-              </Link>
+                </Link>
+              </Button>
             </div>
           ) : (
             <div className="space-y-4">
@@ -518,32 +502,32 @@ function DashboardPage() {
       <Card className="p-6 mt-8">
         <h2 className="text-xl font-semibold mb-6">Quick Actions</h2>
         <div className="grid md:grid-cols-3 gap-4">
-          <Link href="/reco" onClick={()=>analytics.trackUserAction('dashboard_quick_find_funding', {})}>
-            <Button variant="outline" className="w-full h-20 flex flex-col items-center justify-center">
+          <Button variant="outline" className="w-full h-20 flex flex-col items-center justify-center" asChild>
+            <Link href="/reco" onClick={()=>analytics.trackUserAction('dashboard_quick_find_funding', {})}>
               <Target className="w-6 h-6 mb-2" />
               Find Funding
-            </Button>
-          </Link>
+            </Link>
+          </Button>
           <div className="space-y-2">
-            <Link href="/reco" onClick={()=>analytics.trackUserAction('dashboard_quick_get_recommendations', {})}>
-              <Button variant="outline" className="w-full h-16 flex flex-col items-center justify-center">
+            <Button variant="outline" className="w-full h-16 flex flex-col items-center justify-center" asChild>
+              <Link href="/reco" onClick={()=>analytics.trackUserAction('dashboard_quick_get_recommendations', {})}>
                 <FileText className="w-6 h-6 mb-2" />
                 Get Recommendations
-              </Button>
-            </Link>
-            <Link href="/editor?product=submission&route=grant" onClick={()=>analytics.trackUserAction('dashboard_quick_create_plan', {})}>
-              <Button variant="outline" className="w-full h-16 flex flex-col items-center justify-center">
+              </Link>
+            </Button>
+            <Button variant="outline" className="w-full h-16 flex flex-col items-center justify-center" asChild>
+              <Link href="/editor?product=submission&route=grant" onClick={()=>analytics.trackUserAction('dashboard_quick_create_plan', {})}>
                 <FileText className="w-6 h-6 mb-2" />
                 Create Plan
-              </Button>
-            </Link>
+              </Link>
+            </Button>
           </div>
-          <Link href="/contact">
-            <Button variant="outline" className="w-full h-20 flex flex-col items-center justify-center">
+          <Button variant="outline" className="w-full h-20 flex flex-col items-center justify-center" asChild>
+            <Link href="/contact">
               <AlertCircle className="w-6 h-6 mb-2" />
               Get Help
-            </Button>
-          </Link>
+            </Link>
+          </Button>
         </div>
       </Card>
 

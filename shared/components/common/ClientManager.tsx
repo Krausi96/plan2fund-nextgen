@@ -111,16 +111,41 @@ export default function ClientManager({
 
   return (
     <>
-      <Button
-        onClick={handleOpen}
-        variant="outline"
-        size="sm"
-        className="flex items-center gap-2"
-      >
-        <Users className="w-4 h-4" />
-        <span className="hidden sm:inline">Manage Clients</span>
-        <span className="sm:hidden">Clients</span>
-      </Button>
+      <div className="flex items-center gap-2">
+        {/* Client Switcher - Workspace-like navigation */}
+        {clients.length > 0 && (
+          <div className="flex items-center gap-1 bg-gray-100 rounded-lg p-1">
+            {clients.map((client) => (
+              <button
+                key={client.id}
+                onClick={() => {
+                  onActiveClientChange(client.id);
+                  analytics.trackUserAction('dashboard_client_switched', { clientId: client.id });
+                }}
+                className={`px-3 py-1.5 rounded-md text-sm font-medium transition-all duration-200 ${
+                  activeClientId === client.id
+                    ? 'bg-white text-blue-600 shadow-sm'
+                    : 'text-gray-600 hover:text-gray-900 hover:bg-gray-50'
+                }`}
+                title={client.name}
+              >
+                <span className="max-w-[120px] truncate">{client.name}</span>
+              </button>
+            ))}
+          </div>
+        )}
+        
+        <Button
+          onClick={handleOpen}
+          variant="outline"
+          size="sm"
+          className="flex items-center gap-2"
+        >
+          <Users className="w-4 h-4" />
+          <span className="hidden sm:inline">{clients.length > 0 ? 'Manage' : 'Add Client'}</span>
+          <span className="sm:hidden">+</span>
+        </Button>
+      </div>
 
       <Dialog open={isOpen} onOpenChange={setIsOpen}>
         <DialogContent className="sm:max-w-[500px]">
@@ -222,7 +247,7 @@ export default function ClientManager({
 
             {/* Info */}
             <div className="text-xs text-gray-500 bg-gradient-to-r from-blue-50 to-purple-50 p-4 rounded-xl border border-blue-100">
-              💡 <strong>Tip:</strong> Switch between clients using the dropdown in the dashboard header to filter plans and recommendations.
+              💡 <strong>Tip:</strong> Switch between clients using the workspace tabs in the dashboard header. Each client has their own plans and recommendations.
             </div>
           </div>
         </DialogContent>
