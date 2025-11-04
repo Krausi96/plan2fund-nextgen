@@ -162,17 +162,18 @@ export class QuestionEngine {
     // Sort by importance (not just frequency)
     // Most important questions first: location, company_type, then by frequency
     const importanceOrder: Record<string, number> = {
-      'location': 1,
-      'company_type': 2,
-      'company_age': 3,
-      'revenue': 4,
-      'funding_amount': 5,
-      'co_financing': 6,
-      'research_focus': 7,
-      'consortium': 8,
-      'market_size': 9,
-      'use_of_funds': 10,
-      'team_size': 11
+      'location': 1,           // 1. Location (with subregion support)
+      'company_type': 2,       // 2. Company type
+      'company_age': 3,        // 3. Company age
+      'revenue': 4,            // 4. Revenue
+      'funding_amount': 5,     // 5. Funding amount (VERY IMPORTANT)
+      'use_of_funds': 6,       // 6. Use of funds
+      'impact': 7,             // 7. Impact (IMPORTANT - was missing!)
+      'co_financing': 8,       // 8. Co-financing
+      'research_focus': 9,     // 9. Research focus
+      'consortium': 10,        // 10. Consortium
+      'market_size': 11,       // 11. Market size
+      'team_size': 12          // 12. Team size
     };
     
     this.questions.sort((a, b) => {
