@@ -5,12 +5,14 @@ import { useRouter } from "next/router"
 import LanguageSwitcher from '@/shared/components/layout/LanguageSwitcher'
 import { useI18n } from "@/shared/contexts/I18nContext"
 import { useUser } from "@/shared/contexts/UserContext"
+import LoginModal from '@/shared/components/auth/LoginModal'
 
 export default function Header() {
   const { t } = useI18n()
   const router = useRouter()
   const { userProfile, clearUserProfile } = useUser()
   const [open, setOpen] = useState(false)
+  const [loginModalOpen, setLoginModalOpen] = useState(false)
   const [isMounted, setIsMounted] = useState(false)
   const menuRef = useRef<HTMLDivElement>(null)
   const buttonRef = useRef<HTMLButtonElement>(null)
@@ -86,12 +88,12 @@ export default function Header() {
               </button>
             </div>
           ) : isMounted ? (
-            <Link 
-              href="/login" 
+            <button
+              onClick={() => setLoginModalOpen(true)}
               className="px-5 py-2 border border-primary text-primary rounded-lg hover:bg-primary hover:text-white transition-colors font-medium"
             >
               Log in
-            </Link>
+            </button>
           ) : (
             <div className="w-20 h-10" />
           )}
@@ -155,13 +157,15 @@ export default function Header() {
                 </button>
               </>
             ) : isMounted ? (
-              <Link 
-                href="/login" 
-                className="px-4 py-2 text-blue-600 border border-blue-600 rounded-lg hover:bg-blue-600 hover:text-white transition-colors font-medium text-center"
-                onClick={() => setOpen(false)}
+              <button
+                onClick={() => {
+                  setLoginModalOpen(true);
+                  setOpen(false);
+                }}
+                className="w-full px-4 py-2 text-blue-600 border border-blue-600 rounded-lg hover:bg-blue-600 hover:text-white transition-colors font-medium text-center"
               >
                 Log in
-              </Link>
+              </button>
             ) : null}
             <div className="pt-4 border-t">
               <LanguageSwitcher compact />
@@ -169,6 +173,13 @@ export default function Header() {
           </div>
         </div>
       )}
+
+      {/* Login Modal */}
+      <LoginModal 
+        isOpen={loginModalOpen} 
+        onClose={() => setLoginModalOpen(false)}
+        redirect={router.asPath !== '/' ? router.asPath : undefined}
+      />
     </header>
   )
 }
