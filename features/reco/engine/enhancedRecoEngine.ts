@@ -658,9 +658,27 @@ export async function scoreProgramsEnhanced(
       categorized_requirements: p.categorized_requirements || null
     }));
 
-    console.log('🔍 Debug: Processing', normalizedPrograms.length, 'programs');
-    console.log('🔍 Debug: Sample program:', JSON.stringify(normalizedPrograms[0], null, 2));
-    console.log('🔍 Debug: User answers:', answers);
+    console.log('🔍 EnhancedRecoEngine: Processing', normalizedPrograms.length, 'programs');
+    console.log('🔍 EnhancedRecoEngine: User answers:', Object.keys(answers).map(k => `${k}=${answers[k]}`).join(', '));
+    console.log('🔍 EnhancedRecoEngine: Derived signals:', {
+      fundingMode: derivedSignals.fundingMode,
+      companyAgeBucket: derivedSignals.companyAgeBucket,
+      sectorBucket: derivedSignals.sectorBucket,
+      trlBucket: derivedSignals.trlBucket
+    });
+    
+    if (normalizedPrograms.length === 0) {
+      console.warn('⚠️ EnhancedRecoEngine: No programs to score!');
+      return [];
+    }
+    
+    console.log('🔍 EnhancedRecoEngine: Sample program structure:', {
+      id: normalizedPrograms[0].id,
+      name: normalizedPrograms[0].name,
+      hasCategorizedRequirements: !!normalizedPrograms[0].categorized_requirements,
+      categorizedKeys: normalizedPrograms[0].categorized_requirements ? Object.keys(normalizedPrograms[0].categorized_requirements) : [],
+      hasEligibilityCriteria: !!(normalizedPrograms[0] as any).eligibility_criteria
+    });
 
     return normalizedPrograms.map((program) => {
       let score = 0;
@@ -897,7 +915,12 @@ export async function scoreProgramsEnhanced(
       // Generate eligibility trace
       const trace = generateEligibilityTrace(program, matchedCriteria, gaps, derivedSignals);
       
-      console.log(`🔍 Debug: Program ${program.id} - Final Score: ${scorePercent}, Matched: ${matchedCriteria.length}, Gaps: ${gaps.length}`);
+      console.log(`🔍 EnhancedRecoEngine: Program ${program.id} - Final Score: ${scorePercent}, Matched: ${matchedCriteria.length}, Gaps: ${gaps.length}, Eligibility: ${eligibility}`);
+      
+      // Log warnings for low scores
+      if (scorePercent < 30 && matchedCriteria.length === 0) {
+        console.warn(`⚠️ EnhancedRecoEngine: Program ${program.id} has very low score (${scorePercent}) with no matched criteria`);
+      }
       
       return {
         ...program,
@@ -918,11 +941,25 @@ export async function scoreProgramsEnhanced(
         trace // Add trace information
       };
     }).sort((a, b) => b.score - a.score);
-  } catch (error) {
-    console.error('Enhanced recommendation engine failed, using fallback:', error);
-    return await scoreProgramsFallback(answers, mode);
+    } catch (error) {
+      console.error('❌ Enhanced recommendation engine failed:', error);
+      console.error('❌ Error details:', {
+        message: error instanceof Error ? error.message : String(error),
+        stack: error instanceof Error ? error.stack : undefined,
+        answersCount: Object.keys(answers).length,
+        answers: Object.keys(answers)
+      });
+      
+      // Try to return partial results if available
+      try {
+        console.log('🔄 Attempting fallback scoring...');
+        return await scoreProgramsFallback(answers, mode);
+      } catch (fallbackError) {
+        console.error('❌ Fallback scoring also failed:', fallbackError);
+        return [];
+      }
+    }
   }
-}
 
 // Fallback recommendation engine - simple but reliable
 async function scoreProgramsFallback(

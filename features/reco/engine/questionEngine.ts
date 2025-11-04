@@ -515,14 +515,34 @@ export class QuestionEngine {
    * Create location question from analysis
    */
   private createLocationQuestion(locationMap: Map<string, number>): any {
+    // Map location values to translation keys
+    const locationKeyMap: Record<string, string> = {
+      'austria': 'austria',
+      'at': 'austria',
+      'österreich': 'austria',
+      'germany': 'germany',
+      'de': 'germany',
+      'deutschland': 'germany',
+      'eu': 'eu',
+      'europe': 'eu',
+      'european union': 'eu',
+      'international': 'international',
+      'switzerland': 'switzerland',
+      'ch': 'switzerland'
+    };
+    
     const options = Array.from(locationMap.entries())
       .sort(([,a], [,b]) => b - a) // Sort by frequency
-      .map(([location, frequency]) => ({
-        value: location,
-        label: `wizard.options.${location}`,
-        description: `${frequency} programs available`,
-        fundingTypes: ['grants', 'loans']
-      }));
+      .map(([location, frequency]) => {
+        const normalizedLocation = location.toLowerCase().trim();
+        const translationKey = locationKeyMap[normalizedLocation] || normalizedLocation;
+        return {
+          value: location,
+          label: `wizard.options.${translationKey}`,
+          description: `${frequency} programs available`,
+          fundingTypes: ['grants', 'loans']
+        };
+      });
 
     return {
       id: 'location',
@@ -558,13 +578,8 @@ export class QuestionEngine {
       category: 'business_stage',
       phase: 1,
       isCoreQuestion: true,
-      // NEW: Only ask this question if we have location context
-      skipConditions: [{
-        questionId: 'location',
-        operator: 'equals',
-        value: null,
-        action: 'hide'
-      }]
+      // NEW: Ask this question after location is answered (conditional flow)
+      skipConditions: [] // Will be asked after location
     };
   }
 
@@ -692,7 +707,7 @@ export class QuestionEngine {
 
     // ALWAYS include 0-2 years option (even if no programs have max_age <= 2, companies can still be that young)
     const ageUnder2 = ages.filter(age => age <= 2).reduce((sum, age) => sum + (ageMap.get(age) || 0), 0);
-    ranges.push({ value: '0_2_years', label: 'wizard.options.0to2Years', programs: ageUnder2 || 100 }); // Default 100 if no data
+    ranges.push({ value: '0_2_years', label: 'wizard.options.under2Years', programs: ageUnder2 || 100 }); // Default 100 if no data
 
     if (ages.some(age => age > 2 && age <= 5)) {
       ranges.push({ value: '2_5_years', label: 'wizard.options.2to5Years', programs: ages.filter(age => age > 2 && age <= 5).reduce((sum, age) => sum + (ageMap.get(age) || 0), 0) });
@@ -774,13 +789,18 @@ export class QuestionEngine {
   public async getNextQuestionEnhanced(answers: Record<string, any>): Promise<SymptomQuestion | null> {
     console.log(`🔍 Getting next question from ${Object.keys(answers).length} answers`);
     console.log(`📊 Total programs: ${this.allPrograms.length}`);
+    console.log(`📊 Current answers:`, Object.keys(answers).map(k => `${k}=${answers[k]}`).join(', '));
     
     // NEW: Calculate remaining programs after filtering AND UPDATE STATE
     this.remainingPrograms = this.applyMajorFilters(answers);
-    console.log(`📊 Programs remaining: ${this.remainingPrograms.length} / ${this.allPrograms.length}`);
+    const filterPercent = this.allPrograms.length > 0 
+      ? ((1 - this.remainingPrograms.length / this.allPrograms.length) * 100).toFixed(1)
+      : 0;
+    console.log(`📊 Programs remaining: ${this.remainingPrograms.length} / ${this.allPrograms.length} (${filterPercent}% filtered)`);
     
-    // NEW: Only stop early if we have ≤10 programs AND answered at least 5 questions
-    if (this.remainingPrograms.length <= 10 && Object.keys(answers).length >= 5) {
+    // NEW: Only stop early if we have ≤5 programs AND answered at least 10 questions
+    // This ensures we ask enough questions to properly narrow down
+    if (this.remainingPrograms.length <= 5 && Object.keys(answers).length >= 10) {
       console.log(`✅ Only ${this.remainingPrograms.length} programs remain (well narrowed), stopping questions early`);
       return null;
     }
@@ -795,25 +815,89 @@ export class QuestionEngine {
     console.log('🔍 Continuing with question selection...');
     
     // NEW: Generate contextual follow-up questions based on answers
+    // This creates NEW questions based on what the user has answered
     this.generateContextualQuestions(answers);
     
     // DYNAMIC: Score ALL unanswered questions and select best
+    // Also prioritize questions that are relevant to the CURRENT remaining programs
     const unansweredQuestions = this.questions.filter(q => 
       !answers[q.id] && !this.askedQuestions.includes(q.id) && this.shouldShowQuestion(q, answers)
     );
     
+    // NEW: If we have location but not company_age, prioritize company_age
+    // If we have company_age but not revenue, prioritize revenue
+    // This creates a logical flow: location → company_age → revenue → team_size → specific requirements
+    if (answers.location && !answers.company_age) {
+      const companyAgeQuestion = unansweredQuestions.find(q => q.id === 'company_age');
+      if (companyAgeQuestion) {
+        console.log(`🎯 Prioritizing company_age question after location answer`);
+        // Boost its score by moving it to front
+        unansweredQuestions.sort((a, b) => {
+          if (a.id === 'company_age') return -1;
+          if (b.id === 'company_age') return 1;
+          return 0;
+        });
+      }
+    }
+    
+    if (answers.company_age && !answers.current_revenue) {
+      const revenueQuestion = unansweredQuestions.find(q => q.id === 'current_revenue');
+      if (revenueQuestion) {
+        console.log(`🎯 Prioritizing revenue question after company_age answer`);
+        unansweredQuestions.sort((a, b) => {
+          if (a.id === 'current_revenue') return -1;
+          if (b.id === 'current_revenue') return 1;
+          return 0;
+        });
+      }
+    }
+    
+    if (answers.current_revenue && !answers.team_size) {
+      const teamSizeQuestion = unansweredQuestions.find(q => q.id === 'team_size');
+      if (teamSizeQuestion) {
+        console.log(`🎯 Prioritizing team_size question after revenue answer`);
+        unansweredQuestions.sort((a, b) => {
+          if (a.id === 'team_size') return -1;
+          if (b.id === 'team_size') return 1;
+          return 0;
+        });
+      }
+    }
+    
     // Score each question dynamically based on CURRENT program pool
-    const scoredQuestions = unansweredQuestions.map(question => ({
-      question,
-      score: this.calculateInformationValue(question, answers, this.remainingPrograms)
-    }));
+    const scoredQuestions = unansweredQuestions.map(question => {
+      const baseScore = this.calculateInformationValue(question, answers, this.remainingPrograms);
+      
+      // NEW: Bonus for sequential flow questions (location → company_age → revenue → team_size)
+      let flowBonus = 0;
+      if (question.id === 'company_age' && answers.location && !answers.company_age) {
+        flowBonus = 50; // High priority after location
+      } else if (question.id === 'current_revenue' && answers.company_age && !answers.current_revenue) {
+        flowBonus = 40; // High priority after company_age
+      } else if (question.id === 'team_size' && answers.current_revenue && !answers.team_size) {
+        flowBonus = 30; // High priority after revenue
+      } else if (question.id === 'research_focus' && answers.team_size && !answers.research_focus) {
+        flowBonus = 20; // Medium priority after team_size
+      } else if (question.id === 'international_collaboration' && answers.research_focus && !answers.international_collaboration) {
+        flowBonus = 15; // Medium priority after research_focus
+      }
+      
+      return {
+        question,
+        score: baseScore + flowBonus
+      };
+    });
     
     // Sort by score (highest first) - THIS IS THE DYNAMIC PART
     scoredQuestions.sort((a, b) => b.score - a.score);
     
-    console.log('📊 Question rankings:');
-    scoredQuestions.slice(0, 5).forEach(({question, score}, idx) => {
-      console.log(`  ${idx + 1}. ${question.id}: ${score.toFixed(2)}`);
+    console.log('📊 Question rankings (top 10):');
+    scoredQuestions.slice(0, 10).forEach(({question, score}, idx) => {
+      const relevance = this.remainingPrograms.filter(p => {
+        const cat = (p as any).categorized_requirements?.[this.mapCategoryToCategorizedKey(question.category)];
+        return cat && cat.length > 0;
+      }).length;
+      console.log(`  ${idx + 1}. ${question.id} (${question.category}): score=${score.toFixed(1)}, relevant=${relevance}/${this.remainingPrograms.length}`);
     });
     
     // Select highest scoring question
@@ -842,8 +926,8 @@ export class QuestionEngine {
       return false;
     }
     
-    // If we have 8+ answers, we can stop (reduced from 10)
-    if (answerCount >= 8) {
+    // If we have 15+ answers, we can stop (increased from 8 to get better matches)
+    if (answerCount >= 15) {
       console.log(`✅ Sufficient answers provided (${answerCount})`);
       return true;
     }
@@ -894,89 +978,231 @@ export class QuestionEngine {
   }
 
   /**
-   * Apply major filters to programs
+   * Apply major filters to programs - ENHANCED to use categorized_requirements
    */
   public applyMajorFilters(answers: Record<string, any>): Program[] {
     let filteredPrograms = [...this.allPrograms];
     const initialCount = filteredPrograms.length;
     
-    // Location filter
+    // Location filter - check both eligibility_criteria AND categorized_requirements
     if (answers.location) {
       const beforeLocation = filteredPrograms.length;
       filteredPrograms = filteredPrograms.filter(program => {
         const eligibility = (program as any).eligibility_criteria;
+        const categorized = (program as any).categorized_requirements;
         
-        // If no location criteria, include the program (available to all)
-        if (!eligibility || !eligibility.location) return true;
-        
-        const programLocation = eligibility.location.toLowerCase();
-        const userLocation = answers.location.toLowerCase();
-        
-        // Exact match or broader scope
-        if (userLocation === 'austria' && (programLocation === 'austria' || programLocation === 'vienna')) {
-          return true;
+        // Check categorized_requirements first (more detailed)
+        if (categorized?.geographic) {
+          const geoReqs = categorized.geographic.filter((r: any) => r.type === 'location');
+          if (geoReqs.length > 0) {
+            const userLocation = answers.location.toLowerCase();
+            const programLocations = geoReqs.map((r: any) => String(r.value).toLowerCase());
+            
+            // Check if any program location matches user location
+            const matches = programLocations.some((loc: string) => {
+              if (userLocation === 'austria' && (loc === 'austria' || loc === 'vienna' || loc === 'at' || loc.includes('austria'))) return true;
+              if (userLocation === 'eu' && (loc === 'eu' || loc === 'europe' || loc === 'austria' || loc === 'vienna' || loc.includes('europe'))) return true;
+              if (userLocation === 'international' || userLocation === 'germany' || userLocation === 'switzerland') return true;
+              return loc === userLocation || loc.includes(userLocation);
+            });
+            
+            if (!matches) return false;
+          }
         }
-        if (userLocation === 'eu' && (programLocation === 'eu' || programLocation === 'austria' || programLocation === 'vienna')) {
-          return true;
-        }
-        if (userLocation === 'international' && (programLocation === 'international' || programLocation === 'eu' || programLocation === 'austria' || programLocation === 'vienna')) {
-          return true;
+        
+        // Fallback to eligibility_criteria if categorized not available
+        if (!categorized?.geographic && eligibility) {
+          // If no location criteria, include the program (available to all)
+          if (!eligibility.location) return true;
+          
+          const programLocation = eligibility.location.toLowerCase();
+          const userLocation = answers.location.toLowerCase();
+          
+          // Exact match or broader scope
+          if (userLocation === 'austria' && (programLocation === 'austria' || programLocation === 'vienna')) {
+            return true;
+          }
+          if (userLocation === 'eu' && (programLocation === 'eu' || programLocation === 'austria' || programLocation === 'vienna')) {
+            return true;
+          }
+          if (userLocation === 'international' && (programLocation === 'international' || programLocation === 'eu' || programLocation === 'austria' || programLocation === 'vienna')) {
+            return true;
+          }
+          
+          return programLocation === userLocation;
         }
         
-        return programLocation === userLocation;
+        // If no location requirements at all, include the program
+        return true;
       });
       
       console.log(`📊 Location filter (${answers.location}): ${beforeLocation} → ${filteredPrograms.length} programs`);
     }
     
-    // Company age filter
+    // Company age filter - check categorized_requirements
     if (answers.company_age) {
       const beforeAge = filteredPrograms.length;
+      const userAge = this.parseAgeAnswer(answers.company_age);
       filteredPrograms = filteredPrograms.filter(program => {
         const eligibility = (program as any).eligibility_criteria;
-        if (!eligibility || !eligibility.max_company_age) return true; // No age restriction = available
+        const categorized = (program as any).categorized_requirements;
         
-        // Parse the answer to get age in years
-        const userAge = this.parseAgeAnswer(answers.company_age);
-        const maxAge = eligibility.max_company_age;
+        // Check categorized_requirements first
+        if (categorized?.team) {
+          const ageReqs = categorized.team.filter((r: any) => 
+            r.type === 'max_company_age' || r.type === 'company_age'
+          );
+          if (ageReqs.length > 0) {
+            const maxAge = ageReqs[0].value;
+            if (typeof maxAge === 'number' && userAge > maxAge) {
+              return false;
+            }
+          }
+        }
         
-        return userAge <= maxAge;
-      });
-      console.log(`📊 Company age filter (${answers.company_age}): ${beforeAge} → ${filteredPrograms.length} programs`);
-    }
-    
-    // Revenue filter
-    if (answers.current_revenue) {
-      const beforeRevenue = filteredPrograms.length;
-      filteredPrograms = filteredPrograms.filter(program => {
-        const eligibility = (program as any).eligibility_criteria;
-        if (!eligibility || (!eligibility.revenue_min && !eligibility.revenue_max)) return true;
-        
-        const userRevenue = this.parseRevenueAnswer(answers.current_revenue);
-        if (eligibility.revenue_min && userRevenue < eligibility.revenue_min) return false;
-        if (eligibility.revenue_max && userRevenue > eligibility.revenue_max) return false;
+        // Fallback to eligibility_criteria
+        if (!categorized?.team && eligibility) {
+          if (!eligibility.max_company_age) return true; // No age restriction = available
+          const maxAge = eligibility.max_company_age;
+          if (userAge > maxAge) return false;
+        }
         
         return true;
       });
-      console.log(`📊 Revenue filter (${answers.current_revenue}): ${beforeRevenue} → ${filteredPrograms.length} programs`);
+      console.log(`📊 Company age filter (${answers.company_age}, userAge: ${userAge}): ${beforeAge} → ${filteredPrograms.length} programs`);
     }
     
-    // Team size filter
-    if (answers.team_size) {
-      const beforeTeam = filteredPrograms.length;
+    // Revenue filter - check categorized_requirements
+    if (answers.current_revenue) {
+      const beforeRevenue = filteredPrograms.length;
+      const userRevenue = this.parseRevenueAnswer(answers.current_revenue);
       filteredPrograms = filteredPrograms.filter(program => {
         const eligibility = (program as any).eligibility_criteria;
-        if (!eligibility || !eligibility.min_team_size) return true;
+        const categorized = (program as any).categorized_requirements;
         
-        const userTeamSize = this.parseTeamSizeAnswer(answers.team_size);
-        const minTeamSize = eligibility.min_team_size;
+        // Check categorized_requirements first
+        if (categorized?.financial) {
+          const revenueReqs = categorized.financial.filter((r: any) => 
+            r.type === 'revenue' || r.type === 'revenue_range'
+          );
+          if (revenueReqs.length > 0) {
+            const req = revenueReqs[0];
+            if (req.value && typeof req.value === 'object') {
+              const min = req.value.min || 0;
+              const max = req.value.max || Infinity;
+              if (userRevenue < min || userRevenue > max) return false;
+            }
+          }
+        }
         
-        return userTeamSize >= minTeamSize;
+        // Fallback to eligibility_criteria
+        if (!categorized?.financial && eligibility) {
+          if (!eligibility.revenue_min && !eligibility.revenue_max) return true;
+          if (eligibility.revenue_min && userRevenue < eligibility.revenue_min) return false;
+          if (eligibility.revenue_max && userRevenue > eligibility.revenue_max) return false;
+        }
+        
+        return true;
       });
-      console.log(`📊 Team size filter (${answers.team_size}): ${beforeTeam} → ${filteredPrograms.length} programs`);
+      console.log(`📊 Revenue filter (${answers.current_revenue}, userRevenue: ${userRevenue}): ${beforeRevenue} → ${filteredPrograms.length} programs`);
     }
     
-    console.log(`📊 Total filtering: ${initialCount} → ${filteredPrograms.length} programs`);
+    // Team size filter - check categorized_requirements
+    if (answers.team_size) {
+      const beforeTeam = filteredPrograms.length;
+      const userTeamSize = this.parseTeamSizeAnswer(answers.team_size);
+      filteredPrograms = filteredPrograms.filter(program => {
+        const eligibility = (program as any).eligibility_criteria;
+        const categorized = (program as any).categorized_requirements;
+        
+        // Check categorized_requirements first
+        if (categorized?.team) {
+          const teamReqs = categorized.team.filter((r: any) => 
+            r.type === 'min_team_size' || r.type === 'team_size'
+          );
+          if (teamReqs.length > 0) {
+            const minTeamSize = teamReqs[0].value;
+            if (typeof minTeamSize === 'number' && userTeamSize < minTeamSize) {
+              return false;
+            }
+          }
+        }
+        
+        // Fallback to eligibility_criteria
+        if (!categorized?.team && eligibility) {
+          if (!eligibility.min_team_size) return true;
+          const minTeamSize = eligibility.min_team_size;
+          if (userTeamSize < minTeamSize) return false;
+        }
+        
+        return true;
+      });
+      console.log(`📊 Team size filter (${answers.team_size}, userTeamSize: ${userTeamSize}): ${beforeTeam} → ${filteredPrograms.length} programs`);
+    }
+    
+    // Research focus filter (if answered)
+    if (answers.research_focus) {
+      const beforeResearch = filteredPrograms.length;
+      filteredPrograms = filteredPrograms.filter(program => {
+        const categorized = (program as any).categorized_requirements;
+        const eligibility = (program as any).eligibility_criteria;
+        
+        // Check categorized_requirements
+        if (categorized?.project) {
+          const hasResearch = categorized.project.some((r: any) => 
+            r.type === 'research_focus' && r.value
+          );
+          if (answers.research_focus === 'yes' && !hasResearch) {
+            // If user says yes but program doesn't require research, might still include
+            // But if program requires research and user says no, exclude
+          } else if (answers.research_focus === 'no' && hasResearch) {
+            // If program requires research but user says no, exclude
+            return false;
+          }
+        }
+        
+        // Fallback to eligibility
+        if (!categorized?.project && eligibility) {
+          if (eligibility.research_focus && answers.research_focus === 'no') {
+            return false;
+          }
+        }
+        
+        return true;
+      });
+      console.log(`📊 Research focus filter (${answers.research_focus}): ${beforeResearch} → ${filteredPrograms.length} programs`);
+    }
+    
+    // International collaboration filter (if answered)
+    if (answers.international_collaboration) {
+      const beforeCollab = filteredPrograms.length;
+      filteredPrograms = filteredPrograms.filter(program => {
+        const categorized = (program as any).categorized_requirements;
+        const eligibility = (program as any).eligibility_criteria;
+        
+        // Check categorized_requirements
+        if (categorized?.consortium) {
+          const requiresCollab = categorized.consortium.some((r: any) => 
+            r.type === 'international_collaboration' && r.value === true
+          );
+          if (requiresCollab && answers.international_collaboration === 'no') {
+            return false;
+          }
+        }
+        
+        // Fallback to eligibility
+        if (!categorized?.consortium && eligibility) {
+          if (eligibility.international_collaboration && answers.international_collaboration === 'no') {
+            return false;
+          }
+        }
+        
+        return true;
+      });
+      console.log(`📊 International collaboration filter (${answers.international_collaboration}): ${beforeCollab} → ${filteredPrograms.length} programs`);
+    }
+    
+    console.log(`📊 Total filtering: ${initialCount} → ${filteredPrograms.length} programs (${((1 - filteredPrograms.length / initialCount) * 100).toFixed(1)}% filtered)`);
     return filteredPrograms;
   }
 
@@ -1055,38 +1281,49 @@ export class QuestionEngine {
       return true;
     }
     
-    // Check skip conditions
+    // Check skip conditions - if any condition says to hide, hide the question
     for (const condition of question.skipConditions) {
       const answerValue = answers[condition.questionId];
       
-      if (!answerValue) {
-        continue; // Question hasn't been answered yet, can't skip
-      }
-      
-      // Check if condition matches
-      let shouldSkip = false;
-      
-      if (condition.operator === 'equals' && answerValue === condition.value) {
-        shouldSkip = true;
-      } else if (condition.operator === 'contains' && 
-                 Array.isArray(condition.value) && 
-                 condition.value.includes(answerValue)) {
-        shouldSkip = true;
-      } else if (condition.operator === 'in' && 
-                 Array.isArray(condition.value) && 
-                 condition.value.includes(answerValue)) {
-        shouldSkip = true;
-      } else if (condition.operator === 'not_equals' && answerValue !== condition.value) {
-        shouldSkip = true;
-      } else if (condition.operator === 'not_in' && 
-                 Array.isArray(condition.value) && 
-                 !condition.value.includes(answerValue)) {
-        shouldSkip = true;
-      }
-      
-      if (shouldSkip && condition.action === 'hide') {
-        console.log(`🚫 Skipping question ${question.id} due to condition: ${condition.questionId} ${condition.operator} ${condition.value}`);
+      // If required prerequisite question hasn't been answered, don't show this question yet
+      if (condition.action === 'show' && (answerValue === undefined || answerValue === null)) {
+        console.log(`⏳ Deferring question ${question.id} - prerequisite ${condition.questionId} not answered yet`);
         return false;
+      }
+      
+      // If prerequisite question has been answered, check if we should show
+      if (answerValue !== undefined && answerValue !== null) {
+        let conditionMet = false;
+        
+        if (condition.operator === 'equals' && answerValue === condition.value) {
+          conditionMet = true;
+        } else if (condition.operator === 'contains' && 
+                   Array.isArray(condition.value) && 
+                   condition.value.includes(answerValue)) {
+          conditionMet = true;
+        } else if (condition.operator === 'in' && 
+                   Array.isArray(condition.value) && 
+                   condition.value.includes(answerValue)) {
+          conditionMet = true;
+        } else if (condition.operator === 'not_equals' && answerValue !== condition.value) {
+          conditionMet = true;
+        } else if (condition.operator === 'not_in' && 
+                   Array.isArray(condition.value) && 
+                   !condition.value.includes(answerValue)) {
+          conditionMet = true;
+        }
+        
+        // If condition says to hide and condition is met, hide the question
+        if (condition.action === 'hide' && conditionMet) {
+          console.log(`🚫 Skipping question ${question.id} due to condition: ${condition.questionId} ${condition.operator} ${condition.value}`);
+          return false;
+        }
+        
+        // If condition says to show and condition is NOT met, hide the question
+        if (condition.action === 'show' && !conditionMet) {
+          console.log(`🚫 Skipping question ${question.id} - condition not met: ${condition.questionId} ${condition.operator} ${condition.value}`);
+          return false;
+        }
       }
     }
     
@@ -1162,8 +1399,15 @@ export class QuestionEngine {
     
     // Higher score if question is relevant to many programs
     // INCREASED RELEVANCE WEIGHT: This should be the main factor
-    const relevanceScore = (relevantPrograms / remainingPrograms.length) * 150; // Increased from 100 to 150
+    const relevanceScore = remainingPrograms.length > 0 
+      ? (relevantPrograms / remainingPrograms.length) * 200 // Increased to 200 to prioritize filtering
+      : 0;
     score += relevanceScore;
+    
+    // NEW: Calculate how much this question would filter programs (estimate)
+    // This is the KEY metric - questions that filter more programs are more valuable
+    const estimatedFilterPower = this.estimateQuestionFilterPower(question, remainingPrograms);
+    score += estimatedFilterPower * 100; // High weight for filtering power
     
     // Penalize if we already answered similar questions (avoid redundant questions)
     const similarAnswers = Object.keys(answers).filter(key => {
@@ -1181,13 +1425,87 @@ export class QuestionEngine {
       score += 20;
     }
     
-    // Penalize if we have enough answers already (encourage stopping)
+    // Don't penalize for asking more questions - we want to get good matches
+    // Only slightly reduce score after 15 answers to encourage eventual stopping
     const answerCount = Object.keys(answers).length;
-    if (answerCount >= 8) {
-      score *= 0.5; // Reduce score significantly after 8 answers
+    if (answerCount >= 15) {
+      score *= 0.8; // Small reduction after 15 answers (was 0.5 after 8)
     }
     
+    console.log(`📊 Question ${question.id} scoring: base=${((4 - question.phase) * 5).toFixed(1)}, relevance=${relevanceScore.toFixed(1)}, filterPower=${estimatedFilterPower.toFixed(2)}, final=${Math.max(0, score).toFixed(1)}`);
+    
     return Math.max(0, score);
+  }
+
+  /**
+   * NEW: Estimate how much a question would filter the remaining programs
+   */
+  private estimateQuestionFilterPower(question: SymptomQuestion, remainingPrograms: Program[]): number {
+    if (remainingPrograms.length === 0) return 0;
+    
+    // Count how many programs have requirements for this question's category
+    let programsWithRequirement = 0;
+    let programsWithoutRequirement = 0;
+    
+    for (const program of remainingPrograms) {
+      const eligibility = (program as any).eligibility_criteria;
+      const categorized = (program as any).categorized_requirements;
+      
+      let hasRequirement = false;
+      
+      switch (question.category) {
+        case 'location':
+          hasRequirement = !!(eligibility?.location || (categorized?.geographic && categorized.geographic.length > 0));
+          break;
+        case 'business_stage':
+          hasRequirement = !!(eligibility?.max_company_age || eligibility?.min_company_age || 
+                            (categorized?.team && categorized.team.some((r: any) => r.type === 'max_company_age' || r.type === 'company_age')));
+          break;
+        case 'funding_need':
+          hasRequirement = !!(eligibility?.revenue_min || eligibility?.revenue_max || 
+                            (categorized?.financial && categorized.financial.length > 0));
+          break;
+        case 'team_size':
+          hasRequirement = !!(eligibility?.min_team_size || 
+                            (categorized?.team && categorized.team.some((r: any) => r.type === 'min_team_size' || r.type === 'team_size')));
+          break;
+        case 'specific_requirements':
+          hasRequirement = !!(eligibility?.research_focus || eligibility?.international_collaboration || 
+                            (categorized?.project && categorized.project.length > 0) || 
+                            (categorized?.consortium && categorized.consortium.length > 0));
+          break;
+        case 'innovation_level':
+          hasRequirement = !!(eligibility?.industry_focus || eligibility?.research_focus || 
+                            (categorized?.innovation && categorized.innovation.length > 0) || 
+                            (categorized?.technical && categorized.technical.length > 0));
+          break;
+        default:
+          hasRequirement = true; // Default to relevant
+      }
+      
+      if (hasRequirement) {
+        programsWithRequirement++;
+      } else {
+        programsWithoutRequirement++;
+      }
+    }
+    
+    // Higher filter power = more programs have this requirement (so asking it will filter more)
+    // But also consider: if 50% have requirement and 50% don't, that's maximum filter power
+    const total = programsWithRequirement + programsWithoutRequirement;
+    if (total === 0) return 0;
+    
+    // Calculate entropy/diversity - questions that split programs more evenly have higher filter power
+    const pWith = programsWithRequirement / total;
+    const pWithout = programsWithoutRequirement / total;
+    
+    // Entropy calculation: higher entropy = more filtering power
+    let entropy = 0;
+    if (pWith > 0) entropy -= pWith * Math.log2(pWith);
+    if (pWithout > 0) entropy -= pWithout * Math.log2(pWithout);
+    
+    // Normalize to 0-1 scale (max entropy is 1 when 50/50 split)
+    return entropy;
   }
 
   /**
@@ -1200,6 +1518,21 @@ export class QuestionEngine {
     if (questionId.includes('team') || questionId.includes('size')) return 'team_size';
     if (questionId.includes('research') || questionId.includes('innovation')) return 'innovation_level';
     return 'specific_requirements';
+  }
+
+  /**
+   * NEW: Map question category to categorized_requirements key
+   */
+  private mapCategoryToCategorizedKey(category: string): string {
+    const mapping: Record<string, string> = {
+      'location': 'geographic',
+      'business_stage': 'team',
+      'funding_need': 'financial',
+      'team_size': 'team',
+      'innovation_level': 'technical',
+      'specific_requirements': 'project'
+    };
+    return mapping[category] || 'project';
   }
 
   /**
