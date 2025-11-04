@@ -17,16 +17,20 @@
    - Structure: `MASTER_DOCUMENTS[fundingType][productType]`
    - Source: `'master'` - applies to all programs of this type
 
-3. **Legacy Bundles** (Fallback)
-   - Location: `shared/data/documentBundles.ts`
-   - Product-specific bundles
-   - Source: `'bundle'` - fallback system
+3. **Legacy Bundles** (DEPRECATED - REMOVED)
+   - ~~Location: `shared/data/documentBundles.ts`~~ ❌ **DELETED**
+   - ~~Product-specific bundles~~ ❌ **DELETED**
+   - ~~Source: `'bundle'` - fallback system~~ ❌ **DELETED**
 
 **Merge Logic:**
 ```
-Program-specific → Master Templates → Legacy Bundles
-(Program overrides master, master overrides bundle)
+Program-specific → Master Templates
+(Program overrides master templates)
 ```
+
+**Note:** Legacy bundles have been removed. The system now uses only:
+1. Program-specific documents (database)
+2. Master templates (`shared/lib/templates/documents.ts`)
 
 ---
 

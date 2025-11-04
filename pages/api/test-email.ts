@@ -1,8 +1,14 @@
 // Test Email Endpoint - For testing email functionality
+// SECURITY: Only available in development mode
 import type { NextApiRequest, NextApiResponse } from 'next';
 import emailService from '@/shared/lib/emailService';
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
+  // Only allow in development mode
+  if (process.env.NODE_ENV === 'production') {
+    return res.status(403).json({ error: 'Test endpoint not available in production' });
+  }
+
   if (req.method !== 'POST') {
     res.setHeader('Allow', ['POST']);
     return res.status(405).json({ error: 'Method not allowed' });

@@ -11,7 +11,6 @@ import { useI18n } from "@/shared/contexts/I18nContext";
 import { useUser } from "@/shared/contexts/UserContext";
 import StructuredRequirementsDisplay from "@/shared/components/common/StructuredRequirementsDisplay";
 import analytics from "@/shared/lib/analytics";
-import { withAuth } from "@/shared/lib/withAuth";
 
 // Enhanced program result type with detailed explanations
 type ProgramResult = any; // Using any for now to avoid import issues
@@ -556,4 +555,4 @@ function ResultsPage() {
   );
 }
 
-export default withAuth(ResultsPage);
+export default ResultsPage;

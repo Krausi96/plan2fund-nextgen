@@ -1,12 +1,30 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
+import { useRouter } from 'next/router';
 import { Button } from '@/shared/components/ui/button';
 import { Input } from '@/shared/components/ui/input';
 import { Card } from '@/shared/components/ui/card';
-import { Mail, CheckCircle, XCircle, Loader2 } from 'lucide-react';
+import { Mail, CheckCircle, XCircle, Loader2, AlertTriangle } from 'lucide-react';
 
 export default function TestEmailPage() {
+  const router = useRouter();
+  const [isDev, setIsDev] = useState(true); // Default to true, will be checked
+
+  // Check if we're in development mode
+  useEffect(() => {
+    // Client-side check - in production build, this will be false
+    const isDevelopment = process.env.NODE_ENV === 'development' || 
+                          window.location.hostname === 'localhost' ||
+                          window.location.hostname === '127.0.0.1';
+    
+    setIsDev(isDevelopment);
+    
+    // In production, redirect to home
+    if (!isDevelopment) {
+      router.push('/');
+    }
+  }, [router]);
   const [email, setEmail] = useState('');
   const [emailType, setEmailType] = useState<'welcome' | 'payment-receipt' | 'purchase-confirmation' | 'documents'>('welcome');
   const [loading, setLoading] = useState(false);
@@ -39,6 +57,20 @@ export default function TestEmailPage() {
       setLoading(false);
     }
   };
+
+  // Don't render in production
+  if (!isDev) {
+    return (
+      <div className="max-w-2xl mx-auto p-8">
+        <Card className="p-6">
+          <div className="flex items-center gap-3 text-red-600">
+            <AlertTriangle className="w-5 h-5" />
+            <p>This page is only available in development mode.</p>
+          </div>
+        </Card>
+      </div>
+    );
+  }
 
   return (
     <div className="max-w-2xl mx-auto p-8">

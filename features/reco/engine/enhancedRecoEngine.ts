@@ -397,24 +397,22 @@ function scoreCategorizedRequirements(
   }> = [];
 
   // Define mapping between user answers and categorized requirements
-  // Map actual answer keys (from QuestionEngine) to requirement categories
+  // Map QuestionEngine answer keys to requirement categories
   const answerMapping: Record<string, string[]> = {
-    // QuestionEngine uses these keys (add more as needed):
+    // New simplified QuestionEngine format:
     'location': ['geographic', 'eligibility'],
-    'company_age': ['company', 'eligibility'],
-    'current_revenue': ['financial', 'revenue'],
+    'company_age': ['team', 'eligibility'],
+    'revenue': ['financial'],
     'team_size': ['team'],
     'research_focus': ['project', 'impact'],
-    'international_collaboration': ['consortium', 'geographic'],
-    'business_stage': ['company', 'project'],
-    'funding_need': ['financial'],
-    'innovation_level': ['project', 'technical'],
-    'market_focus': ['market_size', 'revenue_model'],
-    'team_experience': ['team'],
-    // Also handle legacy keys in case:
+    'consortium': ['consortium', 'geographic'],
+    // Legacy format support (for advanced search):
+    'q1_location': ['geographic', 'eligibility'],
     'q1_country': ['geographic', 'eligibility'],
-    'q2_team': ['team'],
-    'q3_funding': ['financial']
+    'q2_entity_stage': ['team', 'eligibility'],
+    'q3_company_size': ['team'],
+    'current_revenue': ['financial'],
+    'international_collaboration': ['consortium', 'geographic']
   };
 
   // Debug: Log what we're receiving
@@ -630,7 +628,31 @@ export async function scoreProgramsEnhanced(
       hasEditorSections: filteredPrograms[0]?.editor_sections?.length || 0,
       hasReadinessCriteria: filteredPrograms[0]?.readiness_criteria?.length || 0
     });
-    const derivedSignals = deriveSignals(answers);
+    // Simplified: Direct scoring without complex signal derivation
+    // deriveSignals is only needed for legacy format, skip if using new format
+    const derivedSignals = Object.keys(answers).some(k => k.startsWith('q')) 
+      ? deriveSignals(answers) 
+      : {
+          fundingMode: "grant",
+          companyAgeBucket: "pre" as const,
+          sectorBucket: "general",
+          trlBucket: "low" as const,
+          revenueBucket: "none" as const,
+          urgencyBucket: "normal" as const,
+          capexFlag: false,
+          equityOk: false,
+          collateralOk: false,
+          ipFlag: false,
+          regulatoryFlag: false,
+          socialImpactFlag: false,
+          esgFlag: false,
+          rdInAT: undefined,
+          amountFit: 0,
+          stageFit: 0,
+          timelineFit: 0,
+          unknowns: [],
+          counterfactuals: []
+        };
     
     // FILTERING NOW HANDLED BY QUESTIONENGINE DURING WIZARD
     // Just use the filtered programs without additional diagnosis filtering
@@ -703,10 +725,14 @@ export async function scoreProgramsEnhanced(
         gaps.push(...programSpecificScore.gaps);
       }
 
-      // Score based on GPT-enhanced fields
+      // Score based on GPT-enhanced fields (handle both formats)
       if (program.target_personas && program.target_personas.length > 0) {
+        const userAge = answers.company_age || answers.q2_entity_stage;
+        const userSize = answers.team_size || answers.q3_company_size;
+        
         // Check if user stage matches target personas
-        if (answers.q2_entity_stage === 'startup' && program.target_personas.includes('startup')) {
+        if ((userAge?.includes('0_2') || userAge === 'PRE_COMPANY' || userAge === 'startup') && 
+            program.target_personas.includes('startup')) {
           score += 30;
           matchedCriteria.push({
             key: 'target_personas',
@@ -715,7 +741,8 @@ export async function scoreProgramsEnhanced(
             status: 'passed'
           });
         }
-        if (answers.q3_company_size === 'small' && program.target_personas.includes('sme')) {
+        if ((userSize?.includes('1_2') || userSize === 'small' || userSize === 'MICRO_0_9') && 
+            program.target_personas.includes('sme')) {
           score += 20;
           matchedCriteria.push({
             key: 'target_personas',
@@ -728,7 +755,8 @@ export async function scoreProgramsEnhanced(
 
       // Score based on tags
       if (program.tags && program.tags.length > 0) {
-        if (answers.q4_theme === 'innovation' && program.tags.includes('innovation')) {
+        const theme = answers.q4_theme || answers.research_focus;
+        if (theme === 'innovation' || theme === 'yes' && program.tags.includes('innovation')) {
           score += 25;
           matchedCriteria.push({
             key: 'tags',
@@ -748,15 +776,23 @@ export async function scoreProgramsEnhanced(
         }
       }
 
-      // Country matching
-      if (answers.q1_country === 'AT' && program.id.includes('aws')) {
-        score += 20;
-        matchedCriteria.push({
-          key: 'location',
-          value: 'Austria',
-          reason: 'Austrian program',
-          status: 'passed'
-        });
+      // Location matching (new format)
+      if (answers.location === 'austria' || answers.q1_country === 'AT' || answers.q1_location === 'AUSTRIA') {
+        const categorized = (program as any).categorized_requirements;
+        if (categorized?.geographic) {
+          const hasAustria = categorized.geographic.some((r: any) => 
+            r.type === 'location' && String(r.value).toLowerCase().includes('austria')
+          );
+          if (hasAustria) {
+            score += 20;
+            matchedCriteria.push({
+              key: 'location',
+              value: 'Austria',
+              reason: 'Austrian program',
+              status: 'passed'
+            });
+          }
+        }
       }
 
       // If no requirements, give a base score based on program type

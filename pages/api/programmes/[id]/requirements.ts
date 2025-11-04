@@ -1,8 +1,6 @@
 // API endpoint for program requirements (Decision Tree, Editor, Library)
 import { NextApiRequest, NextApiResponse } from 'next';
 import { categoryConverter, CategorizedRequirements } from '@/features/editor/engine/categoryConverters';
-import { getDocumentBundle } from '@/shared/data/documentBundles';
-import { getDocumentById } from '@/shared/data/documentDescriptions';
 
 // Database connection handled by scraper-lite/src/db/neon-client.ts
 
@@ -145,7 +143,7 @@ async function getProgramRequirements(programId: string) {
       // Get documents using unified system (master + program-specific merge)
       const unifiedDocuments = await getDocuments(programType, 'submission', programId, baseUrl);
       
-      // Convert unified documents to API format (backward compatibility)
+      // Convert unified documents to API format
       const additionalDocuments = unifiedDocuments.map(doc => ({
         id: doc.id,
         title: doc.name,
@@ -153,30 +151,6 @@ async function getProgramRequirements(programId: string) {
         format: doc.format.toUpperCase(),
         source: doc.source?.officialProgram ? 'program' : 'master'
       }));
-      
-      // Also include legacy buildAdditionalDocuments for compatibility
-      const legacyDocs = buildAdditionalDocuments(programData, categorizedRequirements);
-      
-      // Merge and dedupe
-      const docById = new Map(unifiedDocuments.map(d => [d.id, d]));
-      legacyDocs.forEach(legacy => {
-        if (!docById.has(legacy.id)) {
-          docById.set(legacy.id, {
-            id: legacy.id,
-            name: legacy.title || legacy.id,
-            description: legacy.description || '',
-            required: false,
-            format: (legacy.format?.toLowerCase() as any) || 'pdf',
-            maxSize: '10MB',
-            template: `# ${legacy.title || legacy.id}\n\n${legacy.description || ''}`,
-            instructions: [],
-            examples: [],
-            commonMistakes: [],
-            category: 'submission',
-            fundingTypes: [programType]
-          });
-        }
-      });
       
       return {
         program_id: programId,
@@ -223,48 +197,4 @@ async function getProgramRequirements(programId: string) {
   }
 }
 
-function buildAdditionalDocuments(program: any, categorizedRequirements: CategorizedRequirements | null) {
-  const product: 'submission' | 'strategy' | 'review' = 'submission';
-  
-  // Determine route from funding_types or program structure
-  const fundingTypes = program.funding_types || [];
-  let route: 'grant' | 'loan' | 'equity' | 'visa' | 'bankLoans' | 'grants' = 'grants';
-  if (fundingTypes.includes('loan')) route = 'loan';
-  else if (fundingTypes.includes('equity')) route = 'equity';
-
-  // Static bundle fallback (route is already 'grants' if not loan/equity)
-  // Fix: Remove redundant comparison with 'grant' (route can't be 'grant' based on type)
-  const bundleRoute = route === 'grants' ? 'grants' : route;
-  const bundle = getDocumentBundle(product as any, bundleRoute as any);
-  const staticDocs = (bundle?.documents || []).map((docId: string) => {
-    const spec = getDocumentById(docId);
-    return {
-      id: docId,
-      title: spec?.title || docId,
-      description: spec?.short || '',
-      format: (spec?.formatHints && spec.formatHints[0]) || 'PDF',
-      source: 'bundle'
-    };
-  });
-
-  // Program-specific docs from categorized data if available
-  const programDocs = categorizedRequirements && (categorizedRequirements as any).documents_required
-    ? (categorizedRequirements as any).documents_required.map((d: any, idx: number) => ({
-        id: d.id || `prog_doc_${idx}`,
-        title: d.title || 'Required Document',
-        description: d.description || d.note || '',
-        format: d.format || 'PDF',
-        source: 'program'
-      }))
-    : [];
-
-  // Merge and dedupe by id
-  const byId: Record<string, any> = {};
-  [...programDocs, ...staticDocs].forEach(doc => {
-    if (!byId[doc.id]) byId[doc.id] = doc; else {
-      byId[doc.id] = { ...byId[doc.id], ...doc };
-    }
-  });
-  return Object.values(byId);
-}
 

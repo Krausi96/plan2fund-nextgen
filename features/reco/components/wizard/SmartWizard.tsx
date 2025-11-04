@@ -121,7 +121,8 @@ const SmartWizard: React.FC<SmartWizardProps> = ({ onComplete, onProfileGenerate
             required: true,
             category: 'location' as const,
             phase: 1 as const,
-            questionNumber: 1
+            questionNumber: 1,
+            priority: 1
           };
           
           setState(prev => ({
@@ -171,7 +172,8 @@ const SmartWizard: React.FC<SmartWizardProps> = ({ onComplete, onProfileGenerate
             required: true,
             category: 'location' as const,
             phase: 1 as const,
-            questionNumber: 1
+            questionNumber: 1,
+            priority: 1
           };
           
           setState(prev => ({
@@ -266,14 +268,9 @@ const SmartWizard: React.FC<SmartWizardProps> = ({ onComplete, onProfileGenerate
       const remainingPrograms = questionEngine.getRemainingPrograms();
       console.log(`✅ Wizard: Using ${remainingPrograms.length} pre-filtered programs from QuestionEngine`);
       
-      // Map QuestionEngine answers to enhancedRecoEngine format
-      const { mapQuestionEngineAnswersToEnhancedFormat } = await import('@/features/reco/engine/answerMapper');
-      const mappedAnswers = mapQuestionEngineAnswersToEnhancedFormat(answers);
-      console.log('🔄 Mapped answers for enhancedRecoEngine:', mappedAnswers);
-      
       // Score programs using enhanced reco engine with pre-filtered programs
-      // Use mapped answers for signal derivation, but keep original for filtering
-      const results = await scoreProgramsEnhanced(mappedAnswers, "strict", remainingPrograms);
+      // Use answers directly (no mapping needed)
+      const results = await scoreProgramsEnhanced(answers, "strict", remainingPrograms);
       
       // Store results in context (for /results page)
       setRecommendations(results);

@@ -2,7 +2,7 @@
  * NEON Database Client
  * Connects to NEON Postgres and provides database operations
  */
-import { Pool, PoolClient } from 'pg';
+import { Pool } from 'pg';
 
 // Singleton pool connection
 let pool: Pool | null = null;

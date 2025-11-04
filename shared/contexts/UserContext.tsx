@@ -80,15 +80,28 @@ export function UserProvider({ children }: UserProviderProps) {
     }
   };
 
-  const refreshProfileFromServer = async (userId: string) => {
+  const refreshProfileFromServer = async (_userId: string) => {
     try {
-      const response = await fetch(`/api/user/profile?userId=${userId}`);
+      // Use new auth session endpoint instead of old profile endpoint
+      const response = await fetch('/api/auth/session');
       if (response.ok) {
         const data = await response.json();
-        if (data.success && data.profile) {
-          setUserProfileState(data.profile);
+        if (data.user) {
+          const profile = {
+            id: String(data.user.id),
+            segment: data.user.segment || 'B2C_FOUNDER',
+            programType: data.user.program_type || 'GRANT',
+            industry: data.user.industry || 'GENERAL',
+            language: data.user.language || 'EN',
+            payerType: data.user.payer_type || 'INDIVIDUAL',
+            experience: data.user.experience || 'NEWBIE',
+            createdAt: data.user.created_at,
+            lastActiveAt: data.user.last_active_at,
+            gdprConsent: data.user.gdpr_consent || true
+          };
+          setUserProfileState(profile);
           if (typeof window !== 'undefined') {
-            localStorage.setItem('pf_user_profile', JSON.stringify(data.profile));
+            localStorage.setItem('pf_user_profile', JSON.stringify(profile));
           }
         }
       }
