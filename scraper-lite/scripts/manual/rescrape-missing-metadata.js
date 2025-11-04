@@ -260,30 +260,37 @@ async function rescrapeMissingMetadata() {
     console.log(`   Improved: ${improvedCount} pages got new metadata`);
     console.log('='.repeat(70));
     
-    // Check final stats
-    console.log('\n📊 Final Metadata Coverage:');
+    // Check final stats - ALL FIELDS
+    console.log('\n📊 Final Metadata Coverage - ALL FIELDS:');
     const finalStats = await pool.query(`
       SELECT 
         COUNT(*) as total,
+        COUNT(*) FILTER (WHERE title IS NOT NULL AND title != '') as has_title,
+        COUNT(*) FILTER (WHERE description IS NOT NULL AND description != '') as has_description,
         COUNT(*) FILTER (WHERE funding_amount_min IS NOT NULL OR funding_amount_max IS NOT NULL) as has_amounts,
+        COUNT(*) FILTER (WHERE currency IS NOT NULL) as has_currency,
         COUNT(*) FILTER (WHERE deadline IS NOT NULL OR open_deadline = true) as has_deadlines,
-        COUNT(*) FILTER (WHERE contact_email IS NOT NULL OR contact_phone IS NOT NULL) as has_contacts
+        COUNT(*) FILTER (WHERE contact_email IS NOT NULL OR contact_phone IS NOT NULL) as has_contacts,
+        COUNT(*) FILTER (WHERE region IS NOT NULL) as has_region,
+        COUNT(*) FILTER (WHERE funding_types IS NOT NULL AND array_length(funding_types, 1) > 0) as has_funding_types,
+        COUNT(*) FILTER (WHERE program_focus IS NOT NULL AND array_length(program_focus, 1) > 0) as has_program_focus,
+        COUNT(*) FILTER (WHERE metadata_json IS NOT NULL AND metadata_json != '{}'::jsonb) as has_metadata_json
       FROM pages
     `);
     
     const final = finalStats.rows[0];
     const total = parseInt(final.total);
     
-    console.log(`   Title: ${final.has_title || total}/${total} (${((final.has_title || total) / total * 100).toFixed(1)}%)`);
-    console.log(`   Description: ${final.has_description || total}/${total} (${((final.has_description || total) / total * 100).toFixed(1)}%)`);
+    console.log(`   Title: ${final.has_title}/${total} (${(final.has_title / total * 100).toFixed(1)}%)`);
+    console.log(`   Description: ${final.has_description}/${total} (${(final.has_description / total * 100).toFixed(1)}%)`);
     console.log(`   Funding Amounts: ${final.has_amounts}/${total} (${(final.has_amounts / total * 100).toFixed(1)}%)`);
-    console.log(`   Currency: ${final.has_currency || total}/${total} (${((final.has_currency || total) / total * 100).toFixed(1)}%)`);
+    console.log(`   Currency: ${final.has_currency}/${total} (${(final.has_currency / total * 100).toFixed(1)}%)`);
     console.log(`   Deadlines: ${final.has_deadlines}/${total} (${(final.has_deadlines / total * 100).toFixed(1)}%)`);
     console.log(`   Contact Info: ${final.has_contacts}/${total} (${(final.has_contacts / total * 100).toFixed(1)}%)`);
-    console.log(`   Region: ${final.has_region || total}/${total} (${((final.has_region || total) / total * 100).toFixed(1)}%)`);
-    console.log(`   Funding Types: ${final.has_funding_types || total}/${total} (${((final.has_funding_types || total) / total * 100).toFixed(1)}%)`);
-    console.log(`   Program Focus: ${final.has_program_focus || total}/${total} (${((final.has_program_focus || total) / total * 100).toFixed(1)}%)`);
-    console.log(`   Metadata JSON: ${final.has_metadata_json || total}/${total} (${((final.has_metadata_json || total) / total * 100).toFixed(1)}%)`);
+    console.log(`   Region: ${final.has_region}/${total} (${(final.has_region / total * 100).toFixed(1)}%)`);
+    console.log(`   Funding Types: ${final.has_funding_types}/${total} (${(final.has_funding_types / total * 100).toFixed(1)}%)`);
+    console.log(`   Program Focus: ${final.has_program_focus}/${total} (${(final.has_program_focus / total * 100).toFixed(1)}%)`);
+    console.log(`   Metadata JSON: ${final.has_metadata_json}/${total} (${(final.has_metadata_json / total * 100).toFixed(1)}%)`);
     
     console.log('\n✅ Done! Run verify-database-quality.js to see full quality metrics.');
     
