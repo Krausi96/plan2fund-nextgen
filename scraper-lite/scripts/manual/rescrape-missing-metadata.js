@@ -32,7 +32,8 @@ async function rescrapeMissingMetadata() {
     console.log('\n📊 Finding pages with missing metadata...');
     
     // Find pages missing ANY critical metadata
-    // Pages that already have complete metadata will be automatically skipped
+    // IMPORTANT: Pages that get complete metadata after re-scraping will be automatically skipped in next run
+    // The WHERE clause filters out pages that already have all metadata
     const missingPages = await pool.query(`
       SELECT id, url, title,
         CASE WHEN funding_amount_min IS NULL AND funding_amount_max IS NULL THEN 'amount' ELSE '' END as missing_amount,
@@ -44,7 +45,14 @@ async function rescrapeMissingMetadata() {
         (deadline IS NULL AND (open_deadline IS NULL OR open_deadline = false)) OR
         (contact_email IS NULL AND contact_phone IS NULL)
       )
-      ORDER BY id DESC
+      ORDER BY 
+        -- Prioritize pages missing multiple fields
+        CASE WHEN 
+          (funding_amount_min IS NULL AND funding_amount_max IS NULL) AND
+          (deadline IS NULL AND (open_deadline IS NULL OR open_deadline = false)) AND
+          (contact_email IS NULL AND contact_phone IS NULL)
+        THEN 0 ELSE 1 END,
+        id DESC
       LIMIT 500
     `);
     
