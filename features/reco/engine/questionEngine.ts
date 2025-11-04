@@ -199,10 +199,10 @@ export class QuestionEngine {
       return 'co_financing';
     }
 
-    // Financial - Revenue model
-    if (category === 'revenue_model' || (category === 'financial' && type.includes('revenue_model'))) {
-      return 'revenue_model';
-    }
+    // Financial - Revenue model - REMOVED: Dynamic options without translations, too specific
+    // if (category === 'revenue_model' || (category === 'financial' && type.includes('revenue_model'))) {
+    //   return 'revenue_model';
+    // }
 
     // Financial - Use of funds
     if (category === 'use_of_funds' || (category === 'financial' && type.includes('use_of_funds'))) {
@@ -229,10 +229,10 @@ export class QuestionEngine {
     //   return 'sustainability_focus';
     // }
 
-    // Project - Industry focus
-    if (category === 'project' && (type === 'industry_focus' || type.includes('industry') || type.includes('branche'))) {
-      return 'industry_focus';
-    }
+    // Project - Industry focus - REMOVED: Overlaps with sector, dynamic options without translations
+    // if (category === 'project' && (type === 'industry_focus' || type.includes('industry') || type.includes('branche'))) {
+    //   return 'industry_focus';
+    // }
 
     // Consortium - International collaboration
     if (category === 'consortium' && (type === 'international_collaboration' || type.includes('consortium') || type.includes('partner') || type.includes('konsortium'))) {
@@ -244,50 +244,50 @@ export class QuestionEngine {
     //   return 'trl_level';
     // }
 
-    // Technical - Technology focus
-    if (category === 'technical' && (type === 'technology_focus' || type.includes('technology') || type.includes('technologie'))) {
-      return 'technology_focus';
-    }
+    // Technical - Technology focus - REMOVED: Dynamic options without translations, too technical
+    // if (category === 'technical' && (type === 'technology_focus' || type.includes('technology') || type.includes('technologie'))) {
+    //   return 'technology_focus';
+    // }
 
     // Eligibility - Company type
     if (category === 'eligibility' && (type === 'company_type' || type.includes('company_type') || type.includes('unternehmenstyp'))) {
       return 'company_type';
     }
 
-    // Eligibility - Sector
-    if (category === 'eligibility' && (type === 'sector' || type.includes('sector') || type.includes('branche'))) {
-      return 'sector';
-    }
+    // Eligibility - Sector - REMOVED: Dynamic options without translations, overlaps with industry
+    // if (category === 'eligibility' && (type === 'sector' || type.includes('sector') || type.includes('branche'))) {
+    //   return 'sector';
+    // }
 
-    // Timeline - Deadline
-    if (category === 'timeline' && (type === 'deadline' || type.includes('deadline') || type.includes('frist'))) {
-      return 'deadline_urgency';
-    }
+    // Timeline - Deadline - REMOVED: Not relevant for funding discovery
+    // if (category === 'timeline' && (type === 'deadline' || type.includes('deadline') || type.includes('frist'))) {
+    //   return 'deadline_urgency';
+    // }
 
-    // Timeline - Duration
-    if (category === 'timeline' && (type === 'duration' || type.includes('duration') || type.includes('laufzeit'))) {
-      return 'project_duration';
-    }
+    // Timeline - Duration - REMOVED: Too specific, not relevant for funding discovery
+    // if (category === 'timeline' && (type === 'duration' || type.includes('duration') || type.includes('laufzeit'))) {
+    //   return 'project_duration';
+    // }
 
-    // Impact - Sustainability/Impact
-    if (category === 'impact' && (type === 'impact_requirement' || type.includes('impact') || type.includes('wirkung') || type.includes('nachhaltigkeit'))) {
-      return 'impact_focus';
-    }
+    // Impact - Sustainability/Impact - REMOVED: Too vague
+    // if (category === 'impact' && (type === 'impact_requirement' || type.includes('impact') || type.includes('wirkung') || type.includes('nachhaltigkeit'))) {
+    //   return 'impact_focus';
+    // }
 
     // Market - Market size
     if (category === 'market_size' && (type === 'market_scope' || type.includes('market') || type.includes('markt'))) {
       return 'market_size';
     }
 
-    // Documents - Required documents (for info, not filtering)
-    if (category === 'documents' && (type === 'required_documents' || type.includes('document') || type.includes('unterlage'))) {
-      return 'has_documents'; // Boolean question
-    }
+    // Documents - Required documents - REMOVED: Not relevant for funding discovery
+    // if (category === 'documents' && (type === 'required_documents' || type.includes('document') || type.includes('unterlage'))) {
+    //   return 'has_documents';
+    // }
 
-    // Legal - Legal compliance
-    if (category === 'legal' && (type === 'legal_compliance' || type.includes('legal') || type.includes('rechtlich'))) {
-      return 'legal_compliance';
-    }
+    // Legal - Legal compliance - REMOVED: Too vague
+    // if (category === 'legal' && (type === 'legal_compliance' || type.includes('legal') || type.includes('rechtlich'))) {
+    //   return 'legal_compliance';
+    // }
 
     // Default: create question ID from category if no specific type match
     // This ensures ALL categories can generate questions
@@ -450,49 +450,11 @@ export class QuestionEngine {
     // Sustainability focus question - REMOVED: Too vague (what does "sustainability focus" mean?)
     // if (questionId === 'sustainability_focus') { ... }
 
-    // Industry focus question
-    if (questionId === 'industry_focus') {
-      const industries = Array.from(req.values.keys())
-        .filter(v => v && v !== 'unknown' && v !== 'null')
-        .slice(0, 10);
-      
-      if (industries.length > 0) {
-        return {
-          id: 'industry_focus',
-          symptom: 'wizard.questions.industryFocus',
-          type: 'single-select',
-          options: industries.map(ind => ({
-            value: this.normalizeValue(ind, 'industry'),
-            label: `wizard.options.${this.normalizeValue(ind, 'industry')}`
-          })),
-          required: false,
-          category: 'specific_requirements',
-          priority
-        };
-      }
-    }
+    // Industry focus question - REMOVED: Overlaps with sector, dynamic options without translations
+    // if (questionId === 'industry_focus') { ... }
 
-    // Technology focus question
-    if (questionId === 'technology_focus') {
-      const technologies = Array.from(req.values.keys())
-        .filter(v => v && v !== 'unknown' && v !== 'null')
-        .slice(0, 10);
-      
-      if (technologies.length > 0) {
-        return {
-          id: 'technology_focus',
-          symptom: 'wizard.questions.technologyFocus',
-          type: 'single-select',
-          options: technologies.map(tech => ({
-            value: this.normalizeValue(tech, 'technology'),
-            label: `wizard.options.${this.normalizeValue(tech, 'technology')}`
-          })),
-          required: false,
-          category: 'specific_requirements',
-          priority
-        };
-      }
-    }
+    // Technology focus question - REMOVED: Dynamic options without translations, too technical/jargon
+    // if (questionId === 'technology_focus') { ... }
 
     // Company type question
     if (questionId === 'company_type') {
@@ -513,80 +475,19 @@ export class QuestionEngine {
       };
     }
 
-    // Sector question
-    if (questionId === 'sector') {
-      const sectors = Array.from(req.values.keys())
-        .filter(v => v && v !== 'unknown' && v !== 'null')
-        .slice(0, 10);
-      
-      if (sectors.length > 0) {
-        return {
-          id: 'sector',
-          symptom: 'wizard.questions.sector',
-          type: 'single-select',
-          options: sectors.map(s => ({
-            value: this.normalizeValue(s, 'sector'),
-            label: `wizard.options.${this.normalizeValue(s, 'sector')}`
-          })),
-          required: false,
-          category: 'eligibility',
-          priority
-        };
-      }
-    }
+    // Sector question - REMOVED: Dynamic options without translations, overlaps with other questions
+    // if (questionId === 'sector') { ... }
 
-    // Deadline urgency question
-    if (questionId === 'deadline_urgency') {
-      return {
-        id: 'deadline_urgency',
-        symptom: 'wizard.questions.deadlineUrgency',
-        type: 'single-select',
-        options: [
-          { value: 'urgent', label: 'wizard.options.urgent' },
-          { value: 'normal', label: 'wizard.options.normal' },
-          { value: 'flexible', label: 'wizard.options.flexible' }
-        ],
-        required: false,
-        category: 'timeline',
-        priority
-      };
-    }
+    // Deadline urgency question - REMOVED: Not relevant for funding discovery
+    // This doesn't filter programs effectively, users don't know their urgency at this stage
+    // if (questionId === 'deadline_urgency') { ... }
 
-    // Project duration question
-    if (questionId === 'project_duration') {
-      const durations = Array.from(req.values.keys())
-        .map(v => this.parseDurationFromValue(v))
-        .filter(d => d > 0)
-        .sort((a, b) => a - b);
-      
-      if (durations.length > 0) {
-        return {
-          id: 'project_duration',
-          symptom: 'wizard.questions.projectDuration',
-          type: 'single-select',
-          options: this.createDurationRanges(durations),
-          required: false,
-          category: 'timeline',
-          priority
-        };
-      }
-    }
+    // Project duration question - REMOVED: Too specific, not relevant for funding discovery
+    // Users don't know their project duration at this stage
+    // if (questionId === 'project_duration') { ... }
 
-    // Impact focus question
-    if (questionId === 'impact_focus') {
-      return {
-        id: 'impact_focus',
-        symptom: 'wizard.questions.impactFocus',
-        type: 'single-select',
-        options: [
-          { value: 'yes', label: 'wizard.options.yes' },
-          { value: 'no', label: 'wizard.options.no' }
-        ],
-        required: false,
-        category: 'impact',
-        priority
-      };
-    }
+    // Impact focus question - REMOVED: Too vague (what does "impact focus" mean?)
+    // if (questionId === 'impact_focus') { ... }
 
     // Market size question
     if (questionId === 'market_size') {
@@ -606,27 +507,8 @@ export class QuestionEngine {
       };
     }
 
-    // Revenue model question
-    if (questionId === 'revenue_model') {
-      const models = Array.from(req.values.keys())
-        .filter(v => v && v !== 'unknown' && v !== 'null')
-        .slice(0, 10);
-      
-      if (models.length > 0) {
-        return {
-          id: 'revenue_model',
-          symptom: 'wizard.questions.revenueModel',
-          type: 'single-select',
-          options: models.map(m => ({
-            value: this.normalizeValue(m, 'revenue_model'),
-            label: `wizard.options.${this.normalizeValue(m, 'revenue_model')}`
-          })),
-          required: false,
-          category: 'financial',
-          priority
-        };
-      }
-    }
+    // Revenue model question - REMOVED: Dynamic options without translations, too specific
+    // if (questionId === 'revenue_model') { ... }
 
     // Use of funds question
     if (questionId === 'use_of_funds') {
@@ -650,37 +532,12 @@ export class QuestionEngine {
     // Investment type question (CAPEX/OPEX) - REMOVED: Too technical (users don't know CAPEX vs OPEX)
     // if (questionId === 'investment_type') { ... }
 
-    // Legal compliance question
-    if (questionId === 'legal_compliance') {
-      return {
-        id: 'legal_compliance',
-        symptom: 'wizard.questions.legalCompliance',
-        type: 'single-select',
-        options: [
-          { value: 'yes', label: 'wizard.options.yes' },
-          { value: 'no', label: 'wizard.options.no' }
-        ],
-        required: false,
-        category: 'legal',
-        priority
-      };
-    }
+    // Legal compliance question - REMOVED: Too vague (users don't know what this means)
+    // if (questionId === 'legal_compliance') { ... }
 
-    // Has documents question (informational)
-    if (questionId === 'has_documents') {
-      return {
-        id: 'has_documents',
-        symptom: 'wizard.questions.hasDocuments',
-        type: 'single-select',
-        options: [
-          { value: 'yes', label: 'wizard.options.yes' },
-          { value: 'no', label: 'wizard.options.no' }
-        ],
-        required: false,
-        category: 'documents',
-        priority
-      };
-    }
+    // Has documents question - REMOVED: Not relevant for funding discovery
+    // This question doesn't help find funding programs, it's just informational
+    // if (questionId === 'has_documents') { ... }
 
     // Generic question for any unmapped category
     // This ensures ALL categories from scraper-lite can generate questions
@@ -959,21 +816,11 @@ export class QuestionEngine {
     // Sustainability focus filter - REMOVED: Question removed (too vague)
     // if (answers.sustainability_focus === 'no') { ... }
 
-    // Industry focus filter
-    if (answers.industry_focus) {
-      const before = filtered.length;
-      filtered = filtered.filter(program => this.matchesIndustry(program, answers.industry_focus));
-      const after = filtered.length;
-      console.log(`🔍 Industry focus filter (${answers.industry_focus}): ${before} → ${after} (${before - after} filtered)`);
-    }
+    // Industry focus filter - REMOVED: Question removed
+    // if (answers.industry_focus) { ... }
 
-    // Technology focus filter
-    if (answers.technology_focus) {
-      const before = filtered.length;
-      filtered = filtered.filter(program => this.matchesTechnology(program, answers.technology_focus));
-      const after = filtered.length;
-      console.log(`🔍 Technology focus filter (${answers.technology_focus}): ${before} → ${after} (${before - after} filtered)`);
-    }
+    // Technology focus filter - REMOVED: Question removed
+    // if (answers.technology_focus) { ... }
 
     // Company type filter
     if (answers.company_type) {
@@ -983,21 +830,11 @@ export class QuestionEngine {
       console.log(`🔍 Company type filter (${answers.company_type}): ${before} → ${after} (${before - after} filtered)`);
     }
 
-    // Sector filter
-    if (answers.sector) {
-      const before = filtered.length;
-      filtered = filtered.filter(program => this.matchesSector(program, answers.sector));
-      const after = filtered.length;
-      console.log(`🔍 Sector filter (${answers.sector}): ${before} → ${after} (${before - after} filtered)`);
-    }
+    // Sector filter - REMOVED: Question removed
+    // if (answers.sector) { ... }
 
-    // Impact focus filter
-    if (answers.impact_focus === 'no') {
-      const before = filtered.length;
-      filtered = filtered.filter(program => !this.requiresImpact(program));
-      const after = filtered.length;
-      console.log(`🔍 Impact focus filter (no): ${before} → ${after} (${before - after} filtered)`);
-    }
+    // Impact focus filter - REMOVED: Question removed
+    // if (answers.impact_focus === 'no') { ... }
 
     // Market size filter
     if (answers.market_size) {
@@ -1194,32 +1031,11 @@ export class QuestionEngine {
   }
 
   // @ts-ignore - Used in filterPrograms
-  private matchesIndustry(program: Program, userIndustry: string): boolean {
-    const categorized = (program as any).categorized_requirements;
-    if (categorized?.project) {
-      const industryReqs = categorized.project.filter((r: any) => r.type === 'industry_focus');
-      if (industryReqs.length > 0) {
-        const progIndustries = industryReqs.map((r: any) => String(r.value).toLowerCase());
-        const userInd = String(userIndustry).toLowerCase();
-        return progIndustries.some((ind: string) => ind.includes(userInd) || userInd.includes(ind));
-      }
-    }
-    return true;
-  }
+  // matchesIndustry - REMOVED: Question removed
+  // private matchesIndustry(program: Program, userIndustry: string): boolean { ... }
 
-  // @ts-ignore - Used in filterPrograms
-  private matchesTechnology(program: Program, userTech: string): boolean {
-    const categorized = (program as any).categorized_requirements;
-    if (categorized?.technical) {
-      const techReqs = categorized.technical.filter((r: any) => r.type === 'technology_focus');
-      if (techReqs.length > 0) {
-        const progTechs = techReqs.map((r: any) => String(r.value).toLowerCase());
-        const userT = String(userTech).toLowerCase();
-        return progTechs.some((tech: string) => tech.includes(userT) || userT.includes(tech));
-      }
-    }
-    return true;
-  }
+  // matchesTechnology - REMOVED: Question removed
+  // private matchesTechnology(program: Program, userTech: string): boolean { ... }
 
   // @ts-ignore - Used in filterPrograms
   private matchesCompanyType(program: Program, userType: string): boolean {
@@ -1235,28 +1051,11 @@ export class QuestionEngine {
     return true;
   }
 
-  // @ts-ignore - Used in filterPrograms
-  private matchesSector(program: Program, userSector: string): boolean {
-    const categorized = (program as any).categorized_requirements;
-    if (categorized?.eligibility) {
-      const sectorReqs = categorized.eligibility.filter((r: any) => r.type === 'sector');
-      if (sectorReqs.length > 0) {
-        const progSectors = sectorReqs.map((r: any) => String(r.value).toLowerCase());
-        const userS = String(userSector).toLowerCase();
-        return progSectors.some((s: string) => s.includes(userS) || userS.includes(s));
-      }
-    }
-    return true;
-  }
+  // matchesSector - REMOVED: Question removed
+  // private matchesSector(program: Program, userSector: string): boolean { ... }
 
-  // @ts-ignore - Used in filterPrograms
-  private requiresImpact(program: Program): boolean {
-    const categorized = (program as any).categorized_requirements;
-    if (categorized?.impact) {
-      return categorized.impact.some((r: any) => r.value);
-    }
-    return false;
-  }
+  // requiresImpact - REMOVED: Question removed
+  // private requiresImpact(program: Program): boolean { ... }
 
   // @ts-ignore - Used in filterPrograms
   private matchesMarketSize(program: Program, userMarket: string): boolean {
@@ -1440,29 +1239,9 @@ export class QuestionEngine {
   // Removed: parseTRL - TRL question removed (too technical)
   // Removed: parsePercentage - Co-financing now uses yes/no instead of percentages
 
-  private parseDurationFromValue(value: any): number {
-    if (typeof value === 'number') return value;
-    const str = String(value).toLowerCase();
-    // Try to extract months/years
-    const monthsMatch = str.match(/(\d+)\s*month/i);
-    if (monthsMatch) return parseInt(monthsMatch[1]);
-    const yearsMatch = str.match(/(\d+)\s*year/i);
-    if (yearsMatch) return parseInt(yearsMatch[1]) * 12;
-    const numMatch = str.match(/(\d+)/);
-    return numMatch ? parseInt(numMatch[1]) : NaN;
-  }
+  // parseDurationFromValue - REMOVED: Question removed (project_duration)
+  // private parseDurationFromValue(value: any): number { ... }
 
-  private createDurationRanges(durations: number[]): Array<{value: string, label: string}> {
-    const ranges = [];
-    if (durations.some(d => d <= 6)) ranges.push({ value: 'under_6_months', label: 'wizard.options.under6Months' });
-    if (durations.some(d => d > 6 && d <= 12)) ranges.push({ value: '6_12_months', label: 'wizard.options.6to12Months' });
-    if (durations.some(d => d > 12 && d <= 24)) ranges.push({ value: '12_24_months', label: 'wizard.options.12to24Months' });
-    if (durations.some(d => d > 24)) ranges.push({ value: 'over_24_months', label: 'wizard.options.over24Months' });
-    return ranges.length > 0 ? ranges : [
-      { value: 'under_6_months', label: 'wizard.options.under6Months' },
-      { value: '6_12_months', label: 'wizard.options.6to12Months' },
-      { value: '12_24_months', label: 'wizard.options.12to24Months' },
-      { value: 'over_24_months', label: 'wizard.options.over24Months' }
-    ];
-  }
+  // createDurationRanges - REMOVED: Question removed (project_duration)
+  // private createDurationRanges(durations: number[]): Array<{value: string, label: string}> { ... }
 }

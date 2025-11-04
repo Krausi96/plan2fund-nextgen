@@ -16,7 +16,7 @@ const EXPECTED_CATEGORIES = [
   'eligibility', 'documents', 'financial', 'technical', 'legal',
   'timeline', 'geographic', 'team', 'project', 'compliance',
   'impact', 'capex_opex', 'use_of_funds', 'revenue_model',
-  'market_size', 'co_financing', 'trl_level', 'consortium'
+  'market_size', 'co_financing', 'trl_level', 'consortium', 'diversity'
 ];
 
 const CRITICAL_CATEGORIES = ['eligibility', 'financial', 'documents', 'project', 'timeline'];
@@ -60,8 +60,18 @@ async function verifyQuality() {
     if (missing.length > 0) {
       missing.forEach(cat => console.log(`   - ${cat}`));
     } else {
-      console.log('   ✅ All 18 categories present!');
+      console.log(`   ✅ All ${EXPECTED_CATEGORIES.length} categories present!`);
     }
+    
+    // 3b. Category coverage analysis
+    console.log('\n📊 Category Coverage Analysis:');
+    const totalPages = parseInt(pageCount.rows[0].count);
+    categoryDist.rows.forEach(row => {
+      const coverage = ((parseInt(row.pages) / totalPages) * 100).toFixed(1);
+      const avgItems = (parseInt(row.count) / parseInt(row.pages)).toFixed(1);
+      const status = parseInt(row.pages) > 100 ? '✅' : parseInt(row.pages) > 50 ? '⚠️ ' : '❌';
+      console.log(`   ${status} ${row.category.padEnd(15)} ${row.pages.padStart(4)} pages (${coverage}%) | ${avgItems} items/page`);
+    });
     
     // 4. Pages with requirements
     console.log('\n📄 Pages with Requirements:');
@@ -70,7 +80,6 @@ async function verifyQuality() {
         COUNT(DISTINCT page_id) as count
       FROM requirements
     `);
-    const totalPages = parseInt(pageCount.rows[0].count);
     const pagesWithReqsCount = parseInt(pagesWithReqs.rows[0].count);
     const percentage = ((pagesWithReqsCount / totalPages) * 100).toFixed(1);
     console.log(`   ${pagesWithReqsCount} / ${totalPages} pages (${percentage}%)`);
@@ -124,17 +133,62 @@ async function verifyQuality() {
     console.log(`   Contact Email: ${stats.has_email} / ${stats.total} (${((stats.has_email/stats.total)*100).toFixed(1)}%)`);
     console.log(`   Region:        ${stats.has_region} / ${stats.total} (${((stats.has_region/stats.total)*100).toFixed(1)}%)`);
     
-    // 8. Component readiness assessment
+    // 8. Meaningfulness score analysis (if column exists)
+    console.log('\n📈 Meaningfulness Score Analysis:');
+    try {
+      const meaningfulnessStats = await pool.query(`
+        SELECT 
+          AVG(meaningfulness_score) as avg_score,
+          COUNT(*) FILTER (WHERE meaningfulness_score >= 80) as high_quality,
+          COUNT(*) FILTER (WHERE meaningfulness_score >= 50) as medium_quality,
+          COUNT(*) FILTER (WHERE meaningfulness_score < 50) as low_quality,
+          COUNT(*) as total
+        FROM requirements
+        WHERE meaningfulness_score IS NOT NULL
+      `);
+      if (meaningfulnessStats.rows[0].total > 0) {
+        const mstats = meaningfulnessStats.rows[0];
+        console.log(`   Average Score:      ${parseFloat(mstats.avg_score).toFixed(1)}/100`);
+        console.log(`   High Quality (80+):  ${mstats.high_quality} (${((mstats.high_quality/mstats.total)*100).toFixed(1)}%)`);
+        console.log(`   Medium Quality (50+): ${mstats.medium_quality} (${((mstats.medium_quality/mstats.total)*100).toFixed(1)}%)`);
+        console.log(`   Low Quality (<50):    ${mstats.low_quality} (${((mstats.low_quality/mstats.total)*100).toFixed(1)}%)`);
+      } else {
+        console.log('   ⚠️  No meaningfulness scores found');
+      }
+    } catch (e) {
+      console.log('   ⚠️  meaningfulness_score column not found in database schema');
+    }
+    
+    // 9. Component readiness assessment
     console.log('\n✅ Component Readiness Assessment:');
     
     const hasEnoughData = pagesWithReqsCount > 100;
     const hasCriticalCategories = allCriticalCount > 50;
     const hasMetadata = stats.has_title > 500 && stats.has_description > 500;
+    const hasAllCategories = foundCategories.size >= EXPECTED_CATEGORIES.length;
     
+    console.log(`   All 19 Categories:            ${hasAllCategories ? '✅' : '❌'} (${foundCategories.size}/${EXPECTED_CATEGORIES.length} categories)`);
     console.log(`   SmartWizard/QuestionEngine:     ${hasEnoughData ? '✅' : '❌'} (${pagesWithReqsCount} pages with requirements)`);
     console.log(`   RequirementsChecker:            ${hasCriticalCategories ? '✅' : '⚠️ '} (${allCriticalCount} pages with all critical categories)`);
     console.log(`   Library/AdvancedSearch:         ${hasMetadata ? '✅' : '⚠️ '} (${stats.has_title} pages with metadata)`);
     console.log(`   EnhancedAIChat:                 ${hasEnoughData ? '✅' : '❌'} (${reqCount.rows[0].count} requirements available)`);
+    
+    // 10. Overall quality score
+    const qualityScore = (
+      (pagesWithReqsCount / totalPages * 0.3) +
+      (allCriticalCount / totalPages * 0.3) +
+      (stats.has_min_amount / totalPages * 0.2) +
+      (foundCategories.size / EXPECTED_CATEGORIES.length * 0.2)
+    ) * 100;
+    
+    console.log(`\n📊 Overall Data Quality Score: ${qualityScore.toFixed(1)}/100`);
+    if (qualityScore >= 70) {
+      console.log('   ✅ Excellent data quality!');
+    } else if (qualityScore >= 50) {
+      console.log('   ⚠️  Good data quality, but room for improvement');
+    } else {
+      console.log('   ❌ Data quality needs improvement');
+    }
     
     console.log('\n✅ Quality check complete!\n');
     
