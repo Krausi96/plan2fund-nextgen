@@ -1,7 +1,6 @@
 ﻿import SmartWizard from "@/features/reco/components/wizard/SmartWizard";
 import { useEffect } from "react";
 import analytics from "@/shared/lib/analytics";
-import { withAuth } from "@/shared/lib/withAuth";
 
 function RecoPage() {
   useEffect(() => {
@@ -31,5 +30,5 @@ function RecoPage() {
   );
 }
 
-export default withAuth(RecoPage);
+export default RecoPage;
 
