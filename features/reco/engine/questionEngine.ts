@@ -138,7 +138,31 @@ export class QuestionEngine {
       }
     }
 
-    // Second pass: If we still have fewer than 5 questions, lower threshold and generate more
+    // Second pass: Ensure important questions are always generated (even if below threshold)
+    // Important questions that should always be included
+    const importantQuestionIds = ['location', 'company_type', 'company_age', 'revenue', 'funding_amount', 
+      'use_of_funds', 'impact', 'co_financing', 'research_focus', 'consortium', 'market_size', 'team_size'];
+    
+    for (const importantId of importantQuestionIds) {
+      if (this.questions.length >= MAX_QUESTIONS) break;
+      if (questionIdMap.has(importantId)) continue; // Already generated
+      
+      // Find the requirement type that maps to this important question
+      for (const req of this.requirementFrequencies) {
+        const questionId = this.mapRequirementToQuestionId(req.category, req.type);
+        if (questionId === importantId && req.frequency >= 2) { // At least 2 programs
+          questionIdMap.set(questionId, questionId);
+          const question = this.createQuestionFromRequirement(req, questionId, priority++);
+          if (question && question.options && question.options.length > 0) {
+            this.questions.push(question);
+            console.log(`✅ Generated important question: ${questionId} (${req.frequency} programs, ${question.options.length} options)`);
+            break;
+          }
+        }
+      }
+    }
+
+    // Third pass: If we still have fewer than 5 questions, lower threshold and generate more
     if (this.questions.length < 5) {
       console.log(`⚠️ Only ${this.questions.length} questions generated, lowering threshold to generate more...`);
       const LOWER_THRESHOLD = Math.max(2, Math.floor(this.allPrograms.length * 0.01)); // 1% threshold
@@ -198,8 +222,20 @@ export class QuestionEngine {
    * Now maps ALL 18-19 categories from scraper-lite!
    */
   private mapRequirementToQuestionId(category: string, type: string): string | null {
-    // Geographic - Location
-    if (category === 'geographic' && (type === 'location' || type.includes('location') || type.includes('region') || type.includes('standort'))) {
+    // Geographic - Location (include city, country, specific_location, region, etc.)
+    if (category === 'geographic' && (
+      type === 'location' || 
+      type === 'specific_location' ||
+      type === 'region' || 
+      type === 'city' ||
+      type === 'country' ||
+      type === 'subregion' ||
+      type.includes('location') || 
+      type.includes('region') || 
+      type.includes('standort') ||
+      type.includes('city') ||
+      type.includes('country')
+    )) {
       return 'location';
     }
 
@@ -288,6 +324,11 @@ export class QuestionEngine {
       return 'company_type';
     }
 
+    // Eligibility - Company stage (maps to company_type question)
+    if (category === 'eligibility' && (type === 'company_stage' || type.includes('company_stage') || type.includes('unternehmen_stage'))) {
+      return 'company_type'; // Company stage is part of company type
+    }
+
     // Eligibility - Sector - REMOVED: Dynamic options without translations, overlaps with industry
     // if (category === 'eligibility' && (type === 'sector' || type.includes('sector') || type.includes('branche'))) {
     //   return 'sector';
@@ -298,10 +339,8 @@ export class QuestionEngine {
     //   return 'deadline_urgency';
     // }
 
-    // Timeline - Duration - REMOVED: Too specific, not relevant for funding discovery
-    // if (category === 'timeline' && (type === 'duration' || type.includes('duration') || type.includes('laufzeit'))) {
-    //   return 'project_duration';
-    // }
+    // Timeline - Duration - Skip (not relevant for funding discovery, but allow generation for completeness)
+    // Note: timeline_duration questions are generated but not used for filtering
 
     // Impact - Important for funding discovery
     if (category === 'impact' && (type === 'sustainability' || type === 'employment_impact' || type === 'social' || type === 'climate_environmental' || type === 'impact_requirement' || type.includes('impact') || type.includes('wirkung') || type.includes('nachhaltigkeit'))) {
@@ -313,23 +352,17 @@ export class QuestionEngine {
       return 'market_size';
     }
 
-    // Documents - Required documents - REMOVED: Not relevant for funding discovery
-    // if (category === 'documents' && (type === 'required_documents' || type.includes('document') || type.includes('unterlage'))) {
-    //   return 'has_documents';
-    // }
+    // Documents - Required documents - Skip (not relevant for filtering, but allow generation)
+    // Note: documents_* questions are generated but not used for filtering
 
     // Legal - Legal compliance - REMOVED: Too vague
     // if (category === 'legal' && (type === 'legal_compliance' || type.includes('legal') || type.includes('rechtlich'))) {
     //   return 'legal_compliance';
     // }
 
-    // Default: create question ID from category if no specific type match
-    // This ensures ALL categories can generate questions
-    if (type && type !== 'unknown') {
-      return `${category}_${type}`.replace(/[^a-z0-9_]/gi, '_').toLowerCase();
-    }
-    
-    return category; // Use category as question ID if no type
+    // Don't auto-generate questions - only use properly mapped ones
+    // Auto-generated questions create garbage options from raw scraped data
+    return null;
   }
 
   /**
@@ -492,19 +525,48 @@ export class QuestionEngine {
     // Technology focus question - REMOVED: Dynamic options without translations, too technical/jargon
     // if (questionId === 'technology_focus') { ... }
 
-    // Company type question
+    // Company type question - use ACTUAL database values
     if (questionId === 'company_type') {
-      // Use predefined options instead of dynamic ones to ensure translations exist
+      // Extract actual values from database
+      const rawValues = Array.from(req.values.keys());
+      
+      // Normalize company type values from database
+      const normalizedTypes = new Set<string>();
+      rawValues.forEach(val => {
+        const lower = String(val).toLowerCase();
+        // Map actual DB values to question options
+        if (lower.includes('startup') || lower.includes('start-up') || lower.includes('new venture')) {
+          normalizedTypes.add('startup');
+        } else if (lower.includes('sme') || lower.includes('small') || lower.includes('medium') || lower.includes('mittelstand')) {
+          normalizedTypes.add('sme');
+        } else if (lower.includes('large') || lower.includes('enterprise') || lower.includes('groß')) {
+          normalizedTypes.add('large');
+        } else if (lower.includes('research') || lower.includes('university') || lower.includes('academic') || lower.includes('forschung')) {
+          normalizedTypes.add('research');
+        } else if (lower.includes('company') || lower.includes('unternehmen')) {
+          // "Company" is generic - map to all types or SME
+          normalizedTypes.add('sme');
+        }
+      });
+      
+      // Fallback to standard options if no matches
+      const options = normalizedTypes.size > 0 
+        ? Array.from(normalizedTypes).map(type => ({
+            value: type,
+            label: `wizard.options.${type}`
+          }))
+        : [
+            { value: 'startup', label: 'wizard.options.startup' },
+            { value: 'sme', label: 'wizard.options.sme' },
+            { value: 'large', label: 'wizard.options.large' },
+            { value: 'research', label: 'wizard.options.research' }
+          ];
+      
       return {
         id: 'company_type',
         symptom: 'wizard.questions.companyType',
         type: 'single-select',
-        options: [
-          { value: 'startup', label: 'wizard.options.startup' },
-          { value: 'sme', label: 'wizard.options.sme' },
-          { value: 'large', label: 'wizard.options.large' },
-          { value: 'research', label: 'wizard.options.research' }
-        ],
+        options,
         required: false,
         category: 'eligibility',
         priority
@@ -591,41 +653,9 @@ export class QuestionEngine {
     // This question doesn't help find funding programs, it's just informational
     // if (questionId === 'has_documents') { ... }
 
-    // Generic question for any unmapped category
-    // This ensures ALL categories from scraper-lite can generate questions
-    const values = Array.from(req.values.keys())
-      .filter(v => v && v !== 'unknown' && v !== 'null' && String(v).length < 100)
-      .slice(0, 10);
-    
-    if (values.length > 0) {
-      return {
-        id: questionId,
-        symptom: `wizard.questions.${questionId}`,
-        type: values.length <= 5 ? 'single-select' : 'multi-select',
-        options: values.map(v => ({
-          value: this.normalizeValue(v, req.type),
-          label: `wizard.options.${this.normalizeValue(v, req.type)}`
-        })),
-        required: false,
-        category: req.category,
-        priority
-      };
-    }
-
-    // Boolean question for categories with no specific values
-    // Always return a question with options, never null
-    return {
-      id: questionId,
-      symptom: `wizard.questions.${questionId}`,
-      type: 'single-select',
-      options: [
-        { value: 'yes', label: 'wizard.options.yes' },
-        { value: 'no', label: 'wizard.options.no' }
-      ],
-      required: false,
-      category: req.category,
-      priority
-    };
+    // Don't auto-generate questions - they create garbage options
+    // Only return questions for properly mapped requirement types
+    return null;
   }
 
   /**
@@ -763,12 +793,43 @@ export class QuestionEngine {
     return this.remainingPrograms;
   }
 
+  /**
+   * Public method to filter programs based on answers
+   * Used by analysis scripts and testing
+   * @param answers - User answers to filter by
+   * @param startingPrograms - Optional starting set of programs (defaults to allPrograms)
+   */
+  public applyFilters(answers: Record<string, any>, startingPrograms?: Program[]): Program[] {
+    // Use provided programs or start from all programs
+    const programsToFilter = startingPrograms || this.allPrograms;
+    
+    // Create temporary QuestionEngine instance to use its filtering logic
+    // Save current state
+    const originalAllPrograms = this.allPrograms;
+    const originalRemainingPrograms = this.remainingPrograms;
+    
+    // Temporarily set programs for filtering
+    this.allPrograms = programsToFilter;
+    
+    try {
+      return this.filterPrograms(answers);
+    } finally {
+      // Restore original state
+      this.allPrograms = originalAllPrograms;
+      this.remainingPrograms = originalRemainingPrograms;
+    }
+  }
+
   public getRemainingProgramCount(): number {
     return this.remainingPrograms.length;
   }
 
   public getCoreQuestions(): SymptomQuestion[] {
     return this.questions.filter(q => q.required);
+  }
+
+  public getAllQuestions(): SymptomQuestion[] {
+    return [...this.questions]; // Return copy to prevent external modification
   }
 
   public getEstimatedTotalQuestions(): number {
@@ -781,6 +842,7 @@ export class QuestionEngine {
 
   /**
    * Unified filtering function - checks categorized_requirements directly
+   * Note: This is called internally by getNextQuestion() and applyFilters()
    */
   private filterPrograms(answers: Record<string, any>): Program[] {
     let filtered = [...this.allPrograms];
@@ -828,12 +890,18 @@ export class QuestionEngine {
       console.log(`🔍 Research focus filter (no): ${before} → ${after} (${before - after} filtered)`);
     }
 
-    // Consortium filter
-    if (answers.consortium === 'no') {
+    // Consortium filter - handle both yes and no
+    if (answers.consortium !== undefined && answers.consortium !== null) {
       const before = filtered.length;
-      filtered = filtered.filter(program => !this.requiresConsortium(program));
+      if (answers.consortium === 'no') {
+        // Filter out programs that require consortium
+        filtered = filtered.filter(program => !this.requiresConsortium(program));
+      } else if (answers.consortium === 'yes') {
+        // Filter to programs that allow/require consortium
+        filtered = filtered.filter(program => this.hasConsortiumOption(program));
+      }
       const after = filtered.length;
-      console.log(`🔍 Consortium filter (no): ${before} → ${after} (${before - after} filtered)`);
+      console.log(`🔍 Consortium filter (${answers.consortium}): ${before} → ${after} (${before - after} filtered)`);
     }
 
     // Funding amount filter
@@ -885,7 +953,7 @@ export class QuestionEngine {
     // Sector filter - REMOVED: Question removed
     // if (answers.sector) { ... }
 
-    // Impact filter
+    // Impact filter (multi-select support - already handles arrays correctly)
     if (answers.impact && Array.isArray(answers.impact) && answers.impact.length > 0) {
       const before = filtered.length;
       filtered = filtered.filter(program => this.matchesImpact(program, answers.impact));
@@ -901,6 +969,21 @@ export class QuestionEngine {
       console.log(`🔍 Market size filter (${answers.market_size}): ${before} → ${after} (${before - after} filtered)`);
     }
 
+    // Use of funds filter (multi-select support)
+    if (answers.use_of_funds) {
+      const before = filtered.length;
+      if (Array.isArray(answers.use_of_funds)) {
+        // Multi-select: program must match at least one selected use
+        filtered = filtered.filter(program => 
+          answers.use_of_funds.some((use: string) => this.matchesUseOfFunds(program, use))
+        );
+      } else {
+        filtered = filtered.filter(program => this.matchesUseOfFunds(program, answers.use_of_funds));
+      }
+      const after = filtered.length;
+      console.log(`🔍 Use of funds filter (${Array.isArray(answers.use_of_funds) ? answers.use_of_funds.join(', ') : answers.use_of_funds}): ${before} → ${after} (${before - after} filtered)`);
+    }
+
     // Investment type filter (CAPEX/OPEX) - REMOVED: Question removed (too technical)
     // if (answers.investment_type) { ... }
 
@@ -912,26 +995,41 @@ export class QuestionEngine {
     const categorized = (program as any).categorized_requirements;
     const eligibility = (program as any).eligibility_criteria;
     
-    if (categorized?.geographic) {
-      const geoReqs = categorized.geographic.filter((r: any) => r.type === 'location');
-      if (geoReqs.length > 0) {
-        const programLocations = geoReqs.map((r: any) => String(r.value).toLowerCase());
-        const userLoc = String(userLocation).toLowerCase();
-        return programLocations.some((loc: string) => 
-          loc.includes(userLoc) || userLoc.includes(loc) ||
-          (userLoc === 'austria' && (loc.includes('austria') || loc.includes('vienna'))) ||
-          (userLoc === 'eu' && (loc.includes('eu') || loc.includes('europe')))
-        );
-      }
+    // SIMPLE QUERY: Check ALL geographic requirement types (location, specific_location, region, city, country)
+    const geoReqs = categorized?.geographic || [];
+    if (geoReqs.length === 0 && !eligibility?.location) {
+      // No location requirement = show for international, hide for specific locations
+      return userLocation === 'international';
     }
     
+    const userLoc = String(userLocation).toLowerCase();
+    
+    // Direct value matching - check all geographic requirements
+    for (const req of geoReqs) {
+      const reqValue = String(req.value || '').toLowerCase();
+      if (!reqValue) continue;
+      
+      // Direct matches
+      if (reqValue === userLoc) return true;
+      if (reqValue.includes(userLoc) || userLoc.includes(reqValue)) return true;
+      
+      // Specific location mappings
+      if (userLoc === 'austria' && (reqValue.includes('austria') || reqValue.includes('vienna') || reqValue === 'at')) return true;
+      if (userLoc === 'germany' && (reqValue.includes('germany') || reqValue.includes('deutschland') || reqValue === 'de')) return true;
+      if (userLoc === 'eu' && (reqValue.includes('eu') || reqValue.includes('europe') || reqValue.includes('european'))) return true;
+      if (userLoc === 'vienna' && reqValue.includes('vienna')) return true;
+      if (userLoc === 'international') return true; // International shows all
+    }
+    
+    // Check eligibility_criteria.location
     if (eligibility?.location) {
       const progLoc = String(eligibility.location).toLowerCase();
-      const userLoc = String(userLocation).toLowerCase();
-      return progLoc.includes(userLoc) || userLoc.includes(progLoc);
+      if (progLoc.includes(userLoc) || userLoc.includes(progLoc)) return true;
+      if (userLoc === 'international') return true;
     }
     
-    return true; // No location requirement = available
+    // If we have location requirements but no match, exclude
+    return userLocation === 'international';
   }
 
   private matchesCompanyAge(program: Program, userAge: number): boolean {
@@ -1012,31 +1110,89 @@ export class QuestionEngine {
   }
 
   private requiresConsortium(program: Program): boolean {
+    // SIMPLE QUERY: Check if consortium is required (not just optional)
     const categorized = (program as any).categorized_requirements;
     const eligibility = (program as any).eligibility_criteria;
     
+    // If consortium requirement exists and is marked as required
     if (categorized?.consortium) {
-      return categorized.consortium.some((r: any) => 
-        r.type === 'international_collaboration' && r.value === true
-      );
+      return categorized.consortium.some((r: any) => r.required === true);
     }
     
-    return !!eligibility?.international_collaboration;
+    if (eligibility?.consortium_required === true) {
+      return true;
+    }
+    
+    return false;
+  }
+
+  private hasConsortiumOption(program: Program): boolean {
+    // SIMPLE QUERY: Check if consortium requirement exists (yes/no)
+    const categorized = (program as any).categorized_requirements;
+    const eligibility = (program as any).eligibility_criteria;
+    
+    // Has consortium requirement = yes
+    if (categorized?.consortium && categorized.consortium.length > 0) {
+      return true;
+    }
+    
+    if (eligibility?.international_collaboration || eligibility?.consortium_required) {
+      return true;
+    }
+    
+    // No requirement = available (fair filtering)
+    return true;
   }
 
   private matchesFundingAmount(program: Program, userAmount: number): boolean {
+    // SIMPLE QUERY: Check funding_amount_max from DB
     const categorized = (program as any).categorized_requirements;
     const eligibility = (program as any).eligibility_criteria;
     
-    // Check funding range
-    const min = eligibility?.funding_amount_min || 
-                categorized?.financial?.find((r: any) => r.type === 'funding_amount_min')?.value || 
-                0;
-    const max = eligibility?.funding_amount_max || 
-                categorized?.financial?.find((r: any) => r.type === 'funding_amount_max')?.value || 
-                Infinity;
+    // Parse max funding from various sources
+    let max = Infinity;
     
-    return userAmount >= min && userAmount <= max;
+    // Check eligibility_criteria first (cleaner)
+    if (eligibility?.funding_amount_max) {
+      max = typeof eligibility.funding_amount_max === 'number' 
+        ? eligibility.funding_amount_max 
+        : this.parseAmountFromString(String(eligibility.funding_amount_max));
+    }
+    
+    // Check financial requirements
+    if (categorized?.financial) {
+      const maxReq = categorized.financial.find((r: any) => 
+        r.type === 'funding_amount_max' || r.type === 'funding_amount'
+      );
+      if (maxReq?.value) {
+        const parsed = this.parseAmountFromString(String(maxReq.value));
+        if (parsed > 0 && parsed < max) {
+          max = parsed;
+        }
+      }
+    }
+    
+    // User wants programs that offer at least userAmount
+    return max >= userAmount;
+  }
+  
+  // Helper to parse amounts like "6 million", "30,21 €", "18 million"
+  private parseAmountFromString(str: string): number {
+    const lower = str.toLowerCase().replace(/[^\d,.\s]/g, '');
+    const match = lower.match(/([\d,.\s]+)/);
+    if (!match) return 0;
+    
+    let num = parseFloat(match[1].replace(/,/g, '').replace(/\s/g, ''));
+    
+    // Handle millions
+    if (str.toLowerCase().includes('million') || str.toLowerCase().includes('mio')) {
+      num *= 1000000;
+    }
+    if (str.toLowerCase().includes('thousand') || str.toLowerCase().includes('k')) {
+      num *= 1000;
+    }
+    
+    return num;
   }
 
   // Removed: matchesTRL - TRL question removed (too technical)
@@ -1096,48 +1252,105 @@ export class QuestionEngine {
 
   // @ts-ignore - Used in filterPrograms
   private matchesCompanyType(program: Program, userType: string): boolean {
+    // SIMPLE QUERY: Map DB values to hardcoded options
     const categorized = (program as any).categorized_requirements;
-    if (categorized?.eligibility) {
-      const typeReqs = categorized.eligibility.filter((r: any) => r.type === 'company_type');
-      if (typeReqs.length > 0) {
-        const progTypes = typeReqs.map((r: any) => String(r.value).toLowerCase());
-        const userT = String(userType).toLowerCase();
-        return progTypes.some((t: string) => t.includes(userT) || userT.includes(t));
+    
+    const typeReqs = categorized?.eligibility?.filter((r: any) => 
+      r.type === 'company_type' || r.type === 'company_stage'
+    ) || [];
+    
+    if (typeReqs.length === 0) {
+      return true; // No requirement = available
+    }
+    
+    const userT = String(userType).toLowerCase();
+    
+    // Map messy DB values to clean options
+    for (const req of typeReqs) {
+      const reqValue = String(req.value || '').toLowerCase();
+      if (!reqValue) continue;
+      
+      // Map DB values to clean options
+      if (userT === 'startup') {
+        if (reqValue.includes('startup') || reqValue.includes('start-up') || 
+            reqValue.includes('new venture') || reqValue.includes('ideation') ||
+            reqValue.includes('concept stage')) {
+          return true;
+        }
+      }
+      if (userT === 'sme') {
+        if (reqValue.includes('sme') || reqValue.includes('small') || 
+            reqValue.includes('medium') || reqValue === 'company' ||
+            reqValue.includes('mittelstand')) {
+          return true;
+        }
+      }
+      if (userT === 'large') {
+        if (reqValue.includes('large') || reqValue.includes('enterprise') ||
+            reqValue.includes('großunternehmen')) {
+          return true;
+        }
+      }
+      if (userT === 'research') {
+        if (reqValue.includes('research') || reqValue.includes('university') ||
+            reqValue.includes('academic') || reqValue.includes('forschung') ||
+            reqValue.includes('researchers')) {
+          return true;
+        }
       }
     }
-    return true;
+    
+    return false; // Has requirement but no match
   }
 
   // matchesSector - REMOVED: Question removed
   // private matchesSector(program: Program, userSector: string): boolean { ... }
 
   private matchesImpact(program: Program, userImpacts: string[]): boolean {
+    // SIMPLE QUERY: Map DB impact types to hardcoded options
     const categorized = (program as any).categorized_requirements;
-    if (categorized?.impact) {
-      const impactReqs = categorized.impact;
-      if (impactReqs.length > 0) {
-        const programImpacts = impactReqs.map((r: any) => String(r.type || r.value).toLowerCase());
-        const userImpactsLower = userImpacts.map(i => String(i).toLowerCase());
-        
-        // Map user selections to requirement types
-        const impactMapping: Record<string, string[]> = {
-          'sustainability': ['sustainability', 'sustainability'],
-          'employment': ['employment', 'employment_impact', 'jobs', 'arbeitsplätze'],
-          'social': ['social', 'social_impact'],
-          'climate': ['climate', 'climate_environmental', 'co2', 'emission'],
-          'economic': ['economic', 'economic_impact', 'wirtschaft']
-        };
-        
-        // Check if any user impact matches program impacts
-        return userImpactsLower.some(userImpact => {
-          const mappedTypes = impactMapping[userImpact] || [userImpact];
-          return programImpacts.some((progImpact: string) => 
-            mappedTypes.some(mapped => progImpact.includes(mapped) || mapped.includes(progImpact))
-          );
-        });
+    
+    if (!categorized?.impact || categorized.impact.length === 0) {
+      return true; // No requirement = available
+    }
+    
+    const userImpactsLower = userImpacts.map(i => String(i).toLowerCase());
+    
+    // Check impact requirement types (not values - types are cleaner)
+    for (const req of categorized.impact) {
+      const reqType = String(req.type || '').toLowerCase();
+      
+      // Map DB impact types to clean options
+      if (userImpactsLower.includes('sustainability') && 
+          (reqType.includes('sustainability') || reqType.includes('sustainable'))) {
+        return true;
+      }
+      if (userImpactsLower.includes('employment') && 
+          (reqType.includes('employment') || reqType.includes('job'))) {
+        return true;
+      }
+      if (userImpactsLower.includes('social') && reqType.includes('social')) {
+        return true;
+      }
+      if (userImpactsLower.includes('climate') && 
+          (reqType.includes('climate') || reqType.includes('environmental') || reqType.includes('environment'))) {
+        return true;
+      }
+      if (userImpactsLower.includes('economic') && 
+          (reqType.includes('economic') || reqType.includes('wirtschaft'))) {
+        return true;
+      }
+      
+      // Also check value if it's a clean impact keyword
+      const reqValue = String(req.value || '').toLowerCase();
+      if (reqValue && reqValue.length < 50) { // Skip long descriptions
+        if (userImpactsLower.some(ui => reqValue.includes(ui) || ui.includes(reqValue))) {
+          return true;
+        }
       }
     }
-    return true; // Fair filtering - no impact requirement = available
+    
+    return false;
   }
 
   // @ts-ignore - Used in filterPrograms
@@ -1152,6 +1365,36 @@ export class QuestionEngine {
       }
     }
     return true;
+  }
+
+  // @ts-ignore - Used in filterPrograms
+  private matchesUseOfFunds(program: Program, userUse: string): boolean {
+    const categorized = (program as any).categorized_requirements;
+    if (categorized?.use_of_funds) {
+      const useReqs = categorized.use_of_funds;
+      if (useReqs.length > 0) {
+        const programUses = useReqs.map((r: any) => String(r.value || r.type).toLowerCase());
+        const userU = String(userUse).toLowerCase();
+        
+        // Map user selections to requirement values
+        // Note: Question options use 'rd', 'marketing', 'equipment', 'personnel', 'infrastructure'
+        const useMapping: Record<string, string[]> = {
+          'rd': ['research', 'development', 'r&d', 'rd', 'forschung', 'entwicklung', 'research_development'],
+          'research_development': ['research', 'development', 'r&d', 'rd', 'forschung', 'entwicklung'],
+          'marketing': ['marketing', 'werbung', 'vertrieb'],
+          'equipment': ['equipment', 'machinery', 'hardware', 'ausrüstung', 'maschinen'],
+          'personnel': ['personnel', 'staff', 'employees', 'hiring', 'personal', 'mitarbeiter'],
+          'infrastructure': ['infrastructure', 'facilities', 'infrastruktur'],
+          'working_capital': ['working_capital', 'working capital', 'betriebskapital']
+        };
+        
+        const mappedTypes = useMapping[userU] || [userU];
+        return programUses.some((progUse: string) => 
+          mappedTypes.some(mapped => progUse.includes(mapped) || mapped.includes(progUse))
+        );
+      }
+    }
+    return true; // Fair filtering - no use requirement = available
   }
 
   // @ts-ignore - Used in filterPrograms
@@ -1342,10 +1585,12 @@ export class QuestionEngine {
   }
 
   private parseFundingAmount(answer: string): number {
+    // Parse user's desired funding amount from answer
     if (answer.includes('under_50')) return 25000;
     if (answer.includes('50k_200')) return 100000;
     if (answer.includes('200k_500')) return 350000;
-    return 750000;
+    if (answer.includes('over_500')) return 500000;
+    return 500000; // Default to 500k
   }
 
   // Removed: parseTRL - TRL question removed (too technical)

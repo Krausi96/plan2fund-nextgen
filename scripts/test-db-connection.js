@@ -1,9 +1,11 @@
 // Test database connection from Next.js API route context
 // Run with: node scripts/test-db-connection.js
 
-require('dotenv').config({ path: '.env.local' });
-
 async function testConnection() {
+  // Load environment variables
+  require('dotenv').config({ path: '.env.local' });
+  // Load environment variables
+  require('dotenv').config({ path: '.env.local' });
   console.log('🔍 Testing database connection...\n');
   
   // Check environment variable
@@ -18,10 +20,10 @@ async function testConnection() {
   console.log(`   Connection string: ${process.env.DATABASE_URL.substring(0, 50)}...`);
   
   try {
-    // Try to load and use the database client
-    const { getPool, testConnection: testDbConnection } = require('../scraper-lite/src/db/neon-client');
-    
+    // Use dynamic import for TypeScript modules (same as API)
     console.log('\n🔌 Attempting connection...');
+    const neonClient = await import('../scraper-lite/src/db/neon-client.ts');
+    const { getPool } = neonClient;
     const pool = getPool();
     
     // Test query
@@ -48,7 +50,8 @@ async function testConnection() {
     
     // Test page-repository
     try {
-      const { getAllPages } = require('../scraper-lite/src/db/page-repository');
+      const pageRepo = await import('../scraper-lite/src/db/page-repository.ts');
+      const { getAllPages } = pageRepo;
       const pages = await getAllPages(10);
       console.log(`\n✅ Page repository working: ${pages.length} pages loaded`);
     } catch (e) {

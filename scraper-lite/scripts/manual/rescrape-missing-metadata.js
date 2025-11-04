@@ -31,39 +31,53 @@ async function rescrapeMissingMetadata() {
     // Find pages missing critical metadata
     console.log('\n📊 Finding pages with missing metadata...');
     
-    // Find pages missing ANY metadata - CHECK EVERYTHING!
+    // Find pages missing ANY metadata OR missing requirements categories - CHECK EVERYTHING!
     // IMPORTANT: Pages that get complete metadata after re-scraping will be automatically skipped in next run
     const missingPages = await pool.query(`
-      SELECT id, url, title
-      FROM pages
+      SELECT p.id, p.url, p.title,
+        -- Count existing requirements categories
+        COUNT(DISTINCT r.category) as req_categories_count
+      FROM pages p
+      LEFT JOIN requirements r ON p.id = r.page_id
       WHERE (
         -- ALL metadata fields - check EVERYTHING
-        title IS NULL OR 
-        description IS NULL OR
-        (funding_amount_min IS NULL AND funding_amount_max IS NULL) OR
-        currency IS NULL OR
-        (deadline IS NULL AND (open_deadline IS NULL OR open_deadline = false)) OR
-        (contact_email IS NULL AND contact_phone IS NULL) OR
-        region IS NULL OR
-        funding_types IS NULL OR array_length(funding_types, 1) IS NULL OR
-        program_focus IS NULL OR array_length(program_focus, 1) IS NULL OR
-        metadata_json IS NULL OR metadata_json = '{}'::jsonb
+        p.title IS NULL OR 
+        p.description IS NULL OR
+        (p.funding_amount_min IS NULL AND p.funding_amount_max IS NULL) OR
+        p.currency IS NULL OR
+        (p.deadline IS NULL AND (p.open_deadline IS NULL OR p.open_deadline = false)) OR
+        (p.contact_email IS NULL AND p.contact_phone IS NULL) OR
+        p.region IS NULL OR
+        p.funding_types IS NULL OR array_length(p.funding_types, 1) IS NULL OR
+        p.program_focus IS NULL OR array_length(p.program_focus, 1) IS NULL OR
+        p.metadata_json IS NULL OR p.metadata_json = '{}'::jsonb
       )
+      OR (
+        -- Missing critical requirements categories (at least 5 should be present)
+        NOT EXISTS (
+          SELECT 1 FROM requirements r2 
+          WHERE r2.page_id = p.id 
+          AND r2.category IN ('eligibility', 'financial', 'documents', 'timeline', 'project')
+        )
+      )
+      GROUP BY p.id, p.url, p.title
       ORDER BY 
-        -- Count how many fields are missing - prioritize pages missing the most
+        -- Prioritize pages missing critical requirements categories
+        CASE WHEN COUNT(DISTINCT r.category) < 5 THEN 0 ELSE 1 END,
+        -- Count how many metadata fields are missing - prioritize pages missing the most
         (
-          CASE WHEN title IS NULL THEN 1 ELSE 0 END +
-          CASE WHEN description IS NULL THEN 1 ELSE 0 END +
-          CASE WHEN funding_amount_min IS NULL AND funding_amount_max IS NULL THEN 1 ELSE 0 END +
-          CASE WHEN currency IS NULL THEN 1 ELSE 0 END +
-          CASE WHEN deadline IS NULL AND (open_deadline IS NULL OR open_deadline = false) THEN 1 ELSE 0 END +
-          CASE WHEN contact_email IS NULL AND contact_phone IS NULL THEN 1 ELSE 0 END +
-          CASE WHEN region IS NULL THEN 1 ELSE 0 END +
-          CASE WHEN funding_types IS NULL OR array_length(funding_types, 1) IS NULL THEN 1 ELSE 0 END +
-          CASE WHEN program_focus IS NULL OR array_length(program_focus, 1) IS NULL THEN 1 ELSE 0 END +
-          CASE WHEN metadata_json IS NULL OR metadata_json = '{}'::jsonb THEN 1 ELSE 0 END
+          CASE WHEN p.title IS NULL THEN 1 ELSE 0 END +
+          CASE WHEN p.description IS NULL THEN 1 ELSE 0 END +
+          CASE WHEN p.funding_amount_min IS NULL AND p.funding_amount_max IS NULL THEN 1 ELSE 0 END +
+          CASE WHEN p.currency IS NULL THEN 1 ELSE 0 END +
+          CASE WHEN p.deadline IS NULL AND (p.open_deadline IS NULL OR p.open_deadline = false) THEN 1 ELSE 0 END +
+          CASE WHEN p.contact_email IS NULL AND p.contact_phone IS NULL THEN 1 ELSE 0 END +
+          CASE WHEN p.region IS NULL THEN 1 ELSE 0 END +
+          CASE WHEN p.funding_types IS NULL OR array_length(p.funding_types, 1) IS NULL THEN 1 ELSE 0 END +
+          CASE WHEN p.program_focus IS NULL OR array_length(p.program_focus, 1) IS NULL THEN 1 ELSE 0 END +
+          CASE WHEN p.metadata_json IS NULL OR p.metadata_json = '{}'::jsonb THEN 1 ELSE 0 END
         ) DESC,
-        id DESC
+        p.id DESC
       LIMIT 500
     `);
     
@@ -77,20 +91,29 @@ async function rescrapeMissingMetadata() {
     
     // Check if there are more pages beyond the limit
     const totalMissingCount = await pool.query(`
-      SELECT COUNT(*) as total
-      FROM pages
+      SELECT COUNT(DISTINCT p.id) as total
+      FROM pages p
+      LEFT JOIN requirements r ON p.id = r.page_id
       WHERE (
         -- ALL metadata fields
-        title IS NULL OR 
-        description IS NULL OR
-        (funding_amount_min IS NULL AND funding_amount_max IS NULL) OR
-        currency IS NULL OR
-        (deadline IS NULL AND (open_deadline IS NULL OR open_deadline = false)) OR
-        (contact_email IS NULL AND contact_phone IS NULL) OR
-        region IS NULL OR
-        funding_types IS NULL OR array_length(funding_types, 1) IS NULL OR
-        program_focus IS NULL OR array_length(program_focus, 1) IS NULL OR
-        metadata_json IS NULL OR metadata_json = '{}'::jsonb
+        p.title IS NULL OR 
+        p.description IS NULL OR
+        (p.funding_amount_min IS NULL AND p.funding_amount_max IS NULL) OR
+        p.currency IS NULL OR
+        (p.deadline IS NULL AND (p.open_deadline IS NULL OR p.open_deadline = false)) OR
+        (p.contact_email IS NULL AND p.contact_phone IS NULL) OR
+        p.region IS NULL OR
+        p.funding_types IS NULL OR array_length(p.funding_types, 1) IS NULL OR
+        p.program_focus IS NULL OR array_length(p.program_focus, 1) IS NULL OR
+        p.metadata_json IS NULL OR p.metadata_json = '{}'::jsonb
+      )
+      OR (
+        -- Missing critical requirements categories
+        NOT EXISTS (
+          SELECT 1 FROM requirements r2 
+          WHERE r2.page_id = p.id 
+          AND r2.category IN ('eligibility', 'financial', 'documents', 'timeline', 'project')
+        )
       )
     `);
     const totalMissingAll = parseInt(totalMissingCount.rows[0].total);
@@ -100,31 +123,43 @@ async function rescrapeMissingMetadata() {
       console.log(`   Run this script again to process the remaining ${totalMissingAll - totalMissing} pages`);
     }
     
-    // Count what's missing - CHECK EVERYTHING
+    // Count what's missing - CHECK EVERYTHING (metadata + requirements)
     const missingStats = await pool.query(`
       SELECT 
-        COUNT(*) FILTER (WHERE title IS NULL) as missing_title,
-        COUNT(*) FILTER (WHERE description IS NULL) as missing_description,
-        COUNT(*) FILTER (WHERE funding_amount_min IS NULL AND funding_amount_max IS NULL) as missing_amounts,
-        COUNT(*) FILTER (WHERE currency IS NULL) as missing_currency,
-        COUNT(*) FILTER (WHERE deadline IS NULL AND (open_deadline IS NULL OR open_deadline = false)) as missing_deadlines,
-        COUNT(*) FILTER (WHERE contact_email IS NULL AND contact_phone IS NULL) as missing_contacts,
-        COUNT(*) FILTER (WHERE region IS NULL) as missing_region,
-        COUNT(*) FILTER (WHERE funding_types IS NULL OR array_length(funding_types, 1) IS NULL) as missing_funding_types,
-        COUNT(*) FILTER (WHERE program_focus IS NULL OR array_length(program_focus, 1) IS NULL) as missing_program_focus,
-        COUNT(*) FILTER (WHERE metadata_json IS NULL OR metadata_json = '{}'::jsonb) as missing_metadata_json
-      FROM pages
+        COUNT(DISTINCT p.id) FILTER (WHERE p.title IS NULL) as missing_title,
+        COUNT(DISTINCT p.id) FILTER (WHERE p.description IS NULL) as missing_description,
+        COUNT(DISTINCT p.id) FILTER (WHERE p.funding_amount_min IS NULL AND p.funding_amount_max IS NULL) as missing_amounts,
+        COUNT(DISTINCT p.id) FILTER (WHERE p.currency IS NULL) as missing_currency,
+        COUNT(DISTINCT p.id) FILTER (WHERE p.deadline IS NULL AND (p.open_deadline IS NULL OR p.open_deadline = false)) as missing_deadlines,
+        COUNT(DISTINCT p.id) FILTER (WHERE p.contact_email IS NULL AND p.contact_phone IS NULL) as missing_contacts,
+        COUNT(DISTINCT p.id) FILTER (WHERE p.region IS NULL) as missing_region,
+        COUNT(DISTINCT p.id) FILTER (WHERE p.funding_types IS NULL OR array_length(p.funding_types, 1) IS NULL) as missing_funding_types,
+        COUNT(DISTINCT p.id) FILTER (WHERE p.program_focus IS NULL OR array_length(p.program_focus, 1) IS NULL) as missing_program_focus,
+        COUNT(DISTINCT p.id) FILTER (WHERE p.metadata_json IS NULL OR p.metadata_json = '{}'::jsonb) as missing_metadata_json,
+        COUNT(DISTINCT p.id) FILTER (WHERE NOT EXISTS (
+          SELECT 1 FROM requirements r2 
+          WHERE r2.page_id = p.id 
+          AND r2.category IN ('eligibility', 'financial', 'documents', 'timeline', 'project')
+        )) as missing_critical_reqs
+      FROM pages p
       WHERE (
-        title IS NULL OR 
-        description IS NULL OR
-        (funding_amount_min IS NULL AND funding_amount_max IS NULL) OR
-        currency IS NULL OR
-        (deadline IS NULL AND (open_deadline IS NULL OR open_deadline = false)) OR
-        (contact_email IS NULL AND contact_phone IS NULL) OR
-        region IS NULL OR
-        funding_types IS NULL OR array_length(funding_types, 1) IS NULL OR
-        program_focus IS NULL OR array_length(program_focus, 1) IS NULL OR
-        metadata_json IS NULL OR metadata_json = '{}'::jsonb
+        p.title IS NULL OR 
+        p.description IS NULL OR
+        (p.funding_amount_min IS NULL AND p.funding_amount_max IS NULL) OR
+        p.currency IS NULL OR
+        (p.deadline IS NULL AND (p.open_deadline IS NULL OR p.open_deadline = false)) OR
+        (p.contact_email IS NULL AND p.contact_phone IS NULL) OR
+        p.region IS NULL OR
+        p.funding_types IS NULL OR array_length(p.funding_types, 1) IS NULL OR
+        p.program_focus IS NULL OR array_length(p.program_focus, 1) IS NULL OR
+        p.metadata_json IS NULL OR p.metadata_json = '{}'::jsonb
+      )
+      OR (
+        NOT EXISTS (
+          SELECT 1 FROM requirements r 
+          WHERE r.page_id = p.id 
+          AND r.category IN ('eligibility', 'financial', 'documents', 'timeline', 'project')
+        )
       )
     `);
     
