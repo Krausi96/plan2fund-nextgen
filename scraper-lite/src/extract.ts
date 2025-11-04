@@ -795,6 +795,78 @@ export function extractMeta(html: string, url?: string): ExtractedMeta {
     }
   }
   
+  // ENHANCED: Extract deadline from HTML tables (if not found yet)
+  if (!deadline && !open_deadline) {
+    try {
+      $('table').each((_, table) => {
+        const $table = $(table);
+        $table.find('tr').each((_, row) => {
+          const $row = $(row);
+          const cells = $row.find('td, th').map((_, cell) => $(cell).text().trim()).get();
+          if (cells.length >= 2) {
+            const label = cells[0].toLowerCase();
+            const value = cells[1];
+            if (label.includes('deadline') || label.includes('frist') || label.includes('einreichfrist') || 
+                label.includes('bewerbungsfrist') || label.includes('einsendefrist') || label.includes('abgabefrist') ||
+                label.includes('bewerbungsschluss') || label.includes('einsendeschluss') || label.includes('abgabeschluss')) {
+              const dateMatch = value.match(/(\d{1,2})[.\/\-\s]+(\d{1,2})[.\/\-\s]+(\d{2,4})/);
+              if (dateMatch) {
+                const d = parseInt(dateMatch[1], 10);
+                const mo = parseInt(dateMatch[2], 10);
+                const y = parseInt(dateMatch[3], 10) + (parseInt(dateMatch[3], 10) < 100 ? 2000 : 0);
+                if (d >= 1 && d <= 31 && mo >= 1 && mo <= 12 && y >= 2020 && y <= 2030) {
+                  deadline = `${String(d).padStart(2,'0')}.${String(mo).padStart(2,'0')}.${y}`;
+                  return false; // Break loops
+                }
+              } else if (/(laufend|rolling|ongoing|bis auf weiteres|continuously|open|keine frist|permanent)/i.test(value)) {
+                open_deadline = true;
+                return false; // Break loops
+              }
+            }
+          }
+        });
+        if (deadline || open_deadline) return false; // Break table loop
+      });
+    } catch (e) {
+      // Ignore errors
+    }
+  }
+  
+  // ENHANCED: Extract contact info from HTML tables (if not found yet)
+  if (!contact_email && !contact_phone) {
+    try {
+      $('table').each((_, table) => {
+        const $table = $(table);
+        $table.find('tr').each((_, row) => {
+          const $row = $(row);
+          const cells = $row.find('td, th').map((_, cell) => $(cell).text().trim()).get();
+          if (cells.length >= 2) {
+            const label = cells[0].toLowerCase();
+            const value = cells[1];
+            if ((label.includes('kontakt') || label.includes('contact') || label.includes('email') || 
+                 label.includes('e-mail') || label.includes('phone') || label.includes('telefon') ||
+                 label.includes('tel') || label.includes('ansprechpartner')) && !contact_email) {
+              const emailMatch = value.match(/[\w.+-]+@[\w.-]+\.[a-zA-Z]{2,}/);
+              if (emailMatch) {
+                contact_email = emailMatch[0];
+              }
+            }
+            if ((label.includes('telefon') || label.includes('phone') || label.includes('tel') || 
+                 label.includes('kontakt')) && !contact_phone) {
+              const phoneMatch = value.match(/(?:\+43|0043|0)\s*(?:\(0\))?\s*\d{1,4}[\s\/-]?\d{3,4}[\s\/-]?\d{3,8}/);
+              if (phoneMatch) {
+                contact_phone = phoneMatch[0].trim();
+              }
+            }
+          }
+        });
+        if (contact_email && contact_phone) return false; // Break table loop
+      });
+    } catch (e) {
+      // Ignore errors
+    }
+  }
+  
   // Fallback: Try multiple date formats (if no deadline found yet)
   if (!deadline && !open_deadline) {
     // Try multiple date formats (fallback)
