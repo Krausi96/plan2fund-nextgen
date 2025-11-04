@@ -42,28 +42,48 @@ export default function LoginModal({ isOpen, onClose, redirect }: LoginModalProp
       return;
     }
 
+    if (!isSignUp && !password) {
+      setError('Password is required to sign in');
+      return;
+    }
+
     setLoading(true);
     try {
-      const id = email.toLowerCase();
-      
-      // TODO: Add proper password authentication
-      // For now, just store a hash or use email as identifier
-      
+      const endpoint = isSignUp ? '/api/auth/register' : '/api/auth/login';
+      const response = await fetch(endpoint, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          email,
+          password,
+          name: isSignUp ? name : undefined
+        }),
+      });
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        throw new Error(data.error || 'Failed to authenticate');
+      }
+
+      // Update user profile in context
       setUserProfile({
-        id,
-        segment: 'B2C_FOUNDER', // Default, can be changed later
-        programType: 'GRANT',
-        industry: 'GENERAL',
-        language: 'EN',
-        payerType: 'INDIVIDUAL',
-        experience: 'NEWBIE',
-        createdAt: new Date().toISOString(),
-        lastActiveAt: new Date().toISOString(),
-        gdprConsent: true
+        id: String(data.user.id), // Use database ID as string
+        segment: data.user.segment || 'B2C_FOUNDER',
+        programType: data.user.program_type || 'GRANT',
+        industry: data.user.industry || 'GENERAL',
+        language: data.user.language || 'EN',
+        payerType: data.user.payer_type || 'INDIVIDUAL',
+        experience: data.user.experience || 'NEWBIE',
+        createdAt: data.user.created_at,
+        lastActiveAt: data.user.last_active_at,
+        gdprConsent: data.user.gdpr_consent || true
       });
 
       // Send welcome email (non-blocking)
-      if (email) {
+      if (isSignUp && email) {
         emailService.sendWelcomeEmail(email, name || undefined).catch(err => {
           console.error('Failed to send welcome email:', err);
         });
@@ -73,6 +93,8 @@ export default function LoginModal({ isOpen, onClose, redirect }: LoginModalProp
       onClose();
       if (redirect) {
         router.push(redirect);
+      } else {
+        router.push('/dashboard');
       }
     } catch (err: any) {
       setError(err.message || 'Failed to sign in. Please try again.');
