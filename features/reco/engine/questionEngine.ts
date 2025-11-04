@@ -770,7 +770,12 @@ export class QuestionEngine {
    */
   public async getNextQuestion(answers: Record<string, any>): Promise<SymptomQuestion | null> {
     // Filter programs based on answers
+    const beforeCount = this.remainingPrograms.length;
     this.remainingPrograms = this.filterPrograms(answers);
+    const afterCount = this.remainingPrograms.length;
+    const filteredCount = beforeCount - afterCount;
+    
+    console.log(`📊 Filtering summary: ${beforeCount} → ${afterCount} programs (${filteredCount} filtered, ${Object.keys(answers).length} answers given)`);
     
     // Conditional logic: Generate additional questions if many programs remain
     // This provides more precision when needed, fewer questions when not needed
@@ -871,53 +876,152 @@ export class QuestionEngine {
 
     // Location filter
     if (answers.location) {
+      const before = filtered.length;
       filtered = filtered.filter(program => this.matchesLocation(program, answers.location));
+      const after = filtered.length;
+      console.log(`🔍 Location filter (${answers.location}): ${before} → ${after} (${before - after} filtered)`);
     }
 
     // Company age filter
     if (answers.company_age) {
+      const before = filtered.length;
       const userAge = this.parseAge(answers.company_age);
       filtered = filtered.filter(program => this.matchesCompanyAge(program, userAge));
+      const after = filtered.length;
+      console.log(`🔍 Company age filter (${answers.company_age}): ${before} → ${after} (${before - after} filtered)`);
     }
 
     // Revenue filter
     if (answers.revenue) {
+      const before = filtered.length;
       const userRev = this.parseRevenue(answers.revenue);
       filtered = filtered.filter(program => this.matchesRevenue(program, userRev));
+      const after = filtered.length;
+      console.log(`🔍 Revenue filter (${answers.revenue}): ${before} → ${after} (${before - after} filtered)`);
     }
 
     // Team size filter
     if (answers.team_size) {
+      const before = filtered.length;
       const userSize = this.parseTeamSize(answers.team_size);
       filtered = filtered.filter(program => this.matchesTeamSize(program, userSize));
+      const after = filtered.length;
+      console.log(`🔍 Team size filter (${answers.team_size}): ${before} → ${after} (${before - after} filtered)`);
     }
 
     // Research focus filter
     if (answers.research_focus === 'no') {
+      const before = filtered.length;
       filtered = filtered.filter(program => !this.requiresResearch(program));
+      const after = filtered.length;
+      console.log(`🔍 Research focus filter (no): ${before} → ${after} (${before - after} filtered)`);
     }
 
     // Consortium filter
     if (answers.consortium === 'no') {
+      const before = filtered.length;
       filtered = filtered.filter(program => !this.requiresConsortium(program));
+      const after = filtered.length;
+      console.log(`🔍 Consortium filter (no): ${before} → ${after} (${before - after} filtered)`);
     }
 
     // Funding amount filter
     if (answers.funding_amount) {
+      const before = filtered.length;
       const userAmount = this.parseFundingAmount(answers.funding_amount);
       filtered = filtered.filter(program => this.matchesFundingAmount(program, userAmount));
+      const after = filtered.length;
+      console.log(`🔍 Funding amount filter (${answers.funding_amount}): ${before} → ${after} (${before - after} filtered)`);
     }
 
     // TRL level filter
     if (answers.trl_level) {
+      const before = filtered.length;
       const userTRL = this.parseTRL(answers.trl_level);
       filtered = filtered.filter(program => this.matchesTRL(program, userTRL));
+      const after = filtered.length;
+      console.log(`🔍 TRL level filter (${answers.trl_level}): ${before} → ${after} (${before - after} filtered)`);
     }
 
     // Co-financing filter
     if (answers.co_financing) {
+      const before = filtered.length;
       const userPercent = this.parsePercentage(answers.co_financing);
       filtered = filtered.filter(program => this.matchesCoFinancing(program, userPercent));
+      const after = filtered.length;
+      console.log(`🔍 Co-financing filter (${answers.co_financing}%): ${before} → ${after} (${before - after} filtered)`);
+    }
+
+    // Innovation focus filter (align with enhancedRecoEngine)
+    if (answers.innovation_focus === 'no') {
+      const before = filtered.length;
+      filtered = filtered.filter(program => !this.requiresInnovation(program));
+      const after = filtered.length;
+      console.log(`🔍 Innovation focus filter (no): ${before} → ${after} (${before - after} filtered)`);
+    }
+
+    // Sustainability focus filter
+    if (answers.sustainability_focus === 'no') {
+      const before = filtered.length;
+      filtered = filtered.filter(program => !this.requiresSustainability(program));
+      const after = filtered.length;
+      console.log(`🔍 Sustainability focus filter (no): ${before} → ${after} (${before - after} filtered)`);
+    }
+
+    // Industry focus filter
+    if (answers.industry_focus) {
+      const before = filtered.length;
+      filtered = filtered.filter(program => this.matchesIndustry(program, answers.industry_focus));
+      const after = filtered.length;
+      console.log(`🔍 Industry focus filter (${answers.industry_focus}): ${before} → ${after} (${before - after} filtered)`);
+    }
+
+    // Technology focus filter
+    if (answers.technology_focus) {
+      const before = filtered.length;
+      filtered = filtered.filter(program => this.matchesTechnology(program, answers.technology_focus));
+      const after = filtered.length;
+      console.log(`🔍 Technology focus filter (${answers.technology_focus}): ${before} → ${after} (${before - after} filtered)`);
+    }
+
+    // Company type filter
+    if (answers.company_type) {
+      const before = filtered.length;
+      filtered = filtered.filter(program => this.matchesCompanyType(program, answers.company_type));
+      const after = filtered.length;
+      console.log(`🔍 Company type filter (${answers.company_type}): ${before} → ${after} (${before - after} filtered)`);
+    }
+
+    // Sector filter
+    if (answers.sector) {
+      const before = filtered.length;
+      filtered = filtered.filter(program => this.matchesSector(program, answers.sector));
+      const after = filtered.length;
+      console.log(`🔍 Sector filter (${answers.sector}): ${before} → ${after} (${before - after} filtered)`);
+    }
+
+    // Impact focus filter
+    if (answers.impact_focus === 'no') {
+      const before = filtered.length;
+      filtered = filtered.filter(program => !this.requiresImpact(program));
+      const after = filtered.length;
+      console.log(`🔍 Impact focus filter (no): ${before} → ${after} (${before - after} filtered)`);
+    }
+
+    // Market size filter
+    if (answers.market_size) {
+      const before = filtered.length;
+      filtered = filtered.filter(program => this.matchesMarketSize(program, answers.market_size));
+      const after = filtered.length;
+      console.log(`🔍 Market size filter (${answers.market_size}): ${before} → ${after} (${before - after} filtered)`);
+    }
+
+    // Investment type filter (CAPEX/OPEX)
+    if (answers.investment_type) {
+      const before = filtered.length;
+      filtered = filtered.filter(program => this.matchesInvestmentType(program, answers.investment_type));
+      const after = filtered.length;
+      console.log(`🔍 Investment type filter (${answers.investment_type}): ${before} → ${after} (${before - after} filtered)`);
     }
 
     return filtered;

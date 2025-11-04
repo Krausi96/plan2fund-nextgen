@@ -610,104 +610,106 @@ function DashboardPage() {
           </Card>
         )}
 
-      {/* Admin Panel - Only visible to admins */}
-      {isMounted && isAdmin && (
-        <Card className="p-6 mt-8 border-orange-200 bg-orange-50">
-          <div className="flex items-center justify-between mb-6">
-            <div className="flex items-center">
-              <Settings className="w-6 h-6 text-orange-600 mr-2" />
-              <h2 className="text-xl font-semibold text-orange-800">Admin Panel</h2>
-            </div>
-            <span className="px-2 py-1 bg-orange-200 text-orange-800 text-xs rounded-full">
-              Admin Only
-            </span>
-          </div>
-          
-          <div className="space-y-4">
-            {/* Data Update Section */}
-            <div className="bg-white p-4 rounded-lg border">
-              <div className="flex items-center justify-between mb-3">
-                <div className="flex items-center">
-                  <Database className="w-5 h-5 text-blue-600 mr-2" />
-                  <h3 className="font-medium text-gray-900">Funding Data Update</h3>
+        {/* Admin Panel - Only visible to admins */}
+        {isMounted && isAdmin && (
+          <Card className="p-6 mt-8 border-2 border-orange-200 bg-gradient-to-br from-orange-50 to-orange-100 shadow-lg">
+            <div className="flex items-center justify-between mb-6">
+              <div className="flex items-center gap-3">
+                <div className="w-10 h-10 bg-orange-500 rounded-xl flex items-center justify-center shadow-md">
+                  <Settings className="w-5 h-5 text-white" />
                 </div>
-                <Button 
-                  onClick={updateData} 
-                  disabled={isUpdating}
-                  className="bg-blue-600 hover:bg-blue-700 text-white"
-                >
-                  {isUpdating ? (
-                    <>
-                      <RefreshCw className="w-4 h-4 mr-2 animate-spin" />
-                      Updating...
-                    </>
-                  ) : (
-                    <>
-                      <RefreshCw className="w-4 h-4 mr-2" />
-                      Update Data
-                    </>
-                  )}
-                </Button>
+                <h2 className="text-xl font-semibold text-orange-900">Admin Panel</h2>
               </div>
-              
-              {lastUpdate && (
-                <p className="text-sm text-gray-600 mb-2">
-                  Last update: {lastUpdate}
+              <span className="px-3 py-1.5 bg-orange-200 text-orange-900 text-xs font-semibold rounded-full border border-orange-300">
+                Admin Only
+              </span>
+            </div>
+            
+            <div className="space-y-4">
+              {/* Data Update Section */}
+              <div className="bg-white p-5 rounded-xl border-2 border-orange-200 shadow-sm">
+                <div className="flex items-center justify-between mb-4">
+                  <div className="flex items-center gap-3">
+                    <Database className="w-5 h-5 text-blue-600" />
+                    <h3 className="font-semibold text-gray-900">Funding Data Update</h3>
+                  </div>
+                  <Button 
+                    onClick={updateData} 
+                    disabled={isUpdating}
+                    className="bg-blue-600 hover:bg-blue-700 text-white shadow-md"
+                  >
+                    {isUpdating ? (
+                      <>
+                        <RefreshCw className="w-4 h-4 mr-2 animate-spin" />
+                        Updating...
+                      </>
+                    ) : (
+                      <>
+                        <RefreshCw className="w-4 h-4 mr-2" />
+                        Update Data
+                      </>
+                    )}
+                  </Button>
+                </div>
+                
+                {lastUpdate && (
+                  <p className="text-sm text-gray-600 mb-3">
+                    Last update: <span className="font-medium">{lastUpdate}</span>
+                  </p>
+                )}
+                
+                {updateStatus && (
+                  <div className={`text-sm p-3 rounded-lg mb-3 ${
+                    updateStatus.includes('✅') 
+                      ? 'bg-green-100 text-green-800 border border-green-200' 
+                      : 'bg-red-100 text-red-800 border border-red-200'
+                  }`}>
+                    {updateStatus}
+                  </div>
+                )}
+                
+                <p className="text-xs text-gray-600">
+                  This will scrape all funding websites, categorize data, and update the database.
+                  Process typically takes 2-5 minutes.
                 </p>
-              )}
-              
-              {updateStatus && (
-                <div className={`text-sm p-2 rounded ${
-                  updateStatus.includes('✅') 
-                    ? 'bg-green-100 text-green-800' 
-                    : 'bg-red-100 text-red-800'
-                }`}>
-                  {updateStatus}
-                </div>
-              )}
-              
-              <p className="text-xs text-gray-500">
-                This will scrape all funding websites, categorize data, and update the database.
-                Process typically takes 2-5 minutes.
-              </p>
-            </div>
-            
-            {/* Admin User Management */}
-            <div className="bg-white p-4 rounded-lg border">
-              <div className="flex items-center justify-between mb-3">
-                <h3 className="font-medium text-gray-900">Admin Users</h3>
-                <AdminUserManager />
               </div>
-              <p className="text-xs text-gray-500">
-                Manage users who have admin access to this dashboard.
-              </p>
-            </div>
-            
-            {/* System Status */}
-            <div className="bg-white p-4 rounded-lg border">
-              <h3 className="font-medium text-gray-900 mb-2">System Status</h3>
-              <div className="grid grid-cols-2 gap-4 text-sm">
-                <div>
-                  <span className="text-gray-600">Pattern Learning:</span>
-                  <span className="ml-2 text-green-600 font-medium">Active</span>
+              
+              {/* Admin User Management */}
+              <div className="bg-white p-5 rounded-xl border-2 border-orange-200 shadow-sm">
+                <div className="flex items-center justify-between mb-3">
+                  <h3 className="font-semibold text-gray-900">Admin Users</h3>
+                  <AdminUserManager />
                 </div>
-                <div>
-                  <span className="text-gray-600">Categories:</span>
-                  <span className="ml-2 text-blue-600 font-medium">18 Active</span>
-                </div>
-                <div>
-                  <span className="text-gray-600">Auto-Update:</span>
-                  <span className="ml-2 text-orange-600 font-medium">Manual</span>
-                </div>
-                <div>
-                  <span className="text-gray-600">Data Sources:</span>
-                  <span className="ml-2 text-blue-600 font-medium">Austrian/EU</span>
+                <p className="text-xs text-gray-600">
+                  Manage users who have admin access to this dashboard.
+                </p>
+              </div>
+              
+              {/* System Status */}
+              <div className="bg-white p-5 rounded-xl border-2 border-orange-200 shadow-sm">
+                <h3 className="font-semibold text-gray-900 mb-4">System Status</h3>
+                <div className="grid grid-cols-2 gap-4 text-sm">
+                  <div className="flex items-center justify-between p-2 bg-gray-50 rounded-lg">
+                    <span className="text-gray-600">Pattern Learning:</span>
+                    <span className="text-green-600 font-semibold">Active</span>
+                  </div>
+                  <div className="flex items-center justify-between p-2 bg-gray-50 rounded-lg">
+                    <span className="text-gray-600">Categories:</span>
+                    <span className="text-blue-600 font-semibold">18 Active</span>
+                  </div>
+                  <div className="flex items-center justify-between p-2 bg-gray-50 rounded-lg">
+                    <span className="text-gray-600">Auto-Update:</span>
+                    <span className="text-orange-600 font-semibold">Manual</span>
+                  </div>
+                  <div className="flex items-center justify-between p-2 bg-gray-50 rounded-lg">
+                    <span className="text-gray-600">Data Sources:</span>
+                    <span className="text-blue-600 font-semibold">Austrian/EU</span>
+                  </div>
                 </div>
               </div>
             </div>
-          </div>
-        </Card>
-      )}
+          </Card>
+        )}
       </div>
     </div>
   );

@@ -302,202 +302,148 @@ Please provide more specific details about what you'd like help with, and I'll p
   };
 
   // ========== PHASE 3 ENHANCED METHODS ==========
+  // (Removed unused functions - kept for potential future use)
 
-  // Generate content using program-specific template
-  const handleGenerateFromTemplate = async () => {
-    if (!programTemplate || !currentTemplateSection) return;
+  // Analyze current content to provide proactive suggestions
+  const analyzeContent = () => {
+    const currentContent = plan.sections.find(s => s.key === currentSection)?.content || '';
+    const contentLength = currentContent.replace(/<[^>]*>/g, '').trim().length;
+    const readinessIssues = getReadinessIssues();
+    const hasContent = contentLength > 50;
     
-    setIsProcessing(true);
-    
-    try {
-      const currentSectionContent = plan.sections.find(s => s.key === currentSection)?.content || '';
-      
-      const response = await aiHelper.generateSectionContent(
-        currentSection,
-        currentSectionContent,
-        {
-          id: programProfile?.programId || 'unknown',
-          name: programTemplate.program_name,
-          type: programProfile?.route || 'grant',
-          amount: '€0',
-          eligibility: [],
-          requirements: programTemplate?.sections?.map((s: any) => s.id) || [],
-          score: 0,
-          reasons: [],
-          risks: []
-        }
-      );
-      
-      const aiMessage: ChatMessage = {
-        id: Date.now().toString(),
-        type: 'ai',
-        content: `Generated content using program-specific template:\n\n${response.content}\n\n${response.sectionGuidance?.map(g => `💡 ${g}`).join('\n')}\n\n${response.complianceTips?.map(t => `⚠️ ${t}`).join('\n')}`,
-        timestamp: new Date(),
-        action: 'insert'
+    // Determine what user needs most
+    if (!hasContent) {
+      return {
+        primary: {
+          label: 'Complete This Section',
+          action: async () => {
+            const prompt = `Generate complete content for ${currentSection} section based on the prompts and requirements.`;
+            setInput(prompt);
+            // Auto-send after a brief delay
+            setTimeout(() => {
+              if (input || prompt) {
+                const userMessage: ChatMessage = {
+                  id: Date.now().toString(),
+                  type: 'user',
+                  content: prompt,
+                  timestamp: new Date()
+                };
+                setMessages(prev => [...prev, userMessage]);
+                setInput('');
+                setIsProcessing(true);
+                // The actual send will be handled by the existing handleSend logic
+              }
+            }, 100);
+          },
+          description: 'Generate full section content',
+          icon: '✨'
+        },
+        secondary: [
+          {
+            label: 'Start Writing',
+            action: () => {
+              const prompt = `Help me write the ${currentSection} section. Where should I start?`;
+              setInput(prompt);
+            },
+            icon: '✍️'
+          }
+        ]
       };
-      
-      setMessages(prev => [...prev, aiMessage]);
-    } catch (error) {
-      console.error('Error generating template content:', error);
-    } finally {
-      setIsProcessing(false);
     }
-  };
-
-  // Generate content using decision tree answers
-  const handleGenerateFromDecisionTree = async () => {
-    if (!decisionTreeAnswers) return;
     
-    setIsProcessing(true);
-    
-    try {
-      const currentSectionContent = plan.sections.find(s => s.key === currentSection)?.content || '';
-      
-      const response = await aiHelper.generateSectionContent(
-        currentSection,
-        currentSectionContent,
-        {
-          id: programProfile?.programId || 'unknown',
-          name: programProfile?.programId || 'Unknown Program',
-          type: programProfile?.route || 'grant',
-          amount: '€0',
-          eligibility: [],
-          requirements: programProfile?.required?.sections?.map(s => s.key) || [],
-          score: 0,
-          reasons: [],
-          risks: []
-        }
-      );
-      
-      const aiMessage: ChatMessage = {
-        id: Date.now().toString(),
-        type: 'ai',
-        content: `Generated personalized content based on your answers:\n\n${response.content}\n\n${response.sectionGuidance?.map(g => `💡 ${g}`).join('\n')}\n\n${response.complianceTips?.map(t => `⚠️ ${t}`).join('\n')}`,
-        timestamp: new Date(),
-        action: 'insert'
+    if (readinessIssues.length > 0) {
+      return {
+        primary: {
+          label: 'Fix Compliance Issues',
+          action: handleMakeCompliant,
+          description: `${readinessIssues.length} issue${readinessIssues.length > 1 ? 's' : ''} to fix`,
+          icon: '✅'
+        },
+        secondary: [
+          {
+            label: 'Improve Writing',
+            action: () => {
+              const prompt = `Improve the writing quality and clarity of the ${currentSection} section.`;
+              setInput(prompt);
+            },
+            icon: '⚡'
+          },
+          {
+            label: 'Add Details',
+            action: () => {
+              const prompt = `Expand the ${currentSection} section with more specific details and examples.`;
+              setInput(prompt);
+            },
+            icon: '📈'
+          }
+        ]
       };
-      
-      setMessages(prev => [...prev, aiMessage]);
-    } catch (error) {
-      console.error('Error generating decision tree content:', error);
-    } finally {
-      setIsProcessing(false);
     }
+    
+    // Content exists and is compliant, suggest improvements
+    return {
+      primary: {
+        label: 'Enhance Content',
+        action: () => {
+          const prompt = `Enhance the ${currentSection} section to make it more compelling and professional.`;
+          setInput(prompt);
+        },
+        description: 'Improve quality and impact',
+        icon: '⚡'
+      },
+      secondary: [
+        {
+          label: 'Add Examples',
+          action: () => {
+            const prompt = `Add specific examples and case studies to the ${currentSection} section.`;
+            setInput(prompt);
+          },
+          icon: '💡'
+        },
+        {
+          label: 'Check Compliance',
+          action: handleMakeCompliant,
+          icon: '✅'
+        }
+      ]
+    };
   };
 
-  // Get AI guidance for current section
-  const getAIGuidance = (): string[] => {
-    if (!aiGuidance) return [];
+  const contextualActions = analyzeContent();
+  
+  // Get proactive suggestions based on content analysis
+  const getProactiveSuggestions = (): string[] => {
+    const currentContent = plan.sections.find(s => s.key === currentSection)?.content || '';
+    const contentLength = currentContent.replace(/<[^>]*>/g, '').trim().length;
+    const readinessIssues = getReadinessIssues();
+    const suggestions: string[] = [];
     
-    const guidance: string[] = [];
-    
-    if (aiGuidance.context) {
-      guidance.push(`Context: ${aiGuidance.context}`);
+    if (contentLength === 0) {
+      suggestions.push('💡 This section is empty. Start by answering the prompts step by step.');
+    } else if (contentLength < 100) {
+      suggestions.push('📝 Your content is brief. Consider adding more details and examples.');
     }
     
-    if (aiGuidance.key_points) {
-      guidance.push(`Key Points: ${aiGuidance.key_points.join(', ')}`);
+    if (readinessIssues.length > 0) {
+      suggestions.push(`⚠️ ${readinessIssues.length} compliance issue${readinessIssues.length > 1 ? 's' : ''} detected. Click "Fix Compliance Issues" to address them.`);
     }
     
-    if (aiGuidance.prompts && aiGuidance.prompts[currentSection]) {
-      guidance.push(`Section Prompt: ${aiGuidance.prompts[currentSection]}`);
+    const section = plan.sections.find(s => s.key === currentSection);
+    const sectionPrompts = (section as any)?.prompts as string[] | undefined;
+    if (sectionPrompts && sectionPrompts.length > 0) {
+      const answeredPrompts = sectionPrompts.filter((prompt: string) => {
+        const lowerContent = currentContent.toLowerCase();
+        const lowerPrompt = prompt.toLowerCase();
+        const keywords = lowerPrompt.split(/\s+/).filter((w: string) => w.length > 4);
+        return keywords.some((kw: string) => lowerContent.includes(kw));
+      }).length;
+      if (answeredPrompts < sectionPrompts.length) {
+        suggestions.push(`📋 You've addressed ${answeredPrompts} of ${sectionPrompts.length} prompts. Complete the remaining steps in the wizard above.`);
+      }
     }
     
-    return guidance;
+    return suggestions;
   };
-
-  // Get template-specific guidance
-  const getTemplateGuidance = (): string[] => {
-    if (!currentTemplateSection) return [];
-    
-    const guidance: string[] = [];
-    
-    if (currentTemplateSection.description) {
-      guidance.push(`Description: ${currentTemplateSection.description}`);
-    }
-    
-    if (currentTemplateSection.ai_prompts) {
-      guidance.push(`AI Prompts: ${currentTemplateSection.ai_prompts.join(', ')}`);
-    }
-    
-    if (currentTemplateSection.validation_rules) {
-      const rules = Object.entries(currentTemplateSection.validation_rules)
-        .map(([key, value]) => `${key}: ${value}`)
-        .join(', ');
-      guidance.push(`Validation Rules: ${rules}`);
-    }
-    
-    return guidance;
-  };
-
-  // Quick action buttons
-  const quickActions = [
-    {
-      label: 'Make Compliant',
-      action: handleMakeCompliant,
-      description: 'Fix readiness issues',
-      icon: '✅'
-    },
-    {
-      label: 'Improve Content',
-      action: () => {
-        const prompt = `Improve the content for ${currentSection} section. Make it more compelling and professional.`;
-        setInput(prompt);
-      },
-      description: 'Enhance content quality',
-      icon: '⚡'
-    },
-    {
-      label: 'Add Structure',
-      action: () => {
-        const prompt = `Add proper structure and formatting to the ${currentSection} section with clear headings and bullet points.`;
-        setInput(prompt);
-      },
-      description: 'Add structure and formatting',
-      icon: '📋'
-    },
-    {
-      label: 'Expand Content',
-      action: () => {
-        const prompt = `Expand the ${currentSection} section with more detailed information and examples.`;
-        setInput(prompt);
-      },
-      description: 'Add more details',
-      icon: '📈'
-    },
-    {
-      label: 'Fix Readiness',
-      action: () => {
-        const issues = getReadinessIssues();
-        const prompt = `Fix these readiness issues: ${issues.join(', ')}`;
-        setInput(prompt);
-      },
-      description: 'Address readiness issues',
-      icon: '🔧'
-    },
-    {
-      label: 'Generate Examples',
-      action: () => {
-        const prompt = `Generate specific examples and case studies for the ${currentSection} section.`;
-        setInput(prompt);
-      },
-      description: 'Generate examples',
-      icon: '💡'
-    },
-    // Phase 3 Enhanced Actions
-    ...(programTemplate && currentTemplateSection ? [{
-      label: 'Generate from Template',
-      action: handleGenerateFromTemplate,
-      description: 'Use program-specific template',
-      icon: '📋'
-    }] : []),
-    ...(decisionTreeAnswers ? [{
-      label: 'Generate from Answers',
-      action: handleGenerateFromDecisionTree,
-      description: 'Use decision tree answers',
-      icon: '🌳'
-    }] : [])
-  ];
 
   return (
     <div className="h-full flex flex-col">
@@ -512,42 +458,54 @@ Please provide more specific details about what you'd like help with, and I'll p
         </button>
       </div>
 
-      {/* Suggestions */}
+      {/* Proactive Suggestions - Context-aware */}
       {showSuggestions && (
-        <div className="mb-3 p-2 bg-blue-50 rounded text-xs">
-          <div className="font-medium text-blue-900 mb-1">Suggestions:</div>
-          <div className="space-y-1">
-            {getReadinessIssues().slice(0, 3).map((issue, index) => (
-              <div key={index} className="text-blue-800">• {issue}</div>
+        <div className="mb-3 p-3 bg-gradient-to-r from-blue-50 to-indigo-50 border border-blue-200 rounded-lg">
+          <div className="font-medium text-blue-900 mb-2 text-xs">💡 Suggestions for this section:</div>
+          <div className="space-y-1.5">
+            {getProactiveSuggestions().map((suggestion, index) => (
+              <div key={index} className="text-xs text-blue-800 leading-relaxed">
+                {suggestion}
+              </div>
             ))}
-            {getProgramSuggestions().slice(0, 2).map((suggestion, index) => (
-              <div key={index} className="text-blue-800">• {suggestion}</div>
-            ))}
-            {/* Phase 3 Enhanced Suggestions */}
-            {getAIGuidance().map((guidance, index) => (
-              <div key={`ai-${index}`} className="text-purple-800">• {guidance}</div>
-            ))}
-            {getTemplateGuidance().map((guidance, index) => (
-              <div key={`template-${index}`} className="text-green-800">• {guidance}</div>
-            ))}
+            {getProactiveSuggestions().length === 0 && (
+              <div className="text-xs text-blue-700 italic">
+                ✓ Your section looks good! Continue writing or use the actions below to enhance it.
+              </div>
+            )}
           </div>
         </div>
       )}
 
-      {/* Quick Actions */}
-      <div className="mb-3 space-y-1">
-        {quickActions.map((action, index) => (
-          <button
-            key={index}
-            onClick={action.action}
-            disabled={isProcessing}
-            className="w-full text-left px-2 py-1 text-xs bg-gray-100 hover:bg-gray-200 rounded disabled:opacity-50"
-          >
-            <span className="mr-1">{action.icon}</span>
-            {action.label}
-            <span className="text-gray-500 ml-1">- {action.description}</span>
-          </button>
-        ))}
+      {/* Proactive Contextual Actions - Only 3-4 relevant actions */}
+      <div className="mb-3">
+        {/* Primary Action - Most relevant */}
+        <button
+          onClick={contextualActions.primary.action}
+          disabled={isProcessing}
+          className="w-full text-left px-3 py-2 text-sm font-medium bg-gradient-to-r from-blue-600 to-indigo-600 text-white rounded-lg hover:from-blue-700 hover:to-indigo-700 disabled:opacity-50 transition-all shadow-md hover:shadow-lg mb-2"
+        >
+          <span className="mr-2">{contextualActions.primary.icon}</span>
+          {contextualActions.primary.label}
+          {contextualActions.primary.description && (
+            <span className="block text-xs opacity-90 mt-0.5">{contextualActions.primary.description}</span>
+          )}
+        </button>
+        
+        {/* Secondary Actions - Compact */}
+        <div className="grid grid-cols-2 gap-1">
+          {contextualActions.secondary.map((action, index) => (
+            <button
+              key={index}
+              onClick={action.action}
+              disabled={isProcessing}
+              className="text-left px-2 py-1.5 text-xs bg-gray-100 hover:bg-gray-200 rounded disabled:opacity-50 transition-colors"
+            >
+              <span className="mr-1">{action.icon}</span>
+              {action.label}
+            </button>
+          ))}
+        </div>
       </div>
 
       {/* Messages */}

@@ -418,7 +418,7 @@ export default function RestructuredEditor({
                   </div>
                 </div>
 
-                {/* Guidance Section */}
+                {/* Enhanced Guidance Section - Step-by-step feel */}
                 {sections[activeSection]?.prompts && sections[activeSection].prompts.length > 0 && (
                   <div className="bg-gradient-to-r from-blue-50 to-indigo-50 border border-blue-200 rounded-xl p-5 mb-6">
                     <div className="flex items-start justify-between mb-3">
@@ -426,7 +426,10 @@ export default function RestructuredEditor({
                         <div className="w-8 h-8 bg-blue-500 rounded-lg flex items-center justify-center">
                           <span className="text-white text-sm">💡</span>
                         </div>
-                        <h3 className="text-sm font-semibold text-blue-900">What to include:</h3>
+                        <div>
+                          <h3 className="text-sm font-semibold text-blue-900">Step-by-step guide:</h3>
+                          <p className="text-xs text-blue-700">Complete each step below</p>
+                        </div>
                       </div>
                       {(!sections[activeSection]?.content || sections[activeSection].content.trim().length === 0) &&
                         onAIGenerate && (
@@ -438,14 +441,46 @@ export default function RestructuredEditor({
                           </button>
                         )}
                     </div>
-                    <ul className="space-y-2.5">
-                      {sections[activeSection].prompts.map((prompt: string, idx: number) => (
-                        <li key={idx} className="text-sm text-blue-900 flex items-start gap-2.5">
-                          <span className="text-blue-500 mt-1 font-bold">•</span>
-                          <span className="leading-relaxed">{prompt}</span>
-                        </li>
-                      ))}
-                    </ul>
+                    <div className="space-y-3">
+                      {sections[activeSection].prompts.map((prompt: string, idx: number) => {
+                        const currentContent = sections[activeSection]?.content || '';
+                        const lowerContent = currentContent.toLowerCase();
+                        const lowerPrompt = prompt.toLowerCase();
+                        const keywords = lowerPrompt.split(/\s+/).filter(w => w.length > 4);
+                        const isCompleted = keywords.some(kw => lowerContent.includes(kw)) && currentContent.length > 30;
+                        
+                        return (
+                          <div
+                            key={idx}
+                            className={`p-3 rounded-lg border transition-all ${
+                              isCompleted
+                                ? 'bg-green-50 border-green-200'
+                                : 'bg-white border-blue-100'
+                            }`}
+                          >
+                            <div className="flex items-start gap-3">
+                              <div className={`flex-shrink-0 w-6 h-6 rounded-full flex items-center justify-center text-xs font-bold ${
+                                isCompleted
+                                  ? 'bg-green-500 text-white'
+                                  : 'bg-blue-100 text-blue-700'
+                              }`}>
+                                {isCompleted ? '✓' : idx + 1}
+                              </div>
+                              <div className="flex-1">
+                                <p className={`text-sm leading-relaxed ${
+                                  isCompleted ? 'text-green-900 line-through' : 'text-blue-900'
+                                }`}>
+                                  {prompt}
+                                </p>
+                                {isCompleted && (
+                                  <p className="text-xs text-green-700 mt-1">✓ Completed</p>
+                                )}
+                              </div>
+                            </div>
+                          </div>
+                        );
+                      })}
+                    </div>
                   </div>
                 )}
 
@@ -469,34 +504,72 @@ export default function RestructuredEditor({
                   showFormatting={true}
                 />
 
-                {/* Requirements Progress */}
-                <div className="mt-6 p-3 bg-gray-50 rounded-lg border border-gray-200">
-                  <div className="flex items-center justify-between mb-2">
-                    <span className="text-xs font-medium text-gray-700">Requirements</span>
-                    <span className="text-xs font-semibold text-gray-700">{requirementsProgress}%</span>
+                {/* Actionable Requirements Feedback */}
+                {programProfile && (
+                  <div className="mt-6 p-4 bg-gradient-to-r from-purple-50 to-blue-50 rounded-lg border border-purple-200">
+                    <div className="flex items-center justify-between mb-3">
+                      <div className="flex items-center gap-2">
+                        <span className="text-sm font-semibold text-purple-900">📋 Section Requirements</span>
+                        <span className={`px-2 py-0.5 rounded-full text-xs font-medium ${
+                          requirementsStatus === 'complete'
+                            ? 'bg-green-100 text-green-700'
+                            : requirementsStatus === 'incomplete'
+                            ? 'bg-yellow-100 text-yellow-700'
+                            : 'bg-gray-100 text-gray-700'
+                        }`}>
+                          {requirementsProgress}% Complete
+                        </span>
+                      </div>
+                    </div>
+                    <div className="w-full bg-gray-200 rounded-full h-2 mb-3">
+                      <div
+                        className={`h-2 rounded-full transition-all ${
+                          requirementsStatus === 'complete'
+                            ? 'bg-green-500'
+                            : requirementsStatus === 'incomplete'
+                            ? 'bg-yellow-500'
+                            : 'bg-blue-500'
+                        }`}
+                        style={{ width: `${requirementsProgress}%` }}
+                      />
+                    </div>
+                    <div className="text-xs text-purple-800 space-y-1">
+                      {requirementsStatus === 'complete' && (
+                        <div className="flex items-center gap-1.5">
+                          <span>✅</span>
+                          <span>This section meets all program requirements!</span>
+                        </div>
+                      )}
+                      {requirementsStatus === 'incomplete' && (
+                        <div className="space-y-1">
+                          <div className="flex items-center gap-1.5">
+                            <span>⚠️</span>
+                            <span>Some requirements are missing. Use the AI assistant to fix compliance issues.</span>
+                          </div>
+                          <button
+                            onClick={() => {
+                              if (onAIGenerate) {
+                                onAIGenerate();
+                              }
+                            }}
+                            className="mt-2 px-3 py-1.5 text-xs font-medium bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-colors"
+                          >
+                            Fix with AI →
+                          </button>
+                        </div>
+                      )}
+                      {requirementsStatus === 'loading' && (
+                        <div className="flex items-center gap-1.5">
+                          <span className="animate-spin">⏳</span>
+                          <span>Checking requirements...</span>
+                        </div>
+                      )}
+                      {!programProfile && (
+                        <div className="text-gray-600">No program selected. Select a program to see requirements.</div>
+                      )}
+                    </div>
                   </div>
-                  <div className="w-full bg-gray-200 rounded-full h-1.5 mb-2">
-                    <div
-                      className={`h-1.5 rounded-full transition-all ${
-                        requirementsStatus === 'complete'
-                          ? 'bg-green-500'
-                          : requirementsStatus === 'incomplete'
-                          ? 'bg-yellow-500'
-                          : requirementsStatus === 'error'
-                          ? 'bg-red-500'
-                          : 'bg-blue-500'
-                      }`}
-                      style={{ width: `${requirementsProgress}%` }}
-                    />
-                  </div>
-                  <div className="text-xs text-gray-600">
-                    {requirementsStatus === 'complete' && '✅ All requirements met'}
-                    {requirementsStatus === 'incomplete' && '⚠️ Some requirements pending'}
-                    {requirementsStatus === 'error' && '❌ Error checking requirements'}
-                    {requirementsStatus === 'loading' && 'Checking...'}
-                    {!programProfile && 'No program selected'}
-                  </div>
-                </div>
+                )}
               </div>
             ) : (
               <div className="bg-white/70 backdrop-blur-sm rounded-2xl border border-gray-200/50 p-12 text-center">
