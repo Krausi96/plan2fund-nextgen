@@ -470,16 +470,40 @@ export class QuestionEngine {
       }
     }
 
-    // FALLBACK: If not enough questions from analysis, add standard questions
-    if (questionCandidates.length < 3) {
-      console.log(`⚠️ Only ${questionCandidates.length} questions from analysis, adding fallback questions`);
+    // FALLBACK: Always ensure we have at least 12-15 questions minimum
+    // If not enough questions from analysis, add standard questions
+    const MIN_REQUIRED_QUESTIONS = 12;
+    if (questionCandidates.length < MIN_REQUIRED_QUESTIONS) {
+      console.log(`⚠️ Only ${questionCandidates.length} questions from analysis, adding fallback questions to reach ${MIN_REQUIRED_QUESTIONS}`);
       
-      // Add standard business questions
-      questionCandidates.push({ question: this.createBusinessStageQuestion(), importance: 80 });
-      questionCandidates.push({ question: this.createFundingNeedQuestion(), importance: 75 });
-      questionCandidates.push({ question: this.createInnovationLevelQuestion(), importance: 70 });
-      questionCandidates.push({ question: this.createTeamExperienceQuestion(), importance: 65 });
-      questionCandidates.push({ question: this.createMarketQuestion(), importance: 60 });
+      // Add standard business questions (always add these core questions)
+      const fallbackQuestions = [
+        { question: this.createBusinessStageQuestion(), importance: 80 },
+        { question: this.createFundingNeedQuestion(), importance: 75 },
+        { question: this.createInnovationLevelQuestion(), importance: 70 },
+        { question: this.createTeamExperienceQuestion(), importance: 65 },
+        { question: this.createMarketQuestion(), importance: 60 }
+      ];
+      
+      // Only add questions that don't already exist
+      for (const fallback of fallbackQuestions) {
+        const exists = questionCandidates.some(c => c.question.id === fallback.question.id);
+        if (!exists) {
+          questionCandidates.push(fallback);
+          console.log(`✅ Added fallback question: ${fallback.question.id}`);
+        }
+      }
+      
+      // If still not enough, add more generic questions
+      while (questionCandidates.length < MIN_REQUIRED_QUESTIONS) {
+        const genericQuestion = this.createGenericQuestion(questionCandidates.length);
+        if (genericQuestion) {
+          questionCandidates.push({ question: genericQuestion, importance: 50 });
+          console.log(`✅ Added generic question: ${genericQuestion.id}`);
+        } else {
+          break; // Can't create more
+        }
+      }
     }
 
     // Sort by importance (highest first) and assign question numbers
@@ -798,11 +822,18 @@ export class QuestionEngine {
       : 0;
     console.log(`📊 Programs remaining: ${this.remainingPrograms.length} / ${this.allPrograms.length} (${filterPercent}% filtered)`);
     
-    // NEW: Only stop early if we have ≤5 programs AND answered at least 10 questions
+    // NEW: Only stop early if we have ≤5 programs AND answered at least 12 questions
     // This ensures we ask enough questions to properly narrow down
-    if (this.remainingPrograms.length <= 5 && Object.keys(answers).length >= 10) {
-      console.log(`✅ Only ${this.remainingPrograms.length} programs remain (well narrowed), stopping questions early`);
+    const answerCount = Object.keys(answers).length;
+    if (this.remainingPrograms.length <= 5 && answerCount >= 12) {
+      console.log(`✅ Only ${this.remainingPrograms.length} programs remain (well narrowed), stopping questions after ${answerCount} answers`);
       return null;
+    }
+    
+    // CRITICAL: Never stop before 12 questions minimum
+    if (answerCount < 12) {
+      console.log(`⏳ Must ask at least 12 questions, currently at ${answerCount}`);
+      // Continue asking questions
     }
     
     // Check if we should stop asking questions based on match quality
@@ -921,22 +952,31 @@ export class QuestionEngine {
   public async shouldStopQuestions(answers: Record<string, any>): Promise<boolean> {
     const answerCount = Object.keys(answers).length;
     
-    // Don't stop if we haven't asked enough questions yet
-    if (answerCount < 3) {
+    // CRITICAL FIX: Always ask at least 10-12 questions minimum, regardless of how many questions exist
+    // This prevents stopping too early when only a few questions are generated
+    const MINIMUM_QUESTIONS = 12;
+    if (answerCount < MINIMUM_QUESTIONS) {
+      console.log(`⏳ Need at least ${MINIMUM_QUESTIONS} answers, currently have ${answerCount}`);
       return false;
     }
     
-    // If we have 15+ answers, we can stop (increased from 8 to get better matches)
+    // If we have 15+ answers, we can stop (good enough)
     if (answerCount >= 15) {
       console.log(`✅ Sufficient answers provided (${answerCount})`);
       return true;
     }
     
-    // Check if we have answered all available questions
+    // Only check if we've answered all questions if we have enough questions AND enough answers
     const totalQuestions = this.questions.length;
-    if (answerCount >= totalQuestions) {
+    if (totalQuestions >= MINIMUM_QUESTIONS && answerCount >= totalQuestions) {
       console.log(`✅ All ${totalQuestions} questions answered`);
       return true;
+    }
+    
+    // If we have very few questions (< 12), keep asking contextual questions
+    if (totalQuestions < MINIMUM_QUESTIONS) {
+      console.log(`⚠️ Only ${totalQuestions} questions generated, will keep asking contextual questions`);
+      return false; // Don't stop - let contextual questions fill the gap
     }
     
     return false;
@@ -1620,6 +1660,64 @@ export class QuestionEngine {
   }
 
   /**
+   * Create generic question for fallback (when not enough questions)
+   */
+  private createGenericQuestion(index: number): SymptomQuestion | null {
+    // Create simple questions based on index
+    const genericQuestions = [
+      {
+        id: 'business_type',
+        symptom: 'wizard.questions.businessType',
+        type: 'single-select' as const,
+        options: [
+          { label: 'wizard.options.tech', value: 'tech' },
+          { label: 'wizard.options.service', value: 'service' },
+          { label: 'wizard.options.product', value: 'product' },
+          { label: 'wizard.options.other', value: 'other' }
+        ],
+        category: 'specific_requirements' as const,
+        phase: 2 as const
+      },
+      {
+        id: 'funding_goal',
+        symptom: 'wizard.questions.fundingGoal',
+        type: 'single-select' as const,
+        options: [
+          { label: 'wizard.options.product_development', value: 'product_development' },
+          { label: 'wizard.options.marketing', value: 'marketing' },
+          { label: 'wizard.options.research', value: 'research' },
+          { label: 'wizard.options.expansion', value: 'expansion' }
+        ],
+        category: 'funding_need' as const,
+        phase: 2 as const
+      },
+      {
+        id: 'project_status',
+        symptom: 'wizard.questions.projectStatus',
+        type: 'single-select' as const,
+        options: [
+          { label: 'wizard.options.concept', value: 'concept' },
+          { label: 'wizard.options.proof_of_concept', value: 'proof_of_concept' },
+          { label: 'wizard.options.prototype', value: 'prototype' },
+          { label: 'wizard.options.market_ready', value: 'market_ready' }
+        ],
+        category: 'business_stage' as const,
+        phase: 2 as const
+      }
+    ];
+    
+    if (index < genericQuestions.length) {
+      return {
+        ...genericQuestions[index],
+        required: false,
+        questionNumber: 0
+      };
+    }
+    
+    return null;
+  }
+
+  /**
    * Create fallback market question
    */
   private createMarketQuestion(): SymptomQuestion {
@@ -1687,14 +1785,37 @@ export class QuestionEngine {
   }
 
   private createTRLQuestion(trlPrograms: [string, number][]): SymptomQuestion {
-    const options = trlPrograms.map(([key, count]) => {
-      const trl = key.replace('trl_', '');
+    // Standard TRL levels to ensure we always have complete options
+    const allTRLLevels = ['1', '2', '3', '4', '5', '6', '7', '8', '9'];
+    const trlCounts = new Map<string, number>();
+    
+    // Count from programs
+    trlPrograms.forEach(([key, count]) => {
+      const trl = key.replace('trl_', '').replace(/TRL\s*/gi, '').trim();
+      if (trl && trl !== 'unknown') {
+        trlCounts.set(trl, count);
+      }
+    });
+
+    // Create options - include all TRL levels, but only show those that exist in programs
+    const options = allTRLLevels.map(trl => {
+      const count = trlCounts.get(trl) || 0;
       return {
         label: `TRL ${trl}`,
         value: trl,
-        description: `${count} programs require this level`
+        description: count > 0 ? `${count} programs require this level` : undefined
       };
     });
+
+    // Add "Unknown" option if needed
+    const hasUnknown = trlPrograms.some(([key]) => key.toLowerCase().includes('unknown'));
+    if (hasUnknown) {
+      options.push({
+        label: 'Unknown',
+        value: 'unknown',
+        description: 'Not yet determined'
+      });
+    }
 
     return {
       id: 'trl_level',
@@ -1764,11 +1885,24 @@ export class QuestionEngine {
       };
     });
 
+    // Ensure we have options - if not, create default options
+    let finalOptions = options;
+    if (!finalOptions || finalOptions.length === 0) {
+      console.warn(`⚠️ No options generated for ${requirementType}, creating defaults`);
+      finalOptions = [
+        { value: 'yes', label: 'Yes', description: 'Yes' },
+        { value: 'no', label: 'No', description: 'No' }
+      ];
+    }
+
+    // Determine question type - always use select, never text
+    const questionType = requirementType.includes('multiple') ? 'multi-select' : 'single-select';
+
     return {
       id: requirementType,
       symptom: this.formatQuestionPrompt(requirementType),
-      type: requirementType.includes('multiple') ? 'multi-select' : 'single-select',
-      options,
+      type: questionType,
+      options: finalOptions,
       required: count > this.allPrograms.length * 0.5, // Required if >50% of programs need it
       category: 'specific_requirements',
       phase: 2,
@@ -1787,7 +1921,23 @@ export class QuestionEngine {
     if (requirementType === 'market_size') {
       return value.replace(/_/g, ' ');
     }
-    return value;
+    // Fix TRL formatting - remove redundant "TRL" prefix
+    if (requirementType === 'trl' || requirementType === 'trl_level') {
+      if (value.includes('TRL')) {
+        // Extract just the number if it's "TRL 3" or "Unknown TRL"
+        const match = value.match(/TRL\s*(\d+)/i) || value.match(/(\d+)/);
+        if (match) {
+          return `TRL ${match[1]}`;
+        }
+        if (value.toLowerCase().includes('unknown')) {
+          return 'Unknown';
+        }
+        return value.replace(/TRL\s*/gi, '').trim() || 'Unknown';
+      }
+      return value;
+    }
+    // General formatting: replace underscores, capitalize
+    return value.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase());
   }
 
   private formatQuestionPrompt(requirementType: string): string {
@@ -1811,12 +1961,68 @@ export class QuestionEngine {
   private generateContextualQuestions(answers: Record<string, any>): void {
     const needsClarification = this.analyzeRemainingProgramRequirements(answers);
     
+    // CRITICAL: Always generate contextual questions if we have fewer than 12 questions total
+    // This ensures we reach the minimum question count
+    const currentQuestionCount = this.questions.length;
+    const answerCount = Object.keys(answers).length;
+    
+    console.log(`📋 Generating contextual questions: ${currentQuestionCount} questions exist, ${answerCount} answers given`);
+    
     for (const need of needsClarification) {
       const question = this.createDynamicContextualQuestion(need);
       if (!this.questions.find(q => q.id === question.id)) {
         this.questions.push(question);
         console.log(`📋 Added contextual question: ${question.id} from ${need.programCount} programs needing clarification`);
       }
+    }
+    
+    // If still not enough questions, generate more based on remaining programs
+    if (currentQuestionCount < 12 && answerCount < 12) {
+      console.log(`⚠️ Still only ${currentQuestionCount} questions, generating more contextual questions`);
+      this.generateAdditionalContextualQuestions(answers);
+    }
+  }
+
+  /**
+   * Generate additional contextual questions when we need more
+   */
+  private generateAdditionalContextualQuestions(_answers: Record<string, any>): void {
+    // Analyze what we haven't asked about yet
+    const askedCategories = new Set(
+      this.questions.map(q => q.category).filter(Boolean)
+    );
+    
+    // Generate questions for missing categories
+    const allCategories: Array<'location' | 'business_stage' | 'funding_need' | 'team_size' | 'innovation_level' | 'specific_requirements'> = 
+      ['location', 'business_stage', 'funding_need', 'team_size', 'innovation_level', 'specific_requirements'];
+    const missingCategories = allCategories.filter(cat => !askedCategories.has(cat));
+    
+    for (const category of missingCategories.slice(0, 5)) { // Max 5 more
+      const question = this.createQuestionForCategory(category);
+      if (question && !this.questions.find(q => q.id === question.id)) {
+        this.questions.push(question);
+        console.log(`📋 Added category question: ${question.id} for category ${category}`);
+      }
+    }
+  }
+
+  /**
+   * Create a question for a specific category
+   */
+  private createQuestionForCategory(category: string): SymptomQuestion | null {
+    switch (category) {
+      case 'business_stage':
+        return this.createBusinessStageQuestion();
+      case 'funding_need':
+        return this.createFundingNeedQuestion();
+      case 'innovation_level':
+        return this.createInnovationLevelQuestion();
+      case 'team_size':
+        return this.createTeamExperienceQuestion();
+      case 'specific_requirements':
+        return this.createMarketQuestion();
+      default:
+        return null;
     }
   }
 
@@ -1928,8 +2134,11 @@ export class QuestionEngine {
       if (need.category === 'geographic' && categorized.geographic) {
         for (const req of categorized.geographic) {
           if (req.type === 'location_detail' || req.type === 'region' || req.type === 'city') {
-            const count = valueCount.get(req.value) || 0;
-            valueCount.set(req.value, count + 1);
+            const value = String(req.value || '').trim();
+            if (value) {
+              const count = valueCount.get(value) || 0;
+              valueCount.set(value, count + 1);
+            }
           }
         }
       }
@@ -1937,21 +2146,39 @@ export class QuestionEngine {
       if (need.category === 'consortium' && categorized.consortium) {
         for (const req of categorized.consortium) {
           if (req.type === 'partner_count' || req.type === 'team_size') {
-            const count = valueCount.get(req.value) || 0;
-            valueCount.set(req.value, count + 1);
+            const value = String(req.value || '').trim();
+            if (value) {
+              const count = valueCount.get(value) || 0;
+              valueCount.set(value, count + 1);
+            }
+          }
+        }
+      }
+      
+      // Also check for required_documents and other fields
+      if (need.field === 'required_documents' && categorized.documents) {
+        for (const doc of categorized.documents) {
+          const value = String(doc.type || doc.value || '').trim();
+          if (value) {
+            const count = valueCount.get(value) || 0;
+            valueCount.set(value, count + 1);
           }
         }
       }
     }
     
     // Convert to options, sorted by frequency
-    return Array.from(valueCount.entries())
+    const options = Array.from(valueCount.entries())
       .sort((a, b) => b[1] - a[1])
+      .slice(0, 10) // Limit to top 10 to avoid overwhelming UI
       .map(([value, count]) => ({
-        value,
+        value: value || 'unknown',
         label: this.formatLabel(value),
         description: `${count} programs require this`
       }));
+    
+    // If we still have no options, return empty array (will be handled by caller)
+    return options;
   }
 
   /**
