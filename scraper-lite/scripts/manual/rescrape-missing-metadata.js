@@ -31,15 +31,18 @@ async function rescrapeMissingMetadata() {
     // Find pages missing critical metadata
     console.log('\n📊 Finding pages with missing metadata...');
     
+    // Find pages missing ANY critical metadata
+    // Pages that already have complete metadata will be automatically skipped
     const missingPages = await pool.query(`
-      SELECT id, url, title
+      SELECT id, url, title,
+        CASE WHEN funding_amount_min IS NULL AND funding_amount_max IS NULL THEN 'amount' ELSE '' END as missing_amount,
+        CASE WHEN deadline IS NULL AND (open_deadline IS NULL OR open_deadline = false) THEN 'deadline' ELSE '' END as missing_deadline,
+        CASE WHEN contact_email IS NULL AND contact_phone IS NULL THEN 'contact' ELSE '' END as missing_contact
       FROM pages
       WHERE (
-        funding_amount_min IS NULL OR
-        funding_amount_max IS NULL OR
-        deadline IS NULL OR
-        contact_email IS NULL OR
-        contact_phone IS NULL
+        (funding_amount_min IS NULL AND funding_amount_max IS NULL) OR
+        (deadline IS NULL AND (open_deadline IS NULL OR open_deadline = false)) OR
+        (contact_email IS NULL AND contact_phone IS NULL)
       )
       ORDER BY id DESC
       LIMIT 500
@@ -51,6 +54,23 @@ async function rescrapeMissingMetadata() {
     if (totalMissing === 0) {
       console.log('✅ All pages have complete metadata!');
       return;
+    }
+    
+    // Check if there are more pages beyond the limit
+    const totalMissingCount = await pool.query(`
+      SELECT COUNT(*) as total
+      FROM pages
+      WHERE (
+        (funding_amount_min IS NULL AND funding_amount_max IS NULL) OR
+        (deadline IS NULL AND (open_deadline IS NULL OR open_deadline = false)) OR
+        (contact_email IS NULL AND contact_phone IS NULL)
+      )
+    `);
+    const totalMissingAll = parseInt(totalMissingCount.rows[0].total);
+    
+    if (totalMissingAll > totalMissing) {
+      console.log(`ℹ️  Note: ${totalMissingAll} total pages need re-scraping (processing ${totalMissing} now)`);
+      console.log(`   Run this script again to process the remaining ${totalMissingAll - totalMissing} pages`);
     }
     
     // Count what's missing
