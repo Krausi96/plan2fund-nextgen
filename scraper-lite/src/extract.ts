@@ -2554,6 +2554,71 @@ function extractStructuredRequirements(html: string, categorized: Record<string,
           }
         }
         
+        // Deadline extraction from tables
+        if (label.includes('deadline') || label.includes('frist') || label.includes('einreichfrist') || 
+            label.includes('bewerbungsfrist') || label.includes('einsendefrist') || label.includes('abgabefrist') ||
+            label.includes('meldungsfrist') || label.includes('anmeldefrist') || label.includes('bewerbungsschluss') ||
+            label.includes('einsendeschluss') || label.includes('abgabeschluss') || label.includes('letzter termin') ||
+            label.includes('bis') || label.includes('until') || label.includes('by')) {
+          // Extract date from value
+          const dateMatch = value.match(/(\d{1,2})[.\/\-\s]+(\d{1,2})[.\/\-\s]+(\d{2,4})/);
+          if (dateMatch) {
+            const d = parseInt(dateMatch[1], 10);
+            const mo = parseInt(dateMatch[2], 10);
+            const y = parseInt(dateMatch[3], 10) + (parseInt(dateMatch[3], 10) < 100 ? 2000 : 0);
+            if (d >= 1 && d <= 31 && mo >= 1 && mo <= 12 && y >= 2020 && y <= 2030) {
+              categorized.timeline.push({
+                type: 'deadline',
+                value: `${String(d).padStart(2,'0')}.${String(mo).padStart(2,'0')}.${y}`,
+                required: true,
+                source: 'table'
+              });
+            }
+          } else if (/(laufend|rolling|ongoing|bis auf weiteres|continuously|open|keine frist|permanent)/i.test(value)) {
+            categorized.timeline.push({
+              type: 'open_deadline',
+              value: 'Open application / Rolling deadline',
+              required: false,
+              source: 'table'
+            });
+          } else {
+            // Keep text as-is if no date found
+            categorized.timeline.push({
+              type: 'deadline',
+              value: value.trim(),
+              required: true,
+              source: 'table'
+            });
+          }
+        }
+        
+        // Contact info from tables
+        if (label.includes('kontakt') || label.includes('contact') || label.includes('email') || 
+            label.includes('e-mail') || label.includes('phone') || label.includes('telefon') ||
+            label.includes('tel') || label.includes('anfrage') || label.includes('inquiry') ||
+            label.includes('ansprechpartner') || label.includes('contact person')) {
+          // Check for email
+          const emailMatch = value.match(/[\w.+-]+@[\w.-]+\.[a-zA-Z]{2,}/);
+          if (emailMatch) {
+            categorized.eligibility.push({
+              type: 'contact_email',
+              value: emailMatch[0],
+              required: false,
+              source: 'table'
+            });
+          }
+          // Check for phone
+          const phoneMatch = value.match(/(?:\+43|0043|0)\s*(?:\(0\))?\s*\d{1,4}[\s\/-]?\d{3,4}[\s\/-]?\d{3,8}/);
+          if (phoneMatch) {
+            categorized.eligibility.push({
+              type: 'contact_phone',
+              value: phoneMatch[0].trim(),
+              required: false,
+              source: 'table'
+            });
+          }
+        }
+        
         // Duration/Timeline
         if (label.includes('laufzeit') || label.includes('duration') || label.includes('zeitraum') || 
             label.includes('deadline') || label.includes('frist')) {
