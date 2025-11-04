@@ -118,12 +118,24 @@ export default function UnifiedEditor({
       
       <Phase4Integration
         initialPlan={undefined}
-        programProfile={filterProgramId ? { programId: filterProgramId, route: 'grant' } : undefined}
+        programProfile={filterProgramId ? { 
+          programId: filterProgramId, 
+          route: normalizedData.route || 'grant' 
+        } : undefined}
         onPlanChange={(newPlan) => {
           console.log('Plan changed:', newPlan);
         }}
         onProgramProfileChange={(profile) => {
           console.log('Program profile changed:', profile);
+          if (profile?.programId) {
+            router.push(`/editor?programId=${profile.programId}&route=${profile.route || 'grant'}&product=${normalizedData.product || 'submission'}`);
+          }
+        }}
+        onProductChange={(product) => {
+          console.log('Product changed:', product);
+          if (filterProgramId && product?.type) {
+            router.push(`/editor?programId=${filterProgramId}&route=${normalizedData.route || 'grant'}&product=${product.type}`);
+          }
         }}
       />
       

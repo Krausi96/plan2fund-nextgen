@@ -19,7 +19,6 @@ import EntryPointsManager from './EntryPointsManager';
 import DocumentCustomizationPanel from './DocumentCustomizationPanel';
 import RichTextEditor from './RichTextEditor';
 import EnhancedAIChat from './EnhancedAIChat';
-import RequirementsChecker from './RequirementsChecker';
 
 
 // FormattingConfig interface removed - functionality moved to DocumentCustomizationPanel
@@ -65,11 +64,13 @@ export default function Phase4Integration({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
   
-  // Phase 4 UI state - SIMPLIFIED: Hidden by default to reduce clutter
-  const [showEntryPoints, setShowEntryPoints] = useState(false); // Hidden by default
-  const [showDocumentCustomization, setShowDocumentCustomization] = useState(false); // Hidden by default
-  const [aiAssistantMuted, setAiAssistantMuted] = useState(false);
-  const [showAiAssistant, setShowAiAssistant] = useState(false); // Changed: Show as floating button instead
+  // Phase 4 UI state - Simplified UI
+  const [showEntryPoints, setShowEntryPoints] = useState(false);
+  const [showDocumentCustomization, setShowDocumentCustomization] = useState(false); // Hidden by default to reduce clutter
+  const [showAiAssistant, setShowAiAssistant] = useState(true); // Visible by default
+  const [focusMode, setFocusMode] = useState(false); // Focus mode for distraction-free writing
+  const [showSectionSearch, setShowSectionSearch] = useState(false); // Quick section search
+  const [showShortcutsHelp, setShowShortcutsHelp] = useState(false); // Keyboard shortcuts help
   const [requirementsProgress, setRequirementsProgress] = useState(0);
   const [requirementsStatus, setRequirementsStatus] = useState<'loading' | 'complete' | 'incomplete' | 'error'>('loading');
   const saveDebounceRef = useRef<any>(null);
@@ -172,26 +173,133 @@ export default function Phase4Integration({
     }
   }, [initialPlan, userProfile, isUserLoading]);
 
-  // Keyboard shortcuts: Ctrl/Cmd+S to save, ArrowUp/Down to navigate sections
+  // AI Generate handler
+  const handleAIGenerate = useCallback(async () => {
+    if (!sections[activeSection] || !plan) return;
+    
+    try {
+      const { createAIHelper } = await import('@/features/editor/engine/aiHelper');
+      const { loadUserAnswers } = await import('@/shared/lib/planStore');
+      const userAnswers = typeof window !== 'undefined' ? loadUserAnswers() : {};
+      
+      const programForAI = programProfile ? {
+        id: programProfile.programId,
+        name: programProfile.programId,
+        type: programProfile.route || 'grant',
+        amount: '',
+        eligibility: [],
+        requirements: [],
+        score: 100,
+        reasons: [],
+        risks: []
+      } : null;
+      
+      const aiHelper = createAIHelper({
+        maxWords: sections[activeSection]?.wordCountMax || 500,
+        sectionScope: sections[activeSection]?.title || '',
+        programHints: {},
+        userAnswers: userAnswers,
+        tone: plan?.tone || 'neutral',
+        language: plan?.language || 'en'
+      });
+      
+      const context = sections[activeSection]?.prompts?.join('\n') || sections[activeSection]?.description || '';
+      const response = await aiHelper.generateSectionContent(
+        sections[activeSection].title,
+        context,
+        programForAI || { id: 'unknown', name: 'Program', type: 'grant', amount: '', eligibility: [], requirements: [], score: 100, reasons: [], risks: [] }
+      );
+      
+      if (response.content) {
+        handleSectionChange(sections[activeSection].key, response.content);
+      }
+    } catch (error) {
+      console.error('Error generating content:', error);
+    }
+  }, [sections, activeSection, plan, programProfile, handleSectionChange]);
+
+  // Enhanced Keyboard shortcuts
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
-      const isSave = (e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 's';
-      if (isSave) {
+      // Only handle shortcuts when not typing in input/textarea
+      const target = e.target as HTMLElement;
+      if (target.tagName === 'INPUT' || target.tagName === 'TEXTAREA' || target.isContentEditable) {
+        // Ctrl+G for AI generate (only when not in editor)
+        if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'g' && !target.isContentEditable) {
+          e.preventDefault();
+          handleAIGenerate();
+          return;
+        }
+        // Ctrl+S for save (always works)
+        if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 's') {
+          e.preventDefault();
+          const contentMap = sections.reduce((acc: Record<string,string>, s: any) => { acc[s.key] = s.content || ''; return acc; }, {});
+          setIsSaving(true);
+          editorEngineRef.current.saveContent(contentMap).catch(()=>{}).finally(()=>setIsSaving(false));
+          return;
+        }
+        return;
+      }
+
+      // Global shortcuts (when not typing)
+      if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 's') {
         e.preventDefault();
         const contentMap = sections.reduce((acc: Record<string,string>, s: any) => { acc[s.key] = s.content || ''; return acc; }, {});
         setIsSaving(true);
         editorEngineRef.current.saveContent(contentMap).catch(()=>{}).finally(()=>setIsSaving(false));
         return;
       }
-      if (e.key === 'ArrowUp') {
+      
+      // Ctrl+G for AI generate
+      if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'g') {
+        e.preventDefault();
+        handleAIGenerate();
+        return;
+      }
+      
+      // Ctrl+F for focus mode
+      if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'f' && !e.shiftKey) {
+        e.preventDefault();
+        setFocusMode(!focusMode);
+        return;
+      }
+      
+      // Ctrl+K for section search
+      if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'k') {
+        e.preventDefault();
+        setShowSectionSearch(!showSectionSearch);
+        return;
+      }
+      
+      // ? for shortcuts help
+      if (e.key === '?' && !e.ctrlKey && !e.metaKey && target.tagName !== 'INPUT' && target.tagName !== 'TEXTAREA' && !target.isContentEditable) {
+        e.preventDefault();
+        setShowShortcutsHelp(!showShortcutsHelp);
+        return;
+      }
+      
+      // Navigation
+      if (e.key === 'ArrowUp' && (e.ctrlKey || e.metaKey)) {
+        e.preventDefault();
         setActiveSection((idx) => Math.max(0, idx - 1));
-      } else if (e.key === 'ArrowDown') {
+      } else if (e.key === 'ArrowDown' && (e.ctrlKey || e.metaKey)) {
+        e.preventDefault();
         setActiveSection((idx) => Math.min(sections.length - 1, idx + 1));
+      } else if (e.key === 'ArrowUp' && !e.ctrlKey && !e.metaKey) {
+        // Regular arrow up (only when not in editor)
+        if (target.tagName !== 'INPUT' && target.tagName !== 'TEXTAREA' && !target.isContentEditable) {
+          setActiveSection((idx) => Math.max(0, idx - 1));
+        }
+      } else if (e.key === 'ArrowDown' && !e.ctrlKey && !e.metaKey) {
+        // Regular arrow down (only when not in editor)
+        if (target.tagName !== 'INPUT' && target.tagName !== 'TEXTAREA' && !target.isContentEditable) {
+          setActiveSection((idx) => Math.min(sections.length - 1, idx + 1));
+        }
       }
     };
     window.addEventListener('keydown', onKey);
     return () => window.removeEventListener('keydown', onKey);
-  }, [sections]);
+  }, [sections, focusMode, showSectionSearch, activeSection, handleAIGenerate]);
 
   // Load program sections when programProfile changes
   useEffect(() => {
@@ -245,8 +353,9 @@ export default function Phase4Integration({
         console.warn('Program data not available, continuing with template fallback');
       }
       // Always attempt to load sections (will fallback to templates if API missing)
-      // Determine product type from plan or default to submission
-      const productType = plan?.product || 'submission';
+      // Determine product type from plan, product state, or default to submission
+      const productType = product?.type || plan?.product || 'submission';
+      console.log('Loading sections with product type:', productType, 'for program:', programId);
       let sections = await editorEngineRef.current.loadSections(programId, undefined, productType);
       
       // CRITICAL FIX: Prefill sections with wizard answers from appStore (single source of truth)
@@ -478,6 +587,11 @@ export default function Phase4Integration({
           wordCount: (section.content || '').split(/\s+/).filter((w: string) => w.length > 0).length,
           required: section.required !== false,
           order: sectionOrder, // PRESERVE ORDER FROM SOURCE
+          // CRITICAL: Pass template properties for user guidance
+          description: section.description || section.guidance || '', // What this section is about
+          prompts: section.prompts || [], // Questions to help users write
+          wordCountMin: section.wordCountMin || 50, // Actual minimum from template
+          wordCountMax: section.wordCountMax || 5000, // Actual maximum from template
           tables: tables || section.tables, // Initialize or use existing
           figures: figures || section.figures || [], // Initialize or use existing
           fields: section.fields,
@@ -742,8 +856,8 @@ export default function Phase4Integration({
                 </div>
               </div>
               
-              {/* Client Selector (if multi-user mode) */}
-              {clients.length > 0 && (
+              {/* Client Selector (if multi-user mode) - Hidden to reduce clutter */}
+              {false && clients.length > 0 && (
                 <div className="flex items-center gap-2 border-l pl-6">
                   <span className="text-sm text-gray-600 font-medium">Client:</span>
                   <select
@@ -761,25 +875,41 @@ export default function Phase4Integration({
                 </div>
               )}
               
-              {/* Progress Indicator */}
-              <div className="flex items-center space-x-3">
+              {/* Progress Indicator - Enhanced with tooltip */}
+              <div className="flex items-center space-x-2 group relative">
                 <div className="w-32 bg-gray-200 rounded-full h-2">
                   <div 
                     className="bg-gradient-to-r from-blue-500 to-purple-600 h-2 rounded-full transition-all duration-500"
-                    style={{ width: `${(sections.filter(s => s.status === 'aligned').length / sections.length) * 100}%` }}
+                    style={{ width: `${sections.length > 0 ? Math.round((sections.filter(s => s.status === 'aligned').length / sections.length) * 100) : 0}%` }}
                   ></div>
                 </div>
-                <span className="text-sm font-medium text-gray-700">
+                <span className="text-xs font-medium text-gray-700">
                   {sections.filter(s => s.status === 'aligned').length}/{sections.length}
                 </span>
+                <div className="absolute bottom-full mb-2 left-1/2 transform -translate-x-1/2 opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none">
+                  <div className="bg-gray-900 text-white text-xs rounded py-1 px-2 whitespace-nowrap">
+                    {sections.length > 0 ? Math.round((sections.filter(s => s.status === 'aligned').length / sections.length) * 100) : 0}% Complete
+                  </div>
+                </div>
               </div>
+              
+              {/* Product/Program Switcher - Simplified */}
+              <button
+                onClick={() => setShowEntryPoints(true)}
+                className="px-2 py-1 text-xs font-medium text-gray-600 hover:text-gray-900 transition-colors"
+                title="Switch"
+              >
+                🔄
+              </button>
             </div>
             
-            <div className="flex items-center space-x-3">
-              <button className="px-4 py-2 text-gray-600 hover:text-gray-900 transition-colors">
-                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
-                </svg>
+            <div className="flex items-center space-x-2">
+              <button
+                onClick={() => setFocusMode(!focusMode)}
+                className="px-3 py-1.5 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors"
+                title={`Focus Mode ${focusMode ? 'Off' : 'On'} (Ctrl+F)`}
+              >
+                {focusMode ? '👁️ Exit Focus' : '🎯 Focus Mode'}
               </button>
               <button
                 onClick={() => {
@@ -788,24 +918,23 @@ export default function Phase4Integration({
                     : '/preview';
                   router.push(previewUrl);
                 }}
-                className="px-4 py-2 bg-gradient-to-r from-blue-600 to-purple-600 text-white rounded-lg hover:from-blue-700 hover:to-purple-700 transition-colors shadow-md hover:shadow-lg"
-                title="Preview your business plan before exporting"
+                className="px-3 py-1.5 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors"
+                title="Preview"
               >
-                📄 Preview
+                👁️ Preview
               </button>
               <button
                 onClick={() => {
-                  // manual save now
                   const contentMap = sections.reduce((acc: Record<string,string>, s: any) => { acc[s.key] = s.content || ''; return acc; }, {});
                   setIsSaving(true);
                   editorEngineRef.current.saveContent(contentMap).catch(()=>{}).finally(()=>setIsSaving(false));
                   savePlanSections(sections.map((s: any) => ({ id: s.key, title: s.title, content: s.content || '' })));
                 }}
-                className="px-6 py-2 bg-gradient-to-r from-blue-600 to-purple-600 text-white rounded-xl hover:from-blue-700 hover:to-purple-700 transition-all duration-200 shadow-lg hover:shadow-xl"
+                className="px-3 py-1.5 text-sm font-medium bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+                title="Save (Ctrl+S)"
               >
-                Save
+                {isSaving ? 'Saving…' : '💾 Save'}
               </button>
-              <span className="text-xs text-gray-500">{isSaving ? 'Saving…' : 'Saved'}</span>
             </div>
           </div>
         </div>
@@ -813,50 +942,129 @@ export default function Phase4Integration({
 
       {/* Main Content */}
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-8">
-        <div className="grid grid-cols-1 lg:grid-cols-4 gap-6 lg:gap-8">
+        <div className={`grid grid-cols-1 gap-6 lg:gap-8 transition-all duration-300 ${
+          focusMode ? 'lg:grid-cols-1' : 'lg:grid-cols-4'
+        }`}>
           {/* Sidebar - Sections & Document Customization */}
+          {!focusMode && (
           <div className="lg:col-span-1">
             <div className="space-y-4">
               {/* Sections Panel */}
               <div className="bg-white/70 backdrop-blur-sm rounded-2xl border border-gray-200/50 p-4 sm:p-6 sticky top-24 max-h-[calc(100vh-8rem)] overflow-y-auto">
                 <div className="flex items-center justify-between mb-4">
                   <h3 className="text-lg font-semibold text-gray-900">Sections</h3>
-                  <button
-                    onClick={() => setShowDocumentCustomization(!showDocumentCustomization)}
-                    className="p-2 text-gray-500 hover:text-gray-700 hover:bg-gray-100 rounded-lg transition-colors"
-                    title="Document Settings"
-                  >
-                    <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" />
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
-                    </svg>
-                  </button>
+                  <div className="flex items-center gap-2">
+                    <button
+                      onClick={() => setShowSectionSearch(!showSectionSearch)}
+                      className="px-2 py-1 text-xs font-medium text-gray-600 hover:text-gray-900 transition-colors"
+                      title="Search sections (Ctrl+K)"
+                    >
+                      🔍
+                    </button>
+                    <button
+                      onClick={() => setShowDocumentCustomization(!showDocumentCustomization)}
+                      className={`px-3 py-1.5 text-sm font-medium rounded-lg transition-colors ${
+                        showDocumentCustomization 
+                          ? 'bg-blue-100 text-blue-700 border border-blue-300' 
+                          : 'bg-gray-100 text-gray-700 border border-gray-300 hover:bg-gray-200'
+                      }`}
+                      title={showDocumentCustomization ? "Hide Document Settings" : "Show Document Settings"}
+                    >
+                      {showDocumentCustomization ? '📄 Hide' : '⚙️'}
+                    </button>
+                  </div>
                 </div>
+                
+                {/* Section Search */}
+                {showSectionSearch && (
+                  <div className="mb-4">
+                    <input
+                      type="text"
+                      placeholder="Search sections... (Ctrl+K)"
+                      className="w-full px-3 py-2 text-sm border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                      autoFocus
+                      onKeyDown={(e) => {
+                        if (e.key === 'Escape') setShowSectionSearch(false);
+                        if (e.key === 'Enter' && e.currentTarget.value) {
+                          const found = sections.findIndex(s => 
+                            s.title.toLowerCase().includes(e.currentTarget.value.toLowerCase())
+                          );
+                          if (found >= 0) {
+                            setActiveSection(found);
+                            setShowSectionSearch(false);
+                          }
+                        }
+                      }}
+                      onChange={(e) => {
+                        if (e.target.value) {
+                          const found = sections.findIndex(s => 
+                            s.title.toLowerCase().includes(e.target.value.toLowerCase())
+                          );
+                          if (found >= 0) {
+                            // Highlight but don't auto-jump
+                          }
+                        }
+                      }}
+                    />
+                    <div className="mt-2 max-h-48 overflow-y-auto space-y-1">
+                      {sections
+                        .map((section, idx) => (
+                          <button
+                            key={section.key}
+                            onClick={() => {
+                              setActiveSection(idx);
+                              setShowSectionSearch(false);
+                            }}
+                            className="w-full text-left px-2 py-1 text-xs rounded hover:bg-gray-100 transition-colors"
+                          >
+                            {section.order || idx + 1}. {section.title}
+                          </button>
+                        ))}
+                    </div>
+                  </div>
+                )}
                 <div className="space-y-2">
-                  {/* Sort sections by order before displaying */}
-                  {[...sections].sort((a, b) => (a.order || 999) - (b.order || 999)).map((section, sortedIndex) => {
-                    // Find the actual index in the original array for navigation
-                    const actualIndex = sections.findIndex(s => s.key === section.key);
+                  {/* Sections are already sorted by order, display them */}
+                  {sections.map((section, index) => {
+                    const sectionNumber = section.order || index + 1;
                     return (
                       <button
                         key={section.key}
-                        onClick={() => setActiveSection(actualIndex >= 0 ? actualIndex : sortedIndex)}
+                        onClick={() => setActiveSection(index)}
                         className={`w-full text-left p-3 rounded-xl transition-all duration-200 ${
-                          actualIndex === activeSection
+                          index === activeSection
                             ? 'bg-gradient-to-r from-blue-500 to-purple-600 text-white shadow-lg'
                             : 'bg-gray-50 hover:bg-gray-100 text-gray-700'
                         }`}
                       >
                         <div className="flex items-center justify-between">
-                          <div className="flex items-center space-x-2">
-                            <span className="text-xs text-gray-400 font-mono">{(section.order || 999) < 10 ? `0${section.order || 999}` : section.order || 999}</span>
-                            <span className="font-medium text-sm">{section.title}</span>
+                          <div className="flex items-center space-x-2 flex-1 min-w-0">
+                            <span className={`text-xs font-mono flex-shrink-0 ${
+                              index === activeSection ? 'text-blue-100' : 'text-gray-400'
+                            }`}>
+                              {sectionNumber < 10 ? `0${sectionNumber}` : sectionNumber}
+                            </span>
+                            <span className={`font-medium text-sm truncate ${
+                              index === activeSection ? 'text-white' : 'text-gray-700'
+                            }`}>
+                              {section.title}
+                            </span>
                           </div>
-                          <div className={`w-2 h-2 rounded-full ${
+                          <div className={`w-2 h-2 rounded-full flex-shrink-0 ml-2 ${
                             section.status === 'aligned' ? 'bg-green-500' : 
                             section.status === 'needs_fix' ? 'bg-yellow-500' : 'bg-gray-300'
-                          }`}></div>
+                          }`} title={
+                            section.status === 'aligned' ? 'Complete' : 
+                            section.status === 'needs_fix' ? 'Needs review' : 'Not started'
+                          }></div>
                         </div>
+                        {section.content && section.content.trim().length > 0 && (
+                          <div className={`text-xs mt-1 truncate ${
+                            index === activeSection ? 'text-blue-100' : 'text-gray-500'
+                          }`}>
+                            {section.content.replace(/<[^>]*>/g, '').substring(0, 40)}...
+                          </div>
+                        )}
                       </button>
                     );
                   })}
@@ -961,9 +1169,10 @@ export default function Phase4Integration({
               )}
             </div>
           </div>
+          )}
 
           {/* Main Editor Area */}
-          <div className="lg:col-span-3">
+          <div className={focusMode ? 'lg:col-span-1' : 'lg:col-span-3'}>
 
           {/* Error Display */}
           {error && (
@@ -986,32 +1195,107 @@ export default function Phase4Integration({
                 {/* Section Header */}
                 <div className="mb-6">
                   <div className="flex items-center justify-between mb-4">
-                    <div>
-                      <h2 className="text-2xl font-bold text-gray-900 mb-2">
-                        {sections[activeSection]?.title}
-                      </h2>
-                      <p className="text-gray-600">
-                        {sections[activeSection]?.required ? 'Required section' : 'Optional section'}
-                      </p>
-                    </div>
-                    <div className="text-sm font-medium text-gray-500 bg-gray-100 px-3 py-1 rounded-full">
-                      Section {activeSection + 1} of {sections.length}
+                    <div className="flex-1">
+                      <div className="flex items-center gap-3 mb-2">
+                        <div className="text-sm font-medium text-gray-500 bg-blue-100 text-blue-700 px-3 py-1 rounded-full">
+                          Step {sections[activeSection]?.order || activeSection + 1} of {sections.length}
+                        </div>
+                        {sections[activeSection]?.required && (
+                          <span className="text-xs font-medium text-red-600 bg-red-50 px-2 py-1 rounded">Required</span>
+                        )}
+                      </div>
+                      <div className="flex items-start gap-3">
+                        <div className="flex-1">
+                          <h2 className="text-2xl font-bold text-gray-900 mb-2">
+                            {sections[activeSection]?.title}
+                          </h2>
+                          {sections[activeSection]?.description && (
+                            <p className="text-gray-600 text-sm mb-3">
+                              {sections[activeSection].description}
+                            </p>
+                          )}
+                        </div>
+                        {/* Word count target */}
+                        {sections[activeSection]?.wordCountMin && sections[activeSection]?.wordCountMax && (
+                          <div className="text-right">
+                            <div className="text-xs text-gray-500 mb-1">Target length</div>
+                            <div className="text-sm font-semibold text-gray-700">
+                              {sections[activeSection].wordCountMin} - {sections[activeSection].wordCountMax} words
+                            </div>
+                          </div>
+                        )}
+                      </div>
                     </div>
                   </div>
+                  
+                  {/* Prompts/Questions to guide user */}
+                  {sections[activeSection]?.prompts && sections[activeSection].prompts.length > 0 && (
+                    <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-4">
+                      <div className="flex items-start justify-between mb-3">
+                        <h3 className="text-sm font-semibold text-blue-900 flex items-center gap-2">
+                          <span>💡</span> What to include in this section:
+                        </h3>
+                        {!sections[activeSection]?.content || sections[activeSection].content.trim().length === 0 ? (
+                          <button
+                            onClick={handleAIGenerate}
+                            className="px-3 py-1.5 text-xs font-medium bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors flex items-center gap-1"
+                            title="Generate content using AI (Ctrl+G)"
+                          >
+                            ✨ Generate with AI
+                          </button>
+                        ) : null}
+                      </div>
+                      <ul className="space-y-2">
+                        {sections[activeSection].prompts.map((prompt: string, idx: number) => (
+                          <li key={idx} className="text-sm text-blue-800 flex items-start gap-2">
+                            <span className="text-blue-500 mt-1">•</span>
+                            <span>{prompt}</span>
+                          </li>
+                        ))}
+                      </ul>
+                    </div>
+                  )}
                 </div>
 
                 {/* Rich Text Editor */}
                 <div className="space-y-6">
+                  {/* Quick Actions Bar - Show when empty */}
+                  {(!sections[activeSection]?.content || sections[activeSection].content.trim().length === 0) && (
+                    <div className="bg-gradient-to-r from-purple-50 to-blue-50 border border-purple-200 rounded-lg p-4 mb-4">
+                      <div className="flex items-center justify-between">
+                        <div>
+                          <h4 className="text-sm font-semibold text-gray-900 mb-1">Need help getting started?</h4>
+                          <p className="text-xs text-gray-600">Use AI to generate content or see examples</p>
+                        </div>
+                        <div className="flex items-center gap-2">
+                          <button
+                            onClick={handleAIGenerate}
+                            className="px-4 py-2 text-sm font-medium bg-gradient-to-r from-blue-600 to-purple-600 text-white rounded-lg hover:from-blue-700 hover:to-purple-700 transition-all shadow-md hover:shadow-lg flex items-center gap-2"
+                            title="Or press Ctrl+G"
+                          >
+                            <span>✨</span> Generate Content
+                          </button>
+                        </div>
+                      </div>
+                    </div>
+                  )}
+                  
                   <RichTextEditor
                     content={sections[activeSection]?.content || ''}
                     onChange={(content) => handleSectionChange(sections[activeSection].key, content)}
                     section={sections[activeSection]}
-                    guidance={sections[activeSection]?.guidance || ''}
-                    placeholder="Start writing your content here..."
-                    minLength={50}
-                    maxLength={5000}
+                    guidance={sections[activeSection]?.description || sections[activeSection]?.guidance || ''}
+                    placeholder={
+                      sections[activeSection]?.prompts && sections[activeSection].prompts.length > 0
+                        ? `Start by answering: ${sections[activeSection].prompts[0]}...`
+                        : sections[activeSection]?.description
+                          ? `Write about: ${sections[activeSection].description.substring(0, 60)}...`
+                          : `Enter content for ${sections[activeSection]?.title || 'this section'}...`
+                    }
+                    minLength={sections[activeSection]?.wordCountMin || 50}
+                    maxLength={sections[activeSection]?.wordCountMax || 5000}
                     showWordCount={true}
-                    showGuidance={true}
+                    showGuidance={false} // We show description and prompts above instead
                     showFormatting={true}
                   />
 
@@ -1164,57 +1448,33 @@ export default function Phase4Integration({
                     </div>
                   </div>
 
-                  {/* Requirements Progress Bar */}
-                  <div className="mt-6 p-4 bg-white/50 backdrop-blur-sm rounded-xl border border-gray-200/50">
-                    <div className="flex items-center justify-between mb-3">
-                      <h3 className="text-sm font-semibold text-gray-700">Requirements Progress</h3>
-                      <div className="flex items-center space-x-2">
-                        <span className="text-xs text-gray-500">
-                          {requirementsStatus === 'loading' && 'Checking...'}
-                          {requirementsStatus === 'complete' && '✅ Complete'}
-                          {requirementsStatus === 'incomplete' && '⚠️ Incomplete'}
-                          {requirementsStatus === 'error' && '❌ Error'}
-                        </span>
-                        <span className="text-sm font-medium text-gray-700">
+                  {/* Requirements Progress - Simplified */}
+                  {programProfile && (
+                    <div className="mt-4 p-3 bg-gray-50 rounded-lg border border-gray-200">
+                      <div className="flex items-center justify-between mb-2">
+                        <span className="text-xs font-medium text-gray-700">Requirements</span>
+                        <span className="text-xs font-semibold text-gray-700">
                           {requirementsProgress}%
                         </span>
                       </div>
-                    </div>
-                    
-                    {/* Progress Bar */}
-                    <div className="w-full bg-gray-200 rounded-full h-2 mb-3">
-                      <div 
-                        className={`h-2 rounded-full transition-all duration-500 ${
-                          requirementsStatus === 'complete' ? 'bg-green-500' :
-                          requirementsStatus === 'incomplete' ? 'bg-yellow-500' :
-                          requirementsStatus === 'error' ? 'bg-red-500' : 'bg-blue-500'
-                        }`}
-                        style={{ width: `${requirementsProgress}%` }}
-                      />
-                    </div>
-                    
-                    {/* Requirements Checker Component */}
-                    {programProfile ? (
-                      <RequirementsChecker
-                        programId={programProfile.programId}
-                        programType={programProfile.route || 'grant'}
-                        planContent={sections.reduce((acc, section) => {
-                          acc[section.key] = section.content || '';
-                          return acc;
-                        }, {} as Record<string, string>)}
-                      />
-                    ) : (
-                      <div className="mt-3 p-3 bg-amber-50 border border-amber-200 rounded-lg text-sm text-amber-800 flex items-center justify-between">
-                        <span>Enable program-specific checks / Programmbezogene Checks aktivieren</span>
-                        <button
-                          onClick={() => setShowEntryPoints(true)}
-                          className="px-3 py-1 bg-amber-600 text-white rounded-md hover:bg-amber-700"
-                        >
-                          Choose Program
-                        </button>
+                      <div className="w-full bg-gray-200 rounded-full h-1.5 mb-2">
+                        <div 
+                          className={`h-1.5 rounded-full transition-all ${
+                            requirementsStatus === 'complete' ? 'bg-green-500' :
+                            requirementsStatus === 'incomplete' ? 'bg-yellow-500' :
+                            requirementsStatus === 'error' ? 'bg-red-500' : 'bg-blue-500'
+                          }`}
+                          style={{ width: `${requirementsProgress}%` }}
+                        />
                       </div>
-                    )}
-                  </div>
+                      <div className="text-xs text-gray-600">
+                        {requirementsStatus === 'complete' && '✅ All requirements met'}
+                        {requirementsStatus === 'incomplete' && '⚠️ Some requirements pending'}
+                        {requirementsStatus === 'error' && '❌ Error checking requirements'}
+                        {requirementsStatus === 'loading' && 'Checking...'}
+                      </div>
+                    </div>
+                  )}
 
                   {/* Section Navigation & Actions */}
                   <div className="flex items-center justify-between pt-6 border-t border-gray-200">
@@ -1224,74 +1484,40 @@ export default function Phase4Integration({
                         onClick={() => setActiveSection(Math.max(0, activeSection - 1))}
                         disabled={activeSection === 0}
                         className="px-4 py-2 text-gray-600 hover:text-gray-900 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                        title="Previous section (Ctrl+↑)"
                       >
                         ← Previous
+                      </button>
+                      <button
+                        onClick={() => setShowSectionSearch(true)}
+                        className="px-3 py-2 text-xs text-gray-600 hover:text-gray-900 transition-colors border border-gray-300 rounded"
+                        title="Jump to section (Ctrl+K)"
+                      >
+                        🔍 Jump
                       </button>
                       <button
                         onClick={() => setActiveSection(Math.min(sections.length - 1, activeSection + 1))}
                         disabled={activeSection === sections.length - 1}
                         className="px-4 py-2 text-gray-600 hover:text-gray-900 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                        title="Next section (Ctrl+↓)"
                       >
                         Next →
                       </button>
                     </div>
 
-                {/* Section Status & Insert Actions */}
-                <div className="flex items-center space-x-4">
+                {/* Section Status - Simplified */}
+                <div className="flex items-center space-x-2">
                       <button
                         onClick={() => handleSectionStatusChange(sections[activeSection].key, 'aligned')}
-                        className="px-4 py-2 bg-green-100 text-green-700 rounded-lg hover:bg-green-200 transition-colors"
+                        className="px-3 py-1 text-xs font-medium bg-green-100 text-green-700 rounded hover:bg-green-200 transition-colors"
                       >
-                        Mark Complete
+                        ✓ Complete
                       </button>
                       <button
                         onClick={() => handleSectionStatusChange(sections[activeSection].key, 'needs_fix')}
-                        className="px-4 py-2 bg-yellow-100 text-yellow-700 rounded-lg hover:bg-yellow-200 transition-colors"
+                        className="px-3 py-1 text-xs font-medium bg-yellow-100 text-yellow-700 rounded hover:bg-yellow-200 transition-colors"
                       >
-                        Needs Review
-                      </button>
-                      <button
-                        onClick={() => {
-                          const section = sections[activeSection];
-                          const next = {
-                            ...section,
-                            tables: {
-                              ...(section.tables || {}),
-                              financials: {
-                                columns: ['Year 1', 'Year 2', 'Year 3'],
-                                rows: [
-                                  { label: 'Revenue', values: [0, 0, 0] },
-                                  { label: 'Costs', values: [0, 0, 0] },
-                                  { label: 'Profit', values: [0, 0, 0] }
-                                ]
-                              }
-                            }
-                          } as any;
-                          const updated = sections.map((s: any, i: number) => i === activeSection ? next : s);
-                          setSections(updated);
-                          if (plan) handlePlanChange({ ...plan, sections: updated });
-                        }}
-                        className="px-4 py-2 bg-blue-100 text-blue-700 rounded-lg hover:bg-blue-200 transition-colors"
-                      >
-                        + Financial Table
-                      </button>
-                      <button
-                        onClick={() => {
-                          const section = sections[activeSection];
-                          const next = {
-                            ...section,
-                            figures: [
-                              ...(section.figures || []),
-                              { type: 'bar', dataRef: 'sample_series', caption: 'Sample Figure' }
-                            ]
-                          } as any;
-                          const updated = sections.map((s: any, i: number) => i === activeSection ? next : s);
-                          setSections(updated);
-                          if (plan) handlePlanChange({ ...plan, sections: updated });
-                        }}
-                        className="px-4 py-2 bg-purple-100 text-purple-700 rounded-lg hover:bg-purple-200 transition-colors"
-                      >
-                        + Figure
+                        ⚠ Review
                       </button>
                   </div>
                 </div>
@@ -1299,111 +1525,342 @@ export default function Phase4Integration({
             </div>
           )}
 
-            {/* No Sections State */}
+            {/* No Sections State - Enhanced onboarding */}
             {sections.length === 0 && (
-              <div className="bg-white/70 backdrop-blur-sm rounded-2xl border border-gray-200/50 p-12 text-center">
-                <div className="w-16 h-16 bg-gradient-to-br from-blue-500 to-purple-600 rounded-2xl flex items-center justify-center mx-auto mb-4">
-                  <svg className="w-8 h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <div className="bg-gradient-to-br from-blue-50 via-white to-purple-50 rounded-2xl border-2 border-dashed border-blue-200 p-12 text-center">
+                <div className="w-20 h-20 bg-gradient-to-br from-blue-500 to-purple-600 rounded-2xl flex items-center justify-center mx-auto mb-6 shadow-lg">
+                  <svg className="w-10 h-10 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
                   </svg>
                 </div>
-                <h3 className="text-xl font-semibold text-gray-900 mb-2">No Sections Available</h3>
-                <p className="text-gray-600 mb-6">Select a program to load its sections and start creating your business plan.</p>
-                <button
-                  onClick={() => setShowEntryPoints(true)}
-                  className="px-6 py-3 bg-gradient-to-r from-blue-600 to-purple-600 text-white rounded-xl hover:from-blue-700 hover:to-purple-700 transition-all duration-200 shadow-lg hover:shadow-xl"
-                >
-                  Select Program
-                </button>
+                <h3 className="text-2xl font-bold text-gray-900 mb-2">Let's Get Started!</h3>
+                <p className="text-gray-600 mb-2 max-w-md mx-auto">
+                  Choose a funding program to get started. We'll create a customized business plan with all the sections you need.
+                </p>
+                <div className="mt-6 space-y-3">
+                  <button
+                    onClick={() => setShowEntryPoints(true)}
+                    className="px-8 py-3 bg-gradient-to-r from-blue-600 to-purple-600 text-white rounded-xl hover:from-blue-700 hover:to-purple-700 transition-all duration-200 shadow-lg hover:shadow-xl font-semibold text-lg"
+                  >
+                    🎯 Choose Your Program
+                  </button>
+                  <div className="text-sm text-gray-500">
+                    <p className="mb-1">Or start with:</p>
+                    <div className="flex items-center justify-center gap-4">
+                      <button
+                        onClick={() => router.push('/reco')}
+                        className="text-blue-600 hover:text-blue-700 underline"
+                      >
+                        Recommendation Wizard
+                      </button>
+                      <span>•</span>
+                      <button
+                        onClick={() => router.push('/editor?product=strategy&route=grant')}
+                        className="text-blue-600 hover:text-blue-700 underline"
+                      >
+                        Quick Start Template
+                      </button>
+                    </div>
+                  </div>
+                </div>
               </div>
             )}
           </div>
         </div>
       </div>
 
-      {/* Floating AI Assistant Button - Only show when not already open */}
-      {!showAiAssistant && plan && (
-        <button
-          onClick={() => setShowAiAssistant(true)}
-          className="fixed bottom-6 right-6 z-40 w-14 h-14 bg-gradient-to-br from-blue-500 to-purple-600 rounded-full shadow-xl hover:shadow-2xl transition-all duration-300 flex items-center justify-center text-white text-2xl hover:scale-110"
-          title="Open AI Assistant"
-        >
-          👔
-        </button>
+      {/* AI Assistant - Always visible, simplified */}
+      {plan && (
+        <div className="fixed bottom-4 right-4 z-50">
+          {showAiAssistant ? (
+            <div className="bg-white rounded-lg border border-gray-300 shadow-2xl w-96 h-[500px] flex flex-col">
+              {/* AI Assistant Header */}
+              <div className="flex items-center justify-between p-3 border-b border-gray-200 bg-gradient-to-r from-blue-50 to-purple-50">
+                <div className="flex items-center space-x-2">
+                  <div className="w-7 h-7 bg-gradient-to-br from-blue-500 to-purple-600 rounded-full flex items-center justify-center">
+                    <span className="text-white text-xs">👔</span>
+                  </div>
+                  <div>
+                    <h3 className="font-semibold text-gray-900 text-sm">AI Assistant</h3>
+                    <p className="text-xs text-gray-500">Funding Expert</p>
+                  </div>
+                </div>
+                <button
+                  onClick={() => setShowAiAssistant(false)}
+                  className="p-1 text-gray-400 hover:text-gray-600 transition-colors"
+                  title="Minimize"
+                >
+                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M20 12H4" />
+                  </svg>
+                </button>
+              </div>
+
+              {/* AI Chat Interface */}
+              <div className="flex-1 overflow-hidden">
+                <EnhancedAIChat
+                  plan={plan}
+                  programProfile={programProfile || null}
+                  currentSection={sections[activeSection]?.key || ''}
+                  onInsertContent={(content) => {
+                    if (sections[activeSection]) {
+                      handleSectionChange(sections[activeSection].key, content);
+                    }
+                  }}
+                />
+              </div>
+            </div>
+          ) : (
+            <button
+              onClick={() => setShowAiAssistant(true)}
+              className="w-12 h-12 bg-gradient-to-br from-blue-500 to-purple-600 rounded-full shadow-xl hover:shadow-2xl transition-all flex items-center justify-center text-white text-xl hover:scale-110"
+              title="Open AI Assistant"
+            >
+              👔
+            </button>
+          )}
+        </div>
       )}
 
-      {/* Floating AI Assistant */}
-      {showAiAssistant && plan && (
-        <div className="fixed bottom-6 right-6 z-40">
-          <div className={`bg-white/90 backdrop-blur-sm rounded-2xl border border-gray-200/50 shadow-xl transition-all duration-300 ${
-            aiAssistantMuted ? 'w-16 h-16' : 'w-80 h-96'
-          }`}>
-            {aiAssistantMuted ? (
-              /* Muted State - Just the character */
-              <button
-                onClick={() => setAiAssistantMuted(false)}
-                className="w-full h-full flex items-center justify-center rounded-2xl hover:bg-gray-50 transition-colors"
-                title="Unmute AI Assistant"
-              >
-                <div className="text-2xl">👔</div>
-              </button>
-            ) : (
-              /* Active State - Full chat interface */
-              <div className="h-full flex flex-col">
-                {/* AI Assistant Header */}
-                <div className="flex items-center justify-between p-4 border-b border-gray-200">
-                  <div className="flex items-center space-x-3">
-                    <div className="w-8 h-8 bg-gradient-to-br from-blue-500 to-purple-600 rounded-full flex items-center justify-center">
-                      <span className="text-white text-sm">👔</span>
+      {/* Keyboard Shortcuts Help Modal */}
+      {showShortcutsHelp && (
+        <div className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center p-4" onClick={() => setShowShortcutsHelp(false)}>
+          <div className="bg-white rounded-2xl max-w-lg w-full shadow-2xl" onClick={(e) => e.stopPropagation()}>
+            <div className="p-6">
+              <div className="flex items-center justify-between mb-6">
+                <h3 className="text-xl font-semibold text-gray-900">⌨️ Keyboard Shortcuts</h3>
+                <button
+                  onClick={() => setShowShortcutsHelp(false)}
+                  className="text-gray-400 hover:text-gray-600"
+                >
+                  <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                  </svg>
+                </button>
+              </div>
+              <div className="space-y-4">
+                <div>
+                  <h4 className="text-sm font-semibold text-gray-700 mb-2">Content</h4>
+                  <div className="space-y-1 text-sm">
+                    <div className="flex justify-between items-center py-1">
+                      <span className="text-gray-600">Generate with AI</span>
+                      <kbd className="px-2 py-1 bg-gray-100 rounded text-xs font-mono">Ctrl+G</kbd>
                     </div>
-                    <div>
-                      <h3 className="font-semibold text-gray-900 text-sm">AI Assistant</h3>
-                      <p className="text-xs text-gray-500">Virtual Funding Expert</p>
+                    <div className="flex justify-between items-center py-1">
+                      <span className="text-gray-600">Save</span>
+                      <kbd className="px-2 py-1 bg-gray-100 rounded text-xs font-mono">Ctrl+S</kbd>
                     </div>
-                  </div>
-                  <div className="flex items-center space-x-2">
-                    <button
-                      onClick={() => setAiAssistantMuted(true)}
-                      className="p-1 text-gray-400 hover:text-gray-600 transition-colors"
-                      title="Mute Assistant"
-                    >
-                      <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5.586 15H4a1 1 0 01-1-1v-4a1 1 0 011-1h1.586l4.707-4.707C10.923 3.663 12 4.109 12 5v14c0 .891-1.077 1.337-1.707.707L5.586 15z" />
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2" />
-                      </svg>
-                    </button>
-                    <button
-                      onClick={() => setShowAiAssistant(false)}
-                      className="p-1 text-gray-400 hover:text-gray-600 transition-colors"
-                      title="Close Assistant"
-                    >
-                      <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-                      </svg>
-                    </button>
                   </div>
                 </div>
-
-                {/* AI Chat Interface */}
-                <div className="flex-1 p-4">
-                  <EnhancedAIChat
-                    plan={plan}
-                    programProfile={programProfile || null}
-                    currentSection={sections[activeSection]?.key || ''}
-                    onInsertContent={(content, section) => {
-                      console.log('AI content inserted:', content, 'into section:', section);
-                      // Insert content into current section
-                      if (sections[activeSection]) {
-                        handleSectionChange(sections[activeSection].key, content);
-                      }
-                    }}
-                  />
+                <div>
+                  <h4 className="text-sm font-semibold text-gray-700 mb-2">Navigation</h4>
+                  <div className="space-y-1 text-sm">
+                    <div className="flex justify-between items-center py-1">
+                      <span className="text-gray-600">Previous section</span>
+                      <kbd className="px-2 py-1 bg-gray-100 rounded text-xs font-mono">Ctrl+↑</kbd>
+                    </div>
+                    <div className="flex justify-between items-center py-1">
+                      <span className="text-gray-600">Next section</span>
+                      <kbd className="px-2 py-1 bg-gray-100 rounded text-xs font-mono">Ctrl+↓</kbd>
+                    </div>
+                    <div className="flex justify-between items-center py-1">
+                      <span className="text-gray-600">Jump to section</span>
+                      <kbd className="px-2 py-1 bg-gray-100 rounded text-xs font-mono">Ctrl+K</kbd>
+                    </div>
+                  </div>
+                </div>
+                <div>
+                  <h4 className="text-sm font-semibold text-gray-700 mb-2">View</h4>
+                  <div className="space-y-1 text-sm">
+                    <div className="flex justify-between items-center py-1">
+                      <span className="text-gray-600">Focus mode</span>
+                      <kbd className="px-2 py-1 bg-gray-100 rounded text-xs font-mono">Ctrl+F</kbd>
+                    </div>
+                    <div className="flex justify-between items-center py-1">
+                      <span className="text-gray-600">Show shortcuts</span>
+                      <kbd className="px-2 py-1 bg-gray-100 rounded text-xs font-mono">?</kbd>
+                    </div>
+                  </div>
                 </div>
               </div>
-            )}
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Entry Points Modal */}
+          {showEntryPoints && (
+        <div className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+          <div className="bg-white rounded-2xl max-w-2xl w-full max-h-[80vh] overflow-y-auto">
+            <div className="p-6">
+              <div className="flex items-center justify-between mb-6">
+                <h3 className="text-xl font-semibold text-gray-900">Entry Points</h3>
+                <button
+                  onClick={() => setShowEntryPoints(false)}
+                  className="text-gray-400 hover:text-gray-600"
+                >
+                  <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                  </svg>
+                </button>
+              </div>
+              <EntryPointsManager
+                currentPlan={plan}
+                programProfile={programProfile}
+                onPlanSwitch={handlePlanChange}
+                onDocumentTypeChange={(type) => console.log('Document type changed:', type)}
+                showWizardEntry={true}
+                showDirectEditor={true}
+                showPlanSwitching={true}
+              />
+                </div>
               </div>
             </div>
           )}
+      {/* Inline Preview Drawer */}
+      {showInlinePreview && plan && (
+        <div className="fixed inset-0 z-50">
+          <div className="absolute inset-0 bg-black/30" onClick={()=>setShowInlinePreview(false)} />
+          <div className="absolute top-0 right-0 h-full w-full md:w-[520px] bg-white shadow-xl overflow-y-auto">
+            <div className="p-4 border-b flex items-center justify-between">
+              <div className="font-semibold">Formatted Preview</div>
+              <button className="text-gray-500 hover:text-gray-800" onClick={()=>setShowInlinePreview(false)}>✕</button>
+            </div>
+            <div className="p-4" style={{ fontFamily: previewStyle.fontFamily || undefined, fontSize: previewStyle.fontSize ? `${previewStyle.fontSize}px` : undefined, lineHeight: previewStyle.lineHeight ? String(previewStyle.lineHeight) : undefined }}>
+              <ExportRenderer
+                plan={{
+                  ...plan,
+                  sections: sections.map((s: any) => ({ key: s.key, title: s.title, content: s.content || '', status: s.status, tables: s.tables, figures: s.figures }))
+                } as any}
+                showWatermark={false}
+                previewMode={'formatted'}
+                previewSettings={{ showWordCount: false, showCharacterCount: false, showCompletionStatus: false, enableRealTimePreview: false }}
+              />
+            </div>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
+
+      {plan && (
+        <div className="fixed bottom-4 right-4 z-50">
+          {showAiAssistant ? (
+            <div className="bg-white rounded-lg border border-gray-300 shadow-2xl w-96 h-[500px] flex flex-col">
+              {/* AI Assistant Header */}
+              <div className="flex items-center justify-between p-3 border-b border-gray-200 bg-gradient-to-r from-blue-50 to-purple-50">
+                <div className="flex items-center space-x-2">
+                  <div className="w-7 h-7 bg-gradient-to-br from-blue-500 to-purple-600 rounded-full flex items-center justify-center">
+                    <span className="text-white text-xs">👔</span>
+                  </div>
+                  <div>
+                    <h3 className="font-semibold text-gray-900 text-sm">AI Assistant</h3>
+                    <p className="text-xs text-gray-500">Funding Expert</p>
+                  </div>
+                </div>
+                <button
+                  onClick={() => setShowAiAssistant(false)}
+                  className="p-1 text-gray-400 hover:text-gray-600 transition-colors"
+                  title="Minimize"
+                >
+                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M20 12H4" />
+                  </svg>
+                </button>
+              </div>
+
+              {/* AI Chat Interface */}
+              <div className="flex-1 overflow-hidden">
+                <EnhancedAIChat
+                  plan={plan}
+                  programProfile={programProfile || null}
+                  currentSection={sections[activeSection]?.key || ''}
+                  onInsertContent={(content) => {
+                    if (sections[activeSection]) {
+                      handleSectionChange(sections[activeSection].key, content);
+                    }
+                  }}
+                />
+              </div>
+            </div>
+          ) : (
+            <button
+              onClick={() => setShowAiAssistant(true)}
+              className="w-12 h-12 bg-gradient-to-br from-blue-500 to-purple-600 rounded-full shadow-xl hover:shadow-2xl transition-all flex items-center justify-center text-white text-xl hover:scale-110"
+              title="Open AI Assistant"
+            >
+              👔
+            </button>
+          )}
+        </div>
+      )}
+
+      {/* Keyboard Shortcuts Help Modal */}
+      {showShortcutsHelp && (
+        <div className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center p-4" onClick={() => setShowShortcutsHelp(false)}>
+          <div className="bg-white rounded-2xl max-w-lg w-full shadow-2xl" onClick={(e) => e.stopPropagation()}>
+            <div className="p-6">
+              <div className="flex items-center justify-between mb-6">
+                <h3 className="text-xl font-semibold text-gray-900">⌨️ Keyboard Shortcuts</h3>
+                <button
+                  onClick={() => setShowShortcutsHelp(false)}
+                  className="text-gray-400 hover:text-gray-600"
+                >
+                  <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                  </svg>
+                </button>
+              </div>
+              <div className="space-y-4">
+                <div>
+                  <h4 className="text-sm font-semibold text-gray-700 mb-2">Content</h4>
+                  <div className="space-y-1 text-sm">
+                    <div className="flex justify-between items-center py-1">
+                      <span className="text-gray-600">Generate with AI</span>
+                      <kbd className="px-2 py-1 bg-gray-100 rounded text-xs font-mono">Ctrl+G</kbd>
+                    </div>
+                    <div className="flex justify-between items-center py-1">
+                      <span className="text-gray-600">Save</span>
+                      <kbd className="px-2 py-1 bg-gray-100 rounded text-xs font-mono">Ctrl+S</kbd>
+                    </div>
+                  </div>
+                </div>
+                <div>
+                  <h4 className="text-sm font-semibold text-gray-700 mb-2">Navigation</h4>
+                  <div className="space-y-1 text-sm">
+                    <div className="flex justify-between items-center py-1">
+                      <span className="text-gray-600">Previous section</span>
+                      <kbd className="px-2 py-1 bg-gray-100 rounded text-xs font-mono">Ctrl+↑</kbd>
+                    </div>
+                    <div className="flex justify-between items-center py-1">
+                      <span className="text-gray-600">Next section</span>
+                      <kbd className="px-2 py-1 bg-gray-100 rounded text-xs font-mono">Ctrl+↓</kbd>
+                    </div>
+                    <div className="flex justify-between items-center py-1">
+                      <span className="text-gray-600">Jump to section</span>
+                      <kbd className="px-2 py-1 bg-gray-100 rounded text-xs font-mono">Ctrl+K</kbd>
+                    </div>
+                  </div>
+                </div>
+                <div>
+                  <h4 className="text-sm font-semibold text-gray-700 mb-2">View</h4>
+                  <div className="space-y-1 text-sm">
+                    <div className="flex justify-between items-center py-1">
+                      <span className="text-gray-600">Focus mode</span>
+                      <kbd className="px-2 py-1 bg-gray-100 rounded text-xs font-mono">Ctrl+F</kbd>
+                    </div>
+                    <div className="flex justify-between items-center py-1">
+                      <span className="text-gray-600">Show shortcuts</span>
+                      <kbd className="px-2 py-1 bg-gray-100 rounded text-xs font-mono">?</kbd>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Entry Points Modal */}
           {showEntryPoints && (

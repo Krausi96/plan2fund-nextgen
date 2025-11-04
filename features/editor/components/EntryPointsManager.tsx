@@ -125,6 +125,36 @@ export default function EntryPointsManager({
   const [selectedDocumentType, setSelectedDocumentType] = useState<DocumentType>('business-plan');
   const [showDocumentSelector, setShowDocumentSelector] = useState(false);
   const [recentPlans, setRecentPlans] = useState<PlanDocument[]>([]);
+  const [selectedProduct, setSelectedProduct] = useState<'strategy' | 'review' | 'submission'>('submission');
+  const [selectedRoute, setSelectedRoute] = useState<'grant' | 'bankLoans' | 'equity' | 'visa'>('grant');
+
+  // Initialize product and route from current plan or router query
+  useEffect(() => {
+    if (currentPlan?.product) {
+      const product = currentPlan.product as 'strategy' | 'review' | 'submission';
+      if (['strategy', 'review', 'submission'].includes(product)) {
+        setSelectedProduct(product);
+      }
+    }
+    if (currentPlan?.route) {
+      const route = currentPlan.route as 'grant' | 'bankLoans' | 'equity' | 'visa';
+      if (['grant', 'bankLoans', 'equity', 'visa'].includes(route)) {
+        setSelectedRoute(route);
+      }
+    }
+    if (router.query.product && typeof router.query.product === 'string') {
+      const product = router.query.product as 'strategy' | 'review' | 'submission';
+      if (['strategy', 'review', 'submission'].includes(product)) {
+        setSelectedProduct(product);
+      }
+    }
+    if (router.query.route && typeof router.query.route === 'string') {
+      const route = router.query.route as 'grant' | 'bankLoans' | 'equity' | 'visa';
+      if (['grant', 'bankLoans', 'equity', 'visa'].includes(route)) {
+        setSelectedRoute(route);
+      }
+    }
+  }, [currentPlan, router.query]);
 
   // Load recent plans from localStorage
   useEffect(() => {
@@ -174,11 +204,118 @@ export default function EntryPointsManager({
     }
   };
 
+  const handleProductSwitch = (product: 'strategy' | 'review' | 'submission') => {
+    setSelectedProduct(product);
+    if (programProfile?.programId) {
+      router.push(`/editor?programId=${programProfile.programId}&product=${product}&route=${selectedRoute}`);
+    } else {
+      router.push(`/editor?product=${product}&route=${selectedRoute}`);
+    }
+  };
+
+  const handleRouteSwitch = (route: 'grant' | 'bankLoans' | 'equity' | 'visa') => {
+    setSelectedRoute(route);
+    if (programProfile?.programId) {
+      router.push(`/editor?programId=${programProfile.programId}&product=${selectedProduct}&route=${route}`);
+    } else {
+      router.push(`/editor?product=${selectedProduct}&route=${route}`);
+    }
+  };
+
   return (
-    <div className="entry-points-manager p-6 bg-white rounded-lg border border-gray-200">
-      <h2 className="text-xl font-semibold text-gray-900 mb-6">Choose Your Entry Point</h2>
+    <div className="entry-points-manager p-6 bg-white rounded-lg border border-gray-200 max-w-4xl mx-auto">
+      <h2 className="text-xl font-semibold text-gray-900 mb-6">Switch Product or Program</h2>
       
       <div className="space-y-6">
+        {/* Product Switcher */}
+        <div className="entry-option p-4 border border-gray-200 rounded-lg">
+          <h3 className="text-lg font-medium text-gray-900 mb-3">📦 Select Product Type</h3>
+          <div className="grid grid-cols-3 gap-3">
+            <button
+              onClick={() => handleProductSwitch('strategy')}
+              className={`p-4 border rounded-lg text-center transition-all ${
+                selectedProduct === 'strategy'
+                  ? 'border-blue-500 bg-blue-50 shadow-md'
+                  : 'border-gray-200 hover:border-gray-300 hover:bg-gray-50'
+              }`}
+            >
+              <div className="text-2xl mb-2">🎯</div>
+              <div className="font-semibold text-sm">Strategy</div>
+              <div className="text-xs text-gray-500 mt-1">6 focused sections</div>
+            </button>
+            <button
+              onClick={() => handleProductSwitch('review')}
+              className={`p-4 border rounded-lg text-center transition-all ${
+                selectedProduct === 'review'
+                  ? 'border-blue-500 bg-blue-50 shadow-md'
+                  : 'border-gray-200 hover:border-gray-300 hover:bg-gray-50'
+              }`}
+            >
+              <div className="text-2xl mb-2">📋</div>
+              <div className="font-semibold text-sm">Review</div>
+              <div className="text-xs text-gray-500 mt-1">All sections</div>
+            </button>
+            <button
+              onClick={() => handleProductSwitch('submission')}
+              className={`p-4 border rounded-lg text-center transition-all ${
+                selectedProduct === 'submission'
+                  ? 'border-blue-500 bg-blue-50 shadow-md'
+                  : 'border-gray-200 hover:border-gray-300 hover:bg-gray-50'
+              }`}
+            >
+              <div className="text-2xl mb-2">📄</div>
+              <div className="font-semibold text-sm">Submission</div>
+              <div className="text-xs text-gray-500 mt-1">Complete plan</div>
+            </button>
+          </div>
+        </div>
+
+        {/* Funding Type Switcher */}
+        <div className="entry-option p-4 border border-gray-200 rounded-lg">
+          <h3 className="text-lg font-medium text-gray-900 mb-3">💰 Select Funding Type</h3>
+          <div className="grid grid-cols-4 gap-3">
+            <button
+              onClick={() => handleRouteSwitch('grant')}
+              className={`p-3 border rounded-lg text-center transition-all ${
+                selectedRoute === 'grant'
+                  ? 'border-blue-500 bg-blue-50 shadow-md'
+                  : 'border-gray-200 hover:border-gray-300 hover:bg-gray-50'
+              }`}
+            >
+              <div className="font-semibold text-sm">Grants</div>
+            </button>
+            <button
+              onClick={() => handleRouteSwitch('bankLoans')}
+              className={`p-3 border rounded-lg text-center transition-all ${
+                selectedRoute === 'bankLoans'
+                  ? 'border-blue-500 bg-blue-50 shadow-md'
+                  : 'border-gray-200 hover:border-gray-300 hover:bg-gray-50'
+              }`}
+            >
+              <div className="font-semibold text-sm">Loans</div>
+            </button>
+            <button
+              onClick={() => handleRouteSwitch('equity')}
+              className={`p-3 border rounded-lg text-center transition-all ${
+                selectedRoute === 'equity'
+                  ? 'border-blue-500 bg-blue-50 shadow-md'
+                  : 'border-gray-200 hover:border-gray-300 hover:bg-gray-50'
+              }`}
+            >
+              <div className="font-semibold text-sm">Equity</div>
+            </button>
+            <button
+              onClick={() => handleRouteSwitch('visa')}
+              className={`p-3 border rounded-lg text-center transition-all ${
+                selectedRoute === 'visa'
+                  ? 'border-blue-500 bg-blue-50 shadow-md'
+                  : 'border-gray-200 hover:border-gray-300 hover:bg-gray-50'
+              }`}
+            >
+              <div className="font-semibold text-sm">Visa</div>
+            </button>
+          </div>
+        </div>
         {/* Wizard Entry */}
         {showWizardEntry && (
           <div className="entry-option p-4 border border-gray-200 rounded-lg hover:border-blue-300 transition-colors">
