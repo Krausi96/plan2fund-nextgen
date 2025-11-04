@@ -48,6 +48,8 @@
   "wizard.questions.researchFocus": "Ist dies ein Forschungsprojekt?",
   "wizard.questions.internationalCollaboration": "Haben Sie internationale Partner?",
   "wizard.questions.industryFocus": "In welcher Branche arbeiten Sie?",
+  "wizard.questions.companyType": "Welche Art von Organisation sind Sie?",
+  "wizard.questions.hasDocuments": "Haben Sie die erforderlichen Dokumente bereit?",
   "wizard.options.launchBusiness": "Neues Unternehmen oder Produkt starten",
   "wizard.options.scaleOperations": "Bestehende Geschäfte skalieren und erweitern",
   "wizard.options.developTechnology": "Neue Technologie oder Innovation entwickeln",

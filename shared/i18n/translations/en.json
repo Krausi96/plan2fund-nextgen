@@ -47,6 +47,8 @@
   "wizard.questions.currentRevenue": "What is your current revenue?",
   "wizard.questions.researchFocus": "Is this a research project?",
   "wizard.questions.internationalCollaboration": "Do you have international partners?",
+  "wizard.questions.companyType": "What type of organization are you?",
+  "wizard.questions.hasDocuments": "Do you have the required documents ready?",
   "wizard.options.launchBusiness": "Launch a new business or product",
   "wizard.options.scaleOperations": "Scale and expand existing operations",
   "wizard.options.developTechnology": "Develop new technology or innovation",

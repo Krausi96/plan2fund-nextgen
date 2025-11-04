@@ -108,9 +108,10 @@ export class QuestionEngine {
 
     // Generate questions for top requirement types (filter by frequency threshold)
     // Limit to max 10 questions to avoid overwhelming users
-    const MIN_FREQUENCY = Math.max(3, Math.floor(this.allPrograms.length * 0.05)); // At least 5% of programs
+    const MIN_FREQUENCY = Math.max(3, Math.floor(this.allPrograms.length * 0.03)); // Lowered to 3% to generate more questions
     const MAX_QUESTIONS = 10; // Limit to prevent too many questions
 
+    // First pass: Generate questions for requirement types that meet frequency threshold
     for (const req of this.requirementFrequencies) {
       // Skip if too rare
       if (req.frequency < MIN_FREQUENCY) continue;
@@ -123,14 +124,38 @@ export class QuestionEngine {
 
       // Map requirement types to question IDs
       const questionId = this.mapRequirementToQuestionId(req.category, req.type);
-      if (!questionId || questionIdMap.has(questionId)) continue; // Already generated
+      if (!questionId || questionIdMap.has(questionId)) continue; // Already generated or no mapping
 
       questionIdMap.set(questionId, questionId);
 
       // Generate question based on requirement type
       const question = this.createQuestionFromRequirement(req, questionId, priority++);
-      if (question) {
+      if (question && question.options && question.options.length > 0) {
         this.questions.push(question);
+        console.log(`✅ Generated question: ${questionId} (${req.frequency} programs, ${question.options.length} options)`);
+      } else {
+        console.warn(`⚠️ Skipped question ${questionId}: no options or question creation failed`);
+      }
+    }
+
+    // Second pass: If we still have fewer than 5 questions, lower threshold and generate more
+    if (this.questions.length < 5) {
+      console.log(`⚠️ Only ${this.questions.length} questions generated, lowering threshold to generate more...`);
+      const LOWER_THRESHOLD = Math.max(2, Math.floor(this.allPrograms.length * 0.01)); // 1% threshold
+      
+      for (const req of this.requirementFrequencies) {
+        if (this.questions.length >= MAX_QUESTIONS) break;
+        if (req.frequency < LOWER_THRESHOLD) continue;
+        
+        const questionId = this.mapRequirementToQuestionId(req.category, req.type);
+        if (!questionId || questionIdMap.has(questionId)) continue;
+        
+        questionIdMap.set(questionId, questionId);
+        const question = this.createQuestionFromRequirement(req, questionId, priority++);
+        if (question && question.options && question.options.length > 0) {
+          this.questions.push(question);
+          console.log(`✅ Generated additional question: ${questionId} (${req.frequency} programs)`);
+        }
       }
     }
 
@@ -471,24 +496,21 @@ export class QuestionEngine {
 
     // Company type question
     if (questionId === 'company_type') {
-      const types = Array.from(req.values.keys())
-        .filter(v => v && v !== 'unknown' && v !== 'null')
-        .slice(0, 10);
-      
-      if (types.length > 0) {
-        return {
-          id: 'company_type',
-          symptom: 'wizard.questions.companyType',
-          type: 'single-select',
-          options: types.map(t => ({
-            value: this.normalizeValue(t, 'company_type'),
-            label: `wizard.options.${this.normalizeValue(t, 'company_type')}`
-          })),
-          required: false,
-          category: 'eligibility',
-          priority
-        };
-      }
+      // Use predefined options instead of dynamic ones to ensure translations exist
+      return {
+        id: 'company_type',
+        symptom: 'wizard.questions.companyType',
+        type: 'single-select',
+        options: [
+          { value: 'startup', label: 'wizard.options.startup' },
+          { value: 'sme', label: 'wizard.options.sme' },
+          { value: 'large', label: 'wizard.options.large' },
+          { value: 'research', label: 'wizard.options.research' }
+        ],
+        required: false,
+        category: 'eligibility',
+        priority
+      };
     }
 
     // Sector question
@@ -649,7 +671,7 @@ export class QuestionEngine {
       return {
         id: 'has_documents',
         symptom: 'wizard.questions.hasDocuments',
-        type: 'boolean',
+        type: 'single-select',
         options: [
           { value: 'yes', label: 'wizard.options.yes' },
           { value: 'no', label: 'wizard.options.no' }
@@ -682,10 +704,11 @@ export class QuestionEngine {
     }
 
     // Boolean question for categories with no specific values
+    // Always return a question with options, never null
     return {
       id: questionId,
       symptom: `wizard.questions.${questionId}`,
-      type: 'boolean',
+      type: 'single-select',
       options: [
         { value: 'yes', label: 'wizard.options.yes' },
         { value: 'no', label: 'wizard.options.no' }
@@ -718,14 +741,20 @@ export class QuestionEngine {
     
     // Conditional logic: Generate additional questions if many programs remain
     // This provides more precision when needed, fewer questions when not needed
+    // Lower thresholds to generate more questions earlier
+    if (this.remainingPrograms.length > 30 && this.questions.length < 10) {
+      // Generate more questions if still many programs remain
+      this.generateConditionalQuestions(10);
+    }
+    
     if (this.remainingPrograms.length > 50 && this.questions.length < 15) {
       // Generate questions 11-15 if still many programs
-      this.generateConditionalQuestions(10, 15);
+      this.generateConditionalQuestions(15);
     }
     
     if (this.remainingPrograms.length > 20 && this.questions.length < 20) {
       // Generate questions 16-20 if still moderate programs
-      this.generateConditionalQuestions(15, 20);
+      this.generateConditionalQuestions(20);
     }
     
     // If we've filtered down significantly, stop asking (but require at least 3 questions)
@@ -734,55 +763,66 @@ export class QuestionEngine {
       return null;
     }
     
-    // Don't stop too early - ensure at least 5 questions are asked (unless filtered down significantly)
-    const minQuestions = 5;
+    // Don't stop too early - ensure at least 3 questions are asked (unless filtered down significantly)
+    const minQuestions = Math.min(3, this.questions.length); // Use 3 or total questions, whichever is smaller
     const hasAskedEnough = Object.keys(answers).length >= minQuestions;
     const hasManyPrograms = this.remainingPrograms.length > 10;
     
     console.log(`🔍 Question decision: ${Object.keys(answers).length} answers, ${this.remainingPrograms.length} programs remaining, ${this.questions.length} total questions`);
     
     // Find first unanswered required question
-    const unanswered = this.questions.find(q => q.required && !answers[q.id]);
-    if (unanswered) {
-      console.log(`✅ Found unanswered required question: ${unanswered.id}`);
-      return unanswered;
+    const unansweredRequired = this.questions.find(q => q.required && !answers[q.id]);
+    if (unansweredRequired) {
+      console.log(`✅ Found unanswered required question: ${unansweredRequired.id}`);
+      return unansweredRequired;
     }
     
     // Then find first unanswered optional question
-    const optional = this.questions.find(q => !q.required && !answers[q.id]);
-    if (optional) {
-      // Only ask more optional questions if we haven't asked enough OR many programs remain
-      if (!hasAskedEnough || hasManyPrograms) {
-        console.log(`✅ Found unanswered optional question: ${optional.id} (hasAskedEnough: ${hasAskedEnough}, hasManyPrograms: ${hasManyPrograms})`);
-        return optional;
+    const unansweredOptional = this.questions.find(q => !q.required && !answers[q.id]);
+    if (unansweredOptional) {
+      // Ask more optional questions if:
+      // 1. We haven't asked minimum questions yet, OR
+      // 2. Many programs remain (need more filtering), OR
+      // 3. We haven't asked all available questions yet
+      const allQuestionsAnswered = Object.keys(answers).length >= this.questions.length;
+      if (!allQuestionsAnswered && (!hasAskedEnough || hasManyPrograms)) {
+        console.log(`✅ Found unanswered optional question: ${unansweredOptional.id}`);
+        return unansweredOptional;
       } else {
-        console.log(`⏸️ Skipping optional question ${optional.id} (asked enough: ${hasAskedEnough}, programs: ${this.remainingPrograms.length})`);
+        console.log(`⏸️ Skipping optional question ${unansweredOptional.id} (all questions answered or filtered enough)`);
       }
     }
     
-    // All answered (or we've asked enough questions and filtered enough)
-    if (hasAskedEnough) {
-      console.log(`✅ Asked ${Object.keys(answers).length} questions, stopping`);
+    // All questions answered OR we've asked enough and filtered enough
+    const allAnswered = Object.keys(answers).length >= this.questions.length;
+    if (allAnswered) {
+      console.log(`✅ All ${this.questions.length} questions answered, stopping`);
+    } else if (hasAskedEnough && !hasManyPrograms) {
+      console.log(`✅ Asked ${Object.keys(answers).length} questions and filtered to ${this.remainingPrograms.length} programs, stopping`);
     } else {
-      console.log(`⚠️ No more questions available after ${Object.keys(answers).length} answers`);
+      console.log(`⚠️ No more questions available after ${Object.keys(answers).length} answers (${this.questions.length} total questions)`);
     }
     return null;
   }
 
   /**
-   * Generate conditional questions (11-20) when needed for precision
+   * Generate conditional questions when needed for precision
    */
-  private generateConditionalQuestions(startIndex: number, endIndex: number): void {
-    // Check if we already have these questions
+  private generateConditionalQuestions(maxQuestions: number): void {
+    // Check if we already have enough questions
     const currentCount = this.questions.length;
-    if (currentCount >= endIndex) return;
+    if (currentCount >= maxQuestions) return;
     
     // Generate additional questions from remaining requirement types
     const questionIdMap = new Map(this.questions.map(q => [q.id, true]));
     let priority = currentCount;
+    const LOWER_THRESHOLD = Math.max(2, Math.floor(this.allPrograms.length * 0.01)); // 1% threshold for conditional questions
     
-    for (let i = startIndex; i < endIndex && i < this.requirementFrequencies.length; i++) {
-      const req = this.requirementFrequencies[i];
+    // Try to generate questions from all requirement types, not just specific indices
+    for (const req of this.requirementFrequencies) {
+      if (this.questions.length >= maxQuestions) break;
+      if (req.frequency < LOWER_THRESHOLD) continue; // Skip very rare requirements
+      
       const questionId = this.mapRequirementToQuestionId(req.category, req.type);
       
       if (!questionId || questionIdMap.has(questionId)) continue;
@@ -790,9 +830,9 @@ export class QuestionEngine {
       questionIdMap.set(questionId, true);
       const question = this.createQuestionFromRequirement(req, questionId, priority++);
       
-      if (question) {
+      if (question && question.options && question.options.length > 0) {
         this.questions.push(question);
-        console.log(`🔗 Conditional question added: ${questionId} (${req.frequency} programs)`);
+        console.log(`🔗 Conditional question added: ${questionId} (${req.frequency} programs, ${question.options.length} options)`);
       }
     }
     
