@@ -159,9 +159,37 @@ export class QuestionEngine {
       }
     }
 
-    // Sort by priority
-    this.questions.sort((a, b) => a.priority - b.priority);
+    // Sort by importance (not just frequency)
+    // Most important questions first: location, company_type, then by frequency
+    const importanceOrder: Record<string, number> = {
+      'location': 1,
+      'company_type': 2,
+      'company_age': 3,
+      'revenue': 4,
+      'funding_amount': 5,
+      'co_financing': 6,
+      'research_focus': 7,
+      'consortium': 8,
+      'market_size': 9,
+      'use_of_funds': 10,
+      'team_size': 11
+    };
+    
+    this.questions.sort((a, b) => {
+      const aImportance = importanceOrder[a.id] ?? 999;
+      const bImportance = importanceOrder[b.id] ?? 999;
+      
+      // First sort by importance
+      if (aImportance !== bImportance) {
+        return aImportance - bImportance;
+      }
+      
+      // Then by priority (frequency)
+      return a.priority - b.priority;
+    });
+    
     console.log(`✅ Generated ${this.questions.length} dynamic questions from ${this.requirementFrequencies.length} requirement types`);
+    console.log(`📊 Question order: ${this.questions.map(q => q.id).join(' → ')}`);
   }
 
   /**
@@ -196,6 +224,11 @@ export class QuestionEngine {
 
     // Financial - Co-financing
     if (category === 'financial' && (type === 'co_financing' || type.includes('cofinancing') || type.includes('eigenmittel') || type.includes('eigenanteil'))) {
+      return 'co_financing';
+    }
+
+    // Co-financing category (separate from financial)
+    if (category === 'co_financing' && (type === 'co_financing' || type.includes('cofinancing') || type.includes('eigenmittel') || type.includes('eigenanteil'))) {
       return 'co_financing';
     }
 
@@ -235,7 +268,7 @@ export class QuestionEngine {
     // }
 
     // Consortium - International collaboration
-    if (category === 'consortium' && (type === 'international_collaboration' || type.includes('consortium') || type.includes('partner') || type.includes('konsortium'))) {
+    if (category === 'consortium' && (type === 'international_collaboration' || type === 'cooperation' || type === 'consortium_required' || type.includes('consortium') || type.includes('partner') || type.includes('konsortium') || type.includes('cooperation'))) {
       return 'consortium';
     }
 
@@ -269,10 +302,10 @@ export class QuestionEngine {
     //   return 'project_duration';
     // }
 
-    // Impact - Sustainability/Impact - REMOVED: Too vague
-    // if (category === 'impact' && (type === 'impact_requirement' || type.includes('impact') || type.includes('wirkung') || type.includes('nachhaltigkeit'))) {
-    //   return 'impact_focus';
-    // }
+    // Impact - Important for funding discovery
+    if (category === 'impact' && (type === 'sustainability' || type === 'employment_impact' || type === 'social' || type === 'climate_environmental' || type === 'impact_requirement' || type.includes('impact') || type.includes('wirkung') || type.includes('nachhaltigkeit'))) {
+      return 'impact';
+    }
 
     // Market - Market size
     if (category === 'market_size' && (type === 'market_scope' || type.includes('market') || type.includes('markt'))) {
@@ -306,7 +339,7 @@ export class QuestionEngine {
     questionId: string,
     priority: number
   ): SymptomQuestion | null {
-    // Location question
+    // Location question (with subregion support)
     if (questionId === 'location') {
       const locations = Array.from(req.values.keys());
       const normalized = this.normalizeLocations(locations);
@@ -317,7 +350,9 @@ export class QuestionEngine {
         options: normalized.map(loc => ({
           value: loc,
           label: `wizard.options.${loc}`,
-          description: `${req.values.get(loc) || 0} programs available`
+          description: loc.includes('vienna') || loc.includes('tyrol') || loc.includes('salzburg') || loc.includes('berlin') || loc.includes('munich') 
+            ? 'wizard.options.subregionHint' 
+            : `${req.values.get(loc) || 0} programs available`
         })),
         required: true,
         category: 'location',
@@ -486,8 +521,24 @@ export class QuestionEngine {
     // Users don't know their project duration at this stage
     // if (questionId === 'project_duration') { ... }
 
-    // Impact focus question - REMOVED: Too vague (what does "impact focus" mean?)
-    // if (questionId === 'impact_focus') { ... }
+    // Impact question - Important for funding discovery
+    if (questionId === 'impact') {
+      return {
+        id: 'impact',
+        symptom: 'wizard.questions.impact',
+        type: 'multi-select',
+        options: [
+          { value: 'sustainability', label: 'wizard.options.sustainabilityImpact' },
+          { value: 'employment', label: 'wizard.options.employmentImpact' },
+          { value: 'social', label: 'wizard.options.socialImpact' },
+          { value: 'climate', label: 'wizard.options.climateImpact' },
+          { value: 'economic', label: 'wizard.options.economicImpact' }
+        ],
+        required: false,
+        category: 'impact',
+        priority
+      };
+    }
 
     // Market size question
     if (questionId === 'market_size') {
@@ -833,8 +884,13 @@ export class QuestionEngine {
     // Sector filter - REMOVED: Question removed
     // if (answers.sector) { ... }
 
-    // Impact focus filter - REMOVED: Question removed
-    // if (answers.impact_focus === 'no') { ... }
+    // Impact filter
+    if (answers.impact && Array.isArray(answers.impact) && answers.impact.length > 0) {
+      const before = filtered.length;
+      filtered = filtered.filter(program => this.matchesImpact(program, answers.impact));
+      const after = filtered.length;
+      console.log(`🔍 Impact filter (${answers.impact.join(', ')}): ${before} → ${after} (${before - after} filtered)`);
+    }
 
     // Market size filter
     if (answers.market_size) {
@@ -1054,8 +1110,34 @@ export class QuestionEngine {
   // matchesSector - REMOVED: Question removed
   // private matchesSector(program: Program, userSector: string): boolean { ... }
 
-  // requiresImpact - REMOVED: Question removed
-  // private requiresImpact(program: Program): boolean { ... }
+  private matchesImpact(program: Program, userImpacts: string[]): boolean {
+    const categorized = (program as any).categorized_requirements;
+    if (categorized?.impact) {
+      const impactReqs = categorized.impact;
+      if (impactReqs.length > 0) {
+        const programImpacts = impactReqs.map((r: any) => String(r.type || r.value).toLowerCase());
+        const userImpactsLower = userImpacts.map(i => String(i).toLowerCase());
+        
+        // Map user selections to requirement types
+        const impactMapping: Record<string, string[]> = {
+          'sustainability': ['sustainability', 'sustainability'],
+          'employment': ['employment', 'employment_impact', 'jobs', 'arbeitsplätze'],
+          'social': ['social', 'social_impact'],
+          'climate': ['climate', 'climate_environmental', 'co2', 'emission'],
+          'economic': ['economic', 'economic_impact', 'wirtschaft']
+        };
+        
+        // Check if any user impact matches program impacts
+        return userImpactsLower.some(userImpact => {
+          const mappedTypes = impactMapping[userImpact] || [userImpact];
+          return programImpacts.some((progImpact: string) => 
+            mappedTypes.some(mapped => progImpact.includes(mapped) || mapped.includes(progImpact))
+          );
+        });
+      }
+    }
+    return true; // Fair filtering - no impact requirement = available
+  }
 
   // @ts-ignore - Used in filterPrograms
   private matchesMarketSize(program: Program, userMarket: string): boolean {
@@ -1098,19 +1180,48 @@ export class QuestionEngine {
 
   private normalizeLocations(locations: string[]): string[] {
     const normalized = new Set<string>();
+    const subregions = new Set<string>();
+    
     for (const loc of locations) {
       const lower = String(loc).toLowerCase();
-      if (lower.includes('austria') || lower.includes('vienna') || lower === 'at') {
+      
+      // Main regions
+      if (lower.includes('austria') || lower === 'at') {
         normalized.add('austria');
+        // Extract subregion if available
+        if (lower.includes('vienna') || lower.includes('wien')) {
+          subregions.add('vienna');
+        } else if (lower.includes('tyrol') || lower.includes('tirol')) {
+          subregions.add('tyrol');
+        } else if (lower.includes('salzburg')) {
+          subregions.add('salzburg');
+        }
       } else if (lower.includes('germany') || lower.includes('deutschland') || lower === 'de') {
         normalized.add('germany');
-      } else if (lower.includes('eu') || lower.includes('europe')) {
+        if (lower.includes('berlin')) {
+          subregions.add('berlin');
+        } else if (lower.includes('munich') || lower.includes('münchen')) {
+          subregions.add('munich');
+        }
+      } else if (lower.includes('eu') || lower.includes('europe') || lower.includes('european')) {
         normalized.add('eu');
       } else if (lower.includes('international') || lower.includes('global')) {
         normalized.add('international');
       }
     }
-    return Array.from(normalized).length > 0 ? Array.from(normalized) : ['austria', 'eu', 'international'];
+    
+    // Combine main regions with subregions
+    const result = Array.from(normalized);
+    if (subregions.size > 0 && result.includes('austria')) {
+      // Add subregions as additional options
+      subregions.forEach(sub => {
+        if (!result.includes(sub)) {
+          result.push(sub);
+        }
+      });
+    }
+    
+    return result.length > 0 ? result : ['austria', 'eu', 'international'];
   }
 
   private createAgeRanges(ages: number[]): Array<{value: string, label: string}> {
