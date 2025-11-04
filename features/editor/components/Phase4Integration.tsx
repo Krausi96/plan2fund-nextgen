@@ -2,16 +2,15 @@
 // Comprehensive integration of all Phase 4 features: Business Plan Editor Structure, UI Navigation, Entry Points, Templates & Formatting, and Collaboration
 // NOW WITH INTEGRATED STATE MANAGEMENT (replaces EditorState)
 
-import React, { useState, useEffect, useCallback, useMemo, useRef } from 'react';
+import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { useRouter } from 'next/router';
 import ExportRenderer from '@/features/export/renderer/renderer';
 import { PlanDocument } from '@/shared/types/plan';
 import { ProgramProfile } from '@/features/reco/types/reco';
 import { useUser } from '@/shared/contexts/UserContext';
 import { EditorProduct } from '@/features/editor/types/editor';
-import { EditorEngine } from '@/features/editor/engine/EditorEngine';
-import { EditorDataProvider } from '@/features/editor/engine/EditorDataProvider';
 import { savePlanSections } from '@/shared/lib/planStore';
+import { getSections } from '@/shared/lib/templates';
 import analytics from '@/shared/lib/analytics';
 
 // Phase 4 Components
@@ -66,11 +65,12 @@ export default function Phase4Integration({
   
   // Phase 4 UI state - Simplified UI
   const [showEntryPoints, setShowEntryPoints] = useState(false);
-  const [showDocumentCustomization, setShowDocumentCustomization] = useState(false); // Hidden by default to reduce clutter
+  const [showDocumentCustomization, setShowDocumentCustomization] = useState(true); // Visible by default so user can see it
   const [showAiAssistant, setShowAiAssistant] = useState(true); // Visible by default
   const [focusMode, setFocusMode] = useState(false); // Focus mode for distraction-free writing
   const [showSectionSearch, setShowSectionSearch] = useState(false); // Quick section search
   const [showShortcutsHelp, setShowShortcutsHelp] = useState(false); // Keyboard shortcuts help
+  const [showSectionExample, setShowSectionExample] = useState(false); // Section example/template
   const [requirementsProgress, setRequirementsProgress] = useState(0);
   const [requirementsStatus, setRequirementsStatus] = useState<'loading' | 'complete' | 'incomplete' | 'error'>('loading');
   const saveDebounceRef = useRef<any>(null);
@@ -156,10 +156,22 @@ export default function Phase4Integration({
   const [content, setContent] = useState<Record<string, string>>({});
   const [error, setError] = useState<string | null>(null);
   
-  // Editor engine integration
-  const dataProvider = useMemo(() => new EditorDataProvider(), []);
-  const editorEngine = useMemo(() => new EditorEngine(dataProvider), [dataProvider]);
-  const editorEngineRef = useRef(editorEngine);
+  // Helper function to save content (simplified - no EditorEngine wrapper)
+  const saveContentDirect = useCallback(async (contentMap: Record<string, string>) => {
+    try {
+      // Save to localStorage as fallback
+      if (typeof window !== 'undefined') {
+        const planData = {
+          content: contentMap,
+          documentId: plan?.id || 'current-plan',
+          lastSaved: new Date().toISOString()
+        };
+        localStorage.setItem('currentPlan', JSON.stringify(planData));
+      }
+    } catch (error) {
+      console.warn('Save to localStorage failed:', error);
+    }
+  }, [plan]);
 
   // Initialize plan and sections
   useEffect(() => {
@@ -173,7 +185,7 @@ export default function Phase4Integration({
     }
   }, [initialPlan, userProfile, isUserLoading]);
 
-  // AI Generate handler
+  // AI Generate handler - defined after handleSectionChange
   const handleAIGenerate = useCallback(async () => {
     if (!sections[activeSection] || !plan) return;
     
@@ -210,13 +222,26 @@ export default function Phase4Integration({
         programForAI || { id: 'unknown', name: 'Program', type: 'grant', amount: '', eligibility: [], requirements: [], score: 100, reasons: [], risks: [] }
       );
       
-      if (response.content) {
-        handleSectionChange(sections[activeSection].key, response.content);
+      if (response.content && sections[activeSection]) {
+        // Directly update section instead of using handleSectionChange to avoid circular dependency
+        const sectionKey = sections[activeSection].key;
+        setSections(prev => {
+          const updated = prev.map(section =>
+            section.key === sectionKey ? { ...section, content: response.content } : section
+          );
+          if (plan) {
+            setPlan({ ...plan, sections: updated });
+            if (onPlanChange) {
+              onPlanChange({ ...plan, sections: updated });
+            }
+          }
+          return updated;
+        });
       }
     } catch (error) {
       console.error('Error generating content:', error);
     }
-  }, [sections, activeSection, plan, programProfile, handleSectionChange]);
+  }, [sections, activeSection, plan, programProfile, onPlanChange]);
 
   // Enhanced Keyboard shortcuts
   useEffect(() => {
@@ -235,7 +260,7 @@ export default function Phase4Integration({
           e.preventDefault();
           const contentMap = sections.reduce((acc: Record<string,string>, s: any) => { acc[s.key] = s.content || ''; return acc; }, {});
           setIsSaving(true);
-          editorEngineRef.current.saveContent(contentMap).catch(()=>{}).finally(()=>setIsSaving(false));
+          saveContentDirect(contentMap).catch(()=>{}).finally(()=>setIsSaving(false));
           return;
         }
         return;
@@ -246,7 +271,7 @@ export default function Phase4Integration({
         e.preventDefault();
         const contentMap = sections.reduce((acc: Record<string,string>, s: any) => { acc[s.key] = s.content || ''; return acc; }, {});
         setIsSaving(true);
-        editorEngineRef.current.saveContent(contentMap).catch(()=>{}).finally(()=>setIsSaving(false));
+        saveContentDirect(contentMap).catch(()=>{}).finally(()=>setIsSaving(false));
         return;
       }
       
@@ -308,6 +333,7 @@ export default function Phase4Integration({
     }
   }, [programProfile]);
 
+
   const loadUserPlan = async () => {
     setIsLoading(true);
     try {
@@ -348,15 +374,56 @@ export default function Phase4Integration({
       // Try to load program data (non-fatal)
       let programData: any = null;
       try {
-        programData = await editorEngineRef.current.loadProduct(programId);
+        const response = await fetch(`/api/programmes/${programId}/requirements`);
+        if (response.ok) {
+          const data = await response.json();
+          programData = {
+            id: programId,
+            name: data.program_name || `Program ${programId}`,
+            type: data.program_type || 'grant',
+            description: data.description,
+            funding_amount_min: data.funding_amount_min,
+            funding_amount_max: data.funding_amount_max
+          };
+        }
       } catch (e) {
         console.warn('Program data not available, continuing with template fallback');
       }
-      // Always attempt to load sections (will fallback to templates if API missing)
+      
       // Determine product type from plan, product state, or default to submission
       const productType = product?.type || plan?.product || 'submission';
       console.log('Loading sections with product type:', productType, 'for program:', programId);
-      let sections = await editorEngineRef.current.loadSections(programId, undefined, productType);
+      
+      // Determine funding type from program data or default to grants
+      const fundingType = programData?.type 
+        ? (programData.type.includes('loan') ? 'bankLoans' : 
+           programData.type.includes('equity') ? 'equity' : 
+           programData.type.includes('visa') ? 'visa' : 'grants')
+        : 'grants';
+      
+      // Load sections directly from unified template system
+      const baseUrl = typeof window !== 'undefined' ? window.location.origin : '';
+      let templateSections = await getSections(fundingType, productType, programId, baseUrl);
+      
+      // Transform template sections to editor format
+      let sections = templateSections.map((section: any) => ({
+        key: section.id,
+        id: section.id,
+        title: section.title,
+        content: '',
+        status: 'missing' as const,
+        wordCount: 0,
+        required: section.required !== false,
+        order: section.order !== undefined ? section.order : 999,
+        description: section.description || '',
+        prompts: section.prompts || [],
+        wordCountMin: section.wordCountMin || 50,
+        wordCountMax: section.wordCountMax || 5000,
+        tables: undefined,
+        figures: [],
+        fields: undefined,
+        sources: []
+      }));
       
       // CRITICAL FIX: Prefill sections with wizard answers from appStore (single source of truth)
       try {
@@ -455,7 +522,7 @@ export default function Phase4Integration({
         }
         
         // If section has prompts but no content, generate using AIHelper
-        if ((section.template || section.ai_guidance || section.prompt) && programData) {
+        if ((section.prompts?.length > 0 || section.description) && programData) {
           try {
             const { createAIHelper } = await import('@/features/editor/engine/aiHelper');
             const { loadUserAnswers } = await import('@/shared/lib/planStore');
@@ -484,7 +551,7 @@ export default function Phase4Integration({
             
             const aiResponse = await aiHelper.generateSectionContent(
               section.title || section.section_name,
-              section.template || section.ai_guidance || section.prompt || '',
+              section.prompts?.join(' ') || section.description || '',
               programForAI
             );
             
@@ -505,7 +572,7 @@ export default function Phase4Integration({
         // Fallback: Use template/prompt as initial content (but mark as needs work)
         return {
           ...section,
-          content: section.content || section.template || section.ai_guidance || section.prompt || section.guidance || '',
+          content: section.content || section.prompts?.join(' ') || section.description || '',
           status: (section.status || 'missing') as 'aligned' | 'missing' | 'needs_fix'
         };
       }));
@@ -693,7 +760,7 @@ export default function Phase4Integration({
           acc[s.key] = s.content || '';
           return acc;
         }, {});
-        await editorEngineRef.current.saveContent(contentMap);
+        await saveContentDirect(contentMap);
         savePlanSections(updatedSections.map((s: any) => ({ id: s.key, title: s.title, content: s.content || '', tables: s.tables, figures: s.figures, sources: s.sources })));
         
         // Save to dashboard if user is logged in
@@ -772,7 +839,37 @@ export default function Phase4Integration({
       // Load sections for this product
       // Determine product type from product or plan
       const productType = product.type || plan?.product || 'submission';
-      const sections = await editorEngineRef.current.loadSections(product.id, undefined, productType);
+      
+      // Determine funding type from product
+      const fundingType = product.type 
+        ? (product.type.includes('loan') ? 'bankLoans' : 
+           product.type.includes('equity') ? 'equity' : 
+           product.type.includes('visa') ? 'visa' : 'grants')
+        : 'grants';
+      
+      // Load sections directly from unified template system
+      const baseUrl = typeof window !== 'undefined' ? window.location.origin : '';
+      const templateSections = await getSections(fundingType, productType, product.id, baseUrl);
+      
+      // Transform template sections to editor format
+      const sections = templateSections.map((section: any) => ({
+        key: section.id,
+        id: section.id,
+        title: section.title,
+        content: '',
+        status: 'missing' as const,
+        wordCount: 0,
+        required: section.required !== false,
+        order: section.order !== undefined ? section.order : 999,
+        description: section.description || '',
+        prompts: section.prompts || [],
+        wordCountMin: section.wordCountMin || 50,
+        wordCountMax: section.wordCountMax || 5000,
+        tables: undefined,
+        figures: [],
+        fields: undefined,
+        sources: []
+      }));
       setSections(sections);
       
       // Initialize content if empty
@@ -893,14 +990,61 @@ export default function Phase4Integration({
                 </div>
               </div>
               
-              {/* Product/Program Switcher - Simplified */}
-              <button
-                onClick={() => setShowEntryPoints(true)}
-                className="px-2 py-1 text-xs font-medium text-gray-600 hover:text-gray-900 transition-colors"
-                title="Switch"
-              >
-                🔄
-              </button>
+              {/* Product/Program Switcher - More visible */}
+              <div className="flex items-center gap-2">
+                {/* Product Type Dropdown */}
+                <select
+                  value={product?.type || plan?.product || 'submission'}
+                  onChange={(e) => {
+                    const newProduct = { id: product?.id || 'default', type: e.target.value as any, name: e.target.value };
+                    setProduct(newProduct);
+                    if (onProductChange) onProductChange(newProduct);
+                  }}
+                  className="px-3 py-1.5 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  title="Select document type"
+                >
+                  <option value="strategy">📊 Strategy</option>
+                  <option value="review">🔍 Review</option>
+                  <option value="submission">📝 Submission</option>
+                </select>
+                
+                {/* Funding Type Dropdown */}
+                <select
+                  value={programProfile?.route || plan?.route || 'grant'}
+                  onChange={(e) => {
+                    const newRoute = e.target.value as any;
+                    if (programProfile) {
+                      if (onProgramProfileChange) {
+                        onProgramProfileChange({ ...programProfile, route: newRoute });
+                      }
+                    } else {
+                      router.push(`/editor?product=${product?.type || 'submission'}&route=${newRoute}`);
+                    }
+                  }}
+                  className="px-3 py-1.5 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  title="Select funding type"
+                >
+                  <option value="grant">🎯 Grants</option>
+                  <option value="bankLoans">🏦 Loans</option>
+                  <option value="equity">💼 Equity</option>
+                  <option value="visa">✈️ Visa</option>
+                </select>
+                
+                <button
+                  onClick={() => setShowEntryPoints(true)}
+                  className="px-2 py-1 text-xs font-medium text-gray-600 hover:text-gray-900 transition-colors"
+                  title="Switch Program"
+                >
+                  🔄
+                </button>
+                <button
+                  onClick={() => setShowShortcutsHelp(!showShortcutsHelp)}
+                  className="px-2 py-1 text-xs font-medium text-gray-600 hover:text-gray-900 transition-colors"
+                  title="Keyboard shortcuts (?)"
+                >
+                  ⌨️
+                </button>
+              </div>
             </div>
             
             <div className="flex items-center space-x-2">
@@ -927,7 +1071,7 @@ export default function Phase4Integration({
                 onClick={() => {
                   const contentMap = sections.reduce((acc: Record<string,string>, s: any) => { acc[s.key] = s.content || ''; return acc; }, {});
                   setIsSaving(true);
-                  editorEngineRef.current.saveContent(contentMap).catch(()=>{}).finally(()=>setIsSaving(false));
+                  saveContentDirect(contentMap).catch(()=>{}).finally(()=>setIsSaving(false));
                   savePlanSections(sections.map((s: any) => ({ id: s.key, title: s.title, content: s.content || '' })));
                 }}
                 className="px-3 py-1.5 text-sm font-medium bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
@@ -1204,77 +1348,140 @@ export default function Phase4Integration({
                           <span className="text-xs font-medium text-red-600 bg-red-50 px-2 py-1 rounded">Required</span>
                         )}
                       </div>
-                      <div className="flex items-start gap-3">
+                      <div className="flex items-start gap-4">
                         <div className="flex-1">
-                          <h2 className="text-2xl font-bold text-gray-900 mb-2">
+                          <h2 className="text-3xl font-bold bg-gradient-to-r from-gray-900 to-gray-700 bg-clip-text text-transparent mb-3">
                             {sections[activeSection]?.title}
                           </h2>
                           {sections[activeSection]?.description && (
-                            <p className="text-gray-600 text-sm mb-3">
+                            <p className="text-gray-600 text-sm leading-relaxed mb-2">
                               {sections[activeSection].description}
                             </p>
                           )}
                         </div>
-                        {/* Word count target */}
+                        {/* Word count target - Enhanced */}
                         {sections[activeSection]?.wordCountMin && sections[activeSection]?.wordCountMax && (
-                          <div className="text-right">
-                            <div className="text-xs text-gray-500 mb-1">Target length</div>
-                            <div className="text-sm font-semibold text-gray-700">
-                              {sections[activeSection].wordCountMin} - {sections[activeSection].wordCountMax} words
+                          <div className="text-right bg-gradient-to-br from-blue-50 to-indigo-50 border border-blue-200 rounded-xl p-3 min-w-[140px]">
+                            <div className="text-xs font-medium text-blue-600 mb-1">Target length</div>
+                            <div className="text-lg font-bold text-blue-700">
+                              {sections[activeSection].wordCountMin} - {sections[activeSection].wordCountMax}
                             </div>
+                            <div className="text-xs text-blue-600 mt-0.5">words</div>
                           </div>
                         )}
                       </div>
                     </div>
                   </div>
                   
-                  {/* Prompts/Questions to guide user */}
-                  {sections[activeSection]?.prompts && sections[activeSection].prompts.length > 0 && (
-                    <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-4">
-                      <div className="flex items-start justify-between mb-3">
-                        <h3 className="text-sm font-semibold text-blue-900 flex items-center gap-2">
-                          <span>💡</span> What to include in this section:
-                        </h3>
-                        {!sections[activeSection]?.content || sections[activeSection].content.trim().length === 0 ? (
-                          <button
-                            onClick={handleAIGenerate}
-                            className="px-3 py-1.5 text-xs font-medium bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors flex items-center gap-1"
-                            title="Generate content using AI (Ctrl+G)"
-                          >
-                            ✨ Generate with AI
-                          </button>
-                        ) : null}
+                  {/* Enhanced Guidance Section */}
+                  <div className="space-y-3 mb-4">
+                    {/* Prompts/Questions to guide user */}
+                    {sections[activeSection]?.prompts && sections[activeSection].prompts.length > 0 && (
+                      <div className="bg-gradient-to-r from-blue-50 to-indigo-50 border border-blue-200 rounded-xl p-5 shadow-sm">
+                        <div className="flex items-start justify-between mb-3">
+                          <div className="flex items-center gap-2">
+                            <div className="w-8 h-8 bg-blue-500 rounded-lg flex items-center justify-center">
+                              <span className="text-white text-sm">💡</span>
+                            </div>
+                            <h3 className="text-sm font-semibold text-blue-900">
+                              What to include:
+                            </h3>
+                          </div>
+                          {!sections[activeSection]?.content || sections[activeSection].content.trim().length === 0 ? (
+                            <button
+                              onClick={handleAIGenerate}
+                              className="px-4 py-2 text-xs font-semibold bg-gradient-to-r from-blue-600 to-indigo-600 text-white rounded-lg hover:from-blue-700 hover:to-indigo-700 transition-all shadow-md hover:shadow-lg flex items-center gap-1.5"
+                              title="Generate content using AI (Ctrl+G)"
+                            >
+                              <span>✨</span> Generate with AI
+                            </button>
+                          ) : null}
+                        </div>
+                        <ul className="space-y-2.5">
+                          {sections[activeSection].prompts.map((prompt: string, idx: number) => (
+                            <li key={idx} className="text-sm text-blue-900 flex items-start gap-2.5">
+                              <span className="text-blue-500 mt-1 font-bold">•</span>
+                              <span className="leading-relaxed">{prompt}</span>
+                            </li>
+                          ))}
+                        </ul>
                       </div>
-                      <ul className="space-y-2">
-                        {sections[activeSection].prompts.map((prompt: string, idx: number) => (
-                          <li key={idx} className="text-sm text-blue-800 flex items-start gap-2">
-                            <span className="text-blue-500 mt-1">•</span>
-                            <span>{prompt}</span>
-                          </li>
-                        ))}
-                      </ul>
-                    </div>
-                  )}
+                    )}
+                    
+                    {/* Section Example/Template - Collapsible */}
+                    {sections[activeSection]?.description && (
+                      <div className="bg-amber-50 border border-amber-200 rounded-xl p-4">
+                        <button
+                          onClick={() => setShowSectionExample(!showSectionExample)}
+                          className="w-full flex items-center justify-between text-left"
+                        >
+                          <div className="flex items-center gap-2">
+                            <span className="text-amber-600">📋</span>
+                            <span className="text-sm font-semibold text-amber-900">See example structure</span>
+                          </div>
+                          <svg 
+                            className={`w-5 h-5 text-amber-600 transition-transform ${showSectionExample ? 'rotate-180' : ''}`}
+                            fill="none" 
+                            stroke="currentColor" 
+                            viewBox="0 0 24 24"
+                          >
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                          </svg>
+                        </button>
+                        {showSectionExample && (
+                          <div className="mt-3 pt-3 border-t border-amber-200">
+                            <div className="text-sm text-amber-800 bg-white rounded-lg p-4 border border-amber-100">
+                              <p className="font-medium mb-2">Example structure:</p>
+                              <p className="text-amber-700 leading-relaxed whitespace-pre-line">
+                                {sections[activeSection].description}
+                              </p>
+                              <button
+                                onClick={() => {
+                                  // Copy example description as starting point
+                                  if (sections[activeSection] && !sections[activeSection].content) {
+                                    handleSectionChange(sections[activeSection].key, sections[activeSection].description || '');
+                                  }
+                                }}
+                                className="mt-3 px-3 py-1.5 text-xs font-medium bg-amber-600 text-white rounded hover:bg-amber-700 transition-colors"
+                              >
+                                Use as starting point
+                              </button>
+                            </div>
+                          </div>
+                        )}
+                      </div>
+                    )}
+                  </div>
                 </div>
 
                 {/* Rich Text Editor */}
                 <div className="space-y-6">
-                  {/* Quick Actions Bar - Show when empty */}
+                  {/* Enhanced Quick Actions Bar - Show when empty */}
                   {(!sections[activeSection]?.content || sections[activeSection].content.trim().length === 0) && (
-                    <div className="bg-gradient-to-r from-purple-50 to-blue-50 border border-purple-200 rounded-lg p-4 mb-4">
-                      <div className="flex items-center justify-between">
-                        <div>
-                          <h4 className="text-sm font-semibold text-gray-900 mb-1">Need help getting started?</h4>
-                          <p className="text-xs text-gray-600">Use AI to generate content or see examples</p>
+                    <div className="bg-gradient-to-br from-purple-50 via-blue-50 to-indigo-50 border-2 border-purple-300 rounded-2xl p-6 shadow-lg">
+                      <div className="flex items-center gap-4">
+                        <div className="w-16 h-16 bg-gradient-to-br from-purple-500 to-blue-600 rounded-2xl flex items-center justify-center shadow-lg">
+                          <span className="text-white text-2xl">✨</span>
                         </div>
-                        <div className="flex items-center gap-2">
-                          <button
-                            onClick={handleAIGenerate}
-                            className="px-4 py-2 text-sm font-medium bg-gradient-to-r from-blue-600 to-purple-600 text-white rounded-lg hover:from-blue-700 hover:to-purple-700 transition-all shadow-md hover:shadow-lg flex items-center gap-2"
-                            title="Or press Ctrl+G"
-                          >
-                            <span>✨</span> Generate Content
-                          </button>
+                        <div className="flex-1">
+                          <h4 className="text-base font-bold text-gray-900 mb-1">Ready to start writing?</h4>
+                          <p className="text-sm text-gray-600 mb-3">Let AI help you create a professional {sections[activeSection]?.title?.toLowerCase()} section</p>
+                          <div className="flex items-center gap-2">
+                            <button
+                              onClick={handleAIGenerate}
+                              className="px-5 py-2.5 text-sm font-semibold bg-gradient-to-r from-blue-600 via-purple-600 to-indigo-600 text-white rounded-xl hover:from-blue-700 hover:via-purple-700 hover:to-indigo-700 transition-all shadow-lg hover:shadow-xl flex items-center gap-2 transform hover:scale-105"
+                              title="Or press Ctrl+G"
+                            >
+                              <span>✨</span> Generate with AI
+                            </button>
+                            <span className="text-xs text-gray-500">or</span>
+                            <button
+                              onClick={() => setShowSectionExample(true)}
+                              className="px-4 py-2 text-sm font-medium text-purple-700 bg-white border border-purple-300 rounded-xl hover:bg-purple-50 transition-colors"
+                            >
+                              📋 View Template
+                            </button>
+                          </div>
                         </div>
                       </div>
                     </div>
@@ -1448,9 +1655,8 @@ export default function Phase4Integration({
                     </div>
                   </div>
 
-                  {/* Requirements Progress - Simplified */}
-                  {programProfile && (
-                    <div className="mt-4 p-3 bg-gray-50 rounded-lg border border-gray-200">
+                  {/* Requirements Progress - Always visible */}
+                  <div className="mt-4 p-3 bg-gray-50 rounded-lg border border-gray-200">
                       <div className="flex items-center justify-between mb-2">
                         <span className="text-xs font-medium text-gray-700">Requirements</span>
                         <span className="text-xs font-semibold text-gray-700">
@@ -1472,9 +1678,9 @@ export default function Phase4Integration({
                         {requirementsStatus === 'incomplete' && '⚠️ Some requirements pending'}
                         {requirementsStatus === 'error' && '❌ Error checking requirements'}
                         {requirementsStatus === 'loading' && 'Checking...'}
+                        {!programProfile && 'No program selected'}
                       </div>
                     </div>
-                  )}
 
                   {/* Section Navigation & Actions */}
                   <div className="flex items-center justify-between pt-6 border-t border-gray-200">
@@ -1570,8 +1776,7 @@ export default function Phase4Integration({
       </div>
 
       {/* AI Assistant - Always visible, simplified */}
-      {plan && (
-        <div className="fixed bottom-4 right-4 z-50">
+      <div className="fixed bottom-4 right-4 z-50">
           {showAiAssistant ? (
             <div className="bg-white rounded-lg border border-gray-300 shadow-2xl w-96 h-[500px] flex flex-col">
               {/* AI Assistant Header */}
@@ -1620,181 +1825,6 @@ export default function Phase4Integration({
             </button>
           )}
         </div>
-      )}
-
-      {/* Keyboard Shortcuts Help Modal */}
-      {showShortcutsHelp && (
-        <div className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center p-4" onClick={() => setShowShortcutsHelp(false)}>
-          <div className="bg-white rounded-2xl max-w-lg w-full shadow-2xl" onClick={(e) => e.stopPropagation()}>
-            <div className="p-6">
-              <div className="flex items-center justify-between mb-6">
-                <h3 className="text-xl font-semibold text-gray-900">⌨️ Keyboard Shortcuts</h3>
-                <button
-                  onClick={() => setShowShortcutsHelp(false)}
-                  className="text-gray-400 hover:text-gray-600"
-                >
-                  <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-                  </svg>
-                </button>
-              </div>
-              <div className="space-y-4">
-                <div>
-                  <h4 className="text-sm font-semibold text-gray-700 mb-2">Content</h4>
-                  <div className="space-y-1 text-sm">
-                    <div className="flex justify-between items-center py-1">
-                      <span className="text-gray-600">Generate with AI</span>
-                      <kbd className="px-2 py-1 bg-gray-100 rounded text-xs font-mono">Ctrl+G</kbd>
-                    </div>
-                    <div className="flex justify-between items-center py-1">
-                      <span className="text-gray-600">Save</span>
-                      <kbd className="px-2 py-1 bg-gray-100 rounded text-xs font-mono">Ctrl+S</kbd>
-                    </div>
-                  </div>
-                </div>
-                <div>
-                  <h4 className="text-sm font-semibold text-gray-700 mb-2">Navigation</h4>
-                  <div className="space-y-1 text-sm">
-                    <div className="flex justify-between items-center py-1">
-                      <span className="text-gray-600">Previous section</span>
-                      <kbd className="px-2 py-1 bg-gray-100 rounded text-xs font-mono">Ctrl+↑</kbd>
-                    </div>
-                    <div className="flex justify-between items-center py-1">
-                      <span className="text-gray-600">Next section</span>
-                      <kbd className="px-2 py-1 bg-gray-100 rounded text-xs font-mono">Ctrl+↓</kbd>
-                    </div>
-                    <div className="flex justify-between items-center py-1">
-                      <span className="text-gray-600">Jump to section</span>
-                      <kbd className="px-2 py-1 bg-gray-100 rounded text-xs font-mono">Ctrl+K</kbd>
-                    </div>
-                  </div>
-                </div>
-                <div>
-                  <h4 className="text-sm font-semibold text-gray-700 mb-2">View</h4>
-                  <div className="space-y-1 text-sm">
-                    <div className="flex justify-between items-center py-1">
-                      <span className="text-gray-600">Focus mode</span>
-                      <kbd className="px-2 py-1 bg-gray-100 rounded text-xs font-mono">Ctrl+F</kbd>
-                    </div>
-                    <div className="flex justify-between items-center py-1">
-                      <span className="text-gray-600">Show shortcuts</span>
-                      <kbd className="px-2 py-1 bg-gray-100 rounded text-xs font-mono">?</kbd>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-      )}
-
-      {/* Entry Points Modal */}
-          {showEntryPoints && (
-        <div className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center p-4">
-          <div className="bg-white rounded-2xl max-w-2xl w-full max-h-[80vh] overflow-y-auto">
-            <div className="p-6">
-              <div className="flex items-center justify-between mb-6">
-                <h3 className="text-xl font-semibold text-gray-900">Entry Points</h3>
-                <button
-                  onClick={() => setShowEntryPoints(false)}
-                  className="text-gray-400 hover:text-gray-600"
-                >
-                  <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-                  </svg>
-                </button>
-              </div>
-              <EntryPointsManager
-                currentPlan={plan}
-                programProfile={programProfile}
-                onPlanSwitch={handlePlanChange}
-                onDocumentTypeChange={(type) => console.log('Document type changed:', type)}
-                showWizardEntry={true}
-                showDirectEditor={true}
-                showPlanSwitching={true}
-              />
-                </div>
-              </div>
-            </div>
-          )}
-      {/* Inline Preview Drawer */}
-      {showInlinePreview && plan && (
-        <div className="fixed inset-0 z-50">
-          <div className="absolute inset-0 bg-black/30" onClick={()=>setShowInlinePreview(false)} />
-          <div className="absolute top-0 right-0 h-full w-full md:w-[520px] bg-white shadow-xl overflow-y-auto">
-            <div className="p-4 border-b flex items-center justify-between">
-              <div className="font-semibold">Formatted Preview</div>
-              <button className="text-gray-500 hover:text-gray-800" onClick={()=>setShowInlinePreview(false)}>✕</button>
-            </div>
-            <div className="p-4" style={{ fontFamily: previewStyle.fontFamily || undefined, fontSize: previewStyle.fontSize ? `${previewStyle.fontSize}px` : undefined, lineHeight: previewStyle.lineHeight ? String(previewStyle.lineHeight) : undefined }}>
-              <ExportRenderer
-                plan={{
-                  ...plan,
-                  sections: sections.map((s: any) => ({ key: s.key, title: s.title, content: s.content || '', status: s.status, tables: s.tables, figures: s.figures }))
-                } as any}
-                showWatermark={false}
-                previewMode={'formatted'}
-                previewSettings={{ showWordCount: false, showCharacterCount: false, showCompletionStatus: false, enableRealTimePreview: false }}
-              />
-            </div>
-          </div>
-        </div>
-      )}
-    </div>
-  );
-}
-
-      {plan && (
-        <div className="fixed bottom-4 right-4 z-50">
-          {showAiAssistant ? (
-            <div className="bg-white rounded-lg border border-gray-300 shadow-2xl w-96 h-[500px] flex flex-col">
-              {/* AI Assistant Header */}
-              <div className="flex items-center justify-between p-3 border-b border-gray-200 bg-gradient-to-r from-blue-50 to-purple-50">
-                <div className="flex items-center space-x-2">
-                  <div className="w-7 h-7 bg-gradient-to-br from-blue-500 to-purple-600 rounded-full flex items-center justify-center">
-                    <span className="text-white text-xs">👔</span>
-                  </div>
-                  <div>
-                    <h3 className="font-semibold text-gray-900 text-sm">AI Assistant</h3>
-                    <p className="text-xs text-gray-500">Funding Expert</p>
-                  </div>
-                </div>
-                <button
-                  onClick={() => setShowAiAssistant(false)}
-                  className="p-1 text-gray-400 hover:text-gray-600 transition-colors"
-                  title="Minimize"
-                >
-                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M20 12H4" />
-                  </svg>
-                </button>
-              </div>
-
-              {/* AI Chat Interface */}
-              <div className="flex-1 overflow-hidden">
-                <EnhancedAIChat
-                  plan={plan}
-                  programProfile={programProfile || null}
-                  currentSection={sections[activeSection]?.key || ''}
-                  onInsertContent={(content) => {
-                    if (sections[activeSection]) {
-                      handleSectionChange(sections[activeSection].key, content);
-                    }
-                  }}
-                />
-              </div>
-            </div>
-          ) : (
-            <button
-              onClick={() => setShowAiAssistant(true)}
-              className="w-12 h-12 bg-gradient-to-br from-blue-500 to-purple-600 rounded-full shadow-xl hover:shadow-2xl transition-all flex items-center justify-center text-white text-xl hover:scale-110"
-              title="Open AI Assistant"
-            >
-              👔
-            </button>
-          )}
-        </div>
-      )}
 
       {/* Keyboard Shortcuts Help Modal */}
       {showShortcutsHelp && (
