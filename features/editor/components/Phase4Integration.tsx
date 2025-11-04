@@ -240,7 +240,14 @@ export default function Phase4Integration({
             // Use prefill engine to generate content from answers
             if (Object.keys(userAnswers).length > 0 && programData) {
               try {
-                const { mapAnswersToSections } = await import('@/features/intake/engine/prefill');
+                const { mapAnswersToSections, mapWizardAnswersToPrefillFormat } = await import('@/features/intake/engine/prefill');
+                
+                // Map wizard answers to prefill format (Priority 4)
+                const prefillAnswers = mapWizardAnswersToPrefillFormat(userAnswers);
+                console.log('🔄 Mapped wizard answers to prefill format:', { wizard: userAnswers, prefill: prefillAnswers });
+                
+                // Merge wizard answers with prefill answers (prefill takes precedence)
+                const mergedAnswers = { ...userAnswers, ...prefillAnswers };
                 
                 // Create program object for prefill
                 const programForPrefill = {
@@ -255,8 +262,8 @@ export default function Phase4Integration({
                   risks: []
                 };
                 
-                // Generate prefilled content
-                const prefilledSections = mapAnswersToSections(userAnswers, programForPrefill);
+                // Generate prefilled content using merged answers
+                const prefilledSections = mapAnswersToSections(mergedAnswers, programForPrefill);
                 
                 // Merge prefilled content into sections
                 sections = sections.map((section: any) => {
@@ -311,7 +318,70 @@ export default function Phase4Integration({
         // Continue without prefill - non-fatal
       }
       
-      // Create a new plan with the program's sections (now prefilled if available)
+      // PRIORITY 1: Generate content using AIHelper if sections have prompts but no content
+      const sectionsWithContent = await Promise.all(sections.map(async (section: any) => {
+        // If section has content (from prefill), use it
+        if (section.content && section.content.trim().length > 0 && !section.content.includes('[TBD:')) {
+          return section;
+        }
+        
+        // If section has prompts but no content, generate using AIHelper
+        if ((section.template || section.ai_guidance || section.prompt) && programData) {
+          try {
+            const { createAIHelper } = await import('@/features/editor/engine/aiHelper');
+            const { loadUserAnswers } = await import('@/shared/lib/planStore');
+            const userAnswers = typeof window !== 'undefined' ? loadUserAnswers() : {};
+            
+            const programForAI = {
+              id: programData.id || programId,
+              name: programData.name || 'Program',
+              type: programData.type || 'grant',
+              amount: programData.funding_amount_min ? `${programData.funding_amount_min}-${programData.funding_amount_max || ''}` : '',
+              eligibility: [],
+              requirements: [],
+              score: 100,
+              reasons: [],
+              risks: []
+            };
+            
+            const aiHelper = createAIHelper({
+              maxWords: section.word_count_max || 500,
+              sectionScope: section.title || section.section_name,
+              programHints: {},
+              userAnswers: userAnswers,
+              tone: 'neutral',
+              language: 'en'
+            });
+            
+            const aiResponse = await aiHelper.generateSectionContent(
+              section.title || section.section_name,
+              section.template || section.ai_guidance || section.prompt || '',
+              programForAI
+            );
+            
+            // Use AI-generated content if available
+            if (aiResponse.content && aiResponse.content.trim().length > 0) {
+              return {
+                ...section,
+                content: aiResponse.content,
+                status: 'aligned' as const
+              };
+            }
+          } catch (aiError) {
+            console.warn('AI content generation failed for section:', section.id, aiError);
+            // Continue with template/prompt as fallback
+          }
+        }
+        
+        // Fallback: Use template/prompt as initial content (but mark as needs work)
+        return {
+          ...section,
+          content: section.content || section.template || section.ai_guidance || section.prompt || section.guidance || '',
+          status: (section.status || 'missing') as 'aligned' | 'missing' | 'needs_fix'
+        };
+      }));
+      
+      // Create a new plan with the program's sections (now with generated content)
       const newPlan: PlanDocument = {
         id: `plan_${Date.now()}`,
         ownerId: userProfile?.id || 'anonymous',
@@ -327,12 +397,12 @@ export default function Phase4Integration({
           captions: true,
           graphs: {}
         },
-        sections: sections.map((section: any) => ({
+        sections: sectionsWithContent.map((section: any) => ({
           key: section.id,
           title: section.title || section.section_name || 'Untitled Section',
-          content: section.template || section.guidance || section.content || '',
-          status: (section.status || (section.content ? 'aligned' : 'missing')) as 'aligned' | 'missing' | 'needs_fix',
-          wordCount: (section.content || '').split(/\s+/).length,
+          content: section.content || '',
+          status: (section.status || (section.content && section.content.trim().length > 0 ? 'aligned' : 'missing')) as 'aligned' | 'missing' | 'needs_fix',
+          wordCount: (section.content || '').split(/\s+/).filter((w: string) => w.length > 0).length,
           required: section.required !== false,
           order: 0
         })),
@@ -344,7 +414,7 @@ export default function Phase4Integration({
       setSections(newPlan.sections);
       if (programData) setProductState(programData);
       
-      console.log('Loaded program sections:', sections.length);
+      console.log('✅ Loaded program sections with generated content:', sectionsWithContent.length);
     } catch (error) {
       console.error('Error loading program sections:', error);
       setError(error instanceof Error ? error.message : 'Failed to load program sections');
@@ -588,13 +658,13 @@ export default function Phase4Integration({
       </div>
 
       {/* Main Content */}
-      <div className="max-w-7xl mx-auto px-6 py-8">
-        <div className="grid grid-cols-1 lg:grid-cols-4 gap-8">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-8">
+        <div className="grid grid-cols-1 lg:grid-cols-4 gap-6 lg:gap-8">
           {/* Sidebar - Sections & Document Customization */}
           <div className="lg:col-span-1">
             <div className="space-y-4">
               {/* Sections Panel */}
-              <div className="bg-white/70 backdrop-blur-sm rounded-2xl border border-gray-200/50 p-6 sticky top-24">
+              <div className="bg-white/70 backdrop-blur-sm rounded-2xl border border-gray-200/50 p-4 sm:p-6 sticky top-24 max-h-[calc(100vh-8rem)] overflow-y-auto">
                 <div className="flex items-center justify-between mb-4">
                   <h3 className="text-lg font-semibold text-gray-900">Sections</h3>
                   <button
@@ -738,7 +808,7 @@ export default function Phase4Integration({
 
             {/* Section Wizard */}
             {sections.length > 0 && activeSection < sections.length && (
-              <div className="bg-white/70 backdrop-blur-sm rounded-2xl border border-gray-200/50 p-8">
+              <div className="bg-white/70 backdrop-blur-sm rounded-2xl border border-gray-200/50 p-4 sm:p-6 lg:p-8">
                 {/* Section Header */}
                 <div className="mb-6">
                   <div className="flex items-center justify-between mb-4">

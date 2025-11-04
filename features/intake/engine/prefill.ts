@@ -249,6 +249,138 @@ Prefill Summary:
 }
 
 /**
+ * Map wizard answers (QuestionEngine format) to prefill format
+ * 
+ * Wizard format: { location: 'austria', company_age: '0_2_years', team_size: '1_2_people' }
+ * Prefill format: { business_name, business_description, target_market, funding_amount, team_size }
+ */
+export function mapWizardAnswersToPrefillFormat(
+  wizardAnswers: Record<string, any>
+): Record<string, any> {
+  const prefillAnswers: Record<string, any> = {};
+  
+  // Business name - generate from location/industry if available
+  if (wizardAnswers.industry_focus) {
+    const industry = wizardAnswers.industry_focus;
+    const location = wizardAnswers.location || 'Austria';
+    prefillAnswers.business_name = `${industry} Startup in ${location}`;
+  } else if (wizardAnswers.location) {
+    prefillAnswers.business_name = `Business in ${wizardAnswers.location}`;
+  }
+  
+  // Business description - generate from industry, location, and company age
+  const descriptionParts: string[] = [];
+  if (wizardAnswers.industry_focus) {
+    descriptionParts.push(`We are a ${wizardAnswers.industry_focus} company`);
+  }
+  if (wizardAnswers.location) {
+    descriptionParts.push(`based in ${wizardAnswers.location}`);
+  }
+  if (wizardAnswers.company_age) {
+    const age = wizardAnswers.company_age;
+    if (age.includes('0_2') || age.includes('under_2')) {
+      descriptionParts.push('in the early stages of development');
+    } else if (age.includes('2_5')) {
+      descriptionParts.push('with 2-5 years of experience');
+    } else if (age.includes('5_10')) {
+      descriptionParts.push('with 5-10 years of experience');
+    } else if (age.includes('over_10')) {
+      descriptionParts.push('with over 10 years of experience');
+    }
+  }
+  if (descriptionParts.length > 0) {
+    prefillAnswers.business_description = descriptionParts.join('. ') + '.';
+  }
+  
+  // Target market - generate from industry and location
+  if (wizardAnswers.industry_focus) {
+    prefillAnswers.target_market = `We target customers in the ${wizardAnswers.industry_focus} sector`;
+    if (wizardAnswers.location) {
+      prefillAnswers.target_market += ` in ${wizardAnswers.location}`;
+    }
+    prefillAnswers.target_market += '.';
+  }
+  
+  // Revenue model - infer from industry and company stage
+  if (wizardAnswers.industry_focus) {
+    const industry = wizardAnswers.industry_focus.toLowerCase();
+    if (industry.includes('saas') || industry.includes('software')) {
+      prefillAnswers.revenue_model = 'Subscription-based SaaS model with recurring revenue';
+    } else if (industry.includes('marketplace') || industry.includes('platform')) {
+      prefillAnswers.revenue_model = 'Marketplace commission model';
+    } else if (industry.includes('product') || industry.includes('manufacturing')) {
+      prefillAnswers.revenue_model = 'Product sales with direct-to-consumer and B2B channels';
+    } else {
+      prefillAnswers.revenue_model = 'Revenue generated through our core business activities';
+    }
+  }
+  
+  // Team size - direct mapping
+  if (wizardAnswers.team_size) {
+    const size = wizardAnswers.team_size;
+    if (size.includes('1_2') || size.includes('1-2')) {
+      prefillAnswers.team_size = '1-2 people';
+    } else if (size.includes('3_5') || size.includes('3-5')) {
+      prefillAnswers.team_size = '3-5 people';
+    } else if (size.includes('6_10') || size.includes('6-10')) {
+      prefillAnswers.team_size = '6-10 people';
+    } else if (size.includes('over_10') || size.includes('10+')) {
+      prefillAnswers.team_size = '10+ people';
+    } else {
+      prefillAnswers.team_size = size;
+    }
+  }
+  
+  // Funding amount - infer from current revenue and company age
+  if (wizardAnswers.current_revenue) {
+    const revenue = wizardAnswers.current_revenue.toLowerCase();
+    if (revenue.includes('under_100') || revenue.includes('0')) {
+      // Early stage, needs seed funding
+      prefillAnswers.funding_amount = '€50,000 - €250,000';
+      prefillAnswers.use_of_funds = 'Product development, market research, and initial team expansion';
+    } else if (revenue.includes('100k_500') || revenue.includes('100-500')) {
+      // Growing, needs Series A
+      prefillAnswers.funding_amount = '€250,000 - €1,000,000';
+      prefillAnswers.use_of_funds = 'Scaling operations, expanding market reach, and team growth';
+    } else if (revenue.includes('500k_2m') || revenue.includes('500k-2m')) {
+      // Established, needs growth funding
+      prefillAnswers.funding_amount = '€1,000,000 - €5,000,000';
+      prefillAnswers.use_of_funds = 'Market expansion, product diversification, and infrastructure scaling';
+    } else if (revenue.includes('over_2m') || revenue.includes('2m+')) {
+      // Mature, needs expansion funding
+      prefillAnswers.funding_amount = '€5,000,000+';
+      prefillAnswers.use_of_funds = 'International expansion, strategic acquisitions, and technology investments';
+    }
+  } else if (wizardAnswers.company_age) {
+    const age = wizardAnswers.company_age.toLowerCase();
+    if (age.includes('0_2') || age.includes('under_2')) {
+      prefillAnswers.funding_amount = '€50,000 - €250,000';
+      prefillAnswers.use_of_funds = 'Initial product development and market validation';
+    } else if (age.includes('2_5')) {
+      prefillAnswers.funding_amount = '€250,000 - €1,000,000';
+      prefillAnswers.use_of_funds = 'Product refinement and market expansion';
+    } else {
+      prefillAnswers.funding_amount = '€1,000,000+';
+      prefillAnswers.use_of_funds = 'Scaling operations and market leadership';
+    }
+  }
+  
+  // Timeline - infer from company age and funding needs
+  if (wizardAnswers.company_age) {
+    const age = wizardAnswers.company_age.toLowerCase();
+    if (age.includes('0_2') || age.includes('under_2')) {
+      prefillAnswers.timeline = '18-24 months for product development and market entry';
+    } else if (age.includes('2_5')) {
+      prefillAnswers.timeline = '12-18 months for market expansion and growth';
+    } else {
+      prefillAnswers.timeline = '6-12 months for scaling and optimization';
+    }
+  }
+  
+  return prefillAnswers;
+}
+
+/**
  * Map user answers to document sections with TBD markers
  */
 export function mapAnswersToSections(

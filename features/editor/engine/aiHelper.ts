@@ -59,7 +59,21 @@ export class AIHelper {
     const structuredRequirements = await this.getStructuredRequirements(program.id);
     
     const prompt = this.buildSectionPromptWithStructured(section, context, program, structuredRequirements);
-    const response = await this.callAI(prompt);
+    
+    // Get section guidance from structured requirements
+    const sectionGuidance = this.getSectionGuidanceFromStructured(section, structuredRequirements);
+    const complianceTips = this.getComplianceTipsFromStructured(section, structuredRequirements);
+    
+    // Call OpenAI API with enhanced context
+    const response = await this.callAIWithContext(prompt, {
+      sectionId: section,
+      sectionTitle: section,
+      currentContent: context,
+      programType: program.type,
+      programName: program.name,
+      sectionGuidance: sectionGuidance,
+      hints: this.config.programHints?.[program.type]?.reviewer_tips || []
+    });
     
     return {
       content: response.content,
@@ -67,10 +81,65 @@ export class AIHelper {
       suggestions: response.suggestions || [],
       citations: response.citations || [],
       programSpecific: true,
-      sectionGuidance: this.getSectionGuidanceFromStructured(section, structuredRequirements),
-      complianceTips: this.getComplianceTipsFromStructured(section, structuredRequirements),
+      sectionGuidance: sectionGuidance,
+      complianceTips: complianceTips,
       readinessScore: this.calculateReadinessScoreFromStructured(section, context, structuredRequirements)
     };
+  }
+  
+  /**
+   * Call AI service with enhanced context
+   */
+  private async callAIWithContext(
+    prompt: string,
+    context: {
+      sectionId: string;
+      sectionTitle: string;
+      currentContent: string;
+      programType: string;
+      programName?: string;
+      sectionGuidance?: string[];
+      hints?: string[];
+    }
+  ): Promise<{ content: string; suggestions?: string[]; citations?: string[] }> {
+    try {
+      // Call OpenAI API endpoint with full context
+      const response = await fetch('/api/ai/openai', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          message: prompt,
+          context: context,
+          action: 'generate'
+        })
+      });
+      
+      if (!response.ok) {
+        throw new Error(`OpenAI API error: ${response.statusText}`);
+      }
+      
+      const aiResponse = await response.json();
+      
+      // Return structured response
+      return {
+        content: aiResponse.content || '',
+        suggestions: aiResponse.suggestions || [],
+        citations: aiResponse.citations || []
+      };
+    } catch (error) {
+      console.error('OpenAI API call failed:', error);
+      // Fallback to mock response if API fails (non-fatal)
+      return {
+        content: `AI generation temporarily unavailable. Please try again or write your content manually.
+
+${context.sectionTitle} Section
+${context.sectionGuidance?.map(g => `- ${g}`).join('\n') || ''}
+
+This is a placeholder response. The AI service will be available shortly.`,
+        suggestions: ['Try again in a moment', 'Write content manually', 'Check your internet connection'],
+        citations: []
+      };
+    }
   }
 
   /**
@@ -222,17 +291,6 @@ Generate helpful content for this section.
   // `;
   // }
 
-  /**
-   * Call AI service
-   */
-  private async callAI(prompt: string): Promise<{ content: string; suggestions?: string[]; citations?: string[] }> {
-    // Mock AI response for now
-    return {
-      content: `This is a sample response for the prompt: ${prompt.substring(0, 100)}...`,
-      suggestions: ['Add more specific examples', 'Include financial projections'],
-      citations: ['Program guidelines', 'Best practices']
-    };
-  }
 
   /**
    * Count words in text
