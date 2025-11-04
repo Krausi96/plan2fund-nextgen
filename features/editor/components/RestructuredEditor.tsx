@@ -9,6 +9,7 @@ import { EditorProduct } from '@/features/editor/types/editor';
 import RichTextEditor from './RichTextEditor';
 import EnhancedAIChat from './EnhancedAIChat';
 import DocumentCustomizationPanel from './DocumentCustomizationPanel';
+import { useSectionProgress } from '../hooks/useSectionProgress';
 
 interface RestructuredEditorProps {
   plan: PlanDocument | null;
@@ -52,9 +53,80 @@ export default function RestructuredEditor({
   const [searchQuery, setSearchQuery] = useState('');
   const [isSaving, setIsSaving] = useState(false);
   const [showCompletionToast, setShowCompletionToast] = useState(false);
+  const [expandedSections, setExpandedSections] = useState<Set<number>>(new Set());
+  const [generatingForPrompt, setGeneratingForPrompt] = useState<number | null>(null);
+  const [showRequirementsTooltip, setShowRequirementsTooltip] = useState(false);
   
   // Calculate incomplete sections for notifications
   const incompleteSections = sections.filter(s => !s.content || s.content.trim().length === 0 || s.status !== 'aligned').length;
+  
+  // Calculate progress for all sections (outside map to avoid hook rule violations)
+  const sectionsProgress = sections.map(section => useSectionProgress(section));
+  
+  // Generate content for a specific prompt
+  const handleGenerateForPrompt = useCallback(async (promptText: string, promptIndex: number) => {
+    if (!sections[activeSection] || !plan) return;
+    
+    setGeneratingForPrompt(promptIndex);
+    try {
+      const { createAIHelper } = await import('@/features/editor/engine/aiHelper');
+      const { loadUserAnswers } = await import('@/shared/lib/planStore');
+      const userAnswers = typeof window !== 'undefined' ? loadUserAnswers() : {};
+      
+      const programForAI = programProfile ? {
+        id: programProfile.programId,
+        name: programProfile.programId,
+        type: programProfile.route || 'grant',
+        amount: '',
+        eligibility: [],
+        requirements: [],
+        score: 100,
+        reasons: [],
+        risks: []
+      } : {
+        id: 'unknown',
+        name: 'Program',
+        type: 'grant',
+        amount: '',
+        eligibility: [],
+        requirements: [],
+        score: 100,
+        reasons: [],
+        risks: []
+      };
+      
+      const aiHelper = createAIHelper({
+        maxWords: sections[activeSection]?.wordCountMax || 500,
+        sectionScope: sections[activeSection]?.title || '',
+        programHints: {},
+        userAnswers: userAnswers,
+        tone: plan?.tone || 'neutral',
+        language: plan?.language || 'en'
+      });
+      
+      // Generate content focused on this specific prompt
+      const context = `Focus on this specific requirement: ${promptText}\n\nSection: ${sections[activeSection]?.title}\n\nCurrent content: ${sections[activeSection]?.content || 'No content yet'}`;
+      const response = await aiHelper.generateSectionContent(
+        sections[activeSection].title,
+        context,
+        programForAI
+      );
+      
+      if (response.content) {
+        // Append or insert the generated content
+        const currentContent = sections[activeSection]?.content || '';
+        const newContent = currentContent 
+          ? `${currentContent}\n\n${response.content}`
+          : response.content;
+        
+        onSectionChange(sections[activeSection].key, newContent);
+      }
+    } catch (error) {
+      console.error('Error generating content for prompt:', error);
+    } finally {
+      setGeneratingForPrompt(null);
+    }
+  }, [sections, activeSection, plan, programProfile, onSectionChange]);
 
   // Keyboard shortcuts
   useEffect(() => {
@@ -321,64 +393,151 @@ export default function RestructuredEditor({
                           ? sections.findIndex(s => s.key === section.key)
                           : index;
                         const sectionNumber = section.order || actualIndex + 1;
+                        const isExpanded = expandedSections.has(actualIndex);
+                        const progress = sectionsProgress[actualIndex];
+                        
                         return (
-                          <button
+                          <div
                             key={section.key}
-                            onClick={() => {
-                              onActiveSectionChange(actualIndex);
-                              setShowSectionSearch(false);
-                              setSearchQuery('');
-                            }}
-                            className={`w-full text-left p-3 rounded-xl transition-all duration-200 ${
+                            className={`rounded-xl transition-all duration-200 ${
                               actualIndex === activeSection
                                 ? 'bg-gradient-to-r from-blue-500 to-purple-600 text-white shadow-lg'
                                 : 'bg-gray-50 hover:bg-gray-100 text-gray-700'
                             }`}
                           >
-                            <div className="flex items-center justify-between">
-                              <div className="flex items-center space-x-2 flex-1 min-w-0">
-                                <span
-                                  className={`text-xs font-mono flex-shrink-0 ${
-                                    actualIndex === activeSection ? 'text-blue-100' : 'text-gray-400'
-                                  }`}
-                                >
-                                  {sectionNumber < 10 ? `0${sectionNumber}` : sectionNumber}
-                                </span>
-                                <span
-                                  className={`font-medium text-sm truncate ${
-                                    actualIndex === activeSection ? 'text-white' : 'text-gray-700'
-                                  }`}
-                                >
-                                  {section.title}
-                                </span>
+                            <button
+                              onClick={() => {
+                                onActiveSectionChange(actualIndex);
+                                setShowSectionSearch(false);
+                                setSearchQuery('');
+                              }}
+                              className="w-full text-left p-3"
+                            >
+                              <div className="flex items-center justify-between">
+                                <div className="flex items-center space-x-2 flex-1 min-w-0">
+                                  <span
+                                    className={`text-xs font-mono flex-shrink-0 ${
+                                      actualIndex === activeSection ? 'text-blue-100' : 'text-gray-400'
+                                    }`}
+                                  >
+                                    {sectionNumber < 10 ? `0${sectionNumber}` : sectionNumber}
+                                  </span>
+                                  <span
+                                    className={`font-medium text-sm truncate ${
+                                      actualIndex === activeSection ? 'text-white' : 'text-gray-700'
+                                    }`}
+                                  >
+                                    {section.title}
+                                  </span>
+                                </div>
+                                <div className="flex items-center space-x-2 flex-shrink-0">
+                                  {/* Progress Ring */}
+                                  <div className="relative w-6 h-6">
+                                    <svg className="transform -rotate-90 w-6 h-6">
+                                      <circle
+                                        cx="12"
+                                        cy="12"
+                                        r="10"
+                                        stroke="currentColor"
+                                        strokeWidth="2"
+                                        fill="none"
+                                        className={actualIndex === activeSection ? 'text-blue-200' : 'text-gray-200'}
+                                      />
+                                      <circle
+                                        cx="12"
+                                        cy="12"
+                                        r="10"
+                                        stroke="currentColor"
+                                        strokeWidth="2"
+                                        fill="none"
+                                        strokeDasharray={`${2 * Math.PI * 10}`}
+                                        strokeDashoffset={`${2 * Math.PI * 10 * (1 - progress.completionPercentage / 100)}`}
+                                        className={
+                                          progress.completionPercentage >= 80
+                                            ? actualIndex === activeSection ? 'text-green-200' : 'text-green-500'
+                                            : progress.completionPercentage >= 50
+                                            ? actualIndex === activeSection ? 'text-yellow-200' : 'text-yellow-500'
+                                            : actualIndex === activeSection ? 'text-blue-200' : 'text-blue-500'
+                                        }
+                                        style={{ transition: 'stroke-dashoffset 0.3s ease' }}
+                                      />
+                                    </svg>
+                                    <div className="absolute inset-0 flex items-center justify-center">
+                                      <span className={`text-[8px] font-bold ${
+                                        actualIndex === activeSection ? 'text-white' : 'text-gray-700'
+                                      }`}>
+                                        {progress.completionPercentage}%
+                                      </span>
+                                    </div>
+                                  </div>
+                                  {/* Status Dot */}
+                                  <div
+                                    className={`w-2 h-2 rounded-full ${
+                                      section.status === 'aligned'
+                                        ? 'bg-green-500'
+                                        : section.status === 'needs_fix'
+                                        ? 'bg-yellow-500'
+                                        : 'bg-gray-300'
+                                    }`}
+                                    title={
+                                      section.status === 'aligned'
+                                        ? 'Complete'
+                                        : section.status === 'needs_fix'
+                                        ? 'Needs review'
+                                        : 'Not started'
+                                    }
+                                  />
+                                </div>
                               </div>
-                              <div
-                                className={`w-2 h-2 rounded-full flex-shrink-0 ml-2 ${
-                                  section.status === 'aligned'
-                                    ? 'bg-green-500'
-                                    : section.status === 'needs_fix'
-                                    ? 'bg-yellow-500'
-                                    : 'bg-gray-300'
-                                }`}
-                                title={
-                                  section.status === 'aligned'
-                                    ? 'Complete'
-                                    : section.status === 'needs_fix'
-                                    ? 'Needs review'
-                                    : 'Not started'
+                            </button>
+                            {/* Expandable Details */}
+                            <button
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                const newExpanded = new Set(expandedSections);
+                                if (newExpanded.has(actualIndex)) {
+                                  newExpanded.delete(actualIndex);
+                                } else {
+                                  newExpanded.add(actualIndex);
                                 }
-                              />
-                            </div>
-                            {section.content && section.content.trim().length > 0 && (
-                              <div
-                                className={`text-xs mt-1 truncate ${
-                                  actualIndex === activeSection ? 'text-blue-100' : 'text-gray-500'
-                                }`}
-                              >
-                                {section.content.replace(/<[^>]*>/g, '').substring(0, 40)}...
+                                setExpandedSections(newExpanded);
+                              }}
+                              className={`w-full px-3 pb-3 pt-0 text-left border-t ${
+                                actualIndex === activeSection ? 'border-blue-300' : 'border-gray-200'
+                              }`}
+                            >
+                              <div className="flex items-center justify-between mt-2">
+                                <div className={`text-xs ${
+                                  actualIndex === activeSection ? 'text-blue-100' : 'text-gray-600'
+                                }`}>
+                                  {progress.wordCount}/{progress.wordCountMax} words • {progress.requirementsMet}/{progress.requirementsTotal} reqs
+                                </div>
+                                <svg
+                                  className={`w-4 h-4 transition-transform ${
+                                    isExpanded ? 'rotate-180' : ''
+                                  } ${actualIndex === activeSection ? 'text-blue-100' : 'text-gray-400'}`}
+                                  fill="none"
+                                  stroke="currentColor"
+                                  viewBox="0 0 24 24"
+                                >
+                                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                                </svg>
                               </div>
-                            )}
-                          </button>
+                              {isExpanded && (
+                                <div className={`mt-2 text-xs space-y-1 ${
+                                  actualIndex === activeSection ? 'text-blue-100' : 'text-gray-600'
+                                }`}>
+                                  <div>Word count: {progress.wordCount} / {progress.wordCountMax}</div>
+                                  <div>Requirements: {progress.requirementsMet} / {progress.requirementsTotal} met</div>
+                                  {section.description && (
+                                    <div className="pt-1 border-t border-gray-300 line-clamp-2">
+                                      {section.description.substring(0, 100)}...
+                                    </div>
+                                  )}
+                                </div>
+                              )}
+                            </button>
+                          </div>
                         );
                       })}
                     </div>
@@ -405,6 +564,21 @@ export default function RestructuredEditor({
                             Required
                           </span>
                         )}
+                        {/* Progress Badge */}
+                        {(() => {
+                          const progress = sectionsProgress[activeSection];
+                          return (
+                            <span className={`text-xs font-medium px-2 py-1 rounded ${
+                              progress.completionPercentage >= 80
+                                ? 'bg-green-100 text-green-700'
+                                : progress.completionPercentage >= 50
+                                ? 'bg-yellow-100 text-yellow-700'
+                                : 'bg-blue-100 text-blue-700'
+                            }`}>
+                              {progress.completionPercentage}% Complete
+                            </span>
+                          );
+                        })()}
                       </div>
                       <div className="flex items-start gap-4">
                         <div className="flex-1">
@@ -416,16 +590,113 @@ export default function RestructuredEditor({
                               {sections[activeSection].description}
                             </p>
                           )}
+                          {/* Progress Metrics */}
+                          {(() => {
+                            const progress = sectionsProgress[activeSection];
+                            return (
+                              <div className="flex items-center gap-4 mt-3">
+                                <div className="flex items-center gap-2 text-sm">
+                                  <span className="text-gray-600">Progress:</span>
+                                  <span className="font-medium text-blue-700">
+                                    {progress.wordCount}/{progress.wordCountMax} words
+                                  </span>
+                                </div>
+                                <div className="flex items-center gap-2 text-sm relative">
+                                  <span className="text-gray-600">Requirements:</span>
+                                  <button
+                                    onClick={() => setShowRequirementsTooltip(!showRequirementsTooltip)}
+                                    className={`font-medium hover:underline cursor-pointer ${
+                                      progress.requirementsMet === progress.requirementsTotal
+                                        ? 'text-green-700'
+                                        : 'text-yellow-700'
+                                    }`}
+                                    title="Click to see requirements details"
+                                  >
+                                    {progress.requirementsMet}/{progress.requirementsTotal} met
+                                  </button>
+                                  {/* Requirements Tooltip */}
+                                  {showRequirementsTooltip && (
+                                    <div className="absolute left-0 top-full mt-2 z-50 w-64 bg-white border border-gray-300 rounded-lg shadow-lg p-4">
+                                      <div className="flex items-center justify-between mb-2">
+                                        <h4 className="text-sm font-semibold text-gray-900">Section Requirements</h4>
+                                        <button
+                                          onClick={() => setShowRequirementsTooltip(false)}
+                                          className="text-gray-400 hover:text-gray-600"
+                                        >
+                                          ✕
+                                        </button>
+                                      </div>
+                                      <div className="space-y-2 text-xs">
+                                        {/* Word Count Requirement */}
+                                        <div className={`flex items-center justify-between p-2 rounded ${
+                                          progress.wordCount >= progress.wordCountMin && progress.wordCount <= progress.wordCountMax
+                                            ? 'bg-green-50'
+                                            : 'bg-yellow-50'
+                                        }`}>
+                                          <span className="text-gray-700">Word count</span>
+                                          <span className={progress.wordCount >= progress.wordCountMin && progress.wordCount <= progress.wordCountMax ? 'text-green-700' : 'text-yellow-700'}>
+                                            {progress.wordCount >= progress.wordCountMin && progress.wordCount <= progress.wordCountMax ? '✓' : '⚠'} {progress.wordCount}/{progress.wordCountMax}
+                                          </span>
+                                        </div>
+                                        {/* Tables Requirement */}
+                                        {sections[activeSection]?.tables && (
+                                          <div className={`flex items-center justify-between p-2 rounded ${
+                                            Object.keys(sections[activeSection].tables).length > 0
+                                              ? 'bg-green-50'
+                                              : 'bg-yellow-50'
+                                          }`}>
+                                            <span className="text-gray-700">Tables</span>
+                                            <span className={Object.keys(sections[activeSection].tables).length > 0 ? 'text-green-700' : 'text-yellow-700'}>
+                                              {Object.keys(sections[activeSection].tables).length > 0 ? '✓' : '⚠'} Provided
+                                            </span>
+                                          </div>
+                                        )}
+                                        {/* Figures Requirement */}
+                                        {sections[activeSection]?.figures && (
+                                          <div className={`flex items-center justify-between p-2 rounded ${
+                                            (sections[activeSection].figures?.length || 0) > 0
+                                              ? 'bg-green-50'
+                                              : 'bg-yellow-50'
+                                          }`}>
+                                            <span className="text-gray-700">Figures</span>
+                                            <span className={(sections[activeSection].figures?.length || 0) > 0 ? 'text-green-700' : 'text-yellow-700'}>
+                                              {(sections[activeSection].figures?.length || 0) > 0 ? '✓' : '⚠'} Provided
+                                            </span>
+                                          </div>
+                                        )}
+                                      </div>
+                                    </div>
+                                  )}
+                                </div>
+                              </div>
+                            );
+                          })()}
                         </div>
-                        {sections[activeSection]?.wordCountMin && sections[activeSection]?.wordCountMax && (
-                          <div className="text-right bg-gradient-to-br from-blue-50 to-indigo-50 border border-blue-200 rounded-xl p-3 min-w-[140px]">
-                            <div className="text-xs font-medium text-blue-600 mb-1">Target length</div>
-                            <div className="text-lg font-bold text-blue-700">
-                              {sections[activeSection].wordCountMin} - {sections[activeSection].wordCountMax}
+                        {sections[activeSection]?.wordCountMin && sections[activeSection]?.wordCountMax && (() => {
+                          const progress = sectionsProgress[activeSection];
+                          return (
+                            <div className="text-right bg-gradient-to-br from-blue-50 to-indigo-50 border border-blue-200 rounded-xl p-3 min-w-[140px]">
+                              <div className="text-xs font-medium text-blue-600 mb-1">Target length</div>
+                              <div className="text-lg font-bold text-blue-700">
+                                {sections[activeSection].wordCountMin} - {sections[activeSection].wordCountMax}
+                              </div>
+                              <div className="text-xs text-blue-600 mt-0.5">words</div>
+                              {/* Progress Bar */}
+                              <div className="mt-2 w-full bg-blue-200 rounded-full h-1.5">
+                                <div
+                                  className={`h-1.5 rounded-full transition-all ${
+                                    progress.wordCountProgress >= 80
+                                      ? 'bg-green-500'
+                                      : progress.wordCountProgress >= 50
+                                      ? 'bg-yellow-500'
+                                      : 'bg-blue-500'
+                                  }`}
+                                  style={{ width: `${Math.min(100, progress.wordCountProgress)}%` }}
+                                />
+                              </div>
                             </div>
-                            <div className="text-xs text-blue-600 mt-0.5">words</div>
-                          </div>
-                        )}
+                          );
+                        })()}
                       </div>
                     </div>
                   </div>
@@ -534,8 +805,8 @@ export default function RestructuredEditor({
                         const currentContent = sections[activeSection]?.content || '';
                         const lowerContent = currentContent.toLowerCase();
                         const lowerPrompt = prompt.toLowerCase();
-                        const keywords = lowerPrompt.split(/\s+/).filter(w => w.length > 4);
-                        const isCompleted = keywords.some(kw => lowerContent.includes(kw)) && currentContent.length > 30;
+                        const keywords = lowerPrompt.split(/\s+/).filter((w: string) => w.length > 4);
+                        const isCompleted = keywords.some((kw: string) => lowerContent.includes(kw)) && currentContent.length > 30;
                         
                         return (
                           <div
@@ -564,6 +835,27 @@ export default function RestructuredEditor({
                                   <p className="text-xs text-green-700 mt-1">✓ Completed</p>
                                 )}
                               </div>
+                              {/* Generate button for incomplete prompts */}
+                              {!isCompleted && (
+                                <button
+                                  onClick={() => handleGenerateForPrompt(prompt, idx)}
+                                  disabled={generatingForPrompt === idx}
+                                  className="flex-shrink-0 px-2 py-1 text-xs font-medium bg-blue-600 text-white rounded hover:bg-blue-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-1"
+                                  title={`Generate content for: ${prompt.substring(0, 50)}...`}
+                                >
+                                  {generatingForPrompt === idx ? (
+                                    <>
+                                      <span className="animate-spin">⏳</span>
+                                      <span>Generating...</span>
+                                    </>
+                                  ) : (
+                                    <>
+                                      <span>✨</span>
+                                      <span>Generate</span>
+                                    </>
+                                  )}
+                                </button>
+                              )}
                             </div>
                           </div>
                         );
@@ -578,13 +870,44 @@ export default function RestructuredEditor({
                   onChange={(content) => onSectionChange(sections[activeSection].key, content)}
                   section={sections[activeSection]}
                   guidance={sections[activeSection]?.description || ''}
-                  placeholder={
-                    sections[activeSection]?.prompts && sections[activeSection].prompts.length > 0
-                      ? `Start by answering: ${sections[activeSection].prompts[0]}...`
-                      : sections[activeSection]?.description
-                        ? `Write about: ${sections[activeSection].description.substring(0, 60)}...`
-                        : `Enter content for ${sections[activeSection]?.title || 'this section'}...`
-                  }
+                  placeholder={(() => {
+                    // Smart placeholder based on section state
+                    const currentSection = sections[activeSection];
+                    const currentContent = currentSection?.content || '';
+                    const textContent = currentContent.replace(/<[^>]*>/g, '').trim();
+                    const wordCount = textContent.split(/\s+/).filter((w: string) => w.length > 0).length;
+                    const prompts = currentSection?.prompts || [];
+                    
+                    // If empty, show first prompt
+                    if (wordCount === 0 && prompts.length > 0) {
+                      return `Start by answering: ${prompts[0]}...`;
+                    }
+                    
+                    // If partial content, find next incomplete prompt
+                    if (wordCount > 0 && wordCount < (currentSection?.wordCountMin || 50) && prompts.length > 0) {
+                      // Find first incomplete prompt
+                      const lowerContent = textContent.toLowerCase();
+                      for (const prompt of prompts) {
+                        const lowerPrompt = prompt.toLowerCase();
+                        const keywords = lowerPrompt.split(/\s+/).filter((w: string) => w.length > 4);
+                        const isCompleted = keywords.some((kw: string) => lowerContent.includes(kw));
+                        if (!isCompleted) {
+                          return `Continue with: ${prompt}...`;
+                        }
+                      }
+                      return `Continue writing... You're at ${wordCount} words, aim for ${currentSection?.wordCountMin || 50}+ words.`;
+                    }
+                    
+                    // If near completion, show review message
+                    if (wordCount >= (currentSection?.wordCountMin || 50)) {
+                      return `Review and refine your content... You're at ${wordCount} words.`;
+                    }
+                    
+                    // Fallback
+                    return currentSection?.description
+                      ? `Write about: ${currentSection.description.substring(0, 60)}...`
+                      : `Enter content for ${currentSection?.title || 'this section'}...`;
+                  })()}
                   minLength={sections[activeSection]?.wordCountMin || 50}
                   maxLength={sections[activeSection]?.wordCountMax || 5000}
                   showWordCount={true}

@@ -169,6 +169,8 @@ async function rescrapeAll() {
     
     let query;
     if (missingOnly) {
+      // PRIORITIZE REQUIREMENTS FIRST - Only get pages with missing requirements OR very few categories
+      // Then also include pages with missing metadata if they also have < 10 categories
       query = `
         SELECT p.id, p.url, p.title,
           COUNT(DISTINCT r.category) as req_categories_count,
@@ -176,44 +178,37 @@ async function rescrapeAll() {
         FROM pages p
         LEFT JOIN requirements r ON p.id = r.page_id
         WHERE (
-          -- Missing metadata fields
-          p.title IS NULL OR 
-          p.description IS NULL OR
-          (p.funding_amount_min IS NULL AND p.funding_amount_max IS NULL) OR
-          p.currency IS NULL OR
-          (p.deadline IS NULL AND (p.open_deadline IS NULL OR p.open_deadline = false)) OR
-          (p.contact_email IS NULL AND p.contact_phone IS NULL) OR
-          p.region IS NULL OR
-          p.funding_types IS NULL OR array_length(p.funding_types, 1) IS NULL OR
-          p.program_focus IS NULL OR array_length(p.program_focus, 1) IS NULL OR
-          p.metadata_json IS NULL OR p.metadata_json = '{}'::jsonb
-        )
-        OR (
-          -- Missing requirements (prioritize pages with NO requirements or very few categories)
+          -- PRIORITY 1: Pages with NO requirements at all
           NOT EXISTS (SELECT 1 FROM requirements r2 WHERE r2.page_id = p.id)
-          OR (SELECT COUNT(DISTINCT r4.category) FROM requirements r4 WHERE r4.page_id = p.id) < 10
+          -- PRIORITY 2: Pages with very few categories (< 5)
+          OR (SELECT COUNT(DISTINCT r4.category) FROM requirements r4 WHERE r4.page_id = p.id) < 5
+          -- PRIORITY 3: Pages with missing metadata AND < 10 categories (need both requirements AND metadata)
+          OR (
+            (SELECT COUNT(DISTINCT r5.category) FROM requirements r5 WHERE r5.page_id = p.id) < 10
+            AND (
+              p.title IS NULL OR 
+              p.description IS NULL OR
+              (p.funding_amount_min IS NULL AND p.funding_amount_max IS NULL) OR
+              p.currency IS NULL OR
+              (p.deadline IS NULL AND (p.open_deadline IS NULL OR p.open_deadline = false)) OR
+              (p.contact_email IS NULL AND p.contact_phone IS NULL) OR
+              p.region IS NULL OR
+              p.funding_types IS NULL OR array_length(p.funding_types, 1) IS NULL OR
+              p.program_focus IS NULL OR array_length(p.program_focus, 1) IS NULL OR
+              p.metadata_json IS NULL OR p.metadata_json = '{}'::jsonb
+            )
+          )
         )
         GROUP BY p.id, p.url, p.title
         ORDER BY 
-          -- Prioritize pages with NO requirements first
+          -- STRICT priority: NO requirements FIRST
           CASE WHEN COUNT(DISTINCT r.category) = 0 OR COUNT(DISTINCT r.category) IS NULL THEN 0 ELSE 1 END,
-          -- Then pages with very few categories
+          -- Then pages with very few categories (< 5)
           CASE WHEN COUNT(DISTINCT r.category) < 5 THEN 1 ELSE 2 END,
           -- Then pages with less than 10 categories
           CASE WHEN COUNT(DISTINCT r.category) < 10 THEN 3 ELSE 4 END,
-          -- Then by missing metadata fields
-          (
-            CASE WHEN p.title IS NULL THEN 1 ELSE 0 END +
-            CASE WHEN p.description IS NULL THEN 1 ELSE 0 END +
-            CASE WHEN p.funding_amount_min IS NULL AND p.funding_amount_max IS NULL THEN 1 ELSE 0 END +
-            CASE WHEN p.currency IS NULL THEN 1 ELSE 0 END +
-            CASE WHEN p.deadline IS NULL AND (p.open_deadline IS NULL OR p.open_deadline = false) THEN 1 ELSE 0 END +
-            CASE WHEN p.contact_email IS NULL AND p.contact_phone IS NULL THEN 1 ELSE 0 END +
-            CASE WHEN p.region IS NULL THEN 1 ELSE 0 END +
-            CASE WHEN p.funding_types IS NULL OR array_length(p.funding_types, 1) IS NULL THEN 1 ELSE 0 END +
-            CASE WHEN p.program_focus IS NULL OR array_length(p.program_focus, 1) IS NULL THEN 1 ELSE 0 END +
-            CASE WHEN p.metadata_json IS NULL OR p.metadata_json = '{}'::jsonb THEN 1 ELSE 0 END
-          ) DESC,
+          -- Then by category count (ascending - fewer is better)
+          COUNT(DISTINCT r.category) ASC,
           p.id DESC
       `;
     } else {

@@ -96,8 +96,24 @@ export function calculateMeaningfulnessScore(value: string | number | object): n
   if (/\b(years?|months?|days?|weeks?)\b/i.test(valStr)) score += 5;
   if (/\b(austria|vienna|germany|france|spain|italy|netherlands|eu|european)\b/i.test(valStr)) score += 5;
   
+  // Document-specific indicators (high value)
+  if (/\b(pdf|doc|docx|xls|xlsx|ppt|pptx|format|max|pages?|seite|seiten)\b/i.test(valStr)) score += 10;
+  if (/\b(certificate|certification|diploma|degree|transcript|cv|resume|proposal|business plan)\b/i.test(valStr)) score += 15;
+  
+  // Timeline-specific indicators (high value)
+  if (/\b(deadline|frist|until|by|before|application|submission|submission date)\b/i.test(valStr)) score += 10;
+  if (/\b\d{1,2}[\.\/\-]\d{1,2}[\.\/\-]\d{2,4}\b/.test(valStr)) score += 15; // Date patterns
+  
+  // Technical/specific requirement indicators
+  if (/\b(technology|technical|specification|standard|protocol|api|framework|platform)\b/i.test(valStr)) score += 10;
+  if (/\b(tr[il]|trl level|technology readiness)\b/i.test(valStr)) score += 15;
+  
   // Penalize if too generic
   if (lower === 'required' || lower === 'yes' || lower === 'no') score = 20;
+  
+  // Bonus for structured content (lists, numbered items, colons, dashes)
+  if (/\b\d+\.\s+/.test(valStr) || /\b[•\-\*]\s+/.test(valStr)) score += 5; // List items
+  if (/:\s+[A-Z]/.test(valStr)) score += 5; // Structured like "Key: Value"
   
   // Cap at 100
   return Math.min(100, Math.max(0, score));
@@ -1861,23 +1877,30 @@ export function extractAllRequirements(text: string, html?: string): Record<stri
   });
   
   // TIMELINE - Enhanced: Better date and duration extraction with more patterns
+  // IMPROVED: More comprehensive patterns to increase coverage from 50.5% to higher
   const timelineMatches = [
-    // Deadline patterns with keywords
-    ...safeMatchAll(safeText, /(?:deadline|frist|einreichfrist|bewerbungsfrist|application deadline|abgabefrist|meldungsfrist|anmeldefrist|submit by|einreichen bis|letzter termin|last date)[\s:]+([^\.\n]{5,150})/gi),
-    ...safeMatchAll(safeText, /(?:laufzeit|duration|zeitraum|project duration|program duration|projektlaufzeit|förderdauer|funding period|programmlaufzeit)[\s:]+([^\.\n]{5,150})/gi),
-    // Date ranges
-    ...safeMatchAll(safeText, /(?:von|from|ab|starting|beginning|gültig ab|valid from)[\s]+(\d{1,2}[\.\/\-]\d{1,2}[\.\/\-]\d{2,4})[\s]*(?:bis|to|until|ending|\-)[\s]+(\d{1,2}[\.\/\-]\d{1,2}[\.\/\-]\d{2,4})/gi),
-    ...safeMatchAll(safeText, /(\d{1,2}[\.\/\-]\d{1,2}[\.\/\-]\d{2,4})[\s]*(?:-\s*|\s+to\s+|\s+bis\s+|\s+until\s+)(\d{1,2}[\.\/\-]\d{1,2}[\.\/\-]\d{2,4})/gi),
-    // Single dates with context
-    ...safeMatchAll(safeText, /(?:bis|until|by|spätestens|letzter\s+termin|deadline|frist|einsendeschluss|application deadline|bewerbungsschluss)[\s]+(\d{1,2}[\.\/\-]\d{1,2}[\.\/\-]\d{2,4})/gi),
-    // Timeline sections
-    ...safeMatchAll(safeText, /(?:zeitplan|timeline|ablauf|procedure|process|verfahren|timeline|fristen|dates|termine)[\s:]+([^\.\n]{10,200})/gi),
-    // Evaluation/decision dates
-    ...safeMatchAll(safeText, /(?:entscheidung|decision|bewilligung|approval|bekanntgabe|announcement|notification)[\s:]+([^\.\n]{5,150})/gi),
-    // Submission periods
-    ...safeMatchAll(safeText, /(?:einreichung|submission|bewerbung|application)[\s]+(?:möglich|possible|open|von|from|between)[\s]+([^\.\n]{5,150})/gi),
+    // Deadline patterns with keywords (expanded)
+    ...safeMatchAll(safeText, /(?:deadline|frist|einreichfrist|bewerbungsfrist|application deadline|abgabefrist|meldungsfrist|anmeldefrist|submit by|einreichen bis|letzter termin|last date|application date|bewerbungsdatum|fristende|schluss)[\s:]+([^\.\n]{5,150})/gi),
+    ...safeMatchAll(safeText, /(?:laufzeit|duration|zeitraum|project duration|program duration|projektlaufzeit|förderdauer|funding period|programmlaufzeit|dauer|zeitdauer|projektlaufzeit)[\s:]+([^\.\n]{5,150})/gi),
+    // Date ranges (expanded patterns)
+    ...safeMatchAll(safeText, /(?:von|from|ab|starting|beginning|gültig ab|valid from|gültig|valid|start)[\s]+(\d{1,2}[\.\/\-]\d{1,2}[\.\/\-]\d{2,4})[\s]*(?:bis|to|until|ending|\-|end)[\s]+(\d{1,2}[\.\/\-]\d{1,2}[\.\/\-]\d{2,4})/gi),
+    ...safeMatchAll(safeText, /(\d{1,2}[\.\/\-]\d{1,2}[\.\/\-]\d{2,4})[\s]*(?:-\s*|\s+to\s+|\s+bis\s+|\s+until\s+|\s+until\s+)(\d{1,2}[\.\/\-]\d{1,2}[\.\/\-]\d{2,4})/gi),
+    // Single dates with context (more patterns)
+    ...safeMatchAll(safeText, /(?:bis|until|by|spätestens|letzter\s+termin|deadline|frist|einsendeschluss|application deadline|bewerbungsschluss|abschluss|ende|closing)[\s]+(\d{1,2}[\.\/\-]\d{1,2}[\.\/\-]\d{2,4})/gi),
+    // Timeline sections (expanded)
+    ...safeMatchAll(safeText, /(?:zeitplan|timeline|ablauf|procedure|process|verfahren|timeline|fristen|dates|termine|kalender|schedule|programmablauf)[\s:]+([^\.\n]{10,200})/gi),
+    // Evaluation/decision dates (expanded)
+    ...safeMatchAll(safeText, /(?:entscheidung|decision|bewilligung|approval|bekanntgabe|announcement|notification|auswahl|selection|prüfung|review)[\s:]+([^\.\n]{5,150})/gi),
+    // Submission periods (expanded)
+    ...safeMatchAll(safeText, /(?:einreichung|submission|bewerbung|application|antragstellung)[\s]+(?:möglich|possible|open|von|from|between|zwischen|bis|until)[\s]+([^\.\n]{5,150})/gi),
     // Specific time periods (e.g., "from January to March")
-    ...safeMatchAll(safeText, /(?:von|from)\s+(?:januar|februar|märz|april|mai|juni|juli|august|september|oktober|november|dezember|january|february|march|may|june|july|august|september|october|november|december)[\s]+(?:bis|to|until)\s+(?:januar|februar|märz|april|mai|juni|juli|august|september|oktober|november|dezember|january|february|march|may|june|july|august|september|october|november|december)/gi)
+    ...safeMatchAll(safeText, /(?:von|from)\s+(?:januar|februar|märz|april|mai|juni|juli|august|september|oktober|november|dezember|january|february|march|may|june|july|august|september|october|november|december)[\s]+(?:bis|to|until)\s+(?:januar|februar|märz|april|mai|juni|juli|august|september|oktober|november|dezember|january|february|march|may|june|july|august|september|october|november|december)/gi),
+    // Additional patterns: "open until", "rolling deadline", "continuous"
+    ...safeMatchAll(safeText, /(?:laufend|rolling|ongoing|continuous|kontinuierlich|offen|open)[\s]+(?:deadline|frist|application|bewerbung|einreichung)?/gi),
+    // Pattern: "Applications accepted until", "Bewerbungen bis"
+    ...safeMatchAll(safeText, /(?:applications?|bewerbungen?|anträge?|submissions?)[\s]+(?:accepted|angenommen|möglich|possible|open)[\s]+(?:until|bis|by|until the end of)[\s]+([^\.\n]{5,150})/gi),
+    // Pattern: "Call closes", "Ausschreibung endet"
+    ...safeMatchAll(safeText, /(?:call|ausschreibung|program|programm)[\s]+(?:closes?|endet|ends?|läuft bis|runs until)[\s]+([^\.\n]{5,150})/gi)
   ];
   
   if (timelineMatches.length > 0) {

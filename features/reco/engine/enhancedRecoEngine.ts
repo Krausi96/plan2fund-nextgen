@@ -440,11 +440,20 @@ function scoreCategorizedRequirements(
   const answerMapping: Record<string, string[]> = {
     // New simplified QuestionEngine format:
     'location': ['geographic', 'eligibility'],
+    'company_type': ['eligibility', 'team'],
     'company_age': ['team', 'eligibility'],
     'revenue': ['financial'],
     'team_size': ['team'],
+    'funding_amount': ['financial'],
+    'use_of_funds': ['financial', 'use_of_funds'],
+    'impact': ['impact'],
+    'deadline_urgency': ['timeline'],
+    'project_duration': ['timeline'],
+    'project_stage': ['eligibility', 'project'],
     'research_focus': ['project', 'impact'],
     'consortium': ['consortium', 'geographic'],
+    'market_size': ['market_size'],
+    'co_financing': ['financial', 'co_financing'],
     // Legacy format support (for advanced search):
     'q1_location': ['geographic', 'eligibility'],
     'q1_country': ['geographic', 'eligibility'],

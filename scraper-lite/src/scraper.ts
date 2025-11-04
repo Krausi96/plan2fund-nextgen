@@ -542,20 +542,26 @@ export async function scrape(maxUrls = 10, targets: string[] = []): Promise<void
   }
 
   // POST-SCRAPE CLEANUP: Remove invalid URLs based on blacklist patterns + feedback loop
+  // VERY SPECIFIC patterns only - don't be too aggressive to avoid blocking valid pages
   const badPatterns = [
+    // Non-funding content (very specific patterns)
     /landwirtschaft|forstwirtschaft|bauen-wohnen|wohnbau|wohnbeihilfe|verkehrsinfrastruktur/i,
     /agriculture|forestry|housing|construction|traffic|bahninfrastruktur/i,
     /privatkunden|private|consumer|endkunde/i,
-    /raumplanung|bauordnung|baurecht|bauprojekt|immobilie/i
+    /raumplanung|bauordnung|baurecht|bauprojekt|immobilie/i,
+    // VERY SPECIFIC: ESF language variant homepages ONLY (not general filtering)
+    /^https?:\/\/ec\.europa\.eu\/esf\/home\.jsp\?langId=[a-z]{2}$/i,
+    /^https?:\/\/ec\.europa\.eu\/esf\/main\.jsp\?catId=\d+&langId=[a-z]{2}$/i
   ];
   
   const beforeCleanup = state.pages.length;
   
   // FEEDBACK LOOP: Auto-blacklist URLs with 0 requirements (likely non-program pages)
+  // BUT: Be careful - only filter if truly has no value (no requirements AND no metadata)
   state.pages = state.pages.filter(p => {
     const url = (p.url || '').toLowerCase();
     
-    // Pattern-based exclusions
+    // Pattern-based exclusions (very specific patterns only)
     if (badPatterns.some(pattern => pattern.test(url))) {
       return false;
     }
@@ -577,6 +583,7 @@ export async function scrape(maxUrls = 10, targets: string[] = []): Promise<void
     
     if (totalRequirementsCount === 0) {
       // Keep if it has CRITICAL category OR title + description OR funding/deadline/contact metadata
+      // DON'T filter aggressively - keep pages with any metadata
       const hasMetadata = (p.title && p.title.trim().length > 10) && (p.description && p.description.trim().length > 20);
       const hasFundingMetadata = !!(p.funding_amount_min || p.funding_amount_max || p.deadline || p.open_deadline || p.contact_email || p.contact_phone);
       if (!hasCriticalCategory && !hasMetadata && !hasFundingMetadata) {
@@ -584,10 +591,11 @@ export async function scrape(maxUrls = 10, targets: string[] = []): Promise<void
       }
     } else if (totalRequirementsCount > 0 && !hasCriticalCategory) {
       // Has requirements but none are critical - might still be valuable if has metadata
+      // BE LESS AGGRESSIVE: Only filter if truly has almost nothing
       const hasFundingMetadata = !!(p.funding_amount_min || p.funding_amount_max || p.deadline || p.open_deadline || p.contact_email || p.contact_phone);
       const hasTitleDesc = (p.title && p.title.trim().length > 10) && (p.description && p.description.trim().length > 20);
-      if (!hasFundingMetadata && !hasTitleDesc && totalRequirementsCount < 3) {
-        // Very few non-critical requirements, no metadata, and no title/desc = likely low value
+      if (!hasFundingMetadata && !hasTitleDesc && totalRequirementsCount < 2) {
+        // Very few non-critical requirements (less than 2), no metadata, and no title/desc = likely low value
         return false;
       }
     }

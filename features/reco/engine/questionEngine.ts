@@ -138,10 +138,15 @@ export class QuestionEngine {
       }
     }
 
-    // Second pass: Ensure important questions are always generated (even if below threshold)
-    // Important questions that should always be included
-    const importantQuestionIds = ['location', 'company_type', 'company_age', 'revenue', 'funding_amount', 
-      'use_of_funds', 'impact', 'co_financing', 'research_focus', 'consortium', 'market_size', 'team_size'];
+    // Second pass: Ensure CORE 8 questions are always generated (even if below threshold)
+    // Core questions that are essential for finding the right funding program
+    const coreQuestionIds = ['location', 'company_type', 'funding_amount', 'use_of_funds', 
+      'impact', 'team_size', 'deadline_urgency', 'project_duration'];
+    
+    // Conditional/Overlay questions (refinement, not critical for filtering)
+    const conditionalQuestionIds = ['consortium', 'market_size', 'project_stage', 'research_focus', 'co_financing'];
+    
+    const importantQuestionIds = [...coreQuestionIds, ...conditionalQuestionIds];
     
     for (const importantId of importantQuestionIds) {
       if (this.questions.length >= MAX_QUESTIONS) break;
@@ -184,20 +189,30 @@ export class QuestionEngine {
     }
 
     // Sort by importance (not just frequency)
-    // Most important questions first: location, company_type, then by frequency
+    // CORE 8 QUESTIONS (for initial filtering - most important for finding programs):
+    // 1. location, 2. company_type, 3. funding_amount, 4. use_of_funds, 
+    // 5. impact, 6. team_size, 7. deadline_urgency, 8. project_duration
+    // CONDITIONAL/OVERLAY QUESTIONS (refinement only - not critical):
+    // 9. consortium, 10. market_size, 11. project_stage, 12. research_focus, 13. co_financing
     const importanceOrder: Record<string, number> = {
-      'location': 1,           // 1. Location (with subregion support)
-      'company_type': 2,       // 2. Company type
-      'company_age': 3,        // 3. Company age
-      'revenue': 4,            // 4. Revenue
-      'funding_amount': 5,     // 5. Funding amount (VERY IMPORTANT)
-      'use_of_funds': 6,       // 6. Use of funds
-      'impact': 7,             // 7. Impact (IMPORTANT - was missing!)
-      'co_financing': 8,       // 8. Co-financing
-      'research_focus': 9,     // 9. Research focus
-      'consortium': 10,        // 10. Consortium
-      'market_size': 11,       // 11. Market size
-      'team_size': 12          // 12. Team size
+      // CORE 8 (always asked first - essential for filtering)
+      'location': 1,           // 1. Location (geographic filtering)
+      'company_type': 2,       // 2. Company type (eligibility)
+      'funding_amount': 3,     // 3. Funding amount (financial fit)
+      'use_of_funds': 4,      // 4. Use of funds (project fit)
+      'impact': 5,            // 5. Impact focus (program alignment)
+      'team_size': 6,         // 6. Team size (eligibility)
+      'deadline_urgency': 7,   // 7. Deadline urgency (when do you need funding?)
+      'project_duration': 8,   // 8. Project duration (timeline fit)
+      
+      // CONDITIONAL/OVERLAY (asked when needed - not critical)
+      'consortium': 9,        // 9. Consortium (overlay - refinement only)
+      'market_size': 10,      // 10. Market size (overlay - refinement only)
+      'project_stage': 11,    // 11. Project stage (how developed is your project?)
+      'research_focus': 12,   // 12. Research focus (project refinement)
+      'co_financing': 13,     // 13. Co-financing (financial refinement)
+      'company_age': 14,      // 14. Company age (conditional - if needed)
+      'revenue': 15          // 15. Revenue (conditional - if needed)
     };
     
     this.questions.sort((a, b) => {
@@ -328,19 +343,29 @@ export class QuestionEngine {
     if (category === 'eligibility' && (type === 'company_stage' || type.includes('company_stage') || type.includes('unternehmen_stage'))) {
       return 'company_type'; // Company stage is part of company type
     }
+    
+    // Project - Development stage (how developed is the project - overlay question)
+    // Maps to company_stage but asks about PROJECT maturity, not company stage
+    // Note: eligibility:company_stage maps to company_type (core), not project_stage
+    // project_stage is separate overlay question about project development
+    if (category === 'project' && (type.includes('development') || type.includes('maturity') || type.includes('stage'))) {
+      return 'project_stage';
+    }
 
     // Eligibility - Sector - REMOVED: Dynamic options without translations, overlaps with industry
     // if (category === 'eligibility' && (type === 'sector' || type.includes('sector') || type.includes('branche'))) {
     //   return 'sector';
     // }
 
-    // Timeline - Deadline - REMOVED: Not relevant for funding discovery
-    // if (category === 'timeline' && (type === 'deadline' || type.includes('deadline') || type.includes('frist'))) {
-    //   return 'deadline_urgency';
-    // }
+    // Timeline - Deadline - IMPORTANT: When user needs funding (urgency)
+    if (category === 'timeline' && (type === 'deadline' || type.includes('deadline') || type.includes('frist'))) {
+      return 'deadline_urgency';
+    }
 
-    // Timeline - Duration - Skip (not relevant for funding discovery, but allow generation for completeness)
-    // Note: timeline_duration questions are generated but not used for filtering
+    // Timeline - Duration - IMPORTANT: Project timeline fit
+    if (category === 'timeline' && (type === 'duration' || type.includes('duration') || type.includes('dauer') || type.includes('laufzeit'))) {
+      return 'project_duration';
+    }
 
     // Impact - Important for funding discovery
     if (category === 'impact' && (type === 'sustainability' || type === 'employment_impact' || type === 'social' || type === 'climate_environmental' || type === 'impact_requirement' || type.includes('impact') || type.includes('wirkung') || type.includes('nachhaltigkeit'))) {
@@ -556,10 +581,10 @@ export class QuestionEngine {
             label: `wizard.options.${type}`
           }))
         : [
-            { value: 'startup', label: 'wizard.options.startup' },
-            { value: 'sme', label: 'wizard.options.sme' },
-            { value: 'large', label: 'wizard.options.large' },
-            { value: 'research', label: 'wizard.options.research' }
+          { value: 'startup', label: 'wizard.options.startup' },
+          { value: 'sme', label: 'wizard.options.sme' },
+          { value: 'large', label: 'wizard.options.large' },
+          { value: 'research', label: 'wizard.options.research' }
           ];
       
       return {
@@ -576,13 +601,59 @@ export class QuestionEngine {
     // Sector question - REMOVED: Dynamic options without translations, overlaps with other questions
     // if (questionId === 'sector') { ... }
 
-    // Deadline urgency question - REMOVED: Not relevant for funding discovery
-    // This doesn't filter programs effectively, users don't know their urgency at this stage
-    // if (questionId === 'deadline_urgency') { ... }
+    // Deadline urgency question - IMPORTANT: When user needs funding
+    if (questionId === 'deadline_urgency') {
+      return {
+        id: 'deadline_urgency',
+        symptom: 'wizard.questions.deadlineUrgency',
+        type: 'single-select',
+        options: [
+          { value: 'within_1_month', label: 'wizard.options.within1Month' },
+          { value: 'within_3_months', label: 'wizard.options.within3Months' },
+          { value: 'within_6_months', label: 'wizard.options.within6Months' },
+          { value: 'more_than_6_months', label: 'wizard.options.moreThan6Months' }
+        ],
+        required: false,
+        category: 'timeline',
+        priority
+      };
+    }
 
-    // Project duration question - REMOVED: Too specific, not relevant for funding discovery
-    // Users don't know their project duration at this stage
-    // if (questionId === 'project_duration') { ... }
+    // Project duration question - IMPORTANT: How long is the project
+    if (questionId === 'project_duration') {
+      return {
+        id: 'project_duration',
+        symptom: 'wizard.questions.projectDuration',
+        type: 'single-select',
+        options: [
+          { value: 'less_than_6_months', label: 'wizard.options.lessThan6Months' },
+          { value: '6_to_12_months', label: 'wizard.options.6to12Months' },
+          { value: '1_to_2_years', label: 'wizard.options.1to2Years' },
+          { value: 'more_than_2_years', label: 'wizard.options.moreThan2Years' }
+        ],
+        required: false,
+        category: 'timeline',
+        priority
+      };
+    }
+    
+    // Project stage question - How developed is your project (overlay)
+    if (questionId === 'project_stage') {
+      return {
+        id: 'project_stage',
+        symptom: 'wizard.questions.projectStage',
+        type: 'single-select',
+        options: [
+          { value: 'idea_concept', label: 'wizard.options.ideaConcept' },
+          { value: 'early_development', label: 'wizard.options.earlyDevelopment' },
+          { value: 'advanced_development', label: 'wizard.options.advancedDevelopment' },
+          { value: 'ready_to_launch', label: 'wizard.options.readyToLaunch' }
+        ],
+        required: false,
+        category: 'project',
+        priority
+      };
+    }
 
     // Impact question - Important for funding discovery
     if (questionId === 'impact') {
@@ -678,22 +749,24 @@ export class QuestionEngine {
     
     console.log(`📊 Filtering summary: ${beforeCount} → ${afterCount} programs (${filteredCount} filtered, ${Object.keys(answers).length} answers given)`);
     
-    // Conditional logic: Generate additional questions if many programs remain
-    // This provides more precision when needed, fewer questions when not needed
-    // Lower thresholds to generate more questions earlier
-    if (this.remainingPrograms.length > 30 && this.questions.length < 10) {
-      // Generate more questions if still many programs remain
+    // SMART CONDITIONAL FILTERING: Generate questions when filtering is ineffective
+    // This is why we need it - some questions filter well, others don't filter at all
+    // Generate more questions when many programs remain to improve filtering
+    
+    const remainingPercent = (this.remainingPrograms.length / this.allPrograms.length) * 100;
+    const answersGiven = Object.keys(answers).length;
+    
+    // If filtering is ineffective (many programs remain after answers), generate more questions
+    if (remainingPercent > 50 && answersGiven >= 3 && this.questions.length < 12) {
+      // >50% remain after 3+ questions - filtering is ineffective, need more questions
+      console.log(`🔗 Smart conditional: ${remainingPercent.toFixed(1)}% remain after ${answersGiven} answers - generating more questions`);
+      this.generateConditionalQuestions(12);
+    } else if (remainingPercent > 30 && answersGiven >= 2 && this.questions.length < 10) {
+      // >30% remain after 2+ answers - moderate effectiveness
       this.generateConditionalQuestions(10);
-    }
-    
-    if (this.remainingPrograms.length > 50 && this.questions.length < 15) {
-      // Generate questions 11-15 if still many programs
-      this.generateConditionalQuestions(15);
-    }
-    
-    if (this.remainingPrograms.length > 20 && this.questions.length < 20) {
-      // Generate questions 16-20 if still moderate programs
-      this.generateConditionalQuestions(20);
+    } else if (remainingPercent > 20 && answersGiven >= 1 && this.questions.length < 8) {
+      // >20% remain after 1+ answer - some filtering happening
+      this.generateConditionalQuestions(8);
     }
     
     // If we've filtered down significantly, stop asking (but require at least 3 questions)
@@ -746,37 +819,233 @@ export class QuestionEngine {
 
   /**
    * Generate conditional questions when needed for precision
+   * SMART LOGIC: Analyzes REMAINING programs to generate relevant questions
    */
   private generateConditionalQuestions(maxQuestions: number): void {
     // Check if we already have enough questions
     const currentCount = this.questions.length;
     if (currentCount >= maxQuestions) return;
     
-    // Generate additional questions from remaining requirement types
+    const remainingCount = this.remainingPrograms.length;
+    if (remainingCount === 0) return;
+    
+    // Analyze requirement types in REMAINING programs only
+    const remainingReqFrequencies = new Map<string, {category: string, type: string, frequency: number, programs: Set<string>}>();
+    
+    for (const program of this.remainingPrograms) {
+      const categorized = program.categorized_requirements || {};
+      for (const [category, requirements] of Object.entries(categorized)) {
+        if (!Array.isArray(requirements)) continue;
+        
+        for (const req of requirements) {
+          const key = `${category}:${req.type}`;
+          if (!remainingReqFrequencies.has(key)) {
+            remainingReqFrequencies.set(key, {
+              category,
+              type: req.type,
+              frequency: 0,
+              programs: new Set()
+            });
+          }
+          const entry = remainingReqFrequencies.get(key)!;
+          entry.programs.add(program.id);
+          entry.frequency = entry.programs.size;
+        }
+      }
+    }
+    
+    // Convert to array and sort by frequency
+    const remainingReqs = Array.from(remainingReqFrequencies.values())
+      .sort((a, b) => b.frequency - a.frequency);
+    
+    // Use threshold based on REMAINING programs (2% minimum, or at least 2 programs)
+    const LOWER_THRESHOLD = Math.max(2, Math.floor(remainingCount * 0.02));
+    
     const questionIdMap = new Map(this.questions.map(q => [q.id, true]));
     let priority = currentCount;
-    const LOWER_THRESHOLD = Math.max(2, Math.floor(this.allPrograms.length * 0.01)); // 1% threshold for conditional questions
     
-    // Try to generate questions from all requirement types, not just specific indices
-    for (const req of this.requirementFrequencies) {
+    // Generate questions from requirement types that appear in remaining programs
+    for (const req of remainingReqs) {
       if (this.questions.length >= maxQuestions) break;
-      if (req.frequency < LOWER_THRESHOLD) continue; // Skip very rare requirements
+      if (req.frequency < LOWER_THRESHOLD) continue; // Skip rare requirements in remaining programs
       
       const questionId = this.mapRequirementToQuestionId(req.category, req.type);
       
       if (!questionId || questionIdMap.has(questionId)) continue;
       
       questionIdMap.set(questionId, true);
-      const question = this.createQuestionFromRequirement(req, questionId, priority++);
+      
+      // Create question using remaining programs only
+      const question = this.createQuestionFromRemainingPrograms(req, questionId, priority++);
       
       if (question && question.options && question.options.length > 0) {
         this.questions.push(question);
-        console.log(`🔗 Conditional question added: ${questionId} (${req.frequency} programs, ${question.options.length} options)`);
+        console.log(`🔗 Conditional question added: ${questionId} (${req.frequency}/${remainingCount} remaining programs, ${question.options.length} options)`);
       }
     }
     
     // Re-sort by priority
     this.questions.sort((a, b) => a.priority - b.priority);
+  }
+  
+  /**
+   * Create question from remaining programs only (for conditional questions)
+   */
+  private createQuestionFromRemainingPrograms(
+    req: {category: string, type: string, frequency: number},
+    questionId: string,
+    priority: number
+  ): SymptomQuestion | null {
+    // Extract options from remaining programs only
+    const optionSet = new Set<string>();
+    
+    for (const program of this.remainingPrograms) {
+      const categorized = program.categorized_requirements || {};
+      const categoryReqs = categorized[req.category] || [];
+      
+      for (const requirement of categoryReqs) {
+        if (requirement.type !== req.type) continue;
+        
+        const value = this.extractValueForQuestion(requirement, questionId);
+        if (value) {
+          optionSet.add(value);
+        }
+      }
+    }
+    
+    // Use existing createQuestionFromRequirement to get the question structure
+    // But we'll override the options
+    const tempReq: RequirementTypeFrequency = { 
+      category: req.category, 
+      type: req.type, 
+      frequency: req.frequency,
+      values: new Map(),
+      programs: new Set()
+    };
+    const question = this.createQuestionFromRequirement(tempReq, questionId, priority);
+    
+    if (!question) return null;
+    
+    // Recalculate options from remaining programs
+    // Use hardcoded options based on questionId (same as createQuestionFromRequirement)
+    const options: Array<{value: string, label: string}> = [];
+    const uniqueValues = Array.from(optionSet);
+    
+    // Map to clean options based on question type
+    if (questionId === 'location') {
+      const normalized = this.normalizeLocations(uniqueValues);
+      options.push(...normalized.map(loc => ({
+        value: loc,
+        label: `wizard.options.${loc}`
+      })));
+    } else if (questionId === 'company_type') {
+      // Use standard company type options
+      const typeSet = new Set<string>();
+      uniqueValues.forEach(v => {
+        const lower = String(v).toLowerCase();
+        if (lower.includes('startup') || lower.includes('ideation')) typeSet.add('startup');
+        if (lower.includes('sme') || lower.includes('small')) typeSet.add('sme');
+        if (lower.includes('large')) typeSet.add('large');
+        if (lower.includes('research') || lower.includes('university')) typeSet.add('research');
+      });
+      Array.from(typeSet).forEach(type => {
+        options.push({ value: type, label: `wizard.options.${type}` });
+      });
+    } else {
+      // For other questions, use extracted values directly
+      uniqueValues.forEach(value => {
+        options.push({ value: String(value), label: `wizard.options.${value}` });
+      });
+    }
+    
+    if (options.length === 0) return null;
+    
+    question.options = options;
+    return question;
+  }
+  
+  /**
+   * Extract value for a question from a requirement
+   */
+  private extractValueForQuestion(requirement: any, questionId: string): string | null {
+    const value = requirement.value;
+    if (!value) return null;
+    
+    // Use same extraction logic as matching functions
+    if (questionId === 'location') {
+      return this.extractLocationValue(value);
+    } else if (questionId === 'company_type') {
+      return this.extractCompanyTypeValue(value);
+    } else if (questionId === 'funding_amount') {
+      return this.extractFundingAmountValue(value);
+    } else if (questionId === 'impact') {
+      return this.extractImpactValue(value);
+    }
+    
+    // Default: return string value
+    return String(value);
+  }
+  
+  private extractLocationValue(value: any): string | null {
+    if (typeof value === 'string') {
+      const lower = value.toLowerCase();
+      if (lower.includes('vienna') || lower.includes('wien')) return 'vienna';
+      if (lower.includes('tyrol') || lower.includes('tirol')) return 'tyrol';
+      if (lower.includes('salzburg')) return 'salzburg';
+      if (lower.includes('berlin')) return 'berlin';
+      if (lower.includes('munich') || lower.includes('münchen')) return 'munich';
+      if (lower.includes('austria') || lower.includes('österreich')) return 'austria';
+      if (lower.includes('germany') || lower.includes('deutschland')) return 'germany';
+      if (lower.includes('eu') || lower.includes('europe') || lower.includes('european')) return 'eu';
+    }
+    return null;
+  }
+  
+  private extractCompanyTypeValue(value: any): string | null {
+    if (typeof value === 'string') {
+      const lower = value.toLowerCase();
+      if (lower.includes('startup') || lower.includes('ideation') || lower.includes('concept')) return 'startup';
+      if (lower.includes('sme') || lower.includes('small') || lower.includes('medium')) return 'sme';
+      if (lower.includes('large') || lower.includes('enterprise')) return 'large';
+      if (lower.includes('research') || lower.includes('university') || lower.includes('academic')) return 'research';
+    }
+    return null;
+  }
+  
+  private extractFundingAmountValue(value: any): string | null {
+    const num = this.parseFundingAmountValue(value);
+    if (num === null) return null;
+    if (num >= 500000) return 'over_500k';
+    if (num >= 200000) return '200k_500k';
+    return 'under_200k';
+  }
+  
+  private extractImpactValue(value: any): string | null {
+    if (typeof value === 'string') {
+      const lower = value.toLowerCase();
+      if (lower.includes('climate') || lower.includes('environment') || lower.includes('sustainability')) return 'sustainability';
+      if (lower.includes('employment') || lower.includes('jobs') || lower.includes('arbeitsplatz')) return 'employment';
+      if (lower.includes('innovation') || lower.includes('technology')) return 'innovation';
+      if (lower.includes('social') || lower.includes('community')) return 'social';
+    }
+    return null;
+  }
+  
+  private parseFundingAmountValue(value: any): number | null {
+    if (typeof value === 'number') return value;
+    if (typeof value !== 'string') return null;
+    
+    // Remove currency symbols and commas
+    const cleaned = value.replace(/[€$£,]/g, '').trim();
+    const match = cleaned.match(/([\d.]+)\s*(million|mio|m|thousand|k)?/i);
+    if (!match) return null;
+    
+    let num = parseFloat(match[1]);
+    const unit = match[2]?.toLowerCase();
+    if (unit === 'million' || unit === 'mio' || unit === 'm') num *= 1000000;
+    else if (unit === 'thousand' || unit === 'k') num *= 1000;
+    
+    return num;
   }
 
   /**
@@ -803,16 +1072,19 @@ export class QuestionEngine {
     // Use provided programs or start from all programs
     const programsToFilter = startingPrograms || this.allPrograms;
     
-    // Create temporary QuestionEngine instance to use its filtering logic
     // Save current state
     const originalAllPrograms = this.allPrograms;
     const originalRemainingPrograms = this.remainingPrograms;
     
     // Temporarily set programs for filtering
     this.allPrograms = programsToFilter;
+    this.remainingPrograms = programsToFilter; // Start with all programs
     
     try {
-      return this.filterPrograms(answers);
+      // Filter and update remainingPrograms
+      const filtered = this.filterPrograms(answers);
+      this.remainingPrograms = filtered;
+      return filtered;
     } finally {
       // Restore original state
       this.allPrograms = originalAllPrograms;
@@ -953,12 +1225,15 @@ export class QuestionEngine {
     // Sector filter - REMOVED: Question removed
     // if (answers.sector) { ... }
 
-    // Impact filter (multi-select support - already handles arrays correctly)
-    if (answers.impact && Array.isArray(answers.impact) && answers.impact.length > 0) {
+    // Impact filter (multi-select support - handle both array and single string)
+    if (answers.impact) {
       const before = filtered.length;
-      filtered = filtered.filter(program => this.matchesImpact(program, answers.impact));
+      const impactArray = Array.isArray(answers.impact) ? answers.impact : [answers.impact];
+      if (impactArray.length > 0) {
+        filtered = filtered.filter(program => this.matchesImpact(program, impactArray));
       const after = filtered.length;
-      console.log(`🔍 Impact filter (${answers.impact.join(', ')}): ${before} → ${after} (${before - after} filtered)`);
+        console.log(`🔍 Impact filter (${impactArray.join(', ')}): ${before} → ${after} (${before - after} filtered)`);
+      }
     }
 
     // Market size filter
@@ -978,10 +1253,34 @@ export class QuestionEngine {
           answers.use_of_funds.some((use: string) => this.matchesUseOfFunds(program, use))
         );
       } else {
-        filtered = filtered.filter(program => this.matchesUseOfFunds(program, answers.use_of_funds));
+      filtered = filtered.filter(program => this.matchesUseOfFunds(program, answers.use_of_funds));
       }
       const after = filtered.length;
       console.log(`🔍 Use of funds filter (${Array.isArray(answers.use_of_funds) ? answers.use_of_funds.join(', ') : answers.use_of_funds}): ${before} → ${after} (${before - after} filtered)`);
+    }
+
+    // Deadline urgency filter
+    if (answers.deadline_urgency) {
+      const before = filtered.length;
+      filtered = filtered.filter(program => this.matchesDeadlineUrgency(program, answers.deadline_urgency));
+      const after = filtered.length;
+      console.log(`🔍 Deadline urgency filter (${answers.deadline_urgency}): ${before} → ${after} (${before - after} filtered)`);
+    }
+
+    // Project duration filter
+    if (answers.project_duration) {
+      const before = filtered.length;
+      filtered = filtered.filter(program => this.matchesProjectDuration(program, answers.project_duration));
+      const after = filtered.length;
+      console.log(`🔍 Project duration filter (${answers.project_duration}): ${before} → ${after} (${before - after} filtered)`);
+    }
+
+    // Project stage filter (overlay)
+    if (answers.project_stage) {
+      const before = filtered.length;
+      filtered = filtered.filter(program => this.matchesProjectStage(program, answers.project_stage));
+      const after = filtered.length;
+      console.log(`🔍 Project stage filter (${answers.project_stage}): ${before} → ${after} (${before - after} filtered)`);
     }
 
     // Investment type filter (CAPEX/OPEX) - REMOVED: Question removed (too technical)
@@ -1002,8 +1301,8 @@ export class QuestionEngine {
       return userLocation === 'international';
     }
     
-    const userLoc = String(userLocation).toLowerCase();
-    
+        const userLoc = String(userLocation).toLowerCase();
+        
     // Direct value matching - check all geographic requirements
     for (const req of geoReqs) {
       const reqValue = String(req.value || '').toLowerCase();
@@ -1081,18 +1380,30 @@ export class QuestionEngine {
     const categorized = (program as any).categorized_requirements;
     const eligibility = (program as any).eligibility_criteria;
     
+    // Check team requirements - user must meet minimum
     if (categorized?.team) {
       const teamReqs = categorized.team.filter((r: any) => 
-        r.type === 'min_team_size' || r.type === 'team_size'
+        r.type === 'min_team_size' || r.type === 'team_size' || r.type === 'team_requirement'
       );
       if (teamReqs.length > 0) {
-        const minSize = teamReqs[0].value;
-        if (typeof minSize === 'number' && userSize < minSize) return false;
+        // Parse min size from requirement value
+        for (const req of teamReqs) {
+          const minSize = this.parseSizeFromValue(req.value);
+          if (!isNaN(minSize) && userSize < minSize) {
+            return false; // User doesn't meet minimum
+          }
+        }
       }
     }
     
-    if (eligibility?.min_team_size && userSize < eligibility.min_team_size) return false;
+    if (eligibility?.min_team_size) {
+      const minSize = typeof eligibility.min_team_size === 'number' 
+        ? eligibility.min_team_size 
+        : this.parseSizeFromValue(eligibility.min_team_size);
+      if (!isNaN(minSize) && userSize < minSize) return false;
+    }
     
+    // If no team size requirement, include program (default to available)
     return true;
   }
 
@@ -1256,15 +1567,15 @@ export class QuestionEngine {
     const categorized = (program as any).categorized_requirements;
     
     const typeReqs = categorized?.eligibility?.filter((r: any) => 
-      r.type === 'company_type' || r.type === 'company_stage'
+        r.type === 'company_type' || r.type === 'company_stage'
     ) || [];
     
     if (typeReqs.length === 0) {
       return true; // No requirement = available
     }
     
-    const userT = String(userType).toLowerCase();
-    
+        const userT = String(userType).toLowerCase();
+        
     // Map messy DB values to clean options
     for (const req of typeReqs) {
       const reqValue = String(req.value || '').toLowerCase();
@@ -1313,9 +1624,9 @@ export class QuestionEngine {
     if (!categorized?.impact || categorized.impact.length === 0) {
       return true; // No requirement = available
     }
-    
-    const userImpactsLower = userImpacts.map(i => String(i).toLowerCase());
-    
+        
+        const userImpactsLower = userImpacts.map(i => String(i).toLowerCase());
+        
     // Check impact requirement types (not values - types are cleaner)
     for (const req of categorized.impact) {
       const reqType = String(req.type || '').toLowerCase();
@@ -1350,20 +1661,165 @@ export class QuestionEngine {
       }
     }
     
-    return false;
+    // Has impact requirement but no match - exclude if requirement is mandatory
+    // But if requirement is optional, include program
+    const hasRequired = categorized.impact.some((r: any) => r.required === true);
+    return !hasRequired; // Include if not required, exclude if required
   }
 
   // @ts-ignore - Used in filterPrograms
   private matchesMarketSize(program: Program, userMarket: string): boolean {
     const categorized = (program as any).categorized_requirements;
-    if (categorized?.market_size) {
-      const marketReqs = categorized.market_size.filter((r: any) => r.type === 'market_scope');
-      if (marketReqs.length > 0) {
-        const progMarkets = marketReqs.map((r: any) => String(r.value).toLowerCase());
+    if (categorized?.market_size && categorized.market_size.length > 0) {
+      // Check ALL market_size requirement types (not just 'market_scope')
+      const marketReqs = categorized.market_size;
+      const progMarkets = marketReqs.map((r: any) => String(r.value || r.type || '').toLowerCase());
         const userM = String(userMarket).toLowerCase();
-        return progMarkets.some((m: string) => m.includes(userM) || userM.includes(m));
+      
+      // Map user selections to program values
+      const marketMapping: Record<string, string[]> = {
+        'local': ['local', 'regional', 'region', 'lokaler', 'regionaler'],
+        'national': ['national', 'country', 'österreich', 'austria', 'germany', 'deutschland'],
+        'eu': ['eu', 'europe', 'european', 'europäisch'],
+        'international': ['international', 'global', 'worldwide', 'weltweit']
+      };
+      
+      const userKeywords = marketMapping[userM] || [userM];
+      
+      // Check if any program market matches user keywords
+      return progMarkets.some((m: string) => 
+        userKeywords.some(keyword => m.includes(keyword) || keyword.includes(m)) ||
+        m.includes(userM) || userM.includes(m)
+      );
+    }
+    // If no market_size requirement, show program (default to available)
+    return true;
+  }
+
+  // @ts-ignore - Used in filterPrograms
+  private matchesDeadlineUrgency(program: Program, userUrgency: string): boolean {
+    const categorized = (program as any).categorized_requirements;
+    if (!categorized?.timeline) return true; // No deadline requirement = available
+    
+    // Find deadline requirements
+    const deadlines = categorized.timeline.filter((r: any) => 
+      r.type.includes('deadline') || r.type.includes('frist')
+    );
+    
+    if (deadlines.length === 0) return true; // No deadline = available
+    
+    // Parse deadline dates from requirements
+    const now = new Date();
+    const urgencyMonths: Record<string, number> = {
+      'within_1_month': 1,
+      'within_3_months': 3,
+      'within_6_months': 6,
+      'more_than_6_months': 12
+    };
+    
+    const userMonths = urgencyMonths[userUrgency] || 6;
+    const deadlineDate = new Date(now.getTime() + userMonths * 30 * 24 * 60 * 60 * 1000);
+    
+    // Check if any program deadline is within user's timeframe
+    for (const deadline of deadlines) {
+      const deadlineStr = String(deadline.value || '').toLowerCase();
+      // Try to extract date from deadline string
+      const dateMatch = deadlineStr.match(/(\d{1,2})[.\s]+(\d{1,2})[.\s]+(\d{4})/); // DD.MM.YYYY or DD MM YYYY
+      if (dateMatch) {
+        const [, day, month, year] = dateMatch;
+        const progDeadline = new Date(parseInt(year), parseInt(month) - 1, parseInt(day));
+        if (progDeadline >= now && progDeadline <= deadlineDate) {
+          return true; // Program deadline matches user urgency
+        }
       }
     }
+    
+    // If can't parse date, show program (default to available)
+    return true;
+  }
+
+  // @ts-ignore - Used in filterPrograms
+  private matchesProjectDuration(program: Program, userDuration: string): boolean {
+    const categorized = (program as any).categorized_requirements;
+    if (!categorized?.timeline) return true; // No duration requirement = available
+    
+    // Find duration requirements
+    const durations = categorized.timeline.filter((r: any) => 
+      r.type.includes('duration') || r.type.includes('dauer') || r.type.includes('laufzeit')
+    );
+    
+    if (durations.length === 0) return true; // No duration requirement = available
+    
+    // Map user duration to months
+    const durationMonths: Record<string, {min: number, max: number}> = {
+      'less_than_6_months': { min: 0, max: 6 },
+      '6_to_12_months': { min: 6, max: 12 },
+      '1_to_2_years': { min: 12, max: 24 },
+      'more_than_2_years': { min: 24, max: 999 }
+    };
+    
+    const userRange = durationMonths[userDuration] || { min: 0, max: 999 };
+    
+    // Parse duration from requirement values
+    for (const duration of durations) {
+      const durationStr = String(duration.value || '').toLowerCase();
+      
+      // Extract months/years from duration string
+      const monthMatch = durationStr.match(/(\d+)\s*(month|monat|m)/i);
+      const yearMatch = durationStr.match(/(\d+)\s*(year|jahr|y)/i);
+      
+      let progMonths = 0;
+      if (monthMatch) {
+        progMonths = parseInt(monthMatch[1]);
+      } else if (yearMatch) {
+        progMonths = parseInt(yearMatch[1]) * 12;
+      } else {
+        // Try to extract number (assume months if < 50, years if >= 50)
+        const numMatch = durationStr.match(/(\d+)/);
+        if (numMatch) {
+          const num = parseInt(numMatch[1]);
+          progMonths = num < 50 ? num : num * 12;
+        }
+      }
+      
+      if (progMonths > 0 && progMonths >= userRange.min && progMonths <= userRange.max) {
+        return true; // Program duration matches user duration
+      }
+    }
+    
+    // If can't parse duration, show program (default to available)
+    return true;
+  }
+
+  // @ts-ignore - Used in filterPrograms
+  private matchesProjectStage(program: Program, userStage: string): boolean {
+    const categorized = (program as any).categorized_requirements;
+    
+    // Check eligibility:company_stage (can be used for project stage)
+    if (categorized?.eligibility) {
+      const stageReqs = categorized.eligibility.filter((r: any) => 
+        r.type === 'company_stage' || r.type.includes('stage')
+      );
+      
+      for (const req of stageReqs) {
+        const reqValue = String(req.value || '').toLowerCase();
+        
+        // Map user stage to requirement values
+        const stageMapping: Record<string, string[]> = {
+          'idea_concept': ['ideation', 'concept', 'idea', 'early', 'pre-startup'],
+          'early_development': ['development', 'prototype', 'early', 'startup'],
+          'advanced_development': ['advanced', 'testing', 'pilot', 'growth'],
+          'ready_to_launch': ['ready', 'launch', 'market', 'mature', 'established']
+        };
+        
+        const keywords = stageMapping[userStage] || [];
+        if (keywords.some(keyword => reqValue.includes(keyword))) {
+          return true; // Match found
+        }
+      }
+    }
+    
+    // If no stage requirement, show program (default to available)
     return true;
   }
 
