@@ -1,10 +1,17 @@
 // ========= PLAN2FUND — ENHANCED RICH TEXT EDITOR =========
 // Rich text editor component with advanced formatting options
 
-import React, { useState, useRef, useEffect } from 'react';
+'use client';
+
+import React, { useState, useEffect, useMemo } from 'react';
+import dynamic from 'next/dynamic';
 import { PlanSection } from '@/shared/types/plan';
 import { Button } from '@/shared/components/ui/button';
 import { Card } from '@/shared/components/ui/card';
+
+// Dynamically import ReactQuill to avoid SSR issues
+const ReactQuill = dynamic(() => import('react-quill'), { ssr: false });
+import 'react-quill/dist/quill.snow.css';
 
 interface RichTextEditorProps {
   content: string;
@@ -42,7 +49,7 @@ export default function RichTextEditor({
   showFormatting = false,
   onFormattingChange
 }: RichTextEditorProps) {
-  const [isFocused, setIsFocused] = useState(false);
+  const [isFocused] = useState(false);
   const [wordCount, setWordCount] = useState(0);
   const [charCount, setCharCount] = useState(0);
   const [showFormattingPanel, setShowFormattingPanel] = useState(false);
@@ -54,44 +61,43 @@ export default function RichTextEditor({
     tone: 'neutral',
     language: 'en'
   });
-  const textareaRef = useRef<HTMLTextAreaElement>(null);
 
-  // Calculate word and character count
+  // Calculate word and character count (strip HTML tags for accurate count)
   useEffect(() => {
-    const words = content.trim().split(/\s+/).filter(word => word.length > 0);
+    // Strip HTML tags for accurate text counting
+    const textContent = content.replace(/<[^>]*>/g, '').trim();
+    const words = textContent.split(/\s+/).filter(word => word.length > 0);
     setWordCount(words.length);
-    setCharCount(content.length);
+    setCharCount(textContent.length);
   }, [content]);
 
-  // Auto-resize textarea
-  useEffect(() => {
-    if (textareaRef.current) {
-      textareaRef.current.style.height = 'auto';
-      textareaRef.current.style.height = `${textareaRef.current.scrollHeight}px`;
-    }
-  }, [content]);
-
-  const handleContentChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
-    const newContent = e.target.value;
-    onChange(newContent);
+  const handleContentChange = (value: string) => {
+    onChange(value);
   };
 
-  const wrapSelection = (before: string, after: string = before) => {
-    const ta = textareaRef.current;
-    if (!ta) return;
-    const start = ta.selectionStart || 0;
-    const end = ta.selectionEnd || 0;
-    const sel = content.substring(start, end);
-    const replaced = content.substring(0, start) + before + sel + after + content.substring(end);
-    onChange(replaced);
-    // restore selection roughly
-    requestAnimationFrame(() => {
-      if (!textareaRef.current) return;
-      const pos = start + before.length + sel.length + after.length;
-      textareaRef.current.selectionStart = textareaRef.current.selectionEnd = pos;
-      textareaRef.current.focus();
-    });
-  };
+  // Quill toolbar configuration
+  const quillModules = useMemo(() => ({
+    toolbar: {
+      container: [
+        [{ 'header': [1, 2, 3, false] }],
+        ['bold', 'italic', 'underline', 'strike'],
+        [{ 'list': 'ordered'}, { 'list': 'bullet' }],
+        [{ 'script': 'sub'}, { 'script': 'super' }],
+        [{ 'indent': '-1'}, { 'indent': '+1' }],
+        [{ 'color': [] }, { 'background': [] }],
+        [{ 'align': [] }],
+        ['link', 'image'],
+        ['clean']
+      ],
+    },
+  }), []);
+  
+  const quillFormats = [
+    'header', 'bold', 'italic', 'underline', 'strike',
+    'list', 'bullet', 'script', 'indent',
+    'color', 'background', 'align',
+    'link', 'image'
+  ];
 
   const getStatusColor = () => {
     if (charCount < minLength) return 'text-red-500';
@@ -250,15 +256,6 @@ export default function RichTextEditor({
         </Card>
       )}
 
-      {/* Compact Toolbar */}
-      <div className="flex items-center gap-2 text-xs">
-        <Button variant="outline" size="sm" onClick={() => wrapSelection('**')}>Bold</Button>
-        <Button variant="outline" size="sm" onClick={() => wrapSelection('*')}>Italic</Button>
-        <Button variant="outline" size="sm" onClick={() => wrapSelection('`')}>Code</Button>
-        <Button variant="outline" size="sm" onClick={() => wrapSelection('\n- ', '')}>• List</Button>
-        <Button variant="outline" size="sm" onClick={() => wrapSelection('\n1. ', '')}>1. List</Button>
-        <Button variant="outline" size="sm" onClick={() => wrapSelection('[', '](https://)')}>Link</Button>
-      </div>
 
       {/* Guidance */}
       {showGuidance && guidance && (
@@ -278,62 +275,46 @@ export default function RichTextEditor({
         </div>
       )}
 
-      {/* Text Editor */}
+      {/* Rich Text Editor */}
       <div className="relative">
-        <textarea
-          ref={textareaRef}
-          value={content}
-          onChange={handleContentChange}
-          onFocus={() => setIsFocused(true)}
-          onBlur={() => setIsFocused(false)}
-          placeholder={placeholder || `Enter content for ${section.title}...`}
-          className={`w-full p-4 border rounded-lg resize-none transition-all duration-200 ${
-            isFocused 
-              ? 'border-blue-500 ring-2 ring-blue-200' 
-              : 'border-gray-300 hover:border-gray-400'
-          } ${
-            charCount < minLength ? 'border-red-300 bg-red-50' : ''
-          } ${
-            charCount > maxLength * 0.9 ? 'border-yellow-300 bg-yellow-50' : ''
-          } ${getThemeClasses()} ${getFontSizeClasses()} ${getLineHeightClasses()}`}
-          style={{ minHeight: '200px' }}
-        />
+        <div className={`border rounded-lg transition-all duration-200 ${
+          isFocused 
+            ? 'border-blue-500 ring-2 ring-blue-200' 
+            : 'border-gray-300 hover:border-gray-400'
+        } ${
+          charCount < minLength ? 'border-red-300 bg-red-50' : ''
+        } ${
+          charCount > maxLength * 0.9 ? 'border-yellow-300 bg-yellow-50' : ''
+        }`}>
+          <ReactQuill
+            value={content}
+            onChange={handleContentChange}
+            modules={quillModules}
+            formats={quillFormats}
+            placeholder={placeholder || `Enter content for ${section.title}...`}
+            className={`${getThemeClasses()} ${getFontSizeClasses()} ${getLineHeightClasses()}`}
+            style={{ minHeight: '300px' }}
+            theme="snow"
+          />
+        </div>
         
         {/* Character count indicator */}
-        <div className="absolute bottom-2 right-2 text-xs text-gray-400">
-          {charCount}/{maxLength}
+        <div className="mt-2 text-xs text-gray-400 text-right">
+          {charCount}/{maxLength} characters
         </div>
       </div>
 
       {/* Quick Actions */}
-      <div className="flex items-center justify-between">
-        <div className="flex items-center space-x-2">
-          <button
-            type="button"
-            onClick={() => {
-              const newContent = content + '\n\n• ';
-              onChange(newContent);
-            }}
-            className="text-sm text-blue-600 hover:text-blue-800 font-medium"
-          >
-            + Add bullet point
-          </button>
-          <button
-            type="button"
-            onClick={() => {
-              const newContent = content + '\n\n## ';
-              onChange(newContent);
-            }}
-            className="text-sm text-blue-600 hover:text-blue-800 font-medium"
-          >
-            + Add subheading
-          </button>
-        </div>
-        
+      <div className="flex items-center justify-between mt-2">
         <div className="text-xs text-gray-500">
           {charCount < minLength && (
             <span className="text-red-500">
               Minimum {minLength} characters required
+            </span>
+          )}
+          {charCount >= minLength && charCount <= maxLength * 0.9 && (
+            <span className="text-green-500">
+              Content length is good
             </span>
           )}
         </div>

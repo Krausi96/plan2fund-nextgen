@@ -13,7 +13,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   }
 
   try {
-    const { items, userId, userSegment, successUrl, cancelUrl } = req.body;
+    const { items, userId, userSegment, successUrl, cancelUrl, customerEmail } = req.body;
 
     if (!items || !Array.isArray(items) || items.length === 0) {
       return res.status(400).json({ error: 'Items are required' });
@@ -40,11 +40,12 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       success_url: successUrl,
       cancel_url: cancelUrl,
       metadata: {
-        userId,
-        userSegment,
+        userId: userId || '',
+        userSegment: userSegment || '',
+        planId: items?.[0]?.planId || '',
         items: JSON.stringify(items)
       },
-      customer_email: req.body.customerEmail,
+      customer_email: customerEmail || req.body.customerEmail,
       billing_address_collection: 'required',
       shipping_address_collection: {
         allowed_countries: ['AT', 'DE', 'CH', 'IT', 'FR', 'ES', 'NL', 'BE', 'LU'],

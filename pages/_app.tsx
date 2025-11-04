@@ -28,6 +28,9 @@ function AnalyticsWrapper({ children }: { children: React.ReactNode }) {
 
 export default function MyApp({ Component, pageProps }: AppProps) {
   useEffect(() => {
+    // Only run on client side
+    if (typeof window === 'undefined') return;
+    
     try {
       const key = "pf_session"
       const existing = document.cookie.split(";").find((c) => c.trim().startsWith(`${key}=`))

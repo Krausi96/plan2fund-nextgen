@@ -12,6 +12,7 @@ import { EditorProduct } from '@/features/editor/types/editor';
 import { EditorEngine } from '@/features/editor/engine/EditorEngine';
 import { EditorDataProvider } from '@/features/editor/engine/EditorDataProvider';
 import { savePlanSections } from '@/shared/lib/planStore';
+import analytics from '@/shared/lib/analytics';
 
 // Phase 4 Components
 import EntryPointsManager from './EntryPointsManager';
@@ -46,6 +47,23 @@ export default function Phase4Integration({
   const [sections, setSections] = useState<any[]>([]);
   const [activeSection, setActiveSection] = useState(0);
   const [isLoading, setIsLoading] = useState(true);
+  
+  // Multi-user client state
+  const [clients, setClients] = useState<Array<{ id: string; name: string }>>([]);
+  const [activeClientId, setActiveClientId] = useState<string | null>(null);
+  
+  // Load clients on mount
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      const { multiUserDataManager } = require('@/shared/lib/multiUserDataManager');
+      const loadedClients = multiUserDataManager.listClients();
+      setClients(loadedClients);
+      if (loadedClients.length > 0 && !activeClientId) {
+        setActiveClientId(loadedClients[0].id);
+      }
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
   
   // Phase 4 UI state - SIMPLIFIED: Hidden by default to reduce clutter
   const [showEntryPoints, setShowEntryPoints] = useState(false); // Hidden by default
@@ -227,7 +245,9 @@ export default function Phase4Integration({
         console.warn('Program data not available, continuing with template fallback');
       }
       // Always attempt to load sections (will fallback to templates if API missing)
-      let sections = await editorEngineRef.current.loadSections(programId);
+      // Determine product type from plan or default to submission
+      const productType = plan?.product || 'submission';
+      let sections = await editorEngineRef.current.loadSections(programId, undefined, productType);
       
       // CRITICAL FIX: Prefill sections with wizard answers from appStore (single source of truth)
       try {
@@ -381,7 +401,94 @@ export default function Phase4Integration({
         };
       }));
       
-      // Create a new plan with the program's sections (now with generated content)
+      // Helper function to initialize tables/figures for financial sections
+      const initializeEditableSections = (section: any) => {
+        const sectionId = (section.id || '').toLowerCase();
+        const sectionTitle = (section.title || section.section_name || '').toLowerCase();
+        const isFinancial = sectionId.includes('financial') || sectionTitle.includes('financial') || 
+                           sectionId.includes('revenue') || sectionTitle.includes('revenue') ||
+                           sectionId.includes('budget') || sectionTitle.includes('budget') ||
+                           section.category === 'financial';
+        
+        let tables: any = undefined;
+        let figures: any[] = [];
+        
+        if (isFinancial) {
+          // Initialize financial tables
+          tables = {
+            revenue: {
+              columns: ['Year 1', 'Year 2', 'Year 3'],
+              rows: [
+                { label: 'Revenue Stream 1', values: [0, 0, 0] },
+                { label: 'Revenue Stream 2', values: [0, 0, 0] },
+                { label: 'Total Revenue', values: [0, 0, 0] }
+              ]
+            },
+            costs: {
+              columns: ['Year 1', 'Year 2', 'Year 3'],
+              rows: [
+                { label: 'Personnel', values: [0, 0, 0] },
+                { label: 'Operations', values: [0, 0, 0] },
+                { label: 'Marketing', values: [0, 0, 0] },
+                { label: 'Total Costs', values: [0, 0, 0] }
+              ]
+            },
+            cashflow: {
+              columns: ['Year 1', 'Year 2', 'Year 3'],
+              rows: [
+                { label: 'Starting Cash', values: [0, 0, 0] },
+                { label: 'Cash In', values: [0, 0, 0] },
+                { label: 'Cash Out', values: [0, 0, 0] },
+                { label: 'Ending Cash', values: [0, 0, 0] }
+              ]
+            },
+            useOfFunds: {
+              columns: ['Category', 'Amount', 'Percentage'],
+              rows: [
+                { label: 'Product Development', values: [0, 0] },
+                { label: 'Marketing', values: [0, 0] },
+                { label: 'Operations', values: [0, 0] },
+                { label: 'Total', values: [0, 100] }
+              ]
+            }
+          };
+          
+          // Initialize figures for charts
+          figures = [
+            { id: 'revenue_chart', type: 'line', title: 'Revenue Projections', description: 'Revenue growth over time' },
+            { id: 'costs_chart', type: 'bar', title: 'Cost Breakdown', description: 'Cost distribution by category' }
+          ];
+        }
+        
+        return { tables, figures: figures || [] };
+      };
+      
+      // Create sections with preserved order and initialized editable sections
+      const mappedSections = sectionsWithContent.map((section: any) => {
+        const { tables, figures } = initializeEditableSections(section);
+        const sectionKey = section.id || section.key || `section_${Date.now()}`;
+        const sectionTitle = section.title || section.section_name || 'Untitled Section';
+        const sectionOrder = section.order !== undefined && section.order !== null ? section.order : 999; // Preserve order, default to 999 if missing
+        
+        return {
+          key: sectionKey,
+          title: sectionTitle,
+          content: section.content || '',
+          status: (section.status || (section.content && section.content.trim().length > 0 ? 'aligned' : 'missing')) as 'aligned' | 'missing' | 'needs_fix',
+          wordCount: (section.content || '').split(/\s+/).filter((w: string) => w.length > 0).length,
+          required: section.required !== false,
+          order: sectionOrder, // PRESERVE ORDER FROM SOURCE
+          tables: tables || section.tables, // Initialize or use existing
+          figures: figures || section.figures || [], // Initialize or use existing
+          fields: section.fields,
+          sources: section.sources || []
+        };
+      });
+      
+      // Sort sections by order (ascending)
+      const sortedSections = mappedSections.sort((a, b) => (a.order || 999) - (b.order || 999));
+      
+      // Create a new plan with the program's sections (now with generated content and proper ordering)
       const newPlan: PlanDocument = {
         id: `plan_${Date.now()}`,
         ownerId: userProfile?.id || 'anonymous',
@@ -397,15 +504,7 @@ export default function Phase4Integration({
           captions: true,
           graphs: {}
         },
-        sections: sectionsWithContent.map((section: any) => ({
-          key: section.id,
-          title: section.title || section.section_name || 'Untitled Section',
-          content: section.content || '',
-          status: (section.status || (section.content && section.content.trim().length > 0 ? 'aligned' : 'missing')) as 'aligned' | 'missing' | 'needs_fix',
-          wordCount: (section.content || '').split(/\s+/).filter((w: string) => w.length > 0).length,
-          required: section.required !== false,
-          order: 0
-        })),
+        sections: sortedSections, // SORTED BY ORDER
         addonPack: false,
         versions: []
       };
@@ -482,6 +581,40 @@ export default function Phase4Integration({
         }, {});
         await editorEngineRef.current.saveContent(contentMap);
         savePlanSections(updatedSections.map((s: any) => ({ id: s.key, title: s.title, content: s.content || '', tables: s.tables, figures: s.figures, sources: s.sources })));
+        
+        // Save to dashboard if user is logged in
+        if (userProfile && plan) {
+          const { savePlanToDashboard } = await import('@/shared/lib/planStore');
+          const { multiUserDataManager } = await import('@/shared/lib/multiUserDataManager');
+          
+          // Use current active client ID from state
+          const currentClientId = activeClientId || undefined;
+          
+          // Calculate completion percentage from sections
+          const totalSections = updatedSections.length;
+          const completedSections = updatedSections.filter((s: any) => s.content && s.content.trim().length > 0).length;
+          const completionPercentage = totalSections > 0 ? Math.round((completedSections / totalSections) * 100) : 0;
+          
+          // Save plan to dashboard
+          savePlanToDashboard({
+            id: plan.id || `plan_${Date.now()}`,
+            userId: userProfile.id,
+            clientId: currentClientId,
+            title: plan.sections?.[0]?.title || 'Business Plan',
+            programType: programProfile?.route?.toUpperCase() || 'GRANT',
+            programId: programProfile?.programId,
+            sections: updatedSections,
+            status: completionPercentage === 100 ? 'completed' : 'in_progress'
+          });
+          
+          // If client context exists, assign plan to client
+          if (currentClientId) {
+            multiUserDataManager.assignPlanToClient(
+              { id: plan.id || `plan_${Date.now()}`, clientId: currentClientId },
+              currentClientId
+            );
+          }
+        }
       } catch (e) {
         console.warn('Save (debounced) failed, fallback handled by provider/planStore');
       } finally {
@@ -523,7 +656,9 @@ export default function Phase4Integration({
       }
       
       // Load sections for this product
-      const sections = await editorEngineRef.current.loadSections(product.id);
+      // Determine product type from product or plan
+      const productType = product.type || plan?.product || 'submission';
+      const sections = await editorEngineRef.current.loadSections(product.id, undefined, productType);
       setSections(sections);
       
       // Initialize content if empty
@@ -607,6 +742,25 @@ export default function Phase4Integration({
                 </div>
               </div>
               
+              {/* Client Selector (if multi-user mode) */}
+              {clients.length > 0 && (
+                <div className="flex items-center gap-2 border-l pl-6">
+                  <span className="text-sm text-gray-600 font-medium">Client:</span>
+                  <select
+                    value={activeClientId || ''}
+                    onChange={(e) => {
+                      setActiveClientId(e.target.value || null);
+                      analytics.trackUserAction('editor_client_switched', { clientId: e.target.value });
+                    }}
+                    className="px-3 py-1.5 border border-gray-300 rounded-lg text-sm font-medium bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors"
+                  >
+                    {clients.map(c => (
+                      <option key={c.id} value={c.id}>{c.name}</option>
+                    ))}
+                  </select>
+                </div>
+              )}
+              
               {/* Progress Indicator */}
               <div className="flex items-center space-x-3">
                 <div className="w-32 bg-gray-200 rounded-full h-2">
@@ -679,25 +833,33 @@ export default function Phase4Integration({
                   </button>
                 </div>
                 <div className="space-y-2">
-                  {sections.map((section, index) => (
-                    <button
-                      key={section.key}
-                      onClick={() => setActiveSection(index)}
-                      className={`w-full text-left p-3 rounded-xl transition-all duration-200 ${
-                        index === activeSection
-                          ? 'bg-gradient-to-r from-blue-500 to-purple-600 text-white shadow-lg'
-                          : 'bg-gray-50 hover:bg-gray-100 text-gray-700'
-                      }`}
-                    >
-                      <div className="flex items-center justify-between">
-                        <span className="font-medium text-sm">{section.title}</span>
-                        <div className={`w-2 h-2 rounded-full ${
-                          section.status === 'aligned' ? 'bg-green-500' : 
-                          section.status === 'needs_fix' ? 'bg-yellow-500' : 'bg-gray-300'
-                        }`}></div>
-                      </div>
-                    </button>
-                  ))}
+                  {/* Sort sections by order before displaying */}
+                  {[...sections].sort((a, b) => (a.order || 999) - (b.order || 999)).map((section, sortedIndex) => {
+                    // Find the actual index in the original array for navigation
+                    const actualIndex = sections.findIndex(s => s.key === section.key);
+                    return (
+                      <button
+                        key={section.key}
+                        onClick={() => setActiveSection(actualIndex >= 0 ? actualIndex : sortedIndex)}
+                        className={`w-full text-left p-3 rounded-xl transition-all duration-200 ${
+                          actualIndex === activeSection
+                            ? 'bg-gradient-to-r from-blue-500 to-purple-600 text-white shadow-lg'
+                            : 'bg-gray-50 hover:bg-gray-100 text-gray-700'
+                        }`}
+                      >
+                        <div className="flex items-center justify-between">
+                          <div className="flex items-center space-x-2">
+                            <span className="text-xs text-gray-400 font-mono">{(section.order || 999) < 10 ? `0${section.order || 999}` : section.order || 999}</span>
+                            <span className="font-medium text-sm">{section.title}</span>
+                          </div>
+                          <div className={`w-2 h-2 rounded-full ${
+                            section.status === 'aligned' ? 'bg-green-500' : 
+                            section.status === 'needs_fix' ? 'bg-yellow-500' : 'bg-gray-300'
+                          }`}></div>
+                        </div>
+                      </button>
+                    );
+                  })}
                 </div>
               </div>
 
@@ -750,13 +912,25 @@ export default function Phase4Integration({
                               subtitle: config.titlePage?.subtitle,
                               author: config.titlePage?.author,
                               date: config.titlePage?.date
+                            },
+                            // Save formatting settings to plan.settings.formatting
+                            formatting: {
+                              fontFamily: config.fontFamily || plan.settings.formatting?.fontFamily || 'Arial',
+                              fontSize: config.fontSize || plan.settings.formatting?.fontSize || 12,
+                              lineSpacing: config.lineSpacing || plan.settings.formatting?.lineSpacing || 1.6,
+                              margins: config.margins || plan.settings.formatting?.margins || {
+                                top: 2.5,
+                                bottom: 2.5,
+                                left: 2.5,
+                                right: 2.5
+                              }
                             }
                           }
                         } as PlanDocument;
                         handlePlanChange(updated);
                         // persist immediately
                         savePlanSections((updated.sections || []).map((s: any) => ({ id: s.key, title: s.title, content: s.content || '', tables: s.tables, figures: s.figures })));
-                        // store minimal preview settings for Preview page
+                        // store minimal preview settings for Preview page (backward compatibility)
                         try {
                           const previewSettings = {
                             theme: config.fontFamily ? (config.fontFamily.toLowerCase().includes('serif') ? 'serif' : 'sans') : 'sans',

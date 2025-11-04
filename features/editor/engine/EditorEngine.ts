@@ -55,7 +55,7 @@ export class EditorEngine {
   /**
    * Load sections for a product and template combination
    */
-  async loadSections(productId: string, templateId?: string): Promise<UnifiedEditorSection[]> {
+  async loadSections(productId: string, templateId?: string, productType?: string): Promise<UnifiedEditorSection[]> {
     try {
       // Try to load from program data first
       const product = await this.loadProduct(productId);
@@ -76,23 +76,24 @@ export class EditorEngine {
     }
 
     // Fallback to template system based on product type
-    return await this.loadSectionsFromTemplates(productId, templateId);
+    return await this.loadSectionsFromTemplates(productId, templateId, productType);
   }
 
   /**
    * Load sections from template system when program data is not available
    */
-  private async loadSectionsFromTemplates(_productId: string, templateId?: string): Promise<UnifiedEditorSection[]> {
+  private async loadSectionsFromTemplates(_productId: string, templateId?: string, productType?: string): Promise<UnifiedEditorSection[]> {
     // Map productId to product type (this could be improved with a mapping)
     // Not needed anymore - using unified system
     const fundingType = templateId ? this.mapTemplateIdToFundingType(templateId) : 'grants';
+    const product = productType || 'submission'; // Default to submission
     
     // Use unified template system
     try {
-      const sections = await getSections(fundingType);
+      const sections = await getSections(fundingType, product);
       
       if (!sections || sections.length === 0) {
-        console.warn(`No sections found for fundingType: ${fundingType}`);
+        console.warn(`No sections found for fundingType: ${fundingType}, productType: ${product}`);
         return this.getDefaultSections();
       }
 

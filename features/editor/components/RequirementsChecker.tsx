@@ -32,11 +32,14 @@ export default function RequirementsChecker({
   const [programRequirements, setProgramRequirements] = useState<any>(null);
 
   // PRIORITY: Fetch requirements from scraper-lite if programId is provided
+  // Always prioritize database over fallback
   useEffect(() => {
     if (programId) {
+      // ALWAYS use database if programId is available
       fetchProgramRequirements(programId);
     } else if (programType) {
-      // Fallback to old method if only programType provided
+      // Fallback to old method only if no programId
+      console.warn('RequirementsChecker: No programId provided, using fallback method');
       performReadinessCheck();
     }
   }, [programId, programType, planContent]);
@@ -68,12 +71,16 @@ export default function RequirementsChecker({
         const results = await validator.performReadinessCheck();
         setChecks(results);
       } else {
-        // Fallback if transformation fails
-        console.warn('Could not transform requirements, using fallback');
-        const validator = await createReadinessValidator(programType || 'grant', planContent);
-        if (validator) {
-          const results = await validator.performReadinessCheck();
-          setChecks(results);
+        // Fallback if transformation fails (should not happen with proper data)
+        console.error('Could not transform requirements from database. Data may be missing or malformed.');
+        // Only use fallback if absolutely necessary
+        if (programType) {
+          console.warn('Falling back to generic validator');
+          const validator = await createReadinessValidator(programType || 'grant', planContent);
+          if (validator) {
+            const results = await validator.performReadinessCheck();
+            setChecks(results);
+          }
         }
       }
     } catch (error) {

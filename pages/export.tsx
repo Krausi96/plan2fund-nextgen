@@ -2,18 +2,30 @@
 import Link from "next/link";
 import { useRouter } from "next/router";
 import featureFlags from "@/shared/lib/featureFlags";
-import { loadPlanSections, type PlanSection } from "@/shared/lib/planStore";
+import { loadPlanSections, loadUserAnswers, type PlanSection } from "@/shared/lib/planStore";
 import analytics from "@/shared/lib/analytics";
-import { getDocuments } from "@/shared/lib/templates";
+import { getDocuments, getDocument } from "@/shared/lib/templates";
 import { exportManager } from "@/features/export/engine/export";
+import { PlanDocument } from "@/shared/types/plan";
+import { withAuth } from "@/shared/lib/withAuth";
+import { useUser } from "@/shared/contexts/UserContext";
+import { getPlanPaymentStatus } from "@/shared/lib/paymentStore";
+import { saveExportedDocument } from "@/shared/lib/documentStore";
 
-export default function Export() {
+function Export() {
   const EXPORT_ENABLED = featureFlags.isEnabled('EXPORT_ENABLED')
   const router = useRouter();
+  const { userProfile } = useUser();
+  const { planId } = router.query;
   const [sections, setSections] = useState<PlanSection[]>([]);
   const [exporting, setExporting] = useState(false);
   const [format, setFormat] = useState<"pdf" | "docx">("pdf");
-  const isPaid = false; // stubbed payment state
+  
+  // Check payment status for plan
+  const paymentStatus = userProfile && planId && typeof planId === 'string' 
+    ? getPlanPaymentStatus(planId, userProfile.id)
+    : { isPaid: false };
+  const isPaid = paymentStatus.isPaid;
   const [additionalDocuments, setAdditionalDocuments] = useState<any[]>([]);
   const [product] = useState<string>('submission');
   const [route] = useState<string>('grants');
@@ -387,10 +399,30 @@ export default function Export() {
               }
             });
 
-            // After successful export, redirect to thank-you page
-            setTimeout(() => {
-              window.location.href = '/thank-you';
-            }, 2000);
+            // Save exported document
+            if (userProfile) {
+              const currentPlanId = typeof planId === 'string' ? planId : `plan_${Date.now()}`;
+              saveExportedDocument({
+                id: `doc_plan_single_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
+                userId: userProfile.id,
+                planId: currentPlanId,
+                name: 'Business Plan',
+                type: 'plan',
+                format: format.toUpperCase() as 'PDF' | 'DOCX',
+                fileName: `business-plan.${format}`,
+                exportedAt: new Date().toISOString(),
+                status: 'exported'
+              });
+              
+              // After successful export, redirect to thank-you page
+              setTimeout(() => {
+                window.location.href = `/thank-you?planId=${currentPlanId}&exported=true`;
+              }, 2000);
+            } else {
+              setTimeout(() => {
+                window.location.href = '/thank-you?exported=true';
+              }, 2000);
+            }
           } catch (error) {
             analytics.trackError(error as Error, 'export_download');
             alert('Export failed. Please try again.');
@@ -410,9 +442,10 @@ export default function Export() {
           try {
             // 1) main plan
             if (includePlan) {
+              const currentPlanId = typeof planId === 'string' ? planId : `plan_${Date.now()}`;
               const plan = {
-                id: `export_${Date.now()}`,
-                ownerId: 'user',
+                id: currentPlanId,
+                ownerId: userProfile?.id || 'user',
                 product: 'submission' as const,
                 route: 'grant' as const,
                 language: 'en' as const,
@@ -423,14 +456,85 @@ export default function Export() {
                 addonPack: false,
                 versions: []
               };
-              await exportManager.exportPlan(plan as any, { format: (format.toUpperCase() as any), includeWatermark: !isPaid, isPaid, quality: 'standard', includeToC: true, includeListOfFigures: true });
+              await exportManager.exportPlan(plan as any, { 
+                format: (format.toUpperCase() as any), 
+                includeWatermark: !isPaid, 
+                isPaid: isPaid, 
+                quality: 'standard', 
+                includeToC: true, 
+                includeListOfFigures: true 
+              });
+              
+              // Save exported document
+              if (userProfile) {
+                saveExportedDocument({
+                  id: `doc_plan_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
+                  userId: userProfile.id,
+                  planId: currentPlanId,
+                  name: 'Business Plan',
+                  type: 'plan',
+                  format: format.toUpperCase() as 'PDF' | 'DOCX',
+                  fileName: `business-plan.${format}`,
+                  exportedAt: new Date().toISOString(),
+                  status: 'exported'
+                });
+              }
             }
 
             // 2) additional documents (separate PDFs via unified template system)
-            const { getDocument } = await import('@/shared/lib/templates');
             const productType = product || 'submission';
             const fundingType = route || 'grants';
             const currentProgramId = router.query.programId as string | undefined;
+            
+            // Load user answers and build plan document for data extraction
+            const userAnswers = loadUserAnswers();
+            const planDoc: PlanDocument = {
+              id: 'export_plan',
+              ownerId: 'export',
+              product: productType as any,
+              route: fundingType as any,
+              language: 'en',
+              tone: 'neutral',
+              targetLength: 'standard',
+              settings: {
+                includeTitlePage: true,
+                includePageNumbers: true,
+                citations: 'simple',
+                captions: true,
+                graphs: {},
+                titlePage: {
+                  title: sections.find(s => s.title.toLowerCase().includes('executive'))?.content?.slice(0, 50) || 'Business Plan'
+                }
+              },
+              sections: sections.map(s => ({
+                key: s.id,
+                title: s.title,
+                content: s.content || '',
+                status: 'aligned' as const,
+                tables: (s as any).tables,
+                figures: (s as any).figures
+              })),
+              addonPack: false,
+              versions: []
+            };
+            
+            // Load program info if available
+            let programInfo: any = null;
+            if (currentProgramId) {
+              try {
+                const programResponse = await fetch(`/api/programmes/${currentProgramId}/requirements`);
+                if (programResponse.ok) {
+                  const programData = await programResponse.json();
+                  programInfo = {
+                    name: programData.program_name,
+                    type: programData.program_type,
+                    amount: programData.amount || ''
+                  };
+                }
+              } catch (e) {
+                console.warn('Could not load program info:', e);
+              }
+            }
             
             for (const doc of additionalDocuments) {
               if (!selectedDocs.has(doc.id)) continue;
@@ -439,31 +543,55 @@ export default function Export() {
               const template = await getDocument(fundingType, productType, doc.id, currentProgramId);
               
               if (template && template.template) {
-                // Use full template (master or program-specific)
-                // Populate template with user data from sections
-                let populatedTemplate = template.template;
+                // Use enhanced template filling with data extraction
+                const populatedTemplate = exportManager.fillTemplate(
+                  template.template,
+                  planDoc,
+                  userAnswers,
+                  programInfo
+                );
                 
-                // Simple placeholder replacement from sections
-                sections.forEach(section => {
-                  const content = section.content || '';
-                  populatedTemplate = populatedTemplate.replace(
-                    `[${section.title}]`,
-                    content.slice(0, 200) // First 200 chars
-                  );
-                });
-                
-                // Convert markdown to HTML for PDF
+                // Convert markdown to HTML for PDF (enhanced markdown support)
                 const htmlTemplate = populatedTemplate
-                  .replace(/# (.*)/g, '<h1 style="font-family:Arial;margin:0 0 16px 0;">$1</h1>')
-                  .replace(/## (.*)/g, '<h2 style="font-family:Arial;margin:0 0 12px 0;">$1</h2>')
-                  .replace(/\|(.+)\|/g, '<table style="font-family:Arial;border-collapse:collapse;"><tr><td>$1</td></tr></table>')
+                  // Headers
+                  .replace(/^### (.*$)/gim, '<h3 style="font-family:Arial;margin:12px 0 8px 0;font-size:16px;">$1</h3>')
+                  .replace(/^## (.*$)/gim, '<h2 style="font-family:Arial;margin:16px 0 12px 0;font-size:20px;">$1</h2>')
+                  .replace(/^# (.*$)/gim, '<h1 style="font-family:Arial;margin:20px 0 16px 0;font-size:24px;">$1</h1>')
+                  // Tables (markdown format)
+                  .replace(/\|(.+)\|/g, (_match, content) => {
+                    const cells = content.split('|').map((c: string) => c.trim());
+                    return `<table style="font-family:Arial;border-collapse:collapse;width:100%;margin:12px 0;"><tr>${cells.map((cell: string) => `<td style="border:1px solid #ddd;padding:8px;">${cell}</td>`).join('')}</tr></table>`;
+                  })
+                  // Bold and italic
+                  .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
+                  .replace(/\*(.*?)\*/g, '<em>$1</em>')
+                  // Lists
+                  .replace(/^\- (.*$)/gim, '<li style="margin:4px 0;">$1</li>')
+                  .replace(/^(\d+)\. (.*$)/gim, '<li style="margin:4px 0;">$2</li>')
+                  // Line breaks
+                  .replace(/\n\n/g, '</p><p style="margin:8px 0;">')
                   .replace(/\n/g, '<br/>');
                 
                 await generateSimplePdf(
                   template.name,
-                  `<div style='font-family:Arial;padding:20px;'>${htmlTemplate}</div>`,
+                  `<div style='font-family:Arial;padding:20px;line-height:1.6;'><p style="margin:8px 0;">${htmlTemplate}</p></div>`,
                   `${sanitizeFilename(template.name)}.pdf`
                 );
+                
+                // Save additional document
+                if (userProfile && planId) {
+                  saveExportedDocument({
+                    id: `doc_${doc.id}_${Date.now()}`,
+                    userId: userProfile.id,
+                    planId: typeof planId === 'string' ? planId : undefined,
+                    name: doc.title,
+                    type: 'additional',
+                    format: 'PDF',
+                    fileName: `${sanitizeFilename(doc.title)}.pdf`,
+                    exportedAt: new Date().toISOString(),
+                    status: 'exported'
+                  });
+                }
               } else {
                 // Fallback to simple version if no template found
                 await generateSimplePdf(`${doc.title}`, `
@@ -479,18 +607,55 @@ export default function Export() {
             if (addonOnePager) {
               const summary = buildOnePager(sections);
               await generateSimplePdf(`One-pager`, summary, `${sanitizeFilename('one-pager')}.pdf`);
+              
+              // Save addon document
+              if (userProfile && planId) {
+                saveExportedDocument({
+                  id: `doc_onepager_${Date.now()}`,
+                  userId: userProfile.id,
+                  planId: typeof planId === 'string' ? planId : undefined,
+                  name: 'One-Pager',
+                  type: 'addon',
+                  format: 'PDF',
+                  fileName: 'one-pager.pdf',
+                  exportedAt: new Date().toISOString(),
+                  status: 'exported'
+                });
+              }
             }
 
             // 4) submission pack
             if (addonSubmissionPack) {
               const html = buildSubmissionPack(sections, additionalDocuments.filter(d=>selectedDocs.has(d.id)));
               await generateSimplePdf(`Submission pack`, html, `${sanitizeFilename('submission-pack')}.pdf`);
+              
+              // Save addon document
+              if (userProfile && planId) {
+                saveExportedDocument({
+                  id: `doc_submissionpack_${Date.now()}`,
+                  userId: userProfile.id,
+                  planId: typeof planId === 'string' ? planId : undefined,
+                  name: 'Submission Pack',
+                  type: 'addon',
+                  format: 'PDF',
+                  fileName: 'submission-pack.pdf',
+                  exportedAt: new Date().toISOString(),
+                  status: 'exported'
+                });
+              }
             }
           } catch (error) {
             analytics.trackError(error as Error, 'export_multiple');
             alert('Export failed. Please try again.');
           } finally {
             setExporting(false);
+            
+            // After successful export, redirect to thank-you page
+            setTimeout(() => {
+              const currentPlanId = typeof planId === 'string' ? planId : (userProfile ? `plan_${Date.now()}` : 'current');
+              const redirectUrl = `/thank-you?planId=${currentPlanId}&exported=true`;
+              window.location.href = redirectUrl;
+            }, 2000);
           }
         }}
       >
@@ -523,4 +688,6 @@ export default function Export() {
     </main>
   );
 }
+
+export default withAuth(Export);
 

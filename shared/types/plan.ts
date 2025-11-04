@@ -56,6 +56,17 @@ export type PlanDocument = {
       subtitle?: string,
       author?: string,
       date?: string
+    },
+    formatting?: {
+      fontFamily?: string,
+      fontSize?: number,
+      lineSpacing?: number,
+      margins?: {
+        top: number,
+        bottom: number,
+        left: number,
+        right: number
+      }
     }
   },
   sections: PlanSection[],

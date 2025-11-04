@@ -18,6 +18,31 @@ export type PlanSettings = {
   showTableOfContents?: boolean;
 };
 
+// Dashboard integration types
+export type DashboardPlan = {
+  id: string;
+  userId: string;
+  clientId?: string;
+  title: string;
+  status: 'draft' | 'in_progress' | 'completed';
+  lastModified: string;
+  programType: string;
+  progress: number;
+  isPaid?: boolean;
+  paidAt?: string;
+};
+
+export type DashboardRecommendation = {
+  id: string;
+  userId: string;
+  clientId?: string;
+  name: string;
+  type: string;
+  status: 'pending' | 'applied' | 'rejected' | 'approved';
+  amount: string;
+  deadline?: string;
+};
+
 function getSessionId(): string {
   if (typeof document === "undefined") return "anon"
   const match = document.cookie.split(";").find((c) => c.trim().startsWith("pf_session="))
@@ -139,6 +164,115 @@ export function loadPlanSettings(): PlanSettings {
     return raw ? JSON.parse(raw) : {}
   } catch {
     return {}
+  }
+}
+
+// ============================================================================
+// ADDED: Dashboard Integration - Save plans for dashboard display
+// ============================================================================
+
+/**
+ * Save a plan to userPlans for dashboard display
+ */
+export function savePlanToDashboard(plan: {
+  id: string;
+  userId: string;
+  clientId?: string;
+  title: string;
+  programType?: string;
+  programId?: string;
+  sections?: any[];
+  status?: 'draft' | 'in_progress' | 'completed';
+}): void {
+  try {
+    if (!plan.userId) {
+      console.warn('Cannot save plan to dashboard: userId is required');
+      return;
+    }
+
+    const plans: DashboardPlan[] = JSON.parse(localStorage.getItem('userPlans') || '[]');
+    
+    // Calculate progress based on sections
+    const totalSections = plan.sections?.length || 0;
+    const completedSections = plan.sections?.filter((s: any) => s.content && s.content.trim().length > 0).length || 0;
+    const progress = totalSections > 0 ? Math.round((completedSections / totalSections) * 100) : 0;
+    
+    // Determine status
+    let status: 'draft' | 'in_progress' | 'completed' = plan.status || 'draft';
+    if (progress === 100 && status !== 'completed') {
+      status = 'completed';
+    } else if (progress > 0 && status === 'draft') {
+      status = 'in_progress';
+    }
+
+    const dashboardPlan: DashboardPlan = {
+      id: plan.id,
+      userId: plan.userId,
+      clientId: plan.clientId,
+      title: plan.title || 'Untitled Plan',
+      status,
+      lastModified: new Date().toISOString(),
+      programType: plan.programType || 'GRANT',
+      progress
+    };
+
+    // Update existing plan or add new
+    const existingIndex = plans.findIndex(p => p.id === plan.id && p.userId === plan.userId);
+    if (existingIndex >= 0) {
+      plans[existingIndex] = { ...plans[existingIndex], ...dashboardPlan };
+    } else {
+      plans.push(dashboardPlan);
+    }
+
+    localStorage.setItem('userPlans', JSON.stringify(plans));
+  } catch (error) {
+    console.error('Error saving plan to dashboard:', error);
+  }
+}
+
+/**
+ * Save a recommendation to userRecommendations for dashboard display
+ */
+export function saveRecommendationToDashboard(recommendation: {
+  id: string;
+  userId: string;
+  clientId?: string;
+  name: string;
+  type: string;
+  amount?: string;
+  deadline?: string;
+  status?: 'pending' | 'applied' | 'rejected' | 'approved';
+}): void {
+  try {
+    if (!recommendation.userId) {
+      console.warn('Cannot save recommendation to dashboard: userId is required');
+      return;
+    }
+
+    const recommendations: DashboardRecommendation[] = JSON.parse(localStorage.getItem('userRecommendations') || '[]');
+    
+    const dashboardRec: DashboardRecommendation = {
+      id: recommendation.id,
+      userId: recommendation.userId,
+      clientId: recommendation.clientId,
+      name: recommendation.name,
+      type: recommendation.type,
+      status: recommendation.status || 'pending',
+      amount: recommendation.amount || '',
+      deadline: recommendation.deadline
+    };
+
+    // Update existing recommendation or add new
+    const existingIndex = recommendations.findIndex(r => r.id === recommendation.id && r.userId === recommendation.userId);
+    if (existingIndex >= 0) {
+      recommendations[existingIndex] = { ...recommendations[existingIndex], ...dashboardRec };
+    } else {
+      recommendations.push(dashboardRec);
+    }
+
+    localStorage.setItem('userRecommendations', JSON.stringify(recommendations));
+  } catch (error) {
+    console.error('Error saving recommendation to dashboard:', error);
   }
 }
 

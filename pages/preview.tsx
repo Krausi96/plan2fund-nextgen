@@ -10,15 +10,21 @@ import { Switch } from "@/shared/components/ui/switch";
 import { Label } from "@/shared/components/ui/label";
 import ExportRenderer from "@/features/export/renderer/renderer";
 import { getDocuments } from "@/shared/lib/templates";
+import { withAuth } from "@/shared/lib/withAuth";
+import { useUser } from "@/shared/contexts/UserContext";
 
-export default function Preview() {
+function Preview() {
   const { t } = useI18n();
   const router = useRouter();
+  const { userProfile } = useUser();
   const [sections, setSections] = useState<PlanSection[]>([]);
   const [loading, setLoading] = useState(true);
   const [additionalDocuments, setAdditionalDocuments] = useState<any[]>([]);
   const [product] = useState<string>('submission');
   const [route] = useState<string>('grants');
+  
+  // Get or create plan ID
+  const planId = router.query.planId as string || (userProfile ? `plan_${Date.now()}` : 'current');
   
   useEffect(() => {
     const loadedSections = loadPlanSections();
@@ -603,8 +609,25 @@ export default function Preview() {
             </button>
           </div>
         </div>
+
+        {/* Continue to Checkout */}
+        <div className="p-4 border rounded-lg bg-gradient-to-r from-blue-600 to-purple-600 text-white">
+          <h3 className="font-semibold mb-2">Ready to Export?</h3>
+          <p className="text-sm mb-4 opacity-90">
+            Get your professional business plan and additional documents.
+          </p>
+          <Link 
+            href={`/checkout?planId=${planId}&product=${product}&route=${route}`}
+            className="block w-full text-center px-4 py-2 bg-white text-blue-600 rounded-lg font-medium hover:bg-gray-100 transition-colors"
+            onClick={() => analytics.trackUserAction('preview_continue_to_checkout', { planId, product, route })}
+          >
+            Continue to Checkout →
+          </Link>
+        </div>
       </aside>
     </main>
   );
 }
+
+export default withAuth(Preview);
 

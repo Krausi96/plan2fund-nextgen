@@ -33,9 +33,10 @@ export class EditorDataProvider {
       const fundingType: 'grants' | 'bankLoans' | 'equity' | 'visa' =
         programType.includes('loan') ? 'bankLoans' : programType.includes('equity') ? 'equity' : programType.includes('visa') ? 'visa' : 'grants';
       // Fallback template for gap-filling - use unified system
+      // Default to submission product for fallback sections
       let fallbackById: Record<string, UnifiedEditorSection> = {};
       try {
-        const fallbackSections = await getSections(fundingType);
+        const fallbackSections = await getSections(fundingType, 'submission');
         fallbackSections.forEach((s) => {
           fallbackById[s.id] = {
             id: s.id,

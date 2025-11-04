@@ -1,8 +1,9 @@
 ﻿import SmartWizard from "@/features/reco/components/wizard/SmartWizard";
 import { useEffect } from "react";
 import analytics from "@/shared/lib/analytics";
+import { withAuth } from "@/shared/lib/withAuth";
 
-export default function RecoPage() {
+function RecoPage() {
   useEffect(() => {
     analytics.trackPageView('/reco', 'Recommendations');
     analytics.trackUserAction('reco_started', {});
@@ -29,4 +30,6 @@ export default function RecoPage() {
     </div>
   );
 }
+
+export default withAuth(RecoPage);
 

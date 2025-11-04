@@ -3,8 +3,9 @@
 
 import { useRouter } from 'next/router';
 import UnifiedEditor from '@/features/editor/components/UnifiedEditor';
+import { withAuth } from '@/shared/lib/withAuth';
 
-export default function EditorPage() {
+function EditorPage() {
   const router = useRouter();
   const { programId, route, product, answers } = router.query;
 
@@ -29,3 +30,5 @@ export default function EditorPage() {
     />
   );
 }
+
+export default withAuth(EditorPage);

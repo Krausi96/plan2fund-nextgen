@@ -1,16 +1,29 @@
 ﻿import Link from "next/link"
 import { useState, useEffect, useRef } from "react"
-import { Menu, X, User } from "lucide-react"
+import { Menu, X, User, LogOut } from "lucide-react"
+import { useRouter } from "next/router"
 import LanguageSwitcher from '@/shared/components/layout/LanguageSwitcher'
 import { useI18n } from "@/shared/contexts/I18nContext"
 import { useUser } from "@/shared/contexts/UserContext"
 
 export default function Header() {
   const { t } = useI18n()
-  const { userProfile } = useUser()
+  const router = useRouter()
+  const { userProfile, clearUserProfile } = useUser()
   const [open, setOpen] = useState(false)
+  const [isMounted, setIsMounted] = useState(false)
   const menuRef = useRef<HTMLDivElement>(null)
   const buttonRef = useRef<HTMLButtonElement>(null)
+
+  useEffect(() => {
+    setIsMounted(true)
+  }, [])
+
+  const handleLogout = () => {
+    clearUserProfile()
+    setOpen(false)
+    router.push('/')
+  }
 
   // Close menu on escape key
   useEffect(() => {
@@ -54,21 +67,33 @@ export default function Header() {
           <Link href="/faq" className="text-textSecondary hover:text-primary transition-colors font-medium">
             FAQ
           </Link>
-          {userProfile ? (
-            <Link 
-              href="/dashboard" 
-              className="flex items-center gap-2 text-textSecondary hover:text-primary transition-colors font-medium"
-            >
-              <User className="w-4 h-4" />
-              My Account
-            </Link>
-          ) : (
+          {isMounted && userProfile ? (
+            <div className="flex items-center gap-4">
+              <Link 
+                href="/dashboard" 
+                className="flex items-center gap-2 text-textSecondary hover:text-primary transition-colors font-medium"
+              >
+                <User className="w-4 h-4" />
+                My Account
+              </Link>
+              <button
+                onClick={handleLogout}
+                className="flex items-center gap-2 text-textSecondary hover:text-primary transition-colors font-medium"
+                title="Log out"
+              >
+                <LogOut className="w-4 h-4" />
+                <span className="hidden sm:inline">Log out</span>
+              </button>
+            </div>
+          ) : isMounted ? (
             <Link 
               href="/login" 
               className="px-5 py-2 border border-primary text-primary rounded-lg hover:bg-primary hover:text-white transition-colors font-medium"
             >
               Log in
             </Link>
+          ) : (
+            <div className="w-20 h-10" />
           )}
           <LanguageSwitcher />
         </nav>
@@ -111,16 +136,25 @@ export default function Header() {
             >
               {t('nav.faq')}
             </Link>
-            {userProfile ? (
-              <Link 
-                href="/dashboard" 
-                className="flex items-center gap-2 text-gray-700 hover:text-blue-600 transition-colors font-medium py-2"
-                onClick={() => setOpen(false)}
-              >
-                <User className="w-4 h-4" />
-                {t('nav.myAccount')}
-              </Link>
-            ) : (
+            {isMounted && userProfile ? (
+              <>
+                <Link 
+                  href="/dashboard" 
+                  className="flex items-center gap-2 text-gray-700 hover:text-blue-600 transition-colors font-medium py-2"
+                  onClick={() => setOpen(false)}
+                >
+                  <User className="w-4 h-4" />
+                  {t('nav.myAccount')}
+                </Link>
+                <button
+                  onClick={handleLogout}
+                  className="flex items-center gap-2 text-gray-700 hover:text-blue-600 transition-colors font-medium py-2 text-left w-full"
+                >
+                  <LogOut className="w-4 h-4" />
+                  Log out
+                </button>
+              </>
+            ) : isMounted ? (
               <Link 
                 href="/login" 
                 className="px-4 py-2 text-blue-600 border border-blue-600 rounded-lg hover:bg-blue-600 hover:text-white transition-colors font-medium text-center"
@@ -128,7 +162,7 @@ export default function Header() {
               >
                 Log in
               </Link>
-            )}
+            ) : null}
             <div className="pt-4 border-t">
               <LanguageSwitcher compact />
             </div>

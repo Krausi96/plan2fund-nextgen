@@ -1,16 +1,28 @@
 ﻿import Link from "next/link";
+import { useRouter } from "next/router";
 import featureFlags from "@/shared/lib/featureFlags";
 import CartSummary from '@/features/export/components/CartSummary';
 import { useI18n } from "@/shared/contexts/I18nContext";
 import { useEffect } from "react";
 import analytics from "@/shared/lib/analytics";
+import { withAuth } from "@/shared/lib/withAuth";
+import { useUser } from "@/shared/contexts/UserContext";
 
-export default function Checkout() {
+function Checkout() {
   const { t } = useI18n();
+  const router = useRouter();
+  const { userProfile } = useUser();
   const CHECKOUT_ENABLED = featureFlags.isEnabled('CHECKOUT_ENABLED')
+  
+  // Get planId from query params
+  const planId = router.query.planId as string || 'current';
+  const product = router.query.product as string || 'submission';
+  const route = router.query.route as string || 'grant';
+  
   useEffect(() => {
     analytics.trackPageView('/checkout', 'Checkout');
-  }, []);
+    analytics.trackUserAction('checkout_viewed', { planId, product, route });
+  }, [planId, product, route]);
   if (!CHECKOUT_ENABLED) {
     return (
       <main className="max-w-3xl mx-auto py-12 space-y-6">
@@ -68,7 +80,8 @@ export default function Checkout() {
                   description: 'Full business plan with all sections',
                   amount: 99, // Price in EUR
                   quantity: 1,
-                  currency: 'eur'
+                  currency: 'eur',
+                  planId: planId // Include planId in items
                 }
               ];
 
@@ -78,9 +91,11 @@ export default function Checkout() {
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({
                   items,
-                  successUrl: `${window.location.origin}/thank-you?session_id={CHECKOUT_SESSION_ID}`,
-                  cancelUrl: `${window.location.origin}/checkout?canceled=true`,
-                  customerEmail: '', // Get from user context
+                  userId: userProfile?.id || '',
+                  userSegment: userProfile?.segment || 'B2C_FOUNDER',
+                  successUrl: `${window.location.origin}/thank-you?session_id={CHECKOUT_SESSION_ID}&planId=${planId}`,
+                  cancelUrl: `${window.location.origin}/checkout?canceled=true&planId=${planId}`,
+                  customerEmail: userProfile?.id || '', // Use user email from profile
                 })
               });
 
@@ -125,4 +140,6 @@ export default function Checkout() {
     </main>
   );
 }
+
+export default withAuth(Checkout);
 

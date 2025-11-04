@@ -92,6 +92,12 @@ class ExportManager {
   private generateHTML(plan: PlanDocument, options: ExportOptions): string {
     const watermark = options.includeWatermark ? this.generateWatermark() : '';
     
+    // Get formatting from plan settings if available (fallback to defaults)
+    const fontFamily = (plan.settings as any)?.fontFamily || 'Segoe UI, Tahoma, Geneva, Verdana, sans-serif';
+    const fontSize = (plan.settings as any)?.fontSize || 14;
+    const lineHeight = (plan.settings as any)?.lineHeight || (plan.settings as any)?.lineSpacing || 1.6;
+    const margins = (plan.settings as any)?.margins || { top: 2.5, bottom: 2.5, left: 2.5, right: 2.5 };
+    
     return `
       <!DOCTYPE html>
       <html>
@@ -100,12 +106,13 @@ class ExportManager {
           <title>${plan.settings.titlePage?.title || 'Business Plan'}</title>
           <style>
             body {
-              font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-              line-height: 1.6;
+              font-family: ${fontFamily};
+              font-size: ${fontSize}pt;
+              line-height: ${lineHeight};
               color: #333;
               max-width: 800px;
               margin: 0 auto;
-              padding: 40px 20px;
+              padding: ${margins.top}cm ${margins.right}cm ${margins.bottom}cm ${margins.left}cm;
               background: white;
             }
             .header {
@@ -218,6 +225,265 @@ class ExportManager {
       .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
       .replace(/\*(.*?)\*/g, '<em>$1</em>')
       .replace(/^(.+)$/gm, '<p>$1</p>');
+  }
+
+  /**
+   * Extract structured data from plan for template filling
+   */
+  extractPlanData(plan: PlanDocument, userAnswers?: Record<string, any>): {
+    businessInfo: Record<string, string>;
+    financials: Record<string, any>;
+    projectData: Record<string, string>;
+    metadata: Record<string, string>;
+  } {
+    // Extract business info from sections and user answers
+    const businessInfo: Record<string, string> = {
+      BUSINESS_NAME: plan.settings.titlePage?.title || '[Business Name]',
+      PROJECT_TITLE: plan.settings.titlePage?.title || '[Project Title]',
+      SUBTITLE: plan.settings.titlePage?.subtitle || '',
+      AUTHOR: plan.settings.titlePage?.author || '',
+      DATE: plan.settings.titlePage?.date || new Date().toLocaleDateString(),
+    };
+
+    // Extract from user answers if available
+    if (userAnswers) {
+      businessInfo.BUSINESS_NAME = userAnswers.business_name || userAnswers.company_name || businessInfo.BUSINESS_NAME;
+      businessInfo.BUSINESS_DESCRIPTION = userAnswers.business_description || userAnswers.description || '';
+      businessInfo.TARGET_MARKET = userAnswers.target_market || userAnswers.market || '';
+      businessInfo.TEAM_SIZE = userAnswers.team_size || userAnswers.team || '';
+      businessInfo.FUNDING_AMOUNT = userAnswers.funding_amount || userAnswers.amount || '';
+      businessInfo.USE_OF_FUNDS = userAnswers.use_of_funds || userAnswers.useOfFunds || '';
+      businessInfo.TIMELINE = userAnswers.timeline || userAnswers.duration || '';
+      businessInfo.LOCATION = userAnswers.location || userAnswers.country || '';
+      businessInfo.COMPANY_AGE = userAnswers.company_age || userAnswers.age || '';
+    }
+
+    // Extract from section content
+    plan.sections.forEach(section => {
+      const content = section.content || '';
+      const title = (section.title || '').toLowerCase();
+      
+      // Extract business description
+      if (title.includes('executive') || title.includes('summary')) {
+        businessInfo.EXECUTIVE_SUMMARY = content.slice(0, 500);
+      }
+      if (title.includes('business') && title.includes('description')) {
+        businessInfo.BUSINESS_DESCRIPTION = content.slice(0, 300);
+      }
+      if (title.includes('market') || title.includes('target')) {
+        businessInfo.TARGET_MARKET = content.slice(0, 300);
+      }
+      if (title.includes('team') || title.includes('management')) {
+        businessInfo.TEAM_INFO = content.slice(0, 300);
+      }
+      if (title.includes('innovation') || title.includes('technology')) {
+        businessInfo.INNOVATION = content.slice(0, 300);
+      }
+      if (title.includes('impact') || title.includes('sustainability')) {
+        businessInfo.IMPACT = content.slice(0, 300);
+      }
+    });
+
+    // Extract financials from tables
+    const financials: Record<string, any> = {};
+    plan.sections.forEach(section => {
+      if (section.tables) {
+        if (section.tables.revenue) {
+          financials.REVENUE_TABLE = this.formatTable(section.tables.revenue);
+          financials.REVENUE_YEAR_1 = section.tables.revenue.rows[0]?.values[0] || 0;
+          financials.REVENUE_YEAR_2 = section.tables.revenue.rows[0]?.values[1] || 0;
+          financials.REVENUE_YEAR_3 = section.tables.revenue.rows[0]?.values[2] || 0;
+          financials.REVENUE_TOTAL = section.tables.revenue.rows
+            .find((r: any) => r.label.toLowerCase().includes('total'))?.values?.[0] || 0;
+        }
+        if (section.tables.costs) {
+          financials.COSTS_TABLE = this.formatTable(section.tables.costs);
+          financials.COSTS_TOTAL = section.tables.costs.rows
+            .find((r: any) => r.label.toLowerCase().includes('total'))?.values?.[0] || 0;
+        }
+        if (section.tables.cashflow) {
+          financials.CASHFLOW_TABLE = this.formatTable(section.tables.cashflow);
+        }
+        if (section.tables.useOfFunds) {
+          financials.USE_OF_FUNDS_TABLE = this.formatTable(section.tables.useOfFunds);
+        }
+      }
+    });
+
+    // Extract project data
+    const projectData: Record<string, string> = {
+      PROJECT_TITLE: plan.settings.titlePage?.title || '[Project Title]',
+      WORD_COUNT: String(plan.sections.reduce((sum, s) => 
+        sum + (s.content || '').split(/\s+/).filter((w: string) => w.length > 0).length, 0
+      )),
+      COMPLETION: String(Math.round((plan.sections.filter(s => s.status === 'aligned').length / plan.sections.length) * 100)) + '%',
+    };
+
+    // Extract metadata
+    const metadata: Record<string, string> = {
+      GENERATED_DATE: new Date().toLocaleDateString(),
+      GENERATED_TIME: new Date().toLocaleTimeString(),
+      LANGUAGE: plan.language || 'en',
+      TONE: plan.tone || 'neutral',
+      PRODUCT_TYPE: plan.product || 'submission',
+      ROUTE: plan.route || 'grants',
+    };
+
+    return { businessInfo, financials, projectData, metadata };
+  }
+
+  /**
+   * Format table data as markdown table
+   */
+  private formatTable(table: { columns: string[]; rows: Array<{ label: string; values: number[] }> }): string {
+    if (!table.columns || !table.rows) return '';
+    
+    const headers = table.columns.join(' | ');
+    const separator = table.columns.map(() => '---').join(' | ');
+    const rows = table.rows.map(row => {
+      const values = row.values.map(v => String(v || 0));
+      return `${row.label} | ${values.join(' | ')}`;
+    }).join('\n');
+    
+    return `| ${headers} |\n| ${separator} |\n${rows}`;
+  }
+
+  /**
+   * Fill template with extracted data
+   * Maps template placeholders (e.g., [Project Name], [Amount]) to extracted data
+   */
+  fillTemplate(template: string, plan: PlanDocument, userAnswers?: Record<string, any>, program?: any): string {
+    const { businessInfo, financials, projectData, metadata } = this.extractPlanData(plan, userAnswers);
+    
+    let filled = template;
+
+    // Map template placeholders to extracted data keys
+    // Templates use: [Project Name], [Amount], [Company Name], [Description], [Date], etc.
+    // Extracted data uses: PROJECT_TITLE, FUNDING_AMOUNT, BUSINESS_NAME, etc.
+    const placeholderMap: Record<string, string> = {
+      // Project/Title mappings
+      'Project Name': businessInfo.PROJECT_TITLE || businessInfo.BUSINESS_NAME || '[Project Name]',
+      'Project Title': businessInfo.PROJECT_TITLE || businessInfo.BUSINESS_NAME || '[Project Title]',
+      'Company Name': businessInfo.BUSINESS_NAME || businessInfo.PROJECT_TITLE || '[Company Name]',
+      
+      // Financial mappings
+      'Amount': businessInfo.FUNDING_AMOUNT || financials.REVENUE_TOTAL || '[Amount]',
+      'Total Budget': businessInfo.FUNDING_AMOUNT || financials.REVENUE_TOTAL || '[Total Budget]',
+      'Total Project Costs': businessInfo.FUNDING_AMOUNT || financials.COSTS_TOTAL || '[Total Project Costs]',
+      'Funding Amount': businessInfo.FUNDING_AMOUNT || '[Funding Amount]',
+      
+      // Date mappings
+      'Start Date': businessInfo.TIMELINE || metadata.GENERATED_DATE || '[Start Date]',
+      'End Date': businessInfo.TIMELINE || '[End Date]',
+      'Date': metadata.GENERATED_DATE || businessInfo.DATE || '[Date]',
+      
+      // Description mappings
+      'Description': businessInfo.BUSINESS_DESCRIPTION || businessInfo.EXECUTIVE_SUMMARY?.slice(0, 200) || '[Description]',
+      'Title': businessInfo.PROJECT_TITLE || businessInfo.BUSINESS_NAME || '[Title]',
+      
+      // Team/Personnel mappings
+      'Lead': businessInfo.TEAM_INFO?.slice(0, 100) || businessInfo.TEAM_SIZE || '[Lead]',
+      'Partners': businessInfo.TEAM_SIZE || '[Partners]',
+      'Team': businessInfo.TEAM_SIZE || businessInfo.TEAM_INFO?.slice(0, 100) || '[Team]',
+      
+      // Financial detail mappings
+      'Percentage': financials.REVENUE_TOTAL ? '100' : '[Percentage]',
+      'Justification': businessInfo.USE_OF_FUNDS?.slice(0, 200) || '[Justification]',
+      'Months': businessInfo.TIMELINE || '[Months]',
+      
+      // Additional common mappings
+      'Deliverable': businessInfo.INNOVATION?.slice(0, 150) || '[Deliverable]',
+      'Rate/hour': '[Rate/hour]', // Needs specific extraction
+      'Hours/week': '[Hours/week]', // Needs specific extraction
+      'Number': businessInfo.TEAM_SIZE || '[Number]',
+      'Destinations': businessInfo.LOCATION || '[Destinations]',
+      'Specific services': businessInfo.USE_OF_FUNDS?.slice(0, 100) || '[Specific services]',
+      'List of major equipment': businessInfo.USE_OF_FUNDS?.slice(0, 150) || '[List of major equipment]',
+    };
+
+    // Replace template-style placeholders (with spaces)
+    Object.entries(placeholderMap).forEach(([placeholder, value]) => {
+      const regex = new RegExp(`\\[${placeholder.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}\\]`, 'g');
+      filled = filled.replace(regex, value);
+    });
+
+    // Replace extracted data placeholders (with underscores, uppercase) - for backward compatibility
+    Object.entries(businessInfo).forEach(([key, value]) => {
+      const regex = new RegExp(`\\[${key}\\]`, 'g');
+      filled = filled.replace(regex, value || '[Not specified]');
+    });
+
+    // Replace financial placeholders
+    Object.entries(financials).forEach(([key, value]) => {
+      const regex = new RegExp(`\\[${key}\\]`, 'g');
+      if (typeof value === 'string') {
+        filled = filled.replace(regex, value);
+      } else {
+        filled = filled.replace(regex, String(value || 0));
+      }
+    });
+
+    // Replace project data placeholders
+    Object.entries(projectData).forEach(([key, value]) => {
+      const regex = new RegExp(`\\[${key}\\]`, 'g');
+      filled = filled.replace(regex, value || '[Not specified]');
+    });
+
+    // Replace metadata placeholders
+    Object.entries(metadata).forEach(([key, value]) => {
+      const regex = new RegExp(`\\[${key}\\]`, 'g');
+      filled = filled.replace(regex, value || '[Not specified]');
+    });
+
+    // Replace program info if available
+    if (program) {
+      filled = filled.replace(/\[PROGRAM_NAME\]/g, program.name || '[Program Name]');
+      filled = filled.replace(/\[PROGRAM_TYPE\]/g, program.type || '[Program Type]');
+      filled = filled.replace(/\[PROGRAM_AMOUNT\]/g, program.amount || '[Program Amount]');
+    }
+
+    // Replace section content placeholders (legacy support)
+    plan.sections.forEach(section => {
+      const content = section.content || '';
+      const plainText = content.replace(/<[^>]*>/g, '').slice(0, 500); // Strip HTML and limit
+      filled = filled.replace(
+        new RegExp(`\\[${section.title.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}\\]`, 'g'),
+        plainText || '[Section content not available]'
+      );
+    });
+
+    // Extract and replace financial table values from tables if available
+    plan.sections.forEach(section => {
+      if (section.tables) {
+        // Revenue table
+        if (section.tables.revenue) {
+          const revenueTable = this.formatTable(section.tables.revenue);
+          filled = filled.replace(/\[REVENUE_TABLE\]/g, revenueTable);
+          // Replace year-specific placeholders
+          section.tables.revenue.rows.forEach((row: any) => {
+            if (row.label.toLowerCase().includes('total')) {
+              row.values.forEach((val: number, colIdx: number) => {
+                filled = filled.replace(new RegExp(`\\[Year ${colIdx + 1}.*?Revenue\\]`, 'gi'), String(val || 0));
+              });
+            }
+          });
+        }
+        
+        // Costs table
+        if (section.tables.costs) {
+          const costsTable = this.formatTable(section.tables.costs);
+          filled = filled.replace(/\[COSTS_TABLE\]/g, costsTable);
+        }
+        
+        // Use of funds table
+        if (section.tables.useOfFunds) {
+          const useOfFundsTable = this.formatTable(section.tables.useOfFunds);
+          filled = filled.replace(/\[USE_OF_FUNDS_TABLE\]/g, useOfFundsTable);
+        }
+      }
+    });
+
+    return filled;
   }
 
   async exportPlan(plan: PlanDocument, options: ExportOptions): Promise<ExportResult> {

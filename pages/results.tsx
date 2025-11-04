@@ -8,13 +8,15 @@ import ProgramDetailsModal from "@/features/reco/components/ProgramDetailsModal"
 import InfoDrawer from '@/shared/components/common/InfoDrawer';
 import { useRecommendation } from "@/features/reco/contexts/RecommendationContext";
 import { useI18n } from "@/shared/contexts/I18nContext";
+import { useUser } from "@/shared/contexts/UserContext";
 import StructuredRequirementsDisplay from "@/shared/components/common/StructuredRequirementsDisplay";
 import analytics from "@/shared/lib/analytics";
+import { withAuth } from "@/shared/lib/withAuth";
 
 // Enhanced program result type with detailed explanations
 type ProgramResult = any; // Using any for now to avoid import issues
 
-export default function ResultsPage() {
+function ResultsPage() {
   const { t } = useI18n();
   const router = useRouter();
   const { state } = useRecommendation();
@@ -31,11 +33,37 @@ export default function ResultsPage() {
   
   const results = contextResults.length > 0 ? contextResults : storageResults;
   const loading = state.isLoading;
+  const { userProfile } = useUser();
+  
   useEffect(() => {
     analytics.trackPageView('/results', 'Results');
     analytics.trackUserAction('results_viewed', { count: results.length });
+    
+    // Save recommendations to dashboard when user views results
+    if (userProfile && results.length > 0) {
+      const { saveRecommendationToDashboard } = require('@/shared/lib/planStore');
+      const { multiUserDataManager } = require('@/shared/lib/multiUserDataManager');
+      
+      // Get active client ID if in multi-user mode
+      const clients = multiUserDataManager.listClients();
+      const activeClientId = clients.length > 0 ? clients[0].id : undefined;
+      
+      // Save each recommendation to dashboard
+      results.forEach((program: any) => {
+        saveRecommendationToDashboard({
+          id: program.id,
+          userId: userProfile.id,
+          clientId: activeClientId,
+          name: program.name || program.title || 'Unknown Program',
+          type: program.type || 'GRANT',
+          amount: program.amount || '',
+          deadline: program.deadline,
+          status: 'pending'
+        });
+      });
+    }
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  }, [results.length, userProfile?.id]);
   // const userAnswers = state.answers;
 
   // Results are now managed by the RecommendationContext
@@ -527,3 +555,5 @@ export default function ResultsPage() {
     </div>
   );
 }
+
+export default withAuth(ResultsPage);

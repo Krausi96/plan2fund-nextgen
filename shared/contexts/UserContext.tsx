@@ -23,12 +23,25 @@ export function UserProvider({ children }: UserProviderProps) {
   const [userProfile, setUserProfileState] = useState<UserProfile | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [hasCompletedOnboarding, setHasCompletedOnboarding] = useState(false);
+  const [isMounted, setIsMounted] = useState(false);
 
   useEffect(() => {
-    loadUserProfile();
+    setIsMounted(true);
   }, []);
 
+  useEffect(() => {
+    if (isMounted) {
+      loadUserProfile();
+    }
+  }, [isMounted]);
+
   const loadUserProfile = async () => {
+    // Only run on client side
+    if (typeof window === 'undefined') {
+      setIsLoading(false);
+      return;
+    }
+
     try {
       setIsLoading(true);
       
@@ -55,7 +68,9 @@ export function UserProvider({ children }: UserProviderProps) {
         } catch (parseError) {
           console.error('Error parsing stored profile:', parseError);
           // Clear invalid profile from localStorage
-          localStorage.removeItem('pf_user_profile');
+          if (typeof window !== 'undefined') {
+            localStorage.removeItem('pf_user_profile');
+          }
         }
       }
     } catch (error) {
@@ -72,7 +87,9 @@ export function UserProvider({ children }: UserProviderProps) {
         const data = await response.json();
         if (data.success && data.profile) {
           setUserProfileState(data.profile);
-          localStorage.setItem('pf_user_profile', JSON.stringify(data.profile));
+          if (typeof window !== 'undefined') {
+            localStorage.setItem('pf_user_profile', JSON.stringify(data.profile));
+          }
         }
       }
     } catch (error) {
@@ -84,8 +101,10 @@ export function UserProvider({ children }: UserProviderProps) {
     setUserProfileState(profile);
     setHasCompletedOnboarding(true);
     
-    // Store in localStorage
-    localStorage.setItem('pf_user_profile', JSON.stringify(profile));
+    // Store in localStorage (only on client)
+    if (typeof window !== 'undefined') {
+      localStorage.setItem('pf_user_profile', JSON.stringify(profile));
+    }
     
     // Set feature flags context
     featureFlags.setUserContext(profile.segment, profile.id);
@@ -100,7 +119,11 @@ export function UserProvider({ children }: UserProviderProps) {
   const clearUserProfile = () => {
     setUserProfileState(null);
     setHasCompletedOnboarding(false);
-    localStorage.removeItem('pf_user_profile');
+    
+    // Clear from localStorage (only on client)
+    if (typeof window !== 'undefined') {
+      localStorage.removeItem('pf_user_profile');
+    }
     
     // Clear feature flags context
     featureFlags.setUserContext('', '');

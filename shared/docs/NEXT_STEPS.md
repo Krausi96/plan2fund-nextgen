@@ -1,114 +1,169 @@
-# 🎯 NEXT STEPS - What's Left
+# Next Steps - Priority Action Items
 
 **Date:** 2025-01-03  
-**Status:** Cleanup done, what's next?
+**Based on:** IMPLEMENTATION_STATUS.md analysis
 
 ---
 
-## ✅ **COMPLETED:**
+## 🎯 **PRIORITY 1: CRITICAL (Blocks Functionality)**
 
-1. ✅ **Single Source of Truth** - Extended planStore.ts (not appStore.ts)
-2. ✅ **Payment Flow Wired** - Checkout → Stripe → Success → Thank You
-3. ✅ **Editor Prefill** - Wizard answers now prefilling sections
-4. ✅ **Cleanup** - Deleted 8 unused files (AddOnChips, addons, export, intake files)
-5. ✅ **Features Audit** - Most files are used, only few were unused
+### **1. Authentication & Authorization** 🔴
+**Status:** Partially implemented, missing connections
 
----
+**Tasks:**
+- [ ] **Protect routes** - Add middleware/HOC for `/reco`, `/editor`, `/export`, `/dashboard`
+- [ ] **Add logout** - Implement logout functionality in Header
+- [ ] **Fix redirects** - Preserve intended destination after login
+- [ ] **Data persistence** - Ensure workflow pages save to localStorage consistently
 
-## 🔍 **WHAT'S NEXT:**
+**Files to modify:**
+- `pages/_app.tsx` - Add auth middleware
+- `shared/components/layout/Header.tsx` - Add logout
+- `pages/login.tsx` - Fix redirect logic
 
-### **1. Verify No Broken Imports** ✅
-
-**Check:**
-- After deleting intakeEngine.ts, verify no files import it
-- Check if any TypeScript errors from deletions
-
-**Status:** ✅ Should be clean (already checked)
+**Reference:** `USER_AUTHENTICATION_WIRING_ANALYSIS.md`
 
 ---
 
-### **2. Test Complete Flow** ⚠️
+### **2. RequirementsChecker Database Integration** 🔴
+**Status:** Component exists but doesn't use database
 
-**Test End-to-End:**
-1. Home → Wizard ✅
-2. Wizard → Results ✅
-3. Results → Editor ✅ (with prefill)
-4. Editor → Preview ✅
-5. Preview → Export ✅
-6. Export → Checkout ✅
-7. Checkout → Stripe ✅
-8. Stripe → Thank You ✅
+**Tasks:**
+- [ ] **Connect to API** - Fetch from `/api/programmes/${id}/requirements`
+- [ ] **Use scraper-lite data** - Replace `createReadinessValidator()` with database data
+- [ ] **Update component** - Use real requirements from database
 
-**Status:** ⚠️ Should test manually
+**Files to modify:**
+- `features/editor/components/RequirementsChecker.tsx` - Add API fetch
+- Remove dependency on `createReadinessValidator()` if it doesn't use DB
 
----
-
-### **3. Check Remaining Issues** ⚠️
-
-**From Previous Audits:**
-- EditorValidation.ts - Need to verify if used
-- libraryExtractor.ts - Need to verify if used
-- Any other potentially unused files
-
-**Status:** ⚠️ Some files still need verification
+**Reference:** `shared/docs/FULL_FLOW_ANALYSIS.md`
 
 ---
 
-### **4. Verify All Components Work** ⚠️
+### **3. Formatting Settings Persistence** 🟡
+**Status:** Export uses formatting, but settings not fully saved to plan
 
-**Check:**
-- All editor components functional
-- All API endpoints working
-- All data flows correct
+**Tasks:**
+- [ ] **Save formatting** - Add `formatting` to `plan.settings` in DocumentCustomizationPanel
+- [ ] **Update type** - Add `formatting` to `PlanDocument.settings` type
+- [ ] **Persist to localStorage** - Save formatting when user changes settings
 
-**Status:** ⚠️ Should test
-
----
-
-### **5. Documentation** ✅
-
-**Done:**
-- Features audit complete
-- Cleanup documented
-- Flow analysis done
-
-**Status:** ✅ Complete
+**Files to modify:**
+- `features/editor/components/DocumentCustomizationPanel.tsx` - Save formatting
+- `features/editor/components/Phase4Integration.tsx` - Persist to plan
+- `shared/types/plan.ts` - Add formatting type
 
 ---
 
-## 🎯 **RECOMMENDED NEXT STEPS:**
+## 🎯 **PRIORITY 2: IMPORTANT (Enhances UX)**
 
-### **Priority 1: Verify Everything Works**
-1. Run TypeScript check (`npx tsc --noEmit`)
-2. Test payment flow manually
-3. Test editor prefill manually
-4. Check for any console errors
+### **4. UI Layout Cleanup** 🟡
+**Status:** Functional but messy
 
-### **Priority 2: Final Cleanup**
-1. Verify EditorValidation.ts usage
-2. Verify libraryExtractor.ts usage
-3. Remove any remaining unused files
+**Tasks:**
+- [ ] **Improve spacing** - Better visual hierarchy
+- [ ] **Organize sidebar** - Cleaner section list
+- [ ] **Reduce overlapping** - Better panel management
+- [ ] **Customization panel** - Don't take space when closed
 
-### **Priority 3: Testing**
-1. Test complete user journey
-2. Fix any bugs found
-3. Verify all data flows
+**Files to modify:**
+- `features/editor/components/Phase4Integration.tsx` - Layout improvements
 
 ---
 
-## 📊 **CURRENT STATUS:**
+### **5. Entry Paths Verification** 🟡
+**Status:** Need testing
 
-**✅ DONE:**
-- Storage consolidated (planStore.ts)
-- Payment wired
-- Editor prefill working
-- Cleanup complete (8 files deleted)
+**Tasks:**
+- [ ] **Test direct entry** - `/editor?programId=...` works
+- [ ] **Test document switching** - Product/route switching works
+- [ ] **Test plan switching** - Context preserved
+- [ ] **Fix any issues** - Address broken paths
 
-**⚠️ TODO:**
-- Test complete flow
-- Verify remaining files
-- Fix any issues found
+**Files to test:**
+- `pages/editor.tsx` - Entry point
+- `features/editor/components/UnifiedEditor.tsx` - Routing logic
 
-**Status:** Application should be functional, needs testing
+---
 
+### **6. Component Testing** 🟡
+**Status:** Need testing
+
+**Tasks:**
+- [ ] **Test DocumentCustomizationPanel** - Settings save/load correctly
+- [ ] **Test EnhancedAIChat** - AI responses work
+- [ ] **Test RequirementsChecker** - Shows correct requirements (after DB integration)
+
+**Files to test:**
+- `features/editor/components/DocumentCustomizationPanel.tsx`
+- `features/editor/components/EnhancedAIChat.tsx`
+- `features/editor/components/RequirementsChecker.tsx`
+
+---
+
+## 🎯 **PRIORITY 3: NICE TO HAVE (Future Enhancement)**
+
+### **7. Work Packages/Milestones Forms** 🔵
+**Status:** Structure exists, placeholders need content
+
+**Tasks:**
+- [ ] **Add forms** - User input for work packages
+- [ ] **Or AI generation** - Use AIHelper to generate work packages
+- [ ] **Store structured data** - Save work packages to plan
+
+**Files to create/modify:**
+- New component: `features/editor/components/WorkPackageForm.tsx`
+- Or enhance: `features/editor/engine/aiHelper.ts` - Add work package generation
+
+---
+
+### **8. Visual Charts Rendering** 🔵
+**Status:** Text-only, charts not rendered
+
+**Tasks:**
+- [ ] **Choose library** - Chart.js, recharts, or similar
+- [ ] **Render charts** - Convert figures to visual charts in PDF
+- [ ] **Integrate with export** - Charts in PDF/DOCX export
+
+**Files to modify:**
+- `features/export/engine/export.ts` - Add chart rendering
+- `features/export/renderer/renderer.tsx` - Chart components
+
+---
+
+### **9. Enhanced Data Extraction** 🔵
+**Status:** Basic extraction works, could be smarter
+
+**Tasks:**
+- [ ] **Parse natural language** - Extract dates, amounts from text
+- [ ] **Identify metrics** - Extract key metrics from sections
+- [ ] **Smart defaults** - Better fallback values
+
+**Files to enhance:**
+- `features/export/engine/export.ts` - Enhance `extractPlanData()`
+
+---
+
+## 📋 **RECOMMENDED ORDER**
+
+1. **Start with Priority 1** - These block full functionality
+2. **Then Priority 2** - Improves user experience
+3. **Finally Priority 3** - Nice enhancements
+
+**Suggested sequence:**
+1. Authentication (1-2 hours)
+2. RequirementsChecker DB (1 hour)
+3. Formatting persistence (30 min)
+4. UI cleanup (1-2 hours)
+5. Entry paths testing (30 min)
+6. Component testing (1 hour)
+
+**Total estimated time:** 5-7 hours for priorities 1-2
+
+---
+
+## ✅ **READY TO START?**
+
+**Which priority should we tackle first?**
 

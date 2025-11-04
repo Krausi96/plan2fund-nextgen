@@ -12,18 +12,28 @@ import { mergeSections, mergeDocuments, loadProgramSections, loadProgramDocument
 // ============================================================================
 
 /**
- * Get sections for a funding type and optional program
+ * Get sections for a funding type, product type, and optional program
  * Priority: Program-specific → Master → Default
+ * 
+ * @param fundingType - The funding type (grants, bankLoans, equity, visa)
+ * @param productType - The product type (strategy, review, submission)
+ * @param programId - Optional program ID for program-specific sections
+ * @param baseUrl - Optional base URL for API calls (server-side)
+ * 
+ * Note: Program-specific sections only merge for submission product
  */
 export async function getSections(
   fundingType: string,
+  productType: string = 'submission',
   programId?: string,
   baseUrl?: string
 ): Promise<SectionTemplate[]> {
-  const masterSections = MASTER_SECTIONS[fundingType] || MASTER_SECTIONS.grants;
+  // Get product-specific master sections
+  const masterSections = MASTER_SECTIONS[fundingType]?.[productType] || 
+                         MASTER_SECTIONS.grants.submission;
   
-  // If programId provided, load program-specific and merge
-  if (programId) {
+  // Only merge program-specific sections for submission product
+  if (programId && productType === 'submission') {
     const programSections = await loadProgramSections(programId, baseUrl);
     if (programSections.length > 0) {
       return mergeSections(masterSections, programSections);
@@ -76,10 +86,11 @@ export async function getDocument(
 export async function getSection(
   fundingType: string,
   sectionId: string,
+  productType: string = 'submission',
   programId?: string,
   baseUrl?: string
 ): Promise<SectionTemplate | undefined> {
-  const sections = await getSections(fundingType, programId, baseUrl);
+  const sections = await getSections(fundingType, productType, programId, baseUrl);
   return sections.find((s: SectionTemplate) => s.id === sectionId);
 }
 
