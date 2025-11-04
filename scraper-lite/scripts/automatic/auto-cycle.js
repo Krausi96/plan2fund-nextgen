@@ -14,10 +14,13 @@
 
 require('ts-node').register({ transpileOnly: true, compilerOptions: { module: 'commonjs', moduleResolution: 'node', esModuleInterop: true } });
 
+// Load environment variables from .env.local
+const path = require('path');
+require('dotenv').config({ path: path.join(__dirname, '../../../.env.local') });
+
 const { discover, scrape, loadState, saveState } = require('../../src/scraper.ts');
 const { getAllSeedUrls, institutions } = require('../../src/config.ts');
 const fs = require('fs');
-const path = require('path');
 
 const MAX_CYCLES = process.env.MAX_CYCLES ? parseInt(process.env.MAX_CYCLES) : 10;
 const MIN_NEW_URLS = process.env.MIN_NEW_URLS ? parseInt(process.env.MIN_NEW_URLS) : 5;
