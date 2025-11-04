@@ -31,25 +31,39 @@ async function rescrapeMissingMetadata() {
     // Find pages missing critical metadata
     console.log('\n📊 Finding pages with missing metadata...');
     
-    // Find pages missing ANY critical metadata
+    // Find pages missing ANY metadata
     // IMPORTANT: Pages that get complete metadata after re-scraping will be automatically skipped in next run
     // The WHERE clause filters out pages that already have all metadata
     const missingPages = await pool.query(`
       SELECT id, url, title,
         CASE WHEN funding_amount_min IS NULL AND funding_amount_max IS NULL THEN 'amount' ELSE '' END as missing_amount,
         CASE WHEN deadline IS NULL AND (open_deadline IS NULL OR open_deadline = false) THEN 'deadline' ELSE '' END as missing_deadline,
-        CASE WHEN contact_email IS NULL AND contact_phone IS NULL THEN 'contact' ELSE '' END as missing_contact
+        CASE WHEN contact_email IS NULL AND contact_phone IS NULL THEN 'contact' ELSE '' END as missing_contact,
+        CASE WHEN region IS NULL THEN 'region' ELSE '' END as missing_region,
+        CASE WHEN funding_types IS NULL OR array_length(funding_types, 1) IS NULL THEN 'funding_types' ELSE '' END as missing_funding_types,
+        CASE WHEN program_focus IS NULL OR array_length(program_focus, 1) IS NULL THEN 'program_focus' ELSE '' END as missing_program_focus
       FROM pages
       WHERE (
+        -- Critical metadata (most important)
         (funding_amount_min IS NULL AND funding_amount_max IS NULL) OR
         (deadline IS NULL AND (open_deadline IS NULL OR open_deadline = false)) OR
-        (contact_email IS NULL AND contact_phone IS NULL)
+        (contact_email IS NULL AND contact_phone IS NULL) OR
+        -- Additional metadata (less critical but still valuable)
+        region IS NULL OR
+        funding_types IS NULL OR array_length(funding_types, 1) IS NULL OR
+        program_focus IS NULL OR array_length(program_focus, 1) IS NULL
       )
       ORDER BY 
-        -- Prioritize pages missing multiple fields
+        -- Prioritize pages missing critical fields first
         CASE WHEN 
           (funding_amount_min IS NULL AND funding_amount_max IS NULL) AND
           (deadline IS NULL AND (open_deadline IS NULL OR open_deadline = false)) AND
+          (contact_email IS NULL AND contact_phone IS NULL)
+        THEN 0 ELSE 1 END,
+        -- Then prioritize pages missing multiple fields
+        CASE WHEN 
+          (funding_amount_min IS NULL AND funding_amount_max IS NULL) OR
+          (deadline IS NULL AND (open_deadline IS NULL OR open_deadline = false)) OR
           (contact_email IS NULL AND contact_phone IS NULL)
         THEN 0 ELSE 1 END,
         id DESC
@@ -69,9 +83,14 @@ async function rescrapeMissingMetadata() {
       SELECT COUNT(*) as total
       FROM pages
       WHERE (
+        -- Critical metadata
         (funding_amount_min IS NULL AND funding_amount_max IS NULL) OR
         (deadline IS NULL AND (open_deadline IS NULL OR open_deadline = false)) OR
-        (contact_email IS NULL AND contact_phone IS NULL)
+        (contact_email IS NULL AND contact_phone IS NULL) OR
+        -- Additional metadata
+        region IS NULL OR
+        funding_types IS NULL OR array_length(funding_types, 1) IS NULL OR
+        program_focus IS NULL OR array_length(program_focus, 1) IS NULL
       )
     `);
     const totalMissingAll = parseInt(totalMissingCount.rows[0].total);
@@ -85,23 +104,32 @@ async function rescrapeMissingMetadata() {
     const missingStats = await pool.query(`
       SELECT 
         COUNT(*) FILTER (WHERE funding_amount_min IS NULL AND funding_amount_max IS NULL) as missing_amounts,
-        COUNT(*) FILTER (WHERE deadline IS NULL) as missing_deadlines,
-        COUNT(*) FILTER (WHERE contact_email IS NULL AND contact_phone IS NULL) as missing_contacts
+        COUNT(*) FILTER (WHERE deadline IS NULL AND (open_deadline IS NULL OR open_deadline = false)) as missing_deadlines,
+        COUNT(*) FILTER (WHERE contact_email IS NULL AND contact_phone IS NULL) as missing_contacts,
+        COUNT(*) FILTER (WHERE region IS NULL) as missing_region,
+        COUNT(*) FILTER (WHERE funding_types IS NULL OR array_length(funding_types, 1) IS NULL) as missing_funding_types,
+        COUNT(*) FILTER (WHERE program_focus IS NULL OR array_length(program_focus, 1) IS NULL) as missing_program_focus
       FROM pages
       WHERE (
-        funding_amount_min IS NULL OR
-        funding_amount_max IS NULL OR
-        deadline IS NULL OR
-        contact_email IS NULL OR
-        contact_phone IS NULL
+        (funding_amount_min IS NULL AND funding_amount_max IS NULL) OR
+        (deadline IS NULL AND (open_deadline IS NULL OR open_deadline = false)) OR
+        (contact_email IS NULL AND contact_phone IS NULL) OR
+        region IS NULL OR
+        funding_types IS NULL OR array_length(funding_types, 1) IS NULL OR
+        program_focus IS NULL OR array_length(program_focus, 1) IS NULL
       )
     `);
     
     const stats = missingStats.rows[0];
     console.log(`\n📋 Missing Data Breakdown:`);
-    console.log(`   Funding Amounts: ${stats.missing_amounts} pages`);
-    console.log(`   Deadlines: ${stats.missing_deadlines} pages`);
-    console.log(`   Contact Info: ${stats.missing_contacts} pages`);
+    console.log(`   ⚠️  Critical Metadata:`);
+    console.log(`      Funding Amounts: ${stats.missing_amounts} pages`);
+    console.log(`      Deadlines: ${stats.missing_deadlines} pages`);
+    console.log(`      Contact Info: ${stats.missing_contacts} pages`);
+    console.log(`   📊 Additional Metadata:`);
+    console.log(`      Region: ${stats.missing_region} pages`);
+    console.log(`      Funding Types: ${stats.missing_funding_types} pages`);
+    console.log(`      Program Focus: ${stats.missing_program_focus} pages`);
     
     console.log(`\n🚀 Starting re-scraping...`);
     console.log(`   Processing ${totalMissing} pages (limit 500 per run)`);
@@ -123,26 +151,46 @@ async function rescrapeMissingMetadata() {
         const meta = extractMeta(fetchResult.html, page.url);
         const normalized = normalizeMetadata(meta);
         
+        // Get current page data to compare
+        const currentPage = await pool.query('SELECT funding_amount_min, funding_amount_max, deadline, open_deadline, contact_email, contact_phone, region, funding_types, program_focus FROM pages WHERE id = $1', [page.id]);
+        const current = currentPage.rows[0];
+        
         // Check what we got
         const before = {
-          hasAmount: page.funding_amount_min !== null || page.funding_amount_max !== null,
-          hasDeadline: page.deadline !== null,
-          hasContact: page.contact_email !== null || page.contact_phone !== null
+          hasAmount: current.funding_amount_min !== null || current.funding_amount_max !== null,
+          hasDeadline: current.deadline !== null || current.open_deadline === true,
+          hasContact: current.contact_email !== null || current.contact_phone !== null,
+          hasRegion: current.region !== null,
+          hasFundingTypes: current.funding_types && current.funding_types.length > 0,
+          hasProgramFocus: current.program_focus && current.program_focus.length > 0
         };
         
         const after = {
           hasAmount: normalized.funding_amount_min !== null || normalized.funding_amount_max !== null,
           hasDeadline: normalized.deadline !== null || normalized.open_deadline === true,
-          hasContact: normalized.contact_email !== null || normalized.contact_phone !== null
+          hasContact: normalized.contact_email !== null || normalized.contact_phone !== null,
+          hasRegion: normalized.region !== null,
+          hasFundingTypes: normalized.funding_types && normalized.funding_types.length > 0,
+          hasProgramFocus: normalized.program_focus && normalized.program_focus.length > 0
         };
         
         const improved = (!before.hasAmount && after.hasAmount) ||
                         (!before.hasDeadline && after.hasDeadline) ||
-                        (!before.hasContact && after.hasContact);
+                        (!before.hasContact && after.hasContact) ||
+                        (!before.hasRegion && after.hasRegion) ||
+                        (!before.hasFundingTypes && after.hasFundingTypes) ||
+                        (!before.hasProgramFocus && after.hasProgramFocus);
         
         if (improved) {
           improvedCount++;
-          console.log(`  ✅ IMPROVED! Found: ${after.hasAmount ? 'amount' : ''} ${after.hasDeadline ? 'deadline' : ''} ${after.hasContact ? 'contact' : ''}`);
+          const improvements = [];
+          if (!before.hasAmount && after.hasAmount) improvements.push('amount');
+          if (!before.hasDeadline && after.hasDeadline) improvements.push('deadline');
+          if (!before.hasContact && after.hasContact) improvements.push('contact');
+          if (!before.hasRegion && after.hasRegion) improvements.push('region');
+          if (!before.hasFundingTypes && after.hasFundingTypes) improvements.push('funding_types');
+          if (!before.hasProgramFocus && after.hasProgramFocus) improvements.push('program_focus');
+          console.log(`  ✅ IMPROVED! Found: ${improvements.join(', ')}`);
         }
         
         // Save to database (will update existing page via ON CONFLICT)
