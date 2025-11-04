@@ -363,10 +363,47 @@ function calculateTimelineFit(_answers: UserAnswers, signals: DerivedSignals): n
   return Math.max(0, Math.min(100, score));
 }
 
+// Calculate requirement frequencies from all programs (for dynamic scoring)
+function calculateRequirementFrequencies(allPrograms: Program[]): Map<string, number> {
+  const frequencyMap = new Map<string, number>();
+  let totalPrograms = 0;
+
+  for (const program of allPrograms) {
+    const categorized = (program as any).categorized_requirements;
+    if (!categorized || typeof categorized !== 'object') continue;
+    
+    totalPrograms++;
+    
+    // For each category and type combination
+    for (const [category, items] of Object.entries(categorized)) {
+      if (!Array.isArray(items)) continue;
+      
+      for (const item of items) {
+        if (!item || typeof item !== 'object') continue;
+        
+        const reqType = item.type || 'unknown';
+        const key = `${category}:${reqType}`;
+        frequencyMap.set(key, (frequencyMap.get(key) || 0) + 1);
+      }
+    }
+  }
+  
+  // Convert to frequencies (0-1)
+  const frequencies = new Map<string, number>();
+  frequencyMap.forEach((count, key) => {
+    frequencies.set(key, count / totalPrograms);
+  });
+  
+  return frequencies;
+}
+
 // Score programs using categorized requirements (18 categories from Layer 1&2)
+// NOW WITH DYNAMIC FREQUENCY-BASED SCORING
 function scoreCategorizedRequirements(
   categorizedRequirements: any,
-  answers: UserAnswers
+  answers: UserAnswers,
+  requirementFrequencies?: Map<string, number>,
+  _totalPossibleRequirements?: number // Reserved for future use
 ): {
   score: number;
   matchedCriteria: Array<{
@@ -383,6 +420,8 @@ function scoreCategorizedRequirements(
   }>;
 } {
   let score = 0;
+  let matchedCount = 0;
+  let missingHighConfidenceCount = 0;
   const matchedCriteria: Array<{
     key: string;
     value: any;
@@ -466,8 +505,25 @@ function scoreCategorizedRequirements(
       });
 
       if (matched) {
-        const categoryScore = Math.round(10 * confidence); // Base 10 points per match, weighted by confidence
+        // DYNAMIC SCORING: Weight by requirement frequency (rare = more valuable)
+        const reqKey = `${category}:${item.type || 'unknown'}`;
+        const frequency = requirementFrequencies?.get(reqKey) || 0.5; // Default to 50% if unknown
+        
+        // Rare requirements (<10%) worth more, common (>50%) worth less
+        let baseScore: number;
+        if (frequency < 0.1) {
+          baseScore = 15; // Rare requirement: 15 points
+        } else if (frequency < 0.3) {
+          baseScore = 12; // Uncommon: 12 points
+        } else if (frequency < 0.5) {
+          baseScore = 10; // Common: 10 points
+        } else {
+          baseScore = 7; // Very common: 7 points
+        }
+        
+        const categoryScore = Math.round(baseScore * confidence);
         score += categoryScore;
+        matchedCount++;
         
         matchedCriteria.push({
           key: category,
@@ -476,16 +532,55 @@ function scoreCategorizedRequirements(
           status: 'passed'
         });
       } else if (confidence > 0.7) {
-        // High confidence requirement that doesn't match
+        // High confidence requirement that doesn't match - will be penalized
+        missingHighConfidenceCount++;
         gaps.push({
           key: category,
           description: `${category} requirement not met: ${itemValue}`,
           action: `Review ${category} requirements and adjust your answers`,
-          priority: 'medium'
+          priority: confidence > 0.9 ? 'high' : 'medium'
         });
       }
     });
   });
+
+  // NORMALIZE TO PERCENTAGE: Calculate maximum possible score, then normalize
+  // First, calculate what the maximum possible score would be (if all requirements matched)
+  let maxPossibleScore = 0;
+  Object.entries(categorizedRequirements).forEach(([category, data]: [string, any]) => {
+    if (!Array.isArray(data)) return;
+    data.forEach((item: any) => {
+      const confidence = item.confidence || 0.5;
+      const reqKey = `${category}:${item.type || 'unknown'}`;
+      const frequency = requirementFrequencies?.get(reqKey) || 0.5;
+      
+      // Calculate max points for this requirement (if matched)
+      let baseScore: number;
+      if (frequency < 0.1) baseScore = 15;
+      else if (frequency < 0.3) baseScore = 12;
+      else if (frequency < 0.5) baseScore = 10;
+      else baseScore = 7;
+      
+      maxPossibleScore += Math.round(baseScore * confidence);
+    });
+  });
+  
+  // Apply penalties for missing high-confidence requirements
+  // Penalty is based on percentage of max score
+  const penaltyPercent = missingHighConfidenceCount * 0.1; // 10% penalty per missing high-confidence requirement
+  const penaltyPoints = maxPossibleScore > 0 ? (maxPossibleScore * penaltyPercent) : 0;
+  const finalScore = Math.max(0, score - penaltyPoints);
+  
+  // Normalize to percentage (0-100%)
+  if (maxPossibleScore > 0) {
+    score = Math.round((finalScore / maxPossibleScore) * 100);
+  } else {
+    // Fallback: If no requirements, score stays as is (will be handled later)
+    score = Math.round(finalScore);
+  }
+  
+  // Ensure score is within bounds
+  score = Math.max(0, Math.min(100, score));
 
   return { score, matchedCriteria, gaps };
 }
@@ -702,6 +797,37 @@ export async function scoreProgramsEnhanced(
       hasEligibilityCriteria: !!(normalizedPrograms[0] as any).eligibility_criteria
     });
 
+    // Calculate requirement frequencies from ALL programs (for dynamic scoring)
+    // Fetch all programs if we only have pre-filtered ones
+    let allProgramsForFrequencies: Program[] = normalizedPrograms;
+    if (preFilteredPrograms && preFilteredPrograms.length > 0) {
+      // If we have pre-filtered programs, we need all programs for frequency calculation
+      try {
+        const response = await fetch('/api/programs?enhanced=true');
+        const data = await response.json();
+        allProgramsForFrequencies = (data.programs || []).map((p: any) => ({
+          id: p.id,
+          name: p.name || p.id,
+          type: p.type || "program",
+          program_type: p.program_type || p.type || "grant",
+          program_category: p.program_category || "general",
+          requirements: p.requirements || {},
+          notes: p.notes,
+          maxAmount: p.maxAmount,
+          link: p.link,
+          categorized_requirements: p.categorized_requirements || null
+        }));
+        console.log(`📊 Loaded ${allProgramsForFrequencies.length} total programs for frequency calculation`);
+      } catch (error) {
+        console.warn('⚠️ Could not fetch all programs for frequency calculation, using filtered programs:', error);
+        allProgramsForFrequencies = normalizedPrograms;
+      }
+    }
+    
+    // Calculate requirement frequencies (for dynamic scoring)
+    const requirementFrequencies = calculateRequirementFrequencies(allProgramsForFrequencies);
+    console.log(`📊 Calculated frequencies for ${requirementFrequencies.size} requirement types`);
+
     return normalizedPrograms.map((program) => {
       let score = 0;
       const matchedCriteria: Array<{
@@ -905,30 +1031,51 @@ export async function scoreProgramsEnhanced(
       }
 
       // Enhanced scoring with categorized requirements (Layer 1&2)
+      // NOW WITH DYNAMIC FREQUENCY-BASED SCORING
       if (program.categorized_requirements) {
-        const categorizedScore = scoreCategorizedRequirements(program.categorized_requirements, answers);
-        score += categorizedScore.score;
+        // Count total possible requirements for normalization
+        let totalPossibleRequirements = 0;
+        Object.entries(program.categorized_requirements).forEach(([_, data]: [string, any]) => {
+          if (Array.isArray(data)) {
+            totalPossibleRequirements += data.filter((item: any) => item && item.confidence !== undefined).length;
+          }
+        });
+        
+        const categorizedScore = scoreCategorizedRequirements(
+          program.categorized_requirements, 
+          answers,
+          requirementFrequencies,
+          totalPossibleRequirements
+        );
+        
+        // Use the normalized score directly (already percentage-based)
+        score = categorizedScore.score;
         matchedCriteria.push(...categorizedScore.matchedCriteria);
         gaps.push(...categorizedScore.gaps);
-        console.log(`🔍 Debug: Categorized requirements score for ${program.id}: ${categorizedScore.score}`);
+        console.log(`🔍 Debug: Categorized requirements score for ${program.id}: ${categorizedScore.score}% (normalized, frequency-based)`);
       }
 
-      // Use GPT-enhanced scoring as primary score
+      // Score is now already normalized (0-100%) from scoreCategorizedRequirements
       let scorePercent = score;
       
-      // If no GPT-enhanced scoring happened, fall back to requirements-based scoring
-      const totalRequirements = Object.keys(program.requirements || {}).length;
-      if (score === 0 && totalRequirements > 0) {
-        scorePercent = totalRequirements > 0 ? Math.round((score / totalRequirements) * 100) : score;
+      // Small bonus ONLY for perfect matches (all requirements met, no gaps)
+      // Reduced from 20 to 5 points, only when truly perfect
+      if (gaps.length === 0 && matchedCriteria.length >= 3) {
+        scorePercent = Math.min(100, scorePercent + 5); // Small bonus for perfect matches
+        console.log(`✨ Perfect match bonus applied: +5 points`);
       }
       
-      // Don't artificially inflate scores with base score
-      // If scorePercent === 0, it means no matches found - that's honest feedback
-      // scorePercent remains 0 if no matches
-      
-      // Add bonus for GPT-enhanced matches
-      if (matchedCriteria.length > 0) {
-        scorePercent += Math.min(20, matchedCriteria.length * 5); // Up to 20 bonus points
+      // If score is still 0, check if we have any requirements to score
+      if (scorePercent === 0) {
+        const totalRequirements = Object.keys(program.requirements || {}).length;
+        const hasCategorizedReqs = program.categorized_requirements && 
+          Object.keys(program.categorized_requirements).length > 0;
+        
+        // If no requirements at all, give minimal score (program might be for everyone)
+        if (totalRequirements === 0 && !hasCategorizedReqs) {
+          scorePercent = 50; // Neutral score for programs with no specific requirements
+          console.log(`⚠️ Program ${program.id} has no requirements - assigning neutral score`);
+        }
       }
 
       const eligibility =

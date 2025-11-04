@@ -51,31 +51,79 @@ export default function RestructuredEditor({
   const [showSectionSearch, setShowSectionSearch] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
   const [isSaving, setIsSaving] = useState(false);
+  const [showCompletionToast, setShowCompletionToast] = useState(false);
+  
+  // Calculate incomplete sections for notifications
+  const incompleteSections = sections.filter(s => !s.content || s.content.trim().length === 0 || s.status !== 'aligned').length;
 
   // Keyboard shortcuts
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
+      // Don't trigger shortcuts when typing in inputs/textareas
+      const target = e.target as HTMLElement;
+      const isTyping = target.tagName === 'INPUT' || target.tagName === 'TEXTAREA' || target.isContentEditable;
+      
+      // Ctrl+G: Generate AI content (only when not typing)
+      if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'g' && !isTyping) {
+        e.preventDefault();
+        if (onAIGenerate) onAIGenerate();
+        return;
+      }
+      
+      // Ctrl+N: Next section (only when not typing)
+      if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'n' && !isTyping && !e.shiftKey) {
+        e.preventDefault();
+        onActiveSectionChange(Math.min(sections.length - 1, activeSection + 1));
+        return;
+      }
+      
+      // Ctrl+P: Previous section (only when not typing)
+      if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'p' && !isTyping && !e.shiftKey) {
+        e.preventDefault();
+        onActiveSectionChange(Math.max(0, activeSection - 1));
+        return;
+      }
+      
+      // Ctrl+Arrow Up: Previous section
+      if ((e.ctrlKey || e.metaKey) && e.key === 'ArrowUp' && !isTyping) {
+        e.preventDefault();
+        onActiveSectionChange(Math.max(0, activeSection - 1));
+        return;
+      }
+      
+      // Ctrl+Arrow Down: Next section
+      if ((e.ctrlKey || e.metaKey) && e.key === 'ArrowDown' && !isTyping) {
+        e.preventDefault();
+        onActiveSectionChange(Math.min(sections.length - 1, activeSection + 1));
+        return;
+      }
+      
       // Ctrl+, for document customization
       if ((e.ctrlKey || e.metaKey) && e.key === ',') {
         e.preventDefault();
         setShowDocumentCustomization(!showDocumentCustomization);
+        return;
       }
+      
       // Escape to close panels
       if (e.key === 'Escape') {
         if (showDocumentCustomization) setShowDocumentCustomization(false);
         if (showAiAssistant) setShowAiAssistant(false);
         if (showSectionSearch) setShowSectionSearch(false);
+        return;
       }
+      
       // Ctrl+B to toggle sidebar
-      if ((e.ctrlKey || e.metaKey) && e.key === 'b') {
+      if ((e.ctrlKey || e.metaKey) && e.key === 'b' && !isTyping) {
         e.preventDefault();
         setSidebarCollapsed(!sidebarCollapsed);
+        return;
       }
     };
 
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [showDocumentCustomization, showAiAssistant, showSectionSearch, sidebarCollapsed]);
+  }, [showDocumentCustomization, showAiAssistant, showSectionSearch, sidebarCollapsed, activeSection, sections.length, onAIGenerate, onActiveSectionChange]);
 
   // Filter sections based on search
   const filteredSections = sections.filter(section =>
@@ -153,6 +201,14 @@ export default function RestructuredEditor({
               >
                 {focusMode ? '👁️ Exit Focus' : '🎯 Focus'}
               </button>
+              {/* Incomplete Sections Notification */}
+              {incompleteSections > 0 && (
+                <div className="hidden sm:flex items-center gap-2 px-3 py-1.5 bg-yellow-50 border border-yellow-200 rounded-lg">
+                  <span className="text-yellow-600 text-xs font-medium">
+                    ⚠️ {incompleteSections} section{incompleteSections > 1 ? 's' : ''} need attention
+                  </span>
+                </div>
+              )}
               <button
                 onClick={() => {
                   const previewUrl = programProfile?.programId
@@ -161,7 +217,7 @@ export default function RestructuredEditor({
                   router.push(previewUrl);
                 }}
                 className="hidden md:inline-flex px-3 py-1.5 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors"
-                title="Preview"
+                title="Preview (Ctrl+Shift+P)"
               >
                 👁️ Preview
               </button>
@@ -403,7 +459,12 @@ export default function RestructuredEditor({
                     </div>
                     <div className="flex items-center space-x-2">
                       <button
-                        onClick={() => onSectionStatusChange(sections[activeSection].key, 'aligned')}
+                        onClick={() => {
+                          onSectionStatusChange(sections[activeSection].key, 'aligned');
+                          // Show completion toast
+                          setShowCompletionToast(true);
+                          setTimeout(() => setShowCompletionToast(false), 3000);
+                        }}
                         className="px-3 py-1 text-xs font-medium bg-green-100 text-green-700 rounded hover:bg-green-200 transition-colors"
                       >
                         ✓ Complete
@@ -417,6 +478,33 @@ export default function RestructuredEditor({
                     </div>
                   </div>
                 </div>
+
+                {/* Empty Section Helper Banner */}
+                {(!sections[activeSection]?.content || sections[activeSection].content.trim().length === 0) && (
+                  <div className="mb-6 bg-gradient-to-r from-purple-50 via-blue-50 to-indigo-50 border-2 border-purple-300 rounded-2xl p-6 shadow-lg">
+                    <div className="flex items-center gap-4">
+                      <div className="w-16 h-16 bg-gradient-to-br from-purple-500 to-blue-600 rounded-2xl flex items-center justify-center shadow-lg flex-shrink-0">
+                        <span className="text-white text-2xl">✨</span>
+                      </div>
+                      <div className="flex-1">
+                        <h4 className="text-base font-bold text-gray-900 mb-1">Ready to start writing?</h4>
+                        <p className="text-sm text-gray-600 mb-3">Let AI help you create a professional {sections[activeSection]?.title?.toLowerCase() || 'section'} or start writing manually</p>
+                        <div className="flex items-center gap-2">
+                          {onAIGenerate && (
+                            <button
+                              onClick={onAIGenerate}
+                              className="px-5 py-2.5 text-sm font-semibold bg-gradient-to-r from-blue-600 via-purple-600 to-indigo-600 text-white rounded-xl hover:from-blue-700 hover:via-purple-700 hover:to-indigo-700 transition-all shadow-lg hover:shadow-xl flex items-center gap-2 transform hover:scale-105"
+                              title="Or press Ctrl+G"
+                            >
+                              <span>✨</span> Generate with AI
+                            </button>
+                          )}
+                          <span className="text-xs text-gray-500">or start typing below</span>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                )}
 
                 {/* Enhanced Guidance Section - Step-by-step feel */}
                 {sections[activeSection]?.prompts && sections[activeSection].prompts.length > 0 && (
@@ -733,6 +821,19 @@ export default function RestructuredEditor({
         >
           👔
         </button>
+      )}
+
+      {/* Completion Toast */}
+      {showCompletionToast && (
+        <div className="fixed bottom-20 right-4 z-50 animate-slide-up">
+          <div className="bg-green-500 text-white px-6 py-3 rounded-lg shadow-xl flex items-center gap-3">
+            <span className="text-2xl">🎉</span>
+            <div>
+              <div className="font-semibold">Section completed!</div>
+              <div className="text-sm opacity-90">Great progress on your business plan</div>
+            </div>
+          </div>
+        </div>
       )}
     </div>
   );
