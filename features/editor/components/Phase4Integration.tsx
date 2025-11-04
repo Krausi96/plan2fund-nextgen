@@ -18,6 +18,7 @@ import EntryPointsManager from './EntryPointsManager';
 import DocumentCustomizationPanel from './DocumentCustomizationPanel';
 import RichTextEditor from './RichTextEditor';
 import EnhancedAIChat from './EnhancedAIChat';
+import RestructuredEditor from './RestructuredEditor';
 
 
 // FormattingConfig interface removed - functionality moved to DocumentCustomizationPanel
@@ -929,6 +930,36 @@ export default function Phase4Integration({
           showPlanSwitching={true}
         />
       </div>
+    );
+  }
+
+  // Use RestructuredEditor for better navigation
+  if (plan && sections.length > 0) {
+    return (
+      <RestructuredEditor
+        plan={plan}
+        sections={sections}
+        activeSection={activeSection}
+        onSectionChange={handleSectionChange}
+        onActiveSectionChange={setActiveSection}
+        onSectionStatusChange={handleSectionStatusChange}
+        onPlanChange={handlePlanChange}
+        programProfile={programProfile}
+        product={product}
+        requirementsProgress={requirementsProgress}
+        requirementsStatus={requirementsStatus}
+        onAIGenerate={handleAIGenerate}
+        onSave={async () => {
+          const contentMap = sections.reduce((acc: Record<string,string>, s: any) => { acc[s.key] = s.content || ''; return acc; }, {});
+          setIsSaving(true);
+          try {
+            await saveContentDirect(contentMap);
+            savePlanSections(sections.map((s: any) => ({ id: s.key, title: s.title, content: s.content || '', tables: s.tables, figures: s.figures, sources: s.sources })));
+          } finally {
+            setIsSaving(false);
+          }
+        }}
+      />
     );
   }
 
