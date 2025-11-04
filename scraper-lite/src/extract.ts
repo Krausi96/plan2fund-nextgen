@@ -832,41 +832,6 @@ export function extractMeta(html: string, url?: string): ExtractedMeta {
     }
   }
   
-  // ENHANCED: Extract contact info from HTML tables (if not found yet)
-  if (!contact_email && !contact_phone) {
-    try {
-      $('table').each((_, table) => {
-        const $table = $(table);
-        $table.find('tr').each((_, row) => {
-          const $row = $(row);
-          const cells = $row.find('td, th').map((_, cell) => $(cell).text().trim()).get();
-          if (cells.length >= 2) {
-            const label = cells[0].toLowerCase();
-            const value = cells[1];
-            if ((label.includes('kontakt') || label.includes('contact') || label.includes('email') || 
-                 label.includes('e-mail') || label.includes('phone') || label.includes('telefon') ||
-                 label.includes('tel') || label.includes('ansprechpartner')) && !contact_email) {
-              const emailMatch = value.match(/[\w.+-]+@[\w.-]+\.[a-zA-Z]{2,}/);
-              if (emailMatch) {
-                contact_email = emailMatch[0];
-              }
-            }
-            if ((label.includes('telefon') || label.includes('phone') || label.includes('tel') || 
-                 label.includes('kontakt')) && !contact_phone) {
-              const phoneMatch = value.match(/(?:\+43|0043|0)\s*(?:\(0\))?\s*\d{1,4}[\s\/-]?\d{3,4}[\s\/-]?\d{3,8}/);
-              if (phoneMatch) {
-                contact_phone = phoneMatch[0].trim();
-              }
-            }
-          }
-        });
-        if (contact_email && contact_phone) return false; // Break table loop
-      });
-    } catch (e) {
-      // Ignore errors
-    }
-  }
-  
   // Fallback: Try multiple date formats (if no deadline found yet)
   if (!deadline && !open_deadline) {
     // Try multiple date formats (fallback)
@@ -985,7 +950,7 @@ export function extractMeta(html: string, url?: string): ExtractedMeta {
       const emailRegex = /^[a-zA-Z0-9.!#$%&'*+\/=?^_`{|}~-]+@[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?(?:\.[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?)+$/;
       return emailRegex.test(e);
     });
-  const contact_email = emails.length > 0 ? emails[0] : null;
+  let contact_email = emails.length > 0 ? emails[0] : null;
   
   // Phone patterns - Austrian and international formats with better cleaning
   const phonePatterns = [
@@ -1005,6 +970,41 @@ export function extractMeta(html: string, url?: string): ExtractedMeta {
         contact_phone = phone;
         break;
       }
+    }
+  }
+  
+  // ENHANCED: Extract contact info from HTML tables (if not found yet)
+  if (!contact_email || !contact_phone) {
+    try {
+      $('table').each((_, table) => {
+        const $table = $(table);
+        $table.find('tr').each((_, row) => {
+          const $row = $(row);
+          const cells = $row.find('td, th').map((_, cell) => $(cell).text().trim()).get();
+          if (cells.length >= 2) {
+            const label = cells[0].toLowerCase();
+            const value = cells[1];
+            if (!contact_email && (label.includes('kontakt') || label.includes('contact') || label.includes('email') || 
+                 label.includes('e-mail') || label.includes('phone') || label.includes('telefon') ||
+                 label.includes('tel') || label.includes('ansprechpartner'))) {
+              const emailMatch = value.match(/[\w.+-]+@[\w.-]+\.[a-zA-Z]{2,}/);
+              if (emailMatch) {
+                contact_email = emailMatch[0];
+              }
+            }
+            if (!contact_phone && (label.includes('telefon') || label.includes('phone') || label.includes('tel') || 
+                 label.includes('kontakt'))) {
+              const phoneMatch = value.match(/(?:\+43|0043|0)\s*(?:\(0\))?\s*\d{1,4}[\s\/-]?\d{3,4}[\s\/-]?\d{3,8}/);
+              if (phoneMatch) {
+                contact_phone = phoneMatch[0].trim();
+              }
+            }
+          }
+        });
+        if (contact_email && contact_phone) return false; // Break table loop
+      });
+    } catch (e) {
+      // Ignore errors
     }
   }
 
