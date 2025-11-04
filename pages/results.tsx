@@ -143,7 +143,7 @@ export default function ResultsPage() {
               {t('results.noMatches.adjustAnswers')}
             </Link>
             <Button 
-              onClick={() => {
+              onClick={async () => {
                 // Store user answers and selected program for editor
                 const selectedProgram = results[0]; // Use first program as default
                 
@@ -439,7 +439,7 @@ export default function ResultsPage() {
                     </DialogHeader>
                     <button 
                       className="w-full mt-4 px-6 py-3 bg-gradient-to-r from-blue-600 to-purple-600 text-white rounded-xl font-semibold hover:from-blue-700 hover:to-purple-700 transition-all duration-200 shadow-lg hover:shadow-xl"
-                      onClick={() => {
+                      onClick={async () => {
                         // Derive signals and get top 3 programs
                         const { deriveSignals } = require('@/features/reco/engine/enhancedRecoEngine');
                         const derivedSignals = deriveSignals(state.answers);

@@ -18,7 +18,7 @@ export default function SuccessHubPage() {
   const [showRevisionForm, setShowRevisionForm] = useState(false);
   const [revisionMessage, setRevisionMessage] = useState("");
   const [selectedSections, setSelectedSections] = useState<string[]>([]);
-  const [paymentVerified, setPaymentVerified] = useState(false);
+  const [_paymentVerified, setPaymentVerified] = useState(false); // Used for future payment verification UI
   
   useEffect(() => {
     analytics.trackPageView('/thank-you', 'Thank You');

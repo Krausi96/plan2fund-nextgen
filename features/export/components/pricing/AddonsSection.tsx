@@ -4,7 +4,7 @@
 import React, { useState } from 'react';
 import { Clock, Calculator, MessageCircle, Presentation, Zap, FileText, Shield, Globe, HelpCircle } from 'lucide-react';
 import { getAddonsForFundingType, getAddonSpec, type FundingType } from '@/shared/data/basisPack';
-import { Tooltip } from '@/shared/components/common/Tooltip';
+// Tooltip removed - information already visible below icon
 
 interface AddonsSectionProps {
   fundingType: FundingType;
@@ -58,9 +58,9 @@ export function AddonsSection({ fundingType }: AddonsSectionProps) {
                   <div className="flex-1">
                     <div className="flex items-center gap-2 mb-1">
                       <h3 className="text-base font-semibold text-gray-900">{addon.name}</h3>
-                      <Tooltip content={addon.scope || 'No description available'} position="top">
+                      <span title={addon.scope || 'No description available'}>
                         <HelpCircle className="w-4 h-4 text-gray-400 group-hover:text-gray-600 cursor-help" />
-                      </Tooltip>
+                      </span>
                     </div>
                     <p className="text-sm text-gray-600 mb-4">{addon.scope}</p>
                     <div className="text-xs text-gray-600 space-y-1">

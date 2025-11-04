@@ -1,5 +1,4 @@
 ﻿import Link from "next/link";
-import { useRouter } from "next/router";
 import featureFlags from "@/shared/lib/featureFlags";
 import CartSummary from '@/features/export/components/CartSummary';
 import { useI18n } from "@/shared/contexts/I18nContext";
@@ -7,7 +6,6 @@ import { useEffect } from "react";
 import analytics from "@/shared/lib/analytics";
 
 export default function Checkout() {
-  const router = useRouter();
   const { t } = useI18n();
   const CHECKOUT_ENABLED = featureFlags.isEnabled('CHECKOUT_ENABLED')
   useEffect(() => {

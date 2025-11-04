@@ -1,6 +1,7 @@
 // ========= PLAN2FUND — DOCUMENT CUSTOMIZATION PANEL =========
-// Unified customization panel combining all document formatting and template features
+// Unified customization panel for document formatting
 // Replaces RequirementsChecker in UnifiedEditor right sidebar
+// Template feature removed - not implemented
 
 import React, { useState } from 'react';
 import { Button } from '@/shared/components/ui/button';
@@ -9,9 +10,7 @@ import { Label } from '@/shared/components/ui/label';
 import { Switch } from '@/shared/components/ui/switch';
 import { Input } from '@/shared/components/ui/input';
 
-// Import template data
-import { OFFICIAL_TEMPLATES } from '@/shared/data/officialTemplates';
-import { INDUSTRY_VARIATIONS } from '@/shared/data/industryVariations';
+// Template data removed - feature not implemented
 
 // Types
 interface CustomizationConfig {
@@ -60,7 +59,7 @@ interface CustomizationConfig {
 interface DocumentCustomizationPanelProps {
   currentConfig: CustomizationConfig;
   onConfigChange: (config: CustomizationConfig) => void;
-  onTemplateSelect: (template: any) => void;
+  onTemplateSelect?: (template: any) => void; // Optional - not implemented
   onExport: (format: string) => void;
 }
 
@@ -94,7 +93,7 @@ const DEFAULT_CONFIG: CustomizationConfig = {
 export default function DocumentCustomizationPanel({
   currentConfig,
   onConfigChange,
-  onTemplateSelect,
+  onTemplateSelect: _onTemplateSelect, // Not implemented - kept for interface compatibility
   onExport
 }: DocumentCustomizationPanelProps) {
   const [config, setConfig] = useState<CustomizationConfig>(currentConfig || DEFAULT_CONFIG);
@@ -142,12 +141,6 @@ export default function DocumentCustomizationPanel({
           onClick={() => setActiveTab('tone')}
         >
           Tone & Style
-        </button>
-        <button
-          className={`px-3 py-1 text-sm rounded ${activeTab === 'template' ? 'bg-white shadow' : 'text-gray-600'}`}
-          onClick={() => setActiveTab('template')}
-        >
-          Templates
         </button>
         <button
           className={`px-3 py-1 text-sm rounded ${activeTab === 'formatting' ? 'bg-white shadow' : 'text-gray-600'}`}
@@ -217,43 +210,6 @@ export default function DocumentCustomizationPanel({
                   onCheckedChange={(checked) => handleConfigChange('pageNumbers', checked)}
                 />
               </div>
-            </div>
-          </Card>
-        </div>
-      )}
-
-      {/* Templates Tab */}
-      {activeTab === 'template' && (
-        <div className="space-y-4">
-          <Card className="p-4">
-            <h4 className="font-medium mb-3">Official Templates</h4>
-            <div className="space-y-2 max-h-48 overflow-y-auto">
-              {OFFICIAL_TEMPLATES.map((template) => (
-                <div
-                  key={template.id}
-                  className="p-2 border rounded cursor-pointer hover:bg-gray-50"
-                  onClick={() => onTemplateSelect(template)}
-                >
-                  <div className="font-medium text-sm">{template.name}</div>
-                  <div className="text-xs text-gray-500">{template.agency}</div>
-                </div>
-              ))}
-            </div>
-          </Card>
-
-          <Card className="p-4">
-            <h4 className="font-medium mb-3">Industry Templates</h4>
-            <div className="space-y-2 max-h-48 overflow-y-auto">
-              {INDUSTRY_VARIATIONS.map((template) => (
-                <div
-                  key={template.id}
-                  className="p-2 border rounded cursor-pointer hover:bg-gray-50"
-                  onClick={() => onTemplateSelect(template)}
-                >
-                  <div className="font-medium text-sm">{template.name}</div>
-                  <div className="text-xs text-gray-500">{template.industry}</div>
-                </div>
-              ))}
             </div>
           </Card>
         </div>

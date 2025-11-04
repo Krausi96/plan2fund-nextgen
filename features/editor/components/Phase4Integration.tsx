@@ -232,9 +232,8 @@ export default function Phase4Integration({
       // CRITICAL FIX: Prefill sections with wizard answers from appStore (single source of truth)
       try {
         if (typeof window !== 'undefined') {
-          const { loadUserAnswers, loadEnhancedPayload } = await import('@/shared/lib/planStore');
+          const { loadUserAnswers } = await import('@/shared/lib/planStore');
           const userAnswers = loadUserAnswers();
-          const enhancedPayload = loadEnhancedPayload();
           
           if (Object.keys(userAnswers).length > 0) {
             
@@ -260,9 +259,9 @@ export default function Phase4Integration({
                 const prefilledSections = mapAnswersToSections(userAnswers, programForPrefill);
                 
                 // Merge prefilled content into sections
-                sections = sections.map(section => {
+                sections = sections.map((section: any) => {
                   // Try matching by section ID/key
-                  const sectionId = section.id || section.key || '';
+                  const sectionId = section.id || (section as any).key || '';
                   const sectionKeyLower = sectionId.toLowerCase();
                   
                   // Find matching prefill (try exact match first, then partial)
@@ -292,8 +291,8 @@ export default function Phase4Integration({
                     return {
                       ...section,
                       content: prefill.content,
-                      status: prefill.hasTBD ? 'needs_fix' as const : 'aligned' as const
-                    };
+                      status: prefill.hasTBD ? ('needs_fix' as const) : ('aligned' as const)
+                    } as any;
                   }
                   
                   return section;
@@ -328,12 +327,12 @@ export default function Phase4Integration({
           captions: true,
           graphs: {}
         },
-        sections: sections.map(section => ({
+        sections: sections.map((section: any) => ({
           key: section.id,
           title: section.title || section.section_name || 'Untitled Section',
           content: section.template || section.guidance || section.content || '',
-          status: (section.status || (section.content ? 'aligned' : 'missing')) as const,
-          wordCount: section.content ? section.content.split(/\s+/).length : 0,
+          status: (section.status || (section.content ? 'aligned' : 'missing')) as 'aligned' | 'missing' | 'needs_fix',
+          wordCount: (section.content || '').split(/\s+/).length,
           required: section.required !== false,
           order: 0
         })),
@@ -662,7 +661,7 @@ export default function Phase4Integration({
                         chartDescriptions: true,
                       },
                     }}
-                    onConfigChange={(config) => {
+                    onConfigChange={async (config) => {
                       try {
                         if (!plan) return;
                         const updated = {

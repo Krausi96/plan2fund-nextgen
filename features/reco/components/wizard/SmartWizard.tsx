@@ -266,8 +266,14 @@ const SmartWizard: React.FC<SmartWizardProps> = ({ onComplete, onProfileGenerate
       const remainingPrograms = questionEngine.getRemainingPrograms();
       console.log(`✅ Wizard: Using ${remainingPrograms.length} pre-filtered programs from QuestionEngine`);
       
+      // Map QuestionEngine answers to enhancedRecoEngine format
+      const { mapQuestionEngineAnswersToEnhancedFormat } = await import('@/features/reco/engine/answerMapper');
+      const mappedAnswers = mapQuestionEngineAnswersToEnhancedFormat(answers);
+      console.log('🔄 Mapped answers for enhancedRecoEngine:', mappedAnswers);
+      
       // Score programs using enhanced reco engine with pre-filtered programs
-      const results = await scoreProgramsEnhanced(answers, "strict", remainingPrograms);
+      // Use mapped answers for signal derivation, but keep original for filtering
+      const results = await scoreProgramsEnhanced(mappedAnswers, "strict", remainingPrograms);
       
       // Store results in context (for /results page)
       setRecommendations(results);

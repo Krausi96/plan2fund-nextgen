@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { CheckCircle, FileText, AlertCircle, ArrowRight, HelpCircle } from 'lucide-react';
 import { getFundingPack, getDocSpec, type TargetGroup, type FundingType, type Product } from '@/shared/data/basisPack';
 import { DocumentModal } from './DocumentModal';
-import { Tooltip } from '@/shared/components/common/Tooltip';
+// Tooltip removed - information already visible below icon
 
 interface RequirementsDisplayProps {
   targetGroup: TargetGroup;
@@ -94,9 +94,9 @@ export function RequirementsDisplay({ targetGroup, fundingType, product }: Requi
                           <h5 className="font-semibold text-gray-900 group-hover:text-green-700">
                             {docSpec.name}
                           </h5>
-                          <Tooltip content={docSpec.purpose || 'No description available'} position="top">
+                          <span title={docSpec.purpose || 'No description available'}>
                             <HelpCircle className="w-4 h-4 text-gray-400 hover:text-gray-600 cursor-help" />
-                          </Tooltip>
+                          </span>
                         </div>
                         <p className="text-sm text-gray-600 mt-1">
                           {docSpec.purpose}

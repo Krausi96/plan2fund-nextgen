@@ -99,21 +99,24 @@ export default function Preview() {
 
   // Read live settings from localStorage when available
   useEffect(() => {
-    try {
-      // Use appStore as single source of truth
-      const { loadPlanSettings } = await import('@/shared/lib/planStore');
-      const ps = loadPlanSettings();
-      if (ps && Object.keys(ps).length > 0) {
-        setFormattingOptions(prev => ({
-          ...prev,
-          theme: ps.theme === 'serif' ? 'serif' : 'sans',
-          fontSize: ps.fontSize >= 16 ? 'large' : ps.fontSize <= 12 ? 'small' : 'medium',
-          spacing: ps.spacing <= 1.5 ? 'compact' : ps.spacing >= 1.8 ? 'relaxed' : 'normal',
-          showPageNumbers: !!ps.showPageNumbers,
-          showTableOfContents: !!ps.showTableOfContents
-        }));
-      }
-    } catch {}
+    const loadSettings = async () => {
+      try {
+        // Use appStore as single source of truth
+        const { loadPlanSettings } = await import('@/shared/lib/planStore');
+        const ps = loadPlanSettings();
+        if (ps && Object.keys(ps).length > 0) {
+          setFormattingOptions(prev => ({
+            ...prev,
+            theme: (ps as any).theme === 'serif' ? 'serif' : 'sans',
+            fontSize: ps.fontSize ? (ps.fontSize >= 16 ? 'large' : ps.fontSize <= 12 ? 'small' : 'medium') : 'medium',
+            spacing: (ps as any).spacing ? ((ps as any).spacing <= 1.5 ? 'compact' : (ps as any).spacing >= 1.8 ? 'relaxed' : 'normal') : 'normal',
+            showPageNumbers: !!ps.showPageNumbers,
+            showTableOfContents: !!ps.showTableOfContents
+          }));
+        }
+      } catch {}
+    };
+    loadSettings();
   }, []);
   const [selectedSections] = useState<Set<string>>(new Set());
   const [previewSettings, setPreviewSettings] = useState({
@@ -432,8 +435,8 @@ export default function Preview() {
             📄 Export Plan
           </button>
           <Link href="/confirm" className="px-6 py-2 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300 transition-colors text-center">
-            Continue to Confirm →
-          </Link>
+          Continue to Confirm →
+        </Link>
         </div>
       </div>
       </div>
