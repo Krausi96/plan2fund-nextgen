@@ -1,157 +1,81 @@
 # Scripts Directory
 
-## 📁 Organization
+## 📁 Core Scripts
 
 ### 🤖 Automatic Scripts (`automatic/`)
-Scripts that run automatically as part of cycles or scheduled tasks:
+Scripts that run automatically as part of cycles:
 
 - **`auto-cycle.js`** - Fully automated self-running cycle (discover → scrape → learn → improve)
 - **`learn-patterns-from-scraped.js`** - Automatic pattern learning from scraped pages
 - **`monitor-improvements.js`** - Automatic quality monitoring and reporting
-- **`monitor-metadata.js`** - Automatic metadata extraction monitoring
 
 **Usage:**
 ```bash
 # Run automated cycle
 node scripts/automatic/auto-cycle.js
 
-# Or via main entry point
-node run-lite.js auto
+# Or via wrapper
+.\run-cycle.ps1      # PowerShell
+run-cycle.bat        # Windows CMD
 ```
+
+---
 
 ### 🛠️ Manual Scripts (`manual/`)
-Scripts for manual analysis, debugging, and maintenance:
+Core scripts for manual operations:
+
+#### Main Operations
+- **`rescrape-all.js`** - Re-scrape pages to improve data quality
+```bash
+  node scripts/manual/rescrape-all.js --missing --limit=50
+```
+
+- **`process-pdfs.js`** - Process PDF documents from queue
+```bash
+  node scripts/manual/process-pdfs.js --limit=20
+  ```
 
 #### Analysis & Quality
-- **`comprehensive-quality-analysis.js`** - Full quality analysis
-- **`analyze-category-usefulness.js`** - Analyze category extraction quality
-- **`analyze-document-extraction.js`** - Analyze document extraction
-- **`analyze-url-quality.js`** - Analyze URL quality
-- **`quality-check-urls.js`** - Check URL quality
-- **`quick-summary.js`** - Quick overview of results
-- **`verify-database-quality.js`** - Verify database quality
-- **`verify-database-json-sync.js`** - Verify database/JSON sync
+- **`verify-database-quality.js`** - Verify database quality and coverage
+- **`analyze-data-quality-gaps.js`** - Analyze data quality gaps and priorities
+- **`show-sample-data.js`** - Show sample extracted data from 3 URLs
 
-#### Maintenance & Setup
-- **`add-new-institution.js`** - Add new institution to config
-- **`migrate-to-neon.js`** - Migrate data to NEON database
-- **`reset-state.js`** - Reset scraping state
-- **`cleanup-storage.js`** - Clean up storage
-- **`safe-cleanup.js`** - Safe cleanup operations
-- **`analyze-cleanup.js`** - Analyze what can be cleaned
-
-#### Testing & Debugging
-- **`test-api-endpoints.js`** - Test API endpoints
-- **`test-database-returns.js`** - Test database queries
-- **`test-neon-connection.js`** - Test NEON connection
-- **`test-question-engine-data.js`** - Test QuestionEngine data
-- **`test-extract-meta.ts`** - Test extraction metadata
-- **`debug-extraction.js`** - Debug extraction issues
-- **`verify-system.js`** - Verify system setup
-
-#### Learning & Improvement
-- **`learn-patterns-from-config.js`** - Learn patterns from config
-- **`improve-extraction.js`** - Improve extraction based on analysis
-- **`evaluate-unseen-urls.js`** - Evaluate unseen URLs
-- **`analyze-config-stats.js`** - Analyze config statistics
-
-#### Special Operations
-- **`rescrape-pages.js`** - Rescrape specific pages
+#### Setup
+- **`setup-learning-tables.js`** - Setup learning tables (one-time use)
 
 ---
 
-## 🔄 Full Quality Cycle
+## 🚀 Quick Start
 
-### Automated Cycle (Recommended)
+### Automatic Scraping
 ```bash
-# Full automated cycle with quality checks
-node run-lite.js auto
-
-# Or with options
-MAX_CYCLES=5 SCRAPE_BATCH_SIZE=100 LITE_ALL_INSTITUTIONS=1 node run-lite.js auto
+cd scraper-lite
+.\run-cycle.ps1
 ```
 
-### Manual Cycle
+### Manual Rescraping
 ```bash
-# 1. Discover URLs
-node run-lite.js discover
+# Rescrape pages with missing data
+node scripts/manual/rescrape-all.js --missing --limit=50
 
-# 2. Scrape discovered URLs
-node run-lite.js scrape
+# Check quality
+node scripts/manual/analyze-data-quality-gaps.js
 
-# 3. Check quality
-node scripts/manual/quick-summary.js
-node scripts/manual/monitor-improvements.js
-node scripts/manual/quality-check-urls.js
+# View sample data
+node scripts/manual/show-sample-data.js
+```
 
-# 4. Analyze quality gaps
-node scripts/manual/comprehensive-quality-analysis.js
+### Process PDFs
+```bash
+node scripts/manual/process-pdfs.js --limit=20
 ```
 
 ---
 
-## 📊 Quality Monitoring
+## 📊 Workflow
 
-### Quick Quality Check
-```bash
-node scripts/manual/quick-summary.js
-```
-
-### Detailed Quality Analysis
-```bash
-node scripts/manual/comprehensive-quality-analysis.js
-node scripts/manual/analyze-category-usefulness.js
-node scripts/manual/analyze-document-extraction.js
-```
-
-### Database Quality Verification
-```bash
-node scripts/manual/verify-database-quality.js
-node scripts/manual/verify-database-json-sync.js
-```
-
----
-
-## 🧪 Testing
-
-### Test Database Connection
-```bash
-node scripts/manual/test-neon-connection.js
-```
-
-### Test API Endpoints
-```bash
-node scripts/manual/test-api-endpoints.js
-```
-
-### Test QuestionEngine Data
-```bash
-node scripts/manual/test-question-engine-data.js
-```
-
----
-
-## 🔧 Maintenance
-
-### Add New Institution
-```bash
-node scripts/manual/add-new-institution.js
-```
-
-### Reset State
-```bash
-# Show stats
-node scripts/manual/reset-state.js stats
-
-# Clean completed/failed jobs
-node scripts/manual/reset-state.js clean-jobs
-
-# Full reset (with backup)
-node scripts/manual/reset-state.js reset
-```
-
-### Cleanup Storage
-```bash
-node scripts/manual/safe-cleanup.js
-node scripts/manual/analyze-cleanup.js
-```
+1. **Run automatic cycle** → `auto-cycle.js`
+2. **Rescrape missing data** → `rescrape-all.js --missing`
+3. **Process PDFs** → `process-pdfs.js`
+4. **Check quality** → `analyze-data-quality-gaps.js`
+5. **View samples** → `show-sample-data.js`

@@ -302,6 +302,43 @@ export async function scrape(maxUrls = 10, targets: string[] = []): Promise<void
   const state = loadState();
   let jobs = state.jobs.filter(j => j.status === 'queued');
   
+  // SKIP URLs ALREADY IN DATABASE (prevent duplicate scraping)
+  // Only check if DATABASE_URL is set and we're not explicitly rescraping
+  if (process.env.DATABASE_URL && !targets.length) {
+    try {
+      const { getPageByUrl } = require('./db/page-repository');
+      const { testConnection } = require('./db/neon-client');
+      const dbConnected = await testConnection();
+      
+      if (dbConnected) {
+        // const jobsBefore = jobs.length; // Unused for now
+        const existingUrls = new Set<string>();
+        
+        // Check first 100 URLs in batch (to avoid too many DB queries)
+        const checkBatch = jobs.slice(0, Math.min(100, jobs.length));
+        for (const job of checkBatch) {
+          const existing = await getPageByUrl(job.url);
+          if (existing) {
+            existingUrls.add(job.url);
+            // Mark as done if already in database (skip re-scraping)
+            job.status = 'done';
+            console.log(`  ⏭️  Skipping (already in DB): ${job.url.slice(0, 60)}...`);
+          }
+        }
+        
+        // Filter out jobs that are already in database
+        jobs = jobs.filter(j => !existingUrls.has(j.url));
+        
+        if (existingUrls.size > 0) {
+          console.log(`  ⏭️  Skipped ${existingUrls.size} URLs already in database (preventing duplicate scraping)`);
+        }
+      }
+    } catch (e: any) {
+      // If DB check fails, continue with all jobs (don't block scraping)
+      console.warn(`  ⚠️  Could not check database for existing URLs: ${e.message}`);
+    }
+  }
+  
   // Apply target filter if provided
   if (targets.length > 0) {
     jobs = jobs.filter(j => targets.some(t => j.url.includes(t)));
@@ -427,7 +464,9 @@ export async function scrape(maxUrls = 10, targets: string[] = []): Promise<void
         institution: institution?.name || null,
         application_method: (metadataJsonRaw as any)?.application_method || null,
         requires_account: (metadataJsonRaw as any)?.requires_account || false,
-        form_fields: (metadataJsonRaw as any)?.form_fields || null
+        form_fields: (metadataJsonRaw as any)?.form_fields || null,
+        // Preserve funding_amount_status if present (indicates unknown/variable amounts)
+        funding_amount_status: (metadataJsonRaw as any)?.funding_amount_status || null
       };
       
       const rawMetadata = {
@@ -488,6 +527,29 @@ export async function scrape(maxUrls = 10, targets: string[] = []): Promise<void
         console.log(`  💾 Attempting to save to database: ${job.url.slice(0, 60)}...`);
         const pageId = await savePageWithRequirements(rec);
         await markJobDone(job.url);
+        
+        // LEARNING: Track extraction success for automatic pattern improvement
+        try {
+          const { trackExtractionOutcome } = require('./extract-learning');
+          
+          await trackExtractionOutcome(pageId, job.url, {
+            deadline: !!(rec.deadline || rec.open_deadline),
+            funding_amount: !!(rec.funding_amount_min || rec.funding_amount_max),
+            contact_email: !!rec.contact_email,
+            contact_phone: !!rec.contact_phone,
+            timeline: Object.keys(rec.categorized_requirements || {}).includes('timeline') && 
+                     (rec.categorized_requirements?.timeline || []).length > 0,
+            financial: Object.keys(rec.categorized_requirements || {}).includes('financial') && 
+                      (rec.categorized_requirements?.financial || []).length > 0,
+            trl_level: Object.keys(rec.categorized_requirements || {}).includes('trl_level') && 
+                      (rec.categorized_requirements?.trl_level || []).length > 0,
+            market_size: Object.keys(rec.categorized_requirements || {}).includes('market_size') && 
+                         (rec.categorized_requirements?.market_size || []).length > 0
+          });
+        } catch (learningError: any) {
+          // Silently fail - don't break scraping if learning fails
+          console.warn(`  ⚠️  Learning tracking failed: ${learningError.message}`);
+        }
         
         // Also update local state for compatibility
         state.pages = state.pages.filter(p => p.url !== job.url);
@@ -554,16 +616,110 @@ export async function scrape(maxUrls = 10, targets: string[] = []): Promise<void
     /^https?:\/\/ec\.europa\.eu\/esf\/main\.jsp\?catId=\d+&langId=[a-z]{2}$/i
   ];
   
+  // INFO/FAQ/ABOUT page patterns (from institutionConfig exclusionKeywords)
+  const infoPagePatterns = [
+    /\/info\/|\/information\/|\/informations\//i,
+    /\/faq\/|\/frequently-asked\/|\/fragen\/|\/questions\/|\/help\/|\/hilfe\//i,
+    /\/about\/|\/ueber\/|\/über\/|\/chi-siamo\//i,
+    /\/contact\/|\/kontakt\//i,
+    /\/overview\/|\/übersicht\/|\/uebersicht\/|\/general\//i,
+    /\/home\/|\/startseite\/|\/index\/|\/main\//i,
+    /\/sitemap\/|\/navigation\/|\/menu\//i,
+    /\/news\/|\/press\/|\/media\/|\/newsletter\//i,
+  ];
+  
+  // Check if title/description suggests info/FAQ page
+  function isInfoPage(p: any): boolean {
+    const title = (p.title || '').toLowerCase();
+    const desc = (p.description || '').toLowerCase();
+    const url = (p.url || '').toLowerCase();
+    
+    // Check URL patterns
+    if (infoPagePatterns.some(pattern => pattern.test(url))) {
+      return true;
+    }
+    
+    // Check title patterns (very specific to avoid false positives)
+    const infoTitlePatterns = [
+      /^(about|info|information|faq|frequently asked|contact|help|über|ueber)\s/i,
+      /^(allgemeine informationen|general information|informazioni generali)\s/i,
+      /(faq|frequently asked|häufig gestellte|domande frequenti)$/i,
+      /^(contact us|kontakt|contatti|contactez-nous)$/i,
+    ];
+    if (infoTitlePatterns.some(pattern => pattern.test(title))) {
+      return true;
+    }
+    
+    // Check description patterns (only if very obvious)
+    const infoDescPatterns = [
+      /^(this page|diese seite|cette page|questa pagina)/i,
+      /^(for more information|für weitere informationen|pour plus d'informations)/i,
+      /^(contact us|kontaktieren sie uns|contactez-nous)/i,
+    ];
+    if (infoDescPatterns.some(pattern => pattern.test(desc))) {
+      return true;
+    }
+    
+    return false;
+  }
+  
+  // Check if page is a bank/equity program (should be KEPT even with null amounts)
+  function isBankOrEquityProgram(p: any): boolean {
+    const title = (p.title || '').toLowerCase();
+    const url = (p.url || '').toLowerCase();
+    const fundingTypes = (p.funding_types || []).map((t: string) => t.toLowerCase());
+    
+    // Check funding types
+    if (fundingTypes.some((t: string) => ['equity', 'loan', 'bank_loan', 'venture', 'investment'].includes(t))) {
+      return true;
+    }
+    
+    // Check title/URL for equity/loan keywords (but not if it's an info page)
+    const equityLoanKeywords = ['equity', 'loan', 'kredit', 'investment', 'venture', 'beteiligung', 'financing'];
+    if (equityLoanKeywords.some(kw => title.includes(kw) || url.includes(kw))) {
+      // Only if it's NOT an info page
+      if (!isInfoPage(p)) {
+        return true;
+      }
+    }
+    
+    return false;
+  }
+  
   const beforeCleanup = state.pages.length;
   
   // FEEDBACK LOOP: Auto-blacklist URLs with 0 requirements (likely non-program pages)
   // BUT: Be careful - only filter if truly has no value (no requirements AND no metadata)
+  // IMPORTANT: Keep bank/equity programs even with null amounts!
   state.pages = state.pages.filter(p => {
     const url = (p.url || '').toLowerCase();
     
     // Pattern-based exclusions (very specific patterns only)
     if (badPatterns.some(pattern => pattern.test(url))) {
       return false;
+    }
+    
+    // CRITICAL: Keep bank/equity programs even if they look like they might be filtered
+    const isBankEquity = isBankOrEquityProgram(p);
+    if (isBankEquity) {
+      return true; // Always keep bank/equity programs
+    }
+    
+    // Filter out obvious info/FAQ/about pages
+    if (isInfoPage(p)) {
+      // Only filter if it truly has no value (no requirements AND no meaningful metadata)
+      const reqs = p.categorized_requirements || {};
+      const totalRequirementsCount = Object.values(reqs)
+        .filter(Array.isArray)
+        .reduce((sum, items) => sum + (Array.isArray(items) ? items.length : 0), 0);
+      
+      const hasFundingMetadata = !!(p.funding_amount_min || p.funding_amount_max || p.deadline || p.open_deadline || p.contact_email || p.contact_phone);
+      
+      // If it's an info page with no requirements and no funding metadata, filter it out
+      if (totalRequirementsCount === 0 && !hasFundingMetadata) {
+        return false;
+      }
+      // Otherwise keep it (might have some value)
     }
     
     // Auto-blacklist: URLs with 0 requirements (likely category/info pages, not program detail pages)

@@ -1,13 +1,25 @@
 #!/usr/bin/env node
 /**
- * Re-scrape ALL pages from database to improve data quality
+ * Re-scrape pages from database to improve data quality
  * 
- * This script reparses everything with improved extraction patterns
+ * This script reparses pages with improved extraction patterns
  * 
  * Usage: 
- *   node scripts/manual/rescrape-all.js              # Re-scrape all pages
- *   node scripts/manual/rescrape-all.js --missing    # Only pages with missing metadata
- *   node scripts/manual/rescrape-all.js --limit=100  # Process only first 100 pages
+ *   node scripts/manual/rescrape-all.js                    # Re-scrape ALL pages (prioritized by missing requirements)
+ *   node scripts/manual/rescrape-all.js --missing          # Pages with missing metadata (funding amounts, requirements, etc.)
+ *   node scripts/manual/rescrape-all.js --limit=20         # Process only first 20 pages
+ *   node scripts/manual/rescrape-all.js --missing --limit=50  # Missing metadata, limit 50 pages
+ * 
+ * What --missing includes (in priority order):
+ *   1. Pages with missing funding amounts (but we know they fund)
+ *   2. Pages with NO requirements at all
+ *   3. Pages with very few requirement categories (< 5)
+ *   4. Pages with missing metadata AND < 10 categories
+ * 
+ * Without --missing:
+ *   - Rescrapes ALL pages, prioritized by:
+ *     1. Pages with NO requirements
+ *     2. Pages with fewest requirement categories
  */
 
 require('ts-node').register({ transpileOnly: true, compilerOptions: { module: 'commonjs', moduleResolution: 'node', esModuleInterop: true } });
@@ -169,8 +181,8 @@ async function rescrapeAll() {
     
     let query;
     if (missingOnly) {
-      // PRIORITIZE REQUIREMENTS FIRST - Only get pages with missing requirements OR very few categories
-      // Then also include pages with missing metadata if they also have < 10 categories
+      // PRIORITIZE: Pages with missing funding amounts (but we know they fund)
+      // Then pages with missing requirements OR very few categories
       query = `
         SELECT p.id, p.url, p.title,
           COUNT(DISTINCT r.category) as req_categories_count,
@@ -178,17 +190,33 @@ async function rescrapeAll() {
         FROM pages p
         LEFT JOIN requirements r ON p.id = r.page_id
         WHERE (
-          -- PRIORITY 1: Pages with NO requirements at all
-          NOT EXISTS (SELECT 1 FROM requirements r2 WHERE r2.page_id = p.id)
-          -- PRIORITY 2: Pages with very few categories (< 5)
+          -- PRIORITY 1: Pages with missing funding amounts (but have funding types or financial requirements)
+          (
+            (p.funding_amount_min IS NULL AND p.funding_amount_max IS NULL)
+            AND (
+              -- We know they fund (has funding types)
+              (p.funding_types IS NOT NULL AND array_length(p.funding_types, 1) > 0)
+              -- OR has financial requirements
+              OR EXISTS (SELECT 1 FROM requirements r_fin WHERE r_fin.page_id = p.id AND r_fin.category = 'financial')
+              -- OR description mentions funding
+              OR (p.description IS NOT NULL AND (p.description ILIKE '%funding%' OR p.description ILIKE '%förderung%' OR p.description ILIKE '%financing%'))
+            )
+            -- Exclude info/FAQ pages
+            AND NOT (
+              p.title ILIKE '%info%' OR p.title ILIKE '%faq%' OR p.title ILIKE '%about%' OR
+              p.url ILIKE '%info%' OR p.url ILIKE '%faq%' OR p.url ILIKE '%about%'
+            )
+          )
+          -- PRIORITY 2: Pages with NO requirements at all
+          OR NOT EXISTS (SELECT 1 FROM requirements r2 WHERE r2.page_id = p.id)
+          -- PRIORITY 3: Pages with very few categories (< 5)
           OR (SELECT COUNT(DISTINCT r4.category) FROM requirements r4 WHERE r4.page_id = p.id) < 5
-          -- PRIORITY 3: Pages with missing metadata AND < 10 categories (need both requirements AND metadata)
+          -- PRIORITY 4: Pages with missing metadata AND < 10 categories (need both requirements AND metadata)
           OR (
             (SELECT COUNT(DISTINCT r5.category) FROM requirements r5 WHERE r5.page_id = p.id) < 10
             AND (
               p.title IS NULL OR 
               p.description IS NULL OR
-              (p.funding_amount_min IS NULL AND p.funding_amount_max IS NULL) OR
               p.currency IS NULL OR
               (p.deadline IS NULL AND (p.open_deadline IS NULL OR p.open_deadline = false)) OR
               (p.contact_email IS NULL AND p.contact_phone IS NULL) OR
@@ -201,10 +229,16 @@ async function rescrapeAll() {
         )
         GROUP BY p.id, p.url, p.title
         ORDER BY 
+          -- HIGHEST PRIORITY: Missing funding amounts (but we know they fund)
+          CASE WHEN (p.funding_amount_min IS NULL AND p.funding_amount_max IS NULL) 
+            AND ((p.funding_types IS NOT NULL AND array_length(p.funding_types, 1) > 0) 
+              OR EXISTS (SELECT 1 FROM requirements r_fin WHERE r_fin.page_id = p.id AND r_fin.category = 'financial'))
+            AND NOT (p.title ILIKE '%info%' OR p.title ILIKE '%faq%' OR p.url ILIKE '%info%')
+            THEN 0 ELSE 1 END,
           -- STRICT priority: NO requirements FIRST
-          CASE WHEN COUNT(DISTINCT r.category) = 0 OR COUNT(DISTINCT r.category) IS NULL THEN 0 ELSE 1 END,
+          CASE WHEN COUNT(DISTINCT r.category) = 0 OR COUNT(DISTINCT r.category) IS NULL THEN 1 ELSE 2 END,
           -- Then pages with very few categories (< 5)
-          CASE WHEN COUNT(DISTINCT r.category) < 5 THEN 1 ELSE 2 END,
+          CASE WHEN COUNT(DISTINCT r.category) < 5 THEN 2 ELSE 3 END,
           -- Then pages with less than 10 categories
           CASE WHEN COUNT(DISTINCT r.category) < 10 THEN 3 ELSE 4 END,
           -- Then by category count (ascending - fewer is better)

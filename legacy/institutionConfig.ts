@@ -1484,12 +1484,17 @@ export const autoDiscoveryPatterns = {
     'ausschreibung', 'fördercall', 'förderschiene', 'fördermodell', 'stipendienprogramm'
   ],
   exclusionKeywords: [
-    // Generic unwanted pages
+    // Generic unwanted pages - INFO/FAQ/ABOUT pages (CRITICAL: Exclude these!)
     'newsletter', 'news', 'press', 'media', 'contact',
-    'about', 'ueber', 'chi-siamo',
+    'about', 'ueber', 'über', 'chi-siamo', 'info', 'information', 'informations',
+    'faq', 'frequently-asked', 'fragen', 'questions', 'help', 'hilfe',
     'imprint', 'impressum', 'mentions-legales', 'note-legali',
     'privacy', 'datenschutz', 'confidentialite',
     'aktuell', 'karriere', 'career', 'jobs', 'stellen',
+    // Obsolete/non-program pages
+    'overview', 'übersicht', 'uebersicht', 'general', 'allgemein',
+    'home', 'startseite', 'index', 'main',
+    'sitemap', 'navigation', 'menu',
     // Housing/Real Estate exclusions (important!)
     'wohnbau', 'wohnbauförderung', 'wohnung', 'wohnungsbau', 'wohnungsförderung',
     'wohnbeihilfe', 'bauen-wohnen', 'raumplanung',

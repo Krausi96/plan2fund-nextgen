@@ -79,6 +79,41 @@ CREATE TABLE IF NOT EXISTS url_patterns (
 );
 
 -- ============================================================================
+-- EXTRACTION PATTERNS TABLE (Learning extraction patterns)
+-- ============================================================================
+CREATE TABLE IF NOT EXISTS extraction_patterns (
+  id SERIAL PRIMARY KEY,
+  pattern_type VARCHAR(50) NOT NULL, -- 'timeline', 'financial', 'contact', 'trl', 'market_size', etc.
+  pattern_text TEXT NOT NULL, -- The actual pattern/regex
+  pattern_regex TEXT, -- Compiled regex if applicable
+  host TEXT, -- Optional: pattern specific to a host
+  confidence DECIMAL(3,2) DEFAULT 0.5, -- 0.0 to 1.0
+  usage_count INTEGER DEFAULT 0,
+  success_count INTEGER DEFAULT 0,
+  failure_count INTEGER DEFAULT 0,
+  success_rate DECIMAL(5,2) DEFAULT 0.0, -- Percentage of successful matches
+  last_used_at TIMESTAMP,
+  created_at TIMESTAMP DEFAULT NOW(),
+  updated_at TIMESTAMP DEFAULT NOW(),
+  
+  UNIQUE(pattern_type, pattern_text, host)
+);
+
+-- ============================================================================
+-- EXTRACTION METRICS TABLE (Track extraction success per field)
+-- ============================================================================
+CREATE TABLE IF NOT EXISTS extraction_metrics (
+  id SERIAL PRIMARY KEY,
+  page_id INTEGER REFERENCES pages(id) ON DELETE CASCADE,
+  host TEXT NOT NULL,
+  field_name VARCHAR(50) NOT NULL, -- 'deadline', 'funding_amount', 'contact_email', etc.
+  extracted BOOLEAN NOT NULL, -- true if successfully extracted, false if missing
+  created_at TIMESTAMP DEFAULT NOW(),
+  
+  UNIQUE(page_id, field_name)
+);
+
+-- ============================================================================
 -- SCRAPING JOBS TABLE (Queue management)
 -- ============================================================================
 CREATE TABLE IF NOT EXISTS scraping_jobs (

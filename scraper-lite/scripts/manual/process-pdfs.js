@@ -199,6 +199,7 @@ async function processPdfs() {
         }
         
         // Normalize and save
+        // Preserve funding_amount_status if present (from extractMeta)
         const normalized = normalizeMetadata({
           ...meta,
           url: job.url,
@@ -207,7 +208,9 @@ async function processPdfs() {
             ...(meta.metadata_json || {}),
             source: 'pdf',
             pdf_text_length: pdfText.length,
-            extracted_from: 'pdf_document'
+            extracted_from: 'pdf_document',
+            // Preserve funding_amount_status if detected (varies, unknown, contact_required)
+            funding_amount_status: (meta.metadata_json || {}).funding_amount_status || null
           }
         });
         

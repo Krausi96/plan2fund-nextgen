@@ -651,6 +651,21 @@ export function extractMeta(html: string, url?: string): ExtractedMeta {
   // IMPROVED: Calculate min/max with validation - filter out unrealistic values
   let funding_amount_min: number | null = null;
   let funding_amount_max: number | null = null;
+  let funding_amount_status: string | null = null; // 'extracted', 'unknown', 'varies', 'contact_required', 'not_specified'
+  
+  // Check for phrases indicating unknown/variable amounts
+  const unknownAmountPatterns = [
+    /(?:varies|varies by|abhängig|depends|abhängig von|depends on|je nach|depending on)/i,
+    /(?:contact us|kontaktieren sie uns|contact.*for.*details|für details kontaktieren|für weitere informationen kontaktieren)/i,
+    /(?:not specified|nicht angegeben|keine angabe|no fixed amount|kein fester betrag)/i,
+    /(?:individual|individuell|case by case|einzelfall)/i,
+    /(?:up to|bis zu).*(?:contact|kontakt|discuss|besprechen)/i,
+    /(?:project.*specific|projektbezogen|case.*specific)/i
+  ];
+  
+  const hasUnknownAmountPhrase = unknownAmountPatterns.some(pattern => pattern.test(lower));
+  const hasContactPhrase = /(?:contact|kontakt|reach out|ansprechpartner)/i.test(lower) && 
+                           /(?:for.*details|für.*details|information|informationen|amount|betrag|funding|finanzierung)/i.test(lower);
   
   if (amounts.length > 0) {
     // Filter out unrealistic values (too small or suspicious patterns)
@@ -676,6 +691,7 @@ export function extractMeta(html: string, url?: string): ExtractedMeta {
     if (validAmounts.length > 0) {
       funding_amount_min = Math.min(...validAmounts);
       funding_amount_max = Math.max(...validAmounts);
+      funding_amount_status = 'extracted';
       
       // Sanity check: if min and max are very close and both small (< 1000), might be wrong
       if (funding_amount_max - funding_amount_min < 100 && funding_amount_max < 1000) {
@@ -688,8 +704,16 @@ export function extractMeta(html: string, url?: string): ExtractedMeta {
           // Likely page numbers or other non-funding values
           funding_amount_min = null;
           funding_amount_max = null;
+          funding_amount_status = null;
         }
       }
+    }
+  } else if (hasUnknownAmountPhrase || hasContactPhrase) {
+    // We know they fund but amount is unknown - set status
+    if (hasUnknownAmountPhrase) {
+      funding_amount_status = /varies|abhängig|depends/i.test(lower) ? 'varies' : 'unknown';
+    } else if (hasContactPhrase) {
+      funding_amount_status = 'contact_required';
     }
   }
 
@@ -1025,7 +1049,7 @@ export function extractMeta(html: string, url?: string): ExtractedMeta {
   }
 
   // Requirements: Extract all 18 categories using comprehensive extractor
-  const categorized = extractAllRequirements(text || '', html || '');
+  const categorized = extractAllRequirements(text || '', html || '', url);
 
   // FORM-BASED APPLICATION DETECTION
   // Detect if application requires login/account or form-based submission
@@ -1115,6 +1139,11 @@ export function extractMeta(html: string, url?: string): ExtractedMeta {
     metadata_json.program_topics = topics;
   }
 
+  // 6. FUNDING AMOUNT STATUS: Track if amount is unknown/variable/requires contact
+  if (funding_amount_status) {
+    metadata_json.funding_amount_status = funding_amount_status;
+  }
+
   return {
     title,
     description,
@@ -1142,7 +1171,7 @@ export function initializeCategories(): Record<string, RequirementItem[]> {
   return categorized;
 }
 
-export function extractAllRequirements(text: string, html?: string): Record<string, RequirementItem[]> {
+export function extractAllRequirements(text: string, html?: string, url?: string): Record<string, RequirementItem[]> {
   const categorized = initializeCategories();
   // Ensure text is always a valid string (matchAll requires a real string, not just String(obj))
   let safeText: string;
@@ -1617,13 +1646,15 @@ export function extractAllRequirements(text: string, html?: string): Record<stri
   }
   
   // TRL LEVEL - Enhanced: More comprehensive extraction with more patterns
+  // IMPROVED: Expanded patterns to increase coverage from 0.7%
   const trlKeywords = [
     'trl', 'technology readiness', 'reifegrad', 'technologiereifegrad',
     'technology readiness level', 'trl-level', 'trl level', 'technology maturity',
-    'tech readiness', 'tech readiness level', 'reifegradstufe', 'technology reifegrad'
+    'tech readiness', 'tech readiness level', 'reifegradstufe', 'technology reifegrad',
+    'maturity level', 'reifegradstufe', 'technology readiness level'
   ];
   
-  // Pattern 1: TRL X or TRL X-Y (more flexible patterns)
+  // Pattern 1: TRL X or TRL X-Y (more flexible patterns - expanded)
   const trlMatches = [
     ...safeMatchAll(safeText, /trl[\s\-]?level?[\s\-]?(\d{1})[\s\-]?[–-]?[\s\-]?(\d{1})?/gi),
     ...safeMatchAll(safeText, /trl[\s\-]?(\d{1})[\s\-]?[–-]?[\s\-]?(\d{1})?/gi),
@@ -1634,7 +1665,11 @@ export function extractAllRequirements(text: string, html?: string): Record<stri
     ...safeMatchAll(safeText, /(?:technology|tech)[\s]+(?:readiness|reifegrad)[\s]+(?:level|stufe)?[\s\-]?(\d{1})/gi),
     ...safeMatchAll(safeText, /(?:minimum|mindestens|at least|min\.|ab)[\s]+trl[\s\-]?(\d{1})/gi),
     ...safeMatchAll(safeText, /trl[\s\-]?(\d{1})[\s\-]?(?:oder|or|bis|up to)[\s\-]?(\d{1})/gi),
-    ...safeMatchAll(safeText, /(?:technologie|technology)[\s]+(?:muss|must|should|sollte)[\s]+(?:mindestens|at least)[\s]+(?:reifegrad|trl)[\s\-]?(\d{1})/gi)
+    ...safeMatchAll(safeText, /(?:technologie|technology)[\s]+(?:muss|must|should|sollte)[\s]+(?:mindestens|at least)[\s]+(?:reifegrad|trl)[\s\-]?(\d{1})/gi),
+    // Additional patterns for better coverage
+    ...safeMatchAll(safeText, /(?:trl|reifegrad)[\s]+(?:von|from|between|zwischen|bis|to)[\s]+(\d{1})[\s\-]?[–-]?[\s\-]?(\d{1})?/gi),
+    ...safeMatchAll(safeText, /(?:technology|technologie)[\s]+(?:readiness|reifegrad)[\s:]+([^\.\n]{5,100})/gi),
+    ...safeMatchAll(safeText, /(?:maturity|reifegrad)[\s]+(?:level|stufe)[\s\-]?(\d{1})/gi)
   ];
   
   if (trlMatches.length > 0 || trlKeywords.some(keyword => lowerText.includes(keyword))) {
@@ -1675,6 +1710,13 @@ export function extractAllRequirements(text: string, html?: string): Record<stri
           required: true,
           source: 'context_extraction'
         });
+        
+        // LEARNING: Track successful TRL pattern match
+        try {
+          const { learnFromExtraction } = require('./extract-learning');
+          const host = url ? new URL(url).hostname.replace('www.', '') : undefined;
+          learnFromExtraction('trl', `TRL ${bestTRL}`, true, host).catch(() => {});
+        } catch {}
       } else {
         // Extract context around TRL keywords to make it meaningful
         const contextMatch = safeText.match(/(?:trl|reifegrad|technology[\s]+readiness)[^.]{0,100}/i);
@@ -1879,8 +1921,11 @@ export function extractAllRequirements(text: string, html?: string): Record<stri
   // TIMELINE - Enhanced: Better date and duration extraction with more patterns
   // IMPROVED: More comprehensive patterns to increase coverage from 50.5% to higher
   const timelineMatches = [
-    // Deadline patterns with keywords (expanded)
-    ...safeMatchAll(safeText, /(?:deadline|frist|einreichfrist|bewerbungsfrist|application deadline|abgabefrist|meldungsfrist|anmeldefrist|submit by|einreichen bis|letzter termin|last date|application date|bewerbungsdatum|fristende|schluss)[\s:]+([^\.\n]{5,150})/gi),
+    // Deadline patterns with keywords (expanded - more variations)
+    ...safeMatchAll(safeText, /(?:deadline|frist|einreichfrist|bewerbungsfrist|application deadline|abgabefrist|meldungsfrist|anmeldefrist|submit by|einreichen bis|letzter termin|last date|application date|bewerbungsdatum|fristende|schluss|abgabeschluss|einsendeschluss|bewerbungsschluss)[\s:]+([^\.\n]{5,150})/gi),
+    // More flexible deadline patterns
+    ...safeMatchAll(safeText, /(?:bewerbung|application|antrag|submission)[\s]+(?:bis|until|by|spätestens)[\s]+([^\.\n]{5,150})/gi),
+    ...safeMatchAll(safeText, /(?:einreichung|submission)[\s]+(?:möglich|possible|bis|until|by)[\s]+([^\.\n]{5,150})/gi),
     ...safeMatchAll(safeText, /(?:laufzeit|duration|zeitraum|project duration|program duration|projektlaufzeit|förderdauer|funding period|programmlaufzeit|dauer|zeitdauer|projektlaufzeit)[\s:]+([^\.\n]{5,150})/gi),
     // Date ranges (expanded patterns)
     ...safeMatchAll(safeText, /(?:von|from|ab|starting|beginning|gültig ab|valid from|gültig|valid|start)[\s]+(\d{1,2}[\.\/\-]\d{1,2}[\.\/\-]\d{2,4})[\s]*(?:bis|to|until|ending|\-|end)[\s]+(\d{1,2}[\.\/\-]\d{1,2}[\.\/\-]\d{2,4})/gi),
@@ -1922,6 +1967,14 @@ export function extractAllRequirements(text: string, html?: string): Record<stri
           required: true,
           source: 'context_extraction'
         });
+        
+        // LEARNING: Track successful pattern match (async, don't block)
+        try {
+          const { learnFromExtraction } = require('./extract-learning');
+          const host = url ? new URL(url).hostname.replace('www.', '') : undefined;
+          const patternText = bestMatch[0].substring(0, 100); // Store first 100 chars of pattern
+          learnFromExtraction('timeline', patternText, true, host).catch(() => {}); // Fire and forget
+        } catch {}
       }
     }
   }
@@ -2411,11 +2464,17 @@ export function extractAllRequirements(text: string, html?: string): Record<stri
   // Don't add generic placeholder - only add if we found meaningful content
   
   // MARKET SIZE - Enhanced: Extract market size requirements with more patterns
+  // IMPROVED: Expanded patterns to increase coverage from 2.1%
   const marketMatches = [
     ...safeMatchAll(safeText, /(?:marktgröße|market size|marktpotenzial|market potential|marktvolumen|market volume|marktnachfrage|market demand)[\s:]+([^\.\n]{15,200})/gi),
     ...safeMatchAll(safeText, /(?:target market|zielmarkt|addressable market|adressierbarer markt|total addressable market|tam)[\s:]+([^\.\n]{15,200})/gi),
     ...safeMatchAll(safeText, /(?:market|markt)[\s]+(?:size|größe|potential|potenzial)[\s:]+([^\.\n]{15,200})/gi),
-    ...safeMatchAll(safeText, /(?:minimum|mindestens|at least)[\s]+(?:market|markt)[\s]+(?:size|größe)[\s:]+([^\.\n]{15,200})/gi)
+    ...safeMatchAll(safeText, /(?:minimum|mindestens|at least)[\s]+(?:market|markt)[\s]+(?:size|größe)[\s:]+([^\.\n]{15,200})/gi),
+    // Additional patterns for better coverage
+    ...safeMatchAll(safeText, /(?:marktnachfrage|market demand|marktpotential)[\s:]+([^\.\n]{15,200})/gi),
+    ...safeMatchAll(safeText, /(?:zielgruppe|target group|target audience)[\s:]+([^\.\n]{15,200})/gi),
+    ...safeMatchAll(safeText, /(?:market|markt)[\s]+(?:opportunity|chance|chancen|opportunität)[\s:]+([^\.\n]{15,200})/gi),
+    ...safeMatchAll(safeText, /(?:business model|geschäftsmodell)[\s]+(?:market|markt)[\s:]+([^\.\n]{15,200})/gi)
   ];
   if (marketMatches.length > 0) {
     const bestMatch = marketMatches.find(m => m[1] && m[1].trim().length > 15);
@@ -2429,6 +2488,13 @@ export function extractAllRequirements(text: string, html?: string): Record<stri
           required: true,
           source: 'context_extraction'
         });
+        
+        // LEARNING: Track successful market size pattern match
+        try {
+          const { learnFromExtraction } = require('./extract-learning');
+          const host = url ? new URL(url).hostname.replace('www.', '') : undefined;
+          learnFromExtraction('market_size', bestMatch[0].substring(0, 100), true, host).catch(() => {});
+        } catch {}
       }
     }
   }
