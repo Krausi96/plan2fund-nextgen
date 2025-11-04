@@ -769,50 +769,65 @@ export class QuestionEngine {
       this.generateConditionalQuestions(8);
     }
     
-    // If we've filtered down significantly, stop asking (but require at least 3 questions)
-    if (this.remainingPrograms.length <= 5 && Object.keys(answers).length >= 3) {
-      console.log(`✅ Filtered to ${this.remainingPrograms.length} programs, stopping questions (after ${Object.keys(answers).length} answers)`);
+    // Core questions that should always be asked (8 questions)
+    const coreQuestionIds = ['location', 'company_type', 'funding_amount', 'use_of_funds', 
+      'impact', 'team_size', 'deadline_urgency', 'project_duration'];
+    
+    // Count how many core questions have been answered
+    const answeredCoreQuestions = coreQuestionIds.filter(id => answers[id] !== undefined && answers[id] !== null && answers[id] !== '').length;
+    const allCoreQuestionsAnswered = answeredCoreQuestions >= coreQuestionIds.length;
+    
+    // If we've filtered down significantly, stop asking (but require at least 8 core questions)
+    if (this.remainingPrograms.length <= 5 && allCoreQuestionsAnswered) {
+      console.log(`✅ Filtered to ${this.remainingPrograms.length} programs, stopping questions (after ${Object.keys(answers).length} answers, all core questions answered)`);
       return null;
     }
     
-    // Don't stop too early - ensure at least 3 questions are asked (unless filtered down significantly)
-    const minQuestions = Math.min(3, this.questions.length); // Use 3 or total questions, whichever is smaller
-    const hasAskedEnough = Object.keys(answers).length >= minQuestions;
     const hasManyPrograms = this.remainingPrograms.length > 10;
     
-    console.log(`🔍 Question decision: ${Object.keys(answers).length} answers, ${this.remainingPrograms.length} programs remaining, ${this.questions.length} total questions`);
+    console.log(`🔍 Question decision: ${Object.keys(answers).length} answers, ${this.remainingPrograms.length} programs remaining, ${this.questions.length} total questions, ${answeredCoreQuestions}/${coreQuestionIds.length} core questions answered`);
     
-    // Find first unanswered required question
+    // PRIORITY 1: Find first unanswered CORE question (always ask these first)
+    const unansweredCore = this.questions.find(q => 
+      coreQuestionIds.includes(q.id) && !answers[q.id]
+    );
+    if (unansweredCore) {
+      console.log(`✅ Found unanswered core question: ${unansweredCore.id}`);
+      return unansweredCore;
+    }
+    
+    // PRIORITY 2: Find first unanswered required question (if any)
     const unansweredRequired = this.questions.find(q => q.required && !answers[q.id]);
     if (unansweredRequired) {
       console.log(`✅ Found unanswered required question: ${unansweredRequired.id}`);
       return unansweredRequired;
     }
     
-    // Then find first unanswered optional question
-    const unansweredOptional = this.questions.find(q => !q.required && !answers[q.id]);
+    // PRIORITY 3: Find first unanswered overlay/conditional question
+    // Only ask if: all core questions answered AND (many programs remain OR we haven't asked all questions)
+    const unansweredOptional = this.questions.find(q => !answers[q.id]);
     if (unansweredOptional) {
-      // Ask more optional questions if:
-      // 1. We haven't asked minimum questions yet, OR
-      // 2. Many programs remain (need more filtering), OR
-      // 3. We haven't asked all available questions yet
       const allQuestionsAnswered = Object.keys(answers).length >= this.questions.length;
-      if (!allQuestionsAnswered && (!hasAskedEnough || hasManyPrograms)) {
-        console.log(`✅ Found unanswered optional question: ${unansweredOptional.id}`);
+      
+      // Ask overlay questions if:
+      // 1. All core questions are answered, AND
+      // 2. (Many programs remain OR we haven't asked all questions yet)
+      if (allCoreQuestionsAnswered && !allQuestionsAnswered && (hasManyPrograms || Object.keys(answers).length < this.questions.length)) {
+        console.log(`✅ Found unanswered overlay question: ${unansweredOptional.id}`);
         return unansweredOptional;
       } else {
-        console.log(`⏸️ Skipping optional question ${unansweredOptional.id} (all questions answered or filtered enough)`);
+        console.log(`⏸️ Skipping overlay question ${unansweredOptional.id} (core questions: ${allCoreQuestionsAnswered}, all answered: ${allQuestionsAnswered}, many programs: ${hasManyPrograms})`);
       }
     }
     
-    // All questions answered OR we've asked enough and filtered enough
+    // All questions answered OR all core questions answered and filtered enough
     const allAnswered = Object.keys(answers).length >= this.questions.length;
     if (allAnswered) {
       console.log(`✅ All ${this.questions.length} questions answered, stopping`);
-    } else if (hasAskedEnough && !hasManyPrograms) {
-      console.log(`✅ Asked ${Object.keys(answers).length} questions and filtered to ${this.remainingPrograms.length} programs, stopping`);
+    } else if (allCoreQuestionsAnswered && !hasManyPrograms) {
+      console.log(`✅ All ${coreQuestionIds.length} core questions answered and filtered to ${this.remainingPrograms.length} programs, stopping`);
     } else {
-      console.log(`⚠️ No more questions available after ${Object.keys(answers).length} answers (${this.questions.length} total questions)`);
+      console.log(`⚠️ No more questions available after ${Object.keys(answers).length} answers (${this.questions.length} total questions, ${answeredCoreQuestions}/${coreQuestionIds.length} core answered)`);
     }
     return null;
   }

@@ -30,6 +30,9 @@ interface WizardState {
   questionHistory: string[];
   // NEW: Program filtering feedback
   remainingProgramCount?: number;
+  // NEW: Live recommendations
+  liveRecommendations?: EnhancedProgramResult[];
+  isLoadingLiveRecommendations?: boolean;
 }
 
 const SmartWizard: React.FC<SmartWizardProps> = ({ onComplete, onProfileGenerated }) => {
@@ -232,8 +235,32 @@ const SmartWizard: React.FC<SmartWizardProps> = ({ onComplete, onProfileGenerate
     // Use enhanced question logic (prioritizes program-generated questions)
     const nextQuestion = await questionEngine.getNextQuestionEnhanced(newAnswers);
     
-    // REMOVED: Program preview generation - too slow, scoring 503 programs after each answer
-    // Just store the program count instead
+    // Generate live recommendations (top 5-10 programs) after each answer
+    // Only if we have at least 2 answers to make it meaningful
+    if (Object.keys(newAnswers).length >= 2 && remainingProgramCount > 0) {
+      setState(prev => ({ ...prev, isLoadingLiveRecommendations: true }));
+      
+      try {
+        // Get remaining programs (already filtered)
+        const remainingPrograms = questionEngine.getRemainingPrograms();
+        
+        // Score top programs (limit to 10 for performance)
+        const programsToScore = remainingPrograms.slice(0, Math.min(50, remainingPrograms.length));
+        const liveResults = await scoreProgramsEnhanced(newAnswers, "strict", programsToScore);
+        
+        // Take top 5-10 for preview
+        const topResults = liveResults.slice(0, 10);
+        
+        setState(prev => ({ 
+          ...prev, 
+          liveRecommendations: topResults,
+          isLoadingLiveRecommendations: false 
+        }));
+      } catch (error) {
+        console.error('Error generating live recommendations:', error);
+        setState(prev => ({ ...prev, isLoadingLiveRecommendations: false }));
+      }
+    }
     
     setState(prev => ({
       ...prev,
@@ -541,6 +568,75 @@ const SmartWizard: React.FC<SmartWizardProps> = ({ onComplete, onProfileGenerate
                   );
                 })}
               </div>
+            </div>
+          )}
+
+          {/* Live Recommendations - Show top programs matching current answers */}
+          {Object.keys(state.answers).length >= 2 && (
+            <div className="bg-white rounded-2xl shadow-lg border border-gray-200 p-6 mt-6">
+              <div className="flex items-center gap-3 mb-4">
+                <span className="text-blue-600 text-xl">🎯</span>
+                <span className="text-lg font-semibold text-gray-900">Live Recommendations</span>
+                {state.remainingProgramCount !== undefined && (
+                  <span className="text-sm text-gray-500">
+                    ({state.remainingProgramCount} {state.remainingProgramCount === 1 ? 'program' : 'programs'} matching)
+                  </span>
+                )}
+              </div>
+              
+              {state.isLoadingLiveRecommendations ? (
+                <div className="flex items-center justify-center py-8">
+                  <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
+                  <span className="ml-3 text-gray-600">Finding matching programs...</span>
+                </div>
+              ) : state.liveRecommendations && state.liveRecommendations.length > 0 ? (
+                <div className="space-y-3">
+                  {state.liveRecommendations.slice(0, 5).map((program, index) => (
+                    <div
+                      key={program.id}
+                      className="flex items-center justify-between p-4 bg-gradient-to-r from-blue-50 to-indigo-50 rounded-lg border border-blue-200 hover:border-blue-300 transition-all cursor-pointer"
+                      onClick={() => {
+                        // Open program details or navigate to program page
+                        window.open(`/program/${program.id}`, '_blank');
+                      }}
+                    >
+                      <div className="flex items-center gap-3 flex-1">
+                        <div className="flex-shrink-0 w-8 h-8 bg-blue-600 text-white rounded-full flex items-center justify-center text-sm font-bold">
+                          {index + 1}
+                        </div>
+                        <div className="flex-1 min-w-0">
+                          <div className="font-semibold text-gray-900 truncate">
+                            {program.name || program.title || 'Unknown Program'}
+                          </div>
+                          <div className="text-sm text-gray-600 mt-1">
+                            {program.type || 'Grant'} • {program.source || 'Unknown source'}
+                          </div>
+                        </div>
+                      </div>
+                      <div className="flex items-center gap-3 ml-4">
+                        <div className="text-right">
+                          <div className="text-lg font-bold text-blue-600">
+                            {program.score || 0}%
+                          </div>
+                          <div className="text-xs text-gray-500">
+                            Match
+                          </div>
+                        </div>
+                        <div className="text-blue-600">→</div>
+                      </div>
+                    </div>
+                  ))}
+                  {state.remainingProgramCount && state.remainingProgramCount > 5 && (
+                    <div className="text-center text-sm text-gray-500 pt-2">
+                      + {state.remainingProgramCount - 5} more programs available
+                    </div>
+                  )}
+                </div>
+              ) : (
+                <div className="text-center py-6 text-gray-500">
+                  No programs match your current answers. Try adjusting your selections.
+                </div>
+              )}
             </div>
           )}
         </div>
