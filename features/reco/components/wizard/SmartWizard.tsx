@@ -267,7 +267,7 @@ const SmartWizard: React.FC<SmartWizardProps> = ({ onComplete, onProfileGenerate
       answers: newAnswers,
       currentQuestion: nextQuestion,
       progress: nextQuestion ? (Object.keys(newAnswers).length / Math.max(state.totalQuestions, 10)) * 100 : 100, // Dynamic progress based on estimated total questions
-      currentQuestionIndex: Object.keys(newAnswers).length, // Current question index = number of answers given
+      currentQuestionIndex: Object.keys(newAnswers).length, // Current question index = number of answers given (0-indexed, so question 1 = index 0)
       totalQuestions: prev.totalQuestions, // Keep the estimated total from QuestionEngine
       canGoBack: true,
       canGoForward: nextQuestion ? true : false,

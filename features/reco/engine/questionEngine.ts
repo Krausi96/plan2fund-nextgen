@@ -153,16 +153,28 @@ export class QuestionEngine {
       if (questionIdMap.has(importantId)) continue; // Already generated
       
       // Find the requirement type that maps to this important question
+      let questionGenerated = false;
       for (const req of this.requirementFrequencies) {
         const questionId = this.mapRequirementToQuestionId(req.category, req.type);
-        if (questionId === importantId && req.frequency >= 2) { // At least 2 programs
+        if (questionId === importantId && req.frequency >= 1) { // Lowered to 1 program (was 2)
           questionIdMap.set(questionId, questionId);
           const question = this.createQuestionFromRequirement(req, questionId, priority++);
           if (question && question.options && question.options.length > 0) {
             this.questions.push(question);
             console.log(`✅ Generated important question: ${questionId} (${req.frequency} programs, ${question.options.length} options)`);
+            questionGenerated = true;
             break;
           }
+        }
+      }
+      
+      // FALLBACK: If core question not generated from requirements, create with default options
+      if (!questionGenerated && coreQuestionIds.includes(importantId)) {
+        const fallbackQuestion = this.createFallbackQuestion(importantId, priority++);
+        if (fallbackQuestion && fallbackQuestion.options && fallbackQuestion.options.length > 0) {
+          questionIdMap.set(importantId, importantId);
+          this.questions.push(fallbackQuestion);
+          console.log(`✅ Generated fallback core question: ${importantId} (default options)`);
         }
       }
     }
@@ -730,6 +742,155 @@ export class QuestionEngine {
   }
 
   /**
+   * Create fallback question with default options if requirements don't match
+   */
+  private createFallbackQuestion(questionId: string, priority: number): SymptomQuestion | null {
+    // Location fallback
+    if (questionId === 'location') {
+      return {
+        id: 'location',
+        symptom: 'wizard.questions.location',
+        type: 'single-select',
+        options: [
+          { value: 'austria', label: 'wizard.options.austria' },
+          { value: 'germany', label: 'wizard.options.germany' },
+          { value: 'eu', label: 'wizard.options.eu' },
+          { value: 'international', label: 'wizard.options.international' }
+        ],
+        required: true,
+        category: 'geographic',
+        priority
+      };
+    }
+
+    // Company type fallback
+    if (questionId === 'company_type') {
+      return {
+        id: 'company_type',
+        symptom: 'wizard.questions.companyType',
+        type: 'single-select',
+        options: [
+          { value: 'startup', label: 'wizard.options.startup' },
+          { value: 'sme', label: 'wizard.options.sme' },
+          { value: 'large', label: 'wizard.options.large' },
+          { value: 'research', label: 'wizard.options.research' }
+        ],
+        required: true,
+        category: 'eligibility',
+        priority
+      };
+    }
+
+    // Funding amount fallback
+    if (questionId === 'funding_amount') {
+      return {
+        id: 'funding_amount',
+        symptom: 'wizard.questions.fundingAmount',
+        type: 'single-select',
+        options: [
+          { value: 'under100k', label: 'wizard.options.under100k' },
+          { value: '100kto500k', label: 'wizard.options.100kto500k' },
+          { value: '500kto2m', label: 'wizard.options.500kto2m' },
+          { value: 'over2m', label: 'wizard.options.over2m' }
+        ],
+        required: false,
+        category: 'financial',
+        priority
+      };
+    }
+
+    // Use of funds fallback
+    if (questionId === 'use_of_funds') {
+      return {
+        id: 'use_of_funds',
+        symptom: 'wizard.questions.useOfFunds',
+        type: 'multi-select',
+        options: [
+          { value: 'rd', label: 'wizard.options.researchDevelopment' },
+          { value: 'marketing', label: 'wizard.options.marketing' },
+          { value: 'equipment', label: 'wizard.options.equipment' },
+          { value: 'personnel', label: 'wizard.options.personnel' }
+        ],
+        required: false,
+        category: 'financial',
+        priority
+      };
+    }
+
+    // Team size fallback
+    if (questionId === 'team_size') {
+      return {
+        id: 'team_size',
+        symptom: 'wizard.questions.teamSize',
+        type: 'single-select',
+        options: [
+          { value: '1to2', label: 'wizard.options.1to2People' },
+          { value: '3to5', label: 'wizard.options.3to5People' },
+          { value: '6to10', label: 'wizard.options.6to10People' },
+          { value: 'over10', label: 'wizard.options.over10People' }
+        ],
+        required: false,
+        category: 'team',
+        priority
+      };
+    }
+
+    // Impact fallback
+    if (questionId === 'impact') {
+      return {
+        id: 'impact',
+        symptom: 'wizard.questions.impact',
+        type: 'multi-select',
+        options: [
+          { value: 'economic', label: 'wizard.options.economicImpact' },
+          { value: 'social', label: 'wizard.options.socialImpact' },
+          { value: 'environmental', label: 'wizard.options.environmentalImpact' }
+        ],
+        required: false,
+        category: 'impact',
+        priority
+      };
+    }
+
+    // Deadline urgency fallback
+    if (questionId === 'deadline_urgency') {
+      return {
+        id: 'deadline_urgency',
+        symptom: 'wizard.questions.deadlineUrgency',
+        type: 'single-select',
+        options: [
+          { value: 'urgent', label: 'wizard.options.within1Month' },
+          { value: 'soon', label: 'wizard.options.within3Months' },
+          { value: 'flexible', label: 'wizard.options.within6Months' }
+        ],
+        required: false,
+        category: 'timeline',
+        priority
+      };
+    }
+
+    // Project duration fallback
+    if (questionId === 'project_duration') {
+      return {
+        id: 'project_duration',
+        symptom: 'wizard.questions.projectDuration',
+        type: 'single-select',
+        options: [
+          { value: 'under2', label: 'wizard.options.under2Years' },
+          { value: '2to5', label: 'wizard.options.2to5Years' },
+          { value: '5to10', label: 'wizard.options.5to10Years' },
+          { value: 'over10', label: 'wizard.options.over10Years' }
+        ],
+        required: false,
+        category: 'timeline',
+        priority
+      };
+    }
+
+    return null;
+  }
+
+  /**
    * Get first question
    */
   public async getFirstQuestion(): Promise<SymptomQuestion | null> {
@@ -778,9 +939,15 @@ export class QuestionEngine {
     const allCoreQuestionsAnswered = answeredCoreQuestions >= coreQuestionIds.length;
     
     // If we've filtered down significantly, stop asking (but require at least 8 core questions)
-    if (this.remainingPrograms.length <= 5 && allCoreQuestionsAnswered) {
+    // CHANGED: Don't stop if all programs filtered out - ask all core questions first
+    if (this.remainingPrograms.length <= 5 && allCoreQuestionsAnswered && this.remainingPrograms.length > 0) {
       console.log(`✅ Filtered to ${this.remainingPrograms.length} programs, stopping questions (after ${Object.keys(answers).length} answers, all core questions answered)`);
       return null;
+    }
+    
+    // If all programs filtered out but core questions not answered, continue asking
+    if (this.remainingPrograms.length === 0 && !allCoreQuestionsAnswered) {
+      console.warn(`⚠️ All programs filtered out but only ${answeredCoreQuestions}/${coreQuestionIds.length} core questions answered - continuing to ask core questions`);
     }
     
     const hasManyPrograms = this.remainingPrograms.length > 10;
