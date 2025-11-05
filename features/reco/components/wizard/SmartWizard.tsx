@@ -236,8 +236,8 @@ const SmartWizard: React.FC<SmartWizardProps> = ({ onComplete, onProfileGenerate
     const nextQuestion = await questionEngine.getNextQuestionEnhanced(newAnswers);
     
     // Generate live recommendations (top 5-10 programs) after each answer
-    // Only if we have at least 2 answers to make it meaningful
-    if (Object.keys(newAnswers).length >= 2 && remainingProgramCount > 0) {
+    // Only if we have at least 5 answers to make it meaningful
+    if (Object.keys(newAnswers).length >= 5 && remainingProgramCount > 0) {
       setState(prev => ({ ...prev, isLoadingLiveRecommendations: true }));
       
       try {
@@ -572,7 +572,7 @@ const SmartWizard: React.FC<SmartWizardProps> = ({ onComplete, onProfileGenerate
           )}
 
           {/* Live Recommendations - Show top programs matching current answers */}
-          {Object.keys(state.answers).length >= 2 && (
+          {Object.keys(state.answers).length >= 5 && (
             <div className="bg-white rounded-2xl shadow-lg border border-gray-200 p-6 mt-6">
               <div className="flex items-center gap-3 mb-4">
                 <span className="text-blue-600 text-xl">🎯</span>
@@ -606,7 +606,7 @@ const SmartWizard: React.FC<SmartWizardProps> = ({ onComplete, onProfileGenerate
                         </div>
                         <div className="flex-1 min-w-0">
                           <div className="font-semibold text-gray-900 truncate">
-                            {program.name || program.title || 'Unknown Program'}
+                            {program.name || 'Unknown Program'}
                           </div>
                           <div className="text-sm text-gray-600 mt-1">
                             {program.type || 'Grant'} • {program.source || 'Unknown source'}
