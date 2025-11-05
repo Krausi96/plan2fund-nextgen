@@ -2,7 +2,7 @@ import React, { createContext, useContext, useState } from 'react';
 import enTranslations from '../i18n/translations/en.json';
 import deTranslations from '../i18n/translations/de.json';
 
-type Translations = typeof enTranslations;
+export type Translations = typeof enTranslations;
 
 interface I18nContextType {
   locale: string;

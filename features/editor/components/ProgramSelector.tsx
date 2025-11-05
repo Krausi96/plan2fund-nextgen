@@ -5,6 +5,8 @@
 import React, { useState, useEffect } from 'react';
 import { useRouter } from 'next/router';
 import Head from 'next/head';
+import { useI18n } from '@/shared/contexts/I18nContext';
+import type { Translations } from '@/shared/contexts/I18nContext';
 
 // Types
 interface ProgramData {
@@ -19,6 +21,11 @@ interface ProgramData {
   funding_amount?: number;
   deadline?: string;
   isActive: boolean;
+  program_focus?: string[];
+  target_personas?: string[];
+  funding_amount_max?: number;
+  funding_amount_min?: number;
+  currency?: string;
 }
 
 interface SelectorState {
@@ -35,10 +42,11 @@ interface ProgramSelectorProps {
 }
 
 // Program Card Component (button for reliable click)
-const ProgramCard = ({ program, isSelected, onSelect }: {
+const ProgramCard = ({ program, isSelected, onSelect, t }: {
   program: ProgramData;
   isSelected: boolean;
   onSelect: () => void;
+  t: (key: keyof Translations) => string;
 }) => (
   <button
     type="button"
@@ -80,19 +88,93 @@ const ProgramCard = ({ program, isSelected, onSelect }: {
       )}
     </div>
     <div className="program-card-footer">
-      <span>Click to start editor</span>
+      <span>{t('editor.selector.clickToStart')}</span>
       <span className="program-card-arrow">→</span>
     </div>
   </button>
 );
 
+// Helper function to extract institution name from URL
+const extractInstitutionFromUrl = (url: string): string => {
+  if (!url) return 'Institution';
+  try {
+    const urlObj = new URL(url);
+    const domain = urlObj.hostname.replace('www.', '');
+    // Extract main domain name (e.g., 'aws.gv.at' -> 'AWS', 'ffg.at' -> 'FFG')
+    const parts = domain.split('.');
+    if (parts.length > 0) {
+      const mainPart = parts[0].toUpperCase();
+      // Handle common Austrian institutions
+      if (mainPart.includes('AWS')) return 'AWS - Austria Wirtschaftsservice';
+      if (mainPart.includes('FFG')) return 'FFG - Forschungsförderungsgesellschaft';
+      if (mainPart.includes('EU') || mainPart.includes('EUROPE')) return 'European Commission';
+      if (mainPart.includes('WKO')) return 'WKO - Wirtschaftskammer Österreich';
+      // Return capitalized first part
+      return mainPart;
+    }
+    return 'Institution';
+  } catch {
+    return 'Institution';
+  }
+};
+
+// Helper function to create a concise, useful program description
+const createProgramDescription = (program: any): string => {
+  // Build description from meaningful metadata first
+  const parts: string[] = [];
+  
+  // Add funding amount if available
+  if (program.funding_amount_max || program.maxAmount) {
+    const amount = program.funding_amount_max || program.maxAmount;
+    const currency = program.currency || 'EUR';
+    if (amount > 0) {
+      parts.push(`Up to ${new Intl.NumberFormat('en-US').format(amount)} ${currency}`);
+    }
+  }
+  
+  // Add program focus areas
+  if (program.program_focus && Array.isArray(program.program_focus) && program.program_focus.length > 0) {
+    const focus = program.program_focus.slice(0, 2).join(', ');
+    parts.push(`Focus: ${focus}`);
+  }
+  
+  // Add target personas if available
+  if (program.target_personas && Array.isArray(program.target_personas) && program.target_personas.length > 0) {
+    const personas = program.target_personas.slice(0, 2).join(', ');
+    parts.push(`Target: ${personas}`);
+  }
+  
+  // If we have meaningful parts, use them
+  if (parts.length > 0) {
+    return parts.join(' • ');
+  }
+  
+  // Fallback: use description but make it concise
+  const rawDesc = program.description || program.notes || '';
+  if (rawDesc.length > 150) {
+    // Try to find a sentence boundary
+    const truncated = rawDesc.slice(0, 150);
+    const lastPeriod = truncated.lastIndexOf('.');
+    const lastExclamation = truncated.lastIndexOf('!');
+    const lastQuestion = truncated.lastIndexOf('?');
+    const lastBoundary = Math.max(lastPeriod, lastExclamation, lastQuestion);
+    
+    if (lastBoundary > 50) {
+      return rawDesc.slice(0, lastBoundary + 1);
+    }
+    return truncated + '...';
+  }
+  
+  return rawDesc || 'Funding program';
+};
+
 // Loading State Component
-const LoadingState = () => (
+const LoadingState = ({ t }: { t: (key: keyof Translations) => string }) => (
   <div className="loading-container">
     <div className="loading-content">
       <div className="loading-spinner">✨</div>
-      <h2>Loading Programs...</h2>
-      <p>Finding the best programs for you</p>
+      <h2>{t('editor.selector.loadingPrograms')}</h2>
+      <p>{t('editor.selector.loadingProgramsDesc')}</p>
     </div>
   </div>
 );
@@ -103,6 +185,7 @@ export default function ProgramSelector({
   onWizardRedirect
 }: ProgramSelectorProps) {
   const router = useRouter();
+  const { t } = useI18n();
   
   const [state, setState] = useState<SelectorState>({
     programs: [],
@@ -149,20 +232,25 @@ export default function ProgramSelector({
         .slice(0, 12)
         .map((program: any) => {
           const type = mapType(program.type || program.program_type);
-          const desc = program.description || program.notes || '';
-          const description = desc.length > 280 ? (desc.slice(0, 277) + '...') : (desc || '');
+          // Use the helper function to create a concise description
+          const description = createProgramDescription(program);
           return {
             id: program.id,
             name: program.name || program.title || 'Program',
-            description: description || '—',
-            institution: program.provider || program.organization || program.source || 'Institution',
+            description: description,
+            institution: program.provider || program.organization || program.source || extractInstitutionFromUrl(program.url || program.source_url || program.link || ''),
             type,
             funding_type: type,
             tags: Array.isArray(program.tags) ? program.tags : [],
             score: program.quality_score || 0,
-            funding_amount: program.maxAmount || 0,
+            funding_amount: program.maxAmount || program.funding_amount_max || 0,
             deadline: program.deadline || null,
-            isActive: program.isActive !== false
+            isActive: program.isActive !== false,
+            program_focus: program.program_focus || [],
+            target_personas: program.target_personas || [],
+            funding_amount_max: program.funding_amount_max || program.maxAmount,
+            funding_amount_min: program.funding_amount_min || program.minAmount,
+            currency: program.currency || 'EUR'
           } as ProgramData;
         });
       
@@ -201,7 +289,7 @@ export default function ProgramSelector({
   };
 
   if (state.isLoading) {
-    return <LoadingState />;
+    return <LoadingState t={t} />;
   }
 
   // If no programs loaded, show error state
@@ -210,13 +298,13 @@ export default function ProgramSelector({
       <div className="program-selector-container">
         <div className="error-state">
           <div className="error-icon">⚠️</div>
-          <h2>Unable to load programs</h2>
-          <p>Please try refreshing the page or use the wizard to find programs.</p>
+          <h2>{t('editor.selector.unableToLoad')}</h2>
+          <p>{t('editor.selector.unableToLoadDesc')}</p>
           <button 
             onClick={handleWizardRedirect}
             className="wizard-redirect-btn"
           >
-            🧙‍♂️ Use Wizard Instead
+            🧙‍♂️ {t('editor.selector.useWizard')}
           </button>
         </div>
       </div>
@@ -226,12 +314,12 @@ export default function ProgramSelector({
   return (
     <div className="program-selector-container">
       <Head>
-        <title>Choose Your Plan | Wähle deinen Pfad</title>
+        <title>{t('editor.selector.title')}</title>
       </Head>
       <div className="program-selector-header">
         <div className="program-selector-title">
-          <h1>Choose Your Plan | Wähle deinen Pfad</h1>
-          <p>Choose a program to get started with tailored guidance</p>
+          <h1>{t('editor.selector.title')}</h1>
+          <p>{t('editor.selector.subtitle')}</p>
         </div>
       </div>
 
@@ -246,16 +334,16 @@ export default function ProgramSelector({
               router.push(`/editor?product=${state.selectedProduct}&route=${state.selectedRoute}`)
             }}
             className={`px-4 py-2 rounded-lg ${state.selectedProduct ? 'bg-blue-600 text-white hover:bg-blue-700' : 'bg-gray-200 text-gray-500 cursor-not-allowed'}`}
-            title="Continue with selected product / Mit ausgewähltem Dokument fortfahren"
+            title={t('editor.selector.continue')}
           >
-            Continue / Fortfahren
+            {t('editor.selector.continue')}
           </button>
         </div>
         {/* Product Selection */}
         <div className="product-selection-section">
-          <h2>📋 Choose Document Type</h2>
+          <h2>📋 {t('editor.selector.chooseDocumentType')}</h2>
           {mustChooseProduct && (
-            <div className="product-warning" role="alert">Please choose a document type / Bitte Dokumenttyp wählen</div>
+            <div className="product-warning" role="alert">{t('editor.selector.chooseProductWarning')}</div>
           )}
           <div className="product-options">
             <button 
@@ -263,8 +351,8 @@ export default function ProgramSelector({
               onClick={() => { setMustChooseProduct(false); setState(prev => ({ ...prev, selectedProduct: 'submission' })); }}
             >
               <div className="product-icon">📋</div>
-              <div className="product-title">Business Plan</div>
-              <div className="product-description">Complete submission-ready plan</div>
+              <div className="product-title">{t('editor.selector.businessPlan')}</div>
+              <div className="product-description">{t('editor.selector.businessPlanDesc')}</div>
             </button>
             
             <button 
@@ -272,8 +360,8 @@ export default function ProgramSelector({
               onClick={() => { setMustChooseProduct(false); setState(prev => ({ ...prev, selectedProduct: 'strategy' })); }}
             >
               <div className="product-icon">🎯</div>
-              <div className="product-title">Strategy Plan</div>
-              <div className="product-description">High-level strategic overview</div>
+              <div className="product-title">{t('editor.selector.strategyPlan')}</div>
+              <div className="product-description">{t('editor.selector.strategyPlanDesc')}</div>
             </button>
             
             <button 
@@ -281,15 +369,15 @@ export default function ProgramSelector({
               onClick={() => { setMustChooseProduct(false); setState(prev => ({ ...prev, selectedProduct: 'review' })); }}
             >
               <div className="product-icon">📊</div>
-              <div className="product-title">Review Plan</div>
-              <div className="product-description">Analysis and review document</div>
+              <div className="product-title">{t('editor.selector.reviewPlan')}</div>
+              <div className="product-description">{t('editor.selector.reviewPlanDesc')}</div>
             </button>
           </div>
         </div>
 
         {/* Program Selection */}
         <div className="program-selection-section">
-          <h2>📋 Available Programs</h2>
+          <h2>📋 {t('editor.selector.availablePrograms')}</h2>
           <div className="program-grid">
             {state.programs.map((program) => (
               <ProgramCard
@@ -297,12 +385,13 @@ export default function ProgramSelector({
                 program={program}
                 isSelected={state.selectedProgram?.id === program.id}
                 onSelect={() => handleProgramSelect(program)}
+                t={t}
               />
             ))}
           </div>
           {!state.selectedProduct && (
             <div className="grid-overlay" aria-hidden="true">
-              <div className="grid-overlay-panel">Choose document type to enable program selection</div>
+              <div className="grid-overlay-panel">{t('editor.selector.chooseProductToEnable')}</div>
             </div>
           )}
         </div>
