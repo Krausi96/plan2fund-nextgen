@@ -278,8 +278,8 @@ export function RecommendationProvider({ children }: RecommendationProviderProps
       const answers = convertChipsToAnswers(result.chips);
       setState(prev => ({ ...prev, answers }));
       
-      // Get recommendations using enhanced scoring
-      const recommendations = await scoreProgramsEnhanced(answers, "explorer");
+      // Get recommendations using enhanced scoring (same as SmartWizard - strict mode)
+      const recommendations = await scoreProgramsEnhanced(answers, "strict");
       setState(prev => ({
         ...prev,
         recommendations,

@@ -204,32 +204,31 @@ export default function AdvancedSearch() {
         {/* Enhanced Search Input with SmartWizard Design */}
         <div className="bg-white rounded-2xl shadow-xl border border-gray-200 overflow-hidden mb-6">
           <div className="p-8">
-            <div className="text-center mb-6">
-              <h2 className="text-2xl font-bold text-gray-900 mb-2">
-                {t('advancedSearch.aiPoweredTitle')}
-              </h2>
-              <p className="text-gray-600">
-                {t('advancedSearch.aiPoweredSubtitle')}
-              </p>
-            </div>
-
             <div className="space-y-6">
             <div>
-                <label htmlFor="search" className="block text-sm font-medium text-gray-700 mb-3">
-                  {t('advancedSearch.complexProjectLabel')}
-              </label>
+                <label htmlFor="search" className="block text-sm font-semibold text-gray-900 mb-3">
+                  {t('advancedSearch.projectDescriptionLabel')}
+                </label>
                 <textarea
                 id="search"
                 value={searchInput}
                 onChange={(e) => setSearchInput(e.target.value)}
                   placeholder={t('advancedSearch.placeholder')}
                   className="w-full px-4 py-4 border-2 border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent resize-none"
-                  rows={4}
+                  rows={5}
                   onKeyPress={(e) => e.key === 'Enter' && !e.shiftKey && handleSearch()}
               />
-              <p className="text-sm text-gray-500 mt-2">
-                  {t('advancedSearch.aiTips')}
-              </p>
+              <div className="mt-3 space-y-2">
+                <p className="text-sm text-gray-600 font-medium">
+                  {t('advancedSearch.whatToInclude')}
+                </p>
+                <ul className="text-sm text-gray-500 space-y-1 ml-4 list-disc">
+                  <li>{t('advancedSearch.tip1')}</li>
+                  <li>{t('advancedSearch.tip2')}</li>
+                  <li>{t('advancedSearch.tip3')}</li>
+                  <li>{t('advancedSearch.tip4')}</li>
+                </ul>
+              </div>
             </div>
 
             <Button 
