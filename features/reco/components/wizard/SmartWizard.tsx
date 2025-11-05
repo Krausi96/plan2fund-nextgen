@@ -236,20 +236,28 @@ const SmartWizard: React.FC<SmartWizardProps> = ({ onComplete, onProfileGenerate
     const nextQuestion = await questionEngine.getNextQuestionEnhanced(newAnswers);
     
     // Generate live recommendations (top 5-10 programs) after each answer
-    // Only if we have at least 5 answers to make it meaningful
-    if (Object.keys(newAnswers).length >= 5 && remainingProgramCount > 0) {
+    // Show after 2 answers to give user feedback early
+    if (Object.keys(newAnswers).length >= 2 && remainingProgramCount > 0) {
+      console.log('🎯 Generating live recommendations:', {
+        answersCount: Object.keys(newAnswers).length,
+        answers: newAnswers,
+        remainingPrograms: remainingProgramCount
+      });
       setState(prev => ({ ...prev, isLoadingLiveRecommendations: true }));
       
       try {
         // Get remaining programs (already filtered)
         const remainingPrograms = questionEngine.getRemainingPrograms();
+        console.log('📊 Programs to score:', remainingPrograms.length);
         
         // Score top programs (limit to 10 for performance)
         const programsToScore = remainingPrograms.slice(0, Math.min(50, remainingPrograms.length));
         const liveResults = await scoreProgramsEnhanced(newAnswers, "strict", programsToScore);
+        console.log('✅ Scored programs:', liveResults.length);
         
         // Take top 5-10 for preview
         const topResults = liveResults.slice(0, 10);
+        console.log('🎯 Top results:', topResults.length, topResults.map(p => ({ id: p.id, name: p.name, score: p.score })));
         
         setState(prev => ({ 
           ...prev, 
@@ -572,7 +580,7 @@ const SmartWizard: React.FC<SmartWizardProps> = ({ onComplete, onProfileGenerate
           )}
 
           {/* Live Recommendations - Show top programs matching current answers */}
-          {Object.keys(state.answers).length >= 5 && (
+          {Object.keys(state.answers).length >= 2 && (
             <div className="bg-white rounded-2xl shadow-lg border border-gray-200 p-6 mt-6">
               <div className="flex items-center gap-3 mb-4">
                 <span className="text-blue-600 text-xl">🎯</span>
