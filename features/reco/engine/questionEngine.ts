@@ -103,6 +103,7 @@ export class QuestionEngine {
    * Create questions for the most common requirement types
    */
   private generateQuestions(): void {
+    console.log('🚀 generateQuestions() called - starting question generation');
     const questionIdMap = new Map<string, string>(); // Map requirement type to question ID
     let priority = 0;
 
@@ -138,46 +139,51 @@ export class QuestionEngine {
       }
     }
 
-    // Second pass: Ensure CORE 8 questions are always generated (even if below threshold)
-    // Core questions that are essential for finding the right funding program
+    // Second pass: FORCE generate CORE 8 questions - ALWAYS create them
+    // This ensures we always have 8 questions regardless of requirements
     const coreQuestionIds = ['location', 'company_type', 'funding_amount', 'use_of_funds', 
       'impact', 'team_size', 'deadline_urgency', 'project_duration'];
     
-    // Conditional/Overlay questions (refinement, not critical for filtering)
-    const conditionalQuestionIds = ['consortium', 'market_size', 'project_stage', 'research_focus', 'co_financing'];
-    
-    const importantQuestionIds = [...coreQuestionIds, ...conditionalQuestionIds];
-    
-    for (const importantId of importantQuestionIds) {
-      if (this.questions.length >= MAX_QUESTIONS) break;
-      if (questionIdMap.has(importantId)) continue; // Already generated
+    // FORCE generate all 8 core questions
+    for (const coreId of coreQuestionIds) {
+      if (questionIdMap.has(coreId)) {
+        console.log(`✅ Core question ${coreId} already generated`);
+        continue; // Already generated from requirements
+      }
       
-      // Find the requirement type that maps to this important question
+      // Try to generate from requirements first
       let questionGenerated = false;
       for (const req of this.requirementFrequencies) {
         const questionId = this.mapRequirementToQuestionId(req.category, req.type);
-        if (questionId === importantId && req.frequency >= 1) { // Lowered to 1 program (was 2)
+        if (questionId === coreId) {
           questionIdMap.set(questionId, questionId);
           const question = this.createQuestionFromRequirement(req, questionId, priority++);
           if (question && question.options && question.options.length > 0) {
             this.questions.push(question);
-            console.log(`✅ Generated important question: ${questionId} (${req.frequency} programs, ${question.options.length} options)`);
+            console.log(`✅ Generated core question from requirements: ${questionId}`);
             questionGenerated = true;
             break;
           }
         }
       }
       
-      // FALLBACK: If core question not generated from requirements, create with default options
-      if (!questionGenerated && coreQuestionIds.includes(importantId)) {
-        const fallbackQuestion = this.createFallbackQuestion(importantId, priority++);
+      // ALWAYS create fallback if not generated
+      if (!questionGenerated) {
+        const fallbackQuestion = this.createFallbackQuestion(coreId, priority++);
         if (fallbackQuestion && fallbackQuestion.options && fallbackQuestion.options.length > 0) {
-          questionIdMap.set(importantId, importantId);
+          questionIdMap.set(coreId, coreId);
           this.questions.push(fallbackQuestion);
-          console.log(`✅ Generated fallback core question: ${importantId} (default options)`);
+          console.log(`✅ FORCED fallback core question: ${coreId} (default options)`);
+        } else {
+          console.error(`❌ FAILED to create fallback for ${coreId}`);
         }
       }
     }
+    
+    const coreCount = coreQuestionIds.filter(id => questionIdMap.has(id)).length;
+    console.log(`✅ Total core questions generated: ${coreCount}/${coreQuestionIds.length}`);
+    console.log(`✅ Total questions array length: ${this.questions.length}`);
+    console.log(`✅ Questions IDs: ${this.questions.map(q => q.id).join(', ')}`);
 
     // Third pass: If we still have fewer than 5 questions, lower threshold and generate more
     if (this.questions.length < 5) {
@@ -938,16 +944,16 @@ export class QuestionEngine {
     const answeredCoreQuestions = coreQuestionIds.filter(id => answers[id] !== undefined && answers[id] !== null && answers[id] !== '').length;
     const allCoreQuestionsAnswered = answeredCoreQuestions >= coreQuestionIds.length;
     
-    // If we've filtered down significantly, stop asking (but require at least 8 core questions)
-    // CHANGED: Don't stop if all programs filtered out - ask all core questions first
-    if (this.remainingPrograms.length <= 5 && allCoreQuestionsAnswered && this.remainingPrograms.length > 0) {
-      console.log(`✅ Filtered to ${this.remainingPrograms.length} programs, stopping questions (after ${Object.keys(answers).length} answers, all core questions answered)`);
+    // NEVER stop until all 8 core questions are answered
+    // Only stop if ALL core questions are answered AND we have some programs left
+    if (allCoreQuestionsAnswered && this.remainingPrograms.length > 0) {
+      console.log(`✅ All ${coreQuestionIds.length} core questions answered with ${this.remainingPrograms.length} programs remaining, stopping`);
       return null;
     }
     
     // If all programs filtered out but core questions not answered, continue asking
     if (this.remainingPrograms.length === 0 && !allCoreQuestionsAnswered) {
-      console.warn(`⚠️ All programs filtered out but only ${answeredCoreQuestions}/${coreQuestionIds.length} core questions answered - continuing to ask core questions`);
+      console.warn(`⚠️ All programs filtered out but only ${answeredCoreQuestions}/${coreQuestionIds.length} core questions answered - continuing to ask ALL core questions`);
     }
     
     const hasManyPrograms = this.remainingPrograms.length > 10;
