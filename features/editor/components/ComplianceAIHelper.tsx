@@ -20,7 +20,8 @@ import {
   ReadinessValidator, 
   transformCategorizedToProgramRequirements 
 } from '@/shared/lib/readiness';
-import { createAIHelper, createEnhancedAIHelper } from '@/features/editor/engine/aiHelper';
+import { createAIHelper } from '@/features/editor/engine/aiHelper';
+import { buildExpertPrompt } from '@/features/editor/prompts/sectionPrompts';
 import { useI18n } from '@/shared/contexts/I18nContext';
 import { useUser } from '@/shared/contexts/UserContext';
 import { isFeatureEnabled, getSubscriptionTier, FeatureFlag } from '@/shared/lib/featureFlags';
@@ -152,8 +153,18 @@ export default function ComplianceAIHelper({
         language: plan?.language || 'en'
       });
 
-      const prompt = `Fix compliance issues in the ${currentSection} section:\n\n${readinessIssues}\n\nCurrent content:\n${planContent[currentSection] || 'No content yet'}`;
-      const response = await aiHelper.generateSectionContent(currentSection, prompt, {
+      // Build expert-enhanced prompt
+      const fundingType = programProfile?.route || 'grants';
+      const sectionTitle = currentSection;
+      const expertPrompt = buildExpertPrompt(
+        currentSection,
+        sectionTitle,
+        `Fix compliance issues:\n\n${readinessIssues}`,
+        planContent[currentSection] || '',
+        fundingType
+      );
+      
+      const response = await aiHelper.generateSectionContent(currentSection, expertPrompt, {
         id: programProfile?.programId || 'unknown',
         name: programProfile?.programName || 'Program',
         type: programProfile?.route || 'grant',
@@ -202,8 +213,18 @@ export default function ComplianceAIHelper({
         language: plan?.language || 'en'
       });
 
-      const prompt = `Improve the writing quality and clarity of the ${currentSection} section:\n\n${planContent[currentSection] || 'No content yet'}`;
-      const response = await aiHelper.generateSectionContent(currentSection, prompt, {
+      // Build expert-enhanced prompt
+      const fundingType = programProfile?.route || 'grants';
+      const sectionTitle = currentSection;
+      const expertPrompt = buildExpertPrompt(
+        currentSection,
+        sectionTitle,
+        'Improve the writing quality and clarity of this section',
+        planContent[currentSection] || '',
+        fundingType
+      );
+      
+      const response = await aiHelper.generateSectionContent(currentSection, expertPrompt, {
         id: programProfile?.programId || 'unknown',
         name: programProfile?.programName || 'Program',
         type: programProfile?.route || 'grant',
@@ -263,9 +284,20 @@ export default function ComplianceAIHelper({
         language: plan?.language || 'en'
       });
 
+      // Build expert-enhanced prompt
+      const fundingType = programProfile?.route || 'grants';
+      const sectionTitle = currentSection;
+      const expertPrompt = buildExpertPrompt(
+        currentSection,
+        sectionTitle,
+        input,
+        planContent[currentSection] || '',
+        fundingType
+      );
+
       const response = await aiHelper.generateSectionContent(
         currentSection,
-        input,
+        expertPrompt,
         {
           id: programProfile?.programId || 'unknown',
           name: programProfile?.programName || 'Program',

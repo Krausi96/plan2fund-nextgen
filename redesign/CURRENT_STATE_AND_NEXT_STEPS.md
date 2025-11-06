@@ -1,7 +1,7 @@
 # 📊 Current State & Next Steps
 
 **Last Updated:** 2025-01-XX  
-**Overall Completion:** ~88%
+**Overall Completion:** ~94%
 
 ---
 
@@ -27,7 +27,7 @@
 - ⚠️ Dynamic section mapping (function exists, not integrated)
 - ⚠️ Admin editing interface (optional, not done)
 
-### Area 4: Editor (90% ⚠️)
+### Area 4: Editor (95% ✅)
 - ✅ Canva-style UI (UnifiedEditorLayout)
 - ✅ Section navigation (SectionTree)
 - ✅ Merged compliance + AI (ComplianceAIHelper)
@@ -37,7 +37,7 @@
 - ✅ **react-pdf preview** (PreviewPanel.tsx)
 - ✅ **Freemium gating** (featureFlags.ts + premium checks + upgrade modals) - **DONE**
 - ✅ **Additional documents editor** (AdditionalDocumentsEditor.tsx) - **DONE**
-- ❌ Chapter-specific expert advice
+- ✅ **Chapter-specific expert advice** (sectionPrompts.ts integrated) - **DONE**
 
 ---
 
@@ -172,8 +172,8 @@
 - Area 1: 100% ✅
 - Area 2: 100% ✅
 - Area 3: 80% ✅
-- Area 4: 90% ⚠️ (freemium + additional docs done)
-- **Overall: 88%**
+- Area 4: 95% ✅ (freemium + additional docs + expert advice done)
+- **Overall: 94%**
 
 **After Next Steps:**
 - Area 1: 100% ✅

@@ -8,11 +8,11 @@
 
 ## 📊 Overall Status
 
-**Completion: ~88%** (up from 83%)
+**Completion: ~94%** (up from 88%)
 - Area 1 (Scraper-Lite): 100% ✅ (LLM integration complete)
 - Area 2 (Reco/SmartWizard): 100% ✅ (Fully wired - unified UI + semantic search + results page)
 - Area 3 (Editor Entry): 80% ✅ (LLM generation + versioning complete, dynamic mapping optional)
-- Area 4 (Editor): 90% ⚠️ (Image upload + react-pdf + freemium + additional docs done, needs expert advice)
+- Area 4 (Editor): 95% ✅ (Image upload + react-pdf + freemium + additional docs + expert advice done)
 
 ---
 
@@ -139,7 +139,7 @@
 
 #### ❌ NOT DONE:
 - [x] Additional documents (pitch deck, forms) - **DONE** (AdditionalDocumentsEditor.tsx)
-- [ ] Chapter-specific expert advice
+- [x] Chapter-specific expert advice - **DONE** (sectionPrompts.ts integrated into ComplianceAIHelper)
 
 ### What's Working:
 - Image upload with caption/description support
@@ -153,7 +153,7 @@
 1. ✅ Create `shared/lib/featureFlags.ts` - **DONE**
 2. ✅ Add premium checks and upgrade modals - **DONE**
 3. ✅ Create `AdditionalDocumentsEditor.tsx` - **DONE**
-4. Add chapter-specific expert advice to AI assistant - **NEXT PRIORITY**
+4. ✅ Add chapter-specific expert advice to AI assistant - **DONE**
 
 ---
 
@@ -183,6 +183,7 @@
 ### ✅ Created (Recently):
 - `features/editor/components/AdditionalDocumentsEditor.tsx` - **DONE**
 - `features/editor/types/additionalDocuments.ts` - **DONE**
+- `features/editor/prompts/sectionPrompts.ts` - **DONE** (Expert prompts for all sections)
 
 ### ✅ Correctly Deleted:
 - `RestructuredEditor.tsx` (replaced)
