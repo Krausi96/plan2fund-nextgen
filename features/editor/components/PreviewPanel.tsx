@@ -172,6 +172,47 @@ export default function PreviewPanel({ plan, sections }: PreviewPanelProps) {
     generatePDF();
   }, [plan, sections]);
 
+  // PDF Preview
+  const renderPDFPreview = () => {
+    if (!showPreview) {
+      return (
+        <div className="flex items-center justify-center h-full text-gray-500">
+          <div className="text-center">
+            <EyeOff className="h-12 w-12 mx-auto mb-2 text-gray-400" />
+            <p className="text-sm">Preview hidden</p>
+            <Button
+              onClick={() => setShowPreview(true)}
+              size="sm"
+              variant="outline"
+              className="mt-4"
+            >
+              Show Preview
+            </Button>
+          </div>
+        </div>
+      );
+    }
+
+    if (!pdfBlob) {
+      return (
+        <div className="flex items-center justify-center h-full">
+          <div className="text-center">
+            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto mb-4"></div>
+            <p className="text-sm text-gray-600">Generating PDF preview...</p>
+          </div>
+        </div>
+      );
+    }
+
+    return (
+      <iframe
+        src={URL.createObjectURL(pdfBlob)}
+        className="w-full h-full border-0"
+        title="PDF Preview"
+      />
+    );
+  };
+
   // HTML Preview (fallback)
   const renderHTMLPreview = () => {
     if (!showPreview) {
