@@ -68,11 +68,9 @@
 ---
 
 ### Priority 3: Area 4 - Chapter-Specific Expert Advice (MEDIUM) - **NEXT**
-**Status:** ✅ DONE
+**Why:** Improves AI assistant value, domain-specific guidance
 
-**What was implemented:**
-- ✅ Created `shared/lib/featureFlags.ts` with feature definitions
-- ✅ Created `shared/components/UpgradeModal.tsx` for premium prompts
+**Status:** Not started
 - ✅ Updated UserProfile schema with subscription field
 - ✅ Added premium checks to ProgramFinder (semantic search)
 - ✅ Added premium checks to ComplianceAIHelper (advanced AI)
