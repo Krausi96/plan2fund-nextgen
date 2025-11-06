@@ -409,7 +409,7 @@ const coreProducts = [
                       {product.id === 'submission' && <Rocket className="w-10 h-10 text-white" />}
                     </div>
                     <h3 className="text-3xl font-bold text-gray-900 mb-3">{product.title}</h3>
-                    <div className="inline-flex items-center px-8 py-4 bg-white border-2 border-black text-black rounded-2xl mb-6 shadow-lg">
+                    <div className="inline-flex items-center px-8 py-4 bg-white border-2 border-black text-black rounded-lg mb-6 shadow-sm">
                       <span className="text-4xl font-black">{product.price}</span>
                       <span className="text-sm font-medium ml-3">{t('pricing.labels.inclVat')}</span>
                   </div>
@@ -441,7 +441,7 @@ const coreProducts = [
                             <Link
                               key={index}
                               href={`/library?doc=${doc.id}`}
-                              className="block w-full text-left p-4 rounded-xl border border-gray-200 hover:border-blue-300 hover:shadow-md transition-all duration-300 group"
+                              className="block w-full text-left p-4 rounded-lg border border-gray-200 hover:border-blue-300 hover:shadow-md transition-all duration-300 group"
                             >
                               <div className="flex items-start justify-between">
                                 <div className="flex-1">
