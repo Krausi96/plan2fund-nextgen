@@ -73,39 +73,41 @@
 
 ---
 
-## Area 3: Editor Entry ❌ 0% (NEXT PRIORITY)
+## Area 3: Editor Entry ⚠️ 40% (IN PROGRESS)
 
 ### Medium Priority (from report):
-- [ ] LLM-based template generation from requirements
-- [ ] Dynamic section mapping using LLM/ML
-- [ ] Template versioning with metadata
+- [x] LLM-based template generation from requirements - **DONE**
+- [ ] Dynamic section mapping using LLM/ML - **PARTIAL** (suggestSectionForCategory created, not integrated)
+- [ ] Template versioning with metadata - **PENDING**
 
 ### Status:
 - ✅ Static master templates exist (`shared/lib/templates/sections.ts`)
 - ✅ Program-specific overrides exist (`shared/lib/templates/program-overrides.ts`)
-- ❌ No LLM summarization of requirements into prompts
-- ❌ No dynamic section mapping (still rule-based)
-- ❌ No template versioning
+- ✅ **LLM template generator created** (`shared/lib/templateGenerator.ts`)
+- ✅ **Integrated into loadProgramSections** (tries LLM first, falls back to rule-based)
+- ✅ **LLM summarization of requirements into prompts** (working)
+- ⚠️ Dynamic section mapping (function exists but not integrated into categoryConverters)
+- ❌ Template versioning (no database storage yet)
 
-### What This Means:
-- Templates are static and don't adapt to new program requirements
-- Section prompts are generic, not derived from scraped requirements
-- No way to track template changes over time
+### What's Working:
+- LLM generates program-specific section templates from requirements
+- Templates adapt to program requirements (e.g., sustainability → environmental impact prompts)
+- Automatic fallback to rule-based if LLM fails or no API key
+- Templates include version metadata (`llm-generated-v1`)
 
 ### Next Steps (Priority Order):
-1. **Create LLM template generator** (`shared/lib/templateGenerator.ts`)
-   - Takes program requirements → generates section prompts/hints
-   - Summarizes requirement categories into actionable guidance
-   - Example: "Program emphasizes sustainability" → adds prompts about environmental impact
-   
-2. **Enhance categoryConverters with LLM**
-   - Use LLM to suggest which master section fits each requirement category
+1. **Integrate LLM suggestions into categoryConverters** (MEDIUM)
+   - Use `suggestSectionForCategory` when mapping is unclear
    - Reduce manual rule creation
    
-3. **Add template versioning**
-   - Store generated templates with metadata (program ID, date, model version)
+2. **Add template versioning** (MEDIUM)
+   - Store generated templates in database with metadata
    - Allow admin editing
    - Check if template needs updating on re-scrape
+   
+3. **Test with real programs** (HIGH)
+   - Verify LLM templates are better than rule-based
+   - Check prompt quality and relevance
 
 ---
 

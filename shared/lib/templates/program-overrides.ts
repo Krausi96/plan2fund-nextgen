@@ -88,7 +88,7 @@ export function mergeDocuments(
 
 /**
  * Load program-specific sections from database
- * Parses categorized_requirements and converts to SectionTemplate format
+ * Uses LLM template generation if available, falls back to rule-based categoryConverters
  */
 export async function loadProgramSections(programId: string, baseUrl?: string): Promise<SectionTemplate[]> {
   try {
@@ -108,8 +108,31 @@ export async function loadProgramSections(programId: string, baseUrl?: string): 
     
     if (!categorizedRequirements) return [];
     
-    // Convert categorized requirements to SectionTemplate format
-    // This leverages existing categoryConverters logic
+    // Try LLM template generation first (if API key available)
+    if (process.env.OPENAI_API_KEY) {
+      try {
+        const { generateTemplatesFromRequirements } = await import('@/shared/lib/templateGenerator');
+        const llmTemplates = await generateTemplatesFromRequirements({
+          programId,
+          programName: data.program_name || programId,
+          categorized_requirements: categorizedRequirements,
+          metadata: {
+            funding_types: data.funding_types,
+            program_focus: data.program_focus,
+            region: data.region
+          }
+        });
+        
+        if (llmTemplates.length > 0) {
+          console.log(`✅ Generated ${llmTemplates.length} LLM templates for program ${programId}`);
+          return llmTemplates;
+        }
+      } catch (llmError) {
+        console.warn('LLM template generation failed, using fallback:', llmError);
+      }
+    }
+    
+    // Fallback to rule-based categoryConverters
     const { CategoryConverter } = await import('@/features/editor/engine/categoryConverters');
     const converter = new CategoryConverter();
     

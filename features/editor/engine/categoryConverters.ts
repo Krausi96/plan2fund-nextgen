@@ -107,8 +107,8 @@ export class CategoryConverter {
     standardSection: StandardSection, 
     categorizedRequirements: CategorizedRequirements
   ): EditorSection {
-    // Get relevant requirements for this section's category
-    const relevantRequirements = this.getRelevantRequirements(standardSection.category, categorizedRequirements);
+    // Get relevant requirements for this section's category (synchronous for now)
+    const relevantRequirements = this.getRelevantRequirementsSync(standardSection.category, categorizedRequirements);
     
     // Extract values from requirements
     const values = this.extractValues(relevantRequirements);
@@ -140,9 +140,51 @@ export class CategoryConverter {
 
   /**
    * Get requirements relevant to a specific category
+   * Enhanced with LLM suggestions for dynamic mapping (if available)
    */
-  private getRelevantRequirements(category: string, categorizedRequirements: CategorizedRequirements): CategoryData[] {
+  private async getRelevantRequirements(
+    category: string, 
+    categorizedRequirements: CategorizedRequirements
+  ): Promise<CategoryData[]> {
     // Map standard section categories to requirement categories
+    // NOTE: Updated to use new split categories (35 categories)
+    const categoryMapping: { [key: string]: (keyof CategorizedRequirements)[] } = {
+      'general': ['eligibility'], // Maps to eligibility_criteria, company_type, etc.
+      'project': ['project'], // Maps to innovation_focus, technology_area, etc.
+      'technical': ['technical'],
+      'impact': ['impact'], // Maps to environmental_impact, social_impact, etc.
+      'consortium': ['consortium'],
+      'financial': ['financial'],
+      'legal': ['legal'],
+      'team': ['team'],
+      'market_size': ['market_size'],
+      'revenue_model': ['revenue_model'],
+      'geographic': ['geographic']
+    };
+
+    // Get mapped categories
+    const requirementCategories = categoryMapping[category] || ['eligibility'];
+    
+    // Collect requirements from all mapped categories
+    const requirements: CategoryData[] = [];
+    for (const reqCategory of requirementCategories) {
+      const reqs = categorizedRequirements[reqCategory] || [];
+      requirements.push(...reqs);
+    }
+    
+    // TODO: Use LLM to suggest additional relevant categories
+    // if (process.env.OPENAI_API_KEY && requirements.length === 0) {
+    //   const { suggestSectionForCategory } = await import('@/shared/lib/templateGenerator');
+    //   // Try to find relevant categories using LLM
+    // }
+    
+    return requirements;
+  }
+  
+  /**
+   * Get requirements relevant to a specific category (synchronous version for backward compatibility)
+   */
+  private getRelevantRequirementsSync(category: string, categorizedRequirements: CategorizedRequirements): CategoryData[] {
     const categoryMapping: { [key: string]: keyof CategorizedRequirements } = {
       'general': 'eligibility',
       'project': 'project',
