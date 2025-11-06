@@ -3,11 +3,12 @@
 
 'use client';
 
-import React, { useState, useEffect, useMemo } from 'react';
+import React, { useState, useEffect, useMemo, useRef } from 'react';
 import dynamic from 'next/dynamic';
 import { PlanSection } from '@/shared/types/plan';
 import { Button } from '@/shared/components/ui/button';
 import { Card } from '@/shared/components/ui/card';
+import ImageUpload from './ImageUpload';
 
 // Dynamically import ReactQuill to avoid SSR issues
 const ReactQuill = dynamic(() => import('react-quill'), { ssr: false });
@@ -25,6 +26,7 @@ interface RichTextEditorProps {
   showGuidance?: boolean;
   showFormatting?: boolean;
   onFormattingChange?: (formatting: FormattingOptions) => void;
+  showImageUpload?: boolean;
 }
 
 interface FormattingOptions {
