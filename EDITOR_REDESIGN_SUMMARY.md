@@ -68,14 +68,19 @@ Refactored editor using new layout:
 - Table of contents
 - Section rendering
 
+## ✅ Recently Completed
+
+1. **Financial Tables** ✅ - Templates for revenue, expenses, cash flow, unit economics
+2. **Charts** ✅ - Recharts integration (bar, line, pie charts)
+3. **Editor Integration** ✅ - RestructuredEditorNew integrated into Phase4Integration
+4. **Auto-generate Executive Summary** ✅ - Button in Executive Summary section
+
 ## 🚧 Next Steps (Pending)
 
-1. **Financial Tables** - ReactDataGrid integration
-2. **Charts** - Chart.js/Recharts integration
-3. **Image Upload** - S3/database storage
-4. **Enhanced Preview** - react-pdf rendering
-5. **Freemium Gating** - Feature flags
-6. **Additional Documents** - Pitch deck, forms editor
+1. **Image Upload** - S3/database storage with captions
+2. **Enhanced Preview** - react-pdf rendering for real PDF preview
+3. **Freemium Gating** - Feature flags for premium features
+4. **Additional Documents** - Pitch deck, forms editor
 
 ## 📝 Integration
 
@@ -101,9 +106,12 @@ import RestructuredEditorNew from './RestructuredEditorNew';
 - ✅ Compliance & AI merge: **Complete**
 - ✅ Section navigation: **Complete**
 - ✅ Preview panel: **Complete**
-- ⏳ Financial tables: **Pending**
-- ⏳ Charts: **Pending**
+- ✅ Financial tables: **Complete** (with templates)
+- ✅ Charts: **Complete** (Recharts integration)
+- ✅ Auto-generate Executive Summary: **Complete**
+- ✅ Editor integration: **Complete** (Phase4Integration)
 - ⏳ Image upload: **Pending**
+- ⏳ Enhanced preview (react-pdf): **Pending**
 - ⏳ Freemium gating: **Pending**
 
 ## 🔗 Files
