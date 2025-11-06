@@ -8,11 +8,11 @@
 
 ## 📊 Overall Status
 
-**Completion: ~78%** (up from 70%)
+**Completion: ~83%** (up from 78%)
 - Area 1 (Scraper-Lite): 100% ✅ (LLM integration complete)
 - Area 2 (Reco/SmartWizard): 100% ✅ (Fully wired - unified UI + semantic search + results page)
 - Area 3 (Editor Entry): 80% ✅ (LLM generation + versioning complete, dynamic mapping optional)
-- Area 4 (Editor): 75% ⚠️ (Image upload + react-pdf done, needs freemium + additional docs)
+- Area 4 (Editor): 85% ⚠️ (Image upload + react-pdf + freemium done, needs additional docs + expert advice)
 
 ---
 
@@ -121,7 +121,7 @@
 
 ---
 
-## Area 4: Editor ⚠️ 75% (IN PROGRESS)
+## Area 4: Editor ⚠️ 85% (IN PROGRESS)
 
 ### High Priority (from report):
 
@@ -135,9 +135,9 @@
 - [x] Merge Requirements Checker and AI Assistant
 - [x] **Image upload component** (ImageUpload.tsx) - **DONE**
 - [x] **Live preview with react-pdf** - **DONE** (replaced HTML preview)
+- [x] **Freemium gating** (featureFlags.ts + premium checks + upgrade modals) - **DONE**
 
 #### ❌ NOT DONE:
-- [ ] Freemium gating (feature flags)
 - [ ] Additional documents (pitch deck, forms)
 - [ ] Chapter-specific expert advice
 
