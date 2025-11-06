@@ -53,6 +53,7 @@ export async function generateTemplatesFromRequirements(
     
     // Get master sections to understand structure
     const { MASTER_SECTIONS } = await import('./templates/sections');
+    // Use grants submission as default, but could be enhanced to detect funding type
     const masterSections = MASTER_SECTIONS.grants?.submission || [];
     
     // Generate prompts for LLM
@@ -200,6 +201,9 @@ function transformLLMResponse(
       wordCountMin: section.wordCount?.min || master.wordCountMin,
       wordCountMax: section.wordCount?.max || master.wordCountMax,
       required: section.required !== undefined ? section.required : master.required,
+      order: section.order !== undefined ? section.order : master.order,
+      category: master.category, // Keep master category
+      validationRules: master.validationRules, // Keep master validation rules
       source: {
         verified: false,
         verifiedDate: new Date().toISOString(),
