@@ -397,8 +397,105 @@ function calculateRequirementFrequencies(allPrograms: Program[]): Map<string, nu
   return frequencies;
 }
 
+// Normalization functions - SAME as QuestionEngine for consistency
+// These ensure scoring matches filtering logic exactly
+function normalizeLocationValue(value: any): string | null {
+  const str = String(value || '').toLowerCase();
+  if (str.includes('austria') || str.includes('österreich') || str === 'at') return 'austria';
+  if (str.includes('germany') || str.includes('deutschland') || str === 'de') return 'germany';
+  if (str.includes('eu') || str.includes('europe') || str.includes('european')) return 'eu';
+  return 'international';
+}
+
+function normalizeCompanyTypeValue(value: any): string | null {
+  const str = String(value || '').toLowerCase();
+  if (str.includes('startup') || str.includes('start-up') || str.includes('new venture')) return 'startup';
+  if (str.includes('sme') || str.includes('small') || str.includes('medium') || str.includes('mittelstand')) return 'sme';
+  if (str.includes('large') || str.includes('enterprise')) return 'large';
+  if (str.includes('research') || str.includes('university') || str.includes('academic')) return 'research';
+  return null;
+}
+
+function normalizeFundingAmountValue(value: any): string | null {
+  if (typeof value === 'number') {
+    if (value < 100000) return 'under100k';
+    if (value < 500000) return '100kto500k';
+    if (value < 2000000) return '500kto2m';
+    return 'over2m';
+  }
+  const str = String(value || '').toLowerCase();
+  if (str.includes('under') || str.includes('<') || str.includes('less')) return 'under100k';
+  if (str.includes('100') && str.includes('500')) return '100kto500k';
+  if (str.includes('500') && str.includes('2000')) return '500kto2m';
+  if (str.includes('over') || str.includes('>') || str.includes('more')) return 'over2m';
+  return null;
+}
+
+function normalizeUseOfFundsValue(value: any): string | null {
+  const str = String(value || '').toLowerCase();
+  if (str.includes('research') || str.includes('development') || str.includes('rd')) return 'rd';
+  if (str.includes('marketing') || str.includes('promotion')) return 'marketing';
+  if (str.includes('equipment') || str.includes('infrastructure')) return 'equipment';
+  if (str.includes('personnel') || str.includes('hiring') || str.includes('team')) return 'personnel';
+  return null;
+}
+
+function normalizeTeamSizeValue(value: any): string | null {
+  if (typeof value === 'number') {
+    if (value <= 2) return '1to2';
+    if (value <= 5) return '3to5';
+    if (value <= 10) return '6to10';
+    return 'over10';
+  }
+  const str = String(value || '').toLowerCase();
+  if (str.includes('1') || str.includes('2') || str.includes('solo')) return '1to2';
+  if (str.includes('3') || str.includes('4') || str.includes('5')) return '3to5';
+  if (str.includes('6') || str.includes('7') || str.includes('8') || str.includes('9') || str.includes('10')) return '6to10';
+  if (str.includes('over') || str.includes('more')) return 'over10';
+  return null;
+}
+
+function normalizeImpactValue(value: any): string | null {
+  const str = String(value || '').toLowerCase();
+  if (str.includes('economic') || str.includes('job') || str.includes('growth')) return 'economic';
+  if (str.includes('social') || str.includes('community') || str.includes('society')) return 'social';
+  if (str.includes('environment') || str.includes('climate') || str.includes('sustainability')) return 'environmental';
+  return null;
+}
+
+function normalizeProjectDurationValue(value: any): string | null {
+  const str = String(value || '').toLowerCase();
+  if (str.includes('under') || str.includes('<2') || str.includes('short')) return 'under2';
+  if (str.includes('2') && str.includes('5')) return '2to5';
+  if (str.includes('5') && str.includes('10')) return '5to10';
+  if (str.includes('over') || str.includes('>10') || str.includes('long')) return 'over10';
+  return null;
+}
+
+// Normalize requirement value based on answer key (for scoring)
+function normalizeRequirementValue(answerKey: string, requirementValue: any): string | null {
+  switch (answerKey) {
+    case 'location':
+      return normalizeLocationValue(requirementValue);
+    case 'company_type':
+      return normalizeCompanyTypeValue(requirementValue);
+    case 'funding_amount':
+      return normalizeFundingAmountValue(requirementValue);
+    case 'use_of_funds':
+      return normalizeUseOfFundsValue(requirementValue);
+    case 'team_size':
+      return normalizeTeamSizeValue(requirementValue);
+    case 'impact':
+      return normalizeImpactValue(requirementValue);
+    case 'project_duration':
+      return normalizeProjectDurationValue(requirementValue);
+    default:
+      return null;
+  }
+}
+
 // Score programs using categorized requirements (18 categories from Layer 1&2)
-// NOW WITH DYNAMIC FREQUENCY-BASED SCORING
+// NOW WITH DYNAMIC FREQUENCY-BASED SCORING + NORMALIZATION (aligned with filtering)
 function scoreCategorizedRequirements(
   categorizedRequirements: any,
   answers: UserAnswers,
@@ -452,6 +549,8 @@ function scoreCategorizedRequirements(
     'project_stage': ['eligibility', 'project'],
     'research_focus': ['project', 'impact'],
     'consortium': ['consortium', 'geographic'],
+    'industry_focus': ['project', 'eligibility'],
+    'trl_level': ['technical', 'trl_level'],
     'market_size': ['market_size'],
     'co_financing': ['financial', 'co_financing'],
     // Legacy format support (for advanced search):
@@ -493,22 +592,33 @@ function scoreCategorizedRequirements(
       let matchReason = '';
 
       relevantAnswers.forEach(answer => {
-        const answerValueStr = String(answer.value).toLowerCase();
-        const itemValueStr = String(itemValue).toLowerCase();
+        const userAnswerNormalized = String(answer.value).toLowerCase();
         
-        // Match if values match (case-insensitive)
-        if (itemValueStr === answerValueStr || itemValueStr.includes(answerValueStr) || answerValueStr.includes(itemValueStr)) {
+        // NORMALIZE requirement value using same logic as filtering
+        // This ensures scoring matches filtering exactly
+        const requirementNormalized = normalizeRequirementValue(answer.key, itemValue);
+        
+        // Match if normalized values match (same as filtering logic)
+        if (requirementNormalized && requirementNormalized === userAnswerNormalized) {
           matched = true;
-          matchReason = `${answer.key} (${answer.value}) matches ${category} requirement (${itemValue})`;
+          matchReason = `${answer.key} (${answer.value}) matches ${category} requirement (${itemValue}) - normalized to ${requirementNormalized}`;
         } else if (Array.isArray(item.value)) {
-          // Check array items
+          // Check array items with normalization
           const arrayMatch = item.value.some((v: any) => {
-            const vStr = String(v).toLowerCase();
-            return vStr === answerValueStr || vStr.includes(answerValueStr) || answerValueStr.includes(vStr);
+            const normalized = normalizeRequirementValue(answer.key, v);
+            return normalized && normalized === userAnswerNormalized;
           });
           if (arrayMatch) {
             matched = true;
             matchReason = `${answer.key} (${answer.value}) matches ${category} requirement in array`;
+          }
+        } else if (!requirementNormalized) {
+          // Fallback: If normalization fails, try string matching (for non-standard fields)
+          const answerValueStr = String(answer.value).toLowerCase();
+          const itemValueStr = String(itemValue).toLowerCase();
+          if (itemValueStr === answerValueStr || itemValueStr.includes(answerValueStr) || answerValueStr.includes(itemValueStr)) {
+            matched = true;
+            matchReason = `${answer.key} (${answer.value}) matches ${category} requirement (${itemValue}) - via string matching`;
           }
         }
       });

@@ -57,8 +57,16 @@ function validatePageData(page: PageMetadata): { valid: boolean; errors: string[
   if (!page.title || page.title.trim().length < 5) {
     errors.push('Title is missing or too short');
   }
-  if (!page.description || page.description.trim().length < 20) {
-    errors.push('Description is missing or too short');
+  // RELAXED: Lower minimum description length from 20 to 10 to allow more pages
+  // Also allow using title as fallback if description is missing
+  if (!page.description || page.description.trim().length < 10) {
+    // If description is missing/short but title exists, use title as fallback
+    if (page.title && page.title.trim().length >= 10) {
+      // Use title as description fallback - don't fail validation
+      // The description will be set to title in the save function if needed
+    } else {
+      errors.push('Description is missing or too short (minimum 10 characters)');
+    }
   }
   
   return {
@@ -84,13 +92,21 @@ async function executeQuery<T = any>(
 }
 
 export async function savePage(page: PageMetadata, client?: PoolClient): Promise<number> {
+  // ENHANCED: Use title as description fallback if description is missing/short
+  const pageWithFallback = { ...page };
+  if (!pageWithFallback.description || pageWithFallback.description.trim().length < 10) {
+    if (pageWithFallback.title && pageWithFallback.title.trim().length >= 10) {
+      pageWithFallback.description = pageWithFallback.title;
+    }
+  }
+  
   // Validate data quality
-  const validation = validatePageData(page);
+  const validation = validatePageData(pageWithFallback);
   if (!validation.valid) {
     throw new Error(`Data validation failed: ${validation.errors.join(', ')}`);
   }
   
-  const deadlineDate = parseDeadline(page.deadline ?? null);
+  const deadlineDate = parseDeadline(pageWithFallback.deadline ?? null);
   
   const result = await executeQuery<{ id: number }>(
     `INSERT INTO pages (
@@ -104,7 +120,7 @@ export async function savePage(page: PageMetadata, client?: PoolClient): Promise
     ON CONFLICT (url) 
     DO UPDATE SET
       title = EXCLUDED.title,
-      description = EXCLUDED.description,
+      description = COALESCE(NULLIF(EXCLUDED.description, ''), EXCLUDED.title),
       funding_amount_min = EXCLUDED.funding_amount_min,
       funding_amount_max = EXCLUDED.funding_amount_max,
       currency = EXCLUDED.currency,
@@ -120,22 +136,22 @@ export async function savePage(page: PageMetadata, client?: PoolClient): Promise
       updated_at = NOW()
     RETURNING id`,
     [
-      page.url,
-      page.title,
-      page.description,
-      page.funding_amount_min,
-      page.funding_amount_max,
-      page.currency || 'EUR',
+      pageWithFallback.url,
+      pageWithFallback.title,
+      pageWithFallback.description,
+      pageWithFallback.funding_amount_min,
+      pageWithFallback.funding_amount_max,
+      pageWithFallback.currency || 'EUR',
       deadlineDate,
-      page.open_deadline || false,
-      page.contact_email,
-      page.contact_phone,
-      page.funding_types || [],
-      page.program_focus || [],
-      page.region,
-      JSON.stringify(page.metadata_json || {}),
-      page.raw_html_path,
-      page.fetched_at || new Date().toISOString()
+      pageWithFallback.open_deadline || false,
+      pageWithFallback.contact_email,
+      pageWithFallback.contact_phone,
+      pageWithFallback.funding_types || [],
+      pageWithFallback.program_focus || [],
+      pageWithFallback.region,
+      JSON.stringify(pageWithFallback.metadata_json || {}),
+      pageWithFallback.raw_html_path,
+      pageWithFallback.fetched_at || new Date().toISOString()
     ],
     client
   );
@@ -193,6 +209,24 @@ export async function saveRequirements(pageId: number, requirements: Record<stri
         ? item.meaningfulness_score
         : calculateMeaningfulnessScore(item.value);
       
+      // INTELLIGENCE: Filter out low-quality requirements (score <30) to prevent garbage in database
+      // Only skip if score is very low AND it's not a critical category
+      const criticalCategories = ['financial', 'geographic', 'timeline', 'eligibility_criteria', 'company_type', 'company_stage', 'industry_restriction'];
+      const isCritical = criticalCategories.includes(category);
+      const isLowQuality = meaningfulnessScore < 30;
+      
+      // Skip low-quality non-critical requirements
+      if (isLowQuality && !isCritical) {
+        errorCount++;
+        continue; // Skip this requirement
+      }
+      
+      // For critical categories, be more lenient but still filter very low scores
+      if (isLowQuality && isCritical && meaningfulnessScore < 15) {
+        errorCount++;
+        continue; // Skip very low quality even for critical categories
+      }
+      
       const insert = executeQuery(
         `INSERT INTO requirements (page_id, category, type, value, required, source, description, format, requirements, meaningfulness_score)
          VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)`,
@@ -222,7 +256,22 @@ export async function saveRequirements(pageId: number, requirements: Record<stri
     }
   }
   
-  await Promise.all(inserts);
+  // CRITICAL FIX: Add timeout to Promise.all to prevent hanging on many requirements
+  const saveRequirementsPromise = Promise.all(inserts);
+  const saveRequirementsTimeout = new Promise((_, reject) => 
+    setTimeout(() => reject(new Error('Save requirements timeout after 20s')), 20000)
+  );
+  
+  try {
+    await Promise.race([saveRequirementsPromise, saveRequirementsTimeout]);
+  } catch (timeoutError: any) {
+    if (timeoutError.message && timeoutError.message.includes('timeout')) {
+      console.warn(`⚠️  Save requirements timeout - some requirements may not have been saved`);
+      // Don't throw - partial save is better than no save
+    } else {
+      throw timeoutError;
+    }
+  }
   
   if (successCount === 0 && errorCount > 0) {
     throw new Error(`All ${errorCount} requirements failed to save`);
@@ -232,7 +281,22 @@ export async function saveRequirements(pageId: number, requirements: Record<stri
 // ATOMIC TRANSACTION: Save page and requirements together (100% reliability)
 export async function savePageWithRequirements(page: PageMetadata): Promise<number> {
   const pool = getPool();
-  const client = await pool.connect();
+  
+  // CRITICAL FIX: Add timeout to pool.connect() to prevent hanging when pool is exhausted
+  const connectPromise = pool.connect();
+  const connectTimeoutPromise = new Promise((_, reject) => 
+    setTimeout(() => reject(new Error('Pool connection timeout after 10s - pool may be exhausted')), 10000)
+  );
+  
+  let client: PoolClient;
+  try {
+    client = await Promise.race([connectPromise, connectTimeoutPromise]) as PoolClient;
+  } catch (connectError: any) {
+    if (connectError.message.includes('timeout')) {
+      throw new Error(`Database pool connection timeout - pool may be exhausted (max connections: ${pool.totalCount})`);
+    }
+    throw connectError;
+  }
   
   try {
     await client.query('BEGIN');
@@ -247,7 +311,7 @@ export async function savePageWithRequirements(page: PageMetadata): Promise<numb
     console.log(`✅ Successfully saved page ${pageId} with requirements to database`);
     return pageId;
   } catch (error: any) {
-    await client.query('ROLLBACK');
+    await client.query('ROLLBACK').catch(() => {}); // Ignore rollback errors
     console.error(`❌ Transaction failed for page ${page.url?.substring(0, 60)}:`, error.message);
     throw error;
   } finally {

@@ -12,6 +12,13 @@
  * - Quality monitoring and reporting
  */
 
+// MEMORY: Increase Node.js heap size to prevent out-of-memory errors
+// Default is ~2GB, increase to 4GB for large page processing
+if (!process.env.NODE_OPTIONS || !process.env.NODE_OPTIONS.includes('--max-old-space-size')) {
+  const v8 = require('v8');
+  v8.setFlagsFromString('--max-old-space-size=4096');
+}
+
 require('ts-node').register({ transpileOnly: true, compilerOptions: { module: 'commonjs', moduleResolution: 'node', esModuleInterop: true } });
 
 // Load environment variables from .env.local
@@ -24,7 +31,8 @@ const fs = require('fs');
 
 const MAX_CYCLES = process.env.MAX_CYCLES ? parseInt(process.env.MAX_CYCLES) : 10;
 const MIN_NEW_URLS = process.env.MIN_NEW_URLS ? parseInt(process.env.MIN_NEW_URLS) : 5;
-const SCRAPE_BATCH_SIZE = process.env.SCRAPE_BATCH_SIZE ? parseInt(process.env.SCRAPE_BATCH_SIZE) : 100;
+// PERFORMANCE: Smaller default batch size to avoid timeouts and improve reliability
+const SCRAPE_BATCH_SIZE = process.env.SCRAPE_BATCH_SIZE ? parseInt(process.env.SCRAPE_BATCH_SIZE) : 20;
 
 async function runPatternLearning() {
   console.log('\n🧠 Learning patterns from scraped pages...');
@@ -82,7 +90,7 @@ async function autoRescrapeLowQualityPages() {
       SELECT url
       FROM page_categories
       WHERE (has_eligibility = 0 OR has_financial = 0 OR has_documents = 0 OR has_timeline = 0 OR has_project = 0)
-      LIMIT 20
+      LIMIT 50
     `);
     
     if (result.rows.length > 0) {
@@ -120,14 +128,9 @@ async function autoRescrapeLowQualityPages() {
       console.log(`  ✅ All pages have critical categories - no rescraping needed`);
     }
     
-    await pool.end();
+    // CRITICAL FIX: Don't close singleton pool - it's shared across the application
   } catch (e) {
     console.log(`  ⚠️  Could not check for low-quality pages: ${e.message}`);
-    if (pool) {
-      try {
-        await pool.end();
-      } catch {}
-    }
   }
 }
 
@@ -149,13 +152,20 @@ async function autoCycle() {
   let seeds = (process.env.LITE_SEEDS || '').split(',').map(s => s.trim()).filter(Boolean);
   if (seeds.length === 0) {
     console.log('\n📋 Auto-loading seed URLs from institution config...');
-    seeds = getAllSeedUrls();
-    console.log(`✅ Loaded ${seeds.length} seed URLs from ${institutions.length} institutions`);
     
-    if (!process.env.LITE_ALL_INSTITUTIONS) {
-      const limitedSeeds = institutions.slice(0, 3).flatMap(inst => inst.seedUrls);
-      console.log(`⚠️  Limiting to first 3 institutions (${limitedSeeds.length} seeds). Set LITE_ALL_INSTITUTIONS=1 for all.`);
+    // CRITICAL: Use ALL institutions by default (not just first 3)
+    // This provides better diversity and less AWS-heavy scraping
+    if (process.env.LITE_LIMIT_INSTITUTIONS) {
+      const limit = parseInt(process.env.LITE_LIMIT_INSTITUTIONS) || 3;
+      const limitedSeeds = institutions.slice(0, limit).flatMap(inst => inst.seedUrls);
+      console.log(`⚠️  Limiting to first ${limit} institutions (${limitedSeeds.length} seeds).`);
+      console.log(`   💡 Remove LITE_LIMIT_INSTITUTIONS to use ALL ${institutions.length} institutions`);
       seeds = limitedSeeds;
+    } else {
+      // DEFAULT: Use ALL institutions
+      seeds = getAllSeedUrls();
+      console.log(`✅ Using ALL ${institutions.length} institutions (${seeds.length} seed URLs)`);
+      console.log(`   💡 Set LITE_LIMIT_INSTITUTIONS=3 to use only first 3 (old behavior)`);
     }
   }
   
@@ -171,8 +181,12 @@ async function autoCycle() {
     const urlsBeforeDiscovery = Object.keys(stateBeforeDiscovery.seen || {}).length;
     const jobsBeforeDiscovery = stateBeforeDiscovery.jobs.filter(j => j.status === 'queued').length;
     
-    const maxDiscoveryPages = process.env.LITE_MAX_DISCOVERY_PAGES ? parseInt(process.env.LITE_MAX_DISCOVERY_PAGES) : 200;
-    await discover(seeds, 3, maxDiscoveryPages);
+    // CRITICAL: Reduce discovery pages for faster cycles (was 200, now 20)
+    // Only discover new URLs, not re-process existing ones
+    const maxDiscoveryPages = process.env.LITE_MAX_DISCOVERY_PAGES ? parseInt(process.env.LITE_MAX_DISCOVERY_PAGES) : 20;
+    // CRITICAL: Reduce depth to 1 (was 3) - only go 1 level deep to prevent long discovery
+    const discoveryDepth = 1;
+    await discover(seeds, discoveryDepth, maxDiscoveryPages);
     
     const stateAfterDiscovery = loadState();
     const urlsAfterDiscovery = Object.keys(stateAfterDiscovery.seen || {}).length;
@@ -191,80 +205,292 @@ async function autoCycle() {
     
     // STEP 2: Scraping (in batches)
     console.log('\n📥 STEP 2: SCRAPING');
-    let batchNum = 1;
-    let hasMoreJobs = true;
+    const stateBeforeScraping = loadState();
+    const queuedJobsBefore = stateBeforeScraping.jobs.filter(j => j.status === 'queued');
+    console.log(`  📊 Found ${queuedJobsBefore.length} queued jobs before scraping`);
     
-    while (hasMoreJobs) {
-      const state = loadState();
-      const queuedJobs = state.jobs.filter(j => j.status === 'queued');
+    if (queuedJobsBefore.length === 0) {
+      console.log(`  ℹ️  No jobs to scrape - all already processed`);
+    } else {
+      let batchNum = 1;
+      let hasMoreJobs = true;
       
-      if (queuedJobs.length === 0) {
-        hasMoreJobs = false;
-        break;
-      }
-      
-      const batchSize = Math.min(SCRAPE_BATCH_SIZE, queuedJobs.length);
-      console.log(`\n  📦 Batch ${batchNum}: Scraping ${batchSize} jobs...`);
-      
-      const pagesBefore = state.pages.length;
-      await scrape(batchSize, []);
-      
-      const stateAfter = loadState();
-      const pagesAfter = stateAfter.pages.length;
-      const pagesInBatch = pagesAfter - pagesBefore;
-      
-      totalPagesScraped += pagesInBatch;
-      console.log(`  ✅ Scraped ${pagesInBatch} pages in this batch (${pagesAfter} total)`);
-      
-      batchNum++;
-      
-      // Limit batches per cycle
-      if (batchNum > 5) {
-        console.log(`  ⚠️  Max batches per cycle reached, continuing to next cycle...`);
-        break;
+      while (hasMoreJobs) {
+        const state = loadState();
+        const queuedJobs = state.jobs.filter(j => j.status === 'queued');
+        
+        if (queuedJobs.length === 0) {
+          console.log(`  ✅ No more queued jobs`);
+          hasMoreJobs = false;
+          break;
+        }
+        
+        const batchSize = Math.min(SCRAPE_BATCH_SIZE, queuedJobs.length);
+        console.log(`\n  📦 Batch ${batchNum}: Scraping ${batchSize} jobs (${queuedJobs.length} total queued)...`);
+        
+        // PERFORMANCE: Track pages before/after using database count if available
+        const pagesBefore = process.env.DATABASE_URL ? 
+          (await (async () => {
+            try {
+              const { getPool } = require('../../src/db/neon-client.ts');
+              const pool = getPool();
+              const result = await pool.query('SELECT COUNT(*) as count FROM pages');
+              return parseInt(result.rows[0]?.count || '0');
+            } catch {
+              return state.pages.length;
+            }
+          })()) : 
+          state.pages.length;
+        
+        const startTime = Date.now();
+        
+        try {
+          // CRITICAL FIX: Wrap scrape() in timeout to prevent infinite hanging
+          // Smaller timeout for smaller batches
+          const BATCH_TIMEOUT_MS = Math.min(10 * 60 * 1000, batchSize * 30 * 1000); // Max 30s per job, or 10min total
+          // FIX: Pass batchSize to scrape() to ensure it only processes that many jobs
+          const scrapePromise = scrape(batchSize, []);
+          const batchTimeoutPromise = new Promise((_, reject) => 
+            setTimeout(() => reject(new Error(`Batch ${batchNum} timeout after ${BATCH_TIMEOUT_MS / 1000}s`)), BATCH_TIMEOUT_MS)
+          );
+          
+          await Promise.race([scrapePromise, batchTimeoutPromise]);
+          
+          const elapsed = ((Date.now() - startTime) / 1000).toFixed(1);
+          
+          // PERFORMANCE: Get pages after using database count if available
+          const pagesAfter = process.env.DATABASE_URL ?
+            (await (async () => {
+              try {
+                const { getPool } = require('../../src/db/neon-client.ts');
+                const pool = getPool();
+                const result = await pool.query('SELECT COUNT(*) as count FROM pages');
+                return parseInt(result.rows[0]?.count || '0');
+              } catch {
+                const stateAfter = loadState();
+                return stateAfter.pages.length;
+              }
+            })()) :
+            (() => {
+              const stateAfter = loadState();
+              return stateAfter.pages.length;
+            })();
+          
+          const pagesInBatch = pagesAfter - pagesBefore;
+          
+          totalPagesScraped += pagesInBatch;
+          console.log(`  ✅ Batch ${batchNum} complete: Scraped ${pagesInBatch} pages in ${elapsed}s (${pagesAfter} total)`);
+          
+          // Small delay between batches to avoid overwhelming the system
+          if (batchNum < 5 && queuedJobs.length > batchSize) {
+            await new Promise(resolve => setTimeout(resolve, 1000));
+          }
+        } catch (scrapeError) {
+          const elapsed = ((Date.now() - startTime) / 1000).toFixed(1);
+          if (scrapeError.message && scrapeError.message.includes('timeout')) {
+            console.error(`  ⏱️  Batch ${batchNum} timeout after ${elapsed}s - skipping remaining batches`);
+            break; // Stop processing more batches if timeout
+          } else {
+            console.error(`  ❌ Batch ${batchNum} error (${elapsed}s): ${scrapeError.message || String(scrapeError)}`);
+            if (scrapeError.stack) {
+              console.error(`  Stack: ${scrapeError.stack}`);
+            }
+            // Continue to next batch for non-timeout errors, but reduce batch size
+            if (batchSize > 10) {
+              console.log(`  ⚠️  Reducing batch size for next attempt...`);
+            }
+          }
+        }
+        
+        batchNum++;
+        
+        // Limit batches per cycle to prevent infinite loops
+        // FIX: Increased from 10 to 20 to process more jobs per cycle (with 15k+ queued jobs)
+        const MAX_BATCHES_PER_CYCLE = 20;
+        if (batchNum > MAX_BATCHES_PER_CYCLE) {
+          const remainingJobs = state.jobs.filter(j => j.status === 'queued').length;
+          console.log(`  ⚠️  Max batches per cycle reached (${MAX_BATCHES_PER_CYCLE}), continuing to next cycle...`);
+          console.log(`  ℹ️  ${remainingJobs} jobs still queued - will be processed in next cycle`);
+          break;
+        }
       }
     }
     
-    // STEP 3: Pattern Learning (after scraping)
-    if (cyclesRun % 2 === 0 || cyclesRun === 1) {
-      await runPatternLearning();
+    // STEP 3: Pattern Learning (after scraping) - ALWAYS RUN to learn from every scrape
+    console.log('\n🧠 STEP 3: PATTERN LEARNING');
+    await runPatternLearning();
+    
+    // STEP 3c: Learn Institution-Specific Patterns (URL patterns and exclusion keywords)
+    console.log('\n🏛️  STEP 3c: INSTITUTION PATTERN LEARNING');
+    try {
+      const { learnInstitutionPatterns } = require('./learn-institution-patterns.js');
+      await learnInstitutionPatterns();
+      console.log('✅ Institution pattern learning complete');
+    } catch (e) {
+      console.log(`⚠️  Institution pattern learning error: ${e.message}`);
     }
     
-    // STEP 3b: Extraction Quality Analysis (for self-improvement)
-    if (cyclesRun % 3 === 0 || cyclesRun === 1) {
-      console.log('\n🔬 STEP 3b: EXTRACTION QUALITY ANALYSIS');
-      try {
-        require('../manual/improve-extraction.js');
-      } catch (e) {
-        console.log(`⚠️  Extraction analysis error: ${e.message}`);
-      }
+    // STEP 4: COMPLETE ANALYSIS (Completeness, Quality, Funding Patterns)
+    console.log('\n📊 STEP 4: COMPLETE ANALYSIS');
+    try {
+      const { analyzeCompletenessAndQuality, analyzeFundingTypePatterns } = require('./analyze-completeness-quality.js');
+      await analyzeCompletenessAndQuality();
+      await analyzeFundingTypePatterns();
+      console.log('✅ Analysis complete');
+    } catch (e) {
+      console.log(`⚠️  Analysis error: ${e.message}`);
     }
     
-    // STEP 4: Database Quality Check & Component Data Verification
-    if (cyclesRun % 2 === 0 || cyclesRun === 1) {
-      console.log('\n✅ STEP 4: DATABASE QUALITY CHECK');
-      try {
-        require('../manual/verify-database-quality.js');
-      } catch (e) {
-        console.log(`⚠️  Quality check error: ${e.message}`);
+    // STEP 3a: Auto-blacklist bad URLs (mark as processed so they won't be rediscovered)
+    console.log('\n🚫 STEP 3a: AUTO-BLACKLISTING BAD URLS');
+    try {
+      const { autoBlacklistBadUrls } = require('./auto-blacklist-bad-urls.js');
+      await autoBlacklistBadUrls();
+      console.log('✅ Auto-blacklisting complete');
+    } catch (e) {
+      console.log(`⚠️  Auto-blacklisting error: ${e.message}`);
+    }
+    
+    // STEP 3b: AUTONOMOUS Quality Improvement (re-scrape poor pages) - ALWAYS RUN
+    console.log('\n🔄 STEP 3b: AUTONOMOUS QUALITY IMPROVEMENT');
+    try {
+      const { getPool } = require('../../src/db/neon-client.ts');
+      const { calculatePageQuality } = require('../../src/scraper.ts');
+      const { extractMeta } = require('../../src/extract.ts');
+      const { normalizeMetadata } = require('../../src/extract.ts');
+      const { fetchHtml } = require('../../src/utils.ts');
+      const { savePageWithRequirements } = require('../../src/db/page-repository.ts');
+      
+      const pool = getPool();
+      
+      // Find pages with < 3 critical categories (need improvement)
+      const result = await pool.query(`
+        SELECT p.id, p.url, p.title,
+          (SELECT COUNT(DISTINCT r.category) FROM requirements r 
+           WHERE r.page_id = p.id 
+           AND r.category IN ('geographic', 'eligibility', 'financial', 'use_of_funds', 'team', 'impact', 'timeline')) as critical_categories,
+          p.funding_amount_min, p.funding_amount_max
+        FROM pages p
+        WHERE (SELECT COUNT(DISTINCT r.category) FROM requirements r 
+               WHERE r.page_id = p.id 
+               AND r.category IN ('geographic', 'eligibility', 'financial', 'use_of_funds', 'team', 'impact', 'timeline')) < 3
+        ORDER BY 
+          (SELECT COUNT(DISTINCT r.category) FROM requirements r 
+           WHERE r.page_id = p.id 
+           AND r.category IN ('geographic', 'eligibility', 'financial', 'use_of_funds', 'team', 'impact', 'timeline')) ASC
+        LIMIT 50
+      `);
+      
+      if (result.rows.length > 0) {
+        console.log(`  📥 Auto-improving ${result.rows.length} low-quality pages...`);
+        let improved = 0;
+        
+        for (const page of result.rows) {
+          try {
+            const fetchResult = await fetchHtml(page.url);
+            const meta = extractMeta(fetchResult.html, page.url);
+            const normalized = normalizeMetadata(meta);
+            
+            const criticalAfter = ['geographic', 'eligibility', 'financial', 'use_of_funds', 'team', 'impact', 'timeline'].filter(
+              cat => (normalized.categorized_requirements?.[cat] || []).length > 0
+            ).length;
+            
+            const qualityData = {
+              reqCount: Object.values(normalized.categorized_requirements || {}).flat().length,
+              criticalCategories: criticalAfter,
+              hasAmount: !!(normalized.funding_amount_min || normalized.funding_amount_max),
+              hasDeadline: !!(normalized.deadline || normalized.open_deadline),
+              hasContact: !!(normalized.contact_email || normalized.contact_phone),
+              totalCategories: Object.keys(normalized.categorized_requirements || {}).length,
+              poorQualityAttempts: 0
+            };
+            
+            const quality = calculatePageQuality(qualityData);
+            
+            if (quality.shouldSave && criticalAfter > parseInt(page.critical_categories || 0)) {
+              normalized.url = page.url;
+              await savePageWithRequirements(normalized);
+              improved++;
+            }
+            
+            await new Promise(resolve => setTimeout(resolve, 500));
+          } catch (e) {
+            // Skip errors
+          }
+        }
+        
+        if (improved > 0) {
+          console.log(`  ✅ Auto-improved ${improved} pages`);
+        }
       }
       
-      // Verify component data format
-      console.log('\n✅ STEP 4b: COMPONENT DATA VERIFICATION');
-      try {
-        require('../manual/test-question-engine-data.js');
-      } catch (e) {
-        console.log(`⚠️  Component verification error: ${e.message}`);
-      }
+      // CRITICAL FIX: Don't close singleton pool
+    } catch (e) {
+      console.log(`⚠️  Auto-quality improvement error: ${e.message}`);
     }
     
-    // STEP 5: Auto-Rescrape Pages with Missing Critical Categories
-    if (cyclesRun % 4 === 0 && cyclesRun > 2) {
+    // STEP 4: Quality Analysis & Testing - ALWAYS RUN after scraping
+    console.log('\n📊 STEP 4: QUALITY ANALYSIS & TESTING');
+    try {
+      console.log('  📈 Running quality pattern analysis...');
+      require('../manual/analyze-quality-patterns.js');
+      console.log('  ✅ Quality analysis complete');
+    } catch (e) {
+      console.log(`  ⚠️  Quality analysis error: ${e.message}`);
+    }
+    
+    // STEP 4b: Database Quality Check & Component Data Verification - ALWAYS RUN
+    console.log('\n✅ STEP 4b: DATABASE QUALITY CHECK');
+    try {
+      require('../manual/verify-database-quality.js');
+    } catch (e) {
+      console.log(`  ⚠️  Quality check error: ${e.message}`);
+    }
+    
+    // Verify component data format
+    console.log('\n✅ STEP 4c: COMPONENT DATA VERIFICATION');
+    try {
+      require('../manual/test-question-engine-data.js');
+    } catch (e) {
+      console.log(`  ⚠️  Component verification error: ${e.message}`);
+    }
+    
+    // STEP 5: Auto-Rescrape Pages with Missing Critical Categories - AUTONOMOUS (every cycle now for faster improvement)
+    // OPTIMIZATION: Run every cycle instead of every 2 cycles for faster quality improvement
+    if (cyclesRun > 1) {
       console.log('\n🔄 STEP 5: AUTO-RESCRAPE LOW QUALITY PAGES');
       try {
         await autoRescrapeLowQualityPages();
       } catch (e) {
         console.log(`⚠️  Auto-rescrape error: ${e.message}`);
+      }
+    }
+    
+    // STEP 5b: Process PDFs (if any in queue) - AUTONOMOUS (every cycle after first)
+    if (cyclesRun > 1) {
+      console.log('\n📄 STEP 5b: PROCESSING PDFS');
+      try {
+        const state = loadState();
+        const pdfJobs = state.jobs.filter(j => 
+          j.status === 'queued' && 
+          (j.url.toLowerCase().includes('.pdf') || j.url.toLowerCase().includes('/pdf/'))
+        );
+        
+        if (pdfJobs.length > 0) {
+          console.log(`  📄 Found ${pdfJobs.length} PDFs in queue`);
+          const { processPdfs } = require('../manual/process-pdfs.js');
+          // Process up to 10 PDFs per cycle (PDFs are slower)
+          // Set limit via process.argv since processPdfs reads from argv
+          const originalArgv = process.argv.slice();
+          process.argv.push('--limit=10');
+          await processPdfs();
+          process.argv = originalArgv;
+        } else {
+          console.log(`  ℹ️  No PDFs in queue`);
+        }
+      } catch (e) {
+        console.log(`⚠️  PDF processing error: ${e.message}`);
+        if (e.stack) console.log(`  Stack: ${e.stack}`);
       }
     }
     
@@ -282,14 +508,12 @@ async function autoCycle() {
     console.log(`  ⏳ Queued jobs: ${finalQueuedJobs}`);
     console.log(`  ❌ Failed jobs: ${finalFailedJobs}`);
     
-    // Run monitoring scripts for detailed analysis
-    if (cyclesRun === MAX_CYCLES || newJobs < MIN_NEW_URLS) {
-      console.log('\n📈 Running detailed analysis...');
-      try {
-        require('./monitor-improvements.js');
-      } catch (e) {
-        console.log(`⚠️  Could not run analysis: ${e.message}`);
-      }
+    // Run monitoring scripts for detailed analysis - ALWAYS RUN after each cycle
+    console.log('\n📈 STEP 7b: DETAILED IMPROVEMENT MONITORING');
+    try {
+      require('./monitor-improvements.js');
+    } catch (e) {
+      console.log(`⚠️  Could not run monitoring: ${e.message}`);
     }
     
     // Check if we should continue

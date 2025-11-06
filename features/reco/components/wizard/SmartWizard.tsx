@@ -2438,3 +2438,11 @@ const LoadingDisplay: React.FC = () => {
 };
 
 export default SmartWizard;
+          font-weight: 500;
+        }
+      `}</style>
+    </div>
+  );
+};
+
+export default SmartWizard;

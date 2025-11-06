@@ -274,15 +274,27 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         throw new Error('DATABASE_URL not configured');
       }
       
-      // Use dynamic import for TypeScript modules (works better with Next.js)
-      // This matches the pattern used in pages/api/user/profile.ts
-      const pageRepo = await import('../../scraper-lite/src/db/page-repository');
-      const searchPages = pageRepo.searchPages;
-      const getAllPages = pageRepo.getAllPages;
+      // Add timeout to database operations
+      const DB_TIMEOUT = 10000; // 10 seconds
+      const databasePromise = (async () => {
+        // Use dynamic import for TypeScript modules (works better with Next.js)
+        // This matches the pattern used in pages/api/user/profile.ts
+        const pageRepo = await import('../../scraper-lite/src/db/page-repository');
+        const searchPages = pageRepo.searchPages;
+        const getAllPages = pageRepo.getAllPages;
+        
+        const pages = type && typeof type === 'string'
+          ? await searchPages({ region: type, limit: 1000 }) // Using region as proxy for type for now
+          : await getAllPages(1000);
+        
+        return pages;
+      })();
       
-      const pages = type && typeof type === 'string'
-        ? await searchPages({ region: type, limit: 1000 }) // Using region as proxy for type for now
-        : await getAllPages(1000);
+      const timeoutPromise = new Promise((_, reject) => 
+        setTimeout(() => reject(new Error('Database query timeout')), DB_TIMEOUT)
+      );
+      
+      const pages = await Promise.race([databasePromise, timeoutPromise]) as any[];
       
       if (pages.length === 0) {
         console.warn('⚠️ No pages found in database, using JSON fallback');
@@ -291,15 +303,16 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       
       // Transform pages to programs format with requirements
       const programs = await Promise.all(pages.map(async (page: any) => {
-        // Get requirements for this page
-        // Use dynamic import for TypeScript modules (works better with Next.js)
-        // This matches the pattern used in pages/api/user/profile.ts
-        const { getPool } = await import('../../scraper-lite/src/db/neon-client');
-        const pool = getPool();
-        const reqResult = await pool.query(
-          'SELECT category, type, value, required, source, description, format, requirements FROM requirements WHERE page_id = $1',
-          [page.id]
-        );
+        try {
+          // Get requirements for this page
+          // Use dynamic import for TypeScript modules (works better with Next.js)
+          // This matches the pattern used in pages/api/user/profile.ts
+          const { getPool } = await import('../../scraper-lite/src/db/neon-client');
+          const pool = getPool();
+          const reqResult = await pool.query(
+            'SELECT category, type, value, required, source, description, format, requirements FROM requirements WHERE page_id = $1',
+            [page.id]
+          );
         
         // Group requirements by category
         const categorized_requirements: Record<string, any[]> = {};
@@ -334,8 +347,11 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         const eligibility_criteria: any = {};
         
         // Geographic requirements
+        // Handle both 'location' and 'specific_location' for backward compatibility
         if (categorized_requirements.geographic) {
-          const location = categorized_requirements.geographic.find((r: any) => r.type === 'location');
+          const location = categorized_requirements.geographic.find((r: any) => 
+            r.type === 'location' || r.type === 'specific_location'
+          );
           if (location) eligibility_criteria.location = location.value;
         }
         
@@ -454,6 +470,37 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         }
         
         return program;
+        } catch (pageError: any) {
+          console.error(`Error processing page ${page.id}:`, pageError?.message || pageError);
+          // Return a basic program structure even if requirements fail
+          return {
+            id: `page_${page.id}`,
+            name: page.title || page.url,
+            type: page.funding_types?.[0] || 'grant',
+            program_type: page.funding_types?.[0] || 'grant',
+            description: page.description,
+            funding_amount_max: page.funding_amount_max,
+            currency: page.currency || 'EUR',
+            source_url: page.url,
+            url: page.url,
+            deadline: page.deadline,
+            open_deadline: page.open_deadline || false,
+            contact_email: page.contact_email,
+            contact_phone: page.contact_phone,
+            requirements: {},
+            eligibility_criteria: {},
+            categorized_requirements: {},
+            notes: page.description,
+            maxAmount: page.funding_amount_max || 0,
+            minAmount: page.funding_amount_min || 0,
+            link: page.url,
+            region: page.region,
+            funding_types: page.funding_types || [],
+            program_focus: page.program_focus || [],
+            scrapedAt: page.fetched_at,
+            isActive: true
+          };
+        }
       }));
       
       // Filter by type if specified
@@ -482,6 +529,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       console.warn('⚠️ NEON database query failed, using fallback data...');
       console.warn('   Error type:', dbError?.constructor?.name || 'Unknown');
       console.warn('   Error message:', dbError?.message || String(dbError));
+      console.warn('   Full error:', JSON.stringify(dbError, Object.getOwnPropertyNames(dbError)));
       
       // Provide specific diagnostics
       if (dbError?.message?.includes('Cannot find module') || dbError?.message?.includes('Failed to load')) {
@@ -498,10 +546,11 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         console.error('   Check DATABASE_URL and network connectivity');
         console.error('   Connection string:', process.env.DATABASE_URL ? 'Set' : 'NOT SET');
       } else if (dbError?.stack) {
-        console.warn('   Stack trace:', dbError.stack.split('\n').slice(0, 3).join('\n'));
+        console.warn('   Stack trace:', dbError.stack.split('\n').slice(0, 5).join('\n'));
       }
       
       // Fall through to fallback data
+      // Don't re-throw, let it fall through to fallback
     }
     
     // Fallback to JSON data
@@ -522,9 +571,35 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     
   } catch (error) {
     console.error('Programs API Error:', error);
+    console.error('Error stack:', error instanceof Error ? error.stack : 'No stack trace');
+    console.error('Error details:', {
+      name: error instanceof Error ? error.name : 'Unknown',
+      message: error instanceof Error ? error.message : String(error),
+      type: typeof error
+    });
+    
+    // Try to return fallback data even on error
+    try {
+      const fallbackPrograms = getFallbackData();
+      if (fallbackPrograms.length > 0) {
+        console.log(`⚠️ Using fallback data (${fallbackPrograms.length} programs) due to error`);
+        return res.status(200).json({
+          success: true,
+          programs: fallbackPrograms,
+          count: fallbackPrograms.length,
+          message: `Found ${fallbackPrograms.length} programs from fallback data (error occurred)`,
+          source: 'fallback',
+          error: error instanceof Error ? error.message : 'Unknown error'
+        });
+      }
+    } catch (fallbackError) {
+      console.error('Fallback data also failed:', fallbackError);
+    }
+    
     return res.status(500).json({
       error: 'Internal server error',
-      message: error instanceof Error ? error.message : 'Unknown error'
+      message: error instanceof Error ? error.message : 'Unknown error',
+      stack: process.env.NODE_ENV === 'development' && error instanceof Error ? error.stack : undefined
     });
   }
 }

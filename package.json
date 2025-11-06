@@ -21,6 +21,7 @@
         "analyze:bundle": "node scripts/analysis/analyze-bundle.js",
         "analyze:unused": "node scripts/analysis/analyze-unused.js",
         "analyze:duplicates": "node scripts/analysis/analyze-duplicates.js",
+        "analyze:file-usage": "node scripts/analyze-file-usage.js",
         "lite:discover": "node scraper-lite/run-lite.js discover",
         "lite:scrape": "node scraper-lite/run-lite.js scrape",
         "lite:analyze": "node scraper-lite/analyze-coverage.js"

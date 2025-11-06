@@ -126,7 +126,7 @@ function loadLearnedPatterns() {
   return {};
 }
 
-export function isProgramDetailPage(url: string): boolean {
+export async function isProgramDetailPage(url: string): Promise<boolean> {
   try {
     const u = new URL(url);
     const urlPath = u.pathname.toLowerCase();
@@ -161,11 +161,11 @@ export function isProgramDetailPage(url: string): boolean {
       return false;
     }
     
-    // Load learned patterns from collected URLs
+    // Load learned patterns from collected URLs (JSON fallback)
     const learnedPatterns = loadLearnedPatterns();
     const hostKey = host.replace('www.', '');
     
-    // Use learned patterns if available
+    // Use learned patterns if available (JSON fallback)
     if (learnedPatterns[hostKey] && learnedPatterns[hostKey].patterns) {
       const patterns = learnedPatterns[hostKey].patterns;
       
@@ -188,6 +188,41 @@ export function isProgramDetailPage(url: string): boolean {
       // If patterns exist but none matched, default to exclude
       if (patterns.include.length > 0) {
         return false;
+      }
+    }
+    
+    // NEW: Load learned institution-specific patterns from database (if available)
+    if (process.env.DATABASE_URL) {
+      try {
+        const { getInstitutionPatterns } = require('./db/institution-pattern-repository');
+        const learnedInstitutionPatterns = await getInstitutionPatterns(hostKey, 'url_exclude', 0.4);
+        
+        // Check exclusions first (learned patterns take priority)
+        for (const pattern of learnedInstitutionPatterns) {
+          try {
+            const regex = pattern.pattern_regex ? new RegExp(pattern.pattern_regex) : new RegExp(pattern.pattern);
+            if (regex.test(urlPath)) {
+              return false; // Learned exclusion pattern matched
+            }
+          } catch (e) {
+            // Invalid regex, skip
+          }
+        }
+        
+        // Check include patterns
+        const learnedIncludes = await getInstitutionPatterns(hostKey, 'url_include', 0.4);
+        for (const pattern of learnedIncludes) {
+          try {
+            const regex = pattern.pattern_regex ? new RegExp(pattern.pattern_regex) : new RegExp(pattern.pattern);
+            if (regex.test(urlPath)) {
+              return true; // Learned include pattern matched
+            }
+          } catch (e) {
+            // Invalid regex, skip
+          }
+        }
+      } catch (e) {
+        // Fallback to hardcoded patterns if database fails
       }
     }
     
@@ -396,8 +431,8 @@ export function isProgramDetailPage(url: string): boolean {
     
     if (isKnownInstitution) {
       // For known institutions, accept more patterns
-      // Check for funding/program keywords in URL
-      const fundingKeywords = ['funding', 'foerderung', 'programm', 'program', 'ausschreibung', 'call', 'grant', 'loan', 'equity', 'subsidy', 'financing'];
+      // ENHANCED: More comprehensive funding/program keywords in URL
+      const fundingKeywords = ['funding', 'foerderung', 'förderung', 'programm', 'program', 'ausschreibung', 'call', 'grant', 'loan', 'equity', 'subsidy', 'financing', 'finanzierung', 'subvention', 'darlehen', 'kredit', 'investition', 'innovation', 'research', 'forschung', 'startup', 'unternehmen', 'kmu', 'sme', 'beihilfe', 'support', 'unterstützung', 'venture', 'seed', 'preseed', 'incubator', 'accelerator', 'fellowship', 'scholarship', 'stipendium', 'zuschuss', 'finanzhilfe', 'foerderbetrag', 'foerderhoehe', 'digitalisierung', 'digitalization', 'ai.start', 'deep.tech', 'growth.investment', 'first.incubator', 'innovation.protection', 'erp.loan', 'guarantee', 'bürgschaft', 'innovation.voucher', 'bridge', 'collective.research', 'spin.off', 'diversitec', 'diversity', 'tech4people', 'international.market.entry', 'creative.industry', 'quality.of.life', 'startklar', 'ideenreich', 'wachstumsschritt', 'greensinvest', 'cybersicher', 'lebensnah'];
       const hasFundingKeyword = fundingKeywords.some(keyword => urlPath.includes(keyword));
       
       // Accept if has funding keyword AND has depth (not just root/category page)
@@ -475,20 +510,37 @@ export interface FetchResult {
 
 export async function fetchHtml(url: string, saveRaw = true): Promise<FetchResult> {
   await throttleHost(url);
-  const res = await fetch(url, {
-    headers: {
-      'User-Agent': 'plan2fund-lite/1.0 (+https://plan2fund.local)'
+  
+  // CRITICAL FIX: Add AbortController for native timeout support
+  const controller = new AbortController();
+  const timeoutId = setTimeout(() => controller.abort(), 30000); // 30s timeout
+  
+  try {
+    const res = await fetch(url, {
+      headers: {
+        'User-Agent': 'plan2fund-lite/1.0 (+https://plan2fund.local)'
+      },
+      signal: controller.signal
+    });
+    
+    clearTimeout(timeoutId);
+    
+    if (!res.ok) throw new Error(`HTTP ${res.status}`);
+    const html = await res.text();
+    const rawHtmlPath = saveRaw ? saveRawHtml(html, url) : '';
+    return {
+      html,
+      rawHtmlPath,
+      status: res.status,
+      etag: res.headers.get('etag') || undefined,
+      lastModified: res.headers.get('last-modified') || undefined
+    };
+  } catch (error: any) {
+    clearTimeout(timeoutId);
+    if (error.name === 'AbortError') {
+      throw new Error('Fetch timeout after 30s');
     }
-  });
-  if (!res.ok) throw new Error(`HTTP ${res.status}`);
-  const html = await res.text();
-  const rawHtmlPath = saveRaw ? saveRawHtml(html, url) : '';
-  return {
-    html,
-    rawHtmlPath,
-    status: res.status,
-    etag: res.headers.get('etag') || undefined,
-    lastModified: res.headers.get('last-modified') || undefined
-  };
+    throw error;
+  }
 }
 

@@ -7,11 +7,35 @@ import { z } from 'zod';
 // ============================================================================
 
 export const REQUIREMENT_CATEGORIES = [
-  'eligibility', 'documents', 'financial', 'technical', 'legal', 
-  'timeline', 'geographic', 'team', 'project', 'compliance', 
-  'impact', 'capex_opex', 'use_of_funds', 'revenue_model', 
+  // Eligibility - Split into subcategories
+  'company_type', 'company_stage', 'industry_restriction', 'eligibility_criteria',
+  // Documents
+  'documents',
+  // Financial
+  'financial',
+  // Technical
+  'technical',
+  // Legal
+  'legal',
+  // Timeline
+  'timeline',
+  // Geographic
+  'geographic',
+  // Team
+  'team',
+  // Project - Split into subcategories
+  'innovation_focus', 'technology_area', 'research_domain', 'sector_focus',
+  // Compliance
+  'compliance',
+  // Impact - Split into subcategories
+  'environmental_impact', 'social_impact', 'economic_impact', 'innovation_impact',
+  // Other categories
+  'capex_opex', 'use_of_funds', 'revenue_model', 
   'market_size', 'co_financing', 'trl_level', 'consortium',
-  'diversity'
+  'diversity',
+  // New categories (Priority 1)
+  'application_process', 'evaluation_criteria', 'repayment_terms', 
+  'equity_terms', 'intellectual_property', 'success_metrics', 'restrictions'
 ] as const;
 
 export type RequirementCategory = typeof REQUIREMENT_CATEGORIES[number];
@@ -36,19 +60,33 @@ export interface RequirementItem {
 // ============================================================================
 
 // Helper function to safely call matchAll with fallback
+// PERFORMANCE: Add timeout for regex operations on large strings
 function safeMatchAll(str: string, regex: RegExp): RegExpMatchArray[] {
   try {
     if (typeof str !== 'string' || str == null) return [];
+    
+    // PERFORMANCE: For very large strings, limit regex matching to prevent hanging
+    const MAX_REGEX_SIZE = 500000; // 500KB
+    const textToMatch = str.length > MAX_REGEX_SIZE ? str.substring(0, MAX_REGEX_SIZE) : str;
+    
     if (!regex.global) {
       // matchAll requires global flag - if missing, fall back to match
-      const match = str.match(regex);
+      const match = textToMatch.match(regex);
       return match ? [match as RegExpMatchArray] : [];
     }
-    return Array.from(str.matchAll(regex));
+    
+    // PERFORMANCE: Limit number of matches to prevent slow operations
+    const allMatches = Array.from(textToMatch.matchAll(regex));
+    return allMatches.slice(0, 100); // Limit to first 100 matches per pattern
   } catch (e: any) {
     // Fallback to regular match if matchAll fails for any reason
-    const match = str.match(regex);
-    return match ? [match as RegExpMatchArray] : [];
+    try {
+      const textToMatch = str.length > 500000 ? str.substring(0, 500000) : str;
+      const match = textToMatch.match(regex);
+      return match ? [match as RegExpMatchArray] : [];
+    } catch {
+      return [];
+    }
   }
 }
 
@@ -118,6 +156,259 @@ export function calculateMeaningfulnessScore(value: string | number | object): n
   // Cap at 100
   return Math.min(100, Math.max(0, score));
 }
+
+// ============================================================================
+// VALIDATION FUNCTIONS (Auto-generated from analysis)
+// ============================================================================
+
+/**
+ * Category-specific length validation based on statistics
+ */
+function validateCategoryLength(category: string, value: string): boolean {
+  const lengths: Record<string, { min: number; max: number }> = {
+    'financial': { min: 42, max: 305 },
+    'geographic': { min: 23, max: 180 },
+    'timeline': { min: 24, max: 240 },
+    // Eligibility - split categories
+    'company_type': { min: 24, max: 240 },
+    'company_stage': { min: 24, max: 240 },
+    'industry_restriction': { min: 24, max: 240 },
+    'eligibility_criteria': { min: 24, max: 240 },
+    'documents': { min: 10, max: 240 },
+    // Project - split categories
+    'innovation_focus': { min: 30, max: 257 },
+    'technology_area': { min: 30, max: 257 },
+    'research_domain': { min: 30, max: 257 },
+    'sector_focus': { min: 30, max: 257 },
+    // Impact - split categories
+    'environmental_impact': { min: 25, max: 268 },
+    'social_impact': { min: 25, max: 268 },
+    'economic_impact': { min: 25, max: 268 },
+    'innovation_impact': { min: 25, max: 268 },
+    'team': { min: 22, max: 270 },
+    'consortium': { min: 33, max: 180 },
+    'technical': { min: 32, max: 323 },
+    'legal': { min: 21, max: 240 },
+    'use_of_funds': { min: 73, max: 360 },
+    'compliance': { min: 20, max: 309 },
+    'co_financing': { min: 28, max: 133 },
+    'market_size': { min: 62, max: 275 },
+    'trl_level': { min: 10, max: 16 },
+    'revenue_model': { min: 17, max: 211 },
+    'capex_opex': { min: 23, max: 240 },
+    'diversity': { min: 24, max: 240 },
+  };
+  const rules = lengths[category];
+  if (!rules) return true; // Unknown category, allow
+  return value.length >= rules.min && value.length <= rules.max;
+}
+
+/**
+ * Enhanced generic placeholder detection
+ */
+function isGenericPlaceholderEnhanced(value: string): boolean {
+  const lower = value.toLowerCase().trim();
+  if (lower.length < 5) return false;
+  const patterns = [
+    /^(specified|required|available|soll|muss|müssen|erforderlich|nötig|benötigt)(\s|$)/i,
+    /^(technical|technisch|requirements?|anforderungen?)\s*(specified|required|available)?$/i,
+    /^(legal|rechtlich)\s*(compliance|required|specified)?$/i,
+    /^(compliance|konformität)\s*(required|specified)?$/i,
+    /^(innovation|forschung|research)\s*(required|specified)?$/i,
+    /^(funding|finanzierung)\s*(available|required|specified)?$/i,
+    /^(consortium|konsortium|partner|partnership)\s*(required|specified)?$/i,
+    /^(use of funds|verwendung|zweck)\s*(specified|required)?$/i,
+    /^(revenue|umsatz|erlös)\s*(model\s*)?(specified|required)?$/i,
+    /^(market size|marktgröße)\s*(requirements?|specified|required)?$/i,
+    /^(duration|laufzeit|zeitraum)\s*(specified|required)?$/i,
+    /^(team|mitarbeiter|personnel)\s*(required|specified)?$/i,
+    /^(n\/a|tbd|to be determined|see below|see above|contact|contact us|kontakt)/i,
+    /^(the|die|der|das)\s+(?:program|programm|funding|förderung|institution)/i,
+    /^(required|erforderlich|notwendig|nötig)\s*$/i,
+    /^(specified|angegeben|festgelegt)\s*$/i,
+    /^(available|verfügbar|vorhanden)\s*$/i,
+    /^(see|siehe|siehe unten|siehe oben)/i,
+    /^(contact|kontakt|anfrage)/i,
+    // NEW: Common generic placeholders found in data
+    /^(ideation\s*\/?\s*concept\s*stage)$/i,
+    /^(capex\s*\/?\s*opex\s*requirements?)$/i,
+    /^(termine\s+und\s+fristen|deadlines\s+and\s+deadlines)$/i,
+    /^(fristen|deadlines)$/i,
+    /^(requirements?)$/i
+  ];
+  
+  // Check exact matches for common placeholders
+  const exactMatches = [
+    'ideation / concept stage',
+    'ideation/concept stage',
+    'concept stage',
+    'ideation stage',
+    'capex/opex requirements',
+    'capex / opex requirements',
+    'capex opex requirements',
+    'opex requirements',
+    'capex requirements',
+    'requirements',
+    'termine und fristen',
+    'deadlines and deadlines',
+    'fristen',
+    'deadlines'
+  ];
+  
+  if (exactMatches.includes(lower)) return true;
+  
+  return patterns.some(p => p.test(lower));
+}
+
+/**
+ * Enhanced noise detection (institution names without context)
+ */
+function isNoiseEnhanced(value: string): boolean {
+  const lower = value.toLowerCase().trim();
+  const patterns = [
+    /\b(ffg|aws|mbh|gmbh|inc\.|ltd\.|corporation|austrian\s*(?:research|science|business))\b/i,
+    /^(?:the|die|der|das)\s+(?:program|programm|funding|förderung|institution)/i,
+    /^(?:ffg|aws)\s*$/i,
+    /^(?:ffg|aws)\s+(?:program|programm|funding|förderung)/i
+  ];
+  return patterns.some(p => p.test(lower)) && value.length < 100;
+}
+
+/**
+ * Check if text has encoding issues (garbled characters)
+ */
+function hasEncodingIssues(value: string): boolean {
+  if (!value || typeof value !== 'string') return false;
+  
+  // Check for common encoding issues (garbled characters)
+  // These patterns indicate UTF-8 encoding issues or wrong character encoding
+  
+  // Check for specific common encoding errors
+  const commonErrors = [
+    /ÔÇô/, // Should be em dash —
+    /ÔÇ£/, // Should be opening quote "
+    /ÔÇ¥/, // Should be closing quote "
+    /ÔÇÖ/, // Should be apostrophe '
+    /ÔÇó/, // Should be bullet •
+    /ÔÇ»/, // Should be percent %
+    /├ñ/, // Should be ä
+    /├Â/, // Should be ä
+    /├╝/, // Should be ü
+    /├╜/, // Should be ü
+    /├╢/, // Should be ö
+    /├╡/, // Should be ö
+    /├ƒ/, // Should be ß
+  ];
+  
+  // If we find encoding error patterns, it's likely garbled
+  if (commonErrors.some(pattern => pattern.test(value))) return true;
+  
+  // Check ratio of potentially problematic characters
+  const problematicChars = (value.match(/[^\x20-\x7E\u00A0-\u00FF]/g) || []).length;
+  if (problematicChars > value.length * 0.1 && value.length > 20) {
+    // More than 10% problematic characters
+    return true;
+  }
+  
+  return false;
+}
+
+/**
+ * Check if numbers are realistic for the category
+ */
+function hasValidNumberRange(category: string, value: string): boolean {
+  if (!value || typeof value !== 'string') return true; // No numbers = OK
+  
+  const numbers = value.match(/\d+/g);
+  if (!numbers || numbers.length === 0) return true; // No numbers = OK
+  
+  const currentYear = new Date().getFullYear();
+  
+  for (const numStr of numbers) {
+    const num = parseInt(numStr, 10);
+    
+    // Financial category - check for realistic amounts
+    if (category === 'financial' || category === 'co_financing') {
+      // Very small amounts (< 1 EUR) without context
+      if (num > 0 && num < 1 && !/[€$£]/.test(value)) return false;
+      
+      // Very large amounts (> 1 billion) without context
+      if (num > 1000000000 && !/\b(million|mio|billion|milliarde)\b/i.test(value)) {
+        // Could be a page number or ID, not an amount
+        return false;
+      }
+    }
+    
+    // Team category - check for realistic team sizes
+    if (category === 'team') {
+      // Team size 0 or > 1000 is unrealistic
+      if (num === 0 || num > 1000) return false;
+    }
+    
+    // Timeline category - check for realistic durations
+    if (category === 'timeline') {
+      // Years in timeline that are too far in past/future
+      if (numStr.length === 4) {
+        if (num < 1900 || num > currentYear + 20) return false;
+      }
+      
+      // Duration > 100 years is unrealistic
+      if (num > 100 && /\b(year|jahr)\b/i.test(value)) return false;
+      
+      // Duration < 1 day but expressed as days
+      if (num < 1 && /\b(day|tag)\b/i.test(value)) return false;
+    }
+    
+    // Geographic category - check for realistic postal codes or years
+    if (category === 'geographic') {
+      // Years in geographic context (should be reasonable)
+      if (numStr.length === 4) {
+        if (num < 1900 || num > currentYear + 10) return false;
+      }
+      
+      // Postal codes should be reasonable (Austria: 1000-9999, Germany: 10000-99999)
+      if (numStr.length === 4 || numStr.length === 5) {
+        if (num < 1000 || num > 99999) return false;
+      }
+    }
+  }
+  
+  return true;
+}
+
+/**
+ * Relaxed invalid data type validation
+ * Allows descriptions if they are meaningful (>30 chars) even without pattern match
+ * FIX: Made more lenient - allow descriptions >30 chars (was 50) to reduce false positives
+ * ENHANCED: Added encoding and number validation
+ */
+function hasValidDataType(category: string, value: string): boolean {
+  // Allow descriptions if they are meaningful (not just check patterns)
+  // FIX: Reduced minimum from 20 to 15 chars to allow shorter but valid requirements
+  if (value.length < 15) return false; // Too short = likely invalid
+  
+  // ENHANCED: Check for encoding issues
+  if (hasEncodingIssues(value)) return false;
+  
+  // ENHANCED: Check for realistic number ranges
+  if (!hasValidNumberRange(category, value)) return false;
+  
+  const relaxed: Record<string, RegExp> = {
+    'financial': /(funding|finanzierung|grant|subvention|zuschuss|betrag|amount|euro|eur|€|\d)/i,
+    'team': /(team|mitarbeiter|personnel|personal|staff|member|qualification|qualifikation|\d)/i,
+    'geographic': /(austria|österreich|vienna|wien|germany|deutschland|france|spain|italy|eu|europe|region|location|standort|gebiet|area|location)/i,
+    'timeline': /(deadline|frist|date|datum|duration|laufzeit|zeitraum|year|jahr|month|monat|day|tag|week|woche|\d)/i
+  };
+  
+  const pattern = relaxed[category];
+  if (!pattern) return true; // Unknown category, allow
+  
+  // FIX: More lenient - check pattern OR allow if meaningful description (>30 chars, was 50)
+  // OR if it passes category-specific length validation (meaningful enough)
+  return pattern.test(value) || value.length > 30 || (value.length >= 15 && validateCategoryLength(category, value));
+}
+
+
 
 /**
  * Helper to create a requirement item with automatic meaningfulness scoring
@@ -396,7 +687,7 @@ function extractProgramTopics(text: string): string[] {
   return topics;
 }
 
-export function extractMeta(html: string, url?: string): ExtractedMeta {
+export async function extractMeta(html: string, url?: string): Promise<ExtractedMeta> {
   const $ = cheerio.load(html);
   
   // Structured data (JSON-LD, OpenGraph, Microdata)
@@ -413,7 +704,7 @@ export function extractMeta(html: string, url?: string): ExtractedMeta {
   }
   if (!title) title = ($('h1').first().text() || $('title').text() || '').trim();
   
-  // Description: OG > JSON-LD > meta description > first paragraph
+  // Description: OG > JSON-LD > meta description > first paragraph > title (fallback)
   let description = ogData.openGraph?.description || '';
   if (!description && jsonLdData.jsonLd) {
     const firstLd = Array.isArray(jsonLdData.jsonLd) ? jsonLdData.jsonLd[0] : jsonLdData.jsonLd;
@@ -421,6 +712,16 @@ export function extractMeta(html: string, url?: string): ExtractedMeta {
   }
   if (!description) description = $('meta[name="description"]').attr('content') || '';
   if (!description) description = $('main p, article p, .content p').first().text().trim();
+  // ENHANCED: If still no description, try multiple paragraphs or use title as fallback
+  if (!description || description.trim().length < 10) {
+    // Try to get first 2-3 paragraphs
+    const paragraphs = $('main p, article p, .content p').slice(0, 3).map((_, p) => $(p).text().trim()).get();
+    description = paragraphs.filter(p => p.length > 10).join(' ').substring(0, 500);
+  }
+  // Final fallback: use title if description is still missing/short
+  if (!description || description.trim().length < 10) {
+    description = title || '';
+  }
 
   // Extract body text with better error handling (fixes "Cannot read properties of undefined" errors)
   let safeTextForMatch: string = '';
@@ -463,7 +764,16 @@ export function extractMeta(html: string, url?: string): ExtractedMeta {
   const percentAmountRe = /(\d{1,3})\s*%[^.]{0,50}?(?:bis zu|up to|maximal|maximum)\s*€?\s*(\d{1,3}(?:[.,\s]\d{3})*(?:[.,]\d{2})?)/gi;
   // IMPROVED: Validate funding amount - filter out years, page numbers, and suspicious values
   // More precise but not too strict - ensure we capture real funding amounts
+  // FIXED: Reject amounts < 1,000 EUR (likely page numbers/IDs, not funding amounts)
   const isValidFundingAmount = (value: number, context: string): boolean => {
+    // Reject amounts < 1,000 EUR (unless explicitly in funding context with keywords)
+    if (value < 1000) {
+      // Only accept if context explicitly mentions funding keywords
+      const hasStrongFundingContext = /\b(förderung|funding|finanzierung|grant|betrag|amount|euro|€|subvention|zuschuss|förderbetrag|förderhöhe|finanzierungsbetrag)\b/i.test(context);
+      if (!hasStrongFundingContext) {
+        return false; // Reject - likely page number, ID, or other non-funding value
+      }
+    }
     // Filter years (2020-2030 range) - commonly mistaken as amounts
     if (value >= 2020 && value <= 2030) {
       return false;
@@ -491,17 +801,42 @@ export function extractMeta(html: string, url?: string): ExtractedMeta {
       }
     }
     
-    // Filter amounts 202-203, 508, etc. that are likely page numbers or years
+    // FIX: Filter amounts 200-999 that are likely page numbers, IDs, or phone numbers (not funding amounts)
+    // Numbers like 222, 508, etc. are almost never real funding amounts
     if (value >= 200 && value < 1000) {
-      // Check if context suggests it's actually a page number, year, or phone number
+      // Check if context suggests it's actually a page number, year, phone number, or ID
       if (contextLower.includes('page') || contextLower.includes('seite') || 
           contextLower.includes('horizon 202') || contextLower.includes('version') ||
           contextLower.includes('tel') || contextLower.includes('phone') ||
-          /\b\d{3}-\d{3}\b/.test(context)) { // Phone number pattern
+          contextLower.includes('id') || contextLower.includes('nummer') ||
+          /\b\d{3}-\d{3}\b/.test(context) || // Phone number pattern
+          /\b\d{3}\.\d{3}\b/.test(context)) { // Another phone pattern
         return false;
       }
-      // If it's 202-209 range and no funding keywords, likely year/page number
-      if (value >= 202 && value <= 209 && !/\b(förderung|funding|finanzierung|euro|€)\b/i.test(context)) {
+      // STRICT: Numbers 200-999 are suspicious unless they have VERY strong funding context
+      // Require: Both currency symbol AND funding keyword, not just one
+      const hasCurrency = /[€$£]|eur|euro|usd|dollar/i.test(context);
+      const hasStrongFundingKeyword = /\b(förderbetrag|förderhöhe|fördersumme|funding amount|finanzierungsbetrag|betrag|amount|grant amount)\b/i.test(context);
+      
+      // If it's 202-209 range, almost certainly a year/page number unless very explicit
+      if (value >= 202 && value <= 209) {
+        // Need both currency AND explicit funding keyword
+        if (!(hasCurrency && hasStrongFundingKeyword)) {
+          return false;
+        }
+      }
+      
+      // For other numbers 200-999, require strong funding context
+      // Numbers like 222, 333, 444, 555, 666, 777, 888, 999 are almost certainly not amounts
+      if ([222, 333, 444, 555, 666, 777, 888, 999].includes(value)) {
+        // These patterns are almost never funding amounts - require extremely strong context
+        if (!(hasCurrency && hasStrongFundingKeyword && context.length > 50)) {
+          return false;
+        }
+      }
+      
+      // For other numbers in 200-999 range, require currency + funding context
+      if (!hasCurrency || !hasStrongFundingKeyword) {
         return false;
       }
     }
@@ -648,6 +983,34 @@ export function extractMeta(html: string, url?: string): ExtractedMeta {
     }
   }
 
+  // ENHANCED: Parse numeric values from text descriptions (for funding_amount_description)
+  // Extract numbers from descriptions like "bis zu 75.000 EUR" → 75000
+  // IMPROVED: Better range extraction (e.g., "from EUR 20,000 - EUR 150,000")
+  const descriptionAmountPatterns = [
+    // Range patterns: "EUR 20,000 - EUR 150,000" or "from EUR 20,000 to EUR 150,000"
+    /(?:from|von|zwischen|between)\s*(?:EUR|€|euro)\s*(\d{1,3}(?:[.,\s]\d{3})*(?:[.,]\d{2})?)\s*(?:-|to|bis|und|and)\s*(?:EUR|€|euro)?\s*(\d{1,3}(?:[.,\s]\d{3})*(?:[.,]\d{2})?)\s*(?:EUR|€|euro)?/gi,
+    /(?:EUR|€|euro)\s*(\d{1,3}(?:[.,\s]\d{3})*(?:[.,]\d{2})?)\s*(?:-|to|bis|und|and)\s*(?:EUR|€|euro)?\s*(\d{1,3}(?:[.,\s]\d{3})*(?:[.,]\d{2})?)\s*(?:EUR|€|euro)?/gi,
+    // Single amount patterns
+    /(?:bis\s+zu|up\s+to|maximal|maximum|max\.?)\s*(\d{1,3}(?:[.,\s]\d{3})*(?:[.,]\d{2})?)\s*(?:€|EUR|euro|million|millionen|mio)/gi,
+    /(\d{1,3}(?:[.,\s]\d{3})*(?:[.,]\d{2})?)\s*(?:€|EUR|euro|million|millionen|mio)\s*(?:bis\s+zu|up\s+to|maximal|maximum)/gi,
+    /(?:von|from|zwischen|between|minimum|mindestens|at\s+least)\s*(\d{1,3}(?:[.,\s]\d{3})*(?:[.,]\d{2})?)\s*(?:€|EUR|euro|million|millionen|mio)/gi,
+    // Project volume patterns: "from EUR 20,000 - EUR 150,000 eligible costs"
+    /(?:project\s+volume|projektvolumen|eligible\s+costs|förderbare\s+kosten)\s*(?:from|von)?\s*(?:EUR|€|euro)?\s*(\d{1,3}(?:[.,\s]\d{3})*(?:[.,]\d{2})?)\s*(?:-|to|bis)\s*(?:EUR|€|euro)?\s*(\d{1,3}(?:[.,\s]\d{3})*(?:[.,]\d{2})?)\s*(?:EUR|€|euro)?/gi
+  ];
+  
+  // If we have amounts already, use them. Otherwise, try to extract from descriptions
+  if (amounts.length === 0) {
+    for (const pattern of descriptionAmountPatterns) {
+      const matches = safeMatchAll(safeTextForMatch, pattern);
+      for (const m of matches) {
+        // Extract first number (min)
+        if (m[1]) pushParsed(m[1], m[0]);
+        // Extract second number if range (max)
+        if (m[2]) pushParsed(m[2], m[0]);
+      }
+    }
+  }
+
   // IMPROVED: Calculate min/max with validation - filter out unrealistic values
   let funding_amount_min: number | null = null;
   let funding_amount_max: number | null = null;
@@ -666,6 +1029,34 @@ export function extractMeta(html: string, url?: string): ExtractedMeta {
   const hasUnknownAmountPhrase = unknownAmountPatterns.some(pattern => pattern.test(lower));
   const hasContactPhrase = /(?:contact|kontakt|reach out|ansprechpartner)/i.test(lower) && 
                            /(?:for.*details|für.*details|information|informationen|amount|betrag|funding|finanzierung)/i.test(lower);
+  
+  // ENHANCED: Also check for percentage-based funding (e.g., "up to 50% of costs")
+  const percentagePatterns = [
+    /(?:bis zu|up to|maximal|maximum)\s*(\d{1,3}(?:[.,]\d+)?)\s*%/i,
+    /(\d{1,3}(?:[.,]\d+)?)\s*%\s*(?:der|of|von)\s*(?:kosten|costs|ausgaben|expenses|investition|investment)/i
+  ];
+  
+  const percentageMatches = percentagePatterns.flatMap(p => safeMatchAll(safeTextForMatch, p));
+  if (percentageMatches.length > 0 && amounts.length === 0) {
+    // Extract percentage and try to find cost context
+    const percentageMatch = percentageMatches[0];
+    if (percentageMatch && percentageMatch[1]) {
+      const percentage = parseFloat(percentageMatch[1].replace(',', '.'));
+      // Look for cost amounts in context
+      const costContext = safeTextForMatch.substring(Math.max(0, safeTextForMatch.indexOf(percentageMatch[0]) - 200), safeTextForMatch.indexOf(percentageMatch[0]) + 200);
+      const costMatches = costContext.match(/(\d{1,3}(?:[.,\s]\d{3})*(?:[.,]\d{2})?)\s*(?:€|EUR|euro|million|millionen|mio)/i);
+      if (costMatches && costMatches[1]) {
+        const costAmount = parseFloat(costMatches[1].replace(/[.,\s]/g, '').replace(/,(\d{1,2})$/, '.$1'));
+        if (!isNaN(costAmount) && costAmount > 0) {
+          const fundingAmount = Math.round(costAmount * (percentage / 100));
+          if (fundingAmount >= 1000) { // Only if reasonable amount
+            amounts.push(fundingAmount);
+            amountContext.push({ value: fundingAmount, context: percentageMatch[0] });
+          }
+        }
+      }
+    }
+  }
   
   if (amounts.length > 0) {
     // Filter out unrealistic values (too small or suspicious patterns)
@@ -813,22 +1204,20 @@ export function extractMeta(html: string, url?: string): ExtractedMeta {
         if (d >= 1 && d <= 31 && mo >= 1 && mo <= 12 && y >= 2020 && y <= 2030) {
           const deadlineDate = new Date(y, mo - 1, d);
           const now = new Date();
-          // If deadline is in the past, check if it's more than 1 year old
-          if (deadlineDate < now) {
-            const daysPast = Math.floor((now.getTime() - deadlineDate.getTime()) / (1000 * 60 * 60 * 24));
-            // More than 1 year old (365 days) - likely expired, set as open_deadline instead
-            if (daysPast > 365) {
-              open_deadline = true;
-              deadline = null;
-            } else {
-              // Recent past deadline (<1 year) - keep as deadline (may be valid for historical reference)
-              deadline = `${String(d).padStart(2,'0')}.${String(mo).padStart(2,'0')}.${y}`;
-            }
-          } else {
+          now.setHours(0, 0, 0, 0); // Compare dates only, not times
+          deadlineDate.setHours(0, 0, 0, 0);
+          
+          // FIX: Only extract deadlines that are in the future (not past)
+          // Don't extract past deadlines - they're expired
+          if (deadlineDate >= now) {
             // Future deadline - valid
             deadline = `${String(d).padStart(2,'0')}.${String(mo).padStart(2,'0')}.${y}`;
+            break;
+          } else {
+            // Past deadline - skip it (don't extract)
+            // If it's an open/rolling deadline, that will be caught by other patterns
+            continue;
           }
-          break;
         }
       }
       if (deadline || open_deadline) break;
@@ -1049,7 +1438,14 @@ export function extractMeta(html: string, url?: string): ExtractedMeta {
   }
 
   // Requirements: Extract all 18 categories using comprehensive extractor
-  const categorized = extractAllRequirements(text || '', html || '', url);
+  // PERFORMANCE: Add logging for large pages to debug slow extraction
+  const textSize = (text || '').length;
+  const htmlSize = (html || '').length;
+  if (textSize > 100000 || htmlSize > 500000) {
+    console.log(`    ⚠️  Large page: ${(textSize / 1024).toFixed(0)}KB text, ${(htmlSize / 1024).toFixed(0)}KB HTML - extraction may take longer`);
+  }
+  
+  const categorized = await extractAllRequirements(text || '', html || '', url);
 
   // FORM-BASED APPLICATION DETECTION
   // Detect if application requires login/account or form-based submission
@@ -1171,7 +1567,7 @@ export function initializeCategories(): Record<string, RequirementItem[]> {
   return categorized;
 }
 
-export function extractAllRequirements(text: string, html?: string, url?: string): Record<string, RequirementItem[]> {
+export async function extractAllRequirements(text: string, html?: string, url?: string): Promise<Record<string, RequirementItem[]>> {
   const categorized = initializeCategories();
   // Ensure text is always a valid string (matchAll requires a real string, not just String(obj))
   let safeText: string;
@@ -1182,78 +1578,140 @@ export function extractAllRequirements(text: string, html?: string, url?: string
   } else {
     safeText = String(text);
   }
+  
+  // PERFORMANCE: Limit text size for very large pages (prevent slow regex matching)
+  // Many regex patterns can be very slow on large text - limit to 500KB
+  const MAX_TEXT_SIZE = 500000; // 500KB limit for regex matching
+  if (safeText.length > MAX_TEXT_SIZE) {
+    // Keep first part (usually most relevant) and last part (often has summary)
+    const firstPart = safeText.substring(0, MAX_TEXT_SIZE / 2);
+    const lastPart = safeText.substring(safeText.length - MAX_TEXT_SIZE / 2);
+    safeText = firstPart + '\n\n[... truncated ...]\n\n' + lastPart;
+  }
+  
   const lowerText = safeText.toLowerCase();
   
   // FIRST: Extract from structured HTML (tables, definition lists, sections)
+  // PERFORMANCE: Limit HTML size for structured extraction too
   if (html && typeof html === 'string') {
-    extractStructuredRequirements(html, categorized);
+    const htmlSize = html.length;
+    const MAX_HTML_FOR_STRUCTURED = 1 * 1024 * 1024; // 1MB limit for structured extraction
+    const htmlToProcess = htmlSize > MAX_HTML_FOR_STRUCTURED ? html.substring(0, MAX_HTML_FOR_STRUCTURED) : html;
+    extractStructuredRequirements(htmlToProcess, categorized);
   }
   
-  // IMPACT - IMPROVED: Extract ACTUAL impact statements, filter out noise (institution names, random text)
-  // Only extract quantified or specific impact statements, not generic mentions
+  // IMPACT - ENHANCED: More patterns, broader matching, lower minimum length
   const impactNoisePatterns = [
     /\b(ffg|aws|aws|oekb|mci|auwa|forschungsförderungsgesellschaft|austrian\s*(?:science|research|business))\b/i,
     /\b(gmbh|mbh|inc\.|ltd\.|corporation)\b/i,
     /^[^.]*(?:is|sind|ist|are)\s+(?:the|die|der|das)\s+[^.]{0,30}(?:funding|förderung|institution)/i,
   ];
   
-  // Require impact verbs or quantified impact - stricter patterns
+  // Broader impact patterns - ULTRA-RELAXED with more fallback patterns
   const impactMatches = [
     // Quantified impact (most valuable)
-    ...safeMatchAll(safeText, /(?:reduces?|reduziert|verringert|senkt)\s+(?:co2|emissions?|emissionen)\s+(?:by|um)\s+(\d+%?|[^\.\n]{5,100})/gi),
+    ...safeMatchAll(safeText, /(?:reduces?|reduziert|verringert|senkt)\s+(?:co2|emissions?|emissionen)\s+(?:by|um)\s+(\d+%?|[^\.\n]{5,150})/gi),
     ...safeMatchAll(safeText, /(?:creates?|schafft|generiert)\s+(\d+)\s+(?:jobs?|arbeitsplätze|arbeitsstellen)/gi),
-    ...safeMatchAll(safeText, /(?:saves?|spart|vermeidet)\s+(?:co2|emissions?|energy|energie)\s+(?:by|um)\s+(\d+%?|[^\.\n]{5,100})/gi),
-    ...safeMatchAll(safeText, /(?:improves?|verbessert|steigert)\s+(?:sustainability|nachhaltigkeit|efficiency|effizienz)[\s:]+([^\.\n]{20,200})/gi),
-    // Specific impact statements (with verbs)
-    ...safeMatchAll(safeText, /(?:nachhaltigkeit|sustainability)[\s:]+(?:wird|wird\s+fördert|wird\s+unterstützt|is\s+promoted|is\s+supported)[\s:]+([^\.\n]{20,250})/gi),
-    ...safeMatchAll(safeText, /(?:arbeitsplätze|jobs|employment)[\s:]+(?:werden\s+geschaffen|werden\s+gefördert|are\s+created|are\s+supported)[\s:]+([^\.\n]{20,200})/gi),
-    // Impact with context (longer descriptions that contain impact verbs)
-    ...safeMatchAll(safeText, /(?:klima|climate|co2|emission|klimaschutz)[\s:]+([^\.\n]{30,250})/gi).filter(m => {
+    ...safeMatchAll(safeText, /(?:saves?|spart|vermeidet)\s+(?:co2|emissions?|energy|energie)\s+(?:by|um)\s+(\d+%?|[^\.\n]{5,150})/gi),
+    ...safeMatchAll(safeText, /(?:improves?|verbessert|steigert)\s+(?:sustainability|nachhaltigkeit|efficiency|effizienz)[\s:]+([^\.\n]{10,250})/gi),
+    // Specific impact statements (with verbs) - broader, lower minimum
+    ...safeMatchAll(safeText, /(?:nachhaltigkeit|sustainability)[\s:]+(?:wird|wird\s+fördert|wird\s+unterstützt|is\s+promoted|is\s+supported|fördert|promotes|supports)[\s:]+([^\.\n]{10,300})/gi),
+    ...safeMatchAll(safeText, /(?:arbeitsplätze|jobs|employment|beschäftigung)[\s:]+(?:werden\s+geschaffen|werden\s+gefördert|are\s+created|are\s+supported|schafft|creates|fördert)[\s:]+([^\.\n]{10,250})/gi),
+    // Impact with context (broader patterns, lower minimum)
+    ...safeMatchAll(safeText, /(?:klima|climate|co2|emission|klimaschutz|umwelt|environment)[\s:]+([^\.\n]{15,300})/gi).filter(m => {
       const val = m[1] || '';
-      return /(?:reduces?|reduziert|verringert|senkt|saves?|spart|vermeidet|improves?|verbessert)/i.test(val);
+      return /(?:reduces?|reduziert|verringert|senkt|saves?|spart|vermeidet|improves?|verbessert|fördert|promotes|supports|schützt)/i.test(val);
     }),
-    ...safeMatchAll(safeText, /(?:sozial|social|gesellschaft)[\s:]+([^\.\n]{30,200})/gi).filter(m => {
+    ...safeMatchAll(safeText, /(?:sozial|social|gesellschaft|society)[\s:]+([^\.\n]{15,250})/gi).filter(m => {
       const val = m[1] || '';
-      return /(?:improves?|verbessert|unterstützt|supports|fördert|promotes)/i.test(val);
+      return /(?:improves?|verbessert|unterstützt|supports|fördert|promotes|schafft|creates)/i.test(val);
     }),
-    // Last resort: impact with quantified measures
-    ...safeMatchAll(safeText, /(?:impact|wirkung|auswirkung)[\s:]+([^\.\n]{30,250})/gi).filter(m => {
+    // Economic impact
+    ...safeMatchAll(safeText, /(?:wirtschaftlich|economic|wirtschaft|economy)[\s:]+(?:impact|wirkung|auswirkung|beiträgt|contributes)[\s:]+([^\.\n]{10,250})/gi),
+    // Generic impact patterns (MUCH BROADER - accept even without numbers if long enough)
+    ...safeMatchAll(safeText, /(?:impact|wirkung|auswirkung|effekt|effect)[\s:]+([^\.\n]{15,300})/gi).filter(m => {
       const val = m[1] || '';
-      return /(?:\d+%|\d+\s+(?:jobs?|arbeitsplätze)|reduces?|creates?|improves?|saves?)/i.test(val);
+      return /(?:\d+%|\d+\s+(?:jobs?|arbeitsplätze)|reduces?|creates?|improves?|saves?|fördert|promotes|supports|schafft|verbessert)/i.test(val) ||
+             val.length >= 30; // LOWERED from 50 - accept shorter descriptions
+    }),
+    // Impact verbs in general context
+    ...safeMatchAll(safeText, /(?:fördert|promotes|supports|unterstützt|schafft|creates|verbessert|improves)[\s:]+(?:nachhaltigkeit|sustainability|klima|climate|umwelt|environment|sozial|social|arbeitsplätze|jobs)[\s:]+([^\.\n]{10,250})/gi),
+    // NEW: Fallback patterns - catch more generic impact mentions
+    ...safeMatchAll(safeText, /(?:ziel|goal|target|objective|zweck|purpose)[\s:]+(?:ist|sind|is|are|soll|sollen|muss|müssen)[\s:]+([^\.\n]{15,300})/gi).filter(m => {
+      const val = m[1] || '';
+      return /(?:nachhaltigkeit|sustainability|klima|climate|umwelt|environment|sozial|social|arbeitsplätze|jobs|impact|wirkung|innovation|innovation)/i.test(val);
+    }),
+    // NEW: Impact sections/headers
+    ...safeMatchAll(safeText, /(?:impact|wirkung|auswirkung|effekt|ziel|goal)[\s:]+([^\.\n]{15,300})/gi).filter(m => {
+      const val = m[1] || '';
+      return val.length >= 20 && !val.toLowerCase().includes('required') && !val.toLowerCase().includes('specified');
     })
   ];
   
-  // Process impact matches with strict filtering
+  // Process impact matches with MORE RELAXED filtering
   if (impactMatches.length > 0) {
     impactMatches.forEach(match => {
-      if (match[1] && match[1].trim().length > 25) {
+      if (match[1] && match[1].trim().length > 10) { // LOWERED from 15
         const value = match[1].trim();
         const cleaned = value.replace(/^(?:ist|sind|sein|werden|muss|müssen)[\s,]+/i, '').trim();
         
-        // STRICT FILTERING: Filter out noise
+        // MORE RELAXED FILTERING: Accept shorter content, filter less aggressively
         const isNoise = impactNoisePatterns.some(pattern => pattern.test(cleaned)) ||
-                       cleaned.toLowerCase().includes('required') ||
-                       cleaned.length < 25 || // Too short
-                       cleaned.length > 400 || // Too long
+                       (cleaned.toLowerCase().includes('required') && cleaned.length < 30) || // LOWERED from 50
+                       cleaned.length < 10 || // LOWERED from 15
+                       cleaned.length > 500 || // Too long
                        /^(?:the|die|der|das|eine?|ein)\s+[^.]{0,30}(?:funding|förderung|institution|program)/i.test(cleaned) || // Institution descriptions
-                       /mbh|gmbh|inc\.|ltd\.|corporation/i.test(cleaned); // Company names
+                       (/mbh|gmbh|inc\.|ltd\.|corporation/i.test(cleaned) && cleaned.length < 30); // LOWERED from 50
         
         if (!isNoise) {
-          // Determine impact type from context
+          // FIX: Categorize impact into 4 types: environmental, social, economic, innovation
           const matchText = match[0].toLowerCase();
+          const valueText = cleaned.toLowerCase();
           let impactType = 'impact_requirement';
           
-          if (matchText.includes('nachhaltigkeit') || matchText.includes('sustainability')) {
-            impactType = 'sustainability';
-          } else if (matchText.includes('klima') || matchText.includes('climate') || matchText.includes('co2')) {
-            impactType = 'climate_environmental';
-          } else if (matchText.includes('arbeitsplätze') || matchText.includes('jobs') || matchText.includes('beschäftigung')) {
-            impactType = 'employment';
-          } else if (matchText.includes('sozial') || matchText.includes('social')) {
-            impactType = 'social';
+          // Environmental impact
+          if (matchText.includes('nachhaltigkeit') || matchText.includes('sustainability') ||
+              matchText.includes('klima') || matchText.includes('climate') || 
+              matchText.includes('co2') || matchText.includes('emission') ||
+              matchText.includes('umwelt') || matchText.includes('environment') ||
+              valueText.includes('co2') || valueText.includes('emission') ||
+              valueText.includes('energy') || valueText.includes('energie')) {
+            impactType = 'environmental_impact';
+          } 
+          // Social impact
+          else if (matchText.includes('arbeitsplätze') || matchText.includes('jobs') || 
+                   matchText.includes('beschäftigung') || matchText.includes('employment') ||
+                   matchText.includes('sozial') || matchText.includes('social') ||
+                   matchText.includes('community') || matchText.includes('gemeinschaft') ||
+                   valueText.includes('jobs') || valueText.includes('arbeitsplätze') ||
+                   valueText.includes('community') || valueText.includes('social')) {
+            impactType = 'social_impact';
+          }
+          // Economic impact
+          else if (matchText.includes('revenue') || matchText.includes('umsatz') ||
+                   matchText.includes('growth') || matchText.includes('wachstum') ||
+                   matchText.includes('economic') || matchText.includes('wirtschaftlich') ||
+                   matchText.includes('market') || matchText.includes('markt') ||
+                   valueText.includes('revenue') || valueText.includes('growth') ||
+                   valueText.includes('economic') || valueText.includes('market')) {
+            impactType = 'economic_impact';
+          }
+          // Innovation impact
+          else if (matchText.includes('innovation') || matchText.includes('rd') ||
+                   matchText.includes('research') || matchText.includes('forschung') ||
+                   matchText.includes('development') || matchText.includes('entwicklung') ||
+                   matchText.includes('technology') || matchText.includes('technologie') ||
+                   valueText.includes('innovation') || valueText.includes('rd') ||
+                   valueText.includes('research') || valueText.includes('technology')) {
+            impactType = 'innovation_impact';
           }
           
-          categorized.impact.push({
+          // Store in separate top-level category instead of as type
+          const impactCategory = impactType; // e.g., 'environmental_impact', 'social_impact', etc.
+          if (!categorized[impactCategory]) {
+            categorized[impactCategory] = [];
+          }
+          categorized[impactCategory].push({
             type: impactType,
             value: cleaned,
             required: true,
@@ -1264,19 +1722,90 @@ export function extractAllRequirements(text: string, html?: string, url?: string
     });
   }
   
+  // FALLBACK: If no impact extracted but impact keywords exist, extract any impact-related content
+  const hasAnyImpact = (categorized['environmental_impact']?.length || 0) + 
+                       (categorized['social_impact']?.length || 0) + 
+                       (categorized['economic_impact']?.length || 0) + 
+                       (categorized['innovation_impact']?.length || 0) > 0;
+  if (!hasAnyImpact && (lowerText.includes('impact') || lowerText.includes('wirkung') || lowerText.includes('nachhaltigkeit') || lowerText.includes('sustainability') || lowerText.includes('ziel') || lowerText.includes('goal'))) {
+    const fallbackMatches = [
+      ...safeMatchAll(safeText, /(?:impact|wirkung|ziel|goal|nachhaltigkeit|sustainability)[\s:]+([^\.\n]{15,300})/gi),
+      ...safeMatchAll(safeText, /(?:ziel|goal|objective|zweck|purpose)[\s]+(?:ist|sind|is|are)[\s:]+([^\.\n]{15,300})/gi)
+    ];
+    if (fallbackMatches.length > 0) {
+      const bestFallback = fallbackMatches.find(m => {
+        const val = m[1] || '';
+        return val.trim().length >= 15 && 
+               !val.toLowerCase().includes('required') && 
+               !val.toLowerCase().includes('specified') &&
+               (val.toLowerCase().includes('nachhaltigkeit') || 
+                val.toLowerCase().includes('sustainability') ||
+                val.toLowerCase().includes('klima') ||
+                val.toLowerCase().includes('climate') ||
+                val.toLowerCase().includes('sozial') ||
+                val.toLowerCase().includes('social') ||
+                val.toLowerCase().includes('wirtschaft') ||
+                val.toLowerCase().includes('economic') ||
+                val.toLowerCase().includes('innovation'));
+      });
+      if (bestFallback && bestFallback[1]) {
+        const value = bestFallback[1].trim();
+        if (value.length >= 15 && value.length < 500) {
+          // Determine impact type
+          const lowerVal = value.toLowerCase();
+          let impactType = 'impact_requirement';
+          if (lowerVal.includes('nachhaltigkeit') || lowerVal.includes('sustainability') || lowerVal.includes('klima') || lowerVal.includes('climate') || lowerVal.includes('co2')) {
+            impactType = 'environmental_impact';
+          } else if (lowerVal.includes('sozial') || lowerVal.includes('social') || lowerVal.includes('jobs') || lowerVal.includes('arbeitsplätze')) {
+            impactType = 'social_impact';
+          } else if (lowerVal.includes('wirtschaft') || lowerVal.includes('economic') || lowerVal.includes('revenue') || lowerVal.includes('umsatz')) {
+            impactType = 'economic_impact';
+          } else if (lowerVal.includes('innovation') || lowerVal.includes('research') || lowerVal.includes('forschung')) {
+            impactType = 'innovation_impact';
+          }
+          // Store in separate top-level category instead of as type
+          const impactCategory = impactType; // e.g., 'environmental_impact', 'social_impact', etc.
+          if (!categorized[impactCategory]) {
+            categorized[impactCategory] = [];
+          }
+          categorized[impactCategory].push({
+            type: impactType,
+            value: value,
+            required: true,
+            source: 'fallback_extraction'
+          });
+        }
+      }
+    }
+  }
+  
   // Don't add generic placeholders - only structured/context extraction
   
   // ELIGIBILITY - Enhanced: Extract actual eligibility criteria from context (CRITICAL CATEGORY)
   const eligibilityKeywords = [
     'teilnahmeberechtigt', 'voraussetzung', 'eligibility', 'berechtigt',
     'qualifiziert', 'anforderungen', 'kriterien', 'bedingungen', 'voraussetzungen',
-    'antragsberechtigt', 'teilnahmevoraussetzung', 'bewerbungsvoraussetzung', 'qualifikation'
+    'antragsberechtigt', 'teilnahmevoraussetzung', 'bewerbungsvoraussetzung', 'qualifikation',
+    // ENHANCED: Added missing keywords from diagnosis
+    'zulassung', 'teilnahme', 'wer kann teilnehmen', 'wer kann beantragen', 
+    'wer ist berechtigt', 'eligible', 'qualification', 'requirements', 'criteria',
+    'who can apply', 'who can participate', 'who is eligible',
+    // ADDITIONAL: More comprehensive keywords
+    'wer darf teilnehmen', 'wer darf beantragen', 'wer darf sich bewerben',
+    'teilnahmevoraussetzungen', 'bewerbungsvoraussetzungen', 'antragsberechtigung',
+    'wer kann förderung erhalten', 'wer kann förderung beantragen',
+    'qualifikationskriterien', 'teilnahmekriterien', 'bewerbungskriterien',
+    'who can receive funding', 'who can apply for funding',
+    'eligibility requirements', 'qualification requirements',
+    'application requirements', 'participation requirements',
+    'who may apply', 'who may participate', 'who qualifies'
   ];
   
   // More aggressive patterns: shorter minimum length (15 chars) and more context variations
   const eligibilityMatches = [
-    ...safeMatchAll(safeText, /(?:teilnahmeberechtigt|voraussetzung|voraussetzungen|eligibility|anforderungen|kriterien|bedingungen|berechtigt|qualifiziert|teilnahmevoraussetzung|bewerbungsvoraussetzung|antragsberechtigt)[\s:]+([^\.\n]{15,500})/gi),
-    ...safeMatchAll(safeText, /(?:wer|who|wer kann|who can|wer darf|who is eligible|wer ist berechtigt)[\s:]+([^\.\n]{15,500})/gi),
+    ...safeMatchAll(safeText, /(?:teilnahmeberechtigt|voraussetzung|voraussetzungen|eligibility|anforderungen|kriterien|bedingungen|berechtigt|qualifiziert|teilnahmevoraussetzung|bewerbungsvoraussetzung|antragsberechtigt|teilnahmevoraussetzungen|bewerbungsvoraussetzungen|antragsberechtigung)[\s:]+([^\.\n]{15,500})/gi),
+    ...safeMatchAll(safeText, /(?:wer|who|wer kann|who can|wer darf|who is eligible|wer ist berechtigt|wer darf teilnehmen|wer darf beantragen|wer darf sich bewerben|wer kann förderung erhalten|wer kann förderung beantragen)[\s:]+([^\.\n]{15,500})/gi),
+    ...safeMatchAll(safeText, /(?:qualifikationskriterien|teilnahmekriterien|bewerbungskriterien|eligibility requirements|qualification requirements|application requirements|participation requirements)[\s:]+([^\.\n]{15,500})/gi),
     ...safeMatchAll(safeText, /(?:teilnehmen|participate|apply|sich bewerben|bewerben|application)[\s]+(?:können|can|dürfen|may|soll|should|muss|must)[\s:]+([^\.\n]{15,500})/gi),
     ...safeMatchAll(safeText, /(?:bewerben|bewerber|applicant|teilnehmer|participant|antragsteller)[\s]+(?:muss|müssen|soll|sollen|darf|dürfen|ist|sind|muss erfüllen|have to|need to)[\s:]+([^\.\n]{15,500})/gi),
     ...safeMatchAll(safeText, /(?:antragsberechtigt|application.eligible|eligible.for|berechtigt sind|qualifiziert sind)[\s:]+([^\.\n]{15,500})/gi),
@@ -1286,6 +1815,27 @@ export function extractAllRequirements(text: string, html?: string, url?: string
     // List-based patterns (common in eligibility sections)
     ...safeMatchAll(safeText, /(?:voraussetzungen|requirements|eligibility)[\s:]+(?:\n|•|-|\d+\.)\s*([^\.\n]{15,500})/gi)
   ];
+  
+  // LEARNING: Try learned eligibility patterns first - FIX: Make it synchronous for better quality improvement
+  // On retry, learned patterns should be used to improve extraction
+  try {
+    const { getLearnedPatterns } = require('./extract-learning');
+    const host = url ? new URL(url).hostname.replace('www.', '') : undefined;
+    // FIX: Use await to ensure learned patterns are applied before extraction
+    const learnedPatterns = await getLearnedPatterns('eligibility', host).catch(() => []);
+    for (const learnedPattern of learnedPatterns.slice(0, 5)) { // Limit to top 5 patterns
+      try {
+        const regex = new RegExp(learnedPattern.pattern, 'gi');
+        const match = safeText.match(regex);
+        if (match) {
+          // Add to matches if not already present
+          eligibilityMatches.push(match as RegExpMatchArray);
+          const { learnFromExtraction } = require('./extract-learning');
+          learnFromExtraction('eligibility', learnedPattern.pattern, true, host).catch(() => {});
+        }
+      } catch {}
+    }
+  } catch {}
   
   if (eligibilityMatches.length > 0) {
     // Sort by length to get most detailed match
@@ -1318,35 +1868,165 @@ export function extractAllRequirements(text: string, html?: string, url?: string
                        cleaned.length < 20; // Minimum meaningful length
       
       if (!isGeneric && cleaned.length < 500) {
+        // FIX: Split eligibility into company_type, company_stage, industry_restriction
+        const categorizeEligibility = (text: string): { type: string, value: string } | null => {
+          const lower = text.toLowerCase();
+          
+          // Company Types
+          const companyTypePatterns = [
+            { pattern: /\b(sme|small\s+and\s+medium\s+enterprise|kleine?\s+und\s+mittlere?\s+unternehmen|km[ui])\b/i, value: 'SMEs' },
+            { pattern: /\b(startup|start-up|neugründung|neugruendung)\b/i, value: 'Startups' },
+            { pattern: /\b(einzelunternehmer|sole\s+proprietor|sole\s+trader|freelancer|freiberufler)\b/i, value: 'Solo founder' },
+            { pattern: /\b(established\s+company|etabliertes\s+unternehmen|established\s+business)\b/i, value: 'Established companies' },
+            { pattern: /\b(unternehmen|company|business|firm|firma)\b/i, value: 'Companies' }
+          ];
+          
+          // Company Stages
+          const companyStagePatterns = [
+            { pattern: /\b(idea\s+stage|ideenstadium|konzeptphase|concept\s+stage|ideation)\b/i, value: 'Idea stage' },
+            { pattern: /\b(poc|proof\s+of\s+concept|machbarkeitsstudie|feasibility)\b/i, value: 'PoC' },
+            { pattern: /\b(seed|seed\s+stage|seedphase)\b/i, value: 'Seed' },
+            { pattern: /\b(early\s+stage|frühe\s+phase|early\s+phase)\b/i, value: 'Early stage' },
+            { pattern: /\b(expanding|wachstum|growth|scaling|scale)\b/i, value: 'Expanding' },
+            { pattern: /\b(growth\s+stage|wachstumsphase)\b/i, value: 'Growth stage' },
+            { pattern: /\b(scale\s+stage|skalierungsphase)\b/i, value: 'Scale stage' }
+          ];
+          
+          // Industry Restrictions
+          const industryPatterns = [
+            { pattern: /\b(technology|technologie|tech|it|software|hardware)\b/i, value: 'Technology companies' },
+            { pattern: /\b(manufacturing|produktion|industrie|industrial)\b/i, value: 'Manufacturing' },
+            { pattern: /\b(services|dienstleistungen|service)\b/i, value: 'Services' },
+            { pattern: /\b(digital|digitalization|digitalisierung)\b/i, value: 'Digital services' },
+            { pattern: /\b(healthcare|gesundheitswesen|health)\b/i, value: 'Healthcare' },
+            { pattern: /\b(energy|energie|renewable|erneuerbar)\b/i, value: 'Energy' }
+          ];
+          
+          // Try to match company type first
+          for (const { pattern, value } of companyTypePatterns) {
+            if (pattern.test(lower)) {
+              return { type: 'company_type', value };
+            }
+          }
+          
+          // Try to match company stage
+          for (const { pattern, value } of companyStagePatterns) {
+            if (pattern.test(lower)) {
+              return { type: 'company_stage', value };
+            }
+          }
+          
+          // Try to match industry
+          for (const { pattern, value } of industryPatterns) {
+            if (pattern.test(lower)) {
+              return { type: 'industry_restriction', value };
+            }
+          }
+          
+          // If no specific match, check if it's a generic eligibility criteria
+          if (text.length > 20 && text.length < 300) {
+            return { type: 'eligibility_criteria', value: text };
+          }
+          
+          return null;
+        };
+        
         // Extract multiple eligibility criteria if present (lists)
         if (cleaned.includes(';') || cleaned.includes('•') || cleaned.includes('-') || cleaned.match(/\d+\./)) {
           const items = cleaned.split(/[;•\-]|\n\d+\./).map(item => item.trim()).filter(item => item.length > 10);
           if (items.length > 1) {
-            // Add each as separate requirement for better granularity
-            items.slice(0, 5).forEach(item => {
+            // Add each as separate requirement, categorized by type
+            items.slice(0, 10).forEach(item => {
               if (item.length > 15 && item.length < 300) {
-                categorized.eligibility.push({
-                  type: 'eligibility_criteria',
-                  value: item,
-                  required: true,
-                  source: 'context_extraction'
-                });
+                const categorizedElig = categorizeEligibility(item);
+                if (categorizedElig) {
+                  // Check for duplicates
+                  // Check for duplicates in the specific eligibility category
+                  const eligCategory = categorizedElig.type;
+                  const isDuplicate = (categorized[eligCategory] || []).some((e: any) => 
+                    e.type === categorizedElig.type && e.value.toLowerCase() === categorizedElig.value.toLowerCase()
+                  );
+                  if (!isDuplicate) {
+                    // Store in separate top-level category
+                    const eligCategory = categorizedElig.type; // e.g., 'company_type', 'company_stage', etc.
+                    if (!categorized[eligCategory]) {
+                      categorized[eligCategory] = [];
+                    }
+                    categorized[eligCategory].push({
+                      type: categorizedElig.type as any,
+                      value: categorizedElig.value,
+                      required: true,
+                      source: 'context_extraction'
+                    });
+                  }
+                }
               }
             });
           } else {
-            categorized.eligibility.push({
-              type: 'eligibility_criteria',
-              value: cleaned,
+            const categorizedElig = categorizeEligibility(cleaned);
+            if (categorizedElig) {
+              // Store in separate top-level category
+              const eligCategory = categorizedElig.type;
+              if (!categorized[eligCategory]) {
+                categorized[eligCategory] = [];
+              }
+              categorized[eligCategory].push({
+                type: categorizedElig.type as any,
+                value: categorizedElig.value,
+                required: true,
+                source: 'context_extraction'
+              });
+            }
+          }
+        } else {
+          const categorizedElig = categorizeEligibility(cleaned);
+          if (categorizedElig) {
+            // Store in separate top-level category
+            const eligCategory = categorizedElig.type;
+            if (!categorized[eligCategory]) {
+              categorized[eligCategory] = [];
+            }
+            categorized[eligCategory].push({
+              type: categorizedElig.type as any,
+              value: categorizedElig.value,
               required: true,
               source: 'context_extraction'
             });
           }
-        } else {
-          categorized.eligibility.push({
+        }
+      }
+    }
+  }
+  
+  // FALLBACK: If no eligibility extracted but eligibility keywords exist, extract any eligibility-related content
+  const hasAnyEligibility = (categorized['company_type']?.length || 0) + 
+                            (categorized['company_stage']?.length || 0) + 
+                            (categorized['industry_restriction']?.length || 0) + 
+                            (categorized['eligibility_criteria']?.length || 0) > 0;
+  if (!hasAnyEligibility && (lowerText.includes('eligibility') || lowerText.includes('voraussetzung') || lowerText.includes('berechtigt') || lowerText.includes('qualifiziert') || lowerText.includes('who can') || lowerText.includes('wer kann'))) {
+    const fallbackMatches = [
+      ...safeMatchAll(safeText, /(?:eligibility|voraussetzung|berechtigt|qualifiziert|who can|wer kann)[\s:]+([^\.\n]{15,300})/gi),
+      ...safeMatchAll(safeText, /(?:wer|who)[\s]+(?:kann|can|darf|may|ist|is)[\s]+(?:teilnehmen|participate|bewerben|apply|berechtigt|eligible)[\s:]+([^\.\n]{15,300})/gi)
+    ];
+    if (fallbackMatches.length > 0) {
+      const bestFallback = fallbackMatches.find(m => {
+        const val = m[1] || '';
+        return val.trim().length >= 15 && 
+               !val.toLowerCase().includes('required') && 
+               !val.toLowerCase().includes('specified');
+      });
+      if (bestFallback && bestFallback[1]) {
+        const value = bestFallback[1].trim();
+        if (value.length >= 15 && value.length < 500) {
+          // Store in separate top-level category
+          if (!categorized['eligibility_criteria']) {
+            categorized['eligibility_criteria'] = [];
+          }
+          categorized['eligibility_criteria'].push({
             type: 'eligibility_criteria',
-            value: cleaned,
+            value: value,
             required: true,
-            source: 'context_extraction'
+            source: 'fallback_extraction'
           });
         }
       }
@@ -1372,7 +2052,11 @@ export function extractAllRequirements(text: string, html?: string, url?: string
           // Extract first meaningful paragraph
           const firstPara = sectionText.split('\n').find((p: string) => p.trim().length > 15) || sectionText.substring(0, 300);
           if (firstPara && !firstPara.toLowerCase().includes('specified') && !firstPara.toLowerCase().includes('see below')) {
-            categorized.eligibility.push({
+            // Store in separate top-level category
+            if (!categorized['eligibility_criteria']) {
+              categorized['eligibility_criteria'] = [];
+            }
+            categorized['eligibility_criteria'].push({
               type: 'eligibility_criteria',
               value: firstPara.trim(),
               required: true,
@@ -1387,12 +2071,19 @@ export function extractAllRequirements(text: string, html?: string, url?: string
   }
   
   // Also extract specific eligibility types - but make them meaningful with context
-  if (eligibilityKeywords.some(k => lowerText.includes(k)) && categorized.eligibility.length === 0) {
+  const hasAnyEligibility2 = (categorized['company_type']?.length || 0) + 
+                             (categorized['company_stage']?.length || 0) + 
+                             (categorized['industry_restriction']?.length || 0) + 
+                             (categorized['eligibility_criteria']?.length || 0) > 0;
+  if (eligibilityKeywords.some(k => lowerText.includes(k)) && !hasAnyEligibility2) {
     // Only add if we have more context (multiple mentions or specific context)
     const hasStartupContext = (lowerText.match(/startup|neugründung|start-up/g) || []).length >= 2 ||
                                /(?:für|for)\s+(?:startups|start-ups|neugründungen)/i.test(safeText);
     if (hasStartupContext && (lowerText.includes('startup') || lowerText.includes('neugründung') || lowerText.includes('start-up'))) {
-      categorized.eligibility.push({
+      if (!categorized['company_type']) {
+        categorized['company_type'] = [];
+      }
+      categorized['company_type'].push({
         type: 'company_type',
         value: 'Program specifically designed for startups and new ventures',
         required: true,
@@ -1403,7 +2094,10 @@ export function extractAllRequirements(text: string, html?: string, url?: string
     const hasCompanyContext = (lowerText.match(/unternehmen|firma|company|betrieb/g) || []).length >= 2 ||
                               /(?:für|for)\s+(?:unternehmen|companies|firmen)/i.test(safeText);
     if (hasCompanyContext && (lowerText.includes('unternehmen') || lowerText.includes('firma') || lowerText.includes('company') || lowerText.includes('betrieb'))) {
-      categorized.eligibility.push({
+      if (!categorized['company_type']) {
+        categorized['company_type'] = [];
+      }
+      categorized['company_type'].push({
         type: 'company_type',
         value: 'Company',
         required: true,
@@ -1412,8 +2106,11 @@ export function extractAllRequirements(text: string, html?: string, url?: string
     }
     
     if (lowerText.includes('kmu') || lowerText.includes('sme') || lowerText.includes('klein- und mittelbetrieb') || lowerText.includes('mittelstand')) {
-      categorized.eligibility.push({
-        type: 'company_size',
+      if (!categorized['company_type']) {
+        categorized['company_type'] = [];
+      }
+      categorized['company_type'].push({
+        type: 'company_type',
         value: 'SME',
         required: true,
         source: 'eligibility_section'
@@ -1464,7 +2161,10 @@ export function extractAllRequirements(text: string, html?: string, url?: string
       const isMeaningful = cleaned.length >= 20 || isNormalized;
       
       if (isMeaningful && cleaned.length > 3 && cleaned.length < 300 && !cleaned.toLowerCase().includes('required') && !cleaned.toLowerCase().includes('specified')) {
-        categorized.eligibility.push({
+        if (!categorized['company_stage']) {
+          categorized['company_stage'] = [];
+        }
+        categorized['company_stage'].push({
           type: 'company_stage',
           value: normalizedStage.length < 100 ? normalizedStage : cleaned,
           required: false,
@@ -1486,8 +2186,11 @@ export function extractAllRequirements(text: string, html?: string, url?: string
   
   stageKeywords.forEach(({ keywords, value }) => {
     if (keywords.some(k => lowerText.includes(k.toLowerCase())) && 
-        !categorized.eligibility.some(e => e.type === 'company_stage')) {
-      categorized.eligibility.push({
+        !(categorized['company_stage'] || []).some((e: any) => e.type === 'company_stage')) {
+      if (!categorized['company_stage']) {
+        categorized['company_stage'] = [];
+      }
+      categorized['company_stage'].push({
         type: 'company_stage',
         value: value,
         required: false,
@@ -1532,16 +2235,45 @@ export function extractAllRequirements(text: string, html?: string, url?: string
       });
       
       if (!isDuplicate) {
-        // Try to extract format if present
-        const formatMatch = item.value.match(/(?:format|als|in|max\.?|maximal)\s*([^,;:]+(?:pdf|doc|docx|page|seite|mb|kb|format)[^,;:]*(?:,|;|$)?)/i);
-        const format = formatMatch ? formatMatch[1].trim() : undefined;
+        // FIX: Split comma-separated lists and bullet points into individual documents
+        const splitDocuments = (docText: string): string[] => {
+          // Split by comma, semicolon, bullet points, or newlines
+          const separators = /[,\n;•\-]|\d+\.\s+/;
+          const items = docText.split(separators)
+            .map(item => item.trim())
+            .filter(item => item.length > 3 && item.length < 200);
+          
+          // If we got multiple items, return them
+          if (items.length > 1) {
+            return items;
+          }
+          
+          // If single item, return as is
+          return [docText];
+        };
         
-        categorized.documents.push({
-          type: 'documents_required',
-          value: item.value.substring(0, 400), // Limit length
-          required: true,
-          source: 'context_extraction',
-          format: format
+        const documents = splitDocuments(item.value);
+        
+        documents.forEach(doc => {
+          // Try to extract format if present
+          const formatMatch = doc.match(/(?:format|als|in|max\.?|maximal)\s*([^,;:]+(?:pdf|doc|docx|page|seite|mb|kb|format)[^,;:]*(?:,|;|$)?)/i);
+          const format = formatMatch ? formatMatch[1].trim() : undefined;
+          
+          // Check for duplicates again
+          const isDocDuplicate = categorized.documents.some(d => 
+            d.value.toLowerCase() === doc.toLowerCase() ||
+            (d.value.toLowerCase().includes(doc.toLowerCase().substring(0, 20)) && Math.abs(d.value.length - doc.length) < 10)
+          );
+          
+          if (!isDocDuplicate) {
+            categorized.documents.push({
+              type: 'documents_required',
+              value: doc.substring(0, 200), // Limit length
+              required: true,
+              source: 'context_extraction',
+              format: format
+            });
+          }
         });
       }
     }
@@ -1799,12 +2531,30 @@ export function extractAllRequirements(text: string, html?: string, url?: string
         const loc = match[1].trim();
         const lowerLoc = loc.toLowerCase();
         
-        // IMPROVED VALIDATION: More lenient but still meaningful
+        // IMPROVED VALIDATION: Filter out company addresses and registration numbers
+        // Reject company registration numbers (HRB, FN, etc.)
+        const hasCompanyRegistration = /\b(HRB|FN|Firmenbuchnummer|Registernummer|Amtsgericht|Registergericht|Commercial Register|Company Register)\b/i.test(loc);
+        // Reject addresses (street names, postal codes, etc.)
+        const hasAddress = /\b(Straße|Strasse|Street|Avenue|Platz|Square|Gasse|Lane|Weg|Road|Postleitzahl|PLZ|Postal Code|Zip Code)\b/i.test(loc) ||
+                          /\b\d{4,5}\s+[A-ZÄÖÜ][a-zäöüß]+/i.test(loc) || // Postal code patterns
+                          /\b[A-ZÄÖÜ][a-zäöüß]+\s+\d+[a-z]?\b/i.test(loc); // Street name patterns
         // Reject generic placeholders
         const isGeneric = lowerLoc.includes('required') || lowerLoc.includes('specified') ||
                          lowerLoc.includes('available') || lowerLoc.includes('erforderlich') ||
                          lowerLoc.includes('notwendig') || lowerLoc.includes('angegeben') ||
                          lowerLoc.length < 3 || lowerLoc.length > 150;
+        
+        // REJECT if it contains company registration or address patterns
+        if (hasCompanyRegistration || hasAddress) {
+          return; // Skip this location match
+        }
+        
+        // FIXED: Stricter validation - reject non-location text
+        // Reject if it contains service/program keywords (not locations)
+        const hasServiceKeywords = /(?:strategy support|topics|developments|service|program|programm|funding service|performance monitoring|european solidarity corps|volunteering|support|supporting)/i.test(loc);
+        if (hasServiceKeywords) {
+          return; // Skip - not a location
+        }
         
         // Accept if it contains location indicators
         const hasLocationIndicator = 
@@ -1867,32 +2617,102 @@ export function extractAllRequirements(text: string, html?: string, url?: string
       }
     });
     
+    // FIX: Hierarchical geographic extraction - if city/region mentioned, also add country (and vice versa)
+    // Map cities/regions to their countries
+    const locationHierarchy: Record<string, string> = {
+      // Austrian cities
+      'vienna': 'Austria', 'wien': 'Austria',
+      'salzburg': 'Austria', 'graz': 'Austria', 'linz': 'Austria',
+      'innsbruck': 'Austria', 'klagenfurt': 'Austria',
+      // Austrian regions (Bundesländer)
+      'styria': 'Austria', 'steiermark': 'Austria',
+      'upper austria': 'Austria', 'oberösterreich': 'Austria',
+      'lower austria': 'Austria', 'niederösterreich': 'Austria',
+      'tyrol': 'Austria', 'tirol': 'Austria',
+      'vorarlberg': 'Austria', 'burgenland': 'Austria',
+      'carinthia': 'Austria', 'kärnten': 'Austria',
+      // German cities
+      'berlin': 'Germany', 'munich': 'Germany', 'münchen': 'Germany',
+      'hamburg': 'Germany', 'frankfurt': 'Germany',
+      // German regions
+      'bavaria': 'Germany', 'bayern': 'Germany',
+      'baden-württemberg': 'Germany',
+    };
+    
+    const extractedLocations = new Set<string>();
+    const countriesToAdd = new Set<string>();
+    
     uniqueLocations.forEach(loc => {
-      // Filter: Only add meaningful locations (length >= 20) or known locations with context
-      const isShort = loc.length < 20;
-      const isKnownGeneric = /^(Austria|Österreich|EU|Europa|Europe)$/i.test(loc.trim());
+      // Known generic locations that should always be included (even if short)
+      const knownLocations = ['austria', 'österreich', 'at', 'germany', 'deutschland', 'de', 
+                              'eu', 'europa', 'europe', 'european union', 'international'];
+      const isKnownLocation = knownLocations.some(known => 
+        loc.toLowerCase().trim() === known || loc.toLowerCase().includes(known)
+      );
       
-      // IMPROVED: Skip short generic locations unless they have specific context
-      // Require minimum 20 chars OR specific known location with context
-      if (isShort && isKnownGeneric) {
-        // Only skip if it's truly generic without context
-        // If it has context (e.g., "for companies in Austria"), keep it
-        if (!loc.match(/for|für|companies|unternehmen|startups|located|ansässig/i)) {
-          return; // Skip pure "Austria" without context
+      // Accept if:
+      // 1. It's a known location (Austria, Germany, EU, etc.)
+      // 2. It's at least 3 characters and contains location keywords
+      // 3. It's at least 10 characters (for more specific locations)
+      const hasLocationKeywords = /(austria|österreich|germany|deutschland|eu|europa|europe|vienna|wien|region|city|country|standort|location)/i.test(loc);
+      const isValidLength = loc.length >= 3;
+      const isLongEnough = loc.length >= 10;
+      
+      if (isKnownLocation || (hasLocationKeywords && isValidLength && (isLongEnough || isKnownLocation))) {
+        // Clean up common prefixes/suffixes
+        let cleaned = loc.trim();
+        cleaned = cleaned.replace(/^(?:in|für|aus|von|for|from|to)\s+/i, '');
+        cleaned = cleaned.replace(/\s+(?:ist|sind|soll|muss|müssen|required|erforderlich)[\s,]*$/i, '');
+        cleaned = cleaned.trim();
+        
+        if (cleaned.length >= 3 && cleaned.length < 200) {
+          extractedLocations.add(cleaned);
+          
+          // HIERARCHICAL: Check if this is a city/region that should have country added
+          const locLower = cleaned.toLowerCase();
+          for (const [key, country] of Object.entries(locationHierarchy)) {
+            if (locLower.includes(key) || key.includes(locLower)) {
+              // Found a city/region - add its country
+              countriesToAdd.add(country);
+              break;
+            }
+          }
+          
+          // HIERARCHICAL: If country is mentioned, we could add known cities/regions, but that's too aggressive
+          // Instead, just ensure country is extracted
+          if (locLower.includes('austria') || locLower.includes('österreich')) {
+            countriesToAdd.add('Austria');
+          } else if (locLower.includes('germany') || locLower.includes('deutschland')) {
+            countriesToAdd.add('Germany');
+          }
         }
       }
-      
-      // Minimum length requirement: 15 chars for meaningful geographic info
-      if (loc.length < 15 && !isKnownGeneric) {
-        return; // Skip too-short locations without being known
-      }
-      
+    });
+    
+    // Add all extracted locations
+    extractedLocations.forEach(loc => {
       categorized.geographic.push({
-        type: 'specific_location',
+        type: 'location',
         value: loc,
         required: false,
         source: 'context_extraction'
       });
+    });
+    
+    // Add countries from hierarchy (only if not already extracted)
+    countriesToAdd.forEach(country => {
+      const alreadyExists = Array.from(extractedLocations).some(loc => 
+        loc.toLowerCase().includes(country.toLowerCase()) || 
+        country.toLowerCase().includes(loc.toLowerCase())
+      );
+      if (!alreadyExists) {
+        categorized.geographic.push({
+          type: 'location',
+          value: country,
+          required: false,
+          source: 'hierarchical_extraction'
+        });
+      }
     });
   }
   
@@ -1903,13 +2723,15 @@ export function extractAllRequirements(text: string, html?: string, url?: string
       // Check if we already have this region
       const exists = categorized.geographic.some(g => g.value === r.value || g.value.toLowerCase().includes(r.value.toLowerCase()));
       if (!exists) {
-        // Add context for short generic regions to make them meaningful (>= 20 chars)
+        // Use 'location' type to match QuestionEngine expectations
+        // Keep the original value for simple locations (Austria, Germany, EU)
+        // Add context for longer descriptions
         const value = (r.value.length < 20 && r.type !== 'city') 
           ? `Eligible for companies located in ${r.value}`
           : r.value;
         
         categorized.geographic.push({
-          type: r.type,
+          type: 'location',
           value: value,
           required: false,
           source: 'full_page_content'
@@ -1918,35 +2740,245 @@ export function extractAllRequirements(text: string, html?: string, url?: string
     }
   });
   
+  // CRITICAL FIX: Institution-based and URL-based geographic extraction (should be 90%+)
+  // Most AWS programs are Austria-only - extract from institution context
+  if (url) {
+    try {
+      const urlObj = new URL(url);
+      const host = urlObj.hostname.toLowerCase();
+      
+      // Institution-based: AWS = Austria
+      if (host.includes('aws.at') || host.includes('austria-wirtschaftsservice')) {
+        const hasAustria = categorized.geographic.some(g => 
+          g.value.toLowerCase().includes('austria') || g.value.toLowerCase().includes('österreich')
+        );
+        if (!hasAustria) {
+          categorized.geographic.push({
+            type: 'location',
+            value: 'Austria',
+            required: false,
+            source: 'institution_default'
+          });
+        }
+      }
+      
+      // URL-based: .at = Austria, .de = Germany
+      if (host.endsWith('.at') && !host.includes('aws.at')) {
+        const hasAustria = categorized.geographic.some(g => 
+          g.value.toLowerCase().includes('austria') || g.value.toLowerCase().includes('österreich')
+        );
+        if (!hasAustria) {
+          categorized.geographic.push({
+            type: 'location',
+            value: 'Austria',
+            required: false,
+            source: 'domain_extraction'
+          });
+        }
+      } else if (host.endsWith('.de')) {
+        const hasGermany = categorized.geographic.some(g => 
+          g.value.toLowerCase().includes('germany') || g.value.toLowerCase().includes('deutschland')
+        );
+        if (!hasGermany) {
+          categorized.geographic.push({
+            type: 'location',
+            value: 'Germany',
+            required: false,
+            source: 'domain_extraction'
+          });
+        }
+      } else if (host.includes('.ec.europa.eu') || host.includes('europa.eu')) {
+        // EU institutions = EU-wide eligibility
+        const hasEU = categorized.geographic.some(g => 
+          g.value.toLowerCase().includes('eu') || g.value.toLowerCase().includes('europe') || g.value.toLowerCase().includes('european')
+        );
+        if (!hasEU) {
+          categorized.geographic.push({
+            type: 'location',
+            value: 'EU',
+            required: false,
+            source: 'domain_extraction'
+          });
+        }
+      }
+    } catch (e) {
+      // Invalid URL, skip
+    }
+  }
+  
+  // FINAL FALLBACK: If still no geographic data and we have a URL, try domain-based extraction
+  if (categorized.geographic.length === 0 && url) {
+    try {
+      const urlObj = new URL(url);
+      const host = urlObj.hostname.toLowerCase();
+      if (host.endsWith('.at')) {
+        categorized.geographic.push({
+          type: 'location',
+          value: 'Austria',
+          required: false,
+          source: 'domain_fallback'
+        });
+      } else if (host.endsWith('.de')) {
+        categorized.geographic.push({
+          type: 'location',
+          value: 'Germany',
+          required: false,
+          source: 'domain_fallback'
+        });
+      } else if (host.includes('.ec.europa.eu') || host.includes('europa.eu')) {
+        categorized.geographic.push({
+          type: 'location',
+          value: 'EU',
+          required: false,
+          source: 'domain_fallback'
+        });
+      }
+    } catch (e) {
+      // Invalid URL, skip
+    }
+  }
+  
+  // CRITICAL FIX: Body text scanning for location keywords (broader extraction)
+  // Scan entire body text for "Austria", "Österreich", "eligible in", etc.
+  const bodyTextLower = lowerText;
+  if (bodyTextLower.includes('austria') || bodyTextLower.includes('österreich')) {
+    const hasAustria = categorized.geographic.some(g => 
+      g.value.toLowerCase().includes('austria') || g.value.toLowerCase().includes('österreich')
+    );
+    if (!hasAustria) {
+      // Extract context around "Austria" mention
+      const austriaMatch = safeText.match(/(?:[^\.\n]{0,50}(?:austria|österreich)[^\.\n]{0,50})/i);
+      if (austriaMatch) {
+        const context = austriaMatch[0].trim();
+        if (context.length > 5 && context.length < 150) {
+          categorized.geographic.push({
+            type: 'location',
+            value: context,
+            required: false,
+            source: 'body_text_scan'
+          });
+        } else {
+          categorized.geographic.push({
+            type: 'location',
+            value: 'Austria',
+            required: false,
+            source: 'body_text_scan'
+          });
+        }
+      } else {
+        categorized.geographic.push({
+          type: 'location',
+          value: 'Austria',
+          required: false,
+          source: 'body_text_scan'
+        });
+      }
+    }
+  }
+  
+  // Extract from project descriptions (often mention location)
+  // Check all project subcategories
+  const allProjectCategories = ['innovation_focus', 'technology_area', 'research_domain', 'sector_focus'];
+  const hasAnyProject = allProjectCategories.some(cat => (categorized[cat]?.length || 0) > 0);
+  if (hasAnyProject) {
+    allProjectCategories.forEach(cat => {
+      (categorized[cat] || []).forEach((proj: any) => {
+        const projText = String(proj.value || '').toLowerCase();
+        if (projText.includes('austria') || projText.includes('österreich')) {
+          const hasAustria = categorized.geographic.some(g => 
+            g.value.toLowerCase().includes('austria') || g.value.toLowerCase().includes('österreich')
+          );
+          if (!hasAustria) {
+            categorized.geographic.push({
+              type: 'location',
+              value: 'Austria',
+              required: false,
+              source: 'project_description'
+            });
+          }
+        }
+      });
+    });
+  }
+  
   // TIMELINE - Enhanced: Better date and duration extraction with more patterns
-  // IMPROVED: More comprehensive patterns to increase coverage from 50.5% to higher
-  const timelineMatches = [
-    // Deadline patterns with keywords (expanded - more variations)
-    ...safeMatchAll(safeText, /(?:deadline|frist|einreichfrist|bewerbungsfrist|application deadline|abgabefrist|meldungsfrist|anmeldefrist|submit by|einreichen bis|letzter termin|last date|application date|bewerbungsdatum|fristende|schluss|abgabeschluss|einsendeschluss|bewerbungsschluss)[\s:]+([^\.\n]{5,150})/gi),
-    // More flexible deadline patterns
-    ...safeMatchAll(safeText, /(?:bewerbung|application|antrag|submission)[\s]+(?:bis|until|by|spätestens)[\s]+([^\.\n]{5,150})/gi),
-    ...safeMatchAll(safeText, /(?:einreichung|submission)[\s]+(?:möglich|possible|bis|until|by)[\s]+([^\.\n]{5,150})/gi),
-    ...safeMatchAll(safeText, /(?:laufzeit|duration|zeitraum|project duration|program duration|projektlaufzeit|förderdauer|funding period|programmlaufzeit|dauer|zeitdauer|projektlaufzeit)[\s:]+([^\.\n]{5,150})/gi),
-    // Date ranges (expanded patterns)
-    ...safeMatchAll(safeText, /(?:von|from|ab|starting|beginning|gültig ab|valid from|gültig|valid|start)[\s]+(\d{1,2}[\.\/\-]\d{1,2}[\.\/\-]\d{2,4})[\s]*(?:bis|to|until|ending|\-|end)[\s]+(\d{1,2}[\.\/\-]\d{1,2}[\.\/\-]\d{2,4})/gi),
-    ...safeMatchAll(safeText, /(\d{1,2}[\.\/\-]\d{1,2}[\.\/\-]\d{2,4})[\s]*(?:-\s*|\s+to\s+|\s+bis\s+|\s+until\s+|\s+until\s+)(\d{1,2}[\.\/\-]\d{1,2}[\.\/\-]\d{2,4})/gi),
-    // Single dates with context (more patterns)
-    ...safeMatchAll(safeText, /(?:bis|until|by|spätestens|letzter\s+termin|deadline|frist|einsendeschluss|application deadline|bewerbungsschluss|abschluss|ende|closing)[\s]+(\d{1,2}[\.\/\-]\d{1,2}[\.\/\-]\d{2,4})/gi),
-    // Timeline sections (expanded)
-    ...safeMatchAll(safeText, /(?:zeitplan|timeline|ablauf|procedure|process|verfahren|timeline|fristen|dates|termine|kalender|schedule|programmablauf)[\s:]+([^\.\n]{10,200})/gi),
-    // Evaluation/decision dates (expanded)
-    ...safeMatchAll(safeText, /(?:entscheidung|decision|bewilligung|approval|bekanntgabe|announcement|notification|auswahl|selection|prüfung|review)[\s:]+([^\.\n]{5,150})/gi),
-    // Submission periods (expanded)
-    ...safeMatchAll(safeText, /(?:einreichung|submission|bewerbung|application|antragstellung)[\s]+(?:möglich|possible|open|von|from|between|zwischen|bis|until)[\s]+([^\.\n]{5,150})/gi),
-    // Specific time periods (e.g., "from January to March")
-    ...safeMatchAll(safeText, /(?:von|from)\s+(?:januar|februar|märz|april|mai|juni|juli|august|september|oktober|november|dezember|january|february|march|may|june|july|august|september|october|november|december)[\s]+(?:bis|to|until)\s+(?:januar|februar|märz|april|mai|juni|juli|august|september|oktober|november|dezember|january|february|march|may|june|july|august|september|october|november|december)/gi),
-    // Additional patterns: "open until", "rolling deadline", "continuous"
-    ...safeMatchAll(safeText, /(?:laufend|rolling|ongoing|continuous|kontinuierlich|offen|open)[\s]+(?:deadline|frist|application|bewerbung|einreichung)?/gi),
-    // Pattern: "Applications accepted until", "Bewerbungen bis"
-    ...safeMatchAll(safeText, /(?:applications?|bewerbungen?|anträge?|submissions?)[\s]+(?:accepted|angenommen|möglich|possible|open)[\s]+(?:until|bis|by|until the end of)[\s]+([^\.\n]{5,150})/gi),
-    // Pattern: "Call closes", "Ausschreibung endet"
-    ...safeMatchAll(safeText, /(?:call|ausschreibung|program|programm)[\s]+(?:closes?|endet|ends?|läuft bis|runs until)[\s]+([^\.\n]{5,150})/gi)
+  // ULTRA-IMPROVED: More comprehensive patterns, lower minimums to increase coverage
+  
+  // CRITICAL FIX: Open deadline detection (should be 90%+ coverage)
+  // Many programs have "open deadline" or "rolling application" - extract this
+  // ENHANCED: More patterns and better detection
+  const openDeadlinePatterns = [
+    /\b(open\s+deadline|rolling\s+application|anytime|ongoing|continuously|no\s+deadline|keine\s+frist|laufend|jederzeit|ohne\s+frist|kein\s+bewerbungsschluss|open\s+application|rolling|continuous)\b/i,
+    /\b(no\s+closing\s+date|kein\s+abgabeschluss|kein\s+einreichungsschluss|kein\s+bewerbungsschluss|keine\s+abgabefrist)\b/i,
+    /\b(continuously\s+open|laufend\s+geöffnet|permanently\s+open|dauerhaft\s+geöffnet)\b/i,
+    /\b(apply\s+anytime|bewerbung\s+jederzeit|application\s+possible\s+at\s+any\s+time)\b/i
   ];
+  
+  const hasOpenDeadlinePhrase = openDeadlinePatterns.some(pattern => pattern.test(safeText));
+  if (hasOpenDeadlinePhrase) {
+    const hasOpenDeadline = categorized.timeline.some(t => 
+      t.value.toLowerCase().includes('open') || t.value.toLowerCase().includes('rolling') || 
+      t.value.toLowerCase().includes('laufend') || t.value.toLowerCase().includes('jederzeit') ||
+      t.value.toLowerCase().includes('continuous') || t.value.toLowerCase().includes('ongoing')
+    );
+    if (!hasOpenDeadline) {
+      categorized.timeline.push({
+        type: 'deadline',
+        value: 'Open deadline (rolling application)',
+        required: false,
+        source: 'open_deadline_detection'
+      });
+    }
+  }
+  
+  // INTELLIGENCE: Try learned timeline patterns first (if available)
+  let timelineMatches: RegExpMatchArray[] = [];
+  try {
+    const { getLearnedPatterns } = require('./extract-learning');
+    const host = url ? new URL(url).hostname.replace('www.', '') : undefined;
+    const learnedPatterns = await getLearnedPatterns('timeline', host).catch(() => []);
+    for (const learnedPattern of learnedPatterns.slice(0, 5)) { // Limit to top 5 patterns
+      try {
+        const regex = new RegExp(learnedPattern.pattern, 'gi');
+        const match = safeText.match(regex);
+        if (match) {
+          timelineMatches.push(match as RegExpMatchArray);
+          const { learnFromExtraction } = require('./extract-learning');
+          learnFromExtraction('timeline', learnedPattern.pattern, true, host).catch(() => {});
+        }
+      } catch {}
+    }
+  } catch {}
+  
+  // Add standard patterns
+  timelineMatches = timelineMatches.concat(
+    // Deadline patterns with keywords (expanded - more variations, LOWERED minimum)
+    safeMatchAll(safeText, /(?:deadline|frist|einreichfrist|bewerbungsfrist|application deadline|abgabefrist|meldungsfrist|anmeldefrist|submit by|einreichen bis|letzter termin|last date|application date|bewerbungsdatum|fristende|schluss|abgabeschluss|einsendeschluss|bewerbungsschluss|bewerbungsende|einreichungsende|abgabeende|einsendeende|letzter einreichtermin|letzter abgabetermin|bis spätestens|bis zum|spätestens bis|einreichfrist endet|bewerbungsfrist endet|frist endet|schlusstermin|abgabetermin)[\s:]+([^\.\n]{3,150})/gi), // LOWERED from 5
+    safeMatchAll(safeText, /(?:application deadline|submission deadline|deadline for application|deadline for submission|closing date|due date|application due|submission due|last date|final date|deadline date|application closes|submission closes|closing deadline)[\s:]+([^\.\n]{3,150})/gi),
+    // More flexible deadline patterns
+    safeMatchAll(safeText, /(?:bewerbung|application|antrag|submission)[\s]+(?:bis|until|by|spätestens)[\s]+([^\.\n]{5,150})/gi),
+    safeMatchAll(safeText, /(?:einreichung|submission)[\s]+(?:möglich|possible|bis|until|by)[\s]+([^\.\n]{5,150})/gi),
+    safeMatchAll(safeText, /(?:laufzeit|duration|zeitraum|project duration|program duration|projektlaufzeit|förderdauer|funding period|programmlaufzeit|dauer|zeitdauer|projektlaufzeit)[\s:]+([^\.\n]{5,150})/gi),
+    // Date ranges (expanded patterns)
+    safeMatchAll(safeText, /(?:von|from|ab|starting|beginning|gültig ab|valid from|gültig|valid|start)[\s]+(\d{1,2}[\.\/\-]\d{1,2}[\.\/\-]\d{2,4})[\s]*(?:bis|to|until|ending|\-|end)[\s]+(\d{1,2}[\.\/\-]\d{1,2}[\.\/\-]\d{2,4})/gi),
+    safeMatchAll(safeText, /(\d{1,2}[\.\/\-]\d{1,2}[\.\/\-]\d{2,4})[\s]*(?:-\s*|\s+to\s+|\s+bis\s+|\s+until\s+|\s+until\s+)(\d{1,2}[\.\/\-]\d{1,2}[\.\/\-]\d{2,4})/gi),
+    // Single dates with context (more patterns)
+    safeMatchAll(safeText, /(?:bis|until|by|spätestens|letzter\s+termin|deadline|frist|einsendeschluss|application deadline|bewerbungsschluss|abschluss|ende|closing)[\s]+(\d{1,2}[\.\/\-]\d{1,2}[\.\/\-]\d{2,4})/gi),
+    // Timeline sections (expanded)
+    safeMatchAll(safeText, /(?:zeitplan|timeline|ablauf|procedure|process|verfahren|timeline|fristen|dates|termine|kalender|schedule|programmablauf)[\s:]+([^\.\n]{10,200})/gi),
+    // Evaluation/decision dates (expanded)
+    safeMatchAll(safeText, /(?:entscheidung|decision|bewilligung|approval|bekanntgabe|announcement|notification|auswahl|selection|prüfung|review)[\s:]+([^\.\n]{5,150})/gi),
+    // Submission periods (expanded)
+    safeMatchAll(safeText, /(?:einreichung|submission|bewerbung|application|antragstellung)[\s]+(?:möglich|possible|open|von|from|between|zwischen|bis|until)[\s]+([^\.\n]{5,150})/gi),
+    // Specific time periods (e.g., "from January to March")
+    safeMatchAll(safeText, /(?:von|from)\s+(?:januar|februar|märz|april|mai|juni|juli|august|september|oktober|november|dezember|january|february|march|may|june|july|august|september|october|november|december)[\s]+(?:bis|to|until)\s+(?:januar|februar|märz|april|mai|juni|juli|august|september|oktober|november|dezember|january|february|march|may|june|july|august|september|october|november|december)/gi),
+    // Additional patterns: "open until", "rolling deadline", "continuous"
+    safeMatchAll(safeText, /(?:laufend|rolling|ongoing|continuous|kontinuierlich|offen|open)[\s]+(?:deadline|frist|application|bewerbung|einreichung)?/gi),
+    // Pattern: "Applications accepted until", "Bewerbungen bis"
+    safeMatchAll(safeText, /(?:applications?|bewerbungen?|anträge?|submissions?)[\s]+(?:accepted|angenommen|möglich|possible|open)[\s]+(?:until|bis|by|until the end of)[\s]+([^\.\n]{5,150})/gi),
+    // Pattern: "Call closes", "Ausschreibung endet"
+    safeMatchAll(safeText, /(?:call|ausschreibung|program|programm)[\s]+(?:closes?|endet|ends?|läuft bis|runs until)[\s]+([^\.\n]{5,150})/gi)
+  );
   
   if (timelineMatches.length > 0) {
     // Prefer date ranges or deadlines
@@ -1960,7 +2992,10 @@ export function extractAllRequirements(text: string, html?: string, url?: string
       const hasDate = /\d{1,2}[\.\/\-]\d{1,2}[\.\/\-]\d{2,4}/.test(value);
       const hasTimelineKeyword = /(?:laufzeit|duration|zeitraum|deadline|frist|zeitplan|timeline|ablauf)/i.test(value);
       
-      if (value.length > 5 && value.length < 250 && (hasDate || hasTimelineKeyword) && !value.toLowerCase().includes('specified') && !value.toLowerCase().includes('available upon request')) {
+      // ENHANCED: Reject cost-related terms from timeline extraction
+      const isCostRelated = /(?:kosten|cost|material|sachkosten|drittkosten|personalkosten|reisekosten|anlagennutzung|materialkosten|ausgaben|expenses|investition|betrag|summe|finanzierung|förderung|bezahlung|payment|fee|gebühr)/i.test(value);
+      
+      if (value.length > 5 && value.length < 250 && (hasDate || hasTimelineKeyword) && !value.toLowerCase().includes('specified') && !value.toLowerCase().includes('available upon request') && !isCostRelated) {
         categorized.timeline.push({
           type: dateRangeMatch ? 'date_range' : (deadlineMatch ? 'deadline' : (hasDate ? 'deadline' : 'duration')),
           value: value.substring(0, 200), // Limit length
@@ -1980,6 +3015,7 @@ export function extractAllRequirements(text: string, html?: string, url?: string
   }
   
   // Duration extraction - Enhanced patterns with more variations
+  // FIX: Normalize duration to months for consistency
   const durationMatches = [
     ...safeMatchAll(safeText, /(?:laufzeit|duration|dauer|programm duration|project duration|förderdauer|programmlaufzeit|projektlaufzeit)[\s:]+([^\.\n]{5,100})/gi),
     ...safeMatchAll(safeText, /(\d+)\s*(?:jahr|jahre|year|years|month|monat|monate|months|woche|weeks|tag|days)[\s]*(?:laufzeit|duration|dauer|lang|long)?/i),
@@ -1990,14 +3026,71 @@ export function extractAllRequirements(text: string, html?: string, url?: string
     ...safeMatchAll(safeText, /(?:project|projekt|program|programm)[\s]+(?:duration|laufzeit|dauer)[\s:]+([^\.\n]{5,100})/gi)
   ];
   
+  /**
+   * Normalize duration to months
+   * Examples: "2 years" → "24 months", "1-3 years" → "12-36 months"
+   */
+  const normalizeDurationToMonths = (durationText: string): string => {
+    // Extract numeric values and units
+    const yearRangeMatch = durationText.match(/(\d+)\s*-\s*(\d+)\s*(?:jahr|jahre|year|years)/i);
+    if (yearRangeMatch) {
+      const minYears = parseInt(yearRangeMatch[1]);
+      const maxYears = parseInt(yearRangeMatch[2]);
+      return `${minYears * 12}-${maxYears * 12} months`;
+    }
+    
+    const singleYearMatch = durationText.match(/(\d+)\s*(?:jahr|jahre|year|years)/i);
+    if (singleYearMatch) {
+      const years = parseInt(singleYearMatch[1]);
+      return `${years * 12} months`;
+    }
+    
+    // Already in months - keep as is
+    const monthMatch = durationText.match(/(\d+)\s*(?:-\s*\d+)?\s*(?:month|monat|monate|months)/i);
+    if (monthMatch) {
+      return durationText; // Already normalized
+    }
+    
+    // Weeks - convert to months (approximate: 1 month ≈ 4.33 weeks, but we'll use 4 for simplicity)
+    const weekMatch = durationText.match(/(\d+)\s*(?:woche|weeks)/i);
+    if (weekMatch) {
+      const weeks = parseInt(weekMatch[1]);
+      const months = Math.round(weeks / 4.33);
+      return `${months} months`;
+    }
+    
+    // Days - convert to months (approximate: 1 month ≈ 30 days)
+    const dayMatch = durationText.match(/(\d+)\s*(?:tag|days)/i);
+    if (dayMatch) {
+      const days = parseInt(dayMatch[1]);
+      const months = Math.round(days / 30);
+      return months > 0 ? `${months} months` : durationText; // Keep original if < 1 month
+    }
+    
+    // If no specific unit found, return original
+    return durationText;
+  };
+  
   durationMatches.forEach(match => {
     const value = match[0] || match[1] || '';
     if (value && !categorized.timeline.some(t => t.value.includes(match[1] || match[0]))) {
       const durationText = value.trim();
-      if (durationText.length > 3 && durationText.length < 100) {
+      
+      // FIXED: Only accept time-related patterns (months, years, weeks, days)
+      // Reject non-time-related text like "Material- und Sachkosten", "Kosten", etc.
+      const hasTimeUnit = /(?:jahr|jahre|year|years|month|monat|monate|months|woche|weeks|tag|days|duration|laufzeit|dauer|zeitraum)/i.test(durationText);
+      const hasNumber = /\d/.test(durationText);
+      
+      // ENHANCED: Reject if it contains cost/material keywords (not duration) - more strict exclusion
+      const hasCostKeywords = /(?:kosten|cost|material|sachkosten|drittkosten|personalkosten|reisekosten|anlagennutzung|materialkosten|ausgaben|expenses|investition|investitionen|betrag|summe|finanzierung|förderung|bezahlung|payment|fee|gebühr|km[ou]|sme|unternehmen|forschungseinrichtung|planned|groß|small|medium)/i.test(durationText);
+      
+      if (durationText.length > 3 && durationText.length < 100 && hasTimeUnit && hasNumber && !hasCostKeywords) {
+        // Normalize to months
+        const normalized = normalizeDurationToMonths(durationText);
+        
         categorized.timeline.push({
           type: 'duration',
-          value: durationText,
+          value: normalized,
           required: true,
           source: 'context_extraction'
         });
@@ -2017,19 +3110,97 @@ export function extractAllRequirements(text: string, html?: string, url?: string
     });
   }
   
+  // FALLBACK: If no timeline extracted but timeline keywords exist, extract any timeline-related content
+  if (categorized.timeline.length === 0 && (lowerText.includes('deadline') || lowerText.includes('frist') || lowerText.includes('laufzeit') || lowerText.includes('duration') || lowerText.includes('zeitraum') || lowerText.includes('timeline'))) {
+    const fallbackMatches = [
+      ...safeMatchAll(safeText, /(?:deadline|frist|laufzeit|duration|zeitraum|timeline)[\s:]+([^\.\n]{5,200})/gi),
+      ...safeMatchAll(safeText, /(?:bis|until|by|spätestens)[\s]+([^\.\n]{5,200})/gi)
+    ];
+    if (fallbackMatches.length > 0) {
+      const bestFallback = fallbackMatches.find(m => {
+        const val = m[1] || '';
+        return val.trim().length >= 5 && 
+               !val.toLowerCase().includes('required') && 
+               !val.toLowerCase().includes('specified') &&
+               (/\d/.test(val) || val.toLowerCase().includes('open') || val.toLowerCase().includes('laufend') || val.toLowerCase().includes('rolling'));
+      });
+      if (bestFallback && bestFallback[1]) {
+        const value = bestFallback[1].trim();
+        if (value.length >= 5 && value.length < 250) {
+          let timelineType = 'duration';
+          if (value.toLowerCase().includes('deadline') || value.toLowerCase().includes('frist') || value.toLowerCase().includes('bis')) {
+            timelineType = 'deadline';
+          } else if (value.toLowerCase().includes('open') || value.toLowerCase().includes('laufend') || value.toLowerCase().includes('rolling')) {
+            timelineType = 'open_deadline';
+          }
+          categorized.timeline.push({
+            type: timelineType,
+            value: value,
+            required: true,
+            source: 'fallback_extraction'
+          });
+        }
+      }
+    }
+  }
+  
   // Don't add generic placeholder - only add if we found meaningful content
   
-  // TEAM - Enhanced: Extract actual team requirements
+  // TEAM - Enhanced: Extract actual team requirements with better numeric extraction
+  // CRITICAL: Team extraction must be 100% reliable - add comprehensive patterns
   const teamMatches = [
-    ...safeMatchAll(safeText, /(?:team|mitarbeiter|personal|personnel|teamgröße|team size|staff)[\s:]+([^\.\n]{10,300})/gi),
-    ...safeMatchAll(safeText, /(?:mindestens|at least|minimum|min\.|min)[\s]+(\d+)[\s]*(?:mitarbeiter|team|personnel|staff|members)/gi),
-    ...safeMatchAll(safeText, /(?:team|mitarbeiter)[\s]+(?:von|consisting of|mit|with)[\s]+(\d+)[\s]*(?:mitarbeiter|personnel|staff)/gi),
-    ...safeMatchAll(safeText, /(?:projektteam|project team|kern team|core team)[\s:]+([^\.\n]{10,300})/gi),
-    ...safeMatchAll(safeText, /(?:qualifikation|qualification|ausbildung|education|expertise|erfahrung)[\s]+(?:des teams|of the team|der mitarbeiter)[\s:]+([^\.\n]{10,300})/gi)
+    ...safeMatchAll(safeText, /(?:team|mitarbeiter|personal|personnel|teamgröße|team size|staff)[\s:]+([^\.\n]{8,300})/gi), // LOWERED from 10 to 8
+    ...safeMatchAll(safeText, /(?:mindestens|at least|minimum|min\.|min)[\s]+(\d+)[\s]*(?:mitarbeiter|team|personnel|staff|members|personen|people|employees)/gi),
+    ...safeMatchAll(safeText, /(?:team|mitarbeiter)[\s]+(?:von|consisting of|mit|with|besteht aus|consists of)[\s]+(\d+)[\s]*(?:mitarbeiter|personnel|staff|personen|people|employees)/gi),
+    ...safeMatchAll(safeText, /(?:projektteam|project team|kern team|core team)[\s:]+([^\.\n]{8,300})/gi), // LOWERED from 10 to 8
+    ...safeMatchAll(safeText, /(?:qualifikation|qualification|ausbildung|education|expertise|erfahrung)[\s]+(?:des teams|of the team|der mitarbeiter)[\s:]+([^\.\n]{8,300})/gi), // LOWERED from 10 to 8
+    // NEW: More patterns for team size extraction
+    ...safeMatchAll(safeText, /(?:team|mitarbeiter|personal)[\s]+(?:muss|soll|sollen|besteht|besteht mit|must have|should have|must consist of)[\s]+(?:mindestens|at least|minimum|min\.?)[\s]*(\d+)/gi),
+    ...safeMatchAll(safeText, /(?:team|mitarbeiter|personal)[\s]+(?:von|bis|minimum|maximum)[\s]+(\d+)[\s]*(?:bis|to|maximum|max\.?)[\s]*(\d+)?/gi),
+    ...safeMatchAll(safeText, /(\d+)[\s]*(?:mitarbeiter|personnel|staff|team members|personen|people|employees)[\s]+(?:sind|muss|soll|required|erforderlich)/gi),
+    ...safeMatchAll(safeText, /(?:teamgröße|team size)[\s:]+(?:mindestens|at least|minimum|min\.?)[\s]*(\d+)/gi),
+    // ADDITIONAL: More comprehensive patterns for 100% reliability
+    ...safeMatchAll(safeText, /(?:team|mitarbeiter|personal|personnel|staff)[\s]+(?:aus|of|consisting of|besteht aus)[\s]+([^\.\n]{10,200})/gi),
+    ...safeMatchAll(safeText, /(?:team|mitarbeiter|personal|personnel|staff)[\s]+(?:muss|soll|sollen|must|should|have to)[\s]+(?:haben|have|bestehen|consist of)[\s]+([^\.\n]{10,200})/gi),
+    ...safeMatchAll(safeText, /(?:team|mitarbeiter|personal|personnel|staff)[\s]+(?:sollte|should|muss|must)[\s]+(?:umfassen|include|consist of)[\s]+([^\.\n]{10,200})/gi),
+    ...safeMatchAll(safeText, /(?:anzahl|number|count)[\s]+(?:mitarbeiter|personnel|staff|team members)[\s:]+([^\.\n]{5,200})/gi),
+    ...safeMatchAll(safeText, /(?:team|mitarbeiter|personal|personnel|staff)[\s]+(?:erforderlich|required|necessary)[\s:]+([^\.\n]{10,200})/gi)
   ];
   if (teamMatches.length > 0) {
+    // First, try to extract numeric values directly
+    const numericMatches = teamMatches
+      .map(m => {
+        // Check if match[1] or match[2] contains a number
+        const numStr = m[1]?.match(/^\d+/) || m[2]?.match(/^\d+/);
+        if (numStr) {
+          return { value: parseInt(numStr[0]), match: m };
+        }
+        // Also check if the text contains a number
+        const textNum = m[1]?.match(/\b(\d+)\b/);
+        if (textNum) {
+          return { value: parseInt(textNum[1]), match: m };
+        }
+        return null;
+      })
+      .filter((m): m is { value: number; match: RegExpMatchArray } => m !== null);
+    
+    // If we found numeric matches, use them
+    if (numericMatches.length > 0) {
+      const bestNumeric = numericMatches[0];
+      const teamSize = bestNumeric.value;
+      if (teamSize > 0 && teamSize < 10000) { // Reasonable range
+        categorized.team.push({
+          type: 'min_team_size',
+          value: String(teamSize),
+          required: true,
+          source: 'context_extraction'
+        });
+      }
+    }
+    
+    // Also extract text descriptions (for non-numeric requirements)
     const sortedMatches = teamMatches
-      .filter(m => m[1] && (m[1].trim().length > 10 || /^\d+/.test(m[1])))
+      .filter(m => m[1] && (m[1].trim().length >= 8 || /^\d+/.test(m[1]))) // LOWERED from 10 to 8
       .sort((a, b) => {
         const aLen = a[1].trim().length;
         const bLen = b[1].trim().length;
@@ -2045,24 +3216,62 @@ export function extractAllRequirements(text: string, html?: string, url?: string
       let cleaned = value.replace(/^(?:sind|soll|muss|müssen|darf|dürfen|ist|werden|kann|können|required|erforderlich)[\s,]+/i, '').trim();
       cleaned = cleaned.replace(/^(?:team|mitarbeiter|personal|personnel)[\s:]+/i, '').trim();
       
-      // Only add if meaningful (length >= 20) or it contains numbers (specific requirement)
-      const isMeaningful = cleaned.length >= 20 || /^\d+/.test(cleaned);
+      // Only add if meaningful (length >= 15) or it contains numbers (specific requirement) - LOWERED from 20 to 15
+      const isMeaningful = cleaned.length >= 15 || /^\d+/.test(cleaned);
       
       if (isMeaningful && cleaned.length > 5 && cleaned.length < 400 && !cleaned.toLowerCase().includes('required') && !cleaned.toLowerCase().includes('specified')) {
-        // Add context if it's too short but contains numbers
-        const contextualValue = (cleaned.length < 20 && /^\d+/.test(cleaned))
-          ? `Team size requirement: ${cleaned}`
-          : cleaned;
-        
-        categorized.team.push({
-          type: 'team_requirement',
-          value: contextualValue,
-          required: true,
-          source: 'context_extraction'
-        });
+        // Extract numeric team size if present (if not already added above)
+        const numericMatch = cleaned.match(/^\d+/);
+        if (numericMatch && numericMatches.length === 0) { // Only add if we didn't already add numeric
+          const teamSize = parseInt(numericMatch[0]);
+          if (teamSize > 0 && teamSize < 10000) {
+            categorized.team.push({
+              type: 'min_team_size',
+              value: String(teamSize),
+              required: true,
+              source: 'context_extraction'
+            });
+          }
+        } else if (!numericMatch) {
+          // If no specific number, add as team_size description
+          categorized.team.push({
+            type: 'team_size',
+            value: cleaned,
+            required: true,
+            source: 'context_extraction'
+          });
+        }
       }
     }
   }
+  
+  // FALLBACK: If no team data extracted but team keywords exist, extract any team-related content
+  // ENHANCED: More relaxed fallback patterns for better coverage
+  if (categorized.team.length === 0 && (lowerText.includes('team') || lowerText.includes('mitarbeiter') || lowerText.includes('personal') || lowerText.includes('personnel') || lowerText.includes('staff') || lowerText.includes('founder') || lowerText.includes('gründer') || lowerText.includes('entrepreneur'))) {
+    const fallbackMatches = [
+      ...safeMatchAll(safeText, /(?:team|mitarbeiter|personal|personnel|staff|founder|gründer|entrepreneur)[\s:]+([^\.\n]{8,200})/gi),
+      ...safeMatchAll(safeText, /([^\.\n]{8,200})[\s]*(?:team|mitarbeiter|personal|personnel|staff|founder|gründer|entrepreneur)[\s:]/gi),
+      // More specific patterns for startup/company team requirements
+      ...safeMatchAll(safeText, /(?:startup|unternehmen|company|firma)[\s]+(?:muss|soll|sollen|must|should)[\s]+(?:haben|have|bestehen|consist of)[\s]+([^\.\n]{8,200})/gi),
+      ...safeMatchAll(safeText, /(?:founder|gründer|entrepreneur)[\s]+(?:muss|soll|sollen|must|should)[\s]+(?:haben|have|sein|be)[\s]+([^\.\n]{8,200})/gi)
+    ];
+    if (fallbackMatches.length > 0) {
+      const bestFallback = fallbackMatches.find(m => m[1] && m[1].trim().length >= 8 && !m[1].toLowerCase().includes('required') && !m[1].toLowerCase().includes('specified'));
+      if (bestFallback && bestFallback[1]) {
+        const value = bestFallback[1].trim();
+        // More relaxed: accept 8+ chars (was 10)
+        if (value.length >= 8 && value.length < 300) {
+          categorized.team.push({
+            type: 'team_size',
+            value: value,
+            required: true,
+            source: 'fallback_extraction'
+          });
+        }
+      }
+    }
+  }
+  
   // Don't add generic placeholder - only add if we found meaningful content
 
   // QUALIFICATION
@@ -2086,24 +3295,100 @@ export function extractAllRequirements(text: string, html?: string, url?: string
   // Don't add generic placeholder - only add if we find meaningful content
   
   // PROJECT - Enhanced: Extract actual project focus/requirements
+  // FIX: Categorize into 4 types: innovation_focus, technology_area, research_domain, sector_focus
   const projectMatches = [
     ...safeMatchAll(safeText, /(?:innovation|forschung|entwicklung|research|development)[\s:]+([^\.\n]{10,200})/gi),
-    ...safeMatchAll(safeText, /(?:fokus|focus|schwerpunkt|thema|topic)[\s:]+([^\.\n]{10,200})/gi)
+    ...safeMatchAll(safeText, /(?:fokus|focus|schwerpunkt|thema|topic)[\s:]+([^\.\n]{10,200})/gi),
+    ...safeMatchAll(safeText, /(?:technologie|technology|tech|ai|iot|blockchain|biotechnology)[\s:]+([^\.\n]{10,200})/gi),
+    ...safeMatchAll(safeText, /(?:sector|sektor|industrie|industry|branche)[\s:]+([^\.\n]{10,200})/gi)
   ];
-  if (projectMatches.length > 0) {
-    const bestMatch = projectMatches.find(m => m[1] && m[1].trim().length > 15);
-    if (bestMatch && bestMatch[1]) {
-      const value = bestMatch[1].trim();
-      const cleaned = value.replace(/^(?:ist|sind|sein|werden)[\s,]+/i, '').trim();
-      if (cleaned.length > 10 && cleaned.length < 300 && !cleaned.toLowerCase().includes('required')) {
-        categorized.project.push({
-          type: 'innovation_focus',
-          value: cleaned,
-          required: true,
-          source: 'context_extraction'
-        });
-      }
+  
+  const categorizeProject = (text: string): { type: string, value: string } | null => {
+    const lower = text.toLowerCase();
+    
+    // Innovation Focus
+    if (lower.includes('digitalization') || lower.includes('digitalisierung') ||
+        lower.includes('sustainability') || lower.includes('nachhaltigkeit') ||
+        lower.includes('rd') || lower.includes('r&d') ||
+        lower.includes('innovation') || lower.includes('digital transformation')) {
+      return { type: 'innovation_focus', value: text };
     }
+    
+    // Technology Areas
+    if (lower.includes('ai') || lower.includes('artificial intelligence') ||
+        lower.includes('iot') || lower.includes('internet of things') ||
+        lower.includes('blockchain') || lower.includes('biotechnology') ||
+        lower.includes('machine learning') || lower.includes('deep learning') ||
+        lower.includes('robotics') || lower.includes('roboter') ||
+        lower.includes('software') || lower.includes('hardware')) {
+      return { type: 'technology_area', value: text };
+    }
+    
+    // Research Domains
+    if (lower.includes('life sciences') || lower.includes('lebenswissenschaften') ||
+        lower.includes('materials science') || lower.includes('materialwissenschaften') ||
+        lower.includes('energy research') || lower.includes('energieforschung') ||
+        lower.includes('medical research') || lower.includes('medizinforschung') ||
+        lower.includes('pharmaceutical') || lower.includes('pharmazeutisch')) {
+      return { type: 'research_domain', value: text };
+    }
+    
+    // Sector Focus
+    if (lower.includes('manufacturing') || lower.includes('produktion') ||
+        lower.includes('healthcare') || lower.includes('gesundheitswesen') ||
+        lower.includes('energy') || lower.includes('energie') ||
+        lower.includes('agriculture') || lower.includes('landwirtschaft') ||
+        lower.includes('tourism') || lower.includes('tourismus') ||
+        lower.includes('construction') || lower.includes('bau')) {
+      return { type: 'sector_focus', value: text };
+    }
+    
+    // Default: innovation_focus if no specific match
+    if (text.length > 10 && text.length < 300) {
+      return { type: 'innovation_focus', value: text };
+    }
+    
+    return null;
+  };
+  
+  if (projectMatches.length > 0) {
+    const processedMatches = new Set<string>();
+    
+    projectMatches.forEach(match => {
+      if (match[1] && match[1].trim().length > 15) {
+        const value = match[1].trim();
+        const cleaned = value.replace(/^(?:ist|sind|sein|werden)[\s,]+/i, '').trim();
+        
+        // Avoid duplicates
+        if (processedMatches.has(cleaned.toLowerCase())) return;
+        processedMatches.add(cleaned.toLowerCase());
+        
+        if (cleaned.length > 10 && cleaned.length < 300 && !cleaned.toLowerCase().includes('required')) {
+          const categorizedProj = categorizeProject(cleaned);
+          if (categorizedProj) {
+            // Check for duplicates
+            // Check for duplicates in the specific project category
+            const projCategory = categorizedProj.type;
+            const isDuplicate = (categorized[projCategory] || []).some((p: any) => 
+              p.type === categorizedProj.type && p.value.toLowerCase() === categorizedProj.value.toLowerCase()
+            );
+            if (!isDuplicate) {
+              // Store in separate top-level category
+              const projCategory = categorizedProj.type; // e.g., 'innovation_focus', 'technology_area', etc.
+              if (!categorized[projCategory]) {
+                categorized[projCategory] = [];
+              }
+              categorized[projCategory].push({
+                type: categorizedProj.type as any,
+                value: categorizedProj.value,
+                required: true,
+                source: 'context_extraction'
+              });
+            }
+          }
+        }
+      }
+    });
   }
   // Don't add generic placeholder - only add if we find meaningful content
   
@@ -2207,6 +3492,21 @@ export function extractAllRequirements(text: string, html?: string, url?: string
     'finanzierungsvolumen', 'fördervolumen', 'finanzierungsbetrag'
   ];
   
+  // PRIORITY 2: Handle variable funding amounts (contact for amount, variable, etc.)
+  const variableAmountMatches = [
+    ...safeMatchAll(safeText, /(?:contact\s+for\s+amount|kontakt\s+für\s+betrag|betrag\s+auf\s+anfrage|amount\s+on\s+request)/gi),
+    ...safeMatchAll(safeText, /(?:variable\s+amount|variabler\s+betrag|flexible\s+funding|flexible\s+finanzierung)/gi),
+    ...safeMatchAll(safeText, /(?:individual\s+assessment|individuelle\s+beurteilung|case-by-case)/gi)
+  ];
+  if (variableAmountMatches.length > 0 && categorized.financial.length === 0) {
+    categorized.financial.push({
+      type: 'funding_amount_status',
+      value: 'Variable amount - contact for details',
+      required: false,
+      source: 'context_extraction'
+    });
+  }
+  
   // Always try to extract financial info (CRITICAL category)
   const financialContextMatches = [
     ...safeMatchAll(safeText, /(?:förderhöhe|förderbetrag|finanzierung|funding|maximal|fördervolumen|finanzierungsvolumen|betrag|summe|höhe)[\s:]+([^\.\n]{15,300})/gi),
@@ -2234,6 +3534,26 @@ export function extractAllRequirements(text: string, html?: string, url?: string
     });
   
   if (validFinancialContexts.length > 0) {
+        // LEARNING: Try learned financial patterns first - FIX: Make it synchronous for better quality improvement
+        try {
+          const { getLearnedPatterns } = require('./extract-learning');
+          const host = url ? new URL(url).hostname.replace('www.', '') : undefined;
+          // FIX: Use await to ensure learned patterns are applied before extraction
+          const learnedPatterns = await getLearnedPatterns('financial', host).catch(() => []);
+          for (const learnedPattern of learnedPatterns.slice(0, 5)) { // Limit to top 5 patterns
+            try {
+              const regex = new RegExp(learnedPattern.pattern, 'gi');
+              const match = safeText.match(regex);
+              if (match) {
+                // Add to financial matches if not already present
+                validFinancialContexts.push(match[0]);
+                const { learnFromExtraction } = require('./extract-learning');
+                learnFromExtraction('financial', learnedPattern.pattern, true, host).catch(() => {});
+              }
+            } catch {}
+          }
+        } catch {}
+    
     // Add all unique meaningful financial contexts (not just one)
     const uniqueFinancials = new Set<string>();
     validFinancialContexts.forEach(context => {
@@ -2254,23 +3574,36 @@ export function extractAllRequirements(text: string, html?: string, url?: string
         required: true,
         source: 'context_extraction'
       });
+      
+      // LEARNING: Track successful financial extraction
+      try {
+        const { learnFromExtraction } = require('./extract-learning');
+        const host = url ? new URL(url).hostname.replace('www.', '') : undefined;
+        learnFromExtraction('financial', context.substring(0, 100), true, host).catch(() => {});
+      } catch {}
     });
   }
   
-  if (financialKeywords.some(k => lowerText.includes(k))) {
-    // Try multiple patterns for amounts
+    if (financialKeywords.some(k => lowerText.includes(k))) {
+    // Try multiple patterns for amounts - IMPROVED to capture full amount with currency
     const amountPatterns = [
-      /(?:bis zu|maximal|förderbetrag|förderhöhe|förderung|finanzierung)\s*€?\s*(\d{1,3}(?:[.,\s]\d{3})*(?:[.,]\d{2})?)/i,
-      /€\s*(\d{1,3}(?:[.,\s]\d{3})*(?:[.,]\d{2})?)/i,
-      /(\d{1,3}(?:[.,\s]\d{3})*(?:[.,]\d{2})?)\s*€/i,
-      /(\d{1,3}(?:[.,]\d{3})*)\s*(?:million|millionen|mio)/i
+      // Pattern 1: "bis zu 50.000 EUR" or "bis zu 50.000€" - capture full amount with currency
+      /(?:bis zu|maximal|förderbetrag|förderhöhe|förderung|finanzierung)\s*(\d{1,3}(?:[.,\s]\d{3})*(?:[.,]\d{2})?)\s*(?:€|EUR|euro)/i,
+      // Pattern 2: "€ 50.000" or "EUR 50.000" - currency first
+      /(?:€|EUR|euro)\s*(\d{1,3}(?:[.,\s]\d{3})*(?:[.,]\d{2})?)/i,
+      // Pattern 3: "50.000 €" or "50.000 EUR" - currency after
+      /(\d{1,3}(?:[.,\s]\d{3})*(?:[.,]\d{2})?)\s*(?:€|EUR|euro)/i,
+      // Pattern 4: "50 Millionen EUR" or "50 Mio. EUR"
+      /(\d{1,3}(?:[.,]\d{3})*)\s*(?:million|millionen|mio\.?)\s*(?:€|EUR|euro)?/i
     ];
     
     let amountMatch: RegExpMatchArray | null = null;
+    let fullAmountText = '';
     for (const pattern of amountPatterns) {
       const match = safeText.match(pattern);
       if (match) {
         amountMatch = match;
+        fullAmountText = match[0]; // Capture full match including currency
         break;
       }
     }
@@ -2288,8 +3621,22 @@ export function extractAllRequirements(text: string, html?: string, url?: string
       .map(m => {
         const value = m[1].trim();
         const cleaned = value.replace(/^(?:ist|sind|beträgt|betragen|bis zu|up to|maximal|maximum)[\s,]+/i, '').trim();
-        return cleaned;
+        // CRITICAL: Reject incomplete patterns like "bis zu 50" or "maximal 5" without currency
+        const hasCurrency = /(?:€|EUR|euro|currency)/i.test(cleaned);
+        const hasAmount = /\d{1,3}(?:[.,\s]\d{3})*(?:[.,]\d{2})?/.test(cleaned);
+        
+        // ENHANCED: Reject incomplete patterns (e.g., "bis zu 50", "maximal 5", "up to 10")
+        const isIncompletePattern = !hasCurrency && /^(?:bis zu|maximal|up to|max|min|minimum|mindestens)\s*\d{1,2}(?:\s|$|,|\.)/i.test(cleaned);
+        
+        // ENHANCED: Also reject if it's just a description without actual amount
+        const isDescriptionOnly = !hasAmount && !hasCurrency && cleaned.length > 50;
+        
+        // ENHANCED: Reject patterns like "Maximum funding amount available: bis zu 50" (incomplete)
+        const hasIncompleteContext = /(?:maximum|maximal|minimum|min|bis zu|up to)\s+(?:funding|amount|betrag|summe|förderung|finanzierung)[\s:]+(?:bis zu|up to|maximal)?\s*\d{1,2}(?:\s|$|,|\.)/i.test(cleaned);
+        
+        return (isIncompletePattern || isDescriptionOnly || hasIncompleteContext) ? null : cleaned;
       })
+      .filter(val => val !== null) // Filter out incomplete patterns
       .filter(val => val.length > 15 && val.length < 280)
       .filter(val => {
         const lower = val.toLowerCase();
@@ -2299,55 +3646,169 @@ export function extractAllRequirements(text: string, html?: string, url?: string
                 /\d/.test(val) || val.split(/\s+/).length > 3);
       });
     
-    if (validFinancialContexts.length > 0) {
+      if (validFinancialContexts.length > 0) {
       // Use the longest/most detailed match
       const bestMatch = validFinancialContexts.sort((a, b) => b.length - a.length)[0];
       if (bestMatch) {
-        // Check for duplicates
-        const isDuplicate = categorized.financial.some(f => {
-          const similarity = f.value.toLowerCase().includes(bestMatch.toLowerCase().substring(0, 30)) ||
-                            bestMatch.toLowerCase().includes(f.value.toLowerCase().substring(0, 30));
-          return similarity;
-        });
-        if (!isDuplicate) {
-          categorized.financial.push({
-            type: 'funding_amount_description',
-            value: bestMatch,
-            required: true,
-            source: 'context_extraction'
+        let addedNumericValue = false;
+        
+        // ENHANCED: Try to extract numeric values from description (including ranges)
+        // Pattern 1: Range "EUR 20,000 - EUR 150,000" or "from EUR 20,000 to EUR 150,000"
+        const rangeMatch = bestMatch.match(/(?:from|von|zwischen|between)?\s*(?:EUR|€|euro)?\s*(\d{1,3}(?:[.,\s]\d{3})*(?:[.,]\d{2})?)\s*(?:-|to|bis|und|and)\s*(?:EUR|€|euro)?\s*(\d{1,3}(?:[.,\s]\d{3})*(?:[.,]\d{2})?)\s*(?:EUR|€|euro)?/i);
+        if (rangeMatch && rangeMatch[1] && rangeMatch[2]) {
+          const minStr = rangeMatch[1].replace(/[.,\s]/g, '');
+          const maxStr = rangeMatch[2].replace(/[.,\s]/g, '');
+          const minValue = parseInt(minStr);
+          const maxValue = parseInt(maxStr);
+          
+          // Check if in millions
+          const isMillion = /\b(million|millionen|mio)\b/i.test(bestMatch);
+          const finalMin = isMillion ? minValue * 1_000_000 : minValue;
+          const finalMax = isMillion ? maxValue * 1_000_000 : maxValue;
+          
+          if (finalMin >= 100 && finalMax <= 1_000_000_000_000 && finalMin < finalMax) {
+            // Add both min and max
+            const hasMin = categorized.financial.some(f => 
+              f.type === 'funding_amount_min' && Math.abs(Number(f.value) - finalMin) < 1000
+            );
+            const hasMax = categorized.financial.some(f => 
+              f.type === 'funding_amount_max' && Math.abs(Number(f.value) - finalMax) < 1000
+            );
+            
+            if (!hasMin) {
+              categorized.financial.push({
+                type: 'funding_amount_min',
+                value: String(finalMin),
+                required: true,
+                source: 'description_parsing'
+              });
+            }
+            if (!hasMax) {
+              categorized.financial.push({
+                type: 'funding_amount_max',
+                value: String(finalMax),
+                required: true,
+                source: 'description_parsing'
+              });
+            }
+            // Don't add description if we got numeric values
+            addedNumericValue = true;
+          }
+        }
+        
+        // Pattern 2: Single amount (only if range didn't match)
+        if (!addedNumericValue) {
+          const numericMatch = bestMatch.match(/(\d{1,3}(?:[.,\s]\d{3})*(?:[.,]\d{2})?)/);
+          if (numericMatch) {
+            const numStr = numericMatch[1].replace(/[.,\s]/g, '');
+            const numValue = parseInt(numStr);
+            // Check if it's in millions
+            const isMillion = /\b(million|millionen|mio)\b/i.test(bestMatch);
+            const finalValue = isMillion ? numValue * 1_000_000 : numValue;
+            
+            if (finalValue >= 100 && finalValue <= 1_000_000_000_000) {
+              // Check for duplicates
+              const isDuplicate = categorized.financial.some(f => 
+                (f.type === 'funding_amount_max' || f.type === 'funding_amount_min') && 
+                Math.abs(Number(f.value) - finalValue) < 1000
+              );
+              if (!isDuplicate) {
+                categorized.financial.push({
+                  type: 'funding_amount_max',
+                  value: String(finalValue),
+                  required: true,
+                  source: 'description_parsing'
+                });
+              }
+              // Don't add description if we got numeric value
+              addedNumericValue = true;
+            }
+          }
+        }
+        
+        // Only add description if we didn't extract numeric values
+        if (!addedNumericValue) {
+          // Check for duplicates
+          const isDuplicate = categorized.financial.some(f => {
+            const similarity = f.value.toLowerCase().includes(bestMatch.toLowerCase().substring(0, 30)) ||
+                              bestMatch.toLowerCase().includes(f.value.toLowerCase().substring(0, 30));
+            return similarity;
           });
+          if (!isDuplicate) {
+            categorized.financial.push({
+              type: 'funding_amount_description',
+              value: bestMatch,
+              required: true,
+              source: 'context_extraction'
+            });
+          }
         }
       }
     }
     
-    // Always add amount if found - add context if short to make meaningful
+    // Always add amount if found - IMPROVED: use fullAmountText if available (includes currency)
     if (amountMatch) {
-      const amountValue = amountMatch[0].trim();
-      // Make short amounts meaningful by adding context (target: >= 20 chars)
-      const contextualValue = amountValue.length < 20 
-        ? `Maximum funding amount available: ${amountValue}`
-        : amountValue;
+      // Use fullAmountText if it includes currency, otherwise use match[0]
+      const amountValue = (fullAmountText && /(?:€|EUR|euro)/i.test(fullAmountText)) 
+        ? fullAmountText.trim() 
+        : amountMatch[0].trim();
       
-      categorized.financial.push({
-        type: 'funding_amount_max',
-        value: contextualValue,
-        required: true,
-        source: amountMatch[0].includes('€') ? 'context_extraction' : 'full_page_content'
-      });
+      // CRITICAL: Reject incomplete amounts (missing currency, too short, suspicious patterns)
+      const hasCurrency = /(?:€|EUR|euro)/i.test(amountValue);
+      const isIncomplete = (
+        !hasCurrency && amountValue.length < 20 && // No currency and too short
+        /^(?:bis zu|maximal|up to)\s*\d{1,2}$/i.test(amountValue.trim()) // Pattern like "bis zu 50" or "maximal 5"
+      );
+      
+      if (isIncomplete) {
+        // Skip incomplete amounts - don't add them
+        // These are likely truncated or missing context
+      } else {
+        // Make short amounts meaningful by adding context (target: >= 20 chars)
+        // But only if it doesn't already have currency
+        const contextualValue = (!hasCurrency && amountValue.length < 20)
+          ? `Maximum funding amount available: ${amountValue}`
+          : amountValue;
+        
+        categorized.financial.push({
+          type: 'funding_amount_max',
+          value: contextualValue,
+          required: true,
+          source: amountValue.includes('€') || amountValue.includes('EUR') ? 'context_extraction' : 'full_page_content'
+        });
+      }
     }
     // Don't add generic placeholder - only if amount found
   }
   
   // CONSORTIUM - Enhanced: Extract partnership details
+  // FIX: Reject contact info, only extract partnership requirements
   const consortiumMatches = [
     ...safeMatchAll(safeText, /(?:konsortium|consortium|partner|partnership)[\s:]+([^\.\n]{10,150})/gi),
-    ...safeMatchAll(safeText, /(?:mindestens|at least|minimum|minimum of)[\s]+(\d+)[\s]*(?:partner|partners)/gi)
+    ...safeMatchAll(safeText, /(?:mindestens|at least|minimum|minimum of)[\s]+(\d+)[\s]*(?:partner|partners)/gi),
+    ...safeMatchAll(safeText, /(?:minimum|mindestens|at least)\s+(\d+)\s*(?:partner|partners)\s+(?:aus|from|von)\s+(\d+)\s*(?:länder|countries)/gi)
   ];
   if (consortiumMatches.length > 0) {
     const bestMatch = consortiumMatches.find(m => m[1] && (m[1].trim().length > 10 || /^\d+/.test(m[1])));
     if (bestMatch && bestMatch[1]) {
       const value = bestMatch[1].trim();
-      if (value.length > 5 && value.length < 200 && !value.toLowerCase().includes('required')) {
+      
+      // FIX: Reject contact information (phone numbers, emails, names)
+      const isContactInfo = 
+        /\+?\d{1,4}[\s\-\.]?\d{1,4}[\s\-\.]?\d{1,4}[\s\-\.]?\d{1,4}/.test(value) || // Phone number
+        /@/.test(value) || // Email
+        /^(?:mag\.|dr\.|prof\.|ing\.|mag|dr|prof|ing)\s+[A-Z]/.test(value) || // Name with title
+        /^[A-Z][a-z]+\s+[A-Z][a-z]+:\s*\+?\d/.test(value); // "Name: +43..."
+      
+      // Only accept partnership requirements, not contact info
+      const isPartnershipRequirement = 
+        /\b(partner|partners|partnership|konsortium|consortium|minimum|mindestens|at least|required|erforderlich)\b/i.test(value) ||
+        /^\d+\s*(?:partner|partners)/i.test(value);
+      
+      if (value.length > 5 && value.length < 200 && 
+          !isContactInfo && isPartnershipRequirement &&
+          !value.toLowerCase().includes('required') && 
+          !value.toLowerCase().includes('specified')) {
         categorized.consortium.push({
           type: 'consortium_requirement',
           value: value,
@@ -2360,28 +3821,42 @@ export function extractAllRequirements(text: string, html?: string, url?: string
   // Don't add generic placeholder - only add if we found meaningful content
   
   // USE OF FUNDS - Enhanced: Extract actual usage requirements with more depth
+  // USE OF FUNDS - ULTRA-ENHANCED: More patterns, much less strict filtering, lower minimums
   const useOfFundsMatches = [
-    ...safeMatchAll(safeText, /(?:verwendung|use of funds|zweck|verwendungszweck|verwendungsmöglichkeit|finanzierungszweck|förderzweck|investitionszweck)[\s:]+([^\.\n]{20,300})/gi),
-    ...safeMatchAll(safeText, /(?:finanzierung|funding|förderung)[\s]+(?:für|for|zur|zur Verwendung|for use in|for the purpose of)[\s:]+([^\.\n]{20,300})/gi),
-    ...safeMatchAll(safeText, /(?:verwendet|used|einsetzen|investiert)[\s]+(?:werden|can be|should be|must be)[\s]+(?:für|for)[\s:]+([^\.\n]{20,300})/gi),
-    ...safeMatchAll(safeText, /(?:erlaubt|allowed|zulässig)[\s]+(?:für|for|zur)[\s:]+([^\.\n]{20,300})/gi)
+    // Direct patterns - LOWERED minimum length
+    ...safeMatchAll(safeText, /(?:verwendung|use of funds|zweck|verwendungszweck|verwendungsmöglichkeit|finanzierungszweck|förderzweck|investitionszweck|zweckbindung)[\s:]+([^\.\n]{10,400})/gi),
+    ...safeMatchAll(safeText, /(?:finanzierung|funding|förderung)[\s]+(?:für|for|zur|zur Verwendung|for use in|for the purpose of|dient|dienen)[\s:]+([^\.\n]{10,400})/gi),
+    ...safeMatchAll(safeText, /(?:verwendet|used|einsetzen|investiert|genutzt|utilized)[\s]+(?:werden|can be|should be|must be|kann|darf|soll)[\s]+(?:für|for|zur)[\s:]+([^\.\n]{10,400})/gi),
+    ...safeMatchAll(safeText, /(?:erlaubt|allowed|zulässig|geeignet)[\s]+(?:für|for|zur)[\s:]+([^\.\n]{10,400})/gi),
+    // Common use cases
+    ...safeMatchAll(safeText, /(?:investition|investment|investitionen|investments)[\s]+(?:in|into|für|for)[\s:]+([^\.\n]{10,400})/gi),
+    ...safeMatchAll(safeText, /(?:kosten|costs|ausgaben|expenses)[\s]+(?:für|for|von|of)[\s:]+([^\.\n]{10,400})/gi),
+    // List patterns (common in funding pages)
+    ...safeMatchAll(safeText, /(?:verwendet|used|geeignet|suitable)[\s]+(?:für|for|zur)[\s:]*\s*(?:investition|entwicklung|forschung|marketing|personal|ausrüstung|equipment|maschinen|machinery|immobilie|kapital)[\s:]+([^\.\n]{10,300})/gi),
+    // Generic patterns (broader)
+    ...safeMatchAll(safeText, /(?:kann|können|darf|dürfen|soll|sollen|muss|müssen)[\s]+(?:für|for|zur|zur Finanzierung|for financing)[\s:]+([^\.\n]{10,400})/gi),
+    // NEW: Fallback patterns - catch more generic mentions
+    ...safeMatchAll(safeText, /(?:finanziert|financed|gefördert|funded)[\s]+(?:werden|can be|should be|kann|soll)[\s]+(?:für|for|zur)[\s:]+([^\.\n]{10,400})/gi),
+    ...safeMatchAll(safeText, /(?:zweck|purpose|ziel|goal)[\s]+(?:der|des|of|the)[\s]+(?:finanzierung|funding|förderung)[\s:]+([^\.\n]{10,400})/gi),
+    // NEW: Use case lists (common format: "The funding can be used for: X, Y, Z")
+    ...safeMatchAll(safeText, /(?:verwendet|used|geeignet|suitable)[\s]+(?:für|for|zur)[\s:]+([^\.\n]{10,400})/gi),
+    // NEW: Section headers for use of funds
+    ...safeMatchAll(safeText, /(?:verwendungszweck|use of funds|zweckbindung|verwendungsmöglichkeit)[\s:]+([^\.\n]{10,400})/gi)
   ];
   
-  // Process all matches to get more comprehensive extraction
+  // Process all matches with MUCH MORE RELAXED filtering
   const validUseMatches = useOfFundsMatches
-    .filter(m => m[1] && m[1].trim().length > 20)
+    .filter(m => m[1] && m[1].trim().length > 10) // LOWERED from 15
     .map(m => {
       const value = m[1].trim();
-      const cleaned = value.replace(/^(?:ist|sind|sein|werden|darf|dürfen|soll|sollen|kann|können|muss|müssen|erlaubt|allowed|zulässig)[\s,]+/i, '').trim();
+      const cleaned = value.replace(/^(?:ist|sind|sein|werden|darf|dürfen|soll|sollen|kann|können|muss|müssen|erlaubt|allowed|zulässig|geeignet)[\s,]+/i, '').trim();
       return cleaned;
     })
-    .filter(val => val.length > 20 && val.length < 350)
+    .filter(val => val.length >= 10 && val.length < 500) // LOWERED minimum from 15 to 10
     .filter(val => {
       const lower = val.toLowerCase();
-      // Must contain actual use indicators, not just generic words
-      return !lower.includes('specified') && !lower.includes('required') &&
-             !lower.includes('available') && !lower.includes('erforderlich') &&
-             (lower.includes('investition') || lower.includes('investment') ||
+      // MUCH LESS STRICT - accept if it has common use indicators OR is reasonably long OR has multiple words
+      const hasUseIndicator = lower.includes('investition') || lower.includes('investment') ||
               lower.includes('entwicklung') || lower.includes('development') ||
               lower.includes('forschung') || lower.includes('research') ||
               lower.includes('marketing') || lower.includes('personal') ||
@@ -2389,7 +3864,23 @@ export function extractAllRequirements(text: string, html?: string, url?: string
               lower.includes('maschinen') || lower.includes('machinery') ||
               lower.includes('immobilie') || lower.includes('real estate') ||
               lower.includes('kapital') || lower.includes('capital') ||
-              lower.split(/\s+/).length > 3); // Multi-word descriptions are more likely meaningful
+              lower.includes('innovation') || lower.includes('technologie') ||
+              lower.includes('infrastruktur') || lower.includes('infrastructure') ||
+              lower.includes('software') || lower.includes('hardware') ||
+              lower.includes('schulung') || lower.includes('training') ||
+              lower.includes('material') || lower.includes('equipment') ||
+              lower.includes('maschine') || lower.includes('machine') ||
+              lower.split(/\s+/).length >= 2 || // LOWERED from 3 - accept 2-word descriptions
+              val.length >= 20; // Accept if reasonably long even without specific keywords
+      
+      // Reject if it's clearly not a use case
+      const valLower = val.toLowerCase();
+      const isGeneric = valLower.includes('specified') || valLower.includes('required') ||
+                       valLower.includes('available') || valLower.includes('erforderlich') ||
+                       valLower.includes('contact') || valLower.includes('kontakt') ||
+                       (val.length < 20 && !hasUseIndicator); // LOWERED from 30
+      
+      return hasUseIndicator && !isGeneric;
     });
   
   if (validUseMatches.length > 0) {
@@ -2413,6 +3904,30 @@ export function extractAllRequirements(text: string, html?: string, url?: string
       }
     }
   }
+  
+  // FALLBACK: If no use_of_funds extracted but keywords exist, extract any use-related content
+  if (categorized.use_of_funds.length === 0 && (lowerText.includes('verwendung') || lowerText.includes('use of') || lowerText.includes('zweck') || lowerText.includes('eligible cost') || lowerText.includes('förderbare'))) {
+    const fallbackMatches = [
+      ...safeMatchAll(safeText, /(?:verwendung|use of|zweck|eligible cost|förderbare)[\s:]+([^\.\n]{15,300})/gi),
+      ...safeMatchAll(safeText, /(?:kann|can|darf|may)[\s]+(?:verwendet|used|genutzt|utilized)[\s]+(?:werden|be)[\s]+(?:für|for)[\s:]+([^\.\n]{15,300})/gi),
+      ...safeMatchAll(safeText, /(?:funding|förderung|finanzierung)[\s]+(?:kann|can|darf|may)[\s]+(?:verwendet|used)[\s]+(?:werden|be)[\s]+(?:für|for)[\s:]+([^\.\n]{15,300})/gi)
+    ];
+    if (fallbackMatches.length > 0) {
+      const bestFallback = fallbackMatches.find(m => m[1] && m[1].trim().length >= 15 && !m[1].toLowerCase().includes('required'));
+      if (bestFallback && bestFallback[1]) {
+        const value = bestFallback[1].trim();
+        if (value.length >= 15 && value.length < 400) {
+          categorized.use_of_funds.push({
+            type: 'use_of_funds',
+            value: value,
+            required: true,
+            source: 'fallback_extraction'
+          });
+        }
+      }
+    }
+  }
+  
   // Don't add generic placeholder - only add if we found meaningful content
   
   // CAPEX/OPEX - Enhanced: Extract investment/operational requirements
@@ -2500,6 +4015,224 @@ export function extractAllRequirements(text: string, html?: string, url?: string
   }
   // Don't add generic placeholder - only add if we found meaningful content
   
+  // ============================================================================
+  // NEW CATEGORIES (Priority 1)
+  // ============================================================================
+  
+  // APPLICATION_PROCESS - How to apply, steps, timeline
+  const applicationProcessMatches = [
+    ...safeMatchAll(safeText, /(?:how\s+to\s+apply|bewerbung|antrag|application\s+process|application\s+steps)[\s:]+([^\.\n]{20,500})/gi),
+    ...safeMatchAll(safeText, /(?:step\s+\d+|schritt\s+\d+|schritt\s+1|schritt\s+2|schritt\s+3)[\s:]+([^\.\n]{10,200})/gi),
+    ...safeMatchAll(safeText, /(?:apply\s+via|bewerben\s+über|submit\s+via|einreichen\s+über)[\s:]+([^\.\n]{10,200})/gi),
+    ...safeMatchAll(safeText, /(?:online\s+portal|online\s+form|email\s+application|bewerbungsportal)[\s:]+([^\.\n]{10,200})/gi)
+  ];
+  if (applicationProcessMatches.length > 0) {
+    applicationProcessMatches.forEach(match => {
+      if (match[1] && match[1].trim().length > 15) {
+        const value = match[1].trim();
+        const cleaned = value.replace(/^(?:ist|sind|soll|muss|müssen|erforderlich|required)[\s,]+/i, '').trim();
+        if (cleaned.length > 15 && cleaned.length < 500 && !cleaned.toLowerCase().includes('required')) {
+          const isDuplicate = categorized.application_process.some(a => 
+            a.value.toLowerCase().includes(cleaned.toLowerCase().substring(0, 30)) ||
+            cleaned.toLowerCase().includes(a.value.toLowerCase().substring(0, 30))
+          );
+          if (!isDuplicate) {
+            categorized.application_process.push({
+              type: 'application_steps',
+              value: cleaned,
+              required: true,
+              source: 'context_extraction'
+            });
+          }
+        }
+      }
+    });
+  }
+  
+  // EVALUATION_CRITERIA - Scoring, selection criteria
+  const evaluationCriteriaMatches = [
+    ...safeMatchAll(safeText, /(?:evaluation\s+criteria|bewertungskriterien|scoring|bewertung)[\s:]+([^\.\n]{20,500})/gi),
+    ...safeMatchAll(safeText, /(?:selection\s+criteria|auswahlkriterien|selection\s+based\s+on)[\s:]+([^\.\n]{20,500})/gi),
+    ...safeMatchAll(safeText, /(?:innovation\s*\(?\d+%?\)?|market\s+potential\s*\(?\d+%?\)?|team\s*\(?\d+%?\)?)[\s:]+([^\.\n]{10,200})/gi),
+    ...safeMatchAll(safeText, /(?:maximum\s+score|maximale\s+punktzahl|points|punkte)[\s:]+([^\.\n]{10,200})/gi)
+  ];
+  if (evaluationCriteriaMatches.length > 0) {
+    evaluationCriteriaMatches.forEach(match => {
+      if (match[1] && match[1].trim().length > 15) {
+        const value = match[1].trim();
+        const cleaned = value.replace(/^(?:ist|sind|soll|muss|müssen|erforderlich|required)[\s,]+/i, '').trim();
+        if (cleaned.length > 15 && cleaned.length < 500 && !cleaned.toLowerCase().includes('required')) {
+          const isDuplicate = categorized.evaluation_criteria.some(e => 
+            e.value.toLowerCase().includes(cleaned.toLowerCase().substring(0, 30)) ||
+            cleaned.toLowerCase().includes(e.value.toLowerCase().substring(0, 30))
+          );
+          if (!isDuplicate) {
+            categorized.evaluation_criteria.push({
+              type: 'scoring_criteria',
+              value: cleaned,
+              required: true,
+              source: 'context_extraction'
+            });
+          }
+        }
+      }
+    });
+  }
+  
+  // REPAYMENT_TERMS - For loans (interest, repayment schedule)
+  const repaymentTermsMatches = [
+    ...safeMatchAll(safeText, /(?:interest\s+rate|zins|zinssatz|zinsen)[\s:]+([^\.\n]{10,200})/gi),
+    ...safeMatchAll(safeText, /(?:repayment\s+period|rückzahlungsdauer|tilgungsdauer)[\s:]+([^\.\n]{10,200})/gi),
+    ...safeMatchAll(safeText, /(?:repayment\s+schedule|tilgungsplan|rückzahlungsplan)[\s:]+([^\.\n]{10,200})/gi),
+    ...safeMatchAll(safeText, /(?:grace\s+period|tilgungsfreie\s+zeit|stundung)[\s:]+([^\.\n]{10,200})/gi),
+    ...safeMatchAll(safeText, /(?:collateral|sicherheit|bürgschaft)[\s:]+([^\.\n]{10,200})/gi)
+  ];
+  if (repaymentTermsMatches.length > 0) {
+    repaymentTermsMatches.forEach(match => {
+      if (match[1] && match[1].trim().length > 10) {
+        const value = match[1].trim();
+        const cleaned = value.replace(/^(?:ist|sind|soll|muss|müssen|erforderlich|required)[\s,]+/i, '').trim();
+        if (cleaned.length > 10 && cleaned.length < 300) {
+          const isDuplicate = categorized.repayment_terms.some(r => 
+            r.value.toLowerCase().includes(cleaned.toLowerCase().substring(0, 30)) ||
+            cleaned.toLowerCase().includes(r.value.toLowerCase().substring(0, 30))
+          );
+          if (!isDuplicate) {
+            categorized.repayment_terms.push({
+              type: 'repayment_terms',
+              value: cleaned,
+              required: true,
+              source: 'context_extraction'
+            });
+          }
+        }
+      }
+    });
+  }
+  
+  // EQUITY_TERMS - For equity (valuation, stake, exit)
+  const equityTermsMatches = [
+    ...safeMatchAll(safeText, /(?:valuation|bewertung|pre-money|post-money)[\s:]+([^\.\n]{10,200})/gi),
+    ...safeMatchAll(safeText, /(?:equity\s+stake|beteiligung|anteil)[\s:]+([^\.\n]{10,200})/gi),
+    ...safeMatchAll(safeText, /(?:dilution|verwässerung)[\s:]+([^\.\n]{10,200})/gi),
+    ...safeMatchAll(safeText, /(?:exit\s+terms|exit|ausstieg)[\s:]+([^\.\n]{10,200})/gi),
+    ...safeMatchAll(safeText, /(?:voting\s+rights|stimmrechte)[\s:]+([^\.\n]{10,200})/gi)
+  ];
+  if (equityTermsMatches.length > 0) {
+    equityTermsMatches.forEach(match => {
+      if (match[1] && match[1].trim().length > 10) {
+        const value = match[1].trim();
+        const cleaned = value.replace(/^(?:ist|sind|soll|muss|müssen|erforderlich|required)[\s,]+/i, '').trim();
+        if (cleaned.length > 10 && cleaned.length < 300) {
+          const isDuplicate = categorized.equity_terms.some(e => 
+            e.value.toLowerCase().includes(cleaned.toLowerCase().substring(0, 30)) ||
+            cleaned.toLowerCase().includes(e.value.toLowerCase().substring(0, 30))
+          );
+          if (!isDuplicate) {
+            categorized.equity_terms.push({
+              type: 'equity_terms',
+              value: cleaned,
+              required: true,
+              source: 'context_extraction'
+            });
+          }
+        }
+      }
+    });
+  }
+  
+  // INTELLECTUAL_PROPERTY - IP ownership, licensing
+  const ipMatches = [
+    ...safeMatchAll(safeText, /(?:intellectual\s+property|geistiges\s+eigentum|IP|patent)[\s:]+([^\.\n]{20,300})/gi),
+    ...safeMatchAll(safeText, /(?:IP\s+ownership|eigentum\s+an\s+IP|patent\s+rights)[\s:]+([^\.\n]{20,300})/gi),
+    ...safeMatchAll(safeText, /(?:licensing|lizenzierung|license)[\s:]+([^\.\n]{20,300})/gi),
+    ...safeMatchAll(safeText, /(?:IP\s+remains\s+with|IP\s+verbleibt\s+bei)[\s:]+([^\.\n]{20,300})/gi)
+  ];
+  if (ipMatches.length > 0) {
+    ipMatches.forEach(match => {
+      if (match[1] && match[1].trim().length > 15) {
+        const value = match[1].trim();
+        const cleaned = value.replace(/^(?:ist|sind|soll|muss|müssen|erforderlich|required)[\s,]+/i, '').trim();
+        if (cleaned.length > 15 && cleaned.length < 500 && !cleaned.toLowerCase().includes('required')) {
+          const isDuplicate = categorized.intellectual_property.some(i => 
+            i.value.toLowerCase().includes(cleaned.toLowerCase().substring(0, 30)) ||
+            cleaned.toLowerCase().includes(i.value.toLowerCase().substring(0, 30))
+          );
+          if (!isDuplicate) {
+            categorized.intellectual_property.push({
+              type: 'ip_ownership',
+              value: cleaned,
+              required: true,
+              source: 'context_extraction'
+            });
+          }
+        }
+      }
+    });
+  }
+  
+  // SUCCESS_METRICS - KPIs, milestones, success criteria
+  const successMetricsMatches = [
+    ...safeMatchAll(safeText, /(?:success\s+metrics|erfolgskriterien|KPIs|key\s+performance\s+indicators)[\s:]+([^\.\n]{20,300})/gi),
+    ...safeMatchAll(safeText, /(?:milestones|meilensteine|milestone)[\s:]+([^\.\n]{20,300})/gi),
+    ...safeMatchAll(safeText, /(?:target|ziel|goal)[\s:]+([^\.\n]{20,300})/gi).filter(m => 
+      /(?:customers?|kunden|revenue|umsatz|employees?|mitarbeiter|jobs?|arbeitsplätze)/i.test(m[1] || '')
+    ),
+    ...safeMatchAll(safeText, /(?:must\s+achieve|muss\s+erreichen|erfolgreich\s+sein)[\s:]+([^\.\n]{20,300})/gi)
+  ];
+  if (successMetricsMatches.length > 0) {
+    successMetricsMatches.forEach(match => {
+      if (match[1] && match[1].trim().length > 15) {
+        const value = match[1].trim();
+        const cleaned = value.replace(/^(?:ist|sind|soll|muss|müssen|erforderlich|required)[\s,]+/i, '').trim();
+        if (cleaned.length > 15 && cleaned.length < 500 && !cleaned.toLowerCase().includes('required')) {
+          const isDuplicate = categorized.success_metrics.some(s => 
+            s.value.toLowerCase().includes(cleaned.toLowerCase().substring(0, 30)) ||
+            cleaned.toLowerCase().includes(s.value.toLowerCase().substring(0, 30))
+          );
+          if (!isDuplicate) {
+            categorized.success_metrics.push({
+              type: 'success_criteria',
+              value: cleaned,
+              required: true,
+              source: 'context_extraction'
+            });
+          }
+        }
+      }
+    });
+  }
+  
+  // RESTRICTIONS - Exclusions, prohibited uses
+  const restrictionsMatches = [
+    ...safeMatchAll(safeText, /(?:not\s+eligible|nicht\s+geeignet|ausgeschlossen|excluded)[\s:]+([^\.\n]{20,300})/gi),
+    ...safeMatchAll(safeText, /(?:prohibited\s+uses|verbotene\s+verwendung|nicht\s+erlaubt)[\s:]+([^\.\n]{20,300})/gi),
+    ...safeMatchAll(safeText, /(?:cannot\s+be\s+used|darf\s+nicht\s+verwendet\s+werden)[\s:]+([^\.\n]{20,300})/gi),
+    ...safeMatchAll(safeText, /(?:exclusions|ausschlüsse|ausgeschlossen)[\s:]+([^\.\n]{20,300})/gi)
+  ];
+  if (restrictionsMatches.length > 0) {
+    restrictionsMatches.forEach(match => {
+      if (match[1] && match[1].trim().length > 15) {
+        const value = match[1].trim();
+        const cleaned = value.replace(/^(?:ist|sind|soll|muss|müssen|erforderlich|required)[\s,]+/i, '').trim();
+        if (cleaned.length > 15 && cleaned.length < 500 && !cleaned.toLowerCase().includes('required')) {
+          const isDuplicate = categorized.restrictions.some(r => 
+            r.value.toLowerCase().includes(cleaned.toLowerCase().substring(0, 30)) ||
+            cleaned.toLowerCase().includes(r.value.toLowerCase().substring(0, 30))
+          );
+          if (!isDuplicate) {
+            categorized.restrictions.push({
+              type: 'restrictions',
+              value: cleaned,
+              required: true,
+              source: 'context_extraction'
+            });
+          }
+        }
+      }
+    });
+  }
+  
   // DIVERSITY
   if (lowerText.includes('frauen') || lowerText.includes('female') || lowerText.includes('divers') || lowerText.includes('diversität') || lowerText.includes('gender') || lowerText.includes('esg')) {
     // Only add if we can extract actual diversity requirements
@@ -2524,51 +4257,37 @@ export function extractAllRequirements(text: string, html?: string, url?: string
   }
   
   // POST-PROCESSING: Remove any items with generic placeholder values
-  const genericPatterns = [
-    /^(specified|required|available|soll|muss|müssen|erforderlich|nötig|benötigt)(\s|$)/i,
-    /^(technical|technisch|requirements?|anforderungen?)\s*(specified|required|available)?$/i,
-    /^(legal|rechtlich)\s*(compliance|required|specified)?$/i,
-    /^(compliance|konformität)\s*(required|specified)?$/i,
-    /^(innovation|forschung|research)\s*(required|specified)?$/i,
-    /^(funding|finanzierung)\s*(available|required|specified)?$/i,
-    /^(consortium|konsortium|partner|partnership)\s*(required|specified)?$/i,
-    /^(use of funds|verwendung|zweck)\s*(specified|required)?$/i,
-    /^(revenue|umsatz|erlös)\s*(model\s*)?(specified|required)?$/i,
-    /^(market size|marktgröße)\s*(requirements?|specified|required)?$/i,
-    /^(duration|laufzeit|zeitraum)\s*(specified|required)?$/i,
-    /^(team|mitarbeiter|personnel)\s*(required|specified)?$/i
-  ];
+  // (Using isGenericPlaceholderEnhanced function instead of inline patterns)
   
-  Object.keys(categorized).forEach(category => {
+    Object.keys(categorized).forEach(category => {
     categorized[category] = categorized[category].filter(item => {
-      const value = (item.value || '').trim();
-      // Remove if value is empty or too short
-      if (!value || value.length < 5) return false;
+      const value = String(item.value || '').trim();
+      const categoryKey = category as string;
       
-      // Remove if matches generic patterns
-      const isGeneric = genericPatterns.some(pattern => pattern.test(value));
-      if (isGeneric) return false;
+      // Remove if value is empty
+      if (!value || value.length === 0) return false;
       
-      // Remove if value is just common generic words
-      const lowerValue = value.toLowerCase();
-      const genericWords = ['specified', 'required', 'available', 'erforderlich', 'notwendig', 
-                           'nötig', 'benötigt', 'soll', 'muss', 'müssen', 'darf', 'dürfen'];
-      if (genericWords.some(word => 
-          lowerValue === word || 
-          lowerValue === word + ' impact' ||
-          lowerValue === word + ' compliance' ||
-          (lowerValue.startsWith(word + ' ') && value.length < 30) ||
-          (lowerValue.endsWith(' ' + word) && value.length < 30))) {
-        return false;
-      }
+      // Category-specific length validation
+      if (!validateCategoryLength(categoryKey, value)) return false;
       
-      // Remove if value contains generic phrases and is short
-      if (value.length < 25 && (
-          lowerValue.includes('required') || 
-          lowerValue.includes('specified') || 
-          lowerValue.includes('available'))) {
-        return false;
-      }
+      // Enhanced generic placeholder detection
+      if (isGenericPlaceholderEnhanced(value)) return false;
+      
+      // Enhanced noise detection
+      if (isNoiseEnhanced(value)) return false;
+      
+      // Relaxed data type validation (for financial, team, geographic, timeline)
+      if (!hasValidDataType(categoryKey, value)) return false;
+      
+      // Remove duplicates (similarity check)
+      const isDuplicate = categorized[category].some(other => {
+        if (other === item) return false;
+        const otherValue = String(other.value || '').trim();
+        const similarity = otherValue.toLowerCase().includes(value.toLowerCase().substring(0, 30)) ||
+                          value.toLowerCase().includes(otherValue.toLowerCase().substring(0, 30));
+        return similarity && Math.abs(otherValue.length - value.length) < 50;
+      });
+      if (isDuplicate) return false;
       
       return true;
     });
@@ -2583,20 +4302,40 @@ function extractStructuredRequirements(html: string, categorized: Record<string,
   
   // HEADING-BASED EXTRACTION: Find sections by headings and extract content below
   const headingKeywords: Record<string, string[]> = {
-    financial: ['förderhöhe', 'förderbetrag', 'funding amount', 'maximal', 'bis zu', 'finanzierung', 'förderung', 'fördersumme', 'finanzierungsvolumen', 'betrag', 'höhe', 'summe'],
-    eligibility: ['teilnahmeberechtigt', 'voraussetzung', 'eligibility', 'anforderungen', 'kriterien', 'voraussetzungen', 'bedingungen', 'berechtigt', 'qualifiziert', 'zulassung'],
-    documents: ['unterlagen', 'dokumente', 'bewerbung', 'antrag', 'nachweis', 'formulare', 'belege', 'nachweise', 'formular', 'antragsunterlagen'],
+    financial: ['förderhöhe', 'förderbetrag', 'funding amount', 'maximal', 'bis zu', 'finanzierung', 'förderung', 'fördersumme', 'finanzierungsvolumen', 'betrag', 'höhe', 'summe', 'funding', 'financing', 'grant amount', 'loan amount', 'investment amount'],
+    // Eligibility - split into subcategories
+    company_type: ['teilnahmeberechtigt', 'voraussetzung', 'eligibility', 'anforderungen', 'kriterien', 'voraussetzungen', 'bedingungen', 'berechtigt', 'qualifiziert', 'zulassung', 'teilnahme', 'wer kann teilnehmen', 'wer kann beantragen', 'wer ist berechtigt', 'eligible', 'qualification', 'requirements', 'criteria', 'who can apply', 'who can participate', 'who is eligible', 'teilnahmevoraussetzungen', 'bewerbungsvoraussetzungen', 'antragsberechtigung', 'qualifikationskriterien', 'teilnahmekriterien', 'bewerbungskriterien', 'application requirements', 'participation requirements', 'qualification requirements', 'eligibility requirements', 'startup', 'sme', 'unternehmen', 'company', 'firma'],
+    company_stage: ['company stage', 'unternehmensphase', 'startup stage', 'growth stage', 'seed', 'early stage', 'expansion', 'wachstum', 'skalierung'],
+    industry_restriction: ['industry', 'branche', 'sektor', 'sector', 'technology', 'technologie', 'manufacturing', 'produktion', 'healthcare', 'gesundheitswesen'],
+    eligibility_criteria: ['teilnahmeberechtigt', 'voraussetzung', 'eligibility', 'anforderungen', 'kriterien', 'voraussetzungen', 'bedingungen', 'berechtigt', 'qualifiziert', 'zulassung', 'teilnahme', 'wer kann teilnehmen', 'wer kann beantragen', 'wer ist berechtigt', 'eligible', 'qualification', 'requirements', 'criteria', 'who can apply', 'who can participate', 'who is eligible', 'teilnahmevoraussetzungen', 'bewerbungsvoraussetzungen', 'antragsberechtigung', 'qualifikationskriterien', 'teilnahmekriterien', 'bewerbungskriterien', 'application requirements', 'participation requirements', 'qualification requirements', 'eligibility requirements'],
+    documents: ['unterlagen', 'dokumente', 'bewerbung', 'antrag', 'nachweis', 'formulare', 'belege', 'nachweise', 'formular', 'antragsunterlagen', 'bewerbungsunterlagen', 'benötigte unterlagen', 'erforderliche dokumente', 'documents required', 'required documents', 'application documents', 'application materials', 'submission documents', 'forms', 'required documents', 'benötigte dokumente', 'erforderliche unterlagen', 'supporting documents', 'beiliegende dokumente', 'nachweisdokumente', 'proof documents', 'beweisunterlagen', 'documentation', 'dokumentation', 'documentation requirements', 'dokumentationsanforderungen'],
     technical: ['technisch', 'technical', 'technologie', 'anforderungen', 'tech', 'technik', 'technologisch', 'spezi', 'spezifikation', 'voraussetzungen technisch'],
-    team: ['team', 'mitarbeiter', 'personal', 'qualifikation', 'qualifizierung', 'personal', 'person', 'experten', 'fachkräfte', 'ausbildung'],
-    timeline: ['laufzeit', 'duration', 'deadline', 'frist', 'zeitraum', 'bewerbungsfrist', 'einreichfrist', 'deadline', 'dauer', 'zeitplan'],
-    impact: ['nachhaltigkeit', 'sustainability', 'impact', 'wirkung', 'klima', 'umwelt', 'sozial', 'arbeitsplätze', 'beschäftigung', 'co2', 'emission'],
-    consortium: ['konsortium', 'consortium', 'partner', 'partnership', 'kooperation', 'zusammenarbeit', 'partner', 'verbund', 'allianz'],
-    project: ['projekt', 'project', 'fokus', 'focus', 'thema', 'topic', 'schwerpunkt', 'innovation', 'forschung', 'entwicklung', 'ziel'],
-    geographic: ['standort', 'region', 'location', 'gebiet', 'bereich', 'ort', 'platz', 'wohnort', 'niederlassung'],
-    use_of_funds: ['verwendung', 'use of funds', 'zweck', 'verwendungszweck', 'zweckbindung', 'einsatz', 'nutzung'],
+    team: ['team', 'mitarbeiter', 'personal', 'qualifikation', 'qualifizierung', 'personal', 'person', 'experten', 'fachkräfte', 'ausbildung', 'team size', 'teamgröße', 'number of employees', 'anzahl mitarbeiter', 'team members', 'teammitglieder', 'staff', 'personal', 'personnel', 'team composition', 'teamzusammensetzung', 'team requirements', 'teamanforderungen', 'qualifikationsanforderungen', 'qualification requirements', 'personalanforderungen', 'staff requirements', 'team structure', 'teamstruktur', 'teamgröße', 'team size', 'personnel requirements', 'staffing', 'besetzung', 'teamaufbau', 'team structure', 'team composition', 'team members', 'teammitglieder', 'anzahl mitarbeiter', 'number of employees', 'personnel', 'personal', 'staff', 'mitarbeiter', 'team', 'qualifikation', 'qualification', 'ausbildung', 'education', 'expertise', 'erfahrung', 'experience', 'founder', 'gründer', 'entrepreneur', 'startup team', 'projektteam', 'project team', 'kern team', 'core team', 'who can apply', 'wer kann teilnehmen', 'teilnahmevoraussetzungen'],
+    timeline: ['laufzeit', 'duration', 'deadline', 'frist', 'zeitraum', 'bewerbungsfrist', 'einreichfrist', 'deadline', 'dauer', 'zeitplan', 'bewerbungsschluss', 'einreichschluss', 'abgabeschluss', 'bis zum', 'bis spätestens', 'bis', 'application deadline', 'submission deadline', 'closing date', 'due date', 'project duration', 'projektdauer', 'laufzeit', 'duration', 'zeitraum', 'timeframe', 'timeline', 'zeitplan', 'schedule', 'deadline', 'frist', 'bewerbungsfrist', 'application deadline', 'submission deadline', 'open deadline', 'laufende bewerbung', 'rolling application', 'continuous application'],
+    // Impact - split into subcategories
+    environmental_impact: ['nachhaltigkeit', 'sustainability', 'klima', 'climate', 'umwelt', 'environment', 'co2', 'emission', 'environmental impact', 'umweltauswirkungen', 'klimawirkung', 'climate impact', 'nachhaltigkeitswirkung', 'sustainability impact', 'nachhaltigkeitsziele', 'sustainability goals', 'sdg', 'sustainable development goals', 'nachhaltigkeitsziel', 'sustainability objective'],
+    social_impact: ['sozial', 'social', 'arbeitsplätze', 'jobs', 'beschäftigung', 'employment', 'social impact', 'soziale wirkung', 'gemeinschaft', 'community', 'inclusion', 'inklusion'],
+    economic_impact: ['wirtschaftlich', 'economic', 'wirtschaft', 'economy', 'revenue', 'umsatz', 'growth', 'wachstum', 'economic impact', 'wirtschaftliche wirkung', 'gdp', 'bip', 'market', 'markt'],
+    innovation_impact: ['innovation', 'rd', 'r&d', 'research', 'forschung', 'development', 'entwicklung', 'technology', 'technologie', 'innovation impact', 'innovationswirkung'],
+    consortium: ['konsortium', 'consortium', 'partner', 'partnership', 'kooperation', 'zusammenarbeit', 'partner', 'verbund', 'allianz', 'joint application', 'gemeinsame bewerbung', 'multiple partners', 'mehrere partner', 'partneranforderungen', 'partner requirements', 'konsortialanforderungen', 'consortium requirements', 'partnerschaftsanforderungen', 'partnership requirements', 'kooperationsanforderungen', 'collaboration requirements', 'verbundanforderungen', 'allianzanforderungen', 'alliance requirements'],
+    // Project - split into subcategories
+    innovation_focus: ['innovation', 'innovative', 'digitalization', 'digitalisierung', 'sustainability', 'nachhaltigkeit', 'rd', 'r&d', 'digital transformation', 'innovation focus', 'innovationsschwerpunkt'],
+    technology_area: ['technology', 'technologie', 'tech', 'ai', 'artificial intelligence', 'iot', 'internet of things', 'blockchain', 'biotechnology', 'machine learning', 'deep learning', 'robotics', 'software', 'hardware', 'technology area', 'technologiebereich'],
+    research_domain: ['research', 'forschung', 'life sciences', 'lebenswissenschaften', 'materials science', 'materialwissenschaften', 'energy research', 'energieforschung', 'medical research', 'medizinforschung', 'pharmaceutical', 'pharmazeutisch', 'research domain', 'forschungsbereich'],
+    sector_focus: ['sector', 'sektor', 'industrie', 'industry', 'branche', 'manufacturing', 'produktion', 'healthcare', 'gesundheitswesen', 'energy', 'energie', 'agriculture', 'landwirtschaft', 'tourism', 'tourismus', 'construction', 'bau', 'sector focus', 'sektorschwerpunkt'],
+    geographic: ['standort', 'region', 'location', 'gebiet', 'bereich', 'ort', 'platz', 'wohnort', 'niederlassung', 'eligible regions', 'geographic scope', 'available in', 'applies to', 'gültig für', 'gültig in', 'fördergebiet', 'förderregion', 'förderbare regionen', 'eligible locations', 'eligible countries', 'eligible areas', 'geografischer bereich', 'räumlicher geltungsbereich', 'fördergebiets', 'standortanforderungen', 'location requirements', 'region requirements', 'country', 'länder', 'countries', 'eligible', 'berechtigt', 'gültig'],
+    use_of_funds: ['verwendung', 'use of funds', 'zweck', 'verwendungszweck', 'zweckbindung', 'einsatz', 'nutzung', 'verwendungsmöglichkeiten', 'use of funding', 'funding purpose', 'förderzweck', 'verwendungsbereich', 'use of grant', 'use of loan', 'verwendungszwecke', 'funding use', 'eligible costs', 'förderbare kosten', 'eligible expenses', 'förderbare ausgaben', 'what can be funded', 'was kann gefördert werden', 'funding scope', 'förderumfang'],
     capex_opex: ['investition', 'capex', 'opex', 'betriebsausgaben', 'investment', 'investitionen', 'ausgaben', 'kosten'],
     revenue_model: ['umsatz', 'revenue', 'erlös', 'geschäftsmodell', 'business model', 'erlösmodel', 'umsatzmodell'],
-    market_size: ['marktgröße', 'market size', 'marktpotenzial', 'market potential', 'markt', 'potenzial', 'zielmarkt']
+    market_size: ['marktgröße', 'market size', 'marktpotenzial', 'market potential', 'markt', 'potenzial', 'zielmarkt'],
+    // New categories
+    application_process: ['bewerbung', 'application', 'antrag', 'how to apply', 'wie bewerben', 'bewerbungsprozess', 'application process', 'application steps', 'bewerbungsschritte', 'submission process', 'einreichprozess', 'apply', 'bewerben', 'antrag stellen', 'application procedure', 'bewerbungsverfahren', 'submission', 'einreichung'],
+    evaluation_criteria: ['bewertung', 'evaluation', 'scoring', 'bewertungskriterien', 'evaluation criteria', 'selection criteria', 'auswahlkriterien', 'bewertungsverfahren', 'evaluation process', 'scoring system', 'bewertungssystem', 'selection process', 'auswahlverfahren', 'assessment', 'beurteilung'],
+    repayment_terms: ['rückzahlung', 'repayment', 'tilgung', 'zins', 'interest', 'zinssatz', 'interest rate', 'rückzahlungsbedingungen', 'repayment terms', 'tilgungsplan', 'repayment schedule', 'tilgungsdauer', 'repayment period', 'stundung', 'grace period', 'sicherheit', 'collateral'],
+    equity_terms: ['beteiligung', 'equity', 'valuation', 'bewertung', 'dilution', 'verwässerung', 'exit', 'ausstieg', 'equity stake', 'beteiligungsquote', 'voting rights', 'stimmrechte', 'pre-money', 'post-money'],
+    intellectual_property: ['geistiges eigentum', 'intellectual property', 'ip', 'patent', 'patent', 'lizenz', 'license', 'licensing', 'lizenzierung', 'ip ownership', 'eigentum an ip', 'patent rights', 'patentrechte'],
+    success_metrics: ['erfolgskriterien', 'success criteria', 'kpis', 'key performance indicators', 'milestones', 'meilensteine', 'targets', 'ziele', 'success metrics', 'erfolgsmessung', 'performance indicators', 'leistungsindikatoren'],
+    restrictions: ['ausschlüsse', 'exclusions', 'nicht förderfähig', 'not eligible', 'ausgeschlossen', 'excluded', 'verboten', 'prohibited', 'nicht erlaubt', 'not allowed', 'restrictions', 'einschränkungen', 'ausschlusskriterien', 'exclusion criteria']
   };
   
   $('h1, h2, h3, h4, h5, h6').each((_, heading) => {
@@ -2728,12 +4467,22 @@ function extractStructuredRequirements(html: string, categorized: Record<string,
             const mo = parseInt(dateMatch[2], 10);
             const y = parseInt(dateMatch[3], 10) + (parseInt(dateMatch[3], 10) < 100 ? 2000 : 0);
             if (d >= 1 && d <= 31 && mo >= 1 && mo <= 12 && y >= 2020 && y <= 2030) {
-              categorized.timeline.push({
-                type: 'deadline',
-                value: `${String(d).padStart(2,'0')}.${String(mo).padStart(2,'0')}.${y}`,
-                required: true,
-                source: 'table'
-              });
+              // FIX: Only extract deadlines that are in the future (not past)
+              const deadlineDate = new Date(y, mo - 1, d);
+              const now = new Date();
+              now.setHours(0, 0, 0, 0); // Compare dates only, not times
+              deadlineDate.setHours(0, 0, 0, 0);
+              
+              if (deadlineDate >= now) {
+                // Future deadline - valid
+                categorized.timeline.push({
+                  type: 'deadline',
+                  value: `${String(d).padStart(2,'0')}.${String(mo).padStart(2,'0')}.${y}`,
+                  required: true,
+                  source: 'table'
+                });
+              }
+              // Past deadline - skip it (don't extract)
             }
           } else if (/(laufend|rolling|ongoing|bis auf weiteres|continuously|open|keine frist|permanent)/i.test(value)) {
             categorized.timeline.push({
@@ -2761,22 +4510,14 @@ function extractStructuredRequirements(html: string, categorized: Record<string,
           // Check for email
           const emailMatch = value.match(/[\w.+-]+@[\w.-]+\.[a-zA-Z]{2,}/);
           if (emailMatch) {
-            categorized.eligibility.push({
-              type: 'contact_email',
-              value: emailMatch[0],
-              required: false,
-              source: 'table'
-            });
+            // Contact email should not be in eligibility - skip or handle separately
+            // Skipping contact extraction from eligibility category
           }
           // Check for phone
           const phoneMatch = value.match(/(?:\+43|0043|0)\s*(?:\(0\))?\s*\d{1,4}[\s\/-]?\d{3,4}[\s\/-]?\d{3,8}/);
           if (phoneMatch) {
-            categorized.eligibility.push({
-              type: 'contact_phone',
-              value: phoneMatch[0].trim(),
-              required: false,
-              source: 'table'
-            });
+            // Contact phone should not be in eligibility - skip or handle separately
+            // Skipping contact extraction from eligibility category
           }
         }
         
@@ -2809,7 +4550,7 @@ function extractStructuredRequirements(html: string, categorized: Record<string,
             label.includes('gebiet') || label.includes('bereich')) {
           if (value && value.length > 2 && value.length < 100) {
             categorized.geographic.push({
-              type: 'specific_location',
+              type: 'location',
               value: value.trim(),
               required: true,
               source: 'table'
@@ -2826,18 +4567,27 @@ function extractStructuredRequirements(html: string, categorized: Record<string,
           if (impactValue.length > 5 && impactValue.length < 500) {
             // Determine impact type from label or value
             let impactType = 'impact_requirement';
-            if (label.includes('nachhaltigkeit') || label.includes('sustainability')) {
-              impactType = 'sustainability';
-            } else if (label.includes('klima') || label.includes('co2') || label.includes('emission') || 
-                       label.includes('umwelt') || label.includes('ökologie')) {
-              impactType = 'climate_environmental';
-            } else if (label.includes('sozial') || label.includes('social')) {
-              impactType = 'social';
-            } else if (label.includes('arbeitsplätze') || label.includes('beschäftigung') || label.includes('jobs')) {
-              impactType = 'employment';
+            // Map to new separate categories
+            if (label.includes('nachhaltigkeit') || label.includes('sustainability') ||
+                label.includes('klima') || label.includes('co2') || label.includes('emission') || 
+                label.includes('umwelt') || label.includes('ökologie')) {
+              impactType = 'environmental_impact';
+            } else if (label.includes('sozial') || label.includes('social') ||
+                       label.includes('arbeitsplätze') || label.includes('beschäftigung') || label.includes('jobs')) {
+              impactType = 'social_impact';
+            } else if (label.includes('wirtschaft') || label.includes('economic') || label.includes('revenue')) {
+              impactType = 'economic_impact';
+            } else if (label.includes('innovation') || label.includes('rd') || label.includes('research')) {
+              impactType = 'innovation_impact';
+            } else {
+              impactType = 'environmental_impact'; // Default fallback
             }
             
-            categorized.impact.push({
+            // Store in separate top-level category
+            if (!categorized[impactType]) {
+              categorized[impactType] = [];
+            }
+            categorized[impactType].push({
               type: impactType,
               value: impactValue,
               required: true,
@@ -2848,7 +4598,11 @@ function extractStructuredRequirements(html: string, categorized: Record<string,
         
         // Eligibility
         if (label.includes('teilnahmeberechtigt') || label.includes('voraussetzung') || label.includes('eligibility')) {
-          categorized.eligibility.push({
+          // Store in separate top-level category
+          if (!categorized['eligibility_criteria']) {
+            categorized['eligibility_criteria'] = [];
+          }
+          categorized['eligibility_criteria'].push({
             type: 'eligibility_criteria',
             value: value.trim(),
             required: true,
@@ -2988,7 +4742,11 @@ function extractStructuredRequirements(html: string, categorized: Record<string,
           term.includes('berechtigt') || term.includes('anforderungen')) {
         if (definition.toLowerCase().includes('startup') || definition.toLowerCase().includes('unternehmen') || 
             definition.toLowerCase().includes('kmu') || definition.toLowerCase().includes('betrieb')) {
-          categorized.eligibility.push({
+          // Store in separate top-level category
+          if (!categorized['company_type']) {
+            categorized['company_type'] = [];
+          }
+          categorized['company_type'].push({
             type: 'company_type',
             value: definition.trim(),
             required: true,
@@ -3015,18 +4773,27 @@ function extractStructuredRequirements(html: string, categorized: Record<string,
           term.includes('co2') || term.includes('emission') || term.includes('ökologie')) {
         if (definition.length > 5 && definition.length < 500) {
           let impactType = 'impact_requirement';
-          if (term.includes('nachhaltigkeit') || term.includes('sustainability')) {
-            impactType = 'sustainability';
-          } else if (term.includes('klima') || term.includes('co2') || term.includes('emission') || 
-                     term.includes('umwelt') || term.includes('ökologie')) {
-            impactType = 'climate_environmental';
-          } else if (term.includes('sozial') || term.includes('social')) {
-            impactType = 'social';
-          } else if (term.includes('arbeitsplätze') || term.includes('beschäftigung') || term.includes('jobs')) {
-            impactType = 'employment';
+          // Map to new separate categories
+          if (term.includes('nachhaltigkeit') || term.includes('sustainability') ||
+              term.includes('klima') || term.includes('co2') || term.includes('emission') || 
+              term.includes('umwelt') || term.includes('ökologie')) {
+            impactType = 'environmental_impact';
+          } else if (term.includes('sozial') || term.includes('social') ||
+                     term.includes('arbeitsplätze') || term.includes('beschäftigung') || term.includes('jobs')) {
+            impactType = 'social_impact';
+          } else if (term.includes('wirtschaft') || term.includes('economic') || term.includes('revenue')) {
+            impactType = 'economic_impact';
+          } else if (term.includes('innovation') || term.includes('rd') || term.includes('research')) {
+            impactType = 'innovation_impact';
+          } else {
+            impactType = 'environmental_impact'; // Default fallback
           }
           
-          categorized.impact.push({
+          // Store in separate top-level category
+          if (!categorized[impactType]) {
+            categorized[impactType] = [];
+          }
+          categorized[impactType].push({
             type: impactType,
             value: definition.trim(),
             required: true,
@@ -3221,8 +4988,21 @@ function extractStructuredRequirements(html: string, categorized: Record<string,
               });
               
               if (impactItems.length > 0) {
-                categorized.impact.push({
-                  type: 'impact_requirements_list',
+                // Determine impact type from content and store in separate category
+                const impactText = impactItems.join('; ').toLowerCase();
+                let impactCategory = 'environmental_impact'; // Default
+                if (impactText.includes('sozial') || impactText.includes('social') || impactText.includes('jobs') || impactText.includes('arbeitsplätze')) {
+                  impactCategory = 'social_impact';
+                } else if (impactText.includes('wirtschaft') || impactText.includes('economic') || impactText.includes('revenue')) {
+                  impactCategory = 'economic_impact';
+                } else if (impactText.includes('innovation') || impactText.includes('rd') || impactText.includes('research')) {
+                  impactCategory = 'innovation_impact';
+                }
+                if (!categorized[impactCategory]) {
+                  categorized[impactCategory] = [];
+                }
+                categorized[impactCategory].push({
+                  type: impactCategory,
                   value: impactItems.join('; '),
                   required: true,
                   source: 'list_items'
@@ -3232,8 +5012,21 @@ function extractStructuredRequirements(html: string, categorized: Record<string,
               // Extract detailed text content for impact
               const textContent = nextContent.text().trim().slice(0, 1000);
               if (textContent.length > 20) {
-                categorized.impact.push({
-                  type: 'impact_description',
+                // Determine impact type from content and store in separate category
+                const impactText = textContent.toLowerCase();
+                let impactCategory = 'environmental_impact'; // Default
+                if (impactText.includes('sozial') || impactText.includes('social') || impactText.includes('jobs') || impactText.includes('arbeitsplätze')) {
+                  impactCategory = 'social_impact';
+                } else if (impactText.includes('wirtschaft') || impactText.includes('economic') || impactText.includes('revenue')) {
+                  impactCategory = 'economic_impact';
+                } else if (impactText.includes('innovation') || impactText.includes('rd') || impactText.includes('research')) {
+                  impactCategory = 'innovation_impact';
+                }
+                if (!categorized[impactCategory]) {
+                  categorized[impactCategory] = [];
+                }
+                categorized[impactCategory].push({
+                  type: impactCategory,
                   value: textContent.slice(0, 500),
                   required: true,
                   source: 'heading_section'

@@ -79,6 +79,27 @@ CREATE TABLE IF NOT EXISTS url_patterns (
 );
 
 -- ============================================================================
+-- INSTITUTION PATTERNS TABLE (Institution-specific URL and extraction patterns)
+-- ============================================================================
+CREATE TABLE IF NOT EXISTS institution_patterns (
+  id SERIAL PRIMARY KEY,
+  institution_host TEXT NOT NULL,
+  pattern_type VARCHAR(20) NOT NULL, -- 'url_include', 'url_exclude', 'exclusion_keyword'
+  pattern TEXT NOT NULL,
+  pattern_regex TEXT, -- Compiled regex if applicable
+  confidence DECIMAL(3,2) DEFAULT 0.5, -- 0.0 to 1.0
+  usage_count INTEGER DEFAULT 0,
+  success_count INTEGER DEFAULT 0,
+  failure_count INTEGER DEFAULT 0,
+  success_rate DECIMAL(5,2) DEFAULT 0.0, -- Percentage of successful matches
+  last_used_at TIMESTAMP,
+  created_at TIMESTAMP DEFAULT NOW(),
+  updated_at TIMESTAMP DEFAULT NOW(),
+  
+  UNIQUE(institution_host, pattern_type, pattern)
+);
+
+-- ============================================================================
 -- EXTRACTION PATTERNS TABLE (Learning extraction patterns)
 -- ============================================================================
 CREATE TABLE IF NOT EXISTS extraction_patterns (
@@ -170,6 +191,22 @@ CREATE INDEX IF NOT EXISTS idx_url_patterns_type ON url_patterns(pattern_type);
 CREATE INDEX IF NOT EXISTS idx_url_patterns_host_type ON url_patterns(host, pattern_type);
 CREATE INDEX IF NOT EXISTS idx_url_patterns_confidence ON url_patterns(confidence DESC);
 
+-- Institution patterns indexes
+CREATE INDEX IF NOT EXISTS idx_institution_patterns_host ON institution_patterns(institution_host);
+CREATE INDEX IF NOT EXISTS idx_institution_patterns_type ON institution_patterns(pattern_type);
+CREATE INDEX IF NOT EXISTS idx_institution_patterns_host_type ON institution_patterns(institution_host, pattern_type);
+CREATE INDEX IF NOT EXISTS idx_institution_patterns_confidence ON institution_patterns(confidence DESC);
+
+-- Extraction patterns indexes
+CREATE INDEX IF NOT EXISTS idx_extraction_patterns_type ON extraction_patterns(pattern_type);
+CREATE INDEX IF NOT EXISTS idx_extraction_patterns_host ON extraction_patterns(host);
+CREATE INDEX IF NOT EXISTS idx_extraction_patterns_confidence ON extraction_patterns(confidence DESC);
+
+-- Extraction metrics indexes
+CREATE INDEX IF NOT EXISTS idx_extraction_metrics_host ON extraction_metrics(host);
+CREATE INDEX IF NOT EXISTS idx_extraction_metrics_field ON extraction_metrics(field_name);
+CREATE INDEX IF NOT EXISTS idx_extraction_metrics_extracted ON extraction_metrics(extracted);
+
 -- Jobs indexes
 CREATE INDEX IF NOT EXISTS idx_jobs_status ON scraping_jobs(status);
 CREATE INDEX IF NOT EXISTS idx_jobs_url ON scraping_jobs(url);
@@ -203,6 +240,14 @@ FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
 
 -- Trigger for url_patterns table
 CREATE TRIGGER update_url_patterns_updated_at BEFORE UPDATE ON url_patterns
+FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
+
+-- Trigger for institution_patterns table
+CREATE TRIGGER update_institution_patterns_updated_at BEFORE UPDATE ON institution_patterns
+FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
+
+-- Trigger for extraction_patterns table
+CREATE TRIGGER update_extraction_patterns_updated_at BEFORE UPDATE ON extraction_patterns
 FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
 
 -- Trigger for scraping_jobs table

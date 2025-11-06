@@ -31,10 +31,17 @@ export const institutions: InstitutionConfig[] = [
       'https://www.aws.at/en/aws-digitalization/',
       'https://www.aws.at/en/aws-digitalization/ai-start/',
       'https://www.aws.at/en/aws-equity/',
+      'https://www.aws.at/en/aws-growth-investment/',
+      'https://www.aws.at/en/aws-equity/venture-capital/',
+      'https://www.aws.at/en/aws-equity/equity-investment/',
+      'https://www.aws.at/en/aws-wachstumsinvestition/',
+      'https://www.aws.at/en/aws-seedfinancing-deep-tech/',
+      'https://www.aws.at/en/aws-seedfinancing-innovative-solutions/',
+      'https://www.aws.at/en/aws-preseed-deep-tech/',
+      'https://www.aws.at/en/aws-preseed-innovative-solutions/',
       'https://www.aws.at/en/aws-erp-kredit/tourismus/',
       'https://www.aws.at/en/aws-erp-loan/',
       'https://www.aws.at/en/aws-first-incubator/',
-      'https://www.aws.at/en/aws-growth-investment/',
       'https://www.aws.at/en/aws-guarantee/',
       'https://www.aws.at/en/aws-guarantee/consolidation/',
       'https://www.aws.at/en/aws-guarantee/equity-leverage/',
@@ -144,7 +151,9 @@ export const institutions: InstitutionConfig[] = [
       'https://www.sfg.at/f/finanzierung-fuer-kmu/',
       'https://www.sfg.at/f/risikokapital/',
       'https://www.sfg.at/f/stille-beteiligung/',
-      'https://www.sfg.at/f/venture-capital/'
+      'https://www.sfg.at/f/venture-capital/',
+      'https://www.sfg.at/f/equity-finanzierung/',
+      'https://www.sfg.at/f/investment-foerderung/'
     ],
     selectors: {
       name: ['h1', '.program-title', '.foerderung-title'],
@@ -510,7 +519,10 @@ export const institutions: InstitutionConfig[] = [
     baseUrl: 'https://www.speedinvest.com',
     programUrls: [
       'https://www.speedinvest.com/funds/seed-fund/',
-      'https://www.speedinvest.com/funds/early-stage-fund/'
+      'https://www.speedinvest.com/funds/early-stage-fund/',
+      'https://www.speedinvest.com/funds/',
+      'https://www.speedinvest.com/funds/pre-seed-fund/',
+      'https://www.speedinvest.com/funds/venture-capital/'
     ],
     selectors: {
       name: ['h1', '.program-title', '.funding-title'],
@@ -1491,6 +1503,11 @@ export const autoDiscoveryPatterns = {
     'imprint', 'impressum', 'mentions-legales', 'note-legali',
     'privacy', 'datenschutz', 'confidentialite',
     'aktuell', 'karriere', 'career', 'jobs', 'stellen',
+    // Guidelines/Policy pages (not funding programs)
+    'richtlinien', 'guidelines', 'policy', 'policies', 'richtlinie',
+    'bestimmungen', 'bedingungen', 'terms', 'conditions', 'terms-and-conditions',
+    'regulations', 'regeln', 'vorschriften', 'standards', 'normen',
+    'anleitung', 'instructions', 'handbuch', 'manual', 'dokumentation',
     // Obsolete/non-program pages
     'overview', 'übersicht', 'uebersicht', 'general', 'allgemein',
     'home', 'startseite', 'index', 'main',
@@ -1512,10 +1529,14 @@ export const autoDiscoveryPatterns = {
     'programm/', 'programme/', 'foerderungen/', 'ausschreibungen/', 'calls/',
     // Service/Event/Case pages (not funding programs)
     'service/cases',           // Success stories
+    'success-stories',         // Success stories (English)
+    'success-story',           // Success story (singular)
     'web-services',           // Tools and web services
     'events/kalender',         // Event calendar
     'event-tipps',             // Event tips
     'events-workshops',        // Workshops/events
+    'veranstaltung',           // Event (German)
+    'veranstaltungen',         // Events (German plural)
     'geförderte-projekte',     // Funded projects showcase (German)
     'gefoerderte-projekte',    // Alternative spelling
     // Info/About/Discovery pages

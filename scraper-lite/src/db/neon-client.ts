@@ -35,13 +35,24 @@ export async function testConnection(): Promise<boolean> {
       return false;
     }
     const pool = getPool();
-    const result = await pool.query('SELECT NOW() as current_time');
+    
+    // CRITICAL FIX: Add timeout to prevent hanging (5 seconds max)
+    const queryPromise = pool.query('SELECT NOW() as current_time');
+    const timeoutPromise = new Promise((_, reject) => 
+      setTimeout(() => reject(new Error('Connection test timeout after 5s')), 5000)
+    );
+    
+    const result = await Promise.race([queryPromise, timeoutPromise]) as any;
     if (!result || !result.rows || result.rows.length === 0) {
       return false;
     }
     return true;
   } catch (e: any) {
-    console.error('Database connection test failed:', e.message);
+    if (e.message && e.message.includes('timeout')) {
+      console.error('Database connection test timeout - database may be slow or unavailable');
+    } else {
+      console.error('Database connection test failed:', e.message);
+    }
     return false;
   }
 }

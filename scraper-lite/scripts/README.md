@@ -6,8 +6,7 @@
 Scripts that run automatically as part of cycles:
 
 - **`auto-cycle.js`** - Fully automated self-running cycle (discover → scrape → learn → improve)
-- **`learn-patterns-from-scraped.js`** - Automatic pattern learning from scraped pages
-- **`monitor-improvements.js`** - Automatic quality monitoring and reporting
+- **`learn-patterns-from-scraped.js`** - Automatic pattern learning from scraped pages (URL patterns for discovery)
 
 **Usage:**
 ```bash
@@ -38,7 +37,6 @@ Core scripts for manual operations:
 #### Analysis & Quality
 - **`verify-database-quality.js`** - Verify database quality and coverage
 - **`analyze-data-quality-gaps.js`** - Analyze data quality gaps and priorities
-- **`show-sample-data.js`** - Show sample extracted data from 3 URLs
 
 #### Setup
 - **`setup-learning-tables.js`** - Setup learning tables (one-time use)
@@ -60,9 +58,6 @@ node scripts/manual/rescrape-all.js --missing --limit=50
 
 # Check quality
 node scripts/manual/analyze-data-quality-gaps.js
-
-# View sample data
-node scripts/manual/show-sample-data.js
 ```
 
 ### Process PDFs
@@ -76,6 +71,5 @@ node scripts/manual/process-pdfs.js --limit=20
 
 1. **Run automatic cycle** → `auto-cycle.js`
 2. **Rescrape missing data** → `rescrape-all.js --missing`
-3. **Process PDFs** → `process-pdfs.js`
+3. **Process PDFs** → `process-pdfs.js` (if needed)
 4. **Check quality** → `analyze-data-quality-gaps.js`
-5. **View samples** → `show-sample-data.js`
