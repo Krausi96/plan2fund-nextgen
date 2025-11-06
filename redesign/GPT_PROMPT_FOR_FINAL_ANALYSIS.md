@@ -4,6 +4,8 @@
 
 **Context:** You are analyzing a Next.js web application for Austrian/EU funding applications. The system has been partially redesigned based on a strategic analysis report. You need to review what's been implemented, identify what's missing from the original requirements, and provide specific Cursor instructions to complete the implementation.
 
+**IMPORTANT:** This is a new conversation - provide complete context about project functions and architecture. Be concise but comprehensive.
+
 ---
 
 ## 📋 CONTEXT: What We Do
@@ -31,6 +33,22 @@
 2. **Additional Documents:** Pitch decks, application forms, financial plans, work plans
 3. **Program Matching:** SmartWizard (guided) + Advanced Search (manual) with semantic search
 4. **Compliance Validation:** Real-time checking against program requirements
+
+### System Architecture Overview
+**Tech Stack:** Next.js (Pages Router), TypeScript, PostgreSQL/Neon, OpenAI API, React, Quill (rich text editor)
+
+**Data Flow:**
+1. **Scraper-Lite** → Discovers & extracts program data → Stores in `pages` & `requirements` tables
+2. **Reco System** → Reads requirements → Matches users with programs → Returns ranked results
+3. **Editor Entry** → Loads program requirements → Generates templates → Creates editor sections
+4. **Editor** → User writes content → Compliance checker validates → AI assistant helps → Export ready
+
+**Key Databases:**
+- `pages` - Scraped program pages
+- `requirements` - Extracted requirements (35 categories)
+- `programme_embeddings` - Vector embeddings for semantic search
+- `template_versions` - LLM-generated templates
+- `seen_urls` - URL discovery tracking
 
 ---
 
@@ -73,26 +91,31 @@
 
 ### Area 2: Reco/SmartWizard & Advanced Search (`features/reco/`)
 **What it does:**
-- Lets users find the best funding program based on their input
+- Lets users find the best funding program based on their input (project description, filters)
 - Uses requirements from scraper-lite to match programs
-- Provides scoring and explanations
+- Provides scoring, explanations, risks, and matched criteria
 
 **Current Implementation:**
 - ✅ **Unified Component:** `ProgramFinder.tsx` replaces both SmartWizard and AdvancedSearch
 - ✅ **Two Modes:**
-  - **Guided Mode:** Uses `QuestionEngine` to ask dynamic questions
-  - **Manual Mode:** Filters + semantic search query
-- ✅ **Semantic Search:** Uses OpenAI embeddings (`text-embedding-3-small`) + pgvector
+  - **Guided Mode:** Uses `QuestionEngine` to ask dynamic questions based on program requirements
+  - **Manual Mode:** Filters + semantic search query (project description)
+- ✅ **Semantic Search:** Uses OpenAI embeddings (`text-embedding-3-small`) + pgvector for similarity
 - ✅ **Hybrid Scoring:** 70% rule-based (EnhancedReco) + 30% semantic similarity
 - ✅ **Files:**
-  - `features/reco/components/ProgramFinder.tsx` - Unified UI component
-  - `features/reco/engine/enhancedRecoEngine.ts` - Rule-based scoring
-  - `features/reco/engine/questionEngine.ts` - Dynamic question generation
-  - `pages/api/programmes/search.ts` - Search API (semantic + rule-based)
-  - `shared/lib/embeddings.ts` - Embedding generation and similarity search
+  - `features/reco/components/ProgramFinder.tsx` - Unified UI component (guided + manual modes)
+  - `features/reco/engine/enhancedRecoEngine.ts` - Rule-based scoring (`scoreProgramsEnhanced`)
+  - `features/reco/engine/questionEngine.ts` - Dynamic question generation from requirements
+  - `pages/api/programmes/search.ts` - Search API (combines semantic + rule-based scoring)
+  - `shared/lib/embeddings.ts` - Embedding generation (`generateEmbedding`) and similarity search
   - `pages/reco.tsx` - Renders ProgramFinder in guided mode
   - `pages/advanced-search.tsx` - Renders ProgramFinder in manual mode
-  - `pages/main/results.tsx` - Results display page
+  - `pages/main/results.tsx` - Results display page with match percentages
+
+**Key Functions:**
+- `scoreProgramsEnhanced()` - Rule-based scoring with frequency weighting
+- `generateEmbedding()` - Creates embeddings for semantic search
+- `findSimilarPrograms()` - Cosine similarity search in vector database
 
 **Status:** ✅ 100% Complete
 
@@ -102,18 +125,24 @@
 **What it does:**
 - Generates program-specific section templates from scraped requirements
 - Merges master templates with program-specific overrides
+- Provides templates to editor with prompts, descriptions, word counts
 
 **Current Implementation:**
-- ✅ **Master Templates:** `sections.ts` defines standard sections for grants, loans, equity, visa
-- ✅ **LLM Template Generation:** `templateGenerator.ts` uses LLM to create program-specific templates
-- ✅ **Template Versioning:** `templateVersioning.ts` stores templates in DB with metadata
-- ✅ **Program Overrides:** `program-overrides.ts` loads and merges templates
+- ✅ **Master Templates:** `sections.ts` defines standard sections for grants, loans, equity, visa (word counts, prompts, validation rules)
+- ✅ **LLM Template Generation:** `templateGenerator.ts` uses OpenAI `gpt-4o-mini` to create program-specific templates from requirements
+- ✅ **Template Versioning:** `templateVersioning.ts` stores templates in DB with metadata (version, model, hash)
+- ✅ **Program Overrides:** `program-overrides.ts` loads templates (tries DB first, then LLM, then rule-based fallback)
 - ✅ **Files:**
-  - `shared/lib/templates/sections.ts` - Master section templates
-  - `shared/lib/templates/program-overrides.ts` - Loads program-specific templates (LLM or rule-based)
-  - `shared/lib/templateGenerator.ts` - LLM-based template generation
-  - `shared/lib/templates/templateVersioning.ts` - Version management
-  - `features/editor/engine/categoryConverters.ts` - Maps requirements to sections (rule-based)
+  - `shared/lib/templates/sections.ts` - Master section templates (defines order, prompts, word counts)
+  - `shared/lib/templates/program-overrides.ts` - `loadProgramSections()` loads program-specific templates
+  - `shared/lib/templateGenerator.ts` - `generateTemplatesFromRequirements()` - LLM template generation
+  - `shared/lib/templates/templateVersioning.ts` - Version management (save/load, change detection)
+  - `features/editor/engine/categoryConverters.ts` - Maps requirements to sections (rule-based fallback)
+
+**Key Functions:**
+- `loadProgramSections(programId)` - Loads templates (DB → LLM → rule-based)
+- `generateTemplatesFromRequirements()` - LLM generates templates from requirements
+- `computeRequirementsHash()` - Detects when requirements change (triggers regeneration)
 
 **Status:** ✅ 80% Complete (LLM generation + versioning done, dynamic mapping partial)
 
@@ -124,6 +153,7 @@
 - Allows users to create business plans with program-specific templates
 - Provides compliance checking and AI assistance
 - Supports financial tables, charts, images, additional documents
+- Real-time validation and quality feedback
 
 **Current UI Layout (Canva-style):**
 ```
@@ -141,6 +171,17 @@
 │             │                              │              │
 └─────────────┴──────────────────────────────┴──────────────┘
 ```
+
+**User Flow:**
+1. User selects program → System loads program-specific templates
+2. User sees section list in left sidebar (with progress indicators)
+3. User clicks section → Sees description and prompts in center
+4. User writes content (free-form, prompts are guidance, not required)
+5. Compliance checker validates in real-time (right drawer)
+6. AI assistant provides suggestions (right drawer)
+7. User can insert financial tables, charts, images
+8. Preview shows PDF output (right drawer)
+9. Export when ready
 
 **Current Components:**
 - ✅ **UnifiedEditorLayout.tsx** - Main Canva-style layout
@@ -185,7 +226,7 @@
 - ✅ Feature flags: `shared/lib/featureFlags.ts` defines free vs premium features
 - ✅ Premium features: Semantic search, advanced AI, PDF export, additional documents
 - ✅ Free features: Basic editor, image upload, unlimited plans
-- ⚠️ Pricing model: Not fully defined in code (just feature flags)
+- ⚠️ **MISSING:** Clear pricing model definition, feature limits, pricing tiers
 
 **Status:** ✅ 95% Complete
 
