@@ -159,14 +159,17 @@ export default function PreviewPanel({ plan, sections }: PreviewPanelProps) {
   const [pdfBlob, setPdfBlob] = useState<Blob | null>(null);
 
   // Generate PDF blob
-  useMemo(async () => {
-    try {
-      const doc = <PDFDocument plan={plan} sections={sections} />;
-      const blob = await pdf(doc).toBlob();
-      setPdfBlob(blob);
-    } catch (error) {
-      console.error('PDF generation error:', error);
-    }
+  useEffect(() => {
+    const generatePDF = async () => {
+      try {
+        const doc = <PDFDocument plan={plan} sections={sections} />;
+        const blob = await pdf(doc).toBlob();
+        setPdfBlob(blob);
+      } catch (error) {
+        console.error('PDF generation error:', error);
+      }
+    };
+    generatePDF();
   }, [plan, sections]);
 
   // HTML Preview (fallback)
