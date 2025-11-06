@@ -17,8 +17,6 @@ import analytics from '@/shared/lib/analytics';
 import EntryPointsManager from './EntryPointsManager';
 import DocumentCustomizationPanel from './DocumentCustomizationPanel';
 import RichTextEditor from './RichTextEditor';
-import EnhancedAIChat from './EnhancedAIChat';
-import RestructuredEditor from './RestructuredEditor';
 import RestructuredEditorNew from './RestructuredEditorNew';
 
 
@@ -68,7 +66,6 @@ export default function Phase4Integration({
   // Phase 4 UI state - Simplified UI
   const [showEntryPoints, setShowEntryPoints] = useState(false);
   const [showDocumentCustomization, setShowDocumentCustomization] = useState(true); // Visible by default so user can see it
-  const [showAiAssistant, setShowAiAssistant] = useState(true); // Visible by default
   const [focusMode, setFocusMode] = useState(false); // Focus mode for distraction-free writing
   const [showSectionSearch, setShowSectionSearch] = useState(false); // Quick section search
   const [showShortcutsHelp, setShowShortcutsHelp] = useState(false); // Keyboard shortcuts help
@@ -935,66 +932,33 @@ export default function Phase4Integration({
   }
 
   // Use RestructuredEditorNew for Canva-style layout (new redesign)
-  // Can be toggled with environment variable or feature flag
-  const useNewEditor = process.env.NEXT_PUBLIC_USE_NEW_EDITOR === 'true' || true; // Default to true for new redesign
-  
   if (plan && sections.length > 0) {
-    if (useNewEditor) {
-      return (
-        <RestructuredEditorNew
-          plan={plan}
-          sections={sections}
-          activeSection={activeSection}
-          onSectionChange={handleSectionChange}
-          onActiveSectionChange={setActiveSection}
-          onSectionStatusChange={handleSectionStatusChange}
-          onPlanChange={handlePlanChange}
-          programProfile={programProfile}
-          product={product}
-          requirementsProgress={requirementsProgress}
-          requirementsStatus={requirementsStatus}
-          onAIGenerate={handleAIGenerate}
-          onSave={async () => {
-            const contentMap = sections.reduce((acc: Record<string,string>, s: any) => { acc[s.key] = s.content || ''; return acc; }, {});
-            setIsSaving(true);
-            try {
-              await saveContentDirect(contentMap);
-              savePlanSections(sections.map((s: any) => ({ id: s.key, title: s.title, content: s.content || '', tables: s.tables, figures: s.figures, sources: s.sources })));
-            } finally {
-              setIsSaving(false);
-            }
-          }}
-        />
-      );
-    } else {
-      // Fallback to old editor
-      return (
-        <RestructuredEditor
-          plan={plan}
-          sections={sections}
-          activeSection={activeSection}
-          onSectionChange={handleSectionChange}
-          onActiveSectionChange={setActiveSection}
-          onSectionStatusChange={handleSectionStatusChange}
-          onPlanChange={handlePlanChange}
-          programProfile={programProfile}
-          product={product}
-          requirementsProgress={requirementsProgress}
-          requirementsStatus={requirementsStatus}
-          onAIGenerate={handleAIGenerate}
-          onSave={async () => {
-            const contentMap = sections.reduce((acc: Record<string,string>, s: any) => { acc[s.key] = s.content || ''; return acc; }, {});
-            setIsSaving(true);
-            try {
-              await saveContentDirect(contentMap);
-              savePlanSections(sections.map((s: any) => ({ id: s.key, title: s.title, content: s.content || '', tables: s.tables, figures: s.figures, sources: s.sources })));
-            } finally {
-              setIsSaving(false);
-            }
-          }}
-        />
-      );
-    }
+    return (
+      <RestructuredEditorNew
+        plan={plan}
+        sections={sections}
+        activeSection={activeSection}
+        onSectionChange={handleSectionChange}
+        onActiveSectionChange={setActiveSection}
+        onSectionStatusChange={handleSectionStatusChange}
+        onPlanChange={handlePlanChange}
+        programProfile={programProfile}
+        product={product}
+        requirementsProgress={requirementsProgress}
+        requirementsStatus={requirementsStatus}
+        onAIGenerate={handleAIGenerate}
+        onSave={async () => {
+          const contentMap = sections.reduce((acc: Record<string,string>, s: any) => { acc[s.key] = s.content || ''; return acc; }, {});
+          setIsSaving(true);
+          try {
+            await saveContentDirect(contentMap);
+            savePlanSections(sections.map((s: any) => ({ id: s.key, title: s.title, content: s.content || '', tables: s.tables, figures: s.figures, sources: s.sources })));
+          } finally {
+            setIsSaving(false);
+          }
+        }}
+      />
+    );
   }
 
   return (
@@ -1840,56 +1804,7 @@ export default function Phase4Integration({
         </div>
       </div>
 
-      {/* AI Assistant - Always visible, simplified */}
-      <div className="fixed bottom-4 right-4 z-50">
-          {showAiAssistant ? (
-            <div className="bg-white rounded-lg border border-gray-300 shadow-2xl w-96 h-[500px] flex flex-col">
-              {/* AI Assistant Header */}
-              <div className="flex items-center justify-between p-3 border-b border-gray-200 bg-gradient-to-r from-blue-50 to-purple-50">
-                <div className="flex items-center space-x-2">
-                  <div className="w-7 h-7 bg-gradient-to-br from-blue-500 to-purple-600 rounded-full flex items-center justify-center">
-                    <span className="text-white text-xs">👔</span>
-                  </div>
-                  <div>
-                    <h3 className="font-semibold text-gray-900 text-sm">AI Assistant</h3>
-                    <p className="text-xs text-gray-500">Funding Expert</p>
-                  </div>
-                </div>
-                <button
-                  onClick={() => setShowAiAssistant(false)}
-                  className="p-1 text-gray-400 hover:text-gray-600 transition-colors"
-                  title="Minimize"
-                >
-                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M20 12H4" />
-                  </svg>
-                </button>
-              </div>
-
-              {/* AI Chat Interface */}
-              <div className="flex-1 overflow-hidden">
-                <EnhancedAIChat
-                  plan={plan}
-                  programProfile={programProfile || null}
-                  currentSection={sections[activeSection]?.key || ''}
-                  onInsertContent={(content) => {
-                    if (sections[activeSection]) {
-                      handleSectionChange(sections[activeSection].key, content);
-                    }
-                  }}
-                />
-              </div>
-            </div>
-          ) : (
-            <button
-              onClick={() => setShowAiAssistant(true)}
-              className="w-12 h-12 bg-gradient-to-br from-blue-500 to-purple-600 rounded-full shadow-xl hover:shadow-2xl transition-all flex items-center justify-center text-white text-xl hover:scale-110"
-              title="Open AI Assistant"
-            >
-              👔
-            </button>
-          )}
-        </div>
+      {/* Note: AI Assistant is now integrated in RestructuredEditorNew via ComplianceAIHelper */}
 
       {/* Keyboard Shortcuts Help Modal */}
       {showShortcutsHelp && (
