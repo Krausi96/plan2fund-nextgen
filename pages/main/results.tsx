@@ -12,6 +12,7 @@ import { useUser } from "@/shared/contexts/UserContext";
 import StructuredRequirementsDisplay from "@/shared/components/common/StructuredRequirementsDisplay";
 import analytics from "@/shared/lib/analytics";
 import PageEntryIndicator from '@/shared/components/common/PageEntryIndicator';
+import { CheckCircle, Info } from "lucide-react";
 
 // Enhanced program result type with detailed explanations
 type ProgramResult = any; // Using any for now to avoid import issues
@@ -100,7 +101,9 @@ function ResultsPage() {
       <div className="bg-white/80 backdrop-blur-lg border-b border-gray-200/50 sticky top-0 z-10">
         <div className="max-w-4xl mx-auto px-6 py-6 flex items-center justify-between">
           <div className="flex items-center gap-3">
-            <div className="p-2 bg-green-600 rounded-xl text-2xl">✓</div>
+            <div className="p-2 bg-green-600 rounded-lg">
+              <CheckCircle className="w-6 h-6 text-white" />
+            </div>
             <div>
               <h1 className="text-2xl font-bold text-green-600 m-0">{t('results.title')}</h1>
               <p className="text-sm text-gray-500 m-0">We found {results.length} funding opportunities for you</p>
@@ -115,7 +118,8 @@ function ResultsPage() {
               onClick={() => setShowInfoDrawer(true)}
               className="text-gray-600 hover:text-gray-900 text-sm flex items-center gap-1 font-medium"
             >
-              <span>ℹ️</span> {t('results.howItWorks')}
+              <Info className="w-4 h-4" />
+              {t('results.howItWorks')}
             </button>
           </div>
         </div>
@@ -286,7 +290,7 @@ function ResultsPage() {
                     {program.founderFriendlyReasons && program.founderFriendlyReasons.length > 0 ? (
                         program.founderFriendlyReasons.slice(0, 3).map((reason: any, idx: number) => (
                         <li key={idx} className="flex items-start">
-                          <span className="text-green-500 mr-2 mt-0.5">✓</span>
+                          <CheckCircle className="w-4 h-4 text-green-500 mr-2 mt-0.5 flex-shrink-0" />
                           <span>{reason}</span>
                         </li>
                       ))
@@ -315,7 +319,7 @@ function ResultsPage() {
                       <ul className="text-xs text-green-600 space-y-1">
                         {program.trace.passed.slice(0, 2).map((item: any, idx: number) => (
                           <li key={idx} className="flex items-start">
-                            <span className="text-green-500 mr-2">✓</span>
+                            <CheckCircle className="w-4 h-4 text-green-500 mr-2 flex-shrink-0" />
                             {item.replace(/answers\.(q\d+_\w+)\s+matches\s+requirement\s+\(([^)]+)\)/, '$2')}
                           </li>
                         ))}
@@ -473,7 +477,7 @@ function ResultsPage() {
                       </DialogDescription>
                     </DialogHeader>
                     <button 
-                      className="w-full mt-4 px-6 py-3 bg-gradient-to-r from-blue-600 to-purple-600 text-white rounded-xl font-semibold hover:from-blue-700 hover:to-purple-700 transition-all duration-200 shadow-lg hover:shadow-xl"
+                      className="w-full mt-4 px-6 py-3 bg-blue-600 text-white rounded-lg font-semibold hover:bg-blue-700 transition-all shadow-sm hover:shadow-md"
                       onClick={async () => {
                         // Derive signals and get top 3 programs
                         const { deriveSignals } = require('@/features/reco/engine/enhancedRecoEngine');

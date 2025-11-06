@@ -1,13 +1,17 @@
 import Link from "next/link"
 import { useEffect, useState } from "react"
-import featureFlags from "@/shared/lib/featureFlags"
+import { isFeatureEnabled, getSubscriptionTier } from "@/shared/lib/featureFlags"
 import { Button } from "@/shared/components/ui/button"
 import { useI18n } from "@/shared/contexts/I18nContext"
 import analytics from "@/shared/lib/analytics"
+import { useUser } from "@/shared/contexts/UserContext"
+import { Info, Lock, Shield, CheckCircle, Key } from "lucide-react"
 
 export default function ConfirmPage() {
   const { t } = useI18n();
-  const CHECKOUT_ENABLED = featureFlags.isEnabled('CHECKOUT_ENABLED')
+  const { userProfile } = useUser();
+  const subscriptionTier = getSubscriptionTier(userProfile);
+  const CHECKOUT_ENABLED = isFeatureEnabled('priority_support' as any, subscriptionTier) // Using priority_support as placeholder
   useEffect(() => {
     analytics.trackPageView('/confirm', 'Confirm');
   }, []);
@@ -24,9 +28,7 @@ export default function ConfirmPage() {
           {attachmentTodos.map((todo, i) => (
             <li key={i} className="flex items-center gap-2">
               {todo}
-              <span className="text-xs text-gray-500" title={t("confirm.whyWeNeedThis")}>
-                ℹ️
-              </span>
+              <Info className="w-3 h-3 text-gray-500" title={t("confirm.whyWeNeedThis")} />
             </li>
           ))}
         </ul>
@@ -52,19 +54,19 @@ export default function ConfirmPage() {
         <h3 className="font-semibold mb-2 text-green-800">Trust & Security</h3>
         <div className="grid grid-cols-2 gap-4 text-sm">
           <div className="flex items-center gap-2">
-            <span className="text-green-600">🔒</span>
+            <Lock className="w-4 h-4 text-green-600" />
             <span>SSL Encrypted</span>
           </div>
           <div className="flex items-center gap-2">
-            <span className="text-green-600">🛡️</span>
+            <Shield className="w-4 h-4 text-green-600" />
             <span>GDPR Compliant</span>
           </div>
           <div className="flex items-center gap-2">
-            <span className="text-green-600">✅</span>
+            <CheckCircle className="w-4 h-4 text-green-600" />
             <span>Secure Payment</span>
           </div>
           <div className="flex items-center gap-2">
-            <span className="text-green-600">🔐</span>
+            <Key className="w-4 h-4 text-green-600" />
             <span>Data Protected</span>
           </div>
         </div>

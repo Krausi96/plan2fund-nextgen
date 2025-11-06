@@ -12,6 +12,7 @@ import { useUser } from "@/shared/contexts/UserContext";
 import { getPlanPaymentStatus } from "@/shared/lib/paymentStore";
 import { saveExportedDocument } from "@/shared/lib/documentStore";
 import PageEntryIndicator from '@/shared/components/common/PageEntryIndicator';
+import { FileText, CheckCircle, AlertTriangle } from "lucide-react";
 
 function Export() {
   const router = useRouter();
@@ -306,7 +307,8 @@ function Export() {
       {additionalDocuments.length > 0 && (
         <div className="p-6 border border-gray-200 rounded-lg bg-white shadow-sm">
           <h3 className="font-semibold mb-3 flex items-center gap-2">
-            📄 Additional Documents
+            <FileText className="w-5 h-5 text-blue-600" />
+            Additional Documents
             <span className="text-sm text-gray-600">({additionalDocuments.length} documents)</span>
           </h3>
           <p className="text-sm text-gray-600 mb-3">
@@ -317,7 +319,7 @@ function Export() {
               <div key={index} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg border border-gray-200 text-sm">
                 <div className="flex items-center gap-2">
                   <div className="w-4 h-4 bg-green-100 rounded-full flex items-center justify-center">
-                    <span className="text-green-600 text-xs">✓</span>
+                    <CheckCircle className="w-3 h-3 text-green-600" />
                   </div>
                   <span className="font-medium">{doc.title}</span>
                 </div>
@@ -673,9 +675,9 @@ function Export() {
 
       {/* Watermark stub if unpaid */}
       {!isPaid && (
-        <div className="mt-6 p-4 border rounded-lg bg-gray-100 text-sm text-gray-600">
-          ⚠️ Unpaid version – Export will include watermark until payment is
-          completed.
+        <div className="mt-6 p-4 border border-orange-200 rounded-lg bg-orange-50 text-sm text-orange-800 flex items-center gap-2">
+          <AlertTriangle className="w-4 h-4 flex-shrink-0" />
+          <span>Unpaid version – Export will include watermark until payment is completed.</span>
         </div>
       )}
 

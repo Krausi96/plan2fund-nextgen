@@ -38,8 +38,8 @@ export default function AboutPage() {
 
             <Card className="p-10 hover:shadow-lg transition-shadow">
               <div className="flex items-center mb-6">
-                <div className="w-20 h-20 bg-yellow-50 rounded-2xl flex items-center justify-center mr-6 flex-shrink-0">
-                  <span className="text-3xl">💡</span>
+                <div className="w-20 h-20 bg-yellow-50 rounded-lg flex items-center justify-center mr-6 flex-shrink-0">
+                  <Lightbulb className="w-10 h-10 text-yellow-600" />
                 </div>
                 <h2 className="text-2xl font-semibold text-gray-900">{t('about.vision.title')}</h2>
               </div>
@@ -54,8 +54,8 @@ export default function AboutPage() {
             <h2 className="text-3xl font-bold text-center mb-12">{t('about.features.title')}</h2>
             <div className="max-w-7xl mx-auto grid md:grid-cols-3 gap-8">
               <Card className="p-10 hover:shadow-lg transition-shadow">
-                <div className="w-20 h-20 bg-blue-50 rounded-2xl flex items-center justify-center mx-auto mb-6">
-                  <span className="text-3xl">🔍</span>
+                <div className="w-20 h-20 bg-blue-50 rounded-lg flex items-center justify-center mx-auto mb-6">
+                  <Search className="w-10 h-10 text-blue-600" />
                 </div>
                 <h3 className="text-xl font-semibold mb-4 text-center text-gray-900">{t('about.features.smartMatching.title')}</h3>
                 <div className="text-gray-600 leading-relaxed text-left text-lg">
@@ -67,7 +67,7 @@ export default function AboutPage() {
 
               <Card className="p-10 hover:shadow-lg transition-shadow">
                 <div className="w-20 h-20 bg-green-50 rounded-lg flex items-center justify-center mx-auto mb-6">
-                  <span className="text-3xl">📋</span>
+                  <FileText className="w-10 h-10 text-green-600" />
                 </div>
                 <h3 className="text-xl font-semibold mb-4 text-center text-gray-900">{t('about.features.professionalPlans.title')}</h3>
                 <div className="text-gray-600 leading-relaxed text-left text-lg">
@@ -79,7 +79,7 @@ export default function AboutPage() {
 
               <Card className="p-10 hover:shadow-lg transition-shadow">
                 <div className="w-20 h-20 bg-purple-50 rounded-lg flex items-center justify-center mx-auto mb-6">
-                  <span className="text-3xl">📚</span>
+                  <BookOpen className="w-10 h-10 text-purple-600" />
                 </div>
                 <h3 className="text-xl font-semibold mb-4 text-center text-gray-900">{t('about.features.expertGuidance.title')}</h3>
                 <div className="text-gray-600 leading-relaxed text-left text-lg">
@@ -99,7 +99,7 @@ export default function AboutPage() {
                 <div className="max-w-4xl mx-auto">
                   <div className="flex items-start mb-8">
                     <div className="w-16 h-16 bg-blue-50 rounded-lg flex items-center justify-center mr-6 flex-shrink-0">
-                      <span className="text-3xl">💡</span>
+                      <Lightbulb className="w-8 h-8 text-blue-600" />
                     </div>
                     <div className="flex-1">
                       <h3 className="text-xl font-semibold text-gray-900 mb-4">{t('about.founderStory.problemTitle')}</h3>
@@ -110,8 +110,8 @@ export default function AboutPage() {
                   </div>
                   
                   <div className="flex items-start">
-                    <div className="w-16 h-16 bg-green-50 rounded-2xl flex items-center justify-center mr-6 flex-shrink-0">
-                      <span className="text-3xl">🚀</span>
+                    <div className="w-16 h-16 bg-green-50 rounded-lg flex items-center justify-center mr-6 flex-shrink-0">
+                      <Rocket className="w-8 h-8 text-green-600" />
                     </div>
                     <div className="flex-1">
                       <h3 className="text-xl font-semibold text-gray-900 mb-4">{t('about.founderStory.solutionTitle')}</h3>
@@ -131,8 +131,8 @@ export default function AboutPage() {
             <div className="max-w-7xl mx-auto grid md:grid-cols-3 gap-8">
               <Card className="p-10 hover:shadow-lg transition-shadow">
                 <div className="flex items-center mb-6">
-                  <div className="w-20 h-20 bg-green-50 rounded-2xl flex items-center justify-center mr-6 flex-shrink-0">
-                    <span className="text-3xl">🛡️</span>
+                  <div className="w-20 h-20 bg-green-50 rounded-lg flex items-center justify-center mr-6 flex-shrink-0">
+                    <Shield className="w-10 h-10 text-green-600" />
                   </div>
                   <h3 className="text-xl font-semibold text-gray-900">{t('about.trust.security')}</h3>
                 </div>
@@ -155,7 +155,7 @@ export default function AboutPage() {
               <Card className="p-10 hover:shadow-lg transition-shadow">
                 <div className="flex items-center mb-6">
                   <div className="w-20 h-20 bg-blue-50 rounded-lg flex items-center justify-center mr-6 flex-shrink-0">
-                    <span className="text-3xl">⚖️</span>
+                    <Scale className="w-10 h-10 text-blue-600" />
                   </div>
                   <h3 className="text-xl font-semibold text-gray-900">{t('about.trust.independence')}</h3>
                 </div>
@@ -168,8 +168,8 @@ export default function AboutPage() {
 
               <Card className="p-10 hover:shadow-lg transition-shadow">
                 <div className="flex items-center mb-6">
-                  <div className="w-20 h-20 bg-purple-50 rounded-2xl flex items-center justify-center mr-6 flex-shrink-0">
-                    <span className="text-3xl">📚</span>
+                  <div className="w-20 h-20 bg-purple-50 rounded-lg flex items-center justify-center mr-6 flex-shrink-0">
+                    <GraduationCap className="w-10 h-10 text-purple-600" />
                   </div>
                   <h3 className="text-xl font-semibold text-gray-900">{t('about.trust.quality')}</h3>
                 </div>

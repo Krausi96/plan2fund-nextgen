@@ -1,4 +1,5 @@
 import { useI18n } from "@/shared/contexts/I18nContext"
+import { Languages } from "lucide-react"
 
 type Props = {
   compact?: boolean
@@ -14,23 +15,26 @@ export default function LanguageSwitcher({ compact }: Props) {
   }
 
   const languageOptions = [
-    { code: 'en', flag: '🇬🇧', name: 'EN' },
-    { code: 'de', flag: '🇩🇪', name: 'DE' },
+    { code: 'en', name: 'English', short: 'EN' },
+    { code: 'de', name: 'Deutsch', short: 'DE' },
   ]
 
   return (
-    <select
-      aria-label="Language"
-      value={locale}
-      onChange={(e) => handleLanguageChange(e.target.value)}
-      className={`border rounded px-2 py-1 text-sm bg-white ${compact ? "text-sm" : "text-base"}`}
-    >
-      {languageOptions.map((lang) => (
-        <option key={lang.code} value={lang.code}>
-          {lang.flag} {lang.name}
-        </option>
-      ))}
-    </select>
+    <div className="relative">
+      <Languages className="absolute left-2 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-500 pointer-events-none" />
+      <select
+        aria-label="Language"
+        value={locale}
+        onChange={(e) => handleLanguageChange(e.target.value)}
+        className={`border border-gray-300 rounded-lg px-8 py-1.5 text-sm bg-white hover:border-blue-600 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-colors ${compact ? "text-sm" : "text-base"}`}
+      >
+        {languageOptions.map((lang) => (
+          <option key={lang.code} value={lang.code}>
+            {lang.short}
+          </option>
+        ))}
+      </select>
+    </div>
   )
 }
 

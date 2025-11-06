@@ -8,7 +8,14 @@ import { useState, useEffect } from "react";
 import { 
   ArrowRight, 
   ChevronDown,
-  ChevronUp
+  ChevronUp,
+  Target,
+  FileEdit,
+  Rocket,
+  Building2,
+  Coins,
+  Briefcase,
+  Plane
 } from "lucide-react";
 import { RequirementsDisplay } from "@/features/export/components/pricing/RequirementsDisplay";
 import { FilterTabs } from "@/features/export/components/pricing/FilterTabs";
@@ -395,9 +402,11 @@ const coreProducts = [
                     <div className={`w-20 h-20 rounded-lg flex items-center justify-center mx-auto mb-6 shadow-sm ${
                       product.color === 'blue' ? 'bg-blue-600' :
                       product.color === 'green' ? 'bg-green-600' :
-                      'bg-blue-600'
+                      'bg-purple-600'
                     }`}>
-                      <span className="text-4xl text-white">{product.icon}</span>
+                      {product.id === 'strategy' && <Target className="w-10 h-10 text-white" />}
+                      {product.id === 'review' && <FileEdit className="w-10 h-10 text-white" />}
+                      {product.id === 'submission' && <Rocket className="w-10 h-10 text-white" />}
                     </div>
                     <h3 className="text-3xl font-bold text-gray-900 mb-3">{product.title}</h3>
                     <div className="inline-flex items-center px-8 py-4 bg-white border-2 border-black text-black rounded-2xl mb-6 shadow-lg">
@@ -464,9 +473,9 @@ const coreProducts = [
                                   <div key={type} className="space-y-2">
                                     <div className="font-semibold text-gray-800 capitalize mb-3 flex items-center gap-2 text-sm">
                                       <span className="text-xl">
-                                        {type === 'grants' ? '🏛️' : 
-                                         type === 'banks' ? '💰' : 
-                                         type === 'investors' ? '💼' : '✈️'}
+                                        {type === 'grants' ? <Building2 className="w-4 h-4" /> : 
+                                         type === 'banks' ? <Coins className="w-4 h-4" /> : 
+                                         type === 'investors' ? <Briefcase className="w-4 h-4" /> : <Plane className="w-4 h-4" />}
                             </span>
                                       {type}:
                                     </div>

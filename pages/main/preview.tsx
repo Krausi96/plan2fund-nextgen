@@ -13,6 +13,7 @@ import { getDocuments } from "@/shared/lib/templates";
 import { withAuth } from "@/shared/lib/withAuth";
 import { useUser } from "@/shared/contexts/UserContext";
 import PageEntryIndicator from '@/shared/components/common/PageEntryIndicator';
+import { CheckCircle, FileText, Copy, Lightbulb, Edit } from "lucide-react";
 
 function Preview() {
   const { t } = useI18n();
@@ -312,7 +313,12 @@ function Preview() {
                       className="rounded"
                     />
                     <h2 className="font-semibold">{section.title}</h2>
-                    {hasContent && <span className="text-xs text-green-600">✓ Completed</span>}
+                    {hasContent && (
+                      <span className="text-xs text-green-600 flex items-center gap-1">
+                        <CheckCircle className="w-3 h-3" />
+                        Completed
+                      </span>
+                    )}
                   </div>
                   <button
                     disabled={!isFeatureEnabled('priority_support' as any, subscriptionTier)}
@@ -358,13 +364,15 @@ function Preview() {
                             alert('Content copied to clipboard!');
                           }}
                         >
-                          📋 Copy Full Content
+                          <Copy className="w-3 h-3 inline mr-1" />
+                          Copy Full Content
                         </button>
                         <button 
                           className="text-xs text-gray-600 hover:text-gray-800"
                           onClick={() => window.open('/editor', '_blank')}
                         >
-                          ✏️ Edit in Editor
+                          <Edit className="w-3 h-3 inline mr-1" />
+                          Edit in Editor
                         </button>
                       </div>
                     </div>
@@ -375,7 +383,8 @@ function Preview() {
                         className="text-xs text-blue-600 hover:text-blue-800"
                         onClick={() => window.open('/editor', '_blank')}
                       >
-                        ✏️ Start Writing
+                        <Edit className="w-3 h-3 inline mr-1" />
+                        Start Writing
                       </button>
                     </div>
                   )}
@@ -390,7 +399,8 @@ function Preview() {
       {additionalDocuments.length > 0 && (
         <div className="mt-8 p-6 border rounded-xl bg-blue-50">
           <h3 className="text-lg font-semibold mb-4 flex items-center gap-2">
-            📄 Additional Documents
+            <FileText className="w-5 h-5 text-blue-600" />
+            Additional Documents
             <span className="text-sm text-gray-600">({additionalDocuments.length} documents)</span>
           </h3>
           <p className="text-sm text-gray-600 mb-4">
@@ -402,7 +412,7 @@ function Preview() {
               <div key={index} className="flex items-center justify-between p-3 bg-white rounded-lg border">
                 <div className="flex items-center gap-3">
                   <div className="w-8 h-8 bg-green-100 rounded-full flex items-center justify-center">
-                    <span className="text-green-600 text-sm">✓</span>
+                    <CheckCircle className="w-4 h-4 text-green-600" />
                   </div>
                   <div>
                     <div className="font-medium text-sm">{doc.title}</div>
@@ -416,7 +426,10 @@ function Preview() {
             ))}
           </div>
           <div className="mt-4 text-xs text-gray-600">
-            💡 These documents will be automatically generated based on your business plan content and included in your final export package.
+            <div className="flex items-start gap-2">
+              <Lightbulb className="w-4 h-4 text-blue-600 mt-0.5 flex-shrink-0" />
+              <span>These documents will be automatically generated based on your business plan content and included in your final export package.</span>
+            </div>
           </div>
         </div>
       )}
@@ -445,9 +458,10 @@ function Preview() {
               const { programId } = router.query;
               router.push(`/export?programId=${programId || ''}`);
             }}
-            className="px-6 py-2 bg-gradient-to-r from-blue-600 to-purple-600 text-white rounded-lg hover:from-blue-700 hover:to-purple-700 transition-colors shadow-md hover:shadow-lg"
+            className="px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors shadow-sm hover:shadow-md"
           >
-            📄 Export Plan
+            <FileText className="w-4 h-4 inline mr-1" />
+            Export Plan
           </button>
           <Link href="/confirm" className="px-6 py-2 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300 transition-colors text-center">
           Continue to Confirm →
@@ -469,7 +483,10 @@ function Preview() {
           </div>
           <p className="text-xs mt-2">{completeness}% sections filled ({sectionsFilled}/{totalSections})</p>
           {completeness < 50 && (
-            <p className="text-xs text-orange-600 mt-1">💡 Complete more sections for better results</p>
+            <p className="text-xs text-orange-600 mt-1 flex items-center gap-1">
+              <Lightbulb className="w-3 h-3" />
+              Complete more sections for better results
+            </p>
           )}
         </div>
         
@@ -604,7 +621,8 @@ function Preview() {
               className="w-full text-left text-sm text-blue-600 hover:text-blue-800"
               onClick={() => window.open('/editor', '_blank')}
             >
-              ✏️ Continue Editing
+              <Edit className="w-3 h-3 inline mr-1" />
+              Continue Editing
             </button>
             <button 
               className="w-full text-left text-sm text-blue-600 hover:text-blue-800"
@@ -614,7 +632,8 @@ function Preview() {
                 alert('Full business plan copied to clipboard!');
               }}
             >
-              📋 Copy Full Plan
+              <Copy className="w-4 h-4 inline mr-1" />
+              Copy Full Plan
             </button>
           </div>
         </div>
