@@ -169,6 +169,26 @@ CREATE TABLE IF NOT EXISTS seen_urls (
 );
 
 -- ============================================================================
+-- PROGRAMME EMBEDDINGS TABLE (Semantic search)
+-- ============================================================================
+CREATE TABLE IF NOT EXISTS programme_embeddings (
+  id SERIAL PRIMARY KEY,
+  page_id INTEGER REFERENCES pages(id) ON DELETE CASCADE,
+  programme_id TEXT, -- Reference to program ID
+  embedding vector(1536), -- pgvector embedding (1536 dimensions for text-embedding-3-small)
+  model_version VARCHAR(50) DEFAULT 'text-embedding-3-small',
+  description_text TEXT, -- Text that was embedded
+  created_at TIMESTAMP DEFAULT NOW(),
+  updated_at TIMESTAMP DEFAULT NOW(),
+  
+  UNIQUE(page_id, model_version)
+);
+
+-- Index for vector similarity search
+CREATE INDEX IF NOT EXISTS idx_programme_embeddings_vector ON programme_embeddings 
+USING ivfflat (embedding vector_cosine_ops) WITH (lists = 100);
+
+-- ============================================================================
 -- INDEXES FOR PERFORMANCE
 -- ============================================================================
 

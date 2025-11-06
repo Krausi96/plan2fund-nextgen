@@ -45,16 +45,18 @@
 
 ### High Priority (from report):
 - [x] Unify SmartWizard and Advanced Search into ProgramFinder - **DONE**
-- [ ] Add semantic search with embeddings (pgvector/Pinecone) - **IN PROGRESS**
-- [ ] ML-based scoring from historical data - **PENDING**
+- [x] Add semantic search with embeddings (OpenAI) - **DONE** (pgvector schema added, embeddings service created)
+- [ ] ML-based scoring from historical data - **PENDING** (needs historical data)
 - [x] Show explanations for rankings in UI - **DONE**
 
 ### Status:
 - ✅ Unified ProgramFinder component created
 - ✅ Mode toggle (Guided/Manual) implemented
 - ✅ Explanations exposed in UI (reasons, risks, matched criteria)
-- ⚠️ Semantic search API created (embeddings not yet implemented)
-- ❌ No vector database yet (pgvector setup pending)
+- ✅ Semantic search service created (embeddings.ts)
+- ✅ Database schema updated (programme_embeddings table with pgvector)
+- ✅ Search API combines rule-based + semantic scores (70/30 split)
+- ⚠️ Embeddings generation for existing programs (backfill script needed)
 - ❌ ML-based scoring pending (needs historical data)
 
 ### Next Steps:

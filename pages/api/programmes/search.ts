@@ -6,6 +6,8 @@
 
 import type { NextApiRequest, NextApiResponse } from 'next';
 import { scoreProgramsEnhanced, EnhancedProgramResult } from '@/features/reco/engine/enhancedRecoEngine';
+import { generateEmbedding, findSimilarPrograms, createProgramDescription } from '@/shared/lib/embeddings';
+import { getPool } from '@/scraper-lite/src/db/neon-client';
 
 interface SearchRequest {
   query?: string; // Project description for semantic search
@@ -66,22 +68,87 @@ export default async function handler(
     // Rule-based scoring (EnhancedReco)
     const ruleBasedResults = scoreProgramsEnhanced(allPrograms, searchParams);
     
-    // TODO: Add semantic search layer
-    // For now, return rule-based results with explanations
-    const results = ruleBasedResults.slice(0, limit).map(program => ({
-      ...program,
-      // Add explanations from reasons and risks
-      explanations: [
-        ...(program.reasons || []).slice(0, 3),
-        ...(program.risks || []).slice(0, 2).map((r: string) => `Note: ${r}`)
-      ]
-    }));
+    // Semantic search (if query provided)
+    let semanticResults: Array<{ id: string; similarity: number }> = [];
+    let semanticScore = 0;
+    
+    if (query && query.trim().length > 0 && process.env.OPENAI_API_KEY) {
+      try {
+        // Generate embedding for user query
+        const queryEmbedding = await generateEmbedding(query);
+        
+        if (queryEmbedding.length > 0) {
+          // Load program embeddings from database
+          const pool = getPool();
+          const embeddingsResult = await pool.query(
+            `SELECT page_id, embedding, description_text 
+             FROM programme_embeddings 
+             WHERE model_version = 'text-embedding-3-small'`
+          );
+          
+          if (embeddingsResult.rows.length > 0) {
+            // Calculate similarities
+            const programEmbeddings = embeddingsResult.rows.map((row: any) => ({
+              id: String(row.page_id),
+              embedding: row.embedding
+            }));
+            
+            semanticResults = findSimilarPrograms(queryEmbedding, programEmbeddings, 50);
+            semanticScore = semanticResults[0]?.similarity || 0;
+          } else {
+            // No embeddings in DB yet - generate on the fly for top programs
+            console.log('No embeddings in DB, generating on-the-fly...');
+            const topPrograms = ruleBasedResults.slice(0, 20);
+            const descriptions = topPrograms.map(p => createProgramDescription(p));
+            const embeddings = await generateEmbeddings(descriptions);
+            
+            const programEmbeddings = topPrograms.map((program, i) => ({
+              id: program.id,
+              embedding: embeddings[i] || []
+            })).filter(p => p.embedding.length > 0);
+            
+            semanticResults = findSimilarPrograms(queryEmbedding, programEmbeddings, 50);
+            semanticScore = semanticResults[0]?.similarity || 0;
+          }
+        }
+      } catch (semanticError: any) {
+        console.warn('Semantic search failed, using rule-based only:', semanticError?.message);
+      }
+    }
+    
+    // Combine rule-based and semantic scores
+    const combinedResults = ruleBasedResults.map(program => {
+      const semanticMatch = semanticResults.find(s => s.id === program.id);
+      const semanticWeight = 0.3; // 30% semantic, 70% rule-based
+      const ruleWeight = 0.7;
+      
+      const combinedScore = semanticMatch
+        ? (program.score * ruleWeight) + (semanticMatch.similarity * 100 * semanticWeight)
+        : program.score;
+      
+      return {
+        ...program,
+        score: Math.round(combinedScore),
+        semanticScore: semanticMatch?.similarity || 0,
+        ruleBasedScore: program.score,
+        // Add explanations from reasons and risks
+        explanations: [
+          ...(program.reasons || []).slice(0, 3),
+          ...(program.risks || []).slice(0, 2).map((r: string) => `Note: ${r}`),
+          ...(semanticMatch ? [`Semantic match: ${Math.round(semanticMatch.similarity * 100)}%`] : [])
+        ]
+      };
+    }).sort((a, b) => b.score - a.score); // Sort by combined score
+    
+    const results = combinedResults.slice(0, limit);
 
     return res.status(200).json({
       success: true,
       programs: results,
-      total: ruleBasedResults.length,
-      ruleBasedScore: results[0]?.score,
+      total: combinedResults.length,
+      semanticScore: semanticScore,
+      ruleBasedScore: results[0]?.ruleBasedScore,
+      combinedScore: results[0]?.score,
       explanations: results[0]?.explanations || []
     });
   } catch (error: any) {
