@@ -214,7 +214,7 @@ export default function ProgramFinder({
       localStorage.setItem('recoResults', JSON.stringify(results));
       localStorage.setItem('userAnswers', JSON.stringify(mode === 'guided' ? answers : { ...filters, project_description: searchQuery }));
     }
-    router.push('/main/results');
+    router.push('/results');
   };
   
   return (
@@ -465,6 +465,19 @@ export default function ProgramFinder({
               </Card>
             ) : (
               <div className="space-y-4">
+                {/* View All Results Button */}
+                {results.length > 0 && (
+                  <div className="flex justify-end mb-4">
+                    <Button
+                      onClick={handleViewAllResults}
+                      variant="outline"
+                      className="flex items-center gap-2"
+                    >
+                      <Search className="h-4 w-4" />
+                      View All Results ({results.length})
+                    </Button>
+                  </div>
+                )}
                 {results.map((program, index) => (
                   <Card key={program.id} className="p-6 hover:shadow-lg transition-shadow cursor-pointer" onClick={() => handleProgramSelect(program)}>
                     <div className="flex items-start justify-between mb-4">
