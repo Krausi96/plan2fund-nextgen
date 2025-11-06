@@ -83,16 +83,6 @@
 - Automatic section detection and prompt enhancement
 - Funding-type-specific guidance
 - Integrated into Fix Compliance, Improve Writing, and Chat functions
-- ✅ Updated UserProfile schema with subscription field
-- ✅ Added premium checks to ProgramFinder (semantic search)
-- ✅ Added premium checks to ComplianceAIHelper (advanced AI)
-- ✅ Added premium checks to PreviewPanel (PDF export)
-
-**Features gated:**
-- Semantic search (premium)
-- Advanced AI assistant (premium)
-- PDF export (premium)
-- Image upload (free)
 
 ---
 
