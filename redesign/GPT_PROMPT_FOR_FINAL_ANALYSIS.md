@@ -252,20 +252,43 @@
 
 ---
 
-### 2. LLM/ML Strategy
-**Question:** Should I create an LLM or use AI/Machine Learning to learn patterns of programs or business plans to further improve? In what areas of the web application should I do that and how would I integrate that?
+### 2. LLM/ML Strategy & Building Your Own LLM
+**Question:** Should I create an LLM or use AI/Machine Learning to learn patterns of programs or business plans to further improve? In what areas of the web application should I do that and how would I integrate that? **How can I build my own LLM alongside all affected areas? How can I integrate machine learning and AI to make this autonomous?**
 
 **Current LLM Usage:**
-- ✅ Scraper: Hybrid extraction (pattern + LLM for missing categories)
-- ✅ Editor Entry: LLM template generation from requirements
-- ✅ Editor: AI assistant with expert prompts
-- ✅ Reco: Semantic search with embeddings
+- ✅ Scraper: Hybrid extraction (pattern + LLM for missing categories) - Uses OpenAI `gpt-4o-mini`
+- ✅ Editor Entry: LLM template generation from requirements - Uses OpenAI `gpt-4o-mini`
+- ✅ Editor: AI assistant with expert prompts - Uses OpenAI via `/api/ai/openai`
+- ✅ Reco: Semantic search with embeddings - Uses OpenAI `text-embedding-3-small`
 
 **What to Analyze:**
-- Should we train a fine-tuned model on funding applications?
-- Where would ML pattern learning add most value?
-- How to integrate ML without breaking existing architecture?
-- What data do we need to collect?
+- **Building Your Own LLM:**
+  - Should we fine-tune a model (e.g., Llama 2, Mistral) on funding application data?
+  - What training data do we have/need? (scraped requirements, successful applications, templates)
+  - How to integrate custom LLM alongside OpenAI (fallback, primary, or hybrid)?
+  - Cost-benefit analysis: Custom LLM vs OpenAI API
+  - Architecture: Where to host? (Local, cloud, edge)
+  
+- **Autonomous ML/AI Integration:**
+  - **Pattern Learning:** ML models to learn extraction patterns from successful scrapes
+  - **Quality Prediction:** Predict document quality/success probability
+  - **Auto-improvement:** System learns from user feedback and improves templates
+  - **Adaptive Extraction:** ML learns which extraction method works best per institution
+  - **Self-optimization:** System automatically improves prompts, templates, scoring weights
+  
+- **Areas for ML Integration:**
+  1. **Scraper:** Learn extraction patterns, predict page quality, auto-adjust extraction methods
+  2. **Reco:** Learn matching patterns from successful applications, predict success probability
+  3. **Editor Entry:** Learn template generation patterns, auto-improve prompts
+  4. **Editor:** Learn quality patterns, predict document completeness, auto-suggest improvements
+  5. **Compliance:** Learn requirement patterns, auto-detect compliance issues
+
+- **How to Integrate:**
+  - Data collection pipeline for training data
+  - Model training infrastructure
+  - A/B testing framework (custom LLM vs OpenAI)
+  - Gradual rollout strategy
+  - Cost monitoring and optimization
 
 ---
 
@@ -412,33 +435,51 @@
 
 **Provide direct Cursor instructions to:**
 
-1. **Clarify and implement missing UX flows:**
+1. **Strategic: Building Your Own LLM & Autonomous ML/AI:**
+   - How to build/fine-tune custom LLM for funding applications?
+   - What training data is needed? (scraped requirements, successful applications, templates)
+   - Architecture: Where to host? How to integrate alongside OpenAI?
+   - Cost-benefit analysis: Custom LLM vs OpenAI API
+   - **Autonomous ML Integration:**
+     - Pattern learning from successful extractions
+     - Quality prediction models
+     - Auto-improvement systems
+     - Adaptive extraction methods
+     - Self-optimization mechanisms
+   - **Integration Points:**
+     - Scraper: Learn extraction patterns, auto-adjust methods
+     - Reco: Learn matching patterns, predict success
+     - Editor Entry: Learn template patterns, auto-improve prompts
+     - Editor: Learn quality patterns, auto-suggest improvements
+     - Compliance: Learn requirement patterns, auto-detect issues
+
+2. **Clarify and implement missing UX flows:**
    - Should chapters use step-by-step questions or free-form writing?
    - What's the minimum content per section?
    - How to ensure document quality?
    - What are the completion gates?
 
-2. **Define freemium model:**
+3. **Define freemium model:**
    - Clear free vs premium feature breakdown
    - Pricing tiers
    - Feature limits
 
-3. **Implement content variation:**
+4. **Implement content variation:**
    - Strategy to ensure additional documents are unique
    - Template diversity
    - Content personalization
 
-4. **Enhance quality assurance:**
+5. **Enhance quality assurance:**
    - Broader quality scoring beyond compliance
    - Readability checks
    - Completeness gates
 
-5. **Address strategic questions:**
-   - Competitive positioning strategy
+6. **Address strategic questions:**
+   - Competitive positioning strategy (specialization like Cursor)
    - LLM/ML integration recommendations
    - Areas for improvement
 
-**Format:** Provide specific file paths, code changes, and implementation steps that I can give directly to Cursor.
+**Format:** Provide specific file paths, code changes, and implementation steps that I can give directly to Cursor. Be concise but comprehensive.
 
 ---
 
@@ -470,4 +511,36 @@
 ---
 
 **Please analyze the GitHub repository, review the current implementation, and provide specific Cursor instructions to address all gaps and strategic questions.**
+
+---
+
+## 🔑 KEY CONTEXT FOR NEW CONVERSATION
+
+**If this is a new conversation, here's what you need to know:**
+
+### Project Functions & Interactions:
+1. **Scraper-Lite** discovers URLs → extracts requirements → stores in DB
+2. **Reco System** reads requirements → matches users → returns ranked programs
+3. **Editor Entry** loads requirements → generates templates → creates editor sections
+4. **Editor** user writes → compliance checks → AI helps → export ready
+
+### Key Data Structures:
+- **Requirements:** 35 categories stored in `categorized_requirements` JSON
+- **Templates:** `SectionTemplate[]` with prompts, descriptions, word counts
+- **Program Profile:** Contains program ID, name, type, requirements
+- **Plan Content:** `Record<string, string>` - section key → content
+
+### Current LLM Usage:
+- **OpenAI `gpt-4o-mini`** for extraction and template generation
+- **OpenAI `text-embedding-3-small`** for semantic search
+- **OpenAI API** for AI assistant (via `/api/ai/openai`)
+
+### Database Tables:
+- `pages` - Scraped pages
+- `requirements` - Extracted requirements (with `extraction_method`, `confidence`)
+- `programme_embeddings` - Vector embeddings for semantic search
+- `template_versions` - LLM-generated templates
+- `template_requirements_hash` - Change detection
+
+**Now analyze and provide Cursor instructions for building custom LLM, autonomous ML/AI, and addressing all missing items.**
 
