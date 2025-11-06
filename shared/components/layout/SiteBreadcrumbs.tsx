@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { useRouter } from "next/router";
-import { ChevronRight, Home } from "lucide-react";
+import { Home } from "lucide-react";
 import { useI18n } from "@/shared/contexts/I18nContext";
 
 interface BreadcrumbItem {
@@ -65,17 +65,19 @@ export default function SiteBreadcrumbs({ items, className = "" }: SiteBreadcrum
       className={`bg-gray-50 border-b border-gray-200 py-3 ${className}`}
     >
       <div className="container">
-        <ol className="flex items-center space-x-2 text-sm text-gray-600">
+        <ol className="flex items-center space-x-2 text-sm">
           {breadcrumbs.map((item, index) => (
             <li key={index} className="flex items-center">
               {index > 0 && (
-                <ChevronRight className="h-4 w-4 text-gray-400 mx-2" />
+                <span className="text-gray-400 mx-2" aria-hidden="true">
+                  &gt;
+                </span>
               )}
               
               {index === 0 ? (
                 <Link 
                   href={item.href!} 
-                  className="flex items-center text-gray-500 hover:text-blue-600 transition-colors"
+                  className="flex items-center text-gray-600 hover:text-blue-600 transition-colors"
                 >
                   <Home className="h-4 w-4" />
                   <span className="sr-only">Home</span>
@@ -88,7 +90,7 @@ export default function SiteBreadcrumbs({ items, className = "" }: SiteBreadcrum
                   {item.label}
                 </Link>
               ) : (
-                <span className="text-gray-900 font-medium" aria-current="page">
+                <span className="text-gray-900 font-semibold text-blue-600" aria-current="page">
                   {item.label}
                 </span>
               )}

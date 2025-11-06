@@ -42,24 +42,35 @@ export default function Breadcrumbs() {
 
   return (
     <div className="w-full bg-gray-50 py-4">
-      <nav className="flex justify-center gap-6 text-sm text-gray-600">
+      <nav className="flex justify-center items-center gap-2 text-sm" aria-label="Breadcrumb">
         {visibleSteps.map((step, i) => {
           const isActive = i === currentIndex
           const isCompleted = i < currentIndex
 
-          const baseClass =
-            "flex items-center gap-1 " +
-            (isActive
-              ? "font-semibold text-blue-600"
-              : isCompleted
-              ? "text-gray-500 hover:underline"
-              : "text-gray-400 cursor-not-allowed")
-
           return (
-            <Link key={i} href={step.href} className={baseClass}>
-              <span>{isCompleted ? "✔" : isActive ? "➡" : "○"}</span>
-              {step.label}
-            </Link>
+            <div key={i} className="flex items-center gap-2">
+              {i > 0 && (
+                <span className="text-gray-400" aria-hidden="true">
+                  &gt;
+                </span>
+              )}
+              {isActive ? (
+                <span className="font-semibold text-blue-600" aria-current="page">
+                  {step.label}
+                </span>
+              ) : isCompleted ? (
+                <Link 
+                  href={step.href} 
+                  className="text-gray-600 hover:text-blue-600 hover:underline transition-colors"
+                >
+                  {step.label}
+                </Link>
+              ) : (
+                <span className="text-gray-400 cursor-not-allowed">
+                  {step.label}
+                </span>
+              )}
+            </div>
           )
         })}
       </nav>
