@@ -11,6 +11,8 @@ import { ProgramProfile } from '@/features/reco/types/reco';
 import { EditorProduct } from '@/features/editor/types/editor';
 import RichTextEditor from './RichTextEditor';
 import UnifiedEditorLayout from './UnifiedEditorLayout';
+import FinancialTable, { FINANCIAL_TABLE_TEMPLATES } from './FinancialTable';
+import ChartGenerator from './ChartGenerator';
 import { useSectionProgress } from '../hooks/useSectionProgress';
 
 interface RestructuredEditorNewProps {
@@ -234,6 +236,64 @@ export default function RestructuredEditorNew({
   }, [router]);
 
   const currentSection = sections[activeSection]?.key || '';
+  
+  // Financial table state
+  const [showTableModal, setShowTableModal] = useState(false);
+  const [tableData, setTableData] = useState<any[][]>([]);
+  const [tableHeaders, setTableHeaders] = useState<string[]>([]);
+  const [selectedTableTemplate, setSelectedTableTemplate] = useState<string | null>(null);
+  
+  // Chart state
+  const [showChart, setShowChart] = useState(false);
+  const [chartType, setChartType] = useState<'bar' | 'line' | 'pie'>('bar');
+
+  // Handle insert table
+  const handleInsertTable = useCallback((templateKey: string) => {
+    const template = FINANCIAL_TABLE_TEMPLATES[templateKey as keyof typeof FINANCIAL_TABLE_TEMPLATES];
+    if (template) {
+      setTableHeaders(template.headers);
+      setTableData(template.initialData);
+      setSelectedTableTemplate(templateKey);
+      setShowTableModal(true);
+    }
+  }, []);
+
+  // Handle save table
+  const handleSaveTable = useCallback((data: any[][]) => {
+    if (!sections[activeSection]) return;
+    
+    // Store table data in section
+    const updatedSection = {
+      ...sections[activeSection],
+      // Add new table
+      tables: [
+        ...(sections[activeSection].tables || []),
+        {
+          id: `table-${Date.now()}`,
+          headers: tableHeaders,
+          data: data,
+          template: selectedTableTemplate
+        }
+      ]
+    };
+    
+    // Update section in plan
+    const updatedSections = [...sections];
+    updatedSections[activeSection] = updatedSection;
+    
+    if (plan) {
+      onPlanChange({
+        ...plan,
+        sections: updatedSections
+      });
+    }
+    
+    setShowTableModal(false);
+  }, [sections, activeSection, tableHeaders, selectedTableTemplate, plan, onPlanChange]);
+
+  // Check if current section is financial-related
+  const isFinancialSection = sections[activeSection]?.key?.toLowerCase().includes('financial') ||
+                             sections[activeSection]?.title?.toLowerCase().includes('financial');
 
   return (
     <UnifiedEditorLayout
@@ -332,6 +392,126 @@ export default function RestructuredEditorNew({
                 showGuidance={true}
               />
             </div>
+
+            {/* Financial Tables & Charts (for financial sections) */}
+            {isFinancialSection && (
+              <div className="space-y-4">
+                {/* Insert Table Button */}
+                <div className="flex items-center gap-2">
+                  <span className="text-sm font-medium text-gray-700">Financial Tools:</span>
+                  <div className="flex gap-2">
+                    <button
+                      onClick={() => handleInsertTable('revenue_projections')}
+                      className="px-3 py-1.5 text-sm font-medium text-blue-600 bg-blue-50 rounded-lg hover:bg-blue-100 transition-colors"
+                    >
+                      Revenue Projections
+                    </button>
+                    <button
+                      onClick={() => handleInsertTable('expense_breakdown')}
+                      className="px-3 py-1.5 text-sm font-medium text-blue-600 bg-blue-50 rounded-lg hover:bg-blue-100 transition-colors"
+                    >
+                      Expense Breakdown
+                    </button>
+                    <button
+                      onClick={() => handleInsertTable('cash_flow')}
+                      className="px-3 py-1.5 text-sm font-medium text-blue-600 bg-blue-50 rounded-lg hover:bg-blue-100 transition-colors"
+                    >
+                      Cash Flow
+                    </button>
+                    <button
+                      onClick={() => handleInsertTable('unit_economics')}
+                      className="px-3 py-1.5 text-sm font-medium text-blue-600 bg-blue-50 rounded-lg hover:bg-blue-100 transition-colors"
+                    >
+                      Unit Economics
+                    </button>
+                  </div>
+                </div>
+
+                {/* Existing Tables */}
+                {sections[activeSection].tables && sections[activeSection].tables.length > 0 && (
+                  <div className="space-y-4">
+                    {sections[activeSection].tables.map((table: any, index: number) => (
+                      <div key={table.id || index} className="space-y-2">
+                        <FinancialTable
+                          data={table.data || []}
+                          headers={table.headers || []}
+                          onChange={(data) => {
+                            // Update table data
+                            const updatedTables = [...(sections[activeSection].tables || [])];
+                            updatedTables[index] = { ...table, data };
+                            const updatedSection = {
+                              ...sections[activeSection],
+                              tables: updatedTables
+                            };
+                            const updatedSections = [...sections];
+                            updatedSections[activeSection] = updatedSection;
+                            if (plan) {
+                              onPlanChange({
+                                ...plan,
+                                sections: updatedSections
+                              });
+                            }
+                          }}
+                          editable={true}
+                        />
+                        <ChartGenerator
+                          tableData={table.data || []}
+                          headers={table.headers || []}
+                          chartType={chartType}
+                          onChartTypeChange={setChartType}
+                        />
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+            )}
+
+            {/* Table Insert Modal */}
+            {showTableModal && (
+              <div className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+                <div className="bg-white rounded-lg max-w-4xl w-full max-h-[90vh] overflow-y-auto">
+                  <div className="p-6">
+                    <div className="flex items-center justify-between mb-4">
+                      <h3 className="text-lg font-semibold text-gray-900">Insert Financial Table</h3>
+                      <button
+                        onClick={() => setShowTableModal(false)}
+                        className="text-gray-400 hover:text-gray-600"
+                      >
+                        ✕
+                      </button>
+                    </div>
+                    <FinancialTable
+                      data={tableData}
+                      headers={tableHeaders}
+                      onChange={(data) => {
+                        setTableData(data);
+                      }}
+                      onInsert={() => {
+                        // Add new row
+                        const newRow = new Array(tableHeaders.length).fill('');
+                        setTableData([...tableData, newRow]);
+                      }}
+                      editable={true}
+                    />
+                    <div className="flex items-center justify-end gap-2 mt-4">
+                      <button
+                        onClick={() => setShowTableModal(false)}
+                        className="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50"
+                      >
+                        Cancel
+                      </button>
+                      <button
+                        onClick={() => handleSaveTable(tableData)}
+                        className="px-4 py-2 text-sm font-medium text-white bg-blue-600 rounded-lg hover:bg-blue-700"
+                      >
+                        Insert Table
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            )}
 
             {/* Section Footer - Navigation */}
             <div className="flex items-center justify-between pt-4 border-t border-gray-200">

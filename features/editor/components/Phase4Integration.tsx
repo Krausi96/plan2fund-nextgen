@@ -19,6 +19,7 @@ import DocumentCustomizationPanel from './DocumentCustomizationPanel';
 import RichTextEditor from './RichTextEditor';
 import EnhancedAIChat from './EnhancedAIChat';
 import RestructuredEditor from './RestructuredEditor';
+import RestructuredEditorNew from './RestructuredEditorNew';
 
 
 // FormattingConfig interface removed - functionality moved to DocumentCustomizationPanel
@@ -933,34 +934,67 @@ export default function Phase4Integration({
     );
   }
 
-  // Use RestructuredEditor for better navigation
+  // Use RestructuredEditorNew for Canva-style layout (new redesign)
+  // Can be toggled with environment variable or feature flag
+  const useNewEditor = process.env.NEXT_PUBLIC_USE_NEW_EDITOR === 'true' || true; // Default to true for new redesign
+  
   if (plan && sections.length > 0) {
-    return (
-      <RestructuredEditor
-        plan={plan}
-        sections={sections}
-        activeSection={activeSection}
-        onSectionChange={handleSectionChange}
-        onActiveSectionChange={setActiveSection}
-        onSectionStatusChange={handleSectionStatusChange}
-        onPlanChange={handlePlanChange}
-        programProfile={programProfile}
-        product={product}
-        requirementsProgress={requirementsProgress}
-        requirementsStatus={requirementsStatus}
-        onAIGenerate={handleAIGenerate}
-        onSave={async () => {
-          const contentMap = sections.reduce((acc: Record<string,string>, s: any) => { acc[s.key] = s.content || ''; return acc; }, {});
-          setIsSaving(true);
-          try {
-            await saveContentDirect(contentMap);
-            savePlanSections(sections.map((s: any) => ({ id: s.key, title: s.title, content: s.content || '', tables: s.tables, figures: s.figures, sources: s.sources })));
-          } finally {
-            setIsSaving(false);
-          }
-        }}
-      />
-    );
+    if (useNewEditor) {
+      return (
+        <RestructuredEditorNew
+          plan={plan}
+          sections={sections}
+          activeSection={activeSection}
+          onSectionChange={handleSectionChange}
+          onActiveSectionChange={setActiveSection}
+          onSectionStatusChange={handleSectionStatusChange}
+          onPlanChange={handlePlanChange}
+          programProfile={programProfile}
+          product={product}
+          requirementsProgress={requirementsProgress}
+          requirementsStatus={requirementsStatus}
+          onAIGenerate={handleAIGenerate}
+          onSave={async () => {
+            const contentMap = sections.reduce((acc: Record<string,string>, s: any) => { acc[s.key] = s.content || ''; return acc; }, {});
+            setIsSaving(true);
+            try {
+              await saveContentDirect(contentMap);
+              savePlanSections(sections.map((s: any) => ({ id: s.key, title: s.title, content: s.content || '', tables: s.tables, figures: s.figures, sources: s.sources })));
+            } finally {
+              setIsSaving(false);
+            }
+          }}
+        />
+      );
+    } else {
+      // Fallback to old editor
+      return (
+        <RestructuredEditor
+          plan={plan}
+          sections={sections}
+          activeSection={activeSection}
+          onSectionChange={handleSectionChange}
+          onActiveSectionChange={setActiveSection}
+          onSectionStatusChange={handleSectionStatusChange}
+          onPlanChange={handlePlanChange}
+          programProfile={programProfile}
+          product={product}
+          requirementsProgress={requirementsProgress}
+          requirementsStatus={requirementsStatus}
+          onAIGenerate={handleAIGenerate}
+          onSave={async () => {
+            const contentMap = sections.reduce((acc: Record<string,string>, s: any) => { acc[s.key] = s.content || ''; return acc; }, {});
+            setIsSaving(true);
+            try {
+              await saveContentDirect(contentMap);
+              savePlanSections(sections.map((s: any) => ({ id: s.key, title: s.title, content: s.content || '', tables: s.tables, figures: s.figures, sources: s.sources })));
+            } finally {
+              setIsSaving(false);
+            }
+          }}
+        />
+      );
+    }
   }
 
   return (
