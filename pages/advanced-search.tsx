@@ -1,11 +1,9 @@
-import { useState, useEffect } from 'react';
-import { Button } from '@/shared/components/ui/button';
-import { Card } from '@/shared/components/ui/card';
-import Link from 'next/link';
-// Removed framer-motion import - using CSS animations instead
-// import { Chip } from '@/shared/lib/aiChipParser'; // Removed - file deleted
-import { useRecommendation } from '@/features/reco/contexts/RecommendationContext';
-import { useI18n } from '@/shared/contexts/I18nContext';
+import ProgramFinder from '@/features/reco/components/ProgramFinder';
+
+// Redirect to unified ProgramFinder
+export default function AdvancedSearch() {
+  return <ProgramFinder initialMode="manual" />;
+}
 
 // Define Chip type locally since aiChipParser was deleted
 interface Chip {

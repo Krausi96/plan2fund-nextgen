@@ -8,9 +8,9 @@
 
 ## 📊 Overall Status
 
-**Completion: ~30%**
+**Completion: ~40%**
 - Area 1 (Scraper-Lite): 100% ✅ (LLM integration complete)
-- Area 2 (Reco/SmartWizard): 0% ❌
+- Area 2 (Reco/SmartWizard): 60% ⚠️ (Unified UI done, semantic search pending)
 - Area 3 (Editor Entry): 0% ❌
 - Area 4 (Editor): 60% ⚠️
 
@@ -41,26 +41,30 @@
 
 ---
 
-## Area 2: Reco/SmartWizard & Advanced Search ❌ 0%
+## Area 2: Reco/SmartWizard & Advanced Search ⚠️ 60%
 
 ### High Priority (from report):
-- [ ] Unify SmartWizard and Advanced Search into ProgramFinder
-- [ ] Add semantic search with embeddings (pgvector/Pinecone)
-- [ ] ML-based scoring from historical data
-- [ ] Show explanations for rankings in UI
+- [x] Unify SmartWizard and Advanced Search into ProgramFinder - **DONE**
+- [ ] Add semantic search with embeddings (pgvector/Pinecone) - **IN PROGRESS**
+- [ ] ML-based scoring from historical data - **PENDING**
+- [x] Show explanations for rankings in UI - **DONE**
 
 ### Status:
-- Separate SmartWizard and Advanced Search components
-- Rule-based matching only
-- No semantic understanding
-- No vector database
+- ✅ Unified ProgramFinder component created
+- ✅ Mode toggle (Guided/Manual) implemented
+- ✅ Explanations exposed in UI (reasons, risks, matched criteria)
+- ⚠️ Semantic search API created (embeddings not yet implemented)
+- ❌ No vector database yet (pgvector setup pending)
+- ❌ ML-based scoring pending (needs historical data)
 
 ### Next Steps:
-1. Create `features/reco/components/ProgramFinder.tsx`
-2. Merge SmartWizard + Advanced Search UIs
-3. Set up embeddings store (pgvector)
-4. Create `/api/programmes/search.ts` endpoint
-5. Expose EnhancedReco explanations in UI
+1. ✅ Create `features/reco/components/ProgramFinder.tsx` - **DONE**
+2. ✅ Merge SmartWizard + Advanced Search UIs - **DONE**
+3. [ ] Set up embeddings store (pgvector) - **NEXT**
+4. ✅ Create `/api/programmes/search.ts` endpoint - **DONE**
+5. ✅ Expose EnhancedReco explanations in UI - **DONE**
+6. [ ] Implement semantic search with OpenAI embeddings
+7. [ ] Combine semantic + rule-based scores
 
 ---
 
