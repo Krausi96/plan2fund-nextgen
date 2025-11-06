@@ -4,7 +4,7 @@ import {
   fundingTypes,
   programFocus,
   autoDiscoveryPatterns
-} from '../institutionConfig';
+} from './institutionConfig';
 
 export interface LiteInstitutionConfig {
   id?: string;
