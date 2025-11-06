@@ -434,22 +434,14 @@ export async function discover(seeds: string[], maxDepth = 1, maxPages = 20): Pr
           // 2. AND pass learned pattern checks (if available)
           // 3. AND have funding keywords (additional validation)
           // REMOVED: Ultra-relaxed criteria that accepted anything with depth/keywords
-          const contextText = linkText + ' ' + parentText.substring(0, 300);
           
           // ENHANCED: More comprehensive funding keyword patterns
           const fundingKeywordPattern = /(foerderung|förderung|funding|grant|programm|program|call|ausschreibung|finanzierung|financing|subvention|darlehen|kredit|loan|investition|innovation|research|forschung|startup|unternehmen|kmu|sme|beihilfe|subsidy|support|unterstützung|ausschreibungen|foerderungen|programme|equity|venture|seed|preseed|incubator|accelerator|fellowship|scholarship|stipendium|zuschuss|finanzhilfe|foerderbetrag|foerderhoehe|finanzierungsvolumen|fördervolumen|startup.grant|innovation.funding|digitalisierung|digitalization|ai.start|deep.tech|growth.investment|first.incubator|innovation.protection|erp.loan|guarantee|bürgschaft|innovation.voucher|bridge|collective.research|spin.off|diversitec|diversity|tech4people|international.market.entry|creative.industry|quality.of.life|startklar|ideenreich|wachstumsschritt|greensinvest|cybersicher|lebensnah)/i;
           const hasFundingKeyword = fundingKeywordPattern.test(urlLower) || fundingKeywordPattern.test(pathLower);
-          const hasFundingInText = fundingKeywordPattern.test(linkText);
-          const hasFundingInContext = fundingKeywordPattern.test(contextText);
           
           // CRITICAL: Must pass isProgramDetailPage check (uses learned patterns)
           const isDetailPage = await isProgramDetailPage(full);
           const isSameHost = sameHost(seed, full);
-          
-          // Check URL structure: URLs with depth (2+ path segments) are more likely to be program pages
-          const urlPath = new URL(full).pathname;
-          const pathSegments = urlPath.split('/').filter(s => s.length > 0);
-          const hasUrlDepth = pathSegments.length >= 2; // Has at least 2 path segments
           
           // Navigation link check
           const isNavigationLink = linkText.match(/^(contact|kontakt|impressum|about|über|news|presse|press|legal|rechtliches|datenschutz|more|mehr|weiter|→|›|»|next|previous|back|zurück|home|start|index|sitemap)$/i);
@@ -901,7 +893,6 @@ export function calculatePageQuality(data: PageQualityData): QualityScore {
   if (poorQualityAttempts >= 1) {
     // Already tried once - definitely not a program page
     const programType = isServiceProgram ? 'service' : 'funding';
-    const maxCategories = isServiceProgram ? 6 : 7;
     return {
       score: 20,
       tier: 'poor',
@@ -914,7 +905,6 @@ export function calculatePageQuality(data: PageQualityData): QualityScore {
 
   // First attempt at poor quality page - try once more
   const programType = isServiceProgram ? 'service' : 'funding';
-  const maxCategories = isServiceProgram ? 6 : 7;
   return {
     score: 30,
     tier: 'poor',
