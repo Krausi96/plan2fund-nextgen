@@ -4,7 +4,7 @@
  * Based on strategic analysis report recommendations
  */
 
-import React, { useState, useMemo } from 'react';
+import React, { useState, useEffect } from 'react';
 import { FileText, Download, Eye, EyeOff } from 'lucide-react';
 import { Button } from '@/shared/components/ui/button';
 import { Document, Page, Text, View, StyleSheet, Image, pdf } from '@react-pdf/renderer';

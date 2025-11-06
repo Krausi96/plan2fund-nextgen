@@ -49,12 +49,15 @@ export default function RichTextEditor({
   showWordCount = true,
   showGuidance = true,
   showFormatting = false,
-  onFormattingChange
+  onFormattingChange,
+  showImageUpload = true
 }: RichTextEditorProps) {
   const [isFocused] = useState(false);
   const [wordCount, setWordCount] = useState(0);
   const [charCount, setCharCount] = useState(0);
   const [showFormattingPanel, setShowFormattingPanel] = useState(false);
+  const [showImageUploadPanel, setShowImageUploadPanel] = useState(false);
+  const quillRef = useRef<any>(null);
   const [formatting, setFormatting] = useState<FormattingOptions>({
     theme: 'sans',
     spacing: 'normal',
@@ -77,6 +80,27 @@ export default function RichTextEditor({
     onChange(value);
   };
 
+  // Handle image insertion
+  const handleImageInsert = (imageUrl: string, caption?: string, description?: string) => {
+    if (!quillRef.current) return;
+    
+    const quill = quillRef.current.getEditor();
+    const range = quill.getSelection(true);
+    
+    // Insert image with optional caption
+    let imageHtml = `<img src="${imageUrl}" alt="${caption || ''}" />`;
+    if (caption) {
+      imageHtml += `<p class="text-sm text-gray-600 italic mt-2">${caption}</p>`;
+    }
+    if (description) {
+      imageHtml += `<p class="text-xs text-gray-500 mt-1">${description}</p>`;
+    }
+    
+    quill.clipboard.dangerouslyPasteHTML(range.index, imageHtml);
+    quill.setSelection(range.index + imageHtml.length);
+    setShowImageUploadPanel(false);
+  };
+
   // Quill toolbar configuration
   const quillModules = useMemo(() => ({
     toolbar: {
@@ -91,8 +115,13 @@ export default function RichTextEditor({
         ['link', 'image'],
         ['clean']
       ],
+      handlers: {
+        image: () => {
+          setShowImageUploadPanel(!showImageUploadPanel);
+        }
+      }
     },
-  }), []);
+  }), [showImageUploadPanel]);
   
   const quillFormats = [
     'header', 'bold', 'italic', 'underline', 'strike',
@@ -289,6 +318,7 @@ export default function RichTextEditor({
           charCount > maxLength * 0.9 ? 'border-yellow-300 bg-yellow-50' : ''
         }`}>
           <ReactQuill
+            ref={quillRef}
             value={content}
             onChange={handleContentChange}
             modules={quillModules}
@@ -299,6 +329,16 @@ export default function RichTextEditor({
             theme="snow"
           />
         </div>
+        
+        {/* Image Upload Panel */}
+        {showImageUpload && showImageUploadPanel && (
+          <div className="mt-4">
+            <ImageUpload
+              onImageInsert={handleImageInsert}
+              sectionId={section.key || section.id}
+            />
+          </div>
+        )}
         
         {/* Character count indicator */}
         <div className="mt-2 text-xs text-gray-400 text-right">
