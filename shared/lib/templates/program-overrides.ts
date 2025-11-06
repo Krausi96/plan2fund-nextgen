@@ -108,10 +108,32 @@ export async function loadProgramSections(programId: string, baseUrl?: string): 
     
     if (!categorizedRequirements) return [];
     
+    // Check if we have stored template versions (server-side only)
+    if (typeof window === 'undefined') {
+      try {
+        const { loadTemplateVersions, checkTemplateNeedsUpdate, computeRequirementsHash } = await import('./templateVersioning');
+        const requirementsHash = computeRequirementsHash(categorizedRequirements);
+        const needsUpdate = await checkTemplateNeedsUpdate(programId, requirementsHash);
+        
+        if (!needsUpdate) {
+          // Load existing templates from database
+          const storedTemplates = await loadTemplateVersions(programId);
+          if (storedTemplates.length > 0) {
+            console.log(`✅ Loaded ${storedTemplates.length} stored template versions for program ${programId}`);
+            return storedTemplates;
+          }
+        }
+      } catch (versionError) {
+        console.warn('Template versioning check failed, continuing with generation:', versionError);
+      }
+    }
+    
     // Try LLM template generation first (if API key available)
     if (process.env.OPENAI_API_KEY) {
       try {
         const { generateTemplatesFromRequirements } = await import('@/shared/lib/templateGenerator');
+        const { computeRequirementsHash, saveTemplateVersion, saveRequirementsHash } = await import('./templateVersioning');
+        
         const llmTemplates = await generateTemplatesFromRequirements({
           programId,
           programName: data.program_name || programId,
@@ -125,6 +147,26 @@ export async function loadProgramSections(programId: string, baseUrl?: string): 
         
         if (llmTemplates.length > 0) {
           console.log(`✅ Generated ${llmTemplates.length} LLM templates for program ${programId}`);
+          
+          // Save template versions (server-side only)
+          if (typeof window === 'undefined') {
+            const requirementsHash = computeRequirementsHash(categorizedRequirements);
+            
+            // Save each template version
+            for (const template of llmTemplates) {
+              await saveTemplateVersion(programId, template, {
+                version_type: 'llm-generated',
+                model_version: 'gpt-4o-mini-v1',
+                prompt_version: 'template-prompt-v1',
+                generated_by: 'llm',
+                requirements_hash: requirementsHash
+              });
+            }
+            
+            // Save requirements hash
+            await saveRequirementsHash(programId, requirementsHash, categorizedRequirements);
+          }
+          
           return llmTemplates;
         }
       } catch (llmError) {
@@ -143,7 +185,7 @@ export async function loadProgramSections(programId: string, baseUrl?: string): 
     const editorSections = converter.convertToEditorSections(categorizedRequirements, programType);
     
     // Convert EditorSection[] to SectionTemplate[]
-    return editorSections.map(es => ({
+    const ruleBasedTemplates = editorSections.map(es => ({
       id: es.id,
       title: es.section_name,
       description: es.guidance || es.placeholder || '',
@@ -163,6 +205,29 @@ export async function loadProgramSections(programId: string, baseUrl?: string): 
         officialProgram: data.program_name
       }
     }));
+    
+    // Save rule-based templates as versions (server-side only)
+    if (typeof window === 'undefined') {
+      try {
+        const { saveTemplateVersion, computeRequirementsHash, saveRequirementsHash } = await import('./templateVersioning');
+        const requirementsHash = computeRequirementsHash(categorizedRequirements);
+        
+        for (const template of ruleBasedTemplates) {
+          await saveTemplateVersion(programId, template, {
+            version_type: 'rule-based',
+            generated_by: 'rule-based',
+            requirements_hash: requirementsHash
+          });
+        }
+        
+        await saveRequirementsHash(programId, requirementsHash, categorizedRequirements);
+      } catch (versionError) {
+        console.warn('Failed to save rule-based template versions:', versionError);
+        // Non-fatal: continue
+      }
+    }
+    
+    return ruleBasedTemplates;
   } catch (error) {
     console.error('Error loading program sections:', error);
     return [];

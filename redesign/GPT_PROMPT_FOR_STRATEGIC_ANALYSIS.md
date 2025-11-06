@@ -1,5 +1,15 @@
 # 🎯 Strategic Analysis & Implementation Prompt for GPT
 
+## ⚠️ Important Instructions
+
+**GitHub Access:** You have access to the GitHub repository. Please analyze the codebase directly by accessing the repository.
+
+**Approach:** This is not just an analysis - provide **direct, actionable Cursor instructions** to **make this finally work**. Address **ALL issues comprehensively** - nothing should be left unaddressed.
+
+**Clarifying Questions First:** Answer the strategic questions below to clarify direction before diving into implementation details.
+
+---
+
 ## Context: Plan2Fund Platform
 
 ### What We Do
@@ -104,6 +114,8 @@ Plan2Fund is a specialized platform that helps entrepreneurs in Austria and the 
 - **RestructuredEditor.tsx** → Main editing UI with sections
 - **ProgramSelector.tsx** → Lets users select funding program
 - **EntryPointsManager.tsx** → Manages entry points (wizard, direct, library)
+
+**Note:** This list covers key components. Please analyze **ALL files** in the codebase to understand complete file linkages and interactions. Map out how every file connects to others.
 
 ---
 
@@ -322,11 +334,18 @@ Plan2Fund is a specialized platform that helps entrepreneurs in Austria and the 
 ##### 4.1. UI: How to Place Components
 **Question:** How to place (Chapter navigation, DocumentCustomizationPanel, RequirementsChecker, AI Assistant, Chapters of business plans)? I like the interface/navigation of Canva.
 
+**Request:** Provide a **completely new interface design** that keeps all functions of current components but **simplifies the UI and makes it work**. Create visual diagrams showing:
+1. Current UI structure (enhanced diagram)
+2. Proposed new UI structure (Canva-style)
+3. Component interaction flow
+4. How all components integrate
+
 **Consider:**
 - Canva-style: Left sidebar (chapters), center (canvas), right (tools)
 - Current: Left (sections), center (editor), right (panels)
 - How to simplify and improve UX?
 - How to make it more intuitive?
+- **New interface must be simpler but retain all functionality**
 
 ##### 4.2. Chapter/Templates of Business Plans
 **Questions:**
@@ -340,10 +359,11 @@ Plan2Fund is a specialized platform that helps entrepreneurs in Austria and the 
    - What's the logical flow?
    - Should order be customizable?
 
-3. **How do we create financials, graphs, insert pictures, add descriptions to pictures?**
+3. **How do we create financials, graphs, insert pictures, add descriptions to pictures?** ⚠️ **CRITICAL - This is important**
    - Current: Text-only editor
-   - Need: Financial tables, charts, images
+   - Need: Financial tables, charts, images with descriptions
    - How to integrate these features?
+   - Priority: High - Essential for professional business plans
 
 4. **How can we link the chapters to the templates?**
    - Current: Sections mapped to templates
@@ -351,9 +371,11 @@ Plan2Fund is a specialized platform that helps entrepreneurs in Austria and the 
    - How to guide users through template requirements?
 
 5. **What will the user actually have in front of him?**
+   - What exactly will the user see and interact with?
    - Small questions per chapter?
    - How much must the user answer?
    - How to ensure high-quality document?
+   - What's the actual user experience flow?
 
 6. **How should we include the preview?**
    - Current: Export to PDF/DOCX
@@ -505,6 +527,8 @@ For each issue/improvement, provide:
 ---
 
 ## Final Request
+
+**URGENT:** Provide **direct Cursor instructions** that will **make this finally work**. Address **ALL issues** - nothing should be left unaddressed. Every question and concern must have a corresponding implementation instruction.
 
 Please analyze this codebase (you have GitHub access) and provide:
 
