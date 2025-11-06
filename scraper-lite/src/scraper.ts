@@ -300,7 +300,7 @@ export async function discover(seeds: string[], maxDepth = 1, maxPages = 20): Pr
         
         let processedCount = 0;
         // Process each candidate link
-        for (const { url: full, linkText, parentText } of linksToProcess) {
+        for (const { url: full, linkText } of linksToProcess) {
           processedCount++;
           // Log progress every 10 links to see where it might hang
           if (processedCount % 10 === 0) {
