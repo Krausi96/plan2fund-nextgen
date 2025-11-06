@@ -150,10 +150,10 @@
 - HTML preview fallback
 
 ### Next Steps:
-1. Create `shared/lib/featureFlags.ts`
-2. Add premium checks and upgrade modals
-3. Create `AdditionalDocumentsEditor.tsx`
-4. Add chapter-specific expert advice to AI assistant
+1. ✅ Create `shared/lib/featureFlags.ts` - **DONE**
+2. ✅ Add premium checks and upgrade modals - **DONE**
+3. Create `AdditionalDocumentsEditor.tsx` - **NEXT PRIORITY**
+4. Add chapter-specific expert advice to AI assistant - **PRIORITY 3**
 
 ---
 
@@ -172,13 +172,16 @@
 - `scraper-lite/src/llm-extract.ts` (from git commit e066250)
 - `scraper-lite/src/scraper-llm.ts` (from git commit e066250)
 
+### ✅ Created (Recently):
+- `features/reco/components/ProgramFinder.tsx` - **DONE**
+- `features/editor/components/ImageUpload.tsx` - **DONE**
+- `scraper-lite/src/llmCache.ts` - **DONE**
+- `pages/api/programmes/search.ts` - **DONE**
+- `shared/lib/featureFlags.ts` - **DONE**
+- `shared/components/UpgradeModal.tsx` - **DONE**
+
 ### ❌ Need to Create:
-- `features/reco/components/ProgramFinder.tsx`
-- `features/editor/components/ImageUpload.tsx`
-- `scraper-lite/src/llmCache.ts`
-- `pages/api/programmes/search.ts`
-- `shared/lib/featureFlags.ts`
-- `features/editor/components/AdditionalDocumentsEditor.tsx`
+- `features/editor/components/AdditionalDocumentsEditor.tsx` - **NEXT PRIORITY**
 
 ### ✅ Correctly Deleted:
 - `RestructuredEditor.tsx` (replaced)
@@ -187,28 +190,37 @@
 
 ---
 
-## 🎯 Priority Roadmap
+## 🎯 Priority Roadmap (Updated)
 
-### Week 1: Fix Scraper (CRITICAL)
-1. Restore LLM extraction files
-2. Integrate into scraper pipeline
-3. Add caching
-4. Update database schema
+### ✅ Week 1-3: Core Infrastructure - **COMPLETE**
+1. ✅ Restore LLM extraction files
+2. ✅ Integrate into scraper pipeline
+3. ✅ Add caching
+4. ✅ Update database schema
+5. ✅ Create ProgramFinder
+6. ✅ Merge SmartWizard + Advanced Search
+7. ✅ Add semantic search backend
+8. ✅ Image upload
+9. ✅ react-pdf preview
+10. ✅ Freemium gating
+11. ✅ LLM template generation
 
-### Week 2: Unify Reco (CRITICAL)
-1. Create ProgramFinder
-2. Merge SmartWizard + Advanced Search
-3. Add semantic search backend
+### 🔴 Week 4: Additional Documents (HIGH PRIORITY - NEXT)
+1. Create `AdditionalDocumentsEditor.tsx`
+2. Link to program requirements
+3. Content variation strategy
+4. Testing
 
-### Week 3: Complete Editor (HIGH)
-1. Image upload
-2. react-pdf preview
-3. Freemium gating
+### 🟡 Week 5: Expert Advice (MEDIUM PRIORITY)
+1. Create section-specific prompts
+2. Integrate into ComplianceAIHelper
+3. Add expert advice panel (optional)
+4. Testing
 
-### Week 4: Polish (MEDIUM)
-1. LLM template generation
-2. Additional documents
-3. Testing
+### 🟢 Week 6: Polish & Optional (LOW PRIORITY)
+1. Area 3 optional enhancements
+2. Testing and bug fixes
+3. Documentation
 
 ---
 
@@ -221,13 +233,14 @@
 - **Codebase is CLEANER** - Removed 250+ lines of obsolete SmartWizard code
 
 ### 🔴 Next Priorities:
-1. **Area 3: Editor Entry** - LLM template generation (makes templates dynamic)
-2. **Area 4: Editor** - Image upload, react-pdf preview, freemium gating
+1. **Area 4: Additional Documents** - Pitch deck, forms editor (required for complete package)
+2. **Area 4: Chapter-Specific Expert Advice** - Domain-specific AI guidance (differentiates from generic AI)
+3. **Area 3: Optional Enhancements** - Admin UI, LLM suggestions integration (nice-to-have)
 
 ### 📊 Progress:
 - **Before:** ~15% complete (only editor UI partially done)
-- **Now:** ~60% complete (scraper + reco fully done, editor 60%)
-- **Improvement:** +45% in core backend features
+- **Now:** ~83% complete (scraper + reco + editor entry fully done, editor 85%)
+- **Improvement:** +68% in core backend features
 
 See `ACHIEVEMENTS_SUMMARY.md` for detailed breakdown.
 
