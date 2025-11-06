@@ -1202,7 +1202,96 @@ export async function scrape(maxUrls = 10, targets: string[] = []): Promise<void
         );
         meta = await Promise.race([extractPromise, extractTimeout]) as any;
         const extractTime = ((Date.now() - extractStartTime) / 1000).toFixed(1);
-        console.log(`    ✅ Metadata extracted in ${extractTime}s`);
+        console.log(`    ✅ Metadata extracted (pattern-based) in ${extractTime}s`);
+        
+        // LLM HYBRID EXTRACTION: Fill missing categories with LLM
+        // Check if LLM extraction is enabled and if we have missing categories
+        const useLLMExtraction = process.env.USE_LLM_EXTRACTION === 'true' || process.env.OPENAI_API_KEY;
+        if (useLLMExtraction && meta.categorized_requirements) {
+          const REQUIREMENT_CATEGORIES = [
+            'company_type', 'company_stage', 'industry_restriction', 'eligibility_criteria',
+            'documents', 'financial', 'technical', 'legal', 'timeline', 'geographic', 'team',
+            'innovation_focus', 'technology_area', 'research_domain', 'sector_focus',
+            'compliance', 'environmental_impact', 'social_impact', 'economic_impact', 'innovation_impact',
+            'capex_opex', 'use_of_funds', 'revenue_model', 'market_size', 'co_financing',
+            'trl_level', 'consortium', 'diversity',
+            'application_process', 'evaluation_criteria', 'repayment_terms',
+            'equity_terms', 'intellectual_property', 'success_metrics', 'restrictions'
+          ];
+          
+          // Count missing categories
+          const missingCategories = REQUIREMENT_CATEGORIES.filter(cat => 
+            !meta.categorized_requirements[cat] || meta.categorized_requirements[cat].length === 0
+          );
+          
+          // Use LLM if more than 5 categories are missing (configurable threshold)
+          const LLM_THRESHOLD = parseInt(process.env.LLM_MISSING_THRESHOLD || '5', 10);
+          if (missingCategories.length >= LLM_THRESHOLD) {
+            try {
+              console.log(`    🤖 Using LLM to fill ${missingCategories.length} missing categories...`);
+              const { extractHybrid } = await import('./llm-extract');
+              const { computeUrlHash, getCachedExtraction, storeCachedExtraction } = await import('./llmCache');
+              
+              // Check cache first
+              const urlHash = computeUrlHash(job.url);
+              let llmResult = getCachedExtraction(urlHash);
+              
+              if (!llmResult) {
+                // Call LLM extraction
+                const $ = require('cheerio').load(htmlToProcess);
+                const title = meta.title || $('title').text() || '';
+                const description = meta.description || $('meta[name="description"]').attr('content') || '';
+                
+                llmResult = await extractHybrid(htmlToProcess, job.url, title, description);
+                
+                // Cache the result
+                storeCachedExtraction(urlHash, llmResult, 'gpt-4o-mini-v1', job.url);
+              } else {
+                console.log(`    💾 Using cached LLM extraction`);
+              }
+              
+              // Merge LLM results with pattern-based results
+              // Mark LLM-extracted requirements with method='llm' and confidence=0.8
+              const mergedRequirements: Record<string, any[]> = { ...meta.categorized_requirements };
+              
+              Object.entries(llmResult.categorized_requirements || {}).forEach(([category, items]: [string, any]) => {
+                if (Array.isArray(items)) {
+                  // If category is missing or empty, use LLM results
+                  if (!mergedRequirements[category] || mergedRequirements[category].length === 0) {
+                    mergedRequirements[category] = items.map((item: any) => ({
+                      ...item,
+                      extraction_method: 'llm',
+                      confidence: 0.8
+                    }));
+                  } else {
+                    // Merge: keep pattern-based, add LLM if it provides more detail
+                    const existing = mergedRequirements[category];
+                    const llmItems = items.map((item: any) => ({
+                      ...item,
+                      extraction_method: 'hybrid',
+                      confidence: 0.7
+                    }));
+                    mergedRequirements[category] = [...existing, ...llmItems];
+                  }
+                }
+              });
+              
+              // Update metadata (prefer LLM if pattern-based is missing)
+              meta.categorized_requirements = mergedRequirements;
+              meta.metadata_json = {
+                ...meta.metadata_json,
+                extraction_method: 'hybrid',
+                llm_categories_filled: missingCategories.length,
+                pattern_categories: Object.keys(meta.categorized_requirements).length - missingCategories.length
+              };
+              
+              console.log(`    ✅ LLM extraction complete: filled ${missingCategories.length} categories`);
+            } catch (llmError: any) {
+              console.warn(`    ⚠️  LLM extraction failed: ${llmError?.message || String(llmError)}`);
+              // Continue with pattern-based results only
+            }
+          }
+        }
         
         // MEMORY: Clear large HTML strings after extraction to free memory
         htmlToProcess = '' as any;

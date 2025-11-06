@@ -33,9 +33,10 @@
 
 ### Next Steps:
 1. ✅ Restore `llm-extract.ts` and `scraper-llm.ts` from git - **DONE**
-2. [ ] Integrate into `scraper.ts` pipeline
-3. [ ] Create `llmCache.ts` module
-4. [ ] Update database schema (add method, confidence fields)
+2. ✅ Integrate into `scraper.ts` pipeline - **DONE**
+3. ✅ Create `llmCache.ts` module - **DONE**
+4. ✅ Update database schema (add method, confidence fields) - **DONE**
+5. ✅ Create `page-repository.ts` with extraction_method and confidence support - **DONE**
 
 ---
 

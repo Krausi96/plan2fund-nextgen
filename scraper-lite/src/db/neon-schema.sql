@@ -51,6 +51,10 @@ CREATE TABLE IF NOT EXISTS requirements (
   required BOOLEAN DEFAULT TRUE,
   source VARCHAR(50), -- 'context_extraction', 'structured', 'heading', etc.
   
+  -- LLM extraction metadata
+  extraction_method VARCHAR(20) DEFAULT 'pattern', -- 'pattern', 'llm', 'hybrid'
+  confidence DECIMAL(3,2) DEFAULT 1.0, -- 0.0 to 1.0: extraction confidence score
+  
   -- Additional flexible fields
   description TEXT,
   format TEXT, -- For documents: 'PDF', 'max 10 pages', etc.
