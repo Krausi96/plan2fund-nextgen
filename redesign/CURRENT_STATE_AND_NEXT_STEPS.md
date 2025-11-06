@@ -67,10 +67,22 @@
 
 ---
 
-### Priority 3: Area 4 - Chapter-Specific Expert Advice (MEDIUM) - **NEXT**
-**Why:** Improves AI assistant value, domain-specific guidance
+### ✅ Priority 3: Area 4 - Chapter-Specific Expert Advice (MEDIUM) - **COMPLETE**
+**Status:** ✅ DONE
 
-**Status:** Not started
+**What was implemented:**
+- ✅ Created `features/editor/prompts/sectionPrompts.ts` with expert prompts for all major sections
+- ✅ Integrated expert prompts into `ComplianceAIHelper.tsx` for all AI interactions
+- ✅ Section-specific advice for: Executive Summary, Financial Projections, Market Analysis, Team, Impact, Risk Assessment, Implementation Plan
+- ✅ Funding-type-specific context (grants, bank loans, equity, visa)
+- ✅ Austrian/EU-specific guidance (depreciation methods, VAT, social security, etc.)
+
+**Features:**
+- Expert context for each section with Austrian/EU funding focus
+- Key advice, best practices, and common mistakes for each section
+- Automatic section detection and prompt enhancement
+- Funding-type-specific guidance
+- Integrated into Fix Compliance, Improve Writing, and Chat functions
 - ✅ Updated UserProfile schema with subscription field
 - ✅ Added premium checks to ProgramFinder (semantic search)
 - ✅ Added premium checks to ComplianceAIHelper (advanced AI)
