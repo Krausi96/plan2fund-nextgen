@@ -525,6 +525,13 @@ export default function ComplianceAIHelper({
           </div>
         )}
       </div>
+      
+      {/* Upgrade Modal */}
+      <UpgradeModal
+        isOpen={showUpgradeModal}
+        onClose={() => setShowUpgradeModal(false)}
+        feature={upgradeFeature}
+      />
     </div>
   );
 }
