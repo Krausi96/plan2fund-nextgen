@@ -11,6 +11,7 @@ import ClientManager from "@/shared/components/common/ClientManager";
 import { getUserPayments, getPlanPaymentStatus } from "@/shared/lib/paymentStore";
 import AdminUserManager from "@/shared/components/admin/AdminUserManager";
 import { getUserDocuments } from "@/shared/lib/documentStore";
+import PageEntryIndicator from '@/shared/components/common/PageEntryIndicator';
 
 interface Plan {
   id: string;
@@ -284,8 +285,15 @@ function DashboardPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+    <>
+      <PageEntryIndicator 
+        icon="hint"
+        text="Welcome! Track your plans and applications here."
+        duration={5000}
+        position="top-right"
+      />
+      <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         {/* Header */}
         <div className="mb-10">
           <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
@@ -710,8 +718,9 @@ function DashboardPage() {
             </div>
           </Card>
         )}
+        </div>
       </div>
-    </div>
+    </>
   );
 }
 

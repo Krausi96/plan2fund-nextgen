@@ -1,7 +1,7 @@
 ﻿import Link from "next/link";
 import { useState, useEffect } from "react";
 import { useRouter } from "next/router";
-import featureFlags from "@/shared/lib/featureFlags";
+import { isFeatureEnabled, getSubscriptionTier } from "@/shared/lib/featureFlags";
 import { loadPlanSections, type PlanSection } from "@/shared/lib/planStore";
 // chapters.ts removed - use unified template system instead
 import analytics from "@/shared/lib/analytics";
@@ -12,11 +12,13 @@ import ExportRenderer from "@/features/export/renderer/renderer";
 import { getDocuments } from "@/shared/lib/templates";
 import { withAuth } from "@/shared/lib/withAuth";
 import { useUser } from "@/shared/contexts/UserContext";
+import PageEntryIndicator from '@/shared/components/common/PageEntryIndicator';
 
 function Preview() {
   const { t } = useI18n();
   const router = useRouter();
   const { userProfile } = useUser();
+  const subscriptionTier = getSubscriptionTier(userProfile);
   const [sections, setSections] = useState<PlanSection[]>([]);
   const [loading, setLoading] = useState(true);
   const [additionalDocuments, setAdditionalDocuments] = useState<any[]>([]);
@@ -133,7 +135,14 @@ function Preview() {
   });
   const [useExportRenderer, setUseExportRenderer] = useState(false);
   return (
-    <main className="max-w-5xl mx-auto py-12 grid md:grid-cols-[1fr_320px] gap-6">
+    <>
+      <PageEntryIndicator 
+        icon="hint"
+        text="Review your plan and adjust settings before export."
+        duration={5000}
+        position="top-right"
+      />
+      <main className="max-w-5xl mx-auto py-12 grid md:grid-cols-[1fr_320px] gap-6">
       <div>
       <div className="flex items-center justify-between mb-6">
         <div>
@@ -306,13 +315,13 @@ function Preview() {
                     {hasContent && <span className="text-xs text-green-600">✓ Completed</span>}
                   </div>
                   <button
-                    disabled={!featureFlags.isEnabled('CHECKOUT_ENABLED')}
+                    disabled={!isFeatureEnabled('priority_support' as any, subscriptionTier)}
                     className={`px-3 py-1 text-xs rounded ${
-                      featureFlags.isEnabled('CHECKOUT_ENABLED') 
+                      isFeatureEnabled('priority_support' as any, subscriptionTier) 
                         ? "bg-blue-100 text-blue-800 hover:bg-blue-200" 
                         : "bg-gray-100 text-gray-400 cursor-not-allowed"
                     }`}
-                    title={!featureFlags.isEnabled('CHECKOUT_ENABLED') ? t("preview.unlockAfterPurchase") : ""}
+                    title={!isFeatureEnabled('priority_support' as any, subscriptionTier) ? t("preview.unlockAfterPurchase") : ""}
                   >
                     Copy section
                   </button>
@@ -626,6 +635,7 @@ function Preview() {
         </div>
       </aside>
     </main>
+    </>
   );
 }
 

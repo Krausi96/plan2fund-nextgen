@@ -4,6 +4,7 @@
 import { useRouter } from 'next/router';
 import UnifiedEditor from '@/features/editor/components/UnifiedEditor';
 import { withAuth } from '@/shared/lib/withAuth';
+import PageEntryIndicator from '@/shared/components/common/PageEntryIndicator';
 
 function EditorPage() {
   const router = useRouter();
@@ -22,12 +23,20 @@ function EditorPage() {
   }
 
   return (
-    <UnifiedEditor
-      programId={programId as string}
-      route={(route as string) || 'grant'}
-      product={(product as string) || 'submission'}
-      answers={answers ? JSON.parse(decodeURIComponent(answers as string)) : undefined}
-    />
+    <>
+      <PageEntryIndicator 
+        icon="hint"
+        text="Build your business plan section by section."
+        duration={5000}
+        position="top-right"
+      />
+      <UnifiedEditor
+        programId={programId as string}
+        route={(route as string) || 'grant'}
+        product={(product as string) || 'submission'}
+        answers={answers ? JSON.parse(decodeURIComponent(answers as string)) : undefined}
+      />
+    </>
   );
 }
 

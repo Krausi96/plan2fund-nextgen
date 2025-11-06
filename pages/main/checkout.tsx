@@ -1,18 +1,20 @@
 ﻿import Link from "next/link";
 import { useRouter } from "next/router";
-import featureFlags from "@/shared/lib/featureFlags";
+import { isFeatureEnabled, getSubscriptionTier } from "@/shared/lib/featureFlags";
 import CartSummary from '@/features/export/components/CartSummary';
 import { useI18n } from "@/shared/contexts/I18nContext";
 import { useEffect } from "react";
 import analytics from "@/shared/lib/analytics";
 import { withAuth } from "@/shared/lib/withAuth";
 import { useUser } from "@/shared/contexts/UserContext";
+import PageEntryIndicator from '@/shared/components/common/PageEntryIndicator';
 
 function Checkout() {
   const { t } = useI18n();
   const router = useRouter();
   const { userProfile } = useUser();
-  const CHECKOUT_ENABLED = featureFlags.isEnabled('CHECKOUT_ENABLED')
+  const subscriptionTier = getSubscriptionTier(userProfile);
+  const CHECKOUT_ENABLED = isFeatureEnabled('priority_support' as any, subscriptionTier) // Using priority_support as placeholder since CHECKOUT_ENABLED doesn't exist in FeatureFlag type
   
   // Get planId from query params
   const planId = router.query.planId as string || 'current';
@@ -36,8 +38,15 @@ function Checkout() {
     )
   }
   return (
-    <main className="max-w-3xl mx-auto py-12 space-y-8">
-      <h1 className="text-2xl font-bold">Checkout</h1>
+    <>
+      <PageEntryIndicator 
+        icon="hint"
+        text="Review your order and complete payment securely."
+        duration={5000}
+        position="top-right"
+      />
+      <main className="max-w-3xl mx-auto py-12 space-y-8">
+        <h1 className="text-2xl font-bold">Checkout</h1>
       <p className="text-gray-600 mb-6">
         Please review your order and complete the checkout process.
       </p>
@@ -138,6 +147,7 @@ function Checkout() {
         </Link>
       </div>
     </main>
+    </>
   );
 }
 

@@ -1,7 +1,7 @@
 ﻿import React, { useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/router";
-import featureFlags from "@/shared/lib/featureFlags";
+import { isFeatureEnabled, getSubscriptionTier } from "@/shared/lib/featureFlags";
 import { loadPlanSections, loadUserAnswers, type PlanSection } from "@/shared/lib/planStore";
 import analytics from "@/shared/lib/analytics";
 import { getDocuments, getDocument } from "@/shared/lib/templates";
@@ -11,11 +11,13 @@ import { withAuth } from "@/shared/lib/withAuth";
 import { useUser } from "@/shared/contexts/UserContext";
 import { getPlanPaymentStatus } from "@/shared/lib/paymentStore";
 import { saveExportedDocument } from "@/shared/lib/documentStore";
+import PageEntryIndicator from '@/shared/components/common/PageEntryIndicator';
 
 function Export() {
-  const EXPORT_ENABLED = featureFlags.isEnabled('EXPORT_ENABLED')
   const router = useRouter();
   const { userProfile } = useUser();
+  const subscriptionTier = getSubscriptionTier(userProfile);
+  const EXPORT_ENABLED = isFeatureEnabled('pdf_export', subscriptionTier) // Using pdf_export as closest match
   const { planId } = router.query;
   const [sections, setSections] = useState<PlanSection[]>([]);
   const [exporting, setExporting] = useState(false);
@@ -220,8 +222,15 @@ function Export() {
   }
 
   return (
-    <main className="max-w-3xl mx-auto py-12 space-y-6">
-      <h1 className="text-2xl font-bold">Export</h1>
+    <>
+      <PageEntryIndicator 
+        icon="hint"
+        text="Choose your export format and additional documents."
+        duration={5000}
+        position="top-right"
+      />
+      <main className="max-w-3xl mx-auto py-12 space-y-6">
+        <h1 className="text-2xl font-bold">Export</h1>
       <p className="text-gray-600">
         Download your business plan as PDF or DOCX.
       </p>
@@ -463,7 +472,7 @@ function Export() {
                 quality: 'standard', 
                 includeToC: true, 
                 includeListOfFigures: true 
-              });
+              }, subscriptionTier);
               
               // Save exported document
               if (userProfile) {
@@ -686,6 +695,7 @@ function Export() {
         </Link>
       </div>
     </main>
+    </>
   );
 }
 
