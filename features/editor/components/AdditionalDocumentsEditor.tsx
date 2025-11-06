@@ -9,7 +9,6 @@ import { AdditionalDocumentInstance, AutoPopulateSource } from '../types/additio
 import { getDocuments } from '@/shared/lib/templates';
 import RichTextEditor from './RichTextEditor';
 import { Button } from '@/shared/components/ui/button';
-import { Card } from '@/shared/components/ui/card';
 import { Badge } from '@/shared/components/ui/badge';
 import { 
   FileText, 
@@ -37,7 +36,7 @@ export default function AdditionalDocumentsEditor({
   programId,
   fundingType = 'grants',
   productType = 'submission',
-  planContent = {},
+  planContent: _planContent = {},
   sections = [],
   onDocumentChange,
   onDocumentSave
@@ -138,7 +137,7 @@ export default function AdditionalDocumentsEditor({
             ? 'in_progress' 
             : 'completed';
         
-        const updated = {
+        const updated: AdditionalDocumentInstance = {
           ...doc,
           content,
           wordCount,
@@ -160,8 +159,8 @@ export default function AdditionalDocumentsEditor({
     setDocuments(updatedDocuments);
   }, [documents, activeDocumentId, onDocumentChange]);
 
-  // Auto-populate from business plan
-  const handleAutoPopulate = useCallback(() => {
+  // Auto-populate from business plan with content variation
+  const handleAutoPopulate = useCallback(async () => {
     if (!activeDocument || !activeTemplate) return;
     
     // Get high-relevance sources
@@ -174,40 +173,81 @@ export default function AdditionalDocumentsEditor({
       return;
     }
     
-    // Create summary from business plan sections
-    let populatedContent = activeTemplate.template;
-    
-    // Replace common placeholders with actual content
-    highRelevanceSources.forEach(source => {
-      // Extract key information from section content
-      const textContent = source.content.replace(/<[^>]*>/g, '').trim();
-      const summary = textContent.substring(0, 500) + (textContent.length > 500 ? '...' : '');
+    try {
+      // Combine source content
+      const combinedSourceContent = highRelevanceSources
+        .map(s => {
+          const textContent = s.content.replace(/<[^>]*>/g, '').trim();
+          return `[${s.sectionTitle}]\n${textContent}`;
+        })
+        .join('\n\n');
+
+      // Get content from other documents to avoid repetition
+      const otherDocuments = documents
+        .filter(d => d.id !== activeDocumentId && d.content && d.content.trim().length > 50)
+        .map(d => d.content.replace(/<[^>]*>/g, '').trim());
+
+      // Use content variation service
+      const { varyContentForDocument } = await import('@/shared/lib/contentVariation');
       
-      // Replace placeholders based on section type
-      if (source.sectionTitle.toLowerCase().includes('executive') || 
-          source.sectionTitle.toLowerCase().includes('summary')) {
-        populatedContent = populatedContent.replace(/\[Executive Summary\]/g, summary);
-        populatedContent = populatedContent.replace(/\[Project Overview\]/g, summary);
+      const variationResult = await varyContentForDocument({
+        documentType: activeTemplate.id || 'application_form',
+        documentName: activeTemplate.name,
+        sourceContent: combinedSourceContent,
+        sourceSection: highRelevanceSources.map(s => s.sectionTitle).join(', '),
+        tone: activeTemplate.id?.includes('pitch') ? 'persuasive' : 
+              activeTemplate.id?.includes('work_plan') ? 'technical' : 'professional',
+        targetLength: activeTemplate.maxSize ? parseInt(activeTemplate.maxSize) : undefined,
+        avoidRepetition: true,
+        otherDocuments
+      });
+
+      // Merge with template structure
+      let populatedContent = activeTemplate.template;
+      
+      // Replace placeholders with varied content
+      populatedContent = populatedContent.replace(/\[.*?\]/g, variationResult.variedContent);
+      
+      // If no placeholders found, append varied content
+      if (populatedContent === activeTemplate.template) {
+        populatedContent = `${activeTemplate.template}\n\n${variationResult.variedContent}`;
       }
       
-      if (source.sectionTitle.toLowerCase().includes('financial')) {
-        populatedContent = populatedContent.replace(/\[Financial.*?\]/g, summary);
-        populatedContent = populatedContent.replace(/\[Budget.*?\]/g, summary);
-      }
+      handleContentChange(populatedContent);
+    } catch (error: any) {
+      console.error('Content variation failed:', error);
+      // Fallback to simple placeholder replacement
+      let populatedContent = activeTemplate.template;
       
-      if (source.sectionTitle.toLowerCase().includes('market')) {
-        populatedContent = populatedContent.replace(/\[Market.*?\]/g, summary);
-        populatedContent = populatedContent.replace(/\[TAM.*?\]/g, summary);
-      }
+      highRelevanceSources.forEach(source => {
+        const textContent = source.content.replace(/<[^>]*>/g, '').trim();
+        const summary = textContent.substring(0, 500) + (textContent.length > 500 ? '...' : '');
+        
+        if (source.sectionTitle.toLowerCase().includes('executive') || 
+            source.sectionTitle.toLowerCase().includes('summary')) {
+          populatedContent = populatedContent.replace(/\[Executive Summary\]/g, summary);
+          populatedContent = populatedContent.replace(/\[Project Overview\]/g, summary);
+        }
+        
+        if (source.sectionTitle.toLowerCase().includes('financial')) {
+          populatedContent = populatedContent.replace(/\[Financial.*?\]/g, summary);
+          populatedContent = populatedContent.replace(/\[Budget.*?\]/g, summary);
+        }
+        
+        if (source.sectionTitle.toLowerCase().includes('market')) {
+          populatedContent = populatedContent.replace(/\[Market.*?\]/g, summary);
+          populatedContent = populatedContent.replace(/\[TAM.*?\]/g, summary);
+        }
+        
+        if (source.sectionTitle.toLowerCase().includes('team')) {
+          populatedContent = populatedContent.replace(/\[Team.*?\]/g, summary);
+          populatedContent = populatedContent.replace(/\[Management.*?\]/g, summary);
+        }
+      });
       
-      if (source.sectionTitle.toLowerCase().includes('team')) {
-        populatedContent = populatedContent.replace(/\[Team.*?\]/g, summary);
-        populatedContent = populatedContent.replace(/\[Management.*?\]/g, summary);
-      }
-    });
-    
-    handleContentChange(populatedContent);
-  }, [activeDocument, activeTemplate, autoPopulateSources, handleContentChange]);
+      handleContentChange(populatedContent);
+    }
+  }, [activeDocument, activeTemplate, autoPopulateSources, documents, activeDocumentId, handleContentChange]);
 
   // Save document
   const handleSave = useCallback(() => {
@@ -392,7 +432,7 @@ export default function AdditionalDocumentsEditor({
                       disabled={autoPopulateSources.length === 0}
                     >
                       <Sparkles className="h-4 w-4 mr-2" />
-                      Auto-Populate
+                      Auto-Populate (AI)
                     </Button>
                     <Button
                       variant="outline"

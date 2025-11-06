@@ -7,7 +7,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { 
   CheckCircle, XCircle, AlertCircle, Sparkles, Send, 
-  Wand2, FileCheck, MessageSquare, Loader2
+  Wand2, FileCheck, Loader2
 } from 'lucide-react';
 import { Button } from '@/shared/components/ui/button';
 import { Badge } from '@/shared/components/ui/badge';
@@ -20,9 +20,13 @@ import {
   ReadinessValidator, 
   transformCategorizedToProgramRequirements 
 } from '@/shared/lib/readiness';
+import { 
+  calculateQualityMetrics, 
+  getQualityGateStatus,
+  QualityMetrics 
+} from '@/shared/lib/qualityScoring';
 import { createAIHelper } from '@/features/editor/engine/aiHelper';
 import { buildExpertPrompt } from '@/features/editor/prompts/sectionPrompts';
-import { useI18n } from '@/shared/contexts/I18nContext';
 import { useUser } from '@/shared/contexts/UserContext';
 import { isFeatureEnabled, getSubscriptionTier, FeatureFlag } from '@/shared/lib/featureFlags';
 import UpgradeModal from '@/shared/components/UpgradeModal';
@@ -52,7 +56,6 @@ export default function ComplianceAIHelper({
   currentSection,
   onInsertContent
 }: ComplianceAIHelperProps) {
-  const { t } = useI18n();
   const { userProfile } = useUser();
   const [activeTab, setActiveTab] = useState<'compliance' | 'ai'>('compliance');
   const [showUpgradeModal, setShowUpgradeModal] = useState(false);
@@ -63,6 +66,7 @@ export default function ComplianceAIHelper({
   const [isLoadingCompliance, setIsLoadingCompliance] = useState(false);
   const [expandedSections, setExpandedSections] = useState<Set<string>>(new Set());
   const [programRequirements, setProgramRequirements] = useState<any>(null);
+  const [qualityMetrics, setQualityMetrics] = useState<QualityMetrics | null>(null);
   
   // AI state
   const [messages, setMessages] = useState<ChatMessage[]>([]);
@@ -123,7 +127,7 @@ export default function ComplianceAIHelper({
     }
   };
 
-  // Update checks when planContent changes
+  // Update checks and quality metrics when planContent changes
   useEffect(() => {
     if (programRequirements && planContent) {
       const validator = new ReadinessValidator(programRequirements, planContent);
@@ -132,8 +136,23 @@ export default function ComplianceAIHelper({
       }).catch(err => {
         console.error('Error updating checks:', err);
       });
+      
+      // Calculate quality metrics for current section
+      if (currentSection && planContent[currentSection]) {
+        const sectionContent = planContent[currentSection];
+        const wordCount = sectionContent.replace(/<[^>]*>/g, '').split(/\s+/).filter((w: string) => w.length > 0).length;
+        const metrics = calculateQualityMetrics(
+          sectionContent,
+          currentSection,
+          currentSection,
+          wordCount
+        );
+        setQualityMetrics(metrics);
+      } else {
+        setQualityMetrics(null);
+      }
     }
-  }, [planContent, programRequirements]);
+  }, [planContent, programRequirements, currentSection]);
 
   // AI Helper functions
   const handleFixCompliance = async () => {
@@ -141,7 +160,7 @@ export default function ComplianceAIHelper({
     try {
       const readinessIssues = checks
         .filter(c => c.status !== 'complete')
-        .map(c => `${c.category}: ${c.message}`)
+        .map(c => `${c.section}: ${c.suggestions.join('; ')}`)
         .join('\n');
       
       const aiHelper = createAIHelper({
@@ -451,8 +470,57 @@ export default function ComplianceAIHelper({
                   {Math.round(overallProgress)}%
                 </span>
               </div>
-              <Progress value={overallProgress} className="h-2" />
+              <Progress value={overallProgress} />
             </Card>
+
+            {/* Quality Metrics */}
+            {qualityMetrics && (
+              <Card className="p-4">
+                <div className="flex items-center justify-between mb-3">
+                  <span className="text-sm font-medium text-gray-700">Quality Score</span>
+                  <Badge variant={qualityMetrics.overall >= 80 ? "secondary" : qualityMetrics.overall >= 50 ? "default" : "destructive"}>
+                    {qualityMetrics.overall}/100
+                  </Badge>
+                </div>
+                <div className="mb-3">
+                  <Progress value={qualityMetrics.overall} />
+                </div>
+                {(() => {
+                  const gateStatus = getQualityGateStatus(qualityMetrics);
+                  return (
+                    <div className="space-y-2">
+                      <p className={`text-xs ${gateStatus.passed ? 'text-green-600' : 'text-yellow-600'}`}>
+                        {gateStatus.message}
+                      </p>
+                      <div className="grid grid-cols-3 gap-2 text-xs">
+                        <div>
+                          <span className="text-gray-500">Readability:</span>
+                          <span className="ml-1 font-medium">{qualityMetrics.readability.score}</span>
+                        </div>
+                        <div>
+                          <span className="text-gray-500">Completeness:</span>
+                          <span className="ml-1 font-medium">{qualityMetrics.completeness.score}</span>
+                        </div>
+                        <div>
+                          <span className="text-gray-500">Persuasiveness:</span>
+                          <span className="ml-1 font-medium">{qualityMetrics.persuasiveness.score}</span>
+                        </div>
+                      </div>
+                      {qualityMetrics.readability.issues.length > 0 && (
+                        <div className="mt-2 pt-2 border-t">
+                          <p className="text-xs font-medium text-gray-700 mb-1">Issues:</p>
+                          <ul className="text-xs text-gray-600 space-y-1">
+                            {qualityMetrics.readability.issues.slice(0, 2).map((issue, i) => (
+                              <li key={i}>• {issue}</li>
+                            ))}
+                          </ul>
+                        </div>
+                      )}
+                    </div>
+                  );
+                })()}
+              </Card>
+            )}
 
             {/* Quick Actions */}
             {checks.filter(c => c.status !== 'complete').length > 0 && (
@@ -486,15 +554,15 @@ export default function ComplianceAIHelper({
             ) : (
               <div className="space-y-2">
                 {checks.map((check, index) => (
-                  <Card
+                  <div
                     key={index}
-                    className="p-3 cursor-pointer hover:bg-gray-50"
+                    className="p-3 cursor-pointer hover:bg-gray-50 rounded-lg border"
                     onClick={() => {
                       const newExpanded = new Set(expandedSections);
-                      if (newExpanded.has(check.category)) {
-                        newExpanded.delete(check.category);
+                      if (newExpanded.has(check.section)) {
+                        newExpanded.delete(check.section);
                       } else {
-                        newExpanded.add(check.category);
+                        newExpanded.add(check.section);
                       }
                       setExpandedSections(newExpanded);
                     }}
@@ -504,7 +572,7 @@ export default function ComplianceAIHelper({
                       <div className="flex-1">
                         <div className="flex items-center justify-between">
                           <span className="text-sm font-medium text-gray-900">
-                            {check.category}
+                            {check.section.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase())}
                           </span>
                           <Badge
                             variant={
@@ -516,8 +584,10 @@ export default function ComplianceAIHelper({
                             {check.status}
                           </Badge>
                         </div>
-                        <p className="text-xs text-gray-600 mt-1">{check.message}</p>
-                        {expandedSections.has(check.category) && check.suggestions && (
+                        <p className="text-xs text-gray-600 mt-1">
+                          Score: {check.score}% - {check.requirements.filter(r => r.status === 'not_met').length} issues found
+                        </p>
+                        {expandedSections.has(check.section) && check.suggestions && (
                           <div className="mt-2 pt-2 border-t border-gray-200">
                             <p className="text-xs font-medium text-gray-700 mb-1">Suggestions:</p>
                             <ul className="text-xs text-gray-600 space-y-1">
@@ -526,13 +596,13 @@ export default function ComplianceAIHelper({
                                   <span className="text-blue-500">•</span>
                                   <span>{suggestion}</span>
                                 </li>
-                              ))}
-                            </ul>
-                          </div>
-                        )}
-                      </div>
+                            ))}
+                          </ul>
+                        </div>
+                      )}
                     </div>
-                  </Card>
+                  </div>
+                </div>
                 ))}
               </div>
             )}

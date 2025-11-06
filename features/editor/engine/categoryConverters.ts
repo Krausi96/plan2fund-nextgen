@@ -139,10 +139,12 @@ export class CategoryConverter {
   }
 
   /**
-   * Get requirements relevant to a specific category
+   * Get requirements relevant to a specific category (async version for future LLM enhancement)
    * Enhanced with LLM suggestions for dynamic mapping (if available)
    */
-  private async getRelevantRequirements(
+  /* istanbul ignore next */
+  // @ts-ignore - Unused but kept for future LLM enhancement
+  private async getRelevantRequirementsAsync(
     category: string, 
     categorizedRequirements: CategorizedRequirements
   ): Promise<CategoryData[]> {
@@ -172,11 +174,44 @@ export class CategoryConverter {
       requirements.push(...reqs);
     }
     
-    // TODO: Use LLM to suggest additional relevant categories
-    // if (process.env.OPENAI_API_KEY && requirements.length === 0) {
-    //   const { suggestSectionForCategory } = await import('@/shared/lib/templateGenerator');
-    //   // Try to find relevant categories using LLM
-    // }
+    // Use LLM to suggest additional relevant categories if no requirements found
+    if (process.env.OPENAI_API_KEY && requirements.length === 0) {
+      try {
+        const { suggestSectionForCategory } = await import('@/shared/lib/templateGenerator');
+        const { getStandardSections } = await import('@/shared/lib/templates/sections');
+        
+        // Get master sections for context
+        const masterSections = getStandardSections('grants'); // Default, could be enhanced
+        
+        // Try to find relevant category using LLM
+        const sampleValue = Object.values(categorizedRequirements)
+          .flat()
+          .find(req => req.value)?.value || '';
+        
+        if (sampleValue && typeof sampleValue === 'string') {
+          const suggestedSectionId = await suggestSectionForCategory(
+            category,
+            sampleValue,
+            masterSections
+          );
+          
+          // If LLM suggests a different section, try to find requirements from that section's category
+          if (suggestedSectionId) {
+            const suggestedSection = masterSections.find(s => s.id === suggestedSectionId);
+            if (suggestedSection && suggestedSection.category !== category) {
+              // Try the suggested category
+              const suggestedCategory = suggestedSection.category;
+              const suggestedReqs = categorizedRequirements[suggestedCategory as keyof CategorizedRequirements] || [];
+              if (suggestedReqs.length > 0) {
+                return suggestedReqs;
+              }
+            }
+          }
+        }
+      } catch (error) {
+        console.warn('LLM section suggestion failed, using rule-based mapping:', error);
+      }
+    }
     
     return requirements;
   }
