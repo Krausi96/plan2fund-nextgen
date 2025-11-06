@@ -28,7 +28,9 @@ export default function ConfirmPage() {
           {attachmentTodos.map((todo, i) => (
             <li key={i} className="flex items-center gap-2">
               {todo}
-              <Info className="w-3 h-3 text-gray-500" title={t("confirm.whyWeNeedThis")} />
+              <span title={t("confirm.whyWeNeedThis")} className="inline-flex items-center">
+                <Info className="w-3 h-3 text-gray-500" aria-label={t("confirm.whyWeNeedThis")} />
+              </span>
             </li>
           ))}
         </ul>

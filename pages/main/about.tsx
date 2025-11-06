@@ -3,7 +3,7 @@ import HeroLite from '@/shared/components/common/HeroLite';
 import CTAStrip from '@/shared/components/common/CTAStrip';
 import SEOHead from '@/shared/components/common/SEOHead';
 import { useI18n } from "@/shared/contexts/I18nContext";
-import { Mail, ArrowRight } from "lucide-react";
+import { Mail, ArrowRight, Lightbulb, Search, FileText, BookOpen, Rocket, Shield, Scale, GraduationCap } from "lucide-react";
 import Link from "next/link";
 
 export default function AboutPage() {
