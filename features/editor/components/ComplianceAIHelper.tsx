@@ -153,15 +153,32 @@ export default function ComplianceAIHelper({
         language: plan?.language || 'en'
       });
 
-      // Build expert-enhanced prompt
+      // Build expert-enhanced prompt with comprehensive knowledge
       const fundingType = programProfile?.route || 'grants';
       const sectionTitle = currentSection;
+      
+      // Fetch program requirements if programId is available
+      let programRequirements = null;
+      if (programId) {
+        try {
+          const response = await fetch(`/api/programmes/${programId}/requirements`);
+          if (response.ok) {
+            programRequirements = await response.json();
+          }
+        } catch (err) {
+          console.warn('Failed to fetch program requirements for AI context:', err);
+        }
+      }
+      
       const expertPrompt = buildExpertPrompt(
         currentSection,
         sectionTitle,
         `Fix compliance issues:\n\n${readinessIssues}`,
         planContent[currentSection] || '',
-        fundingType
+        fundingType,
+        programRequirements,
+        planContent,
+        programProfile
       );
       
       const response = await aiHelper.generateSectionContent(currentSection, expertPrompt, {
@@ -213,15 +230,32 @@ export default function ComplianceAIHelper({
         language: plan?.language || 'en'
       });
 
-      // Build expert-enhanced prompt
+      // Build expert-enhanced prompt with comprehensive knowledge
       const fundingType = programProfile?.route || 'grants';
       const sectionTitle = currentSection;
+      
+      // Fetch program requirements if programId is available
+      let programRequirements = null;
+      if (programId) {
+        try {
+          const response = await fetch(`/api/programmes/${programId}/requirements`);
+          if (response.ok) {
+            programRequirements = await response.json();
+          }
+        } catch (err) {
+          console.warn('Failed to fetch program requirements for AI context:', err);
+        }
+      }
+      
       const expertPrompt = buildExpertPrompt(
         currentSection,
         sectionTitle,
         'Improve the writing quality and clarity of this section',
         planContent[currentSection] || '',
-        fundingType
+        fundingType,
+        programRequirements,
+        planContent,
+        programProfile
       );
       
       const response = await aiHelper.generateSectionContent(currentSection, expertPrompt, {
@@ -284,15 +318,32 @@ export default function ComplianceAIHelper({
         language: plan?.language || 'en'
       });
 
-      // Build expert-enhanced prompt
+      // Build expert-enhanced prompt with comprehensive knowledge
       const fundingType = programProfile?.route || 'grants';
       const sectionTitle = currentSection;
+      
+      // Fetch program requirements if programId is available
+      let programRequirements = null;
+      if (programId) {
+        try {
+          const response = await fetch(`/api/programmes/${programId}/requirements`);
+          if (response.ok) {
+            programRequirements = await response.json();
+          }
+        } catch (err) {
+          console.warn('Failed to fetch program requirements for AI context:', err);
+        }
+      }
+      
       const expertPrompt = buildExpertPrompt(
         currentSection,
         sectionTitle,
         input,
         planContent[currentSection] || '',
-        fundingType
+        fundingType,
+        programRequirements,
+        planContent,
+        programProfile
       );
 
       const response = await aiHelper.generateSectionContent(
