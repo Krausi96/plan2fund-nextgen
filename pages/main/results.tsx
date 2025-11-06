@@ -11,6 +11,7 @@ import { useI18n } from "@/shared/contexts/I18nContext";
 import { useUser } from "@/shared/contexts/UserContext";
 import StructuredRequirementsDisplay from "@/shared/components/common/StructuredRequirementsDisplay";
 import analytics from "@/shared/lib/analytics";
+import PageEntryIndicator from '@/shared/components/common/PageEntryIndicator';
 
 // Enhanced program result type with detailed explanations
 type ProgramResult = any; // Using any for now to avoid import issues
@@ -87,7 +88,14 @@ function ResultsPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-sky-50 via-white to-emerald-50 font-sans">
+    <>
+      <PageEntryIndicator 
+        icon="hint"
+        text="Review your matches and select a program to continue."
+        duration={5000}
+        position="top-right"
+      />
+      <div className="min-h-screen bg-gradient-to-br from-sky-50 via-white to-emerald-50 font-sans">
       {/* Modern Header */}
       <div className="bg-white/80 backdrop-blur-lg border-b border-gray-200/50 sticky top-0 z-10">
         <div className="max-w-4xl mx-auto px-6 py-6 flex items-center justify-between">
@@ -552,6 +560,7 @@ function ResultsPage() {
       />
       </div>
     </div>
+    </>
   );
 }
 
