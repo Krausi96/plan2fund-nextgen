@@ -11,6 +11,14 @@ export interface UserProfile {
   lastActiveAt: string;
   gdprConsent: boolean;
   dataRetentionUntil?: string; // GDPR compliance
+  subscription?: {
+    tier: 'free' | 'premium' | 'enterprise';
+    expiresAt?: string;
+    status?: 'active' | 'cancelled' | 'expired';
+  };
+  // Backward compatibility fields
+  isPremium?: boolean;
+  premium?: boolean;
 }
 
 export interface RecoContext {
@@ -100,7 +108,13 @@ export function validateUserProfile(data: any): UserProfile | null {
     createdAt: data.createdAt || new Date().toISOString(),
     lastActiveAt: data.lastActiveAt || new Date().toISOString(),
     gdprConsent: Boolean(data.gdprConsent),
-    dataRetentionUntil: data.dataRetentionUntil
+    dataRetentionUntil: data.dataRetentionUntil,
+    subscription: data.subscription || {
+      tier: data.isPremium || data.premium ? 'premium' : 'free',
+      status: 'active'
+    },
+    isPremium: data.isPremium || data.premium || false,
+    premium: data.premium || data.isPremium || false
   };
 }
 

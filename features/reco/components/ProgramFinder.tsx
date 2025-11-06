@@ -15,6 +15,9 @@ import { QuestionEngine, SymptomQuestion } from '@/features/reco/engine/question
 import { scoreProgramsEnhanced, EnhancedProgramResult } from '@/features/reco/engine/enhancedRecoEngine';
 import { useI18n } from '@/shared/contexts/I18nContext';
 import { useRecommendation } from '@/features/reco/contexts/RecommendationContext';
+import { useUser } from '@/shared/contexts/UserContext';
+import { isFeatureEnabled, getSubscriptionTier, FeatureFlag } from '@/shared/lib/featureFlags';
+import UpgradeModal from '@/shared/components/UpgradeModal';
 
 interface ProgramFinderProps {
   onProgramSelect?: (programId: string, route: string) => void;
@@ -30,8 +33,11 @@ export default function ProgramFinder({
   const { t } = useI18n();
   const router = useRouter();
   const { setRecommendations } = useRecommendation();
+  const { userProfile } = useUser();
   
   const [mode, setMode] = useState<SearchMode>(initialMode);
+  const [showUpgradeModal, setShowUpgradeModal] = useState(false);
+  const [upgradeFeature, setUpgradeFeature] = useState<FeatureFlag | undefined>();
   const [programs, setPrograms] = useState<any[]>([]);
   const [questionEngine, setQuestionEngine] = useState<QuestionEngine | null>(null);
   const [results, setResults] = useState<EnhancedProgramResult[]>([]);
@@ -118,8 +124,25 @@ export default function ProgramFinder({
     try {
       setIsLoading(true);
       
+      // Check if semantic search is enabled (premium feature)
+      const subscriptionTier = getSubscriptionTier(userProfile);
+      const canUseSemanticSearch = isFeatureEnabled('semantic_search', subscriptionTier);
+      
       // Use semantic search API if query provided, otherwise use rule-based
       if (searchQuery && searchQuery.trim().length > 0) {
+        if (!canUseSemanticSearch) {
+          // Show upgrade modal for semantic search
+          setUpgradeFeature('semantic_search');
+          setShowUpgradeModal(true);
+          // Fall back to rule-based search
+          const scored = scoreProgramsEnhanced(programs, {
+            ...filters,
+            project_description: searchQuery
+          });
+          setResults(scored);
+          return;
+        }
+        
         // Use semantic search API (combines rule-based + semantic)
         const response = await fetch('/api/programmes/search', {
           method: 'POST',
@@ -565,6 +588,13 @@ export default function ProgramFinder({
           </div>
         </div>
       </div>
+      
+      {/* Upgrade Modal */}
+      <UpgradeModal
+        isOpen={showUpgradeModal}
+        onClose={() => setShowUpgradeModal(false)}
+        feature={upgradeFeature}
+      />
     </div>
   );
 }

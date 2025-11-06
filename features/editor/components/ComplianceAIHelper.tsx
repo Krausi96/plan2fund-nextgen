@@ -22,6 +22,9 @@ import {
 } from '@/shared/lib/readiness';
 import { createAIHelper, createEnhancedAIHelper } from '@/features/editor/engine/aiHelper';
 import { useI18n } from '@/shared/contexts/I18nContext';
+import { useUser } from '@/shared/contexts/UserContext';
+import { isFeatureEnabled, getSubscriptionTier, FeatureFlag } from '@/shared/lib/featureFlags';
+import UpgradeModal from '@/shared/components/UpgradeModal';
 
 interface ComplianceAIHelperProps {
   plan: any;
@@ -49,7 +52,10 @@ export default function ComplianceAIHelper({
   onInsertContent
 }: ComplianceAIHelperProps) {
   const { t } = useI18n();
+  const { userProfile } = useUser();
   const [activeTab, setActiveTab] = useState<'compliance' | 'ai'>('compliance');
+  const [showUpgradeModal, setShowUpgradeModal] = useState(false);
+  const [upgradeFeature, setUpgradeFeature] = useState<FeatureFlag | undefined>();
   
   // Compliance state
   const [checks, setChecks] = useState<ReadinessCheck[]>([]);
@@ -177,6 +183,14 @@ export default function ComplianceAIHelper({
   };
 
   const handleImproveWriting = async () => {
+    // Check premium access
+    const subscriptionTier = getSubscriptionTier(userProfile);
+    if (!isFeatureEnabled('advanced_ai', subscriptionTier)) {
+      setUpgradeFeature('advanced_ai');
+      setShowUpgradeModal(true);
+      return;
+    }
+    
     setIsProcessingAI(true);
     try {
       const aiHelper = createAIHelper({
@@ -220,6 +234,14 @@ export default function ComplianceAIHelper({
 
   const handleSend = async () => {
     if (!input.trim() || isProcessingAI) return;
+
+    // Check premium access for advanced AI
+    const subscriptionTier = getSubscriptionTier(userProfile);
+    if (!isFeatureEnabled('advanced_ai', subscriptionTier)) {
+      setUpgradeFeature('advanced_ai');
+      setShowUpgradeModal(true);
+      return;
+    }
 
     const userMessage: ChatMessage = {
       id: Date.now().toString(),

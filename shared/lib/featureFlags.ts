@@ -1,271 +1,173 @@
-// Feature Flag System for Runtime Configuration
-export interface FeatureFlag {
-  name: string;
-  enabled: boolean;
-  description: string;
-  segments?: string[]; // Only enable for specific segments
-  experiments?: {
-    id: string;
-    variant: string;
-    weight: number;
-  }[];
-}
+/**
+ * Feature Flags - Freemium gating system
+ * Controls access to premium features based on user subscription status
+ */
 
-export interface FeatureFlagConfig {
-  flags: Record<string, FeatureFlag>;
-  experiments: Record<string, {
-    id: string;
-    variants: Array<{
-      name: string;
-      weight: number;
-    }>;
-    enabled: boolean;
-  }>;
-}
-
-// Default feature flags
-const DEFAULT_FLAGS: FeatureFlagConfig = {
-  flags: {
-    SEGMENTED_ONBOARDING: {
-      name: 'SEGMENTED_ONBOARDING',
-      enabled: true,
-      description: 'Enable segmented onboarding flow',
-      segments: ['B2C_FOUNDER', 'SME_LOAN', 'VISA', 'PARTNER']
-    },
-    RECO_DECISION_TREE: {
-      name: 'RECO_DECISION_TREE',
-      enabled: true,
-      description: 'Use decision tree logic for recommendations',
-      segments: ['B2C_FOUNDER', 'SME_LOAN', 'VISA', 'PARTNER']
-    },
-    EDITOR_TEMPLATES_V1: {
-      name: 'EDITOR_TEMPLATES_V1',
-      enabled: true,
-      description: 'Enable program-aware editor templates',
-      segments: ['B2C_FOUNDER', 'SME_LOAN', 'VISA', 'PARTNER']
-    },
-    EXPORT_PAYWALL: {
-      name: 'EXPORT_PAYWALL',
-      enabled: true,
-      description: 'Enable paid export with watermarks',
-      segments: ['B2C_FOUNDER', 'SME_LOAN', 'VISA', 'PARTNER']
-    },
-    ANALYTICS_AB: {
-      name: 'ANALYTICS_AB',
-      enabled: true,
-      description: 'Enable A/B testing and analytics',
-      segments: ['B2C_FOUNDER', 'SME_LOAN', 'VISA', 'PARTNER']
-    },
-    AI_EXPLANATIONS: {
-      name: 'AI_EXPLANATIONS',
-      enabled: true,
-      description: 'Use AI for recommendation explanations',
-      segments: ['B2C_FOUNDER', 'SME_LOAN', 'VISA', 'PARTNER']
-    },
-    GDPR_COMPLIANCE: {
-      name: 'GDPR_COMPLIANCE',
-      enabled: true,
-      description: 'Enable GDPR compliance features',
-      segments: ['B2C_FOUNDER', 'SME_LOAN', 'VISA', 'PARTNER']
-    },
-    PAYMENT_INTEGRATION: {
-      name: 'PAYMENT_INTEGRATION',
-      enabled: true,
-      description: 'Enable Stripe payment integration',
-      segments: ['B2C_FOUNDER', 'SME_LOAN', 'VISA', 'PARTNER']
-    },
-    PROGRAM_AWARE_EDITOR: {
-      name: 'PROGRAM_AWARE_EDITOR',
-      enabled: true,
-      description: 'Enable program-specific editor templates and guidance',
-      segments: ['B2C_FOUNDER', 'SME_LOAN', 'VISA', 'PARTNER']
-    },
-    EDITOR_FORMATTING: {
-      name: 'EDITOR_FORMATTING',
-      enabled: true,
-      description: 'Enable advanced formatting options in editor',
-      segments: ['B2C_FOUNDER', 'SME_LOAN', 'VISA', 'PARTNER']
-    },
-    ROUTE_EXTRAS_PANEL: {
-      name: 'ROUTE_EXTRAS_PANEL',
-      enabled: true,
-      description: 'Show route-specific extras panel in editor',
-      segments: ['B2C_FOUNDER', 'SME_LOAN', 'VISA', 'PARTNER']
-    },
-    READINESS_CHECK: {
-      name: 'READINESS_CHECK',
-      enabled: true,
-      description: 'Enable readiness check engine and UI',
-      segments: ['B2C_FOUNDER', 'SME_LOAN', 'VISA', 'PARTNER']
-    },
-    RECO_INTEGRATION: {
-      name: 'RECO_INTEGRATION',
-      enabled: true,
-      description: 'Enable Reco to Editor data flow integration',
-      segments: ['B2C_FOUNDER', 'SME_LOAN', 'VISA', 'PARTNER']
-    },
-    AI_ASSISTANT: {
-      name: 'AI_ASSISTANT',
-      enabled: true,
-      description: 'Enable AI assistant in editor',
-      segments: ['B2C_FOUNDER', 'SME_LOAN', 'VISA', 'PARTNER']
-    }
-  },
-  experiments: {
-    LANDING_PAGE_HERO: {
-      id: 'LANDING_PAGE_HERO',
-      variants: [
-        { name: 'control', weight: 50 },
-        { name: 'benefit_focused', weight: 30 },
-        { name: 'social_proof', weight: 20 }
-      ],
-      enabled: true
-    },
-    PERSONA_DEFAULT: {
-      id: 'PERSONA_DEFAULT',
-      variants: [
-        { name: 'newbie', weight: 60 },
-        { name: 'expert', weight: 40 }
-      ],
-      enabled: true
-    },
-    PRICING_DISPLAY: {
-      id: 'PRICING_DISPLAY',
-      variants: [
-        { name: 'monthly', weight: 50 },
-        { name: 'annual', weight: 30 },
-        { name: 'lifetime', weight: 20 }
-      ],
-      enabled: true
-    }
+// Legacy compatibility - default export for old code
+const featureFlags = {
+  setUserContext: (segment: string, id: string) => {
+    // Legacy method - kept for backward compatibility
+    // New code should use isFeatureEnabled directly
+    console.log('Legacy featureFlags.setUserContext called', { segment, id });
   }
 };
 
-class FeatureFlagManager {
-  private config: FeatureFlagConfig;
-  private userSegment: string | null = null;
-  private userId: string | null = null;
+export default featureFlags;
 
-  constructor() {
-    this.config = DEFAULT_FLAGS;
-    this.loadConfig();
+export type FeatureFlag = 
+  | 'semantic_search'
+  | 'llm_extraction'
+  | 'advanced_ai'
+  | 'pdf_export'
+  | 'image_upload'
+  | 'additional_documents'
+  | 'unlimited_plans'
+  | 'priority_support';
+
+export type SubscriptionTier = 'free' | 'premium' | 'enterprise';
+
+interface FeatureConfig {
+  name: string;
+  description: string;
+  premium: boolean;
+  enterprise?: boolean;
+}
+
+const FEATURE_CONFIG: Record<FeatureFlag, FeatureConfig> = {
+  semantic_search: {
+    name: 'Semantic Search',
+    description: 'AI-powered semantic search to find programs by project description',
+    premium: true,
+  },
+  llm_extraction: {
+    name: 'LLM Data Extraction',
+    description: 'Advanced AI extraction for funding program data',
+    premium: true,
+  },
+  advanced_ai: {
+    name: 'Advanced AI Assistant',
+    description: 'Enhanced AI assistance with context-aware suggestions',
+    premium: true,
+  },
+  pdf_export: {
+    name: 'PDF Export',
+    description: 'Export business plans as PDF without watermark',
+    premium: true,
+  },
+  image_upload: {
+    name: 'Image Upload',
+    description: 'Upload and insert images into business plans',
+    premium: false, // Free feature
+  },
+  additional_documents: {
+    name: 'Additional Documents',
+    description: 'Create pitch decks, application forms, and other documents',
+    premium: true,
+  },
+  unlimited_plans: {
+    name: 'Unlimited Plans',
+    description: 'Create unlimited business plans',
+    premium: false, // Free users can create multiple plans
+    enterprise: true, // Enterprise gets unlimited
+  },
+  priority_support: {
+    name: 'Priority Support',
+    description: 'Priority customer support',
+    premium: false,
+    enterprise: true,
+  },
+};
+
+/**
+ * Check if a feature is enabled for a user
+ */
+export function isFeatureEnabled(
+  feature: FeatureFlag,
+  subscriptionTier: SubscriptionTier = 'free'
+): boolean {
+  const config = FEATURE_CONFIG[feature];
+  
+  if (!config) {
+    console.warn(`Unknown feature flag: ${feature}`);
+    return false;
   }
 
-  private loadConfig(): void {
-    // Load from environment variables or API
-    if (typeof window !== 'undefined') {
-      const stored = localStorage.getItem('pf_feature_flags');
-      if (stored) {
-        try {
-          this.config = { ...DEFAULT_FLAGS, ...JSON.parse(stored) };
-        } catch (error) {
-          console.error('Failed to parse feature flags:', error);
-        }
-      }
-    }
-  }
-
-  setUserContext(segment: string, userId: string): void {
-    this.userSegment = segment;
-    this.userId = userId;
-  }
-
-  isEnabled(flagName: string): boolean {
-    const flag = this.config.flags[flagName];
-    if (!flag) return false;
-
-    // Check if flag is enabled
-    if (!flag.enabled) return false;
-
-    // Check segment restrictions
-    if (flag.segments && this.userSegment && !flag.segments.includes(this.userSegment)) {
-      return false;
-    }
-
+  // Free features are always enabled
+  if (!config.premium && !config.enterprise) {
     return true;
   }
 
-  getExperimentVariant(experimentId: string): string | null {
-    const experiment = this.config.experiments[experimentId];
-    if (!experiment || !experiment.enabled) return null;
-
-    // Use userId for consistent assignment
-    const seed = this.userId ? this.hashCode(this.userId) : Math.random();
-    const random = (seed % 100) / 100;
-
-    let cumulativeWeight = 0;
-    for (const variant of experiment.variants) {
-      cumulativeWeight += variant.weight / 100;
-      if (random <= cumulativeWeight) {
-        return variant.name;
-      }
-    }
-
-    return experiment.variants[0].name; // Fallback to first variant
+  // Premium features require premium or enterprise
+  if (config.premium && (subscriptionTier === 'premium' || subscriptionTier === 'enterprise')) {
+    return true;
   }
 
-  private hashCode(str: string): number {
-    let hash = 0;
-    for (let i = 0; i < str.length; i++) {
-      const char = str.charCodeAt(i);
-      hash = ((hash << 5) - hash) + char;
-      hash = hash & hash; // Convert to 32-bit integer
-    }
-    return Math.abs(hash);
+  // Enterprise features require enterprise
+  if (config.enterprise && subscriptionTier === 'enterprise') {
+    return true;
   }
 
-  getFlag(flagName: string): FeatureFlag | null {
-    return this.config.flags[flagName] || null;
-  }
-
-  getAllFlags(): Record<string, FeatureFlag> {
-    return this.config.flags;
-  }
-
-  updateFlag(flagName: string, updates: Partial<FeatureFlag>): void {
-    if (this.config.flags[flagName]) {
-      this.config.flags[flagName] = { ...this.config.flags[flagName], ...updates };
-      this.saveConfig();
-    }
-  }
-
-  private saveConfig(): void {
-    if (typeof window !== 'undefined') {
-      localStorage.setItem('pf_feature_flags', JSON.stringify(this.config));
-    }
-  }
-
-  // Runtime flag updates (for A/B testing)
-  async refreshFlags(): Promise<void> {
-    try {
-      const response = await fetch('/api/feature-flags');
-      if (response.ok) {
-        const newConfig = await response.json();
-        this.config = { ...this.config, ...newConfig };
-        this.saveConfig();
-      }
-    } catch (error) {
-      console.error('Failed to refresh feature flags:', error);
-    }
-  }
-
-  // Get all enabled flags for current user
-  getEnabledFlags(): string[] {
-    return Object.keys(this.config.flags).filter(flagName => this.isEnabled(flagName));
-  }
-
-  // Get experiment assignments for current user
-  getExperimentAssignments(): Record<string, string> {
-    const assignments: Record<string, string> = {};
-    for (const experimentId of Object.keys(this.config.experiments)) {
-      const variant = this.getExperimentVariant(experimentId);
-      if (variant) {
-        assignments[experimentId] = variant;
-      }
-    }
-    return assignments;
-  }
+  return false;
 }
 
-export const featureFlags = new FeatureFlagManager();
-export default featureFlags;
+/**
+ * Get feature configuration
+ */
+export function getFeatureConfig(feature: FeatureFlag): FeatureConfig {
+  return FEATURE_CONFIG[feature];
+}
+
+/**
+ * Get all premium features
+ */
+export function getPremiumFeatures(): FeatureFlag[] {
+  return Object.entries(FEATURE_CONFIG)
+    .filter(([_, config]) => config.premium)
+    .map(([flag]) => flag as FeatureFlag);
+}
+
+/**
+ * Check if user has premium subscription
+ */
+export function isPremiumUser(subscriptionTier: SubscriptionTier): boolean {
+  return subscriptionTier === 'premium' || subscriptionTier === 'enterprise';
+}
+
+/**
+ * Get subscription tier from user profile
+ * Defaults to 'free' if not specified
+ */
+export function getSubscriptionTier(userProfile: any): SubscriptionTier {
+  if (!userProfile) return 'free';
+  
+  // Check for subscription field
+  if (userProfile.subscription?.tier) {
+    return userProfile.subscription.tier as SubscriptionTier;
+  }
+  
+  // Check for isPremium field (backward compatibility)
+  if (userProfile.isPremium === true) {
+    return 'premium';
+  }
+  
+  // Check for premium field
+  if (userProfile.premium === true) {
+    return 'premium';
+  }
+  
+  return 'free';
+}
+
+/**
+ * Get feature description for upgrade modal
+ */
+export function getFeatureDescription(feature: FeatureFlag): string {
+  return FEATURE_CONFIG[feature]?.description || '';
+}
+
+/**
+ * Get feature name for display
+ */
+export function getFeatureName(feature: FeatureFlag): string {
+  return FEATURE_CONFIG[feature]?.name || feature;
+}

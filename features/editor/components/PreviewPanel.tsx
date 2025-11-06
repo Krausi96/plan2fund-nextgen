@@ -8,6 +8,9 @@ import React, { useState, useEffect } from 'react';
 import { FileText, Download, Eye, EyeOff } from 'lucide-react';
 import { Button } from '@/shared/components/ui/button';
 import { Document, Page, Text, View, StyleSheet, Image, pdf } from '@react-pdf/renderer';
+import { useUser } from '@/shared/contexts/UserContext';
+import { isFeatureEnabled, getSubscriptionTier, FeatureFlag } from '@/shared/lib/featureFlags';
+import UpgradeModal from '@/shared/components/UpgradeModal';
 
 interface PreviewPanelProps {
   plan: any;
@@ -154,9 +157,11 @@ const styles = StyleSheet.create({
 });
 
 export default function PreviewPanel({ plan, sections }: PreviewPanelProps) {
+  const { userProfile } = useUser();
   const [showPreview, setShowPreview] = useState(true);
   const [previewFormat, setPreviewFormat] = useState<'pdf' | 'html'>('pdf');
   const [pdfBlob, setPdfBlob] = useState<Blob | null>(null);
+  const [showUpgradeModal, setShowUpgradeModal] = useState(false);
 
   // Generate PDF blob
   useEffect(() => {
@@ -361,6 +366,13 @@ export default function PreviewPanel({ plan, sections }: PreviewPanelProps) {
             size="sm"
             variant="outline"
             onClick={async () => {
+              // Check premium access for PDF export
+              const subscriptionTier = getSubscriptionTier(userProfile);
+              if (!isFeatureEnabled('pdf_export', subscriptionTier)) {
+                setShowUpgradeModal(true);
+                return;
+              }
+              
               if (previewFormat === 'pdf' && pdfBlob) {
                 const url = URL.createObjectURL(pdfBlob);
                 const a = document.createElement('a');
@@ -396,6 +408,13 @@ export default function PreviewPanel({ plan, sections }: PreviewPanelProps) {
           </div>
         )}
       </div>
+      
+      {/* Upgrade Modal */}
+      <UpgradeModal
+        isOpen={showUpgradeModal}
+        onClose={() => setShowUpgradeModal(false)}
+        feature="pdf_export"
+      />
     </div>
   );
 }
