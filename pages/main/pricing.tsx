@@ -495,10 +495,10 @@ const coreProducts = [
             </div>
 
                   <Link href={`/editor?product=${product.id}`} className="block mt-8">
-                    <Button className={`w-full py-4 text-lg font-bold rounded-2xl shadow-lg hover:shadow-xl transition-all duration-300 flex items-center justify-center gap-3 group ${
-                      product.color === 'blue' ? 'bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800' :
-                      product.color === 'green' ? 'bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700' :
-                      'bg-gradient-to-r from-blue-700 to-blue-800 hover:from-blue-800 hover:to-blue-900'
+                    <Button className={`w-full py-4 text-lg font-bold rounded-lg shadow-sm hover:shadow-md transition-all flex items-center justify-center gap-3 group ${
+                      product.color === 'blue' ? 'bg-blue-600 hover:bg-blue-700' :
+                      product.color === 'green' ? 'bg-green-600 hover:bg-green-700' :
+                      'bg-blue-600 hover:bg-blue-700'
                     }`}>
                       <span>{getButtonText(product.id)}</span>
                       <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />

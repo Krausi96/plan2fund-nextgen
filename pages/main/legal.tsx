@@ -74,7 +74,7 @@ export default function Legal() {
       
       <main className="max-w-3xl mx-auto px-6 py-16 space-y-8">
       <section className="text-center mb-8">
-        <h1 className="text-4xl font-bold bg-gradient-to-r from-blue-600 to-indigo-600 bg-clip-text text-transparent">
+        <h1 className="text-4xl font-bold text-blue-600">
           {t('legal.title')}
         </h1>
         <p className="text-gray-600 mt-2">Transparency and compliance at every step.</p>
@@ -87,10 +87,10 @@ export default function Legal() {
             <button
               key={tab.id}
               onClick={() => setActiveTab(tab.id as any)}
-              className={`py-2 px-1 border-b-2 font-medium text-sm ${
+              className={`py-3 px-4 border-b-2 font-medium text-sm transition-colors ${
                 activeTab === tab.id
-                  ? 'border-blue-500 text-blue-600'
-                  : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+                  ? 'border-blue-600 text-blue-600'
+                  : 'border-transparent text-gray-600 hover:text-blue-600 hover:border-gray-300'
               }`}
             >
               {tab.label}

@@ -253,7 +253,7 @@ export default function LoginModal({ isOpen, onClose, redirect }: LoginModalProp
             <button
               type="submit"
               disabled={loading}
-              className="w-full bg-blue-600 text-white py-3 rounded-lg font-medium hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors shadow-lg shadow-blue-600/30"
+              className="w-full bg-blue-600 text-white py-3 rounded-lg font-medium hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors shadow-sm hover:shadow-md"
             >
               {loading ? (
                 <span className="flex items-center justify-center gap-2">
@@ -265,6 +265,17 @@ export default function LoginModal({ isOpen, onClose, redirect }: LoginModalProp
               )}
             </button>
           </form>
+
+          {/* GDPR Note */}
+          <div className="mt-4 p-3 bg-blue-50 border border-blue-200 rounded-lg">
+            <p className="text-xs text-blue-800">
+              <strong>Data Privacy:</strong> By signing in, you agree to our{' '}
+              <a href="/privacy" className="underline hover:text-blue-900" target="_blank" rel="noopener noreferrer">
+                Privacy Policy
+              </a>
+              . We comply with GDPR and only use your data to provide our services.
+            </p>
+          </div>
 
           {/* Toggle Sign Up / Sign In */}
           <div className="mt-6 text-center text-sm text-gray-600">

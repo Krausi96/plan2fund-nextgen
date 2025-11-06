@@ -26,7 +26,7 @@ export default function AboutPage() {
           <div className="max-w-7xl mx-auto grid md:grid-cols-2 gap-8 mb-16">
             <Card className="p-10 hover:shadow-lg transition-shadow">
               <div className="flex items-center mb-6">
-                <div className="w-20 h-20 bg-blue-50 rounded-2xl flex items-center justify-center mr-6 flex-shrink-0">
+                <div className="w-20 h-20 bg-blue-50 rounded-lg flex items-center justify-center mr-6 flex-shrink-0">
                   <span className="text-3xl">🎯</span>
                 </div>
                 <h2 className="text-2xl font-semibold text-gray-900">{t('about.mission.title')}</h2>
@@ -66,7 +66,7 @@ export default function AboutPage() {
               </Card>
 
               <Card className="p-10 hover:shadow-lg transition-shadow">
-                <div className="w-20 h-20 bg-green-50 rounded-2xl flex items-center justify-center mx-auto mb-6">
+                <div className="w-20 h-20 bg-green-50 rounded-lg flex items-center justify-center mx-auto mb-6">
                   <span className="text-3xl">📋</span>
                 </div>
                 <h3 className="text-xl font-semibold mb-4 text-center text-gray-900">{t('about.features.professionalPlans.title')}</h3>
@@ -78,7 +78,7 @@ export default function AboutPage() {
               </Card>
 
               <Card className="p-10 hover:shadow-lg transition-shadow">
-                <div className="w-20 h-20 bg-purple-50 rounded-2xl flex items-center justify-center mx-auto mb-6">
+                <div className="w-20 h-20 bg-purple-50 rounded-lg flex items-center justify-center mx-auto mb-6">
                   <span className="text-3xl">📚</span>
                 </div>
                 <h3 className="text-xl font-semibold mb-4 text-center text-gray-900">{t('about.features.expertGuidance.title')}</h3>
@@ -95,10 +95,10 @@ export default function AboutPage() {
           <div className="mb-16">
             <div className="max-w-6xl mx-auto">
               <h2 className="text-3xl font-bold text-center mb-12">{t('about.founderStory.title')}</h2>
-              <div className="bg-gradient-to-r from-blue-50 to-indigo-50 rounded-2xl p-8 md:p-12">
+              <div className="bg-blue-50 rounded-lg p-8 md:p-12 border border-blue-100">
                 <div className="max-w-4xl mx-auto">
                   <div className="flex items-start mb-8">
-                    <div className="w-16 h-16 bg-blue-50 rounded-2xl flex items-center justify-center mr-6 flex-shrink-0">
+                    <div className="w-16 h-16 bg-blue-50 rounded-lg flex items-center justify-center mr-6 flex-shrink-0">
                       <span className="text-3xl">💡</span>
                     </div>
                     <div className="flex-1">
@@ -154,7 +154,7 @@ export default function AboutPage() {
 
               <Card className="p-10 hover:shadow-lg transition-shadow">
                 <div className="flex items-center mb-6">
-                  <div className="w-20 h-20 bg-blue-50 rounded-2xl flex items-center justify-center mr-6 flex-shrink-0">
+                  <div className="w-20 h-20 bg-blue-50 rounded-lg flex items-center justify-center mr-6 flex-shrink-0">
                     <span className="text-3xl">⚖️</span>
                   </div>
                   <h3 className="text-xl font-semibold text-gray-900">{t('about.trust.independence')}</h3>
@@ -189,7 +189,7 @@ export default function AboutPage() {
             </p>
             <Link 
               href="/contact" 
-              className="inline-flex items-center gap-3 px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors font-medium shadow-lg hover:shadow-xl"
+              className="inline-flex items-center gap-3 px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors font-medium shadow-sm hover:shadow-md"
             >
               <Mail className="w-5 h-5" />
               {t('about.contact.button')}
