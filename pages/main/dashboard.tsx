@@ -2,7 +2,7 @@ import { Card } from "@/shared/components/ui/card";
 import { Button } from "@/shared/components/ui/button";
 import Link from "next/link";
 import { useUser } from "@/shared/contexts/UserContext";
-import { FileText, Target, TrendingUp, Clock, CheckCircle, AlertCircle, Plus, RefreshCw, Database, Settings, Receipt, CreditCard, Download } from "lucide-react";
+import { FileText, Target, TrendingUp, Clock, CheckCircle, AlertCircle, Plus, RefreshCw, Database, Settings, Receipt, CreditCard, Download, ChevronDown, ChevronUp } from "lucide-react";
 import { useEffect, useState, useMemo } from "react";
 import analytics from "@/shared/lib/analytics";
 import { withAuth } from "@/shared/lib/withAuth";
@@ -61,6 +61,7 @@ function DashboardPage() {
   const [updateStatus, setUpdateStatus] = useState<string>('');
   const [lastUpdate, setLastUpdate] = useState<string>('');
   const [isMounted, setIsMounted] = useState(false);
+  const [adminPanelOpen, setAdminPanelOpen] = useState(false);
 
   useEffect(() => {
     setIsMounted(true);
@@ -292,7 +293,7 @@ function DashboardPage() {
         duration={5000}
         position="top-right"
       />
-      <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100">
+      <div className="min-h-screen bg-gray-50">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         {/* Header */}
         <div className="mb-10">
@@ -338,50 +339,50 @@ function DashboardPage() {
 
         {/* Stats Cards */}
         {isMounted && (
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 mb-10">
-            <Card className="p-6 bg-gradient-to-br from-blue-50 to-blue-100 border-blue-200 hover:shadow-lg transition-all duration-300 hover:-translate-y-1">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+            <Card className="p-6 bg-blue-50 border border-blue-200 hover:shadow-lg transition-shadow">
               <div className="flex items-center justify-between">
                 <div>
                   <p className="text-sm font-medium text-blue-700 mb-1">Total Plans</p>
                   <p className="text-3xl font-bold text-blue-900">{stats.totalPlans}</p>
                 </div>
-                <div className="w-12 h-12 bg-blue-500 rounded-xl flex items-center justify-center shadow-md">
+                <div className="w-12 h-12 bg-blue-600 rounded-lg flex items-center justify-center">
                   <FileText className="w-6 h-6 text-white" />
                 </div>
               </div>
             </Card>
 
-            <Card className="p-6 bg-gradient-to-br from-green-50 to-green-100 border-green-200 hover:shadow-lg transition-all duration-300 hover:-translate-y-1">
+            <Card className="p-6 bg-green-50 border border-green-200 hover:shadow-lg transition-shadow">
               <div className="flex items-center justify-between">
                 <div>
                   <p className="text-sm font-medium text-green-700 mb-1">Completed</p>
                   <p className="text-3xl font-bold text-green-900">{stats.completedPlans}</p>
                 </div>
-                <div className="w-12 h-12 bg-green-500 rounded-xl flex items-center justify-center shadow-md">
+                <div className="w-12 h-12 bg-green-600 rounded-lg flex items-center justify-center">
                   <CheckCircle className="w-6 h-6 text-white" />
                 </div>
               </div>
             </Card>
 
-            <Card className="p-6 bg-gradient-to-br from-purple-50 to-purple-100 border-purple-200 hover:shadow-lg transition-all duration-300 hover:-translate-y-1">
+            <Card className="p-6 bg-purple-50 border border-purple-200 hover:shadow-lg transition-shadow">
               <div className="flex items-center justify-between">
                 <div>
                   <p className="text-sm font-medium text-purple-700 mb-1">Active Applications</p>
                   <p className="text-3xl font-bold text-purple-900">{stats.activeRecommendations}</p>
                 </div>
-                <div className="w-12 h-12 bg-purple-500 rounded-xl flex items-center justify-center shadow-md">
+                <div className="w-12 h-12 bg-purple-600 rounded-lg flex items-center justify-center">
                   <Target className="w-6 h-6 text-white" />
                 </div>
               </div>
             </Card>
 
-            <Card className="p-6 bg-gradient-to-br from-orange-50 to-orange-100 border-orange-200 hover:shadow-lg transition-all duration-300 hover:-translate-y-1">
+            <Card className="p-6 bg-orange-50 border border-orange-200 hover:shadow-lg transition-shadow">
               <div className="flex items-center justify-between">
                 <div>
                   <p className="text-sm font-medium text-orange-700 mb-1">Success Rate</p>
                   <p className="text-3xl font-bold text-orange-900">{stats.successRate}%</p>
                 </div>
-                <div className="w-12 h-12 bg-orange-500 rounded-xl flex items-center justify-center shadow-md">
+                <div className="w-12 h-12 bg-orange-600 rounded-lg flex items-center justify-center">
                   <TrendingUp className="w-6 h-6 text-white" />
                 </div>
               </div>
@@ -397,7 +398,7 @@ function DashboardPage() {
               <h2 className="text-xl font-semibold text-gray-900 mb-6">Quick Actions</h2>
               <div className="space-y-3">
                 <Button 
-                  className="w-full justify-start h-auto py-4 bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 text-white shadow-md hover:shadow-lg transition-all duration-200" 
+                  className="w-full justify-start h-auto py-4 bg-blue-600 hover:bg-blue-700 text-white shadow-sm hover:shadow-md transition-all" 
                   asChild
                 >
                   <Link href="/editor?product=submission&route=grant" onClick={()=>analytics.trackUserAction('dashboard_cta_new_plan', {})}>
@@ -452,7 +453,7 @@ function DashboardPage() {
               </div>
 
               {recommendations.length === 0 ? (
-                <div className="text-center py-12 bg-gradient-to-br from-gray-50 to-gray-100 rounded-xl border-2 border-dashed border-gray-300">
+                <div className="text-center py-12 bg-gray-50 rounded-lg border-2 border-dashed border-gray-300">
                   <div className="w-16 h-16 bg-purple-100 rounded-full flex items-center justify-center mx-auto mb-4">
                     <Target className="w-8 h-8 text-purple-600" />
                   </div>
@@ -460,7 +461,7 @@ function DashboardPage() {
                   <p className="text-gray-600 mb-6 max-w-sm mx-auto">
                     Start finding funding opportunities that match your business needs
                   </p>
-                  <Button className="bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 text-white shadow-md" asChild>
+                  <Button className="bg-blue-600 hover:bg-blue-700 text-white shadow-sm" asChild>
                     <Link href="/reco">
                       Find Funding Opportunities
                     </Link>
@@ -620,22 +621,36 @@ function DashboardPage() {
 
         {/* Admin Panel - Only visible to admins */}
         {isMounted && isAdmin && (
-          <Card className="p-6 mt-8 border-2 border-orange-200 bg-gradient-to-br from-orange-50 to-orange-100 shadow-lg">
-            <div className="flex items-center justify-between mb-6">
+          <Card className="p-6 mt-8 border border-gray-200 bg-white shadow-sm">
+            <button
+              onClick={() => setAdminPanelOpen(!adminPanelOpen)}
+              className="w-full flex items-center justify-between mb-0"
+            >
               <div className="flex items-center gap-3">
-                <div className="w-10 h-10 bg-orange-500 rounded-xl flex items-center justify-center shadow-md">
+                <div className="w-10 h-10 bg-orange-600 rounded-lg flex items-center justify-center">
                   <Settings className="w-5 h-5 text-white" />
                 </div>
-                <h2 className="text-xl font-semibold text-orange-900">Admin Panel</h2>
+                <div className="text-left">
+                  <h2 className="text-xl font-semibold text-gray-900">Admin Panel</h2>
+                  <p className="text-sm text-gray-600">System management and configuration</p>
+                </div>
               </div>
-              <span className="px-3 py-1.5 bg-orange-200 text-orange-900 text-xs font-semibold rounded-full border border-orange-300">
-                Admin Only
-              </span>
-            </div>
+              <div className="flex items-center gap-2">
+                <span className="px-3 py-1 bg-orange-100 text-orange-700 text-xs font-medium rounded-full">
+                  Admin Only
+                </span>
+                {adminPanelOpen ? (
+                  <ChevronUp className="w-5 h-5 text-gray-600" />
+                ) : (
+                  <ChevronDown className="w-5 h-5 text-gray-600" />
+                )}
+              </div>
+            </button>
             
-            <div className="space-y-4">
+            {adminPanelOpen && (
+              <div className="mt-6 space-y-4 pt-6 border-t border-gray-200">
               {/* Data Update Section */}
-              <div className="bg-white p-5 rounded-xl border-2 border-orange-200 shadow-sm">
+              <div className="bg-gray-50 p-5 rounded-lg border border-gray-200">
                 <div className="flex items-center justify-between mb-4">
                   <div className="flex items-center gap-3">
                     <Database className="w-5 h-5 text-blue-600" />
@@ -644,7 +659,7 @@ function DashboardPage() {
                   <Button 
                     onClick={updateData} 
                     disabled={isUpdating}
-                    className="bg-blue-600 hover:bg-blue-700 text-white shadow-md"
+                    className="bg-blue-600 hover:bg-blue-700 text-white shadow-sm"
                   >
                     {isUpdating ? (
                       <>
@@ -683,7 +698,7 @@ function DashboardPage() {
               </div>
               
               {/* Admin User Management */}
-              <div className="bg-white p-5 rounded-xl border-2 border-orange-200 shadow-sm">
+              <div className="bg-gray-50 p-5 rounded-lg border border-gray-200">
                 <div className="flex items-center justify-between mb-3">
                   <h3 className="font-semibold text-gray-900">Admin Users</h3>
                   <AdminUserManager />
@@ -694,7 +709,7 @@ function DashboardPage() {
               </div>
               
               {/* System Status */}
-              <div className="bg-white p-5 rounded-xl border-2 border-orange-200 shadow-sm">
+              <div className="bg-gray-50 p-5 rounded-lg border border-gray-200">
                 <h3 className="font-semibold text-gray-900 mb-4">System Status</h3>
                 <div className="grid grid-cols-2 gap-4 text-sm">
                   <div className="flex items-center justify-between p-2 bg-gray-50 rounded-lg">
@@ -715,7 +730,8 @@ function DashboardPage() {
                   </div>
                 </div>
               </div>
-            </div>
+              </div>
+            )}
           </Card>
         )}
         </div>

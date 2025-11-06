@@ -390,12 +390,12 @@ const coreProducts = [
 
             <div className="grid grid-cols-1 md:grid-cols-3 gap-8 mb-16">
               {coreProducts.map((product) => (
-                <div key={product.id} className="bg-white rounded-3xl border border-gray-100 shadow-xl hover:shadow-2xl transition-all duration-500 p-8 relative overflow-hidden group">
+                <div key={product.id} className="bg-white rounded-lg border border-gray-200 shadow-sm hover:shadow-md transition-shadow p-8 relative overflow-hidden group">
                   <div className="text-center mb-8">
-                    <div className={`w-20 h-20 rounded-2xl flex items-center justify-center mx-auto mb-6 shadow-lg ${
-                      product.color === 'blue' ? 'bg-gradient-to-br from-blue-500 to-blue-600' :
-                      product.color === 'green' ? 'bg-gradient-to-br from-blue-400 to-blue-500' :
-                      'bg-gradient-to-br from-blue-600 to-blue-700'
+                    <div className={`w-20 h-20 rounded-lg flex items-center justify-center mx-auto mb-6 shadow-sm ${
+                      product.color === 'blue' ? 'bg-blue-600' :
+                      product.color === 'green' ? 'bg-green-600' :
+                      'bg-blue-600'
                     }`}>
                       <span className="text-4xl text-white">{product.icon}</span>
                     </div>
@@ -405,7 +405,7 @@ const coreProducts = [
                       <span className="text-sm font-medium ml-3">{t('pricing.labels.inclVat')}</span>
                   </div>
                     <p className="text-gray-700 mb-6 text-base font-medium leading-relaxed">{product.bestFor}</p>
-                    <div className="bg-gradient-to-r from-gray-50 to-gray-100 p-4 rounded-xl mb-6 border border-gray-200">
+                    <div className="bg-gray-50 p-4 rounded-lg mb-6 border border-gray-200">
                       <p className="text-sm text-gray-700 font-medium">{product.includes}</p>
             </div>
 
