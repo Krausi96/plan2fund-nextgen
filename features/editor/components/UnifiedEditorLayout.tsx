@@ -10,6 +10,7 @@ import SectionTree from './SectionTree';
 import ComplianceAIHelper from './ComplianceAIHelper';
 import DocumentCustomizationPanel from './DocumentCustomizationPanel';
 import PreviewPanel from './PreviewPanel';
+import AdditionalDocumentsEditor from './AdditionalDocumentsEditor';
 
 interface UnifiedEditorLayoutProps {
   // Left sidebar props
@@ -35,7 +36,7 @@ interface UnifiedEditorLayoutProps {
   onExport?: (format: string) => void;
 }
 
-type RightDrawerTab = 'compliance' | 'format' | 'preview';
+type RightDrawerTab = 'compliance' | 'format' | 'preview' | 'documents';
 
 export default function UnifiedEditorLayout({
   sections,
@@ -183,6 +184,22 @@ export default function UnifiedEditorLayout({
                   <span>Preview</span>
                 </div>
               </button>
+              
+              <button
+                onClick={() => setRightDrawerTab('documents')}
+                className={`
+                  flex-1 px-4 py-3 text-sm font-medium transition-colors
+                  ${rightDrawerTab === 'documents'
+                    ? 'text-blue-600 border-b-2 border-blue-600 bg-blue-50'
+                    : 'text-gray-600 hover:bg-gray-50'
+                  }
+                `}
+              >
+                <div className="flex items-center justify-center gap-2">
+                  <FileText className="h-4 w-4" />
+                  <span>Documents</span>
+                </div>
+              </button>
             </div>
           </div>
 
@@ -211,6 +228,24 @@ export default function UnifiedEditorLayout({
               <PreviewPanel
                 plan={plan}
                 sections={sections}
+              />
+            )}
+            
+            {rightDrawerTab === 'documents' && (
+              <AdditionalDocumentsEditor
+                programId={programId}
+                fundingType={programProfile?.route || 'grants'}
+                productType="submission"
+                planContent={planContent}
+                sections={sections}
+                onDocumentChange={(documentId, content) => {
+                  // Handle document content change
+                  console.log('Document changed:', documentId, content);
+                }}
+                onDocumentSave={(document) => {
+                  // Handle document save
+                  console.log('Document saved:', document);
+                }}
               />
             )}
           </div>

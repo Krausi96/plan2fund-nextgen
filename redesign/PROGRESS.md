@@ -8,11 +8,11 @@
 
 ## 📊 Overall Status
 
-**Completion: ~83%** (up from 78%)
+**Completion: ~88%** (up from 83%)
 - Area 1 (Scraper-Lite): 100% ✅ (LLM integration complete)
 - Area 2 (Reco/SmartWizard): 100% ✅ (Fully wired - unified UI + semantic search + results page)
 - Area 3 (Editor Entry): 80% ✅ (LLM generation + versioning complete, dynamic mapping optional)
-- Area 4 (Editor): 85% ⚠️ (Image upload + react-pdf + freemium done, needs additional docs + expert advice)
+- Area 4 (Editor): 90% ⚠️ (Image upload + react-pdf + freemium + additional docs done, needs expert advice)
 
 ---
 
@@ -138,7 +138,7 @@
 - [x] **Freemium gating** (featureFlags.ts + premium checks + upgrade modals) - **DONE**
 
 #### ❌ NOT DONE:
-- [ ] Additional documents (pitch deck, forms)
+- [x] Additional documents (pitch deck, forms) - **DONE** (AdditionalDocumentsEditor.tsx)
 - [ ] Chapter-specific expert advice
 
 ### What's Working:
@@ -152,8 +152,8 @@
 ### Next Steps:
 1. ✅ Create `shared/lib/featureFlags.ts` - **DONE**
 2. ✅ Add premium checks and upgrade modals - **DONE**
-3. Create `AdditionalDocumentsEditor.tsx` - **NEXT PRIORITY**
-4. Add chapter-specific expert advice to AI assistant - **PRIORITY 3**
+3. ✅ Create `AdditionalDocumentsEditor.tsx` - **DONE**
+4. Add chapter-specific expert advice to AI assistant - **NEXT PRIORITY**
 
 ---
 
@@ -180,8 +180,9 @@
 - `shared/lib/featureFlags.ts` - **DONE**
 - `shared/components/UpgradeModal.tsx` - **DONE**
 
-### ❌ Need to Create:
-- `features/editor/components/AdditionalDocumentsEditor.tsx` - **NEXT PRIORITY**
+### ✅ Created (Recently):
+- `features/editor/components/AdditionalDocumentsEditor.tsx` - **DONE**
+- `features/editor/types/additionalDocuments.ts` - **DONE**
 
 ### ✅ Correctly Deleted:
 - `RestructuredEditor.tsx` (replaced)
