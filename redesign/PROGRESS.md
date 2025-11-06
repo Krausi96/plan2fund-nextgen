@@ -8,11 +8,11 @@
 
 ## 📊 Overall Status
 
-**Completion: ~70%** (up from 60%)
+**Completion: ~78%** (up from 70%)
 - Area 1 (Scraper-Lite): 100% ✅ (LLM integration complete)
 - Area 2 (Reco/SmartWizard): 100% ✅ (Fully wired - unified UI + semantic search + results page)
 - Area 3 (Editor Entry): 80% ✅ (LLM generation + versioning complete, dynamic mapping optional)
-- Area 4 (Editor): 60% ⚠️ (Needs image upload, react-pdf, freemium)
+- Area 4 (Editor): 75% ⚠️ (Image upload + react-pdf done, needs freemium + additional docs)
 
 ---
 
@@ -121,7 +121,7 @@
 
 ---
 
-## Area 4: Editor ⚠️ 60%
+## Area 4: Editor ⚠️ 75% (IN PROGRESS)
 
 ### High Priority (from report):
 
@@ -133,20 +133,27 @@
 - [x] Charts (ChartGenerator.tsx with Recharts)
 - [x] Executive Summary auto-generation
 - [x] Merge Requirements Checker and AI Assistant
+- [x] **Image upload component** (ImageUpload.tsx) - **DONE**
+- [x] **Live preview with react-pdf** - **DONE** (replaced HTML preview)
 
 #### ❌ NOT DONE:
-- [ ] Image upload component (ImageUpload.tsx)
-- [ ] Live preview with react-pdf (currently HTML only)
 - [ ] Freemium gating (feature flags)
 - [ ] Additional documents (pitch deck, forms)
 - [ ] Chapter-specific expert advice
 
+### What's Working:
+- Image upload with caption/description support
+- Images stored in `/public/uploads/images/`
+- Image insertion into rich text editor
+- Real-time PDF preview using @react-pdf/renderer
+- PDF export functionality
+- HTML preview fallback
+
 ### Next Steps:
-1. Create `ImageUpload.tsx` component
-2. Replace HTML preview with react-pdf
-3. Create `shared/lib/featureFlags.ts`
-4. Add premium checks and upgrade modals
-5. Create `AdditionalDocumentsEditor.tsx`
+1. Create `shared/lib/featureFlags.ts`
+2. Add premium checks and upgrade modals
+3. Create `AdditionalDocumentsEditor.tsx`
+4. Add chapter-specific expert advice to AI assistant
 
 ---
 
