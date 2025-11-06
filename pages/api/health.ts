@@ -23,7 +23,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
     // Modules that use Enhanced Data Pipeline
     const programsModules = [
-      "src/components/wizard/SmartWizard.tsx",
+      "features/reco/components/ProgramFinder.tsx",
       "pages/reco.tsx",
       "shared/lib/enhancedRecoEngine.ts",
       "shared/lib/questionEngine.ts",

@@ -1,20 +1,8 @@
 import ProgramFinder from '@/features/reco/components/ProgramFinder';
 
-// Redirect to unified ProgramFinder
+// Unified ProgramFinder replaces old Advanced Search
 export default function AdvancedSearch() {
   return <ProgramFinder initialMode="manual" />;
-}
-
-// Define Chip type locally since aiChipParser was deleted
-interface Chip {
-  id: string;
-  text: string;
-  value: string;
-  label: string;
-  type: 'keyword' | 'category' | 'filter';
-  removable?: boolean;
-  required?: boolean;
-  confidence?: number;
 }
 
 export default function AdvancedSearch() {

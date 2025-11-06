@@ -7,7 +7,7 @@
 import type { NextApiRequest, NextApiResponse } from 'next';
 import { scoreProgramsEnhanced, EnhancedProgramResult } from '@/features/reco/engine/enhancedRecoEngine';
 import { generateEmbedding, findSimilarPrograms, createProgramDescription } from '@/shared/lib/embeddings';
-import { getPool } from '@/scraper-lite/src/db/neon-client';
+import { Pool } from 'pg';
 
 interface SearchRequest {
   query?: string; // Project description for semantic search
@@ -77,38 +77,46 @@ export default async function handler(
         // Generate embedding for user query
         const queryEmbedding = await generateEmbedding(query);
         
-        if (queryEmbedding.length > 0) {
+        if (queryEmbedding.length > 0 && process.env.DATABASE_URL) {
           // Load program embeddings from database
-          const pool = getPool();
-          const embeddingsResult = await pool.query(
-            `SELECT page_id, embedding, description_text 
-             FROM programme_embeddings 
-             WHERE model_version = 'text-embedding-3-small'`
-          );
+          const pool = new Pool({
+            connectionString: process.env.DATABASE_URL,
+            ssl: process.env.DATABASE_URL.includes('neon.tech') ? { rejectUnauthorized: false } : false
+          });
           
-          if (embeddingsResult.rows.length > 0) {
-            // Calculate similarities
-            const programEmbeddings = embeddingsResult.rows.map((row: any) => ({
-              id: String(row.page_id),
-              embedding: row.embedding
-            }));
-            
-            semanticResults = findSimilarPrograms(queryEmbedding, programEmbeddings, 50);
-            semanticScore = semanticResults[0]?.similarity || 0;
-          } else {
-            // No embeddings in DB yet - generate on the fly for top programs
-            console.log('No embeddings in DB, generating on-the-fly...');
-            const topPrograms = ruleBasedResults.slice(0, 20);
-            const descriptions = topPrograms.map(p => createProgramDescription(p));
-            const embeddings = await generateEmbeddings(descriptions);
-            
-            const programEmbeddings = topPrograms.map((program, i) => ({
-              id: program.id,
-              embedding: embeddings[i] || []
-            })).filter(p => p.embedding.length > 0);
-            
-            semanticResults = findSimilarPrograms(queryEmbedding, programEmbeddings, 50);
-            semanticScore = semanticResults[0]?.similarity || 0;
+          try {
+            const embeddingsResult = await pool.query(
+              `SELECT page_id, embedding, description_text 
+               FROM programme_embeddings 
+               WHERE model_version = 'text-embedding-3-small'`
+            );
+          
+            if (embeddingsResult.rows.length > 0) {
+              // Calculate similarities
+              const programEmbeddings = embeddingsResult.rows.map((row: any) => ({
+                id: String(row.page_id),
+                embedding: row.embedding
+              }));
+              
+              semanticResults = findSimilarPrograms(queryEmbedding, programEmbeddings, 50);
+              semanticScore = semanticResults[0]?.similarity || 0;
+            } else {
+              // No embeddings in DB yet - generate on the fly for top programs
+              console.log('No embeddings in DB, generating on-the-fly...');
+              const topPrograms = ruleBasedResults.slice(0, 20);
+              const descriptions = topPrograms.map(p => createProgramDescription(p));
+              const embeddings = await generateEmbeddings(descriptions);
+              
+              const programEmbeddings = topPrograms.map((program, i) => ({
+                id: program.id,
+                embedding: embeddings[i] || []
+              })).filter(p => p.embedding.length > 0);
+              
+              semanticResults = findSimilarPrograms(queryEmbedding, programEmbeddings, 50);
+              semanticScore = semanticResults[0]?.similarity || 0;
+            }
+          } finally {
+            await pool.end();
           }
         }
       } catch (semanticError: any) {
