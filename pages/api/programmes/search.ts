@@ -66,7 +66,8 @@ export default async function handler(
     };
 
     // Rule-based scoring (EnhancedReco)
-    const ruleBasedResults = scoreProgramsEnhanced(allPrograms, searchParams);
+    // Note: scoreProgramsEnhanced expects (answers, mode, preFilteredPrograms)
+    const ruleBasedResults = await scoreProgramsEnhanced(searchParams, 'strict', allPrograms);
     
     // Semantic search (if query provided)
     let semanticResults: Array<{ id: string; similarity: number }> = [];

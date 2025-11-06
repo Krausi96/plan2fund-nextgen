@@ -101,31 +101,73 @@ export default function ProgramFinder({
       setIsLoading(true);
       const scored = scoreProgramsEnhanced(programs, answers);
       setResults(scored);
+      // Store in context for results page
+      setRecommendations(scored);
+      if (typeof window !== 'undefined') {
+        localStorage.setItem('recoResults', JSON.stringify(scored));
+        localStorage.setItem('userAnswers', JSON.stringify(answers));
+      }
     } catch (error) {
       console.error('Error updating guided results:', error);
     } finally {
       setIsLoading(false);
     }
-  }, [questionEngine, programs, answers]);
+  }, [questionEngine, programs, answers, setRecommendations]);
   
   const updateManualResults = useCallback(async () => {
     try {
       setIsLoading(true);
       
-      // TODO: Add semantic search here
-      // For now, use rule-based filtering
+      // Use semantic search API if query provided, otherwise use rule-based
+      if (searchQuery && searchQuery.trim().length > 0) {
+        // Use semantic search API (combines rule-based + semantic)
+        const response = await fetch('/api/programmes/search', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            query: searchQuery,
+            filters: filters,
+            mode: 'manual',
+            limit: 50
+          })
+        });
+        
+        if (response.ok) {
+          const data = await response.json();
+          setResults(data.programs || []);
+          // Store in context for results page
+          if (data.programs) {
+            setRecommendations(data.programs);
+            if (typeof window !== 'undefined') {
+              localStorage.setItem('recoResults', JSON.stringify(data.programs));
+              localStorage.setItem('userAnswers', JSON.stringify({ ...filters, project_description: searchQuery }));
+            }
+          }
+        } else {
+          // Fallback to rule-based if API fails
+          const scored = scoreProgramsEnhanced(programs, {
+            ...filters,
+            project_description: searchQuery
+          });
+          setResults(scored);
+        }
+      } else {
+        // No query, use rule-based filtering only
+        const scored = scoreProgramsEnhanced(programs, filters);
+        setResults(scored);
+      }
+    } catch (error) {
+      console.error('Error updating manual results:', error);
+      // Fallback to rule-based on error
       const scored = scoreProgramsEnhanced(programs, {
         ...filters,
         project_description: searchQuery
       });
-      
       setResults(scored);
-    } catch (error) {
-      console.error('Error updating manual results:', error);
     } finally {
       setIsLoading(false);
     }
-  }, [programs, filters, searchQuery]);
+  }, [programs, filters, searchQuery, setRecommendations]);
   
   const handleAnswer = (questionId: string, value: any) => {
     const newAnswers = { ...answers, [questionId]: value };
@@ -160,8 +202,19 @@ export default function ProgramFinder({
     if (onProgramSelect) {
       onProgramSelect(program.id, program.route || 'grant');
     } else {
+      // Route directly to editor
       router.push(`/editor?programId=${program.id}&route=${program.route || 'grant'}`);
     }
+  };
+  
+  const handleViewAllResults = () => {
+    // Store results and route to results page
+    setRecommendations(results);
+    if (typeof window !== 'undefined') {
+      localStorage.setItem('recoResults', JSON.stringify(results));
+      localStorage.setItem('userAnswers', JSON.stringify(mode === 'guided' ? answers : { ...filters, project_description: searchQuery }));
+    }
+    router.push('/main/results');
   };
   
   return (
