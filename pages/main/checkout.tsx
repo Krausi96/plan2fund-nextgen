@@ -8,6 +8,7 @@ import analytics from "@/shared/lib/analytics";
 import { withAuth } from "@/shared/lib/withAuth";
 import { useUser } from "@/shared/contexts/UserContext";
 import PageEntryIndicator from '@/shared/components/common/PageEntryIndicator';
+import { Lock, CreditCard, FileText, Shield, CheckCircle } from "lucide-react";
 
 function Checkout() {
   const { t } = useI18n();
@@ -55,30 +56,56 @@ function Checkout() {
       <CartSummary />
 
       {/* Trust Seals */}
-      <div className="flex gap-6 items-center border-t pt-6">
-        <span className="text-sm text-gray-500">🔒 Secure SSL</span>
-        <span className="text-sm text-gray-500">💳 Powered by Stripe (stub)</span>
-        <span className="text-sm text-gray-500">📜 GDPR Compliant</span>
+      <div className="flex flex-wrap gap-6 items-center justify-center border-t border-gray-200 pt-6">
+        <div className="flex items-center gap-2 text-sm text-gray-600">
+          <Lock className="w-4 h-4 text-blue-600" />
+          <span>Secure SSL</span>
+        </div>
+        <div className="flex items-center gap-2 text-sm text-gray-600">
+          <CreditCard className="w-4 h-4 text-blue-600" />
+          <span>Powered by Stripe</span>
+        </div>
+        <div className="flex items-center gap-2 text-sm text-gray-600">
+          <Shield className="w-4 h-4 text-blue-600" />
+          <span>GDPR Compliant</span>
+        </div>
       </div>
 
       {/* Payment Stub */}
-      <div className="border rounded-lg p-6 bg-gray-50 space-y-4">
-        <p className="font-semibold">Payment Details (Stub)</p>
-        <input
-          type="text"
-          placeholder={t("checkout.cardNumber")}
-          className="w-full p-2 border rounded"
-        />
-        <input
-          type="text"
-          placeholder={t("checkout.expiryDate")}
-          className="w-full p-2 border rounded"
-        />
-        <input
-          type="text"
-          placeholder="CVC"
-          className="w-full p-2 border rounded"
-        />
+      <div className="border border-gray-200 rounded-lg p-6 bg-white shadow-sm space-y-4">
+        <p className="font-semibold text-gray-900">Payment Details (Stub)</p>
+        <div>
+          <label className="block text-sm font-medium text-gray-700 mb-1.5">
+            {t("checkout.cardNumber")}
+          </label>
+          <input
+            type="text"
+            placeholder={t("checkout.cardNumber")}
+            className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition-all"
+          />
+        </div>
+        <div className="grid grid-cols-2 gap-4">
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1.5">
+              {t("checkout.expiryDate")}
+            </label>
+            <input
+              type="text"
+              placeholder={t("checkout.expiryDate")}
+              className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition-all"
+            />
+          </div>
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1.5">
+              CVC
+            </label>
+            <input
+              type="text"
+              placeholder="CVC"
+              className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition-all"
+            />
+          </div>
+        </div>
         <button 
           onClick={async () => {
             try {
@@ -125,7 +152,7 @@ function Checkout() {
               alert('Failed to start checkout. Please try again.');
             }
           }}
-          className="w-full py-2 rounded bg-blue-600 text-white hover:bg-blue-700"
+          className="w-full py-3 rounded-lg bg-blue-600 text-white hover:bg-blue-700 transition-colors font-medium"
         >
           Pay Now
         </button>

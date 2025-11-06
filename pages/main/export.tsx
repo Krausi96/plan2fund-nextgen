@@ -236,7 +236,7 @@ function Export() {
       </p>
 
       {/* Selection controls */}
-      <div className="p-4 border rounded-lg bg-white space-y-3">
+      <div className="p-6 border border-gray-200 rounded-lg bg-white shadow-sm space-y-3">
         <div className="font-semibold">What to export</div>
         <label className="flex items-center gap-2 text-sm">
           <input type="checkbox" checked={includePlan} onChange={(e)=>setIncludePlan(e.target.checked)} disabled />
@@ -292,7 +292,7 @@ function Export() {
 
       {/* Content Preview */}
       {sections.length > 0 && (
-        <div className="p-4 border rounded-lg bg-gray-50">
+        <div className="p-6 border border-gray-200 rounded-lg bg-white shadow-sm">
           <h3 className="font-semibold mb-2">Content Preview</h3>
           <div className="text-sm text-gray-600 space-y-1">
             <p>Total sections: {sections.length}</p>
@@ -304,7 +304,7 @@ function Export() {
 
       {/* Additional Documents Section */}
       {additionalDocuments.length > 0 && (
-        <div className="p-4 border rounded-lg bg-blue-50">
+        <div className="p-6 border border-gray-200 rounded-lg bg-white shadow-sm">
           <h3 className="font-semibold mb-3 flex items-center gap-2">
             📄 Additional Documents
             <span className="text-sm text-gray-600">({additionalDocuments.length} documents)</span>
@@ -314,7 +314,7 @@ function Export() {
           </p>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
             {additionalDocuments.map((doc, index) => (
-              <div key={index} className="flex items-center justify-between p-2 bg-white rounded border text-sm">
+              <div key={index} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg border border-gray-200 text-sm">
                 <div className="flex items-center gap-2">
                   <div className="w-4 h-4 bg-green-100 rounded-full flex items-center justify-center">
                     <span className="text-green-600 text-xs">✓</span>
@@ -444,7 +444,7 @@ function Export() {
       </button>
 
       <button
-        className="px-6 py-2 rounded-lg bg-emerald-600 text-white hover:bg-emerald-700 disabled:opacity-50"
+        className="px-6 py-2 rounded-lg bg-green-600 text-white hover:bg-green-700 disabled:opacity-50 transition-colors font-medium"
         disabled={exporting || sections.length === 0}
         onClick={async ()=>{
           setExporting(true);
