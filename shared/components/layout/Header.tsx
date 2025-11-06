@@ -54,33 +54,33 @@ export default function Header() {
     <header className="sticky top-0 z-50 w-full border-b bg-white/95 backdrop-blur-md shadow-sm">
       <div className="max-w-7xl mx-auto flex items-center justify-between px-4 py-4">
         {/* Logo */}
-        <Link href="/" className="text-2xl font-bold text-primary hover:opacity-80 transition-opacity">
+        <Link href="/" className="text-2xl font-bold text-blue-600 hover:text-blue-700 transition-colors">
           Plan2Fund
         </Link>
 
         {/* Desktop Nav */}
         <nav className="hidden md:flex gap-8 items-center">
-          <Link href="/about" className="text-textSecondary hover:text-primary transition-colors font-medium">
+          <Link href="/about" className="text-gray-600 hover:text-blue-600 transition-colors font-medium">
             {t('nav.howItWorks')}
           </Link>
-          <Link href="/pricing" className="text-textSecondary hover:text-primary transition-colors font-medium">
+          <Link href="/pricing" className="text-gray-600 hover:text-blue-600 transition-colors font-medium">
             {t('nav.pricing')}
           </Link>
-          <Link href="/faq" className="text-textSecondary hover:text-primary transition-colors font-medium">
+          <Link href="/faq" className="text-gray-600 hover:text-blue-600 transition-colors font-medium">
             FAQ
           </Link>
           {isMounted && userProfile ? (
             <div className="flex items-center gap-4">
               <Link 
                 href="/dashboard" 
-                className="flex items-center gap-2 text-textSecondary hover:text-primary transition-colors font-medium"
+                className="flex items-center gap-2 text-gray-600 hover:text-blue-600 transition-colors font-medium"
               >
                 <User className="w-4 h-4" />
                 My Account
               </Link>
               <button
                 onClick={handleLogout}
-                className="flex items-center gap-2 text-textSecondary hover:text-primary transition-colors font-medium"
+                className="flex items-center gap-2 text-gray-600 hover:text-blue-600 transition-colors font-medium"
                 title="Log out"
               >
                 <LogOut className="w-4 h-4" />
@@ -90,7 +90,7 @@ export default function Header() {
           ) : isMounted ? (
             <button
               onClick={() => setLoginModalOpen(true)}
-              className="px-5 py-2 border border-primary text-primary rounded-lg hover:bg-primary hover:text-white transition-colors font-medium"
+              className="px-5 py-2 border border-blue-600 text-blue-600 rounded-lg hover:bg-blue-600 hover:text-white transition-colors font-medium"
             >
               Log in
             </button>

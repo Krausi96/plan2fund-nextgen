@@ -5,12 +5,12 @@ import { useI18n } from "@/shared/contexts/I18nContext";
 export default function Footer() {
   const { t } = useI18n();
   return (
-    <footer className="border-t bg-gray-50 text-gray-600">
+    <footer className="border-t bg-gray-50">
       <div className="max-w-7xl mx-auto px-4 py-12">
         <div className="grid md:grid-cols-3 gap-8">
           {/* Company Info */}
           <div>
-            <h3 className="text-2xl font-bold text-blue-600 mb-4">Plan2Fund</h3>
+            <h3 className="text-2xl font-bold text-gray-900 mb-4">Plan2Fund</h3>
             <p className="text-gray-600 mb-6 max-w-md">
               Helping founders find funding and build comprehensive business plans 
               that meet Austrian and EU program standards.
@@ -35,8 +35,8 @@ export default function Footer() {
           <div>
             <h4 className="font-semibold text-gray-900 mb-4">{t('footer.company')}</h4>
             <ul className="space-y-3 text-sm">
-              <li><Link href="/contact" className="hover:text-blue-600 transition-colors">{t('footer.contact')}</Link></li>
-              <li><Link href="/about#partners" className="hover:text-blue-600 transition-colors">{t('footer.forPartners')}</Link></li>
+              <li><Link href="/contact" className="text-gray-600 hover:text-blue-600 transition-colors">{t('footer.contact')}</Link></li>
+              <li><Link href="/about#partners" className="text-gray-600 hover:text-blue-600 transition-colors">{t('footer.forPartners')}</Link></li>
             </ul>
           </div>
 
@@ -44,10 +44,10 @@ export default function Footer() {
           <div>
             <h4 className="font-semibold text-gray-900 mb-4">{t('footer.legal')}</h4>
             <ul className="space-y-3 text-sm">
-              <li><Link href="/privacy" className="hover:text-blue-600 transition-colors">{t('footer.privacy')}</Link></li>
-              <li><Link href="/terms" className="hover:text-blue-600 transition-colors">{t('footer.terms')}</Link></li>
-              <li><Link href="/legal" className="hover:text-blue-600 transition-colors">{t('footer.legalNotice')}</Link></li>
-              <li><Link href="/privacy#security" className="hover:text-blue-600 transition-colors">{t('footer.security')}</Link></li>
+              <li><Link href="/privacy" className="text-gray-600 hover:text-blue-600 transition-colors">{t('footer.privacy')}</Link></li>
+              <li><Link href="/terms" className="text-gray-600 hover:text-blue-600 transition-colors">{t('footer.terms')}</Link></li>
+              <li><Link href="/legal" className="text-gray-600 hover:text-blue-600 transition-colors">{t('footer.legalNotice')}</Link></li>
+              <li><Link href="/privacy#security" className="text-gray-600 hover:text-blue-600 transition-colors">{t('footer.security')}</Link></li>
             </ul>
           </div>
         </div>

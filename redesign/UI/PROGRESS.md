@@ -45,10 +45,12 @@
   - [ ] Refactor pages to use unified button styles
 
 #### 1.6 Side Entry Indicator Component
-- [ ] **New File:** `shared/components/common/PageEntryIndicator.tsx`
-  - [ ] Create component with props: icon, text, duration, position
-  - [ ] Implement pulsating animation
-  - [ ] Add auto-dismiss functionality
+- [x] **New File:** `shared/components/common/PageEntryIndicator.tsx`
+  - [x] Create component with props: icon, text, duration, position
+  - [x] Implement pulsating animation
+  - [x] Add auto-dismiss functionality
+  - [x] Add manual dismiss button
+  - [x] Add accessibility attributes (role, aria-live)
 - [ ] Add to pages:
   - [ ] `/reco` - "Answer questions to find funding programs..."
   - [ ] `/advanced-search` - "Search manually or use filters..."
