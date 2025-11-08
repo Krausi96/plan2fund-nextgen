@@ -21,6 +21,12 @@ if (fs.existsSync(envPath)) {
 dotenv.config({ override: false });
 
 import { getPool } from '../db/db';
+import { 
+  getAllBlacklistPatterns, 
+  updatePatternConfidence,
+  addManualExclusion,
+  removeExclusionPattern
+} from '../src/utils/blacklist';
 
 async function addExclusion(pattern: string, host: string, reason?: string) {
   const pool = getPool();
