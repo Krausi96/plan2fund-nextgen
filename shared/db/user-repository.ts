@@ -2,7 +2,7 @@
  * User Repository - Database operations for users
  * Replaces localStorage with actual database
  */
-import { getPool } from '../../scraper-lite/src/db/neon-client';
+import { getPool } from '../../scraper-lite/db/db';
 import bcrypt from 'bcryptjs';
 
 export interface UserRecord {

@@ -1,5 +1,5 @@
 import type { NextApiRequest, NextApiResponse } from 'next';
-import { getPool } from '../../../scraper-lite/src/db/neon-client';
+import { getPool } from '../../../scraper-lite/db/db';
 import fs from 'fs';
 import path from 'path';
 

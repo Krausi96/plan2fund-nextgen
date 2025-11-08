@@ -14,7 +14,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   try {
     // Use scraper-lite database connection
     // Use dynamic import for TypeScript modules (works better with Next.js)
-    const { getPool } = await import('../../scraper-lite/src/db/neon-client');
+    const { getPool } = await import('../../scraper-lite/db/db');
     const pool = getPool();
     
     // Extract page ID from program ID (format: "page_123" or just "123")

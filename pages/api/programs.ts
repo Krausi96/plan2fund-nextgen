@@ -279,9 +279,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       const databasePromise = (async () => {
         // Use dynamic import for TypeScript modules (works better with Next.js)
         // This matches the pattern used in pages/api/user/profile.ts
-        const pageRepo = await import('../../scraper-lite/src/db/page-repository');
-        const searchPages = pageRepo.searchPages;
-        const getAllPages = pageRepo.getAllPages;
+        const { searchPages, getAllPages } = await import('../../scraper-lite/db/db');
         
         const pages = type && typeof type === 'string'
           ? await searchPages({ region: type, limit: 1000 }) // Using region as proxy for type for now
@@ -307,7 +305,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
           // Get requirements for this page
           // Use dynamic import for TypeScript modules (works better with Next.js)
           // This matches the pattern used in pages/api/user/profile.ts
-          const { getPool } = await import('../../scraper-lite/src/db/neon-client');
+          const { getPool } = await import('../../scraper-lite/db/db');
           const pool = getPool();
           const reqResult = await pool.query(
             'SELECT category, type, value, required, source, description, format, requirements FROM requirements WHERE page_id = $1',

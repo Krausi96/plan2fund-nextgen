@@ -325,6 +325,79 @@ export async function markJobDone(url: string): Promise<void> {
 // PATTERN LEARNING
 // ============================================================================
 
+/**
+ * Get all pages from database
+ */
+export async function getAllPages(limit: number = 1000): Promise<any[]> {
+  try {
+    const pool = getPool();
+    const result = await pool.query(`
+      SELECT 
+        id, url, title, description,
+        funding_amount_min, funding_amount_max, currency,
+        deadline, open_deadline,
+        contact_email, contact_phone,
+        funding_types, program_focus, region,
+        metadata_json, fetched_at, raw_html_path
+      FROM pages
+      ORDER BY fetched_at DESC
+      LIMIT $1
+    `, [limit]);
+    return result.rows;
+  } catch (error: any) {
+    console.error('❌ getAllPages error:', error.message);
+    return [];
+  }
+}
+
+/**
+ * Search pages with filters
+ */
+export async function searchPages(filters: {
+  region?: string;
+  funding_type?: string;
+  limit?: number;
+}): Promise<any[]> {
+  try {
+    const pool = getPool();
+    const limit = filters.limit || 1000;
+    let query = `
+      SELECT 
+        id, url, title, description,
+        funding_amount_min, funding_amount_max, currency,
+        deadline, open_deadline,
+        contact_email, contact_phone,
+        funding_types, program_focus, region,
+        metadata_json, fetched_at, raw_html_path
+      FROM pages
+      WHERE 1=1
+    `;
+    const params: any[] = [];
+    let paramCount = 1;
+
+    if (filters.region) {
+      query += ` AND region = $${paramCount}`;
+      params.push(filters.region);
+      paramCount++;
+    }
+
+    if (filters.funding_type) {
+      query += ` AND $${paramCount} = ANY(funding_types)`;
+      params.push(filters.funding_type);
+      paramCount++;
+    }
+
+    query += ` ORDER BY fetched_at DESC LIMIT $${paramCount}`;
+    params.push(limit);
+
+    const result = await pool.query(query, params);
+    return result.rows;
+  } catch (error: any) {
+    console.error('❌ searchPages error:', error.message);
+    return [];
+  }
+}
+
 export async function learnUrlPatternFromPage(url: string, host: string, success: boolean): Promise<void> {
   try {
     const pool = getPool();
