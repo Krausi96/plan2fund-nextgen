@@ -2130,5 +2130,186 @@
     "modelVersion": "text-embedding-3-small",
     "timestamp": 1762599227138,
     "url": "https://www.sfg.at/f/klimaneutralitaet-die-steirische-investition-in-den-green-deal/"
+  },
+  "26a2608c22672ff185107ba9a5b41a08855bd352aef105799beb2f1ecfd5ab9c:text-embedding-3-small": {
+    "urlHash": "26a2608c22672ff185107ba9a5b41a08855bd352aef105799beb2f1ecfd5ab9c",
+    "result": {
+      "categorized_requirements": {
+        "eligibility": [
+          {
+            "type": "company_type",
+            "value": "Small and medium-sized enterprises (SMEs) with less than 250 employees",
+            "source": "llm_extraction",
+            "meaningfulness_score": 70
+          },
+          {
+            "type": "industry_restriction",
+            "value": "Companies based in Austria, Germany, or EU member states",
+            "source": "llm_extraction",
+            "meaningfulness_score": 43
+          }
+        ],
+        "documents": [],
+        "financial": [
+          {
+            "type": "repayment_terms",
+            "value": "Must repay within 5 years at 2% interest",
+            "source": "llm_extraction",
+            "meaningfulness_score": 75
+          },
+          {
+            "type": "equity_terms",
+            "value": "Must have an equity stake of at least 20%",
+            "source": "llm_extraction",
+            "meaningfulness_score": 75.5
+          },
+          {
+            "type": "guarantee_fee",
+            "value": "from 2.0% p.a. onward",
+            "source": "llm_extraction",
+            "meaningfulness_score": 80.5
+          }
+        ],
+        "funding_details": [
+          {
+            "type": "co_financing",
+            "value": "Minimum 30% own contribution",
+            "source": "llm_extraction",
+            "meaningfulness_score": 69
+          },
+          {
+            "type": "revenue_model",
+            "value": "Must have a viable revenue model",
+            "source": "llm_extraction",
+            "meaningfulness_score": 36
+          },
+          {
+            "type": "market_size",
+            "value": "Must have a significant market size",
+            "source": "llm_extraction",
+            "meaningfulness_score": 37.5
+          }
+        ],
+        "technical": [
+          {
+            "type": "technical_requirement",
+            "value": "Must be at TRL level 6",
+            "source": "llm_extraction",
+            "meaningfulness_score": 51
+          }
+        ],
+        "legal": [],
+        "timeline": [],
+        "geographic": [
+          {
+            "type": "geographic_eligibility",
+            "value": "Companies based in Austria, Germany, or EU member states",
+            "source": "llm_extraction",
+            "meaningfulness_score": 43
+          }
+        ],
+        "team": [
+          {
+            "type": "team_size",
+            "value": "Minimum 2 team members",
+            "source": "llm_extraction",
+            "meaningfulness_score": 51
+          },
+          {
+            "type": "team_composition",
+            "value": "Must have a mix of technical and business experts",
+            "source": "llm_extraction",
+            "meaningfulness_score": 44.5
+          }
+        ],
+        "project": [],
+        "compliance": [],
+        "impact": [
+          {
+            "type": "environmental_impact",
+            "value": "Must have a positive environmental impact",
+            "source": "llm_extraction",
+            "meaningfulness_score": 40.5
+          },
+          {
+            "type": "social_impact",
+            "value": "Must have a positive social impact",
+            "source": "llm_extraction",
+            "meaningfulness_score": 37
+          },
+          {
+            "type": "economic_impact",
+            "value": "Must have a positive economic impact",
+            "source": "llm_extraction",
+            "meaningfulness_score": 38
+          },
+          {
+            "type": "innovation_impact",
+            "value": "Must have a positive innovation impact",
+            "source": "llm_extraction",
+            "meaningfulness_score": 39
+          }
+        ],
+        "application": [
+          {
+            "type": "application_process",
+            "value": "Companies must submit a business plan, CV, and project description",
+            "source": "llm_extraction",
+            "meaningfulness_score": 63
+          }
+        ],
+        "restrictions": [
+          {
+            "type": "intellectual_property",
+            "value": "Must have a valid intellectual property strategy",
+            "source": "llm_extraction",
+            "meaningfulness_score": 44
+          },
+          {
+            "type": "consortium",
+            "value": "Must have a consortium agreement in place",
+            "source": "llm_extraction",
+            "meaningfulness_score": 40.5
+          },
+          {
+            "type": "diversity",
+            "value": "Must have a diverse team",
+            "source": "llm_extraction",
+            "meaningfulness_score": 32
+          }
+        ],
+        "terms": [
+          {
+            "type": "success_metrics",
+            "value": "Must have measurable success metrics",
+            "source": "llm_extraction",
+            "meaningfulness_score": 38
+          }
+        ]
+      },
+      "metadata": {
+        "funding_amount_min": null,
+        "funding_amount_max": null,
+        "currency": "EUR",
+        "deadline": null,
+        "open_deadline": true,
+        "contact_email": null,
+        "contact_phone": null,
+        "funding_types": [
+          "grant",
+          "loan",
+          "equity"
+        ],
+        "program_focus": [
+          "innovation",
+          "research",
+          "startup"
+        ],
+        "region": "Austria"
+      }
+    },
+    "modelVersion": "text-embedding-3-small",
+    "timestamp": 1762603042822,
+    "url": "https://www.sfg.at/wp-content/uploads/2019/08/formular_persoenliche_vermoegenssituation.xlsx"
   }
 }

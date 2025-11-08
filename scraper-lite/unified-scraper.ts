@@ -692,6 +692,81 @@ async function scrapePrograms(): Promise<number> {
     // Silently fail
   }
   
+  // AUTO RE-SCRAPING: Check for re-scrape tasks (overview pages, low-confidence blacklisted URLs)
+  try {
+    const { getReScrapeTasks } = await import('./src/rescraping/unified-rescraping');
+    const reScrapeTasks = await getReScrapeTasks(7, 30, 5); // 7 days for overview, 30 for blacklist, max 5 tasks
+    
+    if (reScrapeTasks.length > 0) {
+      console.log(`\n🔄 Found ${reScrapeTasks.length} re-scrape tasks (overview pages, low-confidence blacklisted URLs)`);
+      console.log(`   Processing ${Math.min(reScrapeTasks.length, 3)} tasks...`);
+      
+      // Process a few re-scrape tasks (don't overwhelm the system)
+      // Use the same processUrl function but with force update
+      const originalForceUpdate = CONFIG.FORCE_UPDATE;
+      CONFIG.FORCE_UPDATE = true; // Enable force update for re-scraping
+      
+      for (const task of reScrapeTasks.slice(0, 3)) {
+        try {
+          console.log(`   🔄 Re-scraping: ${task.url.substring(0, 60)}... (${task.type}, priority: ${task.priority})`);
+          
+          // Check if URL exists and needs re-scraping
+          const exists = await isUrlInDatabase(task.url);
+          if (!exists) {
+            // New URL - queue it normally
+            await markUrlQueued(task.url, 50);
+            console.log(`   ✅ Queued for scraping\n`);
+            continue;
+          }
+          
+          // Re-scrape existing URL
+          const result = await processUrl(task.url, 0);
+          
+          if (result.saved || result.updated) {
+            const { markReScrapeCompleted } = await import('./src/rescraping/unified-rescraping');
+            await markReScrapeCompleted(task.url, task.type, true);
+            console.log(`   ✅ Re-scrape completed\n`);
+          } else {
+            console.log(`   ⏭️  Re-scrape skipped\n`);
+          }
+        } catch (error: any) {
+          console.warn(`   ⚠️  Re-scrape failed: ${error.message}\n`);
+        }
+      }
+      
+      CONFIG.FORCE_UPDATE = originalForceUpdate; // Restore original setting
+    }
+  } catch (error: any) {
+    // Silently fail - re-scraping is optional
+    console.warn(`⚠️  Re-scraping check failed: ${error.message}`);
+  }
+  
+  // AUTO BLACKLIST RE-CHECK: Periodically re-check low-confidence exclusions
+  try {
+    const pool = getPool();
+    const lastRecheck = await pool.query(`
+      SELECT MAX(updated_at) as last_check
+      FROM url_patterns
+      WHERE pattern_type = 'exclude' AND confidence < 0.8
+    `);
+    
+    const lastCheck = lastRecheck.rows[0]?.last_check;
+    const daysSinceLastCheck = lastCheck 
+      ? (Date.now() - new Date(lastCheck).getTime()) / (1000 * 60 * 60 * 24)
+      : 999;
+    
+    // Re-check blacklist every 7 days
+    if (daysSinceLastCheck >= 7) {
+      console.log(`\n🔍 Re-checking blacklisted URLs (last check: ${lastCheck ? new Date(lastCheck).toLocaleDateString() : 'never'})...`);
+      const { runRecheckCycle } = await import('./src/utils/blacklist-recheck');
+      await runRecheckCycle();
+      console.log(`   ✅ Blacklist re-check complete\n`);
+    }
+  } catch (error: any) {
+    // Silently fail - blacklist re-check is optional
+    console.warn(`⚠️  Blacklist re-check failed: ${error.message}`);
+  }
+  
   if (CONFIG.FORCE_UPDATE && updated > 0) {
     console.log(`✅ Scraping complete: ${saved} saved (${updated} updated), ${skipped} skipped\n`);
   } else {
