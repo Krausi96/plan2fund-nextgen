@@ -65,7 +65,7 @@ export async function analyzeFundingType(fundingType: string, limit: number = 50
   const analysisPrompt = `Analyze these ${examples.length} examples of ${fundingType} funding programs to identify patterns.
 
 Examples:
-${examples.map((ex, idx) => `
+${examples.map((ex: any, idx: number) => `
 ${idx + 1}. ${ex.title || ex.url}
    Amount: ${ex.funding_amount_min || 'N/A'} - ${ex.funding_amount_max || 'N/A'} ${ex.currency || ''}
    Deadline: ${ex.deadline || (ex.open_deadline ? 'Rolling' : 'N/A')}
