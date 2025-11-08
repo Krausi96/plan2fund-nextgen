@@ -142,37 +142,6 @@ export async function batchClassifyUrls(
   for (let i = 0; i < urls.length; i += BATCH_SIZE) {
     const batch = urls.slice(i, i + BATCH_SIZE);
     
-    // Use custom prompt if provided, otherwise use default
-    const _promptTemplate = customPrompt || `Classify this URL to determine if it's a funding program page.
-
-URL: {url}
-Title: {title}
-Description: {description}
-
-Respond with JSON:
-{
-  "isProgramPage": "yes" | "no" | "maybe",
-  "fundingType": "grant" | "loan" | "equity" | "guarantee" | "subsidy" | "unknown",
-  "qualityScore": 0-100,
-  "isOverviewPage": true | false,
-  "reason": "brief explanation"
-}
-
-Rules:
-- "yes" = Definitely a funding program page (has specific program details, funding amounts, eligibility)
-- "maybe" = Could be, needs verification
-- "no" = Not a funding program (news, contact, about, team, imprint, privacy, etc.)
-- qualityScore: 0-100 based on how likely it contains useful program information
-- isOverviewPage: true if this lists multiple programs
-
-EXCLUDE these URL patterns (NOT programs):
-- /about-us/, /about/, /ueber/, /chi-siamo/
-- /contact/, /kontakt/, /contact-us/
-- /team/, /team-members/
-- /news/, /press/, /media/
-- /imprint/, /impressum/, /privacy/, /datenschutz/
-- /legal/, /terms/, /conditions/`;
-
     const batchPrompt = `Classify these URLs to determine if they're funding program pages.
 
 URLs:

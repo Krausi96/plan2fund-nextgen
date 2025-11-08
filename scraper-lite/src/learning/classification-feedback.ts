@@ -3,7 +3,7 @@
  * Tracks if URL classifications were correct and learns from mistakes
  */
 
-import { getPool } from '../db/db';
+import { getPool } from '../../db/db';
 
 export interface ClassificationFeedback {
   url: string;

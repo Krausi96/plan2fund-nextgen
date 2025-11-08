@@ -3,7 +3,7 @@
  * Handles re-scraping of overview pages, blacklisted URLs, and manually flagged pages
  */
 
-import { getPool } from '../db/db';
+import { getPool } from '../../db/db';
 
 export interface ReScrapeTask {
   url: string;

@@ -3,7 +3,7 @@
  * Analyzes examples to learn what makes a good funding program page
  */
 
-import { getPool } from '../db/db';
+import { getPool } from '../../db/db';
 import { isCustomLLMEnabled, callCustomLLM } from '../../../shared/lib/customLLM';
 import OpenAI from 'openai';
 

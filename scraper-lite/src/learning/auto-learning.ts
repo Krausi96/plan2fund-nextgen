@@ -3,7 +3,7 @@
  * Automatically learns patterns and improves over time
  */
 
-import { getPool } from '../db/db';
+import { getPool } from '../../db/db';
 import { learnAllPatterns, QualityRule } from './learn-quality-patterns';
 import { getClassificationAccuracy, getCommonMistakes } from './classification-feedback';
 
