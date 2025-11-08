@@ -499,3 +499,4 @@ Create `redesign/UI/TEST_RESULTS.md`:
 - ✅ Lighthouse accessibility (catches most a11y issues)
 - ✅ Responsive DevTools (catches layout issues)
 
+

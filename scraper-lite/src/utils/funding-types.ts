@@ -22,7 +22,7 @@ const CANONICAL_FUNDING_TYPES = [
 ] as const;
 
 // Mapping: invalid/duplicate types -> canonical type
-const FUNDING_TYPE_MAP: Record<string, string> = {
+const FUNDING_TYPE_MAP: Record<string, string | null> = {
   // Plural forms -> singular
   'grants': 'grant',
   'loans': 'loan',
