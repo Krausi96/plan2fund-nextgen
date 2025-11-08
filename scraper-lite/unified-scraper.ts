@@ -31,7 +31,7 @@ import {
   getQueuedUrls, markUrlQueued, markJobDone, learnUrlPatternFromPage,
   normalizeMetadata, PageMetadata
 } from './db/db';
-import { getAllSeedUrls, findInstitutionByUrl } from './src/config/config';
+import { getAllSeedUrls, findInstitutionByUrl, findInstitutionConfigByUrl } from './src/config/config';
 import { fetchHtml, isOverviewPage, requiresLogin } from './src/utils';
 import { isUrlExcluded } from './src/utils/blacklist';
 import { normalizeFundingTypes, inferFundingType } from './src/utils/funding-types';
@@ -211,19 +211,36 @@ async function discoverPrograms(): Promise<number> {
     pagesProcessed++;
     
     try {
-      // Determine why this seed is being processed
+      // Determine why this seed is being processed (enhanced logging)
       let reason = '';
+      let reasonDetails = '';
+      
       if (overviewUrlsToRecheck.has(seed)) {
         const lastChecked = overviewPages.rows.find((r: any) => r.url === seed)?.fetched_at;
-        reason = `🔄 Re-checking overview page (last: ${lastChecked ? new Date(lastChecked).toLocaleDateString() : 'never'})`;
+        const lastCheckedDate = lastChecked ? new Date(lastChecked) : null;
+        const daysSince = lastCheckedDate 
+          ? Math.floor((Date.now() - lastCheckedDate.getTime()) / (1000 * 60 * 60 * 24))
+          : 'never';
+        reason = `🔄 Overview page re-check`;
+        reasonDetails = `Last checked: ${lastCheckedDate ? lastCheckedDate.toLocaleDateString() : 'never'} (${daysSince} days ago)`;
       } else if (!existingSeeds.has(seed)) {
         reason = `✅ New seed URL`;
+        reasonDetails = `Not in database - first time processing`;
+      } else if (CONFIG.FORCE_UPDATE) {
+        reason = `🔄 Force update`;
+        reasonDetails = `Already in DB but force update enabled`;
       } else {
-        reason = `⚠️  Already in DB but processing anyway`;
+        reason = `⏭️  Skipped`;
+        reasonDetails = `Already in database (not overview, not force update)`;
       }
       
       console.log(`📄 [${pagesProcessed}/${CONFIG.MAX_DISCOVERY}] ${seed.substring(0, 60)}...`);
-      console.log(`   ${reason}`);
+      console.log(`   ${reason}: ${reasonDetails}`);
+      
+      // Skip if already in DB and not overview and not force update
+      if (existingSeeds.has(seed) && !overviewUrlsToRecheck.has(seed) && !CONFIG.FORCE_UPDATE) {
+        continue; // Skip this seed
+      }
       
       // Check blacklist (database + hardcoded)
       if (await isUrlExcluded(seed)) {
@@ -531,13 +548,59 @@ async function scrapePrograms(): Promise<number> {
       
       // Check if requires login
       if (requiresLogin(url, result.html)) {
-        console.log(`   ⏭️  Requires login, marking as failed\n`);
-        await pool.query('UPDATE scraping_jobs SET status = $1, last_error = $2 WHERE url = $3', 
-          ['failed', 'Requires login', url]);
-        // Learn exclusion pattern from login requirement
-        const host = new URL(url).hostname.replace('www.', '');
-        await learnUrlPatternFromPage(url, host, false);
-        return { saved: false, skipped: true, updated: false };
+        console.log(`   🔐 Login required - attempting authentication...`);
+        
+        // Try to login if institution has login config
+        const institution = findInstitutionConfigByUrl(url);
+        let loginSuccess = false;
+        
+        if (institution?.loginConfig?.enabled) {
+          try {
+            const { loginToSite, fetchHtmlWithAuth } = await import('./src/utils/login');
+            
+            // Build login config with credentials from env vars
+            const loginConfig = {
+              ...institution.loginConfig,
+              url: institution.loginConfig.loginUrl || institution.loginConfig.url || '',
+              email: institution.loginConfig.email || process.env[`${institution.id?.toUpperCase()}_EMAIL`] || '',
+              password: institution.loginConfig.password || process.env[`${institution.id?.toUpperCase()}_PASSWORD`] || '',
+            };
+            
+            if (loginConfig.url && loginConfig.email && loginConfig.password) {
+              const loginResult = await loginToSite(loginConfig);
+              
+              if (loginResult.success && loginResult.cookies) {
+                console.log(`   ✅ Login successful - fetching with authentication...`);
+                
+                // Fetch page with auth
+                const authResult = await fetchHtmlWithAuth(url, loginConfig);
+                result.html = authResult.html;
+                result.status = authResult.status;
+                loginSuccess = true;
+              } else {
+                console.log(`   ❌ Login failed: ${loginResult.error || 'Unknown error'}`);
+              }
+            } else {
+              console.log(`   ⚠️  No login credentials configured (check env vars or institution config)`);
+            }
+          } catch (error: any) {
+            console.log(`   ⚠️  Login error: ${error.message}`);
+          }
+        }
+        
+        // If login failed or no config, mark as failed
+        if (!loginSuccess) {
+          console.log(`   ⏭️  Marking as failed (no login or login failed)\n`);
+          await pool.query('UPDATE scraping_jobs SET status = $1, last_error = $2 WHERE url = $3', 
+            ['failed', 'Requires login', url]);
+          // Learn exclusion pattern from login requirement
+          const host = new URL(url).hostname.replace('www.', '');
+          await learnUrlPatternFromPage(url, host, false);
+          return { saved: false, skipped: true, updated: false };
+        }
+        
+        // Continue with authenticated HTML
+        console.log(`   ✅ Using authenticated content...`);
       }
       
       const $ = cheerio.load(result.html);

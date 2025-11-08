@@ -1450,6 +1450,151 @@ export const institutions: InstitutionConfig[] = [
     region: 'Lower Austria, Austria',
     autoDiscovery: true,
     keywords: ['venture capital', 'SAFE convertible loan', 'tech startups', 'Lower Austria', 'Niederösterreich', 'Tecnet']
+  },
+  
+  // === INDUSTRY-SPECIFIC INSTITUTIONS ===
+  
+  // AWS - Technology & Digitalization Programs
+  {
+    id: 'institution_aws_tech',
+    name: 'AWS - Technology & Digitalization',
+    baseUrl: 'https://aws.at',
+    programUrls: [
+      'https://www.aws.at/en/aws-digitalisierung/ai-unternehmen-wachstum/',
+      'https://www.aws.at/en/aws-digitalization/',
+      'https://www.aws.at/en/aws-digitalization/ai-start/',
+      'https://www.aws.at/en/aws-digitalisierung/',
+    ],
+    selectors: {
+      name: ['h1', '.program-title', '.foerderung-title'],
+      description: ['.program-description', '.foerderung-description', 'p'],
+      eligibility: ['.eligibility', '.voraussetzungen', '.requirements'],
+      requirements: ['.requirements', '.dokumente', '.unterlagen'],
+      contact: ['.contact', '.ansprechpartner', '.kontakt']
+    },
+    fundingTypes: ['grant', 'equity'],
+    programFocus: ['technology', 'AI', 'digitalization', 'software', 'IT'],
+    region: 'Austria',
+    autoDiscovery: true,
+    keywords: ['AI', 'digitalization', 'software', 'tech', 'startup', 'innovation', 'IT']
+  },
+  
+  // AWS - Green Energy & Sustainability Programs
+  {
+    id: 'institution_aws_green',
+    name: 'AWS - Green Energy & Sustainability',
+    baseUrl: 'https://aws.at',
+    programUrls: [
+      // Add green energy specific URLs when available
+    ],
+    selectors: {
+      name: ['h1', '.program-title', '.foerderung-title'],
+      description: ['.program-description', '.foerderung-description', 'p'],
+      eligibility: ['.eligibility', '.voraussetzungen', '.requirements'],
+      requirements: ['.requirements', '.dokumente', '.unterlagen'],
+      contact: ['.contact', '.ansprechpartner', '.kontakt']
+    },
+    fundingTypes: ['grant', 'subsidy'],
+    programFocus: ['green_energy', 'sustainability', 'renewable', 'climate', 'environment'],
+    region: 'Austria',
+    autoDiscovery: true,
+    keywords: ['green', 'energy', 'sustainability', 'renewable', 'climate', 'environment', 'eco']
+  },
+  
+  // FFG - Research & Innovation Programs
+  {
+    id: 'institution_ffg_research',
+    name: 'FFG - Research & Innovation',
+    baseUrl: 'https://www.ffg.at',
+    programUrls: [
+      'https://www.ffg.at/en/programme/bridge',
+      'https://www.ffg.at/en/programme/collective-research',
+      'https://www.ffg.at/en/program/r-d-infrastructure-funding',
+    ],
+    selectors: {
+      name: ['h1', '.program-title', '.foerderung-title'],
+      description: ['.program-description', '.foerderung-description', 'p'],
+      eligibility: ['.eligibility', '.voraussetzungen', '.requirements'],
+      requirements: ['.requirements', '.dokumente', '.unterlagen'],
+      contact: ['.contact', '.ansprechpartner', '.kontakt']
+    },
+    fundingTypes: ['grant'],
+    programFocus: ['research', 'innovation', 'R&D', 'science', 'technology'],
+    region: 'Austria',
+    autoDiscovery: true,
+    keywords: ['research', 'innovation', 'R&D', 'science', 'technology', 'development']
+  },
+  
+  // === EXPANDED REGIONS ===
+  
+  // Germany - KfW Bankengruppe
+  {
+    id: 'institution_kfw',
+    name: 'KfW Bankengruppe',
+    baseUrl: 'https://www.kfw.de',
+    programUrls: [
+      'https://www.kfw.de/inlandsfoerderung/Unternehmen/',
+      'https://www.kfw.de/inlandsfoerderung/Unternehmen/Innovation/',
+      'https://www.kfw.de/inlandsfoerderung/Unternehmen/Gruendung/',
+    ],
+    selectors: {
+      name: ['h1', '.program-title', '.foerderung-title'],
+      description: ['.program-description', '.foerderung-description', 'p'],
+      eligibility: ['.eligibility', '.voraussetzungen', '.requirements'],
+      requirements: ['.requirements', '.dokumente', '.unterlagen'],
+      contact: ['.contact', '.ansprechpartner', '.kontakt']
+    },
+    fundingTypes: ['loan', 'grant', 'guarantee'],
+    programFocus: ['SME', 'startup', 'innovation', 'export'],
+    region: 'Germany',
+    autoDiscovery: true,
+    keywords: ['KfW', 'Förderung', 'Kredit', 'Darlehen', 'Start-up', 'Innovation', 'Export']
+  },
+  
+  // Switzerland - Innosuisse
+  {
+    id: 'institution_innosuisse',
+    name: 'Innosuisse',
+    baseUrl: 'https://www.innosuisse.ch',
+    programUrls: [
+      'https://www.innosuisse.ch/inno/en/home/support/innovation-projects.html',
+      'https://www.innosuisse.ch/inno/en/home/support/start-up-coaching.html',
+    ],
+    selectors: {
+      name: ['h1', '.program-title', '.foerderung-title'],
+      description: ['.program-description', '.foerderung-description', 'p'],
+      eligibility: ['.eligibility', '.voraussetzungen', '.requirements'],
+      requirements: ['.requirements', '.dokumente', '.unterlagen'],
+      contact: ['.contact', '.ansprechpartner', '.kontakt']
+    },
+    fundingTypes: ['grant'],
+    programFocus: ['innovation', 'research', 'startup', 'technology'],
+    region: 'Switzerland',
+    autoDiscovery: true,
+    keywords: ['Innosuisse', 'innovation', 'research', 'startup', 'technology', 'Förderung']
+  },
+  
+  // EU - Horizon Europe
+  {
+    id: 'institution_horizon',
+    name: 'Horizon Europe',
+    baseUrl: 'https://ec.europa.eu',
+    programUrls: [
+      'https://ec.europa.eu/info/research-and-innovation/funding/funding-opportunities/funding-programmes-and-open-calls/horizon-europe_en',
+      'https://ec.europa.eu/info/research-and-innovation/funding/funding-opportunities/funding-programmes-and-open-calls/horizon-europe/eu-missions-horizon-europe_en',
+    ],
+    selectors: {
+      name: ['h1', '.program-title', '.foerderung-title'],
+      description: ['.program-description', '.foerderung-description', 'p'],
+      eligibility: ['.eligibility', '.voraussetzungen', '.requirements'],
+      requirements: ['.requirements', '.dokumente', '.unterlagen'],
+      contact: ['.contact', '.ansprechpartner', '.kontakt']
+    },
+    fundingTypes: ['grant'],
+    programFocus: ['research', 'innovation', 'climate', 'health', 'digital'],
+    region: 'EU',
+    autoDiscovery: true,
+    keywords: ['Horizon Europe', 'EU funding', 'research', 'innovation', 'climate', 'health', 'digital']
   }
 ];
 

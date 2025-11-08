@@ -3,7 +3,8 @@ import {
   institutions as legacyInstitutions, 
   fundingTypes,
   programFocus,
-  autoDiscoveryPatterns
+  autoDiscoveryPatterns,
+  type InstitutionConfig
 } from './institutionConfig';
 
 export interface LiteInstitutionConfig {
@@ -47,6 +48,19 @@ export function findInstitutionByUrl(url: string): LiteInstitutionConfig | null 
   try {
     const urlObj = new URL(url);
     return institutions.find(inst => {
+      const instUrl = new URL(inst.baseUrl);
+      return instUrl.hostname === urlObj.hostname || url.startsWith(inst.baseUrl);
+    }) || null;
+  } catch {
+    return null;
+  }
+}
+
+// Find full institution config by URL (for login config, etc.)
+export function findInstitutionConfigByUrl(url: string): InstitutionConfig | null {
+  try {
+    const urlObj = new URL(url);
+    return legacyInstitutions.find(inst => {
       const instUrl = new URL(inst.baseUrl);
       return instUrl.hostname === urlObj.hostname || url.startsWith(inst.baseUrl);
     }) || null;
