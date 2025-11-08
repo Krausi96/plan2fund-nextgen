@@ -89,7 +89,7 @@ function calculateMeaningfulnessScore(text: any): number {
   
   return Math.min(100, Math.max(0, score));
 }
-import { isCustomLLMEnabled, callCustomLLM } from '../../shared/lib/customLLM';
+import { isCustomLLMEnabled, callCustomLLM } from '../../../shared/lib/customLLM';
 
 // Dynamic import for data collection (only in Node.js environment)
 let trackScraperQuality: any = null;

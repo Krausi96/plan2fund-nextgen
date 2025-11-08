@@ -4,7 +4,7 @@
  */
 
 import { getPool } from '../db/db';
-import { isCustomLLMEnabled, callCustomLLM } from '../../shared/lib/customLLM';
+import { isCustomLLMEnabled, callCustomLLM } from '../../../shared/lib/customLLM';
 import OpenAI from 'openai';
 
 // Lazy initialization - only create client if API key exists

@@ -3,7 +3,7 @@
  * Uses LLM to intelligently classify URLs before queuing
  */
 
-import { isCustomLLMEnabled, callCustomLLM } from '../../shared/lib/customLLM';
+import { isCustomLLMEnabled, callCustomLLM } from '../../../shared/lib/customLLM';
 import OpenAI from 'openai';
 
 // Lazy initialization - only create client if API key exists
