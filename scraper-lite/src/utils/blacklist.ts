@@ -154,7 +154,7 @@ export async function getAllBlacklistPatterns(): Promise<Array<{
     `);
     
     // Get hardcoded patterns
-    const hardcodedPatterns = HARDCODED_EXCLUSIONS.map((pattern, index) => ({
+    const hardcodedPatterns = HARDCODED_EXCLUSIONS.map((pattern) => ({
       source: 'hardcoded' as const,
       pattern: pattern.toString(),
       reason: getHardcodedPatternReason(pattern)
@@ -171,7 +171,7 @@ export async function getAllBlacklistPatterns(): Promise<Array<{
     ];
   } catch {
     // Fallback: return hardcoded patterns only
-    return HARDCODED_EXCLUSIONS.map((pattern, index) => ({
+    return HARDCODED_EXCLUSIONS.map((pattern) => ({
       source: 'hardcoded' as const,
       pattern: pattern.toString(),
       reason: getHardcodedPatternReason(pattern)
@@ -230,7 +230,7 @@ export async function updatePatternConfidence(
 export async function addManualExclusion(
   pattern: string,
   host: string,
-  reason?: string
+  _reason?: string
 ): Promise<void> {
   try {
     const pool = getPool();
