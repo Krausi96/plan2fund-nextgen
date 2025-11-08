@@ -15,8 +15,12 @@ if (fs.existsSync(envPath)) {
 }
 dotenv.config({ override: false });
 
-import { getClassificationAccuracy, getCommonMistakes } from '../../src/learning/classification-feedback';
-import { getLearningStatus, getStoredQualityRules } from '../../src/learning/auto-learning';
+import { 
+  getClassificationAccuracy, 
+  getCommonMistakes,
+  getLearningStatus, 
+  getStoredQualityRules 
+} from '../../src/learning/auto-learning';
 import { getPool } from '../../db/db';
 
 async function main() {

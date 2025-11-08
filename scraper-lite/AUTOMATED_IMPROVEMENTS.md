@@ -85,7 +85,7 @@ npx tsx scraper-lite/test/learn-requirement-patterns.ts
 
 ### Check Learned Patterns
 ```bash
-npx tsx -e "import { getStoredRequirementPatterns } from './scraper-lite/src/learning/learn-requirement-patterns'; (async () => { const p = await getStoredRequirementPatterns(); console.log('Patterns:', p.length); })();"
+npx tsx -e "import { getStoredRequirementPatterns } from './scraper-lite/src/learning/auto-learning'; (async () => { const p = await getStoredRequirementPatterns(); console.log('Patterns:', p.length); })();"
 ```
 
 ### Use Existing Analysis Scripts

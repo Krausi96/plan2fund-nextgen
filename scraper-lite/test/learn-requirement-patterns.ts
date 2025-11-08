@@ -15,7 +15,7 @@ if (fs.existsSync(envPath)) {
 }
 dotenv.config({ override: false });
 
-import { autoLearnRequirementPatterns, getStoredRequirementPatterns } from '../src/learning/learn-requirement-patterns';
+import { autoLearnRequirementPatterns, getStoredRequirementPatterns } from '../src/learning/auto-learning';
 
 async function main() {
   console.log('🧠 Learning Requirement Patterns\n');

@@ -36,8 +36,12 @@ import { fetchHtml, isOverviewPage, requiresLogin } from './src/utils';
 import { isUrlExcluded } from './src/utils/blacklist';
 import { normalizeFundingTypes, inferFundingType } from './src/utils/funding-types';
 import { batchClassifyUrls, classifyUrl, UrlClassification } from './src/core/llm-discovery';
-import { recordClassificationFeedback } from './src/learning/classification-feedback';
-import { autoLearnQualityPatterns, getImprovedClassificationPrompt, getLearningStatus } from './src/learning/auto-learning';
+import { 
+  recordClassificationFeedback,
+  autoLearnQualityPatterns, 
+  getImprovedClassificationPrompt, 
+  getLearningStatus 
+} from './src/learning/auto-learning';
 import * as cheerio from 'cheerio';
 
 // ============================================================================
@@ -664,7 +668,7 @@ async function scrapePrograms(): Promise<number> {
   
   // AUTO-LEARNING: Check if we should learn quality patterns
   try {
-    const { shouldLearnQualityPatterns } = await import('./src/auto-learning');
+    const { shouldLearnQualityPatterns } = await import('./src/learning/auto-learning');
     const shouldLearn = await shouldLearnQualityPatterns();
     if (shouldLearn) {
       console.log('\n🧠 Auto-learning quality patterns...');

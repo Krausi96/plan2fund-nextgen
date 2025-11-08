@@ -192,7 +192,7 @@ export async function savePageWithRequirements(page: PageMetadata): Promise<numb
       // Apply learned requirement patterns (async, but we'll do it synchronously for now)
       let requirementPatterns: any = null;
       try {
-        const { getStoredRequirementPatterns } = await import('../src/learning/learn-requirement-patterns');
+        const { getStoredRequirementPatterns } = await import('../src/learning/auto-learning');
         requirementPatterns = await getStoredRequirementPatterns();
       } catch {
         // Pattern learning not available yet, continue without filtering
