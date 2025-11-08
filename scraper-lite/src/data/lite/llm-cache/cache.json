@@ -2311,5 +2311,169 @@
     "modelVersion": "text-embedding-3-small",
     "timestamp": 1762603042822,
     "url": "https://www.sfg.at/wp-content/uploads/2019/08/formular_persoenliche_vermoegenssituation.xlsx"
+  },
+  "7997a60578c17e20439039cfd478aae917ce2b7011475a00a7f7d07054e8c439:text-embedding-3-small": {
+    "urlHash": "7997a60578c17e20439039cfd478aae917ce2b7011475a00a7f7d07054e8c439",
+    "result": {
+      "categorized_requirements": {
+        "eligibility": [
+          {
+            "type": "company_type",
+            "value": "Small and medium-sized enterprises (SMEs) with less than 250 employees",
+            "source": "llm_extraction",
+            "meaningfulness_score": 70
+          },
+          {
+            "type": "industry_restriction",
+            "value": "Companies based in Austria, Germany, or EU member states",
+            "source": "llm_extraction",
+            "meaningfulness_score": 43
+          },
+          {
+            "type": "eligibility_criteria",
+            "value": "Companies must have a business plan and a clear innovation focus",
+            "source": "llm_extraction",
+            "meaningfulness_score": 52
+          }
+        ],
+        "documents": [
+          {
+            "type": "format",
+            "value": "A4, portrait, 2-sided",
+            "source": "llm_extraction",
+            "meaningfulness_score": 30.5
+          }
+        ],
+        "funding_details": [
+          {
+            "type": "co_financing",
+            "value": "Minimum 30% own contribution",
+            "source": "llm_extraction",
+            "meaningfulness_score": 69
+          }
+        ],
+        "financial": [
+          {
+            "type": "guarantee_fee",
+            "value": "from 2.0% p.a. onward",
+            "source": "llm_extraction",
+            "meaningfulness_score": 80.5
+          }
+        ],
+        "technical": [],
+        "legal": [
+          {
+            "type": "legal_requirement",
+            "value": "Companies must comply with EU and Austrian laws",
+            "source": "llm_extraction",
+            "meaningfulness_score": 43.5
+          }
+        ],
+        "timeline": [
+          {
+            "type": "duration",
+            "value": "Project duration not specified",
+            "source": "llm_extraction",
+            "meaningfulness_score": 35
+          }
+        ],
+        "geographic": [
+          {
+            "type": "geographic_eligibility",
+            "value": "Companies based in Austria, Germany, or EU member states",
+            "source": "llm_extraction",
+            "meaningfulness_score": 43
+          }
+        ],
+        "project": [
+          {
+            "type": "sector_focus",
+            "value": "Sector focus areas not specified",
+            "source": "llm_extraction",
+            "meaningfulness_score": 36
+          }
+        ],
+        "compliance": [
+          {
+            "type": "compliance_requirement",
+            "value": "Companies must comply with EU and Austrian laws",
+            "source": "llm_extraction",
+            "meaningfulness_score": 43.5
+          }
+        ],
+        "application": [
+          {
+            "type": "application_process",
+            "value": "Companies must submit a business plan, CV, project description, and financial plan",
+            "source": "llm_extraction",
+            "meaningfulness_score": 71
+          }
+        ],
+        "restrictions": [],
+        "terms": []
+      },
+      "metadata": {
+        "funding_amount_min": null,
+        "funding_amount_max": null,
+        "currency": "EUR",
+        "deadline": null,
+        "open_deadline": true,
+        "contact_email": "info@sfund.at",
+        "contact_phone": "+43 1 531 38 - 0",
+        "funding_types": [
+          "grant",
+          "loan",
+          "equity"
+        ],
+        "program_focus": [
+          "innovation",
+          "research",
+          "startup"
+        ],
+        "region": "Austria"
+      }
+    },
+    "modelVersion": "text-embedding-3-small",
+    "timestamp": 1762603772925,
+    "url": "https://www.sfg.at/wp-content/uploads/2019/07/formular_persoenliche_vermoegenssituation.xlsx"
+  },
+  "677927b7705c6cec2f5ac53acfdae691a0071896b4517609ebea8b8b391ae072:text-embedding-3-small": {
+    "urlHash": "677927b7705c6cec2f5ac53acfdae691a0071896b4517609ebea8b8b391ae072",
+    "result": {
+      "categorized_requirements": {
+        "eligibility": [],
+        "geographic": [
+          {
+            "type": "geographic_eligibility",
+            "value": "Companies must be based in Austria, Germany, or EU member states with headquarters in Vienna",
+            "source": "llm_extraction",
+            "meaningfulness_score": 81
+          }
+        ],
+        "timeline": [],
+        "project": [],
+        "application": []
+      },
+      "metadata": {
+        "funding_amount_min": null,
+        "funding_amount_max": null,
+        "currency": "EUR",
+        "deadline": null,
+        "open_deadline": true,
+        "contact_email": "stockinger@wirtschaftsagentur.at",
+        "contact_phone": "+43 1 25200 761",
+        "funding_types": [
+          "unknown"
+        ],
+        "program_focus": [
+          "innovation",
+          "research"
+        ],
+        "region": "Austria"
+      }
+    },
+    "modelVersion": "text-embedding-3-small",
+    "timestamp": 1762603775754,
+    "url": "https://viennabusinessagency.at/events-workshops/vienna-art-week-learning-systems/"
   }
 }
