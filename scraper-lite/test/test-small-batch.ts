@@ -16,8 +16,8 @@ if (fs.existsSync(envPath)) {
 dotenv.config({ override: false });
 
 import { getPool } from '../db/db';
-import { normalizeDate } from '../src/utils-date';
-import { normalizeFundingTypes } from '../src/utils-funding-types';
+import { normalizeDate } from '../src/utils/date';
+import { normalizeFundingTypes } from '../src/utils/funding-types';
 
 async function testSmallBatch() {
   const pool = getPool();

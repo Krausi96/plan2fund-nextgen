@@ -143,7 +143,7 @@ export async function batchClassifyUrls(
     const batch = urls.slice(i, i + BATCH_SIZE);
     
     // Use custom prompt if provided, otherwise use default
-    const basePrompt = customPrompt || `Classify this URL to determine if it's a funding program page.
+    const prompt = customPrompt || `Classify this URL to determine if it's a funding program page.
 
 URL: {url}
 Title: {title}

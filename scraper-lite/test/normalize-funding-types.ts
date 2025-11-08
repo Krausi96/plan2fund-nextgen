@@ -23,7 +23,7 @@ if (fs.existsSync(envPath)) {
 dotenv.config({ override: false });
 
 import { getPool } from '../db/db';
-import { normalizeFundingTypes, inferFundingType } from '../src/utils-funding-types';
+import { normalizeFundingTypes, inferFundingType } from '../src/utils/funding-types';
 
 async function normalizeAllFundingTypes(dryRun: boolean = false) {
   const pool = getPool();

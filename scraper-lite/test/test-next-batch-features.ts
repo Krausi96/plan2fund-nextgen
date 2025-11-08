@@ -18,8 +18,8 @@ dotenv.config({ override: false });
 import { getPool } from '../db/db';
 import { fetchHtml } from '../src/utils';
 import { isOverviewPage } from '../src/utils';
-import { extractFilterUrls, extractFilterOptions } from '../src/utils-overview-filters';
-import { getReScrapeTasks, getReScrapeStats } from '../src/unified-rescraping';
+import { extractFilterUrls, extractFilterOptions } from '../src/utils/overview-filters';
+import { getReScrapeTasks, getReScrapeStats } from '../src/rescraping/unified-rescraping';
 import { requiresLogin } from '../src/utils';
 
 async function testNextBatchFeatures() {

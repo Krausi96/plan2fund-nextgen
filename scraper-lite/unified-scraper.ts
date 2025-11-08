@@ -31,13 +31,13 @@ import {
   getQueuedUrls, markUrlQueued, markJobDone, learnUrlPatternFromPage,
   normalizeMetadata, PageMetadata
 } from './db/db';
-import { getAllSeedUrls, findInstitutionByUrl } from './src/config';
+import { getAllSeedUrls, findInstitutionByUrl } from './src/config/config';
 import { fetchHtml, isOverviewPage, requiresLogin } from './src/utils';
-import { isUrlExcluded } from './src/utils-blacklist';
-import { normalizeFundingTypes, inferFundingType } from './src/utils-funding-types';
-import { batchClassifyUrls, classifyUrl, UrlClassification } from './src/llm-discovery';
-import { recordClassificationFeedback } from './src/classification-feedback';
-import { autoLearnQualityPatterns, getImprovedClassificationPrompt, getLearningStatus } from './src/auto-learning';
+import { isUrlExcluded } from './src/utils/blacklist';
+import { normalizeFundingTypes, inferFundingType } from './src/utils/funding-types';
+import { batchClassifyUrls, classifyUrl, UrlClassification } from './src/core/llm-discovery';
+import { recordClassificationFeedback } from './src/learning/classification-feedback';
+import { autoLearnQualityPatterns, getImprovedClassificationPrompt, getLearningStatus } from './src/learning/auto-learning';
 import * as cheerio from 'cheerio';
 
 // ============================================================================
@@ -476,8 +476,8 @@ async function scrapePrograms(): Promise<number> {
       
       // LLM-FIRST: Use LLM directly (skip unreliable pattern extraction)
       console.log(`   🤖 Extracting with LLM...`);
-      const { extractWithLLM } = await import('./src/llm-extract');
-      const { computeUrlHash, getCachedExtraction, storeCachedExtraction } = await import('./src/llmCache');
+      const { extractWithLLM } = await import('./src/core/llm-extract');
+      const { computeUrlHash, getCachedExtraction, storeCachedExtraction } = await import('./src/core/llmCache');
       
       // Check cache first
       const urlHash = computeUrlHash(url);

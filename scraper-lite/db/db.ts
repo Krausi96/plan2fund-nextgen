@@ -79,7 +79,7 @@ export function normalizeMetadata(raw: any): PageMetadata {
     const funding_amount_max = (raw.funding_amount_max != null && raw.funding_amount_max !== undefined) ? Number(raw.funding_amount_max) : null;
     
     // Normalize date format (DD.MM.YYYY -> YYYY-MM-DD)
-    const { normalizeDate } = require('./utils-date');
+    const { normalizeDate } = require('../src/utils/date');
     const normalizedDeadline = normalizeDate(raw.deadline);
     
     return {

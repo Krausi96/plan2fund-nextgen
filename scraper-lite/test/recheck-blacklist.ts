@@ -19,7 +19,7 @@ if (fs.existsSync(envPath)) {
 }
 dotenv.config({ override: false });
 
-import { runRecheckCycle } from '../src/utils-blacklist-recheck';
+import { runRecheckCycle } from '../src/utils/blacklist-recheck';
 
 async function main() {
   const args = process.argv.slice(2);
