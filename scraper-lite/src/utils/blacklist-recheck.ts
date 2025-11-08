@@ -62,9 +62,9 @@ export async function recheckExcludedUrl(url: string): Promise<RecheckResult> {
         description: ''
       });
       
-      const reqCount: number = Object.values(llmResult.categorized_requirements || {}).reduce(
+      const reqCount = Object.values(llmResult.categorized_requirements || {}).reduce(
         (sum: number, arr: any[]) => sum + (Array.isArray(arr) ? arr.length : 0), 0
-      );
+      ) as number;
       
       if (reqCount >= 5) {
         // Has requirements - should NOT be excluded
