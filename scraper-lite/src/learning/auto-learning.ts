@@ -6,6 +6,7 @@
 import { getPool } from '../../db/db';
 import { learnAllPatterns, QualityRule } from './learn-quality-patterns';
 import { getClassificationAccuracy, getCommonMistakes } from './classification-feedback';
+import { autoLearnRequirementPatterns } from './learn-requirement-patterns';
 
 /**
  * Check if it's time to learn quality patterns automatically
@@ -57,6 +58,10 @@ export async function autoLearnQualityPatterns(): Promise<QualityRule[] | null> 
     
     // Store learned rules in database
     await storeQualityRules(rules);
+    
+    // Also learn requirement patterns
+    console.log(`🧠 Auto-learning requirement patterns...`);
+    await autoLearnRequirementPatterns();
     
     return rules;
   } catch (error: any) {

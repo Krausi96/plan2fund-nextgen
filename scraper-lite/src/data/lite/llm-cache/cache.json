@@ -1,0 +1,2134 @@
+{
+  "00c9f1a36475a3b73d1524870909f646ba04b4f83a20b978ffe7d5be4b38cf85:text-embedding-3-small": {
+    "urlHash": "00c9f1a36475a3b73d1524870909f646ba04b4f83a20b978ffe7d5be4b38cf85",
+    "result": {
+      "categorized_requirements": {
+        "eligibility": [
+          {
+            "type": "company_type",
+            "value": "Small and medium-sized enterprises (SMEs) with less than 250 employees",
+            "source": "llm_extraction",
+            "meaningfulness_score": 70
+          },
+          {
+            "type": "eligibility_criteria",
+            "value": "The company must have a high growth potential, a clear business plan, and a positive evaluation by a business angel or venture capital company.",
+            "source": "llm_extraction",
+            "meaningfulness_score": 70
+          }
+        ],
+        "documents": [],
+        "financial": [
+          {
+            "type": "equity_terms",
+            "value": "SFG and co-investor will hold an equity stake of up to 50%",
+            "source": "llm_extraction",
+            "meaningfulness_score": 84
+          }
+        ],
+        "funding_details": [
+          {
+            "type": "co_financing",
+            "value": "Co-financing is required, with SFG and co-investor contributing equally",
+            "source": "llm_extraction",
+            "meaningfulness_score": 55.5
+          },
+          {
+            "type": "use_of_funds",
+            "value": "Personal and capital expenditures, market development and sales",
+            "source": "llm_extraction",
+            "meaningfulness_score": 31.5
+          }
+        ],
+        "timeline": [],
+        "geographic": [],
+        "project": [],
+        "impact": [],
+        "application": [
+          {
+            "type": "evaluation_criteria",
+            "value": "Innovation, growth potential, business plan, and evaluation by business angel or venture capital company",
+            "source": "llm_extraction",
+            "meaningfulness_score": 50
+          }
+        ],
+        "restrictions": [
+          {
+            "type": "restrictions",
+            "value": "Mittel- und Großunternehmen, Unternehmen außerhalb der Steiermark, Einzelpersonen",
+            "source": "llm_extraction",
+            "meaningfulness_score": 40.5
+          }
+        ]
+      },
+      "metadata": {
+        "funding_amount_min": 0,
+        "funding_amount_max": 1500000,
+        "currency": "EUR",
+        "deadline": null,
+        "open_deadline": true,
+        "contact_email": "sfg@stmg.at",
+        "contact_phone": "+43 316 7093 216",
+        "funding_types": [
+          "venture_capital"
+        ],
+        "program_focus": [
+          "innovation",
+          "startup"
+        ],
+        "region": "Steiermark"
+      }
+    },
+    "modelVersion": "text-embedding-3-small",
+    "timestamp": 1762598039054,
+    "url": "https://www.sfg.at/f/venture-capital/"
+  },
+  "6408839650c5fdac5b99df0b5f969bd7b88423ebc82ca59600d8bdbc2cb12981:text-embedding-3-small": {
+    "urlHash": "6408839650c5fdac5b99df0b5f969bd7b88423ebc82ca59600d8bdbc2cb12981",
+    "result": {
+      "categorized_requirements": {
+        "eligibility": [
+          {
+            "type": "company_type",
+            "value": "Small and medium-sized enterprises (SMEs) with less than 250 employees",
+            "source": "llm_extraction",
+            "meaningfulness_score": 70
+          },
+          {
+            "type": "eligibility_criteria",
+            "value": "Companies must be based in Austria, Germany, or EU member states with headquarters in Vienna",
+            "source": "llm_extraction",
+            "meaningfulness_score": 81
+          }
+        ],
+        "documents": [],
+        "legal": [
+          {
+            "type": "legal_requirement",
+            "value": "Companies must comply with EU and national laws and regulations",
+            "source": "llm_extraction",
+            "meaningfulness_score": 51.5
+          }
+        ],
+        "timeline": [],
+        "geographic": [
+          {
+            "type": "geographic_eligibility",
+            "value": "Companies must be based in Austria, Germany, or EU member states with headquarters in Vienna",
+            "source": "llm_extraction",
+            "meaningfulness_score": 81
+          }
+        ],
+        "project": [],
+        "compliance": [
+          {
+            "type": "compliance_requirement",
+            "value": "Companies must comply with EU and national laws and regulations",
+            "source": "llm_extraction",
+            "meaningfulness_score": 51.5
+          }
+        ],
+        "impact": [],
+        "application": [
+          {
+            "type": "application_process",
+            "value": "Companies must submit a business plan, CV, and project description",
+            "source": "llm_extraction",
+            "meaningfulness_score": 63
+          }
+        ],
+        "funding_details": []
+      },
+      "metadata": {
+        "funding_amount_min": null,
+        "funding_amount_max": null,
+        "currency": "EUR",
+        "deadline": null,
+        "open_deadline": true,
+        "contact_email": "alexandra.sifkovits@sfg.at",
+        "contact_phone": "+43 316 7093 314",
+        "funding_types": [
+          "grant",
+          "loan",
+          "equity",
+          "guarantee"
+        ],
+        "program_focus": [
+          "innovation",
+          "research",
+          "startup"
+        ],
+        "region": "Austria"
+      }
+    },
+    "modelVersion": "text-embedding-3-small",
+    "timestamp": 1762598072465,
+    "url": "https://www.sfg.at/foerderungen/rechtsgrundlagen/"
+  },
+  "2430c7bd955aa39074b6ce4a1db1add1a79d6f30f541f70dac2ab1183bfdd2a2:text-embedding-3-small": {
+    "urlHash": "2430c7bd955aa39074b6ce4a1db1add1a79d6f30f541f70dac2ab1183bfdd2a2",
+    "result": {
+      "categorized_requirements": {
+        "eligibility": [
+          {
+            "type": "company_type",
+            "value": "Independent fashion designers and labels with a focus on and interest in knitwear",
+            "source": "llm_extraction",
+            "meaningfulness_score": 40.5
+          }
+        ],
+        "technical": [
+          {
+            "type": "technical_requirement",
+            "value": "In-depth insights into the complex world of professional knitwear development, introduction to methodological approaches and working methods in the industry, process analysis from conception to finalisation",
+            "source": "llm_extraction",
+            "meaningfulness_score": 85
+          }
+        ],
+        "project": [],
+        "application": [
+          {
+            "type": "application_process",
+            "value": "Register for the workshop by 16 November 2025",
+            "source": "llm_extraction",
+            "meaningfulness_score": 52.5
+          }
+        ],
+        "restrictions": []
+      },
+      "metadata": {
+        "funding_amount_min": null,
+        "funding_amount_max": null,
+        "currency": "EUR",
+        "deadline": "2025-11-16",
+        "open_deadline": false,
+        "contact_email": "jacubasch@wirtschaftsagentur.at",
+        "contact_phone": "+43 1 25200 754",
+        "funding_types": [
+          "unknown"
+        ],
+        "program_focus": [
+          "fashion",
+          "innovation"
+        ],
+        "region": "Austria"
+      }
+    },
+    "modelVersion": "text-embedding-3-small",
+    "timestamp": 1762598099857,
+    "url": "https://viennabusinessagency.at/events-workshops/how-to-fashion-workshop-into-knitwear-with-carolin-lerch/"
+  },
+  "9ee8955bf27f04ca018a1c892be2f993ff26f978886bbce8490aa694b8072679:text-embedding-3-small": {
+    "urlHash": "9ee8955bf27f04ca018a1c892be2f993ff26f978886bbce8490aa694b8072679",
+    "result": {
+      "categorized_requirements": {
+        "eligibility": [],
+        "timeline": [],
+        "geographic": [
+          {
+            "type": "geographic_eligibility",
+            "value": "Companies based in Austria, Germany, or EU member states",
+            "source": "llm_extraction",
+            "meaningfulness_score": 43
+          }
+        ]
+      },
+      "metadata": {
+        "funding_amount_min": null,
+        "funding_amount_max": null,
+        "currency": "EUR",
+        "deadline": null,
+        "open_deadline": true,
+        "contact_email": "info@wirtschaftsagentur.at",
+        "contact_phone": "+43 1 25200 0",
+        "funding_types": [
+          "grants",
+          "loans",
+          "equity",
+          "services"
+        ],
+        "program_focus": [
+          "innovation",
+          "research",
+          "startup",
+          "business"
+        ],
+        "region": "Austria"
+      }
+    },
+    "modelVersion": "text-embedding-3-small",
+    "timestamp": 1762598102170,
+    "url": "https://viennabusinessagency.at/team-contact/?contact=31&cHash=1b94a143d7c24c8f6967c04f1f893dab"
+  },
+  "ccb427ecd2fee16621b1df4a75333d65145ee0f09d705d6e5e8390615370638a:text-embedding-3-small": {
+    "urlHash": "ccb427ecd2fee16621b1df4a75333d65145ee0f09d705d6e5e8390615370638a",
+    "result": {
+      "categorized_requirements": {
+        "eligibility": [
+          {
+            "type": "company_type",
+            "value": "Companies with a business location in Vienna, Lower Austria, or Burgenland",
+            "source": "llm_extraction",
+            "meaningfulness_score": 37
+          },
+          {
+            "type": "industry_restriction",
+            "value": "Production, neighbourhood business, internationalisation, innovation, research, and science",
+            "source": "llm_extraction",
+            "meaningfulness_score": 45.5
+          },
+          {
+            "type": "eligibility_criteria",
+            "value": "Businesses must be registered in Vienna, Lower Austria, or Burgenland, and have a valid business license",
+            "source": "llm_extraction",
+            "meaningfulness_score": 95
+          }
+        ],
+        "documents": [
+          {
+            "type": "required_documents",
+            "value": "Business plan,CV,Project description,Financial statements,Proof of business location",
+            "source": "llm_extraction",
+            "meaningfulness_score": 42
+          }
+        ],
+        "timeline": [],
+        "geographic": [
+          {
+            "type": "geographic_eligibility",
+            "value": "Companies with a business location in Vienna, Lower Austria, or Burgenland",
+            "source": "llm_extraction",
+            "meaningfulness_score": 37
+          }
+        ],
+        "project": [
+          {
+            "type": "technology_area",
+            "value": "Production, neighbourhood business, internationalisation, innovation, research, and science",
+            "source": "llm_extraction",
+            "meaningfulness_score": 45.5
+          },
+          {
+            "type": "sector_focus",
+            "value": "Production, neighbourhood business, internationalisation, innovation, research, and science",
+            "source": "llm_extraction",
+            "meaningfulness_score": 45.5
+          }
+        ],
+        "application": [
+          {
+            "type": "application_process",
+            "value": "Companies must submit a business plan, CV, and project description",
+            "source": "llm_extraction",
+            "meaningfulness_score": 63
+          }
+        ],
+        "funding_details": []
+      },
+      "metadata": {
+        "funding_amount_min": null,
+        "funding_amount_max": null,
+        "currency": "EUR",
+        "deadline": null,
+        "open_deadline": true,
+        "contact_email": "info@wirtschaftsagentur.at",
+        "contact_phone": "+43 1 25200 0",
+        "funding_types": [
+          "grants",
+          "loans",
+          "equity",
+          "services"
+        ],
+        "program_focus": [
+          "innovation",
+          "research",
+          "startup"
+        ],
+        "region": "Austria"
+      }
+    },
+    "modelVersion": "text-embedding-3-small",
+    "timestamp": 1762598102971,
+    "url": "https://viennabusinessagency.at/team-contact/?contact=16&cHash=b2ffcaf89180160d73e3b7c04695b80d"
+  },
+  "a9698fe93af036f6b94d2b56e1804f841a5deb62c9a04faceb9a4db220a34672:text-embedding-3-small": {
+    "urlHash": "a9698fe93af036f6b94d2b56e1804f841a5deb62c9a04faceb9a4db220a34672",
+    "result": {
+      "categorized_requirements": {
+        "eligibility": [
+          {
+            "type": "company_type",
+            "value": "Small and medium-sized enterprises (SMEs) with less than 250 employees",
+            "source": "llm_extraction",
+            "meaningfulness_score": 70
+          },
+          {
+            "type": "industry_restriction",
+            "value": "Production, Neighbourhood business, Internationalisation, Research and innovation, Creative and media industries",
+            "source": "llm_extraction",
+            "meaningfulness_score": 50
+          },
+          {
+            "type": "eligibility_criteria",
+            "value": "Companies must be based in Austria, Germany, or EU member states with headquarters in Vienna",
+            "source": "llm_extraction",
+            "meaningfulness_score": 81
+          }
+        ],
+        "documents": [],
+        "timeline": [],
+        "geographic": [
+          {
+            "type": "geographic_eligibility",
+            "value": "Companies must be based in Austria, Germany, or EU member states with headquarters in Vienna",
+            "source": "llm_extraction",
+            "meaningfulness_score": 81
+          }
+        ],
+        "project": [],
+        "application": [
+          {
+            "type": "application_process",
+            "value": "Companies must submit a business plan, CV, and project description",
+            "source": "llm_extraction",
+            "meaningfulness_score": 63
+          }
+        ],
+        "funding_details": []
+      },
+      "metadata": {
+        "funding_amount_min": null,
+        "funding_amount_max": null,
+        "currency": "EUR",
+        "deadline": null,
+        "open_deadline": true,
+        "contact_email": "info@wirtschaftsagentur.at",
+        "contact_phone": "+43 1 25200 200",
+        "funding_types": [
+          "grants",
+          "loans",
+          "equity"
+        ],
+        "program_focus": [
+          "innovation",
+          "research",
+          "startup"
+        ],
+        "region": "Vienna, Austria"
+      }
+    },
+    "modelVersion": "text-embedding-3-small",
+    "timestamp": 1762598112593,
+    "url": "https://viennabusinessagency.at/team-contact/?contact=57&cHash=391a8d4be4b318db9b74db9c61519631"
+  },
+  "d3b92d816eb67a0c36e8a47c2b428ddbd989e85f8b2331f59f93bd4acd1449c6:text-embedding-3-small": {
+    "urlHash": "d3b92d816eb67a0c36e8a47c2b428ddbd989e85f8b2331f59f93bd4acd1449c6",
+    "result": {
+      "categorized_requirements": {
+        "eligibility": [
+          {
+            "type": "company_type",
+            "value": "Small and medium-sized enterprises (SMEs) with less than 250 employees",
+            "source": "llm_extraction",
+            "meaningfulness_score": 70
+          },
+          {
+            "type": "industry_restriction",
+            "value": "Production, Neighbourhood business, Internationalisation, Creative industries, Media, Fashion, Architecture, Design",
+            "source": "llm_extraction",
+            "meaningfulness_score": 50
+          },
+          {
+            "type": "eligibility_criteria",
+            "value": "Businesses must be based in Austria, Germany, or EU member states with headquarters in Vienna",
+            "source": "llm_extraction",
+            "meaningfulness_score": 81.5
+          }
+        ],
+        "documents": [
+          {
+            "type": "required_documents",
+            "value": "Business plan,CV,Project description,Financial statements,Proof of company registration",
+            "source": "llm_extraction",
+            "meaningfulness_score": 43.5
+          }
+        ],
+        "financial": [
+          {
+            "type": "repayment_terms",
+            "value": "Must repay within 5 years at 2% interest",
+            "source": "llm_extraction",
+            "meaningfulness_score": 75
+          },
+          {
+            "type": "equity_terms",
+            "value": "Must have an equity stake of at least 20%",
+            "source": "llm_extraction",
+            "meaningfulness_score": 75.5
+          },
+          {
+            "type": "guarantee_fee",
+            "value": "from 2.0% p.a. onward",
+            "source": "llm_extraction",
+            "meaningfulness_score": 80.5
+          }
+        ],
+        "funding_details": [
+          {
+            "type": "co_financing",
+            "value": "Minimum 30% own contribution",
+            "source": "llm_extraction",
+            "meaningfulness_score": 69
+          }
+        ],
+        "technical": [],
+        "legal": [
+          {
+            "type": "legal_requirement",
+            "value": "Companies must comply with Austrian laws and regulations",
+            "source": "llm_extraction",
+            "meaningfulness_score": 48
+          }
+        ],
+        "timeline": [],
+        "geographic": [
+          {
+            "type": "geographic_eligibility",
+            "value": "Companies based in Austria, Germany, or EU member states with headquarters in Vienna",
+            "source": "llm_extraction",
+            "meaningfulness_score": 57
+          }
+        ],
+        "project": [
+          {
+            "type": "innovation_focus",
+            "value": "Innovation, Research, Startup, Internationalisation, Neighbourhood business",
+            "source": "llm_extraction",
+            "meaningfulness_score": 37.5
+          },
+          {
+            "type": "technology_area",
+            "value": "Production, Creative industries, Media, Fashion, Architecture, Design",
+            "source": "llm_extraction",
+            "meaningfulness_score": 34.5
+          }
+        ],
+        "compliance": [
+          {
+            "type": "compliance_requirement",
+            "value": "Companies must comply with Austrian laws and regulations",
+            "source": "llm_extraction",
+            "meaningfulness_score": 48
+          }
+        ],
+        "application": [
+          {
+            "type": "application_process",
+            "value": "Companies must submit a business plan, CV, and project description",
+            "source": "llm_extraction",
+            "meaningfulness_score": 63
+          }
+        ],
+        "terms": []
+      },
+      "metadata": {
+        "funding_amount_min": null,
+        "funding_amount_max": null,
+        "currency": "EUR",
+        "deadline": null,
+        "open_deadline": true,
+        "contact_email": "info@wirtschaftsagentur.at",
+        "contact_phone": "+43 1 25200 0",
+        "funding_types": [
+          "grants",
+          "loans",
+          "equity",
+          "services"
+        ],
+        "program_focus": [
+          "innovation",
+          "research",
+          "startup",
+          "internationalisation",
+          "neighbourhood business"
+        ],
+        "region": "Austria"
+      }
+    },
+    "modelVersion": "text-embedding-3-small",
+    "timestamp": 1762598128521,
+    "url": "https://viennabusinessagency.at/team-contact/?contact=666&cHash=4eec90680a0596d04e903b069725bf10"
+  },
+  "43070875f82996a94f397ba71b616443343bb1b38e410fe147a4624fdc130642:text-embedding-3-small": {
+    "urlHash": "43070875f82996a94f397ba71b616443343bb1b38e410fe147a4624fdc130642",
+    "result": {
+      "categorized_requirements": {
+        "eligibility": [
+          {
+            "type": "eligibility_criteria",
+            "value": "The submitter is either a representative body and in any case has a research institution as an additional partner, or the submitter is a non-university research institute and has at least three companies or an advocacy group in the respective industry as an additional partner.",
+            "source": "llm_extraction",
+            "meaningfulness_score": 80
+          }
+        ],
+        "documents": [
+          {
+            "type": "required_documents",
+            "value": "Research proposal, project plan, budget, CVs of key personnel",
+            "source": "llm_extraction",
+            "meaningfulness_score": 30.5
+          }
+        ],
+        "financial": [
+          {
+            "type": "equity_terms",
+            "value": "Grant up to max. 65% (depending on size of the organization and consortia)",
+            "source": "llm_extraction",
+            "meaningfulness_score": 92
+          }
+        ],
+        "technical": [
+          {
+            "type": "technical_requirement",
+            "value": "Pre-competitive research projects which do not include any directly exploitable product and process or service developments",
+            "source": "llm_extraction",
+            "meaningfulness_score": 60
+          }
+        ],
+        "legal": [
+          {
+            "type": "legal_requirement",
+            "value": "The research results must be made available to the industry",
+            "source": "llm_extraction",
+            "meaningfulness_score": 49.5
+          }
+        ],
+        "timeline": [
+          {
+            "type": "deadline",
+            "value": "01.01.2024 - 31.12.2026",
+            "source": "llm_extraction",
+            "meaningfulness_score": 31.5
+          }
+        ],
+        "geographic": [],
+        "project": [
+          {
+            "type": "innovation_focus",
+            "value": "Increasing the international competitiveness of an Austrian industry or cluster of Austrian companies, strengthening the knowledge base of Austrian companies (primarily SMEs), developing innovative solutions of cross-company relevance",
+            "source": "llm_extraction",
+            "meaningfulness_score": 50
+          }
+        ],
+        "compliance": [
+          {
+            "type": "compliance_requirement",
+            "value": "The research results must be made available to the industry",
+            "source": "llm_extraction",
+            "meaningfulness_score": 49.5
+          }
+        ],
+        "impact": [
+          {
+            "type": "economic_impact",
+            "value": "Increasing the international competitiveness of an Austrian industry or cluster of Austrian companies, strengthening the knowledge base of Austrian companies (primarily SMEs)",
+            "source": "llm_extraction",
+            "meaningfulness_score": 50
+          }
+        ],
+        "application": [
+          {
+            "type": "application_process",
+            "value": "Submission at any time - 7 decision board meetings per year",
+            "source": "llm_extraction",
+            "meaningfulness_score": 69.5
+          }
+        ],
+        "funding_details": []
+      },
+      "metadata": {
+        "funding_amount_min": 0,
+        "funding_amount_max": 500000,
+        "currency": "EUR",
+        "deadline": "2024-01-01",
+        "open_deadline": true,
+        "contact_email": "claudia.buchmayer@ffg.at",
+        "contact_phone": "+43 577 55-1519",
+        "funding_types": [
+          "grant"
+        ],
+        "program_focus": [
+          "innovation",
+          "research"
+        ],
+        "region": "Austria"
+      }
+    },
+    "modelVersion": "text-embedding-3-small",
+    "timestamp": 1762598163895,
+    "url": "https://www.ffg.at/en/programme/collective-research#links"
+  },
+  "d35b78da97666ea5117a02603a65842f631e23228c414269d0c755a71f00db03:text-embedding-3-small": {
+    "urlHash": "d35b78da97666ea5117a02603a65842f631e23228c414269d0c755a71f00db03",
+    "result": {
+      "categorized_requirements": {
+        "eligibility": [
+          {
+            "type": "company_type",
+            "value": "Small and medium-sized enterprises (SMEs) with less than 250 employees",
+            "source": "llm_extraction",
+            "meaningfulness_score": 70
+          },
+          {
+            "type": "eligibility_criteria",
+            "value": "Companies must be based in Austria, Germany, or EU member states with headquarters in Vienna",
+            "source": "llm_extraction",
+            "meaningfulness_score": 81
+          }
+        ],
+        "documents": [],
+        "financial": [
+          {
+            "type": "repayment_terms",
+            "value": "Must repay within 5 years at 2% interest",
+            "source": "llm_extraction",
+            "meaningfulness_score": 75
+          },
+          {
+            "type": "equity_terms",
+            "value": "Must have an equity stake of at least 20%",
+            "source": "llm_extraction",
+            "meaningfulness_score": 75.5
+          },
+          {
+            "type": "guarantee_fee",
+            "value": "from 2.0% p.a. onward",
+            "source": "llm_extraction",
+            "meaningfulness_score": 80.5
+          }
+        ],
+        "funding_details": [
+          {
+            "type": "co_financing",
+            "value": "Minimum 30% own contribution",
+            "source": "llm_extraction",
+            "meaningfulness_score": 69
+          }
+        ],
+        "technical": [
+          {
+            "type": "technical_requirement",
+            "value": "Technology readiness level (TRL) 6",
+            "source": "llm_extraction",
+            "meaningfulness_score": 37
+          }
+        ],
+        "legal": [],
+        "timeline": [],
+        "geographic": [],
+        "team": [
+          {
+            "type": "team_size",
+            "value": "Minimum 2 people",
+            "source": "llm_extraction",
+            "meaningfulness_score": 48
+          }
+        ],
+        "project": [
+          {
+            "type": "sector_focus",
+            "value": "Sustainable technologies sector",
+            "source": "llm_extraction",
+            "meaningfulness_score": 35.5
+          }
+        ],
+        "compliance": [],
+        "impact": [
+          {
+            "type": "environmental_impact",
+            "value": "Positive environmental impact through sustainable technologies",
+            "source": "llm_extraction",
+            "meaningfulness_score": 31
+          },
+          {
+            "type": "social_impact",
+            "value": "Positive social impact through job creation and economic growth",
+            "source": "llm_extraction",
+            "meaningfulness_score": 31.5
+          }
+        ],
+        "application": [
+          {
+            "type": "application_process",
+            "value": "Companies must submit a business plan, CV, and project description",
+            "source": "llm_extraction",
+            "meaningfulness_score": 63
+          }
+        ],
+        "restrictions": [],
+        "terms": []
+      },
+      "metadata": {
+        "funding_amount_min": null,
+        "funding_amount_max": null,
+        "currency": "EUR",
+        "deadline": null,
+        "open_deadline": false,
+        "contact_email": null,
+        "contact_phone": null,
+        "funding_types": [],
+        "program_focus": [],
+        "region": null
+      }
+    },
+    "modelVersion": "text-embedding-3-small",
+    "timestamp": 1762598167104,
+    "url": "https://www.sfg.at/wp-content/uploads/2020/03/kostenplan_startklarplus.xlsx"
+  },
+  "484ccfed653e703c6a4eb6b378a0e2483601007fc3613bb124c1b9538007df25:text-embedding-3-small": {
+    "urlHash": "484ccfed653e703c6a4eb6b378a0e2483601007fc3613bb124c1b9538007df25",
+    "result": {
+      "categorized_requirements": {
+        "eligibility": [
+          {
+            "type": "company_type",
+            "value": "Research institutions, interest groups, and non-university research institutions",
+            "source": "llm_extraction",
+            "meaningfulness_score": 40
+          },
+          {
+            "type": "eligibility_criteria",
+            "value": "The submitter is either a representative body and in any case has a research institution as an additional partner. The submitter is a non-university research institute and has at least three companies or an advocacy group in the respective industry as an additional partner.",
+            "source": "llm_extraction",
+            "meaningfulness_score": 80
+          }
+        ],
+        "documents": [
+          {
+            "type": "required_documents",
+            "value": "Research proposal, project plan, CV, and project description",
+            "source": "llm_extraction",
+            "meaningfulness_score": 30
+          }
+        ],
+        "financial": [
+          {
+            "type": "equity_terms",
+            "value": "Grant up to max. 65% (depending on size of the organization and consortia)",
+            "source": "llm_extraction",
+            "meaningfulness_score": 92
+          }
+        ],
+        "technical": [
+          {
+            "type": "technical_requirement",
+            "value": "Pre-competitive research projects which do not include any directly exploitable product and process or service developments",
+            "source": "llm_extraction",
+            "meaningfulness_score": 60
+          }
+        ],
+        "legal": [
+          {
+            "type": "legal_requirement",
+            "value": "The research results must be made available to the industry",
+            "source": "llm_extraction",
+            "meaningfulness_score": 49.5
+          }
+        ],
+        "timeline": [
+          {
+            "type": "duration",
+            "value": "2024-01-01 to 2026-12-31",
+            "source": "llm_extraction",
+            "meaningfulness_score": 52
+          }
+        ],
+        "geographic": [],
+        "team": [
+          {
+            "type": "team_composition",
+            "value": "Research institutions, interest groups, and non-university research institutions",
+            "source": "llm_extraction",
+            "meaningfulness_score": 40
+          }
+        ],
+        "project": [
+          {
+            "type": "innovation_focus",
+            "value": "Increasing the international competitiveness of an Austrian industry or cluster of Austrian companies, strengthening the knowledge base of Austrian companies, and developing innovative solutions of cross-company relevance",
+            "source": "llm_extraction",
+            "meaningfulness_score": 50
+          }
+        ],
+        "compliance": [
+          {
+            "type": "compliance_requirement",
+            "value": "The research results must be made available to the industry",
+            "source": "llm_extraction",
+            "meaningfulness_score": 49.5
+          }
+        ],
+        "impact": [
+          {
+            "type": "economic_impact",
+            "value": "Increasing the international competitiveness of an Austrian industry or cluster of Austrian companies, strengthening the knowledge base of Austrian companies, and developing innovative solutions of cross-company relevance",
+            "source": "llm_extraction",
+            "meaningfulness_score": 50
+          }
+        ],
+        "application": [
+          {
+            "type": "application_process",
+            "value": "Research proposal, project plan, CV, and project description",
+            "source": "llm_extraction",
+            "meaningfulness_score": 30
+          }
+        ],
+        "funding_details": [],
+        "restrictions": [
+          {
+            "type": "restrictions",
+            "value": "The research results must be made available to the industry",
+            "source": "llm_extraction",
+            "meaningfulness_score": 49.5
+          }
+        ]
+      },
+      "metadata": {
+        "funding_amount_min": null,
+        "funding_amount_max": 500000,
+        "currency": "EUR",
+        "deadline": "2024-01-01",
+        "open_deadline": true,
+        "contact_email": "claudia.buchmayr@ffg.at",
+        "contact_phone": "+43 577 55-1519",
+        "funding_types": [
+          "grant"
+        ],
+        "program_focus": [
+          "innovation",
+          "research"
+        ],
+        "region": "Austria"
+      }
+    },
+    "modelVersion": "text-embedding-3-small",
+    "timestamp": 1762598167564,
+    "url": "https://www.ffg.at/en/programme/collective-research#events"
+  },
+  "24f314bd2e3f02f4ebb38a3c91975f5cad5861a7858badfd216c7cbf0dd0cda4:text-embedding-3-small": {
+    "urlHash": "24f314bd2e3f02f4ebb38a3c91975f5cad5861a7858badfd216c7cbf0dd0cda4",
+    "result": {
+      "categorized_requirements": {
+        "eligibility": [
+          {
+            "type": "company_type",
+            "value": "Small and medium-sized enterprises (SMEs) with less than 250 employees",
+            "source": "llm_extraction",
+            "meaningfulness_score": 70
+          },
+          {
+            "type": "eligibility_criteria",
+            "value": "The project must be innovative, have a focus on growth, digitalization, and sustainability. The company must be based in Austria and have less than 250 employees.",
+            "source": "llm_extraction",
+            "meaningfulness_score": 100
+          }
+        ],
+        "documents": [
+          {
+            "type": "required_documents",
+            "value": "Business plan, CV, project description, financial statements",
+            "source": "llm_extraction",
+            "meaningfulness_score": 30
+          }
+        ],
+        "funding_details": [
+          {
+            "type": "co_financing",
+            "value": "Minimum 30% own contribution",
+            "source": "llm_extraction",
+            "meaningfulness_score": 69
+          }
+        ],
+        "timeline": [],
+        "geographic": [],
+        "team": [
+          {
+            "type": "team_size",
+            "value": "Up to 49 employees",
+            "source": "llm_extraction",
+            "meaningfulness_score": 64
+          }
+        ],
+        "project": [],
+        "application": []
+      },
+      "metadata": {
+        "funding_amount_min": 300000,
+        "funding_amount_max": null,
+        "currency": "EUR",
+        "deadline": null,
+        "open_deadline": true,
+        "contact_email": "martin.buchsbaum@sfg.at",
+        "contact_phone": "+43 316 7093 202",
+        "funding_types": [
+          "grant"
+        ],
+        "program_focus": [
+          "innovation",
+          "growth",
+          "digitalization",
+          "sustainability"
+        ],
+        "region": "Austria"
+      }
+    },
+    "modelVersion": "text-embedding-3-small",
+    "timestamp": 1762598460179,
+    "url": "https://www.sfg.at/f/kmu-investieren-und-wir-zahlen-mit-so-wachsen-ihre-muskeln/"
+  },
+  "d50ee6b14e97dbefbf89954a164acde59e543b7e1cc440d3eab828ac39a3d143:text-embedding-3-small": {
+    "urlHash": "d50ee6b14e97dbefbf89954a164acde59e543b7e1cc440d3eab828ac39a3d143",
+    "result": {
+      "categorized_requirements": {
+        "eligibility": [
+          {
+            "type": "company_type",
+            "value": "Small and medium-sized enterprises (SMEs) with less than 250 employees",
+            "source": "llm_extraction",
+            "meaningfulness_score": 70
+          },
+          {
+            "type": "industry_restriction",
+            "value": "industriell-gewerblichen Sektor, Dienstleistungsbetriebe sowie Handelsunternehmen",
+            "source": "llm_extraction",
+            "meaningfulness_score": 60.5
+          },
+          {
+            "type": "eligibility_criteria",
+            "value": "Buchführungspflichtige Unternehmen, welche über ein etabliertes Geschäftsmodell mit positiven Betriebsergebnissen sowie einem positiven Trend verfügen.",
+            "source": "llm_extraction",
+            "meaningfulness_score": 50
+          }
+        ],
+        "documents": [],
+        "financial": [
+          {
+            "type": "repayment_terms",
+            "value": "Entlang eines vereinbarten Tilgungsplans über einen Zeitraum von maximal 10 Jahren",
+            "source": "llm_extraction",
+            "meaningfulness_score": 61
+          },
+          {
+            "type": "guarantee_fee",
+            "value": "2,5 Prozent pro Jahr",
+            "source": "llm_extraction",
+            "meaningfulness_score": 30
+          }
+        ],
+        "funding_details": [
+          {
+            "type": "use_of_funds",
+            "value": "Investitionen, Forschung & Entwicklung, Internationalisierung, Betriebsmittel",
+            "source": "llm_extraction",
+            "meaningfulness_score": 38.5
+          }
+        ],
+        "technical": [],
+        "legal": [],
+        "timeline": [],
+        "geographic": [],
+        "team": [],
+        "project": [
+          {
+            "type": "innovation_focus",
+            "value": "Investitionen, Forschung & Entwicklung, Internationalisierung, Betriebsmittel",
+            "source": "llm_extraction",
+            "meaningfulness_score": 38.5
+          },
+          {
+            "type": "sector_focus",
+            "value": "industriell-gewerblichen Sektor, Dienstleistungsbetriebe sowie Handelsunternehmen",
+            "source": "llm_extraction",
+            "meaningfulness_score": 60.5
+          }
+        ],
+        "compliance": [],
+        "impact": [],
+        "application": [],
+        "restrictions": [],
+        "terms": []
+      },
+      "metadata": {
+        "funding_amount_min": 250000,
+        "funding_amount_max": 500000,
+        "currency": "EUR",
+        "deadline": null,
+        "open_deadline": true,
+        "contact_email": "sfg@sfg.at",
+        "contact_phone": "+43 316 7093 216",
+        "funding_types": [
+          "equity"
+        ],
+        "program_focus": [
+          "innovation",
+          "research",
+          "startup"
+        ],
+        "region": "Steiermark"
+      }
+    },
+    "modelVersion": "text-embedding-3-small",
+    "timestamp": 1762598462258,
+    "url": "https://www.sfg.at/en/f/finanzierung-fur-kmu-gemeinsam-mehr-sprungkraft/"
+  },
+  "5660ba19dea567fb0a7621feaea69dc0b1a0dd35771cfe0ec96a9c771d9a9af6:text-embedding-3-small": {
+    "urlHash": "5660ba19dea567fb0a7621feaea69dc0b1a0dd35771cfe0ec96a9c771d9a9af6",
+    "result": {
+      "categorized_requirements": {
+        "eligibility": [
+          {
+            "type": "company_type",
+            "value": "Small and medium-sized enterprises (SMEs) with less than 250 employees",
+            "source": "llm_extraction",
+            "meaningfulness_score": 70
+          },
+          {
+            "type": "industry_restriction",
+            "value": "industriell-gewerblichen Sektor, Dienstleistungsbetriebe sowie Handelsunternehmen",
+            "source": "llm_extraction",
+            "meaningfulness_score": 60.5
+          },
+          {
+            "type": "eligibility_criteria",
+            "value": "Buchführungspflichtige Unternehmen, welche über ein etabliertes Geschäftsmodell mit positiven Betriebsergebnissen sowie einem positiven Trend verfügen.",
+            "source": "llm_extraction",
+            "meaningfulness_score": 50
+          }
+        ],
+        "documents": [],
+        "financial": [
+          {
+            "type": "repayment_terms",
+            "value": "Rückzahlung erfolgt entlang eines vereinbarten Tilgungsplans über einen Zeitraum von maximal 10 Jahren",
+            "source": "llm_extraction",
+            "meaningfulness_score": 70
+          },
+          {
+            "type": "guarantee_fee",
+            "value": "2,5 Prozent per anno",
+            "source": "llm_extraction",
+            "meaningfulness_score": 30
+          }
+        ],
+        "funding_details": [
+          {
+            "type": "co_financing",
+            "value": "Betriebliche Sicherheiten sind nicht erforderlich; die GesellschafterInnen übernehmen eine persönliche Garantie",
+            "source": "llm_extraction",
+            "meaningfulness_score": 50
+          },
+          {
+            "type": "use_of_funds",
+            "value": "Investitionen, Forschung & Entwicklung, Internationalisierung, Betriebsmittel",
+            "source": "llm_extraction",
+            "meaningfulness_score": 38.5
+          }
+        ],
+        "legal": [],
+        "timeline": [],
+        "geographic": [],
+        "project": [
+          {
+            "type": "innovation_focus",
+            "value": "Investitionen, Forschung & Entwicklung, Internationalisierung, Betriebsmittel",
+            "source": "llm_extraction",
+            "meaningfulness_score": 38.5
+          }
+        ],
+        "compliance": [],
+        "application": [],
+        "restrictions": []
+      },
+      "metadata": {
+        "funding_amount_min": 250000,
+        "funding_amount_max": 250000,
+        "currency": "EUR",
+        "deadline": null,
+        "open_deadline": true,
+        "contact_email": "sfg@stg.at",
+        "contact_phone": "+43 316 7093 216",
+        "funding_types": [
+          "equity"
+        ],
+        "program_focus": [
+          "innovation",
+          "research",
+          "startup"
+        ],
+        "region": "Steiermark"
+      }
+    },
+    "modelVersion": "text-embedding-3-small",
+    "timestamp": 1762598470342,
+    "url": "https://www.sfg.at/f/finanzierung-fuer-kmu/#"
+  },
+  "0655f5cbb7c96ded1d7502f9850474b5411cef5e5f1c2f6b7935221991a59071:text-embedding-3-small": {
+    "urlHash": "0655f5cbb7c96ded1d7502f9850474b5411cef5e5f1c2f6b7935221991a59071",
+    "result": {
+      "categorized_requirements": {
+        "eligibility": [
+          {
+            "type": "company_type",
+            "value": "Small and medium-sized enterprises (SMEs) with less than 250 employees",
+            "source": "llm_extraction",
+            "meaningfulness_score": 70
+          },
+          {
+            "type": "company_stage",
+            "value": "Seed and startup phase (gründung vor max. 5 Jahren)",
+            "source": "llm_extraction",
+            "meaningfulness_score": 45.5
+          },
+          {
+            "type": "industry_restriction",
+            "value": "Innovative kleinste und kleine Unternehmen mit Sitz in der Steiermark",
+            "source": "llm_extraction",
+            "meaningfulness_score": 34.5
+          }
+        ],
+        "documents": [],
+        "financial": [
+          {
+            "type": "equity_terms",
+            "value": "Beteiligung der SFG ist mit der zweifachen Höhe des privaten Co-Investments gedeckelt",
+            "source": "llm_extraction",
+            "meaningfulness_score": 42.5
+          }
+        ],
+        "funding_details": [
+          {
+            "type": "use_of_funds",
+            "value": "Aufwendungen für F&E, Vertrieb, Investitionen und Working Capital",
+            "source": "llm_extraction",
+            "meaningfulness_score": 32.5
+          }
+        ],
+        "technical": [],
+        "legal": [],
+        "timeline": [],
+        "geographic": [],
+        "team": [],
+        "project": [],
+        "compliance": [],
+        "impact": [],
+        "application": [
+          {
+            "type": "evaluation_criteria",
+            "value": "Innovation und Forschung, Unternehmen mit hohem Innovations- und Marktpotenzial",
+            "source": "llm_extraction",
+            "meaningfulness_score": 39.5
+          }
+        ],
+        "restrictions": [
+          {
+            "type": "restrictions",
+            "value": "Mittel- und Großunternehmen, Unternehmen, die nicht in die Zielgruppe der SFG fallen, Standorte außerhalb der Steiermark",
+            "source": "llm_extraction",
+            "meaningfulness_score": 50
+          }
+        ],
+        "terms": []
+      },
+      "metadata": {
+        "funding_amount_min": 50000,
+        "funding_amount_max": 500000,
+        "currency": "EUR",
+        "deadline": null,
+        "open_deadline": true,
+        "contact_email": "sfg@sfg.at",
+        "contact_phone": "+43 316 7093 216",
+        "funding_types": [
+          "venture_capital",
+          "equity"
+        ],
+        "program_focus": [
+          "innovation",
+          "research",
+          "startup"
+        ],
+        "region": "Austria"
+      }
+    },
+    "modelVersion": "text-embedding-3-small",
+    "timestamp": 1762598472415,
+    "url": "https://www.sfg.at/f/risikokapital/"
+  },
+  "ff8533a30a1a88b78d572339514631b17f1cc5b09c98a886c2f5a340d76862d2:text-embedding-3-small": {
+    "urlHash": "ff8533a30a1a88b78d572339514631b17f1cc5b09c98a886c2f5a340d76862d2",
+    "result": {
+      "categorized_requirements": {
+        "eligibility": [
+          {
+            "type": "company_type",
+            "value": "Companies from the industrial and commercial sector, or business service companies, regardless of company size",
+            "source": "llm_extraction",
+            "meaningfulness_score": 85
+          },
+          {
+            "type": "company_stage",
+            "value": "Established companies with a stable economic situation, clear business strategy, and sufficient professional and commercial expertise",
+            "source": "llm_extraction",
+            "meaningfulness_score": 50
+          },
+          {
+            "type": "industry_restriction",
+            "value": "Companies from the industrial and commercial sector, or business service companies",
+            "source": "llm_extraction",
+            "meaningfulness_score": 76
+          },
+          {
+            "type": "eligibility_criteria",
+            "value": "Companies must have a stable economic situation, a clear business strategy, and sufficient professional and commercial expertise",
+            "source": "llm_extraction",
+            "meaningfulness_score": 70
+          }
+        ],
+        "documents": [],
+        "financial": [
+          {
+            "type": "repayment_terms",
+            "value": "Repayment over a maximum period of 10 years, with a repayment plan agreed upon",
+            "source": "llm_extraction",
+            "meaningfulness_score": 94
+          },
+          {
+            "type": "equity_terms",
+            "value": "Maximum two-thirds of the project sum",
+            "source": "llm_extraction",
+            "meaningfulness_score": 38.5
+          }
+        ],
+        "legal": [
+          {
+            "type": "legal_requirement",
+            "value": "Companies must provide a personal guarantee",
+            "source": "llm_extraction",
+            "meaningfulness_score": 51.5
+          }
+        ],
+        "timeline": [],
+        "geographic": [],
+        "project": [
+          {
+            "type": "innovation_focus",
+            "value": "Investments with a high level of innovation, R&D, internationalization, and company takeovers",
+            "source": "llm_extraction",
+            "meaningfulness_score": 46.5
+          },
+          {
+            "type": "sector_focus",
+            "value": "Industrial and commercial sector, or business service companies",
+            "source": "llm_extraction",
+            "meaningfulness_score": 51.5
+          }
+        ],
+        "compliance": [
+          {
+            "type": "compliance_requirement",
+            "value": "Companies must comply with EU-Beihilfenrecht",
+            "source": "llm_extraction",
+            "meaningfulness_score": 42
+          }
+        ],
+        "application": [
+          {
+            "type": "application_process",
+            "value": "Companies must submit a business plan, CV, and project description",
+            "source": "llm_extraction",
+            "meaningfulness_score": 63
+          }
+        ],
+        "funding_details": [
+          {
+            "type": "use_of_funds",
+            "value": "Investments with a high level of innovation, R&D, internationalization, and company takeovers",
+            "source": "llm_extraction",
+            "meaningfulness_score": 46.5
+          }
+        ],
+        "restrictions": [
+          {
+            "type": "restrictions",
+            "value": "Start-ups, companies with a seat or branch outside the Steiermark region, companies without or with too little innovation and market potential",
+            "source": "llm_extraction",
+            "meaningfulness_score": 70
+          }
+        ]
+      },
+      "metadata": {
+        "funding_amount_min": 250000,
+        "funding_amount_max": 1500000,
+        "currency": "EUR",
+        "deadline": null,
+        "open_deadline": true,
+        "contact_email": "sfg@stg.at",
+        "contact_phone": "+43 316 7093 216",
+        "funding_types": [
+          "equity"
+        ],
+        "program_focus": [
+          "innovation",
+          "research",
+          "startup"
+        ],
+        "region": "Steiermark, Austria"
+      }
+    },
+    "modelVersion": "text-embedding-3-small",
+    "timestamp": 1762598552859,
+    "url": "https://www.sfg.at/f/stille-beteiligung/#"
+  },
+  "4b9ccf5fe07f81108727cffcfd462b27174901227dce481d2e61e4866ede89f2:text-embedding-3-small": {
+    "urlHash": "4b9ccf5fe07f81108727cffcfd462b27174901227dce481d2e61e4866ede89f2",
+    "result": {
+      "categorized_requirements": {
+        "eligibility": [
+          {
+            "type": "company_type",
+            "value": "Small and medium-sized enterprises (SMEs) with less than 250 employees",
+            "source": "llm_extraction",
+            "meaningfulness_score": 70
+          },
+          {
+            "type": "industry_restriction",
+            "value": "Companies must be based in Austria, Germany, or EU member states with headquarters in Vienna",
+            "source": "llm_extraction",
+            "meaningfulness_score": 81
+          },
+          {
+            "type": "eligibility_criteria",
+            "value": "Companies must have a valid business license and be registered in the EU",
+            "source": "llm_extraction",
+            "meaningfulness_score": 81
+          }
+        ],
+        "documents": [
+          {
+            "type": "format",
+            "value": "A4 size, portrait orientation",
+            "source": "llm_extraction",
+            "meaningfulness_score": 34.5
+          }
+        ],
+        "financial": [
+          {
+            "type": "repayment_terms",
+            "value": "Must repay within 5 years at 2% interest",
+            "source": "llm_extraction",
+            "meaningfulness_score": 75
+          },
+          {
+            "type": "equity_terms",
+            "value": "Must have an equity stake of at least 20%",
+            "source": "llm_extraction",
+            "meaningfulness_score": 75.5
+          },
+          {
+            "type": "guarantee_fee",
+            "value": "from 2.0% p.a. onward",
+            "source": "llm_extraction",
+            "meaningfulness_score": 80.5
+          }
+        ],
+        "funding_details": [
+          {
+            "type": "co_financing",
+            "value": "Minimum 30% own contribution",
+            "source": "llm_extraction",
+            "meaningfulness_score": 69
+          },
+          {
+            "type": "revenue_model",
+            "value": "Companies must have a revenue model that is sustainable and scalable",
+            "source": "llm_extraction",
+            "meaningfulness_score": 54
+          },
+          {
+            "type": "market_size",
+            "value": "Companies must have a large market size",
+            "source": "llm_extraction",
+            "meaningfulness_score": 39.5
+          }
+        ],
+        "technical": [
+          {
+            "type": "technical_requirement",
+            "value": "Must be at TRL level 6",
+            "source": "llm_extraction",
+            "meaningfulness_score": 51
+          }
+        ],
+        "legal": [
+          {
+            "type": "legal_requirement",
+            "value": "Companies must comply with all applicable laws and regulations",
+            "source": "llm_extraction",
+            "meaningfulness_score": 51
+          }
+        ],
+        "timeline": [],
+        "geographic": [
+          {
+            "type": "geographic_eligibility",
+            "value": "Companies must be based in Austria, Germany, or EU member states with headquarters in Vienna",
+            "source": "llm_extraction",
+            "meaningfulness_score": 81
+          }
+        ],
+        "team": [
+          {
+            "type": "team_size",
+            "value": "Minimum 5 team members",
+            "source": "llm_extraction",
+            "meaningfulness_score": 51
+          },
+          {
+            "type": "team_composition",
+            "value": "Companies must have a diverse team with at least 2 women",
+            "source": "llm_extraction",
+            "meaningfulness_score": 68
+          }
+        ],
+        "project": [
+          {
+            "type": "innovation_focus",
+            "value": "Companies must focus on innovation and research",
+            "source": "llm_extraction",
+            "meaningfulness_score": 43.5
+          },
+          {
+            "type": "technology_area",
+            "value": "Companies must work in the field of renewable energy",
+            "source": "llm_extraction",
+            "meaningfulness_score": 46
+          },
+          {
+            "type": "research_domain",
+            "value": "Companies must conduct research in the field of sustainable development",
+            "source": "llm_extraction",
+            "meaningfulness_score": 55.5
+          },
+          {
+            "type": "sector_focus",
+            "value": "Companies must focus on the energy sector",
+            "source": "llm_extraction",
+            "meaningfulness_score": 40.5
+          }
+        ],
+        "compliance": [
+          {
+            "type": "compliance_requirement",
+            "value": "Companies must comply with all applicable laws and regulations",
+            "source": "llm_extraction",
+            "meaningfulness_score": 51
+          }
+        ],
+        "impact": [
+          {
+            "type": "environmental_impact",
+            "value": "Companies must have a positive environmental impact",
+            "source": "llm_extraction",
+            "meaningfulness_score": 45.5
+          },
+          {
+            "type": "social_impact",
+            "value": "Companies must have a positive social impact",
+            "source": "llm_extraction",
+            "meaningfulness_score": 42
+          },
+          {
+            "type": "economic_impact",
+            "value": "Companies must have a positive economic impact",
+            "source": "llm_extraction",
+            "meaningfulness_score": 43
+          },
+          {
+            "type": "innovation_impact",
+            "value": "Companies must have a positive innovation impact",
+            "source": "llm_extraction",
+            "meaningfulness_score": 44
+          }
+        ],
+        "application": [
+          {
+            "type": "application_process",
+            "value": "Companies must submit a business plan, CV, and project description",
+            "source": "llm_extraction",
+            "meaningfulness_score": 63
+          }
+        ],
+        "restrictions": [
+          {
+            "type": "intellectual_property",
+            "value": "Companies must protect their intellectual property",
+            "source": "llm_extraction",
+            "meaningfulness_score": 45
+          },
+          {
+            "type": "consortium",
+            "value": "Companies must form a consortium with other companies",
+            "source": "llm_extraction",
+            "meaningfulness_score": 46.5
+          },
+          {
+            "type": "diversity",
+            "value": "Companies must have a diverse team",
+            "source": "llm_extraction",
+            "meaningfulness_score": 37
+          }
+        ],
+        "terms": [
+          {
+            "type": "success_metrics",
+            "value": "Companies must meet certain success metrics",
+            "source": "llm_extraction",
+            "meaningfulness_score": 41.5
+          },
+          {
+            "type": "trl_level",
+            "value": "Companies must be at TRL level 6",
+            "source": "llm_extraction",
+            "meaningfulness_score": 56
+          }
+        ]
+      },
+      "metadata": {
+        "funding_amount_min": null,
+        "funding_amount_max": null,
+        "currency": "EUR",
+        "deadline": null,
+        "open_deadline": false,
+        "contact_email": null,
+        "contact_phone": null,
+        "funding_types": [
+          "unknown"
+        ],
+        "program_focus": [],
+        "region": null
+      }
+    },
+    "modelVersion": "text-embedding-3-small",
+    "timestamp": 1762598555058,
+    "url": "https://www.sfg.at/wp-content/uploads/2019/07/formular_aufstellung_bankverbindlichkeiten-1.xlsx"
+  },
+  "aec6c977e9933a20ddecfea97553f85214db7f31faa21ccb7e0e23fc176272a4:text-embedding-3-small": {
+    "urlHash": "aec6c977e9933a20ddecfea97553f85214db7f31faa21ccb7e0e23fc176272a4",
+    "result": {
+      "categorized_requirements": {
+        "eligibility": [
+          {
+            "type": "company_type",
+            "value": "Small and medium-sized enterprises (SMEs) with less than 250 employees",
+            "source": "llm_extraction",
+            "meaningfulness_score": 70
+          }
+        ]
+      },
+      "metadata": {
+        "funding_amount_min": null,
+        "funding_amount_max": null,
+        "currency": "EUR",
+        "deadline": null,
+        "open_deadline": false,
+        "contact_email": null,
+        "contact_phone": null,
+        "funding_types": [],
+        "program_focus": [],
+        "region": null
+      }
+    },
+    "modelVersion": "text-embedding-3-small",
+    "timestamp": 1762599157967,
+    "url": "https://www.sfg.at/wp-content/uploads/2020/11/vorlage_nachweis-von-personalkosten.xlsx"
+  },
+  "9135600f47b34e6511edc2b013ee32ea943d678e7a5845b51d9a6ae733bc315e:text-embedding-3-small": {
+    "urlHash": "9135600f47b34e6511edc2b013ee32ea943d678e7a5845b51d9a6ae733bc315e",
+    "result": {
+      "categorized_requirements": {
+        "eligibility": [
+          {
+            "type": "company_type",
+            "value": "Unternehmen mit Standort in der Steiermark, Unternehmen mit dem Willen zur Transparenz, Unternehmen, die das Commitment unterschreiben, Unternehmen, die die Sicherheit der BesucherInnen garantieren, Unternehmen mit mind. 10 MitarbeiterInnen (VZÄ), Unternehmen mit sichtbarer Produktion",
+            "source": "llm_extraction",
+            "meaningfulness_score": 70
+          }
+        ],
+        "documents": [],
+        "financial": [
+          {
+            "type": "repayment_terms",
+            "value": "50 % der anrechenbaren Kosten, max. 20.000 Euro Projektvolumen, max. 10.000 Euro Förderung",
+            "source": "llm_extraction",
+            "meaningfulness_score": 100
+          }
+        ],
+        "technical": [],
+        "timeline": [],
+        "geographic": [],
+        "team": [
+          {
+            "type": "team_size",
+            "value": "min. 10 MitarbeiterInnen",
+            "source": "llm_extraction",
+            "meaningfulness_score": 32
+          }
+        ],
+        "project": [],
+        "compliance": [],
+        "application": [
+          {
+            "type": "application_process",
+            "value": "Reichen Sie Ihren Antrag online über unser Förderungsportal ein!",
+            "source": "llm_extraction",
+            "meaningfulness_score": 32
+          }
+        ],
+        "funding_details": [],
+        "restrictions": [],
+        "terms": []
+      },
+      "metadata": {
+        "funding_amount_min": null,
+        "funding_amount_max": 20000,
+        "currency": "EUR",
+        "deadline": null,
+        "open_deadline": true,
+        "contact_email": "sandra.biondi@sfg.at",
+        "contact_phone": "+43 316 890 598 21",
+        "funding_types": [
+          "grant"
+        ],
+        "program_focus": [
+          "innovation",
+          "research"
+        ],
+        "region": "Styria"
+      }
+    },
+    "modelVersion": "text-embedding-3-small",
+    "timestamp": 1762599167417,
+    "url": "https://www.sfg.at/f/erlebniswelt-wirtschaft/"
+  },
+  "ba3a69845c6780d45ac7bfcd0a739daa3cca511f113371b5ea5e35566c4fe258:text-embedding-3-small": {
+    "urlHash": "ba3a69845c6780d45ac7bfcd0a739daa3cca511f113371b5ea5e35566c4fe258",
+    "result": {
+      "categorized_requirements": {
+        "geographic": [
+          {
+            "type": "geographic_eligibility",
+            "value": "Companies must be based in Austria, Germany, or EU member states with headquarters in Vienna",
+            "source": "llm_extraction",
+            "meaningfulness_score": 81
+          }
+        ]
+      },
+      "metadata": {
+        "funding_amount_min": null,
+        "funding_amount_max": null,
+        "currency": "EUR",
+        "deadline": null,
+        "open_deadline": true,
+        "contact_email": "info@sfg.at",
+        "contact_phone": "+43 316 877-0",
+        "funding_types": [
+          "unknown"
+        ],
+        "program_focus": [],
+        "region": "Austria"
+      }
+    },
+    "modelVersion": "text-embedding-3-small",
+    "timestamp": 1762599170680,
+    "url": "https://www.sfg.at/barrierefreiheit/"
+  },
+  "4ff7c2afe488399812b700be163d595cde747f19310144d1d52ae8e6229dca96:text-embedding-3-small": {
+    "urlHash": "4ff7c2afe488399812b700be163d595cde747f19310144d1d52ae8e6229dca96",
+    "result": {
+      "categorized_requirements": {
+        "eligibility": [
+          {
+            "type": "company_type",
+            "value": "Small and medium-sized enterprises (SMEs) with less than 250 employees",
+            "source": "llm_extraction",
+            "meaningfulness_score": 70
+          },
+          {
+            "type": "eligibility_criteria",
+            "value": "Companies must be based in Austria, Germany, or EU member states with headquarters in Vienna",
+            "source": "llm_extraction",
+            "meaningfulness_score": 81
+          }
+        ],
+        "documents": [],
+        "financial": [
+          {
+            "type": "repayment_terms",
+            "value": "Must repay within 5 years at 2% interest",
+            "source": "llm_extraction",
+            "meaningfulness_score": 75
+          },
+          {
+            "type": "equity_terms",
+            "value": "Must have an equity stake of at least 20%",
+            "source": "llm_extraction",
+            "meaningfulness_score": 75.5
+          },
+          {
+            "type": "guarantee_fee",
+            "value": "from 2.0% p.a. onward",
+            "source": "llm_extraction",
+            "meaningfulness_score": 80.5
+          }
+        ],
+        "funding_details": [
+          {
+            "type": "co_financing",
+            "value": "Minimum 30% own contribution",
+            "source": "llm_extraction",
+            "meaningfulness_score": 69
+          },
+          {
+            "type": "revenue_model",
+            "value": "Companies must have a viable business model",
+            "source": "llm_extraction",
+            "meaningfulness_score": 41.5
+          },
+          {
+            "type": "market_size",
+            "value": "Companies must have a significant market share",
+            "source": "llm_extraction",
+            "meaningfulness_score": 43
+          }
+        ],
+        "technical": [
+          {
+            "type": "technical_requirement",
+            "value": "Technology readiness level (TRL) 6",
+            "source": "llm_extraction",
+            "meaningfulness_score": 37
+          }
+        ],
+        "legal": [
+          {
+            "type": "legal_requirement",
+            "value": "Companies must comply with Austrian and EU laws and regulations",
+            "source": "llm_extraction",
+            "meaningfulness_score": 51.5
+          }
+        ],
+        "timeline": [],
+        "geographic": [
+          {
+            "type": "geographic_eligibility",
+            "value": "Companies based in Austria, Germany, or EU member states",
+            "source": "llm_extraction",
+            "meaningfulness_score": 43
+          }
+        ],
+        "team": [
+          {
+            "type": "team_size",
+            "value": "Minimum 2 team members",
+            "source": "llm_extraction",
+            "meaningfulness_score": 51
+          }
+        ],
+        "project": [],
+        "compliance": [
+          {
+            "type": "compliance_requirement",
+            "value": "Companies must comply with EU data protection regulations",
+            "source": "llm_extraction",
+            "meaningfulness_score": 48.5
+          }
+        ],
+        "impact": [
+          {
+            "type": "economic_impact",
+            "value": "Increasing competitiveness and innovation in the energy sector",
+            "source": "llm_extraction",
+            "meaningfulness_score": 51
+          },
+          {
+            "type": "innovation_impact",
+            "value": "Driving innovation and research in the field of renewable energy",
+            "source": "llm_extraction",
+            "meaningfulness_score": 32
+          }
+        ],
+        "application": [
+          {
+            "type": "application_process",
+            "value": "Companies must submit a business plan, CV, and project description",
+            "source": "llm_extraction",
+            "meaningfulness_score": 63
+          }
+        ],
+        "restrictions": [
+          {
+            "type": "restrictions",
+            "value": "Companies must not have any outstanding debts or liabilities",
+            "source": "llm_extraction",
+            "meaningfulness_score": 50
+          },
+          {
+            "type": "intellectual_property",
+            "value": "Companies must not have any intellectual property disputes",
+            "source": "llm_extraction",
+            "meaningfulness_score": 49
+          },
+          {
+            "type": "consortium",
+            "value": "Companies must not be part of a consortium",
+            "source": "llm_extraction",
+            "meaningfulness_score": 41
+          },
+          {
+            "type": "diversity",
+            "value": "Companies must have a diverse team",
+            "source": "llm_extraction",
+            "meaningfulness_score": 37
+          }
+        ],
+        "terms": [
+          {
+            "type": "success_metrics",
+            "value": "Companies must meet certain success metrics",
+            "source": "llm_extraction",
+            "meaningfulness_score": 41.5
+          }
+        ]
+      },
+      "metadata": {
+        "funding_amount_min": null,
+        "funding_amount_max": null,
+        "currency": "EUR",
+        "deadline": null,
+        "open_deadline": true,
+        "contact_email": null,
+        "contact_phone": null,
+        "funding_types": [
+          "loan"
+        ],
+        "program_focus": [
+          "research",
+          "innovation"
+        ],
+        "region": "Austria"
+      }
+    },
+    "modelVersion": "text-embedding-3-small",
+    "timestamp": 1762599173462,
+    "url": "https://www.sfg.at/wp-content/uploads/2019/07/formular_aufstellung_bankverbindlichkeiten.xlsx"
+  },
+  "2d2024ebd7dae512d466744bab8f0c196fcd304bef9d196b3f741eab320bc2b8:text-embedding-3-small": {
+    "urlHash": "2d2024ebd7dae512d466744bab8f0c196fcd304bef9d196b3f741eab320bc2b8",
+    "result": {
+      "categorized_requirements": {
+        "eligibility": [
+          {
+            "type": "company_type",
+            "value": "Small and medium-sized enterprises (SMEs) with less than 250 employees",
+            "source": "llm_extraction",
+            "meaningfulness_score": 70
+          },
+          {
+            "type": "industry_restriction",
+            "value": "Industrial and commercial sector",
+            "source": "llm_extraction",
+            "meaningfulness_score": 36
+          },
+          {
+            "type": "eligibility_criteria",
+            "value": "Stable economic situation, clear business strategy, and sufficient professional and commercial competence",
+            "source": "llm_extraction",
+            "meaningfulness_score": 50
+          }
+        ],
+        "documents": [],
+        "financial": [
+          {
+            "type": "repayment_terms",
+            "value": "Tilgungsfreier Zeitraum von maximal 10 Jahren entlang eines vertraglich festgelegten Tilgungsplan",
+            "source": "llm_extraction",
+            "meaningfulness_score": 68.5
+          }
+        ],
+        "geographic": [
+          {
+            "type": "geographic_eligibility",
+            "value": "Companies with headquarters in Vienna or based in Austria, Germany, or EU member states",
+            "source": "llm_extraction",
+            "meaningfulness_score": 58.5
+          }
+        ],
+        "timeline": [],
+        "project": [
+          {
+            "type": "technology_area",
+            "value": "Research and development, production, market expansion, and working capital",
+            "source": "llm_extraction",
+            "meaningfulness_score": 37.5
+          }
+        ],
+        "restrictions": [
+          {
+            "type": "restrictions",
+            "value": "Projects without or with too little innovation content and market potential, Umschuldungen and Sanierungen",
+            "source": "llm_extraction",
+            "meaningfulness_score": 70
+          }
+        ]
+      },
+      "metadata": {
+        "funding_amount_min": 100000,
+        "funding_amount_max": 1500000,
+        "currency": "EUR",
+        "deadline": null,
+        "open_deadline": true,
+        "contact_email": "sfg@sfg.at",
+        "contact_phone": "+43 316 7093 216",
+        "funding_types": [
+          "equity"
+        ],
+        "program_focus": [
+          "innovation",
+          "research"
+        ],
+        "region": "Steiermark"
+      }
+    },
+    "modelVersion": "text-embedding-3-small",
+    "timestamp": 1762599212854,
+    "url": "https://www.sfg.at/en/f/stille-beteiligung/"
+  },
+  "510360e6943b978b504ffb2ae51e7276c9a5b3c717d9adb03b14cfd4914f878c:text-embedding-3-small": {
+    "urlHash": "510360e6943b978b504ffb2ae51e7276c9a5b3c717d9adb03b14cfd4914f878c",
+    "result": {
+      "categorized_requirements": {
+        "eligibility": [
+          {
+            "type": "company_type",
+            "value": "kleinste, kleine und mittlere Unternehmen (KMU) mit bis zu 249 Mitarbeitern",
+            "source": "llm_extraction",
+            "meaningfulness_score": 57.5
+          },
+          {
+            "type": "industry_restriction",
+            "value": "Produktions- und Dienstleistungsbetriebe, die einen Beitrag zur Stärkung des produzierenden Sektors leisten",
+            "source": "llm_extraction",
+            "meaningfulness_score": 70
+          }
+        ],
+        "documents": [
+          {
+            "type": "required_documents",
+            "value": "Förderungsantrag, Detailkostenaufstellung, EFRE-Muster-Dokument der Auftragsvergabeentscheidung",
+            "source": "llm_extraction",
+            "meaningfulness_score": 67.5
+          }
+        ],
+        "financial": [],
+        "funding_details": [
+          {
+            "type": "co_financing",
+            "value": "Mindestens 30% Eigenmittel erforderlich",
+            "source": "llm_extraction",
+            "meaningfulness_score": 74.5
+          },
+          {
+            "type": "use_of_funds",
+            "value": "Erweiterung einer bestehenden Betriebsstätte, Diversifizierung der Produktion einer Betriebsstätte, grundlegende Änderung des gesamten Produktionsprozesses einer bestehenden Betriebsstätte, Errichtung einer neuen Betriebsstätte, Ausbau der Produktionskapazitäten einer bestehenden Betriebsstätte",
+            "source": "llm_extraction",
+            "meaningfulness_score": 50
+          }
+        ],
+        "technical": [],
+        "legal": [
+          {
+            "type": "legal_requirement",
+            "value": "Einhaltung der EFRE-Richtlinien 2021 - 2027",
+            "source": "llm_extraction",
+            "meaningfulness_score": 41.5
+          }
+        ],
+        "timeline": [],
+        "geographic": [
+          {
+            "type": "geographic_eligibility",
+            "value": "Unternehmen in den Regionen westliche Obersteiermark, östliche Obersteiermark, Bezirk Deutschlandsberg, Bezirk Graz-Umgebung",
+            "source": "llm_extraction",
+            "meaningfulness_score": 50
+          }
+        ],
+        "team": [
+          {
+            "type": "team_size",
+            "value": "bis maximal 49 MitarbeiterInnen",
+            "source": "llm_extraction",
+            "meaningfulness_score": 35.5
+          }
+        ],
+        "project": [],
+        "compliance": [
+          {
+            "type": "compliance_requirement",
+            "value": "Einhaltung der EFRE-Richtlinien 2021 - 2027",
+            "source": "llm_extraction",
+            "meaningfulness_score": 41.5
+          }
+        ],
+        "impact": [
+          {
+            "type": "environmental_impact",
+            "value": "Reduzierung von CO2-Emissionen",
+            "source": "llm_extraction",
+            "meaningfulness_score": 35
+          }
+        ],
+        "application": [],
+        "restrictions": [],
+        "terms": [
+          {
+            "type": "success_metrics",
+            "value": "Reduzierung von CO2-Emissionen",
+            "source": "llm_extraction",
+            "meaningfulness_score": 35
+          }
+        ]
+      },
+      "metadata": {
+        "funding_amount_min": null,
+        "funding_amount_max": 300000,
+        "currency": "EUR",
+        "deadline": null,
+        "open_deadline": true,
+        "contact_email": "martin.buchsbaum@sfg.at",
+        "contact_phone": "+43 316 7093 202",
+        "funding_types": [
+          "grant"
+        ],
+        "program_focus": [
+          "innovation",
+          "research",
+          "green deal"
+        ],
+        "region": "Steiermark"
+      }
+    },
+    "modelVersion": "text-embedding-3-small",
+    "timestamp": 1762599227138,
+    "url": "https://www.sfg.at/f/klimaneutralitaet-die-steirische-investition-in-den-green-deal/"
+  }
+}

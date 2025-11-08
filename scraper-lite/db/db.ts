@@ -189,6 +189,15 @@ export async function savePageWithRequirements(page: PageMetadata): Promise<numb
     if (page.categorized_requirements) {
       const requirements: any[] = [];
       
+      // Apply learned requirement patterns (async, but we'll do it synchronously for now)
+      let requirementPatterns: any = null;
+      try {
+        const { getStoredRequirementPatterns } = await import('../src/learning/learn-requirement-patterns');
+        requirementPatterns = await getStoredRequirementPatterns();
+      } catch {
+        // Pattern learning not available yet, continue without filtering
+      }
+      
       Object.entries(page.categorized_requirements).forEach(([category, items]) => {
         if (Array.isArray(items)) {
           items.forEach((item: any) => {
@@ -203,6 +212,30 @@ export async function savePageWithRequirements(page: PageMetadata): Promise<numb
             // Skip if meaningfulness is too low (unless it's null, then we'll save it)
             if (meaningfulness !== null && meaningfulness < 30) {
               return; // Skip this requirement
+            }
+            
+            // Apply learned requirement patterns (filter generic values, deduplicate)
+            if (requirementPatterns && item.value) {
+              const pattern = requirementPatterns.find((p: any) => p.category.toLowerCase() === normalizedCategory);
+              if (pattern) {
+                const valueLower = item.value.toLowerCase().trim();
+                
+                // Check if it's a generic value
+                if (pattern.genericValues.some((g: string) => valueLower === g.toLowerCase().trim())) {
+                  return; // Skip generic value
+                }
+                
+                // Check for duplicates and deduplicate
+                for (const dup of pattern.duplicatePatterns || []) {
+                  if (dup.remove.some((r: string) => {
+                    const rLower = r.toLowerCase();
+                    return valueLower.includes(rLower) || rLower.includes(valueLower);
+                  })) {
+                    item.value = dup.keep; // Use the better version
+                    break;
+                  }
+                }
+              }
             }
             
             requirements.push({

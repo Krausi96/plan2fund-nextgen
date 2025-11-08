@@ -19,6 +19,11 @@ const CANONICAL_FUNDING_TYPES = [
   'angel_investment',
   'government_support',
   'tax_incentive',
+  // Additional types from institutionConfig
+  'wage-subsidy',
+  'visa_application',
+  'equity_crowdfunding',
+  'convertible_loan',
 ] as const;
 
 // Mapping: invalid/duplicate types -> canonical type
@@ -45,6 +50,14 @@ const FUNDING_TYPE_MAP: Record<string, string | null> = {
   'tax-incentive': 'tax_incentive',
   'crowd funding': 'crowdfunding',
   'crowd-funding': 'crowdfunding',
+  'wage subsidy': 'wage-subsidy',
+  'wage_subsidy': 'wage-subsidy',
+  'visa application': 'visa_application',
+  'visa-application': 'visa_application',
+  'equity crowdfunding': 'equity_crowdfunding',
+  'equity-crowdfunding': 'equity_crowdfunding',
+  'convertible loan': 'convertible_loan',
+  'convertible-loan': 'convertible_loan',
   
   // Invalid types that should be mapped or removed (null means remove)
   'services': '', // Not a funding type, remove

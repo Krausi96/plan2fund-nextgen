@@ -23,6 +23,18 @@ const HARDCODED_EXCLUSIONS = [
   /\/data-protection\//i,
   /\/disclaimer\//i,
   
+  // Career/Job pages (not funding programs)
+  /\/karriere\//i,
+  /\/career\//i,
+  /\/careers\//i,
+  /\/job\//i,
+  /\/jobs\//i,
+  /\/stellen\//i,
+  /\/stellenangebote\//i,
+  /\/recruitment\//i,
+  /\/bewerbung\//i,
+  /karriere|career|job|stellen|recruitment|bewerbung/i, // Also match in path/domain
+  
   // Housing/Real Estate
   /wohnbau|wohnung|wohnbauförderung|wohnungsbau|wohnbeihilfe|bauen-wohnen|raumplanung/i,
   /housing|real.estate|immobilie|baufinanzierung|hypothek|mortgage/i,
