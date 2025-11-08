@@ -95,7 +95,7 @@ import { isCustomLLMEnabled, callCustomLLM } from '../../../shared/lib/customLLM
 let trackScraperQuality: any = null;
 if (typeof window === 'undefined') {
   // Server-side only
-  import('../../shared/lib/dataCollection').then(module => {
+  import('../../../shared/lib/dataCollection').then(module => {
     trackScraperQuality = module.trackScraperQuality;
   }).catch(() => {
     // Silently fail if module not available
