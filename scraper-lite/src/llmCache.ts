@@ -19,7 +19,7 @@ interface CachedExtraction {
 const CACHE_DIR = path.join(__dirname, '..', 'data', 'lite', 'llm-cache');
 const CACHE_FILE = path.join(CACHE_DIR, 'cache.json');
 const CACHE_TTL = 7 * 24 * 60 * 60 * 1000; // 7 days
-const MODEL_VERSION = 'gpt-4o-mini-v1';
+const MODEL_VERSION = process.env.SCRAPER_MODEL_VERSION || 'gpt-4o-mini-v1';
 
 // Ensure cache directory exists
 function ensureCacheDir(): void {

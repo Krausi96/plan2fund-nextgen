@@ -1,7 +1,7 @@
 // Export System with PDF Generation and Watermarks
 import { PlanDocument } from '@/shared/types/plan';
 // import analytics from './analytics';
-import featureFlags from '@/shared/lib/featureFlags';
+import { isFeatureEnabled } from '@/shared/lib/featureFlags';
 
 export interface ExportOptions {
   format: 'PDF' | 'DOCX' | 'JSON' | 'SUBMISSION_PACK';
@@ -32,7 +32,7 @@ class ExportManager {
     }
   }
 
-  private async generatePDF(plan: PlanDocument, options: ExportOptions): Promise<ExportResult> {
+  private async generatePDF(plan: PlanDocument, options: ExportOptions, subscriptionTier: 'free' | 'premium' | 'enterprise' = 'free'): Promise<ExportResult> {
     try {
       // Track export start
       // await analytics.trackExportStart(plan.id, 'PDF');
@@ -48,7 +48,7 @@ class ExportManager {
       }
 
       // Create HTML content
-      const htmlContent = this.generateHTML(plan, options);
+      const htmlContent = this.generateHTML(plan, options, subscriptionTier);
       
       // Generate PDF using html2pdf (client-side)
       if (typeof window !== 'undefined') {
@@ -89,8 +89,8 @@ class ExportManager {
     }
   }
 
-  private generateHTML(plan: PlanDocument, options: ExportOptions): string {
-    const watermark = options.includeWatermark ? this.generateWatermark() : '';
+  private generateHTML(plan: PlanDocument, options: ExportOptions, subscriptionTier: 'free' | 'premium' | 'enterprise' = 'free'): string {
+    const watermark = options.includeWatermark ? this.generateWatermark(subscriptionTier) : '';
     
     // Get formatting from plan settings if available (fallback to defaults)
     const fontFamily = (plan.settings as any)?.fontFamily || 'Segoe UI, Tahoma, Geneva, Verdana, sans-serif';
@@ -210,8 +210,8 @@ class ExportManager {
     `;
   }
 
-  private generateWatermark(): string {
-    const isPaid = featureFlags.isEnabled('EXPORT_PAYWALL');
+  private generateWatermark(subscriptionTier: 'free' | 'premium' | 'enterprise' = 'free'): string {
+    const isPaid = isFeatureEnabled('pdf_export', subscriptionTier);
     const watermarkText = isPaid ? 'PREMIUM EXPORT' : 'DRAFT - UPGRADE TO EXPORT';
     
     return `<div class="watermark">${watermarkText}</div>`;
@@ -486,10 +486,10 @@ class ExportManager {
     return filled;
   }
 
-  async exportPlan(plan: PlanDocument, options: ExportOptions): Promise<ExportResult> {
+  async exportPlan(plan: PlanDocument, options: ExportOptions, subscriptionTier: 'free' | 'premium' | 'enterprise' = 'free'): Promise<ExportResult> {
     try {
       // Check if user has paid access
-      if (options.format === 'PDF' && options.isPaid && !featureFlags.isEnabled('EXPORT_PAYWALL')) {
+      if (options.format === 'PDF' && options.isPaid && !isFeatureEnabled('pdf_export', subscriptionTier)) {
         return {
           success: false,
           error: 'Export feature not available'
@@ -498,13 +498,13 @@ class ExportManager {
 
       switch (options.format) {
         case 'PDF':
-          return await this.generatePDF(plan, options);
+          return await this.generatePDF(plan, options, subscriptionTier);
         case 'DOCX':
-          return await this.generateDOCX(plan, options);
+          return await this.generateDOCX(plan, options, subscriptionTier);
         case 'JSON':
           return await this.generateJSON(plan, options);
         case 'SUBMISSION_PACK':
-          return await this.generateSubmissionPack(plan, options);
+          return await this.generateSubmissionPack(plan, options, subscriptionTier);
         default:
           throw new Error(`Unsupported format: ${options.format}`);
       }
@@ -517,7 +517,7 @@ class ExportManager {
     }
   }
 
-  private async generateDOCX(plan: PlanDocument, options: ExportOptions): Promise<ExportResult> {
+  private async generateDOCX(plan: PlanDocument, options: ExportOptions, _subscriptionTier: 'free' | 'premium' | 'enterprise' = 'free'): Promise<ExportResult> {
     try {
       // Import DOCX library dynamically
       const { Document, Packer, Paragraph, TextRun, HeadingLevel, AlignmentType, PageBreak } = await import('docx');
@@ -688,7 +688,7 @@ class ExportManager {
     }
   }
 
-  private async generateSubmissionPack(plan: PlanDocument, options: ExportOptions): Promise<ExportResult> {
+  private async generateSubmissionPack(plan: PlanDocument, options: ExportOptions, _subscriptionTier: 'free' | 'premium' | 'enterprise' = 'free'): Promise<ExportResult> {
     try {
       const htmlContent = this.generateSubmissionPackHTML(plan, options);
       

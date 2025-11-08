@@ -27704,109 +27704,391 @@
     },
     {
       "url": "https://www.aws.at/en/special-programmes/competitions/",
-      "status": "queued",
+      "status": "done",
       "depth": 2,
       "seed": "https://www.aws.at/en/aws-digitalization/"
     },
     {
       "url": "https://www.aws.at/en/subsidies-of-the-eu/",
-      "status": "queued",
+      "status": "done",
       "depth": 2,
       "seed": "https://www.aws.at/en/aws-digitalization/"
     },
     {
       "url": "https://www.aws.at/en/aws-erp-loan/",
-      "status": "queued",
+      "status": "done",
       "depth": 2,
       "seed": "https://www.aws.at/en/aws-digitalization/"
     },
     {
       "url": "https://www.aws.at/en/aws-innovation-protection/",
-      "status": "queued",
+      "status": "done",
       "depth": 2,
       "seed": "https://www.aws.at/en/aws-digitalization/"
     },
     {
       "url": "https://www.aws.at/en/aws-innovation-protection/",
-      "status": "queued",
+      "status": "done",
       "depth": 2,
       "seed": "https://www.aws.at/en/aws-digitalization/"
     },
     {
       "url": "https://www.aws.at/en/aws-growth-investment/",
-      "status": "queued",
+      "status": "done",
       "depth": 2,
       "seed": "https://www.aws.at/en/aws-digitalization/"
     },
     {
       "url": "https://www.aws.at/en/special-programmes/competitions/",
-      "status": "queued",
+      "status": "done",
       "depth": 2,
       "seed": "https://www.aws.at/en/aws-digitalization/"
     },
     {
       "url": "https://www.aws.at/en/subsidies-of-the-eu/",
-      "status": "queued",
+      "status": "done",
       "depth": 2,
       "seed": "https://www.aws.at/en/aws-digitalization/"
     },
     {
       "url": "https://www.aws.at/en/aws-erp-loan/",
-      "status": "queued",
+      "status": "done",
       "depth": 2,
       "seed": "https://www.aws.at/en/aws-digitalization/"
     },
     {
       "url": "https://www.aws.at/en/aws-growth-investment/",
-      "status": "queued",
+      "status": "done",
       "depth": 2,
       "seed": "https://www.aws.at/en/aws-digitalization/"
     },
     {
       "url": "https://www.aws.at/en/special-programmes/competitions/",
-      "status": "queued",
+      "status": "done",
       "depth": 2,
       "seed": "https://www.aws.at/en/aws-digitalization/"
     },
     {
       "url": "https://www.aws.at/en/subsidies-of-the-eu/",
-      "status": "queued",
+      "status": "done",
       "depth": 2,
       "seed": "https://www.aws.at/en/aws-digitalization/"
     },
     {
       "url": "https://www.aws.at/en/special-programmes/competitions/",
-      "status": "queued",
+      "status": "done",
       "depth": 2,
       "seed": "https://www.aws.at/en/aws-digitalization/"
     },
     {
       "url": "https://www.aws.at/en/special-programmes/competitions/",
-      "status": "queued",
+      "status": "done",
       "depth": 2,
       "seed": "https://www.aws.at/en/aws-digitalization/"
     },
     {
       "url": "https://www.aws.at/en/subsidies-of-the-eu/",
-      "status": "queued",
+      "status": "done",
       "depth": 2,
       "seed": "https://www.aws.at/en/aws-digitalization/"
     },
     {
       "url": "https://www.aws.at/en/subsidies-of-the-eu/",
-      "status": "queued",
+      "status": "done",
       "depth": 2,
       "seed": "https://www.aws.at/en/aws-digitalization/"
     },
     {
       "url": "https://www.aws.at/en/special-programmes/competitions/",
-      "status": "queued",
+      "status": "done",
       "depth": 2,
       "seed": "https://www.aws.at/en/aws-digitalization/"
     },
     {
       "url": "https://www.aws.at/en/subsidies-of-the-eu/",
-      "status": "queued",
+      "status": "done",
+      "depth": 2,
+      "seed": "https://www.aws.at/en/aws-digitalization/"
+    },
+    {
+      "url": "https://www.aws.at/en/framework-programme-for-sme-competitiveness-cosme/",
+      "status": "done",
+      "depth": 2,
+      "seed": "https://www.aws.at/en/aws-digitalization/"
+    },
+    {
+      "url": "https://www.aws.at/en/acceptance-of-guarantees-for-investments/resources-of-rdi-oriented-companies/",
+      "status": "done",
+      "depth": 2,
+      "seed": "https://www.aws.at/en/aws-digitalization/"
+    },
+    {
+      "url": "https://www.aws.at/en/special-programmes/competitions/",
+      "status": "done",
+      "depth": 2,
+      "seed": "https://www.aws.at/en/aws-digitalization/"
+    },
+    {
+      "url": "https://www.aws.at/en/subsidies-of-the-eu/",
+      "status": "done",
+      "depth": 2,
+      "seed": "https://www.aws.at/en/aws-digitalization/"
+    },
+    {
+      "url": "https://www.aws.at/en/innovation-as-a-service-danube-region-iaas4dr/",
+      "status": "done",
+      "depth": 2,
+      "seed": "https://www.aws.at/en/aws-digitalization/"
+    },
+    {
+      "url": "https://www.aws.at/en/enact-enabling-social-innovation-entrepreneurship-in-agri-food-through-digital-transition/",
+      "status": "done",
+      "depth": 2,
+      "seed": "https://www.aws.at/en/aws-digitalization/"
+    },
+    {
+      "url": "https://www.aws.at/en/special-programmes/competitions/",
+      "status": "done",
+      "depth": 1,
+      "seed": "https://www.aws.at/en/aws-digitalization/"
+    },
+    {
+      "url": "https://www.aws.at/en/subsidies-of-the-eu/",
+      "status": "done",
+      "depth": 1,
+      "seed": "https://www.aws.at/en/aws-digitalization/"
+    },
+    {
+      "url": "https://www.aws.at/en/special-programmes/competitions/",
+      "status": "done",
+      "depth": 1,
+      "seed": "https://www.aws.at/en/aws-guarantee/"
+    },
+    {
+      "url": "https://www.aws.at/en/subsidies-of-the-eu/",
+      "status": "done",
+      "depth": 1,
+      "seed": "https://www.aws.at/en/aws-guarantee/"
+    },
+    {
+      "url": "https://www.aws.at/en/aws-guarantee/equity-leverage/",
+      "status": "done",
+      "depth": 1,
+      "seed": "https://www.aws.at/en/aws-guarantee/"
+    },
+    {
+      "url": "https://www.aws.at/en/special-programmes/competitions/",
+      "status": "done",
+      "depth": 1,
+      "seed": "https://www.aws.at/en/aws-guarantee/consolidation/"
+    },
+    {
+      "url": "https://www.aws.at/en/subsidies-of-the-eu/",
+      "status": "done",
+      "depth": 1,
+      "seed": "https://www.aws.at/en/aws-guarantee/consolidation/"
+    },
+    {
+      "url": "https://www.aws.at/en/special-programmes/competitions/",
+      "status": "done",
+      "depth": 1,
+      "seed": "https://www.aws.at/en/aws-guarantee/internationalisation/"
+    },
+    {
+      "url": "https://www.aws.at/en/subsidies-of-the-eu/",
+      "status": "done",
+      "depth": 1,
+      "seed": "https://www.aws.at/en/aws-guarantee/internationalisation/"
+    },
+    {
+      "url": "https://www.aws.at/en/special-programmes/competitions/",
+      "status": "done",
+      "depth": 1,
+      "seed": "https://www.aws.at/en/aws-guarantee/young-enterprises/"
+    },
+    {
+      "url": "https://www.aws.at/en/subsidies-of-the-eu/",
+      "status": "done",
+      "depth": 1,
+      "seed": "https://www.aws.at/en/aws-guarantee/young-enterprises/"
+    },
+    {
+      "url": "https://www.aws.at/aws-innovationsschutz/",
+      "status": "done",
+      "depth": 1,
+      "seed": "https://www.aws.at/en/aws-innovation-protection/"
+    },
+    {
+      "url": "https://www.aws.at/en/aws-innovation-protection/",
+      "status": "done",
+      "depth": 1,
+      "seed": "https://www.aws.at/en/aws-innovation-protection/"
+    },
+    {
+      "url": "https://www.aws.at/en/special-programmes/competitions/",
+      "status": "done",
+      "depth": 1,
+      "seed": "https://www.aws.at/en/aws-innovation-protection/"
+    },
+    {
+      "url": "https://www.aws.at/en/subsidies-of-the-eu/",
+      "status": "done",
+      "depth": 1,
+      "seed": "https://www.aws.at/en/aws-innovation-protection/"
+    },
+    {
+      "url": "https://www.aws.at/en/aws-innovation-protection/schluesseltechnologien/",
+      "status": "done",
+      "depth": 1,
+      "seed": "https://www.aws.at/en/aws-innovation-protection/"
+    },
+    {
+      "url": "https://www.aws.at/en/aws-innovation-protection/schluesseltechnologien/",
+      "status": "done",
+      "depth": 1,
+      "seed": "https://www.aws.at/en/aws-innovation-protection/"
+    },
+    {
+      "url": "https://www.aws.at/en/special-programmes/competitions/",
+      "status": "done",
+      "depth": 1,
+      "seed": "https://www.aws.at/en/aws-equity/"
+    },
+    {
+      "url": "https://www.aws.at/en/subsidies-of-the-eu/",
+      "status": "done",
+      "depth": 1,
+      "seed": "https://www.aws.at/en/aws-equity/"
+    },
+    {
+      "url": "https://www.aws.at/en/special-programmes/competitions/",
+      "status": "done",
+      "depth": 2,
+      "seed": "https://www.aws.at/en/aws-digitalization/"
+    },
+    {
+      "url": "https://www.aws.at/en/subsidies-of-the-eu/",
+      "status": "done",
+      "depth": 2,
+      "seed": "https://www.aws.at/en/aws-digitalization/"
+    },
+    {
+      "url": "https://www.aws.at/en/special-programmes/competitions/",
+      "status": "done",
+      "depth": 2,
+      "seed": "https://www.aws.at/en/aws-digitalization/"
+    },
+    {
+      "url": "https://www.aws.at/en/subsidies-of-the-eu/",
+      "status": "done",
+      "depth": 2,
+      "seed": "https://www.aws.at/en/aws-digitalization/"
+    },
+    {
+      "url": "https://www.aws.at/en/special-programmes/competitions/",
+      "status": "done",
+      "depth": 2,
+      "seed": "https://www.aws.at/en/aws-digitalization/"
+    },
+    {
+      "url": "https://www.aws.at/en/subsidies-of-the-eu/",
+      "status": "done",
+      "depth": 2,
+      "seed": "https://www.aws.at/en/aws-digitalization/"
+    },
+    {
+      "url": "https://www.aws.at/en/aws-erp-loan/",
+      "status": "done",
+      "depth": 2,
+      "seed": "https://www.aws.at/en/aws-digitalization/"
+    },
+    {
+      "url": "https://www.aws.at/en/aws-innovation-protection/",
+      "status": "done",
+      "depth": 2,
+      "seed": "https://www.aws.at/en/aws-digitalization/"
+    },
+    {
+      "url": "https://www.aws.at/en/aws-innovation-protection/",
+      "status": "done",
+      "depth": 2,
+      "seed": "https://www.aws.at/en/aws-digitalization/"
+    },
+    {
+      "url": "https://www.aws.at/en/aws-growth-investment/",
+      "status": "done",
+      "depth": 2,
+      "seed": "https://www.aws.at/en/aws-digitalization/"
+    },
+    {
+      "url": "https://www.aws.at/en/special-programmes/competitions/",
+      "status": "done",
+      "depth": 2,
+      "seed": "https://www.aws.at/en/aws-digitalization/"
+    },
+    {
+      "url": "https://www.aws.at/en/subsidies-of-the-eu/",
+      "status": "done",
+      "depth": 2,
+      "seed": "https://www.aws.at/en/aws-digitalization/"
+    },
+    {
+      "url": "https://www.aws.at/en/aws-erp-loan/",
+      "status": "done",
+      "depth": 2,
+      "seed": "https://www.aws.at/en/aws-digitalization/"
+    },
+    {
+      "url": "https://www.aws.at/en/aws-growth-investment/",
+      "status": "done",
+      "depth": 2,
+      "seed": "https://www.aws.at/en/aws-digitalization/"
+    },
+    {
+      "url": "https://www.aws.at/en/special-programmes/competitions/",
+      "status": "done",
+      "depth": 2,
+      "seed": "https://www.aws.at/en/aws-digitalization/"
+    },
+    {
+      "url": "https://www.aws.at/en/subsidies-of-the-eu/",
+      "status": "done",
+      "depth": 2,
+      "seed": "https://www.aws.at/en/aws-digitalization/"
+    },
+    {
+      "url": "https://www.aws.at/en/special-programmes/competitions/",
+      "status": "done",
+      "depth": 2,
+      "seed": "https://www.aws.at/en/aws-digitalization/"
+    },
+    {
+      "url": "https://www.aws.at/en/special-programmes/competitions/",
+      "status": "done",
+      "depth": 2,
+      "seed": "https://www.aws.at/en/aws-digitalization/"
+    },
+    {
+      "url": "https://www.aws.at/en/subsidies-of-the-eu/",
+      "status": "done",
+      "depth": 2,
+      "seed": "https://www.aws.at/en/aws-digitalization/"
+    },
+    {
+      "url": "https://www.aws.at/en/subsidies-of-the-eu/",
+      "status": "done",
+      "depth": 2,
+      "seed": "https://www.aws.at/en/aws-digitalization/"
+    },
+    {
+      "url": "https://www.aws.at/en/special-programmes/competitions/",
+      "status": "done",
+      "depth": 2,
+      "seed": "https://www.aws.at/en/aws-digitalization/"
+    },
+    {
+      "url": "https://www.aws.at/en/subsidies-of-the-eu/",
+      "status": "done",
       "depth": 2,
       "seed": "https://www.aws.at/en/aws-digitalization/"
     },
@@ -28414,6 +28696,18 @@
       "url": "https://www.aws.at/en/special-programmes/competitions/",
       "status": "queued",
       "depth": 1,
+      "seed": "https://www.aws.at/en/aws-digitalisierung/ai-unternehmen-wachstum/ai-adoption/"
+    },
+    {
+      "url": "https://www.aws.at/en/subsidies-of-the-eu/",
+      "status": "queued",
+      "depth": 1,
+      "seed": "https://www.aws.at/en/aws-digitalisierung/ai-unternehmen-wachstum/ai-adoption/"
+    },
+    {
+      "url": "https://www.aws.at/en/special-programmes/competitions/",
+      "status": "queued",
+      "depth": 1,
       "seed": "https://www.aws.at/en/aws-digitalization/"
     },
     {
@@ -28426,103 +28720,241 @@
       "url": "https://www.aws.at/en/special-programmes/competitions/",
       "status": "queued",
       "depth": 1,
-      "seed": "https://www.aws.at/en/aws-guarantee/"
+      "seed": "https://www.aws.at/en/aws-digitalization/ai-start/"
     },
     {
       "url": "https://www.aws.at/en/subsidies-of-the-eu/",
       "status": "queued",
       "depth": 1,
-      "seed": "https://www.aws.at/en/aws-guarantee/"
-    },
-    {
-      "url": "https://www.aws.at/en/aws-guarantee/equity-leverage/",
-      "status": "queued",
-      "depth": 1,
-      "seed": "https://www.aws.at/en/aws-guarantee/"
+      "seed": "https://www.aws.at/en/aws-digitalization/ai-start/"
     },
     {
       "url": "https://www.aws.at/en/special-programmes/competitions/",
       "status": "queued",
-      "depth": 1,
-      "seed": "https://www.aws.at/en/aws-guarantee/consolidation/"
+      "depth": 2,
+      "seed": "https://www.aws.at/en/aws-digitalisierung/ai-unternehmen-wachstum/ai-adoption/"
     },
     {
       "url": "https://www.aws.at/en/subsidies-of-the-eu/",
       "status": "queued",
-      "depth": 1,
-      "seed": "https://www.aws.at/en/aws-guarantee/consolidation/"
+      "depth": 2,
+      "seed": "https://www.aws.at/en/aws-digitalisierung/ai-unternehmen-wachstum/ai-adoption/"
     },
     {
       "url": "https://www.aws.at/en/special-programmes/competitions/",
       "status": "queued",
-      "depth": 1,
-      "seed": "https://www.aws.at/en/aws-guarantee/internationalisation/"
+      "depth": 2,
+      "seed": "https://www.aws.at/en/aws-digitalisierung/ai-unternehmen-wachstum/ai-adoption/"
     },
     {
       "url": "https://www.aws.at/en/subsidies-of-the-eu/",
       "status": "queued",
-      "depth": 1,
-      "seed": "https://www.aws.at/en/aws-guarantee/internationalisation/"
+      "depth": 2,
+      "seed": "https://www.aws.at/en/aws-digitalisierung/ai-unternehmen-wachstum/ai-adoption/"
     },
     {
       "url": "https://www.aws.at/en/special-programmes/competitions/",
       "status": "queued",
-      "depth": 1,
-      "seed": "https://www.aws.at/en/aws-guarantee/young-enterprises/"
+      "depth": 2,
+      "seed": "https://www.aws.at/en/aws-digitalisierung/ai-unternehmen-wachstum/ai-adoption/"
     },
     {
       "url": "https://www.aws.at/en/subsidies-of-the-eu/",
       "status": "queued",
-      "depth": 1,
-      "seed": "https://www.aws.at/en/aws-guarantee/young-enterprises/"
+      "depth": 2,
+      "seed": "https://www.aws.at/en/aws-digitalisierung/ai-unternehmen-wachstum/ai-adoption/"
     },
     {
-      "url": "https://www.aws.at/aws-innovationsschutz/",
+      "url": "https://www.aws.at/en/special-programmes/competitions/",
       "status": "queued",
-      "depth": 1,
-      "seed": "https://www.aws.at/en/aws-innovation-protection/"
+      "depth": 2,
+      "seed": "https://www.aws.at/en/aws-digitalisierung/ai-unternehmen-wachstum/ai-adoption/"
+    },
+    {
+      "url": "https://www.aws.at/en/subsidies-of-the-eu/",
+      "status": "queued",
+      "depth": 2,
+      "seed": "https://www.aws.at/en/aws-digitalisierung/ai-unternehmen-wachstum/ai-adoption/"
+    },
+    {
+      "url": "https://www.aws.at/en/aws-erp-loan/",
+      "status": "queued",
+      "depth": 2,
+      "seed": "https://www.aws.at/en/aws-digitalisierung/ai-unternehmen-wachstum/ai-adoption/"
     },
     {
       "url": "https://www.aws.at/en/aws-innovation-protection/",
       "status": "queued",
-      "depth": 1,
-      "seed": "https://www.aws.at/en/aws-innovation-protection/"
+      "depth": 2,
+      "seed": "https://www.aws.at/en/aws-digitalisierung/ai-unternehmen-wachstum/ai-adoption/"
+    },
+    {
+      "url": "https://www.aws.at/en/aws-innovation-protection/",
+      "status": "queued",
+      "depth": 2,
+      "seed": "https://www.aws.at/en/aws-digitalisierung/ai-unternehmen-wachstum/ai-adoption/"
+    },
+    {
+      "url": "https://www.aws.at/en/aws-growth-investment/",
+      "status": "queued",
+      "depth": 2,
+      "seed": "https://www.aws.at/en/aws-digitalisierung/ai-unternehmen-wachstum/ai-adoption/"
     },
     {
       "url": "https://www.aws.at/en/special-programmes/competitions/",
       "status": "queued",
-      "depth": 1,
-      "seed": "https://www.aws.at/en/aws-innovation-protection/"
+      "depth": 2,
+      "seed": "https://www.aws.at/en/aws-digitalisierung/ai-unternehmen-wachstum/ai-adoption/"
     },
     {
       "url": "https://www.aws.at/en/subsidies-of-the-eu/",
       "status": "queued",
-      "depth": 1,
-      "seed": "https://www.aws.at/en/aws-innovation-protection/"
+      "depth": 2,
+      "seed": "https://www.aws.at/en/aws-digitalisierung/ai-unternehmen-wachstum/ai-adoption/"
     },
     {
-      "url": "https://www.aws.at/en/aws-innovation-protection/schluesseltechnologien/",
+      "url": "https://www.aws.at/en/aws-erp-loan/",
       "status": "queued",
-      "depth": 1,
-      "seed": "https://www.aws.at/en/aws-innovation-protection/"
+      "depth": 2,
+      "seed": "https://www.aws.at/en/aws-digitalisierung/ai-unternehmen-wachstum/ai-adoption/"
     },
     {
-      "url": "https://www.aws.at/en/aws-innovation-protection/schluesseltechnologien/",
+      "url": "https://www.aws.at/en/aws-growth-investment/",
       "status": "queued",
-      "depth": 1,
-      "seed": "https://www.aws.at/en/aws-innovation-protection/"
+      "depth": 2,
+      "seed": "https://www.aws.at/en/aws-digitalisierung/ai-unternehmen-wachstum/ai-adoption/"
     },
     {
       "url": "https://www.aws.at/en/special-programmes/competitions/",
       "status": "queued",
-      "depth": 1,
-      "seed": "https://www.aws.at/en/aws-equity/"
+      "depth": 2,
+      "seed": "https://www.aws.at/en/aws-digitalisierung/ai-unternehmen-wachstum/ai-adoption/"
     },
     {
       "url": "https://www.aws.at/en/subsidies-of-the-eu/",
       "status": "queued",
-      "depth": 1,
-      "seed": "https://www.aws.at/en/aws-equity/"
+      "depth": 2,
+      "seed": "https://www.aws.at/en/aws-digitalisierung/ai-unternehmen-wachstum/ai-adoption/"
+    },
+    {
+      "url": "https://www.aws.at/en/special-programmes/competitions/",
+      "status": "queued",
+      "depth": 2,
+      "seed": "https://www.aws.at/en/aws-digitalisierung/ai-unternehmen-wachstum/ai-adoption/"
+    },
+    {
+      "url": "https://www.aws.at/en/special-programmes/competitions/",
+      "status": "queued",
+      "depth": 2,
+      "seed": "https://www.aws.at/en/aws-digitalisierung/ai-unternehmen-wachstum/ai-adoption/"
+    },
+    {
+      "url": "https://www.aws.at/en/subsidies-of-the-eu/",
+      "status": "queued",
+      "depth": 2,
+      "seed": "https://www.aws.at/en/aws-digitalisierung/ai-unternehmen-wachstum/ai-adoption/"
+    },
+    {
+      "url": "https://www.aws.at/en/subsidies-of-the-eu/",
+      "status": "queued",
+      "depth": 2,
+      "seed": "https://www.aws.at/en/aws-digitalisierung/ai-unternehmen-wachstum/ai-adoption/"
+    },
+    {
+      "url": "https://www.aws.at/en/special-programmes/competitions/",
+      "status": "queued",
+      "depth": 2,
+      "seed": "https://www.aws.at/en/aws-digitalisierung/ai-unternehmen-wachstum/ai-adoption/"
+    },
+    {
+      "url": "https://www.aws.at/en/subsidies-of-the-eu/",
+      "status": "queued",
+      "depth": 2,
+      "seed": "https://www.aws.at/en/aws-digitalisierung/ai-unternehmen-wachstum/ai-adoption/"
+    },
+    {
+      "url": "https://www.aws.at/en/framework-programme-for-sme-competitiveness-cosme/",
+      "status": "queued",
+      "depth": 2,
+      "seed": "https://www.aws.at/en/aws-digitalisierung/ai-unternehmen-wachstum/ai-adoption/"
+    },
+    {
+      "url": "https://www.aws.at/en/acceptance-of-guarantees-for-investments/resources-of-rdi-oriented-companies/",
+      "status": "queued",
+      "depth": 2,
+      "seed": "https://www.aws.at/en/aws-digitalisierung/ai-unternehmen-wachstum/ai-adoption/"
+    },
+    {
+      "url": "https://www.aws.at/en/special-programmes/competitions/",
+      "status": "queued",
+      "depth": 2,
+      "seed": "https://www.aws.at/en/aws-digitalisierung/ai-unternehmen-wachstum/ai-adoption/"
+    },
+    {
+      "url": "https://www.aws.at/en/subsidies-of-the-eu/",
+      "status": "queued",
+      "depth": 2,
+      "seed": "https://www.aws.at/en/aws-digitalisierung/ai-unternehmen-wachstum/ai-adoption/"
+    },
+    {
+      "url": "https://www.aws.at/en/innovation-as-a-service-danube-region-iaas4dr/",
+      "status": "queued",
+      "depth": 2,
+      "seed": "https://www.aws.at/en/aws-digitalisierung/ai-unternehmen-wachstum/ai-adoption/"
+    },
+    {
+      "url": "https://www.aws.at/en/enact-enabling-social-innovation-entrepreneurship-in-agri-food-through-digital-transition/",
+      "status": "queued",
+      "depth": 2,
+      "seed": "https://www.aws.at/en/aws-digitalisierung/ai-unternehmen-wachstum/ai-adoption/"
+    },
+    {
+      "url": "https://www.aws.at/en/special-programmes/competitions/",
+      "status": "queued",
+      "depth": 2,
+      "seed": "https://www.aws.at/en/aws-digitalisierung/ai-unternehmen-wachstum/ai-adoption/"
+    },
+    {
+      "url": "https://www.aws.at/en/subsidies-of-the-eu/",
+      "status": "queued",
+      "depth": 2,
+      "seed": "https://www.aws.at/en/aws-digitalisierung/ai-unternehmen-wachstum/ai-adoption/"
+    },
+    {
+      "url": "https://www.aws.at/en/special-programmes/competitions/",
+      "status": "queued",
+      "depth": 2,
+      "seed": "https://www.aws.at/en/aws-digitalisierung/ai-unternehmen-wachstum/ai-adoption/"
+    },
+    {
+      "url": "https://www.aws.at/en/subsidies-of-the-eu/",
+      "status": "queued",
+      "depth": 2,
+      "seed": "https://www.aws.at/en/aws-digitalisierung/ai-unternehmen-wachstum/ai-adoption/"
+    },
+    {
+      "url": "https://www.aws.at/en/special-programmes/competitions/",
+      "status": "queued",
+      "depth": 2,
+      "seed": "https://www.aws.at/en/aws-digitalisierung/ai-unternehmen-wachstum/ai-adoption/"
+    },
+    {
+      "url": "https://www.aws.at/en/subsidies-of-the-eu/",
+      "status": "queued",
+      "depth": 2,
+      "seed": "https://www.aws.at/en/aws-digitalisierung/ai-unternehmen-wachstum/ai-adoption/"
+    },
+    {
+      "url": "https://www.aws.at/en/special-programmes/competitions/",
+      "status": "queued",
+      "depth": 2,
+      "seed": "https://www.aws.at/en/aws-digitalization/"
+    },
+    {
+      "url": "https://www.aws.at/en/subsidies-of-the-eu/",
+      "status": "queued",
+      "depth": 2,
+      "seed": "https://www.aws.at/en/aws-digitalization/"
     },
     {
       "url": "https://www.aws.at/en/special-programmes/competitions/",
@@ -28691,6 +29123,726 @@
       "status": "queued",
       "depth": 2,
       "seed": "https://www.aws.at/en/aws-digitalization/"
+    },
+    {
+      "url": "https://www.aws.at/en/special-programmes/competitions/",
+      "status": "queued",
+      "depth": 2,
+      "seed": "https://www.aws.at/en/aws-digitalization/"
+    },
+    {
+      "url": "https://www.aws.at/en/subsidies-of-the-eu/",
+      "status": "queued",
+      "depth": 2,
+      "seed": "https://www.aws.at/en/aws-digitalization/"
+    },
+    {
+      "url": "https://www.aws.at/en/special-programmes/competitions/",
+      "status": "queued",
+      "depth": 2,
+      "seed": "https://www.aws.at/en/aws-digitalization/"
+    },
+    {
+      "url": "https://www.aws.at/en/subsidies-of-the-eu/",
+      "status": "queued",
+      "depth": 2,
+      "seed": "https://www.aws.at/en/aws-digitalization/"
+    },
+    {
+      "url": "https://www.aws.at/en/special-programmes/competitions/",
+      "status": "queued",
+      "depth": 2,
+      "seed": "https://www.aws.at/en/aws-digitalization/"
+    },
+    {
+      "url": "https://www.aws.at/en/subsidies-of-the-eu/",
+      "status": "queued",
+      "depth": 2,
+      "seed": "https://www.aws.at/en/aws-digitalization/"
+    },
+    {
+      "url": "https://www.aws.at/en/special-programmes/competitions/",
+      "status": "queued",
+      "depth": 2,
+      "seed": "https://www.aws.at/en/aws-digitalization/ai-start/"
+    },
+    {
+      "url": "https://www.aws.at/en/subsidies-of-the-eu/",
+      "status": "queued",
+      "depth": 2,
+      "seed": "https://www.aws.at/en/aws-digitalization/ai-start/"
+    },
+    {
+      "url": "https://www.aws.at/en/special-programmes/competitions/",
+      "status": "queued",
+      "depth": 2,
+      "seed": "https://www.aws.at/en/aws-digitalization/ai-start/"
+    },
+    {
+      "url": "https://www.aws.at/en/subsidies-of-the-eu/",
+      "status": "queued",
+      "depth": 2,
+      "seed": "https://www.aws.at/en/aws-digitalization/ai-start/"
+    },
+    {
+      "url": "https://www.aws.at/en/special-programmes/competitions/",
+      "status": "queued",
+      "depth": 2,
+      "seed": "https://www.aws.at/en/aws-digitalization/ai-start/"
+    },
+    {
+      "url": "https://www.aws.at/en/subsidies-of-the-eu/",
+      "status": "queued",
+      "depth": 2,
+      "seed": "https://www.aws.at/en/aws-digitalization/ai-start/"
+    },
+    {
+      "url": "https://www.aws.at/en/special-programmes/competitions/",
+      "status": "queued",
+      "depth": 2,
+      "seed": "https://www.aws.at/en/aws-digitalization/ai-start/"
+    },
+    {
+      "url": "https://www.aws.at/en/subsidies-of-the-eu/",
+      "status": "queued",
+      "depth": 2,
+      "seed": "https://www.aws.at/en/aws-digitalization/ai-start/"
+    },
+    {
+      "url": "https://www.aws.at/en/aws-erp-loan/",
+      "status": "queued",
+      "depth": 2,
+      "seed": "https://www.aws.at/en/aws-digitalization/ai-start/"
+    },
+    {
+      "url": "https://www.aws.at/en/aws-innovation-protection/",
+      "status": "queued",
+      "depth": 2,
+      "seed": "https://www.aws.at/en/aws-digitalization/ai-start/"
+    },
+    {
+      "url": "https://www.aws.at/en/aws-innovation-protection/",
+      "status": "queued",
+      "depth": 2,
+      "seed": "https://www.aws.at/en/aws-digitalization/ai-start/"
+    },
+    {
+      "url": "https://www.aws.at/en/aws-growth-investment/",
+      "status": "queued",
+      "depth": 2,
+      "seed": "https://www.aws.at/en/aws-digitalization/ai-start/"
+    },
+    {
+      "url": "https://www.aws.at/en/special-programmes/competitions/",
+      "status": "queued",
+      "depth": 2,
+      "seed": "https://www.aws.at/en/aws-digitalization/ai-start/"
+    },
+    {
+      "url": "https://www.aws.at/en/subsidies-of-the-eu/",
+      "status": "queued",
+      "depth": 2,
+      "seed": "https://www.aws.at/en/aws-digitalization/ai-start/"
+    },
+    {
+      "url": "https://www.aws.at/en/aws-erp-loan/",
+      "status": "queued",
+      "depth": 2,
+      "seed": "https://www.aws.at/en/aws-digitalization/ai-start/"
+    },
+    {
+      "url": "https://www.aws.at/en/aws-growth-investment/",
+      "status": "queued",
+      "depth": 2,
+      "seed": "https://www.aws.at/en/aws-digitalization/ai-start/"
+    },
+    {
+      "url": "https://www.aws.at/en/special-programmes/competitions/",
+      "status": "queued",
+      "depth": 2,
+      "seed": "https://www.aws.at/en/aws-digitalization/ai-start/"
+    },
+    {
+      "url": "https://www.aws.at/en/subsidies-of-the-eu/",
+      "status": "queued",
+      "depth": 2,
+      "seed": "https://www.aws.at/en/aws-digitalization/ai-start/"
+    },
+    {
+      "url": "https://www.aws.at/en/special-programmes/competitions/",
+      "status": "queued",
+      "depth": 2,
+      "seed": "https://www.aws.at/en/aws-digitalization/ai-start/"
+    },
+    {
+      "url": "https://www.aws.at/en/special-programmes/competitions/",
+      "status": "queued",
+      "depth": 2,
+      "seed": "https://www.aws.at/en/aws-digitalization/ai-start/"
+    },
+    {
+      "url": "https://www.aws.at/en/subsidies-of-the-eu/",
+      "status": "queued",
+      "depth": 2,
+      "seed": "https://www.aws.at/en/aws-digitalization/ai-start/"
+    },
+    {
+      "url": "https://www.aws.at/en/subsidies-of-the-eu/",
+      "status": "queued",
+      "depth": 2,
+      "seed": "https://www.aws.at/en/aws-digitalization/ai-start/"
+    },
+    {
+      "url": "https://www.aws.at/en/special-programmes/competitions/",
+      "status": "queued",
+      "depth": 2,
+      "seed": "https://www.aws.at/en/aws-digitalization/ai-start/"
+    },
+    {
+      "url": "https://www.aws.at/en/subsidies-of-the-eu/",
+      "status": "queued",
+      "depth": 2,
+      "seed": "https://www.aws.at/en/aws-digitalization/ai-start/"
+    },
+    {
+      "url": "https://www.aws.at/en/framework-programme-for-sme-competitiveness-cosme/",
+      "status": "queued",
+      "depth": 2,
+      "seed": "https://www.aws.at/en/aws-digitalization/ai-start/"
+    },
+    {
+      "url": "https://www.aws.at/en/acceptance-of-guarantees-for-investments/resources-of-rdi-oriented-companies/",
+      "status": "queued",
+      "depth": 2,
+      "seed": "https://www.aws.at/en/aws-digitalization/ai-start/"
+    },
+    {
+      "url": "https://www.aws.at/en/special-programmes/competitions/",
+      "status": "queued",
+      "depth": 2,
+      "seed": "https://www.aws.at/en/aws-digitalization/ai-start/"
+    },
+    {
+      "url": "https://www.aws.at/en/subsidies-of-the-eu/",
+      "status": "queued",
+      "depth": 2,
+      "seed": "https://www.aws.at/en/aws-digitalization/ai-start/"
+    },
+    {
+      "url": "https://www.aws.at/en/innovation-as-a-service-danube-region-iaas4dr/",
+      "status": "queued",
+      "depth": 2,
+      "seed": "https://www.aws.at/en/aws-digitalization/ai-start/"
+    },
+    {
+      "url": "https://www.aws.at/en/enact-enabling-social-innovation-entrepreneurship-in-agri-food-through-digital-transition/",
+      "status": "queued",
+      "depth": 2,
+      "seed": "https://www.aws.at/en/aws-digitalization/ai-start/"
+    },
+    {
+      "url": "https://www.aws.at/en/special-programmes/competitions/",
+      "status": "queued",
+      "depth": 2,
+      "seed": "https://www.aws.at/en/aws-digitalization/ai-start/"
+    },
+    {
+      "url": "https://www.aws.at/en/subsidies-of-the-eu/",
+      "status": "queued",
+      "depth": 2,
+      "seed": "https://www.aws.at/en/aws-digitalization/ai-start/"
+    },
+    {
+      "url": "https://www.aws.at/en/special-programmes/competitions/",
+      "status": "queued",
+      "depth": 2,
+      "seed": "https://www.aws.at/en/aws-digitalization/ai-start/"
+    },
+    {
+      "url": "https://www.aws.at/en/subsidies-of-the-eu/",
+      "status": "queued",
+      "depth": 2,
+      "seed": "https://www.aws.at/en/aws-digitalization/ai-start/"
+    },
+    {
+      "url": "https://www.aws.at/en/special-programmes/competitions/",
+      "status": "queued",
+      "depth": 2,
+      "seed": "https://www.aws.at/en/aws-digitalization/ai-start/"
+    },
+    {
+      "url": "https://www.aws.at/en/subsidies-of-the-eu/",
+      "status": "queued",
+      "depth": 2,
+      "seed": "https://www.aws.at/en/aws-digitalization/ai-start/"
+    },
+    {
+      "url": "https://www.aws.at/aws-innovationsschutz/",
+      "status": "queued",
+      "depth": 2,
+      "seed": "https://www.aws.at/en/aws-digitalization/ai-start/"
+    },
+    {
+      "url": "https://www.aws.at/en/special-programmes/competitions/",
+      "status": "queued",
+      "depth": 3,
+      "seed": "https://www.aws.at/en/aws-digitalisierung/ai-unternehmen-wachstum/ai-adoption/"
+    },
+    {
+      "url": "https://www.aws.at/en/special-programmes/competitions/",
+      "status": "queued",
+      "depth": 3,
+      "seed": "https://www.aws.at/en/aws-digitalisierung/ai-unternehmen-wachstum/ai-adoption/"
+    },
+    {
+      "url": "https://www.aws.at/en/subsidies-of-the-eu/",
+      "status": "queued",
+      "depth": 3,
+      "seed": "https://www.aws.at/en/aws-digitalisierung/ai-unternehmen-wachstum/ai-adoption/"
+    },
+    {
+      "url": "https://www.aws.at/en/subsidies-of-the-eu/",
+      "status": "queued",
+      "depth": 3,
+      "seed": "https://www.aws.at/en/aws-digitalisierung/ai-unternehmen-wachstum/ai-adoption/"
+    },
+    {
+      "url": "https://www.aws.at/en/special-programmes/competitions/",
+      "status": "queued",
+      "depth": 3,
+      "seed": "https://www.aws.at/en/aws-digitalisierung/ai-unternehmen-wachstum/ai-adoption/"
+    },
+    {
+      "url": "https://www.aws.at/en/subsidies-of-the-eu/",
+      "status": "queued",
+      "depth": 3,
+      "seed": "https://www.aws.at/en/aws-digitalisierung/ai-unternehmen-wachstum/ai-adoption/"
+    },
+    {
+      "url": "https://www.aws.at/en/framework-programme-for-sme-competitiveness-cosme/",
+      "status": "queued",
+      "depth": 3,
+      "seed": "https://www.aws.at/en/aws-digitalisierung/ai-unternehmen-wachstum/ai-adoption/"
+    },
+    {
+      "url": "https://www.aws.at/en/acceptance-of-guarantees-for-investments/resources-of-rdi-oriented-companies/",
+      "status": "queued",
+      "depth": 3,
+      "seed": "https://www.aws.at/en/aws-digitalisierung/ai-unternehmen-wachstum/ai-adoption/"
+    },
+    {
+      "url": "https://www.aws.at/en/subsidies-of-the-eu/",
+      "status": "queued",
+      "depth": 3,
+      "seed": "https://www.aws.at/en/aws-digitalisierung/ai-unternehmen-wachstum/ai-adoption/"
+    },
+    {
+      "url": "https://www.aws.at/rahmenprogramm-fuer-wettbewerbsfaehigkeit-von-kmu-cosme/",
+      "status": "queued",
+      "depth": 3,
+      "seed": "https://www.aws.at/en/aws-digitalisierung/ai-unternehmen-wachstum/ai-adoption/"
+    },
+    {
+      "url": "https://www.aws.at/en/special-programmes/competitions/",
+      "status": "queued",
+      "depth": 3,
+      "seed": "https://www.aws.at/en/aws-digitalisierung/ai-unternehmen-wachstum/ai-adoption/"
+    },
+    {
+      "url": "https://www.aws.at/en/special-programmes/competitions/",
+      "status": "queued",
+      "depth": 3,
+      "seed": "https://www.aws.at/en/aws-digitalisierung/ai-unternehmen-wachstum/ai-adoption/"
+    },
+    {
+      "url": "https://www.aws.at/en/subsidies-of-the-eu/",
+      "status": "queued",
+      "depth": 3,
+      "seed": "https://www.aws.at/en/aws-digitalisierung/ai-unternehmen-wachstum/ai-adoption/"
+    },
+    {
+      "url": "https://www.aws.at/en/special-programmes/competitions/",
+      "status": "queued",
+      "depth": 1,
+      "seed": "https://www.aws.at/en/aws-digitalisierung/ai-unternehmen-wachstum/ai-adoption/"
+    },
+    {
+      "url": "https://www.aws.at/en/subsidies-of-the-eu/",
+      "status": "queued",
+      "depth": 1,
+      "seed": "https://www.aws.at/en/aws-digitalisierung/ai-unternehmen-wachstum/ai-adoption/"
+    },
+    {
+      "url": "https://www.aws.at/en/special-programmes/competitions/",
+      "status": "queued",
+      "depth": 1,
+      "seed": "https://www.aws.at/en/aws-digitalization/"
+    },
+    {
+      "url": "https://www.aws.at/en/subsidies-of-the-eu/",
+      "status": "queued",
+      "depth": 1,
+      "seed": "https://www.aws.at/en/aws-digitalization/"
+    },
+    {
+      "url": "https://www.aws.at/en/special-programmes/competitions/",
+      "status": "queued",
+      "depth": 1,
+      "seed": "https://www.aws.at/en/aws-digitalization/ai-start/"
+    },
+    {
+      "url": "https://www.aws.at/en/subsidies-of-the-eu/",
+      "status": "queued",
+      "depth": 1,
+      "seed": "https://www.aws.at/en/aws-digitalization/ai-start/"
+    },
+    {
+      "url": "https://www.aws.at/en/special-programmes/competitions/",
+      "status": "queued",
+      "depth": 2,
+      "seed": "https://www.aws.at/en/aws-digitalisierung/ai-unternehmen-wachstum/ai-adoption/"
+    },
+    {
+      "url": "https://www.aws.at/en/subsidies-of-the-eu/",
+      "status": "queued",
+      "depth": 2,
+      "seed": "https://www.aws.at/en/aws-digitalisierung/ai-unternehmen-wachstum/ai-adoption/"
+    },
+    {
+      "url": "https://www.aws.at/en/special-programmes/competitions/",
+      "status": "queued",
+      "depth": 2,
+      "seed": "https://www.aws.at/en/aws-digitalisierung/ai-unternehmen-wachstum/ai-adoption/"
+    },
+    {
+      "url": "https://www.aws.at/en/subsidies-of-the-eu/",
+      "status": "queued",
+      "depth": 2,
+      "seed": "https://www.aws.at/en/aws-digitalisierung/ai-unternehmen-wachstum/ai-adoption/"
+    },
+    {
+      "url": "https://www.aws.at/en/special-programmes/competitions/",
+      "status": "queued",
+      "depth": 2,
+      "seed": "https://www.aws.at/en/aws-digitalisierung/ai-unternehmen-wachstum/ai-adoption/"
+    },
+    {
+      "url": "https://www.aws.at/en/subsidies-of-the-eu/",
+      "status": "queued",
+      "depth": 2,
+      "seed": "https://www.aws.at/en/aws-digitalisierung/ai-unternehmen-wachstum/ai-adoption/"
+    },
+    {
+      "url": "https://www.aws.at/en/special-programmes/competitions/",
+      "status": "queued",
+      "depth": 2,
+      "seed": "https://www.aws.at/en/aws-digitalisierung/ai-unternehmen-wachstum/ai-adoption/"
+    },
+    {
+      "url": "https://www.aws.at/en/subsidies-of-the-eu/",
+      "status": "queued",
+      "depth": 2,
+      "seed": "https://www.aws.at/en/aws-digitalisierung/ai-unternehmen-wachstum/ai-adoption/"
+    },
+    {
+      "url": "https://www.aws.at/en/aws-erp-loan/",
+      "status": "queued",
+      "depth": 2,
+      "seed": "https://www.aws.at/en/aws-digitalisierung/ai-unternehmen-wachstum/ai-adoption/"
+    },
+    {
+      "url": "https://www.aws.at/en/aws-innovation-protection/",
+      "status": "queued",
+      "depth": 2,
+      "seed": "https://www.aws.at/en/aws-digitalisierung/ai-unternehmen-wachstum/ai-adoption/"
+    },
+    {
+      "url": "https://www.aws.at/en/aws-innovation-protection/",
+      "status": "queued",
+      "depth": 2,
+      "seed": "https://www.aws.at/en/aws-digitalisierung/ai-unternehmen-wachstum/ai-adoption/"
+    },
+    {
+      "url": "https://www.aws.at/en/aws-growth-investment/",
+      "status": "queued",
+      "depth": 2,
+      "seed": "https://www.aws.at/en/aws-digitalisierung/ai-unternehmen-wachstum/ai-adoption/"
+    },
+    {
+      "url": "https://www.aws.at/en/special-programmes/competitions/",
+      "status": "queued",
+      "depth": 2,
+      "seed": "https://www.aws.at/en/aws-digitalisierung/ai-unternehmen-wachstum/ai-adoption/"
+    },
+    {
+      "url": "https://www.aws.at/en/subsidies-of-the-eu/",
+      "status": "queued",
+      "depth": 2,
+      "seed": "https://www.aws.at/en/aws-digitalisierung/ai-unternehmen-wachstum/ai-adoption/"
+    },
+    {
+      "url": "https://www.aws.at/en/aws-erp-loan/",
+      "status": "queued",
+      "depth": 2,
+      "seed": "https://www.aws.at/en/aws-digitalisierung/ai-unternehmen-wachstum/ai-adoption/"
+    },
+    {
+      "url": "https://www.aws.at/en/aws-growth-investment/",
+      "status": "queued",
+      "depth": 2,
+      "seed": "https://www.aws.at/en/aws-digitalisierung/ai-unternehmen-wachstum/ai-adoption/"
+    },
+    {
+      "url": "https://www.aws.at/en/special-programmes/competitions/",
+      "status": "queued",
+      "depth": 2,
+      "seed": "https://www.aws.at/en/aws-digitalisierung/ai-unternehmen-wachstum/ai-adoption/"
+    },
+    {
+      "url": "https://www.aws.at/en/subsidies-of-the-eu/",
+      "status": "queued",
+      "depth": 2,
+      "seed": "https://www.aws.at/en/aws-digitalisierung/ai-unternehmen-wachstum/ai-adoption/"
+    },
+    {
+      "url": "https://www.aws.at/en/special-programmes/competitions/",
+      "status": "queued",
+      "depth": 1,
+      "seed": "https://www.aws.at/en/aws-digitalisierung/ai-unternehmen-wachstum/ai-adoption/"
+    },
+    {
+      "url": "https://www.aws.at/en/subsidies-of-the-eu/",
+      "status": "queued",
+      "depth": 1,
+      "seed": "https://www.aws.at/en/aws-digitalisierung/ai-unternehmen-wachstum/ai-adoption/"
+    },
+    {
+      "url": "https://www.aws.at/en/special-programmes/competitions/",
+      "status": "queued",
+      "depth": 1,
+      "seed": "https://www.aws.at/en/aws-digitalization/"
+    },
+    {
+      "url": "https://www.aws.at/en/subsidies-of-the-eu/",
+      "status": "queued",
+      "depth": 1,
+      "seed": "https://www.aws.at/en/aws-digitalization/"
+    },
+    {
+      "url": "https://www.aws.at/en/special-programmes/competitions/",
+      "status": "queued",
+      "depth": 1,
+      "seed": "https://www.aws.at/en/aws-digitalization/ai-start/"
+    },
+    {
+      "url": "https://www.aws.at/en/subsidies-of-the-eu/",
+      "status": "queued",
+      "depth": 1,
+      "seed": "https://www.aws.at/en/aws-digitalization/ai-start/"
+    },
+    {
+      "url": "https://www.aws.at/en/special-programmes/competitions/",
+      "status": "queued",
+      "depth": 2,
+      "seed": "https://www.aws.at/en/aws-digitalisierung/ai-unternehmen-wachstum/ai-adoption/"
+    },
+    {
+      "url": "https://www.aws.at/en/subsidies-of-the-eu/",
+      "status": "queued",
+      "depth": 2,
+      "seed": "https://www.aws.at/en/aws-digitalisierung/ai-unternehmen-wachstum/ai-adoption/"
+    },
+    {
+      "url": "https://www.aws.at/en/special-programmes/competitions/",
+      "status": "queued",
+      "depth": 2,
+      "seed": "https://www.aws.at/en/aws-digitalisierung/ai-unternehmen-wachstum/ai-adoption/"
+    },
+    {
+      "url": "https://www.aws.at/en/subsidies-of-the-eu/",
+      "status": "queued",
+      "depth": 2,
+      "seed": "https://www.aws.at/en/aws-digitalisierung/ai-unternehmen-wachstum/ai-adoption/"
+    },
+    {
+      "url": "https://www.aws.at/en/special-programmes/competitions/",
+      "status": "queued",
+      "depth": 2,
+      "seed": "https://www.aws.at/en/aws-digitalisierung/ai-unternehmen-wachstum/ai-adoption/"
+    },
+    {
+      "url": "https://www.aws.at/en/subsidies-of-the-eu/",
+      "status": "queued",
+      "depth": 2,
+      "seed": "https://www.aws.at/en/aws-digitalisierung/ai-unternehmen-wachstum/ai-adoption/"
+    },
+    {
+      "url": "https://www.aws.at/en/special-programmes/competitions/",
+      "status": "queued",
+      "depth": 2,
+      "seed": "https://www.aws.at/en/aws-digitalisierung/ai-unternehmen-wachstum/ai-adoption/"
+    },
+    {
+      "url": "https://www.aws.at/en/subsidies-of-the-eu/",
+      "status": "queued",
+      "depth": 2,
+      "seed": "https://www.aws.at/en/aws-digitalisierung/ai-unternehmen-wachstum/ai-adoption/"
+    },
+    {
+      "url": "https://www.aws.at/en/aws-erp-loan/",
+      "status": "queued",
+      "depth": 2,
+      "seed": "https://www.aws.at/en/aws-digitalisierung/ai-unternehmen-wachstum/ai-adoption/"
+    },
+    {
+      "url": "https://www.aws.at/en/aws-innovation-protection/",
+      "status": "queued",
+      "depth": 2,
+      "seed": "https://www.aws.at/en/aws-digitalisierung/ai-unternehmen-wachstum/ai-adoption/"
+    },
+    {
+      "url": "https://www.aws.at/en/aws-innovation-protection/",
+      "status": "queued",
+      "depth": 2,
+      "seed": "https://www.aws.at/en/aws-digitalisierung/ai-unternehmen-wachstum/ai-adoption/"
+    },
+    {
+      "url": "https://www.aws.at/en/aws-growth-investment/",
+      "status": "queued",
+      "depth": 2,
+      "seed": "https://www.aws.at/en/aws-digitalisierung/ai-unternehmen-wachstum/ai-adoption/"
+    },
+    {
+      "url": "https://www.aws.at/en/special-programmes/competitions/",
+      "status": "queued",
+      "depth": 2,
+      "seed": "https://www.aws.at/en/aws-digitalisierung/ai-unternehmen-wachstum/ai-adoption/"
+    },
+    {
+      "url": "https://www.aws.at/en/subsidies-of-the-eu/",
+      "status": "queued",
+      "depth": 2,
+      "seed": "https://www.aws.at/en/aws-digitalisierung/ai-unternehmen-wachstum/ai-adoption/"
+    },
+    {
+      "url": "https://www.aws.at/en/aws-erp-loan/",
+      "status": "queued",
+      "depth": 2,
+      "seed": "https://www.aws.at/en/aws-digitalisierung/ai-unternehmen-wachstum/ai-adoption/"
+    },
+    {
+      "url": "https://www.aws.at/en/aws-growth-investment/",
+      "status": "queued",
+      "depth": 2,
+      "seed": "https://www.aws.at/en/aws-digitalisierung/ai-unternehmen-wachstum/ai-adoption/"
+    },
+    {
+      "url": "https://www.aws.at/en/special-programmes/competitions/",
+      "status": "queued",
+      "depth": 2,
+      "seed": "https://www.aws.at/en/aws-digitalisierung/ai-unternehmen-wachstum/ai-adoption/"
+    },
+    {
+      "url": "https://www.aws.at/en/subsidies-of-the-eu/",
+      "status": "queued",
+      "depth": 2,
+      "seed": "https://www.aws.at/en/aws-digitalisierung/ai-unternehmen-wachstum/ai-adoption/"
+    },
+    {
+      "url": "https://www.aws.at/en/special-programmes/competitions/",
+      "status": "queued",
+      "depth": 2,
+      "seed": "https://www.aws.at/en/aws-digitalisierung/ai-unternehmen-wachstum/ai-adoption/"
+    },
+    {
+      "url": "https://www.aws.at/en/special-programmes/competitions/",
+      "status": "queued",
+      "depth": 2,
+      "seed": "https://www.aws.at/en/aws-digitalisierung/ai-unternehmen-wachstum/ai-adoption/"
+    },
+    {
+      "url": "https://www.aws.at/en/subsidies-of-the-eu/",
+      "status": "queued",
+      "depth": 2,
+      "seed": "https://www.aws.at/en/aws-digitalisierung/ai-unternehmen-wachstum/ai-adoption/"
+    },
+    {
+      "url": "https://www.aws.at/en/subsidies-of-the-eu/",
+      "status": "queued",
+      "depth": 2,
+      "seed": "https://www.aws.at/en/aws-digitalisierung/ai-unternehmen-wachstum/ai-adoption/"
+    },
+    {
+      "url": "https://www.aws.at/en/special-programmes/competitions/",
+      "status": "queued",
+      "depth": 2,
+      "seed": "https://www.aws.at/en/aws-digitalisierung/ai-unternehmen-wachstum/ai-adoption/"
+    },
+    {
+      "url": "https://www.aws.at/en/subsidies-of-the-eu/",
+      "status": "queued",
+      "depth": 2,
+      "seed": "https://www.aws.at/en/aws-digitalisierung/ai-unternehmen-wachstum/ai-adoption/"
+    },
+    {
+      "url": "https://www.aws.at/en/framework-programme-for-sme-competitiveness-cosme/",
+      "status": "queued",
+      "depth": 2,
+      "seed": "https://www.aws.at/en/aws-digitalisierung/ai-unternehmen-wachstum/ai-adoption/"
+    },
+    {
+      "url": "https://www.aws.at/en/acceptance-of-guarantees-for-investments/resources-of-rdi-oriented-companies/",
+      "status": "queued",
+      "depth": 2,
+      "seed": "https://www.aws.at/en/aws-digitalisierung/ai-unternehmen-wachstum/ai-adoption/"
+    },
+    {
+      "url": "https://www.aws.at/en/special-programmes/competitions/",
+      "status": "queued",
+      "depth": 2,
+      "seed": "https://www.aws.at/en/aws-digitalisierung/ai-unternehmen-wachstum/ai-adoption/"
+    },
+    {
+      "url": "https://www.aws.at/en/subsidies-of-the-eu/",
+      "status": "queued",
+      "depth": 2,
+      "seed": "https://www.aws.at/en/aws-digitalisierung/ai-unternehmen-wachstum/ai-adoption/"
+    },
+    {
+      "url": "https://www.aws.at/en/innovation-as-a-service-danube-region-iaas4dr/",
+      "status": "queued",
+      "depth": 2,
+      "seed": "https://www.aws.at/en/aws-digitalisierung/ai-unternehmen-wachstum/ai-adoption/"
+    },
+    {
+      "url": "https://www.aws.at/en/enact-enabling-social-innovation-entrepreneurship-in-agri-food-through-digital-transition/",
+      "status": "queued",
+      "depth": 2,
+      "seed": "https://www.aws.at/en/aws-digitalisierung/ai-unternehmen-wachstum/ai-adoption/"
+    },
+    {
+      "url": "https://www.aws.at/en/special-programmes/competitions/",
+      "status": "queued",
+      "depth": 2,
+      "seed": "https://www.aws.at/en/aws-digitalisierung/ai-unternehmen-wachstum/ai-adoption/"
+    },
+    {
+      "url": "https://www.aws.at/en/subsidies-of-the-eu/",
+      "status": "queued",
+      "depth": 2,
+      "seed": "https://www.aws.at/en/aws-digitalisierung/ai-unternehmen-wachstum/ai-adoption/"
+    },
+    {
+      "url": "https://www.aws.at/en/special-programmes/competitions/",
+      "status": "queued",
+      "depth": 2,
+      "seed": "https://www.aws.at/en/aws-digitalisierung/ai-unternehmen-wachstum/ai-adoption/"
+    },
+    {
+      "url": "https://www.aws.at/en/subsidies-of-the-eu/",
+      "status": "queued",
+      "depth": 2,
+      "seed": "https://www.aws.at/en/aws-digitalisierung/ai-unternehmen-wachstum/ai-adoption/"
     }
   ],
   "pages": [],
@@ -29527,6 +30679,15 @@
     "https://www.bankaustria.at/firmenkunden-betriebsmittelkredit.jsp": true,
     "https://www.bankaustria.at/firmenkunden-kredit-energieeinsparung.jsp": true,
     "https://www.sfg.at/f/equity-finanzierung/": true,
-    "https://www.ams.at/unternehmen/foerderungen/qualifizierungsfoerderung-fuer-beschaeftigte": true
+    "https://www.ams.at/unternehmen/foerderungen/qualifizierungsfoerderung-fuer-beschaeftigte": true,
+    "https://www.aws.at/en/service/web-services/aws-foerdermanager/": true,
+    "https://www.aws.at/aws-digitalisierung-ai-adoption-und-ai-adoption-green-faq/": true,
+    "https://www.aws.at/en/aws-digitalisierung/ai-unternehmen-wachstum/ai-adoption/jury/": true,
+    "https://www.aws.at/aws-digitalisierung/kuenstliche-intelligenz/": true,
+    "https://www.aws.at/aws-innovationsschutz-ai-wissen-faq/": true,
+    "https://www.aws.at/investeu-rueckhaftung/": true,
+    "https://www.aws.at/innovfin/": true,
+    "https://www.aws.at/cip/": true,
+    "https://www.aws.at/risk-sharing-instrument-rsi/": true
   }
 }

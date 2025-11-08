@@ -8,7 +8,7 @@ import analytics from "@/shared/lib/analytics";
 import { withAuth } from "@/shared/lib/withAuth";
 import { useUser } from "@/shared/contexts/UserContext";
 import PageEntryIndicator from '@/shared/components/common/PageEntryIndicator';
-import { Lock, CreditCard, FileText, Shield, CheckCircle } from "lucide-react";
+import { Lock, CreditCard, Shield } from "lucide-react";
 
 function Checkout() {
   const { t } = useI18n();

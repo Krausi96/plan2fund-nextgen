@@ -5,16 +5,22 @@
  */
 
 import React, { useState, useEffect } from 'react';
-import { FileText, Download, Eye, EyeOff } from 'lucide-react';
+import { FileText, Download, Eye, EyeOff, AlertCircle, CheckCircle } from 'lucide-react';
 import { Button } from '@/shared/components/ui/button';
-import { Document, Page, Text, View, StyleSheet, Image, pdf } from '@react-pdf/renderer';
+import { Card } from '@/shared/components/ui/card';
+import { Badge } from '@/shared/components/ui/badge';
+import { Document, Page, Text, View, StyleSheet, pdf } from '@react-pdf/renderer';
 import { useUser } from '@/shared/contexts/UserContext';
-import { isFeatureEnabled, getSubscriptionTier, FeatureFlag } from '@/shared/lib/featureFlags';
+import { isFeatureEnabled, getSubscriptionTier } from '@/shared/lib/featureFlags';
 import UpgradeModal from '@/shared/components/UpgradeModal';
+import { ReadinessValidator, QualityGateStatus, transformCategorizedToProgramRequirements } from '@/shared/lib/readiness';
 
 interface PreviewPanelProps {
   plan: any;
   sections: any[];
+  planContent?: Record<string, any>;
+  programId?: string;
+  programProfile?: any;
 }
 
 // PDF Document Component
@@ -156,12 +162,67 @@ const styles = StyleSheet.create({
   },
 });
 
-export default function PreviewPanel({ plan, sections }: PreviewPanelProps) {
+export default function PreviewPanel({ 
+  plan, 
+  sections, 
+  planContent = {},
+  programId,
+  programProfile: _programProfile
+}: PreviewPanelProps) {
   const { userProfile } = useUser();
+  const [qualityGateStatus, setQualityGateStatus] = useState<QualityGateStatus | null>(null);
+  const [checkingQuality, setCheckingQuality] = useState(false);
   const [showPreview, setShowPreview] = useState(true);
   const [previewFormat, setPreviewFormat] = useState<'pdf' | 'html'>('pdf');
   const [pdfBlob, setPdfBlob] = useState<Blob | null>(null);
   const [showUpgradeModal, setShowUpgradeModal] = useState(false);
+
+  // Check quality gates when planContent or sections change
+  useEffect(() => {
+    const checkQualityGates = async () => {
+      if (!programId || Object.keys(planContent).length === 0) {
+        setQualityGateStatus(null);
+        return;
+      }
+
+      try {
+        setCheckingQuality(true);
+        
+        // Fetch program requirements
+        const response = await fetch(`/api/programmes/${programId}/requirements`);
+        if (!response.ok) {
+          setQualityGateStatus(null);
+          return;
+        }
+        
+        const data = await response.json();
+        const categorizedRequirements = data.categorized_requirements || {};
+        const transformedRequirements = transformCategorizedToProgramRequirements(
+          categorizedRequirements,
+          data
+        );
+        
+        if (transformedRequirements) {
+          const validator = new ReadinessValidator(transformedRequirements, planContent);
+          const gateStatus = await validator.checkQualityGates(
+            sections.map(s => ({
+              id: s.id || s.key || '',
+              wordCountMin: s.wordCountMin || s.word_count_min,
+              wordCountMax: s.wordCountMax || s.word_count_max
+            }))
+          );
+          setQualityGateStatus(gateStatus);
+        }
+      } catch (error) {
+        console.error('Quality gate check failed:', error);
+        setQualityGateStatus(null);
+      } finally {
+        setCheckingQuality(false);
+      }
+    };
+
+    checkQualityGates();
+  }, [planContent, sections, programId]);
 
   // Generate PDF blob
   useEffect(() => {
@@ -372,6 +433,13 @@ export default function PreviewPanel({ plan, sections }: PreviewPanelProps) {
                 setShowUpgradeModal(true);
                 return;
               }
+
+              // Check quality gates before export
+              if (qualityGateStatus && !qualityGateStatus.passed) {
+                // Show quality gate issues
+                alert(`Export blocked: Quality gates not met.\n\nIssues:\n${qualityGateStatus.issues.slice(0, 5).join('\n')}${qualityGateStatus.issues.length > 5 ? `\n... and ${qualityGateStatus.issues.length - 5} more` : ''}`);
+                return;
+              }
               
               if (previewFormat === 'pdf' && pdfBlob) {
                 const url = URL.createObjectURL(pdfBlob);
@@ -389,12 +457,62 @@ export default function PreviewPanel({ plan, sections }: PreviewPanelProps) {
                 }
               }
             }}
+            disabled={checkingQuality || (qualityGateStatus !== null && !qualityGateStatus.passed)}
+            title={qualityGateStatus && !qualityGateStatus.passed ? 'Quality gates not met - fix issues before exporting' : ''}
           >
             <Download className="h-4 w-4 mr-2" />
             Export
+            {qualityGateStatus && qualityGateStatus.passed && (
+              <CheckCircle className="h-4 w-4 ml-2 text-green-600" />
+            )}
+            {qualityGateStatus && !qualityGateStatus.passed && (
+              <AlertCircle className="h-4 w-4 ml-2 text-red-600" />
+            )}
           </Button>
         </div>
       </div>
+
+      {/* Quality Gate Status */}
+      {qualityGateStatus && (
+        <div className="border-b border-gray-200 p-4 bg-white">
+          <Card className={`p-4 ${qualityGateStatus.passed ? 'bg-green-50 border-green-200' : 'bg-yellow-50 border-yellow-200'}`}>
+            <div className="flex items-center justify-between mb-2">
+              <div className="flex items-center gap-2">
+                {qualityGateStatus.passed ? (
+                  <CheckCircle className="h-5 w-5 text-green-600" />
+                ) : (
+                  <AlertCircle className="h-5 w-5 text-yellow-600" />
+                )}
+                <span className="font-medium text-gray-900">
+                  Quality Gate Status
+                </span>
+              </div>
+              <Badge variant={qualityGateStatus.passed ? "secondary" : "destructive"}>
+                {qualityGateStatus.overallScore}/100
+              </Badge>
+            </div>
+            {qualityGateStatus.passed ? (
+              <p className="text-sm text-green-700">
+                ✓ All quality gates passed. Ready for export.
+              </p>
+            ) : (
+              <div className="space-y-2">
+                <p className="text-sm text-yellow-700 font-medium">
+                  Export blocked. Please fix the following issues:
+                </p>
+                <ul className="text-xs text-yellow-700 list-disc list-inside space-y-1">
+                  {qualityGateStatus.issues.slice(0, 3).map((issue, i) => (
+                    <li key={i}>{issue}</li>
+                  ))}
+                  {qualityGateStatus.issues.length > 3 && (
+                    <li>... and {qualityGateStatus.issues.length - 3} more issues</li>
+                  )}
+                </ul>
+              </div>
+            )}
+          </Card>
+        </div>
+      )}
 
       {/* Preview Content */}
       <div className="flex-1 overflow-y-auto p-6 bg-white">

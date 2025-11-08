@@ -22,9 +22,24 @@ export type FeatureFlag =
   | 'image_upload'
   | 'additional_documents'
   | 'unlimited_plans'
-  | 'priority_support';
+  | 'priority_support'
+  | 'guided_editing'
+  | 'quality_scoring'
+  | 'readability_check';
 
 export type SubscriptionTier = 'free' | 'premium' | 'enterprise';
+
+export interface TierDetails {
+  name: string;
+  price: number; // Price in EUR / Month
+  features: Partial<Record<FeatureFlag, boolean>>;
+  limits?: {
+    plans: number;
+    pdf_exports: number;
+    ai_requests: number;
+  };
+  description?: string;
+}
 
 interface FeatureConfig {
   name: string;
@@ -75,6 +90,21 @@ const FEATURE_CONFIG: Record<FeatureFlag, FeatureConfig> = {
     description: 'Priority customer support',
     premium: false,
     enterprise: true,
+  },
+  guided_editing: {
+    name: 'Guided Editing',
+    description: 'Step-by-step questions to guide content creation',
+    premium: false, // Free feature - helps all users
+  },
+  quality_scoring: {
+    name: 'Quality Scoring',
+    description: 'Advanced quality metrics beyond compliance',
+    premium: false, // Free feature - helps all users
+  },
+  readability_check: {
+    name: 'Readability Check',
+    description: 'Readability analysis and suggestions',
+    premium: false, // Free feature - helps all users
   },
 };
 
@@ -170,4 +200,38 @@ export function getFeatureDescription(feature: FeatureFlag): string {
  */
 export function getFeatureName(feature: FeatureFlag): string {
   return FEATURE_CONFIG[feature]?.name || feature;
+}
+
+/**
+ * Get tier details with limits
+ */
+export function getTierDetails(tier: SubscriptionTier): TierDetails {
+  const { getLimitsForTier } = require('./usageTracking');
+  const limits = getLimitsForTier(tier);
+  
+  const baseFeatures: Partial<Record<FeatureFlag, boolean>> = {};
+  Object.keys(FEATURE_CONFIG).forEach(flag => {
+    const config = FEATURE_CONFIG[flag as FeatureFlag];
+    if (!config.premium && !config.enterprise) {
+      baseFeatures[flag as FeatureFlag] = true;
+    } else if (config.premium && (tier === 'premium' || tier === 'enterprise')) {
+      baseFeatures[flag as FeatureFlag] = true;
+    } else if (config.enterprise && tier === 'enterprise') {
+      baseFeatures[flag as FeatureFlag] = true;
+    }
+  });
+
+  const details: TierDetails = {
+    name: tier === 'free' ? 'Free' : tier === 'premium' ? 'Premium' : 'Enterprise',
+    price: tier === 'free' ? 0 : tier === 'premium' ? 29 : 199,
+    features: baseFeatures,
+    limits,
+    description: tier === 'free' 
+      ? 'Basiszugang für Einsteiger'
+      : tier === 'premium'
+      ? 'Für wachsende Unternehmen'
+      : 'Umfangreicher Zugang mit Prioritäts-Support'
+  };
+
+  return details;
 }

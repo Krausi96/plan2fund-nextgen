@@ -6,6 +6,8 @@
 
 import OpenAI from 'openai';
 import { SectionTemplate } from './templates/types';
+import { trackTemplateUsage } from './dataCollection';
+import { isCustomLLMEnabled, callCustomLLM } from './customLLM';
 
 const openai = new OpenAI({
   apiKey: process.env.OPENAI_API_KEY,
@@ -26,15 +28,16 @@ interface ProgramRequirements {
   };
 }
 
-interface GeneratedSection {
-  id: string;
-  title: string;
-  description: string;
-  prompts: string[];
-  wordCount?: { min: number; max: number };
-  required?: boolean;
-  order?: number;
-}
+// Unused interface removed
+// interface GeneratedSection {
+//   id: string;
+//   title: string;
+//   description: string;
+//   prompts: string[];
+//   wordCount?: { min: number; max: number };
+//   required?: boolean;
+//   order?: number;
+// }
 
 /**
  * Generate section templates from program requirements using LLM
@@ -60,19 +63,58 @@ export async function generateTemplatesFromRequirements(
     const systemPrompt = createSystemPrompt(masterSections);
     const userPrompt = createUserPrompt(requirements, requirementSummary);
     
-    // Call LLM
-    const completion = await openai.chat.completions.create({
-      model: 'gpt-4o-mini',
-      messages: [
-        { role: 'system', content: systemPrompt },
-        { role: 'user', content: userPrompt }
-      ],
-      response_format: { type: 'json_object' },
-      max_tokens: 2000,
-    });
+    const messages = [
+      { role: 'system' as const, content: systemPrompt },
+      { role: 'user' as const, content: userPrompt }
+    ];
+
+    let responsePayload: string | null = null;
+
+    if (isCustomLLMEnabled()) {
+      try {
+        const custom = await callCustomLLM({
+          messages,
+          responseFormat: 'json',
+          maxTokens: 2000,
+          temperature: 0.3,
+        });
+        responsePayload = custom.output;
+      } catch (customError) {
+        console.warn('Custom LLM template generation failed, using OpenAI fallback:', customError);
+      }
+    }
+
+    if (!responsePayload) {
+      const completion = await openai.chat.completions.create({
+        model: 'gpt-4o-mini',
+        messages,
+        response_format: { type: 'json_object' },
+        max_tokens: 2000,
+        temperature: 0.3,
+      });
+      responsePayload = completion.choices[0].message?.content || '{}';
+    }
+
+    let llmResponse: any;
+    try {
+      llmResponse = typeof responsePayload === 'string'
+        ? JSON.parse(responsePayload)
+        : responsePayload;
+    } catch (parseError: any) {
+      throw new Error(`Failed to parse template generator response: ${parseError?.message || parseError}`);
+    }
+    const generatedTemplates = transformLLMResponse(llmResponse, requirements, masterSections);
     
-    const llmResponse = JSON.parse(completion.choices[0].message?.content || '{}');
-    return transformLLMResponse(llmResponse, requirements, masterSections);
+    // Track template generation (non-blocking)
+    if (generatedTemplates.length > 0) {
+      generatedTemplates.forEach(template => {
+        trackTemplateUsage(template.id, 'section', false).catch(err => 
+          console.error('Failed to track template usage:', err)
+        );
+      });
+    }
+    
+    return generatedTemplates;
     
   } catch (error: any) {
     console.error('LLM template generation failed:', error?.message || String(error));
@@ -208,7 +250,7 @@ function transformLLMResponse(
         verified: false,
         verifiedDate: new Date().toISOString(),
         officialProgram: requirements.programName,
-        sourceUrl: null,
+        sourceUrl: undefined,
         version: 'llm-generated-v1'
       }
     });
@@ -252,8 +294,8 @@ Return only the section ID (e.g., "marketOpportunity"), nothing else.`
       max_tokens: 50,
     });
     
-    const suggestedId = completion.choices[0].message?.content?.trim();
-    return masterSections.find(s => s.id === suggestedId) ? suggestedId : null;
+    const suggestedId = completion.choices[0].message?.content?.trim() || null;
+    return suggestedId && masterSections.find(s => s.id === suggestedId) ? suggestedId : null;
     
   } catch (error) {
     console.error('Section suggestion failed:', error);

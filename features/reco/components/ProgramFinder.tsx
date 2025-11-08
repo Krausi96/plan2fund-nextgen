@@ -13,7 +13,6 @@ import { Badge } from '@/shared/components/ui/badge';
 import { Progress } from '@/shared/components/ui/progress';
 import { QuestionEngine, SymptomQuestion } from '@/features/reco/engine/questionEngine';
 import { scoreProgramsEnhanced, EnhancedProgramResult } from '@/features/reco/engine/enhancedRecoEngine';
-import { useI18n } from '@/shared/contexts/I18nContext';
 import { useRecommendation } from '@/features/reco/contexts/RecommendationContext';
 import { useUser } from '@/shared/contexts/UserContext';
 import { isFeatureEnabled, getSubscriptionTier, FeatureFlag } from '@/shared/lib/featureFlags';
@@ -30,7 +29,6 @@ export default function ProgramFinder({
   onProgramSelect,
   initialMode = 'guided'
 }: ProgramFinderProps) {
-  const { t } = useI18n();
   const router = useRouter();
   const { setRecommendations } = useRecommendation();
   const { userProfile } = useUser();
@@ -80,7 +78,7 @@ export default function ProgramFinder({
       setQuestionEngine(engine);
       
       // Start with first question
-      const firstQuestion = engine.getNextQuestion({});
+      const firstQuestion = await engine.getNextQuestion({});
       setCurrentQuestion(firstQuestion);
     } catch (error) {
       console.error('Error loading programs:', error);
@@ -105,7 +103,7 @@ export default function ProgramFinder({
     
     try {
       setIsLoading(true);
-      const scored = scoreProgramsEnhanced(programs, answers);
+      const scored = await scoreProgramsEnhanced(answers, 'strict', programs);
       setResults(scored);
       // Store in context for results page
       setRecommendations(scored);
@@ -135,10 +133,10 @@ export default function ProgramFinder({
           setUpgradeFeature('semantic_search');
           setShowUpgradeModal(true);
           // Fall back to rule-based search
-          const scored = scoreProgramsEnhanced(programs, {
+          const scored = await scoreProgramsEnhanced({
             ...filters,
             project_description: searchQuery
-          });
+          } as any, 'strict', programs);
           setResults(scored);
           return;
         }
@@ -168,42 +166,42 @@ export default function ProgramFinder({
           }
         } else {
           // Fallback to rule-based if API fails
-          const scored = scoreProgramsEnhanced(programs, {
+          const scored = await scoreProgramsEnhanced({
             ...filters,
             project_description: searchQuery
-          });
+          } as any, 'strict', programs);
           setResults(scored);
         }
       } else {
         // No query, use rule-based filtering only
-        const scored = scoreProgramsEnhanced(programs, filters);
+        const scored = await scoreProgramsEnhanced(filters as any, 'strict', programs);
         setResults(scored);
       }
     } catch (error) {
       console.error('Error updating manual results:', error);
       // Fallback to rule-based on error
-      const scored = scoreProgramsEnhanced(programs, {
+      const scored = await scoreProgramsEnhanced({
         ...filters,
         project_description: searchQuery
-      });
+      } as any, 'strict', programs);
       setResults(scored);
     } finally {
       setIsLoading(false);
     }
   }, [programs, filters, searchQuery, setRecommendations]);
   
-  const handleAnswer = (questionId: string, value: any) => {
+  const handleAnswer = async (questionId: string, value: any) => {
     const newAnswers = { ...answers, [questionId]: value };
     setAnswers(newAnswers);
     setQuestionHistory([...questionHistory, questionId]);
     
     if (questionEngine) {
-      const nextQuestion = questionEngine.getNextQuestion(newAnswers);
+      const nextQuestion = await questionEngine.getNextQuestion(newAnswers);
       setCurrentQuestion(nextQuestion);
     }
   };
   
-  const handleBack = () => {
+  const handleBack = async () => {
     if (questionHistory.length > 0) {
       const newHistory = [...questionHistory];
       newHistory.pop();
@@ -215,18 +213,19 @@ export default function ProgramFinder({
         delete prevAnswers[previousQuestionId];
         setAnswers(prevAnswers);
         
-        const question = questionEngine.getNextQuestion(prevAnswers);
+        const question = await questionEngine.getNextQuestion(prevAnswers);
         setCurrentQuestion(question);
       }
     }
   };
   
   const handleProgramSelect = (program: EnhancedProgramResult) => {
+    const programRoute = program.route || (program as any).program_type || 'grant';
     if (onProgramSelect) {
-      onProgramSelect(program.id, program.route || 'grant');
+      onProgramSelect(program.id, programRoute);
     } else {
       // Route directly to editor
-      router.push(`/editor?programId=${program.id}&route=${program.route || 'grant'}`);
+      router.push(`/editor?programId=${program.id}&route=${programRoute}`);
     }
   };
   
@@ -318,9 +317,9 @@ export default function ProgramFinder({
                     <div className="space-y-4">
                       <div>
                         <label className="block text-sm font-medium text-gray-700 mb-2">
-                          {currentQuestion.question}
+                          {currentQuestion.symptom}
                         </label>
-                        {currentQuestion.type === 'select' && currentQuestion.options && (
+                        {(currentQuestion.type === 'single-select' || currentQuestion.type === 'multi-select') && currentQuestion.options && (
                           <div className="space-y-2">
                             {currentQuestion.options.map((option: any) => (
                               <button
@@ -341,10 +340,11 @@ export default function ProgramFinder({
                           <span>Progress</span>
                           <span>{Object.keys(answers).length} questions answered</span>
                         </div>
-                        <Progress 
-                          value={(Object.keys(answers).length / 10) * 100} 
-                          className="h-2"
-                        />
+                        <div className="h-2">
+                          <Progress 
+                            value={(Object.keys(answers).length / 10) * 100} 
+                          />
+                        </div>
                       </div>
                     </div>
                   )}
@@ -501,8 +501,9 @@ export default function ProgramFinder({
                     </Button>
                   </div>
                 )}
-                {results.map((program, index) => (
-                  <Card key={program.id} className="p-6 hover:shadow-lg transition-shadow cursor-pointer" onClick={() => handleProgramSelect(program)}>
+                {results.map((program) => (
+                  <div key={program.id} onClick={() => handleProgramSelect(program)}>
+                    <Card className="p-6 hover:shadow-lg transition-shadow cursor-pointer">
                     <div className="flex items-start justify-between mb-4">
                       <div className="flex-1">
                         <div className="flex items-center gap-3 mb-2">
@@ -532,14 +533,14 @@ export default function ProgramFinder({
                     </div>
                     
                     {/* Explanations */}
-                    {program.reasons && program.reasons.length > 0 && (
+                    {(program.reasons || program.founderFriendlyReasons) && (program.reasons?.length || program.founderFriendlyReasons?.length || 0) > 0 && (
                       <div className="mb-4 p-3 bg-green-50 border border-green-200 rounded-lg">
                         <div className="flex items-center gap-2 mb-2">
                           <TrendingUp className="h-4 w-4 text-green-600" />
                           <span className="text-sm font-semibold text-green-900">Why this matches:</span>
                         </div>
                         <ul className="text-sm text-green-800 space-y-1">
-                          {program.reasons.slice(0, 3).map((reason: string, i: number) => (
+                          {(program.reasons || program.founderFriendlyReasons || []).slice(0, 3).map((reason: string, i: number) => (
                             <li key={i} className="flex items-start gap-2">
                               <span className="text-green-500 mt-1">•</span>
                               <span>{reason}</span>
@@ -550,14 +551,14 @@ export default function ProgramFinder({
                     )}
                     
                     {/* Risks/Gaps */}
-                    {program.risks && program.risks.length > 0 && (
+                    {(program.risks || program.founderFriendlyRisks) && (program.risks?.length || program.founderFriendlyRisks?.length || 0) > 0 && (
                       <div className="mb-4 p-3 bg-yellow-50 border border-yellow-200 rounded-lg">
                         <div className="flex items-center gap-2 mb-2">
                           <Info className="h-4 w-4 text-yellow-600" />
                           <span className="text-sm font-semibold text-yellow-900">Considerations:</span>
                         </div>
                         <ul className="text-sm text-yellow-800 space-y-1">
-                          {program.risks.slice(0, 2).map((risk: string, i: number) => (
+                          {(program.risks || program.founderFriendlyRisks || []).slice(0, 2).map((risk: string, i: number) => (
                             <li key={i} className="flex items-start gap-2">
                               <span className="text-yellow-500 mt-1">•</span>
                               <span>{risk}</span>
@@ -582,6 +583,7 @@ export default function ProgramFinder({
                       </div>
                     )}
                   </Card>
+                  </div>
                 ))}
               </div>
             )}

@@ -7,24 +7,25 @@
 import { SectionTemplate } from './types';
 import crypto from 'crypto';
 
-interface TemplateVersion {
-  id?: number;
-  program_id: string;
-  section_id: string;
-  template_data: SectionTemplate;
-  version_number: number;
-  version_type: 'llm-generated' | 'manual-edit' | 'rule-based';
-  model_version?: string;
-  prompt_version?: string;
-  generated_by: 'llm' | 'rule-based' | 'admin';
-  generated_at: Date;
-  generated_from_requirements_hash?: string;
-  edited_by?: string;
-  edited_at?: Date;
-  edit_notes?: string;
-  is_active: boolean;
-  is_verified: boolean;
-}
+// Unused interface removed
+// interface TemplateVersion {
+//   id?: number;
+//   program_id: string;
+//   section_id: string;
+//   template_data: SectionTemplate;
+//   version_number: number;
+//   version_type: 'llm-generated' | 'manual-edit' | 'rule-based';
+//   model_version?: string;
+//   prompt_version?: string;
+//   generated_by: 'llm' | 'rule-based' | 'admin';
+//   generated_at: Date;
+//   generated_from_requirements_hash?: string;
+//   edited_by?: string;
+//   edited_at?: Date;
+//   edit_notes?: string;
+//   is_active: boolean;
+//   is_verified: boolean;
+// }
 
 /**
  * Compute hash of requirements for change detection

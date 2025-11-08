@@ -41,7 +41,7 @@ export default async function handler(
       keepExtensions: true,
     });
 
-    const [fields, files] = await form.parse(req);
+    const [, files] = await form.parse(req);
     const imageFile = Array.isArray(files.image) ? files.image[0] : files.image as formidable.File | undefined;
 
     if (!imageFile) {

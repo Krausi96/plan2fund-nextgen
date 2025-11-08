@@ -1,6 +1,7 @@
 // Removed static JSON import - using database instead
 import { Program, ScoredProgram, ProgramType } from '@/shared/types/requirements';
 import { UserAnswers } from "@/shared/lib/schemas";
+import { estimateSuccessProbability, ConfidenceLevel } from '@/shared/lib/mlModels';
 // Removed doctorDiagnostic - filtering handled by QuestionEngine
 
 // Eligibility trace interface
@@ -37,7 +38,13 @@ export interface EnhancedProgramResult extends ScoredProgram {
   fallbackGaps?: string[];
   founderFriendlyReasons?: string[];
   founderFriendlyRisks?: string[];
+  // Aliases for UI compatibility
+  reasons?: string[];
+  risks?: string[];
+  route?: string; // Program route/type for navigation
   trace?: EligibilityTrace;
+  successConfidence?: ConfidenceLevel;
+  successFactors?: string[];
   // Doctor diagnostic fields
       // Diagnosis fields removed - not used in unified flow
 }
@@ -1218,12 +1225,22 @@ export async function scoreProgramsEnhanced(
       const trace = generateEligibilityTrace(program, matchedCriteria, gaps, derivedSignals);
       
       console.log(`🔍 EnhancedRecoEngine: Program ${program.id} - Final Score: ${scorePercent}, Matched: ${matchedCriteria.length}, Gaps: ${gaps.length}, Eligibility: ${eligibility}`);
-      
+
+      const historicalSuccess = getProgramSuccessRate(program);
+      const successEstimate = estimateSuccessProbability({
+        baseScore: scorePercent,
+        matchedCriteria: matchedCriteria.length,
+        totalCriteria: Math.max(1, matchedCriteria.length + gaps.length),
+        gaps: gaps.length,
+        programType: program.type,
+        historicalRate: historicalSuccess
+      });
+
       // Log warnings for low scores
       if (scorePercent < 30 && matchedCriteria.length === 0) {
         console.warn(`⚠️ EnhancedRecoEngine: Program ${program.id} has very low score (${scorePercent}) with no matched criteria`);
       }
-      
+
       return {
         ...program,
         score: scorePercent,
@@ -1234,7 +1251,9 @@ export async function scoreProgramsEnhanced(
         gaps: gaps.slice(0, 3), // Limit to top 3 gaps
         amount: getProgramAmount(program),
         timeline: getProgramTimeline(program.type),
-        successRate: getProgramSuccessRate(program),
+        successRate: successEstimate.probability,
+        successConfidence: successEstimate.confidence,
+        successFactors: successEstimate.factors,
         llmFailed: false, // This is rule-based, not LLM
         fallbackReason: reason,
         fallbackGaps: gaps.map(g => g.description),
@@ -1298,6 +1317,8 @@ async function scoreProgramsFallback(
       amount: { min: 0, max: 0, currency: 'EUR' },
       timeline: "Unknown",
       successRate: 0.3,
+      successConfidence: 'low',
+      successFactors: ['Fallback engine – historical baseline applied'],
       llmFailed: true,
       fallbackReason: "Main recommendation engine unavailable",
       fallbackGaps: ["System fallback mode"],

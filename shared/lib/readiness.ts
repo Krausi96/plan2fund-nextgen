@@ -5,6 +5,8 @@
  */
 
 import { dataSource } from '@/features/editor/engine/dataSource';
+import { calculateQualityMetrics, QualityMetrics } from './qualityScoring';
+import { predictQualityScores, QualityPredictionResult } from './mlModels';
 // ProgramTemplate type removed - using Enhanced Data Pipeline instead
 
 export interface ReadinessCheck {
@@ -13,6 +15,16 @@ export interface ReadinessCheck {
   score: number; // 0-100
   requirements: RequirementCheck[];
   suggestions: string[];
+  qualityMetrics?: QualityMetrics; // Optional quality metrics
+  qualityPrediction?: QualityPredictionResult;
+}
+
+export interface QualityGateStatus {
+  passed: boolean;
+  overallScore: number;
+  sectionScores: Record<string, number>;
+  issues: string[];
+  blockedSections: string[];
 }
 
 export interface RequirementCheck {
@@ -278,7 +290,140 @@ export class ReadinessValidator {
       this.enhanceWithAIGuidance(checks);
     }
     
+    // Add quality metrics to each check
+    for (const check of checks) {
+      const sectionContent = this.planContent[check.section] || '';
+      const wordCount = sectionContent.replace(/<[^>]*>/g, '').split(/\s+/).filter((w: string) => w.length > 0).length;
+      const qualityMetrics = calculateQualityMetrics(
+        sectionContent, check.section, check.section, wordCount
+      );
+      check.qualityMetrics = qualityMetrics;
+
+      const unmetRequirements = check.requirements.filter(req => req.status !== 'met').length;
+      const prediction = predictQualityScores({
+        sectionId: check.section,
+        observedOverall: qualityMetrics.overall,
+        readability: qualityMetrics.readability.score,
+        completeness: qualityMetrics.completeness.score,
+        persuasiveness: qualityMetrics.persuasiveness.score,
+        wordCount,
+        requiredWordCount: undefined,
+        gaps: unmetRequirements
+      });
+      check.qualityPrediction = prediction;
+    }
+    
     return checks;
+  }
+
+  /**
+   * Calculate overall quality score for the entire plan
+   */
+  async calculateOverallQualityScore(): Promise<number> {
+    const checks = await this.performIntelligentReadinessCheck();
+    
+    if (checks.length === 0) return 0;
+    
+    // Weighted average: 50% compliance score, 50% quality metrics
+    let totalComplianceScore = 0;
+    let totalQualityScore = 0;
+    let count = 0;
+    
+    for (const check of checks) {
+      totalComplianceScore += check.score;
+      if (check.qualityMetrics) {
+        totalQualityScore += check.qualityMetrics.overall;
+      }
+      count++;
+    }
+    
+    const avgCompliance = count > 0 ? totalComplianceScore / count : 0;
+    const avgQuality = count > 0 ? totalQualityScore / count : 0;
+    
+    return Math.round((avgCompliance * 0.5) + (avgQuality * 0.5));
+  }
+
+  /**
+   * Check if quality gates are met for export
+   */
+  async checkQualityGates(
+    sections: Array<{ id: string; wordCountMin?: number; wordCountMax?: number }>
+  ): Promise<QualityGateStatus> {
+    const checks = await this.performIntelligentReadinessCheck();
+    const issues: string[] = [];
+    const blockedSections: string[] = [];
+    const sectionScores: Record<string, number> = {};
+    
+    // Quality thresholds
+    const THRESHOLDS = {
+      readability: 50,
+      completeness: 70,
+      persuasiveness: 60,
+      overall: 65,
+      compliance: 70
+    };
+    
+    // Check each section
+    for (const check of checks) {
+      const sectionTemplate = sections.find(s => s.id === check.section);
+      const sectionContent = this.planContent[check.section] || '';
+      const wordCount = sectionContent.replace(/<[^>]*>/g, '').split(/\s+/).filter((w: string) => w.length > 0).length;
+      
+      // Calculate section score (compliance + quality)
+      let sectionScore = check.score; // Compliance score
+      
+      if (check.qualityMetrics) {
+        // Weighted: 50% compliance, 50% quality
+        sectionScore = Math.round((check.score * 0.5) + (check.qualityMetrics.overall * 0.5));
+        
+        // Check quality thresholds
+        if (check.qualityMetrics.readability.score < THRESHOLDS.readability) {
+          issues.push(`${check.section}: Readability score too low (${check.qualityMetrics.readability.score}/100)`);
+        }
+        if (check.qualityMetrics.completeness.score < THRESHOLDS.completeness) {
+          issues.push(`${check.section}: Completeness score too low (${check.qualityMetrics.completeness.score}/100)`);
+        }
+        if (check.qualityMetrics.persuasiveness.score < THRESHOLDS.persuasiveness) {
+          issues.push(`${check.section}: Persuasiveness score too low (${check.qualityMetrics.persuasiveness.score}/100)`);
+        }
+      }
+      
+      sectionScores[check.section] = sectionScore;
+      
+      // Check compliance threshold
+      if (check.score < THRESHOLDS.compliance) {
+        issues.push(`${check.section}: Compliance score too low (${check.score}/100)`);
+      }
+      
+      // Check section completion
+      if (check.status !== 'complete') {
+        blockedSections.push(check.section);
+        issues.push(`${check.section}: Section not complete (status: ${check.status})`);
+      }
+      
+      // Check word count
+      if (sectionTemplate?.wordCountMin && wordCount < sectionTemplate.wordCountMin) {
+        blockedSections.push(check.section);
+        issues.push(`${check.section}: Word count below minimum (${wordCount}/${sectionTemplate.wordCountMin})`);
+      }
+    }
+    
+    // Calculate overall score
+    const overallScore = await this.calculateOverallQualityScore();
+    
+    // Determine if gates passed
+    const passed = 
+      overallScore >= THRESHOLDS.overall &&
+      blockedSections.length === 0 &&
+      issues.length === 0;
+    
+    return {
+      passed,
+      overallScore,
+      sectionScores,
+      issues,
+      blockedSections
+    };
   }
 
   /**

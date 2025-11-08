@@ -1,8 +1,6 @@
-// ========= PLAN2FUND — SECTION PROGRESS HOOK =========
-// Minimal utility hook to calculate section progress metrics
-// NO UI - pure calculation only
-
-import { useMemo } from 'react';
+// ========= PLAN2FUND — SECTION PROGRESS UTILITY =========
+// Minimal utility to calculate section progress metrics
+// Pure calculation - no React hooks required
 
 export interface SectionProgress {
   wordCount: number;
@@ -16,96 +14,82 @@ export interface SectionProgress {
 }
 
 /**
- * Calculate progress metrics for a section
- * Pure function - no side effects, no UI
+ * Calculate progress metrics for a section (pure function)
  */
-export function useSectionProgress(section: any): SectionProgress {
-  return useMemo(() => {
-    // Calculate word count
-    const content = section?.content || '';
-    const textContent = content.replace(/<[^>]*>/g, '').trim();
-    const words = textContent.split(/\s+/).filter((word: string) => word.length > 0);
-    const wordCount = words.length;
-    
-    // Get word count targets
-    const wordCountMin = section?.wordCountMin || 50;
-    const wordCountMax = section?.wordCountMax || 5000;
-    
-    // Calculate word count progress (0-100)
-    const targetWords = (wordCountMin + wordCountMax) / 2;
-    const wordCountProgress = targetWords > 0 
-      ? Math.min(100, Math.round((wordCount / targetWords) * 100))
-      : 0;
-    
-    // Calculate requirements met
-    let requirementsMet = 0;
-    let requirementsTotal = 0;
-    
-    // Word count requirement
+export function calculateSectionProgress(section: any): SectionProgress {
+  const content = section?.content || '';
+  const textContent = content.replace(/<[^>]*>/g, '').trim();
+  const words = textContent.split(/\s+/).filter((word: string) => word.length > 0);
+  const wordCount = words.length;
+
+  const wordCountMin = section?.wordCountMin || 50;
+  const wordCountMax = section?.wordCountMax || 5000;
+
+  const targetWords = (wordCountMin + wordCountMax) / 2;
+  const wordCountProgress = targetWords > 0
+    ? Math.min(100, Math.round((wordCount / targetWords) * 100))
+    : 0;
+
+  let requirementsMet = 0;
+  let requirementsTotal = 0;
+
+  requirementsTotal++;
+  if (wordCount >= wordCountMin && wordCount <= wordCountMax) {
+    requirementsMet++;
+  }
+
+  if (section?.tables) {
     requirementsTotal++;
-    if (wordCount >= wordCountMin && wordCount <= wordCountMax) {
+    const hasTables = Object.keys(section.tables).length > 0;
+    if (hasTables) {
       requirementsMet++;
     }
-    
-    // Table requirement (if section has tables property)
-    if (section?.tables) {
-      requirementsTotal++;
-      const hasTables = Object.keys(section.tables).length > 0;
-      if (hasTables) {
-        requirementsMet++;
-      }
+  }
+
+  if (section?.figures) {
+    requirementsTotal++;
+    const hasFigures = Array.isArray(section.figures) && section.figures.length > 0;
+    if (hasFigures) {
+      requirementsMet++;
     }
-    
-    // Figure requirement (if section has figures property)
-    if (section?.figures) {
-      requirementsTotal++;
-      const hasFigures = Array.isArray(section.figures) && section.figures.length > 0;
-      if (hasFigures) {
-        requirementsMet++;
-      }
-    }
-    
-    // Required fields (if section has fields property)
-    if (section?.fields) {
-      const requiredFields = Object.keys(section.fields).filter(
-        key => section.fields[key]?.required !== false
-      );
-      requirementsTotal += requiredFields.length;
-      requirementsMet += requiredFields.filter(
-        key => section.fields[key]?.value !== undefined && 
-               section.fields[key]?.value !== null && 
-               section.fields[key]?.value !== ''
-      ).length;
-    }
-    
-    // Ensure at least 1 requirement exists
-    if (requirementsTotal === 0) {
-      requirementsTotal = 1;
-      if (wordCount > 0) {
-        requirementsMet = 1;
-      }
-    }
-    
-    // Calculate overall completion percentage
-    // 60% word count progress + 40% requirements
-    const requirementsProgress = requirementsTotal > 0
-      ? (requirementsMet / requirementsTotal) * 100
-      : 0;
-    
-    const completionPercentage = Math.round(
-      (wordCountProgress * 0.6) + (requirementsProgress * 0.4)
+  }
+
+  if (section?.fields) {
+    const requiredFields = Object.keys(section.fields).filter(
+      key => section.fields[key]?.required !== false
     );
-    
-    return {
-      wordCount,
-      wordCountMin,
-      wordCountMax,
-      wordCountProgress,
-      completionPercentage,
-      requirementsMet,
-      requirementsTotal,
-      hasContent: wordCount > 0
-    };
-  }, [section?.content, section?.wordCountMin, section?.wordCountMax, section?.tables, section?.figures, section?.fields]);
+    requirementsTotal += requiredFields.length;
+    requirementsMet += requiredFields.filter(
+      key => section.fields[key]?.value !== undefined &&
+             section.fields[key]?.value !== null &&
+             section.fields[key]?.value !== ''
+    ).length;
+  }
+
+  if (requirementsTotal === 0) {
+    requirementsTotal = 1;
+    if (wordCount > 0) {
+      requirementsMet = 1;
+    }
+  }
+
+  const requirementsProgress = requirementsTotal > 0
+    ? (requirementsMet / requirementsTotal) * 100
+    : 0;
+
+  const completionPercentage = Math.round(
+    (wordCountProgress * 0.6) + (requirementsProgress * 0.4)
+  );
+
+  return {
+    wordCount,
+    wordCountMin,
+    wordCountMax,
+    wordCountProgress,
+    completionPercentage,
+    requirementsMet,
+    requirementsTotal,
+    hasContent: wordCount > 0,
+  };
 }
 

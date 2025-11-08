@@ -40,6 +40,7 @@ const nextConfig = {
         assert: false,
         os: false,
         path: false,
+        dns: false,
       };
     } else {
       // Server-side: Allow TypeScript files from scraper-lite

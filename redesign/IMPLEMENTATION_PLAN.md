@@ -26,7 +26,7 @@
 #### 1.1 Guided Editing / Step-by-Step Questions Mode
 **Priority:** HIGH  
 **Effort:** 2-3 weeks  
-**Status:** NOT STARTED
+**Status:** IN PROGRESS (service interfaces + reco/readiness stubs)
 
 **Tasks:**
 1. **Extend Templates with Questions** (`shared/lib/templates/sections.ts`)
@@ -214,7 +214,7 @@
 #### 2.2 Custom LLM Pilot Project
 **Priority:** MEDIUM (Strategic)  
 **Effort:** 4-6 weeks  
-**Status:** NOT STARTED
+**Status:** IN PROGRESS (custom wrapper, integration hooks, fine-tune scaffold)
 
 **Tasks:**
 1. **Model Selection**

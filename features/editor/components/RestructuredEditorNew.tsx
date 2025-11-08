@@ -4,7 +4,7 @@
  * Based on strategic analysis report recommendations
  */
 
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useCallback } from 'react';
 import { useRouter } from 'next/router';
 import { PlanDocument } from '@/shared/types/plan';
 import { ProgramProfile } from '@/features/reco/types/reco';
@@ -13,7 +13,7 @@ import RichTextEditor from './RichTextEditor';
 import UnifiedEditorLayout from './UnifiedEditorLayout';
 import FinancialTable, { FINANCIAL_TABLE_TEMPLATES } from './FinancialTable';
 import ChartGenerator from './ChartGenerator';
-import { useSectionProgress } from '../hooks/useSectionProgress';
+import { calculateSectionProgress } from '../hooks/useSectionProgress';
 
 interface RestructuredEditorNewProps {
   plan: PlanDocument | null;
@@ -37,19 +37,20 @@ export default function RestructuredEditorNew({
   activeSection,
   onSectionChange,
   onActiveSectionChange,
-  onSectionStatusChange,
+  onSectionStatusChange: _onSectionStatusChange,
   onPlanChange,
   programProfile,
-  product,
-  requirementsProgress = 0,
-  requirementsStatus = 'loading',
-  onAIGenerate,
-  onSave
+  product: _product,
+  requirementsProgress: _requirementsProgress = 0,
+  requirementsStatus: _requirementsStatus = 'loading',
+  onAIGenerate: _onAIGenerate,
+  onSave: _onSave
 }: RestructuredEditorNewProps) {
   const router = useRouter();
   
   // Calculate progress for all sections
-  const sectionsProgress = sections.map(section => useSectionProgress(section));
+  const sectionsProgressData = sections.map(section => calculateSectionProgress(section));
+  const sectionsProgress = sectionsProgressData.map(sp => sp.completionPercentage);
   
   // Convert sections to planContent format for compliance checker
   const planContent = React.useMemo(() => {
@@ -73,8 +74,9 @@ export default function RestructuredEditorNew({
     onActiveSectionChange(index);
   }, [onActiveSectionChange]);
 
-  // Generate content for a specific prompt
-  const handleGenerateForPrompt = useCallback(async (promptText: string, promptIndex: number) => {
+  // Generate content for a specific prompt (kept for future use)
+  // @ts-ignore - Unused but kept for future functionality
+  const handleGenerateForPrompt = useCallback(async (_promptText: string, _promptIndex: number) => {
     if (!sections[activeSection] || !plan) return;
     
     try {
@@ -113,7 +115,7 @@ export default function RestructuredEditorNew({
         language: plan?.language || 'en'
       });
       
-      const context = `Focus on this specific requirement: ${promptText}\n\nSection: ${sections[activeSection]?.title}\n\nCurrent content: ${sections[activeSection]?.content || 'No content yet'}`;
+      const context = `Focus on this specific requirement: ${_promptText}\n\nSection: ${sections[activeSection]?.title}\n\nCurrent content: ${sections[activeSection]?.content || 'No content yet'}`;
       const response = await aiHelper.generateSectionContent(
         sections[activeSection].title,
         context,
@@ -211,7 +213,7 @@ export default function RestructuredEditorNew({
     margins: { top: 2.5, bottom: 2.5, left: 2.5, right: 2.5 },
     titlePage: {
       enabled: true,
-      title: plan?.title || 'Business Plan',
+      title: plan?.settings?.titlePage?.title || 'Business Plan',
       subtitle: '',
       author: '',
       date: new Date().toLocaleDateString()
@@ -244,7 +246,7 @@ export default function RestructuredEditorNew({
   const [selectedTableTemplate, setSelectedTableTemplate] = useState<string | null>(null);
   
   // Chart state
-  const [showChart, setShowChart] = useState(false);
+  const [_showChart, _setShowChart] = useState(false);
   const [chartType, setChartType] = useState<'bar' | 'line' | 'pie'>('bar');
 
   // Handle insert table
@@ -376,15 +378,7 @@ export default function RestructuredEditorNew({
               <RichTextEditor
                 content={sections[activeSection].content || ''}
                 onChange={(content) => onSectionChange(sections[activeSection].key, content)}
-                section={{
-                  key: sections[activeSection].key,
-                  title: sections[activeSection].title,
-                  content: sections[activeSection].content || '',
-                  status: sections[activeSection].status || 'missing',
-                  wordCount: sections[activeSection].wordCount || 0,
-                  wordCountMin: sections[activeSection].wordCountMin,
-                  wordCountMax: sections[activeSection].wordCountMax
-                }}
+                section={sections[activeSection]}
                 placeholder={`Start writing your ${sections[activeSection].title.toLowerCase()}...`}
                 minLength={sections[activeSection].wordCountMin || 50}
                 maxLength={sections[activeSection].wordCountMax || 5000}

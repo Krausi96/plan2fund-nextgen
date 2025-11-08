@@ -8,7 +8,6 @@ import React, { useState, useMemo } from 'react';
 import { BarChart3, LineChart, PieChart, TrendingUp } from 'lucide-react';
 import { Button } from '@/shared/components/ui/button';
 import { Card } from '@/shared/components/ui/card';
-import { Badge } from '@/shared/components/ui/badge';
 
 // Dynamic import for Recharts (optional dependency)
 let RechartsComponents: any = null;
@@ -165,12 +164,12 @@ export default function ChartGenerator({
               cx="50%"
               cy="50%"
               labelLine={false}
-              label={({ name, percent }) => `${name}: ${(percent * 100).toFixed(0)}%`}
+              label={({ name, percent }: { name: string; percent: number }) => `${name}: ${(percent * 100).toFixed(0)}%`}
               outerRadius={80}
               fill="#8884d8"
               dataKey="value"
             >
-              {chartData.map((entry, index) => (
+              {chartData.map((_, index) => (
                 <Cell key={`cell-${index}`} fill={colors[index % colors.length]} />
               ))}
             </Pie>
@@ -192,7 +191,7 @@ export default function ChartGenerator({
           <Button
             onClick={() => handleChartTypeChange('bar')}
             size="sm"
-            variant={chartType === 'bar' ? 'default' : 'outline'}
+            variant={chartType === 'bar' ? 'primary' : 'outline'}
           >
             <BarChart3 className="h-4 w-4 mr-2" />
             Bar
@@ -200,7 +199,7 @@ export default function ChartGenerator({
           <Button
             onClick={() => handleChartTypeChange('line')}
             size="sm"
-            variant={chartType === 'line' ? 'default' : 'outline'}
+            variant={chartType === 'line' ? 'primary' : 'outline'}
           >
             <LineChart className="h-4 w-4 mr-2" />
             Line
@@ -208,7 +207,7 @@ export default function ChartGenerator({
           <Button
             onClick={() => handleChartTypeChange('pie')}
             size="sm"
-            variant={chartType === 'pie' ? 'default' : 'outline'}
+            variant={chartType === 'pie' ? 'primary' : 'outline'}
           >
             <PieChart className="h-4 w-4 mr-2" />
             Pie

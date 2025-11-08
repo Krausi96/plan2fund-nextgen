@@ -107,7 +107,7 @@ export default function SectionTree({
     setExpandedGroups(newExpanded);
   };
 
-  const renderSection = (section: Section, index: number, depth = 0) => {
+  const renderSection = (section: Section, index: number, _depth = 0) => {
     const isActive = activeSection === index;
     const progress = sectionsProgress[index] || 0;
     const hasContent = section.content && section.content.trim().length > 0;
@@ -224,7 +224,7 @@ export default function SectionTree({
           <div className="flex justify-between">
             <span>Completed:</span>
             <span className="font-medium">
-              {sections.filter((s, i) => sectionsProgress[i] === 100).length} / {sections.length}
+              {sections.filter((_, i) => sectionsProgress[i] === 100).length} / {sections.length}
             </span>
           </div>
           <div className="flex justify-between">

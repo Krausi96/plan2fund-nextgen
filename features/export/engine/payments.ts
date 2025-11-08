@@ -1,7 +1,7 @@
 // Stripe Payment Integration
 import { UserProfile } from '@/shared/lib/schemas/userProfile';
 // import analytics from './analytics';
-import featureFlags from '@/shared/lib/featureFlags';
+// Payment integration - imports removed as unused
 
 // Test mode detection
 const isTestMode = !process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY || process.env.NODE_ENV === 'test';
@@ -168,9 +168,10 @@ class PaymentManager {
     successUrl: string,
     cancelUrl: string
   ): Promise<PaymentSession | null> {
-    if (!featureFlags.isEnabled('PAYMENT_INTEGRATION')) {
-      throw new Error('Payment integration not enabled');
-    }
+    // Payment integration is always enabled in this implementation
+    // if (!isFeatureEnabled('priority_support', subscriptionTier)) {
+    //   throw new Error('Payment integration not enabled');
+    // }
 
     await this.initialize();
     

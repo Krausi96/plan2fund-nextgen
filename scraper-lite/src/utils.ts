@@ -40,13 +40,14 @@ export function isQueryListing(url: string): boolean {
 }
 
 /**
- * Detect if a page is an overview/listing page (e.g., FFG /en/fundings)
+ * Detect if a page is an overview/listing page (e.g., FFG /en/fundings with filters)
  * Overview pages have multiple program links but don't contain detailed requirements themselves
  */
 export function isOverviewPage(url: string, html?: string): boolean {
   try {
     const u = new URL(url);
     const urlPath = u.pathname.toLowerCase();
+    const urlLower = url.toLowerCase();
     
     // Known overview page patterns (without query params)
     const overviewPatterns = [
@@ -65,42 +66,139 @@ export function isOverviewPage(url: string, html?: string): boolean {
       return true;
     }
     
+    // Check for filter/query parameters (FFG filter pages)
+    // e.g., /en/fundings?field_funding_type%5B0%5D=...
+    if (u.searchParams.toString().length > 0) {
+      const hasFilterParams = 
+        u.searchParams.has('field_') ||
+        u.searchParams.has('filter') ||
+        u.searchParams.has('type') ||
+        u.searchParams.has('category') ||
+        urlLower.includes('field_') ||
+        urlLower.includes('filter') ||
+        urlLower.includes('type%5b') ||
+        urlLower.includes('combine_');
+      
+      // If URL has filter params AND is on a fundings/programme path, it's an overview page
+      if (hasFilterParams && (
+        urlPath.includes('/fundings') ||
+        urlPath.includes('/foerderungen') ||
+        urlPath.includes('/programme') ||
+        urlPath.includes('/programm')
+      )) {
+        return true;
+      }
+    }
+    
     // If HTML provided, analyze content structure
     if (html) {
       try {
         const cheerio = require('cheerio');
         const $ = cheerio.load(html);
       
-      // Count program detail links
-      let programLinkCount = 0;
-      $('a[href]').each((_: any, el: any) => {
-        const href = $(el).attr('href') || '';
-        let fullUrl = href;
-        if (href.startsWith('/')) {
-          fullUrl = new URL(href, url).toString();
-        } else if (!href.startsWith('http')) {
-          fullUrl = new URL(href, url).toString();
-        }
+        // Check for filter/search UI elements (FFG filter pages)
+        const hasFilterUI = 
+          $('select[name*="field_"]').length > 0 ||
+          $('input[name*="filter"]').length > 0 ||
+          $('[class*="filter"]').length > 0 ||
+          $('[class*="search"]').length > 0 ||
+          $('[id*="filter"]').length > 0 ||
+          $('[id*="search"]').length > 0;
         
-        // Check if link points to a program detail page
-        if (isProgramDetailPage(fullUrl)) {
-          programLinkCount++;
+        // Count program detail links
+        let programLinkCount = 0;
+        $('a[href]').each((_: any, el: any) => {
+          const href = $(el).attr('href') || '';
+          let fullUrl = href;
+          if (href.startsWith('/')) {
+            fullUrl = new URL(href, url).toString();
+          } else if (!href.startsWith('http')) {
+            fullUrl = new URL(href, url).toString();
+          }
+          
+          // Check if link points to a program detail page
+          if (fullUrl.match(/\/program[me]?s?\/|\/foerderung|\/grant|\/funding|\/node\/\d+/i)) {
+            programLinkCount++;
+          }
+        });
+        
+        // Also check for listing indicators in content
+        const hasListingStructure = 
+          $('article').length >= 3 || // Multiple article elements (common in listing pages)
+          $('[class*="card"]').length >= 3 || // Card-based listings
+          $('[class*="listing"]').length > 0 || // Explicit listing classes
+          $('[class*="grid"]').length > 0 && $('a[href]').length > 10; // Grid with many links
+        
+        // If page has filter UI OR (5+ program detail links AND listing structure), it's an overview page
+        if (hasFilterUI || (programLinkCount >= 5 && hasListingStructure)) {
+          return true;
         }
-      });
-      
-      // Also check for listing indicators in content
-      const hasListingStructure = 
-        $('article').length >= 3 || // Multiple article elements (common in listing pages)
-        $('[class*="card"]').length >= 3 || // Card-based listings
-        $('[class*="listing"]').length > 0 || // Explicit listing classes
-        $('[class*="grid"]').length > 0 && $('a[href]').length > 10; // Grid with many links
-      
-      // If page has 5+ program detail links AND listing structure, it's an overview page
-      if (programLinkCount >= 5 && hasListingStructure) {
-        return true;
-      }
       } catch {
         // If cheerio fails, fall back to URL pattern matching only
+      }
+    }
+    
+    return false;
+  } catch {
+    return false;
+  }
+}
+
+/**
+ * Detect if a page requires login/authentication
+ */
+export function requiresLogin(url: string, html?: string): boolean {
+  try {
+    const urlLower = url.toLowerCase();
+    const htmlLower = html ? html.toLowerCase() : '';
+    
+    // URL patterns that indicate login pages
+    const loginUrlPatterns = [
+      /\/login\/?$/i,
+      /\/anmeldung\/?$/i,
+      /\/sign-in\/?$/i,
+      /\/register\/?$/i,
+      /\/registration\/?$/i,
+      /\/auth\/?$/i,
+      /\/authenticate\/?$/i,
+      /\/foerdermanager/i, // AWS FörderManager
+      /\/portal\/?$/i,
+      /\/dashboard\/?$/i,
+    ];
+    
+    if (loginUrlPatterns.some(pattern => pattern.test(urlLower))) {
+      return true;
+    }
+    
+    // HTML content patterns
+    if (html) {
+      const hasLoginForm = 
+        htmlLower.includes('login') ||
+        htmlLower.includes('anmeldung') ||
+        htmlLower.includes('password') ||
+        htmlLower.includes('passwort') ||
+        htmlLower.includes('sign in') ||
+        htmlLower.includes('register') ||
+        htmlLower.includes('registration');
+      
+      const hasLoginFields = 
+        htmlLower.includes('type="password"') ||
+        htmlLower.includes('name="password"') ||
+        htmlLower.includes('id="password"') ||
+        htmlLower.includes('class="password"');
+      
+      // Check for "requires login" or "login required" messages
+      const requiresLoginMessage = 
+        htmlLower.includes('login required') ||
+        htmlLower.includes('anmeldung erforderlich') ||
+        htmlLower.includes('please log in') ||
+        htmlLower.includes('bitte anmelden') ||
+        htmlLower.includes('access restricted') ||
+        htmlLower.includes('zugriff beschränkt');
+      
+      // If page has login form fields OR requires login message, it needs login
+      if ((hasLoginForm && hasLoginFields) || requiresLoginMessage) {
+        return true;
       }
     }
     
@@ -191,40 +289,8 @@ export async function isProgramDetailPage(url: string): Promise<boolean> {
       }
     }
     
-    // NEW: Load learned institution-specific patterns from database (if available)
-    if (process.env.DATABASE_URL) {
-      try {
-        const { getInstitutionPatterns } = require('./db/institution-pattern-repository');
-        const learnedInstitutionPatterns = await getInstitutionPatterns(hostKey, 'url_exclude', 0.4);
-        
-        // Check exclusions first (learned patterns take priority)
-        for (const pattern of learnedInstitutionPatterns) {
-          try {
-            const regex = pattern.pattern_regex ? new RegExp(pattern.pattern_regex) : new RegExp(pattern.pattern);
-            if (regex.test(urlPath)) {
-              return false; // Learned exclusion pattern matched
-            }
-          } catch (e) {
-            // Invalid regex, skip
-          }
-        }
-        
-        // Check include patterns
-        const learnedIncludes = await getInstitutionPatterns(hostKey, 'url_include', 0.4);
-        for (const pattern of learnedIncludes) {
-          try {
-            const regex = pattern.pattern_regex ? new RegExp(pattern.pattern_regex) : new RegExp(pattern.pattern);
-            if (regex.test(urlPath)) {
-              return true; // Learned include pattern matched
-            }
-          } catch (e) {
-            // Invalid regex, skip
-          }
-        }
-      } catch (e) {
-        // Fallback to hardcoded patterns if database fails
-      }
-    }
+    // NOTE: Database-learned patterns are now handled via url_patterns table in db.ts
+    // This function uses JSON fallback patterns from url-patterns.json file
     
     // FALLBACK: INSTITUTION-SPECIFIC PATTERNS (strict whitelist per institution)
     

@@ -5,7 +5,7 @@
  */
 
 import React, { useState, useCallback } from 'react';
-import { Plus, Trash2, Download, Upload } from 'lucide-react';
+import { Plus, Trash2, Download } from 'lucide-react';
 import { Button } from '@/shared/components/ui/button';
 import { Card } from '@/shared/components/ui/card';
 
@@ -28,25 +28,24 @@ export default function FinancialTable({
   editable = true
 }: FinancialTableProps) {
   const [tableData, setTableData] = useState<any[][]>(data || []);
-  const [tableHeaders, setTableHeaders] = useState<string[]>(headers || []);
 
   const handleCellChange = useCallback((rowIndex: number, colIndex: number, value: any) => {
     const newData = [...tableData];
     if (!newData[rowIndex]) {
-      newData[rowIndex] = new Array(tableHeaders.length).fill('');
+      newData[rowIndex] = new Array(headers.length).fill('');
     }
     newData[rowIndex][colIndex] = value;
     setTableData(newData);
     onChange(newData);
-  }, [tableData, tableHeaders, onChange]);
+  }, [tableData, headers, onChange]);
 
   const handleAddRow = useCallback(() => {
-    const newRow = new Array(tableHeaders.length).fill('');
+    const newRow = new Array(headers.length).fill('');
     const newData = [...tableData, newRow];
     setTableData(newData);
     onChange(newData);
     if (onInsert) onInsert();
-  }, [tableData, tableHeaders, onChange, onInsert]);
+  }, [tableData, headers, onChange, onInsert]);
 
   const handleDeleteRow = useCallback((rowIndex: number) => {
     const newData = tableData.filter((_, index) => index !== rowIndex);
@@ -90,7 +89,7 @@ export default function FinancialTable({
         <table className="w-full border-collapse border border-gray-300">
           <thead>
             <tr className="bg-gray-50">
-              {tableHeaders.map((header, index) => (
+              {headers.map((header, index) => (
                 <th
                   key={index}
                   className="border border-gray-300 px-4 py-2 text-left text-sm font-semibold text-gray-700"
@@ -108,7 +107,7 @@ export default function FinancialTable({
           <tbody>
             {tableData.map((row, rowIndex) => (
               <tr key={rowIndex} className="hover:bg-gray-50">
-                {tableHeaders.map((_, colIndex) => (
+                {headers.map((_, colIndex) => (
                   <td
                     key={colIndex}
                     className="border border-gray-300 px-4 py-2"
@@ -143,7 +142,7 @@ export default function FinancialTable({
             {tableData.length === 0 && (
               <tr>
                 <td
-                  colSpan={tableHeaders.length + (editable ? 1 : 0)}
+                  colSpan={headers.length + (editable ? 1 : 0)}
                   className="border border-gray-300 px-4 py-8 text-center text-gray-500"
                 >
                   No data. Click "Add Row" to start.

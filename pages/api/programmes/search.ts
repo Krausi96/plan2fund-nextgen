@@ -6,7 +6,7 @@
 
 import type { NextApiRequest, NextApiResponse } from 'next';
 import { scoreProgramsEnhanced, EnhancedProgramResult } from '@/features/reco/engine/enhancedRecoEngine';
-import { generateEmbedding, findSimilarPrograms, createProgramDescription } from '@/shared/lib/embeddings';
+import { generateEmbedding, generateEmbeddings, findSimilarPrograms, createProgramDescription } from '@/shared/lib/embeddings';
 import { Pool } from 'pg';
 
 interface SearchRequest {
@@ -48,7 +48,7 @@ export default async function handler(
 
   try {
     const body: SearchRequest = req.body;
-    const { query, filters, answers, mode = 'manual', limit = 50 } = body;
+    const { query, filters, answers, mode: _mode = 'manual', limit = 50 } = body;
 
     // Load programs from database
     const programsResponse = await fetch(`${req.headers.origin || 'http://localhost:3000'}/api/programs?enhanced=true`);
@@ -142,8 +142,8 @@ export default async function handler(
         ruleBasedScore: program.score,
         // Add explanations from reasons and risks
         explanations: [
-          ...(program.reasons || []).slice(0, 3),
-          ...(program.risks || []).slice(0, 2).map((r: string) => `Note: ${r}`),
+          ...(program.reasons || program.founderFriendlyReasons || []).slice(0, 3),
+          ...(program.risks || program.founderFriendlyRisks || []).slice(0, 2).map((r: string) => `Note: ${r}`),
           ...(semanticMatch ? [`Semantic match: ${Math.round(semanticMatch.similarity * 100)}%`] : [])
         ]
       };

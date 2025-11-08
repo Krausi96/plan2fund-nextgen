@@ -260,6 +260,32 @@ function createStrategySections(fundingType: 'grants' | 'bankLoans' | 'equity' |
       order: 1,
       category: 'general',
       prompts: config.executiveSummary.prompts,
+      questions: [
+        {
+          text: 'Wie heißt Ihr Unternehmen?',
+          required: true,
+          placeholder: 'Geben Sie den vollständigen Firmennamen ein',
+          hint: 'Verwenden Sie den offiziellen, registrierten Firmennamen'
+        },
+        {
+          text: 'Wie hoch ist der benötigte Förderbetrag?',
+          required: true,
+          placeholder: 'z.B. €50.000 oder €100.000 - €200.000',
+          hint: 'Geben Sie einen konkreten Betrag oder einen Bereich an'
+        },
+        {
+          text: 'Wofür werden die Mittel verwendet?',
+          required: true,
+          placeholder: 'Beschreiben Sie die geplanten Ausgaben',
+          hint: 'Beispiele: Personal, Entwicklung, Marketing, Ausrüstung'
+        },
+        {
+          text: 'Was macht Ihr Projekt einzigartig?',
+          required: false,
+          placeholder: 'Beschreiben Sie Ihre Alleinstellungsmerkmale',
+          hint: 'Was unterscheidet Sie von Wettbewerbern?'
+        }
+      ],
       validationRules: {
         requiredFields: ['business_overview', 'funding_goal'],
         formatRequirements: ['clear_problem_statement', 'solution_description']
