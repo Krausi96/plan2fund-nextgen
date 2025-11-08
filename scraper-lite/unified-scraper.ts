@@ -244,6 +244,72 @@ async function discoverPrograms(): Promise<number> {
       const isOverview = isOverviewPage(seed, result.html);
       if (isOverview) {
         console.log(`   📋 Overview page detected - extracting all program links...`);
+        
+        // FILTER EXPLORATION: Extract filter URLs from overview pages (e.g., FFG filter pages)
+        try {
+          const { extractFilterUrls } = await import('./src/utils/overview-filters');
+          const filterUrls = extractFilterUrls(result.html, seed, 10); // Max 10 filter combinations
+          
+          if (filterUrls.length > 0) {
+            console.log(`   🔍 Found ${filterUrls.length} filter combinations to explore...`);
+            
+            // Classify filter URLs with LLM
+            if (CONFIG.USE_LLM) {
+              const improvedPrompt = await getImprovedClassificationPrompt();
+              const filterClassifications = await batchClassifyUrls(
+                filterUrls.map(url => ({ url })),
+                improvedPrompt
+              );
+              
+              // Queue high-quality filter URLs
+              let filterQueued = 0;
+              // Check filter URLs against database
+              const filterUrlCheck = await pool.query(
+                `SELECT url FROM pages WHERE url = ANY($1::text[])`,
+                [filterUrls]
+              );
+              const existingFilterUrls = new Set(filterUrlCheck.rows.map((r: any) => r.url));
+              
+              for (const classification of filterClassifications) {
+                if (classification.isProgramPage !== 'no' && classification.qualityScore >= 50) {
+                  if (!seen.has(classification.url) && !existingFilterUrls.has(classification.url)) {
+                    discovered.push(classification.url);
+                    seen.add(classification.url);
+                    await markUrlQueued(classification.url, classification.qualityScore);
+                    filterQueued++;
+                  }
+                }
+              }
+              
+              if (filterQueued > 0) {
+                console.log(`   ✅ Queued ${filterQueued} high-quality filter URLs`);
+              }
+            } else {
+              // Fallback: queue all filter URLs if LLM not available
+              const filterUrlCheck = await pool.query(
+                `SELECT url FROM pages WHERE url = ANY($1::text[])`,
+                [filterUrls]
+              );
+              const existingFilterUrls = new Set(filterUrlCheck.rows.map((r: any) => r.url));
+              
+              let filterQueued = 0;
+              for (const filterUrl of filterUrls.slice(0, 5)) {
+                if (!seen.has(filterUrl) && !existingFilterUrls.has(filterUrl)) {
+                  discovered.push(filterUrl);
+                  seen.add(filterUrl);
+                  await markUrlQueued(filterUrl, 50);
+                  filterQueued++;
+                }
+              }
+              if (filterQueued > 0) {
+                console.log(`   ✅ Queued ${filterQueued} filter URLs (LLM disabled)`);
+              }
+            }
+          }
+        } catch (error: any) {
+          // Silently fail - filter exploration is optional
+          console.warn(`   ⚠️  Filter exploration failed: ${error.message}`);
+        }
       }
       
       // LLM-BASED FILTERING: Extract ALL links, then classify with LLM
