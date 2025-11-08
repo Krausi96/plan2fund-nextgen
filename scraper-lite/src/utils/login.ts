@@ -9,9 +9,11 @@ import { fetchHtml } from '../utils';
 import * as cheerio from 'cheerio';
 
 export interface LoginConfig {
-  url: string;
-  email: string;
-  password: string; // Should be encrypted in production
+  enabled?: boolean; // Whether login is enabled for this institution
+  url: string; // Login page URL
+  loginUrl?: string; // Alias for url (for backward compatibility)
+  email?: string; // Email/username (from env var)
+  password?: string; // Password (from env var, should be encrypted in production)
   loginFormSelector?: string; // e.g., 'form#login-form'
   emailFieldSelector?: string; // e.g., 'input[name="email"]'
   passwordFieldSelector?: string; // e.g., 'input[name="password"]'
@@ -39,8 +41,24 @@ export interface LoginResult {
  */
 export async function loginToSite(config: LoginConfig): Promise<LoginResult> {
   try {
+    // Use loginUrl if provided, otherwise url
+    const loginUrl = config.loginUrl || config.url;
+    if (!loginUrl) {
+      return {
+        success: false,
+        error: 'Login URL not provided'
+      };
+    }
+    
+    if (!config.email || !config.password) {
+      return {
+        success: false,
+        error: 'Email or password not provided'
+      };
+    }
+    
     // Fetch login page
-    const loginPage = await fetchHtml(config.url);
+    const loginPage = await fetchHtml(loginUrl);
     
     if (loginPage.status !== 200) {
       return {
@@ -78,11 +96,11 @@ export async function loginToSite(config: LoginConfig): Promise<LoginResult> {
     }
     
     // Get form action URL
-    const formAction = form.attr('action') || config.url;
+    const formAction = form.attr('action') || loginUrl;
     const formMethod = form.attr('method') || 'POST';
     const actionUrl = formAction.startsWith('http') 
       ? formAction 
-      : new URL(formAction, config.url).toString();
+      : new URL(formAction, loginUrl).toString();
     
     // Extract CSRF token if present
     const csrfToken = form.find('input[name*="csrf"], input[name*="token"], input[name*="_token"]').attr('value') || '';
@@ -116,7 +134,7 @@ export async function loginToSite(config: LoginConfig): Promise<LoginResult> {
       method: formMethod,
       headers: {
         'Content-Type': 'application/x-www-form-urlencoded',
-        'Referer': config.url,
+        'Referer': loginUrl,
         'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36'
       },
       body: new URLSearchParams(formData).toString(),

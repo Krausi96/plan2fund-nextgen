@@ -1,3 +1,6 @@
+// Login configuration (imported from login.ts to avoid duplication)
+import type { LoginConfig } from '../utils/login';
+
 export interface InstitutionConfig {
   id?: string;              // UNIQUE ID (per contract review) - optional for backward compatibility
   name: string;
@@ -16,6 +19,7 @@ export interface InstitutionConfig {
   autoDiscovery: boolean; // Phase 4: Enable auto-discovery
   keywords: string[]; // Keywords for program detection
   lastUpdated?: string;    // Track staleness (per contract review)
+  loginConfig?: LoginConfig; // Optional: Login configuration for protected pages
 }
 
 export const institutions: InstitutionConfig[] = [
