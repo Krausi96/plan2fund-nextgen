@@ -11,6 +11,27 @@ import { Pool } from 'pg';
 
 let pool: Pool | null = null;
 
+// Seed URLs table - stores discovered seed URLs (self-expanding discovery)
+async function ensureSeedUrlsTable(): Promise<void> {
+  const pool = getPool();
+  await pool.query(`
+    CREATE TABLE IF NOT EXISTS discovered_seed_urls (
+      id SERIAL PRIMARY KEY,
+      url TEXT NOT NULL UNIQUE,
+      source_type VARCHAR(50) NOT NULL, -- 'overview_page', 'listing_page', 'manual'
+      institution_id VARCHAR(100),
+      discovered_at TIMESTAMP DEFAULT NOW(),
+      last_checked TIMESTAMP,
+      is_active BOOLEAN DEFAULT true,
+      priority INTEGER DEFAULT 50
+    )
+  `);
+  await pool.query(`
+    CREATE INDEX IF NOT EXISTS idx_discovered_seeds_active 
+    ON discovered_seed_urls(is_active, priority DESC, last_checked NULLS FIRST)
+  `);
+}
+
 export function getPool(): Pool {
   if (!pool) {
     if (!process.env.DATABASE_URL) {

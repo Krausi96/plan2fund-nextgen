@@ -34,12 +34,53 @@ export const institutions: LiteInstitutionConfig[] = legacyInstitutions
 
 export { fundingTypes, programFocus, autoDiscoveryPatterns };
 
-// Get all unique seed URLs across institutions
-export function getAllSeedUrls(): string[] {
+// Get all unique seed URLs across institutions + discovered seeds from DB
+export async function getAllSeedUrls(): Promise<string[]> {
   const urls = new Set<string>();
+  
+  // Add hardcoded seed URLs from config
   institutions.forEach(inst => {
     inst.seedUrls.forEach(url => urls.add(url));
   });
+  
+  // Add discovered seed URLs from database (self-expanding discovery)
+  try {
+    const { getPool } = await import('../../db/db');
+    const pool = getPool();
+    
+    // Ensure table exists
+    await pool.query(`
+      CREATE TABLE IF NOT EXISTS discovered_seed_urls (
+        id SERIAL PRIMARY KEY,
+        url TEXT NOT NULL UNIQUE,
+        source_type VARCHAR(50) NOT NULL,
+        institution_id VARCHAR(100),
+        discovered_at TIMESTAMP DEFAULT NOW(),
+        last_checked TIMESTAMP,
+        is_active BOOLEAN DEFAULT true,
+        priority INTEGER DEFAULT 50
+      )
+    `);
+    await pool.query(`
+      CREATE INDEX IF NOT EXISTS idx_discovered_seeds_active 
+      ON discovered_seed_urls(is_active, priority DESC, last_checked NULLS FIRST)
+    `);
+    
+    // Get active discovered seeds
+    const discoveredSeeds = await pool.query(`
+      SELECT url FROM discovered_seed_urls 
+      WHERE is_active = true 
+      ORDER BY priority DESC, discovered_at DESC
+    `);
+    
+    discoveredSeeds.rows.forEach((row: any) => {
+      urls.add(row.url);
+    });
+  } catch (error: any) {
+    // Silently fail - use only hardcoded seeds if DB fails
+    console.warn(`⚠️  Could not load discovered seeds: ${error.message}`);
+  }
+  
   return Array.from(urls);
 }
 

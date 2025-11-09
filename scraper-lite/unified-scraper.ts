@@ -130,9 +130,9 @@ async function discoverPrograms(): Promise<number> {
   
   console.log(`📊 Existing funding types in DB: ${Array.from(existingTypeSet).join(', ') || 'None'}\n`);
   
-  // Get seeds - focus on institutions with different funding types
-  const seeds = getAllSeedUrls();
-  console.log(`🌱 Checking ${seeds.length} seed URLs...\n`);
+  // Get seeds - includes hardcoded + discovered seeds from DB (self-expanding!)
+  const seeds = await getAllSeedUrls();
+  console.log(`🌱 Checking ${seeds.length} seed URLs (includes discovered seeds from DB)...\n`);
   
   // Batch check ALL seeds against database
   const seedCheck = await pool.query(
@@ -262,8 +262,33 @@ async function discoverPrograms(): Promise<number> {
       
       // Check if this is an overview page
       const isOverview = isOverviewPage(seed, result.html);
+      
+      // SAVE AS DISCOVERED SEED: If this is an overview/listing page, save it as a new seed URL
       if (isOverview) {
-        console.log(`   📋 Overview page detected - extracting all program links...`);
+        console.log(`   📋 Overview page detected - saving as discovered seed URL...`);
+        
+        // Save as discovered seed URL (self-expanding discovery!)
+        try {
+          const institution = findInstitutionByUrl(seed);
+          await pool.query(`
+            INSERT INTO discovered_seed_urls (url, source_type, institution_id, priority, is_active)
+            VALUES ($1, $2, $3, $4, true)
+            ON CONFLICT (url) DO UPDATE SET
+              last_checked = NOW(),
+              is_active = true,
+              priority = GREATEST(discovered_seed_urls.priority, EXCLUDED.priority)
+          `, [
+            seed,
+            'overview_page',
+            institution?.id || null,
+            70 // High priority for overview pages
+          ]);
+          console.log(`   ✅ Saved as discovered seed URL (will be checked in future cycles)`);
+        } catch (error: any) {
+          // Silently fail
+        }
+        
+        console.log(`   📋 Extracting all program links...`);
         
         // FILTER EXPLORATION: Extract filter URLs from overview pages (e.g., FFG filter pages)
         try {
@@ -567,6 +592,27 @@ async function discoverPrograms(): Promise<number> {
                   seen.add(classification.url);
                   await markUrlQueued(classification.url, classification.qualityScore);
                   newFromScraped++;
+                  
+                  // If this is an overview/listing page, save as discovered seed
+                  if (classification.isOverviewPage && classification.qualityScore >= 60) {
+                    try {
+                      const institution = findInstitutionByUrl(classification.url);
+                      await pool.query(`
+                        INSERT INTO discovered_seed_urls (url, source_type, institution_id, priority, is_active)
+                        VALUES ($1, $2, $3, $4, true)
+                        ON CONFLICT (url) DO UPDATE SET
+                          is_active = true,
+                          priority = GREATEST(discovered_seed_urls.priority, EXCLUDED.priority)
+                      `, [
+                        classification.url,
+                        'overview_page',
+                        institution?.id || null,
+                        classification.qualityScore
+                      ]);
+                    } catch {
+                      // Silently fail
+                    }
+                  }
                 }
               }
             }
