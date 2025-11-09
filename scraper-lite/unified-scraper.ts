@@ -560,7 +560,26 @@ async function discoverPrograms(): Promise<number> {
       
       for (const page of scrapedPages.rows.slice(0, 20)) { // Limit to 20 pages
         try {
-          const $ = cheerio.load(page.html_content);
+          // Read HTML from file
+          let html = '';
+          if (page.raw_html_path) {
+            try {
+              const fs = await import('fs');
+              const path = await import('path');
+              const htmlPath = path.resolve(process.cwd(), page.raw_html_path);
+              if (fs.existsSync(htmlPath)) {
+                html = fs.readFileSync(htmlPath, 'utf-8');
+              } else {
+                continue; // Skip if file doesn't exist
+              }
+            } catch {
+              continue; // Skip if can't read file
+            }
+          } else {
+            continue; // Skip if no HTML path
+          }
+          
+          const $ = cheerio.load(html);
           const pageUrl = page.url;
           const pageHost = new URL(pageUrl).hostname.replace('www.', '');
           
