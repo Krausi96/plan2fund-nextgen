@@ -473,6 +473,129 @@ async function discoverPrograms(): Promise<number> {
     }
   }
   
+  // DISCOVER FROM SCRAPED PAGES: Extract links from already-scraped pages
+  console.log(`\n🔍 Phase 3: Discovering new URLs from scraped pages...\n`);
+  try {
+    const scrapedPages = await pool.query(`
+      SELECT url, html_content 
+      FROM pages 
+      WHERE html_content IS NOT NULL 
+        AND html_content != ''
+        AND metadata_json->>'is_overview_page' != 'true'
+        AND fetched_at > NOW() - INTERVAL '30 days'
+      ORDER BY fetched_at DESC
+      LIMIT 50
+    `);
+    
+    if (scrapedPages.rows.length > 0) {
+      console.log(`   📄 Checking ${scrapedPages.rows.length} recently scraped pages for new links...`);
+      let newFromScraped = 0;
+      
+      for (const page of scrapedPages.rows.slice(0, 20)) { // Limit to 20 pages
+        try {
+          const $ = cheerio.load(page.html_content);
+          const pageUrl = page.url;
+          const pageHost = new URL(pageUrl).hostname.replace('www.', '');
+          
+          const links: string[] = [];
+          $('a[href]').each((_, el) => {
+            const href = $(el).attr('href');
+            if (!href) return;
+            
+            try {
+              const fullUrl = new URL(href, pageUrl).href;
+              const urlLower = fullUrl.toLowerCase();
+              
+              // Must be from same host
+              if (!fullUrl.includes(pageHost)) return;
+              
+              // Skip already filtered patterns
+              if (urlLower.match(/\.(pdf|doc|docx|zip)$/i)) return;
+              if (urlLower.includes('/news/') || urlLower.includes('/press/') || 
+                  urlLower.includes('/contact/') || urlLower.includes('/about/') ||
+                  urlLower.includes('/team/') || urlLower.includes('/imprint/')) return;
+              if (urlLower.includes('facebook.com') || urlLower.includes('linkedin.com') ||
+                  urlLower.includes('twitter.com') || urlLower.includes('x.com') ||
+                  urlLower.includes('mailto:') || urlLower.includes('sharer') ||
+                  urlLower.includes('sharearticle')) return;
+              if (urlLower.includes('cdn-cgi/l/email-protection') || 
+                  urlLower.includes('email-protection#') ||
+                  urlLower.includes('cdn-cgi/l/email')) return;
+              if (urlLower.includes('/sitemap/') || urlLower.includes('/accessibility/') ||
+                  urlLower.includes('/data-protection/') || urlLower.includes('/disclaimer/')) return;
+              
+              links.push(fullUrl);
+            } catch {
+              // Invalid URL
+            }
+          });
+          
+          if (links.length === 0) continue;
+          
+          // Check which links are new
+          const linkCheck = await pool.query(
+            `SELECT url FROM pages WHERE url = ANY($1::text[])`,
+            [links]
+          );
+          const existingLinks = new Set(linkCheck.rows.map((r: any) => r.url));
+          const newLinks = links.filter(l => !existingLinks.has(l) && !seen.has(l));
+          
+          if (newLinks.length === 0) continue;
+          
+          // Check blacklist
+          const validLinks = [];
+          for (const link of newLinks) {
+            if (!(await isUrlExcluded(link))) {
+              validLinks.push(link);
+            }
+          }
+          
+          if (validLinks.length === 0) continue;
+          
+          // Classify with LLM
+          if (CONFIG.USE_LLM && validLinks.length > 0) {
+            const improvedPrompt = await getImprovedClassificationPrompt();
+            const classifications = await batchClassifyUrls(
+              validLinks.map(l => ({ url: l })),
+              improvedPrompt
+            );
+            
+            for (const classification of classifications) {
+              if (classification.isProgramPage !== 'no' && classification.qualityScore >= 50) {
+                if (!seen.has(classification.url)) {
+                  discovered.push(classification.url);
+                  seen.add(classification.url);
+                  await markUrlQueued(classification.url, classification.qualityScore);
+                  newFromScraped++;
+                }
+              }
+            }
+          } else {
+            // Queue without LLM
+            for (const link of validLinks.slice(0, 5)) {
+              if (!seen.has(link)) {
+                discovered.push(link);
+                seen.add(link);
+                await markUrlQueued(link, 50);
+                newFromScraped++;
+              }
+            }
+          }
+        } catch (error: any) {
+          // Silently continue
+        }
+      }
+      
+      if (newFromScraped > 0) {
+        console.log(`   ✅ Discovered ${newFromScraped} new URLs from scraped pages\n`);
+      } else {
+        console.log(`   ✅ No new URLs found in scraped pages\n`);
+      }
+    }
+  } catch (error: any) {
+    console.warn(`   ⚠️  Discovery from scraped pages failed: ${error.message}\n`);
+  }
+  
   console.log(`✅ Discovery complete: ${discovered.length} NEW programs queued\n`);
   return discovered.length;
 }
@@ -544,13 +667,15 @@ async function scrapePrograms(): Promise<number> {
       // Fetch HTML
       const result = await fetchHtml(url);
       
-      // Check for 404
+      // Check for 404 - auto-blacklist
       if (result.status === 404) {
-        console.log(`   ⏭️  HTTP 404 - Page not found, marking as failed\n`);
+        console.log(`   ⏭️  HTTP 404 - Auto-blacklisting URL\n`);
         await pool.query('UPDATE scraping_jobs SET status = $1, last_error = $2 WHERE url = $3', 
           ['failed', 'HTTP 404 - Page not found', url]);
-        // Learn exclusion pattern from 404
+        // Auto-blacklist 404 URLs
         const host = new URL(url).hostname.replace('www.', '');
+        const { addManualExclusion } = await import('./src/utils/blacklist');
+        await addManualExclusion(url, host, 'HTTP 404 - Page not found');
         await learnUrlPatternFromPage(url, host, false);
         return { saved: false, skipped: true, updated: false };
       }
@@ -804,27 +929,32 @@ async function scrapePrograms(): Promise<number> {
     }
   }
   
-  // AUTO-LEARNING: Check if we should learn quality patterns
+  // AUTO-LEARNING: Automatically learns patterns after scraping
+  // This happens automatically - no manual scripts needed!
   try {
     const { shouldLearnQualityPatterns } = await import('./src/learning/auto-learning');
     const shouldLearn = await shouldLearnQualityPatterns();
     if (shouldLearn) {
-      console.log('\n🧠 Auto-learning quality patterns...');
+      console.log('\n🧠 Auto-learning quality patterns (automatic - no manual scripts needed)...');
       await autoLearnQualityPatterns();
+      console.log('   ✅ Learning complete - patterns applied automatically\n');
+    } else {
+      console.log('\n📊 Learning: Not enough data yet (need 50+ examples per funding type)');
+      console.log('   💡 Continue scraping - learning happens automatically when ready\n');
     }
   } catch (error: any) {
-    // Silently fail
     console.warn(`⚠️  Auto-learning check failed: ${error.message}`);
   }
   
-  // Show learning status
+  // Show learning status (automatic feedback)
   try {
     const status = await getLearningStatus();
     if (status.totalFeedback > 0) {
-      console.log(`\n📊 Learning Status:`);
+      console.log(`\n📊 Learning Status (automatic):`);
       console.log(`   Classification Accuracy: ${status.classificationAccuracy.toFixed(1)}%`);
-      console.log(`   Quality Rules Learned: ${status.qualityRulesLearned}`);
-      console.log(`   URL Patterns Learned: ${status.urlPatternsLearned}`);
+      console.log(`   Quality Rules Learned: ${status.qualityRulesLearned} (automatic)`);
+      console.log(`   URL Patterns Learned: ${status.urlPatternsLearned} (automatic)`);
+      console.log(`   Total Feedback Records: ${status.totalFeedback} (automatic)\n`);
     }
   } catch {
     // Silently fail
