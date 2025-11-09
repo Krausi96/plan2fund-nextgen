@@ -250,9 +250,12 @@ async function discoverPrograms(): Promise<number> {
       
       const result = await fetchHtml(seed);
       
-      // Skip 404s
+      // Handle 404s - auto-blacklist them
       if (result.status === 404) {
-        console.log(`   ⏭️  HTTP 404 - Skipping\n`);
+        console.log(`   ⏭️  HTTP 404 - Auto-blacklisting URL\n`);
+        const host = new URL(seed).hostname.replace('www.', '');
+        const { addManualExclusion } = await import('./src/utils/blacklist');
+        await addManualExclusion(seed, host, 'HTTP 404 - Page not found');
         continue;
       }
       const $ = cheerio.load(result.html);
