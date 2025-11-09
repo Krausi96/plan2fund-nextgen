@@ -319,6 +319,13 @@ export async function getQueuedUrls(limit: number): Promise<string[]> {
         AND j.url NOT LIKE '%/accessibility/%'
         AND j.url NOT LIKE '%/data-protection/%'
         AND j.url NOT LIKE '%/disclaimer/%'
+        AND j.url NOT LIKE '%facebook.com%'
+        AND j.url NOT LIKE '%linkedin.com%'
+        AND j.url NOT LIKE '%twitter.com%'
+        AND j.url NOT LIKE '%x.com%'
+        AND j.url NOT LIKE 'mailto:%'
+        AND j.url NOT LIKE '%sharer%'
+        AND j.url NOT LIKE '%shareArticle%'
       ORDER BY j.quality_score DESC, j.created_at ASC 
       LIMIT $2
     `, ['queued', limit]);

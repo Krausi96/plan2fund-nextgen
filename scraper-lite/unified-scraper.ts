@@ -349,6 +349,12 @@ async function discoverPrograms(): Promise<number> {
               urlLower.includes('/contact/') || urlLower.includes('/about/') ||
               urlLower.includes('/team/') || urlLower.includes('/imprint/')) return;
           
+          // Filter out social media share links and mailto
+          if (urlLower.includes('facebook.com') || urlLower.includes('linkedin.com') ||
+              urlLower.includes('twitter.com') || urlLower.includes('x.com') ||
+              urlLower.includes('mailto:') || urlLower.includes('sharer') ||
+              urlLower.includes('sharearticle')) return;
+          
           // CRITICAL: Filter out email-protection URLs (they return 404)
           if (urlLower.includes('cdn-cgi/l/email-protection') || 
               urlLower.includes('email-protection#') ||
