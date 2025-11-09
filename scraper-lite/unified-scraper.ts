@@ -488,7 +488,49 @@ async function discoverPrograms(): Promise<number> {
             fetched_at = NOW()
             WHERE url = $1
           `, [seed]);
+          
+          // Also update discovered seed URL last_checked
+          await pool.query(`
+            UPDATE discovered_seed_urls 
+            SET last_checked = NOW()
+            WHERE url = $1
+          `, [seed]);
         } catch {
+          // Silently fail
+        }
+      }
+      
+      // SAVE HIGH-QUALITY LISTING PAGES AS SEEDS: If we found many new links, this might be a listing page
+      // Count links discovered from this seed
+      const linksFromThisSeed = discovered.filter(d => {
+        try {
+          const discoveredUrl = new URL(d);
+          const seedUrl = new URL(seed);
+          return discoveredUrl.hostname === seedUrl.hostname;
+        } catch {
+          return false;
+        }
+      });
+      
+      // If we discovered 5+ links from this page, save it as a seed
+      if (linksFromThisSeed.length >= 5 && !isOverview) {
+        try {
+          const institution = findInstitutionByUrl(seed);
+          await pool.query(`
+            INSERT INTO discovered_seed_urls (url, source_type, institution_id, priority, is_active)
+            VALUES ($1, $2, $3, $4, true)
+            ON CONFLICT (url) DO UPDATE SET
+              last_checked = NOW(),
+              is_active = true,
+              priority = GREATEST(discovered_seed_urls.priority, EXCLUDED.priority)
+          `, [
+            seed,
+            'listing_page',
+            institution?.id || null,
+            60 // Medium-high priority for listing pages
+          ]);
+          console.log(`   ✅ Saved as discovered seed URL (found ${linksFromThisSeed.length} links)`);
+        } catch (error: any) {
           // Silently fail
         }
       }
@@ -502,10 +544,10 @@ async function discoverPrograms(): Promise<number> {
   console.log(`\n🔍 Phase 3: Discovering new URLs from scraped pages...\n`);
   try {
     const scrapedPages = await pool.query(`
-      SELECT url, html_content 
+      SELECT url, raw_html_path 
       FROM pages 
-      WHERE html_content IS NOT NULL 
-        AND html_content != ''
+      WHERE raw_html_path IS NOT NULL 
+        AND raw_html_path != ''
         AND metadata_json->>'is_overview_page' != 'true'
         AND fetched_at > NOW() - INTERVAL '30 days'
       ORDER BY fetched_at DESC
