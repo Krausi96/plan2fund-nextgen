@@ -2475,5 +2475,73 @@
     "modelVersion": "text-embedding-3-small",
     "timestamp": 1762603775754,
     "url": "https://viennabusinessagency.at/events-workshops/vienna-art-week-learning-systems/"
+  },
+  "91da5b300b5affcff0c457c9ab9ba0b0f853735720f06c622f8908c58a07147b:text-embedding-3-small": {
+    "urlHash": "91da5b300b5affcff0c457c9ab9ba0b0f853735720f06c622f8908c58a07147b",
+    "result": {
+      "categorized_requirements": {
+        "eligibility": [
+          {
+            "type": "company_type",
+            "value": "Small and medium-sized enterprises (SMEs) with less than 250 employees",
+            "source": "llm_extraction",
+            "meaningfulness_score": 70
+          },
+          {
+            "type": "industry_restriction",
+            "value": "Companies must be based in Austria, Germany, or EU member states with headquarters in Vienna",
+            "source": "llm_extraction",
+            "meaningfulness_score": 81
+          }
+        ],
+        "documents": [
+          {
+            "type": "required_documents",
+            "value": "Forschungsvorhaben auf Basis der Evaluierungen von externen wie internen Gutachter:innen",
+            "source": "llm_extraction",
+            "meaningfulness_score": 44
+          }
+        ],
+        "timeline": [],
+        "geographic": [
+          {
+            "type": "geographic_eligibility",
+            "value": "Companies must be based in Austria, Germany, or EU member states with headquarters in Vienna",
+            "source": "llm_extraction",
+            "meaningfulness_score": 81
+          }
+        ],
+        "project": [],
+        "application": [
+          {
+            "type": "application_process",
+            "value": "Forschungsvorhaben auf Basis der Evaluierungen von externen wie internen Gutachter:innen",
+            "source": "llm_extraction",
+            "meaningfulness_score": 44
+          }
+        ],
+        "funding_details": []
+      },
+      "metadata": {
+        "funding_amount_min": null,
+        "funding_amount_max": null,
+        "currency": "EUR",
+        "deadline": "2026-10-06",
+        "open_deadline": false,
+        "contact_email": "gabriele.kuessler@ffg.at",
+        "contact_phone": "+43 577 55-1504",
+        "funding_types": [
+          "grant"
+        ],
+        "program_focus": [
+          "research",
+          "innovation"
+        ],
+        "region": "Austria"
+      }
+    },
+    "modelVersion": "text-embedding-3-small",
+    "timestamp": 1762687604164,
+    "url": "https://www.ffg.at/en/node/22917"
   }
 }
