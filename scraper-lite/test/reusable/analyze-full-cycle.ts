@@ -98,16 +98,22 @@ async function analyzeFullCycle() {
   console.log('\n📝 3. REQUIREMENTS ANALYSIS');
   console.log('─'.repeat(60));
   
+  // Requirements are in separate table, count per page
   const requirements = await pool.query(`
     SELECT 
-      COUNT(*) as total_pages,
-      COUNT(*) FILTER (WHERE array_length(requirements, 1) >= 5) as good_pages,
-      COUNT(*) FILTER (WHERE array_length(requirements, 1) < 5) as low_quality,
-      AVG(array_length(requirements, 1)) as avg_requirements,
-      MIN(array_length(requirements, 1)) as min_requirements,
-      MAX(array_length(requirements, 1)) as max_requirements
-    FROM pages
-    WHERE funding_types IS NOT NULL
+      COUNT(DISTINCT p.id) as total_pages,
+      COUNT(DISTINCT p.id) FILTER (WHERE req_counts.req_count >= 5) as good_pages,
+      COUNT(DISTINCT p.id) FILTER (WHERE req_counts.req_count < 5) as low_quality,
+      AVG(req_counts.req_count) as avg_requirements,
+      MIN(req_counts.req_count) as min_requirements,
+      MAX(req_counts.req_count) as max_requirements
+    FROM pages p
+    LEFT JOIN (
+      SELECT page_id, COUNT(*) as req_count
+      FROM requirements
+      GROUP BY page_id
+    ) req_counts ON p.id = req_counts.page_id
+    WHERE p.funding_types IS NOT NULL
   `);
   
   const r = requirements.rows[0];
@@ -222,10 +228,15 @@ async function analyzeFullCycle() {
   const recent = await pool.query(`
     SELECT 
       COUNT(*) as pages_scraped,
-      COUNT(DISTINCT institution) as institutions,
-      AVG(array_length(requirements, 1)) as avg_requirements
-    FROM pages
-    WHERE fetched_at > NOW() - INTERVAL '24 hours'
+      COUNT(DISTINCT metadata_json->>'institution') as institutions,
+      AVG(req_counts.req_count) as avg_requirements
+    FROM pages p
+    LEFT JOIN (
+      SELECT page_id, COUNT(*) as req_count
+      FROM requirements
+      GROUP BY page_id
+    ) req_counts ON p.id = req_counts.page_id
+    WHERE p.fetched_at > NOW() - INTERVAL '24 hours'
   `);
   
   const rec = recent.rows[0];
