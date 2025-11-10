@@ -40,10 +40,13 @@
         "blacklist:list": "tsx scraper-lite/test/manage-blacklist.ts list",
         "blacklist:clean": "tsx scraper-lite/test/manage-blacklist.ts clean",
         "blacklist:recheck": "tsx scraper-lite/test/recheck-blacklist.ts",
-        "normalize:funding-types": "tsx scraper-lite/test/normalize-funding-types.ts"
+        "normalize:funding-types": "tsx scraper-lite/test/normalize-funding-types.ts",
+        "dashboard": "tsx scraper-lite/dashboard/server.ts"
     },
     "devDependencies": {
         "@next/eslint-plugin-next": "^15.5.4",
+        "@types/cors": "^2.8.19",
+        "@types/express": "^5.0.5",
         "@types/file-saver": "^2.0.7",
         "@types/node": "^20.19.16",
         "@types/pdf-parse": "^1.1.5",
@@ -78,7 +81,9 @@
         "cheerio": "^1.1.2",
         "class-variance-authority": "^0.7.1",
         "clsx": "^2.1.1",
+        "cors": "^2.8.5",
         "docx": "^9.5.1",
+        "express": "^5.1.0",
         "file-saver": "^2.0.5",
         "formidable": "^3.5.4",
         "html2pdf.js": "^0.12.1",
