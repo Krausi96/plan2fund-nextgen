@@ -153,11 +153,38 @@ export async function loginToSite(config: LoginConfig): Promise<LoginResult> {
       }
     });
     
-    // Check if login was successful (basic check)
-    const responseText = await response.text();
-    const isSuccess = !responseText.toLowerCase().includes('invalid') &&
-                     !responseText.toLowerCase().includes('error') &&
-                     !responseText.toLowerCase().includes('failed');
+    // IMPROVED: Better login success detection and error messages
+    const responseText = await response.text().toLowerCase();
+    const responseUrl = response.url.toLowerCase();
+    
+    // Check for specific error patterns
+    const hasInvalidCredentials = responseText.includes('invalid') || 
+                                  responseText.includes('wrong') ||
+                                  responseText.includes('incorrect') ||
+                                  responseText.includes('ungültig') ||
+                                  responseText.includes('falsch');
+    
+    const hasCaptcha = responseText.includes('captcha') || 
+                      responseText.includes('recaptcha') ||
+                      responseText.includes('verify you are human');
+    
+    const hasAccountLocked = responseText.includes('locked') || 
+                            responseText.includes('blocked') ||
+                            responseText.includes('gesperrt');
+    
+    const hasTwoFactor = responseText.includes('2fa') || 
+                        responseText.includes('two-factor') ||
+                        responseText.includes('verification code');
+    
+    const isSuccess = !hasInvalidCredentials && 
+                     !hasCaptcha && 
+                     !hasAccountLocked &&
+                     !hasTwoFactor &&
+                     !responseText.includes('error') &&
+                     !responseText.includes('failed') &&
+                     response.status >= 200 && 
+                     response.status < 400 &&
+                     (Object.keys(cookies).length > 0 || responseUrl !== loginUrl.toLowerCase());
     
     if (isSuccess && Object.keys(cookies).length > 0) {
       // Find session cookie
@@ -174,9 +201,28 @@ export async function loginToSite(config: LoginConfig): Promise<LoginResult> {
         cookies
       };
     } else {
+      // Provide specific error message
+      let errorMessage = 'Login failed';
+      
+      if (hasInvalidCredentials) {
+        errorMessage = 'Invalid credentials - check email and password';
+      } else if (hasCaptcha) {
+        errorMessage = 'CAPTCHA required - manual login needed';
+      } else if (hasAccountLocked) {
+        errorMessage = 'Account locked or blocked - check account status';
+      } else if (hasTwoFactor) {
+        errorMessage = 'Two-factor authentication required - not supported';
+      } else if (response.status === 401 || response.status === 403) {
+        errorMessage = `Authentication failed (HTTP ${response.status}) - check credentials`;
+      } else if (Object.keys(cookies).length === 0) {
+        errorMessage = 'No session cookie received - login form may have changed';
+      } else {
+        errorMessage = 'Login failed - unknown error (check form structure)';
+      }
+      
       return {
         success: false,
-        error: 'Login failed - invalid credentials or form submission error',
+        error: errorMessage,
         cookies
       };
     }
@@ -190,10 +236,12 @@ export async function loginToSite(config: LoginConfig): Promise<LoginResult> {
 
 /**
  * Fetch HTML with authentication (if login config provided)
+ * Uses session cache to avoid re-logging in for every request
  */
 export async function fetchHtmlWithAuth(
   url: string,
-  loginConfig?: LoginConfig
+  loginConfig?: LoginConfig,
+  institutionId?: string
 ): Promise<{ html: string; status: number; cookies?: Record<string, string> }> {
   if (!loginConfig) {
     // No auth needed, use regular fetch
@@ -204,15 +252,32 @@ export async function fetchHtmlWithAuth(
     };
   }
   
-  // Try to login first
-  const loginResult = await loginToSite(loginConfig);
+  // Check for cached session first
+  let cookies: Record<string, string> | null = null;
+  if (institutionId) {
+    const { getCachedSession } = await import('./session-cache');
+    cookies = getCachedSession(institutionId);
+  }
   
-  if (!loginResult.success || !loginResult.cookies) {
-    throw new Error(`Authentication failed: ${loginResult.error}`);
+  // If no cached session, login
+  if (!cookies) {
+    const loginResult = await loginToSite(loginConfig);
+    
+    if (!loginResult.success || !loginResult.cookies) {
+      throw new Error(`Authentication failed: ${loginResult.error}`);
+    }
+    
+    cookies = loginResult.cookies;
+    
+    // Cache the session
+    if (institutionId) {
+      const { cacheSession } = await import('./session-cache');
+      cacheSession(institutionId, cookies, 60); // Cache for 1 hour
+    }
   }
   
   // Fetch page with cookies
-  const cookieString = Object.entries(loginResult.cookies)
+  const cookieString = Object.entries(cookies)
     .map(([name, value]) => `${name}=${value}`)
     .join('; ');
   
@@ -223,12 +288,47 @@ export async function fetchHtmlWithAuth(
     }
   });
   
+  // If we get 401/403, session might be expired - clear cache and retry
+  if (response.status === 401 || response.status === 403) {
+    if (institutionId) {
+      const { clearSession } = await import('./session-cache');
+      clearSession(institutionId);
+      
+      // Retry login
+      const loginResult = await loginToSite(loginConfig);
+      if (loginResult.success && loginResult.cookies) {
+        cookies = loginResult.cookies;
+        if (institutionId) {
+          const { cacheSession } = await import('./session-cache');
+          cacheSession(institutionId, cookies, 60);
+        }
+        
+        // Retry fetch
+        const cookieString2 = Object.entries(cookies)
+          .map(([name, value]) => `${name}=${value}`)
+          .join('; ');
+        const response2 = await fetch(url, {
+          headers: {
+            'Cookie': cookieString2,
+            'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36'
+          }
+        });
+        const html2 = await response2.text();
+        return {
+          html: html2,
+          status: response2.status,
+          cookies
+        };
+      }
+    }
+  }
+  
   const html = await response.text();
   
   return {
     html,
     status: response.status,
-    cookies: loginResult.cookies
+    cookies
   };
 }
 

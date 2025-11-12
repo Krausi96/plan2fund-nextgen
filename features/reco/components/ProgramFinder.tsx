@@ -103,7 +103,8 @@ export default function ProgramFinder({
     
     try {
       setIsLoading(true);
-      const scored = await scoreProgramsEnhanced(answers, 'strict', programs);
+      const filteredPrograms = questionEngine.getFilteredProgramsForAnswers(answers);
+      const scored = await scoreProgramsEnhanced(answers, 'strict', filteredPrograms);
       setResults(scored);
       // Store in context for results page
       setRecommendations(scored);

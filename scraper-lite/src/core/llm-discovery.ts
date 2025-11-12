@@ -57,13 +57,20 @@ Rules:
 - qualityScore: 0-100 based on how likely it contains useful program information
 - isOverviewPage: true if this lists multiple programs
 
-EXCLUDE these URL patterns (NOT programs):
+EXCLUDE these URL patterns (NOT programs - mark as "no"):
 - /about-us/, /about/, /ueber/, /chi-siamo/
-- /contact/, /kontakt/, /contact-us/
-- /team/, /team-members/
-- /news/, /press/, /media/
-- /imprint/, /impressum/, /privacy/, /datenschutz/
-- /legal/, /terms/, /conditions/`;
+- /contact/, /kontakt/, /contact-us/, /team-contact/
+- /team/, /team-members/, /team-members/
+- /news/, /press/, /media/, /newsletter/
+- /imprint/, /impressum/, /privacy/, /datenschutz/, /data-protection/
+- /legal/, /terms/, /conditions/
+- /accessibility/, /accessibility-statement/
+- /login/, /sign-in/, /register/
+- /events/, /workshops/, /events-workshops/
+- /faq/, /frequently-asked-questions/
+- Pages with titles like "Team", "Contact", "Accessibility", "Login", "Newsletter", "FAQ"
+
+IMPORTANT: If URL or title suggests it's NOT a funding program page, mark as "no" with qualityScore 0-20.`;
 
   try {
     let responseText: string | null = null;
@@ -128,6 +135,7 @@ EXCLUDE these URL patterns (NOT programs):
 
 /**
  * Batch classify multiple URLs at once (more efficient)
+ * Note: Gemini doesn't support batch classification well, so we skip batch for Gemini
  */
 export async function batchClassifyUrls(
   urls: Array<{ url: string; title?: string; description?: string }>,
@@ -135,8 +143,53 @@ export async function batchClassifyUrls(
 ): Promise<UrlClassification[]> {
   if (urls.length === 0) return [];
   
-  // Limit batch size to avoid token limits
-  const BATCH_SIZE = 20;
+  // Check if using Gemini - skip batch classification (doesn't work well)
+  const isGemini = process.env.CUSTOM_LLM_ENDPOINT?.includes('generativelanguage.googleapis.com');
+  
+  if (isGemini) {
+    // Gemini: Use individual classification with rate limiting
+    // Paid tier: 1,000 req/min - rate limit queue handles throttling
+    console.log(`   ⚠️  Gemini detected - using individual classification with rate limiting`);
+    const results: UrlClassification[] = [];
+    
+    // Process in parallel batches for speed (paid tier can handle high concurrency)
+    const BATCH_SIZE = 20; // Process 20 at a time in parallel (rate limit queue will throttle)
+    for (let i = 0; i < urls.length; i += BATCH_SIZE) {
+      const batch = urls.slice(i, i + BATCH_SIZE);
+      
+      // Process batch in parallel - rate limit queue handles throttling
+      const batchResults = await Promise.all(
+        batch.map(async (urlData) => {
+          try {
+            return await classifyUrl(urlData.url, urlData.title, urlData.description, customPrompt);
+          } catch (error: any) {
+            return {
+              url: urlData.url,
+              isProgramPage: 'maybe' as const,
+              fundingType: 'unknown' as const,
+              qualityScore: 50,
+              isOverviewPage: false,
+              reason: `Classification failed: ${error.message}`
+            };
+          }
+        })
+      );
+      
+      results.push(...batchResults);
+    }
+    
+    return results;
+  }
+  
+  // Dynamic batch sizing for optimal performance
+  // Smaller batches for large URL counts to prevent timeouts
+  let BATCH_SIZE = 30;
+  if (urls.length > 200) {
+    BATCH_SIZE = 10; // Large batches: smaller size to prevent timeouts
+  } else if (urls.length > 50) {
+    BATCH_SIZE = 20; // Medium batches: moderate size
+  }
+  // Small batches (<50): use 30 for speed
   const results: UrlClassification[] = [];
   
   for (let i = 0; i < urls.length; i += BATCH_SIZE) {

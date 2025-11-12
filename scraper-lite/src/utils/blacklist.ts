@@ -1,12 +1,229 @@
 /**
  * Blacklist/Exclusion Utilities
  * Checks database-backed exclusions and hardcoded fallbacks
+ * 
+ * THIS IS THE SINGLE SOURCE OF TRUTH FOR EXCLUSION KEYWORDS
+ * All exclusion keywords are defined here and exported for use in:
+ * - unified-scraper.ts (runtime filtering)
+ * - cleanup-irrelevant.ts (database cleanup)
+ * - Self-learning system (learns new patterns automatically)
  */
 
 import { getPool } from '../../db/db';
 
-// Hardcoded exclusion patterns (fallback for common exclusions)
-const HARDCODED_EXCLUSIONS = [
+// ============================================================================
+// EXCLUSION KEYWORDS - Single source of truth
+// ============================================================================
+
+/**
+ * String keywords to match in URLs (for cleanup scripts and simple checks)
+ * THIS IS THE SINGLE SOURCE OF TRUTH - all exclusion keywords consolidated here
+ */
+export const EXCLUSION_KEYWORDS: string[] = [
+  // Jobs/Careers
+  'stellenangebote',
+  'stellenangebot',
+  'jobboerse',
+  'jobs',
+  'karriere',
+  'careers',
+  'career',
+  'stellen',
+  'aktuell',
+  // Training/Education
+  'weiterbildung',
+  'mitarbeiterweiterbildung',
+  'lehrling',
+  'lehrlings',
+  'kursdatenbank',
+  // Events
+  'event',
+  'events',
+  'veranstaltung',
+  'veranstaltungen',
+  'events/kalender',
+  'event-tipps',
+  'events-workshops',
+  // Legal/Privacy
+  'newsletter',
+  'data-protection',
+  'privacy-policy',
+  'datenschutz',
+  'impressum',
+  'ueber-uns',
+  'about-us',
+  'about',
+  'ueber',
+  'über',
+  'chi-siamo',
+  'downloads',
+  'download',
+  'privacy',
+  'confidentialite',
+  'mentions-legales',
+  'note-legali',
+  // Info/FAQ/Help pages
+  'info',
+  'information',
+  'informations',
+  'faq',
+  'frequently-asked',
+  'fragen',
+  'questions',
+  'help',
+  'hilfe',
+  'contact',
+  'news',
+  'press',
+  'media',
+  // Service pages
+  'service',
+  'newsroom',
+  'magazine',
+  'presse',
+  'die-sfg',
+  'barrierefreiheit',
+  'impact-eureka',
+  'service/cases',
+  'web-services',
+  // Consulting/Advisory (not funding programs)
+  'alarmanlagen',
+  'sonderfoerder',
+  'sonderförder',
+  'coaching',
+  'cluster',
+  'technologieinfrastruktur',
+  'netzwerk',
+  'beratung-',
+  'beratung/',
+  'beratungsscheck',
+  'unternehmensberatung',
+  'rechtsberatung',
+  'consulting',
+  // Guidelines/Policy pages
+  'richtlinien',
+  'guidelines',
+  'policy',
+  'policies',
+  'richtlinie',
+  'bestimmungen',
+  'bedingungen',
+  'terms',
+  'conditions',
+  'terms-and-conditions',
+  'regulations',
+  'regeln',
+  'vorschriften',
+  'standards',
+  'normen',
+  'anleitung',
+  'instructions',
+  'handbuch',
+  'manual',
+  'dokumentation',
+  // Obsolete/non-program pages
+  'overview',
+  'übersicht',
+  'uebersicht',
+  'general',
+  'allgemein',
+  'home',
+  'startseite',
+  'index',
+  'main',
+  'sitemap',
+  'navigation',
+  'menu',
+  // Housing/Real Estate (not business funding)
+  'wohnbau',
+  'wohnbauförderung',
+  'wohnung',
+  'wohnungsbau',
+  'wohnungsförderung',
+  'wohnbeihilfe',
+  'bauen-wohnen',
+  'raumplanung',
+  'housing',
+  'real estate',
+  'immobilie',
+  'immobilien',
+  'baufinanzierung',
+  'hypothek',
+  'mortgage',
+  'privatkunden',
+  'private',
+  // Agriculture/Forestry (not startup/SME funding)
+  'landwirtschaft',
+  'forstwirtschaft',
+  'agriculture',
+  'forestry',
+  'pflanzenschutz',
+  'gentechnik',
+  'almwirtschaft',
+  'agrarbehoerde',
+  'bodenschutz',
+  'schutzwald',
+  'forstliche',
+  'walderschliessung',
+  // Infrastructure (not business funding)
+  'verkehrsinfrastruktur',
+  'traffic',
+  'bahninfrastruktur',
+  'eisenbahn',
+  'bau-neubau',
+  'bauordnung',
+  'baurecht',
+  'gestalten',
+  'bauprojekt',
+  'construction',
+  'infrastructure',
+  'building',
+  'neubau',
+  // Category/listing pages
+  'brancheninformationen',
+  'gastronomie-und-tourismus',
+  'themen/',
+  'programm/',
+  'programme/',
+  'foerderungen/',
+  'ausschreibungen/',
+  'calls/',
+  // Success stories/showcases (not funding programs)
+  'success-stories',
+  'success-story',
+  'geförderte-projekte',
+  'gefoerderte-projekte',
+  // Info/About/Discovery pages
+  '/info/',
+  'descubre-',
+  'discover/',
+  'discoveries/',
+  'awards/',
+  'impact-stories/',
+  'portfolio/',
+  'topics/',
+  'organizacion',
+  'transparencia',
+  'valores',
+  // Tirol-specific meta pages
+  'business-angel-summit',
+  'datahubtirol',
+  'startuptirol',
+  'zukunftsfit',
+  // Login/Auth
+  'login',
+  'connexion',
+  'espace-client',
+  // Other
+  'meta-extern',
+  'meta/',
+  'cases'
+];
+
+/**
+ * Regex patterns for URL path matching (more precise than keywords)
+ */
+export const HARD_SKIP_URL_PATTERNS: RegExp[] = [
   // Email protection
   /cdn-cgi\/l\/email-protection/i,
   /email-protection#/i,
@@ -23,7 +240,7 @@ const HARDCODED_EXCLUSIONS = [
   /\/data-protection\//i,
   /\/disclaimer\//i,
   
-  // Career/Job pages (not funding programs)
+  // Career/Job pages
   /\/karriere\//i,
   /\/career\//i,
   /\/careers\//i,
@@ -33,23 +250,107 @@ const HARDCODED_EXCLUSIONS = [
   /\/stellenangebote\//i,
   /\/recruitment\//i,
   /\/bewerbung\//i,
-  /karriere|career|job|stellen|recruitment|bewerbung/i, // Also match in path/domain
   
   // Housing/Real Estate
-  /wohnbau|wohnung|wohnbauförderung|wohnungsbau|wohnbeihilfe|bauen-wohnen|raumplanung/i,
-  /housing|real.estate|immobilie|baufinanzierung|hypothek|mortgage/i,
+  /\/wohnbau\/|\/wohnung\/|\/wohnungsbau\/|\/wohnbeihilfe\/|\/bauen-wohnen\/|\/raumplanung\//i,
+  /\/housing\/|\/real-estate\/|\/immobilie\/|\/baufinanzierung\/|\/hypothek\/|\/mortgage\//i,
   
   // Agriculture/Forestry
-  /landwirtschaft|forstwirtschaft|agriculture|forestry/i,
-  /pflanzenschutz|gentechnik|almwirtschaft|agrarbehoerde|bodenschutz|schutzwald|forstliche|walderschliessung/i,
+  /\/landwirtschaft\/|\/forstwirtschaft\/|\/agriculture\/|\/forestry\//i,
+  /\/pflanzenschutz\/|\/gentechnik\/|\/almwirtschaft\/|\/agrarbehoerde\/|\/bodenschutz\/|\/schutzwald\/|\/forstliche\/|\/walderschliessung\//i,
   
   // Infrastructure/Construction
-  /verkehrsinfrastruktur|traffic|bahninfrastruktur|eisenbahn|bau-neubau|bauordnung|baurecht|bauprojekt/i,
-  /construction|infrastructure|building|neubau/i,
+  /\/verkehrsinfrastruktur\/|\/traffic\/|\/bahninfrastruktur\/|\/eisenbahn\/|\/bau-neubau\/|\/bauordnung\/|\/baurecht\/|\/bauprojekt\//i,
+  /\/construction\/|\/infrastructure\/|\/building\/|\/neubau\//i,
   
   // Private consumer
-  /privatkunden|private|consumer|endkunde/i,
+  /\/privatkunden\/|\/private\/|\/consumer\/|\/endkunde\//i,
+  
+  // Institution-specific patterns
+  /bpifrance\.fr\/(?:nous-decouvrir|nos-actualites|appels-offres|espace-(?:investisseurs|fournisseurs)|reglementaire|politique-de-divulgation-de-vulnerabilites|plan-general-du-site|mentions-legales|accessibilite)/i,
+  /bpifrance\.fr\/(?:download|media-file)/i,
+  /bpifrance\.fr\/.*\/newsletter/i,
+  /bpifrance\.fr\/nos-solutions\/(?:conseil|accompagnement)(?:\/|#|$)/i,
+  /bpifrance\.fr\/nos-solutions\/financement\/financement(?:\/|#|$)/i,
+  /kfw\.de\/(?:über-die-kfw|karriere|kontakt|impressum|phishing|inlandsfoerderung\/phishing-warnung)/i,
+  /sparkasse\.at\/.*(?:filialen|kundenservice|impressum|agb|datenschutz|apps|mobile-payments)/i,
+  /bank[a-z]*\.at\/.*(?:impressum|kontakt|karriere|kundenservice)/i,
+  /indiegogo\.com\/help/i,
+  /kickstarter\.com\/help/i,
+  /ec\.europa\.eu\/info\/research-and-innovation\/funding\/funding-opportunities\/(?:find|how|what)/i,
+  /research-and-innovation\.ec\.europa\.eu\/funding\/funding-opportunities\/(?:find|how|what)/i,
+  /research-and-innovation\.ec\.europa\.eu\/funding\/funding-opportunities\/practical-guide/i,
+  /ec\.europa\.eu\/[^?#]*\/about/i,
+  /ec\.europa\.eu\/[^?#]*\/contact/i,
+  /ec\.europa\.eu\/[^?#]*\/news/i,
+  /bpifrance\.fr\/nouvelles|bpifrance\.fr\/actus/i,
+  /bpifrance\.fr\/nous-decouvrir\/rejoignez-nous/i,
+  /bpifrance\.fr\/catalogue-offres\/les-conquerants/i,
+  /research-and-innovation\.ec\.europa\.eu\/funding\/funding-opportunities\/search/i,
+  /viennabusinessagency\.at\/(?:data-protection|privacy|imprint|press|downloads?|events?|beratung|ueber-uns|about-us|service|newsroom|magazine|newsletter|consulting)(?:\/|$)/i,
+  /sfg\.at\/die-sfg(?:\/|$)/i,
+  /sfg\.at\/(?:impressum|datenschutz|presse|kontakt|jobs|stellenangebote|weiterbildung|ausbilden-weiterbilden)(?:\/|$)/i,
+  /aws\.at\/(?:ueber-uns|about|kontakt|impressum|datenschutz|karriere|jobs|stellenangebote|newsletter|veranstaltungen|service\/cases)(?:\/|$)/i,
+  /wko\.at\/(?:veranstaltungen|veranstaltungskalender|karriere|jobs|stellenangebote|newsletter|datenschutz|impressum)(?:\/|$)/i,
+  /wko\.at\/.*(?:lehrling|lehrlings|weiterbildung|coaching|alarmanlagen|sonderfoerder|sonderförder|netzwerk)/i,
+  /wko\.at\/foerderungen\/.*beratung/i,
+  /eurekanetwork\.org\/(?:about-us|news|events|newsletter|privacy-policy|impact-eureka|login)(?:\/|$)/i,
+  /standort-tirol\.at\/meta(?:-extern)?(?:\/|$)/i,
+  /standort-tirol\.at\/unternehmen\/.*(?:sonderfoerder|sonderförder|veranstaltung|netzwerk|cluster)/i,
+  /ffg\.at\/beratung/i,
+  /bankaustria\.at\//i,
+  /raiffeisen(?:-leasing)?\.at\//i,
+  /umweltfoerderung\.at\/betriebe\//i,
+  /viennabusinessagency\.at\/(?:$|consulting|events?)(?:\/|$)/i,
+  // Bpifrance non-program pages (many 0-requirement pages)
+  /bpifrance\.fr\/(?:accessibilite|reglementaire|politique-de-divulgation|espace-investisseurs|appels-offres|nos-actualites|nous-decouvrir)(?:\/|$)/i,
+  /bpifrance\.fr\/nos-solutions\/(?:conseil|conseil\/conseil)(?:\/|$)/i,
+  /bpifrance\.fr\/nos-solutions\/financement\/financement-expertise(?:\/|$)/i,
+  // EU research pages (overview pages, not specific programs)
+  /research-and-innovation\.ec\.europa\.eu\/funding\/funding-opportunities\/(?:find|how|what|search)(?:\/|$)/i,
+  /cordis\.europa\.eu\/programme\/id\/(?:HORIZON|HORIZON-EURATOM|HORIZON-EIE)(?:\/|$)/i, // These are overview pages
+  // Contact/team pages
+  /viennabusinessagency\.at\/team-contact\//i,
+  /ffg\.at\/(?:comet\/)?kontakt/i,
+  /ffg\.at\/en\/(?:accessibility|accessibility-statement)/i,
+  // WKO pages with no requirements
+  /wko\.at\/foerderungen\/(?:fachkraeftestipendium|energie|gruenden|normenankauf|planet-fund|tech4people)(?:\/|$)/i,
+  // Generic patterns
+  /\/(stellenangebote|jobs|jobboerse|karriere|career|weiterbildung|events?|veranstaltungen?|newsletter|data-protection|privacy-policy)(?:\/|$)/i,
 ];
+
+/**
+ * Content keywords to check in page text (for pre-LLM heuristics)
+ */
+export const SUSPICIOUS_CONTENT_KEYWORDS: RegExp[] = [
+  /newsletter/i,
+  /inscrivez-vous/i,
+  /abonnez-vous/i,
+  /subscription/i,
+  /subscribe/i,
+  /connexion/i,
+  /login/i,
+  /se connecter/i,
+  /press release/i,
+  /communiqué de presse/i,
+  /podcast/i,
+  /actualités/i,
+  /news/i,
+  /cookies/i,
+  /privacy/i,
+  /conditions générales/i,
+  /careers/i,
+  /jobs/i,
+  /à propos/i,
+  /our mission/i,
+  /stellenangebote/i,
+  /weiterbildung/i,
+  /veranstaltungen?/i,
+  /events?/i,
+];
+
+// Legacy export for backward compatibility
+const HARDCODED_EXCLUSIONS = HARD_SKIP_URL_PATTERNS;
 
 /**
  * Check if URL is excluded (blacklisted)
@@ -122,7 +423,7 @@ export async function getExclusionPatterns(host: string): Promise<Array<{ patter
     const result = await pool.query(`
       SELECT pattern, confidence, usage_count
       FROM url_patterns
-      WHERE host = $1 AND pattern_type = 'exclude'
+      WHERE host = $1 AND pattern_type = 'exclude' AND confidence >= 0.7
       ORDER BY confidence DESC, usage_count DESC
     `, [host.replace('www.', '')]);
     
@@ -226,21 +527,27 @@ export async function updatePatternConfidence(
 
 /**
  * Add manual exclusion pattern
+ * For 404s and confirmed low-quality pages, use high confidence (0.9)
+ * For other cases, use medium confidence (0.7) that increases with confirmations
  */
 export async function addManualExclusion(
   pattern: string,
   host: string,
-  _reason?: string
+  reason?: string
 ): Promise<void> {
   try {
     const pool = getPool();
+    // High confidence for 404s and confirmed issues, medium for others
+    const confidence = reason?.includes('404') || reason?.includes('HTTP') ? 0.9 : 0.7;
+    
     await pool.query(`
       INSERT INTO url_patterns (pattern, pattern_type, host, confidence, learned_from_url, usage_count)
-      VALUES ($1, 'exclude', $2, 0.9, 'manual', 1)
+      VALUES ($1, 'exclude', $2, $3, $4, 1)
       ON CONFLICT (pattern, host, pattern_type) DO UPDATE SET
-        confidence = 0.9,
+        confidence = GREATEST(url_patterns.confidence, $3),
+        usage_count = url_patterns.usage_count + 1,
         updated_at = NOW()
-    `, [pattern, host.replace('www.', '')]);
+    `, [pattern, host.replace('www.', ''), confidence, reason || 'manual']);
   } catch (error: any) {
     throw new Error(`Failed to add manual exclusion: ${error.message}`);
   }

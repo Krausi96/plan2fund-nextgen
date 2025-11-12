@@ -92,26 +92,104 @@ export async function callCustomLLM(request: ChatRequest): Promise<ChatResponse>
     // Log request for debugging (without sensitive data)
     console.log(`🔗 Calling Custom LLM: ${config.endpoint}, model: ${request.model || config.model}`);
     
-    const requestBody = {
-      model: request.model || config.model,
-      messages: request.messages,
-      temperature: request.temperature ?? 0.2,
-      max_tokens: request.maxTokens,
-      // OpenRouter requires response_format as object for JSON mode
-      ...(request.responseFormat === 'json' ? { response_format: { type: 'json_object' } } : {}),
+    // Check if this is Hugging Face Inference API (old format - deprecated)
+    // New router.huggingface.co uses OpenAI-compatible format
+    const isHuggingFaceOldFormat = config.endpoint.includes('api-inference.huggingface.co');
+    // Check if this is Google Gemini API
+    const isGemini = config.endpoint.includes('generativelanguage.googleapis.com');
+    
+    let requestBody: any;
+    let headers: Record<string, string> = {
+      'Content-Type': 'application/json',
     };
+    
+    // Gemini uses x-goog-api-key header, others use Authorization Bearer
+    if (isGemini) {
+      headers['x-goog-api-key'] = config.apiKey || '';
+    } else {
+      headers['Authorization'] = config.apiKey ? `Bearer ${config.apiKey}` : '';
+    }
+    
+    if (isGemini) {
+      // Google Gemini API format
+      // Convert messages to Gemini's contents format
+      const contents: any[] = [];
+      for (const msg of request.messages) {
+        if (msg.role === 'system') {
+          // Gemini doesn't have system role, prepend to first user message
+          if (contents.length === 0 || contents[contents.length - 1].role !== 'user') {
+            contents.push({
+              role: 'user',
+              parts: [{ text: `System: ${msg.content}\n\n` }]
+            });
+          } else {
+            contents[contents.length - 1].parts[0].text = `System: ${msg.content}\n\n${contents[contents.length - 1].parts[0].text}`;
+          }
+        } else if (msg.role === 'user') {
+          contents.push({
+            role: 'user',
+            parts: [{ text: msg.content }]
+          });
+        } else if (msg.role === 'assistant') {
+          contents.push({
+            role: 'model',
+            parts: [{ text: msg.content }]
+          });
+        }
+      }
+      
+      requestBody = {
+        contents: contents,
+        generationConfig: {
+          temperature: request.temperature ?? 0.2,
+          maxOutputTokens: request.maxTokens || 4000,
+          ...(request.responseFormat === 'json' ? { 
+            responseMimeType: 'application/json'
+            // Note: responseSchema is optional - we just want JSON format, not a specific schema
+          } : {}),
+        }
+      };
+    } else if (isHuggingFaceOldFormat) {
+      // Hugging Face Inference API format (old deprecated endpoint)
+      // Convert messages to a single prompt string
+      const prompt = request.messages
+        .map(msg => {
+          if (msg.role === 'system') return `System: ${msg.content}`;
+          if (msg.role === 'user') return `User: ${msg.content}`;
+          if (msg.role === 'assistant') return `Assistant: ${msg.content}`;
+          return msg.content;
+        })
+        .join('\n\n');
+      
+      requestBody = {
+        inputs: prompt,
+        parameters: {
+          max_new_tokens: request.maxTokens || 4000,
+          temperature: request.temperature ?? 0.2,
+          return_full_text: false,
+        }
+      };
+    } else {
+      // OpenAI-compatible format (Groq, OpenRouter, etc.)
+      requestBody = {
+        model: request.model || config.model,
+        messages: request.messages,
+        temperature: request.temperature ?? 0.2,
+        max_tokens: request.maxTokens,
+        // OpenRouter requires response_format as object for JSON mode
+        ...(request.responseFormat === 'json' ? { response_format: { type: 'json_object' } } : {}),
+      };
+      
+      // OpenRouter requires HTTP-Referer header
+      if (config.endpoint.includes('openrouter.ai')) {
+        headers['HTTP-Referer'] = 'https://plan2fund.com';
+        headers['X-Title'] = 'Plan2Fund Scraper';
+      }
+    }
     
     const response = await fetch(config.endpoint, {
       method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        ...(config.apiKey ? { Authorization: `Bearer ${config.apiKey}` } : {}),
-        // OpenRouter requires HTTP-Referer header
-        ...(config.endpoint.includes('openrouter.ai') ? { 
-          'HTTP-Referer': 'https://plan2fund.com',
-          'X-Title': 'Plan2Fund Scraper'
-        } : {}),
-      },
+      headers,
       body: JSON.stringify(requestBody),
       signal: controller.signal,
     });
@@ -131,11 +209,37 @@ export async function callCustomLLM(request: ChatRequest): Promise<ChatResponse>
     const json = await response.json();
     const latencyMs = now() - started;
 
-    // Expecting OpenAI-compatible response structure. Fall back to best-effort parsing.
-    const output = json.choices?.[0]?.message?.content
-      || json.output
-      || json.content
-      || JSON.stringify(json);
+    // Parse response based on provider format
+    let output: string;
+    if (isGemini) {
+      // Gemini returns { candidates: [{ content: { parts: [{ text: "..." }] } }] }
+      const candidate = json.candidates?.[0];
+      if (candidate?.content?.parts?.[0]?.text) {
+        output = candidate.content.parts[0].text;
+      } else {
+        output = JSON.stringify(json);
+      }
+    } else if (isHuggingFaceOldFormat) {
+      // Hugging Face returns { generated_text: "..." } or array [{ generated_text: "..." }]
+      if (Array.isArray(json)) {
+        output = json[0]?.generated_text || json[0]?.text || '';
+      } else {
+        output = json.generated_text || json.text || '';
+      }
+      // Remove the original prompt if return_full_text was true
+      if (output && request.messages.length > 0) {
+        const prompt = request.messages.map(m => m.content).join('\n\n');
+        if (output.startsWith(prompt)) {
+          output = output.substring(prompt.length).trim();
+        }
+      }
+    } else {
+      // OpenAI-compatible response structure
+      output = json.choices?.[0]?.message?.content
+        || json.output
+        || json.content
+        || JSON.stringify(json);
+    }
 
     return {
       id: json.id || `custom-${Date.now()}`,

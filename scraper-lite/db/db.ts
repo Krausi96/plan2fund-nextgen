@@ -43,7 +43,7 @@ export function getPool(): Pool {
       ssl: process.env.DATABASE_URL.includes('neon.tech') ? { rejectUnauthorized: false } : false,
       max: 20,
       idleTimeoutMillis: 30000,
-      connectionTimeoutMillis: 2000,
+      connectionTimeoutMillis: 10000, // Increased from 2000ms to 10000ms (10 seconds)
     });
 
     pool.on('error', (err) => {
@@ -96,8 +96,18 @@ export interface PageMetadata {
 // Normalize metadata (extracted from extract.ts)
 export function normalizeMetadata(raw: any): PageMetadata {
   try {
-    const funding_amount_min = (raw.funding_amount_min != null && raw.funding_amount_min !== undefined) ? Number(raw.funding_amount_min) : null;
-    const funding_amount_max = (raw.funding_amount_max != null && raw.funding_amount_max !== undefined) ? Number(raw.funding_amount_max) : null;
+    let funding_amount_min = (raw.funding_amount_min != null && raw.funding_amount_min !== undefined) ? Number(raw.funding_amount_min) : null;
+    let funding_amount_max = (raw.funding_amount_max != null && raw.funding_amount_max !== undefined) ? Number(raw.funding_amount_max) : null;
+    
+    // FIX #4: Validate and fix inverted amounts (min > max)
+    if (funding_amount_min != null && funding_amount_max != null && !isNaN(funding_amount_min) && !isNaN(funding_amount_max)) {
+      if (funding_amount_min > funding_amount_max) {
+        // Swap min and max if inverted
+        console.warn(`   ⚠️  Inverted amounts detected (min: ${funding_amount_min} > max: ${funding_amount_max}), swapping...`);
+        [funding_amount_min, funding_amount_max] = [funding_amount_max, funding_amount_min];
+      }
+      // Note: Same min/max is valid (fixed amount) - don't change
+    }
     
     // Normalize date format (DD.MM.YYYY -> YYYY-MM-DD)
     const { normalizeDate } = require('../src/utils/date');
@@ -231,8 +241,24 @@ export async function savePageWithRequirements(page: PageMetadata): Promise<numb
               : null;
             
             // Skip if meaningfulness is too low (unless it's null, then we'll save it)
-            if (meaningfulness !== null && meaningfulness < 30) {
+            // Lowered threshold to 10 to capture ALL valid requirements (100% completeness)
+            if (meaningfulness !== null && meaningfulness < 10) {
               return; // Skip this requirement
+            }
+            
+            // FIX #1: Filter out metadata fields that were incorrectly extracted as requirements
+            const metadataFieldTypes = [
+              'currency', 'funding_amount_min', 'funding_amount_max', 'funding_amount_status',
+              'deadline', 'open_deadline', 'deadline_status', 'amount_status'
+            ];
+            if (metadataFieldTypes.includes(item.type?.toLowerCase() || '')) {
+              return; // Skip - this is metadata, not a requirement
+            }
+            
+            // Also filter out generic single-word values that are likely metadata
+            const valueStr = String(item.value || '').trim();
+            if (valueStr.length < 10 && /^(EUR|USD|GBP|CHF|fixed|variable|yes|no|true|false|both|none|all|any)$/i.test(valueStr)) {
+              return; // Skip - too generic, likely metadata
             }
             
             // Apply learned requirement patterns (filter generic values, deduplicate)
@@ -325,29 +351,77 @@ export async function isUrlInDatabase(url: string): Promise<boolean> {
   }
 }
 
-export async function getQueuedUrls(limit: number): Promise<string[]> {
+export async function getQueuedUrls(limit: number, includeExisting: boolean = false): Promise<string[]> {
   try {
     const pool = getPool();
+    // If includeExisting is true, return queued URLs even if they're already in pages table (for force update)
+    const existingFilter = includeExisting ? '' : 'AND p.id IS NULL';
+    
+    // IMPROVED: Add institution rotation and age-based priority boost
+    // This prevents the same institutions (AWS/FFG) from always being processed first
     const result = await pool.query(`
-      SELECT j.url 
-      FROM scraping_jobs j
-      LEFT JOIN pages p ON j.url = p.url
-      WHERE j.status = $1 
-        AND p.id IS NULL
-        AND j.url NOT LIKE '%cdn-cgi/l/email-protection%'
-        AND j.url NOT LIKE '%email-protection#%'
-        AND j.url NOT LIKE '%/sitemap/%'
-        AND j.url NOT LIKE '%/accessibility/%'
-        AND j.url NOT LIKE '%/data-protection/%'
-        AND j.url NOT LIKE '%/disclaimer/%'
-        AND j.url NOT LIKE '%facebook.com%'
-        AND j.url NOT LIKE '%linkedin.com%'
-        AND j.url NOT LIKE '%twitter.com%'
-        AND j.url NOT LIKE '%x.com%'
-        AND j.url NOT LIKE 'mailto:%'
-        AND j.url NOT LIKE '%sharer%'
-        AND j.url NOT LIKE '%shareArticle%'
-      ORDER BY j.quality_score DESC, j.created_at ASC 
+      WITH ranked_urls AS (
+        SELECT 
+          j.url,
+          j.quality_score,
+          j.created_at,
+          CASE 
+            WHEN j.url LIKE '%aws.at%' THEN 'AWS'
+            WHEN j.url LIKE '%ffg.at%' THEN 'FFG'
+            WHEN j.url LIKE '%wko.at%' THEN 'WKO'
+            WHEN j.url LIKE '%viennabusinessagency.at%' THEN 'VBA'
+            WHEN j.url LIKE '%sfg.at%' THEN 'SFG'
+            WHEN j.url LIKE '%standort-tirol.at%' THEN 'Standort Tirol'
+            WHEN j.url LIKE '%wirtschaftsagentur-burgenland.at%' THEN 'WIBAG'
+            WHEN j.url LIKE '%noe.gv.at%' THEN 'Land NÖ'
+            WHEN j.url LIKE '%bmk.gv.at%' THEN 'BMK'
+            ELSE 'Other'
+          END as institution,
+          -- Age-based priority boost: +1 quality per day old (max +30)
+          LEAST(30, EXTRACT(EPOCH FROM (NOW() - j.created_at)) / 86400)::INTEGER as age_days,
+          -- Institution rotation: Add random offset to prevent always processing same institution first
+          ROW_NUMBER() OVER (PARTITION BY 
+            CASE 
+              WHEN j.url LIKE '%aws.at%' THEN 'AWS'
+              WHEN j.url LIKE '%ffg.at%' THEN 'FFG'
+              WHEN j.url LIKE '%wko.at%' THEN 'WKO'
+              WHEN j.url LIKE '%viennabusinessagency.at%' THEN 'VBA'
+              WHEN j.url LIKE '%sfg.at%' THEN 'SFG'
+              WHEN j.url LIKE '%standort-tirol.at%' THEN 'Standort Tirol'
+              WHEN j.url LIKE '%wirtschaftsagentur-burgenland.at%' THEN 'WIBAG'
+              WHEN j.url LIKE '%noe.gv.at%' THEN 'Land NÖ'
+              WHEN j.url LIKE '%bmk.gv.at%' THEN 'BMK'
+              ELSE 'Other'
+            END 
+            ORDER BY j.quality_score DESC, j.created_at ASC
+          ) as institution_rank
+        FROM scraping_jobs j
+        LEFT JOIN pages p ON j.url = p.url
+        WHERE j.status = $1 
+          ${existingFilter}
+          AND j.url NOT LIKE '%cdn-cgi/l/email-protection%'
+          AND j.url NOT LIKE '%email-protection#%'
+          AND j.url NOT LIKE '%/sitemap/%'
+          AND j.url NOT LIKE '%/accessibility/%'
+          AND j.url NOT LIKE '%/data-protection/%'
+          AND j.url NOT LIKE '%/disclaimer/%'
+          AND j.url NOT LIKE '%facebook.com%'
+          AND j.url NOT LIKE '%linkedin.com%'
+          AND j.url NOT LIKE '%twitter.com%'
+          AND j.url NOT LIKE '%x.com%'
+          AND j.url NOT LIKE 'mailto:%'
+          AND j.url NOT LIKE '%sharer%'
+          AND j.url NOT LIKE '%shareArticle%'
+      )
+      SELECT url
+      FROM ranked_urls
+      ORDER BY 
+        -- Prioritize by adjusted quality (original + age boost)
+        (quality_score + age_days) DESC,
+        -- Within same quality, rotate institutions (process 1 URL per institution, then next)
+        institution_rank ASC,
+        -- Finally, oldest first
+        created_at ASC
       LIMIT $2
     `, ['queued', limit]);
     return result.rows.map((r: any) => r.url);
@@ -470,16 +544,54 @@ export async function learnUrlPatternFromPage(url: string, host: string, success
     // Replace numbers with :id, but keep structure
     path = path.replace(/\d+/g, ':id');
     
+    // FIX #5: Count path segments (non-empty)
+    const pathSegments = path.split('/').filter(s => s.length > 0);
+    
     // For exclusions, be more specific - require at least 2 path segments
     // This prevents excluding entire directories
-    if (!success && path.split('/').filter(s => s.length > 0).length < 2) {
+    if (!success && pathSegments.length < 2) {
       // Too broad - don't learn exclusion for root-level paths
       return;
     }
     
+    // For inclusions, also require at least 2 segments to avoid too-broad patterns
+    // Exception: Very specific single-segment paths like "/foerdermanager" are OK
+    if (success && pathSegments.length < 2 && !path.match(/^(foerdermanager|login|anmelden|connexion)$/i)) {
+      // Too broad - don't learn inclusion for root-level paths
+      return;
+    }
+    
     const patternType = success ? 'include' : 'exclude';
-    const confidence = success ? 0.9 : 0.6; // Lower confidence for exclusions (might be false positive)
+    
+    // FIX #5: Improved confidence calculation:
+    // - Inclusions: High confidence (0.9) - we know these work
+    // - Exclusions: Start low (0.5), increase with confirmations
+    //   - First exclusion: 0.5 (might be false positive)
+    //   - After 3 confirmations: 0.7 (probably correct)
+    //   - After 5 confirmations: 0.8 (very likely correct)
+    //   - Only apply exclusions with confidence >= 0.7
+    const baseConfidence = success ? 0.9 : 0.5;
     const successRate = success ? 100 : 0; // Exclusions have 0% success rate
+
+    // Check existing pattern to calculate new confidence
+    const existing = await pool.query(
+      `SELECT usage_count, confidence FROM url_patterns 
+       WHERE host = $1 AND pattern_type = $2 AND pattern = $3`,
+      [host, patternType, path]
+    );
+    
+    let newConfidence = baseConfidence;
+    if (existing.rows.length > 0 && !success) {
+      // For exclusions, increase confidence with confirmations
+      const usageCount = existing.rows[0].usage_count + 1;
+      if (usageCount >= 5) {
+        newConfidence = 0.8; // High confidence after 5 confirmations
+      } else if (usageCount >= 3) {
+        newConfidence = 0.7; // Medium confidence after 3 confirmations
+      } else {
+        newConfidence = 0.5; // Low confidence initially
+      }
+    }
 
     await pool.query(
       `INSERT INTO url_patterns (host, pattern_type, pattern, learned_from_url, confidence, usage_count, success_rate)
@@ -492,9 +604,10 @@ export async function learnUrlPatternFromPage(url: string, host: string, success
              END,
              confidence = CASE
                WHEN $2 = 'include' THEN GREATEST(url_patterns.confidence, $5)
-               ELSE LEAST(url_patterns.confidence, $5) -- Lower confidence for exclusions
-             END`,
-      [host, patternType, path, url, confidence, successRate]
+               ELSE $5 -- Use calculated confidence for exclusions
+             END,
+             updated_at = NOW()`,
+      [host, patternType, path, url, newConfidence, successRate]
     );
   } catch {
     // Silently fail

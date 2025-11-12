@@ -4,6 +4,8 @@
 
 import { Program } from '@/shared/types/requirements';
 
+export type MatchStatus = 'match' | 'gap' | 'unknown';
+
 export interface SymptomQuestion {
   id: string;
   symptom: string;
@@ -21,6 +23,7 @@ export class QuestionEngine {
   private allPrograms: Program[];
   private remainingPrograms: Program[];
   private questions: SymptomQuestion[] = [];
+  private matchSummaries: Map<string, Record<string, MatchStatus>> = new Map();
 
   constructor(programs: Program[]) {
     this.allPrograms = programs;
@@ -74,11 +77,15 @@ export class QuestionEngine {
     // Start with company_type (better distribution) then location (may filter aggressively)
     // Then funding_amount, then optional questions 4-8
     const coreQuestions = [
-      'company_type',  // First: 85% coverage, better distribution
-      'location',      // Second: 90% coverage but may filter aggressively if asked first
+      'location',
+      'company_type',
+      'company_stage',
+      'team_size',
+      'revenue_status',
+      'co_financing',
+      'industry_focus',
       'funding_amount',
       'use_of_funds',
-      'team_size',
       'impact',
       'deadline_urgency',
       'project_duration'
@@ -123,9 +130,50 @@ export class QuestionEngine {
       return overlayQuestion;
     }
     
+    // Persona & readiness follow-up questions (contextual)
+    const personaFlow: Array<{ id: string; shouldAsk: () => boolean }> = [
+      {
+        id: 'rd_in_austria',
+        shouldAsk: () => !answers.rd_in_austria && (answers.location === 'austria' || this.hasProgramsRequiringAustria())
+      },
+      {
+        id: 'trl_level',
+        shouldAsk: () =>
+          !answers.trl_level &&
+          ((Array.isArray(answers.use_of_funds) && answers.use_of_funds.includes('rd')) ||
+            this.remainingPrograms.some(program => this.programRequiresTrl(program)))
+      },
+      {
+        id: 'strategic_focus',
+        shouldAsk: () => !answers.strategic_focus
+      }
+    ];
+
+    for (const item of personaFlow) {
+      if (item.shouldAsk()) {
+        const personaQuestion = this.generateQuestionFromRemainingPrograms(item.id) || this.getDefaultQuestion(item.id);
+        if (personaQuestion) {
+          const existingIndex = this.questions.findIndex(q => q.id === personaQuestion.id);
+          if (existingIndex >= 0) {
+            this.questions[existingIndex] = personaQuestion;
+          } else {
+            this.questions.push(personaQuestion);
+          }
+          return personaQuestion;
+        }
+      }
+    }
+
     // If we have programs but no more questions, we're done
     console.log(`✅ All ${coreQuestions.length} core questions completed, ${this.remainingPrograms.length} programs remaining`);
     return null;
+  }
+
+  /**
+   * Expose filtered programs for external scorers (wizard flow)
+   */
+  public getFilteredProgramsForAnswers(answers: Record<string, any>): Program[] {
+    return this.filterPrograms(answers);
   }
 
   /**
@@ -149,6 +197,31 @@ export class QuestionEngine {
       category: this.getQuestionCategory(questionId),
       priority: this.getQuestionPriority(questionId)
     };
+  }
+
+  private hasProgramsRequiringAustria(): boolean {
+    return this.remainingPrograms.some(program => {
+      const categorized = (program as any).categorized_requirements;
+      if (!categorized?.geographic) return false;
+      return categorized.geographic.some((req: any) =>
+        String(req.value || '').toLowerCase().includes('austria')
+      );
+    });
+  }
+
+  private programRequiresTrl(program: Program): boolean {
+    const categorized = (program as any).categorized_requirements;
+    if (!categorized) return false;
+
+    const technical = categorized.technical || [];
+    const trl = categorized.trl_level || [];
+    const combined = [...technical, ...trl];
+
+    return combined.some((req: any) => {
+      const type = String(req.type || '').toLowerCase();
+      const value = String(req.value || '').toLowerCase();
+      return type.includes('trl') || value.includes('trl');
+    });
   }
 
   /**
@@ -215,6 +288,17 @@ export class QuestionEngine {
       }
     }
 
+    // Company stage
+    if (questionId === 'company_stage') {
+      const stageReqs = [...(categorized.eligibility || []), ...(categorized.team || [])];
+      for (const req of stageReqs) {
+        if (req.type === 'company_stage' || req.type === 'company_age' || req.type === 'stage') {
+          const val = this.normalizeCompanyStageRequirement(req.value);
+          if (val) values.push(val);
+        }
+      }
+    }
+
     // Funding amount
     if (questionId === 'funding_amount') {
       const finReqs = categorized.financial || [];
@@ -241,6 +325,46 @@ export class QuestionEngine {
       for (const req of teamReqs) {
         if (req.type === 'team_size' || req.type === 'min_team_size') {
           const val = this.normalizeTeamSizeValue(req.value);
+          if (val) values.push(val);
+        }
+      }
+    }
+
+    // Revenue status
+    if (questionId === 'revenue_status') {
+      const finReqs = categorized.financial || [];
+      for (const req of finReqs) {
+        if (req.type === 'revenue' || req.type === 'turnover' || String(req.value || '').toLowerCase().includes('revenue')) {
+          const val = this.normalizeRevenueStatusValue(req.value);
+          if (val) values.push(val);
+        }
+      }
+    }
+
+    // Co-financing
+    if (questionId === 'co_financing') {
+      const coReqs = [...(categorized.co_financing || []), ...(categorized.financial || [])];
+      for (const req of coReqs) {
+        if (req.type === 'co_financing' || String(req.value || '').toLowerCase().includes('co-financ')) {
+          const val = this.normalizeCoFinancingValue(req.value);
+          if (val) values.push(val);
+        }
+      }
+    }
+
+    // Industry focus
+    if (questionId === 'industry_focus') {
+      const projectReqs = categorized.project || [];
+      for (const req of projectReqs) {
+        if (req.type === 'industry_focus' || req.type === 'focus') {
+          const val = this.normalizeIndustryValue(req.value);
+          if (val) values.push(val);
+        }
+      }
+      const programFocus = (program as any).program_focus || [];
+      if (Array.isArray(programFocus)) {
+        for (const focus of programFocus) {
+          const val = this.normalizeIndustryValue(focus);
           if (val) values.push(val);
         }
       }
@@ -277,7 +401,7 @@ export class QuestionEngine {
       }
     }
 
-    return values;
+    return Array.from(new Set(values));
   }
 
   // Normalization functions - convert DB values to consistent keys
@@ -360,6 +484,52 @@ export class QuestionEngine {
     return null;
   }
 
+  private normalizeCompanyStageRequirement(value: any): string | null {
+    const str = String(value || '').toLowerCase();
+    if (!str) return null;
+    if (str.includes('idea') || str.includes('concept') || str.includes('pre-company stage')) return 'idea';
+    if (str.includes('pre') || str.includes('team of founders') || str.includes('pre company')) return 'pre_company';
+    if (str.includes('<6') || str.includes('under 6') || str.includes('newly founded') || str.includes('seed')) return 'inc_lt_6m';
+    if (str.includes('6-36') || str.includes('6 to 36') || str.includes('growth') || str.includes('scale-up')) return 'inc_6_36m';
+    if (str.includes('>36') || str.includes('over 36') || str.includes('established') || str.includes('mature')) return 'inc_gt_36m';
+    if (str.includes('research') || str.includes('university') || str.includes('academic')) return 'research_org';
+    return null;
+  }
+
+  private normalizeRevenueStatusValue(value: any): string | null {
+    const str = String(value || '').toLowerCase();
+    if (!str) return null;
+    if (str.includes('pre') || str.includes('no revenue') || str.includes('idea') || str.includes('pre-revenue')) return 'pre_revenue';
+    if (str.includes('early') || str.includes('initial') || str.includes('first revenue') || str.includes('pilot')) return 'early_revenue';
+    if (str.includes('growth') || str.includes('scale') || str.includes('profit') || str.includes('positive')) return 'growing_revenue';
+    return null;
+  }
+
+  private normalizeCoFinancingValue(value: any): string | null {
+    if (typeof value === 'number') {
+      if (value === 0) return 'co_no';
+      if (value < 50) return 'co_partial';
+      return 'co_yes';
+    }
+    const str = String(value || '').toLowerCase();
+    if (!str) return null;
+    if (str.includes('no co') || str.includes('fully funded') || str.includes('100%')) return 'co_no';
+    if (str.includes('partial') || str.includes('matching') || str.includes('share') || str.includes('50%')) return 'co_partial';
+    if (str.includes('required') || str.includes('own contribution') || str.includes('co-financing required') || str.includes('must provide')) return 'co_yes';
+    return null;
+  }
+
+  private normalizeIndustryValue(value: any): string | null {
+    const str = String(value || '').toLowerCase();
+    if (!str) return null;
+    if (str.includes('digital') || str.includes('ict') || str.includes('software') || str.includes('ai')) return 'digital';
+    if (str.includes('sustain') || str.includes('climate') || str.includes('energy') || str.includes('green')) return 'sustainability';
+    if (str.includes('health') || str.includes('life science') || str.includes('medtech') || str.includes('biotech')) return 'health';
+    if (str.includes('manufactur') || str.includes('industry') || str.includes('production') || str.includes('industrial')) return 'manufacturing';
+    if (str.includes('export') || str.includes('international')) return 'export';
+    return 'other';
+  }
+
   // Value to plain language (for display)
   private valueToPlainLanguage(questionId: string, value: string): string {
     const mappings: Record<string, Record<string, string>> = {
@@ -374,6 +544,14 @@ export class QuestionEngine {
         'sme': 'wizard.options.sme',
         'large': 'wizard.options.large',
         'research': 'wizard.options.research'
+      },
+      company_stage: {
+        'idea': 'wizard.options.stageIdea',
+        'pre_company': 'wizard.options.stagePreCompany',
+        'inc_lt_6m': 'wizard.options.stageIncLt6m',
+        'inc_6_36m': 'wizard.options.stageInc6To36',
+        'inc_gt_36m': 'wizard.options.stageIncGt36',
+        'research_org': 'wizard.options.stageResearch'
       },
       funding_amount: {
         'under100k': 'wizard.options.under100k',
@@ -392,6 +570,32 @@ export class QuestionEngine {
         '3to5': 'wizard.options.3to5People',
         '6to10': 'wizard.options.6to10People',
         'over10': 'wizard.options.over10People'
+      },
+      revenue_status: {
+        'pre_revenue': 'wizard.options.revenuePre',
+        'early_revenue': 'wizard.options.revenueEarly',
+        'growing_revenue': 'wizard.options.revenueGrowing'
+      },
+      co_financing: {
+        'co_yes': 'wizard.options.coYes',
+        'co_partial': 'wizard.options.coPartial',
+        'co_no': 'wizard.options.coNo'
+      },
+      industry_focus: {
+        'digital': 'wizard.options.focusDigital',
+        'sustainability': 'wizard.options.focusSustainability',
+        'health': 'wizard.options.focusHealth',
+        'manufacturing': 'wizard.options.focusManufacturing',
+        'export': 'wizard.options.focusExport',
+        'other': 'wizard.options.focusOther'
+      },
+      strategic_focus: {
+        'sustainability': 'wizard.options.focusSustainability',
+        'health': 'wizard.options.focusHealth',
+        'digital': 'wizard.options.focusDigital',
+        'manufacturing': 'wizard.options.focusManufacturing',
+        'export': 'wizard.options.focusExport',
+        'other': 'wizard.options.focusOther'
       },
       impact: {
         'economic': 'wizard.options.economicImpact',
@@ -419,18 +623,25 @@ export class QuestionEngine {
     const texts: Record<string, string> = {
       location: 'wizard.questions.location',
       company_type: 'wizard.questions.companyType',
+      company_stage: 'wizard.questions.companyStage',
+      revenue_status: 'wizard.questions.revenueStatus',
+      co_financing: 'wizard.questions.coFinancing',
+      industry_focus: 'wizard.questions.industryFocus',
       funding_amount: 'wizard.questions.fundingAmount',
       use_of_funds: 'wizard.questions.useOfFunds',
       team_size: 'wizard.questions.teamSize',
       impact: 'wizard.questions.impact',
       deadline_urgency: 'wizard.questions.deadlineUrgency',
-      project_duration: 'wizard.questions.projectDuration'
+      project_duration: 'wizard.questions.projectDuration',
+      rd_in_austria: 'wizard.questions.rdInAustria',
+      strategic_focus: 'wizard.questions.strategicFocus',
+      trl_level: 'wizard.questions.trlLevel'
     };
     return texts[questionId] || questionId;
   }
 
   private getQuestionType(questionId: string): 'single-select' | 'multi-select' {
-    const multiSelect = ['use_of_funds', 'impact'];
+    const multiSelect = ['use_of_funds', 'impact', 'strategic_focus', 'industry_focus'];
     return multiSelect.includes(questionId) ? 'multi-select' : 'single-select';
   }
 
@@ -438,12 +649,19 @@ export class QuestionEngine {
     const categories: Record<string, string> = {
       location: 'geographic',
       company_type: 'eligibility',
+      company_stage: 'eligibility',
+      revenue_status: 'financial',
+      co_financing: 'financial',
+      industry_focus: 'project',
       funding_amount: 'financial',
       use_of_funds: 'financial',
       team_size: 'team',
       impact: 'impact',
       deadline_urgency: 'timeline',
-      project_duration: 'timeline'
+      project_duration: 'timeline',
+      rd_in_austria: 'geographic',
+      strategic_focus: 'impact',
+      trl_level: 'technical'
     };
     return categories[questionId] || 'general';
   }
@@ -452,12 +670,19 @@ export class QuestionEngine {
     const priorities: Record<string, number> = {
       location: 1,
       company_type: 2,
-      funding_amount: 3,
-      use_of_funds: 4,
-      team_size: 5,
-      impact: 6,
-      deadline_urgency: 7,
-      project_duration: 8
+      company_stage: 3,
+      team_size: 4,
+      revenue_status: 5,
+      co_financing: 6,
+      industry_focus: 7,
+      funding_amount: 8,
+      use_of_funds: 9,
+      impact: 10,
+      deadline_urgency: 11,
+      project_duration: 12,
+      rd_in_austria: 13,
+      strategic_focus: 14,
+      trl_level: 15
     };
     return priorities[questionId] || 999;
   }
@@ -494,6 +719,64 @@ export class QuestionEngine {
         required: true,
         category: 'eligibility',
         priority: 2
+      },
+      company_stage: {
+        id: 'company_stage',
+        symptom: 'wizard.questions.companyStage',
+        type: 'single-select',
+        options: [
+          { value: 'idea', label: 'wizard.options.stageIdea' },
+          { value: 'pre_company', label: 'wizard.options.stagePreCompany' },
+          { value: 'inc_lt_6m', label: 'wizard.options.stageIncLt6m' },
+          { value: 'inc_6_36m', label: 'wizard.options.stageInc6To36' },
+          { value: 'inc_gt_36m', label: 'wizard.options.stageIncGt36' },
+          { value: 'research_org', label: 'wizard.options.stageResearch' }
+        ],
+        required: false,
+        category: 'eligibility',
+        priority: 9
+      },
+      revenue_status: {
+        id: 'revenue_status',
+        symptom: 'wizard.questions.revenueStatus',
+        type: 'single-select',
+        options: [
+          { value: 'pre_revenue', label: 'wizard.options.revenuePre' },
+          { value: 'early_revenue', label: 'wizard.options.revenueEarly' },
+          { value: 'growing_revenue', label: 'wizard.options.revenueGrowing' }
+        ],
+        required: false,
+        category: 'financial',
+        priority: 5
+      },
+      co_financing: {
+        id: 'co_financing',
+        symptom: 'wizard.questions.coFinancing',
+        type: 'single-select',
+        options: [
+          { value: 'co_yes', label: 'wizard.options.coYes' },
+          { value: 'co_partial', label: 'wizard.options.coPartial' },
+          { value: 'co_no', label: 'wizard.options.coNo' }
+        ],
+        required: false,
+        category: 'financial',
+        priority: 6
+      },
+      industry_focus: {
+        id: 'industry_focus',
+        symptom: 'wizard.questions.industryFocus',
+        type: 'multi-select',
+        options: [
+          { value: 'digital', label: 'wizard.options.focusDigital' },
+          { value: 'sustainability', label: 'wizard.options.focusSustainability' },
+          { value: 'health', label: 'wizard.options.focusHealth' },
+          { value: 'manufacturing', label: 'wizard.options.focusManufacturing' },
+          { value: 'export', label: 'wizard.options.focusExport' },
+          { value: 'other', label: 'wizard.options.focusOther' }
+        ],
+        required: false,
+        category: 'project',
+        priority: 7
       },
       funding_amount: {
         id: 'funding_amount',
@@ -576,6 +859,49 @@ export class QuestionEngine {
         required: false,
         category: 'timeline',
         priority: 8
+      },
+      rd_in_austria: {
+        id: 'rd_in_austria',
+        symptom: 'wizard.questions.rdInAustria',
+        type: 'single-select',
+        options: [
+          { value: 'yes', label: 'wizard.options.yes' },
+          { value: 'no', label: 'wizard.options.no' }
+        ],
+        required: false,
+        category: 'geographic',
+        priority: 11
+      },
+      strategic_focus: {
+        id: 'strategic_focus',
+        symptom: 'wizard.questions.strategicFocus',
+        type: 'multi-select',
+        options: [
+          { value: 'sustainability', label: 'wizard.options.focusSustainability' },
+          { value: 'health', label: 'wizard.options.focusHealth' },
+          { value: 'digital', label: 'wizard.options.focusDigital' },
+          { value: 'manufacturing', label: 'wizard.options.focusManufacturing' },
+          { value: 'export', label: 'wizard.options.focusExport' },
+          { value: 'other', label: 'wizard.options.focusOther' }
+        ],
+        required: false,
+        category: 'impact',
+        priority: 12
+      },
+      trl_level: {
+        id: 'trl_level',
+        symptom: 'wizard.questions.trlLevel',
+        type: 'single-select',
+        options: [
+          { value: 'trl_1_2', label: 'wizard.options.trl1to2' },
+          { value: 'trl_3_4', label: 'wizard.options.trl3to4' },
+          { value: 'trl_5_6', label: 'wizard.options.trl5to6' },
+          { value: 'trl_7_8', label: 'wizard.options.trl7to8' },
+          { value: 'trl_9', label: 'wizard.options.trl9' }
+        ],
+        required: false,
+        category: 'technical',
+        priority: 13
       }
     };
 
@@ -585,66 +911,222 @@ export class QuestionEngine {
   /**
    * Filter programs based on answers
    * Uses SAME keys and values as scoring
+   * OPTIMIZED: Less aggressive filtering - allows programs with gaps but scores them lower
    */
   private filterPrograms(answers: Record<string, any>): Program[] {
-    let filtered = [...this.allPrograms];
+    const filtered: Program[] = [];
+    this.matchSummaries.clear();
 
-    // Location filter
-    if (answers.location) {
-      filtered = filtered.filter(p => this.matchesLocation(p, answers.location));
-    }
+    // Count critical gaps (location, company_type, company_stage are critical)
+    const criticalKeys = ['location', 'company_type', 'company_stage'];
+    const maxCriticalGaps = 1; // Allow 1 critical gap
 
-    // Company type filter
-    if (answers.company_type) {
-      filtered = filtered.filter(p => this.matchesCompanyType(p, answers.company_type));
-    }
+    for (const program of this.allPrograms) {
+      const summary: Record<string, MatchStatus> = {};
+      let criticalGaps = 0;
+      let totalGaps = 0;
 
-    // Funding amount filter
-    if (answers.funding_amount) {
-      filtered = filtered.filter(p => this.matchesFundingAmount(p, answers.funding_amount));
-    }
+      for (const [key, value] of Object.entries(answers)) {
+        if (value === undefined || value === null || value === '' || (Array.isArray(value) && value.length === 0)) {
+          continue;
+        }
 
-    // Use of funds filter
-    if (answers.use_of_funds) {
-      const uses = Array.isArray(answers.use_of_funds) ? answers.use_of_funds : [answers.use_of_funds];
-      filtered = filtered.filter(p => uses.some((use: string) => this.matchesUseOfFunds(p, use)));
-    }
+        const status = this.evaluateAnswer(program, key, value);
+        if (!status) {
+          continue;
+        }
 
-    // Team size filter
-    if (answers.team_size) {
-      filtered = filtered.filter(p => this.matchesTeamSize(p, answers.team_size));
-    }
+        summary[key] = status;
+        if (status === 'gap') {
+          totalGaps++;
+          if (criticalKeys.includes(key)) {
+            criticalGaps++;
+          }
+        }
+      }
 
-    // Impact filter
-    if (answers.impact) {
-      const impacts = Array.isArray(answers.impact) ? answers.impact : [answers.impact];
-      filtered = filtered.filter(p => impacts.some((imp: string) => this.matchesImpact(p, imp)));
-    }
+      if (Object.keys(summary).length > 0) {
+        const programId = this.getProgramId(program);
+        this.matchSummaries.set(programId, summary);
+        Object.defineProperty(program as any, '__matchSummary', {
+          value: summary,
+          enumerable: false,
+          configurable: true,
+          writable: true
+        });
+      }
 
-    // Overlay question filters
-    // Research focus filter
-    if (answers.research_focus) {
-      const focuses = Array.isArray(answers.research_focus) ? answers.research_focus : [answers.research_focus];
-      filtered = filtered.filter(p => this.matchesResearchFocus(p, focuses));
-    }
-
-    // Consortium filter
-    if (answers.consortium) {
-      filtered = filtered.filter(p => this.matchesConsortium(p, answers.consortium));
-    }
-
-    // Industry focus filter
-    if (answers.industry_focus) {
-      const industries = Array.isArray(answers.industry_focus) ? answers.industry_focus : [answers.industry_focus];
-      filtered = filtered.filter(p => this.matchesIndustryFocus(p, industries));
-    }
-
-    // TRL level filter
-    if (answers.trl_level) {
-      filtered = filtered.filter(p => this.matchesTRL(p, answers.trl_level));
+      // OPTIMIZED: Only exclude if too many critical gaps
+      // Programs with non-critical gaps or single critical gap are still included
+      // (they'll be scored lower by the scoring engine)
+      if (criticalGaps <= maxCriticalGaps) {
+        filtered.push(program);
+      }
     }
 
     return filtered;
+  }
+
+  public getMatchSummary(programId: string): Record<string, MatchStatus> | undefined {
+    return this.matchSummaries.get(programId);
+  }
+
+  private getProgramId(program: Program): string {
+    return (
+      (program as any).id ||
+      (program as any).program_id ||
+      (program as any).page_id ||
+      (program as any).url ||
+      program.name
+    );
+  }
+
+  private evaluateAnswer(program: Program, key: string, value: any): MatchStatus | null {
+    switch (key) {
+      case 'location':
+        return this.statusFromMatch(program, key, this.matchesLocation(program, value));
+      case 'company_type':
+        return this.statusFromMatch(program, key, this.matchesCompanyType(program, value));
+      case 'company_stage':
+        return this.statusFromMatch(program, key, this.matchesCompanyStage(program, value));
+      case 'team_size':
+        return this.statusFromMatch(program, key, this.matchesTeamSize(program, value));
+      case 'revenue_status':
+        return this.statusFromMatch(program, key, this.matchesRevenueStatus(program, value));
+      case 'co_financing':
+        return this.statusFromMatch(program, key, this.matchesCoFinancing(program, value));
+      case 'funding_amount':
+        return this.statusFromMatch(program, key, this.matchesFundingAmount(program, value));
+      case 'use_of_funds': {
+        const uses = Array.isArray(value) ? value : [value];
+        const matched = uses.some((use: string) => this.matchesUseOfFunds(program, use));
+        return this.statusFromMatch(program, key, matched);
+      }
+      case 'impact': {
+        const impacts = Array.isArray(value) ? value : [value];
+        const matched = impacts.some((imp: string) => this.matchesImpact(program, imp));
+        return this.statusFromMatch(program, key, matched);
+      }
+      case 'industry_focus': {
+        const industries = Array.isArray(value) ? value : [value];
+        const matched = this.matchesIndustryFocus(program, industries);
+        return this.statusFromMatch(program, key, matched);
+      }
+      case 'research_focus': {
+        const focuses = Array.isArray(value) ? value : [value];
+        return this.statusFromMatch(program, key, this.matchesResearchFocus(program, focuses));
+      }
+      case 'consortium':
+        return this.statusFromMatch(program, key, this.matchesConsortium(program, value));
+      case 'trl_level':
+        return this.statusFromMatch(program, key, this.matchesTRL(program, value));
+      default:
+        return null;
+    }
+  }
+
+  private statusFromMatch(program: Program, key: string, matched: boolean): MatchStatus {
+    const hasRequirement = this.hasRequirement(program, key);
+    if (matched) return 'match';
+    return hasRequirement ? 'gap' : 'unknown';
+  }
+
+  private hasRequirement(program: Program, key: string): boolean {
+    const categorized = (program as any).categorized_requirements || {};
+    const elig = (program as any).eligibility_criteria || {};
+    switch (key) {
+      case 'location':
+        return (
+          (categorized.geographic || []).some((req: any) =>
+            ['location', 'specific_location'].includes(String(req.type))
+          ) || Boolean(elig.location)
+        );
+      case 'company_type':
+        return (
+          (categorized.eligibility || []).some((req: any) =>
+            ['company_type', 'company_stage'].includes(String(req.type))
+          ) || ((program as any).target_personas || []).length > 0
+        );
+      case 'company_stage':
+        return (
+          [...(categorized.eligibility || []), ...(categorized.team || [])].some((req: any) => {
+            const type = String(req?.type || '').toLowerCase();
+            const value = String(req?.value || '').toLowerCase();
+            return type.includes('stage') || type.includes('company_age') || value.includes('stage');
+          }) || Boolean((program as any).metadata_json?.company_stage)
+        );
+      case 'team_size':
+        return (categorized.team || []).some((req: any) =>
+          ['min_team_size', 'team_size'].includes(String(req.type))
+        );
+      case 'revenue_status':
+        return (categorized.financial || []).some((req: any) => {
+          const type = String(req?.type || '').toLowerCase();
+          const value = String(req?.value || '').toLowerCase();
+          return type.includes('revenue') || type.includes('turnover') || value.includes('revenue');
+        });
+      case 'co_financing':
+        return (
+          (categorized.co_financing || []).length > 0 ||
+          (categorized.financial || []).some((req: any) => {
+            const type = String(req?.type || '').toLowerCase();
+            const value = String(req?.value || '').toLowerCase();
+            return type.includes('co_financing') || value.includes('co-financ');
+          })
+        );
+      case 'funding_amount': {
+        const finReqs = categorized.financial || [];
+        if (finReqs.some((req: any) => ['funding_amount', 'funding_amount_max'].includes(String(req.type)))) {
+          return true;
+        }
+        const maxAmount = (program as any).maxAmount || elig.funding_amount_max;
+        return typeof maxAmount === 'number' ? maxAmount > 0 : Boolean(maxAmount);
+      }
+      case 'use_of_funds':
+        return (categorized.use_of_funds || []).length > 0;
+      case 'impact':
+        return (categorized.impact || []).length > 0;
+      case 'industry_focus':
+        return (
+          (categorized.project || []).some((req: any) => {
+            const type = String(req?.type || '').toLowerCase();
+            return type.includes('industry') || type.includes('sector') || type.includes('focus');
+          }) || ((program as any).program_focus || []).length > 0
+        );
+      case 'research_focus':
+        return (categorized.project || []).some((req: any) => {
+          const type = String(req?.type || '').toLowerCase();
+          return type.includes('research') || type.includes('consortium');
+        });
+      case 'consortium':
+        return (categorized.consortium || []).length > 0;
+      case 'deadline_urgency':
+        return (categorized.timeline || []).some((req: any) => {
+          const type = String(req?.type || '').toLowerCase();
+          return type.includes('deadline');
+        });
+      case 'project_duration':
+        return (categorized.timeline || []).some((req: any) => {
+          const type = String(req?.type || '').toLowerCase();
+          return type.includes('duration');
+        });
+      case 'trl_level':
+        return (
+          (categorized.trl_level || []).length > 0 ||
+          (categorized.technical || []).some((req: any) => {
+            const type = String(req?.type || '').toLowerCase();
+            const value = String(req?.value || '').toLowerCase();
+            return type.includes('trl') || value.includes('trl');
+          })
+        );
+      case 'strategic_focus':
+        return (categorized.project || []).some((req: any) => {
+          const type = String(req?.type || '').toLowerCase();
+          return type.includes('focus') || type.includes('theme');
+        });
+      default:
+        return false;
+    }
   }
 
   // Matching functions - use SAME logic as scoring
@@ -719,6 +1201,99 @@ export class QuestionEngine {
     }
 
     // Only return true if no requirement exists (program accepts all types)
+    return !hasRequirement;
+  }
+
+  private matchesCompanyStage(program: Program, stage: string): boolean {
+    const categorized = (program as any).categorized_requirements;
+    const stageReqs = [
+      ...(categorized?.eligibility || []),
+      ...(categorized?.team || [])
+    ];
+    const userStage = String(stage).toLowerCase();
+    let hasRequirement = false;
+
+    for (const req of stageReqs) {
+      if (!req) continue;
+      const reqType = String(req.type || '').toLowerCase();
+      const reqValue = String(req.value || '').toLowerCase();
+      if (!reqValue) continue;
+      if (
+        reqType.includes('stage') ||
+        reqType.includes('company_age') ||
+        reqType.includes('founded') ||
+        reqValue.includes('stage') ||
+        reqValue.includes('year')
+      ) {
+        hasRequirement = true;
+        if (userStage === 'idea' && (reqValue.includes('idea') || reqValue.includes('concept') || reqValue.includes('pre-company'))) return true;
+        if (userStage === 'pre_company' && (reqValue.includes('pre') || reqValue.includes('team'))) return true;
+        if (userStage === 'inc_lt_6m' && (reqValue.includes('<6') || reqValue.includes('under 6') || reqValue.includes('newly founded'))) return true;
+        if (userStage === 'inc_6_36m' && (reqValue.includes('6') || reqValue.includes('36') || reqValue.includes('mid') || reqValue.includes('seed'))) return true;
+        if (userStage === 'inc_gt_36m' && (reqValue.includes('>36') || reqValue.includes('established') || reqValue.includes('mature'))) return true;
+        if (userStage === 'research_org' && (reqValue.includes('research') || reqValue.includes('university') || reqValue.includes('academic'))) return true;
+      }
+    }
+
+    const metadataStage = String((program as any).metadata_json?.company_stage || '').toLowerCase();
+    if (metadataStage) {
+      hasRequirement = true;
+      if (
+        (userStage === 'idea' && metadataStage.includes('idea')) ||
+        (userStage === 'pre_company' && metadataStage.includes('pre')) ||
+        (userStage === 'inc_lt_6m' && (metadataStage.includes('lt6') || metadataStage.includes('newly'))) ||
+        (userStage === 'inc_6_36m' && metadataStage.includes('6-36')) ||
+        (userStage === 'inc_gt_36m' && metadataStage.includes('>36')) ||
+        (userStage === 'research_org' && metadataStage.includes('research'))
+      ) {
+        return true;
+      }
+    }
+
+    return !hasRequirement;
+  }
+
+  private matchesRevenueStatus(program: Program, revenue: string): boolean {
+    const categorized = (program as any).categorized_requirements;
+    const finReqs = categorized?.financial || [];
+    const userRevenue = String(revenue).toLowerCase();
+    let hasRequirement = false;
+
+    for (const req of finReqs) {
+      if (!req) continue;
+      const reqType = String(req.type || '').toLowerCase();
+      const reqValue = String(req.value || '').toLowerCase();
+      if (reqType.includes('revenue') || reqType.includes('turnover') || reqValue.includes('revenue')) {
+        hasRequirement = true;
+        if (userRevenue === 'pre_revenue' && (reqValue.includes('pre') || reqValue.includes('no revenue'))) return true;
+        if (userRevenue === 'early_revenue' && (reqValue.includes('early') || reqValue.includes('initial') || reqValue.includes('<1m'))) return true;
+        if (userRevenue === 'growing_revenue' && (reqValue.includes('growth') || reqValue.includes('profitable') || reqValue.includes('scaling'))) return true;
+      }
+    }
+
+    return !hasRequirement;
+  }
+
+  private matchesCoFinancing(program: Program, coFin: string): boolean {
+    const categorized = (program as any).categorized_requirements;
+    const coReqs = categorized?.co_financing || [];
+    const finReqs = categorized?.financial || [];
+    const requirements = [...coReqs, ...finReqs];
+    const userCo = String(coFin).toLowerCase();
+    let hasRequirement = false;
+
+    for (const req of requirements) {
+      if (!req) continue;
+      const reqType = String(req.type || '').toLowerCase();
+      const reqValue = String(req.value || '').toLowerCase();
+      if (reqType.includes('co_financing') || reqValue.includes('co-financ')) {
+        hasRequirement = true;
+        if (userCo === 'co_yes' && (reqValue.includes('required') || reqValue.includes('yes') || reqValue.includes('must provide'))) return true;
+        if (userCo === 'co_partial' && (reqValue.includes('partial') || reqValue.includes('matching') || reqValue.includes('share'))) return true;
+        if (userCo === 'co_no' && (reqValue.includes('no co') || reqValue.includes('100%') || reqValue.includes('full funding'))) return true;
+      }
+    }
+
     return !hasRequirement;
   }
 
@@ -875,17 +1450,31 @@ export class QuestionEngine {
       return true;
     }
 
+    const normalizedIndustries = industries
+      .map(industry => this.normalizeIndustryValue(industry))
+      .filter(Boolean);
+
     // Check if user's industry matches any requirement
     for (const req of projectReqs) {
-      if (req.type === 'industry_focus' || req.type === 'sector') {
-        const reqValue = String(req.value || '').toLowerCase();
-        if (industries.some(industry => reqValue.includes(industry.toLowerCase()) || industry.toLowerCase().includes(reqValue))) {
+      if (req.type === 'industry_focus' || req.type === 'sector' || req.type === 'focus') {
+        const normalizedReq = this.normalizeIndustryValue(req.value);
+        if (normalizedReq && normalizedIndustries.includes(normalizedReq)) {
           return true;
         }
       }
     }
 
-    return false; // Has requirement but doesn't match
+    const programFocus = (program as any).program_focus || [];
+    if (Array.isArray(programFocus)) {
+      for (const focus of programFocus) {
+        const normalizedReq = this.normalizeIndustryValue(focus);
+        if (normalizedReq && normalizedIndustries.includes(normalizedReq)) {
+          return true;
+        }
+      }
+    }
+
+    return normalizedIndustries.length === 0;
   }
 
   private matchesTRL(program: Program, userTRL: string): boolean {

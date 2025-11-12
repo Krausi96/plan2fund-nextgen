@@ -30,34 +30,42 @@ export const institutions: InstitutionConfig[] = [
     id: 'institution_aws',  // Unique ID per contract review
     name: 'Austria Wirtschaftsservice (AWS)',
     baseUrl: 'https://aws.at',
+    loginConfig: {
+      enabled: true,
+      loginUrl: 'https://foerdermanager.aws.at', // AWS Fördermanager login portal
+      // Credentials will be read from env vars: INSTITUTION_AWS_EMAIL and INSTITUTION_AWS_PASSWORD
+      email: process.env.INSTITUTION_AWS_EMAIL || '',
+      password: process.env.INSTITUTION_AWS_PASSWORD || '',
+    },
     programUrls: [
-      'https://www.aws.at/en/aws-digitalisierung/ai-unternehmen-wachstum/ai-adoption/',
-      'https://www.aws.at/en/aws-digitalization/',
-      'https://www.aws.at/en/aws-digitalization/ai-start/',
+      // Equity & Venture Capital
       'https://www.aws.at/en/aws-equity/',
-      'https://www.aws.at/en/aws-growth-investment/',
       'https://www.aws.at/en/aws-equity/venture-capital/',
       'https://www.aws.at/en/aws-equity/equity-investment/',
+      'https://www.aws.at/en/aws-growth-investment/',
       'https://www.aws.at/en/aws-wachstumsinvestition/',
+      'https://www.aws.at/en/aws-wachstumsinvestition/frontrunner-unternehmen/',
+      // Seed & Pre-Seed
       'https://www.aws.at/en/aws-seedfinancing-deep-tech/',
       'https://www.aws.at/en/aws-seedfinancing-innovative-solutions/',
       'https://www.aws.at/en/aws-preseed-deep-tech/',
       'https://www.aws.at/en/aws-preseed-innovative-solutions/',
-      'https://www.aws.at/en/aws-erp-kredit/tourismus/',
+      // Loans & Guarantees
       'https://www.aws.at/en/aws-erp-loan/',
-      'https://www.aws.at/en/aws-first-incubator/',
+      'https://www.aws.at/en/aws-erp-kredit/tourismus/',
       'https://www.aws.at/en/aws-guarantee/',
       'https://www.aws.at/en/aws-guarantee/consolidation/',
       'https://www.aws.at/en/aws-guarantee/equity-leverage/',
       'https://www.aws.at/en/aws-guarantee/internationalisation/',
       'https://www.aws.at/en/aws-guarantee/young-enterprises/',
+      // Digitalization & Innovation
+      'https://www.aws.at/en/aws-digitalization/',
+      'https://www.aws.at/en/aws-digitalization/ai-start/',
+      'https://www.aws.at/en/aws-digitalisierung/ai-unternehmen-wachstum/ai-adoption/',
       'https://www.aws.at/en/aws-innovation-protection/',
       'https://www.aws.at/en/aws-innovation-protection/schluesseltechnologien/',
-      'https://www.aws.at/en/aws-preseed-deep-tech/',
-      'https://www.aws.at/en/aws-preseed-innovative-solutions/',
-      'https://www.aws.at/en/aws-seedfinancing-deep-tech/',
-      'https://www.aws.at/en/aws-seedfinancing-innovative-solutions/',
-      'https://www.aws.at/en/aws-wachstumsinvestition/frontrunner-unternehmen/'
+      // Support Programs
+      'https://www.aws.at/en/aws-first-incubator/'
     ],
     selectors: {
       name: ['h1', '.program-title', '.foerderung-title'],
@@ -76,17 +84,20 @@ export const institutions: InstitutionConfig[] = [
     name: 'Austrian Research Promotion Agency (FFG)',
     baseUrl: 'https://www.ffg.at',
     programUrls: [
+      // Research & Development Programs
       'https://www.ffg.at/en/program/r-d-infrastructure-funding',
+      'https://www.ffg.at/en/programme/bridge',
+      'https://www.ffg.at/en/programme/collective-research',
+      'https://www.ffg.at/en/programme/innovation-voucher',
+      // Calls & Competitions
       'https://www.ffg.at/en/ausschreibung/comet-zentren-ausschreibung-2025',
       'https://www.ffg.at/ausschreibung/comet-zentren-ausschreibung-2025',
       'https://www.ffg.at/en/call/spin-fellowship-2nd-call-applications-4th-application-deadline',
-      'https://www.ffg.at/en/diversityscheck',
-      'https://www.ffg.at/en/diversitec/ausschreibung',
       'https://www.ffg.at/en/callindustrienahe-dissertationen-2026-industrial-phd',
-      'https://www.ffg.at/en/programme/innovation-voucher',
+      'https://www.ffg.at/en/diversitec/ausschreibung',
+      // Support Programs
+      'https://www.ffg.at/en/diversityscheck',
       'https://www.ffg.at/en/spin-off-fellowships',
-      'https://www.ffg.at/en/programme/bridge',
-      'https://www.ffg.at/en/programme/collective-research',
       'https://www.ffg.at/en/irasme'
     ],
     selectors: {
@@ -103,6 +114,7 @@ export const institutions: InstitutionConfig[] = [
     keywords: ['R&D infrastructure funding', 'research infrastructure', 'FFG', 'Forschungsförderung', 'innovation voucher', 'startup funding']
   },
   {
+    id: 'institution_vba',
     name: 'Vienna Business Agency (VBA)',
     baseUrl: 'https://viennabusinessagency.at',
     programUrls: [
@@ -140,6 +152,7 @@ export const institutions: InstitutionConfig[] = [
     keywords: ['startup grant', 'innovation funding', 'digitalisation', 'creative industry', 'quality of life']
   },
   {
+    id: 'institution_sfg',
     name: 'Steirische Wirtschaftsförderung (SFG Styria)',
     baseUrl: 'https://www.sfg.at',
     programUrls: [
@@ -585,6 +598,7 @@ export const institutions: InstitutionConfig[] = [
     keywords: ['Kärnten', 'Forschung', 'Entwicklung', 'Innovation', 'Gründung', 'Zuschuss']
   },
   {
+    id: 'institution_standort_tirol',
     name: 'Land Tirol / Standortagentur Tirol – Landesprogramme',
     baseUrl: 'https://www.standort-tirol.at',
     programUrls: [
@@ -1595,6 +1609,219 @@ export const institutions: InstitutionConfig[] = [
     region: 'EU',
     autoDiscovery: true,
     keywords: ['Horizon Europe', 'EU funding', 'research', 'innovation', 'climate', 'health', 'digital']
+  },
+  // === TAX INCENTIVES & SPECIALIZED PROGRAMS ===
+  {
+    id: 'institution_bmf',
+    name: 'Bundesministerium für Finanzen (BMF) - Tax Incentives',
+    baseUrl: 'https://www.bmf.gv.at',
+    programUrls: [
+      'https://www.bmf.gv.at/steuern/forschungsfoerderung',
+      'https://www.bmf.gv.at/steuern/steuerliche-foerderungen',
+      'https://www.bmf.gv.at/steuern/steuerbeguenstigungen',
+      'https://www.bmf.gv.at/steuern/foerderungen',
+      'https://www.bmf.gv.at/steuern/unternehmen',
+      'https://www.bmf.gv.at/steuern/forschungs-und-entwicklungsfoerderung',
+      'https://www.bmf.gv.at/steuern/innovationspraemie'
+    ],
+    selectors: {
+      name: ['h1', '.program-title', '.foerderung-title'],
+      description: ['.program-description', '.foerderung-description', 'p'],
+      eligibility: ['.eligibility', '.voraussetzungen', '.requirements'],
+      requirements: ['.requirements', '.dokumente', '.unterlagen'],
+      contact: ['.contact', '.ansprechpartner', '.kontakt']
+    },
+    fundingTypes: ['tax_incentive'],
+    region: 'Austria',
+    autoDiscovery: true,
+    keywords: ['tax incentive', 'steuerliche Förderung', 'Forschungsförderung', 'tax benefit', 'Steuerbegünstigung']
+  },
+  // === ANGEL INVESTMENT NETWORKS ===
+  {
+    id: 'institution_aba',
+    name: 'Austrian Business Angels (ABA)',
+    baseUrl: 'https://www.austrianbusinessangels.at',
+    programUrls: [
+      'https://www.austrianbusinessangels.at/en/',
+      'https://www.austrianbusinessangels.at/en/investment-process/',
+      'https://www.austrianbusinessangels.at/en/for-startups/',
+      'https://www.austrianbusinessangels.at/en/for-investors/',
+      'https://www.austrianbusinessangels.at/en/about-us/',
+      'https://www.austrianbusinessangels.at/en/events/',
+      'https://www.austrianbusinessangels.at/de/',
+      'https://www.austrianbusinessangels.at/de/investment-prozess/',
+      'https://www.austrianbusinessangels.at/de/fuer-startups/'
+    ],
+    selectors: {
+      name: ['h1', '.program-title', '.funding-title'],
+      description: ['.program-description', '.funding-description', 'p'],
+      eligibility: ['.eligibility', '.requirements', '.criteria'],
+      requirements: ['.requirements', '.application', '.process'],
+      contact: ['.contact', '.application', '.funding']
+    },
+    fundingTypes: ['angel_investment', 'equity'],
+    region: 'Austria',
+    autoDiscovery: true,
+    keywords: ['angel investment', 'business angels', 'angel network', 'seed funding', 'early stage investment']
+  },
+  // === EXPORT SUPPORT ===
+  {
+    id: 'institution_awo',
+    name: 'Austria Wirtschaftsservice - Export Support (AWO)',
+    baseUrl: 'https://www.awo.at',
+    programUrls: [
+      'https://www.awo.at/exportfoerderung',
+      'https://www.awo.at/exportberatung',
+      'https://www.awo.at/auslandsmaerkte',
+      'https://www.awo.at/foerderungen',
+      'https://www.awo.at/exportfoerderung/foerderungen',
+      'https://www.awo.at/exportfoerderung/beratung',
+      'https://www.awo.at/auslandsmaerkte/marktinformationen'
+    ],
+    selectors: {
+      name: ['h1', '.program-title', '.foerderung-title'],
+      description: ['.program-description', '.foerderung-description', 'p'],
+      eligibility: ['.eligibility', '.voraussetzungen', '.requirements'],
+      requirements: ['.requirements', '.dokumente', '.unterlagen'],
+      contact: ['.contact', '.ansprechpartner', '.kontakt']
+    },
+    fundingTypes: ['export_support', 'grant', 'subsidy'],
+    region: 'Austria',
+    autoDiscovery: true,
+    keywords: ['export support', 'Exportförderung', 'internationalization', 'Auslandsmärkte', 'export insurance']
+  },
+  {
+    id: 'institution_wko_export',
+    name: 'WKO - Export Services',
+    baseUrl: 'https://www.wko.at',
+    programUrls: [
+      'https://www.wko.at/service/aussenwirtschaft/exportfoerderung',
+      'https://www.wko.at/service/aussenwirtschaft/auslandsmaerkte',
+      'https://www.wko.at/service/aussenwirtschaft/exportberatung'
+    ],
+    selectors: {
+      name: ['h1', '.program-title', '.foerderung-title'],
+      description: ['.program-description', '.foerderung-description', 'p'],
+      eligibility: ['.eligibility', '.voraussetzungen', '.requirements'],
+      requirements: ['.requirements', '.dokumente', '.unterlagen'],
+      contact: ['.contact', '.ansprechpartner', '.kontakt']
+    },
+    fundingTypes: ['export_support', 'consulting_support'],
+    region: 'Austria',
+    autoDiscovery: true,
+    keywords: ['export', 'Exportförderung', 'Auslandsmärkte', 'internationalization', 'export support']
+  },
+  // === MENTORING & CONSULTING SUPPORT ===
+  {
+    id: 'institution_osbs',
+    name: 'Österreichische Startups und Business Service (ÖSBS)',
+    baseUrl: 'https://www.oe-sbs.at',
+    programUrls: [
+      'https://www.oe-sbs.at/mentoring',
+      'https://www.oe-sbs.at/beratung',
+      'https://www.oe-sbs.at/startup-support',
+      'https://www.oe-sbs.at/',
+      'https://www.oe-sbs.at/angebote',
+      'https://www.oe-sbs.at/foerderungen',
+      'https://www.oe-sbs.at/startup-beratung'
+    ],
+    selectors: {
+      name: ['h1', '.program-title', '.foerderung-title'],
+      description: ['.program-description', '.foerderung-description', 'p'],
+      eligibility: ['.eligibility', '.voraussetzungen', '.requirements'],
+      requirements: ['.requirements', '.dokumente', '.unterlagen'],
+      contact: ['.contact', '.ansprechpartner', '.kontakt']
+    },
+    fundingTypes: ['mentoring', 'consulting_support', 'gründungsprogramm'],
+    region: 'Austria',
+    autoDiscovery: true,
+    keywords: ['mentoring', 'Beratung', 'Startup Support', 'Gründungsprogramm', 'coaching']
+  },
+  {
+    id: 'institution_impacthub',
+    name: 'Impact Hub Vienna - Mentoring & Support',
+    baseUrl: 'https://vienna.impacthub.net',
+    programUrls: [
+      'https://vienna.impacthub.net/programs',
+      'https://vienna.impacthub.net/incubation',
+      'https://vienna.impacthub.net/acceleration',
+      'https://vienna.impacthub.net/',
+      'https://vienna.impacthub.net/programs/incubation-program',
+      'https://vienna.impacthub.net/programs/acceleration-program',
+      'https://vienna.impacthub.net/support',
+      'https://vienna.impacthub.net/community',
+      'https://vienna.impacthub.net/programs/startup-support',
+      'https://vienna.impacthub.net/mentoring'
+    ],
+    selectors: {
+      name: ['h1', '.program-title', '.funding-title'],
+      description: ['.program-description', '.funding-description', 'p'],
+      eligibility: ['.eligibility', '.requirements', '.criteria'],
+      requirements: ['.requirements', '.application', '.process'],
+      contact: ['.contact', '.application', '.funding']
+    },
+    fundingTypes: ['mentoring', 'consulting_support', 'networking', 'workshop'],
+    region: 'Vienna, Austria',
+    autoDiscovery: true,
+    keywords: ['mentoring', 'incubation', 'acceleration', 'startup support', 'networking', 'workshop']
+  },
+  // === EU FUNDING PROGRAMS (More diverse) ===
+  {
+    id: 'institution_eic',
+    name: 'European Innovation Council (EIC)',
+    baseUrl: 'https://eic.ec.europa.eu',
+    programUrls: [
+      'https://eic.ec.europa.eu/eic-funding-opportunities/eic-accelerator_en',
+      'https://eic.ec.europa.eu/eic-funding-opportunities/eic-pathfinder_en',
+      'https://eic.ec.europa.eu/eic-funding-opportunities/eic-transition_en',
+      'https://eic.ec.europa.eu/eic-funding-opportunities/eic-accelerator',
+      'https://eic.ec.europa.eu/eic-funding-opportunities/eic-pathfinder',
+      'https://eic.ec.europa.eu/eic-funding-opportunities/eic-transition',
+      'https://eic.ec.europa.eu/eic-funding-opportunities',
+      'https://eic.ec.europa.eu/news-events/news',
+      'https://eic.ec.europa.eu/eic-funding-opportunities/eic-accelerator/how-apply',
+      'https://eic.ec.europa.eu/eic-funding-opportunities/eic-accelerator/eligibility',
+      'https://eic.ec.europa.eu/eic-funding-opportunities/eic-pathfinder/eligibility',
+      'https://eic.ec.europa.eu/eic-funding-opportunities/eic-transition/eligibility'
+    ],
+    selectors: {
+      name: ['h1', '.program-title', '.funding-title'],
+      description: ['.program-description', '.funding-description', 'p'],
+      eligibility: ['.eligibility', '.requirements', '.criteria'],
+      requirements: ['.requirements', '.application', '.process'],
+      contact: ['.contact', '.application', '.funding']
+    },
+    fundingTypes: ['grant', 'equity'],
+    region: 'EU',
+    autoDiscovery: true,
+    keywords: ['EIC', 'European Innovation Council', 'deep tech', 'innovation', 'startup', 'equity', 'grant']
+  },
+  {
+    id: 'institution_cordis',
+    name: 'CORDIS - EU Research & Innovation',
+    baseUrl: 'https://cordis.europa.eu',
+    programUrls: [
+      'https://cordis.europa.eu/programme/id/HORIZON',
+      'https://cordis.europa.eu/programme/id/HORIZON-EURATOM',
+      'https://cordis.europa.eu/programme/id/HORIZON-EIE',
+      'https://cordis.europa.eu/programme/horizon-europe',
+      'https://cordis.europa.eu/programme/horizon-europe-cluster',
+      'https://cordis.europa.eu/programme/horizon-europe-pillar',
+      'https://cordis.europa.eu/funding',
+      'https://cordis.europa.eu/funding/opportunities'
+    ],
+    selectors: {
+      name: ['h1', '.program-title', '.funding-title'],
+      description: ['.program-description', '.funding-description', 'p'],
+      eligibility: ['.eligibility', '.requirements', '.criteria'],
+      requirements: ['.requirements', '.application', '.process'],
+      contact: ['.contact', '.application', '.funding']
+    },
+    fundingTypes: ['grant'],
+    programFocus: ['research', 'innovation'],
+    region: 'EU',
+    autoDiscovery: true,
+    keywords: ['Horizon Europe', 'CORDIS', 'EU funding', 'research', 'innovation', 'grant']
   }
 ];
 
@@ -1644,63 +1871,7 @@ export const autoDiscoveryPatterns = {
     'call', 'aufruf', 'appel', 'bando',
     'ausschreibung', 'fördercall', 'förderschiene', 'fördermodell', 'stipendienprogramm'
   ],
-  exclusionKeywords: [
-    // Generic unwanted pages - INFO/FAQ/ABOUT pages (CRITICAL: Exclude these!)
-    'newsletter', 'news', 'press', 'media', 'contact',
-    'about', 'ueber', 'über', 'chi-siamo', 'info', 'information', 'informations',
-    'faq', 'frequently-asked', 'fragen', 'questions', 'help', 'hilfe',
-    'imprint', 'impressum', 'mentions-legales', 'note-legali',
-    'privacy', 'datenschutz', 'confidentialite',
-    'aktuell', 'karriere', 'career', 'jobs', 'stellen',
-    // Guidelines/Policy pages (not funding programs)
-    'richtlinien', 'guidelines', 'policy', 'policies', 'richtlinie',
-    'bestimmungen', 'bedingungen', 'terms', 'conditions', 'terms-and-conditions',
-    'regulations', 'regeln', 'vorschriften', 'standards', 'normen',
-    'anleitung', 'instructions', 'handbuch', 'manual', 'dokumentation',
-    // Obsolete/non-program pages
-    'overview', 'übersicht', 'uebersicht', 'general', 'allgemein',
-    'home', 'startseite', 'index', 'main',
-    'sitemap', 'navigation', 'menu',
-    // Housing/Real Estate exclusions (important!)
-    'wohnbau', 'wohnbauförderung', 'wohnung', 'wohnungsbau', 'wohnungsförderung',
-    'wohnbeihilfe', 'bauen-wohnen', 'raumplanung',
-    'housing', 'real estate', 'immobilie', 'immobilien', 'baufinanzierung',
-    'hypothek', 'mortgage', 'privatkunden', 'private',
-    // Agriculture/Forestry exclusions (not startup/SME funding)
-    'landwirtschaft', 'forstwirtschaft', 'agriculture', 'forestry',
-    'pflanzenschutz', 'gentechnik', 'almwirtschaft', 'agrarbehoerde',
-    'bodenschutz', 'schutzwald', 'forstliche', 'walderschliessung',
-    // Infrastructure exclusions (not business funding)
-    'verkehrsinfrastruktur', 'traffic', 'bahninfrastruktur', 'eisenbahn',
-    'bau-neubau', 'bauordnung', 'baurecht', 'gestalten', 'bauprojekt',
-    // Category/listing pages (common patterns)
-    'brancheninformationen', 'gastronomie-und-tourismus', 'themen/', 
-    'programm/', 'programme/', 'foerderungen/', 'ausschreibungen/', 'calls/',
-    // Service/Event/Case pages (not funding programs)
-    'service/cases',           // Success stories
-    'success-stories',         // Success stories (English)
-    'success-story',           // Success story (singular)
-    'web-services',           // Tools and web services
-    'events/kalender',         // Event calendar
-    'event-tipps',             // Event tips
-    'events-workshops',        // Workshops/events
-    'veranstaltung',           // Event (German)
-    'veranstaltungen',         // Events (German plural)
-    'geförderte-projekte',     // Funded projects showcase (German)
-    'gefoerderte-projekte',    // Alternative spelling
-    // Info/About/Discovery pages
-    '/info/',                  // Info/about pages
-    'descubre-',               // Discovery/info (Spanish)
-    'discover/',               // Discovery pages
-    'discoveries/',            // Success stories
-    'awards/',                 // Award pages
-    'impact-stories/',         // Impact stories
-    'portfolio/',              // Portfolio pages
-    'topics/',                 // Topic overview pages
-    'organizacion',            // Organization info
-    'transparencia',          // Transparency
-    'valores',                // Values/about
-    // Note: 'service' and 'themen' removed - too generic, match legitimate Austrian URLs
-    // Use specific patterns instead: '/service/about', '/themen/news' would be caught by 'about'/'news'
-  ]
+  // Exclusion keywords now imported from blacklist.ts (single source of truth)
+  // Import: import { EXCLUSION_KEYWORDS } from '../utils/blacklist';
+  exclusionKeywords: [] as string[] // Deprecated - use EXCLUSION_KEYWORDS from blacklist.ts instead
 };

@@ -727,13 +727,20 @@ Rules:
 - qualityScore: 0-100 based on how likely it contains useful program information
 - isOverviewPage: true if this lists multiple programs
 
-EXCLUDE these URL patterns (NOT programs):
+EXCLUDE these URL patterns (NOT programs - mark as "no"):
 - /about-us/, /about/, /ueber/, /chi-siamo/
-- /contact/, /kontakt/, /contact-us/
+- /contact/, /kontakt/, /contact-us/, /team-contact/
 - /team/, /team-members/
-- /news/, /press/, /media/
-- /imprint/, /impressum/, /privacy/, /datenschutz/
-- /legal/, /terms/, /conditions/`;
+- /news/, /press/, /media/, /newsletter/
+- /imprint/, /impressum/, /privacy/, /datenschutz/, /data-protection/
+- /legal/, /terms/, /conditions/
+- /accessibility/, /accessibility-statement/
+- /login/, /sign-in/, /register/
+- /events/, /workshops/, /events-workshops/
+- /faq/, /frequently-asked-questions/
+- Pages with titles like "Team", "Contact", "Accessibility", "Login", "Newsletter", "FAQ"
+
+IMPORTANT: If URL or title suggests it's NOT a funding program page, mark as "no" with qualityScore 0-20.`;
 
   // Add examples from mistakes
   if (mistakes.length > 0) {

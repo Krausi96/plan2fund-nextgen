@@ -28,12 +28,25 @@ function ensureCacheDir(): void {
   }
 }
 
+// In-memory cache for faster access (avoids disk I/O on every lookup)
+let memoryCache: Map<string, CachedExtraction> | null = null;
+let cacheLoadTime: number = 0;
+const CACHE_RELOAD_INTERVAL = 5 * 60 * 1000; // Reload from disk every 5 minutes
+
 // Load cache from disk
 function loadCache(): Map<string, CachedExtraction> {
+  // Use in-memory cache if recently loaded
+  const now = Date.now();
+  if (memoryCache && (now - cacheLoadTime) < CACHE_RELOAD_INTERVAL) {
+    return memoryCache;
+  }
+  
   ensureCacheDir();
   
   if (!fs.existsSync(CACHE_FILE)) {
-    return new Map();
+    memoryCache = new Map();
+    cacheLoadTime = now;
+    return memoryCache;
   }
   
   try {
@@ -41,17 +54,20 @@ function loadCache(): Map<string, CachedExtraction> {
     const cache = new Map<string, CachedExtraction>();
     
     // Filter out expired entries
-    const now = Date.now();
     Object.entries(data).forEach(([key, value]: [string, any]) => {
       if (now - value.timestamp < CACHE_TTL) {
         cache.set(key, value);
       }
     });
     
+    memoryCache = cache;
+    cacheLoadTime = now;
     return cache;
   } catch (error) {
     console.warn('Failed to load LLM cache:', error);
-    return new Map();
+    memoryCache = new Map();
+    cacheLoadTime = now;
+    return memoryCache;
   }
 }
 
@@ -110,15 +126,22 @@ export function storeCachedExtraction(
   const cache = loadCache();
   const key = `${urlHash}:${modelVersion}`;
   
-  cache.set(key, {
+  const entry: CachedExtraction = {
     urlHash,
     result,
     modelVersion,
     timestamp: Date.now(),
     url: url || ''
-  });
+  };
   
-  saveCache(cache);
+  cache.set(key, entry);
+  // Update in-memory cache immediately
+  if (memoryCache) {
+    memoryCache.set(key, entry);
+  }
+  
+  // Save to disk asynchronously (don't block)
+  setImmediate(() => saveCache(cache));
 }
 
 // Clear expired entries

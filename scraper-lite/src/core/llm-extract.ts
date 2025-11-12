@@ -22,6 +22,10 @@ export interface RequirementItem {
 // geographic, team, project, compliance, impact, application, funding_details,
 // restrictions, terms
 
+/**
+ * Calculate meaningfulness score (0-100)
+ * Lower threshold to 10 to capture ALL valid requirements (100% completeness)
+ */
 function calculateMeaningfulnessScore(text: any): number {
   // Handle non-string values (numbers, objects, etc.)
   const textStr = typeof text === 'string' ? text : (text ? String(text) : '');
@@ -183,24 +187,54 @@ export async function extractWithLLM(
 
     if (isCustomLLMEnabled()) {
       try {
-        const customResponse = await callCustomLLM({
-          messages,
-          responseFormat: 'json',
-          temperature: 0.3,
-          maxTokens: 4000,
-        });
+        // Direct call - Gemini paid tier (1,000 req/min) can handle 30 concurrent easily
+        // Simple retry logic handles 429 errors if we ever hit them
+        let retries = 3;
+        let customResponse;
+        while (retries > 0) {
+          try {
+            customResponse = await callCustomLLM({
+              messages,
+              responseFormat: 'json',
+              temperature: 0.3,
+              maxTokens: 4000,
+            });
+            break; // Success
+          } catch (rateLimitError: any) {
+            if (rateLimitError?.status === 429 && retries > 0) {
+              // Parse wait time from error
+              let waitSeconds = 5; // Default 5 seconds
+              const errorMsg = rateLimitError?.message || String(rateLimitError);
+              const waitMatch = errorMsg.match(/(?:try again|Please retry|retryDelay)[^\d]*([\d.]+)s/i) 
+                || errorMsg.match(/retryDelay["\s:]+([\d.]+)s/i);
+              if (waitMatch) {
+                waitSeconds = parseFloat(waitMatch[1]) + 1; // Add 1s buffer
+              }
+              console.warn(`   ⚠️  Rate limit (429), waiting ${waitSeconds}s before retry...`);
+              await new Promise(resolve => setTimeout(resolve, waitSeconds * 1000));
+              retries--;
+            } else {
+              throw rateLimitError; // Not a rate limit error, or out of retries
+            }
+          }
+        }
+        if (!customResponse) {
+          throw new Error('Failed after retries');
+        }
         responseText = customResponse.output;
         extractionProvider = 'custom_llm';
       } catch (customError: any) {
-        // Better error logging
+        // Handle errors (429 already handled above with retry logic)
         const errorMsg = customError?.message || String(customError);
         const errorStatus = customError?.status || 'unknown';
         
-        // Check if it's a rate limit - OpenRouter free tier has limits
+        // 429 errors should have been handled by retry logic above
         if (errorStatus === 429) {
-          console.warn(`⚠️  OpenRouter rate limit hit (429). Free tier has limits. Waiting 5s...`);
-          // Wait longer for rate limits
-          await new Promise(resolve => setTimeout(resolve, 5000));
+          // Shouldn't reach here if retry logic worked, but just in case
+          throw customError;
+        } else if (errorStatus === 504 || errorMsg.includes('timeout') || errorMsg.includes('timed out')) {
+          console.warn(`⚠️  Custom LLM timeout (${errorStatus}). Retrying once...`);
+          await new Promise(resolve => setTimeout(resolve, 2000));
           try {
             const retryResponse = await callCustomLLM({
               messages,
@@ -210,19 +244,23 @@ export async function extractWithLLM(
             });
             responseText = retryResponse.output;
             extractionProvider = 'custom_llm';
-            console.log('✅ Custom LLM retry succeeded');
+            console.log('✅ Custom LLM retry succeeded after timeout');
           } catch (retryError: any) {
-            console.warn(`⚠️  Custom LLM retry failed (${retryError?.status || 'unknown'}), falling back to OpenAI: ${retryError?.message || retryError}`);
+            throw new Error(`Custom LLM timeout retry failed (${retryError?.status || 'unknown'}): ${retryError?.message || retryError}`);
           }
-        } else if (errorStatus === 504 || errorMsg.includes('timeout') || errorMsg.includes('timed out')) {
-          console.warn(`⚠️  Custom LLM timeout (${errorStatus}). OpenRouter may be slow. Falling back to OpenAI.`);
+        } else if (errorStatus === 402) {
+          // 402 might be model access issue - check if model is available
+          console.warn(`⚠️  Custom LLM returned 402 (${errorMsg}). This might be a model access issue. Check if the model is available.`);
+          throw new Error(`Custom LLM access denied (402): ${errorMsg}. Check model availability and API key.`);
         } else {
-          console.warn(`⚠️  Custom LLM unavailable (${errorStatus}), falling back to OpenAI: ${errorMsg}`);
+          // Don't fall back to OpenAI - throw error instead
+          throw new Error(`Custom LLM unavailable (${errorStatus}): ${errorMsg}`);
         }
       }
     }
 
-    if (!responseText) {
+    // Only use OpenAI if custom LLM is NOT enabled
+    if (!responseText && !isCustomLLMEnabled()) {
       // Use cheaper model if specified, otherwise default to gpt-4o-mini
       const model = process.env.OPENAI_MODEL || process.env.SCRAPER_MODEL_VERSION || "gpt-4o-mini";
       
@@ -267,9 +305,13 @@ export async function extractWithLLM(
       if (!responseText) {
         throw lastError || new Error('Failed to get LLM response after retries');
       }
+    } else if (!responseText && isCustomLLMEnabled()) {
+      // Custom LLM was enabled but failed - don't fall back to OpenAI
+      throw new Error('Custom LLM is enabled but failed to provide response. Check custom LLM configuration.');
     }
 
     // Try to extract JSON from response (OpenRouter might add text before/after JSON)
+    // Gemini might truncate JSON, so try to fix incomplete JSON
     let parsed: any;
     try {
       // First try direct parse
@@ -277,13 +319,101 @@ export async function extractWithLLM(
     } catch (parseError: any) {
       // If that fails, try to extract JSON from text (OpenRouter sometimes adds "Here is the JSON:" prefix)
       if (typeof responseText === 'string') {
-        const jsonMatch = responseText.match(/\{[\s\S]*\}/);
+        // Try to find JSON object or array
+        const jsonObjectMatch = responseText.match(/\{[\s\S]*\}/);
+        const jsonArrayMatch = responseText.match(/\[[\s\S]*\]/);
+        const jsonMatch = jsonObjectMatch || jsonArrayMatch;
+        
         if (jsonMatch) {
+          let jsonStr = jsonMatch[0];
+          
+          // Enhanced JSON repair for truncation
+          const needsRepair = parseError.message?.includes('Unterminated string') || 
+                             parseError.message?.includes('Unexpected end') ||
+                             parseError.message?.includes('Expected') ||
+                             parseError.message?.includes('position');
+          
+          if (needsRepair) {
+            // Step 1: Fix unterminated strings
+            // Find all string positions and check if they're closed
+            const stringPattern = /"([^"\\]|\\.)*"/g;
+            const matches: Array<{start: number, end: number}> = [];
+            let match;
+            while ((match = stringPattern.exec(jsonStr)) !== null) {
+              matches.push({ start: match.index, end: match.index + match[0].length });
+            }
+            
+            // Check if last quote is unclosed
+            const lastQuoteIdx = jsonStr.lastIndexOf('"');
+            if (lastQuoteIdx >= 0) {
+              const isInString = matches.some(m => lastQuoteIdx >= m.start && lastQuoteIdx < m.end);
+              if (!isInString) {
+                // Find the start of the unterminated string
+                let stringStart = lastQuoteIdx;
+                // Go backwards to find the opening quote
+                while (stringStart > 0 && jsonStr[stringStart - 1] !== '"' && jsonStr[stringStart - 1] !== '\\') {
+                  stringStart--;
+                }
+                if (jsonStr[stringStart - 1] === '"') {
+                  // Close the string
+                  jsonStr = jsonStr.substring(0, lastQuoteIdx + 1) + '"';
+                }
+              }
+            }
+            
+            // Step 2: Close incomplete arrays/objects
+            let openBraces = (jsonStr.match(/\{/g) || []).length;
+            let closeBraces = (jsonStr.match(/\}/g) || []).length;
+            let openBrackets = (jsonStr.match(/\[/g) || []).length;
+            let closeBrackets = (jsonStr.match(/\]/g) || []).length;
+            
+            // Remove trailing commas before closing
+            jsonStr = jsonStr.replace(/,\s*([}\]])/g, '$1');
+            
+            // Close incomplete arrays first (they're inside objects)
+            while (openBrackets > closeBrackets) {
+              jsonStr += ']';
+              closeBrackets++;
+            }
+            
+            // Close incomplete objects
+            while (openBraces > closeBraces) {
+              jsonStr += '}';
+              closeBraces++;
+            }
+            
+            // Step 3: Try to fix common truncation patterns
+            // If we have "metadata": { ... but cut off, try to close it
+            if (jsonStr.includes('"metadata"') && !jsonStr.includes('"requirements"')) {
+              // Try to extract what we have from metadata and create minimal valid structure
+              const metadataMatch = jsonStr.match(/"metadata"\s*:\s*\{([\s\S]*)/);
+              if (metadataMatch) {
+                const metadataContent = metadataMatch[1];
+                // Try to close metadata object and add empty requirements
+                jsonStr = jsonStr.substring(0, jsonStr.indexOf('"metadata"')) + 
+                         `{"metadata":${metadataContent.replace(/,\s*$/, '')}},"requirements":{}}`;
+              }
+            }
+          }
+          
           try {
-            parsed = JSON.parse(jsonMatch[0]);
-            console.warn('⚠️  Extracted JSON from text response');
-          } catch {
-            throw new Error(`Failed to parse LLM response: ${parseError?.message || parseError}. Response: ${responseText.substring(0, 200)}`);
+            parsed = JSON.parse(jsonStr);
+            console.warn('⚠️  Extracted/fixed JSON from response');
+          } catch (fixError: any) {
+            // Last resort: try to extract partial data
+            try {
+              // Try to extract just metadata if requirements are cut off
+              const metadataMatch = jsonStr.match(/"metadata"\s*:\s*\{([\s\S]*?)\}/);
+              if (metadataMatch) {
+                const metadataStr = `{"metadata":${metadataMatch[0].substring(metadataMatch[0].indexOf('{'))},"requirements":{}}`;
+                parsed = JSON.parse(metadataStr);
+                console.warn('⚠️  Extracted partial JSON (metadata only)');
+              } else {
+                throw fixError;
+              }
+            } catch (lastResortError) {
+              throw new Error(`Failed to parse LLM response: ${parseError?.message || parseError}. Response preview: ${responseText.substring(0, 300)}...`);
+            }
           }
         } else {
           throw new Error(`Failed to parse LLM response: ${parseError?.message || parseError}. Response: ${responseText.substring(0, 200)}`);
@@ -335,7 +465,9 @@ Your task is to extract all relevant information about a funding program and ret
 REQUIREMENT CATEGORIES (extract all that apply):
 1. Eligibility:
    - company_type: FULL description of company type (e.g., "Small and medium-sized enterprises (SMEs) with less than 250 employees", NOT just "SME")
-   - company_stage: Stage of company (e.g., "Early stage", "Growth stage", "Mature")
+   - company_stage: Stage of company (e.g., "Early stage", "Growth stage", "Mature", "Startup", "Scale-up", "Established company", "Incorporated less than 3 years", "Newly founded company", "Company must be less than 5 years old", "Young enterprises", "Start-ups and spin-offs") - **CRITICAL: Extract this whenever company maturity/age is mentioned**
+     * Look for: "startup", "early stage", "growth stage", "scale-up", "established", "incorporated", "founded", "company age", "years in business", "newly founded", "young company", "mature company", "less than X years", "founded after", "established before"
+     * Examples: "Companies must be less than 3 years old", "Start-ups and spin-offs from research institutions", "Early-stage companies with innovative business models"
    - industry_restriction: Industry restrictions or focus areas
    - eligibility_criteria: General eligibility requirements (FULL descriptions, not single words)
 
@@ -345,11 +477,19 @@ REQUIREMENT CATEGORIES (extract all that apply):
    - format: Document format requirements
 
 3. Financial:
-   - repayment_terms: Repayment terms for loans (e.g., "Must repay within 5 years at 2% interest")
-   - equity_terms: Equity terms for equity funding (e.g., "Must have an equity stake of at least 20%")
-   - co_financing: Co-financing requirements (e.g., "Minimum 30% own contribution")
+   - repayment_terms: Repayment terms for repayable instruments (loans, guarantees, repayable advances) (e.g., "Must repay within 5 years at 2% interest", "Repayment over 10 years with 2-year grace period", "Amortization period of 7 years", "Repayment schedule: 2-year grace period, then monthly installments over 5 years") - **CRITICAL: Extract for ALL loans, bank products, guarantees, repayable advances**
+     * Look for: "repayment", "Rückzahlung", "repay within X years", "grace period", "tilgung", "amortization", "repayment period", "repayment schedule", "maturity", "Laufzeit", "Rückzahlungsfrist"
+     * Examples: "Loan must be repaid within 10 years", "2-year grace period, then monthly installments", "Repayment period: 5-7 years depending on project"
+   - interest_rate: Interest rate information (fixed/variable, APR, margins) (e.g., "Fixed 2.5% p.a." or "EURIBOR + 1.5%") - **CRITICAL: Extract whenever interest/margin is mentioned for loans/banks**
+   - equity_terms: Equity terms (stake, dilution, conversion conditions) (e.g., "Equity stake of at least 20%", "Convertible note with 5% discount")
+   - co_financing: Co-financing requirements (e.g., "Minimum 30% own contribution", "Must provide 40% co-financing")
+   - funding_rate: Funding / grant rate or subsidy intensity (e.g., "Funding rate up to 80% of eligible costs")
+   - grant_ratio: Grant/loan ratio or subsidy split
    - guarantee_fee: Guarantee fee details (e.g., "from 2.0% p.a. onward")
-   - guarantee_ratio: Guarantee ratio (e.g., "up to 80%")
+   - guarantee_ratio: Guarantee ratio or coverage (e.g., "up to 80% guarantee")
+   - minimum_investment_volume: Minimum investment volume required
+   - premium: Insurance or guarantee premium details
+   - other_financial_benefits: Any other financial benefit (tax relief, bonuses, additional subsidies)
    NOTE: funding_amount_min, funding_amount_max, currency, funding_amount_status go in METADATA only, not requirements
 
 4. Technical: Technical requirements or specifications
@@ -362,7 +502,8 @@ REQUIREMENT CATEGORIES (extract all that apply):
 6. Timeline:
    - deadline: Application deadline (date string)
    - open_deadline: Whether deadline is rolling/open (boolean)
-   - duration: Project duration
+   - duration: Project or support duration (e.g., "Support lasts 12 months")
+   - application_window: Application or call window (e.g., "Calls open each March and September")
 
 7. Geographic: Geographic eligibility
    - geographic_eligibility: FULL geographic descriptions (e.g., "Companies based in Austria, Germany, or EU member states", NOT just "Austria")
@@ -374,8 +515,10 @@ REQUIREMENT CATEGORIES (extract all that apply):
    - team_composition: Team composition requirements
 
 9. Project:
-   - innovation_focus: Innovation focus areas
-   - technology_area: Technology areas
+   - innovation_focus: Innovation focus areas (e.g., "Digital transformation", "AI and machine learning", "Green technology", "Circular economy", "Sustainable energy solutions", "Climate protection", "Resource efficiency", "Smart manufacturing", "Industry 4.0") - **CRITICAL: Extract whenever innovation themes are mentioned**
+     * Look for: "digital transformation", "AI", "sustainability", "green tech", "circular economy", "innovation focus", "strategic priorities", "focus areas", "thematic focus", "innovation themes", "Digitalisierung", "Nachhaltigkeit", "Klimaschutz", "Ressourceneffizienz"
+     * Examples: "Program focuses on digital transformation and Industry 4.0", "Innovation priorities include sustainability and circular economy", "Thematic focus: Green technology and climate protection"
+   - technology_area: Technology areas (e.g., "Biotechnology", "Nanotechnology", "IoT", "Blockchain", "Quantum computing") - **CRITICAL: Extract specific technology domains mentioned**
    - research_domain: Research domains
    - sector_focus: Sector focus
 
@@ -391,12 +534,19 @@ REQUIREMENT CATEGORIES (extract all that apply):
 12. Application: Application process and evaluation
     - application_process: Application process description (e.g., "Companies must submit a business plan, CV, and project description")
     - evaluation_criteria: Evaluation criteria (e.g., "Innovation and research focus, company size and experience")
+    - application_form: Specific application form or portal requirements
+    - application_requirement: Additional application prerequisites (e.g., "Provide business plan not older than 3 months")
 
 13. Funding_Details: How funds can be used and funding structure
-    - use_of_funds: How funds can be used (e.g., "Acquiring and developing R&D infrastructure")
+    - use_of_funds: How funds can be used (e.g., "Acquiring and developing R&D infrastructure", "Personnel costs", "Equipment purchase", "Marketing and sales", "Product development", "Working capital", "Investment in machinery", "Research and development activities", "Expansion of production facilities") - **CRITICAL: Extract whenever funding purpose/usage is described, even if brief**
+     * Look for: "use for", "purpose", "can be used for", "eligible costs", "funding covers", "personnel", "equipment", "R&D", "marketing", "working capital", "investment", "expansion", "machinery", "infrastructure", "Verwendungszweck", "Einsatz", "kann verwendet werden für"
+     * Examples: "Funds can be used for personnel costs, equipment, and R&D infrastructure", "Eligible costs include machinery, IT systems, and working capital", "Funding covers up to 80% of eligible investment costs"
     - capex_opex: Capital vs operational expenditure (e.g., "Both capital and operational expenditures are eligible")
     - revenue_model: Revenue model requirements
     - market_size: Market size requirements
+    - project_details: Required project information (deliverables, milestones, KPIs)
+    - funding_rate: Funding rate or coverage percentage (if not already captured)
+    - other_financial_benefits: Non-cash benefits tied to funding (e.g., mentoring, services bundled with funding)
 
 14. Restrictions: Restrictions and limitations
     - restrictions: Restrictions or limitations
@@ -442,6 +592,27 @@ RULES:
   * GOOD: "Small and medium-sized enterprises (SMEs) with less than 250 employees", "Companies based in Austria, Germany, or EU member states"
 - **DO NOT extract negative information**: Skip "No specific requirements mentioned", "None mentioned", "Not specified", "No restrictions"
 - Be specific and accurate - extract actual values, not generic descriptions
+- **CRITICAL: ALWAYS extract description** - Look for program description, overview, summary, or introduction text. Extract 2-5 sentences describing what the program is about. This is REQUIRED.
+  * Search in: <p> tags, <div class="description">, <div class="overview">, <section class="intro">, first few paragraphs, meta description
+  * Include: What the program does, who it's for, main benefits, key features
+  * Format: 2-5 complete sentences, not bullet points or fragments
+- **CRITICAL: DO NOT extract metadata fields as requirements**:
+  * These go in METADATA only: currency, funding_amount_min, funding_amount_max, funding_amount_status, deadline, open_deadline
+  * These are NOT requirements: "EUR", "USD", "fixed", "variable", "50000", "12000000"
+  * If you see these values, put them in metadata, NOT in requirements
+- **CRITICAL: ALWAYS extract funding amounts** - Look for "up to", "maximum", "minimum", "between", "from X to Y", "EUR", "€", numbers with currency. Extract both min and max if available. If only one amount, use it for both min and max.
+  * Patterns: "up to €X", "maximum X EUR", "minimum X", "between X and Y", "from X to Y EUR", "X - Y EUR", "bis zu X€", "maximal X Euro", "mindestens X", "zwischen X und Y"
+  * Also check: Tables, funding details sections, "Funding amount", "Förderhöhe", "Fördersumme", "Förderbetrag"
+  * Extract: Numbers only (remove commas, spaces, currency symbols) - e.g., "€50,000" → 50000, "100.000 EUR" → 100000
+  * If range: Extract min and max separately. If single amount: Use for both min and max
+  * If percentage: Convert to absolute amount if base amount is mentioned, otherwise skip
+- **CRITICAL: ALWAYS extract deadline** - Look for "deadline", "application deadline", "submission date", "due date", "closing date", "Bewerbungsfrist", "Einreichfrist". Extract date in ISO format (YYYY-MM-DD). If rolling/open deadline, set open_deadline to true.
+  * Patterns: "deadline: DD.MM.YYYY", "application by YYYY-MM-DD", "submission until DD/MM/YYYY", "Einreichfrist: DD.MM.YYYY", "Bewerbungsfrist bis DD.MM.YYYY"
+  * Also check: "Deadline", "Application Deadline", "Submission Date", "Due Date", "Closing Date", "Bewerbungsfrist", "Einreichfrist", "Stichtag"
+  * Date formats: DD.MM.YYYY, DD/MM/YYYY, YYYY-MM-DD, "DD Month YYYY" (e.g., "15 March 2025")
+  * Convert to ISO: YYYY-MM-DD format (e.g., "15.03.2025" → "2025-03-15")
+  * Rolling deadlines: "ongoing", "rolling", "open", "laufend", "kontinuierlich" → set open_deadline: true, deadline: null
+  * If multiple deadlines: Extract the next/earliest one
 - For financial amounts, extract numbers only (no currency symbols in numbers) - these go in METADATA
 - For dates, use ISO format (YYYY-MM-DD)
 - For boolean values, use true/false
@@ -449,7 +620,7 @@ RULES:
 - If information is ambiguous or unclear, omit it rather than guessing
 - Extract contact information (email, phone) from the page
 - **CRITICAL: ALWAYS identify funding types** - Look for keywords like "grant", "loan", "equity", "guarantee", "subsidy", "financing", "investment", "Förderung", "Kredit", "Beteiligung"
-- Funding types must be one of: "grant", "loan", "equity", "guarantee", "subsidy", "venture_capital", "bank_loan"
+- Funding types must be one of: "grant", "loan", "equity", "guarantee", "subsidy", "venture_capital", "bank_loan", "leasing", "crowdfunding", "angel_investment", "gründungsprogramm", "coaching", "mentoring", "consultation", "networking", "workshop", "support_program", "consulting_support", "micro_credit", "repayable_advance", "acceleration_program", "export_insurance", "intellectual_property", "patent_support", "export_support", "innovation_support"
 - If funding type is unclear, infer from:
   * URL patterns (/grant/, /loan/, /equity/, /guarantee/)
   * Page content (mentions of "non-repayable" = grant, "repay" = loan, "equity stake" = equity)
@@ -458,7 +629,38 @@ RULES:
   * Save country, region, state, city if given
   * If no geographic requirement found, omit geographic category (don't extract "None" or "No restriction")
 - Determine region from URL, content, or institution name (for metadata.region)
-- **IMPORTANT**: funding_types is REQUIRED - if not found, use "unknown" but try hard to identify it`;
+- **IMPORTANT**: funding_types is REQUIRED - if not found, use "unknown" but try hard to identify it
+- For purely non-repayable grants, ONLY extract repayment_terms if the text explicitly states beneficiaries must repay funds; otherwise skip repayment_terms
+- Always note interest_rate when a repayable instrument (loan, guarantee, micro credit, repayable advance) mentions percentages or margins
+- Capture program duration whenever mentioned, even if only an approximate timeframe
+
+CLASSIFICATION RULES:
+1. Distinguish between:
+   - Funding programs (grants, loans, equity) - actual money provided
+   - Support programs (Gründungsprogramm, coaching, mentoring) - support services, may include funding
+   - Services (consultation, workshops) - paid services, not funding
+   - Information pages (about, contact) - not programs
+
+2. Funding Type Validation:
+   - Grants: Should have deadline OR open_deadline = true (grants typically have application deadlines)
+   - Loans/Banks: Typically NO deadline (ongoing application process)
+   - Services: NO funding amount, NO deadline (these are service offerings)
+   - Gründungsprogramm: Support program (AMS, ÖSBS), may have optional deadline and funding
+
+3. Specialized Programs:
+   - Intellectual Property: IP support, patent assistance programs
+   - Export Support: Export assistance programs
+   - Innovation Support: Innovation support (may or may not include funding)
+
+4. Quality Indicators:
+   - Good page: Has funding amount, deadline (or open_deadline), requirements (5+), description
+   - Poor page: Missing funding amount, deadline, requirements
+   - Service page: No funding amount, no deadline, mentions "service", "consultation", "coaching", "workshop"
+
+5. Funding Types to Identify:
+   - Financial: grant, loan, equity, bank_loan, leasing, crowdfunding, subsidy, guarantee, venture_capital, angel_investment
+   - Support: gründungsprogramm, coaching, mentoring, consultation, networking, workshop
+   - Specialized: intellectual_property, patent_support, export_support, innovation_support`;
 }
 
 /**
@@ -479,6 +681,65 @@ Description: ${context.description}
 Page Content:
 ${context.content}
 
+**IMPORTANT: Pay special attention to these SIX critical topics:**
+
+1. **Description (REQUIRED)**: 
+   - Search in: First paragraphs, <p> tags, sections with "overview", "description", "summary", "about", "intro"
+   - Extract: 2-5 complete sentences explaining what the program is, who it's for, and what it offers
+   - Include: Purpose, target audience, main benefits, key features
+   - If not found in main content, check meta description or page title for context
+
+2. **Funding Amount (REQUIRED)**:
+   - Search in: "Funding amount", "Förderhöhe", "Fördersumme", "Förderbetrag", tables, funding details sections
+   - Look for: "up to €X", "maximum X EUR", "minimum X", "between X and Y", "from X to Y EUR", "X - Y EUR", "bis zu X€", "maximal X Euro", "mindestens X", "zwischen X und Y"
+   - Extract: Numbers only (remove commas, spaces, currency symbols)
+   - Examples: "€50,000" → 50000, "100.000 EUR" → 100000, "between 10,000 and 50,000 EUR" → min: 10000, max: 50000
+   - If single (fixed) amount: use the SAME value for both min and max (this indicates a fixed amount)
+   - If percentage only: Skip (need absolute amount)
+   - **CRITICAL**: For bank loans, guarantees, leasing - these may NOT have fixed amounts but should still extract if mentioned
+
+3. **Deadline & Duration (REQUIRED)**:
+   - Search in: "Deadline", "Application Deadline", "Submission Date", "Due Date", "Closing Date", "Bewerbungsfrist", "Einreichfrist", "Stichtag"
+   - Look for: "deadline: DD.MM.YYYY", "application by YYYY-MM-DD", "submission until DD/MM/YYYY", "Einreichfrist: DD.MM.YYYY"
+   - Date formats: DD.MM.YYYY, DD/MM/YYYY, YYYY-MM-DD, "DD Month YYYY" (e.g., "15 March 2025")
+   - Convert to ISO: YYYY-MM-DD format (e.g., "15.03.2025" → "2025-03-15")
+   - Rolling deadlines: "ongoing", "rolling", "open", "laufend", "kontinuierlich" → set open_deadline: true, deadline: null
+   - **CRITICAL**: Bank loans, guarantees, leasing typically have NO deadline (ongoing) - set open_deadline: true
+   - If multiple deadlines: Extract the next/earliest one
+   - ALWAYS capture program duration if mentioned (e.g., "Acceleration program lasts 6 months", "Support available for 24 months")
+   - Capture application windows (calls open/close periods) in timeline.application_window when provided
+
+4. **Financial Terms (CRITICAL for Loans/Guarantees/Equity)**:
+   - For loans, leasing, guarantees, repayable advances, bank products:
+     * **ALWAYS extract interest rates** (fixed/variable, margin, APR) - Look for "interest rate", "Zinssatz", "margin", "APR", percentages with "p.a." or "per annum", "EURIBOR", "LIBOR"
+     * **ALWAYS extract repayment_terms** (duration, grace period, repayment schedule) - Look for "repayment", "Rückzahlung", "repay within X years", "grace period", "tilgung", "amortization", "repayment period"
+     * **CRITICAL**: Use type "repayment_terms" in "financial" category, NOT generic "financial" types
+     * Example: {"category": "financial", "type": "repayment_terms", "value": "Must repay within 10 years with 2-year grace period"}
+     * Capture guarantee coverage ratios, premiums, minimum investment amount
+   - For grants/subsidies:
+     * Capture funding rates / grant ratios / subsidy intensity
+     * Co-financing requirements (own contribution percentages)
+   - For equity or venture capital programs:
+     * Extract equity terms (stake expectations, dilution, convertible conditions)
+   - Use requirement types: interest_rate, repayment_terms, co_financing, funding_rate, grant_ratio, minimum_investment_volume, premium, equity_terms, guarantee_fee, guarantee_ratio
+
+5. **Company Stage & Innovation Focus (CRITICAL)**:
+   - **ALWAYS extract company_stage** when mentioned: Look for "startup", "early stage", "growth stage", "scale-up", "established", "incorporated", "founded", "company age", "years in business", "newly founded", "young company", "mature company"
+   - **CRITICAL**: Use type "company_stage" in "eligibility" category, NOT generic "eligibility_criteria"
+   - Example: {"category": "eligibility", "type": "company_stage", "value": "Companies must be less than 3 years old"}
+   - **ALWAYS extract innovation_focus** when themes are mentioned: Look for "digital transformation", "AI", "sustainability", "green tech", "circular economy", "innovation focus", "strategic priorities", "focus areas"
+   - **CRITICAL**: Use type "innovation_focus" in "project" category, NOT generic "sector_focus" or "technology_area"
+   - Example: {"category": "project", "type": "innovation_focus", "value": "Digital transformation and Industry 4.0"}
+   - **ALWAYS extract technology_area** when specific technologies are mentioned: Look for "biotechnology", "nanotechnology", "IoT", "blockchain", "quantum", "robotics", "automation", "AI", "machine learning"
+   - **ALWAYS extract use_of_funds** when funding purpose is described: Look for "use for", "purpose", "can be used for", "eligible costs", "funding covers", "personnel", "equipment", "R&D", "marketing", "working capital", "investment", "expansion"
+   - **CRITICAL**: Use type "use_of_funds" in "funding_details" category, NOT generic "project_details" or "other"
+   - Example: {"category": "funding_details", "type": "use_of_funds", "value": "Funds can be used for personnel costs, equipment, and R&D infrastructure"}
+
+6. **Eligibility & Financial Requirements (CRITICAL)**:
+   - **ALWAYS extract eligibility requirements** - Look for "eligible", "requirements", "must be", "qualify", "criteria", "voraussetzungen", "Anforderungen"
+   - **ALWAYS extract financial requirements** - Look for "co-financing", "own contribution", "matching funds", "Eigenmittel", "Eigenkapital", "minimum investment", "collateral"
+   - If page has NO eligibility, financial, or funding_details requirements AND no funding amount, it's likely NOT a funding program - mark accordingly
+
 Extract all relevant information and return as JSON following the specified format.`;
 }
 
@@ -496,6 +757,8 @@ function transformLLMResponse(
     // Map old "other" subcategories to new categories
     'application_process': 'application',
     'evaluation_criteria': 'application',
+    'application_form': 'application',
+    'application_requirement': 'application',
     'use_of_funds': 'funding_details',
     'capex_opex': 'funding_details',
     'revenue_model': 'funding_details',
@@ -508,9 +771,27 @@ function transformLLMResponse(
     'success_metrics': 'terms',
     'repayment_terms': 'financial', // Move to financial
     'equity_terms': 'financial', // Move to financial
+    'interest_rate': 'financial',
+    'funding_rate': 'financial',
+    'grant_ratio': 'financial',
+    'minimum_investment_volume': 'financial',
+    'premium': 'financial',
+    'other_financial_benefits': 'financial',
+    'guarantee_fee': 'financial',
+    'guarantee_ratio': 'financial',
+    'duration': 'timeline',
+    'application_window': 'timeline',
+    'deadline_status': 'timeline',
+    'project_details': 'funding_details',
+    'financial_statements': 'documents',
+    'business_plan': 'documents',
+    'proof_of_address': 'documents',
+    'identification': 'documents',
+    'funding_rate_requirement': 'financial',
+    'grant_ratio_requirement': 'financial',
   };
 
-  // Filter negative information patterns
+  // Filter negative information patterns (comprehensive - catch all junk)
   const negativePatterns = [
     /^no\s+specific/i,
     /^none\s+mentioned/i,
@@ -521,6 +802,18 @@ function transformLLMResponse(
     /^none$/i,
     /^n\/a$/i,
     /^na$/i,
+    /^not\s+applicable/i,
+    /^not\s+available/i,
+    /^no\s+data/i,
+    /^no\s+information/i,
+    /^unknown$/i,
+    /^tbd$/i,
+    /^to\s+be\s+determined/i,
+    /^see\s+above$/i,
+    /^see\s+below$/i,
+    /^see\s+website$/i,
+    /^contact\s+us$/i,
+    /^please\s+contact/i,
   ];
 
   function isNegativeInformation(value: string): boolean {
@@ -538,14 +831,25 @@ function transformLLMResponse(
           // Skip empty values
           if (!value || value.length === 0) return;
           
-          // Skip negative information
+          // Skip negative information (comprehensive junk filtering)
           if (isNegativeInformation(value)) return;
+          
+          // Skip very short values that are likely junk (< 10 chars, unless technical)
+          if (value.length < 10 && !/^(trl|iso|iec|en)\s*\d+/i.test(value) && !/^\d+$/.test(value)) {
+            return; // Too short, likely junk
+          }
           
           // Skip metadata fields that shouldn't be requirements
           const type = item.type || 'general';
           if (type === 'currency' || type === 'funding_amount_status' || 
-              type === 'funding_amount_min' || type === 'funding_amount_max') {
+              type === 'funding_amount_min' || type === 'funding_amount_max' ||
+              type === 'deadline' || type === 'open_deadline') {
             return; // These go in metadata only
+          }
+          
+          // Skip single-word generic values (junk)
+          if (/^(yes|no|true|false|both|none|all|any|sme|startup|large|small|medium|eur|usd|gbp|chf|grant|loan|equity|guarantee|subsidy)$/i.test(value.trim())) {
+            return; // Generic single word, not a requirement
           }
           
           // Map category if needed
@@ -564,8 +868,9 @@ function transformLLMResponse(
           // Calculate meaningfulness
           const meaningfulness = calculateMeaningfulnessScore(value);
           
-          // Only add if meaningfulness >= 30 (or null, which means we'll calculate it)
-          if (meaningfulness >= 30 || meaningfulness === null) {
+          // Lower threshold to 10 to capture ALL valid requirements (100% completeness)
+          // Still filters out truly generic values (score 0)
+          if (meaningfulness >= 10 || meaningfulness === null) {
             categorized[finalCategory].push({
               type: type,
               value: value,

@@ -42,6 +42,7 @@ import {
   getImprovedClassificationPrompt, 
   getLearningStatus 
 } from './src/learning/auto-learning';
+import { runIntegratedAutoCycle } from './src/learning/integrated-auto-cycle';
 import * as cheerio from 'cheerio';
 
 // ============================================================================
@@ -67,11 +68,13 @@ function getConfig() {
     LLM_ONLY: true, // Skip pattern extraction, use LLM directly
     
     // Discovery Settings - Smart discovery for different funding types
-    MAX_DISCOVERY: parseInt(process.env.LITE_MAX_DISCOVERY_PAGES || '50', 10),
+    // REMOVED LIMIT - discover from ALL seeds to reach 2500 programs
+    MAX_DISCOVERY: parseInt(process.env.LITE_MAX_DISCOVERY_PAGES || '9999', 10),
     DISCOVER_FUNDING_TYPES: ['grant', 'loan', 'equity', 'guarantee'], // Look for different types
     
-    // Scraping Settings
-    MAX_SCRAPE: parseInt(process.env.LITE_MAX_URLS || '20', 10),
+    // Scraping Settings - Dynamic batch size based on queue size
+    // REMOVED LIMIT - process ALL queued URLs to reach 2500 programs
+    MAX_SCRAPE: parseInt(process.env.LITE_MAX_URLS || '99999', 10),
     
     // Update Settings
     FORCE_UPDATE: forceUpdate, // Re-scrape existing pages when true
@@ -82,6 +85,48 @@ function getConfig() {
 }
 
 const CONFIG = getConfig();
+
+// ============================================================================
+// HARDCODED FILTERS & HEURISTICS
+// ============================================================================
+
+import { HARD_SKIP_URL_PATTERNS, SUSPICIOUS_CONTENT_KEYWORDS, EXCLUSION_KEYWORDS } from './src/utils/blacklist';
+
+// All exclusion patterns and keywords are now imported from blacklist.ts (single source of truth)
+
+function shouldSkipUrl(url: string): boolean {
+  if (!url) return true;
+  const lower = url.toLowerCase();
+
+  // Skip anchors and javascript links
+  if (lower.startsWith('javascript:') || lower === '#' || lower.endsWith('#')) {
+    return true;
+  }
+
+  // Skip obvious fragments or tracking parameters that indicate navigation only
+  if (lower.includes('#') && !lower.includes('programme') && !lower.includes('program')) {
+    return true;
+  }
+
+  // Skip known bad patterns
+  if (HARD_SKIP_URL_PATTERNS.some(pattern => pattern.test(lower))) {
+    return true;
+  }
+
+  // Skip suspicious keywords unless clearly a program
+  if (EXCLUSION_KEYWORDS.some(keyword => lower.includes(keyword))) {
+    if (!/(programm|program|foerder|förder|funding|grant|loan|appel|appel-a-projet|accelerateur|accelerator|scheme|subsidy)/i.test(lower)) {
+      return true;
+    }
+  }
+
+  // Skip obvious file downloads
+  if (lower.match(/\.(pdf|docx?|xlsx?|pptx?|zip|rar|ics)(?:\?|$)/)) {
+    return true;
+  }
+
+  return false;
+}
 
 // ============================================================================
 // DATABASE HELPERS
@@ -134,28 +179,63 @@ async function discoverPrograms(): Promise<number> {
   const seeds = await getAllSeedUrls();
   console.log(`🌱 Checking ${seeds.length} seed URLs (includes discovered seeds from DB)...\n`);
   
-  // Batch check ALL seeds against database
+  // DISCOVERY CACHING: Skip seeds checked in last 24 hours (unless overview page or force update)
+  const recentlyChecked = await pool.query(`
+    SELECT url, last_checked, source_type
+    FROM discovered_seed_urls
+    WHERE url = ANY($1::text[])
+      AND last_checked > NOW() - INTERVAL '24 hours'
+      AND is_active = true
+  `, [seeds]);
+  const recentlyCheckedSet = new Set(recentlyChecked.rows.map((r: any) => r.url));
+  
+  // Always re-check overview pages (they discover new programs)
+  const overviewPages = await pool.query(`
+    SELECT url FROM pages
+    WHERE url = ANY($1::text[])
+      AND metadata_json->>'is_overview_page' = 'true'
+  `, [seeds]);
+  const overviewSet = new Set(overviewPages.rows.map((r: any) => r.url));
+  
+  // Optimized: Batch check ALL seeds against database and queue
   const seedCheck = await pool.query(
-    `SELECT url FROM pages WHERE url = ANY($1::text[])`,
+    `SELECT url FROM pages WHERE url = ANY($1::text[])
+     UNION
+     SELECT url FROM scraping_jobs WHERE url = ANY($1::text[]) AND status IN ('queued', 'completed')`,
     [seeds]
   );
   const existingSeeds = new Set(seedCheck.rows.map((r: any) => r.url));
   
+  // Filter out recently checked seeds (unless overview page or force update)
+  const seedsToCheck = seeds.filter(seed => {
+    if (CONFIG.FORCE_UPDATE) return true; // Force update: check all
+    if (overviewSet.has(seed)) return true; // Always check overview pages
+    if (recentlyCheckedSet.has(seed)) {
+      console.log(`   ⏭️  Skipping recently checked seed (cached): ${seed.substring(0, 60)}...`);
+      return false; // Skip recently checked
+    }
+    return true;
+  });
+  
+  console.log(`📋 After caching: ${seedsToCheck.length}/${seeds.length} seeds to check (${seeds.length - seedsToCheck.length} cached)\n`);
+  
   // RE-CHECK OVERVIEW PAGES: Get overview pages that need re-checking (older than 7 days)
-  const overviewPages = await pool.query(`
+  // Note: This is now handled by the caching logic above, but keep for backward compatibility
+  const overviewPagesToRecheck = await pool.query(`
     SELECT url, fetched_at 
     FROM pages 
     WHERE url = ANY($1::text[])
       AND metadata_json->>'is_overview_page' = 'true'
       AND (fetched_at IS NULL OR fetched_at < NOW() - INTERVAL '7 days')
-  `, [seeds]);
+  `, [seedsToCheck]);
   
-  const overviewUrlsToRecheck = new Set(overviewPages.rows.map((r: any) => r.url));
+  const overviewUrlsToRecheck = new Set(overviewPagesToRecheck.rows.map((r: any) => r.url));
   
   // SMART SEED PROCESSING: Skip seeds already in DB (unless overview page)
   // Use LLM to quickly check if seed is overview page before fetching
-  const seedsToCheck = seeds.filter(s => !existingSeeds.has(s) || overviewUrlsToRecheck.has(s));
-  const seedsToProcess: string[] = [];
+  // Note: seedsToCheck is already filtered above with caching, so this is for backward compatibility
+  const seedsToProcessFiltered = seedsToCheck.filter(s => !existingSeeds.has(s) || overviewUrlsToRecheck.has(s));
+  const seedsToProcess: string[] = seedsToProcessFiltered;
   
   // Quick LLM classification of seeds (batch)
   if (seedsToCheck.length > 0 && CONFIG.USE_LLM) {
@@ -206,6 +286,10 @@ async function discoverPrograms(): Promise<number> {
   for (const seed of seedsToProcess.slice(0, CONFIG.MAX_DISCOVERY)) {
     if (pagesProcessed >= CONFIG.MAX_DISCOVERY) break;
     if (seen.has(seed)) continue;
+    if (shouldSkipUrl(seed)) {
+      console.log(`   ⏭️  Skipping known non-program seed: ${seed.substring(0, 80)}...\n`);
+      continue;
+    }
     
     seen.add(seed);
     pagesProcessed++;
@@ -250,12 +334,22 @@ async function discoverPrograms(): Promise<number> {
       
       const result = await fetchHtml(seed);
       
-      // Handle 404s - auto-blacklist them
-      if (result.status === 404) {
-        console.log(`   ⏭️  HTTP 404 - Auto-blacklisting URL\n`);
+      // IMPROVED: Handle HTTP errors immediately - auto-blacklist 403/404
+      if (result.status === 403 || result.status === 404) {
+        console.log(`   ⏭️  HTTP ${result.status} - Auto-blacklisting URL\n`);
         const host = new URL(seed).hostname.replace('www.', '');
         const { addManualExclusion } = await import('./src/utils/blacklist');
-        await addManualExclusion(seed, host, 'HTTP 404 - Page not found');
+        await addManualExclusion(seed, host, `HTTP ${result.status} - Auto-blacklisted during discovery`);
+        // Also mark in discovered_seed_urls as inactive
+        try {
+          await pool.query(`
+            UPDATE discovered_seed_urls 
+            SET is_active = false, last_error = $1
+            WHERE url = $2
+          `, [`HTTP ${result.status}`, seed]);
+        } catch {
+          // Silently fail
+        }
         continue;
       }
       const $ = cheerio.load(result.html);
@@ -309,15 +403,18 @@ async function discoverPrograms(): Promise<number> {
               // Queue high-quality filter URLs
               let filterQueued = 0;
               // Check filter URLs against database
+              // Optimized: Check both pages and queue
               const filterUrlCheck = await pool.query(
-                `SELECT url FROM pages WHERE url = ANY($1::text[])`,
+                `SELECT url FROM pages WHERE url = ANY($1::text[])
+                 UNION
+                 SELECT url FROM scraping_jobs WHERE url = ANY($1::text[]) AND status = 'queued'`,
                 [filterUrls]
               );
               const existingFilterUrls = new Set(filterUrlCheck.rows.map((r: any) => r.url));
               
               for (const classification of filterClassifications) {
-                if (classification.isProgramPage !== 'no' && classification.qualityScore >= 50) {
-                  if (!seen.has(classification.url) && !existingFilterUrls.has(classification.url)) {
+                if (classification.isProgramPage !== 'no' && classification.qualityScore >= 30) { // Lowered from 50 to 30
+                  if (!seen.has(classification.url) && !existingFilterUrls.has(classification.url) && !shouldSkipUrl(classification.url)) {
                     discovered.push(classification.url);
                     seen.add(classification.url);
                     await markUrlQueued(classification.url, classification.qualityScore);
@@ -331,15 +428,18 @@ async function discoverPrograms(): Promise<number> {
               }
             } else {
               // Fallback: queue all filter URLs if LLM not available
+              // Optimized: Check both pages and queue
               const filterUrlCheck = await pool.query(
-                `SELECT url FROM pages WHERE url = ANY($1::text[])`,
+                `SELECT url FROM pages WHERE url = ANY($1::text[])
+                 UNION
+                 SELECT url FROM scraping_jobs WHERE url = ANY($1::text[]) AND status = 'queued'`,
                 [filterUrls]
               );
               const existingFilterUrls = new Set(filterUrlCheck.rows.map((r: any) => r.url));
               
               let filterQueued = 0;
-              for (const filterUrl of filterUrls.slice(0, 5)) {
-                if (!seen.has(filterUrl) && !existingFilterUrls.has(filterUrl)) {
+              for (const filterUrl of filterUrls.slice(0, 50)) { // Increased from 5 to 50
+                if (!seen.has(filterUrl) && !existingFilterUrls.has(filterUrl) && !shouldSkipUrl(filterUrl)) {
                   discovered.push(filterUrl);
                   seen.add(filterUrl);
                   await markUrlQueued(filterUrl, 50);
@@ -395,6 +495,8 @@ async function discoverPrograms(): Promise<number> {
               urlLower.includes('/disclaimer/') ||
               urlLower.includes('/request-ifg/')) return;
           
+          if (shouldSkipUrl(fullUrl)) return;
+          
           links.push({ url: fullUrl, title: text });
         } catch {
           // Invalid URL
@@ -426,12 +528,47 @@ async function discoverPrograms(): Promise<number> {
         continue;
       }
       
+      // IMPROVED: Institution-aware discovery limits - prevent single institution dominance
+      // Group links by institution and limit per institution
+      const linksByInstitution: Record<string, string[]> = {};
+      filteredLinks.forEach(link => {
+        let institution = 'Other';
+        if (link.includes('wko.at')) institution = 'WKO';
+        else if (link.includes('aws.at')) institution = 'AWS';
+        else if (link.includes('ffg.at')) institution = 'FFG';
+        else if (link.includes('bmk.gv.at')) institution = 'BMK';
+        else if (link.includes('erstebank.at')) institution = 'Erste Bank';
+        else if (link.includes('sparkasse.at')) institution = 'Sparkasse';
+        
+        if (!linksByInstitution[institution]) {
+          linksByInstitution[institution] = [];
+        }
+        linksByInstitution[institution].push(link);
+      });
+      
+      // REMOVED LIMIT - discover ALL links to reach 2500 programs
+      const MAX_PER_INSTITUTION = 9999;
+      const balancedLinks: string[] = [];
+      for (const [institution, instLinks] of Object.entries(linksByInstitution)) {
+        const limited = instLinks.slice(0, MAX_PER_INSTITUTION);
+        balancedLinks.push(...limited);
+        if (instLinks.length > MAX_PER_INSTITUTION) {
+          console.log(`   ⚖️  Limited ${institution} links: ${instLinks.length} → ${MAX_PER_INSTITUTION} (preventing dominance)`);
+        }
+      }
+      
+      // Use balanced links for classification
+      const linksToClassify = balancedLinks.length > 0 ? balancedLinks : filteredLinks;
+      
+      // Optimized: Check both pages and queue in one query (use balanced links)
       const linkCheck = await pool.query(
-        `SELECT url FROM pages WHERE url = ANY($1::text[])`,
-        [filteredLinks]
+        `SELECT url FROM pages WHERE url = ANY($1::text[])
+         UNION
+         SELECT url FROM scraping_jobs WHERE url = ANY($1::text[]) AND status = 'queued'`,
+        [linksToClassify]
       );
       const existingLinks = new Set(linkCheck.rows.map((r: any) => r.url));
-      const newLinks = links.filter(l => filteredLinks.includes(l.url) && !existingLinks.has(l.url) && !seen.has(l.url));
+      const newLinks = links.filter(l => linksToClassify.includes(l.url) && !existingLinks.has(l.url) && !seen.has(l.url));
       
       if (newLinks.length === 0) {
         console.log(`   ✅ Found ${uniqueLinks.length} links, all already in DB\n`);
@@ -450,10 +587,10 @@ async function discoverPrograms(): Promise<number> {
           improvedPrompt
         );
         
-        // Only queue high-quality program pages
+        // Queue ALL program pages (lower threshold to 30 to get more variety)
         for (const classification of classifications) {
           if (classification.isProgramPage === 'no') continue;
-          if (classification.qualityScore < 50) continue;
+          if (classification.qualityScore < 30) continue; // Lowered from 50 to 30 for more programs
           
           discovered.push(classification.url);
           seen.add(classification.url);
@@ -461,13 +598,14 @@ async function discoverPrograms(): Promise<number> {
         }
         
         const queued = classifications.filter(c => 
-          c.isProgramPage !== 'no' && c.qualityScore >= 50
+          c.isProgramPage !== 'no' && c.qualityScore >= 30
         ).length;
         console.log(`   ✅ Classified: ${queued} high-quality program pages queued\n`);
       } else {
         // Fallback: queue all new links if LLM not available
-        for (const link of newLinks.slice(0, CONFIG.MAX_DISCOVERY * 2)) {
-          if (discovered.length >= CONFIG.MAX_DISCOVERY * 2) break;
+        // Process ALL new links (no limit) for aggressive discovery
+        for (const link of newLinks) {
+          if (discovered.length >= CONFIG.MAX_DISCOVERY * 10) break; // Safety limit only
           discovered.push(link.url);
           seen.add(link.url);
           await markUrlQueued(link.url, 50); // Default quality score
@@ -551,14 +689,14 @@ async function discoverPrograms(): Promise<number> {
         AND metadata_json->>'is_overview_page' != 'true'
         AND fetched_at > NOW() - INTERVAL '30 days'
       ORDER BY fetched_at DESC
-      LIMIT 50
+      LIMIT 500
     `);
     
     if (scrapedPages.rows.length > 0) {
       console.log(`   📄 Checking ${scrapedPages.rows.length} recently scraped pages for new links...`);
       let newFromScraped = 0;
       
-      for (const page of scrapedPages.rows.slice(0, 20)) { // Limit to 20 pages
+      for (const page of scrapedPages.rows.slice(0, 1000)) { // Increased to 1000 for aggressive discovery
         try {
           // Read HTML from file
           let html = '';
@@ -609,6 +747,7 @@ async function discoverPrograms(): Promise<number> {
                   urlLower.includes('cdn-cgi/l/email')) return;
               if (urlLower.includes('/sitemap/') || urlLower.includes('/accessibility/') ||
                   urlLower.includes('/data-protection/') || urlLower.includes('/disclaimer/')) return;
+              if (shouldSkipUrl(fullUrl)) return;
               
               links.push(fullUrl);
             } catch {
@@ -618,9 +757,11 @@ async function discoverPrograms(): Promise<number> {
           
           if (links.length === 0) continue;
           
-          // Check which links are new
+          // Optimized: Check both pages and queue in one query
           const linkCheck = await pool.query(
-            `SELECT url FROM pages WHERE url = ANY($1::text[])`,
+            `SELECT url FROM pages WHERE url = ANY($1::text[])
+             UNION
+             SELECT url FROM scraping_jobs WHERE url = ANY($1::text[]) AND status = 'queued'`,
             [links]
           );
           const existingLinks = new Set(linkCheck.rows.map((r: any) => r.url));
@@ -629,7 +770,7 @@ async function discoverPrograms(): Promise<number> {
           if (newLinks.length === 0) continue;
           
           // Check blacklist
-          const validLinks = [];
+          const validLinks: string[] = [];
           for (const link of newLinks) {
             if (!(await isUrlExcluded(link))) {
               validLinks.push(link);
@@ -679,7 +820,7 @@ async function discoverPrograms(): Promise<number> {
             }
           } else {
             // Queue without LLM
-            for (const link of validLinks.slice(0, 5)) {
+            for (const link of validLinks.slice(0, 100)) { // Increased from 5 to 100
               if (!seen.has(link)) {
                 discovered.push(link);
                 seen.add(link);
@@ -724,21 +865,84 @@ async function scrapePrograms(): Promise<number> {
     return 0;
   }
   
-  const urls = await getQueuedUrls(CONFIG.MAX_SCRAPE);
-  
-  // Debug: Check queue status
+  // IMPROVED: Dynamic batch size based on queue size
   const pool = getPool();
   const queueCheck = await pool.query('SELECT COUNT(*) as total FROM scraping_jobs WHERE status = $1', ['queued']);
-  console.log(`🔍 Debug: ${queueCheck.rows[0].total} URLs in queue, getQueuedUrls returned ${urls.length}`);
+  const totalQueued = parseInt(queueCheck.rows[0].total, 10);
+  
+  // Dynamic batch size: Process more URLs when queue is large
+  let dynamicBatchSize = CONFIG.MAX_SCRAPE;
+  if (totalQueued > 500) {
+    dynamicBatchSize = 200; // Large queue: process 200 per cycle
+  } else if (totalQueued > 200) {
+    dynamicBatchSize = 100; // Medium queue: process 100 per cycle
+  } else if (totalQueued > 100) {
+    dynamicBatchSize = 75; // Small-medium queue: process 75 per cycle
+  }
+  // else: use default (50)
+  
+  const urls = await getQueuedUrls(dynamicBatchSize, CONFIG.FORCE_UPDATE);
+  
+  // IMPROVED: Progress tracking and queue statistics
+  
+  // Get institution statistics
+  const instStats = await pool.query(`
+    SELECT 
+      CASE 
+        WHEN url LIKE '%aws.at%' THEN 'AWS'
+        WHEN url LIKE '%ffg.at%' THEN 'FFG'
+        WHEN url LIKE '%wko.at%' THEN 'WKO'
+        WHEN url LIKE '%bmk.gv.at%' THEN 'BMK'
+        WHEN url LIKE '%erstebank.at%' THEN 'Erste Bank'
+        WHEN url LIKE '%sparkasse.at%' THEN 'Sparkasse'
+        ELSE 'Other'
+      END as institution,
+      COUNT(*) as count
+    FROM scraping_jobs
+    WHERE status = 'queued'
+    GROUP BY institution
+    ORDER BY count DESC
+    LIMIT 10
+  `);
+  
+  console.log(`📊 Queue Status:`);
+  console.log(`   Total queued: ${totalQueued} URLs`);
+  console.log(`   Batch size: ${dynamicBatchSize} (dynamic based on queue size)`);
+  console.log(`   Processing: ${urls.length} URLs (${Math.min(100, Math.round((urls.length / Math.max(1, totalQueued)) * 100))}% of queue)`);
+  if (totalQueued > 0 && urls.length > 0) {
+    const estimatedTime = Math.ceil((totalQueued / urls.length) * 2); // ~2 seconds per URL
+    const cyclesNeeded = Math.ceil(totalQueued / urls.length);
+    console.log(`   Estimated time to process all: ~${estimatedTime} minutes (${cyclesNeeded} cycles)`);
+  }
+  if (instStats.rows.length > 0) {
+    console.log(`\n📈 Queue by Institution:`);
+    instStats.rows.forEach((row: any) => {
+      const percentage = Math.round((row.count / totalQueued) * 100);
+      console.log(`   ${row.institution}: ${row.count} URLs (${percentage}%)`);
+    });
+  }
+  console.log('');
   
   if (urls.length === 0) {
     console.log('ℹ️  No queued URLs to scrape\n');
     return 0;
   }
   
-  // Parallel processing: Process 8 URLs concurrently (increased from 5 for speed)
-  // Can increase to 10 if rate limits allow, but 8 is safer
-  const CONCURRENCY = parseInt(process.env.SCRAPER_CONCURRENCY || '8', 10);
+  // Parallel processing: Adjust based on LLM provider
+  // Groq free tier: 6000 tokens/min → use 3 concurrent
+  // Gemini free tier: 10 requests/min → use 2 concurrent
+  // Gemini paid tier: 1,000 requests/min → use 40-50 concurrent (optimized)
+  // OpenAI/paid tiers: can handle 20+ concurrent
+  let defaultConcurrency = 20;
+  if (process.env.CUSTOM_LLM_ENDPOINT?.includes('groq.com')) {
+    defaultConcurrency = 3;
+  } else if (process.env.CUSTOM_LLM_ENDPOINT?.includes('generativelanguage.googleapis.com')) {
+    // Gemini paid tier: 1,000 req/min = ~16 req/sec
+    // Optimized: Use 50 concurrent for maximum speed (rate limit queue will manage actual rate)
+    // With better caching and error handling, we can push higher
+    defaultConcurrency = 50; // Gemini paid tier: 1,000 req/min (optimized from 30)
+  }
+  const CONCURRENCY = parseInt(process.env.SCRAPER_CONCURRENCY || String(defaultConcurrency), 10);
   
   console.log(`📋 Scraping ${urls.length} programs with LLM (${CONCURRENCY} parallel)...\n`);
   
@@ -747,6 +951,16 @@ async function scrapePrograms(): Promise<number> {
   let updated = 0;
   const processUrl = async (url: string, index: number): Promise<{ saved: boolean; skipped: boolean; updated: boolean }> => {
     console.log(`[${index + 1}/${urls.length}] ${url.substring(0, 60)}...`);
+    
+    // FIX #3: Check URL patterns early (contact/info pages) - before any processing
+    if (shouldSkipUrl(url)) {
+      console.log(`   ⏭️  Skipping non-program URL (contact/info/page pattern)\n`);
+      await pool.query('UPDATE scraping_jobs SET status = $1, last_error = $2 WHERE url = $3', 
+        ['failed', 'Non-program URL (contact/info/page)', url]);
+      const host = new URL(url).hostname.replace('www.', '');
+      await learnUrlPatternFromPage(url, host, false);
+      return { saved: false, skipped: true, updated: false };
+    }
     
     // Check if URL already exists
     const exists = await isUrlInDatabase(url);
@@ -765,46 +979,79 @@ async function scrapePrograms(): Promise<number> {
         console.log(`   ⏭️  Skipping blacklisted URL\n`);
         await pool.query('UPDATE scraping_jobs SET status = $1, last_error = $2 WHERE url = $3', 
           ['failed', 'Blacklisted URL', url]);
-        // Learn exclusion pattern
-        const host = new URL(url).hostname.replace('www.', '');
-        await learnUrlPatternFromPage(url, host, false);
+        // Don't learn pattern here - pattern already exists (that's why it's blacklisted)
+        // Learning happens after scraping if page has no requirements
         return { saved: false, skipped: true, updated: false };
       }
       
       // Fetch HTML
       const result = await fetchHtml(url);
       
-      // Check for 404 - auto-blacklist
+      // Check for 404 - auto-blacklist immediately (high confidence)
       if (result.status === 404) {
         console.log(`   ⏭️  HTTP 404 - Auto-blacklisting URL\n`);
         await pool.query('UPDATE scraping_jobs SET status = $1, last_error = $2 WHERE url = $3', 
           ['failed', 'HTTP 404 - Page not found', url]);
-        // Auto-blacklist 404 URLs
+        // Auto-blacklist 404 URLs with high confidence (0.9)
         const host = new URL(url).hostname.replace('www.', '');
         const { addManualExclusion } = await import('./src/utils/blacklist');
         await addManualExclusion(url, host, 'HTTP 404 - Page not found');
+        // Learn pattern with high confidence for 404s (they're definitely invalid)
         await learnUrlPatternFromPage(url, host, false);
         return { saved: false, skipped: true, updated: false };
       }
       
-      // Check if requires login
-      if (requiresLogin(url, result.html)) {
-        console.log(`   🔐 Login required - attempting authentication...`);
+      // Skip known non-program URLs (after redirects)
+      const finalUrl = (result as any)?.finalUrl as string | undefined;
+      if (finalUrl && shouldSkipUrl(finalUrl)) {
+        console.log(`   ⏭️  Skipping redirected non-program URL: ${finalUrl.substring(0, 100)}\n`);
+        await pool.query('UPDATE scraping_jobs SET status = $1, last_error = $2 WHERE url = $3', 
+          ['failed', 'Non-program URL (pattern)', url]);
+        const host = new URL(finalUrl).hostname.replace('www.', '');
+        await learnUrlPatternFromPage(url, host, false);
+        return { saved: false, skipped: true, updated: false };
+      }
+      if (shouldSkipUrl(url)) {
+        console.log(`   ⏭️  Skipping URL based on pattern\n`);
+        await pool.query('UPDATE scraping_jobs SET status = $1, last_error = $2 WHERE url = $3', 
+          ['failed', 'Non-program URL (pattern)', url]);
+        const host = new URL(url).hostname.replace('www.', '');
+        await learnUrlPatternFromPage(url, host, false);
+        return { saved: false, skipped: true, updated: false };
+      }
+      
+      // FIX #3: Check if requires login and tag appropriately
+      const needsLogin = requiresLogin(url, result.html);
+      const institution = findInstitutionConfigByUrl(url);
+      let loginSuccess = false;
+      let loginPossible = false;
+      
+      if (needsLogin) {
+        console.log(`   🔐 Login required detected - attempting authentication...`);
+        
+        // Check if page has some public content (login_possible vs login_required)
+        const $check = cheerio.load(result.html);
+        const hasPublicContent = $check('body').text().length > 500 && 
+                                !$check('input[type="password"]').length;
+        loginPossible = hasPublicContent;
         
         // Try to login if institution has login config
-        const institution = findInstitutionConfigByUrl(url);
-        let loginSuccess = false;
-        
         if (institution?.loginConfig?.enabled) {
           try {
             const { loginToSite, fetchHtmlWithAuth } = await import('./src/utils/login');
             
             // Build login config with credentials from env vars
+            // Try multiple env var formats: INSTITUTION_{ID}_EMAIL or {ID}_EMAIL
+            const envPrefix = institution.id?.toUpperCase().replace('INSTITUTION_', '') || '';
             const loginConfig = {
               ...institution.loginConfig,
               url: institution.loginConfig.loginUrl || institution.loginConfig.url || '',
-              email: institution.loginConfig.email || process.env[`${institution.id?.toUpperCase()}_EMAIL`] || '',
-              password: institution.loginConfig.password || process.env[`${institution.id?.toUpperCase()}_PASSWORD`] || '',
+              email: institution.loginConfig.email || 
+                     process.env[`INSTITUTION_${envPrefix}_EMAIL`] || 
+                     process.env[`${envPrefix}_EMAIL`] || '',
+              password: institution.loginConfig.password || 
+                        process.env[`INSTITUTION_${envPrefix}_PASSWORD`] || 
+                        process.env[`${envPrefix}_PASSWORD`] || '',
             };
             
             if (loginConfig.url && loginConfig.email && loginConfig.password) {
@@ -814,7 +1061,7 @@ async function scrapePrograms(): Promise<number> {
                 console.log(`   ✅ Login successful - fetching with authentication...`);
                 
                 // Fetch page with auth
-                const authResult = await fetchHtmlWithAuth(url, loginConfig);
+                const authResult = await fetchHtmlWithAuth(url, loginConfig, institution.id);
                 result.html = authResult.html;
                 result.status = authResult.status;
                 loginSuccess = true;
@@ -829,14 +1076,13 @@ async function scrapePrograms(): Promise<number> {
           }
         }
         
-        // If login failed or no config, mark as failed
+        // If login failed or no config, mark as failed but tag in metadata
         if (!loginSuccess) {
-          console.log(`   ⏭️  Marking as failed (no login or login failed)\n`);
+          console.log(`   ⏭️  Marking as failed (no login or login failed) - will tag as login_required\n`);
           await pool.query('UPDATE scraping_jobs SET status = $1, last_error = $2 WHERE url = $3', 
             ['failed', 'Requires login', url]);
-          // Learn exclusion pattern from login requirement
-          const host = new URL(url).hostname.replace('www.', '');
-          await learnUrlPatternFromPage(url, host, false);
+          // Don't learn exclusion pattern - we want to scrape these separately
+          // Just mark as login_required for separate scraping script
           return { saved: false, skipped: true, updated: false };
         }
         
@@ -844,6 +1090,28 @@ async function scrapePrograms(): Promise<number> {
         console.log(`   ✅ Using authenticated content...`);
       }
       
+      // Lightweight content heuristics to avoid unnecessary LLM calls
+      const textContent = result.html
+        .replace(/<script[^>]*>[\s\S]*?<\/script>/gi, ' ')
+        .replace(/<style[^>]*>[\s\S]*?<\/style>/gi, ' ')
+        .replace(/<!--[\s\S]*?-->/g, ' ')
+        .replace(/<\/?[^>]+>/g, ' ')
+        .replace(/\s+/g, ' ')
+        .trim();
+      const hasNumbers = /\d/.test(textContent);
+      const isVeryShort = textContent.length < 300; // More lenient - only skip if < 300 chars
+      const suspiciousContent = SUSPICIOUS_CONTENT_KEYWORDS.some(pattern => pattern.test(textContent));
+      // Only skip if very short AND no numbers AND suspicious (more lenient filtering)
+      const shouldSkipContent = isVeryShort && !hasNumbers && suspiciousContent;
+      if (shouldSkipContent) {
+        console.log(`   ⏭️  Skipping low-value content (likely non-program)\n`);
+        await pool.query('UPDATE scraping_jobs SET status = $1, last_error = $2 WHERE url = $3', 
+          ['failed', 'Low value content (informational)', url]);
+        const host = new URL(url).hostname.replace('www.', '');
+        await learnUrlPatternFromPage(url, host, false);
+        return { saved: false, skipped: true, updated: false };
+      }
+    
       const $ = cheerio.load(result.html);
       const title = $('title').text() || '';
       const description = $('meta[name="description"]').attr('content') || '';
@@ -872,8 +1140,8 @@ async function scrapePrograms(): Promise<number> {
       }
       
       // Extract funding type from URL/institution
-      const institution = findInstitutionByUrl(url);
-      const institutionFundingTypes = institution?.fundingTypes || [];
+      const institutionForFunding = findInstitutionByUrl(url);
+      const institutionFundingTypes = institutionForFunding?.fundingTypes || [];
       
       // Prioritize LLM-extracted funding types, fallback to institution config, then infer from URL
       let fundingTypes: string[] = [];
@@ -897,11 +1165,11 @@ async function scrapePrograms(): Promise<number> {
       
       // Detect page type
       const isOverview = isOverviewPage(url, result.html);
-      const needsLogin = requiresLogin(url, result.html);
+      // needsLogin already checked above at line 1011
       
       // Extract geographic info for metadata (quick reference)
       // If geographic requirements exist, extract country/region from them
-      let regionForMetadata = llmResult.metadata?.region || institution?.region || null;
+      let regionForMetadata = llmResult.metadata?.region || institutionForFunding?.region || null;
       if (!regionForMetadata && llmResult.categorized_requirements?.geographic) {
         // Try to extract region from geographic requirements
         const geoReqs = llmResult.categorized_requirements.geographic;
@@ -915,7 +1183,91 @@ async function scrapePrograms(): Promise<number> {
         }
       }
       
-      // Normalize and save
+      // IMPROVED: Calculate quality score and category
+      const { assessPageQuality } = await import('./src/utils/quality-scoring');
+      const qualityAssessment = assessPageQuality({
+        url,
+        title: llmResult.metadata?.title || null,
+        description: llmResult.metadata?.description || null,
+        funding_amount_min: llmResult.metadata?.funding_amount_min || null,
+        funding_amount_max: llmResult.metadata?.funding_amount_max || null,
+        currency: llmResult.metadata?.currency || null,
+        deadline: llmResult.metadata?.deadline || null,
+        open_deadline: llmResult.metadata?.open_deadline || false,
+        contact_email: llmResult.metadata?.contact_email || null,
+        contact_phone: llmResult.metadata?.contact_phone || null,
+        funding_types: fundingTypes,
+        program_focus: llmResult.metadata?.program_focus || [],
+        region: regionForMetadata,
+        categorized_requirements: llmResult.categorized_requirements || {},
+      });
+      
+      // Log quality assessment
+      if (qualityAssessment.dataQuality === 'poor' || !qualityAssessment.isValid) {
+        console.warn(`   ⚠️  Quality: ${qualityAssessment.dataQuality} (${qualityAssessment.qualityScore}/100) - ${qualityAssessment.issues.length} issues`);
+      } else if (qualityAssessment.warnings.length > 0) {
+        console.log(`   ℹ️  Quality: ${qualityAssessment.dataQuality} (${qualityAssessment.qualityScore}/100) - ${qualityAssessment.warnings.length} warnings`);
+      }
+
+      const requirementValues = Object.values(llmResult.categorized_requirements || {}) as unknown[];
+      const requirementCount = requirementValues.reduce<number>((sum, value) => {
+        if (Array.isArray(value)) {
+          return sum + value.length;
+        }
+        return sum;
+      }, 0);
+      
+      // Check for critical requirement categories
+      const hasEligibility = llmResult.categorized_requirements?.eligibility && Array.isArray(llmResult.categorized_requirements.eligibility) && llmResult.categorized_requirements.eligibility.length > 0;
+      const hasFinancial = llmResult.categorized_requirements?.financial && Array.isArray(llmResult.categorized_requirements.financial) && llmResult.categorized_requirements.financial.length > 0;
+      const hasFundingDetails = llmResult.categorized_requirements?.funding_details && Array.isArray(llmResult.categorized_requirements.funding_details) && llmResult.categorized_requirements.funding_details.length > 0;
+      const hasAmount = (llmResult.metadata?.funding_amount_min != null && llmResult.metadata?.funding_amount_min !== undefined) ||
+                        (llmResult.metadata?.funding_amount_max != null && llmResult.metadata?.funding_amount_max !== undefined);
+      const hasDeadline = llmResult.metadata?.deadline != null || llmResult.metadata?.open_deadline === true;
+      const hasDescription = llmResult.metadata?.description && llmResult.metadata.description.length > 50;
+      
+      // Stricter quality check: Need at least 2 of: requirements (3+), amount, deadline, description
+      const qualityIndicators = [
+        requirementCount >= 3,
+        hasAmount,
+        hasDeadline,
+        hasDescription,
+        hasEligibility || hasFinancial || hasFundingDetails
+      ];
+      const qualityScore = qualityIndicators.filter(Boolean).length;
+      
+      // FIX #1: Filter overview pages - only parse if 10+ requirements
+      // (deadline/amount not always required, e.g. banks have ongoing applications)
+      if (isOverview && requirementCount < 10) {
+        console.log(`   ⏭️  Skipping overview page (insufficient requirements: ${requirementCount} reqs, need 10+)\n`);
+        await pool.query('UPDATE scraping_jobs SET status = $1, last_error = $2 WHERE url = $3', 
+          ['failed', `Overview page with insufficient requirements (${requirementCount} reqs)`, url]);
+        const host = new URL(url).hostname.replace('www.', '');
+        // Don't learn exclusion pattern - overview pages are valid for discovery
+        return { saved: false, skipped: true, updated: false };
+      }
+      
+      // FIX #1: Filter overview pages - only parse if 10+ requirements
+      // (deadline/amount not always required, e.g. banks have ongoing applications)
+      if (isOverview && requirementCount < 10) {
+        console.log(`   ⏭️  Skipping overview page (insufficient requirements: ${requirementCount} < 10)\n`);
+        await pool.query('UPDATE scraping_jobs SET status = $1, last_error = $2 WHERE url = $3', 
+          ['failed', `Overview page with insufficient requirements (${requirementCount} < 10)`, url]);
+        // Don't learn exclusion pattern - overview pages are useful for discovery
+        return { saved: false, skipped: true, updated: false };
+      }
+      
+      // Reject if: very few requirements AND missing critical data
+      if (requirementCount <= 2 && qualityScore < 2) {
+        console.log(`   ⏭️  Skipping low-quality program (insufficient data: ${requirementCount} reqs, ${qualityScore}/5 quality indicators)\n`);
+        await pool.query('UPDATE scraping_jobs SET status = $1, last_error = $2 WHERE url = $3', 
+          ['failed', `Low-quality extraction (${requirementCount} reqs, missing critical data)`, url]);
+        const host = new URL(url).hostname.replace('www.', '');
+        await learnUrlPatternFromPage(url, host, false);
+        return { saved: false, skipped: true, updated: false };
+      }
+      
+      // Normalize and save (with enhanced metadata)
       const normalized = normalizeMetadata({
         url,
         title: llmResult.metadata?.title || title,
@@ -934,12 +1286,33 @@ async function scrapePrograms(): Promise<number> {
         metadata_json: {
           ...llmResult.metadata,
           funding_types: fundingTypes,
-          institution: institution?.name || null,
+          institution: institutionForFunding?.name || null,
           extraction_method: 'llm',
           model_version: modelVersion,
           is_overview_page: isOverview,
-          requires_login: needsLogin,
-          region: regionForMetadata // Also in metadata_json for consistency
+          // FIX #3: Enhanced login tagging
+          login_required: needsLogin && !loginSuccess,
+          login_possible: loginPossible,
+          login_successful: loginSuccess,
+          requires_login: needsLogin, // Keep for backward compatibility
+          region: regionForMetadata, // Also in metadata_json for consistency
+          // Enhanced metadata
+          program_category: qualityAssessment.category,
+          quality_score: qualityAssessment.qualityScore,
+          completeness_score: qualityAssessment.completenessScore,
+          data_quality: qualityAssessment.dataQuality,
+          has_funding_amount: !!(llmResult.metadata?.funding_amount_min || llmResult.metadata?.funding_amount_max),
+          has_deadline: !!(llmResult.metadata?.deadline || llmResult.metadata?.open_deadline),
+          is_ongoing: !!(llmResult.metadata?.open_deadline && !llmResult.metadata?.deadline),
+          requires_repayment: (fundingTypes || []).includes('loan') || (fundingTypes || []).includes('bank_loan'),
+          requires_equity: (fundingTypes || []).includes('equity') || (fundingTypes || []).includes('venture_capital'),
+          is_gründungsprogramm: (fundingTypes || []).includes('gründungsprogramm'),
+          is_intellectual_property: (fundingTypes || []).includes('intellectual_property') || (fundingTypes || []).includes('patent_support'),
+          is_export_support: (fundingTypes || []).includes('export_support'),
+          is_innovation_support: (fundingTypes || []).includes('innovation_support'),
+          institution_type: (institutionForFunding as any)?.type || 'unknown',
+          quality_issues: qualityAssessment.issues,
+          quality_warnings: qualityAssessment.warnings,
         },
         fetched_at: new Date().toISOString()
       });
@@ -952,18 +1325,33 @@ async function scrapePrograms(): Promise<number> {
       // PATTERN LEARNING: Learn from successful extraction
       try {
         const host = new URL(url).hostname.replace('www.', '');
-      const reqCount = Object.values(normalized.categorized_requirements || {}).reduce(
-        (sum: number, arr: any[]) => sum + (Array.isArray(arr) ? arr.length : 0), 0
-      );
-      const isGoodPage = reqCount >= 5; // Good if 5+ requirements extracted
-      
-      // Learn pattern: include if good, exclude if bad
-      await learnUrlPatternFromPage(url, host, isGoodPage);
-      
-      // If page has no requirements, it might be a false positive - learn exclusion
-      if (reqCount === 0) {
-        await learnUrlPatternFromPage(url, host, false);
-      }
+        const reqCount = Object.values(normalized.categorized_requirements || {}).reduce(
+          (sum: number, arr: any[]) => sum + (Array.isArray(arr) ? arr.length : 0), 0
+        );
+        
+        // Quality-based learning:
+        // - 5+ requirements: Good page (learn inclusion pattern)
+        // - 0 requirements: Bad page (learn exclusion pattern, keep blacklisted)
+        // - 1-4 requirements: Neutral (don't learn, might be valid but incomplete)
+        const isGoodPage = reqCount >= 5;
+        const isBadPage = reqCount === 0;
+        
+        if (isGoodPage) {
+          // Learn inclusion pattern for good pages
+          await learnUrlPatternFromPage(url, host, true);
+        } else if (isBadPage) {
+          // Learn exclusion pattern for bad pages (no requirements)
+          await learnUrlPatternFromPage(url, host, false);
+          
+          // Also add to blacklist if not already there (keep low-quality pages blacklisted)
+          const { addManualExclusion } = await import('./src/utils/blacklist');
+          try {
+            await addManualExclusion(url, host, 'No requirements extracted - low quality page');
+          } catch {
+            // Might already exist, ignore
+          }
+        }
+        // For 1-4 requirements, don't learn pattern (might be valid but incomplete extraction)
       } catch {
         // Silently fail - learning is optional
       }
@@ -1004,17 +1392,111 @@ async function scrapePrograms(): Promise<number> {
       return { saved: true, skipped: false, updated: wasUpdate };
       
     } catch (error: any) {
-      if (error?.code === 'insufficient_quota' || error?.status === 429) {
-        console.error(`   ❌ OpenAI quota exhausted. Add payment: https://platform.openai.com/account/billing\n`);
-      } else {
-        console.error(`   ❌ Failed: ${error.message}\n`);
+      // Improved error handling with better categorization
+      const errorMsg = error?.message || String(error);
+      const errorStatus = error?.status || error?.code;
+      
+      // Categorize errors
+      const isNetworkError = 
+        errorMsg.includes('timeout') ||
+        errorMsg.includes('timed out') ||
+        errorMsg.includes('network') ||
+        errorMsg.includes('ECONNRESET') ||
+        errorMsg.includes('ETIMEDOUT') ||
+        errorMsg.includes('ENOTFOUND') ||
+        errorMsg.includes('ECONNREFUSED');
+      
+      const isServerError = 
+        errorStatus === 504 || // Gateway timeout
+        errorStatus === 503 || // Service unavailable
+        errorStatus === 502 || // Bad gateway
+        errorStatus === 408;   // Request timeout
+      
+      const isRateLimit = 
+        error?.code === 'insufficient_quota' || 
+        errorStatus === 429;
+      
+      const isRetryable = isNetworkError || isServerError;
+      
+      // Handle rate limits with exponential backoff
+      if (isRateLimit) {
+        console.error(`   ❌ Rate limit/quota exhausted. Error: ${errorMsg.substring(0, 100)}\n`);
+        // Re-queue with longer delay (10 minutes)
+        try {
+          const pool = getPool();
+          await pool.query(`
+            UPDATE scraping_jobs 
+            SET status = 'queued', 
+                last_error = $1,
+                updated_at = NOW() + INTERVAL '10 minutes'
+            WHERE url = $2
+          `, [`Rate limit: ${errorMsg.substring(0, 150)}`, url]);
+          console.log(`   🔄 Re-queued for retry (will process in 10 minutes)\n`);
+        } catch {
+          // Silently fail
+        }
+        return { saved: false, skipped: false, updated: false };
       }
       
-      // Mark as failed
+      // IMPROVED: Retry network/server errors with exponential backoff
+      // Track retry count in error metadata
+      const retryCount = (error as any).retryCount || 0;
+      const maxRetries = 5; // Increased from 3 to 5 for better resilience
+      
+      if (isRetryable && retryCount < maxRetries) {
+        // Exponential backoff with jitter: 2s, 4s, 8s, 16s, 32s
+        const baseDelay = isNetworkError ? 2000 : 5000;
+        const exponentialDelay = baseDelay * Math.pow(2, retryCount);
+        // Add jitter (±20%) to prevent thundering herd
+        const jitter = exponentialDelay * 0.2 * (Math.random() * 2 - 1);
+        const retryDelay = Math.max(1000, exponentialDelay + jitter);
+        const nextRetry = retryCount + 1;
+        
+        console.warn(`   ⚠️  Retryable error (${errorStatus || 'network'}) [attempt ${nextRetry}/${maxRetries}]: ${errorMsg.substring(0, 50)}... Retrying in ${Math.round(retryDelay/1000)}s...`);
+        await new Promise(resolve => setTimeout(resolve, retryDelay));
+        
+        try {
+          // Recursive retry with incremented retry count
+          return await processUrl(url, index);
+        } catch (retryError: any) {
+          // If retry count exceeded, fall through to re-queue logic
+          if ((retryError as any).retryCount >= maxRetries) {
+            console.error(`   ❌ Max retries (${maxRetries}) exceeded\n`);
+          }
+          // Re-throw to continue to re-queue logic
+          throw retryError;
+        }
+      }
+      
+      // Log error with category
+      const errorCategory = isRateLimit ? 'rate_limit' : 
+                           isNetworkError ? 'network' : 
+                           isServerError ? 'server' : 
+                           'other';
+      console.error(`   ❌ Failed (${errorCategory}): ${errorMsg.substring(0, 100)}\n`);
+      if (errorCategory === 'other' && error?.stack) {
+        console.error(`   ↳ Stack trace:\n${error.stack}`);
+      }
+      
+      // Mark as failed (or queued for retry if retryable)
       try {
         const pool = getPool();
-        await pool.query('UPDATE scraping_jobs SET status = $1, last_error = $2 WHERE url = $3', 
-          ['failed', error.message.substring(0, 200), url]);
+        if (isRetryable) {
+          // Re-queue retryable errors for later processing (5 minutes for network, 10 for server)
+          const retryDelay = isNetworkError ? '5 minutes' : '10 minutes';
+          await pool.query(`
+            UPDATE scraping_jobs 
+            SET status = 'queued', 
+                last_error = $1,
+                updated_at = NOW() + INTERVAL '${retryDelay}'
+            WHERE url = $2
+          `, [`${errorCategory}: ${errorMsg.substring(0, 150)}`, url]);
+          console.log(`   🔄 Re-queued for retry (will process in ${retryDelay})\n`);
+        } else {
+          // Mark non-retryable errors as failed
+          await pool.query('UPDATE scraping_jobs SET status = $1, last_error = $2 WHERE url = $3', 
+            ['failed', `${errorCategory}: ${errorMsg.substring(0, 150)}`, url]);
+        }
       } catch {
         // Silently fail
       }
@@ -1022,9 +1504,26 @@ async function scrapePrograms(): Promise<number> {
     }
   };
   
-  // Process URLs in parallel batches
+  // IMPROVED: Process URLs in parallel batches with progress tracking
+  const startTime = Date.now();
   for (let i = 0; i < urls.length; i += CONCURRENCY) {
     const batch = urls.slice(i, i + CONCURRENCY);
+    const batchNum = Math.floor(i / CONCURRENCY) + 1;
+    const totalBatches = Math.ceil(urls.length / CONCURRENCY);
+    
+    // Progress tracking
+    const processed = i;
+    const remaining = urls.length - processed;
+    const progressPercent = Math.round((processed / urls.length) * 100);
+    const elapsed = Math.round((Date.now() - startTime) / 1000);
+    const avgTimePerUrl = elapsed / Math.max(1, processed);
+    const estimatedRemaining = Math.round((remaining * avgTimePerUrl) / 60);
+    
+    console.log(`\n📦 Batch ${batchNum}/${totalBatches} (${processed}/${urls.length} - ${progressPercent}%)`);
+    if (remaining > 0 && processed > 0) {
+      console.log(`   ⏱️  ETA: ~${estimatedRemaining} minutes remaining`);
+    }
+    
     const results = await Promise.all(
       batch.map((url, idx) => processUrl(url, i + idx))
     );
@@ -1034,6 +1533,20 @@ async function scrapePrograms(): Promise<number> {
       if (result.skipped) skipped++;
       if (result.updated) updated++;
     }
+  }
+  
+  // Final statistics
+  const totalTime = Math.round((Date.now() - startTime) / 1000);
+  console.log(`\n📊 Batch Processing Complete:`);
+  console.log(`   Time: ${totalTime}s (${Math.round(totalTime / 60)} minutes)`);
+  console.log(`   Average: ${Math.round(totalTime / Math.max(1, urls.length))}s per URL`);
+  
+  // IMPROVED: Automatic queue balancing after scraping
+  try {
+    const { runQueueBalancing } = await import('./src/utils/queue-balancing');
+    await runQueueBalancing();
+  } catch (error: any) {
+    // Silently fail - queue balancing is optional
   }
   
   // AUTO-LEARNING: Automatically learns patterns after scraping
@@ -1067,6 +1580,20 @@ async function scrapePrograms(): Promise<number> {
     // Silently fail
   }
   
+  // INTEGRATED AUTO-CYCLE: Discovery → Learning → Improvement
+  // Foolproof autonomous cycle that runs after each batch of 50 pages (more frequent)
+  const totalProcessed = saved + updated;
+  // Run auto-cycle more frequently: every 50 pages to ensure continuous cleanup and improvement
+  if (totalProcessed > 0 && (totalProcessed % 50 === 0 || totalProcessed >= 25)) {
+    try {
+      console.log(`\n🔄 Running integrated auto-cycle (${totalProcessed} pages processed)...`);
+      await runIntegratedAutoCycle(pool, totalProcessed, 50);
+    } catch (error: any) {
+      console.warn(`⚠️  Integrated auto-cycle failed: ${error.message}`);
+      console.error(error);
+    }
+  }
+  
   // AUTO RE-SCRAPING: Check for re-scrape tasks (overview pages, low-confidence blacklisted URLs)
   try {
     const { getReScrapeTasks } = await import('./src/rescraping/unified-rescraping');
@@ -1081,7 +1608,7 @@ async function scrapePrograms(): Promise<number> {
       const originalForceUpdate = CONFIG.FORCE_UPDATE;
       CONFIG.FORCE_UPDATE = true; // Enable force update for re-scraping
       
-      for (const task of reScrapeTasks.slice(0, 3)) {
+      for (const task of reScrapeTasks.slice(0, 20)) { // Increased from 3 to 20
         try {
           console.log(`   🔄 Re-scraping: ${task.url.substring(0, 60)}... (${task.type}, priority: ${task.priority})`);
           
@@ -1151,6 +1678,167 @@ async function scrapePrograms(): Promise<number> {
 }
 
 // ============================================================================
+// PHASE 4: AUTOMATIC QUALITY IMPROVEMENTS (Fully Autonomous)
+// ============================================================================
+
+/**
+ * Automatic quality improvements after scraping
+ * - Cleans up 404 URLs
+ * - Identifies and re-queues low-quality pages
+ * - Runs quality analysis
+ */
+async function automaticQualityImprovements(): Promise<void> {
+  console.log('\n🔧 Phase 4: Automatic Quality Improvements...\n');
+  
+  const pool = getPool();
+  let improvements = 0;
+  
+  try {
+    // 1. Clean up 404 URLs - Auto-blacklist failed 404 URLs
+    console.log('🧹 Cleaning up 404 URLs...');
+    const failed404 = await pool.query(`
+      SELECT DISTINCT url, last_error
+      FROM scraping_jobs
+      WHERE status = 'failed'
+        AND (last_error LIKE '%404%' OR last_error LIKE '%Not Found%')
+        AND updated_at > NOW() - INTERVAL '7 days'
+        AND url NOT IN (
+          SELECT pattern FROM url_patterns WHERE pattern_type = 'exclude'
+        )
+      LIMIT 500
+    `);
+    
+    if (failed404.rows.length > 0) {
+      const { addManualExclusion } = await import('./src/utils/blacklist');
+      let blacklisted = 0;
+      
+      for (const row of failed404.rows) {
+        try {
+          const url = row.url;
+          const host = new URL(url).hostname.replace('www.', '');
+          await addManualExclusion(url, host, 'HTTP 404 - Auto-cleaned');
+          await pool.query(`
+            UPDATE scraping_jobs
+            SET status = 'failed', last_error = 'HTTP 404 - Blacklisted'
+            WHERE url = $1
+          `, [url]);
+          blacklisted++;
+        } catch {
+          // Skip invalid URLs
+        }
+      }
+      
+      if (blacklisted > 0) {
+        console.log(`   ✅ Auto-blacklisted ${blacklisted} 404 URLs`);
+        improvements += blacklisted;
+      }
+    } else {
+      console.log('   ✅ No new 404 URLs to clean up');
+    }
+    
+    // 2. Identify and re-queue low-quality pages
+    console.log('\n📊 Identifying low-quality pages...');
+    const lowQuality = await pool.query(`
+      SELECT 
+        p.id,
+        p.url,
+        p.title,
+        COUNT(r.id) as req_count
+      FROM pages p
+      LEFT JOIN requirements r ON p.id = r.page_id
+      WHERE p.funding_types IS NOT NULL
+        AND p.url NOT LIKE '%/contact%'
+        AND p.url NOT LIKE '%/team%'
+        AND p.url NOT LIKE '%/accessibility%'
+        AND p.url NOT LIKE '%/login%'
+        AND p.url NOT LIKE '%/newsletter%'
+        AND p.url NOT LIKE '%/faq%'
+        AND p.url NOT LIKE '%/events%'
+        AND p.url NOT LIKE '%/workshops%'
+        AND p.title NOT ILIKE '%team%'
+        AND p.title NOT ILIKE '%contact%'
+        AND p.title NOT ILIKE '%accessibility%'
+        AND p.title NOT ILIKE '%login%'
+        AND p.title NOT ILIKE '%newsletter%'
+        AND p.title NOT ILIKE '%faq%'
+        AND p.fetched_at > NOW() - INTERVAL '7 days'
+      GROUP BY p.id, p.url, p.title
+      HAVING COUNT(r.id) < 5
+      ORDER BY COUNT(r.id) ASC
+      LIMIT 200
+    `);
+    
+    if (lowQuality.rows.length > 0) {
+      let requeued = 0;
+      for (const page of lowQuality.rows) {
+        // Mark for re-scraping
+        await pool.query(`
+          UPDATE scraping_jobs 
+          SET status = 'queued', updated_at = NOW(), quality_score = 50
+          WHERE url = $1
+        `, [page.url]);
+        requeued++;
+      }
+      
+      if (requeued > 0) {
+        console.log(`   ✅ Re-queued ${requeued} low-quality pages for re-scraping`);
+        improvements += requeued;
+      }
+    } else {
+      console.log('   ✅ No low-quality pages found');
+    }
+    
+    // 3. Quality metrics summary
+    console.log('\n📈 Quality Metrics:');
+    const qualityStats = await pool.query(`
+      SELECT 
+        COUNT(DISTINCT p.id) as total_pages,
+        COUNT(DISTINCT p.id) FILTER (WHERE req_counts.req_count >= 5) as good_pages,
+        COUNT(DISTINCT p.id) FILTER (WHERE req_counts.req_count < 5) as low_quality,
+        AVG(req_counts.req_count) as avg_requirements,
+        COUNT(DISTINCT p.id) FILTER (WHERE p.description IS NOT NULL AND p.description != '') as with_description,
+        COUNT(DISTINCT p.id) FILTER (WHERE p.funding_amount_min IS NOT NULL OR p.funding_amount_max IS NOT NULL) as with_amount,
+        COUNT(DISTINCT p.id) FILTER (WHERE p.deadline IS NOT NULL) as with_deadline
+      FROM pages p
+      LEFT JOIN (
+        SELECT page_id, COUNT(*) as req_count
+        FROM requirements
+        GROUP BY page_id
+      ) req_counts ON p.id = req_counts.page_id
+      WHERE p.funding_types IS NOT NULL
+        AND p.fetched_at > NOW() - INTERVAL '7 days'
+    `);
+    
+    if (qualityStats.rows.length > 0) {
+      const stats = qualityStats.rows[0];
+      const total = parseInt(stats.total_pages || '0');
+      const good = parseInt(stats.good_pages || '0');
+      const withDesc = parseInt(stats.with_description || '0');
+      const withAmount = parseInt(stats.with_amount || '0');
+      const withDeadline = parseInt(stats.with_deadline || '0');
+      
+      if (total > 0) {
+        console.log(`   📄 Total Pages: ${total}`);
+        console.log(`   ✅ Good Pages (5+ reqs): ${good} (${Math.round(good/total*100)}%)`);
+        console.log(`   📝 With Description: ${withDesc} (${Math.round(withDesc/total*100)}%)`);
+        console.log(`   💰 With Amount: ${withAmount} (${Math.round(withAmount/total*100)}%)`);
+        console.log(`   📅 With Deadline: ${withDeadline} (${Math.round(withDeadline/total*100)}%)`);
+      }
+    }
+    
+    if (improvements > 0) {
+      console.log(`\n✅ Automatic improvements: ${improvements} actions taken`);
+    } else {
+      console.log('\n✅ No improvements needed - quality is good!');
+    }
+    
+  } catch (error: any) {
+    console.error(`   ⚠️  Quality improvements error: ${error.message}`);
+    // Don't fail the whole cycle if quality improvements fail
+  }
+}
+
+// ============================================================================
 // MAIN
 // ============================================================================
 
@@ -1158,16 +1846,18 @@ async function main() {
   const args = process.argv.slice(2);
   const command = args.find(a => ['discover', 'scrape', 'full'].includes(a)) || 'full';
   
-  // Parse max limits
+  // Refresh config at runtime to get latest env vars FIRST
+  Object.assign(CONFIG, getConfig());
+  
+  // Parse max limits AFTER config is set (so it overrides defaults)
   const maxArg = args.find(a => a.startsWith('--max='));
   if (maxArg) {
     const max = parseInt(maxArg.split('=')[1], 10);
-    if (command === 'discover' || command === 'full') CONFIG.MAX_DISCOVERY = max;
-    if (command === 'scrape' || command === 'full') CONFIG.MAX_SCRAPE = max;
+    if (!isNaN(max)) {
+      if (command === 'discover' || command === 'full') CONFIG.MAX_DISCOVERY = max;
+      if (command === 'scrape' || command === 'full') CONFIG.MAX_SCRAPE = max;
+    }
   }
-  
-  // Refresh config at runtime to get latest env vars
-  Object.assign(CONFIG, getConfig());
   
   // Debug: Check what's actually in process.env
   const debugOpenAI = process.env.OPENAI_API_KEY ? `✅ (${process.env.OPENAI_API_KEY.substring(0, 10)}...)` : '❌';
@@ -1204,12 +1894,51 @@ async function main() {
   }
   
   try {
-    if (command === 'discover' || command === 'full') {
-      await discoverPrograms();
+    // IMPROVED: Smart cycle order - Process queue FIRST, then discover
+    // This prevents queue from growing indefinitely
+    const pool = getPool();
+    const queueCheck = await pool.query('SELECT COUNT(*) as total FROM scraping_jobs WHERE status = $1', ['queued']);
+    const queueSize = parseInt(queueCheck.rows[0].total, 10);
+    
+    // Smart cycle logic based on queue size
+    const isLargeQueue = queueSize > 500;
+    const isMediumQueue = queueSize > 200 && queueSize <= 500;
+    
+    if (command === 'full') {
+      console.log(`\n📊 Queue Status: ${queueSize} URLs queued`);
+      if (isLargeQueue) {
+        console.log(`   ⚠️  Large queue detected - focusing on processing (skipping discovery)\n`);
+      } else if (isMediumQueue) {
+        console.log(`   ℹ️  Medium queue - prioritizing scraping (limited discovery)\n`);
+      } else {
+        console.log(`   ✅ Small queue - full cycle (discover + scrape)\n`);
+      }
     }
     
+    // IMPROVED ORDER: Scrape FIRST (process existing queue), then discover
     if (command === 'scrape' || command === 'full') {
       await scrapePrograms();
+    }
+    
+    // Discovery: Only if queue is manageable or explicitly requested
+    if (command === 'discover') {
+      await discoverPrograms();
+    } else if (command === 'full') {
+      if (isLargeQueue) {
+        console.log('   ⏭️  Skipping discovery - queue too large, focus on processing\n');
+      } else if (isMediumQueue) {
+        const originalMaxDiscovery = CONFIG.MAX_DISCOVERY;
+        CONFIG.MAX_DISCOVERY = Math.min(CONFIG.MAX_DISCOVERY, 200); // Increased from 20 to 200
+        await discoverPrograms();
+        CONFIG.MAX_DISCOVERY = originalMaxDiscovery;
+      } else {
+        await discoverPrograms();
+      }
+    }
+    
+    // Phase 4: Automatic Quality Improvements (NEW - Fully Autonomous)
+    if (command === 'full') {
+      await automaticQualityImprovements();
     }
     
     console.log('✅ Complete!\n');

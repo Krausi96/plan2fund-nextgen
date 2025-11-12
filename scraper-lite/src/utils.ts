@@ -54,12 +54,19 @@ export function isOverviewPage(url: string, html?: string): boolean {
       // FFG
       /^\/en\/fundings\/?$/,
       /^\/foerderungen\/?$/,
+      // AWS
+      /^\/en\/aws-[^\/]+$/,
+      /^\/en\/aws-[^\/]+\/$/,
+      /\/aws-[^\/]+\/(equity|loan|guarantee|digitalization|innovation)/i,
       // Generic patterns
       /^\/programme\/?$/,
       /^\/programm\/?$/,
       /^\/foerderungen\/?$/,
       /^\/ausschreibungen\/?$/,
       /^\/calls\/?$/,
+      // WKO
+      /\/foerderungen\/?$/,
+      /\/foerderung\/?$/,
     ];
     
     if (overviewPatterns.some(pattern => pattern.test(urlPath))) {

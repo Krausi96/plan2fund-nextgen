@@ -2,6 +2,7 @@
 import { Program, ScoredProgram, ProgramType } from '@/shared/types/requirements';
 import { UserAnswers } from "@/shared/lib/schemas";
 import { estimateSuccessProbability, ConfidenceLevel } from '@/shared/lib/mlModels';
+import type { MatchStatus } from './questionEngine';
 // Removed doctorDiagnostic - filtering handled by QuestionEngine
 
 // Eligibility trace interface
@@ -26,6 +27,8 @@ export interface EnhancedProgramResult extends ScoredProgram {
     action: string;
     priority: 'high' | 'medium' | 'low';
   }>;
+  matchSummary?: Record<string, MatchStatus>;
+  unknownCriteria?: string[];
   amount?: {
     min: number;
     max: number;
@@ -61,6 +64,292 @@ export function normalizeAnswers(answers: UserAnswers): UserAnswers {
   return normalized;
 }
 
+// ---------------------------------------------------------------------------
+// Answer normalization helpers (new schema)
+// ---------------------------------------------------------------------------
+
+function getPrimaryLocation(answers: UserAnswers): string | undefined {
+  const value = answers.location || (answers.q1_country as any);
+  if (!value) return undefined;
+  if (typeof value === 'string') {
+    return value.toLowerCase();
+  }
+  return undefined;
+}
+
+type CompanyStage =
+  | 'idea'
+  | 'pre_company'
+  | 'inc_lt_6m'
+  | 'inc_6_36m'
+  | 'inc_gt_36m'
+  | 'research_org'
+  | 'nonprofit'
+  | 'unknown';
+
+function getCompanyStage(answers: UserAnswers): CompanyStage {
+  const stage =
+    (answers.company_stage as string) ||
+    (answers.company_type as string) ||
+    (answers.q2_entity_stage as string) ||
+    '';
+
+  const normalized = stage.toLowerCase();
+  switch (normalized) {
+    case 'idea':
+    case 'concept':
+    case 'ideation':
+      return 'idea';
+    case 'pre_company':
+    case 'pre-company':
+    case 'team':
+    case 'startup':
+      return 'pre_company';
+    case 'inc_lt_6m':
+    case 'lt6m':
+    case 'less_than_6_months':
+    case 'early-stage':
+      return 'inc_lt_6m';
+    case 'inc_6_36m':
+    case '6_36m':
+    case '6-36m':
+    case 'sme':
+      return 'inc_6_36m';
+    case 'inc_gt_36m':
+    case 'gt36m':
+    case 'scaleup':
+    case 'corporate':
+    case 'large':
+      return 'inc_gt_36m';
+    case 'research_org':
+    case 'research':
+    case 'university':
+      return 'research_org';
+    case 'nonprofit':
+    case 'ngo':
+    case 'association':
+      return 'nonprofit';
+    default:
+      return 'unknown';
+  }
+}
+
+type TeamSizeBucket = 'micro_0_9' | 'small_10_49' | 'medium_50_249' | 'large_250_plus' | 'unknown';
+
+function getTeamSizeBucket(answers: UserAnswers): TeamSizeBucket {
+  const value =
+    (answers.team_size as string) ||
+    (answers.employees as string) ||
+    (answers.q3_company_size as string) ||
+    '';
+  const normalized = value.toLowerCase();
+
+  if (['1to2', '1_2', 'micro_0_9', '0-9', 'micro', 'solo'].includes(normalized)) {
+    return 'micro_0_9';
+  }
+  if (['3to5', '6to10', '10to49', 'small_10_49', '10-49', 'small'].includes(normalized)) {
+    return 'small_10_49';
+  }
+  if (['50to249', 'medium_50_249', '50-249', 'medium'].includes(normalized)) {
+    return 'medium_50_249';
+  }
+  if (['over250', '250plus', 'large_250_plus', '250+', 'large'].includes(normalized)) {
+    return 'large_250_plus';
+  }
+
+  return 'unknown';
+}
+
+function getFundingPreference(answers: UserAnswers): string | undefined {
+  const pref = answers.funding_preference;
+  if (typeof pref === 'string') return pref.toLowerCase();
+  if (Array.isArray(pref) && pref.length) return String(pref[0]).toLowerCase();
+  const useOfFunds = answers.use_of_funds;
+  if (Array.isArray(useOfFunds)) {
+    if (useOfFunds.includes('loan')) return 'loan';
+    if (useOfFunds.includes('equity')) return 'equity';
+  }
+  return undefined;
+}
+
+function getTrlBucket(answers: UserAnswers): 'low' | 'mid' | 'high' | 'unknown' {
+  const trl = (answers.trl_level as string) || (answers.q5_maturity_trl as string) || '';
+  const normalized = trl.toLowerCase();
+
+  if (normalized.includes('trl_1') || normalized.includes('trl_2') || normalized.includes('ideation')) {
+    return 'low';
+  }
+  if (
+    normalized.includes('trl_3') ||
+    normalized.includes('trl_4') ||
+    normalized.includes('trl_5') ||
+    normalized.includes('trl_6') ||
+    normalized.includes('prototype')
+  ) {
+    return 'mid';
+  }
+  if (
+    normalized.includes('trl_7') ||
+    normalized.includes('trl_8') ||
+    normalized.includes('trl_9') ||
+    normalized.includes('launch')
+  ) {
+    return 'high';
+  }
+  return 'unknown';
+}
+
+function hasTheme(answers: UserAnswers, theme: 'sustainability' | 'health' | 'digital' | 'manufacturing' | 'export'): boolean {
+  const focus = answers.strategic_focus;
+  const impact = answers.impact;
+  const useOfFunds = answers.use_of_funds;
+
+  const match = (value: any) => {
+    if (!value) return false;
+    if (Array.isArray(value)) {
+      return value.some((v) => String(v).toLowerCase().includes(theme));
+    }
+    return String(value).toLowerCase().includes(theme);
+  };
+
+  return match(focus) || match(impact) || match(useOfFunds);
+}
+
+function hasSocialImpact(answers: UserAnswers): boolean {
+  return hasTheme(answers, 'sustainability') || hasTheme(answers, 'health') || (answers.impact && Array.isArray(answers.impact) && answers.impact.includes('social'));
+}
+
+function hasESGImpact(answers: UserAnswers): boolean {
+  return hasTheme(answers, 'sustainability') || (answers.impact && Array.isArray(answers.impact) && answers.impact.includes('environmental'));
+}
+
+function isRAndDInAustria(answers: UserAnswers): boolean | undefined {
+  const value = answers.rd_in_austria ?? answers.q6_rnd_in_at;
+  if (typeof value === 'string') {
+    if (['yes', 'true', 'y', 'ja'].includes(value.toLowerCase())) return true;
+    if (['no', 'false', 'n', 'nein'].includes(value.toLowerCase())) return false;
+  }
+  if (typeof value === 'boolean') return value;
+  return undefined;
+}
+
+function getDeadlineUrgency(answers: UserAnswers): 'urgent' | 'soon' | 'normal' {
+  const value = answers.deadline_urgency;
+  if (typeof value === 'string') {
+    if (value === 'urgent') return 'urgent';
+    if (value === 'soon') return 'soon';
+  }
+  return 'normal';
+}
+
+function enrichAnswers(answers: UserAnswers): UserAnswers {
+  const enriched: UserAnswers = { ...answers };
+
+  const location = getPrimaryLocation(enriched);
+  if (location) {
+    enriched.location = location;
+    if (!enriched.q1_country) {
+      enriched.q1_country =
+        location === 'austria'
+          ? 'AT'
+          : location === 'germany'
+          ? 'DE'
+          : location === 'switzerland'
+          ? 'CH'
+          : location === 'eu'
+          ? 'EU'
+          : location.toUpperCase();
+    }
+  }
+
+  const stage = getCompanyStage(enriched);
+  if (!enriched.q2_entity_stage || enriched.q2_entity_stage === '') {
+    enriched.q2_entity_stage = stage.toUpperCase();
+  }
+  enriched.company_stage = stage;
+
+  const teamBucket = getTeamSizeBucket(enriched);
+  if (!enriched.q3_company_size || enriched.q3_company_size === '') {
+    enriched.q3_company_size = teamBucket.toUpperCase();
+  }
+  enriched.team_size = teamBucket;
+
+  const fundingPref = getFundingPreference(enriched);
+  if (fundingPref && !enriched.q8_funding_types) {
+    enriched.q8_funding_types = [fundingPref.toUpperCase()];
+  }
+
+  const trl = getTrlBucket(enriched);
+  if (!enriched.q5_maturity_trl) {
+    enriched.q5_maturity_trl = trl.toUpperCase();
+  }
+
+  const rnd = isRAndDInAustria(enriched);
+  if (rnd !== undefined && !enriched.q6_rnd_in_at) {
+    enriched.q6_rnd_in_at = rnd ? 'YES' : 'NO';
+  }
+
+  if (hasTheme(enriched, 'sustainability')) {
+    enriched.q4_theme = 'SUSTAINABILITY';
+  } else if (hasTheme(enriched, 'health')) {
+    enriched.q4_theme = 'HEALTH_LIFE_SCIENCE';
+  } else if (hasTheme(enriched, 'digital')) {
+    enriched.q4_theme = 'INNOVATION_DIGITAL';
+  }
+
+  const revenueStatus =
+    normalizeRevenueStatusValue(enriched.revenue_status) ||
+    normalizeRevenueStatusValue(enriched.revenue) ||
+    normalizeRevenueStatusValue(enriched.current_revenue);
+  if (revenueStatus) {
+    enriched.revenue_status = revenueStatus;
+  }
+
+  const coFinancingChoice =
+    normalizeCoFinancingValue(enriched.co_financing) ||
+    normalizeCoFinancingValue(enriched.co_financing_status) ||
+    normalizeCoFinancingValue(enriched.co_financing_required);
+  if (coFinancingChoice) {
+    enriched.co_financing = coFinancingChoice;
+  }
+
+  if (enriched.industry_focus) {
+    const industries = Array.isArray(enriched.industry_focus)
+      ? enriched.industry_focus
+      : [enriched.industry_focus];
+    enriched.industry_focus = industries
+      .map((item: any) => normalizeIndustryValue(item))
+      .filter(Boolean);
+  }
+
+  if (!enriched.industry_focus && enriched.strategic_focus) {
+    const focuses = Array.isArray(enriched.strategic_focus)
+      ? enriched.strategic_focus
+      : [enriched.strategic_focus];
+    enriched.industry_focus = focuses
+      .map((item: any) => normalizeIndustryValue(item))
+      .filter(Boolean);
+  }
+
+  if (enriched.industry_focus) {
+    enriched.industry_focus = Array.from(new Set(enriched.industry_focus));
+  }
+
+  if (enriched.strategic_focus) {
+    const normalizedStrategic = (Array.isArray(enriched.strategic_focus)
+      ? enriched.strategic_focus
+      : [enriched.strategic_focus]
+    )
+      .map((item: any) => normalizeIndustryValue(item))
+      .filter(Boolean);
+    if (normalizedStrategic.length > 0) {
+      enriched.strategic_focus = Array.from(new Set(normalizedStrategic));
+    }
+  }
+
+  return enriched;
+}
+
 // Derived signals interface
 export interface DerivedSignals {
   capexFlag: boolean;
@@ -88,205 +377,154 @@ export interface DerivedSignals {
 
 // Derive signals from user answers
 export function deriveSignals(answers: UserAnswers): DerivedSignals {
+  const companyStage = getCompanyStage(answers);
+  const teamSize = getTeamSizeBucket(answers);
+  const location = getPrimaryLocation(answers);
+  const trlBucket = getTrlBucket(answers);
+  const fundingPreference = getFundingPreference(answers);
+  const rndInAT = isRAndDInAustria(answers);
+  const urgency = getDeadlineUrgency(answers);
+  const revenueStatus = normalizeRevenueStatusValue(answers.revenue_status || answers.revenue);
+  const coStatus = normalizeCoFinancingValue(answers.co_financing);
+  const industryFocusRaw = Array.isArray(answers.industry_focus)
+    ? answers.industry_focus
+    : answers.industry_focus
+    ? [answers.industry_focus]
+    : [];
+  const industryFocus = industryFocusRaw
+    .map((item: any) => normalizeIndustryValue(item))
+    .filter(Boolean);
+
   const signals: DerivedSignals = {
-    capexFlag: false,
-    equityOk: false,
-    collateralOk: false,
-    urgencyBucket: "normal",
-    companyAgeBucket: "pre",
-    sectorBucket: "general",
-    rdInAT: undefined,
+    capexFlag:
+      hasTheme(answers, 'manufacturing') ||
+      hasTheme(answers, 'digital') ||
+      hasTheme(answers, 'export') ||
+      industryFocus.includes('manufacturing') ||
+      industryFocus.includes('digital'),
+    equityOk:
+      (companyStage === 'pre_company' || companyStage === 'inc_lt_6m' || companyStage === 'inc_6_36m') &&
+      (teamSize === 'micro_0_9' || teamSize === 'small_10_49'),
+    collateralOk:
+      (companyStage === 'inc_gt_36m' || companyStage === 'research_org') &&
+      (teamSize === 'medium_50_249' || teamSize === 'large_250_plus'),
+    urgencyBucket: urgency,
+    companyAgeBucket:
+      companyStage === 'pre_company'
+        ? 'pre'
+        : companyStage === 'inc_lt_6m' || companyStage === 'inc_6_36m'
+        ? '0-3y'
+        : companyStage === 'inc_gt_36m'
+        ? '3y+'
+        : 'pre',
+    sectorBucket: industryFocus[0]
+      ? industryFocus[0] === 'digital'
+        ? 'tech'
+        : industryFocus[0] === 'health'
+        ? 'health'
+        : industryFocus[0] === 'sustainability'
+        ? 'sustainability'
+        : industryFocus[0] === 'manufacturing'
+        ? 'manufacturing'
+        : 'general'
+      : hasTheme(answers, 'health')
+      ? 'health'
+      : hasTheme(answers, 'sustainability')
+      ? 'sustainability'
+      : hasTheme(answers, 'manufacturing')
+      ? 'manufacturing'
+      : hasTheme(answers, 'digital')
+      ? 'tech'
+      : 'general',
+    rdInAT: rndInAT,
     amountFit: 0,
     stageFit: 0,
     timelineFit: 0,
-    fundingMode: "grant", // default
-    // New derived signals
-    trlBucket: "low",
-    revenueBucket: "none",
-    ipFlag: false,
-    regulatoryFlag: false,
-    socialImpactFlag: false,
-    esgFlag: false,
-    // Unknown handling
+    fundingMode: fundingPreference || 'grant',
+    trlBucket,
+    revenueBucket: revenueStatus
+      ? revenueStatus === 'pre_revenue'
+        ? 'none'
+        : revenueStatus === 'early_revenue'
+        ? 'low'
+        : 'medium'
+      : companyStage === 'pre_company'
+      ? 'none'
+      : companyStage === 'inc_lt_6m' || companyStage === 'inc_6_36m'
+      ? 'low'
+      : 'medium',
+    ipFlag:
+      industryFocus.includes('digital') ||
+      industryFocus.includes('manufacturing') ||
+      hasTheme(answers, 'digital') ||
+      hasTheme(answers, 'manufacturing') ||
+      hasTheme(answers, 'health'),
+    regulatoryFlag:
+      industryFocus.includes('health') ||
+      industryFocus.includes('sustainability') ||
+      hasTheme(answers, 'health') ||
+      hasTheme(answers, 'sustainability'),
+    socialImpactFlag: hasSocialImpact(answers) || industryFocus.includes('sustainability'),
+    esgFlag: hasESGImpact(answers) || industryFocus.includes('sustainability'),
     unknowns: [],
     counterfactuals: []
   };
 
-  // Derive CAPEX flag from theme and maturity
-  if (answers.q4_theme && Array.isArray(answers.q4_theme)) {
-    const themes = answers.q4_theme as string[];
-    signals.capexFlag = themes.some(theme => 
-      ['INNOVATION_DIGITAL', 'MANUFACTURING', 'ENERGY'].includes(theme)
-    );
-  } else if (answers.q4_theme === undefined || answers.q4_theme === null) {
-    signals.unknowns.push("q4_theme");
-    signals.counterfactuals.push("Add project theme to unlock theme-specific programs");
+  if (!answers.company_stage) {
+    signals.unknowns.push('company_stage');
+    signals.counterfactuals.push('Specify company stage to refine recommendations');
+  }
+  if (teamSize === 'unknown') {
+    signals.unknowns.push('team_size');
+    signals.counterfactuals.push('Add team size to unlock SME or corporate programs');
+  }
+  if (!location) {
+    signals.unknowns.push('location');
+    signals.counterfactuals.push('Tell us where you operate to filter regional programs');
+  }
+  if (trlBucket === 'unknown') {
+    signals.unknowns.push('trl_level');
+    signals.counterfactuals.push('Add TRL to unlock R&D and innovation calls');
+  }
+  if (rndInAT === undefined) {
+    signals.unknowns.push('rd_in_austria');
+    signals.counterfactuals.push('Specify if R&D happens in Austria (important for local grants)');
+  }
+  if (!revenueStatus) {
+    signals.unknowns.push('revenue_status');
+    signals.counterfactuals.push('Tell us your revenue status to balance grants vs. bank programmes');
+  }
+  if (!coStatus) {
+    signals.unknowns.push('co_financing');
+    signals.counterfactuals.push('Clarify co-financing ability to surface the right grant ratio');
+  }
+  if (industryFocus.length === 0) {
+    signals.unknowns.push('industry_focus');
+    signals.counterfactuals.push('Select an industry focus to highlight specialised calls');
   }
 
-  // Derive equity preference from stage and size
-  if (answers.q2_entity_stage && answers.q3_company_size) {
-    const stage = answers.q2_entity_stage as string;
-    const size = answers.q3_company_size as string;
-    
-    // Early stage + small size = equity friendly
-    signals.equityOk = (
-      (stage === 'PRE_COMPANY' || stage === 'INC_LT_6M' || stage === 'INC_6_36M') &&
-      (size === 'MICRO_0_9' || size === 'SMALL_10_49')
-    );
+  if (coStatus === 'co_yes') {
+    signals.capexFlag = true;
+  }
+
+  if (signals.equityOk && signals.companyAgeBucket === 'pre') {
+    signals.fundingMode = 'equity';
+  } else if (
+    signals.collateralOk &&
+    signals.urgencyBucket !== 'normal' &&
+    (coStatus === 'co_yes' || revenueStatus === 'growing_revenue')
+  ) {
+    signals.fundingMode = 'loan';
+  } else if (signals.capexFlag && signals.rdInAT !== false) {
+    signals.fundingMode = 'grant';
+  } else if (signals.socialImpactFlag || signals.esgFlag) {
+    signals.fundingMode = 'grant';
+  } else if (coStatus === 'co_no') {
+    signals.fundingMode = 'grant';
   } else {
-    if (!answers.q2_entity_stage) {
-      signals.unknowns.push("q2_entity_stage");
-      signals.counterfactuals.push("Add company stage to qualify for stage-specific programs");
-    }
-    if (!answers.q3_company_size) {
-      signals.unknowns.push("q3_company_size");
-      signals.counterfactuals.push("Add team size to unlock size-specific programs");
-    }
+    signals.fundingMode = fundingPreference || 'mixed';
   }
 
-  // Derive collateral capability from company age and size
-  if (answers.q2_entity_stage && answers.q3_company_size) {
-    const stage = answers.q2_entity_stage as string;
-    const size = answers.q3_company_size as string;
-    
-    // Established + larger size = collateral capable
-    signals.collateralOk = (
-      (stage === 'INC_GT_36M' || stage === 'RESEARCH_ORG') &&
-      (size === 'MEDIUM_50_249' || size === 'LARGE_250_PLUS')
-    );
-  }
-
-  // Derive urgency from stage and maturity
-  if (answers.q2_entity_stage && answers.q5_maturity_trl) {
-    const stage = answers.q2_entity_stage as string;
-    const trl = answers.q5_maturity_trl as string;
-    
-    if (stage === 'PRE_COMPANY' || stage === 'INC_LT_6M') {
-      signals.urgencyBucket = "urgent";
-    } else if (stage === 'INC_6_36M' && (trl === 'TRL_3_4' || trl === 'TRL_5_6')) {
-      signals.urgencyBucket = "soon";
-    } else {
-      signals.urgencyBucket = "normal";
-    }
-  }
-
-  // Derive company age bucket
-  if (answers.q2_entity_stage) {
-    const stage = answers.q2_entity_stage as string;
-    if (stage === 'PRE_COMPANY') {
-      signals.companyAgeBucket = "pre";
-    } else if (stage === 'INC_LT_6M' || stage === 'INC_6_36M') {
-      signals.companyAgeBucket = "0-3y";
-    } else {
-      signals.companyAgeBucket = "3y+";
-    }
-  }
-
-  // Derive sector bucket
-  if (answers.q4_theme && Array.isArray(answers.q4_theme)) {
-    const themes = answers.q4_theme as string[];
-    if (themes.includes('HEALTH_LIFE_SCIENCE')) {
-      signals.sectorBucket = "health";
-    } else if (themes.includes('SUSTAINABILITY') || themes.includes('ENERGY')) {
-      signals.sectorBucket = "sustainability";
-    } else if (themes.includes('INNOVATION_DIGITAL')) {
-      signals.sectorBucket = "tech";
-    } else if (themes.includes('MANUFACTURING')) {
-      signals.sectorBucket = "manufacturing";
-    } else {
-      signals.sectorBucket = "general";
-    }
-  }
-
-  // Derive R&D in Austria flag
-  if (answers.q6_rnd_in_at) {
-    signals.rdInAT = answers.q6_rnd_in_at === 'YES';
-  } else {
-    signals.unknowns.push("q6_rnd_in_at");
-    signals.counterfactuals.push("Specify R&D location to unlock location-specific programs");
-  }
-
-  // Derive TRL bucket
-  if (answers.q5_maturity_trl) {
-    const trl = answers.q5_maturity_trl as string;
-    if (trl === 'TRL_1_2' || trl === 'TRL_3_4') {
-      signals.trlBucket = "low";
-    } else if (trl === 'TRL_5_6' || trl === 'TRL_7_8') {
-      signals.trlBucket = "mid";
-    } else if (trl === 'TRL_9') {
-      signals.trlBucket = "high";
-    }
-  } else {
-    signals.unknowns.push("q5_maturity_trl");
-    signals.counterfactuals.push("Add technology readiness level to unlock TRL-specific programs");
-  }
-
-  // Derive revenue bucket (based on company stage and size)
-  if (answers.q2_entity_stage) {
-    const stage = answers.q2_entity_stage as string;
-    if (stage === 'PRE_COMPANY') {
-      signals.revenueBucket = "none";
-    } else if (stage === 'INC_LT_6M' || stage === 'INC_6_36M') {
-      signals.revenueBucket = "low";
-    } else {
-      signals.revenueBucket = "medium";
-    }
-  }
-
-  // Derive IP flag (based on themes and stage)
-  if (answers.q4_theme && Array.isArray(answers.q4_theme)) {
-    const themes = answers.q4_theme as string[];
-    signals.ipFlag = themes.some(theme => 
-      ['INNOVATION_DIGITAL', 'HEALTH_LIFE_SCIENCE', 'MANUFACTURING'].includes(theme)
-    );
-  }
-
-  // Derive regulatory flag (based on themes)
-  if (answers.q4_theme && Array.isArray(answers.q4_theme)) {
-    const themes = answers.q4_theme as string[];
-    signals.regulatoryFlag = themes.some(theme => 
-      ['HEALTH_LIFE_SCIENCE', 'ENERGY'].includes(theme)
-    );
-  }
-
-  // Derive social impact flag (based on themes and environmental benefit)
-  if (answers.q4_theme && Array.isArray(answers.q4_theme)) {
-    const themes = answers.q4_theme as string[];
-    signals.socialImpactFlag = themes.some(theme => 
-      ['SUSTAINABILITY', 'HEALTH_LIFE_SCIENCE'].includes(theme)
-    );
-  }
-  if (answers.q10_env_benefit && answers.q10_env_benefit !== 'NONE') {
-    signals.socialImpactFlag = true;
-  }
-
-  // Derive ESG flag (based on themes and environmental benefit)
-  if (answers.q4_theme && Array.isArray(answers.q4_theme)) {
-    const themes = answers.q4_theme as string[];
-    signals.esgFlag = themes.some(theme => 
-      ['SUSTAINABILITY', 'ENERGY'].includes(theme)
-    );
-  }
-  if (answers.q10_env_benefit && (answers.q10_env_benefit === 'SOME' || answers.q10_env_benefit === 'HIGH')) {
-    signals.esgFlag = true;
-  }
-
-  // Derive funding mode based on derived signals
-  if (signals.equityOk && signals.companyAgeBucket === "pre") {
-    signals.fundingMode = "equity";
-  } else if (signals.collateralOk && signals.urgencyBucket === "urgent") {
-    signals.fundingMode = "loan";
-  } else if (signals.capexFlag && signals.rdInAT) {
-    signals.fundingMode = "grant";
-  } else if (signals.socialImpactFlag && signals.esgFlag) {
-    signals.fundingMode = "grant"; // ESG programs are typically grants
-  } else if (signals.regulatoryFlag && signals.trlBucket === "mid") {
-    signals.fundingMode = "grant"; // Regulatory programs often require grants
-  } else {
-    signals.fundingMode = "mixed";
-  }
-
-  // Calculate fit scores (0-100)
   signals.amountFit = calculateAmountFit(answers, signals);
   signals.stageFit = calculateStageFit(answers, signals);
   signals.timelineFit = calculateTimelineFit(answers, signals);
@@ -479,6 +717,52 @@ function normalizeProjectDurationValue(value: any): string | null {
   return null;
 }
 
+function normalizeCompanyStageValue(value: any): string | null {
+  const str = String(value || '').toLowerCase();
+  if (!str) return null;
+  if (str.includes('idea') || str.includes('concept')) return 'idea';
+  if (str.includes('pre') || str.includes('pre-company') || str.includes('founder team')) return 'pre_company';
+  if (str.includes('<6') || str.includes('under 6') || str.includes('seed')) return 'inc_lt_6m';
+  if (str.includes('6-36') || str.includes('6 to 36') || str.includes('growth')) return 'inc_6_36m';
+  if (str.includes('>36') || str.includes('over 36') || str.includes('established') || str.includes('mature')) return 'inc_gt_36m';
+  if (str.includes('research') || str.includes('university') || str.includes('academic')) return 'research_org';
+  return null;
+}
+
+function normalizeRevenueStatusValue(value: any): string | null {
+  const str = String(value || '').toLowerCase();
+  if (!str) return null;
+  if (str.includes('pre') || str.includes('no revenue') || str.includes('none')) return 'pre_revenue';
+  if (str.includes('early') || str.includes('initial') || str.includes('pilot') || str.includes('first revenue')) return 'early_revenue';
+  if (str.includes('growth') || str.includes('scale') || str.includes('profitable') || str.includes('positive')) return 'growing_revenue';
+  return null;
+}
+
+function normalizeCoFinancingValue(value: any): string | null {
+  if (typeof value === 'number') {
+    if (value === 0) return 'co_no';
+    if (value < 50) return 'co_partial';
+    return 'co_yes';
+  }
+  const str = String(value || '').toLowerCase();
+  if (!str) return null;
+  if (str.includes('no co') || str.includes('fully funded') || str.includes('100%')) return 'co_no';
+  if (str.includes('partial') || str.includes('matching') || str.includes('share') || str.includes('50%')) return 'co_partial';
+  if (str.includes('required') || str.includes('own contribution') || str.includes('co-financing required') || str.includes('must provide')) return 'co_yes';
+  return null;
+}
+
+function normalizeIndustryValue(value: any): string | null {
+  const str = String(value || '').toLowerCase();
+  if (!str) return null;
+  if (str.includes('digital') || str.includes('ict') || str.includes('software') || str.includes('ai')) return 'digital';
+  if (str.includes('sustain') || str.includes('climate') || str.includes('energy') || str.includes('green')) return 'sustainability';
+  if (str.includes('health') || str.includes('life science') || str.includes('medtech') || str.includes('biotech')) return 'health';
+  if (str.includes('manufactur') || str.includes('production') || str.includes('industry')) return 'manufacturing';
+  if (str.includes('export') || str.includes('international')) return 'export';
+  return 'other';
+}
+
 // Normalize requirement value based on answer key (for scoring)
 function normalizeRequirementValue(answerKey: string, requirementValue: any): string | null {
   switch (answerKey) {
@@ -486,6 +770,12 @@ function normalizeRequirementValue(answerKey: string, requirementValue: any): st
       return normalizeLocationValue(requirementValue);
     case 'company_type':
       return normalizeCompanyTypeValue(requirementValue);
+    case 'company_stage':
+      return normalizeCompanyStageValue(requirementValue);
+    case 'revenue_status':
+      return normalizeRevenueStatusValue(requirementValue);
+    case 'co_financing':
+      return normalizeCoFinancingValue(requirementValue);
     case 'funding_amount':
       return normalizeFundingAmountValue(requirementValue);
     case 'use_of_funds':
@@ -494,6 +784,9 @@ function normalizeRequirementValue(answerKey: string, requirementValue: any): st
       return normalizeTeamSizeValue(requirementValue);
     case 'impact':
       return normalizeImpactValue(requirementValue);
+    case 'industry_focus':
+    case 'strategic_focus':
+      return normalizeIndustryValue(requirementValue);
     case 'project_duration':
       return normalizeProjectDurationValue(requirementValue);
     default:
@@ -545,8 +838,11 @@ function scoreCategorizedRequirements(
     // New simplified QuestionEngine format:
     'location': ['geographic', 'eligibility'],
     'company_type': ['eligibility', 'team'],
+    'company_stage': ['eligibility', 'team'],
     'company_age': ['team', 'eligibility'],
+    'revenue_status': ['financial'],
     'revenue': ['financial'],
+    'co_financing': ['financial', 'co_financing'],
     'team_size': ['team'],
     'funding_amount': ['financial'],
     'use_of_funds': ['financial', 'use_of_funds'],
@@ -556,7 +852,8 @@ function scoreCategorizedRequirements(
     'project_stage': ['eligibility', 'project'],
     'research_focus': ['project', 'impact'],
     'consortium': ['consortium', 'geographic'],
-    'industry_focus': ['project', 'eligibility'],
+    'industry_focus': ['project', 'impact'],
+    'strategic_focus': ['impact', 'project'],
     'trl_level': ['technical', 'trl_level'],
     'market_size': ['market_size'],
     'co_financing': ['financial', 'co_financing'],
@@ -824,6 +1121,9 @@ export async function scoreProgramsEnhanced(
   preFilteredPrograms?: Program[] // NEW: Optional pre-filtered programs from QuestionEngine
 ): Promise<EnhancedProgramResult[]> {
   try {
+    const userAnswers = enrichAnswers(answers);
+    const derivedSignals = deriveSignals(userAnswers);
+
     // Use pre-filtered programs if provided (from QuestionEngine), otherwise fetch and filter
     let filteredPrograms: Program[];
     
@@ -839,7 +1139,7 @@ export async function scoreProgramsEnhanced(
       console.log('🔍 Debug: Fetched programs directly:', programs.length);
       
       // APPLY MAJOR FILTERS (for advanced search, not wizard)
-      filteredPrograms = applyMajorFiltersToPrograms(programs, answers);
+      filteredPrograms = applyMajorFiltersToPrograms(programs, userAnswers);
       console.log(`🔍 Major filters applied: ${programs.length} → ${filteredPrograms.length} programs`);
     }
     
@@ -849,60 +1149,46 @@ export async function scoreProgramsEnhanced(
       hasEditorSections: filteredPrograms[0]?.editor_sections?.length || 0,
       hasReadinessCriteria: filteredPrograms[0]?.readiness_criteria?.length || 0
     });
-    // Simplified: Direct scoring without complex signal derivation
-    // deriveSignals is only needed for legacy format, skip if using new format
-    const derivedSignals = Object.keys(answers).some(k => k.startsWith('q')) 
-      ? deriveSignals(answers) 
-      : {
-          fundingMode: "grant",
-          companyAgeBucket: "pre" as const,
-          sectorBucket: "general",
-          trlBucket: "low" as const,
-          revenueBucket: "none" as const,
-          urgencyBucket: "normal" as const,
-          capexFlag: false,
-          equityOk: false,
-          collateralOk: false,
-          ipFlag: false,
-          regulatoryFlag: false,
-          socialImpactFlag: false,
-          esgFlag: false,
-          rdInAT: undefined,
-          amountFit: 0,
-          stageFit: 0,
-          timelineFit: 0,
-          unknowns: [],
-          counterfactuals: []
-        };
-    
-    // FILTERING NOW HANDLED BY QUESTIONENGINE DURING WIZARD
-    // Just use the filtered programs without additional diagnosis filtering
     let finalFilteredPrograms = filteredPrograms;
     console.log('🔍 Debug: Using major-filtered programs for scoring:', finalFilteredPrograms.length);
     
-    const normalizedPrograms: Program[] = finalFilteredPrograms.map((p) => ({
-      id: p.id,
-      name: p.name || p.id,
-      type: p.type || "program",
-      program_type: p.program_type || p.type || "grant",
-      program_category: p.program_category || "general",
-      requirements: p.requirements || {},
-      notes: p.notes,
-      maxAmount: p.maxAmount,
-      link: p.link,
-      // Add enhanced fields for scoring
-      target_personas: p.target_personas || [],
-      tags: p.tags || [],
-      decision_tree_questions: p.decision_tree_questions || [],
-      editor_sections: p.editor_sections || [],
-      readiness_criteria: p.readiness_criteria || [],
-      ai_guidance: p.ai_guidance || null,
-      // Include categorized requirements from Layer 1&2
-      categorized_requirements: p.categorized_requirements || null
-    }));
+    const normalizedPrograms: Program[] = finalFilteredPrograms.map((p) => {
+      const matchSummary = (p as any).__matchSummary;
+      const normalized: Program = {
+        id: p.id,
+        name: p.name || p.id,
+        type: p.type || "program",
+        program_type: p.program_type || p.type || "grant",
+        program_category: p.program_category || "general",
+        requirements: p.requirements || {},
+        notes: p.notes,
+        maxAmount: p.maxAmount,
+        link: p.link,
+        // Add enhanced fields for scoring
+        target_personas: p.target_personas || [],
+        tags: p.tags || [],
+        decision_tree_questions: p.decision_tree_questions || [],
+        editor_sections: p.editor_sections || [],
+        readiness_criteria: p.readiness_criteria || [],
+        ai_guidance: p.ai_guidance || null,
+        // Include categorized requirements from Layer 1&2
+        categorized_requirements: p.categorized_requirements || null
+      };
+
+      if (matchSummary) {
+        Object.defineProperty(normalized as any, '__matchSummary', {
+          value: matchSummary,
+          enumerable: false,
+          configurable: true,
+          writable: true
+        });
+      }
+
+      return normalized;
+    });
 
     console.log('🔍 EnhancedRecoEngine: Processing', normalizedPrograms.length, 'programs');
-    console.log('🔍 EnhancedRecoEngine: User answers:', Object.keys(answers).map(k => `${k}=${answers[k]}`).join(', '));
+    console.log('🔍 EnhancedRecoEngine: User answers:', Object.keys(userAnswers).map(k => `${k}=${userAnswers[k]}`).join(', '));
     console.log('🔍 EnhancedRecoEngine: Derived signals:', {
       fundingMode: derivedSignals.fundingMode,
       companyAgeBucket: derivedSignals.companyAgeBucket,
@@ -968,6 +1254,19 @@ export async function scoreProgramsEnhanced(
         action: string;
         priority: 'high' | 'medium' | 'low';
       }> = [];
+      const matchSummary = ((program as any).__matchSummary || {}) as Record<string, MatchStatus>;
+      const unknownKeys: string[] = [];
+      const matchedKeysFromSummary: string[] = [];
+
+      if (matchSummary) {
+        for (const [summaryKey, status] of Object.entries(matchSummary)) {
+          if (status === 'unknown') {
+            unknownKeys.push(summaryKey);
+          } else if (status === 'match') {
+            matchedKeysFromSummary.push(summaryKey);
+          }
+        }
+      }
 
       // Score based on program-specific decision tree questions
       if (program.decision_tree_questions && program.decision_tree_questions.length > 0) {
@@ -979,11 +1278,10 @@ export async function scoreProgramsEnhanced(
 
       // Score based on GPT-enhanced fields (handle both formats)
       if (program.target_personas && program.target_personas.length > 0) {
-        const userAge = answers.company_age || answers.q2_entity_stage;
-        const userSize = answers.team_size || answers.q3_company_size;
+        const stageBucket = getCompanyStage(userAnswers);
+        const sizeBucket = getTeamSizeBucket(userAnswers);
         
-        // Check if user stage matches target personas
-        if ((userAge?.includes('0_2') || userAge === 'PRE_COMPANY' || userAge === 'startup') && 
+        if ((stageBucket === 'pre_company' || stageBucket === 'inc_lt_6m') &&
             program.target_personas.includes('startup')) {
           score += 30;
           matchedCriteria.push({
@@ -993,7 +1291,7 @@ export async function scoreProgramsEnhanced(
             status: 'passed'
           });
         }
-        if ((userSize?.includes('1_2') || userSize === 'small' || userSize === 'MICRO_0_9') && 
+        if ((sizeBucket === 'micro_0_9' || sizeBucket === 'small_10_49') &&
             program.target_personas.includes('sme')) {
           score += 20;
           matchedCriteria.push({
@@ -1007,8 +1305,7 @@ export async function scoreProgramsEnhanced(
 
       // Score based on tags
       if (program.tags && program.tags.length > 0) {
-        const theme = answers.q4_theme || answers.research_focus;
-        if (theme === 'innovation' || theme === 'yes' && program.tags.includes('innovation')) {
+        if (hasTheme(userAnswers, 'digital') && program.tags.includes('innovation')) {
           score += 25;
           matchedCriteria.push({
             key: 'tags',
@@ -1029,7 +1326,8 @@ export async function scoreProgramsEnhanced(
       }
 
       // Location matching (new format)
-      if (answers.location === 'austria' || answers.q1_country === 'AT' || answers.q1_location === 'AUSTRIA') {
+      const location = getPrimaryLocation(userAnswers);
+      if (location === 'austria' || userAnswers.q1_country === 'AT' || userAnswers.q1_location === 'AUSTRIA') {
         const categorized = (program as any).categorized_requirements;
         if (categorized?.geographic) {
           const hasAustria = categorized.geographic.some((r: any) => 
@@ -1061,7 +1359,7 @@ export async function scoreProgramsEnhanced(
       } else {
         // Evaluate each requirement
         for (const [key, requirement] of Object.entries(program.requirements)) {
-        const answer = answers[key];
+        const answer = userAnswers[key];
 
         if (answer === undefined || answer === null || answer === "") {
           if (mode === "strict") {
@@ -1081,7 +1379,7 @@ export async function scoreProgramsEnhanced(
 
         // Handle overlay conditions (string format like "answers.q1_country in ['AT','EU']")
         if (typeof requirement === "string" && requirement.includes("answers.")) {
-          const result = evaluateOverlayCondition(requirement, answers);
+          const result = evaluateOverlayCondition(requirement, userAnswers);
           passed = result.passed;
           reason = result.reason;
           status = result.status;
@@ -1241,6 +1539,23 @@ export async function scoreProgramsEnhanced(
         console.warn(`⚠️ EnhancedRecoEngine: Program ${program.id} has very low score (${scorePercent}) with no matched criteria`);
       }
 
+      if (unknownKeys.length > 0) {
+        for (const key of unknownKeys) {
+          const alreadyIncluded = gaps.some(
+            (gap) => gap.key === key && gap.description.toLowerCase().includes('not specified')
+          );
+          if (!alreadyIncluded) {
+            const humanLabel = key.replace(/_/g, ' ');
+            gaps.push({
+              key,
+              description: `Program does not specify ${humanLabel} requirements`,
+              action: 'Review manually or confirm details with the provider',
+              priority: 'low'
+            });
+          }
+        }
+      }
+
       return {
         ...program,
         score: scorePercent,
@@ -1259,7 +1574,9 @@ export async function scoreProgramsEnhanced(
         fallbackGaps: gaps.map(g => g.description),
         founderFriendlyReasons,
         founderFriendlyRisks,
-        trace // Add trace information
+        trace,
+        matchSummary: Object.keys(matchSummary || {}).length > 0 ? matchSummary : undefined,
+        unknownCriteria: unknownKeys
       };
     }).sort((a, b) => b.score - a.score);
     } catch (error) {
@@ -1267,14 +1584,14 @@ export async function scoreProgramsEnhanced(
       console.error('❌ Error details:', {
         message: error instanceof Error ? error.message : String(error),
         stack: error instanceof Error ? error.stack : undefined,
-        answersCount: Object.keys(answers).length,
-        answers: Object.keys(answers)
+        answersCount: Object.keys(userAnswers).length,
+        answers: Object.keys(userAnswers)
       });
       
       // Try to return partial results if available
       try {
         console.log('🔄 Attempting fallback scoring...');
-        return await scoreProgramsFallback(answers, mode);
+        return await scoreProgramsFallback(userAnswers, mode);
       } catch (fallbackError) {
         console.error('❌ Fallback scoring also failed:', fallbackError);
         return [];
