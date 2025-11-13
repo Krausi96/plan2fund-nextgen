@@ -103,7 +103,7 @@ const CORE_QUESTIONS = [
     ],
     required: false,
     priority: 6,
-    skipIf: (answers: Record<string, any>) => answers.company_type === 'research', // Research typically uses for R&D
+    skipIf: (answers: Record<string, any>) => answers.company_type === 'research', // Research orgs have different funding structures, use of funds handled separately
   },
   {
     id: 'team_size',
@@ -187,7 +187,7 @@ const CORE_QUESTIONS = [
     ],
     required: false,
     priority: 12,
-    skipIf: (answers: Record<string, any>) => answers.project_duration === 'under2', // Short projects are usually urgent
+    skipIf: (answers: Record<string, any>) => answers.project_duration === 'over10', // Long-term projects are usually flexible with deadlines
   },
 ];
 
