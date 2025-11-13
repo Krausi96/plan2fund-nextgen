@@ -49,19 +49,6 @@ const CORE_QUESTIONS = [
     priority: 2,
   },
   {
-    id: 'funding_amount',
-    label: 'How much funding do you need?',
-    type: 'single-select' as const,
-    options: [
-      { value: 'under100k', label: 'Under €100k' },
-      { value: '100kto500k', label: '€100k - €500k' },
-      { value: '500kto2m', label: '€500k - €2M' },
-      { value: 'over2m', label: 'Over €2M' },
-    ],
-    required: false,
-    priority: 3,
-  },
-  {
     id: 'company_stage',
     label: 'What stage is your company at?',
     type: 'single-select' as const,
@@ -74,7 +61,21 @@ const CORE_QUESTIONS = [
       { value: 'research_org', label: 'Research Organization' },
     ],
     required: false,
+    priority: 3,
+  },
+  {
+    id: 'team_size',
+    label: 'How many people are in your team?',
+    type: 'single-select' as const,
+    options: [
+      { value: '1to2', label: '1-2 people' },
+      { value: '3to5', label: '3-5 people' },
+      { value: '6to10', label: '6-10 people' },
+      { value: 'over10', label: 'Over 10 people' },
+    ],
+    required: false,
     priority: 4,
+    skipIf: (answers: Record<string, any>) => answers.company_type === 'research', // Research orgs have different structures
   },
   {
     id: 'industry_focus',
@@ -103,21 +104,22 @@ const CORE_QUESTIONS = [
     ],
     required: false,
     priority: 6,
-    skipIf: (answers: Record<string, any>) => answers.company_type === 'research', // Research orgs have different funding structures, use of funds handled separately
+    // Skip for research orgs - they typically have structured funding programs
+    // Note: This may be too aggressive - consider showing for research spin-offs
+    skipIf: (answers: Record<string, any>) => answers.company_type === 'research',
   },
   {
-    id: 'team_size',
-    label: 'How many people are in your team?',
+    id: 'funding_amount',
+    label: 'How much funding do you need?',
     type: 'single-select' as const,
     options: [
-      { value: '1to2', label: '1-2 people' },
-      { value: '3to5', label: '3-5 people' },
-      { value: '6to10', label: '6-10 people' },
-      { value: 'over10', label: 'Over 10 people' },
+      { value: 'under100k', label: 'Under €100k' },
+      { value: '100kto500k', label: '€100k - €500k' },
+      { value: '500kto2m', label: '€500k - €2M' },
+      { value: 'over2m', label: 'Over €2M' },
     ],
     required: false,
     priority: 7,
-    skipIf: (answers: Record<string, any>) => answers.company_type === 'research', // Research orgs have different structures
   },
   {
     id: 'co_financing',
@@ -130,7 +132,9 @@ const CORE_QUESTIONS = [
     ],
     required: false,
     priority: 8,
-    skipIf: (answers: Record<string, any>) => answers.funding_amount === 'under100k', // Small amounts usually don't require co-financing
+    // Skip for small funding amounts - most programs under €100k don't require co-financing
+    // This is appropriate as smaller grants/loans typically don't need matching funds
+    skipIf: (answers: Record<string, any>) => answers.funding_amount === 'under100k',
   },
   {
     id: 'revenue_status',
@@ -143,8 +147,10 @@ const CORE_QUESTIONS = [
     ],
     required: false,
     priority: 9,
+    // Skip for early-stage companies and research orgs
+    // Early stages (idea, pre-company, <6 months) are typically pre-revenue
+    // Research orgs have different revenue models (grants, contracts, etc.)
     skipIf: (answers: Record<string, any>) => {
-      // Skip if pre-revenue stage or research
       return answers.company_stage === 'idea' || 
              answers.company_stage === 'pre_company' || 
              answers.company_stage === 'inc_lt_6m' ||
@@ -187,7 +193,9 @@ const CORE_QUESTIONS = [
     ],
     required: false,
     priority: 12,
-    skipIf: (answers: Record<string, any>) => answers.project_duration === 'over10', // Long-term projects are usually flexible with deadlines
+    // Skip for very long-term projects - they typically have flexible deadlines
+    // Projects over 10 years are usually strategic initiatives with flexible timelines
+    skipIf: (answers: Record<string, any>) => answers.project_duration === 'over10',
   },
 ];
 
@@ -455,14 +463,34 @@ export default function ProgramFinder({
                     <h2 className="text-lg font-semibold text-gray-900">Guided Questions</h2>
                   </div>
                   
-                  <div className="space-y-4 max-h-[600px] overflow-y-auto">
-                    {visibleQuestions.map((question) => {
+                  <div className="space-y-4 max-h-[600px] overflow-y-auto pr-2">
+                    {visibleQuestions.map((question, index) => {
                       const value = answers[question.id];
+                      const isAnswered = value !== undefined && value !== null && value !== '';
                       return (
-                        <div key={question.id} className="space-y-2">
-                          <label className="block text-sm font-medium text-gray-700">
-                            {question.label}
-                            {question.required && <span className="text-red-500 ml-1">*</span>}
+                        <div 
+                          key={question.id} 
+                          className={`space-y-2 p-4 rounded-lg border transition-all duration-200 ${
+                            isAnswered 
+                              ? 'bg-blue-50 border-blue-200' 
+                              : 'bg-white border-gray-200 hover:border-gray-300'
+                          }`}
+                        >
+                          <label className="block text-sm font-medium text-gray-700 flex items-center gap-2">
+                            <span className="flex-shrink-0 w-6 h-6 rounded-full bg-gray-100 text-gray-600 text-xs font-semibold flex items-center justify-center">
+                              {index + 1}
+                            </span>
+                            <span className="flex-1">
+                              {question.label}
+                              {question.required && <span className="text-red-500 ml-1">*</span>}
+                            </span>
+                            {isAnswered && (
+                              <span className="flex-shrink-0 text-green-600">
+                                <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
+                                  <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
+                                </svg>
+                              </span>
+                            )}
                           </label>
                           {question.type === 'single-select' && (
                             <div className="space-y-2">
@@ -470,12 +498,15 @@ export default function ProgramFinder({
                                 <button
                                   key={option.value}
                                   onClick={() => handleAnswer(question.id, option.value)}
-                                  className={`w-full text-left px-4 py-2 border rounded-lg transition-colors ${
+                                  className={`w-full text-left px-4 py-2.5 border rounded-lg transition-all duration-150 ${
                                     value === option.value
-                                      ? 'bg-blue-50 border-blue-300 text-blue-900'
-                                      : 'border-gray-200 hover:bg-gray-50'
+                                      ? 'bg-blue-100 border-blue-400 text-blue-900 font-medium shadow-sm'
+                                      : 'border-gray-200 hover:bg-gray-50 hover:border-gray-300'
                                   }`}
                                 >
+                                  {value === option.value && (
+                                    <span className="inline-block mr-2 text-blue-600">✓</span>
+                                  )}
                                   {option.label}
                                 </button>
                               ))}
@@ -495,13 +526,24 @@ export default function ProgramFinder({
                                         : [...current, option.value];
                                       handleAnswer(question.id, newValue);
                                     }}
-                                    className={`w-full text-left px-4 py-2 border rounded-lg transition-colors ${
+                                    className={`w-full text-left px-4 py-2.5 border rounded-lg transition-all duration-150 ${
                                       isSelected
-                                        ? 'bg-blue-50 border-blue-300 text-blue-900'
-                                        : 'border-gray-200 hover:bg-gray-50'
+                                        ? 'bg-blue-100 border-blue-400 text-blue-900 font-medium shadow-sm'
+                                        : 'border-gray-200 hover:bg-gray-50 hover:border-gray-300'
                                     }`}
                                   >
-                                    {isSelected ? '✓ ' : ''}{option.label}
+                                    <span className={`inline-block w-5 h-5 mr-2 border-2 rounded ${
+                                      isSelected 
+                                        ? 'bg-blue-600 border-blue-600' 
+                                        : 'border-gray-300'
+                                    } flex items-center justify-center`}>
+                                      {isSelected && (
+                                        <svg className="w-3 h-3 text-white" fill="currentColor" viewBox="0 0 20 20">
+                                          <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
+                                        </svg>
+                                      )}
+                                    </span>
+                                    {option.label}
                                   </button>
                                 );
                               })}
@@ -513,14 +555,32 @@ export default function ProgramFinder({
                   </div>
                   
                   {/* Progress */}
-                  <div className="pt-4 border-t border-gray-200">
-                    <div className="flex items-center justify-between text-xs text-gray-500 mb-1">
-                      <span>Progress</span>
-                      <span>{answeredCount} of {totalQuestions} questions answered</span>
+                  <div className="pt-4 border-t border-gray-200 mt-4">
+                    <div className="flex items-center justify-between text-sm mb-2">
+                      <span className="font-medium text-gray-700">Progress</span>
+                      <span className="text-gray-600">
+                        {answeredCount} of {totalQuestions} answered
+                        {answeredCount > 0 && (
+                          <span className="ml-2 text-blue-600 font-semibold">
+                            ({Math.round((answeredCount / totalQuestions) * 100)}%)
+                          </span>
+                        )}
+                      </span>
                     </div>
-                    <div className="h-2">
-                      <Progress value={(answeredCount / totalQuestions) * 100} />
+                    <div className="h-3 bg-gray-200 rounded-full overflow-hidden">
+                      <div 
+                        className="h-full bg-gradient-to-r from-blue-500 to-blue-600 transition-all duration-300 ease-out"
+                        style={{ width: `${(answeredCount / totalQuestions) * 100}%` }}
+                      />
                     </div>
+                    {answeredCount === totalQuestions && (
+                      <p className="mt-2 text-sm text-green-600 font-medium flex items-center gap-1">
+                        <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
+                          <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
+                        </svg>
+                        All questions completed!
+                      </p>
+                    )}
                   </div>
                 </div>
               ) : (

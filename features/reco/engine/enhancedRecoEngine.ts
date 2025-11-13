@@ -5,6 +5,27 @@ import { estimateSuccessProbability, ConfidenceLevel } from '@/shared/lib/mlMode
 import type { MatchStatus } from './types';
 // Removed doctorDiagnostic - filtering handled by QuestionEngine
 
+// Import centralized normalization system for consistent matching
+import {
+  normalizeLocationAnswer,
+  normalizeLocationExtraction,
+  normalizeCompanyTypeAnswer,
+  normalizeCompanyTypeExtraction,
+  normalizeCompanyStageAnswer,
+  normalizeCompanyStageExtraction,
+  normalizeFundingAmountAnswer,
+  normalizeFundingAmountExtraction,
+  normalizeIndustryAnswer,
+  normalizeCoFinancingAnswer,
+  normalizeCoFinancingExtraction,
+  matchLocations,
+  matchCompanyTypes,
+  matchCompanyStages,
+  matchFundingAmounts,
+  matchIndustries,
+  matchCoFinancing,
+} from './normalization';
+
 // Eligibility trace interface
 export interface EligibilityTrace {
   passed: string[];
@@ -297,38 +318,36 @@ function enrichAnswers(answers: UserAnswers): UserAnswers {
     enriched.q4_theme = 'INNOVATION_DIGITAL';
   }
 
-  const revenueStatus =
-    normalizeRevenueStatusValue(enriched.revenue_status) ||
-    normalizeRevenueStatusValue(enriched.revenue) ||
-    normalizeRevenueStatusValue(enriched.current_revenue);
-  if (revenueStatus) {
-    enriched.revenue_status = revenueStatus;
+  // Revenue status - keep as is, normalization handled in matching
+  if (enriched.revenue_status || enriched.revenue || enriched.current_revenue) {
+    enriched.revenue_status = enriched.revenue_status || enriched.revenue || enriched.current_revenue;
   }
 
-  const coFinancingChoice =
-    normalizeCoFinancingValue(enriched.co_financing) ||
-    normalizeCoFinancingValue(enriched.co_financing_status) ||
-    normalizeCoFinancingValue(enriched.co_financing_required);
-  if (coFinancingChoice) {
-    enriched.co_financing = coFinancingChoice;
+  // Co-financing - use centralized normalization
+  if (enriched.co_financing || enriched.co_financing_status || enriched.co_financing_required) {
+    const coFinValue = enriched.co_financing || enriched.co_financing_status || enriched.co_financing_required;
+    const normalized = normalizeCoFinancingAnswer(String(coFinValue));
+    enriched.co_financing = normalized.type === 'none' ? 'co_no' : 
+                            normalized.type === 'partial' ? 'co_partial' : 
+                            normalized.type === 'required' ? 'co_yes' : 
+                            coFinValue;
   }
 
+  // Industry - use centralized normalization
   if (enriched.industry_focus) {
     const industries = Array.isArray(enriched.industry_focus)
       ? enriched.industry_focus
       : [enriched.industry_focus];
-    enriched.industry_focus = industries
-      .map((item: any) => normalizeIndustryValue(item))
-      .filter(Boolean);
+    const normalized = normalizeIndustryAnswer(industries);
+    enriched.industry_focus = normalized.primary.length > 0 ? normalized.primary : industries;
   }
 
   if (!enriched.industry_focus && enriched.strategic_focus) {
     const focuses = Array.isArray(enriched.strategic_focus)
       ? enriched.strategic_focus
       : [enriched.strategic_focus];
-    enriched.industry_focus = focuses
-      .map((item: any) => normalizeIndustryValue(item))
-      .filter(Boolean);
+    const normalized = normalizeIndustryAnswer(focuses);
+    enriched.industry_focus = normalized.primary.length > 0 ? normalized.primary : focuses;
   }
 
   if (enriched.industry_focus) {
@@ -336,14 +355,12 @@ function enrichAnswers(answers: UserAnswers): UserAnswers {
   }
 
   if (enriched.strategic_focus) {
-    const normalizedStrategic = (Array.isArray(enriched.strategic_focus)
+    const focuses = Array.isArray(enriched.strategic_focus)
       ? enriched.strategic_focus
-      : [enriched.strategic_focus]
-    )
-      .map((item: any) => normalizeIndustryValue(item))
-      .filter(Boolean);
-    if (normalizedStrategic.length > 0) {
-      enriched.strategic_focus = Array.from(new Set(normalizedStrategic));
+      : [enriched.strategic_focus];
+    const normalized = normalizeIndustryAnswer(focuses);
+    if (normalized.primary.length > 0) {
+      enriched.strategic_focus = Array.from(new Set(normalized.primary));
     }
   }
 
@@ -359,9 +376,10 @@ export interface DerivedSignals {
   companyAgeBucket: "pre" | "0-3y" | "3y+";
   sectorBucket: string;
   rdInAT?: boolean;
-  amountFit: number;
-  stageFit: number;
-  timelineFit: number;
+  // Fit calculations removed - not used in scoring
+  // amountFit: number;
+  // stageFit: number;
+  // timelineFit: number;
   fundingMode: string;
   // New derived signals for richer persona coverage
   trlBucket: "low" | "mid" | "high" | "unknown";
@@ -384,16 +402,28 @@ export function deriveSignals(answers: UserAnswers): DerivedSignals {
   const fundingPreference = getFundingPreference(answers);
   const rndInAT = isRAndDInAustria(answers);
   const urgency = getDeadlineUrgency(answers);
-  const revenueStatus = normalizeRevenueStatusValue(answers.revenue_status || answers.revenue);
-  const coStatus = normalizeCoFinancingValue(answers.co_financing);
+  // Revenue status - keep as string, normalization handled in matching
+  const revenueStatus = answers.revenue_status || answers.revenue;
+  
+  // Co-financing - use centralized normalization
+  const coStatus = answers.co_financing 
+    ? (() => {
+        const normalized = normalizeCoFinancingAnswer(String(answers.co_financing));
+        return normalized.type === 'none' ? 'co_no' : 
+               normalized.type === 'partial' ? 'co_partial' : 
+               normalized.type === 'required' ? 'co_yes' : 
+               answers.co_financing;
+      })()
+    : undefined;
+  
+  // Industry - use centralized normalization
   const industryFocusRaw = Array.isArray(answers.industry_focus)
     ? answers.industry_focus
     : answers.industry_focus
     ? [answers.industry_focus]
     : [];
-  const industryFocus = industryFocusRaw
-    .map((item: any) => normalizeIndustryValue(item))
-    .filter(Boolean);
+  const normalizedIndustry = normalizeIndustryAnswer(industryFocusRaw);
+  const industryFocus = normalizedIndustry.primary.length > 0 ? normalizedIndustry.primary : industryFocusRaw;
 
   const signals: DerivedSignals = {
     capexFlag:
@@ -437,9 +467,10 @@ export function deriveSignals(answers: UserAnswers): DerivedSignals {
       ? 'tech'
       : 'general',
     rdInAT: rndInAT,
-    amountFit: 0,
-    stageFit: 0,
-    timelineFit: 0,
+    // Fit calculations removed - not used in scoring
+    // amountFit: 0,
+    // stageFit: 0,
+    // timelineFit: 0,
     fundingMode: fundingPreference || 'grant',
     trlBucket,
     revenueBucket: revenueStatus
@@ -525,14 +556,17 @@ export function deriveSignals(answers: UserAnswers): DerivedSignals {
     signals.fundingMode = fundingPreference || 'mixed';
   }
 
-  signals.amountFit = calculateAmountFit(answers, signals);
-  signals.stageFit = calculateStageFit(answers, signals);
-  signals.timelineFit = calculateTimelineFit(answers, signals);
+  // Fit calculations removed - not used in scoring, only in trace generation
+  // signals.amountFit = calculateAmountFit(answers, signals);
+  // signals.stageFit = calculateStageFit(answers, signals);
+  // signals.timelineFit = calculateTimelineFit(answers, signals);
 
   return signals;
 }
 
-// Helper functions for fit calculations
+// Helper functions for fit calculations - REMOVED (not used in scoring)
+// These functions were calculated but never used in the actual scoring logic
+/*
 function calculateAmountFit(_answers: UserAnswers, signals: DerivedSignals): number {
   // This would typically use actual program amount data
   // For now, return a base score based on funding mode and derived signals
@@ -642,156 +676,28 @@ function calculateRequirementFrequencies(allPrograms: Program[]): Map<string, nu
   return frequencies;
 }
 
-// Normalization functions - SAME as QuestionEngine for consistency
-// These ensure scoring matches filtering logic exactly
-function normalizeLocationValue(value: any): string | null {
-  const str = String(value || '').toLowerCase();
-  if (str.includes('austria') || str.includes('österreich') || str === 'at') return 'austria';
-  if (str.includes('germany') || str.includes('deutschland') || str === 'de') return 'germany';
-  if (str.includes('eu') || str.includes('europe') || str.includes('european')) return 'eu';
-  return 'international';
-}
-
-function normalizeCompanyTypeValue(value: any): string | null {
-  const str = String(value || '').toLowerCase();
-  if (str.includes('startup') || str.includes('start-up') || str.includes('new venture')) return 'startup';
-  if (str.includes('sme') || str.includes('small') || str.includes('medium') || str.includes('mittelstand')) return 'sme';
-  if (str.includes('large') || str.includes('enterprise')) return 'large';
-  if (str.includes('research') || str.includes('university') || str.includes('academic')) return 'research';
-  return null;
-}
-
-function normalizeFundingAmountValue(value: any): string | null {
-  if (typeof value === 'number') {
-    if (value < 100000) return 'under100k';
-    if (value < 500000) return '100kto500k';
-    if (value < 2000000) return '500kto2m';
-    return 'over2m';
+// Simplified fallback matching for fields not covered by centralized normalization
+// Uses simple string matching as last resort
+function fallbackMatch(userValue: string, requirementValue: any): boolean {
+  const userStr = String(userValue).toLowerCase();
+  const reqStr = String(requirementValue).toLowerCase();
+  
+  // Direct match
+  if (userStr === reqStr) return true;
+  
+  // Contains match
+  if (reqStr.includes(userStr) || userStr.includes(reqStr)) return true;
+  
+  // Array match
+  if (Array.isArray(requirementValue)) {
+    return requirementValue.some((v: any) => 
+      String(v).toLowerCase() === userStr || 
+      String(v).toLowerCase().includes(userStr) ||
+      userStr.includes(String(v).toLowerCase())
+    );
   }
-  const str = String(value || '').toLowerCase();
-  if (str.includes('under') || str.includes('<') || str.includes('less')) return 'under100k';
-  if (str.includes('100') && str.includes('500')) return '100kto500k';
-  if (str.includes('500') && str.includes('2000')) return '500kto2m';
-  if (str.includes('over') || str.includes('>') || str.includes('more')) return 'over2m';
-  return null;
-}
-
-function normalizeUseOfFundsValue(value: any): string | null {
-  const str = String(value || '').toLowerCase();
-  if (str.includes('research') || str.includes('development') || str.includes('rd')) return 'rd';
-  if (str.includes('marketing') || str.includes('promotion')) return 'marketing';
-  if (str.includes('equipment') || str.includes('infrastructure')) return 'equipment';
-  if (str.includes('personnel') || str.includes('hiring') || str.includes('team')) return 'personnel';
-  return null;
-}
-
-function normalizeTeamSizeValue(value: any): string | null {
-  if (typeof value === 'number') {
-    if (value <= 2) return '1to2';
-    if (value <= 5) return '3to5';
-    if (value <= 10) return '6to10';
-    return 'over10';
-  }
-  const str = String(value || '').toLowerCase();
-  if (str.includes('1') || str.includes('2') || str.includes('solo')) return '1to2';
-  if (str.includes('3') || str.includes('4') || str.includes('5')) return '3to5';
-  if (str.includes('6') || str.includes('7') || str.includes('8') || str.includes('9') || str.includes('10')) return '6to10';
-  if (str.includes('over') || str.includes('more')) return 'over10';
-  return null;
-}
-
-function normalizeImpactValue(value: any): string | null {
-  const str = String(value || '').toLowerCase();
-  if (str.includes('economic') || str.includes('job') || str.includes('growth')) return 'economic';
-  if (str.includes('social') || str.includes('community') || str.includes('society')) return 'social';
-  if (str.includes('environment') || str.includes('climate') || str.includes('sustainability')) return 'environmental';
-  return null;
-}
-
-function normalizeProjectDurationValue(value: any): string | null {
-  const str = String(value || '').toLowerCase();
-  if (str.includes('under') || str.includes('<2') || str.includes('short')) return 'under2';
-  if (str.includes('2') && str.includes('5')) return '2to5';
-  if (str.includes('5') && str.includes('10')) return '5to10';
-  if (str.includes('over') || str.includes('>10') || str.includes('long')) return 'over10';
-  return null;
-}
-
-function normalizeCompanyStageValue(value: any): string | null {
-  const str = String(value || '').toLowerCase();
-  if (!str) return null;
-  if (str.includes('idea') || str.includes('concept')) return 'idea';
-  if (str.includes('pre') || str.includes('pre-company') || str.includes('founder team')) return 'pre_company';
-  if (str.includes('<6') || str.includes('under 6') || str.includes('seed')) return 'inc_lt_6m';
-  if (str.includes('6-36') || str.includes('6 to 36') || str.includes('growth')) return 'inc_6_36m';
-  if (str.includes('>36') || str.includes('over 36') || str.includes('established') || str.includes('mature')) return 'inc_gt_36m';
-  if (str.includes('research') || str.includes('university') || str.includes('academic')) return 'research_org';
-  return null;
-}
-
-function normalizeRevenueStatusValue(value: any): string | null {
-  const str = String(value || '').toLowerCase();
-  if (!str) return null;
-  if (str.includes('pre') || str.includes('no revenue') || str.includes('none')) return 'pre_revenue';
-  if (str.includes('early') || str.includes('initial') || str.includes('pilot') || str.includes('first revenue')) return 'early_revenue';
-  if (str.includes('growth') || str.includes('scale') || str.includes('profitable') || str.includes('positive')) return 'growing_revenue';
-  return null;
-}
-
-function normalizeCoFinancingValue(value: any): string | null {
-  if (typeof value === 'number') {
-    if (value === 0) return 'co_no';
-    if (value < 50) return 'co_partial';
-    return 'co_yes';
-  }
-  const str = String(value || '').toLowerCase();
-  if (!str) return null;
-  if (str.includes('no co') || str.includes('fully funded') || str.includes('100%')) return 'co_no';
-  if (str.includes('partial') || str.includes('matching') || str.includes('share') || str.includes('50%')) return 'co_partial';
-  if (str.includes('required') || str.includes('own contribution') || str.includes('co-financing required') || str.includes('must provide')) return 'co_yes';
-  return null;
-}
-
-function normalizeIndustryValue(value: any): string | null {
-  const str = String(value || '').toLowerCase();
-  if (!str) return null;
-  if (str.includes('digital') || str.includes('ict') || str.includes('software') || str.includes('ai')) return 'digital';
-  if (str.includes('sustain') || str.includes('climate') || str.includes('energy') || str.includes('green')) return 'sustainability';
-  if (str.includes('health') || str.includes('life science') || str.includes('medtech') || str.includes('biotech')) return 'health';
-  if (str.includes('manufactur') || str.includes('production') || str.includes('industry')) return 'manufacturing';
-  if (str.includes('export') || str.includes('international')) return 'export';
-  return 'other';
-}
-
-// Normalize requirement value based on answer key (for scoring)
-function normalizeRequirementValue(answerKey: string, requirementValue: any): string | null {
-  switch (answerKey) {
-    case 'location':
-      return normalizeLocationValue(requirementValue);
-    case 'company_type':
-      return normalizeCompanyTypeValue(requirementValue);
-    case 'company_stage':
-      return normalizeCompanyStageValue(requirementValue);
-    case 'revenue_status':
-      return normalizeRevenueStatusValue(requirementValue);
-    case 'co_financing':
-      return normalizeCoFinancingValue(requirementValue);
-    case 'funding_amount':
-      return normalizeFundingAmountValue(requirementValue);
-    case 'use_of_funds':
-      return normalizeUseOfFundsValue(requirementValue);
-    case 'team_size':
-      return normalizeTeamSizeValue(requirementValue);
-    case 'impact':
-      return normalizeImpactValue(requirementValue);
-    case 'industry_focus':
-    case 'strategic_focus':
-      return normalizeIndustryValue(requirementValue);
-    case 'project_duration':
-      return normalizeProjectDurationValue(requirementValue);
-    default:
-      return null;
-  }
+  
+  return false;
 }
 
 // Score programs using categorized requirements (18 categories from Layer 1&2)
@@ -895,34 +801,102 @@ function scoreCategorizedRequirements(
       let matchReason = '';
 
       relevantAnswers.forEach(answer => {
-        const userAnswerNormalized = String(answer.value).toLowerCase();
+        // Use centralized normalization and matching system for consistent results
+        let isMatch = false;
         
-        // NORMALIZE requirement value using same logic as filtering
-        // This ensures scoring matches filtering exactly
-        const requirementNormalized = normalizeRequirementValue(answer.key, itemValue);
+        try {
+          // Normalize user answer
+          const userAnswerStr = String(answer.value);
+          
+          // Use centralized matching based on answer key
+          switch (answer.key) {
+            case 'location': {
+              const userLoc = normalizeLocationAnswer(userAnswerStr);
+              const extractedLoc = normalizeLocationExtraction(String(itemValue));
+              isMatch = matchLocations(userLoc, extractedLoc);
+              if (isMatch) {
+                matchReason = `${answer.key} (${answer.value}) matches ${category} requirement (${itemValue}) - location match`;
+              }
+              break;
+            }
+            case 'company_type': {
+              const userType = normalizeCompanyTypeAnswer(userAnswerStr);
+              const extractedType = normalizeCompanyTypeExtraction(String(itemValue));
+              isMatch = matchCompanyTypes(userType, extractedType);
+              if (isMatch) {
+                matchReason = `${answer.key} (${answer.value}) matches ${category} requirement (${itemValue}) - company type match`;
+              }
+              break;
+            }
+            case 'company_stage': {
+              const userStage = normalizeCompanyStageAnswer(userAnswerStr);
+              const extractedStage = normalizeCompanyStageExtraction(String(itemValue));
+              isMatch = matchCompanyStages(userStage, extractedStage);
+              if (isMatch) {
+                matchReason = `${answer.key} (${answer.value}) matches ${category} requirement (${itemValue}) - company stage match`;
+              }
+              break;
+            }
+            case 'funding_amount': {
+              const userAmount = normalizeFundingAmountAnswer(userAnswerStr);
+              // Extract min/max from requirement if available, otherwise use itemValue
+              let extractedMin: number | null = null;
+              let extractedMax: number | null = null;
+              if (typeof itemValue === 'object' && itemValue.min !== undefined) {
+                extractedMin = itemValue.min;
+                extractedMax = itemValue.max;
+              } else {
+                // Try to parse from string
+                const numMatch = String(itemValue).match(/(\d+)/g);
+                if (numMatch && numMatch.length >= 1) {
+                  extractedMin = parseInt(numMatch[0]);
+                  extractedMax = numMatch.length > 1 ? parseInt(numMatch[1]) : extractedMin;
+                }
+              }
+              const extractedAmount = normalizeFundingAmountExtraction(extractedMin, extractedMax);
+              isMatch = matchFundingAmounts(userAmount, extractedAmount);
+              if (isMatch) {
+                matchReason = `${answer.key} (${answer.value}) matches ${category} requirement (${itemValue}) - funding amount match`;
+              }
+              break;
+            }
+            case 'industry_focus': {
+              const userIndustry = normalizeIndustryAnswer(Array.isArray(answer.value) ? answer.value : [answer.value]);
+              const extractedIndustries = Array.isArray(item.value) ? item.value.map((v: any) => String(v)) : [String(itemValue)];
+              isMatch = matchIndustries(userIndustry, extractedIndustries);
+              if (isMatch) {
+                matchReason = `${answer.key} (${answer.value}) matches ${category} requirement (${itemValue}) - industry match`;
+              }
+              break;
+            }
+            case 'co_financing': {
+              const userCoFinancing = normalizeCoFinancingAnswer(userAnswerStr);
+              const extractedCoFinancing = normalizeCoFinancingExtraction(String(itemValue));
+              isMatch = matchCoFinancing(userCoFinancing, extractedCoFinancing);
+              if (isMatch) {
+                matchReason = `${answer.key} (${answer.value}) matches ${category} requirement (${itemValue}) - co-financing match`;
+              }
+              break;
+            }
+            default: {
+              // Fallback: simple string matching for fields not covered by centralized normalization
+              isMatch = fallbackMatch(userAnswerStr, itemValue);
+              if (isMatch) {
+                matchReason = `${answer.key} (${answer.value}) matches ${category} requirement (${itemValue}) - fallback match`;
+              }
+              break;
+            }
+          }
+        } catch (error) {
+          // Fallback on error: simple string matching
+          isMatch = fallbackMatch(String(answer.value), itemValue);
+          if (isMatch) {
+            matchReason = `${answer.key} (${answer.value}) matches ${category} requirement (${itemValue}) - error fallback`;
+          }
+        }
         
-        // Match if normalized values match (same as filtering logic)
-        if (requirementNormalized && requirementNormalized === userAnswerNormalized) {
+        if (isMatch) {
           matched = true;
-          matchReason = `${answer.key} (${answer.value}) matches ${category} requirement (${itemValue}) - normalized to ${requirementNormalized}`;
-        } else if (Array.isArray(item.value)) {
-          // Check array items with normalization
-          const arrayMatch = item.value.some((v: any) => {
-            const normalized = normalizeRequirementValue(answer.key, v);
-            return normalized && normalized === userAnswerNormalized;
-          });
-          if (arrayMatch) {
-            matched = true;
-            matchReason = `${answer.key} (${answer.value}) matches ${category} requirement in array`;
-          }
-        } else if (!requirementNormalized) {
-          // Fallback: If normalization fails, try string matching (for non-standard fields)
-          const answerValueStr = String(answer.value).toLowerCase();
-          const itemValueStr = String(itemValue).toLowerCase();
-          if (itemValueStr === answerValueStr || itemValueStr.includes(answerValueStr) || answerValueStr.includes(itemValueStr)) {
-            matched = true;
-            matchReason = `${answer.key} (${answer.value}) matches ${category} requirement (${itemValue}) - via string matching`;
-          }
         }
       });
 
@@ -1239,7 +1213,7 @@ export async function scoreProgramsEnhanced(
     const requirementFrequencies = calculateRequirementFrequencies(allProgramsForFrequencies);
     console.log(`📊 Calculated frequencies for ${requirementFrequencies.size} requirement types`);
 
-    return normalizedPrograms.map((program) => {
+    const scoredPrograms = await Promise.all(normalizedPrograms.map(async (program): Promise<EnhancedProgramResult> => {
       let score = 0;
       const matchedCriteria: Array<{
         key: string;
@@ -1400,22 +1374,24 @@ export async function scoreProgramsEnhanced(
             reason = `${key} exceeds limit (${answer} > ${requirement})`;
             status = 'failed';
           }
-        } else if (typeof requirement === "object" && requirement.min !== undefined) {
-          if (answer >= requirement.min) {
+        } else if (typeof requirement === "object" && requirement !== null && 'min' in requirement) {
+          const reqWithMin = requirement as { min: number };
+          if (answer >= reqWithMin.min) {
             passed = true;
-            reason = `${key} meets minimum (${answer} >= ${requirement.min})`;
+            reason = `${key} meets minimum (${answer} >= ${reqWithMin.min})`;
             status = 'passed';
           } else {
-            reason = `${key} below minimum (${answer} < ${requirement.min})`;
+            reason = `${key} below minimum (${answer} < ${reqWithMin.min})`;
             status = 'failed';
           }
-        } else if (typeof requirement === "object" && requirement.max !== undefined) {
-          if (answer <= requirement.max) {
+        } else if (typeof requirement === "object" && requirement !== null && 'max' in requirement) {
+          const reqWithMax = requirement as { max: number };
+          if (answer <= reqWithMax.max) {
             passed = true;
-            reason = `${key} within maximum (${answer} <= ${requirement.max})`;
+            reason = `${key} within maximum (${answer} <= ${reqWithMax.max})`;
             status = 'passed';
           } else {
-            reason = `${key} exceeds maximum (${answer} > ${requirement.max})`;
+            reason = `${key} exceeds maximum (${answer} > ${reqWithMax.max})`;
             status = 'failed';
           }
         } else {
@@ -1515,7 +1491,7 @@ export async function scoreProgramsEnhanced(
       else if (scorePercent >= 50) confidence = "Medium";
 
       const reason = generateEnhancedReason(program, matchedCriteria, gaps, scorePercent);
-      const founderFriendlyReasons = generateFounderFriendlyReasons(matchedCriteria);
+      const founderFriendlyReasons = await generateFounderFriendlyReasons(program, userAnswers, matchedCriteria, gaps, scorePercent);
       const founderFriendlyRisks = generateFounderFriendlyRisks(gaps);
 
       // Generate eligibility trace
@@ -1577,7 +1553,9 @@ export async function scoreProgramsEnhanced(
         matchSummary: Object.keys(matchSummary || {}).length > 0 ? matchSummary : undefined,
         unknownCriteria: unknownKeys
       };
-    }).sort((a, b) => b.score - a.score);
+    }));
+    
+    return scoredPrograms.sort((a: EnhancedProgramResult, b: EnhancedProgramResult) => b.score - a.score);
     } catch (error) {
       console.error('❌ Enhanced recommendation engine failed:', error);
       console.error('❌ Error details:', {
@@ -1671,88 +1649,208 @@ function generateEnhancedReason(
   return `ℹ️ ${program.name} matches ${passedCount} requirement(s) but has ${failedCount} issue(s). Score: ${score}%`;
 }
 
-// Generate founder-friendly explanations for why a program fits
-function generateFounderFriendlyReasons(
+// Generate smart explanations using LLM (with rule-based fallback)
+async function generateFounderFriendlyReasons(
+  program: Program,
+  userAnswers: UserAnswers,
+  matchedCriteria: Array<{ key: string; value: any; reason: string; status: 'passed' | 'warning' | 'failed' }>,
+  gaps: Array<{ key: string; description: string; action: string; priority: 'high' | 'medium' | 'low' }>,
+  score: number
+): Promise<string[]> {
+  // Try LLM first if available
+  const useLLM = process.env.OPENAI_API_KEY || process.env.CUSTOM_LLM_ENDPOINT;
+  
+  if (useLLM) {
+    try {
+      const smartExplanation = await generateSmartExplanation(program, userAnswers, matchedCriteria, gaps, score);
+      return smartExplanation.reasons;
+    } catch (error) {
+      console.warn('LLM explanation failed, using fallback:', error);
+      // Fall through to rule-based
+    }
+  }
+  
+  // Rule-based fallback (simplified)
+  return generateRuleBasedReasons(matchedCriteria);
+}
+
+// LLM-powered smart explanation generator
+async function generateSmartExplanation(
+  program: Program,
+  userAnswers: UserAnswers,
+  matchedCriteria: Array<{ key: string; value: any; reason: string; status: 'passed' | 'warning' | 'failed' }>,
+  gaps: Array<{ key: string; description: string; action: string; priority: 'high' | 'medium' | 'low' }>,
+  score: number
+): Promise<{ reasons: string[] }> {
+  const passedCriteria = matchedCriteria.filter(c => c.status === 'passed');
+  
+  // Summarize context for LLM
+  const userProfile = summarizeUserProfile(userAnswers);
+  const programSummary = summarizeProgram(program);
+  const issues = gaps.length > 0 ? `\nConsiderations: ${gaps.slice(0, 2).map(g => g.description).join(', ')}` : '';
+
+  const systemPrompt = `You are an expert funding advisor helping entrepreneurs understand why specific funding programs match their needs.
+
+Your task is to generate personalized, professional explanations that:
+1. Reference the user's SPECIFIC situation (location, company type, funding needs, industry)
+2. Explain WHY the program fits based on ACTUAL scoring factors
+3. Highlight what makes this match strong (high score) or what could be improved (lower score)
+4. Use professional but accessible language
+5. Be specific about the scoring factors that contributed to the match
+
+Guidelines:
+- Reference actual matched criteria from the scoring
+- Explain the connection between their profile and program requirements
+- If score is high (≥90%), emphasize strong alignment
+- If score is lower (70-89%), acknowledge strengths but note areas for improvement
+- Use their actual values (e.g., "€100k-€500k funding need" not "funding amount")
+- Be professional but warm and encouraging`;
+
+  // Build detailed scoring context
+  const scoringBreakdown = passedCriteria.map(c => {
+    const category = c.key.split(':')[0] || c.key;
+    return `- ${category}: ${c.reason}`;
+  }).join('\n');
+  
+  const scoreStrength = score >= 90 ? 'excellent' : score >= 70 ? 'strong' : score >= 50 ? 'moderate' : 'limited';
+  const scoreContext = score >= 90 
+    ? 'This is an excellent match with high alignment across multiple criteria.'
+    : score >= 70
+    ? 'This is a strong match with good alignment, though some areas could be improved.'
+    : 'This is a moderate match with some alignment, but there are notable gaps.';
+
+  const userPrompt = `User Profile:
+${userProfile}
+
+Program Details:
+${programSummary}
+
+Match Score: ${score}% (${scoreStrength} match)
+${scoreContext}
+
+Scoring Breakdown - What Matched:
+${scoringBreakdown}
+
+${issues.length > 0 ? `\nAreas for Improvement:\n${issues}\n` : ''}
+
+Generate 2-3 personalized, professional reasons why this ${score}% match fits this specific user. Reference their actual values (location, company type, funding amount, industry) and explain the connection to the program's requirements. Be specific about what makes this match strong or what could be improved.`;
+
+  // Try custom LLM first
+  if (process.env.CUSTOM_LLM_ENDPOINT) {
+    try {
+      const response = await fetch(process.env.CUSTOM_LLM_ENDPOINT, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          messages: [
+            { role: 'system', content: systemPrompt },
+            { role: 'user', content: userPrompt }
+          ],
+          responseFormat: 'json',
+          maxTokens: 300,
+          temperature: 0.7,
+        }),
+      });
+      
+      if (response.ok) {
+        const data = await response.json();
+        const content = data.output || data.content || '{}';
+        const parsed = JSON.parse(content);
+        if (parsed.reasons && Array.isArray(parsed.reasons)) {
+          return { reasons: parsed.reasons.slice(0, 3) };
+        }
+      }
+    } catch (error) {
+      console.warn('Custom LLM failed:', error);
+    }
+  }
+
+  // Fallback to OpenAI
+  if (process.env.OPENAI_API_KEY) {
+    const { default: OpenAI } = await import('openai');
+    const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
+    
+    const completion = await openai.chat.completions.create({
+      model: process.env.OPENAI_MODEL || 'gpt-4o-mini',
+      messages: [
+        { role: 'system', content: systemPrompt },
+        { role: 'user', content: userPrompt }
+      ],
+      response_format: { type: 'json_object' },
+      max_tokens: 300,
+      temperature: 0.7,
+    });
+    
+    const content = completion.choices[0]?.message?.content || '{}';
+    const parsed = JSON.parse(content);
+    if (parsed.reasons && Array.isArray(parsed.reasons)) {
+      return { reasons: parsed.reasons.slice(0, 3) };
+    }
+  }
+
+  throw new Error('No LLM response');
+}
+
+// Simplified rule-based fallback
+function generateRuleBasedReasons(
   matchedCriteria: Array<{ key: string; value: any; reason: string; status: 'passed' | 'warning' | 'failed' }>
 ): string[] {
   const reasons: string[] = [];
   const passedCriteria = matchedCriteria.filter(c => c.status === 'passed');
   
-  // Map technical criteria to founder-friendly explanations with program benefits
-  const criteriaMapping: Record<string, (value: any) => string> = {
-    'q1_country': (value) => {
-      if (value === 'AT') return 'Austrian location requirement met - you can access local funding and support networks';
-      if (value === 'EU') return 'EU eligibility confirmed - access to broader European funding opportunities';
-      return 'Your project location qualifies for this program\'s geographic requirements';
-    },
-    'q4_theme': (value) => {
-      if (Array.isArray(value) && value.includes('INNOVATION_DIGITAL')) return 'Perfect match for digital innovation programs - high success rates for tech projects';
-      if (Array.isArray(value) && value.includes('SUSTAINABILITY')) return 'Environmental focus aligns with green funding priorities - often higher funding amounts available';
-      if (Array.isArray(value) && value.includes('HEALTH_LIFE_SCIENCE')) return 'Health sector focus qualifies for specialized medical innovation funding';
-      return 'Your project theme matches this program\'s priority sectors';
-    },
-    'q8_funding_types': (value) => {
-      if (Array.isArray(value) && value.includes('GRANT')) return 'Non-dilutive funding available - keep full ownership while getting financial support';
-      if (Array.isArray(value) && value.includes('LOAN')) return 'Debt financing option - faster approval process than equity funding';
-      if (Array.isArray(value) && value.includes('EQUITY')) return 'Equity investment opportunity - access to investor networks and expertise';
-      return 'Your funding preferences match this program\'s offering';
-    },
-    'q2_entity_stage': (value) => {
-      if (value === 'PRE_COMPANY') return 'Early-stage support available - perfect for idea validation and initial development';
-      if (value === 'INC_LT_6M') return 'Startup stage qualification - access to specialized early-stage funding programs';
-      if (value === 'INC_6_36M') return 'Growth stage eligibility - funding for scaling and market expansion';
-      return 'Your company stage qualifies for this program\'s target audience';
-    },
-    'q3_company_size': (value) => {
-      if (value === 'MICRO_0_9') return 'Micro-company focus - specialized support for small teams and limited resources';
-      if (value === 'SMALL_10_49') return 'Small business category - access to SME-specific funding and support programs';
-      if (value === 'MEDIUM_50_249') return 'Medium enterprise eligibility - larger funding amounts and business development support';
-      return 'Your company size fits this program\'s target range';
-    },
-    'q5_maturity_trl': (value) => {
-      if (value === 'TRL_3_4') return 'Proof-of-concept stage - ideal for R&D funding and technology validation';
-      if (value === 'TRL_5_6') return 'Prototype development - perfect timing for product development funding';
-      if (value === 'TRL_7_8') return 'Pilot stage - ready for market testing and commercialization support';
-      return 'Your technology readiness level matches this program\'s requirements';
-    },
-    'q6_rnd_in_at': (value) => {
-      if (value === 'YES') return 'Austrian R&D location - access to local research networks and tax incentives';
-      return 'Your R&D plans align with this program\'s location requirements';
-    },
-    'q7_collaboration': (value) => {
-      if (value === 'WITH_RESEARCH') return 'Research collaboration focus - access to university partnerships and academic resources';
-      if (value === 'WITH_COMPANY') return 'Industry collaboration approach - networking opportunities with established companies';
-      if (value === 'WITH_BOTH') return 'Comprehensive collaboration strategy - maximum networking and resource access';
-      return 'Your collaboration approach aligns with this program\'s networking goals';
-    },
-    'q9_team_diversity': (value) => {
-      if (value === 'YES') return 'Diverse team composition - often qualifies for additional funding bonuses and support';
-      return 'Your team structure meets this program\'s requirements';
-    },
-    'q10_env_benefit': (value) => {
-      if (value === 'STRONG') return 'Strong environmental impact - access to premium green funding and sustainability programs';
-      if (value === 'SOME') return 'Environmental benefits present - qualifies for sustainability-focused funding';
-      return 'Your project impact aligns with this program\'s environmental goals';
-    }
-  };
-
-  // Generate up to 3 reasons from passed criteria
+  // Simple mapping for common criteria
   for (const criteria of passedCriteria.slice(0, 3)) {
-    const mapper = criteriaMapping[criteria.key];
-    if (mapper) {
-      reasons.push(mapper(criteria.value));
+    if (criteria.key.includes('location') || criteria.key.includes('country')) {
+      reasons.push('Your location matches this program\'s geographic requirements');
+    } else if (criteria.key.includes('company_type') || criteria.key.includes('entity')) {
+      reasons.push('Your company type qualifies for this program');
+    } else if (criteria.key.includes('funding')) {
+      reasons.push('The funding amount aligns with what this program offers');
+    } else if (criteria.key.includes('industry') || criteria.key.includes('theme')) {
+      reasons.push('Your industry focus matches this program\'s target sectors');
     }
   }
 
-  // Add program-specific benefits if we have space
-  if (reasons.length < 3) {
-    reasons.push('This program offers competitive funding terms and comprehensive support services');
-  }
-  if (reasons.length < 3) {
-    reasons.push('High success rate for projects matching your profile and requirements');
+  if (reasons.length === 0) {
+    reasons.push('This program matches several of your key requirements');
   }
 
-  return reasons;
+  return reasons.slice(0, 3);
+}
+
+// Helper functions for LLM context
+function summarizeUserProfile(answers: UserAnswers): string {
+  const parts: string[] = [];
+  if (answers.location || answers.q1_country) parts.push(`Location: ${answers.location || answers.q1_country}`);
+  if (answers.company_type || answers.q2_entity_stage) parts.push(`Type: ${answers.company_type || answers.q2_entity_stage}`);
+  if (answers.funding_amount || answers.q8_funding_types) parts.push(`Funding: ${answers.funding_amount || answers.q8_funding_types}`);
+  if (answers.industry_focus || answers.q4_theme) {
+    const industry = answers.industry_focus || answers.q4_theme;
+    parts.push(`Industry: ${Array.isArray(industry) ? industry.join(', ') : industry}`);
+  }
+  return parts.join(', ') || 'Early-stage company';
+}
+
+function summarizeProgram(program: Program): string {
+  const parts: string[] = [];
+  parts.push(`Name: ${program.name || 'Funding Program'}`);
+  if (program.requirements?.location) {
+    const loc = program.requirements.location;
+    parts.push(`Location: ${Array.isArray(loc) ? loc.join(', ') : loc}`);
+  }
+  if (program.requirements?.companyType) {
+    const type = program.requirements.companyType;
+    parts.push(`Company Type: ${Array.isArray(type) ? type.join(', ') : type}`);
+  }
+  if (program.requirements?.fundingAmount) {
+    const funding = program.requirements.fundingAmount;
+    if (typeof funding === 'object' && funding.min && funding.max) {
+      parts.push(`Funding: €${funding.min.toLocaleString()}-€${funding.max.toLocaleString()}`);
+    } else {
+      parts.push(`Funding: ${funding}`);
+    }
+  }
+  return parts.join(', ');
 }
 
 // Generate founder-friendly risk explanations
