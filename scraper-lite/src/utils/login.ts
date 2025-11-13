@@ -154,7 +154,7 @@ export async function loginToSite(config: LoginConfig): Promise<LoginResult> {
     });
     
     // IMPROVED: Better login success detection and error messages
-    const responseText = await response.text().toLowerCase();
+    const responseText = (await response.text()).toLowerCase();
     const responseUrl = response.url.toLowerCase();
     
     // Check for specific error patterns

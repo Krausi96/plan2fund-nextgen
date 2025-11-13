@@ -3,8 +3,7 @@
 // Scoring and filtering use the SAME answer keys and values
 
 import { Program } from '@/shared/types/requirements';
-
-export type MatchStatus = 'match' | 'gap' | 'unknown';
+import type { MatchStatus } from './types';
 
 export interface SymptomQuestion {
   id: string;
@@ -65,6 +64,55 @@ export class QuestionEngine {
   }
 
   /**
+   * Check if a question should be skipped based on previous answers
+   */
+  private shouldSkipQuestion(questionId: string, answers: Record<string, any>): boolean {
+    // Skip revenue_status if user is pre-revenue (no revenue = can't have revenue requirements)
+    if (questionId === 'revenue_status') {
+      // If company_stage indicates pre-revenue (idea, pre_company, or early stage)
+      if (answers.company_stage === 'idea' || answers.company_stage === 'pre_company' || 
+          answers.company_stage === 'inc_lt_6m') {
+        return true; // Skip revenue question for pre-revenue companies
+      }
+      // If company_type is research, might not have revenue
+      if (answers.company_type === 'research') {
+        return true; // Skip revenue question for research institutions
+      }
+    }
+
+    // Skip co_financing if funding_amount is very small (under 100k usually doesn't require co-financing)
+    if (questionId === 'co_financing') {
+      if (answers.funding_amount === 'under100k') {
+        return true; // Small amounts usually don't require co-financing
+      }
+    }
+
+    // Skip deadline_urgency if project_duration is very short (under 2 years = urgent by default)
+    if (questionId === 'deadline_urgency') {
+      if (answers.project_duration === 'under2') {
+        return true; // Short projects are usually urgent
+      }
+    }
+
+    // Skip team_size if company_type is research (research orgs have different team structures)
+    if (questionId === 'team_size') {
+      if (answers.company_type === 'research') {
+        return true; // Research institutions have different team requirements
+      }
+    }
+
+    // Skip use_of_funds if company_type is research (research has specific use cases)
+    if (questionId === 'use_of_funds') {
+      if (answers.company_type === 'research') {
+        // Research institutions typically use funds for R&D, so we can infer this
+        return true;
+      }
+    }
+
+    return false; // Don't skip by default
+  }
+
+  /**
    * Get next question - CONTEXTUAL based on remaining programs
    * After each answer, filter programs, then determine what to ask next
    */
@@ -74,26 +122,27 @@ export class QuestionEngine {
     console.log(`📊 After filtering: ${this.remainingPrograms.length} programs remaining`);
 
     // Core question order - optimized for filtering effectiveness
-    // Start with company_type (better distribution) then location (may filter aggressively)
-    // Then funding_amount, then optional questions 4-8
+    // Priority: Most discriminating questions first (location, company_type, funding_amount)
+    // Then company characteristics (stage, team, revenue)
+    // Then project details (industry, use, impact, timeline)
     const coreQuestions = [
-      'location',
-      'company_type',
-      'company_stage',
-      'team_size',
-      'revenue_status',
-      'co_financing',
-      'industry_focus',
-      'funding_amount',
-      'use_of_funds',
-      'impact',
-      'deadline_urgency',
-      'project_duration'
+      'company_type',      // 1. Most programs have company type requirements (85% coverage)
+      'location',          // 2. Geographic filtering (90% coverage, but may be too aggressive)
+      'funding_amount',    // 3. Critical for matching user needs
+      'company_stage',     // 4. Important for early-stage vs. growth programs
+      'industry_focus',    // 5. Sector-specific programs
+      'use_of_funds',      // 6. How funds can be used
+      'team_size',         // 7. Team requirements
+      'co_financing',      // 8. Financial requirements
+      'revenue_status',    // 9. Revenue requirements (often skipped for pre-revenue)
+      'impact',            // 10. Impact requirements
+      'project_duration',  // 11. Timeline requirements
+      'deadline_urgency'   // 12. Deadline requirements
     ];
 
-    // Find first unanswered core question
+    // Find first unanswered core question (with skip logic)
     for (const questionId of coreQuestions) {
-      if (!answers[questionId]) {
+      if (!answers[questionId] && !this.shouldSkipQuestion(questionId, answers)) {
         // Generate question based on remaining programs
         const question = this.generateQuestionFromRemainingPrograms(questionId);
         if (question) {

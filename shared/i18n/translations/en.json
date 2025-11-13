@@ -700,7 +700,7 @@
   "documents.businessModelCanvas.details": "One-page visual representation of your business model including value propositions, customer segments, channels, revenue streams, and key partnerships.",
   "documents.fundingMatchSummary.title": "Funding Match Summary",
   "documents.fundingMatchSummary.short": "Personalized funding recommendations",
-  "documents.fundingMatchSummary.details": "Curated list of funding programs, banks, or investors that match your business profile, with fit rationale and next steps for each option.",
+  "documents.fundingMatchSummary.details": "On-demand scraped funding programs, banks, or investors that match your business profile, with fit rationale and next steps for each option.",
   "questions.q1_country": "Where will the project be carried out?",
   "questions.q1_country.AT": "Austria only",
   "questions.q1_country.EU": "EU (incl. Austria)",

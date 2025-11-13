@@ -2,7 +2,7 @@
 import { Program, ScoredProgram, ProgramType } from '@/shared/types/requirements';
 import { UserAnswers } from "@/shared/lib/schemas";
 import { estimateSuccessProbability, ConfidenceLevel } from '@/shared/lib/mlModels';
-import type { MatchStatus } from './questionEngine';
+import type { MatchStatus } from './types';
 // Removed doctorDiagnostic - filtering handled by QuestionEngine
 
 // Eligibility trace interface
@@ -364,7 +364,7 @@ export interface DerivedSignals {
   timelineFit: number;
   fundingMode: string;
   // New derived signals for richer persona coverage
-  trlBucket: "low" | "mid" | "high";
+  trlBucket: "low" | "mid" | "high" | "unknown";
   revenueBucket: "none" | "low" | "medium" | "high";
   ipFlag: boolean;
   regulatoryFlag: boolean;
@@ -856,7 +856,6 @@ function scoreCategorizedRequirements(
     'strategic_focus': ['impact', 'project'],
     'trl_level': ['technical', 'trl_level'],
     'market_size': ['market_size'],
-    'co_financing': ['financial', 'co_financing'],
     // Legacy format support (for advanced search):
     'q1_location': ['geographic', 'eligibility'],
     'q1_country': ['geographic', 'eligibility'],
@@ -1584,14 +1583,14 @@ export async function scoreProgramsEnhanced(
       console.error('❌ Error details:', {
         message: error instanceof Error ? error.message : String(error),
         stack: error instanceof Error ? error.stack : undefined,
-        answersCount: Object.keys(userAnswers).length,
-        answers: Object.keys(userAnswers)
+        answersCount: Object.keys(answers).length,
+        answers: Object.keys(answers)
       });
       
       // Try to return partial results if available
       try {
         console.log('🔄 Attempting fallback scoring...');
-        return await scoreProgramsFallback(userAnswers, mode);
+        return await scoreProgramsFallback(answers, mode);
       } catch (fallbackError) {
         console.error('❌ Fallback scoring also failed:', fallbackError);
         return [];

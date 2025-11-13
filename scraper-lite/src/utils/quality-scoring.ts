@@ -3,7 +3,7 @@
  * Determines data quality and validates funding programs based on type-specific rules
  */
 
-import { PageMetadata } from '../db/db';
+import { PageMetadata } from '../../db/db';
 
 export type ProgramCategory = 'funding' | 'support' | 'service' | 'information';
 
@@ -43,8 +43,8 @@ export function calculateQualityScore(page: PageMetadata): QualityAssessment {
   }
   
   // 3. Has Requirements (5+ requirements = +20 points)
-  const reqCount = Object.values(page.categorized_requirements || {}).reduce(
-    (sum, arr) => sum + (Array.isArray(arr) ? arr.length : 0), 0
+  const reqCount: number = Object.values(page.categorized_requirements || {}).reduce(
+    (sum: number, arr: unknown) => sum + (Array.isArray(arr) ? arr.length : 0), 0
   );
   if (reqCount >= 5) {
     score += 20;
@@ -145,7 +145,7 @@ function determineCategory(page: PageMetadata): ProgramCategory {
   const fundingTypes = page.funding_types || [];
   
   // Check for actual funding types
-  const hasFunding = fundingTypes.some(t => 
+  const hasFunding = fundingTypes.some((t: string) => 
     ['grant', 'loan', 'equity', 'bank_loan', 'leasing', 'crowdfunding', 
      'subsidy', 'guarantee', 'venture_capital', 'angel_investment'].includes(t)
   );
@@ -155,7 +155,7 @@ function determineCategory(page: PageMetadata): ProgramCategory {
   }
   
   // Check for support programs
-  const hasSupport = fundingTypes.some(t => 
+  const hasSupport = fundingTypes.some((t: string) => 
     ['gründungsprogramm', 'coaching', 'mentoring', 'consultation', 
      'networking', 'workshop'].includes(t)
   );

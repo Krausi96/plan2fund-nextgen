@@ -12,6 +12,8 @@ import { Pool } from 'pg';
 let pool: Pool | null = null;
 
 // Seed URLs table - stores discovered seed URLs (self-expanding discovery)
+// Note: This function is kept for future use but currently unused
+// @ts-ignore - Function kept for future use
 async function ensureSeedUrlsTable(): Promise<void> {
   const pool = getPool();
   await pool.query(`
@@ -124,7 +126,17 @@ export function normalizeMetadata(raw: any): PageMetadata {
       open_deadline: raw.open_deadline || false,
       contact_email: raw.contact_email ?? null,
       contact_phone: raw.contact_phone ?? null,
-      funding_types: raw.funding_types || [],
+      funding_types: (() => {
+        const types = raw.funding_types || [];
+        if (types.length === 0) return [];
+        // Normalize funding types if not already normalized
+        try {
+          const { normalizeFundingTypes } = require('../src/utils/funding-types');
+          return normalizeFundingTypes(Array.isArray(types) ? types : [types]);
+        } catch {
+          return Array.isArray(types) ? types : [types];
+        }
+      })(),
       program_focus: raw.program_focus || [],
       region: raw.region ?? null,
       categorized_requirements: raw.categorized_requirements || {},
@@ -223,8 +235,12 @@ export async function savePageWithRequirements(page: PageMetadata): Promise<numb
       // Apply learned requirement patterns (async, but we'll do it synchronously for now)
       let requirementPatterns: any = null;
       try {
-        const { getStoredRequirementPatterns } = await import('../src/learning/auto-learning');
-        requirementPatterns = await getStoredRequirementPatterns();
+        // Dynamic import with type assertion to handle optional module
+        // @ts-ignore - Module may not exist, handled gracefully
+        const autoLearningModule = await import('../src/learning/auto-learning').catch(() => null);
+        if (autoLearningModule && typeof autoLearningModule.getStoredRequirementPatterns === 'function') {
+          requirementPatterns = await autoLearningModule.getStoredRequirementPatterns();
+        }
       } catch {
         // Pattern learning not available yet, continue without filtering
       }
@@ -344,7 +360,18 @@ export async function savePageWithRequirements(page: PageMetadata): Promise<numb
 export async function isUrlInDatabase(url: string): Promise<boolean> {
   try {
     const pool = getPool();
-    const result = await pool.query('SELECT id FROM pages WHERE url = $1 LIMIT 1', [url]);
+    // Check if URL exists AND has at least 1 requirement (valid program)
+    // Overview pages are allowed to be re-scraped
+    const result = await pool.query(`
+      SELECT p.id 
+      FROM pages p
+      WHERE p.url = $1
+        AND (
+          (metadata_json->>'is_overview_page')::boolean = true
+          OR (SELECT COUNT(*) FROM requirements WHERE page_id = p.id) >= 1
+        )
+      LIMIT 1
+    `, [url]);
     return result.rows.length > 0;
   } catch {
     return false;
@@ -447,10 +474,43 @@ export async function markUrlQueued(url: string, qualityScore?: number): Promise
   }
 }
 
+export async function markJobRunning(url: string): Promise<void> {
+  try {
+    const pool = getPool();
+    await pool.query(
+      `UPDATE scraping_jobs 
+         SET status = 'running', attempts = attempts + 1, updated_at = NOW()
+       WHERE url = $1`,
+      [url]
+    );
+  } catch {
+    // Silently fail
+  }
+}
+
 export async function markJobDone(url: string): Promise<void> {
   try {
     const pool = getPool();
-    await pool.query('UPDATE scraping_jobs SET status = $1 WHERE url = $2', ['done', url]);
+    await pool.query(
+      `UPDATE scraping_jobs 
+         SET status = 'done', last_error = NULL, last_fetched_at = NOW(), updated_at = NOW()
+       WHERE url = $1`,
+      [url]
+    );
+  } catch {
+    // Silently fail
+  }
+}
+
+export async function markJobFailed(url: string, errorMessage?: string): Promise<void> {
+  try {
+    const pool = getPool();
+    await pool.query(
+      `UPDATE scraping_jobs 
+         SET status = 'failed', last_error = $2, updated_at = NOW()
+       WHERE url = $1`,
+      [url, errorMessage ? errorMessage.slice(0, 500) : null]
+    );
   } catch {
     // Silently fail
   }

@@ -2,7 +2,6 @@
 // This endpoint provides AI-generated content for programs from database
 import { NextApiRequest, NextApiResponse } from 'next';
 import { categoryConverter } from '@/features/editor/engine/categoryConverters';
-import { QuestionEngine } from '@/features/reco/engine/questionEngine';
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   const { action, programId } = req.query;
@@ -65,9 +64,42 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     
     switch (action) {
       case 'questions':
-        // Generate decision tree questions
-        const questionEngine = new QuestionEngine([programData as any]);
-        const questions = questionEngine.getCoreQuestions();
+        // Return basic questions (no longer using QuestionEngine)
+        const questions = [
+          {
+            id: 'location',
+            label: 'Where is your company based?',
+            type: 'single-select',
+            options: [
+              { value: 'austria', label: 'Austria' },
+              { value: 'germany', label: 'Germany' },
+              { value: 'eu', label: 'EU' },
+              { value: 'international', label: 'International' },
+            ],
+          },
+          {
+            id: 'company_type',
+            label: 'What type of company are you?',
+            type: 'single-select',
+            options: [
+              { value: 'startup', label: 'Startup' },
+              { value: 'sme', label: 'SME' },
+              { value: 'large', label: 'Large Company' },
+              { value: 'research', label: 'Research Institution' },
+            ],
+          },
+          {
+            id: 'funding_amount',
+            label: 'How much funding do you need?',
+            type: 'single-select',
+            options: [
+              { value: 'under100k', label: 'Under €100k' },
+              { value: '100kto500k', label: '€100k - €500k' },
+              { value: '500kto2m', label: '€500k - €2M' },
+              { value: 'over2m', label: 'Over €2M' },
+            ],
+          },
+        ];
         return res.status(200).json({
           success: true,
           data: questions

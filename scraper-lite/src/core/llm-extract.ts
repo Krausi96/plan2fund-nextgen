@@ -6,6 +6,29 @@
 
 import OpenAI from 'openai';
 import * as cheerio from 'cheerio';
+function sanitizeLLMResponse(text: string): string {
+  let cleaned = text.trim();
+  cleaned = cleaned.replace(/```json/gi, '```');
+  cleaned = cleaned.replace(/```/g, '');
+  cleaned = cleaned.replace(/^Here is the JSON requested:\s*/i, '');
+  cleaned = cleaned.replace(/^Here is .*?JSON:\s*/i, '');
+  cleaned = cleaned.replace(/^Response:\s*/i, '');
+  const firstCurly = cleaned.indexOf('{');
+  const firstBracket = cleaned.indexOf('[');
+  const starts: number[] = [];
+  if (firstCurly >= 0) starts.push(firstCurly);
+  if (firstBracket >= 0) starts.push(firstBracket);
+  if (starts.length > 0) {
+    const start = Math.min(...starts);
+    const endCurly = cleaned.lastIndexOf('}');
+    const endBracket = cleaned.lastIndexOf(']');
+    const end = Math.max(endCurly, endBracket);
+    if (end >= start) {
+      cleaned = cleaned.slice(start, end + 1);
+    }
+  }
+  return cleaned.trim();
+}
 // Types defined inline (extract.ts was moved to legacy)
 export interface RequirementItem {
   type: string;
@@ -106,10 +129,13 @@ if (typeof window === 'undefined') {
   });
 }
 
-// Initialize OpenAI client
-const openai = new OpenAI({
-  apiKey: process.env.OPENAI_API_KEY,
-});
+// Initialize OpenAI client (only if OPENAI_API_KEY is set)
+let openai: OpenAI | null = null;
+if (process.env.OPENAI_API_KEY) {
+  openai = new OpenAI({
+    apiKey: process.env.OPENAI_API_KEY,
+  });
+}
 
 interface LLMExtractionRequest {
   html: string;
@@ -270,6 +296,9 @@ export async function extractWithLLM(
       
       while (retries > 0) {
         try {
+          if (!openai) {
+            throw new Error('OpenAI client not initialized. Set OPENAI_API_KEY or use CUSTOM_LLM_ENDPOINT');
+          }
           const completion = await openai.chat.completions.create({
             model: model.startsWith('text-embedding') ? 'gpt-4o-mini' : model, // Embedding models can't be used for chat
             messages,
@@ -314,8 +343,13 @@ export async function extractWithLLM(
     // Gemini might truncate JSON, so try to fix incomplete JSON
     let parsed: any;
     try {
-      // First try direct parse
-      parsed = typeof responseText === 'string' ? JSON.parse(responseText) : responseText;
+      // First try direct parse after sanitizing wrappers
+      if (typeof responseText === 'string') {
+        const sanitized = sanitizeLLMResponse(responseText);
+        parsed = JSON.parse(sanitized);
+      } else {
+        parsed = responseText;
+      }
     } catch (parseError: any) {
       // If that fails, try to extract JSON from text (OpenRouter sometimes adds "Here is the JSON:" prefix)
       if (typeof responseText === 'string') {
@@ -325,7 +359,7 @@ export async function extractWithLLM(
         const jsonMatch = jsonObjectMatch || jsonArrayMatch;
         
         if (jsonMatch) {
-          let jsonStr = jsonMatch[0];
+          let jsonStr = sanitizeLLMResponse(jsonMatch[0]);
           
           // Enhanced JSON repair for truncation
           const needsRepair = parseError.message?.includes('Unterminated string') || 
@@ -411,8 +445,9 @@ export async function extractWithLLM(
               } else {
                 throw fixError;
               }
-            } catch (lastResortError) {
-              throw new Error(`Failed to parse LLM response: ${parseError?.message || parseError}. Response preview: ${responseText.substring(0, 300)}...`);
+        } catch (lastResortError) {
+          void lastResortError;
+          throw new Error(`Failed to parse LLM response: ${parseError?.message || parseError}. Response preview: ${responseText.substring(0, 300)}...`);
             }
           }
         } else {
@@ -461,6 +496,11 @@ function createSystemPrompt(): string {
   return `You are an expert at extracting structured data from funding program web pages.
 
 Your task is to extract all relevant information about a funding program and return it as structured JSON.
+
+OUTPUT RULES:
+- Respond with a single JSON object only. Do NOT include explanations, comments, or Markdown fences.
+- The JSON must match this structure: {"metadata": {...}, "requirements": {"category": [{"type": "...", "value": "..."}]}}
+- Always include "funding_types" (array) inside metadata using the canonical values listed below.
 
 REQUIREMENT CATEGORIES (extract all that apply):
 1. Eligibility:
@@ -740,7 +780,7 @@ ${context.content}
    - **ALWAYS extract financial requirements** - Look for "co-financing", "own contribution", "matching funds", "Eigenmittel", "Eigenkapital", "minimum investment", "collateral"
    - If page has NO eligibility, financial, or funding_details requirements AND no funding amount, it's likely NOT a funding program - mark accordingly
 
-Extract all relevant information and return as JSON following the specified format.`;
+Extract all relevant information and return ONLY the JSON object described above with no additional text.`;
 }
 
 /**
@@ -750,6 +790,7 @@ function transformLLMResponse(
   llmResponse: any,
   _url: string
 ): LLMExtractionResponse {
+  void _url;
   const categorized: Record<string, RequirementItem[]> = {};
   
   // Category mapping: Map "other" subcategories to new categories

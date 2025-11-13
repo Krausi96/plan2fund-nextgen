@@ -5,7 +5,6 @@
 
 // Canonical funding types (from institutionConfig.ts)
 const CANONICAL_FUNDING_TYPES = [
-  // Financial Mechanisms (actual funding)
   'grant',
   'loan',
   'equity',
@@ -25,24 +24,6 @@ const CANONICAL_FUNDING_TYPES = [
   'visa_application',
   'equity_crowdfunding',
   'convertible_loan',
-  // NEW: Support Programs (not direct funding, but related)
-  'gründungsprogramm', // Startup support programs (AMS, ÖSBS)
-  'coaching', // Business coaching
-  'mentoring', // Mentoring programs
-  'consultation', // Consultation services
-  'networking', // Networking opportunities
-  'workshop', // Workshops/training
-  // NEW: Specialized Programs
-  'intellectual_property', // IP support programs
-  'patent_support', // Patent assistance
-  'export_support', // Export assistance
-  'innovation_support', // Innovation support (non-financial)
-  'support_program', // Generic support schemes
-  'consulting_support', // Consulting-only programs
-  'micro_credit', // Micro credit programs
-  'repayable_advance', // Repayable advances
-  'acceleration_program', // Accelerator programs
-  'export_insurance', // Export insurance instruments
 ] as const;
 
 // Mapping: invalid/duplicate types -> canonical type
@@ -78,66 +59,15 @@ const FUNDING_TYPE_MAP: Record<string, string | null> = {
   'convertible loan': 'convertible_loan',
   'convertible-loan': 'convertible_loan',
   
-  // NEW: Support programs
-  'gründungsprogramm': 'gründungsprogramm',
-  'gründungsprogramme': 'gründungsprogramm',
-  'startup support': 'gründungsprogramm',
-  'startup-support': 'gründungsprogramm',
-  'ams gründungsprogramm': 'gründungsprogramm',
-  'ams-gründungsprogramm': 'gründungsprogramm',
-  'ösbs': 'gründungsprogramm',
-  'coaching': 'coaching',
-  'business coaching': 'coaching',
-  'mentoring': 'mentoring',
-  'consultation': 'consultation',
-  'consultations': 'consultation',
-  'networking': 'networking',
-  'networking opportunities': 'networking',
-  'workshop': 'workshop',
-  'workshops': 'workshop',
-  'training': 'workshop',
-  
-  // NEW: Specialized programs
-  'intellectual property': 'intellectual_property',
-  'intellectual-property': 'intellectual_property',
-  'ip support': 'intellectual_property',
-  'ip-support': 'intellectual_property',
-  'patent support': 'patent_support',
-  'patent-support': 'patent_support',
-  'export support': 'export_support',
-  'export-support': 'export_support',
-  'innovation support': 'innovation_support',
-  'innovation-support': 'innovation_support',
-  'support program': 'support_program',
-  'support_program': 'support_program',
-  'support-program': 'support_program',
-  'support service': 'support_program',
-  'support-services': 'support_program',
-  'consulting': 'consulting_support',
-  'consulting program': 'consulting_support',
-  'consulting_support': 'consulting_support',
-  'consulting services': 'consulting_support',
-  'coaching program': 'coaching',
-  'acceleration program': 'acceleration_program',
-  'acceleration_program': 'acceleration_program',
-  'acceleration-program': 'acceleration_program',
-  'accelerator': 'acceleration_program',
-  'accelerateur': 'acceleration_program',
-  'micro credit': 'micro_credit',
-  'micro_credit': 'micro_credit',
-  'micro-credit': 'micro_credit',
-  'micro loan': 'micro_credit',
-  'micro-loan': 'micro_credit',
-  'repayable advance': 'repayable_advance',
-  'repayable-advance': 'repayable_advance',
-  'export insurance': 'export_insurance',
-  'export-insurance': 'export_insurance',
-  'credit insurance': 'export_insurance',
-  'guarantee insurance': 'export_insurance',
-  
   // Invalid types that should be mapped or removed (null means remove)
-  'services': '', // Too generic, remove (use specific types)
-  'service': '', // Too generic, remove (use specific types)
+  'services': '', // Not a funding type, remove
+  'service': '', // Not a funding type, remove
+  'coaching': '', // Not a funding type, remove
+  'mentoring': '', // Not a funding type, remove
+  'consultations': '', // Not a funding type, remove
+  'consultation': '', // Not a funding type, remove
+  'networking opportunities': '', // Not a funding type, remove
+  'networking': '', // Not a funding type, remove
   'real estate': '', // Not a funding type, remove
   'real-estate': '', // Not a funding type, remove
   'funding': '', // Too generic, remove

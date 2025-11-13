@@ -217,7 +217,51 @@ export const EXCLUSION_KEYWORDS: string[] = [
   // Other
   'meta-extern',
   'meta/',
-  'cases'
+  'cases',
+  // Social media / External links
+  'facebook',
+  'twitter',
+  'linkedin',
+  'instagram',
+  'youtube',
+  'xing',
+  'social',
+  // Contact methods (not programs)
+  'tel:',
+  'mailto:',
+  'tel.',
+  'phone',
+  'telefon',
+  // File downloads
+  '.pdf',
+  '.doc',
+  '.docx',
+  '.xls',
+  '.xlsx',
+  '.ppt',
+  '.pptx',
+  // Management/Organization pages
+  'management',
+  'geschaeftsfelder',
+  'leitbild',
+  'historie',
+  'berichte',
+  'whistleblowing',
+  'foerderpilot',
+  'foerderkonfigurator',
+  // Service/Info pages
+  'pressefotos',
+  'pressetexte',
+  'medien',
+  'kalender',
+  'event-tipps',
+  'ukraine-krieg',
+  'spezialprogramme/investoren-inkubat',
+  'spezialprogramme/weitere',
+  // Hash anchors (not real pages)
+  '#',
+  // External domains that aren't programs
+  'foerdermanager.aws.at',
 ];
 
 /**
@@ -317,6 +361,53 @@ export const HARD_SKIP_URL_PATTERNS: RegExp[] = [
   /wko\.at\/foerderungen\/(?:fachkraeftestipendium|energie|gruenden|normenankauf|planet-fund|tech4people)(?:\/|$)/i,
   // Generic patterns
   /\/(stellenangebote|jobs|jobboerse|karriere|career|weiterbildung|events?|veranstaltungen?|newsletter|data-protection|privacy-policy)(?:\/|$)/i,
+  
+  // Social media / External links
+  /facebook\.com/i,
+  /twitter\.com/i,
+  /linkedin\.com/i,
+  /instagram\.com/i,
+  /youtube\.com/i,
+  /youtube\.com\/channel/i,
+  /xing\.com/i,
+  
+  // Contact methods (tel:, mailto:)
+  /^tel:/i,
+  /^mailto:/i,
+  
+  // File downloads
+  /\.(pdf|docx?|xlsx?|pptx?|zip|rar|tar|gz)(\?|$)/i,
+  
+  // Management/Organization pages
+  /\/management\//i,
+  /\/geschaeftsfelder\//i,
+  /\/leitbild\//i,
+  /\/historie\//i,
+  /\/berichte\//i,
+  /\/whistleblowing\//i,
+  /\/foerderpilot/i,
+  /\/foerderkonfigurator/i,
+  
+  // Service/Info pages
+  /\/pressefotos/i,
+  /\/pressetexte/i,
+  /\/medien/i,
+  /\/kalender/i,
+  /\/event-tipps/i,
+  /\/ukraine-krieg/i,
+  /\/spezialprogramme\/(?:investoren-inkubat|weitere)/i,
+  
+  // Hash anchors (not real pages)
+  /#$/,
+  /#[^\/]+$/,
+  
+  // AWS specific trash
+  /aws\.at\/(?:management|geschaeftsfelder|leitbild|historie|berichte|whistleblowing|foerderpilot|foerderkonfigurator)/i,
+  /aws\.at\/service\/(?:foerdernews|pressefotos|pressetexte|medien)/i,
+  /aws\.at\/events\/(?:kalender|event-tipps)/i,
+  /aws\.at\/spezialprogramme\/(?:investoren-inkubat|weitere)/i,
+  /aws\.at\/ukraine-krieg/i,
+  /foerdermanager\.aws\.at/i,
 ];
 
 /**

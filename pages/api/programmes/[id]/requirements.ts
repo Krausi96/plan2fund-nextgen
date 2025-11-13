@@ -121,10 +121,42 @@ async function getProgramRequirements(programId: string) {
         categorized_requirements: categorizedRequirements
       };
       
-      // Use question engine to generate decision tree questions
-      const { QuestionEngine } = await import('@/features/reco/engine/questionEngine');
-      const questionEngine = new QuestionEngine([programData as any]);
-      const decisionTree = questionEngine.getCoreQuestions();
+      // Return basic questions (no longer using QuestionEngine)
+      const decisionTree = [
+        {
+          id: 'location',
+          label: 'Where is your company based?',
+          type: 'single-select',
+          options: [
+            { value: 'austria', label: 'Austria' },
+            { value: 'germany', label: 'Germany' },
+            { value: 'eu', label: 'EU' },
+            { value: 'international', label: 'International' },
+          ],
+        },
+        {
+          id: 'company_type',
+          label: 'What type of company are you?',
+          type: 'single-select',
+          options: [
+            { value: 'startup', label: 'Startup' },
+            { value: 'sme', label: 'SME' },
+            { value: 'large', label: 'Large Company' },
+            { value: 'research', label: 'Research Institution' },
+          ],
+        },
+        {
+          id: 'funding_amount',
+          label: 'How much funding do you need?',
+          type: 'single-select',
+          options: [
+            { value: 'under100k', label: 'Under €100k' },
+            { value: '100kto500k', label: '€100k - €500k' },
+            { value: '500kto2m', label: '€500k - €2M' },
+            { value: 'over2m', label: 'Over €2M' },
+          ],
+        },
+      ];
       
       // Use unified template system: Get master + program-specific merge
       const { getDocuments } = await import('@/shared/lib/templates');
