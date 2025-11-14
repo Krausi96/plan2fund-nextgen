@@ -1,6 +1,6 @@
 import type { NextApiRequest, NextApiResponse } from 'next';
-import { deleteSession } from '@/shared/db/user-repository';
-import { getSessionTokenFromCookie } from '@/shared/lib/auth-utils';
+import { deleteSession } from '@/shared/user/database/repository';
+import { getSessionTokenFromCookie } from '@/shared/user/auth/utils';
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   if (req.method !== 'POST') {

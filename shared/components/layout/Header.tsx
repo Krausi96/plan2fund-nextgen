@@ -4,7 +4,7 @@ import { Menu, X, User, LogOut } from "lucide-react"
 import { useRouter } from "next/router"
 import LanguageSwitcher from '@/shared/components/layout/LanguageSwitcher'
 import { useI18n } from "@/shared/contexts/I18nContext"
-import { useUser } from "@/shared/contexts/UserContext"
+import { useUser } from "@/shared/user/context/UserContext"
 import LoginModal from '@/shared/components/auth/LoginModal'
 
 export default function Header() {

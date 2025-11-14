@@ -3,7 +3,8 @@ import { Button } from "@/shared/components/ui/button";
 import CTAStrip from '@/shared/components/common/CTAStrip';
 import SEOHead from '@/shared/components/common/SEOHead';
 import { useI18n } from "@/shared/contexts/I18nContext";
-import { detectTargetGroup } from "@/features/intake/engine/targetGroupDetection";
+import analytics from "@/shared/user/analytics";
+import { detectTargetGroup } from "@/shared/user/segmentation";
 import { useState, useEffect } from "react";
 import { 
   ArrowRight, 
@@ -23,7 +24,6 @@ import { FilterTabContent } from "@/features/export/components/pricing/FilterTab
 import { ProofSection } from "@/features/export/components/pricing/ProofSection";
 import { AddonsSection } from "@/features/export/components/pricing/AddonsSection";
 import { type Product, type FundingType, type TargetGroup } from "@/shared/data/basisPack";
-import analytics from "@/shared/lib/analytics";
 
 
 // Helper function to map target group detection to BASIS PACK types

@@ -1,5 +1,9 @@
-// Lightweight “schema” validators without external deps
+// Main lib exports - re-export from organized modules
+export * from './ai';
+export * from './services';
+export * from './content';
 
+// Lightweight "schema" validators without external deps
 export type ProgramInput = {
   id: string
   title?: string

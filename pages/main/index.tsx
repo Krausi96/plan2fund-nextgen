@@ -8,9 +8,9 @@ import CTAStrip from '@/shared/components/common/CTAStrip'
 import SEOHead from '@/shared/components/common/SEOHead'
 import { useI18n } from "@/shared/contexts/I18nContext"
 import { useEffect, useState } from "react"
-import analytics from "@/shared/lib/analytics"
 import { useRouter } from "next/router"
-import { detectTargetGroup, storeTargetGroupSelection } from '@/features/intake/engine/targetGroupDetection'
+import analytics from "@/shared/user/analytics"
+import { detectTargetGroup, storeTargetGroupSelection } from '@/shared/user/segmentation'
 
 export default function Home() {
   const { t } = useI18n();

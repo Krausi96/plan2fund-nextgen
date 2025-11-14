@@ -1,7 +1,7 @@
 // Test Email Endpoint - For testing email functionality
 // SECURITY: Only available in development mode
 import type { NextApiRequest, NextApiResponse } from 'next';
-import emailService from '@/shared/lib/emailService';
+import emailService from '@/shared/lib/services/emailService';
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   // Only allow in development mode

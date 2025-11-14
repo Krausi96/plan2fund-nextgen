@@ -77,9 +77,9 @@ export function calculateSectionProgress(section: any): SectionProgress {
     ? (requirementsMet / requirementsTotal) * 100
     : 0;
 
-  const completionPercentage = Math.round(
-    (wordCountProgress * 0.6) + (requirementsProgress * 0.4)
-  );
+  // Focus on actual requirements, not word count
+  // Word count is just a metric, not a requirement
+  const completionPercentage = Math.round(requirementsProgress);
 
   return {
     wordCount,

@@ -12,7 +12,7 @@ import {
   getFeatureName, 
   getFeatureDescription,
   getPremiumFeatures 
-} from '@/shared/lib/featureFlags';
+} from '@/shared/user/featureFlags';
 
 interface UpgradeModalProps {
   isOpen: boolean;

@@ -1,16 +1,16 @@
 import { Card } from "@/shared/components/ui/card";
 import { Button } from "@/shared/components/ui/button";
 import Link from "next/link";
-import { useUser } from "@/shared/contexts/UserContext";
+import { useUser } from "@/shared/user/context/UserContext";
 import { FileText, Target, TrendingUp, Clock, CheckCircle, AlertCircle, Plus, RefreshCw, Database, Settings, Receipt, CreditCard, Download, ChevronDown, ChevronUp } from "lucide-react";
 import { useEffect, useState, useMemo } from "react";
-import analytics from "@/shared/lib/analytics";
-import { withAuth } from "@/shared/lib/withAuth";
-import { multiUserDataManager } from "@/shared/lib/multiUserDataManager";
-import ClientManager from "@/shared/components/common/ClientManager";
-import { getUserPayments, getPlanPaymentStatus } from "@/shared/lib/paymentStore";
-import AdminUserManager from "@/shared/components/admin/AdminUserManager";
-import { getUserDocuments } from "@/shared/lib/documentStore";
+import { withAuth } from "@/shared/user/auth/withAuth";
+import { multiUserDataManager } from "@/shared/user/storage/multiUser";
+import analytics from "@/shared/user/analytics";
+import AdminUserManager from "@/shared/user/components/AdminUserManager";
+import ClientManager from "@/shared/user/components/ClientManager";
+import { getUserPayments, getPlanPaymentStatus } from "@/shared/user/storage/paymentStore";
+import { getUserDocuments } from "@/shared/user/storage/documentStore";
 import PageEntryIndicator from '@/shared/components/common/PageEntryIndicator';
 
 interface Plan {

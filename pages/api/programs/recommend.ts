@@ -296,6 +296,199 @@ function matchesAnswers(extracted: any, answers: UserAnswers): boolean {
 }
 
 /**
+ * Tier 3: Generate programs using LLM (like ChatGPT)
+ * This is the fallback when seed URLs are disabled or unavailable
+ */
+async function generateProgramsWithLLM(
+  answers: UserAnswers,
+  maxPrograms: number = 20
+): Promise<any[]> {
+  try {
+    // Summarize user profile
+    const profileParts: string[] = [];
+    if (answers.location) profileParts.push(`Location: ${answers.location}`);
+    if (answers.company_type) profileParts.push(`Company Type: ${answers.company_type}`);
+    if (answers.company_stage) profileParts.push(`Company Stage: ${answers.company_stage}`);
+    if (answers.funding_amount) profileParts.push(`Funding Amount: ${answers.funding_amount}`);
+    if (answers.industry_focus) {
+      const industries = Array.isArray(answers.industry_focus) 
+        ? answers.industry_focus.join(', ') 
+        : answers.industry_focus;
+      profileParts.push(`Industry Focus: ${industries}`);
+    }
+    if (answers.co_financing) profileParts.push(`Co-financing: ${answers.co_financing}`);
+    if (answers.impact) profileParts.push(`Impact: ${answers.impact}`);
+    
+    const userProfile = profileParts.join('\n');
+
+    const prompt = `You are an expert on European funding programs (grants, loans, subsidies).
+
+Based on this user profile, suggest ${maxPrograms} relevant funding programs:
+
+${userProfile}
+
+For each program, provide a JSON object with:
+- name: Program name
+- institution: Institution/organization name
+- funding_amount_min: Minimum funding amount (number)
+- funding_amount_max: Maximum funding amount (number)
+- currency: Currency code (default: EUR)
+- location: Geographic eligibility (e.g., "Austria", "Germany", "EU")
+- company_type: Eligible company types (e.g., "startup", "sme", "research")
+- industry_focus: Industry/sector focus (array of strings)
+- deadline: Application deadline if known (YYYY-MM-DD format, or null)
+- open_deadline: Boolean indicating if deadline is open/rolling
+- website: Program website URL if known (or null)
+- description: Brief program description
+
+Return a JSON object with a "programs" array containing the program objects.
+
+Example format:
+{
+  "programs": [
+    {
+      "name": "FFG General Programme",
+      "institution": "Austrian Research Promotion Agency",
+      "funding_amount_min": 50000,
+      "funding_amount_max": 500000,
+      "currency": "EUR",
+      "location": "Austria",
+      "company_type": "startup",
+      "industry_focus": ["digital", "technology"],
+      "deadline": null,
+      "open_deadline": true,
+      "website": "https://www.ffg.at",
+      "description": "Supports research and innovation projects for startups and SMEs"
+    }
+  ]
+}`;
+
+    // Call LLM
+    const { isCustomLLMEnabled, callCustomLLM } = await import('../../../shared/lib/ai/customLLM');
+    const OpenAI = (await import('openai')).default;
+    
+    let responseText: string | null = null;
+    
+    if (isCustomLLMEnabled()) {
+      const customResponse = await callCustomLLM({
+        messages: [
+          { role: 'system', content: 'You are an expert on European funding programs. Return only valid JSON arrays.' },
+          { role: 'user', content: prompt }
+        ],
+        responseFormat: 'json',
+        temperature: 0.3,
+        maxTokens: 4000,
+      });
+      responseText = customResponse.output;
+    } else if (process.env.OPENAI_API_KEY) {
+      const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
+      const model = process.env.OPENAI_MODEL || 'gpt-4o-mini';
+      
+      // Note: OpenAI's json_object format requires object, not array
+      // Prompt already asks for {"programs": [...]} format
+      const completion = await openai.chat.completions.create({
+        model,
+        messages: [
+          { role: 'system', content: 'You are an expert on European funding programs. Return a JSON object with a "programs" array.' },
+          { role: 'user', content: prompt }
+        ],
+        response_format: { type: 'json_object' },
+        temperature: 0.3,
+        max_tokens: 4000,
+      });
+      
+      responseText = completion.choices[0]?.message?.content || null;
+    } else {
+      throw new Error('No LLM available: Set OPENAI_API_KEY or CUSTOM_LLM_ENDPOINT');
+    }
+
+    if (!responseText) {
+      throw new Error('LLM returned empty response');
+    }
+
+    // Parse JSON response
+    let programs: any[];
+    try {
+      const parsed = JSON.parse(responseText);
+      // Handle both array and object formats
+      if (Array.isArray(parsed)) {
+        programs = parsed;
+      } else if (parsed.programs && Array.isArray(parsed.programs)) {
+        programs = parsed.programs;
+      } else {
+        // Try to extract array from response text
+        const jsonMatch = responseText.match(/\[[\s\S]*\]/);
+        if (jsonMatch) {
+          programs = JSON.parse(jsonMatch[0]);
+        } else {
+          throw new Error('No programs array found in response');
+        }
+      }
+    } catch (parseError) {
+      console.error('Failed to parse LLM response:', responseText);
+      throw new Error('LLM returned invalid JSON');
+    }
+
+    // Convert to our program format
+    return programs.map((p: any, index: number) => {
+      return {
+        id: `llm_${(p.name || `program_${index}`).toLowerCase().replace(/[^a-z0-9]+/g, '_')}`,
+        name: p.name || `Program ${index + 1}`,
+        url: p.website || null,
+        institution_id: `llm_${(p.institution || 'unknown').toLowerCase().replace(/[^a-z0-9]+/g, '_')}`,
+        funding_types: ['grant'], // Default to grant
+        metadata: {
+          funding_amount_min: p.funding_amount_min || 0,
+          funding_amount_max: p.funding_amount_max || 0,
+          currency: p.currency || 'EUR',
+          deadline: p.deadline || null,
+          open_deadline: p.open_deadline || false,
+          description: p.description || '',
+          region: p.location || answers.location || '',
+        },
+        categorized_requirements: {
+          geographic: [{ 
+            type: 'location', 
+            value: p.location || answers.location || '', 
+            confidence: 0.8 
+          }],
+          eligibility: [{ 
+            type: 'company_type', 
+            value: p.company_type || answers.company_type || '', 
+            confidence: 0.8 
+          }],
+          project: Array.isArray(p.industry_focus) 
+            ? p.industry_focus.map((ind: string) => ({
+                type: 'industry_focus',
+                value: ind,
+                confidence: 0.7
+              }))
+            : (p.industry_focus ? [{
+                type: 'industry_focus',
+                value: p.industry_focus,
+                confidence: 0.7
+              }] : []),
+          metadata: {
+            funding_amount_min: p.funding_amount_min || 0,
+            funding_amount_max: p.funding_amount_max || 0,
+            currency: p.currency || 'EUR',
+            deadline: p.deadline || null,
+            open_deadline: p.open_deadline || false,
+          }
+        },
+        eligibility_criteria: {},
+        extracted_at: new Date().toISOString(),
+        source: 'llm_generated',
+      };
+    });
+  } catch (error: any) {
+    console.error('❌ LLM fallback failed:', error);
+    // Return empty array if LLM fails - system will handle gracefully
+    return [];
+  }
+}
+
+/**
  * Fetch HTML from URL
  */
 async function fetchHtml(url: string): Promise<string | null> {
@@ -321,31 +514,31 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
   try {
     const answers: UserAnswers = req.body.answers || {};
-    const { max_results = 10, extract_all = false } = req.body;
+    const { max_results = 10, extract_all = false, use_seeds = true } = req.body;
+    
+    // Check if seeds should be disabled (via parameter or env var)
+    const disableSeeds = !use_seeds || process.env.DISABLE_SEED_URLS === 'true';
 
-    // Load seed URLs
-    const seedsPath = path.join(process.cwd(), 'scraper-lite', 'url-seeds.json');
-    if (!fs.existsSync(seedsPath)) {
-      return res.status(404).json({
-        error: 'Seed file not found',
-        message: 'scraper-lite/url-seeds.json is required',
-      });
-    }
+    // Tier 1: URL-Based Extraction (if enabled)
+    let programs: any[] = [];
+    let extractionResults: any[] = [];
+    
+    if (!disableSeeds) {
+      // Load seed URLs
+      const seedsPath = path.join(process.cwd(), 'scraper-lite', 'url-seeds.json');
+      if (!fs.existsSync(seedsPath)) {
+        console.log('⚠️ Seed file not found, using LLM fallback');
+      } else {
+        const seeds: SeedEntry[] = JSON.parse(fs.readFileSync(seedsPath, 'utf8'));
 
-    const seeds: SeedEntry[] = JSON.parse(fs.readFileSync(seedsPath, 'utf8'));
+        // Filter seeds based on answers
+        const relevantSeeds = filterSeedsByAnswers(seeds, answers);
+        console.log(`📊 Filtered ${seeds.length} seeds → ${relevantSeeds.length} relevant seeds`);
 
-    // Filter seeds based on answers
-    const relevantSeeds = filterSeedsByAnswers(seeds, answers);
-    console.log(`📊 Filtered ${seeds.length} seeds → ${relevantSeeds.length} relevant seeds`);
+        // Limit seeds to process (to avoid too many requests)
+        const seedsToProcess = relevantSeeds.slice(0, Math.min(max_results * 2, 20));
 
-    // Limit seeds to process (to avoid too many requests)
-    const seedsToProcess = relevantSeeds.slice(0, Math.min(max_results * 2, 20));
-
-    // Extract programs on-demand
-    const programs: any[] = [];
-    const extractionResults: any[] = [];
-
-    for (const seed of seedsToProcess) {
+        for (const seed of seedsToProcess) {
       try {
         console.log(`🔍 Fetching and extracting: ${seed.seed_url}`);
         
@@ -394,8 +587,20 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         });
       }
 
-      // Stop if we have enough programs
-      if (programs.length >= max_results) break;
+          // Stop if we have enough programs (get more than needed for scoring, then take top 5)
+          if (programs.length >= max_results * 2) break;
+        }
+      }
+    }
+
+    // Tier 3: LLM-Generated Programs (Fallback - Like ChatGPT)
+    if (programs.length === 0) {
+      console.log('⚠️ No programs from URL extraction, using LLM fallback (Tier 3)');
+      programs = await generateProgramsWithLLM(answers, max_results * 2);
+      extractionResults.push({
+        source: 'llm_fallback',
+        message: `Generated ${programs.length} programs using LLM (like ChatGPT)`,
+      });
     }
 
     // Return results with extraction mapping
@@ -406,8 +611,11 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       extraction_results: extractionResults,
       question_mapping: QUESTION_TO_EXTRACTION_MAP,
       answers_provided: answers,
-      seeds_checked: seedsToProcess.length,
-      message: `Extracted ${programs.length} programs from ${seedsToProcess.length} seed URLs`,
+      source: programs.length > 0 && programs[0].source === 'llm_generated' ? 'llm_fallback' : 'url_extraction',
+      fallback_used: programs.length > 0 && programs[0].source === 'llm_generated',
+      message: programs.length > 0 && programs[0].source === 'llm_generated' 
+        ? `Generated ${programs.length} programs using LLM fallback (like ChatGPT)`
+        : `Extracted ${programs.length} programs from seed URLs`,
     });
 
   } catch (error: any) {

@@ -1,9 +1,130 @@
 // Removed static JSON import - using database instead
-import { Program, ScoredProgram, ProgramType } from '@/shared/types/requirements';
-import { UserAnswers } from "@/shared/lib/schemas";
-import { estimateSuccessProbability, ConfidenceLevel } from '@/shared/lib/mlModels';
-import type { MatchStatus } from './types';
+import { UserAnswers } from "@/shared/user/storage/planStore";
+import { estimateSuccessProbability, ConfidenceLevel } from '@/shared/lib/ai/mlModels';
+
+// ============================================================================
+// Question Weights for Scoring (integrated from questionWeights.ts)
+// ============================================================================
+/**
+ * Question Weights for Scoring
+ * 
+ * These weights determine how much each question contributes to the final match score.
+ * Weights are based on:
+ * - Program coverage (% of programs that have this requirement)
+ * - Hard blocker status (can this disqualify you?)
+ * - Matching importance (how critical is this for finding the right program?)
+ * 
+ * Total weights should sum to ~100% for normalization.
+ * Weights are data-driven estimates based on program analysis.
+ */
+
+export interface QuestionWeights {
+  location: number;
+  company_type: number;
+  funding_amount: number;
+  industry_focus: number;
+  impact: number;
+  company_stage: number;
+  use_of_funds: number;
+  project_duration: number;
+  deadline_urgency: number;
+  co_financing: number;
+  revenue_status: number;
+  team_size: number;
+}
+
+/**
+ * Fixed weights for each question
+ * Based on analysis from scripts/analyze-question-importance.ts
+ * 
+ * Weights are percentages (0-100) that sum to ~100%
+ * These are normalized during scoring based on answered questions
+ */
+export const QUESTION_WEIGHTS: QuestionWeights = {
+  // Tier 1: Essential (Hard Blockers)
+  location: 22,        // 90% program coverage, hard blocker
+  company_type: 20,    // 85% program coverage, hard blocker
+  funding_amount: 18,  // 70% program coverage, critical for matching
+  
+  // Tier 2: Important
+  industry_focus: 15,  // 45% program coverage, important for matching
+  impact: 8,           // 15% program coverage, nice to have
+  company_stage: 6,    // 35% program coverage, useful for filtering
+  
+  // Tier 3: Optional
+  co_financing: 5,     // 28% program coverage, can be hard blocker when required
+  use_of_funds: 4,     // 18% program coverage, low impact
+  revenue_status: 2,   // 10% program coverage, low impact
+  team_size: 2,        // 12% program coverage, low impact
+  project_duration: 1, // 5% program coverage, very low impact
+  
+  // Tier 4: Not Scored (Filtering Only)
+  deadline_urgency: 0, // 0% program coverage - this is user preference, not program requirement
+};
+
+/**
+ * Get weight for a specific question
+ */
+export function getQuestionWeight(key: keyof QuestionWeights): number {
+  return QUESTION_WEIGHTS[key] || 0;
+}
+
+/**
+ * Calculate total weight for a set of answered questions
+ * Used for score normalization
+ */
+export function calculateTotalWeight(answeredQuestions: (keyof QuestionWeights)[]): number {
+  return answeredQuestions.reduce((sum, key) => sum + getQuestionWeight(key), 0);
+}
+
+/**
+ * Get all question keys
+ */
+export function getAllQuestionKeys(): (keyof QuestionWeights)[] {
+  return Object.keys(QUESTION_WEIGHTS) as (keyof QuestionWeights)[];
+}
+
+/**
+ * Get questions by tier (for analysis/debugging)
+ */
+export function getQuestionsByTier(): {
+  tier1: (keyof QuestionWeights)[];
+  tier2: (keyof QuestionWeights)[];
+  tier3: (keyof QuestionWeights)[];
+  tier4: (keyof QuestionWeights)[];
+} {
+  return {
+    tier1: ['location', 'company_type', 'funding_amount'],
+    tier2: ['industry_focus', 'impact', 'company_stage'],
+    tier3: ['co_financing', 'use_of_funds', 'revenue_status', 'team_size', 'project_duration'],
+    tier4: ['deadline_urgency'],
+  };
+}
+
+// Inlined from types.ts - MatchStatus type
+export type MatchStatus = 'match' | 'gap' | 'unknown';
 // Removed doctorDiagnostic - filtering handled by QuestionEngine
+
+// Program type definition (basic structure for scoring)
+export interface Program {
+  id: string;
+  name: string;
+  type: string;
+  program_type?: string;
+  program_category?: string;
+  requirements?: Record<string, any>;
+  notes?: string;
+  maxAmount?: number;
+  link?: string;
+  target_personas?: string[];
+  tags?: string[];
+  decision_tree_questions?: any[];
+  editor_sections?: any[];
+  readiness_criteria?: any[];
+  ai_guidance?: any;
+  categorized_requirements?: Record<string, any[]>;
+  [key: string]: any; // Allow additional properties
+}
 
 // Import centralized normalization system for consistent matching
 import {
@@ -35,7 +156,11 @@ export interface EligibilityTrace {
 }
 
 // Enhanced program result with detailed explanations
-export interface EnhancedProgramResult extends ScoredProgram {
+export interface EnhancedProgramResult extends Program {
+  score: number; // Match score (0-100)
+  eligibility: string; // "Eligible" | "Not Eligible"
+  confidence: "High" | "Medium" | "Low";
+  reason: string; // Human-readable explanation
   matchedCriteria: Array<{
     key: string;
     value: any;
@@ -69,6 +194,10 @@ export interface EnhancedProgramResult extends ScoredProgram {
   trace?: EligibilityTrace;
   successConfidence?: ConfidenceLevel;
   successFactors?: string[];
+  // Enhanced explanations (NEW - optional, simple)
+  strategicAdvice?: string; // One sentence, optional
+  applicationInfo?: string; // One sentence, optional
+  riskMitigation?: string; // One sentence, optional
   // Doctor diagnostic fields
       // Diagnosis fields removed - not used in unified flow
 }
@@ -641,40 +770,9 @@ function calculateTimelineFit(_answers: UserAnswers, signals: DerivedSignals): n
   
   return Math.max(0, Math.min(100, score));
 }
+*/
 
-// Calculate requirement frequencies from all programs (for dynamic scoring)
-function calculateRequirementFrequencies(allPrograms: Program[]): Map<string, number> {
-  const frequencyMap = new Map<string, number>();
-  let totalPrograms = 0;
-
-  for (const program of allPrograms) {
-    const categorized = (program as any).categorized_requirements;
-    if (!categorized || typeof categorized !== 'object') continue;
-    
-    totalPrograms++;
-    
-    // For each category and type combination
-    for (const [category, items] of Object.entries(categorized)) {
-      if (!Array.isArray(items)) continue;
-      
-      for (const item of items) {
-        if (!item || typeof item !== 'object') continue;
-        
-        const reqType = item.type || 'unknown';
-        const key = `${category}:${reqType}`;
-        frequencyMap.set(key, (frequencyMap.get(key) || 0) + 1);
-      }
-    }
-  }
-  
-  // Convert to frequencies (0-1)
-  const frequencies = new Map<string, number>();
-  frequencyMap.forEach((count, key) => {
-    frequencies.set(key, count / totalPrograms);
-  });
-  
-  return frequencies;
-}
+// Removed calculateRequirementFrequencies - now using fixed weights (integrated above)
 
 // Simplified fallback matching for fields not covered by centralized normalization
 // Uses simple string matching as last resort
@@ -701,12 +799,10 @@ function fallbackMatch(userValue: string, requirementValue: any): boolean {
 }
 
 // Score programs using categorized requirements (18 categories from Layer 1&2)
-// NOW WITH DYNAMIC FREQUENCY-BASED SCORING + NORMALIZATION (aligned with filtering)
+// NOW WITH FIXED WEIGHTS (data-driven, consistent scoring - weights defined above)
 function scoreCategorizedRequirements(
   categorizedRequirements: any,
-  answers: UserAnswers,
-  requirementFrequencies?: Map<string, number>,
-  _totalPossibleRequirements?: number // Reserved for future use
+  answers: UserAnswers
 ): {
   score: number;
   matchedCriteria: Array<{
@@ -901,23 +997,40 @@ function scoreCategorizedRequirements(
       });
 
       if (matched) {
-        // DYNAMIC SCORING: Weight by requirement frequency (rare = more valuable)
-        const reqKey = `${category}:${item.type || 'unknown'}`;
-        const frequency = requirementFrequencies?.get(reqKey) || 0.5; // Default to 50% if unknown
+        // FIXED WEIGHT SCORING: Use data-driven weights (defined above)
+        // Map answer key to question weight
+        const answerKey = relevantAnswers[0]?.key || '';
+        let questionWeight = 0;
         
-        // Rare requirements (<10%) worth more, common (>50%) worth less
-        let baseScore: number;
-        if (frequency < 0.1) {
-          baseScore = 15; // Rare requirement: 15 points
-        } else if (frequency < 0.3) {
-          baseScore = 12; // Uncommon: 12 points
-        } else if (frequency < 0.5) {
-          baseScore = 10; // Common: 10 points
-        } else {
-          baseScore = 7; // Very common: 7 points
+        // Map answer keys to question weights
+        if (answerKey === 'location' || answerKey === 'q1_location' || answerKey === 'q1_country') {
+          questionWeight = getQuestionWeight('location');
+        } else if (answerKey === 'company_type') {
+          questionWeight = getQuestionWeight('company_type');
+        } else if (answerKey === 'funding_amount') {
+          questionWeight = getQuestionWeight('funding_amount');
+        } else if (answerKey === 'industry_focus') {
+          questionWeight = getQuestionWeight('industry_focus');
+        } else if (answerKey === 'impact') {
+          questionWeight = getQuestionWeight('impact');
+        } else if (answerKey === 'company_stage' || answerKey === 'q2_entity_stage') {
+          questionWeight = getQuestionWeight('company_stage');
+        } else if (answerKey === 'use_of_funds') {
+          questionWeight = getQuestionWeight('use_of_funds');
+        } else if (answerKey === 'project_duration') {
+          questionWeight = getQuestionWeight('project_duration');
+        } else if (answerKey === 'deadline_urgency') {
+          questionWeight = getQuestionWeight('deadline_urgency');
+        } else if (answerKey === 'co_financing') {
+          questionWeight = getQuestionWeight('co_financing');
+        } else if (answerKey === 'revenue_status' || answerKey === 'revenue' || answerKey === 'current_revenue') {
+          questionWeight = getQuestionWeight('revenue_status');
+        } else if (answerKey === 'team_size' || answerKey === 'q3_company_size') {
+          questionWeight = getQuestionWeight('team_size');
         }
         
-        const categoryScore = Math.round(baseScore * confidence);
+        // Apply confidence multiplier to weight
+        const categoryScore = Math.round(questionWeight * confidence);
         score += categoryScore;
         matchedCount++;
         
@@ -940,38 +1053,41 @@ function scoreCategorizedRequirements(
     });
   });
 
-  // NORMALIZE TO PERCENTAGE: Calculate maximum possible score, then normalize
-  // First, calculate what the maximum possible score would be (if all requirements matched)
-  let maxPossibleScore = 0;
-  Object.entries(categorizedRequirements).forEach(([category, data]: [string, any]) => {
-    if (!Array.isArray(data)) return;
-    data.forEach((item: any) => {
-      const confidence = item.confidence || 0.5;
-      const reqKey = `${category}:${item.type || 'unknown'}`;
-      const frequency = requirementFrequencies?.get(reqKey) || 0.5;
-      
-      // Calculate max points for this requirement (if matched)
-      let baseScore: number;
-      if (frequency < 0.1) baseScore = 15;
-      else if (frequency < 0.3) baseScore = 12;
-      else if (frequency < 0.5) baseScore = 10;
-      else baseScore = 7;
-      
-      maxPossibleScore += Math.round(baseScore * confidence);
-    });
+  // NORMALIZE TO PERCENTAGE: Calculate maximum possible score based on answered questions
+  // Get list of answered questions to calculate total possible weight
+  const answeredQuestions: (keyof QuestionWeights)[] = [];
+  Object.keys(answers).forEach(key => {
+    if (answers[key as keyof UserAnswers] !== undefined && answers[key as keyof UserAnswers] !== null && answers[key as keyof UserAnswers] !== '') {
+      // Map answer keys to question IDs
+      if (key === 'location' || key === 'q1_location' || key === 'q1_country') answeredQuestions.push('location');
+      else if (key === 'company_type') answeredQuestions.push('company_type');
+      else if (key === 'funding_amount') answeredQuestions.push('funding_amount');
+      else if (key === 'industry_focus') answeredQuestions.push('industry_focus');
+      else if (key === 'impact') answeredQuestions.push('impact');
+      else if (key === 'company_stage' || key === 'q2_entity_stage') answeredQuestions.push('company_stage');
+      else if (key === 'use_of_funds') answeredQuestions.push('use_of_funds');
+      else if (key === 'project_duration') answeredQuestions.push('project_duration');
+      else if (key === 'deadline_urgency') answeredQuestions.push('deadline_urgency');
+      else if (key === 'co_financing') answeredQuestions.push('co_financing');
+      else if (key === 'revenue_status' || key === 'revenue' || key === 'current_revenue') answeredQuestions.push('revenue_status');
+      else if (key === 'team_size' || key === 'q3_company_size') answeredQuestions.push('team_size');
+    }
   });
   
+  // Calculate total possible weight for answered questions
+  const totalPossibleWeight = calculateTotalWeight(answeredQuestions);
+  
   // Apply penalties for missing high-confidence requirements
-  // Penalty is based on percentage of max score
-  const penaltyPercent = missingHighConfidenceCount * 0.1; // 10% penalty per missing high-confidence requirement
-  const penaltyPoints = maxPossibleScore > 0 ? (maxPossibleScore * penaltyPercent) : 0;
+  // Penalty is 5% per missing high-confidence requirement (capped at 30%)
+  const penaltyPercent = Math.min(0.3, missingHighConfidenceCount * 0.05);
+  const penaltyPoints = totalPossibleWeight > 0 ? (totalPossibleWeight * penaltyPercent) : 0;
   const finalScore = Math.max(0, score - penaltyPoints);
   
-  // Normalize to percentage (0-100%)
-  if (maxPossibleScore > 0) {
-    score = Math.round((finalScore / maxPossibleScore) * 100);
+  // Normalize to percentage (0-100%) based on answered questions
+  if (totalPossibleWeight > 0) {
+    score = Math.round((finalScore / totalPossibleWeight) * 100);
   } else {
-    // Fallback: If no requirements, score stays as is (will be handled later)
+    // Fallback: If no questions answered, score stays as is
     score = Math.round(finalScore);
   }
   
@@ -981,110 +1097,40 @@ function scoreCategorizedRequirements(
   return { score, matchedCriteria, gaps };
 }
 
-/**
- * APPLY MAJOR FILTERS: Same logic as QuestionEngine for consistency
- */
-function applyMajorFiltersToPrograms(programs: any[], answers: UserAnswers): any[] {
-  let filteredPrograms = [...programs];
+// Removed applyMajorFiltersToPrograms - filtering is now handled by /api/programs/recommend endpoint
+// Programs are pre-filtered before being passed to scoreProgramsEnhanced
+
+// Scoring consistency validation: Ensure same answers = same scores
+const scoringCache = new Map<string, { score: number; timestamp: number }>();
+const CACHE_TTL = 5 * 60 * 1000; // 5 minutes
+
+function getCacheKey(answers: UserAnswers, programId: string): string {
+  const sortedAnswers = Object.keys(answers)
+    .sort()
+    .map(key => `${key}:${JSON.stringify(answers[key])}`)
+    .join('|');
+  return `${programId}:${sortedAnswers}`;
+}
+
+function validateScoringConsistency(
+  programId: string,
+  answers: UserAnswers,
+  score: number
+): { consistent: boolean; previousScore?: number } {
+  const cacheKey = getCacheKey(answers, programId);
+  const cached = scoringCache.get(cacheKey);
   
-  // MAJOR FILTER 1: Location (Hardcoded Rule)
-  if (answers.location) {
-    filteredPrograms = filteredPrograms.filter(program => {
-      // Check eligibility_criteria.location first
-      const eligibilityLocation = (program as any).eligibility_criteria?.location?.toLowerCase() || '';
-      
-      // Also check institution and description fields
-      const programLocation = program.institution?.toLowerCase() || '';
-      const programDescription = program.description?.toLowerCase() || '';
-      
-      switch (answers.location) {
-        case 'austria':
-          return eligibilityLocation === 'austria' ||
-                 eligibilityLocation.includes('austria') ||
-                 programLocation.includes('austria') || 
-                 programLocation.includes('österreich') ||
-                 programDescription.includes('austria') ||
-                 programDescription.includes('österreich');
-        case 'germany':
-          return eligibilityLocation === 'germany' ||
-                 eligibilityLocation.includes('germany') ||
-                 programLocation.includes('germany') || 
-                 programLocation.includes('deutschland') ||
-                 programDescription.includes('germany') ||
-                 programDescription.includes('deutschland');
-        case 'eu':
-          return eligibilityLocation === 'eu' ||
-                 eligibilityLocation.includes('eu') ||
-                 eligibilityLocation.includes('europe') ||
-                 programLocation.includes('eu') || 
-                 programLocation.includes('european') ||
-                 programDescription.includes('eu') ||
-                 programDescription.includes('european');
-        case 'international':
-          return true; // Show all programs
-        default:
-          return true;
-      }
-    });
-    console.log(`🌍 Location filter (${answers.location}): ${programs.length} → ${filteredPrograms.length} programs`);
+  if (cached && Date.now() - cached.timestamp < CACHE_TTL) {
+    const isConsistent = Math.abs(cached.score - score) < 1; // Allow 1% tolerance
+    if (!isConsistent) {
+      console.warn(`⚠️ Scoring inconsistency detected for ${programId}: ${cached.score}% vs ${score}%`);
+    }
+    return { consistent: isConsistent, previousScore: cached.score };
   }
   
-  // MAJOR FILTER 2: Funding Type (Hardcoded Rule)
-  if (answers.funding_type) {
-    filteredPrograms = filteredPrograms.filter(program => {
-      const programType = program.type || program.program_type || '';
-      
-      switch (answers.funding_type) {
-        case 'grant':
-          return programType === 'grant';
-        case 'loan':
-          return programType === 'loan';
-        case 'equity':
-          return programType === 'equity';
-        default:
-          return true;
-      }
-    });
-    console.log(`💰 Funding type filter (${answers.funding_type}): ${programs.length} → ${filteredPrograms.length} programs`);
-  }
-  
-  // MAJOR FILTER 3: Organization Type (Hardcoded Rule)
-  if (answers.organization_type) {
-    filteredPrograms = filteredPrograms.filter(program => {
-      const targetPersonas = program.target_personas || [];
-      const tags = program.tags || [];
-      const description = program.description?.toLowerCase() || '';
-      
-      switch (answers.organization_type) {
-        case 'startup':
-          return targetPersonas.includes('startup') || 
-                 tags.includes('startup') ||
-                 description.includes('startup') ||
-                 description.includes('early stage');
-        case 'sme':
-          return targetPersonas.includes('sme') || 
-                 tags.includes('sme') ||
-                 description.includes('sme') ||
-                 description.includes('small business');
-        case 'research':
-          return targetPersonas.includes('researcher') || 
-                 targetPersonas.includes('university') ||
-                 tags.includes('research') ||
-                 description.includes('research') ||
-                 description.includes('university');
-        case 'university':
-          return targetPersonas.includes('university') || 
-                 tags.includes('university') ||
-                 description.includes('university') ||
-                 description.includes('academic');
-        default:
-          return true;
-      }
-    });
-    console.log(`🏢 Organization type filter (${answers.organization_type}): ${programs.length} → ${filteredPrograms.length} programs`);
-  }
-  
-  return filteredPrograms;
+  // Cache this score
+  scoringCache.set(cacheKey, { score, timestamp: Date.now() });
+  return { consistent: true };
 }
 
 // Enhanced scoring with detailed explanations and trace generation
@@ -1097,24 +1143,14 @@ export async function scoreProgramsEnhanced(
     const userAnswers = enrichAnswers(answers);
     const derivedSignals = deriveSignals(userAnswers);
 
-    // Use pre-filtered programs if provided (from QuestionEngine), otherwise fetch and filter
-    let filteredPrograms: Program[];
-    
-    if (preFilteredPrograms && preFilteredPrograms.length > 0) {
-      // Use programs already filtered by QuestionEngine (wizard flow)
-      console.log('✅ Using pre-filtered programs from QuestionEngine:', preFilteredPrograms.length);
-      filteredPrograms = preFilteredPrograms;
-    } else {
-      // Fetch and filter programs (advanced search flow)
-      const response = await fetch('/api/programs?enhanced=true');
-      const data = await response.json();
-      const programs = data.programs || [];
-      console.log('🔍 Debug: Fetched programs directly:', programs.length);
-      
-      // APPLY MAJOR FILTERS (for advanced search, not wizard)
-      filteredPrograms = applyMajorFiltersToPrograms(programs, userAnswers);
-      console.log(`🔍 Major filters applied: ${programs.length} → ${filteredPrograms.length} programs`);
+    // Programs must be provided by caller (from /api/programs/recommend or other source)
+    // No longer fetching programs here - single responsibility: scoring only
+    if (!preFilteredPrograms || preFilteredPrograms.length === 0) {
+      console.warn('⚠️ No programs provided to scoreProgramsEnhanced. Programs must be provided by caller.');
+      return [];
     }
+    
+    const filteredPrograms = preFilteredPrograms;
     
     console.log('🔍 Debug: Sample program from dataSource:', {
       id: filteredPrograms[0]?.id,
@@ -1145,7 +1181,7 @@ export async function scoreProgramsEnhanced(
         readiness_criteria: p.readiness_criteria || [],
         ai_guidance: p.ai_guidance || null,
         // Include categorized requirements from Layer 1&2
-        categorized_requirements: p.categorized_requirements || null
+        categorized_requirements: p.categorized_requirements || undefined
       };
 
       if (matchSummary) {
@@ -1182,36 +1218,8 @@ export async function scoreProgramsEnhanced(
       hasEligibilityCriteria: !!(normalizedPrograms[0] as any).eligibility_criteria
     });
 
-    // Calculate requirement frequencies from ALL programs (for dynamic scoring)
-    // Fetch all programs if we only have pre-filtered ones
-    let allProgramsForFrequencies: Program[] = normalizedPrograms;
-    if (preFilteredPrograms && preFilteredPrograms.length > 0) {
-      // If we have pre-filtered programs, we need all programs for frequency calculation
-      try {
-        const response = await fetch('/api/programs?enhanced=true');
-        const data = await response.json();
-        allProgramsForFrequencies = (data.programs || []).map((p: any) => ({
-          id: p.id,
-          name: p.name || p.id,
-          type: p.type || "program",
-          program_type: p.program_type || p.type || "grant",
-          program_category: p.program_category || "general",
-          requirements: p.requirements || {},
-          notes: p.notes,
-          maxAmount: p.maxAmount,
-          link: p.link,
-          categorized_requirements: p.categorized_requirements || null
-        }));
-        console.log(`📊 Loaded ${allProgramsForFrequencies.length} total programs for frequency calculation`);
-      } catch (error) {
-        console.warn('⚠️ Could not fetch all programs for frequency calculation, using filtered programs:', error);
-        allProgramsForFrequencies = normalizedPrograms;
-      }
-    }
-    
-    // Calculate requirement frequencies (for dynamic scoring)
-    const requirementFrequencies = calculateRequirementFrequencies(allProgramsForFrequencies);
-    console.log(`📊 Calculated frequencies for ${requirementFrequencies.size} requirement types`);
+    // Removed frequency calculation - now using fixed weights (integrated above)
+    console.log(`📊 Using fixed weights for scoring`);
 
     const scoredPrograms = await Promise.all(normalizedPrograms.map(async (program): Promise<EnhancedProgramResult> => {
       let score = 0;
@@ -1331,7 +1339,7 @@ export async function scoreProgramsEnhanced(
         score = baseScores[program.type as keyof typeof baseScores] || 50;
       } else {
         // Evaluate each requirement
-        for (const [key, requirement] of Object.entries(program.requirements)) {
+        for (const [key, requirement] of Object.entries(program.requirements || {})) {
         const answer = userAnswers[key];
 
         if (answer === undefined || answer === null || answer === "") {
@@ -1430,7 +1438,7 @@ export async function scoreProgramsEnhanced(
       }
 
       // Enhanced scoring with categorized requirements (Layer 1&2)
-      // NOW WITH DYNAMIC FREQUENCY-BASED SCORING
+      // NOW WITH FIXED WEIGHTS (data-driven, consistent scoring - weights defined above)
       if (program.categorized_requirements) {
         // Count total possible requirements for normalization
         let totalPossibleRequirements = 0;
@@ -1442,16 +1450,14 @@ export async function scoreProgramsEnhanced(
         
         const categorizedScore = scoreCategorizedRequirements(
           program.categorized_requirements, 
-          answers,
-          requirementFrequencies,
-          totalPossibleRequirements
+          answers
         );
         
         // Use the normalized score directly (already percentage-based)
         score = categorizedScore.score;
         matchedCriteria.push(...categorizedScore.matchedCriteria);
         gaps.push(...categorizedScore.gaps);
-        console.log(`🔍 Debug: Categorized requirements score for ${program.id}: ${categorizedScore.score}% (normalized, frequency-based)`);
+        console.log(`🔍 Debug: Categorized requirements score for ${program.id}: ${categorizedScore.score}% (normalized, fixed weights)`);
       }
 
       // Score is now already normalized (0-100%) from scoreCategorizedRequirements
@@ -1499,6 +1505,12 @@ export async function scoreProgramsEnhanced(
       
       console.log(`🔍 EnhancedRecoEngine: Program ${program.id} - Final Score: ${scorePercent}, Matched: ${matchedCriteria.length}, Gaps: ${gaps.length}, Eligibility: ${eligibility}`);
 
+      // Validate scoring consistency
+      const consistency = validateScoringConsistency(program.id, answers, scorePercent);
+      if (!consistency.consistent) {
+        console.warn(`⚠️ Scoring inconsistency for ${program.id}: previous=${consistency.previousScore}%, current=${scorePercent}%`);
+      }
+
       const historicalSuccess = getProgramSuccessRate(program);
       const successEstimate = estimateSuccessProbability({
         baseScore: scorePercent,
@@ -1512,6 +1524,12 @@ export async function scoreProgramsEnhanced(
       // Log warnings for low scores
       if (scorePercent < 30 && matchedCriteria.length === 0) {
         console.warn(`⚠️ EnhancedRecoEngine: Program ${program.id} has very low score (${scorePercent}) with no matched criteria`);
+      }
+      
+      // Validation: Ensure score is within bounds and normalized
+      if (scorePercent < 0 || scorePercent > 100) {
+        console.error(`❌ Invalid score for ${program.id}: ${scorePercent}% (should be 0-100)`);
+        scorePercent = Math.max(0, Math.min(100, scorePercent));
       }
 
       if (unknownKeys.length > 0) {
@@ -1530,6 +1548,10 @@ export async function scoreProgramsEnhanced(
           }
         }
       }
+
+      // Get enhanced explanation (will be enhanced in second pass after all programs scored)
+      // For now, just get basic reasons
+      let enhancedFields: { strategicAdvice?: string; applicationInfo?: string; riskMitigation?: string } = {};
 
       return {
         ...program,
@@ -1551,11 +1573,43 @@ export async function scoreProgramsEnhanced(
         founderFriendlyRisks,
         trace,
         matchSummary: Object.keys(matchSummary || {}).length > 0 ? matchSummary : undefined,
-        unknownCriteria: unknownKeys
+        unknownCriteria: unknownKeys,
+        ...enhancedFields // Will be populated in second pass if needed
       };
     }));
     
-    return scoredPrograms.sort((a: EnhancedProgramResult, b: EnhancedProgramResult) => b.score - a.score);
+    // Sort by score
+    const sortedPrograms = scoredPrograms.sort((a: EnhancedProgramResult, b: EnhancedProgramResult) => b.score - a.score);
+    
+    // Second pass: Enhance explanations with strategic advice (now that we have all programs)
+    const enhancedPrograms = await Promise.all(sortedPrograms.map(async (program) => {
+      const useLLM = process.env.OPENAI_API_KEY || process.env.CUSTOM_LLM_ENDPOINT;
+      if (useLLM && program.matchedCriteria && program.matchedCriteria.length > 0) {
+        try {
+          const enhanced = await generateSmartExplanation(
+            program,
+            userAnswers,
+            program.matchedCriteria,
+            program.gaps || [],
+            program.score,
+            sortedPrograms // Pass all programs for strategic advice
+          );
+          
+          return {
+            ...program,
+            strategicAdvice: enhanced.strategicAdvice,
+            applicationInfo: enhanced.applicationInfo,
+            riskMitigation: enhanced.riskMitigation,
+          };
+        } catch (error) {
+          // Silently fail, use basic program
+          return program;
+        }
+      }
+      return program;
+    }));
+    
+    return enhancedPrograms;
     } catch (error) {
       console.error('❌ Enhanced recommendation engine failed:', error);
       console.error('❌ Error details:', {
@@ -1565,72 +1619,14 @@ export async function scoreProgramsEnhanced(
         answers: Object.keys(answers)
       });
       
-      // Try to return partial results if available
-      try {
-        console.log('🔄 Attempting fallback scoring...');
-        return await scoreProgramsFallback(answers, mode);
-      } catch (fallbackError) {
-        console.error('❌ Fallback scoring also failed:', fallbackError);
-        return [];
-      }
+      // Simplified fallback: just return empty array
+      // Programs should always be provided by caller, so if scoring fails, return empty
+      console.warn('⚠️ Scoring failed, returning empty results. Check program data and answers format.');
+      return [];
     }
   }
 
-// Fallback recommendation engine - simple but reliable
-async function scoreProgramsFallback(
-  _answers: UserAnswers,
-  _mode: "strict" | "explorer" = "strict"
-): Promise<EnhancedProgramResult[]> {
-  try {
-    const response = await fetch('/api/programs');
-    const data = await response.json();
-    const source = data.programs || [];
-    
-    // Simple fallback: return basic program information with minimal scoring
-    return source.slice(0, 10).map((p: any, index: number) => ({
-      id: p.id || `fallback-${index}`,
-      name: p.name || p.id || `Program ${index + 1}`,
-      type: (Array.isArray(p.tags) && p.tags.length > 0 ? p.tags[0] : (p.type || "program")) as ProgramType,
-      program_type: p.program_type || p.type || "grant",
-      program_category: p.program_category || "general",
-      requirements: (p.requirements as any) || {},
-      notes: undefined,
-      maxAmount: undefined,
-      link: undefined,
-      score: Math.max(0, 100 - (index * 10)), // Decreasing score
-      reason: "Fallback recommendation - basic program information available",
-      eligibility: "Unknown",
-      confidence: "Low" as const,
-      matchedCriteria: [],
-      gaps: [{
-        key: "fallback",
-        description: "Using fallback recommendation system",
-        action: "Contact support for detailed analysis",
-        priority: "medium" as const
-      }],
-      amount: { min: 0, max: 0, currency: 'EUR' },
-      timeline: "Unknown",
-      successRate: 0.3,
-      successConfidence: 'low',
-      successFactors: ['Fallback engine – historical baseline applied'],
-      llmFailed: true,
-      fallbackReason: "Main recommendation engine unavailable",
-      fallbackGaps: ["System fallback mode"],
-      founderFriendlyReasons: ["This program may be suitable for your project"],
-      founderFriendlyRisks: ["Verify eligibility requirements before applying"],
-      trace: {
-        passed: [],
-        failed: [],
-        warnings: ["⚠️ Using fallback recommendation system"],
-        counterfactuals: ["Contact support for detailed program analysis"]
-      }
-    }));
-  } catch (fallbackError) {
-    console.error('Fallback recommendation engine also failed:', fallbackError);
-    // Ultimate fallback - return empty results
-    return [];
-  }
-}
+// Removed scoreProgramsFallback - simplified error handling (just return empty array)
 
 // Generate enhanced reason with detailed explanations
 function generateEnhancedReason(
@@ -1655,14 +1651,15 @@ async function generateFounderFriendlyReasons(
   userAnswers: UserAnswers,
   matchedCriteria: Array<{ key: string; value: any; reason: string; status: 'passed' | 'warning' | 'failed' }>,
   gaps: Array<{ key: string; description: string; action: string; priority: 'high' | 'medium' | 'low' }>,
-  score: number
+  score: number,
+  allPrograms?: EnhancedProgramResult[] // NEW: For strategic advice
 ): Promise<string[]> {
   // Try LLM first if available
   const useLLM = process.env.OPENAI_API_KEY || process.env.CUSTOM_LLM_ENDPOINT;
   
   if (useLLM) {
     try {
-      const smartExplanation = await generateSmartExplanation(program, userAnswers, matchedCriteria, gaps, score);
+      const smartExplanation = await generateSmartExplanation(program, userAnswers, matchedCriteria, gaps, score, allPrograms);
       return smartExplanation.reasons;
     } catch (error) {
       console.warn('LLM explanation failed, using fallback:', error);
@@ -1680,8 +1677,14 @@ async function generateSmartExplanation(
   userAnswers: UserAnswers,
   matchedCriteria: Array<{ key: string; value: any; reason: string; status: 'passed' | 'warning' | 'failed' }>,
   gaps: Array<{ key: string; description: string; action: string; priority: 'high' | 'medium' | 'low' }>,
-  score: number
-): Promise<{ reasons: string[] }> {
+  score: number,
+  allPrograms?: EnhancedProgramResult[] // NEW: For strategic advice
+): Promise<{ 
+  reasons: string[];
+  strategicAdvice?: string; // NEW: One sentence, optional
+  applicationInfo?: string; // NEW: One sentence, optional
+  riskMitigation?: string; // NEW: One sentence, optional
+}> {
   const passedCriteria = matchedCriteria.filter(c => c.status === 'passed');
   
   // Summarize context for LLM
@@ -1706,11 +1709,40 @@ Guidelines:
 - Use their actual values (e.g., "€100k-€500k funding need" not "funding amount")
 - Be professional but warm and encouraging`;
 
-  // Build detailed scoring context
-  const scoringBreakdown = passedCriteria.map(c => {
-    const category = c.key.split(':')[0] || c.key;
-    return `- ${category}: ${c.reason}`;
-  }).join('\n');
+  // Build detailed scoring context with weights
+  const getWeightForCriteria = (key: string): number => {
+    if (key.includes('location') || key.includes('country') || key.includes('geographic')) {
+      return getQuestionWeight('location');
+    } else if (key.includes('company_type') || key.includes('entity') || key.includes('eligibility')) {
+      return getQuestionWeight('company_type');
+    } else if (key.includes('funding') || key.includes('financial')) {
+      return getQuestionWeight('funding_amount');
+    } else if (key.includes('industry') || key.includes('theme') || key.includes('project')) {
+      return getQuestionWeight('industry_focus');
+    } else if (key.includes('impact')) {
+      return getQuestionWeight('impact');
+    } else if (key.includes('stage') || key.includes('team')) {
+      return getQuestionWeight('company_stage');
+    } else if (key.includes('co_financing')) {
+      return getQuestionWeight('co_financing');
+    }
+    return 0;
+  };
+  
+  // Sort criteria by weight (highest first) before building breakdown
+  const sortedCriteria = [...passedCriteria].sort((a, b) => {
+    const weightA = getWeightForCriteria(a.key);
+    const weightB = getWeightForCriteria(b.key);
+    return weightB - weightA;
+  });
+  
+  const scoringBreakdown = sortedCriteria
+    .map(c => {
+      const category = c.key.split(':')[0] || c.key;
+      const weight = getWeightForCriteria(c.key);
+      return `- ${category} (${weight}% weight): ${c.reason}`;
+    })
+    .join('\n');
   
   const scoreStrength = score >= 90 ? 'excellent' : score >= 70 ? 'strong' : score >= 50 ? 'moderate' : 'limited';
   const scoreContext = score >= 90 
@@ -1718,6 +1750,12 @@ Guidelines:
     : score >= 70
     ? 'This is a strong match with good alignment, though some areas could be improved.'
     : 'This is a moderate match with some alignment, but there are notable gaps.';
+
+  // Enhanced prompt with strategic advice, application process, and risks
+  const hasOtherPrograms = allPrograms && allPrograms.length > 1;
+  const otherProgramsList = hasOtherPrograms 
+    ? allPrograms.slice(0, 3).map(p => `${p.name} (${Math.round(p.score)}%)`).join(', ')
+    : '';
 
   const userPrompt = `User Profile:
 ${userProfile}
@@ -1732,8 +1770,21 @@ Scoring Breakdown - What Matched:
 ${scoringBreakdown}
 
 ${issues.length > 0 ? `\nAreas for Improvement:\n${issues}\n` : ''}
+${hasOtherPrograms ? `\nOther Matching Programs: ${otherProgramsList}\n` : ''}
 
-Generate 2-3 personalized, professional reasons why this ${score}% match fits this specific user. Reference their actual values (location, company type, funding amount, industry) and explain the connection to the program's requirements. Be specific about what makes this match strong or what could be improved.`;
+Generate a concise explanation:
+1. Why this matches (2-3 sentences, reference specific criteria like location, company type, funding amount)
+${hasOtherPrograms ? '2. Strategic tip: How to combine with other programs (1 sentence, only if relevant)' : ''}
+3. Application info: Deadline, key steps, main documents (1-2 sentences, keep brief - only if you know this information)
+4. Main risk with mitigation (1 sentence, only if there are risks)
+
+Keep it concise and actionable. Don't overload with information. Return as JSON:
+{
+  "reasons": ["reason1", "reason2", "reason3"],
+  "strategic_advice": "one sentence or null",
+  "application_info": "one sentence or null",
+  "risk_mitigation": "one sentence or null"
+}`;
 
   // Try custom LLM first
   if (process.env.CUSTOM_LLM_ENDPOINT) {
@@ -1757,7 +1808,12 @@ Generate 2-3 personalized, professional reasons why this ${score}% match fits th
         const content = data.output || data.content || '{}';
         const parsed = JSON.parse(content);
         if (parsed.reasons && Array.isArray(parsed.reasons)) {
-          return { reasons: parsed.reasons.slice(0, 3) };
+          return { 
+            reasons: parsed.reasons.slice(0, 3),
+            strategicAdvice: parsed.strategic_advice || parsed.strategicAdvice || null,
+            applicationInfo: parsed.application_info || parsed.applicationInfo || null,
+            riskMitigation: parsed.risk_mitigation || parsed.riskMitigation || null
+          };
         }
       }
     } catch (error) {
@@ -1784,30 +1840,69 @@ Generate 2-3 personalized, professional reasons why this ${score}% match fits th
     const content = completion.choices[0]?.message?.content || '{}';
     const parsed = JSON.parse(content);
     if (parsed.reasons && Array.isArray(parsed.reasons)) {
-      return { reasons: parsed.reasons.slice(0, 3) };
+      return { 
+        reasons: parsed.reasons.slice(0, 3),
+        strategicAdvice: parsed.strategic_advice || parsed.strategicAdvice || null,
+        applicationInfo: parsed.application_info || parsed.applicationInfo || null,
+        riskMitigation: parsed.risk_mitigation || parsed.riskMitigation || null
+      };
     }
   }
 
   throw new Error('No LLM response');
 }
 
-// Simplified rule-based fallback
+// Simplified rule-based fallback with weight references
 function generateRuleBasedReasons(
   matchedCriteria: Array<{ key: string; value: any; reason: string; status: 'passed' | 'warning' | 'failed' }>
 ): string[] {
   const reasons: string[] = [];
   const passedCriteria = matchedCriteria.filter(c => c.status === 'passed');
   
-  // Simple mapping for common criteria
-  for (const criteria of passedCriteria.slice(0, 3)) {
-    if (criteria.key.includes('location') || criteria.key.includes('country')) {
-      reasons.push('Your location matches this program\'s geographic requirements');
-    } else if (criteria.key.includes('company_type') || criteria.key.includes('entity')) {
-      reasons.push('Your company type qualifies for this program');
-    } else if (criteria.key.includes('funding')) {
-      reasons.push('The funding amount aligns with what this program offers');
-    } else if (criteria.key.includes('industry') || criteria.key.includes('theme')) {
-      reasons.push('Your industry focus matches this program\'s target sectors');
+  // Map criteria keys to question weights for explanations
+  const getWeightForKey = (key: string): number => {
+    if (key.includes('location') || key.includes('country') || key.includes('geographic')) {
+      return getQuestionWeight('location');
+    } else if (key.includes('company_type') || key.includes('entity') || key.includes('eligibility')) {
+      return getQuestionWeight('company_type');
+    } else if (key.includes('funding') || key.includes('financial')) {
+      return getQuestionWeight('funding_amount');
+    } else if (key.includes('industry') || key.includes('theme') || key.includes('project')) {
+      return getQuestionWeight('industry_focus');
+    } else if (key.includes('impact')) {
+      return getQuestionWeight('impact');
+    } else if (key.includes('stage') || key.includes('team')) {
+      return getQuestionWeight('company_stage');
+    } else if (key.includes('co_financing')) {
+      return getQuestionWeight('co_financing');
+    }
+    return 0;
+  };
+  
+  // Sort by weight (most important first)
+  const sortedCriteria = [...passedCriteria].sort((a, b) => {
+    const weightA = getWeightForKey(a.key);
+    const weightB = getWeightForKey(b.key);
+    return weightB - weightA;
+  });
+  
+  // Generate reasons with weight references
+  for (const criteria of sortedCriteria.slice(0, 3)) {
+    const weight = getWeightForKey(criteria.key);
+    const weightText = weight > 0 ? ` (${weight}% of match score)` : '';
+    
+    if (criteria.key.includes('location') || criteria.key.includes('country') || criteria.key.includes('geographic')) {
+      reasons.push(`Location match${weightText}: Your location matches this program's geographic requirements`);
+    } else if (criteria.key.includes('company_type') || criteria.key.includes('entity') || criteria.key.includes('eligibility')) {
+      reasons.push(`Company type match${weightText}: Your company type qualifies for this program`);
+    } else if (criteria.key.includes('funding') || criteria.key.includes('financial')) {
+      reasons.push(`Funding amount match${weightText}: The funding amount aligns with what this program offers`);
+    } else if (criteria.key.includes('industry') || criteria.key.includes('theme') || criteria.key.includes('project')) {
+      reasons.push(`Industry focus match${weightText}: Your industry focus matches this program's target sectors`);
+    } else if (criteria.key.includes('impact')) {
+      reasons.push(`Impact alignment${weightText}: Your project impact aligns with this program's goals`);
+    } else {
+      reasons.push(`Requirement match${weightText}: ${criteria.reason}`);
     }
   }
 
@@ -1988,13 +2083,15 @@ export async function analyzeFreeTextEnhanced(description: string): Promise<{ no
       normalized["stage"] = "Established";
     }
 
-    const scored = await scoreProgramsEnhanced(normalized, "explorer");
-    return { normalized, scored };
+    // Note: analyzeFreeTextEnhanced requires programs to be provided by caller
+    // This function only normalizes text - scoring must be done separately with programs
+    console.warn('analyzeFreeTextEnhanced: Only normalizes text. Call scoreProgramsEnhanced separately with programs.');
+    return { normalized, scored: [] };
   } catch (error) {
-    console.error('Free text analysis failed, using fallback:', error);
+    console.error('Free text analysis failed:', error);
     return {
       normalized: {},
-      scored: await scoreProgramsFallback({}, "explorer")
+      scored: []
     };
   }
 }

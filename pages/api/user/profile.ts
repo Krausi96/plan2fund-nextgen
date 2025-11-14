@@ -2,9 +2,9 @@
 // NOTE: This endpoint is now a wrapper around the new auth system
 // Use /api/auth/session for getting current user
 import type { NextApiRequest, NextApiResponse } from 'next';
-import { findUserById, updateLastActive } from '@/shared/db/user-repository';
-import { getSessionTokenFromCookie } from '@/shared/lib/auth-utils';
-import { findSession } from '@/shared/db/user-repository';
+import { findUserById, updateLastActive } from '@/shared/user/database/repository';
+import { getSessionTokenFromCookie } from '@/shared/user/auth/utils';
+import { findSession } from '@/shared/user/database/repository';
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   const { method } = req;

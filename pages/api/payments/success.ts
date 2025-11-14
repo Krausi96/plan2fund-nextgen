@@ -1,8 +1,8 @@
 // Stripe Payment Success Handler
 import type { NextApiRequest, NextApiResponse } from 'next';
 import Stripe from 'stripe';
-import emailService from '@/shared/lib/emailService';
-import { getUserDocuments, markDocumentEmailSent } from '@/shared/lib/documentStore';
+import emailService from '@/shared/lib/services/emailService';
+import { getUserDocuments, markDocumentEmailSent } from '@/shared/user/storage/documentStore';
 
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
   apiVersion: '2025-08-27.basil',

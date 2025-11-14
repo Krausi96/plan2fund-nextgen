@@ -116,13 +116,13 @@ function calculateMeaningfulnessScore(text: any): number {
   
   return Math.min(100, Math.max(0, score));
 }
-import { isCustomLLMEnabled, callCustomLLM } from '../../../shared/lib/customLLM';
+import { isCustomLLMEnabled, callCustomLLM } from '../../../shared/lib/ai/customLLM';
 
 // Dynamic import for data collection (only in Node.js environment)
 let trackScraperQuality: any = null;
 if (typeof window === 'undefined') {
   // Server-side only
-  import('../../../shared/lib/dataCollection').then(module => {
+  import('../../../shared/user/analytics/dataCollection').then(module => {
     trackScraperQuality = module.trackScraperQuality;
   }).catch(() => {
     // Silently fail if module not available
@@ -460,6 +460,12 @@ export async function extractWithLLM(
 
     const result = transformLLMResponse(parsed, url);
     
+    // Extraction quality validation
+    const validation = validateExtractionQuality(result, url);
+    if (!validation.isValid) {
+      console.warn(`⚠️ Extraction quality issues for ${url}:`, validation.issues);
+    }
+    
     if (trackScraperQuality && typeof window === 'undefined') {
       const institution = extractInstitutionFromUrl(url);
       const pageType = detectPageType(url, html);
@@ -475,7 +481,9 @@ export async function extractWithLLM(
         extractionMethod: extractionProvider,
         accuracy,
         confidence,
-        timestamp: new Date().toISOString()
+        timestamp: new Date().toISOString(),
+        qualityScore: validation.qualityScore,
+        issues: validation.issues
       }).catch((err: any) => console.error('Failed to track scraper quality:', err));
     }
 
@@ -981,6 +989,78 @@ function detectPageType(url: string, html: string): string {
     return 'requirements_page';
   }
   return 'general_page';
+}
+
+/**
+ * Validate extraction quality
+ */
+function validateExtractionQuality(
+  result: LLMExtractionResponse,
+  _url: string
+): { isValid: boolean; qualityScore: number; issues: string[] } {
+  const issues: string[] = [];
+  let qualityScore = 100;
+  
+  // Check metadata completeness
+  if (!result.metadata.funding_amount_min && !result.metadata.funding_amount_max) {
+    issues.push('Missing funding amount');
+    qualityScore -= 20;
+  }
+  
+  if (!result.metadata.deadline && !result.metadata.open_deadline) {
+    issues.push('Missing deadline information');
+    qualityScore -= 10;
+  }
+  
+  if (!result.metadata.funding_types || result.metadata.funding_types.length === 0) {
+    issues.push('Missing funding types');
+    qualityScore -= 15;
+  }
+  
+  // Check categorized requirements
+  const totalRequirements = Object.values(result.categorized_requirements).reduce(
+    (sum, items) => sum + items.length, 0
+  );
+  
+  if (totalRequirements === 0) {
+    issues.push('No requirements extracted');
+    qualityScore -= 30;
+  } else if (totalRequirements < 3) {
+    issues.push(`Low requirement count: ${totalRequirements}`);
+    qualityScore -= 15;
+  }
+  
+  // Check for critical categories
+  const hasGeographic = result.categorized_requirements.geographic && result.categorized_requirements.geographic.length > 0;
+  const hasEligibility = result.categorized_requirements.eligibility && result.categorized_requirements.eligibility.length > 0;
+  
+  if (!hasGeographic) {
+    issues.push('Missing geographic requirements');
+    qualityScore -= 10;
+  }
+  
+  if (!hasEligibility) {
+    issues.push('Missing eligibility requirements');
+    qualityScore -= 10;
+  }
+  
+  // Check for meaningful requirements (not just junk)
+  const meaningfulCount = Object.values(result.categorized_requirements).reduce((sum, items) => {
+    return sum + items.filter((item: any) => {
+      const meaningfulness = item.meaningfulness_score || 0;
+      return meaningfulness >= 20; // Only count meaningful requirements
+    }).length;
+  }, 0);
+  
+  if (meaningfulCount < totalRequirements * 0.5) {
+    issues.push(`Low meaningfulness: ${meaningfulCount}/${totalRequirements} requirements are meaningful`);
+    qualityScore -= 10;
+  }
+  
+  qualityScore = Math.max(0, qualityScore);
+  const isValid = qualityScore >= 60; // Minimum quality threshold
+  
+  return { isValid, qualityScore, issues };
 }
 
 /**

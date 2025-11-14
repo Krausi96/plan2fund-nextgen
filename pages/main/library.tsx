@@ -3,9 +3,8 @@ import SEOHead from '@/shared/components/common/SEOHead';
 import { ArrowLeft, FileText, CheckCircle } from 'lucide-react';
 import Link from 'next/link';
 import { useRouter } from 'next/router';
-import ProgramDetails from '@/features/library/components/ProgramDetails';
 import CTAStrip from '@/shared/components/common/CTAStrip';
-import analytics from '@/shared/lib/analytics';
+import analytics from '@/shared/user/analytics';
 
 
 export default function Library() {
@@ -128,18 +127,34 @@ export default function Library() {
                             {program.description || 'Austrian funding program'}
                           </p>
                           
-                          {/* Program Details Component */}
-                          <ProgramDetails
-                            programId={program.id}
-                            programName={program.name}
-                            programType={program.type || categoryName}
-                            onEdit={() => router.push(`/editor?programId=${program.id}&route=${program.type?.toLowerCase() || 'grant'}&product=submission`)}
-                            onApply={() => router.push(`/reco?programId=${program.id}`)}
-                          />
-                          
-                          <div className="flex items-center gap-2 text-xs text-blue-600 font-medium mt-4">
-                            <span>View Requirements</span>
-                            <ArrowLeft className="w-3 h-3 rotate-180 group-hover:translate-x-1 transition-transform" />
+                          <div className="space-y-2 text-sm text-gray-600">
+                            {program.amount && (
+                              <p>
+                                <span className="font-semibold text-gray-800">Funding:</span> {program.amount}
+                              </p>
+                            )}
+                            {program.deadlines?.length ? (
+                              <p>
+                                <span className="font-semibold text-gray-800">Upcoming deadline:</span> {program.deadlines[0]}
+                              </p>
+                            ) : (
+                              <p className="text-gray-500">Detailed requirements coming soon.</p>
+                            )}
+                          </div>
+
+                          <div className="flex flex-wrap gap-2 mt-4">
+                            <button
+                              onClick={() => router.push(`/editor?programId=${program.id}&route=${program.type?.toLowerCase() || 'grant'}&product=submission`)}
+                              className="px-3 py-1.5 rounded-lg bg-blue-600 text-white text-sm hover:bg-blue-700 transition-colors"
+                            >
+                              Open in Editor
+                            </button>
+                            <button
+                              onClick={() => router.push(`/reco?programId=${program.id}`)}
+                              className="px-3 py-1.5 rounded-lg border border-gray-200 text-sm text-gray-700 hover:border-blue-300 hover:text-blue-600 transition-colors"
+                            >
+                              View Recommendations
+                            </button>
                           </div>
                         </div>
                       ))}

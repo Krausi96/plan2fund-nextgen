@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react'
 import { useRouter } from 'next/router'
-import { useUser } from '@/shared/contexts/UserContext'
+import { useUser } from '@/shared/user/context/UserContext'
 import SEOHead from '@/shared/components/common/SEOHead'
 import LoginModal from '@/shared/components/auth/LoginModal'
 

@@ -1,5 +1,5 @@
 // Enhanced Data Source - GPT-Enhanced with AI features
-import { Program } from '@/shared/types/requirements';
+import { Program } from '@/features/reco/engine/enhancedRecoEngine';
 
 // GPT-Enhanced Program interface
 export interface GPTEnhancedProgram extends Program {
@@ -148,6 +148,7 @@ class HybridDataSource implements ProgramDataSource {
     const ai_guidance = this.generateAIGuidance(program, programType, institution);
 
     return {
+      ...program,
       id: program.id,
       name: program.name,
       type: programType,
@@ -335,60 +336,33 @@ class HybridDataSource implements ProgramDataSource {
     };
   }
 
-  async getDecisionTreeQuestions(programId: string): Promise<DecisionTreeQuestion[]> {
+  // NOTE: These methods are currently unused. If needed, they should use /api/programmes/[id]/requirements instead
+  async getDecisionTreeQuestions(_programId: string): Promise<DecisionTreeQuestion[]> {
     await this.initialize();
-    
-    try {
-      const response = await fetch(`/api/programs-ai?action=questions&programId=${programId}`);
-      if (!response.ok) throw new Error('Failed to fetch decision tree questions');
-      const data = await response.json();
-      return data.data || [];
-    } catch (error) {
-      console.error('API error:', error);
-      return [];
-    }
+    // TODO: Update to use /api/programmes/[id]/requirements if this method is ever needed
+    console.warn('getDecisionTreeQuestions is unused and programs-ai endpoint was removed');
+    return [];
   }
 
-  async getEditorSections(programId: string): Promise<EditorSection[]> {
+  async getEditorSections(_programId: string): Promise<EditorSection[]> {
     await this.initialize();
-    
-    try {
-      const response = await fetch(`/api/programs-ai?action=sections&programId=${programId}`);
-      if (!response.ok) throw new Error('Failed to fetch editor sections');
-      const data = await response.json();
-      return data.data || [];
-    } catch (error) {
-      console.error('API error:', error);
-      return [];
-    }
+    // TODO: Update to use /api/programmes/[id]/requirements if this method is ever needed
+    console.warn('getEditorSections is unused and programs-ai endpoint was removed');
+    return [];
   }
 
-  async getReadinessCriteria(programId: string): Promise<ReadinessCriterion[]> {
+  async getReadinessCriteria(_programId: string): Promise<ReadinessCriterion[]> {
     await this.initialize();
-    
-    try {
-      const response = await fetch(`/api/programs-ai?action=criteria&programId=${programId}`);
-      if (!response.ok) throw new Error('Failed to fetch readiness criteria');
-      const data = await response.json();
-      return data.data || [];
-    } catch (error) {
-      console.error('API error:', error);
-      return [];
-    }
+    // TODO: Update to use /api/programmes/[id]/requirements if this method is ever needed
+    console.warn('getReadinessCriteria is unused and programs-ai endpoint was removed');
+    return [];
   }
 
-  async getAIGuidance(programId: string): Promise<AIGuidance | null> {
+  async getAIGuidance(_programId: string): Promise<AIGuidance | null> {
     await this.initialize();
-    
-    try {
-      const response = await fetch(`/api/programs-ai?action=guidance&programId=${programId}`);
-      if (!response.ok) throw new Error('Failed to fetch AI guidance');
-      const data = await response.json();
-      return data.data || null;
-    } catch (error) {
-      console.error('API error:', error);
-      return null;
-    }
+    // TODO: Update to use /api/programmes/[id]/requirements if this method is ever needed
+    console.warn('getAIGuidance is unused and programs-ai endpoint was removed');
+    return null;
   }
 
   async getProgramsBySymptoms(_symptomData: any): Promise<Program[]> {

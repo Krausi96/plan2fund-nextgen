@@ -1,8 +1,8 @@
 import { useState } from 'react';
 import { useRouter } from 'next/router';
-import { useUser } from '@/shared/contexts/UserContext';
+import { useUser } from '@/shared/user/context/UserContext';
 import { X, Mail, Lock, User, Github, Chrome } from 'lucide-react';
-import emailService from '@/shared/lib/emailService';
+import emailService from '@/shared/lib/services/emailService';
 
 interface LoginModalProps {
   isOpen: boolean;

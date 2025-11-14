@@ -1,6 +1,6 @@
 // GDPR Consent Banner Component
 import React, { useState, useEffect } from 'react';
-import analytics from '@/shared/lib/analytics';
+import analytics from '@/shared/user/analytics';
 
 interface ConsentBannerProps {
   onAccept: () => void;

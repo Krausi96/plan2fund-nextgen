@@ -9,7 +9,7 @@ import { Search, Filter, Sparkles, TrendingUp, Info, ChevronDown, ChevronUp } fr
 import { Button } from '@/shared/components/ui/button';
 import { Card } from '@/shared/components/ui/card';
 import { Badge } from '@/shared/components/ui/badge';
-import { Progress } from '@/shared/components/ui/progress';
+// Progress bar implemented with custom div (not using Progress component)
 import { scoreProgramsEnhanced, EnhancedProgramResult } from '@/features/reco/engine/enhancedRecoEngine';
 import { useRecommendation } from '@/features/reco/contexts/RecommendationContext';
 
@@ -47,35 +47,36 @@ const CORE_QUESTIONS = [
     ],
     required: true,
     priority: 2,
+    // Enhanced: Subregion support for Austria
+    subOptions: (value: string) => {
+      if (value === 'austria') {
+        return [
+          { value: 'vienna', label: 'Vienna' },
+          { value: 'upper_austria', label: 'Upper Austria' },
+          { value: 'lower_austria', label: 'Lower Austria' },
+          { value: 'styria', label: 'Styria' },
+          { value: 'tyrol', label: 'Tyrol' },
+          { value: 'salzburg', label: 'Salzburg' },
+          { value: 'carinthia', label: 'Carinthia' },
+          { value: 'vorarlberg', label: 'Vorarlberg' },
+          { value: 'burgenland', label: 'Burgenland' },
+        ];
+      }
+      return [];
+    },
   },
   {
-    id: 'company_stage',
-    label: 'What stage is your company at?',
+    id: 'funding_amount',
+    label: 'How much funding do you need?',
     type: 'single-select' as const,
     options: [
-      { value: 'idea', label: 'Idea/Concept' },
-      { value: 'pre_company', label: 'Pre-Company (Team of Founders)' },
-      { value: 'inc_lt_6m', label: 'Incorporated < 6 months' },
-      { value: 'inc_6_36m', label: 'Incorporated 6-36 months' },
-      { value: 'inc_gt_36m', label: 'Incorporated > 36 months' },
-      { value: 'research_org', label: 'Research Organization' },
+      { value: 'under100k', label: 'Under €100k' },
+      { value: '100kto500k', label: '€100k - €500k' },
+      { value: '500kto2m', label: '€500k - €2M' },
+      { value: 'over2m', label: 'Over €2M' },
     ],
-    required: false,
+    required: true,
     priority: 3,
-  },
-  {
-    id: 'team_size',
-    label: 'How many people are in your team?',
-    type: 'single-select' as const,
-    options: [
-      { value: '1to2', label: '1-2 people' },
-      { value: '3to5', label: '3-5 people' },
-      { value: '6to10', label: '6-10 people' },
-      { value: 'over10', label: 'Over 10 people' },
-    ],
-    required: false,
-    priority: 4,
-    skipIf: (answers: Record<string, any>) => answers.company_type === 'research', // Research orgs have different structures
   },
   {
     id: 'industry_focus',
@@ -90,71 +91,36 @@ const CORE_QUESTIONS = [
       { value: 'other', label: 'Other' },
     ],
     required: false,
-    priority: 5,
-  },
-  {
-    id: 'use_of_funds',
-    label: 'How will you use the funds?',
-    type: 'multi-select' as const,
-    options: [
-      { value: 'rd', label: 'Research & Development' },
-      { value: 'marketing', label: 'Marketing' },
-      { value: 'equipment', label: 'Equipment/Infrastructure' },
-      { value: 'personnel', label: 'Personnel/Hiring' },
-    ],
-    required: false,
-    priority: 6,
-    // Skip for research orgs - they typically have structured funding programs
-    // Note: This may be too aggressive - consider showing for research spin-offs
-    skipIf: (answers: Record<string, any>) => answers.company_type === 'research',
-  },
-  {
-    id: 'funding_amount',
-    label: 'How much funding do you need?',
-    type: 'single-select' as const,
-    options: [
-      { value: 'under100k', label: 'Under €100k' },
-      { value: '100kto500k', label: '€100k - €500k' },
-      { value: '500kto2m', label: '€500k - €2M' },
-      { value: 'over2m', label: 'Over €2M' },
-    ],
-    required: false,
-    priority: 7,
-  },
-  {
-    id: 'co_financing',
-    label: 'Can you provide co-financing?',
-    type: 'single-select' as const,
-    options: [
-      { value: 'co_yes', label: 'Yes, required' },
-      { value: 'co_partial', label: 'Partial (up to 50%)' },
-      { value: 'co_no', label: 'No co-financing available' },
-    ],
-    required: false,
-    priority: 8,
-    // Skip for small funding amounts - most programs under €100k don't require co-financing
-    // This is appropriate as smaller grants/loans typically don't need matching funds
-    skipIf: (answers: Record<string, any>) => answers.funding_amount === 'under100k',
-  },
-  {
-    id: 'revenue_status',
-    label: 'What is your current revenue status?',
-    type: 'single-select' as const,
-    options: [
-      { value: 'pre_revenue', label: 'Pre-revenue' },
-      { value: 'early_revenue', label: 'Early revenue (< €1M)' },
-      { value: 'growing_revenue', label: 'Growing revenue (€1M+)' },
-    ],
-    required: false,
-    priority: 9,
-    // Skip for early-stage companies and research orgs
-    // Early stages (idea, pre-company, <6 months) are typically pre-revenue
-    // Research orgs have different revenue models (grants, contracts, etc.)
-    skipIf: (answers: Record<string, any>) => {
-      return answers.company_stage === 'idea' || 
-             answers.company_stage === 'pre_company' || 
-             answers.company_stage === 'inc_lt_6m' ||
-             answers.company_type === 'research';
+    priority: 4,
+    // Enhanced: Industry subcategories for better matching
+    subCategories: {
+      digital: [
+        { value: 'ai', label: 'AI/Machine Learning' },
+        { value: 'fintech', label: 'FinTech' },
+        { value: 'healthtech', label: 'HealthTech' },
+        { value: 'edtech', label: 'EdTech' },
+        { value: 'iot', label: 'IoT' },
+        { value: 'blockchain', label: 'Blockchain' },
+      ],
+      sustainability: [
+        { value: 'greentech', label: 'GreenTech' },
+        { value: 'cleantech', label: 'CleanTech' },
+        { value: 'circular_economy', label: 'Circular Economy' },
+        { value: 'renewable_energy', label: 'Renewable Energy' },
+        { value: 'climate_tech', label: 'Climate Tech' },
+      ],
+      health: [
+        { value: 'biotech', label: 'Biotech' },
+        { value: 'medtech', label: 'MedTech' },
+        { value: 'pharma', label: 'Pharmaceuticals' },
+        { value: 'digital_health', label: 'Digital Health' },
+      ],
+      manufacturing: [
+        { value: 'industry_4_0', label: 'Industry 4.0' },
+        { value: 'smart_manufacturing', label: 'Smart Manufacturing' },
+        { value: 'robotics', label: 'Robotics' },
+        { value: 'automation', label: 'Automation' },
+      ],
     },
   },
   {
@@ -167,7 +133,36 @@ const CORE_QUESTIONS = [
       { value: 'environmental', label: 'Environmental (Climate, Sustainability)' },
     ],
     required: false,
-    priority: 10,
+    priority: 5,
+  },
+  {
+    id: 'company_stage',
+    label: 'What stage is your company at?',
+    type: 'single-select' as const,
+    options: [
+      { value: 'idea', label: 'Idea/Concept' },
+      { value: 'pre_company', label: 'Pre-Company (Team of Founders)' },
+      { value: 'inc_lt_6m', label: 'Incorporated < 6 months' },
+      { value: 'inc_6_36m', label: 'Incorporated 6-36 months' },
+      { value: 'inc_gt_36m', label: 'Incorporated > 36 months' },
+      { value: 'research_org', label: 'Research Organization' },
+    ],
+    required: false,
+    priority: 6,
+  },
+  {
+    id: 'use_of_funds',
+    label: 'How will you use the funds?',
+    type: 'multi-select' as const,
+    options: [
+      { value: 'rd', label: 'Research & Development' },
+      { value: 'marketing', label: 'Marketing' },
+      { value: 'equipment', label: 'Equipment/Infrastructure' },
+      { value: 'personnel', label: 'Personnel/Hiring' },
+    ],
+    required: false,
+    priority: 7,
+    skipIf: (answers: Record<string, any>) => answers.company_type === 'research',
   },
   {
     id: 'project_duration',
@@ -180,7 +175,7 @@ const CORE_QUESTIONS = [
       { value: 'over10', label: 'Over 10 years' },
     ],
     required: false,
-    priority: 11,
+    priority: 8,
   },
   {
     id: 'deadline_urgency',
@@ -192,10 +187,53 @@ const CORE_QUESTIONS = [
       { value: 'flexible', label: 'Within 6 months or flexible' },
     ],
     required: false,
-    priority: 12,
-    // Skip for very long-term projects - they typically have flexible deadlines
-    // Projects over 10 years are usually strategic initiatives with flexible timelines
+    priority: 9,
     skipIf: (answers: Record<string, any>) => answers.project_duration === 'over10',
+  },
+  {
+    id: 'co_financing',
+    label: 'Can you provide co-financing?',
+    type: 'single-select' as const,
+    options: [
+      { value: 'co_yes', label: 'Yes, required' },
+      { value: 'co_partial', label: 'Partial (up to 50%)' },
+      { value: 'co_no', label: 'No co-financing available' },
+    ],
+    required: false,
+    priority: 10,
+    skipIf: (answers: Record<string, any>) => answers.funding_amount === 'under100k',
+  },
+  {
+    id: 'revenue_status',
+    label: 'What is your current revenue status?',
+    type: 'single-select' as const,
+    options: [
+      { value: 'pre_revenue', label: 'Pre-revenue' },
+      { value: 'early_revenue', label: 'Early revenue (< €1M)' },
+      { value: 'growing_revenue', label: 'Growing revenue (€1M+)' },
+    ],
+    required: false,
+    priority: 11,
+    skipIf: (answers: Record<string, any>) => {
+      return answers.company_stage === 'idea' || 
+             answers.company_stage === 'pre_company' || 
+             answers.company_stage === 'inc_lt_6m' ||
+             answers.company_type === 'research';
+    },
+  },
+  {
+    id: 'team_size',
+    label: 'How many people are in your team?',
+    type: 'single-select' as const,
+    options: [
+      { value: '1to2', label: '1-2 people' },
+      { value: '3to5', label: '3-5 people' },
+      { value: '6to10', label: '6-10 people' },
+      { value: 'over10', label: 'Over 10 people' },
+    ],
+    required: false,
+    priority: 12,
+    skipIf: (answers: Record<string, any>) => answers.company_type === 'research',
   },
 ];
 
@@ -214,6 +252,25 @@ export default function ProgramFinder({
   const [answers, setAnswers] = useState<Record<string, any>>({});
   const [showFilters, setShowFilters] = useState(false);
   
+  // Progressive disclosure: Phase 1 (3 required) → Phase 2 (4 optional) → Phase 3 (remaining)
+  const [questionPhase, setQuestionPhase] = useState<1 | 2 | 3>(1);
+  
+  // Mobile: Track active tab (questions vs results)
+  const [mobileActiveTab, setMobileActiveTab] = useState<'questions' | 'results'>('questions');
+  
+  // A/B Testing: Explanation variant (A=Score-First, B=LLM-First, C=LLM-Only)
+  const [explanationVariant] = useState<'A' | 'B' | 'C'>(() => {
+    if (typeof window !== 'undefined') {
+      const stored = localStorage.getItem('explanationVariant');
+      if (stored && ['A', 'B', 'C'].includes(stored)) return stored as 'A' | 'B' | 'C';
+      // Random assignment on first visit (33% each)
+      const variant = ['A', 'B', 'C'][Math.floor(Math.random() * 3)] as 'A' | 'B' | 'C';
+      localStorage.setItem('explanationVariant', variant);
+      return variant;
+    }
+    return 'A';
+  });
+  
   // Manual mode state
   const [searchQuery, setSearchQuery] = useState('');
   const [filters, setFilters] = useState({
@@ -225,13 +282,40 @@ export default function ProgramFinder({
     industry: ''
   });
 
-  // Get visible questions (with skip logic)
+  // Get visible questions (with skip logic and progressive disclosure)
   const getVisibleQuestions = () => {
-    return CORE_QUESTIONS.filter(q => {
+    const allQuestions = CORE_QUESTIONS.filter(q => {
       if (q.skipIf && q.skipIf(answers)) return false;
       return true;
     });
+    
+    // Progressive disclosure: Show questions based on phase
+    if (questionPhase === 1) {
+      // Phase 1: Only required questions (3)
+      return allQuestions.filter(q => q.required);
+    } else if (questionPhase === 2) {
+      // Phase 2: Required + first 4 optional (priority 4-7)
+      return allQuestions.filter(q => q.required || (q.priority >= 4 && q.priority <= 7));
+    } else {
+      // Phase 3: All questions
+      return allQuestions;
+    }
   };
+  
+  // Check if we should advance to next phase
+  useEffect(() => {
+    const visible = getVisibleQuestions();
+    const answered = visible.filter(q => answers[q.id] !== undefined && answers[q.id] !== null && answers[q.id] !== '');
+    
+    // Advance to Phase 2 when all Phase 1 questions answered
+    if (questionPhase === 1 && visible.length === answered.length && visible.every(q => q.required)) {
+      setQuestionPhase(2);
+    }
+    // Advance to Phase 3 when all Phase 2 questions answered
+    else if (questionPhase === 2 && visible.length === answered.length) {
+      setQuestionPhase(3);
+    }
+  }, [answers, questionPhase]);
 
   const visibleQuestions = getVisibleQuestions();
   const answeredCount = Object.keys(answers).length;
@@ -244,6 +328,8 @@ export default function ProgramFinder({
       setIsLoading(true);
       
       // Use on-demand recommendation API
+      // Check if seeds should be disabled (for testing)
+      const useSeeds = !process.env.NEXT_PUBLIC_DISABLE_SEEDS;
       const response = await fetch('/api/programs/recommend', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -251,6 +337,7 @@ export default function ProgramFinder({
           answers,
           max_results: 20,
           extract_all: false,
+          use_seeds: useSeeds, // Allow disabling seeds via API parameter
         }),
       });
       
@@ -284,7 +371,10 @@ export default function ProgramFinder({
       
       // Score the programs
       const scored = await scoreProgramsEnhanced(answers, 'strict', programsForScoring);
-      setResults(scored);
+      // Filter out zero-score programs and sort by score (highest first), then take top 5
+      const validPrograms = scored.filter(p => p.score > 0);
+      const top5 = validPrograms.sort((a, b) => b.score - a.score).slice(0, 5);
+      setResults(top5);
       
       // Store in context for results page
       setRecommendations(scored);
@@ -352,7 +442,10 @@ export default function ProgramFinder({
       }));
       
       const scored = await scoreProgramsEnhanced(answersFromFilters as any, 'strict', programsForScoring);
-      setResults(scored);
+      // Filter out zero-score programs and sort by score (highest first), then take top 5
+      const validPrograms = scored.filter(p => p.score > 0);
+      const top5 = validPrograms.sort((a, b) => b.score - a.score).slice(0, 5);
+      setResults(top5);
       setRecommendations(scored);
       
       if (typeof window !== 'undefined') {
@@ -389,14 +482,7 @@ export default function ProgramFinder({
     }
   };
   
-  const handleViewAllResults = () => {
-    setRecommendations(results);
-    if (typeof window !== 'undefined') {
-      localStorage.setItem('recoResults', JSON.stringify(results));
-      localStorage.setItem('userAnswers', JSON.stringify(mode === 'guided' ? answers : { ...filters, project_description: searchQuery }));
-    }
-    router.push('/results');
-  };
+  // Removed handleViewAllResults - results are shown inline in ProgramFinder
   
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-purple-50">
@@ -453,14 +539,88 @@ export default function ProgramFinder({
           )}
         </div>
         
+        {/* Mobile: Tab Toggle (only on mobile) */}
+        <div className="lg:hidden mb-4">
+          <div className="flex bg-white rounded-lg border border-gray-200 p-1">
+            <button
+              onClick={() => setMobileActiveTab('questions')}
+              className={`flex-1 px-4 py-2 rounded-md text-sm font-medium transition-colors ${
+                mobileActiveTab === 'questions'
+                  ? 'bg-blue-600 text-white'
+                  : 'text-gray-700 hover:bg-gray-100'
+              }`}
+            >
+              Questions
+            </button>
+            <button
+              onClick={() => setMobileActiveTab('results')}
+              className={`flex-1 px-4 py-2 rounded-md text-sm font-medium transition-colors ${
+                mobileActiveTab === 'results'
+                  ? 'bg-blue-600 text-white'
+                  : 'text-gray-700 hover:bg-gray-100'
+              }`}
+            >
+              Results ({results.length})
+            </button>
+          </div>
+        </div>
+
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
           {/* Left: Questions/Filters */}
-          <div className="lg:col-span-1">
+          <div className={`lg:col-span-1 ${mobileActiveTab === 'results' ? 'hidden lg:block' : ''}`}>
             <Card className="p-6">
               {mode === 'guided' ? (
                 <div className="space-y-4">
                   <div className="flex items-center justify-between mb-4">
-                    <h2 className="text-lg font-semibold text-gray-900">Guided Questions</h2>
+                    <div className="flex-1">
+                      <h2 className="text-lg font-semibold text-gray-900">Guided Questions</h2>
+                      <span className="text-xs text-gray-500 mt-1 block">
+                        {answeredCount} of {CORE_QUESTIONS.length} total questions answered
+                      </span>
+                    </div>
+                    {questionPhase < 3 && (
+                      <button
+                        onClick={() => setQuestionPhase(3)}
+                        className="ml-2 px-3 py-1.5 text-xs font-medium text-blue-600 hover:text-blue-700 hover:bg-blue-50 rounded-md transition-colors border border-blue-200"
+                        title="Show all questions at once"
+                      >
+                        Show All
+                      </button>
+                    )}
+                  </div>
+                  
+                  {/* Phase Indicator */}
+                  <div className="mb-4 p-3 rounded-lg border-2 bg-gradient-to-r from-blue-50 to-purple-50 border-blue-200">
+                    <div className="flex items-center justify-between mb-1">
+                      <span className="text-sm font-semibold text-gray-900">
+                        {questionPhase === 1 ? 'Phase 1: Core Questions' : questionPhase === 2 ? 'Phase 2: Refining Details' : 'Phase 3: Complete Profile'}
+                      </span>
+                      <span className="text-xs text-gray-600 bg-white px-2 py-0.5 rounded-full">
+                        {questionPhase}/3
+                      </span>
+                    </div>
+                    <p className="text-xs text-gray-600 mt-1">
+                      {questionPhase === 1 
+                        ? 'Start with 3 essential questions to get quick results' 
+                        : questionPhase === 2 
+                        ? 'Add more details to refine your matches' 
+                        : 'Complete all questions for the most accurate recommendations'}
+                    </p>
+                    {/* Phase Progress Dots */}
+                    <div className="flex gap-1.5 mt-2">
+                      {[1, 2, 3].map((phase) => (
+                        <div
+                          key={phase}
+                          className={`flex-1 h-1.5 rounded-full transition-all ${
+                            phase <= questionPhase
+                              ? phase === questionPhase
+                                ? 'bg-blue-600'
+                                : 'bg-green-500'
+                              : 'bg-gray-200'
+                          }`}
+                        />
+                      ))}
+                    </div>
                   </div>
                   
                   <div className="space-y-4 max-h-[600px] overflow-y-auto pr-2">
@@ -554,10 +714,12 @@ export default function ProgramFinder({
                     })}
                   </div>
                   
-                  {/* Progress */}
+                  {/* Progress with Progressive Disclosure */}
                   <div className="pt-4 border-t border-gray-200 mt-4">
                     <div className="flex items-center justify-between text-sm mb-2">
-                      <span className="font-medium text-gray-700">Progress</span>
+                      <span className="font-medium text-gray-700">
+                        Progress {questionPhase === 1 ? '(Phase 1: Core)' : questionPhase === 2 ? '(Phase 2: Refining)' : '(Phase 3: Complete)'}
+                      </span>
                       <span className="text-gray-600">
                         {answeredCount} of {totalQuestions} answered
                         {answeredCount > 0 && (
@@ -573,7 +735,23 @@ export default function ProgramFinder({
                         style={{ width: `${(answeredCount / totalQuestions) * 100}%` }}
                       />
                     </div>
-                    {answeredCount === totalQuestions && (
+                    {questionPhase === 1 && answeredCount === totalQuestions && (
+                      <button
+                        onClick={() => setQuestionPhase(2)}
+                        className="mt-2 w-full px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors text-sm font-medium"
+                      >
+                        Continue to Refining Questions →
+                      </button>
+                    )}
+                    {questionPhase === 2 && answeredCount === totalQuestions && (
+                      <button
+                        onClick={() => setQuestionPhase(3)}
+                        className="mt-2 w-full px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors text-sm font-medium"
+                      >
+                        Complete All Questions →
+                      </button>
+                    )}
+                    {questionPhase === 3 && answeredCount === totalQuestions && (
                       <p className="mt-2 text-sm text-green-600 font-medium flex items-center gap-1">
                         <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
                           <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
@@ -704,7 +882,7 @@ export default function ProgramFinder({
           </div>
           
           {/* Right: Results */}
-          <div className="lg:col-span-2">
+          <div className={`lg:col-span-2 ${mobileActiveTab === 'questions' ? 'hidden lg:block' : ''}`}>
             {isLoading ? (
               <Card className="p-12 text-center">
                 <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
@@ -723,18 +901,11 @@ export default function ProgramFinder({
             ) : (
               <div className="space-y-4">
                 {results.length > 0 && (
-                  <div className="flex justify-end mb-4">
-                    <Button
-                      onClick={handleViewAllResults}
-                      variant="outline"
-                      className="flex items-center gap-2"
-                    >
-                      <Search className="h-4 w-4" />
-                      View All Results ({results.length})
-                    </Button>
+                  <div className="mb-4 text-sm text-gray-600">
+                    Showing top {Math.min(5, results.length)} of {results.length} program{results.length !== 1 ? 's' : ''} found
                   </div>
                 )}
-                {results.map((program) => (
+                {results.slice(0, 5).map((program) => (
                   <div key={program.id} onClick={() => handleProgramSelect(program)}>
                     <Card className="p-6 hover:shadow-lg transition-shadow cursor-pointer">
                     <div className="flex items-start justify-between mb-4">
@@ -765,24 +936,86 @@ export default function ProgramFinder({
                       </Button>
                     </div>
                     
+                    {/* A/B Testing: Explanation Variants */}
                     {(program.reasons || program.founderFriendlyReasons) && (program.reasons?.length || program.founderFriendlyReasons?.length || 0) > 0 && (
-                      <div className="mb-4 p-3 bg-green-50 border border-green-200 rounded-lg">
-                        <div className="flex items-center gap-2 mb-2">
-                          <TrendingUp className="h-4 w-4 text-green-600" />
-                          <span className="text-sm font-semibold text-green-900">Why this matches:</span>
-                        </div>
-                        <ul className="text-sm text-green-800 space-y-1">
-                          {(program.reasons || program.founderFriendlyReasons || []).slice(0, 3).map((reason: string, i: number) => (
-                            <li key={i} className="flex items-start gap-2">
-                              <span className="text-green-500 mt-1">•</span>
-                              <span>{reason}</span>
-                            </li>
-                          ))}
-                        </ul>
-                      </div>
+                      <>
+                        {explanationVariant === 'A' && (
+                          // Variant A: Score-First
+                          <div className="mb-4 p-3 bg-blue-50 border border-blue-200 rounded-lg">
+                            <div className="flex items-center gap-2 mb-2">
+                              <TrendingUp className="h-4 w-4 text-blue-600" />
+                              <span className="text-sm font-semibold text-blue-900">Match Score: {Math.round(program.score)}%</span>
+                            </div>
+                            <div className="text-xs text-blue-700 mb-2">
+                              Score Breakdown: Location (22%) ✓ | Company Type (20%) ✓ | Funding (18%) ✓
+                            </div>
+                            <div className="text-sm font-medium text-blue-900 mb-1">Why this matches:</div>
+                            <ul className="text-sm text-blue-800 space-y-1">
+                              {(program.reasons || program.founderFriendlyReasons || []).slice(0, 3).map((reason: string, i: number) => (
+                                <li key={i} className="flex items-start gap-2">
+                                  <span className="text-blue-500 mt-1">•</span>
+                                  <span>{reason}</span>
+                                </li>
+                              ))}
+                            </ul>
+                            {/* Enhanced explanations */}
+                            {program.strategicAdvice && (
+                              <div className="mt-3 pt-3 border-t border-blue-300">
+                                <div className="text-xs font-semibold text-blue-900 mb-1">💡 Strategic Tip:</div>
+                                <p className="text-xs text-blue-800">{program.strategicAdvice}</p>
+                              </div>
+                            )}
+                            {program.applicationInfo && (
+                              <div className="mt-2">
+                                <div className="text-xs font-semibold text-blue-900 mb-1">📋 Application:</div>
+                                <p className="text-xs text-blue-800">{program.applicationInfo}</p>
+                              </div>
+                            )}
+                          </div>
+                        )}
+                        {explanationVariant === 'B' && (
+                          // Variant B: LLM-First
+                          <div className="mb-4 p-3 bg-green-50 border border-green-200 rounded-lg">
+                            <div className="text-sm font-semibold text-green-900 mb-2">Why this program fits your needs:</div>
+                            <p className="text-sm text-green-800 mb-2">
+                              {(program.reasons || program.founderFriendlyReasons || [])[0] || 'This program matches your requirements.'}
+                            </p>
+                            {/* Enhanced explanations */}
+                            {program.strategicAdvice && (
+                              <div className="mt-2 pt-2 border-t border-green-300">
+                                <div className="text-xs font-semibold text-green-900 mb-1">💡 Strategic Tip:</div>
+                                <p className="text-xs text-green-800">{program.strategicAdvice}</p>
+                              </div>
+                            )}
+                            {program.applicationInfo && (
+                              <div className="mt-2">
+                                <div className="text-xs font-semibold text-green-900 mb-1">📋 Application:</div>
+                                <p className="text-xs text-green-800">{program.applicationInfo}</p>
+                              </div>
+                            )}
+                            <div className="flex items-center justify-between text-xs text-green-700 mt-2">
+                              <span>Match Score: {Math.round(program.score)}%</span>
+                              <button className="text-green-600 hover:underline">Show breakdown →</button>
+                            </div>
+                          </div>
+                        )}
+                        {explanationVariant === 'C' && (
+                          // Variant C: LLM-Only (Minimal)
+                          <div className="mb-4 p-3 bg-gray-50 border border-gray-200 rounded-lg">
+                            <p className="text-sm text-gray-800 mb-1">
+                              {(program.reasons || program.founderFriendlyReasons || [])[0] || 'This program matches your requirements.'}
+                            </p>
+                            {/* Enhanced explanations (minimal) */}
+                            {program.strategicAdvice && (
+                              <p className="text-xs text-gray-700 mt-2 italic">{program.strategicAdvice}</p>
+                            )}
+                            <span className="text-xs text-gray-600">{Math.round(program.score)}% match</span>
+                          </div>
+                        )}
+                      </>
                     )}
                     
-                    {(program.risks || program.founderFriendlyRisks) && (program.risks?.length || program.founderFriendlyRisks?.length || 0) > 0 && (
+                    {(program.risks || program.founderFriendlyRisks || program.riskMitigation) && ((program.risks?.length || program.founderFriendlyRisks?.length || 0) > 0 || program.riskMitigation) && (
                       <div className="mb-4 p-3 bg-yellow-50 border border-yellow-200 rounded-lg">
                         <div className="flex items-center gap-2 mb-2">
                           <Info className="h-4 w-4 text-yellow-600" />
@@ -796,6 +1029,13 @@ export default function ProgramFinder({
                             </li>
                           ))}
                         </ul>
+                        {/* Enhanced risk mitigation */}
+                        {program.riskMitigation && (
+                          <div className="mt-2 pt-2 border-t border-yellow-300">
+                            <div className="text-xs font-semibold text-yellow-900 mb-1">🛡️ Mitigation:</div>
+                            <p className="text-xs text-yellow-800">{program.riskMitigation}</p>
+                          </div>
+                        )}
                       </div>
                     )}
                     

@@ -1,7 +1,7 @@
 // Success Hub with Next Steps and Testimonials
 import React, { useState, useEffect } from 'react';
-import { PlanDocument } from '@/shared/lib/schemas/userProfile';
-import analytics from '@/shared/lib/analytics';
+import { PlanDocument } from '@/shared/user/schemas/userProfile';
+import analytics from '@/shared/user/analytics';
 
 interface SuccessHubProps {
   plan: PlanDocument;

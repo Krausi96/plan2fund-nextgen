@@ -11,24 +11,22 @@ interface RecommendationState {
   recommendations: EnhancedProgramResult[];
   isLoading: boolean;
   
-  // UI State
-  selectedProgram: EnhancedProgramResult | null;
-  
-  // Error Handling
-  error: string | null;
+  // Removed: selectedProgram - not used anywhere
+  // Removed: error - not used anywhere
 }
 
 interface RecommendationContextType {
   // State
   state: RecommendationState;
   
-  // Direct Actions (used by ProgramFinder and other components)
+  // Direct Actions (used by ProgramFinder)
   setAnswers: (answers: Record<string, any>) => void;
   setRecommendations: (recommendations: EnhancedProgramResult[]) => void;
   setLoading: (loading: boolean) => void;
-  setError: (error: string | null) => void;
-  handleProgramSelect: (program: any) => void;
   clearResults: () => void;
+  
+  // Removed: setError - not used
+  // Removed: handleProgramSelect - not used (programs selected via URL routing)
 }
 
 const RecommendationContext = createContext<RecommendationContextType | undefined>(undefined);
@@ -43,8 +41,6 @@ export function RecommendationProvider({ children }: RecommendationProviderProps
     answers: {},
     recommendations: [],
     isLoading: false,
-    selectedProgram: null,
-    error: null
   });
 
   // Clear results
@@ -53,19 +49,12 @@ export function RecommendationProvider({ children }: RecommendationProviderProps
       ...prev,
       answers: {},
       recommendations: [],
-      error: null
     }));
     localStorage.removeItem("userAnswers");
     localStorage.removeItem("recoResults");
   };
 
-  // Dynamic wizard
-  const handleProgramSelect = (program: any) => {
-    setState(prev => ({
-      ...prev,
-      selectedProgram: program,
-    }));
-  };
+  // Removed handleProgramSelect - not used (programs selected via URL routing)
 
 
   // Direct state setters
@@ -81,17 +70,11 @@ export function RecommendationProvider({ children }: RecommendationProviderProps
     setState(prev => ({ ...prev, isLoading }));
   };
 
-  const setError = (error: string | null) => {
-    setState(prev => ({ ...prev, error }));
-  };
-
   const value: RecommendationContextType = {
     state,
     setAnswers,
     setRecommendations,
     setLoading,
-    setError,
-    handleProgramSelect,
     clearResults
   };
 

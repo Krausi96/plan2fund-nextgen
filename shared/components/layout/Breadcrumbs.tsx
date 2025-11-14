@@ -10,7 +10,7 @@ export default function Breadcrumbs() {
   const stepsReco = [
     { href: "/", label: t('breadcrumb.home') },
     { href: "/reco", label: t('breadcrumb.recommendation') },
-    { href: "/results", label: t('breadcrumb.results') },
+    // Removed /results - results are now shown inline in ProgramFinder
     { href: "/editor", label: t('breadcrumb.editor') },
     { href: "/preview", label: t('breadcrumb.preview') },
     { href: "/confirm", label: t('breadcrumb.confirm') },
@@ -29,7 +29,7 @@ export default function Breadcrumbs() {
     { href: "/thank-you", label: t('breadcrumb.successHub') },
   ]
 
-  const isRecoFlow = ["/reco", "/results"].some((p) =>
+  const isRecoFlow = ["/reco"].some((p) =>
     path.startsWith(p)
   )
   const steps = isRecoFlow ? stepsReco : stepsDirect

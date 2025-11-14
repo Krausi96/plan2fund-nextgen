@@ -1,12 +1,12 @@
 ﻿import Link from "next/link";
 import { useRouter } from "next/router";
-import { isFeatureEnabled, getSubscriptionTier } from "@/shared/lib/featureFlags";
+import { isFeatureEnabled, getSubscriptionTier } from "@/shared/user/featureFlags";
 import CartSummary from '@/features/export/components/CartSummary';
 import { useI18n } from "@/shared/contexts/I18nContext";
 import { useEffect } from "react";
-import analytics from "@/shared/lib/analytics";
-import { withAuth } from "@/shared/lib/withAuth";
-import { useUser } from "@/shared/contexts/UserContext";
+import analytics from "@/shared/user/analytics";
+import { withAuth } from "@/shared/user/auth/withAuth";
+import { useUser } from "@/shared/user/context/UserContext";
 import PageEntryIndicator from '@/shared/components/common/PageEntryIndicator';
 import { Lock, CreditCard, Shield } from "lucide-react";
 

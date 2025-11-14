@@ -1,10 +1,10 @@
 import Link from "next/link"
 import { useEffect, useState } from "react"
-import { isFeatureEnabled, getSubscriptionTier } from "@/shared/lib/featureFlags"
+import { isFeatureEnabled, getSubscriptionTier } from "@/shared/user/featureFlags"
 import { Button } from "@/shared/components/ui/button"
 import { useI18n } from "@/shared/contexts/I18nContext"
-import analytics from "@/shared/lib/analytics"
-import { useUser } from "@/shared/contexts/UserContext"
+import analytics from "@/shared/user/analytics"
+import { useUser } from "@/shared/user/context/UserContext"
 import { Info, Lock, Shield, CheckCircle, Key } from "lucide-react"
 
 export default function ConfirmPage() {

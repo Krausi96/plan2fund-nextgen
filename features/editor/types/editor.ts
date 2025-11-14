@@ -9,8 +9,8 @@
 // ============================================================================
 
 // Re-export existing types to avoid duplication
-export type { EditorSection as EditorSection } from '@/shared/types/requirements';
-export type { EditorRequirement } from '@/shared/types/requirements';
+export type { EditorSection } from '@/features/editor/engine/dataSource';
+// EditorRequirement is not used, removed
 
 // Unified editor section (combines both existing types)
 export interface UnifiedEditorSection {

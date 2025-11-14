@@ -1,17 +1,17 @@
 ﻿import Link from "next/link";
 import { useState, useEffect } from "react";
 import { useRouter } from "next/router";
-import { isFeatureEnabled, getSubscriptionTier } from "@/shared/lib/featureFlags";
-import { loadPlanSections, type PlanSection } from "@/shared/lib/planStore";
+import { isFeatureEnabled, getSubscriptionTier } from "@/shared/user/featureFlags";
+import { loadPlanSections, type PlanSection } from "@/shared/user/storage/planStore";
 // chapters.ts removed - use unified template system instead
-import analytics from "@/shared/lib/analytics";
+import analytics from "@/shared/user/analytics";
 import { useI18n } from "@/shared/contexts/I18nContext";
 import { Switch } from "@/shared/components/ui/switch";
 import { Label } from "@/shared/components/ui/label";
 import ExportRenderer from "@/features/export/renderer/renderer";
-import { getDocuments } from "@/shared/lib/templates";
-import { withAuth } from "@/shared/lib/withAuth";
-import { useUser } from "@/shared/contexts/UserContext";
+import { getDocuments } from "@/shared/templates";
+import { withAuth } from "@/shared/user/auth/withAuth";
+import { useUser } from "@/shared/user/context/UserContext";
 import PageEntryIndicator from '@/shared/components/common/PageEntryIndicator';
 import { CheckCircle, FileText, Copy, Lightbulb, Edit } from "lucide-react";
 
@@ -111,7 +111,7 @@ function Preview() {
     const loadSettings = async () => {
       try {
         // Use appStore as single source of truth
-        const { loadPlanSettings } = await import('@/shared/lib/planStore');
+        const { loadPlanSettings } = await import('@/shared/user/storage/planStore');
         const ps = loadPlanSettings();
         if (ps && Object.keys(ps).length > 0) {
           setFormattingOptions(prev => ({

@@ -2,13 +2,13 @@
 // Main editor page with proper provider wrapping
 
 import { useRouter } from 'next/router';
-import UnifiedEditor from '@/features/editor/components/UnifiedEditor';
-import { withAuth } from '@/shared/lib/withAuth';
+import Editor from '@/features/editor/components/Editor';
+import { withAuth } from '@/shared/user/auth/withAuth';
 import PageEntryIndicator from '@/shared/components/common/PageEntryIndicator';
 
 function EditorPage() {
   const router = useRouter();
-  const { programId, route, product, answers } = router.query;
+  const { programId, route, product } = router.query;
 
   // Show loading while router is ready
   if (!router.isReady) {
@@ -30,11 +30,10 @@ function EditorPage() {
         duration={5000}
         position="top-right"
       />
-      <UnifiedEditor
+      <Editor
         programId={programId as string}
         route={(route as string) || 'grant'}
         product={(product as string) || 'submission'}
-        answers={answers ? JSON.parse(decodeURIComponent(answers as string)) : undefined}
       />
     </>
   );

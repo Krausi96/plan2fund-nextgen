@@ -1,6 +1,6 @@
 import type { NextApiRequest, NextApiResponse } from 'next';
-import { findSession, findUserById } from '@/shared/db/user-repository';
-import { getSessionTokenFromCookie } from '@/shared/lib/auth-utils';
+import { findSession, findUserById } from '@/shared/user/database/repository';
+import { getSessionTokenFromCookie } from '@/shared/user/auth/utils';
 
 /**
  * Get current user session

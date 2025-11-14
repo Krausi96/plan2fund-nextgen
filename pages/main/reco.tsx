@@ -1,6 +1,6 @@
 ﻿import ProgramFinder from "@/features/reco/components/ProgramFinder";
 import { useEffect } from "react";
-import analytics from "@/shared/lib/analytics";
+import analytics from "@/shared/user/analytics";
 import PageEntryIndicator from '@/shared/components/common/PageEntryIndicator';
 
 function RecoPage() {

@@ -1,7 +1,7 @@
 import Head from 'next/head';
 import { useRouter } from 'next/router';
 import { useI18n } from '@/shared/contexts/I18nContext';
-import { jsonLd } from '@/shared/lib/seo';
+import { jsonLd } from '@/shared/lib/services/seo';
 
 interface SEOHeadProps {
   pageKey: string;

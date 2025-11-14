@@ -22,15 +22,29 @@ export type PlanSection = {
     revenue?: Table, 
     costs?: Table, 
     cashflow?: Table, 
-    useOfFunds?: Table 
+    useOfFunds?: Table,
+    // Additional table types for various sections
+    risks?: Table,
+    competitors?: Table,
+    timeline?: Table,
+    ratios?: Table,
+    team?: Table,
+    [key: string]: Table | undefined      // Allow any other table keys
   },
-  figures?: FigureRef[],
+  figures?: Array<FigureRef | { [key: string]: any }>,  // Allow FigureRef or any figure structure
   sources?: Array<{ title: string, url: string }>,
   status?: 'aligned'|'needs_fix'|'missing'
 };
 
 export type Route = 'grant'|'loan'|'equity'|'visa';
 export type Product = 'strategy'|'review'|'submission';
+
+export type ConversationMessage = {
+  id: string;
+  role: 'user' | 'assistant';
+  content: string;
+  timestamp: string;
+};
 
 export type PlanDocument = {
   id: string,

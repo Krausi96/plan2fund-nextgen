@@ -1,7 +1,7 @@
 import { memo, useState, useEffect } from "react";
 import { useI18n } from "@/shared/contexts/I18nContext";
-import { detectTargetGroup } from '@/features/intake/engine/targetGroupDetection';
-import TargetGroupBanner from './TargetGroupBanner';
+import { detectTargetGroup } from '@/shared/user/segmentation';
+import TargetGroupBanner from '@/shared/user/components/TargetGroupBanner';
 
 
 // Blueprint Grid Background Component

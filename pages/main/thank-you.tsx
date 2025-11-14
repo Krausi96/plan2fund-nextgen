@@ -3,10 +3,10 @@ import Link from "next/link";
 import { useRouter } from "next/router";
 import { useEffect, useState } from "react";
 import { useI18n } from "@/shared/contexts/I18nContext";
-import { useUser } from "@/shared/contexts/UserContext";
-import analytics from "@/shared/lib/analytics";
-import { savePaymentRecord } from "@/shared/lib/paymentStore";
-import { getUserDocuments } from "@/shared/lib/documentStore";
+import { useUser } from "@/shared/user/context/UserContext";
+import analytics from "@/shared/user/analytics";
+import { savePaymentRecord } from "@/shared/user/storage/paymentStore";
+import { getUserDocuments } from "@/shared/user/storage/documentStore";
 import { FileText, CheckCircle } from "lucide-react";
 
 export default function SuccessHubPage() {

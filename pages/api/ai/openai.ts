@@ -4,6 +4,7 @@
 
 import { NextApiRequest, NextApiResponse } from 'next';
 import OpenAI from 'openai';
+import type { ConversationMessage } from '@/shared/types/plan';
 
 // Initialize OpenAI client
 const openai = new OpenAI({
@@ -21,6 +22,7 @@ interface AIRequest {
     sectionGuidance?: string[];
     hints?: string[];
   };
+  conversationHistory?: ConversationMessage[];
   action: 'generate' | 'improve' | 'compliance' | 'suggest';
 }
 
@@ -44,7 +46,7 @@ export default async function handler(
   }
 
   try {
-    const { message, context, action }: AIRequest = req.body;
+    const { message, context, conversationHistory, action }: AIRequest = req.body;
 
     if (!message || !context) {
       return res.status(400).json({ error: 'Missing required parameters' });
@@ -60,7 +62,7 @@ export default async function handler(
     }
 
     // Generate AI response based on action
-    const response = await generateAIResponse(message, context, action);
+    const response = await generateAIResponse(message, context, action, conversationHistory);
     
     res.status(200).json(response);
   } catch (error) {
@@ -190,7 +192,8 @@ This section is crucial for demonstrating market understanding and business viab
 async function generateAIResponse(
   message: string,
   context: AIRequest['context'],
-  action: string
+  action: string,
+  conversationHistory?: ConversationMessage[]
 ): Promise<AIResponse> {
   // Create system prompt based on action and context
   const systemPrompt = createSystemPrompt(action, context);
@@ -198,13 +201,28 @@ async function generateAIResponse(
   // Create user prompt
   const userPrompt = createUserPrompt(message, context);
 
+  // Build messages array with conversation history
+  const messages: Array<{ role: 'system' | 'user' | 'assistant'; content: string }> = [
+    { role: "system", content: systemPrompt }
+  ];
+
+  // Add conversation history if provided
+  if (conversationHistory && conversationHistory.length > 0) {
+    conversationHistory.forEach(msg => {
+      messages.push({
+        role: msg.role === 'user' ? 'user' : 'assistant',
+        content: msg.content
+      });
+    });
+  }
+
+  // Add current user message
+  messages.push({ role: "user", content: userPrompt });
+
   try {
     const completion = await openai.chat.completions.create({
       model: "gpt-4o-mini", // Using GPT-4o-mini for cost efficiency
-      messages: [
-        { role: "system", content: systemPrompt },
-        { role: "user", content: userPrompt }
-      ],
+      messages: messages,
       max_tokens: 1000,
       temperature: 0.7,
     });

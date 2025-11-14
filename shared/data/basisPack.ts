@@ -178,4 +178,4 @@ export function getAddonSpec(addonId: string): Addon | undefined {
 
 // Re-export types for convenience (avoid conflicts by using different names)
 export type { Product as PlanProduct } from '@/shared/types/plan';
-export type { TargetGroup as DetectionTargetGroup } from '@/features/intake/engine/targetGroupDetection';
+export type { TargetGroup as DetectionTargetGroup } from '@/shared/user/segmentation';

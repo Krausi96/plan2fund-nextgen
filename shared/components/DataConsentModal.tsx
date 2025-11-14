@@ -9,8 +9,8 @@ import React, { useState, useEffect } from 'react';
 import { X, Shield, Database, Brain } from 'lucide-react';
 import { Button } from '@/shared/components/ui/button';
 import { Card } from '@/shared/components/ui/card';
-import { setUserConsent, getUserConsent } from '@/shared/lib/dataCollection';
-import { useUser } from '@/shared/contexts/UserContext';
+import { setUserConsent, getUserConsent } from '@/shared/user/analytics/dataCollection';
+import { useUser } from '@/shared/user/context/UserContext';
 
 interface DataConsentModalProps {
   isOpen: boolean;

@@ -2,7 +2,7 @@ import { useState, useEffect } from "react";
 import { Card } from "@/shared/components/ui/card";
 import SEOHead from '@/shared/components/common/SEOHead';
 import { ChevronDown, ChevronUp, HelpCircle } from "lucide-react";
-import analytics from "@/shared/lib/analytics";
+import analytics from "@/shared/user/analytics";
 import { useI18n } from "@/shared/contexts/I18nContext";
 
 interface FAQItem {

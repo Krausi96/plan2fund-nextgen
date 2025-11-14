@@ -1,16 +1,16 @@
 ﻿import React, { useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/router";
-import { isFeatureEnabled, getSubscriptionTier } from "@/shared/lib/featureFlags";
-import { loadPlanSections, loadUserAnswers, type PlanSection } from "@/shared/lib/planStore";
-import analytics from "@/shared/lib/analytics";
-import { getDocuments, getDocument } from "@/shared/lib/templates";
+import { isFeatureEnabled, getSubscriptionTier } from "@/shared/user/featureFlags";
+import { loadPlanSections, loadUserAnswers, type PlanSection } from "@/shared/user/storage/planStore";
+import analytics from "@/shared/user/analytics";
+import { getDocuments, getDocument } from "@/shared/templates";
 import { exportManager } from "@/features/export/engine/export";
 import { PlanDocument } from "@/shared/types/plan";
-import { withAuth } from "@/shared/lib/withAuth";
-import { useUser } from "@/shared/contexts/UserContext";
-import { getPlanPaymentStatus } from "@/shared/lib/paymentStore";
-import { saveExportedDocument } from "@/shared/lib/documentStore";
+import { withAuth } from "@/shared/user/auth/withAuth";
+import { useUser } from "@/shared/user/context/UserContext";
+import { getPlanPaymentStatus } from "@/shared/user/storage/paymentStore";
+import { saveExportedDocument } from "@/shared/user/storage/documentStore";
 import PageEntryIndicator from '@/shared/components/common/PageEntryIndicator';
 import { FileText, CheckCircle, AlertTriangle } from "lucide-react";
 
@@ -394,9 +394,7 @@ function Export() {
               format: (format.toUpperCase() as any),
               includeWatermark: !isPaid,
               isPaid,
-              quality: 'standard',
-              includeToC: true,
-              includeListOfFigures: true
+              quality: 'standard'
             });
             if (!result.success) throw new Error(result.error || 'Export failed');
 
@@ -471,9 +469,7 @@ function Export() {
                 format: (format.toUpperCase() as any), 
                 includeWatermark: !isPaid, 
                 isPaid: isPaid, 
-                quality: 'standard', 
-                includeToC: true, 
-                includeListOfFigures: true 
+                quality: 'standard' 
               }, subscriptionTier);
               
               // Save exported document

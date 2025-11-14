@@ -1,6 +1,6 @@
 // Doctor-Like Diagnostic Engine - Converts user input to funding diagnosis
 import { dataSource } from './dataSource';
-import { Program } from '@/shared/types/requirements';
+import { Program } from '@/features/reco/engine/enhancedRecoEngine';
 
 export interface Symptom {
   id: string;

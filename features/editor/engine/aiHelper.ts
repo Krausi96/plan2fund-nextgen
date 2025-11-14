@@ -4,8 +4,21 @@
  * Integrates with Dynamic Decision Trees and Program-Specific Templates
  */
 
-import { Program } from '@/features/intake/engine/prefill';
+import type { ConversationMessage } from '@/shared/types/plan';
+
 // ProgramTemplate and TemplateSection types removed - using Enhanced Data Pipeline instead
+
+interface Program {
+  id: string;
+  name: string;
+  type: string;
+  amount?: string;
+  eligibility?: string[];
+  requirements?: string[];
+  score?: number;
+  reasons?: string[];
+  risks?: string[];
+}
 
 interface AIHelperConfig {
   maxWords: number;
@@ -53,7 +66,8 @@ export class AIHelper {
   async generateSectionContent(
     section: string,
     context: string,
-    program: Program
+    program: Program,
+    conversationHistory?: ConversationMessage[]
   ): Promise<AIResponse> {
     // Get structured requirements for this program
     const structuredRequirements = await this.getStructuredRequirements(program.id);
@@ -72,7 +86,8 @@ export class AIHelper {
       programType: program.type,
       programName: program.name,
       sectionGuidance: sectionGuidance,
-      hints: this.config.programHints?.[program.type]?.reviewer_tips || []
+      hints: this.config.programHints?.[program.type]?.reviewer_tips || [],
+      conversationHistory: conversationHistory || []
     });
     
     return {
@@ -100,6 +115,7 @@ export class AIHelper {
       programName?: string;
       sectionGuidance?: string[];
       hints?: string[];
+      conversationHistory?: ConversationMessage[];
     }
   ): Promise<{ content: string; suggestions?: string[]; citations?: string[] }> {
     try {
@@ -109,7 +125,16 @@ export class AIHelper {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           message: prompt,
-          context: context,
+          context: {
+            sectionId: context.sectionId,
+            sectionTitle: context.sectionTitle,
+            currentContent: context.currentContent,
+            programType: context.programType,
+            programName: context.programName,
+            sectionGuidance: context.sectionGuidance,
+            hints: context.hints
+          },
+          conversationHistory: context.conversationHistory || [],
           action: 'generate'
         })
       });
