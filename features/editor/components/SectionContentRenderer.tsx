@@ -4,19 +4,98 @@
 import React from 'react';
 import { PlanSection } from '@/shared/types/plan';
 import { SectionTemplate } from '@/shared/templates/types';
-import FinancialChart from './FinancialChart';
+import DataChart from './DataChart';
 import { sectionNeedsCharts } from '@/features/editor/utils/tableInitializer';
+
+type ChartType = 'bar' | 'line' | 'pie' | 'donut';
 
 interface SectionContentRendererProps {
   section: PlanSection;
   template: SectionTemplate;
   onTableChange?: (tableKey: string, table: import('@/shared/types/plan').Table) => void;
+  onChartTypeChange?: (tableKey: string, chartType: ChartType) => void;
+}
+
+/**
+ * Get chart type for a table: user preference > formatRequirements > defaults
+ */
+function getChartTypeForTable(
+  section: PlanSection,
+  template: SectionTemplate,
+  tableKey: string
+): ChartType {
+  // 1. Check user preference first (highest priority)
+  if (section.chartTypes?.[tableKey]) {
+    return section.chartTypes[tableKey];
+  }
+  
+  // 2. Check formatRequirements
+  const formatReqs = template.validationRules?.formatRequirements || [];
+  if (formatReqs.some(req => req.includes('pie_chart') || req.includes('pie'))) {
+    return 'pie';
+  }
+  if (formatReqs.some(req => req.includes('donut_chart') || req.includes('donut'))) {
+    return 'donut';
+  }
+  if (formatReqs.some(req => req.includes('line_chart') || req.includes('line_graph'))) {
+    return 'line';
+  }
+  if (formatReqs.some(req => req.includes('bar_chart') || req.includes('bar_graph'))) {
+    return 'bar';
+  }
+  
+  // 3. Fallback to sensible defaults
+  if (tableKey === 'cashflow') return 'line';
+  if (tableKey === 'useOfFunds') return 'pie';
+  return 'bar';
+}
+
+/**
+ * Simple inline chart type selector buttons
+ */
+function ChartTypeButtons({
+  currentType,
+  onChange
+}: {
+  currentType: ChartType;
+  onChange: (type: ChartType) => void;
+}) {
+  const types: ChartType[] = ['bar', 'line', 'pie', 'donut'];
+  const labels: Record<ChartType, string> = {
+    bar: '📊 Bar',
+    line: '📈 Line',
+    pie: '🥧 Pie',
+    donut: '🍩 Donut'
+  };
+
+  return (
+    <div className="flex items-center gap-2 mb-2 text-xs">
+      <span className="text-gray-500">Chart:</span>
+      <div className="flex gap-1 bg-gray-100 rounded-md p-0.5">
+        {types.map((type) => (
+          <button
+            key={type}
+            onClick={() => onChange(type)}
+            className={`px-2 py-1 rounded text-xs font-medium transition-colors ${
+              currentType === type
+                ? 'bg-blue-600 text-white'
+                : 'text-gray-600 hover:bg-gray-200'
+            }`}
+            title={`Switch to ${labels[type]} chart`}
+          >
+            {labels[type]}
+          </button>
+        ))}
+      </div>
+    </div>
+  );
 }
 
 export default function SectionContentRenderer({
   section,
   template,
-  onTableChange
+  onTableChange,
+  onChartTypeChange
 }: SectionContentRendererProps) {
   const category = template.category?.toLowerCase() || '';
 
@@ -33,11 +112,17 @@ export default function SectionContentRenderer({
               onUpdate={(table) => onTableChange?.('revenue', table)}
             />
             {sectionNeedsCharts(template) && (
-              <FinancialChart
-                table={section.tables.revenue}
-                chartType="bar"
-                title="Revenue Projections Chart"
-              />
+              <div>
+                <ChartTypeButtons
+                  currentType={getChartTypeForTable(section, template, 'revenue')}
+                  onChange={(type) => onChartTypeChange?.('revenue', type)}
+                />
+                <DataChart
+                  table={section.tables.revenue}
+                  chartType={getChartTypeForTable(section, template, 'revenue')}
+                  title="Revenue Projections Chart"
+                />
+              </div>
             )}
           </div>
         )}
@@ -51,11 +136,17 @@ export default function SectionContentRenderer({
               onUpdate={(table) => onTableChange?.('costs', table)}
             />
             {sectionNeedsCharts(template) && (
-              <FinancialChart
-                table={section.tables.costs}
-                chartType="bar"
-                title="Cost Breakdown Chart"
-              />
+              <div>
+                <ChartTypeButtons
+                  currentType={getChartTypeForTable(section, template, 'costs')}
+                  onChange={(type) => onChartTypeChange?.('costs', type)}
+                />
+                <DataChart
+                  table={section.tables.costs}
+                  chartType={getChartTypeForTable(section, template, 'costs')}
+                  title="Cost Breakdown Chart"
+                />
+              </div>
             )}
           </div>
         )}
@@ -69,11 +160,17 @@ export default function SectionContentRenderer({
               onUpdate={(table) => onTableChange?.('cashflow', table)}
             />
             {sectionNeedsCharts(template) && (
-              <FinancialChart
-                table={section.tables.cashflow}
-                chartType="line"
-                title="Cash Flow Projections Chart"
-              />
+              <div>
+                <ChartTypeButtons
+                  currentType={getChartTypeForTable(section, template, 'cashflow')}
+                  onChange={(type) => onChartTypeChange?.('cashflow', type)}
+                />
+                <DataChart
+                  table={section.tables.cashflow}
+                  chartType={getChartTypeForTable(section, template, 'cashflow')}
+                  title="Cash Flow Projections Chart"
+                />
+              </div>
             )}
           </div>
         )}
@@ -87,11 +184,17 @@ export default function SectionContentRenderer({
               onUpdate={(table) => onTableChange?.('useOfFunds', table)}
             />
             {sectionNeedsCharts(template) && (
-              <FinancialChart
-                table={section.tables.useOfFunds}
-                chartType="bar"
-                title="Use of Funds Chart"
-              />
+              <div>
+                <ChartTypeButtons
+                  currentType={getChartTypeForTable(section, template, 'useOfFunds')}
+                  onChange={(type) => onChartTypeChange?.('useOfFunds', type)}
+                />
+                <DataChart
+                  table={section.tables.useOfFunds}
+                  chartType={getChartTypeForTable(section, template, 'useOfFunds')}
+                  title="Use of Funds Chart"
+                />
+              </div>
             )}
           </div>
         )}
@@ -111,11 +214,17 @@ export default function SectionContentRenderer({
               onUpdate={(table) => onTableChange?.('competitors', table)}
             />
             {sectionNeedsCharts(template) && (
-              <FinancialChart
-                table={section.tables.competitors}
-                chartType="bar"
-                title="Competitor Comparison Chart"
-              />
+              <div>
+                <ChartTypeButtons
+                  currentType={getChartTypeForTable(section, template, 'competitors')}
+                  onChange={(type) => onChartTypeChange?.('competitors', type)}
+                />
+                <DataChart
+                  table={section.tables.competitors}
+                  chartType={getChartTypeForTable(section, template, 'competitors')}
+                  title="Competitor Comparison Chart"
+                />
+              </div>
             )}
           </div>
         )}

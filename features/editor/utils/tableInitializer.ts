@@ -127,43 +127,81 @@ function createDefaultTimelineTable(): Table {
 }
 
 /**
- * Initialize tables for a section based on its category
+ * Initialize tables for a section based on formatRequirements first, then category
+ * Priority: formatRequirements > category
  */
 export function initializeTablesForSection(template: SectionTemplate): PlanSection['tables'] {
+  const formatReqs = template.validationRules?.formatRequirements || [];
   const category = template.category?.toLowerCase() || '';
+  const tables: PlanSection['tables'] = {};
   
-  switch (category) {
-    case 'financial':
-      return {
-        revenue: createDefaultRevenueTable(),
-        costs: createDefaultCostsTable(),
-        cashflow: createDefaultCashflowTable(),
-        useOfFunds: createDefaultUseOfFundsTable()
-      };
-    
-    case 'market':
-      return {
-        competitors: createDefaultCompetitorTable()
-      };
-    
-    case 'risk':
-      return {
-        risks: createDefaultRiskTable()
-      };
-    
-    case 'team':
-      return {
-        team: createDefaultTeamTable()
-      };
-    
-    case 'project':
-      return {
-        timeline: createDefaultTimelineTable()
-      };
-    
-    default:
-      return undefined;
+  // Check formatRequirements first (highest priority)
+  if (formatReqs.some(req => req.includes('financial_tables') || req.includes('tabular_budget') || req.includes('clean_financial_tables'))) {
+    tables.revenue = createDefaultRevenueTable();
+    tables.costs = createDefaultCostsTable();
+    tables.cashflow = createDefaultCashflowTable();
+    if (formatReqs.some(req => req.includes('use_of_funds') || req.includes('fund_allocation'))) {
+      tables.useOfFunds = createDefaultUseOfFundsTable();
+    }
   }
+  
+  if (formatReqs.some(req => req.includes('risk_matrix') || req.includes('structured_risk_section'))) {
+    tables.risks = createDefaultRiskTable();
+  }
+  
+  if (formatReqs.some(req => req.includes('competitive_matrix') || req.includes('competitive_positioning'))) {
+    tables.competitors = createDefaultCompetitorTable();
+  }
+  
+  if (formatReqs.some(req => req.includes('gantt_chart_or_table') || req.includes('project_schedule'))) {
+    tables.timeline = createDefaultTimelineTable();
+  }
+  
+  if (formatReqs.some(req => req.includes('team') || req.includes('team_members'))) {
+    tables.team = createDefaultTeamTable();
+  }
+  
+  if (formatReqs.some(req => req.includes('ratio_tables') || req.includes('financial_ratios'))) {
+    // Could add ratios table here if needed
+  }
+  
+  // Fallback to category-based initialization if no formatRequirements matched
+  if (Object.keys(tables).length === 0) {
+    switch (category) {
+      case 'financial':
+        return {
+          revenue: createDefaultRevenueTable(),
+          costs: createDefaultCostsTable(),
+          cashflow: createDefaultCashflowTable(),
+          useOfFunds: createDefaultUseOfFundsTable()
+        };
+      
+      case 'market':
+        return {
+          competitors: createDefaultCompetitorTable()
+        };
+      
+      case 'risk':
+        return {
+          risks: createDefaultRiskTable()
+        };
+      
+      case 'team':
+        return {
+          team: createDefaultTeamTable()
+        };
+      
+      case 'project':
+        return {
+          timeline: createDefaultTimelineTable()
+        };
+      
+      default:
+        return undefined;
+    }
+  }
+  
+  return tables;
 }
 
 /**

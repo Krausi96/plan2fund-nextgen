@@ -19,14 +19,24 @@ export default function DataChart({
   table, 
   chartType, 
   title
-}: FinancialChartProps) {
+}: DataChartProps) {
   // Convert table data to chart format
   const chartData = React.useMemo(() => {
     if (!table || !table.columns || !table.rows || table.rows.length === 0) {
       return [];
     }
 
-    // Use columns as data points (years, quarters, etc.)
+    // For pie/donut charts, use first column's data
+    if (chartType === 'pie' || chartType === 'donut') {
+      return table.rows.map((row) => ({
+        name: row.label,
+        value: typeof row.values[0] === 'number' 
+          ? row.values[0] 
+          : (typeof row.values[0] === 'string' ? parseFloat(row.values[0]) || 0 : 0)
+      }));
+    }
+
+    // For bar/line charts, use columns as data points (years, quarters, etc.)
     return table.columns.map((column, colIndex) => {
       const dataPoint: Record<string, string | number> = { name: column };
       
@@ -38,7 +48,7 @@ export default function DataChart({
       
       return dataPoint;
     });
-  }, [table]);
+  }, [table, chartType]);
 
   if (chartData.length === 0) {
     return (
@@ -48,8 +58,9 @@ export default function DataChart({
     );
   }
 
-  // Get all row labels for legend
+  // Get all row labels for legend (bar/line charts)
   const seriesKeys = table.rows.map(row => row.label);
+  const colors = getColorsForChart(seriesKeys.length);
 
   return (
     <div className="mb-6">
@@ -69,11 +80,11 @@ export default function DataChart({
                 <Bar 
                   key={key} 
                   dataKey={key} 
-                  fill={getColorForIndex(index)}
+                  fill={colors[index]}
                 />
               ))}
             </BarChart>
-          ) : (
+          ) : chartType === 'line' ? (
             <LineChart data={chartData}>
               <CartesianGrid strokeDasharray="3 3" />
               <XAxis dataKey="name" />
@@ -85,11 +96,34 @@ export default function DataChart({
                   key={key} 
                   type="monotone" 
                   dataKey={key} 
-                  stroke={getColorForIndex(index)}
+                  stroke={colors[index]}
                   strokeWidth={2}
                 />
               ))}
             </LineChart>
+          ) : (
+            <PieChart>
+              <Pie
+                data={chartData}
+                cx="50%"
+                cy="50%"
+                labelLine={false}
+                label={(props: any) => {
+                  const { name, percent } = props;
+                  return `${name}: ${(percent * 100).toFixed(0)}%`;
+                }}
+                outerRadius={chartType === 'donut' ? 80 : 100}
+                innerRadius={chartType === 'donut' ? 40 : 0}
+                fill="#8884d8"
+                dataKey="value"
+              >
+                {chartData.map((_, index) => (
+                  <Cell key={`cell-${index}`} fill={colors[index]} />
+                ))}
+              </Pie>
+              <Tooltip />
+              <Legend />
+            </PieChart>
           )}
         </ResponsiveContainer>
       </div>
@@ -98,8 +132,8 @@ export default function DataChart({
 }
 
 // Color palette for chart series
-function getColorForIndex(index: number): string {
-  const colors = [
+function getColorsForChart(count: number): string[] {
+  const colorPalette = [
     '#3b82f6', // blue
     '#10b981', // green
     '#f59e0b', // amber
@@ -109,6 +143,6 @@ function getColorForIndex(index: number): string {
     '#f97316', // orange
     '#ec4899', // pink
   ];
-  return colors[index % colors.length];
+  return Array.from({ length: count }, (_, i) => colorPalette[i % colorPalette.length]);
 }
 

@@ -624,6 +624,42 @@ export default function Editor({ programId, product = 'submission', route = 'gra
                           }
                         }
                       }}
+                      onChartTypeChange={(tableKey, chartType) => {
+                        const updated = [...sections];
+                        const section = updated[activeSection];
+                        if (!section.chartTypes) {
+                          section.chartTypes = {};
+                        }
+                        section.chartTypes[tableKey] = chartType;
+                        setSections(updated);
+                        
+                        // Update plan
+                        if (plan) {
+                          const updatedPlan = { ...plan, sections: updated };
+                          setPlan(updatedPlan);
+                          
+                          // Auto-save
+                          setIsSaving(true);
+                          setTimeout(async () => {
+                            try {
+                              await savePlanSections(updated.map(s => ({
+                                id: s.key,
+                                title: s.title,
+                                content: s.content || '',
+                                tables: s.tables,
+                                figures: s.figures,
+                                chartTypes: s.chartTypes,
+                                sources: s.sources,
+                                fields: s.fields
+                              })));
+                            } catch (error) {
+                              console.error('Error saving:', error);
+                            } finally {
+                              setIsSaving(false);
+                            }
+                          }, 400);
+                        }
+                      }}
                     />
                   </div>
                 );

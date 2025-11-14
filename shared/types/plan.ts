@@ -7,7 +7,7 @@ export type Table = {
 };
 
 export type FigureRef = { 
-  type: 'line'|'bar'|'donut', 
+  type: 'line'|'bar'|'pie'|'donut', 
   dataRef: 'revenue'|'costs'|'cashflow'|'useOfFunds', 
   caption?: string, 
   altText?: string 
@@ -32,6 +32,7 @@ export type PlanSection = {
     [key: string]: Table | undefined      // Allow any other table keys
   },
   figures?: Array<FigureRef | { [key: string]: any }>,  // Allow FigureRef or any figure structure
+  chartTypes?: Record<string, 'bar' | 'line' | 'pie' | 'donut'>, // User-selected chart types per table key
   sources?: Array<{ title: string, url: string }>,
   status?: 'aligned'|'needs_fix'|'missing'
 };
