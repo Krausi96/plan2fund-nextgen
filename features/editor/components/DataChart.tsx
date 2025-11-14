@@ -1,17 +1,21 @@
-// ========= PLAN2FUND — FINANCIAL CHART COMPONENT =========
-// Generates charts from financial table data
+// ========= PLAN2FUND — DATA CHART COMPONENT =========
+// Generic chart component that generates charts from table data
+// Supports bar, line, pie, and donut charts
 
 import React from 'react';
 import { Table } from '@/shared/types/plan';
-import { BarChart, Bar, LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts';
+import { 
+  BarChart, Bar, LineChart, Line, PieChart, Pie, Cell,
+  XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer 
+} from 'recharts';
 
-interface FinancialChartProps {
+interface DataChartProps {
   table: Table;
-  chartType: 'bar' | 'line';
+  chartType: 'bar' | 'line' | 'pie' | 'donut';
   title?: string;
 }
 
-export default function FinancialChart({ 
+export default function DataChart({ 
   table, 
   chartType, 
   title

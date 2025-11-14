@@ -199,7 +199,7 @@ function FinancialTable({ table, onUpdate }: { table: import('@/shared/types/pla
                 <td key={vIdx} className="text-right p-3">
                   <input
                     type="number"
-                    value={val}
+                    value={typeof val === 'number' ? val : (typeof val === 'string' ? parseFloat(val) || 0 : 0)}
                     onChange={(e) => {
                       const updated = { ...table };
                       const newValue = Number(e.target.value) || 0;

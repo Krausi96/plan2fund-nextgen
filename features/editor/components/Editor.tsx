@@ -12,7 +12,6 @@ import { calculateSectionProgress } from '@/features/editor/hooks/useSectionProg
 import ProgramSelector from './ProgramSelector';
 import SimpleTextEditor from './SimpleTextEditor';
 import RequirementsModal from './RequirementsModal';
-import FinancialChart from './FinancialChart';
 import SectionContentRenderer from './SectionContentRenderer';
 import { initializeTablesForSection, sectionNeedsTables } from '@/features/editor/utils/tableInitializer';
 
@@ -581,158 +580,54 @@ export default function Editor({ programId, product = 'submission', route = 'gra
                 </div>
               )}
 
-              {/* Financial Tables - Inline (if financial section) */}
-              {currentSection.tables && (
-                <div className="mb-6 space-y-4">
-                  {currentSection.tables.revenue && (
-                    <div>
-                      <h3 className="text-sm font-semibold text-gray-700 mb-2">Revenue Projections</h3>
-                      <div className="border border-gray-200 rounded-lg overflow-hidden">
-                        <table className="w-full text-sm">
-                          <thead className="bg-gray-50">
-                            <tr>
-                              <th className="text-left p-3 border-b border-gray-200">Item</th>
-                              {currentSection.tables.revenue.columns.map((col, idx) => (
-                                <th key={idx} className="text-right p-3 border-b border-gray-200">{col}</th>
-                              ))}
-                            </tr>
-                          </thead>
-                          <tbody>
-                            {currentSection.tables.revenue.rows.map((row, rIdx) => (
-                              <tr key={rIdx} className="border-b border-gray-100">
-                                <td className="p-3">{row.label}</td>
-                                {row.values.map((val, vIdx) => (
-                                  <td key={vIdx} className="text-right p-3">
-                                    <input
-                                      type="number"
-                                      value={val}
-                                      onChange={(e) => {
-                                        const updated = [...sections];
-                                        const table = updated[activeSection].tables?.revenue;
-                                        if (table) {
-                                          table.rows[rIdx].values[vIdx] = Number(e.target.value) || 0;
-                                          handleSectionChange(currentSection.key, currentSection.content);
-                                        }
-                                      }}
-                                      className="w-24 text-right border-0 bg-transparent focus:bg-blue-50 focus:outline-none focus:ring-1 focus:ring-blue-500 rounded px-2 py-1"
-                                    />
-                                  </td>
-                                ))}
-                              </tr>
-                            ))}
-                          </tbody>
-                        </table>
-                      </div>
-                      {/* Auto-generate chart from revenue table */}
-                      {currentSection.tables.revenue.rows.length > 0 && (
-                        <FinancialChart
-                          table={currentSection.tables.revenue}
-                          chartType="bar"
-                          title="Revenue Projections Chart"
-                        />
-                      )}
-                    </div>
-                  )}
-                  {currentSection.tables.costs && (
-                    <div>
-                      <h3 className="text-sm font-semibold text-gray-700 mb-2">Cost Breakdown</h3>
-                      <div className="border border-gray-200 rounded-lg overflow-hidden">
-                        <table className="w-full text-sm">
-                          <thead className="bg-gray-50">
-                            <tr>
-                              <th className="text-left p-3 border-b border-gray-200">Item</th>
-                              {currentSection.tables.costs.columns.map((col, idx) => (
-                                <th key={idx} className="text-right p-3 border-b border-gray-200">{col}</th>
-                              ))}
-                            </tr>
-                          </thead>
-                          <tbody>
-                            {currentSection.tables.costs.rows.map((row, rIdx) => (
-                              <tr key={rIdx} className="border-b border-gray-100">
-                                <td className="p-3">{row.label}</td>
-                                {row.values.map((val, vIdx) => (
-                                  <td key={vIdx} className="text-right p-3">
-                                    <input
-                                      type="number"
-                                      value={val}
-                                      onChange={(e) => {
-                                        const updated = [...sections];
-                                        const table = updated[activeSection].tables?.costs;
-                                        if (table) {
-                                          table.rows[rIdx].values[vIdx] = Number(e.target.value) || 0;
-                                          handleSectionChange(currentSection.key, currentSection.content);
-                                        }
-                                      }}
-                                      className="w-24 text-right border-0 bg-transparent focus:bg-blue-50 focus:outline-none focus:ring-1 focus:ring-blue-500 rounded px-2 py-1"
-                                    />
-                                  </td>
-                                ))}
-                              </tr>
-                            ))}
-                          </tbody>
-                        </table>
-                      </div>
-                      {/* Auto-generate chart from costs table */}
-                      {currentSection.tables.costs.rows.length > 0 && (
-                        <FinancialChart
-                          table={currentSection.tables.costs}
-                          chartType="bar"
-                          title="Cost Breakdown Chart"
-                        />
-                      )}
-                    </div>
-                  )}
-                  {currentSection.tables.cashflow && (
-                    <div>
-                      <h3 className="text-sm font-semibold text-gray-700 mb-2">Cash Flow Projections</h3>
-                      <div className="border border-gray-200 rounded-lg overflow-hidden">
-                        <table className="w-full text-sm">
-                          <thead className="bg-gray-50">
-                            <tr>
-                              <th className="text-left p-3 border-b border-gray-200">Item</th>
-                              {currentSection.tables.cashflow.columns.map((col, idx) => (
-                                <th key={idx} className="text-right p-3 border-b border-gray-200">{col}</th>
-                              ))}
-                            </tr>
-                          </thead>
-                          <tbody>
-                            {currentSection.tables.cashflow.rows.map((row, rIdx) => (
-                              <tr key={rIdx} className="border-b border-gray-100">
-                                <td className="p-3">{row.label}</td>
-                                {row.values.map((val, vIdx) => (
-                                  <td key={vIdx} className="text-right p-3">
-                                    <input
-                                      type="number"
-                                      value={val}
-                                      onChange={(e) => {
-                                        const updated = [...sections];
-                                        const table = updated[activeSection].tables?.cashflow;
-                                        if (table) {
-                                          table.rows[rIdx].values[vIdx] = Number(e.target.value) || 0;
-                                          handleSectionChange(currentSection.key, currentSection.content);
-                                        }
-                                      }}
-                                      className="w-24 text-right border-0 bg-transparent focus:bg-blue-50 focus:outline-none focus:ring-1 focus:ring-blue-500 rounded px-2 py-1"
-                                    />
-                                  </td>
-                                ))}
-                              </tr>
-                            ))}
-                          </tbody>
-                        </table>
-                      </div>
-                      {/* Auto-generate chart from cashflow table */}
-                      {currentSection.tables.cashflow.rows.length > 0 && (
-                        <FinancialChart
-                          table={currentSection.tables.cashflow}
-                          chartType="line"
-                          title="Cash Flow Projections Chart"
-                        />
-                      )}
-                    </div>
-                  )}
-                </div>
-              )}
+              {/* Smart Section Content Renderer - Tables & Charts */}
+              {currentSection.tables && (() => {
+                const currentTemplate = sectionTemplates.find(t => t.id === currentSection.key);
+                if (!currentTemplate) return null;
+                
+                return (
+                  <div className="mb-6">
+                    <SectionContentRenderer
+                      section={currentSection}
+                      template={currentTemplate}
+                      onTableChange={(tableKey, updatedTable) => {
+                        const updated = [...sections];
+                        const section = updated[activeSection];
+                        if (section.tables) {
+                          section.tables[tableKey] = updatedTable;
+                          setSections(updated);
+                          
+                          // Update plan
+                          if (plan) {
+                            const updatedPlan = { ...plan, sections: updated };
+                            setPlan(updatedPlan);
+                            
+                            // Auto-save
+                            setIsSaving(true);
+                            setTimeout(async () => {
+                              try {
+                                await savePlanSections(updated.map(s => ({
+                                  id: s.key,
+                                  title: s.title,
+                                  content: s.content || '',
+                                  tables: s.tables,
+                                  figures: s.figures,
+                                  sources: s.sources,
+                                  fields: s.fields
+                                })));
+                              } catch (error) {
+                                console.error('Error saving:', error);
+                              } finally {
+                                setIsSaving(false);
+                              }
+                            }, 400);
+                          }
+                        }
+                      }}
+                    />
+                  </div>
+                );
+              })()}
 
               {/* Progress & Navigation */}
               <div className="flex items-center justify-between pt-6 mt-6 border-t border-gray-200">
