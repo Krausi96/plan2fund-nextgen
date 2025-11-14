@@ -12,6 +12,9 @@ import { calculateSectionProgress } from '@/features/editor/hooks/useSectionProg
 import ProgramSelector from './ProgramSelector';
 import SimpleTextEditor from './SimpleTextEditor';
 import RequirementsModal from './RequirementsModal';
+import FinancialChart from './FinancialChart';
+import SectionContentRenderer from './SectionContentRenderer';
+import { initializeTablesForSection, sectionNeedsTables } from '@/features/editor/utils/tableInitializer';
 
 interface EditorProps {
   programId?: string | null;
@@ -54,13 +57,22 @@ export default function Editor({ programId, product = 'submission', route = 'gra
       // Store templates for prompts
       setSectionTemplates(templateSections);
       
-          // Convert to PlanSection format
-          const planSections: PlanSection[] = templateSections.map((template: SectionTemplate) => ({
-            key: template.id,
-            title: template.title,
-            content: '',
-            status: 'missing' as const
-          }));
+          // Convert to PlanSection format and initialize tables
+          const planSections: PlanSection[] = templateSections.map((template: SectionTemplate) => {
+            const section: PlanSection = {
+              key: template.id,
+              title: template.title,
+              content: '',
+              status: 'missing' as const
+            };
+            
+            // Initialize tables if section needs them
+            if (sectionNeedsTables(template)) {
+              section.tables = initializeTablesForSection(template);
+            }
+            
+            return section;
+          });
 
           // Sort by order from template
           planSections.sort((a, b) => {
@@ -611,9 +623,114 @@ export default function Editor({ programId, product = 'submission', route = 'gra
                           </tbody>
                         </table>
                       </div>
+                      {/* Auto-generate chart from revenue table */}
+                      {currentSection.tables.revenue.rows.length > 0 && (
+                        <FinancialChart
+                          table={currentSection.tables.revenue}
+                          chartType="bar"
+                          title="Revenue Projections Chart"
+                        />
+                      )}
                     </div>
                   )}
-                  {/* Add other tables (costs, cashflow, useOfFunds) similarly */}
+                  {currentSection.tables.costs && (
+                    <div>
+                      <h3 className="text-sm font-semibold text-gray-700 mb-2">Cost Breakdown</h3>
+                      <div className="border border-gray-200 rounded-lg overflow-hidden">
+                        <table className="w-full text-sm">
+                          <thead className="bg-gray-50">
+                            <tr>
+                              <th className="text-left p-3 border-b border-gray-200">Item</th>
+                              {currentSection.tables.costs.columns.map((col, idx) => (
+                                <th key={idx} className="text-right p-3 border-b border-gray-200">{col}</th>
+                              ))}
+                            </tr>
+                          </thead>
+                          <tbody>
+                            {currentSection.tables.costs.rows.map((row, rIdx) => (
+                              <tr key={rIdx} className="border-b border-gray-100">
+                                <td className="p-3">{row.label}</td>
+                                {row.values.map((val, vIdx) => (
+                                  <td key={vIdx} className="text-right p-3">
+                                    <input
+                                      type="number"
+                                      value={val}
+                                      onChange={(e) => {
+                                        const updated = [...sections];
+                                        const table = updated[activeSection].tables?.costs;
+                                        if (table) {
+                                          table.rows[rIdx].values[vIdx] = Number(e.target.value) || 0;
+                                          handleSectionChange(currentSection.key, currentSection.content);
+                                        }
+                                      }}
+                                      className="w-24 text-right border-0 bg-transparent focus:bg-blue-50 focus:outline-none focus:ring-1 focus:ring-blue-500 rounded px-2 py-1"
+                                    />
+                                  </td>
+                                ))}
+                              </tr>
+                            ))}
+                          </tbody>
+                        </table>
+                      </div>
+                      {/* Auto-generate chart from costs table */}
+                      {currentSection.tables.costs.rows.length > 0 && (
+                        <FinancialChart
+                          table={currentSection.tables.costs}
+                          chartType="bar"
+                          title="Cost Breakdown Chart"
+                        />
+                      )}
+                    </div>
+                  )}
+                  {currentSection.tables.cashflow && (
+                    <div>
+                      <h3 className="text-sm font-semibold text-gray-700 mb-2">Cash Flow Projections</h3>
+                      <div className="border border-gray-200 rounded-lg overflow-hidden">
+                        <table className="w-full text-sm">
+                          <thead className="bg-gray-50">
+                            <tr>
+                              <th className="text-left p-3 border-b border-gray-200">Item</th>
+                              {currentSection.tables.cashflow.columns.map((col, idx) => (
+                                <th key={idx} className="text-right p-3 border-b border-gray-200">{col}</th>
+                              ))}
+                            </tr>
+                          </thead>
+                          <tbody>
+                            {currentSection.tables.cashflow.rows.map((row, rIdx) => (
+                              <tr key={rIdx} className="border-b border-gray-100">
+                                <td className="p-3">{row.label}</td>
+                                {row.values.map((val, vIdx) => (
+                                  <td key={vIdx} className="text-right p-3">
+                                    <input
+                                      type="number"
+                                      value={val}
+                                      onChange={(e) => {
+                                        const updated = [...sections];
+                                        const table = updated[activeSection].tables?.cashflow;
+                                        if (table) {
+                                          table.rows[rIdx].values[vIdx] = Number(e.target.value) || 0;
+                                          handleSectionChange(currentSection.key, currentSection.content);
+                                        }
+                                      }}
+                                      className="w-24 text-right border-0 bg-transparent focus:bg-blue-50 focus:outline-none focus:ring-1 focus:ring-blue-500 rounded px-2 py-1"
+                                    />
+                                  </td>
+                                ))}
+                              </tr>
+                            ))}
+                          </tbody>
+                        </table>
+                      </div>
+                      {/* Auto-generate chart from cashflow table */}
+                      {currentSection.tables.cashflow.rows.length > 0 && (
+                        <FinancialChart
+                          table={currentSection.tables.cashflow}
+                          chartType="line"
+                          title="Cash Flow Projections Chart"
+                        />
+                      )}
+                    </div>
+                  )}
                 </div>
               )}
 

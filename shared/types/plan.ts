@@ -3,7 +3,7 @@
 
 export type Table = { 
   columns: string[]; 
-  rows: Array<{ label: string; values: number[] }> 
+  rows: Array<{ label: string; values: (number | string)[] }>; // Support both numbers (financial) and strings (text data)
 };
 
 export type FigureRef = { 

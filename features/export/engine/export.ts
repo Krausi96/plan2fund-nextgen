@@ -333,7 +333,7 @@ class ExportManager {
   /**
    * Format table data as markdown table
    */
-  private formatTable(table: { columns: string[]; rows: Array<{ label: string; values: number[] }> }): string {
+  private formatTable(table: { columns: string[]; rows: Array<{ label: string; values: (number | string)[] }> }): string {
     if (!table.columns || !table.rows) return '';
     
     const headers = table.columns.join(' | ');

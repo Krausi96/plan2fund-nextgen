@@ -234,16 +234,17 @@ export async function savePageWithRequirements(page: PageMetadata): Promise<numb
       
       // Apply learned requirement patterns (async, but we'll do it synchronously for now)
       let requirementPatterns: any = null;
-      try {
-        // Dynamic import with type assertion to handle optional module
-        // @ts-ignore - Module may not exist, handled gracefully
-        const autoLearningModule = await import('../src/learning/auto-learning').catch(() => null);
-        if (autoLearningModule && typeof autoLearningModule.getStoredRequirementPatterns === 'function') {
-          requirementPatterns = await autoLearningModule.getStoredRequirementPatterns();
-        }
-      } catch {
-        // Pattern learning not available yet, continue without filtering
-      }
+      // NOTE: auto-learning module not yet implemented - skipping pattern learning
+      // try {
+      //   // Dynamic import with type assertion to handle optional module
+      //   // @ts-ignore - Module may not exist, handled gracefully
+      //   const autoLearningModule = await import('../src/learning/auto-learning').catch(() => null);
+      //   if (autoLearningModule && typeof autoLearningModule.getStoredRequirementPatterns === 'function') {
+      //     requirementPatterns = await autoLearningModule.getStoredRequirementPatterns();
+      //   }
+      // } catch {
+      //   // Pattern learning not available yet, continue without filtering
+      // }
       
       Object.entries(page.categorized_requirements).forEach(([category, items]) => {
         if (Array.isArray(items)) {
