@@ -259,8 +259,8 @@ export default function ProgramFinder({
   // Guided mode state
   const [answers, setAnswers] = useState<Record<string, any>>({});
   
-  // Progressive disclosure: Phase 1 (3 required) → Phase 2 (4 optional) → Phase 3 (remaining)
-  const [questionPhase, setQuestionPhase] = useState<1 | 2 | 3>(1);
+  // All questions are visible by default - no progressive disclosure
+  // Results only shown after ALL questions are answered
   
   // Horizontal question navigation (carousel)
   const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
@@ -282,34 +282,16 @@ export default function ProgramFinder({
   });
   
 
-  // Get visible questions (with skip logic and progressive disclosure)
+  // Get visible questions (with skip logic only - no progressive disclosure)
   const getVisibleQuestions = () => {
-    const allQuestions = getTranslatedQuestions.filter(q => {
+    // Show all questions, only filter by skip logic
+    return getTranslatedQuestions.filter(q => {
       if (q.skipIf && q.skipIf(answers)) return false;
       return true;
     });
-    
-    // Progressive disclosure: Show questions based on phase
-    if (questionPhase === 1) {
-      // Phase 1: Only required questions (3)
-      return allQuestions.filter(q => q.required);
-    } else if (questionPhase === 2) {
-      // Phase 2: Required + first 4 optional (priority 4-7)
-      return allQuestions.filter(q => q.required || (q.priority >= 4 && q.priority <= 7));
-    } else {
-      // Phase 3: All questions
-      return allQuestions;
-    }
   };
   
-  // Phase advancement is now manual via "Show All" button - no auto-advance
-  
   const visibleQuestions = getVisibleQuestions();
-  
-  // Reset question index when phase changes
-  useEffect(() => {
-    setCurrentQuestionIndex(0);
-  }, [questionPhase]);
   
   // Ensure currentQuestionIndex is within bounds
   useEffect(() => {
@@ -320,18 +302,11 @@ export default function ProgramFinder({
   
   const answeredCount = Object.keys(answers).length;
   const totalQuestions = visibleQuestions.length;
-  
-  // Minimum questions needed before showing results (first 3 core questions)
-  const MIN_QUESTIONS_FOR_RESULTS = 3;
+  const allQuestionsAnswered = answeredCount === totalQuestions && totalQuestions > 0;
   
   const updateGuidedResults = useCallback(async () => {
-    if (answeredCount === 0) {
-      setResults([]);
-      return;
-    }
-    
-    // Require at least MIN_QUESTIONS_FOR_RESULTS answered before fetching
-    if (answeredCount < MIN_QUESTIONS_FOR_RESULTS) {
+    // Only fetch results when ALL questions are answered
+    if (!allQuestionsAnswered) {
       setResults([]);
       return;
     }
@@ -408,7 +383,7 @@ export default function ProgramFinder({
       setIsLoading(false);
       if (timeoutId) clearTimeout(timeoutId);
     }
-  }, [answers, answeredCount, setRecommendations]);
+  }, [answers, allQuestionsAnswered, setRecommendations]);
   
   // State to control when to show results
   const [showResults, setShowResults] = useState(false);
@@ -498,48 +473,6 @@ export default function ProgramFinder({
                           {answeredCount} of {visibleQuestions.length} answered
                         </span>
                       </div>
-                    </div>
-                    {questionPhase < 3 && (
-                      <button
-                        onClick={() => setQuestionPhase(3)}
-                        className="px-4 py-2 text-sm font-medium text-blue-600 hover:text-blue-700 hover:bg-blue-50 rounded-lg transition-colors border border-blue-200"
-                      >
-                        Show All
-                      </button>
-                    )}
-                  </div>
-                  
-                  {/* Phase Indicator - Enhanced */}
-                  <div className="mb-6 p-4 rounded-xl border-2 bg-gradient-to-r from-blue-50 via-purple-50 to-pink-50 border-blue-300 shadow-sm">
-                    <div className="flex items-center justify-between mb-1">
-                      <span className="text-sm font-semibold text-gray-900">
-                        {questionPhase === 1 ? 'Phase 1: Core Questions' : questionPhase === 2 ? 'Phase 2: Refining Details' : 'Phase 3: Complete Profile'}
-                      </span>
-                      <span className="text-xs text-gray-600 bg-white px-2 py-0.5 rounded-full">
-                        {questionPhase}/3
-                      </span>
-                    </div>
-                    <p className="text-xs text-gray-600 mt-1">
-                      {questionPhase === 1 
-                        ? 'Start with 3 essential questions to get quick results' 
-                        : questionPhase === 2 
-                        ? 'Add more details to refine your matches' 
-                        : 'Complete all questions for the most accurate recommendations'}
-                    </p>
-                    {/* Phase Progress Dots */}
-                    <div className="flex gap-1.5 mt-2">
-                      {[1, 2, 3].map((phase) => (
-                        <div
-                          key={phase}
-                          className={`flex-1 h-1.5 rounded-full transition-all ${
-                            phase <= questionPhase
-                              ? phase === questionPhase
-                                ? 'bg-blue-600'
-                                : 'bg-green-500'
-                              : 'bg-gray-200'
-                          }`}
-                        />
-                      ))}
                     </div>
                   </div>
                   
@@ -706,7 +639,7 @@ export default function ProgramFinder({
                   <div className="pt-4 border-t border-gray-200 mt-4">
                     <div className="flex items-center justify-between text-sm mb-2">
                       <span className="font-medium text-gray-700">
-                        Progress {questionPhase === 1 ? '(Phase 1: Core)' : questionPhase === 2 ? '(Phase 2: Refining)' : '(Phase 3: Complete)'}
+                        Progress
                       </span>
                       <span className="text-gray-600">
                         {answeredCount} of {totalQuestions} answered
@@ -723,24 +656,8 @@ export default function ProgramFinder({
                         style={{ width: `${(answeredCount / totalQuestions) * 100}%` }}
                       />
                     </div>
-                    {questionPhase === 1 && answeredCount === totalQuestions && (
-                      <button
-                        onClick={() => setQuestionPhase(2)}
-                        className="mt-2 w-full px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors text-sm font-medium"
-                      >
-                        Continue to Refining Questions →
-                      </button>
-                    )}
-                    {questionPhase === 2 && answeredCount === totalQuestions && (
-                      <button
-                        onClick={() => setQuestionPhase(3)}
-                        className="mt-2 w-full px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors text-sm font-medium"
-                      >
-                        Complete All Questions →
-                      </button>
-                    )}
-                    {/* Show Results Button - appears when user has answered minimum questions */}
-                    {answeredCount >= MIN_QUESTIONS_FOR_RESULTS && !showResults && (
+                    {/* Show Results Button - only appears when ALL questions are answered */}
+                    {allQuestionsAnswered && !showResults && (
                       <button
                         onClick={() => {
                           setShowResults(true);
@@ -762,11 +679,11 @@ export default function ProgramFinder({
                         )}
                       </button>
                     )}
-                    {/* Message when user hasn't answered enough questions yet */}
-                    {answeredCount > 0 && answeredCount < MIN_QUESTIONS_FOR_RESULTS && (
+                    {/* Message when user hasn't answered all questions yet */}
+                    {answeredCount > 0 && !allQuestionsAnswered && (
                       <div className="mt-4 p-4 bg-blue-50 border border-blue-200 rounded-lg text-sm text-blue-800">
-                        <p className="font-medium">Answer at least {MIN_QUESTIONS_FOR_RESULTS} questions to see matching programs.</p>
-                        <p className="mt-1 text-blue-700">You've answered {answeredCount} of {MIN_QUESTIONS_FOR_RESULTS} required questions.</p>
+                        <p className="font-medium">Answer all {totalQuestions} questions to see matching programs.</p>
+                        <p className="mt-1 text-blue-700">You've answered {answeredCount} of {totalQuestions} questions.</p>
                       </div>
                     )}
                   </div>
