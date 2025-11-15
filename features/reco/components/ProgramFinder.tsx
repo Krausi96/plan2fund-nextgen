@@ -300,12 +300,17 @@ export default function ProgramFinder({
     }
   }, [visibleQuestions.length, currentQuestionIndex]);
   
-  const answeredCount = Object.keys(answers).length;
+  // Count only non-empty answers (fix logic flaw)
+  const answeredCount = Object.keys(answers).filter(key => {
+    const value = answers[key];
+    return value !== undefined && value !== null && value !== '' && 
+           !(Array.isArray(value) && value.length === 0);
+  }).length;
   const totalQuestions = visibleQuestions.length;
   const allQuestionsAnswered = answeredCount === totalQuestions && totalQuestions > 0;
   
-  // Minimum questions for results (first 3 core questions)
-  const MIN_QUESTIONS_FOR_RESULTS = 3;
+  // Minimum questions for results (6 questions)
+  const MIN_QUESTIONS_FOR_RESULTS = 6;
   const hasEnoughAnswers = answeredCount >= MIN_QUESTIONS_FOR_RESULTS;
   
   const updateGuidedResults = useCallback(async () => {
@@ -466,18 +471,70 @@ export default function ProgramFinder({
           <div className={`${mobileActiveTab === 'results' ? 'hidden lg:block' : ''}`}>
             <Card className="p-6 max-w-4xl mx-auto w-full">
               <div className="space-y-6">
-                  <div className="flex items-center justify-between mb-4">
-                    <div className="flex items-center gap-3">
-                      <div className="w-12 h-12 rounded-full bg-blue-600 flex items-center justify-center shadow-lg">
-                        <Wand2 className="w-6 h-6 text-yellow-400" />
-                      </div>
-                      <div>
-                        <h2 className="text-xl font-bold text-gray-900">{t('reco.guidedQuestions')}</h2>
-                        <span className="text-sm text-gray-600">
-                          {answeredCount} of {visibleQuestions.length} answered
-                        </span>
+                  {/* Progress and Results Section - Always visible at top */}
+                  <div className="pb-4 border-b border-gray-200">
+                    <div className="flex items-center justify-between mb-3">
+                      <div className="flex items-center gap-3">
+                        <div className="w-12 h-12 rounded-full bg-blue-600 flex items-center justify-center shadow-lg">
+                          <Wand2 className="w-6 h-6 text-yellow-400" />
+                        </div>
+                        <div>
+                          <h2 className="text-xl font-bold text-gray-900">{t('reco.guidedQuestions')}</h2>
+                          <span className="text-sm text-gray-600">
+                            {answeredCount} of {visibleQuestions.length} answered
+                          </span>
+                        </div>
                       </div>
                     </div>
+                    <div className="h-2 bg-gray-200 rounded-full overflow-hidden mb-3">
+                      <div 
+                        className="h-full bg-gradient-to-r from-blue-500 to-blue-600 transition-all duration-300 ease-out"
+                        style={{ width: `${(answeredCount / totalQuestions) * 100}%` }}
+                      />
+                    </div>
+                    
+                    {/* Show Results Button - appears when user has enough answers (6+) */}
+                    {hasEnoughAnswers && !showResults && (
+                      <div className="space-y-3">
+                        {!allQuestionsAnswered && (
+                          <div className="p-3 bg-green-50 border-2 border-green-300 rounded-lg">
+                            <p className="text-sm font-semibold text-green-800 mb-1">
+                              {t('reco.enoughAnswers')}
+                            </p>
+                            <p className="text-xs text-green-700">
+                              {t('reco.continueOrView')}
+                            </p>
+                          </div>
+                        )}
+                        <button
+                          onClick={() => {
+                            setShowResults(true);
+                            updateGuidedResults();
+                          }}
+                          disabled={isLoading}
+                          className="w-full px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors text-base font-semibold shadow-lg disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+                        >
+                          {isLoading ? (
+                            <>
+                              <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-white"></div>
+                              <span>Finding programs...</span>
+                            </>
+                          ) : (
+                            <>
+                              <Search className="w-5 h-5" />
+                              <span>Show Matching Programs</span>
+                            </>
+                          )}
+                        </button>
+                      </div>
+                    )}
+                    {/* Message when user hasn't answered enough questions yet */}
+                    {answeredCount > 0 && !hasEnoughAnswers && (
+                      <div className="p-3 bg-blue-50 border border-blue-200 rounded-lg text-sm text-blue-800">
+                        <p className="font-medium">Answer at least {MIN_QUESTIONS_FOR_RESULTS} questions to see matching programs.</p>
+                        <p className="mt-1 text-blue-700">You've answered {answeredCount} of {MIN_QUESTIONS_FOR_RESULTS} required questions.</p>
+                      </div>
+                    )}
                   </div>
                   
                   {/* Horizontal Question Navigation */}
@@ -638,78 +695,13 @@ export default function ProgramFinder({
                       </div>
                     </div>
                   )}
-                  
-                  {/* Progress with Progressive Disclosure */}
-                  <div className="pt-4 border-t border-gray-200 mt-4">
-                    <div className="flex items-center justify-between text-sm mb-2">
-                      <span className="font-medium text-gray-700">
-                        Progress
-                      </span>
-                      <span className="text-gray-600">
-                        {answeredCount} of {totalQuestions} answered
-                        {answeredCount > 0 && (
-                          <span className="ml-2 text-blue-600 font-semibold">
-                            ({Math.round((answeredCount / totalQuestions) * 100)}%)
-                          </span>
-                        )}
-                      </span>
-                    </div>
-                    <div className="h-3 bg-gray-200 rounded-full overflow-hidden">
-                      <div 
-                        className="h-full bg-gradient-to-r from-blue-500 to-blue-600 transition-all duration-300 ease-out"
-                        style={{ width: `${(answeredCount / totalQuestions) * 100}%` }}
-                      />
-                    </div>
-                    {/* Show Results Button - appears when user has enough answers (3+) */}
-                    {hasEnoughAnswers && !showResults && (
-                      <div className="mt-4 space-y-3">
-                        {!allQuestionsAnswered && (
-                          <div className="p-4 bg-green-50 border-2 border-green-300 rounded-lg">
-                            <p className="text-sm font-semibold text-green-800 mb-1">
-                              {t('reco.enoughAnswers')}
-                            </p>
-                            <p className="text-xs text-green-700">
-                              {t('reco.continueOrView')}
-                            </p>
-                          </div>
-                        )}
-                        <button
-                          onClick={() => {
-                            setShowResults(true);
-                            updateGuidedResults();
-                          }}
-                          disabled={isLoading}
-                          className="w-full px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors text-base font-semibold shadow-lg disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
-                        >
-                          {isLoading ? (
-                            <>
-                              <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-white"></div>
-                              <span>Finding programs...</span>
-                            </>
-                          ) : (
-                            <>
-                              <Search className="w-5 h-5" />
-                              <span>Show Matching Programs</span>
-                            </>
-                          )}
-                        </button>
-                      </div>
-                    )}
-                    {/* Message when user hasn't answered enough questions yet */}
-                    {answeredCount > 0 && !hasEnoughAnswers && (
-                      <div className="mt-4 p-4 bg-blue-50 border border-blue-200 rounded-lg text-sm text-blue-800">
-                        <p className="font-medium">Answer at least {MIN_QUESTIONS_FOR_RESULTS} questions to see matching programs.</p>
-                        <p className="mt-1 text-blue-700">You've answered {answeredCount} of {MIN_QUESTIONS_FOR_RESULTS} required questions.</p>
-                      </div>
-                    )}
-                  </div>
                 </div>
             </Card>
           </div>
           
           {/* Results - Below questions, centered, only shown when showResults is true */}
           {showResults && (
-            <div className={`${mobileActiveTab === 'questions' ? 'hidden lg:flex' : 'flex'} flex-col max-w-4xl mx-auto w-full`}>
+            <div className={`${mobileActiveTab === 'questions' ? 'hidden lg:flex' : 'flex'} flex-col max-w-4xl mx-auto w-full mt-8`}>
               {isLoading ? (
               <Card className="p-12 text-center">
                 <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
@@ -718,8 +710,11 @@ export default function ProgramFinder({
             ) : results.length === 0 ? (
               <Card className="p-12 text-center">
                 <Search className="h-12 w-12 text-gray-400 mx-auto mb-4" />
-                <p className="text-gray-600">
-                  Answer questions to see matching programs
+                <p className="text-gray-600 mb-2">
+                  No matching programs found
+                </p>
+                <p className="text-sm text-gray-500">
+                  Try answering more questions or adjusting your answers
                 </p>
               </Card>
             ) : (
