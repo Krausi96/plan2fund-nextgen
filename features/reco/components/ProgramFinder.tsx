@@ -321,8 +321,17 @@ export default function ProgramFinder({
   const answeredCount = Object.keys(answers).length;
   const totalQuestions = visibleQuestions.length;
   
+  // Minimum questions needed before showing results (first 3 core questions)
+  const MIN_QUESTIONS_FOR_RESULTS = 3;
+  
   const updateGuidedResults = useCallback(async () => {
     if (answeredCount === 0) {
+      setResults([]);
+      return;
+    }
+    
+    // Require at least MIN_QUESTIONS_FOR_RESULTS answered before fetching
+    if (answeredCount < MIN_QUESTIONS_FOR_RESULTS) {
       setResults([]);
       return;
     }
@@ -429,8 +438,8 @@ export default function ProgramFinder({
         {/* Header - Centered with Wizard Icon */}
         <div className="mb-8 text-center">
           <div className="flex items-center justify-center gap-4 mb-4">
-            <div className="w-14 h-14 rounded-full bg-orange-500 flex items-center justify-center shadow-lg">
-              <Wand2 className="w-7 h-7 text-white" />
+            <div className="w-14 h-14 rounded-full bg-blue-600 flex items-center justify-center shadow-lg">
+              <Wand2 className="w-7 h-7 text-yellow-400" />
             </div>
             <h1 className="text-3xl font-bold text-gray-900">
               {t('reco.pageTitle')}
@@ -480,8 +489,8 @@ export default function ProgramFinder({
               <div className="space-y-6">
                   <div className="flex items-center justify-between mb-4">
                     <div className="flex items-center gap-3">
-                      <div className="w-12 h-12 rounded-full bg-orange-500 flex items-center justify-center shadow-lg">
-                        <Wand2 className="w-6 h-6 text-white" />
+                      <div className="w-12 h-12 rounded-full bg-blue-600 flex items-center justify-center shadow-lg">
+                        <Wand2 className="w-6 h-6 text-yellow-400" />
                       </div>
                       <div>
                         <h2 className="text-xl font-bold text-gray-900">Guided Questions</h2>
@@ -730,8 +739,8 @@ export default function ProgramFinder({
                         Complete All Questions →
                       </button>
                     )}
-                    {/* Show Results Button - appears when user has answered at least some questions */}
-                    {answeredCount > 0 && !showResults && (
+                    {/* Show Results Button - appears when user has answered minimum questions */}
+                    {answeredCount >= MIN_QUESTIONS_FOR_RESULTS && !showResults && (
                       <button
                         onClick={() => {
                           setShowResults(true);
@@ -752,6 +761,13 @@ export default function ProgramFinder({
                           </>
                         )}
                       </button>
+                    )}
+                    {/* Message when user hasn't answered enough questions yet */}
+                    {answeredCount > 0 && answeredCount < MIN_QUESTIONS_FOR_RESULTS && (
+                      <div className="mt-4 p-4 bg-blue-50 border border-blue-200 rounded-lg text-sm text-blue-800">
+                        <p className="font-medium">Answer at least {MIN_QUESTIONS_FOR_RESULTS} questions to see matching programs.</p>
+                        <p className="mt-1 text-blue-700">You've answered {answeredCount} of {MIN_QUESTIONS_FOR_RESULTS} required questions.</p>
+                      </div>
                     )}
                   </div>
                 </div>
