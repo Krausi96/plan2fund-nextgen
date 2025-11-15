@@ -1,7 +1,13 @@
 # Editor Handover Document
 
-**Date:** Current  
+**Date:** Updated after simplification  
 **Purpose:** Review current editor implementation, identify simplification opportunities, and ensure all features work correctly
+
+**⚠️ IMPORTANT CHANGES:**
+- ✅ Login requirement removed - editor accessible without authentication
+- ✅ Program selection is now optional - editor works with default templates
+- ✅ All entry points load immediately - no blocking screens
+- ✅ See `docs/EDITOR_ENTRY_POINTS.md` for detailed entry point documentation
 
 ---
 
@@ -15,27 +21,42 @@ The Plan2Fund Editor is a section-by-section business plan editor with AI assist
 
 ### How Users Enter the Editor
 
-**Entry Point 1: Direct URL with Parameters**
-```
-/editor?programId=ffg_basisprogramm&product=submission&route=grants
-```
-- User navigates directly with program selected
-- Editor loads immediately with sections
+**✅ UPDATED: Editor now works immediately without program selection!**
 
-**Entry Point 2: Program Selector (No Parameters)**
+**Entry Point 1: Direct URL (No Parameters) - SIMPLIFIED**
 ```
 /editor
 ```
-- Shows `ProgramSelector` component in header
-- User selects:
-  - **Product:** Strategy / Review / Submission
-  - **Route:** Grant / Loan / Equity / Visa
-  - **Program:** Dropdown of available programs
-- After selection → navigates to `/editor?programId=X&product=Y&route=Z`
+- ✅ **Loads immediately** with default sections
+- ✅ Uses default route: `grant` and product: `submission`
+- ✅ Shows `ProgramSelector` in header (optional - can be ignored)
+- ✅ Editor is fully functional without program selection
+- ✅ Uses default templates based on route/product
 
-**Entry Point 3: From Recommendation Page**
+**Entry Point 2: Direct URL with Product/Route - SIMPLIFIED**
+```
+/editor?product=strategy&route=grants
+/editor?product=submission&route=bankLoans
+```
+- ✅ **Loads immediately** with sections for specified product/route
+- ✅ No programId required
+- ✅ Uses default templates for that combination
+- ✅ ProgramSelector shows in header (optional)
+
+**Entry Point 3: Direct URL with Program (From Recommendation)**
+```
+/editor?programId=ffg_basisprogramm&product=submission&route=grants
+```
+- ✅ Loads with program-specific sections (if available)
+- ✅ Falls back to default templates if program not found
+- ✅ Loads program requirements for Requirements modal
+- ✅ ProgramSelector shows selected program in header
+
+**Entry Point 4: From Recommendation Page (Optional Flow)**
+- User can go through recommendation flow (optional)
 - User clicks "Open in Editor" on a recommended program
 - Navigates with `programId` pre-filled
+- **Note:** This is the ONLY flow that goes through reco, but it's optional!
 
 ### Where Data Comes From
 

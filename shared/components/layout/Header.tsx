@@ -54,7 +54,10 @@ export default function Header() {
     <header className="sticky top-0 z-50 w-full border-b bg-white/95 backdrop-blur-md shadow-sm">
       <div className="max-w-7xl mx-auto flex items-center justify-between px-4 py-4">
         {/* Logo */}
-        <Link href={router.locale && router.locale !== 'en' ? `/${router.locale}` : '/'} className="text-2xl font-bold text-blue-600 hover:text-blue-700 transition-colors">
+        <Link 
+          href="/" 
+          className="text-2xl font-bold text-gray-900 hover:text-gray-700 transition-colors"
+        >
           Plan2Fund
         </Link>
 

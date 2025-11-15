@@ -3,7 +3,7 @@
  * Simplified version without QuestionEngine - uses static form
  */
 
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import { useRouter } from 'next/router';
 import { Search, Filter, Sparkles, TrendingUp, Info, ChevronDown, ChevronUp } from 'lucide-react';
 import { Button } from '@/shared/components/ui/button';
@@ -12,6 +12,7 @@ import { Badge } from '@/shared/components/ui/badge';
 // Progress bar implemented with custom div (not using Progress component)
 import { scoreProgramsEnhanced, EnhancedProgramResult } from '@/features/reco/engine/enhancedRecoEngine';
 import { useRecommendation } from '@/features/reco/contexts/RecommendationContext';
+import { useI18n } from '@/shared/contexts/I18nContext';
 
 interface ProgramFinderProps {
   onProgramSelect?: (programId: string, route: string) => void;
@@ -243,6 +244,19 @@ export default function ProgramFinder({
 }: ProgramFinderProps) {
   const router = useRouter();
   const { setRecommendations } = useRecommendation();
+  const { t } = useI18n();
+  
+  // Get translated questions
+  const getTranslatedQuestions = useMemo(() => {
+    return CORE_QUESTIONS.map(q => ({
+      ...q,
+      label: (t(`reco.questions.${q.id}` as any) as string) || q.label,
+      options: q.options.map(opt => ({
+        ...opt,
+        label: (t(`reco.options.${q.id}.${opt.value}` as any) as string) || opt.label
+      }))
+    }));
+  }, [t]);
   
   const [mode, setMode] = useState<SearchMode>(initialMode);
   const [results, setResults] = useState<EnhancedProgramResult[]>([]);
@@ -284,7 +298,7 @@ export default function ProgramFinder({
 
   // Get visible questions (with skip logic and progressive disclosure)
   const getVisibleQuestions = () => {
-    const allQuestions = CORE_QUESTIONS.filter(q => {
+    const allQuestions = getTranslatedQuestions.filter(q => {
       if (q.skipIf && q.skipIf(answers)) return false;
       return true;
     });
@@ -565,8 +579,8 @@ export default function ProgramFinder({
           </div>
         </div>
 
-        <div className="grid grid-cols-1 lg:grid-cols-[1fr_2fr] gap-6">
-          {/* Left: Questions/Filters */}
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+          {/* Questions/Filters */}
           <div className={`${mobileActiveTab === 'results' ? 'hidden lg:block' : ''}`}>
             <Card className="p-6">
               {mode === 'guided' ? (
@@ -575,7 +589,7 @@ export default function ProgramFinder({
                     <div className="flex-1">
                       <h2 className="text-lg font-semibold text-gray-900">Guided Questions</h2>
                       <span className="text-xs text-gray-500 mt-1 block">
-                        {answeredCount} of {CORE_QUESTIONS.length} total questions answered
+                        {answeredCount} of {getTranslatedQuestions.length} total questions answered
                       </span>
                     </div>
                     {questionPhase < 3 && (
@@ -883,7 +897,7 @@ export default function ProgramFinder({
             </Card>
           </div>
           
-          {/* Right: Results */}
+          {/* Results */}
           <div className={`${mobileActiveTab === 'questions' ? 'hidden lg:block' : ''}`}>
             {isLoading ? (
               <Card className="p-12 text-center">
