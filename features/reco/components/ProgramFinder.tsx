@@ -328,8 +328,8 @@ export default function ProgramFinder({
       setIsLoading(true);
       
       // Use on-demand recommendation API
-      // Check if seeds should be disabled (for testing)
-      const useSeeds = !process.env.NEXT_PUBLIC_DISABLE_SEEDS;
+      // LLM generation is primary (unrestricted, like ChatGPT)
+      // Seed extraction is optional (set USE_SEED_EXTRACTION=true to enable)
       const response = await fetch('/api/programs/recommend', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -337,7 +337,7 @@ export default function ProgramFinder({
           answers,
           max_results: 20,
           extract_all: false,
-          use_seeds: useSeeds, // Allow disabling seeds via API parameter
+          use_seeds: false, // LLM generation is primary, seeds are optional
         }),
       });
       
@@ -936,43 +936,103 @@ export default function ProgramFinder({
                       </Button>
                     </div>
                     
-                    {/* A/B Testing: Explanation Variants */}
-                    {(program.reasons || program.founderFriendlyReasons) && (program.reasons?.length || program.founderFriendlyReasons?.length || 0) > 0 && (
-                      <>
-                        {explanationVariant === 'A' && (
-                          // Variant A: Score-First
-                          <div className="mb-4 p-3 bg-blue-50 border border-blue-200 rounded-lg">
-                            <div className="flex items-center gap-2 mb-2">
-                              <TrendingUp className="h-4 w-4 text-blue-600" />
-                              <span className="text-sm font-semibold text-blue-900">Match Score: {Math.round(program.score)}%</span>
-                            </div>
-                            <div className="text-xs text-blue-700 mb-2">
-                              Score Breakdown: Location (22%) ✓ | Company Type (20%) ✓ | Funding (18%) ✓
-                            </div>
-                            <div className="text-sm font-medium text-blue-900 mb-1">Why this matches:</div>
-                            <ul className="text-sm text-blue-800 space-y-1">
-                              {(program.reasons || program.founderFriendlyReasons || []).slice(0, 3).map((reason: string, i: number) => (
-                                <li key={i} className="flex items-start gap-2">
-                                  <span className="text-blue-500 mt-1">•</span>
-                                  <span>{reason}</span>
-                                </li>
-                              ))}
-                            </ul>
-                            {/* Enhanced explanations */}
-                            {program.strategicAdvice && (
-                              <div className="mt-3 pt-3 border-t border-blue-300">
-                                <div className="text-xs font-semibold text-blue-900 mb-1">💡 Strategic Tip:</div>
-                                <p className="text-xs text-blue-800">{program.strategicAdvice}</p>
-                              </div>
-                            )}
-                            {program.applicationInfo && (
-                              <div className="mt-2">
-                                <div className="text-xs font-semibold text-blue-900 mb-1">📋 Application:</div>
-                                <p className="text-xs text-blue-800">{program.applicationInfo}</p>
-                              </div>
-                            )}
+                    {/* Enhanced Results Display with Matches & Gaps */}
+                    <div className="space-y-3 mb-4">
+                      {/* Matches Section */}
+                      {program.matches && program.matches.length > 0 && (
+                        <div className="p-3 bg-green-50 border border-green-200 rounded-lg">
+                          <div className="flex items-center gap-2 mb-2">
+                            <svg className="w-4 h-4 text-green-600 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
+                              <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
+                            </svg>
+                            <span className="text-sm font-semibold text-green-900">Matches ({program.matches.length})</span>
                           </div>
-                        )}
+                          <ul className="text-sm text-green-800 space-y-1.5">
+                            {program.matches.slice(0, 4).map((match: string, i: number) => (
+                              <li key={i} className="flex items-start gap-2">
+                                <span className="text-green-600 mt-0.5 flex-shrink-0">✓</span>
+                                <span>{match}</span>
+                              </li>
+                            ))}
+                          </ul>
+                        </div>
+                      )}
+
+                      {/* Gaps Section */}
+                      {program.gaps && program.gaps.length > 0 && (
+                        <div className="p-3 bg-yellow-50 border border-yellow-200 rounded-lg">
+                          <div className="flex items-center gap-2 mb-2">
+                            <Info className="w-4 h-4 text-yellow-600 flex-shrink-0" />
+                            <span className="text-sm font-semibold text-yellow-900">Considerations ({program.gaps.length})</span>
+                          </div>
+                          <ul className="text-sm text-yellow-800 space-y-1.5">
+                            {program.gaps.slice(0, 3).map((gap, i: number) => (
+                              <li key={i} className="flex items-start gap-2">
+                                <span className="text-yellow-600 mt-0.5 flex-shrink-0">ℹ</span>
+                                <span>{typeof gap === 'string' ? gap : gap.description}</span>
+                              </li>
+                            ))}
+                          </ul>
+                        </div>
+                      )}
+
+                      {/* Why This Fits Explanation */}
+                      {(program.reasons || program.founderFriendlyReasons) && (program.reasons?.length || program.founderFriendlyReasons?.length || 0) > 0 && (
+                        <div className="p-3 bg-blue-50 border border-blue-200 rounded-lg">
+                          <div className="flex items-center gap-2 mb-2">
+                            <Sparkles className="w-4 h-4 text-blue-600 flex-shrink-0" />
+                            <span className="text-sm font-semibold text-blue-900">Why This Fits</span>
+                          </div>
+                          <p className="text-sm text-blue-800 leading-relaxed">
+                            {(program.reasons || program.founderFriendlyReasons || [])[0] || 'This program matches your requirements.'}
+                          </p>
+                        </div>
+                      )}
+
+                      {/* Strategic Advice */}
+                      {program.strategicAdvice && (
+                        <div className="p-3 bg-purple-50 border border-purple-200 rounded-lg">
+                          <div className="flex items-center gap-2 mb-1">
+                            <TrendingUp className="w-4 h-4 text-purple-600 flex-shrink-0" />
+                            <span className="text-xs font-semibold text-purple-900">Strategic Tip</span>
+                          </div>
+                          <p className="text-xs text-purple-800">{program.strategicAdvice}</p>
+                        </div>
+                      )}
+
+                      {/* Application Info */}
+                      {program.applicationInfo && (
+                        <details className="p-3 bg-gray-50 border border-gray-200 rounded-lg">
+                          <summary className="text-xs font-semibold text-gray-900 cursor-pointer hover:text-gray-700 flex items-center gap-2">
+                            <span>📋</span>
+                            <span>Application Information</span>
+                          </summary>
+                          <p className="text-xs text-gray-700 mt-2">{program.applicationInfo}</p>
+                        </details>
+                      )}
+                    </div>
+
+                    {/* Legacy A/B Testing Variants (kept for backward compatibility) */}
+                    {explanationVariant === 'A' && !program.matches && (
+                      <div className="mb-4 p-3 bg-blue-50 border border-blue-200 rounded-lg">
+                        <div className="flex items-center gap-2 mb-2">
+                          <TrendingUp className="h-4 w-4 text-blue-600" />
+                          <span className="text-sm font-semibold text-blue-900">Match Score: {Math.round(program.score)}%</span>
+                        </div>
+                        <div className="text-xs text-blue-700 mb-2">
+                          Score Breakdown: Location (22%) ✓ | Company Type (20%) ✓ | Funding (18%) ✓
+                        </div>
+                        <div className="text-sm font-medium text-blue-900 mb-1">Why this matches:</div>
+                        <ul className="text-sm text-blue-800 space-y-1">
+                          {(program.reasons || program.founderFriendlyReasons || []).slice(0, 3).map((reason: string, i: number) => (
+                            <li key={i} className="flex items-start gap-2">
+                              <span className="text-blue-500 mt-1">•</span>
+                              <span>{reason}</span>
+                            </li>
+                          ))}
+                        </ul>
+                      </div>
+                    )}
                         {explanationVariant === 'B' && (
                           // Variant B: LLM-First
                           <div className="mb-4 p-3 bg-green-50 border border-green-200 rounded-lg">
@@ -1012,8 +1072,6 @@ export default function ProgramFinder({
                             <span className="text-xs text-gray-600">{Math.round(program.score)}% match</span>
                           </div>
                         )}
-                      </>
-                    )}
                     
                     {(program.risks || program.founderFriendlyRisks || program.riskMitigation) && ((program.risks?.length || program.founderFriendlyRisks?.length || 0) > 0 || program.riskMitigation) && (
                       <div className="mb-4 p-3 bg-yellow-50 border border-yellow-200 rounded-lg">
@@ -1031,10 +1089,10 @@ export default function ProgramFinder({
                         </ul>
                         {/* Enhanced risk mitigation */}
                         {program.riskMitigation && (
-                          <div className="mt-2 pt-2 border-t border-yellow-300">
-                            <div className="text-xs font-semibold text-yellow-900 mb-1">🛡️ Mitigation:</div>
-                            <p className="text-xs text-yellow-800">{program.riskMitigation}</p>
-                          </div>
+                          <details className="mt-2 pt-2 border-t border-yellow-300">
+                            <summary className="text-xs font-semibold text-yellow-900 cursor-pointer hover:text-yellow-700">🛡️ Mitigation (click to expand)</summary>
+                            <p className="text-xs text-yellow-800 mt-1">{program.riskMitigation}</p>
+                          </details>
                         )}
                       </div>
                     )}
