@@ -35,21 +35,26 @@ export default function Editor({ programId, product = 'submission', route = 'gra
   } | null>(null);
 
   // Load sections when route/product changes (programId is optional)
-  useEffect(() => {
-    loadSections();
-  }, [product, route, programId]);
-
-  const loadSections = async () => {
+  const loadSections = useCallback(async () => {
     setIsLoading(true);
     try {
-      // Determine funding type from route
-      const fundingType = route === 'loan' ? 'bankLoans' : 
-                         route === 'equity' ? 'equity' :
-                         route === 'visa' ? 'visa' : 'grants';
+      // Determine funding type from route (normalize 'grant' to 'grants')
+      const normalizedRoute = route === 'grant' ? 'grants' : route;
+      const fundingType = normalizedRoute === 'loan' ? 'bankLoans' : 
+                         normalizedRoute === 'equity' ? 'equity' :
+                         normalizedRoute === 'visa' ? 'visa' : 'grants';
       
       // Load sections from templates (works without programId - uses default templates)
       const baseUrl = typeof window !== 'undefined' ? window.location.origin : '';
       const templateSections = await getSections(fundingType, product, programId || undefined, baseUrl);
+      
+      // Validate that we got sections
+      if (!templateSections || templateSections.length === 0) {
+        console.error(`No sections found for fundingType: ${fundingType}, product: ${product}`);
+        setSections([]);
+        setSectionTemplates([]);
+        return;
+      }
       
       // Store templates for prompts
       setSectionTemplates(templateSections);
@@ -124,10 +129,17 @@ export default function Editor({ programId, product = 'submission', route = 'gra
       }
     } catch (error) {
       console.error('Error loading sections:', error);
+      // Set empty sections on error to prevent infinite loading
+      setSections([]);
+      setSectionTemplates([]);
     } finally {
       setIsLoading(false);
     }
-  };
+  }, [product, route, programId]);
+
+  useEffect(() => {
+    loadSections();
+  }, [loadSections]);
 
   // Handle section content change
   const handleSectionChange = useCallback((sectionKey: string, content: string) => {
@@ -176,17 +188,22 @@ export default function Editor({ programId, product = 'submission', route = 'gra
     );
   }
 
-  // No sections
+  // No sections - show error or empty state
   if (sections.length === 0) {
     return (
       <div className="flex items-center justify-center h-screen">
-        <div className="text-center">
-          <p className="text-gray-600 mb-4">No sections found</p>
+        <div className="text-center max-w-md">
+          <p className="text-gray-600 mb-4">
+            No sections found for product "{product}" and route "{route}".
+          </p>
+          <p className="text-sm text-gray-500 mb-4">
+            Try selecting a different product or route in the header.
+          </p>
           <button
             onClick={() => router.push('/editor')}
             className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
           >
-            Select Program
+            Go to Editor
           </button>
         </div>
       </div>

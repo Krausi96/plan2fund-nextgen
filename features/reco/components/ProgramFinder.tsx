@@ -5,7 +5,7 @@
 
 import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import { useRouter } from 'next/router';
-import { Search, Filter, Sparkles, TrendingUp, Info, ChevronDown, ChevronUp } from 'lucide-react';
+import { Search, Filter, Sparkles, TrendingUp, Info, ChevronDown, ChevronUp, ChevronLeft, ChevronRight, Wand2 } from 'lucide-react';
 import { Button } from '@/shared/components/ui/button';
 import { Card } from '@/shared/components/ui/card';
 import { Badge } from '@/shared/components/ui/badge';
@@ -269,6 +269,9 @@ export default function ProgramFinder({
   // Progressive disclosure: Phase 1 (3 required) → Phase 2 (4 optional) → Phase 3 (remaining)
   const [questionPhase, setQuestionPhase] = useState<1 | 2 | 3>(1);
   
+  // Horizontal question navigation (carousel)
+  const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
+  
   // Mobile: Track active tab (questions vs results)
   const [mobileActiveTab, setMobileActiveTab] = useState<'questions' | 'results'>('questions');
   
@@ -324,22 +327,47 @@ export default function ProgramFinder({
     // Advance to Phase 2 when all Phase 1 questions answered
     if (questionPhase === 1 && visible.length === answered.length && visible.every(q => q.required)) {
       setQuestionPhase(2);
+      setCurrentQuestionIndex(0); // Reset to first question of new phase
     }
     // Advance to Phase 3 when all Phase 2 questions answered
     else if (questionPhase === 2 && visible.length === answered.length) {
       setQuestionPhase(3);
+      setCurrentQuestionIndex(0); // Reset to first question of new phase
     }
   }, [answers, questionPhase]);
-
+  
   const visibleQuestions = getVisibleQuestions();
+  
+  // Reset question index when phase changes
+  useEffect(() => {
+    setCurrentQuestionIndex(0);
+  }, [questionPhase]);
+  
+  // Ensure currentQuestionIndex is within bounds
+  useEffect(() => {
+    if (currentQuestionIndex >= visibleQuestions.length && visibleQuestions.length > 0) {
+      setCurrentQuestionIndex(visibleQuestions.length - 1);
+    }
+  }, [visibleQuestions.length, currentQuestionIndex]);
+  
   const answeredCount = Object.keys(answers).length;
   const totalQuestions = visibleQuestions.length;
   
   const updateGuidedResults = useCallback(async () => {
-    if (answeredCount === 0) return;
+    if (answeredCount === 0) {
+      setResults([]);
+      return;
+    }
     
+    let timeoutId: NodeJS.Timeout | null = null;
     try {
       setIsLoading(true);
+      
+      // Add timeout to prevent infinite loading
+      timeoutId = setTimeout(() => {
+        setIsLoading(false);
+        console.error('Request timeout');
+      }, 30000); // 30 second timeout
       
       // Use on-demand recommendation API
       // LLM generation is primary (unrestricted, like ChatGPT)
@@ -398,8 +426,10 @@ export default function ProgramFinder({
       }
     } catch (error) {
       console.error('Error updating guided results:', error);
+      setResults([]);
     } finally {
       setIsLoading(false);
+      if (timeoutId) clearTimeout(timeoutId);
     }
   }, [answers, answeredCount, setRecommendations]);
   
@@ -584,27 +614,31 @@ export default function ProgramFinder({
           <div className={`${mobileActiveTab === 'results' ? 'hidden lg:block' : ''}`}>
             <Card className="p-6 max-w-4xl mx-auto w-full">
               {mode === 'guided' ? (
-                <div className="space-y-4">
+                <div className="space-y-6">
                   <div className="flex items-center justify-between mb-4">
-                    <div className="flex-1">
-                      <h2 className="text-lg font-semibold text-gray-900">Guided Questions</h2>
-                      <span className="text-xs text-gray-500 mt-1 block">
-                        {answeredCount} of {getTranslatedQuestions.length} total questions answered
-                      </span>
+                    <div className="flex items-center gap-3">
+                      <div className="w-12 h-12 rounded-full bg-blue-600 flex items-center justify-center shadow-lg">
+                        <Wand2 className="w-6 h-6 text-white" />
+                      </div>
+                      <div>
+                        <h2 className="text-xl font-bold text-gray-900">Guided Questions</h2>
+                        <span className="text-sm text-gray-600">
+                          {answeredCount} of {visibleQuestions.length} answered
+                        </span>
+                      </div>
                     </div>
                     {questionPhase < 3 && (
                       <button
                         onClick={() => setQuestionPhase(3)}
-                        className="ml-2 px-3 py-1.5 text-xs font-medium text-blue-600 hover:text-blue-700 hover:bg-blue-50 rounded-md transition-colors border border-blue-200"
-                        title="Show all questions at once"
+                        className="px-4 py-2 text-sm font-medium text-blue-600 hover:text-blue-700 hover:bg-blue-50 rounded-lg transition-colors border border-blue-200"
                       >
                         Show All
                       </button>
                     )}
                   </div>
                   
-                  {/* Phase Indicator */}
-                  <div className="mb-4 p-3 rounded-lg border-2 bg-gradient-to-r from-blue-50 to-purple-50 border-blue-200">
+                  {/* Phase Indicator - Enhanced */}
+                  <div className="mb-6 p-4 rounded-xl border-2 bg-gradient-to-r from-blue-50 via-purple-50 to-pink-50 border-blue-300 shadow-sm">
                     <div className="flex items-center justify-between mb-1">
                       <span className="text-sm font-semibold text-gray-900">
                         {questionPhase === 1 ? 'Phase 1: Core Questions' : questionPhase === 2 ? 'Phase 2: Refining Details' : 'Phase 3: Complete Profile'}
@@ -637,98 +671,165 @@ export default function ProgramFinder({
                     </div>
                   </div>
                   
-                  <div className="space-y-4 max-h-[calc(100vh-300px)] overflow-y-auto pr-2" style={{ scrollbarWidth: 'thin' }}>
-                    {visibleQuestions.map((question, index) => {
-                      const value = answers[question.id];
-                      const isAnswered = value !== undefined && value !== null && value !== '';
-                      return (
-                        <div 
-                          key={question.id} 
-                          className={`space-y-2 p-4 rounded-lg border transition-all duration-200 ${
-                            isAnswered 
-                              ? 'bg-blue-50 border-blue-200' 
-                              : 'bg-white border-gray-200 hover:border-gray-300'
-                          }`}
-                        >
-                          <label className="block text-sm font-medium text-gray-700">
-                            <div className="flex items-start gap-2">
-                              <span className="flex-shrink-0 w-6 h-6 rounded-full bg-gray-100 text-gray-600 text-xs font-semibold flex items-center justify-center mt-0.5">
-                                {index + 1}
-                              </span>
-                              <span className="flex-1 leading-relaxed break-words">
-                                {question.label}
-                                {question.required && <span className="text-red-500 ml-1">*</span>}
-                              </span>
-                              {isAnswered && (
-                                <span className="flex-shrink-0 text-green-600 mt-0.5">
-                                  <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
-                                    <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
-                                  </svg>
-                                </span>
+                  {/* Horizontal Question Navigation */}
+                  {visibleQuestions.length > 0 && (
+                    <div className="relative">
+                      {/* Question Navigation Dots */}
+                      <div className="flex justify-center gap-2 mb-4 flex-wrap">
+                        {visibleQuestions.map((_, idx) => {
+                          const q = visibleQuestions[idx];
+                          const isAnswered = answers[q.id] !== undefined && answers[q.id] !== null && answers[q.id] !== '';
+                          return (
+                            <button
+                              key={idx}
+                              onClick={() => setCurrentQuestionIndex(idx)}
+                              className={`w-10 h-10 rounded-full flex items-center justify-center text-sm font-semibold transition-all ${
+                                idx === currentQuestionIndex
+                                  ? 'bg-blue-600 text-white shadow-lg scale-110'
+                                  : isAnswered
+                                  ? 'bg-green-500 text-white'
+                                  : 'bg-gray-200 text-gray-600 hover:bg-gray-300'
+                              }`}
+                            >
+                              {idx + 1}
+                            </button>
+                          );
+                        })}
+                      </div>
+                      
+                      {/* Current Question Display */}
+                      <div className="relative bg-white rounded-xl border-2 border-blue-200 shadow-lg p-6 min-h-[400px]">
+                        {(() => {
+                          const question = visibleQuestions[currentQuestionIndex];
+                          if (!question) return null;
+                          const value = answers[question.id];
+                          const isAnswered = value !== undefined && value !== null && value !== '';
+                          return (
+                            <div className="space-y-4">
+                              {/* Question Header */}
+                              <div className="flex items-start justify-between">
+                                <div className="flex-1">
+                                  <div className="flex items-center gap-3 mb-2">
+                                    <span className="w-8 h-8 rounded-full bg-blue-600 text-white text-sm font-bold flex items-center justify-center">
+                                      {currentQuestionIndex + 1}
+                                    </span>
+                                    <h3 className="text-lg font-semibold text-gray-900">
+                                      {question.label}
+                                      {question.required && <span className="text-red-500 ml-1">*</span>}
+                                    </h3>
+                                    {isAnswered && (
+                                      <span className="text-green-600">
+                                        <svg className="w-6 h-6" fill="currentColor" viewBox="0 0 20 20">
+                                          <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
+                                        </svg>
+                                      </span>
+                                    )}
+                                  </div>
+                                </div>
+                              </div>
+                              
+                              {/* Question Options */}
+                              {question.type === 'single-select' && (
+                                <div className="space-y-3">
+                                  {question.options.map((option) => (
+                                    <button
+                                      key={option.value}
+                                      onClick={() => {
+                                        handleAnswer(question.id, option.value);
+                                        // Auto-advance to next question after answering
+                                        if (currentQuestionIndex < visibleQuestions.length - 1) {
+                                          setTimeout(() => setCurrentQuestionIndex(currentQuestionIndex + 1), 300);
+                                        }
+                                      }}
+                                      className={`w-full text-left px-5 py-4 border-2 rounded-xl transition-all duration-200 ${
+                                        value === option.value
+                                          ? 'bg-blue-600 border-blue-600 text-white font-semibold shadow-lg transform scale-105'
+                                          : 'bg-white border-gray-300 hover:border-blue-400 hover:bg-blue-50 hover:shadow-md'
+                                      }`}
+                                    >
+                                      <div className="flex items-center gap-3">
+                                        {value === option.value && (
+                                          <span className="text-xl">✓</span>
+                                        )}
+                                        <span>{option.label}</span>
+                                      </div>
+                                    </button>
+                                  ))}
+                                </div>
+                              )}
+                              {question.type === 'multi-select' && (
+                                <div className="space-y-3">
+                                  {question.options.map((option) => {
+                                    const isSelected = Array.isArray(value) && value.includes(option.value);
+                                    return (
+                                      <button
+                                        key={option.value}
+                                        onClick={() => {
+                                          const current = Array.isArray(value) ? value : [];
+                                          const newValue = isSelected
+                                            ? current.filter(v => v !== option.value)
+                                            : [...current, option.value];
+                                          handleAnswer(question.id, newValue);
+                                        }}
+                                        className={`w-full text-left px-5 py-4 border-2 rounded-xl transition-all duration-200 ${
+                                          isSelected
+                                            ? 'bg-blue-600 border-blue-600 text-white font-semibold shadow-lg'
+                                            : 'bg-white border-gray-300 hover:border-blue-400 hover:bg-blue-50 hover:shadow-md'
+                                        }`}
+                                      >
+                                        <div className="flex items-center gap-3">
+                                          <span className={`w-6 h-6 rounded border-2 flex items-center justify-center ${
+                                            isSelected 
+                                              ? 'bg-white border-white' 
+                                              : 'border-gray-400'
+                                          }`}>
+                                            {isSelected && (
+                                              <svg className="w-4 h-4 text-blue-600" fill="currentColor" viewBox="0 0 20 20">
+                                                <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
+                                              </svg>
+                                            )}
+                                          </span>
+                                          <span>{option.label}</span>
+                                        </div>
+                                      </button>
+                                    );
+                                  })}
+                                </div>
                               )}
                             </div>
-                          </label>
-                          {question.type === 'single-select' && (
-                            <div className="space-y-2">
-                              {question.options.map((option) => (
-                                <button
-                                  key={option.value}
-                                  onClick={() => handleAnswer(question.id, option.value)}
-                                  className={`w-full text-left px-4 py-2.5 border rounded-lg transition-all duration-150 ${
-                                    value === option.value
-                                      ? 'bg-blue-100 border-blue-400 text-blue-900 font-medium shadow-sm'
-                                      : 'border-gray-200 hover:bg-gray-50 hover:border-gray-300'
-                                  }`}
-                                >
-                                  {value === option.value && (
-                                    <span className="inline-block mr-2 text-blue-600">✓</span>
-                                  )}
-                                  {option.label}
-                                </button>
-                              ))}
-                            </div>
-                          )}
-                          {question.type === 'multi-select' && (
-                            <div className="space-y-2">
-                              {question.options.map((option) => {
-                                const isSelected = Array.isArray(value) && value.includes(option.value);
-                                return (
-                                  <button
-                                    key={option.value}
-                                    onClick={() => {
-                                      const current = Array.isArray(value) ? value : [];
-                                      const newValue = isSelected
-                                        ? current.filter(v => v !== option.value)
-                                        : [...current, option.value];
-                                      handleAnswer(question.id, newValue);
-                                    }}
-                                    className={`w-full text-left px-4 py-2.5 border rounded-lg transition-all duration-150 ${
-                                      isSelected
-                                        ? 'bg-blue-100 border-blue-400 text-blue-900 font-medium shadow-sm'
-                                        : 'border-gray-200 hover:bg-gray-50 hover:border-gray-300'
-                                    }`}
-                                  >
-                                    <span className={`inline-block w-5 h-5 mr-2 border-2 rounded ${
-                                      isSelected 
-                                        ? 'bg-blue-600 border-blue-600' 
-                                        : 'border-gray-300'
-                                    } flex items-center justify-center`}>
-                                      {isSelected && (
-                                        <svg className="w-3 h-3 text-white" fill="currentColor" viewBox="0 0 20 20">
-                                          <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
-                                        </svg>
-                                      )}
-                                    </span>
-                                    {option.label}
-                                  </button>
-                                );
-                              })}
-                            </div>
-                          )}
+                          );
+                        })()}
+                        
+                        {/* Navigation Arrows */}
+                        <div className="absolute top-1/2 -translate-y-1/2 left-0 -translate-x-4">
+                          <button
+                            onClick={() => setCurrentQuestionIndex(Math.max(0, currentQuestionIndex - 1))}
+                            disabled={currentQuestionIndex === 0}
+                            className={`w-10 h-10 rounded-full bg-white border-2 border-gray-300 flex items-center justify-center shadow-lg transition-all ${
+                              currentQuestionIndex === 0
+                                ? 'opacity-50 cursor-not-allowed'
+                                : 'hover:border-blue-600 hover:bg-blue-50 hover:scale-110'
+                            }`}
+                          >
+                            <ChevronLeft className="w-5 h-5 text-gray-700" />
+                          </button>
                         </div>
-                      );
-                    })}
-                  </div>
+                        <div className="absolute top-1/2 -translate-y-1/2 right-0 translate-x-4">
+                          <button
+                            onClick={() => setCurrentQuestionIndex(Math.min(visibleQuestions.length - 1, currentQuestionIndex + 1))}
+                            disabled={currentQuestionIndex === visibleQuestions.length - 1}
+                            className={`w-10 h-10 rounded-full bg-white border-2 border-gray-300 flex items-center justify-center shadow-lg transition-all ${
+                              currentQuestionIndex === visibleQuestions.length - 1
+                                ? 'opacity-50 cursor-not-allowed'
+                                : 'hover:border-blue-600 hover:bg-blue-50 hover:scale-110'
+                            }`}
+                          >
+                            <ChevronRight className="w-5 h-5 text-gray-700" />
+                          </button>
+                        </div>
+                      </div>
+                    </div>
+                  )}
                   
                   {/* Progress with Progressive Disclosure */}
                   <div className="pt-4 border-t border-gray-200 mt-4">
