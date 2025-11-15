@@ -19,7 +19,7 @@ interface ProgramFinderProps {
 }
 
 // Static questions - optimized order and with skip logic
-const CORE_QUESTIONS = [
+  const CORE_QUESTIONS = [
   {
     id: 'company_type',
     label: 'What type of company are you?',
@@ -30,7 +30,7 @@ const CORE_QUESTIONS = [
       { value: 'large', label: 'Large Company' },
       { value: 'research', label: 'Research Institution' },
     ],
-    required: true,
+    required: false,
     priority: 1,
   },
   {
@@ -43,7 +43,7 @@ const CORE_QUESTIONS = [
       { value: 'eu', label: 'EU' },
       { value: 'international', label: 'International' },
     ],
-    required: true,
+    required: false,
     priority: 2,
     // Enhanced: Subregion support for Austria
     subOptions: (value: string) => {
@@ -73,7 +73,7 @@ const CORE_QUESTIONS = [
       { value: '500kto2m', label: '€500k - €2M' },
       { value: 'over2m', label: 'Over €2M' },
     ],
-    required: true,
+    required: false,
     priority: 3,
   },
   {
@@ -302,22 +302,7 @@ export default function ProgramFinder({
     }
   };
   
-  // Check if we should advance to next phase
-  useEffect(() => {
-    const visible = getVisibleQuestions();
-    const answered = visible.filter(q => answers[q.id] !== undefined && answers[q.id] !== null && answers[q.id] !== '');
-    
-    // Advance to Phase 2 when all Phase 1 questions answered
-    if (questionPhase === 1 && visible.length === answered.length && visible.every(q => q.required)) {
-      setQuestionPhase(2);
-      setCurrentQuestionIndex(0); // Reset to first question of new phase
-    }
-    // Advance to Phase 3 when all Phase 2 questions answered
-    else if (questionPhase === 2 && visible.length === answered.length) {
-      setQuestionPhase(3);
-      setCurrentQuestionIndex(0); // Reset to first question of new phase
-    }
-  }, [answers, questionPhase]);
+  // Phase advancement is now manual via "Show All" button - no auto-advance
   
   const visibleQuestions = getVisibleQuestions();
   
@@ -416,12 +401,11 @@ export default function ProgramFinder({
     }
   }, [answers, answeredCount, setRecommendations]);
   
-  // Update results when answers change
-  useEffect(() => {
-    if (answeredCount > 0) {
-      updateGuidedResults();
-    }
-  }, [answers, answeredCount, updateGuidedResults]);
+  // State to control when to show results
+  const [showResults, setShowResults] = useState(false);
+  
+  // Only update results when user explicitly requests them (after completing or clicking button)
+  // Don't auto-update on every answer change
   
   const handleAnswer = (questionId: string, value: any) => {
     const newAnswers = { ...answers, [questionId]: value };
@@ -445,7 +429,7 @@ export default function ProgramFinder({
         {/* Header - Centered with Wizard Icon */}
         <div className="mb-8 text-center">
           <div className="flex items-center justify-center gap-4 mb-4">
-            <div className="w-14 h-14 rounded-full bg-blue-600 flex items-center justify-center shadow-lg">
+            <div className="w-14 h-14 rounded-full bg-orange-500 flex items-center justify-center shadow-lg">
               <Wand2 className="w-7 h-7 text-white" />
             </div>
             <h1 className="text-3xl font-bold text-gray-900">
@@ -496,7 +480,7 @@ export default function ProgramFinder({
               <div className="space-y-6">
                   <div className="flex items-center justify-between mb-4">
                     <div className="flex items-center gap-3">
-                      <div className="w-12 h-12 rounded-full bg-blue-600 flex items-center justify-center shadow-lg">
+                      <div className="w-12 h-12 rounded-full bg-orange-500 flex items-center justify-center shadow-lg">
                         <Wand2 className="w-6 h-6 text-white" />
                       </div>
                       <div>
@@ -586,24 +570,23 @@ export default function ProgramFinder({
                           return (
                             <div className="space-y-4">
                               {/* Question Header */}
-                              <div className="flex items-start justify-between">
-                                <div className="flex-1">
-                                  <div className="flex items-center gap-3 mb-2">
-                                    <span className="w-8 h-8 rounded-full bg-blue-600 text-white text-sm font-bold flex items-center justify-center">
-                                      {currentQuestionIndex + 1}
-                                    </span>
-                                    <h3 className="text-lg font-semibold text-gray-900">
+                              <div className="mb-6">
+                                <div className="flex items-start gap-3 mb-4">
+                                  <span className="w-8 h-8 rounded-full bg-blue-600 text-white text-sm font-bold flex items-center justify-center flex-shrink-0 mt-1">
+                                    {currentQuestionIndex + 1}
+                                  </span>
+                                  <div className="flex-1">
+                                    <h3 className="text-xl font-semibold text-gray-900 break-words leading-relaxed pr-8">
                                       {question.label}
-                                      {question.required && <span className="text-red-500 ml-1">*</span>}
                                     </h3>
-                                    {isAnswered && (
-                                      <span className="text-green-600">
-                                        <svg className="w-6 h-6" fill="currentColor" viewBox="0 0 20 20">
-                                          <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
-                                        </svg>
-                                      </span>
-                                    )}
                                   </div>
+                                  {isAnswered && (
+                                    <span className="text-green-600 flex-shrink-0 mt-1">
+                                      <svg className="w-6 h-6" fill="currentColor" viewBox="0 0 20 20">
+                                        <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
+                                      </svg>
+                                    </span>
+                                  )}
                                 </div>
                               </div>
                               
@@ -747,22 +730,38 @@ export default function ProgramFinder({
                         Complete All Questions →
                       </button>
                     )}
-                    {questionPhase === 3 && answeredCount === totalQuestions && (
-                      <p className="mt-2 text-sm text-green-600 font-medium flex items-center gap-1">
-                        <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
-                          <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
-                        </svg>
-                        All questions completed!
-                      </p>
+                    {/* Show Results Button - appears when user has answered at least some questions */}
+                    {answeredCount > 0 && !showResults && (
+                      <button
+                        onClick={() => {
+                          setShowResults(true);
+                          updateGuidedResults();
+                        }}
+                        disabled={isLoading}
+                        className="mt-4 w-full px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors text-base font-semibold shadow-lg disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+                      >
+                        {isLoading ? (
+                          <>
+                            <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-white"></div>
+                            <span>Finding programs...</span>
+                          </>
+                        ) : (
+                          <>
+                            <Search className="w-5 h-5" />
+                            <span>Show Matching Programs</span>
+                          </>
+                        )}
+                      </button>
                     )}
                   </div>
                 </div>
             </Card>
           </div>
           
-          {/* Results - Below questions, centered, always visible on desktop */}
-          <div className={`${mobileActiveTab === 'questions' ? 'hidden lg:flex' : 'flex'} flex-col max-w-4xl mx-auto w-full`}>
-            {isLoading ? (
+          {/* Results - Below questions, centered, only shown when showResults is true */}
+          {showResults && (
+            <div className={`${mobileActiveTab === 'questions' ? 'hidden lg:flex' : 'flex'} flex-col max-w-4xl mx-auto w-full`}>
+              {isLoading ? (
               <Card className="p-12 text-center">
                 <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
                 <p className="text-gray-600">Finding programs...</p>
@@ -991,7 +990,8 @@ export default function ProgramFinder({
                 ))}
               </div>
             )}
-          </div>
+            </div>
+          )}
         </div>
       </div>
     </div>

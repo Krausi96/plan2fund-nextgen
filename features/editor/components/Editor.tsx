@@ -29,14 +29,25 @@ export default function Editor({ programId, product = 'submission', route = 'gra
   const [activeSection, setActiveSection] = useState(0);
   const [isLoading, setIsLoading] = useState(true);
   const [isSaving, setIsSaving] = useState(false);
+  const [error, setError] = useState<string | null>(null);
   const [programData, setProgramData] = useState<{
     categorized_requirements?: any;
     program_name?: string;
   } | null>(null);
+  
+  // Ensure we're on the client side
+  const [isClient, setIsClient] = useState(false);
+  
+  useEffect(() => {
+    setIsClient(true);
+  }, []);
 
   // Load sections when route/product changes (programId is optional)
   const loadSections = useCallback(async () => {
+    if (typeof window === 'undefined') return; // Don't run on server
+    
     setIsLoading(true);
+    setError(null);
     try {
       // Determine funding type from route (normalize 'grant' to 'grants')
       const normalizedRoute = route === 'grant' ? 'grants' : route;
@@ -46,14 +57,19 @@ export default function Editor({ programId, product = 'submission', route = 'gra
       
       // Load sections from templates (works without programId - uses default templates)
       const baseUrl = typeof window !== 'undefined' ? window.location.origin : '';
-      const templateSections = await getSections(fundingType, product, programId || undefined, baseUrl);
+      
+      let templateSections: SectionTemplate[];
+      try {
+        templateSections = await getSections(fundingType, product, programId || undefined, baseUrl);
+      } catch (templateError: any) {
+        console.error('Error loading template sections:', templateError);
+        throw new Error(`Failed to load templates: ${templateError?.message || 'Unknown error'}`);
+      }
       
       // Validate that we got sections
       if (!templateSections || templateSections.length === 0) {
         console.error(`No sections found for fundingType: ${fundingType}, product: ${product}`);
-        setSections([]);
-        setSectionTemplates([]);
-        return;
+        throw new Error(`No sections available for ${product} product with ${fundingType} funding type.`);
       }
       
       // Store templates for prompts
@@ -127,19 +143,34 @@ export default function Editor({ programId, product = 'submission', route = 'gra
         // No program selected - clear program data
         setProgramData(null);
       }
-    } catch (error) {
+    } catch (error: any) {
       console.error('Error loading sections:', error);
       // Set empty sections on error to prevent infinite loading
       setSections([]);
       setSectionTemplates([]);
+      setError(error?.message || 'Failed to load sections. Please try refreshing the page.');
     } finally {
       setIsLoading(false);
     }
   }, [product, route, programId]);
 
   useEffect(() => {
-    loadSections();
-  }, [loadSections]);
+    if (isClient) {
+      loadSections();
+    }
+  }, [isClient, loadSections]);
+  
+  // Don't render on server
+  if (!isClient) {
+    return (
+      <div className="flex items-center justify-center h-screen">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto mb-4"></div>
+          <div>Loading...</div>
+        </div>
+      </div>
+    );
+  }
 
   // Handle section content change
   const handleSectionChange = useCallback((sectionKey: string, content: string) => {
@@ -175,6 +206,27 @@ export default function Editor({ programId, product = 'submission', route = 'gra
 
   // Program selection is now optional - editor works with default templates
   // ProgramSelector will be shown in header if no programId
+
+  // Error state
+  if (error) {
+    return (
+      <div className="flex items-center justify-center h-screen">
+        <div className="text-center max-w-md">
+          <div className="text-red-600 text-xl mb-4">⚠️ Error</div>
+          <p className="text-gray-600 mb-4">{error}</p>
+          <button
+            onClick={() => {
+              setError(null);
+              loadSections();
+            }}
+            className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
+          >
+            Try Again
+          </button>
+        </div>
+      </div>
+    );
+  }
 
   // Loading state
   if (isLoading) {
