@@ -3,7 +3,6 @@
 
 import { useRouter } from 'next/router';
 import Editor from '@/features/editor/components/Editor';
-import { withAuth } from '@/shared/user/auth/withAuth';
 import PageEntryIndicator from '@/shared/components/common/PageEntryIndicator';
 
 function EditorPage() {
@@ -39,4 +38,4 @@ function EditorPage() {
   );
 }
 
-export default withAuth(EditorPage);
+export default EditorPage;
