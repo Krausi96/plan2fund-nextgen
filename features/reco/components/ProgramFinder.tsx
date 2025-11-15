@@ -45,7 +45,7 @@ interface ProgramFinderProps {
     ],
     required: false,
     priority: 2,
-    // Enhanced: Subregion support for Austria
+    // Enhanced: Subregion support for Austria, Germany, and EU
     subOptions: (value: string) => {
       if (value === 'austria') {
         return [
@@ -58,6 +58,57 @@ interface ProgramFinderProps {
           { value: 'carinthia', label: 'Carinthia' },
           { value: 'vorarlberg', label: 'Vorarlberg' },
           { value: 'burgenland', label: 'Burgenland' },
+        ];
+      }
+      if (value === 'germany') {
+        return [
+          { value: 'baden_wurttemberg', label: 'Baden-Württemberg' },
+          { value: 'bavaria', label: 'Bavaria' },
+          { value: 'berlin', label: 'Berlin' },
+          { value: 'brandenburg', label: 'Brandenburg' },
+          { value: 'bremen', label: 'Bremen' },
+          { value: 'hamburg', label: 'Hamburg' },
+          { value: 'hesse', label: 'Hesse' },
+          { value: 'lower_saxony', label: 'Lower Saxony' },
+          { value: 'mecklenburg_western_pomerania', label: 'Mecklenburg-Western Pomerania' },
+          { value: 'north_rhine_westphalia', label: 'North Rhine-Westphalia' },
+          { value: 'rhineland_palatinate', label: 'Rhineland-Palatinate' },
+          { value: 'saarland', label: 'Saarland' },
+          { value: 'saxony', label: 'Saxony' },
+          { value: 'saxony_anhalt', label: 'Saxony-Anhalt' },
+          { value: 'schleswig_holstein', label: 'Schleswig-Holstein' },
+          { value: 'thuringia', label: 'Thuringia' },
+        ];
+      }
+      if (value === 'eu') {
+        return [
+          { value: 'austria', label: 'Austria' },
+          { value: 'belgium', label: 'Belgium' },
+          { value: 'bulgaria', label: 'Bulgaria' },
+          { value: 'croatia', label: 'Croatia' },
+          { value: 'cyprus', label: 'Cyprus' },
+          { value: 'czech_republic', label: 'Czech Republic' },
+          { value: 'denmark', label: 'Denmark' },
+          { value: 'estonia', label: 'Estonia' },
+          { value: 'finland', label: 'Finland' },
+          { value: 'france', label: 'France' },
+          { value: 'germany', label: 'Germany' },
+          { value: 'greece', label: 'Greece' },
+          { value: 'hungary', label: 'Hungary' },
+          { value: 'ireland', label: 'Ireland' },
+          { value: 'italy', label: 'Italy' },
+          { value: 'latvia', label: 'Latvia' },
+          { value: 'lithuania', label: 'Lithuania' },
+          { value: 'luxembourg', label: 'Luxembourg' },
+          { value: 'malta', label: 'Malta' },
+          { value: 'netherlands', label: 'Netherlands' },
+          { value: 'poland', label: 'Poland' },
+          { value: 'portugal', label: 'Portugal' },
+          { value: 'romania', label: 'Romania' },
+          { value: 'slovakia', label: 'Slovakia' },
+          { value: 'slovenia', label: 'Slovenia' },
+          { value: 'spain', label: 'Spain' },
+          { value: 'sweden', label: 'Sweden' },
         ];
       }
       return [];
@@ -99,6 +150,9 @@ interface ProgramFinderProps {
         { value: 'edtech', label: 'EdTech' },
         { value: 'iot', label: 'IoT' },
         { value: 'blockchain', label: 'Blockchain' },
+        { value: 'cybersecurity', label: 'Cybersecurity' },
+        { value: 'cloud_computing', label: 'Cloud Computing' },
+        { value: 'software_development', label: 'Software Development' },
       ],
       sustainability: [
         { value: 'greentech', label: 'GreenTech' },
@@ -106,18 +160,34 @@ interface ProgramFinderProps {
         { value: 'circular_economy', label: 'Circular Economy' },
         { value: 'renewable_energy', label: 'Renewable Energy' },
         { value: 'climate_tech', label: 'Climate Tech' },
+        { value: 'waste_management', label: 'Waste Management' },
+        { value: 'water_management', label: 'Water Management' },
+        { value: 'sustainable_agriculture', label: 'Sustainable Agriculture' },
       ],
       health: [
         { value: 'biotech', label: 'Biotech' },
         { value: 'medtech', label: 'MedTech' },
         { value: 'pharma', label: 'Pharmaceuticals' },
         { value: 'digital_health', label: 'Digital Health' },
+        { value: 'medical_devices', label: 'Medical Devices' },
+        { value: 'diagnostics', label: 'Diagnostics' },
+        { value: 'therapeutics', label: 'Therapeutics' },
       ],
       manufacturing: [
         { value: 'industry_4_0', label: 'Industry 4.0' },
         { value: 'smart_manufacturing', label: 'Smart Manufacturing' },
         { value: 'robotics', label: 'Robotics' },
         { value: 'automation', label: 'Automation' },
+        { value: 'additive_manufacturing', label: 'Additive Manufacturing (3D Printing)' },
+        { value: 'advanced_materials', label: 'Advanced Materials' },
+        { value: 'quality_control', label: 'Quality Control & Testing' },
+      ],
+      export: [
+        { value: 'export_eu', label: 'EU Export' },
+        { value: 'export_global', label: 'Global Export' },
+        { value: 'export_services', label: 'Export Services' },
+        { value: 'export_products', label: 'Export Products' },
+        { value: 'export_technology', label: 'Export Technology' },
       ],
     },
   },
@@ -232,87 +302,6 @@ interface ProgramFinderProps {
     ],
     required: false,
     priority: 12,
-  },
-  {
-    id: 'previous_funding',
-    label: 'Have you received previous funding?',
-    type: 'single-select' as const,
-    options: [
-      { value: 'none', label: 'No previous funding' },
-      { value: 'grants', label: 'Yes, grants' },
-      { value: 'loans', label: 'Yes, loans' },
-      { value: 'equity', label: 'Yes, equity investment' },
-      { value: 'mixed', label: 'Yes, mixed funding' },
-    ],
-    required: false,
-    priority: 13,
-  },
-  {
-    id: 'intellectual_property',
-    label: 'Do you have intellectual property (patents, trademarks, etc.)?',
-    type: 'single-select' as const,
-    options: [
-      { value: 'yes_patents', label: 'Yes, patents' },
-      { value: 'yes_trademarks', label: 'Yes, trademarks' },
-      { value: 'yes_both', label: 'Yes, both patents and trademarks' },
-      { value: 'pending', label: 'Pending applications' },
-      { value: 'no', label: 'No IP' },
-    ],
-    required: false,
-    priority: 14,
-  },
-  {
-    id: 'partnerships',
-    label: 'Are you looking for partnerships or collaborations?',
-    type: 'multi-select' as const,
-    options: [
-      { value: 'research_partners', label: 'Research partners' },
-      { value: 'industry_partners', label: 'Industry partners' },
-      { value: 'international_partners', label: 'International partners' },
-      { value: 'no_partnerships', label: 'Not looking for partnerships' },
-    ],
-    required: false,
-    priority: 15,
-  },
-  {
-    id: 'market_focus',
-    label: 'What is your primary market focus?',
-    type: 'multi-select' as const,
-    options: [
-      { value: 'b2b', label: 'B2B (Business to Business)' },
-      { value: 'b2c', label: 'B2C (Business to Consumer)' },
-      { value: 'b2g', label: 'B2G (Business to Government)' },
-      { value: 'b2b2c', label: 'B2B2C (Business to Business to Consumer)' },
-    ],
-    required: false,
-    priority: 16,
-  },
-  {
-    id: 'export_plans',
-    label: 'Do you have export plans?',
-    type: 'single-select' as const,
-    options: [
-      { value: 'yes_eu', label: 'Yes, within EU' },
-      { value: 'yes_international', label: 'Yes, international' },
-      { value: 'planning', label: 'Planning to export' },
-      { value: 'no', label: 'No export plans' },
-    ],
-    required: false,
-    priority: 17,
-  },
-  {
-    id: 'sustainability_goals',
-    label: 'What are your sustainability goals?',
-    type: 'multi-select' as const,
-    options: [
-      { value: 'carbon_neutral', label: 'Carbon neutrality' },
-      { value: 'renewable_energy', label: 'Renewable energy use' },
-      { value: 'circular_economy', label: 'Circular economy practices' },
-      { value: 'social_impact', label: 'Social impact' },
-      { value: 'not_applicable', label: 'Not applicable' },
-    ],
-    required: false,
-    priority: 18,
   },
 ];
 
@@ -763,7 +752,9 @@ export default function ProgramFinder({
                                 <div className="space-y-3">
                                   {question.options.map((option) => {
                                     const isSelected = Array.isArray(value) && value.includes(option.value);
-                                    const subCategories = question.subCategories && isSelected ? question.subCategories[option.value] : [];
+                                    const subCategories = question.subCategories && isSelected && option.value in question.subCategories 
+                                      ? question.subCategories[option.value as keyof typeof question.subCategories] 
+                                      : [];
                                     const hasSubCategories = subCategories && subCategories.length > 0;
                                     const subCategoryKey = `${question.id}_${option.value}`;
                                     const subCategoryValue = answers[subCategoryKey];

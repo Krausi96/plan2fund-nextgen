@@ -306,18 +306,54 @@ export async function generateProgramsWithLLM(
   try {
     // Summarize user profile
     const profileParts: string[] = [];
-    if (answers.location) profileParts.push(`Location: ${answers.location}`);
+    
+    // Location with sub-options (regions/states)
+    if (answers.location) {
+      let locationStr = `Location: ${answers.location}`;
+      if ((answers as any).location_sub) {
+        locationStr += ` (${(answers as any).location_sub})`;
+      }
+      profileParts.push(locationStr);
+    }
+    
     if (answers.company_type) profileParts.push(`Company Type: ${answers.company_type}`);
     if (answers.company_stage) profileParts.push(`Company Stage: ${answers.company_stage}`);
     if (answers.funding_amount) profileParts.push(`Funding Amount: ${answers.funding_amount}`);
+    
+    // Industry focus with sub-categories
     if (answers.industry_focus) {
       const industries = Array.isArray(answers.industry_focus) 
-        ? answers.industry_focus.join(', ') 
-        : answers.industry_focus;
-      profileParts.push(`Industry Focus: ${industries}`);
+        ? answers.industry_focus 
+        : [answers.industry_focus];
+      
+      // Include sub-categories if available
+      const industryDetails: string[] = [];
+      industries.forEach((industry: string) => {
+        const subCatKey = `industry_focus_${industry}`;
+        const subCategories = (answers as any)[subCatKey];
+        if (subCategories && Array.isArray(subCategories) && subCategories.length > 0) {
+          industryDetails.push(`${industry} (${subCategories.join(', ')})`);
+        } else {
+          industryDetails.push(industry);
+        }
+      });
+      profileParts.push(`Industry Focus: ${industryDetails.join(', ')}`);
     }
+    
     if (answers.co_financing) profileParts.push(`Co-financing: ${answers.co_financing}`);
-    if (answers.impact) profileParts.push(`Impact: ${answers.impact}`);
+    if (answers.impact) {
+      const impacts = Array.isArray(answers.impact) 
+        ? answers.impact.join(', ') 
+        : answers.impact;
+      profileParts.push(`Impact: ${impacts}`);
+    }
+    if (answers.team_size) profileParts.push(`Team Size: ${answers.team_size}`);
+    if (answers.use_of_funds) {
+      const uses = Array.isArray(answers.use_of_funds) 
+        ? answers.use_of_funds.join(', ') 
+        : answers.use_of_funds;
+      profileParts.push(`Use of Funds: ${uses}`);
+    }
     
     const userProfile = profileParts.join('\n');
 
