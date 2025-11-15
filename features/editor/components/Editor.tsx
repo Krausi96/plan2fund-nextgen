@@ -254,6 +254,7 @@ export default function Editor({ product = 'submission' }: EditorProps) {
   const [showAIModal, setShowAIModal] = useState(false);
   const [showRequirementsModal, setShowRequirementsModal] = useState(false);
   const [showSettingsModal, setShowSettingsModal] = useState(false);
+  const [showProgramFinderModal, setShowProgramFinderModal] = useState(false);
 
   const currentSection = sections[activeSection];
   const sectionTemplate = sectionTemplates.find(t => t.id === currentSection?.key);
@@ -432,14 +433,23 @@ export default function Editor({ product = 'submission' }: EditorProps) {
               </div>
               <div className="flex-1">
                 <label className="block text-xs text-gray-600 mb-1">Program</label>
-                <input
-                  type="text"
-                  value={programData?.program_name || ''}
-                  readOnly
-                  placeholder="No program selected"
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm bg-gray-50"
-                  title={programData ? "Program selected from recommendation flow (click 'Clear program' to remove)" : "No program selected - go to /reco to select one"}
-                />
+                <div className="flex gap-2">
+                  <input
+                    type="text"
+                    value={programData?.program_name || ''}
+                    readOnly
+                    placeholder="No program selected"
+                    className="flex-1 px-3 py-2 border border-gray-300 rounded-lg text-sm bg-gray-50"
+                    title={programData ? "Program selected from recommendation flow (click 'Clear program' to remove)" : "No program selected - click 'Find Program' to search"}
+                  />
+                  <button
+                    onClick={() => setShowProgramFinderModal(true)}
+                    className="px-3 py-2 text-sm font-medium bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors whitespace-nowrap"
+                    title="Find or generate a funding program"
+                  >
+                    {programData ? 'Change' : 'Find Program'}
+                  </button>
+                </div>
                 {programData && (
                   <button
                     onClick={() => {
@@ -855,6 +865,196 @@ export default function Editor({ product = 'submission' }: EditorProps) {
           </div>
         </div>
       )}
+
+      {/* Program Finder Modal - Generate programs on-demand */}
+      {showProgramFinderModal && (
+        <ProgramFinderModal
+          isOpen={showProgramFinderModal}
+          onClose={() => setShowProgramFinderModal(false)}
+          onProgramSelect={(program) => {
+            // Store program in localStorage (same as reco flow)
+            if (typeof window !== 'undefined') {
+              const programData = {
+                id: program.id,
+                name: program.name || program.id,
+                categorized_requirements: program.categorized_requirements || {},
+                type: program.type || 'grant',
+                url: program.url || program.source_url,
+                selectedAt: new Date().toISOString(),
+                metadata: {
+                  funding_amount_min: program.metadata?.funding_amount_min,
+                  funding_amount_max: program.metadata?.funding_amount_max,
+                  currency: program.metadata?.currency || 'EUR',
+                }
+              };
+              localStorage.setItem('selectedProgram', JSON.stringify(programData));
+            }
+            
+            // Reload sections to pick up new program
+            loadSections();
+            setShowProgramFinderModal(false);
+          }}
+        />
+      )}
+    </div>
+  );
+}
+
+// ========= PROGRAM FINDER MODAL COMPONENT =========
+function ProgramFinderModal({
+  isOpen,
+  onClose,
+  onProgramSelect
+}: {
+  isOpen: boolean;
+  onClose: () => void;
+  onProgramSelect: (program: any) => void;
+}) {
+  const router = useRouter();
+  const [description, setDescription] = useState('');
+  const [isGenerating, setIsGenerating] = useState(false);
+  const [programs, setPrograms] = useState<any[]>([]);
+  const [error, setError] = useState<string | null>(null);
+
+  const handleGenerate = async () => {
+    if (!description.trim()) {
+      setError('Please describe your project');
+      return;
+    }
+
+    setIsGenerating(true);
+    setError(null);
+    setPrograms([]);
+
+    try {
+      // Use the same LLM API as reco to generate programs
+      const response = await fetch('/api/programs/recommend', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          answers: {
+            // Pass description - API will include it in the LLM prompt
+            project_description: description,
+          },
+          max_results: 5,
+          extract_all: true, // Generate programs even without full answers
+          use_seeds: false,
+        }),
+      });
+
+      if (!response.ok) {
+        throw new Error('Failed to generate programs');
+      }
+
+      const data = await response.json();
+      const generatedPrograms = data.programs || [];
+      
+      if (generatedPrograms.length === 0) {
+        setError('No programs found. Try being more specific about your project.');
+        return;
+      }
+
+      setPrograms(generatedPrograms);
+    } catch (err: any) {
+      setError(err.message || 'Failed to generate programs. Please try again.');
+    } finally {
+      setIsGenerating(false);
+    }
+  };
+
+  if (!isOpen) return null;
+
+  return (
+    <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50" onClick={onClose}>
+      <div 
+        className="bg-white rounded-lg p-6 max-w-2xl w-full mx-4 max-h-[80vh] overflow-y-auto" 
+        onClick={(e) => e.stopPropagation()}
+      >
+        <div className="flex items-center justify-between mb-4">
+          <h2 className="text-xl font-semibold">Find Funding Program</h2>
+          <button onClick={onClose} className="text-gray-500 hover:text-gray-700">✕</button>
+        </div>
+
+        <div className="space-y-4">
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-2">
+              Describe your project
+            </label>
+            <textarea
+              value={description}
+              onChange={(e) => setDescription(e.target.value)}
+              placeholder="Example: We're an AI startup in Vienna developing healthcare software. We need €150k to expand our team and complete our MVP. Looking for grants that allow partnerships with universities."
+              className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-sm min-h-[120px]"
+              disabled={isGenerating}
+            />
+            <p className="text-xs text-gray-500 mt-1">
+              Include: company stage, location, industry, funding amount, special requirements
+            </p>
+          </div>
+
+          <button
+            onClick={handleGenerate}
+            disabled={isGenerating || !description.trim()}
+            className="w-full px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed font-medium"
+          >
+            {isGenerating ? 'Generating programs...' : '🚀 Generate Programs'}
+          </button>
+
+          {error && (
+            <div className="p-3 bg-red-50 border border-red-200 rounded-lg text-sm text-red-800">
+              {error}
+            </div>
+          )}
+
+          {programs.length > 0 && (
+            <div className="space-y-3 mt-4">
+              <h3 className="font-semibold text-gray-900">Found {programs.length} program{programs.length !== 1 ? 's' : ''}</h3>
+              {programs.map((program, index) => (
+                <div
+                  key={program.id || index}
+                  className="p-4 border border-gray-200 rounded-lg hover:border-blue-400 hover:shadow-md transition-all cursor-pointer"
+                  onClick={() => onProgramSelect(program)}
+                >
+                  <div className="flex items-start justify-between">
+                    <div className="flex-1">
+                      <h4 className="font-semibold text-gray-900 mb-1">
+                        {program.name || program.metadata?.description || `Program ${index + 1}`}
+                      </h4>
+                      {program.metadata?.description && (
+                        <p className="text-sm text-gray-600 mb-2">{program.metadata.description}</p>
+                      )}
+                      {program.metadata?.funding_amount_max && (
+                        <p className="text-xs text-gray-500">
+                          {program.metadata.currency || 'EUR'} {program.metadata.funding_amount_min?.toLocaleString() || '0'}
+                          {program.metadata.funding_amount_max && ` - ${program.metadata.funding_amount_max.toLocaleString()}`}
+                        </p>
+                      )}
+                    </div>
+                    <button
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        onProgramSelect(program);
+                      }}
+                      className="ml-4 px-3 py-1.5 text-sm font-medium bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+                    >
+                      Select
+                    </button>
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
+
+          <div className="pt-4 border-t border-gray-200">
+            <button
+              onClick={() => router.push('/reco')}
+              className="w-full px-4 py-2 text-sm font-medium text-blue-600 border border-blue-600 rounded-lg hover:bg-blue-50 transition-colors"
+            >
+              Or go to full recommendation flow →
+            </button>
+          </div>
+        </div>
+      </div>
     </div>
   );
 }

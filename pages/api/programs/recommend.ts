@@ -355,6 +355,11 @@ export async function generateProgramsWithLLM(
       profileParts.push(`Use of Funds: ${uses}`);
     }
     
+    // Handle project description (from editor modal)
+    if ((answers as any).project_description) {
+      profileParts.push(`Project Description: ${(answers as any).project_description}`);
+    }
+    
     const userProfile = profileParts.join('\n');
 
     const prompt = `You are an expert on European funding programs (grants, loans, subsidies).
