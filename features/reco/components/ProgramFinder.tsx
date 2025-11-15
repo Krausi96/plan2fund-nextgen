@@ -501,6 +501,7 @@ export default function ProgramFinder({
   const handleProgramSelect = (program: EnhancedProgramResult) => {
     // Store program data in localStorage (programs don't have stable IDs)
     // Editor will read this data directly instead of fetching by ID
+    // Include timestamp so editor knows when it was selected
     if (typeof window !== 'undefined') {
       const programData = {
         id: program.id,
@@ -508,6 +509,7 @@ export default function ProgramFinder({
         categorized_requirements: program.categorized_requirements || {},
         type: program.type || 'grant',
         url: program.url || program.source_url,
+        selectedAt: new Date().toISOString(), // Track when program was selected
         // Store any other relevant data
         metadata: {
           funding_amount_min: program.amount?.min,
@@ -530,23 +532,23 @@ export default function ProgramFinder({
   
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-purple-50">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+      <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
         {/* Header - Centered with Wizard Icon */}
-        <div className="mb-8 text-center">
-          <div className="flex items-center justify-center gap-4 mb-4">
-            <div className="w-14 h-14 rounded-full bg-blue-600 flex items-center justify-center shadow-lg">
-              <Wand2 className="w-7 h-7 text-yellow-400" />
+        <div className="mb-4 text-center">
+          <div className="flex items-center justify-center gap-3 mb-2">
+            <div className="w-10 h-10 rounded-full bg-blue-600 flex items-center justify-center shadow-lg">
+              <Wand2 className="w-5 h-5 text-yellow-400" />
             </div>
-            <h1 className="text-3xl font-bold text-gray-900">
+            <h1 className="text-2xl font-bold text-gray-900">
               {t('reco.pageTitle')}
             </h1>
           </div>
-          <p className="text-gray-600 text-lg">
+          <p className="text-gray-600 text-sm">
             {t('reco.pageSubtitle')}
           </p>
           
           {results.length > 0 && (
-            <div className="mt-4 text-sm text-gray-600">
+            <div className="mt-2 text-xs text-gray-600">
               {results.length} program{results.length !== 1 ? 's' : ''} found
             </div>
           )}
@@ -581,10 +583,14 @@ export default function ProgramFinder({
         <div className="flex flex-col gap-8">
           {/* Questions/Filters - Centered and full width */}
           <div className={`${mobileActiveTab === 'results' ? 'hidden lg:block' : ''}`}>
-            <Card className="p-4 max-w-2xl mx-auto w-full">
-              <div className="space-y-4">
+            <Card className="p-3 max-w-xl mx-auto w-full">
+              <div className="space-y-3">
                   {/* Simple Header with Generate Button */}
-                  <div className="flex items-center justify-end mb-4">
+                  <div className="flex items-center justify-between mb-3">
+                    {/* Question Navigation Header */}
+                    <div>
+                      <p className="text-base font-semibold text-gray-800">Questions</p>
+                    </div>
                     {/* Generate Button - appears when user has enough answers (6+) */}
                     {hasEnoughAnswers && !showResults && (
                       <button
@@ -593,16 +599,16 @@ export default function ProgramFinder({
                           updateGuidedResults();
                         }}
                         disabled={isLoading}
-                        className="px-6 py-2.5 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors text-sm font-semibold shadow-md disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
+                        className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors text-sm font-semibold shadow-md disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
                       >
                         {isLoading ? (
                           <>
-                            <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
+                            <div className="animate-spin rounded-full h-3 w-3 border-b-2 border-white"></div>
                             <span>Generating...</span>
                           </>
                         ) : (
                           <>
-                            <Wand2 className="w-4 h-4" />
+                            <Wand2 className="w-3 h-3" />
                             <span>{t('reco.generateButton')}</span>
                           </>
                         )}
@@ -619,12 +625,8 @@ export default function ProgramFinder({
                   {/* Horizontal Question Navigation */}
                   {visibleQuestions.length > 0 && (
                     <div className="relative">
-                      {/* Question Navigation Header */}
-                      <div className="text-center mb-3">
-                        <p className="text-sm font-medium text-gray-700">Questions</p>
-                      </div>
                       {/* Question Navigation Dots */}
-                      <div className="flex justify-center gap-2 mb-4 flex-wrap">
+                      <div className="flex justify-center gap-1.5 mb-3 flex-wrap">
                         {visibleQuestions.map((_, idx) => {
                           const q = visibleQuestions[idx];
                           const isAnswered = answers[q.id] !== undefined && answers[q.id] !== null && answers[q.id] !== '';
@@ -632,7 +634,7 @@ export default function ProgramFinder({
                             <button
                               key={idx}
                               onClick={() => setCurrentQuestionIndex(idx)}
-                              className={`w-10 h-10 rounded-full flex items-center justify-center text-sm font-semibold transition-all ${
+                              className={`w-8 h-8 rounded-full flex items-center justify-center text-xs font-semibold transition-all ${
                                 idx === currentQuestionIndex
                                   ? 'bg-blue-600 text-white shadow-lg scale-110'
                                   : isAnswered
@@ -647,7 +649,7 @@ export default function ProgramFinder({
                       </div>
                       
                       {/* Current Question Display */}
-                      <div className="relative bg-white rounded-lg border border-gray-200 shadow-sm p-5">
+                      <div className="relative bg-white rounded-lg border border-gray-200 shadow-sm p-4">
                         {(() => {
                           const question = visibleQuestions[currentQuestionIndex];
                           if (!question) return null;
@@ -656,19 +658,19 @@ export default function ProgramFinder({
                           return (
                             <div className="space-y-4">
                               {/* Question Header */}
-                              <div className="mb-6">
-                                <div className="flex items-start gap-3 mb-4">
-                                  <span className="w-7 h-7 rounded-full bg-blue-600 text-white text-sm font-bold flex items-center justify-center flex-shrink-0 mt-0.5">
+                              <div className="mb-4">
+                                <div className="flex items-start gap-2 mb-3">
+                                  <span className="w-6 h-6 rounded-full bg-blue-600 text-white text-xs font-bold flex items-center justify-center flex-shrink-0 mt-0.5">
                                     {currentQuestionIndex + 1}
                                   </span>
                                   <div className="flex-1">
-                                    <h3 className="text-lg font-semibold text-gray-900 break-words leading-relaxed">
+                                    <h3 className="text-base font-semibold text-gray-900 break-words leading-relaxed">
                                       {question.label}
                                     </h3>
                                   </div>
                                   {isAnswered && (
                                     <span className="text-green-600 flex-shrink-0 mt-0.5">
-                                      <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
+                                      <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
                                         <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
                                       </svg>
                                     </span>
@@ -678,7 +680,7 @@ export default function ProgramFinder({
                               
                               {/* Question Options */}
                               {question.type === 'single-select' && (
-                                <div className="space-y-3">
+                                <div className="space-y-2">
                                   {question.options.map((option) => {
                                     const isSelected = value === option.value;
                                     const subOptions = question.subOptions && isSelected ? question.subOptions(option.value) : [];
@@ -694,29 +696,29 @@ export default function ProgramFinder({
                                             if (hasSubOptions && value !== option.value) {
                                               handleAnswer(`${question.id}_sub`, undefined);
                                             }
-                                            // Auto-advance only if no sub-options or sub-options already selected
+                                            // Don't auto-advance if sub-options are available - let user select sub-option first
                                             if (!hasSubOptions && currentQuestionIndex < visibleQuestions.length - 1) {
                                               setTimeout(() => setCurrentQuestionIndex(currentQuestionIndex + 1), 300);
                                             }
                                           }}
-                                          className={`w-full text-left px-5 py-4 border-2 rounded-lg transition-all duration-150 ${
+                                          className={`w-full text-left px-4 py-3 border-2 rounded-lg transition-all duration-150 ${
                                             isSelected
                                               ? 'bg-blue-600 border-blue-600 text-white font-medium shadow-md'
                                               : 'bg-white border-gray-300 hover:border-blue-400 hover:bg-blue-50'
                                           }`}
                                         >
-                                          <div className="flex items-center gap-3">
+                                          <div className="flex items-center gap-2">
                                             {isSelected && (
-                                              <span className="text-xl font-bold">✓</span>
+                                              <span className="text-lg font-bold">✓</span>
                                             )}
-                                            <span className="text-base">{option.label}</span>
+                                            <span className="text-sm">{option.label}</span>
                                           </div>
                                         </button>
                                         
-                                        {/* Sub-options (e.g., Austrian regions) */}
+                                        {/* Sub-options (e.g., Austrian regions) - Only show if main option is selected */}
                                         {hasSubOptions && isSelected && (
-                                          <div className="ml-6 space-y-2 border-l-2 border-blue-200 pl-4 pt-2">
-                                            <p className="text-sm font-medium text-gray-700 mb-2">Select region:</p>
+                                          <div className="ml-4 space-y-1.5 border-l-2 border-blue-200 pl-3 pt-1">
+                                            <p className="text-xs font-medium text-gray-600 mb-1">Select region:</p>
                                             {subOptions.map((subOption: any) => (
                                               <button
                                                 key={subOption.value}
@@ -727,7 +729,7 @@ export default function ProgramFinder({
                                                     setTimeout(() => setCurrentQuestionIndex(currentQuestionIndex + 1), 300);
                                                   }
                                                 }}
-                                                className={`w-full text-left px-4 py-3 border rounded-lg transition-all duration-150 ${
+                                                className={`w-full text-left px-3 py-2 border rounded-lg transition-all duration-150 ${
                                                   subValue === subOption.value
                                                     ? 'bg-blue-500 border-blue-500 text-white font-medium'
                                                     : 'bg-gray-50 border-gray-300 hover:border-blue-400 hover:bg-blue-50'
@@ -735,9 +737,9 @@ export default function ProgramFinder({
                                               >
                                                 <div className="flex items-center gap-2">
                                                   {subValue === subOption.value && (
-                                                    <span className="text-lg font-bold">✓</span>
+                                                    <span className="text-sm font-bold">✓</span>
                                                   )}
-                                                  <span className="text-sm">{subOption.label}</span>
+                                                  <span className="text-xs">{subOption.label}</span>
                                                 </div>
                                               </button>
                                             ))}
@@ -749,7 +751,7 @@ export default function ProgramFinder({
                                 </div>
                               )}
                               {question.type === 'multi-select' && (
-                                <div className="space-y-3">
+                                <div className="space-y-2">
                                   {question.options.map((option) => {
                                     const isSelected = Array.isArray(value) && value.includes(option.value);
                                     const subCategories = question.subCategories && isSelected && option.value in question.subCategories 
@@ -760,7 +762,7 @@ export default function ProgramFinder({
                                     const subCategoryValue = answers[subCategoryKey];
                                     
                                     return (
-                                      <div key={option.value} className="space-y-2">
+                                      <div key={option.value} className="space-y-1.5">
                                         <button
                                           onClick={() => {
                                             const current = Array.isArray(value) ? value : [];
@@ -792,33 +794,33 @@ export default function ProgramFinder({
                                               handleAnswer(subCategoryKey, undefined);
                                             }
                                           }}
-                                          className={`w-full text-left px-5 py-4 border-2 rounded-lg transition-all duration-150 ${
+                                          className={`w-full text-left px-4 py-3 border-2 rounded-lg transition-all duration-150 ${
                                             isSelected
                                               ? 'bg-blue-600 border-blue-600 text-white font-medium shadow-md'
                                               : 'bg-white border-gray-300 hover:border-blue-400 hover:bg-blue-50'
                                           }`}
                                         >
-                                          <div className="flex items-center gap-3">
-                                            <span className={`w-6 h-6 rounded border-2 flex items-center justify-center ${
+                                          <div className="flex items-center gap-2">
+                                            <span className={`w-5 h-5 rounded border-2 flex items-center justify-center ${
                                               isSelected 
                                                 ? 'bg-white border-white' 
                                                 : 'border-gray-400'
                                             }`}>
                                               {isSelected && (
-                                                <svg className="w-4 h-4 text-blue-600" fill="currentColor" viewBox="0 0 20 20">
+                                                <svg className="w-3 h-3 text-blue-600" fill="currentColor" viewBox="0 0 20 20">
                                                   <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
                                                 </svg>
                                               )}
                                             </span>
-                                            <span className="text-base">{option.label}</span>
+                                            <span className="text-sm">{option.label}</span>
                                           </div>
                                         </button>
                                         
-                                        {/* Sub-categories (e.g., industry subcategories) */}
+                                        {/* Sub-categories (e.g., industry subcategories) - Simplified, only show if selected */}
                                         {hasSubCategories && isSelected && (
-                                          <div className="ml-6 space-y-2 border-l-2 border-blue-200 pl-4 pt-2">
-                                            <p className="text-sm font-medium text-gray-700 mb-2">Select specific areas:</p>
-                                            <div className="space-y-2">
+                                          <div className="ml-4 space-y-1 border-l-2 border-blue-200 pl-3 pt-1">
+                                            <p className="text-xs font-medium text-gray-600 mb-1">Specific areas:</p>
+                                            <div className="space-y-1">
                                               {subCategories.map((subCat: any) => {
                                                 const isSubSelected = Array.isArray(subCategoryValue) && subCategoryValue.includes(subCat.value);
                                                 return (
@@ -831,25 +833,25 @@ export default function ProgramFinder({
                                                         : [...current, subCat.value];
                                                       handleAnswer(subCategoryKey, newSubValue);
                                                     }}
-                                                    className={`w-full text-left px-4 py-2 border rounded-lg transition-all duration-150 ${
+                                                    className={`w-full text-left px-3 py-1.5 border rounded-lg transition-all duration-150 ${
                                                       isSubSelected
                                                         ? 'bg-blue-500 border-blue-500 text-white font-medium'
                                                         : 'bg-gray-50 border-gray-300 hover:border-blue-400 hover:bg-blue-50'
                                                     }`}
                                                   >
-                                                    <div className="flex items-center gap-2">
-                                                      <span className={`w-5 h-5 rounded border flex items-center justify-center ${
+                                                    <div className="flex items-center gap-1.5">
+                                                      <span className={`w-4 h-4 rounded border flex items-center justify-center ${
                                                         isSubSelected 
                                                           ? 'bg-white border-white' 
                                                           : 'border-gray-400'
                                                       }`}>
                                                         {isSubSelected && (
-                                                          <svg className="w-3 h-3 text-blue-600" fill="currentColor" viewBox="0 0 20 20">
+                                                          <svg className="w-2.5 h-2.5 text-blue-600" fill="currentColor" viewBox="0 0 20 20">
                                                             <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
                                                           </svg>
                                                         )}
                                                       </span>
-                                                      <span className="text-sm">{subCat.label}</span>
+                                                      <span className="text-xs">{subCat.label}</span>
                                                     </div>
                                                   </button>
                                                 );

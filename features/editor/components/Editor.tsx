@@ -113,15 +113,27 @@ export default function Editor({ product = 'submission' }: EditorProps) {
 
       // Load program data from localStorage (programs don't have stable IDs)
       // This is set when user selects a program from reco
+      // Only use if selected recently (within 1 hour) to avoid stale data
       if (typeof window !== 'undefined') {
         try {
           const storedProgram = localStorage.getItem('selectedProgram');
           if (storedProgram) {
             const programData = JSON.parse(storedProgram);
-            setProgramData({
-              categorized_requirements: programData.categorized_requirements || {},
-              program_name: programData.name || programData.id || 'Selected Program'
-            });
+            const selectedAt = programData.selectedAt ? new Date(programData.selectedAt) : null;
+            const oneHourAgo = new Date(Date.now() - 60 * 60 * 1000);
+            
+            // Only use program if it was selected recently (within 1 hour)
+            // This prevents old program selections from persisting across sessions
+            if (selectedAt && selectedAt > oneHourAgo) {
+              setProgramData({
+                categorized_requirements: programData.categorized_requirements || {},
+                program_name: programData.name || programData.id || 'Selected Program'
+              });
+            } else {
+              // Program selection is too old - clear it
+              localStorage.removeItem('selectedProgram');
+              setProgramData(null);
+            }
           } else {
             // No program selected - clear program data
             setProgramData(null);
@@ -426,7 +438,7 @@ export default function Editor({ product = 'submission' }: EditorProps) {
                   readOnly
                   placeholder="No program selected"
                   className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm bg-gray-50"
-                  title="Program is selected from recommendation flow"
+                  title={programData ? "Program selected from recommendation flow (click 'Clear program' to remove)" : "No program selected - go to /reco to select one"}
                 />
                 {programData && (
                   <button
