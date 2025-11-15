@@ -19,22 +19,25 @@ export default function LanguageSwitcher({ compact }: Props) {
     { code: 'de', name: 'Deutsch', short: 'DE' },
   ]
 
+  const getFlag = (code: string) => {
+    return code === 'de' ? '🇩🇪' : '🇬🇧';
+  };
+
   return (
     <div className="relative">
-      <Languages className="absolute left-2 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-700 pointer-events-none z-10" />
       <select
         aria-label="Language"
         value={locale}
         onChange={(e) => handleLanguageChange(e.target.value)}
-        className={`border-2 border-gray-400 rounded-lg pl-8 pr-3 py-1.5 text-sm font-semibold bg-white text-gray-900 hover:border-blue-600 hover:bg-blue-50 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-600 transition-colors cursor-pointer shadow-sm ${compact ? "text-sm" : "text-base"}`}
-        style={{ color: '#111827' }}
+        className={`border border-blue-600 text-blue-600 rounded-lg pl-8 pr-3 py-1.5 text-sm font-medium bg-white hover:bg-blue-600 hover:text-white focus:outline-none focus:ring-2 focus:ring-blue-500 transition-colors cursor-pointer ${compact ? "text-sm" : "text-base"}`}
       >
         {languageOptions.map((lang) => (
-          <option key={lang.code} value={lang.code} style={{ color: '#111827', backgroundColor: '#ffffff' }}>
-            {lang.short}
+          <option key={lang.code} value={lang.code}>
+            {getFlag(lang.code)} {lang.short}
           </option>
         ))}
       </select>
+      <Languages className="absolute left-2 top-1/2 -translate-y-1/2 w-4 h-4 pointer-events-none z-10 text-blue-600" />
     </div>
   )
 }

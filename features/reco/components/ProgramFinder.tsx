@@ -579,10 +579,10 @@ export default function ProgramFinder({
           </div>
         </div>
 
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-          {/* Questions/Filters */}
+        <div className="flex flex-col gap-8">
+          {/* Questions/Filters - Centered and full width */}
           <div className={`${mobileActiveTab === 'results' ? 'hidden lg:block' : ''}`}>
-            <Card className="p-6">
+            <Card className="p-6 max-w-4xl mx-auto w-full">
               {mode === 'guided' ? (
                 <div className="space-y-4">
                   <div className="flex items-center justify-between mb-4">
@@ -637,7 +637,7 @@ export default function ProgramFinder({
                     </div>
                   </div>
                   
-                  <div className="space-y-4 max-h-[70vh] overflow-y-auto pr-2" style={{ scrollbarWidth: 'thin' }}>
+                  <div className="space-y-4 max-h-[calc(100vh-300px)] overflow-y-auto pr-2" style={{ scrollbarWidth: 'thin' }}>
                     {visibleQuestions.map((question, index) => {
                       const value = answers[question.id];
                       const isAnswered = value !== undefined && value !== null && value !== '';
@@ -897,8 +897,8 @@ export default function ProgramFinder({
             </Card>
           </div>
           
-          {/* Results */}
-          <div className={`${mobileActiveTab === 'questions' ? 'hidden lg:block' : ''}`}>
+          {/* Results - Below questions, centered, always visible on desktop */}
+          <div className={`${mobileActiveTab === 'questions' ? 'hidden lg:flex' : 'flex'} flex-col max-w-4xl mx-auto w-full`}>
             {isLoading ? (
               <Card className="p-12 text-center">
                 <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
