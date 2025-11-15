@@ -30,6 +30,7 @@
   "reco.guidedQuestions": "Geführte Fragen",
   "reco.enoughAnswers": "Sie haben genug Antworten, um Ergebnisse zu sehen! Sie können fortfahren, um bessere Übereinstimmungen zu erhalten.",
   "reco.continueOrView": "Weiter beantworten oder jetzt Ergebnisse anzeigen",
+  "reco.generateButton": "Förderprogramme generieren",
   "wizard.previous": "Zurück",
   "wizard.next": "Weiter",
   "wizard.answersSoFar": "Ihre empfohlenen Förderungen",

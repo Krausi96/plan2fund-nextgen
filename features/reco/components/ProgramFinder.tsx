@@ -306,8 +306,6 @@ export default function ProgramFinder({
     return value !== undefined && value !== null && value !== '' && 
            !(Array.isArray(value) && value.length === 0);
   }).length;
-  const totalQuestions = visibleQuestions.length;
-  const allQuestionsAnswered = answeredCount === totalQuestions && totalQuestions > 0;
   
   // Minimum questions for results (6 questions)
   const MIN_QUESTIONS_FOR_RESULTS = 6;
@@ -469,70 +467,40 @@ export default function ProgramFinder({
         <div className="flex flex-col gap-8">
           {/* Questions/Filters - Centered and full width */}
           <div className={`${mobileActiveTab === 'results' ? 'hidden lg:block' : ''}`}>
-            <Card className="p-6 max-w-4xl mx-auto w-full">
-              <div className="space-y-6">
-                  {/* Progress and Results Section - Always visible at top */}
-                  <div className="pb-4 border-b border-gray-200">
-                    <div className="flex items-center justify-between mb-3">
-                      <div className="flex items-center gap-3">
-                        <div className="w-12 h-12 rounded-full bg-blue-600 flex items-center justify-center shadow-lg">
-                          <Wand2 className="w-6 h-6 text-yellow-400" />
-                        </div>
-                        <div>
-                          <h2 className="text-xl font-bold text-gray-900">{t('reco.guidedQuestions')}</h2>
-                          <span className="text-sm text-gray-600">
-                            {answeredCount} of {visibleQuestions.length} answered
-                          </span>
-                        </div>
-                      </div>
+            <Card className="p-4 max-w-3xl mx-auto w-full">
+              <div className="space-y-4">
+                  {/* Simple Header with Generate Button */}
+                  <div className="flex items-center justify-between mb-4">
+                    <div className="text-sm text-gray-600">
+                      {answeredCount} of {visibleQuestions.length} answered
                     </div>
-                    <div className="h-2 bg-gray-200 rounded-full overflow-hidden mb-3">
-                      <div 
-                        className="h-full bg-gradient-to-r from-blue-500 to-blue-600 transition-all duration-300 ease-out"
-                        style={{ width: `${(answeredCount / totalQuestions) * 100}%` }}
-                      />
-                    </div>
-                    
-                    {/* Show Results Button - appears when user has enough answers (6+) */}
+                    {/* Generate Button - appears when user has enough answers (6+) */}
                     {hasEnoughAnswers && !showResults && (
-                      <div className="space-y-3">
-                        {!allQuestionsAnswered && (
-                          <div className="p-3 bg-green-50 border-2 border-green-300 rounded-lg">
-                            <p className="text-sm font-semibold text-green-800 mb-1">
-                              {t('reco.enoughAnswers')}
-                            </p>
-                            <p className="text-xs text-green-700">
-                              {t('reco.continueOrView')}
-                            </p>
-                          </div>
+                      <button
+                        onClick={() => {
+                          setShowResults(true);
+                          updateGuidedResults();
+                        }}
+                        disabled={isLoading}
+                        className="px-6 py-2.5 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors text-sm font-semibold shadow-md disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
+                      >
+                        {isLoading ? (
+                          <>
+                            <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
+                            <span>Generating...</span>
+                          </>
+                        ) : (
+                          <>
+                            <Wand2 className="w-4 h-4" />
+                            <span>{t('reco.generateButton')}</span>
+                          </>
                         )}
-                        <button
-                          onClick={() => {
-                            setShowResults(true);
-                            updateGuidedResults();
-                          }}
-                          disabled={isLoading}
-                          className="w-full px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors text-base font-semibold shadow-lg disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
-                        >
-                          {isLoading ? (
-                            <>
-                              <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-white"></div>
-                              <span>Finding programs...</span>
-                            </>
-                          ) : (
-                            <>
-                              <Search className="w-5 h-5" />
-                              <span>Show Matching Programs</span>
-                            </>
-                          )}
-                        </button>
-                      </div>
+                      </button>
                     )}
                     {/* Message when user hasn't answered enough questions yet */}
                     {answeredCount > 0 && !hasEnoughAnswers && (
-                      <div className="p-3 bg-blue-50 border border-blue-200 rounded-lg text-sm text-blue-800">
-                        <p className="font-medium">Answer at least {MIN_QUESTIONS_FOR_RESULTS} questions to see matching programs.</p>
-                        <p className="mt-1 text-blue-700">You've answered {answeredCount} of {MIN_QUESTIONS_FOR_RESULTS} required questions.</p>
+                      <div className="text-xs text-gray-500">
+                        {answeredCount} / {MIN_QUESTIONS_FOR_RESULTS} required
                       </div>
                     )}
                   </div>
@@ -564,7 +532,7 @@ export default function ProgramFinder({
                       </div>
                       
                       {/* Current Question Display */}
-                      <div className="relative bg-white rounded-xl border-2 border-blue-200 shadow-lg p-6 min-h-[400px]">
+                      <div className="relative bg-white rounded-lg border border-gray-200 shadow-sm p-5 min-h-[300px]">
                         {(() => {
                           const question = visibleQuestions[currentQuestionIndex];
                           if (!question) return null;
@@ -573,19 +541,19 @@ export default function ProgramFinder({
                           return (
                             <div className="space-y-4">
                               {/* Question Header */}
-                              <div className="mb-6">
-                                <div className="flex items-start gap-3 mb-4">
-                                  <span className="w-8 h-8 rounded-full bg-blue-600 text-white text-sm font-bold flex items-center justify-center flex-shrink-0 mt-1">
+                              <div className="mb-4">
+                                <div className="flex items-start gap-2 mb-3">
+                                  <span className="w-6 h-6 rounded-full bg-blue-600 text-white text-xs font-bold flex items-center justify-center flex-shrink-0 mt-0.5">
                                     {currentQuestionIndex + 1}
                                   </span>
                                   <div className="flex-1">
-                                    <h3 className="text-xl font-semibold text-gray-900 break-words leading-relaxed pr-8">
+                                    <h3 className="text-base font-semibold text-gray-900 break-words leading-relaxed">
                                       {question.label}
                                     </h3>
                                   </div>
                                   {isAnswered && (
-                                    <span className="text-green-600 flex-shrink-0 mt-1">
-                                      <svg className="w-6 h-6" fill="currentColor" viewBox="0 0 20 20">
+                                    <span className="text-green-600 flex-shrink-0 mt-0.5">
+                                      <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
                                         <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
                                       </svg>
                                     </span>
@@ -595,7 +563,7 @@ export default function ProgramFinder({
                               
                               {/* Question Options */}
                               {question.type === 'single-select' && (
-                                <div className="space-y-3">
+                                <div className="space-y-2">
                                   {question.options.map((option) => (
                                     <button
                                       key={option.value}
@@ -606,24 +574,24 @@ export default function ProgramFinder({
                                           setTimeout(() => setCurrentQuestionIndex(currentQuestionIndex + 1), 300);
                                         }
                                       }}
-                                      className={`w-full text-left px-5 py-4 border-2 rounded-xl transition-all duration-200 ${
+                                      className={`w-full text-left px-4 py-3 border rounded-lg transition-all duration-150 ${
                                         value === option.value
-                                          ? 'bg-blue-600 border-blue-600 text-white font-semibold shadow-lg transform scale-105'
-                                          : 'bg-white border-gray-300 hover:border-blue-400 hover:bg-blue-50 hover:shadow-md'
+                                          ? 'bg-blue-600 border-blue-600 text-white font-medium shadow-sm'
+                                          : 'bg-white border-gray-300 hover:border-blue-400 hover:bg-blue-50'
                                       }`}
                                     >
-                                      <div className="flex items-center gap-3">
+                                      <div className="flex items-center gap-2">
                                         {value === option.value && (
-                                          <span className="text-xl">✓</span>
+                                          <span className="text-lg">✓</span>
                                         )}
-                                        <span>{option.label}</span>
+                                        <span className="text-sm">{option.label}</span>
                                       </div>
                                     </button>
                                   ))}
                                 </div>
                               )}
                               {question.type === 'multi-select' && (
-                                <div className="space-y-3">
+                                <div className="space-y-2">
                                   {question.options.map((option) => {
                                     const isSelected = Array.isArray(value) && value.includes(option.value);
                                     return (
@@ -636,25 +604,25 @@ export default function ProgramFinder({
                                             : [...current, option.value];
                                           handleAnswer(question.id, newValue);
                                         }}
-                                        className={`w-full text-left px-5 py-4 border-2 rounded-xl transition-all duration-200 ${
+                                        className={`w-full text-left px-4 py-3 border rounded-lg transition-all duration-150 ${
                                           isSelected
-                                            ? 'bg-blue-600 border-blue-600 text-white font-semibold shadow-lg'
-                                            : 'bg-white border-gray-300 hover:border-blue-400 hover:bg-blue-50 hover:shadow-md'
+                                            ? 'bg-blue-600 border-blue-600 text-white font-medium shadow-sm'
+                                            : 'bg-white border-gray-300 hover:border-blue-400 hover:bg-blue-50'
                                         }`}
                                       >
-                                        <div className="flex items-center gap-3">
-                                          <span className={`w-6 h-6 rounded border-2 flex items-center justify-center ${
+                                        <div className="flex items-center gap-2">
+                                          <span className={`w-5 h-5 rounded border flex items-center justify-center ${
                                             isSelected 
                                               ? 'bg-white border-white' 
                                               : 'border-gray-400'
                                           }`}>
                                             {isSelected && (
-                                              <svg className="w-4 h-4 text-blue-600" fill="currentColor" viewBox="0 0 20 20">
+                                              <svg className="w-3 h-3 text-blue-600" fill="currentColor" viewBox="0 0 20 20">
                                                 <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
                                               </svg>
                                             )}
                                           </span>
-                                          <span>{option.label}</span>
+                                          <span className="text-sm">{option.label}</span>
                                         </div>
                                       </button>
                                     );
