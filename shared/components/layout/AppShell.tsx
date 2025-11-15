@@ -23,6 +23,9 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
 
   // Check if this is the landing page
   const isLandingPage = router.pathname === "/";
+  
+  // Hide breadcrumbs on /reco since it's a starting point
+  const hideBreadcrumbs = router.pathname === "/reco";
 
   return (
     <div className="flex flex-col min-h-screen">
@@ -33,10 +36,10 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
       <Header />
       
       {/* Site-wide breadcrumbs for marketing pages */}
-      {!isLandingPage && !showBreadcrumbs && <SiteBreadcrumbs />}
+      {!isLandingPage && !showBreadcrumbs && !hideBreadcrumbs && <SiteBreadcrumbs />}
       
-      {isLandingPage ? (
-        // Landing page layout - no container constraints
+      {isLandingPage || hideBreadcrumbs ? (
+        // Landing page and reco page layout - no container constraints
         <main id="main-content" className="flex-1">
           {children}
         </main>

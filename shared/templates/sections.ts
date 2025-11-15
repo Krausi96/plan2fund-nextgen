@@ -321,13 +321,40 @@ function createStrategySections(fundingType: 'grants' | 'bankLoans' | 'equity' |
       }
     },
     {
+      id: 'project_description',
+      title: 'Project Description / Business Concept',
+      description: 'Describe your core business tasks, business model, and conduct a SWOT analysis. Explain what your business does and how it operates.',
+      required: true,
+      wordCountMin: 200,
+      wordCountMax: 400,
+      order: 3,
+      category: 'project',
+      prompts: [
+        'What are your core business tasks?',
+        'What is your business model?',
+        'What are your strengths and weaknesses?',
+        'What opportunities and threats do you face?'
+      ],
+      validationRules: {
+        requiredFields: ['core_tasks', 'business_model', 'swot_analysis'],
+        formatRequirements: ['structured_narrative']
+      },
+      source: {
+        verified: true,
+        verifiedDate: '2025-01-03',
+        officialProgram: 'Strategic Planning Best Practices',
+        sourceUrl: '',
+        version: '1.0'
+      }
+    },
+    {
       id: 'business_model_value_proposition',
       title: config.businessModel.title,
       description: config.businessModel.description,
       required: true,
       wordCountMin: 150,
       wordCountMax: 350,
-      order: 3,
+      order: 4,
       category: 'business',
       prompts: config.businessModel.prompts,
       validationRules: {
@@ -349,12 +376,39 @@ function createStrategySections(fundingType: 'grants' | 'bankLoans' | 'equity' |
       required: true,
       wordCountMin: 150,
       wordCountMax: 300,
-      order: 4,
+      order: 5,
       category: 'market',
       prompts: config.competitiveLandscape.prompts,
       validationRules: {
         requiredFields: ['competitor_analysis', 'competitive_advantage'],
         formatRequirements: ['differentiation_clear', 'competitive_positioning']
+      },
+      source: {
+        verified: true,
+        verifiedDate: '2025-01-03',
+        officialProgram: 'Strategic Planning Best Practices',
+        sourceUrl: '',
+        version: '1.0'
+      }
+    },
+    {
+      id: 'innovation_technology',
+      title: 'Innovation & Technology',
+      description: 'Explain the innovation level, Technology Readiness Level (TRL), and IP protection strategy. Describe what makes your solution innovative.',
+      required: false, // Optional - not all businesses have innovation
+      wordCountMin: 150,
+      wordCountMax: 400,
+      order: 6,
+      category: 'technical',
+      prompts: [
+        'What is the innovation level of your solution?',
+        'What is your Technology Readiness Level (TRL)?',
+        'How will you protect your innovation?',
+        'What is your IP strategy?'
+      ],
+      validationRules: {
+        requiredFields: ['innovation_level', 'trl', 'ip_protection'],
+        formatRequirements: ['evidence_based_claims']
       },
       source: {
         verified: true,
@@ -371,12 +425,66 @@ function createStrategySections(fundingType: 'grants' | 'bankLoans' | 'equity' |
       required: true,
       wordCountMin: 150,
       wordCountMax: 300,
-      order: 5,
+      order: 6,
       category: 'financial',
       prompts: config.financialOverview.prompts,
       validationRules: {
         requiredFields: ['revenue_assumptions', 'cost_assumptions', 'funding_need'],
         formatRequirements: ['realistic_numbers', 'financial_justification']
+      },
+      source: {
+        verified: true,
+        verifiedDate: '2025-01-03',
+        officialProgram: 'Strategic Planning Best Practices',
+        sourceUrl: '',
+        version: '1.0'
+      }
+    },
+    {
+      id: 'team_qualifications',
+      title: 'Team & Qualifications',
+      description: 'Introduce your team members, their roles, and how you address knowledge gaps. Show why your team can execute the plan.',
+      required: true,
+      wordCountMin: 200,
+      wordCountMax: 400,
+      order: 7,
+      category: 'team',
+      prompts: [
+        'Who are your team members?',
+        'What are their roles and qualifications?',
+        'What knowledge gaps exist?',
+        'How will you address these gaps?'
+      ],
+      validationRules: {
+        requiredFields: ['team_members', 'roles', 'knowledge_gaps'],
+        formatRequirements: ['professional_bios']
+      },
+      source: {
+        verified: true,
+        verifiedDate: '2025-01-03',
+        officialProgram: 'Strategic Planning Best Practices',
+        sourceUrl: '',
+        version: '1.0'
+      }
+    },
+    {
+      id: 'risk_assessment',
+      title: 'Risk Assessment',
+      description: 'Identify market entry barriers, dependencies, and mitigation strategies. Show you understand the risks and have plans to address them.',
+      required: true,
+      wordCountMin: 200,
+      wordCountMax: 400,
+      order: 8,
+      category: 'risk',
+      prompts: [
+        'What are the market entry barriers?',
+        'What dependencies exist (suppliers, customers, etc.)?',
+        'How will you mitigate risks?',
+        'What are your contingency plans?'
+      ],
+      validationRules: {
+        requiredFields: ['barriers', 'dependencies', 'mitigation'],
+        formatRequirements: ['risk_matrix']
       },
       source: {
         verified: true,
@@ -393,7 +501,7 @@ function createStrategySections(fundingType: 'grants' | 'bankLoans' | 'equity' |
       required: true,
       wordCountMin: 150,
       wordCountMax: 250,
-      order: 6,
+      order: 9,
       category: 'general',
       prompts: [
         'Which Austrian grant programs match your project?',

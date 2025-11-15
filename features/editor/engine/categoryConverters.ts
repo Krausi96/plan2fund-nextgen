@@ -3,7 +3,7 @@
 // Input: categorized_requirements (18 categories)
 // Output: editor, library formats (decision tree moved to dynamicDecisionTree.ts)
 
-import { getStandardSections, StandardSection } from '@/shared/templates/sections';
+import { getStandardSections, StandardSection } from '@/features/editor/templates/sections';
 
 // ============================================================================
 // INTERFACES
@@ -178,7 +178,7 @@ export class CategoryConverter {
     if (process.env.OPENAI_API_KEY && requirements.length === 0) {
       try {
         const { suggestSectionForCategory } = await import('@/shared/templates/generator');
-        const { getStandardSections } = await import('@/shared/templates/sections');
+        const { getStandardSections } = await import('@/features/editor/templates/sections');
         
         // Get master sections for context
         const masterSections = getStandardSections('grants'); // Default, could be enhanced

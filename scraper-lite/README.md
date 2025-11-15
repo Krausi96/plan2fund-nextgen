@@ -52,3 +52,6 @@ The curated batch pipeline is gone—everything now flows through the live queue
 
 **The scraper is fully autonomous!** Just run the main command and it handles discovery, scraping, learning, feedback integration, and re-scraping automatically. 🚀
 
+
+**The scraper is fully autonomous!** Just run the main command and it handles discovery, scraping, learning, feedback integration, and re-scraping automatically. 🚀
+

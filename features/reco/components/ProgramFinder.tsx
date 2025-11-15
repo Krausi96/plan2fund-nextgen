@@ -636,21 +636,23 @@ export default function ProgramFinder({
                               : 'bg-white border-gray-200 hover:border-gray-300'
                           }`}
                         >
-                          <label className="block text-sm font-medium text-gray-700 flex items-center gap-2">
-                            <span className="flex-shrink-0 w-6 h-6 rounded-full bg-gray-100 text-gray-600 text-xs font-semibold flex items-center justify-center">
-                              {index + 1}
-                            </span>
-                            <span className="flex-1">
-                              {question.label}
-                              {question.required && <span className="text-red-500 ml-1">*</span>}
-                            </span>
-                            {isAnswered && (
-                              <span className="flex-shrink-0 text-green-600">
-                                <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
-                                  <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
-                                </svg>
+                          <label className="block text-sm font-medium text-gray-700">
+                            <div className="flex items-start gap-2">
+                              <span className="flex-shrink-0 w-6 h-6 rounded-full bg-gray-100 text-gray-600 text-xs font-semibold flex items-center justify-center mt-0.5">
+                                {index + 1}
                               </span>
-                            )}
+                              <span className="flex-1 leading-relaxed break-words">
+                                {question.label}
+                                {question.required && <span className="text-red-500 ml-1">*</span>}
+                              </span>
+                              {isAnswered && (
+                                <span className="flex-shrink-0 text-green-600 mt-0.5">
+                                  <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
+                                    <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
+                                  </svg>
+                                </span>
+                              )}
+                            </div>
                           </label>
                           {question.type === 'single-select' && (
                             <div className="space-y-2">

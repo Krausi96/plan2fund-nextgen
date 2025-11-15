@@ -299,7 +299,7 @@ function matchesAnswers(extracted: any, answers: UserAnswers): boolean {
  * Tier 3: Generate programs using LLM (like ChatGPT)
  * This is the fallback when seed URLs are disabled or unavailable
  */
-async function generateProgramsWithLLM(
+export async function generateProgramsWithLLM(
   answers: UserAnswers,
   maxPrograms: number = 20
 ): Promise<any[]> {
@@ -409,7 +409,34 @@ Example format:
     // Parse JSON response
     let programs: any[];
     try {
-      const parsed = JSON.parse(responseText);
+      // Clean response text - remove control characters and fix common issues
+      let cleanedText = responseText.trim();
+      
+      // Remove control characters (except newlines and tabs in strings)
+      cleanedText = cleanedText.replace(/[\x00-\x08\x0B-\x0C\x0E-\x1F\x7F]/g, '');
+      
+      // Fix common JSON issues
+      cleanedText = cleanedText.replace(/,\s*}/g, '}'); // Remove trailing commas
+      cleanedText = cleanedText.replace(/,\s*]/g, ']'); // Remove trailing commas
+      
+      // If response is truncated, try to complete it
+      if (!cleanedText.endsWith('}') && !cleanedText.endsWith(']')) {
+        // Try to find the last complete program object
+        const lastCompleteMatch = cleanedText.match(/\{[\s\S]*?"description"[^}]*\}/g);
+        if (lastCompleteMatch && lastCompleteMatch.length > 0) {
+          // Use last complete program and close the array
+          const lastProgram = lastCompleteMatch[lastCompleteMatch.length - 1];
+          const beforeLast = cleanedText.substring(0, cleanedText.lastIndexOf(lastProgram));
+          cleanedText = beforeLast + lastProgram + '\n  ]\n}';
+        } else if (cleanedText.includes('"programs"')) {
+          // If we have programs array, try to close it
+          if (!cleanedText.endsWith(']')) {
+            cleanedText = cleanedText.replace(/,\s*$/, '') + '\n  ]\n}';
+          }
+        }
+      }
+      
+      const parsed = JSON.parse(cleanedText);
       // Handle both array and object formats
       if (Array.isArray(parsed)) {
         programs = parsed;
@@ -417,16 +444,86 @@ Example format:
         programs = parsed.programs;
       } else {
         // Try to extract array from response text
-        const jsonMatch = responseText.match(/\[[\s\S]*\]/);
+        const jsonMatch = cleanedText.match(/\[[\s\S]*\]/);
         if (jsonMatch) {
           programs = JSON.parse(jsonMatch[0]);
         } else {
           throw new Error('No programs array found in response');
         }
       }
-    } catch (parseError) {
-      console.error('Failed to parse LLM response:', responseText);
-      throw new Error('LLM returned invalid JSON');
+    } catch (parseError: any) {
+      console.error('Failed to parse LLM response:', parseError.message);
+      console.error('Response preview:', responseText.substring(0, 500));
+      
+      // Try to extract programs from partial JSON
+      try {
+        // Clean the text first
+        const cleanText = responseText.replace(/[\x00-\x08\x0B-\x0C\x0E-\x1F\x7F]/g, '');
+        const programsMatch = cleanText.match(/"programs"\s*:\s*\[([\s\S]*)/);
+        if (programsMatch) {
+          // Try to extract individual program objects using a more flexible regex
+          const programsText = programsMatch[1];
+          // Match program objects more flexibly
+          const programMatches: string[] = [];
+          let depth = 0;
+          let currentProgram = '';
+          let inString = false;
+          let escapeNext = false;
+          
+          for (let i = 0; i < programsText.length; i++) {
+            const char = programsText[i];
+            if (escapeNext) {
+              currentProgram += char;
+              escapeNext = false;
+              continue;
+            }
+            if (char === '\\') {
+              escapeNext = true;
+              currentProgram += char;
+              continue;
+            }
+            if (char === '"' && !escapeNext) {
+              inString = !inString;
+            }
+            if (!inString) {
+              if (char === '{') {
+                if (depth === 0) currentProgram = '';
+                depth++;
+              }
+              if (char === '}') {
+                depth--;
+                if (depth === 0) {
+                  currentProgram += char;
+                  programMatches.push(currentProgram);
+                  currentProgram = '';
+                }
+              }
+            }
+            if (depth > 0) {
+              currentProgram += char;
+            }
+          }
+          
+          if (programMatches.length > 0) {
+            programs = programMatches.map(p => {
+              try {
+                return JSON.parse(p);
+              } catch (e: any) {
+                console.warn('Failed to parse program object:', e.message);
+                return null;
+              }
+            }).filter(p => p !== null && p.name);
+            console.log(`⚠️  Extracted ${programs.length} programs from partial JSON`);
+          } else {
+            throw new Error('Could not extract programs from partial JSON');
+          }
+        } else {
+          throw parseError;
+        }
+      } catch (fallbackError: any) {
+        console.error('Fallback parsing also failed:', fallbackError.message);
+        throw new Error('LLM returned invalid JSON');
+      }
     }
 
     // Convert to our program format
@@ -517,13 +614,32 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     const { max_results = 10, extract_all = false, use_seeds = true } = req.body;
     
     // Check if seeds should be disabled (via parameter or env var)
-    const disableSeeds = !use_seeds || process.env.DISABLE_SEED_URLS === 'true';
+    // Default: Use LLM generation (like ChatGPT) - unrestricted, no URL list needed
+    const useSeedExtraction = use_seeds && process.env.DISABLE_SEED_URLS !== 'true' && process.env.USE_SEED_EXTRACTION === 'true';
 
-    // Tier 1: URL-Based Extraction (if enabled)
+    // Primary: LLM-Generated Programs (Like ChatGPT) - Unrestricted
     let programs: any[] = [];
     let extractionResults: any[] = [];
     
-    if (!disableSeeds) {
+    // Try LLM generation first (unrestricted, like ChatGPT)
+    console.log('🤖 Generating programs with LLM (unrestricted, like ChatGPT)...');
+    try {
+      programs = await generateProgramsWithLLM(answers, max_results * 2);
+      extractionResults.push({
+        source: 'llm_generated',
+        message: `Generated ${programs.length} programs using LLM (like ChatGPT - unrestricted)`,
+      });
+      console.log(`✅ Generated ${programs.length} programs with LLM`);
+    } catch (error: any) {
+      console.warn('⚠️ LLM generation failed:', error.message);
+      extractionResults.push({
+        source: 'llm_generated',
+        error: error.message,
+      });
+    }
+
+    // Optional: URL-Based Extraction (if enabled - for additional programs)
+    if (useSeedExtraction && programs.length < max_results) {
       // Load seed URLs
       const seedsPath = path.join(process.cwd(), 'scraper-lite', 'url-seeds.json');
       if (!fs.existsSync(seedsPath)) {
@@ -593,14 +709,9 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       }
     }
 
-    // Tier 3: LLM-Generated Programs (Fallback - Like ChatGPT)
+    // If no programs from either source, return empty (shouldn't happen with LLM)
     if (programs.length === 0) {
-      console.log('⚠️ No programs from URL extraction, using LLM fallback (Tier 3)');
-      programs = await generateProgramsWithLLM(answers, max_results * 2);
-      extractionResults.push({
-        source: 'llm_fallback',
-        message: `Generated ${programs.length} programs using LLM (like ChatGPT)`,
-      });
+      console.warn('⚠️ No programs generated - LLM should always return results');
     }
 
     // Return results with extraction mapping
@@ -611,11 +722,9 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       extraction_results: extractionResults,
       question_mapping: QUESTION_TO_EXTRACTION_MAP,
       answers_provided: answers,
-      source: programs.length > 0 && programs[0].source === 'llm_generated' ? 'llm_fallback' : 'url_extraction',
-      fallback_used: programs.length > 0 && programs[0].source === 'llm_generated',
-      message: programs.length > 0 && programs[0].source === 'llm_generated' 
-        ? `Generated ${programs.length} programs using LLM fallback (like ChatGPT)`
-        : `Extracted ${programs.length} programs from seed URLs`,
+      source: programs.length > 0 && programs[0].source === 'llm_generated' ? 'llm_generated' : 'mixed',
+      llm_generated: programs.length > 0 && programs[0].source === 'llm_generated',
+      message: `Generated ${programs.length} programs using LLM (unrestricted, like ChatGPT)${useSeedExtraction ? ' + seed URL extraction' : ''}`,
     });
 
   } catch (error: any) {

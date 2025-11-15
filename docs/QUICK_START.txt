@@ -1,2 +1,0 @@
-Check docs/HANDOVER_MESSAGE.md for the quick overview and docs/HANDOVER_TESTING_ANALYSIS.md for the complete guide - run `npx tsx scripts/test-all-combinations-flow.ts` to test 20 personas and analyze scores/explanations.
-
