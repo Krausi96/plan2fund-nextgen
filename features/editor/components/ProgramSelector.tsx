@@ -58,9 +58,15 @@ export default function ProgramSelector({
             name: p.name || p.title || 'Program'
           }));
         setPrograms(programList);
+      } else {
+        // If API fails, allow editor to work with default templates
+        console.warn('Programs API not available - editor will use default templates');
+        setPrograms([]);
       }
     } catch (error) {
-      console.error('Failed to load programs:', error);
+      // Silently fail - editor works fine without program list
+      console.warn('Programs not available - using default templates:', error);
+      setPrograms([]);
     } finally {
       setIsLoadingPrograms(false);
     }
@@ -144,7 +150,7 @@ export default function ProgramSelector({
             className="selector-dropdown"
             disabled={isLoadingPrograms}
           >
-            <option value="">All Programs</option>
+            <option value="">{isLoadingPrograms ? 'Loading...' : programs.length === 0 ? 'Default Template (No Program)' : 'All Programs'}</option>
             {programs.map((program) => (
               <option key={program.id} value={program.id}>
                 {program.name}

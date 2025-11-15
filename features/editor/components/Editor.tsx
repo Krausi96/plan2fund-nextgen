@@ -34,18 +34,12 @@ export default function Editor({ programId, product = 'submission', route = 'gra
     program_name?: string;
   } | null>(null);
 
-  // Load sections when programId changes
+  // Load sections when route/product changes (programId is optional)
   useEffect(() => {
-    if (programId) {
-      loadSections();
-    } else {
-      setIsLoading(false);
-    }
-  }, [programId, product, route]);
+    loadSections();
+  }, [product, route, programId]);
 
   const loadSections = async () => {
-    if (!programId) return;
-    
     setIsLoading(true);
     try {
       // Determine funding type from route
@@ -53,9 +47,9 @@ export default function Editor({ programId, product = 'submission', route = 'gra
                          route === 'equity' ? 'equity' :
                          route === 'visa' ? 'visa' : 'grants';
       
-      // Load sections from templates
+      // Load sections from templates (works without programId - uses default templates)
       const baseUrl = typeof window !== 'undefined' ? window.location.origin : '';
-      const templateSections = await getSections(fundingType, product, programId, baseUrl);
+      const templateSections = await getSections(fundingType, product, programId || undefined, baseUrl);
       
       // Store templates for prompts
       setSectionTemplates(templateSections);
@@ -90,7 +84,7 @@ export default function Editor({ programId, product = 'submission', route = 'gra
         ownerId: 'current',
         product: product as any,
         route: route as any,
-        programId,
+        programId: programId || undefined,
         language: 'en',
         tone: 'neutral',
         targetLength: 'standard',
@@ -109,7 +103,7 @@ export default function Editor({ programId, product = 'submission', route = 'gra
       setPlan(newPlan);
       setSections(planSections);
 
-      // Load program data for requirements modal
+      // Load program data for requirements modal (optional - only if programId provided)
       if (programId && typeof window !== 'undefined') {
         try {
           const response = await fetch(`/api/programmes/${programId}/requirements`);
@@ -122,8 +116,11 @@ export default function Editor({ programId, product = 'submission', route = 'gra
           }
         } catch (error) {
           console.warn('Failed to load program data:', error);
-          // Continue without program data
+          // Continue without program data - editor works fine with default templates
         }
+      } else {
+        // No program selected - clear program data
+        setProgramData(null);
       }
     } catch (error) {
       console.error('Error loading sections:', error);
@@ -164,18 +161,8 @@ export default function Editor({ programId, product = 'submission', route = 'gra
     }
   }, [sections, plan]);
 
-  // If no program, show selector
-  if (!programId) {
-    return (
-      <ProgramSelector
-        product={product}
-        route={route}
-        onSelectionChange={(prod: string, rte: string, prog?: string) => {
-          router.push(`/editor?programId=${prog || ''}&product=${prod}&route=${rte}`);
-        }}
-      />
-    );
-  }
+  // Program selection is now optional - editor works with default templates
+  // ProgramSelector will be shown in header if no programId
 
   // Loading state
   if (isLoading) {
@@ -216,7 +203,7 @@ export default function Editor({ programId, product = 'submission', route = 'gra
   // Handle AI generation
   const handleAIGenerate = useCallback(async () => {
     const currentSection = sections[activeSection];
-    if (!currentSection || !plan || !programId) return;
+    if (!currentSection || !plan) return; // programId is optional
 
     try {
       const userAnswers = typeof window !== 'undefined' ? loadUserAnswers() : {};
@@ -235,8 +222,8 @@ export default function Editor({ programId, product = 'submission', route = 'gra
       });
 
       const programForAI = {
-        id: programId,
-        name: programId,
+        id: programId || 'default',
+        name: programId || 'Default Template',
         type: route || 'grant',
         amount: '',
         eligibility: [],
@@ -246,12 +233,12 @@ export default function Editor({ programId, product = 'submission', route = 'gra
         risks: []
       };
 
-      // Get section template for prompts
+      // Get section template for prompts (works without programId)
       const fundingType = route === 'loan' ? 'bankLoans' : 
                          route === 'equity' ? 'equity' :
                          route === 'visa' ? 'visa' : 'grants';
       const baseUrl = typeof window !== 'undefined' ? window.location.origin : '';
-      const templateSections = await getSections(fundingType, product, programId, baseUrl);
+      const templateSections = await getSections(fundingType, product, programId || undefined, baseUrl);
       const sectionTemplate = templateSections.find((s: SectionTemplate) => s.id === currentSection.key);
       
       // Generate for whole section (always, no question mode)
@@ -679,7 +666,7 @@ export default function Editor({ programId, product = 'submission', route = 'gra
         sections={sections}
         sectionTemplates={sectionTemplates}
         onNavigateToSection={(index) => setActiveSection(index)}
-        programId={programId}
+        programId={programId || undefined}
         programData={programData || undefined}
         onGenerateMissingContent={async (sectionKey) => {
           // Find the section index
