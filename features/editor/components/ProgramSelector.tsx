@@ -1,15 +1,14 @@
 // ========= PLAN2FUND — SIMPLIFIED PROGRAM SELECTOR =========
-// Simple dropdown selector for header (Product, Route, Program)
-// Replaces full-page wizard with minimal dropdown interface
+// Simple dropdown selector for header (Product, Program)
+// Appears in editor header - allows changing product and selecting optional program
 
 import React, { useState, useEffect } from 'react';
 import { useRouter } from 'next/router';
 
 interface ProgramSelectorProps {
   product?: string;
-  route?: string;
   programId?: string;
-  onSelectionChange?: (product: string, route: string, programId?: string) => void;
+  onSelectionChange?: (product: string, programId?: string) => void;
 }
 
 interface ProgramOption {
@@ -19,29 +18,24 @@ interface ProgramOption {
 
 export default function ProgramSelector({
   product = 'submission',
-  route = 'grants',
   programId,
   onSelectionChange
 }: ProgramSelectorProps) {
   const router = useRouter();
   const [selectedProduct, setSelectedProduct] = useState<string>(product);
-  const [selectedRoute, setSelectedRoute] = useState<string>(route);
   const [selectedProgram, setSelectedProgram] = useState<string>(programId || '');
   const [programs, setPrograms] = useState<ProgramOption[]>([]);
   const [isLoadingPrograms, setIsLoadingPrograms] = useState(false);
 
-  // Load programs when route changes
+  // Load programs on mount (for grants by default)
   useEffect(() => {
-    if (selectedRoute) {
-      loadPrograms(selectedRoute);
-    }
-  }, [selectedRoute]);
+    loadPrograms('grants'); // Default to grants
+  }, []);
 
   // Sync with router query params
   useEffect(() => {
-    const { product: qProduct, route: qRoute, programId: qProgramId } = router.query;
+    const { product: qProduct, programId: qProgramId } = router.query;
     if (qProduct) setSelectedProduct(qProduct as string);
-    if (qRoute) setSelectedRoute(qRoute as string);
     if (qProgramId) setSelectedProgram(qProgramId as string);
   }, [router.query]);
 
@@ -74,31 +68,33 @@ export default function ProgramSelector({
 
   const handleProductChange = (value: string) => {
     setSelectedProduct(value);
-    updateSelection(value, selectedRoute, selectedProgram);
-  };
-
-  const handleRouteChange = (value: string) => {
-    setSelectedRoute(value);
-    setSelectedProgram(''); // Reset program when route changes
-    updateSelection(selectedProduct, value, '');
+    updateSelection(value, selectedProgram);
   };
 
   const handleProgramChange = (value: string) => {
     setSelectedProgram(value);
-    updateSelection(selectedProduct, selectedRoute, value);
+    updateSelection(selectedProduct, value);
   };
 
-  const updateSelection = (prod: string, rte: string, prog: string) => {
-    // Update URL
-    const query: any = { product: prod, route: rte };
+  const updateSelection = (prod: string, prog: string) => {
+    // Update URL - programId can be added via URL parameter
+    const query: any = { product: prod };
     if (prog) query.programId = prog;
     router.push({ pathname: router.pathname, query }, undefined, { shallow: true });
 
     // Callback
     if (onSelectionChange) {
-      onSelectionChange(prod, rte, prog || undefined);
+      onSelectionChange(prod, prog || undefined);
     }
   };
+  
+  // Allow program to be added via URL parameter
+  useEffect(() => {
+    const { programId: urlProgramId } = router.query;
+    if (urlProgramId && urlProgramId !== selectedProgram) {
+      setSelectedProgram(urlProgramId as string);
+    }
+  }, [router.query.programId, selectedProgram]);
 
   return (
     <div className="program-selector-header">
@@ -117,24 +113,6 @@ export default function ProgramSelector({
             <option value="strategy">Strategy</option>
             <option value="review">Review</option>
             <option value="submission">Submission</option>
-          </select>
-        </div>
-
-        <div className="program-selector-field">
-          <label htmlFor="route-select">
-            <span className="selector-icon">🛣️</span>
-            <span className="selector-label">Route</span>
-          </label>
-          <select
-            id="route-select"
-            value={selectedRoute}
-            onChange={(e) => handleRouteChange(e.target.value)}
-            className="selector-dropdown"
-          >
-            <option value="grants">Grants</option>
-            <option value="bankLoans">Bank Loans</option>
-            <option value="equity">Equity</option>
-            <option value="visa">Visa</option>
           </select>
         </div>
 

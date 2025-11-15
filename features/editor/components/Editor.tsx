@@ -18,10 +18,9 @@ import { initializeTablesForSection, sectionNeedsTables } from '@/features/edito
 interface EditorProps {
   programId?: string | null;
   product?: string;
-  route?: string;
 }
 
-export default function Editor({ programId, product = 'submission', route = 'grant' }: EditorProps) {
+export default function Editor({ programId, product = 'submission' }: EditorProps) {
   const router = useRouter();
   const [plan, setPlan] = useState<PlanDocument | null>(null);
   const [sections, setSections] = useState<PlanSection[]>([]);
@@ -34,26 +33,16 @@ export default function Editor({ programId, product = 'submission', route = 'gra
     categorized_requirements?: any;
     program_name?: string;
   } | null>(null);
-  
-  // Ensure we're on the client side
-  const [isClient, setIsClient] = useState(false);
-  
-  useEffect(() => {
-    setIsClient(true);
-  }, []);
 
-  // Load sections when route/product changes (programId is optional)
+  // Load sections when product changes (programId is optional)
   const loadSections = useCallback(async () => {
     if (typeof window === 'undefined') return; // Don't run on server
     
     setIsLoading(true);
     setError(null);
     try {
-      // Determine funding type from route (normalize 'grant' to 'grants')
-      const normalizedRoute = route === 'grant' ? 'grants' : route;
-      const fundingType = normalizedRoute === 'loan' ? 'bankLoans' : 
-                         normalizedRoute === 'equity' ? 'equity' :
-                         normalizedRoute === 'visa' ? 'visa' : 'grants';
+      // Use grants as default funding type (routes removed for simplicity)
+      const fundingType = 'grants';
       
       // Load sections from templates (works without programId - uses default templates)
       const baseUrl = typeof window !== 'undefined' ? window.location.origin : '';
@@ -104,7 +93,7 @@ export default function Editor({ programId, product = 'submission', route = 'gra
         id: `plan_${Date.now()}`,
         ownerId: 'current',
         product: product as any,
-        route: route as any,
+        route: 'grants' as any, // Default to grants
         programId: programId || undefined,
         language: 'en',
         tone: 'neutral',
@@ -152,25 +141,13 @@ export default function Editor({ programId, product = 'submission', route = 'gra
     } finally {
       setIsLoading(false);
     }
-  }, [product, route, programId]);
+  }, [product, programId]);
 
   useEffect(() => {
-    if (isClient) {
+    if (typeof window !== 'undefined') {
       loadSections();
     }
-  }, [isClient, loadSections]);
-  
-  // Don't render on server
-  if (!isClient) {
-    return (
-      <div className="flex items-center justify-center h-screen">
-        <div className="text-center">
-          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto mb-4"></div>
-          <div>Loading...</div>
-        </div>
-      </div>
-    );
-  }
+  }, [loadSections]);
 
   // Handle section content change
   const handleSectionChange = useCallback((sectionKey: string, content: string) => {
@@ -246,10 +223,10 @@ export default function Editor({ programId, product = 'submission', route = 'gra
       <div className="flex items-center justify-center h-screen">
         <div className="text-center max-w-md">
           <p className="text-gray-600 mb-4">
-            No sections found for product "{product}" and route "{route}".
+            No sections found for product "{product}".
           </p>
           <p className="text-sm text-gray-500 mb-4">
-            Try selecting a different product or route in the header.
+            Try selecting a different product in the header.
           </p>
           <button
             onClick={() => router.push('/editor')}
@@ -293,7 +270,7 @@ export default function Editor({ programId, product = 'submission', route = 'gra
       const programForAI = {
         id: programId || 'default',
         name: programId || 'Default Template',
-        type: route || 'grant',
+        type: 'grant', // Default to grant
         amount: '',
         eligibility: [],
         requirements: [],
@@ -303,9 +280,7 @@ export default function Editor({ programId, product = 'submission', route = 'gra
       };
 
       // Get section template for prompts (works without programId)
-      const fundingType = route === 'loan' ? 'bankLoans' : 
-                         route === 'equity' ? 'equity' :
-                         route === 'visa' ? 'visa' : 'grants';
+      const fundingType = 'grants'; // Default to grants
       const baseUrl = typeof window !== 'undefined' ? window.location.origin : '';
       const templateSections = await getSections(fundingType, product, programId || undefined, baseUrl);
       const sectionTemplate = templateSections.find((s: SectionTemplate) => s.id === currentSection.key);
@@ -354,7 +329,7 @@ export default function Editor({ programId, product = 'submission', route = 'gra
     } catch (error) {
       console.error('Error generating content:', error);
     }
-  }, [sections, activeSection, plan, programId, route, product, sectionTemplates, handleSectionChange]);
+  }, [sections, activeSection, plan, programId, product, sectionTemplates, handleSectionChange]);
 
   // Calculate overall progress
   const overallProgress = React.useMemo(() => {
@@ -415,10 +390,11 @@ export default function Editor({ programId, product = 'submission', route = 'gra
           <div className="bg-white/95 backdrop-blur-sm rounded-lg p-3 shadow-sm">
             <ProgramSelector
               product={product}
-              route={route}
               programId={programId || undefined}
-              onSelectionChange={(prod, rte, prog) => {
-                router.push(`/editor?programId=${prog || ''}&product=${prod}&route=${rte}`);
+              onSelectionChange={(prod, prog) => {
+                const query: any = { product: prod };
+                if (prog) query.programId = prog;
+                router.push({ pathname: '/editor', query });
               }}
             />
           </div>
@@ -761,7 +737,7 @@ export default function Editor({ programId, product = 'submission', route = 'gra
                 const programForAI = {
                   id: programId,
                   name: programId,
-                  type: route || 'grant',
+                  type: 'grant', // Default to grant
                   amount: '',
                   eligibility: [],
                   requirements: [],
@@ -770,9 +746,7 @@ export default function Editor({ programId, product = 'submission', route = 'gra
                   risks: []
                 };
 
-                const fundingType = route === 'loan' ? 'bankLoans' : 
-                                   route === 'equity' ? 'equity' :
-                                   route === 'visa' ? 'visa' : 'grants';
+                const fundingType = 'grants'; // Default to grants
                 const baseUrl = typeof window !== 'undefined' ? window.location.origin : '';
                 const templateSections = await getSections(fundingType, product, programId, baseUrl);
                 const sectionTemplate = templateSections.find((s: SectionTemplate) => s.id === section.key);

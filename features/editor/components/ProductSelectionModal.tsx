@@ -1,5 +1,6 @@
 // ========= PLAN2FUND — PRODUCT SELECTION MODAL =========
-// Simple modal for selecting product and route when entering editor
+// Simple modal that appears when entering /editor without product parameter
+// User selects product type (Strategy/Review/Submission) to start editing
 
 import React, { useState } from 'react';
 import { useRouter } from 'next/router';
@@ -8,24 +9,21 @@ interface ProductSelectionModalProps {
   isOpen: boolean;
   onClose: () => void;
   currentProduct?: string;
-  currentRoute?: string;
 }
 
 export default function ProductSelectionModal({
   isOpen,
   onClose,
-  currentProduct = 'submission',
-  currentRoute = 'grants'
+  currentProduct = 'submission'
 }: ProductSelectionModalProps) {
   const router = useRouter();
   const [selectedProduct, setSelectedProduct] = useState(currentProduct);
-  const [selectedRoute, setSelectedRoute] = useState(currentRoute);
 
   if (!isOpen) return null;
 
   const handleStart = () => {
-    // Navigate to editor with selected product and route
-    router.push(`/editor?product=${selectedProduct}&route=${selectedRoute}`);
+    // Navigate to editor with selected product
+    router.push(`/editor?product=${selectedProduct}`);
     onClose();
   };
 
@@ -41,45 +39,28 @@ export default function ProductSelectionModal({
           {/* Product Selection */}
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-2">
-              🎯 Product Type
+              What type of business plan do you need?
             </label>
             <select
               value={selectedProduct}
               onChange={(e) => setSelectedProduct(e.target.value)}
-              className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+              className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-base"
             >
               <option value="strategy">Strategy - Quick planning (9 sections)</option>
               <option value="review">Review - Full review (all sections)</option>
               <option value="submission">Submission - Complete plan (all sections)</option>
             </select>
-            <p className="text-xs text-gray-500 mt-1">
-              {selectedProduct === 'strategy' && 'Focused sections for strategic planning'}
-              {selectedProduct === 'review' && 'All sections for comprehensive review'}
-              {selectedProduct === 'submission' && 'Complete business plan for submission'}
+            <p className="text-xs text-gray-500 mt-2">
+              {selectedProduct === 'strategy' && 'Focused sections for strategic planning and early-stage planning'}
+              {selectedProduct === 'review' && 'All sections for comprehensive review and feedback'}
+              {selectedProduct === 'submission' && 'Complete business plan ready for funding applications'}
             </p>
-          </div>
-
-          {/* Route Selection */}
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
-              🛣️ Funding Route
-            </label>
-            <select
-              value={selectedRoute}
-              onChange={(e) => setSelectedRoute(e.target.value)}
-              className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-            >
-              <option value="grants">Grants - Government & EU funding</option>
-              <option value="bankLoans">Bank Loans - Traditional financing</option>
-              <option value="equity">Equity - Investor funding</option>
-              <option value="visa">Visa - Business visa applications</option>
-            </select>
           </div>
 
           {/* Optional Program Note */}
           <div className="bg-blue-50 border border-blue-200 rounded-lg p-3">
             <p className="text-sm text-blue-800">
-              💡 <strong>Tip:</strong> You can add a specific program later via URL parameter or through the recommendation flow.
+              💡 <strong>Tip:</strong> You can add a specific funding program later via URL (e.g., <code className="text-xs">?programId=ffg_basisprogramm</code>) or through the recommendation flow.
             </p>
           </div>
         </div>

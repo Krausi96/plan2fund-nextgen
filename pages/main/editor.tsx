@@ -32,7 +32,6 @@ function EditorPage() {
       />
       <Editor
         programId={programId as string}
-        route={(route as string) || 'grant'}
         product={(product as string) || 'submission'}
       />
     </>

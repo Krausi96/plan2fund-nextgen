@@ -304,9 +304,13 @@ export default function ProgramFinder({
   const totalQuestions = visibleQuestions.length;
   const allQuestionsAnswered = answeredCount === totalQuestions && totalQuestions > 0;
   
+  // Minimum questions for results (first 3 core questions)
+  const MIN_QUESTIONS_FOR_RESULTS = 3;
+  const hasEnoughAnswers = answeredCount >= MIN_QUESTIONS_FOR_RESULTS;
+  
   const updateGuidedResults = useCallback(async () => {
-    // Only fetch results when ALL questions are answered
-    if (!allQuestionsAnswered) {
+    // Require at least MIN_QUESTIONS_FOR_RESULTS to fetch results
+    if (!hasEnoughAnswers) {
       setResults([]);
       return;
     }
@@ -383,7 +387,7 @@ export default function ProgramFinder({
       setIsLoading(false);
       if (timeoutId) clearTimeout(timeoutId);
     }
-  }, [answers, allQuestionsAnswered, setRecommendations]);
+  }, [answers, hasEnoughAnswers, setRecommendations]);
   
   // State to control when to show results
   const [showResults, setShowResults] = useState(false);
@@ -468,7 +472,7 @@ export default function ProgramFinder({
                         <Wand2 className="w-6 h-6 text-yellow-400" />
                       </div>
                       <div>
-                        <h2 className="text-xl font-bold text-gray-900">Guided Questions</h2>
+                        <h2 className="text-xl font-bold text-gray-900">{t('reco.guidedQuestions')}</h2>
                         <span className="text-sm text-gray-600">
                           {answeredCount} of {visibleQuestions.length} answered
                         </span>
@@ -604,31 +608,31 @@ export default function ProgramFinder({
                           );
                         })()}
                         
-                        {/* Navigation Arrows */}
-                        <div className="absolute top-1/2 -translate-y-1/2 left-0 -translate-x-4">
+                        {/* Navigation Arrows - More Visible */}
+                        <div className="absolute top-1/2 -translate-y-1/2 left-0 -translate-x-6">
                           <button
                             onClick={() => setCurrentQuestionIndex(Math.max(0, currentQuestionIndex - 1))}
                             disabled={currentQuestionIndex === 0}
-                            className={`w-10 h-10 rounded-full bg-white border-2 border-gray-300 flex items-center justify-center shadow-lg transition-all ${
+                            className={`w-14 h-14 rounded-full bg-blue-600 border-3 border-blue-700 flex items-center justify-center shadow-xl transition-all ${
                               currentQuestionIndex === 0
-                                ? 'opacity-50 cursor-not-allowed'
-                                : 'hover:border-blue-600 hover:bg-blue-50 hover:scale-110'
+                                ? 'opacity-40 cursor-not-allowed bg-gray-400 border-gray-500'
+                                : 'hover:bg-blue-700 hover:scale-110 hover:shadow-2xl active:scale-95'
                             }`}
                           >
-                            <ChevronLeft className="w-5 h-5 text-gray-700" />
+                            <ChevronLeft className="w-7 h-7 text-white font-bold" />
                           </button>
                         </div>
-                        <div className="absolute top-1/2 -translate-y-1/2 right-0 translate-x-4">
+                        <div className="absolute top-1/2 -translate-y-1/2 right-0 translate-x-6">
                           <button
                             onClick={() => setCurrentQuestionIndex(Math.min(visibleQuestions.length - 1, currentQuestionIndex + 1))}
                             disabled={currentQuestionIndex === visibleQuestions.length - 1}
-                            className={`w-10 h-10 rounded-full bg-white border-2 border-gray-300 flex items-center justify-center shadow-lg transition-all ${
+                            className={`w-14 h-14 rounded-full bg-blue-600 border-3 border-blue-700 flex items-center justify-center shadow-xl transition-all ${
                               currentQuestionIndex === visibleQuestions.length - 1
-                                ? 'opacity-50 cursor-not-allowed'
-                                : 'hover:border-blue-600 hover:bg-blue-50 hover:scale-110'
+                                ? 'opacity-40 cursor-not-allowed bg-gray-400 border-gray-500'
+                                : 'hover:bg-blue-700 hover:scale-110 hover:shadow-2xl active:scale-95'
                             }`}
                           >
-                            <ChevronRight className="w-5 h-5 text-gray-700" />
+                            <ChevronRight className="w-7 h-7 text-white font-bold" />
                           </button>
                         </div>
                       </div>
@@ -656,34 +660,46 @@ export default function ProgramFinder({
                         style={{ width: `${(answeredCount / totalQuestions) * 100}%` }}
                       />
                     </div>
-                    {/* Show Results Button - only appears when ALL questions are answered */}
-                    {allQuestionsAnswered && !showResults && (
-                      <button
-                        onClick={() => {
-                          setShowResults(true);
-                          updateGuidedResults();
-                        }}
-                        disabled={isLoading}
-                        className="mt-4 w-full px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors text-base font-semibold shadow-lg disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
-                      >
-                        {isLoading ? (
-                          <>
-                            <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-white"></div>
-                            <span>Finding programs...</span>
-                          </>
-                        ) : (
-                          <>
-                            <Search className="w-5 h-5" />
-                            <span>Show Matching Programs</span>
-                          </>
+                    {/* Show Results Button - appears when user has enough answers (3+) */}
+                    {hasEnoughAnswers && !showResults && (
+                      <div className="mt-4 space-y-3">
+                        {!allQuestionsAnswered && (
+                          <div className="p-4 bg-green-50 border-2 border-green-300 rounded-lg">
+                            <p className="text-sm font-semibold text-green-800 mb-1">
+                              {t('reco.enoughAnswers')}
+                            </p>
+                            <p className="text-xs text-green-700">
+                              {t('reco.continueOrView')}
+                            </p>
+                          </div>
                         )}
-                      </button>
+                        <button
+                          onClick={() => {
+                            setShowResults(true);
+                            updateGuidedResults();
+                          }}
+                          disabled={isLoading}
+                          className="w-full px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors text-base font-semibold shadow-lg disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+                        >
+                          {isLoading ? (
+                            <>
+                              <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-white"></div>
+                              <span>Finding programs...</span>
+                            </>
+                          ) : (
+                            <>
+                              <Search className="w-5 h-5" />
+                              <span>Show Matching Programs</span>
+                            </>
+                          )}
+                        </button>
+                      </div>
                     )}
-                    {/* Message when user hasn't answered all questions yet */}
-                    {answeredCount > 0 && !allQuestionsAnswered && (
+                    {/* Message when user hasn't answered enough questions yet */}
+                    {answeredCount > 0 && !hasEnoughAnswers && (
                       <div className="mt-4 p-4 bg-blue-50 border border-blue-200 rounded-lg text-sm text-blue-800">
-                        <p className="font-medium">Answer all {totalQuestions} questions to see matching programs.</p>
-                        <p className="mt-1 text-blue-700">You've answered {answeredCount} of {totalQuestions} questions.</p>
+                        <p className="font-medium">Answer at least {MIN_QUESTIONS_FOR_RESULTS} questions to see matching programs.</p>
+                        <p className="mt-1 text-blue-700">You've answered {answeredCount} of {MIN_QUESTIONS_FOR_RESULTS} required questions.</p>
                       </div>
                     )}
                   </div>
