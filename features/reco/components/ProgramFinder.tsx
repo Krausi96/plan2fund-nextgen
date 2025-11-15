@@ -5,7 +5,7 @@
 
 import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import { useRouter } from 'next/router';
-import { Search, Filter, Sparkles, TrendingUp, Info, ChevronDown, ChevronUp, ChevronLeft, ChevronRight, Wand2 } from 'lucide-react';
+import { Search, Sparkles, TrendingUp, Info, ChevronLeft, ChevronRight, Wand2 } from 'lucide-react';
 import { Button } from '@/shared/components/ui/button';
 import { Card } from '@/shared/components/ui/card';
 import { Badge } from '@/shared/components/ui/badge';
@@ -16,10 +16,7 @@ import { useI18n } from '@/shared/contexts/I18nContext';
 
 interface ProgramFinderProps {
   onProgramSelect?: (programId: string, route: string) => void;
-  initialMode?: 'guided' | 'manual';
 }
-
-type SearchMode = 'guided' | 'manual';
 
 // Static questions - optimized order and with skip logic
 const CORE_QUESTIONS = [
@@ -239,8 +236,7 @@ const CORE_QUESTIONS = [
 ];
 
 export default function ProgramFinder({ 
-  onProgramSelect,
-  initialMode = 'guided'
+  onProgramSelect
 }: ProgramFinderProps) {
   const router = useRouter();
   const { setRecommendations } = useRecommendation();
@@ -257,14 +253,11 @@ export default function ProgramFinder({
       }))
     }));
   }, [t]);
-  
-  const [mode, setMode] = useState<SearchMode>(initialMode);
   const [results, setResults] = useState<EnhancedProgramResult[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   
   // Guided mode state
   const [answers, setAnswers] = useState<Record<string, any>>({});
-  const [showFilters, setShowFilters] = useState(false);
   
   // Progressive disclosure: Phase 1 (3 required) → Phase 2 (4 optional) → Phase 3 (remaining)
   const [questionPhase, setQuestionPhase] = useState<1 | 2 | 3>(1);
@@ -288,16 +281,6 @@ export default function ProgramFinder({
     return 'A';
   });
   
-  // Manual mode state
-  const [searchQuery, setSearchQuery] = useState('');
-  const [filters, setFilters] = useState({
-    fundingAmount: { min: '', max: '' },
-    companyStage: '',
-    trl: '',
-    location: '',
-    fundingType: '',
-    industry: ''
-  });
 
   // Get visible questions (with skip logic and progressive disclosure)
   const getVisibleQuestions = () => {
@@ -433,84 +416,12 @@ export default function ProgramFinder({
     }
   }, [answers, answeredCount, setRecommendations]);
   
-  const updateManualResults = useCallback(async () => {
-    try {
-      setIsLoading(true);
-      
-      // Convert filters to answers format for on-demand API
-      const answersFromFilters = {
-        location: filters.location,
-        company_stage: filters.companyStage,
-        funding_amount: filters.fundingAmount.max || filters.fundingAmount.min,
-        industry_focus: filters.industry,
-        ...(searchQuery ? { project_description: searchQuery } : {}),
-      };
-      
-      // Use on-demand recommendation API
-      const response = await fetch('/api/programs/recommend', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          answers: answersFromFilters,
-          max_results: 50,
-          extract_all: Object.keys(answersFromFilters).length === 0,
-        }),
-      });
-      
-      if (!response.ok) throw new Error('Failed to fetch recommendations');
-      
-      const data = await response.json();
-      const extractedPrograms = data.programs || [];
-      
-      // Convert to Program format and score
-      const programsForScoring = extractedPrograms.map((p: any) => ({
-        id: p.id,
-        name: p.name,
-        type: p.funding_types?.[0] || 'grant',
-        program_type: p.funding_types?.[0] || 'grant',
-        description: p.metadata?.description || '',
-        funding_amount_max: p.metadata?.funding_amount_max || 0,
-        funding_amount_min: p.metadata?.funding_amount_min || 0,
-        currency: p.metadata?.currency || 'EUR',
-        source_url: p.url,
-        url: p.url,
-        deadline: p.metadata?.deadline,
-        open_deadline: p.metadata?.open_deadline || false,
-        contact_email: p.metadata?.contact_email,
-        contact_phone: p.metadata?.contact_phone,
-        eligibility_criteria: {},
-        categorized_requirements: p.categorized_requirements || {},
-        region: p.metadata?.region,
-        funding_types: p.funding_types || [],
-        program_focus: p.metadata?.program_focus || [],
-      }));
-      
-      const scored = await scoreProgramsEnhanced(answersFromFilters as any, 'strict', programsForScoring);
-      // Filter out zero-score programs and sort by score (highest first), then take top 5
-      const validPrograms = scored.filter(p => p.score > 0);
-      const top5 = validPrograms.sort((a, b) => b.score - a.score).slice(0, 5);
-      setResults(top5);
-      setRecommendations(scored);
-      
-      if (typeof window !== 'undefined') {
-        localStorage.setItem('recoResults', JSON.stringify(scored));
-        localStorage.setItem('userAnswers', JSON.stringify(answersFromFilters));
-      }
-    } catch (error) {
-      console.error('Error updating manual results:', error);
-    } finally {
-      setIsLoading(false);
-    }
-  }, [filters, searchQuery, setRecommendations]);
-  
-  // Update results when answers/filters change
+  // Update results when answers change
   useEffect(() => {
-    if (mode === 'guided' && answeredCount > 0) {
+    if (answeredCount > 0) {
       updateGuidedResults();
-    } else if (mode === 'manual' && (searchQuery || Object.values(filters).some(v => v !== '' && v !== null))) {
-      updateManualResults();
     }
-  }, [answers, filters, searchQuery, mode, answeredCount, updateGuidedResults, updateManualResults]);
+  }, [answers, answeredCount, updateGuidedResults]);
   
   const handleAnswer = (questionId: string, value: any) => {
     const newAnswers = { ...answers, [questionId]: value };
@@ -531,53 +442,22 @@ export default function ProgramFinder({
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-purple-50">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        {/* Header */}
-        <div className="mb-8">
-          <h1 className="text-3xl font-bold text-gray-900 mb-2">
-            Find Your Funding Program
-          </h1>
-          <p className="text-gray-600">
-            Answer a few questions or use filters to discover the best funding opportunities
-          </p>
-        </div>
-        
-        {/* Mode Toggle */}
-        <div className="flex items-center gap-4 mb-6">
-          <div className="flex bg-white rounded-lg border border-gray-200 p-1">
-            <button
-              onClick={() => setMode('guided')}
-              className={`
-                px-4 py-2 rounded-md text-sm font-medium transition-colors
-                ${mode === 'guided'
-                  ? 'bg-blue-600 text-white'
-                  : 'text-gray-700 hover:bg-gray-100'
-                }
-              `}
-            >
-              <div className="flex items-center gap-2">
-                <Sparkles className="h-4 w-4" />
-                <span>Guided Mode</span>
-              </div>
-            </button>
-            <button
-              onClick={() => setMode('manual')}
-              className={`
-                px-4 py-2 rounded-md text-sm font-medium transition-colors
-                ${mode === 'manual'
-                  ? 'bg-blue-600 text-white'
-                  : 'text-gray-700 hover:bg-gray-100'
-                }
-              `}
-            >
-              <div className="flex items-center gap-2">
-                <Filter className="h-4 w-4" />
-                <span>Manual Filters</span>
-              </div>
-            </button>
+        {/* Header - Centered with Wizard Icon */}
+        <div className="mb-8 text-center">
+          <div className="flex items-center justify-center gap-4 mb-4">
+            <div className="w-14 h-14 rounded-full bg-blue-600 flex items-center justify-center shadow-lg">
+              <Wand2 className="w-7 h-7 text-white" />
+            </div>
+            <h1 className="text-3xl font-bold text-gray-900">
+              {t('reco.pageTitle')}
+            </h1>
           </div>
+          <p className="text-gray-600 text-lg">
+            {t('reco.pageSubtitle')}
+          </p>
           
           {results.length > 0 && (
-            <div className="ml-auto text-sm text-gray-600">
+            <div className="mt-4 text-sm text-gray-600">
               {results.length} program{results.length !== 1 ? 's' : ''} found
             </div>
           )}
@@ -613,8 +493,7 @@ export default function ProgramFinder({
           {/* Questions/Filters - Centered and full width */}
           <div className={`${mobileActiveTab === 'results' ? 'hidden lg:block' : ''}`}>
             <Card className="p-6 max-w-4xl mx-auto w-full">
-              {mode === 'guided' ? (
-                <div className="space-y-6">
+              <div className="space-y-6">
                   <div className="flex items-center justify-between mb-4">
                     <div className="flex items-center gap-3">
                       <div className="w-12 h-12 rounded-full bg-blue-600 flex items-center justify-center shadow-lg">
@@ -878,123 +757,6 @@ export default function ProgramFinder({
                     )}
                   </div>
                 </div>
-              ) : (
-                <div className="space-y-4">
-                  <div className="flex items-center justify-between mb-4">
-                    <h2 className="text-lg font-semibold text-gray-900">Filters</h2>
-                    <Button
-                      onClick={() => setShowFilters(!showFilters)}
-                      size="sm"
-                      variant="outline"
-                    >
-                      {showFilters ? <ChevronUp className="h-4 w-4" /> : <ChevronDown className="h-4 w-4" />}
-                    </Button>
-                  </div>
-                  
-                  {/* Search Query */}
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
-                      Project Description
-                    </label>
-                    <textarea
-                      value={searchQuery}
-                      onChange={(e) => setSearchQuery(e.target.value)}
-                      placeholder="Describe your project (e.g., AI climate analytics for urban planning)..."
-                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                      rows={3}
-                    />
-                  </div>
-                  
-                  {showFilters && (
-                    <div className="space-y-4 pt-4 border-t border-gray-200">
-                      <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-2">
-                          Funding Amount
-                        </label>
-                        <div className="flex gap-2">
-                          <input
-                            type="number"
-                            value={filters.fundingAmount.min}
-                            onChange={(e) => setFilters({ ...filters, fundingAmount: { ...filters.fundingAmount, min: e.target.value } })}
-                            placeholder="Min"
-                            className="flex-1 px-3 py-2 border border-gray-300 rounded-lg"
-                          />
-                          <input
-                            type="number"
-                            value={filters.fundingAmount.max}
-                            onChange={(e) => setFilters({ ...filters, fundingAmount: { ...filters.fundingAmount, max: e.target.value } })}
-                            placeholder="Max"
-                            className="flex-1 px-3 py-2 border border-gray-300 rounded-lg"
-                          />
-                        </div>
-                      </div>
-                      
-                      <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-2">
-                          Company Stage
-                        </label>
-                        <select
-                          value={filters.companyStage}
-                          onChange={(e) => setFilters({ ...filters, companyStage: e.target.value })}
-                          className="w-full px-3 py-2 border border-gray-300 rounded-lg"
-                        >
-                          <option value="">Any</option>
-                          <option value="pre-seed">Pre-seed</option>
-                          <option value="seed">Seed</option>
-                          <option value="series-a">Series A</option>
-                          <option value="growth">Growth</option>
-                        </select>
-                      </div>
-                      
-                      <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-2">
-                          TRL Level
-                        </label>
-                        <select
-                          value={filters.trl}
-                          onChange={(e) => setFilters({ ...filters, trl: e.target.value })}
-                          className="w-full px-3 py-2 border border-gray-300 rounded-lg"
-                        >
-                          <option value="">Any</option>
-                          <option value="1-3">TRL 1-3 (Concept)</option>
-                          <option value="4-6">TRL 4-6 (Prototype)</option>
-                          <option value="7-9">TRL 7-9 (Product)</option>
-                        </select>
-                      </div>
-                      
-                      <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-2">
-                          Location
-                        </label>
-                        <input
-                          type="text"
-                          value={filters.location}
-                          onChange={(e) => setFilters({ ...filters, location: e.target.value })}
-                          placeholder="Austria, Germany, EU..."
-                          className="w-full px-3 py-2 border border-gray-300 rounded-lg"
-                        />
-                      </div>
-                      
-                      <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-2">
-                          Funding Type
-                        </label>
-                        <select
-                          value={filters.fundingType}
-                          onChange={(e) => setFilters({ ...filters, fundingType: e.target.value })}
-                          className="w-full px-3 py-2 border border-gray-300 rounded-lg"
-                        >
-                          <option value="">Any</option>
-                          <option value="grants">Grants</option>
-                          <option value="loans">Loans</option>
-                          <option value="equity">Equity</option>
-                          <option value="services">Services</option>
-                        </select>
-                      </div>
-                    </div>
-                  )}
-                </div>
-              )}
             </Card>
           </div>
           
@@ -1009,10 +771,7 @@ export default function ProgramFinder({
               <Card className="p-12 text-center">
                 <Search className="h-12 w-12 text-gray-400 mx-auto mb-4" />
                 <p className="text-gray-600">
-                  {mode === 'guided' 
-                    ? 'Answer questions to see matching programs'
-                    : 'Enter search query or apply filters to find programs'
-                  }
+                  Answer questions to see matching programs
                 </p>
               </Card>
             ) : (

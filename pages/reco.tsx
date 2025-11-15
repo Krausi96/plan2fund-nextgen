@@ -17,7 +17,7 @@ function RecoPage() {
         duration={5000}
         position="top-right"
       />
-      <ProgramFinder initialMode="guided" />
+      <ProgramFinder />
     </>
   );
 }
