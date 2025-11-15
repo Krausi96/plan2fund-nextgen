@@ -565,9 +565,9 @@ export default function ProgramFinder({
           </div>
         </div>
 
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        <div className="grid grid-cols-1 lg:grid-cols-[1fr_2fr] gap-6">
           {/* Left: Questions/Filters */}
-          <div className={`lg:col-span-1 ${mobileActiveTab === 'results' ? 'hidden lg:block' : ''}`}>
+          <div className={`${mobileActiveTab === 'results' ? 'hidden lg:block' : ''}`}>
             <Card className="p-6">
               {mode === 'guided' ? (
                 <div className="space-y-4">
@@ -623,7 +623,7 @@ export default function ProgramFinder({
                     </div>
                   </div>
                   
-                  <div className="space-y-4 max-h-[600px] overflow-y-auto pr-2">
+                  <div className="space-y-4 max-h-[70vh] overflow-y-auto pr-2" style={{ scrollbarWidth: 'thin' }}>
                     {visibleQuestions.map((question, index) => {
                       const value = answers[question.id];
                       const isAnswered = value !== undefined && value !== null && value !== '';
@@ -884,7 +884,7 @@ export default function ProgramFinder({
           </div>
           
           {/* Right: Results */}
-          <div className={`lg:col-span-2 ${mobileActiveTab === 'questions' ? 'hidden lg:block' : ''}`}>
+          <div className={`${mobileActiveTab === 'questions' ? 'hidden lg:block' : ''}`}>
             {isLoading ? (
               <Card className="p-12 text-center">
                 <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
