@@ -404,11 +404,11 @@ export default function ProgramFinder({
   };
 
   const handleProgramSelect = (program: EnhancedProgramResult) => {
-    const programRoute = program.route || (program as any).program_type || 'grant';
+    // Navigate to editor with programId (no route needed)
     if (onProgramSelect) {
-      onProgramSelect(program.id, programRoute);
+      onProgramSelect(program.id, 'grant'); // Default route
     } else {
-      router.push(`/editor?programId=${program.id}&route=${programRoute}`);
+      router.push(`/editor?programId=${program.id}&product=submission`);
     }
   };
   

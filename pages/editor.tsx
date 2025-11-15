@@ -4,21 +4,18 @@
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/router';
 import Editor from '@/features/editor/components/Editor';
-import ProductSelectionModal from '@/features/editor/components/ProductSelectionModal';
+import EditorEntryModal from '@/features/editor/components/EditorEntryModal';
 import PageEntryIndicator from '@/shared/components/common/PageEntryIndicator';
 
 function EditorPage() {
   const router = useRouter();
   const { programId, product } = router.query;
-  const [showProductModal, setShowProductModal] = useState(false);
+  const [showEntryModal, setShowEntryModal] = useState(false);
 
-  // Check if we need to show product selection modal
+  // Show entry modal if no product specified
   useEffect(() => {
-    if (router.isReady) {
-      // Show modal if no product specified
-      if (!product) {
-        setShowProductModal(true);
-      }
+    if (router.isReady && !product) {
+      setShowEntryModal(true);
     }
   }, [router.isReady, product]);
 
@@ -44,13 +41,12 @@ function EditorPage() {
         position="top-right"
       />
       
-      <ProductSelectionModal
-        isOpen={showProductModal}
-        onClose={() => setShowProductModal(false)}
-        currentProduct={(product as string) || 'submission'}
+      <EditorEntryModal
+        isOpen={showEntryModal}
+        onClose={() => setShowEntryModal(false)}
       />
       
-      {!showProductModal && (
+      {!showEntryModal && product && (
         <Editor
           programId={programId as string}
           product={(product as string) || 'submission'}

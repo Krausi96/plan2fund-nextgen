@@ -9,7 +9,6 @@ import { getSections } from '@/features/editor/templates';
 import { createAIHelper } from '@/features/editor/engine/aiHelper';
 import { savePlanSections, loadUserAnswers, savePlanConversations, loadPlanConversations } from '@/shared/user/storage/planStore';
 import { calculateSectionProgress } from '@/features/editor/hooks/useSectionProgress';
-import ProgramSelector from './ProgramSelector';
 import SimpleTextEditor from './SimpleTextEditor';
 import RequirementsModal from './RequirementsModal';
 import SectionContentRenderer from './SectionContentRenderer';
@@ -386,17 +385,40 @@ export default function Editor({ programId, product = 'submission' }: EditorProp
               </button>
             </div>
           </div>
-          {/* Program Selector */}
+          {/* Program Selector - Simplified */}
           <div className="bg-white/95 backdrop-blur-sm rounded-lg p-3 shadow-sm">
-            <ProgramSelector
-              product={product}
-              programId={programId || undefined}
-              onSelectionChange={(prod, prog) => {
-                const query: any = { product: prod };
-                if (prog) query.programId = prog;
-                router.push({ pathname: '/editor', query });
-              }}
-            />
+            <div className="max-w-[1200px] mx-auto flex gap-4 items-center">
+              <div className="flex-1">
+                <label className="block text-xs text-gray-600 mb-1">Product</label>
+                <select
+                  value={product}
+                  onChange={(e) => {
+                    const query: any = { product: e.target.value };
+                    if (programId) query.programId = programId;
+                    router.push({ pathname: '/editor', query });
+                  }}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm"
+                >
+                  <option value="strategy">Strategy</option>
+                  <option value="review">Review</option>
+                  <option value="submission">Submission</option>
+                </select>
+              </div>
+              <div className="flex-1">
+                <label className="block text-xs text-gray-600 mb-1">Program (Optional)</label>
+                <input
+                  type="text"
+                  value={programId || ''}
+                  onChange={(e) => {
+                    const query: any = { product };
+                    if (e.target.value) query.programId = e.target.value;
+                    router.push({ pathname: '/editor', query });
+                  }}
+                  placeholder="Program ID (optional)"
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm"
+                />
+              </div>
+            </div>
           </div>
         </div>
       </header>
