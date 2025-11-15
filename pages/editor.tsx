@@ -1,23 +1,13 @@
 // ========= PLAN2FUND — EDITOR PAGE =========
-// Main editor page with proper provider wrapping
+// Main editor page - simplified: always loads, defaults to 'submission' product
 
-import { useState, useEffect } from 'react';
 import { useRouter } from 'next/router';
 import Editor from '@/features/editor/components/Editor';
-import EditorEntryModal from '@/features/editor/components/EditorEntryModal';
 import PageEntryIndicator from '@/shared/components/common/PageEntryIndicator';
 
 function EditorPage() {
   const router = useRouter();
   const { programId, product } = router.query;
-  const [showEntryModal, setShowEntryModal] = useState(false);
-
-  // Show entry modal if no product specified
-  useEffect(() => {
-    if (router.isReady && !product) {
-      setShowEntryModal(true);
-    }
-  }, [router.isReady, product]);
 
   // Show loading while router is ready
   if (!router.isReady) {
@@ -31,6 +21,8 @@ function EditorPage() {
     );
   }
 
+  // Always default to 'submission' if no product specified - simplest approach
+  const selectedProduct = (product as string) || 'submission';
 
   return (
     <>
@@ -41,17 +33,10 @@ function EditorPage() {
         position="top-right"
       />
       
-      <EditorEntryModal
-        isOpen={showEntryModal}
-        onClose={() => setShowEntryModal(false)}
+      <Editor
+        programId={programId as string}
+        product={selectedProduct}
       />
-      
-      {!showEntryModal && product && (
-        <Editor
-          programId={programId as string}
-          product={(product as string) || 'submission'}
-        />
-      )}
     </>
   );
 }

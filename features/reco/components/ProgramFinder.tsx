@@ -326,7 +326,8 @@ export default function ProgramFinder({
       timeoutId = setTimeout(() => {
         setIsLoading(false);
         console.error('Request timeout');
-      }, 30000); // 30 second timeout
+        alert('Request timed out. Please try again.');
+      }, 60000); // 60 second timeout (LLM can take time)
       
       // Use on-demand recommendation API
       // LLM generation is primary (unrestricted, like ChatGPT)
@@ -342,10 +343,20 @@ export default function ProgramFinder({
         }),
       });
       
-      if (!response.ok) throw new Error('Failed to fetch recommendations');
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => ({}));
+        throw new Error(errorData.message || `Failed to fetch recommendations: ${response.status} ${response.statusText}`);
+      }
       
       const data = await response.json();
       const extractedPrograms = data.programs || [];
+      
+      if (extractedPrograms.length === 0) {
+        console.warn('No programs returned from API');
+        // Show user-friendly message
+        setResults([]);
+        return;
+      }
       
       // Convert extracted programs to Program format
       const programsForScoring = extractedPrograms.map((p: any) => ({
@@ -383,9 +394,11 @@ export default function ProgramFinder({
         localStorage.setItem('recoResults', JSON.stringify(scored));
         localStorage.setItem('userAnswers', JSON.stringify(answers));
       }
-    } catch (error) {
+    } catch (error: any) {
       console.error('Error updating guided results:', error);
       setResults([]);
+      // Show user-friendly error message
+      alert(`Error generating recommendations: ${error.message || 'Unknown error'}. Please try again.`);
     } finally {
       setIsLoading(false);
       if (timeoutId) clearTimeout(timeoutId);
@@ -467,13 +480,10 @@ export default function ProgramFinder({
         <div className="flex flex-col gap-8">
           {/* Questions/Filters - Centered and full width */}
           <div className={`${mobileActiveTab === 'results' ? 'hidden lg:block' : ''}`}>
-            <Card className="p-4 max-w-3xl mx-auto w-full">
+            <Card className="p-4 max-w-2xl mx-auto w-full">
               <div className="space-y-4">
                   {/* Simple Header with Generate Button */}
-                  <div className="flex items-center justify-between mb-4">
-                    <div className="text-sm text-gray-600">
-                      {answeredCount} of {visibleQuestions.length} answered
-                    </div>
+                  <div className="flex items-center justify-end mb-4">
                     {/* Generate Button - appears when user has enough answers (6+) */}
                     {hasEnoughAnswers && !showResults && (
                       <button
@@ -508,6 +518,10 @@ export default function ProgramFinder({
                   {/* Horizontal Question Navigation */}
                   {visibleQuestions.length > 0 && (
                     <div className="relative">
+                      {/* Question Navigation Header */}
+                      <div className="text-center mb-3">
+                        <p className="text-sm font-medium text-gray-700">Questions</p>
+                      </div>
                       {/* Question Navigation Dots */}
                       <div className="flex justify-center gap-2 mb-4 flex-wrap">
                         {visibleQuestions.map((_, idx) => {
@@ -532,7 +546,7 @@ export default function ProgramFinder({
                       </div>
                       
                       {/* Current Question Display */}
-                      <div className="relative bg-white rounded-lg border border-gray-200 shadow-sm p-5 min-h-[300px]">
+                      <div className="relative bg-white rounded-lg border border-gray-200 shadow-sm p-5">
                         {(() => {
                           const question = visibleQuestions[currentQuestionIndex];
                           if (!question) return null;
@@ -541,13 +555,13 @@ export default function ProgramFinder({
                           return (
                             <div className="space-y-4">
                               {/* Question Header */}
-                              <div className="mb-4">
-                                <div className="flex items-start gap-2 mb-3">
-                                  <span className="w-6 h-6 rounded-full bg-blue-600 text-white text-xs font-bold flex items-center justify-center flex-shrink-0 mt-0.5">
+                              <div className="mb-6">
+                                <div className="flex items-start gap-3 mb-4">
+                                  <span className="w-7 h-7 rounded-full bg-blue-600 text-white text-sm font-bold flex items-center justify-center flex-shrink-0 mt-0.5">
                                     {currentQuestionIndex + 1}
                                   </span>
                                   <div className="flex-1">
-                                    <h3 className="text-base font-semibold text-gray-900 break-words leading-relaxed">
+                                    <h3 className="text-lg font-semibold text-gray-900 break-words leading-relaxed">
                                       {question.label}
                                     </h3>
                                   </div>
@@ -563,7 +577,7 @@ export default function ProgramFinder({
                               
                               {/* Question Options */}
                               {question.type === 'single-select' && (
-                                <div className="space-y-2">
+                                <div className="space-y-3">
                                   {question.options.map((option) => (
                                     <button
                                       key={option.value}
@@ -574,24 +588,24 @@ export default function ProgramFinder({
                                           setTimeout(() => setCurrentQuestionIndex(currentQuestionIndex + 1), 300);
                                         }
                                       }}
-                                      className={`w-full text-left px-4 py-3 border rounded-lg transition-all duration-150 ${
+                                      className={`w-full text-left px-5 py-4 border-2 rounded-lg transition-all duration-150 ${
                                         value === option.value
-                                          ? 'bg-blue-600 border-blue-600 text-white font-medium shadow-sm'
+                                          ? 'bg-blue-600 border-blue-600 text-white font-medium shadow-md'
                                           : 'bg-white border-gray-300 hover:border-blue-400 hover:bg-blue-50'
                                       }`}
                                     >
-                                      <div className="flex items-center gap-2">
+                                      <div className="flex items-center gap-3">
                                         {value === option.value && (
-                                          <span className="text-lg">✓</span>
+                                          <span className="text-xl font-bold">✓</span>
                                         )}
-                                        <span className="text-sm">{option.label}</span>
+                                        <span className="text-base">{option.label}</span>
                                       </div>
                                     </button>
                                   ))}
                                 </div>
                               )}
                               {question.type === 'multi-select' && (
-                                <div className="space-y-2">
+                                <div className="space-y-3">
                                   {question.options.map((option) => {
                                     const isSelected = Array.isArray(value) && value.includes(option.value);
                                     return (
@@ -604,25 +618,25 @@ export default function ProgramFinder({
                                             : [...current, option.value];
                                           handleAnswer(question.id, newValue);
                                         }}
-                                        className={`w-full text-left px-4 py-3 border rounded-lg transition-all duration-150 ${
+                                        className={`w-full text-left px-5 py-4 border-2 rounded-lg transition-all duration-150 ${
                                           isSelected
-                                            ? 'bg-blue-600 border-blue-600 text-white font-medium shadow-sm'
+                                            ? 'bg-blue-600 border-blue-600 text-white font-medium shadow-md'
                                             : 'bg-white border-gray-300 hover:border-blue-400 hover:bg-blue-50'
                                         }`}
                                       >
-                                        <div className="flex items-center gap-2">
-                                          <span className={`w-5 h-5 rounded border flex items-center justify-center ${
+                                        <div className="flex items-center gap-3">
+                                          <span className={`w-6 h-6 rounded border-2 flex items-center justify-center ${
                                             isSelected 
                                               ? 'bg-white border-white' 
                                               : 'border-gray-400'
                                           }`}>
                                             {isSelected && (
-                                              <svg className="w-3 h-3 text-blue-600" fill="currentColor" viewBox="0 0 20 20">
+                                              <svg className="w-4 h-4 text-blue-600" fill="currentColor" viewBox="0 0 20 20">
                                                 <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
                                               </svg>
                                             )}
                                           </span>
-                                          <span className="text-sm">{option.label}</span>
+                                          <span className="text-base">{option.label}</span>
                                         </div>
                                       </button>
                                     );
@@ -633,31 +647,31 @@ export default function ProgramFinder({
                           );
                         })()}
                         
-                        {/* Navigation Arrows - More Visible */}
-                        <div className="absolute top-1/2 -translate-y-1/2 left-0 -translate-x-6">
+                        {/* Navigation Arrows - Smaller */}
+                        <div className="absolute top-1/2 -translate-y-1/2 left-0 -translate-x-4">
                           <button
                             onClick={() => setCurrentQuestionIndex(Math.max(0, currentQuestionIndex - 1))}
                             disabled={currentQuestionIndex === 0}
-                            className={`w-14 h-14 rounded-full bg-blue-600 border-3 border-blue-700 flex items-center justify-center shadow-xl transition-all ${
+                            className={`w-10 h-10 rounded-full bg-blue-600 border-2 border-blue-700 flex items-center justify-center shadow-lg transition-all ${
                               currentQuestionIndex === 0
                                 ? 'opacity-40 cursor-not-allowed bg-gray-400 border-gray-500'
-                                : 'hover:bg-blue-700 hover:scale-110 hover:shadow-2xl active:scale-95'
+                                : 'hover:bg-blue-700 hover:scale-105 active:scale-95'
                             }`}
                           >
-                            <ChevronLeft className="w-7 h-7 text-white font-bold" />
+                            <ChevronLeft className="w-5 h-5 text-white font-bold" />
                           </button>
                         </div>
-                        <div className="absolute top-1/2 -translate-y-1/2 right-0 translate-x-6">
+                        <div className="absolute top-1/2 -translate-y-1/2 right-0 translate-x-4">
                           <button
                             onClick={() => setCurrentQuestionIndex(Math.min(visibleQuestions.length - 1, currentQuestionIndex + 1))}
                             disabled={currentQuestionIndex === visibleQuestions.length - 1}
-                            className={`w-14 h-14 rounded-full bg-blue-600 border-3 border-blue-700 flex items-center justify-center shadow-xl transition-all ${
+                            className={`w-10 h-10 rounded-full bg-blue-600 border-2 border-blue-700 flex items-center justify-center shadow-lg transition-all ${
                               currentQuestionIndex === visibleQuestions.length - 1
                                 ? 'opacity-40 cursor-not-allowed bg-gray-400 border-gray-500'
-                                : 'hover:bg-blue-700 hover:scale-110 hover:shadow-2xl active:scale-95'
+                                : 'hover:bg-blue-700 hover:scale-105 active:scale-95'
                             }`}
                           >
-                            <ChevronRight className="w-7 h-7 text-white font-bold" />
+                            <ChevronRight className="w-5 h-5 text-white font-bold" />
                           </button>
                         </div>
                       </div>
