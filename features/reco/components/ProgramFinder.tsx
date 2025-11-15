@@ -157,10 +157,11 @@ interface ProgramFinderProps {
       { value: 'marketing', label: 'Marketing' },
       { value: 'equipment', label: 'Equipment/Infrastructure' },
       { value: 'personnel', label: 'Personnel/Hiring' },
+      { value: 'working_capital', label: 'Working capital' },
+      { value: 'expansion', label: 'Expansion/Growth' },
     ],
     required: false,
     priority: 7,
-    skipIf: (answers: Record<string, any>) => answers.company_type === 'research',
   },
   {
     id: 'project_duration',
@@ -196,10 +197,10 @@ interface ProgramFinderProps {
       { value: 'co_yes', label: 'Yes, required' },
       { value: 'co_partial', label: 'Partial (up to 50%)' },
       { value: 'co_no', label: 'No co-financing available' },
+      { value: 'co_uncertain', label: 'Uncertain / Need to check' },
     ],
     required: false,
     priority: 10,
-    skipIf: (answers: Record<string, any>) => answers.funding_amount === 'under100k',
   },
   {
     id: 'revenue_status',
@@ -209,14 +210,14 @@ interface ProgramFinderProps {
       { value: 'pre_revenue', label: 'Pre-revenue' },
       { value: 'early_revenue', label: 'Early revenue (< €1M)' },
       { value: 'growing_revenue', label: 'Growing revenue (€1M+)' },
+      { value: 'not_applicable', label: 'Not applicable' },
     ],
     required: false,
     priority: 11,
     skipIf: (answers: Record<string, any>) => {
+      // Only skip for very early stages where revenue doesn't make sense
       return answers.company_stage === 'idea' || 
-             answers.company_stage === 'pre_company' || 
-             answers.company_stage === 'inc_lt_6m' ||
-             answers.company_type === 'research';
+             answers.company_stage === 'pre_company';
     },
   },
   {
@@ -231,7 +232,87 @@ interface ProgramFinderProps {
     ],
     required: false,
     priority: 12,
-    skipIf: (answers: Record<string, any>) => answers.company_type === 'research',
+  },
+  {
+    id: 'previous_funding',
+    label: 'Have you received previous funding?',
+    type: 'single-select' as const,
+    options: [
+      { value: 'none', label: 'No previous funding' },
+      { value: 'grants', label: 'Yes, grants' },
+      { value: 'loans', label: 'Yes, loans' },
+      { value: 'equity', label: 'Yes, equity investment' },
+      { value: 'mixed', label: 'Yes, mixed funding' },
+    ],
+    required: false,
+    priority: 13,
+  },
+  {
+    id: 'intellectual_property',
+    label: 'Do you have intellectual property (patents, trademarks, etc.)?',
+    type: 'single-select' as const,
+    options: [
+      { value: 'yes_patents', label: 'Yes, patents' },
+      { value: 'yes_trademarks', label: 'Yes, trademarks' },
+      { value: 'yes_both', label: 'Yes, both patents and trademarks' },
+      { value: 'pending', label: 'Pending applications' },
+      { value: 'no', label: 'No IP' },
+    ],
+    required: false,
+    priority: 14,
+  },
+  {
+    id: 'partnerships',
+    label: 'Are you looking for partnerships or collaborations?',
+    type: 'multi-select' as const,
+    options: [
+      { value: 'research_partners', label: 'Research partners' },
+      { value: 'industry_partners', label: 'Industry partners' },
+      { value: 'international_partners', label: 'International partners' },
+      { value: 'no_partnerships', label: 'Not looking for partnerships' },
+    ],
+    required: false,
+    priority: 15,
+  },
+  {
+    id: 'market_focus',
+    label: 'What is your primary market focus?',
+    type: 'multi-select' as const,
+    options: [
+      { value: 'b2b', label: 'B2B (Business to Business)' },
+      { value: 'b2c', label: 'B2C (Business to Consumer)' },
+      { value: 'b2g', label: 'B2G (Business to Government)' },
+      { value: 'b2b2c', label: 'B2B2C (Business to Business to Consumer)' },
+    ],
+    required: false,
+    priority: 16,
+  },
+  {
+    id: 'export_plans',
+    label: 'Do you have export plans?',
+    type: 'single-select' as const,
+    options: [
+      { value: 'yes_eu', label: 'Yes, within EU' },
+      { value: 'yes_international', label: 'Yes, international' },
+      { value: 'planning', label: 'Planning to export' },
+      { value: 'no', label: 'No export plans' },
+    ],
+    required: false,
+    priority: 17,
+  },
+  {
+    id: 'sustainability_goals',
+    label: 'What are your sustainability goals?',
+    type: 'multi-select' as const,
+    options: [
+      { value: 'carbon_neutral', label: 'Carbon neutrality' },
+      { value: 'renewable_energy', label: 'Renewable energy use' },
+      { value: 'circular_economy', label: 'Circular economy practices' },
+      { value: 'social_impact', label: 'Social impact' },
+      { value: 'not_applicable', label: 'Not applicable' },
+    ],
+    required: false,
+    priority: 18,
   },
 ];
 
@@ -301,10 +382,22 @@ export default function ProgramFinder({
   }, [visibleQuestions.length, currentQuestionIndex]);
   
   // Count only non-empty answers (fix logic flaw)
-  const answeredCount = Object.keys(answers).filter(key => {
-    const value = answers[key];
-    return value !== undefined && value !== null && value !== '' && 
-           !(Array.isArray(value) && value.length === 0);
+  // Only count main question IDs, exclude sub-options and sub-categories
+  const mainQuestionIds = getTranslatedQuestions.map(q => q.id);
+  const answeredCount = mainQuestionIds.filter(questionId => {
+    const value = answers[questionId];
+    if (value === undefined || value === null || value === '') {
+      return false;
+    }
+    // Don't count "not_applicable" or "no_partnerships" as valid answers
+    if (value === 'not_applicable' || value === 'no_partnerships') {
+      return false;
+    }
+    if (Array.isArray(value)) {
+      // For arrays, exclude if empty or only contains "not_applicable"/"no_partnerships"
+      return value.length > 0 && !value.every(v => v === 'not_applicable' || v === 'no_partnerships');
+    }
+    return true;
   }).length;
   
   // Minimum questions for results (6 questions)
@@ -417,11 +510,30 @@ export default function ProgramFinder({
   };
 
   const handleProgramSelect = (program: EnhancedProgramResult) => {
-    // Navigate to editor with programId (no route needed)
+    // Store program data in localStorage (programs don't have stable IDs)
+    // Editor will read this data directly instead of fetching by ID
+    if (typeof window !== 'undefined') {
+      const programData = {
+        id: program.id,
+        name: program.name || program.id,
+        categorized_requirements: program.categorized_requirements || {},
+        type: program.type || 'grant',
+        url: program.url || program.source_url,
+        // Store any other relevant data
+        metadata: {
+          funding_amount_min: program.amount?.min,
+          funding_amount_max: program.amount?.max,
+          currency: program.amount?.currency || 'EUR',
+        }
+      };
+      localStorage.setItem('selectedProgram', JSON.stringify(programData));
+    }
+    
+    // Navigate to editor (no programId in URL - editor reads from localStorage)
     if (onProgramSelect) {
       onProgramSelect(program.id, 'grant'); // Default route
     } else {
-      router.push(`/editor?programId=${program.id}&product=submission`);
+      router.push(`/editor?product=submission`);
     }
   };
   
@@ -578,67 +690,183 @@ export default function ProgramFinder({
                               {/* Question Options */}
                               {question.type === 'single-select' && (
                                 <div className="space-y-3">
-                                  {question.options.map((option) => (
-                                    <button
-                                      key={option.value}
-                                      onClick={() => {
-                                        handleAnswer(question.id, option.value);
-                                        // Auto-advance to next question after answering
-                                        if (currentQuestionIndex < visibleQuestions.length - 1) {
-                                          setTimeout(() => setCurrentQuestionIndex(currentQuestionIndex + 1), 300);
-                                        }
-                                      }}
-                                      className={`w-full text-left px-5 py-4 border-2 rounded-lg transition-all duration-150 ${
-                                        value === option.value
-                                          ? 'bg-blue-600 border-blue-600 text-white font-medium shadow-md'
-                                          : 'bg-white border-gray-300 hover:border-blue-400 hover:bg-blue-50'
-                                      }`}
-                                    >
-                                      <div className="flex items-center gap-3">
-                                        {value === option.value && (
-                                          <span className="text-xl font-bold">✓</span>
+                                  {question.options.map((option) => {
+                                    const isSelected = value === option.value;
+                                    const subOptions = question.subOptions && isSelected ? question.subOptions(option.value) : [];
+                                    const hasSubOptions = subOptions.length > 0;
+                                    const subValue = hasSubOptions ? answers[`${question.id}_sub`] : null;
+                                    
+                                    return (
+                                      <div key={option.value} className="space-y-2">
+                                        <button
+                                          onClick={() => {
+                                            handleAnswer(question.id, option.value);
+                                            // Clear sub-option if switching main option
+                                            if (hasSubOptions && value !== option.value) {
+                                              handleAnswer(`${question.id}_sub`, undefined);
+                                            }
+                                            // Auto-advance only if no sub-options or sub-options already selected
+                                            if (!hasSubOptions && currentQuestionIndex < visibleQuestions.length - 1) {
+                                              setTimeout(() => setCurrentQuestionIndex(currentQuestionIndex + 1), 300);
+                                            }
+                                          }}
+                                          className={`w-full text-left px-5 py-4 border-2 rounded-lg transition-all duration-150 ${
+                                            isSelected
+                                              ? 'bg-blue-600 border-blue-600 text-white font-medium shadow-md'
+                                              : 'bg-white border-gray-300 hover:border-blue-400 hover:bg-blue-50'
+                                          }`}
+                                        >
+                                          <div className="flex items-center gap-3">
+                                            {isSelected && (
+                                              <span className="text-xl font-bold">✓</span>
+                                            )}
+                                            <span className="text-base">{option.label}</span>
+                                          </div>
+                                        </button>
+                                        
+                                        {/* Sub-options (e.g., Austrian regions) */}
+                                        {hasSubOptions && isSelected && (
+                                          <div className="ml-6 space-y-2 border-l-2 border-blue-200 pl-4 pt-2">
+                                            <p className="text-sm font-medium text-gray-700 mb-2">Select region:</p>
+                                            {subOptions.map((subOption: any) => (
+                                              <button
+                                                key={subOption.value}
+                                                onClick={() => {
+                                                  handleAnswer(`${question.id}_sub`, subOption.value);
+                                                  // Auto-advance after selecting sub-option
+                                                  if (currentQuestionIndex < visibleQuestions.length - 1) {
+                                                    setTimeout(() => setCurrentQuestionIndex(currentQuestionIndex + 1), 300);
+                                                  }
+                                                }}
+                                                className={`w-full text-left px-4 py-3 border rounded-lg transition-all duration-150 ${
+                                                  subValue === subOption.value
+                                                    ? 'bg-blue-500 border-blue-500 text-white font-medium'
+                                                    : 'bg-gray-50 border-gray-300 hover:border-blue-400 hover:bg-blue-50'
+                                                }`}
+                                              >
+                                                <div className="flex items-center gap-2">
+                                                  {subValue === subOption.value && (
+                                                    <span className="text-lg font-bold">✓</span>
+                                                  )}
+                                                  <span className="text-sm">{subOption.label}</span>
+                                                </div>
+                                              </button>
+                                            ))}
+                                          </div>
                                         )}
-                                        <span className="text-base">{option.label}</span>
                                       </div>
-                                    </button>
-                                  ))}
+                                    );
+                                  })}
                                 </div>
                               )}
                               {question.type === 'multi-select' && (
                                 <div className="space-y-3">
                                   {question.options.map((option) => {
                                     const isSelected = Array.isArray(value) && value.includes(option.value);
+                                    const subCategories = question.subCategories && isSelected ? question.subCategories[option.value] : [];
+                                    const hasSubCategories = subCategories && subCategories.length > 0;
+                                    const subCategoryKey = `${question.id}_${option.value}`;
+                                    const subCategoryValue = answers[subCategoryKey];
+                                    
                                     return (
-                                      <button
-                                        key={option.value}
-                                        onClick={() => {
-                                          const current = Array.isArray(value) ? value : [];
-                                          const newValue = isSelected
-                                            ? current.filter(v => v !== option.value)
-                                            : [...current, option.value];
-                                          handleAnswer(question.id, newValue);
-                                        }}
-                                        className={`w-full text-left px-5 py-4 border-2 rounded-lg transition-all duration-150 ${
-                                          isSelected
-                                            ? 'bg-blue-600 border-blue-600 text-white font-medium shadow-md'
-                                            : 'bg-white border-gray-300 hover:border-blue-400 hover:bg-blue-50'
-                                        }`}
-                                      >
-                                        <div className="flex items-center gap-3">
-                                          <span className={`w-6 h-6 rounded border-2 flex items-center justify-center ${
-                                            isSelected 
-                                              ? 'bg-white border-white' 
-                                              : 'border-gray-400'
-                                          }`}>
-                                            {isSelected && (
-                                              <svg className="w-4 h-4 text-blue-600" fill="currentColor" viewBox="0 0 20 20">
-                                                <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
-                                              </svg>
-                                            )}
-                                          </span>
-                                          <span className="text-base">{option.label}</span>
-                                        </div>
-                                      </button>
+                                      <div key={option.value} className="space-y-2">
+                                        <button
+                                          onClick={() => {
+                                            const current = Array.isArray(value) ? value : [];
+                                            let newValue: any[];
+                                            
+                                            // Special handling for "no_partnerships" - mutually exclusive
+                                            if (option.value === 'no_partnerships') {
+                                              if (isSelected) {
+                                                // Deselecting "no partnerships" - allow other selections
+                                                newValue = current.filter(v => v !== option.value);
+                                              } else {
+                                                // Selecting "no partnerships" - clear all other options
+                                                newValue = ['no_partnerships'];
+                                              }
+                                            } else {
+                                              // For other options, if selecting and "no_partnerships" is selected, remove it
+                                              if (!isSelected && current.includes('no_partnerships')) {
+                                                newValue = [...current.filter(v => v !== 'no_partnerships'), option.value];
+                                              } else {
+                                                newValue = isSelected
+                                                  ? current.filter(v => v !== option.value)
+                                                  : [...current, option.value];
+                                              }
+                                            }
+                                            
+                                            handleAnswer(question.id, newValue);
+                                            // Clear sub-categories if deselecting
+                                            if (isSelected && hasSubCategories) {
+                                              handleAnswer(subCategoryKey, undefined);
+                                            }
+                                          }}
+                                          className={`w-full text-left px-5 py-4 border-2 rounded-lg transition-all duration-150 ${
+                                            isSelected
+                                              ? 'bg-blue-600 border-blue-600 text-white font-medium shadow-md'
+                                              : 'bg-white border-gray-300 hover:border-blue-400 hover:bg-blue-50'
+                                          }`}
+                                        >
+                                          <div className="flex items-center gap-3">
+                                            <span className={`w-6 h-6 rounded border-2 flex items-center justify-center ${
+                                              isSelected 
+                                                ? 'bg-white border-white' 
+                                                : 'border-gray-400'
+                                            }`}>
+                                              {isSelected && (
+                                                <svg className="w-4 h-4 text-blue-600" fill="currentColor" viewBox="0 0 20 20">
+                                                  <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
+                                                </svg>
+                                              )}
+                                            </span>
+                                            <span className="text-base">{option.label}</span>
+                                          </div>
+                                        </button>
+                                        
+                                        {/* Sub-categories (e.g., industry subcategories) */}
+                                        {hasSubCategories && isSelected && (
+                                          <div className="ml-6 space-y-2 border-l-2 border-blue-200 pl-4 pt-2">
+                                            <p className="text-sm font-medium text-gray-700 mb-2">Select specific areas:</p>
+                                            <div className="space-y-2">
+                                              {subCategories.map((subCat: any) => {
+                                                const isSubSelected = Array.isArray(subCategoryValue) && subCategoryValue.includes(subCat.value);
+                                                return (
+                                                  <button
+                                                    key={subCat.value}
+                                                    onClick={() => {
+                                                      const current = Array.isArray(subCategoryValue) ? subCategoryValue : [];
+                                                      const newSubValue = isSubSelected
+                                                        ? current.filter(v => v !== subCat.value)
+                                                        : [...current, subCat.value];
+                                                      handleAnswer(subCategoryKey, newSubValue);
+                                                    }}
+                                                    className={`w-full text-left px-4 py-2 border rounded-lg transition-all duration-150 ${
+                                                      isSubSelected
+                                                        ? 'bg-blue-500 border-blue-500 text-white font-medium'
+                                                        : 'bg-gray-50 border-gray-300 hover:border-blue-400 hover:bg-blue-50'
+                                                    }`}
+                                                  >
+                                                    <div className="flex items-center gap-2">
+                                                      <span className={`w-5 h-5 rounded border flex items-center justify-center ${
+                                                        isSubSelected 
+                                                          ? 'bg-white border-white' 
+                                                          : 'border-gray-400'
+                                                      }`}>
+                                                        {isSubSelected && (
+                                                          <svg className="w-3 h-3 text-blue-600" fill="currentColor" viewBox="0 0 20 20">
+                                                            <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
+                                                          </svg>
+                                                        )}
+                                                      </span>
+                                                      <span className="text-sm">{subCat.label}</span>
+                                                    </div>
+                                                  </button>
+                                                );
+                                              })}
+                                            </div>
+                                          </div>
+                                        )}
+                                      </div>
                                     );
                                   })}
                                 </div>

@@ -72,7 +72,33 @@ export class AIHelper {
     conversationHistory?: ConversationMessage[]
   ): Promise<AIResponse> {
     // Get structured requirements for this program
-    const structuredRequirements = await this.getStructuredRequirements(program.id);
+    // If program.id is 'default', try to get from localStorage (set by reco)
+    let structuredRequirements: any = { decision_tree: [], editor: [], library: [] };
+    
+    if (program.id !== 'default' && typeof window !== 'undefined') {
+      // Try to get from localStorage first (for dynamically generated programs)
+      const storedProgram = localStorage.getItem('selectedProgram');
+      if (storedProgram) {
+        try {
+          const programData = JSON.parse(storedProgram);
+          if (programData.categorized_requirements) {
+            // Convert categorized_requirements to structured format
+            structuredRequirements = {
+              editor: programData.categorized_requirements.editor || [],
+              library: programData.categorized_requirements.library || [],
+              decision_tree: programData.categorized_requirements.decision_tree || []
+            };
+          }
+        } catch (e) {
+          console.warn('Failed to parse stored program data:', e);
+        }
+      }
+      
+      // Fallback: try API if localStorage didn't have it (for database programs)
+      if (!structuredRequirements.editor || structuredRequirements.editor.length === 0) {
+        structuredRequirements = await this.getStructuredRequirements(program.id);
+      }
+    }
     
     const prompt = this.buildSectionPromptWithStructured(section, context, program, structuredRequirements);
     

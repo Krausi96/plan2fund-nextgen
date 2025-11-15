@@ -7,7 +7,7 @@ import PageEntryIndicator from '@/shared/components/common/PageEntryIndicator';
 
 function EditorPage() {
   const router = useRouter();
-  const { programId, product } = router.query;
+  const { product } = router.query;
 
   // Show loading while router is ready
   if (!router.isReady) {
@@ -34,7 +34,6 @@ function EditorPage() {
       />
       
       <Editor
-        programId={programId as string}
         product={selectedProduct}
       />
     </>

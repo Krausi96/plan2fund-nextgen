@@ -15,11 +15,10 @@ import SectionContentRenderer from './SectionContentRenderer';
 import { initializeTablesForSection, sectionNeedsTables } from '@/features/editor/utils/tableInitializer';
 
 interface EditorProps {
-  programId?: string | null;
   product?: string;
 }
 
-export default function Editor({ programId, product = 'submission' }: EditorProps) {
+export default function Editor({ product = 'submission' }: EditorProps) {
   const router = useRouter();
   const [plan, setPlan] = useState<PlanDocument | null>(null);
   const [sections, setSections] = useState<PlanSection[]>([]);
@@ -33,7 +32,7 @@ export default function Editor({ programId, product = 'submission' }: EditorProp
     program_name?: string;
   } | null>(null);
 
-  // Load sections when product changes (programId is optional)
+  // Load sections when product changes
   const loadSections = useCallback(async () => {
     if (typeof window === 'undefined') return; // Don't run on server
     
@@ -43,12 +42,12 @@ export default function Editor({ programId, product = 'submission' }: EditorProp
       // Use grants as default funding type (routes removed for simplicity)
       const fundingType = 'grants';
       
-      // Load sections from templates (works without programId - uses default templates)
+      // Load sections from templates (always uses master templates)
       const baseUrl = typeof window !== 'undefined' ? window.location.origin : '';
       
       let templateSections: SectionTemplate[];
       try {
-        templateSections = await getSections(fundingType, product, programId || undefined, baseUrl);
+        templateSections = await getSections(fundingType, product, undefined, baseUrl);
       } catch (templateError: any) {
         console.error('Error loading template sections:', templateError);
         throw new Error(`Failed to load templates: ${templateError?.message || 'Unknown error'}`);
@@ -93,7 +92,7 @@ export default function Editor({ programId, product = 'submission' }: EditorProp
         ownerId: 'current',
         product: product as any,
         route: 'grants' as any, // Default to grants
-        programId: programId || undefined,
+        programId: undefined, // Programs don't have stable IDs - use localStorage instead
         language: 'en',
         tone: 'neutral',
         targetLength: 'standard',
@@ -112,23 +111,26 @@ export default function Editor({ programId, product = 'submission' }: EditorProp
       setPlan(newPlan);
       setSections(planSections);
 
-      // Load program data for requirements modal (optional - only if programId provided)
-      if (programId && typeof window !== 'undefined') {
+      // Load program data from localStorage (programs don't have stable IDs)
+      // This is set when user selects a program from reco
+      if (typeof window !== 'undefined') {
         try {
-          const response = await fetch(`/api/programmes/${programId}/requirements`);
-          if (response.ok) {
-            const data = await response.json();
+          const storedProgram = localStorage.getItem('selectedProgram');
+          if (storedProgram) {
+            const programData = JSON.parse(storedProgram);
             setProgramData({
-              categorized_requirements: data.categorized_requirements,
-              program_name: data.program_name || programId
+              categorized_requirements: programData.categorized_requirements || {},
+              program_name: programData.name || programData.id || 'Selected Program'
             });
+          } else {
+            // No program selected - clear program data
+            setProgramData(null);
           }
         } catch (error) {
-          console.warn('Failed to load program data:', error);
-          // Continue without program data - editor works fine with default templates
+          console.warn('Failed to load program data from localStorage:', error);
+          setProgramData(null);
         }
       } else {
-        // No program selected - clear program data
         setProgramData(null);
       }
     } catch (error: any) {
@@ -140,7 +142,7 @@ export default function Editor({ programId, product = 'submission' }: EditorProp
     } finally {
       setIsLoading(false);
     }
-  }, [product, programId]);
+  }, [product]);
 
   useEffect(() => {
     if (typeof window !== 'undefined') {
@@ -180,8 +182,7 @@ export default function Editor({ programId, product = 'submission' }: EditorProp
     }
   }, [sections, plan]);
 
-  // Program selection is now optional - editor works with default templates
-  // ProgramSelector will be shown in header if no programId
+  // Program data is loaded from localStorage (set by reco when user selects a program)
 
   // Error state
   if (error) {
@@ -248,7 +249,7 @@ export default function Editor({ programId, product = 'submission' }: EditorProp
   // Handle AI generation
   const handleAIGenerate = useCallback(async () => {
     const currentSection = sections[activeSection];
-    if (!currentSection || !plan) return; // programId is optional
+    if (!currentSection || !plan) return;
 
     try {
       const userAnswers = typeof window !== 'undefined' ? loadUserAnswers() : {};
@@ -266,10 +267,25 @@ export default function Editor({ programId, product = 'submission' }: EditorProp
         language: plan.language || 'en'
       });
 
-      const programForAI = {
-        id: programId || 'default',
-        name: programId || 'Default Template',
-        type: 'grant', // Default to grant
+      // Use program data from localStorage (set by reco) or default
+      const storedProgram = typeof window !== 'undefined' 
+        ? JSON.parse(localStorage.getItem('selectedProgram') || 'null')
+        : null;
+      
+      const programForAI = storedProgram ? {
+        id: storedProgram.id || 'default',
+        name: storedProgram.name || 'Selected Program',
+        type: storedProgram.type || 'grant',
+        amount: '',
+        eligibility: [],
+        requirements: [],
+        score: 100,
+        reasons: [],
+        risks: []
+      } : {
+        id: 'default',
+        name: 'Default Template',
+        type: 'grant',
         amount: '',
         eligibility: [],
         requirements: [],
@@ -279,9 +295,9 @@ export default function Editor({ programId, product = 'submission' }: EditorProp
       };
 
       // Get section template for prompts (works without programId)
-      const fundingType = 'grants'; // Default to grants
+      const fundingType = storedProgram?.type || 'grants'; // Use program type if available
       const baseUrl = typeof window !== 'undefined' ? window.location.origin : '';
-      const templateSections = await getSections(fundingType, product, programId || undefined, baseUrl);
+      const templateSections = await getSections(fundingType, product, undefined, baseUrl);
       const sectionTemplate = templateSections.find((s: SectionTemplate) => s.id === currentSection.key);
       
       // Generate for whole section (always, no question mode)
@@ -328,7 +344,7 @@ export default function Editor({ programId, product = 'submission' }: EditorProp
     } catch (error) {
       console.error('Error generating content:', error);
     }
-  }, [sections, activeSection, plan, programId, product, sectionTemplates, handleSectionChange]);
+  }, [sections, activeSection, plan, product, sectionTemplates, handleSectionChange]);
 
   // Calculate overall progress
   const overallProgress = React.useMemo(() => {
@@ -393,9 +409,7 @@ export default function Editor({ programId, product = 'submission' }: EditorProp
                 <select
                   value={product}
                   onChange={(e) => {
-                    const query: any = { product: e.target.value };
-                    if (programId) query.programId = programId;
-                    router.push({ pathname: '/editor', query });
+                    router.push({ pathname: '/editor', query: { product: e.target.value } });
                   }}
                   className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm"
                 >
@@ -405,18 +419,29 @@ export default function Editor({ programId, product = 'submission' }: EditorProp
                 </select>
               </div>
               <div className="flex-1">
-                <label className="block text-xs text-gray-600 mb-1">Program (Optional)</label>
+                <label className="block text-xs text-gray-600 mb-1">Program</label>
                 <input
                   type="text"
-                  value={programId || ''}
-                  onChange={(e) => {
-                    const query: any = { product };
-                    if (e.target.value) query.programId = e.target.value;
-                    router.push({ pathname: '/editor', query });
-                  }}
-                  placeholder="Program ID (optional)"
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm"
+                  value={programData?.program_name || ''}
+                  readOnly
+                  placeholder="No program selected"
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm bg-gray-50"
+                  title="Program is selected from recommendation flow"
                 />
+                {programData && (
+                  <button
+                    onClick={() => {
+                      if (typeof window !== 'undefined') {
+                        localStorage.removeItem('selectedProgram');
+                      }
+                      setProgramData(null);
+                      router.push({ pathname: '/editor', query: { product } });
+                    }}
+                    className="mt-1 text-xs text-blue-600 hover:text-blue-700"
+                  >
+                    Clear program
+                  </button>
+                )}
               </div>
             </div>
           </div>
@@ -733,7 +758,7 @@ export default function Editor({ programId, product = 'submission' }: EditorProp
         sections={sections}
         sectionTemplates={sectionTemplates}
         onNavigateToSection={(index) => setActiveSection(index)}
-        programId={programId || undefined}
+        programId={programData ? 'selected' : undefined}
         programData={programData || undefined}
         onGenerateMissingContent={async (sectionKey) => {
           // Find the section index
@@ -743,7 +768,7 @@ export default function Editor({ programId, product = 'submission' }: EditorProp
             setActiveSection(sectionIndex);
             // Trigger AI generation for the section
             const section = sections[sectionIndex];
-            if (section && plan && programId) {
+            if (section && plan) {
               try {
                 const userAnswers = typeof window !== 'undefined' ? loadUserAnswers() : {};
                 
@@ -756,10 +781,25 @@ export default function Editor({ programId, product = 'submission' }: EditorProp
                   language: plan.language || 'en'
                 });
 
-                const programForAI = {
-                  id: programId,
-                  name: programId,
-                  type: 'grant', // Default to grant
+                // Use program data from localStorage (set by reco) or default
+                const storedProgram = typeof window !== 'undefined' 
+                  ? JSON.parse(localStorage.getItem('selectedProgram') || 'null')
+                  : null;
+
+                const programForAI = storedProgram ? {
+                  id: storedProgram.id || 'default',
+                  name: storedProgram.name || 'Selected Program',
+                  type: storedProgram.type || 'grant',
+                  amount: '',
+                  eligibility: [],
+                  requirements: [],
+                  score: 100,
+                  reasons: [],
+                  risks: []
+                } : {
+                  id: 'default',
+                  name: 'Default Template',
+                  type: 'grant',
                   amount: '',
                   eligibility: [],
                   requirements: [],
@@ -768,9 +808,9 @@ export default function Editor({ programId, product = 'submission' }: EditorProp
                   risks: []
                 };
 
-                const fundingType = 'grants'; // Default to grants
+                const fundingType = storedProgram?.type || 'grants';
                 const baseUrl = typeof window !== 'undefined' ? window.location.origin : '';
-                const templateSections = await getSections(fundingType, product, programId, baseUrl);
+                const templateSections = await getSections(fundingType, product, undefined, baseUrl);
                 const sectionTemplate = templateSections.find((s: SectionTemplate) => s.id === section.key);
                 
                 const context = sectionTemplate?.prompts?.join('\n') || sectionTemplate?.description || '';
