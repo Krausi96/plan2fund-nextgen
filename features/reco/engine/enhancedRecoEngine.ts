@@ -798,9 +798,10 @@ function fallbackMatch(userValue: string, requirementValue: any): boolean {
   return false;
 }
 
-// Score programs using categorized requirements (18 categories from Layer 1&2)
-// NOW WITH FIXED WEIGHTS (data-driven, consistent scoring - weights defined above)
-function scoreCategorizedRequirements(
+// Score programs using categorized requirements - simple match counting
+// NOTE: Currently unused - LLM handles cross-checking. Kept as fallback.
+// @ts-ignore - Intentionally unused, kept as fallback
+function _scoreCategorizedRequirements(
   categorizedRequirements: any,
   answers: UserAnswers
 ): {
@@ -997,41 +998,7 @@ function scoreCategorizedRequirements(
       });
 
       if (matched) {
-        // FIXED WEIGHT SCORING: Use data-driven weights (defined above)
-        // Map answer key to question weight
-        const answerKey = relevantAnswers[0]?.key || '';
-        let questionWeight = 0;
-        
-        // Map answer keys to question weights
-        if (answerKey === 'location' || answerKey === 'q1_location' || answerKey === 'q1_country') {
-          questionWeight = getQuestionWeight('location');
-        } else if (answerKey === 'company_type') {
-          questionWeight = getQuestionWeight('company_type');
-        } else if (answerKey === 'funding_amount') {
-          questionWeight = getQuestionWeight('funding_amount');
-        } else if (answerKey === 'industry_focus') {
-          questionWeight = getQuestionWeight('industry_focus');
-        } else if (answerKey === 'impact') {
-          questionWeight = getQuestionWeight('impact');
-        } else if (answerKey === 'company_stage' || answerKey === 'q2_entity_stage') {
-          questionWeight = getQuestionWeight('company_stage');
-        } else if (answerKey === 'use_of_funds') {
-          questionWeight = getQuestionWeight('use_of_funds');
-        } else if (answerKey === 'project_duration') {
-          questionWeight = getQuestionWeight('project_duration');
-        } else if (answerKey === 'deadline_urgency') {
-          questionWeight = getQuestionWeight('deadline_urgency');
-        } else if (answerKey === 'co_financing') {
-          questionWeight = getQuestionWeight('co_financing');
-        } else if (answerKey === 'revenue_status' || answerKey === 'revenue' || answerKey === 'current_revenue') {
-          questionWeight = getQuestionWeight('revenue_status');
-        } else if (answerKey === 'team_size' || answerKey === 'q3_company_size') {
-          questionWeight = getQuestionWeight('team_size');
-        }
-        
-        // Apply confidence multiplier to weight
-        const categoryScore = Math.round(questionWeight * confidence);
-        score += categoryScore;
+        // Simple match counting (no weights)
         matchedCount++;
         
         matchedCriteria.push({
@@ -1041,7 +1008,7 @@ function scoreCategorizedRequirements(
           status: 'passed'
         });
       } else if (confidence > 0.7) {
-        // High confidence requirement that doesn't match - will be penalized
+        // High confidence requirement that doesn't match
         missingHighConfidenceCount++;
         gaps.push({
           key: category,
@@ -1053,42 +1020,15 @@ function scoreCategorizedRequirements(
     });
   });
 
-  // NORMALIZE TO PERCENTAGE: Calculate maximum possible score based on answered questions
-  // Get list of answered questions to calculate total possible weight
-  const answeredQuestions: (keyof QuestionWeights)[] = [];
-  Object.keys(answers).forEach(key => {
-    if (answers[key as keyof UserAnswers] !== undefined && answers[key as keyof UserAnswers] !== null && answers[key as keyof UserAnswers] !== '') {
-      // Map answer keys to question IDs
-      if (key === 'location' || key === 'q1_location' || key === 'q1_country') answeredQuestions.push('location');
-      else if (key === 'company_type') answeredQuestions.push('company_type');
-      else if (key === 'funding_amount') answeredQuestions.push('funding_amount');
-      else if (key === 'industry_focus') answeredQuestions.push('industry_focus');
-      else if (key === 'impact') answeredQuestions.push('impact');
-      else if (key === 'company_stage' || key === 'q2_entity_stage') answeredQuestions.push('company_stage');
-      else if (key === 'use_of_funds') answeredQuestions.push('use_of_funds');
-      else if (key === 'project_duration') answeredQuestions.push('project_duration');
-      else if (key === 'deadline_urgency') answeredQuestions.push('deadline_urgency');
-      else if (key === 'co_financing') answeredQuestions.push('co_financing');
-      else if (key === 'revenue_status' || key === 'revenue' || key === 'current_revenue') answeredQuestions.push('revenue_status');
-      else if (key === 'team_size' || key === 'q3_company_size') answeredQuestions.push('team_size');
-    }
-  });
+  // Simple scoring: matches / total checked requirements
+  const totalChecked = matchedCount + missingHighConfidenceCount;
   
-  // Calculate total possible weight for answered questions
-  const totalPossibleWeight = calculateTotalWeight(answeredQuestions);
-  
-  // Apply penalties for missing high-confidence requirements
-  // Penalty is 5% per missing high-confidence requirement (capped at 30%)
-  const penaltyPercent = Math.min(0.3, missingHighConfidenceCount * 0.05);
-  const penaltyPoints = totalPossibleWeight > 0 ? (totalPossibleWeight * penaltyPercent) : 0;
-  const finalScore = Math.max(0, score - penaltyPoints);
-  
-  // Normalize to percentage (0-100%) based on answered questions
-  if (totalPossibleWeight > 0) {
-    score = Math.round((finalScore / totalPossibleWeight) * 100);
+  // Calculate simple percentage
+  if (totalChecked > 0) {
+    score = Math.round((matchedCount / totalChecked) * 100);
   } else {
-    // Fallback: If no questions answered, score stays as is
-    score = Math.round(finalScore);
+    // If no requirements checked, default to 0
+    score = 0;
   }
   
   // Ensure score is within bounds
@@ -1218,8 +1158,8 @@ export async function scoreProgramsEnhanced(
       hasEligibilityCriteria: !!(normalizedPrograms[0] as any).eligibility_criteria
     });
 
-    // Removed frequency calculation - now using fixed weights (integrated above)
-    console.log(`📊 Using fixed weights for scoring`);
+    // Using LLM for cross-checking and scoring
+    console.log(`📊 Using LLM for cross-checking requirements`);
 
     const scoredPrograms = await Promise.all(normalizedPrograms.map(async (program): Promise<EnhancedProgramResult> => {
       let score = 0;
@@ -1437,31 +1377,10 @@ export async function scoreProgramsEnhanced(
         }
       }
 
-      // Enhanced scoring with categorized requirements (Layer 1&2)
-      // NOW WITH FIXED WEIGHTS (data-driven, consistent scoring - weights defined above)
-      if (program.categorized_requirements) {
-        // Count total possible requirements for normalization
-        let totalPossibleRequirements = 0;
-        Object.entries(program.categorized_requirements).forEach(([_, data]: [string, any]) => {
-          if (Array.isArray(data)) {
-            totalPossibleRequirements += data.filter((item: any) => item && item.confidence !== undefined).length;
-          }
-        });
-        
-        const categorizedScore = scoreCategorizedRequirements(
-          program.categorized_requirements, 
-          answers
-        );
-        
-        // Use the normalized score directly (already percentage-based)
-        score = categorizedScore.score;
-        matchedCriteria.push(...categorizedScore.matchedCriteria);
-        gaps.push(...categorizedScore.gaps);
-        console.log(`🔍 Debug: Categorized requirements score for ${program.id}: ${categorizedScore.score}% (normalized, fixed weights)`);
-      }
-
-      // Score is now already normalized (0-100%) from scoreCategorizedRequirements
-      let scorePercent = score;
+      // Use LLM for cross-checking (no complex matching needed)
+      // Scoring will be done in second pass using LLM's matches/gaps
+      // For now, use a simple placeholder score (will be replaced by LLM)
+      let scorePercent = 50; // Placeholder, LLM will calculate actual score
       
       // Small bonus ONLY for perfect matches (all requirements met, no gaps)
       // Reduced from 20 to 5 points, only when truly perfect
@@ -1581,28 +1500,54 @@ export async function scoreProgramsEnhanced(
     // Sort by score
     const sortedPrograms = scoredPrograms.sort((a: EnhancedProgramResult, b: EnhancedProgramResult) => b.score - a.score);
     
-    // Second pass: Enhance explanations with strategic advice (now that we have all programs)
+    // Second pass: LLM cross-checks requirements and generates explanations
     const enhancedPrograms = await Promise.all(sortedPrograms.map(async (program) => {
       const useLLM = process.env.OPENAI_API_KEY || process.env.CUSTOM_LLM_ENDPOINT;
-      if (useLLM && program.matchedCriteria && program.matchedCriteria.length > 0) {
+      if (useLLM) {
         try {
           const enhanced = await generateSmartExplanation(
             program,
             userAnswers,
-            program.matchedCriteria,
+            program.matchedCriteria || [],
             program.gaps || [],
             program.score,
             sortedPrograms // Pass all programs for strategic advice
           );
           
+          // Use LLM's matches/gaps for scoring
+          const llmMatchCount = enhanced.matches?.length || 0;
+          const llmGapCount = enhanced.gaps?.length || 0;
+          const total = llmMatchCount + llmGapCount;
+          const llmScore = total > 0 ? Math.round((llmMatchCount / total) * 100) : program.score;
+          
+          // Convert LLM matches/gaps to matchedCriteria/gaps format
+          const llmMatchedCriteria = enhanced.matches?.map(m => ({
+            key: 'llm_match',
+            value: m,
+            reason: m,
+            status: 'passed' as const
+          })) || program.matchedCriteria || [];
+          
+          const llmGaps = enhanced.gaps?.map(g => ({
+            key: 'llm_gap',
+            description: g,
+            action: 'Review requirement',
+            priority: 'high' as const
+          })) || program.gaps || [];
+          
           return {
             ...program,
+            score: llmScore, // Use LLM's score
+            matchedCriteria: llmMatchedCriteria, // Use LLM's matches
+            gaps: llmGaps, // Use LLM's gaps
+            founderFriendlyReasons: enhanced.reasons,
             strategicAdvice: enhanced.strategicAdvice,
             applicationInfo: enhanced.applicationInfo,
             riskMitigation: enhanced.riskMitigation,
           };
         } catch (error) {
-          // Silently fail, use basic program
+          console.warn('LLM explanation failed, using fallback:', error);
+          // Fallback: use existing program data
           return program;
         }
       }
@@ -1675,149 +1620,162 @@ async function generateFounderFriendlyReasons(
 async function generateSmartExplanation(
   program: Program,
   userAnswers: UserAnswers,
-  matchedCriteria: Array<{ key: string; value: any; reason: string; status: 'passed' | 'warning' | 'failed' }>,
-  gaps: Array<{ key: string; description: string; action: string; priority: 'high' | 'medium' | 'low' }>,
-  score: number,
-  allPrograms?: EnhancedProgramResult[] // NEW: For strategic advice
+  _matchedCriteria: Array<{ key: string; value: any; reason: string; status: 'passed' | 'warning' | 'failed' }>, // Unused - LLM does cross-checking
+  _gaps: Array<{ key: string; description: string; action: string; priority: 'high' | 'medium' | 'low' }>, // Unused - LLM identifies gaps
+  _score: number, // Unused - LLM calculates score from matches/gaps
+  allPrograms?: EnhancedProgramResult[] // For strategic advice
 ): Promise<{ 
   reasons: string[];
+  matches?: string[]; // What matches (from LLM cross-checking)
+  gaps?: string[]; // What's missing (from LLM cross-checking)
   strategicAdvice?: string; // NEW: One sentence, optional
   applicationInfo?: string; // NEW: One sentence, optional
   riskMitigation?: string; // NEW: One sentence, optional
 }> {
-  const passedCriteria = matchedCriteria.filter(c => c.status === 'passed');
-  
-  // Summarize context for LLM
+  // Summarize context for LLM (token-optimized)
   const userProfile = summarizeUserProfile(userAnswers);
   const programSummary = summarizeProgram(program);
-  const issues = gaps.length > 0 ? `\nConsiderations: ${gaps.slice(0, 2).map(g => g.description).join(', ')}` : '';
-
-  const systemPrompt = `You are an expert funding advisor helping entrepreneurs understand why specific funding programs match their needs.
-
-Your task is to generate personalized, professional explanations that:
-1. Reference the user's SPECIFIC situation (location, company type, funding needs, industry)
-2. Explain WHY the program fits based on ACTUAL scoring factors
-3. Highlight what makes this match strong (high score) or what could be improved (lower score)
-4. Use professional but accessible language
-5. Be specific about the scoring factors that contributed to the match
-
-Guidelines:
-- Reference actual matched criteria from the scoring
-- Explain the connection between their profile and program requirements
-- If score is high (≥90%), emphasize strong alignment
-- If score is lower (70-89%), acknowledge strengths but note areas for improvement
-- Use their actual values (e.g., "€100k-€500k funding need" not "funding amount")
-- Be professional but warm and encouraging`;
-
-  // Build detailed scoring context with weights
-  const getWeightForCriteria = (key: string): number => {
-    if (key.includes('location') || key.includes('country') || key.includes('geographic')) {
-      return getQuestionWeight('location');
-    } else if (key.includes('company_type') || key.includes('entity') || key.includes('eligibility')) {
-      return getQuestionWeight('company_type');
-    } else if (key.includes('funding') || key.includes('financial')) {
-      return getQuestionWeight('funding_amount');
-    } else if (key.includes('industry') || key.includes('theme') || key.includes('project')) {
-      return getQuestionWeight('industry_focus');
-    } else if (key.includes('impact')) {
-      return getQuestionWeight('impact');
-    } else if (key.includes('stage') || key.includes('team')) {
-      return getQuestionWeight('company_stage');
-    } else if (key.includes('co_financing')) {
-      return getQuestionWeight('co_financing');
+  
+  // Get program requirements - only send relevant categories (token optimization)
+  const categorizedRequirements = program.categorized_requirements || {};
+  const relevantCategories = ['geographic', 'eligibility', 'financial', 'project', 'funding_details'];
+  const filteredRequirements: any = {};
+  relevantCategories.forEach(cat => {
+    if (categorizedRequirements[cat] && Array.isArray(categorizedRequirements[cat])) {
+      // Only include first 3 items per category to save tokens
+      filteredRequirements[cat] = categorizedRequirements[cat].slice(0, 3).map((item: any) => ({
+        type: item.type,
+        value: item.value
+      }));
     }
-    return 0;
-  };
-  
-  // Sort criteria by weight (highest first) before building breakdown
-  const sortedCriteria = [...passedCriteria].sort((a, b) => {
-    const weightA = getWeightForCriteria(a.key);
-    const weightB = getWeightForCriteria(b.key);
-    return weightB - weightA;
   });
-  
-  const scoringBreakdown = sortedCriteria
-    .map(c => {
-      const category = c.key.split(':')[0] || c.key;
-      const weight = getWeightForCriteria(c.key);
-      return `- ${category} (${weight}% weight): ${c.reason}`;
-    })
-    .join('\n');
-  
-  const scoreStrength = score >= 90 ? 'excellent' : score >= 70 ? 'strong' : score >= 50 ? 'moderate' : 'limited';
-  const scoreContext = score >= 90 
-    ? 'This is an excellent match with high alignment across multiple criteria.'
-    : score >= 70
-    ? 'This is a strong match with good alignment, though some areas could be improved.'
-    : 'This is a moderate match with some alignment, but there are notable gaps.';
+  const programRequirements = JSON.stringify(filteredRequirements);
 
-  // Enhanced prompt with strategic advice, application process, and risks
+  // Ultra-concise prompts to reduce token usage
+  const systemPrompt = `Funding advisor. Cross-check user vs program. Return JSON only.`;
+
   const hasOtherPrograms = allPrograms && allPrograms.length > 1;
   const otherProgramsList = hasOtherPrograms 
-    ? allPrograms.slice(0, 3).map(p => `${p.name} (${Math.round(p.score)}%)`).join(', ')
+    ? allPrograms.slice(0, 2).map(p => p.name).join(', ') // Reduced from 3 to 2
     : '';
 
-  const userPrompt = `User Profile:
-${userProfile}
+  // Simplified prompt - minimal tokens
+  const userPrompt = `U: ${userProfile}
+P: ${programSummary}
+R: ${programRequirements}
+${hasOtherPrograms ? `Others: ${otherProgramsList}` : ''}
 
-Program Details:
-${programSummary}
-
-Match Score: ${score}% (${scoreStrength} match)
-${scoreContext}
-
-Scoring Breakdown - What Matched:
-${scoringBreakdown}
-
-${issues.length > 0 ? `\nAreas for Improvement:\n${issues}\n` : ''}
-${hasOtherPrograms ? `\nOther Matching Programs: ${otherProgramsList}\n` : ''}
-
-Generate a concise explanation:
-1. Why this matches (2-3 sentences, reference specific criteria like location, company type, funding amount)
-${hasOtherPrograms ? '2. Strategic tip: How to combine with other programs (1 sentence, only if relevant)' : ''}
-3. Application info: Deadline, key steps, main documents (1-2 sentences, keep brief - only if you know this information)
-4. Main risk with mitigation (1 sentence, only if there are risks)
-
-Keep it concise and actionable. Don't overload with information. Return as JSON:
+Return JSON:
 {
-  "reasons": ["reason1", "reason2", "reason3"],
-  "strategic_advice": "one sentence or null",
-  "application_info": "one sentence or null",
-  "risk_mitigation": "one sentence or null"
+  "reasons": ["match1", "match2"],
+  "matches": ["match1", "match2"],
+  "gaps": ["gap1"],
+  "strategic_advice": "1 sentence or null",
+  "application_info": "1 sentence or null",
+  "risk_mitigation": "1 sentence or null"
 }`;
 
-  // Try custom LLM first
+  // Try custom LLM first (using helper function for proper Gemini/OpenAI-compatible format)
   if (process.env.CUSTOM_LLM_ENDPOINT) {
     try {
-      const response = await fetch(process.env.CUSTOM_LLM_ENDPOINT, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          messages: [
-            { role: 'system', content: systemPrompt },
-            { role: 'user', content: userPrompt }
-          ],
-          responseFormat: 'json',
-          maxTokens: 300,
-          temperature: 0.7,
-        }),
+      const { callCustomLLM } = await import('../../../shared/lib/ai/customLLM');
+      const customResponse = await callCustomLLM({
+        messages: [
+          { role: 'system', content: systemPrompt },
+          { role: 'user', content: userPrompt }
+        ],
+        responseFormat: 'json',
+        maxTokens: 1500, // Reduced from 2000 - simpler prompts need fewer tokens
+        temperature: 0.7,
       });
       
-      if (response.ok) {
-        const data = await response.json();
-        const content = data.output || data.content || '{}';
+      const content = customResponse.output || '{}';
+      console.log('✅ Custom LLM response received, length:', content.length);
+      
+      try {
         const parsed = JSON.parse(content);
-        if (parsed.reasons && Array.isArray(parsed.reasons)) {
+        console.log('✅ Custom LLM JSON parsed successfully');
+        console.log('   - Has reasons:', !!parsed.reasons);
+        console.log('   - Has matches:', !!parsed.matches);
+        console.log('   - Has gaps:', !!parsed.gaps);
+        
+        // Handle reasons as string or array
+        let reasons: string[] = [];
+        if (Array.isArray(parsed.reasons)) {
+          reasons = parsed.reasons;
+        } else if (typeof parsed.reasons === 'string') {
+          reasons = [parsed.reasons];
+        }
+        
+        if (reasons.length > 0) {
+          console.log('✅ Custom LLM returned valid response with', reasons.length, 'reasons');
           return { 
-            reasons: parsed.reasons.slice(0, 3),
+            reasons: reasons.slice(0, 3),
+            matches: parsed.matches && Array.isArray(parsed.matches) ? parsed.matches : undefined,
+            gaps: parsed.gaps && Array.isArray(parsed.gaps) ? parsed.gaps : undefined,
             strategicAdvice: parsed.strategic_advice || parsed.strategicAdvice || null,
             applicationInfo: parsed.application_info || parsed.applicationInfo || null,
             riskMitigation: parsed.risk_mitigation || parsed.riskMitigation || null
           };
+        } else {
+          console.warn('⚠️ Custom LLM response missing reasons:', Object.keys(parsed));
+        }
+      } catch (parseError: any) {
+        console.warn('⚠️ Failed to parse Custom LLM JSON:', parseError.message);
+        console.warn('   Response preview:', content.substring(0, 500));
+        
+        // If MAX_TOKENS, return minimal explanation
+        if (content.includes('MAX_TOKENS') || content.includes('finishReason')) {
+          console.warn('⚠️ MAX_TOKENS reached, using minimal fallback');
+          return {
+            reasons: [`This program matches your ${userAnswers.location || 'location'} and ${userAnswers.company_type || 'company type'}.`],
+            matches: [`Location: ${userAnswers.location || 'matches'}`],
+            gaps: [],
+            strategicAdvice: undefined,
+            applicationInfo: undefined,
+            riskMitigation: undefined
+          };
         }
       }
-    } catch (error) {
-      console.warn('Custom LLM failed:', error);
+      
+      // If we got here, the response didn't have the expected format
+      // Log the actual response structure for debugging
+      if (content && content.length > 0) {
+        console.warn('⚠️ Custom LLM response structure unexpected. Full response:', content);
+        
+        // Try to extract any useful info from partial response
+        try {
+          const partialMatch = content.match(/"reasons"\s*:\s*\[([^\]]+)\]|"matches"\s*:\s*\[([^\]]+)\]/);
+          if (partialMatch) {
+            console.warn('⚠️ Extracted partial response, using minimal fallback');
+            return {
+              reasons: [`This program matches your profile.`],
+              matches: [],
+              gaps: [],
+              strategicAdvice: undefined,
+              applicationInfo: undefined,
+              riskMitigation: undefined
+            };
+          }
+        } catch {}
+      }
+    } catch (error: any) {
+      console.warn('Custom LLM failed:', error?.message || error);
+      console.warn('Custom LLM error details:', {
+        status: error?.status,
+        code: error?.code,
+        type: error?.type
+      });
+      
+      // Return minimal fallback on error
+      return {
+        reasons: [`This program matches your ${userAnswers.location || 'location'} and ${userAnswers.company_type || 'company type'}.`],
+        matches: [],
+        gaps: [],
+        strategicAdvice: undefined,
+        applicationInfo: undefined,
+        riskMitigation: undefined
+      };
     }
   }
 
@@ -1842,6 +1800,8 @@ Keep it concise and actionable. Don't overload with information. Return as JSON:
     if (parsed.reasons && Array.isArray(parsed.reasons)) {
       return { 
         reasons: parsed.reasons.slice(0, 3),
+        matches: parsed.matches && Array.isArray(parsed.matches) ? parsed.matches : undefined,
+        gaps: parsed.gaps && Array.isArray(parsed.gaps) ? parsed.gaps : undefined,
         strategicAdvice: parsed.strategic_advice || parsed.strategicAdvice || null,
         applicationInfo: parsed.application_info || parsed.applicationInfo || null,
         riskMitigation: parsed.risk_mitigation || parsed.riskMitigation || null

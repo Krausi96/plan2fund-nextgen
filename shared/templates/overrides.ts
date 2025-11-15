@@ -17,15 +17,27 @@ export function mergeSections(
   
   // Start with master sections
   for (const master of masterSections) {
-    // If program has override, use it; otherwise use master
+    // If program has override, ENHANCE master (don't replace)
     const override = programById.get(master.id);
     if (override) {
+      // Smart merge: Preserve master prompts, enhance with program-specific
       merged.push({
         ...master,
-        ...override, // Program-specific overrides master
+        // Only override specific fields that should be enhanced
+        prompts: override.prompts && override.prompts.length > 0
+          ? [...master.prompts, ...override.prompts.filter((p: string) => !master.prompts.includes(p))] // Add new prompts, don't duplicate
+          : master.prompts, // Keep master prompts if no program prompts
+        description: override.description || master.description, // Use program description if provided
+        // Keep master word counts, validation rules, etc. (verified)
+        wordCountMin: master.wordCountMin,
+        wordCountMax: master.wordCountMax,
+        validationRules: {
+          requiredFields: [...master.validationRules.requiredFields, ...(override.validationRules?.requiredFields || []).filter((f: string) => !master.validationRules.requiredFields.includes(f))],
+          formatRequirements: [...master.validationRules.formatRequirements, ...(override.validationRules?.formatRequirements || []).filter((f: string) => !master.validationRules.formatRequirements.includes(f))]
+        },
         source: {
-          verified: override.source?.verified ?? master.source?.verified ?? false,
-          verifiedDate: override.source?.verifiedDate || master.source?.verifiedDate,
+          verified: master.source?.verified ?? false, // Keep master verification status
+          verifiedDate: master.source?.verifiedDate || override.source?.verifiedDate,
           officialProgram: override.source?.officialProgram || master.source?.officialProgram,
           sourceUrl: override.source?.sourceUrl || master.source?.sourceUrl,
           version: override.source?.version || master.source?.version
@@ -87,151 +99,13 @@ export function mergeDocuments(
 }
 
 /**
- * Load program-specific sections from database
- * Uses LLM template generation if available, falls back to rule-based categoryConverters
+ * Load program-specific sections from reco data
+ * DEPRECATED: Always returns empty array - use master templates only
+ * Kept for backward compatibility (if any code still calls this)
  */
-export async function loadProgramSections(programId: string, baseUrl?: string): Promise<SectionTemplate[]> {
-  try {
-    // Load from API (which loads from database)
-    // baseUrl needed for server-side (API routes)
-    const apiUrl = baseUrl 
-      ? `${baseUrl}/api/programmes/${programId}/requirements`
-      : typeof window !== 'undefined' 
-        ? `/api/programmes/${programId}/requirements`
-        : `http://localhost:3000/api/programmes/${programId}/requirements`;
-    
-    const response = await fetch(apiUrl);
-    if (!response.ok) return [];
-    
-    const data = await response.json();
-    const categorizedRequirements = data.categorized_requirements;
-    
-    if (!categorizedRequirements) return [];
-    
-    // Check if we have stored template versions (server-side only)
-    if (typeof window === 'undefined') {
-      try {
-        const { loadTemplateVersions, checkTemplateNeedsUpdate, computeRequirementsHash } = await import('./versioning');
-        const requirementsHash = computeRequirementsHash(categorizedRequirements);
-        const needsUpdate = await checkTemplateNeedsUpdate(programId, requirementsHash);
-        
-        if (!needsUpdate) {
-          // Load existing templates from database
-          const storedTemplates = await loadTemplateVersions(programId);
-          if (storedTemplates.length > 0) {
-            console.log(`✅ Loaded ${storedTemplates.length} stored template versions for program ${programId}`);
-            return storedTemplates;
-          }
-        }
-      } catch (versionError) {
-        console.warn('Template versioning check failed, continuing with generation:', versionError);
-      }
-    }
-    
-    // Try LLM template generation first (if API key available)
-    if (process.env.OPENAI_API_KEY) {
-      try {
-        const { generateTemplatesFromRequirements } = await import('@/shared/templates/generator');
-        const { computeRequirementsHash, saveTemplateVersion, saveRequirementsHash } = await import('./versioning');
-        
-        const llmTemplates = await generateTemplatesFromRequirements({
-          programId,
-          programName: data.program_name || programId,
-          categorized_requirements: categorizedRequirements,
-          metadata: {
-            funding_types: data.funding_types,
-            program_focus: data.program_focus,
-            region: data.region
-          }
-        });
-        
-        if (llmTemplates.length > 0) {
-          console.log(`✅ Generated ${llmTemplates.length} LLM templates for program ${programId}`);
-          
-          // Save template versions (server-side only)
-          if (typeof window === 'undefined') {
-            const requirementsHash = computeRequirementsHash(categorizedRequirements);
-            
-            // Save each template version
-            for (const template of llmTemplates) {
-              await saveTemplateVersion(programId, template, {
-                version_type: 'llm-generated',
-                model_version: 'gpt-4o-mini-v1',
-                prompt_version: 'template-prompt-v1',
-                generated_by: 'llm',
-                requirements_hash: requirementsHash
-              });
-            }
-            
-            // Save requirements hash
-            await saveRequirementsHash(programId, requirementsHash, categorizedRequirements);
-          }
-          
-          return llmTemplates;
-        }
-      } catch (llmError) {
-        console.warn('LLM template generation failed, using fallback:', llmError);
-      }
-    }
-    
-    // Fallback to rule-based categoryConverters
-    const { CategoryConverter } = await import('@/features/editor/engine/categoryConverters');
-    const converter = new CategoryConverter();
-    
-    // Get program type
-    const programType = data.program_type || 'grants';
-    
-    // Convert to editor sections (which uses master + enhancements)
-    const editorSections = converter.convertToEditorSections(categorizedRequirements, programType);
-    
-    // Convert EditorSection[] to SectionTemplate[]
-    const ruleBasedTemplates = editorSections.map(es => ({
-      id: es.id,
-      title: es.section_name,
-      description: es.guidance || es.placeholder || '',
-      required: es.required !== false,
-      wordCountMin: es.word_count_min || 200,
-      wordCountMax: es.word_count_max || 800,
-      order: es.order || 0,
-      category: es.category || 'general',
-      prompts: es.hints || [es.prompt],
-      validationRules: {
-        requiredFields: es.validation_rules?.filter((r: any) => r.required).map((r: any) => r.field) || [],
-        formatRequirements: es.validation_rules?.map((r: any) => r.format) || []
-      },
-      source: {
-        verified: true,
-        verifiedDate: new Date().toISOString(),
-        officialProgram: data.program_name
-      }
-    }));
-    
-    // Save rule-based templates as versions (server-side only)
-    if (typeof window === 'undefined') {
-      try {
-        const { saveTemplateVersion, computeRequirementsHash, saveRequirementsHash } = await import('./versioning');
-        const requirementsHash = computeRequirementsHash(categorizedRequirements);
-        
-        for (const template of ruleBasedTemplates) {
-          await saveTemplateVersion(programId, template, {
-            version_type: 'rule-based',
-            generated_by: 'rule-based',
-            requirements_hash: requirementsHash
-          });
-        }
-        
-        await saveRequirementsHash(programId, requirementsHash, categorizedRequirements);
-      } catch (versionError) {
-        console.warn('Failed to save rule-based template versions:', versionError);
-        // Non-fatal: continue
-      }
-    }
-    
-    return ruleBasedTemplates;
-  } catch (error) {
-    console.error('Error loading program sections:', error);
-    return [];
-  }
+export async function loadProgramSections(_programId: string, _baseUrl?: string): Promise<SectionTemplate[]> {
+  // Always return empty - master templates are used via getSections()
+  return [];
 }
 
 /**

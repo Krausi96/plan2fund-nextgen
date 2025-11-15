@@ -1,14 +1,12 @@
-// ========= PLAN2FUND — UNIFIED TEMPLATE REGISTRY =========
-// SIMPLEST APPROACH: Always use master templates (verified, foolproof)
-// Master templates are based on official sources and work for all programs
+// ========= PLAN2FUND — EDITOR TEMPLATE REGISTRY =========
+// Editor-specific templates for sections and template knowledge
+// Documents remain in shared/templates
 
-import { SectionTemplate, DocumentTemplate } from './types';
+import { SectionTemplate } from './types';
 import { MASTER_SECTIONS } from './sections';
-import { MASTER_DOCUMENTS } from './documents';
-import { mergeDocuments, loadProgramDocuments } from './overrides';
 
 // ============================================================================
-// TEMPLATE REGISTRY
+// SECTION TEMPLATE REGISTRY
 // ============================================================================
 
 /**
@@ -36,43 +34,6 @@ export async function getSections(
 }
 
 /**
- * Get documents for funding type, product, and optional program
- * Priority: Program-specific → Master → Default
- */
-export async function getDocuments(
-  fundingType: string,
-  productType: string,
-  programId?: string,
-  baseUrl?: string
-): Promise<DocumentTemplate[]> {
-  const masterDocs = MASTER_DOCUMENTS[fundingType]?.[productType] || [];
-  
-  // If programId provided, load program-specific and merge
-  if (programId) {
-    const programDocs = await loadProgramDocuments(programId, baseUrl);
-    if (programDocs.length > 0) {
-      return mergeDocuments(masterDocs, programDocs);
-    }
-  }
-  
-  return masterDocs;
-}
-
-/**
- * Get specific document by ID
- */
-export async function getDocument(
-  fundingType: string,
-  productType: string,
-  docId: string,
-  programId?: string,
-  baseUrl?: string
-): Promise<DocumentTemplate | undefined> {
-  const docs = await getDocuments(fundingType, productType, programId, baseUrl);
-  return docs.find((d: DocumentTemplate) => d.id === docId);
-}
-
-/**
  * Get specific section by ID
  */
 export async function getSection(
@@ -87,6 +48,8 @@ export async function getSection(
 }
 
 // Export master templates for direct access
-export { MASTER_SECTIONS, MASTER_DOCUMENTS };
+export { MASTER_SECTIONS };
 export * from './types';
+export { getTemplateKnowledge } from './templateKnowledge';
+export type { TemplateKnowledge } from './templateKnowledge';
 

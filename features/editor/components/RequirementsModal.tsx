@@ -1,9 +1,49 @@
 // ========= PLAN2FUND — REQUIREMENTS MODAL =========
 // Simple checklist view: shows all sections, what's missing, and allows navigation/generation
+// Includes program-specific requirements from reco
+// NOW: Semantic validation using AI Business Expert with Template Knowledge
 
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import { PlanSection } from '@/shared/types/plan';
-import { SectionTemplate } from '@/shared/templates/types';
+import { SectionTemplate } from '@/features/editor/templates/types';
+import { getTemplateKnowledge } from '@/features/editor/templates';
+
+/**
+ * Get program requirements for a section category
+ * Extracts requirements from categorized_requirements by category
+ */
+function getProgramRequirementsForSection(
+  categorizedRequirements: any,
+  sectionCategory: string
+): string[] {
+  if (!categorizedRequirements || typeof categorizedRequirements !== 'object') {
+    return [];
+  }
+  
+  // Map section category to program requirement category
+  const categoryMapping: Record<string, string> = {
+    'financial': 'financial',
+    'market': 'market_size',
+    'risk': 'compliance',
+    'team': 'team',
+    'project': 'project',
+    'technical': 'technical',
+    'impact': 'impact',
+    'general': 'eligibility'
+  };
+  
+  const reqCategory = categoryMapping[sectionCategory] || 'eligibility';
+  const requirements = categorizedRequirements[reqCategory] || [];
+  
+  // Extract values as strings
+  return requirements
+    .map((req: any) => {
+      if (!req.value) return null;
+      const value = Array.isArray(req.value) ? req.value.join(', ') : String(req.value);
+      return value.length < 200 ? value : null; // Sanity check
+    })
+    .filter(Boolean) as string[];
+}
 
 interface RequirementsModalProps {
   isOpen: boolean;
@@ -12,6 +52,11 @@ interface RequirementsModalProps {
   sectionTemplates: SectionTemplate[];
   onNavigateToSection: (sectionIndex: number) => void;
   onGenerateMissingContent: (sectionKey: string) => void;
+  programId?: string;
+  programData?: {
+    categorized_requirements?: any;
+    program_name?: string;
+  };
 }
 
 export default function RequirementsModal({
@@ -20,11 +65,217 @@ export default function RequirementsModal({
   sections,
   sectionTemplates,
   onNavigateToSection,
-  onGenerateMissingContent
+  onGenerateMissingContent,
+  programId: _programId,
+  programData
 }: RequirementsModalProps) {
 
-  // Validate section against template requirements
-  const validateSection = (section: PlanSection, template: SectionTemplate) => {
+  // Semantic validation state
+  const [_semanticValidation, setSemanticValidation] = useState<Record<string, any>>({});
+  const [validatingSection, setValidatingSection] = useState<string | null>(null);
+  const [sectionValidations, setSectionValidations] = useState<Record<string, any>>({});
+
+  /**
+   * Validate section semantically using AI Business Expert
+   * This provides deep validation beyond keyword matching
+   */
+  const validateSectionSemantically = async (section: PlanSection, template: SectionTemplate) => {
+    const content = section?.content || '';
+    const textContent = content.replace(/<[^>]*>/g, '').trim();
+    
+    if (textContent.length === 0) {
+      return {
+        status: 'missing' as const,
+        issues: ['No content yet'],
+        progress: 0,
+        semanticAnalysis: null
+      };
+    }
+
+    // Get template knowledge for semantic validation
+    const templateKnowledge = getTemplateKnowledge(template.id);
+
+    // Build validation prompt
+    const validationPrompt = `
+You are a business plan validator with deep expertise in business plan evaluation.
+
+=== CONTENT TO VALIDATE ===
+${textContent}
+
+=== TEMPLATE REQUIREMENTS ===
+Word count: ${template.wordCountMin || 0}-${template.wordCountMax || 'unlimited'}
+Required fields: ${template.validationRules?.requiredFields?.join(', ') || 'None'}
+
+=== TEMPLATE GUIDANCE ===
+${templateKnowledge?.guidance || 'No specific guidance'}
+
+Required elements:
+${templateKnowledge?.requiredElements?.map((e: string) => `- ${e}`).join('\n') || 'None'}
+
+${templateKnowledge?.frameworks ? `Frameworks that should be used:\n${templateKnowledge.frameworks.map((f: string) => `- ${f}`).join('\n')}\n` : ''}
+${templateKnowledge?.expertQuestions ? `Expert questions:\n${templateKnowledge.expertQuestions.map((q: string) => `- ${q}`).join('\n')}\n` : ''}
+${(templateKnowledge as any)?.qualityIndicators ? `Quality indicators:\n${(templateKnowledge as any).qualityIndicators.map((i: string) => `- ${i}`).join('\n')}\n` : ''}
+
+=== VALIDATION TASK ===
+1. Check word count (${template.wordCountMin || 0}-${template.wordCountMax || 'unlimited'})
+2. Check if required elements are present (semantic check, not keyword matching)
+3. Check if appropriate frameworks are used (if applicable)
+4. Check professional quality
+5. Check if best practices are followed
+6. Check for common mistakes
+7. Assess overall quality
+
+=== OUTPUT FORMAT (JSON) ===
+{
+  "wordCount": {
+    "actual": 152,
+    "required": "150-300",
+    "status": "pass"
+  },
+  "requiredElements": {
+    "problem": {
+      "present": true,
+      "quality": "good",
+      "notes": "Clearly defined with specific example"
+    },
+    "solution": {
+      "present": true,
+      "quality": "weak",
+      "notes": "Mentioned but not detailed enough"
+    }
+  },
+  "frameworks": {
+    "Porter Five Forces": {
+      "used": false,
+      "notes": "Should be used for market analysis section"
+    }
+  },
+  "professionalQuality": {
+    "score": 7,
+    "notes": "Good structure but could be more compelling"
+  },
+  "bestPractices": {
+    "follows": ["Clear structure", "Specific examples"],
+    "missing": ["Quantified impact", "Compelling hook"]
+  },
+  "commonMistakes": {
+    "found": ["Vague target market definition"],
+    "avoided": ["Overestimating market size"]
+  },
+  "issues": [
+    "Missing impact quantification",
+    "Solution needs more detail"
+  ],
+  "recommendations": [
+    "Add quantified impact (e.g., 'will reach 10,000 users')",
+    "Expand solution description"
+  ]
+}
+`;
+
+    try {
+      setValidatingSection(section.key);
+      
+      // Call AI for semantic validation
+      const response = await fetch('/api/ai/openai', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          message: validationPrompt,
+          context: {
+            sectionId: template.id,
+            sectionTitle: template.title,
+            action: 'validate'
+          },
+          conversationHistory: []
+        })
+      });
+
+      if (response.ok) {
+        const aiResponse = await response.json();
+        const validation = JSON.parse(aiResponse.content || '{}');
+        
+        // Store semantic validation result
+        setSemanticValidation(prev => ({
+          ...prev,
+          [section.key]: validation
+        }));
+
+        // Convert to issues format
+        const issues: string[] = [];
+        if (validation.wordCount?.status === 'fail') {
+          issues.push(`Content ${validation.wordCount.actual < (template.wordCountMin || 0) ? 'too short' : 'too long'} (${validation.wordCount.actual}/${validation.wordCount.required} words)`);
+        }
+        
+        // Add issues from semantic analysis
+        if (validation.issues) {
+          issues.push(...validation.issues);
+        }
+
+        // Check required elements
+        if (validation.requiredElements) {
+          Object.entries(validation.requiredElements).forEach(([key, elem]: [string, any]) => {
+            if (!elem.present) {
+              issues.push(`Missing: ${key.replace(/_/g, ' ')}`);
+            } else if (elem.quality === 'weak') {
+              issues.push(`${key.replace(/_/g, ' ')}: ${elem.notes}`);
+            }
+          });
+        }
+
+        // Check frameworks
+        if (validation.frameworks) {
+          Object.entries(validation.frameworks).forEach(([framework, info]: [string, any]) => {
+            if (!info.used && info.notes) {
+              issues.push(`Framework: ${framework} - ${info.notes}`);
+            }
+          });
+        }
+
+        // Determine status
+        let status: 'complete' | 'in-progress' | 'missing' | 'needs-enhancement';
+        if (issues.length === 0) {
+          status = 'complete';
+        } else {
+          const hasFormatIssues = issues.some(i => 
+            i.includes('tables') || i.includes('matrix') || i.includes('chart') || 
+            i.includes('graph') || i.includes('timeline')
+          );
+          status = hasFormatIssues ? 'needs-enhancement' : 'in-progress';
+        }
+
+        // Calculate progress
+        const totalChecks = 1 + 
+          (template.validationRules?.requiredFields?.length || 0) +
+          (template.validationRules?.formatRequirements?.length || 0) +
+          (templateKnowledge?.requiredElements?.length || 0);
+        const passedChecks = totalChecks - issues.length;
+        const progress = totalChecks > 0 
+          ? Math.round((passedChecks / totalChecks) * 100) 
+          : (textContent.length > 0 ? 50 : 0);
+
+        return {
+          status,
+          issues,
+          progress,
+          semanticAnalysis: validation
+        };
+      }
+    } catch (error) {
+      console.error('Semantic validation failed:', error);
+      // Fall back to basic validation
+    } finally {
+      setValidatingSection(null);
+    }
+
+    // Fallback to basic validation if AI fails
+    return validateSectionBasic(section, template);
+  };
+
+  /**
+   * Basic validation (fallback when AI is unavailable)
+   */
+  const validateSectionBasic = (section: PlanSection, template: SectionTemplate) => {
     const issues: string[] = [];
 
     // 1. Check content (word count)
@@ -157,8 +408,43 @@ export default function RequirementsModal({
       ? Math.round((passedChecks / totalChecks) * 100) 
       : (wordCount > 0 ? 50 : 0);
 
-    return { status, issues, progress };
+    return { status, issues, progress, semanticAnalysis: null };
   };
+
+  // Main validation function - uses semantic validation when possible
+  const validateSection = async (section: PlanSection, template: SectionTemplate) => {
+    // Try semantic validation first (if content exists)
+    const content = section?.content || '';
+    const textContent = content.replace(/<[^>]*>/g, '').trim();
+    
+    if (textContent.length > 50) {
+      // Use semantic validation for content with sufficient length
+      return await validateSectionSemantically(section, template);
+    } else {
+      // Use basic validation for empty or very short content
+      return validateSectionBasic(section, template);
+    }
+  };
+
+  // Load semantic validations on mount and when sections change
+  useEffect(() => {
+    const loadValidations = async () => {
+      const validations: Record<string, any> = {};
+      for (const section of sections) {
+        const template = sectionTemplates.find(t => t.id === section.key);
+        if (template) {
+          const validation = await validateSection(section, template);
+          validations[section.key] = validation;
+        }
+      }
+      setSectionValidations(validations);
+    };
+    
+    if (isOpen && sections.length > 0) {
+      loadValidations();
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [isOpen, sections, sectionTemplates]);
 
   // Get status icon and color
   const getStatusDisplay = (status: string) => {
@@ -184,9 +470,8 @@ export default function RequirementsModal({
     let completedSections = 0;
 
     sections.forEach(section => {
-      const template = sectionTemplates.find(t => t.id === section.key);
-      if (template) {
-        const validation = validateSection(section, template);
+      const validation = sectionValidations[section.key];
+      if (validation) {
         totalProgress += validation.progress;
         if (validation.status === 'complete') {
           completedSections++;
@@ -254,8 +539,10 @@ export default function RequirementsModal({
               const template = sectionTemplates.find(t => t.id === section.key);
               if (!template) return null;
 
-              const validation = validateSection(section, template);
+              // Get validation from state (loaded in useEffect)
+              const validation = sectionValidations[section.key] || validateSectionBasic(section, template);
               const statusDisplay = getStatusDisplay(validation.status);
+              const isValidating = validatingSection === section.key;
               
               return (
                 <div
@@ -312,12 +599,51 @@ export default function RequirementsModal({
                         </div>
                       </div>
 
+                      {/* Validating Indicator */}
+                      {isValidating && (
+                        <div className="mb-2 text-xs text-blue-600 italic">
+                          🔍 Analyzing content semantically...
+                        </div>
+                      )}
+
+                      {/* Semantic Analysis Results */}
+                      {validation.semanticAnalysis && !isValidating && (
+                        <div className="mb-2 p-2 bg-blue-50 rounded border border-blue-200">
+                          <div className="text-xs font-semibold text-blue-700 mb-1">
+                            📊 Semantic Analysis:
+                          </div>
+                          {validation.semanticAnalysis.professionalQuality && (
+                            <div className="text-xs text-blue-600 mb-1">
+                              Quality Score: {validation.semanticAnalysis.professionalQuality.score}/10
+                              {validation.semanticAnalysis.professionalQuality.notes && (
+                                <span className="text-gray-600 ml-1">
+                                  - {validation.semanticAnalysis.professionalQuality.notes}
+                                </span>
+                              )}
+                            </div>
+                          )}
+                          {validation.semanticAnalysis.recommendations && validation.semanticAnalysis.recommendations.length > 0 && (
+                            <div className="text-xs text-blue-700 mt-1">
+                              <div className="font-medium mb-1">Recommendations:</div>
+                              <ul className="space-y-1">
+                                {validation.semanticAnalysis.recommendations.slice(0, 3).map((rec: string, idx: number) => (
+                                  <li key={idx} className="flex items-start gap-1">
+                                    <span>•</span>
+                                    <span>{rec}</span>
+                                  </li>
+                                ))}
+                              </ul>
+                            </div>
+                          )}
+                        </div>
+                      )}
+
                       {/* Missing Items */}
                       {validation.issues.length > 0 && (
                         <div className="mb-2">
                           <div className="text-xs font-medium text-red-700 mb-1">Missing:</div>
                           <ul className="text-xs text-red-600 space-y-1">
-                            {validation.issues.map((issue, idx) => (
+                            {validation.issues.map((issue: string, idx: number) => (
                               <li key={idx} className="flex items-start gap-1">
                                 <span>•</span>
                                 <span>{issue}</span>
@@ -331,6 +657,48 @@ export default function RequirementsModal({
                       {template.category && (
                         <div className="text-xs text-gray-500 mt-2">
                           Category: <span className="font-medium">{template.category}</span>
+                        </div>
+                      )}
+
+                      {/* Program-Specific Requirements */}
+                      {programData?.categorized_requirements && template.category && (
+                        <div className="mt-3 pt-3 border-t border-gray-200">
+                          <div className="text-xs font-semibold text-blue-700 mb-2">
+                            🎯 Program-Specific Requirements
+                            {programData.program_name && (
+                              <span className="text-gray-600 font-normal ml-1">
+                                ({programData.program_name})
+                              </span>
+                            )}
+                          </div>
+                          {(() => {
+                            const programReqs = getProgramRequirementsForSection(
+                              programData.categorized_requirements,
+                              template.category
+                            );
+                            if (programReqs.length === 0) {
+                              return (
+                                <div className="text-xs text-gray-500 italic">
+                                  No program-specific requirements for this section
+                                </div>
+                              );
+                            }
+                            return (
+                              <ul className="text-xs text-blue-700 space-y-1">
+                                {programReqs.slice(0, 3).map((req, idx) => (
+                                  <li key={idx} className="flex items-start gap-1">
+                                    <span>•</span>
+                                    <span>{req}</span>
+                                  </li>
+                                ))}
+                                {programReqs.length > 3 && (
+                                  <li className="text-gray-500 italic">
+                                    +{programReqs.length - 3} more requirement(s)
+                                  </li>
+                                )}
+                              </ul>
+                            );
+                          })()}
                         </div>
                       )}
                     </div>

@@ -2,9 +2,11 @@
  * AI Helper for editor - Enhanced with Phase 3 Features
  * Provides section-scoped prompts, bound to 200 words, cites program hints
  * Integrates with Dynamic Decision Trees and Program-Specific Templates
+ * NOW: Unified Business Expert System with Template Knowledge
  */
 
 import type { ConversationMessage } from '@/shared/types/plan';
+import { getTemplateKnowledge } from '@/features/editor/templates';
 
 // ProgramTemplate and TemplateSection types removed - using Enhanced Data Pipeline instead
 
@@ -183,7 +185,8 @@ This is a placeholder response. The AI service will be available shortly.`,
   }
 
   /**
-   * Build section prompt with structured requirements
+   * Build section prompt with structured requirements AND template knowledge
+   * NOW: Deep Business Expert with Template Knowledge Integration
    */
   private buildSectionPromptWithStructured(
     section: string, 
@@ -196,6 +199,9 @@ This is a placeholder response. The AI service will be available shortly.`,
       req.section_name.toLowerCase().includes(section.toLowerCase())
     );
 
+    // Get template knowledge for this section (from German template)
+    const templateKnowledge = getTemplateKnowledge(section);
+
     let structuredGuidance = '';
     if (sectionRequirement) {
       structuredGuidance = `
@@ -207,26 +213,101 @@ Structured Requirements for ${section}:
 - Template: ${sectionRequirement.template || 'No template provided'}
 `;
     }
+
+    // Build template knowledge section
+    let templateKnowledgeSection = '';
+    if (templateKnowledge) {
+      templateKnowledgeSection = `
+=== TEMPLATE GUIDANCE (Austrian Business Plan Template) ===
+${templateKnowledge.guidance}
+
+Required Elements:
+${templateKnowledge.requiredElements.map(e => `- ${e}`).join('\n')}
+
+${templateKnowledge.frameworks ? `Frameworks to Use:\n${templateKnowledge.frameworks.map(f => `- ${f}`).join('\n')}\n` : ''}
+${templateKnowledge.bestPractices ? `Best Practices:\n${templateKnowledge.bestPractices.map(p => `- ${p}`).join('\n')}\n` : ''}
+${templateKnowledge.commonMistakes ? `Common Mistakes to Avoid:\n${templateKnowledge.commonMistakes.map(m => `- ${m}`).join('\n')}\n` : ''}
+${templateKnowledge.expertQuestions ? `Expert Questions to Consider:\n${templateKnowledge.expertQuestions.map(q => `- ${q}`).join('\n')}\n` : ''}
+`;
+    }
     
     return `
-You are an AI writing assistant helping to create a ${program.type} application for ${program.name}.
+You are a senior business consultant with 20+ years of experience in:
+- Business plan writing (especially Austrian/German business plans)
+- Market analysis (Porter Five Forces, TAM/SAM/SOM, SWOT, competitive analysis)
+- Financial planning (projections, budgeting, funding strategies)
+- Grant applications (Horizon Europe, FFG, AWS, etc.)
+- Startup consulting (business models, go-to-market, scaling)
 
-Section: ${section}
-Context: ${context}
+You have BROAD BUSINESS EXPERTISE from:
+1. Your extensive training and experience (general business knowledge)
+2. Industry best practices (market analysis, financial planning, etc.)
+3. Common mistakes and how to avoid them
+4. Business frameworks (Porter, SWOT, SMART, TAM/SAM/SOM, etc.)
+5. Grant writing standards and reviewer expectations
+
+You ALSO have access to template guidance (Austrian business plan template) which provides:
+- Section-specific guidance
+- Recommended frameworks
+- Best practices for this template
+- Common mistakes to avoid
+
+BUT you use your GENERAL EXPERTISE FIRST, then enhance with template guidance.
+
+=== CURRENT CONTENT ===
+${context || '(No content yet)'}
+
+=== SECTION: ${section} ===
 ${structuredGuidance}
 
-Program-specific guidance:
+${templateKnowledgeSection}
+
+=== PROGRAM-SPECIFIC REQUIREMENTS ===
+Program: ${program.name} (${program.type})
 ${this.programHints[program.type]?.reviewer_tips?.map((tip: string) => `- ${tip}`).join('\n') || 'No specific guidance'}
 
-User answers:
-${Object.entries(this.config.userAnswers).map(([key, value]) => `- ${key}: ${value}`).join('\n')}
+=== USER'S ANSWERS TO PROMPTS ===
+${Object.entries(this.config.userAnswers).length > 0 
+  ? Object.entries(this.config.userAnswers).map(([key, value]) => `- ${key}: ${value}`).join('\n')
+  : 'No user answers provided yet'}
 
-Requirements:
+=== YOUR TASK ===
+1. ANALYZE the current content as a business expert:
+   - What's good?
+   - What's missing?
+   - What's weak?
+   - What needs improvement?
+   - Does it follow best practices?
+   - Are there common mistakes?
+
+2. PROVIDE CONSULTING ADVICE:
+   - Specific recommendations
+   - Why these recommendations matter
+   - How to improve
+
+3. GENERATE improved content that:
+   - Follows template guidance (${templateKnowledge ? 'see above' : 'general best practices'})
+   - Uses appropriate frameworks${templateKnowledge?.frameworks ? ` (${templateKnowledge.frameworks.join(', ')})` : ''}
+   - Meets program requirements
+   - Follows best practices
+   - Avoids common mistakes
+   - Is professionally written
+   - Is realistic and compelling
+
+4. EXPLAIN your recommendations:
+   - Why you made these changes
+   - What frameworks you used
+   - How it follows best practices
+
+=== OUTPUT REQUIREMENTS ===
 - Maximum ${this.config.maxWords} words
 - Use ${this.config.language || 'en'} language
 - Follow ${this.config.tone || 'neutral'} tone
+- Be specific and actionable
+- Include relevant examples
+- Address the reviewer's perspective
 
-Generate helpful content for this section.
+Generate helpful, expert-level content for this section.
 `;
   }
 

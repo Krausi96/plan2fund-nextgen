@@ -4,8 +4,8 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { useRouter } from 'next/router';
 import { PlanDocument, PlanSection, ConversationMessage } from '@/shared/types/plan';
-import { SectionTemplate } from '@/shared/templates/types';
-import { getSections } from '@/shared/templates';
+import { SectionTemplate } from '@/features/editor/templates/types';
+import { getSections } from '@/features/editor/templates';
 import { createAIHelper } from '@/features/editor/engine/aiHelper';
 import { savePlanSections, loadUserAnswers, savePlanConversations, loadPlanConversations } from '@/shared/user/storage/planStore';
 import { calculateSectionProgress } from '@/features/editor/hooks/useSectionProgress';
@@ -29,6 +29,10 @@ export default function Editor({ programId, product = 'submission', route = 'gra
   const [activeSection, setActiveSection] = useState(0);
   const [isLoading, setIsLoading] = useState(true);
   const [isSaving, setIsSaving] = useState(false);
+  const [programData, setProgramData] = useState<{
+    categorized_requirements?: any;
+    program_name?: string;
+  } | null>(null);
 
   // Load sections when programId changes
   useEffect(() => {
@@ -104,6 +108,23 @@ export default function Editor({ programId, product = 'submission', route = 'gra
 
       setPlan(newPlan);
       setSections(planSections);
+
+      // Load program data for requirements modal
+      if (programId && typeof window !== 'undefined') {
+        try {
+          const response = await fetch(`/api/programmes/${programId}/requirements`);
+          if (response.ok) {
+            const data = await response.json();
+            setProgramData({
+              categorized_requirements: data.categorized_requirements,
+              program_name: data.program_name || programId
+            });
+          }
+        } catch (error) {
+          console.warn('Failed to load program data:', error);
+          // Continue without program data
+        }
+      }
     } catch (error) {
       console.error('Error loading sections:', error);
     } finally {
@@ -147,8 +168,10 @@ export default function Editor({ programId, product = 'submission', route = 'gra
   if (!programId) {
     return (
       <ProgramSelector
-        onProgramSelect={(id, prod, rte) => {
-          router.push(`/editor?programId=${id}&product=${prod}&route=${rte}`);
+        product={product}
+        route={route}
+        onSelectionChange={(prod: string, rte: string, prog?: string) => {
+          router.push(`/editor?programId=${prog || ''}&product=${prod}&route=${rte}`);
         }}
       />
     );
@@ -186,22 +209,9 @@ export default function Editor({ programId, product = 'submission', route = 'gra
   const [showAIModal, setShowAIModal] = useState(false);
   const [showRequirementsModal, setShowRequirementsModal] = useState(false);
   const [showSettingsModal, setShowSettingsModal] = useState(false);
-  const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
 
   const currentSection = sections[activeSection];
   const sectionTemplate = sectionTemplates.find(t => t.id === currentSection?.key);
-  const questions = sectionTemplate?.prompts || [];
-  
-  // Reset question index when section changes
-  useEffect(() => {
-    setCurrentQuestionIndex(0);
-  }, [activeSection]);
-
-  // Get current question answer
-  const getCurrentAnswer = () => {
-    if (!currentSection?.fields?.answers) return '';
-    return currentSection.fields.answers[currentQuestionIndex] || '';
-  };
 
   // Handle AI generation
   const handleAIGenerate = useCallback(async () => {
@@ -210,8 +220,6 @@ export default function Editor({ programId, product = 'submission', route = 'gra
 
     try {
       const userAnswers = typeof window !== 'undefined' ? loadUserAnswers() : {};
-      const currentTemplate = sectionTemplates.find(t => t.id === currentSection.key);
-      const currentQuestions = currentTemplate?.prompts || [];
       
       // Load conversation history for this section
       const conversations = loadPlanConversations();
@@ -246,233 +254,133 @@ export default function Editor({ programId, product = 'submission', route = 'gra
       const templateSections = await getSections(fundingType, product, programId, baseUrl);
       const sectionTemplate = templateSections.find((s: SectionTemplate) => s.id === currentSection.key);
       
-      // If we're in question mode, generate answer for current question
-      if (currentQuestions.length > 0 && currentQuestionIndex < currentQuestions.length) {
-        const currentQuestion = currentQuestions[currentQuestionIndex];
-        
-        // Build context: current question + previous answers + other sections
-        const previousAnswers = Object.entries(currentSection.fields?.answers || {})
-          .filter(([idx]) => Number(idx) < currentQuestionIndex)
-          .map(([_, answer]) => answer)
-          .filter(Boolean);
-        
-        // Add cross-section awareness: include snippets from other sections
-        const otherSections = sections
-          .filter(s => s.key !== currentSection.key && s.content)
-          .map(s => `${s.title}: ${s.content.substring(0, 200)}...`)
-          .join('\n\n');
-        
-        const context = `Question: ${currentQuestion}\n\n${
-          previousAnswers.length > 0 
-            ? `Previous answers:\n${previousAnswers.join('\n\n')}\n\n`
-            : ''
-        }${
-          otherSections 
-            ? `Other sections:\n${otherSections}\n\n`
-            : ''
-        }${sectionTemplate?.description || ''}`;
-        
-        // Create user message for conversation history
-        const userMessage: ConversationMessage = {
-          id: `msg_${Date.now()}`,
-          role: 'user',
-          content: `Generate answer for: ${currentQuestion}`,
-          timestamp: new Date().toISOString()
-        };
-        
-        const updatedHistory = [...conversationHistory, userMessage];
-        
-        const response = await aiHelper.generateSectionContent(
-          currentQuestion,
-          context,
-          programForAI,
-          updatedHistory // Pass conversation history
-        );
+      // Generate for whole section (always, no question mode)
+      // Add cross-section awareness
+      const otherSections = sections
+        .filter(s => s.key !== currentSection.key && s.content)
+        .map(s => `${s.title}: ${s.content.substring(0, 200)}...`)
+        .join('\n\n');
+      
+      const context = `${sectionTemplate?.prompts?.join('\n') || sectionTemplate?.description || ''}${
+        otherSections ? `\n\nOther sections:\n${otherSections}` : ''
+      }`;
+      
+      // Create user message for conversation history
+      const userMessage: ConversationMessage = {
+        id: `msg_${Date.now()}`,
+        role: 'user',
+        content: `Generate content for section: ${currentSection.title}`,
+        timestamp: new Date().toISOString()
+      };
+      
+      const updatedHistory = [...conversationHistory, userMessage];
+      
+      const response = await aiHelper.generateSectionContent(
+        currentSection.title,
+        context,
+        programForAI,
+        updatedHistory // Pass conversation history
+      );
 
-        if (response.content) {
-          // Save assistant response to conversation history
-          const assistantMessage: ConversationMessage = {
-            id: `msg_${Date.now() + 1}`,
-            role: 'assistant',
-            content: response.content,
-            timestamp: new Date().toISOString()
-          };
-          const finalHistory = [...updatedHistory, assistantMessage];
-          savePlanConversations(currentSection.key, finalHistory);
-          
-          // Update only current question answer - call handleAnswerChange directly
-          const updatedFields = {
-            ...currentSection.fields,
-            answers: {
-              ...(currentSection.fields?.answers || {}),
-              [currentQuestionIndex]: response.content
-            }
-          };
-          const allAnswers = Object.values(updatedFields.answers || {}).filter(Boolean);
-          const combinedContent = allAnswers.join('\n\n');
-          const updatedSections = sections.map(section =>
-            section.key === currentSection.key 
-              ? { ...section, fields: updatedFields, content: combinedContent }
-              : section
-          );
-          setSections(updatedSections);
-          if (plan) {
-            const updatedPlan = { ...plan, sections: updatedSections };
-            setPlan(updatedPlan);
-            setIsSaving(true);
-            setTimeout(async () => {
-              try {
-                await savePlanSections(updatedSections.map(s => ({
-                  id: s.key,
-                  title: s.title,
-                  content: s.content || '',
-                  tables: s.tables,
-                  figures: s.figures,
-                  sources: s.sources,
-                  fields: s.fields
-                })));
-              } catch (error) {
-                console.error('Error saving:', error);
-              } finally {
-                setIsSaving(false);
-              }
-            }, 400);
-          }
-        }
-      } else {
-        // No questions or not in question mode - generate for whole section
-        // Add cross-section awareness
-        const otherSections = sections
-          .filter(s => s.key !== currentSection.key && s.content)
-          .map(s => `${s.title}: ${s.content.substring(0, 200)}...`)
-          .join('\n\n');
-        
-        const context = `${sectionTemplate?.prompts?.join('\n') || sectionTemplate?.description || ''}${
-          otherSections ? `\n\nOther sections:\n${otherSections}` : ''
-        }`;
-        
-        // Create user message for conversation history
-        const userMessage: ConversationMessage = {
-          id: `msg_${Date.now()}`,
-          role: 'user',
-          content: `Generate content for section: ${currentSection.title}`,
+      if (response.content) {
+        // Save assistant response to conversation history
+        const assistantMessage: ConversationMessage = {
+          id: `msg_${Date.now() + 1}`,
+          role: 'assistant',
+          content: response.content,
           timestamp: new Date().toISOString()
         };
+        const finalHistory = [...updatedHistory, assistantMessage];
+        savePlanConversations(currentSection.key, finalHistory);
         
-        const updatedHistory = [...conversationHistory, userMessage];
-        
-        const response = await aiHelper.generateSectionContent(
-          currentSection.title,
-          context,
-          programForAI,
-          updatedHistory // Pass conversation history
-        );
-        
-        if (response.content) {
-          // Save assistant response to conversation history
-          const assistantMessage: ConversationMessage = {
-            id: `msg_${Date.now() + 1}`,
-            role: 'assistant',
-            content: response.content,
-            timestamp: new Date().toISOString()
-          };
-          const finalHistory = [...updatedHistory, assistantMessage];
-          savePlanConversations(currentSection.key, finalHistory);
-          
-          handleSectionChange(currentSection.key, response.content);
-        }
+        handleSectionChange(currentSection.key, response.content);
       }
     } catch (error) {
       console.error('Error generating content:', error);
     }
-  }, [sections, activeSection, plan, programId, route, product, sectionTemplates, currentQuestionIndex, handleSectionChange]);
+  }, [sections, activeSection, plan, programId, route, product, sectionTemplates, handleSectionChange]);
 
-  // Update answer for current question
-  const handleAnswerChange = (answer: string) => {
-    if (!currentSection) return;
-    
-    const updatedFields = {
-      ...currentSection.fields,
-      answers: {
-        ...(currentSection.fields?.answers || {}),
-        [currentQuestionIndex]: answer
+  // Calculate overall progress
+  const overallProgress = React.useMemo(() => {
+    if (sections.length === 0) return { percentage: 0, completed: 0, total: 0 };
+    let totalProgress = 0;
+    let completedSections = 0;
+    sections.forEach(section => {
+      const progress = calculateSectionProgress(section);
+      totalProgress += progress.completionPercentage;
+      if (progress.completionPercentage === 100) {
+        completedSections++;
       }
+    });
+    return {
+      percentage: Math.round(totalProgress / sections.length),
+      completed: completedSections,
+      total: sections.length
     };
+  }, [sections]);
 
-    // Also update content (combined answers)
-    const allAnswers = Object.values(updatedFields.answers || {}).filter(Boolean);
-    const combinedContent = allAnswers.join('\n\n');
-
-    const updatedSections = sections.map(section =>
-      section.key === currentSection.key 
-        ? { 
-            ...section, 
-            fields: updatedFields,
-            content: combinedContent
-          } 
-        : section
-    );
-    
-    setSections(updatedSections);
-    
-    if (plan) {
-      const updatedPlan = { ...plan, sections: updatedSections };
-      setPlan(updatedPlan);
-      
-      // Auto-save
-      setIsSaving(true);
-      setTimeout(async () => {
-        try {
-          await savePlanSections(updatedSections.map(s => ({
-            id: s.key,
-            title: s.title,
-            content: s.content || '',
-            tables: s.tables,
-            figures: s.figures,
-            sources: s.sources,
-            fields: s.fields
-          })));
-        } catch (error) {
-          console.error('Error saving:', error);
-        } finally {
-          setIsSaving(false);
-        }
-      }, 400);
-    }
-  };
+  const [showSmartHints, setShowSmartHints] = useState(false);
 
   return (
     <div className="flex flex-col h-screen bg-gray-50">
-      {/* Main Editor - Single Column */}
-      <div className="flex-1 flex flex-col overflow-hidden">
-        {/* Header */}
-        <div className="bg-white border-b border-gray-200 px-6 py-3 flex items-center justify-between">
-          <div>
-            <h1 className="text-lg font-semibold text-gray-900">Business Plan</h1>
+      {/* ========= HEADER ========= */}
+      <header className="sticky top-0 z-50 bg-gradient-to-r from-blue-600 to-purple-600 shadow-lg">
+        <div className="max-w-7xl mx-auto px-4 py-3">
+          <div className="flex items-center justify-between mb-3">
+            <h1 className="text-white text-xl font-bold">Business Plan Editor</h1>
+            <div className="flex items-center gap-2">
+              {isSaving && (
+                <span className="text-xs text-white/80">Saving...</span>
+              )}
+              <button
+                onClick={() => setShowRequirementsModal(true)}
+                className="px-3 py-1.5 text-sm font-medium text-white bg-white/20 hover:bg-white/30 rounded-lg transition-colors backdrop-blur-sm"
+                title="Requirements"
+              >
+                📋 Requirements
+              </button>
+              <button
+                onClick={() => setShowAIModal(true)}
+                className="px-3 py-1.5 text-sm font-medium text-white bg-white/20 hover:bg-white/30 rounded-lg transition-colors backdrop-blur-sm"
+                title="AI Assistant"
+              >
+                💬 AI Assistant
+              </button>
+              <button
+                onClick={() => router.push('/preview')}
+                className="px-3 py-1.5 text-sm font-medium text-white bg-white/20 hover:bg-white/30 rounded-lg transition-colors backdrop-blur-sm"
+                title="Preview"
+              >
+                👁️ Preview
+              </button>
+            </div>
           </div>
-          <div className="flex items-center gap-2">
-            {isSaving && (
-              <span className="text-xs text-gray-500">Saving...</span>
-            )}
-            <button
-              onClick={() => setShowSettingsModal(true)}
-              className="p-2 text-gray-600 hover:bg-gray-100 rounded-lg transition-colors"
-              title="Settings"
-            >
-              ⚙️
-            </button>
-            <button
-              onClick={() => router.push('/preview')}
-              className="px-3 py-1.5 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50"
-            >
-              👁️ Preview
-            </button>
+          {/* Program Selector */}
+          <div className="bg-white/95 backdrop-blur-sm rounded-lg p-3 shadow-sm">
+            <ProgramSelector
+              product={product}
+              route={route}
+              programId={programId || undefined}
+              onSelectionChange={(prod, rte, prog) => {
+                router.push(`/editor?programId=${prog || ''}&product=${prod}&route=${rte}`);
+              }}
+            />
           </div>
         </div>
+      </header>
 
-        {/* Section Navigation - Horizontal Tabs */}
-        <div className="bg-white border-b border-gray-200 px-6 py-2 overflow-x-auto">
-          <div className="flex gap-2 min-w-max">
+      {/* ========= SECTION NAVIGATION ========= */}
+      <nav className="sticky top-[140px] z-40 bg-white border-b border-gray-200 shadow-sm">
+        <div className="max-w-7xl mx-auto px-4 py-2">
+          <div className="flex items-center gap-2 overflow-x-auto pb-2">
+            <button
+              onClick={() => setActiveSection(Math.max(0, activeSection - 1))}
+              disabled={activeSection === 0}
+              className="px-2 py-1 text-gray-600 hover:bg-gray-100 rounded disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+              title="Previous Section"
+            >
+              ←
+            </button>
             {sections.map((section, index) => {
               const progress = calculateSectionProgress(section);
               const status = progress.completionPercentage === 100 ? '✓' : 
@@ -483,9 +391,9 @@ export default function Editor({ programId, product = 'submission', route = 'gra
                 <button
                   key={section.key}
                   onClick={() => setActiveSection(index)}
-                  className={`px-4 py-2 text-sm font-medium rounded-lg transition-colors whitespace-nowrap ${
+                  className={`px-3 py-1.5 text-sm font-medium rounded-lg transition-colors whitespace-nowrap ${
                     isActive
-                      ? 'bg-blue-600 text-white'
+                      ? 'bg-blue-600 text-white shadow-md'
                       : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
                   }`}
                 >
@@ -495,150 +403,184 @@ export default function Editor({ programId, product = 'submission', route = 'gra
                 </button>
               );
             })}
+            <button
+              onClick={() => setActiveSection(Math.min(sections.length - 1, activeSection + 1))}
+              disabled={activeSection === sections.length - 1}
+              className="px-2 py-1 text-gray-600 hover:bg-gray-100 rounded disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+              title="Next Section"
+            >
+              →
+            </button>
+          </div>
+          {/* Progress Bar */}
+          <div className="mt-2">
+            <div className="flex items-center justify-between text-xs text-gray-600 mb-1">
+              <span>Overall Progress</span>
+              <span>{overallProgress.percentage}% Complete ({overallProgress.completed} of {overallProgress.total} sections)</span>
+            </div>
+            <div className="w-full bg-gray-200 rounded-full h-2">
+              <div
+                className="bg-gradient-to-r from-blue-600 to-purple-600 h-2 rounded-full transition-all duration-300"
+                style={{ width: `${overallProgress.percentage}%` }}
+              />
+            </div>
           </div>
         </div>
+      </nav>
 
-        {/* Editor Content */}
-        <div className="flex-1 overflow-y-auto p-6 bg-white">
-          {currentSection && (
-            <div className="max-w-4xl mx-auto">
-              {/* Question Navigation - One Question at a Time */}
-              {questions.length > 0 ? (
-                <>
-                  {/* Current Question */}
-                  <div className="mb-6">
-                    <div className="flex items-center justify-between mb-4">
-                      <div className="flex items-center gap-3">
-                        <span className="text-sm font-medium text-gray-500">
-                          Question {currentQuestionIndex + 1} of {questions.length}
-                        </span>
-                        <div className="flex gap-1">
-                          {questions.map((_, idx) => (
-                            <div
-                              key={idx}
-                              className={`w-2 h-2 rounded-full ${
-                                idx === currentQuestionIndex
-                                  ? 'bg-blue-600'
-                                  : (currentSection.fields?.answers?.[idx] ? 'bg-green-400' : 'bg-gray-300')
-                              }`}
-                            />
-                          ))}
-                        </div>
-                      </div>
-                      <button
-                        onClick={handleAIGenerate}
-                        className="px-3 py-1.5 text-xs font-medium bg-blue-600 text-white rounded hover:bg-blue-700 transition-colors"
-                      >
-                        ✨ Generate Answer
-                      </button>
-                    </div>
-
-                    {/* Question Text */}
-                    <div className="mb-4">
-                      <h3 className="text-lg font-medium text-gray-900 flex items-start gap-2">
-                        <span className="text-blue-500 mt-1">💡</span>
-                        <span>{questions[currentQuestionIndex]}</span>
-                      </h3>
-                    </div>
-
-                    {/* Google Docs-Style Editor */}
-                    <div className="mb-6">
-                      <SimpleTextEditor
-                        content={getCurrentAnswer()}
-                        onChange={handleAnswerChange}
-                        placeholder={`Answer this question...`}
-                      />
-                    </div>
-
-                    {/* Question Navigation */}
-                    <div className="flex items-center justify-between pt-4 border-t border-gray-200">
-                      <button
-                        onClick={() => setCurrentQuestionIndex(Math.max(0, currentQuestionIndex - 1))}
-                        disabled={currentQuestionIndex === 0}
-                        className="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
-                      >
-                        ← Previous Question
-                      </button>
-                      <button
-                        onClick={() => setCurrentQuestionIndex(Math.min(questions.length - 1, currentQuestionIndex + 1))}
-                        disabled={currentQuestionIndex === questions.length - 1}
-                        className="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
-                      >
-                        Next Question →
-                      </button>
-                    </div>
-                  </div>
-                </>
-              ) : (
-                /* No Questions - Show Regular Editor */
-                <div className="mb-6">
-                  <SimpleTextEditor
-                    content={currentSection.content || ''}
-                    onChange={(content) => handleSectionChange(currentSection.key, content)}
-                    placeholder={`Start writing your ${currentSection.title.toLowerCase()}...`}
-                  />
-                </div>
+      {/* ========= MAIN EDITOR AREA ========= */}
+      <main className="flex-1 overflow-y-auto bg-gray-50">
+        {currentSection && (
+          <div className="max-w-[1200px] mx-auto px-4 py-8">
+            {/* Section Header Card */}
+            <div className="bg-white border border-gray-200 rounded-lg shadow-sm p-6 mb-6">
+              <h2 className="text-2xl font-bold text-gray-900 mb-2">{currentSection.title}</h2>
+              {sectionTemplate?.description && (
+                <p className="text-gray-600">{sectionTemplate.description}</p>
               )}
+            </div>
 
-              {/* Smart Section Content Renderer - Tables & Charts */}
-              {currentSection.tables && (() => {
-                const currentTemplate = sectionTemplates.find(t => t.id === currentSection.key);
-                if (!currentTemplate) return null;
-                
-                return (
-                  <div className="mb-6">
-                    <SectionContentRenderer
-                      section={currentSection}
-                      template={currentTemplate}
-                      onTableChange={(tableKey, updatedTable) => {
-                        const updated = [...sections];
-                        const section = updated[activeSection];
-                        if (section.tables) {
-                          section.tables[tableKey] = updatedTable;
-                          setSections(updated);
-                          
-                          // Update plan
-                          if (plan) {
-                            const updatedPlan = { ...plan, sections: updated };
-                            setPlan(updatedPlan);
-                            
-                            // Auto-save
-                            setIsSaving(true);
-                            setTimeout(async () => {
-                              try {
-                                await savePlanSections(updated.map(s => ({
-                                  id: s.key,
-                                  title: s.title,
-                                  content: s.content || '',
-                                  tables: s.tables,
-                                  figures: s.figures,
-                                  sources: s.sources,
-                                  fields: s.fields
-                                })));
-                              } catch (error) {
-                                console.error('Error saving:', error);
-                              } finally {
-                                setIsSaving(false);
-                              }
-                            }, 400);
-                          }
-                        }
+            {/* Text Editor - Always show regular editor (no question-by-question mode) */}
+            <div className="mb-4">
+              <SimpleTextEditor
+                content={currentSection.content || ''}
+                onChange={(content) => handleSectionChange(currentSection.key, content)}
+                placeholder={`Start writing your ${currentSection.title.toLowerCase()}...`}
+              />
+            </div>
+
+            {/* Action Buttons */}
+            <div className="flex gap-2 mb-4">
+              <button
+                onClick={handleAIGenerate}
+                className="px-4 py-2 text-sm font-medium bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+              >
+                ✨ Generate with AI
+              </button>
+              {sectionTemplate?.prompts && sectionTemplate.prompts.length > 0 && (
+                <button
+                  onClick={() => setShowSmartHints(!showSmartHints)}
+                  className="px-4 py-2 text-sm font-medium bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 transition-colors"
+                >
+                  💡 Smart Hints
+                </button>
+              )}
+              <button
+                onClick={() => setActiveSection(Math.min(sections.length - 1, activeSection + 1))}
+                disabled={activeSection === sections.length - 1}
+                className="px-4 py-2 text-sm font-medium bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                ⏭️ Skip
+              </button>
+            </div>
+
+            {/* Smart Hints Panel */}
+            {sectionTemplate?.prompts && sectionTemplate.prompts.length > 0 && (
+              <SmartHintsPanel
+                template={sectionTemplate}
+                isOpen={showSmartHints}
+                onUseAsGuide={() => {
+                  // Could populate editor with prompts as guide
+                  setShowSmartHints(false);
+                }}
+              />
+            )}
+
+            {/* Tables & Charts Section */}
+            {(() => {
+              const currentTemplate = sectionTemplates.find(t => t.id === currentSection.key);
+              if (!currentTemplate) return null;
+              
+              const category = currentTemplate.category?.toLowerCase() || '';
+              const needsTables = category === 'financial' || category === 'risk' || category === 'project';
+              const optionalTables = category === 'market' || category === 'team';
+              const hasTables = currentSection.tables && Object.keys(currentSection.tables).length > 0;
+              
+              // Show section if: always needs tables OR has tables OR is optional and has content
+              const shouldShow = needsTables || hasTables || (optionalTables && currentSection.content);
+              
+              if (!shouldShow) return null;
+              
+              // Get helpful message based on category
+              const getHelpfulMessage = () => {
+                if (category === 'financial') {
+                  return "This section typically includes financial tables. Create tables to visualize your revenue, costs, and cash flow projections.";
+                } else if (category === 'risk') {
+                  return "This section typically includes a risk matrix. Create a matrix to visualize risk impact and probability.";
+                } else if (category === 'project') {
+                  return "This section typically includes milestone timelines. Create a timeline to visualize your project schedule.";
+                } else if (category === 'market') {
+                  return "You can optionally add competitor analysis tables. Tables help visualize market data.";
+                } else if (category === 'team') {
+                  return "You can optionally add hiring timeline tables. Tables help visualize team growth.";
+                }
+                return "Create tables to visualize your data.";
+              };
+              
+              return (
+                <div className="mb-6 bg-white border border-gray-200 rounded-lg shadow-sm p-6">
+                  <div className="flex items-center justify-between mb-4">
+                    <h3 className="text-lg font-semibold text-gray-900">📊 Tables & Charts</h3>
+                    {optionalTables && !needsTables && (
+                      <span className="text-xs text-gray-500">(Optional)</span>
+                    )}
+                  </div>
+                  
+                  {/* Helpful Message */}
+                  <div className="mb-4 p-3 bg-blue-50 border border-blue-200 rounded-lg">
+                    <p className="text-sm text-gray-700">
+                      💡 {getHelpfulMessage()}
+                    </p>
+                  </div>
+                  
+                  {/* Add Buttons */}
+                  <div className="flex gap-2 mb-4">
+                    <button
+                      onClick={() => {
+                        // TODO: Implement table creation dialog
+                        alert('Table creation dialog coming soon');
                       }}
-                      onChartTypeChange={(tableKey, chartType) => {
-                        const updated = [...sections];
-                        const section = updated[activeSection];
-                        if (!section.chartTypes) {
-                          section.chartTypes = {};
-                        }
-                        section.chartTypes[tableKey] = chartType;
+                      className="px-4 py-2 text-sm font-medium bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+                    >
+                      📊 Add Table
+                    </button>
+                    <button
+                      onClick={() => {
+                        // TODO: Implement chart creation
+                        alert('Chart creation coming soon');
+                      }}
+                      className="px-4 py-2 text-sm font-medium bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 transition-colors"
+                    >
+                      📈 Add Chart
+                    </button>
+                    <button
+                      onClick={() => {
+                        // TODO: Implement image upload
+                        alert('Image upload coming soon');
+                      }}
+                      className="px-4 py-2 text-sm font-medium bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 transition-colors"
+                    >
+                      📷 Add Image
+                    </button>
+                  </div>
+                  
+                  {/* Existing Tables */}
+                  {hasTables && (
+                    <div className="mt-4">
+                      <SectionContentRenderer
+                        section={currentSection}
+                        template={currentTemplate}
+                        onTableChange={(tableKey, updatedTable) => {
+                      const updated = [...sections];
+                      const section = updated[activeSection];
+                      if (section.tables) {
+                        section.tables[tableKey] = updatedTable;
                         setSections(updated);
                         
-                        // Update plan
                         if (plan) {
                           const updatedPlan = { ...plan, sections: updated };
                           setPlan(updatedPlan);
                           
-                          // Auto-save
                           setIsSaving(true);
                           setTimeout(async () => {
                             try {
@@ -648,7 +590,6 @@ export default function Editor({ programId, product = 'submission', route = 'gra
                                 content: s.content || '',
                                 tables: s.tables,
                                 figures: s.figures,
-                                chartTypes: s.chartTypes,
                                 sources: s.sources,
                                 fields: s.fields
                               })));
@@ -659,71 +600,62 @@ export default function Editor({ programId, product = 'submission', route = 'gra
                             }
                           }, 400);
                         }
+                      }
+                    }}
+                    onChartTypeChange={(tableKey, chartType) => {
+                      const updated = [...sections];
+                      const section = updated[activeSection];
+                      if (!section.chartTypes) {
+                        section.chartTypes = {};
+                      }
+                      section.chartTypes[tableKey] = chartType;
+                      setSections(updated);
+                      
+                      if (plan) {
+                        const updatedPlan = { ...plan, sections: updated };
+                        setPlan(updatedPlan);
+                        
+                        setIsSaving(true);
+                        setTimeout(async () => {
+                          try {
+                            await savePlanSections(updated.map(s => ({
+                              id: s.key,
+                              title: s.title,
+                              content: s.content || '',
+                              tables: s.tables,
+                              figures: s.figures,
+                              chartTypes: s.chartTypes,
+                              sources: s.sources,
+                              fields: s.fields
+                            })));
+                          } catch (error) {
+                            console.error('Error saving:', error);
+                          } finally {
+                            setIsSaving(false);
+                          }
+                        }, 400);
+                      }
+                    }}
+                      onImageInsert={(imageUrl, caption, description) => {
+                        // TODO: Handle image insert
+                        console.log('Image insert:', imageUrl, caption, description);
                       }}
                     />
-                  </div>
-                );
-              })()}
-
-              {/* Progress & Navigation */}
-              <div className="flex items-center justify-between pt-6 mt-6 border-t border-gray-200">
-                <div className="flex items-center gap-4">
-                  {(() => {
-                    const progress = calculateSectionProgress(currentSection);
-                    return (
-                      <div className="text-sm text-gray-600">
-                        <span className="font-medium">{progress.wordCount}</span> / {progress.wordCountMax} words
-                        <span className="ml-3 text-gray-500">• Progress: {progress.completionPercentage}%</span>
-                      </div>
-                    );
-                  })()}
+                    </div>
+                  )}
+                  
+                  {/* No Tables Message */}
+                  {!hasTables && (
+                    <div className="text-center py-8 text-gray-500 text-sm">
+                      (No tables created yet{optionalTables && !needsTables ? ' - optional' : ''})
+                    </div>
+                  )}
                 </div>
-                <div className="flex gap-2">
-                  <button
-                    onClick={() => setActiveSection(Math.max(0, activeSection - 1))}
-                    disabled={activeSection === 0}
-                    className="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
-                  >
-                    ← Previous
-                  </button>
-                  <button
-                    onClick={() => setActiveSection(Math.min(sections.length - 1, activeSection + 1))}
-                    disabled={activeSection === sections.length - 1}
-                    className="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
-                  >
-                    Next →
-                  </button>
-                </div>
-              </div>
-            </div>
-          )}
-        </div>
-      </div>
-
-      {/* Floating Action Button (FAB) */}
-      <div className="fixed bottom-6 right-6 flex flex-col gap-2">
-        <button
-          onClick={() => setShowAIModal(true)}
-          className="w-12 h-12 bg-blue-600 text-white rounded-full shadow-lg hover:bg-blue-700 transition-colors flex items-center justify-center text-xl"
-          title="AI Assistant"
-        >
-          💬
-        </button>
-        <button
-          onClick={() => setShowRequirementsModal(true)}
-          className="w-12 h-12 bg-green-600 text-white rounded-full shadow-lg hover:bg-green-700 transition-colors flex items-center justify-center text-xl"
-          title="Requirements"
-        >
-          ✓
-        </button>
-        <button
-          onClick={() => setShowSettingsModal(true)}
-          className="w-12 h-12 bg-gray-600 text-white rounded-full shadow-lg hover:bg-gray-700 transition-colors flex items-center justify-center text-xl"
-          title="Settings"
-        >
-          ⚙️
-        </button>
-      </div>
+              );
+            })()}
+          </div>
+        )}
+      </main>
 
       {/* AI Assistant Modal - Placeholder (can be enhanced later) */}
       {showAIModal && (
@@ -747,6 +679,8 @@ export default function Editor({ programId, product = 'submission', route = 'gra
         sections={sections}
         sectionTemplates={sectionTemplates}
         onNavigateToSection={(index) => setActiveSection(index)}
+        programId={programId}
+        programData={programData || undefined}
         onGenerateMissingContent={async (sectionKey) => {
           // Find the section index
           const sectionIndex = sections.findIndex(s => s.key === sectionKey);
@@ -817,6 +751,46 @@ export default function Editor({ programId, product = 'submission', route = 'gra
           </div>
         </div>
       )}
+    </div>
+  );
+}
+
+// ========= SMART HINTS PANEL COMPONENT =========
+function SmartHintsPanel({
+  template,
+  isOpen,
+  onUseAsGuide
+}: {
+  template: SectionTemplate;
+  isOpen: boolean;
+  onUseAsGuide: () => void;
+}) {
+  if (!template.prompts || template.prompts.length === 0) return null;
+
+  return (
+    <div className={`mt-4 transition-all duration-300 ${isOpen ? 'block' : 'hidden'}`}>
+      <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
+        <div className="flex items-center justify-between mb-3">
+          <h3 className="font-semibold text-gray-900 flex items-center gap-2">
+            <span>💡</span>
+            <span>Smart Hints</span>
+          </h3>
+          <button
+            onClick={onUseAsGuide}
+            className="text-sm text-blue-600 hover:text-blue-700 font-medium"
+          >
+            Use as Guide
+          </button>
+        </div>
+        <div className="space-y-2">
+          {template.prompts.map((prompt, idx) => (
+            <div key={idx} className="text-sm text-gray-700">
+              <span className="text-blue-500 mr-2">💡</span>
+              <span>{prompt}</span>
+            </div>
+          ))}
+        </div>
+      </div>
     </div>
   );
 }
