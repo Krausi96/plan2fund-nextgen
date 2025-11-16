@@ -826,7 +826,7 @@ export default function ProgramFinder({
                                     const showRegionInput = question.hasOptionalRegion && isSelected && question.hasOptionalRegion(option.value);
                                     const regionValue = showRegionInput ? (answers[`${question.id}_region`] || '') : '';
                                     const isOtherOption = option.value === 'other';
-                                    const otherTextValue = isOtherOption && isSelected ? (answers[`${question.id}_other`] || '') : '';
+                                    const otherTextValue = isOtherOption && answers[question.id] === 'other' ? (answers[`${question.id}_other`] || '') : '';
                                     
                                     // Force re-render key based on selection state
                                     const renderKey = `${question.id}-${option.value}-${isSelected ? 'selected' : 'unselected'}-${answers[question.id]}`;
@@ -905,19 +905,7 @@ export default function ProgramFinder({
                                         )}
                                         
                                         {/* Text input for "Other" option - Force render check */}
-                                        {(() => {
-                                          const shouldShow = isOtherOption && isSelected && question.hasOtherTextInput;
-                                          console.log('Other input check:', {
-                                            questionId: question.id,
-                                            optionValue: option.value,
-                                            isOtherOption,
-                                            isSelected,
-                                            value,
-                                            hasOtherTextInput: question.hasOtherTextInput,
-                                            shouldShow
-                                          });
-                                          return shouldShow;
-                                        })() && (
+                                        {isOtherOption && answers[question.id] === 'other' && question.hasOtherTextInput && (
                                           <div className="ml-4 space-y-1.5 border-l-2 border-blue-200 pl-3 pt-1 mt-2 animate-in fade-in duration-200">
                                             <label className="text-xs font-medium text-gray-600 mb-1 block">
                                               {t('reco.ui.pleaseSpecify') || 'Please specify:'}
@@ -1024,7 +1012,7 @@ export default function ProgramFinder({
                                     const subCategoryKey = `${question.id}_${option.value}`;
                                     const subCategoryValue = answers[subCategoryKey];
                                     const isOtherOption = option.value === 'other';
-                                    const otherTextValue = isOtherOption && isSelected ? (answers[`${question.id}_other`] || '') : '';
+                                    const otherTextValue = isOtherOption && isSelected && Array.isArray(value) && value.includes('other') ? (answers[`${question.id}_other`] || '') : '';
                                     
                                     // Force re-render key based on selection state
                                     const selectedArray = Array.isArray(value) ? value : [];
@@ -1150,19 +1138,7 @@ export default function ProgramFinder({
                                         )}
                                         
                                         {/* Text input for "Other" option - support multiple entries for use_of_funds */}
-                                        {(() => {
-                                          const shouldShow = isOtherOption && isSelected && question.hasOtherTextInput;
-                                          console.log('Other input (multi) check:', {
-                                            questionId: question.id,
-                                            optionValue: option.value,
-                                            isOtherOption,
-                                            isSelected,
-                                            value,
-                                            hasOtherTextInput: question.hasOtherTextInput,
-                                            shouldShow
-                                          });
-                                          return shouldShow;
-                                        })() && (
+                                        {isOtherOption && Array.isArray(value) && value.includes('other') && question.hasOtherTextInput && (
                                           <div className="ml-4 space-y-1.5 border-l-2 border-blue-200 pl-3 pt-1 mt-2 animate-in fade-in duration-200">
                                             <label className="text-xs font-medium text-gray-600 mb-1 block">
                                               {question.allowMultipleOther 
