@@ -307,11 +307,11 @@ export async function generateProgramsWithLLM(
     // Summarize user profile
     const profileParts: string[] = [];
     
-    // Location with sub-options (regions/states)
+    // Location with optional region (text input)
     if (answers.location) {
       let locationStr = `Location: ${answers.location}`;
-      if ((answers as any).location_sub) {
-        locationStr += ` (${(answers as any).location_sub})`;
+      if ((answers as any).location_region) {
+        locationStr += ` (${(answers as any).location_region})`;
       }
       profileParts.push(locationStr);
     }

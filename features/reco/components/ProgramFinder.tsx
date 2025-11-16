@@ -45,73 +45,9 @@ interface ProgramFinderProps {
     ],
     required: false,
     priority: 2,
-    // Enhanced: Subregion support for Austria, Germany, and EU
-    subOptions: (value: string) => {
-      if (value === 'austria') {
-        return [
-          { value: 'vienna', label: 'Vienna' },
-          { value: 'upper_austria', label: 'Upper Austria' },
-          { value: 'lower_austria', label: 'Lower Austria' },
-          { value: 'styria', label: 'Styria' },
-          { value: 'tyrol', label: 'Tyrol' },
-          { value: 'salzburg', label: 'Salzburg' },
-          { value: 'carinthia', label: 'Carinthia' },
-          { value: 'vorarlberg', label: 'Vorarlberg' },
-          { value: 'burgenland', label: 'Burgenland' },
-        ];
-      }
-      if (value === 'germany') {
-        return [
-          { value: 'baden_wurttemberg', label: 'Baden-Württemberg' },
-          { value: 'bavaria', label: 'Bavaria' },
-          { value: 'berlin', label: 'Berlin' },
-          { value: 'brandenburg', label: 'Brandenburg' },
-          { value: 'bremen', label: 'Bremen' },
-          { value: 'hamburg', label: 'Hamburg' },
-          { value: 'hesse', label: 'Hesse' },
-          { value: 'lower_saxony', label: 'Lower Saxony' },
-          { value: 'mecklenburg_western_pomerania', label: 'Mecklenburg-Western Pomerania' },
-          { value: 'north_rhine_westphalia', label: 'North Rhine-Westphalia' },
-          { value: 'rhineland_palatinate', label: 'Rhineland-Palatinate' },
-          { value: 'saarland', label: 'Saarland' },
-          { value: 'saxony', label: 'Saxony' },
-          { value: 'saxony_anhalt', label: 'Saxony-Anhalt' },
-          { value: 'schleswig_holstein', label: 'Schleswig-Holstein' },
-          { value: 'thuringia', label: 'Thuringia' },
-        ];
-      }
-      if (value === 'eu') {
-        return [
-          { value: 'austria', label: 'Austria' },
-          { value: 'belgium', label: 'Belgium' },
-          { value: 'bulgaria', label: 'Bulgaria' },
-          { value: 'croatia', label: 'Croatia' },
-          { value: 'cyprus', label: 'Cyprus' },
-          { value: 'czech_republic', label: 'Czech Republic' },
-          { value: 'denmark', label: 'Denmark' },
-          { value: 'estonia', label: 'Estonia' },
-          { value: 'finland', label: 'Finland' },
-          { value: 'france', label: 'France' },
-          { value: 'germany', label: 'Germany' },
-          { value: 'greece', label: 'Greece' },
-          { value: 'hungary', label: 'Hungary' },
-          { value: 'ireland', label: 'Ireland' },
-          { value: 'italy', label: 'Italy' },
-          { value: 'latvia', label: 'Latvia' },
-          { value: 'lithuania', label: 'Lithuania' },
-          { value: 'luxembourg', label: 'Luxembourg' },
-          { value: 'malta', label: 'Malta' },
-          { value: 'netherlands', label: 'Netherlands' },
-          { value: 'poland', label: 'Poland' },
-          { value: 'portugal', label: 'Portugal' },
-          { value: 'romania', label: 'Romania' },
-          { value: 'slovakia', label: 'Slovakia' },
-          { value: 'slovenia', label: 'Slovenia' },
-          { value: 'spain', label: 'Spain' },
-          { value: 'sweden', label: 'Sweden' },
-        ];
-      }
-      return [];
+    // Optional region input (text field, not dropdown)
+    hasOptionalRegion: (value: string) => {
+      return value === 'austria' || value === 'germany' || value === 'eu';
     },
   },
   {
@@ -593,31 +529,41 @@ export default function ProgramFinder({
                     </div>
                     {/* Generate Button - appears when user has enough answers (6+) */}
                     {hasEnoughAnswers && !showResults && (
-                      <button
-                        onClick={() => {
-                          setShowResults(true);
-                          updateGuidedResults();
-                        }}
-                        disabled={isLoading}
-                        className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors text-sm font-semibold shadow-md disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
-                      >
-                        {isLoading ? (
-                          <>
-                            <div className="animate-spin rounded-full h-3 w-3 border-b-2 border-white"></div>
-                            <span>Generating...</span>
-                          </>
-                        ) : (
-                          <>
-                            <Wand2 className="w-3 h-3" />
-                            <span>{t('reco.generateButton')}</span>
-                          </>
-                        )}
-                      </button>
+                      <div className="flex flex-col items-end gap-1">
+                        <button
+                          onClick={() => {
+                            setShowResults(true);
+                            updateGuidedResults();
+                          }}
+                          disabled={isLoading}
+                          className="px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-all text-sm font-semibold shadow-lg hover:shadow-xl disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2 transform hover:scale-105"
+                        >
+                          {isLoading ? (
+                            <>
+                              <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
+                              <span>{t('reco.generating') || 'Generating...'}</span>
+                            </>
+                          ) : (
+                            <>
+                              <Wand2 className="w-4 h-4" />
+                              <span>{t('reco.generateButton')}</span>
+                            </>
+                          )}
+                        </button>
+                        <div className="text-xs text-gray-600 font-medium">
+                          {answeredCount} / {visibleQuestions.length} questions answered
+                        </div>
+                      </div>
                     )}
                     {/* Message when user hasn't answered enough questions yet */}
                     {answeredCount > 0 && !hasEnoughAnswers && (
-                      <div className="text-xs text-gray-500">
-                        {answeredCount} / {MIN_QUESTIONS_FOR_RESULTS} required
+                      <div className="flex flex-col items-end gap-1">
+                        <div className="text-xs text-gray-500">
+                          {answeredCount} / {MIN_QUESTIONS_FOR_RESULTS} required
+                        </div>
+                        <div className="text-xs text-gray-400">
+                          Answer {MIN_QUESTIONS_FOR_RESULTS - answeredCount} more to generate results
+                        </div>
                       </div>
                     )}
                   </div>
@@ -664,9 +610,14 @@ export default function ProgramFinder({
                                     {currentQuestionIndex + 1}
                                   </span>
                                   <div className="flex-1">
-                                    <h3 className="text-base font-semibold text-gray-900 break-words leading-relaxed">
-                                      {question.label}
-                                    </h3>
+                                    <div className="flex items-center gap-2">
+                                      <h3 className="text-base font-semibold text-gray-900 break-words leading-relaxed">
+                                        {question.label}
+                                      </h3>
+                                      {!question.required && (
+                                        <span className="text-xs text-gray-500 font-normal">(Optional)</span>
+                                      )}
+                                    </div>
                                   </div>
                                   {isAnswered && (
                                     <span className="text-green-600 flex-shrink-0 mt-0.5">
@@ -683,21 +634,20 @@ export default function ProgramFinder({
                                 <div className="space-y-2">
                                   {question.options.map((option) => {
                                     const isSelected = value === option.value;
-                                    const subOptions = question.subOptions && isSelected ? question.subOptions(option.value) : [];
-                                    const hasSubOptions = subOptions.length > 0;
-                                    const subValue = hasSubOptions ? answers[`${question.id}_sub`] : null;
+                                    const showRegionInput = question.hasOptionalRegion && isSelected && question.hasOptionalRegion(option.value);
+                                    const regionValue = showRegionInput ? (answers[`${question.id}_region`] || '') : '';
                                     
                                     return (
                                       <div key={option.value} className="space-y-2">
                                         <button
                                           onClick={() => {
                                             handleAnswer(question.id, option.value);
-                                            // Clear sub-option if switching main option
-                                            if (hasSubOptions && value !== option.value) {
-                                              handleAnswer(`${question.id}_sub`, undefined);
+                                            // Clear region if switching main option
+                                            if (showRegionInput && value !== option.value) {
+                                              handleAnswer(`${question.id}_region`, undefined);
                                             }
-                                            // Don't auto-advance if sub-options are available - let user select sub-option first
-                                            if (!hasSubOptions && currentQuestionIndex < visibleQuestions.length - 1) {
+                                            // Auto-advance if no region input needed
+                                            if (!showRegionInput && currentQuestionIndex < visibleQuestions.length - 1) {
                                               setTimeout(() => setCurrentQuestionIndex(currentQuestionIndex + 1), 300);
                                             }
                                           }}
@@ -715,39 +665,52 @@ export default function ProgramFinder({
                                           </div>
                                         </button>
                                         
-                                        {/* Sub-options (e.g., Austrian regions) - Only show if main option is selected */}
-                                        {hasSubOptions && isSelected && (
+                                        {/* Optional region text input - Only show if main option is selected and hasOptionalRegion is true */}
+                                        {showRegionInput && (
                                           <div className="ml-4 space-y-1.5 border-l-2 border-blue-200 pl-3 pt-1">
-                                            <p className="text-xs font-medium text-gray-600 mb-1">Select region:</p>
-                                            {subOptions.map((subOption: any) => (
-                                              <button
-                                                key={subOption.value}
-                                                onClick={() => {
-                                                  handleAnswer(`${question.id}_sub`, subOption.value);
-                                                  // Auto-advance after selecting sub-option
-                                                  if (currentQuestionIndex < visibleQuestions.length - 1) {
-                                                    setTimeout(() => setCurrentQuestionIndex(currentQuestionIndex + 1), 300);
-                                                  }
-                                                }}
-                                                className={`w-full text-left px-3 py-2 border rounded-lg transition-all duration-150 ${
-                                                  subValue === subOption.value
-                                                    ? 'bg-blue-500 border-blue-500 text-white font-medium'
-                                                    : 'bg-gray-50 border-gray-300 hover:border-blue-400 hover:bg-blue-50'
-                                                }`}
-                                              >
-                                                <div className="flex items-center gap-2">
-                                                  {subValue === subOption.value && (
-                                                    <span className="text-sm font-bold">✓</span>
-                                                  )}
-                                                  <span className="text-xs">{subOption.label}</span>
-                                                </div>
-                                              </button>
-                                            ))}
+                                            <label className="text-xs font-medium text-gray-600 mb-1 block">
+                                              Region (optional)
+                                            </label>
+                                            <input
+                                              type="text"
+                                              placeholder={option.value === 'austria' ? 'e.g., Vienna, Tyrol, Salzburg' : option.value === 'germany' ? 'e.g., Bavaria, Berlin, Hamburg' : 'e.g., France, Italy, Spain'}
+                                              value={regionValue}
+                                              onChange={(e) => {
+                                                handleAnswer(`${question.id}_region`, e.target.value);
+                                              }}
+                                              onBlur={() => {
+                                                // Auto-advance after user finishes typing (optional - can remove if not desired)
+                                                if (regionValue.trim() && currentQuestionIndex < visibleQuestions.length - 1) {
+                                                  // Small delay to allow user to see their input
+                                                  setTimeout(() => setCurrentQuestionIndex(currentQuestionIndex + 1), 500);
+                                                }
+                                              }}
+                                              className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                                            />
+                                            <p className="text-xs text-gray-500">
+                                              Leave empty if not applicable
+                                            </p>
                                           </div>
                                         )}
                                       </div>
                                     );
                                   })}
+                                  
+                                  {/* Skip Button */}
+                                  {!question.required && (
+                                    <button
+                                      onClick={() => {
+                                        handleAnswer(question.id, undefined);
+                                        // Auto-advance after skipping
+                                        if (currentQuestionIndex < visibleQuestions.length - 1) {
+                                          setTimeout(() => setCurrentQuestionIndex(currentQuestionIndex + 1), 300);
+                                        }
+                                      }}
+                                      className="w-full mt-2 px-3 py-2 text-sm text-gray-600 hover:text-gray-800 border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors"
+                                    >
+                                      {t('reco.skipQuestion') || 'Skip this question'}
+                                    </button>
+                                  )}
                                 </div>
                               )}
                               {question.type === 'multi-select' && (
@@ -862,6 +825,22 @@ export default function ProgramFinder({
                                       </div>
                                     );
                                   })}
+                                  
+                                  {/* Skip Button for Multi-Select */}
+                                  {!question.required && (
+                                    <button
+                                      onClick={() => {
+                                        handleAnswer(question.id, undefined);
+                                        // Auto-advance after skipping
+                                        if (currentQuestionIndex < visibleQuestions.length - 1) {
+                                          setTimeout(() => setCurrentQuestionIndex(currentQuestionIndex + 1), 300);
+                                        }
+                                      }}
+                                      className="w-full mt-2 px-3 py-2 text-sm text-gray-600 hover:text-gray-800 border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors"
+                                    >
+                                      {t('reco.skipQuestion') || 'Skip this question'}
+                                    </button>
+                                  )}
                                 </div>
                               )}
                             </div>
