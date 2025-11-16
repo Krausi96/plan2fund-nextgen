@@ -25,6 +25,7 @@ interface ProgramFinderProps {
     label: 'What type of company are you?',
     type: 'single-select' as const,
     options: [
+      { value: 'prefounder', label: 'Pre-founder (Idea Stage)' },
       { value: 'startup', label: 'Startup' },
       { value: 'sme', label: 'SME (Small/Medium Enterprise)' },
       { value: 'large', label: 'Large Company' },
@@ -53,12 +54,16 @@ interface ProgramFinderProps {
   {
     id: 'funding_amount',
     label: 'How much funding do you need?',
-    type: 'single-select' as const,
-    options: [
-      { value: 'under100k', label: 'Under €100k' },
-      { value: '100kto500k', label: '€100k - €500k' },
-      { value: '500kto2m', label: '€500k - €2M' },
-      { value: 'over2m', label: 'Over €2M' },
+    type: 'range' as const,
+    min: 10000,
+    max: 5000000,
+    step: 10000,
+    unit: 'EUR',
+    quickSelectOptions: [
+      { value: 'under100k', label: 'Under €100k', min: 0, max: 100000 },
+      { value: '100kto500k', label: '€100k - €500k', min: 100000, max: 500000 },
+      { value: '500kto2m', label: '€500k - €2M', min: 500000, max: 2000000 },
+      { value: 'over2m', label: 'Over €2M', min: 2000000, max: 5000000 },
     ],
     required: false,
     priority: 3,
@@ -135,9 +140,11 @@ interface ProgramFinderProps {
       { value: 'economic', label: 'Economic (Jobs, Growth)' },
       { value: 'social', label: 'Social (Community, Society)' },
       { value: 'environmental', label: 'Environmental (Climate, Sustainability)' },
+      { value: 'other', label: 'Other' },
     ],
     required: false,
     priority: 5,
+    hasOtherTextInput: true, // Show text field when "other" is selected
   },
   {
     id: 'company_stage',
@@ -150,9 +157,11 @@ interface ProgramFinderProps {
       { value: 'inc_6_36m', label: 'Incorporated 6-36 months' },
       { value: 'inc_gt_36m', label: 'Incorporated > 36 months' },
       { value: 'research_org', label: 'Research Organization' },
+      { value: 'other', label: 'Other' },
     ],
     required: false,
     priority: 6,
+    hasOtherTextInput: true, // Show text field when "other" is selected
   },
   {
     id: 'use_of_funds',
@@ -165,19 +174,25 @@ interface ProgramFinderProps {
       { value: 'personnel', label: 'Personnel/Hiring' },
       { value: 'working_capital', label: 'Working capital' },
       { value: 'expansion', label: 'Expansion/Growth' },
+      { value: 'other', label: 'Other' },
     ],
     required: false,
     priority: 7,
+    hasOtherTextInput: true, // Show text field when "other" is selected
   },
   {
     id: 'project_duration',
     label: 'How long is your project?',
-    type: 'single-select' as const,
-    options: [
-      { value: 'under2', label: 'Under 2 years' },
-      { value: '2to5', label: '2-5 years' },
-      { value: '5to10', label: '5-10 years' },
-      { value: 'over10', label: 'Over 10 years' },
+    type: 'range' as const,
+    min: 0.5,
+    max: 15,
+    step: 0.5,
+    unit: 'years',
+    quickSelectOptions: [
+      { value: 'under2', label: 'Under 2 years', min: 0.5, max: 2 },
+      { value: '2to5', label: '2-5 years', min: 2, max: 5 },
+      { value: '5to10', label: '5-10 years', min: 5, max: 10 },
+      { value: 'over10', label: 'Over 10 years', min: 10, max: 15 },
     ],
     required: false,
     priority: 8,
@@ -185,25 +200,33 @@ interface ProgramFinderProps {
   {
     id: 'deadline_urgency',
     label: 'When do you need funding by?',
-    type: 'single-select' as const,
-    options: [
-      { value: 'urgent', label: 'Within 1 month' },
-      { value: 'soon', label: 'Within 3 months' },
-      { value: 'flexible', label: 'Within 6 months or flexible' },
+    type: 'range' as const,
+    min: 1,
+    max: 12,
+    step: 1,
+    unit: 'months',
+    quickSelectOptions: [
+      { value: 'urgent', label: 'Within 1 month', min: 1, max: 1 },
+      { value: 'soon', label: 'Within 3 months', min: 1, max: 3 },
+      { value: 'flexible', label: 'Within 6 months or flexible', min: 3, max: 12 },
     ],
     required: false,
     priority: 9,
-    skipIf: (answers: Record<string, any>) => answers.project_duration === 'over10',
+    skipIf: (answers: Record<string, any>) => {
+      const duration = answers.project_duration;
+      if (typeof duration === 'number' && duration > 10) return true;
+      if (duration === 'over10') return true;
+      return false;
+    },
   },
   {
     id: 'co_financing',
     label: 'Can you provide co-financing?',
     type: 'single-select' as const,
     options: [
-      { value: 'co_yes', label: 'Yes, required' },
-      { value: 'co_partial', label: 'Partial (up to 50%)' },
-      { value: 'co_no', label: 'No co-financing available' },
-      { value: 'co_uncertain', label: 'Uncertain / Need to check' },
+      { value: 'co_yes', label: 'Yes' },
+      { value: 'co_no', label: 'No' },
+      { value: 'co_uncertain', label: 'Uncertain' },
     ],
     required: false,
     priority: 10,
@@ -229,12 +252,16 @@ interface ProgramFinderProps {
   {
     id: 'team_size',
     label: 'How many people are in your team?',
-    type: 'single-select' as const,
-    options: [
-      { value: '1to2', label: '1-2 people' },
-      { value: '3to5', label: '3-5 people' },
-      { value: '6to10', label: '6-10 people' },
-      { value: 'over10', label: 'Over 10 people' },
+    type: 'range' as const,
+    min: 1,
+    max: 50,
+    step: 1,
+    unit: 'people',
+    quickSelectOptions: [
+      { value: '1to2', label: '1-2 people', min: 1, max: 2 },
+      { value: '3to5', label: '3-5 people', min: 3, max: 5 },
+      { value: '6to10', label: '6-10 people', min: 6, max: 10 },
+      { value: 'over10', label: 'Over 10 people', min: 10, max: 50 },
     ],
     required: false,
     priority: 12,
@@ -253,10 +280,10 @@ export default function ProgramFinder({
     return CORE_QUESTIONS.map(q => ({
       ...q,
       label: (t(`reco.questions.${q.id}` as any) as string) || q.label,
-      options: q.options.map(opt => ({
+      options: (q as any).options ? (q as any).options.map((opt: any) => ({
         ...opt,
         label: (t(`reco.options.${q.id}.${opt.value}` as any) as string) || opt.label
-      }))
+      })) : []
     }));
   }, [t]);
   const [results, setResults] = useState<EnhancedProgramResult[]>([]);
@@ -402,9 +429,22 @@ export default function ProgramFinder({
       // Score the programs
       const scored = await scoreProgramsEnhanced(answers, 'strict', programsForScoring);
       // Filter out zero-score programs and sort by score (highest first), then take top 5
+      // Be more lenient - show programs with score > 0
       const validPrograms = scored.filter(p => p.score > 0);
       const top5 = validPrograms.sort((a, b) => b.score - a.score).slice(0, 5);
+      
+      console.log(`✅ Scored ${scored.length} programs, ${validPrograms.length} valid, showing top ${top5.length}`);
       setResults(top5);
+      
+      // If no results, log for debugging
+      if (top5.length === 0) {
+        console.warn('⚠️ No valid programs after scoring:', {
+          totalPrograms: programsForScoring.length,
+          scoredPrograms: scored.length,
+          validPrograms: validPrograms.length,
+          answers,
+        });
+      }
       
       // Store in context for results page
       setRecommendations(scored);
@@ -632,10 +672,12 @@ export default function ProgramFinder({
                               {/* Question Options */}
                               {question.type === 'single-select' && (
                                 <div className="space-y-2">
-                                  {question.options.map((option) => {
+                                  {question.options.map((option: any) => {
                                     const isSelected = value === option.value;
                                     const showRegionInput = question.hasOptionalRegion && isSelected && question.hasOptionalRegion(option.value);
                                     const regionValue = showRegionInput ? (answers[`${question.id}_region`] || '') : '';
+                                    const isOtherOption = option.value === 'other';
+                                    const otherTextValue = isOtherOption && isSelected ? (answers[`${question.id}_other`] || '') : '';
                                     
                                     return (
                                       <div key={option.value} className="space-y-2">
@@ -646,8 +688,12 @@ export default function ProgramFinder({
                                             if (showRegionInput && value !== option.value) {
                                               handleAnswer(`${question.id}_region`, undefined);
                                             }
-                                            // Auto-advance if no region input needed
-                                            if (!showRegionInput && currentQuestionIndex < visibleQuestions.length - 1) {
+                                            // Clear "other" text if switching away
+                                            if (isOtherOption && value !== option.value) {
+                                              handleAnswer(`${question.id}_other`, undefined);
+                                            }
+                                            // Auto-advance if no region/other input needed
+                                            if (!showRegionInput && !isOtherOption && currentQuestionIndex < visibleQuestions.length - 1) {
                                               setTimeout(() => setCurrentQuestionIndex(currentQuestionIndex + 1), 300);
                                             }
                                           }}
@@ -678,13 +724,7 @@ export default function ProgramFinder({
                                               onChange={(e) => {
                                                 handleAnswer(`${question.id}_region`, e.target.value);
                                               }}
-                                              onBlur={() => {
-                                                // Auto-advance after user finishes typing (optional - can remove if not desired)
-                                                if (regionValue.trim() && currentQuestionIndex < visibleQuestions.length - 1) {
-                                                  // Small delay to allow user to see their input
-                                                  setTimeout(() => setCurrentQuestionIndex(currentQuestionIndex + 1), 500);
-                                                }
-                                              }}
+                                              // Removed auto-advance on blur - user should manually proceed
                                               className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                                             />
                                             <p className="text-xs text-gray-500">
@@ -692,11 +732,29 @@ export default function ProgramFinder({
                                             </p>
                                           </div>
                                         )}
+                                        
+                                        {/* Text input for "Other" option */}
+                                        {isOtherOption && isSelected && question.hasOtherTextInput && (
+                                          <div className="ml-4 space-y-1.5 border-l-2 border-blue-200 pl-3 pt-1">
+                                            <label className="text-xs font-medium text-gray-600 mb-1 block">
+                                              Please specify:
+                                            </label>
+                                            <input
+                                              type="text"
+                                              placeholder="Enter your answer..."
+                                              value={otherTextValue}
+                                              onChange={(e) => {
+                                                handleAnswer(`${question.id}_other`, e.target.value);
+                                              }}
+                                              className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                                            />
+                                          </div>
+                                        )}
                                       </div>
                                     );
                                   })}
                                   
-                                  {/* Skip Button */}
+                                  {/* Skip Button - More Visible */}
                                   {!question.required && (
                                     <button
                                       onClick={() => {
@@ -706,16 +764,16 @@ export default function ProgramFinder({
                                           setTimeout(() => setCurrentQuestionIndex(currentQuestionIndex + 1), 300);
                                         }
                                       }}
-                                      className="w-full mt-2 px-3 py-2 text-sm text-gray-600 hover:text-gray-800 border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors"
+                                      className="w-full mt-3 px-4 py-2.5 text-sm font-medium text-gray-700 hover:text-gray-900 border-2 border-gray-300 rounded-lg hover:bg-gray-100 hover:border-gray-400 transition-all"
                                     >
-                                      {t('reco.skipQuestion') || 'Skip this question'}
+                                      {t('reco.skipQuestion') || 'Skip this question'} →
                                     </button>
                                   )}
                                 </div>
                               )}
                               {question.type === 'multi-select' && (
                                 <div className="space-y-2">
-                                  {question.options.map((option) => {
+                                  {question.options.map((option: any) => {
                                     const isSelected = Array.isArray(value) && value.includes(option.value);
                                     const subCategories = question.subCategories && isSelected && option.value in question.subCategories 
                                       ? question.subCategories[option.value as keyof typeof question.subCategories] 
@@ -723,6 +781,8 @@ export default function ProgramFinder({
                                     const hasSubCategories = subCategories && subCategories.length > 0;
                                     const subCategoryKey = `${question.id}_${option.value}`;
                                     const subCategoryValue = answers[subCategoryKey];
+                                    const isOtherOption = option.value === 'other';
+                                    const otherTextValue = isOtherOption && isSelected ? (answers[`${question.id}_other`] || '') : '';
                                     
                                     return (
                                       <div key={option.value} className="space-y-1.5">
@@ -755,6 +815,10 @@ export default function ProgramFinder({
                                             // Clear sub-categories if deselecting
                                             if (isSelected && hasSubCategories) {
                                               handleAnswer(subCategoryKey, undefined);
+                                            }
+                                            // Clear "other" text if deselecting
+                                            if (isSelected && isOtherOption) {
+                                              handleAnswer(`${question.id}_other`, undefined);
                                             }
                                           }}
                                           className={`w-full text-left px-4 py-3 border-2 rounded-lg transition-all duration-150 ${
@@ -822,11 +886,29 @@ export default function ProgramFinder({
                                             </div>
                                           </div>
                                         )}
+                                        
+                                        {/* Text input for "Other" option */}
+                                        {isOtherOption && isSelected && question.hasOtherTextInput && (
+                                          <div className="ml-4 space-y-1.5 border-l-2 border-blue-200 pl-3 pt-1">
+                                            <label className="text-xs font-medium text-gray-600 mb-1 block">
+                                              Please specify:
+                                            </label>
+                                            <input
+                                              type="text"
+                                              placeholder="Enter your answer..."
+                                              value={otherTextValue}
+                                              onChange={(e) => {
+                                                handleAnswer(`${question.id}_other`, e.target.value);
+                                              }}
+                                              className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                                            />
+                                          </div>
+                                        )}
                                       </div>
                                     );
                                   })}
                                   
-                                  {/* Skip Button for Multi-Select */}
+                                  {/* Skip Button for Multi-Select - More Visible */}
                                   {!question.required && (
                                     <button
                                       onClick={() => {
@@ -836,9 +918,112 @@ export default function ProgramFinder({
                                           setTimeout(() => setCurrentQuestionIndex(currentQuestionIndex + 1), 300);
                                         }
                                       }}
-                                      className="w-full mt-2 px-3 py-2 text-sm text-gray-600 hover:text-gray-800 border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors"
+                                      className="w-full mt-3 px-4 py-2.5 text-sm font-medium text-gray-700 hover:text-gray-900 border-2 border-gray-300 rounded-lg hover:bg-gray-100 hover:border-gray-400 transition-all"
                                     >
-                                      {t('reco.skipQuestion') || 'Skip this question'}
+                                      {t('reco.skipQuestion') || 'Skip this question'} →
+                                    </button>
+                                  )}
+                                </div>
+                              )}
+                              {question.type === 'range' && (
+                                <div className="space-y-4">
+                                  {/* Quick Select Buttons */}
+                                  {question.quickSelectOptions && (
+                                    <div className="grid grid-cols-2 gap-2 mb-4">
+                                      {question.quickSelectOptions.map((opt: any) => {
+                                        const isSelected = value === opt.value || 
+                                          (typeof value === 'number' && value >= opt.min && value <= opt.max);
+                                        return (
+                                          <button
+                                            key={opt.value}
+                                            onClick={() => {
+                                              // Set to middle of range for quick select
+                                              const midValue = (opt.min + opt.max) / 2;
+                                              handleAnswer(question.id, midValue);
+                                            }}
+                                            className={`px-3 py-2 text-sm border-2 rounded-lg transition-all ${
+                                              isSelected
+                                                ? 'bg-blue-600 border-blue-600 text-white font-medium'
+                                                : 'bg-white border-gray-300 hover:border-blue-400 hover:bg-blue-50'
+                                            }`}
+                                          >
+                                            {opt.label}
+                                          </button>
+                                        );
+                                      })}
+                                    </div>
+                                  )}
+                                  
+                                  {/* Slider */}
+                                  <div className="space-y-2">
+                                    <div className="flex items-center justify-between mb-2">
+                                      <span className="text-sm text-gray-600">
+                                        {question.unit === 'EUR' ? '€' : ''}
+                                        {typeof value === 'number' 
+                                          ? value.toLocaleString('de-DE', { minimumFractionDigits: question.unit === 'years' ? 1 : 0, maximumFractionDigits: question.unit === 'years' ? 1 : 0 })
+                                          : question.min.toLocaleString('de-DE')}
+                                        {question.unit === 'EUR' ? '' : ` ${question.unit}`}
+                                      </span>
+                                      <span className="text-sm text-gray-600">
+                                        {question.unit === 'EUR' ? '€' : ''}
+                                        {question.max.toLocaleString('de-DE')}
+                                        {question.unit === 'EUR' ? '' : ` ${question.unit}`}
+                                      </span>
+                                    </div>
+                                    <input
+                                      type="range"
+                                      min={question.min}
+                                      max={question.max}
+                                      step={question.step}
+                                      value={typeof value === 'number' ? value : question.min}
+                                      onChange={(e) => {
+                                        const numValue = question.unit === 'years' 
+                                          ? parseFloat(e.target.value)
+                                          : parseInt(e.target.value);
+                                        handleAnswer(question.id, numValue);
+                                      }}
+                                      className="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer accent-blue-600"
+                                      style={{
+                                        background: `linear-gradient(to right, #2563eb 0%, #2563eb ${((typeof value === 'number' ? value : question.min) - question.min) / (question.max - question.min) * 100}%, #e5e7eb ${((typeof value === 'number' ? value : question.min) - question.min) / (question.max - question.min) * 100}%, #e5e7eb 100%)`
+                                      }}
+                                    />
+                                    <div className="text-center">
+                                      <span className="text-lg font-semibold text-blue-600">
+                                        {question.unit === 'EUR' ? '€' : ''}
+                                        {typeof value === 'number' 
+                                          ? value.toLocaleString('de-DE', { minimumFractionDigits: question.unit === 'years' ? 1 : 0, maximumFractionDigits: question.unit === 'years' ? 1 : 0 })
+                                          : question.min.toLocaleString('de-DE')}
+                                        {question.unit === 'EUR' ? '' : ` ${question.unit}`}
+                                      </span>
+                                    </div>
+                                    
+                                    {/* Human icons for team size */}
+                                    {question.id === 'team_size' && (
+                                      <div className="flex items-center justify-center gap-1 mt-2">
+                                        {Array.from({ length: Math.min(Math.ceil((typeof value === 'number' ? value : 1) / 2), 10) }, (_, i) => (
+                                          <svg key={i} className="w-6 h-6 text-blue-600" fill="currentColor" viewBox="0 0 20 20">
+                                            <path d="M9 6a3 3 0 11-6 0 3 3 0 016 0zM17 6a3 3 0 11-6 0 3 3 0 016 0zM12.93 17c.046-.327.07-.66.07-1a6.97 6.97 0 00-1.5-4.33A5 5 0 0119 16v1h-6.07zM6 11a5 5 0 015 5v1H1v-1a5 5 0 015-5z" />
+                                          </svg>
+                                        ))}
+                                        {(typeof value === 'number' ? value : 1) > 20 && (
+                                          <span className="text-sm text-gray-600 ml-1">+</span>
+                                        )}
+                                      </div>
+                                    )}
+                                  </div>
+                                  
+                                  {/* Skip Button for Range */}
+                                  {!question.required && (
+                                    <button
+                                      onClick={() => {
+                                        handleAnswer(question.id, undefined);
+                                        if (currentQuestionIndex < visibleQuestions.length - 1) {
+                                          setTimeout(() => setCurrentQuestionIndex(currentQuestionIndex + 1), 300);
+                                        }
+                                      }}
+                                      className="w-full mt-3 px-4 py-2.5 text-sm font-medium text-gray-700 hover:text-gray-900 border-2 border-gray-300 rounded-lg hover:bg-gray-100 hover:border-gray-400 transition-all"
+                                    >
+                                      {t('reco.skipQuestion') || 'Skip this question'} →
                                     </button>
                                   )}
                                 </div>
@@ -848,65 +1033,79 @@ export default function ProgramFinder({
                         })()}
                         
                         {/* Navigation Arrows - Smaller */}
-                        <div className="absolute top-1/2 -translate-y-1/2 left-0 -translate-x-4">
+                        <div className="absolute top-1/2 -translate-y-1/2 left-0 -translate-x-3">
                           <button
                             onClick={() => setCurrentQuestionIndex(Math.max(0, currentQuestionIndex - 1))}
                             disabled={currentQuestionIndex === 0}
-                            className={`w-10 h-10 rounded-full bg-blue-600 border-2 border-blue-700 flex items-center justify-center shadow-lg transition-all ${
+                            className={`w-8 h-8 rounded-full bg-blue-600 border border-blue-700 flex items-center justify-center shadow-md transition-all ${
                               currentQuestionIndex === 0
                                 ? 'opacity-40 cursor-not-allowed bg-gray-400 border-gray-500'
                                 : 'hover:bg-blue-700 hover:scale-105 active:scale-95'
                             }`}
                           >
-                            <ChevronLeft className="w-5 h-5 text-white font-bold" />
+                            <ChevronLeft className="w-4 h-4 text-white" />
                           </button>
                         </div>
-                        <div className="absolute top-1/2 -translate-y-1/2 right-0 translate-x-4">
+                        <div className="absolute top-1/2 -translate-y-1/2 right-0 translate-x-3">
                           <button
                             onClick={() => setCurrentQuestionIndex(Math.min(visibleQuestions.length - 1, currentQuestionIndex + 1))}
                             disabled={currentQuestionIndex === visibleQuestions.length - 1}
-                            className={`w-10 h-10 rounded-full bg-blue-600 border-2 border-blue-700 flex items-center justify-center shadow-lg transition-all ${
+                            className={`w-8 h-8 rounded-full bg-blue-600 border border-blue-700 flex items-center justify-center shadow-md transition-all ${
                               currentQuestionIndex === visibleQuestions.length - 1
                                 ? 'opacity-40 cursor-not-allowed bg-gray-400 border-gray-500'
                                 : 'hover:bg-blue-700 hover:scale-105 active:scale-95'
                             }`}
                           >
-                            <ChevronRight className="w-5 h-5 text-white font-bold" />
+                            <ChevronRight className="w-4 h-4 text-white" />
                           </button>
                         </div>
                       </div>
                     </div>
                   )}
                 </div>
-            </Card>
-          </div>
+              </Card>
+            </div>
           
-          {/* Results - Below questions, centered, only shown when showResults is true */}
+          {/* Results Modal/Popup - Overlay */}
           {showResults && (
-            <div className={`${mobileActiveTab === 'questions' ? 'hidden lg:flex' : 'flex'} flex-col max-w-4xl mx-auto w-full mt-8`}>
-              {isLoading ? (
-              <Card className="p-12 text-center">
-                <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
-                <p className="text-gray-600">Finding programs...</p>
-              </Card>
-            ) : results.length === 0 ? (
-              <Card className="p-12 text-center">
-                <Search className="h-12 w-12 text-gray-400 mx-auto mb-4" />
-                <p className="text-gray-600 mb-2">
-                  No matching programs found
-                </p>
-                <p className="text-sm text-gray-500">
-                  Try answering more questions or adjusting your answers
-                </p>
-              </Card>
-            ) : (
-              <div className="space-y-4">
-                {results.length > 0 && (
-                  <div className="mb-4 text-sm text-gray-600">
-                    Showing top {Math.min(5, results.length)} of {results.length} program{results.length !== 1 ? 's' : ''} found
-                  </div>
-                )}
-                {results.slice(0, 5).map((program) => (
+            <div className="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center p-4" onClick={() => setShowResults(false)}>
+              <div className="bg-white rounded-lg shadow-xl max-w-4xl w-full max-h-[90vh] overflow-y-auto" onClick={(e) => e.stopPropagation()}>
+                <div className="sticky top-0 bg-white border-b border-gray-200 px-6 py-4 flex items-center justify-between z-10">
+                  <h2 className="text-2xl font-bold text-gray-900">Funding Program Recommendations</h2>
+                  <button
+                    onClick={() => setShowResults(false)}
+                    className="text-gray-400 hover:text-gray-600 transition-colors"
+                  >
+                    <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                    </svg>
+                  </button>
+                </div>
+                
+                <div className="p-6">
+                  {isLoading ? (
+                    <Card className="p-12 text-center">
+                      <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
+                      <p className="text-gray-600">Finding programs...</p>
+                    </Card>
+                  ) : results.length === 0 ? (
+                    <Card className="p-12 text-center">
+                      <Search className="h-12 w-12 text-gray-400 mx-auto mb-4" />
+                      <p className="text-gray-600 mb-2">
+                        No matching programs found
+                      </p>
+                      <p className="text-sm text-gray-500">
+                        Try answering more questions or adjusting your answers
+                      </p>
+                    </Card>
+                  ) : (
+                    <div className="space-y-4">
+                      {results.length > 0 && (
+                        <div className="mb-4 text-sm text-gray-600">
+                          Showing top {Math.min(5, results.length)} of {results.length} program{results.length !== 1 ? 's' : ''} found
+                        </div>
+                      )}
+                      {results.slice(0, 5).map((program) => (
                   <div key={program.id} onClick={() => handleProgramSelect(program)}>
                     <Card className="p-6 hover:shadow-lg transition-shadow cursor-pointer">
                     <div className="flex items-start justify-between mb-4">
@@ -1115,7 +1314,9 @@ export default function ProgramFinder({
                   </div>
                 ))}
               </div>
-            )}
+                  )}
+                </div>
+              </div>
             </div>
           )}
         </div>

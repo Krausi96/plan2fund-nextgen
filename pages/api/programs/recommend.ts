@@ -35,15 +35,17 @@ interface UserAnswers {
   location?: string;
   company_type?: string;
   company_stage?: string;
-  team_size?: string;
+  team_size?: string | number;
   revenue_status?: string;
   co_financing?: string;
-  industry_focus?: string;
-  funding_amount?: string;
-  use_of_funds?: string;
-  impact?: string;
-  deadline_urgency?: string;
-  project_duration?: string;
+  industry_focus?: string | string[];
+  funding_amount?: string | number;
+  use_of_funds?: string | string[];
+  impact?: string | string[];
+  deadline_urgency?: string | number;
+  project_duration?: string | number;
+  location_region?: string;
+  [key: string]: any; // Allow additional fields like "other" text inputs
 }
 
 // Question to extraction field mapping
@@ -238,7 +240,7 @@ function matchesAnswers(extracted: any, answers: UserAnswers): boolean {
   }
 
   // Funding amount match (normalized)
-  if (answers.funding_amount) {
+  if (answers.funding_amount !== undefined && answers.funding_amount !== null) {
     totalChecks++;
     const userAmount = normalizeFundingAmountAnswer(answers.funding_amount);
     const extractedAmount = normalizeFundingAmountExtraction(
@@ -246,10 +248,17 @@ function matchesAnswers(extracted: any, answers: UserAnswers): boolean {
       metadata.funding_amount_max
     );
     
-    if (matchFundingAmounts(userAmount, extractedAmount)) {
-      matchCount++;
+    // Only filter if program has funding amount requirements
+    if (metadata.funding_amount_min || metadata.funding_amount_max) {
+      if (matchFundingAmounts(userAmount, extractedAmount)) {
+        matchCount++;
+      } else {
+        // Don't filter out - just don't count as match (LLM programs might not have exact amounts)
+        // return false; // Removed strict filtering for LLM-generated programs
+      }
     } else {
-      return false; // Critical: funding amount must match
+      // No funding requirement = matches all
+      matchCount++;
     }
   }
 
@@ -287,12 +296,14 @@ function matchesAnswers(extracted: any, answers: UserAnswers): boolean {
     if (hasCoFinancing) matchCount++;
   }
 
-  // Require at least 50% of checks to pass
-  // Critical checks (location, company_type, funding_amount) must all pass
+  // For LLM-generated programs, be more lenient - don't filter out if they're close
+  // Require at least 30% of checks to pass (lowered from 50% for LLM programs)
+  // Critical checks (location, company_type) must pass if checked
   const allCriticalPass = criticalChecks.length === 0 || criticalChecks.every(c => c);
   const matchRatio = totalChecks > 0 ? matchCount / totalChecks : 1;
   
-  return allCriticalPass && matchRatio >= 0.5;
+  // More lenient matching for LLM-generated programs
+  return allCriticalPass && matchRatio >= 0.3;
 }
 
 /**
@@ -318,7 +329,14 @@ export async function generateProgramsWithLLM(
     
     if (answers.company_type) profileParts.push(`Company Type: ${answers.company_type}`);
     if (answers.company_stage) profileParts.push(`Company Stage: ${answers.company_stage}`);
-    if (answers.funding_amount) profileParts.push(`Funding Amount: ${answers.funding_amount}`);
+    if (answers.funding_amount) {
+      // Handle numeric values from slider
+      if (typeof answers.funding_amount === 'number') {
+        profileParts.push(`Funding Amount: €${answers.funding_amount.toLocaleString()}`);
+      } else {
+        profileParts.push(`Funding Amount: ${answers.funding_amount}`);
+      }
+    }
     
     // Industry focus with sub-categories
     if (answers.industry_focus) {
@@ -326,12 +344,16 @@ export async function generateProgramsWithLLM(
         ? answers.industry_focus 
         : [answers.industry_focus];
       
-      // Include sub-categories if available
+      // Include sub-categories if available, and "other" text if present
       const industryDetails: string[] = [];
       industries.forEach((industry: string) => {
         const subCatKey = `industry_focus_${industry}`;
         const subCategories = (answers as any)[subCatKey];
-        if (subCategories && Array.isArray(subCategories) && subCategories.length > 0) {
+        const otherText = (answers as any).industry_focus_other;
+        
+        if (industry === 'other' && otherText) {
+          industryDetails.push(`Other: ${otherText}`);
+        } else if (subCategories && Array.isArray(subCategories) && subCategories.length > 0) {
           industryDetails.push(`${industry} (${subCategories.join(', ')})`);
         } else {
           industryDetails.push(industry);
@@ -340,20 +362,68 @@ export async function generateProgramsWithLLM(
       profileParts.push(`Industry Focus: ${industryDetails.join(', ')}`);
     }
     
-    if (answers.co_financing) profileParts.push(`Co-financing: ${answers.co_financing}`);
+    // Impact with "other" text
     if (answers.impact) {
       const impacts = Array.isArray(answers.impact) 
-        ? answers.impact.join(', ') 
-        : answers.impact;
-      profileParts.push(`Impact: ${impacts}`);
+        ? answers.impact 
+        : [answers.impact];
+      const otherText = (answers as any).impact_other;
+      const impactDetails = impacts.map((imp: string) => 
+        imp === 'other' && otherText ? `Other: ${otherText}` : imp
+      );
+      profileParts.push(`Impact: ${impactDetails.join(', ')}`);
     }
-    if (answers.team_size) profileParts.push(`Team Size: ${answers.team_size}`);
+    
+    // Company stage with "other" text
+    if (answers.company_stage) {
+      const otherText = (answers as any).company_stage_other;
+      if (answers.company_stage === 'other' && otherText) {
+        profileParts.push(`Company Stage: Other (${otherText})`);
+      } else {
+        profileParts.push(`Company Stage: ${answers.company_stage}`);
+      }
+    }
+    
+    // Use of funds with "other" text
     if (answers.use_of_funds) {
       const uses = Array.isArray(answers.use_of_funds) 
-        ? answers.use_of_funds.join(', ') 
-        : answers.use_of_funds;
-      profileParts.push(`Use of Funds: ${uses}`);
+        ? answers.use_of_funds 
+        : [answers.use_of_funds];
+      const otherText = (answers as any).use_of_funds_other;
+      const useDetails = uses.map((use: string) => 
+        use === 'other' && otherText ? `Other: ${otherText}` : use
+      );
+      profileParts.push(`Use of Funds: ${useDetails.join(', ')}`);
     }
+    
+    // Project duration (numeric from slider)
+    if (answers.project_duration) {
+      if (typeof answers.project_duration === 'number') {
+        profileParts.push(`Project Duration: ${answers.project_duration} years`);
+      } else {
+        profileParts.push(`Project Duration: ${answers.project_duration}`);
+      }
+    }
+    
+    // Deadline urgency (numeric from slider)
+    if (answers.deadline_urgency) {
+      if (typeof answers.deadline_urgency === 'number') {
+        profileParts.push(`Deadline Urgency: ${answers.deadline_urgency} months`);
+      } else {
+        profileParts.push(`Deadline Urgency: ${answers.deadline_urgency}`);
+      }
+    }
+    
+    // Team size (numeric from slider)
+    if (answers.team_size) {
+      if (typeof answers.team_size === 'number') {
+        profileParts.push(`Team Size: ${answers.team_size} people`);
+      } else {
+        profileParts.push(`Team Size: ${answers.team_size}`);
+      }
+    }
+    
+    if (answers.co_financing) profileParts.push(`Co-financing: ${answers.co_financing}`);
     
     // Handle project description (from editor modal)
     if ((answers as any).project_description) {
