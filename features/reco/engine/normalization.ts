@@ -137,11 +137,15 @@ export function normalizeCompanyStageAnswer(value: string): NormalizedCompanySta
     stage = 'pre_company';
     maturity = 'early';
     ageRange = { min: 0, max: 0 };
-  } else if (lower === 'inc_lt_6m' || lower.includes('<6') || lower.includes('under 6') || lower.includes('newly founded') || lower.includes('seed')) {
+  } else if (lower === 'inc_lt_6m' || lower.includes('<6') || lower.includes('under 6') || lower.includes('newly founded') || lower.includes('seed') || lower === 'early_stage') {
     stage = 'inc_lt_6m';
     maturity = 'early';
     ageRange = { min: 0, max: 6 };
-  } else if (lower === 'inc_6_36m' || (lower.includes('6') && lower.includes('36')) || lower.includes('growth') || lower.includes('scale-up')) {
+  } else if (lower === 'launch_stage' || (lower.includes('launch') && lower.includes('stage'))) {
+    stage = 'inc_6_36m';
+    maturity = 'early';
+    ageRange = { min: 6, max: 12 };
+  } else if (lower === 'inc_6_36m' || (lower.includes('6') && lower.includes('36')) || lower.includes('growth') || lower.includes('scale-up') || lower === 'growth_stage') {
     stage = 'inc_6_36m';
     maturity = 'growth';
     ageRange = { min: 6, max: 36 };

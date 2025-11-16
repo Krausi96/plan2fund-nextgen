@@ -34,7 +34,9 @@ interface SeedEntry {
 interface UserAnswers {
   location?: string;
   company_type?: string;
-  company_stage?: string;
+  company_stage?: string | number; // Can be string (old format) or number (months, new format)
+  company_stage_classified?: string; // Auto-classified stage from months
+  legal_type?: string;
   team_size?: string | number;
   revenue_status?: string;
   co_financing?: string;
@@ -215,7 +217,11 @@ function matchesAnswers(extracted: any, answers: UserAnswers): boolean {
       ...(categorized.eligibility || []),
       ...(categorized.team || [])
     ];
-    const userStage = normalizeCompanyStageAnswer(answers.company_stage);
+    // Handle both old format (string) and new format (number months)
+    const stageValue = typeof answers.company_stage === 'number' 
+      ? (answers.company_stage_classified || String(answers.company_stage))
+      : String(answers.company_stage);
+    const userStage = normalizeCompanyStageAnswer(stageValue);
     
     if (stageReqs.length === 0) {
       matchCount++;
@@ -336,7 +342,34 @@ export async function generateProgramsWithLLM(
         profileParts.push(`Company Type: ${answers.company_type}`);
       }
     }
-    if (answers.company_stage) profileParts.push(`Company Stage: ${answers.company_stage}`);
+    
+    // Legal type
+    if (answers.legal_type) {
+      const otherText = (answers as any).legal_type_other;
+      if (answers.legal_type === 'other' && otherText) {
+        profileParts.push(`Legal Structure: Other (${otherText})`);
+      } else {
+        profileParts.push(`Legal Structure: ${answers.legal_type}`);
+      }
+    }
+    
+    // Company stage - handle both old format (string) and new format (number months)
+    if (answers.company_stage) {
+      if (typeof answers.company_stage === 'number') {
+        // New format: months slider
+        const months = answers.company_stage;
+        const classified = answers.company_stage_classified || 'unknown';
+        profileParts.push(`Company Stage: ${classified} (${months} months)`);
+      } else {
+        // Old format: string value
+        const otherText = (answers as any).company_stage_other;
+        if (answers.company_stage === 'other' && otherText) {
+          profileParts.push(`Company Stage: Other (${otherText})`);
+        } else {
+          profileParts.push(`Company Stage: ${answers.company_stage}`);
+        }
+      }
+    }
     if (answers.funding_amount) {
       // Handle numeric values from slider
       if (typeof answers.funding_amount === 'number') {
@@ -391,13 +424,31 @@ export async function generateProgramsWithLLM(
       profileParts.push(`Impact: ${impactDetails.join(', ')}`);
     }
     
-    // Company stage with "other" text
+    // Company stage - handle both old format (string) and new format (number months)
     if (answers.company_stage) {
-      const otherText = (answers as any).company_stage_other;
-      if (answers.company_stage === 'other' && otherText) {
-        profileParts.push(`Company Stage: Other (${otherText})`);
+      if (typeof answers.company_stage === 'number') {
+        // New format: months slider
+        const months = answers.company_stage;
+        const classified = answers.company_stage_classified || 'unknown';
+        profileParts.push(`Company Stage: ${classified} (${months} months)`);
       } else {
-        profileParts.push(`Company Stage: ${answers.company_stage}`);
+        // Old format: string value
+        const otherText = (answers as any).company_stage_other;
+        if (answers.company_stage === 'other' && otherText) {
+          profileParts.push(`Company Stage: Other (${otherText})`);
+        } else {
+          profileParts.push(`Company Stage: ${answers.company_stage}`);
+        }
+      }
+    }
+    
+    // Legal type
+    if (answers.legal_type) {
+      const otherText = (answers as any).legal_type_other;
+      if (answers.legal_type === 'other' && otherText) {
+        profileParts.push(`Legal Structure: Other (${otherText})`);
+      } else {
+        profileParts.push(`Legal Structure: ${answers.legal_type}`);
       }
     }
     
@@ -893,6 +944,8 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       location: answers.location,
       company_type: answers.company_type,
       company_stage: answers.company_stage,
+      company_stage_classified: answers.company_stage_classified,
+      legal_type: answers.legal_type,
       funding_amount: answers.funding_amount,
       industry_focus: answers.industry_focus,
       has_answers: Object.keys(answers).length > 0,

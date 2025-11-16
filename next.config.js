@@ -25,6 +25,13 @@ const nextConfig = {
   },
   // Bundle analyzer (uncomment for analysis)
   webpack: (config, { isServer }) => {
+    // Add path aliases for webpack (must match tsconfig.json paths)
+    config.resolve.alias = {
+      ...config.resolve.alias,
+      '@': require('path').resolve(__dirname),
+      '@templates': require('path').resolve(__dirname, 'features/editor/templates'),
+    };
+
     if (!isServer) {
       config.resolve.fallback = {
         ...config.resolve.fallback,
