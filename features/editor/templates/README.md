@@ -22,7 +22,7 @@
 ## Usage
 
 ```typescript
-import { getSections, getDocuments } from '@/shared/templates';
+import { getSections, getDocuments } from '@templates';
 
 // Get sections (master if no program)
 const sections = await getSections('grants');

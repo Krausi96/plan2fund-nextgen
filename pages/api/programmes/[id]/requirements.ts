@@ -159,7 +159,7 @@ async function getProgramRequirements(programId: string) {
       ];
       
       // Use unified template system: Get master + program-specific merge
-      const { getDocuments } = await import('@/shared/templates');
+      const { getDocuments } = await import('@templates');
       
       // Get base URL for server-side API calls
       const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || `http://localhost:${process.env.PORT || 3000}`;

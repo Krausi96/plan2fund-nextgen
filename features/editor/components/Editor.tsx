@@ -4,8 +4,7 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { useRouter } from 'next/router';
 import { PlanDocument, PlanSection, ConversationMessage } from '@/shared/types/plan';
-import { SectionTemplate } from '@/features/editor/templates/types';
-import { getSections } from '@/features/editor/templates';
+import { SectionTemplate, getSections } from '@templates';
 import { createAIHelper } from '@/features/editor/engine/aiHelper';
 import { savePlanSections, loadUserAnswers, savePlanConversations, loadPlanConversations } from '@/shared/user/storage/planStore';
 import { calculateSectionProgress } from '@/features/editor/hooks/useSectionProgress';

@@ -4,7 +4,7 @@ import { useRouter } from "next/router";
 import { isFeatureEnabled, getSubscriptionTier } from "@/shared/user/featureFlags";
 import { loadPlanSections, loadUserAnswers, type PlanSection } from "@/shared/user/storage/planStore";
 import analytics from "@/shared/user/analytics";
-import { getDocuments, getDocument } from "@/shared/templates";
+import { getDocuments, getDocument } from "@templates";
 import { exportManager } from "@/features/export/engine/export";
 import { PlanDocument } from "@/shared/types/plan";
 import { withAuth } from "@/shared/user/auth/withAuth";

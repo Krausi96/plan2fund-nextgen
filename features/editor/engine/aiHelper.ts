@@ -6,7 +6,7 @@
  */
 
 import type { ConversationMessage } from '@/shared/types/plan';
-import { getTemplateKnowledge } from '@/features/editor/templates';
+import { getTemplateKnowledge } from '@templates';
 
 // ProgramTemplate and TemplateSection types removed - using Enhanced Data Pipeline instead
 

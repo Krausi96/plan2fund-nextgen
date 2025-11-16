@@ -1475,7 +1475,22 @@
   "reco.ui.specifyEnvironmentalImpact": "Specify environmental impact (e.g., CO2 reduction, sustainability):",
   "reco.ui.impactEconomicPlaceholder": "e.g., Create 50 jobs, increase regional GDP",
   "reco.ui.impactSocialPlaceholder": "e.g., Improve healthcare access, support education",
-  "reco.ui.impactEnvironmentalPlaceholder": "e.g., Reduce CO2 by 30%, promote circular economy"
+  "reco.ui.impactEnvironmentalPlaceholder": "e.g., Reduce CO2 by 30%, promote circular economy",
+  "reco.ui.regionOptional": "Region (optional)",
+  "reco.ui.regionPlaceholderAustria": "e.g., Vienna, Tyrol, Salzburg",
+  "reco.ui.regionPlaceholderGermany": "e.g., Bavaria, Berlin, Hamburg",
+  "reco.ui.regionPlaceholderEU": "e.g., France, Italy, Spain, or specific region",
+  "reco.ui.regionPlaceholderInternational": "e.g., USA, UK, Switzerland, or specific country/region",
+  "reco.ui.regionLeaveEmpty": "Leave empty if not applicable",
+  "reco.ui.coFinancingPercentage": "What percentage can you provide? (e.g., 20%, 30%, 50%)",
+  "reco.ui.coFinancingPercentagePlaceholder": "e.g., 30%",
+  "reco.ui.coFinancingPercentageHint": "Many programs require 20-50% co-financing",
+  "reco.ui.sliderMonths": "months",
+  "reco.ui.sliderPeople": "people",
+  "reco.ui.yourAnswers": "Your Answers",
+  "reco.ui.notAnswered": "Not answered",
+  "reco.ui.previous": "Previous",
+  "reco.ui.next": "Next"
 }
 
 

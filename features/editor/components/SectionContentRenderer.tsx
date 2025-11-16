@@ -4,7 +4,7 @@
 
 import React, { useState, useRef } from 'react';
 import { PlanSection, Table } from '@/shared/types/plan';
-import { SectionTemplate } from '@/features/editor/templates/types';
+import { SectionTemplate } from '@templates';
 import { sectionNeedsCharts } from '@/features/editor/utils/tableInitializer';
 import { 
   BarChart, Bar, LineChart, Line, PieChart, Pie, Cell,

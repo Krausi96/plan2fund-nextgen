@@ -1454,7 +1454,22 @@
   "reco.ui.specifyEnvironmentalImpact": "Umweltwirkung angeben (z.B. CO2-Reduktion, Nachhaltigkeit):",
   "reco.ui.impactEconomicPlaceholder": "z.B. 50 Arbeitsplätze schaffen, regionales BIP steigern",
   "reco.ui.impactSocialPlaceholder": "z.B. Gesundheitsversorgung verbessern, Bildung unterstützen",
-  "reco.ui.impactEnvironmentalPlaceholder": "z.B. CO2 um 30% reduzieren, Kreislaufwirtschaft fördern"
+  "reco.ui.impactEnvironmentalPlaceholder": "z.B. CO2 um 30% reduzieren, Kreislaufwirtschaft fördern",
+  "reco.ui.regionOptional": "Region (optional)",
+  "reco.ui.regionPlaceholderAustria": "z.B. Wien, Tirol, Salzburg",
+  "reco.ui.regionPlaceholderGermany": "z.B. Bayern, Berlin, Hamburg",
+  "reco.ui.regionPlaceholderEU": "z.B. Frankreich, Italien, Spanien oder spezifische Region",
+  "reco.ui.regionPlaceholderInternational": "z.B. USA, UK, Schweiz oder spezifisches Land/Region",
+  "reco.ui.regionLeaveEmpty": "Leer lassen, wenn nicht zutreffend",
+  "reco.ui.coFinancingPercentage": "Welchen Prozentsatz können Sie bereitstellen? (z.B. 20%, 30%, 50%)",
+  "reco.ui.coFinancingPercentagePlaceholder": "z.B. 30%",
+  "reco.ui.coFinancingPercentageHint": "Viele Programme erfordern 20-50% Eigenmittel",
+  "reco.ui.sliderMonths": "Monate",
+  "reco.ui.sliderPeople": "Personen",
+  "reco.ui.yourAnswers": "Deine Antworten",
+  "reco.ui.notAnswered": "Nicht beantwortet",
+  "reco.ui.previous": "Zurück",
+  "reco.ui.next": "Weiter"
 }
 
 

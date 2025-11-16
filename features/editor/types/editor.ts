@@ -8,8 +8,7 @@
 // CORE EDITOR TYPES
 // ============================================================================
 
-// Re-export existing types to avoid duplication
-export type { EditorSection } from '@/features/editor/engine/dataSource';
+// EditorSection is defined in categoryConverters.ts and used directly
 // EditorRequirement is not used, removed
 
 // Unified editor section (combines both existing types)

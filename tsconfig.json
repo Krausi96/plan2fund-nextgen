@@ -25,7 +25,8 @@
       "@/features/*": ["./features/*"],
       "@/shared/*": ["./shared/*"],
       "@/database/*": ["./database/*"],
-      "@/scraper/*": ["./scraper-lite/src/*"]
+      "@/scraper/*": ["./scraper-lite/src/*"],
+      "@templates": ["./features/editor/templates"]
     },
     "allowJs": true,
     "incremental": true,

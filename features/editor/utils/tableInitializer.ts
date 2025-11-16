@@ -2,7 +2,7 @@
 // Initialize default table structures based on section category
 
 import { Table, PlanSection } from '@/shared/types/plan';
-import { SectionTemplate } from '@/features/editor/templates/types';
+import { SectionTemplate } from '@templates';
 
 /**
  * Create default revenue table structure

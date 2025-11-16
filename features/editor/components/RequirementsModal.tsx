@@ -5,8 +5,7 @@
 
 import React, { useEffect, useState } from 'react';
 import { PlanSection } from '@/shared/types/plan';
-import { SectionTemplate } from '@/features/editor/templates/types';
-import { getTemplateKnowledge } from '@/features/editor/templates';
+import { SectionTemplate, getTemplateKnowledge } from '@templates';
 
 /**
  * Get program requirements for a section category

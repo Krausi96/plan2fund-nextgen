@@ -56,7 +56,7 @@ interface ProgramFinderProps {
     id: 'funding_amount',
     label: 'How much funding do you need?',
     type: 'range' as const,
-    min: 10000,
+    min: 0,
     max: 3000000,
     step: 1000,
     unit: 'EUR',
@@ -252,6 +252,7 @@ interface ProgramFinderProps {
     ],
     required: false,
     priority: 12,
+    editableValue: true, // Allow editing the number directly
   },
 ];
 
@@ -493,25 +494,85 @@ export default function ProgramFinder({
   
   // Removed handleViewAllResults - results are shown inline in ProgramFinder
   
+  // Helper function to format answer for display
+  const formatAnswerForDisplay = (questionId: string, value: any): string => {
+    if (value === undefined || value === null || value === '') return '';
+    
+    const question = getTranslatedQuestions.find(q => q.id === questionId);
+    if (!question) return String(value);
+    
+    if (question.type === 'single-select') {
+      const option = question.options?.find((opt: any) => opt.value === value);
+      if (option) {
+        let display = option.label;
+        // Add region if present
+        if (answers[`${questionId}_region`]) {
+          display += `, ${answers[`${questionId}_region`]}`;
+        }
+        // Add "other" text if present
+        if (value === 'other' && answers[`${questionId}_other`]) {
+          display += `: ${answers[`${questionId}_other`]}`;
+        }
+        // Add percentage if co-financing
+        if (questionId === 'co_financing' && value === 'co_yes' && answers[`${questionId}_percentage`]) {
+          display += ` (${answers[`${questionId}_percentage`]})`;
+        }
+        return display;
+      }
+    } else if (question.type === 'multi-select' && Array.isArray(value)) {
+      const selectedOptions = value
+        .map((v: string) => {
+          const option = question.options?.find((opt: any) => opt.value === v);
+          return option ? option.label : v;
+        })
+        .filter(Boolean);
+      let display = selectedOptions.join(', ');
+      // Add "other" text if present
+      if (value.includes('other') && answers[`${questionId}_other`]) {
+        const otherText = Array.isArray(answers[`${questionId}_other`]) 
+          ? answers[`${questionId}_other`].join(', ')
+          : answers[`${questionId}_other`];
+        display += `: ${otherText}`;
+      }
+      return display;
+    } else if (question.type === 'range') {
+      if (typeof value === 'number') {
+        if (question.unit === 'EUR') {
+          return `€${value.toLocaleString('de-DE')}`;
+        } else if (question.unit === 'months') {
+          return `${value} ${t('reco.ui.sliderMonths') || 'months'}`;
+        } else if (question.unit === 'people') {
+          return `${value} ${t('reco.ui.sliderPeople') || 'people'}`;
+        }
+        return `${value} ${question.unit}`;
+      }
+    }
+    
+    return String(value);
+  };
+  
+  // State for answers summary collapse
+  const [answersSummaryExpanded, setAnswersSummaryExpanded] = useState(true);
+  
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-purple-50">
-      <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
-        {/* Header - Centered with Wizard Icon */}
-        <div className="mb-4 text-center">
-          <div className="flex items-center justify-center gap-3 mb-2">
+      <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-2">
+        {/* Header - Centered with Wizard Icon - Larger but more compact */}
+        <div className="mb-2 text-center">
+          <div className="flex items-center justify-center gap-2 mb-1">
             <div className="w-10 h-10 rounded-full bg-blue-600 flex items-center justify-center shadow-lg">
               <Wand2 className="w-5 h-5 text-yellow-400" />
             </div>
-            <h1 className="text-2xl font-bold text-gray-900">
+            <h1 className="text-2xl sm:text-3xl font-bold text-gray-900">
               {t('reco.pageTitle')}
             </h1>
           </div>
-          <p className="text-gray-600 text-sm">
+          <p className="text-gray-600 text-xs sm:text-sm">
             {t('reco.pageSubtitle')}
           </p>
           
           {results.length > 0 && (
-            <div className="mt-2 text-xs text-gray-600">
+            <div className="mt-1 text-xs text-gray-600">
               {results.length} program{results.length !== 1 ? 's' : ''} found
             </div>
           )}
@@ -543,71 +604,127 @@ export default function ProgramFinder({
           </div>
         </div>
 
-        <div className="flex flex-col gap-8">
-          {/* Questions/Filters - Centered and full width */}
-          <div className={`${mobileActiveTab === 'results' ? 'hidden lg:block' : ''}`}>
-            <Card className="p-3 max-w-xl mx-auto w-full">
-              <div className="space-y-3">
-                  {/* Simple Header with Generate Button */}
-                  <div className="flex items-center justify-between mb-3">
-                    {/* Question Navigation Header */}
-                    <div>
-                      <p className="text-base font-semibold text-gray-800">{t('reco.ui.questions') || 'Questions'}</p>
+        <div className="flex flex-col gap-2">
+          {/* Answers Summary Section - NEW - More Compact */}
+          {answeredCount > 0 && (
+            <Card className="p-3 max-w-5xl mx-auto w-full bg-white border-2 border-blue-100 shadow-md">
+              <div className="flex items-center justify-between mb-1">
+                <div className="flex items-center gap-2">
+                  <span className="text-base">📊</span>
+                  <h2 className="text-base font-semibold text-gray-800">
+                    {t('reco.ui.yourAnswers') || 'Deine Antworten'} ({answeredCount}/{visibleQuestions.length})
+                  </h2>
+                </div>
+                <div className="flex items-center gap-3">
+                  {/* Generate Button - Prominent */}
+                  {hasEnoughAnswers && !showResults && (
+                    <button
+                      onClick={() => {
+                        setShowResults(true);
+                        updateGuidedResults();
+                      }}
+                      disabled={isLoading}
+                      className="px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-all text-sm font-semibold shadow-lg hover:shadow-xl disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2 transform hover:scale-105"
+                    >
+                      {isLoading ? (
+                        <>
+                          <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
+                          <span>{t('reco.generating') || 'Generating...'}</span>
+                        </>
+                      ) : (
+                        <>
+                          <Wand2 className="w-4 h-4" />
+                          <span>{t('reco.generateButton')}</span>
+                        </>
+                      )}
+                    </button>
+                  )}
+                  {answeredCount > 0 && !hasEnoughAnswers && (
+                    <div className="text-xs text-gray-500 text-right">
+                      <div className="font-medium">{answeredCount} / {MIN_QUESTIONS_FOR_RESULTS} {t('reco.ui.required') || 'required'}</div>
+                      <div className="text-gray-400">
+                        {(t('reco.ui.answerMore') || 'Answer {count} more to generate results').replace('{count}', String(MIN_QUESTIONS_FOR_RESULTS - answeredCount))}
+                      </div>
                     </div>
-                    {/* Generate Button - appears when user has enough answers (6+) */}
-                    {hasEnoughAnswers && !showResults && (
-                      <div className="flex flex-col items-end gap-1">
-                        <button
-                          onClick={() => {
-                            setShowResults(true);
-                            updateGuidedResults();
-                          }}
-                          disabled={isLoading}
-                          className="px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-all text-sm font-semibold shadow-lg hover:shadow-xl disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2 transform hover:scale-105"
-                        >
-                          {isLoading ? (
-                            <>
-                              <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
-                              <span>{t('reco.generating') || 'Generating...'}</span>
-                            </>
-                          ) : (
-                            <>
-                              <Wand2 className="w-4 h-4" />
-                              <span>{t('reco.generateButton')}</span>
-                            </>
-                          )}
-                        </button>
-                        <div className="text-xs text-gray-600 font-medium">
-                          {answeredCount} / {visibleQuestions.length} {t('reco.ui.questionsAnswered') || 'questions answered'}
-                        </div>
-                      </div>
+                  )}
+                  <button
+                    onClick={() => setAnswersSummaryExpanded(!answersSummaryExpanded)}
+                    className="text-gray-500 hover:text-gray-700 transition-colors"
+                    aria-label={answersSummaryExpanded ? 'Collapse' : 'Expand'}
+                  >
+                    {answersSummaryExpanded ? (
+                      <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 15l7-7 7 7" />
+                      </svg>
+                    ) : (
+                      <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                      </svg>
                     )}
-                    {/* Message when user hasn't answered enough questions yet */}
-                    {answeredCount > 0 && !hasEnoughAnswers && (
-                      <div className="flex flex-col items-end gap-1">
-                        <div className="text-xs text-gray-500">
-                          {answeredCount} / {MIN_QUESTIONS_FOR_RESULTS} {t('reco.ui.required') || 'required'}
+                  </button>
+                </div>
+              </div>
+              
+              {answersSummaryExpanded && (
+                <div className="mt-2 pt-2 border-t border-gray-200">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-1.5 text-xs">
+                    {visibleQuestions.map((q, idx) => {
+                      const value = answers[q.id];
+                      const isAnswered = value !== undefined && value !== null && value !== '' && 
+                                       !(Array.isArray(value) && value.length === 0);
+                      const formattedAnswer = isAnswered ? formatAnswerForDisplay(q.id, value) : null;
+                      
+                      return (
+                        <div key={q.id} className="flex items-start gap-2">
+                          <span className={`flex-shrink-0 mt-0.5 ${isAnswered ? 'text-green-600' : 'text-gray-400'}`}>
+                            {isAnswered ? (
+                              <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
+                                <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
+                              </svg>
+                            ) : (
+                              <span className="text-xs">-</span>
+                            )}
+                          </span>
+                          <div className="flex-1 min-w-0">
+                            <span className="font-medium text-gray-700">Q{idx + 1}:</span>{' '}
+                            {formattedAnswer ? (
+                              <span className="text-gray-900 break-words">{formattedAnswer}</span>
+                            ) : (
+                              <span className="text-gray-400 italic">{t('reco.ui.notAnswered') || 'Not answered'}</span>
+                            )}
+                          </div>
                         </div>
-                        <div className="text-xs text-gray-400">
-                          {(t('reco.ui.answerMore') || 'Answer {count} more to generate results').replace('{count}', String(MIN_QUESTIONS_FOR_RESULTS - answeredCount))}
-                        </div>
-                      </div>
-                    )}
+                      );
+                    })}
+                  </div>
+                </div>
+              )}
+            </Card>
+          )}
+          
+          {/* Questions/Filters - More Visually Separated */}
+          <div className={`${mobileActiveTab === 'results' ? 'hidden lg:block' : ''}`}>
+            <Card className="p-4 max-w-2xl mx-auto w-full bg-gradient-to-br from-white to-blue-50/30 border-2 border-blue-300 shadow-lg">
+              <div className="space-y-3">
+                  {/* Question Navigation Header */}
+                  <div className="mb-2">
+                    <p className="text-base font-semibold text-gray-800">{t('reco.ui.questions') || 'Questions'}</p>
                   </div>
                   
                   {/* Horizontal Question Navigation */}
                   {visibleQuestions.length > 0 && (
                     <div className="relative">
-                      {/* Question Navigation Dots */}
-                      <div className="flex justify-center gap-1.5 mb-3 flex-wrap">
+                      {/* Question Navigation Dots - More Compact */}
+                      <div className="flex justify-center gap-1 mb-2 flex-wrap">
                         {visibleQuestions.map((_, idx) => {
                           const q = visibleQuestions[idx];
-                          const isAnswered = answers[q.id] !== undefined && answers[q.id] !== null && answers[q.id] !== '';
+                          const isAnswered = answers[q.id] !== undefined && answers[q.id] !== null && answers[q.id] !== '' && 
+                                           !(Array.isArray(answers[q.id]) && answers[q.id].length === 0);
                           return (
                             <button
                               key={idx}
                               onClick={() => setCurrentQuestionIndex(idx)}
-                              className={`w-8 h-8 rounded-full flex items-center justify-center text-xs font-semibold transition-all ${
+                              className={`w-7 h-7 rounded-full flex items-center justify-center text-xs font-semibold transition-all ${
                                 idx === currentQuestionIndex
                                   ? 'bg-blue-600 text-white shadow-lg scale-110'
                                   : isAnswered
@@ -621,8 +738,35 @@ export default function ProgramFinder({
                         })}
                       </div>
                       
-                      {/* Current Question Display */}
-                      <div className="relative bg-white rounded-lg border border-gray-200 shadow-sm p-4">
+                      {/* Current Question Display - With Prominent Navigation */}
+                      <div className="relative bg-white rounded-lg border-2 border-blue-200 shadow-md p-4">
+                        {/* Prominent Previous Button - Left Side */}
+                        <button
+                          onClick={() => setCurrentQuestionIndex(Math.max(0, currentQuestionIndex - 1))}
+                          disabled={currentQuestionIndex === 0}
+                          className={`absolute left-0 top-1/2 -translate-y-1/2 -translate-x-16 sm:-translate-x-20 flex items-center gap-1.5 sm:gap-2 px-2 sm:px-4 py-2.5 rounded-lg font-medium text-xs sm:text-sm transition-all shadow-lg z-10 whitespace-nowrap ${
+                            currentQuestionIndex === 0
+                              ? 'opacity-40 cursor-not-allowed bg-gray-300 text-gray-500'
+                              : 'bg-blue-600 text-white hover:bg-blue-700 hover:scale-105 active:scale-95'
+                          }`}
+                        >
+                          <ChevronLeft className="w-4 h-4 sm:w-5 sm:h-5" />
+                          <span className="hidden sm:inline">{t('reco.ui.previous') || 'Previous'}</span>
+                        </button>
+                        
+                        {/* Prominent Next Button - Right Side */}
+                        <button
+                          onClick={() => setCurrentQuestionIndex(Math.min(visibleQuestions.length - 1, currentQuestionIndex + 1))}
+                          disabled={currentQuestionIndex === visibleQuestions.length - 1}
+                          className={`absolute right-0 top-1/2 -translate-y-1/2 translate-x-16 sm:translate-x-20 flex items-center gap-1.5 sm:gap-2 px-2 sm:px-4 py-2.5 rounded-lg font-medium text-xs sm:text-sm transition-all shadow-lg z-10 whitespace-nowrap ${
+                            currentQuestionIndex === visibleQuestions.length - 1
+                              ? 'opacity-40 cursor-not-allowed bg-gray-300 text-gray-500'
+                              : 'bg-blue-600 text-white hover:bg-blue-700 hover:scale-105 active:scale-95'
+                          }`}
+                        >
+                          <span className="hidden sm:inline">{t('reco.ui.next') || 'Next'}</span>
+                          <ChevronRight className="w-4 h-4 sm:w-5 sm:h-5" />
+                        </button>
                         {(() => {
                           const question = visibleQuestions[currentQuestionIndex];
                           if (!question) return null;
@@ -699,15 +843,15 @@ export default function ProgramFinder({
                                         {showRegionInput && (
                                           <div className="ml-4 space-y-1.5 border-l-2 border-blue-200 pl-3 pt-1">
                                             <label className="text-xs font-medium text-gray-600 mb-1 block">
-                                              Region (optional)
+                                              {t('reco.ui.regionOptional') || 'Region (optional)'}
                                             </label>
                                             <input
                                               type="text"
                                               placeholder={
-                                                option.value === 'austria' ? 'e.g., Vienna, Tyrol, Salzburg' : 
-                                                option.value === 'germany' ? 'e.g., Bavaria, Berlin, Hamburg' : 
-                                                option.value === 'eu' ? 'e.g., France, Italy, Spain, or specific region' :
-                                                'e.g., USA, UK, Switzerland, or specific country/region'
+                                                option.value === 'austria' ? (t('reco.ui.regionPlaceholderAustria') || 'e.g., Vienna, Tyrol, Salzburg') : 
+                                                option.value === 'germany' ? (t('reco.ui.regionPlaceholderGermany') || 'e.g., Bavaria, Berlin, Hamburg') : 
+                                                option.value === 'eu' ? (t('reco.ui.regionPlaceholderEU') || 'e.g., France, Italy, Spain, or specific region') :
+                                                (t('reco.ui.regionPlaceholderInternational') || 'e.g., USA, UK, Switzerland, or specific country/region')
                                               }
                                               value={regionValue}
                                               onChange={(e) => {
@@ -716,7 +860,7 @@ export default function ProgramFinder({
                                               className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                                             />
                                             <p className="text-xs text-gray-500">
-                                              Leave empty if not applicable
+                                              {t('reco.ui.regionLeaveEmpty') || 'Leave empty if not applicable'}
                                             </p>
                                           </div>
                                         )}
@@ -725,11 +869,11 @@ export default function ProgramFinder({
                                         {isOtherOption && isSelected && question.hasOtherTextInput && (
                                           <div className="ml-4 space-y-1.5 border-l-2 border-blue-200 pl-3 pt-1">
                                             <label className="text-xs font-medium text-gray-600 mb-1 block">
-                                              Please specify:
+                                              {t('reco.ui.pleaseSpecify') || 'Please specify:'}
                                             </label>
                                             <input
                                               type="text"
-                                              placeholder="Enter your answer..."
+                                              placeholder={t('reco.ui.enterAnswer') || 'Enter your answer...'}
                                               value={otherTextValue}
                                               onChange={(e) => {
                                                 handleAnswer(`${question.id}_other`, e.target.value);
@@ -743,11 +887,11 @@ export default function ProgramFinder({
                                         {question.hasCoFinancingPercentage && isSelected && option.value === 'co_yes' && (
                                           <div className="ml-4 space-y-1.5 border-l-2 border-blue-200 pl-3 pt-1">
                                             <label className="text-xs font-medium text-gray-600 mb-1 block">
-                                              What percentage can you provide? (e.g., 20%, 30%, 50%)
+                                              {t('reco.ui.coFinancingPercentage') || 'What percentage can you provide? (e.g., 20%, 30%, 50%)'}
                                             </label>
                                             <input
                                               type="text"
-                                              placeholder="e.g., 30%"
+                                              placeholder={t('reco.ui.coFinancingPercentagePlaceholder') || 'e.g., 30%'}
                                               value={(answers[`${question.id}_percentage`] as string) || ''}
                                               onChange={(e) => {
                                                 handleAnswer(`${question.id}_percentage`, e.target.value);
@@ -755,7 +899,7 @@ export default function ProgramFinder({
                                               className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                                             />
                                             <p className="text-xs text-gray-500">
-                                              Many programs require 20-50% co-financing
+                                              {t('reco.ui.coFinancingPercentageHint') || 'Many programs require 20-50% co-financing'}
                                             </p>
                                           </div>
                                         )}
@@ -796,7 +940,9 @@ export default function ProgramFinder({
                                     return (
                                       <div key={option.value} className="space-y-1.5">
                                         <button
-                                          onClick={() => {
+                                          onClick={(e) => {
+                                            e.preventDefault();
+                                            e.stopPropagation();
                                             const current = Array.isArray(value) ? value : [];
                                             let newValue: any[];
                                             
@@ -814,13 +960,15 @@ export default function ProgramFinder({
                                               if (!isSelected && current.includes('no_partnerships')) {
                                                 newValue = [...current.filter(v => v !== 'no_partnerships'), option.value];
                                               } else {
+                                                // Toggle: if selected, deselect; if not selected, select
                                                 newValue = isSelected
                                                   ? current.filter(v => v !== option.value)
                                                   : [...current, option.value];
                                               }
                                             }
                                             
-                                            handleAnswer(question.id, newValue);
+                                            // Set to undefined if array is empty (to properly clear the answer)
+                                            handleAnswer(question.id, newValue.length > 0 ? newValue : undefined);
                                             // Clear sub-categories if deselecting
                                             if (isSelected && hasSubCategories) {
                                               handleAnswer(subCategoryKey, undefined);
@@ -1026,12 +1174,12 @@ export default function ProgramFinder({
                                       <span className="text-sm text-gray-600">
                                         {question.unit === 'EUR' ? '€' : ''}
                                         {question.min.toLocaleString('de-DE')}
-                                        {question.unit === 'EUR' ? '' : ` ${question.unit}`}
+                                        {question.unit === 'EUR' ? '' : question.unit === 'months' ? ` ${t('reco.ui.sliderMonths') || 'months'}` : question.unit === 'people' ? ` ${t('reco.ui.sliderPeople') || 'people'}` : ` ${question.unit}`}
                                       </span>
                                       <span className="text-sm text-gray-600">
                                         {question.unit === 'EUR' ? '€' : ''}
                                         {question.max.toLocaleString('de-DE')}
-                                        {question.unit === 'EUR' ? '' : ` ${question.unit}`}
+                                        {question.unit === 'EUR' ? '' : question.unit === 'months' ? ` ${t('reco.ui.sliderMonths') || 'months'}` : question.unit === 'people' ? ` ${t('reco.ui.sliderPeople') || 'people'}` : ` ${question.unit}`}
                                       </span>
                                     </div>
                                     <input
@@ -1060,11 +1208,19 @@ export default function ProgramFinder({
                                                 ? `€${value.toLocaleString('de-DE')}`
                                                 : question.unit === 'years'
                                                 ? `${value.toFixed(1)} ${question.unit}`
+                                                : question.unit === 'months'
+                                                ? `${value} ${t('reco.ui.sliderMonths') || 'months'}`
+                                                : question.unit === 'people'
+                                                ? `${value} ${t('reco.ui.sliderPeople') || 'people'}`
                                                 : `${value} ${question.unit}`)
                                             : (question.unit === 'EUR' 
                                                 ? `€${question.min.toLocaleString('de-DE')}`
                                                 : question.unit === 'years'
                                                 ? `${question.min.toFixed(1)} ${question.unit}`
+                                                : question.unit === 'months'
+                                                ? `${question.min} ${t('reco.ui.sliderMonths') || 'months'}`
+                                                : question.unit === 'people'
+                                                ? `${question.min} ${t('reco.ui.sliderPeople') || 'people'}`
                                                 : `${question.min} ${question.unit}`)}
                                           onChange={(e) => {
                                             let cleaned = e.target.value;
@@ -1081,8 +1237,25 @@ export default function ProgramFinder({
                                               if (!isNaN(numValue) && numValue >= question.min && numValue <= question.max) {
                                                 handleAnswer(question.id, numValue);
                                               }
+                                            } else if (question.unit === 'months') {
+                                              // Remove translated months text
+                                              const monthsText = t('reco.ui.sliderMonths') || 'months';
+                                              cleaned = cleaned.replace(new RegExp(`[${monthsText}\\s]`, 'gi'), '');
+                                              cleaned = cleaned.replace(/[months\s]/gi, '');
+                                              const numValue = parseInt(cleaned);
+                                              if (!isNaN(numValue) && numValue >= question.min && numValue <= question.max) {
+                                                handleAnswer(question.id, numValue);
+                                              }
+                                            } else if (question.unit === 'people') {
+                                              // Remove translated people text
+                                              const peopleText = t('reco.ui.sliderPeople') || 'people';
+                                              cleaned = cleaned.replace(new RegExp(`[${peopleText}\\s]`, 'gi'), '');
+                                              cleaned = cleaned.replace(/[people\s]/gi, '');
+                                              const numValue = parseInt(cleaned);
+                                              if (!isNaN(numValue) && numValue >= question.min && numValue <= question.max) {
+                                                handleAnswer(question.id, numValue);
+                                              }
                                             } else {
-                                              // Handle months and people
                                               cleaned = cleaned.replace(/[months\speople\s]/gi, '');
                                               const numValue = parseInt(cleaned);
                                               if (!isNaN(numValue) && numValue >= question.min && numValue <= question.max) {
@@ -1109,8 +1282,27 @@ export default function ProgramFinder({
                                               } else if (numValue > question.max) {
                                                 handleAnswer(question.id, question.max);
                                               }
+                                            } else if (question.unit === 'months') {
+                                              const monthsText = t('reco.ui.sliderMonths') || 'months';
+                                              cleaned = cleaned.replace(new RegExp(`[${monthsText}\\s]`, 'gi'), '');
+                                              cleaned = cleaned.replace(/[months\s]/gi, '');
+                                              const numValue = parseInt(cleaned);
+                                              if (isNaN(numValue) || numValue < question.min) {
+                                                handleAnswer(question.id, question.min);
+                                              } else if (numValue > question.max) {
+                                                handleAnswer(question.id, question.max);
+                                              }
+                                            } else if (question.unit === 'people') {
+                                              const peopleText = t('reco.ui.sliderPeople') || 'people';
+                                              cleaned = cleaned.replace(new RegExp(`[${peopleText}\\s]`, 'gi'), '');
+                                              cleaned = cleaned.replace(/[people\s]/gi, '');
+                                              const numValue = parseInt(cleaned);
+                                              if (isNaN(numValue) || numValue < question.min) {
+                                                handleAnswer(question.id, question.min);
+                                              } else if (numValue > question.max) {
+                                                handleAnswer(question.id, question.max);
+                                              }
                                             } else {
-                                              // Handle months and people
                                               cleaned = cleaned.replace(/[months\speople\s]/gi, '');
                                               const numValue = parseInt(cleaned);
                                               if (isNaN(numValue) || numValue < question.min) {
@@ -1128,7 +1320,7 @@ export default function ProgramFinder({
                                           {typeof value === 'number' 
                                             ? value.toLocaleString('de-DE', { minimumFractionDigits: question.unit === 'years' ? 1 : 0, maximumFractionDigits: question.unit === 'years' ? 1 : 0 })
                                             : question.min.toLocaleString('de-DE')}
-                                          {question.unit === 'EUR' ? '' : ` ${question.unit}`}
+                                          {question.unit === 'EUR' ? '' : question.unit === 'months' ? ` ${t('reco.ui.sliderMonths') || 'months'}` : question.unit === 'people' ? ` ${t('reco.ui.sliderPeople') || 'people'}` : ` ${question.unit}`}
                                         </span>
                                       )}
                                     </div>
@@ -1168,33 +1360,6 @@ export default function ProgramFinder({
                           );
                         })()}
                         
-                        {/* Navigation Arrows - Smaller */}
-                        <div className="absolute top-1/2 -translate-y-1/2 left-0 -translate-x-3">
-                          <button
-                            onClick={() => setCurrentQuestionIndex(Math.max(0, currentQuestionIndex - 1))}
-                            disabled={currentQuestionIndex === 0}
-                            className={`w-8 h-8 rounded-full bg-blue-600 border border-blue-700 flex items-center justify-center shadow-md transition-all ${
-                              currentQuestionIndex === 0
-                                ? 'opacity-40 cursor-not-allowed bg-gray-400 border-gray-500'
-                                : 'hover:bg-blue-700 hover:scale-105 active:scale-95'
-                            }`}
-                          >
-                            <ChevronLeft className="w-4 h-4 text-white" />
-                          </button>
-                        </div>
-                        <div className="absolute top-1/2 -translate-y-1/2 right-0 translate-x-3">
-                          <button
-                            onClick={() => setCurrentQuestionIndex(Math.min(visibleQuestions.length - 1, currentQuestionIndex + 1))}
-                            disabled={currentQuestionIndex === visibleQuestions.length - 1}
-                            className={`w-8 h-8 rounded-full bg-blue-600 border border-blue-700 flex items-center justify-center shadow-md transition-all ${
-                              currentQuestionIndex === visibleQuestions.length - 1
-                                ? 'opacity-40 cursor-not-allowed bg-gray-400 border-gray-500'
-                                : 'hover:bg-blue-700 hover:scale-105 active:scale-95'
-                            }`}
-                          >
-                            <ChevronRight className="w-4 h-4 text-white" />
-                          </button>
-                        </div>
                       </div>
                     </div>
                   )}

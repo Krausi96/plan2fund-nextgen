@@ -4,7 +4,6 @@
  * Integrates with Dynamic Decision Trees and Program-Specific Templates
  */
 
-import { dataSource } from '@/features/editor/engine/dataSource';
 import { calculateQualityMetrics, QualityMetrics } from './qualityScoring';
 import { predictQualityScores, QualityPredictionResult } from './mlModels';
 // ProgramTemplate type removed - using Enhanced Data Pipeline instead
@@ -926,23 +925,34 @@ export const PROGRAM_REQUIREMENTS: { [key: string]: ProgramRequirements } = {
  * Get program requirements by type
  */
 export async function getProgramRequirements(type: string): Promise<ProgramRequirements | null> {
-  // Try to get from enhanced data source first
+  // Try to get from API first
   try {
-    const programs = await dataSource.getProgramsByType(type);
-    if (programs.length > 0) {
-      // Convert program to requirements format
-      const program = programs[0];
-      return {
-        id: program.id,
-        name: program.name,
-        type: program.type as any,
-        requirements: program.requirements || {},
-        eligibility: {},
-        scoring: {}
-      };
+    const isBrowser = typeof window !== 'undefined';
+    const apiUrl = isBrowser
+      ? `/api/programs?type=${type}`
+      : (process.env.VERCEL_URL 
+          ? `https://${process.env.VERCEL_URL}/api/programs?type=${type}` 
+          : `http://localhost:3000/api/programs?type=${type}`);
+    
+    const response = await fetch(apiUrl);
+    if (response.ok) {
+      const data = await response.json();
+      const programs = data.programs || [];
+      if (programs.length > 0) {
+        // Convert program to requirements format
+        const program = programs[0];
+        return {
+          id: program.id,
+          name: program.name,
+          type: program.type as any,
+          requirements: program.requirements || {},
+          eligibility: {},
+          scoring: {}
+        };
+      }
     }
   } catch {
-    console.log('Could not get requirements from data source, using fallback');
+    console.log('Could not get requirements from API, using fallback');
   }
   
   // Fallback to static requirements

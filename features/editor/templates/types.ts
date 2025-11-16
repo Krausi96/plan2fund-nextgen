@@ -1,5 +1,5 @@
-// ========= PLAN2FUND — EDITOR TEMPLATE TYPES =========
-// Types for section templates (used by editor only)
+// ========= PLAN2FUND — TEMPLATE TYPES =========
+// Shared types used by both index.ts and data files
 
 /**
  * Question for guided editing mode
@@ -39,4 +39,32 @@ export interface SectionTemplate {
   };
 }
 
+/**
+ * Document template (for additional documents)
+ */
+export interface DocumentTemplate {
+  id: string;
+  name: string;
+  description: string;
+  required: boolean;
+  format: 'pdf' | 'docx' | 'xlsx' | 'pptx' | 'text';
+  maxSize: string;
+  template: string; // Full markdown/text template
+  instructions: string[];
+  examples: string[];
+  commonMistakes: string[];
+  category: string;
+  fundingTypes: string[];
+  // Variable document support
+  isVariable?: boolean; // If true, user can customize structure
+  defaultStructure?: string; // Default structure if variable
+  // Source tracking
+  source?: {
+    verified: boolean;
+    verifiedDate?: string;
+    officialProgram?: string;
+    sourceUrl?: string;
+    version?: string;
+  };
+}
 
