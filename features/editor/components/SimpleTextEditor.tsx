@@ -1,8 +1,6 @@
 // ========= PLAN2FUND — SIMPLE GOOGLE DOCS-STYLE EDITOR =========
 // Clean, simple editor - no heavy toolbar, just good looking text editing
 
-'use client';
-
 import React, { useState, useRef } from 'react';
 
 interface SimpleTextEditorProps {

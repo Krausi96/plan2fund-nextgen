@@ -143,8 +143,9 @@ function filterSeedsByAnswers(seeds: SeedEntry[], answers: UserAnswers): SeedEnt
 
 /**
  * Check if extracted program matches user answers (using normalization)
+ * @param threshold - Minimum match ratio (default: 0.15 = 15%)
  */
-function matchesAnswers(extracted: any, answers: UserAnswers): boolean {
+function matchesAnswers(extracted: any, answers: UserAnswers, threshold: number = 0.15): boolean {
   const categorized = extracted.categorized_requirements || {};
   const metadata = extracted.metadata || {};
   let matchCount = 0;
@@ -303,7 +304,7 @@ function matchesAnswers(extracted: any, answers: UserAnswers): boolean {
   }
 
   // For LLM-generated programs, be more lenient - don't filter out if they're close
-  // Require at least 20% of checks to pass (lowered from 30% for better coverage)
+  // Require at least 15% of checks to pass (lowered from 20% for better coverage)
   // Critical checks (location, company_type) must pass if checked
   const allCriticalPass = criticalChecks.length === 0 || criticalChecks.every(c => c);
   const matchRatio = totalChecks > 0 ? matchCount / totalChecks : 1;
@@ -311,7 +312,7 @@ function matchesAnswers(extracted: any, answers: UserAnswers): boolean {
   // More lenient matching for LLM-generated programs
   // If critical checks pass but match ratio is low, still allow if it's LLM-generated
   // This ensures we don't filter out valid programs due to strict matching
-  return allCriticalPass && matchRatio >= 0.2;
+  return allCriticalPass && matchRatio >= 0.15;
 }
 
 /**

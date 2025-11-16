@@ -1,8 +1,6 @@
 // ========= PLAN2FUND — INLINE TABLE CREATOR =========
 // Simple inline table creation - no modal, directly in editor
 
-'use client';
-
 import React, { useState } from 'react';
 import { Table } from '@/features/editor/types/plan';
 import { SectionTemplate } from '@templates';

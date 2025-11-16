@@ -139,23 +139,156 @@ The test will:
    - Verify critical fields are extracted
    - Check if requirements are accurate
 
+## Test Results Analysis
+
+### ✅ Test Completed Successfully
+
+**Date:** Test run completed
+**Total Personas Tested:** 16
+**Total Programs Generated:** 42
+**Average Programs per Persona:** 2.6
+**Unique Programs:** 40
+
+### ⚠️ Critical Issues Found
+
+#### 1. **9 Personas Getting 0 Results (56% failure rate)**
+
+**Personas with 0 results:**
+- Early Stage Startup (Vienna, Digital) - €100k
+- Pre-Founder (Solo, Idea Stage) - €50k
+- Early Stage Startup (Tyrol, Digital) - €150k
+- SME (Salzburg, Manufacturing, €200k-€500k) - €400k
+- Scale-Up (Vienna, €1M-€2M) - €1.5M
+- Early Stage Startup (Upper Austria, Manufacturing) - €200k
+- Growth Stage Startup (Carinthia, Digital) - €600k
+- Pre-Founder (Burgenland, Idea Stage) - €30k
+- Research Institution (EU, Sustainability, €2M+) - €2M
+
+**Patterns:**
+- **Early-stage startups** (3-6 months) consistently get 0 results
+- **Pre-founders** (pre-incorporation) get 0 results (normalization may not be working)
+- **Large funding amounts** (€1M-€2M) get 0 results
+- **EU research projects** get 0 results
+- **Some regional SMEs** get 0 results (Salzburg, Upper Austria)
+
+**Possible Causes:**
+1. LLM generation failing for certain profiles
+2. Matching logic too strict (20% threshold may still be too high)
+3. Pre-founder normalization not working correctly
+4. Large funding amounts not matching any programs
+5. EU location not matching properly
+
+#### 2. **Extraction Quality Issues**
+
+**Category Coverage (42 programs):**
+- ✅ **eligibility:** 100% (42/42)
+- ✅ **project:** 98% (41/42)
+- ⚠️ **funding_details:** 67% (28/42)
+- ⚠️ **geographic:** 62% (26/42)
+- ❌ **financial:** 10% (4/42)
+- ❌ **impact:** 2% (1/42)
+- ❌ **timeline:** 0% (0/42)
+- ❌ **team:** 0% (0/42)
+- ❌ **application:** 0% (0/42)
+- ❌ **documentation:** 0% (0/42)
+- ❌ **evaluation:** 0% (0/42)
+- ❌ **reporting:** 0% (0/42)
+- ❌ **compliance:** 0% (0/42)
+- ❌ **other:** 0% (0/42)
+- ❌ **metadata:** 0% (0/42)
+
+**Critical Fields:**
+- ✅ **location:** 100% (42/42) - EXCELLENT
+- ⚠️ **company_type:** 79% (33/42) - NEEDS IMPROVEMENT
+- ✅ **funding_amount:** 100% (42/42) - EXCELLENT
+
+**Issues:**
+- Only 4 out of 15 categories have good coverage (>50%)
+- 11 categories have 0% coverage
+- Missing critical categories: timeline, team, application, documentation
+
+#### 3. **Inconsistent Result Counts**
+
+- **Range:** 0-11 programs per persona
+- **Target:** 3-10 programs per persona
+- **9 personas** below target (0 results)
+- **1 persona** above target (11 results)
+
+#### 4. **Program Overlap**
+
+- **2 programs** appear in multiple personas:
+  - FFG Basisprogramm (General Programme): 2 personas
+  - FFG Produktionsforschung (Production Research): 2 personas
+- **Good diversity** overall (40 unique programs from 42 total)
+
+### ✅ Positive Findings
+
+1. **Location matching:** 100% of programs have location extracted
+2. **Funding amount matching:** 100% of programs have funding amounts
+3. **Eligibility extraction:** 100% of programs have eligibility requirements
+4. **Project extraction:** 98% of programs have project requirements
+5. **Some personas work well:**
+   - Growth Stage Startup (Vienna, Multi-Industry): 5 programs
+   - Research Institution (Vienna, Health): 8 programs
+   - SME (Vorarlberg, €500k-€1M): 11 programs
+   - Micro Startup (Lower Austria, €5k-€50k): 6 programs
+
 ## Next Steps
 
-1. **Run the test** (requires server running)
-2. **Analyze results** for patterns:
-   - Which personas get 0 results? Why?
-   - Which personas get many results? Why?
-   - Are there gaps in coverage?
-3. **Check extraction quality:**
-   - Are all 15 categories populated?
-   - Are critical fields extracted?
-   - Are requirements accurate?
-4. **Test UI display:**
+### Immediate Actions Required
+
+1. **Fix 0 Results Issue:**
+   - Investigate why early-stage startups get 0 results
+   - Check pre-founder normalization (should map to startup)
+   - Lower matching threshold further (from 20% to 15%?)
+   - Check LLM generation for these profiles
+
+2. **Improve Extraction Quality:**
+   - Focus on missing categories: timeline, team, application, documentation
+   - Improve company_type extraction (currently 79%)
+   - Add more categories to extraction prompt
+
+3. **Test UI Display:**
    - Answer 6+ questions in Q&A
    - Click "Förderprogramm generieren"
    - Check if programs appear in results section
    - Check browser console for errors
-5. **Document findings** and propose fixes
+   - Verify categorized_requirements are displayed
+
+4. **Document Specific Fixes:**
+   - Pre-founder normalization issue
+   - Early-stage startup matching issue
+   - Large funding amount matching issue
+   - EU location matching issue
+
+## Root Cause Analysis
+
+### Why 0 Results?
+
+**Observation:** When personas get 0 results, the source is "mixed" not "llm_generated", suggesting:
+1. LLM generates programs
+2. Programs are filtered out by matching logic
+3. No programs pass the matching threshold
+
+**Matching Logic:**
+- Current threshold: 20% match ratio
+- Critical checks: location and company_type must pass
+- If critical checks fail → program is filtered out
+
+**Possible Issues:**
+1. **Pre-founder normalization:** Maps to 'startup' but extracted programs might not match
+2. **Early-stage matching:** Programs might require more mature companies
+3. **Large funding amounts:** Programs might have lower max amounts
+4. **EU location:** Programs might be Austria-specific, not EU-wide
+
+### Recommendations
+
+1. **Lower matching threshold** from 20% to 15% or 10%
+2. **Make company_stage non-critical** (already done, but verify)
+3. **Improve pre-founder matching** - ensure extracted programs accept 'startup'
+4. **Add fallback logic** - if 0 results, retry with more lenient matching
+5. **Improve extraction** - ensure all 15 categories are extracted
+6. **Add logging** - log why programs are filtered out
 
 ## Files Modified
 
