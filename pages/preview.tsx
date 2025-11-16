@@ -275,6 +275,7 @@ function Preview() {
                   content: section.content,
                   status: "missing" as const,
                   tables: (section as any).tables,
+                  chartTypes: (section as any).chartTypes, // Include chart types
                   figures: (section as any).figures
                 })),
                 addonPack: false,

@@ -1643,6 +1643,102 @@ export default function ProgramFinder({
               </div>
             </Card>
           </div>
+          
+          {/* Results Display Section */}
+          <div className={`${mobileActiveTab === 'questions' ? 'hidden lg:block' : 'block'} ${results.length === 0 ? 'hidden' : ''}`}>
+            {results.length > 0 ? (
+              <div className="max-w-4xl mx-auto mt-6">
+                <h2 className="text-2xl font-bold text-gray-900 mb-4">
+                  {locale === 'de' ? 'Gefundene Förderprogramme' : 'Found Funding Programs'} ({results.length})
+                </h2>
+                <div className="space-y-4">
+                  {results.map((program, index) => (
+                    <Card key={program.id || index} className="p-6 border-2 border-blue-200 hover:border-blue-400 transition-all">
+                      <div className="flex items-start justify-between gap-4">
+                        <div className="flex-1">
+                          <div className="flex items-center gap-3 mb-2">
+                            <h3 className="text-xl font-semibold text-gray-900">
+                              {program.name || `Program ${index + 1}`}
+                            </h3>
+                            {program.score !== undefined && (
+                              <span className={`px-3 py-1 rounded-full text-sm font-medium ${
+                                program.score >= 70 ? 'bg-green-100 text-green-800' :
+                                program.score >= 40 ? 'bg-yellow-100 text-yellow-800' :
+                                'bg-gray-100 text-gray-800'
+                              }`}>
+                                {Math.round(program.score)}% Match
+                              </span>
+                            )}
+                          </div>
+                          {(program.description || (program as any).metadata?.description) && (
+                            <p className="text-gray-600 mb-3">{program.description || (program as any).metadata?.description}</p>
+                          )}
+                          <div className="flex flex-wrap gap-4 text-sm text-gray-600">
+                            {program.amount && (
+                              <span>
+                                <strong>{locale === 'de' ? 'Betrag:' : 'Amount:'}</strong>{' '}
+                                €{program.amount.min?.toLocaleString('de-DE') || '0'} - €{program.amount.max?.toLocaleString('de-DE') || '0'}
+                              </span>
+                            )}
+                            {program.type && (
+                              <span>
+                                <strong>{locale === 'de' ? 'Typ:' : 'Type:'}</strong> {program.type}
+                              </span>
+                            )}
+                          </div>
+                          {program.url && (
+                            <a 
+                              href={program.url} 
+                              target="_blank" 
+                              rel="noopener noreferrer"
+                              className="text-blue-600 hover:text-blue-800 text-sm mt-2 inline-block"
+                            >
+                              {locale === 'de' ? 'Mehr erfahren →' : 'Learn more →'}
+                            </a>
+                          )}
+                        </div>
+                        <button
+                          onClick={() => {
+                            if (onProgramSelect) {
+                              onProgramSelect(program.id, program.type || 'grant');
+                            } else {
+                              // Store in localStorage for editor
+                              if (typeof window !== 'undefined') {
+                                localStorage.setItem('selectedProgram', JSON.stringify({
+                                  id: program.id,
+                                  name: program.name,
+                                  categorized_requirements: program.categorized_requirements || {},
+                                  type: program.type || 'grant',
+                                  url: program.url,
+                                }));
+                                router.push('/editor?product=submission');
+                              }
+                            }
+                          }}
+                          className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors font-medium whitespace-nowrap"
+                        >
+                          {locale === 'de' ? 'Auswählen' : 'Select'}
+                        </button>
+                      </div>
+                    </Card>
+                  ))}
+                </div>
+              </div>
+            ) : results.length === 0 && answeredCount >= MIN_QUESTIONS_FOR_RESULTS ? (
+              <div className="max-w-2xl mx-auto mt-6 text-center">
+                <Card className="p-8 border-2 border-gray-200">
+                  <p className="text-gray-600 text-lg mb-2">
+                    {locale === 'de' ? 'Keine Programme gefunden' : 'No programs found'}
+                  </p>
+                  <p className="text-gray-500 text-sm">
+                    {locale === 'de' 
+                      ? 'Versuchen Sie, andere Antworten zu wählen oder klicken Sie erneut auf "Förderprogramm generieren".'
+                      : 'Try selecting different answers or click "Generate Funding Programs" again.'}
+                  </p>
+                </Card>
+              </div>
+            ) : null}
+          </div>
         </div>
       </div>
       
@@ -1670,32 +1766,68 @@ export default function ProgramFinder({
                       : `Please answer at least ${MIN_QUESTIONS_FOR_RESULTS} questions to generate funding programs.`);
                     return;
                   }
-                  setIsLoading(true);
-                  try {
-                    const response = await fetch('/api/programs/recommend', {
-                      method: 'POST',
-                      headers: { 'Content-Type': 'application/json' },
-                      body: JSON.stringify({
-                        answers,
-                        max_results: 20,
-                        extract_all: false,
-                        use_seeds: false,
-                      }),
-                    });
-                    if (!response.ok) throw new Error('Failed to fetch');
-                    const data = await response.json();
-                    const extractedPrograms = data.programs || [];
+                setIsLoading(true);
+                console.log('🚀 Starting program generation...');
+                console.log('📋 Answers being sent:', answers);
+                console.log('✅ Has enough answers:', hasEnoughAnswers);
+                
+                try {
+                  const response = await fetch('/api/programs/recommend', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                      answers,
+                      max_results: 20,
+                      extract_all: false,
+                      use_seeds: false,
+                    }),
+                  });
+                  
+                  console.log('📡 API Response status:', response.status, response.statusText);
+                  
+                  if (!response.ok) {
+                    const errorText = await response.text();
+                    console.error('❌ API Error Response:', errorText);
+                    throw new Error(`API returned ${response.status}: ${errorText.substring(0, 200)}`);
+                  }
+                  
+                  const data = await response.json();
+                  console.log('📦 API Response data:', {
+                    success: data.success,
+                    count: data.count,
+                    programsLength: data.programs?.length || 0,
+                    extractionResults: data.extraction_results?.length || 0,
+                    source: data.source,
+                  });
+                  
+                  const extractedPrograms = data.programs || [];
+                  console.log(`✅ Received ${extractedPrograms.length} programs from API`);
+                  
+                  if (extractedPrograms.length === 0) {
+                    console.warn('⚠️ No programs in API response');
+                    console.warn('Full API response:', JSON.stringify(data, null, 2));
+                    alert(locale === 'de' 
+                      ? 'Keine Programme gefunden. Bitte überprüfen Sie die Server-Logs oder versuchen Sie es erneut.'
+                      : 'No programs found. Please check server logs or try again.');
+                    setIsLoading(false);
+                    return;
+                  }
                     const programsForScoring = extractedPrograms.map((p: any) => ({
                       id: p.id,
                       name: p.name,
-                      type: p.funding_types?.[0] || 'grant',
-                      program_type: p.funding_types?.[0] || 'grant',
-                      description: p.metadata?.description || '',
+                      type: p.type || p.funding_types?.[0] || 'grant',
+                      program_type: p.program_type || p.funding_types?.[0] || 'grant',
+                      description: p.metadata?.description || p.description || '',
                       funding_amount_max: p.metadata?.funding_amount_max || 0,
                       funding_amount_min: p.metadata?.funding_amount_min || 0,
                       currency: p.metadata?.currency || 'EUR',
-                      source_url: p.url,
-                      url: p.url,
+                      amount: {
+                        min: p.metadata?.funding_amount_min || 0,
+                        max: p.metadata?.funding_amount_max || 0,
+                        currency: p.metadata?.currency || 'EUR',
+                      },
+                      source_url: p.url || p.source_url,
+                      url: p.url || p.source_url,
                       deadline: p.metadata?.deadline,
                       open_deadline: p.metadata?.open_deadline || false,
                       contact_email: p.metadata?.contact_email,
@@ -1706,22 +1838,41 @@ export default function ProgramFinder({
                       funding_types: p.funding_types || [],
                       program_focus: p.metadata?.program_focus || [],
                     }));
-                    const scored = await scoreProgramsEnhanced(answers, 'strict', programsForScoring);
-                    const sorted = scored.sort((a, b) => b.score - a.score);
-                    const top5 = sorted.slice(0, 5);
-                    setResults(top5);
-                    if (top5.length > 0) {
-                      setMobileActiveTab('results');
-                    }
-                  } catch (error: any) {
-                    console.error('Error:', error);
+                  console.log(`📊 Scoring ${programsForScoring.length} programs...`);
+                  const scored = await scoreProgramsEnhanced(answers, 'strict', programsForScoring);
+                  console.log(`✅ Scored ${scored.length} programs`);
+                  console.log('📈 Score distribution:', scored.map(p => ({ name: p.name, score: p.score })));
+                  
+                  const sorted = scored.sort((a, b) => b.score - a.score);
+                  const top5 = sorted.slice(0, 5);
+                  console.log(`🎯 Top 5 programs:`, top5.map(p => ({ name: p.name, score: p.score })));
+                  
+                  setResults(top5);
+                  console.log(`✅ Set ${top5.length} results in state`);
+                  
+                  if (top5.length > 0) {
+                    setMobileActiveTab('results');
+                    console.log('✅ Switched to results tab');
+                  } else {
+                    console.warn('⚠️ No programs to display after scoring');
                     alert(locale === 'de' 
-                      ? `Fehler beim Generieren der Förderprogramme: ${error.message || 'Unbekannter Fehler'}`
-                      : `Error generating programs: ${error.message || 'Unknown error'}`);
-                  } finally {
-                    setIsLoading(false);
+                      ? 'Keine Programme gefunden, die Ihren Kriterien entsprechen.'
+                      : 'No programs found matching your criteria.');
                   }
-                }}
+                } catch (error: any) {
+                  console.error('❌ Error generating programs:', error);
+                  console.error('Error details:', {
+                    message: error.message,
+                    stack: error.stack,
+                  });
+                  alert(locale === 'de' 
+                    ? `Fehler beim Generieren der Förderprogramme: ${error.message || 'Unbekannter Fehler'}`
+                    : `Error generating programs: ${error.message || 'Unknown error'}`);
+                } finally {
+                  setIsLoading(false);
+                  console.log('🏁 Program generation finished');
+                }
+              }}
                 disabled={!_isLoading && !hasEnoughAnswers}
                 className="px-6 py-3 rounded-lg font-semibold text-base transition-all flex items-center gap-2 bg-blue-600 text-white hover:bg-blue-700 shadow-lg hover:shadow-xl"
               >

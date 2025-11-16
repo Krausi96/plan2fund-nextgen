@@ -1,8 +1,10 @@
 // ========= PLAN2FUND — EXPORT PREVIEW RENDERER =========
 // Lightweight component that renders plan previews inside the editor
 
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { PlanDocument } from '@/features/editor/types/plan';
+import SectionContentRenderer from '@/features/editor/components/SectionContentRenderer';
+import { getSections, SectionTemplate } from '@templates';
 
 export interface PreviewOptions {
   showWatermark?: boolean;
@@ -29,6 +31,24 @@ const ExportRenderer: React.FC<ExportRendererProps> = ({
   selectedSections,
   previewSettings = {}
 }) => {
+  const [templates, setTemplates] = useState<SectionTemplate[]>([]);
+  
+  // Load templates for rendering tables/charts
+  useEffect(() => {
+    const loadTemplates = async () => {
+      try {
+        const baseUrl = typeof window !== 'undefined' ? window.location.origin : '';
+        const fundingType = plan.route || 'grants';
+        const productType = plan.product || 'submission';
+        const sections = await getSections(fundingType, productType, undefined, baseUrl);
+        setTemplates(sections);
+      } catch (error) {
+        console.error('Error loading templates for preview:', error);
+      }
+    };
+    loadTemplates();
+  }, [plan.route, plan.product]);
+
   const sectionsToRender = selectedSections && selectedSections.size > 0
     ? plan.sections.filter(section => selectedSections.has(section.key))
     : plan.sections;
@@ -120,6 +140,24 @@ const ExportRenderer: React.FC<ExportRendererProps> = ({
                   </div>
                 )}
               </div>
+
+              {/* Render Tables & Charts if they exist */}
+              {section.tables && Object.keys(section.tables).length > 0 && (() => {
+                const template = templates.find(t => t.id === section.key);
+                if (!template) return null;
+                
+                return (
+                  <div className="mt-6">
+                    <SectionContentRenderer
+                      section={section}
+                      template={template}
+                      onTableChange={() => {}} // Read-only in preview
+                      onChartTypeChange={() => {}} // Read-only in preview
+                      onImageInsert={() => {}} // Read-only in preview
+                    />
+                  </div>
+                );
+              })()}
             </div>
           );
         })}

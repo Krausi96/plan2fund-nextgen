@@ -99,7 +99,11 @@ export function normalizeCompanyTypeAnswer(value: string): NormalizedCompanyType
   const aliases: string[] = [];
   let size: NormalizedCompanyType['size'] | undefined;
   
-  if (lower === 'startup' || lower.includes('startup') || lower.includes('start-up')) {
+  if (lower === 'prefounder' || lower.includes('pre-founder') || lower.includes('prefounder') || lower.includes('idea stage')) {
+    primary = 'startup'; // Map prefounder to startup for matching
+    aliases.push('prefounder', 'pre-founder', 'idea stage', 'startup', 'early-stage company');
+    size = 'micro';
+  } else if (lower === 'startup' || lower.includes('startup') || lower.includes('start-up')) {
     primary = 'startup';
     aliases.push('startup', 'start-up', 'new venture', 'early-stage company');
     size = 'micro';

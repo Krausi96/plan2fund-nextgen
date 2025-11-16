@@ -11,6 +11,7 @@ import { calculateSectionProgress } from '@/features/editor/hooks/useSectionProg
 import SimpleTextEditor from './SimpleTextEditor';
 import RequirementsModal from './RequirementsModal';
 import SectionContentRenderer from './SectionContentRenderer';
+import InlineTableCreator from './InlineTableCreator';
 import { initializeTablesForSection, sectionNeedsTables } from '@/features/editor/utils/tableInitializer';
 
 interface EditorProps {
@@ -377,7 +378,8 @@ export default function Editor({ product = 'submission' }: EditorProps) {
     };
   }, [sections]);
 
-  const [showSmartHints, setShowSmartHints] = useState(false);
+  const [showQuestions, setShowQuestions] = useState(true);
+  const [showInlineTableCreator, setShowInlineTableCreator] = useState(false);
 
   return (
     <div className="flex flex-col h-screen bg-gray-50">
@@ -532,61 +534,118 @@ export default function Editor({ product = 'submission' }: EditorProps) {
       <main className="flex-1 overflow-y-auto bg-gray-50">
         {currentSection && (
           <div className="max-w-[1200px] mx-auto px-4 py-8">
-            {/* Section Header Card */}
-            <div className="bg-white border border-gray-200 rounded-lg shadow-sm p-6 mb-6">
-              <h2 className="text-2xl font-bold text-gray-900 mb-2">{currentSection.title}</h2>
-              {sectionTemplate?.description && (
-                <p className="text-gray-600">{sectionTemplate.description}</p>
-              )}
-            </div>
-
-            {/* Text Editor - Always show regular editor (no question-by-question mode) */}
-            <div className="mb-4">
-              <SimpleTextEditor
-                content={currentSection.content || ''}
-                onChange={(content) => handleSectionChange(currentSection.key, content)}
-                placeholder={`Start writing your ${currentSection.title.toLowerCase()}...`}
-              />
-            </div>
-
-            {/* Action Buttons */}
-            <div className="flex gap-2 mb-4">
-              <button
-                onClick={handleAIGenerate}
-                className="px-4 py-2 text-sm font-medium bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
-              >
-                ✨ Generate with AI
-              </button>
-              {sectionTemplate?.prompts && sectionTemplate.prompts.length > 0 && (
+            {/* ========= UNIFIED EDITOR BOX ========= */}
+            <div className="bg-white rounded-xl shadow-lg border border-gray-200 p-8">
+              {/* Section Navigation (Top of Box) */}
+              <div className="flex items-center justify-between mb-6">
                 <button
-                  onClick={() => setShowSmartHints(!showSmartHints)}
-                  className="px-4 py-2 text-sm font-medium bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 transition-colors"
+                  onClick={() => setActiveSection(Math.max(0, activeSection - 1))}
+                  disabled={activeSection === 0}
+                  className="px-3 py-1.5 text-sm font-medium text-gray-600 hover:text-gray-900 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
                 >
-                  💡 Smart Hints
+                  ← Prev
                 </button>
+                <h2 className="text-xl font-semibold text-gray-900">{currentSection.title}</h2>
+                <button
+                  onClick={() => setActiveSection(Math.min(sections.length - 1, activeSection + 1))}
+                  disabled={activeSection === sections.length - 1}
+                  className="px-3 py-1.5 text-sm font-medium text-gray-600 hover:text-gray-900 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                >
+                  Next →
+                </button>
+              </div>
+
+              {/* Questions Card (Toggleable) */}
+              {sectionTemplate?.prompts && sectionTemplate.prompts.length > 0 && (
+                <div className={`mb-6 transition-all duration-300 ${showQuestions ? 'block' : 'hidden'}`}>
+                  <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
+                    <div className="flex items-center justify-between mb-3">
+                      <h3 className="text-sm font-semibold text-gray-900 flex items-center gap-2">
+                        <span>💡</span>
+                        <span>Questions</span>
+                      </h3>
+                      <button
+                        onClick={() => setShowQuestions(!showQuestions)}
+                        className="flex items-center gap-2 text-sm text-gray-600 hover:text-gray-900 transition-colors"
+                      >
+                        <span className="text-xs">{showQuestions ? 'Hide' : 'Show'}</span>
+                        <span className={`w-10 h-5 rounded-full transition-colors ${showQuestions ? 'bg-blue-600' : 'bg-gray-300'} relative`}>
+                          <span className={`absolute top-0.5 left-0.5 w-4 h-4 bg-white rounded-full transition-transform ${showQuestions ? 'translate-x-5' : 'translate-x-0'}`}></span>
+                        </span>
+                      </button>
+                    </div>
+                    <ul className="space-y-2">
+                      {sectionTemplate.prompts.map((prompt, idx) => (
+                        <li key={idx} className="text-sm text-gray-700">
+                          • {prompt}
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
+                </div>
               )}
-              <button
-                onClick={() => setActiveSection(Math.min(sections.length - 1, activeSection + 1))}
-                disabled={activeSection === sections.length - 1}
-                className="px-4 py-2 text-sm font-medium bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-              >
-                ⏭️ Skip
-              </button>
+
+              {/* Show/Hide Questions Toggle (when questions are hidden) */}
+              {sectionTemplate?.prompts && sectionTemplate.prompts.length > 0 && !showQuestions && (
+                <div className="mb-4">
+                  <button
+                    onClick={() => setShowQuestions(true)}
+                    className="text-sm text-blue-600 hover:text-blue-700 font-medium flex items-center gap-2"
+                  >
+                    <span>💡</span>
+                    <span>Show Questions</span>
+                  </button>
+                </div>
+              )}
+
+              {/* Main Editor (Answer Area) */}
+              <div className="mb-6">
+                <SimpleTextEditor
+                  content={currentSection.content || ''}
+                  onChange={(content) => handleSectionChange(currentSection.key, content)}
+                  placeholder={`Write your answer here...`}
+                />
+              </div>
+
+              {/* Action Bar (Bottom) */}
+              <div className="flex gap-2 mb-6">
+                <button
+                  onClick={handleAIGenerate}
+                  className="px-4 py-2 text-sm font-medium bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+                >
+                  ✨ Generate with AI
+                </button>
+                <button
+                  onClick={() => setActiveSection(Math.min(sections.length - 1, activeSection + 1))}
+                  disabled={activeSection === sections.length - 1}
+                  className="px-4 py-2 text-sm font-medium bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                  ⏭️ Next Section
+                </button>
+              </div>
+
+              {/* Quick Actions - Simplified */}
+              <div className="border-t border-gray-200 pt-4">
+                <div className="flex flex-wrap gap-2">
+                  <button
+                    onClick={handleAIGenerate}
+                    className="px-3 py-1.5 text-sm font-medium bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 transition-colors"
+                  >
+                    ✨ Generate with AI
+                  </button>
+                  <button
+                    onClick={() => {
+                      alert('Image upload coming soon');
+                    }}
+                    className="px-3 py-1.5 text-sm font-medium bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 transition-colors"
+                  >
+                    📷 Add Image
+                  </button>
+                </div>
+              </div>
             </div>
 
-            {/* Smart Hints Panel */}
-            {sectionTemplate?.prompts && sectionTemplate.prompts.length > 0 && (
-              <SmartHintsPanel
-                template={sectionTemplate}
-                isOpen={showSmartHints}
-                onUseAsGuide={() => {
-                  // Could populate editor with prompts as guide
-                  setShowSmartHints(false);
-                }}
-              />
-            )}
-
-            {/* Tables & Charts Section */}
+            {/* Tables & Charts Section (Below Unified Box) */}
             {(() => {
               const currentTemplate = sectionTemplates.find(t => t.id === currentSection.key);
               if (!currentTemplate) return null;
@@ -633,29 +692,29 @@ export default function Editor({ product = 'submission' }: EditorProps) {
                     </p>
                   </div>
                   
-                  {/* Add Buttons */}
-                  <div className="flex gap-2 mb-4">
+                  {/* Add Content Buttons - Inline */}
+                  <div className="mb-4 flex gap-2">
                     <button
-                      onClick={() => {
-                        // TODO: Implement table creation dialog
-                        alert('Table creation dialog coming soon');
-                      }}
+                      onClick={() => setShowInlineTableCreator(!showInlineTableCreator)}
                       className="px-4 py-2 text-sm font-medium bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
                     >
-                      📊 Add Table
+                      ➕ Add Table
                     </button>
                     <button
                       onClick={() => {
-                        // TODO: Implement chart creation
-                        alert('Chart creation coming soon');
+                        if (!hasTables) {
+                          alert('Create a table first - charts visualize table data');
+                        } else {
+                          alert('Charts are automatically created from tables. Edit your table to update the chart.');
+                        }
                       }}
                       className="px-4 py-2 text-sm font-medium bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 transition-colors"
+                      title="Charts are auto-generated from tables"
                     >
-                      📈 Add Chart
+                      📈 Chart (Auto)
                     </button>
                     <button
                       onClick={() => {
-                        // TODO: Implement image upload
                         alert('Image upload coming soon');
                       }}
                       className="px-4 py-2 text-sm font-medium bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 transition-colors"
@@ -663,8 +722,65 @@ export default function Editor({ product = 'submission' }: EditorProps) {
                       📷 Add Image
                     </button>
                   </div>
+
+                  {/* Inline Table Creator */}
+                  {showInlineTableCreator && currentTemplate && (
+                    <InlineTableCreator
+                      onCreate={(tableKey, table) => {
+                        const updated = [...sections];
+                        const section = updated[activeSection];
+                        if (!section.tables) section.tables = {};
+                        section.tables[tableKey] = table;
+                        
+                        // Auto-generate chart
+                        if (!section.chartTypes) section.chartTypes = {};
+                        section.chartTypes[tableKey] = 'bar';
+                        
+                        setSections(updated);
+                        setShowInlineTableCreator(false);
+                        
+                        // Save
+                        if (plan) {
+                          const updatedPlan = { ...plan, sections: updated };
+                          setPlan(updatedPlan);
+                          setIsSaving(true);
+                          setTimeout(async () => {
+                            try {
+                              await savePlanSections(updated.map(s => ({
+                                id: s.key,
+                                title: s.title,
+                                content: s.content || '',
+                                tables: s.tables,
+                                figures: s.figures,
+                                chartTypes: s.chartTypes,
+                                sources: s.sources,
+                                fields: s.fields
+                              })));
+                            } catch (error) {
+                              console.error('Error saving:', error);
+                            } finally {
+                              setIsSaving(false);
+                            }
+                          }, 400);
+                        }
+                      }}
+                      onCancel={() => setShowInlineTableCreator(false)}
+                      sectionTemplate={currentTemplate}
+                      existingTableKeys={Object.keys(currentSection.tables || {})}
+                    />
+                  )}
+
+                  {/* Info: How Tables & Charts Connect */}
+                  {!hasTables && !showInlineTableCreator && (
+                    <div className="mb-4 p-3 bg-blue-50 border border-blue-200 rounded-lg">
+                      <p className="text-sm text-gray-700">
+                        💡 <strong>How it works:</strong> Create a table → Chart auto-generates from table data. 
+                        Edit table → Chart updates automatically.
+                      </p>
+                    </div>
+                  )}
                   
-                  {/* Existing Tables */}
+                  {/* Existing Tables & Charts */}
                   {hasTables && (
                     <div className="mt-4">
                       <SectionContentRenderer
@@ -1058,43 +1174,4 @@ function ProgramFinderModal({
   );
 }
 
-// ========= SMART HINTS PANEL COMPONENT =========
-function SmartHintsPanel({
-  template,
-  isOpen,
-  onUseAsGuide
-}: {
-  template: SectionTemplate;
-  isOpen: boolean;
-  onUseAsGuide: () => void;
-}) {
-  if (!template.prompts || template.prompts.length === 0) return null;
-
-  return (
-    <div className={`mt-4 transition-all duration-300 ${isOpen ? 'block' : 'hidden'}`}>
-      <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
-        <div className="flex items-center justify-between mb-3">
-          <h3 className="font-semibold text-gray-900 flex items-center gap-2">
-            <span>💡</span>
-            <span>Smart Hints</span>
-          </h3>
-          <button
-            onClick={onUseAsGuide}
-            className="text-sm text-blue-600 hover:text-blue-700 font-medium"
-          >
-            Use as Guide
-          </button>
-        </div>
-        <div className="space-y-2">
-          {template.prompts.map((prompt, idx) => (
-            <div key={idx} className="text-sm text-gray-700">
-              <span className="text-blue-500 mr-2">💡</span>
-              <span>{prompt}</span>
-            </div>
-          ))}
-        </div>
-      </div>
-    </div>
-  );
-}
 

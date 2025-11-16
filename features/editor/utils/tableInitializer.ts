@@ -236,3 +236,54 @@ export function sectionNeedsCharts(template: SectionTemplate): boolean {
   return !!formatNeeds;
 }
 
+/**
+ * Simple table creation: Creates the default table for section category
+ * Returns the table key and table object to add
+ */
+export function createTableForSection(
+  section: PlanSection,
+  template: SectionTemplate
+): { tableKey: string; table: Table; chartType?: 'bar' | 'line' | 'pie' | 'donut' } | null {
+  const category = template.category?.toLowerCase() || '';
+  const existingTables = Object.keys(section.tables || {});
+  
+  // Financial section - default to revenue
+  if (category === 'financial') {
+    if (!existingTables.includes('revenue')) {
+      return { tableKey: 'revenue', table: createDefaultRevenueTable(), chartType: 'bar' };
+    }
+    // If revenue exists, create costs
+    if (!existingTables.includes('costs')) {
+      return { tableKey: 'costs', table: createDefaultCostsTable(), chartType: 'bar' };
+    }
+    // If both exist, create cashflow
+    if (!existingTables.includes('cashflow')) {
+      return { tableKey: 'cashflow', table: createDefaultCashflowTable(), chartType: 'line' };
+    }
+    // Default to revenue
+    return { tableKey: 'revenue', table: createDefaultRevenueTable(), chartType: 'bar' };
+  }
+  
+  // Risk section
+  if (category === 'risk') {
+    return { tableKey: 'risks', table: createDefaultRiskTable(), chartType: 'bar' };
+  }
+  
+  // Project section
+  if (category === 'project') {
+    return { tableKey: 'timeline', table: createDefaultTimelineTable(), chartType: 'line' };
+  }
+  
+  // Market section
+  if (category === 'market') {
+    return { tableKey: 'competitors', table: createDefaultCompetitorTable(), chartType: 'bar' };
+  }
+  
+  // Team section
+  if (category === 'team') {
+    return { tableKey: 'team', table: createDefaultTeamTable(), chartType: 'bar' };
+  }
+  
+  return null;
+}
+

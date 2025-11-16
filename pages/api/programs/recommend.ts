@@ -303,13 +303,15 @@ function matchesAnswers(extracted: any, answers: UserAnswers): boolean {
   }
 
   // For LLM-generated programs, be more lenient - don't filter out if they're close
-  // Require at least 30% of checks to pass (lowered from 50% for LLM programs)
+  // Require at least 20% of checks to pass (lowered from 30% for better coverage)
   // Critical checks (location, company_type) must pass if checked
   const allCriticalPass = criticalChecks.length === 0 || criticalChecks.every(c => c);
   const matchRatio = totalChecks > 0 ? matchCount / totalChecks : 1;
   
   // More lenient matching for LLM-generated programs
-  return allCriticalPass && matchRatio >= 0.3;
+  // If critical checks pass but match ratio is low, still allow if it's LLM-generated
+  // This ensures we don't filter out valid programs due to strict matching
+  return allCriticalPass && matchRatio >= 0.2;
 }
 
 /**
@@ -893,7 +895,10 @@ Website: ${p.website || 'Not available'}
         id: `llm_${(p.name || `program_${index}`).toLowerCase().replace(/[^a-z0-9]+/g, '_')}`,
         name: p.name || `Program ${index + 1}`,
         url: p.website || null,
+        source_url: p.website || null,
         institution_id: `llm_${(p.institution || 'unknown').toLowerCase().replace(/[^a-z0-9]+/g, '_')}`,
+        type: p.funding_types?.[0] || 'grant',
+        program_type: p.funding_types?.[0] || 'grant',
         funding_types: metadata.funding_types || ['grant'],
         metadata,
         categorized_requirements,
