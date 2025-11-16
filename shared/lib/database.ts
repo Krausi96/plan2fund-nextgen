@@ -112,8 +112,20 @@ export function normalizeMetadata(raw: any): PageMetadata {
     }
     
     // Normalize date format (DD.MM.YYYY -> YYYY-MM-DD)
-    const { normalizeDate } = require('../src/utils/date');
-    const normalizedDeadline = normalizeDate(raw.deadline);
+    const normalizedDeadline = (() => {
+      if (!raw.deadline) return null;
+      const dateStr = String(raw.deadline).trim();
+      // If already in ISO format (YYYY-MM-DD), return as is
+      if (/^\d{4}-\d{2}-\d{2}/.test(dateStr)) return dateStr;
+      // Try to parse DD.MM.YYYY format
+      const match = dateStr.match(/^(\d{1,2})\.(\d{1,2})\.(\d{4})/);
+      if (match) {
+        const [, day, month, year] = match;
+        return `${year}-${month.padStart(2, '0')}-${day.padStart(2, '0')}`;
+      }
+      // Return as-is if can't parse
+      return dateStr;
+    })();
     
     return {
       url: raw.url || '',
@@ -129,13 +141,9 @@ export function normalizeMetadata(raw: any): PageMetadata {
       funding_types: (() => {
         const types = raw.funding_types || [];
         if (types.length === 0) return [];
-        // Normalize funding types if not already normalized
-        try {
-          const { normalizeFundingTypes } = require('../src/utils/funding-types');
-          return normalizeFundingTypes(Array.isArray(types) ? types : [types]);
-        } catch {
-          return Array.isArray(types) ? types : [types];
-        }
+        // Normalize funding types: ensure array, lowercase, remove duplicates
+        const normalized = Array.isArray(types) ? types : [types];
+        return [...new Set(normalized.map((t: any) => String(t).toLowerCase().trim()))].filter(Boolean);
       })(),
       program_focus: raw.program_focus || [],
       region: raw.region ?? null,
