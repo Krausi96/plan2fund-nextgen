@@ -492,18 +492,23 @@ OUTPUT RULES:
 - Always include "funding_types" (array) inside metadata using the canonical values listed below.
 
 REQUIREMENT CATEGORIES (extract all that apply):
-1. Eligibility:
-   - company_type: FULL description of company type (e.g., "Small and medium-sized enterprises (SMEs) with less than 250 employees", NOT just "SME")
+1. Eligibility: **CRITICAL - ALWAYS EXTRACT**
+   - company_type: FULL description of company type (e.g., "Small and medium-sized enterprises (SMEs) with less than 250 employees", NOT just "SME") - **CRITICAL: ALWAYS extract company type - this is REQUIRED for every program**
+     * Look for: "startup", "SME", "small business", "medium enterprise", "large company", "research institution", "university", "nonprofit", "company type", "eligible companies", "Unternehmen", "Start-up", "KMU", "Unternehmenstyp"
+     * Examples: "Program for startups and SMEs", "Eligible: Small and medium-sized enterprises", "Open to startups, scale-ups, and established companies"
+     * **IMPORTANT**: If no explicit company type is mentioned, infer from context (e.g., "innovation program" → likely startups/SMEs, "research grant" → research institutions)
    - company_stage: Stage of company (e.g., "Early stage", "Growth stage", "Mature", "Startup", "Scale-up", "Established company", "Incorporated less than 3 years", "Newly founded company", "Company must be less than 5 years old", "Young enterprises", "Start-ups and spin-offs") - **CRITICAL: Extract this whenever company maturity/age is mentioned**
      * Look for: "startup", "early stage", "growth stage", "scale-up", "established", "incorporated", "founded", "company age", "years in business", "newly founded", "young company", "mature company", "less than X years", "founded after", "established before"
      * Examples: "Companies must be less than 3 years old", "Start-ups and spin-offs from research institutions", "Early-stage companies with innovative business models"
    - industry_restriction: Industry restrictions or focus areas
    - eligibility_criteria: General eligibility requirements (FULL descriptions, not single words)
 
-2. Documents: Required documents for application
-   - required_documents: FULL list of required documents (preferred over single document types)
-   - document_type: Type of document (only if specific type is mentioned)
-   - format: Document format requirements
+2. Documents: **CRITICAL - ALWAYS EXTRACT IF MENTIONED**
+   - required_documents: FULL list of required documents (e.g., "Business plan, financial statements, CV, project description", "Must submit: pitch deck, financial projections, team CVs") - **CRITICAL: Extract whenever documents are mentioned**
+     * Look for: "required documents", "must submit", "documents needed", "application documents", "Bewerbungsunterlagen", "erforderliche Dokumente", "einreichen", "submit", "provide"
+     * Examples: "Required documents: business plan, financial statements, and team CVs", "Must submit pitch deck and financial projections", "Application requires: project description, budget, and timeline"
+   - document_type: Type of document (only if specific type is mentioned) - **Extract specific document types**
+   - format: Document format requirements (e.g., "PDF format required", "Maximum 10 pages", "Must be in English or German") - **Extract if format/specifications are mentioned**
 
 3. Financial:
    - repayment_terms: Repayment terms for repayable instruments (loans, guarantees, repayable advances) (e.g., "Must repay within 5 years at 2% interest", "Repayment over 10 years with 2-year grace period", "Amortization period of 7 years", "Repayment schedule: 2-year grace period, then monthly installments over 5 years") - **CRITICAL: Extract for ALL loans, bank products, guarantees, repayable advances**
@@ -528,20 +533,26 @@ REQUIREMENT CATEGORIES (extract all that apply):
 5. Legal: Legal requirements or compliance needs
    - legal_requirement: Legal requirements
 
-6. Timeline:
-   - deadline: Application deadline (date string)
-   - open_deadline: Whether deadline is rolling/open (boolean)
-   - duration: Project or support duration (e.g., "Support lasts 12 months")
-   - application_window: Application or call window (e.g., "Calls open each March and September")
+6. Timeline: **CRITICAL - ALWAYS EXTRACT IF MENTIONED**
+   - deadline: Application deadline (date string) - **ALWAYS extract if any deadline information exists**
+   - open_deadline: Whether deadline is rolling/open (boolean) - **ALWAYS extract if deadline status is mentioned**
+   - duration: Project or support duration (e.g., "Support lasts 12 months", "Program duration: 6 months", "Funding period: 24 months") - **CRITICAL: Extract whenever program/project duration is mentioned**
+     * Look for: "duration", "lasts", "period", "timeframe", "months", "years", "Dauer", "Laufzeit", "Zeitraum", "Programmdauer", "Förderdauer"
+     * Examples: "Acceleration program lasts 6 months", "Support available for 24 months", "Project duration: 12-18 months"
+   - application_window: Application or call window (e.g., "Calls open each March and September", "Application period: January to March", "Deadline: Quarterly") - **Extract if application windows/periods are mentioned**
 
 7. Geographic: Geographic eligibility
    - geographic_eligibility: FULL geographic descriptions (e.g., "Companies based in Austria, Germany, or EU member states", NOT just "Austria")
    - Extract country, region, state, city if given
    - If no geographic requirement, omit this category (don't extract "None" or "No restriction")
 
-8. Team: Team size, composition, or requirements
-   - team_size: Team size requirements
-   - team_composition: Team composition requirements
+8. Team: **CRITICAL - ALWAYS EXTRACT IF MENTIONED**
+   - team_size: Team size requirements (e.g., "Minimum 2 team members", "Team must have at least 3 people", "Solo founders not eligible") - **CRITICAL: Extract whenever team size is mentioned**
+     * Look for: "team size", "team members", "founders", "employees", "personnel", "Mitarbeiter", "Teamgröße", "Gründer", "minimum team", "team must have"
+     * Examples: "Program requires minimum 2 founders", "Team size: 3-10 people", "Solo entrepreneurs not eligible"
+   - team_composition: Team composition requirements (e.g., "Must have technical and business co-founders", "Team should include at least one researcher") - **Extract if specific team roles/composition is required**
+     * Look for: "co-founder", "team composition", "team structure", "roles", "skills", "expertise", "background"
+     * Examples: "Team must include technical and business expertise", "Requires at least one co-founder with industry experience"
 
 9. Project:
    - innovation_focus: Innovation focus areas (e.g., "Digital transformation", "AI and machine learning", "Green technology", "Circular economy", "Sustainable energy solutions", "Climate protection", "Resource efficiency", "Smart manufacturing", "Industry 4.0") - **CRITICAL: Extract whenever innovation themes are mentioned**
@@ -560,11 +571,15 @@ REQUIREMENT CATEGORIES (extract all that apply):
     - economic_impact: Economic impact requirements
     - innovation_impact: Innovation impact requirements
 
-12. Application: Application process and evaluation
-    - application_process: Application process description (e.g., "Companies must submit a business plan, CV, and project description")
-    - evaluation_criteria: Evaluation criteria (e.g., "Innovation and research focus, company size and experience")
-    - application_form: Specific application form or portal requirements
-    - application_requirement: Additional application prerequisites (e.g., "Provide business plan not older than 3 months")
+12. Application: **CRITICAL - ALWAYS EXTRACT IF MENTIONED**
+    - application_process: Application process description (e.g., "Companies must submit a business plan, CV, and project description", "Two-stage application: pre-proposal and full proposal", "Online application via portal") - **CRITICAL: Extract whenever application steps/process is described**
+      * Look for: "application process", "how to apply", "application steps", "submission process", "Bewerbungsverfahren", "Einreichung", "Antragsverfahren", "application via", "submit", "application portal"
+      * Examples: "Two-stage application process: pre-proposal and full proposal", "Apply online through the funding portal", "Submit business plan and financial statements"
+    - evaluation_criteria: Evaluation criteria (e.g., "Innovation and research focus, company size and experience", "Evaluation based on: innovation potential, market opportunity, team quality") - **CRITICAL: Extract whenever evaluation/selection criteria are mentioned**
+      * Look for: "evaluation criteria", "selection criteria", "assessment", "evaluation based on", "Bewertungskriterien", "Auswahlkriterien", "evaluated on", "judged by"
+      * Examples: "Programs evaluated on innovation potential, market opportunity, and team quality", "Selection criteria: technical feasibility and commercial viability"
+    - application_form: Specific application form or portal requirements (e.g., "Apply via online portal", "Download application form from website", "Submit via email") - **Extract if specific application method/form is mentioned**
+    - application_requirement: Additional application prerequisites (e.g., "Provide business plan not older than 3 months", "Must have registered company", "Pitch deck required") - **Extract if additional prerequisites are mentioned**
 
 13. Funding_Details: How funds can be used and funding structure
     - use_of_funds: How funds can be used (e.g., "Acquiring and developing R&D infrastructure", "Personnel costs", "Equipment purchase", "Marketing and sales", "Product development", "Working capital", "Investment in machinery", "Research and development activities", "Expansion of production facilities") - **CRITICAL: Extract whenever funding purpose/usage is described, even if brief**
@@ -773,8 +788,15 @@ ${context.content}
 
 6. **Eligibility & Financial Requirements (CRITICAL)**:
    - **ALWAYS extract eligibility requirements** - Look for "eligible", "requirements", "must be", "qualify", "criteria", "voraussetzungen", "Anforderungen"
+   - **CRITICAL: ALWAYS extract company_type** - This is REQUIRED. If not explicitly mentioned, infer from context (e.g., "innovation program" → startups/SMEs, "research grant" → research institutions, "startup accelerator" → startups)
    - **ALWAYS extract financial requirements** - Look for "co-financing", "own contribution", "matching funds", "Eigenmittel", "Eigenkapital", "minimum investment", "collateral"
    - If page has NO eligibility, financial, or funding_details requirements AND no funding amount, it's likely NOT a funding program - mark accordingly
+
+7. **Timeline, Team, Application & Documents (CRITICAL - OFTEN MISSING)**:
+   - **ALWAYS extract timeline information** if mentioned: duration, deadlines, application windows, project timelines
+   - **ALWAYS extract team requirements** if mentioned: team size, team composition, founder requirements
+   - **ALWAYS extract application process** if mentioned: how to apply, application steps, evaluation criteria, application forms
+   - **ALWAYS extract required documents** if mentioned: what documents must be submitted, document formats, document requirements
 
 Extract all relevant information and return ONLY the JSON object described above with no additional text.`;
 }
@@ -919,6 +941,42 @@ function transformLLMResponse(
           }
         });
       }
+    });
+  }
+
+  // Ensure company_type is always extracted (fallback if missing)
+  if (!categorized.eligibility || !categorized.eligibility.some((req: any) => req.type === 'company_type')) {
+    // Try to infer from context (URL, description, program focus)
+    const urlLower = _url.toLowerCase();
+    const description = (llmResponse.metadata?.description || '').toLowerCase();
+    const programFocus = (llmResponse.metadata?.program_focus || []).join(' ').toLowerCase();
+    const allText = `${urlLower} ${description} ${programFocus}`;
+    
+    let inferredValue = 'Companies eligible for this program'; // Default generic
+    
+    // Infer from keywords in order of specificity
+    if (allText.includes('startup') || allText.includes('start-up') || allText.includes('accelerator') || 
+        allText.includes('incubator') || allText.includes('seed') || allText.includes('early-stage')) {
+      inferredValue = 'Startups and early-stage companies';
+    } else if (allText.includes('sme') || allText.includes('small and medium') || allText.includes('mittelstand') || 
+               allText.includes('kmü') || allText.includes('small business')) {
+      inferredValue = 'Small and medium-sized enterprises (SMEs)';
+    } else if (allText.includes('research') || allText.includes('university') || allText.includes('academic') || 
+               allText.includes('institution') || allText.includes('research organization')) {
+      inferredValue = 'Research institutions and universities';
+    } else if (allText.includes('large') || allText.includes('enterprise') || allText.includes('corporation')) {
+      inferredValue = 'Large enterprises';
+    }
+    
+    // Add inferred company_type to eligibility
+    if (!categorized.eligibility) {
+      categorized.eligibility = [];
+    }
+    categorized.eligibility.push({
+      type: 'company_type',
+      value: inferredValue,
+      source: 'llm_extraction_inferred',
+      meaningfulness_score: 50 // Lower score for inferred values
     });
   }
 

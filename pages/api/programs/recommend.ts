@@ -312,7 +312,8 @@ function matchesAnswers(extracted: any, answers: UserAnswers, threshold: number 
   // More lenient matching for LLM-generated programs
   // If critical checks pass but match ratio is low, still allow if it's LLM-generated
   // This ensures we don't filter out valid programs due to strict matching
-  return allCriticalPass && matchRatio >= 0.15;
+  const meetsThreshold = matchRatio >= threshold;
+  return allCriticalPass && meetsThreshold;
 }
 
 /**
@@ -976,14 +977,54 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       console.log('📤 Calling generateProgramsWithLLM with answers and maxPrograms:', max_results * 2);
       programs = await generateProgramsWithLLM(answers, max_results * 2);
       console.log(`✅ generateProgramsWithLLM returned ${programs.length} programs`);
-      extractionResults.push({
-        source: 'llm_generated',
-        message: `Generated ${programs.length} programs using LLM (like ChatGPT - unrestricted)`,
+      
+      // Filter programs with standard threshold (15%)
+      const filteredPrograms = programs.filter((p: any) => {
+        if (extract_all) return true;
+        return matchesAnswers(p, answers, 0.15);
       });
-      console.log(`✅ Generated ${programs.length} programs with LLM`);
+      
+      console.log(`📊 Filtered ${programs.length} programs → ${filteredPrograms.length} matching (15% threshold)`);
+      
+      // Fallback: If 0 results, retry with more lenient matching (10% threshold)
+      if (filteredPrograms.length === 0 && programs.length > 0) {
+        console.log('⚠️ No programs passed 15% threshold, retrying with 10% threshold (fallback)...');
+        const fallbackPrograms = programs.filter((p: any) => {
+          if (extract_all) return true;
+          return matchesAnswers(p, answers, 0.10);
+        });
+        console.log(`📊 Fallback filtering: ${programs.length} programs → ${fallbackPrograms.length} matching (10% threshold)`);
+        
+        if (fallbackPrograms.length > 0) {
+          programs = fallbackPrograms;
+          extractionResults.push({
+            source: 'llm_generated',
+            message: `Generated ${programs.length} programs using LLM with fallback matching (10% threshold)`,
+            fallback_used: true,
+          });
+        } else {
+          // Even fallback failed - use all programs (very lenient)
+          console.log('⚠️ Even fallback failed, using all generated programs (very lenient mode)');
+          programs = programs; // Keep all
+          extractionResults.push({
+            source: 'llm_generated',
+            message: `Generated ${programs.length} programs using LLM (very lenient mode - no filtering)`,
+            fallback_used: true,
+            very_lenient: true,
+          });
+        }
+      } else {
+        programs = filteredPrograms;
+        extractionResults.push({
+          source: 'llm_generated',
+          message: `Generated ${programs.length} programs using LLM (like ChatGPT - unrestricted)`,
+        });
+      }
+      
+      console.log(`✅ Final: ${programs.length} programs after filtering`);
       
       if (programs.length === 0) {
-        console.warn('⚠️ LLM generation returned 0 programs. Check LLM response and parsing.');
+        console.warn('⚠️ LLM generation returned 0 programs after filtering. Check LLM response and matching logic.');
       }
     } catch (error: any) {
       console.error('❌ LLM generation failed:', error);

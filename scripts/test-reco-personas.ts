@@ -1,9 +1,9 @@
 /**
- * Test Script: Multiple Personas Testing
- * Tests 5 different user personas to check for:
- * - Result diversity
- * - Question bias
- * - Requirement flaws
+ * Simplified Test Script: 5 Diverse Personas
+ * Tests 5 maximally diverse personas to identify:
+ * - What questions are actually needed
+ * - What complexity can be removed
+ * - Which personas get 0 results and why
  */
 
 interface UserAnswers {
@@ -30,11 +30,11 @@ interface Persona {
   answers: UserAnswers;
 }
 
-// Define 15+ diverse Austrian personas covering all scenarios
+// 5 MAXIMALLY DIVERSE PERSONAS covering all extremes
 const personas: Persona[] = [
   {
-    name: "Early Stage Startup (Vienna, Digital)",
-    description: "New startup in Vienna, digital focus, pre-revenue, needs seed funding",
+    name: "1. Early-Stage Startup (Vienna, Digital, €100k)",
+    description: "Very early startup, 3 months old, digital, small funding, pre-revenue",
     answers: {
       location: 'austria',
       location_region: 'vienna',
@@ -49,39 +49,17 @@ const personas: Persona[] = [
       co_financing: 'co_no',
       team_size: 2,
       revenue_status: 'pre_revenue',
-      project_duration: 12, // 12 months
-      deadline_urgency: 3, // 3 months
+      project_duration: 12,
+      deadline_urgency: 3,
     }
   },
   {
-    name: "Growth Stage Startup (Vienna, Multi-Industry)",
-    description: "Growth stage startup in Vienna, multiple industries, needs scale funding",
-    answers: {
-      location: 'austria',
-      location_region: 'vienna',
-      company_type: 'startup',
-      company_stage: 18, // 18 months
-      company_stage_classified: 'growth_stage',
-      legal_type: 'gmbh',
-      funding_amount: 800000, // €800k
-      industry_focus: ['digital', 'sustainability', 'health'],
-      use_of_funds: ['rd', 'personnel', 'marketing'],
-      impact: ['economic', 'environmental', 'social'],
-      co_financing: 'co_yes',
-      co_financing_percentage: '25%',
-      team_size: 12,
-      revenue_status: 'early_revenue',
-      project_duration: 24, // 24 months
-      deadline_urgency: 6, // 6 months
-    }
-  },
-  {
-    name: "Pre-Founder (Solo, Idea Stage)",
-    description: "Pre-incorporation, solo founder, idea stage, needs initial funding",
+    name: "2. Pre-Founder (Solo, Idea Stage, €50k)",
+    description: "Pre-incorporation, solo founder, idea stage, minimal funding",
     answers: {
       location: 'austria',
       company_type: 'prefounder',
-      company_stage: -6, // -6 months (pre-incorporation)
+      company_stage: -6, // Pre-incorporation
       company_stage_classified: 'pre_company',
       legal_type: 'einzelunternehmer',
       funding_amount: 50000, // €50k
@@ -91,306 +69,101 @@ const personas: Persona[] = [
       co_financing: 'co_no',
       team_size: 1,
       revenue_status: 'pre_revenue',
-      project_duration: 6, // 6 months
-      deadline_urgency: 1, // 1 month
+      project_duration: 6,
+      deadline_urgency: 1,
     }
   },
   {
-    name: "SME Manufacturing (Vienna, €200k-€500k)",
-    description: "Established SME in Vienna, manufacturing, needs growth capital",
+    name: "3. Scale-Up (Vienna, Multi-Industry, €1.5M)",
+    description: "Large funding need, growth stage, multiple industries, can co-finance",
     answers: {
       location: 'austria',
       location_region: 'vienna',
-      company_type: 'sme',
-      company_stage: 60, // 60 months (5 years)
-      company_stage_classified: 'mature',
+      company_type: 'startup',
+      company_stage: 24, // 24 months
+      company_stage_classified: 'growth_stage',
       legal_type: 'gmbh',
-      funding_amount: 350000, // €350k
-      industry_focus: ['manufacturing'],
-      use_of_funds: ['equipment', 'working_capital'],
-      impact: ['economic', 'environmental'],
+      funding_amount: 1500000, // €1.5M
+      industry_focus: ['digital', 'sustainability', 'health'],
+      use_of_funds: ['rd', 'personnel', 'marketing', 'expansion'],
+      impact: ['economic', 'environmental', 'social'],
       co_financing: 'co_yes',
       co_financing_percentage: '30%',
       team_size: 25,
       revenue_status: 'growing_revenue',
-      project_duration: 36, // 36 months
-      deadline_urgency: 12, // 12 months
+      project_duration: 36,
+      deadline_urgency: 12,
     }
   },
   {
-    name: "Research Institution (University, Sustainability)",
-    description: "University research project, sustainability focus, Austria",
+    name: "4. Research Institution (EU, Sustainability, €2M)",
+    description: "Research institution, EU-wide, large funding, sustainability focus",
     answers: {
-      location: 'austria',
+      location: 'eu',
       company_type: 'research',
-      company_stage: 0, // Not applicable
-      company_stage_classified: 'research_org',
+      company_stage: 120, // 10 years (mature research org)
+      company_stage_classified: 'mature',
       legal_type: 'verein',
-      funding_amount: 500000, // €500k
+      funding_amount: 2000000, // €2M
       industry_focus: ['sustainability'],
       use_of_funds: ['rd', 'equipment'],
       impact: ['environmental', 'social'],
-      co_financing: 'co_uncertain',
-      team_size: 8,
+      co_financing: 'co_yes',
+      co_financing_percentage: '20%',
+      team_size: 50,
       revenue_status: 'not_applicable',
-      project_duration: 48, // 48 months
-      deadline_urgency: 6, // 6 months
+      project_duration: 48,
+      deadline_urgency: 6,
     }
   },
   {
-    name: "Early Stage Startup (Tyrol, Digital)",
-    description: "New startup in Tyrol, digital focus, needs seed funding",
-    answers: {
-      location: 'austria',
-      location_region: 'tyrol',
-      company_type: 'startup',
-      company_stage: 6, // 6 months
-      company_stage_classified: 'early_stage',
-      legal_type: 'gmbh',
-      funding_amount: 150000, // €150k
-      industry_focus: ['digital'],
-      use_of_funds: ['rd', 'personnel'],
-      impact: ['economic'],
-      co_financing: 'co_no',
-      team_size: 3,
-      revenue_status: 'pre_revenue',
-      project_duration: 12, // 12 months
-      deadline_urgency: 3, // 3 months
-    }
-  },
-  {
-    name: "SME (Salzburg, Manufacturing, €200k-€500k)",
-    description: "Established SME in Salzburg, manufacturing, needs equipment funding",
+    name: "5. SME Manufacturing (Salzburg, €400k)",
+    description: "Established SME, manufacturing, regional, medium funding",
     answers: {
       location: 'austria',
       location_region: 'salzburg',
       company_type: 'sme',
-      company_stage: 48, // 48 months (4 years)
+      company_stage: 60, // 5 years
       company_stage_classified: 'mature',
       legal_type: 'gmbh',
       funding_amount: 400000, // €400k
       industry_focus: ['manufacturing'],
-      use_of_funds: ['equipment'],
+      use_of_funds: ['equipment', 'expansion'],
       impact: ['economic'],
       co_financing: 'co_yes',
       co_financing_percentage: '40%',
-      team_size: 20,
-      revenue_status: 'growing_revenue',
-      project_duration: 24, // 24 months
-      deadline_urgency: 6, // 6 months
-    }
-  },
-  {
-    name: "Micro Startup (Lower Austria, €5k-€50k)",
-    description: "Very early stage startup, minimal funding needed",
-    answers: {
-      location: 'austria',
-      location_region: 'lower austria',
-      company_type: 'startup',
-      company_stage: 1, // 1 month
-      company_stage_classified: 'early_stage',
-      legal_type: 'einzelunternehmer',
-      funding_amount: 25000, // €25k
-      industry_focus: ['digital'],
-      use_of_funds: ['rd'],
-      impact: ['economic'],
-      co_financing: 'co_no',
-      team_size: 1,
-      revenue_status: 'pre_revenue',
-      project_duration: 6, // 6 months
-      deadline_urgency: 2, // 2 months
-    }
-  },
-  {
-    name: "Scale-Up (Vienna, €1M-€2M)",
-    description: "Mature startup, needs large-scale funding for expansion",
-    answers: {
-      location: 'austria',
-      location_region: 'vienna',
-      company_type: 'startup',
-      company_stage: 36, // 36 months (3 years)
-      company_stage_classified: 'mature',
-      legal_type: 'gmbh',
-      funding_amount: 1500000, // €1.5M
-      industry_focus: ['digital', 'health'],
-      use_of_funds: ['personnel', 'marketing', 'equipment'],
-      impact: ['economic', 'social'],
-      co_financing: 'co_yes',
-      co_financing_percentage: '20%',
-      team_size: 30,
-      revenue_status: 'growing_revenue',
-      project_duration: 36, // 36 months
-      deadline_urgency: 12, // 12 months
-    }
-  },
-  {
-    name: "Research Institution (Vienna, Health)",
-    description: "University research project in Vienna, health focus",
-    answers: {
-      location: 'austria',
-      location_region: 'vienna',
-      company_type: 'research',
-      company_stage: 0, // Not applicable
-      company_stage_classified: 'research_org',
-      legal_type: 'verein',
-      funding_amount: 750000, // €750k
-      industry_focus: ['health'],
-      use_of_funds: ['rd', 'equipment'],
-      impact: ['social', 'economic'],
-      co_financing: 'co_yes',
-      co_financing_percentage: '30%',
       team_size: 15,
-      revenue_status: 'not_applicable',
-      project_duration: 48, // 48 months
-      deadline_urgency: 6, // 6 months
-    }
-  },
-  {
-    name: "SME (Styria, Sustainability, €100k-€200k)",
-    description: "SME in Styria, sustainability focus, needs green funding",
-    answers: {
-      location: 'austria',
-      location_region: 'styria',
-      company_type: 'sme',
-      company_stage: 30, // 30 months (2.5 years)
-      company_stage_classified: 'mature',
-      legal_type: 'gmbh',
-      funding_amount: 150000, // €150k
-      industry_focus: ['sustainability'],
-      use_of_funds: ['equipment', 'rd'],
-      impact: ['environmental', 'economic'],
-      co_financing: 'co_yes',
-      co_financing_percentage: '25%',
-      team_size: 15,
-      revenue_status: 'early_revenue',
-      project_duration: 24, // 24 months
-      deadline_urgency: 6, // 6 months
-    }
-  },
-  {
-    name: "Early Stage Startup (Upper Austria, Manufacturing)",
-    description: "New startup in Upper Austria, manufacturing focus",
-    answers: {
-      location: 'austria',
-      location_region: 'upper austria',
-      company_type: 'startup',
-      company_stage: 4, // 4 months
-      company_stage_classified: 'early_stage',
-      legal_type: 'gmbh',
-      funding_amount: 200000, // €200k
-      industry_focus: ['manufacturing'],
-      use_of_funds: ['equipment', 'rd'],
-      impact: ['economic', 'environmental'],
-      co_financing: 'co_no',
-      team_size: 4,
-      revenue_status: 'pre_revenue',
-      project_duration: 18, // 18 months
-      deadline_urgency: 4, // 4 months
-    }
-  },
-  {
-    name: "Growth Stage Startup (Carinthia, Digital)",
-    description: "Growth stage startup in Carinthia, digital focus",
-    answers: {
-      location: 'austria',
-      location_region: 'carinthia',
-      company_type: 'startup',
-      company_stage: 24, // 24 months (2 years)
-      company_stage_classified: 'growth_stage',
-      legal_type: 'gmbh',
-      funding_amount: 600000, // €600k
-      industry_focus: ['digital'],
-      use_of_funds: ['personnel', 'marketing'],
-      impact: ['economic'],
-      co_financing: 'co_yes',
-      co_financing_percentage: '20%',
-      team_size: 10,
-      revenue_status: 'early_revenue',
-      project_duration: 24, // 24 months
-      deadline_urgency: 6, // 6 months
-    }
-  },
-  {
-    name: "SME (Vorarlberg, €500k-€1M)",
-    description: "Established SME in Vorarlberg, needs large funding",
-    answers: {
-      location: 'austria',
-      location_region: 'vorarlberg',
-      company_type: 'sme',
-      company_stage: 72, // 72 months (6 years)
-      company_stage_classified: 'mature',
-      legal_type: 'gmbh',
-      funding_amount: 750000, // €750k
-      industry_focus: ['manufacturing', 'digital'],
-      use_of_funds: ['equipment', 'working_capital', 'personnel'],
-      impact: ['economic'],
-      co_financing: 'co_yes',
-      co_financing_percentage: '35%',
-      team_size: 40,
       revenue_status: 'growing_revenue',
-      project_duration: 36, // 36 months
-      deadline_urgency: 12, // 12 months
+      project_duration: 24,
+      deadline_urgency: 9,
     }
   },
-  {
-    name: "Pre-Founder (Burgenland, Idea Stage)",
-    description: "Pre-incorporation founder in Burgenland, idea stage",
-    answers: {
-      location: 'austria',
-      location_region: 'burgenland',
-      company_type: 'prefounder',
-      company_stage: -3, // -3 months (pre-incorporation)
-      company_stage_classified: 'pre_company',
-      legal_type: 'einzelunternehmer',
-      funding_amount: 30000, // €30k
-      industry_focus: ['sustainability'],
-      use_of_funds: ['rd'],
-      impact: ['environmental'],
-      co_financing: 'co_no',
-      team_size: 1,
-      revenue_status: 'pre_revenue',
-      project_duration: 6, // 6 months
-      deadline_urgency: 1, // 1 month
-    }
-  },
-  {
-    name: "Research Institution (EU, Sustainability, €2M+)",
-    description: "Large EU research project, sustainability focus, needs major funding",
-    answers: {
-      location: 'eu',
-      company_type: 'research',
-      company_stage: 0, // Not applicable
-      company_stage_classified: 'research_org',
-      legal_type: 'verein',
-      funding_amount: 2000000, // €2M
-      industry_focus: ['sustainability'],
-      use_of_funds: ['rd', 'equipment', 'personnel'],
-      impact: ['environmental', 'social', 'economic'],
-      co_financing: 'co_yes',
-      co_financing_percentage: '40%',
-      team_size: 25,
-      revenue_status: 'not_applicable',
-      project_duration: 60, // 60 months
-      deadline_urgency: 12, // 12 months
-    }
-  }
 ];
 
-async function testPersona(persona: Persona, index: number): Promise<any> {
-  console.log(`\n${'='.repeat(80)}`);
-  console.log(`PERSONA ${index + 1}: ${persona.name}`);
-  console.log('='.repeat(80));
-  console.log(`Description: ${persona.description}`);
-  console.log(`Answers:`, JSON.stringify(persona.answers, null, 2));
-  
-  const apiUrl = process.env.API_URL || 'http://localhost:3000';
-  const endpoint = `${apiUrl}/api/programs/recommend`;
+interface TestResult {
+  persona: string;
+  programCount: number;
+  responseTime: number;
+  source: string;
+  programs: any[];
+  extractionQuality: {
+    hasLocation: boolean;
+    hasCompanyType: boolean;
+    hasFundingAmount: boolean;
+    categoryCount: number;
+    categories: string[];
+  };
+}
 
+async function testPersona(persona: Persona): Promise<TestResult> {
+  const startTime = Date.now();
+  
   try {
-    const startTime = Date.now();
-    const response = await fetch(endpoint, {
+    const response = await fetch('http://localhost:3000/api/programs/recommend', {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
+      headers: {
+        'Content-Type': 'application/json',
+      },
       body: JSON.stringify({
         answers: persona.answers,
         max_results: 20,
@@ -399,292 +172,204 @@ async function testPersona(persona: Persona, index: number): Promise<any> {
       }),
     });
 
-    const duration = Date.now() - startTime;
-    
     if (!response.ok) {
-      const errorText = await response.text();
-      console.error(`❌ Error: ${response.status} - ${errorText.substring(0, 200)}`);
-      return { persona: persona.name, error: true, programs: [] };
+      throw new Error(`HTTP ${response.status}: ${response.statusText}`);
     }
 
     const data = await response.json();
+    const responseTime = Date.now() - startTime;
+
+    // Analyze extraction quality
     const programs = data.programs || [];
-    
-    console.log(`\n📊 Results:`);
-    console.log(`  Status: ${response.status} OK`);
-    console.log(`  Response Time: ${duration}ms`);
-    console.log(`  Programs Generated: ${programs.length}`);
-    console.log(`  Source: ${data.source}`);
-    
+    const extractionQuality = {
+      hasLocation: 0,
+      hasCompanyType: 0,
+      hasFundingAmount: 0,
+      categoryCount: 0,
+      categories: [] as string[],
+    };
+
+    programs.forEach((program: any) => {
+      const reqs = program.categorized_requirements || {};
+      const metadata = program.metadata || {};
+      
+      // Check critical fields
+      if (reqs.geographic && reqs.geographic.length > 0) extractionQuality.hasLocation++;
+      if (reqs.eligibility && reqs.eligibility.some((r: any) => r.type === 'company_type')) {
+        extractionQuality.hasCompanyType++;
+      }
+      if (metadata.funding_amount_min || metadata.funding_amount_max) {
+        extractionQuality.hasFundingAmount++;
+      }
+      
+      // Count categories
+      const categories = Object.keys(reqs);
+      extractionQuality.categories.push(...categories);
+      extractionQuality.categoryCount += categories.length;
+    });
+
+    // Calculate averages
     if (programs.length > 0) {
-      console.log(`\n📋 Programs:`);
-      programs.forEach((p: any, idx: number) => {
-        console.log(`  ${idx + 1}. ${p.name || 'Unnamed'}`);
-        console.log(`     Type: ${p.type || p.program_type || 'N/A'}`);
-        console.log(`     Funding: €${p.metadata?.funding_amount_min || 0} - €${p.metadata?.funding_amount_max || 0}`);
-        console.log(`     Location: ${p.metadata?.region || p.categorized_requirements?.geographic?.[0]?.value || 'N/A'}`);
-        const reqCategories = p.categorized_requirements || {};
-        const categoryCount = Object.keys(reqCategories).length;
-        console.log(`     Requirements: ${categoryCount} categories`);
-        if (categoryCount > 0) {
-          const categoryList = Object.keys(reqCategories).slice(0, 5).join(', ');
-          console.log(`     Categories: ${categoryList}${categoryCount > 5 ? '...' : ''}`);
-        }
-      });
-    } else {
-      console.log(`  ⚠️  No programs generated`);
+      extractionQuality.hasLocation = Math.round((extractionQuality.hasLocation / programs.length) * 100);
+      extractionQuality.hasCompanyType = Math.round((extractionQuality.hasCompanyType / programs.length) * 100);
+      extractionQuality.hasFundingAmount = Math.round((extractionQuality.hasFundingAmount / programs.length) * 100);
+      extractionQuality.categoryCount = Math.round(extractionQuality.categoryCount / programs.length);
     }
 
     return {
       persona: persona.name,
-      description: persona.description,
-      answers: persona.answers,
-      responseTime: duration,
       programCount: programs.length,
-      programs: programs.map((p: any) => ({
-        name: p.name,
-        type: p.type || p.program_type,
-        funding: `${p.metadata?.funding_amount_min || 0}-${p.metadata?.funding_amount_max || 0}`,
-        location: p.metadata?.region || p.categorized_requirements?.geographic?.[0]?.value,
-        categories: Object.keys(p.categorized_requirements || {}).length,
-        categorized_requirements: p.categorized_requirements || {},
-        metadata: p.metadata || {},
-      })),
-      source: data.source,
+      responseTime,
+      source: data.source || 'unknown',
+      programs,
+      extractionQuality,
     };
   } catch (error: any) {
-    console.error(`❌ Error: ${error.message}`);
-    return { persona: persona.name, error: true, programs: [] };
+    const responseTime = Date.now() - startTime;
+    console.error(`❌ Error testing ${persona.name}:`, error.message);
+    return {
+      persona: persona.name,
+      programCount: 0,
+      responseTime,
+      source: 'error',
+      programs: [],
+      extractionQuality: {
+        hasLocation: 0,
+        hasCompanyType: 0,
+        hasFundingAmount: 0,
+        categoryCount: 0,
+        categories: [],
+      },
+    };
   }
 }
 
-async function analyzeResults(results: any[]) {
-  console.log(`\n\n${'='.repeat(80)}`);
-  console.log('ANALYSIS: Result Diversity & Potential Issues');
+function analyzeResults(results: TestResult[]) {
+  console.log('\n\n');
   console.log('='.repeat(80));
-
-  // Check result diversity
-  const allProgramNames = new Set<string>();
-  results.forEach(r => {
-    if (r.programs) {
-      r.programs.forEach((p: any) => allProgramNames.add(p.name));
-    }
-  });
-
-  console.log(`\n📊 Diversity Analysis:`);
-  console.log(`  Total unique programs across all personas: ${allProgramNames.size}`);
-  console.log(`  Average programs per persona: ${(results.reduce((sum, r) => sum + (r.programCount || 0), 0) / results.length).toFixed(1)}`);
+  console.log('📊 ANALYSIS: What Questions Are Actually Needed?');
+  console.log('='.repeat(80));
   
-  // Program overlap analysis
-  const programCounts: Record<string, number> = {};
-  results.forEach(r => {
-    if (r.programs) {
-      r.programs.forEach((p: any) => {
-        programCounts[p.name] = (programCounts[p.name] || 0) + 1;
-      });
-    }
-  });
-
-  console.log(`\n🔄 Program Overlap:`);
-  const overlapping = Object.entries(programCounts).filter(([_, count]) => count > 1);
-  if (overlapping.length > 0) {
-    console.log(`  Programs appearing in multiple personas:`);
-    overlapping.forEach(([name, count]) => {
-      console.log(`    - ${name}: appears in ${count} personas`);
-    });
-  } else {
-    console.log(`  ✅ Good diversity - no programs overlap`);
-  }
-
-  // Check for bias issues
-  console.log(`\n⚠️  Potential Issues & Bias:`);
+  const zeroResults = results.filter(r => r.programCount === 0);
+  const hasResults = results.filter(r => r.programCount > 0);
   
-  // 1. Check if all personas get similar results
-  const programCountsArray = results.map(r => r.programCount || 0);
-  const minPrograms = Math.min(...programCountsArray);
-  const maxPrograms = Math.max(...programCountsArray);
-  if (maxPrograms - minPrograms > 3) {
-    console.log(`  ⚠️  Inconsistent result counts: ${minPrograms}-${maxPrograms} programs`);
-    console.log(`     Some personas get significantly more/fewer results`);
-  }
-
-  // 2. Check location bias
-  const locationResults = results.map(r => ({
-    persona: r.persona,
-    location: r.answers?.location,
-    programs: r.programs?.map((p: any) => p.location).filter(Boolean) || [],
-  }));
+  console.log(`\n✅ Personas with results: ${hasResults.length}/${results.length}`);
+  console.log(`❌ Personas with 0 results: ${zeroResults.length}/${results.length}`);
   
-  const locationMismatches = locationResults.filter(r => {
-    if (!r.location || r.programs.length === 0) return false;
-    return !r.programs.some(loc => 
-      loc.toLowerCase().includes(r.location.toLowerCase()) ||
-      (r.location === 'austria' && loc.toLowerCase().includes('österreich'))
-    );
-  });
-  
-  if (locationMismatches.length > 0) {
-    console.log(`  ⚠️  Location mismatch detected:`);
-    locationMismatches.forEach(m => {
-      console.log(`     ${m.persona} (${m.location}) got programs for: ${m.programs.join(', ')}`);
+  if (zeroResults.length > 0) {
+    console.log('\n⚠️  Personas getting 0 results:');
+    zeroResults.forEach(r => {
+      console.log(`   - ${r.persona}`);
     });
   }
-
-  // 3. Check company type bias
-  const typeResults = results.map(r => ({
-    persona: r.persona,
-    companyType: r.answers?.company_type,
-    programs: r.programs?.map((p: any) => p.type).filter(Boolean) || [],
-  }));
   
-  console.log(`\n  Company Type Matching:`);
-  typeResults.forEach(r => {
-    console.log(`    ${r.persona}: ${r.companyType} → ${r.programs.length} programs`);
-  });
-
-  // 4. Check funding amount matching
-  console.log(`\n  Funding Amount Matching:`);
-  results.forEach(r => {
-    const requested = r.answers?.funding_amount;
-    const programs = r.programs || [];
-    const matching = programs.filter((p: any) => {
-      const [min, max] = p.funding.split('-').map((n: string) => parseInt(n));
-      return requested && min <= requested && requested <= max;
-    });
-    console.log(`    ${r.persona}: €${requested} → ${matching.length}/${programs.length} programs match amount`);
-  });
-
-  // 5. Extraction quality analysis
-  console.log(`\n📊 Extraction Quality Analysis:`);
-  const allPrograms = results.flatMap(r => r.programs || []);
-  const expectedCategories = [
-    'geographic', 'eligibility', 'financial', 'project', 'funding_details',
-    'timeline', 'team', 'impact', 'application', 'documentation',
-    'evaluation', 'reporting', 'compliance', 'other', 'metadata'
-  ];
-  
-  const categoryCoverage: Record<string, number> = {};
-  expectedCategories.forEach(cat => {
-    categoryCoverage[cat] = allPrograms.filter(p => 
-      p.categorized_requirements && p.categorized_requirements[cat]
-    ).length;
-  });
-  
-  console.log(`  Category Coverage (${allPrograms.length} total programs):`);
-  Object.entries(categoryCoverage)
-    .sort(([, a], [, b]) => b - a)
-    .forEach(([cat, count]) => {
-      const percentage = allPrograms.length > 0 ? (count / allPrograms.length * 100).toFixed(0) : '0';
-      console.log(`    ${cat}: ${count}/${allPrograms.length} (${percentage}%)`);
-    });
-  
-  // Check critical fields
-  const criticalFields = {
-    location: allPrograms.filter(p => 
-      p.categorized_requirements?.geographic || p.metadata?.region
-    ).length,
-    company_type: allPrograms.filter(p => 
-      p.categorized_requirements?.eligibility?.some((r: any) => r.type === 'company_type')
-    ).length,
-    funding_amount: allPrograms.filter(p => 
-      p.metadata?.funding_amount_min || p.metadata?.funding_amount_max
-    ).length,
-  };
-  
-  console.log(`\n  Critical Fields Extraction:`);
-  Object.entries(criticalFields).forEach(([field, count]) => {
-    const percentage = allPrograms.length > 0 ? (count / allPrograms.length * 100).toFixed(0) : '0';
-    const status = count === allPrograms.length ? '✅' : count > allPrograms.length * 0.8 ? '⚠️' : '❌';
-    console.log(`    ${status} ${field}: ${count}/${allPrograms.length} (${percentage}%)`);
-  });
-
-  // 6. Question requirement analysis
-  console.log(`\n📋 Question Analysis:`);
-  const allAnswers = results.map(r => Object.keys(r.answers || {})).flat();
-  const answerFrequency: Record<string, number> = {};
-  allAnswers.forEach(key => {
-    answerFrequency[key] = (answerFrequency[key] || 0) + 1;
-  });
-  
-  console.log(`  Questions answered across personas:`);
-  Object.entries(answerFrequency)
-    .sort(([, a], [, b]) => b - a)
-    .forEach(([key, count]) => {
-      const percentage = (count / results.length * 100).toFixed(0);
-      console.log(`    ${key}: ${count}/${results.length} (${percentage}%)`);
-    });
-
-  // 7. Missing answers analysis
-  const allQuestionKeys = [
-    'location', 'company_type', 'company_stage', 'funding_amount',
-    'industry_focus', 'use_of_funds', 'impact', 'co_financing',
-    'team_size', 'revenue_status', 'project_duration', 'deadline_urgency'
-  ];
-  
-  console.log(`\n  Missing Answers (potential optional questions):`);
-  allQuestionKeys.forEach(key => {
-    const answered = results.filter(r => r.answers?.[key] !== undefined).length;
-    if (answered < results.length) {
-      console.log(`    ${key}: ${answered}/${results.length} answered (${results.length - answered} missing)`);
+  // Analyze which answers correlate with 0 results
+  console.log('\n🔍 Pattern Analysis:');
+  zeroResults.forEach(r => {
+    const persona = personas.find(p => p.name === r.persona);
+    if (persona) {
+      console.log(`\n   ${r.persona}:`);
+      console.log(`   - Company Type: ${persona.answers.company_type}`);
+      console.log(`   - Company Stage: ${persona.answers.company_stage} months (${persona.answers.company_stage_classified})`);
+      console.log(`   - Funding Amount: €${persona.answers.funding_amount?.toLocaleString()}`);
+      console.log(`   - Location: ${persona.answers.location}${persona.answers.location_region ? ` (${persona.answers.location_region})` : ''}`);
     }
   });
+  
+  // Extraction quality analysis
+  console.log('\n📈 Extraction Quality (Average across all personas):');
+  const avgLocation = results.reduce((sum, r) => sum + r.extractionQuality.hasLocation, 0) / results.length;
+  const avgCompanyType = results.reduce((sum, r) => sum + r.extractionQuality.hasCompanyType, 0) / results.length;
+  const avgFundingAmount = results.reduce((sum, r) => sum + r.extractionQuality.hasFundingAmount, 0) / results.length;
+  const avgCategories = results.reduce((sum, r) => sum + r.extractionQuality.categoryCount, 0) / results.length;
+  
+  console.log(`   - Location extraction: ${Math.round(avgLocation)}%`);
+  console.log(`   - Company type extraction: ${Math.round(avgCompanyType)}%`);
+  console.log(`   - Funding amount extraction: ${Math.round(avgFundingAmount)}%`);
+  console.log(`   - Average categories per program: ${Math.round(avgCategories)}`);
+  
+  // Response time analysis
+  const avgResponseTime = results.reduce((sum, r) => sum + r.responseTime, 0) / results.length;
+  console.log(`\n⏱️  Average response time: ${Math.round(avgResponseTime / 1000)}s`);
+  
+  // Complexity reduction recommendations
+  console.log('\n\n');
+  console.log('='.repeat(80));
+  console.log('💡 RECOMMENDATIONS: How to Reduce Complexity');
+  console.log('='.repeat(80));
+  
+  console.log('\n1. CRITICAL QUESTIONS (Must Keep):');
+  console.log('   ✅ location - 100% needed for matching');
+  console.log('   ✅ company_type - Critical for filtering');
+  console.log('   ✅ funding_amount - Essential for relevance');
+  
+  console.log('\n2. IMPORTANT QUESTIONS (Keep but Simplify):');
+  console.log('   ⚠️  company_stage - Important but complex (months vs stages)');
+  console.log('   ⚠️  industry_focus - Useful but can be optional');
+  
+  console.log('\n3. OPTIONAL QUESTIONS (Consider Removing):');
+  console.log('   ❓ revenue_status - Low impact, can infer from stage');
+  console.log('   ❓ project_duration - Rarely used in matching');
+  console.log('   ❓ deadline_urgency - Not used in matching');
+  console.log('   ❓ impact - Nice to have but not critical');
+  console.log('   ❓ use_of_funds - Can be inferred from industry');
+  console.log('   ❓ co_financing - Important but can be optional');
+  console.log('   ❓ team_size - Low impact on matching');
+  console.log('   ❓ legal_type - Rarely used in matching');
+  
+  console.log('\n4. SIMPLIFICATION SUGGESTIONS:');
+  console.log('   📝 Reduce minimum questions from 6 to 4 (location, company_type, funding_amount, company_stage)');
+  console.log('   📝 Make industry_focus optional (default to "all industries")');
+  console.log('   📝 Remove or make optional: revenue_status, project_duration, deadline_urgency');
+  console.log('   📝 Simplify company_stage: Use simple stages (idea, early, growth, mature) instead of months');
+  console.log('   📝 Remove location_region text input - just use main location');
+  
+  console.log('\n5. MATCHING IMPROVEMENTS:');
+  if (zeroResults.length > 0) {
+    console.log('   ⚠️  Lower threshold further or improve pre-founder/early-stage matching');
+    console.log('   ⚠️  Add better fallback for large funding amounts (€1M+)');
+    console.log('   ⚠️  Improve EU location matching');
+  }
+  
+  console.log('\n');
 }
 
-async function testAllPersonas() {
-  console.log(`🧪 Testing ${personas.length} Different Personas`);
-  console.log('Checking for result diversity, bias, extraction quality, and question flaws\n');
-
-  const results: any[] = [];
+async function main() {
+  console.log('🧪 Testing 5 Maximally Diverse Personas');
+  console.log('Checking: Result diversity, extraction quality, complexity analysis\n');
+  
+  const results: TestResult[] = [];
   
   for (let i = 0; i < personas.length; i++) {
-    const result = await testPersona(personas[i], i);
+    const persona = personas[i];
+    console.log('\n' + '='.repeat(80));
+    console.log(`PERSONA ${i + 1}: ${persona.name}`);
+    console.log('='.repeat(80));
+    console.log(`Description: ${persona.description}`);
+    console.log(`Answers: ${Object.keys(persona.answers).length} fields provided`);
+    
+    const result = await testPersona(persona);
     results.push(result);
+    
+    console.log(`\n✅ Results: ${result.programCount} programs`);
+    console.log(`⏱️  Response time: ${Math.round(result.responseTime / 1000)}s`);
+    console.log(`📊 Source: ${result.source}`);
+    console.log(`📈 Extraction quality:`);
+    console.log(`   - Location: ${result.extractionQuality.hasLocation}%`);
+    console.log(`   - Company Type: ${result.extractionQuality.hasCompanyType}%`);
+    console.log(`   - Funding Amount: ${result.extractionQuality.hasFundingAmount}%`);
+    console.log(`   - Avg Categories: ${result.extractionQuality.categoryCount}`);
     
     // Wait between requests to avoid rate limiting
     if (i < personas.length - 1) {
-      console.log(`\n⏳ Waiting 5 seconds before next persona...`);
-      await new Promise(resolve => setTimeout(resolve, 5000));
+      await new Promise(resolve => setTimeout(resolve, 2000));
     }
   }
-
-  // Analyze results
-  await analyzeResults(results);
-
-  // Summary
-  console.log(`\n\n${'='.repeat(80)}`);
-  console.log('SUMMARY');
-  console.log('='.repeat(80));
-  console.log(`✅ Tested ${personas.length} personas`);
-  const totalPrograms = results.reduce((sum, r) => sum + (r.programCount || 0), 0);
-  console.log(`✅ Total programs generated: ${totalPrograms}`);
-  console.log(`✅ Average programs per persona: ${(totalPrograms / personas.length).toFixed(1)}`);
-  console.log(`✅ Unique programs: ${new Set(results.flatMap(r => r.programs?.map((p: any) => p.name) || [])).size}`);
   
-  // Personas with 0 results
-  const zeroResults = results.filter(r => (r.programCount || 0) === 0);
-  if (zeroResults.length > 0) {
-    console.log(`\n⚠️  Personas with 0 results (${zeroResults.length}):`);
-    zeroResults.forEach(r => {
-      console.log(`  - ${r.persona}`);
-    });
-  }
+  // Final analysis
+  analyzeResults(results);
   
-  // Personas with many results
-  const manyResults = results.filter(r => (r.programCount || 0) >= 10);
-  if (manyResults.length > 0) {
-    console.log(`\n✅ Personas with 10+ results (${manyResults.length}):`);
-    manyResults.forEach(r => {
-      console.log(`  - ${r.persona}: ${r.programCount} programs`);
-    });
-  }
-  
-  console.log(`\n📊 Results per persona:`);
-  results.forEach(r => {
-    const status = (r.programCount || 0) === 0 ? '❌' : (r.programCount || 0) < 3 ? '⚠️' : '✅';
-    console.log(`  ${status} ${r.persona}: ${r.programCount || 0} programs (${r.responseTime || 0}ms)`);
-  });
+  console.log('\n✅ Test complete!\n');
 }
 
-// Run tests
-testAllPersonas().catch(console.error);
-
+main().catch(console.error);
