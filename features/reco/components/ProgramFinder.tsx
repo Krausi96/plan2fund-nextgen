@@ -597,22 +597,22 @@ export default function ProgramFinder({
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-purple-50">
       <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-2">
-        {/* Header - Centered with Wizard Icon - Larger but more compact */}
-        <div className="mb-2 text-center">
-          <div className="flex items-center justify-center gap-2 mb-1">
-            <div className="w-10 h-10 rounded-full bg-blue-600 flex items-center justify-center shadow-lg">
-              <Wand2 className="w-5 h-5 text-yellow-400" />
+        {/* Header - Centered with Wizard Icon - Better Spacing */}
+        <div className="mb-6 text-center">
+          <div className="flex items-center justify-center gap-3 mb-3">
+            <div className="w-12 h-12 rounded-full bg-blue-600 flex items-center justify-center shadow-lg">
+              <Wand2 className="w-6 h-6 text-yellow-400" />
             </div>
-            <h1 className="text-2xl sm:text-3xl font-bold text-gray-900">
+            <h1 className="text-3xl sm:text-4xl font-bold text-gray-900">
               {t('reco.pageTitle')}
             </h1>
           </div>
-          <p className="text-gray-600 text-xs sm:text-sm">
+          <p className="text-gray-600 text-base sm:text-lg mb-2">
             {t('reco.pageSubtitle')}
           </p>
           
           {results.length > 0 && (
-            <div className="mt-1 text-xs text-gray-600">
+            <div className="mt-2 text-sm text-gray-600">
               {results.length} program{results.length !== 1 ? 's' : ''} found
             </div>
           )}
@@ -645,10 +645,10 @@ export default function ProgramFinder({
         </div>
 
         <div className="flex flex-col gap-2">
-          {/* Answers Summary Section - Moved to Sidebar/Compact */}
+          {/* Answers Summary Section - Fixed Position, Non-Overlapping */}
           {answeredCount > 0 && (
-            <div className="fixed right-4 top-24 z-40 max-w-xs">
-              <Card className="p-3 bg-white border-2 border-blue-100 shadow-lg">
+            <div className="fixed right-6 top-32 z-30 max-w-xs">
+              <Card className="p-3 bg-white border-2 border-blue-100 shadow-xl">
                 <div className="flex items-center justify-between mb-2">
                   <div className="flex items-center gap-2">
                     <span className="text-sm">📊</span>
@@ -656,52 +656,53 @@ export default function ProgramFinder({
                       {answeredCount}/{visibleQuestions.length}
                     </h2>
                   </div>
-                  <div className="flex items-center gap-2">
-                    {/* Generate Button - Compact */}
-                    {hasEnoughAnswers && !showResults && (
-                      <button
-                        onClick={() => {
-                          setShowResults(true);
-                          updateGuidedResults();
-                        }}
-                        disabled={isLoading}
-                        className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-all text-xs font-semibold shadow-md hover:shadow-lg disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-1"
-                      >
-                        {isLoading ? (
-                          <>
-                            <div className="animate-spin rounded-full h-3 w-3 border-b-2 border-white"></div>
-                            <span>{t('reco.generating') || 'Generating...'}</span>
-                          </>
-                        ) : (
-                          <>
-                            <Wand2 className="w-3 h-3" />
-                            <span>{t('reco.generateButton')}</span>
-                          </>
-                        )}
-                      </button>
+                  <button
+                    onClick={() => setAnswersSummaryExpanded(!answersSummaryExpanded)}
+                    className="text-gray-500 hover:text-gray-700 transition-colors p-1"
+                    aria-label={answersSummaryExpanded ? 'Collapse' : 'Expand'}
+                  >
+                    {answersSummaryExpanded ? (
+                      <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 15l7-7 7 7" />
+                      </svg>
+                    ) : (
+                      <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                      </svg>
                     )}
-                    {answeredCount > 0 && !hasEnoughAnswers && (
-                      <div className="text-xs text-gray-500 text-right">
-                        <div className="font-medium">{answeredCount}/{MIN_QUESTIONS_FOR_RESULTS}</div>
-                      </div>
-                    )}
+                  </button>
+                </div>
+                
+                {/* Generate Button - Separate, Pulsing Animation */}
+                {hasEnoughAnswers && !showResults && (
+                  <div className="mb-2">
                     <button
-                      onClick={() => setAnswersSummaryExpanded(!answersSummaryExpanded)}
-                      className="text-gray-500 hover:text-gray-700 transition-colors p-1"
-                      aria-label={answersSummaryExpanded ? 'Collapse' : 'Expand'}
+                      onClick={() => {
+                        setShowResults(true);
+                        updateGuidedResults();
+                      }}
+                      disabled={isLoading}
+                      className="w-full px-4 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-all text-sm font-semibold shadow-lg hover:shadow-xl disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2 animate-pulse hover:animate-none"
                     >
-                      {answersSummaryExpanded ? (
-                        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 15l7-7 7 7" />
-                        </svg>
+                      {isLoading ? (
+                        <>
+                          <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
+                          <span>{t('reco.generating') || 'Generating...'}</span>
+                        </>
                       ) : (
-                        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
-                        </svg>
+                        <>
+                          <Wand2 className="w-4 h-4" />
+                          <span>{t('reco.generateButton')}</span>
+                        </>
                       )}
                     </button>
                   </div>
-                </div>
+                )}
+                {answeredCount > 0 && !hasEnoughAnswers && (
+                  <div className="mb-2 text-xs text-gray-500 text-center">
+                    <div className="font-medium">{answeredCount}/{MIN_QUESTIONS_FOR_RESULTS} required</div>
+                  </div>
+                )}
                 
                 {answersSummaryExpanded && (
                   <div className="mt-2 pt-2 border-t border-gray-200 max-h-96 overflow-y-auto">
@@ -779,32 +780,36 @@ export default function ProgramFinder({
                       
                       {/* Current Question Display - Navigation Inside Box */}
                       <div className="relative bg-white rounded-lg border-2 border-blue-200 shadow-md p-6">
-                        {/* Navigation Buttons - Inside Box, Top Right */}
-                        <div className="flex justify-end gap-2 mb-4">
+                        {/* Navigation Buttons - Bottom of Box, Centered, Styled */}
+                        <div className="flex justify-between items-center mt-6 pt-4 border-t border-gray-200">
                           <button
                             onClick={() => setCurrentQuestionIndex(Math.max(0, currentQuestionIndex - 1))}
                             disabled={currentQuestionIndex === 0}
-                            className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg font-medium text-sm transition-all ${
+                            className={`flex items-center gap-2 px-4 py-2 rounded-lg font-medium text-sm transition-all shadow-sm ${
                               currentQuestionIndex === 0
-                                ? 'opacity-40 cursor-not-allowed bg-gray-200 text-gray-500'
-                                : 'bg-blue-100 text-blue-700 hover:bg-blue-200'
+                                ? 'opacity-30 cursor-not-allowed bg-gray-100 text-gray-400'
+                                : 'bg-gradient-to-r from-blue-500 to-blue-600 text-white hover:from-blue-600 hover:to-blue-700 hover:shadow-md transform hover:scale-105 active:scale-95'
                             }`}
                           >
-                            <ChevronLeft className="w-4 h-4" />
-                            <span>{t('reco.ui.previous') || 'Previous'}</span>
+                            <ChevronLeft className="w-5 h-5" />
+                            <span>{t('reco.ui.previous') || 'Zurück'}</span>
                           </button>
+                          
+                          <span className="text-sm text-gray-500 font-medium">
+                            {currentQuestionIndex + 1} / {visibleQuestions.length}
+                          </span>
                           
                           <button
                             onClick={() => setCurrentQuestionIndex(Math.min(visibleQuestions.length - 1, currentQuestionIndex + 1))}
                             disabled={currentQuestionIndex === visibleQuestions.length - 1}
-                            className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg font-medium text-sm transition-all ${
+                            className={`flex items-center gap-2 px-4 py-2 rounded-lg font-medium text-sm transition-all shadow-sm ${
                               currentQuestionIndex === visibleQuestions.length - 1
-                                ? 'opacity-40 cursor-not-allowed bg-gray-200 text-gray-500'
-                                : 'bg-blue-100 text-blue-700 hover:bg-blue-200'
+                                ? 'opacity-30 cursor-not-allowed bg-gray-100 text-gray-400'
+                                : 'bg-gradient-to-r from-blue-500 to-blue-600 text-white hover:from-blue-600 hover:to-blue-700 hover:shadow-md transform hover:scale-105 active:scale-95'
                             }`}
                           >
-                            <span>{t('reco.ui.next') || 'Next'}</span>
-                            <ChevronRight className="w-4 h-4" />
+                            <span>{t('reco.ui.next') || 'Weiter'}</span>
+                            <ChevronRight className="w-5 h-5" />
                           </button>
                         </div>
                         {(() => {
@@ -854,14 +859,27 @@ export default function ProgramFinder({
                                       <div key={option.value} className="space-y-2">
                                         <button
                                           onClick={() => {
-                                            handleAnswer(question.id, option.value);
-                                            // Clear region if switching main option
-                                            if (showRegionInput && value !== option.value) {
-                                              handleAnswer(`${question.id}_region`, undefined);
-                                            }
-                                            // Clear "other" text if switching away
-                                            if (isOtherOption && value !== option.value) {
-                                              handleAnswer(`${question.id}_other`, undefined);
+                                            // Toggle: if already selected, deselect; otherwise select
+                                            if (isSelected) {
+                                              handleAnswer(question.id, undefined);
+                                              // Clear "other" text when deselecting
+                                              if (isOtherOption) {
+                                                handleAnswer(`${question.id}_other`, undefined);
+                                              }
+                                              // Clear region when deselecting
+                                              if (showRegionInput) {
+                                                handleAnswer(`${question.id}_region`, undefined);
+                                              }
+                                            } else {
+                                              handleAnswer(question.id, option.value);
+                                              // Clear region if switching main option
+                                              if (showRegionInput && value !== option.value) {
+                                                handleAnswer(`${question.id}_region`, undefined);
+                                              }
+                                              // Clear "other" text if switching away
+                                              if (isOtherOption && value !== option.value) {
+                                                handleAnswer(`${question.id}_other`, undefined);
+                                              }
                                             }
                                             // Don't auto-advance - let user manually proceed
                                           }}
@@ -907,19 +925,36 @@ export default function ProgramFinder({
                                         
                                         {/* Text input for "Other" option */}
                                         {isOtherOption && isSelected && question.hasOtherTextInput && (
-                                          <div className="ml-4 space-y-1.5 border-l-2 border-blue-200 pl-3 pt-1">
+                                          <div className="ml-4 space-y-1.5 border-l-2 border-blue-200 pl-3 pt-1 mt-2">
                                             <label className="text-xs font-medium text-gray-600 mb-1 block">
                                               {t('reco.ui.pleaseSpecify') || 'Please specify:'}
                                             </label>
                                             <input
                                               type="text"
-                                              placeholder={t('reco.ui.enterAnswer') || 'Enter your answer...'}
+                                              placeholder={
+                                                question.id === 'company_type' 
+                                                  ? 'z.B. Verein, Genossenschaft, Stiftung' 
+                                                  : question.id === 'impact'
+                                                  ? 'z.B. Bildung, Gesundheit, Kultur'
+                                                  : t('reco.ui.enterAnswer') || 'Enter your answer...'
+                                              }
                                               value={otherTextValue}
                                               onChange={(e) => {
                                                 handleAnswer(`${question.id}_other`, e.target.value);
                                               }}
                                               className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                                              autoFocus
                                             />
+                                            {question.id === 'company_type' && (
+                                              <p className="text-xs text-gray-500 mt-1">
+                                                Beispiele: Verein, Genossenschaft, Stiftung, etc.
+                                              </p>
+                                            )}
+                                            {question.id === 'impact' && (
+                                              <p className="text-xs text-gray-500 mt-1">
+                                                Beispiele: Bildung, Gesundheit, Kultur, etc.
+                                              </p>
+                                            )}
                                           </div>
                                         )}
                                         
@@ -1086,7 +1121,7 @@ export default function ProgramFinder({
                                         
                                         {/* Text input for "Other" option - support multiple entries for use_of_funds */}
                                         {isOtherOption && isSelected && question.hasOtherTextInput && (
-                                          <div className="ml-4 space-y-1.5 border-l-2 border-blue-200 pl-3 pt-1">
+                                          <div className="ml-4 space-y-1.5 border-l-2 border-blue-200 pl-3 pt-1 mt-2">
                                             <label className="text-xs font-medium text-gray-600 mb-1 block">
                                               {question.allowMultipleOther 
                                                 ? (t('reco.ui.pleaseSpecifyMultiple') || 'Please specify (you can add multiple):')
@@ -1126,12 +1161,17 @@ export default function ProgramFinder({
                                                 ) : (
                                                   <input
                                                     type="text"
-                                                    placeholder="Enter your answer..."
+                                                    placeholder={
+                                                      question.id === 'industry_focus'
+                                                        ? 'z.B. Tourismus, Landwirtschaft, Energie'
+                                                        : 'Enter your answer...'
+                                                    }
                                                     value={otherTextValue}
                                                     onChange={(e) => {
                                                       handleAnswer(`${question.id}_other`, [e.target.value]);
                                                     }}
                                                     className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                                                    autoFocus
                                                   />
                                                 )}
                                                 <button
@@ -1147,15 +1187,27 @@ export default function ProgramFinder({
                                               </div>
                                             ) : (
                                               // Single "other" entry
-                                              <input
-                                                type="text"
-                                                placeholder="Enter your answer..."
-                                                value={otherTextValue}
-                                                onChange={(e) => {
-                                                  handleAnswer(`${question.id}_other`, e.target.value);
-                                                }}
-                                                className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                                              />
+                                              <div>
+                                                <input
+                                                  type="text"
+                                                  placeholder={
+                                                    question.id === 'industry_focus'
+                                                      ? 'z.B. Tourismus, Landwirtschaft, Energie'
+                                                      : 'Enter your answer...'
+                                                  }
+                                                  value={otherTextValue}
+                                                  onChange={(e) => {
+                                                    handleAnswer(`${question.id}_other`, e.target.value);
+                                                  }}
+                                                  className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                                                  autoFocus
+                                                />
+                                                {question.id === 'industry_focus' && (
+                                                  <p className="text-xs text-gray-500 mt-1">
+                                                    Beispiele: Tourismus, Landwirtschaft, Energie, etc.
+                                                  </p>
+                                                )}
+                                              </div>
                                             )}
                                           </div>
                                         )}
@@ -1267,7 +1319,8 @@ export default function ProgramFinder({
                                             // Remove currency symbol, unit text, and spaces
                                             if (question.unit === 'EUR') {
                                               cleaned = cleaned.replace(/[€,\s]/g, '');
-                                              const numValue = parseInt(cleaned);
+                                              // Use parseFloat to handle larger numbers, then convert to int
+                                              const numValue = Math.floor(parseFloat(cleaned));
                                               // Allow any valid number within range, not just step increments
                                               if (!isNaN(numValue) && numValue >= question.min && numValue <= question.max) {
                                                 handleAnswer(question.id, numValue);
@@ -1309,11 +1362,14 @@ export default function ProgramFinder({
                                             let cleaned = e.target.value;
                                             if (question.unit === 'EUR') {
                                               cleaned = cleaned.replace(/[€,\s]/g, '');
-                                              const numValue = parseInt(cleaned);
+                                              const numValue = Math.floor(parseFloat(cleaned));
                                               if (isNaN(numValue) || numValue < question.min) {
                                                 handleAnswer(question.id, question.min);
                                               } else if (numValue > question.max) {
                                                 handleAnswer(question.id, question.max);
+                                              } else if (!isNaN(numValue)) {
+                                                // Update with valid value
+                                                handleAnswer(question.id, numValue);
                                               }
                                             } else if (question.unit === 'years') {
                                               cleaned = cleaned.replace(/[years\s]/gi, '');
