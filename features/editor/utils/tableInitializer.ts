@@ -1,7 +1,7 @@
 // ========= PLAN2FUND — TABLE INITIALIZER =========
 // Initialize default table structures based on section category
 
-import { Table, PlanSection } from '@/shared/types/plan';
+import { Table, PlanSection } from '@/features/editor/types/plan';
 import { SectionTemplate } from '@templates';
 
 /**

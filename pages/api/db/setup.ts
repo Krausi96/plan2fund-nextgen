@@ -1,5 +1,5 @@
 import type { NextApiRequest, NextApiResponse } from 'next';
-import { getPool } from '../../../scraper-lite/db/db';
+import { getPool } from '../../../shared/lib/database';
 import fs from 'fs';
 import path from 'path';
 

@@ -82,7 +82,7 @@ async function updateUserProfile(req: NextApiRequest, res: NextApiResponse) {
     }
 
     const updates = req.body;
-    const pool = (await import('../../../scraper-lite/db/db')).getPool();
+    const pool = (await import('../../../shared/lib/database')).getPool();
     
     // Build update query dynamically
     const allowedFields = ['segment', 'program_type', 'industry', 'language', 'payer_type', 'experience', 'name'];

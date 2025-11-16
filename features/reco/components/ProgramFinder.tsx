@@ -11,7 +11,6 @@ import { Card } from '@/shared/components/ui/card';
 import { Badge } from '@/shared/components/ui/badge';
 // Progress bar implemented with custom div (not using Progress component)
 import { scoreProgramsEnhanced, EnhancedProgramResult } from '@/features/reco/engine/enhancedRecoEngine';
-import { useRecommendation } from '@/features/reco/contexts/RecommendationContext';
 import { useI18n } from '@/shared/contexts/I18nContext';
 
 interface ProgramFinderProps {
@@ -260,7 +259,6 @@ export default function ProgramFinder({
   onProgramSelect
 }: ProgramFinderProps) {
   const router = useRouter();
-  const { setRecommendations } = useRecommendation();
   const { t } = useI18n();
   
   // Get translated questions
@@ -384,10 +382,31 @@ export default function ProgramFinder({
       const data = await response.json();
       const extractedPrograms = data.programs || [];
       
+      // Log extraction results for debugging
+      const extractionResults = data.extraction_results || data.extractionResults || [];
+      if (extractionResults.length > 0) {
+        console.log('📊 Extraction results:', extractionResults);
+        const llmResult = extractionResults.find((r: any) => r.source === 'llm_generated');
+        if (llmResult) {
+          if (llmResult.error) {
+            console.error('❌ LLM generation error:', llmResult.error, llmResult.details);
+            if (llmResult.error.includes('No LLM available')) {
+              alert('LLM is not configured. Please set OPENAI_API_KEY or CUSTOM_LLM_ENDPOINT environment variable.');
+            }
+          } else {
+            console.log('✅ LLM generation:', llmResult.message);
+          }
+        }
+      }
+      
       if (extractedPrograms.length === 0) {
-        console.warn('No programs returned from API');
+        console.warn('⚠️ No programs returned from API');
+        console.warn('API response:', data);
         // Show user-friendly message
         setResults([]);
+        if (data.error) {
+          alert(`No programs found: ${data.message || data.error}`);
+        }
         return;
       }
       
@@ -415,27 +434,47 @@ export default function ProgramFinder({
       }));
       
       // Score the programs
+      console.log(`📊 Scoring ${programsForScoring.length} programs with answers:`, Object.keys(answers));
       const scored = await scoreProgramsEnhanced(answers, 'strict', programsForScoring);
+      
+      // Log score distribution for debugging
+      const scoreDistribution = scored.map(p => ({ name: p.name, score: p.score }));
+      console.log('📈 Score distribution:', scoreDistribution);
+      
       // Filter out zero-score programs and sort by score (highest first), then take top 5
       // Be more lenient - show programs with score > 0
       const validPrograms = scored.filter(p => p.score > 0);
       const top5 = validPrograms.sort((a, b) => b.score - a.score).slice(0, 5);
       
-      console.log(`✅ Scored ${scored.length} programs, ${validPrograms.length} valid, showing top ${top5.length}`);
-      setResults(top5);
+      console.log(`✅ Scored ${scored.length} programs, ${validPrograms.length} valid (score > 0), showing top ${top5.length}`);
+      
+      // If no valid programs, show ALL programs (even with score 0) for debugging
+      if (validPrograms.length === 0 && scored.length > 0) {
+        console.warn('⚠️ All programs have score 0! Showing all programs for debugging:', {
+          totalPrograms: programsForScoring.length,
+          scoredPrograms: scored.length,
+          scoreDistribution,
+          sampleProgram: programsForScoring[0],
+          sampleScored: scored[0],
+        });
+        // Show all programs even with 0 score for debugging
+        setResults(scored.slice(0, 5));
+      } else {
+        setResults(top5);
+      }
       
       // If no results, log for debugging
-      if (top5.length === 0) {
+      if (top5.length === 0 && validPrograms.length === 0) {
         console.warn('⚠️ No valid programs after scoring:', {
           totalPrograms: programsForScoring.length,
           scoredPrograms: scored.length,
           validPrograms: validPrograms.length,
           answers,
+          sampleProgram: programsForScoring[0],
         });
       }
       
-      // Store in context for results page
-      setRecommendations(scored);
+      // Store in localStorage for persistence
       if (typeof window !== 'undefined') {
         localStorage.setItem('recoResults', JSON.stringify(scored));
         localStorage.setItem('userAnswers', JSON.stringify(answers));
@@ -449,7 +488,7 @@ export default function ProgramFinder({
       setIsLoading(false);
       if (timeoutId) clearTimeout(timeoutId);
     }
-  }, [answers, hasEnoughAnswers, setRecommendations]);
+  }, [answers, hasEnoughAnswers]);
   
   // State to control when to show results
   const [showResults, setShowResults] = useState(false);

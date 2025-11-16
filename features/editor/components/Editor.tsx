@@ -3,7 +3,7 @@
 
 import React, { useState, useEffect, useCallback } from 'react';
 import { useRouter } from 'next/router';
-import { PlanDocument, PlanSection, ConversationMessage } from '@/shared/types/plan';
+import { PlanDocument, PlanSection, ConversationMessage } from '@/features/editor/types/plan';
 import { SectionTemplate, getSections } from '@templates';
 import { createAIHelper } from '@/features/editor/engine/aiHelper';
 import { savePlanSections, loadUserAnswers, savePlanConversations, loadPlanConversations } from '@/shared/user/storage/planStore';

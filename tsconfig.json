@@ -25,7 +25,6 @@
       "@/features/*": ["./features/*"],
       "@/shared/*": ["./shared/*"],
       "@/database/*": ["./database/*"],
-      "@/scraper/*": ["./scraper-lite/src/*"],
       "@templates": ["./features/editor/templates"]
     },
     "allowJs": true,
@@ -37,7 +36,6 @@
     "pages",
     "features",
     "shared",
-    "scraper-lite/src"
   ],
   "exclude": [
     "node_modules",

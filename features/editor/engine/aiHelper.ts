@@ -5,7 +5,7 @@
  * NOW: Unified Business Expert System with Template Knowledge
  */
 
-import type { ConversationMessage } from '@/shared/types/plan';
+import type { ConversationMessage } from '@/features/editor/types/plan';
 import { getTemplateKnowledge } from '@templates';
 
 // ProgramTemplate and TemplateSection types removed - using Enhanced Data Pipeline instead

@@ -1,4 +1,4 @@
-import type { ConversationMessage } from '@/shared/types/plan';
+import type { ConversationMessage } from '@/features/editor/types/plan';
 
 export type PlanSection = { 
   id: string; 

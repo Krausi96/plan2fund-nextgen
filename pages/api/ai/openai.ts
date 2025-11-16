@@ -4,7 +4,7 @@
 
 import { NextApiRequest, NextApiResponse } from 'next';
 import OpenAI from 'openai';
-import type { ConversationMessage } from '@/shared/types/plan';
+import type { ConversationMessage } from '@/features/editor/types/plan';
 
 // Initialize OpenAI client
 const openai = new OpenAI({

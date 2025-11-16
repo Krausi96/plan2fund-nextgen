@@ -4,7 +4,7 @@
 // NOW: Semantic validation using AI Business Expert with Template Knowledge
 
 import React, { useEffect, useState } from 'react';
-import { PlanSection } from '@/shared/types/plan';
+import { PlanSection } from '@/features/editor/types/plan';
 import { SectionTemplate, getTemplateKnowledge } from '@templates';
 
 /**

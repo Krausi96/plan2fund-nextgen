@@ -1,9 +1,9 @@
 // On-demand recommendation API
-// Takes Q&A answers, filters seed URLs, extracts on-demand, returns matches
+// Takes Q&A answers, generates programs with LLM, extracts detailed requirements
 import { NextApiRequest, NextApiResponse } from 'next';
 import * as fs from 'fs';
 import * as path from 'path';
-import { extractWithLLM } from '../../../scraper-lite/src/core/llm-extract';
+import { extractWithLLM } from '../../../features/reco/engine/llmExtract';
 import {
   normalizeLocationAnswer,
   normalizeCompanyTypeAnswer,
@@ -516,80 +516,172 @@ Example format:
   ]
 }`;
 
-    // Call LLM
+    // Call LLM using EXACT same pattern as extractWithLLM from features/reco/engine/llmExtract
     const { isCustomLLMEnabled, callCustomLLM } = await import('../../../shared/lib/ai/customLLM');
     const OpenAI = (await import('openai')).default;
     
+    console.log('🤖 Calling LLM to generate programs (using extractWithLLM pattern)...');
+    console.log('📝 User profile:', userProfile.substring(0, 200) + '...');
+    
+    const messages = [
+      { role: 'system' as const, content: 'You are an expert on European funding programs. Return a JSON object with a "programs" array containing funding program suggestions.' },
+      { role: 'user' as const, content: prompt }
+    ];
+    
     let responseText: string | null = null;
     
+    // Use EXACT same LLM calling pattern as extractWithLLM
     if (isCustomLLMEnabled()) {
-      const customResponse = await callCustomLLM({
-        messages: [
-          { role: 'system', content: 'You are an expert on European funding programs. Return only valid JSON arrays.' },
-          { role: 'user', content: prompt }
-        ],
-        responseFormat: 'json',
-        temperature: 0.3,
-        maxTokens: 4000,
-      });
-      responseText = customResponse.output;
-    } else if (process.env.OPENAI_API_KEY) {
-      const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
-      const model = process.env.OPENAI_MODEL || 'gpt-4o-mini';
-      
-      // Note: OpenAI's json_object format requires object, not array
-      // Prompt already asks for {"programs": [...]} format
-      const completion = await openai.chat.completions.create({
-        model,
-        messages: [
-          { role: 'system', content: 'You are an expert on European funding programs. Return a JSON object with a "programs" array.' },
-          { role: 'user', content: prompt }
-        ],
-        response_format: { type: 'json_object' },
-        temperature: 0.3,
-        max_tokens: 4000,
-      });
-      
-      responseText = completion.choices[0]?.message?.content || null;
-    } else {
-      throw new Error('No LLM available: Set OPENAI_API_KEY or CUSTOM_LLM_ENDPOINT');
+      try {
+        let retries = 3;
+        let customResponse;
+        while (retries > 0) {
+          try {
+            customResponse = await callCustomLLM({
+              messages,
+              responseFormat: 'json',
+              temperature: 0.3,
+              maxTokens: 4000,
+            });
+            break; // Success
+          } catch (rateLimitError: any) {
+            if (rateLimitError?.status === 429 && retries > 0) {
+              let waitSeconds = 5;
+              const errorMsg = rateLimitError?.message || String(rateLimitError);
+              const waitMatch = errorMsg.match(/(?:try again|Please retry|retryDelay)[^\d]*([\d.]+)s/i) 
+                || errorMsg.match(/retryDelay["\s:]+([\d.]+)s/i);
+              if (waitMatch) {
+                waitSeconds = parseFloat(waitMatch[1]) + 1;
+              }
+              console.warn(`   ⚠️  Rate limit (429), waiting ${waitSeconds}s before retry...`);
+              await new Promise(resolve => setTimeout(resolve, waitSeconds * 1000));
+              retries--;
+            } else {
+              throw rateLimitError;
+            }
+          }
+        }
+        if (!customResponse) {
+          throw new Error('Failed after retries');
+        }
+        responseText = customResponse.output;
+        console.log(`✅ Custom LLM response received (${customResponse.model})`);
+      } catch (customError: any) {
+        const errorMsg = customError?.message || String(customError);
+        const errorStatus = customError?.status || 'unknown';
+        
+        if (errorStatus === 429) {
+          throw customError;
+        } else if (errorStatus === 504 || errorMsg.includes('timeout') || errorMsg.includes('timed out')) {
+          console.warn(`⚠️  Custom LLM timeout (${errorStatus}). Retrying once...`);
+          await new Promise(resolve => setTimeout(resolve, 2000));
+          try {
+            const retryResponse = await callCustomLLM({
+              messages,
+              responseFormat: 'json',
+              temperature: 0.3,
+              maxTokens: 4000,
+            });
+            responseText = retryResponse.output;
+            console.log('✅ Custom LLM retry succeeded after timeout');
+          } catch (retryError: any) {
+            throw new Error(`Custom LLM timeout retry failed (${retryError?.status || 'unknown'}): ${retryError?.message || retryError}`);
+          }
+        } else if (errorStatus === 402) {
+          console.warn(`⚠️  Custom LLM returned 402 (${errorMsg}). This might be a model access issue.`);
+          throw new Error(`Custom LLM access denied (402): ${errorMsg}. Check model availability and API key.`);
+        } else {
+          throw new Error(`Custom LLM unavailable (${errorStatus}): ${errorMsg}`);
+        }
+      }
     }
-
-    if (!responseText) {
-      throw new Error('LLM returned empty response');
-    }
-
-    // Parse JSON response
-    let programs: any[];
-    try {
-      // Clean response text - remove control characters and fix common issues
-      let cleanedText = responseText.trim();
+    
+    // Only use OpenAI if custom LLM is NOT enabled (same as extractWithLLM)
+    if (!responseText && !isCustomLLMEnabled()) {
+      const model = process.env.OPENAI_MODEL || process.env.SCRAPER_MODEL_VERSION || "gpt-4o-mini";
       
-      // Remove control characters (except newlines and tabs in strings)
-      cleanedText = cleanedText.replace(/[\x00-\x08\x0B-\x0C\x0E-\x1F\x7F]/g, '');
+      let retries = 3;
+      let lastError: any = null;
       
-      // Fix common JSON issues
-      cleanedText = cleanedText.replace(/,\s*}/g, '}'); // Remove trailing commas
-      cleanedText = cleanedText.replace(/,\s*]/g, ']'); // Remove trailing commas
-      
-      // If response is truncated, try to complete it
-      if (!cleanedText.endsWith('}') && !cleanedText.endsWith(']')) {
-        // Try to find the last complete program object
-        const lastCompleteMatch = cleanedText.match(/\{[\s\S]*?"description"[^}]*\}/g);
-        if (lastCompleteMatch && lastCompleteMatch.length > 0) {
-          // Use last complete program and close the array
-          const lastProgram = lastCompleteMatch[lastCompleteMatch.length - 1];
-          const beforeLast = cleanedText.substring(0, cleanedText.lastIndexOf(lastProgram));
-          cleanedText = beforeLast + lastProgram + '\n  ]\n}';
-        } else if (cleanedText.includes('"programs"')) {
-          // If we have programs array, try to close it
-          if (!cleanedText.endsWith(']')) {
-            cleanedText = cleanedText.replace(/,\s*$/, '') + '\n  ]\n}';
+      while (retries > 0) {
+        try {
+          if (!process.env.OPENAI_API_KEY) {
+            throw new Error('OpenAI client not initialized. Set OPENAI_API_KEY or use CUSTOM_LLM_ENDPOINT');
+          }
+          const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
+          const completion = await openai.chat.completions.create({
+            model: model.startsWith('text-embedding') ? 'gpt-4o-mini' : model,
+            messages,
+            response_format: { type: "json_object" },
+            max_tokens: 4000,
+            temperature: 0.3,
+          });
+          responseText = completion.choices[0]?.message?.content || '{}';
+          console.log(`✅ OpenAI response received (${model})`);
+          break; // Success, exit retry loop
+        } catch (apiError: any) {
+          lastError = apiError;
+          
+          if (apiError?.status === 429 || apiError?.code === 'insufficient_quota') {
+            if (retries > 1) {
+              const waitTime = Math.pow(2, 3 - retries) * 1000; // 1s, 2s, 4s
+              console.warn(`⚠️  Rate limit hit (${apiError?.code || '429'}), retrying in ${waitTime}ms... (${retries - 1} attempts left)`);
+              await new Promise(resolve => setTimeout(resolve, waitTime));
+              retries--;
+              continue;
+            } else {
+              throw apiError;
+            }
+          } else {
+            throw apiError;
           }
         }
       }
       
-      const parsed = JSON.parse(cleanedText);
+      if (!responseText) {
+        throw lastError || new Error('Failed to get LLM response after retries');
+      }
+    } else if (!responseText && isCustomLLMEnabled()) {
+      throw new Error('Custom LLM is enabled but failed to provide response. Check custom LLM configuration.');
+    }
+    
+    if (!responseText) {
+      throw new Error('LLM returned empty response');
+    }
+    
+    console.log('📄 Response preview:', responseText.substring(0, 300) + '...');
+
+    // Parse JSON response using EXACT same logic as extractWithLLM
+    let programs: any[];
+    try {
+      // Use same sanitize function as extractWithLLM
+      function sanitizeLLMResponse(text: string): string {
+        let cleaned = text.trim();
+        cleaned = cleaned.replace(/```json/gi, '```');
+        cleaned = cleaned.replace(/```/g, '');
+        cleaned = cleaned.replace(/^Here is the JSON requested:\s*/i, '');
+        cleaned = cleaned.replace(/^Here is .*?JSON:\s*/i, '');
+        cleaned = cleaned.replace(/^Response:\s*/i, '');
+        const firstCurly = cleaned.indexOf('{');
+        const firstBracket = cleaned.indexOf('[');
+        const starts: number[] = [];
+        if (firstCurly >= 0) starts.push(firstCurly);
+        if (firstBracket >= 0) starts.push(firstBracket);
+        if (starts.length > 0) {
+          const start = Math.min(...starts);
+          const endCurly = cleaned.lastIndexOf('}');
+          const endBracket = cleaned.lastIndexOf(']');
+          const end = Math.max(endCurly, endBracket);
+          if (end >= start) {
+            cleaned = cleaned.slice(start, end + 1);
+          }
+        }
+        return cleaned.trim();
+      }
+      
+      // Clean response text using same method as extractWithLLM
+      const sanitized = sanitizeLLMResponse(responseText);
+      const parsed = JSON.parse(sanitized);
       // Handle both array and object formats
       if (Array.isArray(parsed)) {
         programs = parsed;
@@ -597,7 +689,7 @@ Example format:
         programs = parsed.programs;
       } else {
         // Try to extract array from response text
-        const jsonMatch = cleanedText.match(/\[[\s\S]*\]/);
+        const jsonMatch = sanitized.match(/\[[\s\S]*\]/);
         if (jsonMatch) {
           programs = JSON.parse(jsonMatch[0]);
         } else {
@@ -679,58 +771,88 @@ Example format:
       }
     }
 
-    // Convert to our program format
-    return programs.map((p: any, index: number) => {
+    // Convert to our program format and extract detailed requirements using extractWithLLM logic
+    const programsWithRequirements = await Promise.all(programs.map(async (p: any, index: number) => {
+      // Create a text description for extraction (similar to HTML content)
+      const programText = `
+Program Name: ${p.name || `Program ${index + 1}`}
+Institution: ${p.institution || 'Unknown'}
+Description: ${p.description || ''}
+Location: ${p.location || answers.location || ''}
+Company Type: ${p.company_type || answers.company_type || ''}
+Industry Focus: ${Array.isArray(p.industry_focus) ? p.industry_focus.join(', ') : (p.industry_focus || '')}
+Funding Amount: ${p.funding_amount_min || 0} - ${p.funding_amount_max || 0} ${p.currency || 'EUR'}
+Deadline: ${p.deadline || (p.open_deadline ? 'Open deadline' : 'Not specified')}
+Website: ${p.website || 'Not available'}
+      `.trim();
+
+      // Use extractWithLLM (main extraction file) to extract detailed requirements from program text
+      // This extracts ALL 15 categories with comprehensive sub-types
+      let extractedRequirements: any = null;
+      try {
+        extractedRequirements = await extractWithLLM({
+          text: programText, // Use text mode (no HTML parsing needed)
+          url: p.website || `llm://${p.name || `program_${index}`}`,
+          title: p.name || `Program ${index + 1}`,
+          description: p.description || '',
+        });
+        console.log(`✅ Extracted detailed requirements for ${p.name || `program_${index}`}`);
+      } catch (error: any) {
+        console.warn(`⚠️ Failed to extract requirements for ${p.name || `program_${index}`}:`, error.message);
+        // Fall back to basic requirements
+      }
+
+      // Use extracted requirements if available, otherwise use basic structure
+      const categorized_requirements = extractedRequirements?.categorized_requirements || {
+        geographic: [{ 
+          type: 'location', 
+          value: p.location || answers.location || '', 
+          confidence: 0.8 
+        }],
+        eligibility: [{ 
+          type: 'company_type', 
+          value: p.company_type || answers.company_type || '', 
+          confidence: 0.8 
+        }],
+        project: Array.isArray(p.industry_focus) 
+          ? p.industry_focus.map((ind: string) => ({
+              type: 'industry_focus',
+              value: ind,
+              confidence: 0.7
+            }))
+          : (p.industry_focus ? [{
+              type: 'industry_focus',
+              value: p.industry_focus,
+              confidence: 0.7
+            }] : []),
+      };
+
+      // Use extracted metadata if available, otherwise use basic
+      const metadata = extractedRequirements?.metadata || {
+        funding_amount_min: p.funding_amount_min || 0,
+        funding_amount_max: p.funding_amount_max || 0,
+        currency: p.currency || 'EUR',
+        deadline: p.deadline || null,
+        open_deadline: p.open_deadline || false,
+        description: p.description || '',
+        region: p.location || answers.location || '',
+      };
+
       return {
         id: `llm_${(p.name || `program_${index}`).toLowerCase().replace(/[^a-z0-9]+/g, '_')}`,
         name: p.name || `Program ${index + 1}`,
         url: p.website || null,
         institution_id: `llm_${(p.institution || 'unknown').toLowerCase().replace(/[^a-z0-9]+/g, '_')}`,
-        funding_types: ['grant'], // Default to grant
-        metadata: {
-          funding_amount_min: p.funding_amount_min || 0,
-          funding_amount_max: p.funding_amount_max || 0,
-          currency: p.currency || 'EUR',
-          deadline: p.deadline || null,
-          open_deadline: p.open_deadline || false,
-          description: p.description || '',
-          region: p.location || answers.location || '',
-        },
-        categorized_requirements: {
-          geographic: [{ 
-            type: 'location', 
-            value: p.location || answers.location || '', 
-            confidence: 0.8 
-          }],
-          eligibility: [{ 
-            type: 'company_type', 
-            value: p.company_type || answers.company_type || '', 
-            confidence: 0.8 
-          }],
-          project: Array.isArray(p.industry_focus) 
-            ? p.industry_focus.map((ind: string) => ({
-                type: 'industry_focus',
-                value: ind,
-                confidence: 0.7
-              }))
-            : (p.industry_focus ? [{
-                type: 'industry_focus',
-                value: p.industry_focus,
-                confidence: 0.7
-              }] : []),
-          metadata: {
-            funding_amount_min: p.funding_amount_min || 0,
-            funding_amount_max: p.funding_amount_max || 0,
-            currency: p.currency || 'EUR',
-            deadline: p.deadline || null,
-            open_deadline: p.open_deadline || false,
-          }
-        },
+        funding_types: metadata.funding_types || ['grant'],
+        metadata,
+        categorized_requirements,
         eligibility_criteria: {},
         extracted_at: new Date().toISOString(),
         source: 'llm_generated',
       };
-    });
+    }));
+
+    return programsWithRequirements;
   } catch (error: any) {
     console.error('❌ LLM fallback failed:', error);
     // Return empty array if LLM fails - system will handle gracefully
@@ -766,6 +888,16 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     const answers: UserAnswers = req.body.answers || {};
     const { max_results = 10, extract_all = false, use_seeds = true } = req.body;
     
+    console.log('📥 Received request with answers:', Object.keys(answers));
+    console.log('📊 Answer summary:', {
+      location: answers.location,
+      company_type: answers.company_type,
+      company_stage: answers.company_stage,
+      funding_amount: answers.funding_amount,
+      industry_focus: answers.industry_focus,
+      has_answers: Object.keys(answers).length > 0,
+    });
+    
     // Check if seeds should be disabled (via parameter or env var)
     // Default: Use LLM generation (like ChatGPT) - unrestricted, no URL list needed
     const useSeedExtraction = use_seeds && process.env.DISABLE_SEED_URLS !== 'true' && process.env.USE_SEED_EXTRACTION === 'true';
@@ -776,19 +908,50 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     
     // Try LLM generation first (unrestricted, like ChatGPT)
     console.log('🤖 Generating programs with LLM (unrestricted, like ChatGPT)...');
+    console.log('🔑 Checking LLM availability...', {
+      hasOpenAI: !!process.env.OPENAI_API_KEY,
+      hasCustomLLM: !!process.env.CUSTOM_LLM_ENDPOINT,
+    });
+    
     try {
+      console.log('📤 Calling generateProgramsWithLLM with answers and maxPrograms:', max_results * 2);
       programs = await generateProgramsWithLLM(answers, max_results * 2);
+      console.log(`✅ generateProgramsWithLLM returned ${programs.length} programs`);
       extractionResults.push({
         source: 'llm_generated',
         message: `Generated ${programs.length} programs using LLM (like ChatGPT - unrestricted)`,
       });
       console.log(`✅ Generated ${programs.length} programs with LLM`);
+      
+      if (programs.length === 0) {
+        console.warn('⚠️ LLM generation returned 0 programs. Check LLM response and parsing.');
+      }
     } catch (error: any) {
-      console.warn('⚠️ LLM generation failed:', error.message);
+      console.error('❌ LLM generation failed:', error);
+      console.error('Error details:', {
+        message: error.message,
+        stack: error.stack,
+        hasOpenAI: !!process.env.OPENAI_API_KEY,
+        hasCustomLLM: !!process.env.CUSTOM_LLM_ENDPOINT,
+      });
       extractionResults.push({
         source: 'llm_generated',
         error: error.message,
+        details: {
+          hasOpenAI: !!process.env.OPENAI_API_KEY,
+          hasCustomLLM: !!process.env.CUSTOM_LLM_ENDPOINT,
+        },
       });
+      
+      // If LLM is not configured, return a helpful error
+      if (error.message?.includes('No LLM available')) {
+        return res.status(500).json({
+          error: 'LLM not configured',
+          message: 'Please set OPENAI_API_KEY or CUSTOM_LLM_ENDPOINT environment variable to generate programs.',
+          programs: [],
+          extractionResults,
+        });
+      }
     }
 
     // Optional: URL-Based Extraction (if enabled - for additional programs)

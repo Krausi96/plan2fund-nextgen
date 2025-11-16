@@ -3,7 +3,7 @@
 // All component logic integrated inline (DataChart, FinancialAnalysis, ImageUpload, StructuredFields)
 
 import React, { useState, useRef } from 'react';
-import { PlanSection, Table } from '@/shared/types/plan';
+import { PlanSection, Table } from '@/features/editor/types/plan';
 import { SectionTemplate } from '@templates';
 import { sectionNeedsCharts } from '@/features/editor/utils/tableInitializer';
 import { 
@@ -17,7 +17,7 @@ type ChartType = 'bar' | 'line' | 'pie' | 'donut';
 interface SectionContentRendererProps {
   section: PlanSection;
   template: SectionTemplate;
-  onTableChange?: (tableKey: string, table: import('@/shared/types/plan').Table) => void;
+  onTableChange?: (tableKey: string, table: Table) => void;
   onChartTypeChange?: (tableKey: string, chartType: ChartType) => void;
   onImageInsert?: (imageUrl: string, caption?: string, description?: string) => void;
   onFieldChange?: (fieldKey: string, value: any) => void;
@@ -1029,7 +1029,7 @@ function StructuredFieldsInline({
 }
 
 // Reusable table component for financial data
-function FinancialTable({ table, onUpdate }: { table: import('@/shared/types/plan').Table; onUpdate?: (table: import('@/shared/types/plan').Table) => void }) {
+function FinancialTable({ table, onUpdate }: { table: Table; onUpdate?: (table: Table) => void }) {
   return (
     <div className="border border-gray-200 rounded-lg overflow-hidden mb-4">
       <table className="w-full text-sm">
@@ -1069,7 +1069,7 @@ function FinancialTable({ table, onUpdate }: { table: import('@/shared/types/pla
 }
 
 // Reusable table component for non-financial data (text/number mix)
-function DataTable({ table, onUpdate }: { table: import('@/shared/types/plan').Table; onUpdate?: (table: import('@/shared/types/plan').Table) => void }) {
+function DataTable({ table, onUpdate }: { table: Table; onUpdate?: (table: Table) => void }) {
   return (
     <div className="border border-gray-200 rounded-lg overflow-hidden mb-4">
       <table className="w-full text-sm">

@@ -938,17 +938,17 @@ export async function getProgramRequirements(type: string): Promise<ProgramRequi
     if (response.ok) {
       const data = await response.json();
       const programs = data.programs || [];
-      if (programs.length > 0) {
-        // Convert program to requirements format
-        const program = programs[0];
-        return {
-          id: program.id,
-          name: program.name,
-          type: program.type as any,
-          requirements: program.requirements || {},
-          eligibility: {},
-          scoring: {}
-        };
+    if (programs.length > 0) {
+      // Convert program to requirements format
+      const program = programs[0];
+      return {
+        id: program.id,
+        name: program.name,
+        type: program.type as any,
+        requirements: program.requirements || {},
+        eligibility: {},
+        scoring: {}
+      };
       }
     }
   } catch {
@@ -960,7 +960,7 @@ export async function getProgramRequirements(type: string): Promise<ProgramRequi
 }
 
 /**
- * Transform categorized_requirements (18 categories) from scraper-lite
+ * Transform categorized_requirements (15 categories) from llmExtract
  * to ProgramRequirements format for ReadinessValidator
  */
 export function transformCategorizedToProgramRequirements(

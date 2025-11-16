@@ -2,7 +2,7 @@
 // Lightweight component that renders plan previews inside the editor
 
 import React from 'react';
-import { PlanDocument } from '@/shared/types/plan';
+import { PlanDocument } from '@/features/editor/types/plan';
 
 export interface PreviewOptions {
   showWatermark?: boolean;

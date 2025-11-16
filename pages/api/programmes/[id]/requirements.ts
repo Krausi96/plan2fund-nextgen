@@ -29,17 +29,15 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 }
 
 async function getProgramRequirements(programId: string) {
-  // Use scraper-lite database connection (pages + requirements tables)
-  const path = require('path');
-  const neonClientPath = path.join(process.cwd(), 'scraper-lite', 'src', 'db', 'neon-client.ts');
-  const { getPool } = require(neonClientPath);
+  // Use shared database connection (pages + requirements tables)
+  const { getPool } = await import('@/shared/lib/database');
   const pool = getPool();
   
   try {
     // Extract page ID from program ID (format: "page_123" or just "123")
     const pageId = programId.replace('page_', '');
     
-    // Get page data from pages table (scraper-lite schema)
+    // Get page data from pages table (database schema)
     const pageQuery = `
       SELECT id, url, title, description, funding_amount_min, funding_amount_max,
              currency, deadline, open_deadline, contact_email, contact_phone,
