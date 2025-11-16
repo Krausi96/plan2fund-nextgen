@@ -13,6 +13,52 @@ import { Badge } from '@/shared/components/ui/badge';
 import { scoreProgramsEnhanced, EnhancedProgramResult } from '@/features/reco/engine/enhancedRecoEngine';
 import { useI18n } from '@/shared/contexts/I18nContext';
 
+// Path Indicator Component with Typing Animation
+function PathIndicator({ currentStep, totalSteps }: { currentStep: number; totalSteps: number }) {
+  const { locale } = useI18n();
+  const [displayedText, setDisplayedText] = useState('');
+  const fullText = locale === 'de' 
+    ? 'Pfad zum richtigen Förderprogram'
+    : 'Path to your funding program';
+  
+  useEffect(() => {
+    setDisplayedText('');
+    let currentIndex = 0;
+    const typingInterval = setInterval(() => {
+      if (currentIndex < fullText.length) {
+        setDisplayedText(fullText.substring(0, currentIndex + 1));
+        currentIndex++;
+      } else {
+        clearInterval(typingInterval);
+      }
+    }, 50);
+    
+    return () => clearInterval(typingInterval);
+  }, [fullText, locale]);
+  
+  return (
+    <div className="flex items-center gap-3">
+      <div className="flex-1">
+        <p className="text-sm font-medium text-gray-700">
+          {displayedText}
+          <span className="animate-pulse">|</span>
+        </p>
+        <div className="mt-1 flex items-center gap-2">
+          <div className="flex-1 h-2 bg-gray-200 rounded-full overflow-hidden">
+            <div 
+              className="h-full bg-blue-600 transition-all duration-300 rounded-full"
+              style={{ width: `${(currentStep / totalSteps) * 100}%` }}
+            />
+          </div>
+          <span className="text-xs text-gray-500 font-medium min-w-[3rem] text-right">
+            {currentStep}/{totalSteps}
+          </span>
+        </div>
+      </div>
+    </div>
+  );
+}
+
 interface ProgramFinderProps {
   onProgramSelect?: (programId: string, route: string) => void;
 }
@@ -260,7 +306,7 @@ export default function ProgramFinder({
   onProgramSelect
 }: ProgramFinderProps) {
   const router = useRouter();
-  const { t } = useI18n();
+  const { t, locale } = useI18n();
   
   // Get translated questions
   const getTranslatedQuestions = useMemo(() => {
@@ -673,36 +719,6 @@ export default function ProgramFinder({
                   </button>
                 </div>
                 
-                {/* Generate Button - Separate, Pulsing Animation */}
-                {hasEnoughAnswers && !showResults && (
-                  <div className="mb-2">
-                    <button
-                      onClick={() => {
-                        setShowResults(true);
-                        updateGuidedResults();
-                      }}
-                      disabled={isLoading}
-                      className="w-full px-4 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-all text-sm font-semibold shadow-lg hover:shadow-xl disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2 animate-pulse hover:animate-none"
-                    >
-                      {isLoading ? (
-                        <>
-                          <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
-                          <span>{t('reco.generating') || 'Generating...'}</span>
-                        </>
-                      ) : (
-                        <>
-                          <Wand2 className="w-4 h-4" />
-                          <span>{t('reco.generateButton')}</span>
-                        </>
-                      )}
-                    </button>
-                  </div>
-                )}
-                {answeredCount > 0 && !hasEnoughAnswers && (
-                  <div className="mb-2 text-xs text-gray-500 text-center">
-                    <div className="font-medium">{answeredCount}/{MIN_QUESTIONS_FOR_RESULTS} required</div>
-                  </div>
-                )}
                 
                 {answersSummaryExpanded && (
                   <div className="mt-2 pt-2 border-t border-gray-200 max-h-96 overflow-y-auto">
@@ -746,9 +762,9 @@ export default function ProgramFinder({
           <div className={`${mobileActiveTab === 'results' ? 'hidden lg:block' : ''}`}>
             <Card className="p-4 max-w-2xl mx-auto w-full bg-gradient-to-br from-white to-blue-50/30 border-2 border-blue-300 shadow-lg">
               <div className="space-y-3">
-                  {/* Question Navigation Header */}
-                  <div className="mb-2">
-                    <p className="text-base font-semibold text-gray-800">{t('reco.ui.questions') || 'Questions'}</p>
+                  {/* Path Indicator with Typing Animation */}
+                  <div className="mb-4">
+                    <PathIndicator currentStep={currentQuestionIndex + 1} totalSteps={visibleQuestions.length} />
                   </div>
                   
                   {/* Horizontal Question Navigation */}
@@ -900,11 +916,21 @@ export default function ProgramFinder({
                                             <input
                                               type="text"
                                               placeholder={
-                                                question.id === 'company_type' 
-                                                  ? 'z.B. Verein, Genossenschaft, Stiftung' 
-                                                  : question.id === 'impact'
-                                                  ? 'z.B. Bildung, Gesundheit, Kultur'
-                                                  : t('reco.ui.enterAnswer') || 'Enter your answer...'
+                                                locale === 'de' 
+                                                  ? (question.id === 'company_type' 
+                                                      ? 'z.B. Verein, Genossenschaft, Stiftung'
+                                                      : question.id === 'impact'
+                                                      ? 'z.B. Bildung, Gesundheit, Kultur'
+                                                      : question.id === 'company_stage'
+                                                      ? 'z.B. Spin-off, Ausgründung, etc.'
+                                                      : 'Bitte angeben...')
+                                                  : (question.id === 'company_type'
+                                                      ? 'e.g., Association, Cooperative, Foundation'
+                                                      : question.id === 'impact'
+                                                      ? 'e.g., Education, Health, Culture'
+                                                      : question.id === 'company_stage'
+                                                      ? 'e.g., Spin-off, Spin-out, etc.'
+                                                      : 'Please specify...')
                                               }
                                               value={otherTextValue}
                                               onChange={(e) => {
@@ -915,12 +941,23 @@ export default function ProgramFinder({
                                             />
                                             {question.id === 'company_type' && (
                                               <p className="text-xs text-gray-500 mt-1">
-                                                Beispiele: Verein, Genossenschaft, Stiftung, etc.
+                                                {locale === 'de' 
+                                                  ? 'Beispiele: Verein, Genossenschaft, Stiftung, GmbH, AG, etc.'
+                                                  : 'Examples: Association, Cooperative, Foundation, LLC, Inc., etc.'}
                                               </p>
                                             )}
                                             {question.id === 'impact' && (
                                               <p className="text-xs text-gray-500 mt-1">
-                                                Beispiele: Bildung, Gesundheit, Kultur, etc.
+                                                {locale === 'de'
+                                                  ? 'Beispiele: Bildung, Gesundheit, Kultur, Forschung, Innovation, etc.'
+                                                  : 'Examples: Education, Health, Culture, Research, Innovation, etc.'}
+                                              </p>
+                                            )}
+                                            {question.id === 'company_stage' && (
+                                              <p className="text-xs text-gray-500 mt-1">
+                                                {locale === 'de'
+                                                  ? 'Beispiele: Spin-off, Ausgründung, Tochtergesellschaft, etc.'
+                                                  : 'Examples: Spin-off, Spin-out, Subsidiary, etc.'}
                                               </p>
                                             )}
                                           </div>
@@ -1130,9 +1167,17 @@ export default function ProgramFinder({
                                                   <input
                                                     type="text"
                                                     placeholder={
-                                                      question.id === 'industry_focus'
-                                                        ? 'z.B. Tourismus, Landwirtschaft, Energie'
-                                                        : 'Enter your answer...'
+                                                      locale === 'de'
+                                                        ? (question.id === 'industry_focus'
+                                                            ? 'z.B. Tourismus, Landwirtschaft, Energie'
+                                                            : question.id === 'use_of_funds'
+                                                            ? 'z.B. Marketing, Vertrieb, etc.'
+                                                            : 'Bitte angeben...')
+                                                        : (question.id === 'industry_focus'
+                                                            ? 'e.g., Tourism, Agriculture, Energy'
+                                                            : question.id === 'use_of_funds'
+                                                            ? 'e.g., Marketing, Sales, etc.'
+                                                            : 'Please specify...')
                                                     }
                                                     value={otherTextValue}
                                                     onChange={(e) => {
@@ -1159,9 +1204,17 @@ export default function ProgramFinder({
                                                 <input
                                                   type="text"
                                                   placeholder={
-                                                    question.id === 'industry_focus'
-                                                      ? 'z.B. Tourismus, Landwirtschaft, Energie'
-                                                      : 'Enter your answer...'
+                                                    locale === 'de'
+                                                      ? (question.id === 'industry_focus'
+                                                          ? 'z.B. Tourismus, Landwirtschaft, Energie'
+                                                          : question.id === 'use_of_funds'
+                                                          ? 'z.B. Marketing, Vertrieb, etc.'
+                                                          : 'Bitte angeben...')
+                                                      : (question.id === 'industry_focus'
+                                                          ? 'e.g., Tourism, Agriculture, Energy'
+                                                          : question.id === 'use_of_funds'
+                                                          ? 'e.g., Marketing, Sales, etc.'
+                                                          : 'Please specify...')
                                                   }
                                                   value={otherTextValue}
                                                   onChange={(e) => {
@@ -1172,7 +1225,16 @@ export default function ProgramFinder({
                                                 />
                                                 {question.id === 'industry_focus' && (
                                                   <p className="text-xs text-gray-500 mt-1">
-                                                    Beispiele: Tourismus, Landwirtschaft, Energie, etc.
+                                                    {locale === 'de'
+                                                      ? 'Beispiele: Tourismus, Landwirtschaft, Energie, Handel, Dienstleistungen, etc.'
+                                                      : 'Examples: Tourism, Agriculture, Energy, Trade, Services, etc.'}
+                                                  </p>
+                                                )}
+                                                {question.id === 'use_of_funds' && (
+                                                  <p className="text-xs text-gray-500 mt-1">
+                                                    {locale === 'de'
+                                                      ? 'Beispiele: Marketing, Vertrieb, IT-Infrastruktur, etc.'
+                                                      : 'Examples: Marketing, Sales, IT Infrastructure, etc.'}
                                                   </p>
                                                 )}
                                               </div>
@@ -1463,6 +1525,57 @@ export default function ProgramFinder({
                 </div>
               </Card>
             </div>
+          
+          {/* Generate Button - Fixed at Bottom, Always Visible on Desktop */}
+          <div className="fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200 shadow-lg z-40 lg:block hidden">
+            <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
+              <div className="flex items-center justify-between gap-4">
+                <div className="flex-1">
+                  {hasEnoughAnswers && !showResults ? (
+                    <p className="text-sm text-gray-600">
+                      {locale === 'de' 
+                        ? 'Sie können bereits nach Förderprogrammen suchen, aber spezifizieren Sie Ihre Antworten für genauere Ergebnisse.'
+                        : 'You can already look for funding programs, but specify your answers for more accurate results.'}
+                    </p>
+                  ) : answeredCount > 0 && !hasEnoughAnswers ? (
+                    <p className="text-sm text-gray-600">
+                      {locale === 'de'
+                        ? `Beantworten Sie noch ${MIN_QUESTIONS_FOR_RESULTS - answeredCount} Fragen, um Förderprogramme zu generieren.`
+                        : `Answer ${MIN_QUESTIONS_FOR_RESULTS - answeredCount} more questions to generate funding programs.`}
+                    </p>
+                  ) : (
+                    <p className="text-sm text-gray-600">
+                      {locale === 'de'
+                        ? 'Beantworten Sie die Fragen, um passende Förderprogramme zu finden.'
+                        : 'Answer the questions to find suitable funding programs.'}
+                    </p>
+                  )}
+                </div>
+                {hasEnoughAnswers && !showResults && (
+                  <button
+                    onClick={() => {
+                      setShowResults(true);
+                      updateGuidedResults();
+                    }}
+                    disabled={isLoading}
+                    className="px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-all text-sm font-semibold shadow-lg hover:shadow-xl disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2 animate-pulse hover:animate-none"
+                  >
+                    {isLoading ? (
+                      <>
+                        <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
+                        <span>{t('reco.generating') || 'Generating...'}</span>
+                      </>
+                    ) : (
+                      <>
+                        <Wand2 className="w-4 h-4" />
+                        <span>{t('reco.generateButton')}</span>
+                      </>
+                    )}
+                  </button>
+                )}
+              </div>
+            </div>
+          </div>
           
           {/* Results Modal/Popup - Overlay */}
           {showResults && (

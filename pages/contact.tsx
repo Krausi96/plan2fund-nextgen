@@ -34,25 +34,25 @@ export default function ContactPage() {
     <>
       <SEOHead pageKey="contact" />
       
-      <div className="max-w-6xl mx-auto px-4 py-12">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-20">
       {/* Header */}
       <div className="text-center mb-16">
-        <h1 className="text-4xl font-bold text-gray-900 mb-6">
+        <h1 className="text-4xl md:text-5xl font-bold text-neutral-900 mb-6 tracking-tight">
           {t('contact.title')}
         </h1>
-        <p className="text-xl text-gray-600 max-w-3xl mx-auto">
+        <p className="text-xl md:text-2xl text-neutral-600 max-w-3xl mx-auto leading-relaxed">
           {t('contact.subtitle')}
         </p>
       </div>
 
       <div className="grid lg:grid-cols-2 gap-12">
         {/* Contact Form */}
-        <Card className="p-8">
-          <h2 className="text-2xl font-semibold mb-6">{t('contact.form.title')}</h2>
+        <Card className="p-10 rounded-2xl border-2 border-neutral-200 shadow-lg">
+          <h2 className="text-3xl font-bold mb-8 text-neutral-900">{t('contact.form.title')}</h2>
           <form onSubmit={handleSubmit} className="space-y-6">
-            <div className="grid md:grid-cols-2 gap-4">
+            <div className="grid md:grid-cols-2 gap-6">
               <div>
-                <label htmlFor="name" className="block text-sm font-medium text-gray-700 mb-2">
+                <label htmlFor="name" className="block text-sm font-semibold text-neutral-900 mb-2">
                   {t('contact.form.name')} *
                 </label>
                 <Input
@@ -63,10 +63,11 @@ export default function ContactPage() {
                   value={formData.name}
                   onChange={handleChange}
                   placeholder={t('contact.form.namePlaceholder')}
+                  className="rounded-xl border-2 border-neutral-200 focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20"
                 />
               </div>
               <div>
-                <label htmlFor="email" className="block text-sm font-medium text-gray-700 mb-2">
+                <label htmlFor="email" className="block text-sm font-semibold text-neutral-900 mb-2">
                   {t('contact.form.email')} *
                 </label>
                 <Input
@@ -77,12 +78,13 @@ export default function ContactPage() {
                   value={formData.email}
                   onChange={handleChange}
                   placeholder={t('contact.form.emailPlaceholder')}
+                  className="rounded-xl border-2 border-neutral-200 focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20"
                 />
               </div>
             </div>
 
             <div>
-              <label htmlFor="subject" className="block text-sm font-medium text-gray-700 mb-2">
+              <label htmlFor="subject" className="block text-sm font-semibold text-neutral-900 mb-2">
                 {t('contact.form.subject')} *
               </label>
               <Input
@@ -93,11 +95,12 @@ export default function ContactPage() {
                 value={formData.subject}
                 onChange={handleChange}
                 placeholder={t('contact.form.subjectPlaceholder')}
+                className="rounded-xl border-2 border-neutral-200 focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20"
               />
             </div>
 
             <div>
-              <label htmlFor="message" className="block text-sm font-medium text-gray-700 mb-2">
+              <label htmlFor="message" className="block text-sm font-semibold text-neutral-900 mb-2">
                 {t('contact.form.message')} *
               </label>
               <Textarea
@@ -108,10 +111,11 @@ export default function ContactPage() {
                 onChange={handleChange}
                 placeholder={t('contact.form.messagePlaceholder')}
                 rows={6}
+                className="rounded-xl border-2 border-neutral-200 focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20"
               />
             </div>
 
-            <Button type="submit" className="w-full bg-blue-600 hover:bg-blue-700">
+            <Button type="submit" className="w-full bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 text-white py-6 text-lg font-semibold rounded-xl shadow-lg hover:shadow-xl transition-all duration-300">
               {t('contact.form.submit')}
             </Button>
           </form>
@@ -120,42 +124,50 @@ export default function ContactPage() {
         {/* Contact Information */}
         <div className="space-y-8">
           {/* Contact Details */}
-          <Card className="p-8">
-            <h2 className="text-2xl font-semibold mb-6">{t('contact.info.title')}</h2>
-            <div className="space-y-6">
+          <Card className="p-10 rounded-2xl border-2 border-neutral-200 shadow-lg">
+            <h2 className="text-3xl font-bold mb-8 text-neutral-900">{t('contact.info.title')}</h2>
+            <div className="space-y-8">
               <div className="flex items-start">
-                <Mail className="w-6 h-6 text-blue-600 mr-4 mt-1" />
+                <div className="w-12 h-12 bg-gradient-to-br from-blue-100 to-blue-50 rounded-xl flex items-center justify-center mr-4 flex-shrink-0 shadow-md">
+                  <Mail className="w-6 h-6 text-blue-600" />
+                </div>
                 <div>
-                  <h3 className="font-medium text-gray-900">{t('contact.info.email.title')}</h3>
-                  <p className="text-gray-600">{t('contact.info.email.value')}</p>
-                  <p className="text-sm text-gray-500">{t('contact.info.email.note')}</p>
+                  <h3 className="font-bold text-neutral-900 mb-1 text-lg">{t('contact.info.email.title')}</h3>
+                  <p className="text-neutral-700 mb-1">{t('contact.info.email.value')}</p>
+                  <p className="text-sm text-neutral-600">{t('contact.info.email.note')}</p>
                 </div>
               </div>
 
               <div className="flex items-start">
-                <Phone className="w-6 h-6 text-blue-600 mr-4 mt-1" />
+                <div className="w-12 h-12 bg-gradient-to-br from-blue-100 to-blue-50 rounded-xl flex items-center justify-center mr-4 flex-shrink-0 shadow-md">
+                  <Phone className="w-6 h-6 text-blue-600" />
+                </div>
                 <div>
-                  <h3 className="font-medium text-gray-900">{t('contact.info.phone.title')}</h3>
-                  <p className="text-gray-600">{t('contact.info.phone.value')}</p>
-                  <p className="text-sm text-gray-500">{t('contact.info.phone.note')}</p>
+                  <h3 className="font-bold text-neutral-900 mb-1 text-lg">{t('contact.info.phone.title')}</h3>
+                  <p className="text-neutral-700 mb-1">{t('contact.info.phone.value')}</p>
+                  <p className="text-sm text-neutral-600">{t('contact.info.phone.note')}</p>
                 </div>
               </div>
 
               <div className="flex items-start">
-                <MapPin className="w-6 h-6 text-blue-600 mr-4 mt-1" />
+                <div className="w-12 h-12 bg-gradient-to-br from-blue-100 to-blue-50 rounded-xl flex items-center justify-center mr-4 flex-shrink-0 shadow-md">
+                  <MapPin className="w-6 h-6 text-blue-600" />
+                </div>
                 <div>
-                  <h3 className="font-medium text-gray-900">{t('contact.info.office.title')}</h3>
-                  <p className="text-gray-600" style={{ whiteSpace: 'pre-line' }}>
+                  <h3 className="font-bold text-neutral-900 mb-1 text-lg">{t('contact.info.office.title')}</h3>
+                  <p className="text-neutral-700" style={{ whiteSpace: 'pre-line' }}>
                     {t('contact.info.office.value')}
                   </p>
                 </div>
               </div>
 
               <div className="flex items-start">
-                <Clock className="w-6 h-6 text-blue-600 mr-4 mt-1" />
+                <div className="w-12 h-12 bg-gradient-to-br from-blue-100 to-blue-50 rounded-xl flex items-center justify-center mr-4 flex-shrink-0 shadow-md">
+                  <Clock className="w-6 h-6 text-blue-600" />
+                </div>
                 <div>
-                  <h3 className="font-medium text-gray-900">{t('contact.info.hours.title')}</h3>
-                  <p className="text-gray-600" style={{ whiteSpace: 'pre-line' }}>
+                  <h3 className="font-bold text-neutral-900 mb-1 text-lg">{t('contact.info.hours.title')}</h3>
+                  <p className="text-neutral-700" style={{ whiteSpace: 'pre-line' }}>
                     {t('contact.info.hours.value')}
                   </p>
                 </div>
@@ -164,33 +176,39 @@ export default function ContactPage() {
           </Card>
 
           {/* Quick Help */}
-          <Card className="p-8">
-            <h2 className="text-2xl font-semibold mb-6">{t('contact.help.title')}</h2>
-            <div className="space-y-4">
+          <Card className="p-10 rounded-2xl border-2 border-neutral-200 shadow-lg">
+            <h2 className="text-3xl font-bold mb-8 text-neutral-900">{t('contact.help.title')}</h2>
+            <div className="space-y-6">
               <div className="flex items-start">
-                <HelpCircle className="w-5 h-5 text-green-600 mr-3 mt-1" />
+                <div className="w-12 h-12 bg-gradient-to-br from-green-100 to-green-50 rounded-xl flex items-center justify-center mr-4 flex-shrink-0 shadow-md">
+                  <HelpCircle className="w-6 h-6 text-green-600" />
+                </div>
                 <div>
-                  <h3 className="font-medium text-gray-900">{t('contact.help.faq.title')}</h3>
-                  <p className="text-sm text-gray-600 mb-2">{t('contact.help.faq.description')}</p>
-                  <a href="/faq" className="text-blue-600 hover:text-blue-700 text-sm font-medium">
+                  <h3 className="font-bold text-neutral-900 mb-2 text-lg">{t('contact.help.faq.title')}</h3>
+                  <p className="text-sm text-neutral-700 mb-3 leading-relaxed">{t('contact.help.faq.description')}</p>
+                  <a href="/faq" className="text-blue-600 hover:text-blue-700 text-sm font-semibold underline decoration-2 underline-offset-2">
                     {t('contact.help.faq.link')}
                   </a>
                 </div>
               </div>
 
               <div className="flex items-start">
-                <MessageCircle className="w-5 h-5 text-green-600 mr-3 mt-1" />
+                <div className="w-12 h-12 bg-gradient-to-br from-green-100 to-green-50 rounded-xl flex items-center justify-center mr-4 flex-shrink-0 shadow-md">
+                  <MessageCircle className="w-6 h-6 text-green-600" />
+                </div>
                 <div>
-                  <h3 className="font-medium text-gray-900">{t('contact.help.chat.title')}</h3>
-                  <p className="text-sm text-gray-600">{t('contact.help.chat.description')}</p>
+                  <h3 className="font-bold text-neutral-900 mb-2 text-lg">{t('contact.help.chat.title')}</h3>
+                  <p className="text-sm text-neutral-700 leading-relaxed">{t('contact.help.chat.description')}</p>
                 </div>
               </div>
 
               <div className="flex items-start">
-                <Mail className="w-5 h-5 text-green-600 mr-3 mt-1" />
+                <div className="w-12 h-12 bg-gradient-to-br from-green-100 to-green-50 rounded-xl flex items-center justify-center mr-4 flex-shrink-0 shadow-md">
+                  <Mail className="w-6 h-6 text-green-600" />
+                </div>
                 <div>
-                  <h3 className="font-medium text-gray-900">{t('contact.help.support.title')}</h3>
-                  <p className="text-sm text-gray-600">{t('contact.help.support.email')}</p>
+                  <h3 className="font-bold text-neutral-900 mb-2 text-lg">{t('contact.help.support.title')}</h3>
+                  <p className="text-sm text-neutral-700">{t('contact.help.support.email')}</p>
                 </div>
               </div>
             </div>
@@ -199,33 +217,33 @@ export default function ContactPage() {
       </div>
 
       {/* FAQ Section */}
-      <div className="mt-16">
-        <h2 className="text-3xl font-bold text-center mb-12">{t('contact.faq.title')}</h2>
+      <div className="mt-20">
+        <h2 className="text-4xl md:text-5xl font-bold text-center mb-12 tracking-tight text-neutral-900">{t('contact.faq.title')}</h2>
         <div className="grid md:grid-cols-2 gap-8">
-          <Card className="p-6">
-            <h3 className="text-lg font-semibold mb-3">{t('contact.faq.howItWorks.question')}</h3>
-            <p className="text-gray-600">
+          <Card className="p-8 rounded-2xl border-2 border-neutral-200 shadow-md hover:shadow-xl transition-all duration-300">
+            <h3 className="text-xl font-bold mb-4 text-neutral-900">{t('contact.faq.howItWorks.question')}</h3>
+            <p className="text-neutral-700 leading-relaxed">
               {t('contact.faq.howItWorks.answer')}
             </p>
           </Card>
 
-          <Card className="p-6">
-            <h3 className="text-lg font-semibold mb-3">{t('contact.faq.dataSecurity.question')}</h3>
-            <p className="text-gray-600">
+          <Card className="p-8 rounded-2xl border-2 border-neutral-200 shadow-md hover:shadow-xl transition-all duration-300">
+            <h3 className="text-xl font-bold mb-4 text-neutral-900">{t('contact.faq.dataSecurity.question')}</h3>
+            <p className="text-neutral-700 leading-relaxed">
               {t('contact.faq.dataSecurity.answer')}
             </p>
           </Card>
 
-          <Card className="p-6">
-            <h3 className="text-lg font-semibold mb-3">{t('contact.faq.timeToComplete.question')}</h3>
-            <p className="text-gray-600">
+          <Card className="p-8 rounded-2xl border-2 border-neutral-200 shadow-md hover:shadow-xl transition-all duration-300">
+            <h3 className="text-xl font-bold mb-4 text-neutral-900">{t('contact.faq.timeToComplete.question')}</h3>
+            <p className="text-neutral-700 leading-relaxed">
               {t('contact.faq.timeToComplete.answer')}
             </p>
           </Card>
 
-          <Card className="p-6">
-            <h3 className="text-lg font-semibold mb-3">{t('contact.faq.refunds.question')}</h3>
-            <p className="text-gray-600">
+          <Card className="p-8 rounded-2xl border-2 border-neutral-200 shadow-md hover:shadow-xl transition-all duration-300">
+            <h3 className="text-xl font-bold mb-4 text-neutral-900">{t('contact.faq.refunds.question')}</h3>
+            <p className="text-neutral-700 leading-relaxed">
               {t('contact.faq.refunds.answer')}
             </p>
           </Card>

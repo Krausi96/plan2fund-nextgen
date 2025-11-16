@@ -144,32 +144,32 @@ export default function FAQPage() {
         schema="faq"
       />
       
-      <main className="min-h-screen bg-gray-50">
-        <div className="max-w-4xl mx-auto px-4 py-12">
+      <main className="min-h-screen bg-gradient-to-b from-white via-neutral-50 to-white">
+        <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-20">
           {/* Header */}
-          <div className="text-center mb-12">
+          <div className="text-center mb-16">
             <div className="flex items-center justify-center mb-6">
-              <div className="bg-blue-100 p-3 rounded-full mr-4">
+              <div className="bg-gradient-to-br from-blue-100 to-blue-50 p-4 rounded-2xl mr-4 shadow-md">
                 <HelpCircle className="w-12 h-12 text-blue-600" />
               </div>
-              <h1 className="text-4xl font-bold text-gray-900">{t("faq.title")}</h1>
+              <h1 className="text-4xl md:text-5xl font-bold text-neutral-900 tracking-tight">{t("faq.title")}</h1>
             </div>
-            <p className="text-xl text-gray-600 max-w-2xl mx-auto">
+            <p className="text-xl md:text-2xl text-neutral-600 max-w-3xl mx-auto leading-relaxed">
               {t("faq.subtitle")}
             </p>
           </div>
 
           {/* Category Filter */}
-          <div className="mb-8">
-            <div className="flex flex-wrap gap-2 justify-center">
+          <div className="mb-12">
+            <div className="flex flex-wrap gap-3 justify-center">
               {categories.map((category) => (
                 <button
                   key={category}
                   onClick={() => handleCategoryChange(category)}
-                  className={`px-4 py-2 rounded-full text-sm font-medium transition-colors ${
+                  className={`px-6 py-3 rounded-xl text-sm font-semibold transition-all duration-300 ${
                     selectedCategory === category
-                      ? "bg-blue-600 text-white"
-                      : "bg-white text-gray-700 hover:bg-gray-100 border border-gray-300"
+                      ? "bg-gradient-to-r from-blue-600 to-blue-700 text-white shadow-lg"
+                      : "bg-white text-neutral-700 hover:bg-neutral-50 border-2 border-neutral-200 hover:border-blue-300 shadow-md"
                   }`}
                 >
                   {category}
@@ -179,26 +179,26 @@ export default function FAQPage() {
           </div>
 
           {/* FAQ Items */}
-          <div className="space-y-4">
+          <div className="space-y-4 mb-16">
             {filteredFAQs.map((faq) => (
-              <Card key={faq.id} className="overflow-hidden">
+              <Card key={faq.id} className="overflow-hidden rounded-2xl border-2 border-neutral-200 shadow-md hover:shadow-xl transition-all duration-300">
                 <button
                   onClick={() => toggleItem(faq.id)}
-                  className="w-full p-6 text-left flex items-center justify-between hover:bg-gray-50 transition-colors"
+                  className="w-full p-6 md:p-8 text-left flex items-center justify-between hover:bg-neutral-50/50 transition-colors group"
                 >
-                  <h3 className="text-lg font-semibold text-gray-900 pr-4">
+                  <h3 className="text-lg md:text-xl font-bold text-neutral-900 pr-4 group-hover:text-blue-600 transition-colors">
                     {faq.question}
                   </h3>
                   {openItems.includes(faq.id) ? (
-                    <ChevronUp className="w-5 h-5 text-gray-500 flex-shrink-0" />
+                    <ChevronUp className="w-6 h-6 text-blue-600 flex-shrink-0" />
                   ) : (
-                    <ChevronDown className="w-5 h-5 text-gray-500 flex-shrink-0" />
+                    <ChevronDown className="w-6 h-6 text-neutral-500 group-hover:text-blue-600 flex-shrink-0 transition-colors" />
                   )}
                 </button>
                 {openItems.includes(faq.id) && (
-                  <div className="px-6 pb-6">
-                    <div className="border-t pt-4">
-                      <p className="text-gray-700 leading-relaxed">{faq.answer}</p>
+                  <div className="px-6 md:px-8 pb-6 md:pb-8">
+                    <div className="border-t border-neutral-200 pt-6">
+                      <p className="text-neutral-700 leading-relaxed text-base">{faq.answer}</p>
                     </div>
                   </div>
                 )}
@@ -207,24 +207,24 @@ export default function FAQPage() {
           </div>
 
           {/* Contact CTA */}
-          <div className="mt-12 text-center">
-            <Card className="p-8 bg-blue-50 border-blue-200">
-              <h3 className="text-xl font-semibold text-gray-900 mb-4">
+          <div className="text-center">
+            <Card className="p-10 md:p-12 bg-gradient-to-br from-blue-50 via-white to-blue-50/50 border-2 border-blue-200 rounded-2xl shadow-xl">
+              <h3 className="text-2xl md:text-3xl font-bold text-neutral-900 mb-4">
                 {t("faq.cta.title")}
               </h3>
-              <p className="text-gray-600 mb-6">
+              <p className="text-neutral-700 mb-8 text-lg leading-relaxed">
                 {t("faq.cta.subtitle")}
               </p>
               <div className="flex flex-col sm:flex-row gap-4 justify-center">
                 <a
                   href="/contact"
-                  className="px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors font-medium"
+                  className="px-8 py-4 bg-gradient-to-r from-blue-600 to-blue-700 text-white rounded-xl hover:from-blue-700 hover:to-blue-800 transition-all duration-300 font-semibold shadow-lg hover:shadow-xl"
                 >
                   {t("faq.cta.contactSupport")}
                 </a>
                 <a
                   href="/about"
-                  className="px-6 py-3 border border-blue-600 text-blue-600 rounded-lg hover:bg-blue-50 transition-colors font-medium"
+                  className="px-8 py-4 border-2 border-blue-600 text-blue-600 rounded-xl hover:bg-blue-50 transition-all duration-300 font-semibold"
                 >
                   {t("faq.cta.learnMore")}
                 </a>

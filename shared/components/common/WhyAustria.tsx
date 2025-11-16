@@ -38,54 +38,56 @@ export function WhyAustria({}: WhyAustriaProps) {
   ];
 
   return (
-    <section className="py-20 md:py-28 bg-white">
+    <section className="py-20 md:py-28 bg-gradient-to-b from-white via-blue-50/30 to-white">
       <div className="container max-w-7xl">
         <div className="text-center mb-16">
-          <h2 className="text-5xl md:text-6xl font-bold text-gray-900 mb-6 tracking-tight">
+          <h2 className="text-4xl md:text-5xl font-bold text-neutral-900 mb-6 tracking-tight">
             {t('whyAustria.title')}
           </h2>
           <p 
-            className="text-xl text-gray-600 max-w-2xl mx-auto"
+            className="text-xl text-neutral-600 max-w-3xl mx-auto leading-relaxed"
             dangerouslySetInnerHTML={{
-              __html: t('whyAustria.subtitle').replace(/\*(.*?)\*/g, '<strong class="font-semibold">$1</strong>')
+              __html: t('whyAustria.subtitle').replace(/\*(.*?)\*/g, '<strong class="text-neutral-900 font-semibold">$1</strong>')
             }}
           />
         </div>
 
-
         {/* Benefits */}
-        <div className="grid md:grid-cols-3 gap-6">
+        <div className="grid md:grid-cols-3 gap-8">
           {benefits.map((benefit, index) => {
             const isHighlighted = isBenefitHighlighted(index);
             return (
-            <div key={index} className={`p-8 rounded-lg border transition-all duration-200 h-full flex flex-col ${
-              isHighlighted 
-                ? 'border-blue-200 bg-gradient-to-br from-blue-50/50 to-white' 
-                : 'border-gray-200 bg-white hover:shadow-md'
-            }`}>
-              
-              <div className={`w-14 h-14 ${benefit.bgColor} rounded-lg flex items-center justify-center mb-6`}>
-                <span className="text-2xl">{benefit.icon}</span>
-              </div>
-              
-              <div className="flex-1">
-                <h3 className={`text-xl font-semibold mb-3 ${
-                  isHighlighted ? 'text-gray-900' : 'text-gray-900'
+              <div 
+                key={index} 
+                className={`group p-8 rounded-2xl transition-all duration-300 h-full flex flex-col border-2 ${
+                  isHighlighted 
+                    ? 'bg-gradient-to-br from-blue-50 to-white border-blue-200 shadow-xl' 
+                    : 'bg-white border-neutral-200 shadow-md hover:shadow-xl hover:border-blue-200'
+                } hover:-translate-y-1`}
+              >
+                <div className={`w-20 h-20 ${benefit.bgColor} rounded-2xl flex items-center justify-center mx-auto mb-6 shadow-md group-hover:scale-110 transition-transform duration-300 ${
+                  isHighlighted ? 'ring-4 ring-blue-200' : ''
                 }`}>
-                  {benefit.title}
-                </h3>
-                <p 
-                  className="text-gray-600 leading-relaxed"
-                  dangerouslySetInnerHTML={{
-                    __html: benefit.description.replace(/\*(.*?)\*/g, '<strong class="font-semibold">$1</strong>')
-                  }}
-                />
+                  <span className="text-3xl">{benefit.icon}</span>
+                </div>
+                
+                <div className="flex-1 text-center">
+                  <h3 className={`text-2xl font-bold mb-4 ${
+                    isHighlighted ? 'text-blue-900' : 'text-neutral-900'
+                  }`}>
+                    {benefit.title}
+                  </h3>
+                  <p 
+                    className="text-base text-neutral-600 leading-relaxed"
+                    dangerouslySetInnerHTML={{
+                      __html: benefit.description.replace(/\*(.*?)\*/g, '<strong class="text-neutral-900 font-semibold">$1</strong>')
+                    }}
+                  />
+                </div>
               </div>
-            </div>
             );
           })}
         </div>
-
       </div>
     </section>
   );

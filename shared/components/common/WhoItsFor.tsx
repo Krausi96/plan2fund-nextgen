@@ -87,74 +87,72 @@ export function WhoItsFor({ targetGroup = 'default' }: WhoItsForProps) {
     },
   ];
   return (
-    <section className="py-20 md:py-28 bg-white" aria-labelledby="who-its-for-heading">
+    <section className="py-20 md:py-28 bg-gradient-to-b from-white to-neutral-50" aria-labelledby="who-its-for-heading">
       <div className="container max-w-7xl">
         <div className="text-center mb-16">
-        <h2 id="who-its-for-heading" className="text-5xl md:text-6xl font-bold text-gray-900 mb-6 tracking-tight">
-          {t("whoItsFor.title")}
-        </h2>
-          <p className="text-xl text-gray-600 max-w-2xl mx-auto">
+          <h2 id="who-its-for-heading" className="text-4xl md:text-5xl font-bold text-neutral-900 mb-6 tracking-tight">
+            {t("whoItsFor.title")}
+          </h2>
+          <p className="text-xl text-neutral-600 max-w-3xl mx-auto leading-relaxed">
             {t("whoItsFor.subtitle")}
           </p>
         </div>
 
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-                  {personas.map((persona, index) => {
-                    const isHighlighted = isPersonaHighlighted(index);
-                    const isPrimary = isPersonaPrimary(index);
-                    return (
-                    <div
-                      key={index}
-                      className="group"
-                    >
-                      <div className={`p-8 h-full flex flex-col relative group rounded-lg border transition-all duration-200 hover:shadow-md ${
-                        isPrimary || isHighlighted
-                          ? "border-blue-200 bg-gradient-to-br from-blue-50/50 to-white hover:border-blue-300" 
-                          : "border-gray-200 bg-white hover:border-gray-300"
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 lg:gap-8">
+          {personas.map((persona, index) => {
+            const isHighlighted = isPersonaHighlighted(index);
+            const isPrimary = isPersonaPrimary(index);
+            return (
+              <div
+                key={index}
+                className="group relative"
+              >
+                <div className={`h-full flex flex-col p-8 rounded-2xl border transition-all duration-300 ${
+                  isPrimary || isHighlighted
+                    ? "border-blue-200 bg-gradient-to-br from-blue-50 to-white shadow-lg hover:shadow-xl" 
+                    : "border-neutral-200 bg-white hover:border-neutral-300 hover:shadow-xl"
+                } hover:-translate-y-2`}>
+                  {/* Badge for Primary or Highlighted */}
+                  {(isPrimary || isHighlighted) && (
+                    <div className="absolute top-6 right-6">
+                      <span className={`text-white text-xs px-3 py-1.5 rounded-full font-semibold shadow-md ${
+                        isPrimary ? 'bg-gradient-to-r from-blue-600 to-blue-700' : 'bg-gradient-to-r from-green-600 to-green-700'
                       }`}>
-                        {/* Badge for Primary or Highlighted */}
-                        {(isPrimary || isHighlighted) && (
-                          <div className="absolute top-4 right-4">
-                            <span className={`text-white text-xs px-2.5 py-1 rounded-full font-medium ${
-                              isPrimary ? 'bg-blue-600' : 'bg-green-600'
-                            }`}>
-                              {isPrimary ? 'Primary' : 'Recommended'}
-                            </span>
-                          </div>
-                        )}
-                
-                {/* Header */}
-                <div className="mb-6 text-center">
-                  <div className={`w-14 h-14 rounded-lg flex items-center justify-center mx-auto mb-4 ${persona.iconBg}`}>
-                    <span className="text-2xl">{persona.icon}</span>
-                  </div>
-                  
-                  <h3 className="text-lg font-semibold text-gray-900 mb-3">
-                    {persona.title}
-                  </h3>
-                  <p className="text-sm text-gray-600 leading-relaxed mb-6">
-                    {persona.description}
-                  </p>
-                </div>
-
-                {/* Features - 3 max */}
-                <div className="flex-grow mt-auto">
-                  <ul className="space-y-2.5">
-                    {persona.features.map((feature, featureIndex) => (
-                      <li key={featureIndex} className="flex items-start text-sm text-gray-600">
-                        <CheckCircle className="w-4 h-4 text-blue-600 mr-2.5 mt-0.5 flex-shrink-0" />
-                        <span>{feature}</span>
-                      </li>
-                    ))}
-                  </ul>
-                </div>
-                      </div>
+                        {isPrimary ? 'Primary' : 'Recommended'}
+                      </span>
                     </div>
-                    );
-                  })}
+                  )}
+          
+                  {/* Header */}
+                  <div className="mb-6 text-center">
+                    <div className={`w-20 h-20 rounded-2xl flex items-center justify-center mx-auto mb-4 shadow-md group-hover:scale-110 transition-transform duration-300 ${persona.iconBg}`}>
+                      <span className="text-3xl">{persona.icon}</span>
+                    </div>
+                    
+                    <h3 className="text-xl font-bold text-neutral-900 mb-3 group-hover:text-blue-600 transition-colors duration-300">
+                      {persona.title}
+                    </h3>
+                    <p className="text-base text-neutral-600 leading-relaxed">
+                      {persona.description}
+                    </p>
+                  </div>
+
+                  {/* Features */}
+                  <div className="flex-grow mt-6">
+                    <ul className="space-y-3">
+                      {persona.features.map((feature, featureIndex) => (
+                        <li key={featureIndex} className="flex items-start text-sm text-neutral-700">
+                          <CheckCircle className="w-5 h-5 text-green-600 mr-3 mt-0.5 flex-shrink-0" />
+                          <span className="leading-relaxed">{feature}</span>
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
                 </div>
-
-
+              </div>
+            );
+          })}
+        </div>
       </div>
     </section>
   );
