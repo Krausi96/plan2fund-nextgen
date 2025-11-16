@@ -362,15 +362,24 @@ export async function generateProgramsWithLLM(
       profileParts.push(`Industry Focus: ${industryDetails.join(', ')}`);
     }
     
-    // Impact with "other" text
+    // Impact with "other" text and details for each type
     if (answers.impact) {
       const impacts = Array.isArray(answers.impact) 
         ? answers.impact 
         : [answers.impact];
       const otherText = (answers as any).impact_other;
-      const impactDetails = impacts.map((imp: string) => 
-        imp === 'other' && otherText ? `Other: ${otherText}` : imp
-      );
+      const impactDetails = impacts.map((imp: string) => {
+        if (imp === 'other' && otherText) {
+          return `Other: ${otherText}`;
+        }
+        // Add details if specified
+        const detailKey = `impact_${imp}`;
+        const details = (answers as any)[detailKey];
+        if (details) {
+          return `${imp} (${details})`;
+        }
+        return imp;
+      });
       profileParts.push(`Impact: ${impactDetails.join(', ')}`);
     }
     
@@ -423,7 +432,15 @@ export async function generateProgramsWithLLM(
       }
     }
     
-    if (answers.co_financing) profileParts.push(`Co-financing: ${answers.co_financing}`);
+    // Co-financing with percentage if specified
+    if (answers.co_financing) {
+      const percentage = (answers as any).co_financing_percentage;
+      if (answers.co_financing === 'co_yes' && percentage) {
+        profileParts.push(`Co-financing: Yes (${percentage})`);
+      } else {
+        profileParts.push(`Co-financing: ${answers.co_financing}`);
+      }
+    }
     
     // Handle project description (from editor modal)
     if ((answers as any).project_description) {

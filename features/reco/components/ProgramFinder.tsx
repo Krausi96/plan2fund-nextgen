@@ -28,11 +28,12 @@ interface ProgramFinderProps {
       { value: 'prefounder', label: 'Pre-founder (Idea Stage)' },
       { value: 'startup', label: 'Startup' },
       { value: 'sme', label: 'SME (Small/Medium Enterprise)' },
-      { value: 'large', label: 'Large Company' },
       { value: 'research', label: 'Research Institution' },
+      { value: 'other', label: 'Other' },
     ],
     required: false,
     priority: 1,
+    hasOtherTextInput: true,
   },
   {
     id: 'location',
@@ -48,7 +49,7 @@ interface ProgramFinderProps {
     priority: 2,
     // Optional region input (text field, not dropdown)
     hasOptionalRegion: (value: string) => {
-      return value === 'austria' || value === 'germany' || value === 'eu';
+      return value === 'austria' || value === 'germany' || value === 'eu' || value === 'international';
     },
   },
   {
@@ -56,17 +57,12 @@ interface ProgramFinderProps {
     label: 'How much funding do you need?',
     type: 'range' as const,
     min: 10000,
-    max: 5000000,
-    step: 10000,
+    max: 3000000,
+    step: 1000,
     unit: 'EUR',
-    quickSelectOptions: [
-      { value: 'under100k', label: 'Under €100k', min: 0, max: 100000 },
-      { value: '100kto500k', label: '€100k - €500k', min: 100000, max: 500000 },
-      { value: '500kto2m', label: '€500k - €2M', min: 500000, max: 2000000 },
-      { value: 'over2m', label: 'Over €2M', min: 2000000, max: 5000000 },
-    ],
     required: false,
     priority: 3,
+    editableValue: true, // Allow editing the number directly
   },
   {
     id: 'industry_focus',
@@ -145,6 +141,7 @@ interface ProgramFinderProps {
     required: false,
     priority: 5,
     hasOtherTextInput: true, // Show text field when "other" is selected
+    hasImpactDetails: true, // Allow specifying details for each impact type
   },
   {
     id: 'company_stage',
@@ -156,7 +153,6 @@ interface ProgramFinderProps {
       { value: 'inc_lt_6m', label: 'Incorporated < 6 months' },
       { value: 'inc_6_36m', label: 'Incorporated 6-36 months' },
       { value: 'inc_gt_36m', label: 'Incorporated > 36 months' },
-      { value: 'research_org', label: 'Research Organization' },
       { value: 'other', label: 'Other' },
     ],
     required: false,
@@ -169,11 +165,10 @@ interface ProgramFinderProps {
     type: 'multi-select' as const,
     options: [
       { value: 'rd', label: 'Research & Development' },
-      { value: 'marketing', label: 'Marketing' },
-      { value: 'equipment', label: 'Equipment/Infrastructure' },
       { value: 'personnel', label: 'Personnel/Hiring' },
-      { value: 'working_capital', label: 'Working capital' },
-      { value: 'expansion', label: 'Expansion/Growth' },
+      { value: 'equipment', label: 'Equipment/Infrastructure' },
+      { value: 'marketing', label: 'Marketing' },
+      { value: 'working_capital', label: 'Working Capital' },
       { value: 'other', label: 'Other' },
     ],
     required: false,
@@ -188,14 +183,9 @@ interface ProgramFinderProps {
     max: 15,
     step: 0.5,
     unit: 'years',
-    quickSelectOptions: [
-      { value: 'under2', label: 'Under 2 years', min: 0.5, max: 2 },
-      { value: '2to5', label: '2-5 years', min: 2, max: 5 },
-      { value: '5to10', label: '5-10 years', min: 5, max: 10 },
-      { value: 'over10', label: 'Over 10 years', min: 10, max: 15 },
-    ],
     required: false,
     priority: 8,
+    editableValue: true, // Allow editing the number directly
   },
   {
     id: 'deadline_urgency',
@@ -205,13 +195,9 @@ interface ProgramFinderProps {
     max: 12,
     step: 1,
     unit: 'months',
-    quickSelectOptions: [
-      { value: 'urgent', label: 'Within 1 month', min: 1, max: 1 },
-      { value: 'soon', label: 'Within 3 months', min: 1, max: 3 },
-      { value: 'flexible', label: 'Within 6 months or flexible', min: 3, max: 12 },
-    ],
     required: false,
     priority: 9,
+    editableValue: true, // Allow editing the number directly
     skipIf: (answers: Record<string, any>) => {
       const duration = answers.project_duration;
       if (typeof duration === 'number' && duration > 10) return true;
@@ -230,6 +216,7 @@ interface ProgramFinderProps {
     ],
     required: false,
     priority: 10,
+    hasCoFinancingPercentage: true, // Ask for percentage if Yes
   },
   {
     id: 'revenue_status',
@@ -692,10 +679,7 @@ export default function ProgramFinder({
                                             if (isOtherOption && value !== option.value) {
                                               handleAnswer(`${question.id}_other`, undefined);
                                             }
-                                            // Auto-advance if no region/other input needed
-                                            if (!showRegionInput && !isOtherOption && currentQuestionIndex < visibleQuestions.length - 1) {
-                                              setTimeout(() => setCurrentQuestionIndex(currentQuestionIndex + 1), 300);
-                                            }
+                                            // Don't auto-advance - let user manually proceed
                                           }}
                                           className={`w-full text-left px-4 py-3 border-2 rounded-lg transition-all duration-150 ${
                                             isSelected
@@ -719,12 +703,16 @@ export default function ProgramFinder({
                                             </label>
                                             <input
                                               type="text"
-                                              placeholder={option.value === 'austria' ? 'e.g., Vienna, Tyrol, Salzburg' : option.value === 'germany' ? 'e.g., Bavaria, Berlin, Hamburg' : 'e.g., France, Italy, Spain'}
+                                              placeholder={
+                                                option.value === 'austria' ? 'e.g., Vienna, Tyrol, Salzburg' : 
+                                                option.value === 'germany' ? 'e.g., Bavaria, Berlin, Hamburg' : 
+                                                option.value === 'eu' ? 'e.g., France, Italy, Spain, or specific region' :
+                                                'e.g., USA, UK, Switzerland, or specific country/region'
+                                              }
                                               value={regionValue}
                                               onChange={(e) => {
                                                 handleAnswer(`${question.id}_region`, e.target.value);
                                               }}
-                                              // Removed auto-advance on blur - user should manually proceed
                                               className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                                             />
                                             <p className="text-xs text-gray-500">
@@ -748,6 +736,27 @@ export default function ProgramFinder({
                                               }}
                                               className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                                             />
+                                          </div>
+                                        )}
+                                        
+                                        {/* Co-financing percentage input - ask for percentage if Yes */}
+                                        {question.hasCoFinancingPercentage && isSelected && option.value === 'co_yes' && (
+                                          <div className="ml-4 space-y-1.5 border-l-2 border-blue-200 pl-3 pt-1">
+                                            <label className="text-xs font-medium text-gray-600 mb-1 block">
+                                              What percentage can you provide? (e.g., 20%, 30%, 50%)
+                                            </label>
+                                            <input
+                                              type="text"
+                                              placeholder="e.g., 30%"
+                                              value={(answers[`${question.id}_percentage`] as string) || ''}
+                                              onChange={(e) => {
+                                                handleAnswer(`${question.id}_percentage`, e.target.value);
+                                              }}
+                                              className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                                            />
+                                            <p className="text-xs text-gray-500">
+                                              Many programs require 20-50% co-financing
+                                            </p>
                                           </div>
                                         )}
                                       </div>
@@ -904,6 +913,28 @@ export default function ProgramFinder({
                                             />
                                           </div>
                                         )}
+                                        
+                                        {/* Impact details input - allow specifying details for each impact type */}
+                                        {question.hasImpactDetails && isSelected && !isOtherOption && (option.value === 'economic' || option.value === 'social' || option.value === 'environmental') && (
+                                          <div className="ml-4 space-y-1.5 border-l-2 border-blue-200 pl-3 pt-1">
+                                            <label className="text-xs font-medium text-gray-600 mb-1 block">
+                                              {option.value === 'economic' ? 'Specify economic impact (e.g., job creation, GDP growth):' :
+                                               option.value === 'social' ? 'Specify social impact (e.g., community benefit, accessibility):' :
+                                               'Specify environmental impact (e.g., CO2 reduction, sustainability):'}
+                                            </label>
+                                            <input
+                                              type="text"
+                                              placeholder={option.value === 'economic' ? 'e.g., Create 50 jobs, increase regional GDP' :
+                                                           option.value === 'social' ? 'e.g., Improve healthcare access, support education' :
+                                                           'e.g., Reduce CO2 by 30%, promote circular economy'}
+                                              value={(answers[`${question.id}_${option.value}`] as string) || ''}
+                                              onChange={(e) => {
+                                                handleAnswer(`${question.id}_${option.value}`, e.target.value);
+                                              }}
+                                              className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                                            />
+                                          </div>
+                                        )}
                                       </div>
                                     );
                                   })}
@@ -927,41 +958,12 @@ export default function ProgramFinder({
                               )}
                               {question.type === 'range' && (
                                 <div className="space-y-4">
-                                  {/* Quick Select Buttons */}
-                                  {question.quickSelectOptions && (
-                                    <div className="grid grid-cols-2 gap-2 mb-4">
-                                      {question.quickSelectOptions.map((opt: any) => {
-                                        const isSelected = value === opt.value || 
-                                          (typeof value === 'number' && value >= opt.min && value <= opt.max);
-                                        return (
-                                          <button
-                                            key={opt.value}
-                                            onClick={() => {
-                                              // Set to middle of range for quick select
-                                              const midValue = (opt.min + opt.max) / 2;
-                                              handleAnswer(question.id, midValue);
-                                            }}
-                                            className={`px-3 py-2 text-sm border-2 rounded-lg transition-all ${
-                                              isSelected
-                                                ? 'bg-blue-600 border-blue-600 text-white font-medium'
-                                                : 'bg-white border-gray-300 hover:border-blue-400 hover:bg-blue-50'
-                                            }`}
-                                          >
-                                            {opt.label}
-                                          </button>
-                                        );
-                                      })}
-                                    </div>
-                                  )}
-                                  
                                   {/* Slider */}
                                   <div className="space-y-2">
                                     <div className="flex items-center justify-between mb-2">
                                       <span className="text-sm text-gray-600">
                                         {question.unit === 'EUR' ? '€' : ''}
-                                        {typeof value === 'number' 
-                                          ? value.toLocaleString('de-DE', { minimumFractionDigits: question.unit === 'years' ? 1 : 0, maximumFractionDigits: question.unit === 'years' ? 1 : 0 })
-                                          : question.min.toLocaleString('de-DE')}
+                                        {question.min.toLocaleString('de-DE')}
                                         {question.unit === 'EUR' ? '' : ` ${question.unit}`}
                                       </span>
                                       <span className="text-sm text-gray-600">
@@ -988,13 +990,83 @@ export default function ProgramFinder({
                                       }}
                                     />
                                     <div className="text-center">
-                                      <span className="text-lg font-semibold text-blue-600">
-                                        {question.unit === 'EUR' ? '€' : ''}
-                                        {typeof value === 'number' 
-                                          ? value.toLocaleString('de-DE', { minimumFractionDigits: question.unit === 'years' ? 1 : 0, maximumFractionDigits: question.unit === 'years' ? 1 : 0 })
-                                          : question.min.toLocaleString('de-DE')}
-                                        {question.unit === 'EUR' ? '' : ` ${question.unit}`}
-                                      </span>
+                                      {question.editableValue ? (
+                                        <input
+                                          type="text"
+                                          value={typeof value === 'number' 
+                                            ? (question.unit === 'EUR' 
+                                                ? `€${value.toLocaleString('de-DE')}`
+                                                : question.unit === 'years'
+                                                ? `${value.toFixed(1)} ${question.unit}`
+                                                : `${value} ${question.unit}`)
+                                            : (question.unit === 'EUR' 
+                                                ? `€${question.min.toLocaleString('de-DE')}`
+                                                : question.unit === 'years'
+                                                ? `${question.min.toFixed(1)} ${question.unit}`
+                                                : `${question.min} ${question.unit}`)}
+                                          onChange={(e) => {
+                                            let cleaned = e.target.value;
+                                            // Remove currency symbol, unit text, and spaces
+                                            if (question.unit === 'EUR') {
+                                              cleaned = cleaned.replace(/[€,\s]/g, '');
+                                              const numValue = parseInt(cleaned);
+                                              if (!isNaN(numValue) && numValue >= question.min && numValue <= question.max) {
+                                                handleAnswer(question.id, numValue);
+                                              }
+                                            } else if (question.unit === 'years') {
+                                              cleaned = cleaned.replace(/[years\s]/gi, '');
+                                              const numValue = parseFloat(cleaned);
+                                              if (!isNaN(numValue) && numValue >= question.min && numValue <= question.max) {
+                                                handleAnswer(question.id, numValue);
+                                              }
+                                            } else {
+                                              cleaned = cleaned.replace(/[months\s]/gi, '');
+                                              const numValue = parseInt(cleaned);
+                                              if (!isNaN(numValue) && numValue >= question.min && numValue <= question.max) {
+                                                handleAnswer(question.id, numValue);
+                                              }
+                                            }
+                                          }}
+                                          onBlur={(e) => {
+                                            // Ensure value is within bounds
+                                            let cleaned = e.target.value;
+                                            if (question.unit === 'EUR') {
+                                              cleaned = cleaned.replace(/[€,\s]/g, '');
+                                              const numValue = parseInt(cleaned);
+                                              if (isNaN(numValue) || numValue < question.min) {
+                                                handleAnswer(question.id, question.min);
+                                              } else if (numValue > question.max) {
+                                                handleAnswer(question.id, question.max);
+                                              }
+                                            } else if (question.unit === 'years') {
+                                              cleaned = cleaned.replace(/[years\s]/gi, '');
+                                              const numValue = parseFloat(cleaned);
+                                              if (isNaN(numValue) || numValue < question.min) {
+                                                handleAnswer(question.id, question.min);
+                                              } else if (numValue > question.max) {
+                                                handleAnswer(question.id, question.max);
+                                              }
+                                            } else {
+                                              cleaned = cleaned.replace(/[months\s]/gi, '');
+                                              const numValue = parseInt(cleaned);
+                                              if (isNaN(numValue) || numValue < question.min) {
+                                                handleAnswer(question.id, question.min);
+                                              } else if (numValue > question.max) {
+                                                handleAnswer(question.id, question.max);
+                                              }
+                                            }
+                                          }}
+                                          className="text-lg font-semibold text-blue-600 text-center border-2 border-blue-200 rounded-lg px-3 py-1 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 w-40"
+                                        />
+                                      ) : (
+                                        <span className="text-lg font-semibold text-blue-600">
+                                          {question.unit === 'EUR' ? '€' : ''}
+                                          {typeof value === 'number' 
+                                            ? value.toLocaleString('de-DE', { minimumFractionDigits: question.unit === 'years' ? 1 : 0, maximumFractionDigits: question.unit === 'years' ? 1 : 0 })
+                                            : question.min.toLocaleString('de-DE')}
+                                          {question.unit === 'EUR' ? '' : ` ${question.unit}`}
+                                        </span>
+                                      )}
                                     </div>
                                     
                                     {/* Human icons for team size */}
