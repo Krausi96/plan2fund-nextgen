@@ -45,7 +45,7 @@ function Preview() {
     loadAdditionalDocuments();
     const { programId } = router.query as { programId?: string };
     if (programId) {
-      fetch(`/api/programmes/${programId}/requirements`).then(r => r.ok ? r.json() : null).then((data) => {
+      fetch(`/api/programs/${programId}/requirements`).then(r => r.ok ? r.json() : null).then((data) => {
         if (data && Array.isArray(data.additionalDocuments)) {
           setAdditionalDocuments((prev) => mergeDocs(prev, data.additionalDocuments));
         }

@@ -71,7 +71,7 @@ export default function PrivacySettings() {
     setMessage('');
 
     try {
-      const response = await fetch('/api/gdpr/delete-data', {
+      const response = await fetch('/api/user/delete-data', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({

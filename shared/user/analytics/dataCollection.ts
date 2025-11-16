@@ -60,15 +60,7 @@ export interface UserFeedback {
   timestamp: string;
 }
 
-export interface ScraperQualityMetric {
-  institution: string;
-  pageType: string;
-  extractionMethod: 'regex' | 'llm' | 'hybrid' | 'custom_llm' | 'openai_llm';
-  accuracy: number; // 0-1
-  confidence: number; // 0-1
-  extractionPattern?: string;
-  timestamp: string;
-}
+// Removed: ScraperQualityMetric interface (no longer used)
 
 /**
  * Anonymize business plan data for ML training
@@ -122,7 +114,7 @@ export async function storeAnonymizedPlan(
   }
 
   try {
-    const response = await fetch('/api/data-collection/plans', {
+    const response = await fetch('/api/ml-training/plans', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(plan)
@@ -144,7 +136,7 @@ export async function trackTemplateUsage(
   wasEdited: boolean
 ): Promise<void> {
   try {
-    await fetch('/api/data-collection/templates', {
+    await fetch('/api/analytics/templates', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
@@ -182,34 +174,14 @@ export async function submitFeedback(
   }
 }
 
-/**
- * Track scraper quality metrics
- */
-export async function trackScraperQuality(
-  metric: ScraperQualityMetric
-): Promise<void> {
-  try {
-    // Skip in Node.js context (scraper runs server-side, no API endpoint available)
-    if (typeof window === 'undefined') {
-      return;
-    }
-    
-    await fetch('/api/data-collection/scraper-quality', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(metric)
-    });
-  } catch (error) {
-    // Silently fail - telemetry is non-critical
-  }
-}
+// Removed: trackScraperQuality function (was never actually used due to logic bug)
 
 /**
  * Get user consent status
  */
 export async function getUserConsent(userId: string): Promise<boolean> {
   try {
-    const response = await fetch(`/api/data-collection/consent/${userId}`);
+    const response = await fetch(`/api/ml-training/consent/${userId}`);
     if (!response.ok) return false;
     
     const data = await response.json();
@@ -229,7 +201,7 @@ export async function setUserConsent(
   consentType: 'data_collection' | 'ml_training' = 'data_collection'
 ): Promise<boolean> {
   try {
-    const response = await fetch('/api/data-collection/consent', {
+    const response = await fetch('/api/ml-training/consent', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({

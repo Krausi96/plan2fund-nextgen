@@ -118,16 +118,7 @@ function calculateMeaningfulnessScore(text: any): number {
 }
 import { isCustomLLMEnabled, callCustomLLM } from '@/shared/lib/ai/customLLM';
 
-// Dynamic import for data collection (only in Node.js environment)
-let trackScraperQuality: any = null;
-if (typeof window === 'undefined') {
-  // Server-side only
-  import('@/shared/user/analytics/dataCollection').then(module => {
-    trackScraperQuality = module.trackScraperQuality;
-  }).catch(() => {
-    // Silently fail if module not available
-  });
-}
+// Removed: scraper quality tracking (was never actually used due to logic bug)
 
 // Initialize OpenAI client (only if OPENAI_API_KEY is set)
 let openai: OpenAI | null = null;
@@ -222,7 +213,6 @@ export async function extractWithLLM(
 
   try {
     let responseText: string | null = null;
-    let extractionProvider: 'custom_llm' | 'openai_llm' = 'openai_llm';
 
     if (isCustomLLMEnabled()) {
       try {
@@ -261,7 +251,6 @@ export async function extractWithLLM(
           throw new Error('Failed after retries');
         }
         responseText = customResponse.output;
-        extractionProvider = 'custom_llm';
       } catch (customError: any) {
         // Handle errors (429 already handled above with retry logic)
         const errorMsg = customError?.message || String(customError);
@@ -282,7 +271,6 @@ export async function extractWithLLM(
               maxTokens: 4000,
             });
             responseText = retryResponse.output;
-            extractionProvider = 'custom_llm';
             console.log('✅ Custom LLM retry succeeded after timeout');
           } catch (retryError: any) {
             throw new Error(`Custom LLM timeout retry failed (${retryError?.status || 'unknown'}): ${retryError?.message || retryError}`);
@@ -320,7 +308,6 @@ export async function extractWithLLM(
             temperature: 0.3,
           });
           responseText = completion.choices[0]?.message?.content || '{}';
-          extractionProvider = 'openai_llm';
           break; // Success, exit retry loop
         } catch (apiError: any) {
           lastError = apiError;
@@ -479,26 +466,7 @@ export async function extractWithLLM(
       console.warn(`⚠️ Extraction quality issues for ${url}:`, validation.issues);
     }
     
-    if (trackScraperQuality && typeof window === 'undefined') {
-      const institution = extractInstitutionFromUrl(url);
-      const pageType = detectPageType(url, html || text || '');
-      const totalRequirements = Object.values(result.categorized_requirements).reduce(
-        (sum, items) => sum + items.length, 0
-      );
-      const accuracy = totalRequirements > 0 ? Math.min(1.0, totalRequirements / 20) : 0;
-      const confidence = extractionProvider === 'custom_llm' ? 0.85 : 0.8;
-
-      trackScraperQuality({
-        institution,
-        pageType,
-        extractionMethod: extractionProvider,
-        accuracy,
-        confidence,
-        timestamp: new Date().toISOString(),
-        qualityScore: validation.qualityScore,
-        issues: validation.issues
-      }).catch((err: any) => console.error('Failed to track scraper quality:', err));
-    }
+    // Removed: scraper quality tracking (was never actually used)
 
     return result;
   } catch (error) {
@@ -972,43 +940,6 @@ function transformLLMResponse(
     categorized_requirements: categorized,
     metadata
   };
-}
-
-/**
- * Extract institution name from URL
- */
-function extractInstitutionFromUrl(url: string): string {
-  try {
-    const urlObj = new URL(url);
-    const hostname = urlObj.hostname;
-    // Extract domain name (e.g., "bmwk.de" from "www.bmwk.de")
-    const parts = hostname.split('.');
-    if (parts.length >= 2) {
-      return parts[parts.length - 2]; // Second-to-last part
-    }
-    return hostname;
-  } catch {
-    return 'unknown';
-  }
-}
-
-/**
- * Detect page type from URL and content structure
- */
-function detectPageType(url: string, content: string): string {
-  const urlLower = url.toLowerCase();
-  const contentLower = content.toLowerCase();
-  
-  if (urlLower.includes('/program') || urlLower.includes('/foerderung')) {
-    return 'program_page';
-  }
-  if (contentLower.includes('application') || contentLower.includes('bewerbung')) {
-    return 'application_page';
-  }
-  if (contentLower.includes('requirement') || contentLower.includes('voraussetzung')) {
-    return 'requirements_page';
-  }
-  return 'general_page';
 }
 
 /**

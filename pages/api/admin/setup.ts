@@ -5,7 +5,7 @@ import path from 'path';
 
 /**
  * Setup database tables - Run this once after creating database
- * GET /api/db/setup - Run the schema
+ * GET /api/admin/setup - Run the schema
  */
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   if (req.method !== 'GET') {

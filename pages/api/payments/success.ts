@@ -2,7 +2,9 @@
 import type { NextApiRequest, NextApiResponse } from 'next';
 import Stripe from 'stripe';
 import emailService from '@/shared/lib/services/emailService';
-import { getUserDocuments, markDocumentEmailSent } from '@/shared/user/storage/documentStore';
+// Note: documentStore is client-side only (localStorage). Server-side document retrieval
+// should be implemented via database or API. For now, document email functionality is disabled.
+// import { getUserDocuments, markDocumentEmailSent } from '@/shared/user/storage/documentStore';
 
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
   apiVersion: '2025-08-27.basil',
@@ -85,36 +87,19 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
           orderId: paymentRecord.id
         });
 
-        // If planId exists, get exported documents and send them
-        if (planId) {
-          try {
-            const documents = getUserDocuments(userId, planId);
-            if (documents.length > 0) {
-              const appUrl = process.env.NEXT_PUBLIC_APP_URL || 'https://plan2fund.com';
-              const emailResult = await emailService.sendDocumentsEmail(customerEmail, {
-                userName: userId,
-                planName: 'Business Plan',
-                documents: documents.map(doc => ({
-                  name: doc.name,
-                  downloadUrl: doc.downloadUrl || `${appUrl}/dashboard?download=${doc.id}`,
-                  format: doc.format,
-                  type: doc.type
-                })),
-                dashboardUrl: `${appUrl}/dashboard`
-              });
-              
-              // Mark documents as email sent if email was successful
-              if (emailResult.success) {
-                documents.forEach(doc => {
-                  markDocumentEmailSent(doc.id);
-                });
-              }
-            }
-          } catch (docError) {
-            console.error('Error sending documents email:', docError);
-            // Don't fail payment if document email fails
-          }
-        }
+        // TODO: If planId exists, get exported documents and send them
+        // Note: documentStore is client-side only (localStorage). 
+        // Server-side document retrieval needs to be implemented via database or API.
+        // For now, this functionality is disabled until server-side document storage is implemented.
+        // if (planId) {
+        //   try {
+        //     // TODO: Implement server-side document retrieval
+        //     // const documents = await getDocumentsFromDatabase(userId, planId);
+        //     // ... send documents email
+        //   } catch (docError) {
+        //     console.error('Error sending documents email:', docError);
+        //   }
+        // }
       }
     } catch (emailError) {
       console.error('Error sending payment confirmation email:', emailError);

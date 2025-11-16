@@ -165,10 +165,10 @@ async function loadProgramDocuments(programId: string, baseUrl?: string): Promis
     // Load from API (which loads from database)
     // baseUrl needed for server-side (API routes)
     const apiUrl = baseUrl 
-      ? `${baseUrl}/api/programmes/${programId}/requirements`
+      ? `${baseUrl}/api/programs/${programId}/requirements`
       : typeof window !== 'undefined' 
-        ? `/api/programmes/${programId}/requirements`
-        : `http://localhost:3000/api/programmes/${programId}/requirements`;
+        ? `/api/programs/${programId}/requirements`
+        : `http://localhost:3000/api/programs/${programId}/requirements`;
     
     const response = await fetch(apiUrl);
     if (!response.ok) return [];

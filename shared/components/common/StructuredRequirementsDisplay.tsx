@@ -36,7 +36,7 @@ export default function StructuredRequirementsDisplay({
   const loadRequirements = async () => {
     try {
       setLoading(true);
-      const response = await fetch(`/api/programmes/${programId}/requirements`);
+      const response = await fetch(`/api/programs/${programId}/requirements`);
       
       if (!response.ok) {
         throw new Error(`Failed to load requirements: ${response.statusText}`);
