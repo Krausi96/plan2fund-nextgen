@@ -780,38 +780,6 @@ export default function ProgramFinder({
                       
                       {/* Current Question Display - Navigation Inside Box */}
                       <div className="relative bg-white rounded-lg border-2 border-blue-200 shadow-md p-6">
-                        {/* Navigation Buttons - Bottom of Box, Centered, Styled */}
-                        <div className="flex justify-between items-center mt-6 pt-4 border-t border-gray-200">
-                          <button
-                            onClick={() => setCurrentQuestionIndex(Math.max(0, currentQuestionIndex - 1))}
-                            disabled={currentQuestionIndex === 0}
-                            className={`flex items-center gap-2 px-4 py-2 rounded-lg font-medium text-sm transition-all shadow-sm ${
-                              currentQuestionIndex === 0
-                                ? 'opacity-30 cursor-not-allowed bg-gray-100 text-gray-400'
-                                : 'bg-gradient-to-r from-blue-500 to-blue-600 text-white hover:from-blue-600 hover:to-blue-700 hover:shadow-md transform hover:scale-105 active:scale-95'
-                            }`}
-                          >
-                            <ChevronLeft className="w-5 h-5" />
-                            <span>{t('reco.ui.previous') || 'Zurück'}</span>
-                          </button>
-                          
-                          <span className="text-sm text-gray-500 font-medium">
-                            {currentQuestionIndex + 1} / {visibleQuestions.length}
-                          </span>
-                          
-                          <button
-                            onClick={() => setCurrentQuestionIndex(Math.min(visibleQuestions.length - 1, currentQuestionIndex + 1))}
-                            disabled={currentQuestionIndex === visibleQuestions.length - 1}
-                            className={`flex items-center gap-2 px-4 py-2 rounded-lg font-medium text-sm transition-all shadow-sm ${
-                              currentQuestionIndex === visibleQuestions.length - 1
-                                ? 'opacity-30 cursor-not-allowed bg-gray-100 text-gray-400'
-                                : 'bg-gradient-to-r from-blue-500 to-blue-600 text-white hover:from-blue-600 hover:to-blue-700 hover:shadow-md transform hover:scale-105 active:scale-95'
-                            }`}
-                          >
-                            <span>{t('reco.ui.next') || 'Weiter'}</span>
-                            <ChevronRight className="w-5 h-5" />
-                          </button>
-                        </div>
                         {(() => {
                           const question = visibleQuestions[currentQuestionIndex];
                           if (!question) return null;
@@ -1457,6 +1425,38 @@ export default function ProgramFinder({
                           );
                         })()}
                         
+                        {/* Navigation Buttons - Bottom of Box, Centered, Styled */}
+                        <div className="flex justify-between items-center mt-6 pt-4 border-t border-gray-200">
+                          <button
+                            onClick={() => setCurrentQuestionIndex(Math.max(0, currentQuestionIndex - 1))}
+                            disabled={currentQuestionIndex === 0}
+                            className={`flex items-center gap-2 px-4 py-2 rounded-lg font-medium text-sm transition-all shadow-sm ${
+                              currentQuestionIndex === 0
+                                ? 'opacity-30 cursor-not-allowed bg-gray-100 text-gray-400'
+                                : 'bg-gradient-to-r from-blue-500 to-blue-600 text-white hover:from-blue-600 hover:to-blue-700 hover:shadow-md transform hover:scale-105 active:scale-95'
+                            }`}
+                          >
+                            <ChevronLeft className="w-5 h-5" />
+                            <span>{t('reco.ui.previous') || 'Zurück'}</span>
+                          </button>
+                          
+                          <span className="text-sm text-gray-500 font-medium">
+                            {currentQuestionIndex + 1} / {visibleQuestions.length}
+                          </span>
+                          
+                          <button
+                            onClick={() => setCurrentQuestionIndex(Math.min(visibleQuestions.length - 1, currentQuestionIndex + 1))}
+                            disabled={currentQuestionIndex === visibleQuestions.length - 1}
+                            className={`flex items-center gap-2 px-4 py-2 rounded-lg font-medium text-sm transition-all shadow-sm ${
+                              currentQuestionIndex === visibleQuestions.length - 1
+                                ? 'opacity-30 cursor-not-allowed bg-gray-100 text-gray-400'
+                                : 'bg-gradient-to-r from-blue-500 to-blue-600 text-white hover:from-blue-600 hover:to-blue-700 hover:shadow-md transform hover:scale-105 active:scale-95'
+                            }`}
+                          >
+                            <span>{t('reco.ui.next') || 'Weiter'}</span>
+                            <ChevronRight className="w-5 h-5" />
+                          </button>
+                        </div>
                       </div>
                     </div>
                   )}
