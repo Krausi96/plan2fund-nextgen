@@ -73,21 +73,21 @@ export class AIHelper {
   ): Promise<AIResponse> {
     // Get structured requirements for this program
     // If program.id is 'default', try to get from localStorage (set by reco)
-    let structuredRequirements: any = { decision_tree: [], editor: [], library: [] };
+    // UPDATED: Now uses 15 categories directly (geographic, eligibility, financial, etc.)
+    // instead of expecting editor[]/library[] format
+    let categorizedRequirements: any = null;
     
     if (program.id !== 'default' && typeof window !== 'undefined') {
-      // Try to get from localStorage first (for dynamically generated programs)
+      // Try to get from localStorage first (for dynamically generated programs from ProgramFinder)
       const storedProgram = localStorage.getItem('selectedProgram');
       if (storedProgram) {
         try {
           const programData = JSON.parse(storedProgram);
           if (programData.categorized_requirements) {
-            // Convert categorized_requirements to structured format
-            structuredRequirements = {
-              editor: programData.categorized_requirements.editor || [],
-              library: programData.categorized_requirements.library || [],
-              decision_tree: programData.categorized_requirements.decision_tree || []
-            };
+            // Use 15 categories directly (extracted by llmExtract.ts)
+            categorizedRequirements = programData.categorized_requirements;
+            console.log('✅ Loaded categorized_requirements from localStorage:', 
+              Object.keys(categorizedRequirements).length, 'categories');
           }
         } catch (e) {
           console.warn('Failed to parse stored program data:', e);
@@ -95,16 +95,23 @@ export class AIHelper {
       }
       
       // Fallback: try API if localStorage didn't have it (for database programs)
-      if (!structuredRequirements.editor || structuredRequirements.editor.length === 0) {
-        structuredRequirements = await this.getStructuredRequirements(program.id);
+      if (!categorizedRequirements) {
+        const apiRequirements = await this.getStructuredRequirements(program.id);
+        // API might return editor[]/library[] format, convert if needed
+        if (apiRequirements && apiRequirements.categorized_requirements) {
+          categorizedRequirements = apiRequirements.categorized_requirements;
+        } else if (apiRequirements) {
+          // Legacy format - keep for backward compatibility
+          categorizedRequirements = null;
+        }
       }
     }
     
-    const prompt = this.buildSectionPromptWithStructured(section, context, program, structuredRequirements);
+    const prompt = this.buildSectionPromptWithStructured(section, context, program, categorizedRequirements);
     
-    // Get section guidance from structured requirements
-    const sectionGuidance = this.getSectionGuidanceFromStructured(section, structuredRequirements);
-    const complianceTips = this.getComplianceTipsFromStructured(section, structuredRequirements);
+    // Get section guidance from categorized requirements (15 categories)
+    const sectionGuidance = this.getSectionGuidanceFromCategories(section, categorizedRequirements);
+    const complianceTips = this.getComplianceTipsFromCategories(categorizedRequirements);
     
     // Call OpenAI API with enhanced context
     const response = await this.callAIWithContext(prompt, {
@@ -126,7 +133,7 @@ export class AIHelper {
       programSpecific: true,
       sectionGuidance: sectionGuidance,
       complianceTips: complianceTips,
-      readinessScore: this.calculateReadinessScoreFromStructured(section, context, structuredRequirements)
+      readinessScore: this.calculateReadinessScoreFromCategories(section, context, categorizedRequirements)
     };
   }
   
@@ -200,7 +207,7 @@ This is a placeholder response. The AI service will be available shortly.`,
    */
   async getStructuredRequirements(programId: string): Promise<any> {
     try {
-      const response = await fetch(`/api/programmes/${programId}/requirements`);
+      const response = await fetch(`/api/programs/${programId}/requirements`);
       if (response.ok) {
         return await response.json();
       }
@@ -218,25 +225,19 @@ This is a placeholder response. The AI service will be available shortly.`,
     section: string, 
     context: string,
     program: Program,
-    structuredRequirements: any
+    categorizedRequirements: any
   ): string {
-    const editorRequirements = structuredRequirements.editor || [];
-    const sectionRequirement = editorRequirements.find((req: any) => 
-      req.section_name.toLowerCase().includes(section.toLowerCase())
-    );
-
     // Get template knowledge for this section (from German template)
     const templateKnowledge = getTemplateKnowledge(section);
 
-    let structuredGuidance = '';
-    if (sectionRequirement) {
-      structuredGuidance = `
-Structured Requirements for ${section}:
-- Prompt: ${sectionRequirement.prompt || 'No specific prompt'}
-- Hints: ${(sectionRequirement.hints || []).join(', ')}
-- Word Count: ${sectionRequirement.word_count_min || 0}-${sectionRequirement.word_count_max || 'unlimited'}
-- AI Guidance: ${sectionRequirement.ai_guidance || 'No specific guidance'}
-- Template: ${sectionRequirement.template || 'No template provided'}
+    // Extract program requirements for this section from 15 categories
+    const programRequirements = this.getRequirementsForSection(section, categorizedRequirements);
+    
+    let programRequirementsSection = '';
+    if (programRequirements && programRequirements.length > 0) {
+      programRequirementsSection = `
+=== PROGRAM-SPECIFIC REQUIREMENTS FOR ${section.toUpperCase()} ===
+${programRequirements.map((req: string) => `- ${req}`).join('\n')}
 `;
     }
 
@@ -284,11 +285,11 @@ BUT you use your GENERAL EXPERTISE FIRST, then enhance with template guidance.
 ${context || '(No content yet)'}
 
 === SECTION: ${section} ===
-${structuredGuidance}
-
 ${templateKnowledgeSection}
 
-=== PROGRAM-SPECIFIC REQUIREMENTS ===
+${programRequirementsSection}
+
+=== PROGRAM INFORMATION ===
 Program: ${program.name} (${program.type})
 ${this.programHints[program.type]?.reviewer_tips?.map((tip: string) => `- ${tip}`).join('\n') || 'No specific guidance'}
 
@@ -338,22 +339,138 @@ Generate helpful, expert-level content for this section.
   }
 
   /**
-   * Get section guidance from structured requirements
+   * Get requirements for a specific section from 15 categories
+   * Maps section name to category (similar to RequirementsModal)
+   */
+  private getRequirementsForSection(
+    section: string,
+    categorizedRequirements: any
+  ): string[] {
+    if (!categorizedRequirements || typeof categorizedRequirements !== 'object') {
+      return [];
+    }
+    
+    // Map section name to category (same mapping as RequirementsModal)
+    const categoryMapping: Record<string, string> = {
+      'financial': 'financial',
+      'market': 'market_size',
+      'risk': 'compliance',
+      'team': 'team',
+      'project': 'project',
+      'technical': 'technical',
+      'impact': 'impact',
+      'general': 'eligibility',
+      'eligibility': 'eligibility',
+      'geographic': 'geographic',
+      'timeline': 'timeline',
+      'documents': 'documents',
+      'legal': 'legal',
+      'application': 'application',
+      'funding_details': 'funding_details',
+      'restrictions': 'restrictions',
+      'terms': 'terms'
+    };
+    
+    // Try to match section name to category
+    const sectionLower = section.toLowerCase();
+    let reqCategory = 'eligibility'; // default
+    
+    // Check direct mapping
+    for (const [key, value] of Object.entries(categoryMapping)) {
+      if (sectionLower.includes(key)) {
+        reqCategory = value;
+        break;
+      }
+    }
+    
+    const requirements = categorizedRequirements[reqCategory] || [];
+    
+    // Extract values as strings (similar to RequirementsModal)
+    return requirements
+      .map((req: any) => {
+        if (!req.value) return null;
+        const value = Array.isArray(req.value) ? req.value.join(', ') : String(req.value);
+        return value.length < 500 ? value : null; // Allow longer values for AI prompts
+      })
+      .filter(Boolean) as string[];
+  }
+
+  /**
+   * Get section guidance from 15 categories
+   * Extracts hints/guidance from relevant categories
+   */
+  private getSectionGuidanceFromCategories(section: string, categorizedRequirements: any): string[] {
+    if (!categorizedRequirements) return [];
+    
+    const requirements = this.getRequirementsForSection(section, categorizedRequirements);
+    // Return first 5 requirements as guidance
+    return requirements.slice(0, 5);
+  }
+
+  /**
+   * Get compliance tips from 15 categories
+   * Extracts from compliance, legal, terms categories
+   */
+  private getComplianceTipsFromCategories(categorizedRequirements: any): string[] {
+    if (!categorizedRequirements) return [];
+    
+    const complianceReqs = categorizedRequirements.compliance || [];
+    const legalReqs = categorizedRequirements.legal || [];
+    const termsReqs = categorizedRequirements.terms || [];
+    
+    const allCompliance = [
+      ...complianceReqs,
+      ...legalReqs,
+      ...termsReqs
+    ];
+    
+    return allCompliance
+      .map((req: any) => {
+        if (!req.value) return null;
+        const value = Array.isArray(req.value) ? req.value.join(', ') : String(req.value);
+        return value.length < 200 ? value : null;
+      })
+      .filter(Boolean) as string[];
+  }
+
+  /**
+   * Calculate readiness score from 15 categories
+   * Simple scoring based on content length and requirements presence
+   */
+  private calculateReadinessScoreFromCategories(
+    section: string,
+    context: string,
+    categorizedRequirements: any
+  ): number {
+    if (!categorizedRequirements) return 0;
+    
+    const requirements = this.getRequirementsForSection(section, categorizedRequirements);
+    const wordCount = this.countWords(context);
+    
+    // Base score on word count (50 points) and requirements coverage (50 points)
+    const wordScore = Math.min(50, (wordCount / 200) * 50); // 200 words = 50 points
+    const requirementScore = requirements.length > 0 ? 50 : 0;
+    
+    return Math.round(wordScore + requirementScore);
+  }
+
+  /**
+   * Get section guidance from structured requirements (legacy - kept for backward compatibility)
    */
   private getSectionGuidanceFromStructured(section: string, structuredRequirements: any): string[] {
-    const editorRequirements = structuredRequirements.editor || [];
+    const editorRequirements = structuredRequirements?.editor || [];
     const sectionRequirement = editorRequirements.find((req: any) => 
-      req.section_name.toLowerCase().includes(section.toLowerCase())
+      req.section_name?.toLowerCase().includes(section.toLowerCase())
     );
     
     return sectionRequirement?.hints || [];
   }
 
   /**
-   * Get compliance tips from structured requirements
+   * Get compliance tips from structured requirements (legacy - kept for backward compatibility)
    */
   private getComplianceTipsFromStructured(_section: string, structuredRequirements: any): string[] {
-    const libraryRequirements = structuredRequirements.library || [];
+    const libraryRequirements = structuredRequirements?.library || [];
     const complianceRequirements = libraryRequirements.flatMap((req: any) => 
       req.compliance_requirements || []
     );
@@ -362,12 +479,12 @@ Generate helpful, expert-level content for this section.
   }
 
   /**
-   * Calculate readiness score from structured requirements
+   * Calculate readiness score from structured requirements (legacy - kept for backward compatibility)
    */
   private calculateReadinessScoreFromStructured(section: string, context: string, structuredRequirements: any): number {
-    const editorRequirements = structuredRequirements.editor || [];
+    const editorRequirements = structuredRequirements?.editor || [];
     const sectionRequirement = editorRequirements.find((req: any) => 
-      req.section_name.toLowerCase().includes(section.toLowerCase())
+      req.section_name?.toLowerCase().includes(section.toLowerCase())
     );
     
     if (!sectionRequirement) return 0;
