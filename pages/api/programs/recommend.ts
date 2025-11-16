@@ -327,7 +327,15 @@ export async function generateProgramsWithLLM(
       profileParts.push(locationStr);
     }
     
-    if (answers.company_type) profileParts.push(`Company Type: ${answers.company_type}`);
+    // Company type with "other" text
+    if (answers.company_type) {
+      const otherText = (answers as any).company_type_other;
+      if (answers.company_type === 'other' && otherText) {
+        profileParts.push(`Company Type: Other (${otherText})`);
+      } else {
+        profileParts.push(`Company Type: ${answers.company_type}`);
+      }
+    }
     if (answers.company_stage) profileParts.push(`Company Stage: ${answers.company_stage}`);
     if (answers.funding_amount) {
       // Handle numeric values from slider
@@ -393,22 +401,39 @@ export async function generateProgramsWithLLM(
       }
     }
     
-    // Use of funds with "other" text
+    // Use of funds with "other" text (support multiple "other" entries)
     if (answers.use_of_funds) {
       const uses = Array.isArray(answers.use_of_funds) 
         ? answers.use_of_funds 
         : [answers.use_of_funds];
       const otherText = (answers as any).use_of_funds_other;
-      const useDetails = uses.map((use: string) => 
-        use === 'other' && otherText ? `Other: ${otherText}` : use
-      );
+      const useDetails = uses.map((use: string) => {
+        if (use === 'other') {
+          if (Array.isArray(otherText)) {
+            return `Other: ${otherText.filter((t: string) => t.trim()).join(', ')}`;
+          } else if (otherText) {
+            return `Other: ${otherText}`;
+          }
+          return 'Other';
+        }
+        return use;
+      });
       profileParts.push(`Use of Funds: ${useDetails.join(', ')}`);
     }
     
-    // Project duration (numeric from slider)
+    // Project duration (numeric from slider - now in months)
     if (answers.project_duration) {
       if (typeof answers.project_duration === 'number') {
-        profileParts.push(`Project Duration: ${answers.project_duration} years`);
+        const months = answers.project_duration;
+        const years = Math.floor(months / 12);
+        const remainingMonths = months % 12;
+        if (years > 0 && remainingMonths > 0) {
+          profileParts.push(`Project Duration: ${years} year${years > 1 ? 's' : ''} ${remainingMonths} month${remainingMonths > 1 ? 's' : ''}`);
+        } else if (years > 0) {
+          profileParts.push(`Project Duration: ${years} year${years > 1 ? 's' : ''}`);
+        } else {
+          profileParts.push(`Project Duration: ${months} month${months > 1 ? 's' : ''}`);
+        }
       } else {
         profileParts.push(`Project Duration: ${answers.project_duration}`);
       }

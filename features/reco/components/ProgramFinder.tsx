@@ -148,11 +148,10 @@ interface ProgramFinderProps {
     label: 'What stage is your company at?',
     type: 'single-select' as const,
     options: [
-      { value: 'idea', label: 'Idea/Concept' },
-      { value: 'pre_company', label: 'Pre-Company (Team of Founders)' },
-      { value: 'inc_lt_6m', label: 'Incorporated < 6 months' },
-      { value: 'inc_6_36m', label: 'Incorporated 6-36 months' },
-      { value: 'inc_gt_36m', label: 'Incorporated > 36 months' },
+      { value: 'idea', label: 'Idea/Concept (Not yet founded)' },
+      { value: 'pre_company', label: 'Pre-Company (Team formed, not incorporated)' },
+      { value: 'early_stage', label: 'Early Stage (Incorporated < 2 years)' },
+      { value: 'growth_stage', label: 'Growth Stage (Incorporated 2+ years)' },
       { value: 'other', label: 'Other' },
     ],
     required: false,
@@ -174,15 +173,16 @@ interface ProgramFinderProps {
     required: false,
     priority: 7,
     hasOtherTextInput: true, // Show text field when "other" is selected
+    allowMultipleOther: true, // Allow multiple "other" entries
   },
   {
     id: 'project_duration',
     label: 'How long is your project?',
     type: 'range' as const,
-    min: 0.5,
-    max: 15,
-    step: 0.5,
-    unit: 'years',
+    min: 1,
+    max: 36,
+    step: 1,
+    unit: 'months',
     required: false,
     priority: 8,
     editableValue: true, // Allow editing the number directly
@@ -200,8 +200,8 @@ interface ProgramFinderProps {
     editableValue: true, // Allow editing the number directly
     skipIf: (answers: Record<string, any>) => {
       const duration = answers.project_duration;
-      if (typeof duration === 'number' && duration > 10) return true;
-      if (duration === 'over10') return true;
+      // Skip if project duration is more than 36 months (3 years)
+      if (typeof duration === 'number' && duration > 36) return true;
       return false;
     },
   },
@@ -528,7 +528,7 @@ export default function ProgramFinder({
                   : 'text-gray-700 hover:bg-gray-100'
               }`}
             >
-              Questions
+              {t('reco.ui.questions') || 'Questions'}
             </button>
             <button
               onClick={() => setMobileActiveTab('results')}
@@ -538,7 +538,7 @@ export default function ProgramFinder({
                   : 'text-gray-700 hover:bg-gray-100'
               }`}
             >
-              Results ({results.length})
+              {t('reco.ui.results') || 'Results'} ({results.length})
             </button>
           </div>
         </div>
@@ -552,7 +552,7 @@ export default function ProgramFinder({
                   <div className="flex items-center justify-between mb-3">
                     {/* Question Navigation Header */}
                     <div>
-                      <p className="text-base font-semibold text-gray-800">Questions</p>
+                      <p className="text-base font-semibold text-gray-800">{t('reco.ui.questions') || 'Questions'}</p>
                     </div>
                     {/* Generate Button - appears when user has enough answers (6+) */}
                     {hasEnoughAnswers && !showResults && (
@@ -578,7 +578,7 @@ export default function ProgramFinder({
                           )}
                         </button>
                         <div className="text-xs text-gray-600 font-medium">
-                          {answeredCount} / {visibleQuestions.length} questions answered
+                          {answeredCount} / {visibleQuestions.length} {t('reco.ui.questionsAnswered') || 'questions answered'}
                         </div>
                       </div>
                     )}
@@ -586,10 +586,10 @@ export default function ProgramFinder({
                     {answeredCount > 0 && !hasEnoughAnswers && (
                       <div className="flex flex-col items-end gap-1">
                         <div className="text-xs text-gray-500">
-                          {answeredCount} / {MIN_QUESTIONS_FOR_RESULTS} required
+                          {answeredCount} / {MIN_QUESTIONS_FOR_RESULTS} {t('reco.ui.required') || 'required'}
                         </div>
                         <div className="text-xs text-gray-400">
-                          Answer {MIN_QUESTIONS_FOR_RESULTS - answeredCount} more to generate results
+                          {(t('reco.ui.answerMore') || 'Answer {count} more to generate results').replace('{count}', String(MIN_QUESTIONS_FOR_RESULTS - answeredCount))}
                         </div>
                       </div>
                     )}
@@ -896,21 +896,79 @@ export default function ProgramFinder({
                                           </div>
                                         )}
                                         
-                                        {/* Text input for "Other" option */}
+                                        {/* Text input for "Other" option - support multiple entries for use_of_funds */}
                                         {isOtherOption && isSelected && question.hasOtherTextInput && (
                                           <div className="ml-4 space-y-1.5 border-l-2 border-blue-200 pl-3 pt-1">
                                             <label className="text-xs font-medium text-gray-600 mb-1 block">
-                                              Please specify:
+                                              {question.allowMultipleOther 
+                                                ? (t('reco.ui.pleaseSpecifyMultiple') || 'Please specify (you can add multiple):')
+                                                : (t('reco.ui.pleaseSpecify') || 'Please specify:')}
                                             </label>
-                                            <input
-                                              type="text"
-                                              placeholder="Enter your answer..."
-                                              value={otherTextValue}
-                                              onChange={(e) => {
-                                                handleAnswer(`${question.id}_other`, e.target.value);
-                                              }}
-                                              className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                                            />
+                                            {question.allowMultipleOther ? (
+                                              // Multiple "other" entries - show array of inputs
+                                              <div className="space-y-2">
+                                                {Array.isArray(answers[`${question.id}_other`]) && answers[`${question.id}_other`].length > 0 ? (
+                                                  (answers[`${question.id}_other`] as string[]).map((item: string, idx: number) => (
+                                                    <div key={idx} className="flex gap-2">
+                                                      <input
+                                                        type="text"
+                                                        placeholder={t('reco.ui.enterAnswer') || 'Enter your answer...'}
+                                                        value={item}
+                                                        onChange={(e) => {
+                                                          const current = answers[`${question.id}_other`] as string[] || [];
+                                                          const updated = [...current];
+                                                          updated[idx] = e.target.value;
+                                                          handleAnswer(`${question.id}_other`, updated);
+                                                        }}
+                                                        className="flex-1 px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                                                      />
+                                                      <button
+                                                        onClick={() => {
+                                                          const current = answers[`${question.id}_other`] as string[] || [];
+                                                          const updated = current.filter((_, i) => i !== idx);
+                                                          handleAnswer(`${question.id}_other`, updated.length > 0 ? updated : undefined);
+                                                        }}
+                                                        className="px-2 text-red-600 hover:text-red-800"
+                                                        type="button"
+                                                      >
+                                                        ×
+                                                      </button>
+                                                    </div>
+                                                  ))
+                                                ) : (
+                                                  <input
+                                                    type="text"
+                                                    placeholder="Enter your answer..."
+                                                    value={otherTextValue}
+                                                    onChange={(e) => {
+                                                      handleAnswer(`${question.id}_other`, [e.target.value]);
+                                                    }}
+                                                    className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                                                  />
+                                                )}
+                                                <button
+                                                  onClick={() => {
+                                                    const current = answers[`${question.id}_other`] as string[] || [];
+                                                    handleAnswer(`${question.id}_other`, [...(current.length > 0 ? current : ['']), '']);
+                                                  }}
+                                                  className="text-xs text-blue-600 hover:text-blue-800 underline"
+                                                  type="button"
+                                                >
+                                                  {t('reco.ui.addAnother') || '+ Add another'}
+                                                </button>
+                                              </div>
+                                            ) : (
+                                              // Single "other" entry
+                                              <input
+                                                type="text"
+                                                placeholder="Enter your answer..."
+                                                value={otherTextValue}
+                                                onChange={(e) => {
+                                                  handleAnswer(`${question.id}_other`, e.target.value);
+                                                }}
+                                                className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                                              />
+                                            )}
                                           </div>
                                         )}
                                         
@@ -918,15 +976,19 @@ export default function ProgramFinder({
                                         {question.hasImpactDetails && isSelected && !isOtherOption && (option.value === 'economic' || option.value === 'social' || option.value === 'environmental') && (
                                           <div className="ml-4 space-y-1.5 border-l-2 border-blue-200 pl-3 pt-1">
                                             <label className="text-xs font-medium text-gray-600 mb-1 block">
-                                              {option.value === 'economic' ? 'Specify economic impact (e.g., job creation, GDP growth):' :
-                                               option.value === 'social' ? 'Specify social impact (e.g., community benefit, accessibility):' :
-                                               'Specify environmental impact (e.g., CO2 reduction, sustainability):'}
+                                              {option.value === 'economic' 
+                                                ? (t('reco.ui.specifyEconomicImpact') || 'Specify economic impact (e.g., job creation, GDP growth):')
+                                                : option.value === 'social'
+                                                ? (t('reco.ui.specifySocialImpact') || 'Specify social impact (e.g., community benefit, accessibility):')
+                                                : (t('reco.ui.specifyEnvironmentalImpact') || 'Specify environmental impact (e.g., CO2 reduction, sustainability):')}
                                             </label>
                                             <input
                                               type="text"
-                                              placeholder={option.value === 'economic' ? 'e.g., Create 50 jobs, increase regional GDP' :
-                                                           option.value === 'social' ? 'e.g., Improve healthcare access, support education' :
-                                                           'e.g., Reduce CO2 by 30%, promote circular economy'}
+                                              placeholder={option.value === 'economic' 
+                                                ? (t('reco.ui.impactEconomicPlaceholder') || 'e.g., Create 50 jobs, increase regional GDP')
+                                                : option.value === 'social'
+                                                ? (t('reco.ui.impactSocialPlaceholder') || 'e.g., Improve healthcare access, support education')
+                                                : (t('reco.ui.impactEnvironmentalPlaceholder') || 'e.g., Reduce CO2 by 30%, promote circular economy')}
                                               value={(answers[`${question.id}_${option.value}`] as string) || ''}
                                               onChange={(e) => {
                                                 handleAnswer(`${question.id}_${option.value}`, e.target.value);
@@ -1020,7 +1082,8 @@ export default function ProgramFinder({
                                                 handleAnswer(question.id, numValue);
                                               }
                                             } else {
-                                              cleaned = cleaned.replace(/[months\s]/gi, '');
+                                              // Handle months and people
+                                              cleaned = cleaned.replace(/[months\speople\s]/gi, '');
                                               const numValue = parseInt(cleaned);
                                               if (!isNaN(numValue) && numValue >= question.min && numValue <= question.max) {
                                                 handleAnswer(question.id, numValue);
@@ -1047,7 +1110,8 @@ export default function ProgramFinder({
                                                 handleAnswer(question.id, question.max);
                                               }
                                             } else {
-                                              cleaned = cleaned.replace(/[months\s]/gi, '');
+                                              // Handle months and people
+                                              cleaned = cleaned.replace(/[months\speople\s]/gi, '');
                                               const numValue = parseInt(cleaned);
                                               if (isNaN(numValue) || numValue < question.min) {
                                                 handleAnswer(question.id, question.min);
