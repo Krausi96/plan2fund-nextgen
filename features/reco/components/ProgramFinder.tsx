@@ -827,9 +827,13 @@ export default function ProgramFinder({
                                     return (
                                       <div key={option.value} className="space-y-2">
                                         <button
-                                          onClick={() => {
+                                          type="button"
+                                          onClick={(e) => {
+                                            e.preventDefault();
+                                            e.stopPropagation();
                                             // Toggle: if already selected, deselect; otherwise select
                                             if (isSelected) {
+                                              console.log('Deselecting:', option.value, 'question:', question.id);
                                               handleAnswer(question.id, undefined);
                                               // Clear "other" text when deselecting
                                               if (isOtherOption) {
@@ -840,6 +844,7 @@ export default function ProgramFinder({
                                                 handleAnswer(`${question.id}_region`, undefined);
                                               }
                                             } else {
+                                              console.log('Selecting:', option.value, 'question:', question.id, 'isOther:', isOtherOption);
                                               handleAnswer(question.id, option.value);
                                               // Clear region if switching main option
                                               if (showRegionInput && value !== option.value) {
@@ -1005,11 +1010,21 @@ export default function ProgramFinder({
                                     return (
                                       <div key={option.value} className="space-y-1.5">
                                         <button
+                                          type="button"
                                           onClick={(e) => {
                                             e.preventDefault();
                                             e.stopPropagation();
                                             const current = Array.isArray(value) ? value : [];
                                             let newValue: any[];
+                                            
+                                            console.log('Multi-select toggle:', {
+                                              questionId: question.id,
+                                              optionValue: option.value,
+                                              isSelected,
+                                              isOtherOption,
+                                              currentValue: current,
+                                              hasOtherTextInput: question.hasOtherTextInput
+                                            });
                                             
                                             // Special handling for "no_partnerships" - mutually exclusive
                                             if (option.value === 'no_partnerships') {
@@ -1031,6 +1046,8 @@ export default function ProgramFinder({
                                                   : [...current, option.value];
                                               }
                                             }
+                                            
+                                            console.log('New value after toggle:', newValue);
                                             
                                             // Set to undefined if array is empty (to properly clear the answer)
                                             handleAnswer(question.id, newValue.length > 0 ? newValue : undefined);
