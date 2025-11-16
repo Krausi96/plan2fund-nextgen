@@ -72,15 +72,15 @@ export default function Pricing() {
         keywords={t("pricing.keywords")}
       />
       
-      <div className="min-h-screen bg-gray-50">
+      <div className="min-h-screen bg-gradient-to-b from-white via-neutral-50 to-white">
         {/* Hero Section */}
-        <section className="bg-gradient-to-br from-blue-50 to-indigo-100 py-16">
-          <div className="container mx-auto px-4">
-            <div className="text-center max-w-3xl mx-auto">
-              <h1 className="text-4xl md:text-5xl font-bold text-gray-900 mb-4">
+        <section className="bg-gradient-to-br from-blue-50 via-indigo-50/50 to-white py-20 md:py-28">
+          <div className="container max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div className="text-center max-w-4xl mx-auto">
+              <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold text-neutral-900 mb-6 tracking-tight">
                 {t("pricing.title")}
               </h1>
-              <p className="text-xl text-gray-600 mb-8">
+              <p className="text-xl md:text-2xl text-neutral-600 leading-relaxed">
                 {t("pricing.subtitle")}
               </p>
             </div>
@@ -88,8 +88,8 @@ export default function Pricing() {
         </section>
 
         {/* Pricing Cards */}
-        <section className="py-16">
-          <div className="container mx-auto px-4">
+        <section className="py-20 md:py-28">
+          <div className="container max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <div className="grid grid-cols-1 md:grid-cols-3 gap-8 max-w-6xl mx-auto">
               {planTypes.map((plan) => {
                 const pricing = calculatePricing(plan.product, selectedRoute, addonPack);
@@ -98,55 +98,55 @@ export default function Pricing() {
                   <div
                     key={plan.id}
                     id={plan.id}
-                    className="bg-white rounded-2xl shadow-lg border border-gray-200 p-8 hover:shadow-xl transition-shadow"
+                    className="group bg-white rounded-2xl shadow-lg border-2 border-neutral-200 p-8 hover:shadow-2xl hover:border-blue-300 transition-all duration-300 hover:-translate-y-2"
                   >
                     {/* Header */}
-                    <div className="text-center mb-6">
-                      <div className="text-4xl mb-4">{plan.icon}</div>
-                      <h3 className="text-2xl font-bold text-gray-900 mb-2">
+                    <div className="text-center mb-8">
+                      <div className="text-5xl mb-6">{plan.icon}</div>
+                      <h3 className="text-3xl font-bold text-neutral-900 mb-3">
                         {plan.title}
                       </h3>
-                      <p className="text-gray-600 text-sm mb-4">
+                      <p className="text-neutral-600 text-base mb-6 leading-relaxed">
                         {plan.subtitle}
                       </p>
                       
                       {/* Price */}
-                      <div className="mb-4">
-                        <div className="text-4xl font-bold text-blue-600">
+                      <div className="mb-6">
+                        <div className="text-5xl font-bold bg-gradient-to-r from-blue-600 to-blue-700 bg-clip-text text-transparent mb-2">
                           {pricing.basePrice === 0 ? 'Free' : `€${pricing.basePrice}`}
                         </div>
                         {pricing.basePrice > 0 && (
-                          <p className="text-sm text-gray-500 mt-1">
+                          <p className="text-sm text-neutral-500 mt-1">
                             {t("pricing.labels.inclVat")}
                           </p>
                         )}
-                        <p className="text-sm text-gray-500 mt-1">
+                        <p className="text-sm text-neutral-600 mt-2 font-medium">
                           {pricing.deliveryTime}
                         </p>
                       </div>
                     </div>
 
                     {/* Features */}
-                    <div className="mb-6">
-                      <h4 className="font-semibold text-gray-900 mb-3">
+                    <div className="mb-8">
+                      <h4 className="font-bold text-neutral-900 mb-4 text-lg">
                         {t("pricing.labels.whatYouGet")}
                       </h4>
-                      <ul className="space-y-2">
+                      <ul className="space-y-3">
                         {plan.features.map((feature, idx) => (
-                          <li key={idx} className="flex items-start text-sm text-gray-600">
-                            <CheckCircle className="w-5 h-5 text-green-500 mr-2 flex-shrink-0 mt-0.5" />
-                            <span>{feature}</span>
+                          <li key={idx} className="flex items-start text-sm text-neutral-700">
+                            <CheckCircle className="w-5 h-5 text-green-600 mr-3 flex-shrink-0 mt-0.5" />
+                            <span className="leading-relaxed">{feature}</span>
                           </li>
                         ))}
                       </ul>
                       
                       {/* Additional includes from pricing engine */}
-                      <div className="mt-4 pt-4 border-t">
-                        <ul className="space-y-1">
+                      <div className="mt-6 pt-6 border-t border-neutral-200">
+                        <ul className="space-y-2">
                           {pricing.includes.map((item, idx) => (
-                            <li key={idx} className="text-xs text-gray-500 flex items-start">
-                              <span className="w-1.5 h-1.5 bg-blue-500 rounded-full mr-2 mt-1.5 flex-shrink-0"></span>
-                              <span>{item}</span>
+                            <li key={idx} className="text-xs text-neutral-600 flex items-start">
+                              <span className="w-2 h-2 bg-blue-500 rounded-full mr-3 mt-1.5 flex-shrink-0"></span>
+                              <span className="leading-relaxed">{item}</span>
                             </li>
                           ))}
                         </ul>
@@ -161,11 +161,11 @@ export default function Pricing() {
                         route: selectedRoute 
                       })}
                     >
-                      <Button className="w-full bg-blue-600 hover:bg-blue-700 text-white">
+                      <Button className="w-full bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 text-white py-6 text-lg font-semibold rounded-xl shadow-lg hover:shadow-xl transition-all duration-300">
                         {plan.product === 'strategy' && t("pricing.buttons.startStrategy")}
                         {plan.product === 'review' && t("pricing.buttons.startReview")}
                         {plan.product === 'submission' && t("pricing.buttons.startSubmission")}
-                        <ArrowRight className="ml-2 w-4 h-4" />
+                        <ArrowRight className="ml-2 w-5 h-5" />
                       </Button>
                     </Link>
                   </div>

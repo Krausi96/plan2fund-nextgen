@@ -6,9 +6,19 @@
 
 import OpenAI from 'openai';
 
-const openai = new OpenAI({
-  apiKey: process.env.OPENAI_API_KEY,
-});
+// Lazy initialization - only create client when actually needed (not during build)
+let openai: OpenAI | null = null;
+function getOpenAI(): OpenAI {
+  if (!openai) {
+    if (!process.env.OPENAI_API_KEY) {
+      throw new Error('OPENAI_API_KEY environment variable is not set');
+    }
+    openai = new OpenAI({
+      apiKey: process.env.OPENAI_API_KEY,
+    });
+  }
+  return openai;
+}
 
 const MODEL = 'text-embedding-3-small'; // Cost-effective, good quality
 const EMBEDDING_DIMENSION = 1536;
@@ -23,7 +33,7 @@ export async function generateEmbedding(text: string): Promise<number[]> {
   }
 
   try {
-    const response = await openai.embeddings.create({
+    const response = await getOpenAI().embeddings.create({
       model: MODEL,
       input: text.trim(),
       dimensions: EMBEDDING_DIMENSION
@@ -45,7 +55,7 @@ export async function generateEmbeddings(texts: string[]): Promise<number[][]> {
   }
 
   try {
-    const response = await openai.embeddings.create({
+    const response = await getOpenAI().embeddings.create({
       model: MODEL,
       input: texts.map(t => t.trim()),
       dimensions: EMBEDDING_DIMENSION

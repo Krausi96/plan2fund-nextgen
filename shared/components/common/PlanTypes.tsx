@@ -68,75 +68,75 @@ export function PlanTypes({ targetGroup = 'default' }: PlanTypesProps) {
   ];
 
   return (
-    <section className="py-12 md:py-16 bg-gray-50">
-      <div className="container">
-        <div className="animate-fade-in-up text-center mb-12">
-        <h2 className="text-4xl font-bold text-neutral-900 mb-4">
-          {t("planTypes.title")}
-        </h2>
-          <p className="text-lg text-neutral-600 max-w-3xl mx-auto">
+    <section className="py-20 md:py-28 bg-white">
+      <div className="container max-w-7xl">
+        <div className="text-center mb-16">
+          <h2 className="text-4xl md:text-5xl font-bold text-neutral-900 mb-6 tracking-tight">
+            {t("planTypes.title")}
+          </h2>
+          <p className="text-xl text-neutral-600 max-w-3xl mx-auto leading-relaxed">
             {t("planTypes.subtitle")}
           </p>
         </div>
 
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 lg:gap-8">
-                  {planTypes.map((plan, index) => {
-                    const isHighlighted = isPlanHighlighted(plan.id);
-                    return (
-                    <a
-                      key={plan.id}
-                      href={plan.href}
-                      className={`animate-fade-in-up-staggered block rounded-2xl p-8 shadow-sm border transition-all duration-300 cursor-pointer group focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 hover:shadow-xl hover:-translate-y-2 ${
-                        isHighlighted 
-                          ? 'bg-blue-50 border-blue-300 hover:border-blue-400 ring-2 ring-blue-200' 
-                          : 'bg-white border-gray-200 hover:border-blue-300'
-                      }`}
-                      aria-label={`Learn more about ${plan.title}`}
-                      style={{ animationDelay: `${index * 0.1}s` }}
-                    >
-              {/* Header with icon and title */}
-              <div className="mb-6">
-                <div className="mb-4 text-center">
-                  <div className="w-16 h-16 rounded-xl bg-blue-50 flex items-center justify-center mx-auto mb-3 group-hover:bg-blue-100 transition-colors">
-                    <span className="text-2xl">{plan.icon}</span>
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+          {planTypes.map((plan) => {
+            const isHighlighted = isPlanHighlighted(plan.id);
+            return (
+              <a
+                key={plan.id}
+                href={plan.href}
+                className={`group block h-full rounded-2xl p-8 border-2 transition-all duration-300 cursor-pointer focus:outline-none focus:ring-4 focus:ring-blue-500/20 hover:shadow-2xl hover:-translate-y-2 ${
+                  isHighlighted 
+                    ? 'bg-gradient-to-br from-blue-50 via-white to-white border-blue-300 shadow-lg' 
+                    : 'bg-white border-neutral-200 hover:border-blue-300 hover:shadow-xl'
+                }`}
+                aria-label={`Learn more about ${plan.title}`}
+              >
+                {/* Header with icon and title */}
+                <div className="mb-6">
+                  <div className="mb-6 text-center">
+                    <div className={`w-20 h-20 rounded-2xl flex items-center justify-center mx-auto mb-4 shadow-md transition-all duration-300 ${
+                      isHighlighted 
+                        ? 'bg-gradient-to-br from-blue-100 to-blue-50 group-hover:scale-110' 
+                        : 'bg-gradient-to-br from-neutral-100 to-neutral-50 group-hover:bg-blue-50 group-hover:scale-110'
+                    }`}>
+                      <span className="text-3xl">{plan.icon}</span>
+                    </div>
+                    <h3 className="text-2xl font-bold text-neutral-900 group-hover:text-blue-600 transition-colors mb-3">
+                      {plan.title}
+                    </h3>
                   </div>
-                  <h3 className="text-xl font-bold text-neutral-900 group-hover:text-blue-600 transition-colors mb-2 min-h-[3rem] flex items-center justify-center">
-                    {plan.title}
-                  </h3>
-                </div>
-                <p className="text-gray-600 leading-relaxed text-justify">
-                  {plan.subtitle}
-                </p>
-              </div>
-
-              {/* Key features */}
-              <div className="mb-6 flex-1">
-                <h4 className="text-sm font-semibold text-gray-900 mb-3">{t("planTypes.keyFeatures")}</h4>
-                <ul className="space-y-2">
-                  {plan.features.map((feature, featureIndex) => (
-                    <li key={featureIndex} className="text-sm text-gray-600 flex items-start">
-                      <svg className="w-4 h-4 text-green-500 mr-3 mt-0.5 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
-                        <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
-                      </svg>
-                      <span className="leading-relaxed">{feature}</span>
-                    </li>
-                  ))}
-                </ul>
-              </div>
-
-              {/* Additional documents note */}
-              <div className="mt-auto p-3 bg-gray-50 rounded-lg border border-gray-200">
-                <p className="text-xs text-gray-600 text-center">
-                  <span className="font-medium">{t("planTypes.additionalDocs")}</span> {t("planTypes.additionalDocsNote")}
-                </p>
-              </div>
-
-                    </a>
-                    );
-                  })}
+                  <p className="text-base text-neutral-600 leading-relaxed text-center">
+                    {plan.subtitle}
+                  </p>
                 </div>
 
+                {/* Key features */}
+                <div className="mb-6">
+                  <h4 className="text-sm font-semibold text-neutral-900 mb-4 uppercase tracking-wide">{t("planTypes.keyFeatures")}</h4>
+                  <ul className="space-y-3">
+                    {plan.features.map((feature, featureIndex) => (
+                      <li key={featureIndex} className="text-sm text-neutral-700 flex items-start">
+                        <svg className="w-5 h-5 text-green-600 mr-3 mt-0.5 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
+                          <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
+                        </svg>
+                        <span className="leading-relaxed">{feature}</span>
+                      </li>
+                    ))}
+                  </ul>
+                </div>
 
+                {/* Additional documents note */}
+                <div className="mt-8 pt-6 border-t border-neutral-200">
+                  <p className="text-xs text-neutral-500 text-center">
+                    <span className="font-semibold text-neutral-700">{t("planTypes.additionalDocs")}</span> {t("planTypes.additionalDocsNote")}
+                  </p>
+                </div>
+              </a>
+            );
+          })}
+        </div>
       </div>
     </section>
   );

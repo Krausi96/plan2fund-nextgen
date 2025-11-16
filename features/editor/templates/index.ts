@@ -226,9 +226,19 @@ import OpenAI from 'openai';
 import { trackTemplateUsage } from '@/shared/user/analytics/dataCollection';
 import { isCustomLLMEnabled, callCustomLLM } from '@/shared/lib/ai/customLLM';
 
-const openai = new OpenAI({
-  apiKey: process.env.OPENAI_API_KEY,
-});
+// Lazy initialization - only create client when actually needed (not during build)
+let openai: OpenAI | null = null;
+function getOpenAI(): OpenAI {
+  if (!openai) {
+    if (!process.env.OPENAI_API_KEY) {
+      throw new Error('OPENAI_API_KEY environment variable is not set');
+    }
+    openai = new OpenAI({
+      apiKey: process.env.OPENAI_API_KEY,
+    });
+  }
+  return openai;
+}
 
 interface ProgramRequirements {
   programId: string;
@@ -289,7 +299,7 @@ export async function generateTemplatesFromRequirements(
     }
 
     if (!responsePayload) {
-      const completion = await openai.chat.completions.create({
+      const completion = await getOpenAI().chat.completions.create({
         model: 'gpt-4o-mini',
         messages,
         response_format: { type: 'json_object' },
@@ -341,7 +351,7 @@ export async function suggestSectionForCategory(
   try {
     const sectionIds = masterSections.map(s => `${s.id}: ${s.title}`).join('\n');
     
-    const completion = await openai.chat.completions.create({
+    const completion = await getOpenAI().chat.completions.create({
       model: 'gpt-4o-mini',
       messages: [
         {

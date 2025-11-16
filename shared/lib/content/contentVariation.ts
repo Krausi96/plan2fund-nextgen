@@ -6,9 +6,19 @@
 
 import OpenAI from 'openai';
 
-const openai = new OpenAI({
-  apiKey: process.env.OPENAI_API_KEY,
-});
+// Lazy initialization - only create client when actually needed (not during build)
+let openai: OpenAI | null = null;
+function getOpenAI(): OpenAI {
+  if (!openai) {
+    if (!process.env.OPENAI_API_KEY) {
+      throw new Error('OPENAI_API_KEY environment variable is not set');
+    }
+    openai = new OpenAI({
+      apiKey: process.env.OPENAI_API_KEY,
+    });
+  }
+  return openai;
+}
 
 export interface VariationOptions {
   documentType: string; // e.g., 'pitch_deck', 'application_form', 'work_plan'
@@ -46,7 +56,7 @@ export async function varyContentForDocument(
     const systemPrompt = createVariationSystemPrompt(options);
     const userPrompt = createVariationUserPrompt(options);
 
-    const completion = await openai.chat.completions.create({
+    const completion = await getOpenAI().chat.completions.create({
       model: 'gpt-4o-mini',
       messages: [
         { role: 'system', content: systemPrompt },
