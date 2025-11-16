@@ -68,75 +68,72 @@ export function PlanTypes({ targetGroup = 'default' }: PlanTypesProps) {
   ];
 
   return (
-    <section className="py-20 md:py-28 bg-white">
+    <section className="py-20 md:py-28 bg-gradient-to-b from-white via-blue-50/20 to-white">
       <div className="container max-w-7xl">
         <div className="text-center mb-16">
-          <h2 className="text-4xl md:text-5xl font-bold text-neutral-900 mb-6 tracking-tight">
-            {t("planTypes.title")}
-          </h2>
-          <p className="text-xl text-neutral-600 max-w-3xl mx-auto leading-relaxed">
+        <h2 className="text-5xl md:text-6xl font-bold text-gray-900 mb-6 tracking-tight">
+          {t("planTypes.title")}
+        </h2>
+          <p className="text-xl text-gray-600 max-w-2xl mx-auto">
             {t("planTypes.subtitle")}
           </p>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-          {planTypes.map((plan) => {
-            const isHighlighted = isPlanHighlighted(plan.id);
-            return (
-              <a
-                key={plan.id}
-                href={plan.href}
-                className={`group block h-full rounded-2xl p-8 border-2 transition-all duration-300 cursor-pointer focus:outline-none focus:ring-4 focus:ring-blue-500/20 hover:shadow-2xl hover:-translate-y-2 ${
-                  isHighlighted 
-                    ? 'bg-gradient-to-br from-blue-50 via-white to-white border-blue-300 shadow-lg' 
-                    : 'bg-white border-neutral-200 hover:border-blue-300 hover:shadow-xl'
-                }`}
-                aria-label={`Learn more about ${plan.title}`}
-              >
-                {/* Header with icon and title */}
-                <div className="mb-6">
-                  <div className="mb-6 text-center">
-                    <div className={`w-20 h-20 rounded-2xl flex items-center justify-center mx-auto mb-4 shadow-md transition-all duration-300 ${
-                      isHighlighted 
-                        ? 'bg-gradient-to-br from-blue-100 to-blue-50 group-hover:scale-110' 
-                        : 'bg-gradient-to-br from-neutral-100 to-neutral-50 group-hover:bg-blue-50 group-hover:scale-110'
-                    }`}>
-                      <span className="text-3xl">{plan.icon}</span>
-                    </div>
-                    <h3 className="text-2xl font-bold text-neutral-900 group-hover:text-blue-600 transition-colors mb-3">
-                      {plan.title}
-                    </h3>
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                  {planTypes.map((plan) => {
+                    const isHighlighted = isPlanHighlighted(plan.id);
+                    return (
+                    <a
+                      key={plan.id}
+                      href={plan.href}
+                      className={`block rounded-lg p-8 border bg-white transition-all duration-200 cursor-pointer group focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 hover:shadow-md ${
+                        isHighlighted 
+                          ? 'border-blue-200 bg-gradient-to-br from-blue-50/50 to-white hover:border-blue-300' 
+                          : 'border-gray-200 hover:border-gray-300'
+                      }`}
+                      aria-label={`Learn more about ${plan.title}`}
+                    >
+              {/* Header with icon and title */}
+              <div className="mb-6">
+                <div className="mb-6 text-center">
+                  <div className="w-14 h-14 rounded-lg bg-blue-50 flex items-center justify-center mx-auto mb-4">
+                    <span className="text-2xl">{plan.icon}</span>
                   </div>
-                  <p className="text-base text-neutral-600 leading-relaxed text-center">
-                    {plan.subtitle}
-                  </p>
+                  <h3 className="text-xl font-semibold text-gray-900 mb-3">
+                    {plan.title}
+                  </h3>
                 </div>
+                <p className="text-gray-600 leading-relaxed mb-6">
+                  {plan.subtitle}
+                </p>
+              </div>
 
-                {/* Key features */}
-                <div className="mb-6">
-                  <h4 className="text-sm font-semibold text-neutral-900 mb-4 uppercase tracking-wide">{t("planTypes.keyFeatures")}</h4>
-                  <ul className="space-y-3">
-                    {plan.features.map((feature, featureIndex) => (
-                      <li key={featureIndex} className="text-sm text-neutral-700 flex items-start">
-                        <svg className="w-5 h-5 text-green-600 mr-3 mt-0.5 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
-                          <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
-                        </svg>
-                        <span className="leading-relaxed">{feature}</span>
-                      </li>
-                    ))}
-                  </ul>
-                </div>
+              {/* Key features */}
+              <div className="mb-6 flex-1">
+                <h4 className="text-sm font-medium text-gray-900 mb-4">{t("planTypes.keyFeatures")}</h4>
+                <ul className="space-y-2.5">
+                  {plan.features.map((feature, featureIndex) => (
+                    <li key={featureIndex} className="text-sm text-gray-600 flex items-start">
+                      <svg className="w-4 h-4 text-blue-600 mr-2.5 mt-0.5 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
+                        <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
+                      </svg>
+                      <span>{feature}</span>
+                    </li>
+                  ))}
+                </ul>
+              </div>
 
-                {/* Additional documents note */}
-                <div className="mt-8 pt-6 border-t border-neutral-200">
-                  <p className="text-xs text-neutral-500 text-center">
-                    <span className="font-semibold text-neutral-700">{t("planTypes.additionalDocs")}</span> {t("planTypes.additionalDocsNote")}
-                  </p>
+              {/* Additional documents note */}
+              <div className="mt-auto pt-6 border-t border-gray-100">
+                <p className="text-xs text-gray-500 text-center">
+                  <span className="font-medium text-gray-700">{t("planTypes.additionalDocs")}</span> {t("planTypes.additionalDocsNote")}
+                </p>
+              </div>
+
+                    </a>
+                    );
+                  })}
                 </div>
-              </a>
-            );
-          })}
-        </div>
       </div>
     </section>
   );

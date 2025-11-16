@@ -51,39 +51,39 @@ export default function Header() {
   }, [open])
 
   return (
-    <header className="sticky top-0 z-50 w-full border-b-2 border-neutral-200 bg-white/95 backdrop-blur-md shadow-md">
-      <div className="max-w-7xl mx-auto flex items-center justify-between px-4 sm:px-6 lg:px-8 py-4 md:py-5">
+    <header className="sticky top-0 z-50 w-full border-b border-gray-200 bg-white/80 backdrop-blur-md">
+      <div className="max-w-7xl mx-auto flex items-center justify-between px-6 py-4">
         {/* Logo */}
         <Link 
           href="/" 
-          className="text-2xl md:text-3xl font-bold bg-gradient-to-r from-blue-600 to-blue-700 bg-clip-text text-transparent hover:from-blue-700 hover:to-blue-800 transition-all duration-300"
+          className="text-xl font-semibold text-gray-900 hover:text-gray-700 transition-colors"
         >
           Plan2Fund
         </Link>
 
         {/* Desktop Nav */}
-        <nav className="hidden md:flex gap-8 items-center">
-          <Link href="/about" className="text-neutral-700 hover:text-blue-600 transition-colors font-semibold text-sm uppercase tracking-wide">
+        <nav className="hidden md:flex gap-6 items-center">
+          <Link href="/about" className="text-sm text-gray-600 hover:text-gray-900 transition-colors font-medium">
             {t('nav.howItWorks')}
           </Link>
-          <Link href="/pricing" className="text-neutral-700 hover:text-blue-600 transition-colors font-semibold text-sm uppercase tracking-wide">
+          <Link href="/pricing" className="text-sm text-gray-600 hover:text-gray-900 transition-colors font-medium">
             {t('nav.pricing')}
           </Link>
-          <Link href="/faq" className="text-neutral-700 hover:text-blue-600 transition-colors font-semibold text-sm uppercase tracking-wide">
+          <Link href="/faq" className="text-sm text-gray-600 hover:text-gray-900 transition-colors font-medium">
             FAQ
           </Link>
           {isMounted && userProfile ? (
             <div className="flex items-center gap-4">
               <Link 
                 href="/dashboard" 
-                className="flex items-center gap-2 text-neutral-700 hover:text-blue-600 transition-colors font-semibold text-sm"
+                className="flex items-center gap-2 text-sm text-gray-600 hover:text-gray-900 transition-colors font-medium"
               >
                 <User className="w-4 h-4" />
                 My Account
               </Link>
               <button
                 onClick={handleLogout}
-                className="flex items-center gap-2 text-neutral-700 hover:text-blue-600 transition-colors font-semibold text-sm"
+                className="flex items-center gap-2 text-sm text-gray-600 hover:text-gray-900 transition-colors font-medium"
                 title="Log out"
               >
                 <LogOut className="w-4 h-4" />
@@ -93,7 +93,7 @@ export default function Header() {
           ) : isMounted ? (
             <button
               onClick={() => setLoginModalOpen(true)}
-              className="px-6 py-2.5 border-2 border-blue-600 text-blue-600 rounded-xl hover:bg-blue-600 hover:text-white transition-all duration-300 font-semibold shadow-md hover:shadow-lg"
+              className="px-4 py-2 text-sm border border-gray-300 text-gray-700 rounded-lg hover:border-gray-400 hover:bg-gray-50 transition-colors font-medium"
             >
               Log in
             </button>
@@ -118,25 +118,25 @@ export default function Header() {
 
       {/* Mobile Nav */}
       {open && (
-        <div id="mobile-menu" ref={menuRef} className="md:hidden border-t-2 border-neutral-200 bg-white/95 backdrop-blur-md shadow-lg">
+        <div id="mobile-menu" ref={menuRef} className="md:hidden border-t bg-white/95 backdrop-blur-md">
           <div className="px-4 py-6 flex flex-col gap-4">
             <Link 
               href="/about" 
-              className="text-neutral-700 hover:text-blue-600 transition-colors font-semibold py-3 text-sm uppercase tracking-wide"
+              className="text-gray-700 hover:text-blue-600 transition-colors font-medium py-2"
               onClick={() => setOpen(false)}
             >
               {t('nav.howItWorks')}
             </Link>
             <Link 
               href="/pricing" 
-              className="text-neutral-700 hover:text-blue-600 transition-colors font-semibold py-3 text-sm uppercase tracking-wide"
+              className="text-gray-700 hover:text-blue-600 transition-colors font-medium py-2"
               onClick={() => setOpen(false)}
             >
               {t('nav.pricing')}
             </Link>
             <Link 
               href="/faq" 
-              className="text-neutral-700 hover:text-blue-600 transition-colors font-semibold py-3 text-sm uppercase tracking-wide"
+              className="text-gray-700 hover:text-blue-600 transition-colors font-medium py-2"
               onClick={() => setOpen(false)}
             >
               {t('nav.faq')}
@@ -145,7 +145,7 @@ export default function Header() {
               <>
                 <Link 
                   href="/dashboard" 
-                  className="flex items-center gap-2 text-neutral-700 hover:text-blue-600 transition-colors font-semibold py-3"
+                  className="flex items-center gap-2 text-gray-700 hover:text-blue-600 transition-colors font-medium py-2"
                   onClick={() => setOpen(false)}
                 >
                   <User className="w-4 h-4" />
@@ -153,7 +153,7 @@ export default function Header() {
                 </Link>
                 <button
                   onClick={handleLogout}
-                  className="flex items-center gap-2 text-neutral-700 hover:text-blue-600 transition-colors font-semibold py-3 text-left w-full"
+                  className="flex items-center gap-2 text-gray-700 hover:text-blue-600 transition-colors font-medium py-2 text-left w-full"
                 >
                   <LogOut className="w-4 h-4" />
                   Log out
@@ -165,12 +165,12 @@ export default function Header() {
                   setLoginModalOpen(true);
                   setOpen(false);
                 }}
-                className="w-full px-4 py-3 text-blue-600 border-2 border-blue-600 rounded-xl hover:bg-blue-600 hover:text-white transition-all duration-300 font-semibold text-center shadow-md"
+                className="w-full px-4 py-2 text-blue-600 border border-blue-600 rounded-lg hover:bg-blue-600 hover:text-white transition-colors font-medium text-center"
               >
                 Log in
               </button>
             ) : null}
-            <div className="pt-4 border-t border-neutral-200">
+            <div className="pt-4 border-t">
               <LanguageSwitcher compact />
             </div>
           </div>

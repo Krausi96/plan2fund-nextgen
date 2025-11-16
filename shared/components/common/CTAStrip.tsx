@@ -28,31 +28,23 @@ export default function CTAStrip({
   const baseClasses = "py-20 md:py-28";
   
   const variantClasses = {
-    default: "bg-gradient-to-br from-neutral-50 via-blue-50/50 to-white",
-    dark: "bg-gradient-to-br from-neutral-900 via-neutral-800 to-neutral-900 text-white",
-    gradient: "bg-gradient-to-br from-blue-600 via-blue-700 to-indigo-800 text-white"
-  };
-  
-  const textColorClasses = {
-    default: "text-neutral-900",
-    dark: "text-white",
-    gradient: "text-white"
-  };
-  
-  const subtitleColorClasses = {
-    default: "text-neutral-600",
-    dark: "text-neutral-300",
-    gradient: "text-blue-100"
+    default: "bg-gradient-to-b from-white via-blue-50/20 to-white",
+    dark: "bg-gradient-to-b from-slate-900 via-blue-900 to-slate-800 text-white",
+    gradient: "bg-gradient-to-b from-blue-600 via-blue-700 to-blue-800 text-white"
   };
   
   return (
     <section className={`${baseClasses} ${variantClasses[variant]} ${className}`}>
       <div className="container max-w-4xl text-center">
-        <h2 className={`text-4xl md:text-5xl font-bold mb-6 tracking-tight ${textColorClasses[variant]}`}>
+        <h2 className={`text-5xl md:text-6xl font-bold mb-6 tracking-tight ${
+          variant === 'dark' || variant === 'gradient' ? 'text-white' : 'text-gray-900'
+        }`}>
           {title}
         </h2>
         {subtitle && (
-          <p className={`text-xl md:text-2xl mb-10 max-w-2xl mx-auto leading-relaxed ${subtitleColorClasses[variant]}`}>
+          <p className={`text-xl mb-10 max-w-2xl mx-auto ${
+            variant === 'dark' || variant === 'gradient' ? 'text-blue-100' : 'text-gray-600'
+          }`}>
             {subtitle}
           </p>
         )}
@@ -61,15 +53,15 @@ export default function CTAStrip({
           <Button
             asChild
             size="lg"
-            className={`px-10 py-4 text-lg font-semibold rounded-xl shadow-lg hover:shadow-xl transition-all duration-300 ${
-              variant === 'gradient' || variant === 'dark'
+            className={`px-8 py-4 text-base font-medium rounded-lg transition-all duration-200 ${
+              variant === 'dark' || variant === 'gradient'
                 ? 'bg-white text-blue-600 hover:bg-blue-50'
-                : 'bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 text-white'
+                : 'bg-blue-600 hover:bg-blue-700 text-white'
             }`}
           >
             <Link href={primaryAction.href} className="flex items-center gap-2">
               {primaryAction.label}
-              <ArrowRight className="h-5 w-5" />
+              <ArrowRight className="h-4 w-4" />
             </Link>
           </Button>
           
@@ -78,10 +70,10 @@ export default function CTAStrip({
               asChild
               variant="outline"
               size="lg"
-              className={`px-10 py-4 text-lg font-semibold rounded-xl border-2 transition-all duration-300 ${
-                variant === 'gradient' || variant === 'dark'
+              className={`px-8 py-4 text-base font-medium rounded-lg transition-all duration-200 ${
+                variant === 'dark' || variant === 'gradient'
                   ? 'border-white text-white hover:bg-white/10'
-                  : 'border-blue-600 text-blue-600 hover:bg-blue-50'
+                  : 'border-gray-300 text-gray-700 hover:bg-gray-50'
               }`}
             >
               <Link href={secondaryAction.href}>
