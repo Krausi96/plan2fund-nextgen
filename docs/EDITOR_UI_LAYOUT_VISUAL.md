@@ -39,74 +39,49 @@
 │ └───────────────────────────────────────────────────────────────────────────────┘ │
 │                                                                                     │
 │ ┌───────────────────────────────────────────────────────────────────────────────┐ │
-│ │ MAIN EDITOR AREA (Scrollable - Max width 1400px, centered, bg-gray-50)      │ │
+│ │ MAIN EDITOR AREA (Scrollable - Max width 1200px, centered, bg-gray-50)      │ │
 │ │                                                                               │ │
 │ │                    ╔═══════════════════════════════════════════════════════╗  │ │
 │ │                    ║  UNIFIED EDITOR BOX (ChatGPT/Canva Style)             ║  │ │
 │ │                    ║  White background, subtle shadow, rounded corners     ║  │ │
 │ │                    ║  ┌─────────────────────────────────────────────────┐   ║  │ │
 │ │                    ║  │                                                 │   ║  │ │
-│ │                    ║  │  ┌───────────────────────────────────────────┐  │   ║  │ │
-│ │                    ║  │  │ LEFT PANEL: Editor (70% width)            │  │   ║  │ │
-│ │                    ║  │  │                                           │  │   ║  │ │
-│ │                    ║  │  │  ┌─ Section Navigation (Top) ──────────┐  │   ║  │ │
-│ │                    ║  │  │  │ [← Prev]  Market Opportunity         │  │   ║  │ │
-│ │                    ║  │  │  │          [Next →]                   │  │   ║  │ │
-│ │                    ║  │  │  └──────────────────────────────────────┘  │   ║  │ │
-│ │                    ║  │  │                                           │  │   ║  │ │
-│ │                    ║  │  │  ┌─ Section Description (Collapsible) ──┐  │   ║  │ │
-│ │                    ║  │  │  │ Market Opportunity            [▼]    │  │   ║  │ │
-│ │                    ║  │  │  │ Describe the market size, trends...  │  │   ║  │ │
-│ │                    ║  │  │  └──────────────────────────────────────┘  │   ║  │ │
-│ │                    ║  │  │                                           │  │   ║  │ │
-│ │                    ║  │  │  ┌─ Main Editor (Canva Style) ──────────┐  │   ║  │ │
-│ │                    ║  │  │  │                                       │  │   ║  │ │
-│ │                    ║  │  │  │  ┌─────────────────────────────────┐  │  │   ║  │ │
-│ │                    ║  │  │  │  │                               │  │  │   ║  │ │
-│ │                    ║  │  │  │  │  Clean, spacious text area    │  │  │   ║  │ │
-│ │                    ║  │  │  │  │  with subtle shadow/border    │  │  │   ║  │ │
-│ │                    ║  │  │  │  │                               │  │  │   ║  │ │
-│ │                    ║  │  │  │  │  Start writing your market   │  │  │   ║  │ │
-│ │                    ║  │  │  │  │  opportunity...              │  │  │   ║  │ │
-│ │                    ║  │  │  │  │                               │  │  │   ║  │ │
-│ │                    ║  │  │  │  │                               │  │  │   ║  │ │
-│ │                    ║  │  │  │  │                               │  │  │   ║  │ │
-│ │                    ║  │  │  │  └─────────────────────────────────┘  │  │   ║  │ │
-│ │                    ║  │  │  │                                       │  │   ║  │ │
-│ │                    ║  │  │  └───────────────────────────────────────┘  │   ║  │ │
-│ │                    ║  │  │                                           │  │   ║  │ │
-│ │                    ║  │  │  ┌─ Action Bar (Bottom) ─────────────────┐  │   ║  │ │
-│ │                    ║  │  │  │ [✨ Generate] [💾 Save] [⏭️ Next]    │  │   ║  │ │
-│ │                    ║  │  │  └───────────────────────────────────────┘  │   ║  │ │
-│ │                    ║  │  │                                           │  │   ║  │ │
-│ │                    ║  │  └───────────────────────────────────────────┘  │   ║  │ │
+│ │                    ║  │  ┌─ Section Navigation (Top) ──────────────────┐   ║  │ │
+│ │                    ║  │  │ [← Prev]  Market Opportunity  [Next →]      │   ║  │ │
+│ │                    ║  │  └─────────────────────────────────────────────┘   ║  │ │
 │ │                    ║  │                                                 │   ║  │ │
-│ │                    ║  │  ┌───────────────────────────────────────────┐  │   ║  │ │
-│ │                    ║  │  │ RIGHT PANEL: Prompts & Tools (30% width)   │  │   ║  │ │
-│ │                    ║  │  │                                           │  │   ║  │ │
-│ │                    ║  │  │  ┌─ Writing Prompts (Always Visible) ───┐  │   ║  │ │
-│ │                    ║  │  │  │ 💡 Writing Prompts                    │  │   ║  │ │
-│ │                    ║  │  │  │                                       │  │   ║  │ │
-│ │                    ║  │  │  │ • Who is the target market?           │  │   ║  │ │
-│ │                    ║  │  │  │ • How large is the market?           │  │   ║  │ │
-│ │                    ║  │  │  │ • What trends support opportunity?    │  │   ║  │ │
-│ │                    ║  │  │  │ • What unmet needs exist?            │  │   ║  │ │
-│ │                    ║  │  │  │                                       │  │   ║  │ │
-│ │                    ║  │  │  │ [Use as Guide] [Insert All]          │  │   ║  │ │
-│ │                    ║  │  │  └───────────────────────────────────────┘  │   ║  │ │
-│ │                    ║  │  │                                           │  │   ║  │ │
-│ │                    ║  │  │  ┌─ Quick Actions ────────────────────────┐  │   ║  │ │
-│ │                    ║  │  │  │ [✨ Generate with AI]                │  │   ║  │ │
-│ │                    ║  │  │  │ [📊 Add Table]                       │  │   ║  │ │
-│ │                    ║  │  │  │ [📈 Add Chart]                       │  │   ║  │ │
-│ │                    ║  │  │  │ [📷 Add Image]                       │  │   ║  │ │
-│ │                    ║  │  │  └───────────────────────────────────────┘  │   ║  │ │
-│ │                    ║  │  │                                           │  │   ║  │ │
-│ │                    ║  │  │  ┌─ Tables/Charts (When Created) ──────┐  │   ║  │ │
-│ │                    ║  │  │  │ [Tables appear here when created]   │  │   ║  │ │
-│ │                    ║  │  │  └───────────────────────────────────────┘  │   ║  │ │
-│ │                    ║  │  │                                           │  │   ║  │ │
-│ │                    ║  │  └───────────────────────────────────────────┘  │   ║  │ │
+│ │                    ║  │  ┌─ Questions (Toggleable) ──────────────────┐   ║  │ │
+│ │                    ║  │  │ 💡 Questions  [Toggle: ● ON]              │   ║  │ │
+│ │                    ║  │  │                                             │   ║  │ │
+│ │                    ║  │  │ • Who is the target market?                │   ║  │ │
+│ │                    ║  │  │ • How large is the market?                 │   ║  │ │
+│ │                    ║  │  │ • What trends support your opportunity?    │   ║  │ │
+│ │                    ║  │  │ • What unmet needs exist?                 │   ║  │ │
+│ │                    ║  │  └─────────────────────────────────────────────┘   ║  │ │
+│ │                    ║  │                                                 │   ║  │ │
+│ │                    ║  │  ┌─ Main Editor (Answer Area) ───────────────┐   ║  │ │
+│ │                    ║  │  │                                             │   ║  │ │
+│ │                    ║  │  │  ┌───────────────────────────────────────┐ │   ║  │ │
+│ │                    ║  │  │  │                                       │ │   ║  │ │
+│ │                    ║  │  │  │  Clean, spacious text area           │ │   ║  │ │
+│ │                    ║  │  │  │  Write your answer here...            │ │   ║  │ │
+│ │                    ║  │  │  │                                       │ │   ║  │ │
+│ │                    ║  │  │  │                                       │ │   ║  │ │
+│ │                    ║  │  │  │                                       │ │   ║  │ │
+│ │                    ║  │  │  └───────────────────────────────────────┘ │   ║  │ │
+│ │                    ║  │  │                                             │   ║  │ │
+│ │                    ║  │  └─────────────────────────────────────────────┘   ║  │ │
+│ │                    ║  │                                                 │   ║  │ │
+│ │                    ║  │  ┌─ Action Bar (Bottom) ──────────────────────┐   ║  │ │
+│ │                    ║  │  │ [✨ Generate] [💾 Save] [⏭️ Next]         │   ║  │ │
+│ │                    ║  │  └─────────────────────────────────────────────┘   ║  │ │
+│ │                    ║  │                                                 │   ║  │ │
+│ │                    ║  │  ┌─ Quick Actions (Right Side) ────────────────┐   ║  │ │
+│ │                    ║  │  │ [✨ Generate with AI]                      │   ║  │ │
+│ │                    ║  │  │ [📊 Add Table]                             │   ║  │ │
+│ │                    ║  │  │ [📈 Add Chart]                             │   ║  │ │
+│ │                    ║  │  │ [📷 Add Image]                             │   ║  │ │
+│ │                    ║  │  └─────────────────────────────────────────────┘   ║  │ │
 │ │                    ║  │                                                 │   ║  │ │
 │ │                    ║  └─────────────────────────────────────────────────┘   ║  │ │
 │ │                    ╚═══════════════════════════════════════════════════╝  │ │
@@ -123,11 +98,12 @@
 - **Visual:** Single white box with subtle shadow, rounded corners (like Canva/ChatGPT)
 - **Benefit:** Users see all tools and prompts in context, no need to hunt for features
 
-### 2. **Sidebar Prompts (Always Visible)**
-- **Why:** Prompts should guide writing, not be hidden behind buttons
-- **Location:** Right side (30% width), always visible when section has prompts
-- **Content:** Bullet list of writing prompts from section template
-- **Actions:** "Use as Guide" (shows prompts in editor) and "Insert All" (adds prompts as text)
+### 2. **Integrated Questions (Top of Editor, Toggleable)**
+- **Why:** Beautiful integration - questions at top, answer below, all in one box
+- **Location:** Top of main editor area, inside unified box
+- **Content:** All prompts shown as bullet list (when enabled)
+- **Toggle:** User can show/hide questions with toggle switch
+- **Layout:** Questions on top → Answer area below → Natural Q&A flow
 
 ### 3. **Simplified Navigation**
 - **Why:** No automatic detection - user controls everything
@@ -148,31 +124,46 @@
 
 ---
 
-## How Prompts Work in This Design
+## How Questions Work in This Design (SIMPLIFIED - Integrated Q&A)
 
-### Prompt Display Logic
-1. **Always Show:** If section has prompts (`sectionTemplate.prompts`), they appear in right sidebar
-2. **No Prompts:** If section has no prompts, right sidebar shows only Quick Actions
-3. **User Control:** User decides when to use prompts (no automatic insertion)
+### Core Principle: Questions on Top, Answer Below, Toggleable
+- **Questions integrated** - shown at top of editor area (inside unified box)
+- **Answer below** - user writes answer in editor area below questions
+- **Toggle on/off** - user can show/hide questions
+- **Natural Q&A flow** - questions guide, answer area for writing
 
-### Prompt Actions
-1. **"Use as Guide" Button:**
-   - Shows prompts in a collapsible guide panel within editor
-   - Does NOT insert text, just displays as reference
-   - User can manually write based on prompts
+### Question Display Logic
+1. **Toggle Control:** User can show/hide questions with toggle switch
+2. **All Questions Shown:** When enabled, all prompts shown as bullet list
+3. **Location:** Top of main editor area, inside unified box
+4. **Answer Area:** Editor below questions for writing answer
+5. **No Questions:** If section has no prompts, no question card shown
 
-2. **"Insert All" Button:**
-   - Inserts all prompts as bullet points into editor
-   - User can then expand each point into full text
-   - Useful for creating an outline
+### User Mental Model
+```
+Unified Box:
+  Questions (top) → Answer area (below)
+  Toggle to show/hide questions
+  Write answer naturally below questions
+```
 
-3. **Individual Prompt Click:**
-   - (Future) Clicking a prompt could insert it as a heading or expand it
+### What Questions Do
+- **Guide:** Questions shown at top guide what to write
+- **Toggle:** User can hide questions for full focus
+- **Integrated:** Beautifully integrated in main editor area
+- **Natural Flow:** Questions above, answer below - like a form but free text
 
-### Prompt Source
-- Prompts come from `sectionTemplate.prompts` array
+### Question UI Components
+1. **Question Card:** Blue background card at top of editor
+2. **Toggle Switch:** "Show Questions" ON/OFF in card header
+3. **Question List:** All prompts shown as bullet list
+4. **Answer Area:** Editor below for writing answer
+
+### Question Source
+- Questions come from `sectionTemplate.prompts` array
 - Each prompt is a string question/guidance
-- Displayed as clean bullet list in sidebar
+- Displayed as bullet list in question card
+- **Never inserted into answer area** - just reference above
 
 ---
 
@@ -247,7 +238,7 @@
 ### 3. Unified Editor Box (Main Content Area)
 
 **Layout:**
-- Max width: `max-w-[1400px]` (wider for side-by-side layout)
+- Max width: `max-w-[1200px]` (centered, single column)
 - Centered: `mx-auto`
 - Padding: `px-4 py-8`
 - Background: `bg-gray-50`
@@ -255,13 +246,30 @@
 **Container:**
 - Single white box: `bg-white rounded-xl shadow-lg border border-gray-200`
 - Padding: `p-8`
-- Two-column layout: `grid grid-cols-[70%_30%] gap-6`
+- Single column layout: Vertical stack (questions top, editor below)
 
 ---
 
-#### 3.1 Left Panel: Editor Content (70% width)
+#### 3.1 Questions Card (Top of Editor, Toggleable)
 
-**Section Navigation (Top of Left Panel):**
+**Questions Card (Top, Toggleable):**
+```
+┌─────────────────────────────────────────────────────────────┐
+│ 💡 Questions                              [Toggle: ● ON]  │
+│                                                              │
+│ • Who is the target market?                                │
+│ • How large is the market?                                  │
+│ • What trends support your opportunity?                     │
+│ • What unmet needs exist?                                   │
+└─────────────────────────────────────────────────────────────┘
+```
+- **Visual:** `bg-blue-50 border border-blue-200 rounded-lg p-4 mb-4`
+- **Toggle:** Switch in top right - user can show/hide questions
+- **Questions:** All prompts shown as bullet list when enabled
+- **When Toggled Off:** Card hidden, editor area expands
+- **Purpose:** Questions guide what to write, answer below
+
+**Section Navigation (Top of Box):**
 ```
 ┌─────────────────────────────────────────────────────────────┐
 │ [← Prev]  Market Opportunity  [Next →]                      │
@@ -271,18 +279,7 @@
 - Current section title in center
 - Styled as subtle buttons: `text-gray-600 hover:text-gray-900`
 
-**Section Description (Collapsible):**
-```
-┌─────────────────────────────────────────────────────────────┐
-│ Market Opportunity                            [▼ Collapse]  │
-│ Describe the market size, trends, and customer segments.   │
-└─────────────────────────────────────────────────────────────┘
-```
-- Collapsible card showing section title and description
-- Default: Expanded (user can collapse to save space)
-- Visual: `bg-gray-50 border border-gray-200 rounded-lg p-4`
-
-**Main Editor Box (Canva/ChatGPT Style):**
+**Main Editor Box (Answer Area - Canva/ChatGPT Style):**
 ```
 ┌─────────────────────────────────────────────────────────────┐
 │                                                             │
@@ -314,27 +311,7 @@
 
 ---
 
-#### 3.2 Right Panel: Prompts & Tools (30% width)
-
-**Writing Prompts Card (Always Visible if prompts exist):**
-```
-┌─────────────────────────────────────────────────────────────┐
-│ 💡 Writing Prompts                                           │
-│                                                              │
-│ • Who is the target market?                                 │
-│ • How large is the market?                                  │
-│ • What trends support your opportunity?                     │
-│ • What unmet needs exist?                                   │
-│                                                              │
-│ [Use as Guide] [Insert All]                                │
-└─────────────────────────────────────────────────────────────┘
-```
-- **Visual:** `bg-blue-50 border border-blue-200 rounded-lg p-4`
-- **Title:** `text-sm font-semibold text-gray-900`
-- **Prompts:** Bullet list, `text-sm text-gray-700`
-- **Actions:** Two buttons at bottom
-  - "Use as Guide": Shows prompts in guide panel (doesn't insert)
-  - "Insert All": Inserts prompts as bullet points in editor
+#### 3.2 Quick Actions (Right Side of Box)
 
 **Quick Actions Card:**
 ```

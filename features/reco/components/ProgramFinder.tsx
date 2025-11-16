@@ -5,7 +5,7 @@
 
 import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import { useRouter } from 'next/router';
-import { Wand2 } from 'lucide-react';
+import { Wand2, ChevronLeft, ChevronRight } from 'lucide-react';
 import { Card } from '@/shared/components/ui/card';
 // Progress bar implemented with custom div (not using Progress component)
 import { scoreProgramsEnhanced, EnhancedProgramResult } from '@/features/reco/engine/enhancedRecoEngine';
@@ -815,6 +815,25 @@ export default function ProgramFinder({
                       
                       {/* Current Question Display - Navigation Inside Box */}
                       <div className="relative bg-white rounded-lg border-2 border-blue-200 shadow-md p-6">
+                        {/* Navigation Buttons - Side */}
+                        {currentQuestionIndex > 0 && (
+                          <button
+                            onClick={() => setCurrentQuestionIndex(currentQuestionIndex - 1)}
+                            className="absolute left-0 top-1/2 -translate-x-12 -translate-y-1/2 w-10 h-10 rounded-full bg-blue-600 text-white shadow-lg hover:bg-blue-700 transition-all flex items-center justify-center z-10"
+                            aria-label="Previous question"
+                          >
+                            <ChevronLeft className="w-5 h-5" />
+                          </button>
+                        )}
+                        {currentQuestionIndex < visibleQuestions.length - 1 && (
+                          <button
+                            onClick={() => setCurrentQuestionIndex(currentQuestionIndex + 1)}
+                            className="absolute right-0 top-1/2 translate-x-12 -translate-y-1/2 w-10 h-10 rounded-full bg-blue-600 text-white shadow-lg hover:bg-blue-700 transition-all flex items-center justify-center z-10"
+                            aria-label="Next question"
+                          >
+                            <ChevronRight className="w-5 h-5" />
+                          </button>
+                        )}
                         {(() => {
                           const question = visibleQuestions[currentQuestionIndex];
                           if (!question) return null;
@@ -1455,14 +1474,14 @@ export default function ProgramFinder({
                                           : `linear-gradient(to right, #2563eb 0%, #2563eb ${((typeof value === 'number' ? value : question.min) - question.min) / (question.max - question.min) * 100}%, #e5e7eb ${((typeof value === 'number' ? value : question.min) - question.min) / (question.max - question.min) * 100}%, #e5e7eb 100%)`
                                       }}
                                     />
-                                    <div className="text-center">
+                                    <div className="text-center mt-3">
                                       {/* Company Stage: Show months + classification */}
                                       {question.id === 'company_stage' && (
                                         <div className="space-y-1">
-                                          <div className="text-sm font-medium text-gray-700">
+                                          <div className="text-base font-semibold text-gray-800">
                                             {typeof value === 'number' ? value : question.min} {t('reco.ui.sliderMonths') || 'months'}
                                           </div>
-                                          <div className="text-sm font-medium text-blue-600">
+                                          <div className="text-base font-semibold text-blue-600">
                                             {(() => {
                                               const months = typeof value === 'number' ? value : question.min;
                                               if (months < 0) {
@@ -1565,8 +1584,8 @@ export default function ProgramFinder({
                                             )}
                                           </div>
                                         </>
-                                      ) : (
-                                        <div className="text-sm font-medium text-gray-700">
+                                      ) : question.id !== 'company_stage' && (
+                                        <div className="text-base font-semibold text-gray-800">
                                           {typeof value === 'number' 
                                             ? (question.unit === 'EUR' 
                                                 ? `€${value.toLocaleString('de-DE')}`
@@ -1598,211 +1617,6 @@ export default function ProgramFinder({
                                 </div>
                               )}
                               
-                              {question.type === 'range' && !question.editableValue && (
-                                <div className="space-y-2">
-                                  <div className="flex items-center justify-between mb-2">
-                                    <span className="text-sm text-gray-600">
-                                      {question.unit === 'EUR' ? '€' : ''}
-                                      {question.min.toLocaleString('de-DE')}
-                                      {question.unit === 'EUR' ? '' : question.unit === 'months' ? ` ${t('reco.ui.sliderMonths') || 'months'}` : question.unit === 'people' ? ` ${t('reco.ui.sliderPeople') || 'people'}` : ` ${question.unit}`}
-                                    </span>
-                                    <span className="text-sm text-gray-600">
-                                      {question.unit === 'EUR' ? '€' : ''}
-                                      {question.max.toLocaleString('de-DE')}
-                                      {question.unit === 'EUR' ? '' : question.unit === 'months' ? ` ${t('reco.ui.sliderMonths') || 'months'}` : question.unit === 'people' ? ` ${t('reco.ui.sliderPeople') || 'people'}` : ` ${question.unit}`}
-                                    </span>
-                                  </div>
-                                  <input
-                                    type="range"
-                                    min={question.min}
-                                    max={question.max}
-                                    step={question.step}
-                                    value={typeof value === 'number' ? value : question.min}
-                                    onChange={(e) => {
-                                      const numValue = question.unit === 'years' 
-                                        ? parseFloat(e.target.value)
-                                        : parseInt(e.target.value);
-                                      handleAnswer(question.id, numValue);
-                                      // Auto-classify company stage for Q6
-                                      if (question.id === 'company_stage') {
-                                        const months = numValue;
-                                        let stage = 'pre_company';
-                                        if (months < 0) {
-                                          stage = 'pre_company';
-                                        } else if (months < 6) {
-                                          stage = 'early_stage';
-                                        } else if (months < 12) {
-                                          stage = 'launch_stage';
-                                        } else if (months < 24) {
-                                          stage = 'growth_stage';
-                                        } else if (months < 36) {
-                                          stage = 'established';
-                                        } else {
-                                          stage = 'mature';
-                                        }
-                                        handleAnswer('company_stage_classified', stage);
-                                      }
-                                    }}
-                                    className="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer accent-blue-600"
-                                    style={{
-                                      background: question.min < 0 
-                                        ? `linear-gradient(to right, #2563eb 0%, #2563eb ${Math.max(0, Math.min(100, ((typeof value === 'number' ? value : question.min) - question.min) / (question.max - question.min) * 100))}%, #e5e7eb ${Math.max(0, Math.min(100, ((typeof value === 'number' ? value : question.min) - question.min) / (question.max - question.min) * 100))}%, #e5e7eb 100%)`
-                                        : `linear-gradient(to right, #2563eb 0%, #2563eb ${((typeof value === 'number' ? value : question.min) - question.min) / (question.max - question.min) * 100}%, #e5e7eb ${((typeof value === 'number' ? value : question.min) - question.min) / (question.max - question.min) * 100}%, #e5e7eb 100%)`
-                                    }}
-                                  />
-                                  <div className="text-center">
-                                    {/* Company Stage: Show months + classification */}
-                                    {question.id === 'company_stage' && (
-                                      <div className="space-y-1">
-                                        <div className="text-sm font-medium text-gray-700">
-                                          {typeof value === 'number' ? value : question.min} {t('reco.ui.sliderMonths') || 'months'}
-                                        </div>
-                                        <div className="text-sm font-medium text-blue-600">
-                                          {(() => {
-                                            const months = typeof value === 'number' ? value : question.min;
-                                            if (months < 0) {
-                                              return locale === 'de' ? 'Vor Gründung' : 'Pre Incorporation';
-                                            } else if (months < 6) {
-                                              return locale === 'de' ? 'Frühe Phase (0-6 Monate)' : 'Early Stage (0-6 months)';
-                                            } else if (months < 12) {
-                                              return locale === 'de' ? 'Launch Phase (6-12 Monate)' : 'Launch Stage (6-12 months)';
-                                            } else if (months < 24) {
-                                              return locale === 'de' ? 'Wachstumsphase (12-24 Monate)' : 'Growth Stage (12-24 months)';
-                                            } else if (months < 36) {
-                                              return locale === 'de' ? 'Etabliert (24-36 Monate)' : 'Established (24-36 months)';
-                                            } else {
-                                              return locale === 'de' ? 'Reif (36+ Monate)' : 'Mature (36+ months)';
-                                            }
-                                          })()}
-                                        </div>
-                                      </div>
-                                    )}
-                                    {question.id !== 'company_stage' && (
-                                      <div className="text-sm font-medium text-gray-700">
-                                        {typeof value === 'number' 
-                                          ? (question.unit === 'EUR' 
-                                              ? `€${value.toLocaleString('de-DE')}`
-                                              : question.unit === 'years'
-                                              ? `${value.toFixed(1)} ${question.unit}`
-                                              : question.unit === 'months'
-                                              ? `${value} ${t('reco.ui.sliderMonths') || 'months'}`
-                                              : question.unit === 'people'
-                                              ? `${value} ${t('reco.ui.sliderPeople') || 'people'}`
-                                              : `${value} ${question.unit}`)
-                                          : (question.unit === 'EUR' 
-                                              ? `€${question.min.toLocaleString('de-DE')}`
-                                              : question.unit === 'years'
-                                              ? `${question.min.toFixed(1)} ${question.unit}`
-                                              : question.unit === 'months'
-                                              ? `${question.min} ${t('reco.ui.sliderMonths') || 'months'}`
-                                              : question.unit === 'people'
-                                              ? `${question.min} ${t('reco.ui.sliderPeople') || 'people'}`
-                                              : `${question.min} ${question.unit}`)}
-                                      </div>
-                                    )}
-                                  </div>
-                                </div>
-                              )}
-                              
-                              {question.type === 'range' && question.editableValue && (
-                                <div className="space-y-2">
-                                  <input
-                                    type="range"
-                                    min={question.min}
-                                    max={question.max}
-                                    step={question.step}
-                                    value={typeof value === 'number' ? value : question.min}
-                                    onChange={(e) => {
-                                      const numValue = question.unit === 'years' 
-                                        ? parseFloat(e.target.value)
-                                        : parseInt(e.target.value);
-                                      handleAnswer(question.id, numValue);
-                                    }}
-                                    className="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer accent-blue-600"
-                                  />
-                                  <div className="text-center">
-                                    <input
-                                      type="text"
-                                      value={rawInputValues[question.id] !== undefined 
-                                        ? rawInputValues[question.id]
-                                        : typeof value === 'number' 
-                                        ? (question.unit === 'EUR' 
-                                            ? value.toString()
-                                            : question.unit === 'years'
-                                            ? value.toFixed(1)
-                                            : value.toString())
-                                        : question.min.toString()}
-                                      onChange={(e) => {
-                                        let inputValue = e.target.value;
-                                        setRawInputValues(prev => ({ ...prev, [question.id]: inputValue }));
-                                        
-                                        if (question.unit === 'EUR' || question.unit === 'months' || question.unit === 'people') {
-                                          inputValue = inputValue.replace(/[^\d]/g, '');
-                                        } else if (question.unit === 'years') {
-                                          inputValue = inputValue.replace(/[^\d.]/g, '');
-                                          const parts = inputValue.split('.');
-                                          if (parts.length > 2) inputValue = parts[0] + '.' + parts.slice(1).join('');
-                                        }
-                                        
-                                        if (inputValue === '' || inputValue === '.') return;
-                                        
-                                        const numValue = question.unit === 'years' 
-                                          ? parseFloat(inputValue)
-                                          : Math.floor(parseFloat(inputValue));
-                                          
-                                        if (!isNaN(numValue)) {
-                                          if (numValue >= question.min && numValue <= question.max) {
-                                            handleAnswer(question.id, numValue);
-                                          } else if (numValue > question.max) {
-                                            handleAnswer(question.id, question.max);
-                                            setRawInputValues(prev => ({ ...prev, [question.id]: question.max.toString() }));
-                                          }
-                                        }
-                                      }}
-                                      onFocus={() => {
-                                        const currentValue = typeof value === 'number' ? value : question.min;
-                                        setRawInputValues(prev => ({ 
-                                          ...prev, 
-                                          [question.id]: question.unit === 'years' 
-                                            ? currentValue.toFixed(1) 
-                                            : currentValue.toString() 
-                                        }));
-                                      }}
-                                      onBlur={(e) => {
-                                        let cleaned = e.target.value.replace(/[^\d.]/g, '');
-                                        if (question.unit === 'EUR' || question.unit === 'months' || question.unit === 'people') {
-                                          cleaned = cleaned.replace(/\./g, '');
-                                        }
-                                        const numValue = question.unit === 'years' 
-                                          ? parseFloat(cleaned || '0')
-                                          : Math.floor(parseFloat(cleaned || '0'));
-                                        setRawInputValues(prev => {
-                                          const newState = { ...prev };
-                                          delete newState[question.id];
-                                          return newState;
-                                        });
-                                        if (isNaN(numValue) || numValue < question.min) {
-                                          handleAnswer(question.id, question.min);
-                                        } else if (numValue > question.max) {
-                                          handleAnswer(question.id, question.max);
-                                        } else if (!isNaN(numValue)) {
-                                          handleAnswer(question.id, numValue);
-                                        }
-                                      }}
-                                      placeholder={question.unit === 'EUR' 
-                                        ? `€${question.min.toLocaleString('de-DE')} - €${question.max.toLocaleString('de-DE')}`
-                                        : `${question.min} - ${question.max} ${question.unit}`}
-                                      className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-center font-medium"
-                                    />
-                                    {question.unit === 'EUR' && typeof value === 'number' && (
-                                      <div className="text-xs text-gray-500 text-center mt-1">
-                                        €{value.toLocaleString('de-DE')}
-                                      </div>
-                                    )}
-                                  </div>
-                                </div>
-                              )}
-                              
                               {question.type !== 'range' && question.type !== 'single-select' && question.type !== 'multi-select' && (
                                 <div className="text-sm text-gray-500">
                                   Unsupported question type
@@ -1816,6 +1630,101 @@ export default function ProgramFinder({
                   )}
               </div>
             </Card>
+          </div>
+        </div>
+      </div>
+      
+      {/* Sticky Bottom Bar */}
+      <div className="fixed bottom-0 left-0 right-0 bg-gradient-to-r from-blue-600 to-blue-700 text-white shadow-2xl z-50 border-t-2 border-blue-500">
+        <div className="max-w-7xl mx-auto px-4 py-4">
+          <div className="flex items-center justify-between gap-4">
+            <div className="flex items-center gap-3">
+              <span className="text-2xl">🎯</span>
+              <div>
+                {answeredCount < MIN_QUESTIONS_FOR_RESULTS ? (
+                  <p className="text-sm font-medium">
+                    {MIN_QUESTIONS_FOR_RESULTS - answeredCount} {locale === 'de' ? 'Fragen bis zur' : 'questions until'} {locale === 'de' ? 'Förderprogramm-Generierung' : 'program generation'}
+                  </p>
+                ) : (
+                  <p className="text-sm font-medium">
+                    {locale === 'de' ? 'Sie haben' : 'You have completed'} {answeredCount} {locale === 'de' ? 'Fragen beantwortet' : 'questions'}
+                  </p>
+                )}
+                <p className="text-xs opacity-90 mt-0.5">
+                  {answeredCount}/{visibleQuestions.length} {locale === 'de' ? 'beantwortet' : 'answered'}
+                </p>
+              </div>
+            </div>
+            <button
+              onClick={async () => {
+                if (!hasEnoughAnswers) {
+                  alert(locale === 'de' 
+                    ? `Bitte beantworten Sie mindestens ${MIN_QUESTIONS_FOR_RESULTS} Fragen, um Förderprogramme zu generieren.`
+                    : `Please answer at least ${MIN_QUESTIONS_FOR_RESULTS} questions to generate funding programs.`);
+                  return;
+                }
+                setIsLoading(true);
+                try {
+                  const response = await fetch('/api/programs/recommend', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                      answers,
+                      max_results: 20,
+                      extract_all: false,
+                      use_seeds: false,
+                    }),
+                  });
+                  if (!response.ok) throw new Error('Failed to fetch');
+                  const data = await response.json();
+                  const extractedPrograms = data.programs || [];
+                  const programsForScoring = extractedPrograms.map((p: any) => ({
+                    id: p.id,
+                    name: p.name,
+                    type: p.funding_types?.[0] || 'grant',
+                    program_type: p.funding_types?.[0] || 'grant',
+                    description: p.metadata?.description || '',
+                    funding_amount_max: p.metadata?.funding_amount_max || 0,
+                    funding_amount_min: p.metadata?.funding_amount_min || 0,
+                    currency: p.metadata?.currency || 'EUR',
+                    source_url: p.url,
+                    url: p.url,
+                    deadline: p.metadata?.deadline,
+                    open_deadline: p.metadata?.open_deadline || false,
+                    contact_email: p.metadata?.contact_email,
+                    contact_phone: p.metadata?.contact_phone,
+                    eligibility_criteria: {},
+                    categorized_requirements: p.categorized_requirements || {},
+                    region: p.metadata?.region,
+                    funding_types: p.funding_types || [],
+                    program_focus: p.metadata?.program_focus || [],
+                  }));
+                  const scored = await scoreProgramsEnhanced(answers, 'strict', programsForScoring);
+                  const sorted = scored.sort((a, b) => b.score - a.score);
+                  const top5 = sorted.slice(0, 5);
+                  setResults(top5);
+                  if (top5.length > 0) {
+                    setMobileActiveTab('results');
+                  }
+                } catch (error: any) {
+                  console.error('Error:', error);
+                  alert(locale === 'de' 
+                    ? `Fehler beim Generieren der Förderprogramme: ${error.message || 'Unbekannter Fehler'}`
+                    : `Error generating programs: ${error.message || 'Unknown error'}`);
+                } finally {
+                  setIsLoading(false);
+                }
+              }}
+              disabled={!_isLoading && !hasEnoughAnswers}
+              className={`px-6 py-3 rounded-lg font-semibold text-base transition-all flex items-center gap-2 ${
+                hasEnoughAnswers
+                  ? 'bg-white text-blue-600 hover:bg-blue-50 shadow-lg hover:shadow-xl'
+                  : 'bg-gray-300 text-gray-500 cursor-not-allowed'
+              }`}
+            >
+              <Wand2 className="w-5 h-5" />
+              {locale === 'de' ? 'Förderprogramm generieren' : 'Generate Funding Programs'}
+            </button>
           </div>
         </div>
       </div>
