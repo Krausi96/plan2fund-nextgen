@@ -56,7 +56,7 @@ interface ProgramFinderProps {
     label: 'How much funding do you need?',
     type: 'range' as const,
     min: 0,
-    max: 3000000,
+    max: 2000000,
     step: 1000,
     unit: 'EUR',
     required: false,
@@ -77,6 +77,7 @@ interface ProgramFinderProps {
     ],
     required: false,
     priority: 4,
+    hasOtherTextInput: true,
     // Enhanced: Industry subcategories for better matching
     subCategories: {
       digital: [
@@ -591,7 +592,7 @@ export default function ProgramFinder({
   };
   
   // State for answers summary collapse
-  const [answersSummaryExpanded, setAnswersSummaryExpanded] = useState(true);
+  const [answersSummaryExpanded, setAnswersSummaryExpanded] = useState(false);
   
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-purple-50">
@@ -644,101 +645,100 @@ export default function ProgramFinder({
         </div>
 
         <div className="flex flex-col gap-2">
-          {/* Answers Summary Section - NEW - More Compact */}
+          {/* Answers Summary Section - Moved to Sidebar/Compact */}
           {answeredCount > 0 && (
-            <Card className="p-3 max-w-5xl mx-auto w-full bg-white border-2 border-blue-100 shadow-md">
-              <div className="flex items-center justify-between mb-1">
-                <div className="flex items-center gap-2">
-                  <span className="text-base">📊</span>
-                  <h2 className="text-base font-semibold text-gray-800">
-                    {t('reco.ui.yourAnswers') || 'Deine Antworten'} ({answeredCount}/{visibleQuestions.length})
-                  </h2>
-                </div>
-                <div className="flex items-center gap-3">
-                  {/* Generate Button - Prominent */}
-                  {hasEnoughAnswers && !showResults && (
+            <div className="fixed right-4 top-24 z-40 max-w-xs">
+              <Card className="p-3 bg-white border-2 border-blue-100 shadow-lg">
+                <div className="flex items-center justify-between mb-2">
+                  <div className="flex items-center gap-2">
+                    <span className="text-sm">📊</span>
+                    <h2 className="text-sm font-semibold text-gray-800">
+                      {answeredCount}/{visibleQuestions.length}
+                    </h2>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    {/* Generate Button - Compact */}
+                    {hasEnoughAnswers && !showResults && (
+                      <button
+                        onClick={() => {
+                          setShowResults(true);
+                          updateGuidedResults();
+                        }}
+                        disabled={isLoading}
+                        className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-all text-xs font-semibold shadow-md hover:shadow-lg disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-1"
+                      >
+                        {isLoading ? (
+                          <>
+                            <div className="animate-spin rounded-full h-3 w-3 border-b-2 border-white"></div>
+                            <span>{t('reco.generating') || 'Generating...'}</span>
+                          </>
+                        ) : (
+                          <>
+                            <Wand2 className="w-3 h-3" />
+                            <span>{t('reco.generateButton')}</span>
+                          </>
+                        )}
+                      </button>
+                    )}
+                    {answeredCount > 0 && !hasEnoughAnswers && (
+                      <div className="text-xs text-gray-500 text-right">
+                        <div className="font-medium">{answeredCount}/{MIN_QUESTIONS_FOR_RESULTS}</div>
+                      </div>
+                    )}
                     <button
-                      onClick={() => {
-                        setShowResults(true);
-                        updateGuidedResults();
-                      }}
-                      disabled={isLoading}
-                      className="px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-all text-sm font-semibold shadow-lg hover:shadow-xl disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2 transform hover:scale-105"
+                      onClick={() => setAnswersSummaryExpanded(!answersSummaryExpanded)}
+                      className="text-gray-500 hover:text-gray-700 transition-colors p-1"
+                      aria-label={answersSummaryExpanded ? 'Collapse' : 'Expand'}
                     >
-                      {isLoading ? (
-                        <>
-                          <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
-                          <span>{t('reco.generating') || 'Generating...'}</span>
-                        </>
+                      {answersSummaryExpanded ? (
+                        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 15l7-7 7 7" />
+                        </svg>
                       ) : (
-                        <>
-                          <Wand2 className="w-4 h-4" />
-                          <span>{t('reco.generateButton')}</span>
-                        </>
+                        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                        </svg>
                       )}
                     </button>
-                  )}
-                  {answeredCount > 0 && !hasEnoughAnswers && (
-                    <div className="text-xs text-gray-500 text-right">
-                      <div className="font-medium">{answeredCount} / {MIN_QUESTIONS_FOR_RESULTS} {t('reco.ui.required') || 'required'}</div>
-                      <div className="text-gray-400">
-                        {(t('reco.ui.answerMore') || 'Answer {count} more to generate results').replace('{count}', String(MIN_QUESTIONS_FOR_RESULTS - answeredCount))}
-                      </div>
-                    </div>
-                  )}
-                  <button
-                    onClick={() => setAnswersSummaryExpanded(!answersSummaryExpanded)}
-                    className="text-gray-500 hover:text-gray-700 transition-colors"
-                    aria-label={answersSummaryExpanded ? 'Collapse' : 'Expand'}
-                  >
-                    {answersSummaryExpanded ? (
-                      <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 15l7-7 7 7" />
-                      </svg>
-                    ) : (
-                      <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
-                      </svg>
-                    )}
-                  </button>
-                </div>
-              </div>
-              
-              {answersSummaryExpanded && (
-                <div className="mt-2 pt-2 border-t border-gray-200">
-                  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-1.5 text-xs">
-                    {visibleQuestions.map((q, idx) => {
-                      const value = answers[q.id];
-                      const isAnswered = value !== undefined && value !== null && value !== '' && 
-                                       !(Array.isArray(value) && value.length === 0);
-                      const formattedAnswer = isAnswered ? formatAnswerForDisplay(q.id, value) : null;
-                      
-                      return (
-                        <div key={q.id} className="flex items-start gap-2">
-                          <span className={`flex-shrink-0 mt-0.5 ${isAnswered ? 'text-green-600' : 'text-gray-400'}`}>
-                            {isAnswered ? (
-                              <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
-                                <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
-                              </svg>
-                            ) : (
-                              <span className="text-xs">-</span>
-                            )}
-                          </span>
-                          <div className="flex-1 min-w-0">
-                            <span className="font-medium text-gray-700">Q{idx + 1}:</span>{' '}
-                            {formattedAnswer ? (
-                              <span className="text-gray-900 break-words">{formattedAnswer}</span>
-                            ) : (
-                              <span className="text-gray-400 italic">{t('reco.ui.notAnswered') || 'Not answered'}</span>
-                            )}
-                          </div>
-                        </div>
-                      );
-                    })}
                   </div>
                 </div>
-              )}
-            </Card>
+                
+                {answersSummaryExpanded && (
+                  <div className="mt-2 pt-2 border-t border-gray-200 max-h-96 overflow-y-auto">
+                    <div className="space-y-1.5 text-xs">
+                      {visibleQuestions.map((q, idx) => {
+                        const value = answers[q.id];
+                        const isAnswered = value !== undefined && value !== null && value !== '' && 
+                                         !(Array.isArray(value) && value.length === 0);
+                        const formattedAnswer = isAnswered ? formatAnswerForDisplay(q.id, value) : null;
+                        
+                        return (
+                          <div key={q.id} className="flex items-start gap-2 p-1.5 hover:bg-gray-50 rounded">
+                            <span className={`flex-shrink-0 mt-0.5 ${isAnswered ? 'text-green-600' : 'text-gray-400'}`}>
+                              {isAnswered ? (
+                                <svg className="w-3 h-3" fill="currentColor" viewBox="0 0 20 20">
+                                  <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
+                                </svg>
+                              ) : (
+                                <span className="text-xs">-</span>
+                              )}
+                            </span>
+                            <div className="flex-1 min-w-0">
+                              <span className="font-medium text-gray-700">Q{idx + 1}:</span>{' '}
+                              {formattedAnswer ? (
+                                <span className="text-gray-900 break-words text-xs">{formattedAnswer}</span>
+                              ) : (
+                                <span className="text-gray-400 italic text-xs">{t('reco.ui.notAnswered') || 'Not answered'}</span>
+                              )}
+                            </div>
+                          </div>
+                        );
+                      })}
+                    </div>
+                  </div>
+                )}
+              </Card>
+            </div>
           )}
           
           {/* Questions/Filters - More Visually Separated */}
@@ -777,35 +777,36 @@ export default function ProgramFinder({
                         })}
                       </div>
                       
-                      {/* Current Question Display - With Prominent Navigation */}
-                      <div className="relative bg-white rounded-lg border-2 border-blue-200 shadow-md p-4">
-                        {/* Prominent Previous Button - Left Side */}
-                        <button
-                          onClick={() => setCurrentQuestionIndex(Math.max(0, currentQuestionIndex - 1))}
-                          disabled={currentQuestionIndex === 0}
-                          className={`absolute left-0 top-1/2 -translate-y-1/2 -translate-x-16 sm:-translate-x-20 flex items-center gap-1.5 sm:gap-2 px-2 sm:px-4 py-2.5 rounded-lg font-medium text-xs sm:text-sm transition-all shadow-lg z-10 whitespace-nowrap ${
-                            currentQuestionIndex === 0
-                              ? 'opacity-40 cursor-not-allowed bg-gray-300 text-gray-500'
-                              : 'bg-blue-600 text-white hover:bg-blue-700 hover:scale-105 active:scale-95'
-                          }`}
-                        >
-                          <ChevronLeft className="w-4 h-4 sm:w-5 sm:h-5" />
-                          <span className="hidden sm:inline">{t('reco.ui.previous') || 'Previous'}</span>
-                        </button>
-                        
-                        {/* Prominent Next Button - Right Side */}
-                        <button
-                          onClick={() => setCurrentQuestionIndex(Math.min(visibleQuestions.length - 1, currentQuestionIndex + 1))}
-                          disabled={currentQuestionIndex === visibleQuestions.length - 1}
-                          className={`absolute right-0 top-1/2 -translate-y-1/2 translate-x-16 sm:translate-x-20 flex items-center gap-1.5 sm:gap-2 px-2 sm:px-4 py-2.5 rounded-lg font-medium text-xs sm:text-sm transition-all shadow-lg z-10 whitespace-nowrap ${
-                            currentQuestionIndex === visibleQuestions.length - 1
-                              ? 'opacity-40 cursor-not-allowed bg-gray-300 text-gray-500'
-                              : 'bg-blue-600 text-white hover:bg-blue-700 hover:scale-105 active:scale-95'
-                          }`}
-                        >
-                          <span className="hidden sm:inline">{t('reco.ui.next') || 'Next'}</span>
-                          <ChevronRight className="w-4 h-4 sm:w-5 sm:h-5" />
-                        </button>
+                      {/* Current Question Display - Navigation Inside Box */}
+                      <div className="relative bg-white rounded-lg border-2 border-blue-200 shadow-md p-6">
+                        {/* Navigation Buttons - Inside Box, Top Right */}
+                        <div className="flex justify-end gap-2 mb-4">
+                          <button
+                            onClick={() => setCurrentQuestionIndex(Math.max(0, currentQuestionIndex - 1))}
+                            disabled={currentQuestionIndex === 0}
+                            className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg font-medium text-sm transition-all ${
+                              currentQuestionIndex === 0
+                                ? 'opacity-40 cursor-not-allowed bg-gray-200 text-gray-500'
+                                : 'bg-blue-100 text-blue-700 hover:bg-blue-200'
+                            }`}
+                          >
+                            <ChevronLeft className="w-4 h-4" />
+                            <span>{t('reco.ui.previous') || 'Previous'}</span>
+                          </button>
+                          
+                          <button
+                            onClick={() => setCurrentQuestionIndex(Math.min(visibleQuestions.length - 1, currentQuestionIndex + 1))}
+                            disabled={currentQuestionIndex === visibleQuestions.length - 1}
+                            className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg font-medium text-sm transition-all ${
+                              currentQuestionIndex === visibleQuestions.length - 1
+                                ? 'opacity-40 cursor-not-allowed bg-gray-200 text-gray-500'
+                                : 'bg-blue-100 text-blue-700 hover:bg-blue-200'
+                            }`}
+                          >
+                            <span>{t('reco.ui.next') || 'Next'}</span>
+                            <ChevronRight className="w-4 h-4" />
+                          </button>
+                        </div>
                         {(() => {
                           const question = visibleQuestions[currentQuestionIndex];
                           if (!question) return null;
@@ -821,11 +822,11 @@ export default function ProgramFinder({
                                   </span>
                                   <div className="flex-1">
                                     <div className="flex items-center gap-2">
-                                      <h3 className="text-base font-semibold text-gray-900 break-words leading-relaxed">
+                                      <h3 className="text-xl font-semibold text-gray-900 break-words leading-relaxed">
                                         {question.label}
                                       </h3>
                                       {!question.required && (
-                                        <span className="text-xs text-gray-500 font-normal">(Optional)</span>
+                                        <span className="text-sm text-gray-500 font-normal">(Optional)</span>
                                       )}
                                     </div>
                                   </div>
@@ -1267,6 +1268,7 @@ export default function ProgramFinder({
                                             if (question.unit === 'EUR') {
                                               cleaned = cleaned.replace(/[€,\s]/g, '');
                                               const numValue = parseInt(cleaned);
+                                              // Allow any valid number within range, not just step increments
                                               if (!isNaN(numValue) && numValue >= question.min && numValue <= question.max) {
                                                 handleAnswer(question.id, numValue);
                                               }
@@ -1428,15 +1430,24 @@ export default function ProgramFinder({
                       <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
                       <p className="text-gray-600">Finding programs...</p>
                     </Card>
-                  ) : results.length === 0 ? (
+                  ) : (!isLoading && results.length === 0 && showResults) ? (
                     <Card className="p-12 text-center">
                       <Search className="h-12 w-12 text-gray-400 mx-auto mb-4" />
-                      <p className="text-gray-600 mb-2">
+                      <p className="text-gray-600 mb-2 font-semibold">
                         No matching programs found
                       </p>
-                      <p className="text-sm text-gray-500">
+                      <p className="text-sm text-gray-500 mb-4">
                         Try answering more questions or adjusting your answers
                       </p>
+                      <button
+                        onClick={() => {
+                          setShowResults(false);
+                          setCurrentQuestionIndex(0);
+                        }}
+                        className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+                      >
+                        Adjust Answers
+                      </button>
                     </Card>
                   ) : (
                     <div className="space-y-4">
