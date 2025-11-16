@@ -44,6 +44,7 @@
     "legacy/_quarantine",
     "**/shared/lib/readiness.ts",
     "**/shared/lib/templateGenerator.ts",
-    "**/pages/program/[id].tsx"
+    "**/pages/program/[id].tsx",
+    "**/scraper-lite/**"
   ]
 }
