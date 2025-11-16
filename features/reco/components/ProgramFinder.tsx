@@ -37,23 +37,21 @@ function PathIndicator({ currentStep, totalSteps }: { currentStep: number; total
   }, [fullText, locale]);
   
   return (
-    <div className="flex items-center gap-3">
-      <div className="flex-1">
-        <p className="text-sm font-medium text-gray-700">
-          {displayedText}
-          <span className="animate-pulse">|</span>
-        </p>
-        <div className="mt-1 flex items-center gap-2">
-          <div className="flex-1 h-2 bg-gray-200 rounded-full overflow-hidden">
-            <div 
-              className="h-full bg-blue-600 transition-all duration-300 rounded-full"
-              style={{ width: `${(currentStep / totalSteps) * 100}%` }}
-            />
-          </div>
-          <span className="text-xs text-gray-500 font-medium min-w-[3rem] text-right">
-            {currentStep}/{totalSteps}
-          </span>
+    <div className="text-center">
+      <p className="text-lg font-bold text-gray-900 mb-2">
+        {displayedText}
+        <span className="animate-pulse text-blue-600">|</span>
+      </p>
+      <div className="flex items-center justify-center gap-3">
+        <div className="flex-1 max-w-md h-3 bg-gray-200 rounded-full overflow-hidden">
+          <div 
+            className="h-full bg-blue-600 transition-all duration-300 rounded-full"
+            style={{ width: `${(currentStep / totalSteps) * 100}%` }}
+          />
         </div>
+        <span className="text-sm text-gray-600 font-semibold min-w-[3rem]">
+          {currentStep}/{totalSteps}
+        </span>
       </div>
     </div>
   );
@@ -449,12 +447,16 @@ export default function ProgramFinder({
       if (extractedPrograms.length === 0) {
         console.warn('⚠️ No programs returned from API');
         console.warn('API response:', data);
-        // Show user-friendly message
-        setResults([]);
+        console.warn('Answers sent:', answers);
+        // Show user-friendly message but don't return - let scoring handle it
         if (data.error) {
-          alert(`No programs found: ${data.message || data.error}`);
+          console.error('API Error:', data.error, data.message);
         }
-        return;
+        // Continue to scoring even if no programs - scoring might still work
+        if (extractedPrograms.length === 0) {
+          setResults([]);
+          return;
+        }
       }
       
       // Convert extracted programs to Program format
@@ -488,37 +490,20 @@ export default function ProgramFinder({
       const scoreDistribution = scored.map(p => ({ name: p.name, score: p.score }));
       console.log('📈 Score distribution:', scoreDistribution);
       
-      // Filter out zero-score programs and sort by score (highest first), then take top 5
-      // Be more lenient - show programs with score > 0
-      const validPrograms = scored.filter(p => p.score > 0);
-      const top5 = validPrograms.sort((a, b) => b.score - a.score).slice(0, 5);
+      // Show ALL programs sorted by score (even with score 0) - let user see what's available
+      // Sort by score (highest first), then take top 5
+      const sorted = scored.sort((a, b) => b.score - a.score);
+      const top5 = sorted.slice(0, 5);
       
-      console.log(`✅ Scored ${scored.length} programs, ${validPrograms.length} valid (score > 0), showing top ${top5.length}`);
+      console.log(`✅ Scored ${scored.length} programs, showing top ${top5.length}`);
+      console.log('📊 Top programs:', top5.map(p => ({ name: p.name, score: p.score })));
       
-      // If no valid programs, show ALL programs (even with score 0) for debugging
-      if (validPrograms.length === 0 && scored.length > 0) {
-        console.warn('⚠️ All programs have score 0! Showing all programs for debugging:', {
-          totalPrograms: programsForScoring.length,
-          scoredPrograms: scored.length,
-          scoreDistribution,
-          sampleProgram: programsForScoring[0],
-          sampleScored: scored[0],
-        });
-        // Show all programs even with 0 score for debugging
-        setResults(scored.slice(0, 5));
-      } else {
+      // Always set results if we have any programs
+      if (top5.length > 0) {
         setResults(top5);
-      }
-      
-      // If no results, log for debugging
-      if (top5.length === 0 && validPrograms.length === 0) {
-        console.warn('⚠️ No valid programs after scoring:', {
-          totalPrograms: programsForScoring.length,
-          scoredPrograms: scored.length,
-          validPrograms: validPrograms.length,
-          answers,
-          sampleProgram: programsForScoring[0],
-        });
+      } else {
+        console.warn('⚠️ No programs to display after scoring');
+        setResults([]);
       }
       
       // Store in localStorage for persistence
@@ -1527,28 +1512,49 @@ export default function ProgramFinder({
             </div>
           
           {/* Generate Button - Fixed at Bottom, Always Visible on Desktop */}
-          <div className="fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200 shadow-lg z-40 lg:block hidden">
-            <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
-              <div className="flex items-center justify-between gap-4">
+          <div className="fixed bottom-0 left-0 right-0 bg-gradient-to-r from-blue-50 to-white border-t-2 border-blue-200 shadow-2xl z-40 lg:block hidden">
+            <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-5">
+              <div className="flex items-center justify-between gap-6">
                 <div className="flex-1">
                   {hasEnoughAnswers && !showResults ? (
-                    <p className="text-sm text-gray-600">
-                      {locale === 'de' 
-                        ? 'Sie können bereits nach Förderprogrammen suchen, aber spezifizieren Sie Ihre Antworten für genauere Ergebnisse.'
-                        : 'You can already look for funding programs, but specify your answers for more accurate results.'}
-                    </p>
+                    <div className="space-y-1">
+                      <p className="text-base font-semibold text-gray-900">
+                        {locale === 'de' 
+                          ? '✅ Bereit für die Suche'
+                          : '✅ Ready to search'}
+                      </p>
+                      <p className="text-sm text-gray-700">
+                        {locale === 'de' 
+                          ? 'Sie können bereits nach Förderprogrammen suchen. Spezifizieren Sie Ihre Antworten für genauere Ergebnisse.'
+                          : 'You can already look for funding programs. Specify your answers for more accurate results.'}
+                      </p>
+                    </div>
                   ) : answeredCount > 0 && !hasEnoughAnswers ? (
-                    <p className="text-sm text-gray-600">
-                      {locale === 'de'
-                        ? `Beantworten Sie noch ${MIN_QUESTIONS_FOR_RESULTS - answeredCount} Fragen, um Förderprogramme zu generieren.`
-                        : `Answer ${MIN_QUESTIONS_FOR_RESULTS - answeredCount} more questions to generate funding programs.`}
-                    </p>
+                    <div className="space-y-1">
+                      <p className="text-base font-semibold text-gray-900">
+                        {locale === 'de'
+                          ? `📝 Noch ${MIN_QUESTIONS_FOR_RESULTS - answeredCount} Fragen`
+                          : `📝 ${MIN_QUESTIONS_FOR_RESULTS - answeredCount} more questions`}
+                      </p>
+                      <p className="text-sm text-gray-700">
+                        {locale === 'de'
+                          ? `Beantworten Sie noch ${MIN_QUESTIONS_FOR_RESULTS - answeredCount} Fragen, um Förderprogramme zu generieren.`
+                          : `Answer ${MIN_QUESTIONS_FOR_RESULTS - answeredCount} more questions to generate funding programs.`}
+                      </p>
+                    </div>
                   ) : (
-                    <p className="text-sm text-gray-600">
-                      {locale === 'de'
-                        ? 'Beantworten Sie die Fragen, um passende Förderprogramme zu finden.'
-                        : 'Answer the questions to find suitable funding programs.'}
-                    </p>
+                    <div className="space-y-1">
+                      <p className="text-base font-semibold text-gray-900">
+                        {locale === 'de'
+                          ? '🚀 Starten Sie jetzt'
+                          : '🚀 Get started'}
+                      </p>
+                      <p className="text-sm text-gray-700">
+                        {locale === 'de'
+                          ? 'Beantworten Sie die Fragen, um passende Förderprogramme zu finden.'
+                          : 'Answer the questions to find suitable funding programs.'}
+                      </p>
+                    </div>
                   )}
                 </div>
                 {hasEnoughAnswers && !showResults && (
@@ -1558,16 +1564,16 @@ export default function ProgramFinder({
                       updateGuidedResults();
                     }}
                     disabled={isLoading}
-                    className="px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-all text-sm font-semibold shadow-lg hover:shadow-xl disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2 animate-pulse hover:animate-none"
+                    className="px-8 py-4 bg-gradient-to-r from-blue-600 to-blue-700 text-white rounded-xl hover:from-blue-700 hover:to-blue-800 transition-all text-base font-bold shadow-xl hover:shadow-2xl disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-3 transform hover:scale-105 active:scale-95"
                   >
                     {isLoading ? (
                       <>
-                        <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
+                        <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-white"></div>
                         <span>{t('reco.generating') || 'Generating...'}</span>
                       </>
                     ) : (
                       <>
-                        <Wand2 className="w-4 h-4" />
+                        <Wand2 className="w-5 h-5" />
                         <span>{t('reco.generateButton')}</span>
                       </>
                     )}
