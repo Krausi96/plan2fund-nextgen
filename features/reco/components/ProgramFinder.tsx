@@ -196,6 +196,7 @@ interface ProgramFinderProps {
       { value: 'pre_company', label: 'Pre-Company (Team formed, not incorporated)' },
       { value: 'early_stage', label: 'Early Stage (Incorporated < 2 years)' },
       { value: 'growth_stage', label: 'Growth Stage (Incorporated 2+ years)' },
+      { value: 'mature', label: 'Mature (Established, 5+ years)' },
       { value: 'other', label: 'Other' },
     ],
     required: false,
@@ -528,10 +529,13 @@ export default function ProgramFinder({
   // Only update results when user explicitly requests them (after completing or clicking button)
   // Don't auto-update on every answer change
   
-  const handleAnswer = (questionId: string, value: any) => {
-    const newAnswers = { ...answers, [questionId]: value };
-    setAnswers(newAnswers);
-  };
+  const handleAnswer = useCallback((questionId: string, value: any) => {
+    setAnswers((prevAnswers) => {
+      const newAnswers = { ...prevAnswers, [questionId]: value };
+      console.log('handleAnswer called:', { questionId, value, newAnswers });
+      return newAnswers;
+    });
+  }, []);
 
   const handleProgramSelect = (program: EnhancedProgramResult) => {
     // Store program data in localStorage (programs don't have stable IDs)
@@ -824,8 +828,11 @@ export default function ProgramFinder({
                                     const isOtherOption = option.value === 'other';
                                     const otherTextValue = isOtherOption && isSelected ? (answers[`${question.id}_other`] || '') : '';
                                     
+                                    // Force re-render key based on selection state
+                                    const renderKey = `${question.id}-${option.value}-${isSelected ? 'selected' : 'unselected'}-${answers[question.id]}`;
+                                    
                                     return (
-                                      <div key={option.value} className="space-y-2">
+                                      <div key={renderKey} className="space-y-2">
                                         <button
                                           type="button"
                                           onClick={(e) => {
@@ -897,9 +904,21 @@ export default function ProgramFinder({
                                           </div>
                                         )}
                                         
-                                        {/* Text input for "Other" option */}
-                                        {isOtherOption && isSelected && question.hasOtherTextInput && (
-                                          <div className="ml-4 space-y-1.5 border-l-2 border-blue-200 pl-3 pt-1 mt-2">
+                                        {/* Text input for "Other" option - Force render check */}
+                                        {(() => {
+                                          const shouldShow = isOtherOption && isSelected && question.hasOtherTextInput;
+                                          console.log('Other input check:', {
+                                            questionId: question.id,
+                                            optionValue: option.value,
+                                            isOtherOption,
+                                            isSelected,
+                                            value,
+                                            hasOtherTextInput: question.hasOtherTextInput,
+                                            shouldShow
+                                          });
+                                          return shouldShow;
+                                        })() && (
+                                          <div className="ml-4 space-y-1.5 border-l-2 border-blue-200 pl-3 pt-1 mt-2 animate-in fade-in duration-200">
                                             <label className="text-xs font-medium text-gray-600 mb-1 block">
                                               {t('reco.ui.pleaseSpecify') || 'Please specify:'}
                                             </label>
@@ -1007,8 +1026,12 @@ export default function ProgramFinder({
                                     const isOtherOption = option.value === 'other';
                                     const otherTextValue = isOtherOption && isSelected ? (answers[`${question.id}_other`] || '') : '';
                                     
+                                    // Force re-render key based on selection state
+                                    const selectedArray = Array.isArray(value) ? value : [];
+                                    const renderKey = `${question.id}-${option.value}-${isSelected ? 'selected' : 'unselected'}-${selectedArray.join(',')}`;
+                                    
                                     return (
-                                      <div key={option.value} className="space-y-1.5">
+                                      <div key={renderKey} className="space-y-1.5">
                                         <button
                                           type="button"
                                           onClick={(e) => {
@@ -1127,8 +1150,20 @@ export default function ProgramFinder({
                                         )}
                                         
                                         {/* Text input for "Other" option - support multiple entries for use_of_funds */}
-                                        {isOtherOption && isSelected && question.hasOtherTextInput && (
-                                          <div className="ml-4 space-y-1.5 border-l-2 border-blue-200 pl-3 pt-1 mt-2">
+                                        {(() => {
+                                          const shouldShow = isOtherOption && isSelected && question.hasOtherTextInput;
+                                          console.log('Other input (multi) check:', {
+                                            questionId: question.id,
+                                            optionValue: option.value,
+                                            isOtherOption,
+                                            isSelected,
+                                            value,
+                                            hasOtherTextInput: question.hasOtherTextInput,
+                                            shouldShow
+                                          });
+                                          return shouldShow;
+                                        })() && (
+                                          <div className="ml-4 space-y-1.5 border-l-2 border-blue-200 pl-3 pt-1 mt-2 animate-in fade-in duration-200">
                                             <label className="text-xs font-medium text-gray-600 mb-1 block">
                                               {question.allowMultipleOther 
                                                 ? (t('reco.ui.pleaseSpecifyMultiple') || 'Please specify (you can add multiple):')
@@ -1353,9 +1388,12 @@ export default function ProgramFinder({
                                               cleaned = cleaned.replace(/[€,\s]/g, '');
                                               // Use parseFloat to handle larger numbers, then convert to int
                                               const numValue = Math.floor(parseFloat(cleaned));
-                                              // Allow any valid number within range, not just step increments
+                                              // Allow any valid number within range, up to max (2M = 2000000 = 7 digits)
                                               if (!isNaN(numValue) && numValue >= question.min && numValue <= question.max) {
                                                 handleAnswer(question.id, numValue);
+                                              } else if (!isNaN(numValue) && numValue > question.max) {
+                                                // Cap at max
+                                                handleAnswer(question.id, question.max);
                                               }
                                             } else if (question.unit === 'years') {
                                               cleaned = cleaned.replace(/[years\s]/gi, '');
