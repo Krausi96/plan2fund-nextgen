@@ -31,6 +31,13 @@ export default function Editor({ product = 'submission' }: EditorProps) {
     categorized_requirements?: any;
     program_name?: string;
   } | null>(null);
+  // Modal states - MUST be at top level before any conditional returns
+  const [showAIModal, setShowAIModal] = useState(false);
+  const [showRequirementsModal, setShowRequirementsModal] = useState(false);
+  const [showSettingsModal, setShowSettingsModal] = useState(false);
+  const [showProgramFinderModal, setShowProgramFinderModal] = useState(false);
+  const [showQuestions, setShowQuestions] = useState(true);
+  const [showInlineTableCreator, setShowInlineTableCreator] = useState(false);
 
   // Load sections when product changes
   const loadSections = useCallback(async () => {
@@ -251,11 +258,6 @@ export default function Editor({ product = 'submission' }: EditorProps) {
     );
   }
 
-  const [showAIModal, setShowAIModal] = useState(false);
-  const [showRequirementsModal, setShowRequirementsModal] = useState(false);
-  const [showSettingsModal, setShowSettingsModal] = useState(false);
-  const [showProgramFinderModal, setShowProgramFinderModal] = useState(false);
-
   const currentSection = sections[activeSection];
   const sectionTemplate = sectionTemplates.find(t => t.id === currentSection?.key);
 
@@ -377,9 +379,6 @@ export default function Editor({ product = 'submission' }: EditorProps) {
       total: sections.length
     };
   }, [sections]);
-
-  const [showQuestions, setShowQuestions] = useState(true);
-  const [showInlineTableCreator, setShowInlineTableCreator] = useState(false);
 
   return (
     <div className="flex flex-col h-screen bg-gray-50">
