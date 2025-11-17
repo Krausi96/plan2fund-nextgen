@@ -169,6 +169,15 @@ export default function Editor({ product = 'submission' }: EditorProps) {
     }
   }, [loadSections]);
 
+  // Watch for product changes in URL and reload sections
+  useEffect(() => {
+    const { product: urlProduct } = router.query;
+    if (urlProduct && urlProduct !== product && typeof window !== 'undefined') {
+      // Product changed in URL, reload sections
+      loadSections();
+    }
+  }, [router.query.product, product, loadSections]);
+
   // Handle section content change
   const handleSectionChange = useCallback((sectionKey: string, content: string) => {
     const updatedSections = sections.map(section =>
@@ -415,16 +424,18 @@ export default function Editor({ product = 'submission' }: EditorProps) {
             </div>
           </div>
           {/* Program Selector - Simplified */}
-          <div className="bg-white/95 backdrop-blur-sm rounded-lg p-3 shadow-sm">
+          <div className="bg-white rounded-lg p-4 shadow-md border-2 border-white/50">
             <div className="max-w-[1200px] mx-auto flex gap-4 items-center">
               <div className="flex-1">
-                <label className="block text-xs text-gray-600 mb-1">Product</label>
+                <label className="block text-sm font-semibold text-gray-700 mb-2">Product Type</label>
                 <select
                   value={product}
                   onChange={(e) => {
-                    router.push({ pathname: '/editor', query: { product: e.target.value } });
+                    const newProduct = e.target.value;
+                    // Update URL and reload sections
+                    router.push({ pathname: '/editor', query: { product: newProduct } }, undefined, { shallow: false });
                   }}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm"
+                  className="w-full px-4 py-2.5 border-2 border-gray-300 rounded-lg text-sm font-medium bg-white hover:border-blue-500 focus:border-blue-500 focus:ring-2 focus:ring-blue-200 transition-colors cursor-pointer"
                 >
                   <option value="strategy">Strategy</option>
                   <option value="review">Review</option>
@@ -432,19 +443,19 @@ export default function Editor({ product = 'submission' }: EditorProps) {
                 </select>
               </div>
               <div className="flex-1">
-                <label className="block text-xs text-gray-600 mb-1">Program</label>
+                <label className="block text-sm font-semibold text-gray-700 mb-2">Funding Program</label>
                 <div className="flex gap-2">
                   <input
                     type="text"
                     value={programData?.program_name || ''}
                     readOnly
                     placeholder="No program selected"
-                    className="flex-1 px-3 py-2 border border-gray-300 rounded-lg text-sm bg-gray-50"
+                    className="flex-1 px-4 py-2.5 border-2 border-gray-300 rounded-lg text-sm bg-gray-50 font-medium"
                     title={programData ? "Program selected from recommendation flow (click 'Clear program' to remove)" : "No program selected - click 'Find Program' to search"}
                   />
                   <button
                     onClick={() => setShowProgramFinderModal(true)}
-                    className="px-3 py-2 text-sm font-medium bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors whitespace-nowrap"
+                    className="px-4 py-2.5 text-sm font-medium bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors whitespace-nowrap shadow-md hover:shadow-lg"
                     title="Find or generate a funding program"
                   >
                     {programData ? 'Change' : 'Find Program'}
@@ -471,8 +482,8 @@ export default function Editor({ product = 'submission' }: EditorProps) {
       </header>
 
       {/* ========= SECTION NAVIGATION ========= */}
-      <nav className="sticky top-[140px] z-40 bg-white border-b border-gray-200 shadow-sm">
-        <div className="max-w-7xl mx-auto px-4 py-2">
+      <nav className="sticky top-[160px] z-40 bg-white border-b-2 border-gray-300 shadow-md">
+        <div className="max-w-7xl mx-auto px-4 py-3">
           <div className="flex items-center gap-2 overflow-x-auto pb-2">
             <button
               onClick={() => setActiveSection(Math.max(0, activeSection - 1))}
@@ -534,7 +545,7 @@ export default function Editor({ product = 'submission' }: EditorProps) {
         {currentSection && (
           <div className="max-w-[1200px] mx-auto px-4 py-8">
             {/* ========= UNIFIED EDITOR BOX ========= */}
-            <div className="bg-white rounded-xl shadow-lg border border-gray-200 p-8">
+            <div className="bg-white rounded-xl shadow-xl border-2 border-gray-300 p-8 mb-6">
               {/* Section Navigation (Top of Box) */}
               <div className="flex items-center justify-between mb-6">
                 <button
@@ -644,20 +655,25 @@ export default function Editor({ product = 'submission' }: EditorProps) {
               </div>
             </div>
 
-            {/* Tables & Charts Section (Below Unified Box) */}
+            {/* Tables & Charts Section (Below Unified Box) - ALWAYS VISIBLE */}
             {(() => {
               const currentTemplate = sectionTemplates.find(t => t.id === currentSection.key);
-              if (!currentTemplate) return null;
+              if (!currentTemplate) {
+                // Show placeholder if no template
+                return (
+                  <div className="bg-white border-2 border-dashed border-gray-300 rounded-xl shadow-md p-8">
+                    <div className="text-center text-gray-500">
+                      <p className="text-lg font-semibold mb-2">📊 Tables & Charts</p>
+                      <p className="text-sm">This section doesn't support tables or charts.</p>
+                    </div>
+                  </div>
+                );
+              }
               
               const category = currentTemplate.category?.toLowerCase() || '';
               const needsTables = category === 'financial' || category === 'risk' || category === 'project';
               const optionalTables = category === 'market' || category === 'team';
               const hasTables = currentSection.tables && Object.keys(currentSection.tables).length > 0;
-              
-              // Show section if: always needs tables OR has tables OR is optional and has content
-              const shouldShow = needsTables || hasTables || (optionalTables && currentSection.content);
-              
-              if (!shouldShow) return null;
               
               // Get helpful message based on category
               const getHelpfulMessage = () => {
@@ -676,49 +692,61 @@ export default function Editor({ product = 'submission' }: EditorProps) {
               };
               
               return (
-                <div className="mb-6 bg-white border border-gray-200 rounded-lg shadow-sm p-6">
-                  <div className="flex items-center justify-between mb-4">
-                    <h3 className="text-lg font-semibold text-gray-900">📊 Tables & Charts</h3>
+                <div className="bg-white border-2 border-blue-300 rounded-xl shadow-lg p-6">
+                  <div className="flex items-center justify-between mb-4 pb-3 border-b-2 border-gray-200">
+                    <h3 className="text-xl font-bold text-gray-900 flex items-center gap-2">
+                      <span className="text-2xl">📊</span>
+                      <span>Tables & Charts</span>
+                    </h3>
                     {optionalTables && !needsTables && (
-                      <span className="text-xs text-gray-500">(Optional)</span>
+                      <span className="px-2 py-1 text-xs font-medium text-gray-600 bg-gray-100 rounded">Optional</span>
+                    )}
+                    {needsTables && (
+                      <span className="px-2 py-1 text-xs font-medium text-blue-600 bg-blue-100 rounded">Recommended</span>
                     )}
                   </div>
                   
                   {/* Helpful Message */}
-                  <div className="mb-4 p-3 bg-blue-50 border border-blue-200 rounded-lg">
-                    <p className="text-sm text-gray-700">
-                      💡 {getHelpfulMessage()}
+                  <div className="mb-4 p-4 bg-gradient-to-r from-blue-50 to-purple-50 border-2 border-blue-200 rounded-lg">
+                    <p className="text-sm font-medium text-gray-800">
+                      💡 <strong>How it works:</strong> {getHelpfulMessage()}
+                    </p>
+                    <p className="text-xs text-gray-600 mt-2">
+                      Charts are automatically generated from your table data. Create a table first, then customize the chart type.
                     </p>
                   </div>
                   
-                  {/* Add Content Buttons - Inline */}
-                  <div className="mb-4 flex gap-2">
+                  {/* Add Content Buttons - Prominent */}
+                  <div className="mb-4 flex flex-wrap gap-3">
                     <button
                       onClick={() => setShowInlineTableCreator(!showInlineTableCreator)}
-                      className="px-4 py-2 text-sm font-medium bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+                      className="px-6 py-3 text-base font-semibold bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-all shadow-md hover:shadow-lg flex items-center gap-2"
                     >
-                      ➕ Add Table
+                      <span className="text-xl">➕</span>
+                      <span>Add Table</span>
                     </button>
                     <button
                       onClick={() => {
                         if (!hasTables) {
-                          alert('Create a table first - charts visualize table data');
+                          alert('Create a table first - charts visualize table data. Click "Add Table" to get started.');
                         } else {
-                          alert('Charts are automatically created from tables. Edit your table to update the chart.');
+                          alert('Charts are automatically created from tables. Edit your table to update the chart. You can change chart types (bar, line, pie) in the chart area below.');
                         }
                       }}
-                      className="px-4 py-2 text-sm font-medium bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 transition-colors"
+                      className="px-6 py-3 text-base font-semibold bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-all shadow-md hover:shadow-lg flex items-center gap-2"
                       title="Charts are auto-generated from tables"
                     >
-                      📈 Chart (Auto)
+                      <span className="text-xl">📈</span>
+                      <span>View Charts {hasTables ? '(Auto)' : '(Create Table First)'}</span>
                     </button>
                     <button
                       onClick={() => {
                         alert('Image upload coming soon');
                       }}
-                      className="px-4 py-2 text-sm font-medium bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 transition-colors"
+                      className="px-6 py-3 text-base font-semibold bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300 transition-all shadow-md hover:shadow-lg flex items-center gap-2"
                     >
-                      📷 Add Image
+                      <span className="text-xl">📷</span>
+                      <span>Add Image</span>
                     </button>
                   </div>
 
