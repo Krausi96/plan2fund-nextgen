@@ -38,7 +38,7 @@ function PathIndicator({
             style={{ width: `${(currentStep / totalSteps) * 100}%` }}
           />
           {/* Numbered bubbles merged into progress bar */}
-          {visibleQuestions.map((q, idx) => {
+          {visibleQuestions.map((q: QuestionDefinition, idx) => {
             const isAnswered = answers[q.id] !== undefined && answers[q.id] !== null && answers[q.id] !== '' && 
                              !(Array.isArray(answers[q.id]) && answers[q.id].length === 0);
             const position = totalSteps > 1 ? (idx / (totalSteps - 1)) * 100 : 50;
@@ -83,7 +83,42 @@ interface ProgramFinderProps {
 // 6. co_financing - Used in matching (line 288 in recommend.ts)
 // NOT USED IN MATCHING (can be removed or made optional):
 // - legal_type, team_size, revenue_status, use_of_funds, impact, deadline_urgency, project_duration
-  const CORE_QUESTIONS = [
+type BaseQuestion = {
+  id: string;
+  label: string;
+  required: boolean;
+  priority: number;
+  isAdvanced: boolean;
+};
+
+type SingleSelectQuestion = BaseQuestion & {
+  type: 'single-select';
+  options: Array<{ value: string; label: string }>;
+  hasOtherTextInput?: boolean;
+  hasLegalType?: boolean;
+  hasOptionalRegion?: (value: string) => boolean;
+  hasCoFinancingPercentage?: boolean;
+};
+
+type MultiSelectQuestion = BaseQuestion & {
+  type: 'multi-select';
+  options: Array<{ value: string; label: string }>;
+  hasOtherTextInput?: boolean;
+  subCategories?: Record<string, { value: string; label: string }[]>;
+};
+
+type RangeQuestion = BaseQuestion & {
+  type: 'range';
+  min: number;
+  max: number;
+  step: number;
+  unit: string;
+  editableValue?: boolean;
+};
+
+type QuestionDefinition = SingleSelectQuestion | MultiSelectQuestion | RangeQuestion;
+
+const CORE_QUESTIONS: QuestionDefinition[] = [
   {
     id: 'company_type', // CRITICAL - Used in matching (must match)
     label: 'What type of company are you?',
@@ -213,121 +248,20 @@ interface ProgramFinderProps {
     isAdvanced: false, // Core question
   },
   {
-    id: 'impact', // NOT USED IN MATCHING - Advanced/optional
-    label: 'What impact does your project have?',
-    type: 'multi-select' as const,
-    options: [
-      { value: 'economic', label: 'Economic (Jobs, Growth)' },
-      { value: 'social', label: 'Social (Community, Society)' },
-      { value: 'environmental', label: 'Environmental (Climate, Sustainability)' },
-      { value: 'other', label: 'Other' },
-    ],
-    required: false,
-    priority: 6,
-    hasOtherTextInput: true, // Show text field when "other" is selected
-    hasImpactDetails: true, // Allow specifying details for each impact type
-    isAdvanced: true, // Advanced question - hide by default
-  },
-  {
     id: 'company_stage', // CRITICAL - Used in matching
     label: 'What stage is your company at?',
-    type: 'range' as const,
-    min: -12,
-    max: 36,
-    step: 6,
-    unit: 'months',
-    required: true,
-    priority: 4, // Moved up - this is critical!
-    editableValue: false, // Slider only, no direct input
-    isAdvanced: false, // Core question
-  },
-  {
-    id: 'use_of_funds', // NOT USED IN MATCHING - Advanced/optional
-    label: 'How will you use the funds?',
-    type: 'multi-select' as const,
-    options: [
-      { value: 'rd', label: 'Research & Development' },
-      { value: 'personnel', label: 'Personnel/Hiring' },
-      { value: 'equipment', label: 'Equipment/Infrastructure' },
-      { value: 'marketing', label: 'Marketing' },
-      { value: 'working_capital', label: 'Working Capital' },
-      { value: 'other', label: 'Other' },
-    ],
-    required: false,
-    priority: 7,
-    hasOtherTextInput: true, // Show text field when "other" is selected
-    allowMultipleOther: true, // Allow multiple "other" entries
-    isAdvanced: true, // Advanced question - hide by default
-  },
-  {
-    id: 'project_duration', // NOT USED IN MATCHING - Advanced/optional
-    label: 'How long is your project?',
-    type: 'range' as const,
-    min: 1,
-    max: 36,
-    step: 1,
-    unit: 'months',
-    required: false,
-    priority: 8,
-    editableValue: false, // Slider only, no direct input
-    isAdvanced: true, // Advanced question - hide by default
-  },
-  {
-    id: 'deadline_urgency', // NOT USED IN MATCHING - Advanced/optional
-    label: 'When do you need funding by?',
-    type: 'range' as const,
-    min: 1,
-    max: 12,
-    step: 1,
-    unit: 'months',
-    required: false,
-    priority: 9,
-    editableValue: false, // Slider only, no direct input
-    isAdvanced: true, // Advanced question - hide by default
-    skipIf: (answers: Record<string, any>) => {
-      const duration = answers.project_duration;
-      // Skip if project duration is more than 36 months (3 years)
-      if (typeof duration === 'number' && duration > 36) return true;
-      return false;
-    },
-  },
-  {
-    id: 'revenue_status', // NOT USED IN MATCHING - Advanced/optional
-    label: 'What is your current revenue status?',
     type: 'single-select' as const,
     options: [
-      { value: 'pre_revenue', label: 'Pre-revenue' },
-      { value: 'early_revenue', label: 'Early revenue (< €1M)' },
-      { value: 'growing_revenue', label: 'Growing revenue (€1M+)' },
-      { value: 'not_applicable', label: 'Not applicable' },
+      { value: 'idea', label: 'Idea / Concept' },
+      { value: 'pre_company', label: 'Pre-company (not incorporated)' },
+      { value: 'inc_lt_6m', label: 'Newly incorporated (< 6 months)' },
+      { value: 'inc_6_36m', label: 'Growing (6-36 months)' },
+      { value: 'inc_gt_36m', label: 'Established (36+ months)' },
+      { value: 'research_org', label: 'Research institution / University' },
     ],
-    required: false,
-    priority: 10,
-    isAdvanced: true, // Advanced question - hide by default
-    skipIf: (answers: Record<string, any>) => {
-      // Only skip for very early stages where revenue doesn't make sense
-      return answers.company_stage === 'idea' || 
-             answers.company_stage === 'pre_company';
-    },
-  },
-  {
-    id: 'team_size', // NOT USED IN MATCHING - Advanced/optional
-    label: 'How many people are in your team?',
-    type: 'range' as const,
-    min: 1,
-    max: 50,
-    step: 1,
-    unit: 'people',
-    quickSelectOptions: [
-      { value: '1to2', label: '1-2 people', min: 1, max: 2 },
-      { value: '3to5', label: '3-5 people', min: 3, max: 5 },
-      { value: '6to10', label: '6-10 people', min: 6, max: 10 },
-      { value: 'over10', label: 'Over 10 people', min: 10, max: 50 },
-    ],
-    required: false,
-    priority: 11,
-    editableValue: false, // Slider only, no direct input
-    isAdvanced: true, // Advanced question - hide by default
+    required: true,
+    priority: 4,
+    isAdvanced: false,
   },
 ];
 
@@ -338,17 +272,51 @@ export default function ProgramFinder({
   const { t, locale } = useI18n();
   
   // Get translated questions
-  const getTranslatedQuestions = useMemo(() => {
-    return CORE_QUESTIONS.map(q => ({
-      ...q,
-      label: (t(`reco.questions.${q.id}` as any) as string) || q.label,
-      options: (q as any).options ? (q as any).options.map((opt: any) => ({
-        ...opt,
-        label: (t(`reco.options.${q.id}.${opt.value}` as any) as string) || opt.label
-      })) : []
-    }));
+  const getTranslatedQuestions = useMemo<QuestionDefinition[]>(() => {
+    return CORE_QUESTIONS.map((q) => {
+      const translatedLabel = (t(`reco.questions.${q.id}` as any) as string) || q.label;
+      if (q.type === 'single-select' || q.type === 'multi-select') {
+        const translatedOptions = q.options.map((opt) => ({
+          ...opt,
+          label: (t(`reco.options.${q.id}.${opt.value}` as any) as string) || opt.label,
+        }));
+
+        if (q.type === 'multi-select' && q.subCategories) {
+          const translatedSubCategories = Object.fromEntries(
+            Object.entries(q.subCategories).map(([key, items]) => [
+              key,
+              items.map((subItem) => ({
+                ...subItem,
+                label:
+                  (t(`reco.options.${q.id}.${subItem.value}` as any) as string) ||
+                  subItem.label,
+              })),
+            ])
+          );
+
+          return {
+            ...q,
+            label: translatedLabel,
+            options: translatedOptions,
+            subCategories: translatedSubCategories,
+          };
+        }
+
+        return {
+          ...q,
+          label: translatedLabel,
+          options: translatedOptions,
+        };
+      }
+
+      return {
+        ...q,
+        label: translatedLabel,
+      };
+    });
   }, [t]);
   const [results, setResults] = useState<EnhancedProgramResult[]>([]);
+  const [debugInfo, setDebugInfo] = useState<Record<string, any> | null>(null);
   const [noResultsHint, setNoResultsHint] = useState<{ en: string; de: string } | null>(null);
   const defaultNoResultsHint = useMemo(() => ({
     en: 'No programs matched yet. Increase your funding range or allow additional funding types such as loans or equity.',
@@ -375,16 +343,7 @@ export default function ProgramFinder({
   const [mobileActiveTab, setMobileActiveTab] = useState<'questions' | 'results'>('questions');
   
   // Get visible questions (with skip logic)
-  const getVisibleQuestions = () => {
-    return getTranslatedQuestions.filter(q => {
-      // Skip if skipIf condition is met
-      if (q.skipIf && q.skipIf(answers)) return false;
-      // Always show advanced questions (toggle removed)
-      return true;
-    });
-  };
-  
-  const visibleQuestions = getVisibleQuestions();
+  const visibleQuestions = getTranslatedQuestions;
   
   // Ensure currentQuestionIndex is within bounds
   useEffect(() => {
@@ -452,34 +411,6 @@ export default function ProgramFinder({
       return newAnswers;
     });
   }, []);
-
-  useEffect(() => {
-    if (answers.company_stage === undefined) {
-      handleAnswer('company_stage', 0);
-    }
-  }, [answers.company_stage, handleAnswer]);
-
-  // Initialize company_stage classification if months value exists but classification doesn't
-  useEffect(() => {
-    if (typeof answers.company_stage === 'number' && !answers.company_stage_classified) {
-      const months = answers.company_stage;
-      let stage = 'pre_company';
-      if (months < 0) {
-        stage = 'pre_company';
-      } else if (months < 6) {
-        stage = 'early_stage';
-      } else if (months < 12) {
-        stage = 'launch_stage';
-      } else if (months < 24) {
-        stage = 'growth_stage';
-      } else if (months < 36) {
-        stage = 'established';
-      } else {
-        stage = 'mature';
-      }
-      handleAnswer('company_stage_classified', stage);
-    }
-  }, [answers.company_stage, answers.company_stage_classified, handleAnswer]);
 
   // Removed handleViewAllResults - results are shown inline in ProgramFinder
   
@@ -626,7 +557,7 @@ export default function ProgramFinder({
                 {answersSummaryExpanded && (
                   <div className="mt-2 pt-2 border-t border-gray-200 max-h-96 overflow-y-auto">
                     <div className="space-y-1.5 text-xs">
-                      {visibleQuestions.map((q, idx) => {
+                      {visibleQuestions.map((q: QuestionDefinition, idx) => {
                         const value = answers[q.id];
                         const isAnswered = value !== undefined && value !== null && value !== '' && 
                                          !(Array.isArray(value) && value.length === 0);
@@ -832,17 +763,9 @@ export default function ProgramFinder({
                                                 locale === 'de' 
                                                   ? (question.id === 'company_type' 
                                                       ? 'z.B. Verein, Genossenschaft, Stiftung'
-                                                      : question.id === 'impact'
-                                                      ? 'z.B. Bildung, Gesundheit, Kultur'
-                                                      : question.id === 'company_stage'
-                                                      ? 'z.B. Spin-off, Ausgründung, etc.'
                                                       : 'Bitte angeben...')
                                                   : (question.id === 'company_type'
                                                       ? 'e.g., Association, Cooperative, Foundation'
-                                                      : question.id === 'impact'
-                                                      ? 'e.g., Education, Health, Culture'
-                                                      : question.id === 'company_stage'
-                                                      ? 'e.g., Spin-off, Spin-out, etc.'
                                                       : 'Please specify...')
                                               }
                                               value={otherTextValue}
@@ -857,20 +780,6 @@ export default function ProgramFinder({
                                                 {locale === 'de' 
                                                   ? 'Beispiele: Verein, Genossenschaft, Stiftung, GmbH, AG, etc.'
                                                   : 'Examples: Association, Cooperative, Foundation, LLC, Inc., etc.'}
-                                              </p>
-                                            )}
-                                            {question.id === 'impact' && (
-                                              <p className="text-xs text-gray-500 mt-1">
-                                                {locale === 'de'
-                                                  ? 'Beispiele: Bildung, Gesundheit, Kultur, Forschung, Innovation, etc.'
-                                                  : 'Examples: Education, Health, Culture, Research, Innovation, etc.'}
-                                              </p>
-                                            )}
-                                            {question.id === 'company_stage' && (
-                                              <p className="text-xs text-gray-500 mt-1">
-                                                {locale === 'de'
-                                                  ? 'Beispiele: Spin-off, Ausgründung, Tochtergesellschaft, etc.'
-                                                  : 'Examples: Spin-off, Spin-out, Subsidiary, etc.'}
                                               </p>
                                             )}
                                           </div>
@@ -1123,149 +1032,30 @@ export default function ProgramFinder({
                                           </div>
                                         )}
                                         
-                                        {/* Text input for "Other" option - support multiple entries for use_of_funds */}
+                                        {/* Text input for "Other" option */}
                                         {isOtherOption && Array.isArray(value) && value.includes('other') && question.hasOtherTextInput && (
                                           <div className="ml-4 space-y-1.5 border-l-2 border-blue-200 pl-3 pt-1 mt-2 animate-in fade-in duration-200">
                                             <label className="text-xs font-medium text-gray-600 mb-1 block">
-                                              {question.allowMultipleOther 
-                                                ? (t('reco.ui.pleaseSpecifyMultiple') || 'Please specify (you can add multiple):')
-                                                : (t('reco.ui.pleaseSpecify') || 'Please specify:')}
-                                            </label>
-                                            {question.allowMultipleOther ? (
-                                              // Multiple "other" entries - show array of inputs
-                                              <div className="space-y-2">
-                                                {Array.isArray(answers[`${question.id}_other`]) && answers[`${question.id}_other`].length > 0 ? (
-                                                  (answers[`${question.id}_other`] as string[]).map((item: string, idx: number) => (
-                                                    <div key={idx} className="flex gap-2">
-                                                      <input
-                                                        type="text"
-                                                        placeholder={t('reco.ui.enterAnswer') || 'Enter your answer...'}
-                                                        value={item}
-                                                        onChange={(e) => {
-                                                          const current = answers[`${question.id}_other`] as string[] || [];
-                                                          const updated = [...current];
-                                                          updated[idx] = e.target.value;
-                                                          handleAnswer(`${question.id}_other`, updated);
-                                                        }}
-                                                        className="flex-1 px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                                                      />
-                                                      <button
-                                                        onClick={() => {
-                                                          const current = answers[`${question.id}_other`] as string[] || [];
-                                                          const updated = current.filter((_, i) => i !== idx);
-                                                          handleAnswer(`${question.id}_other`, updated.length > 0 ? updated : undefined);
-                                                        }}
-                                                        className="px-2 text-red-600 hover:text-red-800"
-                                                        type="button"
-                                                      >
-                                                        ×
-                                                      </button>
-                                                    </div>
-                                                  ))
-                                                ) : (
-                                                  <input
-                                                    type="text"
-                                                    placeholder={
-                                                      locale === 'de'
-                                                        ? (question.id === 'industry_focus'
-                                                            ? 'z.B. Tourismus, Landwirtschaft, Energie'
-                                                            : question.id === 'use_of_funds'
-                                                            ? 'z.B. Marketing, Vertrieb, etc.'
-                                                            : 'Bitte angeben...')
-                                                        : (question.id === 'industry_focus'
-                                                            ? 'e.g., Tourism, Agriculture, Energy'
-                                                            : question.id === 'use_of_funds'
-                                                            ? 'e.g., Marketing, Sales, etc.'
-                                                            : 'Please specify...')
-                                                    }
-                                                    value={otherTextValue}
-                                                    onChange={(e) => {
-                                                      handleAnswer(`${question.id}_other`, [e.target.value]);
-                                                    }}
-                                                    className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                                                    autoFocus
-                                                  />
-                                                )}
-                                                <button
-                                                  onClick={() => {
-                                                    const current = answers[`${question.id}_other`] as string[] || [];
-                                                    handleAnswer(`${question.id}_other`, [...(current.length > 0 ? current : ['']), '']);
-                                                  }}
-                                                  className="text-xs text-blue-600 hover:text-blue-800 underline"
-                                                  type="button"
-                                                >
-                                                  {t('reco.ui.addAnother') || '+ Add another'}
-                                                </button>
-                                              </div>
-                                            ) : (
-                                              // Single "other" entry
-                                              <div>
-                                                <input
-                                                  type="text"
-                                                  placeholder={
-                                                    locale === 'de'
-                                                      ? (question.id === 'industry_focus'
-                                                          ? 'z.B. Tourismus, Landwirtschaft, Energie'
-                                                          : question.id === 'use_of_funds'
-                                                          ? 'z.B. Marketing, Vertrieb, etc.'
-                                                          : 'Bitte angeben...')
-                                                      : (question.id === 'industry_focus'
-                                                          ? 'e.g., Tourism, Agriculture, Energy'
-                                                          : question.id === 'use_of_funds'
-                                                          ? 'e.g., Marketing, Sales, etc.'
-                                                          : 'Please specify...')
-                                                  }
-                                                  value={otherTextValue}
-                                                  onChange={(e) => {
-                                                    handleAnswer(`${question.id}_other`, e.target.value);
-                                                  }}
-                                                  className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                                                  autoFocus
-                                                />
-                                                {question.id === 'industry_focus' && (
-                                                  <p className="text-xs text-gray-500 mt-1">
-                                                    {locale === 'de'
-                                                      ? 'Beispiele: Tourismus, Landwirtschaft, Energie, Handel, Dienstleistungen, etc.'
-                                                      : 'Examples: Tourism, Agriculture, Energy, Trade, Services, etc.'}
-                                                  </p>
-                                                )}
-                                                {question.id === 'use_of_funds' && (
-                                                  <p className="text-xs text-gray-500 mt-1">
-                                                    {locale === 'de'
-                                                      ? 'Beispiele: Marketing, Vertrieb, IT-Infrastruktur, etc.'
-                                                      : 'Examples: Marketing, Sales, IT Infrastructure, etc.'}
-                                                  </p>
-                                                )}
-                                              </div>
-                                            )}
-                                          </div>
-                                        )}
-                                        
-                                        {/* Impact details input - allow specifying details for each impact type */}
-                                        {question.hasImpactDetails && isSelected && !isOtherOption && (option.value === 'economic' || option.value === 'social' || option.value === 'environmental') && (
-                                          <div className="ml-4 space-y-1.5 border-l-2 border-blue-200 pl-3 pt-1">
-                                            <label className="text-xs font-medium text-gray-600 mb-1 block">
-                                              {option.value === 'economic' 
-                                                ? (t('reco.ui.specifyEconomicImpact') || 'Specify economic impact (e.g., job creation, GDP growth):')
-                                                : option.value === 'social'
-                                                ? (t('reco.ui.specifySocialImpact') || 'Specify social impact (e.g., community benefit, accessibility):')
-                                                : (t('reco.ui.specifyEnvironmentalImpact') || 'Specify environmental impact (e.g., CO2 reduction, sustainability):')}
+                                              {t('reco.ui.pleaseSpecify') || 'Please specify:'}
                                             </label>
                                             <input
                                               type="text"
-                                              placeholder={option.value === 'economic' 
-                                                ? (t('reco.ui.impactEconomicPlaceholder') || 'e.g., Create 50 jobs, increase regional GDP')
-                                                : option.value === 'social'
-                                                ? (t('reco.ui.impactSocialPlaceholder') || 'e.g., Improve healthcare access, support education')
-                                                : (t('reco.ui.impactEnvironmentalPlaceholder') || 'e.g., Reduce CO2 by 30%, promote circular economy')}
-                                              value={(answers[`${question.id}_${option.value}`] as string) || ''}
+                                              placeholder={
+                                                locale === 'de'
+                                                  ? 'Bitte angeben...'
+                                                  : 'Please specify...'
+                                              }
+                                              value={otherTextValue}
                                               onChange={(e) => {
-                                                handleAnswer(`${question.id}_${option.value}`, e.target.value);
+                                                handleAnswer(`${question.id}_other`, e.target.value);
                                               }}
                                               className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                                              autoFocus
                                             />
                                           </div>
                                         )}
+                                        
+                                        
                                       </div>
                                     );
                                   })}
@@ -1287,187 +1077,181 @@ export default function ProgramFinder({
                                   )}
                                 </div>
                               )}
-                              {question.type === 'range' && (
-                                <div className="space-y-4">
-                                  {/* Slider */}
-                                  <div className="space-y-2">
-                                    <div className="flex items-center justify-between mb-2">
-                                      <span className="text-sm text-gray-600">
-                                        {question.unit === 'EUR' ? '€' : ''}
-                                        {question.min.toLocaleString('de-DE')}
-                                        {question.unit === 'EUR' ? '' : question.unit === 'months' ? ` ${t('reco.ui.sliderMonths') || 'months'}` : question.unit === 'people' ? ` ${t('reco.ui.sliderPeople') || 'people'}` : ` ${question.unit}`}
-                                      </span>
-                                      <span className="text-sm text-gray-600">
-                                        {question.unit === 'EUR' ? '€' : ''}
-                                        {question.max.toLocaleString('de-DE')}
-                                        {question.unit === 'EUR' ? '' : question.unit === 'months' ? ` ${t('reco.ui.sliderMonths') || 'months'}` : question.unit === 'people' ? ` ${t('reco.ui.sliderPeople') || 'people'}` : ` ${question.unit}`}
-                                      </span>
-                                    </div>
-                                    <input
-                                      type="range"
-                                      min={question.min}
-                                      max={question.max}
-                                      step={question.step}
-                                      value={typeof value === 'number' ? value : question.min}
-                                      onChange={(e) => {
-                                        const numValue = question.unit === 'years' 
-                                          ? parseFloat(e.target.value)
-                                          : parseInt(e.target.value);
-                                        handleAnswer(question.id, numValue);
-                                        // Auto-classify company stage for Q6
-                                        if (question.id === 'company_stage') {
-                                          const months = numValue;
-                                          let stage = 'pre_company';
-                                          if (months < 0) {
-                                            stage = 'pre_company';
-                                          } else if (months < 6) {
-                                            stage = 'early_stage';
-                                          } else if (months < 12) {
-                                            stage = 'launch_stage';
-                                          } else if (months < 24) {
-                                            stage = 'growth_stage';
-                                          } else if (months < 36) {
-                                            stage = 'established';
-                                          } else {
-                                            stage = 'mature';
-                                          }
-                                          handleAnswer('company_stage_classified', stage);
-                                        }
-                                      }}
-                                      className="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer accent-blue-600"
-                                      style={{
-                                        background: question.min < 0 
-                                          ? `linear-gradient(to right, #2563eb 0%, #2563eb ${Math.max(0, Math.min(100, ((typeof value === 'number' ? value : question.min) - question.min) / (question.max - question.min) * 100))}%, #e5e7eb ${Math.max(0, Math.min(100, ((typeof value === 'number' ? value : question.min) - question.min) / (question.max - question.min) * 100))}%, #e5e7eb 100%)`
-                                          : `linear-gradient(to right, #2563eb 0%, #2563eb ${((typeof value === 'number' ? value : question.min) - question.min) / (question.max - question.min) * 100}%, #e5e7eb ${((typeof value === 'number' ? value : question.min) - question.min) / (question.max - question.min) * 100}%, #e5e7eb 100%)`
-                                      }}
-                                    />
-                                    <div className="text-center mt-3">
-                                      {/* Company Stage: Show months + classification */}
-                                      {question.id === 'company_stage' && (
-                                        <div className="space-y-1">
-                                          <div className="text-base font-semibold text-gray-800">
-                                            {typeof value === 'number' ? value : question.min} {t('reco.ui.sliderMonths') || 'months'}
-                                          </div>
-                                          <div className="text-base font-semibold text-blue-600">
-                                            {(() => {
-                                              const months = typeof value === 'number' ? value : question.min;
-                                              if (months < 0) {
-                                                return locale === 'de' ? 'Vor Gründung' : 'Pre Incorporation';
-                                              } else if (months < 6) {
-                                                return locale === 'de' ? 'Frühe Phase (0-6 Monate)' : 'Early Stage (0-6 months)';
-                                              } else if (months < 12) {
-                                                return locale === 'de' ? 'Launch Phase (6-12 Monate)' : 'Launch Stage (6-12 months)';
-                                              } else if (months < 24) {
-                                                return locale === 'de' ? 'Wachstumsphase (12-24 Monate)' : 'Growth Stage (12-24 months)';
-                                              } else if (months < 36) {
-                                                return locale === 'de' ? 'Etabliert (24-36 Monate)' : 'Established (24-36 months)';
-                                              } else {
-                                                return locale === 'de' ? 'Reif (36+ Monate)' : 'Mature (36+ months)';
-                                              }
-                                            })()}
-                                          </div>
-                                        </div>
-                                      )}
-                                      {question.id !== 'company_stage' && question.editableValue && question.unit === 'EUR' ? (
-                                        <div className="mt-4">
-                                          <div className="flex items-center justify-center gap-2">
-                                            <span className="text-lg font-semibold text-gray-700">€</span>
-                                            <input
-                                              type="text"
-                                              value={rawInputValues[question.id] !== undefined 
-                                                ? rawInputValues[question.id]
-                                                : typeof value === 'number' 
-                                                ? value.toLocaleString('de-DE')
-                                                : question.min.toLocaleString('de-DE')}
-                                              onChange={(e) => {
-                                                let inputValue = e.target.value.replace(/[^\d]/g, '');
-                                                // Store raw input for free typing
-                                                setRawInputValues(prev => ({ ...prev, [question.id]: inputValue }));
-                                                
-                                                if (inputValue === '') return;
-                                                
-                                                const numValue = Math.floor(parseFloat(inputValue));
-                                                
-                                                if (!isNaN(numValue)) {
-                                                  if (numValue >= question.min && numValue <= question.max) {
-                                                    handleAnswer(question.id, numValue);
-                                                  } else if (numValue > question.max) {
-                                                    handleAnswer(question.id, question.max);
-                                                    setRawInputValues(prev => ({ ...prev, [question.id]: question.max.toString() }));
+                              {question.type === 'range' && (() => {
+                                const rangeQuestion = question;
+                                const sliderValue = typeof value === 'number' ? value : rangeQuestion.min;
+
+                                const formatRangeValue = (val: number) => {
+                                  if (rangeQuestion.unit === 'EUR') {
+                                    return `€${val.toLocaleString('de-DE')}`;
+                                  }
+                                  if (rangeQuestion.unit === 'months') {
+                                    return `${val} ${t('reco.ui.sliderMonths') || 'months'}`;
+                                  }
+                                  if (rangeQuestion.unit === 'people') {
+                                    return `${val} ${t('reco.ui.sliderPeople') || 'people'}`;
+                                  }
+                                  if (rangeQuestion.unit === 'years') {
+                                    return `${val.toFixed(1)} ${rangeQuestion.unit}`;
+                                  }
+                                  return `${val} ${rangeQuestion.unit}`;
+                                };
+
+                                return (
+                                  <div className="space-y-4">
+                                    <div className="space-y-2">
+                                      <div className="flex items-center justify-between mb-2">
+                                        <span className="text-sm text-gray-600">
+                                          {rangeQuestion.unit === 'EUR' ? '€' : ''}
+                                          {rangeQuestion.min.toLocaleString('de-DE')}
+                                          {rangeQuestion.unit === 'EUR'
+                                            ? ''
+                                            : rangeQuestion.unit === 'months'
+                                            ? ` ${t('reco.ui.sliderMonths') || 'months'}`
+                                            : rangeQuestion.unit === 'people'
+                                            ? ` ${t('reco.ui.sliderPeople') || 'people'}`
+                                            : ` ${rangeQuestion.unit}`}
+                                        </span>
+                                        <span className="text-sm text-gray-600">
+                                          {rangeQuestion.unit === 'EUR' ? '€' : ''}
+                                          {rangeQuestion.max.toLocaleString('de-DE')}
+                                          {rangeQuestion.unit === 'EUR'
+                                            ? ''
+                                            : rangeQuestion.unit === 'months'
+                                            ? ` ${t('reco.ui.sliderMonths') || 'months'}`
+                                            : rangeQuestion.unit === 'people'
+                                            ? ` ${t('reco.ui.sliderPeople') || 'people'}`
+                                            : ` ${rangeQuestion.unit}`}
+                                        </span>
+                                      </div>
+                                      <input
+                                        type="range"
+                                        min={rangeQuestion.min}
+                                        max={rangeQuestion.max}
+                                        step={rangeQuestion.step}
+                                        value={sliderValue}
+                                        onChange={(e) => {
+                                          const numValue =
+                                            rangeQuestion.unit === 'years'
+                                              ? parseFloat(e.target.value)
+                                              : parseInt(e.target.value, 10);
+                                          handleAnswer(rangeQuestion.id, numValue);
+                                        }}
+                                        className="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer accent-blue-600"
+                                        style={{
+                                          background: rangeQuestion.min < 0
+                                            ? `linear-gradient(to right, #2563eb 0%, #2563eb ${Math.max(
+                                                0,
+                                                Math.min(
+                                                  100,
+                                                  ((sliderValue - rangeQuestion.min) /
+                                                    (rangeQuestion.max - rangeQuestion.min)) *
+                                                    100
+                                                )
+                                              )}%, #e5e7eb ${Math.max(
+                                                0,
+                                                Math.min(
+                                                  100,
+                                                  ((sliderValue - rangeQuestion.min) /
+                                                    (rangeQuestion.max - rangeQuestion.min)) *
+                                                    100
+                                                )
+                                              )}%, #e5e7eb 100%)`
+                                            : `linear-gradient(to right, #2563eb 0%, #2563eb ${
+                                                ((sliderValue - rangeQuestion.min) /
+                                                  (rangeQuestion.max - rangeQuestion.min)) *
+                                                100
+                                              }%, #e5e7eb ${
+                                                ((sliderValue - rangeQuestion.min) /
+                                                  (rangeQuestion.max - rangeQuestion.min)) *
+                                                100
+                                              }%, #e5e7eb 100%)`,
+                                        }}
+                                      />
+                                      <div className="text-center mt-3">
+                                        {rangeQuestion.editableValue && rangeQuestion.unit === 'EUR' ? (
+                                          <div className="mt-4">
+                                            <div className="flex items-center justify-center gap-2">
+                                              <span className="text-lg font-semibold text-gray-700">€</span>
+                                              <input
+                                                type="text"
+                                                value={
+                                                  rawInputValues[rangeQuestion.id] !== undefined
+                                                    ? rawInputValues[rangeQuestion.id]
+                                                    : sliderValue.toLocaleString('de-DE')
+                                                }
+                                                onChange={(e) => {
+                                                  const inputValue = e.target.value.replace(/[^\d]/g, '');
+                                                  setRawInputValues((prev) => ({
+                                                    ...prev,
+                                                    [rangeQuestion.id]: inputValue,
+                                                  }));
+                                                  if (inputValue === '') return;
+                                                  const numValue = Math.floor(parseFloat(inputValue));
+                                                  if (!isNaN(numValue)) {
+                                                    const clamped = Math.max(
+                                                      rangeQuestion.min,
+                                                      Math.min(rangeQuestion.max, numValue)
+                                                    );
+                                                    handleAnswer(rangeQuestion.id, clamped);
                                                   }
-                                                }
-                                              }}
-                                              onFocus={() => {
-                                                const currentValue = typeof value === 'number' ? value : question.min;
-                                                setRawInputValues(prev => ({ 
-                                                  ...prev, 
-                                                  [question.id]: currentValue.toString()
-                                                }));
-                                              }}
-                                              onBlur={(e) => {
-                                                let cleaned = e.target.value.replace(/[^\d]/g, '');
-                                                const numValue = Math.floor(parseFloat(cleaned || '0'));
-                                                setRawInputValues(prev => {
-                                                  const newState = { ...prev };
-                                                  delete newState[question.id];
-                                                  return newState;
-                                                });
-                                                if (isNaN(numValue) || numValue < question.min) {
-                                                  handleAnswer(question.id, question.min);
-                                                } else if (numValue > question.max) {
-                                                  handleAnswer(question.id, question.max);
-                                                } else if (!isNaN(numValue)) {
-                                                  handleAnswer(question.id, numValue);
-                                                }
-                                              }}
-                                              placeholder={`${question.min.toLocaleString('de-DE')} - ${question.max.toLocaleString('de-DE')}`}
-                                              className="w-48 px-4 py-3 border-2 border-blue-300 rounded-lg text-lg font-semibold focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-center bg-white shadow-sm"
-                                            />
+                                                }}
+                                                onFocus={() => {
+                                                  setRawInputValues((prev) => ({
+                                                    ...prev,
+                                                    [rangeQuestion.id]: sliderValue.toString(),
+                                                  }));
+                                                }}
+                                                onBlur={(e) => {
+                                                  const cleaned = e.target.value.replace(/[^\d]/g, '');
+                                                  const numValue = Math.floor(parseFloat(cleaned || '0'));
+                                                  setRawInputValues((prev) => {
+                                                    const next = { ...prev };
+                                                    delete next[rangeQuestion.id];
+                                                    return next;
+                                                  });
+                                                  if (isNaN(numValue) || numValue < rangeQuestion.min) {
+                                                    handleAnswer(rangeQuestion.id, rangeQuestion.min);
+                                                  } else if (numValue > rangeQuestion.max) {
+                                                    handleAnswer(rangeQuestion.id, rangeQuestion.max);
+                                                  } else {
+                                                    handleAnswer(rangeQuestion.id, numValue);
+                                                  }
+                                                }}
+                                                placeholder={`${rangeQuestion.min.toLocaleString(
+                                                  'de-DE'
+                                                )} - ${rangeQuestion.max.toLocaleString('de-DE')}`}
+                                                className="w-48 px-4 py-3 border-2 border-blue-300 rounded-lg text-lg font-semibold focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-center bg-white shadow-sm"
+                                              />
+                                            </div>
                                           </div>
-                                        </div>
-                                      ) : question.id !== 'company_stage' && (
-                                        <div className="text-base font-semibold text-gray-800">
-                                          {typeof value === 'number' 
-                                            ? (question.unit === 'EUR' 
-                                                ? `€${value.toLocaleString('de-DE')}`
-                                                : question.unit === 'years'
-                                                ? `${value.toFixed(1)} ${question.unit}`
-                                                : question.unit === 'months'
-                                                ? `${value} ${t('reco.ui.sliderMonths') || 'months'}`
-                                                : question.unit === 'people'
-                                                ? `${value} ${t('reco.ui.sliderPeople') || 'people'}`
-                                                : `${value} ${question.unit}`)
-                                            : (question.unit === 'EUR' 
-                                                ? `€${question.min.toLocaleString('de-DE')}`
-                                                : question.unit === 'years'
-                                                ? `${question.min.toFixed(1)} ${question.unit}`
-                                                : question.unit === 'months'
-                                                ? `${question.min} ${t('reco.ui.sliderMonths') || 'months'}`
-                                                : question.unit === 'people'
-                                                ? `${question.min} ${t('reco.ui.sliderPeople') || 'people'}`
-                                                : `${question.min} ${question.unit}`)}
-                                        </div>
-                                      )}
+                                        ) : (
+                                          <div className="text-base font-semibold text-gray-800">
+                                            {formatRangeValue(sliderValue)}
+                                          </div>
+                                        )}
+                                      </div>
                                     </div>
+
+                                    {!rangeQuestion.required && (
+                                      <button
+                                        onClick={() => {
+                                          handleAnswer(rangeQuestion.id, undefined);
+                                          if (currentQuestionIndex < visibleQuestions.length - 1) {
+                                            setTimeout(
+                                              () => setCurrentQuestionIndex(currentQuestionIndex + 1),
+                                              300
+                                            );
+                                          }
+                                        }}
+                                        className="w-full mt-3 px-4 py-2.5 text-sm font-medium text-gray-700 hover:text-gray-900 border-2 border-gray-300 rounded-lg hover:bg-gray-100 hover:border-gray-400 transition-all"
+                                      >
+                                        {t('reco.skipQuestion') || 'Skip this question'} →
+                                      </button>
+                                    )}
                                   </div>
-                                  
-                                  {/* Skip Button for Range/Slider Questions */}
-                                  {!question.required && (
-                                    <button
-                                      onClick={() => {
-                                        handleAnswer(question.id, undefined);
-                                        // Auto-advance after skipping
-                                        if (currentQuestionIndex < visibleQuestions.length - 1) {
-                                          setTimeout(() => setCurrentQuestionIndex(currentQuestionIndex + 1), 300);
-                                        }
-                                      }}
-                                      className="w-full mt-3 px-4 py-2.5 text-sm font-medium text-gray-700 hover:text-gray-900 border-2 border-gray-300 rounded-lg hover:bg-gray-100 hover:border-gray-400 transition-all"
-                                    >
-                                      {t('reco.skipQuestion') || 'Skip this question'} →
-                                    </button>
-                                  )}
-                                </div>
-                              )}
+                                );
+                              })()}
                               
                               {question.type !== 'range' && question.type !== 'single-select' && question.type !== 'multi-select' && (
                                 <div className="text-sm text-gray-500">
@@ -1541,6 +1325,24 @@ export default function ProgramFinder({
                     : 'Here are the most suitable funding programs for you.'}
                 </DialogDescription>
               </DialogHeader>
+              {debugInfo && (
+                <div className="bg-gray-50 border border-gray-200 rounded-lg p-3 text-xs text-gray-600 mb-4 space-y-1">
+                  <div>
+                    <strong>LLM:</strong>{' '}
+                    {debugInfo.llmError
+                      ? `Error - ${debugInfo.llmError}`
+                      : 'Success'}
+                  </div>
+                  <div>
+                    <strong>Generated:</strong> {debugInfo.llmProgramCount ?? 'n/a'} / <strong>After filtering:</strong> {debugInfo.afterFiltering ?? 'n/a'}
+                  </div>
+                  {typeof debugInfo.fallbackUsed === 'boolean' && (
+                    <div>
+                      <strong>Fallback used:</strong> {debugInfo.fallbackUsed ? 'Yes' : 'No'}
+                    </div>
+                  )}
+                </div>
+              )}
               <div className="space-y-4 mt-4">
                 {results.length === 0 ? (
                   <div className="text-center py-8">
@@ -1567,6 +1369,11 @@ export default function ProgramFinder({
                           <h3 className="text-xl font-semibold text-gray-900">
                             {program.name || `Program ${index + 1}`}
                           </h3>
+                        {program.source === 'fallback' && (
+                          <span className="px-2 py-1 text-xs rounded-full bg-yellow-100 text-yellow-800 border border-yellow-300">
+                            Fallback
+                          </span>
+                        )}
                           {program.score !== undefined && (
                             <span className={`px-3 py-1 rounded-full text-sm font-medium ${
                               program.score >= 70 ? 'bg-green-100 text-green-800' :
@@ -1713,6 +1520,7 @@ export default function ProgramFinder({
                   }
                   
                   const data = await response.json();
+                  setDebugInfo(data.debug || null);
                   console.log('📦 API Response data:', {
                     success: data.success,
                     count: data.count,
@@ -1764,6 +1572,7 @@ export default function ProgramFinder({
                       alert('No programs were generated. This is unexpected - please try again or contact support. The system should always return at least some programs.');
                     }
                     setEmptyResults();
+                    setDebugInfo(null);
                     setIsLoading(false);
                     return;
                   }
@@ -1799,18 +1608,17 @@ export default function ProgramFinder({
                   console.log('📈 Score distribution:', scored.map(p => ({ name: p.name, score: p.score })));
                   
                   const sorted = scored.sort((a, b) => b.score - a.score);
-                  const top5 = sorted.slice(0, 5);
-                  console.log(`🎯 Top 5 programs:`, top5.map(p => ({ name: p.name, score: p.score })));
+                  console.log(`🎯 Sorted programs:`, sorted.map(p => ({ name: p.name, score: p.score })));
                   
-                  if (top5.length > 0) {
-                    setResults(top5);
+                  if (sorted.length > 0) {
+                    setResults(sorted);
                     setNoResultsHint(null);
                   } else {
                     setEmptyResults();
                   }
-                  console.log(`✅ Set ${top5.length} results in state`);
+                  console.log(`✅ Set ${sorted.length} results in state`);
                   
-                  if (top5.length > 0) {
+                  if (sorted.length > 0) {
                     setMobileActiveTab('results');
                     console.log('✅ Switched to results tab');
                     console.log('✅ Dialog should open now (results.length > 0 && !isLoading)');
@@ -1831,6 +1639,7 @@ export default function ProgramFinder({
                     message: error.message,
                     stack: error.stack,
                   });
+                  setDebugInfo(null);
                   alert(locale === 'de' 
                     ? `Fehler beim Generieren der Förderprogramme: ${error.message || 'Unbekannter Fehler'}`
                     : `Error generating programs: ${error.message || 'Unknown error'}`);

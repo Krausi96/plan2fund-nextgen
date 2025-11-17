@@ -54,9 +54,13 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
   let generated: GeneratedProgram[] = [];
   let llmError: string | null = null;
+  let llmRawResponse: string | null = null;
+  let fallbackUsed = false;
 
   try {
-    generated = await generateProgramsWithLLM(answers, maxResults * 2);
+    const generation = await generateProgramsWithLLM(answers, maxResults * 2);
+    generated = generation.programs;
+    llmRawResponse = generation.raw;
   } catch (error: any) {
     llmError = error?.message || 'Unknown LLM error';
     console.error('generateProgramsWithLLM failed:', llmError);
@@ -66,9 +70,11 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   if (matching.length === 0 && generated.length > 0) {
     // Surface something instead of empty response
     matching = generated;
+    fallbackUsed = true;
   }
   if (matching.length === 0) {
     matching = buildFallbackPrograms(answers, maxResults);
+    fallbackUsed = true;
   }
 
   return res.status(200).json({
@@ -80,11 +86,13 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       llmProgramCount: generated.length,
       afterFiltering: matching.length,
       llmError,
+      llmRaw: llmRawResponse,
+      fallbackUsed,
     },
   });
 }
 
-async function generateProgramsWithLLM(answers: UserAnswers, maxPrograms: number): Promise<GeneratedProgram[]> {
+async function generateProgramsWithLLM(answers: UserAnswers, maxPrograms: number): Promise<{ programs: GeneratedProgram[]; raw: string | null }> {
   const profile = summarizeProfile(answers);
   const fundingPreference = inferFundingPreference(answers);
 
@@ -97,33 +105,62 @@ Rules:
 1. Include only programs available in the specified location or EU-wide if appropriate.
 2. Company type and stage must be compatible with the user.
 3. Funding range should align with the user's need (be lenient but stay relevant).
-4. Every program must include a funding_types array describing the instrument (grant, loan, equity, guarantee, subsidy, convertible, other).`;
+4. Every program must include a funding_types array describing the instrument (grant, loan, equity, guarantee, subsidy, convertible, other).
+5. If a value is unknown, return null for that key but keep the key.
 
-  if (fundingPreference.allowMix) {
-    instructions += `\n5. Provide a mix of funding instruments. Include at least one grant AND at least one non-grant option (loan, guarantee, or equity) if the profile can work with them.`;
-  } else {
-    instructions += `\n5. The user can only work with grants/subsidies. Do not suggest loans, guarantees, or equity instruments.`;
-  }
-
-  instructions += `
-
-Return a JSON object:
+Return JSON only with this exact structure:
 {
   "programs": [
     {
-      "id": "optional-id",
-      "name": "...",
+      "id": "string",
+      "name": "string",
       "website": "https://example.com",
-      "funding_types": ["grant", "loan"],
+      "funding_types": ["grant","loan"],
       "funding_amount_min": 5000,
       "funding_amount_max": 20000,
       "currency": "EUR",
       "location": "Austria",
       "company_type": "startup",
-      "description": "short summary"
+      "company_stage": "inc_lt_6m",
+      "description": "Two sentences explaining the program, audience, and amount",
+      "metadata": {
+        "region": "Austria",
+        "program_focus": ["digital","innovation"]
+      },
+      "categorized_requirements": {}
+    }
+  ]
+}
+
+Example:
+{
+  "programs": [
+    {
+      "id": "aws_seedfinancing",
+      "name": "AWS Seedfinancing",
+      "website": "https://www.aws.at/seedfinancing",
+      "funding_types": ["grant"],
+      "funding_amount_min": 50000,
+      "funding_amount_max": 800000,
+      "currency": "EUR",
+      "location": "Austria",
+      "company_type": "startup",
+      "company_stage": "inc_6_36m",
+      "description": "Austria Wirtschaftsservice supports innovative startups with grants for prototypes and market entry.",
+      "metadata": {
+        "region": "Austria",
+        "program_focus": ["innovation","technology"]
+      },
+      "categorized_requirements": {}
     }
   ]
 }`;
+
+  if (fundingPreference.allowMix) {
+    instructions += `\n6. Provide a mix of funding instruments. Include at least one grant AND at least one non-grant option (loan, guarantee, or equity) if the profile can work with them.`;
+  } else {
+    instructions += `\n6. The user can only work with grants/subsidies. Do not suggest loans, guarantees, or equity instruments.`;
+  }
 
   const messages = [
     { role: 'system' as const, content: 'Return funding programs as JSON only.' },
@@ -134,6 +171,7 @@ Return a JSON object:
   const OpenAI = (await import('openai')).default;
 
   let responseText: string | null = null;
+  let rawResponse: string | null = null;
 
   if (isCustomLLMEnabled()) {
     const response = await callCustomLLM({
@@ -143,6 +181,7 @@ Return a JSON object:
       maxTokens: 2000,
     });
     responseText = response.output;
+    rawResponse = response.output;
   } else if (process.env.OPENAI_API_KEY) {
     const client = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
     const completion = await client.chat.completions.create({
@@ -153,35 +192,39 @@ Return a JSON object:
       temperature: 0.2,
     });
     responseText = completion.choices[0]?.message?.content || null;
+    rawResponse = responseText;
   } else {
     throw new Error('No LLM configured');
   }
 
   if (!responseText) {
-    return [];
+    return { programs: [], raw: rawResponse };
   }
 
   const parsed = parseLLMResponse(responseText);
   const programs = Array.isArray(parsed?.programs) ? parsed.programs : [];
 
-  return programs.map((program: any, index: number) => ({
-    id: program.id || `llm_${index}`,
-    name: program.name || `Program ${index + 1}`,
-    url: program.website || program.url || null,
-    location: program.location || null,
-    company_type: program.company_type || null,
-    funding_types: Array.isArray(program.funding_types) ? program.funding_types : [],
-    metadata: {
-      funding_amount_min: program.funding_amount_min ?? null,
-      funding_amount_max: program.funding_amount_max ?? null,
-      currency: program.currency || 'EUR',
+  return {
+    raw: rawResponse,
+    programs: programs.map((program: any, index: number) => ({
+      id: program.id || `llm_${index}`,
+      name: program.name || `Program ${index + 1}`,
+      url: program.website || program.url || null,
       location: program.location || null,
-      description: program.description || null,
-      region: program.location || null,
-      company_stage: program.company_stage || null,
-    },
-    source: 'llm_generated',
-  }));
+      company_type: program.company_type || null,
+      funding_types: Array.isArray(program.funding_types) ? program.funding_types : [],
+      metadata: {
+        funding_amount_min: program.funding_amount_min ?? null,
+        funding_amount_max: program.funding_amount_max ?? null,
+        currency: program.currency || 'EUR',
+        location: program.location || null,
+        description: program.description || null,
+        region: program.location || null,
+        company_stage: program.company_stage || null,
+      },
+      source: 'llm_generated',
+    })),
+  };
 }
 
 function summarizeProfile(answers: UserAnswers): string {
@@ -224,12 +267,21 @@ function inferFundingPreference(answers: UserAnswers) {
   const instruments = new Set<string>(['grant']);
   const coFinancing = (answers.co_financing || '').toString().toLowerCase();
   const stageMonths = typeof answers.company_stage === 'number' ? answers.company_stage : null;
+  const stageCategory = typeof answers.company_stage === 'string' ? answers.company_stage : null;
 
   if (coFinancing !== 'co_no') {
     instruments.add('loan');
     instruments.add('guarantee');
   }
-  if (stageMonths === null || stageMonths >= 6) {
+
+  const allowEquity =
+    (stageMonths !== null && stageMonths >= 6) ||
+    (stageMonths === null &&
+      stageCategory !== null &&
+      stageCategory !== 'idea' &&
+      stageCategory !== 'pre_company');
+
+  if (allowEquity) {
     instruments.add('equity');
   }
 

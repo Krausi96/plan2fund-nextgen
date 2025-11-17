@@ -1,4 +1,16 @@
 import { UserAnswers } from "@/shared/user/storage/planStore";
+import {
+  normalizeLocationAnswer,
+  normalizeCompanyTypeAnswer,
+  normalizeFundingAmountAnswer,
+  normalizeFundingAmountExtraction,
+  matchLocations,
+  matchCompanyTypes,
+  matchFundingAmounts,
+  NormalizedLocation,
+  NormalizedCompanyType,
+  NormalizedFundingAmount,
+} from "./normalization";
 
 export interface Program {
   id: string;
@@ -55,43 +67,48 @@ function getProgramAmount(program: Program) {
   };
 }
 
-function textIncludes(text: string | undefined | null, search: string | undefined | null) {
-  if (!text || !search) return false;
-  return text.toLowerCase().includes(search.toLowerCase());
-}
-
-function locationMatches(answers: UserAnswers, program: Program) {
-  if (!answers.location) return true;
-  const programRegion =
+function getProgramRegion(program: Program) {
+  return (
     program.region ||
     program.metadata?.region ||
     program.metadata?.location ||
     program.location ||
-    program.categorized_requirements?.geographic?.[0]?.value;
-  return textIncludes(programRegion, answers.location);
+    program.categorized_requirements?.geographic?.[0]?.value ||
+    null
+  );
 }
 
-function companyTypeMatches(answers: UserAnswers, program: Program) {
-  if (!answers.company_type) return true;
-  const programType =
+function getProgramCompanyType(program: Program) {
+  return (
     program.program_type ||
     program.type ||
     program.company_type ||
-    program.categorized_requirements?.eligibility?.[0]?.value;
-  return textIncludes(programType, answers.company_type);
+    program.categorized_requirements?.eligibility?.[0]?.value ||
+    null
+  );
 }
 
-function fundingMatches(answers: UserAnswers, program: Program) {
-  if (answers.funding_amount === undefined || answers.funding_amount === null) {
-    return true;
-  }
+function locationMatches(userLocation: NormalizedLocation | null, program: Program) {
+  if (!userLocation) return true;
+  const programRegion = getProgramRegion(program);
+  if (!programRegion) return true;
+  const normalizedProgramLocation = normalizeLocationAnswer(programRegion);
+  return matchLocations(userLocation, normalizedProgramLocation);
+}
+
+function companyTypeMatches(userType: NormalizedCompanyType | null, program: Program) {
+  if (!userType) return true;
+  const programType = getProgramCompanyType(program);
+  if (!programType) return true;
+  const normalizedProgramType = normalizeCompanyTypeAnswer(programType);
+  return matchCompanyTypes(userType, normalizedProgramType);
+}
+
+function fundingMatches(userFunding: NormalizedFundingAmount | null, program: Program) {
+  if (!userFunding) return true;
   const amount = getProgramAmount(program);
-  if (!amount.min && !amount.max) return true;
-  const target = typeof answers.funding_amount === "number" ? answers.funding_amount : Number(answers.funding_amount);
-  if (!target || Number.isNaN(target)) return true;
-  const minOk = !amount.min || target >= amount.min * 0.25;
-  const maxOk = !amount.max || target <= amount.max * 1.5;
-  return minOk && maxOk;
+  const normalizedProgramFunding = normalizeFundingAmountExtraction(amount.min, amount.max);
+  return matchFundingAmounts(userFunding, normalizedProgramFunding);
 }
 
 function industryMatches(answers: UserAnswers, program: Program) {
@@ -124,12 +141,19 @@ export async function scoreProgramsEnhanced(
     return [];
   }
 
+  const userLocation = answers.location ? normalizeLocationAnswer(answers.location) : null;
+  const userCompanyType = answers.company_type ? normalizeCompanyTypeAnswer(answers.company_type) : null;
+  const userFunding =
+    answers.funding_amount !== undefined && answers.funding_amount !== null
+      ? normalizeFundingAmountAnswer(answers.funding_amount)
+      : null;
+
   const scored = programs.map((program) => {
     let score = 0;
     const matchedCriteria: EnhancedProgramResult["matchedCriteria"] = [];
     const gaps: EnhancedProgramResult["gaps"] = [];
 
-    if (locationMatches(answers, program)) {
+    if (locationMatches(userLocation, program)) {
       score += SCORE_WEIGHTS.location;
       matchedCriteria.push({
         key: "location",
@@ -140,7 +164,7 @@ export async function scoreProgramsEnhanced(
       gaps.push({ key: "location", description: "Program targets a different region." });
     }
 
-    if (companyTypeMatches(answers, program)) {
+    if (companyTypeMatches(userCompanyType, program)) {
       score += SCORE_WEIGHTS.companyType;
       matchedCriteria.push({
         key: "company_type",
@@ -151,7 +175,7 @@ export async function scoreProgramsEnhanced(
       gaps.push({ key: "company_type", description: "Company type is not compatible." });
     }
 
-    if (fundingMatches(answers, program)) {
+    if (fundingMatches(userFunding, program)) {
       score += SCORE_WEIGHTS.funding;
       matchedCriteria.push({
         key: "funding_amount",

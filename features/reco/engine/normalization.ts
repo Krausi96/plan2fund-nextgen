@@ -509,6 +509,9 @@ export function matchLocations(user: NormalizedLocation, extracted: NormalizedLo
  * Check if normalized company types match
  */
 export function matchCompanyTypes(user: NormalizedCompanyType, extracted: NormalizedCompanyType): boolean {
+  if (user.primary === 'unknown' || extracted.primary === 'unknown') {
+    return true;
+  }
   // Direct match
   if (user.primary === extracted.primary) return true;
   
@@ -527,11 +530,14 @@ export function matchCompanyTypes(user: NormalizedCompanyType, extracted: Normal
  * Check if normalized company stages match
  */
 export function matchCompanyStages(user: NormalizedCompanyStage, extracted: NormalizedCompanyStage): boolean {
+  if (user.stage === 'unknown' || extracted.stage === 'unknown') {
+    return true;
+  }
   // Direct stage match
   if (user.stage === extracted.stage) return true;
   
   // Maturity match
-  if (user.maturity === extracted.maturity) return true;
+  if (user.maturity !== 'unknown' && user.maturity === extracted.maturity) return true;
   
   // Age range overlap
   if (user.ageRange && extracted.ageRange) {
@@ -539,14 +545,15 @@ export function matchCompanyStages(user: NormalizedCompanyStage, extracted: Norm
     const userMin = user.ageRange.min ?? 0;
     const extractedMax = extracted.ageRange.max ?? Infinity;
     const extractedMin = extracted.ageRange.min ?? 0;
+    const tolerance = 12; // months
     
-    // Check if ranges overlap
-    if (userMin <= extractedMax && userMax >= extractedMin) {
+    if (userMin - tolerance <= extractedMax + tolerance && userMax + tolerance >= extractedMin - tolerance) {
       return true;
     }
+    return false;
   }
   
-  return false;
+  return true;
 }
 
 /**
@@ -562,41 +569,23 @@ export function matchFundingAmounts(user: NormalizedFundingAmount, extracted: No
     return true; // No limits = flexible
   }
   
-  // STRICT MATCHING: User amount must be within program range
-  // OR program max should be reasonably close to user need (not 5-10x higher)
-  if (userNeed >= programMin && userNeed <= programMax) {
-    return true; // User need is within program range - perfect match
+  if (userNeed >= programMin && (programMax === 0 || userNeed <= programMax)) {
+    return true;
   }
-  
-  // For small amounts (< €10k), be very strict - don't allow programs that are way too high
-  if (userNeed < 10000) {
-    // For small amounts, only allow if program max is within 2x of user need
-    // e.g., user needs €3000, allow programs up to €6000 max, but not €10k+
-    if (programMax > 0 && programMax <= userNeed * 2) {
-      return true; // Program max is reasonably close (within 2x)
-    }
-    // Also allow if program min is close to user need (user can apply for slightly more)
-    if (programMin > 0 && programMin <= userNeed * 1.5) {
-      return true; // Program min is close enough
-    }
-    return false; // Too far off for small amounts
+
+  const isSmallNeed = userNeed < 10000;
+  const upperTolerance = isSmallNeed ? 5 : 5;
+  const lowerTolerance = isSmallNeed ? 2 : 3;
+
+  if (programMax > 0 && programMax <= userNeed * upperTolerance) {
+    return true;
   }
-  
-  // For larger amounts (>= €10k), be more lenient but still reasonable
-  // Allow if program max is within 3x of user need, or user need is close to program range
-  if (programMax > 0) {
-    // Program max should be within 3x of user need (not 10x higher)
-    if (programMax <= userNeed * 3) {
-      return true;
-    }
+
+  if (programMin > 0 && programMin <= userNeed * lowerTolerance) {
+    return true;
   }
-  
-  // If program min is way above user need, reject (e.g., program min €50k, user needs €3k)
-  if (programMin > 0 && programMin > userNeed * 2) {
-    return false; // Program minimum is too high
-  }
-  
-  return false; // Default: no match
+
+  return false;
 }
 
 /**

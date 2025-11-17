@@ -929,7 +929,7 @@ function transformLLMResponse(
           
           // Lower threshold to 10 to capture ALL valid requirements (100% completeness)
           // Still filters out truly generic values (score 0)
-          if (meaningfulness >= 10 || meaningfulness === null) {
+          if (meaningfulness >= 5 || meaningfulness === null) {
             categorized[finalCategory].push({
               type: type,
               value: value,
@@ -993,6 +993,10 @@ function transformLLMResponse(
     program_focus: llmResponse.metadata?.program_focus || [],
     region: llmResponse.metadata?.region || null
   };
+
+  if (!metadata.deadline && metadata.open_deadline === false) {
+    metadata.open_deadline = true;
+  }
 
   return {
     categorized_requirements: categorized,
