@@ -60,9 +60,19 @@ interface ProgramFinderProps {
 }
 
 // Static questions - optimized order and with skip logic
+// CRITICAL QUESTIONS (used in matching logic - required for MIN_QUESTIONS_FOR_RESULTS):
+// 1. company_type - CRITICAL (line 185 in recommend.ts - must match)
+// 2. location - CRITICAL (line 156 in recommend.ts - must match)
+// 3. funding_amount - Used in matching (line 250 in recommend.ts)
+// 4. company_stage - Used in matching (line 215 in recommend.ts)
+// OPTIONAL QUESTIONS (used in matching but not critical):
+// 5. industry_focus - Used in matching (line 273 in recommend.ts)
+// 6. co_financing - Used in matching (line 288 in recommend.ts)
+// NOT USED IN MATCHING (can be removed or made optional):
+// - legal_type, team_size, revenue_status, use_of_funds, impact, deadline_urgency, project_duration
   const CORE_QUESTIONS = [
   {
-    id: 'company_type',
+    id: 'company_type', // CRITICAL - Used in matching (must match)
     label: 'What type of company are you?',
     type: 'single-select' as const,
     options: [
@@ -78,7 +88,7 @@ interface ProgramFinderProps {
     hasLegalType: true, // Enable conditional legal type dropdown
   },
   {
-    id: 'location',
+    id: 'location', // CRITICAL - Used in matching (must match)
     label: 'Where is your company based?',
     type: 'single-select' as const,
     options: [
@@ -95,7 +105,7 @@ interface ProgramFinderProps {
     },
   },
   {
-    id: 'funding_amount',
+    id: 'funding_amount', // CRITICAL - Used in matching
     label: 'How much funding do you need?',
     type: 'range' as const,
     min: 0,
@@ -107,7 +117,7 @@ interface ProgramFinderProps {
     editableValue: true, // Allow editing the number directly
   },
   {
-    id: 'industry_focus',
+    id: 'industry_focus', // OPTIONAL - Used in matching but not critical
     label: 'What industry are you in?',
     type: 'multi-select' as const,
     options: [
@@ -172,7 +182,7 @@ interface ProgramFinderProps {
     },
   },
   {
-    id: 'impact',
+    id: 'impact', // NOT USED IN MATCHING - Can be optional
     label: 'What impact does your project have?',
     type: 'multi-select' as const,
     options: [
@@ -187,7 +197,7 @@ interface ProgramFinderProps {
     hasImpactDetails: true, // Allow specifying details for each impact type
   },
   {
-    id: 'company_stage',
+    id: 'company_stage', // CRITICAL - Used in matching
     label: 'What stage is your company at?',
     type: 'range' as const,
     min: -12,
@@ -199,7 +209,7 @@ interface ProgramFinderProps {
     editableValue: false, // Slider only, no direct input
   },
   {
-    id: 'use_of_funds',
+    id: 'use_of_funds', // NOT USED IN MATCHING - Can be optional
     label: 'How will you use the funds?',
     type: 'multi-select' as const,
     options: [
@@ -216,7 +226,7 @@ interface ProgramFinderProps {
     allowMultipleOther: true, // Allow multiple "other" entries
   },
   {
-    id: 'project_duration',
+    id: 'project_duration', // NOT USED IN MATCHING - Can be optional
     label: 'How long is your project?',
     type: 'range' as const,
     min: 1,
@@ -228,7 +238,7 @@ interface ProgramFinderProps {
     editableValue: true, // Allow editing the number directly
   },
   {
-    id: 'deadline_urgency',
+    id: 'deadline_urgency', // NOT USED IN MATCHING - Can be optional
     label: 'When do you need funding by?',
     type: 'range' as const,
     min: 1,
@@ -246,7 +256,7 @@ interface ProgramFinderProps {
     },
   },
   {
-    id: 'co_financing',
+    id: 'co_financing', // OPTIONAL - Used in matching but not critical
     label: 'Can you provide co-financing?',
     type: 'single-select' as const,
     options: [
@@ -259,7 +269,7 @@ interface ProgramFinderProps {
     hasCoFinancingPercentage: true, // Ask for percentage if Yes
   },
   {
-    id: 'revenue_status',
+    id: 'revenue_status', // NOT USED IN MATCHING - Can be optional
     label: 'What is your current revenue status?',
     type: 'single-select' as const,
     options: [
@@ -277,7 +287,7 @@ interface ProgramFinderProps {
     },
   },
   {
-    id: 'team_size',
+    id: 'team_size', // NOT USED IN MATCHING - Can be optional
     label: 'How many people are in your team?',
     type: 'range' as const,
     min: 1,
@@ -314,7 +324,7 @@ export default function ProgramFinder({
     }));
   }, [t]);
   const [results, setResults] = useState<EnhancedProgramResult[]>([]);
-  const [_isLoading, setIsLoading] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
   
   // Guided mode state
   const [answers, setAnswers] = useState<Record<string, any>>({});
@@ -380,8 +390,8 @@ export default function ProgramFinder({
     return true;
   }).length;
   
-  // Minimum questions for results (6 questions)
-  const MIN_QUESTIONS_FOR_RESULTS = 6;
+  // Minimum questions for results (4 critical questions: location, company_type, funding_amount, company_stage)
+  const MIN_QUESTIONS_FOR_RESULTS = 4;
   const hasEnoughAnswers = answeredCount >= MIN_QUESTIONS_FOR_RESULTS;
   
   // Reserved for future use - commented out to pass TypeScript checks
@@ -1645,8 +1655,44 @@ export default function ProgramFinder({
           </div>
           
           {/* Results Display Section */}
-          <div className={`${mobileActiveTab === 'questions' ? 'hidden lg:block' : 'block'} ${results.length === 0 ? 'hidden' : ''}`}>
-            {results.length > 0 ? (
+          <div className={`${mobileActiveTab === 'questions' ? 'hidden lg:block' : 'block'} ${results.length === 0 && !isLoading ? 'hidden' : ''}`}>
+            {isLoading ? (
+              <div className="max-w-2xl mx-auto mt-6">
+                <Card className="p-8 border-2 border-blue-200">
+                  <div className="flex flex-col items-center justify-center space-y-4">
+                    <svg className="animate-spin h-12 w-12 text-blue-600" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                      <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                      <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                    </svg>
+                    <div className="text-center">
+                      <h3 className="text-xl font-semibold text-gray-900 mb-2">
+                        {locale === 'de' ? 'Förderprogramme werden generiert...' : 'Generating Funding Programs...'}
+                      </h3>
+                      <p className="text-gray-600">
+                        {locale === 'de' 
+                          ? 'Dies kann 15-30 Sekunden dauern. Bitte haben Sie etwas Geduld.'
+                          : 'This may take 15-30 seconds. Please be patient.'}
+                      </p>
+                    </div>
+                    {/* Progress steps */}
+                    <div className="w-full max-w-md space-y-2 mt-4">
+                      <div className="flex items-center gap-2 text-sm text-gray-600">
+                        <div className="w-2 h-2 rounded-full bg-blue-600 animate-pulse"></div>
+                        <span>{locale === 'de' ? 'Analysiere Ihr Profil...' : 'Analyzing your profile...'}</span>
+                      </div>
+                      <div className="flex items-center gap-2 text-sm text-gray-500">
+                        <div className="w-2 h-2 rounded-full bg-gray-300"></div>
+                        <span>{locale === 'de' ? 'Finde passende Programme...' : 'Finding matching programs...'}</span>
+                      </div>
+                      <div className="flex items-center gap-2 text-sm text-gray-500">
+                        <div className="w-2 h-2 rounded-full bg-gray-300"></div>
+                        <span>{locale === 'de' ? 'Bewerte Relevanz...' : 'Scoring relevance...'}</span>
+                      </div>
+                    </div>
+                  </div>
+                </Card>
+              </div>
+            ) : results.length > 0 ? (
               <div className="max-w-4xl mx-auto mt-6">
                 <h2 className="text-2xl font-bold text-gray-900 mb-4">
                   {locale === 'de' ? 'Gefundene Förderprogramme' : 'Found Funding Programs'} ({results.length})
@@ -1873,11 +1919,23 @@ export default function ProgramFinder({
                   console.log('🏁 Program generation finished');
                 }
               }}
-                disabled={!_isLoading && !hasEnoughAnswers}
-                className="px-6 py-3 rounded-lg font-semibold text-base transition-all flex items-center gap-2 bg-blue-600 text-white hover:bg-blue-700 shadow-lg hover:shadow-xl"
+                disabled={isLoading || !hasEnoughAnswers}
+                className="px-6 py-3 rounded-lg font-semibold text-base transition-all flex items-center gap-2 bg-blue-600 text-white hover:bg-blue-700 shadow-lg hover:shadow-xl disabled:opacity-50 disabled:cursor-not-allowed"
               >
-                <Wand2 className="w-5 h-5" />
-                {locale === 'de' ? 'Förderprogramm generieren' : 'Generate Funding Programs'}
+                {isLoading ? (
+                  <>
+                    <svg className="animate-spin h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                      <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                      <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                    </svg>
+                    {locale === 'de' ? 'Generiere Programme...' : 'Generating Programs...'}
+                  </>
+                ) : (
+                  <>
+                    <Wand2 className="w-5 h-5" />
+                    {locale === 'de' ? 'Förderprogramm generieren' : 'Generate Funding Programs'}
+                  </>
+                )}
               </button>
             </div>
           </div>
