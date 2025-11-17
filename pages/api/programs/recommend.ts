@@ -175,8 +175,14 @@ function matchesAnswers(extracted: any, answers: UserAnswers, threshold: number 
         matchCount++;
         criticalChecks.push(true);
       } else {
+        // For LLM-generated programs, be more lenient - don't filter out immediately
+        const isLLMGenerated = extracted?.source === 'llm_generated';
+        if (!isLLMGenerated) {
+          criticalChecks.push(false);
+          return false; // Critical: location must match for non-LLM programs
+        }
+        // For LLM programs, just don't count as match but continue
         criticalChecks.push(false);
-        return false; // Critical: location must match
       }
     }
   }
@@ -189,6 +195,7 @@ function matchesAnswers(extracted: any, answers: UserAnswers, threshold: number 
     
     if (eligReqs.length === 0) {
       matchCount++;
+      criticalChecks.push(true);
     } else {
       let hasType = false;
       for (const req of eligReqs) {
@@ -205,8 +212,15 @@ function matchesAnswers(extracted: any, answers: UserAnswers, threshold: number 
         matchCount++;
         criticalChecks.push(true);
       } else {
+        // For LLM-generated programs, be more lenient - don't filter out immediately
+        // Only fail if it's clearly incompatible (e.g., research vs startup)
+        const isLLMGenerated = extracted?.source === 'llm_generated';
+        if (!isLLMGenerated) {
+          criticalChecks.push(false);
+          return false; // Critical: company type must match for non-LLM programs
+        }
+        // For LLM programs, just don't count as match but continue
         criticalChecks.push(false);
-        return false; // Critical: company type must match
       }
     }
   }
@@ -305,13 +319,22 @@ function matchesAnswers(extracted: any, answers: UserAnswers, threshold: number 
 
   // For LLM-generated programs, be more lenient - don't filter out if they're close
   // Require at least 15% of checks to pass (lowered from 20% for better coverage)
-  // Critical checks (location, company_type) must pass if checked
-  const allCriticalPass = criticalChecks.length === 0 || criticalChecks.every(c => c);
+  const isLLMGenerated = extracted?.source === 'llm_generated';
   const matchRatio = totalChecks > 0 ? matchCount / totalChecks : 1;
   
-  // More lenient matching for LLM-generated programs
-  // If critical checks pass but match ratio is low, still allow if it's LLM-generated
-  // This ensures we don't filter out valid programs due to strict matching
+  // For LLM-generated programs, be very lenient - only filter if match ratio is extremely low
+  if (isLLMGenerated) {
+    // If we have at least one match or no requirements, allow it
+    if (matchCount > 0 || totalChecks === 0) {
+      return true;
+    }
+    // Even with 0 matches, allow if threshold is very low (5% for LLM)
+    // This ensures LLM-generated programs are almost always shown
+    return matchRatio >= 0.05;
+  }
+  
+  // For non-LLM programs, use stricter matching
+  const allCriticalPass = criticalChecks.length === 0 || criticalChecks.every(c => c);
   const meetsThreshold = matchRatio >= threshold;
   return allCriticalPass && meetsThreshold;
 }
@@ -906,7 +929,7 @@ Website: ${p.website || 'Not available'}
         categorized_requirements,
         eligibility_criteria: {},
         extracted_at: new Date().toISOString(),
-        source: 'llm_generated',
+        source: 'llm_generated', // Mark as LLM-generated for lenient matching
       };
     }));
 
