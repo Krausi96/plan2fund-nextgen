@@ -108,23 +108,17 @@ export default EditorPage;
 function isProductType(value: string): value is ProductType {
   return (
     value === 'submission' ||
-    value === 'prototype' ||
-    value === 'research_project' ||
-    value === 'strategy' ||
-    value === 'other'
+    value === 'review' ||
+    value === 'strategy'
   );
 }
 
 function formatProductLabel(product: ProductType) {
   switch (product) {
-    case 'prototype':
-      return 'Prototype Plan';
-    case 'research_project':
-      return 'Research Project';
+    case 'review':
+      return 'Plan Review';
     case 'strategy':
       return 'Strategy Plan';
-    case 'other':
-      return 'Custom Plan';
     default:
       return 'Submission Plan';
   }

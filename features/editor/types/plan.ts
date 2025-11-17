@@ -5,15 +5,21 @@
 // Modern Business Plan model (used by the unified editor shell)
 // ----------------------------------------------------------------------------------
 
-export type ProductType =
-  | 'submission'
-  | 'review'
-  | 'strategy'
-  | 'prototype'
-  | 'research_project'
-  | 'other';
+export type ProductType = 'submission' | 'review' | 'strategy';
 
 export type FundingProgramType = 'grant' | 'loan' | 'equity' | 'visa' | 'other';
+
+export type TemplateFundingType = 'grants' | 'bankLoans' | 'equity' | 'visa';
+
+export interface ProgramSummary {
+  id: string;
+  name: string;
+  fundingType: TemplateFundingType;
+  fundingProgramTag: FundingProgramType;
+  deadline?: string | null;
+  amountRange?: string | null;
+  region?: string | null;
+}
 
 export type RightPanelView = 'ai' | 'data' | 'preview' | 'requirements' | 'info';
 
@@ -167,10 +173,14 @@ export interface BusinessPlan {
   references: Reference[];
   appendices?: AppendixItem[];
   ancillary: AncillaryContent;
+  programSummary?: ProgramSummary;
   metadata?: {
     ownerId?: string;
     lastSavedAt?: string;
     version?: string;
+    programId?: string;
+    programName?: string;
+    templateFundingType?: TemplateFundingType;
   };
 }
 

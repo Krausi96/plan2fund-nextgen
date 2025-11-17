@@ -156,6 +156,13 @@ export function loadSelectedProgram(): SelectedProgram | null {
   }
 }
 
+export function clearSelectedProgram(): void {
+  try {
+    const key = getStorageKey('selectedProgram')
+    localStorage.removeItem(key)
+  } catch {}
+}
+
 // ============================================================================
 // ADDED: Plan Settings
 // ============================================================================

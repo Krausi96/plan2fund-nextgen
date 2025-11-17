@@ -1,7 +1,7 @@
 // ========= PLAN2FUND — UNIFIED BUSINESS PLAN EDITOR =========
 // New scaffold: sidebar navigation + workspace + right panel powered by a local Zustand store.
 
-import React, { useEffect, useMemo } from 'react';
+import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useRouter } from 'next/router';
 import { create } from 'zustand';
 import {
@@ -12,12 +12,14 @@ import {
   FundingProgramType,
   KPI,
   MediaAsset,
+  ProgramSummary,
   PlanSection as LegacyPlanSection,
   ProductType,
   Question,
   Reference,
   RightPanelView,
   Section,
+  TemplateFundingType,
   Table,
   TitlePage
 } from '@/features/editor/types/plan';
@@ -29,7 +31,10 @@ import {
   savePlanSections,
   loadUserAnswers,
   savePlanConversations,
-  loadPlanConversations
+  loadPlanConversations,
+  loadSelectedProgram,
+  saveSelectedProgram,
+  clearSelectedProgram
 } from '@/shared/user/storage/planStore';
 import type { PlanSection as StoredPlanSection } from '@/shared/user/storage/planStore';
 import SimpleTextEditor from './SimpleTextEditor';
@@ -48,7 +53,15 @@ interface EditorStoreState {
   activeQuestionId: string | null;
   rightPanelView: RightPanelView;
   progressSummary: ProgressSummary[];
-  hydrate: (product: ProductType) => Promise<void>;
+  hydrate: (
+    product: ProductType,
+    context?: {
+      fundingType?: TemplateFundingType;
+      programId?: string;
+      programName?: string;
+      summary?: ProgramSummary;
+    }
+  ) => Promise<void>;
   setActiveSection: (sectionId: string) => void;
   setActiveQuestion: (questionId: string) => void;
   setRightPanelView: (view: RightPanelView) => void;
@@ -116,49 +129,6 @@ const PRODUCT_TYPE_OPTIONS: Array<{ value: ProductType; label: string; descripti
     value: 'strategy',
     label: 'Commercial strategy',
     description: 'Market, go-to-market, and traction narratives.'
-  },
-  {
-    value: 'prototype',
-    label: 'Prototype dossier',
-    description: 'Technical roadmap, testing plans, and build milestones.'
-  },
-  {
-    value: 'research_project',
-    label: 'Research project',
-    description: 'Academic or consortium-focused submissions.'
-  },
-  {
-    value: 'other',
-    label: 'Other / custom',
-    description: 'Define another workflow when you export.'
-  }
-];
-
-const FUNDING_PROGRAM_OPTIONS: Array<{ value: FundingProgramType; label: string; description: string }> = [
-  {
-    value: 'grant',
-    label: 'Grant',
-    description: 'Non-dilutive public or corporate grants.'
-  },
-  {
-    value: 'loan',
-    label: 'Loan',
-    description: 'Debt instruments with repayment schedules.'
-  },
-  {
-    value: 'equity',
-    label: 'Equity / venture',
-    description: 'Convertible, venture, or strategic equity funding.'
-  },
-  {
-    value: 'visa',
-    label: 'Visa / relocation',
-    description: 'Residence, talent, and relocation programs.'
-  },
-  {
-    value: 'other',
-    label: 'Other',
-    description: 'Scholarships, hybrid instruments, or bespoke routes.'
   }
 ];
 
@@ -206,6 +176,35 @@ const SECTION_TONE_HINTS: Record<string, string> = {
     'Clarify each partner’s role, governance, and commitment. Use concise paragraphs per the calmer layout guidance.'
 };
 
+function mapProgramTypeToFunding(programType?: string): {
+  templateFundingType: TemplateFundingType;
+  fundingProgramTag: FundingProgramType;
+} {
+  const normalized = (programType ?? 'grant').toLowerCase();
+  if (normalized.includes('loan') || normalized.includes('bank')) {
+    return { templateFundingType: 'bankLoans', fundingProgramTag: 'loan' };
+  }
+  if (normalized.includes('equity') || normalized.includes('investment')) {
+    return { templateFundingType: 'equity', fundingProgramTag: 'equity' };
+  }
+  if (normalized.includes('visa') || normalized.includes('relocation') || normalized.includes('residence')) {
+    return { templateFundingType: 'visa', fundingProgramTag: 'visa' };
+  }
+  return { templateFundingType: 'grants', fundingProgramTag: 'grant' };
+}
+
+function normalizeProgramInput(rawInput: string): string | null {
+  if (!rawInput) return null;
+  const trimmed = rawInput.trim();
+  if (!trimmed) return null;
+  if (trimmed.startsWith('page_')) return trimmed;
+  const match = trimmed.match(/(\d{2,})/);
+  if (match) {
+    return `page_${match[1]}`;
+  }
+  return null;
+}
+
 const useEditorStore = create<EditorStoreState>((set, get) => ({
   plan: null,
   templates: [],
@@ -215,11 +214,12 @@ const useEditorStore = create<EditorStoreState>((set, get) => ({
   activeQuestionId: null,
   rightPanelView: 'ai',
   progressSummary: [],
-  hydrate: async (product) => {
+  hydrate: async (product, context) => {
     set({ isLoading: true, error: null });
     try {
       const baseUrl = typeof window !== 'undefined' ? window.location.origin : '';
-      const templates = await getSections('grants', product, undefined, baseUrl);
+      const fundingType = context?.fundingType ?? 'grants';
+      const templates = await getSections(fundingType, product, context?.programId, baseUrl);
       const savedSections: StoredPlanSection[] =
         typeof window !== 'undefined' ? loadPlanSections() : [];
       const sections = templates.map((template) =>
@@ -229,14 +229,18 @@ const useEditorStore = create<EditorStoreState>((set, get) => ({
       const plan: BusinessPlan = {
         id: `plan_${Date.now()}`,
         productType: product,
-        fundingProgram: 'grant',
+        fundingProgram: context?.summary?.fundingProgramTag ?? 'grant',
         titlePage: defaultTitlePage(),
         sections,
         references: [],
         appendices: [],
         ancillary: defaultAncillary(),
+        programSummary: context?.summary,
         metadata: {
-          lastSavedAt: new Date().toISOString()
+          lastSavedAt: new Date().toISOString(),
+          programId: context?.programId,
+          programName: context?.programName,
+          templateFundingType: fundingType
         }
       };
 
@@ -775,21 +779,125 @@ export default function Editor({ product = 'submission' }: EditorProps) {
     updateAppendix,
     deleteAppendix,
     setProductType,
-    setFundingProgram,
     progressSummary,
     runRequirementsCheck,
     requestAISuggestions
   } = useEditorStore();
+  const [selectedProduct, setSelectedProduct] = useState<ProductType>(product);
+  const [programId, setProgramId] = useState<string | null>(null);
+  const [programSummary, setProgramSummary] = useState<ProgramSummary | null>(null);
+  const [programLoading, setProgramLoading] = useState(false);
+  const [programError, setProgramError] = useState<string | null>(null);
+  const storedProgramChecked = useRef(false);
+
+  const applyHydration = useCallback(
+    (summary: ProgramSummary | null) => {
+      const fundingType = summary?.fundingType ?? 'grants';
+      hydrate(selectedProduct, {
+        fundingType,
+        programId: summary?.id,
+        programName: summary?.name,
+        summary: summary ?? undefined
+      });
+    },
+    [hydrate, selectedProduct]
+  );
+  useEffect(() => {
+    setSelectedProduct(product);
+  }, [product]);
+
+  const handleProductChange = useCallback(
+    (next: ProductType) => {
+      setSelectedProduct(next);
+      setProductType(next);
+    },
+    [setProductType]
+  );
+
 
   useEffect(() => {
-    hydrate(product);
-  }, [product, hydrate]);
+    applyHydration(programSummary);
+  }, [applyHydration, programSummary]);
 
   useEffect(() => {
-    if (router.query.product && router.query.product !== product) {
-      hydrate(router.query.product as ProductType);
+    if (!router.isReady) return;
+    const queryProgramId = router.query.programId as string | undefined;
+    if (queryProgramId) {
+      setProgramId(queryProgramId);
+      return;
     }
-  }, [router.query.product, product, hydrate]);
+    if (storedProgramChecked.current) return;
+    if (typeof window !== 'undefined') {
+      const saved = loadSelectedProgram();
+      if (saved?.id) {
+        setProgramId(saved.id);
+      }
+    }
+    storedProgramChecked.current = true;
+  }, [router.isReady, router.query.programId]);
+
+  const fetchProgramDetails = useCallback(async (id: string) => {
+    setProgramLoading(true);
+    setProgramError(null);
+    try {
+      const response = await fetch(`/api/programs/${id}/requirements`);
+      if (!response.ok) {
+        throw new Error('Unable to load program metadata.');
+      }
+      const data = await response.json();
+      const mapping = mapProgramTypeToFunding(data.program_type);
+      const summary: ProgramSummary = {
+        id,
+        name: data.program_name ?? data.program_id ?? id,
+        fundingType: mapping.templateFundingType,
+        fundingProgramTag: mapping.fundingProgramTag,
+        deadline: data?.library?.[0]?.deadlines?.[0] ?? null,
+        amountRange: data?.library?.[0]?.funding_amount ?? null,
+        region: data?.library?.[0]?.region ?? null
+      };
+      setProgramSummary(summary);
+      saveSelectedProgram({ id, name: summary.name, type: summary.fundingProgramTag });
+    } catch (error) {
+      setProgramSummary(null);
+      setProgramError(error instanceof Error ? error.message : 'Failed to load program metadata.');
+    } finally {
+      setProgramLoading(false);
+    }
+  }, []);
+
+  useEffect(() => {
+    if (!programId) {
+      setProgramSummary(null);
+      return;
+    }
+    fetchProgramDetails(programId);
+  }, [programId, fetchProgramDetails]);
+
+  const handleConnectProgram = useCallback(
+    (rawInput: string | null) => {
+      if (!rawInput) {
+        setProgramId(null);
+        setProgramSummary(null);
+        setProgramError(null);
+        clearSelectedProgram();
+        if (router.query.programId) {
+          const { programId: _omit, ...rest } = router.query;
+          router.replace({ pathname: router.pathname, query: rest }, undefined, { shallow: true });
+        }
+        return;
+      }
+      const normalized = normalizeProgramInput(rawInput);
+      if (!normalized) {
+        setProgramError('Enter a program ID like page_123 or paste a URL that contains it.');
+        return;
+      }
+      setProgramError(null);
+      setProgramId(normalized);
+      const nextQuery = { ...router.query, programId: normalized };
+      router.replace({ pathname: router.pathname, query: nextQuery }, undefined, { shallow: true });
+    },
+    [router]
+  );
 
   const isAncillaryView = activeSectionId === ANCILLARY_SECTION_ID;
   const activeSection = useMemo(() => {
@@ -850,11 +958,12 @@ export default function Editor({ product = 'submission' }: EditorProps) {
         <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-10 py-6 space-y-6">
           <PlanConfigurator
             plan={plan}
-            onChangeProduct={(next) => {
-              setProductType(next);
-              hydrate(next);
-            }}
-            onChangeFunding={setFundingProgram}
+            programSummary={programSummary ?? plan.programSummary ?? null}
+            onChangeProduct={handleProductChange}
+            onConnectProgram={handleConnectProgram}
+            onOpenProgramFinder={() => router.push('/reco')}
+            programLoading={programLoading}
+            programError={programError}
           />
           <SectionStepper
             plan={plan}
@@ -931,12 +1040,20 @@ export default function Editor({ product = 'submission' }: EditorProps) {
 
 function PlanConfigurator({
   plan,
+  programSummary,
   onChangeProduct,
-  onChangeFunding
+  onConnectProgram,
+  onOpenProgramFinder,
+  programLoading,
+  programError
 }: {
   plan: BusinessPlan;
+  programSummary: ProgramSummary | null;
   onChangeProduct: (product: ProductType) => void;
-  onChangeFunding: (program: FundingProgramType) => void;
+  onConnectProgram: (value: string | null) => void;
+  onOpenProgramFinder: () => void;
+  programLoading: boolean;
+  programError: string | null;
 }) {
   return (
     <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
@@ -965,26 +1082,96 @@ function PlanConfigurator({
           {PRODUCT_TYPE_OPTIONS.find((option) => option.value === plan.productType)?.description}
         </p>
       </label>
-      <label className="space-y-2">
-        <span className="text-xs font-semibold text-slate-500 uppercase tracking-[0.2em]">Funding program</span>
-        <div className="relative">
-          <select
-            value={plan.fundingProgram ?? 'grant'}
-            onChange={(event) => onChangeFunding(event.target.value as FundingProgramType)}
-            className="w-full appearance-none rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm font-medium text-slate-700 shadow-sm focus:border-blue-500 focus:ring-2 focus:ring-blue-200"
+      <ProgramConnectionCard
+        programSummary={programSummary}
+        onConnectProgram={onConnectProgram}
+        onOpenProgramFinder={onOpenProgramFinder}
+        loading={programLoading}
+        error={programError}
+      />
+    </div>
+  );
+}
+
+function ProgramConnectionCard({
+  programSummary,
+  onConnectProgram,
+  onOpenProgramFinder,
+  loading,
+  error
+}: {
+  programSummary: ProgramSummary | null;
+  onConnectProgram: (value: string | null) => void;
+  onOpenProgramFinder: () => void;
+  loading: boolean;
+  error: string | null;
+}) {
+  const [inputValue, setInputValue] = useState('');
+  useEffect(() => {
+    if (programSummary) {
+      setInputValue('');
+    }
+  }, [programSummary]);
+
+  if (programSummary) {
+    return (
+      <div className="rounded-2xl border border-blue-100 bg-blue-50/60 p-4 space-y-2 shadow-sm">
+        <div className="flex items-start justify-between gap-3">
+          <div>
+            <p className="text-sm font-semibold text-blue-900">{programSummary.name}</p>
+            <p className="text-xs text-blue-700">
+              {programSummary.amountRange ?? 'Amount not specified'}
+              {programSummary.deadline ? ` • Deadline ${programSummary.deadline}` : ''}
+            </p>
+            {programSummary.region && (
+              <p className="text-[11px] text-blue-700/80">Region: {programSummary.region}</p>
+            )}
+          </div>
+          <button
+            onClick={() => onConnectProgram(null)}
+            className="text-xs text-blue-700 hover:text-blue-900 underline"
           >
-            {FUNDING_PROGRAM_OPTIONS.map((option) => (
-              <option key={option.value} value={option.value}>
-                {option.label}
-              </option>
-            ))}
-          </select>
-          <span className="pointer-events-none absolute inset-y-0 right-4 flex items-center text-slate-400">▾</span>
+            Disconnect
+          </button>
         </div>
-        <p className="text-[11px] text-slate-500">
-          {FUNDING_PROGRAM_OPTIONS.find((option) => option.value === plan.fundingProgram)?.description}
+        <p className="text-[11px] text-blue-700/80">
+          Funding type: {programSummary.fundingType} • Mode: {programSummary.fundingProgramTag}
         </p>
-      </label>
+      </div>
+    );
+  }
+
+  return (
+    <div className="rounded-2xl border border-dashed border-gray-300 p-4 space-y-3">
+      <div>
+        <p className="text-sm font-semibold text-gray-800">No program connected</p>
+        <p className="text-xs text-gray-500">
+          Paste a program ID (e.g., page_123) or open Program Finder to import a call.
+        </p>
+      </div>
+      <div className="flex flex-col gap-2 sm:flex-row">
+        <input
+          value={inputValue}
+          onChange={(event) => setInputValue(event.target.value)}
+          placeholder="Program ID or URL containing it"
+          className="flex-1 border border-gray-200 rounded-md px-3 py-2 text-sm"
+        />
+        <button
+          onClick={() => onConnectProgram(inputValue)}
+          disabled={loading}
+          className="px-4 py-2 text-sm font-semibold rounded-md bg-blue-600 text-white disabled:opacity-50"
+        >
+          {loading ? 'Connecting…' : 'Connect'}
+        </button>
+      </div>
+      {error && <p className="text-xs text-red-500">{error}</p>}
+      <button
+        type="button"
+        onClick={onOpenProgramFinder}
+        className="text-xs text-blue-600 hover:text-blue-800 underline"
+      >
+        Open Program Finder
+      </button>
     </div>
   );
 }
