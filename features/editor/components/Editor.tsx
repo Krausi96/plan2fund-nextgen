@@ -6,7 +6,7 @@ import { useRouter } from 'next/router';
 import { PlanDocument, PlanSection, ConversationMessage } from '@/features/editor/types/plan';
 import { SectionTemplate, getSections } from '@templates';
 import { createAIHelper } from '@/features/editor/engine/aiHelper';
-import { savePlanSections, loadUserAnswers, savePlanConversations, loadPlanConversations } from '@/shared/user/storage/planStore';
+import { savePlanSections, loadPlanSections, loadUserAnswers, savePlanConversations, loadPlanConversations } from '@/shared/user/storage/planStore';
 import { calculateSectionProgress } from '@/features/editor/hooks/useSectionProgress';
 import SimpleTextEditor from './SimpleTextEditor';
 import RequirementsModal from './RequirementsModal';
@@ -70,22 +70,38 @@ export default function Editor({ product = 'submission' }: EditorProps) {
       // Store templates for prompts
       setSectionTemplates(templateSections);
       
-          // Convert to PlanSection format and initialize tables
-          const planSections: PlanSection[] = templateSections.map((template: SectionTemplate) => {
-            const section: PlanSection = {
-              key: template.id,
-              title: template.title,
-              content: '',
-              status: 'missing' as const
-            };
-            
-            // Initialize tables if section needs them
-            if (sectionNeedsTables(template)) {
-              section.tables = initializeTablesForSection(template);
-            }
-            
-            return section;
-          });
+      // Load saved sections from localStorage (if any)
+      const savedSections = loadPlanSections();
+      
+      // Convert to PlanSection format and merge with saved data
+      const planSections: PlanSection[] = templateSections.map((template: SectionTemplate) => {
+        // Check if we have saved data for this section
+        const savedSection = savedSections.find(s => s.id === template.id);
+        
+        const section: PlanSection = {
+          key: template.id,
+          title: template.title,
+          content: savedSection?.content || '',
+          status: savedSection?.content ? 'aligned' as const : 'missing' as const,
+          tables: savedSection?.tables,
+          figures: savedSection?.figures,
+          sources: savedSection?.sources,
+          fields: savedSection?.fields,
+          chartTypes: (savedSection as any)?.chartTypes
+        };
+        
+        // Initialize tables if section needs them AND doesn't have saved tables
+        if (sectionNeedsTables(template) && !section.tables) {
+          section.tables = initializeTablesForSection(template);
+        }
+        
+        // Initialize fields for market sections (TAM/SAM/SOM) if not saved
+        if (template.category?.toLowerCase() === 'market' && !section.fields) {
+          section.fields = {};
+        }
+        
+        return section;
+      });
 
           // Sort by order from template
           planSections.sort((a, b) => {
@@ -817,6 +833,38 @@ export default function Editor({ product = 'submission' }: EditorProps) {
                       }}
                       onImageInsert={(imageUrl, caption, description) => {
                         console.log('Image insert:', imageUrl, caption, description);
+                      }}
+                      onFieldChange={(fieldKey, value) => {
+                        const updated = [...sections];
+                        const section = updated[activeSection];
+                        if (!section.fields) section.fields = {};
+                        section.fields[fieldKey] = value;
+                        setSections(updated);
+                        
+                        if (plan) {
+                          const updatedPlan = { ...plan, sections: updated };
+                          setPlan(updatedPlan);
+                          
+                          setIsSaving(true);
+                          setTimeout(async () => {
+                            try {
+                              await savePlanSections(updated.map(s => ({
+                                id: s.key,
+                                title: s.title,
+                                content: s.content || '',
+                                tables: s.tables,
+                                figures: s.figures,
+                                chartTypes: s.chartTypes,
+                                sources: s.sources,
+                                fields: s.fields
+                              })));
+                            } catch (error) {
+                              console.error('Error saving:', error);
+                            } finally {
+                              setIsSaving(false);
+                            }
+                          }, 400);
+                        }
                       }}
                     />
                     
