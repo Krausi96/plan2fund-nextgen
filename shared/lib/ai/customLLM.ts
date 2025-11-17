@@ -170,9 +170,16 @@ export async function callCustomLLM(request: ChatRequest): Promise<ChatResponse>
                         properties: {
                           region: { type: 'string' },
                           program_focus: { type: 'array', items: { type: 'string' } }
-                        }
+                        },
+                        additionalProperties: true
                       },
-                      categorized_requirements: { type: 'object' }
+                      categorized_requirements: {
+                        type: 'object',
+                        additionalProperties: {
+                          type: 'array',
+                          items: { type: 'object' }
+                        }
+                      }
                     },
                     required: ['id', 'name', 'funding_types']
                   }
