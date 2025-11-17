@@ -1,10 +1,8 @@
 // ========= PLAN2FUND — EXPORT PREVIEW RENDERER =========
 // Lightweight component that renders plan previews inside the editor
 
-import React, { useState, useEffect } from 'react';
-import { PlanDocument } from '@/features/editor/types/plan';
-import SectionContentRenderer from '@/features/editor/components/SectionContentRenderer';
-import { getSections, SectionTemplate } from '@templates';
+import React from 'react';
+import { PlanDocument, Table } from '@/features/editor/types/plan';
 
 export interface PreviewOptions {
   showWatermark?: boolean;
@@ -31,24 +29,6 @@ const ExportRenderer: React.FC<ExportRendererProps> = ({
   selectedSections,
   previewSettings = {}
 }) => {
-  const [templates, setTemplates] = useState<SectionTemplate[]>([]);
-  
-  // Load templates for rendering tables/charts
-  useEffect(() => {
-    const loadTemplates = async () => {
-      try {
-        const baseUrl = typeof window !== 'undefined' ? window.location.origin : '';
-        const fundingType = plan.route || 'grants';
-        const productType = plan.product || 'submission';
-        const sections = await getSections(fundingType, productType, undefined, baseUrl);
-        setTemplates(sections);
-      } catch (error) {
-        console.error('Error loading templates for preview:', error);
-      }
-    };
-    loadTemplates();
-  }, [plan.route, plan.product]);
-
   const sectionsToRender = selectedSections && selectedSections.size > 0
     ? plan.sections.filter(section => selectedSections.has(section.key))
     : plan.sections;
@@ -142,22 +122,21 @@ const ExportRenderer: React.FC<ExportRendererProps> = ({
               </div>
 
               {/* Render Tables & Charts if they exist */}
-              {section.tables && Object.keys(section.tables).length > 0 && (() => {
-                const template = templates.find(t => t.id === section.key);
-                if (!template) return null;
-                
-                return (
-                  <div className="mt-6">
-                    <SectionContentRenderer
-                      section={section}
-                      template={template}
-                      onTableChange={() => {}} // Read-only in preview
-                      onChartTypeChange={() => {}} // Read-only in preview
-                      onImageInsert={() => {}} // Read-only in preview
-                    />
-                  </div>
-                );
-              })()}
+              {section.tables && Object.keys(section.tables).length > 0 && (
+                <div className="mt-6 space-y-4">
+                  {Object.entries(section.tables).map(([tableKey, table]) => {
+                    if (!table) return null;
+                    return (
+                      <div key={tableKey}>
+                        <h4 className="text-sm font-semibold text-gray-700 mb-2">
+                          {formatTableLabel(tableKey)}
+                        </h4>
+                        {renderTable(table)}
+                      </div>
+                    );
+                  })}
+                </div>
+              )}
             </div>
           );
         })}
@@ -168,5 +147,41 @@ const ExportRenderer: React.FC<ExportRendererProps> = ({
 
 export default ExportRenderer;
 
+function formatTableLabel(key: string): string {
+  return key
+    .replace(/_/g, ' ')
+    .replace(/([a-z])([A-Z])/g, '$1 $2')
+    .replace(/\s+/g, ' ')
+    .replace(/^\w/, (char) => char.toUpperCase());
+}
 
-
+function renderTable(table: Table) {
+  return (
+    <div className="overflow-x-auto border border-gray-200 rounded-lg bg-white">
+      <table className="min-w-full text-sm">
+        <thead className="bg-gray-50">
+          <tr>
+            <th className="text-left px-3 py-2 border-b border-gray-200">Item</th>
+            {table.columns.map((column, index) => (
+              <th key={index} className="text-right px-3 py-2 border-b border-gray-200">
+                {column}
+              </th>
+            ))}
+          </tr>
+        </thead>
+        <tbody>
+          {table.rows.map((row, rowIndex) => (
+            <tr key={rowIndex} className="border-b border-gray-100">
+              <td className="px-3 py-2 font-medium text-gray-700">{row.label}</td>
+              {row.values.map((value, valueIndex) => (
+                <td key={valueIndex} className="px-3 py-2 text-right text-gray-600">
+                  {typeof value === 'number' ? value.toLocaleString() : value}
+                </td>
+              ))}
+            </tr>
+          ))}
+        </tbody>
+      </table>
+    </div>
+  );
+}

@@ -1,5 +1,25 @@
 # Editor - How It Works
 
+## Unified Editor Scaffold (Nov 2025 refresh)
+
+The editor now uses the `BusinessPlan` model defined in `features/editor/types/plan.ts` (see `BusinessPlan`, `Section`, `Question`, `Dataset`, `AncillaryContent`). A colocated Zustand store inside `Editor.tsx` (`useEditorStore`) owns all runtime state:
+
+- `plan: BusinessPlan` – hydrated from section templates + legacy localStorage via `loadPlanSections()`.
+- `activeSectionId`, `activeQuestionId`, `rightPanelView` – drive the sidebar/workspace/right-panel shell.
+- Actions: `hydrate(productType)`, `updateAnswer`, `addDataset/KPI/media`, `requestAISuggestions`, `runRequirementsCheck`, `updateTitlePage`, `updateAncillary`, etc. All mutations call `persistPlan()` which writes back to localStorage by translating the new model to legacy `PlanSection`/`Table` structures.
+- Services stay in existing files: AI (`features/editor/engine/aiHelper.ts`) and requirements (`calculateSectionProgress`) are invoked through store actions; no new directories were created per the constraint.
+
+Layout now follows the unified three-column spec:
+
+1. **Sidebar** – product/funding selectors, ordered section list with inline progress.
+2. **SectionWorkspace** – question cards with `SimpleTextEditor`, inline AI suggestion chips and an "Ask AI" trigger that pipes into `requestAISuggestions`.
+3. **RightPanel** – tabbed views (`ai`, `data`, `ancillary`, `preview`, `requirements`). Existing files were repurposed:
+   - `InlineTableCreator.tsx` → `DataPanel` (datasets/KPIs/media library).
+   - `SectionContentRenderer.tsx` → `PreviewPane` (read-only document preview).
+   - `RequirementsModal.tsx` → `AncillaryEditorPanel` (title page, ToC, references, lightweight checker surface).
+
+> Migration tip: legacy consumers that still import `PlanDocument` / `PlanSection` keep working because those types remain exportable at the bottom of `types/plan.ts`. New UI pieces should use `BusinessPlan` and friends going forward.
+
 ## Quick Answers to Key Questions
 
 ### How to Customize Business Plan?

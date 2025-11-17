@@ -4,6 +4,7 @@
 import { useRouter } from 'next/router';
 import React from 'react';
 import Editor from '@/features/editor/components/Editor';
+import type { ProductType } from '@/features/editor/types/plan';
 import PageEntryIndicator from '@/shared/components/common/PageEntryIndicator';
 
 class ErrorBoundary extends React.Component<
@@ -72,8 +73,10 @@ function EditorPage() {
     );
   }
 
-  // Always default to 'submission' if no product specified - simplest approach
-  const selectedProduct = (product as string) || 'submission';
+  const selectedProduct: ProductType = (() => {
+    const value = typeof product === 'string' ? product : undefined;
+    return value && isProductType(value) ? value : 'submission';
+  })();
 
   return (
     <ErrorBoundary>
@@ -92,3 +95,13 @@ function EditorPage() {
 }
 
 export default EditorPage;
+
+function isProductType(value: string): value is ProductType {
+  return (
+    value === 'submission' ||
+    value === 'prototype' ||
+    value === 'research_project' ||
+    value === 'strategy' ||
+    value === 'other'
+  );
+}
