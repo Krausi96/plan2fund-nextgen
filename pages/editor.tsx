@@ -102,14 +102,3 @@ function isProductType(value: string): value is ProductType {
     value === 'strategy'
   );
 }
-
-function formatProductLabel(product: ProductType) {
-  switch (product) {
-    case 'review':
-      return 'Plan Review';
-    case 'strategy':
-      return 'Strategy Plan';
-    default:
-      return 'Submission Plan';
-  }
-}

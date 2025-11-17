@@ -45,10 +45,10 @@ function convertSectionToPlanSection(section: Section): PlanSection {
     // Add attachments reference
     if (question.attachments && question.attachments.length > 0) {
       question.attachments.forEach((attachment) => {
-        const icon = attachment.type === 'dataset' || attachment.type === 'table' ? '📊' :
-                     attachment.type === 'chart' || attachment.type === 'graph' ? '📈' :
+        const icon = attachment.type === 'table' ? '📊' :
+                     attachment.type === 'chart' ? '📈' :
                      attachment.type === 'image' ? '📷' : '📎';
-        const name = attachment.title || attachment.name || 'Untitled';
+        const name = attachment.title || 'Untitled';
         contentParts.push(`\n${icon} ${name} (attached)`);
       });
     }

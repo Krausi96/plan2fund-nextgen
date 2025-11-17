@@ -1599,6 +1599,58 @@ export default function ProgramFinder({
                                   <span className="text-gray-600">{(program as any).region}</span>
                                 </div>
                               )}
+                              {(program as any).metadata?.organization && (
+                                <div className="flex items-start gap-2">
+                                  <span className="font-semibold text-gray-700 min-w-[80px]">
+                                    {locale === 'de' ? 'Organisation:' : 'Organization:'}
+                                  </span>
+                                  <span className="text-gray-600">{(program as any).metadata.organization}</span>
+                                </div>
+                              )}
+                              {(program as any).metadata?.co_financing_required === true && (
+                                <div className="flex items-start gap-2">
+                                  <span className="font-semibold text-gray-700 min-w-[80px]">
+                                    {locale === 'de' ? 'Co-Finanzierung:' : 'Co-Financing:'}
+                                  </span>
+                                  <span className="text-orange-600 font-medium">
+                                    {(program as any).metadata.co_financing_percentage 
+                                      ? `${(program as any).metadata.co_financing_percentage}% ${locale === 'de' ? 'erforderlich' : 'required'}`
+                                      : locale === 'de' ? 'Erforderlich' : 'Required'}
+                                  </span>
+                                </div>
+                              )}
+                              {(program as any).metadata?.application_deadlines && (
+                                <div className="flex items-start gap-2">
+                                  <span className="font-semibold text-gray-700 min-w-[80px]">
+                                    {locale === 'de' ? 'Fristen:' : 'Deadlines:'}
+                                  </span>
+                                  <span className="text-gray-600">{(program as any).metadata.application_deadlines}</span>
+                                </div>
+                              )}
+                              {(program as any).metadata?.typical_timeline && (
+                                <div className="flex items-start gap-2">
+                                  <span className="font-semibold text-gray-700 min-w-[80px]">
+                                    {locale === 'de' ? 'Zeitrahmen:' : 'Timeline:'}
+                                  </span>
+                                  <span className="text-gray-600">{(program as any).metadata.typical_timeline}</span>
+                                </div>
+                              )}
+                              {(program as any).metadata?.competitiveness && (
+                                <div className="flex items-start gap-2">
+                                  <span className="font-semibold text-gray-700 min-w-[80px]">
+                                    {locale === 'de' ? 'Wettbewerb:' : 'Competitiveness:'}
+                                  </span>
+                                  <span className={`font-medium ${
+                                    (program as any).metadata.competitiveness === 'high' ? 'text-red-600' :
+                                    (program as any).metadata.competitiveness === 'medium' ? 'text-yellow-600' :
+                                    'text-green-600'
+                                  }`}>
+                                    {(program as any).metadata.competitiveness === 'high' ? (locale === 'de' ? 'Hoch' : 'High') :
+                                     (program as any).metadata.competitiveness === 'medium' ? (locale === 'de' ? 'Mittel' : 'Medium') :
+                                     (locale === 'de' ? 'Niedrig' : 'Low')}
+                                  </span>
+                                </div>
+                              )}
                             </div>
 
                             {/* External Link */}

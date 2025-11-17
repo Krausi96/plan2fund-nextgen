@@ -114,6 +114,9 @@ Rules:
 3. Funding range should align with the user's need (be lenient but stay relevant).
 4. Every program must include a funding_types array describing the instrument (grant, loan, equity, guarantee, subsidy, convertible, other).
 5. If a value is unknown, return null for that key but keep the key.
+6. Descriptions should be contextual and explain WHY the program matches the user's profile (mention location, stage, amount range, industry if relevant).
+7. Include key requirements in descriptions (co-financing needs, deadlines, eligibility constraints).
+8. Add metadata fields: organization (e.g., "FFG", "AWS", "Vienna Business Agency"), co_financing_required (boolean), co_financing_percentage (number or null), application_deadlines (string or null), typical_timeline (e.g., "2-3 months"), competitiveness ("high", "medium", "low" or null).
 
 Return JSON only with this exact structure:
 {
@@ -246,6 +249,13 @@ Example:
         description: program.description || null,
         region: program.location || null,
         company_stage: program.company_stage || null,
+        organization: program.metadata?.organization || null,
+        co_financing_required: program.metadata?.co_financing_required ?? null,
+        co_financing_percentage: program.metadata?.co_financing_percentage ?? null,
+        application_deadlines: program.metadata?.application_deadlines || null,
+        typical_timeline: program.metadata?.typical_timeline || null,
+        competitiveness: program.metadata?.competitiveness || null,
+        program_focus: program.metadata?.program_focus || null,
       },
       source: 'llm_generated',
     })),
