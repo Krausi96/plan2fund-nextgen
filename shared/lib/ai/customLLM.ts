@@ -164,22 +164,7 @@ export async function callCustomLLM(request: ChatRequest): Promise<ChatResponse>
                       location: { type: 'string' },
                       company_type: { type: 'string' },
                       company_stage: { type: 'string' },
-                      description: { type: 'string' },
-                      metadata: {
-                        type: 'object',
-                        properties: {
-                          region: { type: 'string' },
-                          program_focus: { type: 'array', items: { type: 'string' } }
-                        },
-                        additionalProperties: true
-                      },
-                      categorized_requirements: {
-                        type: 'object',
-                        additionalProperties: {
-                          type: 'array',
-                          items: { type: 'object' }
-                        }
-                      }
+                      description: { type: 'string' }
                     },
                     required: ['id', 'name', 'funding_types']
                   }
