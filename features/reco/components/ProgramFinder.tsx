@@ -7,6 +7,7 @@ import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import { useRouter } from 'next/router';
 import { Wand2, ChevronLeft, ChevronRight } from 'lucide-react';
 import { Card } from '@/shared/components/ui/card';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/shared/components/ui/dialog';
 // Progress bar implemented with custom div (not using Progress component)
 import { scoreProgramsEnhanced, EnhancedProgramResult } from '@/features/reco/engine/enhancedRecoEngine';
 import { useI18n } from '@/shared/contexts/I18nContext';
@@ -30,7 +31,7 @@ function PathIndicator({
   return (
     <div className="text-center">
       <div className="flex items-center justify-center">
-        <div className="relative flex-1 max-w-4xl h-8 bg-gray-200 rounded-full overflow-visible">
+        <div className="relative flex-1 max-w-4xl h-10 bg-gray-200 rounded-full overflow-visible">
           {/* Progress fill */}
           <div 
             className="h-full bg-blue-600 transition-all duration-300 rounded-full"
@@ -45,12 +46,12 @@ function PathIndicator({
               <button
                 key={idx}
                 onClick={() => onStepClick(idx)}
-                className={`absolute w-6 h-6 rounded-full flex items-center justify-center text-xs font-semibold transition-all -translate-x-1/2 -translate-y-1/2 ${
+                className={`absolute w-8 h-8 rounded-full flex items-center justify-center text-sm font-semibold transition-all -translate-x-1/2 -translate-y-1/2 ${
                   idx === currentQuestionIndex
-                    ? 'bg-blue-800 text-white shadow-lg scale-125 z-10'
+                    ? 'bg-blue-800 text-white shadow-lg scale-110 z-10 border-2 border-white'
                     : isAnswered
-                    ? 'bg-green-500 text-white'
-                    : 'bg-gray-300 text-gray-700 hover:bg-gray-400'
+                    ? 'bg-blue-500 text-white border-2 border-white'
+                    : 'bg-gray-300 text-gray-700 hover:bg-gray-400 border-2 border-white'
                 }`}
                 style={{ 
                   left: `${position}%`,
@@ -268,7 +269,7 @@ interface ProgramFinderProps {
     unit: 'months',
     required: false,
     priority: 8,
-    editableValue: true, // Allow editing the number directly
+    editableValue: false, // Slider only, no direct input
     isAdvanced: true, // Advanced question - hide by default
   },
   {
@@ -281,7 +282,7 @@ interface ProgramFinderProps {
     unit: 'months',
     required: false,
     priority: 9,
-    editableValue: true, // Allow editing the number directly
+    editableValue: false, // Slider only, no direct input
     isAdvanced: true, // Advanced question - hide by default
     skipIf: (answers: Record<string, any>) => {
       const duration = answers.project_duration;
@@ -325,7 +326,7 @@ interface ProgramFinderProps {
     ],
     required: false,
     priority: 11,
-    editableValue: true, // Allow editing the number directly
+    editableValue: false, // Slider only, no direct input
     isAdvanced: true, // Advanced question - hide by default
   },
 ];
@@ -720,28 +721,6 @@ export default function ProgramFinder({
           <p className="text-gray-600 text-base sm:text-lg mb-8">
             {t('reco.pageSubtitle')}
           </p>
-          
-          {/* Scroll Indicator - Animated arrow pointing down */}
-          {answeredCount === 0 && (
-            <div className="flex justify-center mb-4">
-              <button
-                onClick={() => {
-                  const questionsSection = document.querySelector('[data-questions-section]');
-                  if (questionsSection) {
-                    questionsSection.scrollIntoView({ behavior: 'smooth', block: 'start' });
-                  }
-                }}
-                className="flex flex-col items-center gap-2 animate-bounce hover:opacity-80 transition-opacity cursor-pointer"
-              >
-                <p className="text-sm text-gray-500 font-medium text-center">
-                  {locale === 'de' ? 'Scrollen Sie nach unten, um zu beginnen' : 'Scroll down to begin'}
-                </p>
-                <svg className="w-6 h-6 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 14l-7 7m0 0l-7-7m7 7V3" />
-                </svg>
-              </button>
-            </div>
-          )}
           
           {results.length > 0 && (
             <div className="mt-2 text-sm text-gray-600">
@@ -1551,89 +1530,63 @@ export default function ProgramFinder({
                                           </div>
                                         </div>
                                       )}
-                                      {question.id !== 'company_stage' && question.editableValue ? (
-                                        <>
-                                          <input
-                                            type="text"
-                                            value={rawInputValues[question.id] !== undefined 
-                                              ? rawInputValues[question.id]
-                                              : typeof value === 'number' 
-                                              ? (question.unit === 'EUR' 
-                                                  ? value.toString()
-                                                  : question.unit === 'years'
-                                                  ? value.toFixed(1)
-                                                  : value.toString())
-                                              : question.min.toString()}
-                                            onChange={(e) => {
-                                              let inputValue = e.target.value;
-                                              // Store raw input for free typing
-                                              setRawInputValues(prev => ({ ...prev, [question.id]: inputValue }));
-                                              
-                                              // Remove non-numeric (except decimal for years)
-                                              if (question.unit === 'EUR' || question.unit === 'months' || question.unit === 'people') {
-                                                inputValue = inputValue.replace(/[^\d]/g, '');
-                                              } else if (question.unit === 'years') {
-                                                inputValue = inputValue.replace(/[^\d.]/g, '');
-                                                const parts = inputValue.split('.');
-                                                if (parts.length > 2) inputValue = parts[0] + '.' + parts.slice(1).join('');
-                                              }
-                                              
-                                              if (inputValue === '' || inputValue === '.') return;
-                                              
-                                              const numValue = question.unit === 'years' 
-                                                ? parseFloat(inputValue)
-                                                : Math.floor(parseFloat(inputValue));
+                                      {question.id !== 'company_stage' && question.editableValue && question.unit === 'EUR' ? (
+                                        <div className="mt-4">
+                                          <div className="flex items-center justify-center gap-2">
+                                            <span className="text-lg font-semibold text-gray-700">€</span>
+                                            <input
+                                              type="text"
+                                              value={rawInputValues[question.id] !== undefined 
+                                                ? rawInputValues[question.id]
+                                                : typeof value === 'number' 
+                                                ? value.toLocaleString('de-DE')
+                                                : question.min.toLocaleString('de-DE')}
+                                              onChange={(e) => {
+                                                let inputValue = e.target.value.replace(/[^\d]/g, '');
+                                                // Store raw input for free typing
+                                                setRawInputValues(prev => ({ ...prev, [question.id]: inputValue }));
                                                 
-                                              if (!isNaN(numValue)) {
-                                                if (numValue >= question.min && numValue <= question.max) {
-                                                  handleAnswer(question.id, numValue);
+                                                if (inputValue === '') return;
+                                                
+                                                const numValue = Math.floor(parseFloat(inputValue));
+                                                
+                                                if (!isNaN(numValue)) {
+                                                  if (numValue >= question.min && numValue <= question.max) {
+                                                    handleAnswer(question.id, numValue);
+                                                  } else if (numValue > question.max) {
+                                                    handleAnswer(question.id, question.max);
+                                                    setRawInputValues(prev => ({ ...prev, [question.id]: question.max.toString() }));
+                                                  }
+                                                }
+                                              }}
+                                              onFocus={() => {
+                                                const currentValue = typeof value === 'number' ? value : question.min;
+                                                setRawInputValues(prev => ({ 
+                                                  ...prev, 
+                                                  [question.id]: currentValue.toString()
+                                                }));
+                                              }}
+                                              onBlur={(e) => {
+                                                let cleaned = e.target.value.replace(/[^\d]/g, '');
+                                                const numValue = Math.floor(parseFloat(cleaned || '0'));
+                                                setRawInputValues(prev => {
+                                                  const newState = { ...prev };
+                                                  delete newState[question.id];
+                                                  return newState;
+                                                });
+                                                if (isNaN(numValue) || numValue < question.min) {
+                                                  handleAnswer(question.id, question.min);
                                                 } else if (numValue > question.max) {
                                                   handleAnswer(question.id, question.max);
-                                                  setRawInputValues(prev => ({ ...prev, [question.id]: question.max.toString() }));
+                                                } else if (!isNaN(numValue)) {
+                                                  handleAnswer(question.id, numValue);
                                                 }
-                                              }
-                                            }}
-                                            onFocus={() => {
-                                              const currentValue = typeof value === 'number' ? value : question.min;
-                                              setRawInputValues(prev => ({ 
-                                                ...prev, 
-                                                [question.id]: question.unit === 'years' 
-                                                  ? currentValue.toFixed(1) 
-                                                  : currentValue.toString() 
-                                              }));
-                                            }}
-                                            onBlur={(e) => {
-                                              let cleaned = e.target.value.replace(/[^\d.]/g, '');
-                                              if (question.unit === 'EUR' || question.unit === 'months' || question.unit === 'people') {
-                                                cleaned = cleaned.replace(/\./g, '');
-                                              }
-                                              const numValue = question.unit === 'years' 
-                                                ? parseFloat(cleaned || '0')
-                                                : Math.floor(parseFloat(cleaned || '0'));
-                                              setRawInputValues(prev => {
-                                                const newState = { ...prev };
-                                                delete newState[question.id];
-                                                return newState;
-                                              });
-                                              if (isNaN(numValue) || numValue < question.min) {
-                                                handleAnswer(question.id, question.min);
-                                              } else if (numValue > question.max) {
-                                                handleAnswer(question.id, question.max);
-                                              } else if (!isNaN(numValue)) {
-                                                handleAnswer(question.id, numValue);
-                                              }
-                                            }}
-                                            placeholder={question.unit === 'EUR' 
-                                              ? `€${question.min.toLocaleString('de-DE')} - €${question.max.toLocaleString('de-DE')}`
-                                              : `${question.min} - ${question.max} ${question.unit}`}
-                                            className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-center font-medium"
-                                          />
-                                          <div className="text-xs text-gray-500 mt-1">
-                                            {question.unit === 'EUR' && typeof value === 'number' && (
-                                              <span>€{value.toLocaleString('de-DE')}</span>
-                                            )}
+                                              }}
+                                              placeholder={`${question.min.toLocaleString('de-DE')} - ${question.max.toLocaleString('de-DE')}`}
+                                              className="w-48 px-4 py-3 border-2 border-blue-300 rounded-lg text-lg font-semibold focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-center bg-white shadow-sm"
+                                            />
                                           </div>
-                                        </>
+                                        </div>
                                       ) : question.id !== 'company_stage' && (
                                         <div className="text-base font-semibold text-gray-800">
                                           {typeof value === 'number' 
@@ -1658,12 +1611,23 @@ export default function ProgramFinder({
                                         </div>
                                       )}
                                     </div>
-                                    {question.editableValue && question.unit === 'EUR' && (
-                                      <div className="text-xs text-gray-500 text-center mt-1">
-                                        {typeof value === 'number' ? `€${value.toLocaleString('de-DE')}` : `€${question.min.toLocaleString('de-DE')}`}
-                                      </div>
-                                    )}
                                   </div>
+                                  
+                                  {/* Skip Button for Range/Slider Questions */}
+                                  {!question.required && (
+                                    <button
+                                      onClick={() => {
+                                        handleAnswer(question.id, undefined);
+                                        // Auto-advance after skipping
+                                        if (currentQuestionIndex < visibleQuestions.length - 1) {
+                                          setTimeout(() => setCurrentQuestionIndex(currentQuestionIndex + 1), 300);
+                                        }
+                                      }}
+                                      className="w-full mt-3 px-4 py-2.5 text-sm font-medium text-gray-700 hover:text-gray-900 border-2 border-gray-300 rounded-lg hover:bg-gray-100 hover:border-gray-400 transition-all"
+                                    >
+                                      {t('reco.skipQuestion') || 'Skip this question'} →
+                                    </button>
+                                  )}
                                 </div>
                               )}
                               
@@ -1682,145 +1646,143 @@ export default function ProgramFinder({
             </Card>
           </div>
           
-          {/* Results Display Section */}
-          <div className={`${mobileActiveTab === 'questions' ? 'hidden lg:block' : 'block'} ${results.length === 0 && !isLoading ? 'hidden' : ''}`}>
-            {isLoading ? (
-              <div className="max-w-2xl mx-auto mt-6">
-                <Card className="p-8 border-2 border-blue-200">
-                  <div className="flex flex-col items-center justify-center space-y-4">
-                    <svg className="animate-spin h-12 w-12 text-blue-600" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                      <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-                      <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-                    </svg>
-                    <div className="text-center">
-                      <h3 className="text-xl font-semibold text-gray-900 mb-2">
-                        {locale === 'de' ? 'Förderprogramme werden generiert...' : 'Generating Funding Programs...'}
-                      </h3>
-                      <p className="text-gray-600">
-                        {locale === 'de' 
-                          ? 'Dies kann 15-30 Sekunden dauern. Bitte haben Sie etwas Geduld.'
-                          : 'This may take 15-30 seconds. Please be patient.'}
-                      </p>
+          {/* Loading Indicator - Inline */}
+          {isLoading && (
+            <div className="max-w-2xl mx-auto mt-6">
+              <Card className="p-8 border-2 border-blue-200">
+                <div className="flex flex-col items-center justify-center space-y-4">
+                  <svg className="animate-spin h-12 w-12 text-blue-600" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                    <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                    <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                  </svg>
+                  <div className="text-center">
+                    <h3 className="text-xl font-semibold text-gray-900 mb-2">
+                      {locale === 'de' ? 'Förderprogramme werden generiert...' : 'Generating Funding Programs...'}
+                    </h3>
+                    <p className="text-gray-600">
+                      {locale === 'de' 
+                        ? 'Dies kann 15-30 Sekunden dauern. Bitte haben Sie etwas Geduld.'
+                        : 'This may take 15-30 seconds. Please be patient.'}
+                    </p>
+                  </div>
+                  {/* Progress steps */}
+                  <div className="w-full max-w-md space-y-2 mt-4">
+                    <div className="flex items-center gap-2 text-sm text-gray-600">
+                      <div className="w-2 h-2 rounded-full bg-blue-600 animate-pulse"></div>
+                      <span>{locale === 'de' ? 'Analysiere Ihr Profil...' : 'Analyzing your profile...'}</span>
                     </div>
-                    {/* Progress steps */}
-                    <div className="w-full max-w-md space-y-2 mt-4">
-                      <div className="flex items-center gap-2 text-sm text-gray-600">
-                        <div className="w-2 h-2 rounded-full bg-blue-600 animate-pulse"></div>
-                        <span>{locale === 'de' ? 'Analysiere Ihr Profil...' : 'Analyzing your profile...'}</span>
-                      </div>
-                      <div className="flex items-center gap-2 text-sm text-gray-500">
-                        <div className="w-2 h-2 rounded-full bg-gray-300"></div>
-                        <span>{locale === 'de' ? 'Finde passende Programme...' : 'Finding matching programs...'}</span>
-                      </div>
-                      <div className="flex items-center gap-2 text-sm text-gray-500">
-                        <div className="w-2 h-2 rounded-full bg-gray-300"></div>
-                        <span>{locale === 'de' ? 'Bewerte Relevanz...' : 'Scoring relevance...'}</span>
-                      </div>
+                    <div className="flex items-center gap-2 text-sm text-gray-500">
+                      <div className="w-2 h-2 rounded-full bg-gray-300"></div>
+                      <span>{locale === 'de' ? 'Finde passende Programme...' : 'Finding matching programs...'}</span>
+                    </div>
+                    <div className="flex items-center gap-2 text-sm text-gray-500">
+                      <div className="w-2 h-2 rounded-full bg-gray-300"></div>
+                      <span>{locale === 'de' ? 'Bewerte Relevanz...' : 'Scoring relevance...'}</span>
                     </div>
                   </div>
-                </Card>
-              </div>
-            ) : results.length > 0 ? (
-              <div className="max-w-4xl mx-auto mt-6">
-                <h2 className="text-2xl font-bold text-gray-900 mb-4">
+                </div>
+              </Card>
+            </div>
+          )}
+          
+          {/* Results Modal/Popup */}
+          <Dialog open={results.length > 0 && !isLoading} onOpenChange={(open) => {
+            if (!open) {
+              setResults([]);
+            }
+          }}>
+            <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
+              <DialogHeader>
+                <DialogTitle>
                   {locale === 'de' ? 'Gefundene Förderprogramme' : 'Found Funding Programs'} ({results.length})
-                </h2>
-                <div className="space-y-4">
-                  {results.map((program, index) => (
-                    <Card key={program.id || index} className="p-6 border-2 border-blue-200 hover:border-blue-400 transition-all">
-                      <div className="flex items-start justify-between gap-4">
-                        <div className="flex-1">
-                          <div className="flex items-center gap-3 mb-2">
-                            <h3 className="text-xl font-semibold text-gray-900">
-                              {program.name || `Program ${index + 1}`}
-                            </h3>
-                            {program.score !== undefined && (
-                              <span className={`px-3 py-1 rounded-full text-sm font-medium ${
-                                program.score >= 70 ? 'bg-green-100 text-green-800' :
-                                program.score >= 40 ? 'bg-yellow-100 text-yellow-800' :
-                                'bg-gray-100 text-gray-800'
-                              }`}>
-                                {Math.round(program.score)}% Match
-                              </span>
-                            )}
-                          </div>
-                          {(program.description || (program as any).metadata?.description) && (
-                            <p className="text-gray-600 mb-3">{program.description || (program as any).metadata?.description}</p>
-                          )}
-                          <div className="flex flex-wrap gap-4 text-sm text-gray-600">
-                            {program.amount && (
-                              <span>
-                                <strong>{locale === 'de' ? 'Betrag:' : 'Amount:'}</strong>{' '}
-                                €{program.amount.min?.toLocaleString('de-DE') || '0'} - €{program.amount.max?.toLocaleString('de-DE') || '0'}
-                              </span>
-                            )}
-                            {program.type && (
-                              <span>
-                                <strong>{locale === 'de' ? 'Typ:' : 'Type:'}</strong> {program.type}
-                              </span>
-                            )}
-                          </div>
-                          {program.url && (
-                            <a 
-                              href={program.url} 
-                              target="_blank" 
-                              rel="noopener noreferrer"
-                              className="text-blue-600 hover:text-blue-800 text-sm mt-2 inline-block"
-                            >
-                              {locale === 'de' ? 'Mehr erfahren →' : 'Learn more →'}
-                            </a>
+                </DialogTitle>
+                <DialogDescription>
+                  {locale === 'de' 
+                    ? 'Hier sind die passendsten Förderprogramme für Sie.'
+                    : 'Here are the most suitable funding programs for you.'}
+                </DialogDescription>
+              </DialogHeader>
+              <div className="space-y-4 mt-4">
+                {results.map((program, index) => (
+                  <Card key={program.id || index} className="p-6 border-2 border-blue-200 hover:border-blue-400 transition-all">
+                    <div className="flex items-start justify-between gap-4">
+                      <div className="flex-1">
+                        <div className="flex items-center gap-3 mb-2">
+                          <h3 className="text-xl font-semibold text-gray-900">
+                            {program.name || `Program ${index + 1}`}
+                          </h3>
+                          {program.score !== undefined && (
+                            <span className={`px-3 py-1 rounded-full text-sm font-medium ${
+                              program.score >= 70 ? 'bg-green-100 text-green-800' :
+                              program.score >= 40 ? 'bg-yellow-100 text-yellow-800' :
+                              'bg-gray-100 text-gray-800'
+                            }`}>
+                              {Math.round(program.score)}% Match
+                            </span>
                           )}
                         </div>
-                        <button
-                          onClick={() => {
-                            if (onProgramSelect) {
-                              onProgramSelect(program.id, program.type || 'grant');
-                            } else {
-                              // Store in localStorage for editor
-                              if (typeof window !== 'undefined') {
-                                localStorage.setItem('selectedProgram', JSON.stringify({
-                                  id: program.id,
-                                  name: program.name,
-                                  categorized_requirements: program.categorized_requirements || {},
-                                  type: program.type || 'grant',
-                                  url: program.url,
-                                }));
-                                router.push('/editor?product=submission');
-                              }
-                            }
-                          }}
-                          className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors font-medium whitespace-nowrap"
-                        >
-                          {locale === 'de' ? 'Auswählen' : 'Select'}
-                        </button>
+                        {(program.description || (program as any).metadata?.description) && (
+                          <p className="text-gray-600 mb-3">{program.description || (program as any).metadata?.description}</p>
+                        )}
+                        <div className="flex flex-wrap gap-4 text-sm text-gray-600">
+                          {program.amount && (
+                            <span>
+                              <strong>{locale === 'de' ? 'Betrag:' : 'Amount:'}</strong>{' '}
+                              €{program.amount.min?.toLocaleString('de-DE') || '0'} - €{program.amount.max?.toLocaleString('de-DE') || '0'}
+                            </span>
+                          )}
+                          {program.type && (
+                            <span>
+                              <strong>{locale === 'de' ? 'Typ:' : 'Type:'}</strong> {program.type}
+                            </span>
+                          )}
+                        </div>
+                        {program.url && (
+                          <a 
+                            href={program.url} 
+                            target="_blank" 
+                            rel="noopener noreferrer"
+                            className="text-blue-600 hover:text-blue-800 text-sm mt-2 inline-block"
+                          >
+                            {locale === 'de' ? 'Mehr erfahren →' : 'Learn more →'}
+                          </a>
+                        )}
                       </div>
-                    </Card>
-                  ))}
-                </div>
+                      <button
+                        onClick={() => {
+                          if (onProgramSelect) {
+                            onProgramSelect(program.id, program.type || 'grant');
+                          } else {
+                            // Store in localStorage for editor
+                            if (typeof window !== 'undefined') {
+                              localStorage.setItem('selectedProgram', JSON.stringify({
+                                id: program.id,
+                                name: program.name,
+                                categorized_requirements: program.categorized_requirements || {},
+                                type: program.type || 'grant',
+                                url: program.url,
+                              }));
+                              router.push('/editor?product=submission');
+                            }
+                          }
+                        }}
+                        className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors font-medium whitespace-nowrap"
+                      >
+                        {locale === 'de' ? 'Auswählen' : 'Select'}
+                      </button>
+                    </div>
+                  </Card>
+                ))}
               </div>
-            ) : results.length === 0 && answeredCount >= MIN_QUESTIONS_FOR_RESULTS ? (
-              <div className="max-w-2xl mx-auto mt-6 text-center">
-                <Card className="p-8 border-2 border-gray-200">
-                  <p className="text-gray-600 text-lg mb-2">
-                    {locale === 'de' ? 'Keine Programme gefunden' : 'No programs found'}
-                  </p>
-                  <p className="text-gray-500 text-sm">
-                    {locale === 'de' 
-                      ? 'Versuchen Sie, andere Antworten zu wählen oder klicken Sie erneut auf "Förderprogramm generieren".'
-                      : 'Try selecting different answers or click "Generate Funding Programs" again.'}
-                  </p>
-                </Card>
-              </div>
-            ) : null}
-          </div>
+            </DialogContent>
+          </Dialog>
         </div>
       </div>
       
-      {/* Sticky Bottom Bar - Centered Generate Button */}
-      {answeredCount > 0 && (
-        <div className="fixed bottom-0 left-0 right-0 bg-white shadow-2xl z-50 border-t-2 border-gray-200">
-          <div className="max-w-7xl mx-auto px-4 py-4">
-            <div className="flex items-center justify-center">
+      {/* Sticky Bottom Bar - Centered Generate Button - Always visible on desktop */}
+      <div className="fixed bottom-0 left-0 right-0 bg-white shadow-2xl z-50 border-t-2 border-gray-200 hidden lg:block">
+        <div className="max-w-7xl mx-auto px-4 py-4">
+          <div className="flex items-center justify-center">
               <button
                 onClick={async () => {
                   if (!hasEnoughAnswers) {
@@ -1982,7 +1944,6 @@ export default function ProgramFinder({
             </div>
           </div>
         </div>
-      )}
     </div>
   );
 }

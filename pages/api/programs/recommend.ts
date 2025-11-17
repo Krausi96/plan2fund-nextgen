@@ -322,12 +322,83 @@ function matchesAnswers(extracted: any, answers: UserAnswers, threshold: number 
   const isLLMGenerated = extracted?.source === 'llm_generated' || extracted?._fallback === true;
   const matchRatio = totalChecks > 0 ? matchCount / totalChecks : 1;
   
-  // For LLM-generated programs, be extremely lenient - always show them
-  // Since they're generated specifically for the user's profile, they should be relevant
+  // For LLM-generated programs, be lenient but still check basic quality
+  // Since they're generated for the user's profile, they should be mostly relevant
+  // But we still need to filter out clearly wrong programs (wrong location, incompatible type)
   if (isLLMGenerated) {
-    // Always return true for LLM-generated programs - they're already tailored to the user
-    // Only filter out if there's a clear incompatibility (handled by critical checks above)
-    console.log(`✅ LLM-generated program "${extracted?.name || 'unknown'}" - allowing through (lenient matching)`);
+    // Check for critical mismatches that would make the program completely irrelevant
+    // 1. Location mismatch (if program specifies a location that doesn't match user)
+    if (answers.location && totalChecks > 0) {
+      const geoReqs = categorized.geographic || [];
+      if (geoReqs.length > 0) {
+        // Program has location requirements - check if they match user
+        const userLocation = normalizeLocationAnswer(answers.location);
+        let locationMatches = false;
+        for (const req of geoReqs) {
+          const reqValue = String(req.value || '');
+          const extractedLocation = normalizeLocationExtraction(reqValue);
+          if (matchLocations(userLocation, extractedLocation)) {
+            locationMatches = true;
+            break;
+          }
+        }
+        // If program specifies a location and it doesn't match user, filter it out
+        // (unless it's a generic "EU" or "Europe" program that might still be relevant)
+        if (!locationMatches) {
+          const extractedLocationStr = geoReqs.map((r: any) => String(r.value || '')).join(', ').toLowerCase();
+          const isGenericLocation = extractedLocationStr.includes('eu') || extractedLocationStr.includes('europe') || 
+                                   extractedLocationStr.includes('international') || extractedLocationStr.includes('global');
+          if (!isGenericLocation) {
+            console.log(`❌ Filtering LLM program "${extracted?.name || 'unknown'}" - location mismatch: user=${answers.location}, program=${extractedLocationStr}`);
+            return false; // Location mismatch - filter out
+          }
+        }
+      }
+    }
+    
+    // 2. Company type incompatibility (e.g., research program for startup, or vice versa)
+    if (answers.company_type && totalChecks > 0) {
+      const eligReqs = categorized.eligibility || [];
+      const userType = normalizeCompanyTypeAnswer(answers.company_type);
+      
+      // Check for clear incompatibilities
+      const incompatibleTypes: Record<string, string[]> = {
+        'research': ['startup', 'sme', 'prefounder'],
+        'startup': ['research'],
+        'prefounder': ['research'],
+      };
+      
+      if (eligReqs.length > 0) {
+        for (const req of eligReqs) {
+          if (req.type === 'company_type') {
+            const reqValue = String(req.value || '').toLowerCase();
+            const extractedType = normalizeCompanyTypeExtraction(reqValue);
+            
+            // Check if user type and program type are incompatible
+            const userTypePrimary = userType.primary;
+            const extractedTypePrimary = extractedType.primary;
+            const incompatibleForUser = incompatibleTypes[userTypePrimary] || [];
+            const incompatibleForProgram = incompatibleTypes[extractedTypePrimary] || [];
+            
+            if (incompatibleForUser.includes(extractedTypePrimary) || 
+                incompatibleForProgram.includes(userTypePrimary)) {
+              console.log(`❌ Filtering LLM program "${extracted?.name || 'unknown'}" - incompatible company type: user=${userTypePrimary}, program=${extractedTypePrimary}`);
+              return false; // Clear incompatibility - filter out
+            }
+          }
+        }
+      }
+    }
+    
+    // 3. Ensure program has at least basic information (name, some requirements)
+    if (!extracted?.name || extracted.name.trim().length === 0) {
+      console.log(`❌ Filtering LLM program - missing name`);
+      return false;
+    }
+    
+    // If we get here, the program passes basic quality checks
+    // It might not match perfectly, but it's not clearly wrong
+    console.log(`✅ LLM-generated program "${extracted?.name || 'unknown'}" - passed quality checks (lenient matching)`);
     return true;
   }
   
@@ -596,15 +667,20 @@ For each program, provide a JSON object with:
 - funding_amount_min: Minimum funding amount (number)
 - funding_amount_max: Maximum funding amount (number)
 - currency: Currency code (default: EUR)
-- location: Geographic eligibility (e.g., "Austria", "Germany", "EU")
-- company_type: Eligible company types (e.g., "startup", "sme", "research", "prefounder" for pre-founders)
+- location: Geographic eligibility - MUST match user's location if specified (e.g., if user is in "Austria", only include programs for "Austria" or "EU")
+- company_type: Eligible company types - MUST match user's company type (e.g., if user is "startup", only include programs for "startup", not "research")
 - industry_focus: Industry/sector focus (array of strings)
 - deadline: Application deadline if known (YYYY-MM-DD format, or null)
 - open_deadline: Boolean indicating if deadline is open/rolling
 - website: Program website URL if known (or null)
 - description: Brief program description
 
-CRITICAL: You MUST return at least ${Math.min(maxPrograms, 5)} programs. If you cannot find exact matches, include similar or related programs that could be relevant.
+CRITICAL REQUIREMENTS:
+1. You MUST return at least ${Math.min(maxPrograms, 5)} programs
+2. Location MUST match: If user specified a location, only include programs for that location (or EU/Europe if applicable)
+3. Company type MUST match: If user specified a company type, only include programs for that type (e.g., don't suggest research programs for startups)
+4. Programs MUST be relevant to the user's profile - do not include generic or unrelated programs
+5. If you cannot find exact matches, include similar programs that are still relevant (same location, compatible company type)
 
 Return a JSON object with a "programs" array containing the program objects.
 
@@ -1277,24 +1353,24 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       const otherCount = programs.length - llmGeneratedCount;
       console.log(`📊 Program breakdown: ${llmGeneratedCount} LLM-generated, ${otherCount} from other sources`);
       
-      // For LLM-generated programs, skip filtering entirely (they're already tailored to user)
-      // Only filter if extract_all is false AND program is not LLM-generated
+      // Filter programs - LLM programs get quality checks, non-LLM get strict matching
       const filteredPrograms = programs.filter((p: any) => {
         if (extract_all) return true;
-        // Skip filtering for LLM-generated programs - they're already relevant
-        if (p.source === 'llm_generated' || p._fallback === true) {
-          console.log(`✅ Skipping filter for LLM-generated program: "${p.name || 'unknown'}" (source: ${p.source || 'unknown'})`);
-          return true;
-        }
-        // Only filter non-LLM programs (from seed extraction)
+        
+        // LLM-generated programs get quality checks (location, company type compatibility)
+        // Non-LLM programs get strict matching (15% threshold)
         const matches = matchesAnswers(p, answers, 0.15);
         if (!matches) {
-          console.log(`❌ Filtered out non-LLM program: "${p.name || 'unknown'}" (did not match answers)`);
+          const sourceType = p.source === 'llm_generated' || p._fallback === true ? 'LLM-generated' : 'non-LLM';
+          console.log(`❌ Filtered out ${sourceType} program: "${p.name || 'unknown'}" (did not pass quality/matching checks)`);
+        } else {
+          const sourceType = p.source === 'llm_generated' || p._fallback === true ? 'LLM-generated' : 'non-LLM';
+          console.log(`✅ ${sourceType} program "${p.name || 'unknown'}" passed filtering`);
         }
         return matches;
       });
       
-      console.log(`📊 Filtered ${programs.length} programs → ${filteredPrograms.length} matching (LLM programs always pass)`);
+      console.log(`📊 Filtered ${programs.length} programs → ${filteredPrograms.length} matching (LLM programs get quality checks, non-LLM get strict matching)`);
       
       // Ensure we always have at least some programs
       if (filteredPrograms.length === 0 && programs.length > 0) {
