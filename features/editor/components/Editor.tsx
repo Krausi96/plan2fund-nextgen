@@ -201,67 +201,7 @@ export default function Editor({ product = 'submission' }: EditorProps) {
     }
   }, [sections, plan]);
 
-  // Program data is loaded from localStorage (set by reco when user selects a program)
-
-  // Error state
-  if (error) {
-    return (
-      <div className="flex items-center justify-center h-screen">
-        <div className="text-center max-w-md">
-          <div className="text-red-600 text-xl mb-4">⚠️ Error</div>
-          <p className="text-gray-600 mb-4">{error}</p>
-          <button
-            onClick={() => {
-              setError(null);
-              loadSections();
-            }}
-            className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
-          >
-            Try Again
-          </button>
-        </div>
-      </div>
-    );
-  }
-
-  // Loading state
-  if (isLoading) {
-    return (
-      <div className="flex items-center justify-center h-screen">
-        <div className="text-center">
-          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto mb-4"></div>
-          <div>Loading editor...</div>
-        </div>
-      </div>
-    );
-  }
-
-  // No sections - show error or empty state
-  if (sections.length === 0) {
-    return (
-      <div className="flex items-center justify-center h-screen">
-        <div className="text-center max-w-md">
-          <p className="text-gray-600 mb-4">
-            No sections found for product "{product}".
-          </p>
-          <p className="text-sm text-gray-500 mb-4">
-            Try selecting a different product in the header.
-          </p>
-          <button
-            onClick={() => router.push('/editor')}
-            className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
-          >
-            Go to Editor
-          </button>
-        </div>
-      </div>
-    );
-  }
-
-  const currentSection = sections[activeSection];
-  const sectionTemplate = sectionTemplates.find(t => t.id === currentSection?.key);
-
-  // Handle AI generation
+  // Handle AI generation - MUST be before conditional returns
   const handleAIGenerate = useCallback(async () => {
     const currentSection = sections[activeSection];
     if (!currentSection || !plan) return;
@@ -361,7 +301,7 @@ export default function Editor({ product = 'submission' }: EditorProps) {
     }
   }, [sections, activeSection, plan, product, sectionTemplates, handleSectionChange]);
 
-  // Calculate overall progress
+  // Calculate overall progress - MUST be before conditional returns
   const overallProgress = React.useMemo(() => {
     if (sections.length === 0) return { percentage: 0, completed: 0, total: 0 };
     let totalProgress = 0;
@@ -379,6 +319,66 @@ export default function Editor({ product = 'submission' }: EditorProps) {
       total: sections.length
     };
   }, [sections]);
+
+  // Program data is loaded from localStorage (set by reco when user selects a program)
+
+  // Error state
+  if (error) {
+    return (
+      <div className="flex items-center justify-center h-screen">
+        <div className="text-center max-w-md">
+          <div className="text-red-600 text-xl mb-4">⚠️ Error</div>
+          <p className="text-gray-600 mb-4">{error}</p>
+          <button
+            onClick={() => {
+              setError(null);
+              loadSections();
+            }}
+            className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
+          >
+            Try Again
+          </button>
+        </div>
+      </div>
+    );
+  }
+
+  // Loading state
+  if (isLoading) {
+    return (
+      <div className="flex items-center justify-center h-screen">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto mb-4"></div>
+          <div>Loading editor...</div>
+        </div>
+      </div>
+    );
+  }
+
+  // No sections - show error or empty state
+  if (sections.length === 0) {
+    return (
+      <div className="flex items-center justify-center h-screen">
+        <div className="text-center max-w-md">
+          <p className="text-gray-600 mb-4">
+            No sections found for product "{product}".
+          </p>
+          <p className="text-sm text-gray-500 mb-4">
+            Try selecting a different product in the header.
+          </p>
+          <button
+            onClick={() => router.push('/editor')}
+            className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
+          >
+            Go to Editor
+          </button>
+        </div>
+      </div>
+    );
+  }
+
+  const currentSection = sections[activeSection];
+  const sectionTemplate = sectionTemplates.find(t => t.id === currentSection?.key);
 
   return (
     <div className="flex flex-col h-screen bg-gray-50">
