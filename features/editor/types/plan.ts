@@ -7,17 +7,13 @@
 
 export type ProductType =
   | 'submission'
+  | 'review'
+  | 'strategy'
   | 'prototype'
   | 'research_project'
-  | 'strategy'
   | 'other';
 
-export type FundingProgramType =
-  | 'grant'
-  | 'venture_financing'
-  | 'loan'
-  | 'equity'
-  | 'other';
+export type FundingProgramType = 'grant' | 'loan' | 'equity' | 'visa' | 'other';
 
 export type RightPanelView =
   | 'ai'

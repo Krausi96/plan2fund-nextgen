@@ -99,6 +99,69 @@ const defaultAncillary = (): AncillaryContent => ({
   lastGenerated: undefined
 });
 
+const ANCILLARY_SECTION_ID = '__ancillary__';
+
+const PRODUCT_TYPE_OPTIONS: Array<{ value: ProductType; label: string; description: string }> = [
+  {
+    value: 'submission',
+    label: 'Full submission',
+    description: 'Grant-ready application with every section completed.'
+  },
+  {
+    value: 'review',
+    label: 'Plan review',
+    description: 'Upload an existing draft and collect AI/editor feedback.'
+  },
+  {
+    value: 'strategy',
+    label: 'Commercial strategy',
+    description: 'Market, go-to-market, and traction narratives.'
+  },
+  {
+    value: 'prototype',
+    label: 'Prototype dossier',
+    description: 'Technical roadmap, testing plans, and build milestones.'
+  },
+  {
+    value: 'research_project',
+    label: 'Research project',
+    description: 'Academic or consortium-focused submissions.'
+  },
+  {
+    value: 'other',
+    label: 'Other / custom',
+    description: 'Define another workflow when you export.'
+  }
+];
+
+const FUNDING_PROGRAM_OPTIONS: Array<{ value: FundingProgramType; label: string; description: string }> = [
+  {
+    value: 'grant',
+    label: 'Grant',
+    description: 'Non-dilutive public or corporate grants.'
+  },
+  {
+    value: 'loan',
+    label: 'Loan',
+    description: 'Debt instruments with repayment schedules.'
+  },
+  {
+    value: 'equity',
+    label: 'Equity / venture',
+    description: 'Convertible, venture, or strategic equity funding.'
+  },
+  {
+    value: 'visa',
+    label: 'Visa / relocation',
+    description: 'Residence, talent, and relocation programs.'
+  },
+  {
+    value: 'other',
+    label: 'Other',
+    description: 'Scholarships, hybrid instruments, or bespoke routes.'
+  }
+];
+
 const PANEL_GUIDANCE: Record<
   RightPanelView,
   { kicker: string; description: string; ctaLabel?: string }
@@ -201,6 +264,13 @@ const useEditorStore = create<EditorStoreState>((set, get) => ({
   setActiveSection: (sectionId) => {
     const { plan } = get();
     if (!plan) return;
+    if (sectionId === ANCILLARY_SECTION_ID) {
+      set({
+        activeSectionId: sectionId,
+        activeQuestionId: null
+      });
+      return;
+    }
     const section = plan.sections.find((item) => item.id === sectionId);
     set({
       activeSectionId: sectionId,
@@ -726,13 +796,19 @@ export default function Editor({ product = 'submission' }: EditorProps) {
     }
   }, [router.query.product, product, hydrate]);
 
-  const activeSection = useMemo(
-    () => plan?.sections.find((section) => section.id === activeSectionId) ?? plan?.sections[0],
-    [plan, activeSectionId]
-  );
-  const activeQuestion =
-    activeSection?.questions.find((question) => question.id === activeQuestionId) ??
-    activeSection?.questions[0];
+  const isAncillaryView = activeSectionId === ANCILLARY_SECTION_ID;
+  const activeSection = useMemo(() => {
+    if (!plan || isAncillaryView) return null;
+    return plan.sections.find((section) => section.id === activeSectionId) ?? plan.sections[0] ?? null;
+  }, [plan, activeSectionId, isAncillaryView]);
+  const activeQuestion = useMemo(() => {
+    if (!activeSection) return null;
+    return (
+      activeSection.questions.find((question) => question.id === activeQuestionId) ??
+      activeSection.questions[0] ??
+      null
+    );
+  }, [activeSection, activeQuestionId]);
 
   const sectionIndex =
     plan?.sections.findIndex((section) => section.id === activeSection?.id) ?? -1;
@@ -774,158 +850,217 @@ export default function Editor({ product = 'submission' }: EditorProps) {
   }
 
   return (
-    <div className="grid grid-cols-[260px_minmax(0,1fr)_340px] min-h-screen bg-slate-50">
-      <Sidebar
-        plan={plan}
-        activeSectionId={activeSection?.id ?? null}
-        onSelectSection={setActiveSection}
-        onChangeProduct={(next) => {
-          setProductType(next);
-          hydrate(next);
-        }}
-        onChangeFunding={setFundingProgram}
-      />
-
-      <SectionWorkspace
-        section={activeSection}
-        onAnswerChange={updateAnswer}
-        onSelectQuestion={setActiveQuestion}
-        activeQuestionId={activeQuestion?.id ?? null}
-        onNavigateSection={(targetId) => targetId && setActiveSection(targetId)}
-        previousSectionId={previousSectionId}
-        nextSectionId={nextSectionId}
-        onDetachAttachment={(questionId, attachmentId) =>
-          activeSection && detachQuestionAttachment(activeSection.id, questionId, attachmentId)
-        }
-        onPromptAssetRequest={() => setRightPanelView('data')}
-        onAskAI={triggerAISuggestions}
-      />
-
-      <RightPanel
-        view={rightPanelView}
-        setView={setRightPanelView}
-        section={activeSection}
-        question={activeQuestion}
-        plan={plan}
-        onDatasetCreate={(dataset) => activeSection && addDataset(activeSection.id, dataset)}
-        onKpiCreate={(kpi) => activeSection && addKpi(activeSection.id, kpi)}
-        onMediaCreate={(asset) => activeSection && addMedia(activeSection.id, asset)}
-        onAttachDataset={(dataset) =>
-          activeSection &&
-          activeQuestion &&
-          attachDatasetToQuestion(activeSection.id, activeQuestion.id, dataset)
-        }
-        onAttachKpi={(kpi) =>
-          activeSection &&
-          activeQuestion &&
-          attachKpiToQuestion(activeSection.id, activeQuestion.id, kpi)
-        }
-        onAttachMedia={(asset) =>
-          activeSection &&
-          activeQuestion &&
-          attachMediaToQuestion(activeSection.id, activeQuestion.id, asset)
-        }
-        onTitlePageChange={updateTitlePage}
-        onAncillaryChange={updateAncillary}
-        onReferenceAdd={addReference}
-        onReferenceUpdate={updateReference}
-        onReferenceDelete={deleteReference}
-        onAppendixAdd={(item) => addAppendix(item)}
-        onAppendixUpdate={(item) => updateAppendix(item)}
-        onAppendixDelete={(appendixId) => deleteAppendix(appendixId)}
-        onRunRequirements={runRequirementsCheck}
-        progressSummary={progressSummary}
-        onAskAI={triggerAISuggestions}
-      />
+    <div className="min-h-screen bg-slate-50 flex flex-col">
+      <header className="border-b border-slate-200 bg-white/90 backdrop-blur">
+        <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-10 py-6 space-y-6">
+          <PlanConfigurator
+            plan={plan}
+            onChangeProduct={(next) => {
+              setProductType(next);
+              hydrate(next);
+            }}
+            onChangeFunding={setFundingProgram}
+          />
+          <SectionStepper
+            plan={plan}
+            activeSectionId={activeSectionId ?? plan.sections[0]?.id ?? null}
+            onSelectSection={setActiveSection}
+          />
+        </div>
+      </header>
+      <div className="flex flex-1">
+        <div className="flex-1">
+          {isAncillaryView ? (
+            <AncillaryWorkspace
+              plan={plan}
+              onTitlePageChange={updateTitlePage}
+              onAncillaryChange={updateAncillary}
+              onReferenceAdd={addReference}
+              onReferenceUpdate={updateReference}
+              onReferenceDelete={deleteReference}
+              onAppendixAdd={addAppendix}
+              onAppendixUpdate={updateAppendix}
+              onAppendixDelete={deleteAppendix}
+              onRunRequirements={runRequirementsCheck}
+              progressSummary={progressSummary}
+            />
+          ) : (
+            <SectionWorkspace
+              section={activeSection ?? plan.sections[0]}
+              onAnswerChange={updateAnswer}
+              onSelectQuestion={setActiveQuestion}
+              activeQuestionId={activeQuestion?.id ?? null}
+              onNavigateSection={(targetId) => targetId && setActiveSection(targetId)}
+              previousSectionId={previousSectionId}
+              nextSectionId={nextSectionId}
+              onAskAI={triggerAISuggestions}
+              onDetachAttachment={(questionId, attachmentId) =>
+                activeSection && detachQuestionAttachment(activeSection.id, questionId, attachmentId)
+              }
+              onPromptAssetRequest={() => setRightPanelView('data')}
+            />
+          )}
+        </div>
+        <RightPanel
+          view={rightPanelView}
+          setView={setRightPanelView}
+          section={activeSection ?? (isAncillaryView ? undefined : plan.sections[0])}
+          question={activeQuestion ?? undefined}
+          plan={plan}
+          onDatasetCreate={(dataset) => activeSection && addDataset(activeSection.id, dataset)}
+          onKpiCreate={(kpi) => activeSection && addKpi(activeSection.id, kpi)}
+          onMediaCreate={(asset) => activeSection && addMedia(activeSection.id, asset)}
+          onAttachDataset={(dataset) =>
+            activeSection &&
+            activeQuestion &&
+            attachDatasetToQuestion(activeSection.id, activeQuestion.id, dataset)
+          }
+          onAttachKpi={(kpi) =>
+            activeSection &&
+            activeQuestion &&
+            attachKpiToQuestion(activeSection.id, activeQuestion.id, kpi)
+          }
+          onAttachMedia={(asset) =>
+            activeSection &&
+            activeQuestion &&
+            attachMediaToQuestion(activeSection.id, activeQuestion.id, asset)
+          }
+          onTitlePageChange={updateTitlePage}
+          onAncillaryChange={updateAncillary}
+          onReferenceAdd={addReference}
+          onReferenceUpdate={updateReference}
+          onReferenceDelete={deleteReference}
+          onAppendixAdd={(item) => addAppendix(item)}
+          onAppendixUpdate={(item) => updateAppendix(item)}
+          onAppendixDelete={(appendixId) => deleteAppendix(appendixId)}
+          onRunRequirements={runRequirementsCheck}
+          progressSummary={progressSummary}
+          onAskAI={triggerAISuggestions}
+        />
+      </div>
     </div>
   );
 }
 
-function Sidebar({
+function PlanConfigurator({
   plan,
-  activeSectionId,
-  onSelectSection,
   onChangeProduct,
   onChangeFunding
 }: {
   plan: BusinessPlan;
-  activeSectionId: string | null;
-  onSelectSection: (sectionId: string) => void;
   onChangeProduct: (product: ProductType) => void;
   onChangeFunding: (program: FundingProgramType) => void;
 }) {
   return (
-    <aside className="border-r border-gray-200 bg-white p-4 space-y-4">
-      <div>
-        <p className="text-xs text-gray-500 uppercase">Plan</p>
-        <p className="text-base font-semibold text-gray-900">{plan.titlePage.planTitle}</p>
+    <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+      <div className="space-y-2">
+        <p className="text-xs uppercase tracking-[0.3em] text-slate-500">Plan title</p>
+        <p className="text-lg font-semibold text-slate-900">{plan.titlePage.planTitle || 'Business Plan'}</p>
+        <p className="text-xs text-slate-500">Align the workflow before editing.</p>
       </div>
-      <div className="space-y-3">
-        <label className="block text-xs text-gray-500">
-          Product type
+      <label className="space-y-2">
+        <span className="text-xs font-semibold text-slate-500 uppercase tracking-[0.2em]">Product type</span>
+        <div className="relative">
           <select
-            value={plan.productType}
+            value={plan.productType ?? 'submission'}
             onChange={(event) => onChangeProduct(event.target.value as ProductType)}
-            className="mt-1 w-full border border-gray-200 rounded-md px-2 py-1 text-sm"
+            className="w-full appearance-none rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm font-medium text-slate-700 shadow-sm focus:border-blue-500 focus:ring-2 focus:ring-blue-200"
           >
-            <option value="submission">Submission</option>
-            <option value="prototype">Prototype</option>
-            <option value="research_project">Research project</option>
-            <option value="strategy">Strategy</option>
+            {PRODUCT_TYPE_OPTIONS.map((option) => (
+              <option key={option.value} value={option.value}>
+                {option.label}
+              </option>
+            ))}
           </select>
-        </label>
-        <label className="block text-xs text-gray-500">
-          Funding program
+          <span className="pointer-events-none absolute inset-y-0 right-4 flex items-center text-slate-400">▾</span>
+        </div>
+        <p className="text-[11px] text-slate-500">
+          {PRODUCT_TYPE_OPTIONS.find((option) => option.value === plan.productType)?.description}
+        </p>
+      </label>
+      <label className="space-y-2">
+        <span className="text-xs font-semibold text-slate-500 uppercase tracking-[0.2em]">Funding program</span>
+        <div className="relative">
           <select
-            value={plan.fundingProgram}
+            value={plan.fundingProgram ?? 'grant'}
             onChange={(event) => onChangeFunding(event.target.value as FundingProgramType)}
-            className="mt-1 w-full border border-gray-200 rounded-md px-2 py-1 text-sm"
+            className="w-full appearance-none rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm font-medium text-slate-700 shadow-sm focus:border-blue-500 focus:ring-2 focus:ring-blue-200"
           >
-            <option value="grant">Grant</option>
-            <option value="venture_financing">Venture financing</option>
-            <option value="loan">Loan</option>
-            <option value="equity">Equity</option>
+            {FUNDING_PROGRAM_OPTIONS.map((option) => (
+              <option key={option.value} value={option.value}>
+                {option.label}
+              </option>
+            ))}
           </select>
-        </label>
-      </div>
-      <nav className="space-y-2">
-        {plan.sections.map((section, index) => {
-          const completion = section.progress ?? 0;
-          const totalQuestions = section.questions.length;
-          const answeredQuestions = section.questions.filter(
-            (question) => (question.answer ?? '').trim().length > 0
-          ).length;
-          const progressColor =
-            completion === 100 ? 'bg-emerald-500' : completion > 0 ? 'bg-blue-500' : 'bg-slate-200';
-          return (
-            <button
-              key={section.id}
-              onClick={() => onSelectSection(section.id)}
-              aria-pressed={section.id === activeSectionId}
-              title={`${answeredQuestions} of ${totalQuestions} questions answered`}
-              className={`w-full text-left px-3 py-3 rounded-xl border text-sm transition focus:outline-none focus:ring-2 focus:ring-blue-200 ${
-                section.id === activeSectionId
-                  ? 'border-blue-500 bg-blue-50 text-blue-700'
-                  : 'border-gray-200 text-gray-600 hover:border-gray-300'
-              }`}
-            >
-              <div className="flex items-center justify-between gap-2">
-                <span className="font-medium">
-                  {String(index + 1).padStart(2, '0')} · {section.title}
-                </span>
-                <span className="text-xs text-gray-400">{completion}%</span>
-              </div>
-              <div className="mt-2 h-1.5 bg-slate-100 rounded-full overflow-hidden">
+          <span className="pointer-events-none absolute inset-y-0 right-4 flex items-center text-slate-400">▾</span>
+        </div>
+        <p className="text-[11px] text-slate-500">
+          {FUNDING_PROGRAM_OPTIONS.find((option) => option.value === plan.fundingProgram)?.description}
+        </p>
+      </label>
+    </div>
+  );
+}
+
+function SectionStepper({
+  plan,
+  activeSectionId,
+  onSelectSection
+}: {
+  plan: BusinessPlan;
+  activeSectionId: string | null;
+  onSelectSection: (sectionId: string) => void;
+}) {
+  const sections = [
+    ...plan.sections,
+    {
+      id: ANCILLARY_SECTION_ID,
+      title: 'Front & back matter',
+      progress: undefined,
+      questions: []
+    }
+  ];
+
+  return (
+    <div className="flex items-center gap-3 overflow-x-auto pb-1">
+      {sections.map((section, index) => {
+        const totalQuestions = section.questions.length;
+        const answeredQuestions = section.questions.filter(
+          (question) => (question.answer ?? '').trim().length > 0
+        ).length;
+        const completion =
+          section.progress ??
+          (totalQuestions === 0 ? 0 : Math.round((answeredQuestions / totalQuestions) * 100));
+        const isAncillary = section.id === ANCILLARY_SECTION_ID;
+
+        return (
+          <button
+            key={section.id}
+            onClick={() => onSelectSection(section.id)}
+            className={`flex-shrink-0 rounded-2xl border px-4 py-3 text-left shadow-sm transition focus:outline-none focus:ring-2 focus:ring-blue-200 ${
+              section.id === activeSectionId
+                ? 'border-blue-500 bg-blue-50 text-blue-800'
+                : 'border-slate-200 bg-white text-slate-700 hover:border-slate-300'
+            }`}
+          >
+            <div className="text-[11px] uppercase tracking-[0.3em] text-slate-400">
+              {isAncillary ? 'Ancillary' : `Step ${String(index + 1).padStart(2, '0')}`}
+            </div>
+            <div className="text-sm font-semibold">{section.title}</div>
+            {!isAncillary && (
+              <div className="mt-2 h-1.5 rounded-full bg-slate-100">
                 <div
-                  className={`h-full ${progressColor}`}
+                  className={`h-full rounded-full ${
+                    completion === 100 ? 'bg-emerald-500' : completion > 0 ? 'bg-blue-500' : 'bg-slate-200'
+                  }`}
                   style={{ width: `${completion}%` }}
                 />
               </div>
-            </button>
-          );
-        })}
-      </nav>
-    </aside>
+            )}
+          </button>
+        );
+      })}
+    </div>
   );
 }
 
@@ -933,6 +1068,65 @@ function getSectionHint(section?: Section) {
   if (!section) return '';
   const key = (section.category ?? '').toLowerCase();
   return SECTION_TONE_HINTS[key] ?? 'Keep paragraphs tight, highlight the why, and point to data or KPIs when possible.';
+}
+
+function AncillaryWorkspace({
+  plan,
+  onTitlePageChange,
+  onAncillaryChange,
+  onReferenceAdd,
+  onReferenceUpdate,
+  onReferenceDelete,
+  onAppendixAdd,
+  onAppendixUpdate,
+  onAppendixDelete,
+  onRunRequirements,
+  progressSummary
+}: {
+  plan: BusinessPlan;
+  onTitlePageChange: (titlePage: TitlePage) => void;
+  onAncillaryChange: (updates: Partial<AncillaryContent>) => void;
+  onReferenceAdd: (reference: Reference) => void;
+  onReferenceUpdate: (reference: Reference) => void;
+  onReferenceDelete: (referenceId: string) => void;
+  onAppendixAdd: (item: AppendixItem) => void;
+  onAppendixUpdate: (item: AppendixItem) => void;
+  onAppendixDelete: (appendixId: string) => void;
+  onRunRequirements: () => void;
+  progressSummary: ProgressSummary[];
+}) {
+  return (
+    <main className="flex flex-col h-screen bg-gradient-to-b from-[#f6f9ff] to-white">
+      <div className="sticky top-0 z-10 bg-gradient-to-r from-blue-50 to-white px-6 sm:px-10 lg:px-14 py-6 border-b border-slate-200/70">
+        <p className="text-[11px] tracking-[0.4em] uppercase text-slate-500">Ancillary</p>
+        <h1 className="text-2xl font-semibold text-slate-900">Front & back matter</h1>
+        <p className="text-sm text-slate-600 max-w-3xl mt-1">
+          Maintain the title page, table of contents, lists of figures tables, references, and appendices in one place.
+          This mirrors the spec’s guidance that ancillary pieces bookend the narrative.
+        </p>
+      </div>
+      <div className="flex-1 overflow-y-auto px-4 sm:px-8 lg:px-14 py-8">
+        <div className="max-w-5xl mx-auto">
+          <AncillaryEditorPanel
+            titlePage={plan.titlePage}
+            ancillary={plan.ancillary}
+            references={plan.references}
+            appendices={plan.appendices ?? []}
+            onTitlePageChange={onTitlePageChange}
+            onAncillaryChange={onAncillaryChange}
+            onReferenceAdd={onReferenceAdd}
+            onReferenceUpdate={onReferenceUpdate}
+            onReferenceDelete={onReferenceDelete}
+            onAppendixAdd={onAppendixAdd}
+            onAppendixUpdate={onAppendixUpdate}
+            onAppendixDelete={onAppendixDelete}
+            onRunRequirementsCheck={onRunRequirements}
+            progressSummary={progressSummary}
+          />
+        </div>
+      </div>
+    </main>
+  );
 }
 
 function SectionWorkspace({
@@ -971,13 +1165,14 @@ function SectionWorkspace({
   const sectionHint = getSectionHint(section);
 
   return (
-    <main className="flex flex-col h-screen bg-slate-50">
-      <div className="sticky top-0 z-10 bg-slate-50/95 backdrop-blur border-b border-slate-200 px-12 py-5 flex flex-wrap items-start justify-between gap-4">
+    <main className="flex flex-col h-screen bg-gradient-to-b from-[#f3f8ff] via-white to-white">
+      <div className="sticky top-0 z-10 bg-gradient-to-r from-white via-[#f0f6ff] to-white/90 backdrop-blur border-b border-slate-200 px-6 lg:px-12 py-6 flex flex-wrap items-start justify-between gap-4 shadow-sm">
         <div className="space-y-1 max-w-3xl">
           <p className="text-[11px] tracking-[0.2em] uppercase text-slate-400">{section.category}</p>
-          <h1 className="text-2xl font-semibold text-slate-900 leading-tight">{section.title}</h1>
-          {section.description && <p className="text-sm text-slate-500">{section.description}</p>}
-          {sectionHint && <p className="text-xs text-slate-500">{sectionHint}</p>}
+          <h1 className="text-3xl font-semibold text-slate-900 leading-tight">{section.title}</h1>
+          {(sectionHint || section.description) && (
+            <p className="text-sm text-slate-500">{sectionHint || section.description}</p>
+          )}
         </div>
         <div className="flex items-center gap-2">
           <NavigationButton
@@ -993,7 +1188,7 @@ function SectionWorkspace({
         </div>
       </div>
 
-      <div className="flex-1 overflow-y-auto px-12 py-9 space-y-6">
+      <div className="flex-1 overflow-y-auto px-6 lg:px-12 py-9 space-y-6">
         {section.questions.map((question, index) => (
           <QuestionCard
             key={question.id}
@@ -1070,45 +1265,21 @@ function QuestionCard({
           </div>
           <p className="text-base font-semibold text-slate-900">{question.prompt}</p>
         </div>
-        {(question.helperText || isActive) && (
-          <span className="text-xs text-slate-400 max-w-xs text-right">
-            {question.helperText ??
-              'Keep the tone calm and specific. Reference data, KPIs, or attachments when they strengthen the argument.'}
-          </span>
-        )}
       </div>
-
-      {question.requiredAssets && question.requiredAssets.length > 0 && (
-        <div className="mb-4 flex flex-wrap gap-2">
-          {question.requiredAssets.map((asset) => (
-            <button
-              key={`${question.id}_${asset}`}
-              type="button"
-              onClick={(event) => {
-                event.stopPropagation();
-                onPromptAssetRequest();
-              }}
-              className="px-3 py-1 rounded-full bg-slate-100 text-xs font-medium text-slate-600 hover:bg-blue-50 hover:text-blue-700"
-            >
-              {asset === 'kpi' ? 'KPI' : asset.charAt(0).toUpperCase() + asset.slice(1)} required
-            </button>
-          ))}
-        </div>
-      )}
 
       <SimpleTextEditor
         content={question.answer ?? ''}
         onChange={onChange}
         placeholder={question.placeholder}
       />
+      {question.helperText && (
+        <p className="mt-2 text-xs text-slate-500">{question.helperText}</p>
+      )}
 
       {isActive && (
         <div className="mt-4 rounded-2xl border border-slate-100 bg-slate-50/80 p-4 space-y-2 text-xs text-slate-600">
-          <p className="text-sm font-semibold text-slate-700">Need a prompt?</p>
-          <p>
-            Ask the assistant to create a concise draft or open the Data panel to attach tables, charts, images, or KPIs—mirroring
-            the guidance from the interface spec.
-          </p>
+          <p className="text-sm font-semibold text-slate-700">Need a nudge?</p>
+          <p>Ask the assistant for a draft or jump to the Data tab when numbers belong in tables, charts, or KPIs.</p>
           <div className="flex flex-wrap gap-2">
             <button
               type="button"
