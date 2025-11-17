@@ -29,6 +29,7 @@ All prompts within a section are shown in a single scrollable workspace in the l
 - **Header:** Title + Program Selector (Product + Program dropdowns only; Route removed)
 - **No Breadcrumbs:** Breadcrumbs removed from editor page
 - **Section Navigation:** Horizontal scrollable tabs showing all sections with status indicators (✓ complete, ⚠ partial, ○ empty)
+  - **Last item:** "Front & back matter" - Opens AncillaryWorkspace for title page, TOC, citations, etc.
 
 ---
 
@@ -905,6 +906,259 @@ Q03: Cash Flow
 9. User clicks "Attach" → Table attached to Q01 prompt → Appears in attachment block
 10. User clicks Preview tab → Sees formatted section output
 11. User clicks "Run requirements check" → Status updates → Issues shown in summary
+
+---
+
+## Business Plan Components & Ancillary Content
+
+### Overview
+
+A complete business plan consists of:
+1. **Title Page** - Cover page with company info, logo, contact details
+2. **Table of Contents** - Navigation structure for all sections
+3. **Main Sections** - The core content (Executive Summary, Market Analysis, etc.)
+4. **List of Illustrations** - Index of all charts, graphs, and images
+5. **List of Tables** - Index of all data tables
+6. **References/Citations** - Bibliography and source citations
+7. **Appendices** - Supporting documents and attachments
+
+### How to Create/Edit Title Page, Citations, TOC, etc.
+
+**Access Point:** "Front & back matter" section in the Section Navigation Bar
+
+**Location:** The last item in the section navigation bar is labeled "Front & back matter" (or "Ancillary"). Clicking it opens the `AncillaryWorkspace`.
+
+**What You Can Edit:**
+
+1. **Title Page:**
+   - Plan title
+   - Company name
+   - Value proposition
+   - Date
+   - Contact information (email, phone, website, address)
+   - Logo URL (with upload button)
+   - Confidentiality statement
+
+2. **Table of Contents:**
+   - Add/remove entries
+   - Edit entry titles
+   - Set page numbers
+   - Hide/show entries
+
+3. **List of Illustrations:**
+   - Add charts, graphs, images
+   - Set labels and page numbers
+   - Organize by type (image, chart, table)
+
+4. **List of Tables:**
+   - Register all data tables
+   - Set labels and page numbers
+   - Link to actual table data
+
+5. **References/Citations:**
+   - Add citations (APA/MLA/Chicago format)
+   - Include URLs and access dates
+   - Edit and delete references
+   - Citation style selection (APA, MLA, Chicago, custom)
+
+6. **Appendices:**
+   - Add supporting documents
+   - Upload files or link URLs
+   - Add descriptions
+
+**Component Name:** `AncillaryEditorPanel` (in `RequirementsModal.tsx`)
+
+**Data Structure:** Stored in `BusinessPlan.ancillary` and `BusinessPlan.titlePage`
+
+---
+
+## Template System Architecture
+
+### How Templates Are Wired
+
+**Import Path:** `@templates` → `features/editor/templates/index.ts`
+
+**Data Flow:**
+```
+Data Files (sections.ts, documents.ts, templateKnowledge.ts)
+  ↓
+data.ts (barrel export)
+  ↓
+index.ts (API + logic)
+  ↓
+Your Code (Editor.tsx, etc.)
+```
+
+**Key Functions:**
+- `getSections(fundingType, productType)` - Get section templates
+- `getDocuments(fundingType, productType, programId?)` - Get document templates
+- `getTemplateKnowledge(sectionId)` - Get AI guidance for sections
+
+**Template Hierarchy:**
+1. **Program-specific templates** (highest priority) - From database
+2. **Master templates** (fallback) - From `sections.ts` and `documents.ts`
+3. **Default templates** (lowest priority) - Grants master template
+
+**Template Types:**
+- **Section Templates** - Define prompts, word counts, validation rules
+- **Document Templates** - Define additional documents (Work Plan, Budget, CVs, etc.)
+- **Template Knowledge** - AI guidance, frameworks, best practices
+
+### Can We Create Business Plans?
+
+**Yes!** Business plans can be fully created:
+
+1. **Section-by-Section Editing:**
+   - Each section has prompts (questions)
+   - User answers prompts with rich text
+   - Auto-saves as user types
+   - Progress tracked per section
+
+2. **Data Integration:**
+   - Add tables, charts, KPIs, images
+   - Attach to specific prompts
+   - Customize appearance
+
+3. **Ancillary Content:**
+   - Title page, TOC, citations all editable
+   - References and appendices manageable
+
+4. **Export:**
+   - Export to PDF or DOCX
+   - Includes all sections, data, and ancillary content
+
+### What About Other Documents?
+
+**Yes!** Additional documents are supported:
+
+**Document Templates Available:**
+- Work Plan & Gantt Chart
+- Budget Breakdown & Financial Model
+- Team CVs
+- Market Research Report
+- Cap Table
+- Investor Teaser One-Pager
+- Bank Summary Page
+- And more...
+
+**How It Works:**
+1. Document templates loaded per funding type
+2. Program-specific documents can override master templates
+3. Documents stored in `plan.attachments[]`
+4. Each document has template, instructions, examples
+
+**Current Status:**
+- ✅ Document templates exist in `documents.ts`
+- ✅ System can load program-specific documents
+- ⚠️ **UI for uploading/managing documents** - Not yet implemented in editor
+- ✅ Export system can include documents
+
+**Future Enhancement:**
+- Add document upload/management UI in editor
+- Link documents to specific sections
+- Preview documents before export
+
+---
+
+## Current Component State
+
+### Business Plan Structure (`BusinessPlan` type)
+
+```typescript
+{
+  id: string
+  productType: 'submission' | 'review' | 'strategy'
+  fundingProgram: 'grant' | 'loan' | 'equity' | 'visa'
+  titlePage: TitlePage          // ✅ Fully implemented
+  sections: Section[]           // ✅ Fully implemented
+  references: Reference[]       // ✅ Fully implemented
+  appendices: AppendixItem[]    // ✅ Fully implemented
+  ancillary: AncillaryContent   // ✅ Fully implemented
+  programSummary?: ProgramSummary
+  metadata: {...}
+}
+```
+
+### Ancillary Content Structure (`AncillaryContent` type)
+
+```typescript
+{
+  tableOfContents: TableOfContentsEntry[]     // ✅ Implemented
+  listOfIllustrations: FigureListItem[]        // ✅ Implemented
+  listOfTables: FigureListItem[]              // ✅ Implemented
+  citationStyle: 'apa' | 'mla' | 'chicago' | 'custom'  // ✅ Implemented
+  footnotes: Footnote[]                        // ✅ Structure exists
+  lastGenerated?: string
+}
+```
+
+### Title Page Structure (`TitlePage` type)
+
+```typescript
+{
+  companyName: string           // ✅ Implemented
+  logoUrl?: string              // ✅ Implemented
+  valueProp?: string            // ✅ Implemented
+  planTitle: string             // ✅ Implemented
+  date: string                  // ✅ Implemented
+  contactInfo: {                // ✅ Implemented
+    name: string
+    email: string
+    phone?: string
+    website?: string
+    address?: string
+  }
+  confidentialityStatement?: string  // ✅ Implemented
+}
+```
+
+---
+
+## Web Scraping & Competitor Analysis
+
+### Can I Parse a Website with Login?
+
+**Short Answer:** Yes, but with limitations and considerations.
+
+**Technical Capabilities:**
+- ✅ Can parse public websites and extract content
+- ✅ Can handle JavaScript-rendered content (with browser automation)
+- ✅ Can extract structured data (tables, lists, text)
+- ⚠️ **Login-protected content** - Requires authentication handling
+- ⚠️ **Terms of Service** - Must comply with website's ToS and robots.txt
+- ⚠️ **Rate Limiting** - Must respect website's rate limits
+
+**Approach for Competitor Analysis:**
+
+1. **Public Content (No Login):**
+   - Direct HTTP requests
+   - HTML parsing
+   - Content extraction
+
+2. **Login-Protected Content:**
+   - Browser automation (Puppeteer/Playwright)
+   - Session management
+   - Cookie handling
+   - **Important:** Only if you have permission or own the account
+
+3. **Best Practices:**
+   - Check robots.txt
+   - Respect rate limits
+   - Use proper user agents
+   - Store credentials securely
+   - Comply with ToS
+
+**Implementation Options:**
+- Server-side scraping (Next.js API routes)
+- Browser automation tools (Puppeteer, Playwright)
+- Headless browser for JavaScript-heavy sites
+- API integration (if competitor provides API)
+
+**Recommendation:**
+- Start with public content analysis
+- For login-protected content, ensure you have permission
+- Consider using official APIs if available
+- Implement proper error handling and rate limiting
 
 ---
 
