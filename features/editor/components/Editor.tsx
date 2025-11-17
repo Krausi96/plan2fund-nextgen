@@ -329,6 +329,31 @@ export default function Editor({ product = 'submission' }: EditorProps) {
     };
   }, [sections]);
 
+  // Cross-section references - find sections that reference this one
+  const getCrossSectionReferences = useCallback(() => {
+    const currentSection = sections[activeSection];
+    if (!currentSection) return [];
+    const references: Array<{ section: PlanSection; index: number; mentions: number }> = [];
+    
+    sections.forEach((section, index) => {
+      if (index === activeSection) return; // Skip current section
+      if (!section.content) return;
+      
+      // Check if section content mentions current section title
+      const content = section.content.toLowerCase();
+      const currentTitle = currentSection.title.toLowerCase();
+      const mentions = (content.match(new RegExp(currentTitle.split(' ').join('|'), 'g')) || []).length;
+      
+      if (mentions > 0) {
+        references.push({ section, index, mentions });
+      }
+    });
+    
+    return references;
+  }, [sections, activeSection]);
+
+  const crossSectionRefs = getCrossSectionReferences();
+
   // Program data is loaded from localStorage (set by reco when user selects a program)
 
   // Error state
@@ -482,59 +507,94 @@ export default function Editor({ product = 'submission' }: EditorProps) {
       </header>
 
       {/* ========= SECTION NAVIGATION ========= */}
-      <nav className="sticky top-[160px] z-40 bg-white border-b-2 border-gray-300 shadow-md">
-        <div className="max-w-7xl mx-auto px-4 py-3">
-          <div className="flex items-center gap-2 overflow-x-auto pb-2">
+      <nav className="sticky top-[160px] z-40 bg-gradient-to-r from-white to-gray-50 border-b-4 border-blue-500 shadow-lg">
+        <div className="max-w-7xl mx-auto px-4 py-4">
+          {/* Section Tabs - More Prominent */}
+          <div className="flex items-center gap-3 overflow-x-auto pb-3 mb-3 border-b-2 border-gray-200">
             <button
               onClick={() => setActiveSection(Math.max(0, activeSection - 1))}
               disabled={activeSection === 0}
-              className="px-2 py-1 text-gray-600 hover:bg-gray-100 rounded disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+              className="px-4 py-2 text-gray-700 hover:bg-blue-100 rounded-lg disabled:opacity-30 disabled:cursor-not-allowed transition-all font-semibold border-2 border-gray-300 hover:border-blue-400"
               title="Previous Section"
             >
-              ←
+              ← Prev
             </button>
             {sections.map((section, index) => {
               const progress = calculateSectionProgress(section);
-              const status = progress.completionPercentage === 100 ? '✓' : 
-                            progress.completionPercentage > 50 ? '⚠' : '○';
+              const isComplete = progress.completionPercentage === 100;
+              const inProgress = progress.completionPercentage > 0 && progress.completionPercentage < 100;
               const isActive = index === activeSection;
+              
+              // Color coding based on completion
+              let statusColor = 'bg-gray-200 text-gray-600'; // Not started
+              let statusIcon = '○';
+              if (isComplete) {
+                statusColor = 'bg-green-500 text-white';
+                statusIcon = '✓';
+              } else if (inProgress) {
+                statusColor = 'bg-yellow-400 text-yellow-900';
+                statusIcon = '⚠';
+              }
               
               return (
                 <button
                   key={section.key}
                   onClick={() => setActiveSection(index)}
-                  className={`px-3 py-1.5 text-sm font-medium rounded-lg transition-colors whitespace-nowrap ${
+                  className={`px-4 py-2.5 text-sm font-semibold rounded-lg transition-all whitespace-nowrap border-2 ${
                     isActive
-                      ? 'bg-blue-600 text-white shadow-md'
-                      : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                      ? 'bg-blue-600 text-white shadow-lg border-blue-700 transform scale-105'
+                      : `${statusColor} hover:shadow-md border-transparent hover:border-blue-300`
                   }`}
+                  title={`${section.title} - ${progress.completionPercentage}% complete`}
                 >
-                  <span className="mr-2">{status}</span>
-                  <span>{String(index + 1).padStart(2, '0')}</span>
-                  <span className="ml-1">{section.title}</span>
+                  <span className="mr-2 text-base">{statusIcon}</span>
+                  <span className="font-bold">{String(index + 1).padStart(2, '0')}</span>
+                  <span className="ml-2">{section.title}</span>
+                  {inProgress && !isActive && (
+                    <span className="ml-2 text-xs opacity-75">({progress.completionPercentage}%)</span>
+                  )}
                 </button>
               );
             })}
             <button
               onClick={() => setActiveSection(Math.min(sections.length - 1, activeSection + 1))}
               disabled={activeSection === sections.length - 1}
-              className="px-2 py-1 text-gray-600 hover:bg-gray-100 rounded disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+              className="px-4 py-2 text-gray-700 hover:bg-blue-100 rounded-lg disabled:opacity-30 disabled:cursor-not-allowed transition-all font-semibold border-2 border-gray-300 hover:border-blue-400"
               title="Next Section"
             >
-              →
+              Next →
             </button>
           </div>
-          {/* Progress Bar */}
-          <div className="mt-2">
-            <div className="flex items-center justify-between text-xs text-gray-600 mb-1">
-              <span>Overall Progress</span>
-              <span>{overallProgress.percentage}% Complete ({overallProgress.completed} of {overallProgress.total} sections)</span>
+          
+          {/* Progress Bar - More Prominent */}
+          <div className="bg-white rounded-lg p-3 border-2 border-gray-200 shadow-sm">
+            <div className="flex items-center justify-between mb-2">
+              <span className="text-sm font-bold text-gray-700">Overall Progress</span>
+              <span className="text-sm font-semibold text-gray-700">
+                {overallProgress.percentage}% Complete ({overallProgress.completed} of {overallProgress.total} sections)
+              </span>
             </div>
-            <div className="w-full bg-gray-200 rounded-full h-2">
+            <div className="w-full bg-gray-200 rounded-full h-4 shadow-inner">
               <div
-                className="bg-gradient-to-r from-blue-600 to-purple-600 h-2 rounded-full transition-all duration-300"
+                className="bg-gradient-to-r from-blue-600 via-purple-500 to-pink-500 h-4 rounded-full transition-all duration-500 shadow-md flex items-center justify-end pr-2"
                 style={{ width: `${overallProgress.percentage}%` }}
-              />
+              >
+                {overallProgress.percentage > 10 && (
+                  <span className="text-xs font-bold text-white">{overallProgress.percentage}%</span>
+                )}
+              </div>
+            </div>
+            {/* Section Breakdown */}
+            <div className="mt-2 flex flex-wrap gap-2 text-xs">
+              <span className="px-2 py-1 bg-green-100 text-green-700 rounded font-medium">
+                ✓ {overallProgress.completed} Complete
+              </span>
+              <span className="px-2 py-1 bg-yellow-100 text-yellow-700 rounded font-medium">
+                ⚠ {overallProgress.total - overallProgress.completed - sections.filter(s => !calculateSectionProgress(s).hasContent).length} In Progress
+              </span>
+              <span className="px-2 py-1 bg-gray-100 text-gray-700 rounded font-medium">
+                ○ {sections.filter(s => !calculateSectionProgress(s).hasContent).length} Not Started
+              </span>
             </div>
           </div>
         </div>
@@ -565,10 +625,31 @@ export default function Editor({ product = 'submission' }: EditorProps) {
                 </button>
               </div>
 
+              {/* Cross-Section References */}
+              {crossSectionRefs.length > 0 && (
+                <div className="mb-4 p-3 bg-purple-50 border-2 border-purple-200 rounded-lg">
+                  <h4 className="text-sm font-semibold text-purple-900 mb-2 flex items-center gap-2">
+                    <span>🔗</span>
+                    <span>Referenced in Other Sections</span>
+                  </h4>
+                  <div className="flex flex-wrap gap-2">
+                    {crossSectionRefs.map((ref) => (
+                      <button
+                        key={ref.index}
+                        onClick={() => setActiveSection(ref.index)}
+                        className="px-3 py-1 text-xs font-medium bg-purple-100 text-purple-700 rounded-lg hover:bg-purple-200 transition-colors"
+                      >
+                        {ref.section.title} ({ref.mentions} mention{ref.mentions > 1 ? 's' : ''})
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              )}
+
               {/* Questions Card (Toggleable) */}
               {sectionTemplate?.prompts && sectionTemplate.prompts.length > 0 && (
                 <div className={`mb-6 transition-all duration-300 ${showQuestions ? 'block' : 'hidden'}`}>
-                  <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
+                  <div className="bg-blue-50 border-2 border-blue-200 rounded-lg p-4">
                     <div className="flex items-center justify-between mb-3">
                       <h3 className="text-sm font-semibold text-gray-900 flex items-center gap-2">
                         <span>💡</span>
@@ -655,25 +736,162 @@ export default function Editor({ product = 'submission' }: EditorProps) {
               </div>
             </div>
 
-            {/* Tables & Charts Section (Below Unified Box) - ALWAYS VISIBLE */}
+            {/* Tables & Charts Section - INTEGRATED INTO CONTENT FLOW */}
             {(() => {
               const currentTemplate = sectionTemplates.find(t => t.id === currentSection.key);
               if (!currentTemplate) {
-                // Show placeholder if no template
-                return (
-                  <div className="bg-white border-2 border-dashed border-gray-300 rounded-xl shadow-md p-8">
-                    <div className="text-center text-gray-500">
-                      <p className="text-lg font-semibold mb-2">📊 Tables & Charts</p>
-                      <p className="text-sm">This section doesn't support tables or charts.</p>
-                    </div>
-                  </div>
-                );
+                return null; // Don't show if no template
               }
               
               const category = currentTemplate.category?.toLowerCase() || '';
               const needsTables = category === 'financial' || category === 'risk' || category === 'project';
               const optionalTables = category === 'market' || category === 'team';
               const hasTables = currentSection.tables && Object.keys(currentSection.tables).length > 0;
+              
+              // Show existing tables/charts inline if they exist
+              if (hasTables) {
+                return (
+                  <div className="mt-6 bg-white border-2 border-blue-300 rounded-xl shadow-lg p-6">
+                    <div className="flex items-center justify-between mb-4 pb-3 border-b-2 border-gray-200">
+                      <h3 className="text-xl font-bold text-gray-900 flex items-center gap-2">
+                        <span className="text-2xl">📊</span>
+                        <span>Tables & Charts</span>
+                      </h3>
+                      <button
+                        onClick={() => setShowInlineTableCreator(!showInlineTableCreator)}
+                        className="px-4 py-2 text-sm font-semibold bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-all shadow-md hover:shadow-lg"
+                      >
+                        ➕ Add Another Table
+                      </button>
+                    </div>
+                    
+                    {/* Render existing tables and charts */}
+                    <SectionContentRenderer
+                      section={currentSection}
+                      template={currentTemplate}
+                      onTableChange={(tableKey, updatedTable) => {
+                        const updated = [...sections];
+                        const section = updated[activeSection];
+                        if (section.tables) {
+                          section.tables[tableKey] = updatedTable;
+                          setSections(updated);
+                          
+                          if (plan) {
+                            const updatedPlan = { ...plan, sections: updated };
+                            setPlan(updatedPlan);
+                            
+                            setIsSaving(true);
+                            setTimeout(async () => {
+                              try {
+                                await savePlanSections(updated.map(s => ({
+                                  id: s.key,
+                                  title: s.title,
+                                  content: s.content || '',
+                                  tables: s.tables,
+                                  figures: s.figures,
+                                  chartTypes: s.chartTypes,
+                                  sources: s.sources,
+                                  fields: s.fields
+                                })));
+                              } catch (error) {
+                                console.error('Error saving:', error);
+                              } finally {
+                                setIsSaving(false);
+                              }
+                            }, 400);
+                          }
+                        }
+                      }}
+                      onChartTypeChange={(tableKey, chartType) => {
+                        const updated = [...sections];
+                        const section = updated[activeSection];
+                        if (!section.chartTypes) {
+                          section.chartTypes = {};
+                        }
+                        section.chartTypes[tableKey] = chartType;
+                        setSections(updated);
+                        
+                        if (plan) {
+                          const updatedPlan = { ...plan, sections: updated };
+                          setPlan(updatedPlan);
+                          
+                          setIsSaving(true);
+                          setTimeout(async () => {
+                            try {
+                              await savePlanSections(updated.map(s => ({
+                                id: s.key,
+                                title: s.title,
+                                content: s.content || '',
+                                tables: s.tables,
+                                figures: s.figures,
+                                chartTypes: s.chartTypes,
+                                sources: s.sources,
+                                fields: s.fields
+                              })));
+                            } catch (error) {
+                              console.error('Error saving:', error);
+                            } finally {
+                              setIsSaving(false);
+                            }
+                          }, 400);
+                        }
+                      }}
+                      onImageInsert={(imageUrl, caption, description) => {
+                        console.log('Image insert:', imageUrl, caption, description);
+                      }}
+                    />
+                    
+                    {/* Inline Table Creator */}
+                    {showInlineTableCreator && currentTemplate && (
+                      <div className="mt-4 pt-4 border-t-2 border-gray-200">
+                        <InlineTableCreator
+                          onCreate={(tableKey, table) => {
+                            const updated = [...sections];
+                            const section = updated[activeSection];
+                            if (!section.tables) section.tables = {};
+                            section.tables[tableKey] = table;
+                            
+                            if (!section.chartTypes) section.chartTypes = {};
+                            section.chartTypes[tableKey] = 'bar';
+                            
+                            setSections(updated);
+                            setShowInlineTableCreator(false);
+                            
+                            if (plan) {
+                              const updatedPlan = { ...plan, sections: updated };
+                              setPlan(updatedPlan);
+                              setIsSaving(true);
+                              setTimeout(async () => {
+                                try {
+                                  await savePlanSections(updated.map(s => ({
+                                    id: s.key,
+                                    title: s.title,
+                                    content: s.content || '',
+                                    tables: s.tables,
+                                    figures: s.figures,
+                                    chartTypes: s.chartTypes,
+                                    sources: s.sources,
+                                    fields: s.fields
+                                  })));
+                                } catch (error) {
+                                  console.error('Error saving:', error);
+                                } finally {
+                                  setIsSaving(false);
+                                }
+                              }, 400);
+                            }
+                          }}
+                          onCancel={() => setShowInlineTableCreator(false)}
+                          sectionTemplate={currentTemplate}
+                          existingTableKeys={Object.keys(currentSection.tables || {})}
+                        />
+                      </div>
+                    )}
+                  </div>
+                );
+              }
+              
+              // Show add table section if no tables yet
               
               // Get helpful message based on category
               const getHelpfulMessage = () => {
@@ -797,100 +1015,11 @@ export default function Editor({ product = 'submission' }: EditorProps) {
                     />
                   )}
 
-                  {/* Info: How Tables & Charts Connect */}
-                  {!hasTables && !showInlineTableCreator && (
-                    <div className="mb-4 p-3 bg-blue-50 border border-blue-200 rounded-lg">
-                      <p className="text-sm text-gray-700">
-                        💡 <strong>How it works:</strong> Create a table → Chart auto-generates from table data. 
-                        Edit table → Chart updates automatically.
-                      </p>
-                    </div>
-                  )}
-                  
-                  {/* Existing Tables & Charts */}
-                  {hasTables && (
-                    <div className="mt-4">
-                      <SectionContentRenderer
-                        section={currentSection}
-                        template={currentTemplate}
-                        onTableChange={(tableKey, updatedTable) => {
-                      const updated = [...sections];
-                      const section = updated[activeSection];
-                      if (section.tables) {
-                        section.tables[tableKey] = updatedTable;
-                        setSections(updated);
-                        
-                        if (plan) {
-                          const updatedPlan = { ...plan, sections: updated };
-                          setPlan(updatedPlan);
-                          
-                          setIsSaving(true);
-                          setTimeout(async () => {
-                            try {
-                              await savePlanSections(updated.map(s => ({
-                                id: s.key,
-                                title: s.title,
-                                content: s.content || '',
-                                tables: s.tables,
-                                figures: s.figures,
-                                sources: s.sources,
-                                fields: s.fields
-                              })));
-                            } catch (error) {
-                              console.error('Error saving:', error);
-                            } finally {
-                              setIsSaving(false);
-                            }
-                          }, 400);
-                        }
-                      }
-                    }}
-                    onChartTypeChange={(tableKey, chartType) => {
-                      const updated = [...sections];
-                      const section = updated[activeSection];
-                      if (!section.chartTypes) {
-                        section.chartTypes = {};
-                      }
-                      section.chartTypes[tableKey] = chartType;
-                      setSections(updated);
-                      
-                      if (plan) {
-                        const updatedPlan = { ...plan, sections: updated };
-                        setPlan(updatedPlan);
-                        
-                        setIsSaving(true);
-                        setTimeout(async () => {
-                          try {
-                            await savePlanSections(updated.map(s => ({
-                              id: s.key,
-                              title: s.title,
-                              content: s.content || '',
-                              tables: s.tables,
-                              figures: s.figures,
-                              chartTypes: s.chartTypes,
-                              sources: s.sources,
-                              fields: s.fields
-                            })));
-                          } catch (error) {
-                            console.error('Error saving:', error);
-                          } finally {
-                            setIsSaving(false);
-                          }
-                        }, 400);
-                      }
-                    }}
-                      onImageInsert={(imageUrl, caption, description) => {
-                        // TODO: Handle image insert
-                        console.log('Image insert:', imageUrl, caption, description);
-                      }}
-                    />
-                    </div>
-                  )}
-                  
                   {/* No Tables Message */}
-                  {!hasTables && (
-                    <div className="text-center py-8 text-gray-500 text-sm">
-                      (No tables created yet{optionalTables && !needsTables ? ' - optional' : ''})
+                  {!hasTables && !showInlineTableCreator && (
+                    <div className="text-center py-8 text-gray-500 text-sm border-2 border-dashed border-gray-300 rounded-lg">
+                      <p className="mb-2">No tables created yet{optionalTables && !needsTables ? ' (optional)' : ''}</p>
+                      <p className="text-xs text-gray-400">Click "Add Table" above to get started</p>
                     </div>
                   )}
                 </div>
