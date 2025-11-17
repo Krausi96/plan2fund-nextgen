@@ -142,10 +142,44 @@ export async function callCustomLLM(request: ChatRequest): Promise<ChatResponse>
         contents: contents,
         generationConfig: {
           temperature: request.temperature ?? 0.2,
-          maxOutputTokens: request.maxTokens || 4000,
+          maxOutputTokens: request.maxTokens || 8000, // Increased to handle thoughts overhead
           ...(request.responseFormat === 'json' ? { 
-            responseMimeType: 'application/json'
-            // Note: responseSchema is optional - we just want JSON format, not a specific schema
+            responseMimeType: 'application/json',
+            // Add schema to force structured output and reduce thoughts overhead
+            responseSchema: {
+              type: 'object',
+              properties: {
+                programs: {
+                  type: 'array',
+                  items: {
+                    type: 'object',
+                    properties: {
+                      id: { type: 'string' },
+                      name: { type: 'string' },
+                      website: { type: 'string' },
+                      funding_types: { type: 'array', items: { type: 'string' } },
+                      funding_amount_min: { type: 'number' },
+                      funding_amount_max: { type: 'number' },
+                      currency: { type: 'string' },
+                      location: { type: 'string' },
+                      company_type: { type: 'string' },
+                      company_stage: { type: 'string' },
+                      description: { type: 'string' },
+                      metadata: {
+                        type: 'object',
+                        properties: {
+                          region: { type: 'string' },
+                          program_focus: { type: 'array', items: { type: 'string' } }
+                        }
+                      },
+                      categorized_requirements: { type: 'object' }
+                    },
+                    required: ['id', 'name', 'funding_types']
+                  }
+                }
+              },
+              required: ['programs']
+            }
           } : {}),
         }
       };
