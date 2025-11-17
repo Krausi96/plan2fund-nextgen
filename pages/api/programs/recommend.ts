@@ -129,10 +129,16 @@ Return JSON only with this exact structure:
       "location": "Austria",
       "company_type": "startup",
       "company_stage": "inc_lt_6m",
-      "description": "Two sentences explaining the program, audience, and amount",
+      "description": "3-4 sentences explaining: (1) what the program offers and who it's for, (2) why it matches this user's profile (location, stage, amount, industry), (3) key requirements or constraints (co-financing, deadlines, etc.), (4) typical timeline or competitiveness if relevant",
       "metadata": {
         "region": "Austria",
-        "program_focus": ["digital","innovation"]
+        "program_focus": ["digital","innovation"],
+        "organization": "FFG",
+        "co_financing_required": false,
+        "co_financing_percentage": null,
+        "application_deadlines": null,
+        "typical_timeline": "2-3 months",
+        "competitiveness": "medium"
       },
       "categorized_requirements": {}
     }
@@ -153,10 +159,16 @@ Example:
       "location": "Austria",
       "company_type": "startup",
       "company_stage": "inc_6_36m",
-      "description": "Austria Wirtschaftsservice supports innovative startups with grants for prototypes and market entry.",
+      "description": "AWS Seedfinancing provides up to €356,000 for startups with proof-of-concept ready for go-to-market. This matches your profile: your €200-300k need fits within the funding range, and your Health/AI focus aligns with their innovation criteria. Key requirement: 10% co-financing from shareholders. Timeline: Application review takes 2-3 months, disbursement typically within 1 month of approval.",
       "metadata": {
         "region": "Austria",
-        "program_focus": ["innovation","technology"]
+        "program_focus": ["innovation","technology"],
+        "organization": "AWS",
+        "co_financing_required": true,
+        "co_financing_percentage": 10,
+        "application_deadlines": "Rolling",
+        "typical_timeline": "2-3 months",
+        "competitiveness": "high"
       },
       "categorized_requirements": {}
     }
@@ -164,7 +176,13 @@ Example:
 }`;
 
   if (fundingPreference.allowMix) {
-    instructions += `\n6. Provide a mix of funding instruments. Include at least one grant AND at least one non-grant option (loan, guarantee, or equity) if the profile can work with them.`;
+    instructions += `\n6. CRITICAL: Provide a DIVERSE mix of funding instruments. You MUST include:
+   - At least 2-3 programs with grants (grants are common)
+   - At least 2-3 programs with loans (if applicable)
+   - At least 1-2 programs with equity (if company stage allows)
+   - At least 1 program with guarantees (if applicable)
+   Do NOT default to only grants. The user can work with multiple funding types, so show variety.
+   Example distribution for ${maxPrograms} programs: 3-4 grants, 2-3 loans, 1-2 equity, 1 guarantee.`;
   } else {
     instructions += `\n6. The user can only work with grants/subsidies. Do not suggest loans, guarantees, or equity instruments.`;
   }

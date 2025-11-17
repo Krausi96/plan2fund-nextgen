@@ -111,9 +111,23 @@ async function runPersona(persona) {
       });
     }
 
+    // Count funding types
+    const fundingTypeCounts = {};
+    programs.forEach((p) => {
+      const types = p.funding_types || p.metadata?.funding_types || [];
+      types.forEach((type) => {
+        fundingTypeCounts[type] = (fundingTypeCounts[type] || 0) + 1;
+      });
+    });
+    if (Object.keys(fundingTypeCounts).length > 0) {
+      console.log('Funding types:', fundingTypeCounts);
+    }
+
     programs.slice(0, 3).forEach((program, idx) => {
+      const types = program.funding_types || program.metadata?.funding_types || [];
+      const typesStr = types.length > 0 ? ` | types=[${types.join(', ')}]` : ' | types=[]';
       console.log(
-        `  ${idx + 1}. ${(program.name || 'Unnamed')} | source=${program.source || 'unknown'}`
+        `  ${idx + 1}. ${(program.name || 'Unnamed')} | source=${program.source || 'unknown'}${typesStr}`
       );
     });
   } catch (error) {

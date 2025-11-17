@@ -168,6 +168,36 @@ const CORE_QUESTIONS: QuestionDefinition[] = [
     isAdvanced: false, // Core question
   },
   {
+    id: 'company_stage', // CRITICAL - Used in matching (affects equity eligibility)
+    label: 'What stage is your company at?',
+    type: 'single-select' as const,
+    options: [
+      { value: 'idea', label: 'Idea / Concept' },
+      { value: 'pre_company', label: 'Pre-company (not incorporated)' },
+      { value: 'inc_lt_6m', label: 'Newly incorporated (< 6 months)' },
+      { value: 'inc_6_36m', label: 'Growing (6-36 months)' },
+      { value: 'inc_gt_36m', label: 'Established (36+ months)' },
+      { value: 'research_org', label: 'Research institution / University' },
+    ],
+    required: true,
+    priority: 4,
+    isAdvanced: false,
+  },
+  {
+    id: 'co_financing', // CRITICAL - Determines funding type diversity
+    label: 'Can you provide co-financing?',
+    type: 'single-select' as const,
+    options: [
+      { value: 'co_yes', label: 'Yes' },
+      { value: 'co_no', label: 'No' },
+      { value: 'co_uncertain', label: 'Uncertain' },
+    ],
+    required: false,
+    priority: 5, // Moved up - critical for funding type selection
+    hasCoFinancingPercentage: true, // Ask for percentage if Yes
+    isAdvanced: false, // Core question
+  },
+  {
     id: 'industry_focus', // OPTIONAL - Used in matching but not critical
     label: 'What industry are you in?',
     type: 'multi-select' as const,
@@ -180,7 +210,7 @@ const CORE_QUESTIONS: QuestionDefinition[] = [
       { value: 'other', label: 'Other' },
     ],
     required: false,
-    priority: 4,
+    priority: 6,
     hasOtherTextInput: true,
     isAdvanced: false, // Core question - helps with matching
     // Enhanced: Industry subcategories for better matching
@@ -234,20 +264,6 @@ const CORE_QUESTIONS: QuestionDefinition[] = [
     },
   },
   {
-    id: 'co_financing', // OPTIONAL - Used in matching but not critical
-    label: 'Can you provide co-financing?',
-    type: 'single-select' as const,
-    options: [
-      { value: 'co_yes', label: 'Yes' },
-      { value: 'co_no', label: 'No' },
-      { value: 'co_uncertain', label: 'Uncertain' },
-    ],
-    required: false,
-    priority: 5, // Moved up - helps with matching
-    hasCoFinancingPercentage: true, // Ask for percentage if Yes
-    isAdvanced: false, // Core question
-  },
-  {
     id: 'use_of_funds',
     label: 'How will you use the funding?',
     type: 'multi-select' as const,
@@ -261,24 +277,8 @@ const CORE_QUESTIONS: QuestionDefinition[] = [
       { value: 'other', label: 'Other' },
     ],
     required: false,
-    priority: 6,
+    priority: 7,
     hasOtherTextInput: true,
-    isAdvanced: false,
-  },
-  {
-    id: 'company_stage', // CRITICAL - Used in matching
-    label: 'What stage is your company at?',
-    type: 'single-select' as const,
-    options: [
-      { value: 'idea', label: 'Idea / Concept' },
-      { value: 'pre_company', label: 'Pre-company (not incorporated)' },
-      { value: 'inc_lt_6m', label: 'Newly incorporated (< 6 months)' },
-      { value: 'inc_6_36m', label: 'Growing (6-36 months)' },
-      { value: 'inc_gt_36m', label: 'Established (36+ months)' },
-      { value: 'research_org', label: 'Research institution / University' },
-    ],
-    required: true,
-    priority: 4,
     isAdvanced: false,
   },
 ];
@@ -1454,19 +1454,20 @@ export default function ProgramFinder({
               setHasAttemptedGeneration(false); // Reset when dialog closes
             }
           }}>
-            <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
-              <DialogHeader>
-                <DialogTitle>
-                  {locale === 'de' ? 'Gefundene Förderprogramme' : 'Found Funding Programs'} ({results.length})
+            <DialogContent className="max-w-5xl max-h-[90vh] overflow-y-auto p-6 md:p-8">
+              <DialogHeader className="mb-6">
+                <DialogTitle className="text-2xl md:text-3xl font-bold text-gray-900 mb-2">
+                  {locale === 'de' ? 'Gefundene Förderprogramme' : 'Found Funding Programs'} 
+                  <span className="ml-2 text-lg md:text-xl font-semibold text-gray-600">({results.length})</span>
                 </DialogTitle>
-                <DialogDescription>
+                <DialogDescription className="text-base text-gray-600">
                   {locale === 'de' 
                     ? 'Hier sind die passendsten Förderprogramme für Sie.'
                     : 'Here are the most suitable funding programs for you.'}
                 </DialogDescription>
               </DialogHeader>
               {debugInfo && (
-                <div className="bg-gray-50 border border-gray-200 rounded-lg p-3 text-xs text-gray-600 mb-4 space-y-1">
+                <div className="bg-gray-50 border border-gray-200 rounded-lg p-3 md:p-4 text-xs md:text-sm text-gray-600 mb-6 space-y-1">
                   <div>
                     <strong>LLM:</strong>{' '}
                     {debugInfo.llmError
@@ -1483,7 +1484,7 @@ export default function ProgramFinder({
                   )}
                 </div>
               )}
-              <div className="space-y-4 mt-4">
+              <div className="space-y-5 md:space-y-6 mt-2">
                 {results.length === 0 ? (
                   <div className="text-center py-8">
                     <p className="text-gray-600 text-lg mb-2">
@@ -1501,81 +1502,148 @@ export default function ProgramFinder({
                     </p>
                   </div>
                 ) : (
-                  results.map((program, index) => (
-                  <Card key={program.id || index} className="p-6 border-2 border-blue-200 hover:border-blue-400 transition-all">
-                    <div className="flex items-start justify-between gap-4">
-                      <div className="flex-1">
-                        <div className="flex items-center gap-3 mb-2">
-                          <h3 className="text-xl font-semibold text-gray-900">
-                            {program.name || `Program ${index + 1}`}
-                          </h3>
-                        {program.source === 'fallback' && (
-                          <span className="px-2 py-1 text-xs rounded-full bg-yellow-100 text-yellow-800 border border-yellow-300">
-                            Fallback
-                          </span>
-                        )}
-                          {program.score !== undefined && (
-                            <span className={`px-3 py-1 rounded-full text-sm font-medium ${
-                              program.score >= 70 ? 'bg-green-100 text-green-800' :
-                              program.score >= 40 ? 'bg-yellow-100 text-yellow-800' :
-                              'bg-gray-100 text-gray-800'
-                            }`}>
-                              {Math.round(program.score)}% Match
-                            </span>
-                          )}
+                  results.map((program, index) => {
+                    const fundingTypes = (program as any).funding_types || (program.type ? [program.type] : ['grant']);
+                    const getFundingTypeColor = (type: string) => {
+                      const normalized = type.toLowerCase();
+                      if (normalized.includes('grant') || normalized.includes('subsidy')) {
+                        return 'bg-green-100 text-green-800 border-green-300';
+                      } else if (normalized.includes('loan')) {
+                        return 'bg-blue-100 text-blue-800 border-blue-300';
+                      } else if (normalized.includes('equity')) {
+                        return 'bg-purple-100 text-purple-800 border-purple-300';
+                      } else if (normalized.includes('guarantee')) {
+                        return 'bg-orange-100 text-orange-800 border-orange-300';
+                      } else if (normalized.includes('convertible')) {
+                        return 'bg-indigo-100 text-indigo-800 border-indigo-300';
+                      }
+                      return 'bg-gray-100 text-gray-800 border-gray-300';
+                    };
+                    const getFundingTypeLabel = (type: string) => {
+                      const normalized = type.toLowerCase();
+                      if (normalized.includes('grant')) return locale === 'de' ? 'Zuschuss' : 'Grant';
+                      if (normalized.includes('subsidy')) return locale === 'de' ? 'Subvention' : 'Subsidy';
+                      if (normalized.includes('loan')) return locale === 'de' ? 'Darlehen' : 'Loan';
+                      if (normalized.includes('equity')) return locale === 'de' ? 'Beteiligung' : 'Equity';
+                      if (normalized.includes('guarantee')) return locale === 'de' ? 'Bürgschaft' : 'Guarantee';
+                      if (normalized.includes('convertible')) return locale === 'de' ? 'Wandelanleihe' : 'Convertible';
+                      return type.charAt(0).toUpperCase() + type.slice(1);
+                    };
+                    
+                    return (
+                      <Card key={program.id || index} className="p-5 md:p-6 border-2 border-gray-200 hover:border-blue-400 hover:shadow-lg transition-all bg-white">
+                        <div className="flex flex-col md:flex-row md:items-start gap-4">
+                          <div className="flex-1 min-w-0">
+                            {/* Header with title, badges, and score */}
+                            <div className="flex flex-wrap items-start gap-2 mb-3">
+                              <h3 className="text-lg md:text-xl font-semibold text-gray-900 flex-1 min-w-[200px]">
+                                {program.name || `Program ${index + 1}`}
+                              </h3>
+                              <div className="flex flex-wrap items-center gap-2">
+                                {program.source === 'fallback' && (
+                                  <span className="px-2 py-1 text-xs rounded-full bg-yellow-100 text-yellow-800 border border-yellow-300 font-medium">
+                                    {locale === 'de' ? 'Fallback' : 'Fallback'}
+                                  </span>
+                                )}
+                                {program.score !== undefined && (
+                                  <span className={`px-3 py-1 rounded-full text-xs md:text-sm font-semibold whitespace-nowrap ${
+                                    program.score >= 70 ? 'bg-green-100 text-green-800' :
+                                    program.score >= 40 ? 'bg-yellow-100 text-yellow-800' :
+                                    'bg-gray-100 text-gray-800'
+                                  }`}>
+                                    {Math.round(program.score)}% {locale === 'de' ? 'Match' : 'Match'}
+                                  </span>
+                                )}
+                              </div>
+                            </div>
+
+                            {/* Funding Type Badges */}
+                            {fundingTypes.length > 0 && (
+                              <div className="flex flex-wrap gap-2 mb-3">
+                                {fundingTypes.map((type: string, idx: number) => (
+                                  <span
+                                    key={idx}
+                                    className={`px-3 py-1 rounded-full text-xs font-medium border ${getFundingTypeColor(type)}`}
+                                  >
+                                    {getFundingTypeLabel(type)}
+                                  </span>
+                                ))}
+                              </div>
+                            )}
+
+                            {/* Description */}
+                            {(program.description || (program as any).metadata?.description) && (
+                              <p className="text-gray-600 mb-4 text-sm md:text-base leading-relaxed">
+                                {program.description || (program as any).metadata?.description}
+                              </p>
+                            )}
+
+                            {/* Program Details Grid */}
+                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 mb-4 text-sm">
+                              {program.amount && (program.amount.min > 0 || program.amount.max > 0) && (
+                                <div className="flex items-start gap-2">
+                                  <span className="font-semibold text-gray-700 min-w-[80px]">
+                                    {locale === 'de' ? 'Betrag:' : 'Amount:'}
+                                  </span>
+                                  <span className="text-gray-600">
+                                    €{program.amount.min?.toLocaleString('de-DE') || '0'} - €{program.amount.max?.toLocaleString('de-DE') || '0'}
+                                    {program.amount.currency && program.amount.currency !== 'EUR' && ` ${program.amount.currency}`}
+                                  </span>
+                                </div>
+                              )}
+                              {(program as any).region && (
+                                <div className="flex items-start gap-2">
+                                  <span className="font-semibold text-gray-700 min-w-[80px]">
+                                    {locale === 'de' ? 'Region:' : 'Region:'}
+                                  </span>
+                                  <span className="text-gray-600">{(program as any).region}</span>
+                                </div>
+                              )}
+                            </div>
+
+                            {/* External Link */}
+                            {program.url && (
+                              <a 
+                                href={program.url} 
+                                target="_blank" 
+                                rel="noopener noreferrer"
+                                className="inline-flex items-center gap-1 text-blue-600 hover:text-blue-800 text-sm font-medium transition-colors"
+                              >
+                                {locale === 'de' ? 'Mehr erfahren' : 'Learn more'}
+                                <span>→</span>
+                              </a>
+                            )}
+                          </div>
+
+                          {/* Select Button */}
+                          <div className="flex-shrink-0">
+                            <button
+                              onClick={() => {
+                                if (onProgramSelect) {
+                                  onProgramSelect(program.id, program.type || fundingTypes[0] || 'grant');
+                                } else {
+                                  // Store in localStorage for editor
+                                  if (typeof window !== 'undefined') {
+                                    localStorage.setItem('selectedProgram', JSON.stringify({
+                                      id: program.id,
+                                      name: program.name,
+                                      categorized_requirements: program.categorized_requirements || {},
+                                      type: program.type || fundingTypes[0] || 'grant',
+                                      url: program.url,
+                                    }));
+                                    router.push('/editor?product=submission');
+                                  }
+                                }
+                              }}
+                              className="w-full md:w-auto px-6 py-2.5 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors font-semibold text-sm shadow-sm hover:shadow-md whitespace-nowrap"
+                            >
+                              {locale === 'de' ? 'Auswählen' : 'Select'}
+                            </button>
+                          </div>
                         </div>
-                        {(program.description || (program as any).metadata?.description) && (
-                          <p className="text-gray-600 mb-3">{program.description || (program as any).metadata?.description}</p>
-                        )}
-                        <div className="flex flex-wrap gap-4 text-sm text-gray-600">
-                          {program.amount && (
-                            <span>
-                              <strong>{locale === 'de' ? 'Betrag:' : 'Amount:'}</strong>{' '}
-                              €{program.amount.min?.toLocaleString('de-DE') || '0'} - €{program.amount.max?.toLocaleString('de-DE') || '0'}
-                            </span>
-                          )}
-                          {program.type && (
-                            <span>
-                              <strong>{locale === 'de' ? 'Typ:' : 'Type:'}</strong> {program.type}
-                            </span>
-                          )}
-                        </div>
-                        {program.url && (
-                          <a 
-                            href={program.url} 
-                            target="_blank" 
-                            rel="noopener noreferrer"
-                            className="text-blue-600 hover:text-blue-800 text-sm mt-2 inline-block"
-                          >
-                            {locale === 'de' ? 'Mehr erfahren →' : 'Learn more →'}
-                          </a>
-                        )}
-                      </div>
-                      <button
-                        onClick={() => {
-                          if (onProgramSelect) {
-                            onProgramSelect(program.id, program.type || 'grant');
-                          } else {
-                            // Store in localStorage for editor
-                            if (typeof window !== 'undefined') {
-                              localStorage.setItem('selectedProgram', JSON.stringify({
-                                id: program.id,
-                                name: program.name,
-                                categorized_requirements: program.categorized_requirements || {},
-                                type: program.type || 'grant',
-                                url: program.url,
-                              }));
-                              router.push('/editor?product=submission');
-                            }
-                          }
-                        }}
-                        className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors font-medium whitespace-nowrap"
-                      >
-                        {locale === 'de' ? 'Auswählen' : 'Select'}
-                      </button>
-                    </div>
-                  </Card>
-                  ))
+                      </Card>
+                    );
+                  })
                 )}
               </div>
             </DialogContent>

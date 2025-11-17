@@ -132,36 +132,6 @@ const PRODUCT_TYPE_OPTIONS: Array<{ value: ProductType; label: string; descripti
   }
 ];
 
-const PANEL_GUIDANCE: Record<
-  RightPanelView,
-  { kicker: string; description: string; ctaLabel?: string }
-> = {
-  ai: {
-    kicker: 'Inline guidance',
-    description:
-      'Use the assistant to draft concise answers, propose datasets, or flag compliance gaps for the active question. It references context but never overwrites your text.',
-    ctaLabel: 'Ask the assistant'
-  },
-  data: {
-    kicker: 'Data & media',
-    description:
-      'Attach reusable tables, charts, KPIs, or images. Import CSVs, reuse datasets, and keep numeric stories in sync with your narrative.'
-  },
-  preview: {
-    kicker: 'Structure check',
-    description: 'Scan a lightweight preview to verify flow, headings, and media placement before exporting.'
-  },
-  info: {
-    kicker: 'Section guidance',
-    description:
-      'Surface contextual tips and helper copy so writers know what reviewers expect before they move on.'
-  },
-  requirements: {
-    kicker: 'Compliance',
-    description:
-      'Run the checker to confirm mandatory sections, KPIs, and length limits are satisfied for the selected funding program.'
-  }
-};
 
 const SECTION_TONE_HINTS: Record<string, string> = {
   general:
@@ -769,7 +739,6 @@ export default function Editor({ product = 'submission' }: EditorProps) {
     attachDatasetToQuestion,
     attachKpiToQuestion,
     attachMediaToQuestion,
-    detachQuestionAttachment,
     updateTitlePage,
     updateAncillary,
     addReference,
@@ -913,14 +882,6 @@ export default function Editor({ product = 'submission' }: EditorProps) {
     );
   }, [activeSection, activeQuestionId]);
 
-  const sectionIndex =
-    plan?.sections.findIndex((section) => section.id === activeSection?.id) ?? -1;
-  const previousSectionId =
-    plan && sectionIndex > 0 ? plan.sections[sectionIndex - 1]?.id ?? null : null;
-  const nextSectionId =
-    plan && sectionIndex >= 0 && sectionIndex < plan.sections.length - 1
-      ? plan.sections[sectionIndex + 1]?.id ?? null
-      : null;
 
   const triggerAISuggestions = (questionId?: string) => {
     if (!activeSection) return;
@@ -953,9 +914,9 @@ export default function Editor({ product = 'submission' }: EditorProps) {
   }
 
   return (
-    <div className="min-h-screen bg-slate-50 flex flex-col">
-      <header className="border-b border-slate-200 bg-white/90 backdrop-blur">
-        <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-10 py-6 space-y-6">
+    <div className="min-h-screen bg-[#f6f8fb]">
+      <header className="border-b border-slate-200 bg-white/95 backdrop-blur-sm">
+        <div className="mx-auto max-w-[1400px] px-4 sm:px-6 lg:px-12 py-8">
           <PlanConfigurator
             plan={plan}
             programSummary={programSummary ?? plan.programSummary ?? null}
@@ -965,15 +926,23 @@ export default function Editor({ product = 'submission' }: EditorProps) {
             programLoading={programLoading}
             programError={programError}
           />
-          <SectionStepper
+        </div>
+      </header>
+
+      {/* Section Navigation Bar */}
+      <div className="border-b border-slate-200 bg-white sticky top-0 z-30">
+        <div className="mx-auto max-w-[1400px] px-4 sm:px-6 lg:px-12">
+          <SectionNavigationBar
             plan={plan}
             activeSectionId={activeSectionId ?? plan.sections[0]?.id ?? null}
             onSelectSection={setActiveSection}
           />
         </div>
-      </header>
-      <div className="flex flex-1">
-        <div className="flex-1">
+      </div>
+
+      {/* Main Content Area */}
+      <div className="mx-auto max-w-[1400px] px-4 sm:px-6 lg:px-12 py-8 flex flex-col gap-6 lg:flex-row lg:items-start">
+        <div className="flex-1 min-w-0">
           {isAncillaryView ? (
             <AncillaryWorkspace
               plan={plan}
@@ -994,45 +963,42 @@ export default function Editor({ product = 'submission' }: EditorProps) {
               onAnswerChange={updateAnswer}
               onSelectQuestion={setActiveQuestion}
               activeQuestionId={activeQuestion?.id ?? null}
-              onNavigateSection={(targetId) => targetId && setActiveSection(targetId)}
-              previousSectionId={previousSectionId}
-              nextSectionId={nextSectionId}
               onAskAI={triggerAISuggestions}
-              onDetachAttachment={(questionId, attachmentId) =>
-                activeSection && detachQuestionAttachment(activeSection.id, questionId, attachmentId)
-              }
-              onPromptAssetRequest={() => setRightPanelView('data')}
             />
           )}
         </div>
-        <RightPanel
-          view={rightPanelView}
-          setView={setRightPanelView}
-          section={activeSection ?? (isAncillaryView ? undefined : plan.sections[0])}
-          question={activeQuestion ?? undefined}
-          plan={plan}
-          onDatasetCreate={(dataset) => activeSection && addDataset(activeSection.id, dataset)}
-          onKpiCreate={(kpi) => activeSection && addKpi(activeSection.id, kpi)}
-          onMediaCreate={(asset) => activeSection && addMedia(activeSection.id, asset)}
-          onAttachDataset={(dataset) =>
-            activeSection &&
-            activeQuestion &&
-            attachDatasetToQuestion(activeSection.id, activeQuestion.id, dataset)
-          }
-          onAttachKpi={(kpi) =>
-            activeSection &&
-            activeQuestion &&
-            attachKpiToQuestion(activeSection.id, activeQuestion.id, kpi)
-          }
-          onAttachMedia={(asset) =>
-            activeSection &&
-            activeQuestion &&
-            attachMediaToQuestion(activeSection.id, activeQuestion.id, asset)
-          }
-          onRunRequirements={runRequirementsCheck}
-          progressSummary={progressSummary}
-          onAskAI={triggerAISuggestions}
-        />
+
+        <div className="w-full lg:w-[360px] flex-shrink-0">
+          <RightPanel
+            view={rightPanelView}
+            setView={setRightPanelView}
+            section={activeSection ?? (isAncillaryView ? undefined : plan.sections[0])}
+            question={activeQuestion ?? undefined}
+            plan={plan}
+            onDatasetCreate={(dataset) => activeSection && addDataset(activeSection.id, dataset)}
+            onKpiCreate={(kpi) => activeSection && addKpi(activeSection.id, kpi)}
+            onMediaCreate={(asset) => activeSection && addMedia(activeSection.id, asset)}
+            onAttachDataset={(dataset) =>
+              activeSection &&
+              activeQuestion &&
+              attachDatasetToQuestion(activeSection.id, activeQuestion.id, dataset)
+            }
+            onAttachKpi={(kpi) =>
+              activeSection &&
+              activeQuestion &&
+              attachKpiToQuestion(activeSection.id, activeQuestion.id, kpi)
+            }
+            onAttachMedia={(asset) =>
+              activeSection &&
+              activeQuestion &&
+              attachMediaToQuestion(activeSection.id, activeQuestion.id, asset)
+            }
+            onRunRequirements={runRequirementsCheck}
+            progressSummary={progressSummary}
+            onAskAI={triggerAISuggestions}
+            onAnswerChange={updateAnswer}
+          />
+        </div>
       </div>
     </div>
   );
@@ -1176,7 +1142,7 @@ function ProgramConnectionCard({
   );
 }
 
-function SectionStepper({
+function SectionNavigationBar({
   plan,
   activeSectionId,
   onSelectSection
@@ -1185,6 +1151,7 @@ function SectionStepper({
   activeSectionId: string | null;
   onSelectSection: (sectionId: string) => void;
 }) {
+  const scrollContainerRef = React.useRef<HTMLDivElement>(null);
   const sections = [
     ...plan.sections,
     {
@@ -1195,9 +1162,29 @@ function SectionStepper({
     }
   ];
 
+  const scrollLeft = () => {
+    if (scrollContainerRef.current) {
+      scrollContainerRef.current.scrollBy({ left: -200, behavior: 'smooth' });
+    }
+  };
+
+  const scrollRight = () => {
+    if (scrollContainerRef.current) {
+      scrollContainerRef.current.scrollBy({ left: 200, behavior: 'smooth' });
+    }
+  };
+
   return (
-    <div className="flex items-center gap-3 overflow-x-auto pb-1">
-      {sections.map((section, index) => {
+    <div className="flex items-center gap-2">
+      <button
+        onClick={scrollLeft}
+        className="flex-shrink-0 rounded-lg border border-slate-200 bg-white p-2 text-slate-600 hover:border-slate-300 hover:bg-slate-50 transition"
+        aria-label="Scroll left"
+      >
+        ←
+      </button>
+      <div ref={scrollContainerRef} className="flex items-center gap-2 overflow-x-auto py-4 flex-1 scrollbar-hide">
+        {sections.map((section, index) => {
         const totalQuestions = section.questions.length;
         const answeredQuestions = section.questions.filter(
           (question) => (question.answer ?? '').trim().length > 0
@@ -1206,34 +1193,35 @@ function SectionStepper({
           section.progress ??
           (totalQuestions === 0 ? 0 : Math.round((answeredQuestions / totalQuestions) * 100));
         const isAncillary = section.id === ANCILLARY_SECTION_ID;
+        const isActive = section.id === activeSectionId;
+        const statusIcon = completion === 100 ? '✓' : completion > 0 ? '⚠' : '○';
 
         return (
           <button
             key={section.id}
             onClick={() => onSelectSection(section.id)}
-            className={`flex-shrink-0 rounded-2xl border px-4 py-3 text-left shadow-sm transition focus:outline-none focus:ring-2 focus:ring-blue-200 ${
-              section.id === activeSectionId
-                ? 'border-blue-500 bg-blue-50 text-blue-800'
+            className={`flex-shrink-0 rounded-xl border px-4 py-2 text-sm font-semibold transition focus:outline-none focus:ring-2 focus:ring-blue-200 ${
+              isActive
+                ? 'border-blue-500 bg-blue-600 text-white'
                 : 'border-slate-200 bg-white text-slate-700 hover:border-slate-300'
             }`}
           >
-            <div className="text-[11px] uppercase tracking-[0.3em] text-slate-400">
-              {isAncillary ? 'Ancillary' : `Step ${String(index + 1).padStart(2, '0')}`}
-            </div>
-            <div className="text-sm font-semibold">{section.title}</div>
             {!isAncillary && (
-              <div className="mt-2 h-1.5 rounded-full bg-slate-100">
-                <div
-                  className={`h-full rounded-full ${
-                    completion === 100 ? 'bg-emerald-500' : completion > 0 ? 'bg-blue-500' : 'bg-slate-200'
-                  }`}
-                  style={{ width: `${completion}%` }}
-                />
-              </div>
+              <span className="mr-2">{String(index + 1).padStart(2, '0')}</span>
             )}
+            <span className="mr-2">{statusIcon}</span>
+            {section.title}
           </button>
         );
       })}
+      </div>
+      <button
+        onClick={scrollRight}
+        className="flex-shrink-0 rounded-lg border border-slate-200 bg-white p-2 text-slate-600 hover:border-slate-300 hover:bg-slate-50 transition"
+        aria-label="Scroll right"
+      >
+        →
+      </button>
     </div>
   );
 }
@@ -1308,95 +1296,75 @@ function SectionWorkspace({
   onAnswerChange,
   onSelectQuestion,
   activeQuestionId,
-  onNavigateSection,
-  previousSectionId,
-  nextSectionId,
-  onAskAI,
-  onDetachAttachment,
-  onPromptAssetRequest
+  onAskAI
 }: {
   section?: Section;
   onAnswerChange: (questionId: string, content: string) => void;
   onSelectQuestion: (questionId: string) => void;
   activeQuestionId: string | null;
-  onNavigateSection: (targetId: string | null) => void;
-  previousSectionId: string | null;
-  nextSectionId: string | null;
   onAskAI: (questionId?: string) => void;
-  onDetachAttachment: (questionId: string, attachmentId: string) => void;
-  onPromptAssetRequest: () => void;
 }) {
+
   if (!section) {
     return (
-      <main className="flex flex-col h-screen bg-slate-50">
-        <div className="flex-1 flex items-center justify-center text-gray-500 text-sm">
-          Select a section to begin.
-        </div>
-      </main>
+      <div className="rounded-3xl border border-dashed border-slate-200 bg-white/70 p-12 text-center text-sm text-slate-500">
+        Select a section to begin.
+      </div>
     );
   }
 
   const sectionHint = getSectionHint(section);
 
-  const totalQuestions = section.questions.length;
-  const answeredQuestions = section.questions.filter(
-    (question) => (question.answer ?? '').trim().length > 0
-  ).length;
-
   return (
-    <main className="flex flex-col h-screen bg-gradient-to-b from-[#f3f8ff] via-white to-white">
-      <div className="flex-1 overflow-y-auto px-6 lg:px-12 py-9 space-y-6">
-        <div className="rounded-3xl border border-slate-200 bg-white p-6 shadow-sm space-y-3">
-          <div className="flex flex-wrap items-start justify-between gap-4">
-            <div className="space-y-2">
-              <p className="text-[11px] tracking-[0.2em] uppercase text-slate-400">{section.category}</p>
-              <h1 className="text-3xl font-semibold text-slate-900 leading-tight">{section.title}</h1>
-              {(sectionHint || section.description) && (
-                <p className="text-sm text-slate-500">{sectionHint || section.description}</p>
-              )}
-            </div>
-            <div className="text-xs text-slate-500 text-right">
-              <p className="font-semibold text-slate-700">Completion</p>
-              <p>
-                {answeredQuestions}/{totalQuestions} questions • {section.progress ?? 0}%
-              </p>
-            </div>
-          </div>
+    <main className="space-y-6">
+      {/* Section Header */}
+      <div className="rounded-3xl border border-slate-200 bg-white p-6 shadow-sm">
+        <div className="space-y-2">
+          {section.category && (
+            <p className="text-[11px] uppercase tracking-[0.35em] text-slate-400">{section.category}</p>
+          )}
+          <h1 className="text-2xl font-semibold text-slate-900 leading-tight">{section.title}</h1>
+          {(sectionHint || section.description) && (
+            <p className="text-sm text-slate-600">{sectionHint || section.description}</p>
+          )}
         </div>
-        {section.questions.map((question, index) => (
-          <QuestionCard
-            key={question.id}
-            position={index + 1}
-            question={question}
-            isActive={question.id === activeQuestionId}
-            onFocus={() => onSelectQuestion(question.id)}
-            onChange={(content) => onAnswerChange(question.id, content)}
-            onDetachAttachment={onDetachAttachment}
-            onPromptAssetRequest={onPromptAssetRequest}
-            onAskAI={() => onAskAI(question.id)}
-          />
-        ))}
       </div>
 
-      <div className="sticky bottom-0 bg-slate-50/95 backdrop-blur border-t border-slate-200 px-6 lg:px-12 py-4 flex items-center justify-between">
-        <span className="text-xs text-slate-400">
-          Progress • {section.progress ?? 0}% complete
-        </span>
-        <div className="flex items-center gap-2">
-          <NavigationButton
-            label="Previous"
-            variant="ghost"
-            disabled={!previousSectionId}
-            onClick={() => onNavigateSection(previousSectionId)}
-          />
-          <NavigationButton
-            label="Next section"
-            variant="primary"
-            disabled={!nextSectionId}
-            onClick={() => onNavigateSection(nextSectionId)}
-          />
+      {/* Prompt Navigation Bar */}
+      {section.questions.length > 1 && (
+        <div className="flex items-center gap-2 overflow-x-auto pb-2">
+          {section.questions.map((question, index) => (
+            <button
+              key={question.id}
+              onClick={() => onSelectQuestion(question.id)}
+              className={`flex-shrink-0 rounded-full border px-4 py-2 text-sm font-medium transition ${
+                question.id === activeQuestionId
+                  ? 'border-blue-500 bg-blue-50 text-blue-700'
+                  : 'border-slate-200 bg-white text-slate-600 hover:border-slate-300'
+              }`}
+            >
+              Q{String(index + 1).padStart(2, '0')}
+            </button>
+          ))}
         </div>
-      </div>
+      )}
+
+      {/* Single Active Prompt Block */}
+      {section.questions.length > 0 && (() => {
+        const activeQuestion = section.questions.find(q => q.id === activeQuestionId) ?? section.questions[0];
+        const activeIndex = section.questions.findIndex(q => q.id === activeQuestion?.id) + 1;
+        
+        return (
+          <QuestionCard
+            position={activeIndex}
+            question={activeQuestion}
+            isActive={true}
+            onFocus={() => onSelectQuestion(activeQuestion.id)}
+            onChange={(content) => onAnswerChange(activeQuestion.id, content)}
+            onAskAI={() => onAskAI(activeQuestion.id)}
+          />
+        );
+      })()}
     </main>
   );
 }
@@ -1407,8 +1375,6 @@ function QuestionCard({
   isActive,
   onFocus,
   onChange,
-  onDetachAttachment,
-  onPromptAssetRequest,
   onAskAI
 }: {
   question: Question;
@@ -1416,155 +1382,61 @@ function QuestionCard({
   isActive: boolean;
   onFocus: () => void;
   onChange: (content: string) => void;
-  onDetachAttachment: (questionId: string, attachmentId: string) => void;
-  onPromptAssetRequest: () => void;
   onAskAI: () => void;
 }) {
   return (
     <div
-      className={`border rounded-2xl p-6 bg-white shadow-sm transition ${
-        isActive ? 'border-blue-500 shadow-lg ring-1 ring-blue-100' : 'border-slate-200'
+      className={`rounded-3xl border p-6 bg-white shadow-sm transition ${
+        isActive
+          ? 'border-blue-400 shadow-xl shadow-blue-50 ring-1 ring-blue-100'
+          : 'border-slate-200 hover:border-blue-200'
       }`}
       onClick={onFocus}
     >
-      <div className="flex items-start justify-between gap-4 mb-3">
-        <div>
-          <div className="flex items-center gap-2 mb-1">
-            <span className="text-[11px] font-semibold tracking-wider text-slate-400">
-              Q{position.toString().padStart(2, '0')}
+      {/* Prompt Header */}
+      <div className="mb-4">
+        <div className="flex items-center gap-2 mb-2">
+          <span className="inline-flex items-center rounded-full bg-slate-100 px-3 py-1 text-[11px] font-semibold tracking-[0.2em] text-slate-500">
+            Q{position.toString().padStart(2, '0')}
+          </span>
+          {question.required && (
+            <span className="rounded-full bg-red-50 px-2.5 py-1 text-[10px] font-semibold uppercase tracking-widest text-red-600">
+              Required
             </span>
-            {question.required && (
-              <span className="text-[10px] uppercase tracking-widest text-red-500">Required</span>
-            )}
-          </div>
-          <p className="text-base font-semibold text-slate-900">{question.prompt}</p>
+          )}
         </div>
+        <p className="text-lg font-semibold text-slate-900 leading-snug">{question.prompt}</p>
       </div>
 
-      <SimpleTextEditor
-        content={question.answer ?? ''}
-        onChange={onChange}
-        placeholder={question.placeholder}
-      />
-      {question.helperText && (
-        <p className="mt-2 text-xs text-slate-500">{question.helperText}</p>
-      )}
+      {/* Text Editor */}
+      <div onClick={(e) => e.stopPropagation()}>
+        <SimpleTextEditor
+          content={question.answer ?? ''}
+          onChange={onChange}
+          placeholder={question.placeholder}
+        />
+      </div>
 
-      {isActive && (
-        <div className="mt-4 rounded-2xl border border-slate-100 bg-slate-50/80 p-4 space-y-2 text-xs text-slate-600">
-          <p className="text-sm font-semibold text-slate-700">Need a nudge?</p>
-          <p>Ask the assistant for a draft or jump to the Data tab when numbers belong in tables, charts, or KPIs.</p>
-          <div className="flex flex-wrap gap-2">
-            <button
-              type="button"
-              onClick={(event) => {
-                event.stopPropagation();
-                onAskAI();
-              }}
-              className="inline-flex items-center px-3 py-1.5 rounded-lg bg-blue-600 text-white font-semibold text-xs hover:bg-blue-500"
-            >
-              Ask AI for this prompt
-            </button>
-            <button
-              type="button"
-              onClick={(event) => {
-                event.stopPropagation();
-                onPromptAssetRequest();
-              }}
-              className="inline-flex items-center px-3 py-1.5 rounded-lg border border-slate-200 text-slate-600 font-semibold text-xs hover:border-slate-300 hover:text-slate-900"
-            >
-              Open data & media panel
-            </button>
-          </div>
-        </div>
-      )}
-
-      {question.attachments && question.attachments.length > 0 && (
-        <div className="mt-4">
-          <p className="text-[11px] uppercase tracking-[0.2em] text-slate-400 mb-2">
-            Attachments
-          </p>
-          <div className="space-y-2">
-            {question.attachments.map((attachment) => (
-              <div
-                key={attachment.id}
-                className="flex items-center justify-between rounded-xl border border-slate-100 bg-slate-50 px-3 py-2 text-sm text-slate-700"
-              >
-                <div>
-                  <p className="font-medium">
-                    {attachment.title}{' '}
-                    <span className="text-xs uppercase text-slate-400">({attachment.type})</span>
-                  </p>
-                  {(attachment.caption || attachment.description) && (
-                    <p className="text-xs text-slate-500">
-                      {attachment.caption ?? attachment.description}
-                    </p>
-                  )}
-                </div>
-                <button
-                  onClick={(event) => {
-                    event.stopPropagation();
-                    onDetachAttachment(question.id, attachment.id);
-                  }}
-                  className="text-xs text-red-500"
-                >
-                  Remove
-                </button>
-              </div>
-            ))}
-          </div>
-        </div>
-      )}
-
-      {question.suggestions && question.suggestions.length > 0 && (
-        <div className="mt-4 border border-blue-100 bg-blue-50 text-sm text-blue-700 rounded-lg p-3 space-y-2">
-          <p className="font-semibold">AI suggestion</p>
-          {question.suggestions.map((suggestion: string, index: number) => (
-            <p key={`${question.id}_suggestion_${index}`}>{suggestion}</p>
-          ))}
-        </div>
-      )}
-      {question.warnings && question.warnings.length > 0 && (
-        <div className="mt-3 border border-amber-200 bg-amber-50 text-sm text-amber-800 rounded-lg p-3 space-y-1">
-          {question.warnings.map((warning, index) => (
-            <p key={`${question.id}_warning_${index}`}>{warning}</p>
-          ))}
-        </div>
-      )}
+      {/* Action Buttons (directly below editor) */}
+      <div className="mt-4 flex flex-wrap gap-2" onClick={(e) => e.stopPropagation()}>
+        <button
+          type="button"
+          onClick={onAskAI}
+          className="inline-flex items-center px-4 py-2 rounded-lg bg-blue-600 text-white font-semibold text-sm hover:bg-blue-500"
+        >
+          ✨ Generate for this prompt
+        </button>
+        <button
+          type="button"
+          className="inline-flex items-center px-4 py-2 rounded-lg border border-slate-200 text-slate-400 font-semibold text-sm hover:border-slate-300"
+        >
+          ⏭ Skip
+        </button>
+      </div>
     </div>
   );
 }
 
-function NavigationButton({
-  label,
-  onClick,
-  disabled,
-  variant = 'outline'
-}: {
-  label: string;
-  onClick: () => void;
-  disabled?: boolean;
-  variant?: 'outline' | 'ghost' | 'primary';
-}) {
-  const baseClasses =
-    'px-4 py-2 rounded-full text-sm font-semibold transition focus:outline-none focus:ring-2 focus:ring-offset-1';
-  const variants: Record<'outline' | 'ghost' | 'primary', string> = {
-    outline:
-      'border border-slate-200 text-slate-600 hover:border-slate-300 hover:text-slate-900 bg-white',
-    ghost: 'text-slate-500 hover:text-slate-900',
-    primary: 'bg-blue-600 text-white hover:bg-blue-500'
-  };
-  return (
-    <button
-      type="button"
-      onClick={onClick}
-      disabled={disabled}
-      className={`${baseClasses} ${variants[variant]} ${disabled ? 'opacity-50 cursor-not-allowed' : ''}`}
-    >
-      {label}
-    </button>
-  );
-}
 
 function RightPanel({
   view,
@@ -1580,7 +1452,8 @@ function RightPanel({
   onAttachMedia,
   onRunRequirements,
   progressSummary,
-  onAskAI
+  onAskAI,
+  onAnswerChange
 }: {
   view: RightPanelView;
   setView: (view: RightPanelView) => void;
@@ -1596,122 +1469,285 @@ function RightPanel({
   onRunRequirements: () => void;
   progressSummary: ProgressSummary[];
   onAskAI: (questionId?: string) => void;
+  onAnswerChange: (questionId: string, content: string) => void;
 }) {
-  const panelMeta = PANEL_GUIDANCE[view];
+  const [requirementsChecked, setRequirementsChecked] = React.useState(false);
+  // Map 'requirements' view to 'preview' for backward compatibility
+  const activeView = view === 'requirements' ? 'preview' : view;
+  const effectiveView = (['ai', 'data', 'preview'].includes(activeView) ? activeView : 'ai') as 'ai' | 'data' | 'preview';
+
   return (
-    <aside className="border-l border-gray-200 bg-white flex flex-col">
-      <div className="grid grid-cols-4 border-b border-gray-200 text-xs font-semibold text-gray-500">
-        {(['ai', 'data', 'preview', 'requirements'] as RightPanelView[]).map((tab) => (
+    <aside className="rounded-3xl border border-slate-200 bg-white shadow-sm flex h-full min-h-[360px] flex-col sticky top-[120px] w-full lg:w-[360px] lg:flex-shrink-0">
+      <div className="grid grid-cols-3 border-b border-slate-200 text-[11px] font-semibold uppercase tracking-[0.2em] text-slate-500">
+        {(['Assistant', 'Data', 'Preview'] as const).map((tabLabel) => {
+          const tabKey = tabLabel.toLowerCase() as 'ai' | 'data' | 'preview';
+          return (
             <button
-              key={tab}
-              onClick={() => setView(tab)}
-              className={`py-3 ${
-                view === tab ? 'text-blue-600 border-b-2 border-blue-600' : ''
+              key={tabKey}
+              onClick={() => setView(tabKey)}
+              className={`py-3 transition ${
+                effectiveView === tabKey ? 'text-blue-600 border-b-2 border-blue-600 bg-blue-50/40' : 'hover:text-blue-600'
               }`}
             >
-              {tab.charAt(0).toUpperCase() + tab.slice(1)}
+              {tabLabel}
             </button>
-          ))}
+          );
+        })}
       </div>
-      {panelMeta && (
-        <div className="px-4 py-3 border-b border-gray-100 bg-slate-50 space-y-2">
-          <p className="text-[10px] uppercase tracking-[0.3em] text-slate-400">{panelMeta.kicker}</p>
-          <p className="text-xs text-slate-600 leading-relaxed">{panelMeta.description}</p>
-          {panelMeta.ctaLabel && view === 'ai' && (
+      <div className="flex-1 overflow-y-auto">
+        {/* Assistant Tab */}
+        {effectiveView === 'ai' && (
+          <div className="p-4 space-y-4">
             <button
               onClick={() => onAskAI(question?.id)}
               disabled={!question}
-              className={`w-full text-xs font-semibold px-3 py-2 rounded-lg ${
+              className={`w-full px-4 py-3 rounded-lg font-semibold text-sm ${
                 question
                   ? 'bg-blue-600 text-white hover:bg-blue-500'
                   : 'bg-slate-100 text-slate-400 cursor-not-allowed'
               }`}
             >
-              {panelMeta.ctaLabel} {question ? '' : '(select a question)'}
+              Ask the assistant
             </button>
-          )}
-        </div>
-      )}
-      <div className="flex-1 overflow-hidden">
-        {view === 'ai' && question && (
-          <div className="p-4 space-y-3 text-sm text-gray-600">
-            <p className="text-xs uppercase text-gray-400">Current question</p>
-            <p className="font-semibold">{question?.prompt}</p>
-            {question?.answer ? (
-              <p className="text-gray-500">{question.answer.substring(0, 200)}...</p>
+            {question && (
+              <div className="space-y-3 text-sm">
+                <div>
+                  <p className="text-xs uppercase text-slate-400 mb-1">Current question</p>
+                  <p className="font-semibold text-slate-900">{question.prompt}</p>
+                </div>
+                {question.answer ? (
+                  <div>
+                    <p className="text-xs text-slate-500 mb-1">Answer preview</p>
+                    <p className="text-slate-600">{question.answer.substring(0, 200)}...</p>
+                    <p className="text-xs text-slate-400 mt-1">
+                      {question.answer.split(/\s+/).length} words
+                    </p>
+                  </div>
+                ) : (
+                  <p className="text-slate-400 text-sm">
+                    Start typing to provide context—the assistant draws on previous answers, datasets, and program requirements.
+                  </p>
+                )}
+                {question.suggestions && question.suggestions.length > 0 && (
+                  <div className="space-y-2">
+                    <p className="text-xs font-semibold text-slate-700">Latest response</p>
+                    {question.suggestions.slice(-1).map((suggestion, index) => (
+                      <div key={index} className="border border-blue-100 bg-blue-50 rounded-lg p-3">
+                        <p className="text-sm text-blue-700 mb-2">{suggestion}</p>
+                        <div className="flex gap-2">
+                          <button
+                            onClick={() => {
+                              navigator.clipboard.writeText(suggestion);
+                            }}
+                            className="text-xs font-semibold text-blue-600 hover:text-blue-800"
+                          >
+                            Copy
+                          </button>
+                          <button
+                            onClick={() => {
+                              const latestSuggestion = question.suggestions?.[question.suggestions.length - 1];
+                              if (latestSuggestion && question) {
+                                const currentAnswer = question.answer ?? '';
+                                const newContent = currentAnswer 
+                                  ? `${currentAnswer}\n\n${latestSuggestion}`
+                                  : latestSuggestion;
+                                onAnswerChange(question.id, newContent);
+                              }
+                            }}
+                            className="text-xs font-semibold text-blue-600 hover:text-blue-800"
+                          >
+                            Insert
+                          </button>
+                        </div>
+                      </div>
+                    ))}
+                    {question.suggestions.length > 1 && (
+                      <button
+                        onClick={() => {
+                          // TODO: Implement conversation history modal
+                          console.log('View full conversation');
+                        }}
+                        className="text-xs text-blue-600 hover:text-blue-800 font-medium"
+                      >
+                        View full conversation ({question.suggestions.length} responses)
+                      </button>
+                    )}
+                  </div>
+                )}
+                {/* Quick Actions */}
+                {question && question.answer && (
+                  <div className="space-y-2 pt-2 border-t border-slate-200">
+                    <p className="text-xs font-semibold text-slate-700">Quick actions</p>
+                    <div className="flex flex-wrap gap-2">
+                      {['Tone', 'Translate', 'Summarize', 'Expand'].map((action) => (
+                        <button
+                          key={action}
+                          onClick={() => {
+                            // TODO: Implement quick action handlers
+                            console.log(`Quick action: ${action}`);
+                          }}
+                          className="px-3 py-1.5 text-xs font-semibold rounded-lg border border-slate-200 text-slate-700 hover:border-slate-300 hover:bg-slate-50 transition"
+                        >
+                          {action}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+                )}
+              </div>
+            )}
+            {!question && (
+              <div className="text-center py-8 text-slate-400 text-sm">
+                Select a question to receive AI suggestions.
+              </div>
+            )}
+          </div>
+        )}
+
+        {/* Data Tab */}
+        {effectiveView === 'data' && (
+          <div className="p-4">
+            {section ? (
+              <>
+                {(section.category === 'financial' || section.category === 'risk' || section.category === 'project') && (
+                  <div className="mb-4 p-3 bg-blue-50 border border-blue-100 rounded-lg">
+                    <p className="text-xs font-semibold text-blue-800 mb-1">
+                      This section typically includes {section.category === 'financial' ? 'financial tables' : section.category === 'risk' ? 'a risk matrix' : 'milestone timelines'}.
+                    </p>
+                  </div>
+                )}
+                <DataPanel
+                  datasets={section.datasets ?? []}
+                  kpis={section.kpis ?? []}
+                  media={section.media ?? []}
+                  onDatasetCreate={onDatasetCreate}
+                  onKpiCreate={onKpiCreate}
+                  onMediaCreate={onMediaCreate}
+                  activeQuestionId={question?.id}
+                  onAttachDataset={onAttachDataset}
+                  onAttachKpi={onAttachKpi}
+                  onAttachMedia={onAttachMedia}
+                />
+              </>
             ) : (
-              <p className="text-gray-400">
-                Start typing to provide context—the assistant draws on previous answers, datasets, and program requirements.
-              </p>
-            )}
-            <ul className="text-xs text-slate-500 list-disc list-inside space-y-1">
-              <li>Summaries should cover the problem, solution, and expected impact.</li>
-              <li>When numbers appear, open the Data tab to insert tables, charts, or KPIs.</li>
-            </ul>
-            {question?.suggestions?.map((suggestion: string, index: number) => (
-              <div key={index} className="border border-blue-100 bg-blue-50 rounded-lg p-3 text-blue-700">
-                {suggestion}
+              <div className="text-center py-8 text-slate-400 text-sm">
+                Choose a section to manage datasets, KPIs, and media.
               </div>
-            ))}
-            {!question?.suggestions?.length && (
-              <p className="text-xs text-gray-400">
-                Ask the assistant for a draft or dataset suggestion, then refine it in the editor.
-              </p>
             )}
           </div>
         )}
-        {view === 'ai' && !question && (
-          <div className="p-4 text-xs text-gray-500">
-            Select a question to receive AI suggestions.
-          </div>
-        )}
-        {view === 'data' && section && (
-          <DataPanel
-            datasets={section.datasets ?? []}
-            kpis={section.kpis ?? []}
-            media={section.media ?? []}
-            onDatasetCreate={onDatasetCreate}
-            onKpiCreate={onKpiCreate}
-            onMediaCreate={onMediaCreate}
-            activeQuestionId={question?.id}
-            onAttachDataset={onAttachDataset}
-            onAttachKpi={onAttachKpi}
-            onAttachMedia={onAttachMedia}
-          />
-        )}
-        {view === 'data' && !section && (
-          <div className="p-4 text-xs text-gray-500">
-            Choose a section to manage datasets, KPIs, and media.
-          </div>
-        )}
-        {view === 'preview' && (
-          <PreviewPane plan={plan} focusSectionId={section?.id} />
-        )}
-        {view === 'requirements' && (
-          <div className="p-4 space-y-3 text-sm">
-            <button
-              onClick={onRunRequirements}
-              className="px-3 py-1 text-xs font-semibold bg-blue-600 text-white rounded-md"
-            >
-              Refresh checker
-            </button>
-            {progressSummary.length === 0 && (
-              <p className="text-gray-500 text-xs">Run the checker to view status.</p>
-            )}
-            {progressSummary.map((item) => (
-              <div key={item.id}>
-                <div className="flex items-center justify-between text-xs text-gray-500 mb-1">
-                  <span>{item.title}</span>
-                  <span>{item.progress}%</span>
-                </div>
-                <div className="h-2 bg-gray-100 rounded-full">
-                  <div
-                    className="h-full bg-green-500 rounded-full"
-                    style={{ width: `${item.progress}%` }}
-                  />
-                </div>
+
+        {/* Preview Tab (with Requirements) */}
+        {effectiveView === 'preview' && (
+          <div className="p-4 space-y-4">
+            <div className="space-y-2">
+              <PreviewPane plan={plan} focusSectionId={section?.id} />
+            </div>
+            <div className="border-t border-slate-200 pt-4">
+              <div className="flex items-center justify-between mb-3">
+                <p className="text-xs font-semibold text-slate-700">Requirements summary</p>
+                <button
+                  onClick={() => {
+                    setRequirementsChecked(true);
+                    onRunRequirements();
+                  }}
+                  className="px-3 py-1.5 text-xs font-semibold bg-blue-600 text-white rounded-lg hover:bg-blue-500"
+                >
+                  Run check
+                </button>
               </div>
-            ))}
+              {!requirementsChecked ? (
+                <p className="text-gray-500 text-xs">Run the checker to view status.</p>
+              ) : progressSummary.length === 0 ? (
+                <p className="text-gray-500 text-xs">No issues found.</p>
+              ) : (
+                <div className="space-y-3">
+                  {/* Overall Summary */}
+                  {(() => {
+                    const overallProgress = Math.round(
+                      progressSummary.reduce((sum, item) => sum + item.progress, 0) / progressSummary.length
+                    );
+                    const incompleteCount = progressSummary.filter((item) => item.progress < 100).length;
+                    const mandatoryMissing = progressSummary.filter((item) => item.progress === 0).length;
+                    
+                    return (
+                      <div className="bg-slate-50 rounded-lg p-3 space-y-2">
+                        <div className="flex items-center justify-between">
+                          <span className="text-xs font-semibold text-slate-700">Overall completion</span>
+                          <span className={`text-sm font-bold ${overallProgress === 100 ? 'text-green-600' : 'text-amber-600'}`}>
+                            {overallProgress}%
+                          </span>
+                        </div>
+                        {mandatoryMissing > 0 && (
+                          <p className="text-xs text-red-600 font-medium">
+                            {mandatoryMissing} mandatory field{mandatoryMissing > 1 ? 's' : ''} missing
+                          </p>
+                        )}
+                        {incompleteCount > 0 && mandatoryMissing === 0 && (
+                          <p className="text-xs text-amber-600 font-medium">
+                            {incompleteCount} section{incompleteCount > 1 ? 's' : ''} need{incompleteCount === 1 ? 's' : ''} attention
+                          </p>
+                        )}
+                      </div>
+                    );
+                  })()}
+                  
+                  {/* Per-Section Accordion */}
+                  <div className="space-y-2">
+                    {progressSummary.map((item) => {
+                      const [isExpanded, setIsExpanded] = React.useState(false);
+                      const hasIssues = item.progress < 100;
+                      
+                      return (
+                        <div key={item.id} className="border border-slate-200 rounded-lg overflow-hidden">
+                          <button
+                            onClick={() => setIsExpanded(!isExpanded)}
+                            className="w-full flex items-center justify-between p-2 hover:bg-slate-50 transition text-left"
+                          >
+                            <div className="flex items-center gap-2 flex-1 min-w-0">
+                              <span className="text-xs text-slate-600 truncate">{item.title}</span>
+                              {hasIssues && (
+                                <span className="flex-shrink-0 text-[10px] px-1.5 py-0.5 rounded bg-amber-100 text-amber-700 font-semibold">
+                                  Needs attention
+                                </span>
+                              )}
+                            </div>
+                            <div className="flex items-center gap-2 flex-shrink-0">
+                              <span className={`text-xs font-semibold ${item.progress === 100 ? 'text-green-600' : 'text-amber-600'}`}>
+                                {item.progress}%
+                              </span>
+                              <span className="text-xs text-slate-400">{isExpanded ? '▼' : '▶'}</span>
+                            </div>
+                          </button>
+                          {isExpanded && (
+                            <div className="px-2 pb-2 space-y-2 border-t border-slate-100">
+                              <div className="h-1.5 bg-slate-100 rounded-full mt-2">
+                                <div
+                                  className={`h-full rounded-full ${
+                                    item.progress === 100 ? 'bg-green-500' : 'bg-amber-500'
+                                  }`}
+                                  style={{ width: `${item.progress}%` }}
+                                />
+                              </div>
+                              {hasIssues && (
+                                <p className="text-xs text-slate-500">
+                                  {item.progress === 0 
+                                    ? 'This section has not been started yet.'
+                                    : `This section is ${100 - item.progress}% incomplete. Please review and complete all required prompts.`}
+                                </p>
+                              )}
+                              {item.progress === 100 && (
+                                <p className="text-xs text-green-600">✓ All requirements met for this section.</p>
+                              )}
+                            </div>
+                          )}
+                        </div>
+                      );
+                    })}
+                  </div>
+                </div>
+              )}
+            </div>
           </div>
         )}
       </div>
