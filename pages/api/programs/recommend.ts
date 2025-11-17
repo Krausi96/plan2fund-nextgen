@@ -61,6 +61,13 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     const generation = await generateProgramsWithLLM(answers, maxResults * 2);
     generated = generation.programs;
     llmRawResponse = generation.raw;
+
+    if (process.env.NODE_ENV !== 'production') {
+      console.log('[reco][recommend] LLM raw response preview:', (llmRawResponse || '').slice(0, 2000));
+      console.log('[reco][recommend] Programs parsed from LLM:', generated.length);
+    } else {
+      console.log('[reco][recommend] LLM returned', generated.length, 'programs; raw length:', llmRawResponse?.length || 0);
+    }
   } catch (error: any) {
     llmError = error?.message || 'Unknown LLM error';
     console.error('generateProgramsWithLLM failed:', llmError);
