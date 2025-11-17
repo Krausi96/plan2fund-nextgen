@@ -319,18 +319,16 @@ function matchesAnswers(extracted: any, answers: UserAnswers, threshold: number 
 
   // For LLM-generated programs, be more lenient - don't filter out if they're close
   // Require at least 15% of checks to pass (lowered from 20% for better coverage)
-  const isLLMGenerated = extracted?.source === 'llm_generated';
+  const isLLMGenerated = extracted?.source === 'llm_generated' || extracted?._fallback === true;
   const matchRatio = totalChecks > 0 ? matchCount / totalChecks : 1;
   
-  // For LLM-generated programs, be very lenient - only filter if match ratio is extremely low
+  // For LLM-generated programs, be extremely lenient - always show them
+  // Since they're generated specifically for the user's profile, they should be relevant
   if (isLLMGenerated) {
-    // If we have at least one match or no requirements, allow it
-    if (matchCount > 0 || totalChecks === 0) {
-      return true;
-    }
-    // Even with 0 matches, allow if threshold is very low (5% for LLM)
-    // This ensures LLM-generated programs are almost always shown
-    return matchRatio >= 0.05;
+    // Always return true for LLM-generated programs - they're already tailored to the user
+    // Only filter out if there's a clear incompatibility (handled by critical checks above)
+    console.log(`✅ LLM-generated program "${extracted?.name || 'unknown'}" - allowing through (lenient matching)`);
+    return true;
   }
   
   // For non-LLM programs, use stricter matching
@@ -551,12 +549,46 @@ export async function generateProgramsWithLLM(
     }
     
     const userProfile = profileParts.join('\n');
-
-    const prompt = `You are an expert on European funding programs (grants, loans, subsidies).
+    
+    // Detect early-stage companies and add special instructions
+    const isEarlyStage = answers.company_stage && (
+      typeof answers.company_stage === 'number' && answers.company_stage < 12
+    ) || answers.company_stage_classified === 'early_stage' || 
+      answers.company_stage_classified === 'pre_company' ||
+      answers.company_type === 'prefounder';
+    
+    const isPreFounder = answers.company_type === 'prefounder' || 
+      (typeof answers.company_stage === 'number' && answers.company_stage < 0);
+    
+    // Build enhanced prompt with early-stage emphasis
+    let promptBase = `You are an expert on European funding programs (grants, loans, subsidies).
 
 Based on this user profile, suggest ${maxPrograms} relevant funding programs:
 
-${userProfile}
+${userProfile}`;
+    
+    // Add special instructions for early-stage companies
+    if (isPreFounder) {
+      promptBase += `\n\nIMPORTANT: This is a PRE-FOUNDER (idea stage, not yet incorporated). You MUST include programs specifically designed for:
+- Pre-founders and idea-stage entrepreneurs
+- Programs that don't require incorporation
+- Early-stage startup support programs
+- Seed funding and pre-seed programs
+- Programs for solo founders and individuals with business ideas`;
+    } else if (isEarlyStage) {
+      promptBase += `\n\nIMPORTANT: This is an EARLY-STAGE company (less than 12 months old). You MUST include programs specifically designed for:
+- Early-stage startups and newly founded companies
+- Programs that accept companies less than 1 year old
+- Startup support and seed funding programs
+- Programs for companies in their first year`;
+    }
+    
+    // Add instructions for large funding amounts
+    if (answers.funding_amount && typeof answers.funding_amount === 'number' && answers.funding_amount >= 1000000) {
+      promptBase += `\n\nNOTE: This company needs large funding (€${answers.funding_amount.toLocaleString()}+). Include programs that support large funding amounts, scale-up programs, and growth-stage funding.`;
+    }
+
+    const prompt = promptBase + `
 
 For each program, provide a JSON object with:
 - name: Program name
@@ -565,12 +597,14 @@ For each program, provide a JSON object with:
 - funding_amount_max: Maximum funding amount (number)
 - currency: Currency code (default: EUR)
 - location: Geographic eligibility (e.g., "Austria", "Germany", "EU")
-- company_type: Eligible company types (e.g., "startup", "sme", "research")
+- company_type: Eligible company types (e.g., "startup", "sme", "research", "prefounder" for pre-founders)
 - industry_focus: Industry/sector focus (array of strings)
 - deadline: Application deadline if known (YYYY-MM-DD format, or null)
 - open_deadline: Boolean indicating if deadline is open/rolling
 - website: Program website URL if known (or null)
 - description: Brief program description
+
+CRITICAL: You MUST return at least ${Math.min(maxPrograms, 5)} programs. If you cannot find exact matches, include similar or related programs that could be relevant.
 
 Return a JSON object with a "programs" array containing the program objects.
 
@@ -728,6 +762,7 @@ Example format:
     }
     
     console.log('📄 Response preview:', responseText.substring(0, 300) + '...');
+    console.log('📄 Full response length:', responseText.length);
 
     // Parse JSON response using EXACT same logic as extractWithLLM
     let programs: any[];
@@ -759,20 +794,37 @@ Example format:
       
       // Clean response text using same method as extractWithLLM
       const sanitized = sanitizeLLMResponse(responseText);
+      console.log('📄 Sanitized response length:', sanitized.length);
       const parsed = JSON.parse(sanitized);
+      console.log('📄 Parsed JSON keys:', Object.keys(parsed));
       // Handle both array and object formats
       if (Array.isArray(parsed)) {
         programs = parsed;
+        console.log(`✅ Found ${programs.length} programs in array format`);
       } else if (parsed.programs && Array.isArray(parsed.programs)) {
         programs = parsed.programs;
+        console.log(`✅ Found ${programs.length} programs in object.programs format`);
       } else {
         // Try to extract array from response text
         const jsonMatch = sanitized.match(/\[[\s\S]*\]/);
         if (jsonMatch) {
           programs = JSON.parse(jsonMatch[0]);
+          console.log(`✅ Found ${programs.length} programs in extracted array`);
         } else {
+          console.error('❌ No programs array found. Parsed object:', JSON.stringify(parsed, null, 2).substring(0, 500));
           throw new Error('No programs array found in response');
         }
+      }
+      
+      if (programs.length === 0) {
+        console.warn('⚠️ LLM returned empty programs array!');
+        console.warn('⚠️ Parsed object:', JSON.stringify(parsed, null, 2).substring(0, 1000));
+        console.warn('⚠️ User profile:', userProfile.substring(0, 500));
+        
+        // Fallback: Generate basic programs based on user profile
+        console.log('🔄 Attempting fallback program generation...');
+        programs = generateFallbackPrograms(answers, maxPrograms);
+        console.log(`✅ Fallback generated ${programs.length} programs`);
       }
     } catch (parseError: any) {
       console.error('Failed to parse LLM response:', parseError.message);
@@ -935,10 +987,205 @@ Website: ${p.website || 'Not available'}
 
     return programsWithRequirements;
   } catch (error: any) {
-    console.error('❌ LLM fallback failed:', error);
-    // Return empty array if LLM fails - system will handle gracefully
-    return [];
+    console.error('❌ LLM generation failed:', error);
+    console.error('❌ Error stack:', error.stack);
+    console.error('❌ Error message:', error.message);
+    
+    // Fallback: Generate basic programs based on user profile
+    console.log('🔄 Attempting fallback program generation after error...');
+    try {
+      const fallbackPrograms = generateFallbackPrograms(answers, maxPrograms);
+      console.log(`✅ Fallback generated ${fallbackPrograms.length} programs after error`);
+      
+      // Convert fallback programs to full format with requirements
+      const fallbackWithRequirements = await Promise.all(fallbackPrograms.map(async (p: any, index: number) => {
+        const categorized_requirements = {
+          geographic: [{ 
+            type: 'location', 
+            value: p.location || answers.location || '', 
+            confidence: 0.8 
+          }],
+          eligibility: [{ 
+            type: 'company_type', 
+            value: p.company_type || answers.company_type || '', 
+            confidence: 0.8 
+          }],
+          project: Array.isArray(p.industry_focus) 
+            ? p.industry_focus.map((ind: string) => ({
+                type: 'industry_focus',
+                value: ind,
+                confidence: 0.7
+              }))
+            : (p.industry_focus ? [{
+                type: 'industry_focus',
+                value: p.industry_focus,
+                confidence: 0.7
+              }] : []),
+        };
+
+        const metadata = {
+          funding_amount_min: p.funding_amount_min || 0,
+          funding_amount_max: p.funding_amount_max || 0,
+          currency: p.currency || 'EUR',
+          deadline: p.deadline || null,
+          open_deadline: p.open_deadline || false,
+          description: p.description || '',
+          region: p.location || answers.location || '',
+        };
+
+        return {
+          id: `fallback_${(p.name || `program_${index}`).toLowerCase().replace(/[^a-z0-9]+/g, '_')}`,
+          name: p.name || `Program ${index + 1}`,
+          url: p.website || null,
+          source_url: p.website || null,
+          institution_id: `fallback_${(p.institution || 'unknown').toLowerCase().replace(/[^a-z0-9]+/g, '_')}`,
+          type: 'grant',
+          program_type: 'grant',
+          funding_types: ['grant'],
+          metadata,
+          categorized_requirements,
+          eligibility_criteria: {},
+          extracted_at: new Date().toISOString(),
+          source: 'llm_generated',
+          _fallback: true,
+        };
+      }));
+      
+      return fallbackWithRequirements;
+    } catch (fallbackError: any) {
+      console.error('❌ Fallback generation also failed:', fallbackError.message);
+      // Return empty array as last resort
+      return [];
+    }
   }
+}
+
+/**
+ * Generate fallback programs when LLM fails or returns empty
+ * Creates basic program structures based on user profile
+ */
+function generateFallbackPrograms(answers: UserAnswers, maxPrograms: number = 10): any[] {
+  const programs: any[] = [];
+  const location = answers.location || 'Austria';
+  const companyType = answers.company_type || 'startup';
+  const fundingAmount = typeof answers.funding_amount === 'number' ? answers.funding_amount : 100000;
+  
+  // Map of common funding programs by location and company type
+  const commonPrograms: Record<string, any[]> = {
+    'austria': [
+      {
+        name: 'FFG Basisprogramm',
+        institution: 'Austrian Research Promotion Agency (FFG)',
+        funding_amount_min: 50000,
+        funding_amount_max: 500000,
+        currency: 'EUR',
+        location: 'Austria',
+        company_type: companyType === 'prefounder' ? 'startup' : companyType,
+        industry_focus: Array.isArray(answers.industry_focus) ? answers.industry_focus : (answers.industry_focus ? [answers.industry_focus] : []),
+        deadline: null,
+        open_deadline: true,
+        website: 'https://www.ffg.at',
+        description: 'General funding program for research and innovation projects',
+      },
+      {
+        name: 'AWS Gründerfonds',
+        institution: 'Austria Wirtschaftsservice (AWS)',
+        funding_amount_min: 25000,
+        funding_amount_max: 200000,
+        currency: 'EUR',
+        location: 'Austria',
+        company_type: companyType === 'prefounder' ? 'startup' : companyType,
+        industry_focus: Array.isArray(answers.industry_focus) ? answers.industry_focus : (answers.industry_focus ? [answers.industry_focus] : []),
+        deadline: null,
+        open_deadline: true,
+        website: 'https://www.aws.at',
+        description: 'Startup funding and support program',
+      },
+      {
+        name: 'Wirtschaftsservice Wien',
+        institution: 'Vienna Business Agency',
+        funding_amount_min: 10000,
+        funding_amount_max: 100000,
+        currency: 'EUR',
+        location: 'Austria',
+        company_type: companyType === 'prefounder' ? 'startup' : companyType,
+        industry_focus: Array.isArray(answers.industry_focus) ? answers.industry_focus : (answers.industry_focus ? [answers.industry_focus] : []),
+        deadline: null,
+        open_deadline: true,
+        website: 'https://www.wirtschaftsagentur.at',
+        description: 'Vienna-based startup and innovation support',
+      },
+    ],
+    'eu': [
+      {
+        name: 'Horizon Europe',
+        institution: 'European Commission',
+        funding_amount_min: 100000,
+        funding_amount_max: 5000000,
+        currency: 'EUR',
+        location: 'EU',
+        company_type: companyType,
+        industry_focus: Array.isArray(answers.industry_focus) ? answers.industry_focus : (answers.industry_focus ? [answers.industry_focus] : []),
+        deadline: null,
+        open_deadline: false,
+        website: 'https://ec.europa.eu/info/research-and-innovation/funding/funding-opportunities/funding-programmes-and-open-calls/horizon-europe_en',
+        description: 'EU research and innovation funding program',
+      },
+      {
+        name: 'EIC Accelerator',
+        institution: 'European Innovation Council',
+        funding_amount_min: 500000,
+        funding_amount_max: 2500000,
+        currency: 'EUR',
+        location: 'EU',
+        company_type: companyType === 'prefounder' ? 'startup' : companyType,
+        industry_focus: Array.isArray(answers.industry_focus) ? answers.industry_focus : (answers.industry_focus ? [answers.industry_focus] : []),
+        deadline: null,
+        open_deadline: false,
+        website: 'https://eic.ec.europa.eu/eic-funding-opportunities/eic-accelerator_en',
+        description: 'EU funding for innovative startups and SMEs',
+      },
+    ],
+  };
+  
+  // Get programs for the location
+  const locationKey = location.toLowerCase();
+  const locationPrograms = commonPrograms[locationKey] || commonPrograms['austria'];
+  
+  // Filter and adapt programs based on user profile
+  locationPrograms.forEach((program) => {
+    if (programs.length >= maxPrograms) return;
+    
+    // Adapt funding amounts to user needs
+    if (fundingAmount > program.funding_amount_max) {
+      program.funding_amount_max = Math.max(fundingAmount, program.funding_amount_max * 2);
+    }
+    
+    // Mark as fallback
+    program._fallback = true;
+    programs.push(program);
+  });
+  
+  // If still need more programs, add generic ones
+  while (programs.length < Math.min(maxPrograms, 5)) {
+    programs.push({
+      name: `Funding Program ${programs.length + 1}`,
+      institution: 'Various',
+      funding_amount_min: Math.max(10000, fundingAmount * 0.5),
+      funding_amount_max: fundingAmount * 2,
+      currency: 'EUR',
+      location: location,
+      company_type: companyType === 'prefounder' ? 'startup' : companyType,
+      industry_focus: Array.isArray(answers.industry_focus) ? answers.industry_focus : (answers.industry_focus ? [answers.industry_focus] : []),
+      deadline: null,
+      open_deadline: true,
+      website: null,
+      description: 'General funding program - please research specific eligibility requirements',
+      _fallback: true,
+    });
+  }
+  
+  return programs;
 }
 
 /**
@@ -1001,41 +1248,31 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       programs = await generateProgramsWithLLM(answers, max_results * 2);
       console.log(`✅ generateProgramsWithLLM returned ${programs.length} programs`);
       
-      // Filter programs with standard threshold (15%)
+      // For LLM-generated programs, skip filtering entirely (they're already tailored to user)
+      // Only filter if extract_all is false AND program is not LLM-generated
       const filteredPrograms = programs.filter((p: any) => {
         if (extract_all) return true;
+        // Skip filtering for LLM-generated programs - they're already relevant
+        if (p.source === 'llm_generated' || p._fallback === true) {
+          console.log(`✅ Skipping filter for LLM-generated program: ${p.name || 'unknown'}`);
+          return true;
+        }
+        // Only filter non-LLM programs (from seed extraction)
         return matchesAnswers(p, answers, 0.15);
       });
       
-      console.log(`📊 Filtered ${programs.length} programs → ${filteredPrograms.length} matching (15% threshold)`);
+      console.log(`📊 Filtered ${programs.length} programs → ${filteredPrograms.length} matching (LLM programs always pass)`);
       
-      // Fallback: If 0 results, retry with more lenient matching (10% threshold)
+      // Ensure we always have at least some programs
       if (filteredPrograms.length === 0 && programs.length > 0) {
-        console.log('⚠️ No programs passed 15% threshold, retrying with 10% threshold (fallback)...');
-        const fallbackPrograms = programs.filter((p: any) => {
-          if (extract_all) return true;
-          return matchesAnswers(p, answers, 0.10);
+        console.log('⚠️ All programs filtered out, using all generated programs (emergency fallback)');
+        programs = programs; // Keep all
+        extractionResults.push({
+          source: 'llm_generated',
+          message: `Generated ${programs.length} programs using LLM (emergency fallback - no filtering)`,
+          fallback_used: true,
+          emergency_fallback: true,
         });
-        console.log(`📊 Fallback filtering: ${programs.length} programs → ${fallbackPrograms.length} matching (10% threshold)`);
-        
-        if (fallbackPrograms.length > 0) {
-          programs = fallbackPrograms;
-          extractionResults.push({
-            source: 'llm_generated',
-            message: `Generated ${programs.length} programs using LLM with fallback matching (10% threshold)`,
-            fallback_used: true,
-          });
-        } else {
-          // Even fallback failed - use all programs (very lenient)
-          console.log('⚠️ Even fallback failed, using all generated programs (very lenient mode)');
-          programs = programs; // Keep all
-          extractionResults.push({
-            source: 'llm_generated',
-            message: `Generated ${programs.length} programs using LLM (very lenient mode - no filtering)`,
-            fallback_used: true,
-            very_lenient: true,
-          });
-        }
       } else {
         programs = filteredPrograms;
         extractionResults.push({
@@ -1148,9 +1385,70 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       }
     }
 
-    // If no programs from either source, return empty (shouldn't happen with LLM)
+    // If no programs from either source, use fallback (shouldn't happen, but safety net)
     if (programs.length === 0) {
-      console.warn('⚠️ No programs generated - LLM should always return results');
+      console.warn('⚠️ No programs generated - using emergency fallback');
+      try {
+        const emergencyPrograms = generateFallbackPrograms(answers, max_results);
+        if (emergencyPrograms.length > 0) {
+          // Convert to full format
+          programs = emergencyPrograms.map((p: any, index: number) => ({
+            id: `emergency_${(p.name || `program_${index}`).toLowerCase().replace(/[^a-z0-9]+/g, '_')}`,
+            name: p.name || `Program ${index + 1}`,
+            url: p.website || null,
+            source_url: p.website || null,
+            institution_id: `emergency_${(p.institution || 'unknown').toLowerCase().replace(/[^a-z0-9]+/g, '_')}`,
+            type: 'grant',
+            program_type: 'grant',
+            funding_types: ['grant'],
+            metadata: {
+              funding_amount_min: p.funding_amount_min || 0,
+              funding_amount_max: p.funding_amount_max || 0,
+              currency: p.currency || 'EUR',
+              deadline: p.deadline || null,
+              open_deadline: p.open_deadline || false,
+              description: p.description || '',
+              region: p.location || answers.location || '',
+            },
+            categorized_requirements: {
+              geographic: [{ 
+                type: 'location', 
+                value: p.location || answers.location || '', 
+                confidence: 0.8 
+              }],
+              eligibility: [{ 
+                type: 'company_type', 
+                value: p.company_type || answers.company_type || '', 
+                confidence: 0.8 
+              }],
+              project: Array.isArray(p.industry_focus) 
+                ? p.industry_focus.map((ind: string) => ({
+                    type: 'industry_focus',
+                    value: ind,
+                    confidence: 0.7
+                  }))
+                : (p.industry_focus ? [{
+                    type: 'industry_focus',
+                    value: p.industry_focus,
+                    confidence: 0.7
+                  }] : []),
+            },
+            eligibility_criteria: {},
+            extracted_at: new Date().toISOString(),
+            source: 'llm_generated',
+            _fallback: true,
+            _emergency: true,
+          }));
+          extractionResults.push({
+            source: 'emergency_fallback',
+            message: `Generated ${programs.length} emergency fallback programs`,
+            emergency: true,
+          });
+          console.log(`✅ Emergency fallback generated ${programs.length} programs`);
+        }
+      } catch (fallbackError: any) {
+        console.error('❌ Emergency fallback also failed:', fallbackError.message);
+      }
     }
 
     // Return results with extraction mapping

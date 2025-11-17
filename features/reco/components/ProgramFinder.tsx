@@ -11,45 +11,28 @@ import { Card } from '@/shared/components/ui/card';
 import { scoreProgramsEnhanced, EnhancedProgramResult } from '@/features/reco/engine/enhancedRecoEngine';
 import { useI18n } from '@/shared/contexts/I18nContext';
 
-// Path Indicator Component with Typing Animation
+// Path Indicator Component
 function PathIndicator({ currentStep, totalSteps }: { currentStep: number; totalSteps: number }) {
-  const { locale } = useI18n();
-  const [displayedText, setDisplayedText] = useState('');
-  const fullText = locale === 'de' 
-    ? 'Pfad zum richtigen Förderprogram'
-    : 'Path to your funding program';
-  
-  useEffect(() => {
-    setDisplayedText('');
-    let currentIndex = 0;
-    const typingInterval = setInterval(() => {
-      if (currentIndex < fullText.length) {
-        setDisplayedText(fullText.substring(0, currentIndex + 1));
-        currentIndex++;
-      } else {
-        clearInterval(typingInterval);
-      }
-    }, 50);
-    
-    return () => clearInterval(typingInterval);
-  }, [fullText, locale]);
-  
   return (
     <div className="text-center">
-      <p className="text-lg font-bold text-gray-900 mb-2">
-        {displayedText}
-        <span className="animate-pulse text-blue-600">|</span>
-      </p>
-      <div className="flex items-center justify-center gap-3">
-        <div className="flex-1 max-w-md h-3 bg-gray-200 rounded-full overflow-hidden">
+      <div className="flex items-center justify-center">
+        <div className="relative flex-1 max-w-md h-2 bg-gray-200 rounded-full overflow-visible">
           <div 
             className="h-full bg-blue-600 transition-all duration-300 rounded-full"
             style={{ width: `${(currentStep / totalSteps) * 100}%` }}
           />
+          <span 
+            className="absolute text-xs text-gray-700 font-semibold whitespace-nowrap"
+            style={{ 
+              left: `${Math.min((currentStep / totalSteps) * 100, 85)}%`,
+              top: '50%',
+              transform: 'translateY(-50%)',
+              marginLeft: '4px'
+            }}
+          >
+            {currentStep}/{totalSteps}
+          </span>
         </div>
-        <span className="text-sm text-gray-600 font-semibold min-w-[3rem]">
-          {currentStep}/{totalSteps}
-        </span>
       </div>
     </div>
   );
@@ -86,6 +69,7 @@ interface ProgramFinderProps {
     priority: 1,
     hasOtherTextInput: true,
     hasLegalType: true, // Enable conditional legal type dropdown
+    isAdvanced: false, // Core question
   },
   {
     id: 'location', // CRITICAL - Used in matching (must match)
@@ -99,6 +83,7 @@ interface ProgramFinderProps {
     ],
     required: false,
     priority: 2,
+    isAdvanced: false, // Core question
     // Optional region input (text field, not dropdown)
     hasOptionalRegion: (value: string) => {
       return value === 'austria' || value === 'germany' || value === 'eu' || value === 'international';
@@ -115,6 +100,7 @@ interface ProgramFinderProps {
     required: false,
     priority: 3,
     editableValue: true, // Allow editing the number directly
+    isAdvanced: false, // Core question
   },
   {
     id: 'industry_focus', // OPTIONAL - Used in matching but not critical
@@ -131,6 +117,7 @@ interface ProgramFinderProps {
     required: false,
     priority: 4,
     hasOtherTextInput: true,
+    isAdvanced: false, // Core question - helps with matching
     // Enhanced: Industry subcategories for better matching
     subCategories: {
       digital: [
@@ -182,7 +169,21 @@ interface ProgramFinderProps {
     },
   },
   {
-    id: 'impact', // NOT USED IN MATCHING - Can be optional
+    id: 'co_financing', // OPTIONAL - Used in matching but not critical
+    label: 'Can you provide co-financing?',
+    type: 'single-select' as const,
+    options: [
+      { value: 'co_yes', label: 'Yes' },
+      { value: 'co_no', label: 'No' },
+      { value: 'co_uncertain', label: 'Uncertain' },
+    ],
+    required: false,
+    priority: 5, // Moved up - helps with matching
+    hasCoFinancingPercentage: true, // Ask for percentage if Yes
+    isAdvanced: false, // Core question
+  },
+  {
+    id: 'impact', // NOT USED IN MATCHING - Advanced/optional
     label: 'What impact does your project have?',
     type: 'multi-select' as const,
     options: [
@@ -192,9 +193,10 @@ interface ProgramFinderProps {
       { value: 'other', label: 'Other' },
     ],
     required: false,
-    priority: 5,
+    priority: 6,
     hasOtherTextInput: true, // Show text field when "other" is selected
     hasImpactDetails: true, // Allow specifying details for each impact type
+    isAdvanced: true, // Advanced question - hide by default
   },
   {
     id: 'company_stage', // CRITICAL - Used in matching
@@ -205,11 +207,12 @@ interface ProgramFinderProps {
     step: 6,
     unit: 'months',
     required: false,
-    priority: 6,
+    priority: 4, // Moved up - this is critical!
     editableValue: false, // Slider only, no direct input
+    isAdvanced: false, // Core question
   },
   {
-    id: 'use_of_funds', // NOT USED IN MATCHING - Can be optional
+    id: 'use_of_funds', // NOT USED IN MATCHING - Advanced/optional
     label: 'How will you use the funds?',
     type: 'multi-select' as const,
     options: [
@@ -224,9 +227,10 @@ interface ProgramFinderProps {
     priority: 7,
     hasOtherTextInput: true, // Show text field when "other" is selected
     allowMultipleOther: true, // Allow multiple "other" entries
+    isAdvanced: true, // Advanced question - hide by default
   },
   {
-    id: 'project_duration', // NOT USED IN MATCHING - Can be optional
+    id: 'project_duration', // NOT USED IN MATCHING - Advanced/optional
     label: 'How long is your project?',
     type: 'range' as const,
     min: 1,
@@ -236,9 +240,10 @@ interface ProgramFinderProps {
     required: false,
     priority: 8,
     editableValue: true, // Allow editing the number directly
+    isAdvanced: true, // Advanced question - hide by default
   },
   {
-    id: 'deadline_urgency', // NOT USED IN MATCHING - Can be optional
+    id: 'deadline_urgency', // NOT USED IN MATCHING - Advanced/optional
     label: 'When do you need funding by?',
     type: 'range' as const,
     min: 1,
@@ -248,6 +253,7 @@ interface ProgramFinderProps {
     required: false,
     priority: 9,
     editableValue: true, // Allow editing the number directly
+    isAdvanced: true, // Advanced question - hide by default
     skipIf: (answers: Record<string, any>) => {
       const duration = answers.project_duration;
       // Skip if project duration is more than 36 months (3 years)
@@ -256,20 +262,7 @@ interface ProgramFinderProps {
     },
   },
   {
-    id: 'co_financing', // OPTIONAL - Used in matching but not critical
-    label: 'Can you provide co-financing?',
-    type: 'single-select' as const,
-    options: [
-      { value: 'co_yes', label: 'Yes' },
-      { value: 'co_no', label: 'No' },
-      { value: 'co_uncertain', label: 'Uncertain' },
-    ],
-    required: false,
-    priority: 10,
-    hasCoFinancingPercentage: true, // Ask for percentage if Yes
-  },
-  {
-    id: 'revenue_status', // NOT USED IN MATCHING - Can be optional
+    id: 'revenue_status', // NOT USED IN MATCHING - Advanced/optional
     label: 'What is your current revenue status?',
     type: 'single-select' as const,
     options: [
@@ -279,7 +272,8 @@ interface ProgramFinderProps {
       { value: 'not_applicable', label: 'Not applicable' },
     ],
     required: false,
-    priority: 11,
+    priority: 10,
+    isAdvanced: true, // Advanced question - hide by default
     skipIf: (answers: Record<string, any>) => {
       // Only skip for very early stages where revenue doesn't make sense
       return answers.company_stage === 'idea' || 
@@ -287,7 +281,7 @@ interface ProgramFinderProps {
     },
   },
   {
-    id: 'team_size', // NOT USED IN MATCHING - Can be optional
+    id: 'team_size', // NOT USED IN MATCHING - Advanced/optional
     label: 'How many people are in your team?',
     type: 'range' as const,
     min: 1,
@@ -301,8 +295,9 @@ interface ProgramFinderProps {
       { value: 'over10', label: 'Over 10 people', min: 10, max: 50 },
     ],
     required: false,
-    priority: 12,
+    priority: 11,
     editableValue: true, // Allow editing the number directly
+    isAdvanced: true, // Advanced question - hide by default
   },
 ];
 
@@ -352,11 +347,12 @@ export default function ProgramFinder({
   });
   
 
-  // Get visible questions (with skip logic only - no progressive disclosure)
+  // Get visible questions (with skip logic)
   const getVisibleQuestions = () => {
-    // Show all questions, only filter by skip logic
     return getTranslatedQuestions.filter(q => {
+      // Skip if skipIf condition is met
       if (q.skipIf && q.skipIf(answers)) return false;
+      // Always show advanced questions (toggle removed)
       return true;
     });
   };
@@ -688,22 +684,24 @@ export default function ProgramFinder({
           
           {/* Scroll Indicator - Animated arrow pointing down */}
           {answeredCount === 0 && (
-            <button
-              onClick={() => {
-                const questionsSection = document.querySelector('[data-questions-section]');
-                if (questionsSection) {
-                  questionsSection.scrollIntoView({ behavior: 'smooth', block: 'start' });
-                }
-              }}
-              className="flex flex-col items-center gap-2 animate-bounce mb-4 hover:opacity-80 transition-opacity cursor-pointer"
-            >
-              <p className="text-sm text-gray-500 font-medium">
-                {locale === 'de' ? 'Scrollen Sie nach unten, um zu beginnen' : 'Scroll down to begin'}
-              </p>
-              <svg className="w-6 h-6 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 14l-7 7m0 0l-7-7m7 7V3" />
-              </svg>
-            </button>
+            <div className="flex justify-center mb-4">
+              <button
+                onClick={() => {
+                  const questionsSection = document.querySelector('[data-questions-section]');
+                  if (questionsSection) {
+                    questionsSection.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                  }
+                }}
+                className="flex flex-col items-center gap-2 animate-bounce hover:opacity-80 transition-opacity cursor-pointer"
+              >
+                <p className="text-sm text-gray-500 font-medium text-center">
+                  {locale === 'de' ? 'Scrollen Sie nach unten, um zu beginnen' : 'Scroll down to begin'}
+                </p>
+                <svg className="w-6 h-6 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 14l-7 7m0 0l-7-7m7 7V3" />
+                </svg>
+              </button>
+            </div>
           )}
           
           {results.length > 0 && (
@@ -1660,6 +1658,150 @@ export default function ProgramFinder({
                   )}
               </div>
             </Card>
+            
+            {/* Generate Button */}
+            <div className="max-w-2xl mx-auto mt-4 flex justify-start">
+              <button
+                onClick={async () => {
+                  if (!hasEnoughAnswers) {
+                    alert(locale === 'de' 
+                      ? `Bitte beantworten Sie mindestens ${MIN_QUESTIONS_FOR_RESULTS} Fragen, um Förderprogramme zu generieren.`
+                      : `Please answer at least ${MIN_QUESTIONS_FOR_RESULTS} questions to generate funding programs.`);
+                    return;
+                  }
+                setIsLoading(true);
+                console.log('🚀 Starting program generation...');
+                console.log('📋 Answers being sent:', answers);
+                console.log('✅ Has enough answers:', hasEnoughAnswers);
+                
+                try {
+                  const response = await fetch('/api/programs/recommend', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                      answers,
+                      max_results: 20,
+                      extract_all: false,
+                      use_seeds: false,
+                    }),
+                  });
+                  
+                  console.log('📡 API Response status:', response.status, response.statusText);
+                  
+                  if (!response.ok) {
+                    const errorText = await response.text();
+                    console.error('❌ API Error Response:', errorText);
+                    throw new Error(`API returned ${response.status}: ${errorText.substring(0, 200)}`);
+                  }
+                  
+                  const data = await response.json();
+                  console.log('📦 API Response data:', {
+                    success: data.success,
+                    count: data.count,
+                    programsLength: data.programs?.length || 0,
+                    extractionResults: data.extraction_results?.length || 0,
+                    source: data.source,
+                  });
+                  
+                  const extractedPrograms = data.programs || [];
+                  console.log(`✅ Received ${extractedPrograms.length} programs from API`);
+                  
+                  if (extractedPrograms.length === 0) {
+                    console.warn('⚠️ No programs in API response');
+                    console.warn('Full API response:', JSON.stringify(data, null, 2));
+                    // Don't show alert, just set empty results and let the UI show the "no results" message
+                    setResults([]);
+                    setIsLoading(false);
+                    return;
+                  }
+                    const programsForScoring = extractedPrograms.map((p: any) => ({
+                      id: p.id,
+                      name: p.name,
+                      type: p.type || p.funding_types?.[0] || 'grant',
+                      program_type: p.program_type || p.funding_types?.[0] || 'grant',
+                      description: p.metadata?.description || p.description || '',
+                      funding_amount_max: p.metadata?.funding_amount_max || 0,
+                      funding_amount_min: p.metadata?.funding_amount_min || 0,
+                      currency: p.metadata?.currency || 'EUR',
+                      amount: {
+                        min: p.metadata?.funding_amount_min || 0,
+                        max: p.metadata?.funding_amount_max || 0,
+                        currency: p.metadata?.currency || 'EUR',
+                      },
+                      source_url: p.url || p.source_url,
+                      url: p.url || p.source_url,
+                      deadline: p.metadata?.deadline,
+                      open_deadline: p.metadata?.open_deadline || false,
+                      contact_email: p.metadata?.contact_email,
+                      contact_phone: p.metadata?.contact_phone,
+                      eligibility_criteria: {},
+                      categorized_requirements: p.categorized_requirements || {},
+                      region: p.metadata?.region,
+                      funding_types: p.funding_types || [],
+                      program_focus: p.metadata?.program_focus || [],
+                    }));
+                  console.log(`📊 Scoring ${programsForScoring.length} programs...`);
+                  const scored = await scoreProgramsEnhanced(answers, 'strict', programsForScoring);
+                  console.log(`✅ Scored ${scored.length} programs`);
+                  console.log('📈 Score distribution:', scored.map(p => ({ name: p.name, score: p.score })));
+                  
+                  const sorted = scored.sort((a, b) => b.score - a.score);
+                  const top5 = sorted.slice(0, 5);
+                  console.log(`🎯 Top 5 programs:`, top5.map(p => ({ name: p.name, score: p.score })));
+                  
+                  setResults(top5);
+                  console.log(`✅ Set ${top5.length} results in state`);
+                  
+                  if (top5.length > 0) {
+                    setMobileActiveTab('results');
+                    console.log('✅ Switched to results tab');
+                  } else {
+                    console.warn('⚠️ No programs to display after scoring');
+                    // Results are already empty, UI will show "no results" message
+                  }
+                } catch (error: any) {
+                  console.error('❌ Error generating programs:', error);
+                  console.error('Error details:', {
+                    message: error.message,
+                    stack: error.stack,
+                  });
+                  alert(locale === 'de' 
+                    ? `Fehler beim Generieren der Förderprogramme: ${error.message || 'Unbekannter Fehler'}`
+                    : `Error generating programs: ${error.message || 'Unknown error'}`);
+                } finally {
+                  setIsLoading(false);
+                  console.log('🏁 Program generation finished');
+                }
+              }}
+                disabled={isLoading || !hasEnoughAnswers}
+                className="px-8 py-3 rounded-lg font-semibold text-base transition-all flex items-center gap-2 bg-blue-600 text-white hover:bg-blue-700 shadow-lg hover:shadow-xl disabled:opacity-50 disabled:cursor-not-allowed disabled:bg-gray-400 disabled:hover:bg-gray-400 min-w-[280px]"
+                title={!hasEnoughAnswers ? (locale === 'de' 
+                  ? `Bitte beantworten Sie mindestens ${MIN_QUESTIONS_FOR_RESULTS} Fragen`
+                  : `Please answer at least ${MIN_QUESTIONS_FOR_RESULTS} questions`) : undefined}
+              >
+                {isLoading ? (
+                  <>
+                    <svg className="animate-spin h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                      <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                      <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                    </svg>
+                    {locale === 'de' ? 'Generiere Programme...' : 'Generating Programs...'}
+                  </>
+                ) : !hasEnoughAnswers ? (
+                  <>
+                    <Wand2 className="w-5 h-5" />
+                    {locale === 'de' 
+                      ? `Noch ${MIN_QUESTIONS_FOR_RESULTS - answeredCount} Fragen` 
+                      : `${MIN_QUESTIONS_FOR_RESULTS - answeredCount} more questions`}
+                  </>
+                ) : (
+                  <>
+                    <Wand2 className="w-5 h-5" />
+                    {locale === 'de' ? 'Förderprogramm generieren' : 'Generate Funding Programs'}
+                  </>
+                )}
+              </button>
+            </div>
           </div>
           
           {/* Results Display Section */}
@@ -1795,167 +1937,6 @@ export default function ProgramFinder({
           </div>
         </div>
       </div>
-      
-      {/* Sticky Bottom Bar - Show when questions are in progress */}
-      {answeredCount > 0 && (
-        <div className="fixed bottom-0 left-0 right-0 bg-white shadow-2xl z-50 border-t-2 border-gray-200">
-          <div className="max-w-7xl mx-auto px-4 py-4">
-            <div className="flex items-center justify-between gap-4">
-              <div className="flex items-center gap-3">
-                <span className="text-2xl">🎯</span>
-                <div>
-                  <p className="text-sm font-medium text-gray-800">
-                    {locale === 'de' ? 'Sie haben' : 'You have completed'} {answeredCount} {locale === 'de' ? 'Fragen beantwortet' : 'questions'}
-                  </p>
-                  <p className="text-xs text-gray-500 mt-0.5">
-                    {answeredCount}/{visibleQuestions.length} {locale === 'de' ? 'beantwortet' : 'answered'}
-                  </p>
-                </div>
-              </div>
-              <button
-                onClick={async () => {
-                  if (!hasEnoughAnswers) {
-                    alert(locale === 'de' 
-                      ? `Bitte beantworten Sie mindestens ${MIN_QUESTIONS_FOR_RESULTS} Fragen, um Förderprogramme zu generieren.`
-                      : `Please answer at least ${MIN_QUESTIONS_FOR_RESULTS} questions to generate funding programs.`);
-                    return;
-                  }
-                setIsLoading(true);
-                console.log('🚀 Starting program generation...');
-                console.log('📋 Answers being sent:', answers);
-                console.log('✅ Has enough answers:', hasEnoughAnswers);
-                
-                try {
-                  const response = await fetch('/api/programs/recommend', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({
-                      answers,
-                      max_results: 20,
-                      extract_all: false,
-                      use_seeds: false,
-                    }),
-                  });
-                  
-                  console.log('📡 API Response status:', response.status, response.statusText);
-                  
-                  if (!response.ok) {
-                    const errorText = await response.text();
-                    console.error('❌ API Error Response:', errorText);
-                    throw new Error(`API returned ${response.status}: ${errorText.substring(0, 200)}`);
-                  }
-                  
-                  const data = await response.json();
-                  console.log('📦 API Response data:', {
-                    success: data.success,
-                    count: data.count,
-                    programsLength: data.programs?.length || 0,
-                    extractionResults: data.extraction_results?.length || 0,
-                    source: data.source,
-                  });
-                  
-                  const extractedPrograms = data.programs || [];
-                  console.log(`✅ Received ${extractedPrograms.length} programs from API`);
-                  
-                  if (extractedPrograms.length === 0) {
-                    console.warn('⚠️ No programs in API response');
-                    console.warn('Full API response:', JSON.stringify(data, null, 2));
-                    // Don't show alert, just set empty results and let the UI show the "no results" message
-                    setResults([]);
-                    setIsLoading(false);
-                    return;
-                  }
-                    const programsForScoring = extractedPrograms.map((p: any) => ({
-                      id: p.id,
-                      name: p.name,
-                      type: p.type || p.funding_types?.[0] || 'grant',
-                      program_type: p.program_type || p.funding_types?.[0] || 'grant',
-                      description: p.metadata?.description || p.description || '',
-                      funding_amount_max: p.metadata?.funding_amount_max || 0,
-                      funding_amount_min: p.metadata?.funding_amount_min || 0,
-                      currency: p.metadata?.currency || 'EUR',
-                      amount: {
-                        min: p.metadata?.funding_amount_min || 0,
-                        max: p.metadata?.funding_amount_max || 0,
-                        currency: p.metadata?.currency || 'EUR',
-                      },
-                      source_url: p.url || p.source_url,
-                      url: p.url || p.source_url,
-                      deadline: p.metadata?.deadline,
-                      open_deadline: p.metadata?.open_deadline || false,
-                      contact_email: p.metadata?.contact_email,
-                      contact_phone: p.metadata?.contact_phone,
-                      eligibility_criteria: {},
-                      categorized_requirements: p.categorized_requirements || {},
-                      region: p.metadata?.region,
-                      funding_types: p.funding_types || [],
-                      program_focus: p.metadata?.program_focus || [],
-                    }));
-                  console.log(`📊 Scoring ${programsForScoring.length} programs...`);
-                  const scored = await scoreProgramsEnhanced(answers, 'strict', programsForScoring);
-                  console.log(`✅ Scored ${scored.length} programs`);
-                  console.log('📈 Score distribution:', scored.map(p => ({ name: p.name, score: p.score })));
-                  
-                  const sorted = scored.sort((a, b) => b.score - a.score);
-                  const top5 = sorted.slice(0, 5);
-                  console.log(`🎯 Top 5 programs:`, top5.map(p => ({ name: p.name, score: p.score })));
-                  
-                  setResults(top5);
-                  console.log(`✅ Set ${top5.length} results in state`);
-                  
-                  if (top5.length > 0) {
-                    setMobileActiveTab('results');
-                    console.log('✅ Switched to results tab');
-                  } else {
-                    console.warn('⚠️ No programs to display after scoring');
-                    // Results are already empty, UI will show "no results" message
-                  }
-                } catch (error: any) {
-                  console.error('❌ Error generating programs:', error);
-                  console.error('Error details:', {
-                    message: error.message,
-                    stack: error.stack,
-                  });
-                  alert(locale === 'de' 
-                    ? `Fehler beim Generieren der Förderprogramme: ${error.message || 'Unbekannter Fehler'}`
-                    : `Error generating programs: ${error.message || 'Unknown error'}`);
-                } finally {
-                  setIsLoading(false);
-                  console.log('🏁 Program generation finished');
-                }
-              }}
-                disabled={isLoading || !hasEnoughAnswers}
-                className="px-6 py-3 rounded-lg font-semibold text-base transition-all flex items-center gap-2 bg-blue-600 text-white hover:bg-blue-700 shadow-lg hover:shadow-xl disabled:opacity-50 disabled:cursor-not-allowed disabled:bg-gray-400 disabled:hover:bg-gray-400"
-                title={!hasEnoughAnswers ? (locale === 'de' 
-                  ? `Bitte beantworten Sie mindestens ${MIN_QUESTIONS_FOR_RESULTS} Fragen`
-                  : `Please answer at least ${MIN_QUESTIONS_FOR_RESULTS} questions`) : undefined}
-              >
-                {isLoading ? (
-                  <>
-                    <svg className="animate-spin h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                      <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-                      <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-                    </svg>
-                    {locale === 'de' ? 'Generiere Programme...' : 'Generating Programs...'}
-                  </>
-                ) : !hasEnoughAnswers ? (
-                  <>
-                    <Wand2 className="w-5 h-5" />
-                    {locale === 'de' 
-                      ? `Noch ${MIN_QUESTIONS_FOR_RESULTS - answeredCount} Fragen` 
-                      : `${MIN_QUESTIONS_FOR_RESULTS - answeredCount} more questions`}
-                  </>
-                ) : (
-                  <>
-                    <Wand2 className="w-5 h-5" />
-                    {locale === 'de' ? 'Förderprogramm generieren' : 'Generate Funding Programs'}
-                  </>
-                )}
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
     </div>
   );
 }
