@@ -11,27 +11,56 @@ import { Card } from '@/shared/components/ui/card';
 import { scoreProgramsEnhanced, EnhancedProgramResult } from '@/features/reco/engine/enhancedRecoEngine';
 import { useI18n } from '@/shared/contexts/I18nContext';
 
-// Path Indicator Component
-function PathIndicator({ currentStep, totalSteps }: { currentStep: number; totalSteps: number }) {
+// Path Indicator Component with merged numbered bubbles
+function PathIndicator({ 
+  currentStep, 
+  totalSteps, 
+  visibleQuestions, 
+  currentQuestionIndex, 
+  answers, 
+  onStepClick 
+}: { 
+  currentStep: number; 
+  totalSteps: number;
+  visibleQuestions: any[];
+  currentQuestionIndex: number;
+  answers: any;
+  onStepClick: (idx: number) => void;
+}) {
   return (
     <div className="text-center">
       <div className="flex items-center justify-center">
-        <div className="relative flex-1 max-w-md h-2 bg-gray-200 rounded-full overflow-visible">
+        <div className="relative flex-1 max-w-4xl h-8 bg-gray-200 rounded-full overflow-visible">
+          {/* Progress fill */}
           <div 
             className="h-full bg-blue-600 transition-all duration-300 rounded-full"
             style={{ width: `${(currentStep / totalSteps) * 100}%` }}
           />
-          <span 
-            className="absolute text-xs text-gray-700 font-semibold whitespace-nowrap"
-            style={{ 
-              left: `${Math.min((currentStep / totalSteps) * 100, 85)}%`,
-              top: '50%',
-              transform: 'translateY(-50%)',
-              marginLeft: '4px'
-            }}
-          >
-            {currentStep}/{totalSteps}
-          </span>
+          {/* Numbered bubbles merged into progress bar */}
+          {visibleQuestions.map((q, idx) => {
+            const isAnswered = answers[q.id] !== undefined && answers[q.id] !== null && answers[q.id] !== '' && 
+                             !(Array.isArray(answers[q.id]) && answers[q.id].length === 0);
+            const position = totalSteps > 1 ? (idx / (totalSteps - 1)) * 100 : 50;
+            return (
+              <button
+                key={idx}
+                onClick={() => onStepClick(idx)}
+                className={`absolute w-6 h-6 rounded-full flex items-center justify-center text-xs font-semibold transition-all -translate-x-1/2 -translate-y-1/2 ${
+                  idx === currentQuestionIndex
+                    ? 'bg-blue-800 text-white shadow-lg scale-125 z-10'
+                    : isAnswered
+                    ? 'bg-green-500 text-white'
+                    : 'bg-gray-300 text-gray-700 hover:bg-gray-400'
+                }`}
+                style={{ 
+                  left: `${position}%`,
+                  top: '50%'
+                }}
+              >
+                {idx + 1}
+              </button>
+            );
+          })}
         </div>
       </div>
     </div>
@@ -451,16 +480,26 @@ export default function ProgramFinder({
       }
       
       if (extractedPrograms.length === 0) {
-        console.warn('⚠️ No programs returned from API');
-        console.warn('API response:', JSON.stringify(data, null, 2));
-        console.warn('Answers sent:', JSON.stringify(answers, null, 2));
+        console.error('❌ CRITICAL: No programs returned from API');
+        console.error('API response:', JSON.stringify(data, null, 2));
+        console.error('Answers sent:', JSON.stringify(answers, null, 2));
+        
+        // Check extraction results for more details
+        const extractionResults = data.extraction_results || data.extractionResults || [];
+        const hasLLMError = extractionResults.some((r: any) => r.error);
+        
         // Show user-friendly message
         if (data.error) {
           console.error('API Error:', data.error, data.message);
           alert(`Error generating programs: ${data.message || data.error}. Please check your LLM configuration (OPENAI_API_KEY or CUSTOM_LLM_ENDPOINT).`);
+        } else if (hasLLMError) {
+          const llmError = extractionResults.find((r: any) => r.error);
+          console.error('LLM Error:', llmError);
+          alert(`Error generating programs: ${llmError.error || 'LLM generation failed'}. Please check your LLM configuration and try again.`);
         } else {
-          console.warn('API returned success but no programs. Check LLM response.');
-          alert('No programs were generated. Please try again or check server logs for details.');
+          console.error('API returned success but no programs. This should not happen with the new fixes.');
+          console.error('Check server logs for details. Emergency fallback should have triggered.');
+          alert('No programs were generated. This is unexpected - please try again or contact support. The system should always return at least some programs.');
         }
         setResults([]);
         return;
@@ -809,38 +848,21 @@ export default function ProgramFinder({
           <div className={`${mobileActiveTab === 'results' ? 'hidden lg:block' : ''}`}>
             <Card className="p-4 max-w-2xl mx-auto w-full bg-gradient-to-br from-white to-blue-50/30 border-2 border-blue-300 shadow-lg">
               <div className="space-y-3">
-                  {/* Path Indicator with Typing Animation */}
+                  {/* Path Indicator with merged numbered bubbles */}
                   <div className="mb-4">
-                    <PathIndicator currentStep={currentQuestionIndex + 1} totalSteps={visibleQuestions.length} />
+                    <PathIndicator 
+                      currentStep={currentQuestionIndex + 1} 
+                      totalSteps={visibleQuestions.length}
+                      visibleQuestions={visibleQuestions}
+                      currentQuestionIndex={currentQuestionIndex}
+                      answers={answers}
+                      onStepClick={setCurrentQuestionIndex}
+                    />
                   </div>
                   
                   {/* Horizontal Question Navigation */}
                   {visibleQuestions.length > 0 && (
                     <div className="relative">
-                      {/* Question Navigation Dots - More Compact */}
-                      <div className="flex justify-center gap-1 mb-2 flex-wrap">
-                        {visibleQuestions.map((_, idx) => {
-                          const q = visibleQuestions[idx];
-                          const isAnswered = answers[q.id] !== undefined && answers[q.id] !== null && answers[q.id] !== '' && 
-                                           !(Array.isArray(answers[q.id]) && answers[q.id].length === 0);
-                          return (
-                            <button
-                              key={idx}
-                              onClick={() => setCurrentQuestionIndex(idx)}
-                              className={`w-7 h-7 rounded-full flex items-center justify-center text-xs font-semibold transition-all ${
-                                idx === currentQuestionIndex
-                                  ? 'bg-blue-600 text-white shadow-lg scale-110'
-                                  : isAnswered
-                                  ? 'bg-green-500 text-white'
-                                  : 'bg-gray-200 text-gray-600 hover:bg-gray-300'
-                              }`}
-                            >
-                              {idx + 1}
-                            </button>
-                          );
-                        })}
-                      </div>
-                      
                       {/* Current Question Display - Navigation Inside Box */}
                       <div className="relative bg-white rounded-lg border-2 border-blue-200 shadow-md p-6">
                         {/* Navigation Buttons - Side */}
@@ -1658,150 +1680,6 @@ export default function ProgramFinder({
                   )}
               </div>
             </Card>
-            
-            {/* Generate Button */}
-            <div className="max-w-2xl mx-auto mt-4 flex justify-start">
-              <button
-                onClick={async () => {
-                  if (!hasEnoughAnswers) {
-                    alert(locale === 'de' 
-                      ? `Bitte beantworten Sie mindestens ${MIN_QUESTIONS_FOR_RESULTS} Fragen, um Förderprogramme zu generieren.`
-                      : `Please answer at least ${MIN_QUESTIONS_FOR_RESULTS} questions to generate funding programs.`);
-                    return;
-                  }
-                setIsLoading(true);
-                console.log('🚀 Starting program generation...');
-                console.log('📋 Answers being sent:', answers);
-                console.log('✅ Has enough answers:', hasEnoughAnswers);
-                
-                try {
-                  const response = await fetch('/api/programs/recommend', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({
-                      answers,
-                      max_results: 20,
-                      extract_all: false,
-                      use_seeds: false,
-                    }),
-                  });
-                  
-                  console.log('📡 API Response status:', response.status, response.statusText);
-                  
-                  if (!response.ok) {
-                    const errorText = await response.text();
-                    console.error('❌ API Error Response:', errorText);
-                    throw new Error(`API returned ${response.status}: ${errorText.substring(0, 200)}`);
-                  }
-                  
-                  const data = await response.json();
-                  console.log('📦 API Response data:', {
-                    success: data.success,
-                    count: data.count,
-                    programsLength: data.programs?.length || 0,
-                    extractionResults: data.extraction_results?.length || 0,
-                    source: data.source,
-                  });
-                  
-                  const extractedPrograms = data.programs || [];
-                  console.log(`✅ Received ${extractedPrograms.length} programs from API`);
-                  
-                  if (extractedPrograms.length === 0) {
-                    console.warn('⚠️ No programs in API response');
-                    console.warn('Full API response:', JSON.stringify(data, null, 2));
-                    // Don't show alert, just set empty results and let the UI show the "no results" message
-                    setResults([]);
-                    setIsLoading(false);
-                    return;
-                  }
-                    const programsForScoring = extractedPrograms.map((p: any) => ({
-                      id: p.id,
-                      name: p.name,
-                      type: p.type || p.funding_types?.[0] || 'grant',
-                      program_type: p.program_type || p.funding_types?.[0] || 'grant',
-                      description: p.metadata?.description || p.description || '',
-                      funding_amount_max: p.metadata?.funding_amount_max || 0,
-                      funding_amount_min: p.metadata?.funding_amount_min || 0,
-                      currency: p.metadata?.currency || 'EUR',
-                      amount: {
-                        min: p.metadata?.funding_amount_min || 0,
-                        max: p.metadata?.funding_amount_max || 0,
-                        currency: p.metadata?.currency || 'EUR',
-                      },
-                      source_url: p.url || p.source_url,
-                      url: p.url || p.source_url,
-                      deadline: p.metadata?.deadline,
-                      open_deadline: p.metadata?.open_deadline || false,
-                      contact_email: p.metadata?.contact_email,
-                      contact_phone: p.metadata?.contact_phone,
-                      eligibility_criteria: {},
-                      categorized_requirements: p.categorized_requirements || {},
-                      region: p.metadata?.region,
-                      funding_types: p.funding_types || [],
-                      program_focus: p.metadata?.program_focus || [],
-                    }));
-                  console.log(`📊 Scoring ${programsForScoring.length} programs...`);
-                  const scored = await scoreProgramsEnhanced(answers, 'strict', programsForScoring);
-                  console.log(`✅ Scored ${scored.length} programs`);
-                  console.log('📈 Score distribution:', scored.map(p => ({ name: p.name, score: p.score })));
-                  
-                  const sorted = scored.sort((a, b) => b.score - a.score);
-                  const top5 = sorted.slice(0, 5);
-                  console.log(`🎯 Top 5 programs:`, top5.map(p => ({ name: p.name, score: p.score })));
-                  
-                  setResults(top5);
-                  console.log(`✅ Set ${top5.length} results in state`);
-                  
-                  if (top5.length > 0) {
-                    setMobileActiveTab('results');
-                    console.log('✅ Switched to results tab');
-                  } else {
-                    console.warn('⚠️ No programs to display after scoring');
-                    // Results are already empty, UI will show "no results" message
-                  }
-                } catch (error: any) {
-                  console.error('❌ Error generating programs:', error);
-                  console.error('Error details:', {
-                    message: error.message,
-                    stack: error.stack,
-                  });
-                  alert(locale === 'de' 
-                    ? `Fehler beim Generieren der Förderprogramme: ${error.message || 'Unbekannter Fehler'}`
-                    : `Error generating programs: ${error.message || 'Unknown error'}`);
-                } finally {
-                  setIsLoading(false);
-                  console.log('🏁 Program generation finished');
-                }
-              }}
-                disabled={isLoading || !hasEnoughAnswers}
-                className="px-8 py-3 rounded-lg font-semibold text-base transition-all flex items-center gap-2 bg-blue-600 text-white hover:bg-blue-700 shadow-lg hover:shadow-xl disabled:opacity-50 disabled:cursor-not-allowed disabled:bg-gray-400 disabled:hover:bg-gray-400 min-w-[280px]"
-                title={!hasEnoughAnswers ? (locale === 'de' 
-                  ? `Bitte beantworten Sie mindestens ${MIN_QUESTIONS_FOR_RESULTS} Fragen`
-                  : `Please answer at least ${MIN_QUESTIONS_FOR_RESULTS} questions`) : undefined}
-              >
-                {isLoading ? (
-                  <>
-                    <svg className="animate-spin h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                      <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-                      <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-                    </svg>
-                    {locale === 'de' ? 'Generiere Programme...' : 'Generating Programs...'}
-                  </>
-                ) : !hasEnoughAnswers ? (
-                  <>
-                    <Wand2 className="w-5 h-5" />
-                    {locale === 'de' 
-                      ? `Noch ${MIN_QUESTIONS_FOR_RESULTS - answeredCount} Fragen` 
-                      : `${MIN_QUESTIONS_FOR_RESULTS - answeredCount} more questions`}
-                  </>
-                ) : (
-                  <>
-                    <Wand2 className="w-5 h-5" />
-                    {locale === 'de' ? 'Förderprogramm generieren' : 'Generate Funding Programs'}
-                  </>
-                )}
-              </button>
-            </div>
           </div>
           
           {/* Results Display Section */}
@@ -1937,6 +1815,174 @@ export default function ProgramFinder({
           </div>
         </div>
       </div>
+      
+      {/* Sticky Bottom Bar - Centered Generate Button */}
+      {answeredCount > 0 && (
+        <div className="fixed bottom-0 left-0 right-0 bg-white shadow-2xl z-50 border-t-2 border-gray-200">
+          <div className="max-w-7xl mx-auto px-4 py-4">
+            <div className="flex items-center justify-center">
+              <button
+                onClick={async () => {
+                  if (!hasEnoughAnswers) {
+                    alert(locale === 'de' 
+                      ? `Bitte beantworten Sie mindestens ${MIN_QUESTIONS_FOR_RESULTS} Fragen, um Förderprogramme zu generieren.`
+                      : `Please answer at least ${MIN_QUESTIONS_FOR_RESULTS} questions to generate funding programs.`);
+                    return;
+                  }
+                setIsLoading(true);
+                console.log('🚀 Starting program generation...');
+                console.log('📋 Answers being sent:', answers);
+                console.log('✅ Has enough answers:', hasEnoughAnswers);
+                
+                try {
+                  const response = await fetch('/api/programs/recommend', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                      answers,
+                      max_results: 20,
+                      extract_all: false,
+                      use_seeds: false,
+                    }),
+                  });
+                  
+                  console.log('📡 API Response status:', response.status, response.statusText);
+                  
+                  if (!response.ok) {
+                    const errorText = await response.text();
+                    console.error('❌ API Error Response:', errorText);
+                    throw new Error(`API returned ${response.status}: ${errorText.substring(0, 200)}`);
+                  }
+                  
+                  const data = await response.json();
+                  console.log('📦 API Response data:', {
+                    success: data.success,
+                    count: data.count,
+                    programsLength: data.programs?.length || 0,
+                    extractionResults: data.extraction_results?.length || 0,
+                    source: data.source,
+                  });
+                  
+                  const extractedPrograms = data.programs || [];
+                  console.log(`✅ Received ${extractedPrograms.length} programs from API`);
+                  
+                  if (extractedPrograms.length === 0) {
+                    console.error('❌ CRITICAL: No programs returned from API');
+                    console.error('API response:', JSON.stringify(data, null, 2));
+                    console.error('Answers sent:', JSON.stringify(answers, null, 2));
+                    
+                    // Check extraction results for more details
+                    const extractionResults = data.extraction_results || data.extractionResults || [];
+                    const hasLLMError = extractionResults.some((r: any) => r.error);
+                    
+                    // Show user-friendly message
+                    if (data.error) {
+                      console.error('API Error:', data.error, data.message);
+                      alert(`Error generating programs: ${data.message || data.error}. Please check your LLM configuration (OPENAI_API_KEY or CUSTOM_LLM_ENDPOINT).`);
+                    } else if (hasLLMError) {
+                      const llmError = extractionResults.find((r: any) => r.error);
+                      console.error('LLM Error:', llmError);
+                      alert(`Error generating programs: ${llmError.error || 'LLM generation failed'}. Please check your LLM configuration and try again.`);
+                    } else {
+                      console.error('API returned success but no programs. This should not happen with the new fixes.');
+                      console.error('Check server logs for details. Emergency fallback should have triggered.');
+                      alert('No programs were generated. This is unexpected - please try again or contact support. The system should always return at least some programs.');
+                    }
+                    setResults([]);
+                    setIsLoading(false);
+                    return;
+                  }
+                    const programsForScoring = extractedPrograms.map((p: any) => ({
+                      id: p.id,
+                      name: p.name,
+                      type: p.type || p.funding_types?.[0] || 'grant',
+                      program_type: p.program_type || p.funding_types?.[0] || 'grant',
+                      description: p.metadata?.description || p.description || '',
+                      funding_amount_max: p.metadata?.funding_amount_max || 0,
+                      funding_amount_min: p.metadata?.funding_amount_min || 0,
+                      currency: p.metadata?.currency || 'EUR',
+                      amount: {
+                        min: p.metadata?.funding_amount_min || 0,
+                        max: p.metadata?.funding_amount_max || 0,
+                        currency: p.metadata?.currency || 'EUR',
+                      },
+                      source_url: p.url || p.source_url,
+                      url: p.url || p.source_url,
+                      deadline: p.metadata?.deadline,
+                      open_deadline: p.metadata?.open_deadline || false,
+                      contact_email: p.metadata?.contact_email,
+                      contact_phone: p.metadata?.contact_phone,
+                      eligibility_criteria: {},
+                      categorized_requirements: p.categorized_requirements || {},
+                      region: p.metadata?.region,
+                      funding_types: p.funding_types || [],
+                      program_focus: p.metadata?.program_focus || [],
+                    }));
+                  console.log(`📊 Scoring ${programsForScoring.length} programs...`);
+                  const scored = await scoreProgramsEnhanced(answers, 'strict', programsForScoring);
+                  console.log(`✅ Scored ${scored.length} programs`);
+                  console.log('📈 Score distribution:', scored.map(p => ({ name: p.name, score: p.score })));
+                  
+                  const sorted = scored.sort((a, b) => b.score - a.score);
+                  const top5 = sorted.slice(0, 5);
+                  console.log(`🎯 Top 5 programs:`, top5.map(p => ({ name: p.name, score: p.score })));
+                  
+                  setResults(top5);
+                  console.log(`✅ Set ${top5.length} results in state`);
+                  
+                  if (top5.length > 0) {
+                    setMobileActiveTab('results');
+                    console.log('✅ Switched to results tab');
+                  } else {
+                    console.warn('⚠️ No programs to display after scoring');
+                    // Results are already empty, UI will show "no results" message
+                  }
+                } catch (error: any) {
+                  console.error('❌ Error generating programs:', error);
+                  console.error('Error details:', {
+                    message: error.message,
+                    stack: error.stack,
+                  });
+                  alert(locale === 'de' 
+                    ? `Fehler beim Generieren der Förderprogramme: ${error.message || 'Unbekannter Fehler'}`
+                    : `Error generating programs: ${error.message || 'Unknown error'}`);
+                } finally {
+                  setIsLoading(false);
+                  console.log('🏁 Program generation finished');
+                }
+              }}
+                disabled={isLoading || !hasEnoughAnswers}
+                className="px-8 py-3 rounded-lg font-semibold text-base transition-all flex items-center gap-2 bg-blue-600 text-white hover:bg-blue-700 shadow-lg hover:shadow-xl disabled:opacity-50 disabled:cursor-not-allowed disabled:bg-gray-400 disabled:hover:bg-gray-400 min-w-[280px]"
+                title={!hasEnoughAnswers ? (locale === 'de' 
+                  ? `Bitte beantworten Sie mindestens ${MIN_QUESTIONS_FOR_RESULTS} Fragen`
+                  : `Please answer at least ${MIN_QUESTIONS_FOR_RESULTS} questions`) : undefined}
+              >
+                {isLoading ? (
+                  <>
+                    <svg className="animate-spin h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                      <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                      <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                    </svg>
+                    {locale === 'de' ? 'Generiere Programme...' : 'Generating Programs...'}
+                  </>
+                ) : !hasEnoughAnswers ? (
+                  <>
+                    <Wand2 className="w-5 h-5" />
+                    {locale === 'de' 
+                      ? `Noch ${MIN_QUESTIONS_FOR_RESULTS - answeredCount} Fragen` 
+                      : `${MIN_QUESTIONS_FOR_RESULTS - answeredCount} more questions`}
+                  </>
+                ) : (
+                  <>
+                    <Wand2 className="w-5 h-5" />
+                    {locale === 'de' ? 'Förderprogramm generieren' : 'Generate Funding Programs'}
+                  </>
+                )}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

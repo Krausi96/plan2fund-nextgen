@@ -1148,10 +1148,11 @@ function generateFallbackPrograms(answers: UserAnswers, maxPrograms: number = 10
     ],
   };
   
-  // Get programs for the location
+  // Get programs for the location (default to Austria if unknown)
   const locationKey = location.toLowerCase();
   const locationPrograms = commonPrograms[locationKey] || commonPrograms['austria'];
   
+  // Always ensure we have at least some programs
   // Filter and adapt programs based on user profile
   locationPrograms.forEach((program) => {
     if (programs.length >= maxPrograms) return;
@@ -1167,7 +1168,9 @@ function generateFallbackPrograms(answers: UserAnswers, maxPrograms: number = 10
   });
   
   // If still need more programs, add generic ones
-  while (programs.length < Math.min(maxPrograms, 5)) {
+  // Always ensure at least 5 programs are returned
+  const minPrograms = Math.max(5, Math.min(maxPrograms, 10));
+  while (programs.length < minPrograms) {
     programs.push({
       name: `Funding Program ${programs.length + 1}`,
       institution: 'Various',
@@ -1176,6 +1179,27 @@ function generateFallbackPrograms(answers: UserAnswers, maxPrograms: number = 10
       currency: 'EUR',
       location: location,
       company_type: companyType === 'prefounder' ? 'startup' : companyType,
+      industry_focus: Array.isArray(answers.industry_focus) ? answers.industry_focus : (answers.industry_focus ? [answers.industry_focus] : []),
+      deadline: null,
+      open_deadline: true,
+      website: null,
+      description: 'General funding program - please research specific eligibility requirements',
+      _fallback: true,
+    });
+  }
+  
+  // Safety check: always return at least 3 programs
+  if (programs.length === 0) {
+    console.error('❌ generateFallbackPrograms returned 0 programs - this should never happen!');
+    // Return at least one generic program as absolute fallback
+    programs.push({
+      name: 'General Funding Program',
+      institution: 'Various Institutions',
+      funding_amount_min: Math.max(10000, fundingAmount * 0.5),
+      funding_amount_max: fundingAmount * 2,
+      currency: 'EUR',
+      location: location || 'Austria',
+      company_type: companyType || 'startup',
       industry_focus: Array.isArray(answers.industry_focus) ? answers.industry_focus : (answers.industry_focus ? [answers.industry_focus] : []),
       deadline: null,
       open_deadline: true,
@@ -1248,17 +1272,26 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       programs = await generateProgramsWithLLM(answers, max_results * 2);
       console.log(`✅ generateProgramsWithLLM returned ${programs.length} programs`);
       
+      // Log program sources for debugging
+      const llmGeneratedCount = programs.filter((p: any) => p.source === 'llm_generated' || p._fallback === true).length;
+      const otherCount = programs.length - llmGeneratedCount;
+      console.log(`📊 Program breakdown: ${llmGeneratedCount} LLM-generated, ${otherCount} from other sources`);
+      
       // For LLM-generated programs, skip filtering entirely (they're already tailored to user)
       // Only filter if extract_all is false AND program is not LLM-generated
       const filteredPrograms = programs.filter((p: any) => {
         if (extract_all) return true;
         // Skip filtering for LLM-generated programs - they're already relevant
         if (p.source === 'llm_generated' || p._fallback === true) {
-          console.log(`✅ Skipping filter for LLM-generated program: ${p.name || 'unknown'}`);
+          console.log(`✅ Skipping filter for LLM-generated program: "${p.name || 'unknown'}" (source: ${p.source || 'unknown'})`);
           return true;
         }
         // Only filter non-LLM programs (from seed extraction)
-        return matchesAnswers(p, answers, 0.15);
+        const matches = matchesAnswers(p, answers, 0.15);
+        if (!matches) {
+          console.log(`❌ Filtered out non-LLM program: "${p.name || 'unknown'}" (did not match answers)`);
+        }
+        return matches;
       });
       
       console.log(`📊 Filtered ${programs.length} programs → ${filteredPrograms.length} matching (LLM programs always pass)`);
@@ -1284,7 +1317,13 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       console.log(`✅ Final: ${programs.length} programs after filtering`);
       
       if (programs.length === 0) {
-        console.warn('⚠️ LLM generation returned 0 programs after filtering. Check LLM response and matching logic.');
+        console.error('❌ CRITICAL: LLM generation returned 0 programs after filtering!');
+        console.error('❌ This should not happen - LLM programs should always pass filtering');
+        console.error('❌ Check:');
+        console.error('   1. Did generateProgramsWithLLM return any programs?');
+        console.error('   2. Are programs marked with source="llm_generated"?');
+        console.error('   3. Are programs being filtered incorrectly?');
+        console.error('❌ Answers provided:', JSON.stringify(answers, null, 2));
       }
     } catch (error: any) {
       console.error('❌ LLM generation failed:', error);
@@ -1387,7 +1426,12 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
     // If no programs from either source, use fallback (shouldn't happen, but safety net)
     if (programs.length === 0) {
-      console.warn('⚠️ No programs generated - using emergency fallback');
+      console.error('❌ CRITICAL: No programs generated from any source - using emergency fallback');
+      console.error('❌ This indicates a serious issue - check:');
+      console.error('   1. Is LLM configured (OPENAI_API_KEY or CUSTOM_LLM_ENDPOINT)?');
+      console.error('   2. Did LLM generation fail silently?');
+      console.error('   3. Are all programs being filtered out?');
+      console.error('❌ Answers provided:', JSON.stringify(answers, null, 2));
       try {
         const emergencyPrograms = generateFallbackPrograms(answers, max_results);
         if (emergencyPrograms.length > 0) {
