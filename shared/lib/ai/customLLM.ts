@@ -221,8 +221,9 @@ export async function callCustomLLM(request: ChatRequest): Promise<ChatResponse>
         const textPart = candidate.content.parts.find((p: any) => p.text);
         output = textPart?.text || JSON.stringify(json);
       } else {
-        // Log for debugging
+        // Log full response for debugging
         console.warn('⚠️ Gemini response missing text parts:', JSON.stringify(candidate?.content || {}));
+        console.warn('⚠️ Full Gemini response payload:', JSON.stringify(json));
         output = JSON.stringify(json);
       }
     } else if (isHuggingFaceOldFormat) {
