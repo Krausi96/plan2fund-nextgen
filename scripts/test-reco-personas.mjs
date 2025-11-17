@@ -3,6 +3,17 @@
 const DEFAULT_BASE_URL = 'http://localhost:3000';
 const baseUrl = (process.env.RECO_BASE_URL || DEFAULT_BASE_URL).replace(/\/$/, '');
 
+const bypassToken =
+  process.env.VERCEL_BYPASS_TOKEN ||
+  process.env.VERCEL_DEPLOYMENT_PROTECTION_BYPASS ||
+  process.env.VERCEL_PROTECTION_BYPASS ||
+  process.env.VERCEL_PROTECTION_BYPASS_TOKEN ||
+  process.env.PROTECTION_BYPASS_TOKEN ||
+  process.env.VERCEL_AUTOMATION_BYPASS_SECRET;
+
+console.log(`[reco-test] Base URL: ${baseUrl}`);
+console.log(`[reco-test] Bypass header: ${bypassToken ? 'enabled' : 'not set'}`);
+
 const personas = [
   {
     name: 'Micro Grant Founder',
@@ -48,9 +59,14 @@ async function runPersona(persona) {
   const start = Date.now();
 
   try {
+    const headers = { 'Content-Type': 'application/json' };
+    if (bypassToken) {
+      headers['x-vercel-protection-bypass'] = bypassToken;
+    }
+
     const response = await fetch(url, {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
+      headers,
       body: JSON.stringify(payload),
     });
     const raw = await response.text();
