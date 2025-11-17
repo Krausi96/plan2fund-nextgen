@@ -38,6 +38,7 @@ export default function Editor({ product = 'submission' }: EditorProps) {
   const [showProgramFinderModal, setShowProgramFinderModal] = useState(false);
   const [showQuestions, setShowQuestions] = useState(true);
   const [showInlineTableCreator, setShowInlineTableCreator] = useState(false);
+  const [activeQuestion, setActiveQuestion] = useState(0);
 
   // Load sections when product changes
   const loadSections = useCallback(async () => {
@@ -178,6 +179,11 @@ export default function Editor({ product = 'submission' }: EditorProps) {
     }
   }, [router.query.product, product, loadSections]);
 
+  // Reset active question when switching sections
+  useEffect(() => {
+    setActiveQuestion(0);
+  }, [activeSection]);
+
   // Handle section content change
   const handleSectionChange = useCallback((sectionKey: string, content: string) => {
     const updatedSections = sections.map(section =>
@@ -310,24 +316,6 @@ export default function Editor({ product = 'submission' }: EditorProps) {
     }
   }, [sections, activeSection, plan, product, sectionTemplates, handleSectionChange]);
 
-  // Calculate overall progress - MUST be before conditional returns
-  const overallProgress = React.useMemo(() => {
-    if (sections.length === 0) return { percentage: 0, completed: 0, total: 0 };
-    let totalProgress = 0;
-    let completedSections = 0;
-    sections.forEach(section => {
-      const progress = calculateSectionProgress(section);
-      totalProgress += progress.completionPercentage;
-      if (progress.completionPercentage === 100) {
-        completedSections++;
-      }
-    });
-    return {
-      percentage: Math.round(totalProgress / sections.length),
-      completed: completedSections,
-      total: sections.length
-    };
-  }, [sections]);
 
   // Cross-section references - find sections that reference this one
   const getCrossSectionReferences = useCallback(() => {
@@ -522,18 +510,12 @@ export default function Editor({ product = 'submission' }: EditorProps) {
             {sections.map((section, index) => {
               const progress = calculateSectionProgress(section);
               const isComplete = progress.completionPercentage === 100;
-              const inProgress = progress.completionPercentage > 0 && progress.completionPercentage < 100;
               const isActive = index === activeSection;
               
-              // Color coding based on completion
-              let statusColor = 'bg-gray-200 text-gray-600'; // Not started
-              let statusIcon = '○';
-              if (isComplete) {
-                statusColor = 'bg-green-500 text-white';
-                statusIcon = '✓';
-              } else if (inProgress) {
-                statusColor = 'bg-yellow-400 text-yellow-900';
-                statusIcon = '⚠';
+              // Color coding: Green (complete), Blue (active/pulsing), Grey (not done)
+              let statusColor = 'bg-gray-200 text-gray-600 border-gray-300'; // Not started/not complete
+              if (isComplete && !isActive) {
+                statusColor = 'bg-green-500 text-white border-green-600';
               }
               
               return (
@@ -542,17 +524,14 @@ export default function Editor({ product = 'submission' }: EditorProps) {
                   onClick={() => setActiveSection(index)}
                   className={`px-4 py-2.5 text-sm font-semibold rounded-lg transition-all whitespace-nowrap border-2 ${
                     isActive
-                      ? 'bg-blue-600 text-white shadow-lg border-blue-700 transform scale-105'
-                      : `${statusColor} hover:shadow-md border-transparent hover:border-blue-300`
+                      ? 'bg-blue-600 text-white shadow-lg border-blue-700 transform scale-105 animate-pulse'
+                      : `${statusColor} hover:shadow-md hover:border-blue-300`
                   }`}
-                  title={`${section.title} - ${progress.completionPercentage}% complete`}
+                  title={isComplete ? `${section.title} - Complete` : `${section.title} - ${progress.completionPercentage}% complete`}
                 >
-                  <span className="mr-2 text-base">{statusIcon}</span>
+                  {isComplete && !isActive && <span className="mr-2 text-base">✓</span>}
                   <span className="font-bold">{String(index + 1).padStart(2, '0')}</span>
                   <span className="ml-2">{section.title}</span>
-                  {inProgress && !isActive && (
-                    <span className="ml-2 text-xs opacity-75">({progress.completionPercentage}%)</span>
-                  )}
                 </button>
               );
             })}
@@ -564,38 +543,6 @@ export default function Editor({ product = 'submission' }: EditorProps) {
             >
               Next →
             </button>
-          </div>
-          
-          {/* Progress Bar - More Prominent */}
-          <div className="bg-white rounded-lg p-3 border-2 border-gray-200 shadow-sm">
-            <div className="flex items-center justify-between mb-2">
-              <span className="text-sm font-bold text-gray-700">Overall Progress</span>
-              <span className="text-sm font-semibold text-gray-700">
-                {overallProgress.percentage}% Complete ({overallProgress.completed} of {overallProgress.total} sections)
-              </span>
-            </div>
-            <div className="w-full bg-gray-200 rounded-full h-4 shadow-inner">
-              <div
-                className="bg-gradient-to-r from-blue-600 via-purple-500 to-pink-500 h-4 rounded-full transition-all duration-500 shadow-md flex items-center justify-end pr-2"
-                style={{ width: `${overallProgress.percentage}%` }}
-              >
-                {overallProgress.percentage > 10 && (
-                  <span className="text-xs font-bold text-white">{overallProgress.percentage}%</span>
-                )}
-              </div>
-            </div>
-            {/* Section Breakdown */}
-            <div className="mt-2 flex flex-wrap gap-2 text-xs">
-              <span className="px-2 py-1 bg-green-100 text-green-700 rounded font-medium">
-                ✓ {overallProgress.completed} Complete
-              </span>
-              <span className="px-2 py-1 bg-yellow-100 text-yellow-700 rounded font-medium">
-                ⚠ {overallProgress.total - overallProgress.completed - sections.filter(s => !calculateSectionProgress(s).hasContent).length} In Progress
-              </span>
-              <span className="px-2 py-1 bg-gray-100 text-gray-700 rounded font-medium">
-                ○ {sections.filter(s => !calculateSectionProgress(s).hasContent).length} Not Started
-              </span>
-            </div>
           </div>
         </div>
       </nav>
@@ -646,46 +593,78 @@ export default function Editor({ product = 'submission' }: EditorProps) {
                 </div>
               )}
 
-              {/* Questions Card (Toggleable) */}
+              {/* Questions Navigation */}
               {sectionTemplate?.prompts && sectionTemplate.prompts.length > 0 && (
-                <div className={`mb-6 transition-all duration-300 ${showQuestions ? 'block' : 'hidden'}`}>
-                  <div className="bg-blue-50 border-2 border-blue-200 rounded-lg p-4">
-                    <div className="flex items-center justify-between mb-3">
-                      <h3 className="text-sm font-semibold text-gray-900 flex items-center gap-2">
-                        <span>💡</span>
-                        <span>Questions</span>
-                      </h3>
+                <div className="mb-6">
+                  <div className="bg-white border-2 border-gray-200 rounded-lg p-4">
+                    <div className="flex items-center justify-between mb-4">
+                      <h3 className="text-sm font-semibold text-gray-900">Questions</h3>
                       <button
                         onClick={() => setShowQuestions(!showQuestions)}
-                        className="flex items-center gap-2 text-sm text-gray-600 hover:text-gray-900 transition-colors"
+                        className="text-xs text-gray-600 hover:text-gray-900 transition-colors"
                       >
-                        <span className="text-xs">{showQuestions ? 'Hide' : 'Show'}</span>
-                        <span className={`w-10 h-5 rounded-full transition-colors ${showQuestions ? 'bg-blue-600' : 'bg-gray-300'} relative`}>
-                          <span className={`absolute top-0.5 left-0.5 w-4 h-4 bg-white rounded-full transition-transform ${showQuestions ? 'translate-x-5' : 'translate-x-0'}`}></span>
-                        </span>
+                        {showQuestions ? 'Hide' : 'Show'}
                       </button>
                     </div>
-                    <ul className="space-y-2">
-                      {sectionTemplate.prompts.map((prompt, idx) => (
-                        <li key={idx} className="text-sm text-gray-700">
-                          • {prompt}
-                        </li>
-                      ))}
-                    </ul>
-                  </div>
+                    
+                    {showQuestions && (
+                      <>
+                        {/* Question Navigation Tabs */}
+                        {sectionTemplate.prompts.length > 1 && (
+                          <div className="flex gap-2 mb-4 overflow-x-auto pb-2">
+                            {sectionTemplate.prompts.map((_, idx) => (
+                              <button
+                                key={idx}
+                                onClick={() => setActiveQuestion(idx)}
+                                className={`px-3 py-1.5 text-xs font-medium rounded-lg transition-all whitespace-nowrap border ${
+                                  activeQuestion === idx
+                                    ? 'bg-blue-600 text-white border-blue-700 shadow-md'
+                                    : 'bg-gray-100 text-gray-700 border-gray-300 hover:bg-gray-200'
+                                }`}
+                              >
+                                Q{idx + 1}
+                              </button>
+                            ))}
                 </div>
               )}
 
-              {/* Show/Hide Questions Toggle (when questions are hidden) */}
-              {sectionTemplate?.prompts && sectionTemplate.prompts.length > 0 && !showQuestions && (
-                <div className="mb-4">
+                        {/* Current Question Display */}
+                        <div className="bg-gray-50 border border-gray-200 rounded-lg p-4">
+                          <div className="flex items-start gap-3">
+                            <span className="flex-shrink-0 w-8 h-8 bg-blue-600 text-white rounded-full flex items-center justify-center text-sm font-bold">
+                              {activeQuestion + 1}
+                            </span>
+                            <p className="text-sm text-gray-800 leading-relaxed">
+                              {sectionTemplate.prompts[activeQuestion]}
+                            </p>
+                          </div>
+                        </div>
+                        
+                        {/* Navigation Arrows for Questions */}
+                        {sectionTemplate.prompts.length > 1 && (
+                          <div className="flex items-center justify-between mt-4">
                   <button
-                    onClick={() => setShowQuestions(true)}
-                    className="text-sm text-blue-600 hover:text-blue-700 font-medium flex items-center gap-2"
-                  >
-                    <span>💡</span>
-                    <span>Show Questions</span>
+                              onClick={() => setActiveQuestion(Math.max(0, activeQuestion - 1))}
+                              disabled={activeQuestion === 0}
+                              className="px-3 py-1.5 text-sm text-gray-600 hover:text-gray-900 disabled:opacity-30 disabled:cursor-not-allowed transition-colors flex items-center gap-1"
+                            >
+                              ← Previous
+                            </button>
+                            <span className="text-xs text-gray-500">
+                              {activeQuestion + 1} of {sectionTemplate.prompts.length}
+                            </span>
+                            <button
+                              onClick={() => setActiveQuestion(Math.min(sectionTemplate.prompts.length - 1, activeQuestion + 1))}
+                              disabled={activeQuestion === sectionTemplate.prompts.length - 1}
+                              className="px-3 py-1.5 text-sm text-gray-600 hover:text-gray-900 disabled:opacity-30 disabled:cursor-not-allowed transition-colors flex items-center gap-1"
+                            >
+                              Next →
                   </button>
+                          </div>
+                        )}
+                      </>
+                    )}
+                  </div>
                 </div>
               )}
 
@@ -750,21 +729,21 @@ export default function Editor({ product = 'submission' }: EditorProps) {
               
               // Show existing tables/charts inline if they exist
               if (hasTables) {
-                return (
+              return (
                   <div className="mt-6 bg-white border-2 border-blue-300 rounded-xl shadow-lg p-6">
                     <div className="flex items-center justify-between mb-4 pb-3 border-b-2 border-gray-200">
                       <h3 className="text-xl font-bold text-gray-900 flex items-center gap-2">
                         <span className="text-2xl">📊</span>
                         <span>Tables & Charts</span>
                       </h3>
-                      <button
-                        onClick={() => setShowInlineTableCreator(!showInlineTableCreator)}
+                    <button
+                      onClick={() => setShowInlineTableCreator(!showInlineTableCreator)}
                         className="px-4 py-2 text-sm font-semibold bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-all shadow-md hover:shadow-lg"
                       >
                         ➕ Add Another Table
-                      </button>
-                    </div>
-                    
+                    </button>
+                  </div>
+
                     {/* Render existing tables and charts */}
                     <SectionContentRenderer
                       section={currentSection}
@@ -846,40 +825,40 @@ export default function Editor({ product = 'submission' }: EditorProps) {
                       <div className="mt-4 pt-4 border-t-2 border-gray-200">
                         <InlineTableCreator
                           onCreate={(tableKey, table) => {
-                            const updated = [...sections];
-                            const section = updated[activeSection];
+                      const updated = [...sections];
+                      const section = updated[activeSection];
                             if (!section.tables) section.tables = {};
                             section.tables[tableKey] = table;
                             
                             if (!section.chartTypes) section.chartTypes = {};
                             section.chartTypes[tableKey] = 'bar';
                             
-                            setSections(updated);
+                        setSections(updated);
                             setShowInlineTableCreator(false);
-                            
-                            if (plan) {
-                              const updatedPlan = { ...plan, sections: updated };
-                              setPlan(updatedPlan);
-                              setIsSaving(true);
-                              setTimeout(async () => {
-                                try {
-                                  await savePlanSections(updated.map(s => ({
-                                    id: s.key,
-                                    title: s.title,
-                                    content: s.content || '',
-                                    tables: s.tables,
-                                    figures: s.figures,
+                        
+                        if (plan) {
+                          const updatedPlan = { ...plan, sections: updated };
+                          setPlan(updatedPlan);
+                          setIsSaving(true);
+                          setTimeout(async () => {
+                            try {
+                              await savePlanSections(updated.map(s => ({
+                                id: s.key,
+                                title: s.title,
+                                content: s.content || '',
+                                tables: s.tables,
+                                figures: s.figures,
                                     chartTypes: s.chartTypes,
-                                    sources: s.sources,
-                                    fields: s.fields
-                                  })));
-                                } catch (error) {
-                                  console.error('Error saving:', error);
-                                } finally {
-                                  setIsSaving(false);
-                                }
-                              }, 400);
+                                sources: s.sources,
+                                fields: s.fields
+                              })));
+                            } catch (error) {
+                              console.error('Error saving:', error);
+                            } finally {
+                              setIsSaving(false);
                             }
+                          }, 400);
+                        }
                           }}
                           onCancel={() => setShowInlineTableCreator(false)}
                           sectionTemplate={currentTemplate}
@@ -972,8 +951,8 @@ export default function Editor({ product = 'submission' }: EditorProps) {
                   {showInlineTableCreator && currentTemplate && (
                     <InlineTableCreator
                       onCreate={(tableKey, table) => {
-                        const updated = [...sections];
-                        const section = updated[activeSection];
+                      const updated = [...sections];
+                      const section = updated[activeSection];
                         if (!section.tables) section.tables = {};
                         section.tables[tableKey] = table;
                         
@@ -981,40 +960,40 @@ export default function Editor({ product = 'submission' }: EditorProps) {
                         if (!section.chartTypes) section.chartTypes = {};
                         section.chartTypes[tableKey] = 'bar';
                         
-                        setSections(updated);
+                      setSections(updated);
                         setShowInlineTableCreator(false);
-                        
+                      
                         // Save
-                        if (plan) {
-                          const updatedPlan = { ...plan, sections: updated };
-                          setPlan(updatedPlan);
-                          setIsSaving(true);
-                          setTimeout(async () => {
-                            try {
-                              await savePlanSections(updated.map(s => ({
-                                id: s.key,
-                                title: s.title,
-                                content: s.content || '',
-                                tables: s.tables,
-                                figures: s.figures,
-                                chartTypes: s.chartTypes,
-                                sources: s.sources,
-                                fields: s.fields
-                              })));
-                            } catch (error) {
-                              console.error('Error saving:', error);
-                            } finally {
-                              setIsSaving(false);
-                            }
-                          }, 400);
-                        }
-                      }}
+                      if (plan) {
+                        const updatedPlan = { ...plan, sections: updated };
+                        setPlan(updatedPlan);
+                        setIsSaving(true);
+                        setTimeout(async () => {
+                          try {
+                            await savePlanSections(updated.map(s => ({
+                              id: s.key,
+                              title: s.title,
+                              content: s.content || '',
+                              tables: s.tables,
+                              figures: s.figures,
+                              chartTypes: s.chartTypes,
+                              sources: s.sources,
+                              fields: s.fields
+                            })));
+                          } catch (error) {
+                            console.error('Error saving:', error);
+                          } finally {
+                            setIsSaving(false);
+                          }
+                        }, 400);
+                      }
+                    }}
                       onCancel={() => setShowInlineTableCreator(false)}
                       sectionTemplate={currentTemplate}
                       existingTableKeys={Object.keys(currentSection.tables || {})}
                     />
                   )}
-
+                  
                   {/* No Tables Message */}
                   {!hasTables && !showInlineTableCreator && (
                     <div className="text-center py-8 text-gray-500 text-sm border-2 border-dashed border-gray-300 rounded-lg">
