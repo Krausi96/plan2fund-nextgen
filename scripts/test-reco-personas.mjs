@@ -11,6 +11,9 @@ const bypassToken =
   process.env.PROTECTION_BYPASS_TOKEN ||
   process.env.VERCEL_AUTOMATION_BYPASS_SECRET;
 
+// const stagingToken = process.env.STAGING_BYPASS_TOKEN; // placeholder for future staging runs
+// const extraHeaders = { 'x-plan2fund-test': 'true' }; // enable when backend supports QA flags
+
 console.log(`[reco-test] Base URL: ${baseUrl}`);
 console.log(`[reco-test] Bypass header: ${bypassToken ? 'enabled' : 'not set'}`);
 
