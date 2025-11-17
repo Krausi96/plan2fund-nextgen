@@ -6,11 +6,12 @@
         "build": "next build",
         "dev": "next dev",
         "start": "next start",
+        "tsc": "tsc -p tsconfig.json --noEmit",
         "typecheck": "tsc -p tsconfig.json --noEmit",
         "validate": "npm run typecheck && npm run lint",
         "ci:full": "npm run typecheck && npm run lint && npm run build",
         "test:llm-first": "tsx scripts/test-llm-first-api.ts",
-        "test:reco-flow": "tsx scripts/test-reco-flow.ts",
+        "test:reco-flow": "tsx scripts/test-reco-flow.ts"
     },
     "devDependencies": {
         "@next/eslint-plugin-next": "^15.5.4",

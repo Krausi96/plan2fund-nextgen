@@ -99,6 +99,55 @@ const defaultAncillary = (): AncillaryContent => ({
   lastGenerated: undefined
 });
 
+const PANEL_GUIDANCE: Record<
+  RightPanelView,
+  { kicker: string; description: string; ctaLabel?: string }
+> = {
+  ai: {
+    kicker: 'Inline guidance',
+    description:
+      'Use the assistant to draft concise answers, propose datasets, or flag compliance gaps for the active question. It references context but never overwrites your text.',
+    ctaLabel: 'Ask the assistant'
+  },
+  data: {
+    kicker: 'Data & media',
+    description:
+      'Attach reusable tables, charts, KPIs, or images. Import CSVs, reuse datasets, and keep numeric stories in sync with your narrative.'
+  },
+  ancillary: {
+    kicker: 'Front matter & references',
+    description:
+      'Maintain the title page, table of contents, figures, tables, and citations so exports stay publication-ready.'
+  },
+  preview: {
+    kicker: 'Structure check',
+    description: 'Scan a lightweight preview to verify flow, headings, and media placement before exporting.'
+  },
+  info: {
+    kicker: 'Section guidance',
+    description:
+      'Surface contextual tips and helper copy so writers know what reviewers expect before they move on.'
+  },
+  requirements: {
+    kicker: 'Compliance',
+    description:
+      'Run the checker to confirm mandatory sections, KPIs, and length limits are satisfied for the selected funding program.'
+  }
+};
+
+const SECTION_TONE_HINTS: Record<string, string> = {
+  general:
+    'Lead with the problem, your innovative solution, and expected impact. Keep it to two or three sentences as suggested in the spec.',
+  financial:
+    'Highlight revenue, expenses, and cash needs. Consider adding a table or KPI via the Data panel when you reference numbers.',
+  innovation:
+    'Explain the technology or approach plainly, linking back to datasets or charts if you cite benchmarks.',
+  impact:
+    'Focus on measurable outcomes and KPIs. Tie qualitative benefits to metrics and reference supporting datasets.',
+  consortium:
+    'Clarify each partner’s role, governance, and commitment. Use concise paragraphs per the calmer layout guidance.'
+};
+
 const useEditorStore = create<EditorStoreState>((set, get) => ({
   plan: null,
   templates: [],
@@ -694,6 +743,14 @@ export default function Editor({ product = 'submission' }: EditorProps) {
       ? plan.sections[sectionIndex + 1]?.id ?? null
       : null;
 
+  const triggerAISuggestions = (questionId?: string) => {
+    if (!activeSection) return;
+    const targetQuestionId = questionId ?? activeQuestion?.id;
+    if (!targetQuestionId) return;
+    requestAISuggestions(activeSection.id, targetQuestionId);
+    setRightPanelView('ai');
+  };
+
   if (isLoading || !plan) {
     return (
       <div className="h-screen flex items-center justify-center text-gray-500">
@@ -741,12 +798,7 @@ export default function Editor({ product = 'submission' }: EditorProps) {
           activeSection && detachQuestionAttachment(activeSection.id, questionId, attachmentId)
         }
         onPromptAssetRequest={() => setRightPanelView('data')}
-        onAskAI={() => {
-          if (activeSection && activeQuestion) {
-            requestAISuggestions(activeSection.id, activeQuestion.id);
-            setRightPanelView('ai');
-          }
-        }}
+        onAskAI={triggerAISuggestions}
       />
 
       <RightPanel
@@ -783,6 +835,7 @@ export default function Editor({ product = 'submission' }: EditorProps) {
         onAppendixDelete={(appendixId) => deleteAppendix(appendixId)}
         onRunRequirements={runRequirementsCheck}
         progressSummary={progressSummary}
+        onAskAI={triggerAISuggestions}
       />
     </div>
   );
@@ -836,25 +889,50 @@ function Sidebar({
         </label>
       </div>
       <nav className="space-y-2">
-        {plan.sections.map((section, index) => (
-          <button
-            key={section.id}
-            onClick={() => onSelectSection(section.id)}
-            className={`w-full text-left px-3 py-2 rounded-md border text-sm ${
-              section.id === activeSectionId
-                ? 'border-blue-500 bg-blue-50 text-blue-700'
-                : 'border-gray-200 text-gray-600 hover:border-gray-300'
-            }`}
-          >
-            <span className="block font-medium">
-              {String(index + 1).padStart(2, '0')} · {section.title}
-            </span>
-            <span className="text-xs text-gray-400">{section.progress ?? 0}%</span>
-          </button>
-        ))}
+        {plan.sections.map((section, index) => {
+          const completion = section.progress ?? 0;
+          const totalQuestions = section.questions.length;
+          const answeredQuestions = section.questions.filter(
+            (question) => (question.answer ?? '').trim().length > 0
+          ).length;
+          const progressColor =
+            completion === 100 ? 'bg-emerald-500' : completion > 0 ? 'bg-blue-500' : 'bg-slate-200';
+          return (
+            <button
+              key={section.id}
+              onClick={() => onSelectSection(section.id)}
+              aria-pressed={section.id === activeSectionId}
+              title={`${answeredQuestions} of ${totalQuestions} questions answered`}
+              className={`w-full text-left px-3 py-3 rounded-xl border text-sm transition focus:outline-none focus:ring-2 focus:ring-blue-200 ${
+                section.id === activeSectionId
+                  ? 'border-blue-500 bg-blue-50 text-blue-700'
+                  : 'border-gray-200 text-gray-600 hover:border-gray-300'
+              }`}
+            >
+              <div className="flex items-center justify-between gap-2">
+                <span className="font-medium">
+                  {String(index + 1).padStart(2, '0')} · {section.title}
+                </span>
+                <span className="text-xs text-gray-400">{completion}%</span>
+              </div>
+              <div className="mt-2 h-1.5 bg-slate-100 rounded-full overflow-hidden">
+                <div
+                  className={`h-full ${progressColor}`}
+                  style={{ width: `${completion}%` }}
+                />
+              </div>
+            </button>
+          );
+        })}
       </nav>
     </aside>
   );
+}
+
+function getSectionHint(section?: Section) {
+  if (!section) return '';
+  const key = (section.category ?? '').toLowerCase();
+  return SECTION_TONE_HINTS[key] ?? 'Keep paragraphs tight, highlight the why, and point to data or KPIs when possible.';
 }
 
 function SectionWorkspace({
@@ -876,7 +954,7 @@ function SectionWorkspace({
   onNavigateSection: (targetId: string | null) => void;
   previousSectionId: string | null;
   nextSectionId: string | null;
-  onAskAI: () => void;
+  onAskAI: (questionId?: string) => void;
   onDetachAttachment: (questionId: string, attachmentId: string) => void;
   onPromptAssetRequest: () => void;
 }) {
@@ -890,15 +968,16 @@ function SectionWorkspace({
     );
   }
 
+  const sectionHint = getSectionHint(section);
+
   return (
     <main className="flex flex-col h-screen bg-slate-50">
-      <div className="sticky top-0 z-10 bg-slate-50/95 backdrop-blur border-b border-slate-200 px-12 py-5 flex flex-wrap items-center justify-between gap-3">
-        <div>
+      <div className="sticky top-0 z-10 bg-slate-50/95 backdrop-blur border-b border-slate-200 px-12 py-5 flex flex-wrap items-start justify-between gap-4">
+        <div className="space-y-1 max-w-3xl">
           <p className="text-[11px] tracking-[0.2em] uppercase text-slate-400">{section.category}</p>
-          <h1 className="text-2xl font-semibold text-slate-900">{section.title}</h1>
-          {section.description && (
-            <p className="text-sm text-slate-500 mt-1 max-w-2xl">{section.description}</p>
-          )}
+          <h1 className="text-2xl font-semibold text-slate-900 leading-tight">{section.title}</h1>
+          {section.description && <p className="text-sm text-slate-500">{section.description}</p>}
+          {sectionHint && <p className="text-xs text-slate-500">{sectionHint}</p>}
         </div>
         <div className="flex items-center gap-2">
           <NavigationButton
@@ -906,12 +985,6 @@ function SectionWorkspace({
             disabled={!previousSectionId}
             onClick={() => onNavigateSection(previousSectionId)}
           />
-          <button
-            onClick={onAskAI}
-            className="px-4 py-2 rounded-full bg-blue-600 text-white text-sm font-semibold shadow-sm hover:bg-blue-500 transition"
-          >
-            Ask AI
-          </button>
           <NavigationButton
             label="Next"
             disabled={!nextSectionId}
@@ -920,7 +993,7 @@ function SectionWorkspace({
         </div>
       </div>
 
-      <div className="flex-1 overflow-y-auto px-12 py-8 space-y-5">
+      <div className="flex-1 overflow-y-auto px-12 py-9 space-y-6">
         {section.questions.map((question, index) => (
           <QuestionCard
             key={question.id}
@@ -931,6 +1004,7 @@ function SectionWorkspace({
             onChange={(content) => onAnswerChange(question.id, content)}
             onDetachAttachment={onDetachAttachment}
             onPromptAssetRequest={onPromptAssetRequest}
+            onAskAI={() => onAskAI(question.id)}
           />
         ))}
       </div>
@@ -965,7 +1039,8 @@ function QuestionCard({
   onFocus,
   onChange,
   onDetachAttachment,
-  onPromptAssetRequest
+  onPromptAssetRequest,
+  onAskAI
 }: {
   question: Question;
   position: number;
@@ -974,6 +1049,7 @@ function QuestionCard({
   onChange: (content: string) => void;
   onDetachAttachment: (questionId: string, attachmentId: string) => void;
   onPromptAssetRequest: () => void;
+  onAskAI: () => void;
 }) {
   return (
     <div
@@ -994,8 +1070,11 @@ function QuestionCard({
           </div>
           <p className="text-base font-semibold text-slate-900">{question.prompt}</p>
         </div>
-        {question.helperText && (
-          <span className="text-xs text-slate-400 max-w-xs">{question.helperText}</span>
+        {(question.helperText || isActive) && (
+          <span className="text-xs text-slate-400 max-w-xs text-right">
+            {question.helperText ??
+              'Keep the tone calm and specific. Reference data, KPIs, or attachments when they strengthen the argument.'}
+          </span>
         )}
       </div>
 
@@ -1022,6 +1101,38 @@ function QuestionCard({
         onChange={onChange}
         placeholder={question.placeholder}
       />
+
+      {isActive && (
+        <div className="mt-4 rounded-2xl border border-slate-100 bg-slate-50/80 p-4 space-y-2 text-xs text-slate-600">
+          <p className="text-sm font-semibold text-slate-700">Need a prompt?</p>
+          <p>
+            Ask the assistant to create a concise draft or open the Data panel to attach tables, charts, images, or KPIs—mirroring
+            the guidance from the interface spec.
+          </p>
+          <div className="flex flex-wrap gap-2">
+            <button
+              type="button"
+              onClick={(event) => {
+                event.stopPropagation();
+                onAskAI();
+              }}
+              className="inline-flex items-center px-3 py-1.5 rounded-lg bg-blue-600 text-white font-semibold text-xs hover:bg-blue-500"
+            >
+              Ask AI for this prompt
+            </button>
+            <button
+              type="button"
+              onClick={(event) => {
+                event.stopPropagation();
+                onPromptAssetRequest();
+              }}
+              className="inline-flex items-center px-3 py-1.5 rounded-lg border border-slate-200 text-slate-600 font-semibold text-xs hover:border-slate-300 hover:text-slate-900"
+            >
+              Open data & media panel
+            </button>
+          </div>
+        </div>
+      )}
 
       {question.attachments && question.attachments.length > 0 && (
         <div className="mt-4">
@@ -1131,7 +1242,8 @@ function RightPanel({
   onAppendixUpdate,
   onAppendixDelete,
   onRunRequirements,
-  progressSummary
+  progressSummary,
+  onAskAI
 }: {
   view: RightPanelView;
   setView: (view: RightPanelView) => void;
@@ -1154,7 +1266,9 @@ function RightPanel({
   onAppendixDelete: (appendixId: string) => void;
   onRunRequirements: () => void;
   progressSummary: ProgressSummary[];
+  onAskAI: (questionId?: string) => void;
 }) {
+  const panelMeta = PANEL_GUIDANCE[view];
   return (
     <aside className="border-l border-gray-200 bg-white flex flex-col">
       <div className="grid grid-cols-5 border-b border-gray-200 text-xs font-semibold text-gray-500">
@@ -1172,6 +1286,25 @@ function RightPanel({
           )
         )}
       </div>
+      {panelMeta && (
+        <div className="px-4 py-3 border-b border-gray-100 bg-slate-50 space-y-2">
+          <p className="text-[10px] uppercase tracking-[0.3em] text-slate-400">{panelMeta.kicker}</p>
+          <p className="text-xs text-slate-600 leading-relaxed">{panelMeta.description}</p>
+          {panelMeta.ctaLabel && view === 'ai' && (
+            <button
+              onClick={() => onAskAI(question?.id)}
+              disabled={!question}
+              className={`w-full text-xs font-semibold px-3 py-2 rounded-lg ${
+                question
+                  ? 'bg-blue-600 text-white hover:bg-blue-500'
+                  : 'bg-slate-100 text-slate-400 cursor-not-allowed'
+              }`}
+            >
+              {panelMeta.ctaLabel} {question ? '' : '(select a question)'}
+            </button>
+          )}
+        </div>
+      )}
       <div className="flex-1 overflow-hidden">
         {view === 'ai' && question && (
           <div className="p-4 space-y-3 text-sm text-gray-600">
@@ -1180,15 +1313,23 @@ function RightPanel({
             {question?.answer ? (
               <p className="text-gray-500">{question.answer.substring(0, 200)}...</p>
             ) : (
-              <p className="text-gray-400">Start typing to receive better suggestions.</p>
+              <p className="text-gray-400">
+                Start typing to provide context—the assistant draws on previous answers, datasets, and program requirements.
+              </p>
             )}
+            <ul className="text-xs text-slate-500 list-disc list-inside space-y-1">
+              <li>Summaries should cover the problem, solution, and expected impact.</li>
+              <li>When numbers appear, open the Data tab to insert tables, charts, or KPIs.</li>
+            </ul>
             {question?.suggestions?.map((suggestion: string, index: number) => (
               <div key={index} className="border border-blue-100 bg-blue-50 rounded-lg p-3 text-blue-700">
                 {suggestion}
               </div>
             ))}
             {!question?.suggestions?.length && (
-              <p className="text-xs text-gray-400">Use “Ask AI for help” to request guidance.</p>
+              <p className="text-xs text-gray-400">
+                Ask the assistant for a draft or dataset suggestion, then refine it in the editor.
+              </p>
             )}
           </div>
         )}
