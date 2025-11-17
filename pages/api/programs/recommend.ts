@@ -185,7 +185,7 @@ Example:
       messages,
       responseFormat: 'json',
       temperature: 0.2,
-      maxTokens: 2000,
+      maxTokens: 10000, // Increased to account for Gemini's thoughts overhead (~2000 tokens)
     });
     responseText = response.output;
     rawResponse = response.output;
