@@ -248,6 +248,24 @@ const CORE_QUESTIONS: QuestionDefinition[] = [
     isAdvanced: false, // Core question
   },
   {
+    id: 'use_of_funds',
+    label: 'How will you use the funding?',
+    type: 'multi-select' as const,
+    options: [
+      { value: 'product_development', label: 'Product development & R&D' },
+      { value: 'hiring', label: 'Hiring & team growth' },
+      { value: 'equipment', label: 'Equipment & infrastructure' },
+      { value: 'marketing', label: 'Marketing & go-to-market' },
+      { value: 'internationalization', label: 'International expansion' },
+      { value: 'working_capital', label: 'Working capital' },
+      { value: 'other', label: 'Other' },
+    ],
+    required: false,
+    priority: 6,
+    hasOtherTextInput: true,
+    isAdvanced: false,
+  },
+  {
     id: 'company_stage', // CRITICAL - Used in matching
     label: 'What stage is your company at?',
     type: 'single-select' as const,
@@ -265,6 +283,82 @@ const CORE_QUESTIONS: QuestionDefinition[] = [
   },
 ];
 
+const ADVANCED_QUESTIONS: QuestionDefinition[] = [
+  {
+    id: 'team_size',
+    label: 'How large is your team?',
+    type: 'single-select' as const,
+    options: [
+      { value: 'solo', label: 'Solo founder' },
+      { value: 'team_2_5', label: '2-5 people' },
+      { value: 'team_6_20', label: '6-20 people' },
+      { value: 'team_20_plus', label: '20+ people' },
+    ],
+    required: false,
+    priority: 10,
+    isAdvanced: true,
+  },
+  {
+    id: 'revenue_status',
+    label: 'What best describes your revenue stage?',
+    type: 'single-select' as const,
+    options: [
+      { value: 'pre_revenue', label: 'Pre-revenue' },
+      { value: 'early_revenue', label: 'Early revenue (< €500k)' },
+      { value: 'scaling_revenue', label: 'Scaling (€500k+)' },
+      { value: 'profitable', label: 'Profitable' },
+    ],
+    required: false,
+    priority: 11,
+    isAdvanced: true,
+  },
+  {
+    id: 'impact_focus',
+    label: 'Which impact areas apply?',
+    type: 'multi-select' as const,
+    options: [
+      { value: 'environmental', label: 'Environmental / Climate' },
+      { value: 'social', label: 'Social / Inclusion' },
+      { value: 'regional', label: 'Regional development' },
+      { value: 'research', label: 'Research & innovation' },
+      { value: 'education', label: 'Education / Workforce' },
+      { value: 'other', label: 'Other' },
+    ],
+    hasOtherTextInput: true,
+    required: false,
+    priority: 12,
+    isAdvanced: true,
+  },
+  {
+    id: 'deadline_urgency',
+    label: 'When do you need the funding?',
+    type: 'single-select' as const,
+    options: [
+      { value: 'immediate', label: 'Within 1 month' },
+      { value: 'short_term', label: '1-3 months' },
+      { value: 'medium_term', label: '3-6 months' },
+      { value: 'long_term', label: '6+ months' },
+    ],
+    required: false,
+    priority: 13,
+    isAdvanced: true,
+  },
+  {
+    id: 'project_duration',
+    label: 'How long will your project run?',
+    type: 'range' as const,
+    min: 1,
+    max: 36,
+    step: 1,
+    unit: 'months',
+    required: false,
+    priority: 14,
+    isAdvanced: true,
+  },
+];
+
+const ALL_QUESTIONS: QuestionDefinition[] = [...CORE_QUESTIONS, ...ADVANCED_QUESTIONS];
+
 export default function ProgramFinder({ 
   onProgramSelect
 }: ProgramFinderProps) {
@@ -272,8 +366,8 @@ export default function ProgramFinder({
   const { t, locale } = useI18n();
   
   // Get translated questions
-  const getTranslatedQuestions = useMemo<QuestionDefinition[]>(() => {
-    return CORE_QUESTIONS.map((q) => {
+  const translatedQuestions = useMemo<QuestionDefinition[]>(() => {
+    return ALL_QUESTIONS.map((q) => {
       const translatedLabel = (t(`reco.questions.${q.id}` as any) as string) || q.label;
       if (q.type === 'single-select' || q.type === 'multi-select') {
         const translatedOptions = q.options.map((opt) => ({
@@ -327,6 +421,8 @@ export default function ProgramFinder({
     setResults([]);
     setNoResultsHint(customHint || defaultNoResultsHint);
   }, [defaultNoResultsHint]);
+  const [showAdvancedFilters, setShowAdvancedFilters] = useState(false);
+  const [showPromptPreview, setShowPromptPreview] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [hasAttemptedGeneration, setHasAttemptedGeneration] = useState(false); // Track if user clicked generate
   
@@ -343,7 +439,14 @@ export default function ProgramFinder({
   const [mobileActiveTab, setMobileActiveTab] = useState<'questions' | 'results'>('questions');
   
   // Get visible questions (with skip logic)
-  const visibleQuestions = getTranslatedQuestions;
+  const visibleQuestions = useMemo(
+    () => translatedQuestions.filter((q) => !q.isAdvanced || showAdvancedFilters),
+    [translatedQuestions, showAdvancedFilters]
+  );
+  const advancedQuestions = useMemo(
+    () => translatedQuestions.filter((q) => q.isAdvanced),
+    [translatedQuestions]
+  );
   
   // Ensure currentQuestionIndex is within bounds
   useEffect(() => {
@@ -355,7 +458,7 @@ export default function ProgramFinder({
   
   // Count only non-empty answers (fix logic flaw)
   // Only count main question IDs, exclude sub-options and sub-categories
-  const mainQuestionIds = getTranslatedQuestions.map(q => q.id);
+  const mainQuestionIds = visibleQuestions.map(q => q.id);
   const isAnswerProvided = (value: any) => {
     if (value === undefined || value === null) return false;
     if (typeof value === 'string') {
@@ -382,18 +485,32 @@ export default function ProgramFinder({
     }
     return true;
   }).length;
+  const advancedAnsweredCount = useMemo(() => {
+    return advancedQuestions.filter((question) => isAnswerProvided(answers[question.id])).length;
+  }, [advancedQuestions, answers]);
   
   // Minimum questions for results (4 critical questions: location, company_type, funding_amount, company_stage)
   const MIN_QUESTIONS_FOR_RESULTS = 4;
   const REQUIRED_QUESTION_IDS = ['company_type', 'location', 'funding_amount', 'company_stage'] as const;
   const missingRequiredAnswers = REQUIRED_QUESTION_IDS.filter((questionId) => !isAnswerProvided(answers[questionId]));
   const missingRequiredLabels = missingRequiredAnswers.map((questionId) => {
-    const question = getTranslatedQuestions.find((q) => q.id === questionId);
+    const question = translatedQuestions.find((q) => q.id === questionId);
     return question?.label || questionId;
   });
   const hasRequiredAnswers = missingRequiredAnswers.length === 0;
   const hasEnoughAnswers = answeredCount >= MIN_QUESTIONS_FOR_RESULTS && hasRequiredAnswers;
   const remainingQuestions = Math.max(0, MIN_QUESTIONS_FOR_RESULTS - answeredCount);
+  const promptPreviewPayload = useMemo(() => ({
+    answers,
+    max_results: 20,
+    requiredQuestionsMet: hasRequiredAnswers,
+    advancedFiltersIncluded: showAdvancedFilters,
+    questionOrder: visibleQuestions.map((q) => ({
+      id: q.id,
+      required: REQUIRED_QUESTION_IDS.includes(q.id as typeof REQUIRED_QUESTION_IDS[number]),
+      advanced: q.isAdvanced,
+    })),
+  }), [answers, hasRequiredAnswers, showAdvancedFilters, visibleQuestions]);
   
   // State to control when to show results
   const [_showResults, _setShowResults] = useState(false);
@@ -418,7 +535,7 @@ export default function ProgramFinder({
   const formatAnswerForDisplay = (questionId: string, value: any): string => {
     if (value === undefined || value === null || value === '') return '';
     
-    const question = getTranslatedQuestions.find(q => q.id === questionId);
+    const question = translatedQuestions.find(q => q.id === questionId);
     if (!question) return String(value);
     
     if (question.type === 'single-select') {
@@ -1267,6 +1384,52 @@ export default function ProgramFinder({
               </div>
             </Card>
           </div>
+
+        <div className="max-w-2xl mx-auto w-full mt-4">
+          <Card className="p-4 border-2 border-dashed border-blue-200 bg-white/80 shadow-sm">
+            <div className="flex items-start justify-between gap-4">
+              <div>
+                <p className="text-base font-semibold text-gray-900">Advanced filters</p>
+                <p className="text-sm text-gray-600">
+                  Optional details like team size, revenue stage, impact focus, and project timeline.
+                </p>
+              </div>
+              <button
+                onClick={() => setShowAdvancedFilters(!showAdvancedFilters)}
+                className="px-3 py-2 rounded-md text-sm font-medium border border-blue-500 text-blue-600 hover:bg-blue-50 transition-colors"
+              >
+                {showAdvancedFilters ? 'Hide advanced' : 'Add detail'}
+              </button>
+            </div>
+            <p className="text-xs text-gray-500 mt-3">
+              {showAdvancedFilters
+                ? `${advancedAnsweredCount}/${advancedQuestions.length} advanced questions answered. They now appear at the end of your question path.`
+                : 'Currently hidden. Toggle to refine recommendations with more context.'}
+            </p>
+          </Card>
+        </div>
+
+        <div className="max-w-2xl mx-auto w-full mt-4">
+          <Card className="p-4 border border-gray-200 bg-white shadow-sm">
+            <div className="flex items-center justify-between gap-4">
+              <div>
+                <p className="text-base font-semibold text-gray-900">Prompt preview</p>
+                <p className="text-sm text-gray-600">Review the structured payload we send to the recommendation engine.</p>
+              </div>
+              <button
+                onClick={() => setShowPromptPreview(!showPromptPreview)}
+                className="px-3 py-2 rounded-md text-sm font-medium border border-gray-400 text-gray-700 hover:bg-gray-100 transition-colors"
+              >
+                {showPromptPreview ? 'Hide preview' : 'Show preview'}
+              </button>
+            </div>
+            {showPromptPreview && (
+              <pre className="mt-3 text-xs text-gray-800 bg-gray-50 border border-gray-200 rounded-lg p-3 max-h-64 overflow-auto whitespace-pre-wrap">
+                {JSON.stringify(promptPreviewPayload, null, 2)}
+              </pre>
+            )}
+          </Card>
+        </div>
           
           {/* Loading Indicator - Inline */}
           {isLoading && (
@@ -1500,7 +1663,7 @@ export default function ProgramFinder({
                     const missingFields: string[] = Array.isArray(parsedError?.missing) ? parsedError.missing : [];
                     const missingFieldLabels = missingFields
                       .map((fieldId) => {
-                        const question = getTranslatedQuestions.find((q) => q.id === fieldId);
+                        const question = translatedQuestions.find((q) => q.id === fieldId);
                         return question?.label || fieldId;
                       })
                       .join(', ');
