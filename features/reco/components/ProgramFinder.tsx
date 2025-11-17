@@ -95,7 +95,7 @@ interface ProgramFinderProps {
       { value: 'research', label: 'Research Institution' },
       { value: 'other', label: 'Other' },
     ],
-    required: false,
+    required: true,
     priority: 1,
     hasOtherTextInput: true,
     hasLegalType: true, // Enable conditional legal type dropdown
@@ -111,7 +111,7 @@ interface ProgramFinderProps {
       { value: 'eu', label: 'EU' },
       { value: 'international', label: 'International' },
     ],
-    required: false,
+    required: true,
     priority: 2,
     isAdvanced: false, // Core question
     // Optional region input (text field, not dropdown)
@@ -127,7 +127,7 @@ interface ProgramFinderProps {
     max: 2000000,
     step: 1000,
     unit: 'EUR',
-    required: false,
+    required: true,
     priority: 3,
     editableValue: true, // Allow editing the number directly
     isAdvanced: false, // Core question
@@ -236,7 +236,7 @@ interface ProgramFinderProps {
     max: 36,
     step: 6,
     unit: 'months',
-    required: false,
+    required: true,
     priority: 4, // Moved up - this is critical!
     editableValue: false, // Slider only, no direct input
     isAdvanced: false, // Core question
@@ -349,7 +349,18 @@ export default function ProgramFinder({
     }));
   }, [t]);
   const [results, setResults] = useState<EnhancedProgramResult[]>([]);
+  const [noResultsHint, setNoResultsHint] = useState<{ en: string; de: string } | null>(null);
+  const defaultNoResultsHint = useMemo(() => ({
+    en: 'No programs matched yet. Increase your funding range or allow additional funding types such as loans or equity.',
+    de: 'Noch keine Programme gefunden. Erhöhen Sie den Finanzierungsbedarf oder erlauben Sie weitere Finanzierungstypen wie Darlehen oder Beteiligungen.',
+  }), []);
+
+  const setEmptyResults = useCallback((customHint?: { en: string; de: string }) => {
+    setResults([]);
+    setNoResultsHint(customHint || defaultNoResultsHint);
+  }, [defaultNoResultsHint]);
   const [isLoading, setIsLoading] = useState(false);
+  const [hasAttemptedGeneration, setHasAttemptedGeneration] = useState(false); // Track if user clicked generate
   
   // Guided mode state
   const [answers, setAnswers] = useState<Record<string, any>>({});
@@ -363,20 +374,6 @@ export default function ProgramFinder({
   // Mobile: Track active tab (questions vs results)
   const [mobileActiveTab, setMobileActiveTab] = useState<'questions' | 'results'>('questions');
   
-  // A/B Testing: Explanation variant (A=Score-First, B=LLM-First, C=LLM-Only)
-  const [_explanationVariant] = useState<'A' | 'B' | 'C'>(() => {
-    if (typeof window !== 'undefined') {
-      const stored = localStorage.getItem('explanationVariant');
-      if (stored && ['A', 'B', 'C'].includes(stored)) return stored as 'A' | 'B' | 'C';
-      // Random assignment on first visit (33% each)
-      const variant = ['A', 'B', 'C'][Math.floor(Math.random() * 3)] as 'A' | 'B' | 'C';
-      localStorage.setItem('explanationVariant', variant);
-      return variant;
-    }
-    return 'A';
-  });
-  
-
   // Get visible questions (with skip logic)
   const getVisibleQuestions = () => {
     return getTranslatedQuestions.filter(q => {
@@ -420,157 +417,6 @@ export default function ProgramFinder({
   const MIN_QUESTIONS_FOR_RESULTS = 4;
   const hasEnoughAnswers = answeredCount >= MIN_QUESTIONS_FOR_RESULTS;
   
-  // Reserved for future use - commented out to pass TypeScript checks
-  /* eslint-disable @typescript-eslint/no-unused-vars */
-  // @ts-ignore
-  const _updateGuidedResults = useCallback(async () => {
-    // Require at least MIN_QUESTIONS_FOR_RESULTS to fetch results
-    if (!hasEnoughAnswers) {
-      setResults([]);
-      return;
-    }
-    
-    let timeoutId: NodeJS.Timeout | null = null;
-    try {
-      setIsLoading(true);
-      
-      // Add timeout to prevent infinite loading
-      timeoutId = setTimeout(() => {
-        setIsLoading(false);
-        console.error('Request timeout');
-        alert('Request timed out. Please try again.');
-      }, 60000); // 60 second timeout (LLM can take time)
-      
-      // Use on-demand recommendation API
-      // LLM generation is primary (unrestricted, like ChatGPT)
-      // Seed extraction is optional (set USE_SEED_EXTRACTION=true to enable)
-      const response = await fetch('/api/programs/recommend', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          answers,
-          max_results: 20,
-          extract_all: false,
-          use_seeds: false, // LLM generation is primary, seeds are optional
-        }),
-      });
-      
-      if (!response.ok) {
-        const errorData = await response.json().catch(() => ({}));
-        throw new Error(errorData.message || `Failed to fetch recommendations: ${response.status} ${response.statusText}`);
-      }
-      
-      const data = await response.json();
-      const extractedPrograms = data.programs || [];
-      
-      // Log extraction results for debugging
-      const extractionResults = data.extraction_results || data.extractionResults || [];
-      if (extractionResults.length > 0) {
-        console.log('📊 Extraction results:', extractionResults);
-        const llmResult = extractionResults.find((r: any) => r.source === 'llm_generated');
-        if (llmResult) {
-          if (llmResult.error) {
-            console.error('❌ LLM generation error:', llmResult.error, llmResult.details);
-            if (llmResult.error.includes('No LLM available')) {
-              alert('LLM is not configured. Please set OPENAI_API_KEY or CUSTOM_LLM_ENDPOINT environment variable.');
-            }
-          } else {
-            console.log('✅ LLM generation:', llmResult.message);
-          }
-        }
-      }
-      
-      if (extractedPrograms.length === 0) {
-        console.error('❌ CRITICAL: No programs returned from API');
-        console.error('API response:', JSON.stringify(data, null, 2));
-        console.error('Answers sent:', JSON.stringify(answers, null, 2));
-        
-        // Check extraction results for more details
-        const extractionResults = data.extraction_results || data.extractionResults || [];
-        const hasLLMError = extractionResults.some((r: any) => r.error);
-        
-        // Show user-friendly message
-        if (data.error) {
-          console.error('API Error:', data.error, data.message);
-          alert(`Error generating programs: ${data.message || data.error}. Please check your LLM configuration (OPENAI_API_KEY or CUSTOM_LLM_ENDPOINT).`);
-        } else if (hasLLMError) {
-          const llmError = extractionResults.find((r: any) => r.error);
-          console.error('LLM Error:', llmError);
-          alert(`Error generating programs: ${llmError.error || 'LLM generation failed'}. Please check your LLM configuration and try again.`);
-        } else {
-          console.error('API returned success but no programs. This should not happen with the new fixes.');
-          console.error('Check server logs for details. Emergency fallback should have triggered.');
-          alert('No programs were generated. This is unexpected - please try again or contact support. The system should always return at least some programs.');
-        }
-        setResults([]);
-        return;
-      }
-      
-      console.log(`✅ API returned ${extractedPrograms.length} programs`);
-      
-      // Convert extracted programs to Program format
-      const programsForScoring = extractedPrograms.map((p: any) => ({
-        id: p.id,
-        name: p.name,
-        type: p.funding_types?.[0] || 'grant',
-        program_type: p.funding_types?.[0] || 'grant',
-        description: p.metadata?.description || '',
-        funding_amount_max: p.metadata?.funding_amount_max || 0,
-        funding_amount_min: p.metadata?.funding_amount_min || 0,
-        currency: p.metadata?.currency || 'EUR',
-        source_url: p.url,
-        url: p.url,
-        deadline: p.metadata?.deadline,
-        open_deadline: p.metadata?.open_deadline || false,
-        contact_email: p.metadata?.contact_email,
-        contact_phone: p.metadata?.contact_phone,
-        eligibility_criteria: {},
-        categorized_requirements: p.categorized_requirements || {},
-        region: p.metadata?.region,
-        funding_types: p.funding_types || [],
-        program_focus: p.metadata?.program_focus || [],
-      }));
-      
-      // Score the programs
-      console.log(`📊 Scoring ${programsForScoring.length} programs with answers:`, Object.keys(answers));
-      const scored = await scoreProgramsEnhanced(answers, 'strict', programsForScoring);
-      
-      // Log score distribution for debugging
-      const scoreDistribution = scored.map(p => ({ name: p.name, score: p.score }));
-      console.log('📈 Score distribution:', scoreDistribution);
-      
-      // Show ALL programs sorted by score (even with score 0) - let user see what's available
-      // Sort by score (highest first), then take top 5
-      const sorted = scored.sort((a, b) => b.score - a.score);
-      const top5 = sorted.slice(0, 5);
-      
-      console.log(`✅ Scored ${scored.length} programs, showing top ${top5.length}`);
-      console.log('📊 Top programs:', top5.map(p => ({ name: p.name, score: p.score })));
-      
-      // Always set results if we have any programs
-      if (top5.length > 0) {
-        setResults(top5);
-      } else {
-        console.warn('⚠️ No programs to display after scoring');
-        setResults([]);
-      }
-      
-      // Store in localStorage for persistence
-      if (typeof window !== 'undefined') {
-        localStorage.setItem('recoResults', JSON.stringify(scored));
-        localStorage.setItem('userAnswers', JSON.stringify(answers));
-      }
-    } catch (error: any) {
-      console.error('Error updating guided results:', error);
-      setResults([]);
-      // Show user-friendly error message
-      alert(`Error generating recommendations: ${error.message || 'Unknown error'}. Please try again.`);
-    } finally {
-      setIsLoading(false);
-      if (timeoutId) clearTimeout(timeoutId);
-    }
-  }, [answers, hasEnoughAnswers]);
-  
   // State to control when to show results
   const [_showResults, _setShowResults] = useState(false);
   
@@ -610,39 +456,6 @@ export default function ProgramFinder({
     }
   }, [answers.company_stage, answers.company_stage_classified, handleAnswer]);
 
-  // Reserved for future use - commented out to pass TypeScript checks
-  /* eslint-disable @typescript-eslint/no-unused-vars */
-  // @ts-ignore
-  const _handleProgramSelect = (program: EnhancedProgramResult) => {
-    // Store program data in localStorage (programs don't have stable IDs)
-    // Editor will read this data directly instead of fetching by ID
-    // Include timestamp so editor knows when it was selected
-    if (typeof window !== 'undefined') {
-      const programData = {
-        id: program.id,
-        name: program.name || program.id,
-        categorized_requirements: program.categorized_requirements || {},
-        type: program.type || 'grant',
-        url: program.url || program.source_url,
-        selectedAt: new Date().toISOString(), // Track when program was selected
-        // Store any other relevant data
-        metadata: {
-          funding_amount_min: program.amount?.min,
-          funding_amount_max: program.amount?.max,
-          currency: program.amount?.currency || 'EUR',
-        }
-      };
-      localStorage.setItem('selectedProgram', JSON.stringify(programData));
-    }
-    
-    // Navigate to editor (no programId in URL - editor reads from localStorage)
-    if (onProgramSelect) {
-      onProgramSelect(program.id, 'grant'); // Default route
-    } else {
-      router.push(`/editor?product=submission`);
-    }
-  };
-  
   // Removed handleViewAllResults - results are shown inline in ProgramFinder
   
   // Helper function to format answer for display
@@ -1685,10 +1498,11 @@ export default function ProgramFinder({
             </div>
           )}
           
-          {/* Results Modal/Popup */}
-          <Dialog open={results.length > 0 && !isLoading} onOpenChange={(open) => {
+          {/* Results Modal/Popup - Open when we have results OR when generation finished with no results */}
+          <Dialog open={(results.length > 0 && !isLoading) || (!isLoading && hasAttemptedGeneration && results.length === 0)} onOpenChange={(open) => {
             if (!open) {
-              setResults([]);
+              setEmptyResults();
+              setHasAttemptedGeneration(false); // Reset when dialog closes
             }
           }}>
             <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
@@ -1703,7 +1517,24 @@ export default function ProgramFinder({
                 </DialogDescription>
               </DialogHeader>
               <div className="space-y-4 mt-4">
-                {results.map((program, index) => (
+                {results.length === 0 ? (
+                  <div className="text-center py-8">
+                    <p className="text-gray-600 text-lg mb-2">
+                      {locale === 'de' ? 'Keine Programme gefunden' : 'No programs found'}
+                    </p>
+                    <p className="text-gray-500 text-sm">
+                      {locale === 'de' 
+                        ? (noResultsHint?.de || 'Aktuell passt kein Programm. Bitte passen Sie Ihre Antworten an.')
+                        : (noResultsHint?.en || 'No programs matched yet. Please adjust your answers and try again.')}
+                    </p>
+                    <p className="text-gray-400 text-xs mt-4">
+                      {locale === 'de' 
+                        ? 'Tipp: Erhöhen Sie das Budget oder erlauben Sie andere Finanzierungstypen (z. B. Darlehen).'
+                        : 'Tip: Increase your budget or allow other funding instruments (e.g., loans).'}
+                    </p>
+                  </div>
+                ) : (
+                  results.map((program, index) => (
                   <Card key={program.id || index} className="p-6 border-2 border-blue-200 hover:border-blue-400 transition-all">
                     <div className="flex items-start justify-between gap-4">
                       <div className="flex-1">
@@ -1772,7 +1603,8 @@ export default function ProgramFinder({
                       </button>
                     </div>
                   </Card>
-                ))}
+                  ))
+                )}
               </div>
             </DialogContent>
           </Dialog>
@@ -1792,12 +1624,18 @@ export default function ProgramFinder({
                     return;
                   }
                 setIsLoading(true);
+                setHasAttemptedGeneration(true); // Mark that user clicked generate
                 console.log('🚀 Starting program generation...');
                 console.log('📋 Answers being sent:', answers);
                 console.log('✅ Has enough answers:', hasEnoughAnswers);
                 
                 try {
-                  const response = await fetch('/api/programs/recommend', {
+                  // Use debug endpoint to see what's happening
+                  const useDebug = process.env.NODE_ENV === 'development';
+                  const endpoint = useDebug ? '/api/programs/recommend-debug' : '/api/programs/recommend';
+                  
+                  console.log(`📡 Calling API endpoint: ${endpoint}`);
+                  const response = await fetch(endpoint, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({
@@ -1825,6 +1663,23 @@ export default function ProgramFinder({
                     source: data.source,
                   });
                   
+                  // Log debug info if available
+                  if (data.debug) {
+                    console.log('🔍 DEBUG INFO:', JSON.stringify(data.debug, null, 2));
+                    console.log('🔍 Step-by-step breakdown:');
+                    console.log(`   1. Received answers: ${data.debug.step1_receivedAnswers?.join(', ') || 'none'}`);
+                    console.log(`   2. LLM Config: OpenAI=${data.debug.step2_llmConfig?.hasOpenAI}, Custom=${data.debug.step2_llmConfig?.hasCustomLLM}`);
+                    console.log(`   3. Programs generated: ${data.debug.step3_programsGenerated}`);
+                    console.log(`   4. Breakdown: Real LLM=${data.debug.step4_programBreakdown?.realLLM}, Fallback=${data.debug.step4_programBreakdown?.fallback}`);
+                    console.log(`   5. After filtering: ${data.debug.step5_afterFiltering}`);
+                    if (data.debug.step6_samplePrograms?.length > 0) {
+                      console.log(`   6. Sample programs:`);
+                      data.debug.step6_samplePrograms.forEach((p: any, i: number) => {
+                        console.log(`      ${i + 1}. ${p.name} (${p.source}, fallback=${p.isFallback}, funding=€${p.funding})`);
+                      });
+                    }
+                  }
+                  
                   const extractedPrograms = data.programs || [];
                   console.log(`✅ Received ${extractedPrograms.length} programs from API`);
                   
@@ -1850,7 +1705,7 @@ export default function ProgramFinder({
                       console.error('Check server logs for details. Emergency fallback should have triggered.');
                       alert('No programs were generated. This is unexpected - please try again or contact support. The system should always return at least some programs.');
                     }
-                    setResults([]);
+                    setEmptyResults();
                     setIsLoading(false);
                     return;
                   }
@@ -1889,15 +1744,28 @@ export default function ProgramFinder({
                   const top5 = sorted.slice(0, 5);
                   console.log(`🎯 Top 5 programs:`, top5.map(p => ({ name: p.name, score: p.score })));
                   
-                  setResults(top5);
+                  if (top5.length > 0) {
+                    setResults(top5);
+                    setNoResultsHint(null);
+                  } else {
+                    setEmptyResults();
+                  }
                   console.log(`✅ Set ${top5.length} results in state`);
                   
                   if (top5.length > 0) {
                     setMobileActiveTab('results');
                     console.log('✅ Switched to results tab');
+                    console.log('✅ Dialog should open now (results.length > 0 && !isLoading)');
                   } else {
-                    console.warn('⚠️ No programs to display after scoring');
-                    // Results are already empty, UI will show "no results" message
+                    console.error('❌ CRITICAL: No programs to display after scoring!');
+                    console.error('❌ This means either:');
+                    console.error('   1. API returned 0 programs');
+                    console.error('   2. Scoring returned 0 programs');
+                    console.error('   3. Programs were filtered out');
+                    console.error('❌ Check browser console and server logs for details');
+                    alert(locale === 'de' 
+                      ? 'Keine Programme gefunden. Bitte überprüfen Sie die Server-Logs für Details.'
+                      : 'No programs found. Please check server logs for details.');
                   }
                 } catch (error: any) {
                   console.error('❌ Error generating programs:', error);
