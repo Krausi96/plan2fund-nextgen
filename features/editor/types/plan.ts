@@ -15,13 +15,7 @@ export type ProductType =
 
 export type FundingProgramType = 'grant' | 'loan' | 'equity' | 'visa' | 'other';
 
-export type RightPanelView =
-  | 'ai'
-  | 'data'
-  | 'ancillary'
-  | 'preview'
-  | 'requirements'
-  | 'info';
+export type RightPanelView = 'ai' | 'data' | 'preview' | 'requirements' | 'info';
 
 export interface MediaAsset {
   id: string;

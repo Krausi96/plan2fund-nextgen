@@ -177,11 +177,6 @@ const PANEL_GUIDANCE: Record<
     description:
       'Attach reusable tables, charts, KPIs, or images. Import CSVs, reuse datasets, and keep numeric stories in sync with your narrative.'
   },
-  ancillary: {
-    kicker: 'Front matter & references',
-    description:
-      'Maintain the title page, table of contents, figures, tables, and citations so exports stay publication-ready.'
-  },
   preview: {
     kicker: 'Structure check',
     description: 'Scan a lightweight preview to verify flow, headings, and media placement before exporting.'
@@ -925,14 +920,6 @@ export default function Editor({ product = 'submission' }: EditorProps) {
             activeQuestion &&
             attachMediaToQuestion(activeSection.id, activeQuestion.id, asset)
           }
-          onTitlePageChange={updateTitlePage}
-          onAncillaryChange={updateAncillary}
-          onReferenceAdd={addReference}
-          onReferenceUpdate={updateReference}
-          onReferenceDelete={deleteReference}
-          onAppendixAdd={(item) => addAppendix(item)}
-          onAppendixUpdate={(item) => updateAppendix(item)}
-          onAppendixDelete={(appendixId) => deleteAppendix(appendixId)}
           onRunRequirements={runRequirementsCheck}
           progressSummary={progressSummary}
           onAskAI={triggerAISuggestions}
@@ -1164,31 +1151,31 @@ function SectionWorkspace({
 
   const sectionHint = getSectionHint(section);
 
+  const totalQuestions = section.questions.length;
+  const answeredQuestions = section.questions.filter(
+    (question) => (question.answer ?? '').trim().length > 0
+  ).length;
+
   return (
     <main className="flex flex-col h-screen bg-gradient-to-b from-[#f3f8ff] via-white to-white">
-      <div className="sticky top-0 z-10 bg-gradient-to-r from-white via-[#f0f6ff] to-white/90 backdrop-blur border-b border-slate-200 px-6 lg:px-12 py-6 flex flex-wrap items-start justify-between gap-4 shadow-sm">
-        <div className="space-y-1 max-w-3xl">
-          <p className="text-[11px] tracking-[0.2em] uppercase text-slate-400">{section.category}</p>
-          <h1 className="text-3xl font-semibold text-slate-900 leading-tight">{section.title}</h1>
-          {(sectionHint || section.description) && (
-            <p className="text-sm text-slate-500">{sectionHint || section.description}</p>
-          )}
-        </div>
-        <div className="flex items-center gap-2">
-          <NavigationButton
-            label="Previous"
-            disabled={!previousSectionId}
-            onClick={() => onNavigateSection(previousSectionId)}
-          />
-          <NavigationButton
-            label="Next"
-            disabled={!nextSectionId}
-            onClick={() => onNavigateSection(nextSectionId)}
-          />
-        </div>
-      </div>
-
       <div className="flex-1 overflow-y-auto px-6 lg:px-12 py-9 space-y-6">
+        <div className="rounded-3xl border border-slate-200 bg-white p-6 shadow-sm space-y-3">
+          <div className="flex flex-wrap items-start justify-between gap-4">
+            <div className="space-y-2">
+              <p className="text-[11px] tracking-[0.2em] uppercase text-slate-400">{section.category}</p>
+              <h1 className="text-3xl font-semibold text-slate-900 leading-tight">{section.title}</h1>
+              {(sectionHint || section.description) && (
+                <p className="text-sm text-slate-500">{sectionHint || section.description}</p>
+              )}
+            </div>
+            <div className="text-xs text-slate-500 text-right">
+              <p className="font-semibold text-slate-700">Completion</p>
+              <p>
+                {answeredQuestions}/{totalQuestions} questions • {section.progress ?? 0}%
+              </p>
+            </div>
+          </div>
+        </div>
         {section.questions.map((question, index) => (
           <QuestionCard
             key={question.id}
@@ -1204,7 +1191,7 @@ function SectionWorkspace({
         ))}
       </div>
 
-      <div className="sticky bottom-0 bg-slate-50/95 backdrop-blur border-t border-slate-200 px-12 py-4 flex items-center justify-between">
+      <div className="sticky bottom-0 bg-slate-50/95 backdrop-blur border-t border-slate-200 px-6 lg:px-12 py-4 flex items-center justify-between">
         <span className="text-xs text-slate-400">
           Progress • {section.progress ?? 0}% complete
         </span>
@@ -1404,14 +1391,6 @@ function RightPanel({
   onAttachDataset,
   onAttachKpi,
   onAttachMedia,
-  onTitlePageChange,
-  onAncillaryChange,
-  onReferenceAdd,
-  onReferenceUpdate,
-  onReferenceDelete,
-  onAppendixAdd,
-  onAppendixUpdate,
-  onAppendixDelete,
   onRunRequirements,
   progressSummary,
   onAskAI
@@ -1427,14 +1406,6 @@ function RightPanel({
   onAttachDataset: (dataset: Dataset) => void;
   onAttachKpi: (kpi: KPI) => void;
   onAttachMedia: (asset: MediaAsset) => void;
-  onTitlePageChange: (titlePage: TitlePage) => void;
-  onAncillaryChange: (updates: Partial<AncillaryContent>) => void;
-  onReferenceAdd: (reference: Reference) => void;
-  onReferenceUpdate: (reference: Reference) => void;
-  onReferenceDelete: (referenceId: string) => void;
-  onAppendixAdd: (item: AppendixItem) => void;
-  onAppendixUpdate: (item: AppendixItem) => void;
-  onAppendixDelete: (appendixId: string) => void;
   onRunRequirements: () => void;
   progressSummary: ProgressSummary[];
   onAskAI: (questionId?: string) => void;
@@ -1442,9 +1413,8 @@ function RightPanel({
   const panelMeta = PANEL_GUIDANCE[view];
   return (
     <aside className="border-l border-gray-200 bg-white flex flex-col">
-      <div className="grid grid-cols-5 border-b border-gray-200 text-xs font-semibold text-gray-500">
-        {(['ai', 'data', 'ancillary', 'preview', 'requirements'] as RightPanelView[]).map(
-          (tab) => (
+      <div className="grid grid-cols-4 border-b border-gray-200 text-xs font-semibold text-gray-500">
+        {(['ai', 'data', 'preview', 'requirements'] as RightPanelView[]).map((tab) => (
             <button
               key={tab}
               onClick={() => setView(tab)}
@@ -1454,8 +1424,7 @@ function RightPanel({
             >
               {tab.charAt(0).toUpperCase() + tab.slice(1)}
             </button>
-          )
-        )}
+          ))}
       </div>
       {panelMeta && (
         <div className="px-4 py-3 border-b border-gray-100 bg-slate-50 space-y-2">
@@ -1527,24 +1496,6 @@ function RightPanel({
           <div className="p-4 text-xs text-gray-500">
             Choose a section to manage datasets, KPIs, and media.
           </div>
-        )}
-        {view === 'ancillary' && (
-          <AncillaryEditorPanel
-            titlePage={plan.titlePage}
-            ancillary={plan.ancillary}
-            references={plan.references}
-            appendices={plan.appendices ?? []}
-            onTitlePageChange={onTitlePageChange}
-            onAncillaryChange={onAncillaryChange}
-            onReferenceAdd={onReferenceAdd}
-            onReferenceUpdate={onReferenceUpdate}
-            onReferenceDelete={onReferenceDelete}
-            onAppendixAdd={onAppendixAdd}
-            onAppendixUpdate={onAppendixUpdate}
-            onAppendixDelete={onAppendixDelete}
-            onRunRequirementsCheck={onRunRequirements}
-            progressSummary={progressSummary}
-          />
         )}
         {view === 'preview' && (
           <PreviewPane plan={plan} focusSectionId={section?.id} />
