@@ -6,6 +6,7 @@ import React from 'react';
 import Editor from '@/features/editor/components/Editor';
 import type { ProductType } from '@/features/editor/types/plan';
 import PageEntryIndicator from '@/shared/components/common/PageEntryIndicator';
+import InPageBreadcrumbs from '@/shared/components/layout/InPageBreadcrumbs';
 
 class ErrorBoundary extends React.Component<
   { children: React.ReactNode },
@@ -86,6 +87,14 @@ function EditorPage() {
         duration={5000}
         position="top-right"
       />
+      <InPageBreadcrumbs
+        className="mb-4"
+        items={[
+          { label: 'Workspace', href: '/dashboard' },
+          { label: 'Plan Builder', href: '/editor' },
+          { label: formatProductLabel(selectedProduct) }
+        ]}
+      />
       
       <Editor
         product={selectedProduct}
@@ -104,4 +113,19 @@ function isProductType(value: string): value is ProductType {
     value === 'strategy' ||
     value === 'other'
   );
+}
+
+function formatProductLabel(product: ProductType) {
+  switch (product) {
+    case 'prototype':
+      return 'Prototype Plan';
+    case 'research_project':
+      return 'Research Project';
+    case 'strategy':
+      return 'Strategy Plan';
+    case 'other':
+      return 'Custom Plan';
+    default:
+      return 'Submission Plan';
+  }
 }

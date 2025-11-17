@@ -1,13 +1,15 @@
 ﻿import { Button } from "@/shared/components/ui/button";
+import SuccessHub from "@/shared/components/common/SuccessHub";
 import Link from "next/link";
 import { useRouter } from "next/router";
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useI18n } from "@/shared/contexts/I18nContext";
 import { useUser } from "@/shared/user/context/UserContext";
 import analytics from "@/shared/user/analytics";
 import { savePaymentRecord } from "@/shared/user/storage/paymentStore";
 import { getUserDocuments } from "@/shared/user/storage/documentStore";
-import { FileText, CheckCircle } from "lucide-react";
+import type { PlanDocument } from "@/shared/user/schemas/userProfile";
+import { CheckCircle } from "lucide-react";
 
 export default function SuccessHubPage() {
   const router = useRouter();
@@ -26,6 +28,30 @@ export default function SuccessHubPage() {
   const [selectedSections, setSelectedSections] = useState<string[]>([]);
   const [_paymentVerified, setPaymentVerified] = useState(false); // Used for future payment verification UI
   const [isMounted, setIsMounted] = useState(false);
+  const planSummary = useMemo<PlanDocument | null>(() => {
+    if (!userProfile || !planId || typeof planId !== 'string') {
+      return null;
+    }
+
+    const timestamp = new Date().toISOString();
+
+    return {
+      id: planId,
+      userId: userProfile.id,
+      title: userProfile.segment === 'VISA' ? 'Visa Business Plan' : 'Business Plan',
+      type: 'CUSTOM',
+      programId: undefined,
+      sections: [],
+      metadata: {
+        wordCount: 0,
+        completionPercentage: documents.length > 0 ? 100 : 75,
+        lastEditedAt: timestamp,
+        version: 1
+      },
+      createdAt: timestamp,
+      updatedAt: timestamp
+    };
+  }, [planId, userProfile, documents.length]);
   
   useEffect(() => {
     setIsMounted(true);
@@ -78,6 +104,17 @@ export default function SuccessHubPage() {
       console.error('Payment verification failed:', error);
     }
   };
+
+  const handleTestimonialSubmit = async (rating: number, feedback: string) => {
+    await analytics.trackEvent({
+      event: 'success_hub_testimonial',
+      properties: {
+        rating,
+        feedbackLength: feedback.length,
+        planId: typeof planId === 'string' ? planId : undefined
+      }
+    });
+  };
   if (!isMounted) {
     return (
       <div className="max-w-3xl mx-auto p-6 space-y-8 text-center">
@@ -98,45 +135,14 @@ export default function SuccessHubPage() {
         completed. {documents.length > 0 ? 'Your documents have been sent to your email.' : 'A copy will be sent to your email shortly.'}
       </p>
 
-      {/* Documents List */}
-      {documents.length > 0 && (
-        <div className="max-w-2xl mx-auto mt-8 text-left">
-          <h2 className="text-xl font-semibold mb-4 flex items-center gap-2">
-            <FileText className="w-5 h-5" />
-            Your Exported Documents
-          </h2>
-          <div className="space-y-3">
-            {documents.map((doc) => (
-              <div key={doc.id} className="flex items-center justify-between p-6 border border-gray-200 rounded-lg bg-white shadow-sm hover:shadow-md transition-all">
-                <div className="flex items-center gap-3">
-                  <div className="w-10 h-10 bg-blue-100 rounded-lg flex items-center justify-center">
-                    <FileText className="w-5 h-5 text-blue-600" />
-                  </div>
-                  <div>
-                    <div className="font-medium text-gray-900">{doc.name}</div>
-                    <div className="text-sm text-gray-600">{doc.format} • {doc.type}</div>
-                  </div>
-                </div>
-                <div className="flex items-center gap-2">
-                  <span className={`px-3 py-1 rounded-full text-xs font-medium ${
-                    doc.status === 'email_sent' ? 'bg-green-100 text-green-700' :
-                    doc.status === 'downloaded' ? 'bg-blue-100 text-blue-700' :
-                    'bg-gray-100 text-gray-700'
-                  }`}>
-                    {doc.status === 'email_sent' ? 'Email Sent' :
-                     doc.status === 'downloaded' ? 'Downloaded' :
-                     'Ready'}
-                  </span>
-                </div>
-              </div>
-            ))}
-          </div>
-          <div className="mt-4 p-6 bg-blue-50 rounded-lg border border-blue-200">
-            <p className="text-sm text-blue-800">
-              📧 All documents have been sent to your email. You can also access them anytime from your dashboard.
-            </p>
-          </div>
-        </div>
+      {planSummary && userProfile && (
+        <SuccessHub
+          plan={planSummary}
+          userProfile={userProfile}
+          documents={documents}
+          layout="embedded"
+          onTestimonialSubmit={handleTestimonialSubmit}
+        />
       )}
 
       {/* Revision Option */}

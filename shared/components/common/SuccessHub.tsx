@@ -1,12 +1,24 @@
 // Success Hub with Next Steps and Testimonials
 import React, { useState, useEffect } from 'react';
+import { FileText } from 'lucide-react';
 import { PlanDocument } from '@/shared/user/schemas/userProfile';
 import analytics from '@/shared/user/analytics';
+
+interface ExportedDocumentSummary {
+  id: string;
+  name: string;
+  format?: string;
+  type?: string;
+  status?: 'email_sent' | 'downloaded' | 'ready' | string;
+}
 
 interface SuccessHubProps {
   plan: PlanDocument;
   userProfile: any;
-  onTestimonialSubmit: (rating: number, feedback: string) => void;
+  onTestimonialSubmit: (rating: number, feedback: string) => Promise<void> | void;
+  documents?: ExportedDocumentSummary[];
+  layout?: 'standalone' | 'embedded';
+  showDownloadCenter?: boolean;
 }
 
 interface NextStep {
@@ -154,7 +166,14 @@ const TESTIMONIALS: Testimonial[] = [
   }
 ];
 
-export default function SuccessHub({ plan, userProfile, onTestimonialSubmit }: SuccessHubProps) {
+export default function SuccessHub({
+  plan,
+  userProfile,
+  onTestimonialSubmit,
+  documents = [],
+  layout = 'standalone',
+  showDownloadCenter = true
+}: SuccessHubProps) {
   const [testimonialRating, setTestimonialRating] = useState(0);
   const [testimonialText, setTestimonialText] = useState('');
   const [isSubmittingTestimonial, setIsSubmittingTestimonial] = useState(false);
@@ -209,10 +228,18 @@ export default function SuccessHub({ plan, userProfile, onTestimonialSubmit }: S
 
   const nextSteps = getNextSteps();
   const testimonials = getFilteredTestimonials();
+  const outerClassName =
+    layout === 'embedded'
+      ? 'bg-gray-50 rounded-2xl p-6 md:p-10 w-full'
+      : 'min-h-screen bg-gray-50 py-8';
+  const innerClassName =
+    layout === 'embedded'
+      ? 'max-w-4xl mx-auto'
+      : 'max-w-4xl mx-auto px-4';
 
   return (
-    <div className="min-h-screen bg-gray-50 py-8">
-      <div className="max-w-4xl mx-auto px-4">
+    <div className={outerClassName}>
+      <div className={innerClassName}>
         {/* Header */}
         <div className="text-center mb-8">
           <div className="inline-flex items-center justify-center w-16 h-16 bg-green-100 rounded-full mb-4">
@@ -281,39 +308,81 @@ export default function SuccessHub({ plan, userProfile, onTestimonialSubmit }: S
         </div>
 
         {/* Download Center */}
-        <div className="bg-white rounded-lg shadow-sm p-6 mb-8">
-          <h2 className="text-xl font-semibold text-gray-900 mb-6">Download Center</h2>
-          
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div className="p-4 border border-gray-200 rounded-lg">
-              <div className="flex items-center space-x-3">
-                <div className="w-10 h-10 bg-red-100 rounded-lg flex items-center justify-center">
-                  <svg className="w-6 h-6 text-red-600" fill="currentColor" viewBox="0 0 20 20">
-                    <path fillRule="evenodd" d="M4 4a2 2 0 012-2h4.586A2 2 0 0112 2.586L15.414 6A2 2 0 0116 7.414V16a2 2 0 01-2 2H6a2 2 0 01-2-2V4zm2 6a1 1 0 011-1h6a1 1 0 110 2H7a1 1 0 01-1-1zm1 3a1 1 0 100 2h6a1 1 0 100-2H7z" clipRule="evenodd" />
-                  </svg>
-                </div>
-                <div>
-                  <h3 className="font-medium text-gray-900">PDF Export</h3>
-                  <p className="text-sm text-gray-600">Professional business plan</p>
-                </div>
-              </div>
-            </div>
+        {showDownloadCenter && (
+          <div className="bg-white rounded-lg shadow-sm p-6 mb-8">
+            <h2 className="text-xl font-semibold text-gray-900 mb-6">Download Center</h2>
             
-            <div className="p-4 border border-gray-200 rounded-lg">
-              <div className="flex items-center space-x-3">
-                <div className="w-10 h-10 bg-blue-100 rounded-lg flex items-center justify-center">
-                  <svg className="w-6 h-6 text-blue-600" fill="currentColor" viewBox="0 0 20 20">
-                    <path fillRule="evenodd" d="M4 4a2 2 0 012-2h4.586A2 2 0 0112 2.586L15.414 6A2 2 0 0116 7.414V16a2 2 0 01-2 2H6a2 2 0 01-2-2V4zm2 6a1 1 0 011-1h6a1 1 0 110 2H7a1 1 0 01-1-1zm1 3a1 1 0 100 2h6a1 1 0 100-2H7z" clipRule="evenodd" />
-                  </svg>
+            {documents.length > 0 ? (
+              <div className="space-y-3">
+                {documents.map((doc) => (
+                  <div
+                    key={doc.id}
+                    className="flex items-center justify-between p-4 border border-gray-200 rounded-lg hover:shadow-sm transition-shadow"
+                  >
+                    <div className="flex items-center gap-3 text-left">
+                      <div className="w-10 h-10 bg-blue-50 rounded-lg flex items-center justify-center">
+                        <FileText className="w-5 h-5 text-blue-600" />
+                      </div>
+                      <div>
+                        <div className="font-medium text-gray-900">{doc.name}</div>
+                        <div className="text-sm text-gray-600">
+                          {[doc.format, doc.type].filter(Boolean).join(' • ')}
+                        </div>
+                      </div>
+                    </div>
+                    {doc.status && (
+                      <span
+                        className={`px-3 py-1 rounded-full text-xs font-medium ${
+                          doc.status === 'email_sent'
+                            ? 'bg-green-100 text-green-700'
+                            : doc.status === 'downloaded'
+                            ? 'bg-blue-100 text-blue-700'
+                            : 'bg-gray-100 text-gray-700'
+                        }`}
+                      >
+                        {doc.status === 'email_sent'
+                          ? 'Email Sent'
+                          : doc.status === 'downloaded'
+                          ? 'Downloaded'
+                          : 'Ready'}
+                      </span>
+                    )}
+                  </div>
+                ))}
+              </div>
+            ) : (
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div className="p-4 border border-gray-200 rounded-lg">
+                  <div className="flex items-center space-x-3">
+                    <div className="w-10 h-10 bg-red-100 rounded-lg flex items-center justify-center">
+                      <svg className="w-6 h-6 text-red-600" fill="currentColor" viewBox="0 0 20 20">
+                        <path fillRule="evenodd" d="M4 4a2 2 0 012-2h4.586A2 2 0 0112 2.586L15.414 6A2 2 0 0116 7.414V16a2 2 0 01-2 2H6a2 2 0 01-2-2V4zm2 6a1 1 0 011-1h6a1 1 0 110 2H7a1 1 0 01-1-1zm1 3a1 1 0 100 2h6a1 1 0 100-2H7z" clipRule="evenodd" />
+                      </svg>
+                    </div>
+                    <div>
+                      <h3 className="font-medium text-gray-900">PDF Export</h3>
+                      <p className="text-sm text-gray-600">Professional business plan</p>
+                    </div>
+                  </div>
                 </div>
-                <div>
-                  <h3 className="font-medium text-gray-900">DOCX Export</h3>
-                  <p className="text-sm text-gray-600">Editable document</p>
+                
+                <div className="p-4 border border-gray-200 rounded-lg">
+                  <div className="flex items-center space-x-3">
+                    <div className="w-10 h-10 bg-blue-100 rounded-lg flex items-center justify-center">
+                      <svg className="w-6 h-6 text-blue-600" fill="currentColor" viewBox="0 0 20 20">
+                        <path fillRule="evenodd" d="M4 4a2 2 0 012-2h4.586A2 2 0 0112 2.586L15.414 6A2 2 0 0116 7.414V16a2 2 0 01-2 2H6a2 2 0 01-2-2V4zm2 6a1 1 0 011-1h6a1 1 0 110 2H7a1 1 0 01-1-1zm1 3a1 1 0 100 2h6a1 1 0 100-2H7z" clipRule="evenodd" />
+                      </svg>
+                    </div>
+                    <div>
+                      <h3 className="font-medium text-gray-900">DOCX Export</h3>
+                      <p className="text-sm text-gray-600">Editable document</p>
+                    </div>
+                  </div>
                 </div>
               </div>
-            </div>
+            )}
           </div>
-        </div>
+        )}
 
         {/* Testimonials */}
         <div className="bg-white rounded-lg shadow-sm p-6 mb-8">
