@@ -6,6 +6,7 @@ import { useRouter } from 'next/router';
 import { create } from 'zustand';
 import {
   AncillaryContent,
+  AppendixItem,
   BusinessPlan,
   Dataset,
   FundingProgramType,
@@ -55,11 +56,18 @@ interface EditorStoreState {
   addDataset: (sectionId: string, dataset: Dataset) => void;
   addKpi: (sectionId: string, kpi: KPI) => void;
   addMedia: (sectionId: string, asset: MediaAsset) => void;
+  attachDatasetToQuestion: (sectionId: string, questionId: string, dataset: Dataset) => void;
+  attachKpiToQuestion: (sectionId: string, questionId: string, kpi: KPI) => void;
+  attachMediaToQuestion: (sectionId: string, questionId: string, asset: MediaAsset) => void;
+  detachQuestionAttachment: (sectionId: string, questionId: string, attachmentId: string) => void;
   updateTitlePage: (titlePage: TitlePage) => void;
   updateAncillary: (updates: Partial<AncillaryContent>) => void;
   addReference: (reference: Reference) => void;
   updateReference: (reference: Reference) => void;
   deleteReference: (referenceId: string) => void;
+  addAppendix: (item: AppendixItem) => void;
+  updateAppendix: (item: AppendixItem) => void;
+  deleteAppendix: (appendixId: string) => void;
   setProductType: (product: ProductType) => void;
   setFundingProgram: (program: FundingProgramType) => void;
   runRequirementsCheck: () => void;
@@ -157,13 +165,23 @@ const useEditorStore = create<EditorStoreState>((set, get) => ({
     if (!plan) return;
     const updatedPlan: BusinessPlan = {
       ...plan,
-      sections: plan.sections.map((section) => ({
-        ...section,
-        questions: section.questions.map((question) =>
+      sections: plan.sections.map((section) => {
+        const updatedQuestions = section.questions.map((question) =>
           question.id === questionId ? { ...question, answer: content } : question
-        ),
-        progress: section.questions.every((q) => (q.answer || '').trim().length > 0) ? 100 : 0
-      })),
+        );
+        const answeredCount = updatedQuestions.filter(
+          (question) => (question.answer ?? '').trim().length > 0
+        ).length;
+        const progress =
+          updatedQuestions.length === 0
+            ? 0
+            : Math.round((answeredCount / updatedQuestions.length) * 100);
+        return {
+          ...section,
+          questions: updatedQuestions,
+          progress
+        };
+      }),
       metadata: {
         ...plan.metadata,
         lastSavedAt: new Date().toISOString()
@@ -200,6 +218,55 @@ const useEditorStore = create<EditorStoreState>((set, get) => ({
       media: [...(section.media ?? []), asset]
     }));
     persistPlan(updatedPlan);
+    set({ plan: updatedPlan });
+  },
+  attachDatasetToQuestion: (sectionId, questionId, dataset) => {
+    const asset: MediaAsset = {
+      id: `dataset_attachment_${dataset.id}_${Date.now()}`,
+      type: 'table',
+      title: dataset.name,
+      description: dataset.description,
+      datasetId: dataset.id,
+      tags: dataset.tags,
+      attachedQuestionId: questionId
+    };
+    attachAssetToQuestion(set, get, sectionId, questionId, asset);
+  },
+  attachKpiToQuestion: (sectionId, questionId, kpi) => {
+    const asset: MediaAsset = {
+      id: `kpi_attachment_${kpi.id}_${Date.now()}`,
+      type: 'kpi',
+      title: kpi.name,
+      description: kpi.description,
+      datasetId: kpi.datasetId,
+      tags: kpi.unit ? [kpi.unit] : undefined,
+      attachedQuestionId: questionId
+    };
+    attachAssetToQuestion(set, get, sectionId, questionId, asset);
+  },
+  attachMediaToQuestion: (sectionId, questionId, asset) => {
+    attachAssetToQuestion(set, get, sectionId, questionId, {
+      ...asset,
+      id: `${asset.id}_attached_${Date.now()}`,
+      attachedQuestionId: questionId
+    });
+  },
+  detachQuestionAttachment: (sectionId, questionId, attachmentId) => {
+    const { plan } = get();
+    if (!plan) return;
+    const updatedPlan = updateSection(plan, sectionId, (section) => ({
+      ...section,
+      questions: section.questions.map((question) =>
+        question.id === questionId
+          ? {
+              ...question,
+              attachments: (question.attachments ?? []).filter(
+                (attachment) => attachment.id !== attachmentId
+              )
+            }
+          : question
+      )
+    }));
     set({ plan: updatedPlan });
   },
   updateTitlePage: (titlePage) => {
@@ -241,6 +308,38 @@ const useEditorStore = create<EditorStoreState>((set, get) => ({
       plan: {
         ...plan,
         references: plan.references.filter((ref) => ref.id !== referenceId)
+      }
+    });
+  },
+  addAppendix: (item) => {
+    const { plan } = get();
+    if (!plan) return;
+    set({
+      plan: {
+        ...plan,
+        appendices: [...(plan.appendices ?? []), item]
+      }
+    });
+  },
+  updateAppendix: (item) => {
+    const { plan } = get();
+    if (!plan) return;
+    set({
+      plan: {
+        ...plan,
+        appendices: (plan.appendices ?? []).map((existing) =>
+          existing.id === item.id ? item : existing
+        )
+      }
+    });
+  },
+  deleteAppendix: (appendixId) => {
+    const { plan } = get();
+    if (!plan) return;
+    set({
+      plan: {
+        ...plan,
+        appendices: (plan.appendices ?? []).filter((appendix) => appendix.id !== appendixId)
       }
     });
   },
@@ -336,32 +435,49 @@ const useEditorStore = create<EditorStoreState>((set, get) => ({
   }
 }));
 
+function attachAssetToQuestion(
+  set: (partial: Partial<EditorStoreState>) => void,
+  get: () => EditorStoreState,
+  sectionId: string,
+  questionId: string,
+  asset: MediaAsset
+) {
+  const { plan } = get();
+  if (!plan) return;
+  const updatedPlan = updateSection(plan, sectionId, (section) => ({
+    ...section,
+    questions: section.questions.map((question) =>
+      question.id === questionId
+        ? {
+            ...question,
+            attachments: [...(question.attachments ?? []), asset]
+          }
+        : question
+    )
+  }));
+  set({ plan: updatedPlan });
+}
+
 function buildSectionFromTemplate(
   template: SectionTemplate,
   savedSections: StoredPlanSection[]
 ): Section {
   const saved = savedSections.find((section) => section.id === template.id);
-  const answer = saved?.content ?? '';
   const datasets = convertLegacyTablesToDatasets(saved?.tables);
+  const questions = buildQuestionsFromTemplate(template, saved?.content ?? '');
   return {
     id: template.id,
     title: template.title,
     description: template.description || template.prompts?.[0] || '',
-    questions: [
-      {
-        id: `${template.id}_q1`,
-        prompt: template.prompts?.[0] || template.title,
-        answer,
-        suggestions: [],
-        warnings: []
-      }
-    ],
+    questions,
     datasets,
     kpis: [],
     media: (saved?.figures as MediaAsset[]) || [],
     collapsed: false,
     category: template.category,
-    progress: answer ? 100 : 0
+    progress: questions.every((question) => (question.answer ?? '').trim().length > 0)
+      ? 100
+      : 0
   };
 }
 
@@ -422,6 +538,73 @@ function convertPlanToLegacySections(plan: BusinessPlan): LegacyPlanSection[] {
   }));
 }
 
+function buildQuestionsFromTemplate(template: SectionTemplate, savedAnswer: string): Question[] {
+  const requiredAssets = deriveRequiredAssets(template.validationRules?.requiredFields ?? []);
+  const seeds =
+    template.questions && template.questions.length > 0
+      ? template.questions.map((question) => ({
+          prompt: question.text,
+          helperText: question.hint,
+          placeholder: question.placeholder,
+          required: question.required
+        }))
+      : (template.prompts?.length
+          ? template.prompts.map((prompt) => ({
+              prompt,
+              helperText: template.description,
+              placeholder: 'Provide details',
+              required: true
+            }))
+          : [
+              {
+                prompt: template.title,
+                helperText: template.description,
+                placeholder: 'Provide details',
+                required: true
+              }
+            ]);
+
+  return seeds.map((seed, index) => ({
+    id: `${template.id}_q${index + 1}`,
+    prompt: seed.prompt,
+    helperText: seed.helperText,
+    placeholder: seed.placeholder,
+    required: seed.required,
+    answer: index === 0 ? savedAnswer : '',
+    suggestions: [],
+    warnings: [],
+    requiredAssets
+  }));
+}
+
+function deriveRequiredAssets(requiredFields: string[]): Array<MediaAsset['type']> {
+  const hints: Array<MediaAsset['type']> = [];
+  const tableFields = [
+    'budget_breakdown',
+    'funding_request',
+    'co_financing',
+    'cost_justification',
+    'timeline',
+    'milestones',
+    'partner_list',
+    'roles',
+    'team_members'
+  ];
+  const chartFields = ['market_trends', 'revenue_assumptions', 'cost_assumptions', 'financial_projection'];
+  const kpiFields = ['kpi_summary', 'expected_impact', 'impact_kpis'];
+
+  if (requiredFields.some((field) => tableFields.includes(field))) {
+    hints.push('table');
+  }
+  if (requiredFields.some((field) => chartFields.includes(field))) {
+    hints.push('chart');
+  }
+  if (requiredFields.some((field) => kpiFields.includes(field))) {
+    hints.push('kpi');
+  }
+  return Array.from(new Set(hints));
+}
+
 function persistPlan(plan: BusinessPlan) {
   const legacySections = convertPlanToLegacySections(plan);
   savePlanSections(
@@ -465,11 +648,18 @@ export default function Editor({ product = 'submission' }: EditorProps) {
     addDataset,
     addKpi,
     addMedia,
+    attachDatasetToQuestion,
+    attachKpiToQuestion,
+    attachMediaToQuestion,
+    detachQuestionAttachment,
     updateTitlePage,
     updateAncillary,
     addReference,
     updateReference,
     deleteReference,
+    addAppendix,
+    updateAppendix,
+    deleteAppendix,
     setProductType,
     setFundingProgram,
     progressSummary,
@@ -494,6 +684,15 @@ export default function Editor({ product = 'submission' }: EditorProps) {
   const activeQuestion =
     activeSection?.questions.find((question) => question.id === activeQuestionId) ??
     activeSection?.questions[0];
+
+  const sectionIndex =
+    plan?.sections.findIndex((section) => section.id === activeSection?.id) ?? -1;
+  const previousSectionId =
+    plan && sectionIndex > 0 ? plan.sections[sectionIndex - 1]?.id ?? null : null;
+  const nextSectionId =
+    plan && sectionIndex >= 0 && sectionIndex < plan.sections.length - 1
+      ? plan.sections[sectionIndex + 1]?.id ?? null
+      : null;
 
   if (isLoading || !plan) {
     return (
@@ -535,6 +734,13 @@ export default function Editor({ product = 'submission' }: EditorProps) {
         onAnswerChange={updateAnswer}
         onSelectQuestion={setActiveQuestion}
         activeQuestionId={activeQuestion?.id ?? null}
+        onNavigateSection={(targetId) => targetId && setActiveSection(targetId)}
+        previousSectionId={previousSectionId}
+        nextSectionId={nextSectionId}
+        onDetachAttachment={(questionId, attachmentId) =>
+          activeSection && detachQuestionAttachment(activeSection.id, questionId, attachmentId)
+        }
+        onPromptAssetRequest={() => setRightPanelView('data')}
         onAskAI={() => {
           if (activeSection && activeQuestion) {
             requestAISuggestions(activeSection.id, activeQuestion.id);
@@ -552,11 +758,29 @@ export default function Editor({ product = 'submission' }: EditorProps) {
         onDatasetCreate={(dataset) => activeSection && addDataset(activeSection.id, dataset)}
         onKpiCreate={(kpi) => activeSection && addKpi(activeSection.id, kpi)}
         onMediaCreate={(asset) => activeSection && addMedia(activeSection.id, asset)}
+        onAttachDataset={(dataset) =>
+          activeSection &&
+          activeQuestion &&
+          attachDatasetToQuestion(activeSection.id, activeQuestion.id, dataset)
+        }
+        onAttachKpi={(kpi) =>
+          activeSection &&
+          activeQuestion &&
+          attachKpiToQuestion(activeSection.id, activeQuestion.id, kpi)
+        }
+        onAttachMedia={(asset) =>
+          activeSection &&
+          activeQuestion &&
+          attachMediaToQuestion(activeSection.id, activeQuestion.id, asset)
+        }
         onTitlePageChange={updateTitlePage}
         onAncillaryChange={updateAncillary}
         onReferenceAdd={addReference}
         onReferenceUpdate={updateReference}
         onReferenceDelete={deleteReference}
+        onAppendixAdd={(item) => addAppendix(item)}
+        onAppendixUpdate={(item) => updateAppendix(item)}
+        onAppendixDelete={(appendixId) => deleteAppendix(appendixId)}
         onRunRequirements={runRequirementsCheck}
         progressSummary={progressSummary}
       />
@@ -638,49 +862,97 @@ function SectionWorkspace({
   onAnswerChange,
   onSelectQuestion,
   activeQuestionId,
-  onAskAI
+  onNavigateSection,
+  previousSectionId,
+  nextSectionId,
+  onAskAI,
+  onDetachAttachment,
+  onPromptAssetRequest
 }: {
   section?: Section;
   onAnswerChange: (questionId: string, content: string) => void;
   onSelectQuestion: (questionId: string) => void;
   activeQuestionId: string | null;
+  onNavigateSection: (targetId: string | null) => void;
+  previousSectionId: string | null;
+  nextSectionId: string | null;
   onAskAI: () => void;
+  onDetachAttachment: (questionId: string, attachmentId: string) => void;
+  onPromptAssetRequest: () => void;
 }) {
   if (!section) {
     return (
-      <main className="p-10">
-        <div className="text-gray-500 text-sm">Select a section to begin.</div>
+      <main className="flex flex-col h-screen bg-slate-50">
+        <div className="flex-1 flex items-center justify-center text-gray-500 text-sm">
+          Select a section to begin.
+        </div>
       </main>
     );
   }
 
   return (
-    <main className="p-10 space-y-6 overflow-y-auto">
-      <div className="flex items-center justify-between">
+    <main className="flex flex-col h-screen bg-slate-50">
+      <div className="sticky top-0 z-10 bg-slate-50/95 backdrop-blur border-b border-slate-200 px-12 py-5 flex flex-wrap items-center justify-between gap-3">
         <div>
-          <p className="text-xs text-gray-500 uppercase">{section.category}</p>
-          <h1 className="text-2xl font-semibold text-gray-900">{section.title}</h1>
+          <p className="text-[11px] tracking-[0.2em] uppercase text-slate-400">{section.category}</p>
+          <h1 className="text-2xl font-semibold text-slate-900">{section.title}</h1>
           {section.description && (
-            <p className="text-sm text-gray-500 mt-1">{section.description}</p>
+            <p className="text-sm text-slate-500 mt-1 max-w-2xl">{section.description}</p>
           )}
         </div>
-        <button
-          onClick={onAskAI}
-          className="px-4 py-2 bg-blue-600 text-white rounded-md text-sm font-semibold"
-        >
-          Ask AI for help
-        </button>
+        <div className="flex items-center gap-2">
+          <NavigationButton
+            label="Previous"
+            disabled={!previousSectionId}
+            onClick={() => onNavigateSection(previousSectionId)}
+          />
+          <button
+            onClick={onAskAI}
+            className="px-4 py-2 rounded-full bg-blue-600 text-white text-sm font-semibold shadow-sm hover:bg-blue-500 transition"
+          >
+            Ask AI
+          </button>
+          <NavigationButton
+            label="Next"
+            disabled={!nextSectionId}
+            onClick={() => onNavigateSection(nextSectionId)}
+          />
+        </div>
       </div>
-      <div className="space-y-4">
-        {section.questions.map((question) => (
+
+      <div className="flex-1 overflow-y-auto px-12 py-8 space-y-5">
+        {section.questions.map((question, index) => (
           <QuestionCard
             key={question.id}
+            position={index + 1}
             question={question}
             isActive={question.id === activeQuestionId}
             onFocus={() => onSelectQuestion(question.id)}
             onChange={(content) => onAnswerChange(question.id, content)}
+            onDetachAttachment={onDetachAttachment}
+            onPromptAssetRequest={onPromptAssetRequest}
           />
         ))}
+      </div>
+
+      <div className="sticky bottom-0 bg-slate-50/95 backdrop-blur border-t border-slate-200 px-12 py-4 flex items-center justify-between">
+        <span className="text-xs text-slate-400">
+          Progress • {section.progress ?? 0}% complete
+        </span>
+        <div className="flex items-center gap-2">
+          <NavigationButton
+            label="Previous"
+            variant="ghost"
+            disabled={!previousSectionId}
+            onClick={() => onNavigateSection(previousSectionId)}
+          />
+          <NavigationButton
+            label="Next section"
+            variant="primary"
+            disabled={!nextSectionId}
+            onClick={() => onNavigateSection(nextSectionId)}
+          />
+        </div>
       </div>
     </main>
   );
@@ -688,33 +960,153 @@ function SectionWorkspace({
 
 function QuestionCard({
   question,
+  position,
   isActive,
   onFocus,
-  onChange
+  onChange,
+  onDetachAttachment,
+  onPromptAssetRequest
 }: {
   question: Question;
+  position: number;
   isActive: boolean;
   onFocus: () => void;
   onChange: (content: string) => void;
+  onDetachAttachment: (questionId: string, attachmentId: string) => void;
+  onPromptAssetRequest: () => void;
 }) {
   return (
     <div
-      className={`border rounded-xl p-4 bg-white shadow-sm ${
-        isActive ? 'border-blue-500 shadow-md' : 'border-gray-200'
+      className={`border rounded-2xl p-6 bg-white shadow-sm transition ${
+        isActive ? 'border-blue-500 shadow-lg ring-1 ring-blue-100' : 'border-slate-200'
       }`}
       onClick={onFocus}
     >
-      <p className="text-xs text-gray-500 uppercase mb-2">{question.prompt}</p>
-      <SimpleTextEditor content={question.answer ?? ''} onChange={onChange} />
+      <div className="flex items-start justify-between gap-4 mb-3">
+        <div>
+          <div className="flex items-center gap-2 mb-1">
+            <span className="text-[11px] font-semibold tracking-wider text-slate-400">
+              Q{position.toString().padStart(2, '0')}
+            </span>
+            {question.required && (
+              <span className="text-[10px] uppercase tracking-widest text-red-500">Required</span>
+            )}
+          </div>
+          <p className="text-base font-semibold text-slate-900">{question.prompt}</p>
+        </div>
+        {question.helperText && (
+          <span className="text-xs text-slate-400 max-w-xs">{question.helperText}</span>
+        )}
+      </div>
+
+      {question.requiredAssets && question.requiredAssets.length > 0 && (
+        <div className="mb-4 flex flex-wrap gap-2">
+          {question.requiredAssets.map((asset) => (
+            <button
+              key={`${question.id}_${asset}`}
+              type="button"
+              onClick={(event) => {
+                event.stopPropagation();
+                onPromptAssetRequest();
+              }}
+              className="px-3 py-1 rounded-full bg-slate-100 text-xs font-medium text-slate-600 hover:bg-blue-50 hover:text-blue-700"
+            >
+              {asset === 'kpi' ? 'KPI' : asset.charAt(0).toUpperCase() + asset.slice(1)} required
+            </button>
+          ))}
+        </div>
+      )}
+
+      <SimpleTextEditor
+        content={question.answer ?? ''}
+        onChange={onChange}
+        placeholder={question.placeholder}
+      />
+
+      {question.attachments && question.attachments.length > 0 && (
+        <div className="mt-4">
+          <p className="text-[11px] uppercase tracking-[0.2em] text-slate-400 mb-2">
+            Attachments
+          </p>
+          <div className="space-y-2">
+            {question.attachments.map((attachment) => (
+              <div
+                key={attachment.id}
+                className="flex items-center justify-between rounded-xl border border-slate-100 bg-slate-50 px-3 py-2 text-sm text-slate-700"
+              >
+                <div>
+                  <p className="font-medium">
+                    {attachment.title}{' '}
+                    <span className="text-xs uppercase text-slate-400">({attachment.type})</span>
+                  </p>
+                  {(attachment.caption || attachment.description) && (
+                    <p className="text-xs text-slate-500">
+                      {attachment.caption ?? attachment.description}
+                    </p>
+                  )}
+                </div>
+                <button
+                  onClick={(event) => {
+                    event.stopPropagation();
+                    onDetachAttachment(question.id, attachment.id);
+                  }}
+                  className="text-xs text-red-500"
+                >
+                  Remove
+                </button>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+
       {question.suggestions && question.suggestions.length > 0 && (
-        <div className="mt-3 border border-blue-100 bg-blue-50 text-sm text-blue-700 rounded-lg p-3 space-y-2">
+        <div className="mt-4 border border-blue-100 bg-blue-50 text-sm text-blue-700 rounded-lg p-3 space-y-2">
           <p className="font-semibold">AI suggestion</p>
           {question.suggestions.map((suggestion: string, index: number) => (
-            <p key={index}>{suggestion}</p>
+            <p key={`${question.id}_suggestion_${index}`}>{suggestion}</p>
+          ))}
+        </div>
+      )}
+      {question.warnings && question.warnings.length > 0 && (
+        <div className="mt-3 border border-amber-200 bg-amber-50 text-sm text-amber-800 rounded-lg p-3 space-y-1">
+          {question.warnings.map((warning, index) => (
+            <p key={`${question.id}_warning_${index}`}>{warning}</p>
           ))}
         </div>
       )}
     </div>
+  );
+}
+
+function NavigationButton({
+  label,
+  onClick,
+  disabled,
+  variant = 'outline'
+}: {
+  label: string;
+  onClick: () => void;
+  disabled?: boolean;
+  variant?: 'outline' | 'ghost' | 'primary';
+}) {
+  const baseClasses =
+    'px-4 py-2 rounded-full text-sm font-semibold transition focus:outline-none focus:ring-2 focus:ring-offset-1';
+  const variants: Record<'outline' | 'ghost' | 'primary', string> = {
+    outline:
+      'border border-slate-200 text-slate-600 hover:border-slate-300 hover:text-slate-900 bg-white',
+    ghost: 'text-slate-500 hover:text-slate-900',
+    primary: 'bg-blue-600 text-white hover:bg-blue-500'
+  };
+  return (
+    <button
+      type="button"
+      onClick={onClick}
+      disabled={disabled}
+      className={`${baseClasses} ${variants[variant]} ${disabled ? 'opacity-50 cursor-not-allowed' : ''}`}
+    >
+      {label}
+    </button>
   );
 }
 
@@ -727,11 +1119,17 @@ function RightPanel({
   onDatasetCreate,
   onKpiCreate,
   onMediaCreate,
+  onAttachDataset,
+  onAttachKpi,
+  onAttachMedia,
   onTitlePageChange,
   onAncillaryChange,
   onReferenceAdd,
   onReferenceUpdate,
   onReferenceDelete,
+  onAppendixAdd,
+  onAppendixUpdate,
+  onAppendixDelete,
   onRunRequirements,
   progressSummary
 }: {
@@ -743,11 +1141,17 @@ function RightPanel({
   onDatasetCreate: (dataset: Dataset) => void;
   onKpiCreate: (kpi: KPI) => void;
   onMediaCreate: (asset: MediaAsset) => void;
+  onAttachDataset: (dataset: Dataset) => void;
+  onAttachKpi: (kpi: KPI) => void;
+  onAttachMedia: (asset: MediaAsset) => void;
   onTitlePageChange: (titlePage: TitlePage) => void;
   onAncillaryChange: (updates: Partial<AncillaryContent>) => void;
   onReferenceAdd: (reference: Reference) => void;
   onReferenceUpdate: (reference: Reference) => void;
   onReferenceDelete: (referenceId: string) => void;
+  onAppendixAdd: (item: AppendixItem) => void;
+  onAppendixUpdate: (item: AppendixItem) => void;
+  onAppendixDelete: (appendixId: string) => void;
   onRunRequirements: () => void;
   progressSummary: ProgressSummary[];
 }) {
@@ -801,6 +1205,10 @@ function RightPanel({
             onDatasetCreate={onDatasetCreate}
             onKpiCreate={onKpiCreate}
             onMediaCreate={onMediaCreate}
+            activeQuestionId={question?.id}
+            onAttachDataset={onAttachDataset}
+            onAttachKpi={onAttachKpi}
+            onAttachMedia={onAttachMedia}
           />
         )}
         {view === 'data' && !section && (
@@ -813,11 +1221,15 @@ function RightPanel({
             titlePage={plan.titlePage}
             ancillary={plan.ancillary}
             references={plan.references}
+            appendices={plan.appendices ?? []}
             onTitlePageChange={onTitlePageChange}
             onAncillaryChange={onAncillaryChange}
             onReferenceAdd={onReferenceAdd}
             onReferenceUpdate={onReferenceUpdate}
             onReferenceDelete={onReferenceDelete}
+            onAppendixAdd={onAppendixAdd}
+            onAppendixUpdate={onAppendixUpdate}
+            onAppendixDelete={onAppendixDelete}
             onRunRequirementsCheck={onRunRequirements}
             progressSummary={progressSummary}
           />

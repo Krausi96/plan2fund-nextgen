@@ -2,11 +2,13 @@ import { NextApiRequest, NextApiResponse } from 'next';
 import {
   normalizeLocationAnswer,
   normalizeCompanyTypeAnswer,
+  normalizeCompanyStageAnswer,
   normalizeFundingAmountAnswer,
   normalizeFundingAmountExtraction,
   matchLocations,
   matchCompanyTypes,
   matchFundingAmounts,
+  matchCompanyStages,
 } from '../../../features/reco/engine/normalization';
 
 type UserAnswers = Record<string, any>;
@@ -26,6 +28,7 @@ interface GeneratedProgram {
     location?: string | null;
     description?: string | null;
     region?: string | null;
+    company_stage?: string | null;
   };
   categorized_requirements?: Record<string, any>;
 }
@@ -175,6 +178,7 @@ Return a JSON object:
       location: program.location || null,
       description: program.description || null,
       region: program.location || null,
+      company_stage: program.company_stage || null,
     },
     source: 'llm_generated',
   }));
@@ -253,6 +257,20 @@ function sanitizeLLMResponse(text: string): string {
   return trimmed;
 }
 
+function normalizeCompanyStageValue(value: any): string | null {
+  if (value === undefined || value === null) return null;
+  if (typeof value === 'number') {
+    if (value < 0) return 'pre_company';
+    if (value < 6) return 'inc_lt_6m';
+    if (value < 36) return 'inc_6_36m';
+    return 'inc_gt_36m';
+  }
+  if (typeof value === 'string' && value.trim().length > 0) {
+    return value;
+  }
+  return null;
+}
+
 function matchesAnswers(program: GeneratedProgram, answers: UserAnswers): boolean {
   const categorized = program.categorized_requirements || {};
   const metadata = program.metadata || {};
@@ -275,6 +293,23 @@ function matchesAnswers(program: GeneratedProgram, answers: UserAnswers): boolea
       const normalizedProgramType = normalizeCompanyTypeAnswer(programType);
       if (!matchCompanyTypes(userType, normalizedProgramType)) {
         return false;
+      }
+    }
+  }
+
+  if (answers.company_stage !== undefined && answers.company_stage !== null) {
+    const userStageValue = normalizeCompanyStageValue(answers.company_stage);
+    if (userStageValue) {
+      const userStage = normalizeCompanyStageAnswer(userStageValue);
+      const programStageValue =
+        (program as any).company_stage ||
+        metadata.company_stage ||
+        categorized.eligibility?.find((item: any) => item.type === 'company_stage')?.value;
+      if (programStageValue) {
+        const normalizedProgramStage = normalizeCompanyStageAnswer(programStageValue);
+        if (!matchCompanyStages(userStage, normalizedProgramStage)) {
+          return false;
+        }
       }
     }
   }

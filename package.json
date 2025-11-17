@@ -11,7 +11,6 @@
         "ci:full": "npm run typecheck && npm run lint && npm run build",
         "test:llm-first": "tsx scripts/test-llm-first-api.ts",
         "test:reco-flow": "tsx scripts/test-reco-flow.ts",
-        "test:reco-personas": "tsx scripts/test-reco-personas.ts"
     },
     "devDependencies": {
         "@next/eslint-plugin-next": "^15.5.4",

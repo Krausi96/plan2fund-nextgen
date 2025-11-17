@@ -397,11 +397,22 @@ export default function ProgramFinder({
   // Count only non-empty answers (fix logic flaw)
   // Only count main question IDs, exclude sub-options and sub-categories
   const mainQuestionIds = getTranslatedQuestions.map(q => q.id);
-  const answeredCount = mainQuestionIds.filter(questionId => {
-    const value = answers[questionId];
-    if (value === undefined || value === null || value === '') {
-      return false;
+  const isAnswerProvided = (value: any) => {
+    if (value === undefined || value === null) return false;
+    if (typeof value === 'string') {
+      return value.trim().length > 0;
     }
+    if (Array.isArray(value)) {
+      return value.length > 0;
+    }
+    return true;
+  };
+
+  const answeredCount = mainQuestionIds.filter(questionId => {
+  const value = answers[questionId];
+  if (!isAnswerProvided(value)) {
+    return false;
+  }
     // Don't count "not_applicable" or "no_partnerships" as valid answers
     if (value === 'not_applicable' || value === 'no_partnerships') {
       return false;
@@ -415,7 +426,15 @@ export default function ProgramFinder({
   
   // Minimum questions for results (4 critical questions: location, company_type, funding_amount, company_stage)
   const MIN_QUESTIONS_FOR_RESULTS = 4;
-  const hasEnoughAnswers = answeredCount >= MIN_QUESTIONS_FOR_RESULTS;
+  const REQUIRED_QUESTION_IDS = ['company_type', 'location', 'funding_amount', 'company_stage'] as const;
+  const missingRequiredAnswers = REQUIRED_QUESTION_IDS.filter((questionId) => !isAnswerProvided(answers[questionId]));
+  const missingRequiredLabels = missingRequiredAnswers.map((questionId) => {
+    const question = getTranslatedQuestions.find((q) => q.id === questionId);
+    return question?.label || questionId;
+  });
+  const hasRequiredAnswers = missingRequiredAnswers.length === 0;
+  const hasEnoughAnswers = answeredCount >= MIN_QUESTIONS_FOR_RESULTS && hasRequiredAnswers;
+  const remainingQuestions = Math.max(0, MIN_QUESTIONS_FOR_RESULTS - answeredCount);
   
   // State to control when to show results
   const [_showResults, _setShowResults] = useState(false);
@@ -433,6 +452,12 @@ export default function ProgramFinder({
       return newAnswers;
     });
   }, []);
+
+  useEffect(() => {
+    if (answers.company_stage === undefined) {
+      handleAnswer('company_stage', 0);
+    }
+  }, [answers.company_stage, handleAnswer]);
 
   // Initialize company_stage classification if months value exists but classification doesn't
   useEffect(() => {
@@ -1618,6 +1643,13 @@ export default function ProgramFinder({
               <button
                 onClick={async () => {
                   if (!hasEnoughAnswers) {
+                  if (!hasRequiredAnswers) {
+                    const requiredList = missingRequiredLabels.join(', ');
+                    alert(locale === 'de'
+                      ? `Bitte beantworten Sie zuerst die Pflichtfragen: ${requiredList}.`
+                      : `Please complete the required questions first: ${requiredList}.`);
+                    return;
+                  }
                     alert(locale === 'de' 
                       ? `Bitte beantworten Sie mindestens ${MIN_QUESTIONS_FOR_RESULTS} Fragen, um Förderprogramme zu generieren.`
                       : `Please answer at least ${MIN_QUESTIONS_FOR_RESULTS} questions to generate funding programs.`);
@@ -1651,7 +1683,33 @@ export default function ProgramFinder({
                   if (!response.ok) {
                     const errorText = await response.text();
                     console.error('❌ API Error Response:', errorText);
-                    throw new Error(`API returned ${response.status}: ${errorText.substring(0, 200)}`);
+                    let parsedError: any = null;
+                    try {
+                      parsedError = JSON.parse(errorText);
+                    } catch (_parseErr) {
+                      parsedError = null;
+                    }
+
+                    const missingFields: string[] = Array.isArray(parsedError?.missing) ? parsedError.missing : [];
+                    const missingFieldLabels = missingFields
+                      .map((fieldId) => {
+                        const question = getTranslatedQuestions.find((q) => q.id === fieldId);
+                        return question?.label || fieldId;
+                      })
+                      .join(', ');
+
+                    const friendlyMessage = missingFieldLabels
+                      ? (locale === 'de'
+                          ? `Bitte beantworten Sie zuerst: ${missingFieldLabels}.`
+                          : `Please complete: ${missingFieldLabels} before generating programs.`)
+                      : (locale === 'de'
+                          ? 'Es konnten keine Programme generiert werden. Bitte versuchen Sie es später erneut.'
+                          : 'We could not generate programs right now. Please try again shortly.');
+
+                    alert(friendlyMessage);
+                    setEmptyResults();
+                    setIsLoading(false);
+                    return;
                   }
                   
                   const data = await response.json();
@@ -1784,8 +1842,12 @@ export default function ProgramFinder({
                 disabled={isLoading || !hasEnoughAnswers}
                 className="px-8 py-3 rounded-lg font-semibold text-base transition-all flex items-center gap-2 bg-blue-600 text-white hover:bg-blue-700 shadow-lg hover:shadow-xl disabled:opacity-50 disabled:cursor-not-allowed disabled:bg-gray-400 disabled:hover:bg-gray-400 min-w-[280px]"
                 title={!hasEnoughAnswers ? (locale === 'de' 
-                  ? `Bitte beantworten Sie mindestens ${MIN_QUESTIONS_FOR_RESULTS} Fragen`
-                  : `Please answer at least ${MIN_QUESTIONS_FOR_RESULTS} questions`) : undefined}
+                  ? (hasRequiredAnswers
+                      ? `Bitte beantworten Sie mindestens ${MIN_QUESTIONS_FOR_RESULTS} Fragen`
+                      : 'Bitte füllen Sie alle Pflichtfragen aus')
+                  : (hasRequiredAnswers
+                      ? `Please answer at least ${MIN_QUESTIONS_FOR_RESULTS} questions`
+                      : 'Please complete all required questions')) : undefined}
               >
                 {isLoading ? (
                   <>
@@ -1798,9 +1860,13 @@ export default function ProgramFinder({
                 ) : !hasEnoughAnswers ? (
                   <>
                     <Wand2 className="w-5 h-5" />
-                    {locale === 'de' 
-                      ? `Noch ${MIN_QUESTIONS_FOR_RESULTS - answeredCount} Fragen` 
-                      : `${MIN_QUESTIONS_FOR_RESULTS - answeredCount} more questions`}
+                    {hasRequiredAnswers
+                      ? (locale === 'de' 
+                          ? `Noch ${remainingQuestions} Fragen` 
+                          : `${remainingQuestions} more questions`)
+                      : (locale === 'de'
+                          ? 'Pflichtfragen fehlen'
+                          : 'Required answers missing')}
                   </>
                 ) : (
                   <>

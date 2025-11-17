@@ -39,6 +39,7 @@ export interface MediaAsset {
   tags?: string[];
   figureNumber?: string;
   referenceIds?: string[];
+  attachedQuestionId?: string;
 }
 
 export interface DatasetColumn {
@@ -77,6 +78,10 @@ export interface Question {
   suggestions?: string[];
   warnings?: string[];
   helperText?: string;
+  placeholder?: string;
+  required?: boolean;
+  requiredAssets?: Array<MediaAsset['type']>;
+  helpLink?: string;
   aiContext?: {
     lastSuggestion?: string;
     updatedAt?: string;
@@ -127,6 +132,8 @@ export interface AppendixItem {
   description?: string;
   media?: MediaAsset;
   referenceIds?: string[];
+  fileUrl?: string;
+  uploadedAt?: string;
 }
 
 export interface TableOfContentsEntry {

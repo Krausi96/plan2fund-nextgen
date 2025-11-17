@@ -13,16 +13,29 @@ interface DataPanelProps {
   onDatasetCreate: (dataset: Dataset) => void;
   onKpiCreate: (kpi: KPI) => void;
   onMediaCreate: (asset: MediaAsset) => void;
+  activeQuestionId?: string | null;
+  onAttachDataset?: (dataset: Dataset) => void;
+  onAttachKpi?: (kpi: KPI) => void;
+  onAttachMedia?: (asset: MediaAsset) => void;
 }
 
-function createDataset(name: string, description: string, columnInput: string): Dataset {
+function createDataset(
+  name: string,
+  description: string,
+  columnInput: string,
+  tagsInput: string
+): Dataset {
   const columns = columnInput
     .split(',')
     .map((col) => col.trim())
     .filter(Boolean)
     .map((col) => {
-      const [label, unit] = col.split(':').map((token) => token.trim());
-      return { name: label, type: 'number' as const, unit };
+      const [label, typeSegment = 'number'] = col.split(':').map((token) => token.trim());
+      const cleanedType = typeSegment.replace(/\(.*\)/, '').trim().toLowerCase();
+      const unitMatch = typeSegment.match(/\((.*?)\)/);
+      const type: Dataset['columns'][number]['type'] =
+        cleanedType === 'date' ? 'date' : cleanedType === 'string' ? 'string' : 'number';
+      return { name: label, type, unit: unitMatch?.[1] };
     });
 
   return {
@@ -31,28 +44,53 @@ function createDataset(name: string, description: string, columnInput: string): 
     description,
     columns: columns.length ? columns : [{ name: 'Value', type: 'number' }],
     rows: [],
-    tags: [],
+    tags: tagsInput
+      .split(',')
+      .map((tag) => tag.trim())
+      .filter(Boolean),
     usageCount: 0,
     lastUpdated: new Date().toISOString()
   };
 }
 
-function createKPI(name: string, value: number, unit?: string): KPI {
+function createKPI(
+  name: string,
+  value: number,
+  unit?: string,
+  target?: number,
+  description?: string
+): KPI {
   return {
     id: `kpi_${Date.now()}`,
     name,
     value,
     unit,
-    description: '',
+    description,
+    target,
   };
 }
 
-function createMediaAsset(title: string, type: MediaAsset['type'], uri?: string): MediaAsset {
+function createMediaAsset(
+  title: string,
+  type: MediaAsset['type'],
+  uri: string,
+  caption: string,
+  altText: string,
+  figureNumber: string,
+  tagsInput: string
+): MediaAsset {
   return {
     id: `media_${Date.now()}`,
     type,
     title: title || `${type.toUpperCase()} asset`,
     uri,
+    caption,
+    altText,
+    figureNumber,
+    tags: tagsInput
+      .split(',')
+      .map((tag) => tag.trim())
+      .filter(Boolean)
   };
 }
 
@@ -62,50 +100,87 @@ export default function DataPanel({
   media,
   onDatasetCreate,
   onKpiCreate,
-  onMediaCreate
+  onMediaCreate,
+  activeQuestionId,
+  onAttachDataset,
+  onAttachKpi,
+  onAttachMedia
 }: DataPanelProps) {
   const [activeTab, setActiveTab] = useState<Tab>('datasets');
 
   const [datasetName, setDatasetName] = useState('');
   const [datasetDescription, setDatasetDescription] = useState('');
   const [datasetColumns, setDatasetColumns] = useState('Month:number, Revenue:number (EUR)');
+  const [datasetTags, setDatasetTags] = useState('financial, projections');
 
   const [kpiName, setKpiName] = useState('');
   const [kpiValue, setKpiValue] = useState('');
   const [kpiUnit, setKpiUnit] = useState('');
+  const [kpiTarget, setKpiTarget] = useState('');
+  const [kpiDescription, setKpiDescription] = useState('');
 
   const [mediaTitle, setMediaTitle] = useState('');
   const [mediaType, setMediaType] = useState<MediaAsset['type']>('image');
   const [mediaUri, setMediaUri] = useState('');
+  const [mediaCaption, setMediaCaption] = useState('');
+  const [mediaAltText, setMediaAltText] = useState('');
+  const [mediaFigure, setMediaFigure] = useState('');
+  const [mediaTags, setMediaTags] = useState('');
 
   const datasetList = useMemo(() => datasets ?? [], [datasets]);
   const kpiList = useMemo(() => kpis ?? [], [kpis]);
   const mediaList = useMemo(() => media ?? [], [media]);
+  const canAttach = Boolean(activeQuestionId);
 
   const handleDatasetSubmit = (event: React.FormEvent) => {
     event.preventDefault();
     if (!datasetName.trim()) return;
-    onDatasetCreate(createDataset(datasetName, datasetDescription, datasetColumns));
+    onDatasetCreate(createDataset(datasetName, datasetDescription, datasetColumns, datasetTags));
     setDatasetName('');
     setDatasetDescription('');
     setDatasetColumns('Month:number, Revenue:number (EUR)');
+    setDatasetTags('');
   };
 
   const handleKpiSubmit = (event: React.FormEvent) => {
     event.preventDefault();
     if (!kpiName.trim()) return;
-    onKpiCreate(createKPI(kpiName, Number(kpiValue) || 0, kpiUnit));
+    onKpiCreate(
+      createKPI(
+        kpiName,
+        Number(kpiValue) || 0,
+        kpiUnit,
+        kpiTarget ? Number(kpiTarget) : undefined,
+        kpiDescription
+      )
+    );
     setKpiName('');
     setKpiValue('');
     setKpiUnit('');
+    setKpiTarget('');
+    setKpiDescription('');
   };
 
   const handleMediaSubmit = (event: React.FormEvent) => {
     event.preventDefault();
     if (!mediaTitle.trim()) return;
-    onMediaCreate(createMediaAsset(mediaTitle, mediaType, mediaUri));
+    onMediaCreate(
+      createMediaAsset(
+        mediaTitle,
+        mediaType,
+        mediaUri,
+        mediaCaption,
+        mediaAltText,
+        mediaFigure,
+        mediaTags
+      )
+    );
     setMediaTitle('');
     setMediaUri('');
+    setMediaCaption('');
+    setMediaAltText('');
+    setMediaFigure('');
+    setMediaTags('');
   };
 
   return (
@@ -127,6 +202,11 @@ export default function DataPanel({
       </div>
 
       <div className="flex-1 overflow-y-auto p-4 space-y-6">
+        {!canAttach && (
+          <div className="text-xs text-gray-500 border border-dashed border-gray-200 rounded-lg p-3">
+            Select a question in the workspace to enable quick attachments.
+          </div>
+        )}
         {activeTab === 'datasets' && (
           <>
             <form onSubmit={handleDatasetSubmit} className="space-y-3">
@@ -148,6 +228,12 @@ export default function DataPanel({
                 value={datasetColumns}
                 onChange={(event) => setDatasetColumns(event.target.value)}
                 placeholder="Column, Type (optional unit)"
+                className="w-full border border-gray-200 rounded-md px-3 py-2 text-sm"
+              />
+              <input
+                value={datasetTags}
+                onChange={(event) => setDatasetTags(event.target.value)}
+                placeholder="Tags (comma separated)"
                 className="w-full border border-gray-200 rounded-md px-3 py-2 text-sm"
               />
               <button
@@ -173,9 +259,28 @@ export default function DataPanel({
                       {dataset.description && (
                         <p className="text-xs text-gray-500">{dataset.description}</p>
                       )}
+                      {dataset.tags && dataset.tags.length > 0 && (
+                        <p className="text-[11px] text-gray-400 mt-1">
+                          Tags: {dataset.tags.join(', ')}
+                        </p>
+                      )}
                     </div>
                     <span className="text-xs text-gray-400">{dataset.columns.length} columns</span>
                   </div>
+                  {onAttachDataset && (
+                    <button
+                      type="button"
+                      disabled={!canAttach}
+                      onClick={() => onAttachDataset(dataset)}
+                      className={`mt-3 w-full text-xs font-semibold border rounded-md py-1 ${
+                        canAttach
+                          ? 'text-blue-600 border-blue-200 hover:bg-blue-50'
+                          : 'text-gray-400 border-gray-100 cursor-not-allowed'
+                      }`}
+                    >
+                      Attach to question
+                    </button>
+                  )}
                 </div>
               ))}
             </div>
@@ -207,6 +312,21 @@ export default function DataPanel({
                   className="w-28 border border-gray-200 rounded-md px-3 py-2 text-sm"
                 />
               </div>
+              <div className="flex gap-2">
+                <input
+                  value={kpiTarget}
+                  onChange={(event) => setKpiTarget(event.target.value)}
+                  type="number"
+                  placeholder="Target"
+                  className="flex-1 border border-gray-200 rounded-md px-3 py-2 text-sm"
+                />
+                <textarea
+                  value={kpiDescription}
+                  onChange={(event) => setKpiDescription(event.target.value)}
+                  placeholder="Description / assumptions"
+                  className="flex-1 border border-gray-200 rounded-md px-3 py-2 text-sm"
+                />
+              </div>
               <button
                 type="submit"
                 className="w-full py-2 text-sm font-semibold bg-blue-600 text-white rounded-md"
@@ -228,6 +348,26 @@ export default function DataPanel({
                   <p className="text-xs text-gray-600">
                     {kpi.value} {kpi.unit}
                   </p>
+                  {kpi.target && (
+                    <p className="text-xs text-gray-400">Target: {kpi.target}</p>
+                  )}
+                  {kpi.description && (
+                    <p className="text-xs text-gray-500 mt-1">{kpi.description}</p>
+                  )}
+                  {onAttachKpi && (
+                    <button
+                      type="button"
+                      disabled={!canAttach}
+                      onClick={() => onAttachKpi(kpi)}
+                      className={`mt-2 w-full text-xs font-semibold border rounded-md py-1 ${
+                        canAttach
+                          ? 'text-blue-600 border-blue-200 hover:bg-blue-50'
+                          : 'text-gray-400 border-gray-100 cursor-not-allowed'
+                      }`}
+                    >
+                      Attach to question
+                    </button>
+                  )}
                 </div>
               ))}
             </div>
@@ -260,6 +400,32 @@ export default function DataPanel({
                 placeholder="Link or upload placeholder"
                 className="w-full border border-gray-200 rounded-md px-3 py-2 text-sm"
               />
+              <textarea
+                value={mediaCaption}
+                onChange={(event) => setMediaCaption(event.target.value)}
+                placeholder="Caption / description"
+                className="w-full border border-gray-200 rounded-md px-3 py-2 text-sm"
+              />
+              <input
+                value={mediaAltText}
+                onChange={(event) => setMediaAltText(event.target.value)}
+                placeholder="Alt text"
+                className="w-full border border-gray-200 rounded-md px-3 py-2 text-sm"
+              />
+              <div className="flex gap-2">
+                <input
+                  value={mediaFigure}
+                  onChange={(event) => setMediaFigure(event.target.value)}
+                  placeholder="Figure #"
+                  className="w-32 border border-gray-200 rounded-md px-3 py-2 text-sm"
+                />
+                <input
+                  value={mediaTags}
+                  onChange={(event) => setMediaTags(event.target.value)}
+                  placeholder="Tags"
+                  className="flex-1 border border-gray-200 rounded-md px-3 py-2 text-sm"
+                />
+              </div>
               <button
                 type="submit"
                 className="w-full py-2 text-sm font-semibold bg-blue-600 text-white rounded-md"
@@ -283,6 +449,23 @@ export default function DataPanel({
                   </p>
                   {asset.description && (
                     <p className="text-xs text-gray-500">{asset.description}</p>
+                  )}
+                  {asset.caption && (
+                    <p className="text-xs text-gray-400 mt-1">{asset.caption}</p>
+                  )}
+                  {onAttachMedia && (
+                    <button
+                      type="button"
+                      disabled={!canAttach}
+                      onClick={() => onAttachMedia(asset)}
+                      className={`mt-2 w-full text-xs font-semibold border rounded-md py-1 ${
+                        canAttach
+                          ? 'text-blue-600 border-blue-200 hover:bg-blue-50'
+                          : 'text-gray-400 border-gray-100 cursor-not-allowed'
+                      }`}
+                    >
+                      Attach to question
+                    </button>
                   )}
                 </div>
               ))}
