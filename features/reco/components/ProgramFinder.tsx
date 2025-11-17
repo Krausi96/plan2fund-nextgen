@@ -421,8 +421,7 @@ export default function ProgramFinder({
     setResults([]);
     setNoResultsHint(customHint || defaultNoResultsHint);
   }, [defaultNoResultsHint]);
-  const [showAdvancedFilters, setShowAdvancedFilters] = useState(false);
-  const [showPromptPreview, setShowPromptPreview] = useState(false);
+  const [showAdvancedFilters, setShowAdvancedFilters] = useState(true); // Advanced fields visible by default
   const [isLoading, setIsLoading] = useState(false);
   const [hasAttemptedGeneration, setHasAttemptedGeneration] = useState(false); // Track if user clicked generate
   
@@ -500,17 +499,6 @@ export default function ProgramFinder({
   const hasRequiredAnswers = missingRequiredAnswers.length === 0;
   const hasEnoughAnswers = answeredCount >= MIN_QUESTIONS_FOR_RESULTS && hasRequiredAnswers;
   const remainingQuestions = Math.max(0, MIN_QUESTIONS_FOR_RESULTS - answeredCount);
-  const promptPreviewPayload = useMemo(() => ({
-    answers,
-    max_results: 20,
-    requiredQuestionsMet: hasRequiredAnswers,
-    advancedFiltersIncluded: showAdvancedFilters,
-    questionOrder: visibleQuestions.map((q) => ({
-      id: q.id,
-      required: REQUIRED_QUESTION_IDS.includes(q.id as typeof REQUIRED_QUESTION_IDS[number]),
-      advanced: q.isAdvanced,
-    })),
-  }), [answers, hasRequiredAnswers, showAdvancedFilters, visibleQuestions]);
   
   // State to control when to show results
   const [_showResults, _setShowResults] = useState(false);
@@ -1408,62 +1396,51 @@ export default function ProgramFinder({
             </p>
           </Card>
         </div>
-
-        <div className="max-w-2xl mx-auto w-full mt-4">
-          <Card className="p-4 border border-gray-200 bg-white shadow-sm">
-            <div className="flex items-center justify-between gap-4">
-              <div>
-                <p className="text-base font-semibold text-gray-900">Prompt preview</p>
-                <p className="text-sm text-gray-600">Review the structured payload we send to the recommendation engine.</p>
-              </div>
-              <button
-                onClick={() => setShowPromptPreview(!showPromptPreview)}
-                className="px-3 py-2 rounded-md text-sm font-medium border border-gray-400 text-gray-700 hover:bg-gray-100 transition-colors"
-              >
-                {showPromptPreview ? 'Hide preview' : 'Show preview'}
-              </button>
-            </div>
-            {showPromptPreview && (
-              <pre className="mt-3 text-xs text-gray-800 bg-gray-50 border border-gray-200 rounded-lg p-3 max-h-64 overflow-auto whitespace-pre-wrap">
-                {JSON.stringify(promptPreviewPayload, null, 2)}
-              </pre>
-            )}
-          </Card>
-        </div>
           
-          {/* Loading Indicator - Inline */}
+          {/* Loading Indicator - Enhanced with animations */}
           {isLoading && (
-            <div className="max-w-2xl mx-auto mt-6">
-              <Card className="p-8 border-2 border-blue-200">
-                <div className="flex flex-col items-center justify-center space-y-4">
-                  <svg className="animate-spin h-12 w-12 text-blue-600" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                    <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-                    <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-                  </svg>
-                  <div className="text-center">
-                    <h3 className="text-xl font-semibold text-gray-900 mb-2">
+            <div className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+              <Card className="p-8 border-2 border-blue-200 bg-white shadow-2xl max-w-md w-full animate-in fade-in zoom-in duration-300">
+                <div className="flex flex-col items-center justify-center space-y-6">
+                  {/* Animated spinner with pulsing effect */}
+                  <div className="relative">
+                    <div className="absolute inset-0 rounded-full border-4 border-blue-200 animate-ping"></div>
+                    <svg className="animate-spin h-16 w-16 text-blue-600 relative z-10" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                      <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                      <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                    </svg>
+                  </div>
+                  
+                  <div className="text-center space-y-2">
+                    <h3 className="text-2xl font-bold text-gray-900 animate-pulse">
                       {locale === 'de' ? 'Förderprogramme werden generiert...' : 'Generating Funding Programs...'}
                     </h3>
-                    <p className="text-gray-600">
+                    <p className="text-gray-600 text-sm">
                       {locale === 'de' 
                         ? 'Dies kann 15-30 Sekunden dauern. Bitte haben Sie etwas Geduld.'
                         : 'This may take 15-30 seconds. Please be patient.'}
                     </p>
                   </div>
-                  {/* Progress steps */}
-                  <div className="w-full max-w-md space-y-2 mt-4">
-                    <div className="flex items-center gap-2 text-sm text-gray-600">
-                      <div className="w-2 h-2 rounded-full bg-blue-600 animate-pulse"></div>
-                      <span>{locale === 'de' ? 'Analysiere Ihr Profil...' : 'Analyzing your profile...'}</span>
+                  
+                  {/* Animated progress steps with staggered animation */}
+                  <div className="w-full space-y-3 mt-6">
+                    <div className="flex items-center gap-3 text-sm text-gray-700 animate-in slide-in-from-left duration-500">
+                      <div className="w-3 h-3 rounded-full bg-blue-600 animate-pulse"></div>
+                      <span className="font-medium">{locale === 'de' ? 'Analysiere Ihr Profil...' : 'Analyzing your profile...'}</span>
                     </div>
-                    <div className="flex items-center gap-2 text-sm text-gray-500">
-                      <div className="w-2 h-2 rounded-full bg-gray-300"></div>
+                    <div className="flex items-center gap-3 text-sm text-gray-600 animate-in slide-in-from-left duration-700 delay-200">
+                      <div className="w-3 h-3 rounded-full bg-blue-500 animate-pulse delay-300"></div>
                       <span>{locale === 'de' ? 'Finde passende Programme...' : 'Finding matching programs...'}</span>
                     </div>
-                    <div className="flex items-center gap-2 text-sm text-gray-500">
-                      <div className="w-2 h-2 rounded-full bg-gray-300"></div>
+                    <div className="flex items-center gap-3 text-sm text-gray-600 animate-in slide-in-from-left duration-700 delay-500">
+                      <div className="w-3 h-3 rounded-full bg-blue-400 animate-pulse delay-500"></div>
                       <span>{locale === 'de' ? 'Bewerte Relevanz...' : 'Scoring relevance...'}</span>
                     </div>
+                  </div>
+                  
+                  {/* Progress bar animation */}
+                  <div className="w-full h-2 bg-gray-200 rounded-full overflow-hidden mt-4">
+                    <div className="h-full bg-gradient-to-r from-blue-500 to-blue-600 rounded-full animate-pulse" style={{ width: '60%', animation: 'pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite' }}></div>
                   </div>
                 </div>
               </Card>
