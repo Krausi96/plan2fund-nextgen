@@ -671,14 +671,14 @@ export default function ProgramFinder({
   
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-purple-50">
-      <div className={`max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-2 ${answeredCount >= MIN_QUESTIONS_FOR_RESULTS ? 'pb-24' : ''}`}>
+      <div className={`max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-2 ${answeredCount > 0 ? 'pb-24' : ''}`}>
         {/* Header - Centered with Wizard Icon - Better Spacing */}
         <div className="mb-8 text-center">
           <div className="flex items-center justify-center gap-3 mb-6">
             <div className="w-12 h-12 rounded-full bg-blue-600 flex items-center justify-center shadow-lg">
               <Wand2 className="w-6 h-6 text-yellow-400" />
             </div>
-            <h1 className="text-4xl sm:text-5xl md:text-6xl font-bold text-gray-900">
+            <h1 className="text-2xl sm:text-3xl md:text-4xl font-bold text-gray-900">
               {t('reco.pageTitle')}
             </h1>
           </div>
@@ -688,14 +688,22 @@ export default function ProgramFinder({
           
           {/* Scroll Indicator - Animated arrow pointing down */}
           {answeredCount === 0 && (
-            <div className="flex flex-col items-center gap-2 animate-bounce mb-4">
+            <button
+              onClick={() => {
+                const questionsSection = document.querySelector('[data-questions-section]');
+                if (questionsSection) {
+                  questionsSection.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                }
+              }}
+              className="flex flex-col items-center gap-2 animate-bounce mb-4 hover:opacity-80 transition-opacity cursor-pointer"
+            >
               <p className="text-sm text-gray-500 font-medium">
                 {locale === 'de' ? 'Scrollen Sie nach unten, um zu beginnen' : 'Scroll down to begin'}
               </p>
               <svg className="w-6 h-6 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 14l-7 7m0 0l-7-7m7 7V3" />
               </svg>
-            </div>
+            </button>
           )}
           
           {results.length > 0 && (
@@ -731,7 +739,7 @@ export default function ProgramFinder({
           </div>
         </div>
 
-        <div className="flex flex-col gap-2">
+        <div className="flex flex-col gap-2" data-questions-section>
           {/* Answers Summary Section - Fixed Position, Non-Overlapping */}
           {answeredCount > 0 && (
             <div className="fixed right-6 top-32 z-30 max-w-xs">
@@ -1788,8 +1796,8 @@ export default function ProgramFinder({
         </div>
       </div>
       
-      {/* Sticky Bottom Bar - Only show after 6 questions */}
-      {answeredCount >= MIN_QUESTIONS_FOR_RESULTS && (
+      {/* Sticky Bottom Bar - Show when questions are in progress */}
+      {answeredCount > 0 && (
         <div className="fixed bottom-0 left-0 right-0 bg-white shadow-2xl z-50 border-t-2 border-gray-200">
           <div className="max-w-7xl mx-auto px-4 py-4">
             <div className="flex items-center justify-between gap-4">
@@ -1852,9 +1860,8 @@ export default function ProgramFinder({
                   if (extractedPrograms.length === 0) {
                     console.warn('⚠️ No programs in API response');
                     console.warn('Full API response:', JSON.stringify(data, null, 2));
-                    alert(locale === 'de' 
-                      ? 'Keine Programme gefunden. Bitte überprüfen Sie die Server-Logs oder versuchen Sie es erneut.'
-                      : 'No programs found. Please check server logs or try again.');
+                    // Don't show alert, just set empty results and let the UI show the "no results" message
+                    setResults([]);
                     setIsLoading(false);
                     return;
                   }
@@ -1901,9 +1908,7 @@ export default function ProgramFinder({
                     console.log('✅ Switched to results tab');
                   } else {
                     console.warn('⚠️ No programs to display after scoring');
-                    alert(locale === 'de' 
-                      ? 'Keine Programme gefunden, die Ihren Kriterien entsprechen.'
-                      : 'No programs found matching your criteria.');
+                    // Results are already empty, UI will show "no results" message
                   }
                 } catch (error: any) {
                   console.error('❌ Error generating programs:', error);
@@ -1920,7 +1925,10 @@ export default function ProgramFinder({
                 }
               }}
                 disabled={isLoading || !hasEnoughAnswers}
-                className="px-6 py-3 rounded-lg font-semibold text-base transition-all flex items-center gap-2 bg-blue-600 text-white hover:bg-blue-700 shadow-lg hover:shadow-xl disabled:opacity-50 disabled:cursor-not-allowed"
+                className="px-6 py-3 rounded-lg font-semibold text-base transition-all flex items-center gap-2 bg-blue-600 text-white hover:bg-blue-700 shadow-lg hover:shadow-xl disabled:opacity-50 disabled:cursor-not-allowed disabled:bg-gray-400 disabled:hover:bg-gray-400"
+                title={!hasEnoughAnswers ? (locale === 'de' 
+                  ? `Bitte beantworten Sie mindestens ${MIN_QUESTIONS_FOR_RESULTS} Fragen`
+                  : `Please answer at least ${MIN_QUESTIONS_FOR_RESULTS} questions`) : undefined}
               >
                 {isLoading ? (
                   <>
@@ -1929,6 +1937,13 @@ export default function ProgramFinder({
                       <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
                     </svg>
                     {locale === 'de' ? 'Generiere Programme...' : 'Generating Programs...'}
+                  </>
+                ) : !hasEnoughAnswers ? (
+                  <>
+                    <Wand2 className="w-5 h-5" />
+                    {locale === 'de' 
+                      ? `Noch ${MIN_QUESTIONS_FOR_RESULTS - answeredCount} Fragen` 
+                      : `${MIN_QUESTIONS_FOR_RESULTS - answeredCount} more questions`}
                   </>
                 ) : (
                   <>
