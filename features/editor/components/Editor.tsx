@@ -79,7 +79,6 @@ interface EditorStoreState {
   updateAnswer: (questionId: string, content: string) => void;
   addDataset: (sectionId: string, dataset: Dataset) => void;
   addKpi: (sectionId: string, kpi: KPI) => void;
-  updateKpi: (sectionId: string, kpiId: string, updates: Partial<KPI>) => void;
   addMedia: (sectionId: string, asset: MediaAsset) => void;
   attachDatasetToQuestion: (sectionId: string, questionId: string, dataset: Dataset) => void;
   attachKpiToQuestion: (sectionId: string, questionId: string, kpi: KPI) => void;
@@ -362,18 +361,6 @@ const useEditorStore = create<EditorStoreState>((set, get) => ({
     const updatedPlan = updateSection(plan, sectionId, (section) => ({
       ...section,
       kpis: [...(section.kpis ?? []), kpi]
-    }));
-    persistPlan(updatedPlan);
-    set({ plan: updatedPlan });
-  },
-  updateKpi: (sectionId, kpiId, updates) => {
-    const { plan } = get();
-    if (!plan) return;
-    const updatedPlan = updateSection(plan, sectionId, (section) => ({
-      ...section,
-      kpis: (section.kpis ?? []).map(kpi => 
-        kpi.id === kpiId ? { ...kpi, ...updates } : kpi
-      )
     }));
     persistPlan(updatedPlan);
     set({ plan: updatedPlan });
@@ -895,7 +882,6 @@ export default function Editor({ product = 'submission' }: EditorProps) {
     setRightPanelView,
     addDataset,
     addKpi,
-    updateKpi,
     addMedia,
     attachDatasetToQuestion,
     attachKpiToQuestion,
@@ -1140,7 +1126,6 @@ export default function Editor({ product = 'submission' }: EditorProps) {
             plan={plan}
             onDatasetCreate={(dataset) => activeSection && addDataset(activeSection.id, dataset)}
             onKpiCreate={(kpi) => activeSection && addKpi(activeSection.id, kpi)}
-            onKpiUpdate={(sectionId, kpiId, updates) => updateKpi(sectionId, kpiId, updates)}
             onMediaCreate={(asset) => activeSection && addMedia(activeSection.id, asset)}
             onAttachDataset={(dataset) =>
               activeSection &&
@@ -1161,8 +1146,6 @@ export default function Editor({ product = 'submission' }: EditorProps) {
             progressSummary={progressSummary}
             onAskAI={triggerAISuggestions}
             onAnswerChange={updateAnswer}
-            onNavigateToSection={setActiveSection}
-            onNavigateToQuestion={setActiveQuestion}
           />
         </div>
       </div>
@@ -1641,7 +1624,6 @@ function RightPanel({
   plan,
   onDatasetCreate,
   onKpiCreate,
-  onKpiUpdate,
   onMediaCreate,
   onAttachDataset,
   onAttachKpi,
@@ -1649,9 +1631,7 @@ function RightPanel({
   onRunRequirements,
   progressSummary,
   onAskAI,
-  onAnswerChange,
-  onNavigateToSection,
-  onNavigateToQuestion
+  onAnswerChange
 }: {
   view: RightPanelView;
   setView: (view: RightPanelView) => void;
@@ -1660,7 +1640,6 @@ function RightPanel({
   plan: BusinessPlan;
   onDatasetCreate: (dataset: Dataset) => void;
   onKpiCreate: (kpi: KPI) => void;
-  onKpiUpdate?: (sectionId: string, kpiId: string, updates: Partial<KPI>) => void;
   onMediaCreate: (asset: MediaAsset) => void;
   onAttachDataset: (dataset: Dataset) => void;
   onAttachKpi: (kpi: KPI) => void;
@@ -1669,8 +1648,6 @@ function RightPanel({
   progressSummary: ProgressSummary[];
   onAskAI: (questionId?: string) => void;
   onAnswerChange: (questionId: string, content: string) => void;
-  onNavigateToSection: (sectionId: string) => void;
-  onNavigateToQuestion: (questionId: string) => void;
 }) {
   const [requirementsChecked, setRequirementsChecked] = React.useState(false);
   // Map 'requirements' view to 'preview' for backward compatibility
@@ -1809,54 +1786,21 @@ function RightPanel({
         {effectiveView === 'data' && (
           <div className="p-4">
             {section ? (
-              <>
-                {/* Unified info banner for all sections - shows contextual guidance */}
-                <div className="mb-4 p-3 bg-blue-50 border border-blue-100 rounded-lg">
-                  <p className="text-xs font-semibold text-blue-800 mb-1">
-                    {section.category === 'financial' 
-                      ? 'This section typically includes financial tables, revenue projections, and KPIs.'
-                      : section.category === 'risk' 
-                      ? 'This section typically includes risk matrices and mitigation strategies.'
-                      : section.category === 'project'
-                      ? 'This section typically includes milestone timelines and project deliverables.'
-                      : section.category === 'market'
-                      ? 'This section typically includes market analysis tables and customer segmentation data.'
-                      : section.category === 'technical'
-                      ? 'This section typically includes technical specifications and architecture diagrams.'
-                      : 'Add datasets, KPIs, and media to enhance this section.'}
-                  </p>
-                  <p className="text-xs text-blue-700 mt-1">
-                    You can create unlimited datasets, KPIs, and media items. Attach them to specific questions or keep them as section-level data.
-                  </p>
-                </div>
-                <DataPanel
-                  datasets={section.datasets ?? []}
-                  kpis={section.kpis ?? []}
-                  media={section.media ?? []}
-                  onDatasetCreate={onDatasetCreate}
-                  onKpiCreate={onKpiCreate}
-                  onKpiUpdate={onKpiUpdate}
-                  onMediaCreate={onMediaCreate}
-                  activeQuestionId={question?.id}
-                  activeQuestionPrompt={question?.prompt}
-                  questions={section.questions.map(q => ({ id: q.id, prompt: q.prompt }))}
-                  sectionId={section.id}
-                  sectionTitle={section.title}
-                  onAttachDataset={onAttachDataset}
-                  onAttachKpi={onAttachKpi}
-                  onAttachMedia={onAttachMedia}
-                  onNavigateToSection={(sectionId, questionId) => {
-                    onNavigateToSection(sectionId);
-                    if (questionId) {
-                      const targetSection = plan.sections.find(s => s.id === sectionId);
-                      const targetQuestion = targetSection?.questions.find(q => q.id === questionId);
-                      if (targetQuestion) {
-                        onNavigateToQuestion(questionId);
-                      }
-                    }
-                  }}
-                />
-              </>
+              <DataPanel
+                datasets={section.datasets ?? []}
+                kpis={section.kpis ?? []}
+                media={section.media ?? []}
+                onDatasetCreate={onDatasetCreate}
+                onKpiCreate={onKpiCreate}
+                onMediaCreate={onMediaCreate}
+                activeQuestionId={question?.id}
+                sectionId={section.id}
+                sectionCategory={section.category}
+                sectionTitle={section.title}
+                onAttachDataset={onAttachDataset}
+                onAttachKpi={onAttachKpi}
+                onAttachMedia={onAttachMedia}
+              />
             ) : (
               <div className="text-center py-8 text-slate-400 text-sm">
                 Choose a section to manage datasets, KPIs, and media.

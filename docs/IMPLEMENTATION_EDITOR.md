@@ -16,12 +16,14 @@ Use this file to log execution order, decisions, and checkpoints so we can keep 
   - Provide a “Mark as unknown” toggle with optional note and visible badge.
 - Minimal-input heuristic now ensures only meaningful responses count as draft/complete.
 
-## Step 2 – Right Panel & Data Tab UX Parity ⏳ (next)
+## Step 2 – Right Panel & Data Tab UX Parity ✅ (done – 2025-11-18)
 Goal: Bring the right column to Layout v3 parity.
-- Sticky tab bar with contextual info banner (category-specific guidance).
-- Primary action buttons: `Add Table`, `Add KPI`, `Add Media`.
-- Streamlined item cards with attach/edit/view/delete actions, Prev/Next navigation, and section/question context.
-- Prep quick-add templates per section category.
+- Rebuilt the Data tab inside the sticky right column with the Layout v3 hierarchy (info banner, CTA row, quick-add templates, and modern library cards).
+- Info banner now reflects `section.category`, nudging users toward category-specific evidence.
+- Primary actions (`Add table`, `Add KPI`, `Add media`) now live at the top and open inline composers without disrupting the list below.
+- Added category-aware quick-add dataset templates (budget breakdown, milestone timeline, TRL matrix, beneficiary segmentation, etc.) that prefill the dataset composer.
+- Library cards now show type icons, attachment badges, Prev/Next navigation, and updated action buttons while keeping attach/edit/view/delete workflows intact.
+- Existing dataset/KPI/media creation plus attach flows remain unchanged; automation hooks deferred until layout is battle-tested.
 
 ## Step 3 – Shared Metadata & Attachment Sync
 Goal: Normalize dataset/KPI/media metadata (`relatedQuestions[]`, tags, source, timestamps) and switch question attachments to reference IDs so edits propagate automatically.
