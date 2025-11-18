@@ -36,6 +36,8 @@ export interface MediaAsset {
   figureNumber?: string;
   referenceIds?: string[];
   attachedQuestionId?: string;
+  sectionId: string; // Section this media asset belongs to
+  questionId?: string; // Question this media asset is attached to (if attached)
 }
 
 export interface DatasetColumn {
@@ -53,6 +55,10 @@ export interface Dataset {
   tags?: string[];
   usageCount?: number;
   lastUpdated?: string;
+  sectionId: string; // Section this dataset belongs to
+  questionId?: string; // Question this dataset is attached to (if attached)
+  formulas?: Record<string, string>; // Cell formulas: { "Total:Jan": "=SUM(Product A:Jan, Product B:Jan)" }
+  calculatedValues?: Record<string, number>; // Cached calculated values: { "Total:Jan": 1500 }
 }
 
 export interface KPI {
@@ -64,7 +70,11 @@ export interface KPI {
   description?: string;
   datasetId?: string;
   trend?: 'up' | 'down' | 'flat';
+  sectionId: string; // Section this KPI belongs to
+  questionId?: string; // Question this KPI is attached to (if attached)
 }
+
+export type QuestionStatus = 'blank' | 'draft' | 'complete' | 'unknown';
 
 export interface Question {
   id: string;
@@ -82,6 +92,9 @@ export interface Question {
     lastSuggestion?: string;
     updatedAt?: string;
   };
+  status: QuestionStatus;
+  statusNote?: string;
+  lastUpdatedAt?: string;
 }
 
 export interface Section {

@@ -1,4 +1,4 @@
-import type { ConversationMessage } from '@/features/editor/types/plan';
+import type { ConversationMessage, QuestionStatus } from '@/features/editor/types/plan';
 
 export type PlanSection = { 
   id: string; 
@@ -18,6 +18,12 @@ export type SelectedProgram = {
   name?: string;
   type?: string;
   route?: string;
+};
+
+export type QuestionStateSnapshot = {
+  status: QuestionStatus;
+  note?: string;
+  lastUpdatedAt?: string;
 };
 
 export type PlanSettings = {
@@ -111,6 +117,29 @@ export function loadUserAnswers(): UserAnswers {
     return raw ? JSON.parse(raw) : {}
   } catch {
     return {}
+  }
+}
+
+// ============================================================================
+// ADDED: Question States (status/notes per prompt)
+// ============================================================================
+
+type QuestionStatesStorage = Record<string, QuestionStateSnapshot>;
+
+export function saveQuestionStates(states: QuestionStatesStorage): void {
+  try {
+    const key = getStorageKey('question_states');
+    localStorage.setItem(key, JSON.stringify(states));
+  } catch {}
+}
+
+export function loadQuestionStates(): QuestionStatesStorage {
+  try {
+    const key = getStorageKey('question_states');
+    const raw = localStorage.getItem(key);
+    return raw ? JSON.parse(raw) : {};
+  } catch {
+    return {};
   }
 }
 

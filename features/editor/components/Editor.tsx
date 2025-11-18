@@ -16,6 +16,7 @@ import {
   PlanSection as LegacyPlanSection,
   ProductType,
   Question,
+  QuestionStatus,
   Reference,
   RightPanelView,
   Section,
@@ -34,7 +35,9 @@ import {
   loadPlanConversations,
   loadSelectedProgram,
   saveSelectedProgram,
-  clearSelectedProgram
+  clearSelectedProgram,
+  loadQuestionStates,
+  saveQuestionStates
 } from '@/shared/user/storage/planStore';
 import type { PlanSection as StoredPlanSection } from '@/shared/user/storage/planStore';
 import SimpleTextEditor from './SimpleTextEditor';
@@ -43,6 +46,14 @@ import PreviewPane from './SectionContentRenderer';
 import AncillaryEditorPanel from './RequirementsModal';
 
 type ProgressSummary = { id: string; title: string; progress: number };
+
+type QuestionStateSnapshot = {
+  status: QuestionStatus;
+  note?: string;
+  lastUpdatedAt?: string;
+};
+
+type QuestionStateMap = Record<string, QuestionStateSnapshot>;
 
 interface EditorStoreState {
   plan: BusinessPlan | null;
@@ -68,6 +79,7 @@ interface EditorStoreState {
   updateAnswer: (questionId: string, content: string) => void;
   addDataset: (sectionId: string, dataset: Dataset) => void;
   addKpi: (sectionId: string, kpi: KPI) => void;
+  updateKpi: (sectionId: string, kpiId: string, updates: Partial<KPI>) => void;
   addMedia: (sectionId: string, asset: MediaAsset) => void;
   attachDatasetToQuestion: (sectionId: string, questionId: string, dataset: Dataset) => void;
   attachKpiToQuestion: (sectionId: string, questionId: string, kpi: KPI) => void;
@@ -85,6 +97,7 @@ interface EditorStoreState {
   setFundingProgram: (program: FundingProgramType) => void;
   runRequirementsCheck: () => void;
   requestAISuggestions: (sectionId: string, questionId: string) => Promise<void>;
+  toggleQuestionUnknown: (questionId: string, note?: string) => void;
 }
 
 const defaultTitlePage = (): TitlePage => ({
@@ -188,12 +201,14 @@ const useEditorStore = create<EditorStoreState>((set, get) => ({
     set({ isLoading: true, error: null });
     try {
       const baseUrl = typeof window !== 'undefined' ? window.location.origin : '';
-      const fundingType = context?.fundingType ?? 'grants';
-      const templates = await getSections(fundingType, product, context?.programId, baseUrl);
+      const questionStates: QuestionStateMap =
+        typeof window !== 'undefined' ? loadQuestionStates() : {};
+      // Funding type ignored - only product type matters
+      const templates = await getSections('grants', product, context?.programId, baseUrl);
       const savedSections: StoredPlanSection[] =
         typeof window !== 'undefined' ? loadPlanSections() : [];
       const sections = templates.map((template) =>
-        buildSectionFromTemplate(template, savedSections)
+        buildSectionFromTemplate(template, savedSections, questionStates)
       );
 
       const plan: BusinessPlan = {
@@ -210,16 +225,21 @@ const useEditorStore = create<EditorStoreState>((set, get) => ({
           lastSavedAt: new Date().toISOString(),
           programId: context?.programId,
           programName: context?.programName,
-          templateFundingType: fundingType
+          templateFundingType: context?.summary?.fundingType ?? context?.fundingType ?? 'grants'
         }
       };
 
+      // Auto-select Section 2 (Project Description) as recommended starting point
+      // Executive Summary should be completed last as it summarizes other sections
+      const projectDescriptionSection = sections.find(s => s.id === 'project_description');
+      const initialSection = projectDescriptionSection ?? sections[0] ?? null;
+      
       set({
         plan,
         templates,
         isLoading: false,
-        activeSectionId: sections[0]?.id ?? null,
-        activeQuestionId: sections[0]?.questions[0]?.id ?? null,
+        activeSectionId: initialSection?.id ?? null,
+        activeQuestionId: initialSection?.questions[0]?.id ?? null,
         progressSummary: [],
         rightPanelView: 'ai'
       });
@@ -251,23 +271,71 @@ const useEditorStore = create<EditorStoreState>((set, get) => ({
   updateAnswer: (questionId, content) => {
     const { plan } = get();
     if (!plan) return;
+    const trimmed = (content ?? '').trim();
     const updatedPlan: BusinessPlan = {
       ...plan,
       sections: plan.sections.map((section) => {
         const updatedQuestions = section.questions.map((question) =>
-          question.id === questionId ? { ...question, answer: content } : question
+          question.id === questionId
+            ? {
+                ...question,
+                answer: content,
+                status:
+                  question.status === 'unknown' && trimmed.length === 0
+                    ? ('unknown' as QuestionStatus)
+                    : determineQuestionStatus(content ?? ''),
+                statusNote:
+                  trimmed.length === 0 && question.status === 'unknown'
+                    ? question.statusNote
+                    : undefined,
+                lastUpdatedAt: new Date().toISOString()
+              }
+            : question
         );
-        const answeredCount = updatedQuestions.filter(
-          (question) => (question.answer ?? '').trim().length > 0
-        ).length;
-        const progress =
-          updatedQuestions.length === 0
-            ? 0
-            : Math.round((answeredCount / updatedQuestions.length) * 100);
         return {
           ...section,
           questions: updatedQuestions,
-          progress
+          progress: calculateSectionCompletion(updatedQuestions)
+        };
+      }),
+      metadata: {
+        ...plan.metadata,
+        lastSavedAt: new Date().toISOString()
+      }
+    };
+    persistPlan(updatedPlan);
+    set({ plan: updatedPlan });
+  },
+  toggleQuestionUnknown: (questionId, note) => {
+    const { plan } = get();
+    if (!plan) return;
+    const updatedPlan: BusinessPlan = {
+      ...plan,
+      sections: plan.sections.map((section) => {
+        const updatedQuestions = section.questions.map((question) => {
+          if (question.id !== questionId) return question;
+          const isCurrentlyUnknown = question.status === 'unknown';
+          if (isCurrentlyUnknown) {
+            return {
+              ...question,
+              status: 'blank' as QuestionStatus,
+              statusNote: undefined,
+              answer: '',
+              lastUpdatedAt: new Date().toISOString()
+            };
+          }
+          return {
+            ...question,
+            status: 'unknown' as QuestionStatus,
+            statusNote: note,
+            answer: '',
+            lastUpdatedAt: new Date().toISOString()
+          };
+        });
+        return {
+          ...section,
+          questions: updatedQuestions,
+          progress: calculateSectionCompletion(updatedQuestions)
         };
       }),
       metadata: {
@@ -298,6 +366,18 @@ const useEditorStore = create<EditorStoreState>((set, get) => ({
     persistPlan(updatedPlan);
     set({ plan: updatedPlan });
   },
+  updateKpi: (sectionId, kpiId, updates) => {
+    const { plan } = get();
+    if (!plan) return;
+    const updatedPlan = updateSection(plan, sectionId, (section) => ({
+      ...section,
+      kpis: (section.kpis ?? []).map(kpi => 
+        kpi.id === kpiId ? { ...kpi, ...updates } : kpi
+      )
+    }));
+    persistPlan(updatedPlan);
+    set({ plan: updatedPlan });
+  },
   addMedia: (sectionId, asset) => {
     const { plan } = get();
     if (!plan) return;
@@ -316,7 +396,9 @@ const useEditorStore = create<EditorStoreState>((set, get) => ({
       description: dataset.description,
       datasetId: dataset.id,
       tags: dataset.tags,
-      attachedQuestionId: questionId
+      attachedQuestionId: questionId,
+      sectionId: sectionId,
+      questionId: questionId
     };
     attachAssetToQuestion(set, get, sectionId, questionId, asset);
   },
@@ -328,7 +410,9 @@ const useEditorStore = create<EditorStoreState>((set, get) => ({
       description: kpi.description,
       datasetId: kpi.datasetId,
       tags: kpi.unit ? [kpi.unit] : undefined,
-      attachedQuestionId: questionId
+      attachedQuestionId: questionId,
+      sectionId: sectionId,
+      questionId: questionId
     };
     attachAssetToQuestion(set, get, sectionId, questionId, asset);
   },
@@ -336,7 +420,9 @@ const useEditorStore = create<EditorStoreState>((set, get) => ({
     attachAssetToQuestion(set, get, sectionId, questionId, {
       ...asset,
       id: `${asset.id}_attached_${Date.now()}`,
-      attachedQuestionId: questionId
+      attachedQuestionId: questionId,
+      sectionId: sectionId,
+      questionId: questionId
     });
   },
   detachQuestionAttachment: (sectionId, questionId, attachmentId) => {
@@ -503,7 +589,26 @@ const useEditorStore = create<EditorStoreState>((set, get) => ({
         };
         savePlanConversations(sectionId, [...conversationHistory, userTurn]);
 
-        const updatedPlan = updateSection(plan, sectionId, (currentSection) => ({
+        // Create KPIs if AI suggested them
+        let planWithKPIs = plan;
+        if ((response as any).suggestedKPIs && (response as any).suggestedKPIs.length > 0) {
+          const newKPIs = (response as any).suggestedKPIs.map((suggested: any) => ({
+            id: `kpi_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
+            name: suggested.name,
+            value: suggested.value || 0,
+            unit: suggested.unit,
+            description: suggested.description,
+            sectionId,
+            questionId
+          }));
+          
+          planWithKPIs = updateSection(plan, sectionId, (currentSection) => ({
+            ...currentSection,
+            kpis: [...(currentSection.kpis ?? []), ...newKPIs]
+          }));
+        }
+
+        const updatedPlan = updateSection(planWithKPIs, sectionId, (currentSection) => ({
           ...currentSection,
           questions: currentSection.questions.map((item) =>
             item.id === questionId
@@ -548,11 +653,12 @@ function attachAssetToQuestion(
 
 function buildSectionFromTemplate(
   template: SectionTemplate,
-  savedSections: StoredPlanSection[]
+  savedSections: StoredPlanSection[],
+  questionStates: QuestionStateMap
 ): Section {
   const saved = savedSections.find((section) => section.id === template.id);
-  const datasets = convertLegacyTablesToDatasets(saved?.tables);
-  const questions = buildQuestionsFromTemplate(template, saved?.content ?? '');
+  const datasets = convertLegacyTablesToDatasets(saved?.tables, template.id);
+  const questions = buildQuestionsFromTemplate(template, saved?.content ?? '', questionStates);
   return {
     id: template.id,
     title: template.title,
@@ -563,13 +669,11 @@ function buildSectionFromTemplate(
     media: (saved?.figures as MediaAsset[]) || [],
     collapsed: false,
     category: template.category,
-    progress: questions.every((question) => (question.answer ?? '').trim().length > 0)
-      ? 100
-      : 0
+    progress: calculateSectionCompletion(questions)
   };
 }
 
-function convertLegacyTablesToDatasets(tables?: Record<string, Table | undefined>): Dataset[] {
+function convertLegacyTablesToDatasets(tables?: Record<string, Table | undefined>, sectionId: string = ''): Dataset[] {
   if (!tables) return [];
   return Object.entries(tables)
     .filter((entry): entry is [string, Table] => Boolean(entry[1]))
@@ -591,7 +695,8 @@ function convertLegacyTablesToDatasets(tables?: Record<string, Table | undefined
         description: '',
         columns,
         rows,
-        tags: []
+        tags: [],
+        sectionId: sectionId || 'legacy'
       };
     });
 }
@@ -626,7 +731,52 @@ function convertPlanToLegacySections(plan: BusinessPlan): LegacyPlanSection[] {
   }));
 }
 
-function buildQuestionsFromTemplate(template: SectionTemplate, savedAnswer: string): Question[] {
+function meetsMinimalAnswerThreshold(content: string): boolean {
+  const stripped = (content || '').replace(/<[^>]*>/g, ' ').replace(/\s+/g, ' ').trim();
+  if (!stripped) return false;
+  const wordCount = stripped.split(/\s+/).filter(Boolean).length;
+  const bulletCount = (content || '')
+    .split('\n')
+    .filter((line) => line.trim().match(/^([-*•]|[0-9]+\.)\s+/))
+    .length;
+  const sentenceCount = stripped.split(/[.!?]/).filter((sentence) => sentence.trim().length > 0).length;
+  if (bulletCount >= 1) return true;
+  if (sentenceCount >= 2 && wordCount >= 15) return true;
+  return wordCount >= 30;
+}
+
+function determineQuestionStatus(content: string): QuestionStatus {
+  const stripped = (content || '').replace(/<[^>]*>/g, ' ').trim();
+  if (!stripped) {
+    return 'blank';
+  }
+  return meetsMinimalAnswerThreshold(content) ? 'complete' : 'draft';
+}
+
+function calculateSectionCompletion(questions: Question[]): number {
+  if (questions.length === 0) return 0;
+  const completed = questions.filter((question) => question.status === 'complete').length;
+  return Math.round((completed / questions.length) * 100);
+}
+
+function extractQuestionStates(plan: BusinessPlan): QuestionStateMap {
+  return plan.sections.reduce<QuestionStateMap>((acc, section) => {
+    section.questions.forEach((question) => {
+      acc[question.id] = {
+        status: question.status ?? 'blank',
+        note: question.statusNote,
+        lastUpdatedAt: question.lastUpdatedAt
+      };
+    });
+    return acc;
+  }, {});
+}
+
+function buildQuestionsFromTemplate(
+  template: SectionTemplate,
+  savedAnswer: string,
+  questionStates: QuestionStateMap
+): Question[] {
   const requiredAssets = deriveRequiredAssets(template.validationRules?.requiredFields ?? []);
   const seeds =
     template.questions && template.questions.length > 0
@@ -652,17 +802,26 @@ function buildQuestionsFromTemplate(template: SectionTemplate, savedAnswer: stri
               }
             ]);
 
-  return seeds.map((seed, index) => ({
-    id: `${template.id}_q${index + 1}`,
-    prompt: seed.prompt,
-    helperText: seed.helperText,
-    placeholder: seed.placeholder,
-    required: seed.required,
-    answer: index === 0 ? savedAnswer : '',
-    suggestions: [],
-    warnings: [],
-    requiredAssets
-  }));
+  return seeds.map((seed, index) => {
+    const questionId = `${template.id}_q${index + 1}`;
+    const storedState = questionStates?.[questionId];
+    const initialAnswer = index === 0 ? savedAnswer : '';
+    const derivedStatus = determineQuestionStatus(initialAnswer ?? '');
+    return {
+      id: questionId,
+      prompt: seed.prompt,
+      helperText: seed.helperText,
+      placeholder: seed.placeholder,
+      required: seed.required,
+      answer: initialAnswer,
+      suggestions: [],
+      warnings: [],
+      requiredAssets,
+      status: storedState?.status ?? derivedStatus,
+      statusNote: storedState?.note,
+      lastUpdatedAt: storedState?.lastUpdatedAt
+    };
+  });
 }
 
 function deriveRequiredAssets(requiredFields: string[]): Array<MediaAsset['type']> {
@@ -704,6 +863,7 @@ function persistPlan(plan: BusinessPlan) {
       figures: section.figures
     }))
   );
+  saveQuestionStates(extractQuestionStates(plan));
 }
 
 function updateSection(plan: BusinessPlan, sectionId: string, updater: (section: Section) => Section): BusinessPlan {
@@ -735,6 +895,7 @@ export default function Editor({ product = 'submission' }: EditorProps) {
     setRightPanelView,
     addDataset,
     addKpi,
+    updateKpi,
     addMedia,
     attachDatasetToQuestion,
     attachKpiToQuestion,
@@ -750,7 +911,8 @@ export default function Editor({ product = 'submission' }: EditorProps) {
     setProductType,
     progressSummary,
     runRequirementsCheck,
-    requestAISuggestions
+    requestAISuggestions,
+    toggleQuestionUnknown
   } = useEditorStore();
   const [selectedProduct, setSelectedProduct] = useState<ProductType>(product);
   const [programId, setProgramId] = useState<string | null>(null);
@@ -964,6 +1126,7 @@ export default function Editor({ product = 'submission' }: EditorProps) {
               onSelectQuestion={setActiveQuestion}
               activeQuestionId={activeQuestion?.id ?? null}
               onAskAI={triggerAISuggestions}
+              onToggleUnknown={toggleQuestionUnknown}
             />
           )}
         </div>
@@ -977,6 +1140,7 @@ export default function Editor({ product = 'submission' }: EditorProps) {
             plan={plan}
             onDatasetCreate={(dataset) => activeSection && addDataset(activeSection.id, dataset)}
             onKpiCreate={(kpi) => activeSection && addKpi(activeSection.id, kpi)}
+            onKpiUpdate={(sectionId, kpiId, updates) => updateKpi(sectionId, kpiId, updates)}
             onMediaCreate={(asset) => activeSection && addMedia(activeSection.id, asset)}
             onAttachDataset={(dataset) =>
               activeSection &&
@@ -997,6 +1161,8 @@ export default function Editor({ product = 'submission' }: EditorProps) {
             progressSummary={progressSummary}
             onAskAI={triggerAISuggestions}
             onAnswerChange={updateAnswer}
+            onNavigateToSection={setActiveSection}
+            onNavigateToQuestion={setActiveQuestion}
           />
         </div>
       </div>
@@ -1187,7 +1353,7 @@ function SectionNavigationBar({
         {sections.map((section, index) => {
         const totalQuestions = section.questions.length;
         const answeredQuestions = section.questions.filter(
-          (question) => (question.answer ?? '').trim().length > 0
+          (question) => question.status === 'complete'
         ).length;
         const completion =
           section.progress ??
@@ -1296,13 +1462,15 @@ function SectionWorkspace({
   onAnswerChange,
   onSelectQuestion,
   activeQuestionId,
-  onAskAI
+  onAskAI,
+  onToggleUnknown
 }: {
   section?: Section;
   onAnswerChange: (questionId: string, content: string) => void;
   onSelectQuestion: (questionId: string) => void;
   activeQuestionId: string | null;
   onAskAI: (questionId?: string) => void;
+  onToggleUnknown: (questionId: string, note?: string) => void;
 }) {
 
   if (!section) {
@@ -1362,6 +1530,7 @@ function SectionWorkspace({
             onFocus={() => onSelectQuestion(activeQuestion.id)}
             onChange={(content) => onAnswerChange(activeQuestion.id, content)}
             onAskAI={() => onAskAI(activeQuestion.id)}
+            onToggleUnknown={(note) => onToggleUnknown(activeQuestion.id, note)}
           />
         );
       })()}
@@ -1375,7 +1544,8 @@ function QuestionCard({
   isActive,
   onFocus,
   onChange,
-  onAskAI
+  onAskAI,
+  onToggleUnknown
 }: {
   question: Question;
   position: number;
@@ -1383,7 +1553,22 @@ function QuestionCard({
   onFocus: () => void;
   onChange: (content: string) => void;
   onAskAI: () => void;
+  onToggleUnknown: (note?: string) => void;
 }) {
+  const isUnknown = question.status === 'unknown';
+  const handleToggleUnknown = (event: React.MouseEvent<HTMLButtonElement>) => {
+    event.stopPropagation();
+    if (isUnknown) {
+      onToggleUnknown();
+      return;
+    }
+    const note =
+      typeof window !== 'undefined'
+        ? window.prompt('Optional note for why this prompt is unknown?')
+        : undefined;
+    onToggleUnknown(note ?? undefined);
+  };
+
   return (
     <div
       className={`rounded-3xl border p-6 bg-white shadow-sm transition ${
@@ -1406,6 +1591,11 @@ function QuestionCard({
           )}
         </div>
         <p className="text-lg font-semibold text-slate-900 leading-snug">{question.prompt}</p>
+        {isUnknown && (
+          <p className="mt-2 text-xs font-semibold text-amber-600 bg-amber-50 inline-flex px-2.5 py-1 rounded-full">
+            Marked as unknown{question.statusNote ? ` • ${question.statusNote}` : ''}
+          </p>
+        )}
       </div>
 
       {/* Text Editor */}
@@ -1428,9 +1618,14 @@ function QuestionCard({
         </button>
         <button
           type="button"
-          className="inline-flex items-center px-4 py-2 rounded-lg border border-slate-200 text-slate-400 font-semibold text-sm hover:border-slate-300"
+          onClick={handleToggleUnknown}
+          className={`inline-flex items-center px-4 py-2 rounded-lg border font-semibold text-sm ${
+            isUnknown
+              ? 'border-amber-300 text-amber-700 bg-amber-50'
+              : 'border-slate-200 text-slate-500 hover:border-slate-300'
+          }`}
         >
-          ⏭ Skip
+          {isUnknown ? 'Clear unknown status' : 'Mark as unknown'}
         </button>
       </div>
     </div>
@@ -1446,6 +1641,7 @@ function RightPanel({
   plan,
   onDatasetCreate,
   onKpiCreate,
+  onKpiUpdate,
   onMediaCreate,
   onAttachDataset,
   onAttachKpi,
@@ -1453,7 +1649,9 @@ function RightPanel({
   onRunRequirements,
   progressSummary,
   onAskAI,
-  onAnswerChange
+  onAnswerChange,
+  onNavigateToSection,
+  onNavigateToQuestion
 }: {
   view: RightPanelView;
   setView: (view: RightPanelView) => void;
@@ -1462,6 +1660,7 @@ function RightPanel({
   plan: BusinessPlan;
   onDatasetCreate: (dataset: Dataset) => void;
   onKpiCreate: (kpi: KPI) => void;
+  onKpiUpdate?: (sectionId: string, kpiId: string, updates: Partial<KPI>) => void;
   onMediaCreate: (asset: MediaAsset) => void;
   onAttachDataset: (dataset: Dataset) => void;
   onAttachKpi: (kpi: KPI) => void;
@@ -1470,6 +1669,8 @@ function RightPanel({
   progressSummary: ProgressSummary[];
   onAskAI: (questionId?: string) => void;
   onAnswerChange: (questionId: string, content: string) => void;
+  onNavigateToSection: (sectionId: string) => void;
+  onNavigateToQuestion: (questionId: string) => void;
 }) {
   const [requirementsChecked, setRequirementsChecked] = React.useState(false);
   // Map 'requirements' view to 'preview' for backward compatibility
@@ -1609,24 +1810,51 @@ function RightPanel({
           <div className="p-4">
             {section ? (
               <>
-                {(section.category === 'financial' || section.category === 'risk' || section.category === 'project') && (
-                  <div className="mb-4 p-3 bg-blue-50 border border-blue-100 rounded-lg">
-                    <p className="text-xs font-semibold text-blue-800 mb-1">
-                      This section typically includes {section.category === 'financial' ? 'financial tables' : section.category === 'risk' ? 'a risk matrix' : 'milestone timelines'}.
-                    </p>
-                  </div>
-                )}
+                {/* Unified info banner for all sections - shows contextual guidance */}
+                <div className="mb-4 p-3 bg-blue-50 border border-blue-100 rounded-lg">
+                  <p className="text-xs font-semibold text-blue-800 mb-1">
+                    {section.category === 'financial' 
+                      ? 'This section typically includes financial tables, revenue projections, and KPIs.'
+                      : section.category === 'risk' 
+                      ? 'This section typically includes risk matrices and mitigation strategies.'
+                      : section.category === 'project'
+                      ? 'This section typically includes milestone timelines and project deliverables.'
+                      : section.category === 'market'
+                      ? 'This section typically includes market analysis tables and customer segmentation data.'
+                      : section.category === 'technical'
+                      ? 'This section typically includes technical specifications and architecture diagrams.'
+                      : 'Add datasets, KPIs, and media to enhance this section.'}
+                  </p>
+                  <p className="text-xs text-blue-700 mt-1">
+                    You can create unlimited datasets, KPIs, and media items. Attach them to specific questions or keep them as section-level data.
+                  </p>
+                </div>
                 <DataPanel
                   datasets={section.datasets ?? []}
                   kpis={section.kpis ?? []}
                   media={section.media ?? []}
                   onDatasetCreate={onDatasetCreate}
                   onKpiCreate={onKpiCreate}
+                  onKpiUpdate={onKpiUpdate}
                   onMediaCreate={onMediaCreate}
                   activeQuestionId={question?.id}
+                  activeQuestionPrompt={question?.prompt}
+                  questions={section.questions.map(q => ({ id: q.id, prompt: q.prompt }))}
+                  sectionId={section.id}
+                  sectionTitle={section.title}
                   onAttachDataset={onAttachDataset}
                   onAttachKpi={onAttachKpi}
                   onAttachMedia={onAttachMedia}
+                  onNavigateToSection={(sectionId, questionId) => {
+                    onNavigateToSection(sectionId);
+                    if (questionId) {
+                      const targetSection = plan.sections.find(s => s.id === sectionId);
+                      const targetQuestion = targetSection?.questions.find(q => q.id === questionId);
+                      if (targetQuestion) {
+                        onNavigateToQuestion(questionId);
+                      }
+                    }
+                  }}
                 />
               </>
             ) : (
