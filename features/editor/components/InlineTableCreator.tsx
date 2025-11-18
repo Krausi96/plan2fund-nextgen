@@ -7,148 +7,9 @@ import { Dataset, KPI, MediaAsset } from '@/features/editor/types/plan';
 type Tab = 'datasets' | 'kpis' | 'media';
 type Composer = 'dataset' | 'kpi' | 'media' | null;
 
-type QuickTemplate = {
-  id: string;
-  title: string;
-  description: string;
-  columns: string;
-  tags?: string;
-};
-
-const CATEGORY_COPY: Record<
-  string,
-  {
-    headline: string;
-    supporting: string;
-  }
-> = {
-  financial: {
-    headline: 'This section typically includes revenue projections, cost tables, and KPI trackers.',
-    supporting:
-      'Build structured tables for budgets, cash flow, or forecasts. Reference KPIs whenever you cite numbers in the narrative.'
-  },
-  impact: {
-    headline: 'Show beneficiaries, measurable outcomes, and KPIs that make the impact story credible.',
-    supporting:
-      'Segment beneficiaries, track baseline vs target KPIs, and call out policy-alignment evidence so reviewers see tangible results.'
-  },
-  technical: {
-    headline: 'Highlight engineering evidence like TRL progression, prior-art analysis, and risk matrices.',
-    supporting:
-      'Quick-add templates help you outline prototypes, validation steps, and mitigation plans tied to owners and due dates.'
-  },
-  project: {
-    headline: 'Document milestones, work packages, and delivery cadence for the review team.',
-    supporting:
-      'Timeline tables and resource trackers keep this section aligned with Layout v3 guidance on milestones and gating.'
-  },
-  risk: {
-    headline: 'Surface top risks, probability/impact scores, and mitigation owners.',
-    supporting: 'Use structured risk registers so Preview/Export flows can cite them alongside question copy.'
-  },
-  market: {
-    headline: 'Capture market size, segmentation, and traction metrics.',
-    supporting:
-      'Pair claims with TAM/SAM/SOM tables, KPI trackers, or media like charts that visualize pipeline health.'
-  },
-  default: {
-    headline: 'Use datasets, KPIs, and media to keep every section evidence-driven.',
-    supporting:
-      'Create a table, KPI, or media asset, then attach it to the active question so exports and requirements stay in sync.'
-  }
-};
-
-const QUICK_ADD_TEMPLATES: Record<string, QuickTemplate[]> = {
-  financial: [
-    {
-      id: 'budget_breakdown',
-      title: 'Budget breakdown',
-      description: 'Itemize personnel, operations, and overhead with totals per year.',
-      columns: 'Cost Category:string, Year:string, Amount:number (EUR), Notes:string',
-      tags: 'budget,costs,financial'
-    },
-    {
-      id: 'revenue_projection',
-      title: 'Revenue projection',
-      description: 'Forecast revenue streams across months or years.',
-      columns: 'Stream:string, Period:string, Amount:number (EUR), Confidence:string',
-      tags: 'revenue,forecast'
-    },
-    {
-      id: 'financial_kpi_tracker',
-      title: 'Financial KPI tracker',
-      description: 'Baseline vs target for runway, CAC, margin, etc.',
-      columns: 'Metric:string, Baseline:number, Target:number, Unit:string, Owner:string',
-      tags: 'kpi,finance'
-    }
-  ],
-  project: [
-    {
-      id: 'milestone_timeline',
-      title: 'Milestone timeline',
-      description: 'Track milestone, deliverable, owner, and due date.',
-      columns: 'Milestone:string, Deliverable:string, Owner:string, Due Date:date, Status:string',
-      tags: 'timeline,project'
-    },
-    {
-      id: 'resource_allocation',
-      title: 'Resource allocation',
-      description: 'Summarize effort and budget per work package.',
-      columns: 'Work Package:string, Effort:number (hours), Budget:number (EUR), Owner:string',
-      tags: 'resources,project'
-    }
-  ],
-  technical: [
-    {
-      id: 'trl_progression',
-      title: 'TRL progression',
-      description: 'Component, current vs target TRL, validation evidence, and owners.',
-      columns: 'Component:string, Current TRL:number, Target TRL:number, Evidence:string, Owner:string',
-      tags: 'trl,technology'
-    },
-    {
-      id: 'technical_risk_matrix',
-      title: 'Risk matrix',
-      description: 'Probability, impact, mitigation plan, owner, due date.',
-      columns: 'Risk:string, Probability:string, Impact:string, Mitigation:string, Owner:string, Due Date:date',
-      tags: 'risk,technology'
-    }
-  ],
-  impact: [
-    {
-      id: 'beneficiary_segmentation',
-      title: 'Beneficiary segmentation',
-      description: 'Segment, geography, population size, and data source.',
-      columns: 'Segment:string, Geography:string, Population:number, Data Source:string, Notes:string',
-      tags: 'impact,beneficiaries'
-    },
-    {
-      id: 'impact_kpi_tracker',
-      title: 'Impact KPI tracker',
-      description: 'Baseline vs target metrics plus evidence links.',
-      columns: 'Metric:string, Baseline:number, Target:number, Unit:string, Evidence Link:string',
-      tags: 'impact,kpi'
-    }
-  ],
-  risk: [
-    {
-      id: 'risk_register',
-      title: 'Risk register',
-      description: 'Score risks with probability, impact, mitigation, and owner.',
-      columns: 'Risk:string, Probability:string, Impact:string, Mitigation Plan:string, Owner:string, Status:string',
-      tags: 'risk,governance'
-    }
-  ],
-  default: [
-    {
-      id: 'evidence_table',
-      title: 'Evidence table',
-      description: 'Track source, metric, and link for cited evidence.',
-      columns: 'Evidence:string, Source:string, Metric:string, Notes:string',
-      tags: 'evidence,data'
-    }
-  ]
-};
+const DATA_PANEL_HEADLINE = 'Keep this section evidence-driven.';
+const DATA_PANEL_SUPPORT =
+  'Create supporting datasets, KPIs, or media, then attach them to your active prompt so reviewers see proof alongside the narrative.';
 
 const TYPE_ICONS: Record<string, string> = {
   datasets: '📊',
@@ -169,7 +30,6 @@ interface DataPanelProps {
   onMediaCreate: (asset: MediaAsset) => void;
   activeQuestionId?: string | null;
   sectionId: string;
-  sectionCategory?: string;
   sectionTitle?: string;
   onAttachDataset?: (dataset: Dataset) => void;
   onAttachKpi?: (kpi: KPI) => void;
@@ -281,7 +141,6 @@ export default function DataPanel({
   onMediaCreate,
   activeQuestionId,
   sectionId,
-  sectionCategory,
   sectionTitle,
   onAttachDataset,
   onAttachKpi,
@@ -294,9 +153,25 @@ export default function DataPanel({
   const [viewingItem, setViewingItem] = useState<{ type: Tab; id: string } | null>(null);
   const [editingItem, setEditingItem] = useState<{ type: Tab; id: string } | null>(null);
 
-  const categoryKey = (sectionCategory ?? 'default').toLowerCase();
-  const infoCopy = CATEGORY_COPY[categoryKey] ?? CATEGORY_COPY.default;
-  const quickTemplates = QUICK_ADD_TEMPLATES[categoryKey] ?? QUICK_ADD_TEMPLATES.default;
+  const datasetList = useMemo(() => datasets ?? [], [datasets]);
+  const kpiList = useMemo(() => kpis ?? [], [kpis]);
+  const mediaList = useMemo(() => media ?? [], [media]);
+  const canAttach = Boolean(activeQuestionId);
+
+  const attachmentsForActiveQuestion = useMemo(() => {
+    if (!activeQuestionId) return 0;
+    const datasetMatches = datasetList.filter((item) => item.questionId === activeQuestionId).length;
+    const kpiMatches = kpiList.filter((item) => item.questionId === activeQuestionId).length;
+    const mediaMatches = mediaList.filter((item) => item.questionId === activeQuestionId).length;
+    return datasetMatches + kpiMatches + mediaMatches;
+  }, [datasetList, kpiList, mediaList, activeQuestionId]);
+
+  const summaryChips = [
+    { label: 'Datasets', count: datasetList.length },
+    { label: 'KPIs', count: kpiList.length },
+    { label: 'Media', count: mediaList.length },
+    { label: 'Linked to current Q', count: attachmentsForActiveQuestion }
+  ];
 
   const [datasetName, setDatasetName] = useState('');
   const [datasetDescription, setDatasetDescription] = useState('');
@@ -316,11 +191,6 @@ export default function DataPanel({
   const [mediaAltText, setMediaAltText] = useState('');
   const [mediaFigure, setMediaFigure] = useState('');
   const [mediaTags, setMediaTags] = useState('');
-
-  const datasetList = useMemo(() => datasets ?? [], [datasets]);
-  const kpiList = useMemo(() => kpis ?? [], [kpis]);
-  const mediaList = useMemo(() => media ?? [], [media]);
-  const canAttach = Boolean(activeQuestionId);
 
   const filteredDatasets = useMemo(() => {
     if (!searchQuery.trim()) return datasetList;
@@ -470,15 +340,6 @@ export default function DataPanel({
     setActiveTab(composer === 'dataset' ? 'datasets' : composer === 'kpi' ? 'kpis' : 'media');
   };
 
-  const handleQuickTemplateSelect = (template: QuickTemplate) => {
-    setActiveComposer('dataset');
-    setActiveTab('datasets');
-    setDatasetName(template.title);
-    setDatasetDescription(template.description);
-    setDatasetColumns(template.columns);
-    setDatasetTags(template.tags ?? '');
-  };
-
   const renderPagination = (tab: Tab, id: string, index: number, total: number) => (
     <div className="flex items-center justify-between text-[11px] text-slate-500">
       <span>
@@ -550,17 +411,30 @@ export default function DataPanel({
 
   return (
     <div className="space-y-4">
-      <div className="rounded-2xl border border-blue-100 bg-blue-50/60 p-4">
-        <p className="text-[11px] uppercase tracking-[0.3em] text-blue-600 mb-2">
-          {sectionTitle || 'Data guidance'}
-        </p>
-        <p className="text-sm font-semibold text-blue-900">{infoCopy.headline}</p>
-        <p className="text-xs text-blue-800/80 mt-1">{infoCopy.supporting}</p>
-        {!canAttach && (
-          <p className="mt-2 text-[11px] font-semibold text-blue-700">
-            Select a question to enable quick attachments.
+      <div className="rounded-2xl border border-blue-100 bg-blue-50/60 p-4 space-y-3">
+        <div>
+          <p className="text-[11px] uppercase tracking-[0.3em] text-blue-600 mb-1">
+            {sectionTitle || 'Data guidance'}
           </p>
-        )}
+          <p className="text-sm font-semibold text-blue-900">{DATA_PANEL_HEADLINE}</p>
+          <p className="text-xs text-blue-800/80 mt-1">{DATA_PANEL_SUPPORT}</p>
+          {!canAttach && (
+            <p className="mt-2 text-[11px] font-semibold text-blue-700">
+              Select a question to enable quick attachments.
+            </p>
+          )}
+        </div>
+        <div className="grid grid-cols-2 gap-2">
+          {summaryChips.map((chip) => (
+            <div
+              key={chip.label}
+              className="rounded-xl border border-blue-100 bg-white/70 px-3 py-2 flex items-center justify-between text-xs font-semibold text-blue-900"
+            >
+              <span>{chip.label}</span>
+              <span className="text-sm">{chip.count}</span>
+            </div>
+          ))}
+        </div>
       </div>
 
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
@@ -589,31 +463,40 @@ export default function DataPanel({
         })}
       </div>
 
-      {quickTemplates.length > 0 && (
-        <div className="rounded-2xl border border-slate-200 bg-white p-4 space-y-3">
-          <div className="flex items-center justify-between">
-            <p className="text-xs font-semibold text-slate-600">Quick-add templates</p>
-            <span className="text-[11px] text-slate-400">
-              {(sectionCategory || 'general').toUpperCase()}
-            </span>
-          </div>
-          <div className="flex gap-3 overflow-x-auto pb-1">
-            {quickTemplates.map((template) => (
-              <button
-                key={template.id}
-                onClick={() => handleQuickTemplateSelect(template)}
-                className="min-w-[200px] rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 text-left hover:border-blue-200 hover:bg-blue-50 transition"
-              >
-                <p className="text-sm font-semibold text-slate-800">{template.title}</p>
-                <p className="text-[11px] text-slate-500 mt-1">{template.description}</p>
-                <p className="text-[10px] text-slate-400 mt-1">
-                  {template.columns.split(',').length} fields
-                </p>
-              </button>
-            ))}
-          </div>
+      <div className="rounded-2xl border border-slate-200 bg-white p-4 space-y-3">
+        <div className="flex items-center justify-between">
+          <p className="text-xs font-semibold text-slate-600">Need structure ideas?</p>
+          <span className="text-[11px] text-slate-400">AI assist</span>
         </div>
-      )}
+        <p className="text-xs text-slate-600">
+          Ask the Assistant tab to suggest a dataset, KPI, or media template. When AI returns a
+          structure, paste it into one of the composers below. Native quicksets will hook into those
+          AI suggestions so this area updates automatically.
+        </p>
+        <div className="flex flex-wrap gap-2">
+          <button
+            type="button"
+            onClick={() => handlePrimaryAction('dataset')}
+            className="flex-1 min-w-[140px] rounded-xl border border-slate-200 px-3 py-2 text-xs font-semibold text-slate-700 hover:border-blue-300 hover:bg-blue-50/70"
+          >
+            Open dataset composer
+          </button>
+          <button
+            type="button"
+            onClick={() => handlePrimaryAction('kpi')}
+            className="flex-1 min-w-[140px] rounded-xl border border-slate-200 px-3 py-2 text-xs font-semibold text-slate-700 hover:border-blue-300 hover:bg-blue-50/70"
+          >
+            Open KPI composer
+          </button>
+          <button
+            type="button"
+            onClick={() => handlePrimaryAction('media')}
+            className="flex-1 min-w-[140px] rounded-xl border border-slate-200 px-3 py-2 text-xs font-semibold text-slate-700 hover:border-blue-300 hover:bg-blue-50/70"
+          >
+            Open media composer
+          </button>
+        </div>
+      </div>
 
       {activeComposer && (
         <div className="rounded-3xl border border-slate-200 bg-white p-4 space-y-4">

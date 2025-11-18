@@ -19,9 +19,9 @@ Use this file to log execution order, decisions, and checkpoints so we can keep 
 ## Step 2 – Right Panel & Data Tab UX Parity ✅ (done – 2025-11-18)
 Goal: Bring the right column to Layout v3 parity.
 - Rebuilt the Data tab inside the sticky right column with the Layout v3 hierarchy (info banner, CTA row, quick-add templates, and modern library cards).
-- Info banner now reflects `section.category`, nudging users toward category-specific evidence.
-- Primary actions (`Add table`, `Add KPI`, `Add media`) now live at the top and open inline composers without disrupting the list below.
-- Added category-aware quick-add dataset templates (budget breakdown, milestone timeline, TRL matrix, beneficiary segmentation, etc.) that prefill the dataset composer.
+- Replaced the category-specific copy with a single neutral guidance banner plus live stat chips (counts of datasets/KPIs/media and how many are linked to the active prompt) so the top of the panel feels interactive without hard-coded blurbs.
+- Primary actions (`Add table`, `Add KPI`, `Add media`) sit at the top and open inline composers without disrupting the list below.
+- Quick-add presets are now AI-driven: the Data tab points users to the Assistant for structure ideas, and whatever the assistant returns gets dropped into the existing composers (manual creation still works via the CTA buttons).
 - Library cards now show type icons, attachment badges, Prev/Next navigation, and updated action buttons while keeping attach/edit/view/delete workflows intact.
 - Existing dataset/KPI/media creation plus attach flows remain unchanged; automation hooks deferred until layout is battle-tested.
 

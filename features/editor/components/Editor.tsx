@@ -1795,7 +1795,6 @@ function RightPanel({
                 onMediaCreate={onMediaCreate}
                 activeQuestionId={question?.id}
                 sectionId={section.id}
-                sectionCategory={section.category}
                 sectionTitle={section.title}
                 onAttachDataset={onAttachDataset}
                 onAttachKpi={onAttachKpi}
