@@ -17,7 +17,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   }
 
   try {
-    const { email, password } = req.body;
+    const { email, password, rememberMe } = req.body;
 
     if (!email) {
       return res.status(400).json({ error: 'Email is required' });
@@ -46,10 +46,11 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     // Update last active
     await updateLastActive(user.id);
 
-    // Create session
+    // Create session with expiration based on rememberMe
     const sessionToken = generateSessionToken();
     const expiresAt = new Date();
-    expiresAt.setDate(expiresAt.getDate() + 30); // 30 days
+    const sessionDays = rememberMe ? 30 : 7; // 30 days if remember me, 7 days otherwise
+    expiresAt.setDate(expiresAt.getDate() + sessionDays);
 
     await createSession(
       user.id,
@@ -62,7 +63,9 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     // Return user data (without password hash)
     const { password_hash, ...userWithoutPassword } = user;
 
-    res.setHeader('Set-Cookie', `pf_session=${sessionToken}; HttpOnly; Secure; SameSite=Strict; Path=/; Max-Age=${30 * 24 * 60 * 60}`);
+    // Set cookie with appropriate expiration
+    const maxAge = sessionDays * 24 * 60 * 60; // Convert days to seconds
+    res.setHeader('Set-Cookie', `pf_session=${sessionToken}; HttpOnly; Secure; SameSite=Strict; Path=/; Max-Age=${maxAge}`);
 
     return res.status(200).json({
       success: true,

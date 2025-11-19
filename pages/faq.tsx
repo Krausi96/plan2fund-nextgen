@@ -23,79 +23,49 @@ const getFAQData = (t: (key: any) => string): FAQItem[] => [
     id: "data-security",
     question: t("faq.questions.dataSecurity.question"),
     answer: t("faq.questions.dataSecurity.answer"),
-    category: t("faq.categories.security")
+    category: t("faq.categories.general")
   },
   {
-    id: "time-to-complete",
-    question: t("faq.questions.timeToComplete.question"),
-    answer: t("faq.questions.timeToComplete.answer"),
+    id: "pricing",
+    question: t("faq.questions.pricing.question"),
+    answer: t("faq.questions.pricing.answer"),
     category: t("faq.categories.general")
   },
   {
     id: "refunds",
     question: t("faq.questions.refunds.question"),
     answer: t("faq.questions.refunds.answer"),
-    category: t("faq.categories.billing")
+    category: t("faq.categories.general")
   },
   {
     id: "funding-programs",
     question: t("faq.questions.fundingPrograms.question"),
     answer: t("faq.questions.fundingPrograms.answer"),
-    category: t("faq.categories.programs")
-  },
-  {
-    id: "pricing",
-    question: t("faq.questions.pricing.question"),
-    answer: t("faq.questions.pricing.answer"),
-    category: t("faq.categories.billing")
+    category: t("faq.categories.general")
   },
   {
     id: "export-formats",
     question: t("faq.questions.exportFormats.question"),
     answer: t("faq.questions.exportFormats.answer"),
-    category: t("faq.categories.features")
-  },
-  {
-    id: "collaboration",
-    question: t("faq.questions.collaboration.question"),
-    answer: t("faq.questions.collaboration.answer"),
-    category: t("faq.categories.features")
+    category: t("faq.categories.general")
   },
   {
     id: "support",
     question: t("faq.questions.support.question"),
     answer: t("faq.questions.support.answer"),
-    category: t("faq.categories.support")
+    category: t("faq.categories.general")
   },
   {
-    id: "updates",
-    question: t("faq.questions.updates.question"),
-    answer: t("faq.questions.updates.answer"),
-    category: t("faq.categories.programs")
-  },
-  {
-    id: "compliance",
-    question: t("faq.questions.compliance.question"),
-    answer: t("faq.questions.compliance.answer"),
-    category: t("faq.categories.compliance")
-  },
-  {
-    id: "success-rate",
-    question: t("faq.questions.successRate.question"),
-    answer: t("faq.questions.successRate.answer"),
+    id: "time-to-complete",
+    question: t("faq.questions.timeToComplete.question"),
+    answer: t("faq.questions.timeToComplete.answer"),
     category: t("faq.categories.general")
   }
 ];
 
 const getCategories = (t: (key: any) => string) => [
   t("faq.categories.all"),
-  t("faq.categories.general"),
-  t("faq.categories.security"),
-  t("faq.categories.billing"),
-  t("faq.categories.programs"),
-  t("faq.categories.features"),
-  t("faq.categories.support"),
-  t("faq.categories.compliance")
+  t("faq.categories.general")
 ];
 
 export default function FAQPage() {
@@ -144,17 +114,17 @@ export default function FAQPage() {
         schema="faq"
       />
       
-      <main className="min-h-screen bg-gradient-to-b from-white via-neutral-50 to-white">
-        <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-20">
+      <main className="min-h-screen bg-gradient-to-b from-gray-50 via-white to-gray-50">
+        <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-16">
           {/* Header */}
-          <div className="text-center mb-16">
-            <div className="flex items-center justify-center mb-6">
-              <div className="bg-gradient-to-br from-blue-100 to-blue-50 p-4 rounded-2xl mr-4 shadow-md">
-                <HelpCircle className="w-12 h-12 text-blue-600" />
+          <div className="text-center mb-12">
+            <div className="flex items-center justify-center mb-4">
+              <div className="bg-gradient-to-br from-blue-100 to-blue-50 p-3 rounded-xl mr-3 shadow-md">
+                <HelpCircle className="w-10 h-10 text-blue-600" />
               </div>
-              <h1 className="text-4xl md:text-5xl font-bold text-neutral-900 tracking-tight">{t("faq.title")}</h1>
+              <h1 className="text-3xl md:text-4xl font-bold text-neutral-900 tracking-tight">{t("faq.title")}</h1>
             </div>
-            <p className="text-xl md:text-2xl text-neutral-600 max-w-3xl mx-auto leading-relaxed">
+            <p className="text-lg md:text-xl text-neutral-600 max-w-2xl mx-auto">
               {t("faq.subtitle")}
             </p>
           </div>
@@ -169,7 +139,7 @@ export default function FAQPage() {
                   className={`px-6 py-3 rounded-xl text-sm font-semibold transition-all duration-300 ${
                     selectedCategory === category
                       ? "bg-gradient-to-r from-blue-600 to-blue-700 text-white shadow-lg"
-                      : "bg-white text-neutral-700 hover:bg-neutral-50 border-2 border-neutral-200 hover:border-blue-300 shadow-md"
+                      : "bg-white text-neutral-700 hover:bg-blue-50/50 border-2 border-neutral-200 hover:border-blue-300 shadow-sm"
                   }`}
                 >
                   {category}
@@ -181,10 +151,10 @@ export default function FAQPage() {
           {/* FAQ Items */}
           <div className="space-y-4 mb-16">
             {filteredFAQs.map((faq) => (
-              <Card key={faq.id} className="overflow-hidden rounded-2xl border-2 border-neutral-200 shadow-md hover:shadow-xl transition-all duration-300">
+              <Card key={faq.id} className="overflow-hidden rounded-2xl border-2 border-neutral-200 shadow-sm hover:shadow-md hover:border-blue-200 transition-all duration-300 bg-white">
                 <button
                   onClick={() => toggleItem(faq.id)}
-                  className="w-full p-6 md:p-8 text-left flex items-center justify-between hover:bg-neutral-50/50 transition-colors group"
+                  className="w-full p-6 md:p-8 text-left flex items-center justify-between hover:bg-blue-50/30 transition-colors group"
                 >
                   <h3 className="text-lg md:text-xl font-bold text-neutral-900 pr-4 group-hover:text-blue-600 transition-colors">
                     {faq.question}
@@ -208,23 +178,23 @@ export default function FAQPage() {
 
           {/* Contact CTA */}
           <div className="text-center">
-            <Card className="p-10 md:p-12 bg-gradient-to-br from-blue-50 via-white to-blue-50/50 border-2 border-blue-200 rounded-2xl shadow-xl">
-              <h3 className="text-2xl md:text-3xl font-bold text-neutral-900 mb-4">
+            <Card className="p-8 bg-gradient-to-br from-blue-50 via-white to-blue-50/50 border-2 border-blue-200 rounded-2xl shadow-lg">
+              <h3 className="text-xl md:text-2xl font-bold text-neutral-900 mb-3">
                 {t("faq.cta.title")}
               </h3>
-              <p className="text-neutral-700 mb-8 text-lg leading-relaxed">
+              <p className="text-neutral-700 mb-6 text-base">
                 {t("faq.cta.subtitle")}
               </p>
-              <div className="flex flex-col sm:flex-row gap-4 justify-center">
+              <div className="flex flex-col sm:flex-row gap-3 justify-center">
                 <a
                   href="/contact"
-                  className="px-8 py-4 bg-gradient-to-r from-blue-600 to-blue-700 text-white rounded-xl hover:from-blue-700 hover:to-blue-800 transition-all duration-300 font-semibold shadow-lg hover:shadow-xl"
+                  className="px-6 py-3 bg-gradient-to-r from-blue-600 to-blue-700 text-white rounded-xl hover:from-blue-700 hover:to-blue-800 transition-all font-semibold shadow-md hover:shadow-lg text-sm"
                 >
                   {t("faq.cta.contactSupport")}
                 </a>
                 <a
                   href="/about"
-                  className="px-8 py-4 border-2 border-blue-600 text-blue-600 rounded-xl hover:bg-blue-50 transition-all duration-300 font-semibold"
+                  className="px-6 py-3 border-2 border-blue-600 text-blue-600 rounded-xl hover:bg-blue-50 transition-all font-semibold text-sm"
                 >
                   {t("faq.cta.learnMore")}
                 </a>

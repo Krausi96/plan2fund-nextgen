@@ -224,10 +224,9 @@ function Export() {
   return (
     <>
       <PageEntryIndicator 
-        icon="hint"
-        text="Choose your export format and additional documents."
-        duration={5000}
-        position="top-right"
+        icon="info"
+        translationKey="export"
+        duration={0}
       />
       <main className="max-w-3xl mx-auto py-12 space-y-6">
         <h1 className="text-2xl font-bold">Export</h1>

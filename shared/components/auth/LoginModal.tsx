@@ -1,3 +1,4 @@
+import { useEffect } from 'react';
 import { useUser } from '@/shared/user/context/UserContext';
 import { X } from 'lucide-react';
 import LoginForm from './LoginForm';
@@ -9,13 +10,19 @@ interface LoginModalProps {
 }
 
 export default function LoginModal({ isOpen, onClose, redirect }: LoginModalProps) {
-  const { userProfile } = useUser();
+  const { userProfile, isLoading } = useUser();
 
-  // If already logged in, close modal
-  if (userProfile && isOpen) {
-    onClose();
-    return null;
-  }
+  // Don't auto-close if still loading - wait for auth check to complete
+  // Only auto-close if user is confirmed logged in AND modal is open
+  useEffect(() => {
+    if (!isLoading && userProfile && isOpen) {
+      // Small delay to prevent race condition with login success
+      const timer = setTimeout(() => {
+        onClose();
+      }, 100);
+      return () => clearTimeout(timer);
+    }
+  }, [userProfile, isLoading, isOpen, onClose]);
 
   if (!isOpen) return null;
 

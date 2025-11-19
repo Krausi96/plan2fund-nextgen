@@ -13,9 +13,8 @@ function RecoPage() {
     <>
       <PageEntryIndicator 
         icon="hint"
-        text="Answer questions to find funding programs that match your business needs."
-        duration={5000}
-        position="top-right"
+        translationKey="reco"
+        duration={0}
       />
       <ProgramFinder />
     </>

@@ -6,6 +6,7 @@ import { Mail, Phone, MapPin, Clock, MessageCircle, HelpCircle } from "lucide-re
 import { useState } from "react";
 import SEOHead from '@/shared/components/common/SEOHead';
 import { useI18n } from "@/shared/contexts/I18nContext";
+import Link from "next/link";
 
 export default function ContactPage() {
   const { t } = useI18n();
@@ -34,21 +35,22 @@ export default function ContactPage() {
     <>
       <SEOHead pageKey="contact" />
       
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-20">
+      <div className="bg-gray-50 min-h-screen">
+        <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-16">
       {/* Header */}
-      <div className="text-center mb-16">
-        <h1 className="text-4xl md:text-5xl font-bold text-neutral-900 mb-6 tracking-tight">
+      <div className="text-center mb-12">
+        <h1 className="text-3xl md:text-4xl font-bold text-neutral-900 mb-4 tracking-tight">
           {t('contact.title')}
         </h1>
-        <p className="text-xl md:text-2xl text-neutral-600 max-w-3xl mx-auto leading-relaxed">
+        <p className="text-lg md:text-xl text-neutral-600 max-w-2xl mx-auto">
           {t('contact.subtitle')}
         </p>
       </div>
 
       <div className="grid lg:grid-cols-2 gap-12">
         {/* Contact Form */}
-        <Card className="p-10 rounded-2xl border-2 border-neutral-200 shadow-lg">
-          <h2 className="text-3xl font-bold mb-8 text-neutral-900">{t('contact.form.title')}</h2>
+        <Card className="p-8 rounded-2xl border-2 border-neutral-200 shadow-md hover:shadow-lg transition-shadow bg-white">
+          <h2 className="text-2xl font-bold mb-6 text-neutral-900">{t('contact.form.title')}</h2>
           <form onSubmit={handleSubmit} className="space-y-6">
             <div className="grid md:grid-cols-2 gap-6">
               <div>
@@ -124,8 +126,8 @@ export default function ContactPage() {
         {/* Contact Information */}
         <div className="space-y-8">
           {/* Contact Details */}
-          <Card className="p-10 rounded-2xl border-2 border-neutral-200 shadow-lg">
-            <h2 className="text-3xl font-bold mb-8 text-neutral-900">{t('contact.info.title')}</h2>
+          <Card className="p-8 rounded-2xl border-2 border-neutral-200 shadow-md hover:shadow-lg transition-shadow bg-white">
+            <h2 className="text-2xl font-bold mb-6 text-neutral-900">{t('contact.info.title')}</h2>
             <div className="space-y-8">
               <div className="flex items-start">
                 <div className="w-12 h-12 bg-gradient-to-br from-blue-100 to-blue-50 rounded-xl flex items-center justify-center mr-4 flex-shrink-0 shadow-md">
@@ -176,8 +178,8 @@ export default function ContactPage() {
           </Card>
 
           {/* Quick Help */}
-          <Card className="p-10 rounded-2xl border-2 border-neutral-200 shadow-lg">
-            <h2 className="text-3xl font-bold mb-8 text-neutral-900">{t('contact.help.title')}</h2>
+          <Card className="p-8 rounded-2xl border-2 border-neutral-200 shadow-md hover:shadow-lg transition-shadow bg-white">
+            <h2 className="text-2xl font-bold mb-6 text-neutral-900">{t('contact.help.title')}</h2>
             <div className="space-y-6">
               <div className="flex items-start">
                 <div className="w-12 h-12 bg-gradient-to-br from-green-100 to-green-50 rounded-xl flex items-center justify-center mr-4 flex-shrink-0 shadow-md">
@@ -216,39 +218,13 @@ export default function ContactPage() {
         </div>
       </div>
 
-      {/* FAQ Section */}
-      <div className="mt-20">
-        <h2 className="text-4xl md:text-5xl font-bold text-center mb-12 tracking-tight text-neutral-900">{t('contact.faq.title')}</h2>
-        <div className="grid md:grid-cols-2 gap-8">
-          <Card className="p-8 rounded-2xl border-2 border-neutral-200 shadow-md hover:shadow-xl transition-all duration-300">
-            <h3 className="text-xl font-bold mb-4 text-neutral-900">{t('contact.faq.howItWorks.question')}</h3>
-            <p className="text-neutral-700 leading-relaxed">
-              {t('contact.faq.howItWorks.answer')}
-            </p>
-          </Card>
-
-          <Card className="p-8 rounded-2xl border-2 border-neutral-200 shadow-md hover:shadow-xl transition-all duration-300">
-            <h3 className="text-xl font-bold mb-4 text-neutral-900">{t('contact.faq.dataSecurity.question')}</h3>
-            <p className="text-neutral-700 leading-relaxed">
-              {t('contact.faq.dataSecurity.answer')}
-            </p>
-          </Card>
-
-          <Card className="p-8 rounded-2xl border-2 border-neutral-200 shadow-md hover:shadow-xl transition-all duration-300">
-            <h3 className="text-xl font-bold mb-4 text-neutral-900">{t('contact.faq.timeToComplete.question')}</h3>
-            <p className="text-neutral-700 leading-relaxed">
-              {t('contact.faq.timeToComplete.answer')}
-            </p>
-          </Card>
-
-          <Card className="p-8 rounded-2xl border-2 border-neutral-200 shadow-md hover:shadow-xl transition-all duration-300">
-            <h3 className="text-xl font-bold mb-4 text-neutral-900">{t('contact.faq.refunds.question')}</h3>
-            <p className="text-neutral-700 leading-relaxed">
-              {t('contact.faq.refunds.answer')}
-            </p>
-          </Card>
-        </div>
+      {/* Quick Links */}
+      <div className="mt-16 text-center">
+        <p className="text-neutral-600 mb-4">
+          Have questions? Check out our <Link href="/faq" className="text-blue-600 hover:text-blue-700 font-semibold underline decoration-2 underline-offset-2">FAQ page</Link> for quick answers.
+        </p>
       </div>
+        </div>
       </div>
     </>
   );

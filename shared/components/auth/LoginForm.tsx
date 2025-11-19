@@ -20,6 +20,7 @@ export default function LoginForm({ redirect, onSuccess }: LoginFormProps) {
   const [name, setName] = useState('');
   const [persona, setPersona] = useState<Persona | null>(null);
   const [isSignUp, setIsSignUp] = useState(false);
+  const [rememberMe, setRememberMe] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
 
@@ -67,7 +68,8 @@ export default function LoginForm({ redirect, onSuccess }: LoginFormProps) {
           email,
           password,
           name: isSignUp ? name : undefined,
-          persona: isSignUp ? persona : undefined
+          persona: isSignUp ? persona : undefined,
+          rememberMe: !isSignUp ? rememberMe : undefined
         }),
       });
 
@@ -98,6 +100,9 @@ export default function LoginForm({ redirect, onSuccess }: LoginFormProps) {
         });
       }
 
+      // Small delay to ensure state updates before redirect/close
+      await new Promise(resolve => setTimeout(resolve, 100));
+
       // Call onSuccess if provided, otherwise redirect
       if (onSuccess) {
         onSuccess();
@@ -109,7 +114,18 @@ export default function LoginForm({ redirect, onSuccess }: LoginFormProps) {
         }
       }
     } catch (err: any) {
-      setError(err.message || 'Failed to sign in. Please try again.');
+      // Better error handling with user-friendly messages
+      let errorMessage = 'Failed to sign in. Please try again.';
+      
+      if (err.message) {
+        // Use API error message if available
+        errorMessage = err.message;
+      } else if (err instanceof TypeError && err.message.includes('fetch')) {
+        errorMessage = 'Network error. Please check your connection and try again.';
+      }
+      
+      setError(errorMessage);
+      console.error('Login error:', err);
     } finally {
       setLoading(false);
     }
@@ -332,7 +348,12 @@ export default function LoginForm({ redirect, onSuccess }: LoginFormProps) {
           {!isSignUp && (
             <div className="flex items-center justify-between text-sm">
               <label className="flex items-center gap-2 cursor-pointer">
-                <input type="checkbox" className="rounded border-gray-300 text-blue-600 focus:ring-blue-500" />
+                <input 
+                  type="checkbox" 
+                  checked={rememberMe}
+                  onChange={(e) => setRememberMe(e.target.checked)}
+                  className="rounded border-gray-300 text-blue-600 focus:ring-blue-500" 
+                />
                 <span className="text-gray-600">Remember me</span>
               </label>
               <button

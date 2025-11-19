@@ -41,10 +41,9 @@ function Checkout() {
   return (
     <>
       <PageEntryIndicator 
-        icon="hint"
-        text="Review your order and complete payment securely."
-        duration={5000}
-        position="top-right"
+        icon="info"
+        translationKey="checkout"
+        duration={0}
       />
       <main className="max-w-3xl mx-auto py-12 space-y-8">
         <h1 className="text-2xl font-bold">Checkout</h1>

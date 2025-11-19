@@ -287,10 +287,9 @@ function DashboardPage() {
   return (
     <>
       <PageEntryIndicator 
-        icon="hint"
-        text="Welcome! Track your plans and applications here."
-        duration={5000}
-        position="top-right"
+        icon="info"
+        translationKey="dashboard"
+        duration={0}
       />
       <div className="min-h-screen bg-gray-50">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">

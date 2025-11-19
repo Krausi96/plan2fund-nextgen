@@ -1507,7 +1507,22 @@
   "reco.ui.yourAnswers": "Deine Antworten",
   "reco.ui.notAnswered": "Nicht beantwortet",
   "reco.ui.previous": "Zurück",
-  "reco.ui.next": "Weiter"
+  "reco.ui.next": "Weiter",
+  "pageEntry.editor.title": "Geschäftsplan-Editor",
+  "pageEntry.editor.text": "Arbeiten Sie systematisch durch jeden Abschnitt. Beginnen Sie mit der Projektbeschreibung, dann gehen Sie durch Finanzplanung, Innovation und Wirkungsabschnitte. Nutzen Sie den KI-Assistenten im rechten Panel für Anleitungen und fügen Sie Datensätze, KPIs oder Medien hinzu, um Ihre Erzählung zu unterstützen. Ihr Fortschritt wird automatisch gespeichert.",
+  "pageEntry.reco.title": "Förderprogramm-Finder",
+  "pageEntry.reco.text": "Beantworten Sie eine Reihe von Fragen zu Ihrer Unternehmensphase, Finanzierungsbedarf und Zielen. Unsere KI analysiert Ihre Antworten und empfiehlt Förderprogramme von Horizon Europe, FFG, WKO und anderen österreichischen Förderquellen, die am besten zu Ihrem Profil passen. Sie können Ihre Antworten jederzeit verfeinern, um aktualisierte Empfehlungen zu sehen.",
+  "pageEntry.dashboard.title": "Ihr Dashboard",
+  "pageEntry.dashboard.text": "Zeigen Sie alle Ihre Geschäftspläne an und verwalten Sie sie, verfolgen Sie den Fortschritt von Anträgen und greifen Sie auf Ihre gespeicherten Förderempfehlungen zu. Jeder Plan zeigt den Fertigstellungsstatus, das letzte Änderungsdatum und Schnellaktionen zum Bearbeiten oder Exportieren. Verwenden Sie die Filter, um nach Produkttyp (Strategie, Review oder Einreichung) oder Förderprogramm zu organisieren.",
+  "pageEntry.preview.title": "Plan-Vorschau & Export",
+  "pageEntry.preview.text": "Überprüfen Sie Ihren vollständigen Geschäftsplan, wie er im endgültigen Dokument erscheinen wird. Überprüfen Sie die Formatierung, verifizieren Sie, dass alle Abschnitte vollständig sind, und passen Sie die Exporteinstellungen an (Format, Seitengröße, Wasserzeichen). Verwenden Sie die Exportoptionen, um ein PDF- oder Word-Dokument zu erstellen. Sie können jederzeit zum Editor zurückkehren, um Änderungen vorzunehmen.",
+  "pageEntry.checkout.title": "Sicherer Checkout",
+  "pageEntry.checkout.text": "Überprüfen Sie Ihre Bestellübersicht, einschließlich Exportformat, Dokumentoptionen und Preisen. Alle Zahlungen werden sicher über unseren Zahlungsanbieter verarbeitet. Ihr Geschäftsplan steht sofort nach erfolgreicher Zahlung zum Download zur Verfügung. Sie können später auch über Ihr Dashboard darauf zugreifen.",
+  "pageEntry.export.title": "Geschäftsplan exportieren",
+  "pageEntry.export.text": "Wählen Sie Ihr bevorzugtes Exportformat (PDF oder Word), konfigurieren Sie Dokumenteinstellungen einschließlich Seitengröße und Wasserzeichen, und wählen Sie zusätzliche Dokumente aus, die einbezogen werden sollen. Vorschau Ihrer Auswahl vor dem Checkout. Kostenlose Entwurfsexporte sind mit Wasserzeichen verfügbar; Premium-Exporte enthalten professionelle Formatierung ohne Wasserzeichen.",
+  "pageEntry.button.continue": "Weiter",
+  "pageEntry.button.gotIt": "Verstanden",
+  "pageEntry.button.dismiss": "Schließen"
 }
 
 

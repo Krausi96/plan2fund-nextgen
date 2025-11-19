@@ -138,10 +138,9 @@ function Preview() {
   return (
     <>
       <PageEntryIndicator 
-        icon="hint"
-        text="Review your plan and adjust settings before export."
-        duration={5000}
-        position="top-right"
+        icon="info"
+        translationKey="preview"
+        duration={0}
       />
       <main className="max-w-5xl mx-auto py-12 grid md:grid-cols-[1fr_320px] gap-6">
       <div>

@@ -52,7 +52,7 @@ export default function Footer() {
             <ul className="space-y-4 text-sm">
               <li><Link href="/privacy" className="text-neutral-700 hover:text-blue-600 transition-colors font-medium">{t('footer.privacy')}</Link></li>
               <li><Link href="/terms" className="text-neutral-700 hover:text-blue-600 transition-colors font-medium">{t('footer.terms')}</Link></li>
-              <li><Link href="/legal" className="text-neutral-700 hover:text-blue-600 transition-colors font-medium">{t('footer.legalNotice')}</Link></li>
+              <li><Link href="/about" className="text-neutral-700 hover:text-blue-600 transition-colors font-medium">{t('footer.legalNotice')}</Link></li>
               <li><Link href="/privacy#security" className="text-neutral-700 hover:text-blue-600 transition-colors font-medium">{t('footer.security')}</Link></li>
             </ul>
           </div>

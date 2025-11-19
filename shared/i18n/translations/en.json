@@ -1528,7 +1528,22 @@
   "reco.ui.yourAnswers": "Your Answers",
   "reco.ui.notAnswered": "Not answered",
   "reco.ui.previous": "Previous",
-  "reco.ui.next": "Next"
+  "reco.ui.next": "Next",
+  "pageEntry.editor.title": "Business Plan Editor",
+  "pageEntry.editor.text": "Work through each section systematically. Start with the Project Description, then move through Financial Planning, Innovation, and Impact sections. Use the AI Assistant in the right panel for guidance, and attach datasets, KPIs, or media to support your narrative. Your progress is saved automatically.",
+  "pageEntry.reco.title": "Funding Program Finder",
+  "pageEntry.reco.text": "Answer a series of questions about your business stage, funding needs, and goals. Our AI will analyze your responses and recommend funding programs from Horizon Europe, FFG, WKO, and other Austrian funding sources that best match your profile. You can refine your answers at any time to see updated recommendations.",
+  "pageEntry.dashboard.title": "Your Dashboard",
+  "pageEntry.dashboard.text": "View and manage all your business plans, track application progress, and access your saved funding recommendations. Each plan shows completion status, last modified date, and quick actions to continue editing or export. Use the filters to organize by product type (strategy, review, or submission) or funding program.",
+  "pageEntry.preview.title": "Plan Preview & Export",
+  "pageEntry.preview.text": "Review your complete business plan as it will appear in the final document. Check formatting, verify all sections are complete, and adjust export settings (format, page size, watermarks). Use the export options to generate a PDF or Word document. You can return to the editor at any time to make changes.",
+  "pageEntry.checkout.title": "Secure Checkout",
+  "pageEntry.checkout.text": "Review your order summary, including export format, document options, and pricing. All payments are processed securely through our payment provider. Your business plan will be available for download immediately after successful payment. You can also access it later from your dashboard.",
+  "pageEntry.export.title": "Export Your Business Plan",
+  "pageEntry.export.text": "Select your preferred export format (PDF or Word), configure document settings including page size and watermarks, and choose any additional documents to include. Preview your selections before proceeding to checkout. Free draft exports are available with watermarks; premium exports include professional formatting and no watermarks.",
+  "pageEntry.button.continue": "Continue",
+  "pageEntry.button.gotIt": "Got it",
+  "pageEntry.button.dismiss": "Dismiss"
 }
 
 

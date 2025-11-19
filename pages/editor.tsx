@@ -82,9 +82,8 @@ function EditorPage() {
     <ErrorBoundary>
       <PageEntryIndicator 
         icon="hint"
-        text="Build your business plan section by section."
-        duration={5000}
-        position="top-right"
+        translationKey="editor"
+        duration={0}
       />
       <Editor
         product={selectedProduct}
