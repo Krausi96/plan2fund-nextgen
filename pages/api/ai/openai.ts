@@ -21,6 +21,11 @@ interface AIRequest {
     programName?: string;
     sectionGuidance?: string[];
     hints?: string[];
+    questionPrompt?: string;
+    questionStatus?: string;
+    questionMode?: 'guidance' | 'critique';
+    attachmentSummary?: string[];
+    requirementHints?: string[];
   };
   conversationHistory?: ConversationMessage[];
   action: 'generate' | 'improve' | 'compliance' | 'suggest';
@@ -35,6 +40,12 @@ interface AIResponse {
   sectionGuidance: string[];
   complianceTips: string[];
   readinessScore: number;
+  suggestedKPIs?: Array<{
+    name: string;
+    value: number;
+    unit?: string;
+    description?: string;
+  }>;
 }
 
 export default async function handler(
@@ -271,7 +282,8 @@ function createSystemPrompt(action: string, context: AIRequest['context']): stri
       break;
   }
   
-  basePrompt += `\n\nRespond in JSON format with: {"content": "your response", "suggestions": ["suggestion1", "suggestion2"], "complianceTips": ["tip1", "tip2"]}`;
+  basePrompt += `\n\nWhen the section involves metrics, financial data, or measurable outcomes, you can suggest KPIs in your response.`;
+  basePrompt += `\n\nRespond in JSON format with: {"content": "your response", "suggestions": ["suggestion1", "suggestion2"], "complianceTips": ["tip1", "tip2"], "suggestedKPIs": [{"name": "KPI name", "value": 0, "unit": "€", "description": "KPI description"}]}`;
   
   return basePrompt;
 }
@@ -302,7 +314,8 @@ function parseAIResponse(aiContent: string): AIResponse {
       programSpecific: true,
       sectionGuidance: parsed.complianceTips || [],
       complianceTips: parsed.complianceTips || [],
-      readinessScore: 85
+      readinessScore: 85,
+      suggestedKPIs: parsed.suggestedKPIs || []
     };
   } catch {
     // If not JSON, treat as plain text
@@ -314,7 +327,8 @@ function parseAIResponse(aiContent: string): AIResponse {
       programSpecific: true,
       sectionGuidance: ['Focus on clarity and impact', 'Use concrete examples'],
       complianceTips: ['Ensure all requirements are met', 'Check word count limits'],
-      readinessScore: 80
+      readinessScore: 80,
+      suggestedKPIs: []
     };
   }
 }

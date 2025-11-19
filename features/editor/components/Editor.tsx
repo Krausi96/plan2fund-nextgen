@@ -11,6 +11,7 @@ import {
   Dataset,
   FundingProgramType,
   KPI,
+  AttachmentReference,
   MediaAsset,
   ProgramSummary,
   PlanSection as LegacyPlanSection,
@@ -54,6 +55,13 @@ type QuestionStateSnapshot = {
 };
 
 type QuestionStateMap = Record<string, QuestionStateSnapshot>;
+
+type ResolvedAttachmentSummary = {
+  id: string;
+  label: string;
+  displayType: MediaAsset['type'];
+  sourceType: 'dataset' | 'kpi' | 'media';
+};
 
 interface EditorStoreState {
   plan: BusinessPlan | null;
@@ -376,58 +384,44 @@ const useEditorStore = create<EditorStoreState>((set, get) => ({
     set({ plan: updatedPlan });
   },
   attachDatasetToQuestion: (sectionId, questionId, dataset) => {
-    const asset: MediaAsset = {
-      id: `dataset_attachment_${dataset.id}_${Date.now()}`,
-      type: 'table',
-      title: dataset.name,
-      description: dataset.description,
-      datasetId: dataset.id,
-      tags: dataset.tags,
-      attachedQuestionId: questionId,
-      sectionId: sectionId,
-      questionId: questionId
-    };
-    attachAssetToQuestion(set, get, sectionId, questionId, asset);
+    attachReferenceToQuestion(set, get, sectionId, questionId, {
+      attachmentId: dataset.id,
+      attachmentType: 'dataset'
+    });
   },
   attachKpiToQuestion: (sectionId, questionId, kpi) => {
-    const asset: MediaAsset = {
-      id: `kpi_attachment_${kpi.id}_${Date.now()}`,
-      type: 'kpi',
-      title: kpi.name,
-      description: kpi.description,
-      datasetId: kpi.datasetId,
-      tags: kpi.unit ? [kpi.unit] : undefined,
-      attachedQuestionId: questionId,
-      sectionId: sectionId,
-      questionId: questionId
-    };
-    attachAssetToQuestion(set, get, sectionId, questionId, asset);
+    attachReferenceToQuestion(set, get, sectionId, questionId, {
+      attachmentId: kpi.id,
+      attachmentType: 'kpi'
+    });
   },
   attachMediaToQuestion: (sectionId, questionId, asset) => {
-    attachAssetToQuestion(set, get, sectionId, questionId, {
-      ...asset,
-      id: `${asset.id}_attached_${Date.now()}`,
-      attachedQuestionId: questionId,
-      sectionId: sectionId,
-      questionId: questionId
+    attachReferenceToQuestion(set, get, sectionId, questionId, {
+      attachmentId: asset.id,
+      attachmentType: 'media'
     });
   },
   detachQuestionAttachment: (sectionId, questionId, attachmentId) => {
     const { plan } = get();
     if (!plan) return;
-    const updatedPlan = updateSection(plan, sectionId, (section) => ({
-      ...section,
-      questions: section.questions.map((question) =>
-        question.id === questionId
-          ? {
-              ...question,
-              attachments: (question.attachments ?? []).filter(
-                (attachment) => attachment.id !== attachmentId
-              )
-            }
-          : question
-      )
-    }));
+    const updatedPlan = updateSection(plan, sectionId, (section) => {
+      const targetQuestion = section.questions.find((question) => question.id === questionId);
+      if (!targetQuestion || !targetQuestion.attachments) {
+        return section;
+      }
+
+      const reference = targetQuestion.attachments.find(
+        (attachment) =>
+          'attachmentId' in attachment && attachment.attachmentId === attachmentId
+      ) as AttachmentReference | undefined;
+
+      if (!reference) {
+        return section;
+      }
+
+      return syncAttachmentReference(section, questionId, reference, 'remove');
+    });
+    persistPlan(updatedPlan);
     set({ plan: updatedPlan });
   },
   updateTitlePage: (titlePage) => {
@@ -537,8 +531,24 @@ const useEditorStore = create<EditorStoreState>((set, get) => ({
     if (!question) return;
 
     const conversations = loadPlanConversations();
-    const conversationHistory = conversations[sectionId] || [];
+    const conversationKey = `${sectionId}::${questionId}`;
+    const conversationHistory = conversations[conversationKey] || [];
     const template = templates.find((item) => item.id === sectionId);
+
+    const attachmentSummary = summarizeQuestionAttachments(section, question);
+    const requirementHints = computeRequirementHints(question, attachmentSummary);
+    const aiGuidanceMode = getAiGuidanceMode(question.status);
+    const enhancedContext = [
+      template?.prompts?.join('\n') ?? section.description ?? '',
+      buildAiQuestionContext({
+        section,
+        question,
+        attachments: attachmentSummary,
+        requirementHints
+      })
+    ]
+      .filter(Boolean)
+      .join('\n\n');
 
     try {
       const aiHelper = createAIHelper({
@@ -552,7 +562,7 @@ const useEditorStore = create<EditorStoreState>((set, get) => ({
 
       const response = await aiHelper.generateSectionContent(
         section.title,
-        template?.prompts?.join('\n') ?? section.description ?? '',
+        enhancedContext,
         {
           id: plan.metadata?.ownerId ?? 'default',
           name: plan.fundingProgram ?? 'Grant',
@@ -564,7 +574,14 @@ const useEditorStore = create<EditorStoreState>((set, get) => ({
           reasons: [],
           risks: []
         },
-        conversationHistory
+        conversationHistory,
+        {
+          questionPrompt: question.prompt,
+          questionStatus: question.status,
+          questionMode: aiGuidanceMode,
+          attachmentSummary: attachmentSummary.summaryLines,
+          requirementHints
+        }
       );
 
       if (response.content) {
@@ -574,7 +591,7 @@ const useEditorStore = create<EditorStoreState>((set, get) => ({
           content: response.content,
           timestamp: new Date().toISOString()
         };
-        savePlanConversations(sectionId, [...conversationHistory, userTurn]);
+        savePlanConversations(conversationKey, [...conversationHistory, userTurn]);
 
         // Create KPIs if AI suggested them
         let planWithKPIs = plan;
@@ -615,27 +632,265 @@ const useEditorStore = create<EditorStoreState>((set, get) => ({
   }
 }));
 
-function attachAssetToQuestion(
+function attachReferenceToQuestion(
   set: (partial: Partial<EditorStoreState>) => void,
   get: () => EditorStoreState,
   sectionId: string,
   questionId: string,
-  asset: MediaAsset
+  reference: AttachmentReference
 ) {
   const { plan } = get();
   if (!plan) return;
-  const updatedPlan = updateSection(plan, sectionId, (section) => ({
-    ...section,
-    questions: section.questions.map((question) =>
-      question.id === questionId
-        ? {
-            ...question,
-            attachments: [...(question.attachments ?? []), asset]
-          }
-        : question
-    )
-  }));
+  const updatedPlan = updateSection(plan, sectionId, (section) =>
+    syncAttachmentReference(section, questionId, reference, 'add')
+  );
+  persistPlan(updatedPlan);
   set({ plan: updatedPlan });
+}
+
+function syncAttachmentReference(
+  section: Section,
+  questionId: string,
+  reference: AttachmentReference,
+  mode: 'add' | 'remove'
+): Section {
+  const timestamp = new Date().toISOString();
+
+  const updatedQuestions = section.questions.map((question) => {
+    if (question.id !== questionId) return question;
+    const attachments = question.attachments ?? [];
+
+    if (mode === 'add') {
+      const alreadyLinked = attachments.some(
+        (attachment) =>
+          'attachmentId' in attachment &&
+          attachment.attachmentId === reference.attachmentId &&
+          attachment.attachmentType === reference.attachmentType
+      );
+      if (alreadyLinked) return question;
+      return {
+        ...question,
+        attachments: [...attachments, { ...reference, linkedAt: timestamp }]
+      };
+    }
+
+    return {
+      ...question,
+      attachments: attachments.filter((attachment) =>
+        'attachmentId' in attachment
+          ? !(
+              attachment.attachmentId === reference.attachmentId &&
+              attachment.attachmentType === reference.attachmentType
+            )
+          : true
+      )
+    };
+  });
+
+  const updateCollection = <T extends { id: string; relatedQuestions?: string[]; updatedAt?: string }>(
+    collection?: T[]
+  ): T[] | undefined => {
+    if (!collection) return collection;
+    return collection.map((item) => {
+      if (item.id !== reference.attachmentId) return item;
+      const related = item.relatedQuestions ?? [];
+      if (mode === 'add') {
+        if (related.includes(questionId)) return item;
+        return {
+          ...item,
+          relatedQuestions: [...related, questionId],
+          updatedAt: timestamp
+        };
+      }
+      if (!related.includes(questionId)) return item;
+      return {
+        ...item,
+        relatedQuestions: related.filter((id) => id !== questionId),
+        updatedAt: timestamp
+      };
+    });
+  };
+
+  if (reference.attachmentType === 'dataset') {
+    return {
+      ...section,
+      questions: updatedQuestions,
+      datasets: updateCollection(section.datasets)
+    };
+  }
+
+  if (reference.attachmentType === 'kpi') {
+    return {
+      ...section,
+      questions: updatedQuestions,
+      kpis: updateCollection(section.kpis)
+    };
+  }
+
+  return {
+    ...section,
+    questions: updatedQuestions,
+    media: updateCollection(section.media)
+  };
+}
+
+function stripHtml(content?: string): string {
+  if (!content) return '';
+  return content.replace(/<[^>]*>/g, ' ').replace(/\s+/g, ' ').trim();
+}
+
+function countWords(content?: string): number {
+  const stripped = stripHtml(content);
+  if (!stripped) return 0;
+  return stripped.split(/\s+/).filter(Boolean).length;
+}
+
+function resolveQuestionAttachments(section: Section, question: Question): ResolvedAttachmentSummary[] {
+  const attachments = question.attachments ?? [];
+  if (attachments.length === 0) return [];
+
+  return attachments
+    .map((attachment) => {
+      if ('attachmentId' in attachment) {
+        if (attachment.attachmentType === 'dataset') {
+          const dataset = section.datasets?.find((item) => item.id === attachment.attachmentId);
+          if (!dataset) return null;
+          return {
+            id: dataset.id,
+            label: dataset.name || 'Unnamed dataset',
+            displayType: 'table' as MediaAsset['type'],
+            sourceType: 'dataset' as const
+          };
+        }
+        if (attachment.attachmentType === 'kpi') {
+          const kpi = section.kpis?.find((item) => item.id === attachment.attachmentId);
+          if (!kpi) return null;
+          return {
+            id: kpi.id,
+            label: kpi.name || 'Unnamed KPI',
+            displayType: 'kpi' as MediaAsset['type'],
+            sourceType: 'kpi' as const
+          };
+        }
+        const media = section.media?.find((item) => item.id === attachment.attachmentId);
+        if (!media) return null;
+        return {
+          id: media.id,
+          label: media.title || 'Untitled media',
+          displayType: media.type,
+          sourceType: 'media' as const
+        };
+      }
+
+      // Legacy payloads (pre-reference model)
+      const legacy = attachment as MediaAsset;
+      return {
+        id: legacy.id,
+        label: legacy.title || 'Untitled attachment',
+        displayType: legacy.type,
+        sourceType: legacy.type === 'kpi' ? 'kpi' : legacy.type === 'table' ? 'dataset' : 'media'
+      };
+    })
+    .filter((item): item is ResolvedAttachmentSummary => Boolean(item));
+}
+
+function summarizeQuestionAttachments(section: Section, question: Question) {
+  const resolved = resolveQuestionAttachments(section, question);
+  const typeSet = new Set(resolved.map((item) => item.displayType));
+  const summaryLines =
+    resolved.length > 0
+      ? resolved.map((item) => `- ${item.displayType.toUpperCase()}: ${item.label}`)
+      : ['- No attachments linked'];
+
+  return {
+    resolved,
+    summaryLines,
+    hasType: (type: MediaAsset['type']) => typeSet.has(type),
+    total: resolved.length
+  };
+}
+
+function getAiGuidanceMode(status: QuestionStatus) {
+  return status === 'blank' || status === 'unknown' ? 'guidance' : 'critique';
+}
+
+function computeRequirementHints(
+  question: Question,
+  attachmentSummary: ReturnType<typeof summarizeQuestionAttachments>
+) {
+  const hints: string[] = [];
+  const wordCount = countWords(question.answer);
+
+  if (question.status === 'blank') {
+    hints.push('Prompt is still blank — provide at least a rough outline.');
+  } else if (question.status === 'unknown') {
+    hints.push('Prompt is marked as unknown. Add a supporting note or revisit with data when ready.');
+  }
+
+  if (wordCount > 0 && wordCount < 80) {
+    hints.push('Answer is shorter than ~80 words. Add more detail or supporting data.');
+  }
+
+  if (attachmentSummary.total === 0) {
+    hints.push('No datasets, KPIs, or media are attached. Consider linking evidence.');
+  }
+
+  if (question.requiredAssets && question.requiredAssets.length > 0) {
+    question.requiredAssets.forEach((assetType) => {
+      if (!attachmentSummary.hasType(assetType)) {
+        const label =
+          assetType === 'kpi'
+            ? 'KPI metric'
+            : assetType === 'chart'
+            ? 'chart or visualization'
+            : assetType === 'table'
+            ? 'table/dataset'
+            : 'supporting media';
+        hints.push(`Add at least one ${label} to support this prompt.`);
+      }
+    });
+  }
+
+  return hints;
+}
+
+function buildAiQuestionContext(params: {
+  section: Section;
+  question: Question;
+  attachments: ReturnType<typeof summarizeQuestionAttachments>;
+  requirementHints: string[];
+}) {
+  const { section, question, attachments, requirementHints } = params;
+  const plainAnswer = stripHtml(question.answer);
+  const wordCount = countWords(question.answer);
+  const aiMode = getAiGuidanceMode(question.status);
+
+  const attachmentBlock = attachments.summaryLines.join('\n');
+  const hintsBlock =
+    requirementHints.length > 0
+      ? requirementHints.map((hint) => `- ${hint}`).join('\n')
+      : '- No immediate gaps detected.';
+
+  const trimmedAnswer =
+    plainAnswer.length > 1200 ? `${plainAnswer.slice(0, 1200)}…` : plainAnswer || '[No answer yet]';
+
+  return [
+    '=== QUESTION CONTEXT ===',
+    `Section: ${section.title}`,
+    `Prompt: ${question.prompt}`,
+    `Mode: ${aiMode.toUpperCase()}`,
+    `Status: ${question.status}${question.statusNote ? ` (${question.statusNote})` : ''}`,
+    `Word count: ${wordCount}`,
+    '',
+    'Current answer:',
+    trimmedAnswer,
+    '',
+    'Linked data:',
+    attachmentBlock,
+    '',
+    'Requirement hints:',
+    hintsBlock
+  ].join('\n');
 }
 
 function buildSectionFromTemplate(
@@ -662,6 +917,7 @@ function buildSectionFromTemplate(
 
 function convertLegacyTablesToDatasets(tables?: Record<string, Table | undefined>, sectionId: string = ''): Dataset[] {
   if (!tables) return [];
+  const timestamp = new Date().toISOString();
   return Object.entries(tables)
     .filter((entry): entry is [string, Table] => Boolean(entry[1]))
     .map(([key, table]) => {
@@ -683,7 +939,11 @@ function convertLegacyTablesToDatasets(tables?: Record<string, Table | undefined
         columns,
         rows,
         tags: [],
-        sectionId: sectionId || 'legacy'
+        sectionId: sectionId || 'legacy',
+        relatedQuestions: [],
+        createdAt: timestamp,
+        updatedAt: timestamp,
+        lastUpdated: timestamp
       };
     });
 }
@@ -1692,6 +1952,12 @@ function RightPanel({
                 <div>
                   <p className="text-xs uppercase text-slate-400 mb-1">Current question</p>
                   <p className="font-semibold text-slate-900">{question.prompt}</p>
+                      <p className="text-[11px] text-slate-500 mt-1">
+                        Status: {question.status}
+                        {question.status === 'blank' || question.status === 'unknown'
+                          ? ' (AI will focus on guidance)'
+                          : ' (AI will focus on critique)'}
+                      </p>
                 </div>
                 {question.answer ? (
                   <div>

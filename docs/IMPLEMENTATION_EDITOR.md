@@ -25,11 +25,18 @@ Goal: Bring the right column to Layout v3 parity.
 - Library cards now show type icons, attachment badges, Prev/Next navigation, and updated action buttons while keeping attach/edit/view/delete workflows intact.
 - Existing dataset/KPI/media creation plus attach flows remain unchanged; automation hooks deferred until layout is battle-tested.
 
-## Step 3 – Shared Metadata & Attachment Sync
+## Step 3 – Shared Metadata & Attachment Sync ✅ (done – 2025-11-18)
 Goal: Normalize dataset/KPI/media metadata (`relatedQuestions[]`, tags, source, timestamps) and switch question attachments to reference IDs so edits propagate automatically.
+- Introduced shared metadata across datasets/KPIs/media (`createdAt/updatedAt/source/relatedQuestions[]`) so every data item knows which prompts rely on it.
+- Question attachments now store lightweight references (`{attachmentId, attachmentType}`) instead of cloning the asset, meaning any edit to a dataset/KPI/media instantly updates every prompt that references it.
+- Attach/detach flows keep `relatedQuestions[]` in sync, and the Data tab + preview pane read from those references (legacy inline attachments continue to render but no longer get duplicated).
+- Preview/export rendering resolves attachment references back to the source entity, so KPIs always show the latest values and datasets/media reuse the canonical metadata.
 
-## Step 4 – AI Assistant Modes
+## Step 4 – AI Assistant Modes 🚧 (in progress)
 Goal: Provide guidance vs expert prompts, per-question conversation history, and richer payloads (question status, unmet requirements, attachment metadata).
+- AI requests now include the active question’s status, word count, attachment summary, and basic requirement hints so guidance mode (blank/unknown) differs from critique mode (draft/complete).
+- Attachments + requirement gaps are summarized into the AI prompt, so the assistant can highlight missing tables/KPIs/media and nudge users toward supporting evidence.
+- Conversation history is stored per question (`sectionId::questionId`) to keep each prompt’s coaching thread scoped.
 
 ## Step 5 – Smarter Requirements Engine & Gating
 Goal: Replace the legacy word-count check with per-question validations (status vs unknown, tolerance bands, required keywords, attachment gating) and introduce export acknowledgments.

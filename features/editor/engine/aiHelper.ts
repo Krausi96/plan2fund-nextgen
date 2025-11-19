@@ -5,7 +5,7 @@
  * NOW: Unified Business Expert System with Template Knowledge
  */
 
-import type { ConversationMessage } from '@/features/editor/types/plan';
+import type { ConversationMessage, QuestionStatus } from '@/features/editor/types/plan';
 import { getTemplateKnowledge } from '@templates';
 
 // ProgramTemplate and TemplateSection types removed - using Enhanced Data Pipeline instead
@@ -69,7 +69,14 @@ export class AIHelper {
     section: string,
     context: string,
     program: Program,
-    conversationHistory?: ConversationMessage[]
+    conversationHistory?: ConversationMessage[],
+    questionMeta?: {
+      questionPrompt?: string;
+      questionStatus?: QuestionStatus;
+      questionMode?: 'guidance' | 'critique';
+      attachmentSummary?: string[];
+      requirementHints?: string[];
+    }
   ): Promise<AIResponse> {
     // Get structured requirements for this program
     // If program.id is 'default', try to get from localStorage (set by reco)
@@ -122,7 +129,12 @@ export class AIHelper {
       programName: program.name,
       sectionGuidance: sectionGuidance,
       hints: this.config.programHints?.[program.type]?.reviewer_tips || [],
-      conversationHistory: conversationHistory || []
+      conversationHistory: conversationHistory || [],
+      questionPrompt: questionMeta?.questionPrompt,
+      questionStatus: questionMeta?.questionStatus,
+      questionMode: questionMeta?.questionMode,
+      attachmentSummary: questionMeta?.attachmentSummary,
+      requirementHints: questionMeta?.requirementHints
     });
     
     return {
@@ -151,6 +163,11 @@ export class AIHelper {
       sectionGuidance?: string[];
       hints?: string[];
       conversationHistory?: ConversationMessage[];
+      questionPrompt?: string;
+      questionStatus?: QuestionStatus;
+      questionMode?: 'guidance' | 'critique';
+      attachmentSummary?: string[];
+      requirementHints?: string[];
     }
   ): Promise<{ content: string; suggestions?: string[]; citations?: string[] }> {
     try {
@@ -167,7 +184,12 @@ export class AIHelper {
             programType: context.programType,
             programName: context.programName,
             sectionGuidance: context.sectionGuidance,
-            hints: context.hints
+            hints: context.hints,
+            questionPrompt: context.questionPrompt,
+            questionStatus: context.questionStatus,
+            questionMode: context.questionMode,
+            attachmentSummary: context.attachmentSummary,
+            requirementHints: context.requirementHints
           },
           conversationHistory: context.conversationHistory || [],
           action: 'generate'
