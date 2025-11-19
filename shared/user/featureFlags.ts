@@ -206,8 +206,20 @@ export function getFeatureName(feature: FeatureFlag): string {
  * Get tier details with limits
  */
 export function getTierDetails(tier: SubscriptionTier): TierDetails {
-  const { getLimitsForTier } = require('@/shared/user/analytics/usageTracking');
-  const limits = getLimitsForTier(tier);
+  // Import dynamically to avoid circular dependencies
+  let limits: any = {};
+  try {
+    const analyticsModule = require('@/shared/user/analytics/analytics');
+    limits = analyticsModule.getLimitsForTier(tier);
+  } catch (error) {
+    // Fallback if module not available
+    console.warn('Could not load usage limits:', error);
+    limits = {
+      plans: tier === 'free' ? 3 : tier === 'premium' ? 10 : Infinity,
+      pdf_exports: tier === 'free' ? 1 : tier === 'premium' ? 10 : Infinity,
+      ai_requests: tier === 'free' ? 10 : tier === 'premium' ? 100 : Infinity,
+    };
+  }
   
   const baseFeatures: Partial<Record<FeatureFlag, boolean>> = {};
   Object.keys(FEATURE_CONFIG).forEach(flag => {
