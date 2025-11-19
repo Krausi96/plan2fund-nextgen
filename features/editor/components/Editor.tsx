@@ -23,6 +23,7 @@ import {
   Section,
   TemplateFundingType,
   Table,
+  ConversationMessage,
   TitlePage
 } from '@/features/editor/types/plan';
 import { SectionTemplate, getSections } from '@templates';
@@ -62,6 +63,12 @@ type ResolvedAttachmentSummary = {
   displayType: MediaAsset['type'];
   sourceType: 'dataset' | 'kpi' | 'media';
 };
+
+type AISuggestionIntent = 'default' | 'outline' | 'improve' | 'data';
+
+interface AISuggestionOptions {
+  intent?: AISuggestionIntent;
+}
 
 interface EditorStoreState {
   plan: BusinessPlan | null;
@@ -103,7 +110,11 @@ interface EditorStoreState {
   setProductType: (product: ProductType) => void;
   setFundingProgram: (program: FundingProgramType) => void;
   runRequirementsCheck: () => void;
-  requestAISuggestions: (sectionId: string, questionId: string) => Promise<void>;
+  requestAISuggestions: (
+    sectionId: string,
+    questionId: string,
+    options?: AISuggestionOptions
+  ) => Promise<void>;
   toggleQuestionUnknown: (questionId: string, note?: string) => void;
 }
 
@@ -522,7 +533,7 @@ const useEditorStore = create<EditorStoreState>((set, get) => ({
     });
     set({ progressSummary: summary, rightPanelView: 'requirements' });
   },
-  requestAISuggestions: async (sectionId, questionId) => {
+  requestAISuggestions: async (sectionId, questionId, options) => {
     const { plan, templates } = get();
     if (!plan) return;
     const section = plan.sections.find((item) => item.id === sectionId);
@@ -536,16 +547,21 @@ const useEditorStore = create<EditorStoreState>((set, get) => ({
     const template = templates.find((item) => item.id === sectionId);
 
     const attachmentSummary = summarizeQuestionAttachments(section, question);
-    const requirementHints = computeRequirementHints(question, attachmentSummary);
+    const validation = validateQuestionRequirements(question, section, template);
+    const requirementHints = computeRequirementHints(question, attachmentSummary, validation);
     const aiGuidanceMode = getAiGuidanceMode(question.status);
+    const intent: AISuggestionIntent = options?.intent ?? 'default';
     const enhancedContext = [
       template?.prompts?.join('\n') ?? section.description ?? '',
       buildAiQuestionContext({
         section,
         question,
         attachments: attachmentSummary,
-        requirementHints
-      })
+        requirementHints,
+        intent,
+        validation
+      }),
+      buildIntentPrompt(intent)
     ]
       .filter(Boolean)
       .join('\n\n');
@@ -814,27 +830,85 @@ function getAiGuidanceMode(status: QuestionStatus) {
   return status === 'blank' || status === 'unknown' ? 'guidance' : 'critique';
 }
 
-function computeRequirementHints(
+type RequirementValidation = {
+  questionId: string;
+  questionPrompt: string;
+  isValid: boolean;
+  issues: Array<{
+    type: 'status' | 'word_count' | 'keywords' | 'attachments';
+    severity: 'error' | 'warning';
+    message: string;
+  }>;
+};
+
+function validateQuestionRequirements(
   question: Question,
-  attachmentSummary: ReturnType<typeof summarizeQuestionAttachments>
-) {
-  const hints: string[] = [];
+  section: Section,
+  template?: SectionTemplate
+): RequirementValidation {
+  const issues: RequirementValidation['issues'] = [];
+  const attachmentSummary = summarizeQuestionAttachments(section, question);
   const wordCount = countWords(question.answer);
+  const plainAnswer = stripHtml(question.answer).toLowerCase();
 
-  if (question.status === 'blank') {
-    hints.push('Prompt is still blank — provide at least a rough outline.');
-  } else if (question.status === 'unknown') {
-    hints.push('Prompt is marked as unknown. Add a supporting note or revisit with data when ready.');
+  // 1. Status validation
+  if (question.required && question.status === 'blank') {
+    issues.push({
+      type: 'status',
+      severity: 'error',
+      message: 'Required question is still blank. Provide an answer or mark as unknown with a note.'
+    });
   }
 
-  if (wordCount > 0 && wordCount < 80) {
-    hints.push('Answer is shorter than ~80 words. Add more detail or supporting data.');
+  // 2. Word count validation (with ±10% tolerance)
+  if (template && wordCount > 0) {
+    const min = template.wordCountMin;
+    const max = template.wordCountMax;
+    const tolerance = 0.1; // 10% tolerance
+    const minWithTolerance = Math.floor(min * (1 - tolerance));
+    const maxWithTolerance = Math.ceil(max * (1 + tolerance));
+
+    if (wordCount < minWithTolerance) {
+      issues.push({
+        type: 'word_count',
+        severity: 'warning',
+        message: `Answer is ${wordCount} words, below the recommended minimum of ${min} words (${minWithTolerance} with tolerance).`
+      });
+    } else if (wordCount > maxWithTolerance) {
+      issues.push({
+        type: 'word_count',
+        severity: 'warning',
+        message: `Answer is ${wordCount} words, above the recommended maximum of ${max} words (${maxWithTolerance} with tolerance).`
+      });
+    }
   }
 
-  if (attachmentSummary.total === 0) {
-    hints.push('No datasets, KPIs, or media are attached. Consider linking evidence.');
+  // 3. Required keywords validation
+  if (template && template.validationRules?.requiredFields && plainAnswer) {
+    const missingKeywords: string[] = [];
+    template.validationRules.requiredFields.forEach((field) => {
+      // Simple heuristic: check if field name or common variations appear in answer
+      const fieldVariations = [
+        field.toLowerCase(),
+        field.replace(/_/g, ' '),
+        field.replace(/_/g, '-')
+      ];
+      const found = fieldVariations.some((variant) => plainAnswer.includes(variant));
+      if (!found) {
+        missingKeywords.push(field.replace(/_/g, ' '));
+      }
+    });
+
+    if (missingKeywords.length > 0) {
+      issues.push({
+        type: 'keywords',
+        severity: 'warning',
+        message: `Answer may be missing required topics: ${missingKeywords.slice(0, 3).join(', ')}${missingKeywords.length > 3 ? '...' : ''}`
+      });
+    }
   }
 
+  // 4. Required attachments validation
   if (question.requiredAssets && question.requiredAssets.length > 0) {
     question.requiredAssets.forEach((assetType) => {
       if (!attachmentSummary.hasType(assetType)) {
@@ -846,9 +920,67 @@ function computeRequirementHints(
             : assetType === 'table'
             ? 'table/dataset'
             : 'supporting media';
-        hints.push(`Add at least one ${label} to support this prompt.`);
+        issues.push({
+          type: 'attachments',
+          severity: question.required ? 'error' : 'warning',
+          message: `Add at least one ${label} to support this prompt.`
+        });
       }
     });
+  }
+
+  return {
+    questionId: question.id,
+    questionPrompt: question.prompt,
+    isValid: issues.filter((i) => i.severity === 'error').length === 0,
+    issues
+  };
+}
+
+function computeRequirementHints(
+  question: Question,
+  attachmentSummary: ReturnType<typeof summarizeQuestionAttachments>,
+  validation?: RequirementValidation
+) {
+  const hints: string[] = [];
+  const wordCount = countWords(question.answer);
+
+  // Use validation results if available, otherwise fall back to simple heuristics
+  if (validation) {
+    validation.issues.forEach((issue) => {
+      hints.push(issue.message);
+    });
+  } else {
+    // Fallback to original logic
+    if (question.status === 'blank') {
+      hints.push('Prompt is still blank — provide at least a rough outline.');
+    } else if (question.status === 'unknown') {
+      hints.push('Prompt is marked as unknown. Add a supporting note or revisit with data when ready.');
+    }
+
+    if (wordCount > 0 && wordCount < 80) {
+      hints.push('Answer is shorter than ~80 words. Add more detail or supporting data.');
+    }
+
+    if (attachmentSummary.total === 0) {
+      hints.push('No datasets, KPIs, or media are attached. Consider linking evidence.');
+    }
+
+    if (question.requiredAssets && question.requiredAssets.length > 0) {
+      question.requiredAssets.forEach((assetType) => {
+        if (!attachmentSummary.hasType(assetType)) {
+          const label =
+            assetType === 'kpi'
+              ? 'KPI metric'
+              : assetType === 'chart'
+              ? 'chart or visualization'
+              : assetType === 'table'
+              ? 'table/dataset'
+              : 'supporting media';
+          hints.push(`Add at least one ${label} to support this prompt.`);
+        }
+      });
+    }
   }
 
   return hints;
@@ -859,17 +991,34 @@ function buildAiQuestionContext(params: {
   question: Question;
   attachments: ReturnType<typeof summarizeQuestionAttachments>;
   requirementHints: string[];
+  intent?: AISuggestionIntent;
+  validation?: RequirementValidation;
 }) {
-  const { section, question, attachments, requirementHints } = params;
+  const { section, question, attachments, requirementHints, intent, validation } = params;
   const plainAnswer = stripHtml(question.answer);
   const wordCount = countWords(question.answer);
   const aiMode = getAiGuidanceMode(question.status);
 
   const attachmentBlock = attachments.summaryLines.join('\n');
-  const hintsBlock =
-    requirementHints.length > 0
-      ? requirementHints.map((hint) => `- ${hint}`).join('\n')
-      : '- No immediate gaps detected.';
+  
+  // Use validation results if available for more detailed hints
+  let hintsBlock: string;
+  if (validation && validation.issues.length > 0) {
+    const errors = validation.issues.filter((i) => i.severity === 'error');
+    const warnings = validation.issues.filter((i) => i.severity === 'warning');
+    const errorBlock = errors.length > 0 
+      ? `BLOCKING ISSUES:\n${errors.map((e) => `- ${e.message}`).join('\n')}`
+      : '';
+    const warningBlock = warnings.length > 0
+      ? `WARNINGS:\n${warnings.map((w) => `- ${w.message}`).join('\n')}`
+      : '';
+    hintsBlock = [errorBlock, warningBlock].filter(Boolean).join('\n\n') || '- No immediate gaps detected.';
+  } else {
+    hintsBlock =
+      requirementHints.length > 0
+        ? requirementHints.map((hint) => `- ${hint}`).join('\n')
+        : '- No immediate gaps detected.';
+  }
 
   const trimmedAnswer =
     plainAnswer.length > 1200 ? `${plainAnswer.slice(0, 1200)}…` : plainAnswer || '[No answer yet]';
@@ -881,6 +1030,8 @@ function buildAiQuestionContext(params: {
     `Mode: ${aiMode.toUpperCase()}`,
     `Status: ${question.status}${question.statusNote ? ` (${question.statusNote})` : ''}`,
     `Word count: ${wordCount}`,
+    validation && !validation.isValid ? '⚠️ VALIDATION FAILED - See requirement hints below' : null,
+    intent && intent !== 'default' ? `User intent: ${intent}` : null,
     '',
     'Current answer:',
     trimmedAnswer,
@@ -888,9 +1039,22 @@ function buildAiQuestionContext(params: {
     'Linked data:',
     attachmentBlock,
     '',
-    'Requirement hints:',
+    'Requirement validation:',
     hintsBlock
-  ].join('\n');
+  ].filter(Boolean).join('\n');
+}
+
+function buildIntentPrompt(intent: AISuggestionIntent): string | null {
+  switch (intent) {
+    case 'outline':
+      return 'Focus on building a structured outline with bullet points for each required subtopic before suggesting final prose.';
+    case 'improve':
+      return 'Critique the current answer and provide specific improvements; call out weak areas and suggest stronger arguments.';
+    case 'data':
+      return 'Suggest the datasets, KPIs, or media assets that should be added to strengthen this answer. Provide names, column ideas, or KPI definitions.';
+    default:
+      return null;
+  }
 }
 
 function buildSectionFromTemplate(
@@ -1291,11 +1455,11 @@ export default function Editor({ product = 'submission' }: EditorProps) {
   }, [activeSection, activeQuestionId]);
 
 
-  const triggerAISuggestions = (questionId?: string) => {
+  const triggerAISuggestions = (questionId?: string, options?: AISuggestionOptions) => {
     if (!activeSection) return;
     const targetQuestionId = questionId ?? activeQuestion?.id;
     if (!targetQuestionId) return;
-    requestAISuggestions(activeSection.id, targetQuestionId);
+    requestAISuggestions(activeSection.id, targetQuestionId, options);
     setRightPanelView('ai');
   };
 
@@ -1906,13 +2070,35 @@ function RightPanel({
   onAttachMedia: (asset: MediaAsset) => void;
   onRunRequirements: () => void;
   progressSummary: ProgressSummary[];
-  onAskAI: (questionId?: string) => void;
+  onAskAI: (questionId?: string, options?: AISuggestionOptions) => void;
   onAnswerChange: (questionId: string, content: string) => void;
 }) {
   const [requirementsChecked, setRequirementsChecked] = React.useState(false);
+  const [conversationHistory, setConversationHistory] = React.useState<ConversationMessage[]>([]);
+  const activeQuestionKey = section && question ? `${section.id}::${question.id}` : null;
   // Map 'requirements' view to 'preview' for backward compatibility
   const activeView = view === 'requirements' ? 'preview' : view;
   const effectiveView = (['ai', 'data', 'preview'].includes(activeView) ? activeView : 'ai') as 'ai' | 'data' | 'preview';
+
+  React.useEffect(() => {
+    if (!activeQuestionKey) {
+      setConversationHistory([]);
+      return;
+    }
+    const stored = loadPlanConversations();
+    setConversationHistory(stored[activeQuestionKey] || []);
+  }, [activeQuestionKey, question?.aiContext?.updatedAt]);
+
+  const handleQuickAsk = (intent: AISuggestionIntent) => {
+    if (!question) return;
+    onAskAI(question.id, { intent });
+  };
+
+  const handleAskForStructure = () => {
+    if (!question) return;
+    setView('ai');
+    onAskAI(question.id, { intent: 'data' });
+  };
 
   return (
     <aside className="rounded-3xl border border-slate-200 bg-white shadow-sm flex h-full min-h-[360px] flex-col sticky top-[120px] w-full lg:w-[360px] lg:flex-shrink-0">
@@ -1958,6 +2144,32 @@ function RightPanel({
                           ? ' (AI will focus on guidance)'
                           : ' (AI will focus on critique)'}
                       </p>
+                  <div className="mt-2 flex flex-wrap gap-2">
+                    <button
+                      type="button"
+                      onClick={() => handleQuickAsk('outline')}
+                      className="px-3 py-1.5 text-[11px] font-semibold rounded-full border border-slate-200 text-slate-600 hover:border-blue-300 hover:text-blue-600 transition"
+                      disabled={!question}
+                    >
+                      Draft outline
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => handleQuickAsk('improve')}
+                      className="px-3 py-1.5 text-[11px] font-semibold rounded-full border border-slate-200 text-slate-600 hover:border-blue-300 hover:text-blue-600 transition"
+                      disabled={!question}
+                    >
+                      Improve answer
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => handleQuickAsk('data')}
+                      className="px-3 py-1.5 text-[11px] font-semibold rounded-full border border-slate-200 text-slate-600 hover:border-blue-300 hover:text-blue-600 transition"
+                      disabled={!question}
+                    >
+                      Suggest data/KPIs
+                    </button>
+                  </div>
                 </div>
                 {question.answer ? (
                   <div>
@@ -2038,6 +2250,61 @@ function RightPanel({
                     </div>
                   </div>
                 )}
+                {conversationHistory.length > 0 && (
+                  <div className="border-t border-slate-200 pt-3 space-y-2 max-h-48 overflow-y-auto">
+                    <div className="flex items-center justify-between">
+                      <p className="text-xs uppercase text-slate-400">Conversation history</p>
+                      <button
+                        type="button"
+                        onClick={() => setView('ai')}
+                        className="text-[10px] text-blue-600 hover:underline"
+                      >
+                        Refresh
+                      </button>
+                    </div>
+                    {conversationHistory
+                      .slice()
+                      .reverse()
+                      .map((message) => (
+                        <div
+                          key={message.id}
+                          className="rounded-xl border border-slate-100 bg-slate-50 p-2 text-xs text-slate-600 space-y-1"
+                        >
+                          <div className="flex items-center justify-between text-[10px] uppercase tracking-wide text-slate-400">
+                            <span>{message.role === 'assistant' ? 'Assistant' : 'You'}</span>
+                            <span>{new Date(message.timestamp).toLocaleString()}</span>
+                          </div>
+                          <p className="text-slate-700">{message.content}</p>
+                          {message.role === 'assistant' && (
+                            <div className="flex gap-2">
+                              <button
+                                type="button"
+                                onClick={() => navigator.clipboard.writeText(message.content)}
+                                className="px-2 py-1 rounded border border-slate-200 text-[10px] font-semibold text-slate-600 hover:border-blue-300 hover:text-blue-600"
+                              >
+                                Copy
+                              </button>
+                              <button
+                                type="button"
+                                onClick={() => {
+                                  if (question) {
+                                    const currentAnswer = question.answer ?? '';
+                                    const newContent = currentAnswer
+                                      ? `${currentAnswer}\n\n${message.content}`
+                                      : message.content;
+                                    onAnswerChange(question.id, newContent);
+                                  }
+                                }}
+                                className="px-2 py-1 rounded border border-slate-200 text-[10px] font-semibold text-slate-600 hover:border-blue-300 hover:text-blue-600"
+                              >
+                                Insert
+                              </button>
+                            </div>
+                          )}
+                        </div>
+                      ))}
+                  </div>
+                )}
               </div>
             )}
             {!question && (
@@ -2065,6 +2332,7 @@ function RightPanel({
                 onAttachDataset={onAttachDataset}
                 onAttachKpi={onAttachKpi}
                 onAttachMedia={onAttachMedia}
+                onAskForStructure={handleAskForStructure}
               />
             ) : (
               <div className="text-center py-8 text-slate-400 text-sm">
@@ -2082,7 +2350,7 @@ function RightPanel({
             </div>
             <div className="border-t border-slate-200 pt-4">
               <div className="flex items-center justify-between mb-3">
-                <p className="text-xs font-semibold text-slate-700">Requirements summary</p>
+                <p className="text-xs font-semibold text-slate-700">Requirements validation</p>
                 <button
                   onClick={() => {
                     setRequirementsChecked(true);
@@ -2094,13 +2362,64 @@ function RightPanel({
                 </button>
               </div>
               {!requirementsChecked ? (
-                <p className="text-gray-500 text-xs">Run the checker to view status.</p>
-              ) : progressSummary.length === 0 ? (
-                <p className="text-gray-500 text-xs">No issues found.</p>
+                <p className="text-gray-500 text-xs">Run the checker to view validation status.</p>
               ) : (
                 <div className="space-y-3">
+                  {/* Current Question Validation (if selected) */}
+                  {section && question && (() => {
+                    // Get template for validation - access store directly
+                    const { templates } = useEditorStore.getState();
+                    const template = templates.find((t) => t.id === section.id);
+                    const validation = validateQuestionRequirements(question, section, template);
+                    
+                    if (validation.issues.length === 0) {
+                      return (
+                        <div className="bg-green-50 border border-green-200 rounded-lg p-3">
+                          <div className="flex items-center gap-2 mb-1">
+                            <span className="text-green-600 text-sm">✓</span>
+                            <p className="text-xs font-semibold text-green-700">Current question passes validation</p>
+                          </div>
+                          <p className="text-xs text-green-600 mt-1">All requirements are met for this prompt.</p>
+                        </div>
+                      );
+                    }
+                    
+                    const errors = validation.issues.filter((i) => i.severity === 'error');
+                    const warnings = validation.issues.filter((i) => i.severity === 'warning');
+                    
+                    return (
+                      <div className="border border-slate-200 rounded-lg p-3 space-y-2">
+                        <div className="flex items-center justify-between">
+                          <p className="text-xs font-semibold text-slate-700">Current question</p>
+                          <span className={`text-[10px] px-2 py-0.5 rounded font-semibold ${
+                            errors.length > 0 
+                              ? 'bg-red-100 text-red-700' 
+                              : 'bg-amber-100 text-amber-700'
+                          }`}>
+                            {errors.length > 0 ? `${errors.length} error${errors.length > 1 ? 's' : ''}` : `${warnings.length} warning${warnings.length > 1 ? 's' : ''}`}
+                          </span>
+                        </div>
+                        <p className="text-xs text-slate-600 line-clamp-2">{question.prompt}</p>
+                        <div className="space-y-1.5">
+                          {errors.map((issue, idx) => (
+                            <div key={idx} className="flex items-start gap-2 text-xs">
+                              <span className="text-red-600 mt-0.5">●</span>
+                              <p className="text-red-700 flex-1">{issue.message}</p>
+                            </div>
+                          ))}
+                          {warnings.map((issue, idx) => (
+                            <div key={idx} className="flex items-start gap-2 text-xs">
+                              <span className="text-amber-600 mt-0.5">●</span>
+                              <p className="text-amber-700 flex-1">{issue.message}</p>
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                    );
+                  })()}
+                  
                   {/* Overall Summary */}
-                  {(() => {
+                  {progressSummary.length > 0 && (() => {
                     const overallProgress = Math.round(
                       progressSummary.reduce((sum, item) => sum + item.progress, 0) / progressSummary.length
                     );
@@ -2130,58 +2449,88 @@ function RightPanel({
                   })()}
                   
                   {/* Per-Section Accordion */}
-                  <div className="space-y-2">
-                    {progressSummary.map((item) => {
-                      const [isExpanded, setIsExpanded] = React.useState(false);
-                      const hasIssues = item.progress < 100;
-                      
-                      return (
-                        <div key={item.id} className="border border-slate-200 rounded-lg overflow-hidden">
-                          <button
-                            onClick={() => setIsExpanded(!isExpanded)}
-                            className="w-full flex items-center justify-between p-2 hover:bg-slate-50 transition text-left"
-                          >
-                            <div className="flex items-center gap-2 flex-1 min-w-0">
-                              <span className="text-xs text-slate-600 truncate">{item.title}</span>
-                              {hasIssues && (
-                                <span className="flex-shrink-0 text-[10px] px-1.5 py-0.5 rounded bg-amber-100 text-amber-700 font-semibold">
-                                  Needs attention
-                                </span>
-                              )}
-                            </div>
-                            <div className="flex items-center gap-2 flex-shrink-0">
-                              <span className={`text-xs font-semibold ${item.progress === 100 ? 'text-green-600' : 'text-amber-600'}`}>
-                                {item.progress}%
-                              </span>
-                              <span className="text-xs text-slate-400">{isExpanded ? '▼' : '▶'}</span>
-                            </div>
-                          </button>
-                          {isExpanded && (
-                            <div className="px-2 pb-2 space-y-2 border-t border-slate-100">
-                              <div className="h-1.5 bg-slate-100 rounded-full mt-2">
-                                <div
-                                  className={`h-full rounded-full ${
-                                    item.progress === 100 ? 'bg-green-500' : 'bg-amber-500'
-                                  }`}
-                                  style={{ width: `${item.progress}%` }}
-                                />
+                  {progressSummary.length > 0 && (
+                    <div className="space-y-2">
+                      {progressSummary.map((item) => {
+                        const [isExpanded, setIsExpanded] = React.useState(false);
+                        const hasIssues = item.progress < 100;
+                        const sectionData = plan.sections.find((s) => s.id === item.id);
+                        const { templates } = useEditorStore.getState();
+                        const template = templates.find((t) => t.id === item.id);
+                        
+                        return (
+                          <div key={item.id} className="border border-slate-200 rounded-lg overflow-hidden">
+                            <button
+                              onClick={() => setIsExpanded(!isExpanded)}
+                              className="w-full flex items-center justify-between p-2 hover:bg-slate-50 transition text-left"
+                            >
+                              <div className="flex items-center gap-2 flex-1 min-w-0">
+                                <span className="text-xs text-slate-600 truncate">{item.title}</span>
+                                {hasIssues && (
+                                  <span className="flex-shrink-0 text-[10px] px-1.5 py-0.5 rounded bg-amber-100 text-amber-700 font-semibold">
+                                    Needs attention
+                                  </span>
+                                )}
                               </div>
-                              {hasIssues && (
-                                <p className="text-xs text-slate-500">
-                                  {item.progress === 0 
-                                    ? 'This section has not been started yet.'
-                                    : `This section is ${100 - item.progress}% incomplete. Please review and complete all required prompts.`}
-                                </p>
-                              )}
-                              {item.progress === 100 && (
-                                <p className="text-xs text-green-600">✓ All requirements met for this section.</p>
-                              )}
-                            </div>
-                          )}
-                        </div>
-                      );
-                    })}
-                  </div>
+                              <div className="flex items-center gap-2 flex-shrink-0">
+                                <span className={`text-xs font-semibold ${item.progress === 100 ? 'text-green-600' : 'text-amber-600'}`}>
+                                  {item.progress}%
+                                </span>
+                                <span className="text-xs text-slate-400">{isExpanded ? '▼' : '▶'}</span>
+                              </div>
+                            </button>
+                            {isExpanded && sectionData && (
+                              <div className="px-2 pb-2 space-y-2 border-t border-slate-100">
+                                <div className="h-1.5 bg-slate-100 rounded-full mt-2">
+                                  <div
+                                    className={`h-full rounded-full ${
+                                      item.progress === 100 ? 'bg-green-500' : 'bg-amber-500'
+                                    }`}
+                                    style={{ width: `${item.progress}%` }}
+                                  />
+                                </div>
+                                {/* Per-question validation details */}
+                                <div className="space-y-2 mt-2">
+                                  {sectionData.questions.map((q) => {
+                                    const qValidation = validateQuestionRequirements(q, sectionData, template);
+                                    if (qValidation.issues.length === 0) return null;
+                                    const errors = qValidation.issues.filter((i) => i.severity === 'error');
+                                    const warnings = qValidation.issues.filter((i) => i.severity === 'warning');
+                                    return (
+                                      <div key={q.id} className="bg-slate-50 rounded p-2 space-y-1">
+                                        <p className="text-[11px] font-semibold text-slate-700 line-clamp-1">{q.prompt}</p>
+                                        <div className="space-y-0.5">
+                                          {errors.map((issue, idx) => (
+                                            <p key={idx} className="text-[10px] text-red-600">● {issue.message}</p>
+                                          ))}
+                                          {warnings.map((issue, idx) => (
+                                            <p key={idx} className="text-[10px] text-amber-600">● {issue.message}</p>
+                                          ))}
+                                        </div>
+                                      </div>
+                                    );
+                                  })}
+                                </div>
+                                {hasIssues && sectionData.questions.every((q) => {
+                                  const qValidation = validateQuestionRequirements(q, sectionData, template);
+                                  return qValidation.issues.length === 0;
+                                }) && (
+                                  <p className="text-xs text-slate-500">
+                                    {item.progress === 0 
+                                      ? 'This section has not been started yet.'
+                                      : `This section is ${100 - item.progress}% incomplete. Please review and complete all required prompts.`}
+                                  </p>
+                                )}
+                                {item.progress === 100 && (
+                                  <p className="text-xs text-green-600">✓ All requirements met for this section.</p>
+                                )}
+                              </div>
+                            )}
+                          </div>
+                        );
+                      })}
+                    </div>
+                  )}
                 </div>
               )}
             </div>

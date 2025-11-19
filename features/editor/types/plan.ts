@@ -23,6 +23,14 @@ export interface ProgramSummary {
 
 export type RightPanelView = 'ai' | 'data' | 'preview' | 'requirements' | 'info';
 
+export type AttachmentEntityType = 'dataset' | 'kpi' | 'media';
+
+export interface AttachmentReference {
+  attachmentId: string;
+  attachmentType: AttachmentEntityType;
+  linkedAt?: string;
+}
+
 export interface MediaAsset {
   id: string;
   type: 'image' | 'table' | 'chart' | 'kpi';
@@ -33,11 +41,15 @@ export interface MediaAsset {
   caption?: string;
   altText?: string;
   tags?: string[];
+  source?: string;
   figureNumber?: string;
   referenceIds?: string[];
-  attachedQuestionId?: string;
+  attachedQuestionId?: string; // legacy
   sectionId: string; // Section this media asset belongs to
-  questionId?: string; // Question this media asset is attached to (if attached)
+  questionId?: string; // legacy: Question this media asset is attached to (if attached)
+  relatedQuestions?: string[];
+  createdAt?: string;
+  updatedAt?: string;
 }
 
 export interface DatasetColumn {
@@ -55,8 +67,12 @@ export interface Dataset {
   tags?: string[];
   usageCount?: number;
   lastUpdated?: string;
+  source?: string;
   sectionId: string; // Section this dataset belongs to
-  questionId?: string; // Question this dataset is attached to (if attached)
+  questionId?: string; // legacy
+  relatedQuestions?: string[];
+  createdAt?: string;
+  updatedAt?: string;
   formulas?: Record<string, string>; // Cell formulas: { "Total:Jan": "=SUM(Product A:Jan, Product B:Jan)" }
   calculatedValues?: Record<string, number>; // Cached calculated values: { "Total:Jan": 1500 }
 }
@@ -71,7 +87,12 @@ export interface KPI {
   datasetId?: string;
   trend?: 'up' | 'down' | 'flat';
   sectionId: string; // Section this KPI belongs to
-  questionId?: string; // Question this KPI is attached to (if attached)
+  questionId?: string; // legacy
+  relatedQuestions?: string[];
+  source?: string;
+  tags?: string[];
+  createdAt?: string;
+  updatedAt?: string;
 }
 
 export type QuestionStatus = 'blank' | 'draft' | 'complete' | 'unknown';
@@ -80,7 +101,7 @@ export interface Question {
   id: string;
   prompt: string;
   answer?: string;
-  attachments?: MediaAsset[];
+  attachments?: Array<AttachmentReference | MediaAsset>;
   suggestions?: string[];
   warnings?: string[];
   helperText?: string;

@@ -76,13 +76,16 @@ interface ProgramFinderProps {
 // CRITICAL QUESTIONS (used in matching logic - required for MIN_QUESTIONS_FOR_RESULTS):
 // 1. company_type - CRITICAL (line 185 in recommend.ts - must match)
 // 2. location - CRITICAL (line 156 in recommend.ts - must match)
-// 3. funding_amount - Used in matching (line 250 in recommend.ts)
+// 3. co_financing - CRITICAL for funding type diversity (moved earlier, priority 3)
 // 4. company_stage - Used in matching (line 215 in recommend.ts)
+// 5. funding_amount - Used in matching (line 250 in recommend.ts) - now informed by co_financing
 // OPTIONAL QUESTIONS (used in matching but not critical):
-// 5. industry_focus - Used in matching (line 273 in recommend.ts)
-// 6. co_financing - Used in matching (line 288 in recommend.ts)
-// NOT USED IN MATCHING (can be removed or made optional):
-// - legal_type, team_size, revenue_status, use_of_funds, impact, deadline_urgency, project_duration
+// 6. industry_focus - Used in matching (line 273 in recommend.ts)
+// 7. use_of_funds - NOW IMPLEMENTED in scoring engine and LLM profile
+// ADVANCED QUESTIONS (now included in LLM profile for better matching):
+// - team_size, revenue_status, impact_focus, deadline_urgency, project_duration
+// REMOVED:
+// - legal_type (was collected but not used in matching - removed to simplify UI)
 type BaseQuestion = {
   id: string;
   label: string;
@@ -95,7 +98,7 @@ type SingleSelectQuestion = BaseQuestion & {
   type: 'single-select';
   options: Array<{ value: string; label: string }>;
   hasOtherTextInput?: boolean;
-  hasLegalType?: boolean;
+  // hasLegalType?: boolean; // REMOVED - not used in matching
   hasOptionalRegion?: (value: string) => boolean;
   hasCoFinancingPercentage?: boolean;
 };
@@ -133,7 +136,7 @@ const CORE_QUESTIONS: QuestionDefinition[] = [
     required: true,
     priority: 1,
     hasOtherTextInput: true,
-    hasLegalType: true, // Enable conditional legal type dropdown
+    // hasLegalType: true, // REMOVED - legal_type not used in matching, adds complexity without benefit
     isAdvanced: false, // Core question
   },
   {
@@ -155,16 +158,17 @@ const CORE_QUESTIONS: QuestionDefinition[] = [
     },
   },
   {
-    id: 'funding_amount', // CRITICAL - Used in matching
-    label: 'How much funding do you need?',
-    type: 'range' as const,
-    min: 0,
-    max: 2000000,
-    step: 1000,
-    unit: 'EUR',
-    required: true,
-    priority: 3,
-    editableValue: true, // Allow editing the number directly
+    id: 'co_financing', // CRITICAL - Determines funding type diversity (moved earlier)
+    label: 'Can you provide co-financing?',
+    type: 'single-select' as const,
+    options: [
+      { value: 'co_yes', label: 'Yes' },
+      { value: 'co_no', label: 'No' },
+      { value: 'co_uncertain', label: 'Uncertain' },
+    ],
+    required: false,
+    priority: 3, // Moved up from 5 - critical for funding type selection
+    hasCoFinancingPercentage: true, // Ask for percentage if Yes
     isAdvanced: false, // Core question
   },
   {
@@ -184,17 +188,16 @@ const CORE_QUESTIONS: QuestionDefinition[] = [
     isAdvanced: false,
   },
   {
-    id: 'co_financing', // CRITICAL - Determines funding type diversity
-    label: 'Can you provide co-financing?',
-    type: 'single-select' as const,
-    options: [
-      { value: 'co_yes', label: 'Yes' },
-      { value: 'co_no', label: 'No' },
-      { value: 'co_uncertain', label: 'Uncertain' },
-    ],
-    required: false,
-    priority: 5, // Moved up - critical for funding type selection
-    hasCoFinancingPercentage: true, // Ask for percentage if Yes
+    id: 'funding_amount', // CRITICAL - Used in matching
+    label: 'How much funding do you need?',
+    type: 'range' as const,
+    min: 0,
+    max: 2000000,
+    step: 1000,
+    unit: 'EUR',
+    required: true,
+    priority: 5, // Moved down from 3 - now informed by co_financing
+    editableValue: true, // Allow editing the number directly
     isAdvanced: false, // Core question
   },
   {
@@ -914,75 +917,11 @@ export default function ProgramFinder({
                                     );
                                   })}
                                   
-                                  {/* Legal Type Dropdown - Conditional on company_type selection */}
-                                  {question.id === 'company_type' && question.hasLegalType && value && value !== 'prefounder' && (
-                                    <div className="mt-4 space-y-1.5 border-t border-gray-200 pt-4">
-                                      <label className="text-sm font-medium text-gray-700 mb-2 block">
-                                        {locale === 'de' ? 'Rechtsform:' : 'Legal Structure:'}
-                                      </label>
-                                      <select
-                                        value={answers.legal_type || ''}
-                                        onChange={(e) => {
-                                          handleAnswer('legal_type', e.target.value || undefined);
-                                        }}
-                                        className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white"
-                                      >
-                                        <option value="">{locale === 'de' ? 'Bitte wählen...' : 'Please select...'}</option>
-                                        {(() => {
-                                          // Legal type options based on company type
-                                          if (value === 'startup' || value === 'sme') {
-                                            return (
-                                              <>
-                                                <option value="gmbh">{locale === 'de' ? 'GmbH' : 'GmbH'}</option>
-                                                <option value="ag">{locale === 'de' ? 'AG' : 'AG'}</option>
-                                                <option value="og">{locale === 'de' ? 'OG' : 'OG'}</option>
-                                                <option value="kg">{locale === 'de' ? 'KG' : 'KG'}</option>
-                                                <option value="einzelunternehmer">{locale === 'de' ? 'Einzelunternehmer (Solo Founder)' : 'Einzelunternehmer (Solo Founder)'}</option>
-                                                <option value="other">{locale === 'de' ? 'Sonstige' : 'Other'}</option>
-                                              </>
-                                            );
-                                          } else if (value === 'research') {
-                                            return (
-                                              <>
-                                                <option value="verein">{locale === 'de' ? 'Verein' : 'Verein (Association)'}</option>
-                                                <option value="genossenschaft">{locale === 'de' ? 'Genossenschaft' : 'Genossenschaft (Cooperative)'}</option>
-                                                <option value="stiftung">{locale === 'de' ? 'Stiftung' : 'Stiftung (Foundation)'}</option>
-                                                <option value="gmbh">{locale === 'de' ? 'GmbH' : 'GmbH'}</option>
-                                                <option value="other">{locale === 'de' ? 'Sonstige' : 'Other'}</option>
-                                              </>
-                                            );
-                                          } else if (value === 'other') {
-                                            return (
-                                              <>
-                                                <option value="gmbh">{locale === 'de' ? 'GmbH' : 'GmbH'}</option>
-                                                <option value="ag">{locale === 'de' ? 'AG' : 'AG'}</option>
-                                                <option value="og">{locale === 'de' ? 'OG' : 'OG'}</option>
-                                                <option value="kg">{locale === 'de' ? 'KG' : 'KG'}</option>
-                                                <option value="verein">{locale === 'de' ? 'Verein' : 'Verein (Association)'}</option>
-                                                <option value="genossenschaft">{locale === 'de' ? 'Genossenschaft' : 'Genossenschaft (Cooperative)'}</option>
-                                                <option value="stiftung">{locale === 'de' ? 'Stiftung' : 'Stiftung (Foundation)'}</option>
-                                                <option value="einzelunternehmer">{locale === 'de' ? 'Einzelunternehmer (Solo Founder)' : 'Einzelunternehmer (Solo Founder)'}</option>
-                                                <option value="other">{locale === 'de' ? 'Sonstige' : 'Other'}</option>
-                                              </>
-                                            );
-                                          }
-                                          return null;
-                                        })()}
-                                      </select>
-                                      {answers.legal_type === 'other' && (
-                                        <input
-                                          type="text"
-                                          placeholder={locale === 'de' ? 'z.B. LLC, Inc., etc.' : 'e.g., LLC, Inc., etc.'}
-                                          value={(answers.legal_type_other as string) || ''}
-                                          onChange={(e) => {
-                                            handleAnswer('legal_type_other', e.target.value);
-                                          }}
-                                          className="w-full mt-2 px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                                          autoFocus
-                                        />
-                                      )}
-                                    </div>
-                                  )}
+                                  {/* Legal Type Dropdown - REMOVED
+                                      Legal type was collected but not used in matching logic.
+                                      Removed to simplify UI and reduce user friction.
+                                      Can be re-added if matching logic is implemented in the future.
+                                  */}
                                   
                                   {/* Skip Button - More Visible */}
                                   {!question.required && (
@@ -1506,28 +1445,69 @@ export default function ProgramFinder({
                     const fundingTypes = (program as any).funding_types || (program.type ? [program.type] : ['grant']);
                     const getFundingTypeColor = (type: string) => {
                       const normalized = type.toLowerCase();
-                      if (normalized.includes('grant') || normalized.includes('subsidy')) {
+                      // Financial instruments - grants/subsidies
+                      if (normalized.includes('grant') || normalized.includes('subsidy') || normalized.includes('gründungsprogramm')) {
                         return 'bg-green-100 text-green-800 border-green-300';
-                      } else if (normalized.includes('loan')) {
+                      }
+                      // Loans
+                      if (normalized.includes('loan') || normalized.includes('bank_loan') || normalized.includes('micro_credit') || normalized.includes('repayable_advance')) {
                         return 'bg-blue-100 text-blue-800 border-blue-300';
-                      } else if (normalized.includes('equity')) {
+                      }
+                      // Equity/Investment
+                      if (normalized.includes('equity') || normalized.includes('venture_capital') || normalized.includes('angel_investment') || normalized.includes('crowdfunding')) {
                         return 'bg-purple-100 text-purple-800 border-purple-300';
-                      } else if (normalized.includes('guarantee')) {
+                      }
+                      // Guarantees/Insurance
+                      if (normalized.includes('guarantee') || normalized.includes('export_insurance')) {
                         return 'bg-orange-100 text-orange-800 border-orange-300';
-                      } else if (normalized.includes('convertible')) {
+                      }
+                      // Convertible instruments
+                      if (normalized.includes('convertible') || normalized.includes('leasing')) {
                         return 'bg-indigo-100 text-indigo-800 border-indigo-300';
+                      }
+                      // Support services
+                      if (normalized.includes('coaching') || normalized.includes('mentoring') || normalized.includes('consultation') || normalized.includes('consulting_support') || normalized.includes('networking') || normalized.includes('workshop') || normalized.includes('support_program') || normalized.includes('acceleration_program')) {
+                        return 'bg-teal-100 text-teal-800 border-teal-300';
+                      }
+                      // Specialized support
+                      if (normalized.includes('intellectual_property') || normalized.includes('patent_support') || normalized.includes('export_support') || normalized.includes('innovation_support')) {
+                        return 'bg-cyan-100 text-cyan-800 border-cyan-300';
                       }
                       return 'bg-gray-100 text-gray-800 border-gray-300';
                     };
                     const getFundingTypeLabel = (type: string) => {
                       const normalized = type.toLowerCase();
+                      // Financial instruments
                       if (normalized.includes('grant')) return locale === 'de' ? 'Zuschuss' : 'Grant';
                       if (normalized.includes('subsidy')) return locale === 'de' ? 'Subvention' : 'Subsidy';
-                      if (normalized.includes('loan')) return locale === 'de' ? 'Darlehen' : 'Loan';
+                      if (normalized.includes('gründungsprogramm')) return locale === 'de' ? 'Gründungsprogramm' : 'Startup Program';
+                      if (normalized.includes('loan') && !normalized.includes('bank_loan')) return locale === 'de' ? 'Darlehen' : 'Loan';
+                      if (normalized.includes('bank_loan')) return locale === 'de' ? 'Bankdarlehen' : 'Bank Loan';
+                      if (normalized.includes('micro_credit')) return locale === 'de' ? 'Mikrokredit' : 'Micro Credit';
+                      if (normalized.includes('repayable_advance')) return locale === 'de' ? 'Rückzahlbarer Vorschuss' : 'Repayable Advance';
                       if (normalized.includes('equity')) return locale === 'de' ? 'Beteiligung' : 'Equity';
+                      if (normalized.includes('venture_capital')) return locale === 'de' ? 'Wagniskapital' : 'Venture Capital';
+                      if (normalized.includes('angel_investment')) return locale === 'de' ? 'Business Angel' : 'Angel Investment';
+                      if (normalized.includes('crowdfunding')) return locale === 'de' ? 'Crowdfunding' : 'Crowdfunding';
                       if (normalized.includes('guarantee')) return locale === 'de' ? 'Bürgschaft' : 'Guarantee';
+                      if (normalized.includes('export_insurance')) return locale === 'de' ? 'Exportversicherung' : 'Export Insurance';
                       if (normalized.includes('convertible')) return locale === 'de' ? 'Wandelanleihe' : 'Convertible';
-                      return type.charAt(0).toUpperCase() + type.slice(1);
+                      if (normalized.includes('leasing')) return locale === 'de' ? 'Leasing' : 'Leasing';
+                      // Support services
+                      if (normalized.includes('coaching')) return locale === 'de' ? 'Coaching' : 'Coaching';
+                      if (normalized.includes('mentoring')) return locale === 'de' ? 'Mentoring' : 'Mentoring';
+                      if (normalized.includes('consultation') || normalized.includes('consulting_support')) return locale === 'de' ? 'Beratung' : 'Consultation';
+                      if (normalized.includes('networking')) return locale === 'de' ? 'Netzwerk' : 'Networking';
+                      if (normalized.includes('workshop')) return locale === 'de' ? 'Workshop' : 'Workshop';
+                      if (normalized.includes('support_program')) return locale === 'de' ? 'Unterstützungsprogramm' : 'Support Program';
+                      if (normalized.includes('acceleration_program')) return locale === 'de' ? 'Beschleunigungsprogramm' : 'Acceleration Program';
+                      // Specialized
+                      if (normalized.includes('intellectual_property')) return locale === 'de' ? 'Geistiges Eigentum' : 'Intellectual Property';
+                      if (normalized.includes('patent_support')) return locale === 'de' ? 'Patentunterstützung' : 'Patent Support';
+                      if (normalized.includes('export_support')) return locale === 'de' ? 'Exportunterstützung' : 'Export Support';
+                      if (normalized.includes('innovation_support')) return locale === 'de' ? 'Innovationsunterstützung' : 'Innovation Support';
+                      // Fallback: capitalize first letter
+                      return type.split('_').map(word => word.charAt(0).toUpperCase() + word.slice(1)).join(' ');
                     };
                     
                     return (
@@ -1543,6 +1523,24 @@ export default function ProgramFinder({
                                 {program.source === 'fallback' && (
                                   <span className="px-2 py-1 text-xs rounded-full bg-yellow-100 text-yellow-800 border border-yellow-300 font-medium">
                                     {locale === 'de' ? 'Fallback' : 'Fallback'}
+                                  </span>
+                                )}
+                                {program.eligibility && (
+                                  <span className={`px-3 py-1 rounded-full text-xs font-semibold ${
+                                    program.eligibility === 'Eligible'
+                                      ? 'bg-emerald-100 text-emerald-800 border border-emerald-200'
+                                      : 'bg-rose-100 text-rose-800 border border-rose-200'
+                                  }`}>
+                                    {locale === 'de'
+                                      ? (program.eligibility === 'Eligible' ? 'Passend' : 'Nicht passend')
+                                      : program.eligibility}
+                                  </span>
+                                )}
+                                {program.confidence && (
+                                  <span className="px-3 py-1 rounded-full text-xs font-semibold bg-indigo-100 text-indigo-800 border border-indigo-200">
+                                    {locale === 'de'
+                                      ? `${program.confidence} Zuversicht`
+                                      : `${program.confidence} confidence`}
                                   </span>
                                 )}
                                 {program.score !== undefined && (
@@ -1576,6 +1574,50 @@ export default function ProgramFinder({
                               <p className="text-gray-600 mb-4 text-sm md:text-base leading-relaxed">
                                 {program.description || (program as any).metadata?.description}
                               </p>
+                            )}
+
+                            {/* Structured Explanation */}
+                            {(program.reason || (program as any).matchedCriteria?.length > 0) && (
+                              <div className="mb-4 rounded-lg border border-blue-100 bg-blue-50/70 p-4">
+                                <p className="text-sm font-semibold text-blue-900">
+                                  {locale === 'de' ? 'Warum das Programm passt' : 'Why this fits'}
+                                </p>
+                                {program.reason && (
+                                  <p className="text-sm text-blue-900/90 mt-2">{program.reason}</p>
+                                )}
+                                {Array.isArray((program as any).matchedCriteria) && (program as any).matchedCriteria.length > 0 && (
+                                  <ul className="mt-2 space-y-1 text-sm text-blue-900/90 list-disc list-inside">
+                                    {(program as any).matchedCriteria.slice(0, 3).map((match: any, idx: number) => (
+                                      <li key={idx}>{match.reason}</li>
+                                    ))}
+                                  </ul>
+                                )}
+                              </div>
+                            )}
+
+                            {/* Generic fallback warning */}
+                            {!program.reason &&
+                              (!Array.isArray((program as any).matchedCriteria) || (program as any).matchedCriteria.length === 0) &&
+                              program.source === 'fallback' && (
+                                <div className="mb-4 rounded-lg border border-yellow-200 bg-yellow-50 p-3 text-sm text-yellow-900">
+                                  {locale === 'de'
+                                    ? 'Allgemeiner Vorschlag aus dem Fallback – bitte manuell prüfen.'
+                                    : 'Generic fallback suggestion—double-check relevance before applying.'}
+                                </div>
+                              )}
+
+                            {/* Gaps / mismatches */}
+                            {Array.isArray((program as any).gaps) && (program as any).gaps.length > 0 && (
+                              <div className="mb-4 rounded-lg border border-rose-100 bg-rose-50/80 p-4">
+                                <p className="text-sm font-semibold text-rose-900">
+                                  {locale === 'de' ? 'Zu prüfen' : 'Check before applying'}
+                                </p>
+                                <ul className="mt-2 space-y-1 text-sm text-rose-900 list-disc list-inside">
+                                  {(program as any).gaps.slice(0, 3).map((gap: any, idx: number) => (
+                                    <li key={idx}>{gap.description || gap.key}</li>
+                                  ))}
+                                </ul>
+                              </div>
                             )}
 
                             {/* Program Details Grid */}

@@ -664,7 +664,7 @@ RULES:
 - If information is ambiguous or unclear, omit it rather than guessing
 - Extract contact information (email, phone) from the page
 - **CRITICAL: ALWAYS identify funding types** - Look for keywords like "grant", "loan", "equity", "guarantee", "subsidy", "financing", "investment", "Förderung", "Kredit", "Beteiligung"
-- Funding types must be one of: "grant", "loan", "equity", "guarantee", "subsidy", "venture_capital", "bank_loan", "leasing", "crowdfunding", "angel_investment", "gründungsprogramm", "coaching", "mentoring", "consultation", "networking", "workshop", "support_program", "consulting_support", "micro_credit", "repayable_advance", "acceleration_program", "export_insurance", "intellectual_property", "patent_support", "export_support", "innovation_support"
+- Funding types must be one of: "grant", "loan", "equity", "guarantee", "subsidy", "convertible", "venture_capital", "bank_loan", "leasing", "crowdfunding", "angel_investment", "micro_credit", "repayable_advance", "visa_application", "gründungsprogramm", "coaching", "mentoring", "consultation", "networking", "workshop", "support_program", "consulting_support", "acceleration_program", "export_insurance", "intellectual_property", "patent_support", "export_support", "innovation_support"
 - If funding type is unclear, infer from:
   * URL patterns (/grant/, /loan/, /equity/, /guarantee/)
   * Page content (mentions of "non-repayable" = grant, "repay" = loan, "equity stake" = equity)

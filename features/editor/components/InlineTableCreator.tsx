@@ -3,6 +3,11 @@
 
 import React, { useMemo, useState } from 'react';
 import { Dataset, KPI, MediaAsset } from '@/features/editor/types/plan';
+import {
+  suggestKPIsFromDataset,
+  tagDatasetWithFinancialVariables,
+  createKPIFromSuggestion
+} from '@/features/editor/utils/tableInitializer';
 
 type Tab = 'datasets' | 'kpis' | 'media';
 type Composer = 'dataset' | 'kpi' | 'media' | null;
@@ -34,6 +39,7 @@ interface DataPanelProps {
   onAttachDataset?: (dataset: Dataset) => void;
   onAttachKpi?: (kpi: KPI) => void;
   onAttachMedia?: (asset: MediaAsset) => void;
+  onAskForStructure?: () => void;
 }
 
 function createDataset(
@@ -41,8 +47,7 @@ function createDataset(
   description: string,
   columnInput: string,
   tagsInput: string,
-  sectionId: string,
-  questionId?: string
+  sectionId: string
 ): Dataset {
   const columns = columnInput
     .split(',')
@@ -57,6 +62,7 @@ function createDataset(
       return { name: label, type, unit: unitMatch?.[1] };
     });
 
+  const timestamp = new Date().toISOString();
   return {
     id: `dataset_${Date.now()}`,
     name: name || 'Untitled dataset',
@@ -68,9 +74,11 @@ function createDataset(
       .map((tag) => tag.trim())
       .filter(Boolean),
     usageCount: 0,
-    lastUpdated: new Date().toISOString(),
     sectionId,
-    questionId
+    relatedQuestions: [],
+    createdAt: timestamp,
+    updatedAt: timestamp,
+    lastUpdated: timestamp
   };
 }
 
@@ -80,9 +88,9 @@ function createKPI(
   unit?: string,
   target?: number,
   description?: string,
-  sectionId?: string,
-  questionId?: string
+  sectionId?: string
 ): KPI {
+  const timestamp = new Date().toISOString();
   return {
     id: `kpi_${Date.now()}`,
     name,
@@ -91,7 +99,9 @@ function createKPI(
     description,
     target,
     sectionId: sectionId ?? 'unknown',
-    questionId
+    relatedQuestions: [],
+    createdAt: timestamp,
+    updatedAt: timestamp
   };
 }
 
@@ -103,9 +113,9 @@ function createMediaAsset(
   altText: string,
   figureNumber: string,
   tagsInput: string,
-  sectionId: string,
-  questionId?: string
+  sectionId: string
 ): MediaAsset {
+  const timestamp = new Date().toISOString();
   return {
     id: `media_${Date.now()}`,
     type,
@@ -119,7 +129,9 @@ function createMediaAsset(
       .map((tag) => tag.trim())
       .filter(Boolean),
     sectionId,
-    questionId
+    relatedQuestions: [],
+    createdAt: timestamp,
+    updatedAt: timestamp
   };
 }
 
@@ -130,6 +142,13 @@ function formatQuestionBadge(questionId?: string) {
     return `Q${match[1].padStart(2, '0')}`;
   }
   return questionId;
+}
+
+function getPrimaryQuestionLink(entity?: { questionId?: string; relatedQuestions?: string[] }) {
+  if (!entity) return undefined;
+  return entity.relatedQuestions && entity.relatedQuestions.length > 0
+    ? entity.relatedQuestions[0]
+    : entity.questionId;
 }
 
 export default function DataPanel({
@@ -144,7 +163,8 @@ export default function DataPanel({
   sectionTitle,
   onAttachDataset,
   onAttachKpi,
-  onAttachMedia
+  onAttachMedia,
+  onAskForStructure
 }: DataPanelProps) {
   const [activeTab, setActiveTab] = useState<Tab>('datasets');
   const [activeComposer, setActiveComposer] = useState<Composer>(null);
@@ -160,9 +180,11 @@ export default function DataPanel({
 
   const attachmentsForActiveQuestion = useMemo(() => {
     if (!activeQuestionId) return 0;
-    const datasetMatches = datasetList.filter((item) => item.questionId === activeQuestionId).length;
-    const kpiMatches = kpiList.filter((item) => item.questionId === activeQuestionId).length;
-    const mediaMatches = mediaList.filter((item) => item.questionId === activeQuestionId).length;
+    const matchesRelated = (entity: { relatedQuestions?: string[]; questionId?: string }) =>
+      entity.relatedQuestions?.includes(activeQuestionId) || entity.questionId === activeQuestionId;
+    const datasetMatches = datasetList.filter(matchesRelated).length;
+    const kpiMatches = kpiList.filter(matchesRelated).length;
+    const mediaMatches = mediaList.filter(matchesRelated).length;
     return datasetMatches + kpiMatches + mediaMatches;
   }, [datasetList, kpiList, mediaList, activeQuestionId]);
 
@@ -227,16 +249,16 @@ export default function DataPanel({
   const handleDatasetSubmit = (event: React.FormEvent) => {
     event.preventDefault();
     if (!datasetName.trim()) return;
-    onDatasetCreate(
-      createDataset(
-        datasetName,
-        datasetDescription,
-        datasetColumns,
-        datasetTags,
-        sectionId,
-        activeQuestionId || undefined
-      )
+    const newDataset = createDataset(
+      datasetName,
+      datasetDescription,
+      datasetColumns,
+      datasetTags,
+      sectionId
     );
+    // Auto-tag with financial variables
+    const taggedDataset = tagDatasetWithFinancialVariables(newDataset);
+    onDatasetCreate(taggedDataset);
     setDatasetName('');
     setDatasetDescription('');
     setDatasetColumns('Item:string, Amount:number (EUR)');
@@ -254,8 +276,7 @@ export default function DataPanel({
         kpiUnit,
         kpiTarget ? Number(kpiTarget) : undefined,
         kpiDescription,
-        sectionId,
-        activeQuestionId || undefined
+        sectionId
       )
     );
     setKpiName('');
@@ -278,8 +299,7 @@ export default function DataPanel({
         mediaAltText,
         mediaFigure,
         mediaTags,
-        sectionId,
-        activeQuestionId || undefined
+        sectionId
       )
     );
     setMediaTitle('');
@@ -410,16 +430,16 @@ export default function DataPanel({
   );
 
   return (
-    <div className="space-y-4">
-      <div className="rounded-2xl border border-blue-100 bg-blue-50/60 p-4 space-y-3">
+    <div className="space-y-5 rounded-3xl border border-slate-100 bg-white/95 p-5 shadow-sm">
+      <div className="rounded-2xl bg-gradient-to-r from-slate-900 via-slate-800 to-slate-600 p-5 space-y-3 text-white shadow-inner">
         <div>
-          <p className="text-[11px] uppercase tracking-[0.3em] text-blue-600 mb-1">
+          <p className="text-[11px] uppercase tracking-[0.3em] text-white/70 mb-1">
             {sectionTitle || 'Data guidance'}
           </p>
-          <p className="text-sm font-semibold text-blue-900">{DATA_PANEL_HEADLINE}</p>
-          <p className="text-xs text-blue-800/80 mt-1">{DATA_PANEL_SUPPORT}</p>
+          <p className="text-lg font-semibold">{DATA_PANEL_HEADLINE}</p>
+          <p className="text-sm text-white/80 mt-1">{DATA_PANEL_SUPPORT}</p>
           {!canAttach && (
-            <p className="mt-2 text-[11px] font-semibold text-blue-700">
+            <p className="mt-2 text-[11px] font-semibold text-white/80">
               Select a question to enable quick attachments.
             </p>
           )}
@@ -428,7 +448,7 @@ export default function DataPanel({
           {summaryChips.map((chip) => (
             <div
               key={chip.label}
-              className="rounded-xl border border-blue-100 bg-white/70 px-3 py-2 flex items-center justify-between text-xs font-semibold text-blue-900"
+              className="rounded-xl bg-white/15 px-3 py-2 flex items-center justify-between text-xs font-semibold text-white"
             >
               <span>{chip.label}</span>
               <span className="text-sm">{chip.count}</span>
@@ -469,11 +489,22 @@ export default function DataPanel({
           <span className="text-[11px] text-slate-400">AI assist</span>
         </div>
         <p className="text-xs text-slate-600">
-          Ask the Assistant tab to suggest a dataset, KPI, or media template. When AI returns a
-          structure, paste it into one of the composers below. Native quicksets will hook into those
-          AI suggestions so this area updates automatically.
+          Ask the Assistant to suggest a dataset, KPI, or media template. When AI returns a
+          structure, paste it into one of the composers below.
         </p>
         <div className="flex flex-wrap gap-2">
+          <button
+            type="button"
+            onClick={() => {
+              if (onAskForStructure) {
+                onAskForStructure();
+              }
+            }}
+            disabled={!activeQuestionId || !onAskForStructure}
+            className="flex-1 min-w-[140px] rounded-xl border border-blue-300 bg-blue-50 px-3 py-2 text-xs font-semibold text-blue-700 hover:border-blue-400 hover:bg-blue-100 disabled:opacity-50 disabled:cursor-not-allowed transition"
+          >
+            Ask for structure
+          </button>
           <button
             type="button"
             onClick={() => handlePrimaryAction('dataset')}
@@ -712,7 +743,7 @@ export default function DataPanel({
           {activeTab === 'datasets' &&
             filteredDatasets.map((dataset, index) => {
               const isExpanded = expandedItems.has(dataset.id);
-              const questionBadge = formatQuestionBadge(dataset.questionId);
+              const questionBadge = formatQuestionBadge(getPrimaryQuestionLink(dataset));
               return (
                 <div
                   key={dataset.id}
@@ -774,6 +805,52 @@ export default function DataPanel({
                           ))}
                         </div>
                       )}
+                      {/* KPI Suggestions */}
+                      {(() => {
+                        const suggestions = suggestKPIsFromDataset(dataset, datasetList);
+                        if (suggestions.length === 0) return null;
+                        return (
+                          <div className="border-t border-slate-100 pt-3 space-y-2">
+                            <div className="flex items-center justify-between">
+                              <p className="text-[11px] font-semibold text-slate-700">Suggested KPIs</p>
+                              <span className="text-[10px] text-slate-400">Auto-detected</span>
+                            </div>
+                            <div className="space-y-1.5">
+                              {suggestions.slice(0, 3).map((suggestion, idx) => (
+                                <div
+                                  key={idx}
+                                  className="flex items-start justify-between gap-2 p-2 bg-blue-50 rounded-lg border border-blue-100"
+                                >
+                                  <div className="flex-1 min-w-0">
+                                    <p className="text-xs font-semibold text-blue-900">{suggestion.name}</p>
+                                    <p className="text-[10px] text-blue-700 mt-0.5">{suggestion.description}</p>
+                                    {suggestion.suggestedValue !== undefined && (
+                                      <p className="text-[10px] text-blue-600 mt-1">
+                                        {suggestion.suggestedValue.toLocaleString()} {suggestion.unit || ''}
+                                      </p>
+                                    )}
+                                  </div>
+                                  <button
+                                    type="button"
+                                    onClick={() => {
+                                      const newKpi = createKPIFromSuggestion(suggestion, sectionId);
+                                      onKpiCreate(newKpi);
+                                    }}
+                                    className="flex-shrink-0 px-2 py-1 text-[10px] font-semibold bg-blue-600 text-white rounded hover:bg-blue-700 transition"
+                                  >
+                                    Create
+                                  </button>
+                                </div>
+                              ))}
+                              {suggestions.length > 3 && (
+                                <p className="text-[10px] text-slate-500 text-center">
+                                  +{suggestions.length - 3} more suggestions available
+                                </p>
+                              )}
+                            </div>
+                          </div>
+                        );
+                      })()}
                       {renderPagination('datasets', dataset.id, index, filteredDatasets.length)}
                       {renderActions(
                         'datasets',
@@ -789,7 +866,7 @@ export default function DataPanel({
           {activeTab === 'kpis' &&
             filteredKpis.map((kpi, index) => {
               const isExpanded = expandedItems.has(kpi.id);
-              const questionBadge = formatQuestionBadge(kpi.questionId);
+              const questionBadge = formatQuestionBadge(getPrimaryQuestionLink(kpi));
               return (
                 <div
                   key={kpi.id}
@@ -840,7 +917,7 @@ export default function DataPanel({
           {activeTab === 'media' &&
             filteredMedia.map((asset, index) => {
               const isExpanded = expandedItems.has(asset.id);
-              const questionBadge = formatQuestionBadge(asset.questionId);
+              const questionBadge = formatQuestionBadge(getPrimaryQuestionLink(asset));
               return (
                 <div
                   key={asset.id}

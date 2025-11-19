@@ -146,6 +146,34 @@ class ExportManager {
               line-height: 1.8;
               text-align: justify;
             }
+            .table-container {
+              margin: 20px 0;
+              overflow-x: auto;
+            }
+            table {
+              width: 100%;
+              border-collapse: collapse;
+              border: 1px solid #e5e7eb;
+              margin: 10px 0;
+            }
+            th, td {
+              padding: 8px 12px;
+              text-align: left;
+              border: 1px solid #e5e7eb;
+            }
+            th {
+              background-color: #f3f4f6;
+              font-weight: bold;
+            }
+            .figure-container {
+              margin: 20px 0;
+              text-align: center;
+            }
+            .figure-container img {
+              max-width: 100%;
+              height: auto;
+              border: 1px solid #e5e7eb;
+            }
             .watermark {
               position: fixed;
               top: 50%;
@@ -192,12 +220,95 @@ class ExportManager {
             <div>Completion: ${Math.round((plan.sections.filter(s => s.status === 'aligned').length / plan.sections.length) * 100)}%</div>
           </div>
 
-          ${plan.sections.map(section => `
-            <div class="section">
-              <div class="section-title">${section.title}</div>
-              <div class="section-content">${this.formatContent(section.content)}</div>
-            </div>
-          `).join('')}
+          ${plan.sections.map(section => {
+            // Render tables if they exist
+            let tablesHTML = '';
+            if (section.tables && Object.keys(section.tables).length > 0) {
+              tablesHTML = Object.entries(section.tables).map(([tableKey, table]) => {
+                if (!table) return '';
+                
+                // Handle different table formats
+                let headers: string[] = [];
+                let rows: any[] = [];
+                
+                // Check if it's the new format (headers/rows from datasets)
+                if ('headers' in table && Array.isArray((table as any).headers)) {
+                  headers = (table as any).headers;
+                  rows = (table as any).rows || [];
+                } 
+                // Check if it's the legacy format (columns/rows)
+                else if ('columns' in table && Array.isArray((table as any).columns)) {
+                  headers = (table as any).columns;
+                  rows = (table as any).rows || [];
+                }
+                
+                if (headers.length === 0) return '';
+                
+                const headersHTML = headers.map((h: string) => `<th>${h}</th>`).join('');
+                const rowsHTML = rows.map((row: any) => {
+                  let cells = '';
+                  if (Array.isArray(row)) {
+                    cells = row.map((cell: any) => `<td>${cell || ''}</td>`).join('');
+                  } else if (typeof row === 'object') {
+                    // Handle object rows (from datasets)
+                    cells = headers.map((h: string) => `<td>${row[h] || ''}</td>`).join('');
+                  } else {
+                    cells = `<td>${row || ''}</td>`;
+                  }
+                  return `<tr>${cells}</tr>`;
+                }).join('');
+                
+                return `
+                  <div class="table-container" style="margin: 20px 0;">
+                    <h4 style="font-size: 14px; font-weight: bold; margin-bottom: 10px; color: #1e40af;">${this.formatTableLabel(tableKey)}</h4>
+                    <table style="width: 100%; border-collapse: collapse; border: 1px solid #e5e7eb;">
+                      <thead>
+                        <tr style="background-color: #f3f4f6;">${headersHTML}</tr>
+                      </thead>
+                      <tbody>${rowsHTML}</tbody>
+                    </table>
+                  </div>
+                `;
+              }).join('');
+            }
+            
+            // Render figures/media if they exist
+            let figuresHTML = '';
+            if (section.figures && section.figures.length > 0) {
+              figuresHTML = section.figures.map((figure: any) => {
+                const title = figure.title || 'Figure';
+                const caption = figure.caption || '';
+                const altText = figure.altText || title;
+                const uri = figure.uri || '';
+                
+                if (figure.type === 'image' && uri) {
+                  return `
+                    <div class="figure-container" style="margin: 20px 0; text-align: center;">
+                      <img src="${uri}" alt="${altText}" style="max-width: 100%; height: auto; border: 1px solid #e5e7eb;" />
+                      ${caption ? `<p style="font-size: 12px; color: #6b7280; margin-top: 8px; font-style: italic;">${caption}</p>` : ''}
+                    </div>
+                  `;
+                } else {
+                  return `
+                    <div class="figure-container" style="margin: 20px 0; padding: 20px; border: 1px solid #e5e7eb; background-color: #f9fafb;">
+                      <p style="font-weight: bold; margin-bottom: 8px;">${title}</p>
+                      ${caption ? `<p style="font-size: 12px; color: #6b7280; font-style: italic;">${caption}</p>` : ''}
+                      ${uri ? `<p style="font-size: 11px; color: #9ca3af; margin-top: 8px;">Source: ${uri}</p>` : ''}
+                    </div>
+                  `;
+                }
+              }).join('');
+            }
+            
+            return `
+              <div class="section">
+                <div class="section-title">${section.title}</div>
+                <div class="section-content">${this.formatContent(section.content)}</div>
+                ${tablesHTML}
+                ${figuresHTML}
+              </div>
+            `;
+          }).join('')}
 
           <div class="footer">
             <p>Generated by Plan2Fund - Your Austrian Business Planning Partner</p>
@@ -223,6 +334,13 @@ class ExportManager {
       .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
       .replace(/\*(.*?)\*/g, '<em>$1</em>')
       .replace(/^(.+)$/gm, '<p>$1</p>');
+  }
+
+  private formatTableLabel(key: string): string {
+    // Convert snake_case or kebab-case to Title Case
+    return key
+      .replace(/[_-]/g, ' ')
+      .replace(/\b\w/g, (char) => char.toUpperCase());
   }
 
   /**

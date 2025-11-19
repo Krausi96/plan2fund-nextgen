@@ -38,9 +38,8 @@ interface CustomLLMConfig {
   timeoutMs: number;
 }
 
-// OpenRouter can be slow, especially on free tier
-// Reduced from 60s to 40s for faster failures (with retry logic, this is safe)
-const DEFAULT_TIMEOUT = parseInt(process.env.CUSTOM_LLM_TIMEOUT || '40000', 10); // 40 seconds (configurable)
+// Increased timeout for complex prompts with many funding types and detailed descriptions
+const DEFAULT_TIMEOUT = parseInt(process.env.CUSTOM_LLM_TIMEOUT || '90000', 10); // 90 seconds (configurable)
 
 function now(): number {
   if (typeof performance !== 'undefined' && typeof performance.now === 'function') {

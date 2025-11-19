@@ -3,7 +3,7 @@
     "name": "plan2fund-nextgen",
     "scripts": {
         "lint": "eslint .",
-        "build": "next build",
+        "build": "npm run typecheck && next build",
         "dev": "next dev",
         "start": "next start",
         "tsc": "tsc -p tsconfig.json --noEmit",
@@ -56,6 +56,7 @@
         "express": "^5.1.0",
         "file-saver": "^2.0.5",
         "formidable": "^3.5.4",
+        "formulajs": "^1.0.8",
         "html2pdf.js": "^0.12.1",
         "lucide-react": "^0.552.0",
         "next": "14.2.32",

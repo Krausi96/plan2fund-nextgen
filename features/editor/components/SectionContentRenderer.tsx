@@ -3,7 +3,15 @@
 
 import React, { useState } from 'react';
 import { useRouter } from 'next/router';
-import { BusinessPlan, Section, PlanDocument, PlanSection, Route } from '@/features/editor/types/plan';
+import {
+  AttachmentReference,
+  BusinessPlan,
+  Section,
+  PlanDocument,
+  PlanSection,
+  Route,
+  MediaAsset
+} from '@/features/editor/types/plan';
 import { exportManager, ExportOptions } from '@/features/export/engine/export';
 
 interface PreviewPaneProps {
@@ -18,8 +26,75 @@ function getAttachmentIcon(type: string): string {
   return '📎';
 }
 
-function getAttachmentName(attachment: any): string {
-  return attachment.title || attachment.name || 'Untitled';
+type ResolvedAttachment = {
+  id: string;
+  type: string;
+  name: string;
+  value?: number;
+  unit?: string;
+  target?: number;
+};
+
+function isEntityLinked(entity: { relatedQuestions?: string[]; questionId?: string }) {
+  return Boolean(entity.questionId) || Boolean(entity.relatedQuestions && entity.relatedQuestions.length > 0);
+}
+
+function getAttachmentName(attachment: ResolvedAttachment): string {
+  return attachment.name || 'Untitled';
+}
+
+function resolveAttachment(
+  attachment: AttachmentReference | MediaAsset,
+  section: Section
+): ResolvedAttachment | null {
+  if ('attachmentId' in attachment) {
+    const { attachmentId, attachmentType } = attachment;
+    if (attachmentType === 'dataset') {
+      const dataset = section.datasets?.find((item) => item.id === attachmentId);
+      if (!dataset) return null;
+      return {
+        id: dataset.id,
+        type: 'dataset',
+        name: dataset.name
+      };
+    }
+    if (attachmentType === 'kpi') {
+      const kpi = section.kpis?.find((item) => item.id === attachmentId);
+      if (!kpi) return null;
+      return {
+        id: kpi.id,
+        type: 'kpi',
+        name: kpi.name,
+        value: kpi.value,
+        unit: kpi.unit,
+        target: kpi.target
+      };
+    }
+    const media = section.media?.find((item) => item.id === attachmentId);
+    if (!media) return null;
+    return {
+      id: media.id,
+      type: media.type,
+      name: media.title
+    };
+  }
+
+  const legacy = attachment as MediaAsset & { value?: number; unit?: string; target?: number };
+  return {
+    id: legacy.id,
+    type: legacy.type,
+    name: legacy.title || legacy.description || 'Untitled',
+    value: (legacy as any).value,
+    unit: (legacy as any).unit,
+    target: (legacy as any).target
+  };
+}
+
+function resolveAttachmentsForQuestion(question: Section['questions'][number], section: Section): ResolvedAttachment[] {
+  if (!question.attachments || question.attachments.length === 0) return [];
+  return question.attachments
+    .map((attachment) => resolveAttachment(attachment as AttachmentReference | MediaAsset, section))
+    .filter((item): item is ResolvedAttachment => Boolean(item));
 }
 
 /**
@@ -42,14 +117,27 @@ function convertSectionToPlanSection(section: Section): PlanSection {
       contentParts.push('*[No answer yet]*');
     }
     
-    // Add attachments reference
-    if (question.attachments && question.attachments.length > 0) {
-      question.attachments.forEach((attachment) => {
-        const icon = attachment.type === 'table' ? '📊' :
-                     attachment.type === 'chart' ? '📈' :
-                     attachment.type === 'image' ? '📷' : '📎';
-        const name = attachment.title || 'Untitled';
-        contentParts.push(`\n${icon} ${name} (attached)`);
+    // Add attachments reference (including KPIs with values)
+    const questionAttachments = resolveAttachmentsForQuestion(question, section);
+    if (questionAttachments.length > 0) {
+      questionAttachments.forEach((attachment) => {
+        if (attachment.type === 'kpi' && attachment.value !== undefined) {
+          const kpiValue = attachment.value;
+          const kpiUnit = attachment.unit || '';
+          const kpiTarget = attachment.target;
+          const name = attachment.name || 'Untitled';
+          let kpiText = `\n📈 **${name}**: ${kpiValue} ${kpiUnit}`;
+          if (kpiTarget) {
+            kpiText += ` (target: ${kpiTarget} ${kpiUnit})`;
+          }
+          contentParts.push(kpiText);
+        } else {
+          const icon = attachment.type === 'dataset' || attachment.type === 'table' ? '📊' :
+                       attachment.type === 'chart' ? '📈' :
+                       attachment.type === 'image' ? '📷' : '📎';
+          const name = attachment.name || 'Untitled';
+          contentParts.push(`\n${icon} ${name} (attached)`);
+        }
       });
     }
     
@@ -59,14 +147,36 @@ function convertSectionToPlanSection(section: Section): PlanSection {
     }
   });
   
+  // Add standalone KPIs (not attached to questions) to content
+  const standaloneKPIs = section.kpis?.filter((kpi) => !isEntityLinked(kpi));
+  if (standaloneKPIs && standaloneKPIs.length > 0) {
+    contentParts.push('\n\n### Key Performance Indicators\n');
+    standaloneKPIs.forEach((kpi) => {
+      let kpiText = `**${kpi.name}**: ${kpi.value} ${kpi.unit || ''}`;
+      if (kpi.target) {
+        kpiText += ` (target: ${kpi.target} ${kpi.unit || ''})`;
+      }
+      if (kpi.description) {
+        kpiText += `\n${kpi.description}`;
+      }
+      contentParts.push(kpiText);
+    });
+  }
+  
   // Convert datasets to tables format
   const tables = section.datasets?.reduce((acc, dataset) => {
     if (dataset.name) {
       acc[dataset.name.toLowerCase().replace(/\s+/g, '_')] = {
         headers: dataset.columns.map(col => col.name),
-        rows: dataset.rows.map(row => 
-          dataset.columns.map(col => row[col.name] ?? '')
-        )
+        rows: dataset.rows.map(row => {
+          // Convert row object to array matching column order
+          return dataset.columns.map(col => {
+            const value = row[col.name];
+            if (value === null || value === undefined) return '';
+            if (value instanceof Date) return value.toLocaleDateString();
+            return String(value);
+          });
+        })
       };
     }
     return acc;
@@ -236,6 +346,7 @@ export default function SectionContentRenderer({ plan, focusSectionId }: Preview
               ? `${question.answer.substring(0, 100)}...`
               : question.answer
             : null;
+          const resolvedQuestionAttachments = resolveAttachmentsForQuestion(question, focusedSection);
 
           return (
             <div key={question.id} className="space-y-1">
@@ -250,18 +361,61 @@ export default function SectionContentRenderer({ plan, focusSectionId }: Preview
               </div>
 
               {/* Attachments (if any) */}
-              {question.attachments && question.attachments.length > 0 && (
+              {resolvedQuestionAttachments.length > 0 && (
                 <div className="ml-4 space-y-1">
-                  {question.attachments.map((attachment) => (
-                    <div key={attachment.id} className="text-xs text-slate-500">
-                      {getAttachmentIcon(attachment.type || '')} {getAttachmentName(attachment)} (attached)
-                    </div>
-                  ))}
+                  {resolvedQuestionAttachments.map((attachment) => {
+                    // Show KPI value if it's a KPI attachment
+                    if (attachment.type === 'kpi' && attachment.value !== undefined) {
+                      const kpiValue = attachment.value;
+                      const kpiUnit = attachment.unit || '';
+                      return (
+                        <div key={attachment.id} className="text-xs text-slate-500">
+                          📈 {getAttachmentName(attachment)}: <span className="font-semibold">{kpiValue} {kpiUnit}</span> (attached)
+                        </div>
+                      );
+                    }
+                    return (
+                      <div key={attachment.id} className="text-xs text-slate-500">
+                        {getAttachmentIcon(attachment.type || '')} {getAttachmentName(attachment)} (attached)
+                      </div>
+                    );
+                  })}
                 </div>
               )}
             </div>
           );
         })}
+        
+        {/* Show standalone KPIs, Datasets, and Media not attached to questions */}
+        {((focusedSection.kpis && focusedSection.kpis.length > 0) || 
+          (focusedSection.datasets && focusedSection.datasets.length > 0) || 
+          (focusedSection.media && focusedSection.media.length > 0)) && (
+          <div className="mt-4 pt-4 border-t border-slate-200">
+            <p className="text-xs font-semibold text-slate-500 uppercase tracking-wider mb-2">Section Data</p>
+            
+            {/* Standalone KPIs */}
+            {focusedSection.kpis?.filter((kpi) => !isEntityLinked(kpi)).map((kpi) => (
+              <div key={kpi.id} className="text-xs text-slate-600 mb-1">
+                📈 <span className="font-semibold">{kpi.name}</span>: {kpi.value} {kpi.unit || ''}
+                {kpi.target && <span className="text-slate-400"> (target: {kpi.target} {kpi.unit || ''})</span>}
+              </div>
+            ))}
+            
+            {/* Standalone Datasets */}
+            {focusedSection.datasets?.filter((ds) => !isEntityLinked(ds)).map((dataset) => (
+              <div key={dataset.id} className="text-xs text-slate-600 mb-1">
+                📊 <span className="font-semibold">{dataset.name}</span> ({dataset.columns.length} columns, {dataset.rows.length} rows)
+              </div>
+            ))}
+            
+            {/* Standalone Media */}
+            {focusedSection.media?.filter((m) => !isEntityLinked(m)).map((asset) => (
+              <div key={asset.id} className="text-xs text-slate-600 mb-1">
+                {getAttachmentIcon(asset.type)} <span className="font-semibold">{asset.title}</span>
+              </div>
+            ))}
+          </div>
+        )}
       </div>
     </div>
   );

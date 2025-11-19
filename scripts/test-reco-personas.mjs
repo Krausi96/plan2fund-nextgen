@@ -54,6 +54,32 @@ const personas = [
       co_financing: 'co_yes',
     },
   },
+  {
+    name: 'Research Institution Grant',
+    description: 'Austrian research institution seeking EU funding for innovation project.',
+    answers: {
+      location: 'austria',
+      company_type: 'research',
+      company_stage: 'research_org',
+      funding_amount: 500000,
+      industry_focus: ['health', 'research'],
+      co_financing: 'co_yes',
+      impact_focus: ['research', 'innovation'],
+    },
+  },
+  {
+    name: 'Early Stage with Support',
+    description: 'Pre-company idea stage seeking grants + coaching/mentoring support.',
+    answers: {
+      location: 'germany',
+      company_type: 'prefounder',
+      company_stage: 'pre_company',
+      funding_amount: 50000,
+      industry_focus: ['digital'],
+      co_financing: 'co_no',
+      use_of_funds: ['product_development', 'hiring'],
+    },
+  },
 ];
 
 async function runPersona(persona) {
@@ -123,13 +149,27 @@ async function runPersona(persona) {
       console.log('Funding types:', fundingTypeCounts);
     }
 
+    // Show first 3 programs with details
     programs.slice(0, 3).forEach((program, idx) => {
       const types = program.funding_types || program.metadata?.funding_types || [];
       const typesStr = types.length > 0 ? ` | types=[${types.join(', ')}]` : ' | types=[]';
+      const org = program.metadata?.organization ? ` | org=${program.metadata.organization}` : '';
+      const coFin = program.metadata?.co_financing_required ? ` | co-fin=${program.metadata.co_financing_percentage || 'yes'}%` : '';
+      const desc = program.description || program.metadata?.description || '';
+      const descPreview = desc ? ` | desc="${desc.substring(0, 60)}${desc.length > 60 ? '...' : ''}"` : '';
       console.log(
-        `  ${idx + 1}. ${(program.name || 'Unnamed')} | source=${program.source || 'unknown'}${typesStr}`
+        `  ${idx + 1}. ${(program.name || 'Unnamed')} | source=${program.source || 'unknown'}${typesStr}${org}${coFin}${descPreview}`
       );
     });
+    
+    // Check for bias: count grants vs non-grants
+    const grantCount = Object.entries(fundingTypeCounts).reduce((sum, [type, count]) => {
+      return sum + (type.toLowerCase().includes('grant') || type.toLowerCase().includes('subsidy') ? count : 0);
+    }, 0);
+    const nonGrantCount = Object.entries(fundingTypeCounts).reduce((sum, [type, count]) => {
+      return sum + (!type.toLowerCase().includes('grant') && !type.toLowerCase().includes('subsidy') ? count : 0);
+    }, 0);
+    console.log(`Bias check: ${grantCount} grant/subsidy mentions vs ${nonGrantCount} non-grant mentions`);
   } catch (error) {
     console.log('━━━━━━━━━━━━━━━━━━');
     console.log(`Persona: ${persona.name}`);
