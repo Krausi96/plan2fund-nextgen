@@ -378,4 +378,302 @@ export function loadPlanConversations(): Record<string, ConversationMessage[]> {
   }
 }
 
+// ============================================================================
+// DOCUMENT STORE - Track exported documents for users
+// ============================================================================
+
+export interface ExportedDocument {
+  id: string;
+  userId: string;
+  planId?: string;
+  paymentId?: string;
+  name: string;
+  type: 'plan' | 'additional' | 'addon';
+  format: 'PDF' | 'DOCX' | 'JSON';
+  fileName: string;
+  fileSize?: number;
+  downloadUrl?: string; // For email links
+  exportedAt: string;
+  status: 'exported' | 'email_sent' | 'downloaded';
+}
+
+/**
+ * Save exported document record
+ */
+export function saveExportedDocument(document: ExportedDocument): void {
+  if (typeof window === 'undefined') return;
+  
+  try {
+    const documents: ExportedDocument[] = JSON.parse(localStorage.getItem('userDocuments') || '[]');
+    
+    // Update existing or add new
+    const existingIndex = documents.findIndex(d => d.id === document.id);
+    if (existingIndex >= 0) {
+      documents[existingIndex] = document;
+    } else {
+      documents.push(document);
+    }
+    
+    localStorage.setItem('userDocuments', JSON.stringify(documents));
+  } catch (error) {
+    console.error('Error saving exported document:', error);
+  }
+}
+
+/**
+ * Get all exported documents for a user
+ */
+export function getUserDocuments(userId: string, planId?: string): ExportedDocument[] {
+  if (typeof window === 'undefined') return [];
+  
+  try {
+    const documents: ExportedDocument[] = JSON.parse(localStorage.getItem('userDocuments') || '[]');
+    let filtered = documents.filter(d => d.userId === userId);
+    
+    if (planId) {
+      filtered = filtered.filter(d => d.planId === planId);
+    }
+    
+    return filtered.sort((a, b) => 
+      new Date(b.exportedAt).getTime() - new Date(a.exportedAt).getTime()
+    );
+  } catch (error) {
+    console.error('Error loading exported documents:', error);
+    return [];
+  }
+}
+
+/**
+ * Mark document as email sent
+ */
+export function markDocumentEmailSent(documentId: string): void {
+  if (typeof window === 'undefined') return;
+  
+  try {
+    const documents: ExportedDocument[] = JSON.parse(localStorage.getItem('userDocuments') || '[]');
+    const document = documents.find(d => d.id === documentId);
+    if (document) {
+      document.status = 'email_sent';
+      localStorage.setItem('userDocuments', JSON.stringify(documents));
+    }
+  } catch (error) {
+    console.error('Error marking document email sent:', error);
+  }
+}
+
+/**
+ * Mark document as downloaded
+ */
+export function markDocumentDownloaded(documentId: string): void {
+  if (typeof window === 'undefined') return;
+  
+  try {
+    const documents: ExportedDocument[] = JSON.parse(localStorage.getItem('userDocuments') || '[]');
+    const document = documents.find(d => d.id === documentId);
+    if (document) {
+      document.status = 'downloaded';
+      localStorage.setItem('userDocuments', JSON.stringify(documents));
+    }
+  } catch (error) {
+    console.error('Error marking document downloaded:', error);
+  }
+}
+
+// ============================================================================
+// PAYMENT STORE - Track payment status for plans
+// ============================================================================
+
+export interface PaymentRecord {
+  id: string;
+  userId: string;
+  planId?: string;
+  sessionId: string;
+  amount: number;
+  currency: string;
+  status: 'pending' | 'completed' | 'failed' | 'refunded';
+  paymentMethod: string;
+  stripePaymentIntentId?: string;
+  items: string; // JSON string
+  createdAt: string;
+  completedAt?: string;
+}
+
+/**
+ * Save payment record to localStorage
+ */
+export function savePaymentRecord(payment: PaymentRecord): void {
+  if (typeof window === 'undefined') return;
+  
+  try {
+    const payments: PaymentRecord[] = JSON.parse(localStorage.getItem('userPayments') || '[]');
+    
+    // Update existing or add new
+    const existingIndex = payments.findIndex(p => p.id === payment.id);
+    if (existingIndex >= 0) {
+      payments[existingIndex] = payment;
+    } else {
+      payments.push(payment);
+    }
+    
+    localStorage.setItem('userPayments', JSON.stringify(payments));
+    
+    // If payment is completed and has planId, mark plan as paid
+    if (payment.status === 'completed' && payment.planId) {
+      markPlanAsPaid(payment.planId, payment.userId);
+    }
+  } catch (error) {
+    console.error('Error saving payment record:', error);
+  }
+}
+
+/**
+ * Get payment records for a user
+ */
+export function getUserPayments(userId: string): PaymentRecord[] {
+  if (typeof window === 'undefined') return [];
+  
+  try {
+    const payments: PaymentRecord[] = JSON.parse(localStorage.getItem('userPayments') || '[]');
+    return payments.filter(p => p.userId === userId);
+  } catch (error) {
+    console.error('Error loading payment records:', error);
+    return [];
+  }
+}
+
+/**
+ * Get payment record by ID
+ */
+export function getPaymentRecord(paymentId: string): PaymentRecord | null {
+  if (typeof window === 'undefined') return null;
+  
+  try {
+    const payments: PaymentRecord[] = JSON.parse(localStorage.getItem('userPayments') || '[]');
+    return payments.find(p => p.id === paymentId) || null;
+  } catch (error) {
+    console.error('Error loading payment record:', error);
+    return null;
+  }
+}
+
+/**
+ * Check if a plan is paid
+ */
+export function isPlanPaid(planId: string, userId: string): boolean {
+  if (typeof window === 'undefined') return false;
+  
+  try {
+    const payments: PaymentRecord[] = JSON.parse(localStorage.getItem('userPayments') || '[]');
+    return payments.some(p => 
+      p.planId === planId && 
+      p.userId === userId && 
+      p.status === 'completed'
+    );
+  } catch (error) {
+    console.error('Error checking plan payment status:', error);
+    return false;
+  }
+}
+
+/**
+ * Mark plan as paid in userPlans
+ */
+function markPlanAsPaid(planId: string, userId: string): void {
+  if (typeof window === 'undefined') return;
+  
+  try {
+    const plans: DashboardPlan[] = JSON.parse(localStorage.getItem('userPlans') || '[]');
+    const planIndex = plans.findIndex(p => p.id === planId && p.userId === userId);
+    
+    if (planIndex >= 0) {
+      plans[planIndex] = {
+        ...plans[planIndex],
+        ...(plans[planIndex] as any),
+        isPaid: true,
+        paidAt: new Date().toISOString()
+      };
+      localStorage.setItem('userPlans', JSON.stringify(plans));
+    }
+  } catch (error) {
+    console.error('Error marking plan as paid:', error);
+  }
+}
+
+/**
+ * Get payment status for a plan
+ */
+export function getPlanPaymentStatus(planId: string, userId: string): {
+  isPaid: boolean;
+  paymentId?: string;
+  amount?: number;
+  currency?: string;
+  paidAt?: string;
+} {
+  if (typeof window === 'undefined') {
+    return { isPaid: false };
+  }
+  
+  try {
+    const payments: PaymentRecord[] = JSON.parse(localStorage.getItem('userPayments') || '[]');
+    const payment = payments.find(p => 
+      p.planId === planId && 
+      p.userId === userId && 
+      p.status === 'completed'
+    );
+    
+    if (payment) {
+      return {
+        isPaid: true,
+        paymentId: payment.id,
+        amount: payment.amount,
+        currency: payment.currency,
+        paidAt: payment.completedAt || payment.createdAt
+      };
+    }
+    
+    return { isPaid: false };
+  } catch (error) {
+    console.error('Error getting plan payment status:', error);
+    return { isPaid: false };
+  }
+}
+
+// ============================================================================
+// MULTI-USER STORE - Client management for advisors
+// ============================================================================
+
+export type Client = { id: string; name: string };
+export type Plan = { id: string; clientId?: string };
+
+class MultiUserDataManager {
+  private static instance: MultiUserDataManager;
+  private constructor() {}
+  static getInstance() {
+    if (!this.instance) this.instance = new MultiUserDataManager();
+    return this.instance;
+  }
+  listClients(): Client[] {
+    if (typeof window === 'undefined') return [];
+    try { return JSON.parse(localStorage.getItem('pf_clients') || '[]'); } catch { return []; }
+  }
+  saveClient(client: Client) {
+    if (typeof window === 'undefined') return;
+    const all = this.listClients();
+    const idx = all.findIndex(c => c.id === client.id);
+    if (idx >= 0) all[idx] = client; else all.push(client);
+    localStorage.setItem('pf_clients', JSON.stringify(all));
+  }
+  assignPlanToClient(plan: Plan, clientId: string) {
+    if (typeof window === 'undefined') return;
+    try {
+      const plans: any[] = JSON.parse(localStorage.getItem('userPlans') || '[]');
+      const idx = plans.findIndex(p => p.id === plan.id);
+      if (idx >= 0) plans[idx].clientId = clientId;
+      localStorage.setItem('userPlans', JSON.stringify(plans));
+    } catch {}
+  }
+}
+
+export const multiUserDataManager = MultiUserDataManager.getInstance();
+
 

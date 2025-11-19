@@ -1,31 +1,23 @@
-import { useState, useEffect } from 'react'
+import { useEffect } from 'react'
 import { useRouter } from 'next/router'
 import { useUser } from '@/shared/user/context/UserContext'
 import SEOHead from '@/shared/components/common/SEOHead'
-import LoginModal from '@/shared/components/auth/LoginModal'
+import LoginForm from '@/shared/components/auth/LoginForm'
 
 export default function LoginPage() {
   const router = useRouter()
   const { userProfile, isLoading } = useUser()
-  const [showModal, setShowModal] = useState(false)
 
   // Get redirect parameter from query string
   const { redirect } = router.query
 
-  useEffect(() => {
-    // Show modal when page loads
-    if (!isLoading) {
-      setShowModal(true)
-    }
-  }, [isLoading])
-
   // If user is already logged in, redirect them
   useEffect(() => {
-    if (userProfile) {
+    if (!isLoading && userProfile) {
       const destination = redirect ? decodeURIComponent(redirect as string) : '/dashboard'
       router.replace(destination)
     }
-  }, [userProfile, redirect, router])
+  }, [userProfile, isLoading, redirect, router])
 
   // Wait for user context to load
   if (isLoading) {
@@ -47,15 +39,13 @@ export default function LoginPage() {
   return (
     <>
       <SEOHead pageKey="login" />
-      <LoginModal 
-        isOpen={showModal} 
-        onClose={() => {
-          setShowModal(false)
-          // Redirect to home if modal is closed without login
-          router.push('/')
-        }}
-        redirect={redirect ? decodeURIComponent(redirect as string) : '/dashboard'}
-      />
+      <div className="min-h-screen flex items-center justify-center bg-gray-50 py-12 px-4 sm:px-6 lg:px-8">
+        <div className="bg-white rounded-2xl shadow-xl w-full max-w-md overflow-hidden">
+          <LoginForm 
+            redirect={redirect ? decodeURIComponent(redirect as string) : '/dashboard'}
+          />
+        </div>
+      </div>
     </>
   )
 }

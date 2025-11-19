@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/shared/components/ui/dialog';
 import { Button } from '@/shared/components/ui/button';
 import { Input } from '@/shared/components/ui/input';
-import { multiUserDataManager } from '@/shared/user/storage/multiUser';
+import { multiUserDataManager } from '@/shared/user/storage/planStore';
 import { Edit2, Trash2, Users } from 'lucide-react';
 import analytics from '@/shared/user/analytics';
 

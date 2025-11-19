@@ -6,8 +6,7 @@ import { useEffect, useMemo, useState } from "react";
 import { useI18n } from "@/shared/contexts/I18nContext";
 import { useUser } from "@/shared/user/context/UserContext";
 import analytics from "@/shared/user/analytics";
-import { savePaymentRecord } from "@/shared/user/storage/paymentStore";
-import { getUserDocuments } from "@/shared/user/storage/documentStore";
+import { savePaymentRecord, getUserDocuments } from "@/shared/user/storage/planStore";
 import type { PlanDocument } from "@/shared/user/schemas/userProfile";
 import { CheckCircle } from "lucide-react";
 

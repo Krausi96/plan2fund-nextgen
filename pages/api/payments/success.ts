@@ -4,7 +4,7 @@ import Stripe from 'stripe';
 import emailService from '@/shared/lib/services/emailService';
 // Note: documentStore is client-side only (localStorage). Server-side document retrieval
 // should be implemented via database or API. For now, document email functionality is disabled.
-// import { getUserDocuments, markDocumentEmailSent } from '@/shared/user/storage/documentStore';
+// import { getUserDocuments, markDocumentEmailSent } from '@/shared/user/storage/planStore';
 
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
   apiVersion: '2025-08-27.basil',

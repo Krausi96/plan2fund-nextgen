@@ -1,15 +1,19 @@
 // ========= PLAN2FUND — OPENAI INTEGRATION =========
 // OpenAI API integration for AI Assistant
 // Provides real LLM responses for creative writing help
+// Supports custom LLM endpoints with OpenAI fallback
 
 import { NextApiRequest, NextApiResponse } from 'next';
 import OpenAI from 'openai';
 import type { ConversationMessage } from '@/features/editor/types/plan';
+import { isCustomLLMEnabled, callCustomLLM } from '@/shared/lib/ai/customLLM';
 
-// Initialize OpenAI client
-const openai = new OpenAI({
-  apiKey: process.env.OPENAI_API_KEY,
-});
+// Initialize OpenAI client (only if API key is set)
+const openai = process.env.OPENAI_API_KEY
+  ? new OpenAI({
+      apiKey: process.env.OPENAI_API_KEY,
+    })
+  : null;
 
 interface AIRequest {
   message: string;
@@ -63,16 +67,17 @@ export default async function handler(
       return res.status(400).json({ error: 'Missing required parameters' });
     }
 
-    // Check if we're in test mode (no API key required)
-    const isTestMode = !process.env.OPENAI_API_KEY || process.env.NODE_ENV === 'development';
+    // Check if we're in test mode (no API key or custom LLM configured)
+    const hasLLM = isCustomLLMEnabled() || openai;
+    const isTestMode = !hasLLM || process.env.NODE_ENV === 'development';
     
-    if (isTestMode) {
+    if (isTestMode && !hasLLM) {
       console.log('🧪 Running in test mode - returning mock AI response');
       const mockResponse = generateMockAIResponse(message, context, action);
       return res.status(200).json(mockResponse);
     }
 
-    // Generate AI response based on action
+    // Generate AI response based on action (tries custom LLM first, then OpenAI)
     const response = await generateAIResponse(message, context, action, conversationHistory);
     
     res.status(200).json(response);
@@ -230,22 +235,52 @@ async function generateAIResponse(
   // Add current user message
   messages.push({ role: "user", content: userPrompt });
 
-  try {
-    const completion = await openai.chat.completions.create({
-      model: "gpt-4o-mini", // Using GPT-4o-mini for cost efficiency
-      messages: messages,
-      max_tokens: 1000,
-      temperature: 0.7,
-    });
+  let aiContent = '';
 
-    const aiContent = completion.choices[0]?.message?.content || '';
-    
-    // Parse the AI response and extract structured data
-    return parseAIResponse(aiContent);
-  } catch (error) {
-    console.error('OpenAI API call failed:', error);
-    throw error;
+  // Try custom LLM first if enabled
+  if (isCustomLLMEnabled()) {
+    try {
+      console.log('[Editor AI] Attempting custom LLM...');
+      const customResponse = await callCustomLLM({
+        messages: messages,
+        temperature: 0.7,
+        maxTokens: 1000,
+      });
+      aiContent = customResponse.output;
+      console.log(`[Editor AI] Custom LLM succeeded (${customResponse.latencyMs}ms)`);
+      
+      // Parse and return response
+      return parseAIResponse(aiContent);
+    } catch (customError: any) {
+      console.warn('[Editor AI] Custom LLM failed, falling back to OpenAI:', customError.message);
+      // Continue to OpenAI fallback below
+    }
   }
+
+  // Fallback to OpenAI if custom LLM not enabled or failed
+  if (openai) {
+    try {
+      console.log('[Editor AI] Using OpenAI...');
+      const completion = await openai.chat.completions.create({
+        model: process.env.OPENAI_MODEL || "gpt-4o-mini", // Using GPT-4o-mini for cost efficiency
+        messages: messages,
+        max_tokens: 1000,
+        temperature: 0.7,
+      });
+
+      aiContent = completion.choices[0]?.message?.content || '';
+      console.log('[Editor AI] OpenAI succeeded');
+      
+      // Parse the AI response and extract structured data
+      return parseAIResponse(aiContent);
+    } catch (error) {
+      console.error('[Editor AI] OpenAI API call failed:', error);
+      throw error;
+    }
+  }
+
+  // If both failed and no LLM configured, return mock
+  throw new Error('No LLM configured. Set OPENAI_API_KEY or CUSTOM_LLM_ENDPOINT');
 }
 
 function createSystemPrompt(action: string, context: AIRequest['context']): string {

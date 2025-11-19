@@ -1,7 +1,8 @@
 import type { NextApiRequest, NextApiResponse } from 'next';
 import { createUser, findUserByEmail } from '@/shared/user/database/repository';
 import { createSession } from '@/shared/user/database/repository';
-import { generateSessionToken } from '@/shared/user/auth/utils';
+import { generateSessionToken } from '@/shared/user/auth/withAuth';
+import { mapPersonaToSegment, Persona } from '@/shared/user/segmentation/personaMapping';
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   // CORS headers
@@ -18,7 +19,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   }
 
   try {
-    const { email, password, name } = req.body;
+    const { email, password, name, persona } = req.body;
 
     if (!email || !password) {
       return res.status(400).json({ error: 'Email and password are required' });
@@ -30,11 +31,15 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       return res.status(409).json({ error: 'User with this email already exists' });
     }
 
+    // Map persona to segment (defaults to B2C_FOUNDER if no persona provided)
+    const segment = persona ? mapPersonaToSegment(persona as Persona) : 'B2C_FOUNDER';
+
     // Create user
     const user = await createUser({
       email,
       password,
-      name
+      name,
+      segment
     });
 
     // Create session

@@ -5,12 +5,11 @@ import { useUser } from "@/shared/user/context/UserContext";
 import { FileText, Target, TrendingUp, Clock, CheckCircle, AlertCircle, Plus, RefreshCw, Database, Settings, Receipt, CreditCard, Download, ChevronDown, ChevronUp } from "lucide-react";
 import { useEffect, useState, useMemo } from "react";
 import { withAuth } from "@/shared/user/auth/withAuth";
-import { multiUserDataManager } from "@/shared/user/storage/multiUser";
+import { multiUserDataManager } from "@/shared/user/storage/planStore";
 import analytics from "@/shared/user/analytics";
 import AdminUserManager from "@/shared/user/components/AdminUserManager";
 import ClientManager from "@/shared/user/components/ClientManager";
-import { getUserPayments, getPlanPaymentStatus } from "@/shared/user/storage/paymentStore";
-import { getUserDocuments } from "@/shared/user/storage/documentStore";
+import { getUserPayments, getPlanPaymentStatus, getUserDocuments } from "@/shared/user/storage/planStore";
 import PageEntryIndicator from '@/shared/components/common/PageEntryIndicator';
 
 interface Plan {

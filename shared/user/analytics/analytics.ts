@@ -296,3 +296,431 @@ class Analytics {
 }
 
 export default new Analytics();
+
+// ============================================================================
+// DATA COLLECTION - ML Training Data Pipeline
+// ============================================================================
+
+export interface AnonymizedPlan {
+  id: string; // Anonymized ID
+  structure: {
+    sections: Array<{
+      id: string;
+      title: string;
+      wordCount: number;
+      qualityScore?: number;
+    }>;
+    totalWordCount: number;
+    completionPercentage: number;
+  };
+  qualityMetrics: {
+    readability: number;
+    completeness: number;
+    persuasiveness: number;
+    overall: number;
+  };
+  programMatched?: {
+    programId: string;
+    programType: string;
+    matchScore: number;
+  };
+  outcome?: {
+    submitted: boolean;
+    approved?: boolean;
+    fundingAmount?: number;
+  };
+  metadata: {
+    fundingType: string;
+    industry?: string;
+    createdAt: string;
+    anonymizedAt: string;
+  };
+}
+
+export interface TemplateUsage {
+  templateId: string;
+  templateType: 'section' | 'document';
+  usageCount: number;
+  editRate: number; // Percentage of times template was edited
+  qualityRating?: number; // Average rating if collected
+  lastUsed: string;
+}
+
+export interface UserFeedback {
+  id: string;
+  userId: string;
+  type: 'ai_suggestion' | 'template' | 'extraction' | 'recommendation';
+  itemId: string;
+  action: 'accepted' | 'rejected' | 'edited';
+  rating?: number; // 1-5
+  comment?: string;
+  timestamp: string;
+}
+
+/**
+ * Anonymize business plan data for ML training
+ */
+export function anonymizePlan(plan: any, userId: string): AnonymizedPlan {
+  // Remove PII and sensitive information
+  const anonymizedId = `plan_${hashString(userId + plan.id)}`;
+  
+  return {
+    id: anonymizedId,
+    structure: {
+      sections: (plan.sections || []).map((section: any) => ({
+        id: section.id || section.key || '',
+        title: section.title || '',
+        wordCount: countWords(section.content || ''),
+        qualityScore: section.qualityScore
+      })),
+      totalWordCount: countWords(JSON.stringify(plan)),
+      completionPercentage: calculateCompletion(plan.sections || [])
+    },
+    qualityMetrics: plan.qualityMetrics || {
+      readability: 0,
+      completeness: 0,
+      persuasiveness: 0,
+      overall: 0
+    },
+    programMatched: plan.programMatched ? {
+      programId: plan.programMatched.programId || '',
+      programType: plan.programMatched.programType || '',
+      matchScore: plan.programMatched.matchScore || 0
+    } : undefined,
+    outcome: plan.outcome,
+    metadata: {
+      fundingType: plan.fundingType || 'unknown',
+      industry: plan.industry, // Can be kept if not sensitive
+      createdAt: plan.createdAt || new Date().toISOString(),
+      anonymizedAt: new Date().toISOString()
+    }
+  };
+}
+
+/**
+ * Store anonymized plan for ML training
+ */
+export async function storeAnonymizedPlan(
+  plan: AnonymizedPlan,
+  userConsent: boolean
+): Promise<boolean> {
+  if (!userConsent) {
+    return false;
+  }
+
+  try {
+    const response = await fetch('/api/ml-training/plans', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(plan)
+    });
+
+    return response.ok;
+  } catch (error) {
+    console.error('Error storing anonymized plan:', error);
+    return false;
+  }
+}
+
+/**
+ * Track template usage
+ */
+export async function trackTemplateUsage(
+  templateId: string,
+  templateType: 'section' | 'document',
+  wasEdited: boolean
+): Promise<void> {
+  try {
+    await fetch('/api/analytics/templates', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        templateId,
+        templateType,
+        wasEdited,
+        timestamp: new Date().toISOString()
+      })
+    });
+  } catch (error) {
+    console.error('Error tracking template usage:', error);
+  }
+}
+
+/**
+ * Submit user feedback
+ */
+export async function submitFeedback(
+  feedback: Omit<UserFeedback, 'id' | 'timestamp'>
+): Promise<boolean> {
+  try {
+    const response = await fetch('/api/feedback/submit', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        ...feedback,
+        timestamp: new Date().toISOString()
+      })
+    });
+
+    return response.ok;
+  } catch (error) {
+    console.error('Error submitting feedback:', error);
+    return false;
+  }
+}
+
+/**
+ * Get user consent status
+ */
+export async function getUserConsent(userId: string): Promise<boolean> {
+  try {
+    const response = await fetch(`/api/ml-training/consent/${userId}`);
+    if (!response.ok) return false;
+    
+    const data = await response.json();
+    return data.consent === true;
+  } catch (error) {
+    console.error('Error fetching consent:', error);
+    return false;
+  }
+}
+
+/**
+ * Set user consent
+ */
+export async function setUserConsent(
+  userId: string,
+  consent: boolean,
+  consentType: 'data_collection' | 'ml_training' = 'data_collection'
+): Promise<boolean> {
+  try {
+    const response = await fetch('/api/ml-training/consent', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        userId,
+        consent,
+        consentType,
+        timestamp: new Date().toISOString()
+      })
+    });
+
+    return response.ok;
+  } catch (error) {
+    console.error('Error setting consent:', error);
+    return false;
+  }
+}
+
+// Helper functions for data collection
+function hashString(str: string): string {
+  let hash = 0;
+  for (let i = 0; i < str.length; i++) {
+    const char = str.charCodeAt(i);
+    hash = ((hash << 5) - hash) + char;
+    hash = hash & hash; // Convert to 32bit integer
+  }
+  return Math.abs(hash).toString(36);
+}
+
+function countWords(text: string): number {
+  if (!text) return 0;
+  // Strip HTML tags
+  const cleanText = text.replace(/<[^>]*>/g, ' ');
+  // Count words
+  return cleanText.trim().split(/\s+/).filter(w => w.length > 0).length;
+}
+
+function calculateCompletion(sections: any[]): number {
+  if (sections.length === 0) return 0;
+  
+  const completed = sections.filter(s => {
+    const content = s.content || '';
+    const wordCount = countWords(content);
+    const minWords = s.wordCountMin || 50;
+    return wordCount >= minWords;
+  }).length;
+  
+  return Math.round((completed / sections.length) * 100);
+}
+
+// ============================================================================
+// USAGE TRACKING - Freemium Limits
+// ============================================================================
+
+export interface UsageLimits {
+  plans: number;
+  pdf_exports: number;
+  ai_requests: number;
+}
+
+export interface UsageCounts {
+  plans: number;
+  pdf_exports: number;
+  ai_requests: number;
+  lastResetDate: string; // ISO date string
+}
+
+export interface TierLimits {
+  free: UsageLimits;
+  premium: UsageLimits;
+  enterprise: UsageLimits;
+}
+
+// Define limits per tier
+export const TIER_LIMITS: TierLimits = {
+  free: {
+    plans: 2,
+    pdf_exports: 1,
+    ai_requests: 10
+  },
+  premium: {
+    plans: 10,
+    pdf_exports: 5,
+    ai_requests: 100
+  },
+  enterprise: {
+    plans: Infinity,
+    pdf_exports: Infinity,
+    ai_requests: Infinity
+  }
+};
+
+/**
+ * Get limits for a subscription tier
+ */
+export function getLimitsForTier(tier: 'free' | 'premium' | 'enterprise'): UsageLimits {
+  return TIER_LIMITS[tier];
+}
+
+/**
+ * Check if user can perform an action (client-side check)
+ */
+export function canPerformAction(
+  action: 'create_plan' | 'export_pdf' | 'ai_request',
+  currentUsage: UsageCounts,
+  tier: 'free' | 'premium' | 'enterprise'
+): { allowed: boolean; reason?: string } {
+  const limits = getLimitsForTier(tier);
+  
+  // Check if monthly reset is needed
+  const lastReset = new Date(currentUsage.lastResetDate);
+  const now = new Date();
+  const needsReset = now.getMonth() !== lastReset.getMonth() || 
+                     now.getFullYear() !== lastReset.getFullYear();
+  
+  // Reset counts if new month
+  const usage = needsReset ? {
+    plans: 0,
+    pdf_exports: 0,
+    ai_requests: 0,
+    lastResetDate: now.toISOString()
+  } : currentUsage;
+  
+  switch (action) {
+    case 'create_plan':
+      if (usage.plans >= limits.plans) {
+        return {
+          allowed: false,
+          reason: `Plan limit reached (${usage.plans}/${limits.plans}). Upgrade to create more plans.`
+        };
+      }
+      break;
+      
+    case 'export_pdf':
+      if (usage.pdf_exports >= limits.pdf_exports) {
+        return {
+          allowed: false,
+          reason: `PDF export limit reached (${usage.pdf_exports}/${limits.pdf_exports}). Upgrade for more exports.`
+        };
+      }
+      break;
+      
+    case 'ai_request':
+      if (usage.ai_requests >= limits.ai_requests) {
+        return {
+          allowed: false,
+          reason: `AI request limit reached (${usage.ai_requests}/${limits.ai_requests}). Upgrade for more AI requests.`
+        };
+      }
+      break;
+  }
+  
+  return { allowed: true };
+}
+
+/**
+ * Track usage (call this after action is performed)
+ */
+export async function trackUsage(
+  userId: string,
+  action: 'create_plan' | 'export_pdf' | 'ai_request'
+): Promise<void> {
+  try {
+    const response = await fetch('/api/usage/track', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ userId, action })
+    });
+    
+    if (!response.ok) {
+      console.error('Failed to track usage:', response.statusText);
+    }
+  } catch (error) {
+    console.error('Error tracking usage:', error);
+    // Non-fatal: continue even if tracking fails
+  }
+}
+
+/**
+ * Get current usage for a user
+ */
+export async function getUsage(userId: string): Promise<UsageCounts | null> {
+  try {
+    const response = await fetch(`/api/usage/${userId}`);
+    
+    if (!response.ok) {
+      return null;
+    }
+    
+    return await response.json();
+  } catch (error) {
+    console.error('Error fetching usage:', error);
+    return null;
+  }
+}
+
+/**
+ * Get usage display string
+ */
+export function getUsageDisplay(
+  action: 'create_plan' | 'export_pdf' | 'ai_request',
+  currentUsage: UsageCounts,
+  tier: 'free' | 'premium' | 'enterprise'
+): string {
+  const limits = getLimitsForTier(tier);
+  
+  let used: number;
+  let limit: number;
+  
+  switch (action) {
+    case 'create_plan':
+      used = currentUsage.plans;
+      limit = limits.plans;
+      break;
+    case 'export_pdf':
+      used = currentUsage.pdf_exports;
+      limit = limits.pdf_exports;
+      break;
+    case 'ai_request':
+      used = currentUsage.ai_requests;
+      limit = limits.ai_requests;
+      break;
+  }
+  
+  if (limit === Infinity) {
+    return `${used} used (unlimited)`;
+  }
+  
+  return `${used} / ${limit}`;
+}

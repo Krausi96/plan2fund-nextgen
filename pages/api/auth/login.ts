@@ -1,6 +1,6 @@
 import type { NextApiRequest, NextApiResponse } from 'next';
 import { findUserByEmail, verifyPassword, updateLastActive, createSession } from '@/shared/user/database/repository';
-import { generateSessionToken } from '@/shared/user/auth/utils';
+import { generateSessionToken } from '@/shared/user/auth/withAuth';
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   // CORS headers

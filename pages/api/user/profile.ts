@@ -3,7 +3,7 @@
 // Use /api/auth/session for getting current user
 import type { NextApiRequest, NextApiResponse } from 'next';
 import { findUserById, updateLastActive } from '@/shared/user/database/repository';
-import { getSessionTokenFromCookie } from '@/shared/user/auth/utils';
+import { getSessionTokenFromCookie } from '@/shared/user/auth/withAuth';
 import { findSession } from '@/shared/user/database/repository';
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {

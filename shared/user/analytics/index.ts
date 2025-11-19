@@ -1,7 +1,5 @@
-// Analytics module exports - re-export default
-import analytics from './analytics';
-export default analytics;
-export { analytics };
-export * from './dataCollection';
-export * from './usageTracking';
+// Re-export analytics (minimal index for folder imports)
+export { default } from './analytics';
+export { default as analytics } from './analytics';
+export * from './analytics';
 

@@ -9,8 +9,7 @@ import { exportManager } from "@/features/export/engine/export";
 import { PlanDocument } from "@/features/editor/types/plan";
 import { withAuth } from "@/shared/user/auth/withAuth";
 import { useUser } from "@/shared/user/context/UserContext";
-import { getPlanPaymentStatus } from "@/shared/user/storage/paymentStore";
-import { saveExportedDocument } from "@/shared/user/storage/documentStore";
+import { getPlanPaymentStatus, saveExportedDocument } from "@/shared/user/storage/planStore";
 import PageEntryIndicator from '@/shared/components/common/PageEntryIndicator';
 import { FileText, CheckCircle, AlertTriangle } from "lucide-react";
 

@@ -1,6 +1,5 @@
 // API endpoint for program requirements (Decision Tree, Editor, Library)
 import { NextApiRequest, NextApiResponse } from 'next';
-import { categoryConverter, CategorizedRequirements } from '@/features/editor/engine/categoryConverters';
 
 // Database connection handled by scraper-lite/src/db/neon-client.ts
 
@@ -166,9 +165,21 @@ async function getProgramRequirements(programId: string) {
       // const masterSections = await getSections(programType, undefined, baseUrl);
       // const programSections = await getSections(programType, programId, baseUrl);
       
-      // Convert to editor format (backward compatibility)
-      const editor = categoryConverter.convertToEditorSections(categorizedRequirements as CategorizedRequirements, programType);
-      const library = [categoryConverter.convertToLibraryData(categorizedRequirements as CategorizedRequirements, programData as any)];
+      // Convert to editor format (simplified - using master templates)
+      const editor: any[] = []; // Editor sections now come from master templates
+      const library = [{
+        id: `library_${programId}`,
+        eligibility_text: programData.description || '',
+        documents: categorizedRequirements.documents || [],
+        funding_amount: `${programData.funding_amount_min || 0} - ${programData.funding_amount_max || 0} ${programData.currency || 'EUR'}`,
+        deadlines: programData.deadline ? [programData.deadline] : [],
+        application_procedures: categorizedRequirements.timeline || [],
+        compliance_requirements: categorizedRequirements.compliance || [],
+        contact_info: {
+          email: programData.contact_email,
+          phone: programData.contact_phone
+        }
+      }];
 
       // Get documents using unified system (master + program-specific merge)
       const unifiedDocuments = await getDocuments(programType, 'submission', programId, baseUrl);
