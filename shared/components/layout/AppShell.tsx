@@ -24,8 +24,8 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
   // Check if this is the landing page
   const isLandingPage = router.pathname === "/";
   
-  // Hide breadcrumbs on /reco since it's a starting point
-  const hideBreadcrumbs = router.pathname === "/reco";
+  // Hide breadcrumbs on /reco and /editor since they have their own navigation
+  const hideBreadcrumbs = router.pathname === "/reco" || router.pathname === "/editor";
 
   return (
     <div className="flex flex-col min-h-screen">
@@ -47,7 +47,7 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
         // Other pages layout - with container and breadcrumbs
         <main id="main-content" className="flex-1">
           <div className="container py-8">
-            {showBreadcrumbs && <Breadcrumbs />}
+            {showBreadcrumbs && !hideBreadcrumbs && <Breadcrumbs />}
             {children}
           </div>
         </main>
