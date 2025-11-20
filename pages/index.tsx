@@ -7,7 +7,7 @@ import { useRouter } from "next/router"
 import analytics from "@/shared/user/analytics"
 import { detectTargetGroup, storeTargetGroupSelection } from '@/shared/user/segmentation'
 import { CheckCircle } from "lucide-react"
-import { Badge } from "@/shared/components/ui/Badge"
+import { Badge } from "@/shared/components/ui/badge"
 
 export default function Home() {
   const { t } = useI18n();

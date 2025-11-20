@@ -5,7 +5,7 @@
 
 import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import { useRouter } from 'next/router';
-import { Wand2, ChevronLeft, ChevronRight, MessageCircle, Sparkles, Lightbulb } from 'lucide-react';
+import { Wand2, ChevronLeft, ChevronRight, Lightbulb } from 'lucide-react';
 import { Card } from '@/shared/components/ui/card';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/shared/components/ui/dialog';
 // Progress bar implemented with custom div (not using Progress component)
@@ -362,19 +362,10 @@ const ADVANCED_QUESTIONS: QuestionDefinition[] = [
 
 const ALL_QUESTIONS: QuestionDefinition[] = [...CORE_QUESTIONS, ...ADVANCED_QUESTIONS];
 
-type ChatMessage = {
-  id: string;
-  role: 'user' | 'assistant';
-  text: string;
-  timestamp: number;
-};
-
 type HintGroup = {
   title: { en: string; de: string };
   hints: Array<{ en: string; de: string }>;
 };
-
-const createMessageId = () => `${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
 
 const QUESTION_HINTS: Record<string, HintGroup> = {
   company_type: {
@@ -483,137 +474,11 @@ const QUESTION_HINTS: Record<string, HintGroup> = {
   },
 };
 
-type KeywordMap = { keywords: string[]; value: string };
-
-const LOCATION_KEYWORDS: KeywordMap[] = [
-  { keywords: ['austria', 'österreich', 'vienna', 'wien', 'graz', 'linz', 'innsbruck'], value: 'austria' },
-  { keywords: ['germany', 'deutschland', 'berlin', 'munich', 'münchen', 'hamburg'], value: 'germany' },
-  { keywords: ['eu', 'europe', 'europa', 'schengen'], value: 'eu' },
-  { keywords: ['international', 'global', 'usa', 'uk', 'swiss', 'switzerland'], value: 'international' },
-];
-
-const CITY_KEYWORDS = [
-  { pattern: /\bvienna\b|\bwien\b/, location: 'austria', region: 'Vienna' },
-  { pattern: /\bgraz\b/, location: 'austria', region: 'Graz' },
-  { pattern: /\blinz\b/, location: 'austria', region: 'Linz' },
-  { pattern: /\binnsbruck\b/, location: 'austria', region: 'Innsbruck' },
-  { pattern: /\bberlin\b/, location: 'germany', region: 'Berlin' },
-  { pattern: /\bmunich\b|\bmünchen\b/, location: 'germany', region: 'Munich' },
-  { pattern: /\bhamburg\b/, location: 'germany', region: 'Hamburg' },
-];
-
-const COMPANY_TYPE_KEYWORDS: KeywordMap[] = [
-  { keywords: ['research', 'university', 'lab', 'fh', 'tu', 'professor'], value: 'research' },
-  { keywords: ['sme', 'kmu', 'mittelstand', 'family business'], value: 'sme' },
-  { keywords: ['startup', 'scaleup', 'scale-up', 'founder team'], value: 'startup' },
-  { keywords: ['pre-founder', 'idea stage', 'concept', 'solo founder'], value: 'prefounder' },
-  { keywords: ['advisor', 'consultant', 'incubator', 'accelerator'], value: 'other' },
-];
-
-const COMPANY_STAGE_KEYWORDS: KeywordMap[] = [
-  { keywords: ['idea', 'concept', 'ideation'], value: 'idea' },
-  { keywords: ['pre-incorporated', 'not incorporated', 'team only'], value: 'pre_company' },
-  { keywords: ['incorporated', 'registered recently', '6 months'], value: 'inc_lt_6m' },
-  { keywords: ['scale', 'growth', 'traction', '18 months', 'series a'], value: 'inc_6_36m' },
-  { keywords: ['established', 'mature', '36 months', 'sme'], value: 'inc_gt_36m' },
-  { keywords: ['university', 'research'], value: 'research_org' },
-];
-
-const INDUSTRY_KEYWORDS: KeywordMap[] = [
-  { keywords: ['digital', 'software', 'saas', 'ai', 'data', 'ict'], value: 'digital' },
-  { keywords: ['climate', 'energy', 'green', 'sustainab', 'co2'], value: 'sustainability' },
-  { keywords: ['health', 'medtech', 'biotech', 'lifescience'], value: 'health' },
-  { keywords: ['manufacturing', 'hardware', 'robotics', 'industry'], value: 'manufacturing' },
-  { keywords: ['export', 'international', 'global expansion'], value: 'export' },
-];
-
-const IMPACT_KEYWORDS: KeywordMap[] = [
-  { keywords: ['climate', 'co2', 'environment', 'green'], value: 'environmental' },
-  { keywords: ['social', 'inclusion', 'community', 'diversity'], value: 'social' },
-  { keywords: ['regional', 'rural', 'austrian states'], value: 'regional' },
-  { keywords: ['research', 'innovation', 'deep tech'], value: 'research' },
-  { keywords: ['education', 'skills', 'training', 'workforce'], value: 'education' },
-];
-
-const USE_OF_FUNDS_KEYWORDS: KeywordMap[] = [
-  { keywords: ['prototype', 'product', 'r&d', 'research', 'build'], value: 'product_development' },
-  { keywords: ['hire', 'team', 'talent', 'recruit'], value: 'hiring' },
-  { keywords: ['equipment', 'hardware', 'lab', 'infrastructure'], value: 'equipment' },
-  { keywords: ['marketing', 'sales', 'go-to-market', 'launch'], value: 'marketing' },
-  { keywords: ['international', 'export', 'market entry'], value: 'internationalization' },
-  { keywords: ['working capital', 'runway', 'cash flow', 'liquidity'], value: 'working_capital' },
-];
-
-const CO_FINANCING_POSITIVE_KEYWORDS = ['co-financing', 'matching funds', 'own funds', 'equity share', '20%', '30%'];
-const CO_FINANCING_NEGATIVE_KEYWORDS = ['no co-financing', 'cannot co-finance', 'need 100%', 'full grant'];
-const CO_FINANCING_UNCERTAIN_KEYWORDS = ['not sure', 'uncertain', 'tbd', 'evaluate'];
-
-const DEADLINE_KEYWORDS = [
-  { keywords: ['urgent', 'next month', 'immediately', 'asap'], value: 'immediate' },
-  { keywords: ['1-3 months', 'quarter', 'in 3 months', 'this quarter'], value: 'short_term' },
-  { keywords: ['six months', 'half year', 'mid-year'], value: 'medium_term' },
-  { keywords: ['end of year', 'no rush', 'flexible', 'next year'], value: 'long_term' },
-];
-
-const TEAM_SIZE_BUCKETS = [
-  { pattern: /(solo|alone|single founder)/, value: 'solo' },
-  { pattern: /(\b2\b|\b3\b|\b4\b|\b5\b).*team/, value: 'team_2_5' },
-  { pattern: /(6|7|8|9|10|11|12|13|14|15|16|17|18|19|20).*team/, value: 'team_6_20' },
-  { pattern: /(20|30|40|50)\+? team|large team/, value: 'team_20_plus' },
-];
-
-const REVENUE_KEYWORDS = [
-  { keywords: ['pre-revenue', 'no revenue', 'pre revenue'], value: 'pre_revenue' },
-  { keywords: ['early revenue', 'first revenue', '< €500k', '<500k'], value: 'early_revenue' },
-  { keywords: ['scaling revenue', '€500k+', 'growing revenue'], value: 'scaling_revenue' },
-  { keywords: ['profitable', 'cashflow positive', 'profit'], value: 'profitable' },
-];
-
-const normalizeFundingAmountFromText = (text: string): number | null => {
-  const amountMatch =
-    text.match(/(?:€|eur|euro|about|ca\.?)\s*([\d.,]+)\s*(million|mio|m|k|tausend|thousand)?/i) ||
-    text.match(/([\d.,]+)\s*(million|m|mio|k|tausend|thousand)\s*(?:€|eur|euro)?/i);
-  if (!amountMatch) return null;
-  let numeric = parseFloat(amountMatch[1].replace(/\./g, '').replace(',', '.'));
-  if (isNaN(numeric)) return null;
-  const suffix = amountMatch[2]?.toLowerCase();
-  if (suffix) {
-    if (suffix.includes('m')) {
-      numeric *= 1_000_000;
-    } else if (suffix.includes('k') || suffix.includes('tausend') || suffix.includes('thousand')) {
-      numeric *= 1_000;
-    }
-  }
-  return Math.min(Math.max(Math.round(numeric)), 2_000_000);
-};
-
-const createInitialChatMessages = (locale: string): ChatMessage[] => [
-  {
-    id: createMessageId(),
-    role: 'assistant',
-    text:
-      locale === 'de'
-        ? 'Beschreiben Sie Ihr Projekt in Ihren eigenen Worten. Ich hebe fehlende Angaben hervor und versuche Felder automatisch zu befüllen.'
-        : 'Describe your project in your own words. I will highlight missing details and pre-fill answers when possible.',
-    timestamp: Date.now(),
-  },
-];
-
 export default function ProgramFinder({ 
   onProgramSelect
 }: ProgramFinderProps) {
   const router = useRouter();
   const { t, locale } = useI18n();
-  const [chatMessages, setChatMessages] = useState<ChatMessage[]>(() => createInitialChatMessages(locale));
-  const [chatInput, setChatInput] = useState('');
-  useEffect(() => {
-    setChatMessages((prev) => {
-      if (prev.length === 0 || (prev.length === 1 && prev[0].role === 'assistant')) {
-        return createInitialChatMessages(locale);
-      }
-      return prev;
-    });
-  }, [locale]);
   
   // Get translated questions
   const translatedQuestions = useMemo<QuestionDefinition[]>(() => {
@@ -737,6 +602,22 @@ export default function ProgramFinder({
   const advancedAnsweredCount = useMemo(() => {
     return advancedQuestions.filter((question) => isAnswerProvided(answers[question.id])).length;
   }, [advancedQuestions, answers]);
+
+  const advancedFiltersTitle = t('reco.ui.advancedFiltersTitle') || 'Advanced filters';
+  const advancedFiltersDescription =
+    t('reco.ui.advancedFiltersDescription') ||
+    'Optional details like team size, revenue stage, impact focus, and project timeline.';
+  const advancedFiltersShowLabel = t('reco.ui.advancedFiltersShow') || 'Add detail';
+  const advancedFiltersHideLabel = t('reco.ui.advancedFiltersHide') || 'Hide advanced';
+  const advancedFiltersSummaryActiveTemplate =
+    t('reco.ui.advancedFiltersSummaryActive') ||
+    '{answered}/{total} advanced questions answered. They now appear at the end of your question path.';
+  const advancedFiltersSummaryHidden =
+    t('reco.ui.advancedFiltersSummaryHidden') ||
+    'Currently hidden. Toggle to refine recommendations with more context.';
+  const advancedFiltersSummaryActive = advancedFiltersSummaryActiveTemplate
+    .replace('{answered}', advancedAnsweredCount.toString())
+    .replace('{total}', advancedQuestions.length.toString());
   
   // Minimum questions for results (4 critical questions: location, company_type, funding_amount, company_stage)
   const MIN_QUESTIONS_FOR_RESULTS = 4;
@@ -829,217 +710,6 @@ export default function ProgramFinder({
   // State for answers summary collapse
   const [answersSummaryExpanded, setAnswersSummaryExpanded] = useState(false);
 
-  const getQuestionLabelById = useCallback((questionId: string) => {
-    const question = translatedQuestions.find((q) => q.id === questionId);
-    return question?.label || questionId;
-  }, [translatedQuestions]);
-
-  const describeAppliedValue = useCallback(
-    (questionId: string, value: any, contextAnswers?: Record<string, any>) => {
-      const formatted = formatAnswerForDisplay(questionId, value, contextAnswers);
-      if (!formatted) return '';
-      return `${getQuestionLabelById(questionId)} – ${formatted}`;
-    },
-    [formatAnswerForDisplay, getQuestionLabelById]
-  );
-
-  const applyChatExtraction = useCallback(
-    (message: string) => {
-      const lower = message.toLowerCase();
-      const updates: Record<string, any> = {};
-
-      const shouldUpdate = (field: string, newValue: any) => {
-        const current = answers[field];
-        if (Array.isArray(current) && Array.isArray(newValue)) {
-          if (current.length === newValue.length && current.every((item) => newValue.includes(item))) {
-            return false;
-          }
-        } else if (current === newValue) {
-          return false;
-        }
-        updates[field] = newValue;
-        return true;
-      };
-
-      const cityMatch = CITY_KEYWORDS.find((entry) => entry.pattern.test(lower));
-      if (cityMatch) {
-        shouldUpdate('location', cityMatch.location);
-        shouldUpdate('location_region', cityMatch.region);
-      } else {
-        const locationMatch = LOCATION_KEYWORDS.find((entry) =>
-          entry.keywords.some((keyword) => lower.includes(keyword))
-        );
-        if (locationMatch) {
-          shouldUpdate('location', locationMatch.value);
-        }
-      }
-
-      const companyTypeMatch = COMPANY_TYPE_KEYWORDS.find((entry) =>
-        entry.keywords.some((keyword) => lower.includes(keyword))
-      );
-      if (companyTypeMatch) {
-        shouldUpdate('company_type', companyTypeMatch.value);
-      }
-
-      const stageMatch = COMPANY_STAGE_KEYWORDS.find((entry) =>
-        entry.keywords.some((keyword) => lower.includes(keyword))
-      );
-      if (stageMatch) {
-        shouldUpdate('company_stage', stageMatch.value);
-      }
-
-      const industryMatch = INDUSTRY_KEYWORDS.find((entry) =>
-        entry.keywords.some((keyword) => lower.includes(keyword))
-      );
-      if (industryMatch) {
-        const existing = Array.isArray(answers.industry_focus) ? answers.industry_focus : [];
-        const merged = Array.from(new Set([...existing, industryMatch.value]));
-        shouldUpdate('industry_focus', merged);
-      }
-
-      const impactMatch = IMPACT_KEYWORDS.find((entry) =>
-        entry.keywords.some((keyword) => lower.includes(keyword))
-      );
-      if (impactMatch) {
-        const existing = Array.isArray(answers.impact_focus) ? answers.impact_focus : [];
-        const merged = Array.from(new Set([...existing, impactMatch.value]));
-        shouldUpdate('impact_focus', merged);
-      }
-
-      const useOfFundsMatch = USE_OF_FUNDS_KEYWORDS.find((entry) =>
-        entry.keywords.some((keyword) => lower.includes(keyword))
-      );
-      if (useOfFundsMatch) {
-        const existing = Array.isArray(answers.use_of_funds) ? answers.use_of_funds : [];
-        const merged = Array.from(new Set([...existing, useOfFundsMatch.value]));
-        shouldUpdate('use_of_funds', merged);
-      }
-
-      if (CO_FINANCING_NEGATIVE_KEYWORDS.some((keyword) => lower.includes(keyword))) {
-        shouldUpdate('co_financing', 'co_no');
-      } else if (CO_FINANCING_POSITIVE_KEYWORDS.some((keyword) => lower.includes(keyword))) {
-        shouldUpdate('co_financing', 'co_yes');
-      } else if (CO_FINANCING_UNCERTAIN_KEYWORDS.some((keyword) => lower.includes(keyword))) {
-        shouldUpdate('co_financing', 'co_uncertain');
-      }
-
-      const revenueMatch = REVENUE_KEYWORDS.find((entry) =>
-        entry.keywords.some((keyword) => lower.includes(keyword))
-      );
-      if (revenueMatch) {
-        shouldUpdate('revenue_status', revenueMatch.value);
-      }
-
-      const teamBucket = TEAM_SIZE_BUCKETS.find((bucket) => bucket.pattern.test(lower));
-      if (teamBucket) {
-        shouldUpdate('team_size', teamBucket.value);
-      } else {
-        const explicitTeamMatch = lower.match(/team of (\d+)|(\d+)\s*(person|people|employees)/);
-        if (explicitTeamMatch) {
-          const numberMatch = explicitTeamMatch[1] || explicitTeamMatch[2];
-          const count = Number(numberMatch);
-          if (!Number.isNaN(count)) {
-            if (count === 1) {
-              shouldUpdate('team_size', 'solo');
-            } else if (count <= 5) {
-              shouldUpdate('team_size', 'team_2_5');
-            } else if (count <= 20) {
-              shouldUpdate('team_size', 'team_6_20');
-            } else {
-              shouldUpdate('team_size', 'team_20_plus');
-            }
-          }
-        }
-      }
-
-      const fundingAmount = normalizeFundingAmountFromText(message);
-      if (fundingAmount !== null) {
-        shouldUpdate('funding_amount', fundingAmount);
-      }
-
-      const projectDurationMatch = message.match(/(\d+)\s*(months|monat|monate|month)/i);
-      if (projectDurationMatch) {
-        const months = Math.min(Math.max(parseInt(projectDurationMatch[1], 10), 1), 36);
-        shouldUpdate('project_duration', months);
-      }
-
-      const deadlineMatch = DEADLINE_KEYWORDS.find((entry) =>
-        entry.keywords.some((keyword) => lower.includes(keyword))
-      );
-      if (deadlineMatch) {
-        shouldUpdate('deadline_urgency', deadlineMatch.value);
-      }
-
-      Object.entries(updates).forEach(([field, value]) => {
-        handleAnswer(field, value);
-      });
-
-      return updates;
-    },
-    [answers, handleAnswer]
-  );
-
-  const handleChatSubmit = useCallback(
-    (event?: React.FormEvent<HTMLFormElement>) => {
-      event?.preventDefault();
-      const trimmed = chatInput.trim();
-      if (!trimmed) return;
-
-      const timestamp = Date.now();
-      const userMessage: ChatMessage = {
-        id: createMessageId(),
-        role: 'user',
-        text: trimmed,
-        timestamp,
-      };
-      setChatMessages((prev) => [...prev, userMessage]);
-
-      const updates = applyChatExtraction(trimmed);
-      const nextAnswers = { ...answers, ...updates };
-      const appliedSummaries = Object.entries(updates)
-        .filter(([field]) => !field.endsWith('_region') && !field.endsWith('_other') && !field.endsWith('_percentage'))
-        .map(([field, value]) => describeAppliedValue(field, value, nextAnswers))
-        .filter(Boolean);
-
-      const missingCritical = REQUIRED_QUESTION_IDS.filter((questionId) => !isAnswerProvided(nextAnswers[questionId]));
-      const missingLabels = missingCritical.map((id) => getQuestionLabelById(id));
-
-      let assistantText = '';
-      if (appliedSummaries.length > 0) {
-        assistantText +=
-          (locale === 'de' ? 'Danke! Übernommen: ' : 'Thanks! Captured: ') + appliedSummaries.join('; ');
-      } else {
-        assistantText +=
-          locale === 'de'
-            ? 'Danke! Ich konnte noch keine neuen Felder zuordnen. Nennen Sie z. B. Standort, Budget oder Teamgröße.'
-            : 'Thanks! I could not map any fields yet. Mention location, budget, or team size to speed things up.';
-      }
-
-      if (missingLabels.length > 0) {
-        assistantText +=
-          locale === 'de'
-            ? ` Noch benötigt: ${missingLabels.join(', ')}.`
-            : ` Still missing: ${missingLabels.join(', ')}.`;
-      } else {
-        assistantText +=
-          locale === 'de'
-            ? ' Sie können jetzt Programme generieren oder weitere Details teilen.'
-            : ' You can generate programs now or keep sharing details.';
-      }
-
-      const assistantMessage: ChatMessage = {
-        id: createMessageId(),
-        role: 'assistant',
-        text: assistantText.trim(),
-        timestamp: Date.now(),
-      };
-      setChatMessages((prev) => [...prev, assistantMessage]);
-      setChatInput('');
-    },
-    [answers, applyChatExtraction, chatInput, describeAppliedValue, getQuestionLabelById, locale]
-  );
-
-  
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-purple-50">
       <div className={`max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-2 ${answeredCount > 0 ? 'pb-24' : ''}`}>
@@ -1091,82 +761,6 @@ export default function ProgramFinder({
         </div>
 
         <div className="flex flex-col gap-2" data-questions-section>
-          <Card className="p-6 bg-white/90 border border-blue-100 shadow-sm">
-            <div className="flex flex-col gap-6 lg:flex-row">
-              <div className="flex-1 min-w-0">
-                <div className="flex items-center gap-3 mb-4">
-                  <div className="w-10 h-10 rounded-full bg-blue-100 text-blue-700 flex items-center justify-center">
-                    <MessageCircle className="w-5 h-5" />
-                  </div>
-                  <div>
-                    <p className="text-base font-semibold text-gray-900">
-                      {locale === 'de' ? 'Freitext-Eingabe (optional)' : 'Free-text intake (optional)'}
-                    </p>
-                    <p className="text-sm text-gray-600">
-                      {locale === 'de'
-                        ? 'Schreiben Sie wie in einem Chat. Wir versuchen, Antworten zu erkennen und fehlende Felder hervorzuheben.'
-                        : 'Write as if you were chatting. We will extract answers and flag missing details.'}
-                    </p>
-                  </div>
-                </div>
-                <div className="rounded-lg border border-gray-200 bg-gray-50 p-3 h-52 overflow-y-auto space-y-3 text-sm">
-                  {chatMessages.map((msg) => (
-                    <div key={msg.id} className={`flex ${msg.role === 'user' ? 'justify-end' : 'justify-start'}`}>
-                      <div
-                        className={`max-w-[80%] rounded-2xl px-3 py-2 ${
-                          msg.role === 'user'
-                            ? 'bg-blue-600 text-white rounded-tr-sm shadow-blue-200 shadow-lg'
-                            : 'bg-white text-gray-800 border border-blue-100 rounded-tl-sm shadow-inner'
-                        }`}
-                      >
-                        <p className="whitespace-pre-line">{msg.text}</p>
-                        <span
-                          className={`block text-[11px] mt-1 ${
-                            msg.role === 'user' ? 'text-blue-100' : 'text-gray-400'
-                          }`}
-                        >
-                          {new Date(msg.timestamp).toLocaleTimeString(locale === 'de' ? 'de-AT' : 'en-GB', {
-                            hour: '2-digit',
-                            minute: '2-digit',
-                          })}
-                        </span>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-                <form onSubmit={handleChatSubmit} className="mt-4 space-y-3">
-                  <textarea
-                    value={chatInput}
-                    onChange={(e) => setChatInput(e.target.value)}
-                    rows={3}
-                    placeholder={
-                      locale === 'de'
-                        ? 'Beschreiben Sie Projekt, Budget, Team, Wirkung ...'
-                        : 'Describe project, budget, team, impact...'
-                    }
-                    className="w-full rounded-xl border border-gray-300 px-4 py-3 text-sm shadow-sm focus:border-blue-500 focus:ring-2 focus:ring-blue-500/30 resize-none"
-                  />
-                  <div className="flex items-center justify-between gap-3">
-                    <button
-                      type="button"
-                      onClick={() => setChatInput('')}
-                      className="px-4 py-2 text-sm font-medium text-gray-600 border border-gray-200 rounded-lg hover:bg-gray-100"
-                    >
-                      {locale === 'de' ? 'Text leeren' : 'Clear'}
-                    </button>
-                    <button
-                      type="submit"
-                      className="inline-flex items-center gap-2 px-5 py-2.5 rounded-lg bg-blue-600 text-white text-sm font-semibold hover:bg-blue-700 transition-colors"
-                    >
-                      <Sparkles className="w-4 h-4" />
-                      {locale === 'de' ? 'Info übernehmen' : 'Apply info'}
-                    </button>
-                  </div>
-                </form>
-              </div>
-            </div>
-          </Card>
-
           {/* Answers Summary Section - Fixed Position, Non-Overlapping */}
           {answeredCount > 0 && (
             <div className="fixed right-6 top-32 z-30 max-w-xs">
@@ -1867,22 +1461,20 @@ export default function ProgramFinder({
           <Card className="p-4 border-2 border-dashed border-blue-200 bg-white/80 shadow-sm">
             <div className="flex items-start justify-between gap-4">
               <div>
-                <p className="text-base font-semibold text-gray-900">Advanced filters</p>
+                <p className="text-base font-semibold text-gray-900">{advancedFiltersTitle}</p>
                 <p className="text-sm text-gray-600">
-                  Optional details like team size, revenue stage, impact focus, and project timeline.
+                  {advancedFiltersDescription}
                 </p>
               </div>
               <button
                 onClick={() => setShowAdvancedFilters(!showAdvancedFilters)}
                 className="px-3 py-2 rounded-md text-sm font-medium border border-blue-500 text-blue-600 hover:bg-blue-50 transition-colors"
               >
-                {showAdvancedFilters ? 'Hide advanced' : 'Add detail'}
+                {showAdvancedFilters ? advancedFiltersHideLabel : advancedFiltersShowLabel}
               </button>
             </div>
             <p className="text-xs text-gray-500 mt-3">
-              {showAdvancedFilters
-                ? `${advancedAnsweredCount}/${advancedQuestions.length} advanced questions answered. They now appear at the end of your question path.`
-                : 'Currently hidden. Toggle to refine recommendations with more context.'}
+              {showAdvancedFilters ? advancedFiltersSummaryActive : advancedFiltersSummaryHidden}
             </p>
           </Card>
         </div>
