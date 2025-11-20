@@ -1487,8 +1487,8 @@ export default function Editor({ product = 'submission' }: EditorProps) {
 
   return (
     <div className="min-h-screen bg-[#f6f8fb]">
-      <header className="border-b border-slate-200 bg-white/95 backdrop-blur-sm">
-        <div className="mx-auto max-w-[1400px] px-4 sm:px-6 lg:px-12 py-8">
+      <header className="border-b-2 border-slate-200 bg-white/95 backdrop-blur-sm shadow-sm">
+        <div className="mx-auto max-w-[1400px] px-4 sm:px-6 lg:px-12 py-4">
           <PlanConfigurator
             plan={plan}
             programSummary={programSummary ?? plan.programSummary ?? null}
@@ -1502,7 +1502,7 @@ export default function Editor({ product = 'submission' }: EditorProps) {
       </header>
 
       {/* Section Navigation Bar */}
-      <div className="border-b border-slate-200 bg-white sticky top-0 z-30">
+      <div className="border-b-2 border-slate-200 bg-white sticky top-0 z-30 shadow-sm">
         <div className="mx-auto max-w-[1400px] px-4 sm:px-6 lg:px-12">
           <SectionNavigationBar
             plan={plan}
@@ -1595,39 +1595,40 @@ function PlanConfigurator({
   programError: string | null;
 }) {
   return (
-    <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-      <div className="space-y-2">
-        <p className="text-xs uppercase tracking-[0.3em] text-slate-500">Plan title</p>
-        <p className="text-lg font-semibold text-slate-900">{plan.titlePage.planTitle || 'Business Plan'}</p>
-        <p className="text-xs text-slate-500">Align the workflow before editing.</p>
-      </div>
-      <label className="space-y-2">
-        <span className="text-xs font-semibold text-slate-500 uppercase tracking-[0.2em]">Product type</span>
-        <div className="relative">
-          <select
-            value={plan.productType ?? 'submission'}
-            onChange={(event) => onChangeProduct(event.target.value as ProductType)}
-            className="w-full appearance-none rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm font-medium text-slate-700 shadow-sm focus:border-blue-500 focus:ring-2 focus:ring-blue-200"
-          >
-            {PRODUCT_TYPE_OPTIONS.map((option) => (
-              <option key={option.value} value={option.value}>
-                {option.label}
-              </option>
-            ))}
-          </select>
-          <span className="pointer-events-none absolute inset-y-0 right-4 flex items-center text-slate-400">▾</span>
+    <div className="flex items-center justify-between gap-6">
+      <div className="flex items-center gap-6 flex-1">
+        <div>
+          <p className="text-base font-semibold text-slate-900 leading-tight">{plan.titlePage.planTitle || 'Business Plan'}</p>
         </div>
-        <p className="text-[11px] text-slate-500">
-          {PRODUCT_TYPE_OPTIONS.find((option) => option.value === plan.productType)?.description}
-        </p>
-      </label>
-      <ProgramConnectionCard
-        programSummary={programSummary}
-        onConnectProgram={onConnectProgram}
-        onOpenProgramFinder={onOpenProgramFinder}
-        loading={programLoading}
-        error={programError}
-      />
+        <label className="flex items-center gap-2">
+          <span className="text-xs font-medium text-slate-600 whitespace-nowrap">Product type:</span>
+          <div className="relative">
+            <select
+              value={plan.productType ?? 'submission'}
+              onChange={(event) => onChangeProduct(event.target.value as ProductType)}
+              className="appearance-none rounded-lg border border-slate-200 bg-white px-3 py-1.5 text-sm font-medium text-slate-700 focus:border-blue-500 focus:ring-1 focus:ring-blue-200"
+            >
+              {PRODUCT_TYPE_OPTIONS.map((option) => (
+                <option key={option.value} value={option.value}>
+                  {option.label}
+                </option>
+              ))}
+            </select>
+            <span className="pointer-events-none absolute inset-y-0 right-2 flex items-center text-slate-400 text-xs">▾</span>
+          </div>
+        </label>
+      </div>
+      <div className="flex-shrink-0">
+        <div className="relative">
+          <ProgramConnectionCard
+            programSummary={programSummary}
+            onConnectProgram={onConnectProgram}
+            onOpenProgramFinder={onOpenProgramFinder}
+            loading={programLoading}
+            error={programError}
+          />
+        </div>
+      </div>
     </div>
   );
 }
@@ -1646,64 +1647,69 @@ function ProgramConnectionCard({
   error: string | null;
 }) {
   const [inputValue, setInputValue] = useState('');
+  const [isExpanded, setIsExpanded] = useState(false);
   useEffect(() => {
     if (programSummary) {
       setInputValue('');
+      setIsExpanded(false);
     }
   }, [programSummary]);
 
   if (programSummary) {
     return (
-      <div className="rounded-2xl border border-blue-100 bg-blue-50/60 p-4 space-y-2 shadow-sm">
-        <div className="flex items-start justify-between gap-3">
-          <div>
-            <p className="text-sm font-semibold text-blue-900">{programSummary.name}</p>
-            <p className="text-xs text-blue-700">
-              {programSummary.amountRange ?? 'Amount not specified'}
-              {programSummary.deadline ? ` • Deadline ${programSummary.deadline}` : ''}
-            </p>
-            {programSummary.region && (
-              <p className="text-[11px] text-blue-700/80">Region: {programSummary.region}</p>
-            )}
-          </div>
-          <button
-            onClick={() => onConnectProgram(null)}
-            className="text-xs text-blue-700 hover:text-blue-900 underline"
-          >
-            Disconnect
-          </button>
+      <div className="flex items-center gap-2">
+        <div className="rounded-lg border border-blue-200 bg-blue-50 px-3 py-1.5">
+          <p className="text-xs font-medium text-blue-900 leading-tight">{programSummary.name}</p>
         </div>
-        <p className="text-[11px] text-blue-700/80">
-          Funding type: {programSummary.fundingType} • Mode: {programSummary.fundingProgramTag}
-        </p>
+        <button
+          onClick={() => onConnectProgram(null)}
+          className="text-xs text-slate-500 hover:text-slate-700 px-2 py-1"
+          title="Disconnect program"
+        >
+          ×
+        </button>
       </div>
     );
   }
 
+  if (!isExpanded) {
+    return (
+      <button
+        onClick={() => setIsExpanded(true)}
+        className="text-xs text-slate-600 hover:text-slate-900 px-3 py-1.5 border border-slate-200 rounded-lg hover:border-slate-300 transition"
+      >
+        Connect program
+      </button>
+    );
+  }
+
   return (
-    <div className="rounded-2xl border border-dashed border-gray-300 p-4 space-y-3">
-      <div>
-        <p className="text-sm font-semibold text-gray-800">No program connected</p>
-        <p className="text-xs text-gray-500">
-          Paste a program ID (e.g., page_123) or open Program Finder to import a call.
-        </p>
+    <div className="absolute right-0 top-full mt-2 w-80 rounded-lg border border-slate-200 bg-white shadow-lg p-3 space-y-2 z-50">
+      <div className="flex items-center justify-between">
+        <p className="text-xs font-semibold text-slate-800">Connect program</p>
+        <button
+          onClick={() => setIsExpanded(false)}
+          className="text-xs text-slate-400 hover:text-slate-600"
+        >
+          ×
+        </button>
       </div>
-      <div className="flex flex-col gap-2 sm:flex-row">
+      <div className="flex gap-2">
         <input
           value={inputValue}
           onChange={(event) => setInputValue(event.target.value)}
-          placeholder="Program ID or URL containing it"
-          className="flex-1 border border-gray-200 rounded-md px-3 py-2 text-sm"
+          placeholder="Program ID (e.g., page_123)"
+          className="flex-1 border border-slate-200 rounded px-2 py-1.5 text-xs focus:outline-none focus:ring-1 focus:ring-blue-200 focus:border-blue-300"
         />
         <button
           onClick={() => onConnectProgram(inputValue)}
           disabled={loading}
-          className="px-4 py-2 text-sm font-semibold rounded-md bg-blue-600 text-white disabled:opacity-50"
+          className="px-3 py-1.5 text-xs font-medium rounded bg-blue-600 text-white disabled:opacity-50 hover:bg-blue-700"
         >
-          {loading ? 'Connecting…' : 'Connect'}
+          {loading ? '...' : 'Connect'}
         </button>
       </div>
-      {error && <p className="text-xs text-red-500">{error}</p>}
+      {error && <p className="text-xs text-red-600">{error}</p>}
       <button
         type="button"
         onClick={onOpenProgramFinder}
@@ -1748,7 +1754,7 @@ function SectionNavigationBar({
   };
 
   return (
-    <div className="flex items-center gap-2">
+    <div className="flex items-center gap-3">
       <button
         onClick={scrollLeft}
         className="flex-shrink-0 rounded-lg border border-slate-200 bg-white p-2 text-slate-600 hover:border-slate-300 hover:bg-slate-50 transition"
@@ -1756,7 +1762,7 @@ function SectionNavigationBar({
       >
         ←
       </button>
-      <div ref={scrollContainerRef} className="flex items-center gap-2 overflow-x-auto py-4 flex-1 scrollbar-hide">
+      <div ref={scrollContainerRef} className="flex items-center gap-3 overflow-x-auto py-3 flex-1 scrollbar-hide">
         {sections.map((section, index) => {
         const totalQuestions = section.questions.length;
         const answeredQuestions = section.questions.filter(
@@ -1767,23 +1773,40 @@ function SectionNavigationBar({
           (totalQuestions === 0 ? 0 : Math.round((answeredQuestions / totalQuestions) * 100));
         const isAncillary = section.id === ANCILLARY_SECTION_ID;
         const isActive = section.id === activeSectionId;
-        const statusIcon = completion === 100 ? '✓' : completion > 0 ? '⚠' : '○';
 
         return (
           <button
             key={section.id}
             onClick={() => onSelectSection(section.id)}
-            className={`flex-shrink-0 rounded-xl border px-4 py-2 text-sm font-semibold transition focus:outline-none focus:ring-2 focus:ring-blue-200 ${
+            className={`flex-shrink-0 rounded-lg border-2 px-4 py-2.5 min-w-[140px] transition-all focus:outline-none focus:ring-2 focus:ring-blue-200 ${
               isActive
-                ? 'border-blue-500 bg-blue-600 text-white'
-                : 'border-slate-200 bg-white text-slate-700 hover:border-slate-300'
+                ? 'border-blue-600 bg-blue-600 text-white shadow-md'
+                : 'border-slate-200 bg-white text-slate-700 hover:border-slate-300 hover:bg-slate-50'
             }`}
           >
-            {!isAncillary && (
-              <span className="mr-2">{String(index + 1).padStart(2, '0')}</span>
-            )}
-            <span className="mr-2">{statusIcon}</span>
-            {section.title}
+            <div className="flex flex-col gap-1.5">
+              <div className="flex items-center justify-between">
+                {!isAncillary && (
+                  <span className={`text-xs font-semibold ${isActive ? 'text-blue-100' : 'text-slate-500'}`}>
+                    {String(index + 1).padStart(2, '0')}
+                  </span>
+                )}
+                <span className={`text-xs font-medium ${isActive ? 'text-white' : completion === 100 ? 'text-green-600' : completion > 0 ? 'text-amber-600' : 'text-slate-400'}`}>
+                  {completion}%
+                </span>
+              </div>
+              <div className="w-full h-1 bg-slate-200 rounded-full overflow-hidden">
+                <div
+                  className={`h-full transition-all ${
+                    completion === 100 ? 'bg-green-500' : completion > 0 ? 'bg-amber-500' : 'bg-slate-300'
+                  }`}
+                  style={{ width: `${completion}%` }}
+                />
+              </div>
+              <p className={`text-sm font-semibold leading-tight text-left ${isActive ? 'text-white' : 'text-slate-900'}`}>
+                {section.title}
+              </p>
+            </div>
           </button>
         );
       })}
@@ -1908,30 +1931,41 @@ function SectionWorkspace({
       {/* Prompt Navigation Bar */}
       {section.questions.length > 1 && (
         <div className="flex items-center gap-2 overflow-x-auto pb-2">
-          {section.questions.map((question, index) => (
-            <button
-              key={question.id}
-              onClick={() => onSelectQuestion(question.id)}
-              className={`flex-shrink-0 rounded-full border px-4 py-2 text-sm font-medium transition ${
-                question.id === activeQuestionId
-                  ? 'border-blue-500 bg-blue-50 text-blue-700'
-                  : 'border-slate-200 bg-white text-slate-600 hover:border-slate-300'
-              }`}
-            >
-              Q{String(index + 1).padStart(2, '0')}
-            </button>
-          ))}
+          {section.questions.map((question, index) => {
+            const isActive = question.id === activeQuestionId;
+            const status = question.status;
+            
+            return (
+              <button
+                key={question.id}
+                onClick={() => onSelectQuestion(question.id)}
+                className={`flex-shrink-0 rounded-lg border-2 px-4 py-2 text-sm font-medium transition-all ${
+                  isActive
+                    ? 'border-blue-600 bg-blue-600 text-white shadow-md'
+                    : `border-slate-200 bg-white text-slate-700 hover:border-slate-300 hover:bg-slate-50`
+                }`}
+              >
+                <div className="flex items-center gap-2">
+                  <span className="font-semibold">{index + 1}</span>
+                  {status === 'complete' && (
+                    <span className={`text-xs ${isActive ? 'text-blue-100' : 'text-green-600'}`}>✓</span>
+                  )}
+                  {status === 'draft' && (
+                    <span className={`text-xs ${isActive ? 'text-blue-100' : 'text-amber-600'}`}>⋯</span>
+                  )}
+                </div>
+              </button>
+            );
+          })}
         </div>
       )}
 
       {/* Single Active Prompt Block */}
       {section.questions.length > 0 && (() => {
         const activeQuestion = section.questions.find(q => q.id === activeQuestionId) ?? section.questions[0];
-        const activeIndex = section.questions.findIndex(q => q.id === activeQuestion?.id) + 1;
         
         return (
           <QuestionCard
-            position={activeIndex}
             question={activeQuestion}
             isActive={true}
             onFocus={() => onSelectQuestion(activeQuestion.id)}
@@ -1947,7 +1981,6 @@ function SectionWorkspace({
 
 function QuestionCard({
   question,
-  position,
   isActive,
   onFocus,
   onChange,
@@ -1955,7 +1988,6 @@ function QuestionCard({
   onToggleUnknown
 }: {
   question: Question;
-  position: number;
   isActive: boolean;
   onFocus: () => void;
   onChange: (content: string) => void;
@@ -1978,31 +2010,28 @@ function QuestionCard({
 
   return (
     <div
-      className={`rounded-3xl border p-6 bg-white shadow-sm transition ${
+      className={`rounded-2xl border-2 p-6 bg-white shadow-sm transition-all ${
         isActive
-          ? 'border-blue-400 shadow-xl shadow-blue-50 ring-1 ring-blue-100'
-          : 'border-slate-200 hover:border-blue-200'
+          ? 'border-blue-500 shadow-lg shadow-blue-50 ring-2 ring-blue-100'
+          : 'border-slate-200 hover:border-slate-300'
       }`}
       onClick={onFocus}
     >
       {/* Prompt Header */}
-      <div className="mb-4">
-        <div className="flex items-center gap-2 mb-2">
-          <span className="inline-flex items-center rounded-full bg-slate-100 px-3 py-1 text-[11px] font-semibold tracking-[0.2em] text-slate-500">
-            Q{position.toString().padStart(2, '0')}
-          </span>
+      <div className="mb-5">
+        <div className="flex items-center gap-2 mb-3">
           {question.required && (
-            <span className="rounded-full bg-red-50 px-2.5 py-1 text-[10px] font-semibold uppercase tracking-widest text-red-600">
+            <span className="rounded-full bg-red-100 px-2.5 py-1 text-xs font-semibold text-red-700">
               Required
             </span>
           )}
+          {isUnknown && (
+            <span className="rounded-full bg-amber-100 px-2.5 py-1 text-xs font-semibold text-amber-700">
+              Marked as unknown{question.statusNote ? ` • ${question.statusNote}` : ''}
+            </span>
+          )}
         </div>
-        <p className="text-lg font-semibold text-slate-900 leading-snug">{question.prompt}</p>
-        {isUnknown && (
-          <p className="mt-2 text-xs font-semibold text-amber-600 bg-amber-50 inline-flex px-2.5 py-1 rounded-full">
-            Marked as unknown{question.statusNote ? ` • ${question.statusNote}` : ''}
-          </p>
-        )}
+        <p className="text-xl font-semibold text-slate-900 leading-snug">{question.prompt}</p>
       </div>
 
       {/* Text Editor */}
@@ -2015,21 +2044,22 @@ function QuestionCard({
       </div>
 
       {/* Action Buttons (directly below editor) */}
-      <div className="mt-4 flex flex-wrap gap-2" onClick={(e) => e.stopPropagation()}>
+      <div className="mt-5 flex flex-wrap gap-3" onClick={(e) => e.stopPropagation()}>
         <button
           type="button"
           onClick={onAskAI}
-          className="inline-flex items-center px-4 py-2 rounded-lg bg-blue-600 text-white font-semibold text-sm hover:bg-blue-500"
+          className="inline-flex items-center px-5 py-2.5 rounded-lg bg-blue-600 text-white font-semibold text-sm hover:bg-blue-700 shadow-sm transition-all"
         >
-          ✨ Generate for this prompt
+          <span className="mr-2">✨</span>
+          Generate for this prompt
         </button>
         <button
           type="button"
           onClick={handleToggleUnknown}
-          className={`inline-flex items-center px-4 py-2 rounded-lg border font-semibold text-sm ${
+          className={`inline-flex items-center px-4 py-2.5 rounded-lg border-2 font-medium text-sm transition-all ${
             isUnknown
-              ? 'border-amber-300 text-amber-700 bg-amber-50'
-              : 'border-slate-200 text-slate-500 hover:border-slate-300'
+              ? 'border-amber-400 text-amber-700 bg-amber-50 hover:bg-amber-100'
+              : 'border-slate-200 text-slate-600 hover:border-slate-300 hover:bg-slate-50'
           }`}
         >
           {isUnknown ? 'Clear unknown status' : 'Mark as unknown'}
@@ -2101,16 +2131,18 @@ function RightPanel({
   };
 
   return (
-    <aside className="rounded-3xl border border-slate-200 bg-white shadow-sm flex h-full min-h-[360px] flex-col sticky top-[120px] w-full lg:w-[360px] lg:flex-shrink-0">
-      <div className="grid grid-cols-3 border-b border-slate-200 text-[11px] font-semibold uppercase tracking-[0.2em] text-slate-500">
+    <aside className="rounded-2xl border-2 border-slate-200 bg-white shadow-sm flex h-full min-h-[360px] flex-col sticky top-[120px] w-full lg:w-[360px] lg:flex-shrink-0">
+      <div className="grid grid-cols-3 border-b-2 border-slate-200">
         {(['Assistant', 'Data', 'Preview'] as const).map((tabLabel) => {
           const tabKey = tabLabel.toLowerCase() as 'ai' | 'data' | 'preview';
           return (
             <button
               key={tabKey}
               onClick={() => setView(tabKey)}
-              className={`py-3 transition ${
-                effectiveView === tabKey ? 'text-blue-600 border-b-2 border-blue-600 bg-blue-50/40' : 'hover:text-blue-600'
+              className={`py-3 text-xs font-semibold transition-all ${
+                effectiveView === tabKey 
+                  ? 'text-blue-600 border-b-2 border-blue-600 bg-blue-50/50' 
+                  : 'text-slate-600 hover:text-blue-600 hover:bg-slate-50'
               }`}
             >
               {tabLabel}
@@ -2125,30 +2157,30 @@ function RightPanel({
             <button
               onClick={() => onAskAI(question?.id)}
               disabled={!question}
-              className={`w-full px-4 py-3 rounded-lg font-semibold text-sm ${
+              className={`w-full px-4 py-3 rounded-lg font-semibold text-sm shadow-sm transition-all ${
                 question
-                  ? 'bg-blue-600 text-white hover:bg-blue-500'
+                  ? 'bg-blue-600 text-white hover:bg-blue-700'
                   : 'bg-slate-100 text-slate-400 cursor-not-allowed'
               }`}
             >
               Ask the assistant
             </button>
             {question && (
-              <div className="space-y-3 text-sm">
+              <div className="space-y-4 text-sm">
                 <div>
-                  <p className="text-xs uppercase text-slate-400 mb-1">Current question</p>
-                  <p className="font-semibold text-slate-900">{question.prompt}</p>
-                      <p className="text-[11px] text-slate-500 mt-1">
-                        Status: {question.status}
+                  <p className="text-xs font-semibold text-slate-500 mb-2 uppercase tracking-wide">Current question</p>
+                  <p className="font-semibold text-slate-900 leading-snug mb-2">{question.prompt}</p>
+                      <p className="text-xs text-slate-600">
+                        Status: <span className="font-medium">{question.status}</span>
                         {question.status === 'blank' || question.status === 'unknown'
                           ? ' (AI will focus on guidance)'
                           : ' (AI will focus on critique)'}
                       </p>
-                  <div className="mt-2 flex flex-wrap gap-2">
+                  <div className="mt-3 flex flex-wrap gap-2">
                     <button
                       type="button"
                       onClick={() => handleQuickAsk('outline')}
-                      className="px-3 py-1.5 text-[11px] font-semibold rounded-full border border-slate-200 text-slate-600 hover:border-blue-300 hover:text-blue-600 transition"
+                      className="px-3 py-1.5 text-xs font-medium rounded-lg border border-slate-200 text-slate-700 hover:border-blue-300 hover:text-blue-600 hover:bg-blue-50 transition-all"
                       disabled={!question}
                     >
                       Draft outline
@@ -2156,7 +2188,7 @@ function RightPanel({
                     <button
                       type="button"
                       onClick={() => handleQuickAsk('improve')}
-                      className="px-3 py-1.5 text-[11px] font-semibold rounded-full border border-slate-200 text-slate-600 hover:border-blue-300 hover:text-blue-600 transition"
+                      className="px-3 py-1.5 text-xs font-medium rounded-lg border border-slate-200 text-slate-700 hover:border-blue-300 hover:text-blue-600 hover:bg-blue-50 transition-all"
                       disabled={!question}
                     >
                       Improve answer
@@ -2164,7 +2196,7 @@ function RightPanel({
                     <button
                       type="button"
                       onClick={() => handleQuickAsk('data')}
-                      className="px-3 py-1.5 text-[11px] font-semibold rounded-full border border-slate-200 text-slate-600 hover:border-blue-300 hover:text-blue-600 transition"
+                      className="px-3 py-1.5 text-xs font-medium rounded-lg border border-slate-200 text-slate-700 hover:border-blue-300 hover:text-blue-600 hover:bg-blue-50 transition-all"
                       disabled={!question}
                     >
                       Suggest data/KPIs
@@ -2567,13 +2599,13 @@ function SimpleTextEditor({
         className={`
           relative
           bg-white
-          rounded-lg
-          border
+          rounded-xl
+          border-2
           transition-all
           duration-200
           ${isFocused 
-            ? 'border-blue-300 shadow-sm' 
-            : 'border-gray-200 hover:border-gray-300'
+            ? 'border-blue-400 shadow-md shadow-blue-50' 
+            : 'border-slate-200 hover:border-slate-300'
           }
         `}
         onClick={() => textareaRef.current?.focus()}
@@ -2587,21 +2619,23 @@ function SimpleTextEditor({
           placeholder={placeholder || `Start writing...`}
           className="
             w-full
-            min-h-[200px]
-            p-6
+            min-h-[240px]
+            p-5
             text-base
             leading-relaxed
-            text-gray-900
-            placeholder-gray-400
+            text-slate-900
+            placeholder-slate-400
             resize-none
             border-0
             outline-none
             bg-transparent
             focus:outline-none
+            font-sans
           "
           style={{
-            fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif',
-            lineHeight: '1.6'
+            fontFamily: 'Inter, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif',
+            lineHeight: '1.7',
+            fontSize: '15px'
           }}
         />
       </div>
