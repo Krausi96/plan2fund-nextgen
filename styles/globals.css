@@ -300,6 +300,61 @@
     box-shadow: 0 10px 25px rgba(0, 0, 0, 0.15);
   }
   
+  /* Security card subtle animations */
+  .security-card {
+    position: relative;
+    overflow: hidden;
+  }
+  
+  .security-card::before {
+    content: "";
+    position: absolute;
+    inset: -30%;
+    background: linear-gradient(120deg, rgba(15, 118, 110, 0.08), rgba(59, 130, 246, 0.05), rgba(248, 250, 252, 0.02));
+    animation: securityDrift 22s ease-in-out infinite;
+    z-index: 0;
+    opacity: 0.8;
+  }
+  
+  .security-underline {
+    display: inline-block;
+    height: 3px;
+    border-radius: 999px;
+    background: linear-gradient(90deg, rgba(15, 118, 110, 0.4), rgba(59, 130, 246, 0.6));
+    animation: securityGlow 6s ease-in-out infinite;
+  }
+  
+  @keyframes securityDrift {
+    0% {
+      transform: translateX(-10%);
+    }
+    50% {
+      transform: translateX(10%);
+    }
+    100% {
+      transform: translateX(-10%);
+    }
+  }
+  
+  @keyframes securityGlow {
+    0% {
+      opacity: 0.35;
+    }
+    50% {
+      opacity: 0.8;
+    }
+    100% {
+      opacity: 0.35;
+    }
+  }
+  
+  @media (prefers-reduced-motion: reduce) {
+    .security-card::before,
+    .security-underline {
+      animation: none;
+    }
+  }
+  
   /* Reduced motion support for accessibility */
   @media (prefers-reduced-motion: reduce) {
     .hero-fade-in-up,

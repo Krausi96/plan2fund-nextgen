@@ -2,7 +2,7 @@ import { Hero } from '@/shared/components/common/Hero'
 import CTAStrip from '@/shared/components/common/CTAStrip'
 import SEOHead from '@/shared/components/common/SEOHead'
 import { useI18n } from "@/shared/contexts/I18nContext"
-import { useEffect, useState, useRef, useMemo } from "react"
+import { useEffect, useState } from "react"
 import { useRouter } from "next/router"
 import analytics from "@/shared/user/analytics"
 import { detectTargetGroup, storeTargetGroupSelection } from '@/shared/user/segmentation'
@@ -62,95 +62,6 @@ export default function Home() {
   };
 
   // Stats Section with animated counters
-  const statsRef = useRef<HTMLDivElement>(null);
-  const [statsVisible, setStatsVisible] = useState(false);
-  const [countedStats, setCountedStats] = useState([0, 0, 0, 0]);
-
-  // Compelling stats about business plan success - Austrian/European market
-  const stats = useMemo(() => [
-    { 
-      value: 2.6, 
-      suffix: 'x', 
-      label: 'Höhere Finanzierungserfolg', 
-      description: 'Unternehmen mit Businessplan erhalten deutlich häufiger Finanzierung', 
-      source: 'Austrian Startup Monitor, 2024'
-    },
-    { 
-      value: 78, 
-      suffix: '%', 
-      label: 'Erfolgsquote mit Businessplan', 
-      description: 'Österreichische Unternehmen mit professionellem Plan (vs. 30% ohne)', 
-      source: 'WKO Österreich, 2024'
-    },
-    { 
-      value: 40, 
-      suffix: '+', 
-      label: 'Stunden gespart', 
-      description: 'Durchschnittliche Zeitersparnis bei der Businessplan-Erstellung', 
-      source: 'Plan2Fund Nutzerdaten, 2024'
-    },
-    { 
-      value: 100, 
-      suffix: '+', 
-      label: 'Finanzierungsprogramme', 
-      description: 'Österreichische und EU-Programme in unserer Datenbank', 
-      source: 'Plan2Fund, 2024'
-    }
-  ], []);
-
-  useEffect(() => {
-    if (!statsRef.current || statsVisible) return;
-
-    const observer = new IntersectionObserver(
-      (entries) => {
-        entries.forEach((entry) => {
-          if (entry.isIntersecting && !statsVisible) {
-            setStatsVisible(true);
-            // Animate counters
-            stats.forEach((stat, index) => {
-              const duration = 2000; // 2 seconds
-              const steps = 60;
-              const increment = stat.value / steps;
-              const stepDuration = duration / steps;
-              
-              let current = 0;
-              const timer = setInterval(() => {
-                current += increment;
-                if (current >= stat.value) {
-                  setCountedStats(prev => {
-                    const newCounts = [...prev];
-                    newCounts[index] = stat.value;
-                    return newCounts;
-                  });
-                  clearInterval(timer);
-                } else {
-                  setCountedStats(prev => {
-                    const newCounts = [...prev];
-                    // Format to 1 decimal place for decimal values, whole numbers for integers
-                    newCounts[index] = stat.value % 1 !== 0 
-                      ? Math.round(current * 10) / 10 
-                      : Math.floor(current);
-                    return newCounts;
-                  });
-                }
-              }, stepDuration);
-            });
-          }
-        });
-      },
-      { threshold: 0.3 }
-    );
-
-    observer.observe(statsRef.current);
-
-    return () => {
-      if (statsRef.current) {
-        observer.unobserve(statsRef.current);
-      }
-    };
-  }, [statsVisible, stats]);
-
-
   return (
     <>
       <SEOHead 
@@ -160,53 +71,6 @@ export default function Home() {
       
       <main className="flex flex-col">
         <Hero onStepClick={handleStepClick} onTargetGroupSelect={handleTargetGroupSelect} />
-        
-        {/* Stats Section */}
-        <section 
-          ref={statsRef}
-          className="py-20 md:py-28 bg-gradient-to-b from-white to-neutral-50"
-          aria-labelledby="stats-heading"
-        >
-          <div className="container max-w-7xl">
-            <div className="text-center mb-16">
-              <h2 id="stats-heading" className="text-4xl md:text-5xl font-bold text-neutral-900 mb-6 tracking-tight">
-                2.6x mehr Finanzierungserfolg
-              </h2>
-              <p className="text-xl text-neutral-600 max-w-3xl mx-auto leading-relaxed">
-                Unternehmen mit professionellen Businessplänen erhalten deutlich häufiger Finanzierung
-              </p>
-            </div>
-            
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 lg:gap-8 mb-12">
-              {stats.map((stat, index) => (
-                <div
-                  key={index}
-                  className="group hero-fade-in-up bg-white rounded-2xl p-8 border-2 border-neutral-200 hover:border-blue-300 shadow-sm hover:shadow-xl transition-all duration-300 hover:-translate-y-2"
-                  style={{ animationDelay: `${0.1 * index}s` }}
-                >
-                  <div className="text-center">
-                    <div className="text-5xl md:text-6xl font-bold text-neutral-900 mb-3 group-hover:text-blue-600 transition-colors">
-                      {typeof countedStats[index] === 'number' && countedStats[index] % 1 !== 0 
-                        ? countedStats[index].toFixed(1) 
-                        : countedStats[index]}{stat.suffix}
-                  </div>
-                    <h3 className="text-lg font-bold text-neutral-900 mb-2 group-hover:text-blue-600 transition-colors">
-                    {stat.label}
-                    </h3>
-                    <p className="text-sm text-neutral-600 leading-relaxed mb-4">
-                      {stat.description}
-                    </p>
-                    <p className="text-xs text-neutral-500 italic">
-                      {stat.source}
-                    </p>
-                  </div>
-                </div>
-              ))}
-            </div>
-
-          </div>
-        </section>
-
         {/* Who Its For Section */}
         <section className="py-20 md:py-28 bg-gradient-to-b from-white to-neutral-50" aria-labelledby="who-its-for-heading">
           <div className="container max-w-7xl">
@@ -427,6 +291,43 @@ export default function Home() {
                   </a>
                 );
               })}
+            </div>
+          </div>
+        </section>
+
+        {/* Security & Data Handling */}
+        <section 
+          className="py-20 md:py-24 bg-neutral-50"
+          aria-labelledby="security-heading"
+        >
+          <div className="container max-w-5xl">
+            <div className="security-card rounded-3xl border border-neutral-200 bg-white shadow-xl px-8 py-12 md:px-12 md:py-14">
+              <div className="relative z-10 space-y-8">
+                <div>
+                  <p className="text-xs font-semibold uppercase tracking-[0.35em] text-teal-700 mb-4">
+                    Security &amp; Data Handling
+                  </p>
+                  <div>
+                    <h2 id="security-heading" className="text-3xl md:text-4xl font-bold text-neutral-900 mb-3">
+                      Your Idea, Your Data
+                    </h2>
+                    <span className="security-underline w-20"></span>
+                  </div>
+                </div>
+                <div className="space-y-4 text-lg text-neutral-700 leading-relaxed">
+                  <p>We don&rsquo;t store your planning documents—files stay on your device.</p>
+                  <p>Sessions are encrypted end-to-end; we don&rsquo;t hand off data to vendors.</p>
+                  <p>Exports download locally, and you decide when and with whom to share.</p>
+                </div>
+                <div>
+                  <a
+                    href="/privacy"
+                    className="inline-flex items-center text-base font-semibold text-blue-600 hover:text-blue-700 focus-visible:ring-blue-500/30"
+                  >
+                    Read the security note &rarr;
+                  </a>
+                </div>
+              </div>
             </div>
           </div>
         </section>
