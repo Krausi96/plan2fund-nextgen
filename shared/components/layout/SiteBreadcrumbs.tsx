@@ -77,7 +77,7 @@ export default function SiteBreadcrumbs({ items, className = "" }: SiteBreadcrum
               {index === 0 ? (
                 <Link 
                   href={item.href!} 
-                  className="flex items-center text-gray-600 hover:text-blue-600 transition-colors"
+                  className="flex items-center text-gray-600 hover:text-neutral-900 transition-colors"
                 >
                   <Home className="h-4 w-4" />
                   <span className="sr-only">Home</span>
@@ -85,12 +85,12 @@ export default function SiteBreadcrumbs({ items, className = "" }: SiteBreadcrum
               ) : item.href ? (
                 <Link 
                   href={item.href}
-                  className="text-gray-600 hover:text-blue-600 transition-colors"
+                  className="text-gray-600 hover:text-neutral-900 transition-colors"
                 >
                   {item.label}
                 </Link>
               ) : (
-                <span className="text-gray-900 font-semibold text-blue-600" aria-current="page">
+                <span className="text-gray-900 font-semibold text-neutral-900" aria-current="page">
                   {item.label}
                 </span>
               )}

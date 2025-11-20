@@ -21,58 +21,148 @@ Simplify the recommender system while maintaining **truly unbiased**, high-quali
 
 ---
 
-## Recommended Approach: **Conversational Guidance (Unbiased)**
+## Recommended Approach: **Guided Prompt Template with Single Extraction (Simplest & Best Balance)**
 
 ### Core Principle
-**Guide through examples, not questions. Extract through conversation, not forms.**
+**Show users what information matters (guidance), let them describe naturally (freedom), extract everything in one LLM call (simple).**
 
 ### Why This is Unbiased
-1. **No leading questions** - Users describe in their own words
-2. **No predefined categories** - LLM understands natural language
-3. **Contextual follow-ups** - LLM asks only what's missing, conversationally
-4. **User verification** - Show extracted info for transparency
-5. **Same matching engine** - Consistent, objective scoring
+1. **Guidance on variables** - Shows WHAT information matters (not HOW to answer)
+2. **Natural answers** - User describes in free text (not dropdowns)
+3. **Single extraction** - One LLM call extracts everything at once (fast, cheap)
+4. **No hardcoded questions** - User fills in template naturally
+5. **User verification** - Show extracted info for transparency
+6. **Same matching engine** - Consistent, objective scoring
 
 ### Implementation (No New Files)
 
-#### Option A: **Conversational Guidance (Recommended - Truly Unbiased)**
-**Replace wizard with conversational LLM-driven flow**
+#### Option A: **Smart Template with Contextual Hints (Recommended - Creative Hybrid)**
+**Template with adaptive hints that appear as user types**
 
-1. **Single textarea with helpful examples** (not questions)
+1. **Show template with variable sections** (guides WHAT to include)
    ```
-   "Tell us about your project and funding needs...
+   "Tell us about your project and funding situation:
    
-   For example, you might mention:
-   - What your company does and where it's based
-   - What stage you're at (idea, just started, growing, etc.)
-   - How much funding you need and what for
-   - Whether you can provide co-financing
-   - Your industry or focus areas
+   📍 Location: [Where is your company based?]
+   💡 Hint: e.g., "Vienna, Austria" or "Berlin, Germany"
    
-   Don't worry about being complete - we'll ask if we need more info."
+   🏢 Company: [What kind of company are you?]
+   💡 Hint: e.g., "Startup", "SME", "Research institution"
+   
+   💰 Funding: [How much funding do you need?]
+   💡 Hint: e.g., "€150,000 for MVP development"
+   
+   📅 Stage: [How far along is your company?]
+   💡 Hint: e.g., "Just incorporated 3 months ago" or "Idea stage"
+   
+   💵 Co-financing: [Can you provide matching funds?]
+   💡 Hint: e.g., "Yes, 30%" or "No, we need 100% grant"
+   
+   🏭 Industry: [What industry are you in?] (optional)
+   💡 Hint: e.g., "Climate tech", "Healthcare", "AI/ML"
    ```
 
-2. **LLM extracts + asks follow-ups conversationally**
-   - Extract: location, company_type, company_stage, funding_amount, co_financing, industry_focus
-   - If critical info missing → LLM asks natural follow-up questions (not structured)
-   - Example: "I see you're working on a tech project. Where is your company based?" (not a dropdown)
+2. **Smart contextual hints** (appear as user types, adapt to what they've written)
+   - User types "Vienna" in Location → Hints update for other sections:
+     - Company hint: "Austrian startup" or "SME in Austria"
+     - Funding hint: "Consider Austrian programs like FFG or AWS"
+   - User types "startup" in Company → Hints update:
+     - Stage hint: "How long since incorporation?" or "Pre-company?"
+     - Funding hint: "Typical startup funding: €50k-€500k"
+   - User types "€150k" in Funding → Hints update:
+     - Co-financing hint: "Many programs require 20-30% co-financing"
+   
+   **Hints are contextual, not hardcoded** - They adapt based on what user writes
 
-3. **Show extracted info for verification**
-   - Display extracted attributes in a simple list
-   - User can edit any field (free text, not dropdowns)
-   - "Is this correct?" confirmation
+3. **User fills in template naturally** (free text, with helpful hints)
+   ```
+   Location: Vienna, Austria
+   Company: Climate tech startup
+   Funding: Around €150k for MVP and hiring
+   Stage: Incorporated 8 months ago
+   Co-financing: Yes, we can provide 30%
+   Industry: Environmental tech, clean energy
+   ```
 
-4. **Generate recommendations**
-   - Once all critical fields captured → generate recommendations
+4. **Single LLM extraction** (one call, extracts everything)
+   - Extract from all sections at once
+   - Map to structured variables (same as before)
+   - Show extracted values + missing variables
+
+5. **Generate recommendations**
+   - Once all critical variables captured → generate recommendations
+
+**Benefits:**
+- ✅✅✅ **Guidance** - Template shows what information matters
+- ✅✅✅ **Hints** - Contextual examples help users understand what to write
+- ✅✅ **Freedom** - User describes naturally (free text, not dropdowns)
+- ✅✅ **Simple** - Single LLM call (fast, cheap)
+- ✅ **Unbiased** - Hints adapt to user's input (not hardcoded)
+- ✅ **Complete data** - LLM ensures all variables extracted
+- ✅ **User control** - Can edit any section, re-extract
+
+---
+
+#### Option B: **Template with Example Answers (Alternative)**
+**Template with diverse example answers shown upfront**
+
+1. **Template with example answers visible** (user can use as reference)
+   ```
+   "Tell us about your project and funding situation:
+   
+   📍 Location: [Where is your company based?]
+   Example: "Vienna, Austria" or "Berlin, Germany" or "EU-wide"
+   
+   🏢 Company: [What kind of company are you?]
+   Example: "Tech startup" or "SME in manufacturing" or "Research institution"
+   
+   💰 Funding: [How much funding do you need?]
+   Example: "€150,000 for product development" or "€50k-€100k range"
+   
+   📅 Stage: [How far along is your company?]
+   Example: "Incorporated 6 months ago" or "Idea stage, not yet incorporated"
+   
+   💵 Co-financing: [Can you provide matching funds?]
+   Example: "Yes, we can provide 30%" or "No, we need 100% grant funding"
+   
+   🏭 Industry: [What industry are you in?] (optional)
+   Example: "Climate tech" or "Healthcare AI" or "Sustainable manufacturing"
+   ```
+
+2. **User fills in naturally** (can reference examples, but writes freely)
+3. **Single LLM extraction** (same as Option A)
+
+**Benefits:**
+- ✅ Clear examples (users see what good answers look like)
+- ✅ Still natural (user writes freely, examples are just reference)
+- ✅ Single extraction (fast)
+- ⚠️ Examples are static (not contextual)
+
+3. **LLM extraction with variable mapping**
+   - Extract from free text → map to structured variables:
+     - `location`: "Vienna" → "austria", "Berlin" → "germany"
+     - `company_type`: "startup" → "startup", "small business" → "sme"
+     - `funding_amount`: "€150k" → 150000, "around 50 thousand" → 50000
+     - `company_stage`: "8 months old" → "inc_6_36m", "just started" → "inc_lt_6m"
+     - `co_financing`: "30% ourselves" → {co_financing: "co_yes", percentage: 30}
+     - `industry_focus`: "climate tech" → ["environmental"]
+
+4. **Show extracted variables for verification**
+   - Display: "We extracted: Location: Austria, Company: Startup, Funding: €150,000..."
+   - User can edit any field (free text, LLM re-extracts)
+   - If critical variable missing → show: "We still need: [funding_amount]"
+
+5. **Generate recommendations**
+   - Once all critical variables captured → generate recommendations
    - Same matching engine (no changes)
 
 **Benefits:**
-- ✅ **Truly unbiased** - No leading questions or categories
-- ✅ **Natural conversation** - Feels like talking to a consultant
-- ✅ **Complete data** - LLM ensures all critical fields captured
-- ✅ **User control** - Can verify/edit everything
-- ✅ **Simple UI** - One textarea + conversational follow-ups
-- ✅ **No new files** - Modify `ProgramFinder.tsx` + add one API route
+- ✅ **Guided but unbiased** - Shows variables needed, not how to answer
+- ✅ **Natural input** - Users describe in their own words
+- ✅ **Complete data** - LLM maps natural language to structured variables
+- ✅ **User control** - Can verify/edit extracted variables
+- ✅ **Simple UI** - One textarea + extraction + verification
+- ✅ **No new files** - Modify `ProgramFinder.tsx` + add extraction API
 
 ---
 
@@ -102,31 +192,57 @@ Simplify the recommender system while maintaining **truly unbiased**, high-quali
 
 ---
 
-## Recommendation: **Option A (Conversational Guidance)**
+## Recommendation: **Option A (Smart Template with Contextual Hints)**
 
 ### Why This Approach?
 
-1. **Truly Unbiased**
-   - No hardcoded questions = no leading
-   - No dropdowns = no category bias
-   - Natural conversation = honest answers
-   - Examples guide without forcing
+1. **Guidance + Hints + Freedom + Simple**
+   - **Guidance**: Template shows what variables matter (WHAT to include)
+   - **Hints**: Contextual examples help users understand what to write
+   - **Freedom**: User describes naturally in each section (HOW to answer)
+   - **Simple**: Single LLM call extracts everything at once (fast, cheap)
+   - **Best balance**: Gets all four benefits without complexity
 
-2. **Complete Data Capture**
-   - LLM ensures all critical fields extracted
-   - Conversational follow-ups fill gaps naturally
-   - User verification prevents errors
+2. **User Gets Helpful Guidance**
+   - Template clearly shows: Location, Company, Funding, Stage, Co-financing, Industry
+   - Hints provide examples (e.g., "Vienna, Austria" or "€150,000 for MVP")
+   - Hints adapt as user types (contextual, not static)
+   - User doesn't have to guess what information matters or how to format it
 
-3. **Simple Implementation**
-   - Modify `ProgramFinder.tsx` (replace wizard with textarea + conversation)
-   - Add `/api/reco/extract-attributes.ts` (reuse LLM code)
-   - Add `/api/reco/conversational-followup.ts` (simple LLM chat)
-   - No new components, just API routes
+3. **Contextual Hints (Smart & Adaptive)**
+   - User types "Vienna" → Hints update: "Austrian startup" or "Consider FFG/AWS programs"
+   - User types "startup" → Hints update: "How long since incorporation?" or "Typical funding: €50k-€500k"
+   - Hints are generated client-side (simple rules) or via lightweight API
+   - Not hardcoded - adapts to user's input
 
-4. **Better User Experience**
-   - Feels like talking to a helpful consultant
-   - Not like filling out a form
-   - Progressive disclosure (only ask what's needed)
+4. **Single Extraction (Fast & Cheap)**
+   - One LLM call extracts from all sections at once
+   - No multiple round-trips
+   - Fast response time
+   - Lower cost
+
+5. **Complete Data Capture**
+   - LLM extracts from all sections
+   - Maps natural language to structured variables
+   - Shows what's missing (not as questions, just indication)
+   - User can edit any section → Re-extract
+
+6. **Simple Implementation**
+   - Modify `ProgramFinder.tsx` (replace wizard with template form)
+   - Add hint logic (client-side rules or lightweight API)
+   - Add `/api/reco/extract-attributes.ts` (single extraction from all sections)
+   - Show extracted variables for verification
+   - No chat interface, no multiple LLM calls
+   - Simple form with free text fields + adaptive hints
+
+### How It Works
+1. User sees template with variable sections (Location, Company, Funding, etc.)
+2. User starts typing in a section → Hints appear/update based on what they've written
+3. User fills in each section naturally (free text, with helpful hints)
+4. User clicks "Extract" → Single LLM call extracts everything
+5. Show extracted variables + missing (if any)
+6. User can edit sections → Re-extract
+7. Once complete → Generate recommendations
 
 ---
 
@@ -158,15 +274,15 @@ Simplify the recommender system while maintaining **truly unbiased**, high-quali
 
 ---
 
-## Comparison: Which Gets Best Unbiased Results?
+## Comparison: Which Gets Best Balance?
 
-| Approach | Unbiased Input | Complete Data | User Control | Implementation |
-|----------|---------------|---------------|--------------|----------------|
-| **Option A: Conversational** | ✅✅✅ Natural, no leading | ✅ LLM ensures all | ✅ User verifies | Medium |
-| **Option B: Guided Examples** | ✅✅ Natural, examples only | ⚠️ May need iterations | ✅ User edits | Easy |
-| **Old Wizard** | ❌ Structured questions | ✅ All fields | ✅ Direct control | Done |
+| Approach | Guidance | Hints | Freedom | Unbiased | Simple | Complete Data |
+|----------|----------|-------|---------|----------|--------|---------------|
+| **Option A: Smart Template** | ✅✅ Template | ✅✅✅ Contextual hints | ✅✅ Natural free text | ✅✅ No hardcoded questions | ✅✅ Single extraction | ✅ All variables |
+| **Option B: Template + Examples** | ✅✅ Template | ✅✅ Static examples | ✅✅ Natural free text | ✅✅ No hardcoded questions | ✅✅ Single extraction | ✅ All variables |
+| **Old Wizard** | ✅✅ Clear questions | ❌ None | ❌ Dropdowns | ❌ Hardcoded | ✅✅ Simple | ✅ All fields |
 
-**Winner: Option A** - Truly unbiased (no questions), complete data (conversational follow-ups), and good UX.
+**Winner: Option A** - Best balance: Guidance (template) + Hints (contextual examples) + Freedom (natural answers) + Simple (single extraction) + Unbiased (no hardcoded questions).
 
 ---
 
@@ -192,36 +308,52 @@ Simplify the recommender system while maintaining **truly unbiased**, high-quali
 
 ## Recommendation Summary
 
-**Implement Option A (Conversational Guidance):**
+**Implement Option A (Smart Template with Contextual Hints):**
 
-1. **Replace wizard with conversational flow** in `ProgramFinder.tsx`
-   - Single textarea with helpful examples (not questions)
-   - Show extracted info for verification
-   - LLM asks follow-up questions conversationally if needed
+1. **Replace wizard with smart template form** in `ProgramFinder.tsx`
+   - Show template with variable sections:
+     - Location: [free text field] + 💡 Hint (updates as user types)
+     - Company: [free text field] + 💡 Hint (updates as user types)
+     - Funding: [free text field] + 💡 Hint (updates as user types)
+     - Stage: [free text field] + 💡 Hint (updates as user types)
+     - Co-financing: [free text field] + 💡 Hint (updates as user types)
+     - Industry: [free text field] + 💡 Hint (updates as user types) (optional)
+   - User fills in each section naturally (free text, not dropdowns)
+   - Hints update contextually based on what user has written in other sections
+   - "Extract" button triggers single LLM call
 
-2. **Add extraction API** `/api/reco/extract-attributes.ts`
-   - Extract all critical fields from free text
-   - Return structured data + missing fields list
+2. **Add hint logic** (client-side or lightweight API)
+   - Simple rules: If user types "Vienna" → Update Company hint to "Austrian startup"
+   - Or lightweight API: `/api/reco/contextual-hints` (fast, no LLM needed)
+   - Hints are contextual, not hardcoded
 
-3. **Add conversational follow-up API** `/api/reco/conversational-followup.ts`
-   - LLM asks natural follow-up questions (not structured)
-   - Example: "I see you're in tech. Where is your company based?" (not dropdown)
+3. **Add extraction API** `/api/reco/extract-attributes.ts`
+   - Input: All sections as one object
+   - Extract from all sections at once → Map to structured variables
+   - location: "Vienna, Austria" → "austria"
+   - company_type: "Climate tech startup" → "startup"
+   - funding_amount: "Around €150k" → 150000
+   - company_stage: "Incorporated 8 months ago" → "inc_6_36m"
+   - co_financing: "Yes, 30%" → {co_financing: "co_yes", percentage: 30}
+   - Return: extracted variables + missing list + confidence scores
 
-4. **User verification step**
-   - Show extracted attributes in simple list
-   - User can edit any field (free text, not dropdowns)
-   - "Is this correct?" confirmation
+4. **Show extracted variables + missing**
+   - Display: "We extracted: Location: Austria ✓, Company: Startup ✓..."
+   - If missing: "We still need: [funding_amount]" (not a question, just indication)
+   - User can edit any section → Click "Extract" again
 
-5. **Same matching engine**
-   - Once all critical fields captured → generate recommendations
-   - No changes to scoring logic
+5. **Generate recommendations**
+   - Once all critical variables captured → generate recommendations
+   - Same matching engine (no changes to scoring logic)
 
 **Result:**
-- **Truly unbiased** (no hardcoded questions) ✅✅✅
-- Complete data (conversational follow-ups ensure all fields) ✅
-- Natural UX (feels like talking to consultant) ✅
-- Simple implementation (modify existing files only) ✅
-- User transparency (can verify/edit everything) ✅
+- **Guidance** (template shows what variables matter) ✅✅
+- **Hints** (contextual examples help users understand) ✅✅✅
+- **Freedom** (natural free text in each section, not dropdowns) ✅✅
+- **Simple** (single LLM extraction, fast & cheap) ✅✅
+- **Unbiased** (no hardcoded questions, hints adapt to user) ✅✅
+- Complete data (LLM ensures all variables extracted) ✅
+- Simple implementation (modify existing files + 1-2 API routes) ✅
 
 ---
 
@@ -230,48 +362,158 @@ Simplify the recommender system while maintaining **truly unbiased**, high-quali
 ### API Endpoint: `/api/reco/extract-attributes.ts`
 
 ```typescript
-// Extract structured answers from free text
-// Input: { text: "I'm a startup in Vienna..." }
+// Extract structured variables from all template sections (single call)
+// Input: { 
+//   location: "Vienna, Austria",
+//   company: "Climate tech startup",
+//   funding: "Around €150k for MVP and hiring",
+//   stage: "Incorporated 8 months ago",
+//   co_financing: "Yes, we can provide 30%",
+//   industry: "Environmental tech, clean energy"
+// }
 // Output: { 
-//   extracted: { location: "austria", company_type: "startup", ... },
-//   missing: ["funding_amount"], // Critical fields still needed
-//   confidence: { location: 0.95, company_type: 0.9, ... }
+//   extracted: { 
+//     location: "austria",           // Mapped from "Vienna, Austria"
+//     company_type: "startup",        // Mapped from "Climate tech startup"
+//     funding_amount: 150000,         // Extracted from "Around €150k"
+//     company_stage: "inc_6_36m",     // Mapped from "Incorporated 8 months ago"
+//     co_financing: "co_yes",         // Extracted from "Yes, we can provide 30%"
+//     co_financing_percentage: 30,    // Extracted from "30%"
+//     industry_focus: ["environmental"] // Mapped from "Environmental tech"
+//   },
+//   missing: [],                      // Critical variables still needed (if any)
+//   confidence: { 
+//     location: 0.95, 
+//     company_type: 0.9, 
+//     funding_amount: 0.85,
+//     company_stage: 0.9,
+//     co_financing: 0.95
+//   }
 // }
 ```
 
-### API Endpoint: `/api/reco/conversational-followup.ts`
-
+**LLM Prompt for Extraction:**
 ```typescript
-// LLM asks natural follow-up questions
-// Input: { 
-//   currentText: "I'm a startup in Vienna...",
-//   extracted: { location: "austria", company_type: "startup" },
-//   missing: ["funding_amount"]
-// }
-// Output: { 
-//   question: "I see you're a startup in Vienna. How much funding are you looking for?",
-//   context: "Asking about funding_amount"
-// }
+const EXTRACTION_PROMPT = `
+Extract structured variables from user's template responses:
+
+Location: "${location}"
+Company: "${company}"
+Funding: "${funding}"
+Stage: "${stage}"
+Co-financing: "${co_financing}"
+Industry: "${industry}"
+
+Map to these structured values:
+1. location → "austria", "germany", "eu", "international"
+2. company_type → "prefounder", "startup", "sme", "research", "other"
+3. company_stage → "idea", "pre_company", "inc_lt_6m", "inc_6_36m", "inc_gt_36m", "research_org"
+4. funding_amount → Extract number (EUR)
+5. co_financing → "co_yes", "co_no", "co_uncertain" + percentage if yes
+6. industry_focus → Array of: ["digital", "environmental", "social", etc.]
+
+Return JSON with extracted values and confidence scores.
+`;
 ```
 
 ### UI Flow in `ProgramFinder.tsx`
 
-1. **Initial state**: Textarea with examples
-2. **User types** → Extract on button click or auto-extract after pause
-3. **Show extracted info** → User verifies/edits
-4. **If missing critical fields** → Show conversational follow-up question
-5. **User answers follow-up** → Re-extract, repeat until complete
-6. **All critical fields present** → Generate recommendations
+1. **Show template form** with variable sections (Location, Company, Funding, Stage, Co-financing, Industry)
+2. **User starts typing in a section** → Hints update contextually based on what they've written
+3. **User fills in each section** naturally (free text fields, with helpful hints)
+4. **User clicks "Extract"** → Single LLM call extracts from all sections
+5. **Show extracted variables** → Display mapped values + missing (if any)
+6. **User can edit sections** → Click "Extract" again → Re-extract
+7. **Once all critical variables captured** → Show "Generate Recommendations" button
+8. **Generate recommendations** → Same matching engine
+
+### UI Components Needed
+
+```typescript
+// Template form with:
+- TemplateSection (label + free text input + contextual hint for each variable)
+  - Location: [textarea] + 💡 Hint (updates as user types)
+  - Company: [textarea] + 💡 Hint (updates as user types)
+  - Funding: [textarea] + 💡 Hint (updates as user types)
+  - Stage: [textarea] + 💡 Hint (updates as user types)
+  - Co-financing: [textarea] + 💡 Hint (updates as user types)
+  - Industry: [textarea] + 💡 Hint (updates as user types) (optional)
+- HintLogic (client-side rules or lightweight API call)
+- ExtractButton (triggers single LLM call)
+- ExtractedVariablesPanel (shows mapped values)
+- MissingVariablesIndicator (shows what's still needed)
+- EditButton (user can edit sections and re-extract)
+- GenerateButton (when all variables captured)
+```
+
+### Hint Logic (Simple Client-Side Rules)
+
+```typescript
+// Example hint rules (can be client-side, no API needed)
+const getContextualHint = (section: string, otherSections: Record<string, string>) => {
+  if (section === 'company' && otherSections.location?.includes('Vienna')) {
+    return '💡 e.g., "Austrian startup" or "SME in Austria"';
+  }
+  if (section === 'funding' && otherSections.company?.includes('startup')) {
+    return '💡 Typical startup funding: €50k-€500k';
+  }
+  if (section === 'stage' && otherSections.company?.includes('startup')) {
+    return '💡 e.g., "Just incorporated 3 months ago" or "Pre-company stage"';
+  }
+  // Default hints
+  return getDefaultHint(section);
+};
+```
 
 ### Key Differences from Current Wizard
 
-| Current Wizard | New Conversational |
-|----------------|-------------------|
-| Hardcoded questions | Natural conversation |
-| Dropdown options | Free text everywhere |
-| Fixed question order | Contextual follow-ups |
-| Form-like | Consultant-like |
-| "What type of company?" | "Tell me about your company..." |
+| Current Wizard | New Guided Template |
+|----------------|---------------------|
+| Hardcoded questions | Template shows variables (WHAT to include) |
+| Same questions for everyone | Same template, but user describes naturally |
+| "What type of company?" [Dropdown] | "Company: [free text]" → User describes naturally |
+| Forces category selection | LLM maps natural language to categories |
+| Fixed question order | User fills in any order |
+| Form-like (one question at a time) | Template form (all sections visible) |
+| Structured answers required | Natural free text in each section |
+| User picks from options | User writes freely, LLM understands |
+| Multiple steps | Single extraction |
+
+### The Perfect Balance
+
+**Guidance (Q&A):**
+- ✅ LLM asks questions to help users know what to answer
+- ✅ Questions provide context and guidance
+- ✅ Users don't have to guess what to include
+
+**Freedom (Natural Answers):**
+- ✅ Users answer in free text (not dropdowns)
+- ✅ No structured options to choose from
+- ✅ Users describe in their own words
+
+**Unbiased (Adaptive Questions):**
+- ✅ Questions adapt to what user already said
+- ✅ Not hardcoded - each conversation is unique
+- ✅ Questions are contextual and relevant
+- ✅ No bias from fixed question structure
+
+**LLM Handles Everything:**
+- ✅ Extracts from natural language answers
+- ✅ Maps to structured variables (location, company_type, funding_amount, etc.)
+- ✅ Generates adaptive follow-up questions
+- ✅ Ensures all critical variables captured
+
+**User Verification:**
+- ✅ See conversation history
+- ✅ See extracted variables (updates as conversation progresses)
+- ✅ Edit extracted values if needed (free text, re-extracts)
+- ✅ Control over final values
+
+**Result:**
+- Guidance (Q&A) + Freedom (natural answers) + Unbiased (adaptive questions)
+- LLM ensures complete data (all variables extracted)
+- User has control (can verify/edit)
+- Natural conversation (feels like consultant, not form)
 
 ---
 
@@ -292,40 +534,87 @@ Q3: "What stage is your company at?"
    → Arbitrary time buckets may not match user's reality
 ```
 
-### New Conversational (Unbiased)
+### New Smart Template with Contextual Hints (Creative Hybrid)
 ```
-User types: "I'm working on a climate tech startup in Vienna. 
-We've been incorporated for about 8 months and need around 
-€150k to build our MVP and hire our first engineer. We can 
-put in about 30% ourselves."
+TEMPLATE WITH CONTEXTUAL HINTS (shown to user):
+"Tell us about your project and funding situation:
 
-LLM extracts:
-- location: "austria" (from "Vienna")
-- company_type: "startup" (from "startup")
-- company_stage: "inc_6_36m" (from "8 months" → maps to 6-36m)
-- funding_amount: 150000 (from "€150k")
-- co_financing: "co_yes" (from "30% ourselves")
-- industry_focus: ["environmental"] (from "climate tech")
+📍 Location: [Where is your company based?]
+💡 Hint: e.g., "Vienna, Austria" or "Berlin, Germany"
 
-If missing funding_amount, LLM asks conversationally:
-"I see you're working on a climate tech startup in Vienna. 
-How much funding are you looking for, and what will you 
-use it for?"
+🏢 Company: [What kind of company are you?]
+💡 Hint: e.g., "Startup", "SME", "Research institution"
 
-Not: "What is your funding amount?" [Dropdown: €0-50k, €50k-100k...]
+💰 Funding: [How much funding do you need?]
+💡 Hint: e.g., "€150,000 for MVP development"
+
+📅 Stage: [How far along is your company?]
+💡 Hint: e.g., "Just incorporated 3 months ago"
+
+💵 Co-financing: [Can you provide matching funds?]
+💡 Hint: e.g., "Yes, 30%" or "No, we need 100% grant"
+
+🏭 Industry: [What industry are you in?] (optional)
+💡 Hint: e.g., "Climate tech", "Healthcare", "AI/ML"
+
+USER TYPES "Vienna" IN LOCATION → HINTS UPDATE:
+💡 Company hint changes to: "Austrian startup" or "SME in Austria"
+💡 Funding hint changes to: "Consider Austrian programs (FFG, AWS) typically €50k-€500k"
+
+USER TYPES "startup" IN COMPANY → HINTS UPDATE:
+💡 Stage hint changes to: "How long since incorporation?" or "Pre-company stage?"
+💡 Funding hint changes to: "Typical startup funding: €50k-€500k"
+
+USER FILLS IN ALL SECTIONS:
+Location: Vienna, Austria
+Company: Climate tech startup
+Funding: Around €150k for MVP and hiring
+Stage: Incorporated 8 months ago
+Co-financing: Yes, we can provide 30%
+Industry: Environmental tech
+
+SINGLE LLM EXTRACTION (one call):
+- location: "Vienna, Austria" → "austria" ✓
+- company_type: "Climate tech startup" → "startup" ✓
+- funding_amount: "Around €150k" → 150000 ✓
+- company_stage: "Incorporated 8 months ago" → "inc_6_36m" ✓
+- co_financing: "Yes, we can provide 30%" → {co_financing: "co_yes", percentage: 30} ✓
+- industry_focus: "Environmental tech" → ["environmental"] ✓
+
+VERIFICATION (shown to user):
+"We extracted:
+- Location: Austria ✓
+- Company: Startup ✓
+- Funding: €150,000 ✓
+- Stage: Growing (6-36 months) ✓
+- Co-financing: Yes, 30% ✓
+- Industry: Environmental/Climate ✓
+
+Is this correct? [Edit] [Continue]"
 ```
 
-### Key Difference
-- **Wizard**: "What type of company?" → Forces category selection
-- **Conversational**: "Tell me about your company..." → User describes naturally, LLM understands
+### Key Differences
+- **Wizard**: Hardcoded questions + dropdowns → Forces categories → Biased
+- **Guided Template**: Shows variables (WHAT) → User describes naturally (HOW) → Unbiased
+- **Smart Template**: Shows variables + Contextual hints → Hints adapt as user types → Best of both worlds
+- **Single Extraction**: One LLM call → Fast, cheap, simple
+- **Result**: Guidance (template) + Hints (contextual examples) + Freedom (natural answers) + Simple (one extraction)
 
 ---
 
 ## Next Steps
 
-1. **Decide on approach** (Option A - Conversational, or Option B - Guided Examples)
-2. **If Option A**: I'll implement conversational flow (textarea + extraction + follow-ups)
-3. **If Option B**: I'll implement guided examples (textarea + one-shot extraction)
+1. **Decide on approach** (Option A - Smart Template with Contextual Hints, or Option B - Template with Static Examples)
+2. **If Option A**: I'll implement smart template with contextual hints (sections + adaptive hints + single extraction)
+3. **If Option B**: I'll implement template with static examples (sections + fixed examples + single extraction)
+
+**Implementation will include:**
+- Template form in `ProgramFinder.tsx` (replace wizard)
+- Hint logic (client-side rules or lightweight API)
+- `/api/reco/extract-attributes.ts` (single extraction from all sections)
+- Extracted variables panel (shows mapped values)
+- Missing variables indicator (if any)
+- User can edit and re-extract
 
 **Which approach do you prefer?**
 

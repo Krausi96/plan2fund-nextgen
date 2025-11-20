@@ -55,13 +55,13 @@ export default function Breadcrumbs() {
                 </span>
               )}
               {isActive ? (
-                <span className="font-semibold text-blue-600" aria-current="page">
+                <span className="font-semibold text-neutral-900" aria-current="page">
                   {step.label}
                 </span>
               ) : isCompleted ? (
                 <Link 
                   href={step.href} 
-                  className="text-gray-600 hover:text-blue-600 hover:underline transition-colors"
+                  className="text-gray-600 hover:text-neutral-900 hover:underline transition-colors"
                 >
                   {step.label}
                 </Link>

@@ -29,7 +29,7 @@ export default function LanguageSwitcher({ compact }: Props) {
         aria-label="Language"
         value={locale}
         onChange={(e) => handleLanguageChange(e.target.value)}
-        className={`border border-blue-600 text-blue-600 rounded-lg pl-8 pr-3 py-1.5 text-sm font-medium bg-white hover:bg-blue-600 hover:text-white focus:outline-none focus:ring-2 focus:ring-blue-500 transition-colors cursor-pointer ${compact ? "text-sm" : "text-base"}`}
+        className={`border border-neutral-700 text-neutral-700 rounded-lg pl-8 pr-3 py-1.5 text-sm font-medium bg-white hover:bg-neutral-700 hover:text-white focus:outline-none focus:ring-2 focus:ring-neutral-500 transition-colors cursor-pointer ${compact ? "text-sm" : "text-base"}`}
       >
         {languageOptions.map((lang) => (
           <option key={lang.code} value={lang.code}>
@@ -37,7 +37,7 @@ export default function LanguageSwitcher({ compact }: Props) {
           </option>
         ))}
       </select>
-      <Languages className="absolute left-2 top-1/2 -translate-y-1/2 w-4 h-4 pointer-events-none z-10 text-blue-600" />
+      <Languages className="absolute left-2 top-1/2 -translate-y-1/2 w-4 h-4 pointer-events-none z-10 text-neutral-600" />
     </div>
   )
 }

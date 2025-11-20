@@ -28,14 +28,14 @@ export default function InPageBreadcrumbs({ items, className = "" }: InPageBread
               {item.href ? (
                 <a 
                   href={item.href}
-                  className="text-gray-600 hover:text-blue-600 transition-colors px-2 py-1 rounded hover:bg-gray-100"
+                  className="text-gray-600 hover:text-neutral-900 transition-colors px-2 py-1 rounded hover:bg-gray-100"
                 >
                   {item.label}
                 </a>
               ) : item.onClick ? (
                 <button
                   onClick={item.onClick}
-                  className="text-gray-600 hover:text-blue-600 transition-colors px-2 py-1 rounded hover:bg-gray-100"
+                  className="text-gray-600 hover:text-neutral-900 transition-colors px-2 py-1 rounded hover:bg-gray-100"
                 >
                   {item.label}
                 </button>

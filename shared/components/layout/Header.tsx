@@ -56,34 +56,34 @@ export default function Header() {
         {/* Logo */}
         <Link 
           href="/" 
-          className="text-2xl md:text-3xl font-bold bg-gradient-to-r from-blue-600 to-blue-700 bg-clip-text text-transparent hover:from-blue-700 hover:to-blue-800 transition-all duration-300"
+          className="text-2xl md:text-3xl font-bold bg-gradient-to-r from-neutral-700 to-neutral-900 bg-clip-text text-transparent hover:from-neutral-800 hover:to-neutral-900 transition-all duration-300"
         >
           Plan2Fund
         </Link>
 
         {/* Desktop Nav */}
         <nav className="hidden md:flex gap-8 items-center">
-          <Link href="/about" className="text-neutral-700 hover:text-blue-600 transition-colors font-semibold text-sm uppercase tracking-wide">
+          <Link href="/about" className="text-neutral-700 hover:text-neutral-900 transition-colors font-semibold text-sm uppercase tracking-wide">
             {t('nav.howItWorks')}
           </Link>
-          <Link href="/pricing" className="text-neutral-700 hover:text-blue-600 transition-colors font-semibold text-sm uppercase tracking-wide">
+          <Link href="/pricing" className="text-neutral-700 hover:text-neutral-900 transition-colors font-semibold text-sm uppercase tracking-wide">
             {t('nav.pricing')}
           </Link>
-          <Link href="/faq" className="text-neutral-700 hover:text-blue-600 transition-colors font-semibold text-sm uppercase tracking-wide">
+          <Link href="/faq" className="text-neutral-700 hover:text-neutral-900 transition-colors font-semibold text-sm uppercase tracking-wide">
             FAQ
           </Link>
           {isMounted && userProfile ? (
             <div className="flex items-center gap-4">
               <Link 
                 href="/dashboard" 
-                className="flex items-center gap-2 text-neutral-700 hover:text-blue-600 transition-colors font-semibold text-sm"
+                className="flex items-center gap-2 text-neutral-700 hover:text-neutral-900 transition-colors font-semibold text-sm"
               >
                 <User className="w-4 h-4" />
                 My Account
               </Link>
               <button
                 onClick={handleLogout}
-                className="flex items-center gap-2 text-neutral-700 hover:text-blue-600 transition-colors font-semibold text-sm"
+                className="flex items-center gap-2 text-neutral-700 hover:text-neutral-900 transition-colors font-semibold text-sm"
                 title="Log out"
               >
                 <LogOut className="w-4 h-4" />
@@ -93,7 +93,7 @@ export default function Header() {
           ) : isMounted ? (
             <button
               onClick={() => setLoginModalOpen(true)}
-              className="px-6 py-2.5 border-2 border-blue-600 text-blue-600 rounded-xl hover:bg-blue-600 hover:text-white transition-all duration-300 font-semibold shadow-md hover:shadow-lg"
+              className="px-6 py-2.5 border-2 border-neutral-700 text-neutral-700 rounded-xl hover:bg-neutral-700 hover:text-white transition-all duration-300 font-semibold shadow-md hover:shadow-lg"
             >
               Log in
             </button>
@@ -122,21 +122,21 @@ export default function Header() {
           <div className="px-4 py-6 flex flex-col gap-4">
             <Link 
               href="/about" 
-              className="text-neutral-700 hover:text-blue-600 transition-colors font-semibold py-3 text-sm uppercase tracking-wide"
+              className="text-neutral-700 hover:text-neutral-900 transition-colors font-semibold py-3 text-sm uppercase tracking-wide"
               onClick={() => setOpen(false)}
             >
               {t('nav.howItWorks')}
             </Link>
             <Link 
               href="/pricing" 
-              className="text-neutral-700 hover:text-blue-600 transition-colors font-semibold py-3 text-sm uppercase tracking-wide"
+              className="text-neutral-700 hover:text-neutral-900 transition-colors font-semibold py-3 text-sm uppercase tracking-wide"
               onClick={() => setOpen(false)}
             >
               {t('nav.pricing')}
             </Link>
             <Link 
               href="/faq" 
-              className="text-neutral-700 hover:text-blue-600 transition-colors font-semibold py-3 text-sm uppercase tracking-wide"
+              className="text-neutral-700 hover:text-neutral-900 transition-colors font-semibold py-3 text-sm uppercase tracking-wide"
               onClick={() => setOpen(false)}
             >
               {t('nav.faq')}
@@ -165,7 +165,7 @@ export default function Header() {
                   setLoginModalOpen(true);
                   setOpen(false);
                 }}
-                className="w-full px-4 py-3 text-blue-600 border-2 border-blue-600 rounded-xl hover:bg-blue-600 hover:text-white transition-all duration-300 font-semibold text-center shadow-md"
+                className="w-full px-4 py-3 text-neutral-700 border-2 border-neutral-700 rounded-xl hover:bg-neutral-700 hover:text-white transition-all duration-300 font-semibold text-center shadow-md"
               >
                 Log in
               </button>

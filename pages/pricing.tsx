@@ -2,6 +2,7 @@ import Link from "next/link";
 import { Button } from "@/shared/components/ui/button";
 import CTAStrip from '@/shared/components/common/CTAStrip';
 import SEOHead from '@/shared/components/common/SEOHead';
+import HeroLite from '@/shared/components/common/HeroLite';
 import { useI18n } from "@/shared/contexts/I18nContext";
 import analytics from "@/shared/user/analytics";
 import { useEffect } from "react";
@@ -73,19 +74,10 @@ export default function Pricing() {
       />
       
       <div className="min-h-screen bg-gray-50">
-        {/* Hero Section */}
-        <section className="bg-gradient-to-br from-blue-50 to-indigo-100 py-16">
-          <div className="container mx-auto px-4">
-            <div className="text-center max-w-3xl mx-auto">
-              <h1 className="text-4xl md:text-5xl font-bold text-gray-900 mb-4">
-                {t("pricing.title")}
-              </h1>
-              <p className="text-xl text-gray-600 mb-8">
-                {t("pricing.subtitle")}
-              </p>
-            </div>
-          </div>
-        </section>
+        <HeroLite
+          title={t("pricing.title")}
+          subtitle={t("pricing.subtitle")}
+        />
 
         {/* Pricing Cards */}
         <section className="py-16">
@@ -98,7 +90,7 @@ export default function Pricing() {
                   <div
                     key={plan.id}
                     id={plan.id}
-                    className="bg-white rounded-2xl shadow-lg border border-gray-200 p-8 hover:shadow-xl transition-shadow"
+                    className="bg-white rounded-2xl shadow-sm border-2 border-neutral-200 p-8 hover:shadow-md hover:border-blue-300 transition-all"
                   >
                     {/* Header */}
                     <div className="text-center mb-6">
