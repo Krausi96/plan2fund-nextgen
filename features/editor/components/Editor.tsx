@@ -1488,7 +1488,7 @@ export default function Editor({ product = 'submission' }: EditorProps) {
   return (
     <div className="min-h-screen bg-[#f6f8fb]">
       <header className="border-b-2 border-slate-200 bg-white/95 backdrop-blur-sm shadow-sm">
-        <div className="mx-auto max-w-[1400px] px-4 sm:px-6 lg:px-12 py-3">
+        <div className="mx-auto max-w-[1400px] px-4 sm:px-6 lg:px-12 py-4">
           <PlanConfigurator
             plan={plan}
             programSummary={programSummary ?? plan.programSummary ?? null}
@@ -1595,24 +1595,29 @@ function PlanConfigurator({
   programError: string | null;
 }) {
   return (
-    <div className="flex items-center gap-4">
-      <label className="flex items-center gap-2">
-        <span className="text-sm font-medium text-slate-700 whitespace-nowrap">Product type:</span>
-        <div className="relative">
-          <select
-            value={plan.productType ?? 'submission'}
-            onChange={(event) => onChangeProduct(event.target.value as ProductType)}
-            className="appearance-none rounded-lg border border-slate-200 bg-white px-3 py-1.5 text-sm font-medium text-slate-700 focus:border-blue-500 focus:ring-1 focus:ring-blue-200"
-          >
-            {PRODUCT_TYPE_OPTIONS.map((option) => (
-              <option key={option.value} value={option.value}>
-                {option.label}
-              </option>
-            ))}
-          </select>
-          <span className="pointer-events-none absolute inset-y-0 right-2 flex items-center text-slate-400 text-xs">▾</span>
+    <div className="flex items-center justify-between gap-6">
+      <div className="flex items-center gap-6 flex-1">
+        <div>
+          <p className="text-base font-semibold text-slate-900 leading-tight">{plan.titlePage.planTitle || 'Business Plan'}</p>
         </div>
-      </label>
+        <label className="flex items-center gap-2">
+          <span className="text-xs font-medium text-slate-600 whitespace-nowrap">Product type:</span>
+          <div className="relative">
+            <select
+              value={plan.productType ?? 'submission'}
+              onChange={(event) => onChangeProduct(event.target.value as ProductType)}
+              className="appearance-none rounded-lg border border-slate-200 bg-white px-3 py-1.5 text-sm font-medium text-slate-700 focus:border-blue-500 focus:ring-1 focus:ring-blue-200"
+            >
+              {PRODUCT_TYPE_OPTIONS.map((option) => (
+                <option key={option.value} value={option.value}>
+                  {option.label}
+                </option>
+              ))}
+            </select>
+            <span className="pointer-events-none absolute inset-y-0 right-2 flex items-center text-slate-400 text-xs">▾</span>
+          </div>
+        </label>
+      </div>
       <div className="flex-shrink-0">
         <div className="relative">
           <ProgramConnectionCard
@@ -1769,9 +1774,6 @@ function SectionNavigationBar({
         const isAncillary = section.id === ANCILLARY_SECTION_ID;
         const isActive = section.id === activeSectionId;
 
-        const isComplete = completion === 100;
-        const isPending = completion > 0 && completion < 100;
-
         return (
           <button
             key={section.id}
@@ -1782,26 +1784,28 @@ function SectionNavigationBar({
                 : 'border-slate-200 bg-white text-slate-700 hover:border-slate-300 hover:bg-slate-50'
             }`}
           >
-            <div className="flex items-center justify-between gap-2">
-              {!isAncillary && (
-                <span className={`text-xs font-semibold ${isActive ? 'text-blue-100' : 'text-slate-500'}`}>
-                  {String(index + 1).padStart(2, '0')}
+            <div className="flex flex-col gap-1.5">
+              <div className="flex items-center justify-between">
+                {!isAncillary && (
+                  <span className={`text-xs font-semibold ${isActive ? 'text-blue-100' : 'text-slate-500'}`}>
+                    {String(index + 1).padStart(2, '0')}
+                  </span>
+                )}
+                <span className={`text-xs font-medium ${isActive ? 'text-white' : completion === 100 ? 'text-green-600' : completion > 0 ? 'text-amber-600' : 'text-slate-400'}`}>
+                  {completion}%
                 </span>
-              )}
-              <p className={`text-sm font-semibold leading-tight flex-1 text-left ${isActive ? 'text-white' : 'text-slate-900'}`}>
+              </div>
+              <div className="w-full h-1 bg-slate-200 rounded-full overflow-hidden">
+                <div
+                  className={`h-full transition-all ${
+                    completion === 100 ? 'bg-green-500' : completion > 0 ? 'bg-amber-500' : 'bg-slate-300'
+                  }`}
+                  style={{ width: `${completion}%` }}
+                />
+              </div>
+              <p className={`text-sm font-semibold leading-tight text-left ${isActive ? 'text-white' : 'text-slate-900'}`}>
                 {section.title}
               </p>
-              {isComplete && (
-                <span className={`text-sm ${isActive ? 'text-blue-100' : 'text-green-600'}`}>✓</span>
-              )}
-              {isPending && (
-                <span className={`text-xs ${isActive ? 'text-blue-100' : 'text-amber-600'}`}>
-                  <svg className="animate-spin h-3 w-3" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                    <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-                    <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-                  </svg>
-                </span>
-              )}
             </div>
           </button>
         );
@@ -1912,50 +1916,47 @@ function SectionWorkspace({
   return (
     <main className="space-y-6">
       {/* Section Header */}
-      <div className="rounded-xl border border-slate-200 bg-slate-50/50 p-4">
-        <div className="space-y-1">
-          <h1 className="text-xl font-bold text-slate-900 leading-tight">{section.title}</h1>
+      <div className="rounded-3xl border border-slate-200 bg-white p-6 shadow-sm">
+        <div className="space-y-2">
+          {section.category && (
+            <p className="text-[11px] uppercase tracking-[0.35em] text-slate-400">{section.category}</p>
+          )}
+          <h1 className="text-2xl font-semibold text-slate-900 leading-tight">{section.title}</h1>
           {(sectionHint || section.description) && (
-            <p className="text-sm text-slate-600 leading-relaxed">{sectionHint || section.description}</p>
+            <p className="text-sm text-slate-600">{sectionHint || section.description}</p>
           )}
         </div>
       </div>
 
-      {/* Question Navigation Bar */}
+      {/* Prompt Navigation Bar */}
       {section.questions.length > 1 && (
-        <div className="bg-white rounded-xl border border-slate-200 p-3">
-          <p className="text-xs font-semibold text-slate-500 uppercase tracking-wide mb-2">Navigate questions</p>
-          <div className="flex items-center gap-2 overflow-x-auto">
-            {section.questions.map((question, index) => {
-              const isActive = question.id === activeQuestionId;
-              const status = question.status;
-              const promptPreview = question.prompt.length > 40 ? question.prompt.substring(0, 40) + '...' : question.prompt;
-              
-              return (
-                <button
-                  key={question.id}
-                  onClick={() => onSelectQuestion(question.id)}
-                  className={`flex-shrink-0 rounded-lg border-2 px-4 py-2.5 text-sm font-medium transition-all text-left ${
-                    isActive
-                      ? 'border-blue-600 bg-blue-600 text-white shadow-md'
-                      : `border-slate-200 bg-white text-slate-700 hover:border-slate-300 hover:bg-slate-50`
-                  }`}
-                  title={question.prompt}
-                >
-                  <div className="flex items-center gap-2 min-w-[120px]">
-                    <span className="font-bold">{index + 1}</span>
-                    <span className="flex-1 truncate">{promptPreview}</span>
-                    {status === 'complete' && (
-                      <span className={`text-xs flex-shrink-0 ${isActive ? 'text-blue-100' : 'text-green-600'}`}>✓</span>
-                    )}
-                    {status === 'draft' && (
-                      <span className={`text-xs flex-shrink-0 ${isActive ? 'text-blue-100' : 'text-amber-600'}`}>⋯</span>
-                    )}
-                  </div>
-                </button>
-              );
-            })}
-          </div>
+        <div className="flex items-center gap-2 overflow-x-auto pb-2">
+          {section.questions.map((question, index) => {
+            const isActive = question.id === activeQuestionId;
+            const status = question.status;
+            
+            return (
+              <button
+                key={question.id}
+                onClick={() => onSelectQuestion(question.id)}
+                className={`flex-shrink-0 rounded-lg border-2 px-4 py-2 text-sm font-medium transition-all ${
+                  isActive
+                    ? 'border-blue-600 bg-blue-600 text-white shadow-md'
+                    : `border-slate-200 bg-white text-slate-700 hover:border-slate-300 hover:bg-slate-50`
+                }`}
+              >
+                <div className="flex items-center gap-2">
+                  <span className="font-semibold">{index + 1}</span>
+                  {status === 'complete' && (
+                    <span className={`text-xs ${isActive ? 'text-blue-100' : 'text-green-600'}`}>✓</span>
+                  )}
+                  {status === 'draft' && (
+                    <span className={`text-xs ${isActive ? 'text-blue-100' : 'text-amber-600'}`}>⋯</span>
+                  )}
+                </div>
+              </button>
+            );
+          })}
         </div>
       )}
 
