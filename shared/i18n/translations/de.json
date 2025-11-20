@@ -1517,7 +1517,7 @@
   "reco.ui.coFinancingPercentagePlaceholder": "z.B. 30%",
   "reco.ui.coFinancingPercentageHint": "Viele Programme erfordern 20-50% Eigenmittel",
   "reco.ui.guidedWizard": "Geführter Assistent",
-  "reco.ui.simpleTemplate": "Einfaches Template",
+  "reco.ui.smartWizard": "Smart Wizard",
   "reco.ui.sliderMonths": "Monate",
   "reco.ui.sliderPeople": "Personen",
   "reco.ui.yourAnswers": "Deine Antworten",

@@ -548,16 +548,7 @@ export default function ProgramFinder({
 }: ProgramFinderProps) {
   const router = useRouter();
   const { t, locale } = useI18n();
-  const [inputMode, setInputMode] = useState<'wizard' | 'template'>('wizard');
-  const [templateSections, setTemplateSections] = useState<Record<string, string>>({
-    location: '',
-    company_type: '',
-    funding_amount: '',
-    company_stage: '',
-    co_financing: '',
-    industry_focus: '',
-  });
-  const [templateHints, setTemplateHints] = useState<Record<string, string>>({});
+  const [inputMode, setInputMode] = useState<'guided' | 'smart'>('guided');
   const [chatMessages, setChatMessages] = useState<ChatMessage[]>(() => createInitialChatMessages(locale));
   const [chatInput, setChatInput] = useState('');
   const [showHintLibrary, setShowHintLibrary] = useState(true);
@@ -1026,9 +1017,9 @@ export default function ProgramFinder({
         <div className="mb-6 max-w-2xl mx-auto">
           <div className="flex border-b border-gray-200">
             <button
-              onClick={() => setInputMode('wizard')}
+              onClick={() => setInputMode('guided')}
               className={`flex-1 px-4 py-3 text-sm font-medium border-b-2 transition-colors ${
-                inputMode === 'wizard'
+                inputMode === 'guided'
                   ? 'border-blue-600 text-blue-600'
                   : 'border-transparent text-gray-500 hover:text-gray-700'
               }`}
@@ -1036,14 +1027,14 @@ export default function ProgramFinder({
               📋 {t('reco.ui.guidedWizard') || 'Guided Wizard'}
             </button>
             <button
-              onClick={() => setInputMode('template')}
+              onClick={() => setInputMode('smart')}
               className={`flex-1 px-4 py-3 text-sm font-medium border-b-2 transition-colors ${
-                inputMode === 'template'
+                inputMode === 'smart'
                   ? 'border-blue-600 text-blue-600'
                   : 'border-transparent text-gray-500 hover:text-gray-700'
               }`}
             >
-              ✍️ {t('reco.ui.simpleTemplate') || 'Simple Template'}
+              ⚡ {t('reco.ui.smartWizard') || 'Smart Wizard'}
             </button>
           </div>
         </div>
@@ -1075,6 +1066,13 @@ export default function ProgramFinder({
         </div>
 
         <div className="flex flex-col gap-2" data-questions-section>
+          {inputMode === 'smart' && (
+            <div className="max-w-2xl mx-auto w-full bg-gradient-to-r from-blue-600/10 via-blue-500/5 to-blue-600/10 border border-blue-200 text-sm text-blue-900 rounded-xl px-4 py-3 shadow-sm">
+              {locale === 'de'
+                ? 'Smart Wizard nutzt Ihre Freitext-Antworten, füllt Felder automatisch vor und schlägt fehlende Angaben vor.'
+                : 'Smart Wizard uses your free-text input to pre-fill answers and call out anything that is still missing.'}
+            </div>
+          )}
           <Card className="p-6 bg-white/90 border border-blue-100 shadow-sm">
             <div className="flex flex-col gap-6 lg:flex-row">
               <div className="flex-1 min-w-0">
@@ -1198,64 +1196,6 @@ export default function ProgramFinder({
             </div>
           </Card>
 
-          {inputMode === 'template' && (
-            <Card className="p-6 max-w-2xl mx-auto w-full bg-gradient-to-br from-white to-blue-50/30 border-2 border-blue-300 shadow-lg">
-              <div className="space-y-4">
-                <div className="text-center mb-4">
-                  <h2 className="text-xl font-semibold text-gray-900 mb-2">
-                    {t('reco.template.title') || 'Tell us about your project'}
-                  </h2>
-                  <p className="text-gray-600 text-sm">
-                    {t('reco.template.subtitle') || 'Fill out the sections below and we will generate tailored programs for you.'}
-                  </p>
-                </div>
-                {[
-                  { id: 'location', label: '📍 ' + (t('reco.questions.location') || 'Location'), hint: 'e.g., Vienna, Austria' },
-                  { id: 'company_type', label: '🏢 ' + (t('reco.questions.company_type') || 'Company Type'), hint: 'e.g., Startup, SME' },
-                  { id: 'funding_amount', label: '💰 ' + (t('reco.questions.funding_amount') || 'Funding Need'), hint: 'e.g., €150,000 for MVP' },
-                  { id: 'company_stage', label: '📅 ' + (t('reco.questions.company_stage') || 'Company Stage'), hint: 'e.g., Incorporated 8 months ago' },
-                  { id: 'co_financing', label: '💵 ' + (t('reco.questions.co_financing') || 'Co-financing Capability'), hint: 'e.g., Yes, 30%' },
-                  { id: 'industry_focus', label: '🏭 ' + (t('reco.questions.industry_focus') || 'Industry'), hint: 'e.g., Climate Tech' },
-                ].map((field) => (
-                  <div key={field.id}>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">
-                      {field.label}
-                    </label>
-                    <textarea
-                      value={templateSections[field.id] || ''}
-                      onChange={(e) => {
-                        const updated = { ...templateSections, [field.id]: e.target.value };
-                        setTemplateSections(updated);
-                        const hintsUpdate: Record<string, string> = {};
-                        if (field.id === 'location' && e.target.value.toLowerCase().includes('vienna')) {
-                          hintsUpdate.company_type = '💡 ' + (t('reco.template.hintAustrianCompany') || 'Try Austrian startup or SME');
-                        }
-                        if (field.id === 'company_type' && e.target.value.toLowerCase().includes('startup')) {
-                          hintsUpdate.funding_amount = '💡 ' + (t('reco.template.hintStartupFunding') || 'Most startups request €50k-€500k');
-                        }
-                        setTemplateHints((prev) => ({ ...prev, ...hintsUpdate }));
-                      }}
-                      placeholder={templateHints[field.id] || field.hint}
-                      className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-sm"
-                      rows={2}
-                    />
-                    {templateHints[field.id] && (
-                      <p className="text-xs text-gray-500 mt-1 italic">{templateHints[field.id]}</p>
-                    )}
-                  </div>
-                ))}
-                <button
-                  onClick={() => alert('Template submission coming soon!')}
-                  className="w-full px-6 py-3 bg-blue-600 text-white rounded-lg font-medium hover:bg-blue-700"
-                >
-                  {t('reco.template.extractButton') || 'Extract & Preview'}
-                </button>
-              </div>
-            </Card>
-          )}
-
-          {inputMode === 'wizard' && (
-            <>
           {/* Answers Summary Section - Fixed Position, Non-Overlapping */}
           {answeredCount > 0 && (
             <div className="fixed right-6 top-32 z-30 max-w-xs">
@@ -1958,8 +1898,7 @@ export default function ProgramFinder({
             </p>
           </Card>
         </div>
-            </>
-          )}
+          
         </div>
           
           {/* Loading Indicator - Enhanced with animations */}

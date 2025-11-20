@@ -1539,7 +1539,7 @@
   "reco.ui.coFinancingPercentagePlaceholder": "e.g., 30%",
   "reco.ui.coFinancingPercentageHint": "Many programs require 20-50% co-financing",
   "reco.ui.guidedWizard": "Guided Wizard",
-  "reco.ui.simpleTemplate": "Simple Template",
+  "reco.ui.smartWizard": "Smart Wizard",
   "reco.ui.sliderMonths": "months",
   "reco.ui.sliderPeople": "people",
   "reco.ui.yourAnswers": "Your Answers",
