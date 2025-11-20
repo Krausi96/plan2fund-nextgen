@@ -1722,22 +1722,22 @@ const REQUIRED_QUESTION_IDS = ['company_type', 'project_scope', 'location', 'ind
           <Card className="p-4 border-2 border-dashed border-blue-200 bg-white/80 shadow-sm">
             <div className="flex items-start justify-between gap-4">
               <div>
-                <p className="text-base font-semibold text-gray-900">Advanced filters</p>
+                <p className="text-base font-semibold text-gray-900">{t('reco.ui.advancedFiltersTitle')}</p>
                 <p className="text-sm text-gray-600">
-                  Optional details like project duration, impact focus, matching share, and team size.
+                  {t('reco.ui.advancedFiltersDescription')}
                 </p>
               </div>
               <button
                 onClick={() => setShowAdvancedFilters(!showAdvancedFilters)}
-                className="px-3 py-2 rounded-md text-sm font-medium border border-blue-500 text-blue-600 hover:bg-blue-50 transition-colors"
+                className="px-3 py-2 rounded-md text-sm font-medium bg-blue-600 text-white hover:bg-blue-700 transition-colors"
               >
-                {showAdvancedFilters ? 'Hide advanced' : 'Add detail'}
+                {showAdvancedFilters ? t('reco.ui.advancedFiltersHide') : t('reco.ui.advancedFiltersShow')}
               </button>
             </div>
             <p className="text-xs text-gray-500 mt-3">
               {showAdvancedFilters
-                ? `${advancedAnsweredCount}/${advancedQuestions.length} advanced questions answered. They now appear at the end of your question path.`
-                : 'Currently hidden. Toggle to refine recommendations with more context.'}
+                ? t('reco.ui.advancedFiltersSummaryActive').replace('{answered}', String(advancedAnsweredCount)).replace('{total}', String(advancedQuestions.length))
+                : t('reco.ui.advancedFiltersSummaryHidden')}
             </p>
           </Card>
         </div>
