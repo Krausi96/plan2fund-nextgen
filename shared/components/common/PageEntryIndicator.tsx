@@ -24,7 +24,8 @@ export default function PageEntryIndicator({
   showAsModal = true, // Default to modal
 }: PageEntryIndicatorProps) {
   const { t } = useI18n();
-  const [visible, setVisible] = useState(true);
+  const [visible, setVisible] = useState(false);
+  const [mounted, setMounted] = useState(false);
 
   // Resolve text and title from translations if translationKey is provided
   const resolvedTitle = translationKey 
@@ -34,15 +35,29 @@ export default function PageEntryIndicator({
     ? t(`pageEntry.${translationKey}.text` as any)
     : text || '';
 
+  // Truncate text if too long (max 120 characters)
+  const displayText = resolvedText.length > 120 
+    ? resolvedText.substring(0, 120) + '...' 
+    : resolvedText;
+
+  // Mount and show after 30ms delay
   useEffect(() => {
-    if (duration > 0) {
+    const timer = setTimeout(() => {
+      setMounted(true);
+      setTimeout(() => setVisible(true), 30);
+    }, 0);
+    return () => clearTimeout(timer);
+  }, []);
+
+  useEffect(() => {
+    if (visible && duration > 0) {
       const timer = setTimeout(() => {
         setVisible(false);
         onDismiss?.();
       }, duration);
       return () => clearTimeout(timer);
     }
-  }, [duration, onDismiss]);
+  }, [visible, duration, onDismiss]);
 
   const handleDismiss = () => {
     setVisible(false);
@@ -59,7 +74,7 @@ export default function PageEntryIndicator({
     }
   }, [showAsModal, visible]);
 
-  if (!visible) return null;
+  if (!mounted) return null;
 
   const IconComponent = icon === 'info' ? Info : Lightbulb;
 
@@ -79,10 +94,14 @@ export default function PageEntryIndicator({
         }}
       >
         {/* Backdrop */}
-        <div className="absolute inset-0 bg-black/50 backdrop-blur-sm transition-opacity" />
+        <div className={`absolute inset-0 bg-black/50 backdrop-blur-sm transition-opacity duration-300 ${
+          visible ? 'opacity-100' : 'opacity-0'
+        }`} />
         
         {/* Modal Content */}
-        <div className="relative bg-white rounded-2xl shadow-2xl max-w-lg w-full p-8 animate-in fade-in zoom-in-95 duration-200">
+        <div className={`relative bg-white rounded-2xl shadow-2xl max-w-lg w-full p-8 transition-all duration-300 ${
+          visible ? 'opacity-100 scale-100' : 'opacity-0 scale-95'
+        }`}>
           <div className="flex items-start gap-4">
             <div className="flex-shrink-0">
               <div className="w-12 h-12 rounded-full bg-blue-50 flex items-center justify-center border border-blue-100">
@@ -95,7 +114,7 @@ export default function PageEntryIndicator({
                   {resolvedTitle}
                 </h3>
               )}
-              <p className="text-sm text-slate-600 leading-relaxed">{resolvedText}</p>
+              <p className="text-sm text-slate-600 leading-relaxed">{displayText}</p>
             </div>
             <button
               onClick={handleDismiss}
@@ -105,15 +124,7 @@ export default function PageEntryIndicator({
               <X className="w-5 h-5" />
             </button>
           </div>
-          <div className="mt-6 flex items-center justify-end gap-3">
-              {duration > 0 && (
-                <button
-                  onClick={handleDismiss}
-                  className="px-5 py-2.5 text-sm font-semibold text-slate-600 bg-slate-100 rounded-lg hover:bg-slate-200 transition-colors"
-                >
-                  {t('pageEntry.button.dismiss' as any)}
-                </button>
-              )}
+          <div className="mt-6 flex items-center justify-end">
             <button
               onClick={handleDismiss}
               className="px-5 py-2.5 text-sm font-semibold text-white bg-blue-600 rounded-lg hover:bg-blue-700 transition-colors shadow-sm hover:shadow-md"
@@ -135,13 +146,15 @@ export default function PageEntryIndicator({
 
   return (
     <div
-      className={`fixed z-50 ${positionClasses[position as keyof typeof positionClasses]} bg-blue-50 border border-blue-200 text-blue-800 px-4 py-3 rounded-lg shadow-lg max-w-sm animate-in slide-in-from-top-2 fade-in duration-200`}
+      className={`fixed z-50 ${positionClasses[position as keyof typeof positionClasses]} bg-blue-50 border border-blue-200 text-blue-800 px-4 py-3 rounded-lg shadow-lg max-w-sm transition-all duration-300 ${
+        visible ? 'opacity-100 translate-y-0' : 'opacity-0 -translate-y-2'
+      }`}
       role="status"
       aria-live="polite"
     >
       <div className="flex items-center gap-2">
         <IconComponent className="w-4 h-4 flex-shrink-0" />
-        <span className="text-sm flex-1">{resolvedText}</span>
+        <span className="text-sm flex-1">{displayText}</span>
         <button
           onClick={handleDismiss}
           className="ml-2 text-blue-600 hover:text-blue-800 transition-colors flex-shrink-0"

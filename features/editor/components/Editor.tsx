@@ -1488,7 +1488,7 @@ export default function Editor({ product = 'submission' }: EditorProps) {
   return (
     <div className="min-h-screen bg-[#f6f8fb]">
       <header className="border-b-2 border-slate-200 bg-white/95 backdrop-blur-sm shadow-sm">
-        <div className="mx-auto max-w-[1400px] px-4 sm:px-6 lg:px-12 py-4">
+        <div className="mx-auto max-w-[1400px] px-4 sm:px-6 lg:px-12 py-3">
           <PlanConfigurator
             plan={plan}
             programSummary={programSummary ?? plan.programSummary ?? null}
@@ -1595,18 +1595,22 @@ function PlanConfigurator({
   programError: string | null;
 }) {
   return (
-    <div className="flex items-center justify-between gap-6">
-      <div className="flex items-center gap-6 flex-1">
-        <div>
-          <p className="text-base font-semibold text-slate-900 leading-tight">{plan.titlePage.planTitle || 'Business Plan'}</p>
-        </div>
-        <label className="flex items-center gap-2">
-          <span className="text-xs font-medium text-slate-600 whitespace-nowrap">Product type:</span>
+    <div className="grid grid-cols-3 gap-4">
+      {/* Column 1: Plan Title */}
+      <div className="space-y-1">
+        <p className="text-xs font-semibold text-slate-500 uppercase tracking-wide">Plan Title</p>
+        <p className="text-base font-bold text-slate-900 leading-tight">{plan.titlePage.planTitle || 'Business Plan'}</p>
+      </div>
+      
+      {/* Column 2: Product Type Selector */}
+      <div className="space-y-1">
+        <label className="block">
+          <span className="text-xs font-semibold text-slate-500 uppercase tracking-wide block mb-1.5">Product Type</span>
           <div className="relative">
             <select
               value={plan.productType ?? 'submission'}
               onChange={(event) => onChangeProduct(event.target.value as ProductType)}
-              className="appearance-none rounded-lg border border-slate-200 bg-white px-3 py-1.5 text-sm font-medium text-slate-700 focus:border-blue-500 focus:ring-1 focus:ring-blue-200"
+              className="w-full appearance-none rounded-lg border-2 border-slate-300 bg-white px-3 py-2 text-sm font-semibold text-slate-900 focus:border-blue-500 focus:ring-2 focus:ring-blue-200 shadow-sm"
             >
               {PRODUCT_TYPE_OPTIONS.map((option) => (
                 <option key={option.value} value={option.value}>
@@ -1614,11 +1618,17 @@ function PlanConfigurator({
                 </option>
               ))}
             </select>
-            <span className="pointer-events-none absolute inset-y-0 right-2 flex items-center text-slate-400 text-xs">▾</span>
+            <span className="pointer-events-none absolute inset-y-0 right-3 flex items-center text-slate-500 text-sm font-bold">▾</span>
           </div>
         </label>
+        <p className="text-[11px] text-slate-600 leading-tight">
+          {PRODUCT_TYPE_OPTIONS.find((option) => option.value === plan.productType)?.description}
+        </p>
       </div>
-      <div className="flex-shrink-0">
+      
+      {/* Column 3: Program Connection */}
+      <div className="space-y-1">
+        <p className="text-xs font-semibold text-slate-500 uppercase tracking-wide">Program Connection</p>
         <div className="relative">
           <ProgramConnectionCard
             programSummary={programSummary}
@@ -1657,17 +1667,20 @@ function ProgramConnectionCard({
 
   if (programSummary) {
     return (
-      <div className="flex items-center gap-2">
-        <div className="rounded-lg border border-blue-200 bg-blue-50 px-3 py-1.5">
-          <p className="text-xs font-medium text-blue-900 leading-tight">{programSummary.name}</p>
+      <div className="rounded-lg border-2 border-blue-200 bg-blue-50 px-3 py-2">
+        <div className="flex items-center justify-between gap-2">
+          <p className="text-xs font-semibold text-blue-900 leading-tight truncate flex-1">{programSummary.name}</p>
+          <button
+            onClick={() => onConnectProgram(null)}
+            className="text-slate-500 hover:text-slate-700 flex-shrink-0 text-sm font-bold"
+            title="Disconnect program"
+          >
+            ×
+          </button>
         </div>
-        <button
-          onClick={() => onConnectProgram(null)}
-          className="text-xs text-slate-500 hover:text-slate-700 px-2 py-1"
-          title="Disconnect program"
-        >
-          ×
-        </button>
+        {programSummary.amountRange && (
+          <p className="text-[10px] text-blue-700 mt-1">{programSummary.amountRange}</p>
+        )}
       </div>
     );
   }
@@ -1676,7 +1689,7 @@ function ProgramConnectionCard({
     return (
       <button
         onClick={() => setIsExpanded(true)}
-        className="text-xs text-slate-600 hover:text-slate-900 px-3 py-1.5 border border-slate-200 rounded-lg hover:border-slate-300 transition"
+        className="w-full text-xs font-semibold text-slate-700 hover:text-slate-900 px-3 py-2 border-2 border-slate-300 rounded-lg hover:border-slate-400 bg-white transition shadow-sm"
       >
         Connect program
       </button>
@@ -1684,12 +1697,12 @@ function ProgramConnectionCard({
   }
 
   return (
-    <div className="absolute right-0 top-full mt-2 w-80 rounded-lg border border-slate-200 bg-white shadow-lg p-3 space-y-2 z-50">
+    <div className="absolute right-0 top-full mt-2 w-80 rounded-lg border-2 border-slate-300 bg-white shadow-lg p-3 space-y-2 z-50">
       <div className="flex items-center justify-between">
         <p className="text-xs font-semibold text-slate-800">Connect program</p>
         <button
           onClick={() => setIsExpanded(false)}
-          className="text-xs text-slate-400 hover:text-slate-600"
+          className="text-slate-400 hover:text-slate-600 text-sm font-bold"
         >
           ×
         </button>
@@ -1699,21 +1712,21 @@ function ProgramConnectionCard({
           value={inputValue}
           onChange={(event) => setInputValue(event.target.value)}
           placeholder="Program ID (e.g., page_123)"
-          className="flex-1 border border-slate-200 rounded px-2 py-1.5 text-xs focus:outline-none focus:ring-1 focus:ring-blue-200 focus:border-blue-300"
+          className="flex-1 border-2 border-slate-200 rounded px-2 py-1.5 text-xs focus:outline-none focus:ring-2 focus:ring-blue-200 focus:border-blue-400"
         />
         <button
           onClick={() => onConnectProgram(inputValue)}
           disabled={loading}
-          className="px-3 py-1.5 text-xs font-medium rounded bg-blue-600 text-white disabled:opacity-50 hover:bg-blue-700"
+          className="px-3 py-1.5 text-xs font-semibold rounded-lg bg-blue-600 text-white disabled:opacity-50 hover:bg-blue-700 shadow-sm"
         >
           {loading ? '...' : 'Connect'}
         </button>
       </div>
-      {error && <p className="text-xs text-red-600">{error}</p>}
+      {error && <p className="text-xs text-red-600 font-medium">{error}</p>}
       <button
         type="button"
         onClick={onOpenProgramFinder}
-        className="text-xs text-blue-600 hover:text-blue-800 underline"
+        className="text-xs text-blue-600 hover:text-blue-800 underline font-medium"
       >
         Open Program Finder
       </button>
@@ -1916,14 +1929,14 @@ function SectionWorkspace({
   return (
     <main className="space-y-6">
       {/* Section Header */}
-      <div className="rounded-3xl border border-slate-200 bg-white p-6 shadow-sm">
-        <div className="space-y-2">
+      <div className="rounded-2xl border-[3px] border-slate-300 bg-gradient-to-r from-slate-50 to-white p-6 shadow-lg">
+        <div className="space-y-3">
           {section.category && (
-            <p className="text-[11px] uppercase tracking-[0.35em] text-slate-400">{section.category}</p>
+            <p className="text-xs font-bold uppercase tracking-wide text-slate-600">{section.category}</p>
           )}
-          <h1 className="text-2xl font-semibold text-slate-900 leading-tight">{section.title}</h1>
+          <h1 className="text-3xl font-bold text-slate-900 leading-tight">{section.title}</h1>
           {(sectionHint || section.description) && (
-            <p className="text-sm text-slate-600">{sectionHint || section.description}</p>
+            <p className="text-base text-slate-700 leading-relaxed font-medium">{sectionHint || section.description}</p>
           )}
         </div>
       </div>
@@ -2010,28 +2023,28 @@ function QuestionCard({
 
   return (
     <div
-      className={`rounded-2xl border-2 p-6 bg-white shadow-sm transition-all ${
+      className={`rounded-2xl border-[3px] p-7 bg-white shadow-lg transition-all ${
         isActive
-          ? 'border-blue-500 shadow-lg shadow-blue-50 ring-2 ring-blue-100'
-          : 'border-slate-200 hover:border-slate-300'
+          ? 'border-blue-600 shadow-2xl shadow-blue-100 ring-4 ring-blue-200'
+          : 'border-slate-300 hover:border-slate-400'
       }`}
       onClick={onFocus}
     >
       {/* Prompt Header */}
-      <div className="mb-5">
-        <div className="flex items-center gap-2 mb-3">
+      <div className="mb-6">
+        <div className="flex items-center gap-3 mb-4">
           {question.required && (
-            <span className="rounded-full bg-red-100 px-2.5 py-1 text-xs font-semibold text-red-700">
+            <span className="rounded-lg bg-red-200 border-[3px] border-red-400 px-3 py-1.5 text-sm font-bold text-red-800">
               Required
             </span>
           )}
           {isUnknown && (
-            <span className="rounded-full bg-amber-100 px-2.5 py-1 text-xs font-semibold text-amber-700">
+            <span className="rounded-lg bg-amber-200 border-[3px] border-amber-400 px-3 py-1.5 text-sm font-bold text-amber-800">
               Marked as unknown{question.statusNote ? ` • ${question.statusNote}` : ''}
             </span>
           )}
         </div>
-        <p className="text-xl font-semibold text-slate-900 leading-snug">{question.prompt}</p>
+        <p className="text-2xl font-bold text-slate-900 leading-snug">{question.prompt}</p>
       </div>
 
       {/* Text Editor */}
@@ -2044,22 +2057,22 @@ function QuestionCard({
       </div>
 
       {/* Action Buttons (directly below editor) */}
-      <div className="mt-5 flex flex-wrap gap-3" onClick={(e) => e.stopPropagation()}>
+      <div className="mt-6 flex flex-wrap gap-4" onClick={(e) => e.stopPropagation()}>
         <button
           type="button"
           onClick={onAskAI}
-          className="inline-flex items-center px-5 py-2.5 rounded-lg bg-blue-600 text-white font-semibold text-sm hover:bg-blue-700 shadow-sm transition-all"
+          className="inline-flex items-center px-6 py-3 rounded-xl bg-blue-600 text-white font-bold text-base hover:bg-blue-700 shadow-lg hover:shadow-xl transition-all ring-2 ring-blue-300"
         >
-          <span className="mr-2">✨</span>
+          <span className="mr-2 text-lg">✨</span>
           Generate for this prompt
         </button>
         <button
           type="button"
           onClick={handleToggleUnknown}
-          className={`inline-flex items-center px-4 py-2.5 rounded-lg border-2 font-medium text-sm transition-all ${
+            className={`inline-flex items-center px-5 py-3 rounded-xl border-[3px] font-bold text-sm transition-all shadow-md hover:shadow-lg ${
             isUnknown
-              ? 'border-amber-400 text-amber-700 bg-amber-50 hover:bg-amber-100'
-              : 'border-slate-200 text-slate-600 hover:border-slate-300 hover:bg-slate-50'
+              ? 'border-amber-500 text-amber-800 bg-amber-100 hover:bg-amber-200'
+              : 'border-slate-400 text-slate-700 hover:border-slate-500 hover:bg-slate-100'
           }`}
         >
           {isUnknown ? 'Clear unknown status' : 'Mark as unknown'}
@@ -2131,18 +2144,18 @@ function RightPanel({
   };
 
   return (
-    <aside className="rounded-2xl border-2 border-slate-200 bg-white shadow-sm flex h-full min-h-[360px] flex-col sticky top-[120px] w-full lg:w-[360px] lg:flex-shrink-0">
-      <div className="grid grid-cols-3 border-b-2 border-slate-200">
+    <aside className="rounded-2xl border-[3px] border-slate-300 bg-white shadow-xl flex h-full min-h-[360px] flex-col sticky top-[120px] w-full lg:w-[380px] lg:flex-shrink-0">
+      <div className="grid grid-cols-3 border-b-[3px] border-slate-300">
         {(['Assistant', 'Data', 'Preview'] as const).map((tabLabel) => {
           const tabKey = tabLabel.toLowerCase() as 'ai' | 'data' | 'preview';
           return (
             <button
               key={tabKey}
               onClick={() => setView(tabKey)}
-              className={`py-3 text-xs font-semibold transition-all ${
+              className={`py-4 text-sm font-bold transition-all ${
                 effectiveView === tabKey 
-                  ? 'text-blue-600 border-b-2 border-blue-600 bg-blue-50/50' 
-                  : 'text-slate-600 hover:text-blue-600 hover:bg-slate-50'
+                  ? 'text-blue-700 border-b-4 border-blue-600 bg-blue-50' 
+                  : 'text-slate-700 hover:text-blue-600 hover:bg-slate-50'
               }`}
             >
               {tabLabel}
@@ -2157,10 +2170,10 @@ function RightPanel({
             <button
               onClick={() => onAskAI(question?.id)}
               disabled={!question}
-              className={`w-full px-4 py-3 rounded-lg font-semibold text-sm shadow-sm transition-all ${
+              className={`w-full px-5 py-4 rounded-xl font-bold text-base shadow-lg transition-all ${
                 question
-                  ? 'bg-blue-600 text-white hover:bg-blue-700'
-                  : 'bg-slate-100 text-slate-400 cursor-not-allowed'
+                  ? 'bg-blue-600 text-white hover:bg-blue-700 hover:shadow-xl ring-2 ring-blue-300'
+                  : 'bg-slate-200 text-slate-500 cursor-not-allowed'
               }`}
             >
               Ask the assistant
@@ -2600,12 +2613,12 @@ function SimpleTextEditor({
           relative
           bg-white
           rounded-xl
-          border-2
+          border-[3px]
           transition-all
           duration-200
           ${isFocused 
-            ? 'border-blue-400 shadow-md shadow-blue-50' 
-            : 'border-slate-200 hover:border-slate-300'
+            ? 'border-blue-500 shadow-lg shadow-blue-100 ring-2 ring-blue-200' 
+            : 'border-slate-300 hover:border-slate-400'
           }
         `}
         onClick={() => textareaRef.current?.focus()}
@@ -2619,12 +2632,12 @@ function SimpleTextEditor({
           placeholder={placeholder || `Start writing...`}
           className="
             w-full
-            min-h-[240px]
-            p-5
+            min-h-[280px]
+            p-6
             text-base
             leading-relaxed
             text-slate-900
-            placeholder-slate-400
+            placeholder-slate-500
             resize-none
             border-0
             outline-none
@@ -2634,8 +2647,8 @@ function SimpleTextEditor({
           "
           style={{
             fontFamily: 'Inter, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif',
-            lineHeight: '1.7',
-            fontSize: '15px'
+            lineHeight: '1.8',
+            fontSize: '16px'
           }}
         />
       </div>

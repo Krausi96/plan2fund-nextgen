@@ -189,9 +189,9 @@ export default function Home() {
                       {typeof countedStats[index] === 'number' && countedStats[index] % 1 !== 0 
                         ? countedStats[index].toFixed(1) 
                         : countedStats[index]}{stat.suffix}
-                    </div>
+                  </div>
                     <h3 className="text-lg font-bold text-neutral-900 mb-2 group-hover:text-blue-600 transition-colors">
-                      {stat.label}
+                    {stat.label}
                     </h3>
                     <p className="text-sm text-neutral-600 leading-relaxed mb-4">
                       {stat.description}
@@ -444,7 +444,7 @@ export default function Home() {
                         : 'bg-white border-neutral-200 hover:border-blue-300 hover:shadow-xl'
                     }`}
                     aria-label={`Learn more about ${plan.title}`}
-                  >
+                >
                     <div className="mb-6">
                       <div className="mb-6 text-center">
                         <div className={`w-20 h-20 rounded-2xl flex items-center justify-center mx-auto mb-4 shadow-md transition-all duration-300 ${
@@ -456,12 +456,12 @@ export default function Home() {
                         </div>
                         <h3 className="text-2xl font-bold text-neutral-900 group-hover:text-blue-600 transition-colors mb-3">
                           {plan.title}
-                        </h3>
+                  </h3>
                       </div>
                       <p className="text-base text-neutral-600 leading-relaxed text-center">
                         {plan.subtitle}
-                      </p>
-                    </div>
+                  </p>
+                </div>
                     <div className="mb-6">
                       <h4 className="text-sm font-semibold text-neutral-900 mb-4 uppercase tracking-wide">{t("planTypes.keyFeatures")}</h4>
                       <ul className="space-y-3">
