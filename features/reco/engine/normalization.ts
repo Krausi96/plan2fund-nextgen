@@ -99,15 +99,34 @@ export function normalizeCompanyTypeAnswer(value: string): NormalizedCompanyType
   const aliases: string[] = [];
   let size: NormalizedCompanyType['size'] | undefined;
   
-  if (lower === 'prefounder' || lower.includes('pre-founder') || lower.includes('prefounder') || lower.includes('idea stage')) {
+  if (
+    lower === 'prefounder' ||
+    lower.includes('pre-founder') ||
+    lower.includes('prefounder') ||
+    lower.includes('idea stage') ||
+    lower === 'founder_idea'
+  ) {
     primary = 'startup'; // Map prefounder to startup for matching
     aliases.push('prefounder', 'pre-founder', 'idea stage', 'startup', 'early-stage company');
     size = 'micro';
-  } else if (lower === 'startup' || lower.includes('startup') || lower.includes('start-up')) {
+  } else if (
+    lower === 'startup' ||
+    lower.includes('startup') ||
+    lower.includes('start-up') ||
+    lower === 'startup_building' ||
+    lower === 'startup_traction'
+  ) {
     primary = 'startup';
     aliases.push('startup', 'start-up', 'new venture', 'early-stage company');
     size = 'micro';
-  } else if (lower === 'sme' || lower.includes('sme') || lower.includes('small') || lower.includes('medium') || lower.includes('mittelstand')) {
+  } else if (
+    lower === 'sme' ||
+    lower.includes('sme') ||
+    lower.includes('small') ||
+    lower.includes('medium') ||
+    lower.includes('mittelstand') ||
+    lower === 'sme_established'
+  ) {
     primary = 'sme';
     aliases.push('sme', 'small and medium enterprise', 'small business', 'mittelstand', 'kmü');
     size = lower.includes('small') ? 'small' : 'medium';

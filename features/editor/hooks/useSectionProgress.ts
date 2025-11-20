@@ -93,3 +93,6 @@ export function calculateSectionProgress(section: any): SectionProgress {
   };
 }
 
+
+
+

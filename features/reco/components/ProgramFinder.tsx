@@ -5,7 +5,7 @@
 
 import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import { useRouter } from 'next/router';
-import { Wand2, ChevronLeft, ChevronRight, Lightbulb } from 'lucide-react';
+import { Wand2, ChevronLeft, ChevronRight, MessageCircle, Sparkles } from 'lucide-react';
 import { Card } from '@/shared/components/ui/card';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/shared/components/ui/dialog';
 // Progress bar implemented with custom div (not using Progress component)
@@ -73,19 +73,17 @@ interface ProgramFinderProps {
 }
 
 // Static questions - optimized order and with skip logic
-// CRITICAL QUESTIONS (used in matching logic - required for MIN_QUESTIONS_FOR_RESULTS):
-// 1. company_type - CRITICAL (line 185 in recommend.ts - must match)
-// 2. location - CRITICAL (line 156 in recommend.ts - must match)
-// 3. co_financing - CRITICAL for funding type diversity (moved earlier, priority 3)
-// 4. company_stage - Used in matching (line 215 in recommend.ts)
-// 5. funding_amount - Used in matching (line 250 in recommend.ts) - now informed by co_financing
-// OPTIONAL QUESTIONS (used in matching but not critical):
-// 6. industry_focus - Used in matching (line 273 in recommend.ts)
-// 7. use_of_funds - NOW IMPLEMENTED in scoring engine and LLM profile
-// ADVANCED QUESTIONS (now included in LLM profile for better matching):
-// - team_size, revenue_status, impact_focus, deadline_urgency, project_duration
-// REMOVED:
-// - legal_type (was collected but not used in matching - removed to simplify UI)
+// REQUIRED CORE QUESTIONS (simple flow):
+// 1. funding_intent (gate – not sent to LLM/API)
+// 2. company_type (merged persona + maturity signal)
+// 3. project_scope (ensures a project/venture exists)
+// 4. location (CRITICAL for eligibility)
+// 5. industry_focus (CRITICAL for thematic matching)
+// 6. funding_amount (CRITICAL for amount matching)
+// OPTIONAL CORE QUESTION:
+// 7. use_of_funds (improves scoring + LLM profile)
+// ADVANCED QUESTIONS (optional refinements):
+// - project_duration, deadline_urgency, impact_focus, co_financing, team_size
 type BaseQuestion = {
   id: string;
   label: string;
@@ -123,25 +121,52 @@ type QuestionDefinition = SingleSelectQuestion | MultiSelectQuestion | RangeQues
 
 const CORE_QUESTIONS: QuestionDefinition[] = [
   {
-    id: 'company_type', // CRITICAL - Used in matching (must match)
-    label: 'Who is filling out this application?',
+    id: 'funding_intent',
+    label: 'Are you looking for a funding option for a project or venture?',
     type: 'single-select' as const,
     options: [
-      { value: 'prefounder', label: 'Founder exploring an idea' },
-      { value: 'startup', label: 'Startup with first traction' },
-      { value: 'sme', label: 'Established SME (36+ months)' },
-      { value: 'research', label: 'Research lab / university team' },
-      { value: 'other', label: 'Advisor or other organisation' },
+      { value: 'funding_yes', label: 'Yes, I want to find funding programs' },
+      { value: 'planning_only', label: 'Not yet – I just need planning/editor help' },
     ],
     required: true,
     priority: 1,
+    isAdvanced: false,
+  },
+  {
+    id: 'company_type', // CRITICAL - Used in matching (must match)
+    label: 'Which description best fits you right now?',
+    type: 'single-select' as const,
+    options: [
+      { value: 'founder_idea', label: 'Founder exploring an idea (no company yet)' },
+      { value: 'startup_building', label: 'Startup building its first product/prototype' },
+      { value: 'startup_traction', label: 'Startup with first traction (incorporated < ~3 years)' },
+      { value: 'sme_established', label: 'Established SME (3+ years of operations)' },
+      { value: 'other', label: 'Other – please specify (e.g., institutional team, advisor, municipality)' },
+    ],
+    required: true,
+    priority: 4,
     hasOtherTextInput: true,
-    // hasLegalType: true, // REMOVED - legal_type not used in matching, adds complexity without benefit
     isAdvanced: false, // Core question
   },
   {
+    id: 'project_scope',
+    label: 'What are you working on?',
+    type: 'single-select' as const,
+    options: [
+      { value: 'exploring_plan', label: 'Exploring or drafting a plan' },
+      { value: 'building_product', label: 'Building a product or prototype' },
+      { value: 'research_innovation', label: 'Running research or innovation work' },
+      { value: 'scaling_expansion', label: 'Scaling or market expansion' },
+      { value: 'other', label: 'Other – please specify' },
+    ],
+    required: true,
+    priority: 3,
+    hasOtherTextInput: true,
+    isAdvanced: false,
+  },
+  {
     id: 'location', // CRITICAL - Used in matching (must match)
-    label: 'Where will the project be carried out?',
+    label: 'Where will the project or venture take place?',
     type: 'single-select' as const,
     options: [
       { value: 'austria', label: 'Austria' },
@@ -158,45 +183,15 @@ const CORE_QUESTIONS: QuestionDefinition[] = [
     },
   },
   {
-    id: 'co_financing', // CRITICAL - Determines funding type diversity (moved earlier)
-    label: 'Can you cover matching funds/co-financing?',
-    type: 'single-select' as const,
-    options: [
-      { value: 'co_yes', label: 'Yes, we can cover 20%+' },
-      { value: 'co_no', label: 'No, we need 100% funding' },
-      { value: 'co_uncertain', label: 'Not sure yet' },
-    ],
-    required: false,
-    priority: 3, // Moved up from 5 - critical for funding type selection
-    hasCoFinancingPercentage: true, // Ask for percentage if Yes
-    isAdvanced: false, // Core question
-  },
-  {
-    id: 'company_stage', // CRITICAL - Used in matching (affects equity eligibility)
-    label: 'How far along is your organisation?',
-    type: 'single-select' as const,
-    options: [
-      { value: 'idea', label: 'Idea / concept only' },
-      { value: 'pre_company', label: 'Team formed, not yet incorporated' },
-      { value: 'inc_lt_6m', label: 'Recently incorporated (< 6 months)' },
-      { value: 'inc_6_36m', label: 'Scaling company (6-36 months)' },
-      { value: 'inc_gt_36m', label: 'Established organisation (36+ months)' },
-      { value: 'research_org', label: 'Research institution / University' },
-    ],
-    required: true,
-    priority: 4,
-    isAdvanced: false,
-  },
-  {
     id: 'funding_amount', // CRITICAL - Used in matching
-    label: 'How much funding do you plan to request?',
+    label: 'How much funding do you plan to request (if any)?',
     type: 'range' as const,
     min: 0,
-    max: 2000000,
+    max: 1000000,
     step: 1000,
     unit: 'EUR',
     required: true,
-    priority: 5, // Moved down from 3 - now informed by co_financing
+    priority: 6,
     editableValue: true, // Allow editing the number directly
     isAdvanced: false, // Core question
   },
@@ -212,8 +207,8 @@ const CORE_QUESTIONS: QuestionDefinition[] = [
       { value: 'export', label: 'Internationalisation' },
       { value: 'other', label: 'Something else' },
     ],
-    required: false,
-    priority: 6,
+    required: true,
+    priority: 5,
     hasOtherTextInput: true,
     isAdvanced: false, // Core question - helps with matching
     // Enhanced: Industry subcategories for better matching
@@ -236,7 +231,6 @@ const CORE_QUESTIONS: QuestionDefinition[] = [
         { value: 'renewable_energy', label: 'Renewable Energy' },
         { value: 'climate_tech', label: 'Climate Tech' },
         { value: 'waste_management', label: 'Waste Management' },
-        { value: 'water_management', label: 'Water Management' },
         { value: 'sustainable_agriculture', label: 'Sustainable Agriculture' },
       ],
       health: [
@@ -268,7 +262,7 @@ const CORE_QUESTIONS: QuestionDefinition[] = [
   },
   {
     id: 'use_of_funds',
-    label: 'How will you invest the funds?',
+    label: 'How will you invest support or funding?',
     type: 'multi-select' as const,
     options: [
       { value: 'product_development', label: 'Product development & R&D' },
@@ -288,31 +282,29 @@ const CORE_QUESTIONS: QuestionDefinition[] = [
 
 const ADVANCED_QUESTIONS: QuestionDefinition[] = [
   {
-    id: 'team_size',
-    label: 'How large is your active team?',
-    type: 'single-select' as const,
-    options: [
-      { value: 'solo', label: 'Solo founder' },
-      { value: 'team_2_5', label: '2-5 people' },
-      { value: 'team_6_20', label: '6-20 people' },
-      { value: 'team_20_plus', label: '20+ people' },
-    ],
+    id: 'project_duration',
+    label: 'How long will the funded work run?',
+    type: 'range' as const,
+    min: 1,
+    max: 36,
+    step: 1,
+    unit: 'months',
     required: false,
-    priority: 10,
+    priority: 8,
     isAdvanced: true,
   },
   {
-    id: 'revenue_status',
-    label: 'Where is your revenue today?',
+    id: 'deadline_urgency',
+    label: 'When do you need a funding decision?',
     type: 'single-select' as const,
     options: [
-      { value: 'pre_revenue', label: 'Pre-revenue' },
-      { value: 'early_revenue', label: 'Early revenue (< €500k)' },
-      { value: 'scaling_revenue', label: 'Scaling revenue (€500k+)' },
-      { value: 'profitable', label: 'Profitable / cash-flow positive' },
+      { value: 'immediate', label: 'Within 1 month' },
+      { value: 'short_term', label: 'Within 1-3 months' },
+      { value: 'medium_term', label: 'Within 3-6 months' },
+      { value: 'long_term', label: '6+ months' },
     ],
     required: false,
-    priority: 11,
+    priority: 9,
     isAdvanced: true,
   },
   {
@@ -329,156 +321,142 @@ const ADVANCED_QUESTIONS: QuestionDefinition[] = [
     ],
     hasOtherTextInput: true,
     required: false,
-    priority: 12,
+    priority: 10,
     isAdvanced: true,
   },
   {
-    id: 'deadline_urgency',
-    label: 'When do you need a funding decision?',
+    id: 'co_financing',
+    label: 'Can you contribute part of the project budget yourself?',
     type: 'single-select' as const,
     options: [
-      { value: 'immediate', label: 'Decision needed within 1 month' },
-      { value: 'short_term', label: 'Decision needed in 1-3 months' },
-      { value: 'medium_term', label: 'Decision needed in 3-6 months' },
-      { value: 'long_term', label: 'Decision needed in 6+ months' },
+      { value: 'co_yes', label: 'Yes, we can cover a share (e.g., 20%+)' },
+      { value: 'co_no', label: 'No, we need full external funding' },
+      { value: 'co_uncertain', label: 'Not sure yet' },
     ],
     required: false,
-    priority: 13,
+    priority: 11,
+    hasCoFinancingPercentage: true,
     isAdvanced: true,
   },
   {
-    id: 'project_duration',
-    label: 'How long will the funded project run?',
-    type: 'range' as const,
-    min: 1,
-    max: 36,
-    step: 1,
-    unit: 'months',
+    id: 'team_size',
+    label: 'How large is your active team?',
+    type: 'single-select' as const,
+    options: [
+      { value: 'solo', label: 'Solo founder' },
+      { value: 'team_2_5', label: '2-5 people' },
+      { value: 'team_6_20', label: '6-20 people' },
+      { value: 'team_20_plus', label: '20+ people' },
+    ],
     required: false,
-    priority: 14,
+    priority: 12,
     isAdvanced: true,
   },
 ];
 
+const COMPANY_STAGE_MAP: Record<string, string> = {
+  founder_idea: 'idea',
+  startup_building: 'inc_lt_6m',
+  startup_traction: 'inc_6_36m',
+  sme_established: 'inc_gt_36m',
+};
+
+function inferCompanyStageFromAnswers(answersSnapshot: Record<string, any>): string | undefined {
+  const companyTypeValue = answersSnapshot.company_type as string | undefined;
+  if (!companyTypeValue) {
+    return undefined;
+  }
+
+  if (COMPANY_STAGE_MAP[companyTypeValue]) {
+    return COMPANY_STAGE_MAP[companyTypeValue];
+  }
+
+  if (companyTypeValue === 'other') {
+    const otherRaw = (answersSnapshot['company_type_other'] || '').toString().toLowerCase();
+    if (otherRaw.includes('research') || otherRaw.includes('university') || otherRaw.includes('lab')) {
+      return 'research_org';
+    }
+    return 'other';
+  }
+
+  return 'other';
+}
+
 const ALL_QUESTIONS: QuestionDefinition[] = [...CORE_QUESTIONS, ...ADVANCED_QUESTIONS];
 
-type HintGroup = {
-  title: { en: string; de: string };
-  hints: Array<{ en: string; de: string }>;
+type ChatMessage = {
+  id: string;
+  role: 'user' | 'assistant';
+  text: string;
+  timestamp: number;
 };
 
-const QUESTION_HINTS: Record<string, HintGroup> = {
-  company_type: {
-    title: { en: 'Who is filling this in?', de: 'Wer stellt den Antrag?' },
-    hints: [
-      {
-        en: 'Mention if you are a founder, advisor, incubator or research team so we can tailor the tone.',
-        de: 'Geben Sie an, ob Sie Gründer:in, Berater:in, Inkubator oder Forschungsteam sind, damit wir den Ton anpassen können.',
-      },
-      {
-        en: 'If you represent multiple clients, specify whether this plan is for you or a client.',
-        de: 'Wenn Sie mehrere Kund:innen betreuen, geben Sie an, ob dieser Plan für Sie oder eine:n Kund:in ist.',
-      },
-    ],
-  },
-  location: {
-    title: { en: 'Location details', de: 'Standortdetails' },
-    hints: [
-      {
-        en: 'State the country plus region or city (e.g., “Austria – Vienna, focus on Eastern regions”).',
-        de: 'Nennen Sie Land und Region/Stadt (z.B. „Österreich – Wien, Fokus Ostregion“).',
-      },
-      {
-        en: 'If operating in multiple countries, list the primary delivery country first.',
-        de: 'Bei mehreren Ländern zuerst das Haupt-Umsetzungsland nennen.',
-      },
-    ],
-  },
-  funding_amount: {
-    title: { en: 'Funding need', de: 'Finanzierungsbedarf' },
-    hints: [
-      {
-        en: 'Give a rounded figure (e.g., €150k) and note the main cost blocks (prototype, hires, go-to-market).',
-        de: 'Nennen Sie eine runde Summe (z.B. €150k) plus wichtigste Kostenblöcke (Prototyp, Team, Markteintritt).',
-      },
-      {
-        en: 'If you only need templates or IP help, say so (“No funding needed, just IP protection guidance”).',
-        de: 'Falls Sie nur Templates oder IP-Hilfe brauchen: „Keine Förderung nötig, nur IP-Unterstützung“.',
-      },
-    ],
-  },
-  co_financing: {
-    title: { en: 'Matching funds', de: 'Kofinanzierung' },
-    hints: [
-      {
-        en: 'State if you can contribute 20–50% from own funds, investors, or existing grants.',
-        de: 'Geben Sie an, ob Sie 20–50% über Eigenmittel, Investor:innen oder bestehende Zuschüsse aufbringen können.',
-      },
-      {
-        en: 'If undecided, mention what needs to happen (e.g., “Board approval pending”).',
-        de: 'Wenn unklar, nennen Sie die Bedingung (z.B. „Vorstandszustimmung ausständig“).',
-      },
-    ],
-  },
-  industry_focus: {
-    title: { en: 'Sector focus', de: 'Branchenfokus' },
-    hints: [
-      {
-        en: 'Highlight the primary sector plus any crossover themes (e.g., “Digital health + AI”).',
-        de: 'Nennen Sie die Hauptbranche plus relevante Querschnittsthemen (z.B. „Digitale Gesundheit + KI“).',
-      },
-      {
-        en: 'List regulatory or certification contexts if important (MedTech, IP, CE marking).',
-        de: 'Erwähnen Sie regulatorische Rahmen (MedTech, IP, CE-Kennzeichnung), falls relevant.',
-      },
-    ],
-  },
-  use_of_funds: {
-    title: { en: 'Intended support', de: 'Geplanter Einsatz' },
-    hints: [
-      {
-        en: 'Break down how support helps (prototype build, pilot customers, IP filing, plan review).',
-        de: 'Erläutern Sie den Nutzen (Prototyp, Pilotkund:innen, IP-Anmeldung, Plan-Review).',
-      },
-      {
-        en: 'Include team roles or deliverables you plan to finance.',
-        de: 'Nennen Sie Teamrollen oder Deliverables, die finanziert werden sollen.',
-      },
-    ],
-  },
-  impact_focus: {
-    title: { en: 'Impact themes', de: 'Wirkungsschwerpunkte' },
-    hints: [
-      {
-        en: 'Quantify outcomes where possible (jobs created, CO₂ reduced, people trained).',
-        de: 'Quantifizieren Sie Effekte, wo möglich (Jobs, CO₂-Einsparung, geschulte Personen).',
-      },
-      {
-        en: 'Tie the impact to programme keywords (excellence, impact, implementation).',
-        de: 'Verknüpfen Sie die Wirkung mit Programm-Schlüsselbegriffen (Exzellenz, Impact, Umsetzung).',
-      },
-    ],
-  },
-  deadline_urgency: {
-    title: { en: 'Timeline needs', de: 'Zeitbedarf' },
-    hints: [
-      {
-        en: 'Mention critical deadlines (tender closes in May, pilot must launch by Q4).',
-        de: 'Nennen Sie kritische Deadlines (Ausschreibung Ende Mai, Pilotstart bis Q4).',
-      },
-      {
-        en: 'If flexible, say so (“Decision anytime this year, priority is preparation”).',
-        de: 'Falls flexibel: „Entscheidung irgendwann heuer, Fokus Vorbereitung.“',
-      },
-    ],
-  },
+const createMessageId = () => `${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
+
+// Stub functions and constants for chat extraction (to be implemented)
+const createInitialChatMessages = (locale: string): ChatMessage[] => {
+  return [
+    {
+      id: createMessageId(),
+      role: 'assistant',
+      text: locale === 'de' 
+        ? 'Hallo! Beschreiben Sie Ihr Projekt und ich helfe Ihnen, die passenden Felder auszufüllen.'
+        : 'Hello! Describe your project and I\'ll help fill in the matching fields.',
+      timestamp: Date.now(),
+    },
+  ];
 };
 
+// Stub keyword arrays for chat extraction
+const CITY_KEYWORDS: Array<{ pattern: RegExp; location: string; region: string }> = [];
+const LOCATION_KEYWORDS: Array<{ keywords: string[]; value: string }> = [];
+const COMPANY_TYPE_KEYWORDS: Array<{ keywords: string[]; value: string }> = [];
+const COMPANY_STAGE_KEYWORDS: Array<{ keywords: string[]; value: string }> = [];
+const INDUSTRY_KEYWORDS: Array<{ keywords: string[]; value: string }> = [];
+const IMPACT_KEYWORDS: Array<{ keywords: string[]; value: string }> = [];
+const USE_OF_FUNDS_KEYWORDS: Array<{ keywords: string[]; value: string }> = [];
+const CO_FINANCING_NEGATIVE_KEYWORDS: string[] = [];
+const CO_FINANCING_POSITIVE_KEYWORDS: string[] = [];
+const CO_FINANCING_UNCERTAIN_KEYWORDS: string[] = [];
+const REVENUE_KEYWORDS: Array<{ keywords: string[]; value: string }> = [];
+const TEAM_SIZE_BUCKETS: Array<{ pattern: RegExp; value: string }> = [];
+const DEADLINE_KEYWORDS: Array<{ keywords: string[]; value: string }> = [];
+
+const normalizeFundingAmountFromText = (text: string): number | null => {
+  // Simple extraction: look for numbers followed by k/K, m/M, or euro/eur
+  const match = text.match(/(\d+(?:\.\d+)?)\s*(k|K|m|M|thousand|million|euro|eur|€)/i);
+  if (match) {
+    const num = parseFloat(match[1]);
+    const unit = match[2].toLowerCase();
+    if (unit === 'k' || unit === 'thousand') {
+      return num * 1000;
+    } else if (unit === 'm' || unit === 'million') {
+      return num * 1000000;
+    }
+    return num;
+  }
+  // Try to extract plain numbers
+  const numMatch = text.match(/(\d{4,})/);
+  if (numMatch) {
+    return parseInt(numMatch[1], 10);
+  }
+  return null;
+};
 export default function ProgramFinder({ 
   onProgramSelect
 }: ProgramFinderProps) {
   const router = useRouter();
   const { t, locale } = useI18n();
+  const [chatMessages, setChatMessages] = useState<ChatMessage[]>(() => createInitialChatMessages(locale));
+  const [chatInput, setChatInput] = useState('');
+  useEffect(() => {
+    setChatMessages((prev) => {
+      if (prev.length === 0 || (prev.length === 1 && prev[0].role === 'assistant')) {
+        return createInitialChatMessages(locale);
+      }
+      return prev;
+    });
+  }, [locale]);
   
   // Get translated questions
   const translatedQuestions = useMemo<QuestionDefinition[]>(() => {
@@ -542,6 +520,11 @@ export default function ProgramFinder({
   
   // Guided mode state
   const [answers, setAnswers] = useState<Record<string, any>>({});
+  const [planningModalOpen, setPlanningModalOpen] = useState(false);
+  const answersForApi = useMemo(() => {
+    const { funding_intent, ...rest } = answers;
+    return rest;
+  }, [answers]);
   
   // All questions are visible by default - no progressive disclosure
   // Results only shown after ALL questions are answered
@@ -602,26 +585,10 @@ export default function ProgramFinder({
   const advancedAnsweredCount = useMemo(() => {
     return advancedQuestions.filter((question) => isAnswerProvided(answers[question.id])).length;
   }, [advancedQuestions, answers]);
-
-  const advancedFiltersTitle = t('reco.ui.advancedFiltersTitle') || 'Advanced filters';
-  const advancedFiltersDescription =
-    t('reco.ui.advancedFiltersDescription') ||
-    'Optional details like team size, revenue stage, impact focus, and project timeline.';
-  const advancedFiltersShowLabel = t('reco.ui.advancedFiltersShow') || 'Add detail';
-  const advancedFiltersHideLabel = t('reco.ui.advancedFiltersHide') || 'Hide advanced';
-  const advancedFiltersSummaryActiveTemplate =
-    t('reco.ui.advancedFiltersSummaryActive') ||
-    '{answered}/{total} advanced questions answered. They now appear at the end of your question path.';
-  const advancedFiltersSummaryHidden =
-    t('reco.ui.advancedFiltersSummaryHidden') ||
-    'Currently hidden. Toggle to refine recommendations with more context.';
-  const advancedFiltersSummaryActive = advancedFiltersSummaryActiveTemplate
-    .replace('{answered}', advancedAnsweredCount.toString())
-    .replace('{total}', advancedQuestions.length.toString());
   
-  // Minimum questions for results (4 critical questions: location, company_type, funding_amount, company_stage)
-  const MIN_QUESTIONS_FOR_RESULTS = 4;
-  const REQUIRED_QUESTION_IDS = ['company_type', 'location', 'funding_amount', 'company_stage'] as const;
+// Minimum questions for results (core questions before showing programs)
+const MIN_QUESTIONS_FOR_RESULTS = 5;
+const REQUIRED_QUESTION_IDS = ['company_type', 'project_scope', 'location', 'industry_focus', 'funding_amount'] as const;
   const missingRequiredAnswers = REQUIRED_QUESTION_IDS.filter((questionId) => !isAnswerProvided(answers[questionId]));
   const missingRequiredLabels = missingRequiredAnswers.map((questionId) => {
     const question = translatedQuestions.find((q) => q.id === questionId);
@@ -642,11 +609,35 @@ export default function ProgramFinder({
   
   const handleAnswer = useCallback((questionId: string, value: any) => {
     setAnswers((prevAnswers) => {
-      const newAnswers = { ...prevAnswers, [questionId]: value };
+      const newAnswers = { ...prevAnswers };
+
+      if (value === undefined || value === null || value === '') {
+        delete newAnswers[questionId];
+      } else {
+        newAnswers[questionId] = value;
+      }
+
+      if (questionId === 'company_type' || questionId === 'company_type_other') {
+        const derivedStage = inferCompanyStageFromAnswers(newAnswers);
+        if (derivedStage) {
+          newAnswers.company_stage = derivedStage;
+        } else {
+          delete newAnswers.company_stage;
+        }
+      }
+
       console.log('handleAnswer called:', { questionId, value, newAnswers });
       return newAnswers;
     });
-  }, []);
+
+    if (questionId === 'funding_intent') {
+      if (value === 'planning_only') {
+        setPlanningModalOpen(true);
+      } else {
+        setPlanningModalOpen(false);
+      }
+    }
+  }, [setPlanningModalOpen]);
 
   // Removed handleViewAllResults - results are shown inline in ProgramFinder
   
@@ -710,6 +701,217 @@ export default function ProgramFinder({
   // State for answers summary collapse
   const [answersSummaryExpanded, setAnswersSummaryExpanded] = useState(false);
 
+  const getQuestionLabelById = useCallback((questionId: string) => {
+    const question = translatedQuestions.find((q) => q.id === questionId);
+    return question?.label || questionId;
+  }, [translatedQuestions]);
+
+  const describeAppliedValue = useCallback(
+    (questionId: string, value: any, contextAnswers?: Record<string, any>) => {
+      const formatted = formatAnswerForDisplay(questionId, value, contextAnswers);
+      if (!formatted) return '';
+      return `${getQuestionLabelById(questionId)} – ${formatted}`;
+    },
+    [formatAnswerForDisplay, getQuestionLabelById]
+  );
+
+  const applyChatExtraction = useCallback(
+    (message: string) => {
+      const lower = message.toLowerCase();
+      const updates: Record<string, any> = {};
+
+      const shouldUpdate = (field: string, newValue: any) => {
+        const current = answers[field];
+        if (Array.isArray(current) && Array.isArray(newValue)) {
+          if (current.length === newValue.length && current.every((item) => newValue.includes(item))) {
+            return false;
+          }
+        } else if (current === newValue) {
+          return false;
+        }
+        updates[field] = newValue;
+        return true;
+      };
+
+      const cityMatch = CITY_KEYWORDS.find((entry) => entry.pattern.test(lower));
+      if (cityMatch) {
+        shouldUpdate('location', cityMatch.location);
+        shouldUpdate('location_region', cityMatch.region);
+      } else {
+        const locationMatch = LOCATION_KEYWORDS.find((entry) =>
+          entry.keywords.some((keyword) => lower.includes(keyword))
+        );
+        if (locationMatch) {
+          shouldUpdate('location', locationMatch.value);
+        }
+      }
+
+      const companyTypeMatch = COMPANY_TYPE_KEYWORDS.find((entry) =>
+        entry.keywords.some((keyword) => lower.includes(keyword))
+      );
+      if (companyTypeMatch) {
+        shouldUpdate('company_type', companyTypeMatch.value);
+      }
+
+      const stageMatch = COMPANY_STAGE_KEYWORDS.find((entry) =>
+        entry.keywords.some((keyword) => lower.includes(keyword))
+      );
+      if (stageMatch) {
+        shouldUpdate('company_stage', stageMatch.value);
+      }
+
+      const industryMatch = INDUSTRY_KEYWORDS.find((entry) =>
+        entry.keywords.some((keyword) => lower.includes(keyword))
+      );
+      if (industryMatch) {
+        const existing = Array.isArray(answers.industry_focus) ? answers.industry_focus : [];
+        const merged = Array.from(new Set([...existing, industryMatch.value]));
+        shouldUpdate('industry_focus', merged);
+      }
+
+      const impactMatch = IMPACT_KEYWORDS.find((entry) =>
+        entry.keywords.some((keyword) => lower.includes(keyword))
+      );
+      if (impactMatch) {
+        const existing = Array.isArray(answers.impact_focus) ? answers.impact_focus : [];
+        const merged = Array.from(new Set([...existing, impactMatch.value]));
+        shouldUpdate('impact_focus', merged);
+      }
+
+      const useOfFundsMatch = USE_OF_FUNDS_KEYWORDS.find((entry) =>
+        entry.keywords.some((keyword) => lower.includes(keyword))
+      );
+      if (useOfFundsMatch) {
+        const existing = Array.isArray(answers.use_of_funds) ? answers.use_of_funds : [];
+        const merged = Array.from(new Set([...existing, useOfFundsMatch.value]));
+        shouldUpdate('use_of_funds', merged);
+      }
+
+      if (CO_FINANCING_NEGATIVE_KEYWORDS.some((keyword) => lower.includes(keyword))) {
+        shouldUpdate('co_financing', 'co_no');
+      } else if (CO_FINANCING_POSITIVE_KEYWORDS.some((keyword) => lower.includes(keyword))) {
+        shouldUpdate('co_financing', 'co_yes');
+      } else if (CO_FINANCING_UNCERTAIN_KEYWORDS.some((keyword) => lower.includes(keyword))) {
+        shouldUpdate('co_financing', 'co_uncertain');
+      }
+
+      const revenueMatch = REVENUE_KEYWORDS.find((entry) =>
+        entry.keywords.some((keyword) => lower.includes(keyword))
+      );
+      if (revenueMatch) {
+        shouldUpdate('revenue_status', revenueMatch.value);
+      }
+
+      const teamBucket = TEAM_SIZE_BUCKETS.find((bucket) => bucket.pattern.test(lower));
+      if (teamBucket) {
+        shouldUpdate('team_size', teamBucket.value);
+      } else {
+        const explicitTeamMatch = lower.match(/team of (\d+)|(\d+)\s*(person|people|employees)/);
+        if (explicitTeamMatch) {
+          const numberMatch = explicitTeamMatch[1] || explicitTeamMatch[2];
+          const count = Number(numberMatch);
+          if (!Number.isNaN(count)) {
+            if (count === 1) {
+              shouldUpdate('team_size', 'solo');
+            } else if (count <= 5) {
+              shouldUpdate('team_size', 'team_2_5');
+            } else if (count <= 20) {
+              shouldUpdate('team_size', 'team_6_20');
+            } else {
+              shouldUpdate('team_size', 'team_20_plus');
+            }
+          }
+        }
+      }
+
+      const fundingAmount = normalizeFundingAmountFromText(message);
+      if (fundingAmount !== null) {
+        shouldUpdate('funding_amount', fundingAmount);
+      }
+
+      const projectDurationMatch = message.match(/(\d+)\s*(months|monat|monate|month)/i);
+      if (projectDurationMatch) {
+        const months = Math.min(Math.max(parseInt(projectDurationMatch[1], 10), 1), 36);
+        shouldUpdate('project_duration', months);
+      }
+
+      const deadlineMatch = DEADLINE_KEYWORDS.find((entry) =>
+        entry.keywords.some((keyword) => lower.includes(keyword))
+      );
+      if (deadlineMatch) {
+        shouldUpdate('deadline_urgency', deadlineMatch.value);
+      }
+
+      Object.entries(updates).forEach(([field, value]) => {
+        handleAnswer(field, value);
+      });
+
+      return updates;
+    },
+    [answers, handleAnswer]
+  );
+
+  const handleChatSubmit = useCallback(
+    (event?: React.FormEvent<HTMLFormElement>) => {
+      event?.preventDefault();
+      const trimmed = chatInput.trim();
+      if (!trimmed) return;
+
+      const timestamp = Date.now();
+      const userMessage: ChatMessage = {
+        id: createMessageId(),
+        role: 'user',
+        text: trimmed,
+        timestamp,
+      };
+      setChatMessages((prev) => [...prev, userMessage]);
+
+      const updates = applyChatExtraction(trimmed);
+      const nextAnswers = { ...answers, ...updates };
+      const appliedSummaries = Object.entries(updates)
+        .filter(([field]) => !field.endsWith('_region') && !field.endsWith('_other') && !field.endsWith('_percentage'))
+        .map(([field, value]) => describeAppliedValue(field, value, nextAnswers))
+        .filter(Boolean);
+
+      const missingCritical = REQUIRED_QUESTION_IDS.filter((questionId) => !isAnswerProvided(nextAnswers[questionId]));
+      const missingLabels = missingCritical.map((id) => getQuestionLabelById(id));
+
+      let assistantText = '';
+      if (appliedSummaries.length > 0) {
+        assistantText +=
+          (locale === 'de' ? 'Danke! Übernommen: ' : 'Thanks! Captured: ') + appliedSummaries.join('; ');
+      } else {
+        assistantText +=
+          locale === 'de'
+            ? 'Danke! Ich konnte noch keine neuen Felder zuordnen. Nennen Sie z. B. Standort, Budget oder Teamgröße.'
+            : 'Thanks! I could not map any fields yet. Mention location, budget, or team size to speed things up.';
+      }
+
+      if (missingLabels.length > 0) {
+        assistantText +=
+          locale === 'de'
+            ? ` Noch benötigt: ${missingLabels.join(', ')}.`
+            : ` Still missing: ${missingLabels.join(', ')}.`;
+      } else {
+        assistantText +=
+          locale === 'de'
+            ? ' Sie können jetzt Programme generieren oder weitere Details teilen.'
+            : ' You can generate programs now or keep sharing details.';
+      }
+
+      const assistantMessage: ChatMessage = {
+        id: createMessageId(),
+        role: 'assistant',
+        text: assistantText.trim(),
+        timestamp: Date.now(),
+      };
+      setChatMessages((prev) => [...prev, assistantMessage]);
+      setChatInput('');
+    },
+    [answers, applyChatExtraction, chatInput, describeAppliedValue, getQuestionLabelById, locale]
+  );
+
+  
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-purple-50">
       <div className={`max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-2 ${answeredCount > 0 ? 'pb-24' : ''}`}>
@@ -761,6 +963,82 @@ export default function ProgramFinder({
         </div>
 
         <div className="flex flex-col gap-2" data-questions-section>
+          <Card className="p-6 bg-white/90 border border-blue-100 shadow-sm">
+            <div className="flex flex-col gap-6 lg:flex-row">
+              <div className="flex-1 min-w-0">
+                <div className="flex items-center gap-3 mb-4">
+                  <div className="w-10 h-10 rounded-full bg-blue-100 text-blue-700 flex items-center justify-center">
+                    <MessageCircle className="w-5 h-5" />
+                  </div>
+                  <div>
+                    <p className="text-base font-semibold text-gray-900">
+                      {locale === 'de' ? 'Freitext-Eingabe (optional)' : 'Free-text intake (optional)'}
+                    </p>
+                    <p className="text-sm text-gray-600">
+                      {locale === 'de'
+                        ? 'Schreiben Sie wie in einem Chat. Wir versuchen, Antworten zu erkennen und fehlende Felder hervorzuheben.'
+                        : 'Write as if you were chatting. We will extract answers and flag missing details.'}
+                    </p>
+                  </div>
+                </div>
+                <div className="rounded-lg border border-gray-200 bg-gray-50 p-3 h-52 overflow-y-auto space-y-3 text-sm">
+                  {chatMessages.map((msg) => (
+                    <div key={msg.id} className={`flex ${msg.role === 'user' ? 'justify-end' : 'justify-start'}`}>
+                      <div
+                        className={`max-w-[80%] rounded-2xl px-3 py-2 ${
+                          msg.role === 'user'
+                            ? 'bg-blue-600 text-white rounded-tr-sm shadow-blue-200 shadow-lg'
+                            : 'bg-white text-gray-800 border border-blue-100 rounded-tl-sm shadow-inner'
+                        }`}
+                      >
+                        <p className="whitespace-pre-line">{msg.text}</p>
+                        <span
+                          className={`block text-[11px] mt-1 ${
+                            msg.role === 'user' ? 'text-blue-100' : 'text-gray-400'
+                          }`}
+                        >
+                          {new Date(msg.timestamp).toLocaleTimeString(locale === 'de' ? 'de-AT' : 'en-GB', {
+                            hour: '2-digit',
+                            minute: '2-digit',
+                          })}
+                        </span>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+                <form onSubmit={handleChatSubmit} className="mt-4 space-y-3">
+                  <textarea
+                    value={chatInput}
+                    onChange={(e) => setChatInput(e.target.value)}
+                    rows={3}
+                    placeholder={
+                      locale === 'de'
+                        ? 'Beschreiben Sie Projekt, Budget, Team, Wirkung ...'
+                        : 'Describe project, budget, team, impact...'
+                    }
+                    className="w-full rounded-xl border border-gray-300 px-4 py-3 text-sm shadow-sm focus:border-blue-500 focus:ring-2 focus:ring-blue-500/30 resize-none"
+                  />
+                  <div className="flex items-center justify-between gap-3">
+                    <button
+                      type="button"
+                      onClick={() => setChatInput('')}
+                      className="px-4 py-2 text-sm font-medium text-gray-600 border border-gray-200 rounded-lg hover:bg-gray-100"
+                    >
+                      {locale === 'de' ? 'Text leeren' : 'Clear'}
+                    </button>
+                    <button
+                      type="submit"
+                      className="inline-flex items-center gap-2 px-5 py-2.5 rounded-lg bg-blue-600 text-white text-sm font-semibold hover:bg-blue-700 transition-colors"
+                    >
+                      <Sparkles className="w-4 h-4" />
+                      {locale === 'de' ? 'Info übernehmen' : 'Apply info'}
+                    </button>
+                  </div>
+                </form>
+              </div>
+            </div>
+          </Card>
+
           {/* Answers Summary Section - Fixed Position, Non-Overlapping */}
           {answeredCount > 0 && (
             <div className="fixed right-6 top-32 z-30 max-w-xs">
@@ -873,7 +1151,6 @@ export default function ProgramFinder({
                           if (!question) return null;
                           const value = answers[question.id];
                           const isAnswered = value !== undefined && value !== null && value !== '';
-                          const questionHint = QUESTION_HINTS[question.id];
                           return (
                             <div className="space-y-4">
                               {/* Question Header */}
@@ -900,22 +1177,6 @@ export default function ProgramFinder({
                                     </span>
                                   )}
                                 </div>
-                                {questionHint && (
-                                  <div className="mt-3 rounded-lg border border-amber-200 bg-amber-50/70 p-3">
-                                    <div className="flex items-center gap-2 text-xs font-semibold text-amber-900">
-                                      <Lightbulb className="w-4 h-4" />
-                                      <span>{locale === 'de' ? questionHint.title.de : questionHint.title.en}</span>
-                                    </div>
-                                    <ul className="mt-2 space-y-1 text-xs text-amber-900/90">
-                                      {questionHint.hints.map((hint, idx) => (
-                                        <li key={`${question.id}-hint-${idx}`} className="flex gap-2">
-                                          <span>•</span>
-                                          <span>{locale === 'de' ? hint.de : hint.en}</span>
-                                        </li>
-                                      ))}
-                                    </ul>
-                                  </div>
-                                )}
                               </div>
                               
                               {/* Question Options */}
@@ -1461,20 +1722,22 @@ export default function ProgramFinder({
           <Card className="p-4 border-2 border-dashed border-blue-200 bg-white/80 shadow-sm">
             <div className="flex items-start justify-between gap-4">
               <div>
-                <p className="text-base font-semibold text-gray-900">{advancedFiltersTitle}</p>
+                <p className="text-base font-semibold text-gray-900">Advanced filters</p>
                 <p className="text-sm text-gray-600">
-                  {advancedFiltersDescription}
+                  Optional details like project duration, impact focus, matching share, and team size.
                 </p>
               </div>
               <button
                 onClick={() => setShowAdvancedFilters(!showAdvancedFilters)}
                 className="px-3 py-2 rounded-md text-sm font-medium border border-blue-500 text-blue-600 hover:bg-blue-50 transition-colors"
               >
-                {showAdvancedFilters ? advancedFiltersHideLabel : advancedFiltersShowLabel}
+                {showAdvancedFilters ? 'Hide advanced' : 'Add detail'}
               </button>
             </div>
             <p className="text-xs text-gray-500 mt-3">
-              {showAdvancedFilters ? advancedFiltersSummaryActive : advancedFiltersSummaryHidden}
+              {showAdvancedFilters
+                ? `${advancedAnsweredCount}/${advancedQuestions.length} advanced questions answered. They now appear at the end of your question path.`
+                : 'Currently hidden. Toggle to refine recommendations with more context.'}
             </p>
           </Card>
         </div>
@@ -1531,6 +1794,52 @@ export default function ProgramFinder({
             </div>
           )}
           
+          {/* Planning intent modal */}
+          <Dialog
+            open={planningModalOpen}
+            onOpenChange={(open) => {
+              setPlanningModalOpen(open);
+              if (!open && answers.funding_intent === 'planning_only') {
+                handleAnswer('funding_intent', undefined);
+              }
+            }}
+          >
+            <DialogContent className="max-w-lg">
+              <DialogHeader>
+                <DialogTitle>
+                  {locale === 'de' ? 'Projekt zuerst vorbereiten' : 'Set up your project first'}
+                </DialogTitle>
+                <DialogDescription className="text-sm text-gray-600">
+                  {locale === 'de'
+                    ? 'ProgramFinder benötigt ein konkretes Projekt oder Vorhaben. Starten Sie im Editor, erstellen Sie grob Ihren Plan und kommen Sie dann zurück, um passende Förderungen zu finden.'
+                    : 'ProgramFinder needs a defined project or venture to match funding. Jump into the editor, sketch your plan, and then return to discover the best programs.'}
+                </DialogDescription>
+              </DialogHeader>
+              <div className="mt-6 flex flex-col gap-3 sm:flex-row">
+                <button
+                  type="button"
+                  onClick={() => {
+                    setPlanningModalOpen(false);
+                    router.push('/editor');
+                  }}
+                  className="flex-1 rounded-lg bg-blue-600 px-4 py-2.5 text-sm font-semibold text-white shadow hover:bg-blue-700 transition-colors"
+                >
+                  {locale === 'de' ? 'Editor öffnen' : 'Open editor'}
+                </button>
+                <button
+                  type="button"
+                  onClick={() => {
+                    setPlanningModalOpen(false);
+                    handleAnswer('funding_intent', undefined);
+                  }}
+                  className="flex-1 rounded-lg border border-gray-300 px-4 py-2.5 text-sm font-semibold text-gray-700 hover:bg-gray-100 transition-colors"
+                >
+                  {locale === 'de' ? 'Hier bleiben' : 'Stay in ProgramFinder'}
+                </button>
+              </div>
+            </DialogContent>
+          </Dialog>
+
           {/* Results Modal/Popup - Open when we have results OR when generation finished with no results */}
           <Dialog open={(results.length > 0 && !isLoading) || (!isLoading && hasAttemptedGeneration && results.length === 0)} onOpenChange={(open) => {
             if (!open) {
@@ -1911,7 +2220,7 @@ export default function ProgramFinder({
                 setIsLoading(true);
                 setHasAttemptedGeneration(true); // Mark that user clicked generate
                 console.log('🚀 Starting program generation...');
-                console.log('📋 Answers being sent:', answers);
+                console.log('📋 Answers being sent:', answersForApi);
                 console.log('✅ Has enough answers:', hasEnoughAnswers);
                 
                 try {
@@ -1924,7 +2233,7 @@ export default function ProgramFinder({
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({
-                      answers,
+                      answers: answersForApi,
                       max_results: 20,
                       extract_all: false,
                       use_seeds: false,
@@ -1998,7 +2307,7 @@ export default function ProgramFinder({
                   if (extractedPrograms.length === 0) {
                     console.error('❌ CRITICAL: No programs returned from API');
                     console.error('API response:', JSON.stringify(data, null, 2));
-                    console.error('Answers sent:', JSON.stringify(answers, null, 2));
+                    console.error('Answers sent:', JSON.stringify(answersForApi, null, 2));
                     
                     // Check extraction results for more details
                     const extractionResults = data.extraction_results || data.extractionResults || [];
@@ -2049,7 +2358,7 @@ export default function ProgramFinder({
                       program_focus: p.metadata?.program_focus || [],
                     }));
                   console.log(`📊 Scoring ${programsForScoring.length} programs...`);
-                  const scored = await scoreProgramsEnhanced(answers, 'strict', programsForScoring);
+                  const scored = await scoreProgramsEnhanced(answersForApi, 'strict', programsForScoring);
                   console.log(`✅ Scored ${scored.length} programs`);
                   console.log('📈 Score distribution:', scored.map(p => ({ name: p.name, score: p.score })));
                   
