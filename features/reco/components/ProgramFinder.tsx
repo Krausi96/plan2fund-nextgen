@@ -5,7 +5,7 @@
 
 import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import { useRouter } from 'next/router';
-import { Wand2, ChevronLeft, ChevronRight } from 'lucide-react';
+import { Wand2, ChevronLeft, ChevronRight, MessageCircle, Sparkles, Lightbulb } from 'lucide-react';
 import { Card } from '@/shared/components/ui/card';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/shared/components/ui/dialog';
 // Progress bar implemented with custom div (not using Progress component)
@@ -124,14 +124,14 @@ type QuestionDefinition = SingleSelectQuestion | MultiSelectQuestion | RangeQues
 const CORE_QUESTIONS: QuestionDefinition[] = [
   {
     id: 'company_type', // CRITICAL - Used in matching (must match)
-    label: 'What type of company are you?',
+    label: 'Who is filling out this application?',
     type: 'single-select' as const,
     options: [
-      { value: 'prefounder', label: 'Pre-founder (Idea Stage)' },
-      { value: 'startup', label: 'Startup' },
-      { value: 'sme', label: 'SME (Small/Medium Enterprise)' },
-      { value: 'research', label: 'Research Institution' },
-      { value: 'other', label: 'Other' },
+      { value: 'prefounder', label: 'Founder exploring an idea' },
+      { value: 'startup', label: 'Startup with first traction' },
+      { value: 'sme', label: 'Established SME (36+ months)' },
+      { value: 'research', label: 'Research lab / university team' },
+      { value: 'other', label: 'Advisor or other organisation' },
     ],
     required: true,
     priority: 1,
@@ -141,7 +141,7 @@ const CORE_QUESTIONS: QuestionDefinition[] = [
   },
   {
     id: 'location', // CRITICAL - Used in matching (must match)
-    label: 'Where is your company based?',
+    label: 'Where will the project be carried out?',
     type: 'single-select' as const,
     options: [
       { value: 'austria', label: 'Austria' },
@@ -159,12 +159,12 @@ const CORE_QUESTIONS: QuestionDefinition[] = [
   },
   {
     id: 'co_financing', // CRITICAL - Determines funding type diversity (moved earlier)
-    label: 'Can you provide co-financing?',
+    label: 'Can you cover matching funds/co-financing?',
     type: 'single-select' as const,
     options: [
-      { value: 'co_yes', label: 'Yes' },
-      { value: 'co_no', label: 'No' },
-      { value: 'co_uncertain', label: 'Uncertain' },
+      { value: 'co_yes', label: 'Yes, we can cover 20%+' },
+      { value: 'co_no', label: 'No, we need 100% funding' },
+      { value: 'co_uncertain', label: 'Not sure yet' },
     ],
     required: false,
     priority: 3, // Moved up from 5 - critical for funding type selection
@@ -173,14 +173,14 @@ const CORE_QUESTIONS: QuestionDefinition[] = [
   },
   {
     id: 'company_stage', // CRITICAL - Used in matching (affects equity eligibility)
-    label: 'What stage is your company at?',
+    label: 'How far along is your organisation?',
     type: 'single-select' as const,
     options: [
-      { value: 'idea', label: 'Idea / Concept' },
-      { value: 'pre_company', label: 'Pre-company (not incorporated)' },
-      { value: 'inc_lt_6m', label: 'Newly incorporated (< 6 months)' },
-      { value: 'inc_6_36m', label: 'Growing (6-36 months)' },
-      { value: 'inc_gt_36m', label: 'Established (36+ months)' },
+      { value: 'idea', label: 'Idea / concept only' },
+      { value: 'pre_company', label: 'Team formed, not yet incorporated' },
+      { value: 'inc_lt_6m', label: 'Recently incorporated (< 6 months)' },
+      { value: 'inc_6_36m', label: 'Scaling company (6-36 months)' },
+      { value: 'inc_gt_36m', label: 'Established organisation (36+ months)' },
       { value: 'research_org', label: 'Research institution / University' },
     ],
     required: true,
@@ -189,7 +189,7 @@ const CORE_QUESTIONS: QuestionDefinition[] = [
   },
   {
     id: 'funding_amount', // CRITICAL - Used in matching
-    label: 'How much funding do you need?',
+    label: 'How much funding do you plan to request?',
     type: 'range' as const,
     min: 0,
     max: 2000000,
@@ -202,15 +202,15 @@ const CORE_QUESTIONS: QuestionDefinition[] = [
   },
   {
     id: 'industry_focus', // OPTIONAL - Used in matching but not critical
-    label: 'What industry are you in?',
+    label: 'Which focus best describes your project?',
     type: 'multi-select' as const,
     options: [
-      { value: 'digital', label: 'Digital/ICT' },
-      { value: 'sustainability', label: 'Sustainability/Green Tech' },
-      { value: 'health', label: 'Health/Life Sciences' },
-      { value: 'manufacturing', label: 'Manufacturing' },
-      { value: 'export', label: 'Export/International' },
-      { value: 'other', label: 'Other' },
+      { value: 'digital', label: 'Digital & Software' },
+      { value: 'sustainability', label: 'Climate & Sustainability' },
+      { value: 'health', label: 'Health & Life Sciences' },
+      { value: 'manufacturing', label: 'Manufacturing & Hardware' },
+      { value: 'export', label: 'Internationalisation' },
+      { value: 'other', label: 'Something else' },
     ],
     required: false,
     priority: 6,
@@ -219,7 +219,7 @@ const CORE_QUESTIONS: QuestionDefinition[] = [
     // Enhanced: Industry subcategories for better matching
     subCategories: {
       digital: [
-        { value: 'ai', label: 'AI/Machine Learning' },
+        { value: 'ai', label: 'AI & Machine Learning' },
         { value: 'fintech', label: 'FinTech' },
         { value: 'healthtech', label: 'HealthTech' },
         { value: 'edtech', label: 'EdTech' },
@@ -268,7 +268,7 @@ const CORE_QUESTIONS: QuestionDefinition[] = [
   },
   {
     id: 'use_of_funds',
-    label: 'How will you use the funding?',
+    label: 'How will you invest the funds?',
     type: 'multi-select' as const,
     options: [
       { value: 'product_development', label: 'Product development & R&D' },
@@ -289,7 +289,7 @@ const CORE_QUESTIONS: QuestionDefinition[] = [
 const ADVANCED_QUESTIONS: QuestionDefinition[] = [
   {
     id: 'team_size',
-    label: 'How large is your team?',
+    label: 'How large is your active team?',
     type: 'single-select' as const,
     options: [
       { value: 'solo', label: 'Solo founder' },
@@ -303,13 +303,13 @@ const ADVANCED_QUESTIONS: QuestionDefinition[] = [
   },
   {
     id: 'revenue_status',
-    label: 'What best describes your revenue stage?',
+    label: 'Where is your revenue today?',
     type: 'single-select' as const,
     options: [
       { value: 'pre_revenue', label: 'Pre-revenue' },
       { value: 'early_revenue', label: 'Early revenue (< €500k)' },
-      { value: 'scaling_revenue', label: 'Scaling (€500k+)' },
-      { value: 'profitable', label: 'Profitable' },
+      { value: 'scaling_revenue', label: 'Scaling revenue (€500k+)' },
+      { value: 'profitable', label: 'Profitable / cash-flow positive' },
     ],
     required: false,
     priority: 11,
@@ -334,13 +334,13 @@ const ADVANCED_QUESTIONS: QuestionDefinition[] = [
   },
   {
     id: 'deadline_urgency',
-    label: 'When do you need the funding?',
+    label: 'When do you need a funding decision?',
     type: 'single-select' as const,
     options: [
-      { value: 'immediate', label: 'Within 1 month' },
-      { value: 'short_term', label: '1-3 months' },
-      { value: 'medium_term', label: '3-6 months' },
-      { value: 'long_term', label: '6+ months' },
+      { value: 'immediate', label: 'Decision needed within 1 month' },
+      { value: 'short_term', label: 'Decision needed in 1-3 months' },
+      { value: 'medium_term', label: 'Decision needed in 3-6 months' },
+      { value: 'long_term', label: 'Decision needed in 6+ months' },
     ],
     required: false,
     priority: 13,
@@ -348,7 +348,7 @@ const ADVANCED_QUESTIONS: QuestionDefinition[] = [
   },
   {
     id: 'project_duration',
-    label: 'How long will your project run?',
+    label: 'How long will the funded project run?',
     type: 'range' as const,
     min: 1,
     max: 36,
@@ -362,11 +362,213 @@ const ADVANCED_QUESTIONS: QuestionDefinition[] = [
 
 const ALL_QUESTIONS: QuestionDefinition[] = [...CORE_QUESTIONS, ...ADVANCED_QUESTIONS];
 
+type ChatMessage = {
+  id: string;
+  role: 'user' | 'assistant';
+  text: string;
+  timestamp: number;
+};
+
+type HintGroup = {
+  title: { en: string; de: string };
+  hints: Array<{ en: string; de: string }>;
+};
+
+const createMessageId = () => `${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
+
+const CHAT_HINT_GROUPS: HintGroup[] = [
+  {
+    title: {
+      en: 'Project essentials',
+      de: 'Projekt-Basics',
+    },
+    hints: [
+      {
+        en: 'We are a Vienna-based startup advising SMEs and founders.',
+        de: 'Wir sind ein Wiener Startup und beraten KMU sowie Gründer:innen.',
+      },
+      {
+        en: 'The project targets Austrian clients but can scale across the EU.',
+        de: 'Das Projekt richtet sich an österreichische Kund:innen und lässt sich EU-weit ausrollen.',
+      },
+    ],
+  },
+  {
+    title: {
+      en: 'Funding & scope',
+      de: 'Finanzierung & Umfang',
+    },
+    hints: [
+      {
+        en: 'We request €150k for prototyping, hiring two engineers, and pilot customers.',
+        de: 'Wir beantragen €150k für Prototyp, zwei zusätzliche Entwickler:innen und Pilotkund:innen.',
+      },
+      {
+        en: 'Budget covers equipment, onboarding programme fees, and mentoring.',
+        de: 'Das Budget deckt Equipment, Programmeintritt sowie Mentoring ab.',
+      },
+    ],
+  },
+  {
+    title: {
+      en: 'Impact & timing',
+      de: 'Wirkung & Timing',
+    },
+    hints: [
+      {
+        en: 'Expected impact: 15 jobs, CO₂ savings, inclusion of underrepresented founders.',
+        de: 'Erwartete Wirkung: 15 Jobs, CO₂-Einsparungen und Einbindung unterrepräsentierter Gründer:innen.',
+      },
+      {
+        en: 'We need a decision within 3 months; project lasts 18 months with co-financing.',
+        de: 'Wir benötigen eine Entscheidung innerhalb von 3 Monaten; Projektlaufzeit 18 Monate mit Kofinanzierung.',
+      },
+    ],
+  },
+];
+
+type KeywordMap = { keywords: string[]; value: string };
+
+const LOCATION_KEYWORDS: KeywordMap[] = [
+  { keywords: ['austria', 'österreich', 'vienna', 'wien', 'graz', 'linz', 'innsbruck'], value: 'austria' },
+  { keywords: ['germany', 'deutschland', 'berlin', 'munich', 'münchen', 'hamburg'], value: 'germany' },
+  { keywords: ['eu', 'europe', 'europa', 'schengen'], value: 'eu' },
+  { keywords: ['international', 'global', 'usa', 'uk', 'swiss', 'switzerland'], value: 'international' },
+];
+
+const CITY_KEYWORDS = [
+  { pattern: /\bvienna\b|\bwien\b/, location: 'austria', region: 'Vienna' },
+  { pattern: /\bgraz\b/, location: 'austria', region: 'Graz' },
+  { pattern: /\blinz\b/, location: 'austria', region: 'Linz' },
+  { pattern: /\binnsbruck\b/, location: 'austria', region: 'Innsbruck' },
+  { pattern: /\bberlin\b/, location: 'germany', region: 'Berlin' },
+  { pattern: /\bmunich\b|\bmünchen\b/, location: 'germany', region: 'Munich' },
+  { pattern: /\bhamburg\b/, location: 'germany', region: 'Hamburg' },
+];
+
+const COMPANY_TYPE_KEYWORDS: KeywordMap[] = [
+  { keywords: ['research', 'university', 'lab', 'fh', 'tu', 'professor'], value: 'research' },
+  { keywords: ['sme', 'kmu', 'mittelstand', 'family business'], value: 'sme' },
+  { keywords: ['startup', 'scaleup', 'scale-up', 'founder team'], value: 'startup' },
+  { keywords: ['pre-founder', 'idea stage', 'concept', 'solo founder'], value: 'prefounder' },
+  { keywords: ['advisor', 'consultant', 'incubator', 'accelerator'], value: 'other' },
+];
+
+const COMPANY_STAGE_KEYWORDS: KeywordMap[] = [
+  { keywords: ['idea', 'concept', 'ideation'], value: 'idea' },
+  { keywords: ['pre-incorporated', 'not incorporated', 'team only'], value: 'pre_company' },
+  { keywords: ['incorporated', 'registered recently', '6 months'], value: 'inc_lt_6m' },
+  { keywords: ['scale', 'growth', 'traction', '18 months', 'series a'], value: 'inc_6_36m' },
+  { keywords: ['established', 'mature', '36 months', 'sme'], value: 'inc_gt_36m' },
+  { keywords: ['university', 'research'], value: 'research_org' },
+];
+
+const INDUSTRY_KEYWORDS: KeywordMap[] = [
+  { keywords: ['digital', 'software', 'saas', 'ai', 'data', 'ict'], value: 'digital' },
+  { keywords: ['climate', 'energy', 'green', 'sustainab', 'co2'], value: 'sustainability' },
+  { keywords: ['health', 'medtech', 'biotech', 'lifescience'], value: 'health' },
+  { keywords: ['manufacturing', 'hardware', 'robotics', 'industry'], value: 'manufacturing' },
+  { keywords: ['export', 'international', 'global expansion'], value: 'export' },
+];
+
+const IMPACT_KEYWORDS: KeywordMap[] = [
+  { keywords: ['climate', 'co2', 'environment', 'green'], value: 'environmental' },
+  { keywords: ['social', 'inclusion', 'community', 'diversity'], value: 'social' },
+  { keywords: ['regional', 'rural', 'austrian states'], value: 'regional' },
+  { keywords: ['research', 'innovation', 'deep tech'], value: 'research' },
+  { keywords: ['education', 'skills', 'training', 'workforce'], value: 'education' },
+];
+
+const USE_OF_FUNDS_KEYWORDS: KeywordMap[] = [
+  { keywords: ['prototype', 'product', 'r&d', 'research', 'build'], value: 'product_development' },
+  { keywords: ['hire', 'team', 'talent', 'recruit'], value: 'hiring' },
+  { keywords: ['equipment', 'hardware', 'lab', 'infrastructure'], value: 'equipment' },
+  { keywords: ['marketing', 'sales', 'go-to-market', 'launch'], value: 'marketing' },
+  { keywords: ['international', 'export', 'market entry'], value: 'internationalization' },
+  { keywords: ['working capital', 'runway', 'cash flow', 'liquidity'], value: 'working_capital' },
+];
+
+const CO_FINANCING_POSITIVE_KEYWORDS = ['co-financing', 'matching funds', 'own funds', 'equity share', '20%', '30%'];
+const CO_FINANCING_NEGATIVE_KEYWORDS = ['no co-financing', 'cannot co-finance', 'need 100%', 'full grant'];
+const CO_FINANCING_UNCERTAIN_KEYWORDS = ['not sure', 'uncertain', 'tbd', 'evaluate'];
+
+const DEADLINE_KEYWORDS = [
+  { keywords: ['urgent', 'next month', 'immediately', 'asap'], value: 'immediate' },
+  { keywords: ['1-3 months', 'quarter', 'in 3 months', 'this quarter'], value: 'short_term' },
+  { keywords: ['six months', 'half year', 'mid-year'], value: 'medium_term' },
+  { keywords: ['end of year', 'no rush', 'flexible', 'next year'], value: 'long_term' },
+];
+
+const TEAM_SIZE_BUCKETS = [
+  { pattern: /(solo|alone|single founder)/, value: 'solo' },
+  { pattern: /(\b2\b|\b3\b|\b4\b|\b5\b).*team/, value: 'team_2_5' },
+  { pattern: /(6|7|8|9|10|11|12|13|14|15|16|17|18|19|20).*team/, value: 'team_6_20' },
+  { pattern: /(20|30|40|50)\+? team|large team/, value: 'team_20_plus' },
+];
+
+const REVENUE_KEYWORDS = [
+  { keywords: ['pre-revenue', 'no revenue', 'pre revenue'], value: 'pre_revenue' },
+  { keywords: ['early revenue', 'first revenue', '< €500k', '<500k'], value: 'early_revenue' },
+  { keywords: ['scaling revenue', '€500k+', 'growing revenue'], value: 'scaling_revenue' },
+  { keywords: ['profitable', 'cashflow positive', 'profit'], value: 'profitable' },
+];
+
+const normalizeFundingAmountFromText = (text: string): number | null => {
+  const amountMatch =
+    text.match(/(?:€|eur|euro|about|ca\.?)\s*([\d.,]+)\s*(million|mio|m|k|tausend|thousand)?/i) ||
+    text.match(/([\d.,]+)\s*(million|m|mio|k|tausend|thousand)\s*(?:€|eur|euro)?/i);
+  if (!amountMatch) return null;
+  let numeric = parseFloat(amountMatch[1].replace(/\./g, '').replace(',', '.'));
+  if (isNaN(numeric)) return null;
+  const suffix = amountMatch[2]?.toLowerCase();
+  if (suffix) {
+    if (suffix.includes('m')) {
+      numeric *= 1_000_000;
+    } else if (suffix.includes('k') || suffix.includes('tausend') || suffix.includes('thousand')) {
+      numeric *= 1_000;
+    }
+  }
+  return Math.min(Math.max(Math.round(numeric)), 2_000_000);
+};
+
+const createInitialChatMessages = (locale: string): ChatMessage[] => [
+  {
+    id: createMessageId(),
+    role: 'assistant',
+    text:
+      locale === 'de'
+        ? 'Beschreiben Sie Ihr Projekt in Ihren eigenen Worten. Ich hebe fehlende Angaben hervor und versuche Felder automatisch zu befüllen.'
+        : 'Describe your project in your own words. I will highlight missing details and pre-fill answers when possible.',
+    timestamp: Date.now(),
+  },
+];
+
 export default function ProgramFinder({ 
   onProgramSelect
 }: ProgramFinderProps) {
   const router = useRouter();
   const { t, locale } = useI18n();
+  const [inputMode, setInputMode] = useState<'wizard' | 'template'>('wizard');
+  const [templateSections, setTemplateSections] = useState<Record<string, string>>({
+    location: '',
+    company_type: '',
+    funding_amount: '',
+    company_stage: '',
+    co_financing: '',
+    industry_focus: '',
+  });
+  const [templateHints, setTemplateHints] = useState<Record<string, string>>({});
+  const [chatMessages, setChatMessages] = useState<ChatMessage[]>(() => createInitialChatMessages(locale));
+  const [chatInput, setChatInput] = useState('');
+  const [showHintLibrary, setShowHintLibrary] = useState(true);
+  useEffect(() => {
+    setChatMessages((prev) => {
+      if (prev.length === 0 || (prev.length === 1 && prev[0].role === 'assistant')) {
+        return createInitialChatMessages(locale);
+      }
+      return prev;
+    });
+  }, [locale]);
   
   // Get translated questions
   const translatedQuestions = useMemo<QuestionDefinition[]>(() => {
@@ -523,9 +725,9 @@ export default function ProgramFinder({
   // Removed handleViewAllResults - results are shown inline in ProgramFinder
   
   // Helper function to format answer for display
-  const formatAnswerForDisplay = (questionId: string, value: any): string => {
+  const formatAnswerForDisplay = useCallback((questionId: string, value: any, contextAnswers?: Record<string, any>): string => {
     if (value === undefined || value === null || value === '') return '';
-    
+    const referenceAnswers = contextAnswers ?? answers;
     const question = translatedQuestions.find(q => q.id === questionId);
     if (!question) return String(value);
     
@@ -534,16 +736,16 @@ export default function ProgramFinder({
       if (option) {
         let display = option.label;
         // Add region if present
-        if (answers[`${questionId}_region`]) {
-          display += `, ${answers[`${questionId}_region`]}`;
+        if (referenceAnswers[`${questionId}_region`]) {
+          display += `, ${referenceAnswers[`${questionId}_region`]}`;
         }
         // Add "other" text if present
-        if (value === 'other' && answers[`${questionId}_other`]) {
-          display += `: ${answers[`${questionId}_other`]}`;
+        if (value === 'other' && referenceAnswers[`${questionId}_other`]) {
+          display += `: ${referenceAnswers[`${questionId}_other`]}`;
         }
         // Add percentage if co-financing
-        if (questionId === 'co_financing' && value === 'co_yes' && answers[`${questionId}_percentage`]) {
-          display += ` (${answers[`${questionId}_percentage`]})`;
+        if (questionId === 'co_financing' && value === 'co_yes' && referenceAnswers[`${questionId}_percentage`]) {
+          display += ` (${referenceAnswers[`${questionId}_percentage`]})`;
         }
         return display;
       }
@@ -556,10 +758,10 @@ export default function ProgramFinder({
         .filter(Boolean);
       let display = selectedOptions.join(', ');
       // Add "other" text if present
-      if (value.includes('other') && answers[`${questionId}_other`]) {
-        const otherText = Array.isArray(answers[`${questionId}_other`]) 
-          ? answers[`${questionId}_other`].join(', ')
-          : answers[`${questionId}_other`];
+      if (value.includes('other') && referenceAnswers[`${questionId}_other`]) {
+        const otherText = Array.isArray(referenceAnswers[`${questionId}_other`]) 
+          ? referenceAnswers[`${questionId}_other`].join(', ')
+          : referenceAnswers[`${questionId}_other`];
         display += `: ${otherText}`;
       }
       return display;
@@ -577,10 +779,224 @@ export default function ProgramFinder({
     }
     
     return String(value);
-  };
+  }, [answers, t, translatedQuestions]);
   
   // State for answers summary collapse
   const [answersSummaryExpanded, setAnswersSummaryExpanded] = useState(false);
+
+  const getQuestionLabelById = useCallback((questionId: string) => {
+    const question = translatedQuestions.find((q) => q.id === questionId);
+    return question?.label || questionId;
+  }, [translatedQuestions]);
+
+  const describeAppliedValue = useCallback(
+    (questionId: string, value: any, contextAnswers?: Record<string, any>) => {
+      const formatted = formatAnswerForDisplay(questionId, value, contextAnswers);
+      if (!formatted) return '';
+      return `${getQuestionLabelById(questionId)} – ${formatted}`;
+    },
+    [formatAnswerForDisplay, getQuestionLabelById]
+  );
+
+  const applyChatExtraction = useCallback(
+    (message: string) => {
+      const lower = message.toLowerCase();
+      const updates: Record<string, any> = {};
+
+      const shouldUpdate = (field: string, newValue: any) => {
+        const current = answers[field];
+        if (Array.isArray(current) && Array.isArray(newValue)) {
+          if (current.length === newValue.length && current.every((item) => newValue.includes(item))) {
+            return false;
+          }
+        } else if (current === newValue) {
+          return false;
+        }
+        updates[field] = newValue;
+        return true;
+      };
+
+      const cityMatch = CITY_KEYWORDS.find((entry) => entry.pattern.test(lower));
+      if (cityMatch) {
+        shouldUpdate('location', cityMatch.location);
+        shouldUpdate('location_region', cityMatch.region);
+      } else {
+        const locationMatch = LOCATION_KEYWORDS.find((entry) =>
+          entry.keywords.some((keyword) => lower.includes(keyword))
+        );
+        if (locationMatch) {
+          shouldUpdate('location', locationMatch.value);
+        }
+      }
+
+      const companyTypeMatch = COMPANY_TYPE_KEYWORDS.find((entry) =>
+        entry.keywords.some((keyword) => lower.includes(keyword))
+      );
+      if (companyTypeMatch) {
+        shouldUpdate('company_type', companyTypeMatch.value);
+      }
+
+      const stageMatch = COMPANY_STAGE_KEYWORDS.find((entry) =>
+        entry.keywords.some((keyword) => lower.includes(keyword))
+      );
+      if (stageMatch) {
+        shouldUpdate('company_stage', stageMatch.value);
+      }
+
+      const industryMatch = INDUSTRY_KEYWORDS.find((entry) =>
+        entry.keywords.some((keyword) => lower.includes(keyword))
+      );
+      if (industryMatch) {
+        const existing = Array.isArray(answers.industry_focus) ? answers.industry_focus : [];
+        const merged = Array.from(new Set([...existing, industryMatch.value]));
+        shouldUpdate('industry_focus', merged);
+      }
+
+      const impactMatch = IMPACT_KEYWORDS.find((entry) =>
+        entry.keywords.some((keyword) => lower.includes(keyword))
+      );
+      if (impactMatch) {
+        const existing = Array.isArray(answers.impact_focus) ? answers.impact_focus : [];
+        const merged = Array.from(new Set([...existing, impactMatch.value]));
+        shouldUpdate('impact_focus', merged);
+      }
+
+      const useOfFundsMatch = USE_OF_FUNDS_KEYWORDS.find((entry) =>
+        entry.keywords.some((keyword) => lower.includes(keyword))
+      );
+      if (useOfFundsMatch) {
+        const existing = Array.isArray(answers.use_of_funds) ? answers.use_of_funds : [];
+        const merged = Array.from(new Set([...existing, useOfFundsMatch.value]));
+        shouldUpdate('use_of_funds', merged);
+      }
+
+      if (CO_FINANCING_NEGATIVE_KEYWORDS.some((keyword) => lower.includes(keyword))) {
+        shouldUpdate('co_financing', 'co_no');
+      } else if (CO_FINANCING_POSITIVE_KEYWORDS.some((keyword) => lower.includes(keyword))) {
+        shouldUpdate('co_financing', 'co_yes');
+      } else if (CO_FINANCING_UNCERTAIN_KEYWORDS.some((keyword) => lower.includes(keyword))) {
+        shouldUpdate('co_financing', 'co_uncertain');
+      }
+
+      const revenueMatch = REVENUE_KEYWORDS.find((entry) =>
+        entry.keywords.some((keyword) => lower.includes(keyword))
+      );
+      if (revenueMatch) {
+        shouldUpdate('revenue_status', revenueMatch.value);
+      }
+
+      const teamBucket = TEAM_SIZE_BUCKETS.find((bucket) => bucket.pattern.test(lower));
+      if (teamBucket) {
+        shouldUpdate('team_size', teamBucket.value);
+      } else {
+        const explicitTeamMatch = lower.match(/team of (\d+)|(\d+)\s*(person|people|employees)/);
+        if (explicitTeamMatch) {
+          const numberMatch = explicitTeamMatch[1] || explicitTeamMatch[2];
+          const count = Number(numberMatch);
+          if (!Number.isNaN(count)) {
+            if (count === 1) {
+              shouldUpdate('team_size', 'solo');
+            } else if (count <= 5) {
+              shouldUpdate('team_size', 'team_2_5');
+            } else if (count <= 20) {
+              shouldUpdate('team_size', 'team_6_20');
+            } else {
+              shouldUpdate('team_size', 'team_20_plus');
+            }
+          }
+        }
+      }
+
+      const fundingAmount = normalizeFundingAmountFromText(message);
+      if (fundingAmount !== null) {
+        shouldUpdate('funding_amount', fundingAmount);
+      }
+
+      const projectDurationMatch = message.match(/(\d+)\s*(months|monat|monate|month)/i);
+      if (projectDurationMatch) {
+        const months = Math.min(Math.max(parseInt(projectDurationMatch[1], 10), 1), 36);
+        shouldUpdate('project_duration', months);
+      }
+
+      const deadlineMatch = DEADLINE_KEYWORDS.find((entry) =>
+        entry.keywords.some((keyword) => lower.includes(keyword))
+      );
+      if (deadlineMatch) {
+        shouldUpdate('deadline_urgency', deadlineMatch.value);
+      }
+
+      Object.entries(updates).forEach(([field, value]) => {
+        handleAnswer(field, value);
+      });
+
+      return updates;
+    },
+    [answers, handleAnswer]
+  );
+
+  const handleChatSubmit = useCallback(
+    (event?: React.FormEvent<HTMLFormElement>) => {
+      event?.preventDefault();
+      const trimmed = chatInput.trim();
+      if (!trimmed) return;
+
+      const timestamp = Date.now();
+      const userMessage: ChatMessage = {
+        id: createMessageId(),
+        role: 'user',
+        text: trimmed,
+        timestamp,
+      };
+      setChatMessages((prev) => [...prev, userMessage]);
+
+      const updates = applyChatExtraction(trimmed);
+      const nextAnswers = { ...answers, ...updates };
+      const appliedSummaries = Object.entries(updates)
+        .filter(([field]) => !field.endsWith('_region') && !field.endsWith('_other') && !field.endsWith('_percentage'))
+        .map(([field, value]) => describeAppliedValue(field, value, nextAnswers))
+        .filter(Boolean);
+
+      const missingCritical = REQUIRED_QUESTION_IDS.filter((questionId) => !isAnswerProvided(nextAnswers[questionId]));
+      const missingLabels = missingCritical.map((id) => getQuestionLabelById(id));
+
+      let assistantText = '';
+      if (appliedSummaries.length > 0) {
+        assistantText +=
+          (locale === 'de' ? 'Danke! Übernommen: ' : 'Thanks! Captured: ') + appliedSummaries.join('; ');
+      } else {
+        assistantText +=
+          locale === 'de'
+            ? 'Danke! Ich konnte noch keine neuen Felder zuordnen. Nennen Sie z. B. Standort, Budget oder Teamgröße.'
+            : 'Thanks! I could not map any fields yet. Mention location, budget, or team size to speed things up.';
+      }
+
+      if (missingLabels.length > 0) {
+        assistantText +=
+          locale === 'de'
+            ? ` Noch benötigt: ${missingLabels.join(', ')}.`
+            : ` Still missing: ${missingLabels.join(', ')}.`;
+      } else {
+        assistantText +=
+          locale === 'de'
+            ? ' Sie können jetzt Programme generieren oder weitere Details teilen.'
+            : ' You can generate programs now or keep sharing details.';
+      }
+
+      const assistantMessage: ChatMessage = {
+        id: createMessageId(),
+        role: 'assistant',
+        text: assistantText.trim(),
+        timestamp: Date.now(),
+      };
+      setChatMessages((prev) => [...prev, assistantMessage]);
+      setChatInput('');
+    },
+    [answers, applyChatExtraction, chatInput, describeAppliedValue, getQuestionLabelById, locale]
+  );
+
+  const insertHintText = useCallback((text: string) => {
+    setChatInput((prev) => (prev ? `${prev} ${text}` : text));
+  }, []);
   
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-purple-50">
@@ -606,6 +1022,32 @@ export default function ProgramFinder({
           )}
         </div>
         
+        {/* Input Mode Tabs */}
+        <div className="mb-6 max-w-2xl mx-auto">
+          <div className="flex border-b border-gray-200">
+            <button
+              onClick={() => setInputMode('wizard')}
+              className={`flex-1 px-4 py-3 text-sm font-medium border-b-2 transition-colors ${
+                inputMode === 'wizard'
+                  ? 'border-blue-600 text-blue-600'
+                  : 'border-transparent text-gray-500 hover:text-gray-700'
+              }`}
+            >
+              📋 {t('reco.ui.guidedWizard') || 'Guided Wizard'}
+            </button>
+            <button
+              onClick={() => setInputMode('template')}
+              className={`flex-1 px-4 py-3 text-sm font-medium border-b-2 transition-colors ${
+                inputMode === 'template'
+                  ? 'border-blue-600 text-blue-600'
+                  : 'border-transparent text-gray-500 hover:text-gray-700'
+              }`}
+            >
+              ✍️ {t('reco.ui.simpleTemplate') || 'Simple Template'}
+            </button>
+          </div>
+        </div>
+
         {/* Mobile: Tab Toggle (only on mobile) */}
         <div className="lg:hidden mb-4">
           <div className="flex bg-white rounded-lg border border-gray-200 p-1">
@@ -633,6 +1075,187 @@ export default function ProgramFinder({
         </div>
 
         <div className="flex flex-col gap-2" data-questions-section>
+          <Card className="p-6 bg-white/90 border border-blue-100 shadow-sm">
+            <div className="flex flex-col gap-6 lg:flex-row">
+              <div className="flex-1 min-w-0">
+                <div className="flex items-center gap-3 mb-4">
+                  <div className="w-10 h-10 rounded-full bg-blue-100 text-blue-700 flex items-center justify-center">
+                    <MessageCircle className="w-5 h-5" />
+                  </div>
+                  <div>
+                    <p className="text-base font-semibold text-gray-900">
+                      {locale === 'de' ? 'Freitext-Eingabe (optional)' : 'Free-text intake (optional)'}
+                    </p>
+                    <p className="text-sm text-gray-600">
+                      {locale === 'de'
+                        ? 'Schreiben Sie wie in einem Chat. Wir versuchen, Antworten zu erkennen und fehlende Felder hervorzuheben.'
+                        : 'Write as if you were chatting. We will extract answers and flag missing details.'}
+                    </p>
+                  </div>
+                </div>
+                <div className="rounded-lg border border-gray-200 bg-gray-50 p-3 h-52 overflow-y-auto space-y-3 text-sm">
+                  {chatMessages.map((msg) => (
+                    <div key={msg.id} className={`flex ${msg.role === 'user' ? 'justify-end' : 'justify-start'}`}>
+                      <div
+                        className={`max-w-[80%] rounded-2xl px-3 py-2 ${
+                          msg.role === 'user'
+                            ? 'bg-blue-600 text-white rounded-tr-sm shadow-blue-200 shadow-lg'
+                            : 'bg-white text-gray-800 border border-blue-100 rounded-tl-sm shadow-inner'
+                        }`}
+                      >
+                        <p className="whitespace-pre-line">{msg.text}</p>
+                        <span
+                          className={`block text-[11px] mt-1 ${
+                            msg.role === 'user' ? 'text-blue-100' : 'text-gray-400'
+                          }`}
+                        >
+                          {new Date(msg.timestamp).toLocaleTimeString(locale === 'de' ? 'de-AT' : 'en-GB', {
+                            hour: '2-digit',
+                            minute: '2-digit',
+                          })}
+                        </span>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+                <form onSubmit={handleChatSubmit} className="mt-4 space-y-3">
+                  <textarea
+                    value={chatInput}
+                    onChange={(e) => setChatInput(e.target.value)}
+                    rows={3}
+                    placeholder={
+                      locale === 'de'
+                        ? 'Beschreiben Sie Projekt, Budget, Team, Wirkung ...'
+                        : 'Describe project, budget, team, impact...'
+                    }
+                    className="w-full rounded-xl border border-gray-300 px-4 py-3 text-sm shadow-sm focus:border-blue-500 focus:ring-2 focus:ring-blue-500/30 resize-none"
+                  />
+                  <div className="flex items-center justify-between gap-3">
+                    <button
+                      type="button"
+                      onClick={() => setChatInput('')}
+                      className="px-4 py-2 text-sm font-medium text-gray-600 border border-gray-200 rounded-lg hover:bg-gray-100"
+                    >
+                      {locale === 'de' ? 'Text leeren' : 'Clear'}
+                    </button>
+                    <button
+                      type="submit"
+                      className="inline-flex items-center gap-2 px-5 py-2.5 rounded-lg bg-blue-600 text-white text-sm font-semibold hover:bg-blue-700 transition-colors"
+                    >
+                      <Sparkles className="w-4 h-4" />
+                      {locale === 'de' ? 'Info übernehmen' : 'Apply info'}
+                    </button>
+                  </div>
+                </form>
+              </div>
+              <div className="lg:w-64 border border-dashed border-blue-200 rounded-xl p-4 bg-blue-50/60">
+                <div className="flex items-center justify-between">
+                  <p className="text-sm font-semibold text-blue-900">
+                    {locale === 'de' ? 'Hinweise & Prompts' : 'Hints & prompts'}
+                  </p>
+                  <button
+                    type="button"
+                    onClick={() => setShowHintLibrary((prev) => !prev)}
+                    className="text-xs text-blue-700 hover:underline"
+                  >
+                    {showHintLibrary
+                      ? locale === 'de'
+                        ? 'Ausblenden'
+                        : 'Hide'
+                      : locale === 'de'
+                      ? 'Anzeigen'
+                      : 'Show'}
+                  </button>
+                </div>
+                {showHintLibrary && (
+                  <div className="mt-4 space-y-4 text-sm">
+                    {CHAT_HINT_GROUPS.map((group) => (
+                      <div key={group.title.en} className="space-y-2">
+                        <div className="flex items-center gap-2 text-blue-900 font-medium">
+                          <Lightbulb className="w-4 h-4 text-amber-500" />
+                          <span>{locale === 'de' ? group.title.de : group.title.en}</span>
+                        </div>
+                        <div className="flex flex-wrap gap-2">
+                          {group.hints.map((hint) => {
+                            const text = locale === 'de' ? hint.de : hint.en;
+                            return (
+                              <button
+                                type="button"
+                                key={text}
+                                onClick={() => insertHintText(text)}
+                                className="px-3 py-1.5 rounded-full border border-blue-200 text-xs text-blue-800 bg-white hover:bg-blue-100 transition-colors"
+                              >
+                                {text}
+                              </button>
+                            );
+                          })}
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+            </div>
+          </Card>
+
+          {inputMode === 'template' && (
+            <Card className="p-6 max-w-2xl mx-auto w-full bg-gradient-to-br from-white to-blue-50/30 border-2 border-blue-300 shadow-lg">
+              <div className="space-y-4">
+                <div className="text-center mb-4">
+                  <h2 className="text-xl font-semibold text-gray-900 mb-2">
+                    {t('reco.template.title') || 'Tell us about your project'}
+                  </h2>
+                  <p className="text-gray-600 text-sm">
+                    {t('reco.template.subtitle') || 'Fill out the sections below and we will generate tailored programs for you.'}
+                  </p>
+                </div>
+                {[
+                  { id: 'location', label: '📍 ' + (t('reco.questions.location') || 'Location'), hint: 'e.g., Vienna, Austria' },
+                  { id: 'company_type', label: '🏢 ' + (t('reco.questions.company_type') || 'Company Type'), hint: 'e.g., Startup, SME' },
+                  { id: 'funding_amount', label: '💰 ' + (t('reco.questions.funding_amount') || 'Funding Need'), hint: 'e.g., €150,000 for MVP' },
+                  { id: 'company_stage', label: '📅 ' + (t('reco.questions.company_stage') || 'Company Stage'), hint: 'e.g., Incorporated 8 months ago' },
+                  { id: 'co_financing', label: '💵 ' + (t('reco.questions.co_financing') || 'Co-financing Capability'), hint: 'e.g., Yes, 30%' },
+                  { id: 'industry_focus', label: '🏭 ' + (t('reco.questions.industry_focus') || 'Industry'), hint: 'e.g., Climate Tech' },
+                ].map((field) => (
+                  <div key={field.id}>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                      {field.label}
+                    </label>
+                    <textarea
+                      value={templateSections[field.id] || ''}
+                      onChange={(e) => {
+                        const updated = { ...templateSections, [field.id]: e.target.value };
+                        setTemplateSections(updated);
+                        const hintsUpdate: Record<string, string> = {};
+                        if (field.id === 'location' && e.target.value.toLowerCase().includes('vienna')) {
+                          hintsUpdate.company_type = '💡 ' + (t('reco.template.hintAustrianCompany') || 'Try Austrian startup or SME');
+                        }
+                        if (field.id === 'company_type' && e.target.value.toLowerCase().includes('startup')) {
+                          hintsUpdate.funding_amount = '💡 ' + (t('reco.template.hintStartupFunding') || 'Most startups request €50k-€500k');
+                        }
+                        setTemplateHints((prev) => ({ ...prev, ...hintsUpdate }));
+                      }}
+                      placeholder={templateHints[field.id] || field.hint}
+                      className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-sm"
+                      rows={2}
+                    />
+                    {templateHints[field.id] && (
+                      <p className="text-xs text-gray-500 mt-1 italic">{templateHints[field.id]}</p>
+                    )}
+                  </div>
+                ))}
+                <button
+                  onClick={() => alert('Template submission coming soon!')}
+                  className="w-full px-6 py-3 bg-blue-600 text-white rounded-lg font-medium hover:bg-blue-700"
+                >
+                  {t('reco.template.extractButton') || 'Extract & Preview'}
+                </button>
+              </div>
+            </Card>
+          )}
+
+          {inputMode === 'wizard' && (
+            <>
           {/* Answers Summary Section - Fixed Position, Non-Overlapping */}
           {answeredCount > 0 && (
             <div className="fixed right-6 top-32 z-30 max-w-xs">
@@ -1335,6 +1958,9 @@ export default function ProgramFinder({
             </p>
           </Card>
         </div>
+            </>
+          )}
+        </div>
           
           {/* Loading Indicator - Enhanced with animations */}
           {isLoading && (
@@ -1742,9 +2368,8 @@ export default function ProgramFinder({
               </div>
             </DialogContent>
           </Dialog>
-        </div>
       </div>
-      
+
       {/* Sticky Bottom Bar - Centered Generate Button - Always visible on desktop */}
       <div className="fixed bottom-0 left-0 right-0 bg-white shadow-2xl z-50 border-t-2 border-gray-200 hidden lg:block">
         <div className="max-w-7xl mx-auto px-4 py-4">
