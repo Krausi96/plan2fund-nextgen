@@ -376,56 +376,112 @@ type HintGroup = {
 
 const createMessageId = () => `${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
 
-const CHAT_HINT_GROUPS: HintGroup[] = [
-  {
-    title: {
-      en: 'Project essentials',
-      de: 'Projekt-Basics',
-    },
+const QUESTION_HINTS: Record<string, HintGroup> = {
+  company_type: {
+    title: { en: 'Who is filling this in?', de: 'Wer stellt den Antrag?' },
     hints: [
       {
-        en: 'We are a Vienna-based startup advising SMEs and founders.',
-        de: 'Wir sind ein Wiener Startup und beraten KMU sowie Gründer:innen.',
+        en: 'Mention if you are a founder, advisor, incubator or research team so we can tailor the tone.',
+        de: 'Geben Sie an, ob Sie Gründer:in, Berater:in, Inkubator oder Forschungsteam sind, damit wir den Ton anpassen können.',
       },
       {
-        en: 'The project targets Austrian clients but can scale across the EU.',
-        de: 'Das Projekt richtet sich an österreichische Kund:innen und lässt sich EU-weit ausrollen.',
+        en: 'If you represent multiple clients, specify whether this plan is for you or a client.',
+        de: 'Wenn Sie mehrere Kund:innen betreuen, geben Sie an, ob dieser Plan für Sie oder eine:n Kund:in ist.',
       },
     ],
   },
-  {
-    title: {
-      en: 'Funding & scope',
-      de: 'Finanzierung & Umfang',
-    },
+  location: {
+    title: { en: 'Location details', de: 'Standortdetails' },
     hints: [
       {
-        en: 'We request €150k for prototyping, hiring two engineers, and pilot customers.',
-        de: 'Wir beantragen €150k für Prototyp, zwei zusätzliche Entwickler:innen und Pilotkund:innen.',
+        en: 'State the country plus region or city (e.g., “Austria – Vienna, focus on Eastern regions”).',
+        de: 'Nennen Sie Land und Region/Stadt (z.B. „Österreich – Wien, Fokus Ostregion“).',
       },
       {
-        en: 'Budget covers equipment, onboarding programme fees, and mentoring.',
-        de: 'Das Budget deckt Equipment, Programmeintritt sowie Mentoring ab.',
+        en: 'If operating in multiple countries, list the primary delivery country first.',
+        de: 'Bei mehreren Ländern zuerst das Haupt-Umsetzungsland nennen.',
       },
     ],
   },
-  {
-    title: {
-      en: 'Impact & timing',
-      de: 'Wirkung & Timing',
-    },
+  funding_amount: {
+    title: { en: 'Funding need', de: 'Finanzierungsbedarf' },
     hints: [
       {
-        en: 'Expected impact: 15 jobs, CO₂ savings, inclusion of underrepresented founders.',
-        de: 'Erwartete Wirkung: 15 Jobs, CO₂-Einsparungen und Einbindung unterrepräsentierter Gründer:innen.',
+        en: 'Give a rounded figure (e.g., €150k) and note the main cost blocks (prototype, hires, go-to-market).',
+        de: 'Nennen Sie eine runde Summe (z.B. €150k) plus wichtigste Kostenblöcke (Prototyp, Team, Markteintritt).',
       },
       {
-        en: 'We need a decision within 3 months; project lasts 18 months with co-financing.',
-        de: 'Wir benötigen eine Entscheidung innerhalb von 3 Monaten; Projektlaufzeit 18 Monate mit Kofinanzierung.',
+        en: 'If you only need templates or IP help, say so (“No funding needed, just IP protection guidance”).',
+        de: 'Falls Sie nur Templates oder IP-Hilfe brauchen: „Keine Förderung nötig, nur IP-Unterstützung“.',
       },
     ],
   },
-];
+  co_financing: {
+    title: { en: 'Matching funds', de: 'Kofinanzierung' },
+    hints: [
+      {
+        en: 'State if you can contribute 20–50% from own funds, investors, or existing grants.',
+        de: 'Geben Sie an, ob Sie 20–50% über Eigenmittel, Investor:innen oder bestehende Zuschüsse aufbringen können.',
+      },
+      {
+        en: 'If undecided, mention what needs to happen (e.g., “Board approval pending”).',
+        de: 'Wenn unklar, nennen Sie die Bedingung (z.B. „Vorstandszustimmung ausständig“).',
+      },
+    ],
+  },
+  industry_focus: {
+    title: { en: 'Sector focus', de: 'Branchenfokus' },
+    hints: [
+      {
+        en: 'Highlight the primary sector plus any crossover themes (e.g., “Digital health + AI”).',
+        de: 'Nennen Sie die Hauptbranche plus relevante Querschnittsthemen (z.B. „Digitale Gesundheit + KI“).',
+      },
+      {
+        en: 'List regulatory or certification contexts if important (MedTech, IP, CE marking).',
+        de: 'Erwähnen Sie regulatorische Rahmen (MedTech, IP, CE-Kennzeichnung), falls relevant.',
+      },
+    ],
+  },
+  use_of_funds: {
+    title: { en: 'Intended support', de: 'Geplanter Einsatz' },
+    hints: [
+      {
+        en: 'Break down how support helps (prototype build, pilot customers, IP filing, plan review).',
+        de: 'Erläutern Sie den Nutzen (Prototyp, Pilotkund:innen, IP-Anmeldung, Plan-Review).',
+      },
+      {
+        en: 'Include team roles or deliverables you plan to finance.',
+        de: 'Nennen Sie Teamrollen oder Deliverables, die finanziert werden sollen.',
+      },
+    ],
+  },
+  impact_focus: {
+    title: { en: 'Impact themes', de: 'Wirkungsschwerpunkte' },
+    hints: [
+      {
+        en: 'Quantify outcomes where possible (jobs created, CO₂ reduced, people trained).',
+        de: 'Quantifizieren Sie Effekte, wo möglich (Jobs, CO₂-Einsparung, geschulte Personen).',
+      },
+      {
+        en: 'Tie the impact to programme keywords (excellence, impact, implementation).',
+        de: 'Verknüpfen Sie die Wirkung mit Programm-Schlüsselbegriffen (Exzellenz, Impact, Umsetzung).',
+      },
+    ],
+  },
+  deadline_urgency: {
+    title: { en: 'Timeline needs', de: 'Zeitbedarf' },
+    hints: [
+      {
+        en: 'Mention critical deadlines (tender closes in May, pilot must launch by Q4).',
+        de: 'Nennen Sie kritische Deadlines (Ausschreibung Ende Mai, Pilotstart bis Q4).',
+      },
+      {
+        en: 'If flexible, say so (“Decision anytime this year, priority is preparation”).',
+        de: 'Falls flexibel: „Entscheidung irgendwann heuer, Fokus Vorbereitung.“',
+      },
+    ],
+  },
+};
 
 type KeywordMap = { keywords: string[]; value: string };
 
@@ -548,10 +604,8 @@ export default function ProgramFinder({
 }: ProgramFinderProps) {
   const router = useRouter();
   const { t, locale } = useI18n();
-  const [inputMode, setInputMode] = useState<'guided' | 'smart'>('guided');
   const [chatMessages, setChatMessages] = useState<ChatMessage[]>(() => createInitialChatMessages(locale));
   const [chatInput, setChatInput] = useState('');
-  const [showHintLibrary, setShowHintLibrary] = useState(true);
   useEffect(() => {
     setChatMessages((prev) => {
       if (prev.length === 0 || (prev.length === 1 && prev[0].role === 'assistant')) {
@@ -985,9 +1039,6 @@ export default function ProgramFinder({
     [answers, applyChatExtraction, chatInput, describeAppliedValue, getQuestionLabelById, locale]
   );
 
-  const insertHintText = useCallback((text: string) => {
-    setChatInput((prev) => (prev ? `${prev} ${text}` : text));
-  }, []);
   
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-purple-50">
@@ -1013,32 +1064,6 @@ export default function ProgramFinder({
           )}
         </div>
         
-        {/* Input Mode Tabs */}
-        <div className="mb-6 max-w-2xl mx-auto">
-          <div className="flex border-b border-gray-200">
-            <button
-              onClick={() => setInputMode('guided')}
-              className={`flex-1 px-4 py-3 text-sm font-medium border-b-2 transition-colors ${
-                inputMode === 'guided'
-                  ? 'border-blue-600 text-blue-600'
-                  : 'border-transparent text-gray-500 hover:text-gray-700'
-              }`}
-            >
-              📋 {t('reco.ui.guidedWizard') || 'Guided Wizard'}
-            </button>
-            <button
-              onClick={() => setInputMode('smart')}
-              className={`flex-1 px-4 py-3 text-sm font-medium border-b-2 transition-colors ${
-                inputMode === 'smart'
-                  ? 'border-blue-600 text-blue-600'
-                  : 'border-transparent text-gray-500 hover:text-gray-700'
-              }`}
-            >
-              ⚡ {t('reco.ui.smartWizard') || 'Smart Wizard'}
-            </button>
-          </div>
-        </div>
-
         {/* Mobile: Tab Toggle (only on mobile) */}
         <div className="lg:hidden mb-4">
           <div className="flex bg-white rounded-lg border border-gray-200 p-1">
@@ -1066,13 +1091,6 @@ export default function ProgramFinder({
         </div>
 
         <div className="flex flex-col gap-2" data-questions-section>
-          {inputMode === 'smart' && (
-            <div className="max-w-2xl mx-auto w-full bg-gradient-to-r from-blue-600/10 via-blue-500/5 to-blue-600/10 border border-blue-200 text-sm text-blue-900 rounded-xl px-4 py-3 shadow-sm">
-              {locale === 'de'
-                ? 'Smart Wizard nutzt Ihre Freitext-Antworten, füllt Felder automatisch vor und schlägt fehlende Angaben vor.'
-                : 'Smart Wizard uses your free-text input to pre-fill answers and call out anything that is still missing.'}
-            </div>
-          )}
           <Card className="p-6 bg-white/90 border border-blue-100 shadow-sm">
             <div className="flex flex-col gap-6 lg:flex-row">
               <div className="flex-1 min-w-0">
@@ -1145,53 +1163,6 @@ export default function ProgramFinder({
                     </button>
                   </div>
                 </form>
-              </div>
-              <div className="lg:w-64 border border-dashed border-blue-200 rounded-xl p-4 bg-blue-50/60">
-                <div className="flex items-center justify-between">
-                  <p className="text-sm font-semibold text-blue-900">
-                    {locale === 'de' ? 'Hinweise & Prompts' : 'Hints & prompts'}
-                  </p>
-                  <button
-                    type="button"
-                    onClick={() => setShowHintLibrary((prev) => !prev)}
-                    className="text-xs text-blue-700 hover:underline"
-                  >
-                    {showHintLibrary
-                      ? locale === 'de'
-                        ? 'Ausblenden'
-                        : 'Hide'
-                      : locale === 'de'
-                      ? 'Anzeigen'
-                      : 'Show'}
-                  </button>
-                </div>
-                {showHintLibrary && (
-                  <div className="mt-4 space-y-4 text-sm">
-                    {CHAT_HINT_GROUPS.map((group) => (
-                      <div key={group.title.en} className="space-y-2">
-                        <div className="flex items-center gap-2 text-blue-900 font-medium">
-                          <Lightbulb className="w-4 h-4 text-amber-500" />
-                          <span>{locale === 'de' ? group.title.de : group.title.en}</span>
-                        </div>
-                        <div className="flex flex-wrap gap-2">
-                          {group.hints.map((hint) => {
-                            const text = locale === 'de' ? hint.de : hint.en;
-                            return (
-                              <button
-                                type="button"
-                                key={text}
-                                onClick={() => insertHintText(text)}
-                                className="px-3 py-1.5 rounded-full border border-blue-200 text-xs text-blue-800 bg-white hover:bg-blue-100 transition-colors"
-                              >
-                                {text}
-                              </button>
-                            );
-                          })}
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                )}
               </div>
             </div>
           </Card>
@@ -1308,6 +1279,7 @@ export default function ProgramFinder({
                           if (!question) return null;
                           const value = answers[question.id];
                           const isAnswered = value !== undefined && value !== null && value !== '';
+                          const questionHint = QUESTION_HINTS[question.id];
                           return (
                             <div className="space-y-4">
                               {/* Question Header */}
@@ -1334,6 +1306,22 @@ export default function ProgramFinder({
                                     </span>
                                   )}
                                 </div>
+                                {questionHint && (
+                                  <div className="mt-3 rounded-lg border border-amber-200 bg-amber-50/70 p-3">
+                                    <div className="flex items-center gap-2 text-xs font-semibold text-amber-900">
+                                      <Lightbulb className="w-4 h-4" />
+                                      <span>{locale === 'de' ? questionHint.title.de : questionHint.title.en}</span>
+                                    </div>
+                                    <ul className="mt-2 space-y-1 text-xs text-amber-900/90">
+                                      {questionHint.hints.map((hint, idx) => (
+                                        <li key={`${question.id}-hint-${idx}`} className="flex gap-2">
+                                          <span>•</span>
+                                          <span>{locale === 'de' ? hint.de : hint.en}</span>
+                                        </li>
+                                      ))}
+                                    </ul>
+                                  </div>
+                                )}
                               </div>
                               
                               {/* Question Options */}
