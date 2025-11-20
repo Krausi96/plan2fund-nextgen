@@ -18,14 +18,15 @@ export default function PageEntryIndicator({
   text,
   translationKey,
   duration = 5000,
-  position = 'center',
+  position = 'top-right',
   onDismiss,
   title,
-  showAsModal = true, // Default to modal
+  showAsModal = false, // Default to non-blocking toast
 }: PageEntryIndicatorProps) {
   const { t } = useI18n();
   const [visible, setVisible] = useState(false);
   const [mounted, setMounted] = useState(false);
+  const isModal = showAsModal || position === 'center';
 
   // Resolve text and title from translations if translationKey is provided
   const resolvedTitle = translationKey 
@@ -66,20 +67,20 @@ export default function PageEntryIndicator({
 
   // Prevent body scroll when modal is open
   useEffect(() => {
-    if (showAsModal && visible) {
+    if (isModal && visible) {
       document.body.style.overflow = 'hidden';
       return () => {
         document.body.style.overflow = 'unset';
       };
     }
-  }, [showAsModal, visible]);
+  }, [isModal, visible]);
 
   if (!mounted) return null;
 
   const IconComponent = icon === 'info' ? Info : Lightbulb;
 
   // Modal version (centered with backdrop)
-  if (showAsModal || position === 'center') {
+  if (isModal) {
     return (
       <div
         className="fixed inset-0 z-50 flex items-center justify-center p-4"

@@ -204,62 +204,6 @@ export default function Home() {
               ))}
             </div>
 
-            {/* Advantages Grid */}
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 lg:gap-8">
-              <div className="group bg-white rounded-2xl p-8 border-2 border-neutral-200 hover:border-blue-300 shadow-sm hover:shadow-xl transition-all duration-300 hover:-translate-y-2">
-                <h3 className="text-xl font-bold text-neutral-900 mb-3 group-hover:text-blue-600 transition-colors">
-                  Virtueller Finanzierungsexperte
-                </h3>
-                <p className="text-base text-neutral-600 leading-relaxed">
-                  KI-gestützte Beratung führt Sie Schritt für Schritt durch Ihren Businessplan – keine Vorerfahrung nötig
-                </p>
-              </div>
-
-              <div className="group bg-white rounded-2xl p-8 border-2 border-neutral-200 hover:border-blue-300 shadow-sm hover:shadow-xl transition-all duration-300 hover:-translate-y-2">
-                <h3 className="text-xl font-bold text-neutral-900 mb-3 group-hover:text-blue-600 transition-colors">
-                  Readiness Check
-                </h3>
-                <p className="text-base text-neutral-600 leading-relaxed">
-                  Automatische Prüfung auf Lücken und Anforderungen – vermeiden Sie kostspielige Ablehnungen vor der Einreichung
-                </p>
-              </div>
-
-              <div className="group bg-white rounded-2xl p-8 border-2 border-neutral-200 hover:border-blue-300 shadow-sm hover:shadow-xl transition-all duration-300 hover:-translate-y-2">
-                <h3 className="text-xl font-bold text-neutral-900 mb-3 group-hover:text-blue-600 transition-colors">
-                  Alle Programme an einem Ort
-                </h3>
-                <p className="text-base text-neutral-600 leading-relaxed">
-                  AWS, FFG, Wirtschaftsagentur, AMS, WKO, EU-Ausschreibungen und Banken – komplette Übersicht über alle Finanzierungsoptionen
-                </p>
-              </div>
-
-              <div className="group bg-white rounded-2xl p-8 border-2 border-neutral-200 hover:border-blue-300 shadow-sm hover:shadow-xl transition-all duration-300 hover:-translate-y-2">
-                <h3 className="text-xl font-bold text-neutral-900 mb-3 group-hover:text-blue-600 transition-colors">
-                  Programmspezifische Struktur
-                </h3>
-                <p className="text-base text-neutral-600 leading-relaxed">
-                  Businessplan-Struktur automatisch angepasst an Förderungen, Bankkredite, Equity oder Visa – genau wie Gutachter es erwarten
-                </p>
-              </div>
-
-              <div className="group bg-white rounded-2xl p-8 border-2 border-neutral-200 hover:border-blue-300 shadow-sm hover:shadow-xl transition-all duration-300 hover:-translate-y-2">
-                <h3 className="text-xl font-bold text-neutral-900 mb-3 group-hover:text-blue-600 transition-colors">
-                  Professionelle Qualität
-                </h3>
-                <p className="text-base text-neutral-600 leading-relaxed">
-                  Institutionen-ready Dokumente mit Finanzmodellen, Projektionen und allen erforderlichen Zusatzdokumenten
-                </p>
-              </div>
-
-              <div className="group bg-white rounded-2xl p-8 border-2 border-neutral-200 hover:border-blue-300 shadow-sm hover:shadow-xl transition-all duration-300 hover:-translate-y-2">
-                <h3 className="text-xl font-bold text-neutral-900 mb-3 group-hover:text-blue-600 transition-colors">
-                  Unbegrenzte Bearbeitung
-                </h3>
-                <p className="text-base text-neutral-600 leading-relaxed">
-                  Bearbeiten Sie Ihren Plan so oft Sie möchten – keine versteckten Kosten, volle Kontrolle über Ihr Dokument
-                </p>
-              </div>
-            </div>
           </div>
         </section>
 

@@ -23,21 +23,37 @@ export default function LanguageSwitcher({ compact }: Props) {
     return code === 'de' ? '🇩🇪' : '🇬🇧';
   };
 
+  const basePadding = compact ? 'py-2 px-4' : 'py-2.5 px-5'
+
   return (
-    <div className="relative">
+    <div className="relative inline-flex items-center">
+      <Languages className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 pointer-events-none text-neutral-500" />
+      <svg
+        aria-hidden="true"
+        viewBox="0 0 24 24"
+        className="absolute right-4 top-1/2 -translate-y-1/2 w-4 h-4 pointer-events-none text-neutral-500"
+      >
+        <path
+          d="M6 9l6 6 6-6"
+          fill="none"
+          stroke="currentColor"
+          strokeWidth="2"
+          strokeLinecap="round"
+          strokeLinejoin="round"
+        />
+      </svg>
       <select
         aria-label="Language"
         value={locale}
         onChange={(e) => handleLanguageChange(e.target.value)}
-        className={`border-2 border-gray-200 text-gray-700 rounded-lg pl-8 pr-4 py-2.5 text-sm font-medium bg-white hover:border-blue-500 hover:bg-blue-50 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all cursor-pointer ${compact ? "text-sm py-2" : "text-base"}`}
+        className={`appearance-none bg-transparent font-semibold tracking-wide uppercase border-2 border-neutral-700 text-neutral-700 rounded-xl shadow-md hover:shadow-lg transition-all duration-300 hover:bg-neutral-700 hover:text-white focus:outline-none focus:ring-2 focus:ring-neutral-400 focus:border-neutral-700 pl-10 pr-10 ${basePadding}`}
       >
         {languageOptions.map((lang) => (
           <option key={lang.code} value={lang.code}>
-            {getFlag(lang.code)} {lang.short}
+            {`${getFlag(lang.code)} ${lang.short}`}
           </option>
         ))}
       </select>
-      <Languages className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 pointer-events-none z-10 text-gray-400" />
     </div>
   )
 }
