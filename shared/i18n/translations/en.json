@@ -325,6 +325,8 @@
   "whoItsFor.universities.feature1": "Funding-type adjustments — Align plans to Grants & Research Calls",
   "whoItsFor.universities.feature2": "Multi-user workspaces — Enable teams and mentors to collaborate",
   "whoItsFor.universities.feature3": "Program discovery & export — Find calls and produce ready-to-submit plans",
+  "whoItsFor.badges.primary": "Primary",
+  "whoItsFor.badges.recommended": "Recommended",
   "whoItsFor.getStarted": "Get Started",
   "planTypes.title": "Plans",
   "planTypes.subtitle": "Select the plan that best fits your needs and funding goals",

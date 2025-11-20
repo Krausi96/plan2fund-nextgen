@@ -7,6 +7,7 @@ import { useRouter } from "next/router"
 import analytics from "@/shared/user/analytics"
 import { detectTargetGroup, storeTargetGroupSelection } from '@/shared/user/segmentation'
 import { CheckCircle } from "lucide-react"
+import { Badge } from "@/shared/components/ui/Badge"
 
 export default function Home() {
   const { t } = useI18n();
@@ -145,12 +146,13 @@ export default function Home() {
                         : "border-neutral-200 bg-white hover:border-neutral-300 hover:shadow-xl"
                     } hover:-translate-y-2`}>
                       {(isPrimary || isHighlighted) && (
-                        <div className="absolute top-6 right-6">
-                          <span className={`text-white text-xs px-3 py-1.5 rounded-full font-semibold shadow-md ${
-                            isPrimary ? 'bg-gradient-to-r from-blue-600 to-blue-700' : 'bg-gradient-to-r from-green-600 to-green-700'
-                          }`}>
-                            {isPrimary ? 'Primary' : 'Recommended'}
-                          </span>
+                        <div className="absolute top-6 right-6 drop-shadow-sm">
+                          <Badge
+                            variant={isPrimary ? "secondary" : "default"}
+                            className="uppercase tracking-wide"
+                          >
+                            {isPrimary ? t("whoItsFor.badges.primary") : t("whoItsFor.badges.recommended")}
+                          </Badge>
                         </div>
                       )}
                       <div className="mb-6 text-center">

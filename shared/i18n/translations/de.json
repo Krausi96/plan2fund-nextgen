@@ -331,6 +331,8 @@
   "whoItsFor.universities.feature1": "Finanzierungstyp-Anpassungen — FFG, Horizon & Forschungsprogramme",
   "whoItsFor.universities.feature2": "Multi-User-Arbeitsbereiche — Zusammenarbeit von Teams & Mentor:innen",
   "whoItsFor.universities.feature3": "Programm-Suche & Export — Ausschreibungen finden & Pläne einreichen",
+  "whoItsFor.badges.primary": "Primär",
+  "whoItsFor.badges.recommended": "Empfohlen",
   "whoItsFor.getStarted": "Jetzt starten",
   "planTypes.title": "Pläne",
   "planTypes.subtitle": "Wählen Sie den Plan, der am besten zu Ihren Bedürfnissen und Finanzierungszielen passt",
