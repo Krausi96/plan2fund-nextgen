@@ -93,7 +93,7 @@ export default function Header() {
           ) : isMounted ? (
             <button
               onClick={() => setLoginModalOpen(true)}
-              className="px-6 py-2.5 border-2 border-neutral-700 text-neutral-700 rounded-xl hover:bg-neutral-700 hover:text-white transition-all duration-300 font-semibold shadow-md hover:shadow-lg"
+              className="px-6 py-2.5 border-2 border-blue-600 text-blue-700 bg-white rounded-xl hover:bg-blue-700 hover:text-white hover:border-blue-700 transition-all duration-300 font-semibold shadow-md hover:shadow-lg focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-300"
             >
               Log in
             </button>
@@ -165,7 +165,7 @@ export default function Header() {
                   setLoginModalOpen(true);
                   setOpen(false);
                 }}
-                className="w-full px-4 py-3 text-neutral-700 border-2 border-neutral-700 rounded-xl hover:bg-neutral-700 hover:text-white transition-all duration-300 font-semibold text-center shadow-md"
+                className="w-full px-4 py-3 text-blue-700 border-2 border-blue-600 bg-white rounded-xl hover:bg-blue-700 hover:text-white hover:border-blue-700 transition-all duration-300 font-semibold text-center shadow-md focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-300"
               >
                 Log in
               </button>
