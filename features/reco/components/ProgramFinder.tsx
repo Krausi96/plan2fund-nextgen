@@ -5,12 +5,15 @@
 
 import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import { useRouter } from 'next/router';
-import { Wand2, ChevronLeft, ChevronRight, MessageCircle, Sparkles } from 'lucide-react';
+import { Wand2, ChevronLeft, ChevronRight } from 'lucide-react';
 import { Card } from '@/shared/components/ui/card';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/shared/components/ui/dialog';
 // Progress bar implemented with custom div (not using Progress component)
 import { scoreProgramsEnhanced, EnhancedProgramResult } from '@/features/reco/engine/enhancedRecoEngine';
 import { useI18n } from '@/shared/contexts/I18nContext';
+
+const DAILY_GENERATION_LIMIT = 3;
+const QUOTA_STORAGE_KEY = 'programFinderDailyQuota';
 
 // Path Indicator Component with merged numbered bubbles
 function PathIndicator({ 
@@ -384,79 +387,11 @@ function inferCompanyStageFromAnswers(answersSnapshot: Record<string, any>): str
 
 const ALL_QUESTIONS: QuestionDefinition[] = [...CORE_QUESTIONS, ...ADVANCED_QUESTIONS];
 
-type ChatMessage = {
-  id: string;
-  role: 'user' | 'assistant';
-  text: string;
-  timestamp: number;
-};
-
-const createMessageId = () => `${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
-
-// Stub functions and constants for chat extraction (to be implemented)
-const createInitialChatMessages = (locale: string): ChatMessage[] => {
-  return [
-    {
-      id: createMessageId(),
-      role: 'assistant',
-      text: locale === 'de' 
-        ? 'Hallo! Beschreiben Sie Ihr Projekt und ich helfe Ihnen, die passenden Felder auszufüllen.'
-        : 'Hello! Describe your project and I\'ll help fill in the matching fields.',
-      timestamp: Date.now(),
-    },
-  ];
-};
-
-// Stub keyword arrays for chat extraction
-const CITY_KEYWORDS: Array<{ pattern: RegExp; location: string; region: string }> = [];
-const LOCATION_KEYWORDS: Array<{ keywords: string[]; value: string }> = [];
-const COMPANY_TYPE_KEYWORDS: Array<{ keywords: string[]; value: string }> = [];
-const COMPANY_STAGE_KEYWORDS: Array<{ keywords: string[]; value: string }> = [];
-const INDUSTRY_KEYWORDS: Array<{ keywords: string[]; value: string }> = [];
-const IMPACT_KEYWORDS: Array<{ keywords: string[]; value: string }> = [];
-const USE_OF_FUNDS_KEYWORDS: Array<{ keywords: string[]; value: string }> = [];
-const CO_FINANCING_NEGATIVE_KEYWORDS: string[] = [];
-const CO_FINANCING_POSITIVE_KEYWORDS: string[] = [];
-const CO_FINANCING_UNCERTAIN_KEYWORDS: string[] = [];
-const REVENUE_KEYWORDS: Array<{ keywords: string[]; value: string }> = [];
-const TEAM_SIZE_BUCKETS: Array<{ pattern: RegExp; value: string }> = [];
-const DEADLINE_KEYWORDS: Array<{ keywords: string[]; value: string }> = [];
-
-const normalizeFundingAmountFromText = (text: string): number | null => {
-  // Simple extraction: look for numbers followed by k/K, m/M, or euro/eur
-  const match = text.match(/(\d+(?:\.\d+)?)\s*(k|K|m|M|thousand|million|euro|eur|€)/i);
-  if (match) {
-    const num = parseFloat(match[1]);
-    const unit = match[2].toLowerCase();
-    if (unit === 'k' || unit === 'thousand') {
-      return num * 1000;
-    } else if (unit === 'm' || unit === 'million') {
-      return num * 1000000;
-    }
-    return num;
-  }
-  // Try to extract plain numbers
-  const numMatch = text.match(/(\d{4,})/);
-  if (numMatch) {
-    return parseInt(numMatch[1], 10);
-  }
-  return null;
-};
 export default function ProgramFinder({ 
   onProgramSelect
 }: ProgramFinderProps) {
   const router = useRouter();
   const { t, locale } = useI18n();
-  const [chatMessages, setChatMessages] = useState<ChatMessage[]>(() => createInitialChatMessages(locale));
-  const [chatInput, setChatInput] = useState('');
-  useEffect(() => {
-    setChatMessages((prev) => {
-      if (prev.length === 0 || (prev.length === 1 && prev[0].role === 'assistant')) {
-        return createInitialChatMessages(locale);
-      }
-      return prev;
-    });
-  }, [locale]);
   
   // Get translated questions
   const translatedQuestions = useMemo<QuestionDefinition[]>(() => {
@@ -503,7 +438,6 @@ export default function ProgramFinder({
     });
   }, [t]);
   const [results, setResults] = useState<EnhancedProgramResult[]>([]);
-  const [debugInfo, setDebugInfo] = useState<Record<string, any> | null>(null);
   const [noResultsHint, setNoResultsHint] = useState<{ en: string; de: string } | null>(null);
   const defaultNoResultsHint = useMemo(() => ({
     en: 'No programs matched yet. Increase your funding range or allow additional funding types such as loans or equity.',
@@ -517,6 +451,104 @@ export default function ProgramFinder({
   const [showAdvancedFilters, setShowAdvancedFilters] = useState(true); // Advanced fields visible by default
   const [isLoading, setIsLoading] = useState(false);
   const [hasAttemptedGeneration, setHasAttemptedGeneration] = useState(false); // Track if user clicked generate
+  const [confirmProgram, setConfirmProgram] = useState<EnhancedProgramResult | null>(null);
+  const [isConfirmDialogOpen, setIsConfirmDialogOpen] = useState(false);
+  const confirmDialogCopy = useMemo(() => ({
+    title: (t('reco.confirmDialog.title' as any) as string) || 'Use this program in your plan?',
+    description: (t('reco.confirmDialog.description' as any) as string) ||
+      'We’ll bring this program’s requirements, document checklist, deadlines, and funding range into the editor. Your answers in ProgramFinder stay here—editor sections remain blank until you fill them.',
+    points: [
+      t('reco.confirmDialog.point1' as any) as string,
+      t('reco.confirmDialog.point2' as any) as string,
+      t('reco.confirmDialog.point3' as any) as string,
+    ].filter(Boolean) as string[],
+    useButton: (t('reco.confirmDialog.useButton' as any) as string) || 'Use this program',
+    pasteButton: (t('reco.confirmDialog.pasteButton' as any) as string) || 'Paste a program link instead',
+    quota: (t('reco.quota.limitReached' as any) as string) ||
+      'You’ve reached today’s limit of {limit} AI searches. Paste a program link directly in the editor or try again tomorrow.',
+  }), [t]);
+  const quotaLimitMessage = useMemo(
+    () => confirmDialogCopy.quota.replace('{limit}', String(DAILY_GENERATION_LIMIT)),
+    [confirmDialogCopy]
+  );
+
+  const getQuotaStatus = useCallback(() => {
+    if (typeof window === 'undefined') {
+      return { count: 0, remaining: DAILY_GENERATION_LIMIT };
+    }
+    try {
+      const raw = window.localStorage.getItem(QUOTA_STORAGE_KEY);
+      const today = new Date().toISOString().slice(0, 10);
+      if (!raw) {
+        return { count: 0, remaining: DAILY_GENERATION_LIMIT };
+      }
+      const parsed = JSON.parse(raw);
+      if (parsed?.date === today) {
+        const count = Number(parsed.count) || 0;
+        return { count, remaining: Math.max(DAILY_GENERATION_LIMIT - count, 0) };
+      }
+      return { count: 0, remaining: DAILY_GENERATION_LIMIT };
+    } catch (error) {
+      console.warn('Failed to read ProgramFinder quota status:', error);
+      return { count: 0, remaining: DAILY_GENERATION_LIMIT };
+    }
+  }, []);
+
+  const registerGenerationAttempt = useCallback(() => {
+    if (typeof window === 'undefined') return;
+    try {
+      const today = new Date().toISOString().slice(0, 10);
+      const raw = window.localStorage.getItem(QUOTA_STORAGE_KEY);
+      let count = 0;
+      if (raw) {
+        const parsed = JSON.parse(raw);
+        if (parsed?.date === today) {
+          count = Number(parsed.count) || 0;
+        }
+      }
+      const nextCount = Math.min(count + 1, DAILY_GENERATION_LIMIT);
+      window.localStorage.setItem(
+        QUOTA_STORAGE_KEY,
+        JSON.stringify({ date: today, count: nextCount })
+      );
+    } catch (error) {
+      console.warn('Failed to register ProgramFinder quota usage:', error);
+    }
+  }, []);
+
+  const persistSelectedProgram = useCallback((program: EnhancedProgramResult) => {
+    if (typeof window === 'undefined') return;
+    const programId = program.id || `program_${Date.now()}`;
+    try {
+      localStorage.setItem('selectedProgram', JSON.stringify({
+        id: programId,
+        name: program.name,
+        categorized_requirements: program.categorized_requirements || {},
+        type: program.type || (program.funding_types?.[0]) || 'grant',
+        url: (program as any).url || (program as any).source_url || null,
+      }));
+    } catch (error) {
+      console.warn('Failed to persist selected program:', error);
+    }
+    const params = new URLSearchParams({
+      product: 'submission',
+      programId: programId,
+    });
+    router.push(`/editor?${params.toString()}`);
+  }, [router]);
+
+  const handleManualProgramEntry = useCallback(() => {
+    setIsConfirmDialogOpen(false);
+    setConfirmProgram(null);
+    router.push('/editor?product=submission&connect=manual');
+  }, [router]);
+
+  const handleUseSelectedProgram = useCallback(() => {
+    if (!confirmProgram) return;
+    persistSelectedProgram(confirmProgram);
+    setIsConfirmDialogOpen(false);
+    setConfirmProgram(null);
+  }, [confirmProgram, persistSelectedProgram]);
   
   // Guided mode state
   const [answers, setAnswers] = useState<Record<string, any>>({});
@@ -701,217 +733,7 @@ const REQUIRED_QUESTION_IDS = ['company_type', 'project_scope', 'location', 'ind
   // State for answers summary collapse
   const [answersSummaryExpanded, setAnswersSummaryExpanded] = useState(false);
 
-  const getQuestionLabelById = useCallback((questionId: string) => {
-    const question = translatedQuestions.find((q) => q.id === questionId);
-    return question?.label || questionId;
-  }, [translatedQuestions]);
 
-  const describeAppliedValue = useCallback(
-    (questionId: string, value: any, contextAnswers?: Record<string, any>) => {
-      const formatted = formatAnswerForDisplay(questionId, value, contextAnswers);
-      if (!formatted) return '';
-      return `${getQuestionLabelById(questionId)} – ${formatted}`;
-    },
-    [formatAnswerForDisplay, getQuestionLabelById]
-  );
-
-  const applyChatExtraction = useCallback(
-    (message: string) => {
-      const lower = message.toLowerCase();
-      const updates: Record<string, any> = {};
-
-      const shouldUpdate = (field: string, newValue: any) => {
-        const current = answers[field];
-        if (Array.isArray(current) && Array.isArray(newValue)) {
-          if (current.length === newValue.length && current.every((item) => newValue.includes(item))) {
-            return false;
-          }
-        } else if (current === newValue) {
-          return false;
-        }
-        updates[field] = newValue;
-        return true;
-      };
-
-      const cityMatch = CITY_KEYWORDS.find((entry) => entry.pattern.test(lower));
-      if (cityMatch) {
-        shouldUpdate('location', cityMatch.location);
-        shouldUpdate('location_region', cityMatch.region);
-      } else {
-        const locationMatch = LOCATION_KEYWORDS.find((entry) =>
-          entry.keywords.some((keyword) => lower.includes(keyword))
-        );
-        if (locationMatch) {
-          shouldUpdate('location', locationMatch.value);
-        }
-      }
-
-      const companyTypeMatch = COMPANY_TYPE_KEYWORDS.find((entry) =>
-        entry.keywords.some((keyword) => lower.includes(keyword))
-      );
-      if (companyTypeMatch) {
-        shouldUpdate('company_type', companyTypeMatch.value);
-      }
-
-      const stageMatch = COMPANY_STAGE_KEYWORDS.find((entry) =>
-        entry.keywords.some((keyword) => lower.includes(keyword))
-      );
-      if (stageMatch) {
-        shouldUpdate('company_stage', stageMatch.value);
-      }
-
-      const industryMatch = INDUSTRY_KEYWORDS.find((entry) =>
-        entry.keywords.some((keyword) => lower.includes(keyword))
-      );
-      if (industryMatch) {
-        const existing = Array.isArray(answers.industry_focus) ? answers.industry_focus : [];
-        const merged = Array.from(new Set([...existing, industryMatch.value]));
-        shouldUpdate('industry_focus', merged);
-      }
-
-      const impactMatch = IMPACT_KEYWORDS.find((entry) =>
-        entry.keywords.some((keyword) => lower.includes(keyword))
-      );
-      if (impactMatch) {
-        const existing = Array.isArray(answers.impact_focus) ? answers.impact_focus : [];
-        const merged = Array.from(new Set([...existing, impactMatch.value]));
-        shouldUpdate('impact_focus', merged);
-      }
-
-      const useOfFundsMatch = USE_OF_FUNDS_KEYWORDS.find((entry) =>
-        entry.keywords.some((keyword) => lower.includes(keyword))
-      );
-      if (useOfFundsMatch) {
-        const existing = Array.isArray(answers.use_of_funds) ? answers.use_of_funds : [];
-        const merged = Array.from(new Set([...existing, useOfFundsMatch.value]));
-        shouldUpdate('use_of_funds', merged);
-      }
-
-      if (CO_FINANCING_NEGATIVE_KEYWORDS.some((keyword) => lower.includes(keyword))) {
-        shouldUpdate('co_financing', 'co_no');
-      } else if (CO_FINANCING_POSITIVE_KEYWORDS.some((keyword) => lower.includes(keyword))) {
-        shouldUpdate('co_financing', 'co_yes');
-      } else if (CO_FINANCING_UNCERTAIN_KEYWORDS.some((keyword) => lower.includes(keyword))) {
-        shouldUpdate('co_financing', 'co_uncertain');
-      }
-
-      const revenueMatch = REVENUE_KEYWORDS.find((entry) =>
-        entry.keywords.some((keyword) => lower.includes(keyword))
-      );
-      if (revenueMatch) {
-        shouldUpdate('revenue_status', revenueMatch.value);
-      }
-
-      const teamBucket = TEAM_SIZE_BUCKETS.find((bucket) => bucket.pattern.test(lower));
-      if (teamBucket) {
-        shouldUpdate('team_size', teamBucket.value);
-      } else {
-        const explicitTeamMatch = lower.match(/team of (\d+)|(\d+)\s*(person|people|employees)/);
-        if (explicitTeamMatch) {
-          const numberMatch = explicitTeamMatch[1] || explicitTeamMatch[2];
-          const count = Number(numberMatch);
-          if (!Number.isNaN(count)) {
-            if (count === 1) {
-              shouldUpdate('team_size', 'solo');
-            } else if (count <= 5) {
-              shouldUpdate('team_size', 'team_2_5');
-            } else if (count <= 20) {
-              shouldUpdate('team_size', 'team_6_20');
-            } else {
-              shouldUpdate('team_size', 'team_20_plus');
-            }
-          }
-        }
-      }
-
-      const fundingAmount = normalizeFundingAmountFromText(message);
-      if (fundingAmount !== null) {
-        shouldUpdate('funding_amount', fundingAmount);
-      }
-
-      const projectDurationMatch = message.match(/(\d+)\s*(months|monat|monate|month)/i);
-      if (projectDurationMatch) {
-        const months = Math.min(Math.max(parseInt(projectDurationMatch[1], 10), 1), 36);
-        shouldUpdate('project_duration', months);
-      }
-
-      const deadlineMatch = DEADLINE_KEYWORDS.find((entry) =>
-        entry.keywords.some((keyword) => lower.includes(keyword))
-      );
-      if (deadlineMatch) {
-        shouldUpdate('deadline_urgency', deadlineMatch.value);
-      }
-
-      Object.entries(updates).forEach(([field, value]) => {
-        handleAnswer(field, value);
-      });
-
-      return updates;
-    },
-    [answers, handleAnswer]
-  );
-
-  const handleChatSubmit = useCallback(
-    (event?: React.FormEvent<HTMLFormElement>) => {
-      event?.preventDefault();
-      const trimmed = chatInput.trim();
-      if (!trimmed) return;
-
-      const timestamp = Date.now();
-      const userMessage: ChatMessage = {
-        id: createMessageId(),
-        role: 'user',
-        text: trimmed,
-        timestamp,
-      };
-      setChatMessages((prev) => [...prev, userMessage]);
-
-      const updates = applyChatExtraction(trimmed);
-      const nextAnswers = { ...answers, ...updates };
-      const appliedSummaries = Object.entries(updates)
-        .filter(([field]) => !field.endsWith('_region') && !field.endsWith('_other') && !field.endsWith('_percentage'))
-        .map(([field, value]) => describeAppliedValue(field, value, nextAnswers))
-        .filter(Boolean);
-
-      const missingCritical = REQUIRED_QUESTION_IDS.filter((questionId) => !isAnswerProvided(nextAnswers[questionId]));
-      const missingLabels = missingCritical.map((id) => getQuestionLabelById(id));
-
-      let assistantText = '';
-      if (appliedSummaries.length > 0) {
-        assistantText +=
-          (locale === 'de' ? 'Danke! Übernommen: ' : 'Thanks! Captured: ') + appliedSummaries.join('; ');
-      } else {
-        assistantText +=
-          locale === 'de'
-            ? 'Danke! Ich konnte noch keine neuen Felder zuordnen. Nennen Sie z. B. Standort, Budget oder Teamgröße.'
-            : 'Thanks! I could not map any fields yet. Mention location, budget, or team size to speed things up.';
-      }
-
-      if (missingLabels.length > 0) {
-        assistantText +=
-          locale === 'de'
-            ? ` Noch benötigt: ${missingLabels.join(', ')}.`
-            : ` Still missing: ${missingLabels.join(', ')}.`;
-      } else {
-        assistantText +=
-          locale === 'de'
-            ? ' Sie können jetzt Programme generieren oder weitere Details teilen.'
-            : ' You can generate programs now or keep sharing details.';
-      }
-
-      const assistantMessage: ChatMessage = {
-        id: createMessageId(),
-        role: 'assistant',
-        text: assistantText.trim(),
-        timestamp: Date.now(),
-      };
-      setChatMessages((prev) => [...prev, assistantMessage]);
-      setChatInput('');
-    },
-    [answers, applyChatExtraction, chatInput, describeAppliedValue, getQuestionLabelById, locale]
-  );
-
-  
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-purple-50">
       <div className={`max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-2 ${answeredCount > 0 ? 'pb-24' : ''}`}>
@@ -963,82 +785,6 @@ const REQUIRED_QUESTION_IDS = ['company_type', 'project_scope', 'location', 'ind
         </div>
 
         <div className="flex flex-col gap-2" data-questions-section>
-          <Card className="p-6 bg-white/90 border border-blue-100 shadow-sm">
-            <div className="flex flex-col gap-6 lg:flex-row">
-              <div className="flex-1 min-w-0">
-                <div className="flex items-center gap-3 mb-4">
-                  <div className="w-10 h-10 rounded-full bg-blue-100 text-blue-700 flex items-center justify-center">
-                    <MessageCircle className="w-5 h-5" />
-                  </div>
-                  <div>
-                    <p className="text-base font-semibold text-gray-900">
-                      {locale === 'de' ? 'Freitext-Eingabe (optional)' : 'Free-text intake (optional)'}
-                    </p>
-                    <p className="text-sm text-gray-600">
-                      {locale === 'de'
-                        ? 'Schreiben Sie wie in einem Chat. Wir versuchen, Antworten zu erkennen und fehlende Felder hervorzuheben.'
-                        : 'Write as if you were chatting. We will extract answers and flag missing details.'}
-                    </p>
-                  </div>
-                </div>
-                <div className="rounded-lg border border-gray-200 bg-gray-50 p-3 h-52 overflow-y-auto space-y-3 text-sm">
-                  {chatMessages.map((msg) => (
-                    <div key={msg.id} className={`flex ${msg.role === 'user' ? 'justify-end' : 'justify-start'}`}>
-                      <div
-                        className={`max-w-[80%] rounded-2xl px-3 py-2 ${
-                          msg.role === 'user'
-                            ? 'bg-blue-600 text-white rounded-tr-sm shadow-blue-200 shadow-lg'
-                            : 'bg-white text-gray-800 border border-blue-100 rounded-tl-sm shadow-inner'
-                        }`}
-                      >
-                        <p className="whitespace-pre-line">{msg.text}</p>
-                        <span
-                          className={`block text-[11px] mt-1 ${
-                            msg.role === 'user' ? 'text-blue-100' : 'text-gray-400'
-                          }`}
-                        >
-                          {new Date(msg.timestamp).toLocaleTimeString(locale === 'de' ? 'de-AT' : 'en-GB', {
-                            hour: '2-digit',
-                            minute: '2-digit',
-                          })}
-                        </span>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-                <form onSubmit={handleChatSubmit} className="mt-4 space-y-3">
-                  <textarea
-                    value={chatInput}
-                    onChange={(e) => setChatInput(e.target.value)}
-                    rows={3}
-                    placeholder={
-                      locale === 'de'
-                        ? 'Beschreiben Sie Projekt, Budget, Team, Wirkung ...'
-                        : 'Describe project, budget, team, impact...'
-                    }
-                    className="w-full rounded-xl border border-gray-300 px-4 py-3 text-sm shadow-sm focus:border-blue-500 focus:ring-2 focus:ring-blue-500/30 resize-none"
-                  />
-                  <div className="flex items-center justify-between gap-3">
-                    <button
-                      type="button"
-                      onClick={() => setChatInput('')}
-                      className="px-4 py-2 text-sm font-medium text-gray-600 border border-gray-200 rounded-lg hover:bg-gray-100"
-                    >
-                      {locale === 'de' ? 'Text leeren' : 'Clear'}
-                    </button>
-                    <button
-                      type="submit"
-                      className="inline-flex items-center gap-2 px-5 py-2.5 rounded-lg bg-blue-600 text-white text-sm font-semibold hover:bg-blue-700 transition-colors"
-                    >
-                      <Sparkles className="w-4 h-4" />
-                      {locale === 'de' ? 'Info übernehmen' : 'Apply info'}
-                    </button>
-                  </div>
-                </form>
-              </div>
-            </div>
-          </Card>
-
           {/* Answers Summary Section - Fixed Position, Non-Overlapping */}
           {answeredCount > 0 && (
             <div className="fixed right-6 top-32 z-30 max-w-xs">
@@ -1859,24 +1605,6 @@ const REQUIRED_QUESTION_IDS = ['company_type', 'project_scope', 'location', 'ind
                     : 'Here are the most suitable funding programs for you.'}
                 </DialogDescription>
               </DialogHeader>
-              {debugInfo && (
-                <div className="bg-gray-50 border border-gray-200 rounded-lg p-3 md:p-4 text-xs md:text-sm text-gray-600 mb-6 space-y-1">
-                  <div>
-                    <strong>LLM:</strong>{' '}
-                    {debugInfo.llmError
-                      ? `Error - ${debugInfo.llmError}`
-                      : 'Success'}
-                  </div>
-                  <div>
-                    <strong>Generated:</strong> {debugInfo.llmProgramCount ?? 'n/a'} / <strong>After filtering:</strong> {debugInfo.afterFiltering ?? 'n/a'}
-                  </div>
-                  {typeof debugInfo.fallbackUsed === 'boolean' && (
-                    <div>
-                      <strong>Fallback used:</strong> {debugInfo.fallbackUsed ? 'Yes' : 'No'}
-                    </div>
-                  )}
-                </div>
-              )}
               <div className="space-y-5 md:space-y-6 mt-2">
                 {results.length === 0 ? (
                   <div className="text-center py-8">
@@ -1968,58 +1696,30 @@ const REQUIRED_QUESTION_IDS = ['company_type', 'project_scope', 'location', 'ind
                       <Card key={program.id || index} className="p-5 md:p-6 border-2 border-gray-200 hover:border-blue-400 hover:shadow-lg transition-all bg-white">
                         <div className="flex flex-col md:flex-row md:items-start gap-4">
                           <div className="flex-1 min-w-0">
-                            {/* Header with title, badges, and score */}
-                            <div className="flex flex-wrap items-start gap-2 mb-3">
+                            {/* Header with title and match score */}
+                            <div className="flex flex-wrap items-start gap-3 mb-3">
                               <h3 className="text-lg md:text-xl font-semibold text-gray-900 flex-1 min-w-[200px]">
                                 {program.name || `Program ${index + 1}`}
                               </h3>
-                              <div className="flex flex-wrap items-center gap-2">
-                                {program.source === 'fallback' && (
-                                  <span className="px-2 py-1 text-xs rounded-full bg-yellow-100 text-yellow-800 border border-yellow-300 font-medium">
-                                    {locale === 'de' ? 'Fallback' : 'Fallback'}
-                                  </span>
-                                )}
-                                {program.eligibility && (
-                                  <span className={`px-3 py-1 rounded-full text-xs font-semibold ${
-                                    program.eligibility === 'Eligible'
-                                      ? 'bg-emerald-100 text-emerald-800 border border-emerald-200'
-                                      : 'bg-rose-100 text-rose-800 border border-rose-200'
-                                  }`}>
-                                    {locale === 'de'
-                                      ? (program.eligibility === 'Eligible' ? 'Passend' : 'Nicht passend')
-                                      : program.eligibility}
-                                  </span>
-                                )}
-                                {program.confidence && (
-                                  <span className="px-3 py-1 rounded-full text-xs font-semibold bg-indigo-100 text-indigo-800 border border-indigo-200">
-                                    {locale === 'de'
-                                      ? `${program.confidence} Zuversicht`
-                                      : `${program.confidence} confidence`}
-                                  </span>
-                                )}
-                                {program.score !== undefined && (
-                                  <span className={`px-3 py-1 rounded-full text-xs md:text-sm font-semibold whitespace-nowrap ${
-                                    program.score >= 70 ? 'bg-green-100 text-green-800' :
-                                    program.score >= 40 ? 'bg-yellow-100 text-yellow-800' :
-                                    'bg-gray-100 text-gray-800'
-                                  }`}>
-                                    {Math.round(program.score)}% {locale === 'de' ? 'Match' : 'Match'}
-                                  </span>
-                                )}
-                              </div>
+                              {program.score !== undefined && (
+                                <span className={`px-3 py-1 rounded-full text-xs md:text-sm font-semibold whitespace-nowrap ${
+                                  program.score >= 70 ? 'bg-green-100 text-green-800 border border-green-300' :
+                                  program.score >= 40 ? 'bg-yellow-100 text-yellow-800 border border-yellow-300' :
+                                  'bg-gray-100 text-gray-800 border border-gray-300'
+                                }`}>
+                                  {Math.round(program.score)}% {locale === 'de' ? 'Match' : 'Match'}
+                                </span>
+                              )}
                             </div>
 
-                            {/* Funding Type Badges */}
+                            {/* Funding Type Badge - Show only primary type */}
                             {fundingTypes.length > 0 && (
-                              <div className="flex flex-wrap gap-2 mb-3">
-                                {fundingTypes.map((type: string, idx: number) => (
-                                  <span
-                                    key={idx}
-                                    className={`px-3 py-1 rounded-full text-xs font-medium border ${getFundingTypeColor(type)}`}
-                                  >
-                                    {getFundingTypeLabel(type)}
-                                  </span>
-                                ))}
+                              <div className="mb-3">
+                                <span
+                                  className={`px-3 py-1 rounded-full text-xs font-medium border ${getFundingTypeColor(fundingTypes[0])}`}
+                                >
+                                  {getFundingTypeLabel(fundingTypes[0])}
+                                </span>
                               </div>
                             )}
 
@@ -2030,49 +1730,44 @@ const REQUIRED_QUESTION_IDS = ['company_type', 'project_scope', 'location', 'ind
                               </p>
                             )}
 
-                            {/* Structured Explanation */}
-                            {(program.reason || (program as any).matchedCriteria?.length > 0) && (
-                              <div className="mb-4 rounded-lg border border-blue-100 bg-blue-50/70 p-4">
-                                <p className="text-sm font-semibold text-blue-900">
-                                  {locale === 'de' ? 'Warum das Programm passt' : 'Why this fits'}
-                                </p>
-                                {program.reason && (
-                                  <p className="text-sm text-blue-900/90 mt-2">{program.reason}</p>
-                                )}
-                                {Array.isArray((program as any).matchedCriteria) && (program as any).matchedCriteria.length > 0 && (
-                                  <ul className="mt-2 space-y-1 text-sm text-blue-900/90 list-disc list-inside">
-                                    {(program as any).matchedCriteria.slice(0, 3).map((match: any, idx: number) => (
-                                      <li key={idx}>{match.reason}</li>
-                                    ))}
-                                  </ul>
-                                )}
-                              </div>
-                            )}
-
-                            {/* Generic fallback warning */}
-                            {!program.reason &&
-                              (!Array.isArray((program as any).matchedCriteria) || (program as any).matchedCriteria.length === 0) &&
-                              program.source === 'fallback' && (
-                                <div className="mb-4 rounded-lg border border-yellow-200 bg-yellow-50 p-3 text-sm text-yellow-900">
-                                  {locale === 'de'
-                                    ? 'Allgemeiner Vorschlag aus dem Fallback – bitte manuell prüfen.'
-                                    : 'Generic fallback suggestion—double-check relevance before applying.'}
+                            {/* Smart, concise explanation */}
+                            {(() => {
+                              const reason = program.reason;
+                              const matchedCriteria = Array.isArray((program as any).matchedCriteria) ? (program as any).matchedCriteria : [];
+                              const gaps = Array.isArray((program as any).gaps) ? (program as any).gaps : [];
+                              
+                              // Build concise LLM-style explanation
+                              let explanation = '';
+                              if (reason) {
+                                explanation = reason;
+                              } else if (matchedCriteria.length > 0) {
+                                const topMatch = matchedCriteria[0];
+                                explanation = topMatch.reason || topMatch.description || '';
+                              }
+                              
+                              // Add watch-outs if gaps exist
+                              const watchOuts = gaps.slice(0, 2).map((gap: any) => gap.description || gap.key).filter(Boolean);
+                              
+                              if (!explanation && matchedCriteria.length === 0 && gaps.length === 0) {
+                                return null;
+                              }
+                              
+                              return (
+                                <div className="mb-4 space-y-3">
+                                  {explanation && (
+                                    <p className="text-sm text-gray-700 leading-relaxed">
+                                      {explanation}
+                                    </p>
+                                  )}
+                                  {watchOuts.length > 0 && (
+                                    <div className="text-xs text-gray-600 italic">
+                                      {locale === 'de' ? 'Zu beachten: ' : 'Note: '}
+                                      {watchOuts.join(', ')}
+                                    </div>
+                                  )}
                                 </div>
-                              )}
-
-                            {/* Gaps / mismatches */}
-                            {Array.isArray((program as any).gaps) && (program as any).gaps.length > 0 && (
-                              <div className="mb-4 rounded-lg border border-rose-100 bg-rose-50/80 p-4">
-                                <p className="text-sm font-semibold text-rose-900">
-                                  {locale === 'de' ? 'Zu prüfen' : 'Check before applying'}
-                                </p>
-                                <ul className="mt-2 space-y-1 text-sm text-rose-900 list-disc list-inside">
-                                  {(program as any).gaps.slice(0, 3).map((gap: any, idx: number) => (
-                                    <li key={idx}>{gap.description || gap.key}</li>
-                                  ))}
-                                </ul>
-                              </div>
-                            )}
+                              );
+                            })()}
 
                             {/* Program Details Grid */}
                             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 mb-4 text-sm">
@@ -2148,19 +1843,6 @@ const REQUIRED_QUESTION_IDS = ['company_type', 'project_scope', 'location', 'ind
                                 </div>
                               )}
                             </div>
-
-                            {/* External Link */}
-                            {program.url && (
-                              <a 
-                                href={program.url} 
-                                target="_blank" 
-                                rel="noopener noreferrer"
-                                className="inline-flex items-center gap-1 text-blue-600 hover:text-blue-800 text-sm font-medium transition-colors"
-                              >
-                                {locale === 'de' ? 'Mehr erfahren' : 'Learn more'}
-                                <span>→</span>
-                              </a>
-                            )}
                           </div>
 
                           {/* Select Button */}
@@ -2170,17 +1852,8 @@ const REQUIRED_QUESTION_IDS = ['company_type', 'project_scope', 'location', 'ind
                                 if (onProgramSelect) {
                                   onProgramSelect(program.id, program.type || fundingTypes[0] || 'grant');
                                 } else {
-                                  // Store in localStorage for editor
-                                  if (typeof window !== 'undefined') {
-                                    localStorage.setItem('selectedProgram', JSON.stringify({
-                                      id: program.id,
-                                      name: program.name,
-                                      categorized_requirements: program.categorized_requirements || {},
-                                      type: program.type || fundingTypes[0] || 'grant',
-                                      url: program.url,
-                                    }));
-                                    router.push('/editor?product=submission');
-                                  }
+                                  setConfirmProgram(program);
+                                  setIsConfirmDialogOpen(true);
                                 }
                               }}
                               className="w-full md:w-auto px-6 py-2.5 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors font-semibold text-sm shadow-sm hover:shadow-md whitespace-nowrap"
@@ -2193,6 +1866,56 @@ const REQUIRED_QUESTION_IDS = ['company_type', 'project_scope', 'location', 'ind
                     );
                   })
                 )}
+              </div>
+            </DialogContent>
+          </Dialog>
+          
+          <Dialog
+            open={isConfirmDialogOpen && !!confirmProgram}
+            onOpenChange={(open) => {
+              setIsConfirmDialogOpen(open);
+              if (!open) {
+                setConfirmProgram(null);
+              }
+            }}
+          >
+            <DialogContent className="max-w-lg">
+              <DialogHeader>
+                <DialogTitle>
+                  {confirmDialogCopy.title}
+                </DialogTitle>
+                <DialogDescription className="text-sm text-gray-600">
+                  {confirmDialogCopy.description}
+                </DialogDescription>
+              </DialogHeader>
+
+              <div className="mt-4 space-y-3 text-sm text-gray-700">
+                <p className="font-semibold text-gray-900">
+                  {confirmProgram?.name || (locale === 'de' ? 'Gewähltes Programm' : 'Selected program')}
+                </p>
+                {confirmDialogCopy.points.length > 0 && (
+                  <ul className="list-disc list-inside space-y-1 text-gray-700">
+                    {confirmDialogCopy.points.map((point, idx) => (
+                      <li key={idx}>{point}</li>
+                    ))}
+                  </ul>
+                )}
+              </div>
+
+              <div className="mt-6 flex flex-col gap-3 sm:flex-row sm:items-center">
+                <button
+                  onClick={handleUseSelectedProgram}
+                  className="flex-1 rounded-lg bg-blue-600 px-4 py-2.5 text-sm font-semibold text-white shadow hover:bg-blue-700 transition-colors"
+                >
+                  {confirmDialogCopy.useButton}
+                </button>
+                <button
+                  type="button"
+                  onClick={handleManualProgramEntry}
+                  className="flex-1 rounded-lg border border-gray-300 px-4 py-2.5 text-sm font-semibold text-gray-700 hover:bg-gray-100 transition-colors"
+                >
+                  {confirmDialogCopy.pasteButton}
+                </button>
               </div>
             </DialogContent>
           </Dialog>
@@ -2217,6 +1940,12 @@ const REQUIRED_QUESTION_IDS = ['company_type', 'project_scope', 'location', 'ind
                       : `Please answer at least ${MIN_QUESTIONS_FOR_RESULTS} questions to generate funding programs.`);
                     return;
                   }
+                const quotaStatus = getQuotaStatus();
+                if (quotaStatus.count >= DAILY_GENERATION_LIMIT) {
+                  alert(quotaLimitMessage);
+                  return;
+                }
+                registerGenerationAttempt();
                 setIsLoading(true);
                 setHasAttemptedGeneration(true); // Mark that user clicked generate
                 console.log('🚀 Starting program generation...');
@@ -2275,7 +2004,6 @@ const REQUIRED_QUESTION_IDS = ['company_type', 'project_scope', 'location', 'ind
                   }
                   
                   const data = await response.json();
-                  setDebugInfo(data.debug || null);
                   console.log('📦 API Response data:', {
                     success: data.success,
                     count: data.count,
@@ -2327,7 +2055,6 @@ const REQUIRED_QUESTION_IDS = ['company_type', 'project_scope', 'location', 'ind
                       alert('No programs were generated. This is unexpected - please try again or contact support. The system should always return at least some programs.');
                     }
                     setEmptyResults();
-                    setDebugInfo(null);
                     setIsLoading(false);
                     return;
                   }
@@ -2394,7 +2121,6 @@ const REQUIRED_QUESTION_IDS = ['company_type', 'project_scope', 'location', 'ind
                     message: error.message,
                     stack: error.stack,
                   });
-                  setDebugInfo(null);
                   alert(locale === 'de' 
                     ? `Fehler beim Generieren der Förderprogramme: ${error.message || 'Unbekannter Fehler'}`
                     : `Error generating programs: ${error.message || 'Unknown error'}`);
