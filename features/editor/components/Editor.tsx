@@ -1543,6 +1543,8 @@ export default function Editor({ product = 'submission' }: EditorProps) {
             onOpenProgramFinder={() => router.push('/reco')}
             programLoading={programLoading}
             programError={programError}
+            onUpdateTitlePage={updateTitlePage}
+            onOpenFrontMatter={() => setActiveSection(ANCILLARY_SECTION_ID)}
           />
         </div>
       </header>
@@ -1630,7 +1632,9 @@ function PlanConfigurator({
   onConnectProgram,
   onOpenProgramFinder,
   programLoading,
-  programError
+  programError,
+  onUpdateTitlePage,
+  onOpenFrontMatter
 }: {
   plan: BusinessPlan;
   programSummary: ProgramSummary | null;
@@ -1639,7 +1643,23 @@ function PlanConfigurator({
   onOpenProgramFinder: () => void;
   programLoading: boolean;
   programError: string | null;
+  onUpdateTitlePage: (titlePage: TitlePage) => void;
+  onOpenFrontMatter: () => void;
 }) {
+  const [titleDraft, setTitleDraft] = useState(plan.titlePage.planTitle);
+  const [companyDraft, setCompanyDraft] = useState(plan.titlePage.companyName);
+  const [valuePropDraft, setValuePropDraft] = useState(plan.titlePage.valueProp ?? '');
+
+  useEffect(() => {
+    setTitleDraft(plan.titlePage.planTitle);
+    setCompanyDraft(plan.titlePage.companyName);
+    setValuePropDraft(plan.titlePage.valueProp ?? '');
+  }, [plan.titlePage.planTitle, plan.titlePage.companyName, plan.titlePage.valueProp]);
+
+  const commitTitlePageChange = (updates: Partial<TitlePage>) => {
+    onUpdateTitlePage({ ...plan.titlePage, ...updates });
+  };
+
   const planSubtitle =
     programSummary?.name?.trim() ||
     plan.programSummary?.name?.trim() ||
@@ -1654,14 +1674,64 @@ function PlanConfigurator({
   return (
     <div className="grid grid-cols-1 gap-3 md:grid-cols-3">
       {/* Plan Title */}
-      <Card className={headerCardClasses}>
-        <p className="text-[11px] font-semibold uppercase tracking-[0.2em] text-neutral-500">
-          Plan Title
-        </p>
-        <p className="text-lg font-semibold text-neutral-900 leading-tight truncate">
-          {plan.titlePage.planTitle || 'Business Plan'}
-        </p>
-        <p className="text-sm font-medium text-neutral-600">{planSubtitle}</p>
+      <Card className={`${headerCardClasses} space-y-4`}>
+        <div className="flex items-start justify-between gap-2">
+          <div>
+            <p className="text-[11px] font-semibold uppercase tracking-[0.2em] text-neutral-500">
+              Plan Title
+            </p>
+            <p className="text-xs text-neutral-500">Auto-saves to Front & back matter</p>
+          </div>
+          <Button variant="ghost" size="sm" className="text-primary-700" onClick={onOpenFrontMatter}>
+            Edit details
+          </Button>
+        </div>
+        <input
+          value={titleDraft}
+          onChange={(event) => setTitleDraft(event.target.value)}
+          onBlur={() => {
+            const next = titleDraft.trim() || 'Business Plan';
+            if (next !== plan.titlePage.planTitle) {
+              commitTitlePageChange({ planTitle: next });
+            } else {
+              setTitleDraft(plan.titlePage.planTitle);
+            }
+          }}
+          className="w-full rounded-lg border border-neutral-200 bg-white px-3 py-2 text-lg font-semibold text-neutral-900 focus:border-primary-300 focus:outline-none focus:ring-2 focus:ring-primary/20"
+          placeholder="Plan name"
+        />
+        <div className="grid grid-cols-1 gap-3">
+          <input
+            value={companyDraft}
+            onChange={(event) => setCompanyDraft(event.target.value)}
+            onBlur={() => {
+              const next = companyDraft.trim();
+              if (next !== plan.titlePage.companyName) {
+                commitTitlePageChange({ companyName: next });
+              } else {
+                setCompanyDraft(plan.titlePage.companyName);
+              }
+            }}
+            className="w-full rounded-lg border border-neutral-200 bg-white px-3 py-2 text-sm font-medium text-neutral-800 focus:border-primary-300 focus:outline-none focus:ring-2 focus:ring-primary/20"
+            placeholder="Company name"
+          />
+          <textarea
+            value={valuePropDraft}
+            onChange={(event) => setValuePropDraft(event.target.value)}
+            onBlur={() => {
+              const next = valuePropDraft.trim();
+              if (next !== (plan.titlePage.valueProp ?? '')) {
+                commitTitlePageChange({ valueProp: next });
+              } else {
+                setValuePropDraft(plan.titlePage.valueProp ?? '');
+              }
+            }}
+            className="w-full rounded-lg border border-neutral-200 bg-white px-3 py-2 text-sm text-neutral-700 focus:border-primary-300 focus:outline-none focus:ring-2 focus:ring-primary/20"
+            placeholder="Short value proposition"
+            rows={2}
+          />
+        </div>
+        <p className="text-xs text-neutral-500">{planSubtitle}</p>
       </Card>
 
       {/* Product Type Selector */}
