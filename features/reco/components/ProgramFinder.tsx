@@ -438,17 +438,11 @@ export default function ProgramFinder({
     });
   }, [t]);
   const [results, setResults] = useState<EnhancedProgramResult[]>([]);
-  const [noResultsHint, setNoResultsHint] = useState<{ en: string; de: string } | null>(null);
-  const defaultNoResultsHint = useMemo(() => ({
-    en: 'No programs matched yet. Increase your funding range or allow additional funding types such as loans or equity.',
-    de: 'Noch keine Programme gefunden. Erhöhen Sie den Finanzierungsbedarf oder erlauben Sie weitere Finanzierungstypen wie Darlehen oder Beteiligungen.',
-  }), []);
 
-  const setEmptyResults = useCallback((customHint?: { en: string; de: string }) => {
+  const setEmptyResults = useCallback(() => {
     setResults([]);
-    setNoResultsHint(customHint || defaultNoResultsHint);
-  }, [defaultNoResultsHint]);
-  const [showAdvancedFilters, setShowAdvancedFilters] = useState(true); // Advanced fields visible by default
+  }, []);
+  const [showAdvancedFilters, setShowAdvancedFilters] = useState(false); // Hide advanced by default
   const [isLoading, setIsLoading] = useState(false);
   const [hasAttemptedGeneration, setHasAttemptedGeneration] = useState(false); // Track if user clicked generate
   const [confirmProgram, setConfirmProgram] = useState<EnhancedProgramResult | null>(null);
@@ -466,6 +460,11 @@ export default function ProgramFinder({
     pasteButton: (t('reco.confirmDialog.pasteButton' as any) as string) || 'Paste a program link instead',
     quota: (t('reco.quota.limitReached' as any) as string) ||
       'You’ve reached today’s limit of {limit} AI searches. Paste a program link directly in the editor or try again tomorrow.',
+    emptyTitle: (t('reco.results.empty.title' as any) as string) || 'No matching programs yet',
+    emptyBody: (t('reco.results.empty.body' as any) as string) ||
+      'We couldn’t find specific programs for these answers. Adjust answers or connect a program you already know.',
+    retryButton: (t('reco.results.empty.retry' as any) as string) || 'Try again in ProgramFinder',
+    manualButton: (t('reco.results.empty.manual' as any) as string) || 'Add program in editor',
   }), [t]);
   const quotaLimitMessage = useMemo(
     () => confirmDialogCopy.quota.replace('{limit}', String(DAILY_GENERATION_LIMIT)),
@@ -732,6 +731,15 @@ const REQUIRED_QUESTION_IDS = ['company_type', 'project_scope', 'location', 'ind
   
   // State for answers summary collapse
   const [answersSummaryExpanded, setAnswersSummaryExpanded] = useState(false);
+  const visibleResults = useMemo(() => {
+    return results.filter((program: any) => {
+      const source = program?.source;
+      const name = (program?.name || '').toLowerCase();
+      const isGenericName = name.startsWith('general ') || name.includes('general grant option') || name.includes('general loan option');
+      return source !== 'fallback' && !isGenericName;
+    });
+  }, [results]);
+  const hasVisibleResults = visibleResults.length > 0;
 
 
   return (
@@ -751,9 +759,9 @@ const REQUIRED_QUESTION_IDS = ['company_type', 'project_scope', 'location', 'ind
             {t('reco.pageSubtitle')}
           </p>
           
-          {results.length > 0 && (
+          {hasVisibleResults && (
             <div className="mt-2 text-sm text-gray-600">
-              {results.length} program{results.length !== 1 ? 's' : ''} found
+              {visibleResults.length} program{visibleResults.length !== 1 ? 's' : ''} found
             </div>
           )}
         </div>
@@ -779,7 +787,7 @@ const REQUIRED_QUESTION_IDS = ['company_type', 'project_scope', 'location', 'ind
                   : 'text-gray-700 hover:bg-gray-100'
               }`}
             >
-              {t('reco.ui.results') || 'Results'} ({results.length})
+              {t('reco.ui.results') || 'Results'} ({visibleResults.length})
             </button>
           </div>
         </div>
@@ -1510,8 +1518,8 @@ const REQUIRED_QUESTION_IDS = ['company_type', 'project_scope', 'location', 'ind
                     </h3>
                     <p className="text-gray-600 text-sm">
                       {locale === 'de' 
-                        ? 'Dies kann 15-30 Sekunden dauern. Bitte haben Sie etwas Geduld.'
-                        : 'This may take 15-30 seconds. Please be patient.'}
+                        ? 'Dies kann ein paar Momente dauern. Bitte haben Sie etwas Geduld.'
+                        : 'This may take just a moment. Thanks for your patience.'}
                     </p>
                   </div>
                   
@@ -1587,7 +1595,7 @@ const REQUIRED_QUESTION_IDS = ['company_type', 'project_scope', 'location', 'ind
           </Dialog>
 
           {/* Results Modal/Popup - Open when we have results OR when generation finished with no results */}
-          <Dialog open={(results.length > 0 && !isLoading) || (!isLoading && hasAttemptedGeneration && results.length === 0)} onOpenChange={(open) => {
+          <Dialog open={(hasVisibleResults && !isLoading) || (!isLoading && hasAttemptedGeneration && !hasVisibleResults)} onOpenChange={(open) => {
             if (!open) {
               setEmptyResults();
               setHasAttemptedGeneration(false); // Reset when dialog closes
@@ -1597,7 +1605,7 @@ const REQUIRED_QUESTION_IDS = ['company_type', 'project_scope', 'location', 'ind
               <DialogHeader className="mb-6">
                 <DialogTitle className="text-2xl md:text-3xl font-bold text-gray-900 mb-2">
                   {locale === 'de' ? 'Gefundene Förderprogramme' : 'Found Funding Programs'} 
-                  <span className="ml-2 text-lg md:text-xl font-semibold text-gray-600">({results.length})</span>
+                  <span className="ml-2 text-lg md:text-xl font-semibold text-gray-600">({visibleResults.length})</span>
                 </DialogTitle>
                 <DialogDescription className="text-base text-gray-600">
                   {locale === 'de' 
@@ -1606,24 +1614,38 @@ const REQUIRED_QUESTION_IDS = ['company_type', 'project_scope', 'location', 'ind
                 </DialogDescription>
               </DialogHeader>
               <div className="space-y-5 md:space-y-6 mt-2">
-                {results.length === 0 ? (
-                  <div className="text-center py-8">
-                    <p className="text-gray-600 text-lg mb-2">
-                      {locale === 'de' ? 'Keine Programme gefunden' : 'No programs found'}
+                {visibleResults.length === 0 ? (
+                  <div className="text-center py-10 px-4">
+                    <div className="mx-auto mb-4 h-12 w-12 rounded-full bg-blue-100 text-blue-600 flex items-center justify-center">
+                      <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-4.35-4.35m0 0A7.5 7.5 0 105.65 5.65a7.5 7.5 0 0010.6 10.6z" />
+                      </svg>
+                    </div>
+                    <p className="text-gray-900 text-lg font-semibold mb-2">
+                      {confirmDialogCopy.emptyTitle}
                     </p>
-                    <p className="text-gray-500 text-sm">
-                      {locale === 'de' 
-                        ? (noResultsHint?.de || 'Aktuell passt kein Programm. Bitte passen Sie Ihre Antworten an.')
-                        : (noResultsHint?.en || 'No programs matched yet. Please adjust your answers and try again.')}
+                    <p className="text-gray-600 text-sm mb-6">
+                      {confirmDialogCopy.emptyBody}
                     </p>
-                    <p className="text-gray-400 text-xs mt-4">
-                      {locale === 'de' 
-                        ? 'Tipp: Erhöhen Sie das Budget oder erlauben Sie andere Finanzierungstypen (z. B. Darlehen).'
-                        : 'Tip: Increase your budget or allow other funding instruments (e.g., loans).'}
-                    </p>
+                    <div className="flex flex-col gap-3 sm:flex-row sm:justify-center">
+                      <button
+                        type="button"
+                        onClick={() => setMobileActiveTab('questions')}
+                        className="rounded-lg bg-blue-600 px-4 py-2.5 text-sm font-semibold text-white shadow hover:bg-blue-700 transition-colors"
+                      >
+                        {confirmDialogCopy.retryButton}
+                      </button>
+                      <button
+                        type="button"
+                        onClick={handleManualProgramEntry}
+                        className="rounded-lg border border-gray-300 px-4 py-2.5 text-sm font-semibold text-gray-700 hover:bg-gray-100 transition-colors"
+                      >
+                        {confirmDialogCopy.manualButton}
+                      </button>
+                    </div>
                   </div>
                 ) : (
-                  results.map((program, index) => {
+                  visibleResults.map((program, index) => {
                     const fundingTypes = (program as any).funding_types || (program.type ? [program.type] : ['grant']);
                     const getFundingTypeColor = (type: string) => {
                       const normalized = type.toLowerCase();
@@ -2094,7 +2116,6 @@ const REQUIRED_QUESTION_IDS = ['company_type', 'project_scope', 'location', 'ind
                   
                   if (sorted.length > 0) {
                     setResults(sorted);
-                    setNoResultsHint(null);
                   } else {
                     setEmptyResults();
                   }

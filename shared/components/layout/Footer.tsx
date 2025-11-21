@@ -4,6 +4,10 @@ import { useI18n } from "@/shared/contexts/I18nContext";
 
 export default function Footer() {
   const { t } = useI18n();
+  const currentYear = new Date().getFullYear();
+  const copyrightText =
+    ((t('footer.copyright') as string) || `© {year} Plan2Fund`).replace('{year}', String(currentYear));
+
   return (
     <footer className="border-t-2 border-neutral-200 bg-gradient-to-b from-neutral-50 to-white">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16">
@@ -12,27 +16,26 @@ export default function Footer() {
           <div>
             <h3 className="text-3xl font-bold bg-gradient-to-r from-neutral-700 to-neutral-900 bg-clip-text text-transparent mb-6">Plan2Fund</h3>
             <p className="text-neutral-700 mb-8 max-w-md leading-relaxed">
-              Helping founders find funding and build comprehensive business plans 
-              that meet Austrian and EU program standards.
+              {t("footer.tagline")}
             </p>
             <div className="space-y-3 text-sm">
               <div className="flex items-center gap-3">
                 <div className="w-8 h-8 bg-gradient-to-br from-neutral-100 to-neutral-50 rounded-lg flex items-center justify-center">
                   <Mail className="h-4 w-4 text-neutral-600" />
                 </div>
-                <span className="text-neutral-700 font-medium">hello@plan2fund.com</span>
+                <span className="text-neutral-700 font-medium">{t("footer.email")}</span>
               </div>
               <div className="flex items-center gap-3">
                 <div className="w-8 h-8 bg-gradient-to-br from-neutral-100 to-neutral-50 rounded-lg flex items-center justify-center">
                   <Phone className="h-4 w-4 text-neutral-600" />
                 </div>
-                <span className="text-neutral-700 font-medium">+43 1 234 5678</span>
+                <span className="text-neutral-700 font-medium">{t("footer.phone")}</span>
               </div>
               <div className="flex items-center gap-3">
                 <div className="w-8 h-8 bg-gradient-to-br from-neutral-100 to-neutral-50 rounded-lg flex items-center justify-center">
                   <MapPin className="h-4 w-4 text-neutral-600" />
                 </div>
-                <span className="text-neutral-700 font-medium">Vienna, Austria</span>
+                <span className="text-neutral-700 font-medium">{t("footer.address")}</span>
               </div>
             </div>
           </div>
@@ -61,7 +64,7 @@ export default function Footer() {
         {/* Copyright */}
         <div className="mt-12 pt-8 border-t-2 border-neutral-200 text-center">
           <div className="text-sm text-neutral-600 font-medium">
-            © {new Date().getFullYear()} Plan2Fund. All rights reserved.
+            {copyrightText}
           </div>
         </div>
       </div>
