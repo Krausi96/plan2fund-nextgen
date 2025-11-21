@@ -316,7 +316,7 @@ export default function SectionContentRenderer({ plan, focusSectionId }: Preview
           <select
             value={exportFormat}
             onChange={(e) => setExportFormat(e.target.value as 'PDF' | 'DOCX')}
-            className="flex-1 px-3 py-2 text-sm font-semibold border border-slate-300 rounded-lg bg-white text-slate-700 focus:border-blue-400 focus:outline-none focus:ring-2 focus:ring-blue-200"
+            className="flex-1 px-3 py-2 text-sm font-semibold border border-white/20 rounded-lg bg-white/5 text-white focus:border-blue-400 focus:outline-none focus:ring-2 focus:ring-blue-500/50"
             disabled={exporting}
           >
             <option value="PDF">PDF</option>
@@ -325,7 +325,7 @@ export default function SectionContentRenderer({ plan, focusSectionId }: Preview
           <button
             onClick={handleExportDraft}
             disabled={exporting}
-            className="flex-1 px-4 py-2 text-sm font-semibold border border-slate-300 text-slate-700 rounded-lg hover:border-blue-400 hover:bg-blue-50 disabled:opacity-50 disabled:cursor-not-allowed transition"
+            className="flex-1 px-4 py-2 text-sm font-semibold border border-white/20 text-white rounded-lg hover:border-blue-400 hover:bg-white/10 disabled:opacity-50 disabled:cursor-not-allowed transition"
           >
             {exporting ? 'Exporting...' : 'Export draft'}
           </button>
@@ -333,8 +333,8 @@ export default function SectionContentRenderer({ plan, focusSectionId }: Preview
       </div>
 
       {/* Section Title */}
-      <div className="pb-2 border-b border-slate-200">
-        <h3 className="text-lg font-bold text-slate-900">{focusedSection.title}</h3>
+      <div className="pb-2 border-b border-white/10">
+        <h3 className="text-lg font-bold text-white">{focusedSection.title}</h3>
       </div>
 
       {/* Condensed Preview */}
@@ -349,34 +349,34 @@ export default function SectionContentRenderer({ plan, focusSectionId }: Preview
           const resolvedQuestionAttachments = resolveAttachmentsForQuestion(question, focusedSection);
 
           return (
-            <div key={question.id} className="space-y-2 bg-slate-50 rounded-lg p-3 border border-slate-200">
+            <div key={question.id} className="space-y-2 bg-white/5 rounded-lg p-3 border border-white/10">
               {/* Question Answer */}
               <div>
-                <span className="font-bold text-slate-900">{questionNumber}: </span>
+                <span className="font-bold text-white">{questionNumber}: </span>
                 {answerPreview ? (
-                  <span className="text-slate-700 leading-relaxed">{answerPreview}</span>
+                  <span className="text-white/80 leading-relaxed">{answerPreview}</span>
                 ) : (
-                  <span className="italic text-slate-400">[No answer yet]</span>
+                  <span className="italic text-white/50">[No answer yet]</span>
                 )}
               </div>
 
               {/* Attachments (if any) */}
               {resolvedQuestionAttachments.length > 0 && (
-                <div className="ml-2 space-y-1.5 pt-1 border-t border-slate-200">
+                <div className="ml-2 space-y-1.5 pt-1 border-t border-white/10">
                   {resolvedQuestionAttachments.map((attachment) => {
                     // Show KPI value if it's a KPI attachment
                     if (attachment.type === 'kpi' && attachment.value !== undefined) {
                       const kpiValue = attachment.value;
                       const kpiUnit = attachment.unit || '';
                       return (
-                        <div key={attachment.id} className="text-xs text-slate-600 bg-white px-2 py-1 rounded border border-slate-200">
-                          📈 <span className="font-semibold">{getAttachmentName(attachment)}</span>: <span className="font-bold text-blue-600">{kpiValue} {kpiUnit}</span> <span className="text-slate-400">(attached)</span>
+                        <div key={attachment.id} className="text-xs text-white/80 bg-white/5 px-2 py-1 rounded border border-white/10">
+                          📈 <span className="font-semibold">{getAttachmentName(attachment)}</span>: <span className="font-bold text-blue-400">{kpiValue} {kpiUnit}</span> <span className="text-white/50">(attached)</span>
                         </div>
                       );
                     }
                     return (
-                      <div key={attachment.id} className="text-xs text-slate-600 bg-white px-2 py-1 rounded border border-slate-200">
-                        {getAttachmentIcon(attachment.type || '')} <span className="font-semibold">{getAttachmentName(attachment)}</span> <span className="text-slate-400">(attached)</span>
+                      <div key={attachment.id} className="text-xs text-white/80 bg-white/5 px-2 py-1 rounded border border-white/10">
+                        {getAttachmentIcon(attachment.type || '')} <span className="font-semibold">{getAttachmentName(attachment)}</span> <span className="text-white/50">(attached)</span>
                       </div>
                     );
                   })}
@@ -390,27 +390,27 @@ export default function SectionContentRenderer({ plan, focusSectionId }: Preview
         {((focusedSection.kpis && focusedSection.kpis.length > 0) || 
           (focusedSection.datasets && focusedSection.datasets.length > 0) || 
           (focusedSection.media && focusedSection.media.length > 0)) && (
-          <div className="mt-4 pt-4 border-t-2 border-slate-300">
-            <p className="text-xs font-bold text-slate-700 uppercase tracking-wider mb-3">Section Data</p>
+          <div className="mt-4 pt-4 border-t-2 border-white/20">
+            <p className="text-xs font-bold text-white/90 uppercase tracking-wider mb-3">Section Data</p>
             
             {/* Standalone KPIs */}
             {focusedSection.kpis?.filter((kpi) => !isEntityLinked(kpi)).map((kpi) => (
-              <div key={kpi.id} className="text-sm text-slate-700 mb-2 bg-white px-3 py-2 rounded border border-slate-200">
-                📈 <span className="font-semibold">{kpi.name}</span>: <span className="font-bold text-blue-600">{kpi.value} {kpi.unit || ''}</span>
-                {kpi.target && <span className="text-slate-500"> (target: {kpi.target} {kpi.unit || ''})</span>}
+              <div key={kpi.id} className="text-sm text-white/80 mb-2 bg-white/5 px-3 py-2 rounded border border-white/10">
+                📈 <span className="font-semibold">{kpi.name}</span>: <span className="font-bold text-blue-400">{kpi.value} {kpi.unit || ''}</span>
+                {kpi.target && <span className="text-white/60"> (target: {kpi.target} {kpi.unit || ''})</span>}
               </div>
             ))}
             
             {/* Standalone Datasets */}
             {focusedSection.datasets?.filter((ds) => !isEntityLinked(ds)).map((dataset) => (
-              <div key={dataset.id} className="text-sm text-slate-700 mb-2 bg-white px-3 py-2 rounded border border-slate-200">
-                📊 <span className="font-semibold">{dataset.name}</span> <span className="text-slate-500">({dataset.columns.length} columns, {dataset.rows.length} rows)</span>
+              <div key={dataset.id} className="text-sm text-white/80 mb-2 bg-white/5 px-3 py-2 rounded border border-white/10">
+                📊 <span className="font-semibold">{dataset.name}</span> <span className="text-white/60">({dataset.columns.length} columns, {dataset.rows.length} rows)</span>
               </div>
             ))}
             
             {/* Standalone Media */}
             {focusedSection.media?.filter((m) => !isEntityLinked(m)).map((asset) => (
-              <div key={asset.id} className="text-sm text-slate-700 mb-2 bg-white px-3 py-2 rounded border border-slate-200">
+              <div key={asset.id} className="text-sm text-white/80 mb-2 bg-white/5 px-3 py-2 rounded border border-white/10">
                 {getAttachmentIcon(asset.type)} <span className="font-semibold">{asset.title}</span>
               </div>
             ))}

@@ -8,7 +8,6 @@ import {
   tagDatasetWithFinancialVariables,
   createKPIFromSuggestion
 } from '@/features/editor/utils/tableInitializer';
-import { useI18n } from '@/shared/contexts/I18nContext';
 
 type Tab = 'datasets' | 'kpis' | 'media';
 type Composer = 'dataset' | 'kpi' | 'media' | null;
@@ -158,14 +157,13 @@ export default function DataPanel({
   onMediaCreate,
   activeQuestionId,
   sectionId,
-  sectionTitle,
+  sectionTitle: _sectionTitle,
   onAttachDataset,
   onAttachKpi,
   onAttachMedia,
-  onAskForStructure,
-  onMarkComplete
+  onAskForStructure: _onAskForStructure,
+  onMarkComplete: _onMarkComplete
 }: DataPanelProps) {
-  const { t } = useI18n();
   const [activeTab, setActiveTab] = useState<Tab>('datasets');
   const [activeComposer, setActiveComposer] = useState<Composer>(null);
   const [expandedItems, setExpandedItems] = useState<Set<string>>(new Set());
@@ -344,7 +342,7 @@ export default function DataPanel({
   };
 
   const renderPagination = (tab: Tab, id: string, index: number, total: number) => (
-    <div className="flex items-center justify-between text-[11px] text-slate-500">
+    <div className="flex items-center justify-between text-[11px] text-white/60">
       <span>
         {index + 1} of {total}
       </span>
@@ -353,7 +351,7 @@ export default function DataPanel({
           type="button"
           onClick={() => handleNavigateItem(tab, id, 'prev')}
           disabled={index === 0}
-          className="px-2 py-0.5 rounded border border-slate-200 disabled:opacity-30"
+          className="px-2 py-0.5 rounded border border-white/20 disabled:opacity-30 text-white/80 hover:bg-white/10"
         >
           ← Prev
         </button>
@@ -361,7 +359,7 @@ export default function DataPanel({
           type="button"
           onClick={() => handleNavigateItem(tab, id, 'next')}
           disabled={index === total - 1}
-          className="px-2 py-0.5 rounded border border-slate-200 disabled:opacity-30"
+          className="px-2 py-0.5 rounded border border-white/20 disabled:opacity-30 text-white/80 hover:bg-white/10"
         >
           Next →
         </button>
@@ -382,8 +380,8 @@ export default function DataPanel({
           disabled={!canAttach}
           className={`flex-1 text-xs font-semibold rounded-xl border px-3 py-1.5 ${
             canAttach
-              ? 'text-blue-600 border-blue-200 hover:bg-blue-50'
-              : 'text-slate-400 border-slate-100 cursor-not-allowed'
+              ? 'text-blue-400 border-blue-400/50 hover:bg-blue-500/20'
+              : 'text-white/40 border-white/10 cursor-not-allowed'
           }`}
         >
           Attach
@@ -392,142 +390,128 @@ export default function DataPanel({
       <button
         type="button"
         onClick={() => setEditingItem({ type: tab, id })}
-        className="text-xs font-semibold text-slate-600 border border-slate-200 rounded-xl px-3 py-1.5 hover:bg-slate-50"
+        className="text-xs font-semibold text-white/80 border border-white/20 rounded-xl px-3 py-1.5 hover:bg-white/10"
       >
         Edit
       </button>
       <button
         type="button"
         onClick={() => setViewingItem({ type: tab, id })}
-        className="text-xs font-semibold text-slate-600 border border-slate-200 rounded-xl px-3 py-1.5 hover:bg-slate-50"
+        className="text-xs font-semibold text-white/80 border border-white/20 rounded-xl px-3 py-1.5 hover:bg-white/10"
       >
         View
       </button>
       <button
         type="button"
-        className="text-xs font-semibold text-red-600 border border-red-200 rounded-xl px-3 py-1.5 hover:bg-red-50"
+        className="text-xs font-semibold text-red-400 border border-red-400/50 rounded-xl px-3 py-1.5 hover:bg-red-500/20"
       >
         Delete
       </button>
     </div>
   );
 
+  const totalItems = datasetList.length + kpiList.length + mediaList.length;
+
   return (
-    <div className="space-y-4 rounded-2xl border border-slate-200 bg-white p-4 shadow-sm">
-      <div className="grid grid-cols-1 sm:grid-cols-3 gap-2.5">
-        {(
-          [
-            { key: 'dataset', label: 'Add table', icon: '📊' },
-            { key: 'kpi', label: 'Add KPI', icon: '📈' },
-            { key: 'media', label: 'Add media', icon: '📷' }
-          ] as Array<{ key: Exclude<Composer, null>; label: string; icon: string }>
-        ).map((action) => {
-          const isActive = activeComposer === action.key;
-          return (
-            <button
-              key={action.key}
-              onClick={() => handlePrimaryAction(action.key)}
-              className={`flex items-center justify-between rounded-xl border px-3 py-2.5 text-sm font-semibold transition ${
-                isActive
-                  ? 'border-blue-500 bg-blue-50 text-blue-700 shadow-sm'
-                  : 'border-slate-200 bg-white text-slate-700 hover:border-blue-300 hover:bg-blue-50/50'
-              }`}
-            >
-              <span>{action.label}</span>
-              <span>{action.icon}</span>
-            </button>
-          );
-        })}
-      </div>
-
-      <div className="rounded-xl border border-slate-200 bg-slate-50/50 p-3.5 space-y-2.5">
-        <div className="flex items-center justify-between">
-          <p className="text-xs font-semibold text-slate-700">Complete question</p>
-          <span className="text-[10px] text-slate-500 bg-green-100 text-green-700 px-2 py-0.5 rounded-full font-medium">Finish</span>
-        </div>
-        <p className="text-xs text-slate-600 leading-relaxed">
-          Mark this question as complete to finish the prompt and move forward.
+    <div className="flex flex-col space-y-3">
+      {/* Header Section */}
+      <div className="bg-white/5 rounded-lg p-3 border border-white/10">
+        <h3 className="text-sm font-semibold text-white/90 mb-1">Data & Media</h3>
+        <p className="text-xs text-white/70 leading-relaxed">
+          Add tables, KPIs, and media to support your answers.
         </p>
-        <div className="flex flex-wrap gap-2">
+      </div>
+
+      {/* Primary Actions */}
+      <div className="space-y-2">
+        <p className="text-xs font-medium text-white/70 uppercase tracking-wide">Add New</p>
+        <div className="grid grid-cols-1 gap-2">
           <button
-            type="button"
-            onClick={() => {
-              if (onMarkComplete && activeQuestionId) {
-                onMarkComplete(activeQuestionId);
-              }
-            }}
-            disabled={!activeQuestionId || !onMarkComplete}
-            className="flex-1 min-w-[140px] rounded-lg border border-green-400 bg-green-500 px-3 py-2 text-xs font-semibold text-white hover:bg-green-600 disabled:opacity-50 disabled:cursor-not-allowed transition shadow-sm flex items-center justify-center gap-1.5"
-          >
-            <span className="text-sm font-bold">1)</span>
-            Complete
-          </button>
-          <button
-            type="button"
             onClick={() => handlePrimaryAction('dataset')}
-            className="flex-1 min-w-[140px] rounded-lg border border-slate-300 bg-white px-3 py-2 text-xs font-semibold text-slate-700 hover:border-blue-400 hover:bg-blue-50 transition"
+            className={`flex items-center gap-2 rounded-lg border px-3 py-2 text-sm font-semibold transition text-left ${
+              activeComposer === 'dataset'
+                ? 'border-blue-500 bg-blue-500/20 text-white'
+                : 'border-white/20 bg-white/5 text-white/90 hover:border-blue-400 hover:bg-white/10'
+            }`}
           >
-            Open dataset composer
+            <span className="text-lg">📊</span>
+            <div className="flex-1">
+              <div className="font-semibold text-xs">Add Table</div>
+            </div>
           </button>
           <button
-            type="button"
             onClick={() => handlePrimaryAction('kpi')}
-            className="flex-1 min-w-[140px] rounded-lg border border-slate-300 bg-white px-3 py-2 text-xs font-semibold text-slate-700 hover:border-blue-400 hover:bg-blue-50 transition"
+            className={`flex items-center gap-2 rounded-lg border px-3 py-2 text-sm font-semibold transition text-left ${
+              activeComposer === 'kpi'
+                ? 'border-blue-500 bg-blue-500/20 text-white'
+                : 'border-white/20 bg-white/5 text-white/90 hover:border-blue-400 hover:bg-white/10'
+            }`}
           >
-            Open KPI composer
+            <span className="text-lg">📈</span>
+            <div className="flex-1">
+              <div className="font-semibold text-xs">Add KPI</div>
+            </div>
           </button>
           <button
-            type="button"
             onClick={() => handlePrimaryAction('media')}
-            className="flex-1 min-w-[140px] rounded-lg border border-slate-300 bg-white px-3 py-2 text-xs font-semibold text-slate-700 hover:border-blue-400 hover:bg-blue-50 transition"
+            className={`flex items-center gap-2 rounded-lg border px-3 py-2 text-sm font-semibold transition text-left ${
+              activeComposer === 'media'
+                ? 'border-blue-500 bg-blue-500/20 text-white'
+                : 'border-white/20 bg-white/5 text-white/90 hover:border-blue-400 hover:bg-white/10'
+            }`}
           >
-            Open media composer
+            <span className="text-lg">📷</span>
+            <div className="flex-1">
+              <div className="font-semibold text-xs">Add Media</div>
+            </div>
           </button>
         </div>
       </div>
 
+      {/* Composer Form */}
       {activeComposer && (
-        <div className="rounded-3xl border border-slate-200 bg-white p-4 space-y-4">
-          <div className="flex items-center justify-between">
-            <p className="text-sm font-semibold text-slate-800">
-              {activeComposer === 'dataset' && 'New dataset'}
-              {activeComposer === 'kpi' && 'New KPI'}
-              {activeComposer === 'media' && 'New media'}
-            </p>
-            <button
-              type="button"
-              onClick={() => setActiveComposer(null)}
-              className="text-xs text-slate-400 hover:text-slate-600"
-            >
-              Close ✕
-            </button>
-          </div>
+        <div className="border-t border-white/10 pt-3">
+          <div className="bg-white/5 rounded-lg border border-white/10 p-3 space-y-3">
+            <div className="flex items-center justify-between">
+              <p className="text-sm font-semibold text-white">
+                {activeComposer === 'dataset' && '📊 New Table'}
+                {activeComposer === 'kpi' && '📈 New KPI'}
+                {activeComposer === 'media' && '📷 New Media'}
+              </p>
+              <button
+                type="button"
+                onClick={() => setActiveComposer(null)}
+                className="text-xs text-white/60 hover:text-white px-2 py-1"
+              >
+                ✕ Close
+              </button>
+            </div>
           {activeComposer === 'dataset' && (
             <form onSubmit={handleDatasetSubmit} className="space-y-3">
               <input
                 value={datasetName}
                 onChange={(event) => setDatasetName(event.target.value)}
                 placeholder="Dataset name"
-                className="w-full border border-slate-200 rounded-xl px-3 py-2 text-sm"
+                className="w-full border border-white/20 bg-white/5 text-white placeholder:text-white/50 rounded-xl px-3 py-2 text-sm focus:border-blue-400 focus:outline-none"
               />
               <textarea
                 value={datasetDescription}
                 onChange={(event) => setDatasetDescription(event.target.value)}
                 placeholder="Description"
                 rows={2}
-                className="w-full border border-slate-200 rounded-xl px-3 py-2 text-sm"
+                className="w-full border border-white/20 bg-white/5 text-white placeholder:text-white/50 rounded-xl px-3 py-2 text-sm focus:border-blue-400 focus:outline-none"
               />
               <input
                 value={datasetColumns}
                 onChange={(event) => setDatasetColumns(event.target.value)}
                 placeholder="Column name:type (optional unit)"
-                className="w-full border border-slate-200 rounded-xl px-3 py-2 text-sm"
+                className="w-full border border-white/20 bg-white/5 text-white placeholder:text-white/50 rounded-xl px-3 py-2 text-sm focus:border-blue-400 focus:outline-none"
               />
               <input
                 value={datasetTags}
                 onChange={(event) => setDatasetTags(event.target.value)}
                 placeholder="Tags (comma separated)"
-                className="w-full border border-slate-200 rounded-xl px-3 py-2 text-sm"
+                className="w-full border border-white/20 bg-white/5 text-white placeholder:text-white/50 rounded-xl px-3 py-2 text-sm focus:border-blue-400 focus:outline-none"
               />
               <button
                 type="submit"
@@ -544,7 +528,7 @@ export default function DataPanel({
                 value={kpiName}
                 onChange={(event) => setKpiName(event.target.value)}
                 placeholder="KPI name"
-                className="w-full border border-slate-200 rounded-xl px-3 py-2 text-sm"
+                className="w-full border border-white/20 bg-white/5 text-white placeholder:text-white/50 rounded-xl px-3 py-2 text-sm focus:border-blue-400 focus:outline-none"
               />
               <div className="grid grid-cols-2 gap-3">
                 <input
@@ -552,13 +536,13 @@ export default function DataPanel({
                   onChange={(event) => setKpiValue(event.target.value)}
                   type="number"
                   placeholder="Value"
-                  className="border border-slate-200 rounded-xl px-3 py-2 text-sm"
+                  className="border border-white/20 bg-white/5 text-white placeholder:text-white/50 rounded-xl px-3 py-2 text-sm focus:border-blue-400 focus:outline-none"
                 />
                 <input
                   value={kpiUnit}
                   onChange={(event) => setKpiUnit(event.target.value)}
                   placeholder="Unit"
-                  className="border border-slate-200 rounded-xl px-3 py-2 text-sm"
+                  className="border border-white/20 bg-white/5 text-white placeholder:text-white/50 rounded-xl px-3 py-2 text-sm focus:border-blue-400 focus:outline-none"
                 />
               </div>
               <div className="grid grid-cols-2 gap-3">
@@ -567,13 +551,13 @@ export default function DataPanel({
                   onChange={(event) => setKpiTarget(event.target.value)}
                   type="number"
                   placeholder="Target"
-                  className="border border-slate-200 rounded-xl px-3 py-2 text-sm"
+                  className="border border-white/20 bg-white/5 text-white placeholder:text-white/50 rounded-xl px-3 py-2 text-sm focus:border-blue-400 focus:outline-none"
                 />
                 <textarea
                   value={kpiDescription}
                   onChange={(event) => setKpiDescription(event.target.value)}
                   placeholder="Description / assumptions"
-                  className="border border-slate-200 rounded-xl px-3 py-2 text-sm"
+                  className="border border-white/20 bg-white/5 text-white placeholder:text-white/50 rounded-xl px-3 py-2 text-sm focus:border-blue-400 focus:outline-none"
                 />
               </div>
               <button
@@ -591,12 +575,12 @@ export default function DataPanel({
                 value={mediaTitle}
                 onChange={(event) => setMediaTitle(event.target.value)}
                 placeholder="Title"
-                className="w-full border border-slate-200 rounded-xl px-3 py-2 text-sm"
+                className="w-full border border-white/20 bg-white/5 text-white placeholder:text-white/50 rounded-xl px-3 py-2 text-sm focus:border-blue-400 focus:outline-none"
               />
               <select
                 value={mediaType}
                 onChange={(event) => setMediaType(event.target.value as MediaAsset['type'])}
-                className="w-full border border-slate-200 rounded-xl px-3 py-2 text-sm"
+                className="w-full border border-white/20 bg-white/5 text-white placeholder:text-white/50 rounded-xl px-3 py-2 text-sm focus:border-blue-400 focus:outline-none"
               >
                 <option value="image">Image</option>
                 <option value="table">Table</option>
@@ -607,32 +591,32 @@ export default function DataPanel({
                 value={mediaUri}
                 onChange={(event) => setMediaUri(event.target.value)}
                 placeholder="Link or upload placeholder"
-                className="w-full border border-slate-200 rounded-xl px-3 py-2 text-sm"
+                className="w-full border border-white/20 bg-white/5 text-white placeholder:text-white/50 rounded-xl px-3 py-2 text-sm focus:border-blue-400 focus:outline-none"
               />
               <textarea
                 value={mediaCaption}
                 onChange={(event) => setMediaCaption(event.target.value)}
                 placeholder="Caption / description"
-                className="w-full border border-slate-200 rounded-xl px-3 py-2 text-sm"
+                className="w-full border border-white/20 bg-white/5 text-white placeholder:text-white/50 rounded-xl px-3 py-2 text-sm focus:border-blue-400 focus:outline-none"
               />
               <input
                 value={mediaAltText}
                 onChange={(event) => setMediaAltText(event.target.value)}
                 placeholder="Alt text"
-                className="w-full border border-slate-200 rounded-xl px-3 py-2 text-sm"
+                className="w-full border border-white/20 bg-white/5 text-white placeholder:text-white/50 rounded-xl px-3 py-2 text-sm focus:border-blue-400 focus:outline-none"
               />
               <div className="grid grid-cols-2 gap-3">
                 <input
                   value={mediaFigure}
                   onChange={(event) => setMediaFigure(event.target.value)}
                   placeholder="Figure #"
-                  className="border border-slate-200 rounded-xl px-3 py-2 text-sm"
+                  className="border border-white/20 bg-white/5 text-white placeholder:text-white/50 rounded-xl px-3 py-2 text-sm focus:border-blue-400 focus:outline-none"
                 />
                 <input
                   value={mediaTags}
                   onChange={(event) => setMediaTags(event.target.value)}
                   placeholder="Tags"
-                  className="border border-slate-200 rounded-xl px-3 py-2 text-sm"
+                  className="border border-white/20 bg-white/5 text-white placeholder:text-white/50 rounded-xl px-3 py-2 text-sm focus:border-blue-400 focus:outline-none"
                 />
               </div>
               <button
@@ -643,57 +627,82 @@ export default function DataPanel({
               </button>
             </form>
           )}
+          </div>
         </div>
       )}
 
-      <div className="rounded-xl border border-slate-200 bg-white p-4 space-y-3">
-        <div className="flex flex-wrap items-center gap-2.5 justify-between">
-          <div className="flex items-center gap-2 flex-wrap">
-            {(['datasets', 'kpis', 'media'] as Tab[]).map((tab) => {
-              const isActive = activeTab === tab;
-              return (
-                <button
-                  key={tab}
-                  onClick={() => {
-                    setActiveTab(tab);
-                    setSearchQuery('');
-                  }}
-                  className={`px-3 py-1.5 text-xs font-semibold rounded-lg border transition ${
-                    isActive
-                      ? 'border-blue-500 bg-blue-50 text-blue-700 shadow-sm'
-                      : 'border-slate-200 text-slate-600 hover:border-blue-300 hover:bg-slate-50'
-                  }`}
-                >
-                  {tab === 'datasets' && `📊 Datasets (${datasetList.length})`}
-                  {tab === 'kpis' && `📈 KPIs (${kpiList.length})`}
-                  {tab === 'media' && `📷 Media (${mediaList.length})`}
-                </button>
-              );
-            })}
-          </div>
+      {/* Library Section */}
+      <div className="border-t border-white/10 pt-3">
+        <div className="flex items-center justify-between mb-2">
+          <p className="text-xs font-semibold text-white/90 uppercase tracking-wide">Your Library</p>
+          {totalItems > 0 && (
+            <span className="text-xs text-white/60">{totalItems} item{totalItems !== 1 ? 's' : ''}</span>
+          )}
+        </div>
+
+        {/* Tabs */}
+        <div className="flex gap-2 mb-2">
+          {(['datasets', 'kpis', 'media'] as Tab[]).map((tab) => {
+            const isActive = activeTab === tab;
+            const count = tab === 'datasets' ? datasetList.length : tab === 'kpis' ? kpiList.length : mediaList.length;
+            return (
+              <button
+                key={tab}
+                onClick={() => {
+                  setActiveTab(tab);
+                  setSearchQuery('');
+                }}
+                className={`flex-1 px-3 py-2 text-xs font-semibold rounded-lg border transition ${
+                  isActive
+                    ? 'border-blue-500 bg-blue-500/20 text-white'
+                    : 'border-white/20 text-white/70 hover:border-blue-400 hover:bg-white/10'
+                }`}
+              >
+                {tab === 'datasets' && `📊 Tables (${count})`}
+                {tab === 'kpis' && `📈 KPIs (${count})`}
+                {tab === 'media' && `📷 Media (${count})`}
+              </button>
+            );
+          })}
+        </div>
+
+        {/* Search */}
+        {totalItems > 0 && (
           <input
             type="text"
             value={searchQuery}
             onChange={(event) => setSearchQuery(event.target.value)}
             placeholder={`Search ${activeTab}...`}
-            className="flex-1 min-w-[140px] rounded-lg border border-slate-200 px-3 py-1.5 text-xs text-slate-600 focus:border-blue-400 focus:outline-none focus:ring-2 focus:ring-blue-200 bg-white"
+            className="w-full rounded-lg border border-white/20 bg-white/5 text-white placeholder:text-white/50 px-3 py-2 text-xs focus:border-blue-400 focus:outline-none focus:ring-2 focus:ring-blue-500/50 mb-3"
           />
-        </div>
+        )}
 
-        <div className="space-y-3">
-          {activeTab === 'datasets' && filteredDatasets.length === 0 && (
-            <p className="text-xs text-slate-500">
-              {searchQuery ? `No datasets match "${searchQuery}"` : 'No datasets yet.'}
+        {/* Empty State */}
+        {totalItems === 0 && !activeComposer && (
+          <div className="text-center py-6 bg-white/5 rounded-lg border border-white/10">
+            <div className="text-2xl mb-2">📊</div>
+            <p className="text-xs font-medium text-white/90 mb-1">No data yet</p>
+            <p className="text-xs text-white/60">
+              Click "Add Table", "Add KPI", or "Add Media" above to get started.
+            </p>
+          </div>
+        )}
+
+        {/* Items List */}
+        <div className="space-y-2">
+          {activeTab === 'datasets' && filteredDatasets.length === 0 && totalItems > 0 && (
+            <p className="text-xs text-white/60 text-center py-4">
+              {searchQuery ? `No tables match "${searchQuery}"` : 'No tables in this section.'}
             </p>
           )}
-          {activeTab === 'kpis' && filteredKpis.length === 0 && (
-            <p className="text-xs text-slate-500">
-              {searchQuery ? `No KPIs match "${searchQuery}"` : 'No KPIs yet.'}
+          {activeTab === 'kpis' && filteredKpis.length === 0 && totalItems > 0 && (
+            <p className="text-xs text-white/60 text-center py-4">
+              {searchQuery ? `No KPIs match "${searchQuery}"` : 'No KPIs in this section.'}
             </p>
           )}
-          {activeTab === 'media' && filteredMedia.length === 0 && (
-            <p className="text-xs text-slate-500">
-              {searchQuery ? `No media items match "${searchQuery}"` : 'No media yet.'}
+          {activeTab === 'media' && filteredMedia.length === 0 && totalItems > 0 && (
+            <p className="text-xs text-white/60 text-center py-4">
+              {searchQuery ? `No media items match "${searchQuery}"` : 'No media in this section.'}
             </p>
           )}
 
@@ -705,42 +714,42 @@ export default function DataPanel({
                 <div
                   key={dataset.id}
                   id={`datasets-${dataset.id}`}
-                  className="border border-slate-100 rounded-2xl bg-white shadow-sm"
+                  className="border border-white/10 rounded-2xl bg-white/5 shadow-sm"
                 >
                   <button
                     type="button"
-                    className="w-full flex items-center justify-between p-3 text-left hover:bg-slate-50 rounded-2xl"
+                    className="w-full flex items-center justify-between p-3 text-left hover:bg-white/10 rounded-2xl"
                     onClick={() => handleCardToggle(dataset.id)}
                   >
                     <div className="flex items-center gap-3">
                       <span className="text-xl">{TYPE_ICONS.datasets}</span>
                       <div>
-                        <p className="text-sm font-semibold text-slate-900">{dataset.name}</p>
-                        <p className="text-[11px] text-slate-500">
+                        <p className="text-sm font-semibold text-white">{dataset.name}</p>
+                        <p className="text-[11px] text-white/60">
                           {dataset.columns.length} columns
                           {dataset.lastUpdated && ` • ${new Date(dataset.lastUpdated).toLocaleDateString()}`}
                         </p>
                       </div>
                     </div>
-                    <span className="text-xs text-slate-400">{isExpanded ? '▲' : '▼'}</span>
+                    <span className="text-xs text-white/50">{isExpanded ? '▲' : '▼'}</span>
                   </button>
                   {isExpanded && (
-                    <div className="border-t border-slate-100 p-4 space-y-3">
+                    <div className="border-t border-white/10 p-4 space-y-3">
                       <div className="flex flex-wrap items-center gap-2">
                         {questionBadge && (
-                          <span className="text-[10px] font-semibold text-blue-700 bg-blue-50 px-2 py-0.5 rounded-full">
+                          <span className="text-[10px] font-semibold text-blue-300 bg-blue-500/20 px-2 py-0.5 rounded-full">
                             Attached to {questionBadge}
                           </span>
                         )}
-                        <span className="text-[10px] text-slate-400">Section scope</span>
+                        <span className="text-[10px] text-white/50">Section scope</span>
                       </div>
                       {dataset.description && (
-                        <p className="text-xs text-slate-600">{dataset.description}</p>
+                        <p className="text-xs text-white/80">{dataset.description}</p>
                       )}
                       {dataset.columns.length > 0 && (
                         <div>
-                          <p className="text-[11px] text-slate-400 mb-1">Columns</p>
-                          <div className="text-xs text-slate-600 space-y-1">
+                          <p className="text-[11px] text-white/50 mb-1">Columns</p>
+                          <div className="text-xs text-white/80 space-y-1">
                             {dataset.columns.map((col, idx) => (
                               <div key={idx}>
                                 • {col.name} ({col.type}
@@ -755,7 +764,7 @@ export default function DataPanel({
                           {dataset.tags.map((tag, idx) => (
                             <span
                               key={idx}
-                              className="text-[10px] px-2 py-0.5 rounded-full bg-slate-100 text-slate-600"
+                              className="text-[10px] px-2 py-0.5 rounded-full bg-white/10 text-white/80"
                             >
                               {tag}
                             </span>
@@ -767,22 +776,22 @@ export default function DataPanel({
                         const suggestions = suggestKPIsFromDataset(dataset, datasetList);
                         if (suggestions.length === 0) return null;
                         return (
-                          <div className="border-t border-slate-100 pt-3 space-y-2">
+                          <div className="border-t border-white/10 pt-3 space-y-2">
                             <div className="flex items-center justify-between">
-                              <p className="text-[11px] font-semibold text-slate-700">Suggested KPIs</p>
-                              <span className="text-[10px] text-slate-400">Auto-detected</span>
+                              <p className="text-[11px] font-semibold text-white/90">Suggested KPIs</p>
+                              <span className="text-[10px] text-white/50">Auto-detected</span>
                             </div>
                             <div className="space-y-1.5">
                               {suggestions.slice(0, 3).map((suggestion, idx) => (
                                 <div
                                   key={idx}
-                                  className="flex items-start justify-between gap-2 p-2 bg-blue-50 rounded-lg border border-blue-100"
+                                  className="flex items-start justify-between gap-2 p-2 bg-blue-500/20 rounded-lg border border-blue-400/30"
                                 >
                                   <div className="flex-1 min-w-0">
-                                    <p className="text-xs font-semibold text-blue-900">{suggestion.name}</p>
-                                    <p className="text-[10px] text-blue-700 mt-0.5">{suggestion.description}</p>
+                                    <p className="text-xs font-semibold text-white">{suggestion.name}</p>
+                                    <p className="text-[10px] text-white/80 mt-0.5">{suggestion.description}</p>
                                     {suggestion.suggestedValue !== undefined && (
-                                      <p className="text-[10px] text-blue-600 mt-1">
+                                      <p className="text-[10px] text-blue-300 mt-1">
                                         {suggestion.suggestedValue.toLocaleString()} {suggestion.unit || ''}
                                       </p>
                                     )}
@@ -800,7 +809,7 @@ export default function DataPanel({
                                 </div>
                               ))}
                               {suggestions.length > 3 && (
-                                <p className="text-[10px] text-slate-500 text-center">
+                                <p className="text-[10px] text-white/60 text-center">
                                   +{suggestions.length - 3} more suggestions available
                                 </p>
                               )}
@@ -828,40 +837,40 @@ export default function DataPanel({
                 <div
                   key={kpi.id}
                   id={`kpis-${kpi.id}`}
-                  className="border border-slate-100 rounded-2xl bg-white shadow-sm"
+                  className="border border-white/10 rounded-2xl bg-white/5 shadow-sm"
                 >
                   <button
                     type="button"
-                    className="w-full flex items-center justify-between p-3 text-left hover:bg-slate-50 rounded-2xl"
+                    className="w-full flex items-center justify-between p-3 text-left hover:bg-white/10 rounded-2xl"
                     onClick={() => handleCardToggle(kpi.id)}
                   >
                     <div className="flex items-center gap-3">
                       <span className="text-xl">{TYPE_ICONS.kpis}</span>
                       <div>
-                        <p className="text-sm font-semibold text-slate-900">{kpi.name}</p>
-                        <p className="text-[11px] text-slate-500">
+                        <p className="text-sm font-semibold text-white">{kpi.name}</p>
+                        <p className="text-[11px] text-white/60">
                           {kpi.value} {kpi.unit || ''}
                         </p>
                       </div>
                     </div>
-                    <span className="text-xs text-slate-400">{isExpanded ? '▲' : '▼'}</span>
+                    <span className="text-xs text-white/50">{isExpanded ? '▲' : '▼'}</span>
                   </button>
                   {isExpanded && (
-                    <div className="border-t border-slate-100 p-4 space-y-3">
+                    <div className="border-t border-white/10 p-4 space-y-3">
                       <div className="flex flex-wrap items-center gap-2">
                         {questionBadge && (
-                          <span className="text-[10px] font-semibold text-blue-700 bg-blue-50 px-2 py-0.5 rounded-full">
+                          <span className="text-[10px] font-semibold text-blue-300 bg-blue-500/20 px-2 py-0.5 rounded-full">
                             Attached to {questionBadge}
                           </span>
                         )}
                         {kpi.target && (
-                          <span className="text-[10px] text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded-full">
+                          <span className="text-[10px] text-emerald-300 bg-emerald-500/20 px-2 py-0.5 rounded-full">
                             Target {kpi.target}
                           </span>
                         )}
                       </div>
                       {kpi.description && (
-                        <p className="text-xs text-slate-600">{kpi.description}</p>
+                        <p className="text-xs text-white/80">{kpi.description}</p>
                       )}
                       {renderPagination('kpis', kpi.id, index, filteredKpis.length)}
                       {renderActions('kpis', kpi.id, onAttachKpi ? () => onAttachKpi(kpi) : undefined)}
@@ -879,48 +888,48 @@ export default function DataPanel({
                 <div
                   key={asset.id}
                   id={`media-${asset.id}`}
-                  className="border border-slate-100 rounded-2xl bg-white shadow-sm"
+                  className="border border-white/10 rounded-2xl bg-white/5 shadow-sm"
                 >
                   <button
                     type="button"
-                    className="w-full flex items-center justify-between p-3 text-left hover:bg-slate-50 rounded-2xl"
+                    className="w-full flex items-center justify-between p-3 text-left hover:bg-white/10 rounded-2xl"
                     onClick={() => handleCardToggle(asset.id)}
                   >
                     <div className="flex items-center gap-3">
                       <span className="text-xl">{TYPE_ICONS[asset.type] || TYPE_ICONS.media}</span>
                       <div>
-                        <p className="text-sm font-semibold text-slate-900">{asset.title}</p>
-                        <p className="text-[11px] text-slate-500 uppercase">{asset.type}</p>
+                        <p className="text-sm font-semibold text-white">{asset.title}</p>
+                        <p className="text-[11px] text-white/60 uppercase">{asset.type}</p>
                       </div>
                     </div>
-                    <span className="text-xs text-slate-400">{isExpanded ? '▲' : '▼'}</span>
+                    <span className="text-xs text-white/50">{isExpanded ? '▲' : '▼'}</span>
                   </button>
                   {isExpanded && (
-                    <div className="border-t border-slate-100 p-4 space-y-3">
+                    <div className="border-t border-white/10 p-4 space-y-3">
                       <div className="flex flex-wrap items-center gap-2">
                         {questionBadge && (
-                          <span className="text-[10px] font-semibold text-blue-700 bg-blue-50 px-2 py-0.5 rounded-full">
+                          <span className="text-[10px] font-semibold text-blue-300 bg-blue-500/20 px-2 py-0.5 rounded-full">
                             Attached to {questionBadge}
                           </span>
                         )}
                         {asset.figureNumber && (
-                          <span className="text-[10px] text-slate-600 bg-slate-100 px-2 py-0.5 rounded-full">
+                          <span className="text-[10px] text-white/80 bg-white/10 px-2 py-0.5 rounded-full">
                             Fig. {asset.figureNumber}
                           </span>
                         )}
                       </div>
                       {asset.caption && (
-                        <p className="text-xs text-slate-600">{asset.caption}</p>
+                        <p className="text-xs text-white/80">{asset.caption}</p>
                       )}
                       {asset.uri && (
-                        <p className="text-[11px] text-blue-600 break-all">{asset.uri}</p>
+                        <p className="text-[11px] text-blue-400 break-all">{asset.uri}</p>
                       )}
                       {asset.tags && asset.tags.length > 0 && (
                         <div className="flex flex-wrap gap-1">
                           {asset.tags.map((tag, idx) => (
                             <span
                               key={idx}
-                              className="text-[10px] px-2 py-0.5 rounded-full bg-slate-100 text-slate-600"
+                              className="text-[10px] px-2 py-0.5 rounded-full bg-white/10 text-white/80"
                             >
                               {tag}
                             </span>
@@ -969,7 +978,7 @@ export default function DataPanel({
           onClick={() => setEditingItem(null)}
         >
           <div
-            className="bg-white rounded-lg max-w-3xl w-full max-h-[90vh] overflow-y-auto"
+            className="bg-slate-900 rounded-lg max-w-3xl w-full max-h-[90vh] overflow-y-auto border border-white/10"
             onClick={(e) => e.stopPropagation()}
           >
             <div className="p-4 border-b border-slate-200 flex items-center justify-between">
