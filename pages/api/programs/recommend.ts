@@ -1029,53 +1029,9 @@ function mapDeterministicProgramToGenerated(program: EnhancedProgramResult): Gen
   };
 }
 
-function buildFallbackPrograms(answers: UserAnswers, maxPrograms: number): GeneratedProgram[] {
-  const programs: GeneratedProgram[] = [];
-  const coFinancing = (answers.co_financing || '').toString().toLowerCase();
-  const allowMix = coFinancing !== 'co_no';
-  const fundingPreference = inferFundingPreference(answers);
-  
-  // Determine funding types to include in fallback
-  const availableTypes = fundingPreference.values;
-  
-  for (let i = 0; i < Math.max(1, maxPrograms); i++) {
-    // Distribute funding types across fallback programs
-    let fundingType: string;
-    if (allowMix && availableTypes.length > 1) {
-      // Cycle through available types for diversity
-      const typeIndex = i % availableTypes.length;
-      fundingType = availableTypes[typeIndex];
-    } else {
-      // Only grants if co_financing is 'co_no'
-      fundingType = 'grant';
-    }
-    
-    // Adjust amount ranges based on funding type
-    let amountMin = typeof answers.funding_amount === 'number' ? Math.max(1000, answers.funding_amount * 0.5) : 5000;
-    let amountMax = typeof answers.funding_amount === 'number' ? answers.funding_amount * 2 : 20000;
-    
-    if (fundingType === 'loan' || fundingType === 'equity') {
-      // Loans and equity typically have higher amounts
-      amountMin = typeof answers.funding_amount === 'number' ? Math.max(10000, answers.funding_amount * 0.8) : 10000;
-      amountMax = typeof answers.funding_amount === 'number' ? answers.funding_amount * 3 : 50000;
-    }
-    
-    programs.push({
-      id: `fallback_${i + 1}`,
-      name: `General ${fundingType === 'grant' ? 'Grant' : fundingType === 'loan' ? 'Loan' : fundingType === 'equity' ? 'Equity' : 'Funding'} Option ${i + 1}`,
-      url: null,
-      funding_types: [fundingType],
-      metadata: {
-        funding_amount_min: amountMin,
-        funding_amount_max: amountMax,
-        currency: 'EUR',
-        description: `Suggested ${fundingType} program based on your profile. Please verify details manually. This is a fallback option - the system could not generate specific program recommendations.`,
-        location: answers.location || 'Austria',
-        region: answers.location || 'Austria',
-      },
-      source: 'fallback',
-    });
-  }
-  return programs;
+function buildFallbackPrograms(_answers: UserAnswers, _maxPrograms: number): GeneratedProgram[] {
+  // Return empty array - no generic fallback programs
+  // This ensures users get a proper "no results" message instead of unhelpful generic suggestions
+  return [];
 }
 

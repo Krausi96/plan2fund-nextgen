@@ -51,6 +51,7 @@ import { Button } from '@/shared/components/ui/button';
 import { Badge } from '@/shared/components/ui/badge';
 import { Card } from '@/shared/components/ui/card';
 import { Progress } from '@/shared/components/ui/progress';
+import { useI18n } from '@/shared/contexts/I18nContext';
 
 type ProgressSummary = { id: string; title: string; progress: number };
 
@@ -150,23 +151,36 @@ const defaultAncillary = (): AncillaryContent => ({
 
 const ANCILLARY_SECTION_ID = '__ancillary__';
 
-const PRODUCT_TYPE_OPTIONS: Array<{ value: ProductType; label: string; description: string }> = [
+const PRODUCT_TYPE_CONFIG = [
   {
-    value: 'submission',
-    label: 'Full submission',
-    description: 'Grant-ready application with every section completed.'
+    value: 'submission' as ProductType,
+    labelKey: 'editor.selector.businessPlan',
+    descriptionKey: 'editor.selector.businessPlanDesc'
   },
   {
-    value: 'review',
-    label: 'Plan review',
-    description: 'Upload an existing draft and collect AI/editor feedback.'
+    value: 'review' as ProductType,
+    labelKey: 'editor.selector.reviewPlan',
+    descriptionKey: 'editor.selector.reviewPlanDesc'
   },
   {
-    value: 'strategy',
-    label: 'Commercial strategy',
-    description: 'Market, go-to-market, and traction narratives.'
+    value: 'strategy' as ProductType,
+    labelKey: 'editor.selector.strategyPlan',
+    descriptionKey: 'editor.selector.strategyPlanDesc'
   }
-];
+] as const;
+
+type ConnectCopy = {
+  badge: string;
+  heading: string;
+  description: string;
+  openFinder: string;
+  pasteLink: string;
+  inputLabel: string;
+  placeholder: string;
+  example: string;
+  submit: string;
+  error: string;
+};
 
 
 const SECTION_TONE_HINTS: Record<string, string> = {
@@ -1338,6 +1352,36 @@ interface EditorProps {
 
 export default function Editor({ product = 'submission' }: EditorProps) {
   const router = useRouter();
+  const { t } = useI18n();
+  const connectCopy = useMemo<ConnectCopy>(
+    () => ({
+      badge: (t('editor.connect.badge' as any) as string) || 'Program options',
+      heading: (t('editor.connect.heading' as any) as string) || 'Pick a program or paste a link',
+      description:
+        (t('editor.connect.description' as any) as string) ||
+        'ProgramFinder can suggest matches from your answers. Already have an official funding URL (AWS, FFG, EU call)? Paste it and we’ll pull the requirements automatically.',
+      openFinder: (t('editor.connect.openFinder' as any) as string) || 'Open ProgramFinder',
+      pasteLink: (t('editor.connect.pasteLink' as any) as string) || 'Paste program link',
+      inputLabel: (t('editor.connect.inputLabel' as any) as string) || 'Official program URL',
+      placeholder: (t('editor.connect.placeholder' as any) as string) || 'e.g. https://www.aws.at/funding/...',
+      example:
+        (t('editor.connect.example' as any) as string) ||
+        'Example: https://www.aws.at/funding/aws-preseed/page_123 or https://www.ffg.at/calls/page_456',
+      submit: (t('editor.connect.submit' as any) as string) || 'Load program',
+      error: (t('editor.connect.error' as any) as string) || 'Please enter a valid program URL.'
+    }),
+    [t]
+  );
+
+  const productOptions = useMemo(
+    () =>
+      PRODUCT_TYPE_CONFIG.map((option) => ({
+        value: option.value,
+        label: (t(option.labelKey as any) as string) || option.value,
+        description: (t(option.descriptionKey as any) as string) || ''
+      })),
+    [t]
+  );
   const {
     plan,
     isLoading,
@@ -1545,6 +1589,8 @@ export default function Editor({ product = 'submission' }: EditorProps) {
             programError={programError}
             onUpdateTitlePage={updateTitlePage}
             onOpenFrontMatter={() => setActiveSection(ANCILLARY_SECTION_ID)}
+            productOptions={productOptions}
+            connectCopy={connectCopy}
           />
         </div>
       </header>
@@ -1634,7 +1680,9 @@ function PlanConfigurator({
   programLoading,
   programError,
   onUpdateTitlePage,
-  onOpenFrontMatter
+  onOpenFrontMatter,
+  productOptions,
+  connectCopy
 }: {
   plan: BusinessPlan;
   programSummary: ProgramSummary | null;
@@ -1645,10 +1693,15 @@ function PlanConfigurator({
   programError: string | null;
   onUpdateTitlePage: (titlePage: TitlePage) => void;
   onOpenFrontMatter: () => void;
+  productOptions: Array<{ value: ProductType; label: string; description: string }>;
+  connectCopy: ConnectCopy;
 }) {
   const [titleDraft, setTitleDraft] = useState(plan.titlePage.planTitle);
   const [companyDraft, setCompanyDraft] = useState(plan.titlePage.companyName);
   const [valuePropDraft, setValuePropDraft] = useState(plan.titlePage.valueProp ?? '');
+  const [manualValue, setManualValue] = useState('');
+  const [manualError, setManualError] = useState<string | null>(null);
+  const [showManualInput, setShowManualInput] = useState(false);
 
   useEffect(() => {
     setTitleDraft(plan.titlePage.planTitle);
@@ -1669,12 +1722,25 @@ function PlanConfigurator({
     'No program connected yet';
 
   const headerCardClasses =
-    'relative h-full space-y-3 rounded-2xl border border-primary-100 bg-gradient-to-br from-[#0f1e3a]/5 via-white to-white px-4 py-4 shadow-sm';
+    'relative h-full space-y-3 rounded-2xl border border-neutral-200 bg-gradient-to-br from-[#0f1e3a0d] via-white to-white px-4 py-3 shadow-sm';
+
+  const selectedProductMeta =
+    productOptions.find((option) => option.value === plan.productType) ?? productOptions[0];
+
+  const handleManualConnect = () => {
+    setManualError(null);
+    const normalized = normalizeProgramInput(manualValue);
+    if (!normalized) {
+      setManualError(connectCopy.error);
+      return;
+    }
+    onConnectProgram(normalized);
+  };
 
   return (
     <div className="grid grid-cols-1 gap-3 md:grid-cols-3">
       {/* Plan Title */}
-      <Card className={`${headerCardClasses} space-y-4`}>
+      <Card className={`${headerCardClasses} space-y-3`}>
         <div className="flex items-start justify-between gap-2">
           <div>
             <p className="text-[11px] font-semibold uppercase tracking-[0.2em] text-neutral-500">
@@ -1697,10 +1763,10 @@ function PlanConfigurator({
               setTitleDraft(plan.titlePage.planTitle);
             }
           }}
-          className="w-full rounded-lg border border-neutral-200 bg-white px-3 py-2 text-lg font-semibold text-neutral-900 focus:border-primary-300 focus:outline-none focus:ring-2 focus:ring-primary/20"
+          className="w-full rounded-lg border border-neutral-200 bg-white px-3 py-2 text-base font-semibold text-neutral-900 focus:border-primary-300 focus:outline-none focus:ring-2 focus:ring-primary/20"
           placeholder="Plan name"
         />
-        <div className="grid grid-cols-1 gap-3">
+        <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">
           <input
             value={companyDraft}
             onChange={(event) => setCompanyDraft(event.target.value)}
@@ -1715,7 +1781,7 @@ function PlanConfigurator({
             className="w-full rounded-lg border border-neutral-200 bg-white px-3 py-2 text-sm font-medium text-neutral-800 focus:border-primary-300 focus:outline-none focus:ring-2 focus:ring-primary/20"
             placeholder="Company name"
           />
-          <textarea
+          <input
             value={valuePropDraft}
             onChange={(event) => setValuePropDraft(event.target.value)}
             onBlur={() => {
@@ -1728,7 +1794,6 @@ function PlanConfigurator({
             }}
             className="w-full rounded-lg border border-neutral-200 bg-white px-3 py-2 text-sm text-neutral-700 focus:border-primary-300 focus:outline-none focus:ring-2 focus:ring-primary/20"
             placeholder="Short value proposition"
-            rows={2}
           />
         </div>
         <p className="text-xs text-neutral-500">{planSubtitle}</p>
@@ -1746,7 +1811,7 @@ function PlanConfigurator({
               onChange={(event) => onChangeProduct(event.target.value as ProductType)}
               className="w-full appearance-none rounded-lg border border-neutral-200 bg-surface px-3 py-2 text-sm font-semibold text-neutral-900 focus:border-primary-400 focus:ring-2 focus:ring-primary/30"
             >
-              {PRODUCT_TYPE_OPTIONS.map((option) => (
+              {productOptions.map((option) => (
                 <option key={option.value} value={option.value}>
                   {option.label}
                 </option>
@@ -1758,152 +1823,81 @@ function PlanConfigurator({
           </div>
         </label>
         <p className="text-sm font-medium text-neutral-600 leading-snug">
-          {PRODUCT_TYPE_OPTIONS.find((option) => option.value === plan.productType)?.description}
+          {selectedProductMeta?.description}
         </p>
       </Card>
 
       {/* Program Connection */}
-      <Card className={`${headerCardClasses} space-y-4`}>
-        <div className="rounded-2xl border border-primary-100 bg-primary-50/60 px-3 py-2.5 flex items-center justify-between gap-3">
-          <div className="text-sm text-primary-900">
-            <p className="font-semibold">Need program ideas?</p>
-            <p className="text-xs text-primary-700">Browse curated funding options.</p>
-          </div>
-          <Button
-            variant="ghost"
-            size="sm"
-            className="text-primary-800 hover:text-primary-900"
-            onClick={onOpenProgramFinder}
-          >
-            Programm wählen
-          </Button>
+      <Card className={`${headerCardClasses} space-y-3`}>
+        <div>
+          <p className="text-[11px] font-semibold uppercase tracking-[0.2em] text-neutral-500">
+            {connectCopy.badge}
+          </p>
+          <h3 className="text-base font-semibold text-neutral-900">{connectCopy.heading}</h3>
+          <p className="text-xs text-neutral-600">{connectCopy.description}</p>
         </div>
-        <p className="text-[11px] font-semibold uppercase tracking-[0.2em] text-neutral-500">
-          Program Connection
-        </p>
-        <ProgramConnectionCard
-          programSummary={programSummary}
-          onConnectProgram={onConnectProgram}
-          onOpenProgramFinder={onOpenProgramFinder}
-          loading={programLoading}
-          error={programError}
-        />
-      </Card>
-    </div>
-  );
-}
-
-function ProgramConnectionCard({
-  programSummary,
-  onConnectProgram,
-  onOpenProgramFinder,
-  loading,
-  error
-}: {
-  programSummary: ProgramSummary | null;
-  onConnectProgram: (value: string | null) => void;
-  onOpenProgramFinder: () => void;
-  loading: boolean;
-  error: string | null;
-}) {
-  const [inputValue, setInputValue] = useState('');
-  const [isExpanded, setIsExpanded] = useState(false);
-  const popoverRef = useRef<HTMLDivElement | null>(null);
-
-  useEffect(() => {
-    if (!isExpanded) return;
-    const handleClickOutside = (event: MouseEvent) => {
-      if (popoverRef.current && !popoverRef.current.contains(event.target as Node)) {
-        setIsExpanded(false);
-      }
-    };
-    const handleKey = (event: KeyboardEvent) => {
-      if (event.key === 'Escape') {
-        setIsExpanded(false);
-      }
-    };
-    document.addEventListener('mousedown', handleClickOutside);
-    document.addEventListener('keydown', handleKey);
-    return () => {
-      document.removeEventListener('mousedown', handleClickOutside);
-      document.removeEventListener('keydown', handleKey);
-    };
-  }, [isExpanded]);
-  useEffect(() => {
-    if (programSummary) {
-      setInputValue('');
-      setIsExpanded(false);
-    }
-  }, [programSummary]);
-
-  if (programSummary) {
-    return (
-      <div className="rounded-xl border border-primary-200 bg-primary-50/60 px-3 py-2.5">
-        <div className="flex items-center gap-3">
-          <div className="min-w-0 flex-1">
-            <p className="text-sm font-semibold text-primary-900 truncate">{programSummary.name}</p>
-            {programSummary.amountRange && (
-              <p className="text-xs text-primary-700 mt-0.5">{programSummary.amountRange}</p>
+        {programSummary ? (
+          <div className="rounded-xl border border-primary-100 bg-primary-50/70 px-3 py-2 space-y-1">
+            <div className="flex items-center justify-between gap-2">
+              <div>
+                <p className="text-sm font-semibold text-primary-900 truncate">{programSummary.name}</p>
+                {programSummary.amountRange && (
+                  <p className="text-xs text-primary-700">{programSummary.amountRange}</p>
+                )}
+              </div>
+              <Button
+                variant="ghost"
+                size="sm"
+                className="text-primary-800 hover:text-primary-900"
+                onClick={() => onConnectProgram(null)}
+              >
+                Disconnect
+              </Button>
+            </div>
+          </div>
+        ) : (
+          <>
+            <div className="flex flex-wrap gap-2">
+              <Button onClick={onOpenProgramFinder}>{connectCopy.openFinder}</Button>
+              <Button variant="outline" onClick={() => setShowManualInput((prev) => !prev)}>
+                {connectCopy.pasteLink}
+              </Button>
+            </div>
+            {showManualInput && (
+              <div className="space-y-2">
+                <label className="text-xs font-semibold text-neutral-600">
+                  {connectCopy.inputLabel}
+                </label>
+                <div className="flex flex-col gap-2 sm:flex-row">
+                  <input
+                    value={manualValue}
+                    onChange={(event) => setManualValue(event.target.value)}
+                    placeholder={connectCopy.placeholder}
+                    className="flex-1 rounded-lg border border-neutral-300 px-3 py-2 text-sm focus:border-primary-400 focus:outline-none focus:ring-2 focus:ring-primary/30"
+                  />
+                  <Button
+                    type="button"
+                    className="sm:w-auto"
+                    onClick={handleManualConnect}
+                    disabled={programLoading}
+                  >
+                    {programLoading ? '...' : connectCopy.submit}
+                  </Button>
+                </div>
+                <p className="text-xs text-neutral-500">{connectCopy.example}</p>
+                {(manualError || programError) && (
+                  <p className="text-xs text-red-600">{manualError || programError}</p>
+                )}
+              </div>
             )}
-          </div>
-          <Button
-            variant="ghost"
-            size="sm"
-            className="text-primary-700 hover:text-primary-900"
-            onClick={() => onConnectProgram(null)}
-          >
-            Disconnect
-          </Button>
-        </div>
-      </div>
-    );
-  }
-
-  return (
-    <div className="space-y-3" ref={popoverRef}>
-      <Button
-        variant="secondary"
-        size="sm"
-        className="w-full justify-between"
-        onClick={() => setIsExpanded((prev) => !prev)}
-        aria-expanded={isExpanded}
-        aria-controls="program-connector"
-      >
-        {isExpanded ? 'Hide program connector' : 'Connect program'}
-        <span aria-hidden="true">{isExpanded ? '−' : '+'}</span>
-      </Button>
-      {isExpanded && (
-        <div
-          id="program-connector"
-          className="rounded-xl border border-neutral-200 bg-surfaceAlt p-4 space-y-3"
-          role="dialog"
-          aria-label="Connect funding program"
-        >
-          <div className="space-y-1">
-            <p className="text-sm font-semibold text-neutral-800">Program ID</p>
-            <input
-              value={inputValue}
-              onChange={(event) => setInputValue(event.target.value)}
-              placeholder="page_123 or URL"
-              className="w-full rounded-lg border border-neutral-200 bg-white px-3 py-2 text-sm text-neutral-900 focus:border-primary-400 focus:ring-2 focus:ring-primary/30"
-            />
-          </div>
-          {error && <p className="text-xs text-error">{error}</p>}
-          <div className="flex flex-wrap gap-2">
-            <Button
-              type="button"
-              onClick={() => onConnectProgram(inputValue)}
-              disabled={loading || !inputValue.trim()}
-              className="flex-1"
-            >
-              {loading ? 'Connecting…' : 'Connect'}
-            </Button>
-            <Button type="button" variant="outline" size="sm" onClick={onOpenProgramFinder}>
-              Open finder
-            </Button>
-          </div>
-        </div>
-      )}
+          </>
+        )}
+        {!programSummary && !showManualInput && (
+          <p className="text-xs text-neutral-500">
+            You can connect a program later – link stays editable.
+          </p>
+        )}
+      </Card>
     </div>
   );
 }
