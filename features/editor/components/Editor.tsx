@@ -120,6 +120,7 @@ interface EditorStoreState {
   ) => Promise<void>;
   toggleQuestionUnknown: (questionId: string, note?: string) => void;
   markQuestionComplete: (questionId: string) => void;
+  markQuestionDraft: (questionId: string) => void;
 }
 
 const defaultTitlePage = (): TitlePage => ({
@@ -153,17 +154,20 @@ const PRODUCT_TYPE_CONFIG = [
   {
     value: 'strategy' as ProductType,
     labelKey: 'planTypes.strategy.title',
-    descriptionKey: 'planTypes.strategy.subtitle'
+    descriptionKey: 'planTypes.strategy.subtitle',
+    icon: '💡'
   },
   {
     value: 'review' as ProductType,
     labelKey: 'planTypes.review.title',
-    descriptionKey: 'planTypes.review.subtitle'
+    descriptionKey: 'planTypes.review.subtitle',
+    icon: '✏️'
   },
   {
     value: 'submission' as ProductType,
     labelKey: 'planTypes.custom.title',
-    descriptionKey: 'planTypes.custom.subtitle'
+    descriptionKey: 'planTypes.custom.subtitle',
+    icon: '📋'
   }
 ] as const;
 
@@ -232,6 +236,17 @@ const EllipsisHorizontalIcon = (props: IconProps) => (
     <circle cx="6" cy="12" r="1.5" />
     <circle cx="12" cy="12" r="1.5" />
     <circle cx="18" cy="12" r="1.5" />
+  </svg>
+);
+
+const PencilIcon = (props: IconProps) => (
+  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" {...props}>
+    <path
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      strokeWidth={1.5}
+      d="m16.862 4.487 1.687-1.688a1.875 1.875 0 1 1 2.652 2.652L10.582 16.07a4.5 4.5 0 0 1-1.897 1.13L6 18l.8-2.685a4.5 4.5 0 0 1 1.13-1.897l8.932-8.931Zm0 0L19.5 7.125M18 14v4.75A2.25 2.25 0 0 1 15.75 21H5.25A2.25 2.25 0 0 1 3 18.75V8.25A2.25 2.25 0 0 1 5.25 6H10"
+    />
   </svg>
 );
 
@@ -433,6 +448,35 @@ const useEditorStore = create<EditorStoreState>((set, get) => ({
             ? {
                 ...question,
                 status: 'complete' as QuestionStatus,
+                lastUpdatedAt: new Date().toISOString()
+              }
+            : question
+        );
+        return {
+          ...section,
+          questions: updatedQuestions,
+          progress: calculateSectionCompletion(updatedQuestions)
+        };
+      }),
+      metadata: {
+        ...plan.metadata,
+        lastSavedAt: new Date().toISOString()
+      }
+    };
+    persistPlan(updatedPlan);
+    set({ plan: updatedPlan });
+  },
+  markQuestionDraft: (questionId) => {
+    const { plan } = get();
+    if (!plan) return;
+    const updatedPlan: BusinessPlan = {
+      ...plan,
+      sections: plan.sections.map((section) => {
+        const updatedQuestions = section.questions.map((question) =>
+          question.id === questionId
+            ? {
+                ...question,
+                status: 'draft' as QuestionStatus,
                 lastUpdatedAt: new Date().toISOString()
               }
             : question
@@ -1463,7 +1507,8 @@ export default function Editor({ product = 'submission' }: EditorProps) {
       PRODUCT_TYPE_CONFIG.map((option) => ({
         value: option.value,
         label: (t(option.labelKey as any) as string) || option.value,
-        description: (t(option.descriptionKey as any) as string) || ''
+        description: (t(option.descriptionKey as any) as string) || '',
+        icon: option.icon
       })),
     [t]
   );
@@ -1478,6 +1523,7 @@ export default function Editor({ product = 'submission' }: EditorProps) {
     setActiveQuestion,
     updateAnswer,
     markQuestionComplete,
+    markQuestionDraft,
     rightPanelView,
     setRightPanelView,
     addDataset,
@@ -1726,6 +1772,7 @@ export default function Editor({ product = 'submission' }: EditorProps) {
               onAskAI={triggerAISuggestions}
               onToggleUnknown={toggleQuestionUnknown}
               onMarkComplete={markQuestionComplete}
+              onMarkDraft={markQuestionDraft}
             />
           )}
         </div>
@@ -1788,7 +1835,7 @@ function PlanConfigurator({
   programError: string | null;
   onUpdateTitlePage: (titlePage: TitlePage) => void;
   onOpenFrontMatter: () => void;
-  productOptions: Array<{ value: ProductType; label: string; description: string }>;
+  productOptions: Array<{ value: ProductType; label: string; description: string; icon: string }>;
   connectCopy: ConnectCopy;
 }) {
   const { t } = useI18n();
@@ -1837,7 +1884,8 @@ function PlanConfigurator({
               {t('editor.ui.edit' as any) as string || 'Edit'}
             </Button>
           </div>
-          <div className="flex-1 flex items-center">
+          <div className="flex-1 flex items-center relative">
+            <span className="absolute left-3 z-10 text-lg pointer-events-none">📄</span>
             <input
               value={titleDraft}
               onChange={(event) => setTitleDraft(event.target.value)}
@@ -1849,8 +1897,11 @@ function PlanConfigurator({
                   setTitleDraft(plan.titlePage.planTitle);
                 }
               }}
-              className="w-full rounded border border-slate-200 bg-white px-2.5 py-2 h-8 text-sm font-semibold text-slate-900 focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-400"
+              className="w-full rounded-lg border border-slate-300 bg-white pl-10 pr-2.5 py-2 h-8 text-sm font-bold text-slate-900 placeholder:text-slate-500 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-400/50 transition-all"
               placeholder={t('editor.ui.planNamePlaceholder' as any) as string || 'Plan name'}
+              style={{
+                fontWeight: '700'
+              }}
             />
           </div>
         </div>
@@ -1881,14 +1932,22 @@ function PlanConfigurator({
             </div>
           </div>
           <div className="relative flex-1 flex items-center">
+            <span className="absolute left-3 z-10 text-base pointer-events-none">
+              {productOptions.find(opt => opt.value === plan.productType)?.icon || '📋'}
+            </span>
             <select
               value={plan.productType ?? 'submission'}
               onChange={(event) => onChangeProduct(event.target.value as ProductType)}
-              className="w-full appearance-none rounded border border-slate-300 bg-white px-2.5 h-8 text-sm font-bold text-slate-900 focus:border-blue-500 focus:ring-1 focus:ring-blue-400"
-              style={{ paddingTop: 0, paddingBottom: 0, lineHeight: '2rem' }}
+              className="w-full appearance-none rounded-lg border border-slate-300 bg-white pl-10 pr-8 h-8 text-sm font-bold text-slate-900 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-400/50 transition-all"
+              style={{ 
+                paddingTop: 0, 
+                paddingBottom: 0, 
+                lineHeight: '2rem',
+                fontWeight: '700'
+              }}
             >
               {productOptions.map((option) => (
-                <option key={option.value} value={option.value}>
+                <option key={option.value} value={option.value} className="bg-white text-slate-900 font-bold">
                   {option.label}
                 </option>
               ))}
@@ -2189,7 +2248,8 @@ function SectionWorkspace({
   activeQuestionId,
   onAskAI,
   onToggleUnknown,
-  onMarkComplete
+  onMarkComplete,
+  onMarkDraft
 }: {
   section?: Section;
   onAnswerChange: (questionId: string, content: string) => void;
@@ -2198,6 +2258,7 @@ function SectionWorkspace({
   onAskAI: (questionId?: string) => void;
   onToggleUnknown: (questionId: string, note?: string) => void;
   onMarkComplete: (questionId: string) => void;
+  onMarkDraft: (questionId: string) => void;
 }) {
   const { t } = useI18n();
 
@@ -2247,6 +2308,7 @@ function SectionWorkspace({
           onAskAI={() => onAskAI(activeQuestion.id)}
           onToggleUnknown={(note) => onToggleUnknown(activeQuestion.id, note)}
           onMarkComplete={onMarkComplete}
+          onMarkDraft={onMarkDraft}
         />
       )}
     </main>
@@ -2264,7 +2326,8 @@ function QuestionCard({
   onChange,
   onAskAI: _onAskAI,
   onToggleUnknown,
-  onMarkComplete
+  onMarkComplete,
+  onMarkDraft
 }: {
   question: Question;
   section?: Section;
@@ -2277,6 +2340,7 @@ function QuestionCard({
   onAskAI: () => void;
   onToggleUnknown: (note?: string) => void;
   onMarkComplete: (questionId: string) => void;
+  onMarkDraft: (questionId: string) => void;
 }) {
   const { t } = useI18n();
   const { plan, setActiveSection } = useEditorStore();
@@ -2394,19 +2458,7 @@ function QuestionCard({
 
         {/* Action Buttons */}
         <div className="flex flex-wrap gap-1.5 relative z-10" onClick={(e) => e.stopPropagation()}>
-          {!isComplete && (
-            <Button
-              type="button"
-              onClick={() => onMarkComplete(question.id)}
-              className="min-w-[180px] justify-center text-sm bg-green-700 hover:bg-green-800 text-white font-semibold rounded-lg shadow-md hover:shadow-lg transition-colors"
-            >
-              {(() => {
-                const translated = t('editor.ui.complete' as any) as string;
-                return translated && translated !== 'editor.ui.complete' ? translated : 'Complete';
-              })()}
-            </Button>
-          )}
-          {isLastQuestion && (
+          {isLastQuestion ? (
             <Button
               type="button"
               onClick={() => {
@@ -2419,22 +2471,66 @@ function QuestionCard({
                   setActiveSection(nextSection.id);
                 }
               }}
-              className="min-w-[180px] justify-center text-sm bg-blue-600 hover:bg-blue-700 text-white border border-blue-600"
+              className="min-w-[180px] justify-center text-sm bg-green-700 hover:bg-green-800 text-white font-semibold rounded-lg shadow-md hover:shadow-lg transition-colors"
             >
               {isSectionComplete 
-                ? (t('editor.ui.nextSection' as any) as string || 'Next Section')
-                : (t('editor.ui.completeSection' as any) as string || 'Complete Section')
+                ? (() => {
+                    const translated = t('editor.ui.nextSection' as any) as string;
+                    return translated && translated !== 'editor.ui.nextSection' ? translated : 'Next Section';
+                  })()
+                : (() => {
+                    const translated = t('editor.ui.completeSection' as any) as string;
+                    return translated && translated !== 'editor.ui.completeSection' ? translated : 'Complete Section';
+                  })()
               }
             </Button>
+          ) : (
+            <>
+              {isComplete ? (
+                <Button
+                  type="button"
+                  onClick={() => onMarkDraft(question.id)}
+                  className="min-w-[180px] justify-center text-sm bg-blue-600 hover:bg-blue-700 text-white font-semibold rounded-lg shadow-md hover:shadow-lg transition-colors"
+                >
+                  {(() => {
+                    const translated = t('editor.ui.edit' as any) as string;
+                    return translated && translated !== 'editor.ui.edit' ? translated : 'Edit';
+                  })()}
+                </Button>
+              ) : (
+                <>
+                  <Button
+                    type="button"
+                    onClick={() => {
+                      onMarkComplete(question.id);
+                      // Auto-navigate to next question
+                      if (section) {
+                        const currentQuestionIndex = section.questions.findIndex(q => q.id === question.id);
+                        const nextQuestion = section.questions[currentQuestionIndex + 1];
+                        if (nextQuestion) {
+                          onSelectQuestion(nextQuestion.id);
+                        }
+                      }
+                    }}
+                    className="min-w-[180px] justify-center text-sm bg-green-700 hover:bg-green-800 text-white font-semibold rounded-lg shadow-md hover:shadow-lg transition-colors"
+                  >
+                    {(() => {
+                      const translated = t('editor.ui.complete' as any) as string;
+                      return translated && translated !== 'editor.ui.complete' ? translated : 'Complete';
+                    })()}
+                  </Button>
+                  <Button
+                    type="button"
+                    variant="outline"
+                    className={`min-w-[180px] justify-center text-sm text-white ${isDraft ? 'border-white/50 hover:bg-white/15' : 'border-white/40 hover:bg-white/10'}`}
+                    onClick={handleToggleUnknown}
+                  >
+                    {isUnknown ? (t('editor.ui.clearUnknownStatus' as any) as string || 'Clear unknown status') : (t('editor.ui.markAsUnknown' as any) as string || 'Mark as unknown')}
+                  </Button>
+                </>
+              )}
+            </>
           )}
-          <Button
-            type="button"
-            variant="outline"
-            className={`min-w-[180px] justify-center text-sm text-white ${isComplete ? 'border-white/60 hover:bg-white/20' : isDraft ? 'border-white/50 hover:bg-white/15' : 'border-white/40 hover:bg-white/10'}`}
-            onClick={handleToggleUnknown}
-          >
-            {isUnknown ? (t('editor.ui.clearUnknownStatus' as any) as string || 'Clear unknown status') : (t('editor.ui.markAsUnknown' as any) as string || 'Mark as unknown')}
-          </Button>
         </div>
       </Card>
       <UnknownNoteModal
@@ -2954,11 +3050,17 @@ function SimpleTextEditor({
 
   return (
     <div
-      className={`rounded-xl border bg-white/95 backdrop-blur-sm transition-all duration-200 shadow-md ${
-        isFocused ? 'border-blue-400 ring-1 ring-blue/20' : 'border-white/30'
+      className={`rounded-xl border backdrop-blur-sm transition-all duration-200 shadow-lg relative ${
+        isFocused 
+          ? 'border-blue-400 ring-2 ring-blue-400/50 bg-white/20' 
+          : 'border-white/40 bg-white/15'
       }`}
       onClick={() => textareaRef.current?.focus()}
     >
+      {/* Icon indicator */}
+      <div className="absolute top-3 left-3 z-10 pointer-events-none">
+        <PencilIcon className="h-4 w-4 text-white/60" />
+      </div>
       <textarea
         ref={textareaRef}
         value={content}
@@ -2967,11 +3069,14 @@ function SimpleTextEditor({
         onBlur={() => setIsFocused(false)}
         placeholder={placeholder || 'Start writing...'}
         aria-label={placeholder || 'Prompt response'}
-        className="w-full resize-none bg-transparent p-3 text-sm leading-relaxed text-neutral-800 placeholder:text-neutral-400 focus:outline-none md:min-h-[120px] min-h-[90px]"
+        className="w-full resize-none bg-transparent pl-10 pr-3 pt-3 pb-3 text-sm leading-relaxed text-white placeholder:text-white/60 focus:outline-none md:min-h-[120px] min-h-[90px]"
         style={{
           fontFamily: 'Inter, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif',
           lineHeight: '1.7',
-          fontSize: '14px'
+          fontSize: '15px',
+          fontWeight: '400',
+          color: '#ffffff',
+          textShadow: '0 1px 2px rgba(0, 0, 0, 0.1)'
         }}
       />
     </div>
