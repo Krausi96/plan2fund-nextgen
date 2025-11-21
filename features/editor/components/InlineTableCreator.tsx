@@ -8,13 +8,10 @@ import {
   tagDatasetWithFinancialVariables,
   createKPIFromSuggestion
 } from '@/features/editor/utils/tableInitializer';
+import { useI18n } from '@/shared/contexts/I18nContext';
 
 type Tab = 'datasets' | 'kpis' | 'media';
 type Composer = 'dataset' | 'kpi' | 'media' | null;
-
-const DATA_PANEL_HEADLINE = 'Keep this section evidence-driven.';
-const DATA_PANEL_SUPPORT =
-  'Create supporting datasets, KPIs, or media, then attach them to your active prompt so reviewers see proof alongside the narrative.';
 
 const TYPE_ICONS: Record<string, string> = {
   datasets: '📊',
@@ -40,6 +37,7 @@ interface DataPanelProps {
   onAttachKpi?: (kpi: KPI) => void;
   onAttachMedia?: (asset: MediaAsset) => void;
   onAskForStructure?: () => void;
+  onMarkComplete?: (questionId: string) => void;
 }
 
 function createDataset(
@@ -164,8 +162,10 @@ export default function DataPanel({
   onAttachDataset,
   onAttachKpi,
   onAttachMedia,
-  onAskForStructure
+  onAskForStructure,
+  onMarkComplete
 }: DataPanelProps) {
+  const { t } = useI18n();
   const [activeTab, setActiveTab] = useState<Tab>('datasets');
   const [activeComposer, setActiveComposer] = useState<Composer>(null);
   const [expandedItems, setExpandedItems] = useState<Set<string>>(new Set());
@@ -177,23 +177,6 @@ export default function DataPanel({
   const kpiList = useMemo(() => kpis ?? [], [kpis]);
   const mediaList = useMemo(() => media ?? [], [media]);
   const canAttach = Boolean(activeQuestionId);
-
-  const attachmentsForActiveQuestion = useMemo(() => {
-    if (!activeQuestionId) return 0;
-    const matchesRelated = (entity: { relatedQuestions?: string[]; questionId?: string }) =>
-      entity.relatedQuestions?.includes(activeQuestionId) || entity.questionId === activeQuestionId;
-    const datasetMatches = datasetList.filter(matchesRelated).length;
-    const kpiMatches = kpiList.filter(matchesRelated).length;
-    const mediaMatches = mediaList.filter(matchesRelated).length;
-    return datasetMatches + kpiMatches + mediaMatches;
-  }, [datasetList, kpiList, mediaList, activeQuestionId]);
-
-  const summaryChips = [
-    { label: 'Datasets', count: datasetList.length },
-    { label: 'KPIs', count: kpiList.length },
-    { label: 'Media', count: mediaList.length },
-    { label: 'Linked to current Q', count: attachmentsForActiveQuestion }
-  ];
 
   const [datasetName, setDatasetName] = useState('');
   const [datasetDescription, setDatasetDescription] = useState('');
@@ -430,34 +413,8 @@ export default function DataPanel({
   );
 
   return (
-    <div className="space-y-5 rounded-3xl border border-slate-100 bg-white/95 p-5 shadow-sm">
-      <div className="rounded-2xl bg-gradient-to-r from-slate-900 via-slate-800 to-slate-600 p-5 space-y-3 text-white shadow-inner">
-        <div>
-          <p className="text-[11px] uppercase tracking-[0.3em] text-white/70 mb-1">
-            {sectionTitle || 'Data guidance'}
-          </p>
-          <p className="text-lg font-semibold">{DATA_PANEL_HEADLINE}</p>
-          <p className="text-sm text-white/80 mt-1">{DATA_PANEL_SUPPORT}</p>
-          {!canAttach && (
-            <p className="mt-2 text-[11px] font-semibold text-white/80">
-              Select a question to enable quick attachments.
-            </p>
-          )}
-        </div>
-        <div className="grid grid-cols-2 gap-2">
-          {summaryChips.map((chip) => (
-            <div
-              key={chip.label}
-              className="rounded-xl bg-white/15 px-3 py-2 flex items-center justify-between text-xs font-semibold text-white"
-            >
-              <span>{chip.label}</span>
-              <span className="text-sm">{chip.count}</span>
-            </div>
-          ))}
-        </div>
-      </div>
-
-      <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
+    <div className="space-y-4 rounded-2xl border border-slate-200 bg-white p-4 shadow-sm">
+      <div className="grid grid-cols-1 sm:grid-cols-3 gap-2.5">
         {(
           [
             { key: 'dataset', label: 'Add table', icon: '📊' },
@@ -470,10 +427,10 @@ export default function DataPanel({
             <button
               key={action.key}
               onClick={() => handlePrimaryAction(action.key)}
-              className={`flex items-center justify-between rounded-2xl border px-4 py-3 text-sm font-semibold transition ${
+              className={`flex items-center justify-between rounded-xl border px-3 py-2.5 text-sm font-semibold transition ${
                 isActive
-                  ? 'border-blue-500 bg-blue-50 text-blue-700'
-                  : 'border-slate-200 bg-white text-slate-700 hover:border-blue-200 hover:bg-blue-50/40'
+                  ? 'border-blue-500 bg-blue-50 text-blue-700 shadow-sm'
+                  : 'border-slate-200 bg-white text-slate-700 hover:border-blue-300 hover:bg-blue-50/50'
               }`}
             >
               <span>{action.label}</span>
@@ -483,46 +440,46 @@ export default function DataPanel({
         })}
       </div>
 
-      <div className="rounded-2xl border border-slate-200 bg-white p-4 space-y-3">
+      <div className="rounded-xl border border-slate-200 bg-slate-50/50 p-3.5 space-y-2.5">
         <div className="flex items-center justify-between">
-          <p className="text-xs font-semibold text-slate-600">Need structure ideas?</p>
-          <span className="text-[11px] text-slate-400">AI assist</span>
+          <p className="text-xs font-semibold text-slate-700">Complete question</p>
+          <span className="text-[10px] text-slate-500 bg-green-100 text-green-700 px-2 py-0.5 rounded-full font-medium">Finish</span>
         </div>
-        <p className="text-xs text-slate-600">
-          Ask the Assistant to suggest a dataset, KPI, or media template. When AI returns a
-          structure, paste it into one of the composers below.
+        <p className="text-xs text-slate-600 leading-relaxed">
+          Mark this question as complete to finish the prompt and move forward.
         </p>
         <div className="flex flex-wrap gap-2">
           <button
             type="button"
             onClick={() => {
-              if (onAskForStructure) {
-                onAskForStructure();
+              if (onMarkComplete && activeQuestionId) {
+                onMarkComplete(activeQuestionId);
               }
             }}
-            disabled={!activeQuestionId || !onAskForStructure}
-            className="flex-1 min-w-[140px] rounded-xl border border-blue-300 bg-blue-50 px-3 py-2 text-xs font-semibold text-blue-700 hover:border-blue-400 hover:bg-blue-100 disabled:opacity-50 disabled:cursor-not-allowed transition"
+            disabled={!activeQuestionId || !onMarkComplete}
+            className="flex-1 min-w-[140px] rounded-lg border border-green-400 bg-green-500 px-3 py-2 text-xs font-semibold text-white hover:bg-green-600 disabled:opacity-50 disabled:cursor-not-allowed transition shadow-sm flex items-center justify-center gap-1.5"
           >
-            Ask for structure
+            <span className="text-sm font-bold">1)</span>
+            Complete
           </button>
           <button
             type="button"
             onClick={() => handlePrimaryAction('dataset')}
-            className="flex-1 min-w-[140px] rounded-xl border border-slate-200 px-3 py-2 text-xs font-semibold text-slate-700 hover:border-blue-300 hover:bg-blue-50/70"
+            className="flex-1 min-w-[140px] rounded-lg border border-slate-300 bg-white px-3 py-2 text-xs font-semibold text-slate-700 hover:border-blue-400 hover:bg-blue-50 transition"
           >
             Open dataset composer
           </button>
           <button
             type="button"
             onClick={() => handlePrimaryAction('kpi')}
-            className="flex-1 min-w-[140px] rounded-xl border border-slate-200 px-3 py-2 text-xs font-semibold text-slate-700 hover:border-blue-300 hover:bg-blue-50/70"
+            className="flex-1 min-w-[140px] rounded-lg border border-slate-300 bg-white px-3 py-2 text-xs font-semibold text-slate-700 hover:border-blue-400 hover:bg-blue-50 transition"
           >
             Open KPI composer
           </button>
           <button
             type="button"
             onClick={() => handlePrimaryAction('media')}
-            className="flex-1 min-w-[140px] rounded-xl border border-slate-200 px-3 py-2 text-xs font-semibold text-slate-700 hover:border-blue-300 hover:bg-blue-50/70"
+            className="flex-1 min-w-[140px] rounded-lg border border-slate-300 bg-white px-3 py-2 text-xs font-semibold text-slate-700 hover:border-blue-400 hover:bg-blue-50 transition"
           >
             Open media composer
           </button>
@@ -689,8 +646,8 @@ export default function DataPanel({
         </div>
       )}
 
-      <div className="rounded-3xl border border-slate-200 bg-white p-4 space-y-4">
-        <div className="flex flex-wrap items-center gap-3 justify-between">
+      <div className="rounded-xl border border-slate-200 bg-white p-4 space-y-3">
+        <div className="flex flex-wrap items-center gap-2.5 justify-between">
           <div className="flex items-center gap-2 flex-wrap">
             {(['datasets', 'kpis', 'media'] as Tab[]).map((tab) => {
               const isActive = activeTab === tab;
@@ -701,10 +658,10 @@ export default function DataPanel({
                     setActiveTab(tab);
                     setSearchQuery('');
                   }}
-                  className={`px-3 py-1.5 text-xs font-semibold rounded-full border transition ${
+                  className={`px-3 py-1.5 text-xs font-semibold rounded-lg border transition ${
                     isActive
-                      ? 'border-blue-500 bg-blue-50 text-blue-700'
-                      : 'border-slate-200 text-slate-500 hover:border-blue-200'
+                      ? 'border-blue-500 bg-blue-50 text-blue-700 shadow-sm'
+                      : 'border-slate-200 text-slate-600 hover:border-blue-300 hover:bg-slate-50'
                   }`}
                 >
                   {tab === 'datasets' && `📊 Datasets (${datasetList.length})`}
@@ -719,7 +676,7 @@ export default function DataPanel({
             value={searchQuery}
             onChange={(event) => setSearchQuery(event.target.value)}
             placeholder={`Search ${activeTab}...`}
-            className="flex-1 min-w-[140px] rounded-full border border-slate-200 px-4 py-1.5 text-xs text-slate-600 focus:border-blue-300 focus:outline-none focus:ring-1 focus:ring-blue-200"
+            className="flex-1 min-w-[140px] rounded-lg border border-slate-200 px-3 py-1.5 text-xs text-slate-600 focus:border-blue-400 focus:outline-none focus:ring-2 focus:ring-blue-200 bg-white"
           />
         </div>
 

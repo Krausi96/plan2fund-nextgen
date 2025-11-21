@@ -42,3 +42,5 @@ next-env.d.ts
 # scraper data
 scraper-lite/data/lite/raw/
 scraper-lite/data/lite/*.backup.*
+
+.vercel

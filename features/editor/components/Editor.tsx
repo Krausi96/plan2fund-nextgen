@@ -24,7 +24,6 @@ import {
   Section,
   TemplateFundingType,
   Table,
-  ConversationMessage,
   TitlePage
 } from '@/features/editor/types/plan';
 import { SectionTemplate, getSections } from '@templates';
@@ -122,6 +121,7 @@ interface EditorStoreState {
     options?: AISuggestionOptions
   ) => Promise<void>;
   toggleQuestionUnknown: (questionId: string, note?: string) => void;
+  markQuestionComplete: (questionId: string) => void;
 }
 
 const defaultTitlePage = (): TitlePage => ({
@@ -153,19 +153,19 @@ const ANCILLARY_SECTION_ID = '__ancillary__';
 
 const PRODUCT_TYPE_CONFIG = [
   {
-    value: 'submission' as ProductType,
-    labelKey: 'editor.selector.businessPlan',
-    descriptionKey: 'editor.selector.businessPlanDesc'
+    value: 'strategy' as ProductType,
+    labelKey: 'planTypes.strategy.title',
+    descriptionKey: 'planTypes.strategy.subtitle'
   },
   {
     value: 'review' as ProductType,
-    labelKey: 'editor.selector.reviewPlan',
-    descriptionKey: 'editor.selector.reviewPlanDesc'
+    labelKey: 'planTypes.review.title',
+    descriptionKey: 'planTypes.review.subtitle'
   },
   {
-    value: 'strategy' as ProductType,
-    labelKey: 'editor.selector.strategyPlan',
-    descriptionKey: 'editor.selector.strategyPlanDesc'
+    value: 'submission' as ProductType,
+    labelKey: 'planTypes.custom.title',
+    descriptionKey: 'planTypes.custom.subtitle'
   }
 ] as const;
 
@@ -410,6 +410,35 @@ const useEditorStore = create<EditorStoreState>((set, get) => ({
             lastUpdatedAt: new Date().toISOString()
           };
         });
+        return {
+          ...section,
+          questions: updatedQuestions,
+          progress: calculateSectionCompletion(updatedQuestions)
+        };
+      }),
+      metadata: {
+        ...plan.metadata,
+        lastSavedAt: new Date().toISOString()
+      }
+    };
+    persistPlan(updatedPlan);
+    set({ plan: updatedPlan });
+  },
+  markQuestionComplete: (questionId) => {
+    const { plan } = get();
+    if (!plan) return;
+    const updatedPlan: BusinessPlan = {
+      ...plan,
+      sections: plan.sections.map((section) => {
+        const updatedQuestions = section.questions.map((question) =>
+          question.id === questionId
+            ? {
+                ...question,
+                status: 'complete' as QuestionStatus,
+                lastUpdatedAt: new Date().toISOString()
+              }
+            : question
+        );
         return {
           ...section,
           questions: updatedQuestions,
@@ -904,7 +933,8 @@ type RequirementValidation = {
 function validateQuestionRequirements(
   question: Question,
   section: Section,
-  template?: SectionTemplate
+  template?: SectionTemplate,
+  t?: (key: any) => string
 ): RequirementValidation {
   const issues: RequirementValidation['issues'] = [];
   const attachmentSummary = summarizeQuestionAttachments(section, question);
@@ -916,7 +946,7 @@ function validateQuestionRequirements(
     issues.push({
       type: 'status',
       severity: 'error',
-      message: 'Required question is still blank. Provide an answer or mark as unknown with a note.'
+      message: t ? (t('editor.ui.validation.requiredBlank' as any) as string) : 'Required question is still blank. Provide an answer or mark as unknown with a note.'
     });
   }
 
@@ -1392,6 +1422,7 @@ export default function Editor({ product = 'submission' }: EditorProps) {
     setActiveSection,
     setActiveQuestion,
     updateAnswer,
+    markQuestionComplete,
     rightPanelView,
     setRightPanelView,
     addDataset,
@@ -1556,7 +1587,7 @@ export default function Editor({ product = 'submission' }: EditorProps) {
   if (isLoading || !plan) {
     return (
       <div className="h-screen flex items-center justify-center text-gray-500">
-        Loading editor...
+        {t('editor.ui.loadingEditor' as any) as string || 'Loading editor...'}
       </div>
     );
   }
@@ -1576,9 +1607,9 @@ export default function Editor({ product = 'submission' }: EditorProps) {
   }
 
   return (
-    <div className="min-h-screen bg-neutral-50 text-textPrimary">
+    <div className="bg-neutral-200 text-textPrimary">
       <header className="sticky top-0 z-40 border-b border-neutral-200 bg-white/90 backdrop-blur-sm">
-        <div className="container py-4">
+        <div className="container py-1.5">
           <PlanConfigurator
             plan={plan}
             programSummary={programSummary ?? plan.programSummary ?? null}
@@ -1596,19 +1627,27 @@ export default function Editor({ product = 'submission' }: EditorProps) {
       </header>
 
       {/* Section Navigation Bar */}
-      <div className="border-b border-neutral-200 bg-white shadow-sm sticky top-[72px] z-30">
+      <div className="border-b border-neutral-200 bg-neutral-200 sticky top-[72px] z-30">
         <div className="container">
-          <SectionNavigationBar
-            plan={plan}
-            activeSectionId={activeSectionId ?? plan.sections[0]?.id ?? null}
-            onSelectSection={setActiveSection}
-          />
+          <div className="relative rounded-lg border border-blue-600/50 overflow-hidden backdrop-blur-lg shadow-xl">
+            <div className="absolute inset-0 bg-gradient-to-b from-slate-900 via-blue-900 to-slate-800" />
+            <div className="relative z-10 py-2 px-2.5">
+              <div className="mb-1">
+                <h2 className="text-xl font-bold uppercase tracking-wider text-white">{t('editor.header.planSections' as any) as string || 'Plan Sections'}</h2>
+              </div>
+              <SectionNavigationBar
+                plan={plan}
+                activeSectionId={activeSectionId ?? plan.sections[0]?.id ?? null}
+                onSelectSection={setActiveSection}
+              />
+            </div>
+          </div>
         </div>
       </div>
 
       {/* Main Content Area */}
-      <div className="container py-8 flex flex-col gap-6 lg:flex-row lg:items-start">
-        <div className="flex-1 min-w-0">
+      <div className="container py-1 pb-6 flex flex-col gap-1 lg:flex-row lg:items-start">
+        <div className="flex-1 min-w-0 max-w-4xl">
           {isAncillaryView ? (
             <AncillaryWorkspace
               plan={plan}
@@ -1631,11 +1670,12 @@ export default function Editor({ product = 'submission' }: EditorProps) {
               activeQuestionId={activeQuestion?.id ?? null}
               onAskAI={triggerAISuggestions}
               onToggleUnknown={toggleQuestionUnknown}
+              onMarkComplete={markQuestionComplete}
             />
           )}
         </div>
 
-        <div className="w-full lg:w-[360px] flex-shrink-0">
+        <div className="w-full lg:w-[400px] flex-shrink-0">
           <RightPanel
             view={rightPanelView}
             setView={setRightPanelView}
@@ -1696,33 +1736,24 @@ function PlanConfigurator({
   productOptions: Array<{ value: ProductType; label: string; description: string }>;
   connectCopy: ConnectCopy;
 }) {
+  const { t } = useI18n();
   const [titleDraft, setTitleDraft] = useState(plan.titlePage.planTitle);
-  const [companyDraft, setCompanyDraft] = useState(plan.titlePage.companyName);
-  const [valuePropDraft, setValuePropDraft] = useState(plan.titlePage.valueProp ?? '');
   const [manualValue, setManualValue] = useState('');
   const [manualError, setManualError] = useState<string | null>(null);
   const [showManualInput, setShowManualInput] = useState(false);
+  const [showProductTooltip, setShowProductTooltip] = useState(false);
+  const [showProgramTooltip, setShowProgramTooltip] = useState(false);
 
   useEffect(() => {
     setTitleDraft(plan.titlePage.planTitle);
-    setCompanyDraft(plan.titlePage.companyName);
-    setValuePropDraft(plan.titlePage.valueProp ?? '');
-  }, [plan.titlePage.planTitle, plan.titlePage.companyName, plan.titlePage.valueProp]);
+  }, [plan.titlePage.planTitle]);
 
   const commitTitlePageChange = (updates: Partial<TitlePage>) => {
     onUpdateTitlePage({ ...plan.titlePage, ...updates });
   };
 
-  const planSubtitle =
-    programSummary?.name?.trim() ||
-    plan.programSummary?.name?.trim() ||
-    (plan.metadata?.programName && !['grant', 'loan', 'equity', 'visa'].includes(plan.metadata.programName.toLowerCase())
-      ? plan.metadata.programName
-      : null) ||
-    'No program connected yet';
-
   const headerCardClasses =
-    'relative h-full space-y-3 rounded-2xl border border-neutral-200 bg-gradient-to-br from-[#0f1e3a0d] via-white to-white px-4 py-3 shadow-sm';
+    'relative h-24 space-y-1 rounded-lg border border-blue-600/50 overflow-hidden px-2.5 py-1.5 shadow-xl backdrop-blur-xl';
 
   const selectedProductMeta =
     productOptions.find((option) => option.value === plan.productType) ?? productOptions[0];
@@ -1738,78 +1769,68 @@ function PlanConfigurator({
   };
 
   return (
-    <div className="grid grid-cols-1 gap-3 md:grid-cols-3">
+    <div className="flex flex-col md:flex-row gap-3 w-full">
       {/* Plan Title */}
-      <Card className={`${headerCardClasses} space-y-3`}>
-        <div className="flex items-start justify-between gap-2">
-          <div>
-            <p className="text-[11px] font-semibold uppercase tracking-[0.2em] text-neutral-500">
-              Plan Title
+      <Card className={`${headerCardClasses} flex-1 flex flex-col`}>
+        <div className="absolute inset-0 bg-gradient-to-b from-slate-900 via-blue-900 to-slate-800" />
+        <div className="relative z-10 flex flex-col h-full">
+          <div className="flex items-center justify-between gap-2 h-6 mb-3">
+            <p className="text-xl font-bold uppercase tracking-wider text-white">
+              {t('editor.header.planTitle' as any) as string || 'Plan Title'}
             </p>
-            <p className="text-xs text-neutral-500">Auto-saves to Front & back matter</p>
+            <Button variant="ghost" size="sm" className="text-blue-100 hover:text-white text-xs h-6 px-2" onClick={onOpenFrontMatter}>
+              {t('editor.ui.edit' as any) as string || 'Edit'}
+            </Button>
           </div>
-          <Button variant="ghost" size="sm" className="text-primary-700" onClick={onOpenFrontMatter}>
-            Edit details
-          </Button>
+          <div className="flex-1 flex items-center">
+            <input
+              value={titleDraft}
+              onChange={(event) => setTitleDraft(event.target.value)}
+              onBlur={() => {
+                const next = titleDraft.trim() || 'Business Plan';
+                if (next !== plan.titlePage.planTitle) {
+                  commitTitlePageChange({ planTitle: next });
+                } else {
+                  setTitleDraft(plan.titlePage.planTitle);
+                }
+              }}
+              className="w-full rounded border border-slate-200 bg-white px-2.5 py-2 h-8 text-sm font-semibold text-slate-900 focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-400"
+              placeholder={t('editor.ui.planNamePlaceholder' as any) as string || 'Plan name'}
+            />
+          </div>
         </div>
-        <input
-          value={titleDraft}
-          onChange={(event) => setTitleDraft(event.target.value)}
-          onBlur={() => {
-            const next = titleDraft.trim() || 'Business Plan';
-            if (next !== plan.titlePage.planTitle) {
-              commitTitlePageChange({ planTitle: next });
-            } else {
-              setTitleDraft(plan.titlePage.planTitle);
-            }
-          }}
-          className="w-full rounded-lg border border-neutral-200 bg-white px-3 py-2 text-base font-semibold text-neutral-900 focus:border-primary-300 focus:outline-none focus:ring-2 focus:ring-primary/20"
-          placeholder="Plan name"
-        />
-        <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">
-          <input
-            value={companyDraft}
-            onChange={(event) => setCompanyDraft(event.target.value)}
-            onBlur={() => {
-              const next = companyDraft.trim();
-              if (next !== plan.titlePage.companyName) {
-                commitTitlePageChange({ companyName: next });
-              } else {
-                setCompanyDraft(plan.titlePage.companyName);
-              }
-            }}
-            className="w-full rounded-lg border border-neutral-200 bg-white px-3 py-2 text-sm font-medium text-neutral-800 focus:border-primary-300 focus:outline-none focus:ring-2 focus:ring-primary/20"
-            placeholder="Company name"
-          />
-          <input
-            value={valuePropDraft}
-            onChange={(event) => setValuePropDraft(event.target.value)}
-            onBlur={() => {
-              const next = valuePropDraft.trim();
-              if (next !== (plan.titlePage.valueProp ?? '')) {
-                commitTitlePageChange({ valueProp: next });
-              } else {
-                setValuePropDraft(plan.titlePage.valueProp ?? '');
-              }
-            }}
-            className="w-full rounded-lg border border-neutral-200 bg-white px-3 py-2 text-sm text-neutral-700 focus:border-primary-300 focus:outline-none focus:ring-2 focus:ring-primary/20"
-            placeholder="Short value proposition"
-          />
-        </div>
-        <p className="text-xs text-neutral-500">{planSubtitle}</p>
       </Card>
 
       {/* Product Type Selector */}
-      <Card className={headerCardClasses}>
-        <label className="block space-y-2">
-          <span className="text-[11px] font-semibold uppercase tracking-[0.2em] text-neutral-500">
-            Product Type
-          </span>
-          <div className="relative">
+      <Card className={`${headerCardClasses} flex-1 flex flex-col`}>
+        <div className="absolute inset-0 bg-gradient-to-b from-slate-900 via-blue-900 to-slate-800" />
+        <div className="relative z-10 flex flex-col h-full">
+          <div className="flex items-center gap-1.5 h-6 mb-3">
+            <span className="text-xl font-bold uppercase tracking-wider text-white">
+              {t('editor.header.productType' as any) as string || 'Product Type'}
+            </span>
+            <div className="relative">
+              <button
+                type="button"
+                onMouseEnter={() => setShowProductTooltip(true)}
+                onMouseLeave={() => setShowProductTooltip(false)}
+                className="text-white hover:text-blue-100 text-xs font-bold w-4 h-4 rounded-full border border-white/50 bg-white/20 flex items-center justify-center"
+              >
+                ?
+              </button>
+              {showProductTooltip && (
+                <div className="absolute z-50 left-0 top-5 w-64 p-2 bg-slate-900 text-white text-xs rounded shadow-lg border border-slate-700">
+                  {selectedProductMeta?.description}
+                </div>
+              )}
+            </div>
+          </div>
+          <div className="relative flex-1 flex items-center">
             <select
               value={plan.productType ?? 'submission'}
               onChange={(event) => onChangeProduct(event.target.value as ProductType)}
-              className="w-full appearance-none rounded-lg border border-neutral-200 bg-surface px-3 py-2 text-sm font-semibold text-neutral-900 focus:border-primary-400 focus:ring-2 focus:ring-primary/30"
+              className="w-full appearance-none rounded border border-slate-300 bg-white px-2.5 h-8 text-sm font-bold text-slate-900 focus:border-blue-500 focus:ring-1 focus:ring-blue-400"
+              style={{ paddingTop: 0, paddingBottom: 0, lineHeight: '2rem' }}
             >
               {productOptions.map((option) => (
                 <option key={option.value} value={option.value}>
@@ -1817,85 +1838,102 @@ function PlanConfigurator({
                 </option>
               ))}
             </select>
-            <span className="pointer-events-none absolute inset-y-0 right-3 flex items-center text-neutral-500 text-sm font-bold">
+            <span className="pointer-events-none absolute inset-y-0 right-2.5 flex items-center text-slate-600 text-xs font-bold">
               ▾
             </span>
           </div>
-        </label>
-        <p className="text-sm font-medium text-neutral-600 leading-snug">
-          {selectedProductMeta?.description}
-        </p>
+        </div>
       </Card>
 
       {/* Program Connection */}
-      <Card className={`${headerCardClasses} space-y-3`}>
-        <div>
-          <p className="text-[11px] font-semibold uppercase tracking-[0.2em] text-neutral-500">
-            {connectCopy.badge}
-          </p>
-          <h3 className="text-base font-semibold text-neutral-900">{connectCopy.heading}</h3>
-          <p className="text-xs text-neutral-600">{connectCopy.description}</p>
-        </div>
-        {programSummary ? (
-          <div className="rounded-xl border border-primary-100 bg-primary-50/70 px-3 py-2 space-y-1">
-            <div className="flex items-center justify-between gap-2">
-              <div>
-                <p className="text-sm font-semibold text-primary-900 truncate">{programSummary.name}</p>
-                {programSummary.amountRange && (
-                  <p className="text-xs text-primary-700">{programSummary.amountRange}</p>
-                )}
-              </div>
-              <Button
-                variant="ghost"
-                size="sm"
-                className="text-primary-800 hover:text-primary-900"
-                onClick={() => onConnectProgram(null)}
+      <Card className={`${headerCardClasses} flex-1 flex flex-col`}>
+        <div className="absolute inset-0 bg-gradient-to-b from-slate-900 via-blue-900 to-slate-800" />
+        <div className="relative z-10 flex flex-col h-full">
+          <div className="flex items-center gap-1.5 h-6 mb-3">
+            <p className="text-xl font-bold uppercase tracking-wider text-white">
+              {connectCopy.badge}
+            </p>
+            <div className="relative">
+              <button
+                type="button"
+                onMouseEnter={() => setShowProgramTooltip(true)}
+                onMouseLeave={() => setShowProgramTooltip(false)}
+                className="text-white hover:text-blue-100 text-xs font-bold w-4 h-4 rounded-full border border-white/50 bg-white/20 flex items-center justify-center"
               >
-                Disconnect
-              </Button>
+                ?
+              </button>
+              {showProgramTooltip && (
+                <div className="absolute z-50 left-0 top-5 w-64 p-2 bg-slate-900 text-white text-xs rounded shadow-lg border border-slate-700">
+                  {connectCopy.description}
+                </div>
+              )}
             </div>
           </div>
-        ) : (
-          <>
-            <div className="flex flex-wrap gap-2">
-              <Button onClick={onOpenProgramFinder}>{connectCopy.openFinder}</Button>
-              <Button variant="outline" onClick={() => setShowManualInput((prev) => !prev)}>
-                {connectCopy.pasteLink}
-              </Button>
-            </div>
-            {showManualInput && (
-              <div className="space-y-2">
-                <label className="text-xs font-semibold text-neutral-600">
-                  {connectCopy.inputLabel}
-                </label>
-                <div className="flex flex-col gap-2 sm:flex-row">
-                  <input
-                    value={manualValue}
-                    onChange={(event) => setManualValue(event.target.value)}
-                    placeholder={connectCopy.placeholder}
-                    className="flex-1 rounded-lg border border-neutral-300 px-3 py-2 text-sm focus:border-primary-400 focus:outline-none focus:ring-2 focus:ring-primary/30"
-                  />
+          <div className="flex-1 flex items-center">
+            {programSummary ? (
+              <div className="w-full rounded border border-blue-300 bg-blue-100/60 px-2 py-1.5 h-8 flex items-center">
+                <div className="flex items-center justify-between gap-2 w-full">
+                  <div className="min-w-0 flex-1">
+                    <p className="text-xs font-semibold text-blue-900 truncate">{programSummary.name}</p>
+                    {programSummary.amountRange && (
+                      <p className="text-[10px] text-blue-800 mt-0.5">{programSummary.amountRange}</p>
+                    )}
+                  </div>
                   <Button
-                    type="button"
-                    className="sm:w-auto"
-                    onClick={handleManualConnect}
-                    disabled={programLoading}
+                    variant="ghost"
+                    size="sm"
+                    className="text-blue-800 hover:text-blue-900 text-xs h-6 px-1 flex-shrink-0"
+                    onClick={() => onConnectProgram(null)}
                   >
-                    {programLoading ? '...' : connectCopy.submit}
+                    ×
                   </Button>
                 </div>
-                <p className="text-xs text-neutral-500">{connectCopy.example}</p>
-                {(manualError || programError) && (
-                  <p className="text-xs text-red-600">{manualError || programError}</p>
-                )}
+              </div>
+            ) : (
+              <div className="w-full flex flex-wrap gap-1.5">
+                <button
+                  onClick={onOpenProgramFinder}
+                  className="inline-flex items-center justify-center px-4 py-0 h-8 bg-blue-600 hover:bg-blue-700 text-white font-semibold rounded-lg transition-colors duration-200 shadow-md hover:shadow-lg text-xs"
+                >
+                  {connectCopy.openFinder}
+                </button>
+                <button
+                  onClick={() => setShowManualInput((prev) => !prev)}
+                  className="inline-flex items-center justify-center px-4 py-0 h-8 border-2 border-white/30 hover:border-white/50 text-white font-semibold rounded-lg transition-colors duration-200 backdrop-blur-sm hover:bg-white/10 text-xs"
+                >
+                  {connectCopy.pasteLink}
+                </button>
               </div>
             )}
-          </>
-        )}
-        {!programSummary && !showManualInput && (
-          <p className="text-xs text-neutral-500">
-            You can connect a program later – link stays editable.
-          </p>
+          </div>
+        </div>
+        {showManualInput && !programSummary && (
+          <div className="space-y-1 mt-1.5">
+            <label className="text-[10px] font-semibold text-slate-800 block">
+              {connectCopy.inputLabel}
+            </label>
+            <div className="flex flex-col gap-1.5 sm:flex-row">
+              <input
+                value={manualValue}
+                onChange={(event) => setManualValue(event.target.value)}
+                placeholder={connectCopy.placeholder}
+                className="flex-1 rounded border border-slate-300 bg-white px-2 py-1.5 h-8 text-xs focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-400"
+              />
+              <Button
+                type="button"
+                size="sm"
+                className="sm:w-auto text-xs h-8 px-3"
+                onClick={handleManualConnect}
+                disabled={programLoading}
+              >
+                {programLoading ? '...' : connectCopy.submit}
+              </Button>
+            </div>
+            <p className="text-[10px] text-slate-600">{connectCopy.example}</p>
+            {(manualError || programError) && (
+              <p className="text-[10px] text-red-600">{manualError || programError}</p>
+            )}
+          </div>
         )}
       </Card>
     </div>
@@ -1911,12 +1949,23 @@ function SectionNavigationBar({
   activeSectionId: string | null;
   onSelectSection: (sectionId: string) => void;
 }) {
+  const { t } = useI18n();
   const scrollContainerRef = React.useRef<HTMLDivElement>(null);
+  
+  const getSectionTitle = (sectionId: string, originalTitle: string): string => {
+    if (sectionId === ANCILLARY_SECTION_ID) {
+      return (t('editor.section.front_back_matter' as any) as string) || 'Front & Back Matter';
+    }
+    const translationKey = `editor.section.${sectionId}` as any;
+    const translated = t(translationKey) as string;
+    return translated || originalTitle;
+  };
+  
   const sections = [
-    ...plan.sections,
+    ...plan.sections.map(s => ({ ...s, title: getSectionTitle(s.id, s.title) })),
     {
       id: ANCILLARY_SECTION_ID,
-      title: 'Front & back matter',
+      title: getSectionTitle(ANCILLARY_SECTION_ID, 'Front & Back Matter'),
       progress: undefined,
       questions: []
     }
@@ -1940,19 +1989,19 @@ function SectionNavigationBar({
   };
 
   return (
-    <div className="flex items-center gap-3 py-3">
+    <div className="flex items-center gap-1">
       <Button
         variant="ghost"
         size="sm"
         onClick={() => scrollBy('left')}
         aria-label="Scroll sections left"
-        className="border border-neutral-200 bg-white"
+        className="border border-white/30 bg-white/10 hover:bg-white/20 text-white flex-shrink-0"
       >
         <ChevronLeftIcon className="h-4 w-4" />
       </Button>
       <div
         ref={scrollContainerRef}
-        className="flex flex-1 items-center gap-3 overflow-x-auto scrollbar-hide"
+        className="flex flex-1 items-center gap-1 overflow-x-auto scrollbar-hide"
         role="tablist"
         aria-label="Plan sections"
         tabIndex={0}
@@ -1975,19 +2024,19 @@ function SectionNavigationBar({
               onClick={() => onSelectSection(section.id)}
               aria-current={isActive ? 'page' : undefined}
               role="tab"
-              className={`min-w-max rounded-2xl border px-4 py-3 text-left transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary ${
+              className={`min-w-[200px] rounded-xl border-2 px-4 py-3 text-left transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-400 ${
                 isActive
-                  ? 'border-primary-500 bg-primary-50 text-primary-900 shadow-md'
-                  : 'border-neutral-200 bg-white text-neutral-800 hover:border-primary-200'
+                  ? 'border-blue-400 bg-blue-500/30 text-white shadow-xl shadow-blue-900/30 backdrop-blur-md'
+                  : 'border-white/50 bg-blue-400/20 text-white hover:border-blue-300/70 hover:bg-blue-400/30 backdrop-blur-sm'
               }`}
             >
-              <div className="flex flex-col gap-2">
-                <div className="flex items-center justify-between text-xs font-semibold text-neutral-500">
-                  {!isAncillary && <span>{String(index + 1).padStart(2, '0')}</span>}
-                  <span className="text-neutral-600">{completion}%</span>
+              <div className="flex flex-col gap-1.5">
+                <div className="flex items-center justify-between">
+                  {!isAncillary && <span className="text-xs font-bold tracking-[0.2em] text-white drop-shadow-sm">{String(index + 1).padStart(2, '0')}</span>}
+                  <span className="text-xs font-bold text-white drop-shadow-sm">{completion}%</span>
                 </div>
                 <Progress value={completion} intent={progressIntent} size="xs" />
-                <p className="text-sm font-semibold leading-tight">{section.title}</p>
+                <p className="text-base font-bold leading-snug text-white drop-shadow-sm">{section.title}</p>
               </div>
             </button>
           );
@@ -1998,7 +2047,7 @@ function SectionNavigationBar({
         size="sm"
         onClick={() => scrollBy('right')}
         aria-label="Scroll sections right"
-        className="border border-neutral-200 bg-white"
+        className="border border-white/30 bg-white/10 hover:bg-white/20 text-white flex-shrink-0"
       >
         <ChevronRightIcon className="h-4 w-4" />
       </Button>
@@ -2006,10 +2055,13 @@ function SectionNavigationBar({
   );
 }
 
-function getSectionHint(section?: Section) {
+function getSectionHint(section?: Section, t?: (key: any) => string) {
   if (!section) return '';
   const key = (section.category ?? '').toLowerCase();
-  return SECTION_TONE_HINTS[key] ?? 'Keep paragraphs tight, highlight the why, and point to data or KPIs when possible.';
+  const hintKey = `editor.ui.hint.${key}` as any;
+  const translated = t ? (t(hintKey) as string) : null;
+  if (translated && translated !== hintKey) return translated;
+  return SECTION_TONE_HINTS[key] ?? (t ? (t('editor.ui.hint.default' as any) as string) : 'Keep paragraphs tight, highlight the why, and point to data or KPIs when possible.');
 }
 
 function AncillaryWorkspace({
@@ -2037,11 +2089,12 @@ function AncillaryWorkspace({
   onRunRequirements: () => void;
   progressSummary: ProgressSummary[];
 }) {
+  const { t } = useI18n();
   return (
     <div className="space-y-6">
       <div className="card bg-white lg:sticky lg:top-4 lg:z-10">
         <p className="text-[11px] tracking-[0.35em] uppercase text-neutral-500">Ancillary</p>
-        <h1 className="text-2xl font-semibold text-neutral-900 mt-1">Front & back matter</h1>
+        <h1 className="text-2xl font-semibold text-neutral-900 mt-1">{t('editor.section.front_back_matter' as any) as string || 'Front & Back Matter'}</h1>
         <p className="text-sm text-neutral-600 mt-2">
           Maintain the title page, table of contents, references, and appendices in one cohesive workspace. These
           elements frame the narrative, so keeping them aligned here speeds up reviews.
@@ -2075,7 +2128,8 @@ function SectionWorkspace({
   onSelectQuestion,
   activeQuestionId,
   onAskAI,
-  onToggleUnknown
+  onToggleUnknown,
+  onMarkComplete
 }: {
   section?: Section;
   onAnswerChange: (questionId: string, content: string) => void;
@@ -2083,87 +2137,69 @@ function SectionWorkspace({
   activeQuestionId: string | null;
   onAskAI: (questionId?: string) => void;
   onToggleUnknown: (questionId: string, note?: string) => void;
+  onMarkComplete: (questionId: string) => void;
 }) {
+  const { t } = useI18n();
 
   if (!section) {
     return (
       <div className="rounded-3xl border border-dashed border-neutral-200 bg-white p-12 text-center text-sm text-neutral-500">
-        Select a section to begin.
+        {t('editor.ui.selectSection' as any) as string || 'Select a section to begin.'}
       </div>
     );
   }
 
-  const sectionHint = getSectionHint(section);
+  const getSectionTitle = (sectionId: string, originalTitle: string): string => {
+    if (sectionId === ANCILLARY_SECTION_ID) {
+      return (t('editor.section.front_back_matter' as any) as string) || 'Front & Back Matter';
+    }
+    const translationKey = `editor.section.${sectionId}` as any;
+    const translated = t(translationKey) as string;
+    // Handle special case for project_description which might have different titles
+    if (sectionId === 'project_description' && originalTitle.includes('/')) {
+      return (t('editor.section.project_description_business_concept' as any) as string) || originalTitle;
+    }
+    return translated || originalTitle;
+  };
+
+  const sectionHint = getSectionHint(section, t);
   const activeQuestion =
     section.questions.find((q) => q.id === activeQuestionId) ?? section.questions[0] ?? null;
+  const translatedTitle = getSectionTitle(section.id, section.title);
 
   return (
-    <main className="space-y-6">
+    <main className="space-y-1">
       {/* Section Header */}
-      <Card className="space-y-3 bg-white">
-        {section.category && (
-          <p className="text-xs font-semibold uppercase tracking-[0.35em] text-neutral-500">{section.category}</p>
-        )}
-        <h1 className="text-3xl font-semibold text-neutral-900 leading-tight">{section.title}</h1>
-        {(sectionHint || section.description) && (
-          <p className="text-base text-neutral-600">{sectionHint || section.description}</p>
-        )}
-      </Card>
-
-      {/* Prompt Navigation Bar */}
-      {section.questions.length > 1 && (
-        <div className="flex items-center gap-2 overflow-x-auto pb-2" role="tablist" aria-label="Section prompts">
-          {section.questions.map((question, index) => {
-            const isActive = question.id === activeQuestion?.id;
-            const status = question.status;
-            const intentClasses =
-              status === 'complete'
-                ? 'text-success'
-                : status === 'unknown'
-                ? 'text-error'
-                : status === 'draft'
-                ? 'text-accent-600'
-                : 'text-neutral-500';
-            const icon =
-              status === 'complete' ? (
-                <CheckCircleIcon className="h-4 w-4" />
-              ) : status === 'unknown' ? (
-                <QuestionMarkCircleIcon className="h-4 w-4" />
-              ) : (
-                <EllipsisHorizontalIcon className="h-4 w-4" />
-              );
-
-            return (
-              <button
-                key={question.id}
-                role="tab"
-                aria-selected={isActive}
-                aria-controls={`question-panel-${question.id}`}
-                onClick={() => onSelectQuestion(question.id)}
-                className={`flex items-center gap-2 rounded-full border px-4 py-2 text-sm font-semibold transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary ${
-                  isActive
-                    ? 'border-primary-500 bg-primary-50 text-primary-900'
-                    : 'border-neutral-200 bg-white text-neutral-700 hover:border-primary-200'
-                }`}
-              >
-                <span>{index + 1}</span>
-                <span className={`flex items-center gap-1 text-xs font-medium ${intentClasses}`}>{icon}</span>
-              </button>
-            );
-          })}
+      <Card className="space-y-1 border border-blue-600/50 relative overflow-hidden backdrop-blur-lg shadow-xl">
+        <div className="absolute inset-0 bg-gradient-to-b from-slate-950 via-blue-900 to-slate-950" />
+        <div className="absolute inset-0 bg-black/20 backdrop-blur-xl" />
+        <div className="relative z-10">
+          {section.category && (
+            <p className="text-xs font-medium uppercase tracking-[0.25em] text-white">
+              {(t(`editor.ui.category.${section.category.toLowerCase()}` as any) as string) || section.category.toUpperCase()}
+            </p>
+          )}
+          <h1 className="text-3xl font-semibold text-white leading-tight drop-shadow-lg">{translatedTitle}</h1>
+          {(sectionHint || section.description) && (
+            <p className="text-sm text-white leading-relaxed">{sectionHint || section.description}</p>
+          )}
         </div>
-      )}
+      </Card>
 
       {/* Single Active Prompt Block */}
       {activeQuestion && (
         <QuestionCard
           question={activeQuestion}
+          section={section}
+          activeQuestionId={activeQuestionId}
           isActive={true}
           panelId={`question-panel-${activeQuestion.id}`}
           onFocus={() => onSelectQuestion(activeQuestion.id)}
+          onSelectQuestion={onSelectQuestion}
           onChange={(content) => onAnswerChange(activeQuestion.id, content)}
           onAskAI={() => onAskAI(activeQuestion.id)}
           onToggleUnknown={(note) => onToggleUnknown(activeQuestion.id, note)}
+          onMarkComplete={onMarkComplete}
         />
       )}
     </main>
@@ -2172,23 +2208,38 @@ function SectionWorkspace({
 
 function QuestionCard({
   question,
+  section,
+  activeQuestionId,
   isActive,
   panelId,
   onFocus,
+  onSelectQuestion,
   onChange,
   onAskAI,
-  onToggleUnknown
+  onToggleUnknown,
+  onMarkComplete
 }: {
   question: Question;
+  section?: Section;
+  activeQuestionId: string | null;
   isActive: boolean;
   panelId?: string;
   onFocus: () => void;
+  onSelectQuestion: (questionId: string) => void;
   onChange: (content: string) => void;
   onAskAI: () => void;
   onToggleUnknown: (note?: string) => void;
+  onMarkComplete: (questionId: string) => void;
 }) {
+  const { t } = useI18n();
+  const { plan, setActiveSection } = useEditorStore();
   const isUnknown = question.status === 'unknown';
+  const isComplete = question.status === 'complete';
+  const isDraft = question.status === 'draft';
+  const hasContent = isComplete || isDraft;
   const [isUnknownModalOpen, setUnknownModalOpen] = useState(false);
+  const isLastQuestion = section && section.questions.length > 0 && section.questions[section.questions.length - 1].id === question.id;
+  const isSectionComplete = section && section.questions.every(q => q.status === 'complete');
 
   const handleToggleUnknown = (event?: React.MouseEvent<HTMLButtonElement>) => {
     event?.stopPropagation();
@@ -2205,24 +2256,91 @@ function QuestionCard({
         id={panelId}
         role="tabpanel"
         aria-live="polite"
-        className={`space-y-6 border transition-all ${isActive ? 'border-primary-400 ring-2 ring-primary/20' : ''}`}
+        className={`space-y-2 border transition-all relative overflow-hidden backdrop-blur-lg shadow-xl ${
+          'border-blue-600/50'
+        } ${isActive && !hasContent ? 'border-blue-400 ring-1 ring-blue/20 shadow-2xl' : ''}`}
         onClick={onFocus}
       >
+        {/* Always show gradient blue background - no white overlay for completed questions */}
+        <div className="absolute inset-0 bg-gradient-to-b from-slate-950 via-blue-900 to-slate-950" />
+        <div className="absolute inset-0 bg-black/15 backdrop-blur-xl" />
+        {isComplete && (
+          <div className="absolute top-2 right-2 z-20">
+            <svg className="w-5 h-5 text-green-600" fill="currentColor" viewBox="0 0 20 20">
+              <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
+            </svg>
+          </div>
+        )}
+        {/* Question Navigation Tabs in Header */}
+        {section && section.questions.length > 1 && (
+          <div className="pb-1.5 border-b border-white/30 mb-1.5 relative z-10">
+            <div className="mb-3">
+              <h2 className="text-xl font-bold uppercase tracking-wider text-white">{t('editor.header.prompts' as any) as string || 'Prompts'}</h2>
+            </div>
+            <div className="flex items-center gap-1.5 overflow-x-auto" role="tablist" aria-label="Section prompts">
+              {section.questions.map((q, index) => {
+                const isActiveTab = q.id === activeQuestionId;
+                const status = q.status;
+                const intentClasses =
+                  status === 'complete'
+                    ? 'text-white'
+                    : status === 'unknown'
+                    ? 'text-red-300'
+                    : status === 'draft'
+                    ? 'text-blue-300'
+                    : 'text-white/80';
+                const icon =
+                  status === 'complete' ? (
+                    <CheckCircleIcon className="h-3.5 w-3.5" />
+                  ) : status === 'unknown' ? (
+                    <QuestionMarkCircleIcon className="h-3.5 w-3.5" />
+                  ) : (
+                    <EllipsisHorizontalIcon className="h-3.5 w-3.5" />
+                  );
+
+                return (
+                  <button
+                    key={q.id}
+                    role="tab"
+                    aria-selected={isActiveTab}
+                    aria-controls={`question-panel-${q.id}`}
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      onSelectQuestion(q.id);
+                    }}
+                    className={`flex items-center gap-1.5 rounded-full border px-3 py-1.5 text-xs font-medium transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-400 relative ${
+                      isActiveTab
+                        ? 'border-blue-400 bg-blue-500/30 text-white shadow-lg shadow-blue-900/30 backdrop-blur-md'
+                        : 'border-white/50 bg-white/10 text-white/80 hover:border-blue-300/70 hover:bg-white/20 backdrop-blur-sm'
+                    }`}
+                  >
+                    <span>{index + 1}</span>
+                    <span className={`flex items-center gap-1 ${intentClasses}`}>{icon}</span>
+                    {status === 'complete' && (
+                      <CheckCircleIcon className="h-4 w-4 text-green-500 absolute -top-1 -right-1 bg-slate-900 rounded-full p-0.5" />
+                    )}
+                  </button>
+                );
+              })}
+            </div>
+          </div>
+        )}
+
         {/* Prompt Header */}
-        <div className="space-y-3">
-          <div className="flex flex-wrap gap-2">
-            {question.required && <Badge variant="danger">Required</Badge>}
+        <div className="flex items-start justify-between gap-2 relative z-10">
+          <p className={`text-2xl font-semibold leading-snug flex-1 drop-shadow-lg ${isComplete ? 'text-white' : 'text-white'}`}>{question.prompt}</p>
+          <div className="flex flex-wrap gap-1.5 flex-shrink-0">
+            {question.required && <Badge variant="danger" className={`text-xs ${isComplete ? 'bg-white/30 text-white border-white/50' : ''}`}>{t('editor.ui.required' as any) as string || 'Required'}</Badge>}
             {isUnknown && (
-              <Badge variant="warning">
-                Unknown{question.statusNote ? ` — ${question.statusNote}` : ''}
+              <Badge variant="warning" className={`text-xs ${isComplete ? 'bg-white/30 text-white border-white/50' : ''}`}>
+                {t('editor.ui.unknown' as any) as string || 'Unknown'}{question.statusNote ? ` — ${question.statusNote}` : ''}
               </Badge>
             )}
           </div>
-          <p className="text-2xl font-semibold text-neutral-900 leading-snug">{question.prompt}</p>
         </div>
 
         {/* Text Editor */}
-        <div onClick={(e) => e.stopPropagation()}>
+        <div onClick={(e) => e.stopPropagation()} className="relative z-10 mb-3">
           <SimpleTextEditor
             content={question.answer ?? ''}
             onChange={onChange}
@@ -2231,20 +2349,45 @@ function QuestionCard({
         </div>
 
         {/* Action Buttons */}
-        <div className="flex flex-wrap gap-3" onClick={(e) => e.stopPropagation()}>
-          <Button type="button" onClick={onAskAI} className="flex-1 min-w-[200px] justify-center gap-2">
-            <span role="img" aria-hidden="true">
-              ✨
-            </span>
-            Ask the assistant
-          </Button>
+        <div className="flex flex-wrap gap-1.5 relative z-10" onClick={(e) => e.stopPropagation()}>
+          {!isComplete && (
+            <Button
+              type="button"
+              onClick={() => onMarkComplete(question.id)}
+              className="min-w-[180px] justify-center text-sm bg-green-500 hover:bg-green-600 text-white font-semibold rounded-lg shadow-md hover:shadow-lg transition-colors flex items-center gap-2"
+            >
+              <span className="text-lg font-bold">1)</span>
+              {t('editor.ui.complete' as any) as string || 'Complete'}
+            </Button>
+          )}
+          {isLastQuestion && (
+            <Button
+              type="button"
+              onClick={() => {
+                if (!isComplete) {
+                  onMarkComplete(question.id);
+                }
+                const currentSectionIndex = plan?.sections.findIndex(s => s.id === section?.id) ?? -1;
+                const nextSection = plan?.sections[currentSectionIndex + 1];
+                if (nextSection) {
+                  setActiveSection(nextSection.id);
+                }
+              }}
+              className="min-w-[180px] justify-center text-sm bg-blue-600 hover:bg-blue-700 text-white border border-blue-600"
+            >
+              {isSectionComplete 
+                ? (t('editor.ui.nextSection' as any) as string || 'Next Section')
+                : (t('editor.ui.completeSection' as any) as string || 'Complete Section')
+              }
+            </Button>
+          )}
           <Button
             type="button"
             variant="outline"
-            className="min-w-[200px] justify-center"
+            className={`min-w-[180px] justify-center text-sm text-white ${isComplete ? 'border-white/60 hover:bg-white/20' : isDraft ? 'border-white/50 hover:bg-white/15' : 'border-white/40 hover:bg-white/10'}`}
             onClick={handleToggleUnknown}
           >
-            {isUnknown ? 'Clear unknown status' : 'Mark as unknown'}
+            {isUnknown ? (t('editor.ui.clearUnknownStatus' as any) as string || 'Clear unknown status') : (t('editor.ui.markAsUnknown' as any) as string || 'Mark as unknown')}
           </Button>
         </div>
       </Card>
@@ -2295,20 +2438,9 @@ function RightPanel({
   onAnswerChange: (questionId: string, content: string) => void;
 }) {
   const [requirementsChecked, setRequirementsChecked] = React.useState(false);
-  const [conversationHistory, setConversationHistory] = React.useState<ConversationMessage[]>([]);
-  const activeQuestionKey = section && question ? `${section.id}::${question.id}` : null;
   // Map 'requirements' view to 'preview' for backward compatibility
   const activeView = view === 'requirements' ? 'preview' : view;
   const effectiveView = (['ai', 'data', 'preview'].includes(activeView) ? activeView : 'ai') as 'ai' | 'data' | 'preview';
-
-  React.useEffect(() => {
-    if (!activeQuestionKey) {
-      setConversationHistory([]);
-      return;
-    }
-    const stored = loadPlanConversations();
-    setConversationHistory(stored[activeQuestionKey] || []);
-  }, [activeQuestionKey, question?.aiContext?.updatedAt]);
 
   const handleQuickAsk = (intent: AISuggestionIntent) => {
     if (!question) return;
@@ -2321,61 +2453,58 @@ function RightPanel({
     onAskAI(question.id, { intent: 'data' });
   };
 
+  const { t } = useI18n();
   const tabs: Array<{ key: 'ai' | 'data' | 'preview'; label: string }> = [
-    { key: 'ai', label: 'Assistant' },
-    { key: 'data', label: 'Data' },
-    { key: 'preview', label: 'Preview' }
+    { key: 'ai', label: (t('editor.ui.tabs.assistant' as any) as string) || 'Assistant' },
+    { key: 'data', label: (t('editor.ui.tabs.data' as any) as string) || 'Data' },
+    { key: 'preview', label: (t('editor.ui.tabs.preview' as any) as string) || 'Preview' }
   ];
 
   return (
-    <aside className="card sticky top-24 space-y-4 lg:w-[380px]">
-      <div className="flex gap-2" role="tablist" aria-label="Editor tools">
-        {tabs.map(({ key, label }) => {
-          const isActive = effectiveView === key;
-          return (
-            <Button
-              key={key}
-              role="tab"
-              aria-selected={isActive}
-              aria-controls={`right-panel-${key}`}
-              variant="ghost"
-              size="sm"
-              className={`flex-1 justify-center rounded-full border ${
-                isActive ? 'border-primary-400 bg-primary-50 text-primary-700' : 'border-transparent text-neutral-500'
-              }`}
-              onClick={() => setView(key)}
-            >
-              {label}
-            </Button>
-          );
-        })}
-      </div>
+    <aside className="card sticky top-24 space-y-1.5 w-full lg:w-[400px] border-blue-600/50 relative overflow-hidden backdrop-blur-lg shadow-xl">
+      <div className="absolute inset-0 bg-gradient-to-b from-slate-950 via-blue-900 to-slate-950" />
+      <div className="absolute inset-0 bg-black/15 backdrop-blur-xl" />
+      <div className="relative z-10">
+        <div className="flex gap-1.5" role="tablist" aria-label="Editor tools">
+          {tabs.map(({ key, label }) => {
+            const isActive = effectiveView === key;
+            return (
+              <Button
+                key={key}
+                role="tab"
+                aria-selected={isActive}
+                aria-controls={`right-panel-${key}`}
+                variant="ghost"
+                size="sm"
+                className={`flex-1 justify-center rounded-lg border text-xs ${
+                  isActive ? 'border-blue-600 bg-blue-600 hover:bg-blue-700 text-white shadow-lg' : 'border-white/30 text-white/80 hover:text-white hover:bg-white/10'
+                }`}
+                onClick={() => setView(key)}
+              >
+                {label}
+              </Button>
+            );
+          })}
+        </div>
       <div
         id={`right-panel-${effectiveView}`}
         role="tabpanel"
-        className="max-h-[70vh] overflow-y-auto pr-1 space-y-4"
+        className="max-h-[70vh] overflow-y-auto pr-1 space-y-1.5"
       >
         {effectiveView === 'ai' && (
-          <div className="space-y-4">
-            <Button
-              onClick={() => onAskAI(question?.id)}
-              disabled={!question}
-              className="w-full justify-center"
-            >
-              Ask the assistant
-            </Button>
+          <div className="space-y-3">
             {question && (
-              <div className="space-y-4 text-sm">
+              <div className="space-y-3 text-sm">
                 <div>
-                  <p className="text-xs font-semibold text-slate-500 mb-2 uppercase tracking-wide">Current question</p>
-                  <p className="font-semibold text-slate-900 leading-snug mb-2">{question.prompt}</p>
-                      <p className="text-xs text-slate-600">
-                        Status: <span className="font-medium">{question.status}</span>
+                  <p className="text-xs font-medium text-white/70 mb-1.5 uppercase tracking-wide">{t('editor.ui.currentQuestion' as any) as string || 'Current question'}</p>
+                  <p className="font-semibold text-white leading-snug mb-1.5 text-base">{question.prompt}</p>
+                      <p className="text-xs text-white/70">
+                        {t('editor.ui.status' as any) as string || 'Status'}: <span className="font-medium text-white">{question.status}</span>
                         {question.status === 'blank' || question.status === 'unknown'
-                          ? ' (AI will focus on guidance)'
-                          : ' (AI will focus on critique)'}
+                          ? ` (${t('editor.ui.aiFocusGuidance' as any) as string || 'AI will focus on guidance'})`
+                          : ` (${t('editor.ui.aiFocusCritique' as any) as string || 'AI will focus on critique'})`}
                       </p>
-                  <div className="mt-3 flex flex-wrap gap-2">
+                  <div className="mt-2 flex flex-wrap gap-1.5">
                     <Button
                       type="button"
                       variant="outline"
@@ -2401,35 +2530,36 @@ function RightPanel({
                       onClick={() => handleQuickAsk('data')}
                       disabled={!question}
                     >
-                      Suggest data/KPIs
+                      {t('editor.ui.suggestDataKPIs' as any) as string || 'Suggest data/KPIs'}
                     </Button>
                   </div>
                 </div>
                 {question.answer ? (
-                  <div>
-                    <p className="text-xs text-slate-500 mb-1">Answer preview</p>
-                    <p className="text-slate-600">{question.answer.substring(0, 200)}...</p>
-                    <p className="text-xs text-slate-400 mt-1">
+                  <div className="bg-white/10 rounded-lg p-3 border border-white/20">
+                    <p className="text-xs font-medium text-white/90 mb-2">Answer preview</p>
+                    <p className="text-white text-sm leading-relaxed mb-2">{question.answer.substring(0, 200)}...</p>
+                    <p className="text-xs text-white/70">
                       {question.answer.split(/\s+/).length} words
                     </p>
                   </div>
                 ) : (
-                  <p className="text-slate-400 text-sm">
-                    Start typing to provide context—the assistant draws on previous answers, datasets, and program requirements.
+                  <p className="text-white/80 text-sm leading-relaxed bg-white/5 rounded-lg p-3 border border-white/10">
+                    {t('editor.ui.startTypingHint' as any) as string || 'Start typing to provide context—the assistant draws on previous answers, datasets, and program requirements.'}
                   </p>
                 )}
                 {question.suggestions && question.suggestions.length > 0 && (
                   <div className="space-y-2">
-                    <p className="text-xs font-semibold text-slate-700">Latest response</p>
+                    <p className="text-xs font-medium text-white">Latest response</p>
                     {question.suggestions.slice(-1).map((suggestion, index) => (
-                      <div key={index} className="border border-blue-100 bg-blue-50 rounded-lg p-3">
-                        <p className="text-sm text-blue-700 mb-2">{suggestion}</p>
+                      <div key={index} className="border border-white/30 bg-white/10 rounded-lg p-2.5 backdrop-blur-sm">
+                        <p className="text-sm text-white mb-2 leading-relaxed">{suggestion}</p>
                         <div className="flex gap-2">
                           <Button
                             type="button"
                             variant="ghost"
                             size="sm"
                             onClick={() => navigator.clipboard.writeText(suggestion)}
+                            className="text-white hover:text-white hover:bg-white/10"
                           >
                             Copy
                           </Button>
@@ -2447,8 +2577,9 @@ function RightPanel({
                                 onAnswerChange(question.id, newContent);
                               }
                             }}
+                            className="text-white hover:text-white hover:bg-white/10"
                           >
-                            Insert
+                            {t('editor.ui.insert' as any) as string || 'Insert'}
                           </Button>
                         </div>
                       </div>
@@ -2459,7 +2590,7 @@ function RightPanel({
                           // TODO: Implement conversation history modal
                           console.log('View full conversation');
                         }}
-                        className="text-xs text-blue-600 hover:text-blue-800 font-medium"
+                        className="text-xs text-blue-300 hover:text-blue-200 font-medium"
                       >
                         View full conversation ({question.suggestions.length} responses)
                       </button>
@@ -2468,15 +2599,16 @@ function RightPanel({
                 )}
                 {/* Quick Actions */}
                 {question && question.answer && (
-                  <div className="space-y-2 pt-2 border-t border-slate-200">
-                    <p className="text-xs font-semibold text-slate-700">Quick actions</p>
-                    <div className="flex flex-wrap gap-2">
+                  <div className="space-y-2 pt-2 border-t border-white/20">
+                    <p className="text-xs font-medium text-white">Quick actions</p>
+                    <div className="flex flex-wrap gap-1.5">
                       {['Tone', 'Translate', 'Summarize', 'Expand'].map((action) => (
                         <Button
                           key={action}
                           variant="outline"
                           size="sm"
                           onClick={() => console.log(`Quick action: ${action}`)}
+                          className="border-white/40 text-white hover:text-white hover:bg-white/10"
                         >
                           {action}
                         </Button>
@@ -2484,68 +2616,11 @@ function RightPanel({
                     </div>
                   </div>
                 )}
-                {conversationHistory.length > 0 && (
-                  <div className="border-t border-slate-200 pt-3 space-y-2 max-h-48 overflow-y-auto">
-                    <div className="flex items-center justify-between">
-                      <p className="text-xs uppercase text-slate-400">Conversation history</p>
-                      <button
-                        type="button"
-                        onClick={() => setView('ai')}
-                        className="text-[10px] text-blue-600 hover:underline"
-                      >
-                        Refresh
-                      </button>
-                    </div>
-                    {conversationHistory
-                      .slice()
-                      .reverse()
-                      .map((message) => (
-                        <div
-                          key={message.id}
-                          className="rounded-xl border border-slate-100 bg-slate-50 p-2 text-xs text-slate-600 space-y-1"
-                        >
-                          <div className="flex items-center justify-between text-[10px] uppercase tracking-wide text-slate-400">
-                            <span>{message.role === 'assistant' ? 'Assistant' : 'You'}</span>
-                            <span>{new Date(message.timestamp).toLocaleString()}</span>
-                          </div>
-                          <p className="text-slate-700">{message.content}</p>
-                          {message.role === 'assistant' && (
-                            <div className="flex gap-2">
-                              <Button
-                                type="button"
-                                variant="ghost"
-                                size="sm"
-                                onClick={() => navigator.clipboard.writeText(message.content)}
-                              >
-                                Copy
-                              </Button>
-                              <Button
-                                type="button"
-                                variant="ghost"
-                                size="sm"
-                                onClick={() => {
-                                  if (question) {
-                                    const currentAnswer = question.answer ?? '';
-                                    const newContent = currentAnswer
-                                      ? `${currentAnswer}\n\n${message.content}`
-                                      : message.content;
-                                    onAnswerChange(question.id, newContent);
-                                  }
-                                }}
-                              >
-                                Insert
-                              </Button>
-                            </div>
-                          )}
-                        </div>
-                      ))}
-                  </div>
-                )}
               </div>
             )}
             {!question && (
               <div className="text-center py-8 text-slate-400 text-sm">
-                Select a question to receive AI suggestions.
+                {t('editor.ui.selectQuestion' as any) as string || 'Select a question to receive AI suggestions.'}
               </div>
             )}
           </div>
@@ -2613,9 +2688,9 @@ function RightPanel({
                         <div className="bg-green-50 border border-green-200 rounded-lg p-3">
                           <div className="flex items-center gap-2 mb-1">
                             <span className="text-green-600 text-sm">✓</span>
-                            <p className="text-xs font-semibold text-green-700">Current question passes validation</p>
+                            <p className="text-xs font-semibold text-green-700">{t('editor.ui.currentQuestionPasses' as any) as string || 'Current question passes validation'}</p>
                           </div>
-                          <p className="text-xs text-green-600 mt-1">All requirements are met for this prompt.</p>
+                          <p className="text-xs text-green-600 mt-1">{t('editor.ui.validation.allRequirementsMet' as any) as string || 'All requirements are met for this prompt.'}</p>
                         </div>
                       );
                     }
@@ -2773,6 +2848,7 @@ function RightPanel({
           </div>
         )}
       </div>
+      </div>
     </aside>
   );
 }
@@ -2786,6 +2862,7 @@ function UnknownNoteModal({
   onClose: () => void;
   onSave: (note?: string) => void;
 }) {
+  const { t } = useI18n();
   const [note, setNote] = useState('');
 
   useEffect(() => {
@@ -2804,12 +2881,12 @@ function UnknownNoteModal({
         className="card max-w-md w-full space-y-4"
         role="dialog"
         aria-modal="true"
-        aria-label="Add note explaining unknown status"
+        aria-label={t('editor.ui.unknownNoteLabel' as any) as string || 'Add note explaining unknown status'}
       >
         <div className="space-y-1">
-          <h2 className="text-lg font-semibold text-neutral-900">Add a note</h2>
+          <h2 className="text-lg font-semibold text-neutral-900">{t('editor.ui.unknownNoteLabel' as any) as string || 'Add a note'}</h2>
           <p className="text-sm text-neutral-600">
-            Explain why this answer is marked as unknown so collaborators understand the gap.
+            {t('editor.ui.unknownNoteDescription' as any) as string || 'Explain why this answer is marked as unknown so collaborators understand the gap.'}
           </p>
         </div>
         <textarea
@@ -2817,17 +2894,17 @@ function UnknownNoteModal({
           onChange={(event) => setNote(event.target.value)}
           className="w-full rounded-lg border border-neutral-200 bg-white px-3 py-2 text-sm text-neutral-900 focus:border-primary-400 focus:ring-2 focus:ring-primary/30"
           rows={4}
-          placeholder="Optional note"
+          placeholder={t('editor.ui.unknownNotePlaceholder' as any) as string || 'Optional note'}
         />
         <div className="flex justify-end gap-2">
           <Button type="button" variant="ghost" onClick={onClose}>
-            Cancel
+            {t('editor.ui.cancel' as any) as string || 'Cancel'}
           </Button>
           <Button
             type="button"
             onClick={() => onSave(note.trim() ? note.trim() : undefined)}
           >
-            Save note
+            {t('editor.ui.saveNote' as any) as string || 'Save note'}
           </Button>
         </div>
       </div>
@@ -2858,8 +2935,8 @@ function SimpleTextEditor({
 
   return (
     <div
-      className={`rounded-2xl border bg-surface transition-all duration-200 ${
-        isFocused ? 'border-primary-400 ring-2 ring-primary/20' : 'border-neutral-200'
+      className={`rounded-xl border bg-white/95 backdrop-blur-sm transition-all duration-200 shadow-md ${
+        isFocused ? 'border-blue-400 ring-1 ring-blue/20' : 'border-white/30'
       }`}
       onClick={() => textareaRef.current?.focus()}
     >
@@ -2871,11 +2948,11 @@ function SimpleTextEditor({
         onBlur={() => setIsFocused(false)}
         placeholder={placeholder || 'Start writing...'}
         aria-label={placeholder || 'Prompt response'}
-        className="w-full resize-none bg-transparent p-4 text-base leading-relaxed text-neutral-900 placeholder:text-neutral-400 focus:outline-none md:min-h-[280px] min-h-[200px]"
+        className="w-full resize-none bg-transparent p-3 text-sm leading-relaxed text-neutral-800 placeholder:text-neutral-400 focus:outline-none md:min-h-[120px] min-h-[90px]"
         style={{
           fontFamily: 'Inter, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif',
-          lineHeight: '1.8',
-          fontSize: '16px'
+          lineHeight: '1.7',
+          fontSize: '14px'
         }}
       />
     </div>
