@@ -548,6 +548,14 @@ export default function ProgramFinder({
     setIsConfirmDialogOpen(false);
     setConfirmProgram(null);
   }, [confirmProgram, persistSelectedProgram]);
+
+  const handleRetryWizard = useCallback(() => {
+    setEmptyResults();
+    setHasAttemptedGeneration(false);
+    setIsConfirmDialogOpen(false);
+    setConfirmProgram(null);
+    setMobileActiveTab('questions');
+  }, [setEmptyResults]);
   
   // Guided mode state
   const [answers, setAnswers] = useState<Record<string, any>>({});
@@ -1630,7 +1638,7 @@ const REQUIRED_QUESTION_IDS = ['company_type', 'project_scope', 'location', 'ind
                     <div className="flex flex-col gap-3 sm:flex-row sm:justify-center">
                       <button
                         type="button"
-                        onClick={() => setMobileActiveTab('questions')}
+                        onClick={handleRetryWizard}
                         className="rounded-lg bg-blue-600 px-4 py-2.5 text-sm font-semibold text-white shadow hover:bg-blue-700 transition-colors"
                       >
                         {confirmDialogCopy.retryButton}
