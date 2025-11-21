@@ -1649,7 +1649,7 @@ function PlanConfigurator({
     'No program connected yet';
 
   const headerCardClasses =
-    'h-full space-y-2 p-4 sm:p-5 bg-gradient-to-br from-primary-50/40 via-white to-white shadow-sm';
+    'relative h-full space-y-3 rounded-2xl border border-primary-100 bg-gradient-to-br from-[#0f1e3a]/5 via-white to-white px-4 py-4 shadow-sm';
 
   return (
     <div className="grid grid-cols-1 gap-3 md:grid-cols-3">
@@ -1661,11 +1661,11 @@ function PlanConfigurator({
         <p className="text-lg font-semibold text-neutral-900 leading-tight truncate">
           {plan.titlePage.planTitle || 'Business Plan'}
         </p>
-        <p className="text-xs text-neutral-500">{planSubtitle}</p>
+        <p className="text-sm font-medium text-neutral-600">{planSubtitle}</p>
       </Card>
 
       {/* Product Type Selector */}
-      <Card className={`${headerCardClasses} space-y-3`}>
+      <Card className={headerCardClasses}>
         <label className="block space-y-2">
           <span className="text-[11px] font-semibold uppercase tracking-[0.2em] text-neutral-500">
             Product Type
@@ -1687,13 +1687,27 @@ function PlanConfigurator({
             </span>
           </div>
         </label>
-        <p className="text-xs text-neutral-600 leading-snug">
+        <p className="text-sm font-medium text-neutral-600 leading-snug">
           {PRODUCT_TYPE_OPTIONS.find((option) => option.value === plan.productType)?.description}
         </p>
       </Card>
 
       {/* Program Connection */}
-      <Card className={`${headerCardClasses} space-y-3`}>
+      <Card className={`${headerCardClasses} space-y-4`}>
+        <div className="rounded-2xl border border-primary-100 bg-primary-50/60 px-3 py-2.5 flex items-center justify-between gap-3">
+          <div className="text-sm text-primary-900">
+            <p className="font-semibold">Need program ideas?</p>
+            <p className="text-xs text-primary-700">Browse curated funding options.</p>
+          </div>
+          <Button
+            variant="ghost"
+            size="sm"
+            className="text-primary-800 hover:text-primary-900"
+            onClick={onOpenProgramFinder}
+          >
+            Programm wählen
+          </Button>
+        </div>
         <p className="text-[11px] font-semibold uppercase tracking-[0.2em] text-neutral-500">
           Program Connection
         </p>
