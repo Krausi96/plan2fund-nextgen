@@ -4,6 +4,7 @@
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useRouter } from 'next/router';
 import { create } from 'zustand';
+import { createPortal } from 'react-dom';
 import {
   AncillaryContent,
   AppendixItem,
@@ -46,6 +47,10 @@ import type { PlanSection as StoredPlanSection } from '@/shared/user/storage/pla
 import DataPanel from './InlineTableCreator';
 import PreviewPane from './SectionContentRenderer';
 import AncillaryEditorPanel from './RequirementsModal';
+import { Button } from '@/shared/components/ui/button';
+import { Badge } from '@/shared/components/ui/badge';
+import { Card } from '@/shared/components/ui/card';
+import { Progress } from '@/shared/components/ui/progress';
 
 type ProgressSummary = { id: string; title: string; progress: number };
 
@@ -177,6 +182,47 @@ const SECTION_TONE_HINTS: Record<string, string> = {
     'Clarify each partner’s role, governance, and commitment. Use concise paragraphs per the calmer layout guidance.'
 };
 
+type IconProps = React.SVGProps<SVGSVGElement>;
+
+const ChevronLeftIcon = (props: IconProps) => (
+  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" {...props}>
+    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M15.75 19.5 8.25 12l7.5-7.5" />
+  </svg>
+);
+
+const ChevronRightIcon = (props: IconProps) => (
+  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" {...props}>
+    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M8.25 4.5 15.75 12l-7.5 7.5" />
+  </svg>
+);
+
+const CheckCircleIcon = (props: IconProps) => (
+  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" {...props}>
+    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="m9 12.75 1.5 1.5 4-4" />
+    <circle cx="12" cy="12" r="8.25" strokeWidth={1.5} />
+  </svg>
+);
+
+const QuestionMarkCircleIcon = (props: IconProps) => (
+  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" {...props}>
+    <circle cx="12" cy="12" r="8.25" strokeWidth={1.5} />
+    <path
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      strokeWidth={1.5}
+      d="M12 15.75h.007M9.75 9a2.25 2.25 0 114.5 0c0 1.125-.75 1.5-1.5 2.25-.375.375-.75.75-.75 1.5"
+    />
+  </svg>
+);
+
+const EllipsisHorizontalIcon = (props: IconProps) => (
+  <svg viewBox="0 0 24 24" fill="currentColor" {...props}>
+    <circle cx="6" cy="12" r="1.5" />
+    <circle cx="12" cy="12" r="1.5" />
+    <circle cx="18" cy="12" r="1.5" />
+  </svg>
+);
+
 function mapProgramTypeToFunding(programType?: string): {
   templateFundingType: TemplateFundingType;
   fundingProgramTag: FundingProgramType;
@@ -247,7 +293,7 @@ const useEditorStore = create<EditorStoreState>((set, get) => ({
         }
       };
 
-      // Auto-select Section 2 (Project Description) as recommended starting point
+      // Auto-select Section 2 (Project Description) as recommended primary starting point
       // Executive Summary should be completed last as it summarizes other sections
       const projectDescriptionSection = sections.find(s => s.id === 'project_description');
       const initialSection = projectDescriptionSection ?? sections[0] ?? null;
@@ -1486,9 +1532,9 @@ export default function Editor({ product = 'submission' }: EditorProps) {
   }
 
   return (
-    <div className="min-h-screen bg-[#f6f8fb]">
-      <header className="border-b-2 border-slate-200 bg-white/95 backdrop-blur-sm shadow-sm">
-        <div className="mx-auto max-w-[1400px] px-4 sm:px-6 lg:px-12 py-3">
+    <div className="min-h-screen bg-neutral-50 text-textPrimary">
+      <header className="sticky top-0 z-40 border-b border-neutral-200 bg-white/90 backdrop-blur-sm">
+        <div className="container py-4">
           <PlanConfigurator
             plan={plan}
             programSummary={programSummary ?? plan.programSummary ?? null}
@@ -1502,8 +1548,8 @@ export default function Editor({ product = 'submission' }: EditorProps) {
       </header>
 
       {/* Section Navigation Bar */}
-      <div className="border-b-2 border-slate-200 bg-white sticky top-0 z-30 shadow-sm">
-        <div className="mx-auto max-w-[1400px] px-4 sm:px-6 lg:px-12">
+      <div className="border-b border-neutral-200 bg-white shadow-sm sticky top-[72px] z-30">
+        <div className="container">
           <SectionNavigationBar
             plan={plan}
             activeSectionId={activeSectionId ?? plan.sections[0]?.id ?? null}
@@ -1513,7 +1559,7 @@ export default function Editor({ product = 'submission' }: EditorProps) {
       </div>
 
       {/* Main Content Area */}
-      <div className="mx-auto max-w-[1400px] px-4 sm:px-6 lg:px-12 py-8 flex flex-col gap-6 lg:flex-row lg:items-start">
+      <div className="container py-8 flex flex-col gap-6 lg:flex-row lg:items-start">
         <div className="flex-1 min-w-0">
           {isAncillaryView ? (
             <AncillaryWorkspace
@@ -1595,22 +1641,31 @@ function PlanConfigurator({
   programError: string | null;
 }) {
   return (
-    <div className="grid grid-cols-3 gap-4">
-      {/* Column 1: Plan Title */}
-      <div className="space-y-1">
-        <p className="text-xs font-semibold text-slate-500 uppercase tracking-wide">Plan Title</p>
-        <p className="text-base font-bold text-slate-900 leading-tight">{plan.titlePage.planTitle || 'Business Plan'}</p>
-      </div>
-      
-      {/* Column 2: Product Type Selector */}
-      <div className="space-y-1">
-        <label className="block">
-          <span className="text-xs font-semibold text-slate-500 uppercase tracking-wide block mb-1.5">Product Type</span>
+    <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
+      {/* Plan Title */}
+      <Card className="h-full space-y-2">
+        <p className="text-[11px] font-semibold uppercase tracking-[0.2em] text-neutral-500">
+          Plan Title
+        </p>
+        <p className="text-lg font-semibold text-neutral-900 leading-tight truncate">
+          {plan.titlePage.planTitle || 'Business Plan'}
+        </p>
+        <p className="text-sm text-neutral-500">
+          {plan.metadata?.programName ?? plan.fundingProgram ?? 'Unassigned program'}
+        </p>
+      </Card>
+
+      {/* Product Type Selector */}
+      <Card className="h-full space-y-3">
+        <label className="block space-y-2">
+          <span className="text-[11px] font-semibold uppercase tracking-[0.2em] text-neutral-500">
+            Product Type
+          </span>
           <div className="relative">
             <select
               value={plan.productType ?? 'submission'}
               onChange={(event) => onChangeProduct(event.target.value as ProductType)}
-              className="w-full appearance-none rounded-lg border-2 border-slate-300 bg-white px-3 py-2 text-sm font-semibold text-slate-900 focus:border-blue-500 focus:ring-2 focus:ring-blue-200 shadow-sm"
+              className="w-full appearance-none rounded-lg border border-neutral-200 bg-surface px-3 py-2 text-sm font-semibold text-neutral-900 focus:border-primary-400 focus:ring-2 focus:ring-primary/30"
             >
               {PRODUCT_TYPE_OPTIONS.map((option) => (
                 <option key={option.value} value={option.value}>
@@ -1618,27 +1673,29 @@ function PlanConfigurator({
                 </option>
               ))}
             </select>
-            <span className="pointer-events-none absolute inset-y-0 right-3 flex items-center text-slate-500 text-sm font-bold">▾</span>
+            <span className="pointer-events-none absolute inset-y-0 right-3 flex items-center text-neutral-500 text-sm font-bold">
+              ▾
+            </span>
           </div>
         </label>
-        <p className="text-[11px] text-slate-600 leading-tight">
+        <p className="text-xs text-neutral-600 leading-snug">
           {PRODUCT_TYPE_OPTIONS.find((option) => option.value === plan.productType)?.description}
         </p>
-      </div>
-      
-      {/* Column 3: Program Connection */}
-      <div className="space-y-1">
-        <p className="text-xs font-semibold text-slate-500 uppercase tracking-wide">Program Connection</p>
-        <div className="relative">
-          <ProgramConnectionCard
-            programSummary={programSummary}
-            onConnectProgram={onConnectProgram}
-            onOpenProgramFinder={onOpenProgramFinder}
-            loading={programLoading}
-            error={programError}
-          />
-        </div>
-      </div>
+      </Card>
+
+      {/* Program Connection */}
+      <Card className="h-full space-y-3">
+        <p className="text-[11px] font-semibold uppercase tracking-[0.2em] text-neutral-500">
+          Program Connection
+        </p>
+        <ProgramConnectionCard
+          programSummary={programSummary}
+          onConnectProgram={onConnectProgram}
+          onOpenProgramFinder={onOpenProgramFinder}
+          loading={programLoading}
+          error={programError}
+        />
+      </Card>
     </div>
   );
 }
@@ -1658,6 +1715,27 @@ function ProgramConnectionCard({
 }) {
   const [inputValue, setInputValue] = useState('');
   const [isExpanded, setIsExpanded] = useState(false);
+  const popoverRef = useRef<HTMLDivElement | null>(null);
+
+  useEffect(() => {
+    if (!isExpanded) return;
+    const handleClickOutside = (event: MouseEvent) => {
+      if (popoverRef.current && !popoverRef.current.contains(event.target as Node)) {
+        setIsExpanded(false);
+      }
+    };
+    const handleKey = (event: KeyboardEvent) => {
+      if (event.key === 'Escape') {
+        setIsExpanded(false);
+      }
+    };
+    document.addEventListener('mousedown', handleClickOutside);
+    document.addEventListener('keydown', handleKey);
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+      document.removeEventListener('keydown', handleKey);
+    };
+  }, [isExpanded]);
   useEffect(() => {
     if (programSummary) {
       setInputValue('');
@@ -1667,69 +1745,72 @@ function ProgramConnectionCard({
 
   if (programSummary) {
     return (
-      <div className="rounded-lg border-2 border-blue-200 bg-blue-50 px-3 py-2">
-        <div className="flex items-center justify-between gap-2">
-          <p className="text-xs font-semibold text-blue-900 leading-tight truncate flex-1">{programSummary.name}</p>
-          <button
+      <div className="rounded-xl border border-primary-200 bg-primary-50/60 px-3 py-2.5">
+        <div className="flex items-center gap-3">
+          <div className="min-w-0 flex-1">
+            <p className="text-sm font-semibold text-primary-900 truncate">{programSummary.name}</p>
+            {programSummary.amountRange && (
+              <p className="text-xs text-primary-700 mt-0.5">{programSummary.amountRange}</p>
+            )}
+          </div>
+          <Button
+            variant="ghost"
+            size="sm"
+            className="text-primary-700 hover:text-primary-900"
             onClick={() => onConnectProgram(null)}
-            className="text-slate-500 hover:text-slate-700 flex-shrink-0 text-sm font-bold"
-            title="Disconnect program"
           >
-            ×
-          </button>
+            Disconnect
+          </Button>
         </div>
-        {programSummary.amountRange && (
-          <p className="text-[10px] text-blue-700 mt-1">{programSummary.amountRange}</p>
-        )}
       </div>
-    );
-  }
-
-  if (!isExpanded) {
-    return (
-      <button
-        onClick={() => setIsExpanded(true)}
-        className="w-full text-xs font-semibold text-slate-700 hover:text-slate-900 px-3 py-2 border-2 border-slate-300 rounded-lg hover:border-slate-400 bg-white transition shadow-sm"
-      >
-        Connect program
-      </button>
     );
   }
 
   return (
-    <div className="absolute right-0 top-full mt-2 w-80 rounded-lg border-2 border-slate-300 bg-white shadow-lg p-3 space-y-2 z-50">
-      <div className="flex items-center justify-between">
-        <p className="text-xs font-semibold text-slate-800">Connect program</p>
-        <button
-          onClick={() => setIsExpanded(false)}
-          className="text-slate-400 hover:text-slate-600 text-sm font-bold"
-        >
-          ×
-        </button>
-      </div>
-      <div className="flex gap-2">
-        <input
-          value={inputValue}
-          onChange={(event) => setInputValue(event.target.value)}
-          placeholder="Program ID (e.g., page_123)"
-          className="flex-1 border-2 border-slate-200 rounded px-2 py-1.5 text-xs focus:outline-none focus:ring-2 focus:ring-blue-200 focus:border-blue-400"
-        />
-        <button
-          onClick={() => onConnectProgram(inputValue)}
-          disabled={loading}
-          className="px-3 py-1.5 text-xs font-semibold rounded-lg bg-blue-600 text-white disabled:opacity-50 hover:bg-blue-700 shadow-sm"
-        >
-          {loading ? '...' : 'Connect'}
-        </button>
-      </div>
-      {error && <p className="text-xs text-red-600 font-medium">{error}</p>}
-      <button
-        type="button"
-        onClick={onOpenProgramFinder}
-        className="text-xs text-blue-600 hover:text-blue-800 underline font-medium"
+    <div className="space-y-3" ref={popoverRef}>
+      <Button
+        variant="secondary"
+        size="sm"
+        className="w-full justify-between"
+        onClick={() => setIsExpanded((prev) => !prev)}
+        aria-expanded={isExpanded}
+        aria-controls="program-connector"
       >
-        Open Program Finder
-      </button>
+        {isExpanded ? 'Hide program connector' : 'Connect program'}
+        <span aria-hidden="true">{isExpanded ? '−' : '+'}</span>
+      </Button>
+      {isExpanded && (
+        <div
+          id="program-connector"
+          className="rounded-xl border border-neutral-200 bg-surfaceAlt p-4 space-y-3"
+          role="dialog"
+          aria-label="Connect funding program"
+        >
+          <div className="space-y-1">
+            <p className="text-sm font-semibold text-neutral-800">Program ID</p>
+            <input
+              value={inputValue}
+              onChange={(event) => setInputValue(event.target.value)}
+              placeholder="page_123 or URL"
+              className="w-full rounded-lg border border-neutral-200 bg-white px-3 py-2 text-sm text-neutral-900 focus:border-primary-400 focus:ring-2 focus:ring-primary/30"
+            />
+          </div>
+          {error && <p className="text-xs text-error">{error}</p>}
+          <div className="flex flex-wrap gap-2">
+            <Button
+              type="button"
+              onClick={() => onConnectProgram(inputValue)}
+              disabled={loading || !inputValue.trim()}
+              className="flex-1"
+            >
+              {loading ? 'Connecting…' : 'Connect'}
+            </Button>
+            <Button type="button" variant="outline" size="sm" onClick={onOpenProgramFinder}>
+              Open finder
+            </Button>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
@@ -1754,83 +1835,86 @@ function SectionNavigationBar({
     }
   ];
 
-  const scrollLeft = () => {
+  const scrollBy = (direction: 'left' | 'right') => {
     if (scrollContainerRef.current) {
-      scrollContainerRef.current.scrollBy({ left: -200, behavior: 'smooth' });
+      scrollContainerRef.current.scrollBy({ left: direction === 'left' ? -240 : 240, behavior: 'smooth' });
     }
   };
 
-  const scrollRight = () => {
-    if (scrollContainerRef.current) {
-      scrollContainerRef.current.scrollBy({ left: 200, behavior: 'smooth' });
+  const handleKeyNavigation = (event: React.KeyboardEvent<HTMLDivElement>) => {
+    if (event.key === 'ArrowLeft') {
+      scrollBy('left');
+      event.preventDefault();
+    }
+    if (event.key === 'ArrowRight') {
+      scrollBy('right');
+      event.preventDefault();
     }
   };
 
   return (
-    <div className="flex items-center gap-3">
-      <button
-        onClick={scrollLeft}
-        className="flex-shrink-0 rounded-lg border border-slate-200 bg-white p-2 text-slate-600 hover:border-slate-300 hover:bg-slate-50 transition"
-        aria-label="Scroll left"
+    <div className="flex items-center gap-3 py-3">
+      <Button
+        variant="ghost"
+        size="sm"
+        onClick={() => scrollBy('left')}
+        aria-label="Scroll sections left"
+        className="border border-neutral-200 bg-white"
       >
-        ←
-      </button>
-      <div ref={scrollContainerRef} className="flex items-center gap-3 overflow-x-auto py-3 flex-1 scrollbar-hide">
+        <ChevronLeftIcon className="h-4 w-4" />
+      </Button>
+      <div
+        ref={scrollContainerRef}
+        className="flex flex-1 items-center gap-3 overflow-x-auto scrollbar-hide"
+        role="tablist"
+        aria-label="Plan sections"
+        tabIndex={0}
+        onKeyDown={handleKeyNavigation}
+      >
         {sections.map((section, index) => {
-        const totalQuestions = section.questions.length;
-        const answeredQuestions = section.questions.filter(
-          (question) => question.status === 'complete'
-        ).length;
-        const completion =
-          section.progress ??
-          (totalQuestions === 0 ? 0 : Math.round((answeredQuestions / totalQuestions) * 100));
-        const isAncillary = section.id === ANCILLARY_SECTION_ID;
-        const isActive = section.id === activeSectionId;
+          const totalQuestions = section.questions.length;
+          const answeredQuestions = section.questions.filter((question) => question.status === 'complete').length;
+          const completion =
+            section.progress ??
+            (totalQuestions === 0 ? 0 : Math.round((answeredQuestions / totalQuestions) * 100));
+          const isAncillary = section.id === ANCILLARY_SECTION_ID;
+          const isActive = section.id === activeSectionId;
+          const progressIntent: 'success' | 'warning' | 'neutral' =
+            completion === 100 ? 'success' : completion > 0 ? 'warning' : 'neutral';
 
-        return (
-          <button
-            key={section.id}
-            onClick={() => onSelectSection(section.id)}
-            className={`flex-shrink-0 rounded-lg border-2 px-4 py-2.5 min-w-[140px] transition-all focus:outline-none focus:ring-2 focus:ring-blue-200 ${
-              isActive
-                ? 'border-blue-600 bg-blue-600 text-white shadow-md'
-                : 'border-slate-200 bg-white text-slate-700 hover:border-slate-300 hover:bg-slate-50'
-            }`}
-          >
-            <div className="flex flex-col gap-1.5">
-              <div className="flex items-center justify-between">
-                {!isAncillary && (
-                  <span className={`text-xs font-semibold ${isActive ? 'text-blue-100' : 'text-slate-500'}`}>
-                    {String(index + 1).padStart(2, '0')}
-                  </span>
-                )}
-                <span className={`text-xs font-medium ${isActive ? 'text-white' : completion === 100 ? 'text-green-600' : completion > 0 ? 'text-amber-600' : 'text-slate-400'}`}>
-                  {completion}%
-                </span>
+          return (
+            <button
+              key={section.id}
+              onClick={() => onSelectSection(section.id)}
+              aria-current={isActive ? 'page' : undefined}
+              role="tab"
+              className={`min-w-max rounded-2xl border px-4 py-3 text-left transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary ${
+                isActive
+                  ? 'border-primary-500 bg-primary-50 text-primary-900 shadow-md'
+                  : 'border-neutral-200 bg-white text-neutral-800 hover:border-primary-200'
+              }`}
+            >
+              <div className="flex flex-col gap-2">
+                <div className="flex items-center justify-between text-xs font-semibold text-neutral-500">
+                  {!isAncillary && <span>{String(index + 1).padStart(2, '0')}</span>}
+                  <span className="text-neutral-600">{completion}%</span>
+                </div>
+                <Progress value={completion} intent={progressIntent} size="xs" />
+                <p className="text-sm font-semibold leading-tight">{section.title}</p>
               </div>
-              <div className="w-full h-1 bg-slate-200 rounded-full overflow-hidden">
-                <div
-                  className={`h-full transition-all ${
-                    completion === 100 ? 'bg-green-500' : completion > 0 ? 'bg-amber-500' : 'bg-slate-300'
-                  }`}
-                  style={{ width: `${completion}%` }}
-                />
-              </div>
-              <p className={`text-sm font-semibold leading-tight text-left ${isActive ? 'text-white' : 'text-slate-900'}`}>
-                {section.title}
-              </p>
-            </div>
-          </button>
-        );
-      })}
+            </button>
+          );
+        })}
       </div>
-      <button
-        onClick={scrollRight}
-        className="flex-shrink-0 rounded-lg border border-slate-200 bg-white p-2 text-slate-600 hover:border-slate-300 hover:bg-slate-50 transition"
-        aria-label="Scroll right"
+      <Button
+        variant="ghost"
+        size="sm"
+        onClick={() => scrollBy('right')}
+        aria-label="Scroll sections right"
+        className="border border-neutral-200 bg-white"
       >
-        →
-      </button>
+        <ChevronRightIcon className="h-4 w-4" />
+      </Button>
     </div>
   );
 }
@@ -1867,36 +1951,34 @@ function AncillaryWorkspace({
   progressSummary: ProgressSummary[];
 }) {
   return (
-    <main className="flex flex-col h-screen bg-gradient-to-b from-[#f6f9ff] to-white">
-      <div className="sticky top-0 z-10 bg-gradient-to-r from-blue-50 to-white px-6 sm:px-10 lg:px-14 py-6 border-b border-slate-200/70">
-        <p className="text-[11px] tracking-[0.4em] uppercase text-slate-500">Ancillary</p>
-        <h1 className="text-2xl font-semibold text-slate-900">Front & back matter</h1>
-        <p className="text-sm text-slate-600 max-w-3xl mt-1">
-          Maintain the title page, table of contents, lists of figures tables, references, and appendices in one place.
-          This mirrors the spec’s guidance that ancillary pieces bookend the narrative.
+    <div className="space-y-6">
+      <div className="card bg-white lg:sticky lg:top-4 lg:z-10">
+        <p className="text-[11px] tracking-[0.35em] uppercase text-neutral-500">Ancillary</p>
+        <h1 className="text-2xl font-semibold text-neutral-900 mt-1">Front & back matter</h1>
+        <p className="text-sm text-neutral-600 mt-2">
+          Maintain the title page, table of contents, references, and appendices in one cohesive workspace. These
+          elements frame the narrative, so keeping them aligned here speeds up reviews.
         </p>
       </div>
-      <div className="flex-1 overflow-y-auto px-4 sm:px-8 lg:px-14 py-8">
-        <div className="max-w-5xl mx-auto">
-          <AncillaryEditorPanel
-            titlePage={plan.titlePage}
-            ancillary={plan.ancillary}
-            references={plan.references}
-            appendices={plan.appendices ?? []}
-            onTitlePageChange={onTitlePageChange}
-            onAncillaryChange={onAncillaryChange}
-            onReferenceAdd={onReferenceAdd}
-            onReferenceUpdate={onReferenceUpdate}
-            onReferenceDelete={onReferenceDelete}
-            onAppendixAdd={onAppendixAdd}
-            onAppendixUpdate={onAppendixUpdate}
-            onAppendixDelete={onAppendixDelete}
-            onRunRequirementsCheck={onRunRequirements}
-            progressSummary={progressSummary}
-          />
-        </div>
+      <div className="card bg-surface">
+        <AncillaryEditorPanel
+          titlePage={plan.titlePage}
+          ancillary={plan.ancillary}
+          references={plan.references}
+          appendices={plan.appendices ?? []}
+          onTitlePageChange={onTitlePageChange}
+          onAncillaryChange={onAncillaryChange}
+          onReferenceAdd={onReferenceAdd}
+          onReferenceUpdate={onReferenceUpdate}
+          onReferenceDelete={onReferenceDelete}
+          onAppendixAdd={onAppendixAdd}
+          onAppendixUpdate={onAppendixUpdate}
+          onAppendixDelete={onAppendixDelete}
+          onRunRequirementsCheck={onRunRequirements}
+          progressSummary={progressSummary}
+        />
       </div>
-    </main>
+    </div>
   );
 }
 
@@ -1918,55 +2000,67 @@ function SectionWorkspace({
 
   if (!section) {
     return (
-      <div className="rounded-3xl border border-dashed border-slate-200 bg-white/70 p-12 text-center text-sm text-slate-500">
+      <div className="rounded-3xl border border-dashed border-neutral-200 bg-white p-12 text-center text-sm text-neutral-500">
         Select a section to begin.
       </div>
     );
   }
 
   const sectionHint = getSectionHint(section);
+  const activeQuestion =
+    section.questions.find((q) => q.id === activeQuestionId) ?? section.questions[0] ?? null;
 
   return (
     <main className="space-y-6">
       {/* Section Header */}
-      <div className="rounded-2xl border-[3px] border-slate-300 bg-gradient-to-r from-slate-50 to-white p-6 shadow-lg">
-        <div className="space-y-3">
-          {section.category && (
-            <p className="text-xs font-bold uppercase tracking-wide text-slate-600">{section.category}</p>
-          )}
-          <h1 className="text-3xl font-bold text-slate-900 leading-tight">{section.title}</h1>
-          {(sectionHint || section.description) && (
-            <p className="text-base text-slate-700 leading-relaxed font-medium">{sectionHint || section.description}</p>
-          )}
-        </div>
-      </div>
+      <Card className="space-y-3 bg-white">
+        {section.category && (
+          <p className="text-xs font-semibold uppercase tracking-[0.35em] text-neutral-500">{section.category}</p>
+        )}
+        <h1 className="text-3xl font-semibold text-neutral-900 leading-tight">{section.title}</h1>
+        {(sectionHint || section.description) && (
+          <p className="text-base text-neutral-600">{sectionHint || section.description}</p>
+        )}
+      </Card>
 
       {/* Prompt Navigation Bar */}
       {section.questions.length > 1 && (
-        <div className="flex items-center gap-2 overflow-x-auto pb-2">
+        <div className="flex items-center gap-2 overflow-x-auto pb-2" role="tablist" aria-label="Section prompts">
           {section.questions.map((question, index) => {
-            const isActive = question.id === activeQuestionId;
+            const isActive = question.id === activeQuestion?.id;
             const status = question.status;
-            
+            const intentClasses =
+              status === 'complete'
+                ? 'text-success'
+                : status === 'unknown'
+                ? 'text-error'
+                : status === 'draft'
+                ? 'text-accent-600'
+                : 'text-neutral-500';
+            const icon =
+              status === 'complete' ? (
+                <CheckCircleIcon className="h-4 w-4" />
+              ) : status === 'unknown' ? (
+                <QuestionMarkCircleIcon className="h-4 w-4" />
+              ) : (
+                <EllipsisHorizontalIcon className="h-4 w-4" />
+              );
+
             return (
               <button
                 key={question.id}
+                role="tab"
+                aria-selected={isActive}
+                aria-controls={`question-panel-${question.id}`}
                 onClick={() => onSelectQuestion(question.id)}
-                className={`flex-shrink-0 rounded-lg border-2 px-4 py-2 text-sm font-medium transition-all ${
+                className={`flex items-center gap-2 rounded-full border px-4 py-2 text-sm font-semibold transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary ${
                   isActive
-                    ? 'border-blue-600 bg-blue-600 text-white shadow-md'
-                    : `border-slate-200 bg-white text-slate-700 hover:border-slate-300 hover:bg-slate-50`
+                    ? 'border-primary-500 bg-primary-50 text-primary-900'
+                    : 'border-neutral-200 bg-white text-neutral-700 hover:border-primary-200'
                 }`}
               >
-                <div className="flex items-center gap-2">
-                  <span className="font-semibold">{index + 1}</span>
-                  {status === 'complete' && (
-                    <span className={`text-xs ${isActive ? 'text-blue-100' : 'text-green-600'}`}>✓</span>
-                  )}
-                  {status === 'draft' && (
-                    <span className={`text-xs ${isActive ? 'text-blue-100' : 'text-amber-600'}`}>⋯</span>
-                  )}
-                </div>
+                <span>{index + 1}</span>
+                <span className={`flex items-center gap-1 text-xs font-medium ${intentClasses}`}>{icon}</span>
               </button>
             );
           })}
@@ -1974,20 +2068,17 @@ function SectionWorkspace({
       )}
 
       {/* Single Active Prompt Block */}
-      {section.questions.length > 0 && (() => {
-        const activeQuestion = section.questions.find(q => q.id === activeQuestionId) ?? section.questions[0];
-        
-        return (
-          <QuestionCard
-            question={activeQuestion}
-            isActive={true}
-            onFocus={() => onSelectQuestion(activeQuestion.id)}
-            onChange={(content) => onAnswerChange(activeQuestion.id, content)}
-            onAskAI={() => onAskAI(activeQuestion.id)}
-            onToggleUnknown={(note) => onToggleUnknown(activeQuestion.id, note)}
-          />
-        );
-      })()}
+      {activeQuestion && (
+        <QuestionCard
+          question={activeQuestion}
+          isActive={true}
+          panelId={`question-panel-${activeQuestion.id}`}
+          onFocus={() => onSelectQuestion(activeQuestion.id)}
+          onChange={(content) => onAnswerChange(activeQuestion.id, content)}
+          onAskAI={() => onAskAI(activeQuestion.id)}
+          onToggleUnknown={(note) => onToggleUnknown(activeQuestion.id, note)}
+        />
+      )}
     </main>
   );
 }
@@ -1995,6 +2086,7 @@ function SectionWorkspace({
 function QuestionCard({
   question,
   isActive,
+  panelId,
   onFocus,
   onChange,
   onAskAI,
@@ -2002,83 +2094,82 @@ function QuestionCard({
 }: {
   question: Question;
   isActive: boolean;
+  panelId?: string;
   onFocus: () => void;
   onChange: (content: string) => void;
   onAskAI: () => void;
   onToggleUnknown: (note?: string) => void;
 }) {
   const isUnknown = question.status === 'unknown';
-  const handleToggleUnknown = (event: React.MouseEvent<HTMLButtonElement>) => {
-    event.stopPropagation();
+  const [isUnknownModalOpen, setUnknownModalOpen] = useState(false);
+
+  const handleToggleUnknown = (event?: React.MouseEvent<HTMLButtonElement>) => {
+    event?.stopPropagation();
     if (isUnknown) {
       onToggleUnknown();
       return;
     }
-    const note =
-      typeof window !== 'undefined'
-        ? window.prompt('Optional note for why this prompt is unknown?')
-        : undefined;
-    onToggleUnknown(note ?? undefined);
+    setUnknownModalOpen(true);
   };
 
   return (
-    <div
-      className={`rounded-2xl border-[3px] p-7 bg-white shadow-lg transition-all ${
-        isActive
-          ? 'border-blue-600 shadow-2xl shadow-blue-100 ring-4 ring-blue-200'
-          : 'border-slate-300 hover:border-slate-400'
-      }`}
-      onClick={onFocus}
-    >
-      {/* Prompt Header */}
-      <div className="mb-6">
-        <div className="flex items-center gap-3 mb-4">
-          {question.required && (
-            <span className="rounded-lg bg-red-200 border-[3px] border-red-400 px-3 py-1.5 text-sm font-bold text-red-800">
-              Required
-            </span>
-          )}
-          {isUnknown && (
-            <span className="rounded-lg bg-amber-200 border-[3px] border-amber-400 px-3 py-1.5 text-sm font-bold text-amber-800">
-              Marked as unknown{question.statusNote ? ` • ${question.statusNote}` : ''}
-            </span>
-          )}
+    <>
+      <Card
+        id={panelId}
+        role="tabpanel"
+        aria-live="polite"
+        className={`space-y-6 border transition-all ${isActive ? 'border-primary-400 ring-2 ring-primary/20' : ''}`}
+        onClick={onFocus}
+      >
+        {/* Prompt Header */}
+        <div className="space-y-3">
+          <div className="flex flex-wrap gap-2">
+            {question.required && <Badge variant="danger">Required</Badge>}
+            {isUnknown && (
+              <Badge variant="warning">
+                Unknown{question.statusNote ? ` — ${question.statusNote}` : ''}
+              </Badge>
+            )}
+          </div>
+          <p className="text-2xl font-semibold text-neutral-900 leading-snug">{question.prompt}</p>
         </div>
-        <p className="text-2xl font-bold text-slate-900 leading-snug">{question.prompt}</p>
-      </div>
 
-      {/* Text Editor */}
-      <div onClick={(e) => e.stopPropagation()}>
-        <SimpleTextEditor
-          content={question.answer ?? ''}
-          onChange={onChange}
-          placeholder={question.placeholder}
-        />
-      </div>
+        {/* Text Editor */}
+        <div onClick={(e) => e.stopPropagation()}>
+          <SimpleTextEditor
+            content={question.answer ?? ''}
+            onChange={onChange}
+            placeholder={question.placeholder}
+          />
+        </div>
 
-      {/* Action Buttons (directly below editor) */}
-      <div className="mt-6 flex flex-wrap gap-4" onClick={(e) => e.stopPropagation()}>
-        <button
-          type="button"
-          onClick={onAskAI}
-          className="inline-flex items-center px-6 py-3 rounded-xl bg-blue-600 text-white font-bold text-base hover:bg-blue-700 shadow-lg hover:shadow-xl transition-all ring-2 ring-blue-300"
-        >
-          <span className="mr-2 text-lg">✨</span>
-          Generate for this prompt
-        </button>
-        <button
-          type="button"
-          onClick={handleToggleUnknown}
-            className={`inline-flex items-center px-5 py-3 rounded-xl border-[3px] font-bold text-sm transition-all shadow-md hover:shadow-lg ${
-            isUnknown
-              ? 'border-amber-500 text-amber-800 bg-amber-100 hover:bg-amber-200'
-              : 'border-slate-400 text-slate-700 hover:border-slate-500 hover:bg-slate-100'
-          }`}
-        >
-          {isUnknown ? 'Clear unknown status' : 'Mark as unknown'}
-        </button>
-      </div>
-    </div>
+        {/* Action Buttons */}
+        <div className="flex flex-wrap gap-3" onClick={(e) => e.stopPropagation()}>
+          <Button type="button" onClick={onAskAI} className="flex-1 min-w-[200px] justify-center gap-2">
+            <span role="img" aria-hidden="true">
+              ✨
+            </span>
+            Ask the assistant
+          </Button>
+          <Button
+            type="button"
+            variant="outline"
+            className="min-w-[200px] justify-center"
+            onClick={handleToggleUnknown}
+          >
+            {isUnknown ? 'Clear unknown status' : 'Mark as unknown'}
+          </Button>
+        </div>
+      </Card>
+      <UnknownNoteModal
+        open={isUnknownModalOpen}
+        onClose={() => setUnknownModalOpen(false)}
+        onSave={(note) => {
+          onToggleUnknown(note);
+          setUnknownModalOpen(false);
+        }}
+      />
+    </>
   );
 }
 
@@ -2143,41 +2234,49 @@ function RightPanel({
     onAskAI(question.id, { intent: 'data' });
   };
 
+  const tabs: Array<{ key: 'ai' | 'data' | 'preview'; label: string }> = [
+    { key: 'ai', label: 'Assistant' },
+    { key: 'data', label: 'Data' },
+    { key: 'preview', label: 'Preview' }
+  ];
+
   return (
-    <aside className="rounded-2xl border-[3px] border-slate-300 bg-white shadow-xl flex h-full min-h-[360px] flex-col sticky top-[120px] w-full lg:w-[380px] lg:flex-shrink-0">
-      <div className="grid grid-cols-3 border-b-[3px] border-slate-300">
-        {(['Assistant', 'Data', 'Preview'] as const).map((tabLabel) => {
-          const tabKey = tabLabel.toLowerCase() as 'ai' | 'data' | 'preview';
+    <aside className="card sticky top-24 space-y-4 lg:w-[380px]">
+      <div className="flex gap-2" role="tablist" aria-label="Editor tools">
+        {tabs.map(({ key, label }) => {
+          const isActive = effectiveView === key;
           return (
-            <button
-              key={tabKey}
-              onClick={() => setView(tabKey)}
-              className={`py-4 text-sm font-bold transition-all ${
-                effectiveView === tabKey 
-                  ? 'text-blue-700 border-b-4 border-blue-600 bg-blue-50' 
-                  : 'text-slate-700 hover:text-blue-600 hover:bg-slate-50'
+            <Button
+              key={key}
+              role="tab"
+              aria-selected={isActive}
+              aria-controls={`right-panel-${key}`}
+              variant="ghost"
+              size="sm"
+              className={`flex-1 justify-center rounded-full border ${
+                isActive ? 'border-primary-400 bg-primary-50 text-primary-700' : 'border-transparent text-neutral-500'
               }`}
+              onClick={() => setView(key)}
             >
-              {tabLabel}
-            </button>
+              {label}
+            </Button>
           );
         })}
       </div>
-      <div className="flex-1 overflow-y-auto">
-        {/* Assistant Tab */}
+      <div
+        id={`right-panel-${effectiveView}`}
+        role="tabpanel"
+        className="max-h-[70vh] overflow-y-auto pr-1 space-y-4"
+      >
         {effectiveView === 'ai' && (
-          <div className="p-4 space-y-4">
-            <button
+          <div className="space-y-4">
+            <Button
               onClick={() => onAskAI(question?.id)}
               disabled={!question}
-              className={`w-full px-5 py-4 rounded-xl font-bold text-base shadow-lg transition-all ${
-                question
-                  ? 'bg-blue-600 text-white hover:bg-blue-700 hover:shadow-xl ring-2 ring-blue-300'
-                  : 'bg-slate-200 text-slate-500 cursor-not-allowed'
-              }`}
+              className="w-full justify-center"
             >
               Ask the assistant
-            </button>
+            </Button>
             {question && (
               <div className="space-y-4 text-sm">
                 <div>
@@ -2190,30 +2289,33 @@ function RightPanel({
                           : ' (AI will focus on critique)'}
                       </p>
                   <div className="mt-3 flex flex-wrap gap-2">
-                    <button
+                    <Button
                       type="button"
+                      variant="outline"
+                      size="sm"
                       onClick={() => handleQuickAsk('outline')}
-                      className="px-3 py-1.5 text-xs font-medium rounded-lg border border-slate-200 text-slate-700 hover:border-blue-300 hover:text-blue-600 hover:bg-blue-50 transition-all"
                       disabled={!question}
                     >
                       Draft outline
-                    </button>
-                    <button
+                    </Button>
+                    <Button
                       type="button"
+                      variant="outline"
+                      size="sm"
                       onClick={() => handleQuickAsk('improve')}
-                      className="px-3 py-1.5 text-xs font-medium rounded-lg border border-slate-200 text-slate-700 hover:border-blue-300 hover:text-blue-600 hover:bg-blue-50 transition-all"
                       disabled={!question}
                     >
                       Improve answer
-                    </button>
-                    <button
+                    </Button>
+                    <Button
                       type="button"
+                      variant="outline"
+                      size="sm"
                       onClick={() => handleQuickAsk('data')}
-                      className="px-3 py-1.5 text-xs font-medium rounded-lg border border-slate-200 text-slate-700 hover:border-blue-300 hover:text-blue-600 hover:bg-blue-50 transition-all"
                       disabled={!question}
                     >
                       Suggest data/KPIs
-                    </button>
+                    </Button>
                   </div>
                 </div>
                 {question.answer ? (
@@ -2236,29 +2338,31 @@ function RightPanel({
                       <div key={index} className="border border-blue-100 bg-blue-50 rounded-lg p-3">
                         <p className="text-sm text-blue-700 mb-2">{suggestion}</p>
                         <div className="flex gap-2">
-                          <button
-                            onClick={() => {
-                              navigator.clipboard.writeText(suggestion);
-                            }}
-                            className="text-xs font-semibold text-blue-600 hover:text-blue-800"
+                          <Button
+                            type="button"
+                            variant="ghost"
+                            size="sm"
+                            onClick={() => navigator.clipboard.writeText(suggestion)}
                           >
                             Copy
-                          </button>
-                          <button
+                          </Button>
+                          <Button
+                            type="button"
+                            variant="ghost"
+                            size="sm"
                             onClick={() => {
                               const latestSuggestion = question.suggestions?.[question.suggestions.length - 1];
                               if (latestSuggestion && question) {
                                 const currentAnswer = question.answer ?? '';
-                                const newContent = currentAnswer 
+                                const newContent = currentAnswer
                                   ? `${currentAnswer}\n\n${latestSuggestion}`
                                   : latestSuggestion;
                                 onAnswerChange(question.id, newContent);
                               }
                             }}
-                            className="text-xs font-semibold text-blue-600 hover:text-blue-800"
                           >
                             Insert
-                          </button>
+                          </Button>
                         </div>
                       </div>
                     ))}
@@ -2281,16 +2385,14 @@ function RightPanel({
                     <p className="text-xs font-semibold text-slate-700">Quick actions</p>
                     <div className="flex flex-wrap gap-2">
                       {['Tone', 'Translate', 'Summarize', 'Expand'].map((action) => (
-                        <button
+                        <Button
                           key={action}
-                          onClick={() => {
-                            // TODO: Implement quick action handlers
-                            console.log(`Quick action: ${action}`);
-                          }}
-                          className="px-3 py-1.5 text-xs font-semibold rounded-lg border border-slate-200 text-slate-700 hover:border-slate-300 hover:bg-slate-50 transition"
+                          variant="outline"
+                          size="sm"
+                          onClick={() => console.log(`Quick action: ${action}`)}
                         >
                           {action}
-                        </button>
+                        </Button>
                       ))}
                     </div>
                   </div>
@@ -2322,15 +2424,18 @@ function RightPanel({
                           <p className="text-slate-700">{message.content}</p>
                           {message.role === 'assistant' && (
                             <div className="flex gap-2">
-                              <button
+                              <Button
                                 type="button"
+                                variant="ghost"
+                                size="sm"
                                 onClick={() => navigator.clipboard.writeText(message.content)}
-                                className="px-2 py-1 rounded border border-slate-200 text-[10px] font-semibold text-slate-600 hover:border-blue-300 hover:text-blue-600"
                               >
                                 Copy
-                              </button>
-                              <button
+                              </Button>
+                              <Button
                                 type="button"
+                                variant="ghost"
+                                size="sm"
                                 onClick={() => {
                                   if (question) {
                                     const currentAnswer = question.answer ?? '';
@@ -2340,10 +2445,9 @@ function RightPanel({
                                     onAnswerChange(question.id, newContent);
                                   }
                                 }}
-                                className="px-2 py-1 rounded border border-slate-200 text-[10px] font-semibold text-slate-600 hover:border-blue-300 hover:text-blue-600"
                               >
                                 Insert
-                              </button>
+                              </Button>
                             </div>
                           )}
                         </div>
@@ -2362,7 +2466,7 @@ function RightPanel({
 
         {/* Data Tab */}
         {effectiveView === 'data' && (
-          <div className="p-4">
+          <div className="space-y-4">
             {section ? (
               <DataPanel
                 datasets={section.datasets ?? []}
@@ -2389,22 +2493,22 @@ function RightPanel({
 
         {/* Preview Tab (with Requirements) */}
         {effectiveView === 'preview' && (
-          <div className="p-4 space-y-4">
+          <div className="space-y-4">
             <div className="space-y-2">
               <PreviewPane plan={plan} focusSectionId={section?.id} />
             </div>
             <div className="border-t border-slate-200 pt-4">
               <div className="flex items-center justify-between mb-3">
                 <p className="text-xs font-semibold text-slate-700">Requirements validation</p>
-                <button
+                <Button
+                  size="sm"
                   onClick={() => {
                     setRequirementsChecked(true);
                     onRunRequirements();
                   }}
-                  className="px-3 py-1.5 text-xs font-semibold bg-blue-600 text-white rounded-lg hover:bg-blue-500"
                 >
                   Run check
-                </button>
+                </Button>
               </div>
               {!requirementsChecked ? (
                 <p className="text-gray-500 text-xs">Run the checker to view validation status.</p>
@@ -2586,6 +2690,65 @@ function RightPanel({
   );
 }
 
+function UnknownNoteModal({
+  open,
+  onClose,
+  onSave
+}: {
+  open: boolean;
+  onClose: () => void;
+  onSave: (note?: string) => void;
+}) {
+  const [note, setNote] = useState('');
+
+  useEffect(() => {
+    if (open) {
+      setNote('');
+    }
+  }, [open]);
+
+  if (!open || typeof document === 'undefined') {
+    return null;
+  }
+
+  return createPortal(
+    <div className="fixed inset-0 z-[1000] flex items-center justify-center bg-black/40 px-4">
+      <div
+        className="card max-w-md w-full space-y-4"
+        role="dialog"
+        aria-modal="true"
+        aria-label="Add note explaining unknown status"
+      >
+        <div className="space-y-1">
+          <h2 className="text-lg font-semibold text-neutral-900">Add a note</h2>
+          <p className="text-sm text-neutral-600">
+            Explain why this answer is marked as unknown so collaborators understand the gap.
+          </p>
+        </div>
+        <textarea
+          value={note}
+          onChange={(event) => setNote(event.target.value)}
+          className="w-full rounded-lg border border-neutral-200 bg-white px-3 py-2 text-sm text-neutral-900 focus:border-primary-400 focus:ring-2 focus:ring-primary/30"
+          rows={4}
+          placeholder="Optional note"
+        />
+        <div className="flex justify-end gap-2">
+          <Button type="button" variant="ghost" onClick={onClose}>
+            Cancel
+          </Button>
+          <Button
+            type="button"
+            onClick={() => onSave(note.trim() ? note.trim() : undefined)}
+          >
+            Save note
+          </Button>
+        </div>
+      </div>
+    </div>,
+    document.body
+  );
+}
+
 // ============================================================================
 // SIMPLE TEXT EDITOR COMPONENT (merged inline)
 // ============================================================================
@@ -2607,51 +2770,27 @@ function SimpleTextEditor({
   };
 
   return (
-    <div className="space-y-2">
-      <div 
-        className={`
-          relative
-          bg-white
-          rounded-xl
-          border-[3px]
-          transition-all
-          duration-200
-          ${isFocused 
-            ? 'border-blue-500 shadow-lg shadow-blue-100 ring-2 ring-blue-200' 
-            : 'border-slate-300 hover:border-slate-400'
-          }
-        `}
-        onClick={() => textareaRef.current?.focus()}
-      >
-        <textarea
-          ref={textareaRef}
-          value={content}
-          onChange={handleChange}
-          onFocus={() => setIsFocused(true)}
-          onBlur={() => setIsFocused(false)}
-          placeholder={placeholder || `Start writing...`}
-          className="
-            w-full
-            min-h-[280px]
-            p-6
-            text-base
-            leading-relaxed
-            text-slate-900
-            placeholder-slate-500
-            resize-none
-            border-0
-            outline-none
-            bg-transparent
-            focus:outline-none
-            font-sans
-          "
-          style={{
-            fontFamily: 'Inter, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif',
-            lineHeight: '1.8',
-            fontSize: '16px'
-          }}
-        />
-      </div>
+    <div
+      className={`rounded-2xl border bg-surface transition-all duration-200 ${
+        isFocused ? 'border-primary-400 ring-2 ring-primary/20' : 'border-neutral-200'
+      }`}
+      onClick={() => textareaRef.current?.focus()}
+    >
+      <textarea
+        ref={textareaRef}
+        value={content}
+        onChange={handleChange}
+        onFocus={() => setIsFocused(true)}
+        onBlur={() => setIsFocused(false)}
+        placeholder={placeholder || 'Start writing...'}
+        aria-label={placeholder || 'Prompt response'}
+        className="w-full resize-none bg-transparent p-4 text-base leading-relaxed text-neutral-900 placeholder:text-neutral-400 focus:outline-none md:min-h-[280px] min-h-[200px]"
+        style={{
+          fontFamily: 'Inter, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif',
+          lineHeight: '1.8',
+          fontSize: '16px'
+        }}
+      />
     </div>
   );
 }
