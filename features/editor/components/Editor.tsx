@@ -1640,23 +1640,32 @@ function PlanConfigurator({
   programLoading: boolean;
   programError: string | null;
 }) {
+  const planSubtitle =
+    programSummary?.name?.trim() ||
+    plan.programSummary?.name?.trim() ||
+    (plan.metadata?.programName && !['grant', 'loan', 'equity', 'visa'].includes(plan.metadata.programName.toLowerCase())
+      ? plan.metadata.programName
+      : null) ||
+    'No program connected yet';
+
+  const headerCardClasses =
+    'h-full space-y-2 p-4 sm:p-5 bg-gradient-to-br from-primary-50/40 via-white to-white shadow-sm';
+
   return (
-    <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
+    <div className="grid grid-cols-1 gap-3 md:grid-cols-3">
       {/* Plan Title */}
-      <Card className="h-full space-y-2">
+      <Card className={headerCardClasses}>
         <p className="text-[11px] font-semibold uppercase tracking-[0.2em] text-neutral-500">
           Plan Title
         </p>
         <p className="text-lg font-semibold text-neutral-900 leading-tight truncate">
           {plan.titlePage.planTitle || 'Business Plan'}
         </p>
-        <p className="text-sm text-neutral-500">
-          {plan.metadata?.programName ?? plan.fundingProgram ?? 'Unassigned program'}
-        </p>
+        <p className="text-xs text-neutral-500">{planSubtitle}</p>
       </Card>
 
       {/* Product Type Selector */}
-      <Card className="h-full space-y-3">
+      <Card className={`${headerCardClasses} space-y-3`}>
         <label className="block space-y-2">
           <span className="text-[11px] font-semibold uppercase tracking-[0.2em] text-neutral-500">
             Product Type
@@ -1684,7 +1693,7 @@ function PlanConfigurator({
       </Card>
 
       {/* Program Connection */}
-      <Card className="h-full space-y-3">
+      <Card className={`${headerCardClasses} space-y-3`}>
         <p className="text-[11px] font-semibold uppercase tracking-[0.2em] text-neutral-500">
           Program Connection
         </p>
