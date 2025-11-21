@@ -61,6 +61,11 @@ function EditorPage() {
   const router = useRouter();
   const { product } = router.query;
 
+  const selectedProduct: ProductType = useMemo(() => {
+    const value = typeof product === 'string' ? product : undefined;
+    return value && isProductType(value) ? value : 'submission';
+  }, [product]);
+
   // Show loading while router is ready
   if (!router.isReady) {
     return (
@@ -72,11 +77,6 @@ function EditorPage() {
       </div>
     );
   }
-
-  const selectedProduct: ProductType = useMemo(() => {
-    const value = typeof product === 'string' ? product : undefined;
-    return value && isProductType(value) ? value : 'submission';
-  }, [product]);
 
   return (
     <ErrorBoundary>

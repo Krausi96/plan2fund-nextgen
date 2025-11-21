@@ -930,6 +930,91 @@ type RequirementValidation = {
   }>;
 };
 
+function ProgressAccordionItem({
+  item,
+  plan
+}: {
+  item: ProgressSummary;
+  plan: BusinessPlan;
+}) {
+  const [isExpanded, setIsExpanded] = React.useState(false);
+  const hasIssues = item.progress < 100;
+  const sectionData = plan.sections.find((s) => s.id === item.id);
+  const { templates } = useEditorStore.getState();
+  const template = templates.find((t) => t.id === item.id);
+
+  return (
+    <div className="border border-slate-200 rounded-lg overflow-hidden">
+      <button
+        onClick={() => setIsExpanded(!isExpanded)}
+        className="w-full flex items-center justify-between p-2 hover:bg-slate-50 transition text-left"
+      >
+        <div className="flex items-center gap-2 flex-1 min-w-0">
+          <span className="text-xs text-slate-600 truncate">{item.title}</span>
+          {hasIssues && (
+            <span className="flex-shrink-0 text-[10px] px-1.5 py-0.5 rounded bg-amber-100 text-amber-700 font-semibold">
+              Needs attention
+            </span>
+          )}
+        </div>
+        <div className="flex items-center gap-2 flex-shrink-0">
+          <span className={`text-xs font-semibold ${item.progress === 100 ? 'text-green-600' : 'text-amber-600'}`}>
+            {item.progress}%
+          </span>
+          <span className="text-xs text-slate-400">{isExpanded ? '▼' : '▶'}</span>
+        </div>
+      </button>
+      {isExpanded && sectionData && (
+        <div className="px-2 pb-2 space-y-2 border-t border-slate-100">
+          <div className="h-1.5 bg-slate-100 rounded-full mt-2">
+            <div
+              className={`h-full rounded-full ${
+                item.progress === 100 ? 'bg-green-500' : 'bg-amber-500'
+              }`}
+              style={{ width: `${item.progress}%` }}
+            />
+          </div>
+          {/* Per-question validation details */}
+          <div className="space-y-2 mt-2">
+            {sectionData.questions.map((q) => {
+              const qValidation = validateQuestionRequirements(q, sectionData, template);
+              if (qValidation.issues.length === 0) return null;
+              const errors = qValidation.issues.filter((i) => i.severity === 'error');
+              const warnings = qValidation.issues.filter((i) => i.severity === 'warning');
+              return (
+                <div key={q.id} className="bg-slate-50 rounded p-2 space-y-1">
+                  <p className="text-[11px] font-semibold text-slate-700 line-clamp-1">{q.prompt}</p>
+                  <div className="space-y-0.5">
+                    {errors.map((issue, idx) => (
+                      <p key={idx} className="text-[10px] text-red-600">● {issue.message}</p>
+                    ))}
+                    {warnings.map((issue, idx) => (
+                      <p key={idx} className="text-[10px] text-amber-600">● {issue.message}</p>
+                    ))}
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+          {hasIssues && sectionData.questions.every((q) => {
+            const qValidation = validateQuestionRequirements(q, sectionData, template);
+            return qValidation.issues.length === 0;
+          }) && (
+            <p className="text-xs text-slate-500">
+              {item.progress === 0 
+                ? 'This section has not been started yet.'
+                : `This section is ${100 - item.progress}% incomplete. Please review and complete all required prompts.`}
+            </p>
+          )}
+          {item.progress === 100 && (
+            <p className="text-xs text-green-600">✓ All requirements met for this section.</p>
+          )}
+        </div>
+      )}
+    </div>
+  );
+}
+
 function validateQuestionRequirements(
   question: Question,
   section: Section,
@@ -1646,7 +1731,7 @@ export default function Editor({ product = 'submission' }: EditorProps) {
       </div>
 
       {/* Main Content Area */}
-      <div className="container py-1 pb-6 flex flex-col gap-1 lg:flex-row lg:items-start">
+      <div className="container py-1 pb-6 flex flex-col gap-1 lg:flex-row lg:items-stretch">
         <div className="flex-1 min-w-0 max-w-4xl">
           {isAncillaryView ? (
             <AncillaryWorkspace
@@ -1675,7 +1760,7 @@ export default function Editor({ product = 'submission' }: EditorProps) {
           )}
         </div>
 
-        <div className="w-full lg:w-[400px] flex-shrink-0">
+        <div className="w-full lg:w-[400px] flex-shrink-0 flex flex-col self-stretch min-h-0">
           <RightPanel
             view={rightPanelView}
             setView={setRightPanelView}
@@ -2461,10 +2546,10 @@ function RightPanel({
   ];
 
   return (
-    <aside className="card sticky top-24 space-y-1.5 w-full lg:w-[400px] border-blue-600/50 relative overflow-hidden backdrop-blur-lg shadow-xl">
+    <aside className="card w-full lg:w-[400px] border-blue-600/50 relative overflow-hidden backdrop-blur-lg shadow-xl flex flex-col flex-1 min-h-0">
       <div className="absolute inset-0 bg-gradient-to-b from-slate-950 via-blue-900 to-slate-950" />
       <div className="absolute inset-0 bg-black/15 backdrop-blur-xl" />
-      <div className="relative z-10">
+      <div className="relative z-10 flex-shrink-0 p-1.5 pb-0">
         <div className="flex gap-1.5" role="tablist" aria-label="Editor tools">
           {tabs.map(({ key, label }) => {
             const isActive = effectiveView === key;
@@ -2486,10 +2571,11 @@ function RightPanel({
             );
           })}
         </div>
+      </div>
       <div
         id={`right-panel-${effectiveView}`}
         role="tabpanel"
-        className="max-h-[70vh] overflow-y-auto pr-1 space-y-1.5"
+        className="flex-1 overflow-y-auto pr-1 py-1.5 relative z-10 h-0"
       >
         {effectiveView === 'ai' && (
           <div className="space-y-3">
@@ -2628,7 +2714,7 @@ function RightPanel({
 
         {/* Data Tab */}
         {effectiveView === 'data' && (
-          <div className="space-y-4">
+          <div className="h-full">
             {section ? (
               <DataPanel
                 datasets={section.datasets ?? []}
@@ -2655,7 +2741,7 @@ function RightPanel({
 
         {/* Preview Tab (with Requirements) */}
         {effectiveView === 'preview' && (
-          <div className="space-y-4">
+          <div className="h-full space-y-4">
             <div className="space-y-2">
               <PreviewPane plan={plan} focusSectionId={section?.id} />
             </div>
@@ -2762,84 +2848,13 @@ function RightPanel({
                   {/* Per-Section Accordion */}
                   {progressSummary.length > 0 && (
                     <div className="space-y-2">
-                      {progressSummary.map((item) => {
-                        const [isExpanded, setIsExpanded] = React.useState(false);
-                        const hasIssues = item.progress < 100;
-                        const sectionData = plan.sections.find((s) => s.id === item.id);
-                        const { templates } = useEditorStore.getState();
-                        const template = templates.find((t) => t.id === item.id);
-                        
-                        return (
-                          <div key={item.id} className="border border-slate-200 rounded-lg overflow-hidden">
-                            <button
-                              onClick={() => setIsExpanded(!isExpanded)}
-                              className="w-full flex items-center justify-between p-2 hover:bg-slate-50 transition text-left"
-                            >
-                              <div className="flex items-center gap-2 flex-1 min-w-0">
-                                <span className="text-xs text-slate-600 truncate">{item.title}</span>
-                                {hasIssues && (
-                                  <span className="flex-shrink-0 text-[10px] px-1.5 py-0.5 rounded bg-amber-100 text-amber-700 font-semibold">
-                                    Needs attention
-                                  </span>
-                                )}
-                              </div>
-                              <div className="flex items-center gap-2 flex-shrink-0">
-                                <span className={`text-xs font-semibold ${item.progress === 100 ? 'text-green-600' : 'text-amber-600'}`}>
-                                  {item.progress}%
-                                </span>
-                                <span className="text-xs text-slate-400">{isExpanded ? '▼' : '▶'}</span>
-                              </div>
-                            </button>
-                            {isExpanded && sectionData && (
-                              <div className="px-2 pb-2 space-y-2 border-t border-slate-100">
-                                <div className="h-1.5 bg-slate-100 rounded-full mt-2">
-                                  <div
-                                    className={`h-full rounded-full ${
-                                      item.progress === 100 ? 'bg-green-500' : 'bg-amber-500'
-                                    }`}
-                                    style={{ width: `${item.progress}%` }}
-                                  />
-                                </div>
-                                {/* Per-question validation details */}
-                                <div className="space-y-2 mt-2">
-                                  {sectionData.questions.map((q) => {
-                                    const qValidation = validateQuestionRequirements(q, sectionData, template);
-                                    if (qValidation.issues.length === 0) return null;
-                                    const errors = qValidation.issues.filter((i) => i.severity === 'error');
-                                    const warnings = qValidation.issues.filter((i) => i.severity === 'warning');
-                                    return (
-                                      <div key={q.id} className="bg-slate-50 rounded p-2 space-y-1">
-                                        <p className="text-[11px] font-semibold text-slate-700 line-clamp-1">{q.prompt}</p>
-                                        <div className="space-y-0.5">
-                                          {errors.map((issue, idx) => (
-                                            <p key={idx} className="text-[10px] text-red-600">● {issue.message}</p>
-                                          ))}
-                                          {warnings.map((issue, idx) => (
-                                            <p key={idx} className="text-[10px] text-amber-600">● {issue.message}</p>
-                                          ))}
-                                        </div>
-                                      </div>
-                                    );
-                                  })}
-                                </div>
-                                {hasIssues && sectionData.questions.every((q) => {
-                                  const qValidation = validateQuestionRequirements(q, sectionData, template);
-                                  return qValidation.issues.length === 0;
-                                }) && (
-                                  <p className="text-xs text-slate-500">
-                                    {item.progress === 0 
-                                      ? 'This section has not been started yet.'
-                                      : `This section is ${100 - item.progress}% incomplete. Please review and complete all required prompts.`}
-                                  </p>
-                                )}
-                                {item.progress === 100 && (
-                                  <p className="text-xs text-green-600">✓ All requirements met for this section.</p>
-                                )}
-                              </div>
-                            )}
-                          </div>
-                        );
-                      })}
+                      {progressSummary.map((item) => (
+                        <ProgressAccordionItem
+                          key={item.id}
+                          item={item}
+                          plan={plan}
+                        />
+                      ))}
                     </div>
                   )}
                 </div>
@@ -2847,7 +2862,6 @@ function RightPanel({
             </div>
           </div>
         )}
-      </div>
       </div>
     </aside>
   );
