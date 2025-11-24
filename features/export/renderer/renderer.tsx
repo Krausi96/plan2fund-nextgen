@@ -21,14 +21,14 @@ interface ExportRendererProps extends PreviewOptions {
   plan: PlanDocument;
 }
 
-const ExportRenderer: React.FC<ExportRendererProps> = ({
+function ExportRenderer({
   plan,
   showWatermark = false,
   watermarkText = 'DRAFT',
   previewMode = 'preview',
   selectedSections,
   previewSettings = {}
-}) => {
+}: ExportRendererProps) {
   const sectionsToRender = selectedSections && selectedSections.size > 0
     ? plan.sections.filter(section => selectedSections.has(section.key))
     : plan.sections;
@@ -45,33 +45,99 @@ const ExportRenderer: React.FC<ExportRendererProps> = ({
       
       <div className="relative z-10 space-y-8">
         {plan.settings.includeTitlePage && (
-          <div className="text-center py-12 border-b">
-            <h1 className="text-4xl font-bold text-gray-900 mb-2">{plan.settings.titlePage?.title || 'Business Plan'}</h1>
+          <div className="preview-title-page border-b border-gray-200/80 py-12 text-center">
+            {plan.settings.titlePage?.logoUrl && (
+              <img src={plan.settings.titlePage.logoUrl} alt="Company Logo" className="mx-auto mb-4 h-24 object-contain" />
+            )}
+            <p className="mb-3 text-xs font-medium uppercase tracking-[0.35em] text-gray-400">
+              Business Plan Draft
+            </p>
+            <h1 className="preview-title mb-3 text-[34px] font-semibold leading-[1.15] text-slate-900">
+              {plan.settings.titlePage?.title || 'Business Plan'}
+            </h1>
             {plan.settings.titlePage?.subtitle && (
-              <p className="text-lg text-gray-700 mb-1">{plan.settings.titlePage.subtitle}</p>
+              <p className="text-base text-gray-600">{plan.settings.titlePage.subtitle}</p>
+            )}
+            {plan.settings.titlePage?.companyName && (
+              <p className="text-sm text-gray-500">
+                {plan.settings.titlePage.companyName}
+                {plan.settings.titlePage?.legalForm && ` (${plan.settings.titlePage.legalForm})`}
+              </p>
+            )}
+            {plan.settings.titlePage?.teamHighlight && (
+              <p className="text-sm text-gray-500">{plan.settings.titlePage.teamHighlight}</p>
             )}
             {plan.settings.titlePage?.author && (
-              <p className="text-base text-gray-600 mb-1">{plan.settings.titlePage.author}</p>
+              <p className="mt-4 text-sm font-medium text-gray-600">{plan.settings.titlePage.author}</p>
             )}
-            <p className="text-sm text-gray-500">{plan.settings.titlePage?.date || new Date().toLocaleDateString()}</p>
+            {plan.settings.titlePage?.contactInfo && (
+              <div className="mt-2 text-xs text-gray-500">
+                {plan.settings.titlePage.contactInfo.email && <p>{plan.settings.titlePage.contactInfo.email}</p>}
+                {plan.settings.titlePage.contactInfo.phone && <p>{plan.settings.titlePage.contactInfo.phone}</p>}
+                {plan.settings.titlePage.contactInfo.website && <p>{plan.settings.titlePage.contactInfo.website}</p>}
+                {plan.settings.titlePage.contactInfo.address && <p>{plan.settings.titlePage.contactInfo.address}</p>}
+                {plan.settings.titlePage.headquartersLocation && <p>{plan.settings.titlePage.headquartersLocation}</p>}
+              </div>
+            )}
+            <p className="mt-1 text-xs uppercase tracking-[0.25em] text-gray-400">
+              {plan.settings.titlePage?.date || new Date().toLocaleDateString()}
+            </p>
+            {plan.settings.titlePage?.confidentialityStatement && (
+              <p className="mt-4 text-xs text-gray-500 italic max-w-xl mx-auto">
+                {plan.settings.titlePage.confidentialityStatement}
+              </p>
+            )}
           </div>
         )}
 
         <div className="space-y-2">
           <h2 className="text-2xl font-semibold text-gray-900 mb-4">Table of Contents</h2>
           <div className="space-y-1">
-            {sectionsToRender.map((section, index) => (
-              <div key={section.key} className="flex justify-between items-center py-1">
-                <span className="text-blue-600 hover:text-blue-800 cursor-pointer">
-                  {index + 1}. {section.title}
-                </span>
-                {previewSettings.showWordCount && section.content && (
-                  <span className="text-xs text-gray-500">
-                    {section.content.split(' ').length} words
-                  </span>
-                )}
-              </div>
-            ))}
+            {sectionsToRender.map((section) => {
+              const sectionNumber = section.fields?.sectionNumber ?? null;
+              const sectionLabel = sectionNumber !== null ? `${sectionNumber}. ${section.title}` : section.title;
+              const subchapters = section.fields?.subchapters || [];
+              
+              return (
+                <div key={section.key} className="space-y-1">
+                  <div className="flex justify-between items-center py-1">
+                    <span className="text-blue-600 hover:text-blue-800 cursor-pointer">
+                      {sectionLabel}
+                    </span>
+                    {previewSettings.showWordCount && section.content && (
+                      <span className="text-xs text-gray-500">
+                        {section.content.split(' ').length} words
+                      </span>
+                    )}
+                  </div>
+                  {subchapters.length > 0 && (
+                    <div className="ml-4 space-y-0.5">
+                      {subchapters.map((sub: { id: string; title: string; numberLabel: string }) => (
+                        <div key={sub.id} className="text-sm text-gray-600">
+                          {sub.numberLabel}. {sub.title}
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              );
+            })}
+            {(() => {
+              const hasAnyAttachments = sectionsToRender.some((section) => 
+                (section.tables && Object.keys(section.tables || {}).length > 0) || 
+                (section.figures && section.figures && section.figures.length > 0)
+              );
+              if (hasAnyAttachments) {
+                return (
+                  <div className="flex justify-between items-center py-1 mt-2 pt-2 border-t border-gray-200">
+                    <span className="text-blue-600 hover:text-blue-800 cursor-pointer">
+                      Attachments
+                    </span>
+                  </div>
+                );
+              }
+              return null;
+            })()}
           </div>
         </div>
 
@@ -79,14 +145,17 @@ const ExportRenderer: React.FC<ExportRendererProps> = ({
           const hasContent = section.content && section.content.trim().length > 0;
           const wordCount = section.content ? section.content.split(' ').length : 0;
           const charCount = section.content ? section.content.length : 0;
+          const displayTitle = section.fields?.displayTitle || section.title;
+          const actualStatus = section.status || (hasContent ? 'aligned' : 'missing');
+          const isComplete = actualStatus === 'aligned';
           
           return (
             <div key={section.key} className="space-y-4">
               <div className="border-b border-gray-200 pb-2">
-                <h2 className="text-2xl font-semibold text-gray-900">{section.title}</h2>
+                <h2 className="text-2xl font-semibold text-gray-900">{displayTitle}</h2>
                 {previewSettings.showCompletionStatus && (
                   <div className="flex items-center gap-4 mt-2 text-sm text-gray-600">
-                    {hasContent ? (
+                    {isComplete ? (
                       <span className="flex items-center gap-1 text-green-600">
                         <span className="w-2 h-2 bg-green-500 rounded-full"></span>
                         Complete
@@ -111,9 +180,10 @@ const ExportRenderer: React.FC<ExportRendererProps> = ({
                 previewMode === 'formatted' ? 'font-serif' : 'font-sans'
               }`}>
                 {hasContent ? (
-                  <div className="whitespace-pre-wrap text-gray-800 leading-relaxed">
-                    {section.content}
-                  </div>
+                  <div 
+                    className="text-gray-800 leading-relaxed"
+                    dangerouslySetInnerHTML={{ __html: section.content || '' }}
+                  />
                 ) : (
                   <div className="text-gray-400 italic py-8 text-center border-2 border-dashed border-gray-200 rounded-lg">
                     No content available for this section
@@ -137,13 +207,115 @@ const ExportRenderer: React.FC<ExportRendererProps> = ({
                   })}
                 </div>
               )}
+
+              {/* Render Figures if they exist */}
+              {section.figures && section.figures.length > 0 && (
+                <div className="mt-6 space-y-4">
+                  {section.figures.map((figure: any, idx) => (
+                    <div key={idx} className="space-y-2">
+                      {figure.uri && (
+                        <img
+                          src={figure.uri}
+                          alt={figure.altText || figure.title || 'Figure'}
+                          className="w-full rounded-lg border border-gray-200"
+                        />
+                      )}
+                      {figure.caption && (
+                        <p className="text-sm italic text-gray-600">{figure.caption}</p>
+                      )}
+                    </div>
+                  ))}
+                </div>
+              )}
             </div>
           );
         })}
+
+        {/* Attachments section at the end */}
+        {(() => {
+          const allAttachments: Array<{ type: string; name: string; sectionTitle: string; sectionNumber: number | null }> = [];
+          sectionsToRender.forEach((section) => {
+            const sectionNumber = section.fields?.sectionNumber ?? null;
+            if (section.tables && Object.keys(section.tables).length > 0) {
+              Object.keys(section.tables).forEach((tableKey) => {
+                allAttachments.push({
+                  type: 'table',
+                  name: formatTableLabel(tableKey),
+                  sectionTitle: section.title,
+                  sectionNumber
+                });
+              });
+            }
+            if (section.figures && section.figures.length > 0) {
+              section.figures.forEach((figure: any) => {
+                allAttachments.push({
+                  type: figure.type || 'figure',
+                  name: figure.title || 'Figure',
+                  sectionTitle: section.title,
+                  sectionNumber
+                });
+              });
+            }
+          });
+
+          if (allAttachments.length > 0) {
+            return (
+              <div className="space-y-4">
+                <div className="border-b border-gray-200 pb-2">
+                  <h2 className="text-2xl font-semibold text-gray-900">Attachments</h2>
+                </div>
+                <div className="space-y-3">
+                  {allAttachments.map((attachment, idx) => (
+                    <div key={idx} className="text-sm text-gray-700">
+                      <span className="font-semibold">{attachment.name}</span>
+                      <span className="text-gray-500 ml-2">
+                        ({attachment.type}) — {attachment.sectionNumber !== null ? `${attachment.sectionNumber}. ` : ''}{attachment.sectionTitle}
+                      </span>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            );
+          }
+          return null;
+        })()}
+
+        {/* References section */}
+        {plan.references && plan.references.length > 0 && (
+          <div className="section-block space-y-4">
+            <div className="section-heading border-b border-gray-200/80 pb-3">
+              <h2 className="text-[21px] font-semibold tracking-tight text-slate-900">References</h2>
+            </div>
+            <ul className="list-disc pl-5 space-y-2 text-sm text-gray-700">
+              {plan.references.map((ref) => (
+                <li key={ref.id}>
+                  {ref.citation} {ref.url && <a href={ref.url} target="_blank" rel="noopener noreferrer" className="text-blue-600 hover:underline">[{ref.url}]</a>}
+                </li>
+              ))}
+            </ul>
+          </div>
+        )}
+
+        {/* Appendices section */}
+        {plan.appendices && plan.appendices.length > 0 && (
+          <div className="section-block space-y-4">
+            <div className="section-heading border-b border-gray-200/80 pb-3">
+              <h2 className="text-[21px] font-semibold tracking-tight text-slate-900">Appendices</h2>
+            </div>
+            <ul className="list-disc pl-5 space-y-2 text-sm text-gray-700">
+              {plan.appendices.map((appendix) => (
+                <li key={appendix.id}>
+                  <strong>{appendix.title}</strong>: {appendix.description}
+                  {appendix.fileUrl && <a href={appendix.fileUrl} target="_blank" rel="noopener noreferrer" className="text-blue-600 hover:underline"> [Link]</a>}
+                </li>
+              ))}
+            </ul>
+          </div>
+        )}
       </div>
     </div>
   );
-};
+}
 
 export default ExportRenderer;
 
