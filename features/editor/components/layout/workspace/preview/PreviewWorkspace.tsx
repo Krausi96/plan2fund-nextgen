@@ -110,19 +110,34 @@ function convertSectionToPlanSection(section: Section, sectionNumber: number | n
   section.questions.forEach((question) => {
     if (question.answer && question.answer.trim()) {
       hasContent = true;
-      subchapterIndex += 1;
-      const subchapterLabel = sectionNumber !== null ? `${sectionNumber}.${subchapterIndex}` : `${subchapterIndex}`;
-      
-      htmlParts.push(
-        `<h4 class="section-subchapter">${subchapterLabel} ${question.prompt}</h4>`
-      );
-      
-      // Collect subchapter metadata for TOC
-      subchapters.push({
-        id: question.id,
-        title: question.prompt,
-        numberLabel: subchapterLabel
-      });
+      // Only number subchapters if section has a number (exclude Executive Summary)
+      if (sectionNumber !== null) {
+        subchapterIndex += 1;
+        const subchapterLabel = `${sectionNumber}.${subchapterIndex}`;
+        
+        htmlParts.push(
+          `<h4 class="section-subchapter">${subchapterLabel} ${question.prompt}</h4>`
+        );
+        
+        // Collect subchapter metadata for TOC
+        subchapters.push({
+          id: question.id,
+          title: question.prompt,
+          numberLabel: subchapterLabel
+        });
+      } else {
+        // Executive Summary or unnumbered sections - no numbering
+        htmlParts.push(
+          `<h4 class="section-subchapter">${question.prompt}</h4>`
+        );
+        
+        // Collect subchapter metadata for TOC without number
+        subchapters.push({
+          id: question.id,
+          title: question.prompt,
+          numberLabel: ''
+        });
+      }
       
       const normalizedAnswer = question.answer
         .replace(/\*\*/g, '')
@@ -316,8 +331,8 @@ export default function PreviewPanel({ plan }: PreviewPanelProps) {
     <>
       <div className="space-y-3 rounded-xl border border-white/15 bg-white/5 p-3 shadow-inner">
         {planDocument ? (
-          <div className="relative h-[660px] overflow-hidden rounded-3xl border border-white/10 bg-slate-950/40 p-3 shadow-inner">
-            <div className="mb-3 flex flex-wrap items-center justify-between gap-3 rounded-lg border border-white/15 bg-white/5 px-3 py-2 text-[11px] text-white/80">
+          <div className="relative h-[660px] overflow-hidden rounded-3xl border border-white/10 bg-slate-950/40 p-0 shadow-inner flex flex-col">
+            <div className="flex-shrink-0 mb-3 flex flex-wrap items-center justify-between gap-3 rounded-lg border border-white/15 bg-white/5 px-3 py-2 text-[11px] text-white/80">
               <div className="flex items-center gap-2">
                 <span className="uppercase tracking-wide text-white/60">View</span>
                 <button
@@ -365,37 +380,32 @@ export default function PreviewPanel({ plan }: PreviewPanelProps) {
                 </div>
               </div>
             </div>
-            <div className="absolute inset-0 overflow-y-auto px-2 pb-4">
-              <div
-                className={`mx-auto ${viewMode === 'page' ? 'w-full' : 'max-w-none'} transition-all`}
-              >
-                <div className="rounded-[26px] border border-black/10 bg-white/95 shadow-2xl ring-1 ring-black/5">
-                  <div
-                    className="rounded-[22px] bg-white p-6"
-                    style={{
-                      transform: `scale(${zoomPreset === 'compact' ? 0.9 : zoomPreset === 'comfortable' ? 1.08 : 1})`,
-                      transformOrigin: 'top center',
-                      transition: 'transform 150ms ease'
+            <div className="flex-1 overflow-y-auto overflow-x-hidden px-0 flex flex-col">
+              <div className="flex-1 w-full overflow-x-hidden">
+                <div
+                  style={{
+                    transform: `scale(${zoomPreset === 'compact' ? 0.9 : zoomPreset === 'comfortable' ? 1.08 : 1})`,
+                    transformOrigin: 'top center',
+                    transition: 'transform 150ms ease'
+                  }}
+                >
+                  <ExportRenderer
+                    plan={planDocument}
+                    showWatermark={showWatermark}
+                    watermarkText="DRAFT"
+                    previewMode={viewMode === 'page' ? 'formatted' : 'preview'}
+                    previewSettings={{
+                      showCompletionStatus: true,
+                      showWordCount: false,
+                      showCharacterCount: false,
+                      enableRealTimePreview: true
                     }}
-                  >
-                    <ExportRenderer
-                      plan={planDocument}
-                      showWatermark={showWatermark}
-                      watermarkText="DRAFT"
-                      previewMode={viewMode === 'page' ? 'formatted' : 'preview'}
-                      previewSettings={{
-                        showCompletionStatus: true,
-                        showWordCount: false,
-                        showCharacterCount: false,
-                        enableRealTimePreview: true
-                      }}
-                    />
-                  </div>
+                  />
                 </div>
-                <div className="mt-4 flex items-center justify-between text-[11px] uppercase tracking-wide text-white/60">
-                  <span>{planDocument.sections.length} sections</span>
-                  <span>Drag to scroll</span>
-                </div>
+              </div>
+              <div className="flex-shrink-0 mt-4 mb-2 px-4 flex items-center justify-between text-[11px] uppercase tracking-wide text-white/60">
+                <span>{planDocument.sections.length} sections</span>
+                <span>Drag to scroll</span>
               </div>
             </div>
           </div>

@@ -4,6 +4,45 @@
 import React from 'react';
 import { PlanDocument, Table } from '@/features/editor/types/plan';
 
+function formatTableLabel(key: string): string {
+  return key
+    .replace(/_/g, ' ')
+    .replace(/([a-z])([A-Z])/g, '$1 $2')
+    .replace(/\s+/g, ' ')
+    .replace(/^\w/, (char) => char.toUpperCase());
+}
+
+function renderTable(table: Table) {
+  return (
+    <div className="overflow-x-auto border border-gray-200 rounded-lg bg-white">
+      <table className="min-w-full text-sm">
+        <thead className="bg-gray-50">
+          <tr>
+            <th className="text-left px-3 py-2 border-b border-gray-200">Item</th>
+            {table.columns.map((column, index) => (
+              <th key={index} className="text-right px-3 py-2 border-b border-gray-200">
+                {column}
+              </th>
+            ))}
+          </tr>
+        </thead>
+        <tbody>
+          {table.rows.map((row, rowIndex) => (
+            <tr key={rowIndex} className="border-b border-gray-100">
+              <td className="px-3 py-2 font-medium text-gray-700">{row.label}</td>
+              {row.values.map((value, valueIndex) => (
+                <td key={valueIndex} className="px-3 py-2 text-right text-gray-600">
+                  {typeof value === 'number' ? value.toLocaleString() : value}
+                </td>
+              ))}
+            </tr>
+          ))}
+        </tbody>
+      </table>
+    </div>
+  );
+}
+
 export interface PreviewOptions {
   showWatermark?: boolean;
   watermarkText?: string;
@@ -33,6 +72,26 @@ function ExportRenderer({
     ? plan.sections.filter(section => selectedSections.has(section.key))
     : plan.sections;
 
+  // Language support
+  const isGerman = plan.language === 'de';
+  const t = {
+    businessPlan: isGerman ? 'Geschäftsplan' : 'Business Plan',
+    tableOfContents: isGerman ? 'Inhaltsverzeichnis' : 'Table of Contents',
+    listOfTables: isGerman ? 'Tabellenverzeichnis' : 'List of Tables',
+    listOfFigures: isGerman ? 'Abbildungsverzeichnis' : 'List of Figures',
+    references: isGerman ? 'Referenzen' : 'References',
+    appendices: isGerman ? 'Anhänge' : 'Appendices',
+    email: isGerman ? 'E-Mail' : 'Email',
+    phone: isGerman ? 'Telefon' : 'Phone',
+    website: isGerman ? 'Website' : 'Website',
+    page: isGerman ? 'Seite' : 'Page',
+    noTablesYet: isGerman ? 'Noch keine Tabellen hinzugefügt. Tabellen erscheinen hier, sobald Sie sie zu Ihren Abschnitten hinzufügen.' : 'No tables added yet. Tables will appear here once you add them to your sections.',
+    noFiguresYet: isGerman ? 'Noch keine Abbildungen hinzugefügt. Bilder und Abbildungen erscheinen hier, sobald Sie sie zu Ihren Abschnitten hinzufügen.' : 'No figures added yet. Images and figures will appear here once you add them to your sections.',
+    noReferencesYet: isGerman ? 'Noch keine Referenzen hinzugefügt. Fügen Sie Zitate und Referenzen hinzu, um Ihren Geschäftsplan zu unterstützen.' : 'No references added yet. Add citations and references to support your business plan.',
+    noAppendicesYet: isGerman ? 'Noch keine Anhänge hinzugefügt. Fügen Sie ergänzende Materialien, Dokumente oder zusätzliche Informationen hier hinzu.' : 'No appendices added yet. Add supplementary materials, documents, or additional information here.',
+    figure: isGerman ? 'Abbildung' : 'Figure'
+  };
+
   return (
     <div className={`export-preview ${previewMode}`}>
       {showWatermark && (
@@ -43,60 +102,153 @@ function ExportRenderer({
         </div>
       )}
       
-      <div className="relative z-10 space-y-8">
-        {plan.settings.includeTitlePage && (
-          <div className="preview-title-page border-b border-gray-200/80 py-12 text-center">
-            {plan.settings.titlePage?.logoUrl && (
-              <img src={plan.settings.titlePage.logoUrl} alt="Company Logo" className="mx-auto mb-4 h-24 object-contain" />
-            )}
-            <p className="mb-3 text-xs font-medium uppercase tracking-[0.35em] text-gray-400">
-              Business Plan Draft
-            </p>
-            <h1 className="preview-title mb-3 text-[34px] font-semibold leading-[1.15] text-slate-900">
-              {plan.settings.titlePage?.title || 'Business Plan'}
-            </h1>
-            {plan.settings.titlePage?.subtitle && (
-              <p className="text-base text-gray-600">{plan.settings.titlePage.subtitle}</p>
-            )}
-            {plan.settings.titlePage?.companyName && (
-              <p className="text-sm text-gray-500">
-                {plan.settings.titlePage.companyName}
-                {plan.settings.titlePage?.legalForm && ` (${plan.settings.titlePage.legalForm})`}
-              </p>
-            )}
-            {plan.settings.titlePage?.teamHighlight && (
-              <p className="text-sm text-gray-500">{plan.settings.titlePage.teamHighlight}</p>
-            )}
-            {plan.settings.titlePage?.author && (
-              <p className="mt-4 text-sm font-medium text-gray-600">{plan.settings.titlePage.author}</p>
-            )}
-            {plan.settings.titlePage?.contactInfo && (
-              <div className="mt-2 text-xs text-gray-500">
-                {plan.settings.titlePage.contactInfo.email && <p>{plan.settings.titlePage.contactInfo.email}</p>}
-                {plan.settings.titlePage.contactInfo.phone && <p>{plan.settings.titlePage.contactInfo.phone}</p>}
-                {plan.settings.titlePage.contactInfo.website && <p>{plan.settings.titlePage.contactInfo.website}</p>}
-                {plan.settings.titlePage.contactInfo.address && <p>{plan.settings.titlePage.contactInfo.address}</p>}
-                {plan.settings.titlePage.headquartersLocation && <p>{plan.settings.titlePage.headquartersLocation}</p>}
+      <div className="relative z-10">
+        {plan.settings.includeTitlePage && (() => {
+          const dateLocale = isGerman ? 'de-DE' : 'en-US';
+          
+          return (
+            <div 
+              className="preview-title-page export-preview-page flex flex-col justify-between py-12 px-8"
+              style={{
+                width: '210mm',
+                height: '297mm',
+                backgroundColor: 'white',
+                background: 'white'
+              }}
+            >
+              {/* Top Section: Logo and Document Type */}
+              <div className="flex-shrink-0 flex flex-col items-center mb-8">
+                {plan.settings.titlePage?.logoUrl && (
+                  <div className="mb-6">
+                    <img 
+                      src={plan.settings.titlePage.logoUrl} 
+                      alt="Company Logo" 
+                      className="mx-auto h-20 object-contain" 
+                    />
+                  </div>
+                )}
+                <p className="text-xs font-medium uppercase tracking-widest text-gray-400">
+                  {t.businessPlan}
+                </p>
               </div>
-            )}
-            <p className="mt-1 text-xs uppercase tracking-[0.25em] text-gray-400">
-              {plan.settings.titlePage?.date || new Date().toLocaleDateString()}
-            </p>
-            {plan.settings.titlePage?.confidentialityStatement && (
-              <p className="mt-4 text-xs text-gray-500 italic max-w-xl mx-auto">
-                {plan.settings.titlePage.confidentialityStatement}
-              </p>
-            )}
-          </div>
-        )}
 
-        <div className="space-y-2">
-          <h2 className="text-2xl font-semibold text-gray-900 mb-4">Table of Contents</h2>
-          <div className="space-y-1">
-            {sectionsToRender.map((section) => {
+              {/* Center Section: Title and Company Info */}
+              <div className="flex-1 flex flex-col justify-center items-center text-center max-w-2xl mx-auto px-4">
+                <h1 className="preview-title mb-3 text-2xl sm:text-3xl font-bold leading-tight text-slate-900">
+                  {plan.settings.titlePage?.title || t.businessPlan}
+                </h1>
+                
+                {plan.settings.titlePage?.subtitle && (
+                  <p className="text-sm text-gray-600 font-normal leading-relaxed mb-4">
+                    {plan.settings.titlePage.subtitle}
+                  </p>
+                )}
+
+                {plan.settings.titlePage?.companyName && (
+                  <div className="mb-2">
+                    <p className="text-base font-semibold text-gray-800">
+                      {plan.settings.titlePage.companyName}
+                      {plan.settings.titlePage?.legalForm && (
+                        <span className="font-normal text-gray-600"> ({plan.settings.titlePage.legalForm})</span>
+                      )}
+                    </p>
+                    {plan.settings.titlePage?.teamHighlight && (
+                      <p className="text-xs text-gray-600 italic mt-1">{plan.settings.titlePage.teamHighlight}</p>
+                    )}
+                  </div>
+                )}
+              </div>
+
+              {/* Bottom Section: Author, Contact, Date */}
+              <div className="flex-shrink-0 w-full mt-auto pt-8">
+                {plan.settings.titlePage?.author && (
+                  <div className="mb-4">
+                    <p className="text-xs text-gray-700 mb-2">
+                      <span className="font-semibold">{isGerman ? 'Autor' : 'Author'}:</span>{' '}
+                      <span className="font-normal">{plan.settings.titlePage.author}</span>
+                    </p>
+                    {plan.settings.titlePage?.contactInfo && (
+                      <div className="space-y-1 text-xs text-gray-600">
+                        {plan.settings.titlePage.contactInfo.email && (
+                          <p>
+                            <span className="font-medium text-gray-700">{t.email}:</span>{' '}
+                            <span>{plan.settings.titlePage.contactInfo.email}</span>
+                          </p>
+                        )}
+                        {plan.settings.titlePage.contactInfo.phone && (
+                          <p>
+                            <span className="font-medium text-gray-700">{t.phone}:</span>{' '}
+                            <span>{plan.settings.titlePage.contactInfo.phone}</span>
+                          </p>
+                        )}
+                        {plan.settings.titlePage.contactInfo.website && (
+                          <p>
+                            <span className="font-medium text-gray-700">{t.website}:</span>{' '}
+                            <a 
+                              href={plan.settings.titlePage.contactInfo.website} 
+                              target="_blank" 
+                              rel="noopener noreferrer"
+                              className="text-blue-600 hover:text-blue-800 underline"
+                            >
+                              {plan.settings.titlePage.contactInfo.website}
+                            </a>
+                          </p>
+                        )}
+                        {(plan.settings.titlePage.contactInfo.address || plan.settings.titlePage.headquartersLocation) && (
+                          <p className="mt-1">
+                            <span className="font-medium text-gray-700">{isGerman ? 'Adresse' : 'Address'}:</span>{' '}
+                            <span>{plan.settings.titlePage.contactInfo.address || plan.settings.titlePage.headquartersLocation}</span>
+                          </p>
+                        )}
+                      </div>
+                    )}
+                  </div>
+                )}
+
+                <div className="w-full flex justify-between items-end pt-3 border-t border-gray-200">
+                  <div>
+                    <p className="text-xs text-gray-600">
+                      <span className="font-medium text-gray-700">{isGerman ? 'Datum' : 'Date'}:</span>{' '}
+                      <span>{plan.settings.titlePage?.date || new Date().toLocaleDateString(dateLocale, { 
+                        year: 'numeric', 
+                        month: 'long', 
+                        day: 'numeric' 
+                      })}</span>
+                    </p>
+                  </div>
+                  {plan.settings.titlePage?.confidentialityStatement && (
+                    <div className="text-right max-w-md">
+                      <p className="text-xs text-gray-500 italic leading-relaxed">
+                        {plan.settings.titlePage.confidentialityStatement}
+                      </p>
+                    </div>
+                  )}
+                </div>
+              </div>
+            </div>
+          );
+        })()}
+
+        <div 
+          className="export-preview-page export-preview-toc-page"
+          style={{
+            width: '210mm',
+            height: '297mm',
+            backgroundColor: 'white',
+            background: 'white'
+          }}
+        >
+          <div className="space-y-2">
+            <h2 className="text-2xl font-semibold text-gray-900 mb-4">
+              {t.tableOfContents}
+            </h2>
+            <div className="space-y-1">
+            {sectionsToRender.map((section, sectionIndex) => {
               const sectionNumber = section.fields?.sectionNumber ?? null;
               const sectionLabel = sectionNumber !== null ? `${sectionNumber}. ${section.title}` : section.title;
               const subchapters = section.fields?.subchapters || [];
+              // Calculate page number: TOC is page 1 (or 2 if title page exists), sections start from there
+              const sectionPageNumber = sectionIndex + (plan.settings.includeTitlePage ? 2 : 1);
               
               return (
                 <div key={section.key} className="space-y-1">
@@ -104,17 +256,31 @@ function ExportRenderer({
                     <span className="text-blue-600 hover:text-blue-800 cursor-pointer">
                       {sectionLabel}
                     </span>
-                    {previewSettings.showWordCount && section.content && (
-                      <span className="text-xs text-gray-500">
-                        {section.content.split(' ').length} words
-                      </span>
-                    )}
+                    <div className="flex items-center gap-3">
+                      {plan.settings.includePageNumbers && (
+                        <span className="text-xs text-gray-400 font-medium">
+                          {sectionPageNumber}
+                        </span>
+                      )}
+                      {previewSettings.showWordCount && section.content && (
+                        <span className="text-xs text-gray-500">
+                          {section.content.split(' ').length} words
+                        </span>
+                      )}
+                    </div>
                   </div>
                   {subchapters.length > 0 && (
                     <div className="ml-4 space-y-0.5">
                       {subchapters.map((sub: { id: string; title: string; numberLabel: string }) => (
-                        <div key={sub.id} className="text-sm text-gray-600">
-                          {sub.numberLabel}. {sub.title}
+                        <div key={sub.id} className="flex justify-between items-center text-sm text-gray-600">
+                          <span>
+                            {sub.numberLabel ? `${sub.numberLabel}. ` : ''}{sub.title}
+                          </span>
+                          {plan.settings.includePageNumbers && (
+                            <span className="text-xs text-gray-400 font-medium ml-2">
+                              {sectionPageNumber}
+                            </span>
+                          )}
                         </div>
                       ))}
                     </div>
@@ -122,37 +288,109 @@ function ExportRenderer({
                 </div>
               );
             })}
+            {/* List of Tables in TOC */}
             {(() => {
-              const hasAnyAttachments = sectionsToRender.some((section) => 
-                (section.tables && Object.keys(section.tables || {}).length > 0) || 
-                (section.figures && section.figures && section.figures.length > 0)
+              const hasTables = sectionsToRender.some((section) => 
+                section.tables && Object.keys(section.tables || {}).length > 0
               );
-              if (hasAnyAttachments) {
+              if (hasTables) {
+                const listOfTablesPageNumber = sectionsToRender.length + (plan.settings.includeTitlePage ? 2 : 1);
                 return (
                   <div className="flex justify-between items-center py-1 mt-2 pt-2 border-t border-gray-200">
                     <span className="text-blue-600 hover:text-blue-800 cursor-pointer">
-                      Attachments
+                      {t.listOfTables}
                     </span>
+                    {plan.settings.includePageNumbers && (
+                      <span className="text-xs text-gray-400 font-medium">
+                        {listOfTablesPageNumber}
+                      </span>
+                    )}
                   </div>
                 );
               }
               return null;
             })()}
+            
+            {/* List of Figures in TOC */}
+            {(() => {
+              const hasFigures = sectionsToRender.some((section) => 
+                section.figures && section.figures.length > 0
+              );
+              if (hasFigures) {
+                const listOfFiguresPageNumber = sectionsToRender.length + (plan.settings.includeTitlePage ? 2 : 1) + 1;
+                return (
+                  <div className="flex justify-between items-center py-1">
+                    <span className="text-blue-600 hover:text-blue-800 cursor-pointer">
+                      {t.listOfFigures}
+                    </span>
+                    {plan.settings.includePageNumbers && (
+                      <span className="text-xs text-gray-400 font-medium">
+                        {listOfFiguresPageNumber}
+                      </span>
+                    )}
+                  </div>
+                );
+              }
+              return null;
+            })()}
+            
+            {/* References in TOC */}
+            <div className="flex justify-between items-center py-1 mt-2 pt-2 border-t border-gray-200">
+              <span className="text-blue-600 hover:text-blue-800 cursor-pointer">
+                {t.references}
+              </span>
+              {plan.settings.includePageNumbers && (
+                <span className="text-xs text-gray-400 font-medium">
+                  {sectionsToRender.length + (plan.settings.includeTitlePage ? 2 : 1) + 2}
+                </span>
+              )}
+            </div>
+            
+            {/* Appendices in TOC */}
+            <div className="flex justify-between items-center py-1">
+              <span className="text-blue-600 hover:text-blue-800 cursor-pointer">
+                {t.appendices}
+              </span>
+              {plan.settings.includePageNumbers && (
+                <span className="text-xs text-gray-400 font-medium">
+                  {sectionsToRender.length + (plan.settings.includeTitlePage ? 2 : 1) + 3}
+                </span>
+              )}
+            </div>
+            </div>
           </div>
+          {/* Footer with page number for TOC */}
+          {plan.settings.includePageNumbers && (
+            <div className="export-preview-page-footer">
+              <span>{plan.settings.includeTitlePage ? 2 : 1}</span>
+            </div>
+          )}
         </div>
 
-        {sectionsToRender.map((section) => {
+        {sectionsToRender.map((section, sectionIndex) => {
           const hasContent = section.content && section.content.trim().length > 0;
           const wordCount = section.content ? section.content.split(' ').length : 0;
           const charCount = section.content ? section.content.length : 0;
           const displayTitle = section.fields?.displayTitle || section.title;
           const actualStatus = section.status || (hasContent ? 'aligned' : 'missing');
           const isComplete = actualStatus === 'aligned';
+          // Calculate page number: TOC is page 1 (or 2 if title page exists), sections start from there
+          const pageNumber = sectionIndex + (plan.settings.includeTitlePage ? 2 : 1);
           
           return (
-            <div key={section.key} className="space-y-4">
-              <div className="border-b border-gray-200 pb-2">
-                <h2 className="text-2xl font-semibold text-gray-900">{displayTitle}</h2>
+            <div 
+              key={section.key} 
+              className="export-preview-page export-preview-section"
+              style={{
+                width: '210mm',
+                height: '297mm',
+                backgroundColor: 'white',
+                background: 'white'
+              }}
+            >
+              <div className="space-y-4 flex-1 overflow-hidden flex flex-col">
+                <div className="border-b border-gray-200 pb-2 flex-shrink-0">
+                  <h2 className="text-2xl font-semibold text-gray-900">{displayTitle}</h2>
                 {previewSettings.showCompletionStatus && (
                   <div className="flex items-center gap-4 mt-2 text-sm text-gray-600">
                     {isComplete ? (
@@ -176,7 +414,7 @@ function ExportRenderer({
                 )}
               </div>
               
-              <div className={`prose max-w-none ${
+              <div className={`prose max-w-none flex-1 overflow-y-auto min-h-0 ${
                 previewMode === 'formatted' ? 'font-serif' : 'font-sans'
               }`}>
                 {hasContent ? (
@@ -227,30 +465,26 @@ function ExportRenderer({
                   ))}
                 </div>
               )}
+              </div>
+              {/* Footer with page number */}
+              {plan.settings.includePageNumbers && (
+                <div className="export-preview-page-footer">
+                  <span>{pageNumber}</span>
+                </div>
+              )}
             </div>
           );
         })}
 
-        {/* Attachments section at the end */}
+        {/* List of Tables */}
         {(() => {
-          const allAttachments: Array<{ type: string; name: string; sectionTitle: string; sectionNumber: number | null }> = [];
+          const allTables: Array<{ name: string; sectionTitle: string; sectionNumber: number | null }> = [];
           sectionsToRender.forEach((section) => {
             const sectionNumber = section.fields?.sectionNumber ?? null;
             if (section.tables && Object.keys(section.tables).length > 0) {
               Object.keys(section.tables).forEach((tableKey) => {
-                allAttachments.push({
-                  type: 'table',
+                allTables.push({
                   name: formatTableLabel(tableKey),
-                  sectionTitle: section.title,
-                  sectionNumber
-                });
-              });
-            }
-            if (section.figures && section.figures.length > 0) {
-              section.figures.forEach((figure: any) => {
-                allAttachments.push({
-                  type: figure.type || 'figure',
-                  name: figure.title || 'Figure',
                   sectionTitle: section.title,
                   sectionNumber
                 });
@@ -258,34 +492,123 @@ function ExportRenderer({
             }
           });
 
-          if (allAttachments.length > 0) {
-            return (
-              <div className="space-y-4">
-                <div className="border-b border-gray-200 pb-2">
-                  <h2 className="text-2xl font-semibold text-gray-900">Attachments</h2>
+          const listOfTablesPageNumber = sectionsToRender.length + (plan.settings.includeTitlePage ? 2 : 1);
+
+          return (
+            <div 
+              className="export-preview-page export-preview-section"
+              style={{
+                width: '210mm',
+                height: '297mm',
+                backgroundColor: 'white',
+                background: 'white'
+              }}
+            >
+              <div className="section-block space-y-4">
+                <div className="section-heading border-b border-gray-200/80 pb-3">
+                  <h2 className="text-[21px] font-semibold tracking-tight text-slate-900">{t.listOfTables}</h2>
                 </div>
-                <div className="space-y-3">
-                  {allAttachments.map((attachment, idx) => (
+                {allTables.length > 0 ? (
+                  <div className="space-y-2">
+                    {allTables.map((table, idx) => (
+                      <div key={idx} className="text-sm text-gray-700">
+                        <span className="font-semibold">{table.name}</span>
+                        <span className="text-gray-500 ml-2">
+                          — {table.sectionNumber !== null ? `${table.sectionNumber}. ` : ''}{table.sectionTitle}
+                        </span>
+                      </div>
+                    ))}
+                  </div>
+                ) : (
+                  <div className="text-sm text-gray-400 italic py-4 text-center border-2 border-dashed border-gray-200 rounded-lg">
+                    {t.noTablesYet}
+                  </div>
+                )}
+              </div>
+              {/* Footer with page number */}
+              {plan.settings.includePageNumbers && (
+                <div className="export-preview-page-footer">
+                  <span>{listOfTablesPageNumber}</span>
+                </div>
+              )}
+            </div>
+          );
+        })()}
+
+        {/* List of Figures */}
+        {(() => {
+          const allFigures: Array<{ name: string; sectionTitle: string; sectionNumber: number | null }> = [];
+          sectionsToRender.forEach((section) => {
+            const sectionNumber = section.fields?.sectionNumber ?? null;
+            if (section.figures && section.figures.length > 0) {
+              section.figures.forEach((figure: any) => {
+                  allFigures.push({
+                    name: figure.title || t.figure,
+                    sectionTitle: section.title,
+                    sectionNumber
+                  });
+              });
+            }
+          });
+
+          const listOfFiguresPageNumber = sectionsToRender.length + (plan.settings.includeTitlePage ? 2 : 1) + 1;
+
+          return (
+            <div 
+              className="export-preview-page export-preview-section"
+              style={{
+                width: '210mm',
+                height: '297mm',
+                backgroundColor: 'white',
+                background: 'white'
+              }}
+            >
+              <div className="section-block space-y-4">
+                <div className="section-heading border-b border-gray-200/80 pb-3">
+                  <h2 className="text-[21px] font-semibold tracking-tight text-slate-900">{t.listOfFigures}</h2>
+                </div>
+              {allFigures.length > 0 ? (
+                <div className="space-y-2">
+                  {allFigures.map((figure, idx) => (
                     <div key={idx} className="text-sm text-gray-700">
-                      <span className="font-semibold">{attachment.name}</span>
+                      <span className="font-semibold">{figure.name}</span>
                       <span className="text-gray-500 ml-2">
-                        ({attachment.type}) — {attachment.sectionNumber !== null ? `${attachment.sectionNumber}. ` : ''}{attachment.sectionTitle}
+                        — {figure.sectionNumber !== null ? `${figure.sectionNumber}. ` : ''}{figure.sectionTitle}
                       </span>
                     </div>
                   ))}
                 </div>
+              ) : (
+                <div className="text-sm text-gray-400 italic py-4 text-center border-2 border-dashed border-gray-200 rounded-lg">
+                  {t.noFiguresYet}
+                </div>
+              )}
               </div>
-            );
-          }
-          return null;
+              {/* Footer with page number */}
+              {plan.settings.includePageNumbers && (
+                <div className="export-preview-page-footer">
+                  <span>{listOfFiguresPageNumber}</span>
+                </div>
+              )}
+            </div>
+          );
         })()}
 
         {/* References section */}
-        {plan.references && plan.references.length > 0 && (
+        <div 
+          className="export-preview-page export-preview-section"
+          style={{
+            width: '210mm',
+            height: '297mm',
+            backgroundColor: 'white',
+            background: 'white'
+          }}
+        >
           <div className="section-block space-y-4">
             <div className="section-heading border-b border-gray-200/80 pb-3">
-              <h2 className="text-[21px] font-semibold tracking-tight text-slate-900">References</h2>
+              <h2 className="text-[21px] font-semibold tracking-tight text-slate-900">{t.references}</h2>
             </div>
+          {plan.references && plan.references.length > 0 ? (
             <ul className="list-disc pl-5 space-y-2 text-sm text-gray-700">
               {plan.references.map((ref) => (
                 <li key={ref.id}>
@@ -293,15 +616,35 @@ function ExportRenderer({
                 </li>
               ))}
             </ul>
+          ) : (
+            <div className="text-sm text-gray-400 italic py-4 text-center border-2 border-dashed border-gray-200 rounded-lg">
+              {t.noReferencesYet}
+            </div>
+          )}
           </div>
-        )}
+          {/* Footer with page number */}
+          {plan.settings.includePageNumbers && (
+            <div className="export-preview-page-footer">
+              <span>{sectionsToRender.length + (plan.settings.includeTitlePage ? 2 : 1) + 2}</span>
+            </div>
+          )}
+        </div>
 
         {/* Appendices section */}
-        {plan.appendices && plan.appendices.length > 0 && (
+        <div 
+          className="export-preview-page export-preview-section"
+          style={{
+            width: '210mm',
+            height: '297mm',
+            backgroundColor: 'white',
+            background: 'white'
+          }}
+        >
           <div className="section-block space-y-4">
             <div className="section-heading border-b border-gray-200/80 pb-3">
-              <h2 className="text-[21px] font-semibold tracking-tight text-slate-900">Appendices</h2>
+              <h2 className="text-[21px] font-semibold tracking-tight text-slate-900">{t.appendices}</h2>
             </div>
+          {plan.appendices && plan.appendices.length > 0 ? (
             <ul className="list-disc pl-5 space-y-2 text-sm text-gray-700">
               {plan.appendices.map((appendix) => (
                 <li key={appendix.id}>
@@ -310,50 +653,22 @@ function ExportRenderer({
                 </li>
               ))}
             </ul>
+          ) : (
+            <div className="text-sm text-gray-400 italic py-4 text-center border-2 border-dashed border-gray-200 rounded-lg">
+              {t.noAppendicesYet}
+            </div>
+          )}
           </div>
-        )}
+          {/* Footer with page number */}
+          {plan.settings.includePageNumbers && (
+            <div className="export-preview-page-footer">
+              <span>{sectionsToRender.length + (plan.settings.includeTitlePage ? 2 : 1) + 3}</span>
+            </div>
+          )}
+        </div>
       </div>
     </div>
   );
 }
 
 export default ExportRenderer;
-
-function formatTableLabel(key: string): string {
-  return key
-    .replace(/_/g, ' ')
-    .replace(/([a-z])([A-Z])/g, '$1 $2')
-    .replace(/\s+/g, ' ')
-    .replace(/^\w/, (char) => char.toUpperCase());
-}
-
-function renderTable(table: Table) {
-  return (
-    <div className="overflow-x-auto border border-gray-200 rounded-lg bg-white">
-      <table className="min-w-full text-sm">
-        <thead className="bg-gray-50">
-          <tr>
-            <th className="text-left px-3 py-2 border-b border-gray-200">Item</th>
-            {table.columns.map((column, index) => (
-              <th key={index} className="text-right px-3 py-2 border-b border-gray-200">
-                {column}
-              </th>
-            ))}
-          </tr>
-        </thead>
-        <tbody>
-          {table.rows.map((row, rowIndex) => (
-            <tr key={rowIndex} className="border-b border-gray-100">
-              <td className="px-3 py-2 font-medium text-gray-700">{row.label}</td>
-              {row.values.map((value, valueIndex) => (
-                <td key={valueIndex} className="px-3 py-2 text-right text-gray-600">
-                  {typeof value === 'number' ? value.toLocaleString() : value}
-                </td>
-              ))}
-            </tr>
-          ))}
-        </tbody>
-      </table>
-    </div>
-  );
-}
