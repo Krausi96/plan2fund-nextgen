@@ -372,9 +372,9 @@ onAskAI() called
   ↓
 triggerAISuggestions(sectionId, questionId) called
   ↓
-createAIHelper() with section context
+Invoke section AI client with section context
   ↓
-aiHelper.generateSectionContent() called
+`generateSectionContent()` resolves
   ↓
 OpenAI API request with:
   - Section title & prompts
@@ -561,7 +561,7 @@ Callbacks update store:
 ```
 
 #### Preview Tab
-**Location**: `Editor.tsx:1704-1722` → `SectionContentRenderer`
+**Location**: `Editor.tsx:1704-1722` → `PreviewPanel`
 
 **Shows**:
 - Section title
@@ -693,7 +693,7 @@ AncillaryEditorPanel shows customization options
 - **Logo URL**: Company logo image URL
 - **Confidentiality statement**: Optional confidentiality text (textarea)
 
-**Code**: `RequirementsModal.tsx:255-326`
+**Code**: `AncillaryPanel.tsx:255-326`
 
 **Data Flow**:
 ```
@@ -724,7 +724,7 @@ Export uses plan.titlePage for title page
 - Rendered via CSS `@media print` rules
 - Page numbers appear in footer of exported documents
 
-**Code**: `SectionContentRenderer.tsx:147` → `includePageNumbers: true`
+**Code**: `PreviewPanel.tsx:147` → `includePageNumbers: true`
 
 **Note**: Currently hardcoded to `true`. Future enhancement could add toggle in UI.
 
@@ -765,7 +765,7 @@ Appears in references list
 - **Link to Reference**: Dropdown to select from existing references
 - **Display**: Footnotes appear in exported document
 
-**Code**: `RequirementsModal.tsx:207-230` → Footnote management
+**Code**: `AncillaryPanel.tsx:207-230` → Footnote management
 
 **Citation Styles**:
 - Stored in `plan.ancillary.citationStyle`: `'apa' | 'mla' | 'chicago' | 'custom'`
@@ -808,7 +808,7 @@ Appears in references list
 - **Hide entries**: Toggle visibility (hidden entries don't appear in export)
 - **Remove entries**: Delete unwanted entries
 
-**Code**: `RequirementsModal.tsx:155-172` → TOC management
+**Code**: `AncillaryPanel.tsx:155-172` → TOC management
 
 **Data Structure**:
 ```typescript
@@ -830,7 +830,7 @@ Appears in references list
 - **Set label**: Figure/Table label (e.g., "Figure 1", "Table 2")
 - **Page numbers**: Auto-calculated in export
 
-**Code**: `RequirementsModal.tsx:174-205` → Figure list management
+**Code**: `AncillaryPanel.tsx:174-205` → Figure list management
 
 **Auto-Generation** (Future):
 - Could auto-generate from `section.media[]` and `section.datasets[]`
@@ -845,7 +845,7 @@ Appears in references list
 - **Edit/Delete**: Manage appendix items
 - **File attachments**: Link to external files or documents
 
-**Code**: `RequirementsModal.tsx:232-241` → Appendix management
+**Code**: `AncillaryPanel.tsx:232-241` → Appendix management
 
 **Data Structure**:
 ```typescript
@@ -879,7 +879,7 @@ settings: {
 }
 ```
 
-**Code**: `SectionContentRenderer.tsx:145-157`
+**Code**: `PreviewPanel.tsx:145-157`
 
 **Future Enhancements** (Not yet implemented):
 - User toggle for `includeTitlePage`

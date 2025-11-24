@@ -43,7 +43,7 @@ pages/api/
 
 **Route Changes Required:**
 - `/api/programmes/[id]/requirements` → `/api/programs/[id]/requirements`
-  - Update in: `pages/main/export.tsx`, `pages/export.tsx`, `features/editor/engine/aiHelper.ts`, etc.
+  - Update in: `pages/main/export.tsx`, `pages/export.tsx`, `features/editor/engine/sectionAiClient.ts`, etc.
 
 **Benefits:**
 - ✅ Consistent naming (`programs` everywhere)
@@ -114,7 +114,7 @@ pages/api/
 ### Files to Update (if we change `/api/programmes` → `/api/programs`):
 1. `pages/main/export.tsx` (2 references)
 2. `pages/export.tsx` (2 references)
-3. `features/editor/engine/aiHelper.ts` (1 reference)
+3. `features/editor/engine/sectionAiClient.ts` (1 reference)
 4. `features/editor/templates/index.ts` (1 reference)
 5. `pages/preview.tsx` (1 reference)
 6. `shared/components/common/StructuredRequirementsDisplay.tsx` (1 reference)

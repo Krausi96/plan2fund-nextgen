@@ -2,21 +2,21 @@
 
 ## Unified Editor Scaffold (Nov 2025 refresh)
 
-The editor now uses the `BusinessPlan` model defined in `features/editor/types/plan.ts` (see `BusinessPlan`, `Section`, `Question`, `Dataset`, `AncillaryContent`). A colocated Zustand store inside `Editor.tsx` (`useEditorStore`) owns all runtime state:
+The editor now uses the `BusinessPlan` model defined in `features/editor/types/plan.ts` (see `BusinessPlan`, `Section`, `Question`, `Dataset`, `AncillaryContent`). Runtime state lives in `features/editor/hooks/useEditorStore.ts`, which exports the `useEditorStore` selector hook plus `useEditorActions` for write APIs:
 
 - `plan: BusinessPlan` – hydrated from section templates + legacy localStorage via `loadPlanSections()`.
 - `activeSectionId`, `activeQuestionId`, `rightPanelView` – drive the sidebar/workspace/right-panel shell.
 - Actions: `hydrate(productType)`, `updateAnswer`, `addDataset/KPI/media`, `requestAISuggestions`, `runRequirementsCheck`, `updateTitlePage`, `updateAncillary`, etc. All mutations call `persistPlan()` which writes back to localStorage by translating the new model to legacy `PlanSection`/`Table` structures.
-- Services stay in existing files: AI (`features/editor/engine/aiHelper.ts`) and requirements (`calculateSectionProgress`) are invoked through store actions; no new directories were created per the constraint.
+- Services stay in existing files: AI (`features/editor/engine/sectionAiClient.ts`) and requirements (`calculateSectionProgress`) are invoked through store actions.
 
 Layout now follows the unified three-column spec:
 
-1. **Sidebar** – product/funding selectors, ordered section list with inline progress.
-2. **SectionWorkspace** – question cards with `SimpleTextEditor`, inline AI suggestion chips and an "Ask AI" trigger that pipes into `requestAISuggestions`.
-3. **RightPanel** – tabbed views (`ai`, `data`, `ancillary`, `preview`, `requirements`). Existing files were repurposed:
-   - `InlineTableCreator.tsx` → `DataPanel` (datasets/KPIs/media library).
-   - `SectionContentRenderer.tsx` → `PreviewPane` (read-only document preview).
-   - `RequirementsModal.tsx` → `AncillaryEditorPanel` (title page, ToC, references, lightweight checker surface).
+1. **Sidebar** (`features/editor/components/layout/workspace/Sidebar.tsx`) – ordered section list with inline progress pills.
+2. **Workspace** (`features/editor/components/layout/workspace/Workspace.tsx`) – `PlanConfigurator`, question cards with `SimpleTextEditor`, tone hints, ancillary workspace, and AI triggers flowing through `requestAISuggestions`.
+3. **RightPanel** (`features/editor/components/layout/right-panel/RightPanel.tsx`) – tabbed views (`ai`, `data`, `preview`) that swap between reusable panels:
+   - `features/editor/components/views/DataPanel.tsx` (datasets/KPIs/media library, formerly `InlineTableCreator`).
+   - `features/editor/components/views/PreviewPanel.tsx` (read-only preview, formerly `SectionContentRenderer`).
+   - `features/editor/components/views/AncillaryPanel.tsx` (title page, ToC, references, formerly `RequirementsModal`).
 
 > Migration tip: legacy consumers that still import `PlanDocument` / `PlanSection` keep working because those types remain exportable at the bottom of `types/plan.ts`. New UI pieces should use `BusinessPlan` and friends going forward.
 
@@ -286,7 +286,7 @@ User edits sections
    - Program info
    - User answers
    ↓
-5. Calls aiHelper.generateSectionContent()
+5. Calls `generateSectionContent()` from the section AI client
    ↓
 6. AI generates content
    ↓
@@ -402,7 +402,7 @@ Create AIHelper
     ↓
 Get section template (for prompts)
     ↓
-aiHelper.generateSectionContent()
+generateSectionContent()
     ↓
 Get generated content
     ↓

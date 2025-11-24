@@ -184,7 +184,7 @@ This document analyzes the current state of Plan2Fund's Recommender and Editor s
    - Format requirements (tables, charts)
    - Progress summary showing completion percentage
 
-4. **AI Assistant**: `aiHelper.ts` provides:
+4. **AI Assistant**: `sectionAiClient.ts` provides:
    - Context-aware suggestions using section content
    - Program requirements integration
    - Template knowledge integration
@@ -269,7 +269,7 @@ This document analyzes the current state of Plan2Fund's Recommender and Editor s
 **Implementation**:
 - Create `requirementsChecker.ts` with heuristic functions
 - Add NLP topic detection API endpoint
-- Enhance `RequirementsModal.tsx` to show actionable summaries
+- Enhance `AncillaryPanel.tsx` to show actionable summaries
 - Store program criteria mappings in database
 
 #### Priority 2: Template Configuration System
@@ -328,7 +328,7 @@ This document analyzes the current state of Plan2Fund's Recommender and Editor s
    - **Polish**: Improve existing content
 
 **Implementation**:
-- Modify `aiHelper.ts` to accept persona parameter
+- Modify `sectionAiClient.ts` to accept persona parameter
 - Create prompt templates per persona
 - Add feedback API endpoint
 - Create feedback analysis script
