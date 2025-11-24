@@ -103,6 +103,7 @@ interface EditorStoreState {
   attachDatasetToQuestion: (sectionId: string, questionId: string, dataset: Dataset) => void;
   attachKpiToQuestion: (sectionId: string, questionId: string, kpi: KPI) => void;
   attachMediaToQuestion: (sectionId: string, questionId: string, asset: MediaAsset) => void;
+  detachQuestionAttachment: (sectionId: string, questionId: string, attachmentId: string) => void;
   updateTitlePage: (titlePage: TitlePage) => void;
   updateAncillary: (updates: Partial<AncillaryContent>) => void;
   addReference: (reference: Reference) => void;
@@ -112,6 +113,7 @@ interface EditorStoreState {
   updateAppendix: (item: AppendixItem) => void;
   deleteAppendix: (appendixId: string) => void;
   setProductType: (product: ProductType) => void;
+  setFundingProgram: (program: FundingProgramType) => void;
   runRequirementsCheck: () => void;
   requestAISuggestions: (
     sectionId: string,
@@ -120,7 +122,6 @@ interface EditorStoreState {
   ) => Promise<void>;
   toggleQuestionUnknown: (questionId: string, note?: string) => void;
   markQuestionComplete: (questionId: string) => void;
-  markQuestionDraft: (questionId: string) => void;
 }
 
 const defaultTitlePage = (): TitlePage => ({
@@ -154,20 +155,17 @@ const PRODUCT_TYPE_CONFIG = [
   {
     value: 'strategy' as ProductType,
     labelKey: 'planTypes.strategy.title',
-    descriptionKey: 'planTypes.strategy.subtitle',
-    icon: '💡'
+    descriptionKey: 'planTypes.strategy.subtitle'
   },
   {
     value: 'review' as ProductType,
     labelKey: 'planTypes.review.title',
-    descriptionKey: 'planTypes.review.subtitle',
-    icon: '✏️'
+    descriptionKey: 'planTypes.review.subtitle'
   },
   {
     value: 'submission' as ProductType,
     labelKey: 'planTypes.custom.title',
-    descriptionKey: 'planTypes.custom.subtitle',
-    icon: '📋'
+    descriptionKey: 'planTypes.custom.subtitle'
   }
 ] as const;
 
@@ -236,17 +234,6 @@ const EllipsisHorizontalIcon = (props: IconProps) => (
     <circle cx="6" cy="12" r="1.5" />
     <circle cx="12" cy="12" r="1.5" />
     <circle cx="18" cy="12" r="1.5" />
-  </svg>
-);
-
-const PencilIcon = (props: IconProps) => (
-  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" {...props}>
-    <path
-      strokeLinecap="round"
-      strokeLinejoin="round"
-      strokeWidth={1.5}
-      d="m16.862 4.487 1.687-1.688a1.875 1.875 0 1 1 2.652 2.652L10.582 16.07a4.5 4.5 0 0 1-1.897 1.13L6 18l.8-2.685a4.5 4.5 0 0 1 1.13-1.897l8.932-8.931Zm0 0L19.5 7.125M18 14v4.75A2.25 2.25 0 0 1 15.75 21H5.25A2.25 2.25 0 0 1 3 18.75V8.25A2.25 2.25 0 0 1 5.25 6H10"
-    />
   </svg>
 );
 
@@ -466,35 +453,6 @@ const useEditorStore = create<EditorStoreState>((set, get) => ({
     persistPlan(updatedPlan);
     set({ plan: updatedPlan });
   },
-  markQuestionDraft: (questionId) => {
-    const { plan } = get();
-    if (!plan) return;
-    const updatedPlan: BusinessPlan = {
-      ...plan,
-      sections: plan.sections.map((section) => {
-        const updatedQuestions = section.questions.map((question) =>
-          question.id === questionId
-            ? {
-                ...question,
-                status: 'draft' as QuestionStatus,
-                lastUpdatedAt: new Date().toISOString()
-              }
-            : question
-        );
-        return {
-          ...section,
-          questions: updatedQuestions,
-          progress: calculateSectionCompletion(updatedQuestions)
-        };
-      }),
-      metadata: {
-        ...plan.metadata,
-        lastSavedAt: new Date().toISOString()
-      }
-    };
-    persistPlan(updatedPlan);
-    set({ plan: updatedPlan });
-  },
   addDataset: (sectionId, dataset) => {
     const { plan } = get();
     if (!plan) return;
@@ -542,6 +500,29 @@ const useEditorStore = create<EditorStoreState>((set, get) => ({
       attachmentId: asset.id,
       attachmentType: 'media'
     });
+  },
+  detachQuestionAttachment: (sectionId, questionId, attachmentId) => {
+    const { plan } = get();
+    if (!plan) return;
+    const updatedPlan = updateSection(plan, sectionId, (section) => {
+      const targetQuestion = section.questions.find((question) => question.id === questionId);
+      if (!targetQuestion || !targetQuestion.attachments) {
+        return section;
+      }
+
+      const reference = targetQuestion.attachments.find(
+        (attachment) =>
+          'attachmentId' in attachment && attachment.attachmentId === attachmentId
+      ) as AttachmentReference | undefined;
+
+      if (!reference) {
+        return section;
+      }
+
+      return syncAttachmentReference(section, questionId, reference, 'remove');
+    });
+    persistPlan(updatedPlan);
+    set({ plan: updatedPlan });
   },
   updateTitlePage: (titlePage) => {
     const { plan } = get();
@@ -621,6 +602,11 @@ const useEditorStore = create<EditorStoreState>((set, get) => ({
     const { plan } = get();
     if (!plan) return;
     set({ plan: { ...plan, productType: product } });
+  },
+  setFundingProgram: (program) => {
+    const { plan } = get();
+    if (!plan) return;
+    set({ plan: { ...plan, fundingProgram: program } });
   },
   runRequirementsCheck: () => {
     const { plan } = get();
@@ -943,91 +929,6 @@ type RequirementValidation = {
     message: string;
   }>;
 };
-
-function ProgressAccordionItem({
-  item,
-  plan
-}: {
-  item: ProgressSummary;
-  plan: BusinessPlan;
-}) {
-  const [isExpanded, setIsExpanded] = React.useState(false);
-  const hasIssues = item.progress < 100;
-  const sectionData = plan.sections.find((s) => s.id === item.id);
-  const { templates } = useEditorStore.getState();
-  const template = templates.find((t) => t.id === item.id);
-
-  return (
-    <div className="border border-slate-200 rounded-lg overflow-hidden">
-      <button
-        onClick={() => setIsExpanded(!isExpanded)}
-        className="w-full flex items-center justify-between p-2 hover:bg-slate-50 transition text-left"
-      >
-        <div className="flex items-center gap-2 flex-1 min-w-0">
-          <span className="text-xs text-slate-600 truncate">{item.title}</span>
-          {hasIssues && (
-            <span className="flex-shrink-0 text-[10px] px-1.5 py-0.5 rounded bg-amber-100 text-amber-700 font-semibold">
-              Needs attention
-            </span>
-          )}
-        </div>
-        <div className="flex items-center gap-2 flex-shrink-0">
-          <span className={`text-xs font-semibold ${item.progress === 100 ? 'text-green-600' : 'text-amber-600'}`}>
-            {item.progress}%
-          </span>
-          <span className="text-xs text-slate-400">{isExpanded ? '▼' : '▶'}</span>
-        </div>
-      </button>
-      {isExpanded && sectionData && (
-        <div className="px-2 pb-2 space-y-2 border-t border-slate-100">
-          <div className="h-1.5 bg-slate-100 rounded-full mt-2">
-            <div
-              className={`h-full rounded-full ${
-                item.progress === 100 ? 'bg-green-500' : 'bg-amber-500'
-              }`}
-              style={{ width: `${item.progress}%` }}
-            />
-          </div>
-          {/* Per-question validation details */}
-          <div className="space-y-2 mt-2">
-            {sectionData.questions.map((q) => {
-              const qValidation = validateQuestionRequirements(q, sectionData, template);
-              if (qValidation.issues.length === 0) return null;
-              const errors = qValidation.issues.filter((i) => i.severity === 'error');
-              const warnings = qValidation.issues.filter((i) => i.severity === 'warning');
-              return (
-                <div key={q.id} className="bg-slate-50 rounded p-2 space-y-1">
-                  <p className="text-[11px] font-semibold text-slate-700 line-clamp-1">{q.prompt}</p>
-                  <div className="space-y-0.5">
-                    {errors.map((issue, idx) => (
-                      <p key={idx} className="text-[10px] text-red-600">● {issue.message}</p>
-                    ))}
-                    {warnings.map((issue, idx) => (
-                      <p key={idx} className="text-[10px] text-amber-600">● {issue.message}</p>
-                    ))}
-                  </div>
-                </div>
-              );
-            })}
-          </div>
-          {hasIssues && sectionData.questions.every((q) => {
-            const qValidation = validateQuestionRequirements(q, sectionData, template);
-            return qValidation.issues.length === 0;
-          }) && (
-            <p className="text-xs text-slate-500">
-              {item.progress === 0 
-                ? 'This section has not been started yet.'
-                : `This section is ${100 - item.progress}% incomplete. Please review and complete all required prompts.`}
-            </p>
-          )}
-          {item.progress === 100 && (
-            <p className="text-xs text-green-600">✓ All requirements met for this section.</p>
-          )}
-        </div>
-      )}
-    </div>
-  );
-}
 
 function validateQuestionRequirements(
   question: Question,
@@ -1507,8 +1408,7 @@ export default function Editor({ product = 'submission' }: EditorProps) {
       PRODUCT_TYPE_CONFIG.map((option) => ({
         value: option.value,
         label: (t(option.labelKey as any) as string) || option.value,
-        description: (t(option.descriptionKey as any) as string) || '',
-        icon: option.icon
+        description: (t(option.descriptionKey as any) as string) || ''
       })),
     [t]
   );
@@ -1523,7 +1423,6 @@ export default function Editor({ product = 'submission' }: EditorProps) {
     setActiveQuestion,
     updateAnswer,
     markQuestionComplete,
-    markQuestionDraft,
     rightPanelView,
     setRightPanelView,
     addDataset,
@@ -1747,7 +1646,7 @@ export default function Editor({ product = 'submission' }: EditorProps) {
       </div>
 
       {/* Main Content Area */}
-      <div className="container py-1 pb-6 flex flex-col gap-1 lg:flex-row lg:items-stretch min-h-0">
+      <div className="container py-1 pb-6 flex flex-col gap-1 lg:flex-row lg:items-start">
         <div className="flex-1 min-w-0 max-w-4xl">
           {isAncillaryView ? (
             <AncillaryWorkspace
@@ -1772,12 +1671,11 @@ export default function Editor({ product = 'submission' }: EditorProps) {
               onAskAI={triggerAISuggestions}
               onToggleUnknown={toggleQuestionUnknown}
               onMarkComplete={markQuestionComplete}
-              onMarkDraft={markQuestionDraft}
             />
           )}
         </div>
 
-        <div className="w-full lg:w-[400px] flex-shrink-0 flex flex-col min-h-0">
+        <div className="w-full lg:w-[400px] flex-shrink-0">
           <RightPanel
             view={rightPanelView}
             setView={setRightPanelView}
@@ -1835,7 +1733,7 @@ function PlanConfigurator({
   programError: string | null;
   onUpdateTitlePage: (titlePage: TitlePage) => void;
   onOpenFrontMatter: () => void;
-  productOptions: Array<{ value: ProductType; label: string; description: string; icon: string }>;
+  productOptions: Array<{ value: ProductType; label: string; description: string }>;
   connectCopy: ConnectCopy;
 }) {
   const { t } = useI18n();
@@ -1884,8 +1782,7 @@ function PlanConfigurator({
               {t('editor.ui.edit' as any) as string || 'Edit'}
             </Button>
           </div>
-          <div className="flex-1 flex items-center relative">
-            <span className="absolute left-3 z-10 text-lg pointer-events-none">📄</span>
+          <div className="flex-1 flex items-center">
             <input
               value={titleDraft}
               onChange={(event) => setTitleDraft(event.target.value)}
@@ -1897,11 +1794,8 @@ function PlanConfigurator({
                   setTitleDraft(plan.titlePage.planTitle);
                 }
               }}
-              className="w-full rounded-lg border border-slate-300 bg-white pl-10 pr-2.5 py-2 h-8 text-sm font-bold text-slate-900 placeholder:text-slate-500 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-400/50 transition-all"
+              className="w-full rounded border border-slate-200 bg-white px-2.5 py-2 h-8 text-sm font-semibold text-slate-900 focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-400"
               placeholder={t('editor.ui.planNamePlaceholder' as any) as string || 'Plan name'}
-              style={{
-                fontWeight: '700'
-              }}
             />
           </div>
         </div>
@@ -1932,22 +1826,14 @@ function PlanConfigurator({
             </div>
           </div>
           <div className="relative flex-1 flex items-center">
-            <span className="absolute left-3 z-10 text-base pointer-events-none">
-              {productOptions.find(opt => opt.value === plan.productType)?.icon || '📋'}
-            </span>
             <select
               value={plan.productType ?? 'submission'}
               onChange={(event) => onChangeProduct(event.target.value as ProductType)}
-              className="w-full appearance-none rounded-lg border border-slate-300 bg-white pl-10 pr-8 h-8 text-sm font-bold text-slate-900 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-400/50 transition-all"
-              style={{ 
-                paddingTop: 0, 
-                paddingBottom: 0, 
-                lineHeight: '2rem',
-                fontWeight: '700'
-              }}
+              className="w-full appearance-none rounded border border-slate-300 bg-white px-2.5 h-8 text-sm font-bold text-slate-900 focus:border-blue-500 focus:ring-1 focus:ring-blue-400"
+              style={{ paddingTop: 0, paddingBottom: 0, lineHeight: '2rem' }}
             >
               {productOptions.map((option) => (
-                <option key={option.value} value={option.value} className="bg-white text-slate-900 font-bold">
+                <option key={option.value} value={option.value}>
                   {option.label}
                 </option>
               ))}
@@ -2054,20 +1940,6 @@ function PlanConfigurator({
   );
 }
 
-// Shared helper function for section title translation
-function getSectionTitle(sectionId: string, originalTitle: string, t: (key: any) => string): string {
-  if (sectionId === ANCILLARY_SECTION_ID) {
-    return (t('editor.section.front_back_matter' as any) as string) || 'Front & Back Matter';
-  }
-  const translationKey = `editor.section.${sectionId}` as any;
-  const translated = t(translationKey) as string;
-  // Handle special case for project_description which might have different titles
-  if (sectionId === 'project_description' && originalTitle.includes('/')) {
-    return (t('editor.section.project_description_business_concept' as any) as string) || originalTitle;
-  }
-  return translated || originalTitle;
-}
-
 function SectionNavigationBar({
   plan,
   activeSectionId,
@@ -2080,11 +1952,20 @@ function SectionNavigationBar({
   const { t } = useI18n();
   const scrollContainerRef = React.useRef<HTMLDivElement>(null);
   
+  const getSectionTitle = (sectionId: string, originalTitle: string): string => {
+    if (sectionId === ANCILLARY_SECTION_ID) {
+      return (t('editor.section.front_back_matter' as any) as string) || 'Front & Back Matter';
+    }
+    const translationKey = `editor.section.${sectionId}` as any;
+    const translated = t(translationKey) as string;
+    return translated || originalTitle;
+  };
+  
   const sections = [
-    ...plan.sections.map(s => ({ ...s, title: getSectionTitle(s.id, s.title, t) })),
+    ...plan.sections.map(s => ({ ...s, title: getSectionTitle(s.id, s.title) })),
     {
       id: ANCILLARY_SECTION_ID,
-      title: getSectionTitle(ANCILLARY_SECTION_ID, 'Front & Back Matter', t),
+      title: getSectionTitle(ANCILLARY_SECTION_ID, 'Front & Back Matter'),
       progress: undefined,
       questions: []
     }
@@ -2248,8 +2129,7 @@ function SectionWorkspace({
   activeQuestionId,
   onAskAI,
   onToggleUnknown,
-  onMarkComplete,
-  onMarkDraft
+  onMarkComplete
 }: {
   section?: Section;
   onAnswerChange: (questionId: string, content: string) => void;
@@ -2258,7 +2138,6 @@ function SectionWorkspace({
   onAskAI: (questionId?: string) => void;
   onToggleUnknown: (questionId: string, note?: string) => void;
   onMarkComplete: (questionId: string) => void;
-  onMarkDraft: (questionId: string) => void;
 }) {
   const { t } = useI18n();
 
@@ -2270,10 +2149,23 @@ function SectionWorkspace({
     );
   }
 
+  const getSectionTitle = (sectionId: string, originalTitle: string): string => {
+    if (sectionId === ANCILLARY_SECTION_ID) {
+      return (t('editor.section.front_back_matter' as any) as string) || 'Front & Back Matter';
+    }
+    const translationKey = `editor.section.${sectionId}` as any;
+    const translated = t(translationKey) as string;
+    // Handle special case for project_description which might have different titles
+    if (sectionId === 'project_description' && originalTitle.includes('/')) {
+      return (t('editor.section.project_description_business_concept' as any) as string) || originalTitle;
+    }
+    return translated || originalTitle;
+  };
+
   const sectionHint = getSectionHint(section, t);
   const activeQuestion =
     section.questions.find((q) => q.id === activeQuestionId) ?? section.questions[0] ?? null;
-  const translatedTitle = getSectionTitle(section.id, section.title, t);
+  const translatedTitle = getSectionTitle(section.id, section.title);
 
   return (
     <main className="space-y-1">
@@ -2308,7 +2200,6 @@ function SectionWorkspace({
           onAskAI={() => onAskAI(activeQuestion.id)}
           onToggleUnknown={(note) => onToggleUnknown(activeQuestion.id, note)}
           onMarkComplete={onMarkComplete}
-          onMarkDraft={onMarkDraft}
         />
       )}
     </main>
@@ -2324,10 +2215,9 @@ function QuestionCard({
   onFocus,
   onSelectQuestion,
   onChange,
-  onAskAI: _onAskAI,
+  onAskAI,
   onToggleUnknown,
-  onMarkComplete,
-  onMarkDraft
+  onMarkComplete
 }: {
   question: Question;
   section?: Section;
@@ -2340,7 +2230,6 @@ function QuestionCard({
   onAskAI: () => void;
   onToggleUnknown: (note?: string) => void;
   onMarkComplete: (questionId: string) => void;
-  onMarkDraft: (questionId: string) => void;
 }) {
   const { t } = useI18n();
   const { plan, setActiveSection } = useEditorStore();
@@ -2381,55 +2270,51 @@ function QuestionCard({
             <div className="mb-3">
               <h2 className="text-xl font-bold uppercase tracking-wider text-white">{t('editor.header.prompts' as any) as string || 'Prompts'}</h2>
             </div>
-            <div className="flex items-center gap-1.5 overflow-x-auto overflow-y-visible pt-2 pr-2" role="tablist" aria-label="Section prompts">
-                {section.questions.map((q, index) => {
-                  const isActiveTab = q.id === activeQuestionId;
-                  const status = q.status;
-                  const intentClasses =
-                    status === 'complete'
-                      ? 'text-white'
-                      : status === 'unknown'
-                      ? 'text-red-300'
-                      : status === 'draft'
-                      ? 'text-blue-300'
-                      : 'text-white/80';
-                  const icon =
-                    status === 'complete' ? (
-                      <CheckCircleIcon className="h-3.5 w-3.5" />
-                    ) : status === 'unknown' ? (
-                      <QuestionMarkCircleIcon className="h-3.5 w-3.5" />
-                    ) : (
-                      <EllipsisHorizontalIcon className="h-3.5 w-3.5" />
-                    );
-
-                  return (
-                    <button
-                      key={q.id}
-                      role="tab"
-                      aria-selected={isActiveTab}
-                      aria-controls={`question-panel-${q.id}`}
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        onSelectQuestion(q.id);
-                      }}
-                      className={`flex items-center gap-1.5 rounded-full border px-3 py-1.5 text-xs font-medium transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-400 relative ${
-                        isActiveTab
-                          ? 'border-blue-400 bg-blue-500/30 text-white shadow-lg shadow-blue-900/30 backdrop-blur-md'
-                          : 'border-white/50 bg-white/10 text-white/80 hover:border-blue-300/70 hover:bg-white/20 backdrop-blur-sm'
-                      }`}
-                    >
-                      <span>{index + 1}</span>
-                      <span className={`flex items-center gap-1 ${intentClasses}`}>{icon}</span>
-                      {status === 'complete' && (
-                        <span className="absolute -top-2 -right-2 text-green-600 z-30">
-                          <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
-                            <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
-                          </svg>
-                        </span>
-                      )}
-                    </button>
+            <div className="flex items-center gap-1.5 overflow-x-auto" role="tablist" aria-label="Section prompts">
+              {section.questions.map((q, index) => {
+                const isActiveTab = q.id === activeQuestionId;
+                const status = q.status;
+                const intentClasses =
+                  status === 'complete'
+                    ? 'text-white'
+                    : status === 'unknown'
+                    ? 'text-red-300'
+                    : status === 'draft'
+                    ? 'text-blue-300'
+                    : 'text-white/80';
+                const icon =
+                  status === 'complete' ? (
+                    <CheckCircleIcon className="h-3.5 w-3.5" />
+                  ) : status === 'unknown' ? (
+                    <QuestionMarkCircleIcon className="h-3.5 w-3.5" />
+                  ) : (
+                    <EllipsisHorizontalIcon className="h-3.5 w-3.5" />
                   );
-                })}
+
+                return (
+                  <button
+                    key={q.id}
+                    role="tab"
+                    aria-selected={isActiveTab}
+                    aria-controls={`question-panel-${q.id}`}
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      onSelectQuestion(q.id);
+                    }}
+                    className={`flex items-center gap-1.5 rounded-full border px-3 py-1.5 text-xs font-medium transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-400 relative ${
+                      isActiveTab
+                        ? 'border-blue-400 bg-blue-500/30 text-white shadow-lg shadow-blue-900/30 backdrop-blur-md'
+                        : 'border-white/50 bg-white/10 text-white/80 hover:border-blue-300/70 hover:bg-white/20 backdrop-blur-sm'
+                    }`}
+                  >
+                    <span>{index + 1}</span>
+                    <span className={`flex items-center gap-1 ${intentClasses}`}>{icon}</span>
+                    {status === 'complete' && (
+                      <CheckCircleIcon className="h-4 w-4 text-green-500 absolute -top-1 -right-1 bg-slate-900 rounded-full p-0.5" />
+                    )}
+                  </button>
+                );
+              })}
             </div>
           </div>
         )}
@@ -2448,7 +2333,7 @@ function QuestionCard({
         </div>
 
         {/* Text Editor */}
-        <div onClick={(e) => e.stopPropagation()} className="relative z-10 mb-3">
+        <div onClick={(e) => e.stopPropagation()} className="relative z-10 mb-4">
           <SimpleTextEditor
             content={question.answer ?? ''}
             onChange={onChange}
@@ -2457,8 +2342,18 @@ function QuestionCard({
         </div>
 
         {/* Action Buttons */}
-        <div className="flex flex-wrap gap-1.5 relative z-10" onClick={(e) => e.stopPropagation()}>
-          {isLastQuestion ? (
+        <div className="flex flex-wrap gap-1.5 relative z-10 border-t border-white/15 pt-3 mt-2" onClick={(e) => e.stopPropagation()}>
+          {!isComplete && (
+            <Button
+              type="button"
+              variant="success"
+              onClick={() => onMarkComplete(question.id)}
+              className="min-w-[180px] justify-center text-base bg-green-700 hover:bg-green-800 text-white font-semibold uppercase tracking-wide rounded-lg shadow-lg hover:shadow-xl drop-shadow-lg transition-colors flex items-center gap-2"
+            >
+              {t('editor.ui.complete' as any) as string || 'Complete'}
+            </Button>
+          )}
+          {isLastQuestion && (
             <Button
               type="button"
               onClick={() => {
@@ -2471,65 +2366,36 @@ function QuestionCard({
                   setActiveSection(nextSection.id);
                 }
               }}
-              className="min-w-[180px] justify-center text-sm bg-green-700 hover:bg-green-800 text-white font-semibold rounded-lg shadow-md hover:shadow-lg transition-colors"
+              variant="success"
+              className="min-w-[180px] justify-center text-base bg-green-700 hover:bg-green-800 text-white font-semibold uppercase tracking-wide border border-green-700 rounded-lg shadow-lg hover:shadow-xl drop-shadow-lg"
             >
               {isSectionComplete 
-                ? (() => {
-                    const translated = t('editor.ui.nextSection' as any) as string;
-                    return translated && translated !== 'editor.ui.nextSection' ? translated : 'Next Section';
-                  })()
-                : (() => {
-                    const translated = t('editor.ui.completeSection' as any) as string;
-                    return translated && translated !== 'editor.ui.completeSection' ? translated : 'Complete Section';
-                  })()
+                ? (t('editor.ui.nextSection' as any) as string || 'Next Section')
+                : (t('editor.ui.completeSection' as any) as string || 'Complete Section')
               }
             </Button>
+          )}
+          {!isComplete ? (
+            <Button
+              type="button"
+              variant="outline"
+              className={`min-w-[180px] justify-center text-sm text-white ${isDraft ? 'border-white/50 hover:bg-white/15' : 'border-white/40 hover:bg-white/10'}`}
+              onClick={handleToggleUnknown}
+            >
+              {isUnknown ? (t('editor.ui.clearUnknownStatus' as any) as string || 'Clear unknown status') : (t('editor.ui.markAsUnknown' as any) as string || 'Mark as unknown')}
+            </Button>
           ) : (
-            <>
-              {isComplete ? (
-                <Button
-                  type="button"
-                  onClick={() => onMarkDraft(question.id)}
-                  className="min-w-[180px] justify-center text-sm bg-blue-600 hover:bg-blue-700 text-white font-semibold rounded-lg shadow-md hover:shadow-lg transition-colors"
-                >
-                  {(() => {
-                    const translated = t('editor.ui.edit' as any) as string;
-                    return translated && translated !== 'editor.ui.edit' ? translated : 'Edit';
-                  })()}
-                </Button>
-              ) : (
-                <>
-                  <Button
-                    type="button"
-                    onClick={() => {
-                      onMarkComplete(question.id);
-                      // Auto-navigate to next question
-                      if (section) {
-                        const currentQuestionIndex = section.questions.findIndex(q => q.id === question.id);
-                        const nextQuestion = section.questions[currentQuestionIndex + 1];
-                        if (nextQuestion) {
-                          onSelectQuestion(nextQuestion.id);
-                        }
-                      }
-                    }}
-                    className="min-w-[180px] justify-center text-sm bg-green-700 hover:bg-green-800 text-white font-semibold rounded-lg shadow-md hover:shadow-lg transition-colors"
-                  >
-                    {(() => {
-                      const translated = t('editor.ui.complete' as any) as string;
-                      return translated && translated !== 'editor.ui.complete' ? translated : 'Complete';
-                    })()}
-                  </Button>
-                  <Button
-                    type="button"
-                    variant="outline"
-                    className={`min-w-[180px] justify-center text-sm text-white ${isDraft ? 'border-white/50 hover:bg-white/15' : 'border-white/40 hover:bg-white/10'}`}
-                    onClick={handleToggleUnknown}
-                  >
-                    {isUnknown ? (t('editor.ui.clearUnknownStatus' as any) as string || 'Clear unknown status') : (t('editor.ui.markAsUnknown' as any) as string || 'Mark as unknown')}
-                  </Button>
-                </>
-              )}
-            </>
+            <Button
+              type="button"
+              variant="outline"
+              className="min-w-[180px] justify-center text-sm text-white border-white/60 hover:bg-white/20"
+              onClick={(e) => {
+                e.stopPropagation();
+                onFocus();
+              }}
+            >
+              {t('editor.ui.edit' as any) as string || 'Edit'}
+            </Button>
           )}
         </div>
       </Card>
@@ -2603,10 +2469,10 @@ function RightPanel({
   ];
 
   return (
-    <aside className="card w-full lg:w-[400px] border-blue-600/50 relative backdrop-blur-lg shadow-xl flex flex-col flex-1 min-h-0 overflow-hidden">
+    <aside className="card sticky top-24 space-y-1.5 w-full lg:w-[400px] border-blue-600/50 relative overflow-hidden backdrop-blur-lg shadow-xl">
       <div className="absolute inset-0 bg-gradient-to-b from-slate-950 via-blue-900 to-slate-950" />
       <div className="absolute inset-0 bg-black/15 backdrop-blur-xl" />
-      <div className="relative z-10 flex-shrink-0 p-1.5 pb-0">
+      <div className="relative z-10">
         <div className="flex gap-1.5" role="tablist" aria-label="Editor tools">
           {tabs.map(({ key, label }) => {
             const isActive = effectiveView === key;
@@ -2628,62 +2494,33 @@ function RightPanel({
             );
           })}
         </div>
-      </div>
       <div
         id={`right-panel-${effectiveView}`}
         role="tabpanel"
-        className="flex-1 overflow-y-auto overflow-x-hidden pr-1 py-1.5 relative z-10 min-h-0"
+        className="max-h-[70vh] overflow-y-auto pr-1 space-y-1.5"
       >
         {effectiveView === 'ai' && (
-          <div className="space-y-4">
-            {question ? (
-              <div className="space-y-4 text-sm">
-                {/* Header Section */}
-                <div className="bg-white/5 rounded-lg p-4 border border-white/10">
-                  <p className="text-xs font-semibold text-white/90 mb-2 uppercase tracking-wide">Current Question</p>
-                  <p className="font-semibold text-white leading-snug mb-3 text-base">{question.prompt}</p>
-                  <div className="flex items-center gap-2 text-xs">
-                    <span className="text-white/70">Status:</span>
-                    <span className="font-medium text-white px-2 py-0.5 rounded bg-white/10">
-                      {question.status}
-                    </span>
-                    <span className="text-white/50">•</span>
-                    <span className="text-white/70">
-                      {question.status === 'blank' || question.status === 'unknown'
-                        ? 'AI will provide guidance'
-                        : 'AI will critique & improve'}
-                    </span>
-                  </div>
-                </div>
-
-                {/* Primary Action - Ask AI Button */}
-                <div className="space-y-3">
-                  <Button
-                    type="button"
-                    onClick={() => onAskAI(question.id)}
-                    disabled={!question}
-                    className="w-full bg-blue-600 hover:bg-blue-700 text-white font-semibold py-3 text-sm shadow-lg"
-                  >
-                    ✨ Ask AI Assistant
-                  </Button>
-                  <p className="text-xs text-white/70 text-center">
-                    Get AI help with this question. The assistant will analyze your answer and provide suggestions.
-                  </p>
-                </div>
-
-                {/* Quick Actions */}
-                <div className="border-t border-white/10 pt-3">
-                  <p className="text-xs font-medium text-white/70 mb-2">Quick Actions</p>
-                  <div className="grid grid-cols-1 gap-2">
+          <div className="space-y-3">
+            {question && (
+              <div className="space-y-3 text-sm">
+                <div>
+                  <p className="text-xs font-medium text-white/70 mb-1.5 uppercase tracking-wide">{t('editor.ui.currentQuestion' as any) as string || 'Current question'}</p>
+                  <p className="font-semibold text-white leading-snug mb-1.5 text-base">{question.prompt}</p>
+                      <p className="text-xs text-white/70">
+                        {t('editor.ui.status' as any) as string || 'Status'}: <span className="font-medium text-white">{question.status}</span>
+                        {question.status === 'blank' || question.status === 'unknown'
+                          ? ` (${t('editor.ui.aiFocusGuidance' as any) as string || 'AI will focus on guidance'})`
+                          : ` (${t('editor.ui.aiFocusCritique' as any) as string || 'AI will focus on critique'})`}
+                      </p>
+                  <div className="mt-2 flex flex-wrap gap-1.5">
                     <Button
                       type="button"
                       variant="outline"
                       size="sm"
                       onClick={() => handleQuickAsk('outline')}
                       disabled={!question}
-                      className="justify-start text-white/90 border-white/20 hover:bg-white/10"
                     >
-                      📝 Draft an outline
+                      Draft outline
                     </Button>
                     <Button
                       type="button"
@@ -2691,9 +2528,8 @@ function RightPanel({
                       size="sm"
                       onClick={() => handleQuickAsk('improve')}
                       disabled={!question}
-                      className="justify-start text-white/90 border-white/20 hover:bg-white/10"
                     >
-                      ✏️ Improve my answer
+                      Improve answer
                     </Button>
                     <Button
                       type="button"
@@ -2701,65 +2537,44 @@ function RightPanel({
                       size="sm"
                       onClick={() => handleQuickAsk('data')}
                       disabled={!question}
-                      className="justify-start text-white/90 border-white/20 hover:bg-white/10"
                     >
-                      📊 Suggest data & KPIs
+                      {t('editor.ui.suggestDataKPIs' as any) as string || 'Suggest data/KPIs'}
                     </Button>
                   </div>
                 </div>
-                {/* Answer Preview */}
                 {question.answer ? (
                   <div className="bg-white/10 rounded-lg p-3 border border-white/20">
-                    <div className="flex items-center justify-between mb-2">
-                      <p className="text-xs font-medium text-white/90">Your Answer</p>
-                      <span className="text-xs text-white/70">
-                        {question.answer.split(/\s+/).length} words
-                      </span>
-                    </div>
-                    <p className="text-white text-sm leading-relaxed line-clamp-3">
-                      {question.answer.substring(0, 200)}
-                      {question.answer.length > 200 && '...'}
+                    <p className="text-xs font-medium text-white/90 mb-2">Answer preview</p>
+                    <p className="text-white text-sm leading-relaxed mb-2">{question.answer.substring(0, 200)}...</p>
+                    <p className="text-xs text-white/70">
+                      {question.answer.split(/\s+/).length} words
                     </p>
                   </div>
                 ) : (
-                  <div className="bg-white/5 rounded-lg p-4 border border-white/10">
-                    <p className="text-white/80 text-sm leading-relaxed">
-                      💡 <strong>Tip:</strong> Start typing your answer in the left panel. The AI assistant will use your content to provide better, more relevant suggestions.
-                    </p>
-                  </div>
+                  <p className="text-white/80 text-sm leading-relaxed bg-white/5 rounded-lg p-3 border border-white/10">
+                    {t('editor.ui.startTypingHint' as any) as string || 'Start typing to provide context—the assistant draws on previous answers, datasets, and program requirements.'}
+                  </p>
                 )}
-                {/* AI Response */}
                 {question.suggestions && question.suggestions.length > 0 && (
-                  <div className="space-y-3 border-t border-white/10 pt-4">
-                    <div className="flex items-center justify-between">
-                      <p className="text-sm font-semibold text-white">AI Response</p>
-                      {question.suggestions.length > 1 && (
-                        <button
-                          onClick={() => {
-                            // TODO: Implement conversation history modal
-                            console.log('View full conversation');
-                          }}
-                          className="text-xs text-blue-300 hover:text-blue-200 font-medium"
-                        >
-                          View history ({question.suggestions.length})
-                        </button>
-                      )}
-                    </div>
+                  <div className="space-y-2">
+                    <p className="text-xs font-medium text-white">Latest response</p>
                     {question.suggestions.slice(-1).map((suggestion, index) => (
-                      <div key={index} className="border border-blue-500/30 bg-blue-500/10 rounded-lg p-4 backdrop-blur-sm">
-                        <p className="text-sm text-white mb-4 leading-relaxed whitespace-pre-wrap">{suggestion}</p>
+                      <div key={index} className="border border-white/30 bg-white/10 rounded-lg p-2.5 backdrop-blur-sm">
+                        <p className="text-sm text-white mb-2 leading-relaxed">{suggestion}</p>
                         <div className="flex gap-2">
                           <Button
                             type="button"
-                            variant="outline"
+                            variant="ghost"
                             size="sm"
                             onClick={() => navigator.clipboard.writeText(suggestion)}
-                            className="flex-1 text-white border-white/30 hover:bg-white/10"
+                            className="text-white hover:text-white hover:bg-white/10"
                           >
-                            📋 Copy
+                            Copy
                           </Button>
                           <Button
                             type="button"
+                            variant="ghost"
+                            size="sm"
                             onClick={() => {
                               const latestSuggestion = question.suggestions?.[question.suggestions.length - 1];
                               if (latestSuggestion && question) {
@@ -2770,32 +2585,50 @@ function RightPanel({
                                 onAnswerChange(question.id, newContent);
                               }
                             }}
-                            className="flex-1 bg-blue-600 hover:bg-blue-700 text-white font-semibold"
+                            className="text-white hover:text-white hover:bg-white/10"
                           >
-                            ✓ Insert into Answer
+                            {t('editor.ui.insert' as any) as string || 'Insert'}
                           </Button>
                         </div>
                       </div>
                     ))}
+                    {question.suggestions.length > 1 && (
+                      <button
+                        onClick={() => {
+                          // TODO: Implement conversation history modal
+                          console.log('View full conversation');
+                        }}
+                        className="text-xs text-blue-300 hover:text-blue-200 font-medium"
+                      >
+                        View full conversation ({question.suggestions.length} responses)
+                      </button>
+                    )}
+                  </div>
+                )}
+                {/* Quick Actions */}
+                {question && question.answer && (
+                  <div className="space-y-2 pt-2 border-t border-white/20">
+                    <p className="text-xs font-medium text-white">Quick actions</p>
+                    <div className="flex flex-wrap gap-1.5">
+                      {['Tone', 'Translate', 'Summarize', 'Expand'].map((action) => (
+                        <Button
+                          key={action}
+                          variant="outline"
+                          size="sm"
+                          onClick={() => console.log(`Quick action: ${action}`)}
+                          className="border-white/40 text-white hover:text-white hover:bg-white/10"
+                        >
+                          {action}
+                        </Button>
+                      ))}
+                    </div>
                   </div>
                 )}
               </div>
-            ) : (
-              <div className="text-center py-12 space-y-3">
-                <div className="text-4xl mb-4">🤖</div>
-                <h3 className="text-lg font-semibold text-white">AI Assistant</h3>
-                <p className="text-sm text-white/70 max-w-xs mx-auto leading-relaxed">
-                  Select a question from the left panel to get AI-powered help with your business plan.
-                </p>
-                <div className="pt-4 space-y-2 text-xs text-white/60">
-                  <p>✨ The AI can help you:</p>
-                  <ul className="list-disc list-inside space-y-1 text-left max-w-xs mx-auto">
-                    <li>Draft outlines and content</li>
-                    <li>Improve your answers</li>
-                    <li>Suggest relevant data & KPIs</li>
-                    <li>Provide expert guidance</li>
-                  </ul>
-                </div>
+            )}
+            {!question && (
+              <div className="text-center py-8 text-slate-400 text-sm">
+                {t('editor.ui.selectQuestion' as any) as string || 'Select a question to receive AI suggestions.'}
               </div>
             )}
           </div>
@@ -2803,7 +2636,7 @@ function RightPanel({
 
         {/* Data Tab */}
         {effectiveView === 'data' && (
-          <div className="min-h-0">
+          <div className="space-y-4">
             {section ? (
               <DataPanel
                 datasets={section.datasets ?? []}
@@ -2821,20 +2654,8 @@ function RightPanel({
                 onAskForStructure={handleAskForStructure}
               />
             ) : (
-              <div className="text-center py-12 space-y-3">
-                <div className="text-4xl mb-4">📊</div>
-                <h3 className="text-lg font-semibold text-white">Data & Media</h3>
-                <p className="text-sm text-white/70 max-w-xs mx-auto leading-relaxed">
-                  Select a section from the left panel to add tables, KPIs, and media to support your business plan.
-                </p>
-                <div className="pt-4 space-y-2 text-xs text-white/60">
-                  <p>You can add:</p>
-                  <ul className="list-disc list-inside space-y-1 text-left max-w-xs mx-auto">
-                    <li>📊 Data tables for financial projections</li>
-                    <li>📈 KPIs to track key metrics</li>
-                    <li>📷 Images, charts, and media files</li>
-                  </ul>
-                </div>
+              <div className="text-center py-8 text-slate-400 text-sm">
+                Choose a section to manage datasets, KPIs, and media.
               </div>
             )}
           </div>
@@ -2846,9 +2667,9 @@ function RightPanel({
             <div className="space-y-2">
               <PreviewPane plan={plan} focusSectionId={section?.id} />
             </div>
-            <div className="border-t border-white/10 pt-4">
+            <div className="border-t border-slate-200 pt-4">
               <div className="flex items-center justify-between mb-3">
-                <p className="text-xs font-semibold text-white/90">Requirements validation</p>
+                <p className="text-xs font-semibold text-slate-700">Requirements validation</p>
                 <Button
                   size="sm"
                   onClick={() => {
@@ -2860,7 +2681,7 @@ function RightPanel({
                 </Button>
               </div>
               {!requirementsChecked ? (
-                <p className="text-white/60 text-xs">Run the checker to view validation status.</p>
+                <p className="text-gray-500 text-xs">Run the checker to view validation status.</p>
               ) : (
                 <div className="space-y-3">
                   {/* Current Question Validation (if selected) */}
@@ -2872,12 +2693,12 @@ function RightPanel({
                     
                     if (validation.issues.length === 0) {
                       return (
-                        <div className="bg-green-500/20 border border-green-400/30 rounded-lg p-3">
+                        <div className="bg-green-50 border border-green-200 rounded-lg p-3">
                           <div className="flex items-center gap-2 mb-1">
-                            <span className="text-green-400 text-sm">✓</span>
-                            <p className="text-xs font-semibold text-green-300">{t('editor.ui.currentQuestionPasses' as any) as string || 'Current question passes validation'}</p>
+                            <span className="text-green-600 text-sm">✓</span>
+                            <p className="text-xs font-semibold text-green-700">{t('editor.ui.currentQuestionPasses' as any) as string || 'Current question passes validation'}</p>
                           </div>
-                          <p className="text-xs text-green-400 mt-1">{t('editor.ui.validation.allRequirementsMet' as any) as string || 'All requirements are met for this prompt.'}</p>
+                          <p className="text-xs text-green-600 mt-1">{t('editor.ui.validation.allRequirementsMet' as any) as string || 'All requirements are met for this prompt.'}</p>
                         </div>
                       );
                     }
@@ -2886,29 +2707,29 @@ function RightPanel({
                     const warnings = validation.issues.filter((i) => i.severity === 'warning');
                     
                     return (
-                      <div className="border border-white/10 rounded-lg p-3 space-y-2 bg-white/5">
+                      <div className="border border-slate-200 rounded-lg p-3 space-y-2">
                         <div className="flex items-center justify-between">
-                          <p className="text-xs font-semibold text-white/90">Current question</p>
+                          <p className="text-xs font-semibold text-slate-700">Current question</p>
                           <span className={`text-[10px] px-2 py-0.5 rounded font-semibold ${
                             errors.length > 0 
-                              ? 'bg-red-500/20 text-red-300' 
-                              : 'bg-amber-500/20 text-amber-300'
+                              ? 'bg-red-100 text-red-700' 
+                              : 'bg-amber-100 text-amber-700'
                           }`}>
                             {errors.length > 0 ? `${errors.length} error${errors.length > 1 ? 's' : ''}` : `${warnings.length} warning${warnings.length > 1 ? 's' : ''}`}
                           </span>
                         </div>
-                        <p className="text-xs text-white/70 line-clamp-2">{question.prompt}</p>
+                        <p className="text-xs text-slate-600 line-clamp-2">{question.prompt}</p>
                         <div className="space-y-1.5">
                           {errors.map((issue, idx) => (
                             <div key={idx} className="flex items-start gap-2 text-xs">
-                              <span className="text-red-400 mt-0.5">●</span>
-                              <p className="text-red-300 flex-1">{issue.message}</p>
+                              <span className="text-red-600 mt-0.5">●</span>
+                              <p className="text-red-700 flex-1">{issue.message}</p>
                             </div>
                           ))}
                           {warnings.map((issue, idx) => (
                             <div key={idx} className="flex items-start gap-2 text-xs">
-                              <span className="text-amber-400 mt-0.5">●</span>
-                              <p className="text-amber-300 flex-1">{issue.message}</p>
+                              <span className="text-amber-600 mt-0.5">●</span>
+                              <p className="text-amber-700 flex-1">{issue.message}</p>
                             </div>
                           ))}
                         </div>
@@ -2925,20 +2746,20 @@ function RightPanel({
                     const mandatoryMissing = progressSummary.filter((item) => item.progress === 0).length;
                     
                     return (
-                      <div className="bg-white/5 rounded-lg p-3 space-y-2 border border-white/10">
+                      <div className="bg-slate-50 rounded-lg p-3 space-y-2">
                         <div className="flex items-center justify-between">
-                          <span className="text-xs font-semibold text-white/90">Overall completion</span>
-                          <span className={`text-sm font-bold ${overallProgress === 100 ? 'text-green-400' : 'text-amber-400'}`}>
+                          <span className="text-xs font-semibold text-slate-700">Overall completion</span>
+                          <span className={`text-sm font-bold ${overallProgress === 100 ? 'text-green-600' : 'text-amber-600'}`}>
                             {overallProgress}%
                           </span>
                         </div>
                         {mandatoryMissing > 0 && (
-                          <p className="text-xs text-red-400 font-medium">
+                          <p className="text-xs text-red-600 font-medium">
                             {mandatoryMissing} mandatory field{mandatoryMissing > 1 ? 's' : ''} missing
                           </p>
                         )}
                         {incompleteCount > 0 && mandatoryMissing === 0 && (
-                          <p className="text-xs text-amber-400 font-medium">
+                          <p className="text-xs text-amber-600 font-medium">
                             {incompleteCount} section{incompleteCount > 1 ? 's' : ''} need{incompleteCount === 1 ? 's' : ''} attention
                           </p>
                         )}
@@ -2949,13 +2770,84 @@ function RightPanel({
                   {/* Per-Section Accordion */}
                   {progressSummary.length > 0 && (
                     <div className="space-y-2">
-                      {progressSummary.map((item) => (
-                        <ProgressAccordionItem
-                          key={item.id}
-                          item={item}
-                          plan={plan}
-                        />
-                      ))}
+                      {progressSummary.map((item) => {
+                        const [isExpanded, setIsExpanded] = React.useState(false);
+                        const hasIssues = item.progress < 100;
+                        const sectionData = plan.sections.find((s) => s.id === item.id);
+                        const { templates } = useEditorStore.getState();
+                        const template = templates.find((t) => t.id === item.id);
+                        
+                        return (
+                          <div key={item.id} className="border border-slate-200 rounded-lg overflow-hidden">
+                            <button
+                              onClick={() => setIsExpanded(!isExpanded)}
+                              className="w-full flex items-center justify-between p-2 hover:bg-slate-50 transition text-left"
+                            >
+                              <div className="flex items-center gap-2 flex-1 min-w-0">
+                                <span className="text-xs text-slate-600 truncate">{item.title}</span>
+                                {hasIssues && (
+                                  <span className="flex-shrink-0 text-[10px] px-1.5 py-0.5 rounded bg-amber-100 text-amber-700 font-semibold">
+                                    Needs attention
+                                  </span>
+                                )}
+                              </div>
+                              <div className="flex items-center gap-2 flex-shrink-0">
+                                <span className={`text-xs font-semibold ${item.progress === 100 ? 'text-green-600' : 'text-amber-600'}`}>
+                                  {item.progress}%
+                                </span>
+                                <span className="text-xs text-slate-400">{isExpanded ? '▼' : '▶'}</span>
+                              </div>
+                            </button>
+                            {isExpanded && sectionData && (
+                              <div className="px-2 pb-2 space-y-2 border-t border-slate-100">
+                                <div className="h-1.5 bg-slate-100 rounded-full mt-2">
+                                  <div
+                                    className={`h-full rounded-full ${
+                                      item.progress === 100 ? 'bg-green-500' : 'bg-amber-500'
+                                    }`}
+                                    style={{ width: `${item.progress}%` }}
+                                  />
+                                </div>
+                                {/* Per-question validation details */}
+                                <div className="space-y-2 mt-2">
+                                  {sectionData.questions.map((q) => {
+                                    const qValidation = validateQuestionRequirements(q, sectionData, template);
+                                    if (qValidation.issues.length === 0) return null;
+                                    const errors = qValidation.issues.filter((i) => i.severity === 'error');
+                                    const warnings = qValidation.issues.filter((i) => i.severity === 'warning');
+                                    return (
+                                      <div key={q.id} className="bg-slate-50 rounded p-2 space-y-1">
+                                        <p className="text-[11px] font-semibold text-slate-700 line-clamp-1">{q.prompt}</p>
+                                        <div className="space-y-0.5">
+                                          {errors.map((issue, idx) => (
+                                            <p key={idx} className="text-[10px] text-red-600">● {issue.message}</p>
+                                          ))}
+                                          {warnings.map((issue, idx) => (
+                                            <p key={idx} className="text-[10px] text-amber-600">● {issue.message}</p>
+                                          ))}
+                                        </div>
+                                      </div>
+                                    );
+                                  })}
+                                </div>
+                                {hasIssues && sectionData.questions.every((q) => {
+                                  const qValidation = validateQuestionRequirements(q, sectionData, template);
+                                  return qValidation.issues.length === 0;
+                                }) && (
+                                  <p className="text-xs text-slate-500">
+                                    {item.progress === 0 
+                                      ? 'This section has not been started yet.'
+                                      : `This section is ${100 - item.progress}% incomplete. Please review and complete all required prompts.`}
+                                  </p>
+                                )}
+                                {item.progress === 100 && (
+                                  <p className="text-xs text-green-600">✓ All requirements met for this section.</p>
+                                )}
+                              </div>
+                            )}
+                          </div>
+                        );
+                      })}
                     </div>
                   )}
                 </div>
@@ -2963,6 +2855,7 @@ function RightPanel({
             </div>
           </div>
         )}
+      </div>
       </div>
     </aside>
   );
@@ -3050,17 +2943,11 @@ function SimpleTextEditor({
 
   return (
     <div
-      className={`rounded-xl border backdrop-blur-sm transition-all duration-200 shadow-lg relative ${
-        isFocused 
-          ? 'border-blue-400 ring-2 ring-blue-400/50 bg-white/20' 
-          : 'border-white/40 bg-white/15'
+      className={`rounded-2xl border backdrop-blur-xl transition-all duration-200 shadow-[inset_0_1px_8px_rgba(15,23,42,0.5)] bg-slate-950/60 ${
+        isFocused ? 'border-blue-400/70 ring-1 ring-blue/30 shadow-[inset_0_1px_12px_rgba(30,64,175,0.45)]' : 'border-white/15'
       }`}
       onClick={() => textareaRef.current?.focus()}
     >
-      {/* Icon indicator */}
-      <div className="absolute top-3 left-3 z-10 pointer-events-none">
-        <PencilIcon className="h-4 w-4 text-white/60" />
-      </div>
       <textarea
         ref={textareaRef}
         value={content}
@@ -3069,14 +2956,11 @@ function SimpleTextEditor({
         onBlur={() => setIsFocused(false)}
         placeholder={placeholder || 'Start writing...'}
         aria-label={placeholder || 'Prompt response'}
-        className="w-full resize-none bg-transparent pl-10 pr-3 pt-3 pb-3 text-sm leading-relaxed text-white placeholder:text-white/60 focus:outline-none md:min-h-[120px] min-h-[90px]"
+        className="w-full resize-none bg-transparent p-4 text-sm leading-relaxed text-white/95 placeholder:text-white/40 focus:outline-none md:min-h-[120px] min-h-[90px]"
         style={{
           fontFamily: 'Inter, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif',
           lineHeight: '1.7',
-          fontSize: '15px',
-          fontWeight: '400',
-          color: '#ffffff',
-          textShadow: '0 1px 2px rgba(0, 0, 0, 0.1)'
+          fontSize: '14px'
         }}
       />
     </div>
