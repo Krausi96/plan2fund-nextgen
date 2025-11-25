@@ -443,6 +443,14 @@
   .section-attachments .attachment-type {
     @apply text-gray-500 text-xs;
   }
+
+  .section-attachments .attachment-meta-block {
+    @apply mt-1 space-y-0.5 flex flex-col;
+  }
+
+  .section-attachments .attachment-meta {
+    @apply text-xs text-gray-500;
+  }
   
   /* KPI section */
   .section-kpis {
@@ -460,7 +468,7 @@
   /* ========== PAGE BREAKS AND FOOTERS ========== */
   
   /* Page container for word-editor-like appearance - Fixed A4 size */
-  .export-preview-page {
+.export-preview-page {
     width: 210mm !important; /* A4 width - 8.27 inches - Force width */
     height: 297mm !important; /* A4 height - 11.69 inches - Force height */
     aspect-ratio: 210 / 297; /* Maintain A4 aspect ratio (1:1.414) */
@@ -469,7 +477,7 @@
     background: white;
     margin: 0 auto; /* Center horizontally, no vertical margin */
     /* Subtle blue gradient border around page */
-    border: 1.5px solid;
+    border: 1px solid;
     border-image: linear-gradient(135deg, rgba(59, 130, 246, 0.25), rgba(59, 130, 246, 0.15)) 1;
     box-shadow: 0 2px 6px rgba(0, 0, 0, 0.04);
     position: relative;
@@ -477,91 +485,52 @@
     page-break-after: always;
     break-after: page;
     transform-origin: top center;
+    transform: scale(var(--preview-viewport-zoom, 1));
     overflow: hidden; /* Clip content to A4 size */
     display: flex;
     flex-direction: column;
     box-sizing: border-box; /* Include padding in height calculation */
     flex-shrink: 0; /* Prevent shrinking */
-  }
-  
-  /* Remove separator line - not needed with dark background */
-  .export-preview-page::after {
-    display: none;
-  }
-  
-  /* Ensure pages don't get constrained by parent */
-  .export-preview > * {
-    width: auto;
-    max-width: none;
-  }
-  
-  /* Title page - also A4 size */
-  .preview-title-page {
-    height: 297mm; /* A4 height */
-  }
-  
-  /* Ensure title page has proper white background */
-  .preview-title-page.export-preview-page {
-    background: white;
-    border: none;
-  }
-  
+    margin-bottom: 2px;
+}
+
   /* Container for all pages - dark background */
   .export-preview {
+    --page-zoom: 1;
+    --preview-viewport-zoom: 1;
     transform-origin: top center;
-    background: rgb(2 6 23); /* slate-950 - dark background */
-    padding: 0.5rem 0 1rem 0; /* Top: 0.5rem, Right: 0, Bottom: 1rem (16px), Left: 0 */
-    min-height: 100vh;
+    background: rgba(2, 13, 62, 0.736);
+    padding: 0.75rem 0.75rem 1.25rem;
     width: 100%;
     max-width: 100%;
     display: flex;
     flex-direction: column;
-    align-items: center; /* Center pages horizontally */
-    overflow-x: hidden; /* Prevent horizontal overflow */
+    align-items: center;
+    overflow-x: hidden;
+    min-height: 100%;
   }
-  
-  /* Scale pages to fit better on screen - smaller default scale */
+
   .export-preview.preview .export-preview-page,
   .export-preview.formatted .export-preview-page {
-    transform: scale(0.4);
-    margin-bottom: calc((297mm * (1 - 0.4)) * -1 + 2px); /* Compensate for scaled height + small gap */
+    margin-bottom: 2px;
   }
-  
-  /* Responsive scaling - maintain A4 proportions */
-  @media (max-height: 800px) {
-    .export-preview.preview .export-preview-page,
-    .export-preview.formatted .export-preview-page {
-      transform: scale(0.35);
-      margin-bottom: calc((297mm * (1 - 0.35)) * -1 + 8px);
-    }
-  }
-  
-  @media (min-height: 801px) and (max-height: 1000px) {
-    .export-preview.preview .export-preview-page,
-    .export-preview.formatted .export-preview-page {
-      transform: scale(0.4);
-      margin-bottom: calc((297mm * (1 - 0.4)) * -1 + 8px);
-    }
-  }
-  
-  @media (min-height: 1001px) and (max-height: 1200px) {
-    .export-preview.preview .export-preview-page,
-    .export-preview.formatted .export-preview-page {
-      transform: scale(0.45);
-      margin-bottom: calc((297mm * (1 - 0.45)) * -1 + 8px);
-    }
-  }
-  
-  @media (min-height: 1201px) {
-    .export-preview.preview .export-preview-page,
-    .export-preview.formatted .export-preview-page {
-      transform: scale(0.5);
-      margin-bottom: calc((297mm * (1 - 0.5)) * -1 + 8px);
-    }
-  }
-  
+
+.export-preview-page:last-child {
+    margin-bottom: 0;
+}
+
   .export-preview.print {
-    transform: scale(1);
+    --page-zoom: 1;
+    --preview-viewport-zoom: 1;
+  }
+
+  .export-preview-page-scaler {
+    width: calc(100% / var(--page-zoom, 1));
+    height: calc(100% / var(--page-zoom, 1));
+    transform-origin: top center;
+    transform: scale(var(--page-zoom, 1));
+    display: flex;
+    flex-direction: column;
   }
   
   /* Page footer */

@@ -52,6 +52,8 @@ export function PlanConfigurator({
   const [showManualInput, setShowManualInput] = useState(false);
   const [showProgramTooltip, setShowProgramTooltip] = useState(false);
   const [showProductMenu, setShowProductMenu] = useState(false);
+  const manualInputRef = useRef<HTMLDivElement | null>(null);
+  const manualTriggerRef = useRef<HTMLButtonElement | null>(null);
 
   const productMenuRef = useRef<HTMLDivElement | null>(null);
   const productTriggerRef = useRef<HTMLButtonElement | null>(null);
@@ -101,6 +103,33 @@ export function PlanConfigurator({
     return () => document.removeEventListener('mousedown', handleClickAway);
   }, [showProductMenu]);
 
+  useEffect(() => {
+    if (!showManualInput) {
+      return;
+    }
+
+    const handleClickAway = (event: MouseEvent) => {
+      const target = event.target as Node;
+      if (
+        manualInputRef.current &&
+        !manualInputRef.current.contains(target) &&
+        manualTriggerRef.current &&
+        !manualTriggerRef.current.contains(target)
+      ) {
+        setShowManualInput(false);
+      }
+    };
+
+    document.addEventListener('mousedown', handleClickAway);
+    return () => document.removeEventListener('mousedown', handleClickAway);
+  }, [showManualInput]);
+
+  useEffect(() => {
+    if (programSummary) {
+      setShowManualInput(false);
+    }
+  }, [programSummary]);
+
   if (!selectedProductMeta) {
     return null;
   }
@@ -111,7 +140,7 @@ export function PlanConfigurator({
         <div className="absolute inset-0 bg-gradient-to-b from-slate-900 via-blue-900 to-slate-800 rounded-lg" />
         <div className="relative z-10 flex flex-col gap-2">
           <div className="flex items-center gap-1.5">
-            <span className="text-sm font-semibold uppercase tracking-wide text-white/90">
+            <span className="text-xl font-bold uppercase tracking-wider text-white">
               {(t('editor.header.productType' as any) as string) || 'Plans'}
             </span>
           </div>
@@ -178,7 +207,7 @@ export function PlanConfigurator({
         <div className="absolute inset-0 bg-gradient-to-b from-slate-900 via-blue-900 to-slate-800" />
         <div className="relative z-10 flex flex-col h-full">
           <div className="flex items-center gap-1.5 h-6 mb-2">
-            <p className="text-sm font-semibold uppercase tracking-wide text-white/90">
+            <p className="text-xl font-bold uppercase tracking-wider text-white">
               {connectCopy.badge}
             </p>
             <div className="relative">
@@ -218,7 +247,7 @@ export function PlanConfigurator({
                 </div>
               </div>
             ) : (
-              <div className="w-full flex flex-wrap gap-2">
+              <div className="w-full flex flex-wrap gap-2 relative">
                 <button
                   onClick={onOpenProgramFinder}
                   className="inline-flex items-center justify-center px-5 py-2.5 h-auto bg-blue-600 hover:bg-blue-700 text-white font-semibold rounded-lg transition-colors duration-200 shadow-md hover:shadow-lg text-sm"
@@ -226,43 +255,55 @@ export function PlanConfigurator({
                   {connectCopy.openFinder}
                 </button>
                 <button
+                  ref={manualTriggerRef}
+                  aria-expanded={showManualInput}
+                  aria-controls="manual-program-connect"
                   onClick={() => setShowManualInput((prev) => !prev)}
                   className="inline-flex items-center justify-center px-5 py-2.5 h-auto border-2 border-white/30 hover:border-white/50 text-white font-semibold rounded-lg transition-colors duration-200 backdrop-blur-sm hover:bg-white/10 text-sm"
                 >
                   {connectCopy.pasteLink}
                 </button>
+
+                <div
+                  id="manual-program-connect"
+                  ref={manualInputRef}
+                  className={`absolute left-0 top-[calc(100%+0.75rem)] w-full max-w-[420px] rounded-2xl border border-blue-500/40 bg-slate-950/95 p-3 shadow-2xl backdrop-blur-xl transition-all duration-200 z-50 ${
+                    showManualInput
+                      ? 'pointer-events-auto opacity-100 translate-y-0'
+                      : 'pointer-events-none opacity-0 -translate-y-2'
+                  }`}
+                >
+                  <div className="space-y-1 text-white">
+                    <label className="text-[10px] font-semibold text-white/70 block">
+                      {connectCopy.inputLabel}
+                    </label>
+                    <div className="flex flex-col gap-1.5 sm:flex-row">
+                      <input
+                        value={manualValue}
+                        onChange={(event) => setManualValue(event.target.value)}
+                        placeholder={connectCopy.placeholder}
+                        className="flex-1 rounded border border-white/30 bg-white/10 px-2 py-1.5 h-9 text-xs text-white placeholder:text-white/40 focus:border-blue-300 focus:outline-none focus:ring-1 focus:ring-blue-400/60"
+                      />
+                      <Button
+                        type="button"
+                        size="sm"
+                        className="sm:w-auto text-xs h-9 px-3 bg-blue-600 hover:bg-blue-500 text-white"
+                        onClick={handleManualConnect}
+                        disabled={programLoading}
+                      >
+                        {programLoading ? '...' : connectCopy.submit}
+                      </Button>
+                    </div>
+                    <p className="text-[10px] text-white/60">{connectCopy.example}</p>
+                    {(manualError || programError) && (
+                      <p className="text-[10px] text-red-400">{manualError || programError}</p>
+                    )}
+                  </div>
+                </div>
               </div>
             )}
           </div>
         </div>
-        {showManualInput && !programSummary && (
-          <div className="space-y-1 mt-1.5">
-            <label className="text-[10px] font-semibold text-slate-800 block">
-              {connectCopy.inputLabel}
-            </label>
-            <div className="flex flex-col gap-1.5 sm:flex-row">
-              <input
-                value={manualValue}
-                onChange={(event) => setManualValue(event.target.value)}
-                placeholder={connectCopy.placeholder}
-                className="flex-1 rounded border border-slate-300 bg-white px-2 py-1.5 h-8 text-xs focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-400"
-              />
-              <Button
-                type="button"
-                size="sm"
-                className="sm:w-auto text-xs h-8 px-3"
-                onClick={handleManualConnect}
-                disabled={programLoading}
-              >
-                {programLoading ? '...' : connectCopy.submit}
-              </Button>
-            </div>
-            <p className="text-[10px] text-slate-600">{connectCopy.example}</p>
-            {(manualError || programError) && (
-              <p className="text-[10px] text-red-600">{manualError || programError}</p>
-            )}
-          </div>
-        )}
       </Card>
     </div>
   );

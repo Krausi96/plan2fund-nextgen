@@ -13,6 +13,9 @@ function formatTableLabel(key: string): string {
 }
 
 function renderTable(table: Table) {
+  if (!table.rows || table.rows.length === 0) {
+    return null;
+  }
   return (
     <div className="overflow-x-auto border border-gray-200 rounded-lg bg-white">
       <table className="min-w-full text-sm">
@@ -58,6 +61,7 @@ export interface PreviewOptions {
 
 interface ExportRendererProps extends PreviewOptions {
   plan: PlanDocument;
+  style?: React.CSSProperties;
 }
 
 function ExportRenderer({
@@ -66,7 +70,8 @@ function ExportRenderer({
   watermarkText = 'DRAFT',
   previewMode = 'preview',
   selectedSections,
-  previewSettings = {}
+  previewSettings = {},
+  style
 }: ExportRendererProps) {
   const sectionsToRender = selectedSections && selectedSections.size > 0
     ? plan.sections.filter(section => selectedSections.has(section.key))
@@ -92,8 +97,35 @@ function ExportRenderer({
     figure: isGerman ? 'Abbildung' : 'Figure'
   };
 
+  const renderTocEntry = (
+    label: React.ReactNode,
+    pageNumber?: number | string,
+    options?: { isSubEntry?: boolean }
+  ) => {
+    const isSubEntry = options?.isSubEntry ?? false;
+    return (
+      <div
+        className={`flex items-center ${isSubEntry ? 'ml-4 text-sm text-gray-700 font-semibold' : 'text-base font-bold text-gray-900'} py-1`}
+      >
+        <div className="flex-1 flex items-center gap-2 min-w-0">
+          <span className="min-w-0 truncate">
+            {label}
+          </span>
+          <span className="flex-1 border-b border-dotted border-gray-300" />
+        </div>
+        {plan.settings.includePageNumbers && pageNumber !== undefined && (
+          <span
+            className={`${isSubEntry ? 'text-xs text-gray-600' : 'text-sm text-gray-800'} font-semibold ml-3 whitespace-nowrap`}
+          >
+            {pageNumber}
+          </span>
+        )}
+      </div>
+    );
+  };
+
   return (
-    <div className={`export-preview ${previewMode}`}>
+    <div className={`export-preview ${previewMode}`} style={style}>
       {showWatermark && (
         <div className="fixed inset-0 pointer-events-none flex items-center justify-center z-0">
           <div className="text-6xl font-bold text-gray-200 opacity-30 transform -rotate-45 select-none">
@@ -108,7 +140,7 @@ function ExportRenderer({
           
           return (
             <div 
-              className="preview-title-page export-preview-page flex flex-col justify-between py-12 px-8"
+              className="preview-title-page export-preview-page"
               style={{
                 width: '210mm',
                 height: '297mm',
@@ -116,6 +148,8 @@ function ExportRenderer({
                 background: 'white'
               }}
             >
+              <div className="export-preview-page-scaler">
+              <div className="flex flex-col justify-between py-12 px-8">
               {/* Top Section: Logo and Document Type */}
               <div className="flex-shrink-0 flex flex-col items-center mb-8">
                 {plan.settings.titlePage?.logoUrl && (
@@ -225,6 +259,8 @@ function ExportRenderer({
                   )}
                 </div>
               </div>
+              </div>
+              </div>
             </div>
           );
         })()}
@@ -238,6 +274,7 @@ function ExportRenderer({
             background: 'white'
           }}
         >
+          <div className="export-preview-page-scaler">
           <div className="space-y-2">
             <h2 className="text-2xl font-semibold text-gray-900 mb-4">
               {t.tableOfContents}
@@ -247,41 +284,33 @@ function ExportRenderer({
               const sectionNumber = section.fields?.sectionNumber ?? null;
               const sectionLabel = sectionNumber !== null ? `${sectionNumber}. ${section.title}` : section.title;
               const subchapters = section.fields?.subchapters || [];
+              const sectionWordCount = section.content ? section.content.split(' ').length : 0;
               // Calculate page number: TOC is page 1 (or 2 if title page exists), sections start from there
               const sectionPageNumber = sectionIndex + (plan.settings.includeTitlePage ? 2 : 1);
               
               return (
                 <div key={section.key} className="space-y-1">
-                  <div className="flex justify-between items-center py-1">
-                    <span className="text-blue-600 hover:text-blue-800 cursor-pointer">
-                      {sectionLabel}
-                    </span>
-                    <div className="flex items-center gap-3">
-                      {plan.settings.includePageNumbers && (
-                        <span className="text-xs text-gray-400 font-medium">
-                          {sectionPageNumber}
-                        </span>
-                      )}
+                  {renderTocEntry(
+                    <span className="flex flex-col">
+                      <span className="truncate">{sectionLabel}</span>
                       {previewSettings.showWordCount && section.content && (
-                        <span className="text-xs text-gray-500">
-                          {section.content.split(' ').length} words
+                        <span className="text-[11px] font-normal text-gray-500">
+                          {sectionWordCount} words
                         </span>
                       )}
-                    </div>
-                  </div>
+                    </span>,
+                    sectionPageNumber
+                  )}
                   {subchapters.length > 0 && (
                     <div className="ml-4 space-y-0.5">
                       {subchapters.map((sub: { id: string; title: string; numberLabel: string }) => (
-                        <div key={sub.id} className="flex justify-between items-center text-sm text-gray-600">
-                          <span>
-                            {sub.numberLabel ? `${sub.numberLabel}. ` : ''}{sub.title}
-                          </span>
-                          {plan.settings.includePageNumbers && (
-                            <span className="text-xs text-gray-400 font-medium ml-2">
-                              {sectionPageNumber}
-                            </span>
+                        <React.Fragment key={sub.id}>
+                          {renderTocEntry(
+                            `${sub.numberLabel ? `${sub.numberLabel}. ` : ''}${sub.title}`,
+                            sectionPageNumber,
+                            { isSubEntry: true }
                           )}
-                        </div>
+                        </React.Fragment>
                       ))}
                     </div>
                   )}
@@ -296,15 +325,8 @@ function ExportRenderer({
               if (hasTables) {
                 const listOfTablesPageNumber = sectionsToRender.length + (plan.settings.includeTitlePage ? 2 : 1);
                 return (
-                  <div className="flex justify-between items-center py-1 mt-2 pt-2 border-t border-gray-200">
-                    <span className="text-blue-600 hover:text-blue-800 cursor-pointer">
-                      {t.listOfTables}
-                    </span>
-                    {plan.settings.includePageNumbers && (
-                      <span className="text-xs text-gray-400 font-medium">
-                        {listOfTablesPageNumber}
-                      </span>
-                    )}
+                  <div className="mt-2 pt-2 border-t border-gray-200">
+                    {renderTocEntry(t.listOfTables, listOfTablesPageNumber)}
                   </div>
                 );
               }
@@ -319,15 +341,8 @@ function ExportRenderer({
               if (hasFigures) {
                 const listOfFiguresPageNumber = sectionsToRender.length + (plan.settings.includeTitlePage ? 2 : 1) + 1;
                 return (
-                  <div className="flex justify-between items-center py-1">
-                    <span className="text-blue-600 hover:text-blue-800 cursor-pointer">
-                      {t.listOfFigures}
-                    </span>
-                    {plan.settings.includePageNumbers && (
-                      <span className="text-xs text-gray-400 font-medium">
-                        {listOfFiguresPageNumber}
-                      </span>
-                    )}
+                  <div>
+                    {renderTocEntry(t.listOfFigures, listOfFiguresPageNumber)}
                   </div>
                 );
               }
@@ -335,36 +350,29 @@ function ExportRenderer({
             })()}
             
             {/* References in TOC */}
-            <div className="flex justify-between items-center py-1 mt-2 pt-2 border-t border-gray-200">
-              <span className="text-blue-600 hover:text-blue-800 cursor-pointer">
-                {t.references}
-              </span>
-              {plan.settings.includePageNumbers && (
-                <span className="text-xs text-gray-400 font-medium">
-                  {sectionsToRender.length + (plan.settings.includeTitlePage ? 2 : 1) + 2}
-                </span>
+            <div className="mt-2 pt-2 border-t border-gray-200">
+              {renderTocEntry(
+                t.references,
+                sectionsToRender.length + (plan.settings.includeTitlePage ? 2 : 1) + 2
               )}
             </div>
             
             {/* Appendices in TOC */}
-            <div className="flex justify-between items-center py-1">
-              <span className="text-blue-600 hover:text-blue-800 cursor-pointer">
-                {t.appendices}
-              </span>
-              {plan.settings.includePageNumbers && (
-                <span className="text-xs text-gray-400 font-medium">
-                  {sectionsToRender.length + (plan.settings.includeTitlePage ? 2 : 1) + 3}
-                </span>
+            <div>
+              {renderTocEntry(
+                t.appendices,
+                sectionsToRender.length + (plan.settings.includeTitlePage ? 2 : 1) + 3
               )}
             </div>
             </div>
-          </div>
           {/* Footer with page number for TOC */}
           {plan.settings.includePageNumbers && (
             <div className="export-preview-page-footer">
               <span>{plan.settings.includeTitlePage ? 2 : 1}</span>
             </div>
           )}
+          </div>
+          </div>
         </div>
 
         {sectionsToRender.map((section, sectionIndex) => {
@@ -388,9 +396,10 @@ function ExportRenderer({
                 background: 'white'
               }}
             >
-              <div className="space-y-4 flex-1 overflow-hidden flex flex-col">
-                <div className="border-b border-gray-200 pb-2 flex-shrink-0">
-                  <h2 className="text-2xl font-semibold text-gray-900">{displayTitle}</h2>
+            <div className="export-preview-page-scaler">
+            <div className="flex h-full flex-col space-y-4">
+              <div className="border-b border-gray-200 pb-2 flex-shrink-0">
+                <h2 className="text-2xl font-semibold text-gray-900">{displayTitle}</h2>
                 {previewSettings.showCompletionStatus && (
                   <div className="flex items-center gap-4 mt-2 text-sm text-gray-600">
                     {isComplete ? (
@@ -404,21 +413,19 @@ function ExportRenderer({
                         Incomplete
                       </span>
                     )}
-                    {previewSettings.showWordCount && (
-                      <span>{wordCount} words</span>
-                    )}
-                    {previewSettings.showCharacterCount && (
-                      <span>{charCount} characters</span>
-                    )}
+                    {previewSettings.showWordCount && <span>{wordCount} words</span>}
+                    {previewSettings.showCharacterCount && <span>{charCount} characters</span>}
                   </div>
                 )}
               </div>
-              
-              <div className={`prose max-w-none flex-1 overflow-y-auto min-h-0 ${
-                previewMode === 'formatted' ? 'font-serif' : 'font-sans'
-              }`}>
+
+              <div
+                className={`prose max-w-none flex-1 overflow-y-auto min-h-0 ${
+                  previewMode === 'formatted' ? 'font-serif' : 'font-sans'
+                }`}
+              >
                 {hasContent ? (
-                  <div 
+                  <div
                     className="text-gray-800 leading-relaxed"
                     dangerouslySetInnerHTML={{ __html: section.content || '' }}
                   />
@@ -433,7 +440,7 @@ function ExportRenderer({
               {section.tables && Object.keys(section.tables).length > 0 && (
                 <div className="mt-6 space-y-4">
                   {Object.entries(section.tables).map(([tableKey, table]) => {
-                    if (!table) return null;
+                    if (!table || !table.rows || table.rows.length === 0) return null;
                     return (
                       <div key={tableKey}>
                         <h4 className="text-sm font-semibold text-gray-700 mb-2">
@@ -450,7 +457,7 @@ function ExportRenderer({
               {section.figures && section.figures.length > 0 && (
                 <div className="mt-6 space-y-4">
                   {section.figures.map((figure: any, idx) => (
-                    <div key={idx} className="space-y-2">
+                    <div key={figure.id || idx} className="space-y-2">
                       {figure.uri && (
                         <img
                           src={figure.uri}
@@ -458,14 +465,17 @@ function ExportRenderer({
                           className="w-full rounded-lg border border-gray-200"
                         />
                       )}
-                      {figure.caption && (
-                        <p className="text-sm italic text-gray-600">{figure.caption}</p>
+                      {(figure.caption || figure.source) && (
+                        <div className="text-sm text-gray-600 space-y-0.5">
+                          {figure.caption && <p className="italic">{figure.caption}</p>}
+                          {figure.source && <p className="text-xs text-gray-500">Source: {figure.source}</p>}
+                        </div>
                       )}
                     </div>
                   ))}
                 </div>
               )}
-              </div>
+            </div>
               {/* Footer with page number */}
               {plan.settings.includePageNumbers && (
                 <div className="export-preview-page-footer">
@@ -473,18 +483,32 @@ function ExportRenderer({
                 </div>
               )}
             </div>
+            </div>
           );
         })}
 
         {/* List of Tables */}
         {(() => {
-          const allTables: Array<{ name: string; sectionTitle: string; sectionNumber: number | null }> = [];
+          const allTables: Array<{
+            id: string;
+            name: string;
+            description?: string;
+            source?: string;
+            tags?: string[];
+            sectionTitle: string;
+            sectionNumber: number | null;
+          }> = [];
           sectionsToRender.forEach((section) => {
             const sectionNumber = section.fields?.sectionNumber ?? null;
             if (section.tables && Object.keys(section.tables).length > 0) {
               Object.keys(section.tables).forEach((tableKey) => {
+                const metadata = section.fields?.tableMetadata?.[tableKey] ?? null;
                 allTables.push({
-                  name: formatTableLabel(tableKey),
+                  id: metadata?.id || tableKey,
+                  name: metadata?.name || formatTableLabel(tableKey),
+                  description: metadata?.description,
+                  source: metadata?.source,
+                  tags: metadata?.tags,
                   sectionTitle: section.title,
                   sectionNumber
                 });
@@ -504,18 +528,30 @@ function ExportRenderer({
                 background: 'white'
               }}
             >
+            <div className="export-preview-page-scaler">
               <div className="section-block space-y-4">
                 <div className="section-heading border-b border-gray-200/80 pb-3">
                   <h2 className="text-[21px] font-semibold tracking-tight text-slate-900">{t.listOfTables}</h2>
                 </div>
                 {allTables.length > 0 ? (
-                  <div className="space-y-2">
-                    {allTables.map((table, idx) => (
-                      <div key={idx} className="text-sm text-gray-700">
-                        <span className="font-semibold">{table.name}</span>
-                        <span className="text-gray-500 ml-2">
-                          — {table.sectionNumber !== null ? `${table.sectionNumber}. ` : ''}{table.sectionTitle}
-                        </span>
+                  <div className="space-y-3">
+                    {allTables.map((table) => (
+                      <div key={table.id} className="text-sm text-gray-700 space-y-0.5">
+                        <div>
+                          <span className="font-semibold">{table.name}</span>
+                          <span className="text-gray-500 ml-2">
+                            — {table.sectionNumber !== null ? `${table.sectionNumber}. ` : ''}{table.sectionTitle}
+                          </span>
+                        </div>
+                        {table.description && (
+                          <p className="text-xs text-gray-500">{table.description}</p>
+                        )}
+                        {table.source && (
+                          <p className="text-xs text-gray-500">Source: {table.source}</p>
+                        )}
+                        {table.tags && table.tags.length > 0 && (
+                          <p className="text-[11px] text-gray-400 uppercase">Tags: {table.tags.join(', ')}</p>
+                        )}
                       </div>
                     ))}
                   </div>
@@ -532,18 +568,29 @@ function ExportRenderer({
                 </div>
               )}
             </div>
+            </div>
           );
         })()}
 
         {/* List of Figures */}
         {(() => {
-          const allFigures: Array<{ name: string; sectionTitle: string; sectionNumber: number | null }> = [];
+          const allFigures: Array<{
+            id?: string;
+            name: string;
+            caption?: string;
+            source?: string;
+            sectionTitle: string;
+            sectionNumber: number | null;
+          }> = [];
           sectionsToRender.forEach((section) => {
             const sectionNumber = section.fields?.sectionNumber ?? null;
             if (section.figures && section.figures.length > 0) {
               section.figures.forEach((figure: any) => {
                   allFigures.push({
+                    id: figure.id,
                     name: figure.title || t.figure,
+                    caption: figure.caption || figure.description,
+                    source: figure.source,
                     sectionTitle: section.title,
                     sectionNumber
                   });
@@ -563,18 +610,27 @@ function ExportRenderer({
                 background: 'white'
               }}
             >
+            <div className="export-preview-page-scaler">
               <div className="section-block space-y-4">
                 <div className="section-heading border-b border-gray-200/80 pb-3">
                   <h2 className="text-[21px] font-semibold tracking-tight text-slate-900">{t.listOfFigures}</h2>
                 </div>
               {allFigures.length > 0 ? (
-                <div className="space-y-2">
-                  {allFigures.map((figure, idx) => (
-                    <div key={idx} className="text-sm text-gray-700">
-                      <span className="font-semibold">{figure.name}</span>
-                      <span className="text-gray-500 ml-2">
-                        — {figure.sectionNumber !== null ? `${figure.sectionNumber}. ` : ''}{figure.sectionTitle}
-                      </span>
+                <div className="space-y-3">
+                  {allFigures.map((figure) => (
+                    <div key={figure.id || figure.name} className="text-sm text-gray-700 space-y-0.5">
+                      <div>
+                        <span className="font-semibold">{figure.name}</span>
+                        <span className="text-gray-500 ml-2">
+                          — {figure.sectionNumber !== null ? `${figure.sectionNumber}. ` : ''}{figure.sectionTitle}
+                        </span>
+                      </div>
+                      {figure.caption && (
+                        <p className="text-xs text-gray-500">{figure.caption}</p>
+                      )}
+                      {figure.source && (
+                        <p className="text-xs text-gray-500">Source: {figure.source}</p>
+                      )}
                     </div>
                   ))}
                 </div>
@@ -591,6 +647,7 @@ function ExportRenderer({
                 </div>
               )}
             </div>
+            </div>
           );
         })()}
 
@@ -604,6 +661,7 @@ function ExportRenderer({
             background: 'white'
           }}
         >
+        <div className="export-preview-page-scaler">
           <div className="section-block space-y-4">
             <div className="section-heading border-b border-gray-200/80 pb-3">
               <h2 className="text-[21px] font-semibold tracking-tight text-slate-900">{t.references}</h2>
@@ -629,6 +687,7 @@ function ExportRenderer({
             </div>
           )}
         </div>
+        </div>
 
         {/* Appendices section */}
         <div 
@@ -640,6 +699,7 @@ function ExportRenderer({
             background: 'white'
           }}
         >
+        <div className="export-preview-page-scaler">
           <div className="section-block space-y-4">
             <div className="section-heading border-b border-gray-200/80 pb-3">
               <h2 className="text-[21px] font-semibold tracking-tight text-slate-900">{t.appendices}</h2>
@@ -665,6 +725,7 @@ function ExportRenderer({
               <span>{sectionsToRender.length + (plan.settings.includeTitlePage ? 2 : 1) + 3}</span>
             </div>
           )}
+        </div>
         </div>
       </div>
     </div>

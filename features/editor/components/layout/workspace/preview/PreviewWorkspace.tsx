@@ -1,7 +1,7 @@
 // ========= PLAN2FUND — PREVIEW PANE =========
 // Live document preview that mirrors the /preview experience inline.
 
-import React, { useMemo, useState } from 'react';
+import React, { useEffect, useMemo, useRef, useState } from 'react';
 import {
   AttachmentReference,
   BusinessPlan,
@@ -13,8 +13,6 @@ import {
   Table
 } from '@/features/editor/types/plan';
 import ExportRenderer from '@/features/export/renderer/renderer';
-
-const PREVIEW_PLACEHOLDER = '[Section not completed yet]';
 
 interface PreviewPanelProps {
   plan: BusinessPlan | null;
@@ -28,6 +26,9 @@ type ResolvedAttachment = {
   value?: number;
   unit?: string;
   target?: number;
+  description?: string | null;
+  source?: string | null;
+  tags?: string[] | null;
 };
 
 function isEntityLinked(entity: { relatedQuestions?: string[]; questionId?: string }) {
@@ -46,7 +47,10 @@ function resolveAttachment(
       return {
         id: dataset.id,
         type: 'dataset',
-        name: dataset.name
+        name: dataset.name,
+        description: dataset.description,
+        source: dataset.source ?? null,
+        tags: dataset.tags ?? null
       };
     }
     if (attachmentType === 'kpi') {
@@ -58,7 +62,10 @@ function resolveAttachment(
         name: kpi.name,
         value: kpi.value,
         unit: kpi.unit,
-        target: kpi.target
+        target: kpi.target,
+        description: kpi.description ?? null,
+        source: kpi.source ?? null,
+        tags: kpi.tags ?? null
       };
     }
     const media = section.media?.find((item) => item.id === attachmentId);
@@ -66,7 +73,10 @@ function resolveAttachment(
     return {
       id: media.id,
       type: media.type,
-      name: media.title
+      name: media.title,
+      description: media.description ?? media.caption ?? null,
+      source: media.source ?? null,
+      tags: media.tags ?? null
     };
   }
 
@@ -77,7 +87,10 @@ function resolveAttachment(
     name: legacy.title || legacy.description || 'Untitled',
     value: (legacy as any).value,
     unit: (legacy as any).unit,
-    target: (legacy as any).target
+    target: (legacy as any).target,
+    description: legacy.description ?? legacy.caption ?? null,
+    source: legacy.source ?? null,
+    tags: legacy.tags ?? null
   };
 }
 
@@ -158,23 +171,37 @@ function convertSectionToPlanSection(section: Section, sectionNumber: number | n
 
   const hasRealContent = hasContent;
 
-  if (!hasContent) {
-    htmlParts.push(`<p class="section-placeholder">${PREVIEW_PLACEHOLDER}</p>`);
-  }
-
   const questionAttachments = section.questions.flatMap((question) =>
     resolveAttachmentsForQuestion(question, section)
   );
   if (questionAttachments.length > 0) {
     const items = questionAttachments
       .map((attachment) => {
+        const detailSegments: string[] = [];
+        if (attachment.description) {
+          detailSegments.push(`<span class="attachment-meta attachment-description">${attachment.description}</span>`);
+        }
+        if (attachment.source) {
+          detailSegments.push(`<span class="attachment-meta attachment-source">Source: ${attachment.source}</span>`);
+        }
+        if (attachment.tags && attachment.tags.length > 0) {
+          detailSegments.push(
+            `<span class="attachment-meta attachment-tags">Tags: ${attachment.tags.join(', ')}</span>`
+          );
+        }
         if (attachment.type === 'kpi' && attachment.value !== undefined) {
           const kpiUnit = attachment.unit || '';
           const target = attachment.target ? ` (target: ${attachment.target} ${kpiUnit})` : '';
-          return `<li><strong>${attachment.name}</strong>: ${attachment.value} ${kpiUnit}${target}</li>`;
+          detailSegments.unshift(
+            `<span class="attachment-meta attachment-value">${attachment.value} ${kpiUnit}${target}</span>`
+          );
         }
         const typeLabel = attachment.type || 'attachment';
-        return `<li>${attachment.name} <span class="attachment-type">(${typeLabel})</span></li>`;
+        const metadataBlock =
+          detailSegments.length > 0
+            ? `<div class="attachment-meta-block">${detailSegments.join('')}</div>`
+            : '';
+        return `<li><strong>${attachment.name}</strong> <span class="attachment-type">(${typeLabel})</span>${metadataBlock}</li>`;
       })
       .join('');
     htmlParts.push(`<ul class="section-attachments">${items}</ul>`);
@@ -192,6 +219,11 @@ function convertSectionToPlanSection(section: Section, sectionNumber: number | n
     htmlParts.push(`<div class="section-kpis"><h4>Key Performance Indicators</h4><ul>${kpiItems}</ul></div>`);
   }
 
+  const tableMetadata: Record<
+    string,
+    { id: string; name: string; description?: string; source?: string; tags?: string[] }
+  > = {};
+
   const tables = section.datasets?.reduce((acc, dataset) => {
     if (!dataset.name) return acc;
 
@@ -199,7 +231,9 @@ function convertSectionToPlanSection(section: Section, sectionNumber: number | n
     const hasLabelColumn = Boolean(firstColumnName);
     const valueColumns = hasLabelColumn ? dataset.columns.slice(1) : dataset.columns;
 
-    acc[dataset.name.toLowerCase().replace(/\s+/g, '_')] = {
+    const datasetKey = dataset.name.toLowerCase().replace(/\s+/g, '_');
+
+    acc[datasetKey] = {
       labelColumn: hasLabelColumn ? firstColumnName : undefined,
       columns: valueColumns.map((col) => col.name),
       rows: dataset.rows.map((row) => {
@@ -209,6 +243,14 @@ function convertSectionToPlanSection(section: Section, sectionNumber: number | n
           values: valueColumns.map((col) => normalizeCellValue(row[col.name]))
         };
       })
+    };
+
+    tableMetadata[datasetKey] = {
+      id: dataset.id,
+      name: dataset.name,
+      description: dataset.description,
+      source: dataset.source,
+      tags: dataset.tags
     };
 
     return acc;
@@ -225,15 +267,21 @@ function convertSectionToPlanSection(section: Section, sectionNumber: number | n
       sectionNumber: sectionNumber,
       displayTitle: displayTitle,
       subchapters: subchapters,
-      hasRealContent
+      hasRealContent,
+      attachments: questionAttachments,
+      tableMetadata
     },
     tables,
     figures: section.media?.map((media) => ({
+      id: media.id,
       type: media.type,
       title: media.title,
       uri: media.uri,
       caption: media.caption,
-      altText: media.altText
+      altText: media.altText,
+      description: media.description,
+      source: media.source,
+      tags: media.tags
     })),
     status: section.progress === 100 ? 'aligned' : section.progress && section.progress > 0 ? 'needs_fix' : 'missing'
   };
@@ -243,6 +291,37 @@ export default function PreviewPanel({ plan }: PreviewPanelProps) {
   const [viewMode, setViewMode] = useState<'page' | 'fluid'>('page');
   const [showWatermark, setShowWatermark] = useState(true);
   const [zoomPreset, setZoomPreset] = useState<'compact' | 'standard' | 'comfortable'>('standard');
+  const [fitScale, setFitScale] = useState(1);
+  const viewportRef = useRef<HTMLDivElement | null>(null);
+
+  useEffect(() => {
+    if (viewMode !== 'page') {
+      setFitScale(1);
+      return;
+    }
+
+    if (typeof window === 'undefined' || typeof ResizeObserver === 'undefined') {
+      return;
+    }
+
+    const node = viewportRef.current;
+    if (!node) return;
+
+    const A4_WIDTH_PX = 793.7; // 210mm translated to CSS px at 96dpi
+    const MAX_BASE_SCALE = 1.02;
+
+    const observer = new ResizeObserver((entries) => {
+      const entry = entries[0];
+      if (!entry) return;
+      const width = entry.contentRect.width;
+      const widthRatio = Math.min(1, width / A4_WIDTH_PX);
+      const nextScale = Math.min(MAX_BASE_SCALE, widthRatio);
+      setFitScale(Number(nextScale.toFixed(3)));
+    });
+
+    observer.observe(node);
+    return () => observer.disconnect();
+  }, [viewMode]);
 
   const planDocument = useMemo<PlanDocument | null>(() => {
     if (!plan || !plan.sections || plan.sections.length === 0) return null;
@@ -319,6 +398,23 @@ export default function PreviewPanel({ plan }: PreviewPanelProps) {
     };
   }, [plan]);
 
+  const zoomMultiplier =
+    zoomPreset === 'compact'
+      ? 0.9
+      : zoomPreset === 'comfortable'
+        ? 1.1
+        : 1;
+
+  const viewportZoom =
+    viewMode === 'page'
+      ? Math.max(0.25, Math.min(1.5, zoomMultiplier * (fitScale || 1)))
+      : 1;
+
+  const zoomStyle = {
+    '--page-zoom': '1',
+    '--preview-viewport-zoom': viewportZoom.toString()
+  } as React.CSSProperties;
+
   if (!plan) {
     return (
       <div className="text-center py-8 text-sm text-slate-400">
@@ -329,9 +425,9 @@ export default function PreviewPanel({ plan }: PreviewPanelProps) {
 
   return (
     <>
-      <div className="space-y-3 rounded-xl border border-white/15 bg-white/5 p-3 shadow-inner">
+      <div className="space-y-3">
         {planDocument ? (
-          <div className="relative h-[660px] overflow-hidden rounded-3xl border border-white/10 bg-slate-950/40 p-0 shadow-inner flex flex-col">
+          <div className="relative mt-2 h-[660px] rounded-3xl border border-white/10 bg-slate-950/40 p-0 shadow-inner flex flex-col">
             <div className="flex-shrink-0 mb-3 flex flex-wrap items-center justify-between gap-3 rounded-lg border border-white/15 bg-white/5 px-3 py-2 text-[11px] text-white/80">
               <div className="flex items-center gap-2">
                 <span className="uppercase tracking-wide text-white/60">View</span>
@@ -381,27 +477,20 @@ export default function PreviewPanel({ plan }: PreviewPanelProps) {
               </div>
             </div>
             <div className="flex-1 overflow-y-auto overflow-x-hidden px-0 flex flex-col">
-              <div className="flex-1 w-full overflow-x-hidden">
-                <div
-                  style={{
-                    transform: `scale(${zoomPreset === 'compact' ? 0.9 : zoomPreset === 'comfortable' ? 1.08 : 1})`,
-                    transformOrigin: 'top center',
-                    transition: 'transform 150ms ease'
+              <div ref={viewportRef} className="flex-1 w-full overflow-x-hidden">
+                <ExportRenderer
+                  plan={planDocument}
+                  showWatermark={showWatermark}
+                  watermarkText="DRAFT"
+                  previewMode={viewMode === 'page' ? 'formatted' : 'preview'}
+                  previewSettings={{
+                    showCompletionStatus: true,
+                    showWordCount: false,
+                    showCharacterCount: false,
+                    enableRealTimePreview: true
                   }}
-                >
-                  <ExportRenderer
-                    plan={planDocument}
-                    showWatermark={showWatermark}
-                    watermarkText="DRAFT"
-                    previewMode={viewMode === 'page' ? 'formatted' : 'preview'}
-                    previewSettings={{
-                      showCompletionStatus: true,
-                      showWordCount: false,
-                      showCharacterCount: false,
-                      enableRealTimePreview: true
-                    }}
-                  />
-                </div>
+                  style={zoomStyle}
+                />
               </div>
               <div className="flex-shrink-0 mt-4 mb-2 px-4 flex items-center justify-between text-[11px] uppercase tracking-wide text-white/60">
                 <span>{planDocument.sections.length} sections</span>
