@@ -14,8 +14,7 @@ import {
   PlanConfiguratorProps,
   ConnectCopy
 } from './PlanConfigurator';
-import AncillaryPanel from '../workspace/ancillary/AncillaryPanel';
-import MetadataPanel from '../workspace/metadata/MetadataPanel';
+import MetadataAndAncillaryPanel from '../workspace/metadata/MetadataAndAncillaryPanel';
 import { SectionWorkspace } from './SectionWorkspace';
 
 type WorkspaceProps = {
@@ -64,19 +63,12 @@ export function Workspace({
   onRunRequirements,
   progressSummary
 }: WorkspaceProps) {
-  if (isMetadataView) {
+  // Show merged panel for both metadata and ancillary views
+  if (isMetadataView || isAncillaryView) {
     return (
-      <MetadataPanel
+      <MetadataAndAncillaryPanel
         plan={plan}
         onTitlePageChange={onTitlePageChange}
-      />
-    );
-  }
-
-  if (isAncillaryView) {
-    return (
-      <AncillaryPanel
-        plan={plan}
         onAncillaryChange={onAncillaryChange}
         onReferenceAdd={onReferenceAdd}
         onReferenceUpdate={onReferenceUpdate}

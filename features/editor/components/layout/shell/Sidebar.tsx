@@ -60,11 +60,8 @@ function SectionNavigationBar({
   const scrollContainerRef = React.useRef<HTMLDivElement>(null);
 
   const getSectionTitle = (sectionId: string, originalTitle: string): string => {
-    if (sectionId === ANCILLARY_SECTION_ID) {
-      return (t('editor.section.front_back_matter' as any) as string) || 'Supporting Materials';
-    }
-    if (sectionId === METADATA_SECTION_ID) {
-      return (t('editor.section.metadata' as any) as string) || 'Metadata';
+    if (sectionId === METADATA_SECTION_ID || sectionId === ANCILLARY_SECTION_ID) {
+      return (t('editor.section.metadata' as any) as string) || 'Plan Metadata';
     }
     const translationKey = `editor.section.${sectionId}` as any;
     const translated = t(translationKey) as string;
@@ -74,17 +71,11 @@ function SectionNavigationBar({
   const sections = [
     {
       id: METADATA_SECTION_ID,
-      title: getSectionTitle(METADATA_SECTION_ID, (t('editor.section.metadata' as any) as string) || 'Metadata'),
+      title: getSectionTitle(METADATA_SECTION_ID, (t('editor.section.metadata' as any) as string) || 'Plan Metadata'),
       progress: undefined,
       questions: []
     },
-    ...plan.sections.map((section) => ({ ...section, title: getSectionTitle(section.id, section.title) })),
-    {
-      id: ANCILLARY_SECTION_ID,
-      title: getSectionTitle(ANCILLARY_SECTION_ID, 'Supporting Materials'),
-      progress: undefined,
-      questions: []
-    }
+    ...plan.sections.map((section) => ({ ...section, title: getSectionTitle(section.id, section.title) }))
   ];
 
   const scrollBy = (direction: 'left' | 'right') => {
@@ -128,16 +119,24 @@ function SectionNavigationBar({
           const answeredQuestions = section.questions.filter((question) => question.status === 'complete').length;
           const completion =
             section.progress ?? (totalQuestions === 0 ? 0 : Math.round((answeredQuestions / totalQuestions) * 100));
-          const isAncillary = section.id === ANCILLARY_SECTION_ID;
-          const isMetadata = section.id === METADATA_SECTION_ID;
-          const isActive = section.id === activeSectionId;
+          const isMetadata = section.id === METADATA_SECTION_ID || section.id === ANCILLARY_SECTION_ID;
+          const isActive = section.id === activeSectionId || (isMetadata && (activeSectionId === METADATA_SECTION_ID || activeSectionId === ANCILLARY_SECTION_ID));
           const progressIntent: 'success' | 'warning' | 'neutral' =
             completion === 100 ? 'success' : completion > 0 ? 'warning' : 'neutral';
+
+          const handleClick = () => {
+            // If clicking on metadata or ancillary, always navigate to METADATA_SECTION_ID
+            if (section.id === ANCILLARY_SECTION_ID) {
+              onSelectSection(METADATA_SECTION_ID);
+            } else {
+              onSelectSection(section.id);
+            }
+          };
 
           return (
             <button
               key={section.id}
-              onClick={() => onSelectSection(section.id)}
+              onClick={handleClick}
               aria-current={isActive ? 'page' : undefined}
               role="tab"
               className={`min-w-[200px] rounded-xl border-2 px-4 py-3 text-left transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-400 ${
@@ -148,9 +147,9 @@ function SectionNavigationBar({
             >
               <div className="flex flex-col gap-1.5">
                 <div className="flex items-center justify-between">
-                  {!isAncillary && !isMetadata && (
+                  {!isMetadata && (
                     <span className="text-xs font-bold tracking-[0.2em] text-white drop-shadow-sm">
-                      {String(index + 1).padStart(2, '0')}
+                      {String(index).padStart(2, '0')}
                     </span>
                   )}
                   <span className="text-xs font-bold text-white drop-shadow-sm">{completion}%</span>

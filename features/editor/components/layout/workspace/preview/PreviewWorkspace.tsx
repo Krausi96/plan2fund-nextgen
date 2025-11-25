@@ -199,9 +199,9 @@ function convertSectionToPlanSection(section: Section, sectionNumber: number | n
         const typeLabel = attachment.type || 'attachment';
         const metadataBlock =
           detailSegments.length > 0
-            ? `<div class="attachment-meta-block">${detailSegments.join('')}</div>`
+            ? `<div class="attachment-meta-block">${detailSegments.join('<br />')}</div>`
             : '';
-        return `<li><strong>${attachment.name}</strong> <span class="attachment-type">(${typeLabel})</span>${metadataBlock}</li>`;
+        return `<li class="attachment-item"><strong>${attachment.name}</strong> <span class="attachment-type">(${typeLabel})</span>${metadataBlock}</li>`;
       })
       .join('');
     htmlParts.push(`<ul class="section-attachments">${items}</ul>`);

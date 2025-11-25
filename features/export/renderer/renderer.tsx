@@ -105,7 +105,7 @@ function ExportRenderer({
     const isSubEntry = options?.isSubEntry ?? false;
     return (
       <div
-        className={`flex items-center ${isSubEntry ? 'ml-4 text-sm text-gray-700 font-semibold' : 'text-base font-bold text-gray-900'} py-1`}
+        className={`flex items-center ${isSubEntry ? 'ml-6 text-sm text-gray-700 font-medium' : 'text-base font-semibold text-gray-900'} py-1.5`}
       >
         <div className="flex-1 flex items-center gap-2 min-w-0">
           <span className="min-w-0 truncate">
@@ -115,9 +115,9 @@ function ExportRenderer({
         </div>
         {plan.settings.includePageNumbers && pageNumber !== undefined && (
           <span
-            className={`${isSubEntry ? 'text-xs text-gray-600' : 'text-sm text-gray-800'} font-semibold ml-3 whitespace-nowrap`}
+            className={`${isSubEntry ? 'text-xs text-gray-600' : 'text-sm text-gray-800'} font-medium ml-3 whitespace-nowrap`}
           >
-            {pageNumber}
+            {t.page} {pageNumber}
           </span>
         )}
       </div>
@@ -134,7 +134,7 @@ function ExportRenderer({
         </div>
       )}
       
-      <div className="relative z-10">
+      <div className="relative z-10" style={{ margin: 0, padding: 0 }}>
         {plan.settings.includeTitlePage && (() => {
           const dateLocale = isGerman ? 'de-DE' : 'en-US';
           
@@ -145,64 +145,67 @@ function ExportRenderer({
                 width: '210mm',
                 height: '297mm',
                 backgroundColor: 'white',
-                background: 'white'
+                background: 'white',
+                margin: 0,
+                marginTop: 0,
+                marginBottom: 0
               }}
             >
               <div className="export-preview-page-scaler">
-              <div className="flex flex-col justify-between py-12 px-8">
+              <div className="flex flex-col justify-between h-full py-16 px-10">
               {/* Top Section: Logo and Document Type */}
-              <div className="flex-shrink-0 flex flex-col items-center mb-8">
+              <div className="flex-shrink-0 flex flex-col items-center mb-12">
                 {plan.settings.titlePage?.logoUrl && (
-                  <div className="mb-6">
+                  <div className="mb-8">
                     <img 
                       src={plan.settings.titlePage.logoUrl} 
                       alt="Company Logo" 
-                      className="mx-auto h-20 object-contain" 
+                      className="mx-auto h-24 object-contain" 
                     />
                   </div>
                 )}
-                <p className="text-xs font-medium uppercase tracking-widest text-gray-400">
+                <p className="text-xs font-semibold uppercase tracking-[0.15em] text-gray-500 letter-spacing-wide">
                   {t.businessPlan}
                 </p>
               </div>
 
               {/* Center Section: Title and Company Info */}
-              <div className="flex-1 flex flex-col justify-center items-center text-center max-w-2xl mx-auto px-4">
-                <h1 className="preview-title mb-3 text-2xl sm:text-3xl font-bold leading-tight text-slate-900">
+              <div className="flex-1 flex flex-col justify-center items-center text-center max-w-3xl mx-auto px-6">
+                <h1 className="preview-title mb-4 text-3xl sm:text-4xl font-bold leading-tight text-slate-900 tracking-tight">
                   {plan.settings.titlePage?.title || t.businessPlan}
                 </h1>
                 
                 {plan.settings.titlePage?.subtitle && (
-                  <p className="text-sm text-gray-600 font-normal leading-relaxed mb-4">
+                  <p className="text-base text-gray-600 font-normal leading-relaxed mb-6 max-w-2xl">
                     {plan.settings.titlePage.subtitle}
                   </p>
                 )}
 
                 {plan.settings.titlePage?.companyName && (
-                  <div className="mb-2">
-                    <p className="text-base font-semibold text-gray-800">
+                  <div className="mb-4">
+                    <p className="text-lg font-semibold text-gray-800">
                       {plan.settings.titlePage.companyName}
                       {plan.settings.titlePage?.legalForm && (
                         <span className="font-normal text-gray-600"> ({plan.settings.titlePage.legalForm})</span>
                       )}
                     </p>
                     {plan.settings.titlePage?.teamHighlight && (
-                      <p className="text-xs text-gray-600 italic mt-1">{plan.settings.titlePage.teamHighlight}</p>
+                      <p className="text-sm text-gray-600 italic mt-2">{plan.settings.titlePage.teamHighlight}</p>
                     )}
                   </div>
                 )}
               </div>
 
               {/* Bottom Section: Author, Contact, Date */}
-              <div className="flex-shrink-0 w-full mt-auto pt-8">
+              <div className="flex-shrink-0 w-full mt-auto pt-10">
                 {plan.settings.titlePage?.author && (
-                  <div className="mb-4">
-                    <p className="text-xs text-gray-700 mb-2">
+                  <div className="mb-6">
+                    <p className="text-sm text-gray-700 mb-3">
                       <span className="font-semibold">{isGerman ? 'Autor' : 'Author'}:</span>{' '}
                       <span className="font-normal">{plan.settings.titlePage.author}</span>
                     </p>
                     {plan.settings.titlePage?.contactInfo && (
-                      <div className="space-y-1 text-xs text-gray-600">
+                      <div className="space-y-1.5 text-xs text-gray-600">
                         {plan.settings.titlePage.contactInfo.email && (
                           <p>
                             <span className="font-medium text-gray-700">{t.email}:</span>{' '}
@@ -229,7 +232,7 @@ function ExportRenderer({
                           </p>
                         )}
                         {(plan.settings.titlePage.contactInfo.address || plan.settings.titlePage.headquartersLocation) && (
-                          <p className="mt-1">
+                          <p className="mt-2">
                             <span className="font-medium text-gray-700">{isGerman ? 'Adresse' : 'Address'}:</span>{' '}
                             <span>{plan.settings.titlePage.contactInfo.address || plan.settings.titlePage.headquartersLocation}</span>
                           </p>
@@ -239,7 +242,7 @@ function ExportRenderer({
                   </div>
                 )}
 
-                <div className="w-full flex justify-between items-end pt-3 border-t border-gray-200">
+                <div className="w-full flex justify-between items-end pt-4 border-t border-gray-200">
                   <div>
                     <p className="text-xs text-gray-600">
                       <span className="font-medium text-gray-700">{isGerman ? 'Datum' : 'Date'}:</span>{' '}
@@ -271,7 +274,10 @@ function ExportRenderer({
             width: '210mm',
             height: '297mm',
             backgroundColor: 'white',
-            background: 'white'
+            background: 'white',
+            margin: 0,
+            marginTop: 0,
+            marginBottom: 0
           }}
         >
           <div className="export-preview-page-scaler">
@@ -368,7 +374,7 @@ function ExportRenderer({
           {/* Footer with page number for TOC */}
           {plan.settings.includePageNumbers && (
             <div className="export-preview-page-footer">
-              <span>{plan.settings.includeTitlePage ? 2 : 1}</span>
+              <span>{t.page} {plan.settings.includeTitlePage ? 2 : 1}</span>
             </div>
           )}
           </div>
@@ -393,28 +399,31 @@ function ExportRenderer({
                 width: '210mm',
                 height: '297mm',
                 backgroundColor: 'white',
-                background: 'white'
+                background: 'white',
+                margin: 0,
+                marginTop: 0,
+                marginBottom: 0
               }}
             >
             <div className="export-preview-page-scaler">
             <div className="flex h-full flex-col space-y-4">
-              <div className="border-b border-gray-200 pb-2 flex-shrink-0">
+              <div className="border-b border-gray-200 pb-2 flex-shrink-0 flex items-start justify-between">
                 <h2 className="text-2xl font-semibold text-gray-900">{displayTitle}</h2>
                 {previewSettings.showCompletionStatus && (
-                  <div className="flex items-center gap-4 mt-2 text-sm text-gray-600">
+                  <div className="flex items-center gap-2 text-xs text-gray-500 ml-4">
                     {isComplete ? (
                       <span className="flex items-center gap-1 text-green-600">
-                        <span className="w-2 h-2 bg-green-500 rounded-full"></span>
-                        Complete
+                        <span className="w-1.5 h-1.5 bg-green-500 rounded-full"></span>
+                        <span className="hidden sm:inline">Complete</span>
                       </span>
                     ) : (
                       <span className="flex items-center gap-1 text-red-600">
-                        <span className="w-2 h-2 bg-red-500 rounded-full"></span>
-                        Incomplete
+                        <span className="w-1.5 h-1.5 bg-red-500 rounded-full"></span>
+                        <span className="hidden sm:inline">Incomplete</span>
                       </span>
                     )}
-                    {previewSettings.showWordCount && <span>{wordCount} words</span>}
-                    {previewSettings.showCharacterCount && <span>{charCount} characters</span>}
+                    {previewSettings.showWordCount && <span className="text-gray-400">• {wordCount} words</span>}
+                    {previewSettings.showCharacterCount && <span className="text-gray-400">• {charCount} chars</span>}
                   </div>
                 )}
               </div>
@@ -465,10 +474,14 @@ function ExportRenderer({
                           className="w-full rounded-lg border border-gray-200"
                         />
                       )}
-                      {(figure.caption || figure.source) && (
-                        <div className="text-sm text-gray-600 space-y-0.5">
-                          {figure.caption && <p className="italic">{figure.caption}</p>}
+                      {(figure.caption || figure.description || figure.source || (figure.tags && figure.tags.length > 0)) && (
+                        <div className="text-sm text-gray-600 space-y-1 mt-2">
+                          {figure.description && <p className="text-xs text-gray-600">{figure.description}</p>}
+                          {figure.caption && <p className="italic text-sm">{figure.caption}</p>}
                           {figure.source && <p className="text-xs text-gray-500">Source: {figure.source}</p>}
+                          {figure.tags && figure.tags.length > 0 && (
+                            <p className="text-[10px] text-gray-400 uppercase tracking-wide">Tags: {figure.tags.join(', ')}</p>
+                          )}
                         </div>
                       )}
                     </div>
@@ -479,7 +492,7 @@ function ExportRenderer({
               {/* Footer with page number */}
               {plan.settings.includePageNumbers && (
                 <div className="export-preview-page-footer">
-                  <span>{pageNumber}</span>
+                  <span>{t.page} {pageNumber}</span>
                 </div>
               )}
             </div>
@@ -525,7 +538,10 @@ function ExportRenderer({
                 width: '210mm',
                 height: '297mm',
                 backgroundColor: 'white',
-                background: 'white'
+                background: 'white',
+                margin: 0,
+                marginTop: 0,
+                marginBottom: 0
               }}
             >
             <div className="export-preview-page-scaler">
@@ -564,7 +580,7 @@ function ExportRenderer({
               {/* Footer with page number */}
               {plan.settings.includePageNumbers && (
                 <div className="export-preview-page-footer">
-                  <span>{listOfTablesPageNumber}</span>
+                  <span>{t.page} {listOfTablesPageNumber}</span>
                 </div>
               )}
             </div>
@@ -578,7 +594,9 @@ function ExportRenderer({
             id?: string;
             name: string;
             caption?: string;
+            description?: string;
             source?: string;
+            tags?: string[];
             sectionTitle: string;
             sectionNumber: number | null;
           }> = [];
@@ -589,8 +607,10 @@ function ExportRenderer({
                   allFigures.push({
                     id: figure.id,
                     name: figure.title || t.figure,
-                    caption: figure.caption || figure.description,
+                    caption: figure.caption,
+                    description: figure.description,
                     source: figure.source,
+                    tags: figure.tags,
                     sectionTitle: section.title,
                     sectionNumber
                   });
@@ -607,7 +627,10 @@ function ExportRenderer({
                 width: '210mm',
                 height: '297mm',
                 backgroundColor: 'white',
-                background: 'white'
+                background: 'white',
+                margin: 0,
+                marginTop: 0,
+                marginBottom: 0
               }}
             >
             <div className="export-preview-page-scaler">
@@ -625,11 +648,17 @@ function ExportRenderer({
                           — {figure.sectionNumber !== null ? `${figure.sectionNumber}. ` : ''}{figure.sectionTitle}
                         </span>
                       </div>
+                      {figure.description && (
+                        <p className="text-xs text-gray-500">{figure.description}</p>
+                      )}
                       {figure.caption && (
-                        <p className="text-xs text-gray-500">{figure.caption}</p>
+                        <p className="text-xs text-gray-500 italic">{figure.caption}</p>
                       )}
                       {figure.source && (
                         <p className="text-xs text-gray-500">Source: {figure.source}</p>
+                      )}
+                      {figure.tags && figure.tags.length > 0 && (
+                        <p className="text-[11px] text-gray-400 uppercase">Tags: {figure.tags.join(', ')}</p>
                       )}
                     </div>
                   ))}
@@ -643,7 +672,7 @@ function ExportRenderer({
               {/* Footer with page number */}
               {plan.settings.includePageNumbers && (
                 <div className="export-preview-page-footer">
-                  <span>{listOfFiguresPageNumber}</span>
+                  <span>{t.page} {listOfFiguresPageNumber}</span>
                 </div>
               )}
             </div>
@@ -658,7 +687,10 @@ function ExportRenderer({
             width: '210mm',
             height: '297mm',
             backgroundColor: 'white',
-            background: 'white'
+            background: 'white',
+            margin: 0,
+            marginTop: 0,
+            marginBottom: 0
           }}
         >
         <div className="export-preview-page-scaler">
@@ -683,7 +715,7 @@ function ExportRenderer({
           {/* Footer with page number */}
           {plan.settings.includePageNumbers && (
             <div className="export-preview-page-footer">
-              <span>{sectionsToRender.length + (plan.settings.includeTitlePage ? 2 : 1) + 2}</span>
+              <span>{t.page} {sectionsToRender.length + (plan.settings.includeTitlePage ? 2 : 1) + 2}</span>
             </div>
           )}
         </div>
@@ -696,7 +728,10 @@ function ExportRenderer({
             width: '210mm',
             height: '297mm',
             backgroundColor: 'white',
-            background: 'white'
+            background: 'white',
+            margin: 0,
+            marginTop: 0,
+            marginBottom: 0
           }}
         >
         <div className="export-preview-page-scaler">
@@ -722,7 +757,7 @@ function ExportRenderer({
           {/* Footer with page number */}
           {plan.settings.includePageNumbers && (
             <div className="export-preview-page-footer">
-              <span>{sectionsToRender.length + (plan.settings.includeTitlePage ? 2 : 1) + 3}</span>
+              <span>{t.page} {sectionsToRender.length + (plan.settings.includeTitlePage ? 2 : 1) + 3}</span>
             </div>
           )}
         </div>
