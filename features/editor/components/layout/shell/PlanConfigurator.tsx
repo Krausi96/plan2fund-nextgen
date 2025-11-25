@@ -24,7 +24,7 @@ export type ConnectCopy = {
 };
 
 export interface PlanConfiguratorProps {
-  plan: BusinessPlan | null;
+  plan: BusinessPlan;
   programSummary: ProgramSummary | null;
   onChangeProduct: (product: ProductType) => void;
   onConnectProgram: (value: string | null) => void;
@@ -62,7 +62,7 @@ export function PlanConfigurator({
     'relative rounded-lg border border-blue-600/50 px-2.5 py-1.5 shadow-xl backdrop-blur-xl overflow-visible';
 
   const selectedProductMeta =
-    productOptions.find((option) => option.value === (plan?.productType ?? 'submission')) ??
+    productOptions.find((option) => option.value === plan.productType) ??
     productOptions[0] ??
     null;
   const selectedProductLabel = selectedProductMeta?.label ?? '';
@@ -171,7 +171,7 @@ export function PlanConfigurator({
               >
                 <ul className="flex flex-col gap-1">
                   {productOptions.map((option) => {
-                    const isActive = option.value === (plan?.productType ?? 'submission');
+                    const isActive = option.value === (plan.productType ?? 'submission');
                     return (
                       <li key={option.value}>
                         <button

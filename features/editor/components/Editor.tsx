@@ -10,7 +10,6 @@ import { useRouter } from 'next/router';
 import Sidebar from './layout/shell/Sidebar';
 import RightPanel from './layout/right-panel/RightPanel';
 import { ConnectCopy, PlanConfigurator, Workspace } from './layout/shell/Workspace';
-import { TemplateOverviewPanel } from './layout/shell/TemplateOverviewPanel';
 import {
   AISuggestionOptions,
   ANCILLARY_SECTION_ID,
@@ -20,8 +19,6 @@ import {
   useEditorActions,
   useEditorStore
 } from '@/features/editor/hooks/useEditorStore';
-import { getSections, getDocuments } from '@/features/editor/templates';
-import type { SectionTemplate, DocumentTemplate } from '@/features/editor/templates/types';
 import {
   BusinessPlan,
   ProductType,
@@ -123,16 +120,6 @@ export default function Editor({ product = 'submission' }: EditorProps) {
   const [programLoading, setProgramLoading] = useState(false);
   const [programError, setProgramError] = useState<string | null>(null);
   const storedProgramChecked = useRef(false);
-  
-  // Template overview state
-  const [showTemplateOverview, setShowTemplateOverview] = useState(false);
-  const [loadedTemplates, setLoadedTemplates] = useState<{
-    sections: SectionTemplate[];
-    documents: DocumentTemplate[];
-  } | null>(null);
-  const [disabledSections, setDisabledSections] = useState<Set<string>>(new Set());
-  const [disabledDocuments, setDisabledDocuments] = useState<Set<string>>(new Set());
-  const [loadingTemplates, setLoadingTemplates] = useState(false);
 
   const connectCopy = useMemo<ConnectCopy>(
     () => ({
@@ -166,62 +153,25 @@ export default function Editor({ product = 'submission' }: EditorProps) {
   );
 
   const applyHydration = useCallback(
-    (summary: ProgramSummary | null, disabledSectionsSet?: Set<string>, disabledDocumentsSet?: Set<string>) => {
+    (summary: ProgramSummary | null) => {
       const fundingType = summary?.fundingType ?? 'grants';
       hydrate(selectedProduct, {
         fundingType,
         programId: summary?.id,
         programName: summary?.name,
-        summary: summary ?? undefined,
-        disabledSections: disabledSectionsSet,
-        disabledDocuments: disabledDocumentsSet
+        summary: summary ?? undefined
       });
-      setShowTemplateOverview(false);
     },
     [hydrate, selectedProduct]
   );
-
-  // Load templates when product/program changes (for overview)
-  const loadTemplatesForOverview = useCallback(async () => {
-    if (!selectedProduct) return;
-    
-    setLoadingTemplates(true);
-    try {
-      const baseUrl = typeof window !== 'undefined' ? window.location.origin : '';
-      const fundingType = programSummary?.fundingType ?? 'grants';
-      const sections = await getSections(fundingType, selectedProduct, programId || undefined, baseUrl);
-      const documents = await getDocuments(fundingType, selectedProduct, programId || undefined, baseUrl);
-      
-      setLoadedTemplates({ sections, documents });
-      
-      // Show overview if we have a program or if user wants to customize
-      if (programId || programSummary) {
-        setShowTemplateOverview(true);
-      }
-    } catch (error) {
-      console.error('Error loading templates for overview:', error);
-      // Continue without overview if loading fails
-    } finally {
-      setLoadingTemplates(false);
-    }
-  }, [selectedProduct, programId, programSummary]);
 
   useEffect(() => {
     setSelectedProduct(product);
   }, [product]);
 
-  // Load templates when product/program is ready (but don't hydrate yet if overview should show)
   useEffect(() => {
-    if (!selectedProduct) return;
-    
-    if (programSummary || programId) {
-      // Load templates for overview when program is selected
-      loadTemplatesForOverview();
-    } else if (!plan && !showTemplateOverview) {
-      // Auto-hydrate if no program selected, no plan exists, and overview not shown
-      applyHydration(null);
-    }
-  }, [selectedProduct, programId, programSummary, loadTemplatesForOverview, showTemplateOverview, applyHydration, plan]);
+    applyHydration(programSummary);
+  }, [applyHydration, programSummary]);
 
   useEffect(() => {
     if (!router.isReady) return;
@@ -308,39 +258,9 @@ export default function Editor({ product = 'submission' }: EditorProps) {
     (next: ProductType) => {
       setSelectedProduct(next);
       setProductType(next);
-      setShowTemplateOverview(false);
-      setLoadedTemplates(null);
     },
     [setProductType]
   );
-
-  const handleStartEditing = useCallback(() => {
-    applyHydration(programSummary, disabledSections, disabledDocuments);
-  }, [applyHydration, programSummary, disabledSections, disabledDocuments]);
-
-  const handleToggleSection = useCallback((sectionId: string, enabled: boolean) => {
-    setDisabledSections(prev => {
-      const next = new Set(prev);
-      if (enabled) {
-        next.delete(sectionId);
-      } else {
-        next.add(sectionId);
-      }
-      return next;
-    });
-  }, []);
-
-  const handleToggleDocument = useCallback((documentId: string, enabled: boolean) => {
-    setDisabledDocuments(prev => {
-      const next = new Set(prev);
-      if (enabled) {
-        next.delete(documentId);
-      } else {
-        next.add(documentId);
-      }
-      return next;
-    });
-  }, []);
 
   const isAncillaryView = activeSectionId === ANCILLARY_SECTION_ID;
   const isMetadataView = activeSectionId === METADATA_SECTION_ID;
@@ -369,8 +289,7 @@ export default function Editor({ product = 'submission' }: EditorProps) {
     [activeSection, activeQuestion, requestAISuggestions, setRightPanelView]
   );
 
-  // Show loading only if we're not in template overview mode
-  if ((isLoading || !plan) && !showTemplateOverview) {
+  if (isLoading || !plan) {
     return (
       <div className="h-screen flex items-center justify-center text-gray-500">
         {(t('editor.ui.loadingEditor' as any) as string) || 'Loading editor...'}
@@ -397,8 +316,8 @@ export default function Editor({ product = 'submission' }: EditorProps) {
       <header className="sticky top-0 z-40 border-b border-neutral-200 bg-white/90 backdrop-blur-sm">
         <div className="container py-1.5">
           <PlanConfigurator
-            plan={plan as BusinessPlan | null}
-            programSummary={programSummary ?? plan?.programSummary ?? null}
+            plan={plan as BusinessPlan}
+            programSummary={programSummary ?? plan.programSummary ?? null}
             onChangeProduct={handleProductChange}
             onConnectProgram={handleConnectProgram}
             onOpenProgramFinder={() => router.push('/reco')}
@@ -407,34 +326,20 @@ export default function Editor({ product = 'submission' }: EditorProps) {
             productOptions={productOptions}
             connectCopy={connectCopy}
           />
-          {showTemplateOverview && loadedTemplates && (
-            <TemplateOverviewPanel
-              sections={loadedTemplates.sections}
-              documents={loadedTemplates.documents}
-              programName={programSummary?.name}
-              onToggleSection={handleToggleSection}
-              onToggleDocument={handleToggleDocument}
-              onStartEditing={handleStartEditing}
-              disabledSections={disabledSections}
-              disabledDocuments={disabledDocuments}
-            />
-          )}
         </div>
       </header>
 
-      {!showTemplateOverview && (
-        <>
-          <div className="border-b border-neutral-200 bg-neutral-200 sticky top-[72px] z-30">
-            <div className="container">
-            <Sidebar
-              plan={plan}
-              activeSectionId={activeSectionId ?? plan.sections[0]?.id ?? null}
-              onSelectSection={setActiveSection}
-            />
-            </div>
-          </div>
+      <div className="border-b border-neutral-200 bg-neutral-200 sticky top-[72px] z-30">
+        <div className="container">
+        <Sidebar
+          plan={plan}
+          activeSectionId={activeSectionId ?? plan.sections[0]?.id ?? null}
+          onSelectSection={setActiveSection}
+        />
+        </div>
+      </div>
 
-          <div className="container py-1 pb-6 flex flex-col gap-1 lg:flex-row lg:items-start">
+      <div className="container py-1 pb-6 flex flex-col gap-1 lg:flex-row lg:items-start">
         <div className="flex-1 min-w-0 max-w-4xl">
           <Workspace
             plan={plan}
@@ -485,8 +390,6 @@ export default function Editor({ product = 'submission' }: EditorProps) {
           />
         </div>
       </div>
-        </>
-      )}
     </div>
   );
 }
