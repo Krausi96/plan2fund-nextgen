@@ -11,12 +11,12 @@ The editor now uses the `BusinessPlan` model defined in `features/editor/types/p
 
 Layout now follows the unified three-column spec:
 
-1. **Sidebar** (`features/editor/components/layout/workspace/Sidebar.tsx`) – ordered section list with inline progress pills.
-2. **Workspace** (`features/editor/components/layout/workspace/Workspace.tsx`) – `PlanConfigurator`, question cards with `SimpleTextEditor`, tone hints, ancillary workspace, and AI triggers flowing through `requestAISuggestions`.
+1. **Sidebar** (`features/editor/components/layout/shell/Sidebar.tsx`) – ordered section list with inline progress pills.
+2. **Workspace** (`features/editor/components/layout/shell/Workspace.tsx`) – `PlanConfigurator`, question cards with `SimpleTextEditor`, tone hints, ancillary workspace, and AI triggers flowing through `requestAISuggestions`.
 3. **RightPanel** (`features/editor/components/layout/right-panel/RightPanel.tsx`) – tabbed views (`ai`, `data`, `preview`) that swap between reusable panels:
-   - `features/editor/components/views/DataPanel.tsx` (datasets/KPIs/media library, formerly `InlineTableCreator`).
-   - `features/editor/components/views/PreviewPanel.tsx` (read-only preview, formerly `SectionContentRenderer`).
-   - `features/editor/components/views/AncillaryPanel.tsx` (title page, ToC, references, formerly `RequirementsModal`).
+   - `features/editor/components/layout/right-panel/DataPanel.tsx` (datasets/KPIs/media library, formerly `InlineTableCreator`).
+   - `features/editor/components/layout/workspace/preview/PreviewWorkspace.tsx` (read-only preview, formerly `SectionContentRenderer`).
+   - `features/editor/components/layout/workspace/ancillary/AncillaryPanel.tsx` (title page, ToC, references, formerly `RequirementsModal`).
 
 > Migration tip: legacy consumers that still import `PlanDocument` / `PlanSection` keep working because those types remain exportable at the bottom of `types/plan.ts`. New UI pieces should use `BusinessPlan` and friends going forward.
 

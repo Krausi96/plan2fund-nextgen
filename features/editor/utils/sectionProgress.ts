@@ -1,7 +1,7 @@
 // ========= PLAN2FUND — SECTION PROGRESS HELPERS =========
 // Shared functions for question status + completion calculations
 
-import { Question, QuestionStatus } from '@/features/editor/types/plan';
+import { PlanSection, Question, QuestionStatus } from '@/features/editor/types/plan';
 
 /**
  * Determines whether an answer meets the minimum threshold to count as drafted content.
@@ -41,5 +41,18 @@ export function calculateSectionCompletion(questions: Question[]): number {
   if (questions.length === 0) return 0;
   const completed = questions.filter((question) => question.status === 'complete').length;
   return Math.round((completed / questions.length) * 100);
+}
+
+/**
+ * Basic legacy section progress used for requirements snapshot.
+ */
+export function calculateSectionProgress(section: PlanSection): { completionPercentage: number } {
+  const content = section.content || '';
+  if (!content.trim()) {
+    return { completionPercentage: 0 };
+  }
+  return {
+    completionPercentage: meetsMinimalAnswerThreshold(content) ? 100 : 40
+  };
 }
 

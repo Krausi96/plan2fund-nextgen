@@ -84,3 +84,4 @@ padding: 0;                /* No spacing at all */
 
 The dark background (`.export-preview`) is INSIDE white containers (PreviewWorkspace.tsx:387, 389), so you might see white showing through around the edges.
 
+

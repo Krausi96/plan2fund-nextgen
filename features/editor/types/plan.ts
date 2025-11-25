@@ -143,10 +143,13 @@ export interface TitlePage {
   companyName: string;
   logoUrl?: string;
   valueProp?: string;
+  teamHighlight?: string;
   planTitle: string;
   date: string;
   contactInfo: TitlePageContactInfo;
   confidentialityStatement?: string;
+  legalForm?: string;
+  headquartersLocation?: string;
 }
 
 export interface Reference {
@@ -230,9 +233,10 @@ export type ConversationMessage = {
 // dashboard, etc.) still import these. Do not remove until migrated.
 // ----------------------------------------------------------------------------------
 
-export type Table = { 
-  columns: string[]; 
-  rows: Array<{ label: string; values: (number | string)[] }>;
+export type Table = {
+  labelColumn?: string;
+  columns: string[];
+  rows: Array<{ label?: string; values: (number | string)[] }>;
 };
 
 export type FigureRef = { 
@@ -291,7 +295,19 @@ export type PlanDocument = {
       title?: string,
       subtitle?: string,
       author?: string,
-      date?: string
+      date?: string,
+      teamHighlight?: string,
+      companyName?: string,
+      logoUrl?: string,
+      contactInfo?: {
+        email?: string,
+        phone?: string,
+        website?: string,
+        address?: string
+      },
+      legalForm?: string,
+      headquartersLocation?: string,
+      confidentialityStatement?: string
     },
     formatting?: {
       fontFamily?: string,
@@ -338,6 +354,9 @@ export type PlanDocument = {
     id: string, 
     createdAt: string, 
     note?: string 
-  }>
+  }>,
+  references?: Reference[],
+  appendices?: AppendixItem[],
+  ancillary?: AncillaryContent
 };
 

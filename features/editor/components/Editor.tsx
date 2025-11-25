@@ -7,12 +7,13 @@ import React, {
 } from 'react';
 import { useRouter } from 'next/router';
 
-import Sidebar from './layout/workspace/Sidebar';
+import Sidebar from './layout/shell/Sidebar';
 import RightPanel from './layout/right-panel/RightPanel';
-import { ConnectCopy, PlanConfigurator, Workspace } from './layout/workspace/Workspace';
+import { ConnectCopy, PlanConfigurator, Workspace } from './layout/shell/Workspace';
 import {
   AISuggestionOptions,
   ANCILLARY_SECTION_ID,
+  METADATA_SECTION_ID,
   mapProgramTypeToFunding,
   normalizeProgramInput,
   useEditorActions,
@@ -36,21 +37,31 @@ type EditorProps = {
   product?: ProductType;
 };
 
-const PRODUCT_TYPE_CONFIG = [
+type ProductConfig = {
+  value: ProductType;
+  labelKey: string;
+  descriptionKey: string;
+  icon: string;
+};
+
+const PRODUCT_TYPE_CONFIG: ProductConfig[] = [
   {
     value: 'strategy' as ProductType,
     labelKey: 'planTypes.strategy.title',
-    descriptionKey: 'planTypes.strategy.subtitle'
+    descriptionKey: 'planTypes.strategy.subtitle',
+    icon: '💡'
   },
   {
     value: 'review' as ProductType,
     labelKey: 'planTypes.review.title',
-    descriptionKey: 'planTypes.review.subtitle'
+    descriptionKey: 'planTypes.review.subtitle',
+    icon: '✏️'
   },
   {
     value: 'submission' as ProductType,
     labelKey: 'planTypes.custom.title',
-    descriptionKey: 'planTypes.custom.subtitle'
+    descriptionKey: 'planTypes.custom.subtitle',
+    icon: '📋'
   }
 ] as const;
 
@@ -135,7 +146,8 @@ export default function Editor({ product = 'submission' }: EditorProps) {
       PRODUCT_TYPE_CONFIG.map((option) => ({
         value: option.value,
         label: (t(option.labelKey as any) as string) || option.value,
-        description: (t(option.descriptionKey as any) as string) || ''
+        description: (t(option.descriptionKey as any) as string) || '',
+        icon: option.icon
       })),
     [t]
   );
@@ -251,10 +263,12 @@ export default function Editor({ product = 'submission' }: EditorProps) {
   );
 
   const isAncillaryView = activeSectionId === ANCILLARY_SECTION_ID;
+  const isMetadataView = activeSectionId === METADATA_SECTION_ID;
+  const isSpecialWorkspace = isAncillaryView || isMetadataView;
   const activeSection: Section | null = useMemo(() => {
-    if (!plan || isAncillaryView) return null;
+    if (!plan || isSpecialWorkspace) return null;
     return plan.sections.find((section) => section.id === activeSectionId) ?? plan.sections[0] ?? null;
-  }, [plan, activeSectionId, isAncillaryView]);
+  }, [plan, activeSectionId, isSpecialWorkspace]);
   const activeQuestion: Question | null = useMemo(() => {
     if (!activeSection) return null;
     return (
@@ -309,8 +323,6 @@ export default function Editor({ product = 'submission' }: EditorProps) {
             onOpenProgramFinder={() => router.push('/reco')}
             programLoading={programLoading}
             programError={programError}
-            onUpdateTitlePage={updateTitlePage}
-            onOpenFrontMatter={() => setActiveSection(ANCILLARY_SECTION_ID)}
             productOptions={productOptions}
             connectCopy={connectCopy}
           />
@@ -319,11 +331,11 @@ export default function Editor({ product = 'submission' }: EditorProps) {
 
       <div className="border-b border-neutral-200 bg-neutral-200 sticky top-[72px] z-30">
         <div className="container">
-          <Sidebar
-            plan={plan}
-            activeSectionId={activeSectionId ?? plan.sections[0]?.id ?? null}
-            onSelectSection={setActiveSection}
-          />
+        <Sidebar
+          plan={plan}
+          activeSectionId={activeSectionId ?? plan.sections[0]?.id ?? null}
+          onSelectSection={setActiveSection}
+        />
         </div>
       </div>
 
@@ -332,11 +344,11 @@ export default function Editor({ product = 'submission' }: EditorProps) {
           <Workspace
             plan={plan}
             isAncillaryView={isAncillaryView}
+            isMetadataView={isMetadataView}
             activeSection={activeSection}
             activeQuestionId={activeQuestionId}
             onSelectQuestion={setActiveQuestion}
             onAnswerChange={updateAnswer}
-            onAskAI={triggerAISuggestions}
             onToggleUnknown={toggleQuestionUnknown}
             onMarkComplete={markQuestionComplete}
             onTitlePageChange={updateTitlePage}
@@ -352,11 +364,11 @@ export default function Editor({ product = 'submission' }: EditorProps) {
           />
         </div>
 
-        <div className="w-full lg:w-[400px] flex-shrink-0">
+        <div className="w-full lg:w-[500px] flex-shrink-0">
           <RightPanel
             view={rightPanelView}
             setView={setRightPanelView}
-            section={activeSection ?? (isAncillaryView ? undefined : plan.sections[0])}
+            section={activeSection ?? (isSpecialWorkspace ? undefined : plan.sections[0])}
             question={activeQuestion ?? undefined}
             plan={plan}
             onDatasetCreate={(dataset) => activeSection && addDataset(activeSection.id, dataset)}

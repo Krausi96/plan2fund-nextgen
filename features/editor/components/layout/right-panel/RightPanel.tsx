@@ -1,7 +1,7 @@
 import React from 'react';
 
-import DataPanel from '../../views/DataPanel';
-import PreviewPanel from '../../views/PreviewPanel';
+import DataPanel from './DataPanel';
+import PreviewWorkspace from '../workspace/preview/PreviewWorkspace';
 import {
   AISuggestionIntent,
   AISuggestionOptions,
@@ -84,7 +84,7 @@ export default function RightPanel({
   ];
 
   return (
-    <aside className="card sticky top-24 space-y-1.5 w-full lg:w-[400px] border-blue-600/50 relative overflow-hidden backdrop-blur-lg shadow-xl">
+    <aside className="card sticky top-24 space-y-1.5 w-full lg:w-[500px] border-blue-600/50 relative overflow-hidden backdrop-blur-lg shadow-xl">
       <div className="absolute inset-0 bg-gradient-to-b from-slate-950 via-blue-900 to-slate-950" />
       <div className="absolute inset-0 bg-black/15 backdrop-blur-xl" />
       <div className="relative z-10">
@@ -225,7 +225,7 @@ export default function RightPanel({
           {effectiveView === 'preview' && (
             <div className="space-y-4">
               <div className="space-y-2">
-                <PreviewPanel plan={plan} focusSectionId={section?.id} />
+                <PreviewWorkspace plan={plan} focusSectionId={section?.id} />
               </div>
               <div className="border-t border-slate-200 pt-4">
                 <div className="flex items-center justify-between mb-3">
