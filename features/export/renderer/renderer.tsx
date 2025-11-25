@@ -107,17 +107,15 @@ function ExportRenderer({
       <div
         className={`flex items-center ${isSubEntry ? 'ml-6 text-sm text-gray-700 font-medium' : 'text-base font-semibold text-gray-900'} py-1.5`}
       >
-        <div className="flex-1 flex items-center gap-2 min-w-0">
-          <span className="min-w-0 truncate">
-            {label}
-          </span>
-          <span className="flex-1 border-b border-dotted border-gray-300" />
-        </div>
+        <span className="min-w-0 truncate">
+          {label}
+        </span>
+        <span className="flex-1 border-b border-dotted border-gray-300 mx-2" />
         {plan.settings.includePageNumbers && pageNumber !== undefined && (
           <span
-            className={`${isSubEntry ? 'text-xs text-gray-600' : 'text-sm text-gray-800'} font-medium ml-3 whitespace-nowrap`}
+            className={`${isSubEntry ? 'text-xs text-gray-600' : 'text-sm text-gray-800'} font-medium whitespace-nowrap`}
           >
-            {t.page} {pageNumber}
+            {pageNumber}
           </span>
         )}
       </div>

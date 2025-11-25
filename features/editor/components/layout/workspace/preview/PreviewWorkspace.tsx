@@ -308,7 +308,7 @@ export default function PreviewPanel({ plan }: PreviewPanelProps) {
     if (!node) return;
 
     const A4_WIDTH_PX = 793.7; // 210mm translated to CSS px at 96dpi
-    const MAX_BASE_SCALE = 1.02;
+    const MAX_BASE_SCALE = 1.15;
 
     const observer = new ResizeObserver((entries) => {
       const entry = entries[0];

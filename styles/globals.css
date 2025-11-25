@@ -532,6 +532,10 @@
     ) !important;
   }
 
+  .export-preview-page:last-of-type {
+    margin-bottom: 0.5rem !important;
+  }
+
   /* Inner content scaler - removed, using page-level transform only */
   .export-preview-page-scaler {
     width: 100%;
