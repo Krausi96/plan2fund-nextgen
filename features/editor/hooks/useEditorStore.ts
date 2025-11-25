@@ -113,6 +113,7 @@ export const defaultTitlePage = (): TitlePage => ({
   companyName: 'Untitled Company',
   logoUrl: '',
   valueProp: '',
+  teamHighlight: '',
   planTitle: 'Business Plan',
   date: new Date().toISOString().split('T')[0],
   contactInfo: {
@@ -122,8 +123,65 @@ export const defaultTitlePage = (): TitlePage => ({
     website: '',
     address: ''
   },
-  confidentialityStatement: ''
+  confidentialityStatement: '',
+  legalForm: '',
+  headquartersLocation: ''
 });
+
+type MetadataFieldPath = (string | number)[];
+
+export interface RequiredMetadataField {
+  id: string;
+  path: MetadataFieldPath;
+  labelKey: string;
+  fallback: string;
+  validator?: (value: string) => boolean;
+}
+
+export const REQUIRED_METADATA_FIELDS: RequiredMetadataField[] = [
+  {
+    id: 'planTitle',
+    path: ['planTitle'],
+    labelKey: 'editor.metadata.field.planTitle',
+    fallback: 'Plan title',
+    validator: (value) => {
+      const normalized = value.trim().toLowerCase();
+      return normalized.length > 0 && normalized !== 'business plan';
+    }
+  },
+  {
+    id: 'companyName',
+    path: ['companyName'],
+    labelKey: 'editor.metadata.field.companyName',
+    fallback: 'Company name'
+  },
+  {
+    id: 'contactEmail',
+    path: ['contactInfo', 'email'],
+    labelKey: 'editor.metadata.field.email',
+    fallback: 'Contact email'
+  },
+  {
+    id: 'date',
+    path: ['date'],
+    labelKey: 'editor.metadata.field.date',
+    fallback: 'Date'
+  }
+];
+
+export function getMetadataFieldValue(titlePage: TitlePage, path: MetadataFieldPath): string {
+  let current: any = titlePage;
+  for (const segment of path) {
+    if (current == null) {
+      return '';
+    }
+    current = current[segment as keyof typeof current];
+  }
+  if (current == null) {
+    return '';
+  }
+  return typeof current === 'string' ? current : String(current);
+}
 
 export const defaultAncillary = (): AncillaryContent => ({
   tableOfContents: [],
@@ -135,6 +193,15 @@ export const defaultAncillary = (): AncillaryContent => ({
 });
 
 export const ANCILLARY_SECTION_ID = '__ancillary__';
+export const METADATA_SECTION_ID = '__metadata__';
+
+export function isMetadataComplete(titlePage: TitlePage): boolean {
+  return REQUIRED_METADATA_FIELDS.every((field) =>
+    (field.validator
+      ? field.validator(getMetadataFieldValue(titlePage, field.path))
+      : getMetadataFieldValue(titlePage, field.path).trim().length > 0)
+  );
+}
 
 export function mapProgramTypeToFunding(programType?: string): {
   templateFundingType: TemplateFundingType;
@@ -206,16 +273,16 @@ export const useEditorStore = create<EditorStoreState>((set, get) => ({
         }
       };
 
-      // Auto-select Section 2 (Project Description) as recommended primary starting point
-      // Executive Summary should be completed last as it summarizes other sections
+      // Decide initial workspace: metadata first until required fields exist, otherwise recommended section
+      const metadataComplete = isMetadataComplete(plan.titlePage);
       const projectDescriptionSection = sections.find(s => s.id === 'project_description');
-      const initialSection = projectDescriptionSection ?? sections[0] ?? null;
+      const initialSection = metadataComplete ? (projectDescriptionSection ?? sections[0] ?? null) : null;
       
       set({
         plan,
         templates,
         isLoading: false,
-        activeSectionId: initialSection?.id ?? null,
+        activeSectionId: metadataComplete ? initialSection?.id ?? null : METADATA_SECTION_ID,
         activeQuestionId: initialSection?.questions[0]?.id ?? null,
         progressSummary: [],
         rightPanelView: 'ai'
@@ -230,7 +297,7 @@ export const useEditorStore = create<EditorStoreState>((set, get) => ({
   setActiveSection: (sectionId) => {
     const { plan } = get();
     if (!plan) return;
-    if (sectionId === ANCILLARY_SECTION_ID) {
+    if (sectionId === ANCILLARY_SECTION_ID || sectionId === METADATA_SECTION_ID) {
       set({
         activeSectionId: sectionId,
         activeQuestionId: null
@@ -1067,7 +1134,7 @@ function convertLegacyTablesToDatasets(tables?: Record<string, Table | undefined
         ...table.columns.map((column) => ({ name: column, type: 'number' as const }))
       ];
       const rows = table.rows.map((row) => {
-        const record: Record<string, string | number> = { Item: row.label };
+        const record: Record<string, string | number> = { Item: row.label ?? '' };
         row.values.forEach((value, index) => {
           record[table.columns[index]] = value;
         });

@@ -451,14 +451,15 @@ class ExportManager {
   /**
    * Format table data as markdown table
    */
-  private formatTable(table: { columns: string[]; rows: Array<{ label: string; values: (number | string)[] }> }): string {
+  private formatTable(table: { columns: string[]; rows: Array<{ label?: string; values: (number | string)[] }> }): string {
     if (!table.columns || !table.rows) return '';
     
     const headers = table.columns.join(' | ');
     const separator = table.columns.map(() => '---').join(' | ');
-    const rows = table.rows.map(row => {
+    const rows = table.rows.map((row, index) => {
+      const label = row.label ?? `Row ${index + 1}`;
       const values = row.values.map(v => String(v || 0));
-      return `${row.label} | ${values.join(' | ')}`;
+      return `${label} | ${values.join(' | ')}`;
     }).join('\n');
     
     return `| ${headers} |\n| ${separator} |\n${rows}`;
