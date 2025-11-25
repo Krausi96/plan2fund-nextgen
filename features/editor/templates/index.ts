@@ -4,16 +4,40 @@
 
 import { MASTER_SECTIONS } from './sections';
 import { MASTER_DOCUMENTS } from './documents';
-import { loadProgramDocuments, mergeDocuments } from './api';
+import { loadProgramDocuments, loadProgramSections, mergeDocuments, mergeSections } from './api';
 import type { SectionTemplate, DocumentTemplate } from './types';
 
 export async function getSections(
   _fundingType: string,
   productType: string = 'submission',
-  _programId?: string,
-  _baseUrl?: string
+  programId?: string,
+  baseUrl?: string
 ): Promise<SectionTemplate[]> {
-  return MASTER_SECTIONS[productType] || MASTER_SECTIONS.submission;
+  const masterSections = MASTER_SECTIONS[productType] || MASTER_SECTIONS.submission;
+  
+  // Mark master sections with origin metadata
+  const masterWithOrigin = masterSections.map(section => ({
+    ...section,
+    origin: (section.origin || 'master') as 'master' | 'program' | 'custom'
+  }));
+  
+  // If no program ID, return master sections only
+  if (!programId) {
+    return masterWithOrigin;
+  }
+  
+  // Load and merge program sections
+  try {
+    const programSections = await loadProgramSections(programId, baseUrl);
+    if (programSections.length > 0) {
+      return mergeSections(masterWithOrigin, programSections);
+    }
+  } catch (error) {
+    console.error('Error loading program sections, falling back to master:', error);
+  }
+  
+  // Fallback to master if program loading fails
+  return masterWithOrigin;
 }
 
 export async function getDocuments(
@@ -24,14 +48,24 @@ export async function getDocuments(
 ): Promise<DocumentTemplate[]> {
   const masterDocs = MASTER_DOCUMENTS[fundingType]?.[productType] || [];
   
+  // Mark master documents with origin metadata
+  const masterWithOrigin = masterDocs.map(doc => ({
+    ...doc,
+    origin: (doc.origin || 'master') as 'master' | 'program' | 'custom'
+  }));
+  
   if (programId) {
-    const programDocs = await loadProgramDocuments(programId, baseUrl);
-    if (programDocs.length > 0) {
-      return mergeDocuments(masterDocs, programDocs);
+    try {
+      const programDocs = await loadProgramDocuments(programId, baseUrl);
+      if (programDocs.length > 0) {
+        return mergeDocuments(masterWithOrigin, programDocs);
+      }
+    } catch (error) {
+      console.error('Error loading program documents, falling back to master:', error);
     }
   }
   
-  return masterDocs;
+  return masterWithOrigin;
 }
 
 export async function getDocument(

@@ -76,6 +76,8 @@ export interface EditorStoreState {
       programId?: string;
       programName?: string;
       summary?: ProgramSummary;
+      disabledSections?: Set<string>;
+      disabledDocuments?: Set<string>;
     }
   ) => Promise<void>;
   setActiveSection: (sectionId: string) => void;
@@ -249,9 +251,14 @@ export const useEditorStore = create<EditorStoreState>((set, get) => ({
         typeof window !== 'undefined' ? loadQuestionStates() : {};
       // Funding type ignored - only product type matters
       const templates = await getSections('grants', product, context?.programId, baseUrl);
+      
+      // Filter out disabled sections
+      const disabledSections = context?.disabledSections ?? new Set<string>();
+      const enabledTemplates = templates.filter(t => !disabledSections.has(t.id));
+      
       const savedSections: StoredPlanSection[] =
         typeof window !== 'undefined' ? loadPlanSections() : [];
-      const sections = templates.map((template) =>
+      const sections = enabledTemplates.map((template) =>
         buildSectionFromTemplate(template, savedSections, questionStates)
       );
 
