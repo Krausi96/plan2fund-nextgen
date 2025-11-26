@@ -86,7 +86,6 @@ export function TemplateOverviewPanel({
   const [manualValue, setManualValue] = useState('');
   const [manualError, setManualError] = useState<string | null>(null);
   const [showManualInput, setShowManualInput] = useState(false);
-  const [showProgramTooltip, setShowProgramTooltip] = useState(false);
   const [showProductMenu, setShowProductMenu] = useState(false);
   const [configView, setConfigView] = useState<'plan' | 'program'>('plan');
   const [productMenuPosition, setProductMenuPosition] = useState<{ top: number; left: number; width: number } | null>(null);
@@ -454,7 +453,7 @@ export function TemplateOverviewPanel({
                   <span className="flex items-center gap-1.5">
                     {selectedProductMeta?.icon} <span>{selectedProductMeta?.label}</span>
                   </span>
-                  {programSummary && (
+                  {programSummary && configView === 'program' && (
                     <>
                       <span className="text-white/20">•</span>
                       <span className="flex items-center gap-1.5">
@@ -584,26 +583,6 @@ export function TemplateOverviewPanel({
                     {/* Program Connection View */}
                     {configView === 'program' && (
                       <div>
-                        <div className="flex items-center gap-1.5 mb-2">
-                          <h3 className="text-[10px] font-semibold text-white/60 uppercase tracking-wide">
-                            {connectCopy.badge}
-                          </h3>
-                          <div className="relative">
-                            <button
-                              type="button"
-                              onMouseEnter={() => setShowProgramTooltip(true)}
-                              onMouseLeave={() => setShowProgramTooltip(false)}
-                              className="text-white hover:text-blue-100 text-xs font-bold w-4 h-4 rounded-full border border-white/50 bg-white/20 flex items-center justify-center"
-                            >
-                              ?
-                            </button>
-                            {showProgramTooltip && (
-                              <div className="absolute z-50 left-0 top-5 w-64 p-2 bg-slate-900 text-white text-xs rounded shadow-lg border border-slate-700">
-                                {connectCopy.description}
-                              </div>
-                            )}
-                          </div>
-                        </div>
                         {programSummary ? (
                           <div className="w-full rounded-lg border border-blue-300 bg-blue-100/60 px-3 py-2.5">
                             <div className="flex items-start justify-between gap-2 w-full">
