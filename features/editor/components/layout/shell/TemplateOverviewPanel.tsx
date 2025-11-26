@@ -971,8 +971,15 @@ export function TemplateOverviewPanel({
                             } transition-all hover:border-white/40 cursor-pointer group`}
                             onClick={() => toggleSection(section.id)}
                           >
-                            {/* Checkbox in top-right corner */}
-                            <div className="absolute top-1.5 right-1.5 z-10">
+                            {/* Checkbox and pencil in top-right corner of card */}
+                            <div className="absolute top-1 right-1 z-10 flex items-center gap-1">
+                              <button
+                                onClick={(e) => handleEditSection(section, e)}
+                                className="text-white/60 hover:text-white text-xs transition-opacity"
+                                onMouseDown={(e) => e.stopPropagation()}
+                              >
+                                ✏️
+                              </button>
                               <input
                                 type="checkbox"
                                 checked={!isDisabled}
@@ -991,35 +998,12 @@ export function TemplateOverviewPanel({
                             </div>
                             
                             {/* Large icon as main visual element */}
-                            <div className="flex flex-col items-center gap-1 pt-1 min-h-[50px]">
+                            <div className="flex flex-col items-center gap-1 pt-4 min-h-[50px]">
                               <span className="text-2xl leading-none flex-shrink-0">📋</span>
                               <div className="w-full text-center min-h-[28px] flex items-center justify-center">
                                 <h4 className={`text-[11px] font-semibold leading-snug ${isDisabled ? 'text-white/50 line-through' : 'text-white'} break-words line-clamp-2`}>
                                   {section.title}
                                 </h4>
-                              </div>
-                              {/* Badges with pencil icon on hover */}
-                              <div className="flex items-center justify-center gap-0.5 flex-wrap group/badge">
-                                {isRequired && (
-                                  <Badge variant="warning" className="bg-amber-600/30 text-amber-200 border-0 text-[7px] px-1 py-0 relative">
-                                    Erf.
-                                    <button
-                                      onClick={(e) => handleEditSection(section, e)}
-                                      className="absolute -right-1 -top-0.5 opacity-0 group-hover/badge:opacity-100 text-white/60 hover:text-white text-[8px] transition-opacity"
-                                    >
-                                      ✏️
-                                    </button>
-                                  </Badge>
-                                )}
-                                {getOriginBadge(section.origin)}
-                                {!isRequired && (
-                                  <button
-                                    onClick={(e) => handleEditSection(section, e)}
-                                    className="opacity-0 group-hover/badge:opacity-100 text-white/60 hover:text-white text-[8px] transition-opacity"
-                                  >
-                                    ✏️
-                                  </button>
-                                )}
                               </div>
                               {section.origin === 'custom' && (
                                 <button
@@ -1219,8 +1203,15 @@ export function TemplateOverviewPanel({
                             } transition-all hover:border-white/40 cursor-pointer group`}
                             onClick={() => toggleDocument(doc.id)}
                           >
-                            {/* Checkbox in top-right corner */}
-                            <div className="absolute top-1.5 right-1.5 z-10">
+                            {/* Checkbox and pencil in top-right corner of card */}
+                            <div className="absolute top-1 right-1 z-10 flex items-center gap-1">
+                              <button
+                                onClick={(e) => handleEditDocument(doc, e)}
+                                className="text-white/60 hover:text-white text-xs transition-opacity"
+                                onMouseDown={(e) => e.stopPropagation()}
+                              >
+                                ✏️
+                              </button>
                               <input
                                 type="checkbox"
                                 checked={!isDisabled}
@@ -1239,35 +1230,16 @@ export function TemplateOverviewPanel({
                             </div>
                             
                             {/* Large icon as main visual element */}
-                            <div className="flex flex-col items-center gap-1 pt-1 min-h-[50px]">
+                            <div className="flex flex-col items-center gap-1 pt-4 min-h-[50px]">
                               <span className="text-2xl leading-none flex-shrink-0">📄</span>
                               <div className="w-full text-center min-h-[28px] flex items-center justify-center">
                                 <h4 className={`text-[11px] font-semibold leading-snug ${isDisabled ? 'text-white/50 line-through' : 'text-white'} break-words line-clamp-2`}>
                                   {doc.name}
                                 </h4>
                               </div>
-                              {/* Badges with pencil icon on hover */}
-                              <div className="flex items-center justify-center gap-0.5 flex-wrap group/badge">
-                                {isRequired && (
-                                  <Badge variant="warning" className="bg-amber-600/30 text-amber-200 border-0 text-[7px] px-1 py-0 relative">
-                                    Erf.
-                                    <button
-                                      onClick={(e) => handleEditDocument(doc, e)}
-                                      className="absolute -right-1 -top-0.5 opacity-0 group-hover/badge:opacity-100 text-white/60 hover:text-white text-[8px] transition-opacity"
-                                    >
-                                      ✏️
-                                    </button>
-                                  </Badge>
-                                )}
+                              {/* Origin badges only */}
+                              <div className="flex items-center justify-center gap-0.5 flex-wrap">
                                 {getOriginBadge(doc.origin)}
-                                {!isRequired && (
-                                  <button
-                                    onClick={(e) => handleEditDocument(doc, e)}
-                                    className="opacity-0 group-hover/badge:opacity-100 text-white/60 hover:text-white text-[8px] transition-opacity"
-                                  >
-                                    ✏️
-                                  </button>
-                                )}
                               </div>
                               {doc.origin === 'custom' && (
                                 <button
