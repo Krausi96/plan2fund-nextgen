@@ -15,20 +15,17 @@ type SidebarProps = {
 export default function Sidebar({ plan, activeSectionId, onSelectSection }: SidebarProps) {
   const { t } = useI18n();
   return (
-    <div className="relative rounded-lg border border-blue-600/50 overflow-hidden backdrop-blur-lg shadow-xl">
-      <div className="absolute inset-0 bg-gradient-to-b from-slate-900 via-blue-900 to-slate-800" />
-      <div className="relative z-10 py-2 px-2.5">
-        <div className="mb-1">
-          <h2 className="text-xl font-bold uppercase tracking-wider text-white">
-            {(t('editor.header.planSections' as any) as string) || 'Plan Sections'}
-          </h2>
-        </div>
-        <SectionNavigationBar
-          plan={plan}
-          activeSectionId={activeSectionId ?? plan.sections[0]?.id ?? null}
-          onSelectSection={onSelectSection}
-        />
+    <div className="relative py-1 px-2.5">
+      <div className="mb-0.5">
+        <h2 className="text-lg font-bold uppercase tracking-wider text-white">
+          {(t('editor.header.planSections' as any) as string) || 'Plan Sections'}
+        </h2>
       </div>
+      <SectionNavigationBar
+        plan={plan}
+        activeSectionId={activeSectionId ?? plan.sections[0]?.id ?? null}
+        onSelectSection={onSelectSection}
+      />
     </div>
   );
 }
@@ -139,23 +136,23 @@ function SectionNavigationBar({
               onClick={handleClick}
               aria-current={isActive ? 'page' : undefined}
               role="tab"
-              className={`min-w-[200px] rounded-xl border-2 px-4 py-3 text-left transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-400 ${
+              className={`min-w-[160px] rounded-lg border-2 px-3 py-2 text-left transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-400 ${
                 isActive
                   ? 'border-blue-400 bg-blue-500/30 text-white shadow-xl shadow-blue-900/30 backdrop-blur-md'
                   : 'border-white/50 bg-blue-400/20 text-white hover:border-blue-300/70 hover:bg-blue-400/30 backdrop-blur-sm'
               }`}
             >
-              <div className="flex flex-col gap-1.5">
+              <div className="flex flex-col gap-1">
                 <div className="flex items-center justify-between">
                   {!isMetadata && (
-                    <span className="text-xs font-bold tracking-[0.2em] text-white drop-shadow-sm">
+                    <span className="text-[10px] font-bold tracking-[0.2em] text-white drop-shadow-sm">
                       {String(index).padStart(2, '0')}
                     </span>
                   )}
-                  <span className="text-xs font-bold text-white drop-shadow-sm">{completion}%</span>
+                  <span className="text-[10px] font-bold text-white drop-shadow-sm">{completion}%</span>
                 </div>
                 <Progress value={completion} intent={progressIntent} size="xs" />
-                <p className="text-base font-bold leading-snug text-white drop-shadow-sm">{section.title}</p>
+                <p className="text-sm font-bold leading-snug text-white drop-shadow-sm">{section.title}</p>
               </div>
             </button>
           );

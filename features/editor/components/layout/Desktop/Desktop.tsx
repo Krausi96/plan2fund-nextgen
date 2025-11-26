@@ -7,9 +7,10 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } f
 import { getSections, getDocuments } from '@templates';
 import { extractTemplateFromFile } from '@/features/editor/templates/api';
 import type { SectionTemplate, DocumentTemplate } from '@templates';
-import type { ProductType, ProgramSummary } from '@/features/editor/types/plan';
+import type { ProductType, ProgramSummary, BusinessPlan } from '@/features/editor/types/plan';
 import { useI18n } from '@/shared/contexts/I18nContext';
 import { normalizeProgramInput } from '@/features/editor/hooks/useEditorStore';
+import Sidebar from '../Workspace/Main Editor/Sidebar';
 
 export type ConnectCopy = {
   badge: string;
@@ -48,6 +49,10 @@ export interface TemplateOverviewPanelProps {
   programError: string | null;
   productOptions: Array<{ value: ProductType; label: string; description: string; icon?: string }>;
   connectCopy: ConnectCopy;
+  // Sidebar props
+  plan?: BusinessPlan;
+  activeSectionId?: string | null;
+  onSelectSection?: (sectionId: string) => void;
 }
 
 export function TemplateOverviewPanel({
@@ -62,7 +67,10 @@ export function TemplateOverviewPanel({
   programLoading,
   programError,
   productOptions,
-  connectCopy
+  connectCopy,
+  plan,
+  activeSectionId,
+  onSelectSection
 }: TemplateOverviewPanelProps) {
   const { t } = useI18n();
   const [sections, setSections] = useState<SectionTemplate[]>([]);
@@ -1023,7 +1031,7 @@ export function TemplateOverviewPanel({
                       {!expandedSectionId && (
                         <button
                           onClick={() => setShowAddSection(true)}
-                          className="col-span-3 border border-dashed border-white/20 rounded-md p-2 text-white/50 hover:text-white hover:border-white/40 transition-colors text-[10px] font-medium"
+                          className="col-span-3 border border-dashed border-white/20 rounded-md p-2 text-white/50 hover:text-white hover:border-white/40 transition-colors text-[10px] font-medium relative z-20"
                         >
                           + Abschnitt hinzufügen
                         </button>
@@ -1237,10 +1245,6 @@ export function TemplateOverviewPanel({
                                   {doc.name}
                                 </h4>
                               </div>
-                              {/* Origin badges only */}
-                              <div className="flex items-center justify-center gap-0.5 flex-wrap">
-                                {getOriginBadge(doc.origin)}
-                              </div>
                               {doc.origin === 'custom' && (
                                 <button
                                   onClick={(e) => {
@@ -1316,6 +1320,20 @@ export function TemplateOverviewPanel({
                   )}
                 </div>
               </div>
+            )}
+            
+            {/* Sidebar - Plan Sections Navigation */}
+            {plan && onSelectSection && (
+              <>
+                <div className="border-t border-white/30 w-full mt-2 mb-2"></div>
+                <div className="relative z-10">
+                  <Sidebar
+                    plan={plan}
+                    activeSectionId={activeSectionId ?? plan.sections[0]?.id ?? null}
+                    onSelectSection={onSelectSection}
+                  />
+                </div>
+              </>
             )}
             </div>
           </Card>

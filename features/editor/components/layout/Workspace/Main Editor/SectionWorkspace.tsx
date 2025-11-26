@@ -71,7 +71,9 @@ export function SectionWorkspace({
 
   return (
     <main className="space-y-1">
-      <Card className="p-6 border-0 relative overflow-visible">
+      <Card className="p-6 border border-blue-600/50 relative overflow-hidden backdrop-blur-lg shadow-xl">
+        <div className="absolute inset-0 bg-gradient-to-b from-slate-950 via-blue-900 to-slate-950" />
+        <div className="absolute inset-0 bg-black/20 backdrop-blur-xl" />
         <div className="relative z-10 space-y-3">
           {section.category && (
             <p className="text-[10px] font-medium uppercase tracking-[0.2em] text-white/70">
@@ -153,7 +155,9 @@ function QuestionCard({
     setIsEditing(!isComplete);
   }, [isComplete, question.id]);
 
-  const cardBorderClass = 'text-white/90';
+  const cardBorderClass = 'border-blue-600/50 text-white/90';
+  const gradientClass = 'bg-gradient-to-b from-slate-950 via-blue-900 to-slate-950';
+  const overlayClass = isComplete ? 'bg-black/10' : 'bg-black/20';
   const editorLocked = isComplete && !isEditing;
 
   return (
@@ -162,11 +166,13 @@ function QuestionCard({
         id={panelId}
         role="tabpanel"
         aria-live="polite"
-        className={`p-6 space-y-2 border-0 transition-all relative overflow-visible ${cardBorderClass} ${
-          isActive && !hasContent ? 'ring-1 ring-blue-400/50' : ''
+        className={`p-6 space-y-2 border transition-all relative overflow-hidden backdrop-blur-lg shadow-xl ${cardBorderClass} ${
+          isActive && !hasContent ? 'border-blue-400 ring-1 ring-blue/20 shadow-2xl' : ''
         }`}
         onClick={onFocus}
       >
+        <div className={`absolute inset-0 ${gradientClass}`} />
+        <div className={`absolute inset-0 ${overlayClass} backdrop-blur-xl`} />
         {section && section.questions.length > 1 && (
           <div className="pb-3 border-b border-white/30 mb-3 relative z-10">
             <div className="mb-2">

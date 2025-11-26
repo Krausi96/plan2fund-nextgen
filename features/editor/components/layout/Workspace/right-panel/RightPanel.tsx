@@ -84,7 +84,9 @@ export default function RightPanel({
   ];
 
   return (
-    <aside className="sticky top-24 space-y-1.5 w-full lg:w-[500px] relative overflow-visible">
+    <aside className="card sticky top-24 space-y-1.5 w-full lg:w-[500px] border-blue-600/50 relative overflow-hidden backdrop-blur-lg shadow-xl">
+      <div className="absolute inset-0 bg-gradient-to-b from-slate-950 via-blue-900 to-slate-950" />
+      <div className="absolute inset-0 bg-black/15 backdrop-blur-xl" />
       <div className="relative z-10">
         <div className="flex gap-1.5" role="tablist" aria-label="Editor tools">
           {tabs.map(({ key, label }) => {
