@@ -3,7 +3,9 @@ import { createPortal } from 'react-dom';
 import { Button } from '@/shared/components/ui/button';
 import { Card } from '@/shared/components/ui/card';
 import { Badge } from '@/shared/components/ui/badge';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/shared/components/ui/dialog';
 import { getSections, getDocuments } from '@templates';
+import { extractTemplateFromFile } from '@/features/editor/templates/api';
 import type { SectionTemplate, DocumentTemplate } from '@templates';
 import type { ProductType, ProgramSummary } from '@/features/editor/types/plan';
 import { useI18n } from '@/shared/contexts/I18nContext';
@@ -87,8 +89,13 @@ export function TemplateOverviewPanel({
   const [manualError, setManualError] = useState<string | null>(null);
   const [showManualInput, setShowManualInput] = useState(false);
   const [showProductMenu, setShowProductMenu] = useState(false);
+  const [showConfigTooltip, setShowConfigTooltip] = useState(false);
   const [configView, setConfigView] = useState<'plan' | 'program'>('plan');
   const [productMenuPosition, setProductMenuPosition] = useState<{ top: number; left: number; width: number } | null>(null);
+  const [showTemplatePreview, setShowTemplatePreview] = useState(false);
+  const [extractedTemplates, setExtractedTemplates] = useState<{ sections?: SectionTemplate[]; documents?: DocumentTemplate[]; errors?: string[] } | null>(null);
+  const [isExtracting, setIsExtracting] = useState(false);
+  const fileInputRef = useRef<HTMLInputElement | null>(null);
   const manualInputRef = useRef<HTMLDivElement | null>(null);
   const manualTriggerRef = useRef<HTMLButtonElement | null>(null);
   const productMenuRef = useRef<HTMLDivElement | null>(null);
@@ -384,6 +391,42 @@ export function TemplateOverviewPanel({
     setCustomDocuments(prev => prev.filter(d => d.id !== id));
   };
 
+  const handleTemplateUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (!file) return;
+    
+    setIsExtracting(true);
+    try {
+      const result = await extractTemplateFromFile(file);
+      setExtractedTemplates(result);
+      setShowTemplatePreview(true);
+    } catch (error) {
+      setExtractedTemplates({
+        errors: [error instanceof Error ? error.message : 'Failed to extract template']
+      });
+      setShowTemplatePreview(true);
+    } finally {
+      setIsExtracting(false);
+      if (fileInputRef.current) {
+        fileInputRef.current.value = '';
+      }
+    }
+  };
+
+  const applyExtractedTemplates = () => {
+    if (!extractedTemplates) return;
+    
+    if (extractedTemplates.sections && extractedTemplates.sections.length > 0) {
+      setCustomSections(prev => [...prev, ...extractedTemplates.sections!]);
+    }
+    if (extractedTemplates.documents && extractedTemplates.documents.length > 0) {
+      setCustomDocuments(prev => [...prev, ...extractedTemplates.documents!]);
+    }
+    
+    setShowTemplatePreview(false);
+    setExtractedTemplates(null);
+  };
+
   const allSections = [...sections, ...customSections];
   const allDocuments = [...documents, ...customDocuments];
   
@@ -481,13 +524,28 @@ export function TemplateOverviewPanel({
             {isExpanded && (
               <div className="grid grid-cols-[400px_1fr_1fr] gap-4 h-[380px] overflow-hidden">
                 {/* Column 1: Deine Konfiguration */}
-                <div className="flex flex-col gap-2 border-r border-white/10 pr-4 overflow-hidden">
-                  <h2 className="text-base font-bold uppercase tracking-wide text-white mb-2 pb-2 border-b border-white/10">
-                    Deine Konfiguration
-                  </h2>
-                  <p className="text-[10px] text-white/50 mb-2 -mt-2">
-                    Wählen Sie Ihren Plan-Typ und verbinden Sie optional ein Förderprogramm, um automatisch die relevanten Anforderungen zu laden.
-                  </p>
+                <div className="flex flex-col gap-2 border-r border-white/10 pr-4 overflow-y-auto min-h-0">
+                  <div className="flex items-center gap-2 mb-2 pb-2 border-b border-white/10">
+                    <h2 className="text-base font-bold uppercase tracking-wide text-white">
+                      Deine Konfiguration
+                    </h2>
+                    <div className="relative">
+                      <button
+                        type="button"
+                        onMouseEnter={() => setShowConfigTooltip(true)}
+                        onMouseLeave={() => setShowConfigTooltip(false)}
+                        className="text-white/60 hover:text-white text-xs font-bold w-4 h-4 rounded-full border border-white/50 bg-white/20 flex items-center justify-center transition-colors"
+                      >
+                        ?
+                      </button>
+                      {showConfigTooltip && (
+                        <div className="absolute z-50 left-0 top-5 w-64 p-2 bg-slate-900 text-white text-[10px] rounded shadow-lg border border-slate-700">
+                          Wählen Sie Ihren Plan-Typ, verbinden Sie ein Förderprogramm oder laden Sie eine Vorlage hoch. 
+                          Ihre Auswahl bestimmt die verfügbaren Abschnitte und Dokumente für Ihren Plan.
+                        </div>
+                      )}
+                    </div>
+                  </div>
                   {/* Combined Configuration Card with Switcher */}
                   <div className="bg-white/5 border border-white/10 rounded-lg p-4">
                     {/* Switcher */}
@@ -620,14 +678,18 @@ export function TemplateOverviewPanel({
                               {connectCopy.pasteLink}
                             </button>
                             <button
-                              onClick={() => {
-                                // TODO: Implement template upload functionality
-                                console.log('Template hochladen clicked');
-                              }}
+                              onClick={() => fileInputRef.current?.click()}
                               className="inline-flex items-center justify-center px-3 py-2 h-auto border border-white/20 hover:border-white/40 text-white font-medium rounded-lg transition-colors hover:bg-white/10 text-[11px] flex-1 min-w-0"
                             >
-                              Template hochladen
+                              {isExtracting ? 'Verarbeitung...' : 'Template hochladen'}
                             </button>
+                            <input
+                              ref={fileInputRef}
+                              type="file"
+                              accept=".txt,.md,.pdf"
+                              onChange={handleTemplateUpload}
+                              className="hidden"
+                            />
 
                             <div
                               id="manual-program-connect"
@@ -669,6 +731,32 @@ export function TemplateOverviewPanel({
                         )}
                       </div>
                     )}
+
+                    {/* Selected Values Summary - Always visible at bottom of card */}
+                    <div className="mt-3 pt-3 border-t border-white/10">
+                      <h3 className="text-[9px] font-semibold text-white/70 uppercase tracking-wide mb-1.5">
+                        Aktuelle Konfiguration
+                      </h3>
+                      <div className="space-y-1">
+                        <div className="flex items-center gap-1.5">
+                          <span className="text-[9px] text-white/50 min-w-[65px]">Plan-Typ:</span>
+                          <div className="flex items-center gap-1 flex-1 min-w-0">
+                            <span className="text-sm leading-none flex-shrink-0">{selectedProductMeta?.icon ?? '📄'}</span>
+                            <span className="text-[9px] font-medium text-white truncate">{selectedProductMeta?.label || 'Nicht ausgewählt'}</span>
+                          </div>
+                        </div>
+                        {programSummary && (
+                          <div className="flex items-center gap-1.5">
+                            <span className="text-[9px] text-white/50 min-w-[65px]">Programm:</span>
+                            <span className="text-[9px] font-medium text-white flex-1 truncate">{programSummary.name}</span>
+                          </div>
+                        )}
+                        <div className="flex items-center gap-1.5">
+                          <span className="text-[9px] text-white/50 min-w-[65px]">Förderart:</span>
+                          <span className="text-[9px] font-medium text-white flex-1 truncate capitalize">{fundingType || 'Nicht festgelegt'}</span>
+                        </div>
+                      </div>
+                    </div>
                   </div>
                   {/* Column 1 ends here - no more cards below */}
                 </div>
@@ -984,6 +1072,82 @@ export function TemplateOverviewPanel({
             )}
             </div>
           </Card>
+          
+          {/* Template Preview Dialog */}
+          <Dialog open={showTemplatePreview} onOpenChange={setShowTemplatePreview}>
+            <DialogContent className="max-w-2xl max-h-[80vh] overflow-y-auto">
+              <DialogHeader>
+                <DialogTitle>Template-Vorschau</DialogTitle>
+                <DialogDescription>
+                  Überprüfen Sie die extrahierten Abschnitte und Dokumente vor dem Hinzufügen.
+                </DialogDescription>
+              </DialogHeader>
+              
+              {extractedTemplates?.errors && extractedTemplates.errors.length > 0 && (
+                <div className="bg-red-50 border border-red-200 rounded-lg p-3 mb-4">
+                  <p className="text-sm font-semibold text-red-800 mb-2">Fehler:</p>
+                  <ul className="list-disc list-inside text-sm text-red-700 space-y-1">
+                    {extractedTemplates.errors.map((error, idx) => (
+                      <li key={idx}>{error}</li>
+                    ))}
+                  </ul>
+                </div>
+              )}
+              
+              {extractedTemplates?.sections && extractedTemplates.sections.length > 0 && (
+                <div className="mb-4">
+                  <h3 className="text-sm font-semibold mb-2">Abschnitte ({extractedTemplates.sections.length})</h3>
+                  <div className="space-y-2 max-h-60 overflow-y-auto">
+                    {extractedTemplates.sections.map((section) => (
+                      <div key={section.id} className="border rounded-lg p-2 bg-gray-50">
+                        <p className="text-sm font-medium">{section.title}</p>
+                        {section.description && (
+                          <p className="text-xs text-gray-600 mt-1">{section.description}</p>
+                        )}
+                        <div className="flex gap-2 mt-1 text-xs text-gray-500">
+                          {section.required && <span className="bg-amber-100 text-amber-800 px-1 rounded">Erforderlich</span>}
+                          {section.wordCountMin > 0 && (
+                            <span>{section.wordCountMin}-{section.wordCountMax || '∞'} Wörter</span>
+                          )}
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+              
+              {extractedTemplates?.documents && extractedTemplates.documents.length > 0 && (
+                <div className="mb-4">
+                  <h3 className="text-sm font-semibold mb-2">Dokumente ({extractedTemplates.documents.length})</h3>
+                  <div className="space-y-2 max-h-60 overflow-y-auto">
+                    {extractedTemplates.documents.map((doc) => (
+                      <div key={doc.id} className="border rounded-lg p-2 bg-gray-50">
+                        <p className="text-sm font-medium">{doc.name}</p>
+                        {doc.description && (
+                          <p className="text-xs text-gray-600 mt-1">{doc.description}</p>
+                        )}
+                        <div className="flex gap-2 mt-1 text-xs text-gray-500">
+                          {doc.required && <span className="bg-amber-100 text-amber-800 px-1 rounded">Erforderlich</span>}
+                          <span>{doc.format.toUpperCase()}</span>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+              
+              <div className="flex justify-end gap-2 mt-4">
+                <Button variant="outline" onClick={() => setShowTemplatePreview(false)}>
+                  Abbrechen
+                </Button>
+                {extractedTemplates && (extractedTemplates.sections?.length || extractedTemplates.documents?.length) && (
+                  <Button onClick={applyExtractedTemplates}>
+                    Hinzufügen
+                  </Button>
+                )}
+              </div>
+            </DialogContent>
+          </Dialog>
     </div>
   );
 }

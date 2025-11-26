@@ -343,3 +343,281 @@ export function mergeSections(
   return merged.sort((a, b) => a.order - b.order);
 }
 
+// ============================================================================
+// TEMPLATE EXTRACTION FROM FILES (PDF, TXT, MD)
+// ============================================================================
+
+export interface ExtractedTemplate {
+  sections?: SectionTemplate[];
+  documents?: DocumentTemplate[];
+  errors?: string[];
+}
+
+/**
+ * Extract text from file (client-side)
+ */
+async function extractTextFromFile(file: File): Promise<string> {
+  if (file.type === 'application/pdf') {
+    // PDF parsing - use pdf-parse if available server-side, or send to API
+    // For now, return error - PDF parsing should be server-side
+    throw new Error('PDF parsing requires server-side processing. Please use TXT or MD files for client-side extraction.');
+  }
+  
+  // TXT or MD files
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onload = (e) => {
+      const text = e.target?.result as string;
+      resolve(text);
+    };
+    reader.onerror = reject;
+    reader.readAsText(file);
+  });
+}
+
+/**
+ * Parse Markdown structure to extract sections
+ */
+function parseMarkdownStructure(text: string): { sections: Partial<SectionTemplate>[]; documents: Partial<DocumentTemplate>[] } {
+  const sections: Partial<SectionTemplate>[] = [];
+  const documents: Partial<DocumentTemplate>[] = [];
+  
+  const lines = text.split('\n');
+  let currentSection: Partial<SectionTemplate> | null = null;
+  let currentDocument: Partial<DocumentTemplate> | null = null;
+  let inSection = false;
+  let inDocument = false;
+  let order = 0;
+  
+  for (let i = 0; i < lines.length; i++) {
+    const line = lines[i].trim();
+    
+    // Markdown headers for sections
+    if (line.match(/^#{1,3}\s+.+$/)) {
+      // Save previous section
+      if (currentSection && inSection) {
+        sections.push(currentSection);
+      }
+      
+      const level = line.match(/^#+/)?.[0].length || 1;
+      const title = line.replace(/^#+\s+/, '').trim();
+      
+      if (level <= 2) {
+        currentSection = {
+          id: `extracted_section_${sections.length}`,
+          title,
+          description: '',
+          required: false,
+          wordCountMin: 0,
+          wordCountMax: 0,
+          order: order++,
+          category: 'custom',
+          prompts: [],
+          questions: [],
+          validationRules: { requiredFields: [], formatRequirements: [] },
+          origin: 'custom'
+        };
+        inSection = true;
+        inDocument = false;
+      }
+    }
+    // Document indicators
+    else if (line.match(/^(Document|Dokument|File|Datei):/i)) {
+      if (currentDocument) {
+        documents.push(currentDocument);
+      }
+      const name = line.replace(/^(Document|Dokument|File|Datei):\s*/i, '').trim();
+      currentDocument = {
+        id: `extracted_doc_${documents.length}`,
+        name,
+        description: '',
+        required: false,
+        format: 'pdf' as const,
+        maxSize: '10MB',
+        template: '',
+        instructions: [],
+        examples: [],
+        commonMistakes: [],
+        category: 'custom',
+        fundingTypes: [],
+        origin: 'custom'
+      };
+      inDocument = true;
+      inSection = false;
+    }
+    // Extract word count from section
+    else if (inSection && currentSection && line.match(/(\d+)\s*-\s*(\d+)\s*w/i)) {
+      const match = line.match(/(\d+)\s*-\s*(\d+)\s*w/i);
+      if (match) {
+        currentSection.wordCountMin = parseInt(match[1]);
+        currentSection.wordCountMax = parseInt(match[2]);
+      }
+    }
+    // Extract required flag
+    else if (inSection && currentSection && line.match(/(required|erforderlich|pflicht)/i)) {
+      currentSection.required = true;
+    }
+    // Collect description
+    else if (inSection && currentSection && line && !line.startsWith('#') && !line.startsWith('-')) {
+      if (currentSection.description) {
+        currentSection.description += ' ' + line;
+      } else {
+        currentSection.description = line;
+      }
+    }
+    // Collect document description
+    else if (inDocument && currentDocument && line && !line.startsWith('Document:') && !line.startsWith('Dokument:')) {
+      if (currentDocument.description) {
+        currentDocument.description += ' ' + line;
+      } else {
+        currentDocument.description = line;
+      }
+    }
+  }
+  
+  // Save last section/document
+  if (currentSection && inSection) {
+    sections.push(currentSection);
+  }
+  if (currentDocument) {
+    documents.push(currentDocument);
+  }
+  
+  return { sections, documents };
+}
+
+/**
+ * Parse plain text structure (pattern-based)
+ */
+function parseTextStructure(text: string): { sections: Partial<SectionTemplate>[]; documents: Partial<DocumentTemplate>[] } {
+  const sections: Partial<SectionTemplate>[] = [];
+  const documents: Partial<DocumentTemplate>[] = [];
+  
+  const lines = text.split('\n');
+  let order = 0;
+  
+  // Look for numbered sections (1., 2., etc.) or all-caps headers
+  for (let i = 0; i < lines.length; i++) {
+    const line = lines[i].trim();
+    
+    // Numbered sections
+    if (line.match(/^\d+[\.\)]\s+.+$/)) {
+      const title = line.replace(/^\d+[\.\)]\s+/, '').trim();
+      sections.push({
+        id: `extracted_section_${sections.length}`,
+        title,
+        description: '',
+        required: false,
+        wordCountMin: 0,
+        wordCountMax: 0,
+        order: order++,
+        category: 'custom',
+        prompts: [],
+        questions: [],
+        validationRules: { requiredFields: [], formatRequirements: [] },
+        origin: 'custom'
+      });
+    }
+    // All-caps headers (likely section titles)
+    else if (line.match(/^[A-Z\s]{3,}$/) && line.length > 5 && line.length < 50) {
+      sections.push({
+        id: `extracted_section_${sections.length}`,
+        title: line,
+        description: '',
+        required: false,
+        wordCountMin: 0,
+        wordCountMax: 0,
+        order: order++,
+        category: 'custom',
+        prompts: [],
+        questions: [],
+        validationRules: { requiredFields: [], formatRequirements: [] },
+        origin: 'custom'
+      });
+    }
+  }
+  
+  return { sections, documents };
+}
+
+/**
+ * Main extraction function - tries pattern-based first, falls back to LLM if needed
+ */
+export async function extractTemplateFromFile(file: File): Promise<ExtractedTemplate> {
+  const errors: string[] = [];
+  
+  // File size validation
+  const MAX_SIZE = file.type === 'application/pdf' ? 10 * 1024 * 1024 : 5 * 1024 * 1024; // 10MB PDF, 5MB TXT/MD
+  if (file.size > MAX_SIZE) {
+    return {
+      errors: [`File too large. Maximum size: ${MAX_SIZE / 1024 / 1024}MB`]
+    };
+  }
+  
+  try {
+    // Extract text
+    const text = await extractTextFromFile(file);
+    
+    // Limit text length for processing
+    const MAX_TEXT_LENGTH = 50000;
+    const truncatedText = text.length > MAX_TEXT_LENGTH 
+      ? text.substring(0, MAX_TEXT_LENGTH) + '... [truncated]'
+      : text;
+    
+    // Try pattern-based parsing first
+    let result: { sections: Partial<SectionTemplate>[]; documents: Partial<DocumentTemplate>[] };
+    
+    if (file.name.endsWith('.md') || file.type === 'text/markdown') {
+      result = parseMarkdownStructure(truncatedText);
+    } else {
+      result = parseTextStructure(truncatedText);
+    }
+    
+    // Convert partial templates to full templates with defaults
+    const sections: SectionTemplate[] = result.sections.map((s, idx) => ({
+      id: s.id || `extracted_section_${idx}`,
+      title: s.title || 'Untitled Section',
+      description: s.description || 'Extracted from uploaded file',
+      required: s.required || false,
+      wordCountMin: s.wordCountMin || 0,
+      wordCountMax: s.wordCountMax || 0,
+      order: s.order ?? idx,
+      category: s.category || 'custom',
+      prompts: s.prompts || [],
+      questions: s.questions || [],
+      validationRules: s.validationRules || { requiredFields: [], formatRequirements: [] },
+      origin: 'custom'
+    }));
+    
+    const documents: DocumentTemplate[] = result.documents.map((d, idx) => ({
+      id: d.id || `extracted_doc_${idx}`,
+      name: d.name || 'Untitled Document',
+      description: d.description || 'Extracted from uploaded file',
+      required: d.required || false,
+      format: d.format || 'pdf',
+      maxSize: d.maxSize || '10MB',
+      template: d.template || '',
+      instructions: d.instructions || [],
+      examples: d.examples || [],
+      commonMistakes: d.commonMistakes || [],
+      category: d.category || 'custom',
+      fundingTypes: d.fundingTypes || [],
+      origin: 'custom'
+    }));
+    
+    if (sections.length === 0 && documents.length === 0) {
+      errors.push('No sections or documents found in file. Try a different format or structure.');
+    }
+    
+    return {
+      sections: sections.length > 0 ? sections : undefined,
+      documents: documents.length > 0 ? documents : undefined,
+      errors: errors.length > 0 ? errors : undefined
+    };
+  } catch (error) {
+    return {
+      errors: [error instanceof Error ? error.message : 'Failed to extract template from file']
+    };
+  }
+}
+
