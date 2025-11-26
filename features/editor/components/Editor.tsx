@@ -9,8 +9,8 @@ import { useRouter } from 'next/router';
 
 import Sidebar from './layout/shell/Sidebar';
 import RightPanel from './layout/right-panel/RightPanel';
-import { ConnectCopy, Workspace } from './layout/shell/Workspace';
-import TemplateOverviewPanel from './layout/shell/TemplateOverviewPanel';
+import { Workspace } from './layout/shell/Workspace';
+import { TemplateOverviewPanel, ConnectCopy } from './layout/shell/TemplateOverviewPanel';
 import {
   AISuggestionOptions,
   ANCILLARY_SECTION_ID,
@@ -21,7 +21,6 @@ import {
   useEditorStore
 } from '@/features/editor/hooks/useEditorStore';
 import {
-  BusinessPlan,
   ProductType,
   ProgramSummary,
   Question,
@@ -193,7 +192,7 @@ export default function Editor({ product = 'submission' }: EditorProps) {
       }).catch((err) => {
         console.error('[Editor] Hydration error:', err);
         hydrationInProgress.current = false;
-      }).then(() => {
+      }).finally(() => {
         // Reset after a delay to allow for updates
         setTimeout(() => {
           hydrationInProgress.current = false;
@@ -299,10 +298,12 @@ export default function Editor({ product = 'submission' }: EditorProps) {
   }) => {
     // Only update if we have a plan or are not currently loading
     // This prevents infinite loops
-    if (isLoading) {
+    if (isLoading || hydrationInProgress.current) {
       console.log('[Editor] Skipping template update - still loading');
       return;
     }
+    
+    hydrationInProgress.current = true;
     
     // Update hydration with new disabled sections/documents and custom templates
     applyHydration(programSummary, {
@@ -312,6 +313,12 @@ export default function Editor({ product = 'submission' }: EditorProps) {
       customDocuments: options.customDocuments
     }).catch((err) => {
       console.error('[Editor] Template update error:', err);
+      hydrationInProgress.current = false;
+    }).then(() => {
+      // Reset after a delay to allow for updates
+      setTimeout(() => {
+        hydrationInProgress.current = false;
+      }, 500);
     });
   }, [applyHydration, programSummary, isLoading]);
 
@@ -369,36 +376,38 @@ export default function Editor({ product = 'submission' }: EditorProps) {
 
   return (
     <div className="bg-neutral-200 text-textPrimary">
-      {/* Dein Schreibtisch - integrated with PlanConfigurator, floating over content */}
-      <TemplateOverviewPanel
-        productType={selectedProduct}
-        programSummary={programSummary}
-        fundingType={programSummary?.fundingType ?? 'grants'}
-        planMetadata={plan?.metadata}
-        onUpdate={handleTemplateUpdate}
-        onChangeProduct={handleProductChange}
-        onConnectProgram={handleConnectProgram}
-        onOpenProgramFinder={() => router.push('/reco')}
-        programLoading={programLoading}
-        programError={programError}
-        productOptions={productOptions}
-        connectCopy={connectCopy}
-      />
-
       {/* Workspace - show if plan exists */}
       {plan ? (
         <>
-          <div className="border-b border-neutral-200 bg-neutral-200 sticky top-[72px] z-30">
+          <div className="border-b border-neutral-200 bg-neutral-200 relative z-0">
             <div className="container">
-            <Sidebar
-              plan={plan}
-              activeSectionId={activeSectionId ?? plan.sections[0]?.id ?? null}
-              onSelectSection={setActiveSection}
-            />
+              {/* Dein Schreibtisch - Template Overview Panel, inside same container as Sidebar/Workspace */}
+              <div className="sticky top-[72px] z-[100] bg-neutral-200/98 backdrop-blur-sm border-b border-neutral-300 shadow-2xl -mx-6 px-6 mb-4" style={{ maxHeight: 'calc(100vh - 72px)' }}>
+                <TemplateOverviewPanel
+                  productType={selectedProduct}
+                  programSummary={programSummary}
+                  fundingType={programSummary?.fundingType ?? 'grants'}
+                  planMetadata={plan?.metadata}
+                  onUpdate={handleTemplateUpdate}
+                  onChangeProduct={handleProductChange}
+                  onConnectProgram={handleConnectProgram}
+                  onOpenProgramFinder={() => router.push('/reco')}
+                  programLoading={programLoading}
+                  programError={programError}
+                  productOptions={productOptions}
+                  connectCopy={connectCopy}
+                />
+              </div>
+              
+              <Sidebar
+                plan={plan}
+                activeSectionId={activeSectionId ?? plan.sections[0]?.id ?? null}
+                onSelectSection={setActiveSection}
+              />
             </div>
           </div>
 
-          <div className="container py-1 pb-6 flex flex-col gap-1 lg:flex-row lg:items-start">
+          <div className="container py-1 pb-6 flex flex-col gap-1 lg:flex-row lg:items-start relative z-0">
             <div className="flex-1 min-w-0 max-w-4xl">
               <Workspace
                 plan={plan}

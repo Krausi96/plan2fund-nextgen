@@ -4,16 +4,31 @@
 
 import { MASTER_SECTIONS } from './sections';
 import { MASTER_DOCUMENTS } from './documents';
-import { loadProgramDocuments, mergeDocuments } from './api';
+import { loadProgramDocuments, loadProgramSections, mergeDocuments, mergeSections } from './api';
 import type { SectionTemplate, DocumentTemplate } from './types';
 
 export async function getSections(
   _fundingType: string,
   productType: string = 'submission',
-  _programId?: string,
-  _baseUrl?: string
+  programId?: string,
+  baseUrl?: string
 ): Promise<SectionTemplate[]> {
-  return MASTER_SECTIONS[productType] || MASTER_SECTIONS.submission;
+  const masterSections = MASTER_SECTIONS[productType] || MASTER_SECTIONS.submission;
+  
+  // Mark master sections with origin
+  const masterWithOrigin = masterSections.map(section => ({
+    ...section,
+    origin: 'master' as const
+  }));
+  
+  if (programId) {
+    const programSections = await loadProgramSections(programId, baseUrl);
+    if (programSections.length > 0) {
+      return mergeSections(masterWithOrigin, programSections);
+    }
+  }
+  
+  return masterWithOrigin;
 }
 
 export async function getDocuments(

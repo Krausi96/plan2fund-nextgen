@@ -25,7 +25,7 @@ import {
   TitlePage
 } from '@/features/editor/types/plan';
 import { generateSectionContent } from '@/features/editor/engine/sectionAiClient';
-import { SectionTemplate, getSections } from '@templates';
+import { SectionTemplate, DocumentTemplate, getSections } from '@templates';
 import { calculateSectionProgress, calculateSectionCompletion, determineQuestionStatus } from '@/features/editor/utils';
 import {
   loadPlanSections,
@@ -76,6 +76,10 @@ export interface EditorStoreState {
       programId?: string;
       programName?: string;
       summary?: ProgramSummary;
+      disabledSectionIds?: string[];
+      disabledDocumentIds?: string[];
+      customSections?: SectionTemplate[];
+      customDocuments?: DocumentTemplate[];
     }
   ) => Promise<void>;
   setActiveSection: (sectionId: string) => void;
@@ -248,12 +252,66 @@ export const useEditorStore = create<EditorStoreState>((set, get) => ({
       const questionStates: QuestionStateMap =
         typeof window !== 'undefined' ? loadQuestionStates() : {};
       // Funding type ignored - only product type matters
-      const templates = await getSections('grants', product, context?.programId, baseUrl);
+      const allTemplates = await getSections('grants', product, context?.programId, baseUrl);
       const savedSections: StoredPlanSection[] =
         typeof window !== 'undefined' ? loadPlanSections() : [];
-      const sections = templates.map((template) =>
-        buildSectionFromTemplate(template, savedSections, questionStates)
+      
+      // Filter out disabled sections
+      const disabledSectionIds = new Set(context?.disabledSectionIds || []);
+      const enabledTemplates = allTemplates.filter(
+        (template) => !disabledSectionIds.has(template.id)
       );
+      
+      // Add custom sections (filter out any invalid ones)
+      const customSections = (context?.customSections || []).filter(
+        (template): template is SectionTemplate => 
+          template != null && 
+          typeof template === 'object' && 
+          'id' in template && 
+          'title' in template
+      );
+      const allEnabledTemplates = [...enabledTemplates, ...customSections];
+      
+      // Convert templates to plan sections (with error handling for each)
+      const sections = allEnabledTemplates
+        .map((template) => {
+          try {
+            return buildSectionFromTemplate(template, savedSections, questionStates);
+          } catch (err) {
+            console.error(`[hydrate] Failed to build section from template ${template.id}:`, err);
+            // Return a minimal valid section to prevent breaking the entire plan
+            return {
+              id: template.id,
+              title: template.title || 'Untitled Section',
+              description: template.description || '',
+              questions: [],
+              datasets: [],
+              kpis: [],
+              media: [],
+              collapsed: false,
+              category: template.category || 'custom',
+              progress: 0
+            };
+          }
+        })
+        .filter((section) => section != null);
+
+      // Ensure we have at least one section to prevent empty plan
+      if (sections.length === 0) {
+        console.warn('[hydrate] No sections available after filtering, creating default section');
+        sections.push({
+          id: 'default_section',
+          title: 'Default Section',
+          description: 'No sections available',
+          questions: [],
+          datasets: [],
+          kpis: [],
+          media: [],
+          collapsed: false,
+          category: 'custom',
+          progress: 0
+        });
+      }
 
       const plan: BusinessPlan = {
         id: `plan_${Date.now()}`,
@@ -269,18 +327,22 @@ export const useEditorStore = create<EditorStoreState>((set, get) => ({
           lastSavedAt: new Date().toISOString(),
           programId: context?.programId,
           programName: context?.programName,
-          templateFundingType: context?.summary?.fundingType ?? context?.fundingType ?? 'grants'
+          templateFundingType: context?.summary?.fundingType ?? context?.fundingType ?? 'grants',
+          disabledSectionIds: context?.disabledSectionIds,
+          disabledDocumentIds: context?.disabledDocumentIds,
+          customSections: context?.customSections,
+          customDocuments: context?.customDocuments
         }
       };
 
       // Decide initial workspace: metadata first until required fields exist, otherwise recommended section
       const metadataComplete = isMetadataComplete(plan.titlePage);
-      const projectDescriptionSection = sections.find(s => s.id === 'project_description');
-      const initialSection = metadataComplete ? (projectDescriptionSection ?? sections[0] ?? null) : null;
+      const projectDescriptionSection = sections.length > 0 ? sections.find(s => s.id === 'project_description') : null;
+      const initialSection = metadataComplete && sections.length > 0 ? (projectDescriptionSection ?? sections[0] ?? null) : null;
       
       set({
         plan,
-        templates,
+        templates: allEnabledTemplates,
         isLoading: false,
         activeSectionId: metadataComplete ? initialSection?.id ?? null : METADATA_SECTION_ID,
         activeQuestionId: initialSection?.questions[0]?.id ?? null,
@@ -288,9 +350,12 @@ export const useEditorStore = create<EditorStoreState>((set, get) => ({
         rightPanelView: 'ai'
       });
     } catch (error: any) {
+      console.error('[hydrate] Error during hydration:', error);
       set({
         error: error?.message || 'Failed to load editor',
-        isLoading: false
+        isLoading: false,
+        plan: null,
+        templates: []
       });
     }
   },

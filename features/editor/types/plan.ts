@@ -218,6 +218,10 @@ export interface BusinessPlan {
     programId?: string;
     programName?: string;
     templateFundingType?: TemplateFundingType;
+    disabledSectionIds?: string[];
+    disabledDocumentIds?: string[];
+    customSections?: any[]; // SectionTemplate[] - stored as serializable objects
+    customDocuments?: any[]; // DocumentTemplate[] - stored as serializable objects
   };
 }
 

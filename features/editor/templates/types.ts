@@ -7,6 +7,9 @@ export interface SectionQuestion {
   required: boolean;
   placeholder?: string;
   hint?: string;
+  // User customization fields (Section 1)
+  customText?: string; // User-edited question text
+  customHint?: string; // User-added helper hint
 }
 
 export interface SectionTemplate {
@@ -31,6 +34,12 @@ export interface SectionTemplate {
     sourceUrl?: string;
     version?: string;
   };
+  // Template simplification metadata (Section 5)
+  visibility?: 'essential' | 'advanced' | 'programOnly'; // For progressive disclosure
+  origin?: 'master' | 'program' | 'custom'; // Source of this section
+  severity?: 'soft' | 'hard'; // Requirement severity (Section 2)
+  tags?: string[]; // Tags to map program requirements (Section 2)
+  programId?: string; // ID of program that added this (if origin is 'program')
 }
 
 export interface DocumentTemplate {
@@ -55,6 +64,9 @@ export interface DocumentTemplate {
     sourceUrl?: string;
     version?: string;
   };
+  // Template simplification metadata (Section 5)
+  origin?: 'master' | 'program' | 'custom'; // Source of this document
+  programId?: string; // ID of program that added this (if origin is 'program')
 }
 
 // Type aliases for backward compatibility

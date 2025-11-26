@@ -9,11 +9,6 @@ import {
   TitlePage
 } from '@/features/editor/types/plan';
 import { ProgressSummary } from '@/features/editor/hooks/useEditorStore';
-import {
-  PlanConfigurator,
-  PlanConfiguratorProps,
-  ConnectCopy
-} from './PlanConfigurator';
 import MetadataAndAncillaryPanel from '../workspace/metadata/MetadataAndAncillaryPanel';
 import { SectionWorkspace } from './SectionWorkspace';
 
@@ -38,9 +33,6 @@ type WorkspaceProps = {
   onRunRequirements: () => void;
   progressSummary: ProgressSummary[];
 };
-
-export { PlanConfigurator };
-export type { PlanConfiguratorProps, ConnectCopy };
 
 export function Workspace({
   plan,
