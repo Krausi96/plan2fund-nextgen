@@ -92,12 +92,19 @@ export function TemplateOverviewPanel({
   const [showConfigTooltip, setShowConfigTooltip] = useState(false);
   const [configView, setConfigView] = useState<'plan' | 'program'>('plan');
   const [productMenuPosition, setProductMenuPosition] = useState<{ top: number; left: number; width: number } | null>(null);
+  const [configTooltipPosition, setConfigTooltipPosition] = useState<{ top: number; left: number } | null>(null);
   const [showTemplatePreview, setShowTemplatePreview] = useState(false);
   const [extractedTemplates, setExtractedTemplates] = useState<{ sections?: SectionTemplate[]; documents?: DocumentTemplate[]; errors?: string[] } | null>(null);
   const [isExtracting, setIsExtracting] = useState(false);
+  const [expandedSectionId, setExpandedSectionId] = useState<string | null>(null);
+  const [expandedDocumentId, setExpandedDocumentId] = useState<string | null>(null);
+  const [editingSection, setEditingSection] = useState<SectionTemplate | null>(null);
+  const [editingDocument, setEditingDocument] = useState<DocumentTemplate | null>(null);
   const fileInputRef = useRef<HTMLInputElement | null>(null);
   const manualInputRef = useRef<HTMLDivElement | null>(null);
   const manualTriggerRef = useRef<HTMLButtonElement | null>(null);
+  const configTooltipRef = useRef<HTMLDivElement | null>(null);
+  const configTooltipButtonRef = useRef<HTMLButtonElement | null>(null);
   const productMenuRef = useRef<HTMLDivElement | null>(null);
   const productTriggerRef = useRef<HTMLButtonElement | null>(null);
 
@@ -212,7 +219,7 @@ export function TemplateOverviewPanel({
         customSections: customSections.length > 0 ? customSections : undefined,
         customDocuments: customDocuments.length > 0 ? customDocuments : undefined
       });
-    }, 300);
+    }, 100);
     
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [disabledSections, disabledDocuments, customSections, customDocuments]);
@@ -391,6 +398,69 @@ export function TemplateOverviewPanel({
     setCustomDocuments(prev => prev.filter(d => d.id !== id));
   };
 
+  const handleEditSection = (section: SectionTemplate, e: React.MouseEvent) => {
+    e.stopPropagation();
+    setEditingSection({ ...section });
+    setExpandedSectionId(section.id);
+  };
+
+  const handleEditDocument = (doc: DocumentTemplate, e: React.MouseEvent) => {
+    e.stopPropagation();
+    setEditingDocument({ ...doc });
+    setExpandedDocumentId(doc.id);
+  };
+
+  const handleSaveSection = () => {
+    if (!editingSection) return;
+    
+    if (editingSection.origin === 'custom') {
+      // Update existing custom section
+      setCustomSections(prev => prev.map(s => s.id === editingSection.id ? editingSection : s));
+    } else {
+      // For master/program sections, create a custom copy with edited values
+      const updatedSection = { 
+        ...editingSection, 
+        id: `custom_${editingSection.id}_${Date.now()}`,
+        origin: 'custom' as const 
+      };
+      setCustomSections(prev => [...prev, updatedSection]);
+      // Disable the original section
+      setDisabledSections(prev => new Set([...prev, editingSection.id]));
+    }
+    
+    setExpandedSectionId(null);
+    setEditingSection(null);
+  };
+
+  const handleSaveDocument = () => {
+    if (!editingDocument) return;
+    
+    if (editingDocument.origin === 'custom') {
+      // Update existing custom document
+      setCustomDocuments(prev => prev.map(d => d.id === editingDocument.id ? editingDocument : d));
+    } else {
+      // For master/program documents, create a custom copy with edited values
+      const updatedDocument = { 
+        ...editingDocument, 
+        id: `custom_${editingDocument.id}_${Date.now()}`,
+        origin: 'custom' as const 
+      };
+      setCustomDocuments(prev => [...prev, updatedDocument]);
+      // Disable the original document
+      setDisabledDocuments(prev => new Set([...prev, editingDocument.id]));
+    }
+    
+    setExpandedDocumentId(null);
+    setEditingDocument(null);
+  };
+
+  const handleCancelEdit = () => {
+    setExpandedSectionId(null);
+    setExpandedDocumentId(null);
+    setEditingSection(null);
+    setEditingDocument(null);
+  };
+
   const handleTemplateUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
     if (!file) return;
@@ -445,11 +515,11 @@ export function TemplateOverviewPanel({
   const getOriginBadge = (origin?: string) => {
     switch (origin) {
       case 'program':
-        return <Badge variant="info" className="bg-blue-600/30 text-blue-200 border-0 text-[8px] px-1 py-0">P</Badge>;
+        return <Badge variant="info" className="bg-blue-600/30 text-blue-200 border-0 text-[7px] px-0.5 py-0">P</Badge>;
       case 'custom':
-        return <Badge variant="secondary" className="bg-purple-600/30 text-purple-200 border-0 text-[8px] px-1 py-0">C</Badge>;
+        return <Badge variant="secondary" className="bg-purple-600/30 text-purple-200 border-0 text-[7px] px-0.5 py-0">C</Badge>;
       default:
-        return <Badge variant="neutral" className="bg-white/10 text-white/70 border-0 text-[8px] px-1 py-0">M</Badge>;
+        return <Badge variant="neutral" className="bg-white/10 text-white/70 border-0 text-[7px] px-0.5 py-0">M</Badge>;
     }
   };
 
@@ -531,18 +601,38 @@ export function TemplateOverviewPanel({
                     </h2>
                     <div className="relative">
                       <button
+                        ref={configTooltipButtonRef}
                         type="button"
-                        onMouseEnter={() => setShowConfigTooltip(true)}
+                        onMouseEnter={() => {
+                          if (configTooltipButtonRef.current) {
+                            const rect = configTooltipButtonRef.current.getBoundingClientRect();
+                            setConfigTooltipPosition({
+                              top: rect.bottom + 4,
+                              left: rect.left
+                            });
+                            setShowConfigTooltip(true);
+                          }
+                        }}
                         onMouseLeave={() => setShowConfigTooltip(false)}
                         className="text-white/60 hover:text-white text-xs font-bold w-4 h-4 rounded-full border border-white/50 bg-white/20 flex items-center justify-center transition-colors"
                       >
                         ?
                       </button>
-                      {showConfigTooltip && (
-                        <div className="absolute z-50 left-0 top-5 w-64 p-2 bg-slate-900 text-white text-[10px] rounded shadow-lg border border-slate-700">
+                      {showConfigTooltip && configTooltipPosition && typeof window !== 'undefined' && createPortal(
+                        <div
+                          ref={configTooltipRef}
+                          className="fixed z-[9999] w-64 p-2 bg-slate-900 text-white text-[10px] rounded shadow-lg border border-slate-700 pointer-events-none"
+                          style={{
+                            top: `${configTooltipPosition.top}px`,
+                            left: `${configTooltipPosition.left}px`
+                          }}
+                          onMouseEnter={() => setShowConfigTooltip(true)}
+                          onMouseLeave={() => setShowConfigTooltip(false)}
+                        >
                           Wählen Sie Ihren Plan-Typ, verbinden Sie ein Förderprogramm oder laden Sie eine Vorlage hoch. 
                           Ihre Auswahl bestimmt die verfügbaren Abschnitte und Dokumente für Ihren Plan.
-                        </div>
+                        </div>,
+                        document.body
                       )}
                     </div>
                   </div>
@@ -745,15 +835,11 @@ export function TemplateOverviewPanel({
                             <span className="text-[9px] font-medium text-white truncate">{selectedProductMeta?.label || 'Nicht ausgewählt'}</span>
                           </div>
                         </div>
-                        {programSummary && (
-                          <div className="flex items-center gap-1.5">
-                            <span className="text-[9px] text-white/50 min-w-[65px]">Programm:</span>
-                            <span className="text-[9px] font-medium text-white flex-1 truncate">{programSummary.name}</span>
-                          </div>
-                        )}
                         <div className="flex items-center gap-1.5">
-                          <span className="text-[9px] text-white/50 min-w-[65px]">Förderart:</span>
-                          <span className="text-[9px] font-medium text-white flex-1 truncate capitalize">{fundingType || 'Nicht festgelegt'}</span>
+                          <span className="text-[9px] text-white/50 min-w-[65px]">Programme/Vorlagen:</span>
+                          <span className="text-[9px] font-medium text-white flex-1 truncate">
+                            {programSummary ? programSummary.name : 'Keine Vorlage'}
+                          </span>
                         </div>
                       </div>
                     </div>
@@ -763,110 +849,202 @@ export function TemplateOverviewPanel({
 
                 {/* Column 2: Sections */}
                 <div className="flex flex-col gap-2 border-r border-white/10 pr-4 h-full overflow-hidden">
-                  <div className="flex-shrink-0">
+                  <div className="flex-shrink-0" data-column="sections">
                     <h2 className="text-base font-bold uppercase tracking-wide text-white mb-2 pb-2 border-b border-white/10">
                       Ausgewählte Abschnitte ({filteredSections.length})
                     </h2>
                   </div>
                   <p className="text-[10px] text-white/50 mb-2 flex-shrink-0 -mt-2">
-                    ✓ Aktivieren/deaktivieren, um Abschnitte in Ihren Plan einzubeziehen oder auszuschließen
+                    Entscheide welche Abschnitte du in dein Dokument miteinbeziehst.
                   </p>
-                  <div className="grid grid-cols-3 gap-2 flex-1 overflow-y-auto min-h-0 pr-1 auto-rows-min">
-                    {filteredSections.map((section) => {
-                      const isDisabled = disabledSections.has(section.id);
-                      const isRequired = section.required;
-                      
-                      return (
-                        <div
-                          key={section.id}
-                          className={`relative border rounded-lg p-2.5 ${
-                            isDisabled 
-                              ? 'border-white/10 bg-white/5 opacity-60' 
-                              : isRequired
-                              ? 'border-amber-500/30 bg-amber-500/5'
-                              : 'border-white/20 bg-white/10'
-                          } transition-all hover:border-white/40 cursor-pointer group`}
-                          onClick={() => toggleSection(section.id)}
-                          title={section.description}
-                        >
-                          {/* Checkbox in top-right corner */}
-                          <div className="absolute top-1.5 right-1.5 z-10">
+                  
+                  {expandedSectionId && editingSection ? (
+                    // Expanded Edit Form
+                    <div className="flex-1 overflow-y-auto min-h-0 pr-1">
+                      <div className="border rounded-lg p-4 bg-white/10 border-white/20">
+                        <div className="flex items-start justify-between mb-4">
+                          <div className="flex items-center gap-2">
+                            <span className="text-2xl">📋</span>
+                            <div>
+                              <h3 className="text-sm font-semibold text-white">Abschnitt bearbeiten</h3>
+                              <div className="flex items-center gap-1 mt-1">
+                                {editingSection.required && (
+                                  <Badge variant="warning" className="bg-amber-600/30 text-amber-200 border-0 text-[9px] px-1.5 py-0.5">
+                                    Erf.
+                                  </Badge>
+                                )}
+                                {getOriginBadge(editingSection.origin)}
+                              </div>
+                            </div>
+                          </div>
+                          <button
+                            onClick={handleCancelEdit}
+                            className="text-white/60 hover:text-white text-lg font-bold"
+                          >
+                            ×
+                          </button>
+                        </div>
+                        
+                        <div className="space-y-3">
+                          <div>
+                            <label className="text-[10px] text-white/70 block mb-1">Titel *</label>
                             <input
-                              type="checkbox"
-                              checked={!isDisabled}
-                              onChange={(e) => {
-                                e.stopPropagation();
-                                toggleSection(section.id);
-                              }}
-                              className={`w-3.5 h-3.5 rounded border-2 ${
-                                isDisabled
-                                  ? 'border-white/30 bg-white/10'
-                                  : isRequired
-                                  ? 'border-amber-500 bg-amber-600/30 cursor-pointer'
-                                  : 'border-blue-500 bg-blue-600/30 cursor-pointer'
-                              } text-blue-600 focus:ring-1 focus:ring-blue-500/50`}
-                              title={isDisabled ? 'Click to enable this section' : 'Click to disable this section'}
+                              type="text"
+                              value={editingSection.title}
+                              onChange={(e) => setEditingSection({ ...editingSection, title: e.target.value })}
+                              className="w-full rounded border border-white/30 bg-white/10 px-2 py-1.5 text-xs text-white placeholder:text-white/40 focus:border-blue-300 focus:outline-none focus:ring-1 focus:ring-blue-400/60"
                             />
                           </div>
                           
-                          {/* Large icon as main visual element */}
-                          <div className="flex flex-col items-center gap-1.5 pt-1 min-h-[60px]">
-                            <span className="text-2xl leading-none flex-shrink-0">📋</span>
-                            <div className="w-full text-center min-h-[32px] flex items-center justify-center">
-                              <h4 className={`text-[11px] font-semibold leading-snug ${isDisabled ? 'text-white/50 line-through' : 'text-white'} break-words line-clamp-2`}>
-                                {section.title}
-                              </h4>
-                            </div>
-                            <div className="flex items-center justify-center gap-1 flex-wrap">
-                              {isRequired && (
-                                <Badge variant="warning" className="bg-amber-600/30 text-amber-200 border-0 text-[9px] px-1.5 py-0.5">
-                                  Erf.
-                                </Badge>
-                              )}
-                              {getOriginBadge(section.origin)}
-                              {section.wordCountMin > 0 && (
-                                <span className="text-[9px] text-white/50">
-                                  {section.wordCountMin}-{section.wordCountMax || '∞'}w
-                                </span>
-                              )}
-                            </div>
-                            {section.origin === 'custom' && (
-                              <button
-                                onClick={(e) => {
-                                  e.stopPropagation();
-                                  removeCustomSection(section.id);
-                                }}
-                                className="text-red-300 hover:text-red-200 text-xs font-bold px-1.5 py-0.5 rounded hover:bg-red-500/20 transition-colors opacity-0 group-hover:opacity-100"
-                                title="Benutzerdefinierten Abschnitt entfernen"
-                              >
-                                ×
-                              </button>
-                            )}
+                          <div>
+                            <label className="text-[10px] text-white/70 block mb-1">Beschreibung</label>
+                            <textarea
+                              value={editingSection.description}
+                              onChange={(e) => setEditingSection({ ...editingSection, description: e.target.value })}
+                              rows={3}
+                              className="w-full rounded border border-white/30 bg-white/10 px-2 py-1.5 text-xs text-white placeholder:text-white/40 focus:border-blue-300 focus:outline-none focus:ring-1 focus:ring-blue-400/60 resize-none"
+                            />
                           </div>
                           
-                          {/* Hover tooltip with full description */}
-                          {section.description && (
-                            <div className="absolute inset-0 pointer-events-none opacity-0 group-hover:opacity-100 transition-opacity z-20">
-                              <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 w-48 p-2 bg-slate-900/95 text-white text-[10px] rounded-lg shadow-xl border border-slate-700">
-                                <p className="leading-relaxed">{section.description}</p>
-                                {section.wordCountMin > 0 && (
-                                  <p className="mt-1.5 text-white/60 border-t border-white/20 pt-1.5">
-                                    Word count: {section.wordCountMin}-{section.wordCountMax || '∞'} words
-                                  </p>
+                          <div className="grid grid-cols-2 gap-2">
+                            <div>
+                              <label className="text-[10px] text-white/70 block mb-1">Min. Wörter</label>
+                              <input
+                                type="number"
+                                value={editingSection.wordCountMin}
+                                onChange={(e) => {
+                                  const val = parseInt(e.target.value, 10);
+                                  setEditingSection({ ...editingSection, wordCountMin: isNaN(val) ? 0 : val });
+                                }}
+                                className="w-full rounded border border-white/30 bg-white/10 px-2 py-1.5 text-xs text-white focus:border-blue-300 focus:outline-none focus:ring-1 focus:ring-blue-400/60"
+                              />
+                            </div>
+                            <div>
+                              <label className="text-[10px] text-white/70 block mb-1">Max. Wörter</label>
+                              <input
+                                type="number"
+                                value={editingSection.wordCountMax === Number.MAX_SAFE_INTEGER ? '' : editingSection.wordCountMax}
+                                onChange={(e) => {
+                                  const val = e.target.value ? parseInt(e.target.value, 10) : Number.MAX_SAFE_INTEGER;
+                                  setEditingSection({ ...editingSection, wordCountMax: (!isNaN(val) && val > 0) ? val : Number.MAX_SAFE_INTEGER });
+                                }}
+                                className="w-full rounded border border-white/30 bg-white/10 px-2 py-1.5 text-xs text-white focus:border-blue-300 focus:outline-none focus:ring-1 focus:ring-blue-400/60"
+                                placeholder="∞"
+                              />
+                            </div>
+                          </div>
+                          
+                          <div className="flex gap-2 pt-2">
+                            <Button
+                              onClick={handleSaveSection}
+                              className="flex-1 bg-blue-600 hover:bg-blue-700 text-white text-xs px-3 py-1.5"
+                            >
+                              Speichern
+                            </Button>
+                            <Button
+                              onClick={handleCancelEdit}
+                              variant="ghost"
+                              className="flex-1 text-white/60 hover:text-white text-xs px-3 py-1.5"
+                            >
+                              Abbrechen
+                            </Button>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  ) : (
+                    // Normal Grid View
+                    <div className="grid grid-cols-3 gap-2 flex-1 overflow-y-auto min-h-0 pr-1 auto-rows-min">
+                      {filteredSections.map((section) => {
+                        const isDisabled = disabledSections.has(section.id);
+                        const isRequired = section.required;
+                        
+                        return (
+                          <div
+                            key={section.id}
+                            className={`relative border rounded-lg p-2.5 ${
+                              isDisabled 
+                                ? 'border-white/10 bg-white/5 opacity-60' 
+                                : isRequired
+                                ? 'border-amber-500/30 bg-amber-500/5'
+                                : 'border-white/20 bg-white/10'
+                            } transition-all hover:border-white/40 cursor-pointer group`}
+                            onClick={() => toggleSection(section.id)}
+                          >
+                            {/* Checkbox in top-right corner */}
+                            <div className="absolute top-1.5 right-1.5 z-10">
+                              <input
+                                type="checkbox"
+                                checked={!isDisabled}
+                                onChange={(e) => {
+                                  e.stopPropagation();
+                                  toggleSection(section.id);
+                                }}
+                                className={`w-3.5 h-3.5 rounded border-2 ${
+                                  isDisabled
+                                    ? 'border-white/30 bg-white/10'
+                                    : isRequired
+                                    ? 'border-amber-500 bg-amber-600/30 cursor-pointer'
+                                    : 'border-blue-500 bg-blue-600/30 cursor-pointer'
+                                } text-blue-600 focus:ring-1 focus:ring-blue-500/50`}
+                              />
+                            </div>
+                            
+                            {/* Large icon as main visual element */}
+                            <div className="flex flex-col items-center gap-1 pt-1 min-h-[50px]">
+                              <span className="text-2xl leading-none flex-shrink-0">📋</span>
+                              <div className="w-full text-center min-h-[28px] flex items-center justify-center">
+                                <h4 className={`text-[11px] font-semibold leading-snug ${isDisabled ? 'text-white/50 line-through' : 'text-white'} break-words line-clamp-2`}>
+                                  {section.title}
+                                </h4>
+                              </div>
+                              {/* Badges with pencil icon on hover */}
+                              <div className="flex items-center justify-center gap-0.5 flex-wrap group/badge">
+                                {isRequired && (
+                                  <Badge variant="warning" className="bg-amber-600/30 text-amber-200 border-0 text-[7px] px-1 py-0 relative">
+                                    Erf.
+                                    <button
+                                      onClick={(e) => handleEditSection(section, e)}
+                                      className="absolute -right-1 -top-0.5 opacity-0 group-hover/badge:opacity-100 text-white/60 hover:text-white text-[8px] transition-opacity"
+                                    >
+                                      ✏️
+                                    </button>
+                                  </Badge>
+                                )}
+                                {getOriginBadge(section.origin)}
+                                {!isRequired && (
+                                  <button
+                                    onClick={(e) => handleEditSection(section, e)}
+                                    className="opacity-0 group-hover/badge:opacity-100 text-white/60 hover:text-white text-[8px] transition-opacity"
+                                  >
+                                    ✏️
+                                  </button>
                                 )}
                               </div>
+                              {section.origin === 'custom' && (
+                                <button
+                                  onClick={(e) => {
+                                    e.stopPropagation();
+                                    removeCustomSection(section.id);
+                                  }}
+                                  className="text-red-300 hover:text-red-200 text-xs font-bold px-1.5 py-0.5 rounded hover:bg-red-500/20 transition-colors opacity-0 group-hover:opacity-100"
+                                >
+                                  ×
+                                </button>
+                              )}
                             </div>
-                          )}
-                        </div>
-                      );
-                    })}
-                    <button
-                      onClick={() => setShowAddSection(true)}
-                      className="col-span-3 border border-dashed border-white/20 rounded-md p-2 text-white/50 hover:text-white hover:border-white/40 transition-colors text-[10px] font-medium"
-                    >
-                      + Abschnitt hinzufügen
-                    </button>
-                    {showAddSection && (
+                          </div>
+                        );
+                      })}
+                      {!expandedSectionId && (
+                        <button
+                          onClick={() => setShowAddSection(true)}
+                          className="col-span-3 border border-dashed border-white/20 rounded-md p-2 text-white/50 hover:text-white hover:border-white/40 transition-colors text-[10px] font-medium"
+                        >
+                          + Abschnitt hinzufügen
+                        </button>
+                      )}
+                    {showAddSection && !expandedSectionId && (
                       <div className="col-span-3 border border-white/20 bg-white/10 rounded-lg p-3 space-y-2">
                         <p className="text-xs text-white/80 font-semibold mb-2">Einen benutzerdefinierten Abschnitt zu Ihrem Plan hinzufügen</p>
                         <div className="space-y-2">
@@ -914,111 +1092,207 @@ export function TemplateOverviewPanel({
                         </div>
                       </div>
                     )}
-                  </div>
+                    </div>
+                  )}
                 </div>
 
                 {/* Column 3: Additional Documents */}
                 <div className="flex flex-col gap-2 border-r border-white/10 pr-4 h-full overflow-hidden">
-                  <div className="flex-shrink-0">
+                  <div className="flex-shrink-0" data-column="documents">
                     <h2 className="text-base font-bold uppercase tracking-wide text-white mb-2 pb-2 border-b border-white/10">
                       Zusätzliche Dokumente ({filteredDocuments.length})
                     </h2>
                   </div>
                   <p className="text-[10px] text-white/50 mb-2 flex-shrink-0 -mt-2">
-                    ✓ Aktivieren/deaktivieren, um Dokumente in Ihren Plan einzubeziehen oder auszuschließen
+                    Entscheide welche zusätzlichen Dokumente zu deinem Plan hinzufügt werden.
                   </p>
-                  <div className="grid grid-cols-3 gap-2 flex-1 overflow-y-auto min-h-0 pr-1 auto-rows-min">
-                    {filteredDocuments.map((doc) => {
-                      const isDisabled = disabledDocuments.has(doc.id);
-                      const isRequired = doc.required;
-                      
-                      return (
-                        <div
-                          key={doc.id}
-                          className={`relative border rounded-lg p-2.5 ${
-                            isDisabled 
-                              ? 'border-white/10 bg-white/5 opacity-60' 
-                              : isRequired
-                              ? 'border-amber-500/30 bg-amber-500/5'
-                              : 'border-white/20 bg-white/10'
-                          } transition-all hover:border-white/40 cursor-pointer group`}
-                          onClick={() => toggleDocument(doc.id)}
-                          title={`${doc.description} • ${doc.format.toUpperCase()} • Max ${doc.maxSize}`}
-                        >
-                          {/* Checkbox in top-right corner */}
-                          <div className="absolute top-1.5 right-1.5 z-10">
+                  
+                  {expandedDocumentId && editingDocument ? (
+                    // Expanded Edit Form
+                    <div className="flex-1 overflow-y-auto min-h-0 pr-1">
+                      <div className="border rounded-lg p-4 bg-white/10 border-white/20">
+                        <div className="flex items-start justify-between mb-4">
+                          <div className="flex items-center gap-2">
+                            <span className="text-2xl">📄</span>
+                            <div>
+                              <h3 className="text-sm font-semibold text-white">Dokument bearbeiten</h3>
+                              <div className="flex items-center gap-1 mt-1">
+                                {editingDocument.required && (
+                                  <Badge variant="warning" className="bg-amber-600/30 text-amber-200 border-0 text-[9px] px-1.5 py-0.5">
+                                    Erf.
+                                  </Badge>
+                                )}
+                                {getOriginBadge(editingDocument.origin)}
+                              </div>
+                            </div>
+                          </div>
+                          <button
+                            onClick={handleCancelEdit}
+                            className="text-white/60 hover:text-white text-lg font-bold"
+                          >
+                            ×
+                          </button>
+                        </div>
+                        
+                        <div className="space-y-3">
+                          <div>
+                            <label className="text-[10px] text-white/70 block mb-1">Name *</label>
                             <input
-                              type="checkbox"
-                              checked={!isDisabled}
-                              onChange={(e) => {
-                                e.stopPropagation();
-                                toggleDocument(doc.id);
-                              }}
-                              className={`w-3.5 h-3.5 rounded border-2 ${
-                                isDisabled
-                                  ? 'border-white/30 bg-white/10'
-                                  : isRequired
-                                  ? 'border-amber-500 bg-amber-600/30 cursor-pointer'
-                                  : 'border-blue-500 bg-blue-600/30 cursor-pointer'
-                              } text-blue-600 focus:ring-1 focus:ring-blue-500/50`}
-                              title={isDisabled ? 'Klicken, um dieses Dokument zu aktivieren' : 'Klicken, um dieses Dokument zu deaktivieren'}
+                              type="text"
+                              value={editingDocument.name}
+                              onChange={(e) => setEditingDocument({ ...editingDocument, name: e.target.value })}
+                              className="w-full rounded border border-white/30 bg-white/10 px-2 py-1.5 text-xs text-white placeholder:text-white/40 focus:border-blue-300 focus:outline-none focus:ring-1 focus:ring-blue-400/60"
                             />
                           </div>
                           
-                          {/* Large icon as main visual element */}
-                          <div className="flex flex-col items-center gap-1.5 pt-1 min-h-[60px]">
-                            <span className="text-2xl leading-none flex-shrink-0">📄</span>
-                            <div className="w-full text-center min-h-[32px] flex items-center justify-center">
-                              <h4 className={`text-[11px] font-semibold leading-snug ${isDisabled ? 'text-white/50 line-through' : 'text-white'} break-words line-clamp-2`}>
-                                {doc.name}
-                              </h4>
-                            </div>
-                            <div className="flex items-center justify-center gap-1 flex-wrap">
-                              {isRequired && (
-                                <Badge variant="warning" className="bg-amber-600/30 text-amber-200 border-0 text-[9px] px-1.5 py-0.5">
-                                  Erf.
-                                </Badge>
-                              )}
-                              {getOriginBadge(doc.origin)}
-                              <span className="text-[9px] text-white/50">
-                                {doc.format.toUpperCase()}
-                              </span>
-                            </div>
-                            {doc.origin === 'custom' && (
-                              <button
-                                onClick={(e) => {
-                                  e.stopPropagation();
-                                  removeCustomDocument(doc.id);
-                                }}
-                                className="text-red-300 hover:text-red-200 text-xs font-bold px-1.5 py-0.5 rounded hover:bg-red-500/20 transition-colors opacity-0 group-hover:opacity-100"
-                                title="Benutzerdefiniertes Dokument entfernen"
-                              >
-                                ×
-                              </button>
-                            )}
+                          <div>
+                            <label className="text-[10px] text-white/70 block mb-1">Beschreibung</label>
+                            <textarea
+                              value={editingDocument.description}
+                              onChange={(e) => setEditingDocument({ ...editingDocument, description: e.target.value })}
+                              rows={3}
+                              className="w-full rounded border border-white/30 bg-white/10 px-2 py-1.5 text-xs text-white placeholder:text-white/40 focus:border-blue-300 focus:outline-none focus:ring-1 focus:ring-blue-400/60 resize-none"
+                            />
                           </div>
                           
-                          {/* Hover tooltip with full description */}
-                          {doc.description && (
-                            <div className="absolute inset-0 pointer-events-none opacity-0 group-hover:opacity-100 transition-opacity z-20">
-                              <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 w-48 p-2 bg-slate-900/95 text-white text-[10px] rounded-lg shadow-xl border border-slate-700">
-                                <p className="leading-relaxed">{doc.description}</p>
-                                <p className="mt-1.5 text-white/60 border-t border-white/20 pt-1.5">
-                                  Format: {doc.format.toUpperCase()} • Max size: {doc.maxSize}
-                                </p>
-                              </div>
+                          <div className="grid grid-cols-2 gap-2">
+                            <div>
+                              <label className="text-[10px] text-white/70 block mb-1">Format</label>
+                              <select
+                                value={editingDocument.format}
+                                onChange={(e) => setEditingDocument({ ...editingDocument, format: e.target.value as any })}
+                                className="w-full rounded border border-white/30 bg-white/10 px-2 py-1.5 text-xs text-white focus:border-blue-300 focus:outline-none focus:ring-1 focus:ring-blue-400/60"
+                              >
+                                <option value="pdf">PDF</option>
+                                <option value="docx">DOCX</option>
+                                <option value="xlsx">XLSX</option>
+                                <option value="pptx">PPTX</option>
+                                <option value="text">TEXT</option>
+                              </select>
                             </div>
-                          )}
+                            <div>
+                              <label className="text-[10px] text-white/70 block mb-1">Max. Größe</label>
+                              <input
+                                type="text"
+                                value={editingDocument.maxSize}
+                                onChange={(e) => setEditingDocument({ ...editingDocument, maxSize: e.target.value })}
+                                placeholder="10MB"
+                                className="w-full rounded border border-white/30 bg-white/10 px-2 py-1.5 text-xs text-white placeholder:text-white/40 focus:border-blue-300 focus:outline-none focus:ring-1 focus:ring-blue-400/60"
+                              />
+                            </div>
+                          </div>
+                          
+                          <div className="flex gap-2 pt-2">
+                            <Button
+                              onClick={handleSaveDocument}
+                              className="flex-1 bg-blue-600 hover:bg-blue-700 text-white text-xs px-3 py-1.5"
+                            >
+                              Speichern
+                            </Button>
+                            <Button
+                              onClick={handleCancelEdit}
+                              variant="ghost"
+                              className="flex-1 text-white/60 hover:text-white text-xs px-3 py-1.5"
+                            >
+                              Abbrechen
+                            </Button>
+                          </div>
                         </div>
-                      );
-                    })}
-                    <button
-                      onClick={() => setShowAddDocument(true)}
-                      className="col-span-3 border border-dashed border-white/20 rounded-md p-2 text-white/50 hover:text-white hover:border-white/40 transition-colors text-[10px] font-medium"
-                    >
-                      + Dokument hinzufügen
-                    </button>
-                    {showAddDocument && (
+                      </div>
+                    </div>
+                  ) : (
+                    // Normal Grid View
+                    <div className="grid grid-cols-3 gap-2 flex-1 overflow-y-auto min-h-0 pr-1 auto-rows-min">
+                      {filteredDocuments.map((doc) => {
+                        const isDisabled = disabledDocuments.has(doc.id);
+                        const isRequired = doc.required;
+                        
+                        return (
+                          <div
+                            key={doc.id}
+                            className={`relative border rounded-lg p-2.5 ${
+                              isDisabled 
+                                ? 'border-white/10 bg-white/5 opacity-60' 
+                                : isRequired
+                                ? 'border-amber-500/30 bg-amber-500/5'
+                                : 'border-white/20 bg-white/10'
+                            } transition-all hover:border-white/40 cursor-pointer group`}
+                            onClick={() => toggleDocument(doc.id)}
+                          >
+                            {/* Checkbox in top-right corner */}
+                            <div className="absolute top-1.5 right-1.5 z-10">
+                              <input
+                                type="checkbox"
+                                checked={!isDisabled}
+                                onChange={(e) => {
+                                  e.stopPropagation();
+                                  toggleDocument(doc.id);
+                                }}
+                                className={`w-3.5 h-3.5 rounded border-2 ${
+                                  isDisabled
+                                    ? 'border-white/30 bg-white/10'
+                                    : isRequired
+                                    ? 'border-amber-500 bg-amber-600/30 cursor-pointer'
+                                    : 'border-blue-500 bg-blue-600/30 cursor-pointer'
+                                } text-blue-600 focus:ring-1 focus:ring-blue-500/50`}
+                              />
+                            </div>
+                            
+                            {/* Large icon as main visual element */}
+                            <div className="flex flex-col items-center gap-1 pt-1 min-h-[50px]">
+                              <span className="text-2xl leading-none flex-shrink-0">📄</span>
+                              <div className="w-full text-center min-h-[28px] flex items-center justify-center">
+                                <h4 className={`text-[11px] font-semibold leading-snug ${isDisabled ? 'text-white/50 line-through' : 'text-white'} break-words line-clamp-2`}>
+                                  {doc.name}
+                                </h4>
+                              </div>
+                              {/* Badges with pencil icon on hover */}
+                              <div className="flex items-center justify-center gap-0.5 flex-wrap group/badge">
+                                {isRequired && (
+                                  <Badge variant="warning" className="bg-amber-600/30 text-amber-200 border-0 text-[7px] px-1 py-0 relative">
+                                    Erf.
+                                    <button
+                                      onClick={(e) => handleEditDocument(doc, e)}
+                                      className="absolute -right-1 -top-0.5 opacity-0 group-hover/badge:opacity-100 text-white/60 hover:text-white text-[8px] transition-opacity"
+                                    >
+                                      ✏️
+                                    </button>
+                                  </Badge>
+                                )}
+                                {getOriginBadge(doc.origin)}
+                                {!isRequired && (
+                                  <button
+                                    onClick={(e) => handleEditDocument(doc, e)}
+                                    className="opacity-0 group-hover/badge:opacity-100 text-white/60 hover:text-white text-[8px] transition-opacity"
+                                  >
+                                    ✏️
+                                  </button>
+                                )}
+                              </div>
+                              {doc.origin === 'custom' && (
+                                <button
+                                  onClick={(e) => {
+                                    e.stopPropagation();
+                                    removeCustomDocument(doc.id);
+                                  }}
+                                  className="text-red-300 hover:text-red-200 text-xs font-bold px-1.5 py-0.5 rounded hover:bg-red-500/20 transition-colors opacity-0 group-hover:opacity-100"
+                                >
+                                  ×
+                                </button>
+                              )}
+                            </div>
+                          </div>
+                        );
+                      })}
+                      {!expandedDocumentId && (
+                        <button
+                          onClick={() => setShowAddDocument(true)}
+                          className="col-span-3 border border-dashed border-white/20 rounded-md p-2 text-white/50 hover:text-white hover:border-white/40 transition-colors text-[10px] font-medium"
+                        >
+                          + Dokument hinzufügen
+                        </button>
+                      )}
+                    {showAddDocument && !expandedDocumentId && (
                       <div className="col-span-3 border border-white/20 bg-white/10 rounded-lg p-3 space-y-2">
                         <p className="text-xs text-white/80 font-semibold mb-2">Ein benutzerdefiniertes Dokument zu Ihrem Plan hinzufügen</p>
                         <div className="space-y-2">
@@ -1066,7 +1340,8 @@ export function TemplateOverviewPanel({
                         </div>
                       </div>
                     )}
-                  </div>
+                    </div>
+                  )}
                 </div>
               </div>
             )}
