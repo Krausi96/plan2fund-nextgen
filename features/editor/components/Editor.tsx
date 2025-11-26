@@ -9,7 +9,8 @@ import { useRouter } from 'next/router';
 
 import Sidebar from './layout/shell/Sidebar';
 import RightPanel from './layout/right-panel/RightPanel';
-import { ConnectCopy, PlanConfigurator, Workspace } from './layout/shell/Workspace';
+import { ConnectCopy, Workspace } from './layout/shell/Workspace';
+import TemplateOverviewPanel from './layout/shell/TemplateOverviewPanel';
 import {
   AISuggestionOptions,
   ANCILLARY_SECTION_ID,
@@ -120,6 +121,7 @@ export default function Editor({ product = 'submission' }: EditorProps) {
   const [programLoading, setProgramLoading] = useState(false);
   const [programError, setProgramError] = useState<string | null>(null);
   const storedProgramChecked = useRef(false);
+  const hydrationInProgress = useRef(false);
 
   const connectCopy = useMemo<ConnectCopy>(
     () => ({
@@ -153,13 +155,22 @@ export default function Editor({ product = 'submission' }: EditorProps) {
   );
 
   const applyHydration = useCallback(
-    (summary: ProgramSummary | null) => {
+    async (summary: ProgramSummary | null, options?: {
+      disabledSectionIds: string[];
+      disabledDocumentIds: string[];
+      customSections?: any[];
+      customDocuments?: any[];
+    }) => {
       const fundingType = summary?.fundingType ?? 'grants';
-      hydrate(selectedProduct, {
+      await hydrate(selectedProduct, {
         fundingType,
         programId: summary?.id,
         programName: summary?.name,
-        summary: summary ?? undefined
+        summary: summary ?? undefined,
+        disabledSectionIds: options?.disabledSectionIds,
+        disabledDocumentIds: options?.disabledDocumentIds,
+        customSections: options?.customSections,
+        customDocuments: options?.customDocuments
       });
     },
     [hydrate, selectedProduct]
@@ -169,9 +180,27 @@ export default function Editor({ product = 'submission' }: EditorProps) {
     setSelectedProduct(product);
   }, [product]);
 
+
+  // Hydrate plan when product/program is selected (but allow overview to show)
   useEffect(() => {
-    applyHydration(programSummary);
-  }, [applyHydration, programSummary]);
+    if (selectedProduct && typeof window !== 'undefined' && !hydrationInProgress.current) {
+      hydrationInProgress.current = true;
+      console.log('[Editor] Triggering hydration', { selectedProduct, hasProgram: !!programSummary });
+      // Call with empty options initially - will be updated when TemplateOverviewPanel calls onUpdate
+      applyHydration(programSummary, {
+        disabledSectionIds: [],
+        disabledDocumentIds: []
+      }).catch((err) => {
+        console.error('[Editor] Hydration error:', err);
+        hydrationInProgress.current = false;
+      }).then(() => {
+        // Reset after a delay to allow for updates
+        setTimeout(() => {
+          hydrationInProgress.current = false;
+        }, 1000);
+      });
+    }
+  }, [applyHydration, programSummary, selectedProduct]);
 
   useEffect(() => {
     if (!router.isReady) return;
@@ -262,6 +291,30 @@ export default function Editor({ product = 'submission' }: EditorProps) {
     [setProductType]
   );
 
+  const handleTemplateUpdate = useCallback((options: {
+    disabledSectionIds: string[];
+    disabledDocumentIds: string[];
+    customSections?: any[];
+    customDocuments?: any[];
+  }) => {
+    // Only update if we have a plan or are not currently loading
+    // This prevents infinite loops
+    if (isLoading) {
+      console.log('[Editor] Skipping template update - still loading');
+      return;
+    }
+    
+    // Update hydration with new disabled sections/documents and custom templates
+    applyHydration(programSummary, {
+      disabledSectionIds: options.disabledSectionIds,
+      disabledDocumentIds: options.disabledDocumentIds,
+      customSections: options.customSections,
+      customDocuments: options.customDocuments
+    }).catch((err) => {
+      console.error('[Editor] Template update error:', err);
+    });
+  }, [applyHydration, programSummary, isLoading]);
+
   const isAncillaryView = activeSectionId === ANCILLARY_SECTION_ID;
   const isMetadataView = activeSectionId === METADATA_SECTION_ID;
   const isSpecialWorkspace = isAncillaryView || isMetadataView;
@@ -289,10 +342,13 @@ export default function Editor({ product = 'submission' }: EditorProps) {
     [activeSection, activeQuestion, requestAISuggestions, setRightPanelView]
   );
 
+  // Show loading/error states
   if (isLoading || !plan) {
     return (
-      <div className="h-screen flex items-center justify-center text-gray-500">
-        {(t('editor.ui.loadingEditor' as any) as string) || 'Loading editor...'}
+      <div className="h-screen flex flex-col items-center justify-center text-gray-500 space-y-2">
+        <div>{(t('editor.ui.loadingEditor' as any) as string) || 'Loading editor...'}</div>
+        {isLoading && <div className="text-xs text-gray-400">Initializing plan...</div>}
+        {!plan && !isLoading && <div className="text-xs text-gray-400">Waiting for plan data...</div>}
       </div>
     );
   }
@@ -313,83 +369,88 @@ export default function Editor({ product = 'submission' }: EditorProps) {
 
   return (
     <div className="bg-neutral-200 text-textPrimary">
-      <header className="sticky top-0 z-40 border-b border-neutral-200 bg-white/90 backdrop-blur-sm">
-        <div className="container py-1.5">
-          <PlanConfigurator
-            plan={plan as BusinessPlan}
-            programSummary={programSummary ?? plan.programSummary ?? null}
-            onChangeProduct={handleProductChange}
-            onConnectProgram={handleConnectProgram}
-            onOpenProgramFinder={() => router.push('/reco')}
-            programLoading={programLoading}
-            programError={programError}
-            productOptions={productOptions}
-            connectCopy={connectCopy}
-          />
-        </div>
-      </header>
+      {/* Dein Schreibtisch - integrated with PlanConfigurator, floating over content */}
+      <TemplateOverviewPanel
+        productType={selectedProduct}
+        programSummary={programSummary}
+        fundingType={programSummary?.fundingType ?? 'grants'}
+        planMetadata={plan?.metadata}
+        onUpdate={handleTemplateUpdate}
+        onChangeProduct={handleProductChange}
+        onConnectProgram={handleConnectProgram}
+        onOpenProgramFinder={() => router.push('/reco')}
+        programLoading={programLoading}
+        programError={programError}
+        productOptions={productOptions}
+        connectCopy={connectCopy}
+      />
 
-      <div className="border-b border-neutral-200 bg-neutral-200 sticky top-[72px] z-30">
-        <div className="container">
-        <Sidebar
-          plan={plan}
-          activeSectionId={activeSectionId ?? plan.sections[0]?.id ?? null}
-          onSelectSection={setActiveSection}
-        />
-        </div>
-      </div>
+      {/* Workspace - show if plan exists */}
+      {plan ? (
+        <>
+          <div className="border-b border-neutral-200 bg-neutral-200 sticky top-[72px] z-30">
+            <div className="container">
+            <Sidebar
+              plan={plan}
+              activeSectionId={activeSectionId ?? plan.sections[0]?.id ?? null}
+              onSelectSection={setActiveSection}
+            />
+            </div>
+          </div>
 
-      <div className="container py-1 pb-6 flex flex-col gap-1 lg:flex-row lg:items-start">
-        <div className="flex-1 min-w-0 max-w-4xl">
-          <Workspace
-            plan={plan}
-            isAncillaryView={isAncillaryView}
-            isMetadataView={isMetadataView}
-            activeSection={activeSection}
-            activeQuestionId={activeQuestionId}
-            onSelectQuestion={setActiveQuestion}
-            onAnswerChange={updateAnswer}
-            onToggleUnknown={toggleQuestionUnknown}
-            onMarkComplete={markQuestionComplete}
-            onTitlePageChange={updateTitlePage}
-            onAncillaryChange={updateAncillary}
-            onReferenceAdd={addReference}
-            onReferenceUpdate={updateReference}
-            onReferenceDelete={deleteReference}
-            onAppendixAdd={addAppendix}
-            onAppendixUpdate={updateAppendix}
-            onAppendixDelete={deleteAppendix}
-            onRunRequirements={runRequirementsCheck}
-            progressSummary={progressSummary}
-          />
-        </div>
+          <div className="container py-1 pb-6 flex flex-col gap-1 lg:flex-row lg:items-start">
+            <div className="flex-1 min-w-0 max-w-4xl">
+              <Workspace
+                plan={plan}
+                isAncillaryView={isAncillaryView}
+                isMetadataView={isMetadataView}
+                activeSection={activeSection}
+                activeQuestionId={activeQuestionId}
+                onSelectQuestion={setActiveQuestion}
+                onAnswerChange={updateAnswer}
+                onToggleUnknown={toggleQuestionUnknown}
+                onMarkComplete={markQuestionComplete}
+                onTitlePageChange={updateTitlePage}
+                onAncillaryChange={updateAncillary}
+                onReferenceAdd={addReference}
+                onReferenceUpdate={updateReference}
+                onReferenceDelete={deleteReference}
+                onAppendixAdd={addAppendix}
+                onAppendixUpdate={updateAppendix}
+                onAppendixDelete={deleteAppendix}
+                onRunRequirements={runRequirementsCheck}
+                progressSummary={progressSummary}
+              />
+            </div>
 
-        <div className="w-full lg:w-[500px] flex-shrink-0">
-          <RightPanel
-            view={rightPanelView}
-            setView={setRightPanelView}
-            section={activeSection ?? (isSpecialWorkspace ? undefined : plan.sections[0])}
-            question={activeQuestion ?? undefined}
-            plan={plan}
-            onDatasetCreate={(dataset) => activeSection && addDataset(activeSection.id, dataset)}
-            onKpiCreate={(kpi) => activeSection && addKpi(activeSection.id, kpi)}
-            onMediaCreate={(asset) => activeSection && addMedia(activeSection.id, asset)}
-            onAttachDataset={(dataset) =>
-              activeSection && activeQuestion && attachDatasetToQuestion(activeSection.id, activeQuestion.id, dataset)
-            }
-            onAttachKpi={(kpi) =>
-              activeSection && activeQuestion && attachKpiToQuestion(activeSection.id, activeQuestion.id, kpi)
-            }
-            onAttachMedia={(asset) =>
-              activeSection && activeQuestion && attachMediaToQuestion(activeSection.id, activeQuestion.id, asset)
-            }
-            onRunRequirements={runRequirementsCheck}
-            progressSummary={progressSummary}
-            onAskAI={triggerAISuggestions}
-            onAnswerChange={updateAnswer}
-          />
-        </div>
-      </div>
+            <div className="w-full lg:w-[500px] flex-shrink-0">
+              <RightPanel
+                view={rightPanelView}
+                setView={setRightPanelView}
+                section={activeSection ?? (isSpecialWorkspace ? undefined : plan.sections[0])}
+                question={activeQuestion ?? undefined}
+                plan={plan}
+                onDatasetCreate={(dataset) => activeSection && addDataset(activeSection.id, dataset)}
+                onKpiCreate={(kpi) => activeSection && addKpi(activeSection.id, kpi)}
+                onMediaCreate={(asset) => activeSection && addMedia(activeSection.id, asset)}
+                onAttachDataset={(dataset) =>
+                  activeSection && activeQuestion && attachDatasetToQuestion(activeSection.id, activeQuestion.id, dataset)
+                }
+                onAttachKpi={(kpi) =>
+                  activeSection && activeQuestion && attachKpiToQuestion(activeSection.id, activeQuestion.id, kpi)
+                }
+                onAttachMedia={(asset) =>
+                  activeSection && activeQuestion && attachMediaToQuestion(activeSection.id, activeQuestion.id, asset)
+                }
+                onRunRequirements={runRequirementsCheck}
+                progressSummary={progressSummary}
+                onAskAI={triggerAISuggestions}
+                onAnswerChange={updateAnswer}
+              />
+            </div>
+          </div>
+        </>
+      ) : null}
     </div>
   );
 }

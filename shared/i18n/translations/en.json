@@ -1083,6 +1083,7 @@
   "editor.ui.planNamePlaceholder": "Plan name",
   "editor.ui.companyNamePlaceholder": "Company name",
   "editor.ui.runRequirements": "Run requirements",
+  "editor.desktop.title": "Your Desktop",
   "editor.metadata.completedLabel": "fields complete",
   "editor.metadata.field.planTitle": "Plan title",
   "editor.metadata.field.companyName": "Company name",

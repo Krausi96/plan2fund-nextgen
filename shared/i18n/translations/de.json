@@ -1090,6 +1090,7 @@
   "editor.ui.planNamePlaceholder": "Plan-Name",
   "editor.ui.companyNamePlaceholder": "Unternehmensname",
   "editor.ui.runRequirements": "Anforderungen prüfen",
+  "editor.desktop.title": "Dein Schreibtisch",
   "editor.metadata.completedLabel": "Felder fertig",
   "editor.metadata.field.planTitle": "Plan-Titel",
   "editor.metadata.field.companyName": "Unternehmen",
