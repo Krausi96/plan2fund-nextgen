@@ -7,10 +7,10 @@ import React, {
 } from 'react';
 import { useRouter } from 'next/router';
 
-import Sidebar from './layout/shell/Sidebar';
-import RightPanel from './layout/right-panel/RightPanel';
-import { Workspace } from './layout/shell/Workspace';
-import { TemplateOverviewPanel, ConnectCopy } from './layout/shell/TemplateOverviewPanel';
+import Sidebar from './layout/Workspace/Main Editor/Sidebar';
+import RightPanel from './layout/Workspace/Right-Panel/RightPanel';
+import { Workspace } from './layout/Workspace/Main Editor/Workspace';
+import { TemplateOverviewPanel, ConnectCopy } from './layout/Desktop/Desktop';
 import {
   AISuggestionOptions,
   ANCILLARY_SECTION_ID,
@@ -379,83 +379,91 @@ export default function Editor({ product = 'submission' }: EditorProps) {
       {/* Workspace - show if plan exists */}
       {plan ? (
         <>
-          <div className="border-b border-neutral-200 bg-neutral-200 relative z-0">
-            <div className="container">
-              {/* Dein Schreibtisch - Template Overview Panel, inside same container as Sidebar/Workspace */}
-              <div className="sticky top-[72px] z-[100] bg-neutral-200/98 backdrop-blur-sm border-b border-neutral-300 shadow-2xl -mx-6 px-6 mb-4" style={{ maxHeight: 'calc(100vh - 72px)' }}>
-                <TemplateOverviewPanel
-                  productType={selectedProduct}
-                  programSummary={programSummary}
-                  fundingType={programSummary?.fundingType ?? 'grants'}
-                  planMetadata={plan?.metadata}
-                  onUpdate={handleTemplateUpdate}
-                  onChangeProduct={handleProductChange}
-                  onConnectProgram={handleConnectProgram}
-                  onOpenProgramFinder={() => router.push('/reco')}
-                  programLoading={programLoading}
-                  programError={programError}
-                  productOptions={productOptions}
-                  connectCopy={connectCopy}
-                />
-              </div>
-              
-              <Sidebar
-                plan={plan}
-                activeSectionId={activeSectionId ?? plan.sections[0]?.id ?? null}
-                onSelectSection={setActiveSection}
+          <div className="container">
+            {/* Dein Schreibtisch - Template Overview Panel, same visual layer as Sidebar/Workspace */}
+            <div className="sticky top-[72px] z-[100] mb-4" style={{ maxHeight: 'calc(100vh - 72px)' }}>
+              <TemplateOverviewPanel
+                productType={selectedProduct}
+                programSummary={programSummary}
+                fundingType={programSummary?.fundingType ?? 'grants'}
+                planMetadata={plan?.metadata}
+                onUpdate={handleTemplateUpdate}
+                onChangeProduct={handleProductChange}
+                onConnectProgram={handleConnectProgram}
+                onOpenProgramFinder={() => router.push('/reco')}
+                programLoading={programLoading}
+                programError={programError}
+                productOptions={productOptions}
+                connectCopy={connectCopy}
               />
             </div>
+            
+            <Sidebar
+              plan={plan}
+              activeSectionId={activeSectionId ?? plan.sections[0]?.id ?? null}
+              onSelectSection={setActiveSection}
+            />
           </div>
 
-          <div className="container py-1 pb-6 flex flex-col gap-1 lg:flex-row lg:items-start relative z-0">
-            <div className="flex-1 min-w-0 max-w-4xl">
-              <Workspace
-                plan={plan}
-                isAncillaryView={isAncillaryView}
-                isMetadataView={isMetadataView}
-                activeSection={activeSection}
-                activeQuestionId={activeQuestionId}
-                onSelectQuestion={setActiveQuestion}
-                onAnswerChange={updateAnswer}
-                onToggleUnknown={toggleQuestionUnknown}
-                onMarkComplete={markQuestionComplete}
-                onTitlePageChange={updateTitlePage}
-                onAncillaryChange={updateAncillary}
-                onReferenceAdd={addReference}
-                onReferenceUpdate={updateReference}
-                onReferenceDelete={deleteReference}
-                onAppendixAdd={addAppendix}
-                onAppendixUpdate={updateAppendix}
-                onAppendixDelete={deleteAppendix}
-                onRunRequirements={runRequirementsCheck}
-                progressSummary={progressSummary}
-              />
-            </div>
+          {/* Main Editor and Right-Panel with shared background */}
+          <div className="container py-1 pb-6 relative z-0">
+            <div className="relative rounded-lg border border-blue-600/50 overflow-hidden backdrop-blur-lg shadow-xl">
+              {/* Shared background gradient */}
+              <div className="absolute inset-0 bg-gradient-to-b from-slate-950 via-blue-900 to-slate-950" />
+              <div className="absolute inset-0 bg-black/20 backdrop-blur-xl" />
+              
+              {/* Content container */}
+              <div className="relative z-10 flex flex-col gap-1 lg:flex-row lg:items-start p-1">
+                <div className="flex-1 min-w-0 max-w-4xl">
+                  <Workspace
+                    plan={plan}
+                    isAncillaryView={isAncillaryView}
+                    isMetadataView={isMetadataView}
+                    activeSection={activeSection}
+                    activeQuestionId={activeQuestionId}
+                    onSelectQuestion={setActiveQuestion}
+                    onAnswerChange={updateAnswer}
+                    onToggleUnknown={toggleQuestionUnknown}
+                    onMarkComplete={markQuestionComplete}
+                    onTitlePageChange={updateTitlePage}
+                    onAncillaryChange={updateAncillary}
+                    onReferenceAdd={addReference}
+                    onReferenceUpdate={updateReference}
+                    onReferenceDelete={deleteReference}
+                    onAppendixAdd={addAppendix}
+                    onAppendixUpdate={updateAppendix}
+                    onAppendixDelete={deleteAppendix}
+                    onRunRequirements={runRequirementsCheck}
+                    progressSummary={progressSummary}
+                  />
+                </div>
 
-            <div className="w-full lg:w-[500px] flex-shrink-0">
-              <RightPanel
-                view={rightPanelView}
-                setView={setRightPanelView}
-                section={activeSection ?? (isSpecialWorkspace ? undefined : plan.sections[0])}
-                question={activeQuestion ?? undefined}
-                plan={plan}
-                onDatasetCreate={(dataset) => activeSection && addDataset(activeSection.id, dataset)}
-                onKpiCreate={(kpi) => activeSection && addKpi(activeSection.id, kpi)}
-                onMediaCreate={(asset) => activeSection && addMedia(activeSection.id, asset)}
-                onAttachDataset={(dataset) =>
-                  activeSection && activeQuestion && attachDatasetToQuestion(activeSection.id, activeQuestion.id, dataset)
-                }
-                onAttachKpi={(kpi) =>
-                  activeSection && activeQuestion && attachKpiToQuestion(activeSection.id, activeQuestion.id, kpi)
-                }
-                onAttachMedia={(asset) =>
-                  activeSection && activeQuestion && attachMediaToQuestion(activeSection.id, activeQuestion.id, asset)
-                }
-                onRunRequirements={runRequirementsCheck}
-                progressSummary={progressSummary}
-                onAskAI={triggerAISuggestions}
-                onAnswerChange={updateAnswer}
-              />
+                <div className="w-full lg:w-[500px] flex-shrink-0">
+                  <RightPanel
+                    view={rightPanelView}
+                    setView={setRightPanelView}
+                    section={activeSection ?? (isSpecialWorkspace ? undefined : plan.sections[0])}
+                    question={activeQuestion ?? undefined}
+                    plan={plan}
+                    onDatasetCreate={(dataset) => activeSection && addDataset(activeSection.id, dataset)}
+                    onKpiCreate={(kpi) => activeSection && addKpi(activeSection.id, kpi)}
+                    onMediaCreate={(asset) => activeSection && addMedia(activeSection.id, asset)}
+                    onAttachDataset={(dataset) =>
+                      activeSection && activeQuestion && attachDatasetToQuestion(activeSection.id, activeQuestion.id, dataset)
+                    }
+                    onAttachKpi={(kpi) =>
+                      activeSection && activeQuestion && attachKpiToQuestion(activeSection.id, activeQuestion.id, kpi)
+                    }
+                    onAttachMedia={(asset) =>
+                      activeSection && activeQuestion && attachMediaToQuestion(activeSection.id, activeQuestion.id, asset)
+                    }
+                    onRunRequirements={runRequirementsCheck}
+                    progressSummary={progressSummary}
+                    onAskAI={triggerAISuggestions}
+                    onAnswerChange={updateAnswer}
+                  />
+                </div>
+              </div>
             </div>
           </div>
         </>

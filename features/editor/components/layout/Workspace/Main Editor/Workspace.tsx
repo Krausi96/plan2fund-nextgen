@@ -9,7 +9,7 @@ import {
   TitlePage
 } from '@/features/editor/types/plan';
 import { ProgressSummary } from '@/features/editor/hooks/useEditorStore';
-import MetadataAndAncillaryPanel from '../workspace/metadata/MetadataAndAncillaryPanel';
+import MetadataAndAncillaryPanel from '../Title Page & Attachement Data/MetadataAndAncillaryPanel';
 import { SectionWorkspace } from './SectionWorkspace';
 
 type WorkspaceProps = {
