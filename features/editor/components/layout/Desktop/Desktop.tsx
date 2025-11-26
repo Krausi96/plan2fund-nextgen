@@ -7,10 +7,13 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } f
 import { getSections, getDocuments } from '@templates';
 import { extractTemplateFromFile } from '@/features/editor/templates/api';
 import type { SectionTemplate, DocumentTemplate } from '@templates';
-import type { ProductType, ProgramSummary, BusinessPlan } from '@/features/editor/types/plan';
+import type { ProductType, ProgramSummary, BusinessPlan, Section, Question, RightPanelView, Dataset, KPI, MediaAsset } from '@/features/editor/types/plan';
 import { useI18n } from '@/shared/contexts/I18nContext';
-import { normalizeProgramInput } from '@/features/editor/hooks/useEditorStore';
+import { normalizeProgramInput, ProgressSummary, AISuggestionOptions } from '@/features/editor/hooks/useEditorStore';
 import Sidebar from '../Workspace/Main Editor/Sidebar';
+import { Workspace } from '../Workspace/Main Editor/Workspace';
+import RightPanel from '../Workspace/Right-Panel/RightPanel';
+import type { AncillaryContent, AppendixItem, Reference, TitlePage } from '@/features/editor/types/plan';
 
 export type ConnectCopy = {
   badge: string;
@@ -53,6 +56,36 @@ export interface TemplateOverviewPanelProps {
   plan?: BusinessPlan;
   activeSectionId?: string | null;
   onSelectSection?: (sectionId: string) => void;
+  // Workspace props
+  isAncillaryView?: boolean;
+  isMetadataView?: boolean;
+  activeSection?: Section | null;
+  activeQuestionId?: string | null;
+  onSelectQuestion?: (questionId: string) => void;
+  onAnswerChange?: (questionId: string, content: string) => void;
+  onToggleUnknown?: (questionId: string, note?: string) => void;
+  onMarkComplete?: (questionId: string) => void;
+  onTitlePageChange?: (titlePage: TitlePage) => void;
+  onAncillaryChange?: (updates: Partial<AncillaryContent>) => void;
+  onReferenceAdd?: (reference: Reference) => void;
+  onReferenceUpdate?: (reference: Reference) => void;
+  onReferenceDelete?: (id: string) => void;
+  onAppendixAdd?: (item: AppendixItem) => void;
+  onAppendixUpdate?: (item: AppendixItem) => void;
+  onAppendixDelete?: (id: string) => void;
+  onRunRequirements?: () => void;
+  progressSummary?: ProgressSummary[];
+  // RightPanel props
+  rightPanelView?: RightPanelView;
+  setRightPanelView?: (view: RightPanelView) => void;
+  activeQuestion?: Question | null;
+  onDatasetCreate?: (dataset: Dataset) => void;
+  onKpiCreate?: (kpi: KPI) => void;
+  onMediaCreate?: (asset: MediaAsset) => void;
+  onAttachDataset?: (dataset: Dataset) => void;
+  onAttachKpi?: (kpi: KPI) => void;
+  onAttachMedia?: (asset: MediaAsset) => void;
+  onAskAI?: (questionId?: string, options?: AISuggestionOptions) => void;
 }
 
 export function TemplateOverviewPanel({
@@ -70,7 +103,35 @@ export function TemplateOverviewPanel({
   connectCopy,
   plan,
   activeSectionId,
-  onSelectSection
+  onSelectSection,
+  isAncillaryView,
+  isMetadataView,
+  activeSection,
+  activeQuestionId,
+  onSelectQuestion,
+  onAnswerChange,
+  onToggleUnknown,
+  onMarkComplete,
+  onTitlePageChange,
+  onAncillaryChange,
+  onReferenceAdd,
+  onReferenceUpdate,
+  onReferenceDelete,
+  onAppendixAdd,
+  onAppendixUpdate,
+  onAppendixDelete,
+  onRunRequirements,
+  progressSummary,
+  rightPanelView,
+  setRightPanelView,
+  activeQuestion,
+  onDatasetCreate,
+  onKpiCreate,
+  onMediaCreate,
+  onAttachDataset,
+  onAttachKpi,
+  onAttachMedia,
+  onAskAI
 }: TemplateOverviewPanelProps) {
   const { t } = useI18n();
   const [sections, setSections] = useState<SectionTemplate[]>([]);
@@ -532,7 +593,7 @@ export function TemplateOverviewPanel({
   };
 
 
-  const headerCardClasses = 'relative rounded-lg border border-blue-600/50 px-2.5 py-1.5 shadow-xl backdrop-blur-xl overflow-visible';
+  const headerCardClasses = 'relative rounded-lg border border-blue-600/50 px-2.5 pt-1.5 pb-0 shadow-xl backdrop-blur-xl overflow-visible';
 
   if (loading) {
     return (
@@ -561,7 +622,7 @@ export function TemplateOverviewPanel({
   }
 
   return (
-    <div className="py-2">
+    <div className="pb-0">
       <Card className={`${headerCardClasses} flex flex-col`}>
         <div className="absolute inset-0 bg-gradient-to-b from-slate-900 via-blue-900 to-slate-800 rounded-lg" />
             <div className="relative z-10 flex flex-col gap-3">
@@ -1325,8 +1386,8 @@ export function TemplateOverviewPanel({
             {/* Sidebar - Plan Sections Navigation */}
             {plan && onSelectSection && (
               <>
-                <div className="border-t border-white/30 w-full mt-2 mb-2"></div>
-                <div className="relative z-10">
+                <div className="border-t border-white/30 w-full mt-2 mb-0"></div>
+                <div className="relative z-10 pb-0">
                   <Sidebar
                     plan={plan}
                     activeSectionId={activeSectionId ?? plan.sections[0]?.id ?? null}
