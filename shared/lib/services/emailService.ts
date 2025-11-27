@@ -49,7 +49,7 @@ class EmailService {
       }
 
       // Fallback to generic email API
-      return await this.sendViaGenericAPI(options);
+      return await this.sendViaGenericAPI();
     } catch (error) {
       console.error('Error sending email:', error);
       return {
@@ -91,7 +91,7 @@ class EmailService {
     }
   }
 
-  private async sendViaGenericAPI(_options: EmailOptions): Promise<{ success: boolean; error?: string }> {
+  private async sendViaGenericAPI(): Promise<{ success: boolean; error?: string }> {
     // Generic implementation - can be customized for other email services
     console.warn('Generic email API not implemented. Please configure Resend or another email service.');
     return { success: false, error: 'Email service not configured' };

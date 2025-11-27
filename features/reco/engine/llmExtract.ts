@@ -461,7 +461,7 @@ export async function extractWithLLM(
     const result = transformLLMResponse(parsed, url);
     
     // Extraction quality validation
-    const validation = validateExtractionQuality(result, url);
+    const validation = validateExtractionQuality(result);
     if (!validation.isValid) {
       console.warn(`⚠️ Extraction quality issues for ${url}:`, validation.issues);
     }
@@ -1008,8 +1008,7 @@ function transformLLMResponse(
  * Validate extraction quality
  */
 function validateExtractionQuality(
-  result: LLMExtractionResponse,
-  _url: string
+  result: LLMExtractionResponse
 ): { isValid: boolean; qualityScore: number; issues: string[] } {
   const issues: string[] = [];
   let qualityScore = 100;

@@ -1,5 +1,5 @@
 // User Context for Profile Management and State
-import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
+import React, { createContext, useContext, useState, useEffect, ReactNode, useCallback } from 'react';
 import { UserProfile, validateUserProfile } from '@/shared/user/schemas/userProfile';
 import featureFlags from '@/shared/user/featureFlags';
 import analytics from '@/shared/user/analytics';
@@ -33,9 +33,9 @@ export function UserProvider({ children }: UserProviderProps) {
     if (isMounted) {
       loadUserProfile();
     }
-  }, [isMounted]);
+  }, [isMounted, loadUserProfile]);
 
-  const loadUserProfile = async () => {
+  const loadUserProfile = useCallback(async () => {
     // Only run on client side
     if (typeof window === 'undefined') {
       setIsLoading(false);
@@ -63,7 +63,7 @@ export function UserProvider({ children }: UserProviderProps) {
             analytics.setUserId(validatedProfile.id);
             
             // Refresh profile from server
-            await refreshProfileFromServer(validatedProfile.id);
+            await refreshProfileFromServer();
           }
         } catch (parseError) {
           console.error('Error parsing stored profile:', parseError);
@@ -78,9 +78,9 @@ export function UserProvider({ children }: UserProviderProps) {
     } finally {
       setIsLoading(false);
     }
-  };
+  }, [refreshProfileFromServer]);
 
-  const refreshProfileFromServer = async (_userId: string) => {
+  const refreshProfileFromServer = useCallback(async () => {
     try {
       // Use new auth session endpoint instead of old profile endpoint
       const response = await fetch('/api/auth/session');
@@ -108,7 +108,7 @@ export function UserProvider({ children }: UserProviderProps) {
     } catch (error) {
       console.error('Error refreshing profile from server:', error);
     }
-  };
+  }, []);
 
   const setUserProfile = (profile: UserProfile) => {
     setUserProfileState(profile);
@@ -147,7 +147,7 @@ export function UserProvider({ children }: UserProviderProps) {
 
   const refreshProfile = async () => {
     if (userProfile) {
-      await refreshProfileFromServer(userProfile.id);
+      await refreshProfileFromServer();
     }
   };
 

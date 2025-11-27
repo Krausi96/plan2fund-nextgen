@@ -30,7 +30,8 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     }
 
     // Return user data (without password hash)
-    const { password_hash, ...userWithoutPassword } = user;
+    const { password_hash: _passwordHash, ...userWithoutPassword } = user;
+    void _passwordHash;
 
     return res.status(200).json({
       success: true,

@@ -239,7 +239,6 @@ function buildReason(matched: Array<{ reason: string }>) {
 
 export async function scoreProgramsEnhanced(
   answers: UserAnswers,
-  _mode: "strict" | "explorer" = "strict",
   programs: Program[] = []
 ): Promise<EnhancedProgramResult[]> {
   if (!programs.length) {

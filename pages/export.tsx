@@ -59,9 +59,9 @@ function Export() {
       event: 'export_page_view', 
       properties: { sections_count: loadedSections.length } 
     });
-  }, [router.query]);
+  }, [router.query, loadAdditionalDocuments]);
 
-  const loadAdditionalDocuments = async () => {
+  const loadAdditionalDocuments = React.useCallback(async () => {
     try {
       // Use unified template system
       const { programId } = router.query as { programId?: string };
@@ -86,7 +86,7 @@ function Export() {
       console.error('Error loading additional documents:', error);
       setAdditionalDocuments([]);
     }
-  };
+  }, [router.query, product, route]);
 
   function mergeDocs(staticDocs: any[], programDocs: any[]) {
     const byId: Record<string, any> = {};

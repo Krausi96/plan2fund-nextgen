@@ -152,7 +152,7 @@ export function getFeatureConfig(feature: FeatureFlag): FeatureConfig {
  */
 export function getPremiumFeatures(): FeatureFlag[] {
   return Object.entries(FEATURE_CONFIG)
-    .filter(([_, config]) => config.premium)
+    .filter(([, config]) => config.premium)
     .map(([flag]) => flag as FeatureFlag);
 }
 

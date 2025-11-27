@@ -54,9 +54,9 @@ function Preview() {
 
     // Track preview view
     analytics.trackSuccessHubView("preview");
-  }, [router.query]);
+  }, [router.query, loadAdditionalDocuments]);
 
-  const loadAdditionalDocuments = async () => {
+  const loadAdditionalDocuments = React.useCallback(async () => {
     try {
       // Use unified template system
       const { programId } = router.query as { programId?: string };
@@ -79,7 +79,7 @@ function Preview() {
       console.error('Error loading additional documents:', error);
       setAdditionalDocuments([]);
     }
-  };
+  }, [router.query, product, route]);
 
   function mergeDocs(staticDocs: any[], programDocs: any[]) {
     const byId: Record<string, any> = {};

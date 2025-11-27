@@ -324,7 +324,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
             if (typeof row.value === 'string' && (row.value.startsWith('{') || row.value.startsWith('['))) {
               parsedValue = JSON.parse(row.value);
             }
-          } catch (e) {
+          } catch {
             // Not JSON, use as-is
           }
           
@@ -424,7 +424,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
           metadata = typeof page.metadata_json === 'string' 
             ? JSON.parse(page.metadata_json) 
             : (page.metadata_json || {});
-        } catch (e) {
+        } catch {
           metadata = {};
         }
 

@@ -157,12 +157,9 @@ export default function DataPanel({
   onMediaCreate,
   activeQuestionId,
   sectionId,
-  sectionTitle: _sectionTitle,
   onAttachDataset,
   onAttachKpi,
-  onAttachMedia,
-  onAskForStructure: _onAskForStructure,
-  onMarkComplete: _onMarkComplete
+  onAttachMedia
 }: DataPanelProps) {
   const [activeTab, setActiveTab] = useState<Tab>('datasets');
   const [activeComposer, setActiveComposer] = useState<Composer>(null);
@@ -773,7 +770,7 @@ export default function DataPanel({
                       )}
                       {/* KPI Suggestions */}
                       {(() => {
-                        const suggestions = suggestKPIsFromDataset(dataset, datasetList);
+                        const suggestions = suggestKPIsFromDataset(dataset);
                         if (suggestions.length === 0) return null;
                         return (
                           <div className="border-t border-white/10 pt-3 space-y-2">

@@ -5,7 +5,7 @@
 
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { X, Shield, Database, Brain } from 'lucide-react';
 import { Button } from '@/shared/components/ui/button';
 import { Card } from '@/shared/components/ui/card';
@@ -28,13 +28,7 @@ export default function DataConsentModal({
   const [mlTraining, setMlTraining] = useState(false);
   const [loading, setLoading] = useState(false);
 
-  useEffect(() => {
-    if (isOpen && userProfile?.id) {
-      loadConsentStatus();
-    }
-  }, [isOpen, userProfile]);
-
-  const loadConsentStatus = async () => {
+  const loadConsentStatus = useCallback(async () => {
     if (!userProfile?.id) return;
     
     try {
@@ -44,7 +38,13 @@ export default function DataConsentModal({
     } catch (error) {
       console.error('Error loading consent:', error);
     }
-  };
+  }, [userProfile]);
+
+  useEffect(() => {
+    if (isOpen && userProfile?.id) {
+      loadConsentStatus();
+    }
+  }, [isOpen, userProfile, loadConsentStatus]);
 
   const handleSave = async () => {
     if (!userProfile?.id) return;

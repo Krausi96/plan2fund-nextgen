@@ -3,7 +3,7 @@ import { Button } from "@/shared/components/ui/button";
 import Link from "next/link";
 import { useUser } from "@/shared/user/context/UserContext";
 import { FileText, Target, TrendingUp, Clock, CheckCircle, AlertCircle, Plus, RefreshCw, Database, Settings, Receipt, CreditCard, Download, ChevronDown, ChevronUp } from "lucide-react";
-import { useEffect, useState, useMemo } from "react";
+import { useEffect, useState, useMemo, useCallback } from "react";
 import { withAuth } from "@/shared/user/auth/withAuth";
 import { multiUserDataManager } from "@/shared/user/storage/planStore";
 import analytics from "@/shared/user/analytics";
@@ -86,66 +86,70 @@ function DashboardPage() {
       has_plans: plans.length > 0,
       has_recommendations: recommendations.length > 0
     });
-  }, [isMounted]);
+  }, [
+    isMounted,
+    loadUserData,
+    checkAdminStatus,
+    loadLastUpdateTime,
+    userProfile?.segment,
+    plans.length,
+    recommendations.length
+  ]);
 
-  const loadUserData = () => {
-    // Only access localStorage on client side
+  const loadUserData = useCallback(() => {
     if (typeof window === 'undefined') return;
-    
-    // Load plans from localStorage - filter by user and client
-    const allPlans = JSON.parse(localStorage.getItem('userPlans') || '[]');
-    const userPlans = allPlans.filter((p: Plan) => !userProfile || p.userId === userProfile.id);
-    setPlans(userPlans);
 
-    // Load recommendations from localStorage - filter by user and client
-    const allRecommendations = JSON.parse(localStorage.getItem('userRecommendations') || '[]');
-    const userRecommendations = allRecommendations.filter((r: Recommendation) => !userProfile || r.userId === userProfile.id);
-    setRecommendations(userRecommendations);
+    const syncUserData = () => {
+      const allPlans = JSON.parse(localStorage.getItem('userPlans') || '[]');
+      const userPlans = allPlans.filter((p: Plan) => !userProfile || p.userId === userProfile.id);
+      setPlans(userPlans);
 
-    // Load payments and documents
-    if (userProfile) {
-      const userPayments = getUserPayments(userProfile.id);
-      setPayments(userPayments);
-      
-      const userDocs = getUserDocuments(userProfile.id);
-      setDocuments(userDocs);
-      
-      // Mark plans as paid if they have completed payments
-      userPlans.forEach((plan: Plan) => {
-        const paymentStatus = getPlanPaymentStatus(plan.id, userProfile.id);
-        if (paymentStatus.isPaid && !plan.isPaid) {
-          // Update plan in localStorage
-          const allPlans = JSON.parse(localStorage.getItem('userPlans') || '[]');
-          const planIndex = allPlans.findIndex((p: Plan) => p.id === plan.id && p.userId === userProfile.id);
-          if (planIndex >= 0) {
-            allPlans[planIndex] = { ...allPlans[planIndex], isPaid: true, paidAt: paymentStatus.paidAt };
-            localStorage.setItem('userPlans', JSON.stringify(allPlans));
-            loadUserData(); // Reload to reflect changes
+      const allRecommendations = JSON.parse(localStorage.getItem('userRecommendations') || '[]');
+      const userRecommendations = allRecommendations.filter((r: Recommendation) => !userProfile || r.userId === userProfile.id);
+      setRecommendations(userRecommendations);
+
+      if (userProfile) {
+        const userPayments = getUserPayments(userProfile.id);
+        setPayments(userPayments);
+
+        const userDocs = getUserDocuments(userProfile.id);
+        setDocuments(userDocs);
+
+        userPlans.forEach((plan: Plan) => {
+          const paymentStatus = getPlanPaymentStatus(plan.id, userProfile.id);
+          if (paymentStatus.isPaid && !plan.isPaid) {
+            const storedPlans = JSON.parse(localStorage.getItem('userPlans') || '[]');
+            const planIndex = storedPlans.findIndex((p: Plan) => p.id === plan.id && p.userId === userProfile.id);
+            if (planIndex >= 0) {
+              storedPlans[planIndex] = { ...storedPlans[planIndex], isPaid: true, paidAt: paymentStatus.paidAt };
+              localStorage.setItem('userPlans', JSON.stringify(storedPlans));
+              syncUserData();
+            }
           }
-        }
-      });
-    }
-
-    // Load clients (consultant workspaces) from localStorage
-    const savedClients = multiUserDataManager.listClients();
-    if (Array.isArray(savedClients) && savedClients.length > 0) {
-      setClients(savedClients);
-      if (!activeClientId) {
-        setActiveClientId(savedClients[0].id);
+        });
       }
-    }
 
-    // Calculate stats
-    const completedPlans = userPlans.filter((plan: Plan) => plan.status === 'completed').length;
-    const activeRecommendations = userRecommendations.filter((rec: Recommendation) => rec.status === 'pending' || rec.status === 'applied').length;
-    
-    setStats({
-      totalPlans: userPlans.length,
-      completedPlans,
-      activeRecommendations,
-      successRate: userPlans.length > 0 ? Math.round((completedPlans / userPlans.length) * 100) : 0
-    });
-  };
+      const savedClients = multiUserDataManager.listClients();
+      if (Array.isArray(savedClients) && savedClients.length > 0) {
+        setClients(savedClients);
+        if (!activeClientId) {
+          setActiveClientId(savedClients[0].id);
+        }
+      }
+
+      const completedPlans = userPlans.filter((plan: Plan) => plan.status === 'completed').length;
+      const activeRecommendations = userRecommendations.filter((rec: Recommendation) => rec.status === 'pending' || rec.status === 'applied').length;
+
+      setStats({
+        totalPlans: userPlans.length,
+        completedPlans,
+        activeRecommendations,
+        successRate: userPlans.length > 0 ? Math.round((completedPlans / userPlans.length) * 100) : 0
+      });
+    };
+
+    syncUserData();
+  }, [userProfile, activeClientId]);
 
   // Only filter plans after mount to avoid hydration mismatch
   const filteredPlans = useMemo(() => {
@@ -179,7 +183,7 @@ function DashboardPage() {
   };
 
   // Admin functions
-  const checkAdminStatus = () => {
+  const checkAdminStatus = useCallback(() => {
     if (typeof window === 'undefined') {
       setIsAdmin(false);
       return;
@@ -218,16 +222,16 @@ function DashboardPage() {
                          localStorage.getItem('isAdmin') === 'true';
       setIsAdmin(isAdminUser);
     }
-  };
+  }, [userProfile]);
 
-  const loadLastUpdateTime = () => {
+  const loadLastUpdateTime = useCallback(() => {
     if (typeof window === 'undefined') return;
     
     const lastUpdate = localStorage.getItem('lastDataUpdate');
     if (lastUpdate) {
       setLastUpdate(new Date(lastUpdate).toLocaleString());
     }
-  };
+  }, []);
 
   const updateData = async () => {
     setIsUpdating(true);

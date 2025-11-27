@@ -56,7 +56,8 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     );
 
     // Return user data (without password hash)
-    const { password_hash, ...userWithoutPassword } = user;
+    const { password_hash: _passwordHash, ...userWithoutPassword } = user;
+    void _passwordHash;
 
     res.setHeader('Set-Cookie', `pf_session=${sessionToken}; HttpOnly; Secure; SameSite=Strict; Path=/; Max-Age=${30 * 24 * 60 * 60}`);
 

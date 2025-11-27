@@ -61,7 +61,8 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     );
 
     // Return user data (without password hash)
-    const { password_hash, ...userWithoutPassword } = user;
+    const { password_hash: _passwordHash, ...userWithoutPassword } = user;
+    void _passwordHash;
 
     // Set cookie with appropriate expiration
     const maxAge = sessionDays * 24 * 60 * 60; // Convert days to seconds

@@ -617,7 +617,7 @@ class ExportManager {
         case 'PDF':
           return await this.generatePDF(plan, options, subscriptionTier);
         case 'DOCX':
-          return await this.generateDOCX(plan, options, subscriptionTier);
+          return await this.generateDOCX(plan, options);
         default:
           throw new Error(`Unsupported format: ${options.format}`);
       }
@@ -630,7 +630,7 @@ class ExportManager {
     }
   }
 
-  private async generateDOCX(plan: PlanDocument, options: ExportOptions, _subscriptionTier: 'free' | 'premium' | 'enterprise' = 'free'): Promise<ExportResult> {
+  private async generateDOCX(plan: PlanDocument, options: ExportOptions): Promise<ExportResult> {
     try {
       // Import DOCX library dynamically
       const { Document, Packer, Paragraph, TextRun, HeadingLevel, AlignmentType, PageBreak } = await import('docx');

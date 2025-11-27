@@ -561,8 +561,9 @@ export default function ProgramFinder({
   const [answers, setAnswers] = useState<Record<string, any>>({});
   const [planningModalOpen, setPlanningModalOpen] = useState(false);
   const answersForApi = useMemo(() => {
-    const { funding_intent, ...rest } = answers;
-    return rest;
+    const sanitizedAnswers = { ...answers };
+    delete sanitizedAnswers.funding_intent;
+    return sanitizedAnswers;
   }, [answers]);
   
   // All questions are visible by default - no progressive disclosure
@@ -636,9 +637,6 @@ const REQUIRED_QUESTION_IDS = ['company_type', 'project_scope', 'location', 'ind
   const hasRequiredAnswers = missingRequiredAnswers.length === 0;
   const hasEnoughAnswers = answeredCount >= MIN_QUESTIONS_FOR_RESULTS && hasRequiredAnswers;
   const remainingQuestions = Math.max(0, MIN_QUESTIONS_FOR_RESULTS - answeredCount);
-  
-  // State to control when to show results
-  const [_showResults, _setShowResults] = useState(false);
   
   // State for raw input values (to allow typing without formatting interference)
   const [rawInputValues, setRawInputValues] = useState<Record<string, string>>({});
@@ -2007,7 +2005,7 @@ const REQUIRED_QUESTION_IDS = ['company_type', 'project_scope', 'location', 'ind
                     let parsedError: any = null;
                     try {
                       parsedError = JSON.parse(errorText);
-                    } catch (_parseErr) {
+                    } catch {
                       parsedError = null;
                     }
 
@@ -2115,7 +2113,7 @@ const REQUIRED_QUESTION_IDS = ['company_type', 'project_scope', 'location', 'ind
                       program_focus: p.metadata?.program_focus || [],
                     }));
                   console.log(`📊 Scoring ${programsForScoring.length} programs...`);
-                  const scored = await scoreProgramsEnhanced(answersForApi, 'strict', programsForScoring);
+                  const scored = await scoreProgramsEnhanced(answersForApi, programsForScoring);
                   console.log(`✅ Scored ${scored.length} programs`);
                   console.log('📈 Score distribution:', scored.map(p => ({ name: p.name, score: p.score })));
                   

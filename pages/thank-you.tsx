@@ -2,7 +2,7 @@
 import SuccessHub from "@/shared/components/common/SuccessHub";
 import Link from "next/link";
 import { useRouter } from "next/router";
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useState, useCallback } from "react";
 import { useI18n } from "@/shared/contexts/I18nContext";
 import { useUser } from "@/shared/user/context/UserContext";
 import analytics from "@/shared/user/analytics";
@@ -25,7 +25,7 @@ export default function SuccessHubPage() {
   const [showRevisionForm, setShowRevisionForm] = useState(false);
   const [revisionMessage, setRevisionMessage] = useState("");
   const [selectedSections, setSelectedSections] = useState<string[]>([]);
-  const [_paymentVerified, setPaymentVerified] = useState(false); // Used for future payment verification UI
+  const [paymentVerified, setPaymentVerified] = useState(false);
   const [isMounted, setIsMounted] = useState(false);
   const planSummary = useMemo<PlanDocument | null>(() => {
     if (!userProfile || !planId || typeof planId !== 'string') {
@@ -75,9 +75,9 @@ export default function SuccessHubPage() {
       // Legacy stub payment
       setPaymentVerified(true);
     }
-  }, [session_id, payment, planId, userProfile, isMounted]);
+  }, [session_id, payment, planId, userProfile, isMounted, verifyPayment]);
 
-  const verifyPayment = async (sessionId: string) => {
+  const verifyPayment = useCallback(async (sessionId: string) => {
     try {
       const response = await fetch('/api/payments/success', {
         method: 'POST',
@@ -102,7 +102,7 @@ export default function SuccessHubPage() {
     } catch (error) {
       console.error('Payment verification failed:', error);
     }
-  };
+  }, [userProfile]);
 
   const handleTestimonialSubmit = async (rating: number, feedback: string) => {
     await analytics.trackEvent({
@@ -133,6 +133,11 @@ export default function SuccessHubPage() {
         Congratulations! Your business plan order has been successfully
         completed. {documents.length > 0 ? 'Your documents have been sent to your email.' : 'A copy will be sent to your email shortly.'}
       </p>
+      {paymentVerified && (
+        <p className="text-sm text-green-600 font-semibold">
+          Payment verified – your receipt is on the way.
+        </p>
+      )}
 
       {planSummary && userProfile && (
         <SuccessHub

@@ -74,7 +74,7 @@ async function getProgramRequirements(programId: string) {
         if (typeof row.value === 'string' && (row.value.startsWith('{') || row.value.startsWith('['))) {
           parsedValue = JSON.parse(row.value);
         }
-      } catch (e) {
+      } catch {
         // Not JSON, use as-is
       }
       

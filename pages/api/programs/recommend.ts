@@ -113,7 +113,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     }
   }
   if (matching.length === 0) {
-    matching = buildFallbackPrograms(answers, maxResults);
+    matching = buildFallbackPrograms();
     fallbackUsed = true;
   }
 
@@ -898,7 +898,7 @@ async function buildDeterministicFallbackPrograms(
     if (!catalog.length) {
       return [];
     }
-    const scored = await scoreProgramsEnhanced(answers as any, 'strict', catalog);
+    const scored = await scoreProgramsEnhanced(answers as any, catalog);
     return scored.slice(0, maxPrograms).map(mapDeterministicProgramToGenerated);
   } catch (error) {
     console.error('[reco][recommend] Deterministic fallback failed:', error);
@@ -961,7 +961,7 @@ function mapRawCatalogProgram(raw: any): Program {
   if (typeof categorizedRequirements === 'string') {
     try {
       categorizedRequirements = JSON.parse(categorizedRequirements);
-    } catch (error) {
+    } catch {
       categorizedRequirements = {};
     }
   }
@@ -1029,7 +1029,7 @@ function mapDeterministicProgramToGenerated(program: EnhancedProgramResult): Gen
   };
 }
 
-function buildFallbackPrograms(_answers: UserAnswers, _maxPrograms: number): GeneratedProgram[] {
+function buildFallbackPrograms(): GeneratedProgram[] {
   // Return empty array - no generic fallback programs
   // This ensures users get a proper "no results" message instead of unhelpful generic suggestions
   return [];

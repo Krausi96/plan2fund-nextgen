@@ -113,10 +113,7 @@ function detectFinancialVariables(dataset: Dataset): FinancialVariable[] {
 /**
  * Suggests KPIs based on dataset structure and financial variables.
  */
-export function suggestKPIsFromDataset(
-  dataset: Dataset,
-  _allDatasets: Dataset[] = []
-): KPISuggestion[] {
+export function suggestKPIsFromDataset(dataset: Dataset): KPISuggestion[] {
   const suggestions: KPISuggestion[] = [];
   const variables = detectFinancialVariables(dataset);
   const nameLower = dataset.name.toLowerCase();

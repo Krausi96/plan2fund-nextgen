@@ -620,10 +620,6 @@ const productLabel = selectedProductMeta?.label ?? 'Nicht ausgewählt';
 const sectionTitles = visibleSections.map((section) => section.title);
 const documentTitles = visibleDocuments.map((doc) => doc.name);
 const programLabel = programSummary?.name ?? null;
-const getSelectionTooltip = (items: string[]) => (items.length ? items.join(', ') : 'Keine Auswahl');
-const formatHoverList = (items: string[]) => (items.length ? items.join(', ') : 'Keine Auswahl');
-const sectionHoverList = formatHoverList(sectionTitles);
-const documentHoverList = formatHoverList(documentTitles);
 const cardElevationClasses = isExpanded
   ? 'z-30 shadow-[0_25px_60px_rgba(8,15,40,0.85)] ring-1 ring-white/15 translate-y-[-4px]'
   : 'z-10 shadow-xl';
