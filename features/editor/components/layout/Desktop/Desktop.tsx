@@ -142,7 +142,7 @@ export function TemplateOverviewPanel({
   const [error, setError] = useState<string | null>(null);
   const [disabledSections, setDisabledSections] = useState<Set<string>>(new Set());
   const [disabledDocuments, setDisabledDocuments] = useState<Set<string>>(new Set());
-  const [isExpanded, setIsExpanded] = useState(true); // Expanded by default
+  const [isExpanded, setIsExpanded] = useState(false); // Collapsed by default
   const [showAddSection, setShowAddSection] = useState(false);
   const [showAddDocument, setShowAddDocument] = useState(false);
   const [newSectionTitle, setNewSectionTitle] = useState('');
@@ -659,9 +659,18 @@ export function TemplateOverviewPanel({
               </div>
               <div className="border-b border-white/30 w-full"></div>
 
+            {/* Collapsed Summary View */}
+            {!isExpanded && (
+              <div className="py-2 text-sm text-white/70">
+                <p>
+                  {enabledSectionsCount} Abschnitte, {enabledDocumentsCount} Dokumente aktiviert
+                </p>
+              </div>
+            )}
+
             {/* Expanded Three-Column Layout */}
             {isExpanded && (
-              <div className="grid grid-cols-[400px_1fr_1fr] gap-4 h-[380px] overflow-hidden">
+              <div className="grid grid-cols-[400px_1fr_1fr] gap-4 h-[280px] overflow-hidden">
                 {/* Column 1: Deine Konfiguration */}
                 <div className="flex flex-col gap-2 border-r border-white/10 pr-4 overflow-y-auto min-h-0">
                   <div className="flex items-center gap-2 mb-2 pb-2 border-b border-white/10">
@@ -1023,7 +1032,7 @@ export function TemplateOverviewPanel({
                     </div>
                   ) : (
                     // Normal Grid View
-                    <div className="grid grid-cols-3 gap-2 flex-1 overflow-y-auto min-h-0 pr-1 auto-rows-min">
+                    <div className="grid grid-cols-3 gap-2 flex-1 overflow-y-auto min-h-0 pr-1 auto-rows-min pb-2">
                       {filteredSections.map((section) => {
                         const isDisabled = disabledSections.has(section.id);
                         const isRequired = section.required;
@@ -1255,7 +1264,7 @@ export function TemplateOverviewPanel({
                     </div>
                   ) : (
                     // Normal Grid View
-                    <div className="grid grid-cols-3 gap-2 flex-1 overflow-y-auto min-h-0 pr-1 auto-rows-min">
+                    <div className="grid grid-cols-3 gap-2 flex-1 overflow-y-auto min-h-0 pr-1 auto-rows-min pb-2">
                       {filteredDocuments.map((doc) => {
                         const isDisabled = disabledDocuments.has(doc.id);
                         const isRequired = doc.required;
