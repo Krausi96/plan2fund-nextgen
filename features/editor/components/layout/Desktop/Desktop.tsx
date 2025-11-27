@@ -142,7 +142,7 @@ export function TemplateOverviewPanel({
   const [error, setError] = useState<string | null>(null);
   const [disabledSections, setDisabledSections] = useState<Set<string>>(new Set());
   const [disabledDocuments, setDisabledDocuments] = useState<Set<string>>(new Set());
-  const [isExpanded, setIsExpanded] = useState(false); // Collapsed by default
+  const [isExpanded, setIsExpanded] = useState(true); // Expanded by default
   const [showAddSection, setShowAddSection] = useState(false);
   const [showAddDocument, setShowAddDocument] = useState(false);
   const [newSectionTitle, setNewSectionTitle] = useState('');
@@ -467,6 +467,26 @@ export function TemplateOverviewPanel({
     setCustomDocuments(prev => prev.filter(d => d.id !== id));
   };
 
+  const toggleAddSectionBadge = () => {
+    setShowAddSection(prev => {
+      if (prev) {
+        setNewSectionTitle('');
+        setNewSectionDescription('');
+      }
+      return !prev;
+    });
+  };
+
+  const toggleAddDocumentBadge = () => {
+    setShowAddDocument(prev => {
+      if (prev) {
+        setNewDocumentName('');
+        setNewDocumentDescription('');
+      }
+      return !prev;
+    });
+  };
+
   const handleEditSection = (section: SectionTemplate, e: React.MouseEvent) => {
     e.stopPropagation();
     setEditingSection({ ...section });
@@ -578,8 +598,9 @@ export function TemplateOverviewPanel({
     : allDocuments.filter(d => d.origin === documentFilter);
 
   const visibleSections = allSections.filter(s => !disabledSections.has(s.id));
+  const visibleDocuments = allDocuments.filter(d => !disabledDocuments.has(d.id));
   const enabledSectionsCount = visibleSections.length;
-  const enabledDocumentsCount = allDocuments.filter(d => !disabledDocuments.has(d.id)).length;
+  const enabledDocumentsCount = visibleDocuments.length;
 
   const getOriginBadge = (origin?: string) => {
     switch (origin) {
@@ -593,12 +614,24 @@ export function TemplateOverviewPanel({
   };
 
 
-  const headerCardClasses = 'relative rounded-lg border border-blue-600/50 px-2.5 pt-1.5 pb-0 shadow-xl backdrop-blur-xl overflow-visible';
+const headerCardClasses = 'relative rounded-lg border border-blue-600/50 px-2.5 pt-1.5 pb-0 backdrop-blur-xl overflow-visible transition-all duration-300';
+const selectionSummary = `${enabledSectionsCount}/${allSections.length} Abschnitte • ${enabledDocumentsCount}/${allDocuments.length} Dokumente`;
+const productLabel = selectedProductMeta?.label ?? 'Nicht ausgewählt';
+const sectionTitles = visibleSections.map((section) => section.title);
+const documentTitles = visibleDocuments.map((doc) => doc.name);
+const programLabel = programSummary?.name ?? null;
+const getSelectionTooltip = (items: string[]) => (items.length ? items.join(', ') : 'Keine Auswahl');
+const formatHoverList = (items: string[]) => (items.length ? items.join(', ') : 'Keine Auswahl');
+const sectionHoverList = formatHoverList(sectionTitles);
+const documentHoverList = formatHoverList(documentTitles);
+const cardElevationClasses = isExpanded
+  ? 'z-30 shadow-[0_25px_60px_rgba(8,15,40,0.85)] ring-1 ring-white/15 translate-y-[-4px]'
+  : 'z-10 shadow-xl';
 
   if (loading) {
     return (
       <div className="py-4">
-        <Card className={`${headerCardClasses} flex flex-col`}>
+        <Card className={`${headerCardClasses} flex flex-col ${cardElevationClasses}`}>
           <div className="absolute inset-0 bg-gradient-to-b from-slate-900 via-blue-900 to-slate-800 rounded-lg" />
           <div className="relative z-10 flex items-center justify-between">
             <span className="text-sm font-semibold text-white">Loading...</span>
@@ -611,7 +644,7 @@ export function TemplateOverviewPanel({
   if (error) {
     return (
       <div className="py-4">
-        <Card className={`${headerCardClasses} flex flex-col`}>
+        <Card className={`${headerCardClasses} flex flex-col ${cardElevationClasses}`}>
           <div className="absolute inset-0 bg-gradient-to-b from-slate-900 via-red-900/20 to-slate-800 rounded-lg" />
           <div className="relative z-10 flex items-center justify-between">
             <span className="text-sm font-semibold text-red-200">{error}</span>
@@ -623,54 +656,53 @@ export function TemplateOverviewPanel({
 
   return (
     <div className="pb-0">
-      <Card className={`${headerCardClasses} flex flex-col`}>
+      <Card className={`${headerCardClasses} flex flex-col ${cardElevationClasses}`}>
         <div className="absolute inset-0 bg-gradient-to-b from-slate-900 via-blue-900 to-slate-800 rounded-lg" />
             <div className="relative z-10 flex flex-col gap-3">
               {/* Header */}
-              <div className="grid grid-cols-3 items-center">
+              <div className="flex flex-wrap items-center justify-between gap-3">
                 <span className="text-2xl font-bold uppercase tracking-wide text-white">
                   {t('editor.desktop.title' as any) || 'Dein Schreibtisch'}
                 </span>
-                <div className="flex items-center justify-center gap-3 text-xs text-white/60">
-                  <span className="flex items-center gap-1.5">
-                    {selectedProductMeta?.icon} <span>{selectedProductMeta?.label}</span>
-                  </span>
-                  {programSummary && configView === 'program' && (
-                    <>
-                      <span className="text-white/20">•</span>
-                      <span className="flex items-center gap-1.5">
-                        <span>{programSummary.name}</span>
+                <div className="flex flex-wrap items-center justify-end gap-3">
+                  {!isExpanded && (
+                    <div className="flex flex-col gap-0.5 px-3 py-1.5 bg-white/5 border border-white/10 rounded-lg">
+                      <span className="text-[10px] uppercase tracking-wide text-white/60 font-semibold">
+                        Aktuelle Auswahl
                       </span>
-                    </>
+                      <div className="flex flex-wrap items-center gap-1.5 text-xs text-white font-medium">
+                        {selectedProductMeta?.icon && (
+                          <span className="text-base leading-none">{selectedProductMeta.icon}</span>
+                        )}
+                        <span>{productLabel}</span>
+                        {programSummary && configView === 'program' && (
+                          <>
+                            <span className="text-white/30">•</span>
+                            <span className="text-white/80">{programSummary.name}</span>
+                          </>
+                        )}
+                        <span className="text-white/30">•</span>
+                        <span>{selectionSummary}</span>
+                      </div>
+                    </div>
                   )}
-                  <span className="text-white/20">•</span>
-                  <span>{enabledSectionsCount}/{allSections.length} sections</span>
-                  <span className="text-white/20">•</span>
-                  <span>{enabledDocumentsCount}/{allDocuments.length} documents</span>
-                </div>
-                <div className="flex justify-end">
-                  <button
+                  <Button
                     onClick={() => setIsExpanded(!isExpanded)}
-                    className="text-white/70 hover:text-white text-sm font-medium px-3 py-1.5 rounded hover:bg-white/10 transition-colors"
+                    className={`px-4 py-1.5 text-sm font-semibold ${
+                      isExpanded
+                        ? 'bg-white/10 text-white hover:bg-white/20'
+                        : 'bg-blue-600 hover:bg-blue-500 text-white'
+                    }`}
                   >
-                    {isExpanded ? '▴ Collapse' : '▾ Expand'}
-                  </button>
+                    {isExpanded ? 'Bearbeitung abschließen' : 'Bearbeitung starten'}
+                  </Button>
                 </div>
               </div>
               <div className="border-b border-white/30 w-full"></div>
-
-            {/* Collapsed Summary View */}
-            {!isExpanded && (
-              <div className="py-2 text-sm text-white/70">
-                <p>
-                  {enabledSectionsCount} Abschnitte, {enabledDocumentsCount} Dokumente aktiviert
-                </p>
-              </div>
-            )}
-
             {/* Expanded Three-Column Layout */}
             {isExpanded && (
-              <div className="grid grid-cols-[400px_1fr_1fr] gap-4 h-[280px] overflow-hidden">
+              <>
+              <div className="grid grid-cols-[400px_1fr_1fr] gap-4 h-[340px] overflow-hidden">
                 {/* Column 1: Deine Konfiguration */}
                 <div className="flex flex-col gap-2 border-r border-white/10 pr-4 overflow-y-auto min-h-0">
                   <div className="flex items-center gap-2 mb-2 pb-2 border-b border-white/10">
@@ -899,28 +931,6 @@ export function TemplateOverviewPanel({
                         )}
                       </div>
                     )}
-
-                    {/* Selected Values Summary - Always visible at bottom of card */}
-                    <div className="mt-3 pt-3 border-t border-white/10">
-                      <h3 className="text-[9px] font-semibold text-white/70 uppercase tracking-wide mb-1.5">
-                        Aktuelle Konfiguration
-                      </h3>
-                      <div className="space-y-1">
-                        <div className="flex items-center gap-1.5">
-                          <span className="text-[9px] text-white/50 min-w-[65px]">Plan-Typ:</span>
-                          <div className="flex items-center gap-1 flex-1 min-w-0">
-                            <span className="text-sm leading-none flex-shrink-0">{selectedProductMeta?.icon ?? '📄'}</span>
-                            <span className="text-[9px] font-medium text-white truncate">{selectedProductMeta?.label || 'Nicht ausgewählt'}</span>
-                          </div>
-                        </div>
-                        <div className="flex items-center gap-1.5">
-                          <span className="text-[9px] text-white/50 min-w-[65px]">Programme/Vorlagen:</span>
-                          <span className="text-[9px] font-medium text-white flex-1 truncate">
-                            {programSummary ? programSummary.name : 'Keine Vorlage'}
-                          </span>
-                        </div>
-                      </div>
-                    </div>
                   </div>
                   {/* Column 1 ends here - no more cards below */}
                 </div>
@@ -1030,82 +1040,23 @@ export function TemplateOverviewPanel({
                         </div>
                       </div>
                     </div>
-                  ) : (
-                    // Normal Grid View
-                    <div className="grid grid-cols-3 gap-2 flex-1 overflow-y-auto min-h-0 pr-1 auto-rows-min pb-2">
-                      {filteredSections.map((section) => {
-                        const isDisabled = disabledSections.has(section.id);
-                        const isRequired = section.required;
-                        
-                        return (
-                          <div
-                            key={section.id}
-                            className={`relative border rounded-lg p-2.5 ${
-                              isDisabled 
-                                ? 'border-white/10 bg-white/5 opacity-60' 
-                                : isRequired
-                                ? 'border-amber-500/30 bg-amber-500/5'
-                                : 'border-white/20 bg-white/10'
-                            } transition-all hover:border-white/40 cursor-pointer group`}
-                            onClick={() => toggleSection(section.id)}
-                          >
-                            {/* Checkbox and pencil in top-right corner of card */}
-                            <div className="absolute top-1 right-1 z-10 flex items-center gap-1">
-                              <button
-                                onClick={(e) => handleEditSection(section, e)}
-                                className="text-white/60 hover:text-white text-xs transition-opacity"
-                                onMouseDown={(e) => e.stopPropagation()}
-                              >
-                                ✏️
-                              </button>
-                              <input
-                                type="checkbox"
-                                checked={!isDisabled}
-                                onChange={(e) => {
-                                  e.stopPropagation();
-                                  toggleSection(section.id);
-                                }}
-                                className={`w-3.5 h-3.5 rounded border-2 ${
-                                  isDisabled
-                                    ? 'border-white/30 bg-white/10'
-                                    : isRequired
-                                    ? 'border-amber-500 bg-amber-600/30 cursor-pointer'
-                                    : 'border-blue-500 bg-blue-600/30 cursor-pointer'
-                                } text-blue-600 focus:ring-1 focus:ring-blue-500/50`}
-                              />
-                            </div>
-                            
-                            {/* Large icon as main visual element */}
-                            <div className="flex flex-col items-center gap-1 pt-4 min-h-[50px]">
-                              <span className="text-2xl leading-none flex-shrink-0">📋</span>
-                              <div className="w-full text-center min-h-[28px] flex items-center justify-center">
-                                <h4 className={`text-[11px] font-semibold leading-snug ${isDisabled ? 'text-white/50 line-through' : 'text-white'} break-words line-clamp-2`}>
-                                  {section.title}
-                                </h4>
-                              </div>
-                              {section.origin === 'custom' && (
-                                <button
-                                  onClick={(e) => {
-                                    e.stopPropagation();
-                                    removeCustomSection(section.id);
-                                  }}
-                                  className="text-red-300 hover:text-red-200 text-xs font-bold px-1.5 py-0.5 rounded hover:bg-red-500/20 transition-colors opacity-0 group-hover:opacity-100"
-                                >
-                                  ×
-                                </button>
-                              )}
-                            </div>
-                          </div>
-                        );
-                      })}
-                      {!expandedSectionId && (
-                        <button
-                          onClick={() => setShowAddSection(true)}
-                          className="col-span-3 border border-dashed border-white/20 rounded-md p-2 text-white/50 hover:text-white hover:border-white/40 transition-colors text-[10px] font-medium relative z-20"
-                        >
-                          + Abschnitt hinzufügen
-                        </button>
-                      )}
+                ) : (
+                  // Normal Grid View
+                  <div className="grid grid-cols-3 gap-2 flex-1 overflow-y-auto min-h-0 pr-1 auto-rows-min pb-2">
+                    {!expandedSectionId && (
+                      <button
+                        type="button"
+                        onClick={toggleAddSectionBadge}
+                        className={`relative w-full border rounded-lg p-2.5 flex flex-col items-center justify-center gap-2 text-center text-[11px] font-semibold tracking-tight transition-all ${
+                          showAddSection
+                            ? 'border-blue-400/60 bg-blue-600/30 text-white shadow-lg shadow-blue-900/40'
+                            : 'border-white/20 bg-white/10 text-white/70 hover:border-white/40 hover:text-white'
+                        }`}
+                      >
+                        <span className="text-2xl leading-none">＋</span>
+                        <span>Abschnitt hinzufügen</span>
+                      </button>
+                    )}
                     {showAddSection && !expandedSectionId && (
                       <div className="col-span-3 border border-white/20 bg-white/10 rounded-lg p-3 space-y-2">
                         <p className="text-xs text-white/80 font-semibold mb-2">Einen benutzerdefinierten Abschnitt zu Ihrem Plan hinzufügen</p>
@@ -1154,6 +1105,71 @@ export function TemplateOverviewPanel({
                         </div>
                       </div>
                     )}
+                    {filteredSections.map((section) => {
+                      const isDisabled = disabledSections.has(section.id);
+                      const isRequired = section.required;
+                      
+                      return (
+                        <div
+                          key={section.id}
+                          className={`relative border rounded-lg p-2.5 ${
+                            isDisabled 
+                              ? 'border-white/10 bg-white/5 opacity-60' 
+                              : isRequired
+                              ? 'border-amber-500/30 bg-amber-500/5'
+                              : 'border-white/20 bg-white/10'
+                          } transition-all hover:border-white/40 cursor-pointer group`}
+                          onClick={() => toggleSection(section.id)}
+                        >
+                          {/* Checkbox and pencil in top-right corner of card */}
+                          <div className="absolute top-1 right-1 z-10 flex items-center gap-1">
+                            <button
+                              onClick={(e) => handleEditSection(section, e)}
+                              className="text-white/60 hover:text-white text-xs transition-opacity"
+                              onMouseDown={(e) => e.stopPropagation()}
+                            >
+                              ✏️
+                            </button>
+                            <input
+                              type="checkbox"
+                              checked={!isDisabled}
+                              onChange={(e) => {
+                                e.stopPropagation();
+                                toggleSection(section.id);
+                              }}
+                              className={`w-3.5 h-3.5 rounded border-2 ${
+                                isDisabled
+                                  ? 'border-white/30 bg-white/10'
+                                  : isRequired
+                                  ? 'border-amber-500 bg-amber-600/30 cursor-pointer'
+                                  : 'border-blue-500 bg-blue-600/30 cursor-pointer'
+                              } text-blue-600 focus:ring-1 focus:ring-blue-500/50`}
+                            />
+                          </div>
+                          
+                          {/* Large icon as main visual element */}
+                          <div className="flex flex-col items-center gap-1 pt-4 min-h-[50px]">
+                            <span className="text-2xl leading-none flex-shrink-0">📋</span>
+                            <div className="w-full text-center min-h-[28px] flex items-center justify-center">
+                              <h4 className={`text-[11px] font-semibold leading-snug ${isDisabled ? 'text-white/50 line-through' : 'text-white'} break-words line-clamp-2`}>
+                                {section.title}
+                              </h4>
+                            </div>
+                            {section.origin === 'custom' && (
+                              <button
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  removeCustomSection(section.id);
+                                }}
+                                className="text-red-300 hover:text-red-200 text-xs font-bold px-1.5 py-0.5 rounded hover:bg-red-500/20 transition-colors opacity-0 group-hover:opacity-100"
+                              >
+                                ×
+                              </button>
+                            )}
+                          </div>
+                        </div>
+                      );
+                    })}
                     </div>
                   )}
                 </div>
@@ -1262,82 +1278,23 @@ export function TemplateOverviewPanel({
                         </div>
                       </div>
                     </div>
-                  ) : (
-                    // Normal Grid View
-                    <div className="grid grid-cols-3 gap-2 flex-1 overflow-y-auto min-h-0 pr-1 auto-rows-min pb-2">
-                      {filteredDocuments.map((doc) => {
-                        const isDisabled = disabledDocuments.has(doc.id);
-                        const isRequired = doc.required;
-                        
-                        return (
-                          <div
-                            key={doc.id}
-                            className={`relative border rounded-lg p-2.5 ${
-                              isDisabled 
-                                ? 'border-white/10 bg-white/5 opacity-60' 
-                                : isRequired
-                                ? 'border-amber-500/30 bg-amber-500/5'
-                                : 'border-white/20 bg-white/10'
-                            } transition-all hover:border-white/40 cursor-pointer group`}
-                            onClick={() => toggleDocument(doc.id)}
-                          >
-                            {/* Checkbox and pencil in top-right corner of card */}
-                            <div className="absolute top-1 right-1 z-10 flex items-center gap-1">
-                              <button
-                                onClick={(e) => handleEditDocument(doc, e)}
-                                className="text-white/60 hover:text-white text-xs transition-opacity"
-                                onMouseDown={(e) => e.stopPropagation()}
-                              >
-                                ✏️
-                              </button>
-                              <input
-                                type="checkbox"
-                                checked={!isDisabled}
-                                onChange={(e) => {
-                                  e.stopPropagation();
-                                  toggleDocument(doc.id);
-                                }}
-                                className={`w-3.5 h-3.5 rounded border-2 ${
-                                  isDisabled
-                                    ? 'border-white/30 bg-white/10'
-                                    : isRequired
-                                    ? 'border-amber-500 bg-amber-600/30 cursor-pointer'
-                                    : 'border-blue-500 bg-blue-600/30 cursor-pointer'
-                                } text-blue-600 focus:ring-1 focus:ring-blue-500/50`}
-                              />
-                            </div>
-                            
-                            {/* Large icon as main visual element */}
-                            <div className="flex flex-col items-center gap-1 pt-4 min-h-[50px]">
-                              <span className="text-2xl leading-none flex-shrink-0">📄</span>
-                              <div className="w-full text-center min-h-[28px] flex items-center justify-center">
-                                <h4 className={`text-[11px] font-semibold leading-snug ${isDisabled ? 'text-white/50 line-through' : 'text-white'} break-words line-clamp-2`}>
-                                  {doc.name}
-                                </h4>
-                              </div>
-                              {doc.origin === 'custom' && (
-                                <button
-                                  onClick={(e) => {
-                                    e.stopPropagation();
-                                    removeCustomDocument(doc.id);
-                                  }}
-                                  className="text-red-300 hover:text-red-200 text-xs font-bold px-1.5 py-0.5 rounded hover:bg-red-500/20 transition-colors opacity-0 group-hover:opacity-100"
-                                >
-                                  ×
-                                </button>
-                              )}
-                            </div>
-                          </div>
-                        );
-                      })}
-                      {!expandedDocumentId && (
-                        <button
-                          onClick={() => setShowAddDocument(true)}
-                          className="col-span-3 border border-dashed border-white/20 rounded-md p-2 text-white/50 hover:text-white hover:border-white/40 transition-colors text-[10px] font-medium"
-                        >
-                          + Dokument hinzufügen
-                        </button>
-                      )}
+                ) : (
+                  // Normal Grid View
+                  <div className="grid grid-cols-3 gap-2 flex-1 overflow-y-auto min-h-0 pr-1 auto-rows-min pb-2">
+                    {!expandedDocumentId && (
+                      <button
+                        type="button"
+                        onClick={toggleAddDocumentBadge}
+                        className={`relative w-full border rounded-lg p-2.5 flex flex-col items-center justify-center gap-2 text-center text-[11px] font-semibold tracking-tight transition-all ${
+                          showAddDocument
+                            ? 'border-blue-400/60 bg-blue-600/30 text-white shadow-lg shadow-blue-900/40'
+                            : 'border-white/20 bg-white/10 text-white/70 hover:border-white/40 hover:text-white'
+                        }`}
+                      >
+                        <span className="text-2xl leading-none">＋</span>
+                        <span>Dokument hinzufügen</span>
+                      </button>
+                    )}
                     {showAddDocument && !expandedDocumentId && (
                       <div className="col-span-3 border border-white/20 bg-white/10 rounded-lg p-3 space-y-2">
                         <p className="text-xs text-white/80 font-semibold mb-2">Ein benutzerdefiniertes Dokument zu Ihrem Plan hinzufügen</p>
@@ -1386,10 +1343,133 @@ export function TemplateOverviewPanel({
                         </div>
                       </div>
                     )}
+                    {filteredDocuments.map((doc) => {
+                      const isDisabled = disabledDocuments.has(doc.id);
+                      const isRequired = doc.required;
+                      
+                      return (
+                        <div
+                          key={doc.id}
+                          className={`relative border rounded-lg p-2.5 ${
+                            isDisabled 
+                              ? 'border-white/10 bg-white/5 opacity-60' 
+                              : isRequired
+                              ? 'border-amber-500/30 bg-amber-500/5'
+                              : 'border-white/20 bg-white/10'
+                          } transition-all hover:border-white/40 cursor-pointer group`}
+                          onClick={() => toggleDocument(doc.id)}
+                        >
+                          {/* Checkbox and pencil in top-right corner of card */}
+                          <div className="absolute top-1 right-1 z-10 flex items-center gap-1">
+                            <button
+                              onClick={(e) => handleEditDocument(doc, e)}
+                              className="text-white/60 hover:text-white text-xs transition-opacity"
+                              onMouseDown={(e) => e.stopPropagation()}
+                            >
+                              ✏️
+                            </button>
+                            <input
+                              type="checkbox"
+                              checked={!isDisabled}
+                              onChange={(e) => {
+                                e.stopPropagation();
+                                toggleDocument(doc.id);
+                              }}
+                              className={`w-3.5 h-3.5 rounded border-2 ${
+                                isDisabled
+                                  ? 'border-white/30 bg-white/10'
+                                  : isRequired
+                                  ? 'border-amber-500 bg-amber-600/30 cursor-pointer'
+                                  : 'border-blue-500 bg-blue-600/30 cursor-pointer'
+                              } text-blue-600 focus:ring-1 focus:ring-blue-500/50`}
+                            />
+                          </div>
+                          
+                          {/* Large icon as main visual element */}
+                          <div className="flex flex-col items-center gap-1 pt-4 min-h-[50px]">
+                            <span className="text-2xl leading-none flex-shrink-0">📄</span>
+                            <div className="w-full text-center min-h-[28px] flex items-center justify-center">
+                              <h4 className={`text-[11px] font-semibold leading-snug ${isDisabled ? 'text-white/50 line-through' : 'text-white'} break-words line-clamp-2`}>
+                                {doc.name}
+                              </h4>
+                            </div>
+                            {doc.origin === 'custom' && (
+                              <button
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  removeCustomDocument(doc.id);
+                                }}
+                                className="text-red-300 hover:text-red-200 text-xs font-bold px-1.5 py-0.5 rounded hover:bg-red-500/20 transition-colors opacity-0 group-hover:opacity-100"
+                              >
+                                ×
+                              </button>
+                            )}
+                          </div>
+                        </div>
+                      );
+                    })}
                     </div>
                   )}
                 </div>
               </div>
+              <div className="mt-3 sticky bottom-3 left-0 z-30">
+                <div className="mx-auto w-full max-w-4xl rounded-xl border border-[#2b375b] bg-[#0f1c3d]/95 px-5 py-3 text-white shadow-[0_15px_35px_rgba(6,10,24,0.6)] backdrop-blur">
+                  <p className="text-[10px] uppercase tracking-[0.35em] text-white/85 mb-1">
+                    Aktuelle Auswahl
+                  </p>
+                  <div className="flex w-full items-center justify-between gap-4 text-[12px] font-semibold whitespace-nowrap">
+                    <div className="flex items-center gap-3 min-w-0">
+                      {selectedProductMeta?.icon && (
+                        <span className="text-base leading-none flex-shrink-0">{selectedProductMeta.icon}</span>
+                      )}
+                      <span className="truncate max-w-[220px]" title={productLabel}>
+                        {productLabel}
+                      </span>
+                    </div>
+                    <div className="flex items-center gap-2 min-w-0">
+                      <span className="text-white/80 uppercase text-[10px] tracking-[0.2em]">Programm/Vorlage</span>
+                      {programLabel ? (
+                        <span className="truncate max-w-[240px]" title={programLabel}>
+                          {programLabel}
+                        </span>
+                      ) : (
+                        <span className="text-white/60">Kein Programm</span>
+                      )}
+                    </div>
+                    <div className="flex items-center gap-2 min-w-0 relative group">
+                      <span className="text-white/60 uppercase text-[10px] tracking-[0.2em]">Abschnitte</span>
+                      <span>{enabledSectionsCount}/{allSections.length}</span>
+                      <span className="text-white/60 text-[11px]">See all</span>
+                      <div className="absolute left-0 top-full mt-2 w-[320px] max-h-[220px] overflow-y-auto rounded-lg border border-white/20 bg-slate-900/95 px-3 py-2 text-[11px] font-normal text-white opacity-0 pointer-events-none group-hover:opacity-100 group-hover:pointer-events-auto transition-all">
+                        <p className="text-[10px] uppercase tracking-[0.2em] text-white/50 mb-1">Ausgewählte Abschnitte</p>
+                        <ul className="space-y-1 list-disc list-inside text-white/80">
+                          {sectionTitles.length ? (
+                            sectionTitles.map((title) => <li key={title}>{title}</li>)
+                          ) : (
+                            <li className="text-white/50">Keine Auswahl</li>
+                          )}
+                        </ul>
+                      </div>
+                    </div>
+                    <div className="flex items-center gap-2 min-w-0 relative group">
+                      <span className="text-white/60 uppercase text-[10px] tracking-[0.2em]">Dokumente</span>
+                      <span>{enabledDocumentsCount}/{allDocuments.length}</span>
+                      <span className="text-white/60 text-[11px]">See all</span>
+                      <div className="absolute left-0 top-full mt-2 w-[320px] max-h-[220px] overflow-y-auto rounded-lg border border-white/20 bg-slate-900/95 px-3 py-2 text-[11px] font-normal text-white opacity-0 pointer-events-none group-hover:opacity-100 group-hover:pointer-events-auto transition-all">
+                        <p className="text-[10px] uppercase tracking-[0.2em] text-white/50 mb-1">Ausgewählte Dokumente</p>
+                        <ul className="space-y-1 list-disc list-inside text-white/80">
+                          {documentTitles.length ? (
+                            documentTitles.map((title) => <li key={title}>{title}</li>)
+                          ) : (
+                            <li className="text-white/50">Keine Auswahl</li>
+                          )}
+                        </ul>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+              </>
             )}
             
             {/* Sidebar - Plan Sections Navigation */}
@@ -1403,6 +1483,82 @@ export function TemplateOverviewPanel({
                     onSelectSection={onSelectSection}
                   />
                 </div>
+
+                {onSelectQuestion &&
+                  onAnswerChange &&
+                  onToggleUnknown &&
+                  onMarkComplete &&
+                  onTitlePageChange &&
+                  onAncillaryChange &&
+                  onReferenceAdd &&
+                  onReferenceUpdate &&
+                  onReferenceDelete &&
+                  onAppendixAdd &&
+                  onAppendixUpdate &&
+                  onAppendixDelete &&
+                  onRunRequirements && (
+                    <div className="mt-3">
+                      <div className="relative rounded-lg border border-white/15 overflow-hidden backdrop-blur-xl shadow-xl">
+                        <div className="absolute inset-0 bg-gradient-to-b from-slate-950/80 via-blue-900/60 to-slate-950/80" />
+                        <div className="relative z-10 flex flex-col gap-2 lg:flex-row lg:items-start p-2">
+                          <div className="flex-1 min-w-0 max-w-4xl">
+                            <Workspace
+                              plan={plan}
+                              isAncillaryView={!!isAncillaryView}
+                              isMetadataView={!!isMetadataView}
+                              activeSection={activeSection ?? null}
+                              activeQuestionId={activeQuestionId ?? null}
+                              onSelectQuestion={onSelectQuestion}
+                              onAnswerChange={onAnswerChange}
+                              onToggleUnknown={onToggleUnknown}
+                              onMarkComplete={onMarkComplete}
+                              onTitlePageChange={onTitlePageChange}
+                              onAncillaryChange={onAncillaryChange}
+                              onReferenceAdd={onReferenceAdd}
+                              onReferenceUpdate={onReferenceUpdate}
+                              onReferenceDelete={onReferenceDelete}
+                              onAppendixAdd={onAppendixAdd}
+                              onAppendixUpdate={onAppendixUpdate}
+                              onAppendixDelete={onAppendixDelete}
+                              onRunRequirements={onRunRequirements}
+                              progressSummary={progressSummary ?? []}
+                            />
+                          </div>
+
+                          {rightPanelView &&
+                            setRightPanelView &&
+                            onDatasetCreate &&
+                            onKpiCreate &&
+                            onMediaCreate &&
+                            onAttachDataset &&
+                            onAttachKpi &&
+                            onAttachMedia &&
+                            onAskAI &&
+                            onAnswerChange && (
+                              <div className="w-full lg:w-[480px] flex-shrink-0">
+                                <RightPanel
+                                  view={rightPanelView}
+                                  setView={setRightPanelView}
+                                  section={activeSection ?? plan.sections[0]}
+                                  question={activeQuestion ?? undefined}
+                                  plan={plan}
+                                  onDatasetCreate={onDatasetCreate}
+                                  onKpiCreate={onKpiCreate}
+                                  onMediaCreate={onMediaCreate}
+                                  onAttachDataset={onAttachDataset}
+                                  onAttachKpi={onAttachKpi}
+                                  onAttachMedia={onAttachMedia}
+                                  onRunRequirements={onRunRequirements}
+                                  progressSummary={progressSummary ?? []}
+                                  onAskAI={onAskAI}
+                                  onAnswerChange={onAnswerChange}
+                                />
+                              </div>
+                            )}
+                        </div>
+                      </div>
+                    </div>
+                  )}
               </>
             )}
             </div>
