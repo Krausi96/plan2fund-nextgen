@@ -8,7 +8,6 @@ type DesktopTemplateColumnsProps = {
   filteredDocuments: DocumentTemplate[];
   disabledDocuments: Set<string>;
   enabledDocumentsCount: number;
-  totalDocumentsCount: number;
   expandedDocumentId: string | null;
   editingDocument: DocumentTemplate | null;
   selectedProductMeta: { value: string; label: string; description: string; icon?: string } | null;
@@ -17,7 +16,7 @@ type DesktopTemplateColumnsProps = {
   newDocumentName: string;
   newDocumentDescription: string;
   onToggleDocument: (id: string) => void;
-  onSelectDocument: (id: string) => void;
+  onSelectDocument: (id: string | null) => void;
   onEditDocument: (doc: DocumentTemplate, e: React.MouseEvent) => void;
   onSaveDocument: (item: SectionTemplate | DocumentTemplate) => void;
   onCancelEdit: () => void;
@@ -49,7 +48,6 @@ export function DesktopTemplateColumns({
   filteredDocuments,
   disabledDocuments,
   enabledDocumentsCount,
-  totalDocumentsCount,
   expandedDocumentId,
   editingDocument,
   selectedProductMeta,
@@ -90,12 +88,26 @@ export function DesktopTemplateColumns({
       <div className="flex flex-col gap-2 border-r border-white/10 pr-4 h-full overflow-hidden">
         <div className="flex-shrink-0" data-column="documents">
           <h2 className="text-base font-bold uppercase tracking-wide text-white mb-2 pb-2 border-b border-white/10">
-            Deine Dokumente ({enabledDocumentsCount}/{totalDocumentsCount})
+            Deine Dokumente ({enabledDocumentsCount})
           </h2>
         </div>
-        <p className="text-[10px] text-white/50 mb-2 flex-shrink-0">
+        <p className="text-[10px] text-white/50 mb-1 flex-shrink-0 -mt-2">
           Entscheide welche zusätzlichen Dokumente zu deinem Plan hinzufügt werden.
         </p>
+        <div className="text-[9px] text-white/40 mb-2 flex-shrink-0 flex items-center gap-3 -mt-1">
+          <span className="flex items-center gap-1">
+            <span>✏️</span>
+            <span>Bearbeiten</span>
+          </span>
+          <span className="flex items-center gap-1">
+            <input type="checkbox" className="w-2.5 h-2.5" disabled />
+            <span>Hinzufügen/Deselektieren</span>
+          </span>
+          <span className="flex items-center gap-1">
+            <span>👆</span>
+            <span>Inhalte Öffnen</span>
+          </span>
+        </div>
         
         {expandedDocumentId && editingDocument ? (
           <DesktopEditForm
@@ -125,15 +137,25 @@ export function DesktopTemplateColumns({
             
             {/* Main Document Card - Core Product */}
             {selectedProductMeta && !expandedDocumentId && (
-              <div className={`relative border rounded-lg p-2.5 group ${
-                clickedDocumentId 
-                  ? 'border-blue-300/30 bg-blue-500/5' // Dimmed when other document is selected
-                  : 'border-blue-500/50 bg-blue-500/10' // Normal blue when selected
-              }`}>
+              <div 
+                onClick={() => {
+                  // Select core product (null) to show all sections
+                  onSelectDocument(null);
+                }}
+                className={`relative border rounded-lg p-2.5 cursor-pointer transition-all group ${
+                  clickedDocumentId === null
+                    ? 'border-blue-400/60 bg-blue-600/20 ring-2 ring-blue-400/40' // Selected
+                    : clickedDocumentId
+                    ? 'border-blue-300/30 bg-blue-500/5 opacity-50' // Unselected when another is selected
+                    : 'border-blue-500/50 bg-blue-500/10' // Normal blue when no selection
+                } hover:border-blue-400/60`}
+              >
                 <div className="absolute top-1 right-1 z-10 flex items-center gap-1">
                   <div className={`w-3.5 h-3.5 rounded border-2 ${
-                    clickedDocumentId 
-                      ? 'border-blue-300/50 bg-blue-600/20' 
+                    clickedDocumentId === null
+                      ? 'border-blue-500 bg-blue-600/30' 
+                      : clickedDocumentId
+                      ? 'border-blue-300/50 bg-blue-600/20'
                       : 'border-blue-500 bg-blue-600/30'
                   } flex items-center justify-center`}>
                     <svg className="w-2 h-2 text-blue-200" fill="currentColor" viewBox="0 0 20 20">
@@ -266,16 +288,16 @@ export function DesktopTemplateColumns({
                         // Toggle document - the toggle function will check if it's required
                         onToggleDocument(doc.id);
                       }}
-                      onClick={(e) => {
-                        // Stop propagation to prevent card click, but don't prevent default
+                      onMouseDown={(e) => {
+                        // Stop propagation to prevent card click
                         e.stopPropagation();
                       }}
-                      className={`w-3.5 h-3.5 rounded border-2 ${
+                      className={`w-3.5 h-3.5 rounded border-2 cursor-pointer ${
                         isDisabled
                           ? 'border-white/30 bg-white/10'
                           : isRequired
-                          ? 'border-amber-500 bg-amber-600/30 cursor-pointer opacity-90'
-                          : 'border-blue-500 bg-blue-600/30 cursor-pointer'
+                          ? 'border-amber-500 bg-amber-600/30 opacity-90'
+                          : 'border-blue-500 bg-blue-600/30'
                       } text-blue-600 focus:ring-1 focus:ring-blue-500/50`}
                     />
                   </div>
@@ -333,9 +355,23 @@ export function DesktopTemplateColumns({
             Deine Abschnitte ({filteredSections.length})
           </h2>
         </div>
-        <p className="text-[10px] text-white/50 mb-2 flex-shrink-0 -mt-2">
+        <p className="text-[10px] text-white/50 mb-1 flex-shrink-0 -mt-2">
           Entscheide welche Abschnitte du in dein Dokument miteinbeziehst.
         </p>
+        <div className="text-[9px] text-white/40 mb-2 flex-shrink-0 flex items-center gap-3 -mt-1">
+          <span className="flex items-center gap-1">
+            <span>✏️</span>
+            <span>Bearbeiten</span>
+          </span>
+          <span className="flex items-center gap-1">
+            <input type="checkbox" className="w-2.5 h-2.5" disabled />
+            <span>Ein/Aus</span>
+          </span>
+          <span className="flex items-center gap-1">
+            <span>👆</span>
+            <span>Editor Öffnen</span>
+          </span>
+        </div>
         
         {expandedSectionId && editingSection ? (
           <DesktopEditForm
@@ -479,16 +515,16 @@ export function DesktopTemplateColumns({
                         // Toggle section - the toggle function will check if it's required
                         onToggleSection(section.id);
                       }}
-                      onClick={(e) => {
-                        // Stop propagation to prevent card click, but don't prevent default
+                      onMouseDown={(e) => {
+                        // Stop propagation to prevent card click
                         e.stopPropagation();
                       }}
-                      className={`w-3.5 h-3.5 rounded border-2 ${
+                      className={`w-3.5 h-3.5 rounded border-2 cursor-pointer ${
                         isDisabled
                           ? 'border-white/30 bg-white/10'
                           : isRequired
-                          ? 'border-amber-500 bg-amber-600/30 cursor-pointer opacity-90'
-                          : 'border-blue-500 bg-blue-600/30 cursor-pointer'
+                          ? 'border-amber-500 bg-amber-600/30 opacity-90'
+                          : 'border-blue-500 bg-blue-600/30'
                       } text-blue-600 focus:ring-1 focus:ring-blue-500/50`}
                     />
                   </div>

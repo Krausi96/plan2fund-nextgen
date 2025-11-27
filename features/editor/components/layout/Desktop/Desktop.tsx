@@ -91,7 +91,6 @@ export function TemplateOverviewPanel({
   const [editingSection, setEditingSection] = useState<SectionTemplate | null>(null);
   const [editingDocument, setEditingDocument] = useState<DocumentTemplate | null>(null);
   const [clickedDocumentId, setClickedDocumentId] = useState<string | null>(null);
-  const toggleInProgress = useRef<Set<string>>(new Set());
 
   const selectedProductMeta = productOptions.find((option) => option.value === productType) ?? productOptions[0] ?? null;
 
@@ -301,18 +300,10 @@ export function TemplateOverviewPanel({
   }, [sections, customSections]);
 
   const toggleDocument = useCallback((documentId: string) => {
-    // Prevent double-toggling
-    const lockKey = `document-${documentId}`;
-    if (toggleInProgress.current.has(lockKey)) {
-      return;
-    }
-    toggleInProgress.current.add(lockKey);
-    
     // Check if document is required first
     const allDocumentsCurrent = [...documents, ...customDocuments];
     const document = allDocumentsCurrent.find(d => d.id === documentId);
     if (document?.required) {
-      toggleInProgress.current.delete(lockKey);
       return; // Required documents cannot be disabled
     }
     
@@ -328,11 +319,6 @@ export function TemplateOverviewPanel({
       }
       return next;
     });
-    
-    // Clear the lock after a delay
-    setTimeout(() => {
-      toggleInProgress.current.delete(lockKey);
-    }, 100); // Reduced delay for better responsiveness
   }, [documents, customDocuments]);
 
   const addCustomSection = () => {
@@ -423,11 +409,12 @@ export function TemplateOverviewPanel({
     setExpandedSectionId(section.id);
   };
 
-  const handleSelectDocument = (docId: string) => {
+  const handleSelectDocument = (docId: string | null) => {
     // Select document to filter sections (without opening edit form)
+    // null means core product is selected (show all sections)
     setClickedDocumentId(docId);
     // Clear any expanded edit form
-    if (expandedDocumentId === docId) {
+    if (docId && expandedDocumentId === docId) {
       setExpandedDocumentId(null);
       setEditingDocument(null);
     }
@@ -735,7 +722,6 @@ const cardElevationClasses = isExpanded
                   filteredDocuments={filteredDocuments}
                   disabledDocuments={disabledDocuments}
                   enabledDocumentsCount={enabledDocumentsCount}
-                  totalDocumentsCount={totalDocumentsCount}
                   expandedDocumentId={expandedDocumentId}
                   editingDocument={editingDocument}
                   selectedProductMeta={selectedProductMeta}
