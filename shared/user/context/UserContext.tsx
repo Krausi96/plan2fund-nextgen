@@ -29,11 +29,35 @@ export function UserProvider({ children }: UserProviderProps) {
     setIsMounted(true);
   }, []);
 
-  useEffect(() => {
-    if (isMounted) {
-      loadUserProfile();
+  const refreshProfileFromServer = useCallback(async () => {
+    try {
+      // Use new auth session endpoint instead of old profile endpoint
+      const response = await fetch('/api/auth/session');
+      if (response.ok) {
+        const data = await response.json();
+        if (data.user) {
+          const profile = {
+            id: String(data.user.id),
+            segment: data.user.segment || 'B2C_FOUNDER',
+            programType: data.user.program_type || 'GRANT',
+            industry: data.user.industry || 'GENERAL',
+            language: data.user.language || 'EN',
+            payerType: data.user.payer_type || 'INDIVIDUAL',
+            experience: data.user.experience || 'NEWBIE',
+            createdAt: data.user.created_at,
+            lastActiveAt: data.user.last_active_at,
+            gdprConsent: data.user.gdpr_consent || true
+          };
+          setUserProfileState(profile);
+          if (typeof window !== 'undefined') {
+            localStorage.setItem('pf_user_profile', JSON.stringify(profile));
+          }
+        }
+      }
+    } catch (error) {
+      console.error('Error refreshing profile from server:', error);
     }
-  }, [isMounted, loadUserProfile]);
+  }, []);
 
   const loadUserProfile = useCallback(async () => {
     // Only run on client side
@@ -67,7 +91,6 @@ export function UserProvider({ children }: UserProviderProps) {
           }
         } catch (parseError) {
           console.error('Error parsing stored profile:', parseError);
-          // Clear invalid profile from localStorage
           if (typeof window !== 'undefined') {
             localStorage.removeItem('pf_user_profile');
           }
@@ -80,35 +103,11 @@ export function UserProvider({ children }: UserProviderProps) {
     }
   }, [refreshProfileFromServer]);
 
-  const refreshProfileFromServer = useCallback(async () => {
-    try {
-      // Use new auth session endpoint instead of old profile endpoint
-      const response = await fetch('/api/auth/session');
-      if (response.ok) {
-        const data = await response.json();
-        if (data.user) {
-          const profile = {
-            id: String(data.user.id),
-            segment: data.user.segment || 'B2C_FOUNDER',
-            programType: data.user.program_type || 'GRANT',
-            industry: data.user.industry || 'GENERAL',
-            language: data.user.language || 'EN',
-            payerType: data.user.payer_type || 'INDIVIDUAL',
-            experience: data.user.experience || 'NEWBIE',
-            createdAt: data.user.created_at,
-            lastActiveAt: data.user.last_active_at,
-            gdprConsent: data.user.gdpr_consent || true
-          };
-          setUserProfileState(profile);
-          if (typeof window !== 'undefined') {
-            localStorage.setItem('pf_user_profile', JSON.stringify(profile));
-          }
-        }
-      }
-    } catch (error) {
-      console.error('Error refreshing profile from server:', error);
+  useEffect(() => {
+    if (isMounted) {
+      loadUserProfile();
     }
-  }, []);
+  }, [isMounted, loadUserProfile]);
 
   const setUserProfile = (profile: UserProfile) => {
     setUserProfileState(profile);

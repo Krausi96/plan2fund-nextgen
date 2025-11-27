@@ -56,6 +56,32 @@ export default function SuccessHubPage() {
     setIsMounted(true);
   }, []);
 
+  const verifyPayment = useCallback(async (sessionId: string) => {
+    try {
+      const response = await fetch('/api/payments/success', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ sessionId })
+      });
+
+      if (response.ok) {
+        const data = await response.json();
+        setPaymentVerified(true);
+
+        if (data.payment && userProfile) {
+          savePaymentRecord(data.payment);
+        }
+
+        analytics.trackEvent({
+          event: 'payment_verified',
+          properties: { amount: data.amount, currency: data.currency, planId: data.planId }
+        });
+      }
+    } catch (error) {
+      console.error('Payment verification failed:', error);
+    }
+  }, [userProfile]);
+
   useEffect(() => {
     // Only run on client side to avoid hydration errors
     if (!isMounted || typeof window === 'undefined') return;
@@ -76,33 +102,6 @@ export default function SuccessHubPage() {
       setPaymentVerified(true);
     }
   }, [session_id, payment, planId, userProfile, isMounted, verifyPayment]);
-
-  const verifyPayment = useCallback(async (sessionId: string) => {
-    try {
-      const response = await fetch('/api/payments/success', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ sessionId })
-      });
-
-      if (response.ok) {
-        const data = await response.json();
-        setPaymentVerified(true);
-        
-        // Save payment record to localStorage
-        if (data.payment && userProfile) {
-          savePaymentRecord(data.payment);
-        }
-        
-        analytics.trackEvent({
-          event: 'payment_verified',
-          properties: { amount: data.amount, currency: data.currency, planId: data.planId }
-        });
-      }
-    } catch (error) {
-      console.error('Payment verification failed:', error);
-    }
-  }, [userProfile]);
 
   const handleTestimonialSubmit = async (rating: number, feedback: string) => {
     await analytics.trackEvent({

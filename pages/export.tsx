@@ -1,4 +1,4 @@
-﻿import React, { useState } from "react";
+﻿import { useState, useEffect, useCallback } from "react";
 import Link from "next/link";
 import { useRouter } from "next/router";
 import { isFeatureEnabled, getSubscriptionTier } from "@/shared/user/featureFlags";
@@ -37,9 +37,33 @@ function Export() {
   const [addonSubmissionPack, setAddonSubmissionPack] = useState(false);
   const [addonPitchDeck, setAddonPitchDeck] = useState(false); // stub toggle for later
   const [addonTeamCVs, setAddonTeamCVs] = useState(false); // stub toggle for later
+
+  const loadAdditionalDocuments = useCallback(async () => {
+    try {
+      const { programId } = router.query as { programId?: string };
+      const productType = product || 'submission';
+      const fundingType = route || 'grants';
+
+      const docs = await getDocuments(fundingType, productType, programId);
+
+      const documents = docs.map(doc => ({
+        id: doc.id,
+        title: doc.name,
+        description: doc.description || '',
+        format: doc.format.toUpperCase(),
+        status: 'ready'
+      }));
+
+      setAdditionalDocuments(documents);
+      setSelectedDocs(new Set(documents.map((d: any) => d.id)));
+    } catch (error) {
+      console.error('Error loading additional documents:', error);
+      setAdditionalDocuments([]);
+    }
+  }, [router.query, product, route]);
   
   // Load plan sections and additional documents
-  React.useEffect(() => {
+  useEffect(() => {
     const loadedSections = loadPlanSections();
     setSections(loadedSections);
     
@@ -60,33 +84,6 @@ function Export() {
       properties: { sections_count: loadedSections.length } 
     });
   }, [router.query, loadAdditionalDocuments]);
-
-  const loadAdditionalDocuments = React.useCallback(async () => {
-    try {
-      // Use unified template system
-      const { programId } = router.query as { programId?: string };
-      const productType = product || 'submission';
-      const fundingType = route || 'grants';
-      
-      const docs = await getDocuments(fundingType, productType, programId);
-      
-      // Convert to export format
-      const documents = docs.map(doc => ({
-        id: doc.id,
-        title: doc.name,
-        description: doc.description || '',
-        format: doc.format.toUpperCase(),
-        status: 'ready'
-      }));
-      
-      setAdditionalDocuments(documents);
-      // auto-select all by default
-      setSelectedDocs(new Set(documents.map((d: any) => d.id)));
-    } catch (error) {
-      console.error('Error loading additional documents:', error);
-      setAdditionalDocuments([]);
-    }
-  }, [router.query, product, route]);
 
   function mergeDocs(staticDocs: any[], programDocs: any[]) {
     const byId: Record<string, any> = {};

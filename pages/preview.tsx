@@ -1,5 +1,5 @@
 ﻿import Link from "next/link";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { useRouter } from "next/router";
 import { isFeatureEnabled, getSubscriptionTier } from "@/shared/user/featureFlags";
 import { loadPlanSections, type PlanSection } from "@/shared/user/storage/planStore";
@@ -25,6 +25,29 @@ function Preview() {
   const [additionalDocuments, setAdditionalDocuments] = useState<any[]>([]);
   const [product] = useState<string>('submission');
   const [route] = useState<string>('grants');
+
+  const loadAdditionalDocuments = useCallback(async () => {
+    try {
+      const { programId } = router.query as { programId?: string };
+      const productType = product || 'submission';
+      const fundingType = route || 'grants';
+
+      const docs = await getDocuments(fundingType, productType, programId);
+
+      const documents = docs.map(doc => ({
+        id: doc.id,
+        title: doc.name,
+        description: doc.description || '',
+        format: doc.format.toUpperCase(),
+        status: 'ready'
+      }));
+
+      setAdditionalDocuments(documents);
+    } catch (error) {
+      console.error('Error loading additional documents:', error);
+      setAdditionalDocuments([]);
+    }
+  }, [router.query, product, route]);
   
   // Get or create plan ID
   const planId = router.query.planId as string || (userProfile ? `plan_${Date.now()}` : 'current');
@@ -55,31 +78,6 @@ function Preview() {
     // Track preview view
     analytics.trackSuccessHubView("preview");
   }, [router.query, loadAdditionalDocuments]);
-
-  const loadAdditionalDocuments = React.useCallback(async () => {
-    try {
-      // Use unified template system
-      const { programId } = router.query as { programId?: string };
-      const productType = product || 'submission';
-      const fundingType = route || 'grants';
-      
-      const docs = await getDocuments(fundingType, productType, programId);
-      
-      // Convert to preview format
-      const documents = docs.map(doc => ({
-        id: doc.id,
-        title: doc.name,
-        description: doc.description || '',
-        format: doc.format.toUpperCase(),
-        status: 'ready'
-      }));
-      
-      setAdditionalDocuments(documents);
-    } catch (error) {
-      console.error('Error loading additional documents:', error);
-      setAdditionalDocuments([]);
-    }
-  }, [router.query, product, route]);
 
   function mergeDocs(staticDocs: any[], programDocs: any[]) {
     const byId: Record<string, any> = {};

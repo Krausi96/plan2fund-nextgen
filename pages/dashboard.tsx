@@ -62,39 +62,54 @@ function DashboardPage() {
   const [isMounted, setIsMounted] = useState(false);
   const [adminPanelOpen, setAdminPanelOpen] = useState(false);
 
-  useEffect(() => {
-    setIsMounted(true);
+  const checkAdminStatus = useCallback(() => {
+    if (typeof window === 'undefined') {
+      setIsAdmin(false);
+      return;
+    }
+
+    if (!userProfile) {
+      setIsAdmin(false);
+      return;
+    }
+
+    try {
+      const adminUsers = JSON.parse(localStorage.getItem('admin_users') || '[]');
+      const isInAdminList = adminUsers.some((admin: any) => admin.id === userProfile.id || admin.email === userProfile.id);
+
+      const isAdminUser =
+        isInAdminList ||
+        userProfile.id?.includes('admin') ||
+        userProfile.id === 'kevin@plan2fund.com' ||
+        userProfile.id === 'admin@plan2fund.com' ||
+        localStorage.getItem('isAdmin') === 'true';
+      setIsAdmin(isAdminUser);
+
+      if (isAdminUser) {
+        console.log('🔐 Admin access granted for:', userProfile.id);
+      }
+    } catch (error) {
+      console.error('Error checking admin status:', error);
+      const isAdminUser =
+        userProfile.id?.includes('admin') ||
+        userProfile.id === 'kevin@plan2fund.com' ||
+        localStorage.getItem('isAdmin') === 'true';
+      setIsAdmin(isAdminUser);
+    }
+  }, [userProfile]);
+
+  const loadLastUpdateTime = useCallback(() => {
+    if (typeof window === 'undefined') return;
+
+    const lastUpdateValue = localStorage.getItem('lastDataUpdate');
+    if (lastUpdateValue) {
+      setLastUpdate(new Date(lastUpdateValue).toLocaleString());
+    }
   }, []);
 
   useEffect(() => {
-    // Only run on client side to avoid hydration errors
-    if (!isMounted || typeof window === 'undefined') return;
-    
-    // Load user data from localStorage or API
-    loadUserData();
-    
-    // Check if user is admin (you can customize this logic)
-    checkAdminStatus();
-    
-    // Load last update time
-    loadLastUpdateTime();
-    
-    // Track dashboard view
-    analytics.trackPageView('/dashboard', 'Dashboard');
-    analytics.trackUserAction('dashboard_viewed', {
-      user_type: userProfile?.segment || 'unknown',
-      has_plans: plans.length > 0,
-      has_recommendations: recommendations.length > 0
-    });
-  }, [
-    isMounted,
-    loadUserData,
-    checkAdminStatus,
-    loadLastUpdateTime,
-    userProfile?.segment,
-    plans.length,
-    recommendations.length
-  ]);
+    setIsMounted(true);
+  }, []);
 
   const loadUserData = useCallback(() => {
     if (typeof window === 'undefined') return;
@@ -151,6 +166,36 @@ function DashboardPage() {
     syncUserData();
   }, [userProfile, activeClientId]);
 
+  useEffect(() => {
+    // Only run on client side to avoid hydration errors
+    if (!isMounted || typeof window === 'undefined') return;
+    
+    // Load user data from localStorage or API
+    loadUserData();
+    
+    // Check if user is admin (you can customize this logic)
+    checkAdminStatus();
+    
+    // Load last update time
+    loadLastUpdateTime();
+    
+    // Track dashboard view
+    analytics.trackPageView('/dashboard', 'Dashboard');
+    analytics.trackUserAction('dashboard_viewed', {
+      user_type: userProfile?.segment || 'unknown',
+      has_plans: plans.length > 0,
+      has_recommendations: recommendations.length > 0
+    });
+  }, [
+    isMounted,
+    loadUserData,
+    checkAdminStatus,
+    loadLastUpdateTime,
+    userProfile?.segment,
+    plans.length,
+    recommendations.length
+  ]);
+
   // Only filter plans after mount to avoid hydration mismatch
   const filteredPlans = useMemo(() => {
     if (!isMounted) return [];
@@ -181,57 +226,6 @@ function DashboardPage() {
       default: return <FileText className="w-4 h-4" />;
     }
   };
-
-  // Admin functions
-  const checkAdminStatus = useCallback(() => {
-    if (typeof window === 'undefined') {
-      setIsAdmin(false);
-      return;
-    }
-    
-    if (!userProfile) {
-      setIsAdmin(false);
-      return;
-    }
-
-    // Check admin users list
-    try {
-      const adminUsers = JSON.parse(localStorage.getItem('admin_users') || '[]');
-      const isInAdminList = adminUsers.some((admin: any) => admin.id === userProfile.id || admin.email === userProfile.id);
-      
-      // Admin check - customizable via:
-      // 1. User ID contains 'admin' (e.g., admin@plan2fund.com)
-      // 2. Specific admin email addresses
-      // 3. Admin users list (from AdminUserManager)
-      // 4. localStorage flag (for testing: localStorage.setItem('isAdmin', 'true'))
-      const isAdminUser = isInAdminList ||
-                         userProfile.id?.includes('admin') || 
-                         userProfile.id === 'kevin@plan2fund.com' ||
-                         userProfile.id === 'admin@plan2fund.com' ||
-                         localStorage.getItem('isAdmin') === 'true';
-      setIsAdmin(isAdminUser);
-      
-      if (isAdminUser) {
-        console.log('🔐 Admin access granted for:', userProfile.id);
-      }
-    } catch (error) {
-      console.error('Error checking admin status:', error);
-      // Fallback to simple check
-      const isAdminUser = userProfile.id?.includes('admin') || 
-                         userProfile.id === 'kevin@plan2fund.com' ||
-                         localStorage.getItem('isAdmin') === 'true';
-      setIsAdmin(isAdminUser);
-    }
-  }, [userProfile]);
-
-  const loadLastUpdateTime = useCallback(() => {
-    if (typeof window === 'undefined') return;
-    
-    const lastUpdate = localStorage.getItem('lastDataUpdate');
-    if (lastUpdate) {
-      setLastUpdate(new Date(lastUpdate).toLocaleString());
-    }
-  }, []);
 
   const updateData = async () => {
     setIsUpdating(true);
