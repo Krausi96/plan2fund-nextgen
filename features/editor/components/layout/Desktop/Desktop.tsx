@@ -264,13 +264,6 @@ export function TemplateOverviewPanel({
   }, [expandedDocumentId, disabledDocuments]);
 
   const toggleSection = useCallback((sectionId: string) => {
-    // Prevent double-toggling
-    const lockKey = `section-${sectionId}`;
-    if (toggleInProgress.current.has(lockKey)) {
-      return;
-    }
-    toggleInProgress.current.add(lockKey);
-    
     // Use functional update - NO setState calls inside!
     // Check if section is required by looking it up in current state
     setDisabledSections(prev => {
@@ -278,7 +271,6 @@ export function TemplateOverviewPanel({
       const allSectionsCurrent = [...sections, ...customSections];
       const section = allSectionsCurrent.find(s => s.id === sectionId);
       if (section?.required) {
-        toggleInProgress.current.delete(lockKey);
         return prev; // Required sections cannot be disabled
       }
       
@@ -292,11 +284,6 @@ export function TemplateOverviewPanel({
       }
       return next;
     });
-    
-    // Clear the lock after a delay
-    setTimeout(() => {
-      toggleInProgress.current.delete(lockKey);
-    }, 100); // Reduced delay for better responsiveness
   }, [sections, customSections]);
 
   const toggleDocument = useCallback((documentId: string) => {
