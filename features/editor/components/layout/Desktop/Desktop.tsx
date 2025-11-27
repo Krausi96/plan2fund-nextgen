@@ -1498,8 +1498,9 @@ const cardElevationClasses = isExpanded
                   onAppendixDelete &&
                   onRunRequirements && (
                     <div className="mt-3">
-                      <div className="relative rounded-lg border border-white/15 overflow-hidden backdrop-blur-xl shadow-xl">
-                        <div className="absolute inset-0 bg-gradient-to-b from-slate-950/80 via-blue-900/60 to-slate-950/80" />
+                      <div className="relative rounded-lg border border-white/15 backdrop-blur-xl shadow-xl overflow-visible">
+                        <div className="absolute inset-0 rounded-lg bg-gradient-to-b from-slate-950/80 via-blue-900/60 to-slate-950/80" />
+                        <div className="absolute inset-0 rounded-lg bg-black/30 backdrop-blur-3xl" />
                         <div className="relative z-10 flex flex-col gap-2 lg:flex-row lg:items-start p-2">
                           <div className="flex-1 min-w-0 max-w-4xl">
                             <Workspace

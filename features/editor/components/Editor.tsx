@@ -383,7 +383,7 @@ export default function Editor({ product = 'submission' }: EditorProps) {
         <>
           <div className="container pb-6">
             {/* Dein Schreibtisch - Template Overview Panel with integrated Sidebar */}
-            <div className="sticky top-[72px] z-[100] mb-0" style={{ maxHeight: 'calc(100vh - 72px)' }}>
+            <div className="relative z-30 mb-0">
               <TemplateOverviewPanel
                 productType={selectedProduct}
                 programSummary={programSummary}
