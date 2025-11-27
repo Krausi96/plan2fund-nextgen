@@ -365,11 +365,7 @@ export function DesktopTemplateColumns({
           </span>
           <span className="flex items-center gap-1">
             <input type="checkbox" className="w-2.5 h-2.5" disabled />
-            <span>Ein/Aus</span>
-          </span>
-          <span className="flex items-center gap-1">
-            <span>👆</span>
-            <span>Editor Öffnen</span>
+            <span>Zu Dokument hinzufügen</span>
           </span>
         </div>
         
