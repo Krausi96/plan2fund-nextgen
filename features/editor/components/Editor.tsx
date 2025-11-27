@@ -91,7 +91,6 @@ export default function Editor({ product = 'submission' }: EditorProps) {
 
   const {
     hydrate,
-    setActiveSection,
     setActiveQuestion,
     setRightPanelView,
     updateAnswer,
@@ -397,43 +396,6 @@ export default function Editor({ product = 'submission' }: EditorProps) {
                 programError={programError}
                 productOptions={productOptions}
                 connectCopy={connectCopy}
-                plan={plan}
-                activeSectionId={activeSectionId ?? plan.sections[0]?.id ?? null}
-                onSelectSection={setActiveSection}
-                isAncillaryView={isAncillaryView}
-                isMetadataView={isMetadataView}
-                activeSection={activeSection}
-                activeQuestionId={activeQuestionId}
-                onSelectQuestion={setActiveQuestion}
-                onAnswerChange={updateAnswer}
-                onToggleUnknown={toggleQuestionUnknown}
-                onMarkComplete={markQuestionComplete}
-                onTitlePageChange={updateTitlePage}
-                onAncillaryChange={updateAncillary}
-                onReferenceAdd={addReference}
-                onReferenceUpdate={updateReference}
-                onReferenceDelete={deleteReference}
-                onAppendixAdd={addAppendix}
-                onAppendixUpdate={updateAppendix}
-                onAppendixDelete={deleteAppendix}
-                onRunRequirements={runRequirementsCheck}
-                progressSummary={progressSummary}
-                rightPanelView={rightPanelView}
-                setRightPanelView={setRightPanelView}
-                activeQuestion={activeQuestion}
-                onDatasetCreate={(dataset) => activeSection && addDataset(activeSection.id, dataset)}
-                onKpiCreate={(kpi) => activeSection && addKpi(activeSection.id, kpi)}
-                onMediaCreate={(asset) => activeSection && addMedia(activeSection.id, asset)}
-                onAttachDataset={(dataset) =>
-                  activeSection && activeQuestion && attachDatasetToQuestion(activeSection.id, activeQuestion.id, dataset)
-                }
-                onAttachKpi={(kpi) =>
-                  activeSection && activeQuestion && attachKpiToQuestion(activeSection.id, activeQuestion.id, kpi)
-                }
-                onAttachMedia={(asset) =>
-                  activeSection && activeQuestion && attachMediaToQuestion(activeSection.id, activeQuestion.id, asset)
-                }
-                onAskAI={triggerAISuggestions}
               />
             </div>
 

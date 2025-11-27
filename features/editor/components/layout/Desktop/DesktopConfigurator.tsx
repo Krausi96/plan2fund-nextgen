@@ -43,9 +43,7 @@ export function DesktopConfigurator({
   const [manualError, setManualError] = useState<string | null>(null);
   const [showManualInput, setShowManualInput] = useState(false);
   const [showProductMenu, setShowProductMenu] = useState(false);
-  const [showConfigTooltip, setShowConfigTooltip] = useState(false);
   const [productMenuPosition, setProductMenuPosition] = useState<{ top: number; left: number; width: number } | null>(null);
-  const [configTooltipPosition, setConfigTooltipPosition] = useState<{ top: number; left: number } | null>(null);
   const [showTemplatePreview, setShowTemplatePreview] = useState(false);
   const [extractedTemplates, setExtractedTemplates] = useState<{ sections?: SectionTemplate[]; documents?: DocumentTemplate[]; errors?: string[] } | null>(null);
   const [isExtracting, setIsExtracting] = useState(false);
@@ -53,8 +51,6 @@ export function DesktopConfigurator({
   const fileInputRef = useRef<HTMLInputElement | null>(null);
   const manualInputRef = useRef<HTMLDivElement | null>(null);
   const manualTriggerRef = useRef<HTMLButtonElement | null>(null);
-  const configTooltipRef = useRef<HTMLDivElement | null>(null);
-  const configTooltipButtonRef = useRef<HTMLButtonElement | null>(null);
   const productMenuRef = useRef<HTMLDivElement | null>(null);
   const productTriggerRef = useRef<HTMLButtonElement | null>(null);
 
@@ -176,47 +172,16 @@ export function DesktopConfigurator({
   const selectedMeta = selectedProductMeta ?? productOptions.find((option) => option.value === productType) ?? productOptions[0] ?? null;
 
   return (
-    <div className="flex flex-col gap-2 border-r border-white/10 pr-4 overflow-y-auto min-h-0">
-      <div className="flex items-center gap-2 mb-2 pb-2 border-b border-white/10">
-        <h2 className="text-base font-bold uppercase tracking-wide text-white">
-          Deine Konfiguration
-        </h2>
-        <div className="relative">
-          <button
-            ref={configTooltipButtonRef}
-            type="button"
-            onMouseEnter={() => {
-              if (configTooltipButtonRef.current) {
-                const rect = configTooltipButtonRef.current.getBoundingClientRect();
-                setConfigTooltipPosition({
-                  top: rect.bottom + 4,
-                  left: rect.left
-                });
-                setShowConfigTooltip(true);
-              }
-            }}
-            onMouseLeave={() => setShowConfigTooltip(false)}
-            className="text-white/60 hover:text-white text-xs font-bold w-4 h-4 rounded-full border border-white/50 bg-white/20 flex items-center justify-center transition-colors"
-          >
-            ?
-          </button>
-          {showConfigTooltip && configTooltipPosition && typeof window !== 'undefined' && createPortal(
-            <div
-              ref={configTooltipRef}
-              className="fixed z-[9999] w-64 p-2 bg-slate-900 text-white text-[10px] rounded shadow-lg border border-slate-700 pointer-events-none"
-              style={{
-                top: `${configTooltipPosition.top}px`,
-                left: `${configTooltipPosition.left}px`
-              }}
-              onMouseEnter={() => setShowConfigTooltip(true)}
-              onMouseLeave={() => setShowConfigTooltip(false)}
-            >
-              Wählen Sie Ihren Plan-Typ, verbinden Sie ein Förderprogramm oder laden Sie eine Vorlage hoch.
-              Ihre Auswahl bestimmt die verfügbaren Abschnitte und Dokumente für Ihren Plan.
-            </div>,
-            document.body
-          )}
+      <div className="flex flex-col gap-2 border-r border-white/10 pr-4 overflow-y-auto min-h-0">
+      <div className="flex-shrink-0">
+        <div className="flex items-center gap-2 mb-2 pb-2 border-b border-white/10">
+          <h2 className="text-base font-bold uppercase tracking-wide text-white">
+            Deine Konfiguration
+          </h2>
         </div>
+        <p className="text-[10px] text-white/50 mb-2 flex-shrink-0">
+          Wählen Sie Ihren Plan-Typ, verbinden Sie ein Förderprogramm oder laden Sie eine Vorlage hoch. Ihre Auswahl bestimmt die verfügbaren Abschnitte und Dokumente für Ihren Plan.
+        </p>
       </div>
 
       <div className="bg-white/5 border border-white/10 rounded-lg p-4">
