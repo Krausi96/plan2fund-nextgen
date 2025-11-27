@@ -84,9 +84,8 @@ export default function RightPanel({
   ];
 
   return (
-    <aside className="card lg:sticky lg:top-24 space-y-1.5 w-full lg:w-[500px] border-blue-600/50 relative overflow-hidden backdrop-blur-lg shadow-xl">
-      <div className="absolute inset-0 bg-gradient-to-b from-slate-950 via-blue-900 to-slate-950" />
-      <div className="absolute inset-0 bg-black/15 backdrop-blur-xl" />
+    <aside className="relative lg:sticky lg:top-24 space-y-1.5 w-full lg:w-[500px] overflow-hidden rounded-2xl border border-blue-600/40 bg-gradient-to-b from-slate-950 via-blue-900 to-slate-950 shadow-xl">
+      <div className="absolute inset-0 bg-black/20 backdrop-blur-2xl" />
       <div className="relative z-10">
         <div className="flex gap-1.5" role="tablist" aria-label="Editor tools">
           {tabs.map(({ key, label }) => {
@@ -189,9 +188,7 @@ export default function RightPanel({
                   )}
                 </div>
               ) : (
-                <div className="text-center py-8 text-slate-400 text-sm">
-                  {(t('editor.ui.selectQuestion' as any) as string) || 'Select a question to receive AI suggestions.'}
-                </div>
+                <RightPanelSkeleton message={(t('editor.ui.selectQuestion' as any) as string) || 'Select a question to receive AI suggestions.'} />
               )}
             </div>
           )}
@@ -334,6 +331,24 @@ function RequirementSummary({
           </div>
         </div>
       )}
+    </div>
+  );
+}
+
+function RightPanelSkeleton({ message }: { message: string }) {
+  return (
+    <div className="space-y-4 text-sm text-white/70">
+      <div className="animate-pulse space-y-2">
+        <div className="h-4 w-24 rounded bg-white/15" />
+        <div className="h-6 w-full rounded bg-white/10" />
+        <div className="h-6 w-3/4 rounded bg-white/10" />
+        <div className="flex gap-2">
+          <div className="h-8 flex-1 rounded bg-white/10" />
+          <div className="h-8 flex-1 rounded bg-white/10" />
+          <div className="h-8 flex-1 rounded bg-white/10" />
+        </div>
+      </div>
+      <p className="text-center text-white/60">{message}</p>
     </div>
   );
 }

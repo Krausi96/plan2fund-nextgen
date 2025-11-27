@@ -1,4 +1,4 @@
-import React, { useEffect, useRef, useState } from 'react';
+import React, { Fragment, useEffect, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
 
 import {
@@ -58,11 +58,7 @@ export function SectionWorkspace({
   const { t } = useI18n();
 
   if (!section) {
-    return (
-      <div className="rounded-3xl border border-dashed border-neutral-200 bg-white p-12 text-center text-sm text-neutral-500">
-        {(t('editor.ui.selectSection' as any) as string) || 'Select a section to begin.'}
-      </div>
-    );
+    return <SectionWorkspaceSkeleton message={(t('editor.ui.selectSection' as any) as string) || 'Select a section to begin.'} />;
   }
 
   const sectionHint = getSectionHint(section, t);
@@ -71,9 +67,8 @@ export function SectionWorkspace({
 
   return (
     <main className="space-y-1">
-      <Card className="p-6 border border-blue-600/50 relative overflow-hidden backdrop-blur-lg shadow-xl">
-        <div className="absolute inset-0 bg-gradient-to-b from-slate-950 via-blue-900 to-slate-950" />
-        <div className="absolute inset-0 bg-black/20 backdrop-blur-xl" />
+      <Card className="relative overflow-hidden rounded-2xl border border-blue-600/40 bg-gradient-to-b from-slate-950 via-blue-900 to-slate-950 p-6 shadow-xl">
+        <div className="absolute inset-0 bg-black/30 backdrop-blur-2xl" />
         <div className="relative z-10 space-y-3">
           {section.category && (
             <p className="text-[10px] font-medium uppercase tracking-[0.2em] text-white/70">
@@ -161,18 +156,18 @@ function QuestionCard({
   const editorLocked = isComplete && !isEditing;
 
   return (
-    <>
+    <Fragment>
       <Card
         id={panelId}
         role="tabpanel"
         aria-live="polite"
-        className={`p-6 space-y-2 border transition-all relative overflow-hidden backdrop-blur-lg shadow-xl ${cardBorderClass} ${
-          isActive && !hasContent ? 'border-blue-400 ring-1 ring-blue/20 shadow-2xl' : ''
+        className={`relative overflow-hidden rounded-2xl p-6 space-y-2 border transition-all backdrop-blur-xl ${cardBorderClass} ${
+          isActive && !hasContent ? 'border-blue-400 ring-1 ring-blue/20 shadow-2xl' : 'shadow-xl'
         }`}
         onClick={onFocus}
       >
         <div className={`absolute inset-0 ${gradientClass}`} />
-        <div className={`absolute inset-0 ${overlayClass} backdrop-blur-xl`} />
+        <div className={`absolute inset-0 ${overlayClass} backdrop-blur-2xl`} />
         {section && section.questions.length > 1 && (
           <div className="pb-3 border-b border-white/30 mb-3 relative z-10">
             <div className="mb-2">
@@ -330,7 +325,7 @@ function QuestionCard({
           setUnknownModalOpen(false);
         }}
       />
-    </>
+    </Fragment>
   );
 }
 
@@ -463,6 +458,22 @@ function SimpleTextEditor({
           fontSize: '14px'
         }}
       />
+    </div>
+  );
+}
+
+function SectionWorkspaceSkeleton({ message }: { message: string }) {
+  return (
+    <div className="space-y-4 rounded-3xl border border-blue-600/30 bg-gradient-to-b from-slate-950/70 via-blue-900/40 to-slate-950/70 p-6 shadow-xl">
+      <div className="animate-pulse space-y-3">
+        <div className="h-4 w-24 rounded bg-white/15" />
+        <div className="h-8 w-2/3 rounded bg-white/15" />
+        <div className="h-4 w-full rounded bg-white/10" />
+        <div className="h-4 w-5/6 rounded bg-white/10" />
+        <div className="rounded-2xl border border-dashed border-white/20 p-6 text-center text-sm text-white/70">
+          {message}
+        </div>
+      </div>
     </div>
   );
 }
