@@ -288,8 +288,10 @@ export function DesktopTemplateColumns({
                         // Toggle document - the toggle function will check if it's required
                         onToggleDocument(doc.id);
                       }}
+                      onClick={(e) => {
+                        e.stopPropagation();
+                      }}
                       onMouseDown={(e) => {
-                        // Stop propagation to prevent card click
                         e.stopPropagation();
                       }}
                       className={`w-3.5 h-3.5 rounded border-2 cursor-pointer ${
@@ -511,8 +513,10 @@ export function DesktopTemplateColumns({
                         // Toggle section - the toggle function will check if it's required
                         onToggleSection(section.id);
                       }}
+                      onClick={(e) => {
+                        e.stopPropagation();
+                      }}
                       onMouseDown={(e) => {
-                        // Stop propagation to prevent card click
                         e.stopPropagation();
                       }}
                       className={`w-3.5 h-3.5 rounded border-2 cursor-pointer ${

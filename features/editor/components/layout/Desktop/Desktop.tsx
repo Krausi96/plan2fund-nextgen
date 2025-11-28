@@ -73,6 +73,7 @@ export function TemplateOverviewPanel({
   // State will be restored from planMetadata on client-side only
   const [disabledSections, setDisabledSections] = useState<Set<string>>(() => new Set());
   const [disabledDocuments, setDisabledDocuments] = useState<Set<string>>(() => new Set());
+  
   const [isExpanded, setIsExpanded] = useState(true); // Expanded by default
   const [showAddSection, setShowAddSection] = useState(false);
   const [showAddDocument, setShowAddDocument] = useState(false);
@@ -167,7 +168,6 @@ export function TemplateOverviewPanel({
   // Notify parent of changes - use memoized arrays to prevent unnecessary effect triggers
   const isInitialMount = useRef(true);
   const lastUpdateRef = useRef<string>('');
-  const updateTimeoutRef = useRef<NodeJS.Timeout | null>(null);
   
   // Track previous values to detect actual changes
   const prevDisabledSectionsRef = useRef<string>('');
@@ -216,33 +216,25 @@ export function TemplateOverviewPanel({
     prevCustomSectionsLengthRef.current = customSections.length;
     prevCustomDocumentsLengthRef.current = customDocuments.length;
     
-    // Clear any pending update
-    if (updateTimeoutRef.current) {
-      clearTimeout(updateTimeoutRef.current);
+    const updateKey = JSON.stringify({
+      disabled: disabledSectionsKey,
+      docs: disabledDocumentsKey,
+      customSections: customSections.length,
+      customDocuments: customDocuments.length
+    });
+    
+    if (lastUpdateRef.current === updateKey) {
+      return;
     }
     
-    // Debounce the update
-    updateTimeoutRef.current = setTimeout(() => {
-      const updateKey = JSON.stringify({
-        disabled: disabledSectionsKey,
-        docs: disabledDocumentsKey,
-        customSections: customSections.length,
-        customDocuments: customDocuments.length
-      });
-      
-      if (lastUpdateRef.current === updateKey) {
-        return;
-      }
-      
-      lastUpdateRef.current = updateKey;
-      
-      onUpdate({
-        disabledSectionIds: Array.from(disabledSections).sort(),
-        disabledDocumentIds: Array.from(disabledDocuments).sort(),
-        customSections: customSections.length > 0 ? customSections : undefined,
-        customDocuments: customDocuments.length > 0 ? customDocuments : undefined
-      });
-    }, 500); // Increased debounce time to prevent rapid updates and hydration issues
+    lastUpdateRef.current = updateKey;
+    
+    onUpdate({
+      disabledSectionIds: Array.from(disabledSections).sort(),
+      disabledDocumentIds: Array.from(disabledDocuments).sort(),
+      customSections: customSections.length > 0 ? customSections : undefined,
+      customDocuments: customDocuments.length > 0 ? customDocuments : undefined
+    });
     
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [disabledSectionsKey, disabledDocumentsKey, customSections.length, customDocuments.length]);
@@ -264,22 +256,11 @@ export function TemplateOverviewPanel({
   }, [expandedDocumentId, disabledDocuments]);
 
   const toggleSection = useCallback((sectionId: string) => {
-    // Use functional update - NO setState calls inside!
-    // Check if section is required by looking it up in current state
     setDisabledSections(prev => {
-      // Check if section is required by finding it in current sections/customSections
-      const allSectionsCurrent = [...sections, ...customSections];
-      const section = allSectionsCurrent.find(s => s.id === sectionId);
-      if (section?.required) {
-        return prev; // Required sections cannot be disabled
-      }
-      
       const next = new Set(prev);
       if (next.has(sectionId)) {
-        // Section is currently disabled, enable it (remove from disabled set)
         next.delete(sectionId);
       } else {
-        // Section is currently enabled, disable it (add to disabled set)
         next.add(sectionId);
       }
       return next;
@@ -287,21 +268,11 @@ export function TemplateOverviewPanel({
   }, [sections, customSections]);
 
   const toggleDocument = useCallback((documentId: string) => {
-    // Check if document is required first
-    const allDocumentsCurrent = [...documents, ...customDocuments];
-    const document = allDocumentsCurrent.find(d => d.id === documentId);
-    if (document?.required) {
-      return; // Required documents cannot be disabled
-    }
-    
-    // Use functional update - NO setState calls inside!
     setDisabledDocuments(prev => {
       const next = new Set(prev);
       if (next.has(documentId)) {
-        // Document is currently disabled, enable it (remove from disabled set)
         next.delete(documentId);
       } else {
-        // Document is currently enabled, disable it (add to disabled set)
         next.add(documentId);
       }
       return next;
