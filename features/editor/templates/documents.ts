@@ -4,7 +4,11 @@
 
 import type { DocumentTemplate } from './types';
 
-const ADDITIONAL_DOCUMENTS = {
+// Additional documents for different funding types and product types
+// Note: submission documents are empty by default (business plan has no additional documents)
+// These may be used by programs or future features
+// @ts-ignore - intentionally kept for potential future use
+const _ADDITIONAL_DOCUMENTS = {
   grants: {
     submission: [
       {
@@ -796,25 +800,290 @@ const ADDITIONAL_DOCUMENTS = {
   }
 };
 
+// Strategy documents (converted from sections)
+const STRATEGY_DOCUMENTS: DocumentTemplate[] = [
+  {
+    id: 'executive_summary',
+    name: 'Executive Summary',
+    description: 'Provide a concise overview of your project idea and funding goals. Summarise the core problem, your solution concept and potential impact.',
+    required: true,
+    format: 'docx',
+    maxSize: '5MB',
+    template: `# Executive Summary
+
+## Business Overview
+- Company Name: [Your Company Name]
+- Funding Goal: €[Amount]
+- Use of Funds: [Description]
+
+## Problem Statement
+[Describe the problem you are solving]
+
+## Solution
+[Describe your solution concept]
+
+## Unique Value Proposition
+[What makes your project unique?]
+
+## Target Customers
+[Who are your target customers?]`,
+    instructions: [
+      'What is your business mission?',
+      'What problem are you solving?',
+      'Who are your target customers?',
+      'How much funding do you seek?',
+      'Keep it concise (200-300 words)',
+      'Focus on the core problem and solution'
+    ],
+    examples: [
+      'Strategic planning executive summary example',
+      'Business plan overview template'
+    ],
+    commonMistakes: [
+      'Too long or too short',
+      'Missing clear problem statement',
+      'Unclear value proposition',
+      'Vague funding goals'
+    ],
+    category: 'general',
+    fundingTypes: ['grants', 'bankLoans', 'equity', 'visa']
+  },
+  {
+    id: 'market_opportunity',
+    name: 'Market Opportunity',
+    description: 'Describe the market size, trends, and unmet needs. Identify your target customer segments.',
+    required: true,
+    format: 'docx',
+    maxSize: '5MB',
+    template: `# Market Opportunity
+
+## Target Market
+- Market Size: [Size and growth rate]
+- Target Segments: [Customer segments]
+
+## Market Trends
+[Key trends supporting your opportunity]
+
+## Unmet Needs
+[What needs are not currently being met?]
+
+## Market Analysis
+[Data and citations supporting market opportunity]`,
+    instructions: [
+      'Who is the target market?',
+      'How large is the market?',
+      'What trends support your opportunity?',
+      'What unmet needs exist?',
+      'Include market data and citations',
+      'Target 150-300 words'
+    ],
+    examples: [
+      'Market analysis document example',
+      'Target market segmentation template'
+    ],
+    commonMistakes: [
+      'Lack of market data',
+      'Unclear target segments',
+      'Missing trend analysis',
+      'No citations'
+    ],
+    category: 'market',
+    fundingTypes: ['grants', 'bankLoans', 'equity', 'visa']
+  },
+  {
+    id: 'project_description',
+    name: 'Project Description / Business Concept',
+    description: 'Describe your core business tasks, business model, and conduct a SWOT analysis. Explain what your business does and how it operates.',
+    required: true,
+    format: 'docx',
+    maxSize: '10MB',
+    template: `# Project Description / Business Concept
+
+## Core Business Tasks
+[What are your core business tasks?]
+
+## Business Model
+[How does your business operate?]
+
+## SWOT Analysis
+### Strengths
+[Your strengths]
+
+### Weaknesses
+[Your weaknesses]
+
+### Opportunities
+[Market opportunities]
+
+### Threats
+[Potential threats]`,
+    instructions: [
+      'What are your core business tasks?',
+      'What is your business model?',
+      'What are your strengths and weaknesses?',
+      'What opportunities and threats do you face?',
+      'Include structured narrative',
+      'Target 200-400 words'
+    ],
+    examples: [
+      'Business concept document example',
+      'SWOT analysis template'
+    ],
+    commonMistakes: [
+      'Unclear business model',
+      'Incomplete SWOT analysis',
+      'Missing core tasks description',
+      'Lack of structure'
+    ],
+    category: 'project',
+    fundingTypes: ['grants', 'bankLoans', 'equity', 'visa']
+  },
+  {
+    id: 'business_model_value_proposition',
+    name: 'Business Model & Value Proposition',
+    description: 'Outline how your business will generate revenue, pricing strategy, and value delivered to customers.',
+    required: true,
+    format: 'docx',
+    maxSize: '5MB',
+    template: `# Business Model & Value Proposition
+
+## Revenue Streams
+[How will you make money?]
+- Revenue Stream 1: [Description]
+- Revenue Stream 2: [Description]
+
+## Pricing Strategy
+[How do you price your products/services?]
+
+## Value Proposition
+[What value do you offer that competitors do not?]
+
+## Cost Structure
+[What are your main costs?]`,
+    instructions: [
+      'How will you make money?',
+      'What are your main revenue streams?',
+      'What value do you offer that competitors do not?',
+      'What is your cost structure?',
+      'Be clear about business model',
+      'Target 150-350 words'
+    ],
+    examples: [
+      'Business model canvas example',
+      'Value proposition template'
+    ],
+    commonMistakes: [
+      'Unclear revenue model',
+      'Missing pricing strategy',
+      'Weak value proposition',
+      'No cost structure analysis'
+    ],
+    category: 'business',
+    fundingTypes: ['grants', 'bankLoans', 'equity', 'visa']
+  },
+  {
+    id: 'competitive_landscape',
+    name: 'Competitive Landscape',
+    description: 'Identify key competitors and differentiate your offering.',
+    required: true,
+    format: 'docx',
+    maxSize: '5MB',
+    template: `# Competitive Landscape
+
+## Main Competitors
+- Competitor 1: [Name and description]
+- Competitor 2: [Name and description]
+
+## Competitor Strengths
+[What are their strengths?]
+
+## Competitive Advantage
+[How is your solution different or better?]
+
+## Competitive Positioning
+[How do you position yourself in the market?]`,
+    instructions: [
+      'Who are your main competitors?',
+      'What are their strengths?',
+      'How is your solution different or better?',
+      'Include clear differentiation',
+      'Target 150-300 words'
+    ],
+    examples: [
+      'Competitive analysis document',
+      'Market positioning template'
+    ],
+    commonMistakes: [
+      'Missing competitor analysis',
+      'Unclear competitive advantage',
+      'No differentiation strategy',
+      'Weak positioning'
+    ],
+    category: 'market',
+    fundingTypes: ['grants', 'bankLoans', 'equity', 'visa']
+  },
+  {
+    id: 'preliminary_financial_overview',
+    name: 'Preliminary Financial Overview',
+    description: 'Provide high-level financial assumptions including costs, revenue potential, and funding needed.',
+    required: true,
+    format: 'xlsx',
+    maxSize: '10MB',
+    template: `# Preliminary Financial Overview
+
+## Revenue Assumptions
+- Revenue Stream 1: €[Amount]
+- Revenue Stream 2: €[Amount]
+
+## Cost Drivers
+- Major Cost 1: €[Amount]
+- Major Cost 2: €[Amount]
+
+## Funding Need
+- Total Funding Required: €[Amount]
+- Milestone: [Next milestone description]`,
+    instructions: [
+      'What are your expected revenue streams?',
+      'What are your major cost drivers?',
+      'How much funding is needed to reach the next milestone?',
+      'Include realistic numbers',
+      'Provide financial justification',
+      'Use spreadsheet format for calculations'
+    ],
+    examples: [
+      'Financial overview spreadsheet example',
+      'Revenue projection template'
+    ],
+    commonMistakes: [
+      'Unrealistic financial assumptions',
+      'Missing cost breakdown',
+      'Unclear funding needs',
+      'No financial justification'
+    ],
+    category: 'financial',
+    fundingTypes: ['grants', 'bankLoans', 'equity', 'visa']
+  }
+];
+
 export const MASTER_DOCUMENTS: Record<string, Record<string, DocumentTemplate[]>> = {
   grants: {
-    submission: ADDITIONAL_DOCUMENTS.grants.submission as DocumentTemplate[],
-    strategy: [],
+    submission: [], // Business plan has no additional documents by default
+    strategy: STRATEGY_DOCUMENTS,
     review: []
   },
   bankLoans: {
-    submission: ADDITIONAL_DOCUMENTS.bankLoans.submission as DocumentTemplate[],
-    strategy: [],
+    submission: [], // Business plan has no additional documents by default
+    strategy: STRATEGY_DOCUMENTS,
     review: []
   },
   equity: {
-    submission: ADDITIONAL_DOCUMENTS.equity.submission as DocumentTemplate[],
-    strategy: [],
+    submission: [], // Business plan has no additional documents by default
+    strategy: STRATEGY_DOCUMENTS,
     review: []
   },
   visa: {
-    submission: ADDITIONAL_DOCUMENTS.visa.submission as DocumentTemplate[],
-    strategy: [],
+    submission: [], // Business plan has no additional documents by default
+    strategy: STRATEGY_DOCUMENTS,
     review: []
   }
 };

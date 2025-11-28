@@ -1,7 +1,6 @@
 import React from 'react';
 
 import DataPanel from './DataPanel';
-import PreviewWorkspace from './PreviewWorkspace';
 import {
   AISuggestionIntent,
   AISuggestionOptions,
@@ -39,6 +38,7 @@ type RightPanelProps = {
   progressSummary: ProgressSummary[];
   onAskAI: (questionId?: string, options?: AISuggestionOptions) => void;
   onAnswerChange: (questionId: string, content: string) => void;
+  onClose?: () => void;
 };
 
 export default function RightPanel({
@@ -56,14 +56,14 @@ export default function RightPanel({
   onRunRequirements,
   progressSummary,
   onAskAI,
-  onAnswerChange
+  onAnswerChange,
+  onClose
 }: RightPanelProps) {
   const [requirementsChecked, setRequirementsChecked] = React.useState(false);
-  const activeView = view === 'requirements' ? 'preview' : view;
-  const effectiveView = (['ai', 'data', 'preview'].includes(activeView) ? activeView : 'ai') as
+  // Only AI and Data views - Preview removed (it's in DocumentCanvas)
+  const effectiveView = (['ai', 'data'].includes(view) ? view : 'ai') as
     | 'ai'
-    | 'data'
-    | 'preview';
+    | 'data';
 
   const handleQuickAsk = (intent: AISuggestionIntent) => {
     if (!question) return;
@@ -77,16 +77,17 @@ export default function RightPanel({
   };
 
   const { t } = useI18n();
-  const tabs: Array<{ key: 'ai' | 'data' | 'preview'; label: string }> = [
+  // Only AI and Data tabs - Preview is in main DocumentCanvas
+  const tabs: Array<{ key: 'ai' | 'data'; label: string }> = [
     { key: 'ai', label: (t('editor.ui.tabs.assistant' as any) as string) || 'Assistant' },
-    { key: 'data', label: (t('editor.ui.tabs.data' as any) as string) || 'Data' },
-    { key: 'preview', label: (t('editor.ui.tabs.preview' as any) as string) || 'Preview' }
+    { key: 'data', label: (t('editor.ui.tabs.data' as any) as string) || 'Data' }
   ];
 
   return (
-    <aside className="relative space-y-1.5 w-full overflow-hidden">
-      <div className="relative z-10">
-        <div className="flex gap-1.5" role="tablist" aria-label="Editor tools">
+    <aside className="relative space-y-1.5 w-full h-full overflow-hidden flex flex-col">
+      <div className="relative z-10 flex-shrink-0">
+        <div className="flex items-center justify-between mb-2">
+          <div className="flex gap-1.5 flex-1" role="tablist" aria-label="Editor tools">
           {tabs.map(({ key, label }) => {
             const isActive = effectiveView === key;
             return (
@@ -106,8 +107,20 @@ export default function RightPanel({
               </Button>
             );
           })}
+          </div>
+          {onClose && (
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={onClose}
+              className="text-white hover:bg-white/10 ml-2"
+              aria-label="Close panel"
+            >
+              ✕
+            </Button>
+          )}
         </div>
-        <div id={`right-panel-${effectiveView}`} role="tabpanel" className="max-h-[70vh] overflow-y-auto pr-1 space-y-1.5">
+        <div id={`right-panel-${effectiveView}`} role="tabpanel" className="flex-1 overflow-y-auto pr-1 space-y-1.5">
           {effectiveView === 'ai' && (
             <div className="space-y-3">
               {question ? (
@@ -218,30 +231,28 @@ export default function RightPanel({
             </div>
           )}
 
-          {effectiveView === 'preview' && (
-            <div className="space-y-4">
-              <div className="space-y-2">
-                <PreviewWorkspace plan={plan} focusSectionId={section?.id} />
+          {/* Requirements validation - shown at bottom of AI tab */}
+          {effectiveView === 'ai' && (
+            <div className="border-t border-white/20 pt-4 mt-4">
+              <div className="flex items-center justify-between mb-3">
+                <p className="text-xs font-semibold text-white/70 uppercase tracking-wide">Requirements validation</p>
+                <Button
+                  size="sm"
+                  variant="outline"
+                  onClick={() => {
+                    setRequirementsChecked(true);
+                    onRunRequirements();
+                  }}
+                  className="text-white border-white/30 hover:bg-white/10"
+                >
+                  Run check
+                </Button>
               </div>
-              <div className="border-t border-slate-200 pt-4">
-                <div className="flex items-center justify-between mb-3">
-                  <p className="text-xs font-semibold text-slate-700">Requirements validation</p>
-                  <Button
-                    size="sm"
-                    onClick={() => {
-                      setRequirementsChecked(true);
-                      onRunRequirements();
-                    }}
-                  >
-                    Run check
-                  </Button>
-                </div>
-                {!requirementsChecked ? (
-                  <p className="text-gray-500 text-xs">Run the checker to view validation status.</p>
-                ) : (
-                  <RequirementSummary section={section} question={question} progressSummary={progressSummary} />
-                )}
-              </div>
+              {!requirementsChecked ? (
+                <p className="text-white/50 text-xs">Run the checker to view validation status.</p>
+              ) : (
+                <RequirementSummary section={section} question={question} progressSummary={progressSummary} />
+              )}
             </div>
           )}
         </div>

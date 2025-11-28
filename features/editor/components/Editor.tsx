@@ -8,9 +8,10 @@ import React, {
 import { useRouter } from 'next/router';
 
 import { TemplateOverviewPanel, ConnectCopy } from './layout/Desktop/Desktop';
-import { Workspace } from './layout/Workspace/Main Editor/Workspace';
 import RightPanel from './layout/Workspace/Right-Panel/RightPanel';
 import Sidebar from './layout/Workspace/Main Editor/Sidebar';
+import PreviewWorkspace from './layout/Workspace/Right-Panel/PreviewWorkspace';
+import InlineSectionEditor from './layout/Workspace/Editor/InlineSectionEditor';
 import {
   AISuggestionOptions,
   ANCILLARY_SECTION_ID,
@@ -325,13 +326,42 @@ export default function Editor({ product = 'submission' }: EditorProps) {
     });
   }, [applyHydration, programSummary, isLoading]);
 
+  // Track filtered section IDs for sidebar filtering
+  const [filteredSectionIds, setFilteredSectionIds] = useState<string[] | null>(null);
+  // Track right panel open state - ALWAYS VISIBLE by default
+  const [isRightPanelOpen, setIsRightPanelOpen] = useState(true);
+  // Track editing section for inline editor - MUST BE DECLARED BEFORE useMemo
+  // Auto-open editor when section is selected from sidebar
+  const [editingSectionId, setEditingSectionId] = useState<string | null>(null);
+
+  // Auto-open editor when activeSectionId changes (from sidebar selection)
+  useEffect(() => {
+    if (activeSectionId) {
+      setEditingSectionId(activeSectionId);
+      // Set first question as active if not already set
+      if (activeSectionId !== METADATA_SECTION_ID && activeSectionId !== ANCILLARY_SECTION_ID) {
+        const section = plan?.sections.find(s => s.id === activeSectionId);
+        if (section && !activeQuestionId) {
+          setActiveQuestion(section.questions[0]?.id ?? null);
+        }
+      }
+    }
+  }, [activeSectionId, plan, activeQuestionId, setActiveQuestion]);
+
   const isAncillaryView = activeSectionId === ANCILLARY_SECTION_ID;
   const isMetadataView = activeSectionId === METADATA_SECTION_ID;
   const isSpecialWorkspace = isAncillaryView || isMetadataView;
+  // Get active section - also check editingSectionId to find section being edited
   const activeSection: Section | null = useMemo(() => {
-    if (!plan || isSpecialWorkspace) return null;
+    if (!plan) return null;
+    // If editing a section, find that section
+    if (editingSectionId && editingSectionId !== METADATA_SECTION_ID && editingSectionId !== ANCILLARY_SECTION_ID) {
+      return plan.sections.find((section) => section.id === editingSectionId) ?? null;
+    }
+    // Otherwise use activeSectionId
+    if (isSpecialWorkspace) return null;
     return plan.sections.find((section) => section.id === activeSectionId) ?? plan.sections[0] ?? null;
-  }, [plan, activeSectionId, isSpecialWorkspace]);
+  }, [plan, activeSectionId, isSpecialWorkspace, editingSectionId]);
   const activeQuestion: Question | null = useMemo(() => {
     if (!activeSection) return null;
     return (
@@ -348,12 +378,17 @@ export default function Editor({ product = 'submission' }: EditorProps) {
       if (!targetQuestionId) return;
       requestAISuggestions(activeSection.id, targetQuestionId, options);
       setRightPanelView('ai');
+      setIsRightPanelOpen(true);
     },
     [activeSection, activeQuestion, requestAISuggestions, setRightPanelView]
   );
-
-  // Track filtered section IDs for sidebar filtering
-  const [filteredSectionIds, setFilteredSectionIds] = useState<string[] | null>(null);
+  
+  // Set default view to AI when panel first opens (no preview tab anymore)
+  useEffect(() => {
+    if (isRightPanelOpen && !rightPanelView) {
+      setRightPanelView('ai');
+    }
+  }, [isRightPanelOpen, rightPanelView, setRightPanelView]);
 
   // Handle document selection changes from Desktop - navigate to first filtered section
   const handleDocumentSelectionChange = useCallback((sectionIds: string[]) => {
@@ -448,69 +483,115 @@ export default function Editor({ product = 'submission' }: EditorProps) {
                   onDocumentSelectionChange={handleDocumentSelectionChange}
                 />
 
-                {/* Workspace Container - Includes Sidebar, Workspace and RightPanel */}
+                {/* Workspace Container - Document-Centric Layout */}
                 <div className="relative rounded-2xl border border-dashed border-white/60 bg-slate-900/40 p-4 lg:p-6 shadow-lg backdrop-blur-sm overflow-hidden w-full">
-                  {/* Sidebar - Plan Abschnitte - Inside unified container */}
-                  <div className="w-full mb-2 pb-2 border-b border-white/10">
-                    <Sidebar
-                      plan={plan}
-                      activeSectionId={activeSectionId ?? plan.sections[0]?.id ?? null}
-                      onSelectSection={setActiveSection}
-                      filteredSectionIds={filteredSectionIds}
-                    />
-                  </div>
-                  
-                  {/* Workspace and RightPanel - Grid layout */}
-                  <div className="grid grid-cols-1 lg:grid-cols-[1fr_480px] gap-4 lg:gap-6 w-full">
-                    <div className="min-w-0 border-r border-white/10 pr-4 lg:pr-6 overflow-hidden">
-                      <Workspace
+                  {/* Document-Centric Layout: Sidebar + Document Canvas + Right Panel */}
+                  <div className="flex gap-4 h-[calc(100vh-300px)] min-h-[600px]">
+                    {/* Sidebar - Vertical Tree Navigation (Left) */}
+                    <div className="flex-shrink-0 border-r border-white/10 pr-4">
+                      <Sidebar
                         plan={plan}
-                        isAncillaryView={isAncillaryView}
-                        isMetadataView={isMetadataView}
-                        activeSection={activeSection}
-                        activeQuestionId={activeQuestionId}
-                        onSelectQuestion={setActiveQuestion}
-                        onAnswerChange={updateAnswer}
-                        onToggleUnknown={toggleQuestionUnknown}
-                        onMarkComplete={markQuestionComplete}
-                        onTitlePageChange={updateTitlePage}
-                        onAncillaryChange={updateAncillary}
-                        onReferenceAdd={addReference}
-                        onReferenceUpdate={updateReference}
-                        onReferenceDelete={deleteReference}
-                        onAppendixAdd={addAppendix}
-                        onAppendixUpdate={updateAppendix}
-                        onAppendixDelete={deleteAppendix}
-                        onRunRequirements={runRequirementsCheck}
-                        progressSummary={progressSummary}
+                        activeSectionId={activeSectionId ?? plan.sections[0]?.id ?? null}
+                        onSelectSection={setActiveSection}
+                        filteredSectionIds={filteredSectionIds}
                       />
+                    </div>
+                    
+                    {/* Preview - Main Content (Center) */}
+                    <div className="flex-1 min-w-0 overflow-hidden relative" id="preview-container">
+                      {/* Preview - Always visible */}
+                      <div className="h-full overflow-y-auto relative" id="preview-scroll-container">
+                        <PreviewWorkspace 
+                          plan={plan} 
+                          focusSectionId={activeSectionId} 
+                          onSectionClick={(sectionId: string) => {
+                            // Click section in preview → Select it (triggers editor via useEffect)
+                            if (sectionId === METADATA_SECTION_ID || sectionId === ANCILLARY_SECTION_ID) {
+                              setActiveSection(sectionId);
+                            } else {
+                              const sectionToEdit = plan.sections.find(s => s.id === sectionId);
+                              if (sectionToEdit) {
+                                setActiveSection(sectionId);
+                                setActiveQuestion(sectionToEdit.questions[0]?.id ?? null);
+                              }
+                            }
+                          }} 
+                        />
+                        
+                        {/* Inline Editor - Inside scrollable container, attached to section within preview */}
+                        {editingSectionId && (
+                        <InlineSectionEditor
+                          sectionId={editingSectionId}
+                          section={editingSectionId === METADATA_SECTION_ID || editingSectionId === ANCILLARY_SECTION_ID 
+                            ? null 
+                            : activeSection}
+                          activeQuestionId={activeQuestionId}
+                          plan={plan}
+                          onClose={() => setEditingSectionId(null)}
+                          onSelectQuestion={setActiveQuestion}
+                          onAnswerChange={(questionId, content) => {
+                            updateAnswer(questionId, content);
+                          }}
+                          onToggleUnknown={(questionId, note) => {
+                            toggleQuestionUnknown(questionId, note);
+                          }}
+                          onMarkComplete={(questionId) => {
+                            markQuestionComplete(questionId);
+                          }}
+                          onAIHelp={() => triggerAISuggestions()}
+                          onDataHelp={() => {
+                            setRightPanelView('data');
+                            setIsRightPanelOpen(true);
+                          }}
+                          onTitlePageChange={updateTitlePage}
+                          onAncillaryChange={updateAncillary}
+                          onReferenceAdd={addReference}
+                          onReferenceUpdate={updateReference}
+                          onReferenceDelete={deleteReference}
+                          onAppendixAdd={addAppendix}
+                          onAppendixUpdate={updateAppendix}
+                          onAppendixDelete={deleteAppendix}
+                          onRunRequirements={runRequirementsCheck}
+                          progressSummary={progressSummary}
+                          onDatasetCreate={(dataset) => activeSection && addDataset(activeSection.id, dataset)}
+                          onKpiCreate={(kpi) => activeSection && addKpi(activeSection.id, kpi)}
+                          onMediaCreate={(asset) => activeSection && addMedia(activeSection.id, asset)}
+                        />
+                      )}
                     </div>
 
-                    <div className="min-w-0 overflow-hidden">
-                      <RightPanel
-                        view={rightPanelView}
-                        setView={setRightPanelView}
-                        section={activeSection ?? (isSpecialWorkspace ? undefined : plan.sections[0])}
-                        question={activeQuestion ?? undefined}
-                        plan={plan}
-                        onDatasetCreate={(dataset: Dataset) => activeSection && addDataset(activeSection.id, dataset)}
-                        onKpiCreate={(kpi: KPI) => activeSection && addKpi(activeSection.id, kpi)}
-                        onMediaCreate={(asset: MediaAsset) => activeSection && addMedia(activeSection.id, asset)}
-                        onAttachDataset={(dataset: Dataset) =>
-                          activeSection && activeQuestion && attachDatasetToQuestion(activeSection.id, activeQuestion.id, dataset)
-                        }
-                        onAttachKpi={(kpi: KPI) =>
-                          activeSection && activeQuestion && attachKpiToQuestion(activeSection.id, activeQuestion.id, kpi)
-                        }
-                        onAttachMedia={(asset: MediaAsset) =>
-                          activeSection && activeQuestion && attachMediaToQuestion(activeSection.id, activeQuestion.id, asset)
-                        }
-                        onRunRequirements={runRequirementsCheck}
-                        progressSummary={progressSummary}
-                        onAskAI={triggerAISuggestions}
-                        onAnswerChange={updateAnswer}
-                      />
-                    </div>
+                    {/* Right Panel - Slide in from right (when open) - Reduced width */}
+                    {isRightPanelOpen && (
+                      <div className="flex-shrink-0 w-[320px] border-l border-white/10 pl-4 transition-all duration-300">
+                        <RightPanel
+                          view={rightPanelView}
+                          setView={(view) => {
+                            setRightPanelView(view);
+                            setIsRightPanelOpen(true);
+                          }}
+                          section={activeSection ?? (isSpecialWorkspace ? undefined : plan.sections[0])}
+                          question={activeQuestion ?? undefined}
+                          plan={plan}
+                          onDatasetCreate={(dataset: Dataset) => activeSection && addDataset(activeSection.id, dataset)}
+                          onKpiCreate={(kpi: KPI) => activeSection && addKpi(activeSection.id, kpi)}
+                          onMediaCreate={(asset: MediaAsset) => activeSection && addMedia(activeSection.id, asset)}
+                          onAttachDataset={(dataset: Dataset) =>
+                            activeSection && activeQuestion && attachDatasetToQuestion(activeSection.id, activeQuestion.id, dataset)
+                          }
+                          onAttachKpi={(kpi: KPI) =>
+                            activeSection && activeQuestion && attachKpiToQuestion(activeSection.id, activeQuestion.id, kpi)
+                          }
+                          onAttachMedia={(asset: MediaAsset) =>
+                            activeSection && activeQuestion && attachMediaToQuestion(activeSection.id, activeQuestion.id, asset)
+                          }
+                          onRunRequirements={runRequirementsCheck}
+                          progressSummary={progressSummary}
+                          onAskAI={triggerAISuggestions}
+                          onAnswerChange={updateAnswer}
+                          onClose={() => setIsRightPanelOpen(false)}
+                        />
+                      </div>
+                    )}
                   </div>
                 </div>
               </div>

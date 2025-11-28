@@ -9,9 +9,24 @@ export default function LanguageSwitcher({ compact }: Props) {
   const { locale, setLocale } = useI18n()
 
   const handleLanguageChange = (newLocale: string) => {
-    setLocale(newLocale)
-    // Force a page refresh to ensure all components re-render with new locale
-    window.location.reload()
+    try {
+      // Validate locale before setting
+      if (!newLocale || typeof newLocale !== 'string') {
+        console.error('Invalid locale provided:', newLocale);
+        return;
+      }
+      
+      setLocale(newLocale);
+      
+      // Use a small delay before reload to ensure state is saved
+      setTimeout(() => {
+        if (typeof window !== 'undefined') {
+          window.location.reload();
+        }
+      }, 100);
+    } catch (error) {
+      console.error('Error changing language:', error);
+    }
   }
 
   const languageOptions = [

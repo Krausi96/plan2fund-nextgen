@@ -17,6 +17,7 @@ import ExportRenderer from '@/features/export/renderer/renderer';
 interface PreviewPanelProps {
   plan: BusinessPlan | null;
   focusSectionId?: string | null;
+  onSectionClick?: (sectionId: string) => void;
 }
 
 type ResolvedAttachment = {
@@ -129,7 +130,7 @@ function convertSectionToPlanSection(section: Section, sectionNumber: number | n
         const subchapterLabel = `${sectionNumber}.${subchapterIndex}`;
         
         htmlParts.push(
-          `<h4 class="section-subchapter">${subchapterLabel} ${question.prompt}</h4>`
+          `<h4 class="section-subchapter" data-question-id="${question.id}">${subchapterLabel} ${question.prompt}</h4>`
         );
         
         // Collect subchapter metadata for TOC
@@ -141,7 +142,7 @@ function convertSectionToPlanSection(section: Section, sectionNumber: number | n
       } else {
         // Executive Summary or unnumbered sections - no numbering
         htmlParts.push(
-          `<h4 class="section-subchapter">${question.prompt}</h4>`
+          `<h4 class="section-subchapter" data-question-id="${question.id}">${question.prompt}</h4>`
         );
         
         // Collect subchapter metadata for TOC without number
@@ -165,7 +166,7 @@ function convertSectionToPlanSection(section: Section, sectionNumber: number | n
         })
         .join('');
 
-      htmlParts.push(`<div class="section-answer">${paragraphHtml}</div>`);
+      htmlParts.push(`<div class="section-answer" data-question-id="${question.id}" data-question-content="true">${paragraphHtml}</div>`);
     }
   });
 
@@ -287,7 +288,7 @@ function convertSectionToPlanSection(section: Section, sectionNumber: number | n
   };
 }
 
-export default function PreviewPanel({ plan }: PreviewPanelProps) {
+export default function PreviewPanel({ plan, onSectionClick }: PreviewPanelProps) {
   const [viewMode, setViewMode] = useState<'page' | 'fluid'>('page');
   const [showWatermark, setShowWatermark] = useState(true);
   const [zoomPreset, setZoomPreset] = useState<'compact' | 'standard' | 'comfortable'>('standard');
@@ -425,10 +426,9 @@ export default function PreviewPanel({ plan }: PreviewPanelProps) {
 
   return (
     <>
-      <div className="space-y-3">
-        {planDocument ? (
-          <div className="relative mt-2 h-[660px] rounded-3xl border border-white/10 bg-slate-950/40 p-0 shadow-inner flex flex-col">
-            <div className="flex-shrink-0 mb-3 flex flex-wrap items-center justify-between gap-3 rounded-lg border border-white/15 bg-white/5 px-3 py-2 text-[11px] text-white/80">
+      {planDocument ? (
+        <div className="relative w-full h-full flex flex-col">
+            <div className="flex-shrink-0 mb-2 flex flex-wrap items-center justify-between gap-2 px-2 py-1 text-[11px] text-white/80">
               <div className="flex items-center gap-2">
                 <span className="uppercase tracking-wide text-white/60">View</span>
                 <button
@@ -490,6 +490,7 @@ export default function PreviewPanel({ plan }: PreviewPanelProps) {
                     enableRealTimePreview: true
                   }}
                   style={zoomStyle}
+                  onSectionClick={onSectionClick}
                 />
               </div>
               <div className="flex-shrink-0 mt-4 mb-2 px-4 flex items-center justify-between text-[11px] uppercase tracking-wide text-white/60">
@@ -503,7 +504,6 @@ export default function PreviewPanel({ plan }: PreviewPanelProps) {
             Start drafting your sections to see the live business plan preview here.
           </div>
         )}
-      </div>
     </>
   );
 }

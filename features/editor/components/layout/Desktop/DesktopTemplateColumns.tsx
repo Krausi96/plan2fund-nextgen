@@ -43,6 +43,7 @@ type DesktopTemplateColumnsProps = {
   onSetNewSectionTitle: (title: string) => void;
   onSetNewSectionDescription: (desc: string) => void;
   onRemoveCustomSection: (id: string) => void;
+  programSummary: { name: string; amountRange?: string | null } | null;
 };
 
 export function DesktopTemplateColumns({
@@ -81,7 +82,8 @@ export function DesktopTemplateColumns({
   onAddCustomSection,
   onSetNewSectionTitle,
   onSetNewSectionDescription,
-  onRemoveCustomSection
+  onRemoveCustomSection,
+  programSummary
 }: DesktopTemplateColumnsProps) {
   const { t } = useI18n();
   return (
@@ -377,6 +379,10 @@ export function DesktopTemplateColumns({
             <input type="checkbox" className="w-2.5 h-2.5" disabled />
             <span>{t('editor.desktop.sections.legend.toggle' as any) || 'Zu Dokument hinzufügen'}</span>
           </span>
+          <span className="flex items-center gap-1">
+            <span className="w-2 h-2 rounded-full bg-yellow-400/80" />
+            <span>{t('editor.desktop.sections.legend.source' as any) || 'Herkunft anzeigen'}</span>
+          </span>
         </div>
         
         {expandedSectionId && editingSection ? (
@@ -394,10 +400,10 @@ export function DesktopTemplateColumns({
               <button
                 type="button"
                 onClick={onToggleAddSection}
-                className={`relative w-full border rounded-lg p-4 flex flex-col items-center justify-center gap-2 text-center text-[11px] font-semibold tracking-tight transition-all ${
+                className={`relative w-full rounded-lg p-4 flex flex-col items-center justify-center gap-2 text-center text-[11px] font-semibold tracking-tight transition-all ${
                   showAddSection
-                    ? 'border-blue-400/60 bg-blue-600/30 text-white shadow-lg shadow-blue-900/40'
-                    : 'border-white/20 bg-white/10 text-white/70 hover:border-white/40 hover:text-white'
+                    ? 'bg-blue-600/30 text-white'
+                    : 'bg-white/10 text-white/70 hover:text-white'
                 }`}
               >
                 <span className="text-2xl leading-none">＋</span>
@@ -562,40 +568,82 @@ export function DesktopTemplateColumns({
                       : 'border-white/20 bg-white/10'
                   } hover:border-white/40 group`}
                 >
-                  <div className="absolute top-1 right-1 z-10 flex items-center gap-1">
-                    <button
-                      type="button"
-                      onClick={(e) => {
-                        e.preventDefault();
-                        e.stopPropagation();
-                        onEditSection(section, e);
-                      }}
-                      className="text-white/60 hover:text-white text-xs transition-opacity"
-                    >
-                      ✏️
-                    </button>
-                    <input
-                      type="checkbox"
-                      checked={!isDisabled}
-                      onChange={(e) => {
-                        e.stopPropagation();
-                        // Toggle section - the toggle function will check if it's required
-                        onToggleSection(section.id);
-                      }}
-                      onClick={(e) => {
-                        e.stopPropagation();
-                      }}
-                      onMouseDown={(e) => {
-                        e.stopPropagation();
-                      }}
-                      className={`w-3.5 h-3.5 rounded border-2 cursor-pointer ${
-                        isDisabled
-                          ? 'border-white/30 bg-white/10'
-                          : isRequired
-                          ? 'border-amber-500 bg-amber-600/30 opacity-90'
-                          : 'border-blue-500 bg-blue-600/30'
-                      } text-blue-600 focus:ring-1 focus:ring-blue-500/50`}
-                    />
+                  <div className="absolute top-1 right-1 z-10 flex flex-col items-end gap-0.5">
+                    <div className="flex items-center gap-1">
+                      <button
+                        type="button"
+                        onClick={(e) => {
+                          e.preventDefault();
+                          e.stopPropagation();
+                          onEditSection(section, e);
+                        }}
+                        className="text-white/60 hover:text-white text-xs transition-opacity"
+                      >
+                        ✏️
+                      </button>
+                      <input
+                        type="checkbox"
+                        checked={!isDisabled}
+                        onChange={(e) => {
+                          e.stopPropagation();
+                          // Toggle section - the toggle function will check if it's required
+                          onToggleSection(section.id);
+                        }}
+                        onClick={(e) => {
+                          e.stopPropagation();
+                        }}
+                        onMouseDown={(e) => {
+                          e.stopPropagation();
+                        }}
+                        className={`w-3.5 h-3.5 rounded border-2 cursor-pointer ${
+                          isDisabled
+                            ? 'border-white/30 bg-white/10'
+                            : isRequired
+                            ? 'border-amber-500 bg-amber-600/30 opacity-90'
+                            : 'border-blue-500 bg-blue-600/30'
+                        } text-blue-600 focus:ring-1 focus:ring-blue-500/50`}
+                      />
+                    </div>
+                    {/* Source indicator - colored dot with tooltip */}
+                    {(() => {
+                      const getSourceInfo = () => {
+                        if (section.origin === 'program') {
+                          const recommendedByText = t('editor.desktop.sections.source.recommendedBy' as any) || 'Recommended by {name}';
+                          return {
+                            tooltip: programSummary 
+                              ? recommendedByText.replace('{name}', programSummary.name)
+                              : (t('editor.desktop.sections.source.recommendedByProgram' as any) || 'Recommended by Program')
+                          };
+                        }
+                        if (section.origin === 'custom') {
+                          return {
+                            tooltip: t('editor.desktop.sections.source.fromTemplate' as any) || 'Section from Template'
+                          };
+                        }
+                        // master/default - show product type name
+                        const productName = selectedProductMeta?.label || 'Core Product';
+                        const fromProductText = t('editor.desktop.sections.source.fromProduct' as any) || 'Section from {product}';
+                        return {
+                          tooltip: fromProductText.replace('{product}', productName)
+                        };
+                      };
+                      
+                      const sourceInfo = getSourceInfo();
+                      return (
+                        <div className="relative group -translate-x-0.5 -translate-y[24px]">
+                          <div 
+                            className="w-2 h-2 rounded-full bg-yellow-400/70 cursor-help"
+                            onClick={(e) => {
+                              e.preventDefault();
+                              e.stopPropagation();
+                            }}
+                          />
+                          <div className="absolute right-0 top-full mt-1 w-48 px-2 py-1.5 bg-blue-900/95 border border-blue-700/30 rounded-lg text-[9px] text-white/90 opacity-0 pointer-events-none group-hover:opacity-100 group-hover:pointer-events-auto transition-opacity z-50 whitespace-normal shadow-lg">
+                            {sourceInfo.tooltip}
+                          </div>
+                        </div>
+                      );
+                    })()}
                   </div>
                   
                   <div className="flex flex-col items-center gap-1 pt-4 min-h-[50px] w-full">

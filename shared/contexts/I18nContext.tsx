@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useState } from 'react';
+import React, { createContext, useContext, useState, useEffect } from 'react';
 import enTranslations from '../i18n/translations/en.json';
 import deTranslations from '../i18n/translations/de.json';
 
@@ -18,35 +18,86 @@ const translations = {
   de: deTranslations,
 };
 
-export function I18nProvider({ children }: { children: React.ReactNode }) {
-  // Initialize locale from localStorage or browser language
-  const getInitialLocale = () => {
-    if (typeof window === 'undefined') return 'en';
-    
-    const savedLocale = localStorage.getItem('plan2fund-locale');
-    if (savedLocale && translations[savedLocale as keyof typeof translations]) {
-      return savedLocale;
-    }
-    
-    // Detect browser language
-    const browserLang = navigator.language.split('-')[0];
-    if (translations[browserLang as keyof typeof translations]) {
-      return browserLang;
-    }
-    
-    return 'en';
-  };
+const DEFAULT_LOCALE = 'en';
+const STORAGE_KEY = 'plan2fund-locale';
 
-  const [locale, setLocaleState] = useState(getInitialLocale);
+// Safe localStorage access
+const getStoredLocale = (): string | null => {
+  if (typeof window === 'undefined') return null;
+  try {
+    return localStorage.getItem(STORAGE_KEY);
+  } catch (error) {
+    console.warn('Failed to read locale from localStorage:', error);
+    return null;
+  }
+};
+
+const setStoredLocale = (locale: string): void => {
+  if (typeof window === 'undefined') return;
+  try {
+    localStorage.setItem(STORAGE_KEY, locale);
+  } catch (error) {
+    console.warn('Failed to save locale to localStorage:', error);
+  }
+};
+
+// Validate locale exists in translations
+const isValidLocale = (locale: string): locale is keyof typeof translations => {
+  return locale in translations;
+};
+
+export function I18nProvider({ children }: { children: React.ReactNode }) {
+  // Initialize with default, will be updated on client-side
+  const [locale, setLocaleState] = useState<string>(DEFAULT_LOCALE);
+
+  // Hydrate locale from localStorage on client-side only
+  useEffect(() => {
+    if (typeof window === 'undefined') return;
+
+    const storedLocale = getStoredLocale();
+    if (storedLocale && isValidLocale(storedLocale)) {
+      setLocaleState(storedLocale);
+    } else {
+      // Detect browser language
+      try {
+        const browserLang = navigator.language.split('-')[0];
+        if (isValidLocale(browserLang)) {
+          setLocaleState(browserLang);
+          setStoredLocale(browserLang);
+        }
+      } catch (error) {
+        console.warn('Failed to detect browser language:', error);
+      }
+    }
+  }, []);
 
   const setLocale = (newLocale: string) => {
+    if (!isValidLocale(newLocale)) {
+      console.warn(`Invalid locale: ${newLocale}. Falling back to ${DEFAULT_LOCALE}`);
+      newLocale = DEFAULT_LOCALE;
+    }
     setLocaleState(newLocale);
-    localStorage.setItem('plan2fund-locale', newLocale);
+    setStoredLocale(newLocale);
   };
 
   const t = (key: keyof Translations): string => {
-    const translation = translations[locale as keyof typeof translations]?.[key];
-    return translation || translations.en[key] || key;
+    // Ensure we have a valid locale
+    const currentLocale = isValidLocale(locale) ? locale : DEFAULT_LOCALE;
+    
+    // Try current locale first
+    const translation = translations[currentLocale]?.[key];
+    if (translation && typeof translation === 'string') {
+      return translation;
+    }
+    
+    // Fallback to English
+    const enTranslation = translations.en?.[key];
+    if (enTranslation && typeof enTranslation === 'string') {
+      return enTranslation;
+    }
+    
+    // Last resort: return key as string
+    return String(key);
   };
 
   const availableLocales = Object.keys(translations);

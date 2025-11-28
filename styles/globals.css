@@ -597,4 +597,44 @@
       page-break-after: always;
     }
   }
+
+  /* ========== INLINE EDITOR HIGHLIGHTING STYLES ========== */
+  
+  /* Highlight active question heading in preview */
+  .inline-editor-active-question {
+    background: linear-gradient(90deg, rgba(59, 130, 246, 0.1) 0%, rgba(59, 130, 246, 0.05) 100%) !important;
+    border-left: 4px solid rgb(59, 130, 246) !important;
+    padding-left: 1rem !important;
+    margin-left: -1rem !important;
+    border-radius: 0.375rem !important;
+    box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.2) !important;
+    transition: all 0.3s ease !important;
+  }
+
+  /* Highlight active question content in preview */
+  .inline-editor-active-content {
+    background: rgba(59, 130, 246, 0.03) !important;
+    border-left: 3px solid rgba(59, 130, 246, 0.3) !important;
+    padding-left: 0.75rem !important;
+    margin-left: -0.75rem !important;
+    border-radius: 0.25rem !important;
+  }
+
+  /* Subtle highlight for active section */
+  .inline-editor-active-section {
+    position: relative;
+  }
+
+  .inline-editor-active-section::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    border: 2px solid rgba(59, 130, 246, 0.3);
+    border-radius: 0.5rem;
+    pointer-events: none;
+    z-index: 1;
+  }
 }

@@ -215,6 +215,8 @@ export function TemplateOverviewPanel({
   const prevDisabledDocumentsRef = useRef<string>('');
   const prevCustomSectionsLengthRef = useRef<number>(0);
   const prevCustomDocumentsLengthRef = useRef<number>(0);
+  const prevCustomSectionsKeyRef = useRef<string>('');
+  const prevCustomDocumentsKeyRef = useRef<string>('');
   
   // Create stable string keys for dependencies
   const disabledSectionsKey = useMemo(() => {
@@ -229,10 +231,14 @@ export function TemplateOverviewPanel({
     if (isInitialMount.current) {
       isInitialMount.current = false;
       // Initialize refs
+      const customSectionsKey = customSections.map(s => s.id).sort().join(',');
+      const customDocumentsKey = customDocuments.map(d => d.id).sort().join(',');
       prevDisabledSectionsRef.current = disabledSectionsKey;
       prevDisabledDocumentsRef.current = disabledDocumentsKey;
       prevCustomSectionsLengthRef.current = customSections.length;
       prevCustomDocumentsLengthRef.current = customDocuments.length;
+      prevCustomSectionsKeyRef.current = customSectionsKey;
+      prevCustomDocumentsKeyRef.current = customDocumentsKey;
       return;
     }
     
@@ -240,12 +246,18 @@ export function TemplateOverviewPanel({
       return;
     }
     
+    // Create a stable key that includes custom section IDs to detect actual changes
+    const customSectionsKey = customSections.map(s => s.id).sort().join(',');
+    const customDocumentsKey = customDocuments.map(d => d.id).sort().join(',');
+    
     // Check if anything actually changed
     const hasChanged = 
       prevDisabledSectionsRef.current !== disabledSectionsKey ||
       prevDisabledDocumentsRef.current !== disabledDocumentsKey ||
       prevCustomSectionsLengthRef.current !== customSections.length ||
-      prevCustomDocumentsLengthRef.current !== customDocuments.length;
+      prevCustomDocumentsLengthRef.current !== customDocuments.length ||
+      prevCustomSectionsKeyRef.current !== customSectionsKey ||
+      prevCustomDocumentsKeyRef.current !== customDocumentsKey;
     
     if (!hasChanged) {
       return;
@@ -256,12 +268,14 @@ export function TemplateOverviewPanel({
     prevDisabledDocumentsRef.current = disabledDocumentsKey;
     prevCustomSectionsLengthRef.current = customSections.length;
     prevCustomDocumentsLengthRef.current = customDocuments.length;
+    prevCustomSectionsKeyRef.current = customSectionsKey;
+    prevCustomDocumentsKeyRef.current = customDocumentsKey;
     
     const updateKey = JSON.stringify({
       disabled: disabledSectionsKey,
       docs: disabledDocumentsKey,
-      customSections: customSections.length,
-      customDocuments: customDocuments.length
+      customSections: customSectionsKey,
+      customDocuments: customDocumentsKey
     });
     
     if (lastUpdateRef.current === updateKey) {
@@ -278,7 +292,7 @@ export function TemplateOverviewPanel({
     });
     
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [disabledSectionsKey, disabledDocumentsKey, customSections.length, customDocuments.length]);
+  }, [disabledSectionsKey, disabledDocumentsKey, customSections, customDocuments]);
 
 
   // Close edit forms when items are disabled
@@ -342,10 +356,14 @@ export function TemplateOverviewPanel({
       origin: 'custom',
       visibility: 'advanced'
     };
+    // New custom sections are automatically enabled (not in disabledSections)
+    // The useEffect will detect the change and trigger onUpdate
     setCustomSections(prev => [...prev, newSection]);
     setNewSectionTitle('');
     setNewSectionDescription('');
     setShowAddSection(false);
+    // Force update by clearing the lastUpdateRef to ensure the effect triggers
+    lastUpdateRef.current = '';
   };
 
   const addCustomDocument = () => {
@@ -673,36 +691,24 @@ export function TemplateOverviewPanel({
   const totalDocumentsCount = allDocuments.length + 1; // +1 for core product
 
   const getOriginBadge = (origin?: string, isSelected: boolean = false) => {
+    // Don't show badges for custom items or master items - only show for program items
+    if (origin !== 'program') {
+      return null;
+    }
+    
     const baseClasses = "border-0 text-[7px] px-0.5 py-0";
     const selectedClasses = isSelected ? "ring-1 ring-blue-400/60" : "";
     
-    switch (origin) {
-      case 'program':
-        return (
-          <Badge 
-            variant="info" 
-            className={`bg-blue-600/30 text-blue-200 ${baseClasses} ${selectedClasses} ${
-              isSelected ? 'bg-blue-500/50 text-blue-100' : ''
-            }`}
-          >
-            P
-          </Badge>
-        );
-      case 'custom':
-        return (
-          <Badge 
-            variant="secondary" 
-            className={`bg-purple-600/30 text-purple-200 ${baseClasses} ${selectedClasses} ${
-              isSelected ? 'bg-purple-500/50 text-purple-100' : ''
-            }`}
-          >
-            C
-          </Badge>
-        );
-      default:
-        // Don't show badge for master items
-        return null;
-    }
+    return (
+      <Badge 
+        variant="info" 
+        className={`bg-blue-600/30 text-blue-200 ${baseClasses} ${selectedClasses} ${
+          isSelected ? 'bg-blue-500/50 text-blue-100' : ''
+        }`}
+      >
+        P
+      </Badge>
+    );
   };
 
 
@@ -845,6 +851,7 @@ const cardElevationClasses = isExpanded
                   onSetNewSectionTitle={setNewSectionTitle}
                   onSetNewSectionDescription={setNewSectionDescription}
                   onRemoveCustomSection={removeCustomSection}
+                  programSummary={programSummary ? { name: programSummary.name, amountRange: programSummary.amountRange ?? undefined } : null}
                 />
               </div>
               <div className="mt-0 sticky bottom-2 left-0 z-30 py-2 px-2">

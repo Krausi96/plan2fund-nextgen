@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 
 import { ANCILLARY_SECTION_ID, METADATA_SECTION_ID } from '@/features/editor/hooks/useEditorStore';
 import { BusinessPlan } from '@/features/editor/types/plan';
@@ -11,75 +11,95 @@ type SidebarProps = {
   activeSectionId: string | null;
   onSelectSection: (sectionId: string) => void;
   filteredSectionIds?: string[] | null; // When provided, only show these sections (null = show all)
+  collapsed?: boolean; // New prop for collapsed state
+  onToggleCollapse?: () => void; // New prop for toggle
 };
 
-export default function Sidebar({ plan, activeSectionId, onSelectSection, filteredSectionIds }: SidebarProps) {
+export default function Sidebar({ 
+  plan, 
+  activeSectionId, 
+  onSelectSection, 
+  filteredSectionIds,
+  collapsed = false,
+  onToggleCollapse
+}: SidebarProps) {
   const { t } = useI18n();
+  const [isCollapsed, setIsCollapsed] = useState(collapsed);
+
+  const handleToggleCollapse = () => {
+    setIsCollapsed(!isCollapsed);
+    onToggleCollapse?.();
+  };
+
   return (
-    <div className="w-full">
-      <div className="relative w-full">
-        <div className="mb-2 pb-1 border-b border-white/50">
-          <h2 className="text-base font-bold uppercase tracking-wide text-white">
-            {(t('editor.header.planSections' as any) as string) || 'Plan Sections'}
-          </h2>
-        </div>
-        <SectionNavigationBar
+    <div className={`flex flex-col h-full transition-all duration-300 ${
+      isCollapsed ? 'w-[60px]' : 'w-[240px]'
+    }`}>
+      <div className="relative w-full flex-1 overflow-hidden">
+        {!isCollapsed && (
+          <div className="mb-2 pb-1 border-b border-white/50">
+            <h2 className="text-base font-bold uppercase tracking-wide text-white">
+              {(t('editor.header.planSections' as any) as string) || 'Plan Sections'}
+            </h2>
+          </div>
+        )}
+        <SectionNavigationTree
           plan={plan}
           activeSectionId={activeSectionId ?? plan.sections[0]?.id ?? null}
           onSelectSection={onSelectSection}
           filteredSectionIds={filteredSectionIds}
+          collapsed={isCollapsed}
         />
       </div>
+      <Button
+        variant="ghost"
+        size="sm"
+        onClick={handleToggleCollapse}
+        className="mt-2 border border-white/30 bg-white/10 hover:bg-white/20 text-white"
+        aria-label={isCollapsed ? 'Expand sidebar' : 'Collapse sidebar'}
+      >
+        {isCollapsed ? '►' : '◄'}
+      </Button>
     </div>
   );
 }
 
-type IconProps = React.SVGProps<SVGSVGElement>;
-
-const ChevronLeftIcon = (props: IconProps) => (
-  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" {...props}>
-    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M15.75 19.5 8.25 12l7.5-7.5" />
-  </svg>
-);
-
-const ChevronRightIcon = (props: IconProps) => (
-  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" {...props}>
-    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M8.25 4.5 15.75 12l-7.5 7.5" />
-  </svg>
-);
-
-function SectionNavigationBar({
+function SectionNavigationTree({
   plan,
   activeSectionId,
   onSelectSection,
-  filteredSectionIds
+  filteredSectionIds,
+  collapsed
 }: {
   plan: BusinessPlan;
   activeSectionId: string | null;
   onSelectSection: (sectionId: string) => void;
   filteredSectionIds?: string[] | null;
+  collapsed: boolean;
 }) {
   const { t } = useI18n();
-  const scrollContainerRef = React.useRef<HTMLDivElement>(null);
 
   const getSectionTitle = (sectionId: string, originalTitle: string): string => {
     if (sectionId === METADATA_SECTION_ID || sectionId === ANCILLARY_SECTION_ID) {
       return (t('editor.section.metadata' as any) as string) || 'Plan Metadata';
     }
+    if (originalTitle.startsWith('editor.section.')) {
+      const translated = t(originalTitle as any) as string;
+      return translated || originalTitle;
+    }
     const translationKey = `editor.section.${sectionId}` as any;
     const translated = t(translationKey) as string;
-    return translated || originalTitle;
+    if (translated === translationKey && originalTitle.startsWith('editor.')) {
+      const titleTranslated = t(originalTitle as any) as string;
+      return titleTranslated !== originalTitle ? titleTranslated : originalTitle;
+    }
+    return translated !== translationKey ? translated : originalTitle;
   };
 
-  // Filter sections based on filteredSectionIds
-  // If filteredSectionIds is null, show all sections (core product selected)
-  // If filteredSectionIds is an array, only show sections in that array
   const planSectionsToShow = React.useMemo(() => {
     if (filteredSectionIds === null || filteredSectionIds === undefined) {
-      // Show all sections when no document is selected (core product)
       return plan.sections;
     }
-    // Filter to only show sections that match the selected document
     return plan.sections.filter(section => filteredSectionIds.includes(section.id));
   }, [plan.sections, filteredSectionIds]);
 
@@ -93,98 +113,93 @@ function SectionNavigationBar({
     ...planSectionsToShow.map((section) => ({ ...section, title: getSectionTitle(section.id, section.title) }))
   ];
 
-  const scrollBy = (direction: 'left' | 'right') => {
-    if (scrollContainerRef.current) {
-      scrollContainerRef.current.scrollBy({ left: direction === 'left' ? -240 : 240, behavior: 'smooth' });
+  const handleClick = (sectionId: string) => {
+    if (sectionId === ANCILLARY_SECTION_ID) {
+      onSelectSection(METADATA_SECTION_ID);
+    } else {
+      onSelectSection(sectionId);
     }
   };
 
-  const handleKeyNavigation = (event: React.KeyboardEvent<HTMLDivElement>) => {
-    if (event.key === 'ArrowLeft') {
-      scrollBy('left');
-      event.preventDefault();
-    }
-    if (event.key === 'ArrowRight') {
-      scrollBy('right');
-      event.preventDefault();
-    }
-  };
-
-  return (
-    <div className="flex items-center gap-1">
-      <Button
-        variant="ghost"
-        size="sm"
-        onClick={() => scrollBy('left')}
-        aria-label={(t('editor.workspace.sidebar.scrollLeft' as any) as string) || 'Scroll sections left'}
-        className="border border-white/30 bg-white/10 hover:bg-white/20 text-white flex-shrink-0 h-8 w-8 p-0"
-      >
-        <ChevronLeftIcon className="h-3.5 w-3.5" />
-      </Button>
-      <div
-        ref={scrollContainerRef}
-        className="flex flex-1 items-center gap-1 overflow-x-auto scrollbar-hide"
-        role="tablist"
-        aria-label={(t('editor.workspace.sidebar.tablist' as any) as string) || 'Plan sections'}
-        tabIndex={0}
-        onKeyDown={handleKeyNavigation}
-      >
-        {sections.map((section, index) => {
+  if (collapsed) {
+    return (
+      <div className="flex flex-col gap-2 overflow-y-auto">
+        {sections.map((section) => {
           const totalQuestions = section.questions.length;
           const answeredQuestions = section.questions.filter((question) => question.status === 'complete').length;
           const completion =
             section.progress ?? (totalQuestions === 0 ? 0 : Math.round((answeredQuestions / totalQuestions) * 100));
           const isMetadata = section.id === METADATA_SECTION_ID || section.id === ANCILLARY_SECTION_ID;
           const isActive = section.id === activeSectionId || (isMetadata && (activeSectionId === METADATA_SECTION_ID || activeSectionId === ANCILLARY_SECTION_ID));
-          const progressIntent: 'success' | 'warning' | 'neutral' =
-            completion === 100 ? 'success' : completion > 0 ? 'warning' : 'neutral';
-
-          const handleClick = () => {
-            // If clicking on metadata or ancillary, always navigate to METADATA_SECTION_ID
-            if (section.id === ANCILLARY_SECTION_ID) {
-              onSelectSection(METADATA_SECTION_ID);
-            } else {
-              onSelectSection(section.id);
-            }
-          };
-
+          
           return (
             <button
               key={section.id}
-              onClick={handleClick}
-              aria-current={isActive ? 'page' : undefined}
-              role="tab"
-              className={`min-w-[140px] rounded-lg border-2 px-2.5 py-1.5 text-left transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-400 ${
+              onClick={() => handleClick(section.id)}
+              className={`w-full p-2 rounded-lg transition-all ${
                 isActive
-                  ? 'border-blue-400 bg-blue-500/30 text-white shadow-xl shadow-blue-900/30 backdrop-blur-md'
-                  : 'border-white/50 bg-blue-400/20 text-white hover:border-blue-300/70 hover:bg-blue-400/30 backdrop-blur-sm'
+                  ? 'bg-blue-500/30 border border-blue-400'
+                  : 'bg-white/10 border border-white/20 hover:bg-white/20'
               }`}
+              title={section.title}
             >
-              <div className="flex flex-col gap-0.5">
-                <div className="flex items-center justify-between">
-                  {!isMetadata && (
-                    <span className="text-[9px] font-bold tracking-[0.15em] text-white drop-shadow-sm">
-                      {String(index).padStart(2, '0')}
-                    </span>
-                  )}
-                  <span className="text-[9px] font-bold text-white drop-shadow-sm">{completion}%</span>
-                </div>
-                <Progress value={completion} intent={progressIntent} size="xs" />
-                <p className="text-xs font-bold leading-snug text-white drop-shadow-sm">{section.title}</p>
+              <div className="flex flex-col items-center gap-1">
+                <span className="text-lg">
+                  {completion === 100 ? '✅' : completion > 0 ? '⚠️' : '❌'}
+                </span>
+                {completion < 100 && (
+                  <span className="text-[8px] text-white/70">{completion}%</span>
+                )}
               </div>
             </button>
           );
         })}
       </div>
-      <Button
-        variant="ghost"
-        size="sm"
-        onClick={() => scrollBy('right')}
-        aria-label={(t('editor.workspace.sidebar.scrollRight' as any) as string) || 'Scroll sections right'}
-        className="border border-white/30 bg-white/10 hover:bg-white/20 text-white flex-shrink-0 h-8 w-8 p-0"
-      >
-        <ChevronRightIcon className="h-3.5 w-3.5" />
-      </Button>
+    );
+  }
+
+  return (
+    <div className="flex flex-col gap-1 overflow-y-auto">
+      {sections.map((section, index) => {
+        const totalQuestions = section.questions.length;
+        const answeredQuestions = section.questions.filter((question) => question.status === 'complete').length;
+        const completion =
+          section.progress ?? (totalQuestions === 0 ? 0 : Math.round((answeredQuestions / totalQuestions) * 100));
+        const isMetadata = section.id === METADATA_SECTION_ID || section.id === ANCILLARY_SECTION_ID;
+        const isActive = section.id === activeSectionId || (isMetadata && (activeSectionId === METADATA_SECTION_ID || activeSectionId === ANCILLARY_SECTION_ID));
+        const progressIntent: 'success' | 'warning' | 'neutral' =
+          completion === 100 ? 'success' : completion > 0 ? 'warning' : 'neutral';
+
+        return (
+          <button
+            key={section.id}
+            onClick={() => handleClick(section.id)}
+            className={`w-full rounded-lg border-2 px-3 py-2 text-left transition-all ${
+              isActive
+                ? 'border-blue-400 bg-blue-500/30 text-white shadow-lg'
+                : 'border-white/50 bg-white/10 text-white hover:border-blue-300/70 hover:bg-white/20'
+            }`}
+          >
+            <div className="flex items-center justify-between gap-2">
+              <div className="flex-1 min-w-0">
+                <div className="flex items-center gap-2 mb-1">
+                  {!isMetadata && (
+                    <span className="text-[9px] font-bold tracking-wide text-white/70">
+                      {String(index).padStart(2, '0')}
+                    </span>
+                  )}
+                  <span className="text-xs font-semibold truncate">{section.title}</span>
+                </div>
+                <Progress value={completion} intent={progressIntent} size="xs" />
+              </div>
+              <div className="flex items-center gap-1 flex-shrink-0">
+                <span className="text-[10px] font-bold text-white">{completion}%</span>
+                {isActive && <span className="text-blue-400">●</span>}
+              </div>
+            </div>
+          </button>
+        );
+      })}
     </div>
   );
 }

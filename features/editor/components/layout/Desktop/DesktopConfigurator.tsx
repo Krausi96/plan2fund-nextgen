@@ -181,10 +181,6 @@ export function DesktopConfigurator({
             {t('editor.desktop.config.title' as any) || 'Deine Konfiguration'}
           </h2>
         </div>
-        <p className="text-[10px] text-white/70 mb-2 flex-shrink-0">
-          {t('editor.desktop.config.description' as any) ||
-            'Wählen Sie Ihren Plan-Typ, verbinden Sie ein Förderprogramm oder laden Sie eine Vorlage hoch. Ihre Auswahl bestimmt die verfügbaren Abschnitte und Dokumente für Ihren Plan.'}
-        </p>
       </div>
 
       <div className="bg-white/5 border border-white/10 rounded-lg p-1">
@@ -372,6 +368,72 @@ export function DesktopConfigurator({
             )}
           </div>
         )}
+      </div>
+
+      {/* Enhanced Description - Below selector card */}
+      <div className="mt-3 p-3 rounded-lg border border-blue-500/30 bg-gradient-to-br from-blue-950/40 via-blue-900/20 to-transparent backdrop-blur-sm flex-shrink-0">
+        <div className="flex items-start gap-2 mb-2">
+          <span className="text-base leading-none flex-shrink-0 mt-0.5">ℹ️</span>
+          <div className="flex-1 text-[10px] text-white/80 leading-relaxed">
+            {(() => {
+              // Get translation with fallback
+              let descriptionText: string;
+              try {
+                descriptionText = t('editor.desktop.config.description' as any);
+                // If translation returns the key itself (meaning it wasn't found), use fallback
+                if (!descriptionText || descriptionText === 'editor.desktop.config.description') {
+                  descriptionText = 'Plan-Typ: Wähle Strategy, Review oder Submission → System lädt Basis-Abschnitte (z.B. Executive Summary, Financial Plan, Project Description)\n\nProgramm: Verbinde Förderprogramm (AWS, FFG, EU) → System fügt programmspezifische Abschnitte & Dokumente hinzu\n\nTemplate: Lade PDF/TXT/MD hoch → System extrahiert Abschnitte/Dokumente als benutzerdefinierte Vorlage\n\nSo funktioniert\'s:\n• Option 1: Nur Plan-Typ → Sie erhalten die Basis-Struktur\n• Option 2: Plan-Typ + Programm → Basis-Struktur wird mit programmspezifischen Anforderungen ergänzt\n• Optional: Zusätzlich eigene Vorlage hochladen';
+                }
+              } catch (error) {
+                console.warn('Translation error:', error);
+                descriptionText = 'Plan-Typ: Wähle Strategy, Review oder Submission → System lädt Basis-Abschnitte (z.B. Executive Summary, Financial Plan, Project Description)\n\nProgramm: Verbinde Förderprogramm (AWS, FFG, EU) → System fügt programmspezifische Abschnitte & Dokumente hinzu\n\nTemplate: Lade PDF/TXT/MD hoch → System extrahiert Abschnitte/Dokumente als benutzerdefinierte Vorlage\n\nSo funktioniert\'s:\n• Option 1: Nur Plan-Typ → Sie erhalten die Basis-Struktur\n• Option 2: Plan-Typ + Programm → Basis-Struktur wird mit programmspezifischen Anforderungen ergänzt\n• Optional: Zusätzlich eigene Vorlage hochladen';
+              }
+              const description = typeof descriptionText === 'string' ? descriptionText : String(descriptionText || '');
+              return description.split('\n').map((line: string, idx: number) => {
+                const trimmed = line.trim();
+                
+                // Empty lines - add spacing
+                if (!trimmed) {
+                  return <div key={idx} className="h-1.5" />;
+                }
+                
+                // Format bullet points
+                if (trimmed.startsWith('•')) {
+                  return (
+                    <div key={idx} className="pl-3 mt-0.5 text-white/90">
+                      {trimmed}
+                    </div>
+                  );
+                }
+                
+                // Format "So funktioniert's:" / "How it works:" header
+                if (trimmed.includes('funktioniert') || trimmed.includes('How it works')) {
+                  return (
+                    <div key={idx} className="font-semibold mt-2 mb-0.5 text-white">
+                      {trimmed}
+                    </div>
+                  );
+                }
+                
+                // Format section headers (lines with →)
+                if (trimmed.includes('→')) {
+                  return (
+                    <div key={idx} className="font-semibold mt-1 first:mt-0 text-white/95">
+                      {trimmed}
+                    </div>
+                  );
+                }
+                
+                // Regular lines
+                return (
+                  <div key={idx} className="mt-0.5">
+                    {trimmed}
+                  </div>
+                );
+              });
+            })()}
+          </div>
+        </div>
       </div>
 
       <Dialog open={showTemplatePreview} onOpenChange={setShowTemplatePreview}>

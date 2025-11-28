@@ -62,6 +62,7 @@ export interface PreviewOptions {
 interface ExportRendererProps extends PreviewOptions {
   plan: PlanDocument;
   style?: React.CSSProperties;
+  onSectionClick?: (sectionId: string) => void;
 }
 
 function ExportRenderer({
@@ -71,7 +72,8 @@ function ExportRenderer({
   previewMode = 'preview',
   selectedSections,
   previewSettings = {},
-  style
+  style,
+  onSectionClick
 }: ExportRendererProps) {
   const sectionsToRender = selectedSections && selectedSections.size > 0
     ? plan.sections.filter(section => selectedSections.has(section.key))
@@ -391,8 +393,16 @@ function ExportRenderer({
           
           return (
             <div 
-              key={section.key} 
-              className="export-preview-page export-preview-section"
+              key={section.key}
+              data-section-id={section.key}
+              onClick={(e) => {
+                // Only trigger if clicking the section container itself, not child elements
+                if (e.target === e.currentTarget || (e.target as HTMLElement).closest('[data-section-id]') === e.currentTarget) {
+                  console.log('Section div clicked:', section.key);
+                  onSectionClick?.(section.key);
+                }
+              }}
+              className={`export-preview-page export-preview-section ${onSectionClick ? 'cursor-pointer hover:bg-blue-50/30 transition-colors rounded-lg' : ''}`}
               style={{
                 width: '210mm',
                 height: '297mm',
@@ -400,13 +410,58 @@ function ExportRenderer({
                 background: 'white',
                 margin: 0,
                 marginTop: 0,
-                marginBottom: 0
+                marginBottom: 0,
+                position: 'relative'
               }}
             >
-            <div className="export-preview-page-scaler">
+            {/* Click overlay to ensure clicks work - only on empty areas */}
+            {onSectionClick && (
+              <div 
+                className="absolute inset-0 z-10 cursor-pointer"
+                onClick={(e) => {
+                  // Only trigger if clicking empty space, not content
+                  const target = e.target as HTMLElement;
+                  if (target === e.currentTarget || target.classList.contains('export-preview-page')) {
+                    console.log('Click overlay triggered for section:', section.key);
+                    onSectionClick(section.key);
+                  }
+                }}
+                onPointerDown={(e) => {
+                  // Allow clicks to pass through to content
+                  const target = e.target as HTMLElement;
+                  if (target.tagName !== 'DIV' || target.classList.contains('export-preview-page')) {
+                    return;
+                  }
+                  e.stopPropagation();
+                }}
+                style={{ zIndex: 10, pointerEvents: 'none' }}
+              />
+            )}
+            <div 
+              className="export-preview-page-scaler" 
+              style={{ position: 'relative', zIndex: 1, pointerEvents: 'auto' }}
+              onClick={(e) => {
+                // Click on section header to edit
+                if (onSectionClick && (e.target as HTMLElement).tagName === 'H2') {
+                  console.log('Section header clicked:', section.key);
+                  onSectionClick(section.key);
+                }
+              }}
+            >
             <div className="flex h-full flex-col space-y-4">
               <div className="border-b border-gray-200 pb-2 flex-shrink-0 flex items-start justify-between">
-                <h2 className="text-2xl font-semibold text-gray-900">{displayTitle}</h2>
+                <h2 
+                  className="text-2xl font-semibold text-gray-900 cursor-pointer hover:text-blue-600 transition-colors"
+                  onClick={(e) => {
+                    if (onSectionClick) {
+                      e.stopPropagation();
+                      console.log('Section title clicked:', section.key);
+                      onSectionClick(section.key);
+                    }
+                  }}
+                >
+                  {displayTitle}
+                </h2>
                 {previewSettings.showCompletionStatus && (
                   <div className="flex items-center gap-2 text-xs text-gray-500 ml-4">
                     {isComplete ? (

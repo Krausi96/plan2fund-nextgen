@@ -299,9 +299,10 @@ export const useEditorStore = create<EditorStoreState>((set, get) => ({
       // Ensure we have at least one section to prevent empty plan
       if (sections.length === 0) {
         console.warn('[hydrate] No sections available after filtering, creating default section');
+        // Use a translation key that will be handled in Sidebar
         sections.push({
           id: 'default_section',
-          title: 'Default Section',
+          title: 'editor.section.default_section', // Will be translated in Sidebar
           description: 'No sections available',
           questions: [],
           datasets: [],
