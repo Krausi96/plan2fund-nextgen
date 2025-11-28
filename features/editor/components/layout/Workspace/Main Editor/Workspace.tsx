@@ -11,14 +11,12 @@ import {
 import { ProgressSummary } from '@/features/editor/hooks/useEditorStore';
 import MetadataAndAncillaryPanel from '../Title Page & Attachement Data/MetadataAndAncillaryPanel';
 import { SectionWorkspace } from './SectionWorkspace';
-import Sidebar from './Sidebar';
 
 type WorkspaceProps = {
   plan: BusinessPlan;
   isAncillaryView: boolean;
   isMetadataView: boolean;
   activeSection: Section | null;
-  activeSectionId: string | null;
   activeQuestionId: string | null;
   onSelectQuestion: (questionId: string) => void;
   onAnswerChange: (questionId: string, content: string) => void;
@@ -55,9 +53,7 @@ export function Workspace({
   onAppendixUpdate,
   onAppendixDelete,
   onRunRequirements,
-  progressSummary,
-  activeSectionId,
-  onSelectSection
+  progressSummary
 }: WorkspaceProps) {
   // Show merged panel for both metadata and ancillary views
   if (isMetadataView || isAncillaryView) {
@@ -81,24 +77,15 @@ export function Workspace({
   const currentSection = activeSection ?? plan.sections[0] ?? null;
 
   return (
-    <div className="flex flex-col gap-1.5 lg:flex-row lg:gap-2">
-      <div className="w-full lg:max-w-[280px]">
-        <Sidebar
-          plan={plan}
-          activeSectionId={activeSectionId ?? currentSection?.id ?? null}
-          onSelectSection={onSelectSection}
-        />
-      </div>
-      <div className="flex-1 min-w-0">
-        <SectionWorkspace
-          section={currentSection ?? undefined}
-          activeQuestionId={activeQuestionId}
-          onSelectQuestion={onSelectQuestion}
-          onAnswerChange={onAnswerChange}
-          onToggleUnknown={onToggleUnknown}
-          onMarkComplete={onMarkComplete}
-        />
-      </div>
+    <div className="flex-1 min-w-0">
+      <SectionWorkspace
+        section={currentSection ?? undefined}
+        activeQuestionId={activeQuestionId}
+        onSelectQuestion={onSelectQuestion}
+        onAnswerChange={onAnswerChange}
+        onToggleUnknown={onToggleUnknown}
+        onMarkComplete={onMarkComplete}
+      />
     </div>
   );
 }

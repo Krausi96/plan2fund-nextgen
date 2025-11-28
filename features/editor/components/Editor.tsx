@@ -10,6 +10,7 @@ import { useRouter } from 'next/router';
 import { TemplateOverviewPanel, ConnectCopy } from './layout/Desktop/Desktop';
 import { Workspace } from './layout/Workspace/Main Editor/Workspace';
 import RightPanel from './layout/Workspace/Right-Panel/RightPanel';
+import Sidebar from './layout/Workspace/Main Editor/Sidebar';
 import {
   AISuggestionOptions,
   ANCILLARY_SECTION_ID,
@@ -382,9 +383,9 @@ export default function Editor({ product = 'submission' }: EditorProps) {
       {plan ? (
         <>
           <div className="container pb-6">
-            <div className="relative rounded-[32px] border border-blue-600/40 shadow-[0_30px_80px_rgba(6,12,32,0.65)] overflow-hidden">
-              <div className="absolute inset-0 bg-gradient-to-b from-slate-900 via-blue-900/90 to-slate-900" />
-              <div className="relative z-10 flex flex-col gap-6 p-4 lg:p-6">
+            <div className="relative rounded-[32px] border border-dashed border-white shadow-[0_30px_80px_rgba(6,12,32,0.65)]">
+              <div className="absolute inset-0 bg-gradient-to-b from-slate-900 via-blue-900/90 to-slate-900 rounded-[32px]" />
+              <div className="relative z-10 flex flex-col gap-2 p-4 lg:p-6 overflow-hidden">
                 {/* Dein Schreibtisch - Template Overview Panel */}
                 <TemplateOverviewPanel
                   productType={selectedProduct}
@@ -401,58 +402,68 @@ export default function Editor({ product = 'submission' }: EditorProps) {
                   connectCopy={connectCopy}
                 />
 
-                {/* Workspace and RightPanel */}
-                <div className="flex flex-col gap-4 lg:flex-row lg:items-start">
-                  <div className="flex-1 min-w-0 max-w-4xl">
-                    <Workspace
+                {/* Workspace Container - Includes Sidebar, Workspace and RightPanel */}
+                <div className="relative rounded-2xl border border-dashed border-white bg-slate-900/40 p-4 lg:p-6 shadow-lg backdrop-blur-sm overflow-hidden w-full">
+                  {/* Sidebar - Plan Abschnitte - Inside unified container */}
+                  <div className="w-full mb-4 pb-4 border-b border-white/10">
+                    <Sidebar
                       plan={plan}
-                      isAncillaryView={isAncillaryView}
-                      isMetadataView={isMetadataView}
-                      activeSection={activeSection}
-                      activeSectionId={activeSectionId}
-                      activeQuestionId={activeQuestionId}
+                      activeSectionId={activeSectionId ?? plan.sections[0]?.id ?? null}
                       onSelectSection={setActiveSection}
-                      onSelectQuestion={setActiveQuestion}
-                      onAnswerChange={updateAnswer}
-                      onToggleUnknown={toggleQuestionUnknown}
-                      onMarkComplete={markQuestionComplete}
-                      onTitlePageChange={updateTitlePage}
-                      onAncillaryChange={updateAncillary}
-                      onReferenceAdd={addReference}
-                      onReferenceUpdate={updateReference}
-                      onReferenceDelete={deleteReference}
-                      onAppendixAdd={addAppendix}
-                      onAppendixUpdate={updateAppendix}
-                      onAppendixDelete={deleteAppendix}
-                      onRunRequirements={runRequirementsCheck}
-                      progressSummary={progressSummary}
                     />
                   </div>
+                  
+                  {/* Workspace and RightPanel - Grid layout */}
+                  <div className="grid grid-cols-1 lg:grid-cols-[1fr_480px] gap-4 lg:gap-6 w-full">
+                    <div className="min-w-0 border-r border-white/10 pr-4 lg:pr-6 overflow-hidden">
+                      <Workspace
+                        plan={plan}
+                        isAncillaryView={isAncillaryView}
+                        isMetadataView={isMetadataView}
+                        activeSection={activeSection}
+                        activeQuestionId={activeQuestionId}
+                        onSelectQuestion={setActiveQuestion}
+                        onAnswerChange={updateAnswer}
+                        onToggleUnknown={toggleQuestionUnknown}
+                        onMarkComplete={markQuestionComplete}
+                        onTitlePageChange={updateTitlePage}
+                        onAncillaryChange={updateAncillary}
+                        onReferenceAdd={addReference}
+                        onReferenceUpdate={updateReference}
+                        onReferenceDelete={deleteReference}
+                        onAppendixAdd={addAppendix}
+                        onAppendixUpdate={updateAppendix}
+                        onAppendixDelete={deleteAppendix}
+                        onRunRequirements={runRequirementsCheck}
+                        progressSummary={progressSummary}
+                      />
+                    </div>
 
-                  <div className="w-full flex-shrink-0 lg:w-[480px]">
-                    <RightPanel
-                      view={rightPanelView}
-                      setView={setRightPanelView}
-                      section={activeSection ?? (isSpecialWorkspace ? undefined : plan.sections[0])}
-                      question={activeQuestion ?? undefined}
-                      plan={plan}
-                      onDatasetCreate={(dataset: Dataset) => activeSection && addDataset(activeSection.id, dataset)}
-                      onKpiCreate={(kpi: KPI) => activeSection && addKpi(activeSection.id, kpi)}
-                      onMediaCreate={(asset: MediaAsset) => activeSection && addMedia(activeSection.id, asset)}
-                      onAttachDataset={(dataset: Dataset) =>
-                        activeSection && activeQuestion && attachDatasetToQuestion(activeSection.id, activeQuestion.id, dataset)
-                      }
-                      onAttachKpi={(kpi: KPI) =>
-                        activeSection && activeQuestion && attachKpiToQuestion(activeSection.id, activeQuestion.id, kpi)
-                      }
-                      onAttachMedia={(asset: MediaAsset) =>
-                        activeSection && activeQuestion && attachMediaToQuestion(activeSection.id, activeQuestion.id, asset)
-                      }
-                      onRunRequirements={runRequirementsCheck}
-                      progressSummary={progressSummary}
-                      onAskAI={triggerAISuggestions}
-                      onAnswerChange={updateAnswer}
-                    />
+                    <div className="min-w-0 overflow-hidden">
+                      <RightPanel
+                        view={rightPanelView}
+                        setView={setRightPanelView}
+                        section={activeSection ?? (isSpecialWorkspace ? undefined : plan.sections[0])}
+                        question={activeQuestion ?? undefined}
+                        plan={plan}
+                        onDatasetCreate={(dataset: Dataset) => activeSection && addDataset(activeSection.id, dataset)}
+                        onKpiCreate={(kpi: KPI) => activeSection && addKpi(activeSection.id, kpi)}
+                        onMediaCreate={(asset: MediaAsset) => activeSection && addMedia(activeSection.id, asset)}
+                        onAttachDataset={(dataset: Dataset) =>
+                          activeSection && activeQuestion && attachDatasetToQuestion(activeSection.id, activeQuestion.id, dataset)
+                        }
+                        onAttachKpi={(kpi: KPI) =>
+                          activeSection && activeQuestion && attachKpiToQuestion(activeSection.id, activeQuestion.id, kpi)
+                        }
+                        onAttachMedia={(asset: MediaAsset) =>
+                          activeSection && activeQuestion && attachMediaToQuestion(activeSection.id, activeQuestion.id, asset)
+                        }
+                        onRunRequirements={runRequirementsCheck}
+                        progressSummary={progressSummary}
+                        onAskAI={triggerAISuggestions}
+                        onAnswerChange={updateAnswer}
+                      />
+                    </div>
                   </div>
                 </div>
               </div>

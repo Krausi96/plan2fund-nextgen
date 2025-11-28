@@ -15,10 +15,10 @@ type SidebarProps = {
 export default function Sidebar({ plan, activeSectionId, onSelectSection }: SidebarProps) {
   const { t } = useI18n();
   return (
-    <div className="h-full">
-      <div className="relative rounded-2xl border border-white/15 bg-white/5 p-3 shadow-lg shadow-blue-900/30 backdrop-blur-xl h-full flex flex-col gap-2">
-        <div className="mb-1">
-          <h2 className="text-base font-bold uppercase tracking-[0.2em] text-white">
+    <div className="w-full">
+      <div className="relative w-full">
+        <div className="mb-1.5">
+          <h2 className="text-xs font-bold uppercase tracking-[0.2em] text-white">
             {(t('editor.header.planSections' as any) as string) || 'Plan Sections'}
           </h2>
         </div>
@@ -101,9 +101,9 @@ function SectionNavigationBar({
         size="sm"
         onClick={() => scrollBy('left')}
         aria-label={(t('editor.workspace.sidebar.scrollLeft' as any) as string) || 'Scroll sections left'}
-        className="border border-white/30 bg-white/10 hover:bg-white/20 text-white flex-shrink-0"
+        className="border border-white/30 bg-white/10 hover:bg-white/20 text-white flex-shrink-0 h-8 w-8 p-0"
       >
-        <ChevronLeftIcon className="h-4 w-4" />
+        <ChevronLeftIcon className="h-3.5 w-3.5" />
       </Button>
       <div
         ref={scrollContainerRef}
@@ -138,23 +138,23 @@ function SectionNavigationBar({
               onClick={handleClick}
               aria-current={isActive ? 'page' : undefined}
               role="tab"
-              className={`min-w-[160px] rounded-lg border-2 px-3 py-2 text-left transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-400 ${
+              className={`min-w-[140px] rounded-lg border-2 px-2.5 py-1.5 text-left transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-400 ${
                 isActive
                   ? 'border-blue-400 bg-blue-500/30 text-white shadow-xl shadow-blue-900/30 backdrop-blur-md'
                   : 'border-white/50 bg-blue-400/20 text-white hover:border-blue-300/70 hover:bg-blue-400/30 backdrop-blur-sm'
               }`}
             >
-              <div className="flex flex-col gap-1">
+              <div className="flex flex-col gap-0.5">
                 <div className="flex items-center justify-between">
                   {!isMetadata && (
-                    <span className="text-[10px] font-bold tracking-[0.2em] text-white drop-shadow-sm">
+                    <span className="text-[9px] font-bold tracking-[0.15em] text-white drop-shadow-sm">
                       {String(index).padStart(2, '0')}
                     </span>
                   )}
-                  <span className="text-[10px] font-bold text-white drop-shadow-sm">{completion}%</span>
+                  <span className="text-[9px] font-bold text-white drop-shadow-sm">{completion}%</span>
                 </div>
                 <Progress value={completion} intent={progressIntent} size="xs" />
-                <p className="text-sm font-bold leading-snug text-white drop-shadow-sm">{section.title}</p>
+                <p className="text-xs font-bold leading-snug text-white drop-shadow-sm">{section.title}</p>
               </div>
             </button>
           );
@@ -165,9 +165,9 @@ function SectionNavigationBar({
         size="sm"
         onClick={() => scrollBy('right')}
         aria-label={(t('editor.workspace.sidebar.scrollRight' as any) as string) || 'Scroll sections right'}
-        className="border border-white/30 bg-white/10 hover:bg-white/20 text-white flex-shrink-0"
+        className="border border-white/30 bg-white/10 hover:bg-white/20 text-white flex-shrink-0 h-8 w-8 p-0"
       >
-        <ChevronRightIcon className="h-4 w-4" />
+        <ChevronRightIcon className="h-3.5 w-3.5" />
       </Button>
     </div>
   );

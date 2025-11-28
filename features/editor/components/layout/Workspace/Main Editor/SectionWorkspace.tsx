@@ -66,9 +66,9 @@ export function SectionWorkspace({
     section.questions.find((q) => q.id === activeQuestionId) ?? section.questions[0] ?? null;
 
   return (
-    <main className="space-y-1">
-      <Card className="relative overflow-hidden rounded-2xl border border-blue-600/40 bg-gradient-to-b from-slate-950 via-blue-900 to-slate-950 p-6 shadow-xl">
-        <div className="absolute inset-0 bg-black/30 backdrop-blur-2xl" />
+    <main className="space-y-1 w-full max-w-full overflow-hidden">
+      <Card className="relative overflow-hidden rounded-2xl border-0 bg-gradient-to-b from-slate-900 via-blue-900/80 to-slate-900 p-6 shadow-xl">
+        <div className="absolute inset-0 bg-black/40 backdrop-blur-2xl" />
         <div className="relative z-10 space-y-3">
           {section.category && (
             <p className="text-[10px] font-medium uppercase tracking-[0.2em] text-white/70">
@@ -151,8 +151,8 @@ function QuestionCard({
   }, [isComplete, question.id]);
 
   const cardBorderClass = 'border-blue-600/50 text-white/90';
-  const gradientClass = 'bg-gradient-to-b from-slate-950 via-blue-900 to-slate-950';
-  const overlayClass = isComplete ? 'bg-black/10' : 'bg-black/20';
+  const gradientClass = 'bg-gradient-to-b from-slate-900 via-blue-900/80 to-slate-900';
+  const overlayClass = isComplete ? 'bg-black/30' : 'bg-black/40';
   const editorLocked = isComplete && !isEditing;
 
   return (
@@ -161,8 +161,8 @@ function QuestionCard({
         id={panelId}
         role="tabpanel"
         aria-live="polite"
-        className={`relative overflow-hidden rounded-2xl p-6 space-y-2 border transition-all backdrop-blur-xl ${cardBorderClass} ${
-          isActive && !hasContent ? 'border-blue-400 ring-1 ring-blue/20 shadow-2xl' : 'shadow-xl'
+        className={`relative overflow-hidden rounded-2xl p-6 space-y-2 border-0 transition-all backdrop-blur-xl ${cardBorderClass} ${
+          isActive && !hasContent ? 'ring-1 ring-blue-400/20 shadow-2xl' : 'shadow-xl'
         }`}
         onClick={onFocus}
       >
@@ -412,8 +412,8 @@ function SimpleTextEditor({
 
   const containerClasses =
     variant === 'complete'
-      ? 'border-slate-200/40 bg-slate-950/70 text-white/90 shadow-[inset_0_1px_8px_rgba(15,23,42,0.35)]'
-      : 'border-white/15 bg-slate-950/60 text-white/95 shadow-[inset_0_1px_8px_rgba(15,23,42,0.5)]';
+      ? 'border-slate-200/40 bg-slate-900/70 text-white/90 shadow-[inset_0_1px_8px_rgba(15,23,42,0.35)]'
+      : 'border-white/15 bg-slate-900/60 text-white/95 shadow-[inset_0_1px_8px_rgba(15,23,42,0.5)]';
 
   const placeholderText =
     placeholder || ((t('editor.ui.answerPlaceholder' as any) as string) || 'Start writing...');

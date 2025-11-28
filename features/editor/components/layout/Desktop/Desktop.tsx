@@ -1,6 +1,5 @@
 import React, { useEffect, useState, useRef, useCallback, useMemo } from 'react';
 import { Button } from '@/shared/components/ui/button';
-import { Card } from '@/shared/components/ui/card';
 import { Badge } from '@/shared/components/ui/badge';
 import { getSections, getDocuments } from '@templates';
 import type { SectionTemplate, DocumentTemplate } from '@templates';
@@ -673,7 +672,7 @@ export function TemplateOverviewPanel({
   };
 
 
-const headerCardClasses = 'relative rounded-lg border border-blue-600/50 px-2.5 pt-1.5 pb-0 backdrop-blur-xl overflow-visible transition-all duration-300';
+const headerCardClasses = 'relative rounded-lg border border-dashed border-white px-2.5 pt-1.5 pb-0 backdrop-blur-xl overflow-visible transition-all duration-300';
 const selectionSummary = `${enabledSectionsCount}/${allSections.length} ${sectionsLabel} • ${enabledDocumentsCount}/${totalDocumentsCount} ${documentsLabel}`;
 const productLabel = selectedProductMeta?.label ?? (t('editor.desktop.product.unselected' as any) || 'Not selected');
 const sectionTitles = visibleSections.map((section) => section.title);
@@ -686,12 +685,12 @@ const cardElevationClasses = isExpanded
   if (loading) {
     return (
       <div className="py-4">
-        <Card className={`${headerCardClasses} flex flex-col ${cardElevationClasses}`}>
+        <div className={`${headerCardClasses} flex flex-col ${cardElevationClasses}`}>
           <div className="absolute inset-0 bg-gradient-to-b from-slate-900 via-blue-900 to-slate-800 rounded-lg" />
           <div className="relative z-10 flex items-center justify-between">
             <span className="text-sm font-semibold text-white">{loadingCopy}</span>
           </div>
-        </Card>
+        </div>
       </div>
     );
   }
@@ -699,19 +698,19 @@ const cardElevationClasses = isExpanded
   if (error) {
     return (
       <div className="py-4">
-        <Card className={`${headerCardClasses} flex flex-col ${cardElevationClasses}`}>
+        <div className={`${headerCardClasses} flex flex-col ${cardElevationClasses}`}>
           <div className="absolute inset-0 bg-gradient-to-b from-slate-900 via-red-900/20 to-slate-800 rounded-lg" />
           <div className="relative z-10 flex items-center justify-between">
             <span className="text-sm font-semibold text-red-200">{error}</span>
           </div>
-        </Card>
+        </div>
       </div>
     );
   }
 
   return (
     <div className="pb-0">
-      <Card className={`${headerCardClasses} flex flex-col ${cardElevationClasses}`}>
+      <div className={`${headerCardClasses} flex flex-col ${cardElevationClasses} bg-transparent shadow-none p-0`}>
         <div className="absolute inset-0 bg-gradient-to-b from-slate-900 via-blue-900 to-slate-800 rounded-lg" />
             <div className="relative z-10 flex flex-col gap-3">
               {/* Header */}
@@ -816,7 +815,7 @@ const cardElevationClasses = isExpanded
               </div>
               <div className="mt-3 sticky bottom-3 left-0 z-30">
                 <div className="mx-auto w-full max-w-4xl rounded-xl border border-[#2b375b] bg-[#0f1c3d]/95 px-5 py-3 text-white shadow-[0_15px_35px_rgba(6,10,24,0.6)] backdrop-blur">
-                  <p className="text-sm font-bold uppercase tracking-wide text-white mb-2 pb-2 border-b border-white/10">
+                  <p className="text-sm font-bold uppercase tracking-wide text-white mb-2 pb-2 border-dotted border-white/80">
                     {selectionCurrentLabel}
                   </p>
                   <div className="flex w-full items-center justify-between gap-4 text-[12px] font-semibold whitespace-nowrap">
@@ -874,7 +873,7 @@ const cardElevationClasses = isExpanded
               </>
             )}
             </div>
-          </Card>
+          </div>
     </div>
   );
 }
