@@ -348,6 +348,68 @@ export default function Editor({ product = 'submission' }: EditorProps) {
     }
   }, [activeSectionId, plan, activeQuestionId, setActiveQuestion]);
 
+  // Scroll detection to update active section when scrolling through preview
+  useEffect(() => {
+    if (!plan || plan.sections.length === 0) return;
+
+    const scrollContainer = document.getElementById('preview-scroll-container');
+    if (!scrollContainer) return;
+
+    let scrollTimeout: NodeJS.Timeout | null = null;
+
+    const handleScroll = () => {
+      // Throttle scroll detection
+      if (scrollTimeout) {
+        clearTimeout(scrollTimeout);
+      }
+
+      scrollTimeout = setTimeout(() => {
+        const scrollRect = scrollContainer.getBoundingClientRect();
+        const scrollCenter = scrollRect.top + scrollRect.height / 2;
+
+        // Find the section that is most visible in the viewport center
+        let bestSection: { id: string; distance: number } | null = null;
+
+        plan.sections.forEach((section) => {
+          const sectionElement = document.querySelector(`[data-section-id="${section.id}"]`) as HTMLElement;
+          if (!sectionElement) return;
+
+          const sectionRect = sectionElement.getBoundingClientRect();
+          const sectionCenter = sectionRect.top + sectionRect.height / 2;
+          const distance = Math.abs(scrollCenter - sectionCenter);
+
+          // Check if section is in viewport
+          if (sectionRect.top < scrollRect.bottom && sectionRect.bottom > scrollRect.top) {
+            if (!bestSection || distance < bestSection.distance) {
+              bestSection = { id: section.id, distance };
+            }
+          }
+        });
+
+        // Update active section if we found a better match and it's different from current
+        if (bestSection && bestSection.id !== activeSectionId) {
+          const sectionToEdit = plan.sections.find(s => s.id === bestSection!.id);
+          if (sectionToEdit) {
+            setActiveSection(bestSection.id);
+            // Only update question if we don't have one selected or if it's a different section
+            if (!activeQuestionId || activeSectionId !== bestSection.id) {
+              setActiveQuestion(sectionToEdit.questions[0]?.id ?? null);
+            }
+          }
+        }
+      }, 150); // Throttle to 150ms
+    };
+
+    scrollContainer.addEventListener('scroll', handleScroll, { passive: true });
+
+    return () => {
+      if (scrollTimeout) {
+        clearTimeout(scrollTimeout);
+      }
+      scrollContainer.removeEventListener('scroll', handleScroll);
+    };
+  }, [plan, activeSectionId, activeQuestionId, setActiveSection, setActiveQuestion]);
+
   const isAncillaryView = activeSectionId === ANCILLARY_SECTION_ID;
   const isMetadataView = activeSectionId === METADATA_SECTION_ID;
   const isSpecialWorkspace = isAncillaryView || isMetadataView;
@@ -520,44 +582,45 @@ export default function Editor({ product = 'submission' }: EditorProps) {
                         
                         {/* Inline Editor - Inside scrollable container, attached to section within preview */}
                         {editingSectionId && (
-                        <InlineSectionEditor
-                          sectionId={editingSectionId}
-                          section={editingSectionId === METADATA_SECTION_ID || editingSectionId === ANCILLARY_SECTION_ID 
-                            ? null 
-                            : activeSection}
-                          activeQuestionId={activeQuestionId}
-                          plan={plan}
-                          onClose={() => setEditingSectionId(null)}
-                          onSelectQuestion={setActiveQuestion}
-                          onAnswerChange={(questionId, content) => {
-                            updateAnswer(questionId, content);
-                          }}
-                          onToggleUnknown={(questionId, note) => {
-                            toggleQuestionUnknown(questionId, note);
-                          }}
-                          onMarkComplete={(questionId) => {
-                            markQuestionComplete(questionId);
-                          }}
-                          onAIHelp={() => triggerAISuggestions()}
-                          onDataHelp={() => {
-                            setRightPanelView('data');
-                            setIsRightPanelOpen(true);
-                          }}
-                          onTitlePageChange={updateTitlePage}
-                          onAncillaryChange={updateAncillary}
-                          onReferenceAdd={addReference}
-                          onReferenceUpdate={updateReference}
-                          onReferenceDelete={deleteReference}
-                          onAppendixAdd={addAppendix}
-                          onAppendixUpdate={updateAppendix}
-                          onAppendixDelete={deleteAppendix}
-                          onRunRequirements={runRequirementsCheck}
-                          progressSummary={progressSummary}
-                          onDatasetCreate={(dataset) => activeSection && addDataset(activeSection.id, dataset)}
-                          onKpiCreate={(kpi) => activeSection && addKpi(activeSection.id, kpi)}
-                          onMediaCreate={(asset) => activeSection && addMedia(activeSection.id, asset)}
-                        />
-                      )}
+                          <InlineSectionEditor
+                            sectionId={editingSectionId}
+                            section={editingSectionId === METADATA_SECTION_ID || editingSectionId === ANCILLARY_SECTION_ID 
+                              ? null 
+                              : activeSection}
+                            activeQuestionId={activeQuestionId}
+                            plan={plan}
+                            onClose={() => setEditingSectionId(null)}
+                            onSelectQuestion={setActiveQuestion}
+                            onAnswerChange={(questionId, content) => {
+                              updateAnswer(questionId, content);
+                            }}
+                            onToggleUnknown={(questionId, note) => {
+                              toggleQuestionUnknown(questionId, note);
+                            }}
+                            onMarkComplete={(questionId) => {
+                              markQuestionComplete(questionId);
+                            }}
+                            onAIHelp={() => triggerAISuggestions()}
+                            onDataHelp={() => {
+                              setRightPanelView('data');
+                              setIsRightPanelOpen(true);
+                            }}
+                            onTitlePageChange={updateTitlePage}
+                            onAncillaryChange={updateAncillary}
+                            onReferenceAdd={addReference}
+                            onReferenceUpdate={updateReference}
+                            onReferenceDelete={deleteReference}
+                            onAppendixAdd={addAppendix}
+                            onAppendixUpdate={updateAppendix}
+                            onAppendixDelete={deleteAppendix}
+                            onRunRequirements={runRequirementsCheck}
+                            progressSummary={progressSummary}
+                            onDatasetCreate={(dataset) => activeSection && addDataset(activeSection.id, dataset)}
+                            onKpiCreate={(kpi) => activeSection && addKpi(activeSection.id, kpi)}
+                            onMediaCreate={(asset) => activeSection && addMedia(activeSection.id, asset)}
+                          />
+                        )}
+                      </div>
                     </div>
 
                     {/* Right Panel - Slide in from right (when open) - Reduced width */}

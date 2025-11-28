@@ -46,8 +46,8 @@ type EditorPosition = {
   visible: boolean;
 };
 
-const EDITOR_WIDTH = 380;
-const EDITOR_MAX_HEIGHT = 500;
+const EDITOR_WIDTH = 320;
+const EDITOR_MAX_HEIGHT = 420;
 const GAP = 16;
 
 export default function InlineSectionEditor({
@@ -105,14 +105,17 @@ export default function InlineSectionEditor({
   // Calculate position relative to preview container
   const calculatePosition = useCallback(() => {
     if (!sectionId || isSpecialSection) {
-      // For metadata/ancillary sections, position at top-right of scroll container
+      // For metadata/ancillary sections, position at top-center of scroll container viewport
       const scrollContainer = document.getElementById('preview-scroll-container');
       if (scrollContainer) {
         const scrollRect = scrollContainer.getBoundingClientRect();
-        const scrollWidth = scrollContainer.scrollWidth || scrollRect.width;
+        const scrollTop = scrollContainer.scrollTop || 0;
+        const scrollLeft = scrollContainer.scrollLeft || 0;
+        // Center horizontally in viewport
+        const centerLeft = scrollLeft + (scrollRect.width - EDITOR_WIDTH) / 2;
         setPosition({
-          top: GAP,
-          left: Math.max(GAP, scrollWidth - EDITOR_WIDTH - GAP),
+          top: scrollTop + GAP,
+          left: Math.max(scrollLeft + GAP, centerLeft),
           placement: 'right',
           visible: true
         });
@@ -463,9 +466,9 @@ export default function InlineSectionEditor({
           )}
           <div className="relative h-full flex flex-col bg-white">
             {/* Header */}
-            <div className="flex items-center justify-between p-4 border-b border-slate-200 bg-gradient-to-r from-slate-50 to-blue-50/50">
+            <div className="flex items-center justify-between p-3 border-b border-slate-200 bg-gradient-to-r from-slate-50 to-blue-50/50">
               <div className="flex-1">
-                <h2 className="text-lg font-semibold text-slate-900">
+                <h2 className="text-sm font-semibold text-slate-900">
                   {isMetadataSection 
                     ? (t('editor.section.metadata' as any) as string) || 'Plan Metadata'
                     : (t('editor.section.front_back_matter' as any) as string) || 'Ancillary & Formalities'}
@@ -483,7 +486,9 @@ export default function InlineSectionEditor({
             </div>
 
             {/* Content */}
-            <div className="flex-1 overflow-y-auto p-4">
+            <div className="flex-1 overflow-y-auto p-4 relative">
+              {/* Blue gradient overflow indicator */}
+              <div className="absolute bottom-0 left-0 right-0 h-8 bg-gradient-to-t from-blue-50/80 to-transparent pointer-events-none z-10" />
               <MetadataAndAncillaryPanel
                 plan={plan}
                 onTitlePageChange={onTitlePageChange}
@@ -555,11 +560,11 @@ export default function InlineSectionEditor({
       )}
       <div className="relative h-full flex flex-col bg-white">
         {/* Header */}
-        <div className="flex items-center justify-between p-4 border-b border-slate-200 bg-gradient-to-r from-slate-50 to-blue-50/50">
+        <div className="flex items-center justify-between p-3 border-b border-slate-200 bg-gradient-to-r from-slate-50 to-blue-50/50">
           <div className="flex-1 min-w-0">
-            <h2 className="text-lg font-semibold text-slate-900 truncate">{section.title}</h2>
+            <h2 className="text-sm font-semibold text-slate-900 truncate">{section.title}</h2>
             {section.description && (
-              <p className="text-xs text-slate-600 truncate mt-1">{section.description}</p>
+              <p className="text-xs text-slate-600 truncate mt-0.5 line-clamp-1">{section.description}</p>
             )}
           </div>
           <Button
@@ -602,11 +607,13 @@ export default function InlineSectionEditor({
         )}
 
         {/* Question Card */}
-        <div className="flex-1 overflow-y-auto p-5 space-y-4 bg-white">
+        <div className="flex-1 overflow-y-auto p-4 space-y-3 bg-white relative">
+          {/* Blue gradient overflow indicator */}
+          <div className="absolute bottom-0 left-0 right-0 h-8 bg-gradient-to-t from-blue-50/80 to-transparent pointer-events-none z-10" />
           <div>
-            <h3 className="text-base font-semibold text-slate-900 mb-2">{activeQuestion.prompt}</h3>
+            <h3 className="text-sm font-semibold text-slate-900 mb-1.5">{activeQuestion.prompt}</h3>
             {activeQuestion.helperText && (
-              <p className="text-sm text-slate-600 mb-3 leading-relaxed">{activeQuestion.helperText}</p>
+              <p className="text-xs text-slate-600 mb-2 leading-relaxed line-clamp-2">{activeQuestion.helperText}</p>
             )}
           </div>
 
@@ -631,7 +638,7 @@ export default function InlineSectionEditor({
               value={activeQuestion.answer ?? ''}
               onChange={(e) => onAnswerChange(activeQuestion.id, e.target.value)}
               placeholder={activeQuestion.placeholder || 'Provide details...'}
-              className="w-full min-h-[180px] rounded-lg border border-slate-300 bg-white p-4 text-sm text-slate-900 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 resize-none shadow-sm"
+              className="w-full min-h-[140px] rounded-lg border border-slate-300 bg-white p-3 text-sm text-slate-900 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 resize-none shadow-sm"
               style={{
                 fontFamily: 'Inter, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif',
                 lineHeight: '1.7'
