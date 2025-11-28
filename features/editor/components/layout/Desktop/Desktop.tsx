@@ -672,7 +672,7 @@ export function TemplateOverviewPanel({
   };
 
 
-const headerCardClasses = 'relative rounded-lg border border-dashed border-white px-2.5 pt-1.5 pb-0 backdrop-blur-xl overflow-visible transition-all duration-300';
+const headerCardClasses = 'relative rounded-lg border border-dashed border-white/60 px-2.5 pt-1.5 pb-0 backdrop-blur-xl overflow-visible transition-all duration-300';
 const selectionSummary = `${enabledSectionsCount}/${allSections.length} ${sectionsLabel} • ${enabledDocumentsCount}/${totalDocumentsCount} ${documentsLabel}`;
 const productLabel = selectedProductMeta?.label ?? (t('editor.desktop.product.unselected' as any) || 'Not selected');
 const sectionTitles = visibleSections.map((section) => section.title);
@@ -756,7 +756,7 @@ const cardElevationClasses = isExpanded
             {/* Expanded Three-Column Layout */}
             {isExpanded && (
               <>
-              <div className="grid grid-cols-[400px_1fr_1fr] gap-4 h-[340px] overflow-hidden">
+              <div className="grid grid-cols-[360px_1fr_1fr] gap-4 h-[340px] overflow-hidden">
                 {/* Column 1: Deine Konfiguration */}
                 <DesktopConfigurator
                   productType={productType}
@@ -813,11 +813,13 @@ const cardElevationClasses = isExpanded
                   onRemoveCustomSection={removeCustomSection}
                 />
               </div>
-              <div className="mt-3 sticky bottom-3 left-0 z-30">
-                <div className="mx-auto w-full max-w-4xl rounded-xl border border-[#2b375b] bg-[#0f1c3d]/95 px-5 py-3 text-white shadow-[0_15px_35px_rgba(6,10,24,0.6)] backdrop-blur">
-                  <p className="text-sm font-bold uppercase tracking-wide text-white mb-2 pb-2 border-dotted border-white/80">
-                    {selectionCurrentLabel}
-                  </p>
+              <div className="mt-0 sticky bottom-2 left-0 z-30 py-2 px-2">
+                <div className="mx-auto w-full max-w-4xl rounded-xl border border-white/30 bg-gradient-to-br from-blue-975 via-blue-800 to-blue-975 px-5 py-2 text-white shadow-[0_15px_35px_rgba(6,10,24,0.6)] backdrop-blur">
+                  <div className="mb-1.5 pb-0.5 border-b border-white/30">
+                    <p className="text-sm font-bold uppercase tracking-wide text-white">
+                      {selectionCurrentLabel}
+                    </p>
+                  </div>
                   <div className="flex w-full items-center justify-between gap-4 text-[12px] font-semibold whitespace-nowrap">
                     <div className="flex items-center gap-3 min-w-0">
                       {selectedProductMeta?.icon && (
@@ -828,7 +830,7 @@ const cardElevationClasses = isExpanded
                       </span>
                     </div>
                     <div className="flex items-center gap-2 min-w-0">
-                      <span className="text-white/80 text-[10px] font-bold uppercase tracking-wide">{programLabelCopy}</span>
+                      <span className="text-white/80 text-[12px] font-bold uppercase tracking">{programLabelCopy}</span>
                       {programLabel ? (
                         <span className="truncate max-w-[240px]" title={programLabel}>
                           {programLabel}
@@ -838,7 +840,7 @@ const cardElevationClasses = isExpanded
                       )}
                     </div>
                     <div className="flex items-center gap-2 min-w-0 relative group">
-                      <span className="text-white/60 text-[10px] font-bold uppercase tracking-wide">{sectionsLabel}</span>
+                      <span className="text-white/60 text-[12px] font-bold uppercase tracking">{sectionsLabel}</span>
                       <span className="font-bold">{enabledSectionsCount}/{allSections.length}</span>
                       <span className="text-white/60 text-[11px]">{showAllCopy}</span>
                       <div className="absolute left-0 top-full mt-2 w-[320px] max-h-[220px] overflow-y-auto rounded-lg border border-white/20 bg-slate-900/95 px-3 py-2 text-[11px] font-normal text-white opacity-0 pointer-events-none group-hover:opacity-100 group-hover:pointer-events-auto transition-all">
@@ -853,7 +855,7 @@ const cardElevationClasses = isExpanded
                       </div>
                     </div>
                     <div className="flex items-center gap-2 min-w-0 relative group">
-                      <span className="text-white/60 text-[10px] font-bold uppercase tracking-wide">{documentsLabel}</span>
+                      <span className="text-white/60 text-[12px] font-bold uppercase tracking">{documentsLabel}</span>
                       <span className="font-bold">{enabledDocumentsCount}/{totalDocumentsCount}</span>
                       <span className="text-white/60 text-[11px]">{showAllCopy}</span>
                       <div className="absolute left-0 top-full mt-2 w-[320px] max-h-[220px] overflow-y-auto rounded-lg border border-white/20 bg-slate-900/95 px-3 py-2 text-[11px] font-normal text-white opacity-0 pointer-events-none group-hover:opacity-100 group-hover:pointer-events-auto transition-all">

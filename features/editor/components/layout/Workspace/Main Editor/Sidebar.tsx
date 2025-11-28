@@ -17,8 +17,8 @@ export default function Sidebar({ plan, activeSectionId, onSelectSection }: Side
   return (
     <div className="w-full">
       <div className="relative w-full">
-        <div className="mb-1.5">
-          <h2 className="text-xs font-bold uppercase tracking-[0.2em] text-white">
+        <div className="mb-2 pb-1 border-b border-white/50">
+          <h2 className="text-base font-bold uppercase tracking-wide text-white">
             {(t('editor.header.planSections' as any) as string) || 'Plan Sections'}
           </h2>
         </div>

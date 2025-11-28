@@ -174,20 +174,20 @@ export function DesktopConfigurator({
   const selectedMeta = selectedProductMeta ?? productOptions.find((option) => option.value === productType) ?? productOptions[0] ?? null;
 
   return (
-      <div className="flex flex-col gap-2 border-r border-white/10 pr-4 overflow-y-auto min-h-0">
+      <div className="flex flex-col gap-2 border-r border-white/50 pr-4 overflow-y-auto min-h-0">
       <div className="flex-shrink-0">
-        <div className="flex items-center gap-2 mb-2 pb-2 border-b border-white/10">
-          <h2 className="text-base font-bold uppercase tracking-wide text-white">
+        <div className="flex items-center gap-2 mb-2 pb-2 border-b border-white/50">
+          <h2 className="text-lg font-bold uppercase tracking-wide text-white">
             {t('editor.desktop.config.title' as any) || 'Deine Konfiguration'}
           </h2>
         </div>
-        <p className="text-[10px] text-white/50 mb-2 flex-shrink-0">
+        <p className="text-[10px] text-white/70 mb-2 flex-shrink-0">
           {t('editor.desktop.config.description' as any) ||
             'Wählen Sie Ihren Plan-Typ, verbinden Sie ein Förderprogramm oder laden Sie eine Vorlage hoch. Ihre Auswahl bestimmt die verfügbaren Abschnitte und Dokumente für Ihren Plan.'}
         </p>
       </div>
 
-      <div className="bg-white/5 border border-white/10 rounded-lg p-4">
+      <div className="bg-white/5 border border-white/10 rounded-lg p-1">
         <div className="flex items-center gap-1 mb-3 p-1 bg-white/5 rounded-lg">
           <button
             onClick={() => onConfigViewChange('plan')}
@@ -217,20 +217,22 @@ export function DesktopConfigurator({
               ref={productTriggerRef}
               type="button"
               onClick={handleToggleProductMenu}
-              className="flex w-full items-center gap-3 rounded-2xl border border-white/25 bg-gradient-to-br from-white/15 via-white/5 to-transparent px-4 py-3 text-left transition-all hover:border-white/60 focus-visible:border-blue-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-200/60 shadow-xl min-h-[110px]"
+              className="flex w-full items-center gap-3 rounded-2xl border border-white/25 bg-gradient-to-br from-white/15 via-white/5 to-transparent px-5 py-3 text-left transition-all hover:border-white/60 focus-visible:border-blue-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-200/60 shadow-xl min-h-[110px]"
             >
-              <span className="flex h-12 w-12 items-center justify-center rounded-xl bg-white/15 text-2xl leading-none text-white shadow-inner shadow-blue-900/40">
-                {selectedMeta?.icon ?? '📄'}
-              </span>
               <span className="flex min-w-0 flex-col gap-1 flex-1">
-                <span className="text-base font-semibold leading-tight text-white">{selectedMeta?.label}</span>
+                <span className="flex items-center gap-2">
+                  <span className="flex h-10 w-10 items-center justify-center rounded-xl bg-white/15 text-1xl leading-none text-white shadow-inner shadow-blue-900/40 flex-shrink-0">
+                    {selectedMeta?.icon ?? '📄'}
+                  </span>
+                  <span className="text-base font-semibold leading-tight text-white">{selectedMeta?.label}</span>
+                  <span className="flex items-center text-lg font-bold flex-shrink-0 text-white/70">▾</span>
+                </span>
                 {selectedMeta?.description && (
                   <span className="text-xs font-normal text-white/70 leading-relaxed">
                     {selectedMeta.description}
                   </span>
                 )}
               </span>
-              <span className="flex items-center text-base font-bold flex-shrink-0 mt-0.5 text-white/70">▾</span>
             </button>
             {showProductMenu && productMenuPosition && typeof window !== 'undefined' && createPortal(
               <div

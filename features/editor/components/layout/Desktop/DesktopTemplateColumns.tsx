@@ -87,13 +87,13 @@ export function DesktopTemplateColumns({
   return (
     <>
       {/* Column 2: Documents */}
-      <div className="flex flex-col gap-2 border-r border-white/10 pr-4 h-full overflow-hidden">
+      <div className="flex flex-col gap-2 border-r border-white/50 pr-4 h-full overflow-hidden">
         <div className="flex-shrink-0" data-column="documents">
-          <h2 className="text-base font-bold uppercase tracking-wide text-white mb-2 pb-2 border-b border-white/10">
+          <h2 className="text-lg font-bold uppercase tracking-wide text-white mb-2 pb-2 border-b border-white/50">
             {t('editor.desktop.documents.title' as any) || 'Deine Dokumente'} ({enabledDocumentsCount})
           </h2>
         </div>
-        <p className="text-[10px] text-white/50 mb-1 flex-shrink-0 -mt-2">
+        <p className="text-[10px] text-white/60 mb-1 flex-shrink-0 -mt-2">
           {t('editor.desktop.documents.subtitle' as any) || 'Entscheide welche zusätzlichen Dokumente zu deinem Plan hinzugefügt werden.'}
         </p>
         <div className="text-[9px] text-white/40 mb-2 flex-shrink-0 flex items-center gap-3 -mt-1">
@@ -181,7 +181,7 @@ export function DesktopTemplateColumns({
             {/* Add Document Form */}
             {showAddDocument && !expandedDocumentId && (
               <div className="col-span-3 border border-white/20 bg-white/10 rounded-lg p-3 space-y-2">
-                <p className="text-xs text-white/80 font-semibold mb-2">
+                <p className="text-xs text-white/70 font-semibold mb-2">
                   {t('editor.desktop.documents.custom.title' as any) || 'Ein benutzerdefiniertes Dokument zu Ihrem Plan hinzufügen'}
                 </p>
                 <div className="space-y-2">
@@ -359,13 +359,13 @@ export function DesktopTemplateColumns({
       </div>
 
       {/* Column 3: Sections */}
-      <div className="flex flex-col gap-2 border-r border-white/10 pr-4 h-full overflow-hidden">
+      <div className="flex flex-col gap-2 border-r border-white/50 pr-4 h-full overflow-hidden">
         <div className="flex-shrink-0" data-column="sections">
-          <h2 className="text-base font-bold uppercase tracking-wide text-white mb-2 pb-2 border-b border-white/10">
+          <h2 className="text-lg font-bold uppercase tracking-wide text-white mb-2 pb-2 border-b border-white/50">
             {t('editor.desktop.sections.title' as any) || 'Deine Abschnitte'} ({filteredSections.length})
           </h2>
         </div>
-        <p className="text-[10px] text-white/50 mb-1 flex-shrink-0 -mt-2">
+        <p className="text-[10px] text-white/70 mb-1 flex-shrink-0 -mt-2">
           {t('editor.desktop.sections.subtitle' as any) || 'Entscheide welche Abschnitte du in dein Dokument miteinbeziehst.'}
         </p>
         <div className="text-[9px] text-white/40 mb-2 flex-shrink-0 flex items-center gap-3 -mt-1">

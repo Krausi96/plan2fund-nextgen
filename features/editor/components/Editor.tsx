@@ -403,9 +403,9 @@ export default function Editor({ product = 'submission' }: EditorProps) {
                 />
 
                 {/* Workspace Container - Includes Sidebar, Workspace and RightPanel */}
-                <div className="relative rounded-2xl border border-dashed border-white bg-slate-900/40 p-4 lg:p-6 shadow-lg backdrop-blur-sm overflow-hidden w-full">
+                <div className="relative rounded-2xl border border-dashed border-white/60 bg-slate-900/40 p-4 lg:p-6 shadow-lg backdrop-blur-sm overflow-hidden w-full">
                   {/* Sidebar - Plan Abschnitte - Inside unified container */}
-                  <div className="w-full mb-4 pb-4 border-b border-white/10">
+                  <div className="w-full mb-2 pb-2 border-b border-white/10">
                     <Sidebar
                       plan={plan}
                       activeSectionId={activeSectionId ?? plan.sections[0]?.id ?? null}
