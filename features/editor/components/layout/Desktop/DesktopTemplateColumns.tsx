@@ -388,20 +388,75 @@ export function DesktopTemplateColumns({
             getOriginBadge={getOriginBadge}
           />
         ) : filteredSections.length === 0 && clickedDocumentId ? (
-          // If document has no related sections, show only "Abschnitt hinzufügen"
-          <div className="flex-1 flex items-center justify-center">
-            <button
-              type="button"
-              onClick={onToggleAddSection}
-              className={`relative w-full max-w-[200px] border rounded-lg p-4 flex flex-col items-center justify-center gap-2 text-center text-[11px] font-semibold tracking-tight transition-all ${
-                showAddSection
-                  ? 'border-blue-400/60 bg-blue-600/30 text-white shadow-lg shadow-blue-900/40'
-                  : 'border-white/20 bg-white/10 text-white/70 hover:border-white/40 hover:text-white'
-              }`}
-            >
-              <span className="text-2xl leading-none">＋</span>
-              <span>{t('editor.desktop.sections.addButton' as any) || 'Abschnitt hinzufügen'}</span>
-            </button>
+          // If document has no related sections, show add CTA + inline form
+          <div className="flex-1 flex flex-col items-center justify-center gap-4 w-full px-4">
+            <div className="w-full max-w-[260px]">
+              <button
+                type="button"
+                onClick={onToggleAddSection}
+                className={`relative w-full border rounded-lg p-4 flex flex-col items-center justify-center gap-2 text-center text-[11px] font-semibold tracking-tight transition-all ${
+                  showAddSection
+                    ? 'border-blue-400/60 bg-blue-600/30 text-white shadow-lg shadow-blue-900/40'
+                    : 'border-white/20 bg-white/10 text-white/70 hover:border-white/40 hover:text-white'
+                }`}
+              >
+                <span className="text-2xl leading-none">＋</span>
+                <span>{t('editor.desktop.sections.addButton' as any) || 'Abschnitt hinzufügen'}</span>
+                <span className="text-[10px] text-white/60 font-normal">
+                  {t('editor.desktop.sections.emptyHint' as any) || 'Keine passenden Abschnitte gefunden – füge jetzt einen hinzu.'}
+                </span>
+              </button>
+            </div>
+            {showAddSection && (
+              <div className="w-full max-w-[360px] border border-white/20 bg-white/10 rounded-lg p-3 space-y-2">
+                <p className="text-xs text-white/80 font-semibold mb-2">
+                  {t('editor.desktop.sections.custom.title' as any) || 'Einen benutzerdefinierten Abschnitt zu Ihrem Plan hinzufügen'}
+                </p>
+                <div className="space-y-2">
+                  <div>
+                    <label className="text-[10px] text-white/70 block mb-1">
+                      {t('editor.desktop.sections.custom.name' as any) || 'Titel *'}
+                    </label>
+                    <input
+                      type="text"
+                      value={newSectionTitle}
+                      onChange={(e) => onSetNewSectionTitle(e.target.value)}
+                      placeholder={t('editor.desktop.sections.custom.namePlaceholder' as any) || 'z.B. Zusammenfassung'}
+                      className="w-full rounded border border-white/30 bg-white/10 px-2 py-1.5 text-xs text-white placeholder:text-white/40 focus:border-blue-300 focus:outline-none focus:ring-1 focus:ring-blue-400/60"
+                      autoFocus
+                    />
+                  </div>
+                  <div>
+                    <label className="text-[10px] text-white/70 block mb-1">
+                      {t('editor.desktop.sections.custom.description' as any) || 'Beschreibung'}
+                    </label>
+                    <textarea
+                      value={newSectionDescription}
+                      onChange={(e) => onSetNewSectionDescription(e.target.value)}
+                      placeholder={t('editor.desktop.sections.custom.descriptionPlaceholder' as any) || 'Optionale Beschreibung des Abschnitts'}
+                      rows={2}
+                      className="w-full rounded border border-white/30 bg-white/10 px-2 py-1.5 text-xs text-white placeholder:text-white/40 focus:border-blue-300 focus:outline-none focus:ring-1 focus:ring-blue-400/60 resize-none"
+                    />
+                  </div>
+                </div>
+                <div className="flex gap-2 pt-1">
+                  <Button
+                    onClick={onAddCustomSection}
+                    disabled={!newSectionTitle.trim()}
+                    className="bg-blue-600 hover:bg-blue-700 text-white text-xs px-3 py-1 disabled:opacity-50 disabled:cursor-not-allowed"
+                  >
+                    {t('editor.desktop.sections.custom.add' as any) || 'Hinzufügen'}
+                  </Button>
+                  <Button
+                    onClick={onToggleAddSection}
+                    variant="ghost"
+                    className="text-white/60 hover:text-white text-xs px-3 py-1"
+                  >
+                    {t('editor.desktop.sections.custom.cancel' as any) || 'Abbrechen'}
+                  </Button>
+                </div>
+              </div>
+            )}
           </div>
         ) : (
           <div className="grid grid-cols-3 gap-2 flex-1 overflow-y-auto min-h-0 pr-1 auto-rows-min pb-2">

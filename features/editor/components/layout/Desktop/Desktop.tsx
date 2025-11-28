@@ -9,6 +9,13 @@ import { useI18n } from '@/shared/contexts/I18nContext';
 import { DesktopConfigurator } from './DesktopConfigurator';
 import { DesktopTemplateColumns } from './DesktopTemplateColumns';
 
+const DOCUMENT_SELECTION_STORAGE_KEY = 'plan2fund-desktop-doc-selection';
+const createDefaultSelectionState = (): Record<ProductType, string | null> => ({
+  submission: null,
+  review: null,
+  strategy: null
+});
+
 export type ConnectCopy = {
   badge: string;
   heading: string;
@@ -102,7 +109,28 @@ export function TemplateOverviewPanel({
   const [expandedDocumentId, setExpandedDocumentId] = useState<string | null>(null);
   const [editingSection, setEditingSection] = useState<SectionTemplate | null>(null);
   const [editingDocument, setEditingDocument] = useState<DocumentTemplate | null>(null);
-  const [clickedDocumentId, setClickedDocumentId] = useState<string | null>(null);
+  const [productDocumentSelections, setProductDocumentSelections] = useState<Record<ProductType, string | null>>(() => {
+    if (typeof window === 'undefined') {
+      return createDefaultSelectionState();
+    }
+    try {
+      const stored = window.sessionStorage.getItem(DOCUMENT_SELECTION_STORAGE_KEY);
+      if (!stored) {
+        return createDefaultSelectionState();
+      }
+      const parsed = JSON.parse(stored) as Partial<Record<ProductType, string | null>>;
+      return {
+        ...createDefaultSelectionState(),
+        ...parsed
+      };
+    } catch (err) {
+      if (process.env.NODE_ENV === 'development') {
+        console.warn('[Desktop] Failed to parse document selection cache:', err);
+      }
+      return createDefaultSelectionState();
+    }
+  });
+  const clickedDocumentId = productDocumentSelections[productType] ?? null;
 
   const selectedProductMeta = productOptions.find((option) => option.value === productType) ?? productOptions[0] ?? null;
 
@@ -276,7 +304,7 @@ export function TemplateOverviewPanel({
       }
       return next;
     });
-  }, [sections, customSections]);
+  }, []);
 
   const toggleDocument = useCallback((documentId: string) => {
     setDisabledDocuments(prev => {
@@ -288,7 +316,7 @@ export function TemplateOverviewPanel({
       }
       return next;
     });
-  }, [documents, customDocuments]);
+  }, []);
 
   const addCustomSection = () => {
     if (!newSectionTitle.trim()) {
@@ -378,16 +406,44 @@ export function TemplateOverviewPanel({
     setExpandedSectionId(section.id);
   };
 
-  const handleSelectDocument = (docId: string | null) => {
+  const updateProductSelection = useCallback((product: ProductType, selection: string | null) => {
+    setProductDocumentSelections(prev => {
+      if (prev[product] === selection) {
+        return prev;
+      }
+      return {
+        ...prev,
+        [product]: selection
+      };
+    });
+  }, []);
+
+  useEffect(() => {
+    if (typeof window === 'undefined') {
+      return;
+    }
+    try {
+      window.sessionStorage.setItem(
+        DOCUMENT_SELECTION_STORAGE_KEY,
+        JSON.stringify(productDocumentSelections)
+      );
+    } catch (err) {
+      if (process.env.NODE_ENV === 'development') {
+        console.warn('[Desktop] Failed to persist document selection cache:', err);
+      }
+    }
+  }, [productDocumentSelections]);
+
+  const handleSelectDocument = useCallback((docId: string | null) => {
     // Select document to filter sections (without opening edit form)
     // null means core product is selected (show all sections)
-    setClickedDocumentId(docId);
+    updateProductSelection(productType, docId);
     // Clear any expanded edit form
     if (docId && expandedDocumentId === docId) {
       setExpandedDocumentId(null);
       setEditingDocument(null);
     }
-  };
+  }, [expandedDocumentId, productType, updateProductSelection]);
 
   const handleEditDocument = (doc: DocumentTemplate, e: React.MouseEvent) => {
     e.preventDefault();
@@ -445,7 +501,6 @@ export function TemplateOverviewPanel({
     setExpandedDocumentId(null);
     setEditingSection(null);
     setEditingDocument(null);
-    setClickedDocumentId(null); // Clear document selection when canceling
   };
 
 
@@ -458,8 +513,41 @@ export function TemplateOverviewPanel({
     }
   };
 
-  const allSections = [...sections, ...customSections];
-  const allDocuments = [...documents, ...customDocuments];
+  const allSections = useMemo(() => [...sections, ...customSections], [sections, customSections]);
+  const allDocuments = useMemo(() => [...documents, ...customDocuments], [documents, customDocuments]);
+  const allDocumentsKey = useMemo(() => allDocuments.map(doc => doc.id).sort().join(','), [allDocuments]);
+
+  const restoreSelectionForProduct = useCallback(
+    (product: ProductType, docs: DocumentTemplate[]) => {
+      const savedSelection = productDocumentSelections[product];
+      if (!savedSelection) {
+        return null;
+      }
+      const exists = docs.some(doc => doc.id === savedSelection);
+      return exists ? savedSelection : null;
+    },
+    [productDocumentSelections]
+  );
+
+  useEffect(() => {
+    if (loading) return;
+    const restoredSelection = restoreSelectionForProduct(productType, allDocuments);
+    if (!restoredSelection && clickedDocumentId) {
+      updateProductSelection(productType, null);
+      return;
+    }
+    if (restoredSelection && restoredSelection !== clickedDocumentId) {
+      updateProductSelection(productType, restoredSelection);
+    }
+  }, [
+    allDocuments,
+    allDocumentsKey,
+    clickedDocumentId,
+    loading,
+    productType,
+    restoreSelectionForProduct,
+    updateProductSelection
+  ]);
   
   // Filter sections based on clicked document - match by category or name keywords
   // Product-specific filtering to ensure distinct behavior per product type
