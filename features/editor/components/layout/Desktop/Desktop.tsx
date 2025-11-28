@@ -52,6 +52,8 @@ export interface TemplateOverviewPanelProps {
   programError: string | null;
   productOptions: Array<{ value: ProductType; label: string; description: string; icon?: string }>;
   connectCopy: ConnectCopy;
+  // Callback when document selection changes - provides filtered section IDs for sidebar navigation
+  onDocumentSelectionChange?: (filteredSectionIds: string[]) => void;
 }
 
 export function TemplateOverviewPanel({
@@ -66,7 +68,8 @@ export function TemplateOverviewPanel({
   programLoading,
   programError,
   productOptions,
-  connectCopy
+  connectCopy,
+  onDocumentSelectionChange
 }: TemplateOverviewPanelProps) {
   const { t } = useI18n();
   const loadingCopy = t('editor.desktop.loading' as any) || 'Loading...';
@@ -633,6 +636,37 @@ export function TemplateOverviewPanel({
 
   const visibleSections = allSections.filter(s => !disabledSections.has(s.id));
   const visibleDocuments = allDocuments.filter(d => !disabledDocuments.has(d.id));
+  
+  // Compute visible filtered sections (filtered sections that are not disabled)
+  const visibleFilteredSections = useMemo(() => {
+    return filteredSections.filter(s => !disabledSections.has(s.id));
+  }, [filteredSections, disabledSections]);
+  
+  // Track last notified document to prevent infinite loops
+  const lastNotifiedDocumentRef = useRef<string | null>(null);
+  const callbackRef = useRef(onDocumentSelectionChange);
+  
+  // Keep callback ref up to date without triggering re-renders
+  useEffect(() => {
+    callbackRef.current = onDocumentSelectionChange;
+  }, [onDocumentSelectionChange]);
+  
+  // Notify parent when document selection changes and filtered sections are available
+  useEffect(() => {
+    if (!callbackRef.current || loading) return;
+    
+    // Only notify if document selection actually changed
+    if (lastNotifiedDocumentRef.current === clickedDocumentId) {
+      return;
+    }
+    
+    lastNotifiedDocumentRef.current = clickedDocumentId;
+    
+    // Get the filtered section IDs based on current document selection
+    const filteredSectionIds = visibleFilteredSections.map(s => s.id);
+    callbackRef.current(filteredSectionIds);
+  }, [clickedDocumentId, visibleFilteredSections, loading]);
+  
   const enabledSectionsCount = visibleSections.length;
   // Core product is always enabled, so add 1 to the count
   const enabledDocumentsCount = visibleDocuments.length + 1; // +1 for core product
@@ -840,7 +874,7 @@ const cardElevationClasses = isExpanded
                       )}
                     </div>
                     <div className="flex items-center gap-2 min-w-0 relative group">
-                      <span className="text-white/60 text-[12px] font-bold uppercase tracking">{sectionsLabel}</span>
+                      <span className="text-white/80 text-[12px] font-bold uppercase tracking">{sectionsLabel}</span>
                       <span className="font-bold">{enabledSectionsCount}/{allSections.length}</span>
                       <span className="text-white/60 text-[11px]">{showAllCopy}</span>
                       <div className="absolute left-0 top-full mt-2 w-[320px] max-h-[220px] overflow-y-auto rounded-lg border border-white/20 bg-slate-900/95 px-3 py-2 text-[11px] font-normal text-white opacity-0 pointer-events-none group-hover:opacity-100 group-hover:pointer-events-auto transition-all">
@@ -855,7 +889,7 @@ const cardElevationClasses = isExpanded
                       </div>
                     </div>
                     <div className="flex items-center gap-2 min-w-0 relative group">
-                      <span className="text-white/60 text-[12px] font-bold uppercase tracking">{documentsLabel}</span>
+                      <span className="text-white/80 text-[12px] font-bold uppercase tracking">{documentsLabel}</span>
                       <span className="font-bold">{enabledDocumentsCount}/{totalDocumentsCount}</span>
                       <span className="text-white/60 text-[11px]">{showAllCopy}</span>
                       <div className="absolute left-0 top-full mt-2 w-[320px] max-h-[220px] overflow-y-auto rounded-lg border border-white/20 bg-slate-900/95 px-3 py-2 text-[11px] font-normal text-white opacity-0 pointer-events-none group-hover:opacity-100 group-hover:pointer-events-auto transition-all">

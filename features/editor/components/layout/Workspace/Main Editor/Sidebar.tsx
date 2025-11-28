@@ -10,9 +10,10 @@ type SidebarProps = {
   plan: BusinessPlan;
   activeSectionId: string | null;
   onSelectSection: (sectionId: string) => void;
+  filteredSectionIds?: string[] | null; // When provided, only show these sections (null = show all)
 };
 
-export default function Sidebar({ plan, activeSectionId, onSelectSection }: SidebarProps) {
+export default function Sidebar({ plan, activeSectionId, onSelectSection, filteredSectionIds }: SidebarProps) {
   const { t } = useI18n();
   return (
     <div className="w-full">
@@ -26,6 +27,7 @@ export default function Sidebar({ plan, activeSectionId, onSelectSection }: Side
           plan={plan}
           activeSectionId={activeSectionId ?? plan.sections[0]?.id ?? null}
           onSelectSection={onSelectSection}
+          filteredSectionIds={filteredSectionIds}
         />
       </div>
     </div>
@@ -49,11 +51,13 @@ const ChevronRightIcon = (props: IconProps) => (
 function SectionNavigationBar({
   plan,
   activeSectionId,
-  onSelectSection
+  onSelectSection,
+  filteredSectionIds
 }: {
   plan: BusinessPlan;
   activeSectionId: string | null;
   onSelectSection: (sectionId: string) => void;
+  filteredSectionIds?: string[] | null;
 }) {
   const { t } = useI18n();
   const scrollContainerRef = React.useRef<HTMLDivElement>(null);
@@ -67,6 +71,18 @@ function SectionNavigationBar({
     return translated || originalTitle;
   };
 
+  // Filter sections based on filteredSectionIds
+  // If filteredSectionIds is null, show all sections (core product selected)
+  // If filteredSectionIds is an array, only show sections in that array
+  const planSectionsToShow = React.useMemo(() => {
+    if (filteredSectionIds === null || filteredSectionIds === undefined) {
+      // Show all sections when no document is selected (core product)
+      return plan.sections;
+    }
+    // Filter to only show sections that match the selected document
+    return plan.sections.filter(section => filteredSectionIds.includes(section.id));
+  }, [plan.sections, filteredSectionIds]);
+
   const sections = [
     {
       id: METADATA_SECTION_ID,
@@ -74,7 +90,7 @@ function SectionNavigationBar({
       progress: undefined,
       questions: []
     },
-    ...plan.sections.map((section) => ({ ...section, title: getSectionTitle(section.id, section.title) }))
+    ...planSectionsToShow.map((section) => ({ ...section, title: getSectionTitle(section.id, section.title) }))
   ];
 
   const scrollBy = (direction: 'left' | 'right') => {

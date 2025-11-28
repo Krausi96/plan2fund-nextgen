@@ -352,6 +352,51 @@ export default function Editor({ product = 'submission' }: EditorProps) {
     [activeSection, activeQuestion, requestAISuggestions, setRightPanelView]
   );
 
+  // Track filtered section IDs for sidebar filtering
+  const [filteredSectionIds, setFilteredSectionIds] = useState<string[] | null>(null);
+
+  // Handle document selection changes from Desktop - navigate to first filtered section
+  const handleDocumentSelectionChange = useCallback((sectionIds: string[]) => {
+    if (!plan) return;
+    
+    // Store filtered section IDs for sidebar filtering
+    setFilteredSectionIds(sectionIds.length > 0 ? sectionIds : null);
+    
+    // Check if current active section is already in the filtered list - if so, don't navigate
+    if (activeSectionId && sectionIds.length > 0 && sectionIds.includes(activeSectionId)) {
+      return; // Already on a filtered section, no need to navigate
+    }
+    
+    if (sectionIds.length === 0) {
+      // If no filtered sections (core product selected), navigate to first available section or metadata
+      const firstSection = plan.sections[0];
+      if (firstSection && firstSection.id !== activeSectionId) {
+        setActiveSection(firstSection.id);
+      } else if (!activeSectionId || activeSectionId !== METADATA_SECTION_ID) {
+        setActiveSection(METADATA_SECTION_ID);
+      }
+      return;
+    }
+    
+    // Find the first filtered section that exists in the plan
+    const firstFilteredSection = plan.sections.find(section => 
+      sectionIds.includes(section.id)
+    );
+    
+    if (firstFilteredSection && firstFilteredSection.id !== activeSectionId) {
+      // Navigate to the first filtered section (only if different from current)
+      setActiveSection(firstFilteredSection.id);
+    } else if (!firstFilteredSection) {
+      // If filtered sections don't exist in plan yet, navigate to first available
+      const firstSection = plan.sections[0];
+      if (firstSection && firstSection.id !== activeSectionId) {
+        setActiveSection(firstSection.id);
+      } else if (!activeSectionId || activeSectionId !== METADATA_SECTION_ID) {
+        setActiveSection(METADATA_SECTION_ID);
+      }
+    }
+  }, [plan, setActiveSection, activeSectionId]);
+
   // Show loading/error states
   if (isLoading || !plan) {
     return (
@@ -400,6 +445,7 @@ export default function Editor({ product = 'submission' }: EditorProps) {
                   programError={programError}
                   productOptions={productOptions}
                   connectCopy={connectCopy}
+                  onDocumentSelectionChange={handleDocumentSelectionChange}
                 />
 
                 {/* Workspace Container - Includes Sidebar, Workspace and RightPanel */}
@@ -410,6 +456,7 @@ export default function Editor({ product = 'submission' }: EditorProps) {
                       plan={plan}
                       activeSectionId={activeSectionId ?? plan.sections[0]?.id ?? null}
                       onSelectSection={setActiveSection}
+                      filteredSectionIds={filteredSectionIds}
                     />
                   </div>
                   
