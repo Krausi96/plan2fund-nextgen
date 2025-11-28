@@ -79,10 +79,10 @@ export function TemplateOverviewPanel({
   const noProgramCopy = t('editor.desktop.selection.noProgram' as any) || 'No program';
   const sectionsLabel = t('editor.desktop.selection.sectionsLabel' as any) || 'Sections';
   const documentsLabel = t('editor.desktop.selection.documentsLabel' as any) || 'Documents';
-  const showAllCopy = t('editor.desktop.selection.showAll' as any) || 'See all';
   const sectionsPopoverTitle = t('editor.desktop.selection.sectionsPopoverTitle' as any) || 'Selected sections';
   const documentsPopoverTitle = t('editor.desktop.selection.documentsPopoverTitle' as any) || 'Selected documents';
   const selectionEmpty = t('editor.desktop.selection.empty' as any) || 'No selection';
+  const confirmSelectionLabel = t('editor.desktop.selection.confirmSelection' as any) || 'Auswahl bestätigen';
   const [sections, setSections] = useState<SectionTemplate[]>([]);
   const [documents, setDocuments] = useState<DocumentTemplate[]>([]);
   const [customSections, setCustomSections] = useState<SectionTemplate[]>([]);
@@ -782,7 +782,7 @@ const cardElevationClasses = isExpanded
                         : 'bg-blue-600 hover:bg-blue-500 text-white'
                     }`}
                   >
-                    {isExpanded ? (t('editor.desktop.toggle.close' as any) || 'Finish editing') : (t('editor.desktop.toggle.open' as any) || 'Start editing')}
+                    {isExpanded ? (t('editor.desktop.toggle.close' as any) || 'Schreibtisch zuklappen') : (t('editor.desktop.toggle.open' as any) || 'Start editing')}
                   </Button>
                 </div>
               </div>
@@ -848,62 +848,69 @@ const cardElevationClasses = isExpanded
                 />
               </div>
               <div className="mt-0 sticky bottom-2 left-0 z-30 py-2 px-2">
-                <div className="mx-auto w-full max-w-4xl rounded-xl border border-white/30 bg-gradient-to-br from-blue-975 via-blue-800 to-blue-975 px-5 py-2 text-white shadow-[0_15px_35px_rgba(6,10,24,0.6)] backdrop-blur">
-                  <div className="mb-1.5 pb-0.5 border-b border-white/30">
-                    <p className="text-sm font-bold uppercase tracking-wide text-white">
-                      {selectionCurrentLabel}
-                    </p>
-                  </div>
-                  <div className="flex w-full items-center justify-between gap-4 text-[12px] font-semibold whitespace-nowrap">
-                    <div className="flex items-center gap-3 min-w-0">
-                      {selectedProductMeta?.icon && (
-                        <span className="text-base leading-none flex-shrink-0">{selectedProductMeta.icon}</span>
-                      )}
-                      <span className="truncate max-w-[220px]" title={productLabel}>
-                        {productLabel}
-                      </span>
-                    </div>
-                    <div className="flex items-center gap-2 min-w-0">
-                      <span className="text-white/80 text-[12px] font-bold uppercase tracking">{programLabelCopy}</span>
-                      {programLabel ? (
-                        <span className="truncate max-w-[240px]" title={programLabel}>
-                          {programLabel}
+                <div className="mx-auto w-full max-w-6xl flex items-center gap-3">
+                  <div className="flex-1 rounded-xl border border-white/30 bg-gradient-to-br from-blue-975 via-blue-800 to-blue-975 px-5 py-2.5 text-white shadow-[0_15px_35px_rgba(6,10,24,0.6)] backdrop-blur">
+                    <div className="flex w-full items-center justify-between gap-4 text-[12px] font-semibold whitespace-nowrap">
+                      <div className="flex items-center gap-2 min-w-0">
+                        <span className="text-[12px] font-bold uppercase tracking-wide text-white flex-shrink-0">
+                          {selectionCurrentLabel}
                         </span>
-                      ) : (
-                        <span className="text-white/60">{noProgramCopy}</span>
-                      )}
-                    </div>
-                    <div className="flex items-center gap-2 min-w-0 relative group">
-                      <span className="text-white/80 text-[12px] font-bold uppercase tracking">{sectionsLabel}</span>
-                      <span className="font-bold">{enabledSectionsCount}/{allSections.length}</span>
-                      <span className="text-white/60 text-[11px]">{showAllCopy}</span>
-                      <div className="absolute left-0 top-full mt-2 w-[320px] max-h-[220px] overflow-y-auto rounded-lg border border-white/20 bg-slate-900/95 px-3 py-2 text-[11px] font-normal text-white opacity-0 pointer-events-none group-hover:opacity-100 group-hover:pointer-events-auto transition-all">
-                        <p className="text-[10px] uppercase tracking-[0.2em] text-white/50 mb-1">{sectionsPopoverTitle}</p>
-                        <ul className="space-y-1 list-disc list-inside text-white/80">
-                          {sectionTitles.length ? (
-                            sectionTitles.map((title) => <li key={title}>{title}</li>)
-                          ) : (
-                            <li className="text-white/50">{selectionEmpty}</li>
-                          )}
-                        </ul>
+                        {selectedProductMeta?.icon && (
+                          <span className="text-base leading-none flex-shrink-0">{selectedProductMeta.icon}</span>
+                        )}
+                        <span className="truncate" title={productLabel}>
+                          {productLabel}
+                        </span>
                       </div>
-                    </div>
-                    <div className="flex items-center gap-2 min-w-0 relative group">
-                      <span className="text-white/80 text-[12px] font-bold uppercase tracking">{documentsLabel}</span>
-                      <span className="font-bold">{enabledDocumentsCount}/{totalDocumentsCount}</span>
-                      <span className="text-white/60 text-[11px]">{showAllCopy}</span>
-                      <div className="absolute left-0 top-full mt-2 w-[320px] max-h-[220px] overflow-y-auto rounded-lg border border-white/20 bg-slate-900/95 px-3 py-2 text-[11px] font-normal text-white opacity-0 pointer-events-none group-hover:opacity-100 group-hover:pointer-events-auto transition-all">
-                        <p className="text-[10px] uppercase tracking-[0.2em] text-white/50 mb-1">{documentsPopoverTitle}</p>
-                        <ul className="space-y-1 list-disc list-inside text-white/80">
-                          {documentTitles.length ? (
-                            documentTitles.map((title) => <li key={title}>{title}</li>)
-                          ) : (
-                            <li className="text-white/50">{selectionEmpty}</li>
-                          )}
-                        </ul>
+                      <span className="text-white/40 flex-shrink-0">|</span>
+                      <div className="flex items-center gap-2 min-w-0">
+                        <span className="text-white/80 text-[12px] font-bold uppercase tracking">{programLabelCopy}</span>
+                        {programLabel ? (
+                          <span className="truncate" title={programLabel}>
+                            {programLabel}
+                          </span>
+                        ) : (
+                          <span className="text-white/60">{noProgramCopy}</span>
+                        )}
+                      </div>
+                      <span className="text-white/40 flex-shrink-0">|</span>
+                      <div className="flex items-center gap-2 min-w-0 relative group">
+                        <span className="text-white/80 text-[12px] font-bold uppercase tracking">{sectionsLabel}</span>
+                        <span className="font-bold">{enabledSectionsCount}/{allSections.length}</span>
+                        <div className="absolute left-0 top-full mt-2 w-[320px] max-h-[220px] overflow-y-auto rounded-lg border border-white/20 bg-slate-900/95 px-3 py-2 text-[11px] font-normal text-white opacity-0 pointer-events-none group-hover:opacity-100 group-hover:pointer-events-auto transition-all">
+                          <p className="text-[10px] uppercase tracking-[0.2em] text-white/50 mb-1">{sectionsPopoverTitle}</p>
+                          <ul className="space-y-1 list-disc list-inside text-white/80">
+                            {sectionTitles.length ? (
+                              sectionTitles.map((title) => <li key={title}>{title}</li>)
+                            ) : (
+                              <li className="text-white/50">{selectionEmpty}</li>
+                            )}
+                          </ul>
+                        </div>
+                      </div>
+                      <span className="text-white/40 flex-shrink-0">|</span>
+                      <div className="flex items-center gap-2 min-w-0 relative group">
+                        <span className="text-white/80 text-[12px] font-bold uppercase tracking">{documentsLabel}</span>
+                        <span className="font-bold">{enabledDocumentsCount}/{totalDocumentsCount}</span>
+                        <div className="absolute left-0 top-full mt-2 w-[320px] max-h-[220px] overflow-y-auto rounded-lg border border-white/20 bg-slate-900/95 px-3 py-2 text-[11px] font-normal text-white opacity-0 pointer-events-none group-hover:opacity-100 group-hover:pointer-events-auto transition-all">
+                          <p className="text-[10px] uppercase tracking-[0.2em] text-white/50 mb-1">{documentsPopoverTitle}</p>
+                          <ul className="space-y-1 list-disc list-inside text-white/80">
+                            {documentTitles.length ? (
+                              documentTitles.map((title) => <li key={title}>{title}</li>)
+                            ) : (
+                              <li className="text-white/50">{selectionEmpty}</li>
+                            )}
+                          </ul>
+                        </div>
                       </div>
                     </div>
                   </div>
+                  <Button
+                    onClick={() => setIsExpanded(false)}
+                    className="inline-flex items-center justify-center px-4 py-2 h-auto bg-blue-600 hover:bg-blue-700 text-white font-semibold rounded-lg transition-colors text-sm whitespace-nowrap flex-shrink-0"
+                  >
+                    {confirmSelectionLabel}
+                  </Button>
                 </div>
               </div>
               </>
