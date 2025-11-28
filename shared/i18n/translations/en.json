@@ -1153,7 +1153,7 @@
   "editor.desktop.config.extractError": "Failed to extract template",
   "editor.workspace.sidebar.scrollLeft": "Scroll sections left",
   "editor.workspace.sidebar.scrollRight": "Scroll sections right",
-  "editor.workspace.sidebar.tablist": "Plan sections"
+  "editor.workspace.sidebar.tablist": "Plan sections",
   "editor.metadata.completedLabel": "fields complete",
   "editor.metadata.field.planTitle": "Plan title",
   "editor.metadata.field.companyName": "Company name",
