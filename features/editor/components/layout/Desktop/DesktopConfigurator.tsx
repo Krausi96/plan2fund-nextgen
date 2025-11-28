@@ -7,6 +7,7 @@ import { extractTemplateFromFile } from '@/features/editor/templates/api';
 import type { ConnectCopy } from './Desktop';
 import type { ProductType, ProgramSummary } from '@/features/editor/types/plan';
 import type { SectionTemplate, DocumentTemplate } from '@templates';
+import { useI18n } from '@/shared/contexts/I18nContext';
 
 type DesktopConfiguratorProps = {
   productType: ProductType;
@@ -39,6 +40,7 @@ export function DesktopConfigurator({
   configView,
   onConfigViewChange
 }: DesktopConfiguratorProps) {
+  const { t } = useI18n();
   const [manualValue, setManualValue] = useState('');
   const [manualError, setManualError] = useState<string | null>(null);
   const [showManualInput, setShowManualInput] = useState(false);
@@ -94,7 +96,7 @@ export function DesktopConfigurator({
       setShowTemplatePreview(true);
     } catch (error) {
       setExtractedTemplates({
-        errors: [error instanceof Error ? error.message : 'Failed to extract template']
+        errors: [error instanceof Error ? error.message : (t('editor.desktop.config.extractError' as any) || 'Failed to extract template')]
       });
       setShowTemplatePreview(true);
     } finally {
@@ -176,11 +178,12 @@ export function DesktopConfigurator({
       <div className="flex-shrink-0">
         <div className="flex items-center gap-2 mb-2 pb-2 border-b border-white/10">
           <h2 className="text-base font-bold uppercase tracking-wide text-white">
-            Deine Konfiguration
+            {t('editor.desktop.config.title' as any) || 'Deine Konfiguration'}
           </h2>
         </div>
         <p className="text-[10px] text-white/50 mb-2 flex-shrink-0">
-          Wählen Sie Ihren Plan-Typ, verbinden Sie ein Förderprogramm oder laden Sie eine Vorlage hoch. Ihre Auswahl bestimmt die verfügbaren Abschnitte und Dokumente für Ihren Plan.
+          {t('editor.desktop.config.description' as any) ||
+            'Wählen Sie Ihren Plan-Typ, verbinden Sie ein Förderprogramm oder laden Sie eine Vorlage hoch. Ihre Auswahl bestimmt die verfügbaren Abschnitte und Dokumente für Ihren Plan.'}
         </p>
       </div>
 
@@ -194,7 +197,7 @@ export function DesktopConfigurator({
                 : 'text-white/70 hover:text-white'
             }`}
           >
-            Plan auswählen
+            {t('editor.desktop.config.planTab' as any) || 'Plan auswählen'}
           </button>
           <button
             onClick={() => onConfigViewChange('program')}
@@ -204,7 +207,7 @@ export function DesktopConfigurator({
                 : 'text-white/70 hover:text-white'
             }`}
           >
-            Programm verbinden
+            {t('editor.desktop.config.programTab' as any) || 'Programm verbinden'}
           </button>
         </div>
 
@@ -214,20 +217,20 @@ export function DesktopConfigurator({
               ref={productTriggerRef}
               type="button"
               onClick={handleToggleProductMenu}
-              className="flex w-full items-start gap-2.5 rounded-lg border border-white/20 bg-white/5 px-3 py-2.5 text-left transition-colors hover:border-white/40 focus-visible:border-blue-200 focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-blue-200/50"
+              className="flex w-full items-center gap-3 rounded-2xl border border-white/25 bg-gradient-to-br from-white/15 via-white/5 to-transparent px-4 py-3 text-left transition-all hover:border-white/60 focus-visible:border-blue-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-200/60 shadow-xl min-h-[110px]"
             >
-              <span className="text-xl leading-none flex-shrink-0 mt-0.5">
+              <span className="flex h-12 w-12 items-center justify-center rounded-xl bg-white/15 text-2xl leading-none text-white shadow-inner shadow-blue-900/40">
                 {selectedMeta?.icon ?? '📄'}
               </span>
               <span className="flex min-w-0 flex-col gap-1 flex-1">
-                <span className="text-sm font-semibold leading-tight text-white">{selectedMeta?.label}</span>
+                <span className="text-base font-semibold leading-tight text-white">{selectedMeta?.label}</span>
                 {selectedMeta?.description && (
-                  <span className="text-[10px] font-normal text-white/70 leading-relaxed">
+                  <span className="text-xs font-normal text-white/70 leading-relaxed">
                     {selectedMeta.description}
                   </span>
                 )}
               </span>
-              <span className="flex items-center text-xs font-bold flex-shrink-0 mt-0.5">▾</span>
+              <span className="flex items-center text-base font-bold flex-shrink-0 mt-0.5 text-white/70">▾</span>
             </button>
             {showProductMenu && productMenuPosition && typeof window !== 'undefined' && createPortal(
               <div
@@ -315,7 +318,9 @@ export function DesktopConfigurator({
                   onClick={() => fileInputRef.current?.click()}
                   className="inline-flex items-center justify-center px-3 py-2 h-auto border border-white/20 hover:border-white/40 text-white font-medium rounded-lg transition-colors hover:bg-white/10 text-[11px] flex-1 min-w-0"
                 >
-                  {isExtracting ? 'Verarbeitung...' : 'Template hochladen'}
+                  {isExtracting
+                    ? (t('editor.desktop.config.uploading' as any) || 'Verarbeitung...')
+                    : (t('editor.desktop.config.uploadTemplate' as any) || 'Template hochladen')}
                 </button>
                 <input
                   ref={fileInputRef}
@@ -370,15 +375,17 @@ export function DesktopConfigurator({
       <Dialog open={showTemplatePreview} onOpenChange={setShowTemplatePreview}>
         <DialogContent className="max-w-2xl max-h-[80vh] overflow-y-auto">
           <DialogHeader>
-            <DialogTitle>Template-Vorschau</DialogTitle>
+            <DialogTitle>{t('editor.desktop.config.previewTitle' as any) || 'Template-Vorschau'}</DialogTitle>
             <DialogDescription>
-              Überprüfen Sie die extrahierten Abschnitte und Dokumente vor dem Hinzufügen.
+              {t('editor.desktop.config.previewDescription' as any) || 'Überprüfen Sie die extrahierten Abschnitte und Dokumente vor dem Hinzufügen.'}
             </DialogDescription>
           </DialogHeader>
 
           {extractedTemplates?.errors && extractedTemplates.errors.length > 0 && (
             <div className="bg-red-50 border border-red-200 rounded-lg p-3 mb-4">
-              <p className="text-sm font-semibold text-red-800 mb-2">Fehler:</p>
+              <p className="text-sm font-semibold text-red-800 mb-2">
+                {t('editor.desktop.config.preview.errors' as any) || 'Fehler:'}
+              </p>
               <ul className="list-disc list-inside text-sm text-red-700 space-y-1">
                 {extractedTemplates.errors.map((error, idx) => (
                   <li key={idx}>{error}</li>
@@ -389,7 +396,9 @@ export function DesktopConfigurator({
 
           {extractedTemplates?.sections && extractedTemplates.sections.length > 0 && (
             <div className="mb-4">
-              <h3 className="text-sm font-semibold mb-2">Abschnitte ({extractedTemplates.sections.length})</h3>
+              <h3 className="text-sm font-semibold mb-2">
+                {(t('editor.desktop.config.preview.sectionsLabel' as any) || 'Abschnitte')} ({extractedTemplates.sections.length})
+              </h3>
               <div className="space-y-2 max-h-60 overflow-y-auto">
                 {extractedTemplates.sections.map((section) => (
                   <div key={section.id} className="border rounded-lg p-2 bg-gray-50">
@@ -398,9 +407,15 @@ export function DesktopConfigurator({
                       <p className="text-xs text-gray-600 mt-1">{section.description}</p>
                     )}
                     <div className="flex gap-2 mt-1 text-xs text-gray-500">
-                      {section.required && <span className="bg-amber-100 text-amber-800 px-1 rounded">Erforderlich</span>}
+                      {section.required && (
+                        <span className="bg-amber-100 text-amber-800 px-1 rounded">
+                          {t('editor.desktop.config.preview.required' as any) || 'Erforderlich'}
+                        </span>
+                      )}
                       {section.wordCountMin > 0 && (
-                        <span>{section.wordCountMin}-{section.wordCountMax || '∞'} Wörter</span>
+                        <span>
+                          {section.wordCountMin}-{section.wordCountMax || '∞'} {t('editor.desktop.config.preview.words' as any) || 'Wörter'}
+                        </span>
                       )}
                     </div>
                   </div>
@@ -411,7 +426,9 @@ export function DesktopConfigurator({
 
           {extractedTemplates?.documents && extractedTemplates.documents.length > 0 && (
             <div className="mb-4">
-              <h3 className="text-sm font-semibold mb-2">Dokumente ({extractedTemplates.documents.length})</h3>
+              <h3 className="text-sm font-semibold mb-2">
+                {(t('editor.desktop.config.preview.documentsLabel' as any) || 'Dokumente')} ({extractedTemplates.documents.length})
+              </h3>
               <div className="space-y-2 max-h-60 overflow-y-auto">
                 {extractedTemplates.documents.map((doc) => (
                   <div key={doc.id} className="border rounded-lg p-2 bg-gray-50">
@@ -420,7 +437,11 @@ export function DesktopConfigurator({
                       <p className="text-xs text-gray-600 mt-1">{doc.description}</p>
                     )}
                     <div className="flex gap-2 mt-1 text-xs text-gray-500">
-                      {doc.required && <span className="bg-amber-100 text-amber-800 px-1 rounded">Erforderlich</span>}
+                      {doc.required && (
+                        <span className="bg-amber-100 text-amber-800 px-1 rounded">
+                          {t('editor.desktop.config.preview.required' as any) || 'Erforderlich'}
+                        </span>
+                      )}
                       <span>{doc.format.toUpperCase()}</span>
                     </div>
                   </div>
@@ -431,11 +452,11 @@ export function DesktopConfigurator({
 
           <div className="flex justify-end gap-2 mt-4">
             <Button variant="outline" onClick={() => setShowTemplatePreview(false)}>
-              Abbrechen
+              {t('editor.desktop.config.preview.cancel' as any) || 'Abbrechen'}
             </Button>
             {extractedTemplates && (extractedTemplates.sections?.length || extractedTemplates.documents?.length) && (
               <Button onClick={applyExtractedTemplates}>
-                Hinzufügen
+                {t('editor.desktop.config.preview.add' as any) || 'Hinzufügen'}
               </Button>
             )}
           </div>

@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Button } from '@/shared/components/ui/button';
 import { Badge } from '@/shared/components/ui/badge';
 import type { SectionTemplate, DocumentTemplate } from '@templates';
+import { useI18n } from '@/shared/contexts/I18nContext';
 
 type EditFormProps = {
   type: 'section' | 'document';
@@ -12,6 +13,7 @@ type EditFormProps = {
 };
 
 export function DesktopEditForm({ type, item, onSave, onCancel, getOriginBadge }: EditFormProps) {
+  const { t } = useI18n();
   // Use local state to prevent parent re-renders on every keystroke
   const [localItem, setLocalItem] = useState<SectionTemplate | DocumentTemplate>(item);
 
@@ -36,12 +38,14 @@ export function DesktopEditForm({ type, item, onSave, onCancel, getOriginBadge }
             <span className="text-2xl">{isSection ? '📋' : '📄'}</span>
             <div>
               <h3 className="text-sm font-semibold text-white">
-                {isSection ? 'Abschnitt bearbeiten' : 'Dokument bearbeiten'}
+                {isSection
+                  ? (t('editor.desktop.editForm.sectionTitle' as any) || 'Abschnitt bearbeiten')
+                  : (t('editor.desktop.editForm.documentTitle' as any) || 'Dokument bearbeiten')}
               </h3>
               <div className="flex items-center gap-1 mt-1">
                 {localItem.required && (
                   <Badge variant="warning" className="bg-amber-600/30 text-amber-200 border-0 text-[9px] px-1.5 py-0.5">
-                    Erf.
+                    {t('editor.desktop.editForm.requiredBadge' as any) || 'Erf.'}
                   </Badge>
                 )}
                 {getOriginBadge(localItem.origin)}
@@ -59,7 +63,9 @@ export function DesktopEditForm({ type, item, onSave, onCancel, getOriginBadge }
         <div className="space-y-3">
           <div>
             <label className="text-[10px] text-white/70 block mb-1">
-              {isSection ? 'Titel *' : 'Name *'}
+              {isSection
+                ? (t('editor.desktop.editForm.sectionNameLabel' as any) || 'Titel *')
+                : (t('editor.desktop.editForm.documentNameLabel' as any) || 'Name *')}
             </label>
             <input
               type="text"
@@ -76,7 +82,9 @@ export function DesktopEditForm({ type, item, onSave, onCancel, getOriginBadge }
           </div>
 
           <div>
-            <label className="text-[10px] text-white/70 block mb-1">Beschreibung</label>
+            <label className="text-[10px] text-white/70 block mb-1">
+              {t('editor.desktop.editForm.descriptionLabel' as any) || 'Beschreibung'}
+            </label>
             <textarea
               value={localItem.description}
               onChange={(e) => setLocalItem({ ...localItem, description: e.target.value })}
@@ -88,7 +96,9 @@ export function DesktopEditForm({ type, item, onSave, onCancel, getOriginBadge }
           {isSection && sectionItem ? (
             <div className="grid grid-cols-2 gap-2">
               <div>
-                <label className="text-[10px] text-white/70 block mb-1">Min. Wörter</label>
+                <label className="text-[10px] text-white/70 block mb-1">
+                  {t('editor.desktop.editForm.minWords' as any) || 'Min. Wörter'}
+                </label>
                 <input
                   type="number"
                   value={sectionItem.wordCountMin}
@@ -100,7 +110,9 @@ export function DesktopEditForm({ type, item, onSave, onCancel, getOriginBadge }
                 />
               </div>
               <div>
-                <label className="text-[10px] text-white/70 block mb-1">Max. Wörter</label>
+                <label className="text-[10px] text-white/70 block mb-1">
+                  {t('editor.desktop.editForm.maxWords' as any) || 'Max. Wörter'}
+                </label>
                 <input
                   type="number"
                   value={sectionItem.wordCountMax === Number.MAX_SAFE_INTEGER ? '' : sectionItem.wordCountMax}
@@ -116,7 +128,9 @@ export function DesktopEditForm({ type, item, onSave, onCancel, getOriginBadge }
           ) : documentItem ? (
             <div className="grid grid-cols-2 gap-2">
               <div>
-                <label className="text-[10px] text-white/70 block mb-1">Format</label>
+                <label className="text-[10px] text-white/70 block mb-1">
+                  {t('editor.desktop.editForm.format' as any) || 'Format'}
+                </label>
                 <select
                   value={documentItem.format}
                   onChange={(e) => {
@@ -132,7 +146,9 @@ export function DesktopEditForm({ type, item, onSave, onCancel, getOriginBadge }
                 </select>
               </div>
               <div>
-                <label className="text-[10px] text-white/70 block mb-1">Max. Größe</label>
+                <label className="text-[10px] text-white/70 block mb-1">
+                  {t('editor.desktop.editForm.maxSize' as any) || 'Max. Größe'}
+                </label>
                 <input
                   type="text"
                   value={documentItem.maxSize}
@@ -151,14 +167,14 @@ export function DesktopEditForm({ type, item, onSave, onCancel, getOriginBadge }
               onClick={handleSave}
               className="flex-1 bg-blue-600 hover:bg-blue-700 text-white text-xs px-3 py-1.5"
             >
-              Speichern
+              {t('editor.desktop.editForm.save' as any) || 'Speichern'}
             </Button>
             <Button
               onClick={onCancel}
               variant="ghost"
               className="flex-1 text-white/60 hover:text-white text-xs px-3 py-1.5"
             >
-              Abbrechen
+              {t('editor.desktop.editForm.cancel' as any) || 'Abbrechen'}
             </Button>
           </div>
         </div>

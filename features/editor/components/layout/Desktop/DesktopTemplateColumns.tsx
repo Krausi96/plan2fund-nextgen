@@ -2,6 +2,7 @@ import React from 'react';
 import { Button } from '@/shared/components/ui/button';
 import { DesktopEditForm } from './DesktopEditForm';
 import type { SectionTemplate, DocumentTemplate } from '@templates';
+import { useI18n } from '@/shared/contexts/I18nContext';
 
 type DesktopTemplateColumnsProps = {
   // Documents column
@@ -82,30 +83,31 @@ export function DesktopTemplateColumns({
   onSetNewSectionDescription,
   onRemoveCustomSection
 }: DesktopTemplateColumnsProps) {
+  const { t } = useI18n();
   return (
     <>
       {/* Column 2: Documents */}
       <div className="flex flex-col gap-2 border-r border-white/10 pr-4 h-full overflow-hidden">
         <div className="flex-shrink-0" data-column="documents">
           <h2 className="text-base font-bold uppercase tracking-wide text-white mb-2 pb-2 border-b border-white/10">
-            Deine Dokumente ({enabledDocumentsCount})
+            {t('editor.desktop.documents.title' as any) || 'Deine Dokumente'} ({enabledDocumentsCount})
           </h2>
         </div>
         <p className="text-[10px] text-white/50 mb-1 flex-shrink-0 -mt-2">
-          Entscheide welche zusätzlichen Dokumente zu deinem Plan hinzufügt werden.
+          {t('editor.desktop.documents.subtitle' as any) || 'Entscheide welche zusätzlichen Dokumente zu deinem Plan hinzugefügt werden.'}
         </p>
         <div className="text-[9px] text-white/40 mb-2 flex-shrink-0 flex items-center gap-3 -mt-1">
           <span className="flex items-center gap-1">
             <span>✏️</span>
-            <span>Bearbeiten</span>
+            <span>{t('editor.desktop.documents.legend.edit' as any) || 'Bearbeiten'}</span>
           </span>
           <span className="flex items-center gap-1">
             <input type="checkbox" className="w-2.5 h-2.5" disabled />
-            <span>Hinzufügen/Deselektieren</span>
+            <span>{t('editor.desktop.documents.legend.toggle' as any) || 'Hinzufügen/Deselektieren'}</span>
           </span>
           <span className="flex items-center gap-1">
             <span>👆</span>
-            <span>Inhalte Öffnen</span>
+            <span>{t('editor.desktop.documents.legend.open' as any) || 'Inhalte öffnen'}</span>
           </span>
         </div>
         
@@ -131,7 +133,7 @@ export function DesktopTemplateColumns({
                 }`}
               >
                 <span className="text-2xl leading-none">＋</span>
-                <span>Dokument hinzufügen</span>
+                <span>{t('editor.desktop.documents.addButton' as any) || 'Dokument hinzufügen'}</span>
               </button>
             )}
             
@@ -179,25 +181,31 @@ export function DesktopTemplateColumns({
             {/* Add Document Form */}
             {showAddDocument && !expandedDocumentId && (
               <div className="col-span-3 border border-white/20 bg-white/10 rounded-lg p-3 space-y-2">
-                <p className="text-xs text-white/80 font-semibold mb-2">Ein benutzerdefiniertes Dokument zu Ihrem Plan hinzufügen</p>
+                <p className="text-xs text-white/80 font-semibold mb-2">
+                  {t('editor.desktop.documents.custom.title' as any) || 'Ein benutzerdefiniertes Dokument zu Ihrem Plan hinzufügen'}
+                </p>
                 <div className="space-y-2">
                   <div>
-                    <label className="text-[10px] text-white/70 block mb-1">Name *</label>
+                    <label className="text-[10px] text-white/70 block mb-1">
+                      {t('editor.desktop.documents.custom.name' as any) || 'Name *'}
+                    </label>
                     <input
                       type="text"
                       value={newDocumentName}
                       onChange={(e) => onSetNewDocumentName(e.target.value)}
-                      placeholder="z.B. Finanzplan"
+                      placeholder={t('editor.desktop.documents.custom.namePlaceholder' as any) || 'z.B. Finanzplan'}
                       className="w-full rounded border border-white/30 bg-white/10 px-2 py-1.5 text-xs text-white placeholder:text-white/40 focus:border-blue-300 focus:outline-none focus:ring-1 focus:ring-blue-400/60"
                       autoFocus
                     />
                   </div>
                   <div>
-                    <label className="text-[10px] text-white/70 block mb-1">Beschreibung</label>
+                    <label className="text-[10px] text-white/70 block mb-1">
+                      {t('editor.desktop.documents.custom.description' as any) || 'Beschreibung'}
+                    </label>
                     <textarea
                       value={newDocumentDescription}
                       onChange={(e) => onSetNewDocumentDescription(e.target.value)}
-                      placeholder="Optionale Beschreibung des Dokuments"
+                      placeholder={t('editor.desktop.documents.custom.descriptionPlaceholder' as any) || 'Optionale Beschreibung des Dokuments'}
                       rows={2}
                       className="w-full rounded border border-white/30 bg-white/10 px-2 py-1.5 text-xs text-white placeholder:text-white/40 focus:border-blue-300 focus:outline-none focus:ring-1 focus:ring-blue-400/60 resize-none"
                     />
@@ -209,14 +217,14 @@ export function DesktopTemplateColumns({
                     disabled={!newDocumentName.trim()}
                     className="bg-blue-600 hover:bg-blue-700 text-white text-xs px-3 py-1 disabled:opacity-50 disabled:cursor-not-allowed"
                   >
-                    Hinzufügen
+                    {t('editor.desktop.documents.custom.add' as any) || 'Hinzufügen'}
                   </Button>
                   <Button
                     onClick={onToggleAddDocument}
                     variant="ghost"
                     className="text-white/60 hover:text-white text-xs px-3 py-1"
                   >
-                    Abbrechen
+                    {t('editor.desktop.documents.custom.cancel' as any) || 'Abbrechen'}
                   </Button>
                 </div>
               </div>
@@ -354,20 +362,20 @@ export function DesktopTemplateColumns({
       <div className="flex flex-col gap-2 border-r border-white/10 pr-4 h-full overflow-hidden">
         <div className="flex-shrink-0" data-column="sections">
           <h2 className="text-base font-bold uppercase tracking-wide text-white mb-2 pb-2 border-b border-white/10">
-            Deine Abschnitte ({filteredSections.length})
+            {t('editor.desktop.sections.title' as any) || 'Deine Abschnitte'} ({filteredSections.length})
           </h2>
         </div>
         <p className="text-[10px] text-white/50 mb-1 flex-shrink-0 -mt-2">
-          Entscheide welche Abschnitte du in dein Dokument miteinbeziehst.
+          {t('editor.desktop.sections.subtitle' as any) || 'Entscheide welche Abschnitte du in dein Dokument miteinbeziehst.'}
         </p>
         <div className="text-[9px] text-white/40 mb-2 flex-shrink-0 flex items-center gap-3 -mt-1">
           <span className="flex items-center gap-1">
             <span>✏️</span>
-            <span>Bearbeiten</span>
+            <span>{t('editor.desktop.sections.legend.edit' as any) || 'Bearbeiten'}</span>
           </span>
           <span className="flex items-center gap-1">
             <input type="checkbox" className="w-2.5 h-2.5" disabled />
-            <span>Zu Dokument hinzufügen</span>
+            <span>{t('editor.desktop.sections.legend.toggle' as any) || 'Zu Dokument hinzufügen'}</span>
           </span>
         </div>
         
@@ -392,7 +400,7 @@ export function DesktopTemplateColumns({
               }`}
             >
               <span className="text-2xl leading-none">＋</span>
-              <span>Abschnitt hinzufügen</span>
+              <span>{t('editor.desktop.sections.addButton' as any) || 'Abschnitt hinzufügen'}</span>
             </button>
           </div>
         ) : (
@@ -408,30 +416,36 @@ export function DesktopTemplateColumns({
                 }`}
               >
                 <span className="text-2xl leading-none">＋</span>
-                <span>Abschnitt hinzufügen</span>
+                <span>{t('editor.desktop.sections.addButton' as any) || 'Abschnitt hinzufügen'}</span>
               </button>
             )}
             {showAddSection && !expandedSectionId && (
               <div className="col-span-3 border border-white/20 bg-white/10 rounded-lg p-3 space-y-2">
-                <p className="text-xs text-white/80 font-semibold mb-2">Einen benutzerdefinierten Abschnitt zu Ihrem Plan hinzufügen</p>
+                <p className="text-xs text-white/80 font-semibold mb-2">
+                  {t('editor.desktop.sections.custom.title' as any) || 'Einen benutzerdefinierten Abschnitt zu Ihrem Plan hinzufügen'}
+                </p>
                 <div className="space-y-2">
                   <div>
-                    <label className="text-[10px] text-white/70 block mb-1">Titel *</label>
+                    <label className="text-[10px] text-white/70 block mb-1">
+                      {t('editor.desktop.sections.custom.name' as any) || 'Titel *'}
+                    </label>
                     <input
                       type="text"
                       value={newSectionTitle}
                       onChange={(e) => onSetNewSectionTitle(e.target.value)}
-                      placeholder="z.B. Executive Summary"
+                      placeholder={t('editor.desktop.sections.custom.namePlaceholder' as any) || 'z.B. Zusammenfassung'}
                       className="w-full rounded border border-white/30 bg-white/10 px-2 py-1.5 text-xs text-white placeholder:text-white/40 focus:border-blue-300 focus:outline-none focus:ring-1 focus:ring-blue-400/60"
                       autoFocus
                     />
                   </div>
                   <div>
-                    <label className="text-[10px] text-white/70 block mb-1">Beschreibung</label>
+                    <label className="text-[10px] text-white/70 block mb-1">
+                      {t('editor.desktop.sections.custom.description' as any) || 'Beschreibung'}
+                    </label>
                     <textarea
                       value={newSectionDescription}
                       onChange={(e) => onSetNewSectionDescription(e.target.value)}
-                      placeholder="Optionale Beschreibung des Abschnitts"
+                      placeholder={t('editor.desktop.sections.custom.descriptionPlaceholder' as any) || 'Optionale Beschreibung des Abschnitts'}
                       rows={2}
                       className="w-full rounded border border-white/30 bg-white/10 px-2 py-1.5 text-xs text-white placeholder:text-white/40 focus:border-blue-300 focus:outline-none focus:ring-1 focus:ring-blue-400/60 resize-none"
                     />
@@ -443,14 +457,14 @@ export function DesktopTemplateColumns({
                     disabled={!newSectionTitle.trim()}
                     className="bg-blue-600 hover:bg-blue-700 text-white text-xs px-3 py-1 disabled:opacity-50 disabled:cursor-not-allowed"
                   >
-                    Hinzufügen
+                    {t('editor.desktop.sections.custom.add' as any) || 'Hinzufügen'}
                   </Button>
                   <Button
                     onClick={onToggleAddSection}
                     variant="ghost"
                     className="text-white/60 hover:text-white text-xs px-3 py-1"
                   >
-                    Abbrechen
+                    {t('editor.desktop.sections.custom.cancel' as any) || 'Abbrechen'}
                   </Button>
                 </div>
               </div>

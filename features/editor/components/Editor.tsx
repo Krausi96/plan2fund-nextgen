@@ -93,6 +93,7 @@ export default function Editor({ product = 'submission' }: EditorProps) {
     hydrate,
     setActiveQuestion,
     setRightPanelView,
+    setActiveSection,
     updateAnswer,
     markQuestionComplete,
     addDataset,
@@ -411,7 +412,9 @@ export default function Editor({ product = 'submission' }: EditorProps) {
                 isAncillaryView={isAncillaryView}
                 isMetadataView={isMetadataView}
                 activeSection={activeSection}
+                activeSectionId={activeSectionId}
                 activeQuestionId={activeQuestionId}
+                onSelectSection={setActiveSection}
                 onSelectQuestion={setActiveQuestion}
                 onAnswerChange={updateAnswer}
                 onToggleUnknown={toggleQuestionUnknown}

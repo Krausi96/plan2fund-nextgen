@@ -63,6 +63,17 @@ export function TemplateOverviewPanel({
   connectCopy
 }: TemplateOverviewPanelProps) {
   const { t } = useI18n();
+  const loadingCopy = t('editor.desktop.loading' as any) || 'Loading...';
+  const loadErrorCopy = t('editor.desktop.loadError' as any) || 'Failed to load templates';
+  const selectionCurrentLabel = t('editor.desktop.selection.current' as any) || 'Current selection';
+  const programLabelCopy = t('editor.desktop.selection.programLabel' as any) || 'Program / Template';
+  const noProgramCopy = t('editor.desktop.selection.noProgram' as any) || 'No program';
+  const sectionsLabel = t('editor.desktop.selection.sectionsLabel' as any) || 'Sections';
+  const documentsLabel = t('editor.desktop.selection.documentsLabel' as any) || 'Documents';
+  const showAllCopy = t('editor.desktop.selection.showAll' as any) || 'See all';
+  const sectionsPopoverTitle = t('editor.desktop.selection.sectionsPopoverTitle' as any) || 'Selected sections';
+  const documentsPopoverTitle = t('editor.desktop.selection.documentsPopoverTitle' as any) || 'Selected documents';
+  const selectionEmpty = t('editor.desktop.selection.empty' as any) || 'No selection';
   const [sections, setSections] = useState<SectionTemplate[]>([]);
   const [documents, setDocuments] = useState<DocumentTemplate[]>([]);
   const [customSections, setCustomSections] = useState<SectionTemplate[]>([]);
@@ -113,14 +124,14 @@ export function TemplateOverviewPanel({
         setSections(loadedSections);
         setDocuments(loadedDocuments);
       } catch (err) {
-        setError(err instanceof Error ? err.message : 'Failed to load templates');
+        setError(err instanceof Error ? err.message : loadErrorCopy);
       } finally {
         setLoading(false);
       }
     }
 
     loadTemplates();
-  }, [productType, programSummary?.id, fundingType]);
+  }, [productType, programSummary?.id, fundingType, loadErrorCopy]);
 
   // Restore disabled state and custom templates from plan metadata
   const restoringFromMetadata = useRef(false);
@@ -286,13 +297,13 @@ export function TemplateOverviewPanel({
     const newSection: SectionTemplate = {
       id: `custom_section_${Date.now()}`,
       title: newSectionTitle.trim(),
-      description: newSectionDescription.trim() || 'User-defined section',
+      description: newSectionDescription.trim() || 'Benutzerdefinierter Abschnitt',
       required: false,
       wordCountMin: 0,
       wordCountMax: 0,
       order: 1000 + customSections.length,
       category: 'custom',
-      prompts: ['Describe your custom section content here'],
+      prompts: ['Beschreibe hier den Inhalt deines Abschnitts'],
       questions: [],
       validationRules: {
         requiredFields: [],
@@ -314,7 +325,7 @@ export function TemplateOverviewPanel({
     const newDocument: DocumentTemplate = {
       id: `custom_doc_${Date.now()}`,
       name: newDocumentName.trim(),
-      description: newDocumentDescription.trim() || 'User-defined document',
+      description: newDocumentDescription.trim() || 'Benutzerdefiniertes Dokument',
       required: false,
       format: 'pdf',
       maxSize: '10MB',
@@ -575,8 +586,8 @@ export function TemplateOverviewPanel({
 
 
 const headerCardClasses = 'relative rounded-lg border border-blue-600/50 px-2.5 pt-1.5 pb-0 backdrop-blur-xl overflow-visible transition-all duration-300';
-const selectionSummary = `${enabledSectionsCount}/${allSections.length} Abschnitte • ${enabledDocumentsCount}/${totalDocumentsCount} Dokumente`;
-const productLabel = selectedProductMeta?.label ?? 'Nicht ausgewählt';
+const selectionSummary = `${enabledSectionsCount}/${allSections.length} ${sectionsLabel} • ${enabledDocumentsCount}/${totalDocumentsCount} ${documentsLabel}`;
+const productLabel = selectedProductMeta?.label ?? (t('editor.desktop.product.unselected' as any) || 'Not selected');
 const sectionTitles = visibleSections.map((section) => section.title);
 const documentTitles = visibleDocuments.map((doc) => doc.name);
 const programLabel = programSummary?.name ?? null;
@@ -590,7 +601,7 @@ const cardElevationClasses = isExpanded
         <Card className={`${headerCardClasses} flex flex-col ${cardElevationClasses}`}>
           <div className="absolute inset-0 bg-gradient-to-b from-slate-900 via-blue-900 to-slate-800 rounded-lg" />
           <div className="relative z-10 flex items-center justify-between">
-            <span className="text-sm font-semibold text-white">Loading...</span>
+            <span className="text-sm font-semibold text-white">{loadingCopy}</span>
           </div>
         </Card>
       </div>
@@ -624,7 +635,7 @@ const cardElevationClasses = isExpanded
                   {!isExpanded && (
                     <div className="flex flex-col gap-0.5 px-3 py-1.5 bg-white/5 border border-white/10 rounded-lg">
                       <span className="text-[10px] uppercase tracking-wide text-white/60 font-semibold">
-                        Aktuelle Auswahl
+                        {selectionCurrentLabel}
                       </span>
                       <div className="flex flex-wrap items-center gap-1.5 text-xs text-white font-medium">
                         {selectedProductMeta?.icon && (
@@ -650,7 +661,7 @@ const cardElevationClasses = isExpanded
                         : 'bg-blue-600 hover:bg-blue-500 text-white'
                     }`}
                   >
-                    {isExpanded ? 'Bearbeitung abschließen' : 'Bearbeitung starten'}
+                    {isExpanded ? (t('editor.desktop.toggle.close' as any) || 'Finish editing') : (t('editor.desktop.toggle.open' as any) || 'Start editing')}
                   </Button>
                 </div>
               </div>
@@ -718,7 +729,7 @@ const cardElevationClasses = isExpanded
               <div className="mt-3 sticky bottom-3 left-0 z-30">
                 <div className="mx-auto w-full max-w-4xl rounded-xl border border-[#2b375b] bg-[#0f1c3d]/95 px-5 py-3 text-white shadow-[0_15px_35px_rgba(6,10,24,0.6)] backdrop-blur">
                   <p className="text-sm font-bold uppercase tracking-wide text-white mb-2 pb-2 border-b border-white/10">
-                    Aktuelle Auswahl
+                    {selectionCurrentLabel}
                   </p>
                   <div className="flex w-full items-center justify-between gap-4 text-[12px] font-semibold whitespace-nowrap">
                     <div className="flex items-center gap-3 min-w-0">
@@ -730,41 +741,41 @@ const cardElevationClasses = isExpanded
                       </span>
                     </div>
                     <div className="flex items-center gap-2 min-w-0">
-                      <span className="text-white/80 text-[10px] font-bold uppercase tracking-wide">Programm/Vorlage</span>
+                      <span className="text-white/80 text-[10px] font-bold uppercase tracking-wide">{programLabelCopy}</span>
                       {programLabel ? (
                         <span className="truncate max-w-[240px]" title={programLabel}>
                           {programLabel}
                         </span>
                       ) : (
-                        <span className="text-white/60">Kein Programm</span>
+                        <span className="text-white/60">{noProgramCopy}</span>
                       )}
                     </div>
                     <div className="flex items-center gap-2 min-w-0 relative group">
-                      <span className="text-white/60 text-[10px] font-bold uppercase tracking-wide">Abschnitte</span>
+                      <span className="text-white/60 text-[10px] font-bold uppercase tracking-wide">{sectionsLabel}</span>
                       <span className="font-bold">{enabledSectionsCount}/{allSections.length}</span>
-                      <span className="text-white/60 text-[11px]">See all</span>
+                      <span className="text-white/60 text-[11px]">{showAllCopy}</span>
                       <div className="absolute left-0 top-full mt-2 w-[320px] max-h-[220px] overflow-y-auto rounded-lg border border-white/20 bg-slate-900/95 px-3 py-2 text-[11px] font-normal text-white opacity-0 pointer-events-none group-hover:opacity-100 group-hover:pointer-events-auto transition-all">
-                        <p className="text-[10px] uppercase tracking-[0.2em] text-white/50 mb-1">Ausgewählte Abschnitte</p>
+                        <p className="text-[10px] uppercase tracking-[0.2em] text-white/50 mb-1">{sectionsPopoverTitle}</p>
                         <ul className="space-y-1 list-disc list-inside text-white/80">
                           {sectionTitles.length ? (
                             sectionTitles.map((title) => <li key={title}>{title}</li>)
                           ) : (
-                            <li className="text-white/50">Keine Auswahl</li>
+                            <li className="text-white/50">{selectionEmpty}</li>
                           )}
                         </ul>
                       </div>
                     </div>
                     <div className="flex items-center gap-2 min-w-0 relative group">
-                      <span className="text-white/60 text-[10px] font-bold uppercase tracking-wide">Dokumente</span>
+                      <span className="text-white/60 text-[10px] font-bold uppercase tracking-wide">{documentsLabel}</span>
                       <span className="font-bold">{enabledDocumentsCount}/{totalDocumentsCount}</span>
-                      <span className="text-white/60 text-[11px]">See all</span>
+                      <span className="text-white/60 text-[11px]">{showAllCopy}</span>
                       <div className="absolute left-0 top-full mt-2 w-[320px] max-h-[220px] overflow-y-auto rounded-lg border border-white/20 bg-slate-900/95 px-3 py-2 text-[11px] font-normal text-white opacity-0 pointer-events-none group-hover:opacity-100 group-hover:pointer-events-auto transition-all">
-                        <p className="text-[10px] uppercase tracking-[0.2em] text-white/50 mb-1">Ausgewählte Dokumente</p>
+                        <p className="text-[10px] uppercase tracking-[0.2em] text-white/50 mb-1">{documentsPopoverTitle}</p>
                         <ul className="space-y-1 list-disc list-inside text-white/80">
                           {documentTitles.length ? (
                             documentTitles.map((title) => <li key={title}>{title}</li>)
                           ) : (
-                            <li className="text-white/50">Keine Auswahl</li>
+                            <li className="text-white/50">{selectionEmpty}</li>
                           )}
                         </ul>
                       </div>

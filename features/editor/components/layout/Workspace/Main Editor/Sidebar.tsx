@@ -15,17 +15,19 @@ type SidebarProps = {
 export default function Sidebar({ plan, activeSectionId, onSelectSection }: SidebarProps) {
   const { t } = useI18n();
   return (
-    <div className="relative py-1 px-2.5">
-      <div className="mb-0.5">
-        <h2 className="text-lg font-bold uppercase tracking-wider text-white">
-          {(t('editor.header.planSections' as any) as string) || 'Plan Sections'}
-        </h2>
+    <div className="h-full">
+      <div className="relative rounded-2xl border border-white/15 bg-white/5 p-3 shadow-lg shadow-blue-900/30 backdrop-blur-xl h-full flex flex-col gap-2">
+        <div className="mb-1">
+          <h2 className="text-base font-bold uppercase tracking-[0.2em] text-white">
+            {(t('editor.header.planSections' as any) as string) || 'Plan Sections'}
+          </h2>
+        </div>
+        <SectionNavigationBar
+          plan={plan}
+          activeSectionId={activeSectionId ?? plan.sections[0]?.id ?? null}
+          onSelectSection={onSelectSection}
+        />
       </div>
-      <SectionNavigationBar
-        plan={plan}
-        activeSectionId={activeSectionId ?? plan.sections[0]?.id ?? null}
-        onSelectSection={onSelectSection}
-      />
     </div>
   );
 }
@@ -98,7 +100,7 @@ function SectionNavigationBar({
         variant="ghost"
         size="sm"
         onClick={() => scrollBy('left')}
-        aria-label="Scroll sections left"
+        aria-label={(t('editor.workspace.sidebar.scrollLeft' as any) as string) || 'Scroll sections left'}
         className="border border-white/30 bg-white/10 hover:bg-white/20 text-white flex-shrink-0"
       >
         <ChevronLeftIcon className="h-4 w-4" />
@@ -107,7 +109,7 @@ function SectionNavigationBar({
         ref={scrollContainerRef}
         className="flex flex-1 items-center gap-1 overflow-x-auto scrollbar-hide"
         role="tablist"
-        aria-label="Plan sections"
+        aria-label={(t('editor.workspace.sidebar.tablist' as any) as string) || 'Plan sections'}
         tabIndex={0}
         onKeyDown={handleKeyNavigation}
       >
@@ -162,7 +164,7 @@ function SectionNavigationBar({
         variant="ghost"
         size="sm"
         onClick={() => scrollBy('right')}
-        aria-label="Scroll sections right"
+        aria-label={(t('editor.workspace.sidebar.scrollRight' as any) as string) || 'Scroll sections right'}
         className="border border-white/30 bg-white/10 hover:bg-white/20 text-white flex-shrink-0"
       >
         <ChevronRightIcon className="h-4 w-4" />
