@@ -46,8 +46,8 @@ type EditorPosition = {
   visible: boolean;
 };
 
-const EDITOR_WIDTH = 450;
-const EDITOR_MAX_HEIGHT = 600;
+const EDITOR_WIDTH = 380;
+const EDITOR_MAX_HEIGHT = 500;
 const GAP = 16;
 
 export default function InlineSectionEditor({
@@ -105,12 +105,14 @@ export default function InlineSectionEditor({
   // Calculate position relative to preview container
   const calculatePosition = useCallback(() => {
     if (!sectionId || isSpecialSection) {
-      // For metadata/ancillary sections, we'll position at top of container
-      const container = document.getElementById('preview-container');
-      if (container) {
+      // For metadata/ancillary sections, position at top-right of scroll container
+      const scrollContainer = document.getElementById('preview-scroll-container');
+      if (scrollContainer) {
+        const scrollRect = scrollContainer.getBoundingClientRect();
+        const scrollWidth = scrollContainer.scrollWidth || scrollRect.width;
         setPosition({
           top: GAP,
-          left: GAP,
+          left: Math.max(GAP, scrollWidth - EDITOR_WIDTH - GAP),
           placement: 'right',
           visible: true
         });
@@ -118,8 +120,8 @@ export default function InlineSectionEditor({
       return;
     }
 
-    const container = document.getElementById('preview-container');
-    if (!container) {
+    const scrollContainer = document.getElementById('preview-scroll-container');
+    if (!scrollContainer) {
       setPosition(prev => ({ ...prev, visible: false }));
       return;
     }
@@ -146,52 +148,60 @@ export default function InlineSectionEditor({
       return;
     }
 
-    // Get the scrollable container (the one with overflow-y-auto)
-    const scrollContainer = container.querySelector('.overflow-y-auto') || container;
-    if (!scrollContainer) {
-      setPosition(prev => ({ ...prev, visible: false }));
-      return;
-    }
-
-    // Get bounding rects - calculate relative to scroll container's content area
+    // Get bounding rects - position relative to scroll container (which has position: relative)
     const scrollRect = scrollContainer.getBoundingClientRect();
     const targetRect = targetElement.getBoundingClientRect();
-    
-    // Calculate position relative to scroll container's scroll position
-    // This makes the editor part of the document flow
     const scrollTop = scrollContainer.scrollTop || 0;
     const scrollLeft = scrollContainer.scrollLeft || 0;
     
+    // Calculate position relative to scroll container's content area
+    // The editor is positioned absolutely relative to the scroll container
+    const scrollViewWidth = scrollRect.width;
+    const scrollViewHeight = scrollRect.height;
+    const scrollContentWidth = scrollContainer.scrollWidth;
+    
     // Get target position relative to scroll container's content (accounting for scroll)
-    const targetTop = targetRect.top - scrollRect.top + scrollTop;
-    const targetLeft = targetRect.left - scrollRect.left + scrollLeft;
+    const targetTopInContent = targetRect.top - scrollRect.top + scrollTop;
+    const targetLeftInContent = targetRect.left - scrollRect.left + scrollLeft;
     const targetWidth = targetRect.width;
     const targetHeight = targetRect.height;
-    const scrollWidth = scrollContainer.scrollWidth || scrollRect.width;
+    const targetTopInViewport = targetRect.top - scrollRect.top;
+    const targetLeftInViewport = targetRect.left - scrollRect.left;
 
     // Try positioning on the right side first (inline with content)
-    const rightSideLeft = targetLeft + targetWidth + GAP;
-    const rightSideFits = rightSideLeft + EDITOR_WIDTH <= scrollWidth;
+    const rightSideLeft = targetLeftInContent + targetWidth + GAP;
+    const rightSideFitsInViewport = targetLeftInViewport + targetWidth + GAP + EDITOR_WIDTH <= scrollViewWidth;
+    const rightSideFitsInContent = rightSideLeft + EDITOR_WIDTH <= scrollContentWidth;
+    const targetVisible = targetTopInViewport >= -targetHeight && targetTopInViewport < scrollViewHeight;
 
-    let finalTop = targetTop + GAP;
+    let finalTop: number;
     let finalLeft: number;
     let placement: 'right' | 'below' = 'right';
 
-    if (rightSideFits) {
+    if (rightSideFitsInViewport && rightSideFitsInContent && targetVisible) {
       // Position on right side - inline with the question
+      finalTop = targetTopInContent;
       finalLeft = rightSideLeft;
       placement = 'right';
     } else {
-      // Position below target element - still inline with content
-      finalLeft = targetLeft;
-      finalTop = targetTop + targetHeight + GAP;
+      // Position below target element, centered horizontally
+      finalTop = targetTopInContent + targetHeight + GAP;
+      // Center the editor horizontally within the scroll container's viewport
+      finalLeft = scrollLeft + Math.max(GAP, (scrollViewWidth - EDITOR_WIDTH) / 2);
       placement = 'below';
     }
 
-    // Ensure editor doesn't overflow the scroll container's content width
-    if (finalLeft + EDITOR_WIDTH > scrollWidth) {
-      finalLeft = Math.max(GAP, scrollWidth - EDITOR_WIDTH - GAP);
-    }
+    // Ensure editor stays within scroll container's content bounds
+    // Clamp vertically to content area
+    const scrollContentHeight = scrollContainer.scrollHeight;
+    const minTop = scrollTop;
+    const maxTop = scrollTop + scrollContentHeight - EDITOR_MAX_HEIGHT;
+    finalTop = Math.max(minTop, Math.min(maxTop, finalTop));
+
+    // Ensure editor doesn't overflow horizontally
+    const minLeft = scrollLeft + GAP;
+    const maxLeft = scrollLeft + scrollContentWidth - EDITOR_WIDTH - GAP;
+    finalLeft = Math.max(minLeft, Math.min(maxLeft, finalLeft));
 
     setPosition({
       top: finalTop,
@@ -250,8 +260,7 @@ export default function InlineSectionEditor({
     }, 200);
 
     // Set up scroll and resize listeners
-    const container = document.getElementById('preview-container');
-    const scrollContainer = container?.querySelector('.overflow-y-auto') || container;
+    const scrollContainer = document.getElementById('preview-scroll-container');
 
     const handleScroll = () => {
       if (positionUpdateTimeoutRef.current) {
@@ -422,24 +431,26 @@ export default function InlineSectionEditor({
   if (isMetadataSection || isAncillarySection) {
     return (
       <div
-          ref={editorRef}
-          className={`absolute z-10 rounded-2xl border-2 ${
-            isDragging 
-              ? 'border-blue-500 border-dashed bg-blue-50/50' 
-              : 'border-blue-400/60 bg-white/98'
-          } backdrop-blur-xl shadow-2xl overflow-hidden transition-all`}
-          style={{
-            top: `${position.top}px`,
-            left: `${position.left}px`,
-            width: `${EDITOR_WIDTH}px`,
-            maxHeight: `${EDITOR_MAX_HEIGHT}px`,
-            position: 'absolute'
-          }}
-          onDragEnter={handleDragEnter}
-          onDragOver={handleDragOver}
-          onDragLeave={handleDragLeave}
-          onDrop={handleDrop}
-        >
+        ref={editorRef}
+        className={`absolute z-10 rounded-2xl border-2 ${
+          isDragging 
+            ? 'border-blue-500 border-dashed bg-blue-50/50' 
+            : 'border-blue-400/60 bg-white/98'
+        } backdrop-blur-xl shadow-2xl overflow-hidden transition-all`}
+        style={{
+          top: `${position.top}px`,
+          left: `${position.left}px`,
+          width: `${EDITOR_WIDTH}px`,
+          maxHeight: `${EDITOR_MAX_HEIGHT}px`,
+          position: 'absolute',
+          overflowY: 'auto',
+          overflowX: 'hidden'
+        }}
+        onDragEnter={handleDragEnter}
+        onDragOver={handleDragOver}
+        onDragLeave={handleDragLeave}
+        onDrop={handleDrop}
+      >
           {isDragging && (
             <div className="absolute inset-0 z-50 flex items-center justify-center bg-blue-100/80 backdrop-blur-sm rounded-2xl pointer-events-none">
               <div className="text-center p-6">
@@ -523,7 +534,9 @@ export default function InlineSectionEditor({
         left: `${position.left}px`,
         width: `${EDITOR_WIDTH}px`,
         maxHeight: `${EDITOR_MAX_HEIGHT}px`,
-        position: 'absolute'
+        position: 'absolute',
+        overflowY: 'auto',
+        overflowX: 'hidden'
       }}
       onDragEnter={handleDragEnter}
       onDragOver={handleDragOver}
