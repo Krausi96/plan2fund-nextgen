@@ -381,30 +381,28 @@ export default function Editor({ product = 'submission' }: EditorProps) {
       {/* Workspace - show if plan exists */}
       {plan ? (
         <>
-          <div className="container pb-6 space-y-4">
-            {/* Dein Schreibtisch - Template Overview Panel with integrated Sidebar */}
-            <div className="relative z-30">
-              <TemplateOverviewPanel
-                productType={selectedProduct}
-                programSummary={programSummary}
-                fundingType={programSummary?.fundingType ?? 'grants'}
-                planMetadata={plan?.metadata}
-                onUpdate={handleTemplateUpdate}
-                onChangeProduct={handleProductChange}
-                onConnectProgram={handleConnectProgram}
-                onOpenProgramFinder={() => router.push('/reco')}
-                programLoading={programLoading}
-                programError={programError}
-                productOptions={productOptions}
-                connectCopy={connectCopy}
-              />
-            </div>
+          <div className="container pb-6">
+            <div className="relative rounded-[32px] border border-blue-600/40 shadow-[0_30px_80px_rgba(6,12,32,0.65)] overflow-hidden">
+              <div className="absolute inset-0 bg-gradient-to-b from-slate-900 via-blue-900/90 to-slate-900" />
+              <div className="relative z-10 flex flex-col gap-6 p-4 lg:p-6">
+                {/* Dein Schreibtisch - Template Overview Panel */}
+                <TemplateOverviewPanel
+                  productType={selectedProduct}
+                  programSummary={programSummary}
+                  fundingType={programSummary?.fundingType ?? 'grants'}
+                  planMetadata={plan?.metadata}
+                  onUpdate={handleTemplateUpdate}
+                  onChangeProduct={handleProductChange}
+                  onConnectProgram={handleConnectProgram}
+                  onOpenProgramFinder={() => router.push('/reco')}
+                  programLoading={programLoading}
+                  programError={programError}
+                  productOptions={productOptions}
+                  connectCopy={connectCopy}
+                />
 
-            {/* Workspace and RightPanel */}
-            <div className="relative z-20">
-              <div className="relative rounded-[28px] border border-blue-600/50 overflow-hidden shadow-[0_25px_60px_rgba(8,15,40,0.65)]">
-                <div className="absolute inset-0 bg-gradient-to-b from-slate-900 via-blue-900 to-slate-800" />
-                <div className="relative z-10 flex flex-col gap-3 p-3 lg:flex-row lg:items-start lg:gap-4 lg:p-4">
+                {/* Workspace and RightPanel */}
+                <div className="flex flex-col gap-4 lg:flex-row lg:items-start">
                   <div className="flex-1 min-w-0 max-w-4xl">
                     <Workspace
                       plan={plan}
@@ -431,7 +429,7 @@ export default function Editor({ product = 'submission' }: EditorProps) {
                     />
                   </div>
 
-                  <div className="w-full flex-shrink-0 lg:w-[500px]">
+                  <div className="w-full flex-shrink-0 lg:w-[480px]">
                     <RightPanel
                       view={rightPanelView}
                       setView={setRightPanelView}
