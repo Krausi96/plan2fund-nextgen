@@ -1,115 +1,113 @@
-# Editor Architecture & UX Improvements Handover
+# Editor Architecture Handover - Layout & Integration Changes
 
 ## Overview
-This document outlines the planned architectural changes to improve the editor's UX by integrating the desktop template configuration with the workspace, moving the right panel functionality, and creating a live preview experience with AI/Data integration.
+This document outlines the planned architectural changes to merge the Desktop template configuration with the Workspace, create a unified editing experience, and wire the preview with AI Assistant and Data panels for a truly live editing experience.
 
 ---
 
-## 1. Moving Right Panel to Sidebar
+## 1. Moving Sections Column to Sidebar
 
 ### Current State
-- **Right Panel** (`RightPanel.tsx`) is a separate panel on the right side of the workspace
-- Contains AI Assistant and Data tabs
-- Takes up ~320px width when open
-- Slides in/out from the right
+- **DesktopTemplateColumns.tsx** has two columns:
+  - Column 1: Documents (left)
+  - Column 2: Sections (right) - **This needs to move to Sidebar**
+- **Sidebar.tsx** currently only shows plan sections (the actual content sections being edited)
 
-### Proposed Change
-**Move AI/Data functionality into the Sidebar** (`Sidebar.tsx`)
+### Proposed Solution
 
-#### Implementation Approach:
+**Option A: Merge Sections into Sidebar (Recommended)**
+1. **Enhance Sidebar.tsx** to show two modes:
+   - **Template Mode** (when Desktop is expanded): Shows template sections from `DesktopTemplateColumns` with toggle/edit capabilities
+   - **Workspace Mode** (when editing): Shows plan sections (current behavior)
 
-1. **Extend Sidebar Component**:
-   - Add expandable sections at the bottom of the sidebar
-   - When a section is selected, show:
-     - Section navigation tree (existing)
-     - **AI Assistant panel** (collapsible, below sections)
-     - **Data panel** (collapsible, below AI)
-   - Use accordion-style expansion for AI/Data panels
-
-2. **Layout Changes**:
+2. **Implementation approach:**
+   ```typescript
+   // Sidebar.tsx - Add new props
+   type SidebarProps = {
+     mode: 'template' | 'workspace';
+     // Template mode props
+     templateSections?: SectionTemplate[];
+     disabledSections?: Set<string>;
+     onToggleSection?: (id: string) => void;
+     onEditSection?: (section: SectionTemplate) => void;
+     // Workspace mode props (existing)
+     plan?: BusinessPlan;
+     activeSectionId?: string | null;
+     onSelectSection?: (sectionId: string) => void;
+   };
    ```
-   Current: [Sidebar] [Preview] [RightPanel]
-   New:     [Sidebar (with AI/Data)] [Preview] [Gap/Empty]
-   ```
 
-3. **Gap in Right Corner**:
-   - The right side will be empty (just preview)
-   - This creates space for:
-     - Future full-preview mode expansion
-     - Watermark overlay area
-     - Export controls
-   - Consider adding a small floating action button for quick access to AI/Data if sidebar is collapsed
+3. **What happens to the gap?**
+   - The right column in DesktopTemplateColumns will be removed
+   - Documents column stays in Desktop
+   - Sections move to Sidebar (left side)
+   - The gap can be filled with:
+     - **Option 1**: Expand Documents column to use more space
+     - **Option 2**: Add a summary/overview panel showing selected sections count, requirements status
+     - **Option 3**: Keep it minimal - just documents column
 
-#### Code Changes Needed:
+**Option B: Keep Sections in Desktop, Add to Sidebar Too**
+- Show template sections in Sidebar when Desktop is expanded
+- Keep sections column in Desktop for detailed editing
+- Sidebar becomes a quick navigation/overview
 
-**File: `features/editor/components/layout/Workspace/Main Editor/Sidebar.tsx`**
-- Add state for AI/Data panel expansion
-- Import `AIPanel` and `DataPanel` components
-- Add accordion sections below the section tree
-- Pass necessary props (section, question, plan, callbacks)
-
-**File: `features/editor/components/Editor.tsx`**
-- Remove `RightPanel` import and usage
-- Remove `isRightPanelOpen` state
-- Update `Sidebar` component to receive AI/Data props
-- Remove right panel container div
-
-**Benefits:**
-- More screen space for preview
-- Contextual AI/Data always visible when section selected
-- Cleaner layout without sliding panels
+**Recommendation**: Option A - cleaner separation, less duplication
 
 ---
 
-## 2. Merging Workspace with Template Columns
+## 2. Merging Workspace with TemplateColumns
 
 ### Current State
-- **Desktop** (`Desktop.tsx`) shows template overview with two columns (Documents + Sections)
-- **Workspace** (`Editor.tsx`) shows the editing interface
-- These are separate views - user clicks "Start editing" to switch
+- **Desktop (TemplateOverviewPanel)**: Shows product selector, program connection, and template columns (Documents + Sections)
+- **Workspace**: Shows Sidebar + Preview + Right Panel (AI/Data)
+- These are separate - user clicks "Start editing" to switch from Desktop to Workspace
 
-### Proposed Change
-**Merge template columns into workspace as a collapsible/expandable panel**
+### Proposed Solution: Unified Layout
 
-#### Implementation Approach:
+**Keep Product Selector, Merge Editing Capabilities**
 
-1. **Keep Product Selector Visible**:
-   - Product selector stays at top (from `DesktopConfigurator`)
-   - Always visible, compact design
-
-2. **Template Columns as Expandable Panel**:
-   - Add a toggle button: "Configure Templates" or "Template Overview"
-   - When expanded, shows the two-column layout (Documents + Sections) **within the workspace**
-   - Overlays or slides in from top/left
-   - Can be collapsed while editing
-
-3. **Unified Flow**:
+1. **Top Bar (Always Visible)**:
    ```
-   [Product Selector - Always Visible]
-   [Template Columns - Expandable/Collapsible]
-   [Workspace - Sidebar + Preview]
+   [Product Selector] [Program Connection] [Template Overview Toggle]
+   ```
+   - Product selector remains at top
+   - Program connection stays
+   - Add toggle to show/hide template overview
+
+2. **Main Area - Two Modes**:
+
+   **Mode 1: Template Configuration (Desktop Expanded)**
+   ```
+   [Sidebar: Template Sections] | [Documents Column] | [Preview: Empty/Placeholder]
+   ```
+   - Left: Sections from templates (moved from DesktopTemplateColumns)
+   - Middle: Documents column (from DesktopTemplateColumns)
+   - Right: Preview area (can show placeholder or current plan if exists)
+
+   **Mode 2: Editing Workspace (Desktop Collapsed)**
+   ```
+   [Sidebar: Plan Sections] | [Preview + Inline Editor] | [Right Panel: AI/Data]
+   ```
+   - Left: Plan sections (current Sidebar behavior)
+   - Center: Preview with inline editor
+   - Right: AI Assistant / Data panel
+
+3. **Implementation Strategy**:
+   ```typescript
+   // Editor.tsx
+   const [desktopExpanded, setDesktopExpanded] = useState(true); // Start with template view
+   const [showTemplateOverview, setShowTemplateOverview] = useState(true);
+   
+   // When user clicks "Start editing" or collapses desktop:
+   // - setDesktopExpanded(false)
+   // - Switch Sidebar from template mode to workspace mode
+   // - Show preview + inline editor
    ```
 
-#### Code Changes Needed:
-
-**File: `features/editor/components/Editor.tsx`**
-- Keep `TemplateOverviewPanel` but make it collapsible
-- Add state: `isTemplatePanelExpanded`
-- Move template columns into workspace container
-- Add toggle button in header
-
-**File: `features/editor/components/layout/Desktop/Desktop.tsx`**
-- Extract template columns logic into a reusable component
-- Make it work both standalone (current) and embedded (new)
-
-**Alternative Approach (Simpler)**:
-- Keep Desktop separate but add a "Back to Templates" button in workspace
-- Or: Show template columns as a slide-out drawer from left side
-
-**Benefits:**
-- No context switching between desktop and workspace
-- Users can adjust templates while seeing preview
-- More integrated experience
+4. **Smooth Transition**:
+   - Use CSS transitions for layout changes
+   - Preserve state when switching modes
+   - Template changes apply immediately to preview
 
 ---
 
@@ -117,368 +115,374 @@ This document outlines the planned architectural changes to improve the editor's
 
 ### Current Editing Capabilities
 
-#### Documents (`DocumentTemplate`):
-**In Desktop Configurator:**
-- ✅ **Toggle on/off** (enable/disable for plan)
-- ✅ **Edit title/name** (via `DesktopEditForm`)
-- ✅ **Edit description** (via `DesktopEditForm`)
-- ✅ **View requirements** (format, size, word count)
-- ✅ **Add custom documents** (user-created)
-- ✅ **Remove custom documents** (only custom ones)
-- ❌ Cannot edit requirements (format, size) - these come from templates
+**In Desktop (TemplateOverviewPanel):**
 
-**What Gets Saved:**
-- Custom document templates stored in `plan.customDocuments`
-- Disabled documents stored in `context.disabledDocumentIds`
-- Edited documents create a custom copy (original disabled)
+**Documents (DocumentTemplate):**
+- ✅ **Name** - Can edit via DesktopEditForm
+- ✅ **Description** - Can edit via DesktopEditForm
+- ✅ **Toggle on/off** - Enable/disable for plan
+- ✅ **Add custom documents** - Create new document templates
+- ✅ **Remove custom documents** - Delete user-created documents
+- ❌ **Requirements** - Not editable (from program/master templates)
+- ❌ **Format/Size constraints** - Not editable (from program/master templates)
 
-#### Sections (`SectionTemplate`):
-**In Desktop Configurator:**
-- ✅ **Toggle on/off** (enable/disable section)
-- ✅ **Edit section title** (via `DesktopEditForm`)
-- ✅ **Edit section description** (via `DesktopEditForm`)
-- ✅ **Edit questions** (prompts, helper text, placeholders)
-- ✅ **Add custom sections** (user-created)
-- ✅ **Remove custom sections** (only custom ones)
-- ❌ Cannot edit question requirements (word counts, severity) - these come from templates
+**Sections (SectionTemplate):**
+- ✅ **Title** - Can edit via DesktopEditForm
+- ✅ **Description** - Can edit via DesktopEditForm
+- ✅ **Questions** - Can edit prompts, helper text, placeholders via DesktopEditForm
+- ✅ **Toggle on/off** - Enable/disable for plan
+- ✅ **Add custom sections** - Create new section templates
+- ✅ **Remove custom sections** - Delete user-created sections
+- ❌ **Required flag** - Not editable (from program/master templates)
+- ❌ **Origin** - Not editable (master/program/custom is determined by system)
 
-**What Gets Saved:**
-- Custom section templates stored in `plan.customSections`
-- Disabled sections stored in `context.disabledSectionIds`
-- Edited sections create a custom copy (original disabled)
+**Editing Flow:**
+1. User clicks ✏️ edit button on section/document card
+2. `DesktopEditForm` opens with current values
+3. User modifies fields
+4. On save:
+   - If `origin === 'custom'`: Updates existing custom item
+   - If `origin === 'master' | 'program'`: Creates a new custom copy, disables original
+5. Changes stored in `useEditorStore` state (`customSections`, `customDocuments`)
+6. On "Start editing" → `hydrate()` uses updated templates
 
-### What Should Be Editable (Based on Architecture Docs)
+### What Should Be Editable (Future Considerations)
 
-**Recommended Editable Fields:**
-
-**Documents:**
-- ✅ Name/Title
-- ✅ Description
-- ✅ Requirements (format, max size) - **NEW: Allow editing**
-- ❌ Origin (master/program/custom) - Read-only badge
-
-**Sections:**
-- ✅ Title
-- ✅ Description
-- ✅ Questions (prompt, helper text, placeholder)
-- ✅ Question requirements (min/max words) - **NEW: Allow editing**
-- ✅ Visibility flags (essential/advanced/programOnly) - **NEW: Allow editing**
-- ❌ Origin (master/program/custom) - Read-only badge
-
-**Implementation Notes:**
-- When user edits a master/program template, create a custom copy
-- Custom templates can be fully edited
-- Store edits in `plan.customSections` and `plan.customDocuments`
+Based on the architecture docs, consider adding:
+- **Visibility flags**: `essential | advanced | programOnly` - Allow users to mark sections as optional/advanced
+- **Severity levels**: For requirements validation (soft/hard)
+- **Question reordering**: Drag-and-drop within sections
+- **Section reordering**: Drag-and-drop in template overview
+- **Word count limits**: Allow users to set min/max words per question
+- **Question cloning**: Duplicate questions within sections
 
 ---
 
 ## 4. Wiring Preview with Sections, AI Assistant, and Data
 
 ### Current State
-- Preview shows rendered document
-- AI Assistant is in separate right panel
-- Data panel is in separate right panel
-- No live connection between them
+- **Preview**: Shows rendered document, updates on answer changes
+- **AI Assistant**: Separate panel, can insert suggestions
+- **Data Panel**: Separate panel, can attach datasets/KPIs/media
+- **Sections**: Sidebar navigation, clicking opens inline editor
 
-### Proposed Integration (Based on Architecture Docs)
+### Proposed: Live Integration
 
-#### 4.1 Preview-Section Connection
+#### 4.1 Preview ↔ Sections Integration
 
-**Current:** Preview is static, sections are separate
+**Current**: Preview shows full document, sections are separate navigation
 
-**Proposed:**
+**Proposed**: 
 - **Click section in preview** → Opens inline editor for that section (✅ Already implemented)
-- **Scroll through preview** → Auto-updates active section (✅ Already implemented)
-- **Section highlighting** → Active section/question highlighted in preview (✅ Already implemented)
+- **Scroll through preview** → Active section updates automatically (✅ Already implemented)
+- **Section highlighting**: Active section/question highlighted in preview
+- **Section badges in preview**: Show completion status, requirement badges inline
 
-**Enhancements Needed:**
-- Add section/question IDs to preview HTML elements (✅ Already done via `data-section-id`, `data-question-id`)
-- Ensure scroll detection works reliably
-- Add visual indicators (badges, progress bars) in preview
+**Implementation**:
+```typescript
+// PreviewWorkspace.tsx - Already has onSectionClick
+// InlineSectionEditor.tsx - Already positioned relative to sections
+// Editor.tsx - Already has scroll detection for section updates
+```
 
-#### 4.2 Preview-AI Assistant Connection
+#### 4.2 Preview ↔ AI Assistant Integration
 
-**Current:** AI suggestions are generic, not contextual to preview
+**Current**: AI suggestions are inserted into editor, preview updates after
 
-**Proposed:**
-- **Context Ribbon** in AI panel showing:
-  - Current section title
-  - Current question prompt
-  - Prior answers from plan (for context)
-- **Live Preview Updates**: When AI inserts text, preview updates in real-time
-- **Preview-Aware Suggestions**: AI knows what's already in the document
+**Proposed: Live Co-Writing**
+1. **Context Ribbon in AI Panel**:
+   - Show current section title
+   - Show current question prompt
+   - Show previous answers from plan (last 2-3 sections)
+   - This context feeds into AI suggestions
 
-**Implementation:**
+2. **Inline AI Suggestions in Preview**:
+   - When AI generates suggestion, show it as a "ghost" overlay in preview
+   - User can accept/reject directly in preview
+   - Accepting inserts into editor, preview updates immediately
 
-**File: `features/editor/components/layout/Workspace/Right-Panel/AIPanel.tsx`**
-- Add context ribbon component at top
-- Include `section.title`, `question.prompt`, and `plan.sections` (prior answers)
-- Pass full context to `sectionAiClient.ts`
+3. **AI Autocomplete**:
+   - As user types, show AI suggestions inline (like GitHub Copilot)
+   - Suggestions appear as gray text that can be accepted with Tab
 
-**File: `features/editor/engine/sectionAiClient.ts`**
-- Include section/question context in API payload
-- Include prior answers from other sections
-- Include program requirements if available
+**Implementation**:
+```typescript
+// AIPanel.tsx - Add context ribbon
+const contextRibbon = {
+  currentSection: activeSection?.title,
+  currentQuestion: activeQuestion?.prompt,
+  priorAnswers: plan.sections
+    .slice(0, plan.sections.indexOf(activeSection))
+    .map(s => ({ section: s.title, answers: s.questions.map(q => q.answer) }))
+};
 
-**File: `features/editor/components/Editor.tsx`**
-- When AI suggestion is inserted, call `updateAnswer()` which triggers preview update
-- Ensure preview re-renders on answer changes (✅ Already works)
+// sectionAiClient.ts - Include context in API calls
+const payload = {
+  ...existingPayload,
+  context: {
+    currentSection: contextRibbon.currentSection,
+    currentQuestion: contextRibbon.currentQuestion,
+    priorAnswers: contextRibbon.priorAnswers
+  }
+};
+```
 
-#### 4.3 Preview-Data Connection
+#### 4.3 Preview ↔ Data Panel Integration
 
-**Current:** Data (datasets, KPIs, media) are separate from preview
+**Current**: Data panel creates datasets/KPIs/media, user attaches to questions
 
-**Proposed:**
-- **Inline Preview in Editor**: When user adds a dataset/KPI/media, show miniature preview in editor
-- **Live Preview Updates**: Attachments appear in preview immediately
-- **Click to Edit**: Clicking attachment in preview opens data panel
+**Proposed: Live Data Visualization**
+1. **Inline Previews in Editor**:
+   - When dataset/KPI/media attached, show miniature preview in editor
+   - Table preview: Show first 3 rows
+   - Image preview: Thumbnail
+   - KPI preview: Value with target indicator
 
-**Implementation:**
+2. **Live Updates in Preview**:
+   - When data changes, preview updates immediately
+   - Tables render with actual data
+   - Charts/graphs update in real-time
 
-**File: `features/editor/components/layout/Workspace/Editor/InlineSectionEditor.tsx`**
-- When dataset/KPI/media is attached, show inline preview
-- Use `Table` component for datasets
-- Use `Image` component for media
-- Show KPI as formatted text
+3. **Drag-and-Drop from Data Panel to Preview**:
+   - Drag dataset/KPI/media from Data panel
+   - Drop on question in preview
+   - Automatically attaches and updates
 
-**File: `features/editor/components/layout/Workspace/Right-Panel/PreviewWorkspace.tsx`**
-- Already renders attachments (✅ Implemented)
-- Ensure attachments are clickable → opens data panel
+**Implementation**:
+```typescript
+// DataPanel.tsx - Add drag handlers
+const handleDragStart = (e: DragEvent, item: Dataset | KPI | MediaAsset) => {
+  e.dataTransfer.setData('application/json', JSON.stringify(item));
+};
 
-**File: `features/editor/components/layout/Workspace/Right-Panel/DataPanel.tsx`**
-- Add "Preview" mode showing how data will appear in document
-- Show table preview for datasets
-- Show image preview for media
+// PreviewWorkspace.tsx - Add drop zone on questions
+const handleDrop = (e: DragEvent, questionId: string) => {
+  const item = JSON.parse(e.dataTransfer.getData('application/json'));
+  attachToQuestion(questionId, item);
+};
+```
 
-#### 4.4 Making It "Really Live"
-
-**Real-time Updates:**
-1. ✅ Answer changes → Preview updates (already works)
-2. ✅ Section selection → Preview scrolls to section (already works)
-3. **NEW**: AI insertion → Preview updates immediately
-4. **NEW**: Data attachment → Preview shows attachment immediately
-5. **NEW**: Template changes → Preview reflects new structure
-
-**Debouncing:**
-- Preview updates should be debounced (every 2-3 seconds) to avoid performance issues
-- Use `useDebounce` hook for answer changes
-
-**Visual Feedback:**
-- Show "Saving..." indicator when autosaving
-- Show "Updating preview..." when preview is refreshing
-- Highlight newly inserted content briefly
-
----
-
-## 5. Template Flow & Testing
-
-### 5.1 Full Flow: Select Product → Edit → Preview
+#### 4.4 Full Flow: Product Selection → Editing → Preview
 
 **Step 1: Product Selection**
 ```
 User lands on /editor
-→ Sees TemplateOverviewPanel (Desktop)
-→ Selects product type (Strategy/Review/Submission)
+→ Shows TemplateOverviewPanel (Desktop)
+→ User selects product type (Strategy/Review/Submission)
 → System loads base templates from features/editor/templates/sections.ts
 ```
 
 **Step 2: Program Connection (Optional)**
 ```
-User clicks "Connect Program"
-→ Enters program URL or uses ProgramFinder
-→ System fetches /api/programs/[id]/requirements
+User connects program (AWS, FFG, etc.)
+→ System calls /api/programs/[id]/requirements
 → Merges program templates with base templates
-→ Shows merged sections/documents in template columns
+→ Shows merged sections/documents in DesktopTemplateColumns
 ```
 
 **Step 3: Template Customization**
 ```
-User sees two columns: Documents + Sections
-→ Can toggle sections/documents on/off
-→ Can edit titles, descriptions, questions
-→ Can add custom sections/documents
-→ Clicks "Start editing"
+User can:
+- Toggle sections/documents on/off
+- Edit section/document metadata (title, description, questions)
+- Add custom sections/documents
+- Reorder (future: drag-and-drop)
+
+Changes stored in useEditorStore:
+- customSections: SectionTemplate[]
+- customDocuments: DocumentTemplate[]
+- disabledSections: Set<string>
+- disabledDocuments: Set<string>
 ```
 
-**Step 4: Hydration**
+**Step 4: Start Editing**
 ```
-System calls hydrate(product, context)
-→ Merges base + program + custom templates
-→ Converts templates → plan sections
-→ Creates BusinessPlan object
-→ Opens workspace
-```
-
-**Step 5: Editing**
-```
-User sees workspace: Sidebar + Preview
-→ Clicks section in sidebar → Opens inline editor
-→ Types answer → Preview updates in real-time
-→ Uses AI/Data panels (now in sidebar) → Inserts content
-→ Preview reflects all changes
+User clicks "Start editing"
+→ handleTemplateUpdate() called
+→ hydrate(product, context) called with:
+  - disabledSectionIds
+  - disabledDocumentIds
+  - customSections
+  - customDocuments
+→ Templates converted to Plan Sections
+→ BusinessPlan object created
+→ Workspace mode activated
+→ Preview shows empty/placeholder content
 ```
 
-**Step 6: Export**
+**Step 5: Editing with Live Preview**
 ```
-User clicks export
-→ System runs requirements checker
-→ Shows validation results
-→ Exports PDF with all sections/attachments
+User selects section in Sidebar
+→ Inline editor appears in preview (positioned relative to section)
+→ User types answer
+→ updateAnswer() called
+→ Preview updates in real-time (debounced)
+→ AI Assistant shows context ribbon
+→ Data Panel shows available datasets/KPIs/media
 ```
 
-### 5.2 Testing Template: i2b Austria
+**Step 6: AI/Data Integration**
+```
+User clicks "AI Help"
+→ AI panel opens with context ribbon
+→ User asks question or requests suggestion
+→ AI generates based on:
+  - Current section/question
+  - Prior answers in plan
+  - Program requirements
+→ Suggestion appears in editor
+→ User accepts → Inserts into answer
+→ Preview updates immediately
 
-**Template File:** `template_public_support_general_austria_de_i2b.txt`
+User attaches dataset/KPI/media
+→ Item appears in preview as table/chart/image
+→ Updates in real-time when data changes
+```
 
-**Structure:**
-- Executive Summary (unnumbered)
-- Section 2: Product/Service (with 6 subchapters)
-- Section 3: Company & Management (with 6 subchapters)
-- Section 4: Industry, Market & Competition (with 6 subchapters)
-- Section 5: Marketing & Sales (with 4 subchapters)
-- Section 6: Success & Financial Planning (with 5 subchapters)
-- Appendix
-
-**How It Should Work:**
-
-1. **Upload Template**:
-   - User uploads i2b template file
-   - System extracts sections/questions via `features/editor/templates/api.ts`
-   - Creates `SectionTemplate[]` with German prompts
-
-2. **Template Merging**:
-   - If user selected "Submission" product, base templates merge with i2b templates
-   - Deduplication: If base has "Executive Summary" and i2b has "Executive Summary", merge them
-   - Program-only sections tagged with `visibility: 'programOnly'`
-
-3. **Editing**:
-   - User can edit German prompts (translate to English if needed)
-   - User can add/remove subchapters
-   - User can reorder sections
-
-4. **Preview**:
-   - Preview shows sections in order
-   - Subchapters numbered (2.1, 2.2, etc.)
-   - Executive Summary unnumbered
-   - Answers appear in preview as user types
-
-5. **Export**:
-   - Final document matches i2b structure
-   - All sections included
-   - Attachments in appendix
-
-### 5.3 What Can Be Edited in Product/Sections
-
-**Product Level:**
-- ❌ Product type (Strategy/Review/Submission) - Selected at start, cannot change
-- ✅ Program connection - Can change/disconnect
-- ✅ Custom templates - Can add/remove
-
-**Section Level (In Desktop):**
-- ✅ Title
-- ✅ Description
-- ✅ Questions (prompt, helper text, placeholder)
-- ✅ Enable/disable section
-- ✅ Add/remove custom sections
-- ❌ Question requirements (word counts) - **Should be editable** (see recommendations above)
-
-**Section Level (In Workspace):**
-- ✅ Answers (content)
-- ✅ Question status (complete/draft/unknown)
-- ✅ Attachments (datasets, KPIs, media)
-- ❌ Cannot edit section structure (must go back to Desktop)
-
-**Document Level:**
-- ✅ Name
-- ✅ Description
-- ✅ Enable/disable
-- ✅ Upload file
-- ❌ Requirements (format, size) - **Should be editable** (see recommendations above)
-
-### 5.4 How Edits Affect Preview Document
-
-**Template Changes (Desktop):**
-- Adding/removing sections → Preview structure changes
-- Editing section titles → Preview shows new titles
-- Editing questions → Preview shows new prompts (but answers remain)
-- Disabling sections → Sections hidden in preview
-
-**Content Changes (Workspace):**
-- Answering questions → Content appears in preview
-- Attaching data → Tables/images appear in preview
-- Marking complete → Progress indicators update
-- AI insertions → Content appears immediately
-
-**Real-time Sync:**
-- Preview updates on every answer change (debounced)
-- Preview scrolls to active section
-- Preview highlights active question
-- Preview shows completion status
+**Step 7: Requirements Validation**
+```
+Background validation runs:
+→ Checks word counts
+→ Checks required fields
+→ Checks attachments
+→ Shows badges on questions (green/yellow/red)
+→ Summary bar shows overall status
+```
 
 ---
 
-## 6. Implementation Priority
+## 5. Testing the Template Flow
 
-### Phase 1: Move Right Panel to Sidebar
-1. Extend `Sidebar.tsx` with AI/Data panels
-2. Remove `RightPanel` from `Editor.tsx`
-3. Update props and state management
-4. Test collapse/expand behavior
+### Test Case: i2b Austria Template
 
-### Phase 2: Merge Workspace with Template Columns
-1. Make `TemplateOverviewPanel` collapsible
-2. Integrate into workspace layout
-3. Keep product selector always visible
-4. Test template editing while preview is visible
+**Template File**: `template_public_support_general_austria_de_i2b.txt`
 
-### Phase 3: Wire Preview with AI/Data
-1. Add context ribbon to AI panel
-2. Implement live preview updates for AI insertions
-3. Add inline previews for data attachments
-4. Test real-time synchronization
+**Structure**:
+- Executive Summary
+- Product/Service (6 sub-sections)
+- Company & Management (6 sub-sections)
+- Industry, Market & Competition (6 sub-sections)
+- Marketing & Sales (4 sub-sections)
+- Financial Planning (6 sub-sections)
+- Appendix
 
-### Phase 4: Enhanced Editing Capabilities
-1. Allow editing requirements (word counts, format, size)
-2. Allow editing visibility flags
-3. Improve template merging with deduplication
-4. Test with i2b template
+**How to Test**:
+
+1. **Load Template**:
+   ```typescript
+   // In Desktop.tsx or template extraction API
+   const templateText = await loadTemplateFile('template_public_support_general_austria_de_i2b.txt');
+   const extractedSections = extractSectionsFromTemplate(templateText);
+   // Returns SectionTemplate[] with German prompts
+   ```
+
+2. **Merge with Base Template**:
+   ```typescript
+   const baseSections = getSections('submission', 'grants');
+   const programSections = extractedSections;
+   const merged = mergeSections(baseSections, programSections);
+   // Deduplicates, preserves program-specific wording
+   ```
+
+3. **Display in Desktop**:
+   - Sections appear in Sidebar (template mode)
+   - User can toggle, edit, reorder
+   - Shows origin badges (program vs master)
+
+4. **Hydrate to Plan**:
+   - Each SectionTemplate → Section in plan
+   - Each question → Question in plan
+   - German prompts preserved
+   - Preview renders in German
+
+5. **Edit and Preview**:
+   - User answers questions in German
+   - Preview shows formatted German business plan
+   - AI Assistant can work in German (if configured)
+   - Data attachments work the same
+
+---
+
+## 6. Implementation Checklist
+
+### Phase 1: Move Sections to Sidebar
+- [ ] Add `mode` prop to Sidebar component
+- [ ] Implement template mode in Sidebar
+- [ ] Remove sections column from DesktopTemplateColumns
+- [ ] Update Desktop.tsx to pass template sections to Sidebar
+- [ ] Handle the gap (expand documents or add summary panel)
+- [ ] Test template editing in Sidebar
+
+### Phase 2: Merge Workspace with Desktop
+- [ ] Keep product selector at top
+- [ ] Add template overview toggle
+- [ ] Implement two-mode layout (template config vs editing)
+- [ ] Smooth transitions between modes
+- [ ] Preserve state when switching
+- [ ] Test full flow: select → configure → edit
+
+### Phase 3: Enhance Editing Capabilities
+- [ ] Document what's editable (current state)
+- [ ] Add visibility flags to sections
+- [ ] Add severity levels to questions
+- [ ] Implement drag-and-drop reordering
+- [ ] Add question cloning
+- [ ] Test all editing scenarios
+
+### Phase 4: Live Preview Integration
+- [ ] Enhance AI context ribbon
+- [ ] Add inline AI suggestions in preview
+- [ ] Implement AI autocomplete
+- [ ] Add data previews in editor
+- [ ] Implement drag-and-drop from Data panel
+- [ ] Test live updates
+
+### Phase 5: Template Testing
+- [ ] Test i2b Austria template extraction
+- [ ] Test template merging
+- [ ] Test German language support
+- [ ] Test full editing flow with template
+- [ ] Verify preview renders correctly
 
 ---
 
 ## 7. Key Files Reference
 
-### Components to Modify:
-- `features/editor/components/layout/Workspace/Main Editor/Sidebar.tsx` - Add AI/Data panels
-- `features/editor/components/Editor.tsx` - Remove right panel, integrate template columns
-- `features/editor/components/layout/Desktop/Desktop.tsx` - Make template columns embeddable
+### Components to Modify
+- `features/editor/components/layout/Workspace/Main Editor/Sidebar.tsx` - Add template mode
+- `features/editor/components/layout/Desktop/DesktopTemplateColumns.tsx` - Remove sections column
+- `features/editor/components/Editor.tsx` - Merge Desktop and Workspace
 - `features/editor/components/layout/Workspace/Right-Panel/AIPanel.tsx` - Add context ribbon
-- `features/editor/components/layout/Workspace/Right-Panel/DataPanel.tsx` - Add preview mode
-- `features/editor/components/layout/Workspace/Editor/InlineSectionEditor.tsx` - Add inline data previews
+- `features/editor/components/layout/Workspace/Right-Panel/DataPanel.tsx` - Add drag handlers
+- `features/editor/components/layout/Workspace/Right-Panel/PreviewWorkspace.tsx` - Add drop zones
 
-### State Management:
-- `features/editor/hooks/useEditorStore.ts` - May need new state for template panel expansion
+### State Management
+- `features/editor/hooks/useEditorStore.ts` - Template state, editing state
+- `features/editor/hooks/useEditorActions.ts` - Actions for template/editing
 
-### Templates:
+### Templates
 - `features/editor/templates/sections.ts` - Base section templates
 - `features/editor/templates/documents.ts` - Base document templates
-- `features/editor/templates/api.ts` - Template extraction and merging
+- `features/editor/templates/api.ts` - Template merging functions
 
 ---
 
-## 8. Questions for Implementation
+## 8. Questions for Next Developer
 
-1. **Right Panel to Sidebar**: Should AI/Data panels be always visible when section is selected, or should they be collapsible accordions?
+1. **Sections in Sidebar**: Should template sections and plan sections be in the same Sidebar (with mode switching) or separate components?
 
-2. **Template Columns**: Should they overlay the workspace or push content down? Overlay might be cleaner.
+2. **Gap Handling**: What should fill the gap when sections column is removed? Expand documents, add summary panel, or keep minimal?
 
-3. **Editing Requirements**: Should users be able to edit word counts/format requirements, or are these locked to templates?
+3. **Template Mode**: Should template configuration be always visible (collapsible) or completely separate from workspace?
 
-4. **Live Updates**: What's the debounce time for preview updates? 2 seconds? 3 seconds?
+4. **AI Context**: How much prior context should AI remember? All sections or just last 2-3?
 
-5. **Context Ribbon**: How much prior context should AI see? All sections or just current section?
+5. **Data Previews**: Should data previews be inline in editor, in preview, or both?
+
+6. **Template Language**: How should we handle multi-language templates (German, English)? Should AI work in template language?
 
 ---
 
 **Last Updated**: Current session  
-**Status**: Planning phase - Ready for implementation
+**Status**: Planning phase - ready for implementation
 
