@@ -879,10 +879,10 @@ const cardElevationClasses = isExpanded
     <div className="pb-0">
       <div className={`${headerCardClasses} flex flex-col ${cardElevationClasses} bg-transparent shadow-none p-0`}>
         <div className="absolute inset-0 bg-gradient-to-b from-slate-900 via-blue-900 to-slate-800 rounded-lg" />
-            <div className="relative z-10 flex flex-col gap-3">
+            <div className="relative z-10 flex flex-col gap-2">
               {/* Header */}
-              <div className="flex flex-wrap items-center justify-between gap-3">
-                <span className="text-2xl font-bold uppercase tracking-wide text-white">
+              <div className="flex flex-wrap items-center justify-between gap-2">
+                <span className="text-xl font-bold uppercase tracking-wide text-white">
                   🖥️ {t('editor.desktop.title' as any) || 'Dein Schreibtisch'}
                 </span>
                 <div className="flex flex-wrap items-center justify-end gap-3">

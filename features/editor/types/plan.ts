@@ -21,8 +21,6 @@ export interface ProgramSummary {
   region?: string | null;
 }
 
-export type RightPanelView = 'ai' | 'data' | 'preview' | 'requirements' | 'info';
-
 export type AttachmentEntityType = 'dataset' | 'kpi' | 'media';
 
 export interface AttachmentReference {

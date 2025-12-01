@@ -18,7 +18,6 @@ import {
   Question,
   QuestionStatus,
   Reference,
-  RightPanelView,
   Section,
   TemplateFundingType,
   Table,
@@ -67,7 +66,6 @@ export interface EditorStoreState {
   error: string | null;
   activeSectionId: string | null;
   activeQuestionId: string | null;
-  rightPanelView: RightPanelView;
   progressSummary: ProgressSummary[];
   hydrate: (
     product: ProductType,
@@ -84,7 +82,6 @@ export interface EditorStoreState {
   ) => Promise<void>;
   setActiveSection: (sectionId: string) => void;
   setActiveQuestion: (questionId: string) => void;
-  setRightPanelView: (view: RightPanelView) => void;
   updateAnswer: (questionId: string, content: string) => void;
   addDataset: (sectionId: string, dataset: Dataset) => void;
   addKpi: (sectionId: string, kpi: KPI) => void;
@@ -241,10 +238,9 @@ export const useEditorStore = create<EditorStoreState>((set, get) => ({
   templates: [],
   isLoading: false,
   error: null,
-  activeSectionId: null,
-  activeQuestionId: null,
-  rightPanelView: 'ai',
-  progressSummary: [],
+    activeSectionId: null,
+    activeQuestionId: null,
+    progressSummary: [],
   hydrate: async (product, context) => {
     set({ isLoading: true, error: null });
     try {
@@ -347,8 +343,7 @@ export const useEditorStore = create<EditorStoreState>((set, get) => ({
         isLoading: false,
         activeSectionId: metadataComplete ? initialSection?.id ?? null : METADATA_SECTION_ID,
         activeQuestionId: initialSection?.questions[0]?.id ?? null,
-        progressSummary: [],
-        rightPanelView: 'ai'
+        progressSummary: []
       });
     } catch (error: any) {
       console.error('[hydrate] Error during hydration:', error);
@@ -377,7 +372,6 @@ export const useEditorStore = create<EditorStoreState>((set, get) => ({
     });
   },
   setActiveQuestion: (questionId) => set({ activeQuestionId: questionId }),
-  setRightPanelView: (view) => set({ rightPanelView: view }),
   updateAnswer: (questionId, content) => {
     const { plan } = get();
     if (!plan) return;
@@ -652,7 +646,7 @@ export const useEditorStore = create<EditorStoreState>((set, get) => ({
         progress: progress.completionPercentage
       };
     });
-    set({ progressSummary: summary, rightPanelView: 'requirements' });
+    set({ progressSummary: summary });
   },
   requestAISuggestions: async (sectionId, questionId, options) => {
     const { plan, templates } = get();
@@ -1372,7 +1366,6 @@ type EditorActionKeys =
   | 'hydrate'
   | 'setActiveSection'
   | 'setActiveQuestion'
-  | 'setRightPanelView'
   | 'updateAnswer'
   | 'addDataset'
   | 'addKpi'
@@ -1402,7 +1395,6 @@ const selectActions = (state: EditorStoreState): EditorActions => ({
   hydrate: state.hydrate,
   setActiveSection: state.setActiveSection,
   setActiveQuestion: state.setActiveQuestion,
-  setRightPanelView: state.setRightPanelView,
   updateAnswer: state.updateAnswer,
   addDataset: state.addDataset,
   addKpi: state.addKpi,

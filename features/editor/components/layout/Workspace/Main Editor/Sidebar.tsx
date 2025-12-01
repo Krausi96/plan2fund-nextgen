@@ -82,8 +82,8 @@ export default function Sidebar({
   const isEditing = expandedSectionId && editingSection;
 
   return (
-    <div className={`flex flex-col h-full transition-all duration-300 ${
-      isCollapsed ? 'w-[60px]' : 'w-[280px]'
+    <div className={`flex flex-col transition-all duration-300 ${
+      isCollapsed ? 'w-[60px]' : 'w-[320px]'
     }`}>
       <div className="relative w-full flex-1 overflow-hidden flex flex-col">
         {!isCollapsed && (

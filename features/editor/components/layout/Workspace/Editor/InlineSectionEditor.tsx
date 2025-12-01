@@ -3,14 +3,17 @@ import { Section, BusinessPlan } from '@/features/editor/types/plan';
 import { Button } from '@/shared/components/ui/button';
 import { Badge } from '@/shared/components/ui/badge';
 import { useI18n } from '@/shared/contexts/I18nContext';
-import { useEditorStore, validateQuestionRequirements, METADATA_SECTION_ID, ANCILLARY_SECTION_ID } from '@/features/editor/hooks/useEditorStore';
+import { useEditorStore, validateQuestionRequirements, METADATA_SECTION_ID, ANCILLARY_SECTION_ID, AISuggestionIntent } from '@/features/editor/hooks/useEditorStore';
 import MetadataAndAncillaryPanel from '@/features/editor/components/layout/Workspace/Title Page & Attachement Data/MetadataAndAncillaryPanel';
+import DataPanel from '@/features/editor/components/layout/Workspace/Right-Panel/DataPanel';
 import {
   Dataset,
   KPI,
   MediaAsset
 } from '@/features/editor/types/plan';
 // CSS will be injected dynamically since classes are applied to preview DOM elements
+
+type EditorTab = 'editor' | 'ai' | 'data' | 'context';
 
 type InlineSectionEditorProps = {
   sectionId: string | null;
@@ -22,8 +25,6 @@ type InlineSectionEditorProps = {
   onAnswerChange: (questionId: string, content: string) => void;
   onToggleUnknown: (questionId: string, note?: string) => void;
   onMarkComplete: (questionId: string) => void;
-  onAIHelp: () => void;
-  onDataHelp: () => void;
   onTitlePageChange: (titlePage: any) => void;
   onAncillaryChange: (updates: Partial<any>) => void;
   onReferenceAdd: (reference: any) => void;
@@ -36,6 +37,9 @@ type InlineSectionEditorProps = {
   onDatasetCreate?: (dataset: Dataset) => void;
   onKpiCreate?: (kpi: KPI) => void;
   onMediaCreate?: (asset: MediaAsset) => void;
+  onAttachDataset?: (dataset: Dataset) => void;
+  onAttachKpi?: (kpi: KPI) => void;
+  onAttachMedia?: (asset: MediaAsset) => void;
   progressSummary?: any[];
 };
 
@@ -60,8 +64,6 @@ export default function InlineSectionEditor({
   onAnswerChange,
   onToggleUnknown,
   onMarkComplete,
-  onAIHelp,
-  onDataHelp,
   onTitlePageChange,
   onAncillaryChange,
   onReferenceAdd,
@@ -71,13 +73,18 @@ export default function InlineSectionEditor({
   onAppendixUpdate,
   onAppendixDelete,
   onRunRequirements,
-  onDatasetCreate: _onDatasetCreate,
-  onKpiCreate: _onKpiCreate,
+  onDatasetCreate,
+  onKpiCreate,
   onMediaCreate,
+  onAttachDataset,
+  onAttachKpi,
+  onAttachMedia,
   progressSummary = []
 }: InlineSectionEditorProps) {
   const { t } = useI18n();
-  const { templates } = useEditorStore();
+  const { templates, requestAISuggestions } = useEditorStore();
+  const [activeTab, setActiveTab] = useState<EditorTab>('editor');
+  const [requirementsChecked, setRequirementsChecked] = useState(false);
   const [position, setPosition] = useState<EditorPosition>({
     top: 0,
     left: 0,
@@ -101,6 +108,19 @@ export default function InlineSectionEditor({
   const validation = activeQuestion && template && section
     ? validateQuestionRequirements(activeQuestion, section, template)
     : null;
+
+  // AI Assistant handlers
+  const handleQuickAsk = useCallback((intent: AISuggestionIntent) => {
+    if (!activeQuestion || !section) return;
+    requestAISuggestions(section.id, activeQuestion.id, { intent });
+    setActiveTab('ai');
+  }, [activeQuestion, section, requestAISuggestions]);
+
+  const handleAskForStructure = useCallback(() => {
+    if (!activeQuestion || !section) return;
+    setActiveTab('ai');
+    requestAISuggestions(section.id, activeQuestion.id, { intent: 'data' });
+  }, [activeQuestion, section, requestAISuggestions]);
 
   // Calculate position relative to preview container
   const calculatePosition = useCallback(() => {
@@ -671,23 +691,270 @@ export default function InlineSectionEditor({
                 {isUnknown ? 'Clear Unknown' : 'Skip'}
               </Button>
             )}
-            <Button
-              variant="outline"
-              onClick={onAIHelp}
-              className="text-slate-700 border-slate-300 bg-white hover:bg-slate-50 text-xs font-semibold px-4 py-2 rounded-lg shadow-sm flex items-center gap-1.5"
-            >
-              <span>💬</span> AI Help
-            </Button>
-            <Button
-              variant="outline"
-              onClick={onDataHelp}
-              className="text-slate-700 border-slate-300 bg-white hover:bg-slate-50 text-xs font-semibold px-4 py-2 rounded-lg shadow-sm flex items-center gap-1.5"
-            >
-              <span>📊</span> Data
-            </Button>
+          </div>
+
+          {/* Tabs */}
+          <div className="border-t border-slate-200 pt-3 mt-3">
+            <div className="flex gap-1.5 mb-3" role="tablist" aria-label="Editor tools">
+              {[
+                { key: 'editor' as EditorTab, label: 'Editor', icon: '✏️' },
+                { key: 'ai' as EditorTab, label: (t('editor.ui.tabs.assistant' as any) as string) || 'AI', icon: '💬' },
+                { key: 'data' as EditorTab, label: (t('editor.ui.tabs.data' as any) as string) || 'Data', icon: '📊' },
+                { key: 'context' as EditorTab, label: 'Context', icon: '📋' }
+              ].map(({ key, label, icon }) => {
+                const isActive = activeTab === key;
+                return (
+                  <Button
+                    key={key}
+                    role="tab"
+                    aria-selected={isActive}
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => setActiveTab(key)}
+                    className={`flex-1 justify-center rounded-lg border text-xs ${
+                      isActive
+                        ? 'border-blue-600 bg-blue-600 hover:bg-blue-700 text-white shadow-lg'
+                        : 'border-slate-300 text-slate-700 hover:bg-slate-50'
+                    }`}
+                  >
+                    <span className="mr-1">{icon}</span>
+                    {label}
+                  </Button>
+                );
+              })}
+            </div>
+
+            {/* Tab Content */}
+            <div className="mt-3">
+              {activeTab === 'editor' && (
+                <div className="text-xs text-slate-600">
+                  {/* Editor tab is the default view - content already shown above */}
+                </div>
+              )}
+
+              {activeTab === 'ai' && (
+                <div className="space-y-3 text-sm">
+                  {activeQuestion ? (
+                    <div className="space-y-3">
+                      <div>
+                        <p className="text-xs font-medium text-slate-700 mb-1.5 uppercase tracking-wide">
+                          {(t('editor.ui.currentQuestion' as any) as string) || 'Current question'}
+                        </p>
+                        <p className="font-semibold text-slate-900 leading-snug mb-1.5 text-base">{activeQuestion.prompt}</p>
+                        <p className="text-xs text-slate-600">
+                          {(t('editor.ui.status' as any) as string) || 'Status'}:{' '}
+                          <span className="font-medium text-slate-900">{activeQuestion.status}</span>
+                          {activeQuestion.status === 'blank' || activeQuestion.status === 'unknown'
+                            ? ` (${(t('editor.ui.aiFocusGuidance' as any) as string) || 'AI will focus on guidance'})`
+                            : ` (${(t('editor.ui.aiFocusCritique' as any) as string) || 'AI will focus on critique'})`}
+                        </p>
+                        <div className="mt-2 flex flex-wrap gap-1.5">
+                          <Button type="button" variant="outline" size="sm" onClick={() => handleQuickAsk('outline')} disabled={!activeQuestion}>
+                            Draft outline
+                          </Button>
+                          <Button type="button" variant="outline" size="sm" onClick={() => handleQuickAsk('improve')} disabled={!activeQuestion}>
+                            Improve answer
+                          </Button>
+                          <Button type="button" variant="outline" size="sm" onClick={() => handleQuickAsk('data')} disabled={!activeQuestion}>
+                            {(t('editor.ui.suggestDataKPIs' as any) as string) || 'Suggest data/KPIs'}
+                          </Button>
+                        </div>
+                      </div>
+                      {activeQuestion.answer ? (
+                        <div className="bg-slate-50 rounded-lg p-3 border border-slate-200">
+                          <p className="text-xs font-medium text-slate-700 mb-2">Answer preview</p>
+                          <p className="text-slate-900 text-sm leading-relaxed mb-2">{activeQuestion.answer.substring(0, 200)}...</p>
+                          <p className="text-xs text-slate-600">{activeQuestion.answer.split(/\s+/).length} words</p>
+                        </div>
+                      ) : (
+                        <p className="text-slate-700 text-sm leading-relaxed bg-slate-50 rounded-lg p-3 border border-slate-200">
+                          {(t('editor.ui.startTypingHint' as any) as string) ||
+                            'Start typing to provide context—the assistant draws on previous answers, datasets, and program requirements.'}
+                        </p>
+                      )}
+                      {activeQuestion.suggestions && activeQuestion.suggestions.length > 0 && (
+                        <div className="space-y-2">
+                          <p className="text-xs font-medium text-slate-900">Latest response</p>
+                          {activeQuestion.suggestions.slice(-1).map((suggestion, index) => (
+                            <div key={index} className="border border-slate-300 bg-slate-50 rounded-lg p-2.5">
+                              <p className="text-sm text-slate-900 mb-2 leading-relaxed">{suggestion}</p>
+                              <div className="flex gap-2">
+                                <Button
+                                  type="button"
+                                  variant="ghost"
+                                  size="sm"
+                                  onClick={() => navigator.clipboard.writeText(suggestion)}
+                                  className="text-slate-700 hover:text-slate-900 hover:bg-slate-100"
+                                >
+                                  Copy
+                                </Button>
+                                <Button
+                                  type="button"
+                                  variant="ghost"
+                                  size="sm"
+                                  onClick={() => {
+                                    const latestSuggestion = activeQuestion.suggestions?.[activeQuestion.suggestions.length - 1];
+                                    if (latestSuggestion) {
+                                      const currentAnswer = activeQuestion.answer ?? '';
+                                      const newContent = currentAnswer ? `${currentAnswer}\n\n${latestSuggestion}` : latestSuggestion;
+                                      onAnswerChange(activeQuestion.id, newContent);
+                                    }
+                                  }}
+                                  className="text-slate-700 hover:text-slate-900 hover:bg-slate-100"
+                                >
+                                  {(t('editor.ui.insert' as any) as string) || 'Insert'}
+                                </Button>
+                              </div>
+                            </div>
+                          ))}
+                        </div>
+                      )}
+                    </div>
+                  ) : (
+                    <div className="text-center py-8 text-slate-400 text-sm">
+                      {(t('editor.ui.selectQuestion' as any) as string) || 'Select a question to receive AI suggestions.'}
+                    </div>
+                  )}
+                </div>
+              )}
+
+              {activeTab === 'data' && (
+                <div className="space-y-4">
+                  {section && onDatasetCreate && onKpiCreate && onMediaCreate ? (
+                    <DataPanel
+                      datasets={section.datasets ?? []}
+                      kpis={section.kpis ?? []}
+                      media={section.media ?? []}
+                      onDatasetCreate={onDatasetCreate}
+                      onKpiCreate={onKpiCreate}
+                      onMediaCreate={onMediaCreate}
+                      activeQuestionId={activeQuestionId}
+                      sectionId={section.id}
+                      sectionTitle={section.title}
+                      onAttachDataset={onAttachDataset}
+                      onAttachKpi={onAttachKpi}
+                      onAttachMedia={onAttachMedia}
+                      onAskForStructure={handleAskForStructure}
+                    />
+                  ) : (
+                    <div className="text-center py-8 text-slate-400 text-sm">
+                      Choose a section to manage datasets, KPIs, and media.
+                    </div>
+                  )}
+                </div>
+              )}
+
+              {activeTab === 'context' && (
+                <div className="space-y-3">
+                  <div className="flex items-center justify-between mb-3">
+                    <p className="text-xs font-semibold text-slate-700 uppercase tracking-wide">Requirements validation</p>
+                    <Button
+                      size="sm"
+                      variant="outline"
+                      onClick={() => {
+                        setRequirementsChecked(true);
+                        onRunRequirements();
+                      }}
+                      className="text-slate-700 border-slate-300 hover:bg-slate-50"
+                    >
+                      Run check
+                    </Button>
+                  </div>
+                  {!requirementsChecked ? (
+                    <p className="text-slate-500 text-xs">Run the checker to view validation status.</p>
+                  ) : (
+                    <RequirementSummary section={section} question={activeQuestion} progressSummary={progressSummary} />
+                  )}
+                </div>
+              )}
+            </div>
           </div>
         </div>
       </div>
+    </div>
+  );
+}
+
+function RequirementSummary({
+  section,
+  question,
+  progressSummary
+}: {
+  section: Section | null;
+  question: any;
+  progressSummary: any[];
+}) {
+  const { t } = useI18n();
+  if (!section || !question) {
+    return (
+      <p className="text-xs text-slate-500">
+        {(t('editor.ui.runRequirementsHint' as any) as string) || 'Select a question to view requirement details.'}
+      </p>
+    );
+  }
+
+  const { templates } = useEditorStore.getState();
+  const template = templates.find((tpl) => tpl.id === section.id);
+  const validation = validateQuestionRequirements(question, section, template);
+
+  return (
+    <div className="space-y-3">
+      <div>
+        {validation.issues.length === 0 ? (
+          <div className="bg-green-50 border border-green-200 rounded-lg p-3">
+            <div className="flex items-center gap-2 mb-1">
+              <span className="text-green-600 text-sm">✓</span>
+              <p className="text-xs font-semibold text-green-700">
+                {(t('editor.ui.currentQuestionPasses' as any) as string) || 'Current question passes validation'}
+              </p>
+            </div>
+            <p className="text-xs text-green-600 mt-1">
+              {(t('editor.ui.validation.allRequirementsMet' as any) as string) || 'All requirements are met for this prompt.'}
+            </p>
+          </div>
+        ) : (
+          <div className="border border-slate-200 rounded-lg p-3 space-y-2">
+            <div className="flex items-center justify-between">
+              <p className="text-xs font-semibold text-slate-700">Current question</p>
+              <span className="text-[10px] px-2 py-0.5 rounded font-semibold bg-amber-100 text-amber-700">
+                {validation.issues.length} issue{validation.issues.length > 1 ? 's' : ''}
+              </span>
+            </div>
+            <p className="text-xs text-slate-600 line-clamp-2">{question.prompt}</p>
+            <div className="space-y-1.5">
+              {validation.issues.map((issue: any, idx: number) => (
+                <div key={idx} className="flex items-start gap-2 text-xs">
+                  <span className={issue.severity === 'error' ? 'text-red-600 mt-0.5' : 'text-amber-600 mt-0.5'}>●</span>
+                  <p className={issue.severity === 'error' ? 'text-red-700 flex-1' : 'text-amber-700 flex-1'}>
+                    {issue.message}
+                  </p>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+      </div>
+      {progressSummary && progressSummary.length > 0 && (
+        <div className="bg-slate-50 rounded-lg p-3 space-y-2">
+          <div className="flex items-center justify-between">
+            <span className="text-xs font-semibold text-slate-700">Overall completion</span>
+            <span className="text-sm font-bold">{Math.round(progressSummary.reduce((sum, item) => sum + item.progress, 0) / progressSummary.length)}%</span>
+          </div>
+          <div className="space-y-2">
+            {progressSummary.map((item) => (
+              <div key={item.id} className="border border-slate-200 rounded-lg p-2">
+                <p className="text-xs font-semibold text-slate-700">{item.title}</p>
+                <div className="h-1.5 bg-slate-100 rounded-full mt-1">
+                  <div
+                    className={`h-full rounded-full ${item.progress === 100 ? 'bg-green-500' : 'bg-amber-500'}`}
+                    style={{ width: `${item.progress}%` }}
+                  />
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
     </div>
   );
 }

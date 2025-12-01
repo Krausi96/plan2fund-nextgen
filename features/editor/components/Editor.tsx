@@ -8,14 +8,12 @@ import React, {
 import { useRouter } from 'next/router';
 
 import { TemplateOverviewPanel, ConnectCopy } from './layout/Desktop/Desktop';
-import RightPanel from './layout/Workspace/Right-Panel/RightPanel';
 import Sidebar from './layout/Workspace/Main Editor/Sidebar';
 import PreviewWorkspace from './layout/Workspace/Right-Panel/PreviewWorkspace';
 import InlineSectionEditor from './layout/Workspace/Editor/InlineSectionEditor';
 import DocumentsBar from './layout/Workspace/DocumentsBar/DocumentsBar';
 import type { SectionTemplate, DocumentTemplate } from '@templates';
 import {
-  AISuggestionOptions,
   ANCILLARY_SECTION_ID,
   METADATA_SECTION_ID,
   mapProgramTypeToFunding,
@@ -27,10 +25,7 @@ import {
   ProductType,
   ProgramSummary,
   Question,
-  Section,
-  Dataset,
-  KPI,
-  MediaAsset
+  Section
 } from '@/features/editor/types/plan';
 import { useI18n } from '@/shared/contexts/I18nContext';
 import {
@@ -81,7 +76,6 @@ export default function Editor({ product = 'submission' }: EditorProps) {
     error,
     activeSectionId,
     activeQuestionId,
-    rightPanelView,
     progressSummary
   } = useEditorStore((state) => ({
     plan: state.plan,
@@ -89,14 +83,12 @@ export default function Editor({ product = 'submission' }: EditorProps) {
     error: state.error,
     activeSectionId: state.activeSectionId,
     activeQuestionId: state.activeQuestionId,
-    rightPanelView: state.rightPanelView,
     progressSummary: state.progressSummary
   }));
 
   const {
     hydrate,
     setActiveQuestion,
-    setRightPanelView,
     setActiveSection,
     updateAnswer,
     markQuestionComplete,
@@ -115,7 +107,6 @@ export default function Editor({ product = 'submission' }: EditorProps) {
     updateAppendix,
     deleteAppendix,
     runRequirementsCheck,
-    requestAISuggestions,
     toggleQuestionUnknown,
     setProductType
   } = useEditorActions((actions) => actions);
@@ -330,8 +321,6 @@ export default function Editor({ product = 'submission' }: EditorProps) {
 
   // Track filtered section IDs for sidebar filtering
   const [filteredSectionIds, setFilteredSectionIds] = useState<string[] | null>(null);
-  // Track right panel open state - ALWAYS VISIBLE by default
-  const [isRightPanelOpen, setIsRightPanelOpen] = useState(true);
   // Track editing section for inline editor - MUST BE DECLARED BEFORE useMemo
   // Auto-open editor when section is selected from sidebar
   const [editingSectionId, setEditingSectionId] = useState<string | null>(null);
@@ -463,24 +452,6 @@ export default function Editor({ product = 'submission' }: EditorProps) {
     );
   }, [activeSection, activeQuestionId]);
 
-  const triggerAISuggestions = useCallback(
-    (questionId?: string, options?: AISuggestionOptions) => {
-      if (!activeSection) return;
-      const targetQuestionId = questionId ?? activeQuestion?.id;
-      if (!targetQuestionId) return;
-      requestAISuggestions(activeSection.id, targetQuestionId, options);
-      setRightPanelView('ai');
-      setIsRightPanelOpen(true);
-    },
-    [activeSection, activeQuestion, requestAISuggestions, setRightPanelView]
-  );
-  
-  // Set default view to AI when panel first opens (no preview tab anymore)
-  useEffect(() => {
-    if (isRightPanelOpen && !rightPanelView) {
-      setRightPanelView('ai');
-    }
-  }, [isRightPanelOpen, rightPanelView, setRightPanelView]);
 
   // Handle document selection changes from Desktop - navigate to first filtered section
   const handleDocumentSelectionChange = useCallback((sectionIds: string[]) => {
@@ -578,41 +549,10 @@ export default function Editor({ product = 'submission' }: EditorProps) {
 
                 {/* Workspace Container - Document-Centric Layout */}
                 <div className="relative rounded-2xl border border-dashed border-white/60 bg-slate-900/40 p-4 lg:p-6 shadow-lg backdrop-blur-sm overflow-hidden w-full">
-                  {/* Documents Bar - Horizontal scrollable above preview */}
-                  {templateState ? (
-                    <DocumentsBar
-                      filteredDocuments={templateState.filteredDocuments}
-                      disabledDocuments={templateState.disabledDocuments}
-                      enabledDocumentsCount={templateState.enabledDocumentsCount}
-                      expandedDocumentId={templateState.expandedDocumentId}
-                      editingDocument={templateState.editingDocument}
-                      selectedProductMeta={productOptions.find((option) => option.value === selectedProduct) ?? null}
-                      clickedDocumentId={templateState.clickedDocumentId}
-                      showAddDocument={templateState.showAddDocument}
-                      newDocumentName={templateState.newDocumentName}
-                      newDocumentDescription={templateState.newDocumentDescription}
-                      onToggleDocument={templateState.handlers.onToggleDocument}
-                      onSelectDocument={templateState.handlers.onSelectDocument}
-                      onEditDocument={templateState.handlers.onEditDocument}
-                      onSaveDocument={templateState.handlers.onSaveDocument}
-                      onCancelEdit={templateState.handlers.onCancelEdit}
-                      onToggleAddDocument={templateState.handlers.onToggleAddDocument}
-                      onAddCustomDocument={templateState.handlers.onAddCustomDocument}
-                      onSetNewDocumentName={templateState.handlers.onSetNewDocumentName}
-                      onSetNewDocumentDescription={templateState.handlers.onSetNewDocumentDescription}
-                      onRemoveCustomDocument={templateState.handlers.onRemoveCustomDocument}
-                      getOriginBadge={templateState.handlers.getOriginBadge}
-                    />
-                  ) : (
-                    <div className="w-full border-b border-white/10 pb-3 mb-3">
-                      <div className="text-white/60 text-sm">Loading documents...</div>
-                    </div>
-                  )}
-
-                  {/* Document-Centric Layout: Sidebar + Document Canvas + Right Panel */}
-                  <div className="flex gap-4 h-[calc(100vh-400px)] min-h-[600px]">
-                    {/* Sidebar - Vertical Tree Navigation (Left) with Template Management */}
-                    <div className="flex-shrink-0 border-r border-white/10 pr-4">
+                  {/* Grid Layout: Sidebar (left, spans 2 rows) + DocumentsBar + Preview (right column) */}
+                  <div className="grid grid-cols-[320px_1fr] gap-4 h-[calc(100vh-400px)] min-h-[600px]">
+                    {/* Sidebar - Left Column, Spans Full Height */}
+                    <div className="row-span-2 border-r border-white/10 pr-4">
                       <Sidebar
                         plan={plan}
                         activeSectionId={activeSectionId ?? plan.sections[0]?.id ?? null}
@@ -639,8 +579,41 @@ export default function Editor({ product = 'submission' }: EditorProps) {
                         programSummary={programSummary ? { name: programSummary.name, amountRange: programSummary.amountRange ?? undefined } : null}
                       />
                     </div>
+
+                    {/* Documents Bar - Top Right, Same Width as Preview */}
+                    <div className="flex-shrink-0">
+                      {templateState ? (
+                        <DocumentsBar
+                          filteredDocuments={templateState.filteredDocuments}
+                          disabledDocuments={templateState.disabledDocuments}
+                          enabledDocumentsCount={templateState.enabledDocumentsCount}
+                          expandedDocumentId={templateState.expandedDocumentId}
+                          editingDocument={templateState.editingDocument}
+                          selectedProductMeta={productOptions.find((option) => option.value === selectedProduct) ?? null}
+                          clickedDocumentId={templateState.clickedDocumentId}
+                          showAddDocument={templateState.showAddDocument}
+                          newDocumentName={templateState.newDocumentName}
+                          newDocumentDescription={templateState.newDocumentDescription}
+                          onToggleDocument={templateState.handlers.onToggleDocument}
+                          onSelectDocument={templateState.handlers.onSelectDocument}
+                          onEditDocument={templateState.handlers.onEditDocument}
+                          onSaveDocument={templateState.handlers.onSaveDocument}
+                          onCancelEdit={templateState.handlers.onCancelEdit}
+                          onToggleAddDocument={templateState.handlers.onToggleAddDocument}
+                          onAddCustomDocument={templateState.handlers.onAddCustomDocument}
+                          onSetNewDocumentName={templateState.handlers.onSetNewDocumentName}
+                          onSetNewDocumentDescription={templateState.handlers.onSetNewDocumentDescription}
+                          onRemoveCustomDocument={templateState.handlers.onRemoveCustomDocument}
+                          getOriginBadge={templateState.handlers.getOriginBadge}
+                        />
+                      ) : (
+                        <div className="w-full border-b border-white/10 pb-3 mb-3">
+                          <div className="text-white/60 text-sm">Loading documents...</div>
+                        </div>
+                      )}
+                    </div>
                     
-                    {/* Preview - Main Content (Center) */}
+                    {/* Preview - Bottom Right, Same Width as DocumentsBar */}
                     <div className="flex-1 min-w-0 overflow-hidden relative" id="preview-container">
                       {/* Preview - Always visible */}
                       <div className="h-full overflow-y-auto relative" id="preview-scroll-container">
@@ -681,11 +654,6 @@ export default function Editor({ product = 'submission' }: EditorProps) {
                             onMarkComplete={(questionId) => {
                               markQuestionComplete(questionId);
                             }}
-                            onAIHelp={() => triggerAISuggestions()}
-                            onDataHelp={() => {
-                              setRightPanelView('data');
-                              setIsRightPanelOpen(true);
-                            }}
                             onTitlePageChange={updateTitlePage}
                             onAncillaryChange={updateAncillary}
                             onReferenceAdd={addReference}
@@ -699,43 +667,19 @@ export default function Editor({ product = 'submission' }: EditorProps) {
                             onDatasetCreate={(dataset) => activeSection && addDataset(activeSection.id, dataset)}
                             onKpiCreate={(kpi) => activeSection && addKpi(activeSection.id, kpi)}
                             onMediaCreate={(asset) => activeSection && addMedia(activeSection.id, asset)}
+                            onAttachDataset={(dataset) =>
+                              activeSection && activeQuestion && attachDatasetToQuestion(activeSection.id, activeQuestion.id, dataset)
+                            }
+                            onAttachKpi={(kpi) =>
+                              activeSection && activeQuestion && attachKpiToQuestion(activeSection.id, activeQuestion.id, kpi)
+                            }
+                            onAttachMedia={(asset) =>
+                              activeSection && activeQuestion && attachMediaToQuestion(activeSection.id, activeQuestion.id, asset)
+                            }
                           />
                         )}
                       </div>
                     </div>
-
-                    {/* Right Panel - Slide in from right (when open) - Reduced width */}
-                    {isRightPanelOpen && (
-                      <div className="flex-shrink-0 w-[320px] border-l border-white/10 pl-4 transition-all duration-300">
-                        <RightPanel
-                          view={rightPanelView}
-                          setView={(view) => {
-                            setRightPanelView(view);
-                            setIsRightPanelOpen(true);
-                          }}
-                          section={activeSection ?? (isSpecialWorkspace ? undefined : plan.sections[0])}
-                          question={activeQuestion ?? undefined}
-                          plan={plan}
-                          onDatasetCreate={(dataset: Dataset) => activeSection && addDataset(activeSection.id, dataset)}
-                          onKpiCreate={(kpi: KPI) => activeSection && addKpi(activeSection.id, kpi)}
-                          onMediaCreate={(asset: MediaAsset) => activeSection && addMedia(activeSection.id, asset)}
-                          onAttachDataset={(dataset: Dataset) =>
-                            activeSection && activeQuestion && attachDatasetToQuestion(activeSection.id, activeQuestion.id, dataset)
-                          }
-                          onAttachKpi={(kpi: KPI) =>
-                            activeSection && activeQuestion && attachKpiToQuestion(activeSection.id, activeQuestion.id, kpi)
-                          }
-                          onAttachMedia={(asset: MediaAsset) =>
-                            activeSection && activeQuestion && attachMediaToQuestion(activeSection.id, activeQuestion.id, asset)
-                          }
-                          onRunRequirements={runRequirementsCheck}
-                          progressSummary={progressSummary}
-                          onAskAI={triggerAISuggestions}
-                          onAnswerChange={updateAnswer}
-                          onClose={() => setIsRightPanelOpen(false)}
-                        />
-                      </div>
-                    )}
                   </div>
                 </div>
               </div>
