@@ -6,7 +6,6 @@ import type { SectionTemplate, DocumentTemplate } from '@templates';
 import type { ProductType, ProgramSummary } from '@/features/editor/types/plan';
 import { useI18n } from '@/shared/contexts/I18nContext';
 import { DesktopConfigurator } from './DesktopConfigurator';
-import { DesktopTemplateColumns } from './DesktopTemplateColumns';
 
 const DOCUMENT_SELECTION_STORAGE_KEY = 'plan2fund-desktop-doc-selection';
 const createDefaultSelectionState = (): Record<ProductType, string | null> => ({
@@ -54,6 +53,47 @@ export interface TemplateOverviewPanelProps {
   connectCopy: ConnectCopy;
   // Callback when document selection changes - provides filtered section IDs for sidebar navigation
   onDocumentSelectionChange?: (filteredSectionIds: string[]) => void;
+  // Callback to expose template management state for DocumentsBar and Sidebar
+  onTemplateStateExposed?: (state: {
+    filteredDocuments: DocumentTemplate[];
+    disabledDocuments: Set<string>;
+    enabledDocumentsCount: number;
+    expandedDocumentId: string | null;
+    editingDocument: DocumentTemplate | null;
+    clickedDocumentId: string | null;
+    showAddDocument: boolean;
+    newDocumentName: string;
+    newDocumentDescription: string;
+    filteredSections: SectionTemplate[];
+    allSections: SectionTemplate[]; // All sections for counting
+    disabledSections: Set<string>;
+    expandedSectionId: string | null;
+    editingSection: SectionTemplate | null;
+    showAddSection: boolean;
+    newSectionTitle: string;
+    newSectionDescription: string;
+    handlers: {
+      onToggleDocument: (id: string) => void;
+      onSelectDocument: (id: string | null) => void;
+      onEditDocument: (doc: DocumentTemplate, e: React.MouseEvent) => void;
+      onSaveDocument: (item: SectionTemplate | DocumentTemplate) => void;
+      onCancelEdit: () => void;
+      onToggleAddDocument: () => void;
+      onAddCustomDocument: () => void;
+      onSetNewDocumentName: (name: string) => void;
+      onSetNewDocumentDescription: (desc: string) => void;
+      onRemoveCustomDocument: (id: string) => void;
+      onToggleSection: (id: string) => void;
+      onEditSection: (section: SectionTemplate, e: React.MouseEvent) => void;
+      onSaveSection: (item: SectionTemplate | DocumentTemplate) => void;
+      onToggleAddSection: () => void;
+      onAddCustomSection: () => void;
+      onSetNewSectionTitle: (title: string) => void;
+      onSetNewSectionDescription: (desc: string) => void;
+      onRemoveCustomSection: (id: string) => void;
+      getOriginBadge: (origin?: string, isSelected?: boolean) => React.ReactNode;
+    };
+  }) => void;
 }
 
 export function TemplateOverviewPanel({
@@ -69,7 +109,8 @@ export function TemplateOverviewPanel({
   programError,
   productOptions,
   connectCopy,
-  onDocumentSelectionChange
+  onDocumentSelectionChange,
+  onTemplateStateExposed
 }: TemplateOverviewPanelProps) {
   const { t } = useI18n();
   const loadingCopy = t('editor.desktop.loading' as any) || 'Loading...';
@@ -659,6 +700,118 @@ export function TemplateOverviewPanel({
   const visibleFilteredSections = useMemo(() => {
     return filteredSections.filter(s => !disabledSections.has(s.id));
   }, [filteredSections, disabledSections]);
+
+  // Calculate enabled counts - must be before useEffect that uses them
+  const enabledSectionsCount = visibleSections.length;
+  const enabledDocumentsCount = visibleDocuments.length + 1; // +1 for core product
+  const totalDocumentsCount = allDocuments.length + 1; // +1 for core product
+
+  // getOriginBadge function - must be before useEffect that uses it
+  const getOriginBadge = (origin?: string, isSelected: boolean = false) => {
+    // Don't show badges for custom items or master items - only show for program items
+    if (origin !== 'program') {
+      return null;
+    }
+    
+    const baseClasses = "border-0 text-[7px] px-0.5 py-0";
+    const selectedClasses = isSelected ? "ring-1 ring-blue-400/60" : "";
+    
+    return (
+      <Badge 
+        variant="info" 
+        className={`bg-blue-600/30 text-blue-200 ${baseClasses} ${selectedClasses} ${
+          isSelected ? 'bg-blue-500/50 text-blue-100' : ''
+        }`}
+      >
+        P
+      </Badge>
+    );
+  };
+
+  // Expose template state to parent (Editor) for DocumentsBar and Sidebar
+  // Run immediately and on every state change
+  useEffect(() => {
+    if (onTemplateStateExposed && !loading) {
+      onTemplateStateExposed({
+        filteredDocuments,
+        disabledDocuments,
+        enabledDocumentsCount,
+        expandedDocumentId,
+        editingDocument,
+        clickedDocumentId,
+        showAddDocument,
+        newDocumentName,
+        newDocumentDescription,
+        filteredSections,
+        allSections, // Include all sections for counting (always show total count)
+        disabledSections,
+        expandedSectionId,
+        editingSection,
+        showAddSection,
+        newSectionTitle,
+        newSectionDescription,
+        handlers: {
+          onToggleDocument: toggleDocument,
+          onSelectDocument: handleSelectDocument,
+          onEditDocument: handleEditDocument,
+          onSaveDocument: handleSaveDocument,
+          onCancelEdit: handleCancelEdit,
+          onToggleAddDocument: toggleAddDocumentBadge,
+          onAddCustomDocument: addCustomDocument,
+          onSetNewDocumentName: setNewDocumentName,
+          onSetNewDocumentDescription: setNewDocumentDescription,
+          onRemoveCustomDocument: removeCustomDocument,
+          onToggleSection: toggleSection,
+          onEditSection: handleEditSection,
+          onSaveSection: handleSaveSection,
+          onToggleAddSection: toggleAddSectionBadge,
+          onAddCustomSection: addCustomSection,
+          onSetNewSectionTitle: setNewSectionTitle,
+          onSetNewSectionDescription: setNewSectionDescription,
+          onRemoveCustomSection: removeCustomSection,
+          getOriginBadge: (origin?: string, isSelected?: boolean) => getOriginBadge(origin, isSelected)
+        }
+      });
+    }
+  }, [
+    onTemplateStateExposed,
+    loading,
+    filteredDocuments,
+    disabledDocuments,
+    enabledDocumentsCount,
+    expandedDocumentId,
+    editingDocument,
+    clickedDocumentId,
+    showAddDocument,
+    newDocumentName,
+    newDocumentDescription,
+    filteredSections,
+    disabledSections,
+    expandedSectionId,
+    editingSection,
+    showAddSection,
+    newSectionTitle,
+    newSectionDescription,
+    toggleDocument,
+    handleSelectDocument,
+    handleEditDocument,
+    handleSaveDocument,
+    handleCancelEdit,
+    toggleAddDocumentBadge,
+    addCustomDocument,
+    setNewDocumentName,
+    setNewDocumentDescription,
+    removeCustomDocument,
+    toggleSection,
+    handleEditSection,
+    handleSaveSection,
+    toggleAddSectionBadge,
+    addCustomSection,
+    setNewSectionTitle,
+    setNewSectionDescription,
+    removeCustomSection,
+    getOriginBadge
+  ]);
   
   // Track last notified document to prevent infinite loops
   const lastNotifiedDocumentRef = useRef<string | null>(null);
@@ -684,32 +837,6 @@ export function TemplateOverviewPanel({
     const filteredSectionIds = visibleFilteredSections.map(s => s.id);
     callbackRef.current(filteredSectionIds);
   }, [clickedDocumentId, visibleFilteredSections, loading]);
-  
-  const enabledSectionsCount = visibleSections.length;
-  // Core product is always enabled, so add 1 to the count
-  const enabledDocumentsCount = visibleDocuments.length + 1; // +1 for core product
-  const totalDocumentsCount = allDocuments.length + 1; // +1 for core product
-
-  const getOriginBadge = (origin?: string, isSelected: boolean = false) => {
-    // Don't show badges for custom items or master items - only show for program items
-    if (origin !== 'program') {
-      return null;
-    }
-    
-    const baseClasses = "border-0 text-[7px] px-0.5 py-0";
-    const selectedClasses = isSelected ? "ring-1 ring-blue-400/60" : "";
-    
-    return (
-      <Badge 
-        variant="info" 
-        className={`bg-blue-600/30 text-blue-200 ${baseClasses} ${selectedClasses} ${
-          isSelected ? 'bg-blue-500/50 text-blue-100' : ''
-        }`}
-      >
-        P
-      </Badge>
-    );
-  };
 
 
 const headerCardClasses = 'relative rounded-lg border border-dashed border-white/60 px-2.5 pt-1.5 pb-0 backdrop-blur-xl overflow-visible transition-all duration-300';
@@ -793,11 +920,11 @@ const cardElevationClasses = isExpanded
                 </div>
               </div>
               <div className="border-b border-white/30 w-full"></div>
-            {/* Expanded Three-Column Layout */}
+            {/* Expanded Configuration Only - Documents and Sections moved to Workspace */}
             {isExpanded && (
               <>
-              <div className="grid grid-cols-[360px_1fr_1fr] gap-4 h-[340px] overflow-hidden">
-                {/* Column 1: Deine Konfiguration */}
+              {/* Configuration Column - Full width, properly sized */}
+              <div className="w-full max-w-full">
                 <DesktopConfigurator
                   productType={productType}
                   productOptions={productOptions}
@@ -812,46 +939,6 @@ const cardElevationClasses = isExpanded
                   onTemplatesExtracted={handleTemplatesExtracted}
                   configView={configView}
                   onConfigViewChange={setConfigView}
-                />
-
-                <DesktopTemplateColumns
-                  filteredDocuments={filteredDocuments}
-                  disabledDocuments={disabledDocuments}
-                  enabledDocumentsCount={enabledDocumentsCount}
-                  expandedDocumentId={expandedDocumentId}
-                  editingDocument={editingDocument}
-                  selectedProductMeta={selectedProductMeta}
-                  clickedDocumentId={clickedDocumentId}
-                  showAddDocument={showAddDocument}
-                  newDocumentName={newDocumentName}
-                  newDocumentDescription={newDocumentDescription}
-                  onToggleDocument={toggleDocument}
-                  onSelectDocument={handleSelectDocument}
-                  onEditDocument={handleEditDocument}
-                  onSaveDocument={handleSaveDocument}
-                  onCancelEdit={handleCancelEdit}
-                  onToggleAddDocument={toggleAddDocumentBadge}
-                  onAddCustomDocument={addCustomDocument}
-                  onSetNewDocumentName={setNewDocumentName}
-                  onSetNewDocumentDescription={setNewDocumentDescription}
-                  onRemoveCustomDocument={removeCustomDocument}
-                  getOriginBadge={(origin?: string, isSelected?: boolean) => getOriginBadge(origin, isSelected)}
-                  filteredSections={filteredSections}
-                  disabledSections={disabledSections}
-                  expandedSectionId={expandedSectionId}
-                  editingSection={editingSection}
-                  showAddSection={showAddSection}
-                  newSectionTitle={newSectionTitle}
-                  newSectionDescription={newSectionDescription}
-                  onToggleSection={toggleSection}
-                  onEditSection={handleEditSection}
-                  onSaveSection={handleSaveSection}
-                  onToggleAddSection={toggleAddSectionBadge}
-                  onAddCustomSection={addCustomSection}
-                  onSetNewSectionTitle={setNewSectionTitle}
-                  onSetNewSectionDescription={setNewSectionDescription}
-                  onRemoveCustomSection={removeCustomSection}
-                  programSummary={programSummary ? { name: programSummary.name, amountRange: programSummary.amountRange ?? undefined } : null}
                 />
               </div>
               <div className="mt-0 sticky bottom-2 left-0 z-30 py-2 px-2">

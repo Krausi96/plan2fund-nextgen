@@ -174,20 +174,20 @@ export function DesktopConfigurator({
   const selectedMeta = selectedProductMeta ?? productOptions.find((option) => option.value === productType) ?? productOptions[0] ?? null;
 
   return (
-      <div className="flex flex-col gap-2 border-r border-white/50 pr-4 overflow-y-auto min-h-0">
+      <div className="flex flex-col gap-4 w-full max-w-full overflow-y-auto min-h-0">
       <div className="flex-shrink-0">
         <div className="flex items-center gap-2 mb-2 pb-2 border-b border-white/50">
-          <h2 className="text-lg font-bold uppercase tracking-wide text-white">
+          <h2 className="text-xl font-bold uppercase tracking-wide text-white">
             {t('editor.desktop.config.title' as any) || 'Deine Konfiguration'}
           </h2>
         </div>
       </div>
 
-      <div className="bg-white/5 border border-white/10 rounded-lg p-1">
-        <div className="flex items-center gap-1 mb-3 p-1 bg-white/5 rounded-lg">
+      <div className="bg-white/5 border border-white/10 rounded-lg p-2">
+        <div className="flex items-center gap-2 mb-4 p-1 bg-white/5 rounded-lg">
           <button
             onClick={() => onConfigViewChange('plan')}
-            className={`flex-1 px-2 py-1.5 rounded text-xs font-semibold transition-colors ${
+            className={`flex-1 px-4 py-2 rounded text-sm font-semibold transition-colors ${
               configView === 'plan'
                 ? 'bg-blue-600 text-white'
                 : 'text-white/70 hover:text-white'
@@ -197,7 +197,7 @@ export function DesktopConfigurator({
           </button>
           <button
             onClick={() => onConfigViewChange('program')}
-            className={`flex-1 px-2 py-1.5 rounded text-xs font-semibold transition-colors ${
+            className={`flex-1 px-4 py-2 rounded text-sm font-semibold transition-colors ${
               configView === 'program'
                 ? 'bg-blue-600 text-white'
                 : 'text-white/70 hover:text-white'
@@ -213,18 +213,18 @@ export function DesktopConfigurator({
               ref={productTriggerRef}
               type="button"
               onClick={handleToggleProductMenu}
-              className="flex w-full items-center gap-3 rounded-2xl border border-white/25 bg-gradient-to-br from-white/15 via-white/5 to-transparent px-5 py-3 text-left transition-all hover:border-white/60 focus-visible:border-blue-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-200/60 shadow-xl min-h-[110px]"
+              className="flex w-full items-center gap-4 rounded-2xl border border-white/25 bg-gradient-to-br from-white/15 via-white/5 to-transparent px-6 py-4 text-left transition-all hover:border-white/60 focus-visible:border-blue-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-200/60 shadow-xl min-h-[120px]"
             >
-              <span className="flex min-w-0 flex-col gap-1 flex-1">
-                <span className="flex items-center gap-2">
-                  <span className="flex h-10 w-10 items-center justify-center rounded-xl bg-white/15 text-1xl leading-none text-white shadow-inner shadow-blue-900/40 flex-shrink-0">
+              <span className="flex min-w-0 flex-col gap-2 flex-1">
+                <span className="flex items-center gap-3">
+                  <span className="flex h-12 w-12 items-center justify-center rounded-xl bg-white/15 text-2xl leading-none text-white shadow-inner shadow-blue-900/40 flex-shrink-0">
                     {selectedMeta?.icon ?? '📄'}
                   </span>
-                  <span className="text-base font-semibold leading-tight text-white">{selectedMeta?.label}</span>
-                  <span className="flex items-center text-lg font-bold flex-shrink-0 text-white/70">▾</span>
+                  <span className="text-lg font-semibold leading-tight text-white">{selectedMeta?.label}</span>
+                  <span className="flex items-center text-xl font-bold flex-shrink-0 text-white/70">▾</span>
                 </span>
                 {selectedMeta?.description && (
-                  <span className="text-xs font-normal text-white/70 leading-relaxed">
+                  <span className="text-sm font-normal text-white/70 leading-relaxed">
                     {selectedMeta.description}
                   </span>
                 )}
@@ -280,9 +280,9 @@ export function DesktopConfigurator({
               <div className="w-full rounded-lg border border-blue-300 bg-blue-100/60 px-3 py-2.5">
                 <div className="flex items-start justify-between gap-2 w-full">
                   <div className="min-w-0 flex-1">
-                    <p className="text-sm font-semibold text-blue-900 leading-tight">{programSummary.name}</p>
+                    <p className="text-base font-semibold text-blue-900 leading-tight">{programSummary.name}</p>
                     {programSummary.amountRange && (
-                      <p className="text-xs text-blue-800 mt-1">{programSummary.amountRange}</p>
+                      <p className="text-sm text-blue-800 mt-1">{programSummary.amountRange}</p>
                     )}
                   </div>
                   <Button
@@ -299,7 +299,7 @@ export function DesktopConfigurator({
               <div className="w-full flex flex-row gap-2 relative flex-wrap">
                 <button
                   onClick={onOpenProgramFinder}
-                  className="inline-flex items-center justify-center px-3 py-2 h-auto bg-blue-600 hover:bg-blue-700 text-white font-medium rounded-lg transition-colors text-[11px] flex-1 min-w-0"
+                  className="inline-flex items-center justify-center px-4 py-2.5 h-auto bg-blue-600 hover:bg-blue-700 text-white font-medium rounded-lg transition-colors text-sm flex-1 min-w-0"
                 >
                   {connectCopy.openFinder}
                 </button>
@@ -308,13 +308,13 @@ export function DesktopConfigurator({
                   aria-expanded={showManualInput}
                   aria-controls="manual-program-connect"
                   onClick={() => setShowManualInput((prev) => !prev)}
-                  className="inline-flex items-center justify-center px-3 py-2 h-auto border border-white/20 hover:border-white/40 text-white font-medium rounded-lg transition-colors hover:bg-white/10 text-[11px] flex-1 min-w-0"
+                  className="inline-flex items-center justify-center px-4 py-2.5 h-auto border border-white/20 hover:border-white/40 text-white font-medium rounded-lg transition-colors hover:bg-white/10 text-sm flex-1 min-w-0"
                 >
                   {connectCopy.pasteLink}
                 </button>
                 <button
                   onClick={() => fileInputRef.current?.click()}
-                  className="inline-flex items-center justify-center px-3 py-2 h-auto border border-white/20 hover:border-white/40 text-white font-medium rounded-lg transition-colors hover:bg-white/10 text-[11px] flex-1 min-w-0"
+                  className="inline-flex items-center justify-center px-4 py-2.5 h-auto border border-white/20 hover:border-white/40 text-white font-medium rounded-lg transition-colors hover:bg-white/10 text-sm flex-1 min-w-0"
                 >
                   {isExtracting
                     ? (t('editor.desktop.config.uploading' as any) || 'Verarbeitung...')
@@ -346,7 +346,7 @@ export function DesktopConfigurator({
                         value={manualValue}
                         onChange={(event) => setManualValue(event.target.value)}
                         placeholder={connectCopy.placeholder}
-                        className="flex-1 rounded border border-white/30 bg-white/10 px-2 py-1.5 h-9 text-xs text-white placeholder:text-white/40 focus:border-blue-300 focus:outline-none focus:ring-1 focus:ring-blue-400/60"
+                        className="flex-1 rounded border border-white/30 bg-white/10 px-3 py-2 h-10 text-sm text-white placeholder:text-white/40 focus:border-blue-300 focus:outline-none focus:ring-1 focus:ring-blue-400/60"
                       />
                       <Button
                         type="button"

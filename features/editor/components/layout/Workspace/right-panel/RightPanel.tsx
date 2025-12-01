@@ -46,7 +46,7 @@ export default function RightPanel({
   setView,
   section,
   question,
-  plan,
+  plan: _plan,
   onDatasetCreate,
   onKpiCreate,
   onMediaCreate,

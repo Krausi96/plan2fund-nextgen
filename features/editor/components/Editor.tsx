@@ -12,6 +12,8 @@ import RightPanel from './layout/Workspace/Right-Panel/RightPanel';
 import Sidebar from './layout/Workspace/Main Editor/Sidebar';
 import PreviewWorkspace from './layout/Workspace/Right-Panel/PreviewWorkspace';
 import InlineSectionEditor from './layout/Workspace/Editor/InlineSectionEditor';
+import DocumentsBar from './layout/Workspace/DocumentsBar/DocumentsBar';
+import type { SectionTemplate, DocumentTemplate } from '@templates';
 import {
   AISuggestionOptions,
   ANCILLARY_SECTION_ID,
@@ -333,6 +335,27 @@ export default function Editor({ product = 'submission' }: EditorProps) {
   // Track editing section for inline editor - MUST BE DECLARED BEFORE useMemo
   // Auto-open editor when section is selected from sidebar
   const [editingSectionId, setEditingSectionId] = useState<string | null>(null);
+  // Template management state from Desktop (for DocumentsBar and Sidebar)
+  const [templateState, setTemplateState] = useState<{
+    filteredDocuments: DocumentTemplate[];
+    disabledDocuments: Set<string>;
+    enabledDocumentsCount: number;
+    expandedDocumentId: string | null;
+    editingDocument: DocumentTemplate | null;
+    clickedDocumentId: string | null;
+    showAddDocument: boolean;
+    newDocumentName: string;
+    newDocumentDescription: string;
+    filteredSections: SectionTemplate[];
+    allSections: SectionTemplate[]; // All sections for counting
+    disabledSections: Set<string>;
+    expandedSectionId: string | null;
+    editingSection: SectionTemplate | null;
+    showAddSection: boolean;
+    newSectionTitle: string;
+    newSectionDescription: string;
+    handlers: any;
+  } | null>(null);
 
   // Auto-open editor when activeSectionId changes (from sidebar selection)
   useEffect(() => {
@@ -368,7 +391,11 @@ export default function Editor({ product = 'submission' }: EditorProps) {
         const scrollCenter = scrollRect.top + scrollRect.height / 2;
 
         // Find the section that is most visible in the viewport center
-        let bestSection: { id: string; distance: number } | null = null;
+        interface BestSection {
+          id: string;
+          distance: number;
+        }
+        let bestSection: BestSection | null = null;
 
         plan.sections.forEach((section) => {
           const sectionElement = document.querySelector(`[data-section-id="${section.id}"]`) as HTMLElement;
@@ -387,13 +414,16 @@ export default function Editor({ product = 'submission' }: EditorProps) {
         });
 
         // Update active section if we found a better match and it's different from current
-        if (bestSection && bestSection.id !== activeSectionId) {
-          const sectionToEdit = plan.sections.find(s => s.id === bestSection!.id);
-          if (sectionToEdit) {
-            setActiveSection(bestSection.id);
-            // Only update question if we don't have one selected or if it's a different section
-            if (!activeQuestionId || activeSectionId !== bestSection.id) {
-              setActiveQuestion(sectionToEdit.questions[0]?.id ?? null);
+        if (bestSection !== null) {
+          const bestSectionId: string = (bestSection as BestSection).id;
+          if (bestSectionId !== activeSectionId) {
+            const sectionToEdit = plan.sections.find(s => s.id === bestSectionId);
+            if (sectionToEdit) {
+              setActiveSection(bestSectionId);
+              // Only update question if we don't have one selected or if it's a different section
+              if (!activeQuestionId || activeSectionId !== bestSectionId) {
+                setActiveQuestion(sectionToEdit.questions[0]?.id ?? null);
+              }
             }
           }
         }
@@ -543,19 +573,70 @@ export default function Editor({ product = 'submission' }: EditorProps) {
                   productOptions={productOptions}
                   connectCopy={connectCopy}
                   onDocumentSelectionChange={handleDocumentSelectionChange}
+                  onTemplateStateExposed={setTemplateState}
                 />
 
                 {/* Workspace Container - Document-Centric Layout */}
                 <div className="relative rounded-2xl border border-dashed border-white/60 bg-slate-900/40 p-4 lg:p-6 shadow-lg backdrop-blur-sm overflow-hidden w-full">
+                  {/* Documents Bar - Horizontal scrollable above preview */}
+                  {templateState ? (
+                    <DocumentsBar
+                      filteredDocuments={templateState.filteredDocuments}
+                      disabledDocuments={templateState.disabledDocuments}
+                      enabledDocumentsCount={templateState.enabledDocumentsCount}
+                      expandedDocumentId={templateState.expandedDocumentId}
+                      editingDocument={templateState.editingDocument}
+                      selectedProductMeta={productOptions.find((option) => option.value === selectedProduct) ?? null}
+                      clickedDocumentId={templateState.clickedDocumentId}
+                      showAddDocument={templateState.showAddDocument}
+                      newDocumentName={templateState.newDocumentName}
+                      newDocumentDescription={templateState.newDocumentDescription}
+                      onToggleDocument={templateState.handlers.onToggleDocument}
+                      onSelectDocument={templateState.handlers.onSelectDocument}
+                      onEditDocument={templateState.handlers.onEditDocument}
+                      onSaveDocument={templateState.handlers.onSaveDocument}
+                      onCancelEdit={templateState.handlers.onCancelEdit}
+                      onToggleAddDocument={templateState.handlers.onToggleAddDocument}
+                      onAddCustomDocument={templateState.handlers.onAddCustomDocument}
+                      onSetNewDocumentName={templateState.handlers.onSetNewDocumentName}
+                      onSetNewDocumentDescription={templateState.handlers.onSetNewDocumentDescription}
+                      onRemoveCustomDocument={templateState.handlers.onRemoveCustomDocument}
+                      getOriginBadge={templateState.handlers.getOriginBadge}
+                    />
+                  ) : (
+                    <div className="w-full border-b border-white/10 pb-3 mb-3">
+                      <div className="text-white/60 text-sm">Loading documents...</div>
+                    </div>
+                  )}
+
                   {/* Document-Centric Layout: Sidebar + Document Canvas + Right Panel */}
-                  <div className="flex gap-4 h-[calc(100vh-300px)] min-h-[600px]">
-                    {/* Sidebar - Vertical Tree Navigation (Left) */}
+                  <div className="flex gap-4 h-[calc(100vh-400px)] min-h-[600px]">
+                    {/* Sidebar - Vertical Tree Navigation (Left) with Template Management */}
                     <div className="flex-shrink-0 border-r border-white/10 pr-4">
                       <Sidebar
                         plan={plan}
                         activeSectionId={activeSectionId ?? plan.sections[0]?.id ?? null}
                         onSelectSection={setActiveSection}
                         filteredSectionIds={filteredSectionIds}
+                        filteredSections={templateState?.filteredSections}
+                        disabledSections={templateState?.disabledSections}
+                        expandedSectionId={templateState?.expandedSectionId}
+                        editingSection={templateState?.editingSection}
+                        showAddSection={templateState?.showAddSection}
+                        newSectionTitle={templateState?.newSectionTitle}
+                        newSectionDescription={templateState?.newSectionDescription}
+                        onToggleSection={templateState?.handlers?.onToggleSection}
+                        onEditSection={templateState?.handlers?.onEditSection}
+                        onSaveSection={templateState?.handlers?.onSaveSection}
+                        onCancelEdit={templateState?.handlers?.onCancelEdit}
+                        onToggleAddSection={templateState?.handlers?.onToggleAddSection}
+                        onAddCustomSection={templateState?.handlers?.onAddCustomSection}
+                        onSetNewSectionTitle={templateState?.handlers?.onSetNewSectionTitle}
+                        onSetNewSectionDescription={templateState?.handlers?.onSetNewSectionDescription}
+                        onRemoveCustomSection={templateState?.handlers?.onRemoveCustomSection}
+                        getOriginBadge={templateState?.handlers?.getOriginBadge}
+                        selectedProductMeta={productOptions.find((option) => option.value === selectedProduct) ?? null}
+                        programSummary={programSummary ? { name: programSummary.name, amountRange: programSummary.amountRange ?? undefined } : null}
                       />
                     </div>
                     

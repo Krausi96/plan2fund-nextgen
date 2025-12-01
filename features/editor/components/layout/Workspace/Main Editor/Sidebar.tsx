@@ -5,14 +5,37 @@ import { BusinessPlan } from '@/features/editor/types/plan';
 import { Button } from '@/shared/components/ui/button';
 import { Progress } from '@/shared/components/ui/progress';
 import { useI18n } from '@/shared/contexts/I18nContext';
+import { DesktopEditForm } from '@/features/editor/components/layout/Desktop/DesktopEditForm';
+import type { SectionTemplate, DocumentTemplate } from '@templates';
 
 type SidebarProps = {
   plan: BusinessPlan;
   activeSectionId: string | null;
   onSelectSection: (sectionId: string) => void;
   filteredSectionIds?: string[] | null; // When provided, only show these sections (null = show all)
-  collapsed?: boolean; // New prop for collapsed state
-  onToggleCollapse?: () => void; // New prop for toggle
+  collapsed?: boolean;
+  onToggleCollapse?: () => void;
+  // Template management props (from Column 3)
+  filteredSections?: SectionTemplate[];
+  allSections?: SectionTemplate[]; // All sections for counting
+  disabledSections?: Set<string>;
+  expandedSectionId?: string | null;
+  editingSection?: SectionTemplate | null;
+  showAddSection?: boolean;
+  newSectionTitle?: string;
+  newSectionDescription?: string;
+  onToggleSection?: (id: string) => void;
+  onEditSection?: (section: SectionTemplate, e: React.MouseEvent) => void;
+  onSaveSection?: (item: SectionTemplate | DocumentTemplate) => void;
+  onCancelEdit?: () => void;
+  onToggleAddSection?: () => void;
+  onAddCustomSection?: () => void;
+  onSetNewSectionTitle?: (title: string) => void;
+  onSetNewSectionDescription?: (desc: string) => void;
+  onRemoveCustomSection?: (id: string) => void;
+  getOriginBadge?: (origin?: string, isSelected?: boolean) => React.ReactNode;
+  selectedProductMeta?: { value: string; label: string; description: string; icon?: string } | null;
+  programSummary?: { name: string; amountRange?: string | null } | null;
 };
 
 export default function Sidebar({ 
@@ -21,7 +44,28 @@ export default function Sidebar({
   onSelectSection, 
   filteredSectionIds,
   collapsed = false,
-  onToggleCollapse
+  onToggleCollapse,
+  // Template management props
+  filteredSections,
+  allSections,
+  disabledSections = new Set(),
+  expandedSectionId,
+  editingSection,
+  showAddSection = false,
+  newSectionTitle = '',
+  newSectionDescription = '',
+  onToggleSection,
+  onEditSection,
+  onSaveSection,
+  onCancelEdit,
+  onToggleAddSection,
+  onAddCustomSection,
+  onSetNewSectionTitle,
+  onSetNewSectionDescription,
+  onRemoveCustomSection,
+  getOriginBadge,
+  selectedProductMeta,
+  programSummary
 }: SidebarProps) {
   const { t } = useI18n();
   const [isCollapsed, setIsCollapsed] = useState(collapsed);
@@ -31,31 +75,155 @@ export default function Sidebar({
     onToggleCollapse?.();
   };
 
+  // Calculate total sections count (all sections, not just filtered)
+  const allSectionsCount = allSections?.length ?? plan.sections.length;
+
+  // If editing a section, show edit form
+  const isEditing = expandedSectionId && editingSection;
+
   return (
     <div className={`flex flex-col h-full transition-all duration-300 ${
-      isCollapsed ? 'w-[60px]' : 'w-[240px]'
+      isCollapsed ? 'w-[60px]' : 'w-[280px]'
     }`}>
-      <div className="relative w-full flex-1 overflow-hidden">
+      <div className="relative w-full flex-1 overflow-hidden flex flex-col">
         {!isCollapsed && (
-          <div className="mb-2 pb-1 border-b border-white/50">
-            <h2 className="text-base font-bold uppercase tracking-wide text-white">
-              {(t('editor.header.planSections' as any) as string) || 'Plan Sections'}
+          <div className="mb-2 pb-1 border-b border-white/50 flex-shrink-0">
+            <h2 className="text-lg font-bold uppercase tracking-wide text-white mb-2 pb-2 border-b border-white/50">
+              {(t('editor.desktop.sections.title' as any) as string) || 'Deine Abschnitte'} ({allSectionsCount})
             </h2>
           </div>
         )}
-        <SectionNavigationTree
-          plan={plan}
-          activeSectionId={activeSectionId ?? plan.sections[0]?.id ?? null}
-          onSelectSection={onSelectSection}
-          filteredSectionIds={filteredSectionIds}
-          collapsed={isCollapsed}
-        />
+
+        {/* Header info and Add Section Button */}
+        {!isCollapsed && (
+          <>
+            <p className="text-[10px] text-white/70 mb-1 flex-shrink-0 -mt-2">
+              {t('editor.desktop.sections.subtitle' as any) || 'Entscheide welche Abschnitte du in dein Dokument miteinbeziehst.'}
+            </p>
+            <div className="text-[9px] text-white/40 mb-2 flex-shrink-0 flex items-center gap-3 -mt-1">
+              <span className="flex items-center gap-1">
+                <span>✏️</span>
+                <span>{t('editor.desktop.sections.legend.edit' as any) || 'Bearbeiten'}</span>
+              </span>
+              <span className="flex items-center gap-1">
+                <input type="checkbox" className="w-2.5 h-2.5" disabled />
+                <span>{t('editor.desktop.sections.legend.toggle' as any) || 'Zu Dokument hinzufügen'}</span>
+              </span>
+              <span className="flex items-center gap-1">
+                <span className="w-2 h-2 rounded-full bg-yellow-400/80" />
+                <span>{t('editor.desktop.sections.legend.source' as any) || 'Herkunft anzeigen'}</span>
+              </span>
+            </div>
+            {!isEditing && onToggleAddSection && (
+              <div className="mb-2 flex-shrink-0">
+                <button
+                  type="button"
+                  onClick={onToggleAddSection}
+                  className={`relative w-full border rounded-lg p-2.5 flex flex-col items-center justify-center gap-2 text-center text-[11px] font-semibold tracking-tight transition-all ${
+                    showAddSection
+                      ? 'border-blue-400/60 bg-blue-600/30 text-white shadow-lg shadow-blue-900/40'
+                      : 'border-white/20 bg-white/10 text-white/70 hover:border-white/40 hover:text-white'
+                  }`}
+                >
+                  <span className="text-2xl leading-none">＋</span>
+                  <span>{t('editor.desktop.sections.addButton' as any) || 'Abschnitt hinzufügen'}</span>
+                </button>
+              </div>
+            )}
+          </>
+        )}
+
+        {/* Add Section Form - Original style */}
+        {!isCollapsed && showAddSection && !isEditing && onAddCustomSection && (
+          <div className="mb-2 flex-shrink-0 border border-white/20 bg-white/10 rounded-lg p-3 space-y-2">
+            <p className="text-xs text-white/80 font-semibold mb-2">
+              {t('editor.desktop.sections.custom.title' as any) || 'Einen benutzerdefinierten Abschnitt zu Ihrem Plan hinzufügen'}
+            </p>
+            <div className="space-y-2">
+              <div>
+                <label className="text-[10px] text-white/70 block mb-1">
+                  {t('editor.desktop.sections.custom.name' as any) || 'Titel *'}
+                </label>
+                <input
+                  type="text"
+                  value={newSectionTitle}
+                  onChange={(e) => onSetNewSectionTitle?.(e.target.value)}
+                  placeholder={t('editor.desktop.sections.custom.namePlaceholder' as any) || 'z.B. Zusammenfassung'}
+                  className="w-full rounded border border-white/30 bg-white/10 px-2 py-1.5 text-xs text-white placeholder:text-white/40 focus:border-blue-300 focus:outline-none focus:ring-1 focus:ring-blue-400/60"
+                  autoFocus
+                />
+              </div>
+              <div>
+                <label className="text-[10px] text-white/70 block mb-1">
+                  {t('editor.desktop.sections.custom.description' as any) || 'Beschreibung'}
+                </label>
+                <textarea
+                  value={newSectionDescription}
+                  onChange={(e) => onSetNewSectionDescription?.(e.target.value)}
+                  placeholder={t('editor.desktop.sections.custom.descriptionPlaceholder' as any) || 'Optionale Beschreibung des Abschnitts'}
+                  rows={2}
+                  className="w-full rounded border border-white/30 bg-white/10 px-2 py-1.5 text-xs text-white placeholder:text-white/40 focus:border-blue-300 focus:outline-none focus:ring-1 focus:ring-blue-400/60 resize-none"
+                />
+              </div>
+            </div>
+            <div className="flex gap-2 pt-1">
+              <Button
+                onClick={onAddCustomSection}
+                disabled={!newSectionTitle.trim()}
+                className="bg-blue-600 hover:bg-blue-700 text-white text-xs px-3 py-1 disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                {t('editor.desktop.sections.custom.add' as any) || 'Hinzufügen'}
+              </Button>
+              <Button
+                onClick={onToggleAddSection}
+                variant="ghost"
+                className="text-white/60 hover:text-white text-xs px-3 py-1"
+              >
+                {t('editor.desktop.sections.custom.cancel' as any) || 'Abbrechen'}
+              </Button>
+            </div>
+          </div>
+        )}
+
+        {/* Edit Section Form */}
+        {!isCollapsed && isEditing && editingSection && onSaveSection && onCancelEdit && (
+          <div className="mb-2 flex-shrink-0 border border-white/20 bg-white/10 rounded-lg p-3">
+            <DesktopEditForm
+              type="section"
+              item={editingSection}
+              onSave={onSaveSection}
+              onCancel={onCancelEdit}
+              getOriginBadge={getOriginBadge || (() => null)}
+            />
+          </div>
+        )}
+
+        {/* Sections Tree */}
+        <div className="flex-1 overflow-y-auto min-h-0">
+          <SectionNavigationTree
+            plan={plan}
+            activeSectionId={activeSectionId ?? plan.sections[0]?.id ?? null}
+            onSelectSection={onSelectSection}
+            filteredSectionIds={filteredSectionIds}
+            collapsed={isCollapsed}
+            // Template management props
+            filteredSections={filteredSections}
+            allSections={allSections}
+            disabledSections={disabledSections}
+            onToggleSection={onToggleSection}
+            onEditSection={onEditSection}
+            onRemoveCustomSection={onRemoveCustomSection}
+            getOriginBadge={getOriginBadge}
+            selectedProductMeta={selectedProductMeta}
+            programSummary={programSummary}
+          />
+        </div>
       </div>
       <Button
         variant="ghost"
         size="sm"
         onClick={handleToggleCollapse}
-        className="mt-2 border border-white/30 bg-white/10 hover:bg-white/20 text-white"
+        className="mt-2 border border-white/30 bg-white/10 hover:bg-white/20 text-white flex-shrink-0"
         aria-label={isCollapsed ? 'Expand sidebar' : 'Collapse sidebar'}
       >
         {isCollapsed ? '►' : '◄'}
@@ -69,13 +237,31 @@ function SectionNavigationTree({
   activeSectionId,
   onSelectSection,
   filteredSectionIds,
-  collapsed
+  collapsed,
+  filteredSections,
+  allSections,
+  disabledSections = new Set(),
+  onToggleSection,
+  onEditSection,
+  onRemoveCustomSection,
+  getOriginBadge,
+  selectedProductMeta,
+  programSummary
 }: {
   plan: BusinessPlan;
   activeSectionId: string | null;
   onSelectSection: (sectionId: string) => void;
   filteredSectionIds?: string[] | null;
   collapsed: boolean;
+  filteredSections?: SectionTemplate[];
+  allSections?: SectionTemplate[]; // All sections for counting
+  disabledSections?: Set<string>;
+  onToggleSection?: (id: string) => void;
+  onEditSection?: (section: SectionTemplate, e: React.MouseEvent) => void;
+  onRemoveCustomSection?: (id: string) => void;
+  getOriginBadge?: (origin?: string, isSelected?: boolean) => React.ReactNode;
+  selectedProductMeta?: { value: string; label: string; description: string; icon?: string } | null;
+  programSummary?: { name: string; amountRange?: string | null } | null;
 }) {
   const { t } = useI18n();
 
@@ -103,15 +289,62 @@ function SectionNavigationTree({
     return plan.sections.filter(section => filteredSectionIds.includes(section.id));
   }, [plan.sections, filteredSectionIds]);
 
-  const sections = [
-    {
-      id: METADATA_SECTION_ID,
-      title: getSectionTitle(METADATA_SECTION_ID, (t('editor.section.metadata' as any) as string) || 'Plan Metadata'),
-      progress: undefined,
-      questions: []
-    },
-    ...planSectionsToShow.map((section) => ({ ...section, title: getSectionTitle(section.id, section.title) }))
-  ];
+  // Map plan sections to include template info from filteredSections
+  // When showing cards, use allSections templates but map to plan sections for data
+  const sectionsWithTemplate = React.useMemo(() => {
+    const baseSections = [
+      {
+        id: METADATA_SECTION_ID,
+        title: getSectionTitle(METADATA_SECTION_ID, (t('editor.section.metadata' as any) as string) || 'Plan Metadata'),
+        progress: undefined,
+        questions: [],
+        origin: undefined as any,
+        required: false
+      },
+      ...planSectionsToShow.map((section) => {
+        const templateInfo = filteredSections?.find(s => s.id === section.id);
+        return {
+          ...section,
+          title: getSectionTitle(section.id, section.title),
+          origin: templateInfo?.origin,
+          required: templateInfo?.required ?? false
+        };
+      })
+    ];
+    return baseSections;
+  }, [planSectionsToShow, filteredSections, t, getSectionTitle]);
+
+  const sections = sectionsWithTemplate;
+  
+  // Determine if we should show as cards
+  const showAsCards = !collapsed && filteredSections && filteredSections.length > 0;
+  
+  // When showing cards, filter to show all sections (from allSections templates) but use plan section data
+  const sectionsForCards = React.useMemo(() => {
+    if (!showAsCards || !allSections) return sections;
+    
+    // Map allSections templates to plan sections to get questions/progress
+    return allSections.map((template) => {
+      const planSection = plan.sections.find(s => s.id === template.id);
+      if (!planSection) {
+        // If no plan section exists, create a minimal section from template
+        return {
+          id: template.id,
+          title: getSectionTitle(template.id, template.title),
+          questions: [],
+          progress: undefined,
+          origin: template.origin,
+          required: template.required ?? false
+        };
+      }
+      return {
+        ...planSection,
+        title: getSectionTitle(planSection.id, planSection.title),
+        origin: template.origin,
+        required: template.required ?? false
+      };
+    });
+  }, [showAsCards, allSections, sections, plan.sections, getSectionTitle, collapsed, filteredSections]);
 
   const handleClick = (sectionId: string) => {
     if (sectionId === ANCILLARY_SECTION_ID) {
@@ -125,10 +358,10 @@ function SectionNavigationTree({
     return (
       <div className="flex flex-col gap-2 overflow-y-auto">
         {sections.map((section) => {
-          const totalQuestions = section.questions.length;
-          const answeredQuestions = section.questions.filter((question) => question.status === 'complete').length;
+          const totalQuestions = section.questions?.length ?? 0;
+          const answeredQuestions = section.questions?.filter((question: any) => question.status === 'complete').length ?? 0;
           const completion =
-            section.progress ?? (totalQuestions === 0 ? 0 : Math.round((answeredQuestions / totalQuestions) * 100));
+            (section as any).progress ?? (totalQuestions === 0 ? 0 : Math.round((answeredQuestions / totalQuestions) * 100));
           const isMetadata = section.id === METADATA_SECTION_ID || section.id === ANCILLARY_SECTION_ID;
           const isActive = section.id === activeSectionId || (isMetadata && (activeSectionId === METADATA_SECTION_ID || activeSectionId === ANCILLARY_SECTION_ID));
           
@@ -158,46 +391,292 @@ function SectionNavigationTree({
     );
   }
 
+
+  if (showAsCards) {
+    const displaySections = sectionsForCards.length > 0 ? sectionsForCards : sections;
+    return (
+      <div className="grid grid-cols-1 gap-2 overflow-y-auto pr-1 auto-rows-min pb-2">
+        {displaySections.map((section) => {
+          const totalQuestions = section.questions.length;
+          const answeredQuestions = section.questions.filter((question) => question.status === 'complete').length;
+          const completion =
+            section.progress ?? (totalQuestions === 0 ? 0 : Math.round((answeredQuestions / totalQuestions) * 100));
+          const isMetadata = section.id === METADATA_SECTION_ID || section.id === ANCILLARY_SECTION_ID;
+          const isActive = section.id === activeSectionId || (isMetadata && (activeSectionId === METADATA_SECTION_ID || activeSectionId === ANCILLARY_SECTION_ID));
+
+          const isDisabled = disabledSections.has(section.id);
+          const sectionTemplate = filteredSections?.find(s => s.id === section.id);
+          const sectionOrigin = sectionTemplate?.origin || section.origin;
+          const isRequired = sectionTemplate?.required ?? section.required ?? false;
+          const isCustom = sectionOrigin === 'custom';
+
+          return (
+            <div
+              key={section.id}
+              onClick={(e) => {
+                const target = e.target as HTMLElement;
+                if (
+                  target.tagName === 'INPUT' && target.getAttribute('type') === 'checkbox'
+                ) {
+                  return;
+                }
+                if (
+                  target.closest('button') || 
+                  target.closest('input[type="checkbox"]') ||
+                  target.closest('[data-badge="true"]') || 
+                  target.closest('[class*="Badge"]') || 
+                  target.getAttribute('data-badge') === 'true'
+                ) {
+                  return;
+                }
+                handleClick(section.id);
+              }}
+              className={`relative border rounded-lg p-2.5 cursor-pointer transition-all ${
+                isActive
+                  ? 'border-blue-400/60 bg-blue-500/30 ring-2 ring-blue-400/40'
+                  : isDisabled 
+                  ? 'border-white/10 bg-white/5 opacity-60' 
+                  : isRequired
+                  ? 'border-amber-500/30 bg-amber-500/5'
+                  : 'border-white/20 bg-white/10'
+              } hover:border-white/40 group`}
+            >
+              <div className="absolute top-1 right-1 z-10 flex flex-col items-end gap-0.5">
+                <div className="flex items-center gap-1">
+                  {onEditSection && sectionTemplate && (
+                    <button
+                      type="button"
+                      onClick={(e) => {
+                        e.preventDefault();
+                        e.stopPropagation();
+                        onEditSection(sectionTemplate, e);
+                      }}
+                      className="text-white/60 hover:text-white text-xs transition-opacity"
+                    >
+                      ✏️
+                    </button>
+                  )}
+                  {onToggleSection && (
+                    <input
+                      type="checkbox"
+                      checked={!isDisabled}
+                      onChange={(e) => {
+                        e.stopPropagation();
+                        onToggleSection(section.id);
+                      }}
+                      onClick={(e) => {
+                        e.stopPropagation();
+                      }}
+                      onMouseDown={(e) => {
+                        e.stopPropagation();
+                      }}
+                      className={`w-3.5 h-3.5 rounded border-2 cursor-pointer ${
+                        isDisabled
+                          ? 'border-white/30 bg-white/10'
+                          : isRequired
+                          ? 'border-amber-500 bg-amber-600/30 opacity-90'
+                          : 'border-blue-500 bg-blue-600/30'
+                      } text-blue-600 focus:ring-1 focus:ring-blue-500/50`}
+                    />
+                  )}
+                </div>
+                {/* Origin indicator */}
+                {sectionOrigin && (() => {
+                  const getSourceInfo = () => {
+                    if (sectionOrigin === 'program') {
+                      const recommendedByText = t('editor.desktop.sections.source.recommendedBy' as any) || 'Recommended by {name}';
+                      return {
+                        tooltip: programSummary 
+                          ? recommendedByText.replace('{name}', programSummary.name)
+                          : (t('editor.desktop.sections.source.recommendedByProgram' as any) || 'Recommended by Program')
+                      };
+                    }
+                    if (sectionOrigin === 'custom') {
+                      return {
+                        tooltip: t('editor.desktop.sections.source.fromTemplate' as any) || 'Section from Template'
+                      };
+                    }
+                    const productName = selectedProductMeta?.label || 'Core Product';
+                    const fromProductText = t('editor.desktop.sections.source.fromProduct' as any) || 'Section from {product}';
+                    return {
+                      tooltip: fromProductText.replace('{product}', productName)
+                    };
+                  };
+                  
+                  const sourceInfo = getSourceInfo();
+                  return (
+                    <div className="relative group -translate-x-0.5">
+                      <div 
+                        className="w-2 h-2 rounded-full bg-yellow-400/70 cursor-help"
+                        onClick={(e) => {
+                          e.preventDefault();
+                          e.stopPropagation();
+                        }}
+                      />
+                      <div className="absolute right-0 top-full mt-1 w-48 px-2 py-1.5 bg-blue-900/95 border border-blue-700/30 rounded-lg text-[9px] text-white/90 opacity-0 pointer-events-none group-hover:opacity-100 group-hover:pointer-events-auto transition-opacity z-50 whitespace-normal shadow-lg">
+                        {sourceInfo.tooltip}
+                      </div>
+                    </div>
+                  );
+                })()}
+              </div>
+              
+              <div className="flex flex-col items-center gap-1 pt-4 min-h-[50px] w-full">
+                <span className="text-2xl leading-none flex-shrink-0">📋</span>
+                <div className="w-full text-center min-h-[28px] flex items-center justify-center gap-1">
+                  <h4 className={`text-[11px] font-semibold leading-snug ${isDisabled ? 'text-white/50 line-through' : 'text-white'} break-words line-clamp-2`}>
+                    {section.title}
+                  </h4>
+                  {getOriginBadge && sectionOrigin && (
+                    <span 
+                      onClick={(e) => {
+                        e.preventDefault();
+                        e.stopPropagation();
+                      }}
+                      onMouseDown={(e) => {
+                        e.preventDefault();
+                        e.stopPropagation();
+                      }}
+                      className="inline-block select-none"
+                      data-badge="true"
+                    >
+                      {getOriginBadge(sectionOrigin, false)}
+                    </span>
+                  )}
+                </div>
+                {isCustom && onRemoveCustomSection && (
+                  <button
+                    type="button"
+                    onClick={(e) => {
+                      e.preventDefault();
+                      e.stopPropagation();
+                      onRemoveCustomSection(section.id);
+                    }}
+                    className="text-red-300 hover:text-red-200 text-xs font-bold px-1.5 py-0.5 rounded hover:bg-red-500/20 transition-colors opacity-0 group-hover:opacity-100 pointer-events-auto"
+                  >
+                    ×
+                  </button>
+                )}
+                {isActive && (
+                  <div className="w-full mt-1">
+                    <Progress value={completion} intent={completion === 100 ? 'success' : completion > 0 ? 'warning' : 'neutral'} size="xs" />
+                    <span className="text-[9px] text-white/70 mt-0.5 block text-center">{completion}%</span>
+                  </div>
+                )}
+              </div>
+            </div>
+          );
+        })}
+      </div>
+    );
+  }
+
+  // Fallback to list view when collapsed or no template management
   return (
     <div className="flex flex-col gap-1 overflow-y-auto">
-      {sections.map((section, index) => {
-        const totalQuestions = section.questions.length;
-        const answeredQuestions = section.questions.filter((question) => question.status === 'complete').length;
+      {sections.map((section, sectionIndex) => {
+        const totalQuestions = section.questions?.length ?? 0;
+        const answeredQuestions = section.questions?.filter((question: any) => question.status === 'complete').length ?? 0;
         const completion =
-          section.progress ?? (totalQuestions === 0 ? 0 : Math.round((answeredQuestions / totalQuestions) * 100));
+          (section as any).progress ?? (totalQuestions === 0 ? 0 : Math.round((answeredQuestions / totalQuestions) * 100));
         const isMetadata = section.id === METADATA_SECTION_ID || section.id === ANCILLARY_SECTION_ID;
         const isActive = section.id === activeSectionId || (isMetadata && (activeSectionId === METADATA_SECTION_ID || activeSectionId === ANCILLARY_SECTION_ID));
         const progressIntent: 'success' | 'warning' | 'neutral' =
           completion === 100 ? 'success' : completion > 0 ? 'warning' : 'neutral';
 
+        const isDisabled = disabledSections.has(section.id);
+        const sectionTemplate = filteredSections?.find(s => s.id === section.id);
+        const sectionOrigin = sectionTemplate?.origin || section.origin;
+        const isRequired = sectionTemplate?.required ?? section.required ?? false;
+        const isCustom = sectionOrigin === 'custom';
+
         return (
-          <button
+          <div
             key={section.id}
-            onClick={() => handleClick(section.id)}
-            className={`w-full rounded-lg border-2 px-3 py-2 text-left transition-all ${
+            className={`w-full rounded-lg border-2 px-3 py-2 transition-all ${
               isActive
                 ? 'border-blue-400 bg-blue-500/30 text-white shadow-lg'
+                : isDisabled
+                ? 'border-white/20 bg-white/5 opacity-60'
+                : isRequired
+                ? 'border-amber-500/30 bg-amber-500/5'
                 : 'border-white/50 bg-white/10 text-white hover:border-blue-300/70 hover:bg-white/20'
             }`}
           >
-            <div className="flex items-center justify-between gap-2">
-              <div className="flex-1 min-w-0">
-                <div className="flex items-center gap-2 mb-1">
-                  {!isMetadata && (
-                    <span className="text-[9px] font-bold tracking-wide text-white/70">
-                      {String(index).padStart(2, '0')}
+            <button
+              onClick={() => handleClick(section.id)}
+              className="w-full text-left"
+            >
+              <div className="flex items-start justify-between gap-2">
+                <div className="flex-1 min-w-0">
+                  <div className="flex items-center gap-2 mb-1">
+                    {!isMetadata && (
+                      <span className="text-[9px] font-bold tracking-wide text-white/70">
+                        {String(sectionIndex).padStart(2, '0')}
+                      </span>
+                    )}
+                    <span className={`text-xs font-semibold truncate ${isDisabled ? 'line-through text-white/50' : ''}`}>
+                      {section.title}
                     </span>
-                  )}
-                  <span className="text-xs font-semibold truncate">{section.title}</span>
+                    {!collapsed && getOriginBadge && sectionOrigin && (
+                      <span onClick={(e) => e.stopPropagation()} className="flex-shrink-0">
+                        {getOriginBadge(sectionOrigin, false)}
+                      </span>
+                    )}
+                  </div>
+                  <Progress value={completion} intent={progressIntent} size="xs" />
                 </div>
-                <Progress value={completion} intent={progressIntent} size="xs" />
+                <div className="flex items-center gap-1 flex-shrink-0" onClick={(e) => e.stopPropagation()}>
+                  {!collapsed && onToggleSection && (
+                    <input
+                      type="checkbox"
+                      checked={!isDisabled}
+                      onChange={(e) => {
+                        e.stopPropagation();
+                        onToggleSection(section.id);
+                      }}
+                      onClick={(e) => e.stopPropagation()}
+                      className={`w-3.5 h-3.5 rounded border-2 cursor-pointer ${
+                        isDisabled
+                          ? 'border-white/30 bg-white/10'
+                          : isRequired
+                          ? 'border-amber-500 bg-amber-600/30 opacity-90'
+                          : 'border-blue-500 bg-blue-600/30'
+                      }`}
+                    />
+                  )}
+                  {!collapsed && onEditSection && sectionTemplate && (
+                    <button
+                      type="button"
+                      onClick={(e) => {
+                        e.preventDefault();
+                        e.stopPropagation();
+                        onEditSection(sectionTemplate, e);
+                      }}
+                      className="text-white/60 hover:text-white text-xs transition-opacity"
+                    >
+                      ✏️
+                    </button>
+                  )}
+                  {!collapsed && isCustom && onRemoveCustomSection && (
+                    <button
+                      type="button"
+                      onClick={(e) => {
+                        e.preventDefault();
+                        e.stopPropagation();
+                        onRemoveCustomSection(section.id);
+                      }}
+                      className="text-red-300 hover:text-red-200 text-xs font-bold px-1 rounded hover:bg-red-500/20"
+                    >
+                      ×
+                    </button>
+                  )}
+                  <span className="text-[10px] font-bold text-white">{completion}%</span>
+                  {isActive && <span className="text-blue-400">●</span>}
+                </div>
               </div>
-              <div className="flex items-center gap-1 flex-shrink-0">
-                <span className="text-[10px] font-bold text-white">{completion}%</span>
-                {isActive && <span className="text-blue-400">●</span>}
-              </div>
-            </div>
-          </button>
+            </button>
+          </div>
         );
       })}
     </div>
