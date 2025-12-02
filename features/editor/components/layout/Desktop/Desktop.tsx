@@ -127,14 +127,14 @@ export function TemplateOverviewPanel({
   const loadingCopy = t('editor.desktop.loading' as any) || 'Loading...';
   const loadErrorCopy = t('editor.desktop.loadError' as any) || 'Failed to load templates';
   const selectionCurrentLabel = t('editor.desktop.selection.current' as any) || 'Current selection';
-  const programLabelCopy = t('editor.desktop.selection.programLabel' as any) || 'Program / Template';
-  const noProgramCopy = t('editor.desktop.selection.noProgram' as any) || 'No program';
+  // const programLabelCopy = t('editor.desktop.selection.programLabel' as any) || 'Program / Template';
+  // const noProgramCopy = t('editor.desktop.selection.noProgram' as any) || 'No program';
   const sectionsLabel = t('editor.desktop.selection.sectionsLabel' as any) || 'Sections';
   const documentsLabel = t('editor.desktop.selection.documentsLabel' as any) || 'Documents';
-  const sectionsPopoverTitle = t('editor.desktop.selection.sectionsPopoverTitle' as any) || 'Selected sections';
-  const documentsPopoverTitle = t('editor.desktop.selection.documentsPopoverTitle' as any) || 'Selected documents';
-  const selectionEmpty = t('editor.desktop.selection.empty' as any) || 'No selection';
-  const confirmSelectionLabel = t('editor.desktop.selection.confirmSelection' as any) || 'Auswahl bestätigen';
+  // const sectionsPopoverTitle = t('editor.desktop.selection.sectionsPopoverTitle' as any) || 'Selected sections';
+  // const documentsPopoverTitle = t('editor.desktop.selection.documentsPopoverTitle' as any) || 'Selected documents';
+  // const selectionEmpty = t('editor.desktop.selection.empty' as any) || 'No selection';
+  // const confirmSelectionLabel = t('editor.desktop.selection.confirmSelection' as any) || 'Auswahl bestätigen';
   const [sections, setSections] = useState<SectionTemplate[]>([]);
   const [documents, setDocuments] = useState<DocumentTemplate[]>([]);
   const [customSections, setCustomSections] = useState<SectionTemplate[]>([]);
@@ -872,9 +872,9 @@ export function TemplateOverviewPanel({
 const headerCardClasses = 'relative rounded-lg border border-dashed border-white/60 px-2.5 pt-1.5 pb-0 backdrop-blur-xl overflow-visible transition-all duration-300';
 const selectionSummary = `${enabledSectionsCount}/${allSections.length} ${sectionsLabel} • ${enabledDocumentsCount}/${totalDocumentsCount} ${documentsLabel}`;
 const productLabel = selectedProductMeta?.label ?? (t('editor.desktop.product.unselected' as any) || 'Not selected');
-const sectionTitles = visibleSections.map((section) => section.title);
-const documentTitles = visibleDocuments.map((doc) => doc.name);
-const programLabel = programSummary?.name ?? null;
+// const sectionTitles = visibleSections.map((section) => section.title);
+// const documentTitles = visibleDocuments.map((doc) => doc.name);
+// const programLabel = programSummary?.name ?? null;
 const cardElevationClasses = isExpanded
   ? 'z-30 shadow-[0_25px_60px_rgba(8,15,40,0.85)] ring-1 ring-white/15 translate-y-[-4px]'
   : 'z-10 shadow-xl';

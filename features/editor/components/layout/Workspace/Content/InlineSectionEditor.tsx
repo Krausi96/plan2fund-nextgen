@@ -1,15 +1,15 @@
 import React, { useEffect, useRef, useState, useCallback } from 'react';
-import { Section, BusinessPlan } from '@/features/editor/types/plan';
+import { Section, BusinessPlan, ConversationMessage } from '@/features/editor/types/plan';
 import { Button } from '@/shared/components/ui/button';
 import { Badge } from '@/shared/components/ui/badge';
-import { useI18n } from '@/shared/contexts/I18nContext';
-import { useEditorStore, validateQuestionRequirements, METADATA_SECTION_ID, ANCILLARY_SECTION_ID } from '@/features/editor/hooks/useEditorStore';
-import MetadataAndAncillaryPanel from '../Metadata/MetadataAndAncillaryPanel';
+// import { useI18n } from '@/shared/contexts/I18nContext';
+import { useEditorStore, validateQuestionRequirements, METADATA_SECTION_ID, ANCILLARY_SECTION_ID, REFERENCES_SECTION_ID, APPENDICES_SECTION_ID } from '@/features/editor/hooks/useEditorStore';
 import {
   Dataset,
   KPI,
   MediaAsset
 } from '@/features/editor/types/plan';
+import { generateSectionContent } from '@/features/editor/engine/sectionAiClient';
 // CSS will be injected dynamically since classes are applied to preview DOM elements
 
 type InlineSectionEditorProps = {
@@ -22,6 +22,8 @@ type InlineSectionEditorProps = {
   onAnswerChange: (questionId: string, content: string) => void;
   onToggleUnknown: (questionId: string, note?: string) => void;
   onMarkComplete: (questionId: string) => void;
+  onAIHelp?: () => void;
+  onDataHelp?: () => void;
   onTitlePageChange: (titlePage: any) => void;
   onAncillaryChange: (updates: Partial<any>) => void;
   onReferenceAdd: (reference: any) => void;
@@ -61,25 +63,27 @@ export default function InlineSectionEditor({
   onAnswerChange,
   onToggleUnknown,
   onMarkComplete,
+  onAIHelp: _onAIHelp,
+  onDataHelp: _onDataHelp,
   onTitlePageChange,
-  onAncillaryChange,
-  onReferenceAdd,
-  onReferenceUpdate,
-  onReferenceDelete,
+  onAncillaryChange: _onAncillaryChange,
+  onReferenceAdd: _onReferenceAdd,
+  onReferenceUpdate: _onReferenceUpdate,
+  onReferenceDelete: _onReferenceDelete,
   onAppendixAdd,
-  onAppendixUpdate,
-  onAppendixDelete,
-  onRunRequirements,
+  onAppendixUpdate: _onAppendixUpdate,
+  onAppendixDelete: _onAppendixDelete,
+  onRunRequirements: _onRunRequirements,
   onDatasetCreate: _onDatasetCreate,
   onKpiCreate: _onKpiCreate,
   onMediaCreate,
   onAttachDataset,
   onAttachKpi,
   onAttachMedia,
-  progressSummary = []
+  progressSummary: _progressSummary = []
 }: InlineSectionEditorProps) {
-  const { t } = useI18n();
-  const { templates, requestAISuggestions } = useEditorStore();
+  // const { t } = useI18n();
+  const { templates } = useEditorStore();
   const [position, setPosition] = useState<EditorPosition>({
     top: 0,
     left: 0,
@@ -90,15 +94,18 @@ export default function InlineSectionEditor({
   const positionUpdateTimeoutRef = useRef<NodeJS.Timeout | null>(null);
   const [isDragging, setIsDragging] = useState(false);
   const [dragOverTarget, setDragOverTarget] = useState<'logo' | 'attachment' | null>(null);
-  const [activeTab, setActiveTab] = useState<'ai' | 'data' | 'context'>('ai');
-  const [aiMessages, setAiMessages] = useState<Array<{ role: 'user' | 'assistant'; content: string }>>([]);
-  const [aiLoading, setAiLoading] = useState(false);
+  
+  // AI state
+  const [aiMessages, setAiMessages] = useState<ConversationMessage[]>([]);
   const [aiInput, setAiInput] = useState('');
+  const [isAiLoading, setIsAiLoading] = useState(false);
 
   // Check if this is a metadata or ancillary section
   const isMetadataSection = sectionId === METADATA_SECTION_ID;
   const isAncillarySection = sectionId === ANCILLARY_SECTION_ID;
-  const isSpecialSection = isMetadataSection || isAncillarySection;
+  const isReferencesSection = sectionId === REFERENCES_SECTION_ID;
+  const isAppendicesSection = sectionId === APPENDICES_SECTION_ID;
+  const isSpecialSection = isMetadataSection || isAncillarySection || isReferencesSection || isAppendicesSection;
 
   const activeQuestion = section?.questions.find((q) => q.id === activeQuestionId) ?? section?.questions[0] ?? null;
   const template = section ? templates.find((tpl) => tpl.id === section.id) : null;
@@ -108,117 +115,46 @@ export default function InlineSectionEditor({
     ? validateQuestionRequirements(activeQuestion, section, template)
     : null;
 
-  // Calculate position relative to preview container
+  // Calculate position relative to preview container - always center in viewport
   const calculatePosition = useCallback(() => {
-    if (!sectionId || isSpecialSection) {
-      // For metadata/ancillary sections, position at top-center of scroll container viewport
-      const scrollContainer = document.getElementById('preview-scroll-container');
-      if (scrollContainer) {
-        const scrollRect = scrollContainer.getBoundingClientRect();
-        const scrollTop = scrollContainer.scrollTop || 0;
-        const scrollLeft = scrollContainer.scrollLeft || 0;
-        // Center horizontally in viewport
-        const centerLeft = scrollLeft + (scrollRect.width - EDITOR_WIDTH) / 2;
-        setPosition({
-          top: scrollTop + GAP,
-          left: Math.max(scrollLeft + GAP, centerLeft),
-          placement: 'right',
-          visible: true
-        });
-      }
-      return;
-    }
-
     const scrollContainer = document.getElementById('preview-scroll-container');
     if (!scrollContainer) {
       setPosition(prev => ({ ...prev, visible: false }));
       return;
     }
 
-    // Try to find the active question heading first (more precise positioning)
-    let targetElement: HTMLElement | null = null;
-    if (activeQuestionId) {
-      // Try to find the question heading (h4 with section-subchapter class)
-      targetElement = document.querySelector(`h4.section-subchapter[data-question-id="${activeQuestionId}"]`) as HTMLElement;
-      
-      // If heading not found, try the answer div
-      if (!targetElement) {
-        targetElement = document.querySelector(`div[data-question-id="${activeQuestionId}"][data-question-content="true"]`) as HTMLElement;
-      }
-    }
-
-    // Fallback to section element if question not found
-    if (!targetElement) {
-      targetElement = document.querySelector(`[data-section-id="${sectionId}"]`) as HTMLElement;
-    }
-
-    if (!targetElement) {
-      setPosition(prev => ({ ...prev, visible: false }));
-      return;
-    }
-
-    // Get bounding rects - position relative to scroll container (which has position: relative)
     const scrollRect = scrollContainer.getBoundingClientRect();
-    const targetRect = targetElement.getBoundingClientRect();
     const scrollTop = scrollContainer.scrollTop || 0;
     const scrollLeft = scrollContainer.scrollLeft || 0;
     
-    // Calculate position relative to scroll container's content area
-    // The editor is positioned absolutely relative to the scroll container
-    const scrollViewWidth = scrollRect.width;
-    const scrollViewHeight = scrollRect.height;
-    const scrollContentWidth = scrollContainer.scrollWidth;
+    // Always center the editor in the viewport (both horizontally and vertically)
+    // This ensures it's always visible and not cut off
+    const viewportWidth = scrollRect.width;
+    const viewportHeight = scrollRect.height;
     
-    // Get target position relative to scroll container's content (accounting for scroll)
-    const targetTopInContent = targetRect.top - scrollRect.top + scrollTop;
-    const targetLeftInContent = targetRect.left - scrollRect.left + scrollLeft;
-    const targetWidth = targetRect.width;
-    const targetHeight = targetRect.height;
-    const targetTopInViewport = targetRect.top - scrollRect.top;
-    const targetLeftInViewport = targetRect.left - scrollRect.left;
-
-    // Try positioning on the right side first (inline with content)
-    const rightSideLeft = targetLeftInContent + targetWidth + GAP;
-    const rightSideFitsInViewport = targetLeftInViewport + targetWidth + GAP + EDITOR_WIDTH <= scrollViewWidth;
-    const rightSideFitsInContent = rightSideLeft + EDITOR_WIDTH <= scrollContentWidth;
-    const targetVisible = targetTopInViewport >= -targetHeight && targetTopInViewport < scrollViewHeight;
-
-    let finalTop: number;
-    let finalLeft: number;
-    let placement: 'right' | 'below' = 'right';
-
-    if (rightSideFitsInViewport && rightSideFitsInContent && targetVisible) {
-      // Position on right side - inline with the question
-      finalTop = targetTopInContent;
-      finalLeft = rightSideLeft;
-      placement = 'right';
-    } else {
-      // Position below target element, centered horizontally
-      finalTop = targetTopInContent + targetHeight + GAP;
-      // Center the editor horizontally within the scroll container's viewport
-      finalLeft = scrollLeft + Math.max(GAP, (scrollViewWidth - EDITOR_WIDTH) / 2);
-      placement = 'below';
-    }
-
-    // Ensure editor stays within scroll container's content bounds
-    // Clamp vertically to content area
-    const scrollContentHeight = scrollContainer.scrollHeight;
-    const minTop = scrollTop;
-    const maxTop = scrollTop + scrollContentHeight - EDITOR_MAX_HEIGHT;
-    finalTop = Math.max(minTop, Math.min(maxTop, finalTop));
-
-    // Ensure editor doesn't overflow horizontally
+    // Center horizontally
+    const centerLeft = scrollLeft + (viewportWidth - EDITOR_WIDTH) / 2;
+    
+    // Center vertically in viewport (not in scroll position, but in visible area)
+    // Position at center of visible viewport, accounting for scroll
+    const centerTop = scrollTop + (viewportHeight - EDITOR_MAX_HEIGHT) / 2;
+    
+    // Ensure editor doesn't go outside scroll container bounds
     const minLeft = scrollLeft + GAP;
-    const maxLeft = scrollLeft + scrollContentWidth - EDITOR_WIDTH - GAP;
-    finalLeft = Math.max(minLeft, Math.min(maxLeft, finalLeft));
+    const maxLeft = scrollLeft + scrollContainer.scrollWidth - EDITOR_WIDTH - GAP;
+    const finalLeft = Math.max(minLeft, Math.min(maxLeft, centerLeft));
+    
+    const minTop = scrollTop + GAP;
+    const maxTop = scrollTop + scrollContainer.scrollHeight - EDITOR_MAX_HEIGHT - GAP;
+    const finalTop = Math.max(minTop, Math.min(maxTop, centerTop));
 
     setPosition({
       top: finalTop,
       left: finalLeft,
-      placement,
+      placement: 'right', // Keep for compatibility, but we're always centering now
       visible: true
     });
-  }, [sectionId, activeQuestionId, isSpecialSection]);
+  }, []);
 
   // Styles are in globals.css - no need to inject dynamically
 
@@ -257,16 +193,54 @@ export default function InlineSectionEditor({
 
   // Update position on mount, section/question change, scroll, and resize
   useEffect(() => {
-    if (!sectionId) {
+    if (!sectionId || isSpecialSection) {
       setPosition(prev => ({ ...prev, visible: false }));
       return;
     }
 
-    // Initial position calculation - wait for DOM to be ready
-    // Use longer timeout to ensure HTML content is rendered
-    const timeoutId = setTimeout(() => {
+    let retryCount = 0;
+    const MAX_RETRIES = 5;
+    const RETRY_DELAY = 100;
+
+    const tryCalculatePosition = () => {
+      const scrollContainer = document.getElementById('preview-scroll-container');
+      if (!scrollContainer) {
+        if (retryCount < MAX_RETRIES) {
+          retryCount++;
+          setTimeout(tryCalculatePosition, RETRY_DELAY);
+        }
+        return;
+      }
+
+      // Check if target element exists
+      let elementFound = false;
+      if (activeQuestionId) {
+        elementFound = !!(
+          scrollContainer.querySelector(`[data-question-id="${activeQuestionId}"]`) ||
+          document.querySelector(`[data-question-id="${activeQuestionId}"]`)
+        );
+      }
+      if (!elementFound) {
+        elementFound = !!(
+          scrollContainer.querySelector(`[data-section-id="${sectionId}"]`) ||
+          document.querySelector(`[data-section-id="${sectionId}"]`)
+        );
+      }
+
+      if (!elementFound && retryCount < MAX_RETRIES) {
+        retryCount++;
+        setTimeout(tryCalculatePosition, RETRY_DELAY);
+        return;
+      }
+
+      // Calculate position
       calculatePosition();
-    }, 200);
+    };
+
+    // Initial position calculation - wait for DOM to be ready with retry logic
+    const timeoutId = setTimeout(() => {
+      tryCalculatePosition();
+    }, 100);
 
     // Set up scroll and resize listeners
     const scrollContainer = document.getElementById('preview-scroll-container');
@@ -304,7 +278,7 @@ export default function InlineSectionEditor({
       }
       window.removeEventListener('resize', handleResize);
     };
-  }, [sectionId, calculatePosition]);
+  }, [sectionId, activeQuestionId, calculatePosition]);
 
   // Close on ESC key
   useEffect(() => {
@@ -432,86 +406,28 @@ export default function InlineSectionEditor({
     });
   }, [dragOverTarget, isMetadataSection, plan.titlePage, onTitlePageChange, onMediaCreate, onAppendixAdd, section]);
 
-  if (!sectionId || !position.visible) {
+  // Immediately hide editor if sectionId is null or a metadata section
+  useEffect(() => {
+    if (!sectionId || isSpecialSection) {
+      setPosition(prev => ({ ...prev, visible: false }));
+    }
+  }, [sectionId, isSpecialSection]);
+
+  // Reset AI messages when question changes (must be before any early returns)
+  useEffect(() => {
+    setAiMessages([]);
+    setAiInput('');
+  }, [activeQuestionId]);
+
+  // Early return if sectionId is null, metadata section, or not visible
+  if (!sectionId || isSpecialSection || !position.visible) {
     return null;
   }
 
-  // Handle metadata and ancillary sections
-  if (isMetadataSection || isAncillarySection) {
-    return (
-      <div
-          ref={editorRef}
-          className={`absolute z-10 rounded-2xl border-2 ${
-            isDragging 
-              ? 'border-blue-500 border-dashed bg-blue-50/50' 
-              : 'border-blue-400/60 bg-white/98'
-          } backdrop-blur-xl shadow-2xl overflow-hidden transition-all`}
-          style={{
-            top: `${position.top}px`,
-            left: `${position.left}px`,
-            width: `${EDITOR_WIDTH}px`,
-            maxHeight: `${EDITOR_MAX_HEIGHT}px`,
-          position: 'absolute',
-          overflowY: 'auto',
-          overflowX: 'hidden'
-          }}
-          onDragEnter={handleDragEnter}
-          onDragOver={handleDragOver}
-          onDragLeave={handleDragLeave}
-          onDrop={handleDrop}
-        >
-          {isDragging && (
-            <div className="absolute inset-0 z-50 flex items-center justify-center bg-blue-100/80 backdrop-blur-sm rounded-2xl pointer-events-none">
-              <div className="text-center p-6">
-                <div className="text-4xl mb-2">📎</div>
-                <p className="text-sm font-semibold text-blue-900">
-                  Drop files to attach
-                </p>
-              </div>
-            </div>
-          )}
-          <div className="relative h-full flex flex-col bg-white">
-            {/* Header */}
-            <div className="flex items-center justify-between p-3 border-b border-slate-200 bg-gradient-to-r from-slate-50 to-blue-50/50">
-              <div className="flex-1">
-                <h2 className="text-sm font-semibold text-slate-900">
-                  {isMetadataSection 
-                    ? (t('editor.section.metadata' as any) as string) || 'Plan Metadata'
-                    : (t('editor.section.front_back_matter' as any) as string) || 'Ancillary & Formalities'}
-                </h2>
-              </div>
-              <Button
-                variant="ghost"
-                size="sm"
-                onClick={onClose}
-                className="text-slate-600 hover:bg-slate-100"
-                aria-label="Close editor"
-              >
-                ✕
-              </Button>
-            </div>
-
-            {/* Content */}
-            <div className="flex-1 overflow-y-auto p-4 relative">
-              {/* Blue gradient overflow indicator */}
-              <div className="absolute bottom-0 left-0 right-0 h-8 bg-gradient-to-t from-blue-50/80 to-transparent pointer-events-none z-10" />
-              <MetadataAndAncillaryPanel
-                plan={plan}
-                onTitlePageChange={onTitlePageChange}
-                onAncillaryChange={onAncillaryChange}
-                onReferenceAdd={onReferenceAdd}
-                onReferenceUpdate={onReferenceUpdate}
-                onReferenceDelete={onReferenceDelete}
-                onAppendixAdd={onAppendixAdd}
-                onAppendixUpdate={onAppendixUpdate}
-                onAppendixDelete={onAppendixDelete}
-                onRunRequirements={onRunRequirements}
-                progressSummary={progressSummary}
-              />
-            </div>
-          </div>
-        </div>
-    );
+  // Handle metadata and ancillary sections (double check)
+  if (isMetadataSection || isAncillarySection || isReferencesSection || isAppendicesSection) {
+    // No overlay for metadata sections - editing happens directly in preview
+    return null;
   }
 
   // Handle normal sections with questions
@@ -532,13 +448,273 @@ export default function InlineSectionEditor({
     }
   };
 
+  // AI handlers
+  const handleAIDraft = async () => {
+    if (!activeQuestion || !section) return;
+    setIsAiLoading(true);
+    try {
+      const response = await generateSectionContent({
+        sectionTitle: section.title,
+        context: activeQuestion.answer || '',
+        program: {
+          id: plan.metadata?.programId,
+          name: plan.metadata?.programName,
+          type: plan.metadata?.templateFundingType || 'grant'
+        },
+        questionMeta: {
+          questionPrompt: activeQuestion.prompt,
+          questionStatus: activeQuestion.status,
+          requirementHints: validation?.issues.map(i => i.message) || []
+        },
+        conversationHistory: aiMessages
+      });
+      
+      const newMessage: ConversationMessage = {
+        id: `ai_${Date.now()}`,
+        role: 'assistant',
+        content: response.content,
+        timestamp: new Date().toISOString()
+      };
+      setAiMessages(prev => [...prev, newMessage]);
+      
+      // Auto-insert draft into answer if empty
+      if (!activeQuestion.answer) {
+        onAnswerChange(activeQuestion.id, response.content);
+      }
+    } catch (error) {
+      console.error('AI draft failed:', error);
+      const errorMessage: ConversationMessage = {
+        id: `error_${Date.now()}`,
+        role: 'assistant',
+        content: 'Sorry, I encountered an error. Please try again.',
+        timestamp: new Date().toISOString()
+      };
+      setAiMessages(prev => [...prev, errorMessage]);
+    } finally {
+      setIsAiLoading(false);
+    }
+  };
+
+  const handleAIImprove = async () => {
+    if (!activeQuestion || !section || !activeQuestion.answer) return;
+    setIsAiLoading(true);
+    try {
+      const response = await generateSectionContent({
+        sectionTitle: section.title,
+        context: activeQuestion.answer,
+        program: {
+          id: plan.metadata?.programId,
+          name: plan.metadata?.programName,
+          type: plan.metadata?.templateFundingType || 'grant'
+        },
+        questionMeta: {
+          questionPrompt: activeQuestion.prompt,
+          questionStatus: activeQuestion.status,
+          questionMode: 'critique',
+          requirementHints: validation?.issues.map(i => i.message) || []
+        },
+        conversationHistory: aiMessages
+      });
+      
+      const newMessage: ConversationMessage = {
+        id: `ai_${Date.now()}`,
+        role: 'assistant',
+        content: response.content,
+        timestamp: new Date().toISOString()
+      };
+      setAiMessages(prev => [...prev, newMessage]);
+    } catch (error) {
+      console.error('AI improve failed:', error);
+      const errorMessage: ConversationMessage = {
+        id: `error_${Date.now()}`,
+        role: 'assistant',
+        content: 'Sorry, I encountered an error. Please try again.',
+        timestamp: new Date().toISOString()
+      };
+      setAiMessages(prev => [...prev, errorMessage]);
+    } finally {
+      setIsAiLoading(false);
+    }
+  };
+
+  // Unused function - commented out to fix TypeScript error
+  // const _handleAISuggestData = async () => {
+  //   if (!activeQuestion || !section) return;
+  //   setIsAiLoading(true);
+  //   try {
+  //     const response = await generateSectionContent({
+  //       sectionTitle: section.title,
+  //       context: `Suggest data structures for: ${activeQuestion.prompt}`,
+  //       program: {
+  //         id: plan.metadata?.programId,
+  //         name: plan.metadata?.programName,
+  //         type: plan.metadata?.templateFundingType || 'grant'
+  //       },
+  //       questionMeta: {
+  //         questionPrompt: activeQuestion.prompt,
+  //         questionStatus: activeQuestion.status
+  //       },
+  //       conversationHistory: aiMessages
+  //     });
+  //     
+  //     const newMessage: ConversationMessage = {
+  //       id: `ai_${Date.now()}`,
+  //       role: 'assistant',
+  //       content: response.content,
+  //       timestamp: new Date().toISOString()
+  //     };
+  //     setAiMessages(prev => [...prev, newMessage]);
+  //   } catch (error) {
+  //     console.error('AI suggest data failed:', error);
+  //     const errorMessage: ConversationMessage = {
+  //       id: `error_${Date.now()}`,
+  //       role: 'assistant',
+  //       content: 'Sorry, I encountered an error. Please try again.',
+  //       timestamp: new Date().toISOString()
+  //     };
+  //     setAiMessages(prev => [...prev, errorMessage]);
+  //   } finally {
+  //     setIsAiLoading(false);
+  //   }
+  // };
+
+  const handleAISend = async () => {
+    if (!aiInput.trim() || !activeQuestion || !section) return;
+    setIsAiLoading(true);
+    
+    const userMessage: ConversationMessage = {
+      id: `user_${Date.now()}`,
+      role: 'user',
+      content: aiInput,
+      timestamp: new Date().toISOString()
+    };
+    setAiMessages(prev => [...prev, userMessage]);
+    const inputValue = aiInput;
+    setAiInput('');
+    
+    try {
+      const response = await generateSectionContent({
+        sectionTitle: section.title,
+        context: inputValue,
+        program: {
+          id: plan.metadata?.programId,
+          name: plan.metadata?.programName,
+          type: plan.metadata?.templateFundingType || 'grant'
+        },
+        questionMeta: {
+          questionPrompt: activeQuestion.prompt,
+          questionStatus: activeQuestion.status,
+          requirementHints: validation?.issues.map(i => i.message) || []
+        },
+        conversationHistory: [...aiMessages, userMessage]
+      });
+      
+      const assistantMessage: ConversationMessage = {
+        id: `ai_${Date.now()}`,
+        role: 'assistant',
+        content: response.content,
+        timestamp: new Date().toISOString()
+      };
+      setAiMessages(prev => [...prev, assistantMessage]);
+    } catch (error) {
+      console.error('AI send failed:', error);
+      const errorMessage: ConversationMessage = {
+        id: `error_${Date.now()}`,
+        role: 'assistant',
+        content: 'Sorry, I encountered an error. Please try again.',
+        timestamp: new Date().toISOString()
+      };
+      setAiMessages(prev => [...prev, errorMessage]);
+    } finally {
+      setIsAiLoading(false);
+    }
+  };
+
+  // Data handlers
+  const handleCreateTable = () => {
+    if (!_onDatasetCreate || !section) return;
+    const newDataset: Dataset = {
+      id: `dataset_${Date.now()}`,
+      name: 'New Dataset',
+      columns: [],
+      rows: [],
+      sectionId: section.id
+    };
+    _onDatasetCreate(newDataset);
+  };
+
+  const handleCreateKPI = () => {
+    if (!_onKpiCreate || !section) return;
+    const newKpi: KPI = {
+      id: `kpi_${Date.now()}`,
+      name: 'New KPI',
+      value: 0,
+      unit: '',
+      sectionId: section.id
+    };
+    _onKpiCreate(newKpi);
+  };
+
+  const handleCreateMedia = () => {
+    if (!onMediaCreate || !section) return;
+    // Trigger file input
+    const input = document.createElement('input');
+    input.type = 'file';
+    input.accept = 'image/*';
+    input.onchange = (e) => {
+      const file = (e.target as HTMLInputElement).files?.[0];
+      if (file) {
+        const reader = new FileReader();
+        reader.onload = () => {
+          if (typeof reader.result === 'string') {
+            const mediaAsset: MediaAsset = {
+              id: `media_${Date.now()}`,
+              type: 'image',
+              title: file.name,
+              uri: reader.result,
+              description: `Uploaded: ${file.name}`,
+              sectionId: section.id
+            };
+            onMediaCreate(mediaAsset);
+          }
+        };
+        reader.readAsDataURL(file);
+      }
+    };
+    input.click();
+  };
+
+  const handleAttachDataset = (dataset: Dataset) => {
+    if (activeQuestionId && onAttachDataset) {
+      onAttachDataset(dataset);
+    }
+  };
+
+  const handleAttachKpi = (kpi: KPI) => {
+    if (activeQuestionId && onAttachKpi) {
+      onAttachKpi(kpi);
+    }
+  };
+
+  const handleAttachMedia = (asset: MediaAsset) => {
+    if (activeQuestionId && onAttachMedia) {
+      onAttachMedia(asset);
+    }
+  };
+
+  // Calculate word count and completion
+  const wordCount = activeQuestion.answer ? activeQuestion.answer.trim().split(/\s+/).filter(Boolean).length : 0;
+  const answeredCount = section.questions.filter(q => q.answer && q.answer.trim().length > 0).length;
+  const totalQuestions = section.questions.length;
+  const completionPercentage = totalQuestions > 0 ? Math.round((answeredCount / totalQuestions) * 100) : 0;
+
   return (
     <div
       ref={editorRef}
       className={`absolute z-10 rounded-2xl border-2 ${
         isDragging 
-          ? 'border-blue-500 border-dashed bg-blue-50/50' 
-          : 'border-blue-400/60 bg-white/98'
+          ? 'border-blue-500 border-dashed bg-blue-900/50' 
+          : 'border-blue-400/60 bg-slate-900/95'
       } backdrop-blur-xl shadow-2xl overflow-hidden transition-all`}
       style={{
         top: `${position.top}px`,
@@ -555,29 +731,29 @@ export default function InlineSectionEditor({
       onDrop={handleDrop}
     >
       {isDragging && (
-        <div className="absolute inset-0 z-50 flex items-center justify-center bg-blue-100/80 backdrop-blur-sm rounded-2xl pointer-events-none">
+        <div className="absolute inset-0 z-50 flex items-center justify-center bg-blue-900/80 backdrop-blur-sm rounded-2xl pointer-events-none">
           <div className="text-center p-6">
             <div className="text-4xl mb-2">📎</div>
-            <p className="text-sm font-semibold text-blue-900">
+            <p className="text-sm font-semibold text-white">
               Drop files to attach
             </p>
           </div>
         </div>
       )}
-      <div className="relative h-full flex flex-col bg-white">
+      <div className="relative h-full flex flex-col bg-slate-900/95 backdrop-blur-xl">
         {/* Header */}
-        <div className="flex items-center justify-between p-3 border-b border-slate-200 bg-gradient-to-r from-slate-50 to-blue-50/50">
+        <div className="flex items-center justify-between p-3 border-b border-white/20 bg-gradient-to-r from-slate-800/90 to-slate-900/90">
           <div className="flex-1 min-w-0">
-            <h2 className="text-sm font-semibold text-slate-900 truncate">{section.title}</h2>
+            <h2 className="text-sm font-semibold text-white truncate">{section.title}</h2>
             {section.description && (
-              <p className="text-xs text-slate-600 truncate mt-0.5 line-clamp-1">{section.description}</p>
+              <p className="text-xs text-white/70 truncate mt-0.5 line-clamp-1">{section.description}</p>
             )}
           </div>
           <Button
             variant="ghost"
             size="sm"
             onClick={onClose}
-            className="text-slate-600 hover:bg-slate-100 flex-shrink-0 ml-2"
+            className="text-white/70 hover:bg-white/10 hover:text-white flex-shrink-0 ml-2"
             aria-label="Close editor"
           >
             ✕
@@ -586,7 +762,7 @@ export default function InlineSectionEditor({
 
         {/* Question Navigation */}
         {section.questions.length > 1 && (
-          <div className="px-4 py-3 border-b border-slate-200 bg-slate-50/50">
+          <div className="px-4 py-2.5 border-b border-white/20 bg-slate-800/50">
             <div className="flex items-center gap-2 overflow-x-auto">
               {section.questions.map((q, index) => {
                 const isActive = q.id === activeQuestionId;
@@ -595,16 +771,15 @@ export default function InlineSectionEditor({
                   <button
                     key={q.id}
                     onClick={() => onSelectQuestion(q.id)}
-                    className={`flex items-center gap-2 rounded-full border px-3 py-1.5 text-xs font-medium transition-all flex-shrink-0 ${
+                    className={`flex items-center gap-1.5 rounded-full border px-2.5 py-1 text-xs font-medium transition-all flex-shrink-0 ${
                       isActive
                         ? 'border-blue-500 bg-blue-500 text-white shadow-md'
-                        : 'border-slate-300 bg-white text-slate-700 hover:border-blue-400 hover:bg-blue-50'
+                        : 'border-white/20 bg-slate-700/50 text-white/80 hover:border-blue-400 hover:bg-slate-700'
                     }`}
                   >
                     <span>{index + 1}</span>
-                    {status === 'complete' && <span>✅</span>}
-                    {status === 'unknown' && <span>❓</span>}
-                    {status === 'draft' && <span>📝</span>}
+                    {status === 'complete' && <span className="text-[10px]">✅</span>}
+                    {status === 'unknown' && <span className="text-[10px]">❓</span>}
                   </button>
                 );
               })}
@@ -612,496 +787,334 @@ export default function InlineSectionEditor({
           </div>
         )}
 
-        {/* Question Card */}
-        <div className="flex-1 overflow-y-auto p-4 space-y-3 bg-white relative">
-          {/* Blue gradient overflow indicator */}
-          <div className="absolute bottom-0 left-0 right-0 h-8 bg-gradient-to-t from-blue-50/80 to-transparent pointer-events-none z-10" />
+        {/* Main Content Area - Text Editor First */}
+        <div className="flex-1 overflow-y-auto p-4 space-y-4 bg-slate-900/95 relative">
+          {/* Gradient overflow indicator */}
+          <div className="absolute bottom-0 left-0 right-0 h-8 bg-gradient-to-t from-slate-900/95 to-transparent pointer-events-none z-10" />
+          
+          {/* Question Prompt */}
           <div>
-            <h3 className="text-sm font-semibold text-slate-900 mb-1.5">{activeQuestion.prompt}</h3>
+            <h3 className="text-sm font-semibold text-white mb-1">{activeQuestion.prompt}</h3>
             {activeQuestion.helperText && (
-              <p className="text-xs text-slate-600 mb-2 leading-relaxed line-clamp-2">{activeQuestion.helperText}</p>
+              <p className="text-xs text-white/70 mb-3 leading-relaxed">{activeQuestion.helperText}</p>
+            )}
+            {/* Requirement Badges */}
+            {validation && validation.issues.length > 0 && (
+              <div className="flex flex-wrap gap-1.5 mb-3">
+                {validation.issues.map((issue, idx) => (
+                  <Badge
+                    key={idx}
+                    variant={issue.severity === 'error' ? 'danger' : 'warning'}
+                    className="text-[10px] bg-red-900/50 border border-red-500/50 text-red-200 px-2 py-0.5"
+                  >
+                    {issue.severity === 'error' ? '❌' : '⚠️'} {issue.type}
+                  </Badge>
+                ))}
+              </div>
             )}
           </div>
 
-          {/* Requirement Badges */}
-          {validation && validation.issues.length > 0 && (
-            <div className="flex flex-wrap gap-2">
-              {validation.issues.map((issue, idx) => (
-                <Badge
-                  key={idx}
-                  variant={issue.severity === 'error' ? 'danger' : 'warning'}
-                  className="text-xs bg-red-50 border border-red-200 text-red-700"
-                >
-                  {issue.severity === 'error' ? '❌' : '⚠️'} {issue.type}
-                </Badge>
-              ))}
-            </div>
-          )}
-
-          {/* Text Editor */}
+          {/* Main Text Editor - Primary Focus */}
           <div>
             <textarea
               value={activeQuestion.answer ?? ''}
               onChange={(e) => onAnswerChange(activeQuestion.id, e.target.value)}
-              placeholder={activeQuestion.placeholder || 'Provide details...'}
-              className="w-full min-h-[140px] rounded-lg border border-slate-300 bg-white p-3 text-sm text-slate-900 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 resize-none shadow-sm"
+              placeholder={activeQuestion.placeholder || 'Start writing your answer here...'}
+              className="w-full min-h-[180px] rounded-lg border border-white/20 bg-slate-800/50 p-3 text-sm text-white placeholder:text-white/40 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 resize-none"
               style={{
                 fontFamily: 'Inter, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif',
                 lineHeight: '1.7'
               }}
             />
-          </div>
-
-          {/* Actions */}
-          <div className="flex flex-wrap gap-2 pt-4 border-t border-slate-200">
-            {!isComplete && (
-              <Button
-                variant="success"
-                onClick={() => {
-                  onMarkComplete(activeQuestion.id);
-                  if (isLastQuestion) {
-                    onClose();
-                  }
-                }}
-                className="bg-green-600 hover:bg-green-700 text-white text-xs font-semibold px-4 py-2 rounded-lg shadow-sm"
-              >
-                {isLastQuestion ? 'Complete Section' : 'Complete'}
-              </Button>
-            )}
-            {!isComplete && (
-              <Button
-                variant="outline"
-                onClick={handleToggleUnknown}
-                className="text-slate-700 border-slate-300 bg-white hover:bg-slate-50 text-xs font-semibold px-4 py-2 rounded-lg shadow-sm"
-              >
-                {isUnknown ? 'Clear Unknown' : 'Skip'}
-              </Button>
-            )}
-          </div>
-
-          {/* Tabs */}
-          <div className="border-t border-slate-200">
-            <div className="flex border-b border-slate-200">
-              <button
-                onClick={() => setActiveTab('ai')}
-                className={`flex-1 px-3 py-2 text-xs font-medium transition-colors ${
-                  activeTab === 'ai'
-                    ? 'border-b-2 border-blue-500 text-blue-600 bg-blue-50/50'
-                    : 'text-slate-600 hover:text-slate-900 hover:bg-slate-50'
-                }`}
-              >
-                💬 AI
-              </button>
-              <button
-                onClick={() => setActiveTab('data')}
-                className={`flex-1 px-3 py-2 text-xs font-medium transition-colors ${
-                  activeTab === 'data'
-                    ? 'border-b-2 border-blue-500 text-blue-600 bg-blue-50/50'
-                    : 'text-slate-600 hover:text-slate-900 hover:bg-slate-50'
-                }`}
-              >
-                📊 Data
-              </button>
-              <button
-                onClick={() => setActiveTab('context')}
-                className={`flex-1 px-3 py-2 text-xs font-medium transition-colors ${
-                  activeTab === 'context'
-                    ? 'border-b-2 border-blue-500 text-blue-600 bg-blue-50/50'
-                    : 'text-slate-600 hover:text-slate-900 hover:bg-slate-50'
-                }`}
-              >
-                📋 Context
-              </button>
-            </div>
-
-            {/* Tab Content */}
-            <div className="p-3 max-h-[200px] overflow-y-auto">
-              {activeTab === 'ai' && (
-                <AITab
-                  sectionId={sectionId}
-                  questionId={activeQuestion.id}
-                  messages={aiMessages}
-                  loading={aiLoading}
-                  input={aiInput}
-                  onInputChange={setAiInput}
-                  onSend={async (message) => {
-                    if (!sectionId || !activeQuestion.id) return;
-                    setAiLoading(true);
-                    setAiMessages(prev => [...prev, { role: 'user', content: message }]);
-                    setAiInput('');
-                    try {
-                      const response = await requestAISuggestions(sectionId, activeQuestion.id, {
-                        intent: message.toLowerCase().includes('draft') ? 'draft' : 
-                                message.toLowerCase().includes('improve') ? 'improve' : 'default'
-                      });
-                      setAiMessages(prev => [...prev, { role: 'assistant', content: response.content }]);
-                    } catch (error) {
-                      setAiMessages(prev => [...prev, { role: 'assistant', content: 'Sorry, I encountered an error. Please try again.' }]);
-                    } finally {
-                      setAiLoading(false);
-                    }
-                  }}
-                  onInsert={(content) => {
-                    onAnswerChange(activeQuestion.id, (activeQuestion.answer || '') + '\n\n' + content);
-                  }}
-                />
-              )}
-              {activeTab === 'data' && (
-                <DataTab
-                  section={section}
-                  question={activeQuestion}
-                  onDatasetCreate={onDatasetCreate}
-                  onKpiCreate={onKpiCreate}
-                  onMediaCreate={onMediaCreate}
-                  onAttachDataset={onAttachDataset}
-                  onAttachKpi={onAttachKpi}
-                  onAttachMedia={onAttachMedia}
-                />
-              )}
-              {activeTab === 'context' && (
-                <ContextTab
-                  section={section}
-                  question={activeQuestion}
-                  validation={validation}
-                  template={template}
-                />
-              )}
+            <div className="flex items-center justify-between mt-2 text-xs text-white/60">
+              <span>{wordCount} words</span>
+              <span>{completionPercentage}% complete</span>
             </div>
           </div>
-        </div>
-      </div>
-    </div>
-  );
-}
 
-// AI Tab Component
-function AITab({
-  sectionId,
-  questionId,
-  messages,
-  loading,
-  input,
-  onInputChange,
-  onSend,
-  onInsert
-}: {
-  sectionId: string | null;
-  questionId: string;
-  messages: Array<{ role: 'user' | 'assistant'; content: string }>;
-  loading: boolean;
-  input: string;
-  onInputChange: (value: string) => void;
-  onSend: (message: string) => void;
-  onInsert: (content: string) => void;
-}) {
-  const handleSend = () => {
-    if (input.trim() && !loading) {
-      onSend(input.trim());
-    }
-  };
-
-  return (
-    <div className="space-y-3">
-      {/* Quick Actions */}
-      <div className="flex flex-wrap gap-2">
-        <Button
-          size="sm"
-          variant="outline"
-          onClick={() => onSend('Draft an outline for this section')}
-          disabled={loading}
-          className="text-xs"
-        >
-          Draft
-        </Button>
-        <Button
-          size="sm"
-          variant="outline"
-          onClick={() => onSend('Improve my answer')}
-          disabled={loading}
-          className="text-xs"
-        >
-          Improve
-        </Button>
-        <Button
-          size="sm"
-          variant="outline"
-          onClick={() => onSend('Suggest data structures or KPIs')}
-          disabled={loading}
-          className="text-xs"
-        >
-          Suggest Data
-        </Button>
-      </div>
-
-      {/* Chat Messages */}
-      <div className="space-y-2 max-h-[120px] overflow-y-auto">
-        {messages.length === 0 && (
-          <p className="text-xs text-slate-500 text-center py-4">
-            Ask me anything about this question. I can help draft, improve, or suggest data.
-          </p>
-        )}
-        {messages.map((msg, idx) => (
-          <div
-            key={idx}
-            className={`p-2 rounded text-xs ${
-              msg.role === 'user'
-                ? 'bg-blue-50 text-blue-900 ml-4'
-                : 'bg-slate-50 text-slate-900 mr-4'
-            }`}
-          >
-            <div className="font-semibold mb-1">{msg.role === 'user' ? 'You' : 'AI'}</div>
-            <div className="whitespace-pre-wrap">{msg.content}</div>
-            {msg.role === 'assistant' && (
-              <Button
-                size="sm"
-                variant="ghost"
-                onClick={() => onInsert(msg.content)}
-                className="mt-2 text-xs h-6"
-              >
-                Insert
-              </Button>
-            )}
-          </div>
-        ))}
-        {loading && (
-          <div className="text-xs text-slate-500 text-center py-2">AI is thinking...</div>
-        )}
-      </div>
-
-      {/* Input */}
-      <div className="flex gap-2">
-        <input
-          type="text"
-          value={input}
-          onChange={(e) => onInputChange(e.target.value)}
-          onKeyPress={(e) => e.key === 'Enter' && handleSend()}
-          placeholder="Ask AI..."
-          className="flex-1 px-2 py-1.5 text-xs border border-slate-300 rounded focus:outline-none focus:ring-1 focus:ring-blue-500"
-          disabled={loading}
-        />
-        <Button
-          size="sm"
-          onClick={handleSend}
-          disabled={loading || !input.trim()}
-          className="text-xs"
-        >
-          Send
-        </Button>
-      </div>
-    </div>
-  );
-}
-
-// Data Tab Component
-function DataTab({
-  section,
-  question,
-  onDatasetCreate,
-  onKpiCreate,
-  onMediaCreate,
-  onAttachDataset,
-  onAttachKpi,
-  onAttachMedia
-}: {
-  section: Section | null;
-  question: Question;
-  onDatasetCreate?: (dataset: Dataset) => void;
-  onKpiCreate?: (kpi: KPI) => void;
-  onMediaCreate?: (asset: MediaAsset) => void;
-  onAttachDataset: (dataset: Dataset) => void;
-  onAttachKpi: (kpi: KPI) => void;
-  onAttachMedia: (asset: MediaAsset) => void;
-}) {
-  const handleCreateDataset = () => {
-    if (!onDatasetCreate || !section) return;
-    const dataset: Dataset = {
-      id: `dataset_${Date.now()}`,
-      title: 'New Dataset',
-      description: '',
-      columns: [{ id: 'col1', name: 'Column 1', type: 'text' }],
-      rows: [],
-      sectionId: section.id
-    };
-    onDatasetCreate(dataset);
-    onAttachDataset(dataset);
-  };
-
-  const handleCreateKpi = () => {
-    if (!onKpiCreate || !section) return;
-    const kpi: KPI = {
-      id: `kpi_${Date.now()}`,
-      title: 'New KPI',
-      value: '',
-      unit: '',
-      sectionId: section.id
-    };
-    onKpiCreate(kpi);
-    onAttachKpi(kpi);
-  };
-
-  const handleCreateMedia = () => {
-    if (!onMediaCreate || !section) return;
-    const input = document.createElement('input');
-    input.type = 'file';
-    input.accept = 'image/*';
-    input.onchange = (e) => {
-      const file = (e.target as HTMLInputElement).files?.[0];
-      if (file) {
-        const reader = new FileReader();
-        reader.onload = () => {
-          if (typeof reader.result === 'string') {
-            const asset: MediaAsset = {
-              id: `media_${Date.now()}`,
-              type: 'image',
-              title: file.name,
-              uri: reader.result,
-              description: '',
-              sectionId: section.id
-            };
-            onMediaCreate(asset);
-            onAttachMedia(asset);
-          }
-        };
-        reader.readAsDataURL(file);
-      }
-    };
-    input.click();
-  };
-
-  // Get existing data for this section
-  const datasets = section?.datasets || [];
-  const kpis = section?.kpis || [];
-  const media = section?.media || [];
-
-  return (
-    <div className="space-y-3">
-      {/* Quick Add */}
-      <div className="flex flex-wrap gap-2">
-        <Button
-          size="sm"
-          variant="outline"
-          onClick={handleCreateDataset}
-          className="text-xs"
-        >
-          + Table
-        </Button>
-        <Button
-          size="sm"
-          variant="outline"
-          onClick={handleCreateKpi}
-          className="text-xs"
-        >
-          + KPI
-        </Button>
-        <Button
-          size="sm"
-          variant="outline"
-          onClick={handleCreateMedia}
-          className="text-xs"
-        >
-          + Media
-        </Button>
-      </div>
-
-      {/* Existing Data */}
-      <div className="space-y-2 max-h-[120px] overflow-y-auto">
-        {datasets.length === 0 && kpis.length === 0 && media.length === 0 && (
-          <p className="text-xs text-slate-500 text-center py-2">No data yet. Create some above.</p>
-        )}
-        {datasets.map((ds) => (
-          <div key={ds.id} className="p-2 bg-slate-50 rounded text-xs">
-            <div className="font-semibold">📊 {ds.title}</div>
-            <Button
-              size="sm"
-              variant="ghost"
-              onClick={() => onAttachDataset(ds)}
-              className="mt-1 text-xs h-6"
-            >
-              Attach
-            </Button>
-          </div>
-        ))}
-        {kpis.map((kpi) => (
-          <div key={kpi.id} className="p-2 bg-slate-50 rounded text-xs">
-            <div className="font-semibold">📈 {kpi.title}</div>
-            <Button
-              size="sm"
-              variant="ghost"
-              onClick={() => onAttachKpi(kpi)}
-              className="mt-1 text-xs h-6"
-            >
-              Attach
-            </Button>
-          </div>
-        ))}
-        {media.map((m) => (
-          <div key={m.id} className="p-2 bg-slate-50 rounded text-xs">
-            <div className="font-semibold">🖼️ {m.title}</div>
-            <Button
-              size="sm"
-              variant="ghost"
-              onClick={() => onAttachMedia(m)}
-              className="mt-1 text-xs h-6"
-            >
-              Attach
-            </Button>
-          </div>
-        ))}
-      </div>
-    </div>
-  );
-}
-
-// Context Tab Component
-function ContextTab({
-  section,
-  question,
-  validation,
-  template
-}: {
-  section: Section;
-  question: Question;
-  validation: any;
-  template: any;
-}) {
-  return (
-    <div className="space-y-3 text-xs">
-      {/* Requirements Validation */}
-      {validation && validation.issues.length > 0 && (
-        <div>
-          <h4 className="font-semibold mb-2">Requirements</h4>
-          <div className="space-y-1">
-            {validation.issues.map((issue: any, idx: number) => (
-              <div key={idx} className="p-2 bg-red-50 border border-red-200 rounded">
-                <span className="font-semibold text-red-700">
-                  {issue.severity === 'error' ? '❌' : '⚠️'} {issue.type}
-                </span>
-                <p className="text-red-600 mt-1">{issue.message}</p>
+          {/* Collapsible Helper Sections */}
+          <div className="space-y-2">
+            {/* AI Assistant - Collapsible */}
+            <details className="border border-white/10 rounded-lg bg-slate-800/30">
+              <summary className="px-3 py-2 cursor-pointer text-xs font-semibold text-white/90 hover:text-white flex items-center justify-between">
+                <span>💬 AI Assistant</span>
+                <span className="text-white/50">▼</span>
+              </summary>
+              <div className="p-3 space-y-3 border-t border-white/10">
+                {/* Quick Actions */}
+                <div className="flex gap-2 flex-wrap">
+                  <Button
+                    size="sm"
+                    onClick={handleAIDraft}
+                    disabled={isAiLoading}
+                    className="bg-blue-600 hover:bg-blue-700 text-white text-xs px-2.5 py-1.5 rounded"
+                  >
+                    ✨ Draft
+                  </Button>
+                  <Button
+                    size="sm"
+                    onClick={handleAIImprove}
+                    disabled={isAiLoading || !activeQuestion.answer}
+                    className="bg-blue-600 hover:bg-blue-700 text-white text-xs px-2.5 py-1.5 rounded"
+                  >
+                    📈 Improve
+                  </Button>
+                </div>
+                
+                {/* Chat Messages */}
+                {aiMessages.length > 0 && (
+                  <div className="space-y-2 max-h-[120px] overflow-y-auto">
+                    {aiMessages.map((msg) => (
+                      <div
+                        key={msg.id}
+                        className={`p-2 rounded text-xs ${
+                          msg.role === 'user'
+                            ? 'bg-blue-600/30 text-blue-100'
+                            : 'bg-slate-700/50 text-white/90'
+                        }`}
+                      >
+                        {msg.content}
+                      </div>
+                    ))}
+                  </div>
+                )}
+                
+                {/* Input */}
+                <div className="flex gap-2">
+                  <input
+                    value={aiInput}
+                    onChange={(e) => setAiInput(e.target.value)}
+                    onKeyPress={(e) => e.key === 'Enter' && !e.shiftKey && handleAISend()}
+                    placeholder="Ask AI..."
+                    disabled={isAiLoading}
+                    className="flex-1 px-2.5 py-1.5 rounded border border-white/20 bg-slate-800/50 text-white text-xs placeholder:text-white/40 focus:outline-none focus:ring-1 focus:ring-blue-500"
+                  />
+                  <Button
+                    onClick={handleAISend}
+                    disabled={isAiLoading || !aiInput.trim()}
+                    className="bg-blue-600 hover:bg-blue-700 text-white text-xs px-2.5 py-1.5 rounded"
+                  >
+                    Send
+                  </Button>
+                </div>
+                {isAiLoading && (
+                  <div className="text-xs text-white/50 text-center">Thinking...</div>
+                )}
               </div>
-            ))}
+            </details>
+
+            {/* Data Library - Collapsible */}
+            <details className="border border-white/10 rounded-lg bg-slate-800/30">
+              <summary className="px-3 py-2 cursor-pointer text-xs font-semibold text-white/90 hover:text-white flex items-center justify-between">
+                <span>📊 Data & Attachments</span>
+                <span className="text-white/50">▼</span>
+              </summary>
+              <div className="p-3 space-y-3 border-t border-white/10">
+                {/* Quick Add */}
+                <div className="flex gap-2 flex-wrap">
+                  <Button
+                    size="sm"
+                    onClick={handleCreateTable}
+                    className="bg-green-600 hover:bg-green-700 text-white text-xs px-2.5 py-1.5 rounded"
+                  >
+                    📊 Table
+                  </Button>
+                  <Button
+                    size="sm"
+                    onClick={handleCreateKPI}
+                    className="bg-green-600 hover:bg-green-700 text-white text-xs px-2.5 py-1.5 rounded"
+                  >
+                    📈 KPI
+                  </Button>
+                  <Button
+                    size="sm"
+                    onClick={handleCreateMedia}
+                    className="bg-green-600 hover:bg-green-700 text-white text-xs px-2.5 py-1.5 rounded"
+                  >
+                    🖼️ Media
+                  </Button>
+                </div>
+                
+                {/* Data Items */}
+                <div className="space-y-2 max-h-[150px] overflow-y-auto">
+                  {/* Datasets */}
+                  {section.datasets && section.datasets.length > 0 && (
+                    <div>
+                      <h4 className="text-[10px] font-semibold text-white/70 mb-1.5 uppercase">Datasets</h4>
+                      <div className="space-y-1">
+                        {section.datasets.map((dataset) => (
+                          <div
+                            key={dataset.id}
+                            className="flex items-center justify-between p-1.5 border border-blue-300/30 rounded bg-blue-50/10 group"
+                          >
+                            <span className="text-xs text-white/90 truncate flex-1">{dataset.name || 'Unnamed'}</span>
+                            {onAttachDataset && (
+                              <Button
+                                size="sm"
+                                onClick={() => handleAttachDataset(dataset)}
+                                className="bg-blue-600 hover:bg-blue-700 text-white text-[10px] px-2 py-0.5 rounded relative"
+                                title="Click to attach"
+                              >
+                                Attach
+                                <span className="absolute -top-1 -right-1 opacity-70">
+                                  <svg className="w-2.5 h-2.5 text-blue-200" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+                                  </svg>
+                                </span>
+                              </Button>
+                            )}
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+                  
+                  {/* KPIs */}
+                  {section.kpis && section.kpis.length > 0 && (
+                    <div>
+                      <h4 className="text-[10px] font-semibold text-white/70 mb-1.5 uppercase">KPIs</h4>
+                      <div className="space-y-1">
+                        {section.kpis.map((kpi) => (
+                          <div
+                            key={kpi.id}
+                            className="flex items-center justify-between p-1.5 border border-blue-300/30 rounded bg-blue-50/10 group"
+                          >
+                            <span className="text-xs text-white/90 truncate flex-1">{kpi.name || 'Unnamed'}</span>
+                            {onAttachKpi && (
+                              <Button
+                                size="sm"
+                                onClick={() => handleAttachKpi(kpi)}
+                                className="bg-blue-600 hover:bg-blue-700 text-white text-[10px] px-2 py-0.5 rounded relative"
+                                title="Click to attach"
+                              >
+                                Attach
+                                <span className="absolute -top-1 -right-1 opacity-70">
+                                  <svg className="w-2.5 h-2.5 text-blue-200" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+                                  </svg>
+                                </span>
+                              </Button>
+                            )}
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+                  
+                  {/* Media */}
+                  {section.media && section.media.length > 0 && (
+                    <div>
+                      <h4 className="text-[10px] font-semibold text-white/70 mb-1.5 uppercase">Media</h4>
+                      <div className="space-y-1">
+                        {section.media.map((asset) => (
+                          <div
+                            key={asset.id}
+                            className="flex items-center justify-between p-1.5 border border-blue-300/30 rounded bg-blue-50/10 group"
+                          >
+                            <span className="text-xs text-white/90 truncate flex-1">{asset.title || 'Untitled'}</span>
+                            {onAttachMedia && (
+                              <Button
+                                size="sm"
+                                onClick={() => handleAttachMedia(asset)}
+                                className="bg-blue-600 hover:bg-blue-700 text-white text-[10px] px-2 py-0.5 rounded relative"
+                                title="Click to attach"
+                              >
+                                Attach
+                                <span className="absolute -top-1 -right-1 opacity-70">
+                                  <svg className="w-2.5 h-2.5 text-blue-200" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+                                  </svg>
+                                </span>
+                              </Button>
+                            )}
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+                  
+                  {/* Empty State */}
+                  {(!section.datasets || section.datasets.length === 0) &&
+                   (!section.kpis || section.kpis.length === 0) &&
+                   (!section.media || section.media.length === 0) && (
+                    <div className="text-xs text-white/50 text-center py-3">
+                      No data items. Create one above.
+                    </div>
+                  )}
+                </div>
+              </div>
+            </details>
+
+            {/* Context & Info - Collapsible */}
+            <details className="border border-white/10 rounded-lg bg-slate-800/30">
+              <summary className="px-3 py-2 cursor-pointer text-xs font-semibold text-white/90 hover:text-white flex items-center justify-between">
+                <span>📋 Context & Info</span>
+                <span className="text-white/50">▼</span>
+              </summary>
+              <div className="p-3 space-y-3 border-t border-white/10 text-xs">
+                {/* Requirements */}
+                {validation && (
+                  <div>
+                    <h4 className="font-semibold text-white/90 mb-1.5">Requirements</h4>
+                    <div className="space-y-1">
+                      {validation.issues.length > 0 ? (
+                        validation.issues.map((issue, idx) => (
+                          <div
+                            key={idx}
+                            className={`${
+                              issue.severity === 'error' ? 'text-red-300' : 'text-yellow-300'
+                            }`}
+                          >
+                            {issue.severity === 'error' ? '❌' : '⚠️'} {issue.message}
+                          </div>
+                        ))
+                      ) : (
+                        <div className="text-green-300">✅ All requirements met</div>
+                      )}
+                    </div>
+                  </div>
+                )}
+                
+                {/* Metadata */}
+                <div>
+                  <h4 className="font-semibold text-white/90 mb-1.5">Progress</h4>
+                  <div className="space-y-0.5 text-white/70">
+                    <div>Questions: {answeredCount}/{totalQuestions}</div>
+                    <div>Section: {completionPercentage}%</div>
+                  </div>
+                </div>
+              </div>
+            </details>
           </div>
         </div>
-      )}
 
-      {/* Section Info */}
-      <div>
-        <h4 className="font-semibold mb-2">Section Info</h4>
-        <div className="space-y-1 text-slate-600">
-          <div>Title: {section.title}</div>
-          {section.description && <div>Description: {section.description}</div>}
-          <div>Questions: {section.questions.length}</div>
+        {/* Actions Footer */}
+        <div className="flex flex-wrap gap-2 p-3 border-t border-white/20 bg-slate-800/50">
+          {!isComplete && (
+            <Button
+              variant="success"
+              onClick={() => {
+                onMarkComplete(activeQuestion.id);
+                if (isLastQuestion) {
+                  onClose();
+                }
+              }}
+              className="bg-green-600 hover:bg-green-700 text-white text-xs font-semibold px-4 py-2 rounded-lg flex-1"
+            >
+              {isLastQuestion ? '✓ Complete Section' : '✓ Complete'}
+            </Button>
+          )}
+          {!isComplete && (
+            <Button
+              variant="outline"
+              onClick={handleToggleUnknown}
+              className="text-white/80 border-white/20 bg-slate-700/50 hover:bg-slate-700 text-xs font-semibold px-3 py-2 rounded-lg"
+            >
+              {isUnknown ? 'Clear Skip' : 'Skip'}
+            </Button>
+          )}
         </div>
       </div>
-
-      {/* Template Info */}
-      {template && (
-        <div>
-          <h4 className="font-semibold mb-2">Template</h4>
-          <div className="text-slate-600">
-            {template.name || template.id}
-          </div>
-        </div>
-      )}
     </div>
   );
 }

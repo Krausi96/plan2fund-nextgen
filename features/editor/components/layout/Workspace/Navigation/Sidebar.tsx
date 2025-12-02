@@ -306,8 +306,18 @@ function SectionNavigationTree({
   const sectionsForCards = React.useMemo(() => {
     if (!showAsCards || !allSections) return sections;
     
+    // Always include metadata section first
+    const metadataSection = {
+      id: METADATA_SECTION_ID,
+      title: getSectionTitle(METADATA_SECTION_ID, (t('editor.section.metadata' as any) as string) || 'Plan Metadata'),
+      progress: undefined,
+      questions: [],
+      origin: undefined as any,
+      required: false
+    };
+    
     // Map allSections templates to plan sections to get questions/progress
-    return allSections.map((template) => {
+    const mappedSections = allSections.map((template) => {
       const planSection = plan.sections.find(s => s.id === template.id);
       if (!planSection) {
         // If no plan section exists, create a minimal section from template
@@ -327,7 +337,9 @@ function SectionNavigationTree({
         required: template.required ?? false
       };
     });
-  }, [showAsCards, allSections, sections, plan.sections, getSectionTitle, collapsed, filteredSections]);
+    
+    return [metadataSection, ...mappedSections];
+  }, [showAsCards, allSections, sections, plan.sections, getSectionTitle, collapsed, filteredSections, t]);
 
   const handleClick = (sectionId: string) => {
     if (sectionId === ANCILLARY_SECTION_ID) {

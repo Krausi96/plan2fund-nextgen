@@ -18,6 +18,15 @@ interface PreviewPanelProps {
   plan: BusinessPlan | null;
   focusSectionId?: string | null;
   onSectionClick?: (sectionId: string) => void;
+  editingSectionId?: string | null;
+  onTitlePageChange?: (titlePage: any) => void;
+  onAncillaryChange?: (updates: Partial<any>) => void;
+  onReferenceAdd?: (reference: any) => void;
+  onReferenceUpdate?: (reference: any) => void;
+  onReferenceDelete?: (referenceId: string) => void;
+  onAppendixAdd?: (item: any) => void;
+  onAppendixUpdate?: (item: any) => void;
+  onAppendixDelete?: (appendixId: string) => void;
 }
 
 type ResolvedAttachment = {
@@ -288,10 +297,22 @@ function convertSectionToPlanSection(section: Section, sectionNumber: number | n
   };
 }
 
-export default function PreviewPanel({ plan, onSectionClick }: PreviewPanelProps) {
+export default function PreviewPanel({ 
+  plan, 
+  onSectionClick,
+  editingSectionId,
+  onTitlePageChange,
+  onAncillaryChange,
+  onReferenceAdd,
+  onReferenceUpdate,
+  onReferenceDelete,
+  onAppendixAdd,
+  onAppendixUpdate,
+  onAppendixDelete
+}: PreviewPanelProps) {
   const [viewMode, setViewMode] = useState<'page' | 'fluid'>('page');
   const [showWatermark, setShowWatermark] = useState(true);
-  const [zoomPreset, setZoomPreset] = useState<'compact' | 'standard' | 'comfortable'>('standard');
+  const [zoomPreset, setZoomPreset] = useState<'100' | '120' | '140'>('100');
   const [fitScale, setFitScale] = useState(1);
   const viewportRef = useRef<HTMLDivElement | null>(null);
 
@@ -309,14 +330,24 @@ export default function PreviewPanel({ plan, onSectionClick }: PreviewPanelProps
     if (!node) return;
 
     const A4_WIDTH_PX = 793.7; // 210mm translated to CSS px at 96dpi
+    const A4_HEIGHT_PX = 1122.5; // 297mm translated to CSS px at 96dpi
     const MAX_BASE_SCALE = 1.15;
+    const MIN_SCALE = 0.3; // Allow pages to shrink to 30% so full pages are visible
 
     const observer = new ResizeObserver((entries) => {
       const entry = entries[0];
       if (!entry) return;
       const width = entry.contentRect.width;
-      const widthRatio = Math.min(1, width / A4_WIDTH_PX);
-      const nextScale = Math.min(MAX_BASE_SCALE, widthRatio);
+      const height = entry.contentRect.height;
+      
+      // Calculate scale based on both width and height to ensure full pages are visible
+      const widthRatio = width / A4_WIDTH_PX;
+      const heightRatio = height / A4_HEIGHT_PX;
+      
+      // Use the smaller ratio to ensure the page fits in both dimensions
+      // But allow it to go below 1 to make pages smaller so full pages are visible
+      const baseScale = Math.min(widthRatio, heightRatio * 0.9); // 0.9 factor to leave some margin
+      const nextScale = Math.max(MIN_SCALE, Math.min(MAX_BASE_SCALE, baseScale));
       setFitScale(Number(nextScale.toFixed(3)));
     });
 
@@ -400,11 +431,11 @@ export default function PreviewPanel({ plan, onSectionClick }: PreviewPanelProps
   }, [plan]);
 
   const zoomMultiplier =
-    zoomPreset === 'compact'
-      ? 0.9
-      : zoomPreset === 'comfortable'
-        ? 1.1
-        : 1;
+    zoomPreset === '100'
+      ? 1.0
+      : zoomPreset === '120'
+        ? 1.3
+        : 1.5; // 150%
 
   const viewportZoom =
     viewMode === 'page'
@@ -455,11 +486,11 @@ export default function PreviewPanel({ plan, onSectionClick }: PreviewPanelProps
                   Watermark
                 </label>
                 <div className="flex items-center gap-1 rounded-md border border-white/15 bg-white/5 px-2 py-0.5">
-                  <span className="uppercase tracking-wide text-white/60">Scale</span>
+                  <span className="uppercase tracking-wide text-white/60">Zoom</span>
                   {[
-                    { id: 'compact', label: '90%' },
-                    { id: 'standard', label: '100%' },
-                    { id: 'comfortable', label: '110%' }
+                    { id: '100', label: '100%' },
+                    { id: '120', label: '120%' },
+                    { id: '140', label: '140%' }
                   ].map((preset) => (
                     <button
                       key={preset.id}
@@ -491,6 +522,15 @@ export default function PreviewPanel({ plan, onSectionClick }: PreviewPanelProps
                   }}
                   style={zoomStyle}
                   onSectionClick={onSectionClick}
+                  editingSectionId={editingSectionId}
+                  onTitlePageChange={onTitlePageChange}
+                  onAncillaryChange={onAncillaryChange}
+                  onReferenceAdd={onReferenceAdd}
+                  onReferenceUpdate={onReferenceUpdate}
+                  onReferenceDelete={onReferenceDelete}
+                  onAppendixAdd={onAppendixAdd}
+                  onAppendixUpdate={onAppendixUpdate}
+                  onAppendixDelete={onAppendixDelete}
                 />
               </div>
               <div className="flex-shrink-0 mt-4 mb-2 px-4 flex items-center justify-between text-[11px] uppercase tracking-wide text-white/60">

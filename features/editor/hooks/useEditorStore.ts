@@ -195,6 +195,8 @@ export const defaultAncillary = (): AncillaryContent => ({
 
 export const ANCILLARY_SECTION_ID = '__ancillary__';
 export const METADATA_SECTION_ID = '__metadata__';
+export const REFERENCES_SECTION_ID = '__references__';
+export const APPENDICES_SECTION_ID = '__appendices__';
 
 export function isMetadataComplete(titlePage: TitlePage): boolean {
   return REQUIRED_METADATA_FIELDS.every((field) =>

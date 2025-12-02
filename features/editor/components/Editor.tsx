@@ -17,6 +17,8 @@ import type { SectionTemplate, DocumentTemplate } from '@templates';
 import {
   ANCILLARY_SECTION_ID,
   METADATA_SECTION_ID,
+  REFERENCES_SECTION_ID,
+  APPENDICES_SECTION_ID,
   mapProgramTypeToFunding,
   normalizeProgramInput,
   useEditorActions,
@@ -358,88 +360,242 @@ export default function Editor({ product = 'submission' }: EditorProps) {
     handlers: any;
   } | null>(null);
 
-  // Auto-open editor when activeSectionId changes (from sidebar selection)
+  // Track if activeSectionId change was from user interaction (sidebar click) vs scroll detection
+  const sectionChangeSourceRef = useRef<'user' | 'scroll' | 'preview'>('scroll');
+
+  // Wrapper for setActiveSection that tracks the source
+  const handleSectionSelect = useCallback((sectionId: string, source: 'user' | 'scroll' | 'preview' = 'user') => {
+    sectionChangeSourceRef.current = source;
+    setActiveSection(sectionId);
+  }, [setActiveSection]);
+
+  // Auto-open editor and scroll to section when activeSectionId changes (from sidebar selection)
   useEffect(() => {
     if (activeSectionId) {
-      setEditingSectionId(activeSectionId);
-      // Set first question as active if not already set
-      if (activeSectionId !== METADATA_SECTION_ID && activeSectionId !== ANCILLARY_SECTION_ID) {
+      // Check if this is a metadata section
+      const isMetadataSection = activeSectionId === METADATA_SECTION_ID || 
+                                activeSectionId === ANCILLARY_SECTION_ID || 
+                                activeSectionId === REFERENCES_SECTION_ID || 
+                                activeSectionId === APPENDICES_SECTION_ID;
+      
+      // For metadata sections, clear editingSectionId (no inline editor needed)
+      // For regular sections, set editingSectionId to enable inline editor
+      if (isMetadataSection) {
+        setEditingSectionId(null);
+      } else {
+        setEditingSectionId(activeSectionId);
+        // Set first question as active if not already set
         const section = plan?.sections.find(s => s.id === activeSectionId);
         if (section && !activeQuestionId) {
           setActiveQuestion(section.questions[0]?.id ?? null);
         }
       }
+
+      // If change was from user interaction (sidebar click) or preview click, scroll to section
+      if (sectionChangeSourceRef.current === 'user' || sectionChangeSourceRef.current === 'preview') {
+        const scrollToSection = () => {
+          const scrollContainer = document.getElementById('preview-scroll-container');
+          if (!scrollContainer) {
+            console.log('[Scroll] Scroll container not found');
+            return false;
+          }
+
+          // Find the section element - try multiple strategies
+          let sectionElement: HTMLElement | null = null;
+          
+          // Strategy 1: Query within scroll container (most reliable)
+          sectionElement = scrollContainer.querySelector(`[data-section-id="${activeSectionId}"]`) as HTMLElement;
+          
+          // Strategy 2: Query within export-preview class (where sections are rendered)
+          if (!sectionElement) {
+            const exportPreview = scrollContainer.querySelector('.export-preview');
+            if (exportPreview) {
+              sectionElement = exportPreview.querySelector(`[data-section-id="${activeSectionId}"]`) as HTMLElement;
+            }
+          }
+
+          // Strategy 3: Query entire document (fallback)
+          if (!sectionElement) {
+            sectionElement = document.querySelector(`[data-section-id="${activeSectionId}"]`) as HTMLElement;
+          }
+
+          if (sectionElement) {
+            // Use scrollIntoView for reliable scrolling
+            // This handles all edge cases including transforms and scaling
+            // For metadata sections, scroll to top of page
+            const isMetadataSection = activeSectionId === METADATA_SECTION_ID || 
+                                      activeSectionId === ANCILLARY_SECTION_ID || 
+                                      activeSectionId === REFERENCES_SECTION_ID || 
+                                      activeSectionId === APPENDICES_SECTION_ID;
+            
+            sectionElement.scrollIntoView({
+              behavior: 'smooth',
+              block: isMetadataSection ? 'start' : 'center',
+              inline: 'nearest'
+            });
+            
+            console.log('[Scroll] Scrolled to section:', activeSectionId);
+            return true;
+          } else {
+            console.log('[Scroll] Section element not found:', activeSectionId);
+          }
+          
+          return false;
+        };
+
+        // Use requestAnimationFrame to ensure DOM is ready
+        requestAnimationFrame(() => {
+          // Try immediately
+          if (!scrollToSection()) {
+            // Element not found yet, retry with increasing delays
+            const retries = [100, 300, 500, 1000, 2000];
+            let retryIndex = 0;
+            
+            const retryScroll = () => {
+              if (retryIndex < retries.length) {
+                setTimeout(() => {
+                  if (scrollToSection()) {
+                    // Success, stop retrying
+                    return;
+                  }
+                  retryIndex++;
+                  retryScroll();
+                }, retries[retryIndex]);
+              } else {
+                console.warn('[Scroll] Section element not found after all retries:', activeSectionId);
+              }
+            };
+            
+            retryScroll();
+          }
+        });
+      }
+      
+      // Reset source after handling
+      sectionChangeSourceRef.current = 'scroll';
     }
   }, [activeSectionId, plan, activeQuestionId, setActiveQuestion]);
 
   // Scroll detection to update active section when scrolling through preview
+  // Uses IntersectionObserver for more reliable detection
   useEffect(() => {
     if (!plan || plan.sections.length === 0) return;
 
     const scrollContainer = document.getElementById('preview-scroll-container');
     if (!scrollContainer) return;
 
-    let scrollTimeout: NodeJS.Timeout | null = null;
+    // Use IntersectionObserver for better reliability
+    const observerOptions = {
+      root: scrollContainer,
+      rootMargin: '-20% 0px -20% 0px', // Only trigger when section is in center 60% of viewport
+      threshold: [0, 0.1, 0.3, 0.5, 0.7, 1.0] // Multiple thresholds for better detection
+    };
 
+    interface SectionVisibility {
+      id: string;
+      ratio: number;
+      isIntersecting: boolean;
+    }
+
+    const sectionVisibility = new Map<string, SectionVisibility>();
+
+    const observerCallback = (entries: IntersectionObserverEntry[]) => {
+      entries.forEach((entry) => {
+        const sectionId = (entry.target as HTMLElement).getAttribute('data-section-id');
+        if (!sectionId) return;
+
+        sectionVisibility.set(sectionId, {
+          id: sectionId,
+          ratio: entry.intersectionRatio,
+          isIntersecting: entry.isIntersecting
+        });
+      });
+
+      // Find the section with highest visibility ratio that's intersecting
+      const intersectingSections = Array.from(sectionVisibility.values()).filter(v => v.isIntersecting);
+      const bestSection = intersectingSections.length > 0 
+        ? intersectingSections.reduce((best, current) => 
+            current.ratio > best.ratio ? current : best
+          )
+        : null;
+
+      // Update active section if we found a better match
+      if (bestSection && bestSection.ratio > 0.1 && bestSection.id !== activeSectionId) {
+        const bestSectionId: string = bestSection.id;
+        
+        // Check if this is a metadata section
+        const isMetadataSection = bestSectionId === METADATA_SECTION_ID || 
+                                  bestSectionId === ANCILLARY_SECTION_ID || 
+                                  bestSectionId === REFERENCES_SECTION_ID || 
+                                  bestSectionId === APPENDICES_SECTION_ID;
+        
+        if (isMetadataSection) {
+          // For metadata sections, clear editingSectionId (no inline editor)
+          handleSectionSelect(bestSectionId, 'scroll');
+          setEditingSectionId(null); // Clear any existing editor
+        } else {
+          // For regular sections, find the section and update editor
+          const sectionToEdit = plan.sections.find(s => s.id === bestSectionId);
+          if (sectionToEdit) {
+            // Mark as scroll-triggered change and update
+            handleSectionSelect(bestSectionId, 'scroll');
+            // Only update question if we don't have one selected or if it's a different section
+            if (!activeQuestionId || activeSectionId !== bestSectionId) {
+              setActiveQuestion(sectionToEdit.questions[0]?.id ?? null);
+            }
+            // Update editor to follow the new active section
+            setEditingSectionId(bestSectionId);
+          }
+        }
+      }
+    };
+
+    const observer = new IntersectionObserver(observerCallback, observerOptions);
+
+    // Observe all section elements
+    const observeSections = () => {
+      // Try scroll container first
+      const sectionElements = scrollContainer.querySelectorAll('[data-section-id]');
+      
+      if (sectionElements.length === 0) {
+        // Fallback to global query
+        const globalSections = document.querySelectorAll('[data-section-id]');
+        globalSections.forEach((el) => {
+          observer.observe(el as HTMLElement);
+        });
+      } else {
+        sectionElements.forEach((el) => {
+          observer.observe(el as HTMLElement);
+        });
+      }
+    };
+
+    // Initial observation - wait a bit for DOM to be ready
+    const observeTimeout = setTimeout(observeSections, 200);
+
+    // Also observe on scroll (in case new sections are added)
+    let scrollTimeout: NodeJS.Timeout | null = null;
     const handleScroll = () => {
-      // Throttle scroll detection
       if (scrollTimeout) {
         clearTimeout(scrollTimeout);
       }
-
       scrollTimeout = setTimeout(() => {
-        const scrollRect = scrollContainer.getBoundingClientRect();
-        const scrollCenter = scrollRect.top + scrollRect.height / 2;
-
-        // Find the section that is most visible in the viewport center
-        interface BestSection {
-          id: string;
-          distance: number;
-        }
-        let bestSection: BestSection | null = null;
-
-        plan.sections.forEach((section) => {
-          const sectionElement = document.querySelector(`[data-section-id="${section.id}"]`) as HTMLElement;
-          if (!sectionElement) return;
-
-          const sectionRect = sectionElement.getBoundingClientRect();
-          const sectionCenter = sectionRect.top + sectionRect.height / 2;
-          const distance = Math.abs(scrollCenter - sectionCenter);
-
-          // Check if section is in viewport
-          if (sectionRect.top < scrollRect.bottom && sectionRect.bottom > scrollRect.top) {
-            if (!bestSection || distance < bestSection.distance) {
-              bestSection = { id: section.id, distance };
-            }
-          }
-        });
-
-        // Update active section if we found a better match and it's different from current
-        if (bestSection !== null) {
-          const bestSectionId: string = (bestSection as BestSection).id;
-          if (bestSectionId !== activeSectionId) {
-            const sectionToEdit = plan.sections.find(s => s.id === bestSectionId);
-            if (sectionToEdit) {
-              setActiveSection(bestSectionId);
-              // Only update question if we don't have one selected or if it's a different section
-              if (!activeQuestionId || activeSectionId !== bestSectionId) {
-                setActiveQuestion(sectionToEdit.questions[0]?.id ?? null);
-              }
-            }
-          }
-        }
-      }, 150); // Throttle to 150ms
+        // Re-observe in case new sections appeared
+        observeSections();
+      }, 500);
     };
 
     scrollContainer.addEventListener('scroll', handleScroll, { passive: true });
 
     return () => {
+      clearTimeout(observeTimeout);
       if (scrollTimeout) {
         clearTimeout(scrollTimeout);
       }
+      observer.disconnect();
       scrollContainer.removeEventListener('scroll', handleScroll);
     };
-  }, [plan, activeSectionId, activeQuestionId, setActiveSection, setActiveQuestion]);
+  }, [plan, activeSectionId, activeQuestionId, editingSectionId, setActiveSection, setActiveQuestion, setEditingSectionId]);
 
   const isAncillaryView = activeSectionId === ANCILLARY_SECTION_ID;
   const isMetadataView = activeSectionId === METADATA_SECTION_ID;
@@ -448,7 +604,7 @@ export default function Editor({ product = 'submission' }: EditorProps) {
   const activeSection: Section | null = useMemo(() => {
     if (!plan) return null;
     // If editing a section, find that section
-    if (editingSectionId && editingSectionId !== METADATA_SECTION_ID && editingSectionId !== ANCILLARY_SECTION_ID) {
+    if (editingSectionId && editingSectionId !== METADATA_SECTION_ID && editingSectionId !== ANCILLARY_SECTION_ID && editingSectionId !== REFERENCES_SECTION_ID && editingSectionId !== APPENDICES_SECTION_ID) {
       return plan.sections.find((section) => section.id === editingSectionId) ?? null;
     }
     // Otherwise use activeSectionId
@@ -560,9 +716,9 @@ export default function Editor({ product = 'submission' }: EditorProps) {
                 />
 
                 {/* Workspace Container - Document-Centric Layout */}
-                <div className="relative rounded-2xl border border-dashed border-white/60 bg-slate-900/40 p-4 lg:p-6 shadow-lg backdrop-blur-sm overflow-hidden w-full">
+                <div className="relative rounded-2xl border border-dashed border-white/60 bg-slate-900/40 p-4 lg:p-6 shadow-lg backdrop-blur-sm w-full">
                   {/* Grid Layout: 2 rows, 2 columns */}
-                  <div className="grid grid-cols-[320px_1fr] grid-rows-[auto_1fr] gap-4 h-[calc(100vh-380px)] min-h-[800px] max-h-[calc(100vh-200px)]">
+                  <div className="grid grid-cols-[320px_1fr] grid-rows-[auto_1fr] gap-4 h-[calc(100vh-380px)] min-h-[800px] max-h-[calc(100vh-200px)] overflow-visible">
                     {/* Row 1, Col 1: Current Selection - Fills gap next to DocumentsBar */}
                     <div className="flex-shrink-0">
                       {templateState?.selectionSummary ? (
@@ -622,7 +778,7 @@ export default function Editor({ product = 'submission' }: EditorProps) {
                       <Sidebar
                         plan={plan}
                         activeSectionId={activeSectionId ?? plan.sections[0]?.id ?? null}
-                        onSelectSection={setActiveSection}
+                        onSelectSection={(sectionId) => handleSectionSelect(sectionId, 'user')}
                         filteredSectionIds={filteredSectionIds}
                         filteredSections={templateState?.filteredSections}
                         allSections={templateState?.allSections}
@@ -653,28 +809,57 @@ export default function Editor({ product = 'submission' }: EditorProps) {
                       <div className="flex-1 min-h-0 overflow-y-auto overflow-x-hidden relative" id="preview-scroll-container">
                         <PreviewWorkspace 
                           plan={plan} 
-                          focusSectionId={activeSectionId} 
+                          focusSectionId={activeSectionId}
+                          editingSectionId={editingSectionId}
                           onSectionClick={(sectionId: string) => {
                             // Click section in preview → Select it (triggers editor via useEffect)
-                            if (sectionId === METADATA_SECTION_ID || sectionId === ANCILLARY_SECTION_ID) {
-                              setActiveSection(sectionId);
+                            const isMetadataSection = sectionId === METADATA_SECTION_ID || 
+                                                     sectionId === ANCILLARY_SECTION_ID || 
+                                                     sectionId === REFERENCES_SECTION_ID || 
+                                                     sectionId === APPENDICES_SECTION_ID;
+                            
+                            if (isMetadataSection) {
+                              // For metadata sections, clear editingSectionId (no inline editor)
+                              handleSectionSelect(sectionId, 'preview');
+                              setEditingSectionId(null); // Clear any existing editor
+                              // Scroll to the specific page
+                              setTimeout(() => {
+                                const scrollContainer = document.getElementById('preview-scroll-container');
+                                const element = scrollContainer?.querySelector(`[data-section-id="${sectionId}"]`) as HTMLElement;
+                                if (element) {
+                                  element.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                                }
+                              }, 100);
                             } else {
+                              // For regular sections, enable inline editor
                               const sectionToEdit = plan.sections.find(s => s.id === sectionId);
                               if (sectionToEdit) {
-                                setActiveSection(sectionId);
+                                handleSectionSelect(sectionId, 'preview');
+                                setEditingSectionId(sectionId); // Enable edit mode
                                 setActiveQuestion(sectionToEdit.questions[0]?.id ?? null);
                               }
                             }
-                          }} 
+                          }}
+                          onTitlePageChange={updateTitlePage}
+                          onAncillaryChange={updateAncillary}
+                          onReferenceAdd={addReference}
+                          onReferenceUpdate={updateReference}
+                          onReferenceDelete={deleteReference}
+                          onAppendixAdd={addAppendix}
+                          onAppendixUpdate={updateAppendix}
+                          onAppendixDelete={deleteAppendix}
                         />
                         
                         {/* Inline Editor - Inside scrollable container, attached to section within preview */}
-                        {editingSectionId && (
+                        {/* Don't show editor for metadata sections - editing happens directly in preview */}
+                        {editingSectionId && 
+                         editingSectionId !== METADATA_SECTION_ID && 
+                         editingSectionId !== ANCILLARY_SECTION_ID && 
+                         editingSectionId !== REFERENCES_SECTION_ID && 
+                         editingSectionId !== APPENDICES_SECTION_ID && (
                           <InlineSectionEditor
                             sectionId={editingSectionId}
-                            section={editingSectionId === METADATA_SECTION_ID || editingSectionId === ANCILLARY_SECTION_ID 
-                              ? null 
-                              : activeSection}
+                            section={activeSection}
                             activeQuestionId={activeQuestionId}
                             plan={plan}
                             onClose={() => setEditingSectionId(null)}

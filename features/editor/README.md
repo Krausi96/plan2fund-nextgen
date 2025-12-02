@@ -16,7 +16,7 @@ Layout now follows the unified three-column spec:
 3. **RightPanel** (`features/editor/components/layout/right-panel/RightPanel.tsx`) – tabbed views (`ai`, `data`, `preview`) that swap between reusable panels:
    - `features/editor/components/layout/right-panel/DataPanel.tsx` (datasets/KPIs/media library, formerly `InlineTableCreator`).
    - `features/editor/components/layout/workspace/preview/PreviewWorkspace.tsx` (read-only preview, formerly `SectionContentRenderer`).
-   - `features/editor/components/layout/workspace/metadata/MetadataAndAncillaryPanel.tsx` (merged panel for title page metadata, ToC, references, appendices, footnotes, formerly split between `MetadataPanel` and `AncillaryPanel`).
+   - Metadata editing (title page, ToC, references, appendices) is now done directly inline in the preview pages.
 
 > Migration tip: legacy consumers that still import `PlanDocument` / `PlanSection` keep working because those types remain exportable at the bottom of `types/plan.ts`. New UI pieces should use `BusinessPlan` and friends going forward.
 
