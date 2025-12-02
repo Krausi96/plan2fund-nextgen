@@ -344,8 +344,16 @@ function ExportRenderer({
               className={`preview-title-page export-preview-page ${!isEditingMetadata ? 'cursor-pointer hover:bg-blue-50/30 transition-colors' : ''}`}
               data-section-id={METADATA_SECTION_ID}
               onClick={(e) => {
-                // Only trigger if clicking the page itself, not a child element
-                if (e.target === e.currentTarget && !isEditingMetadata) {
+                // Allow clicking on child elements, but not on input fields, buttons, or links when editing
+                const target = e.target as HTMLElement;
+                if (isEditingMetadata) {
+                  // When editing, only allow clicks on non-interactive elements
+                  if (target.tagName === 'INPUT' || target.tagName === 'BUTTON' || target.tagName === 'A' || target.closest('input, button, a')) {
+                    return;
+                  }
+                }
+                // Trigger section click if not already editing
+                if (!isEditingMetadata) {
                   onSectionClick?.(METADATA_SECTION_ID);
                 }
               }}
@@ -409,34 +417,36 @@ function ExportRenderer({
                       )}
                     </div>
                   ) : (
-                    isEditingMetadata && (
-                      <div className="border-2 border-dashed border-gray-300 rounded p-4">
-                        <input
-                          type="file"
-                          accept="image/*"
-                          className="hidden"
-                          id="logo-upload-empty"
-                          onChange={(e) => {
-                            const file = e.target.files?.[0];
-                            if (file && onTitlePageChange) {
-                              const reader = new FileReader();
-                              reader.onload = () => {
-                                if (typeof reader.result === 'string') {
-                                  handleTitlePageFieldUpdate(['logoUrl'], reader.result);
-                                }
-                              };
-                              reader.readAsDataURL(file);
-                            }
-                          }}
-                        />
-                        <label
-                          htmlFor="logo-upload-empty"
-                          className="px-4 py-2 bg-blue-500 text-white text-xs rounded cursor-pointer hover:bg-blue-600 block text-center"
-                        >
-                          Upload Logo
-                        </label>
-                      </div>
-                    )
+                    <div className="border-2 border-dashed border-gray-300 rounded p-4">
+                      <input
+                        type="file"
+                        accept="image/*"
+                        className="hidden"
+                        id="logo-upload-empty"
+                        onChange={(e) => {
+                          const file = e.target.files?.[0];
+                          if (file && onTitlePageChange) {
+                            const reader = new FileReader();
+                            reader.onload = () => {
+                              if (typeof reader.result === 'string') {
+                                handleTitlePageFieldUpdate(['logoUrl'], reader.result);
+                              }
+                            };
+                            reader.readAsDataURL(file);
+                          }
+                        }}
+                      />
+                      <label
+                        htmlFor="logo-upload-empty"
+                        className={`px-4 py-2 text-xs rounded cursor-pointer block text-center transition-colors ${
+                          isEditingMetadata 
+                            ? 'bg-blue-500 text-white hover:bg-blue-600' 
+                            : 'bg-gray-100 text-gray-700 hover:bg-gray-200 border border-gray-300'
+                        }`}
+                      >
+                        {isEditingMetadata ? 'Upload Logo' : 'Click to Upload Logo'}
+                      </label>
+                    </div>
                   )}
                 </div>
                 <p className="text-xs font-semibold uppercase tracking-[0.15em] text-gray-500 letter-spacing-wide">
@@ -583,7 +593,16 @@ function ExportRenderer({
           className={`export-preview-page export-preview-toc-page ${!isEditingAncillary ? 'cursor-pointer hover:bg-blue-50/30 transition-colors' : ''}`}
           data-section-id={ANCILLARY_SECTION_ID}
           onClick={(e) => {
-            if (e.target === e.currentTarget && !isEditingAncillary) {
+            // Allow clicking on child elements, but not on input fields, buttons, or links when editing
+            const target = e.target as HTMLElement;
+            if (isEditingAncillary) {
+              // When editing, only allow clicks on non-interactive elements
+              if (target.tagName === 'INPUT' || target.tagName === 'BUTTON' || target.tagName === 'A' || target.closest('input, button, a')) {
+                return;
+              }
+            }
+            // Trigger section click if not already editing
+            if (!isEditingAncillary) {
               onSectionClick?.(ANCILLARY_SECTION_ID);
             }
           }}
@@ -1063,7 +1082,16 @@ function ExportRenderer({
               className={`export-preview-page export-preview-section ${!isEditingAncillary ? 'cursor-pointer hover:bg-blue-50/30 transition-colors' : ''}`}
               data-section-id={ANCILLARY_SECTION_ID}
               onClick={(e) => {
-                if (e.target === e.currentTarget && !isEditingAncillary) {
+                // Allow clicking on child elements, but not on input fields, buttons, or links when editing
+                const target = e.target as HTMLElement;
+                if (isEditingAncillary) {
+                  // When editing, only allow clicks on non-interactive elements
+                  if (target.tagName === 'INPUT' || target.tagName === 'BUTTON' || target.tagName === 'A' || target.closest('input, button, a')) {
+                    return;
+                  }
+                }
+                // Trigger section click if not already editing
+                if (!isEditingAncillary) {
                   onSectionClick?.(ANCILLARY_SECTION_ID);
                 }
               }}
@@ -1084,7 +1112,9 @@ function ExportRenderer({
                     className="text-[21px] font-semibold tracking-tight text-slate-900 cursor-pointer hover:text-blue-600 transition-colors"
                     onClick={(e) => {
                       e.stopPropagation();
-                      onSectionClick?.(ANCILLARY_SECTION_ID);
+                      if (!isEditingAncillary) {
+                        onSectionClick?.(ANCILLARY_SECTION_ID);
+                      }
                     }}
                   >
                     {t.listOfTables}
@@ -1350,7 +1380,16 @@ function ExportRenderer({
               className={`export-preview-page export-preview-section ${!isEditingAncillary ? 'cursor-pointer hover:bg-blue-50/30 transition-colors' : ''}`}
               data-section-id={ANCILLARY_SECTION_ID}
               onClick={(e) => {
-                if (e.target === e.currentTarget && !isEditingAncillary) {
+                // Allow clicking on child elements, but not on input fields, buttons, or links when editing
+                const target = e.target as HTMLElement;
+                if (isEditingAncillary) {
+                  // When editing, only allow clicks on non-interactive elements
+                  if (target.tagName === 'INPUT' || target.tagName === 'BUTTON' || target.tagName === 'A' || target.closest('input, button, a')) {
+                    return;
+                  }
+                }
+                // Trigger section click if not already editing
+                if (!isEditingAncillary) {
                   onSectionClick?.(ANCILLARY_SECTION_ID);
                 }
               }}
@@ -1371,7 +1410,9 @@ function ExportRenderer({
                     className="text-[21px] font-semibold tracking-tight text-slate-900 cursor-pointer hover:text-blue-600 transition-colors"
                     onClick={(e) => {
                       e.stopPropagation();
-                      onSectionClick?.(ANCILLARY_SECTION_ID);
+                      if (!isEditingAncillary) {
+                        onSectionClick?.(ANCILLARY_SECTION_ID);
+                      }
                     }}
                   >
                     {t.listOfFigures}
@@ -1587,7 +1628,16 @@ function ExportRenderer({
           className={`export-preview-page export-preview-section ${!isEditingReferences ? 'cursor-pointer hover:bg-blue-50/30 transition-colors' : ''}`}
           data-section-id={REFERENCES_SECTION_ID}
           onClick={(e) => {
-            if (e.target === e.currentTarget && !isEditingReferences) {
+            // Allow clicking on child elements, but not on input fields, buttons, or links when editing
+            const target = e.target as HTMLElement;
+            if (isEditingReferences) {
+              // When editing, only allow clicks on non-interactive elements
+              if (target.tagName === 'INPUT' || target.tagName === 'BUTTON' || target.tagName === 'A' || target.closest('input, button, a')) {
+                return;
+              }
+            }
+            // Trigger section click if not already editing
+            if (!isEditingReferences) {
               onSectionClick?.(REFERENCES_SECTION_ID);
             }
           }}
@@ -1779,7 +1829,16 @@ function ExportRenderer({
           className={`export-preview-page export-preview-section ${!isEditingAppendices ? 'cursor-pointer hover:bg-blue-50/30 transition-colors' : ''}`}
           data-section-id={APPENDICES_SECTION_ID}
           onClick={(e) => {
-            if (e.target === e.currentTarget && !isEditingAppendices) {
+            // Allow clicking on child elements, but not on input fields, buttons, or links when editing
+            const target = e.target as HTMLElement;
+            if (isEditingAppendices) {
+              // When editing, only allow clicks on non-interactive elements
+              if (target.tagName === 'INPUT' || target.tagName === 'BUTTON' || target.tagName === 'A' || target.closest('input, button, a')) {
+                return;
+              }
+            }
+            // Trigger section click if not already editing
+            if (!isEditingAppendices) {
               onSectionClick?.(APPENDICES_SECTION_ID);
             }
           }}

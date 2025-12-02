@@ -378,10 +378,10 @@ export default function Editor({ product = 'submission' }: EditorProps) {
                                 activeSectionId === REFERENCES_SECTION_ID || 
                                 activeSectionId === APPENDICES_SECTION_ID;
       
-      // For metadata sections, clear editingSectionId (no inline editor needed)
+      // For metadata sections, set editingSectionId to enable editing (editing happens inline in preview)
       // For regular sections, set editingSectionId to enable inline editor
       if (isMetadataSection) {
-        setEditingSectionId(null);
+        setEditingSectionId(activeSectionId); // Enable edit mode for metadata sections
       } else {
         setEditingSectionId(activeSectionId);
         // Set first question as active if not already set
@@ -718,9 +718,9 @@ export default function Editor({ product = 'submission' }: EditorProps) {
                 {/* Workspace Container - Document-Centric Layout */}
                 <div className="relative rounded-2xl border border-dashed border-white/60 bg-slate-900/40 p-4 lg:p-6 shadow-lg backdrop-blur-sm w-full">
                   {/* Grid Layout: 2 rows, 2 columns */}
-                  <div className="grid grid-cols-[320px_1fr] grid-rows-[auto_1fr] gap-4 h-[calc(100vh-380px)] min-h-[800px] max-h-[calc(100vh-200px)] overflow-visible">
+                  <div className="grid grid-cols-[320px_1fr] grid-rows-[auto_1fr] gap-4 h-[calc(100vh-380px)] min-h-[800px] max-h-[calc(100vh-200px)]" style={{ overflow: 'hidden' }}>
                     {/* Row 1, Col 1: Current Selection - Fills gap next to DocumentsBar */}
-                    <div className="flex-shrink-0">
+                    <div className="flex-shrink-0 overflow-visible relative" style={{ zIndex: 0 }}>
                       {templateState?.selectionSummary ? (
                         <CurrentSelection
                           productLabel={templateState.selectionSummary.productLabel}
@@ -741,7 +741,7 @@ export default function Editor({ product = 'submission' }: EditorProps) {
                     </div>
 
                     {/* Row 1, Col 2: Documents Bar - Same Width as Preview */}
-                    <div className="flex-shrink-0">
+                    <div className="flex-shrink-0 overflow-visible relative" style={{ zIndex: 0 }}>
                       {templateState ? (
                         <DocumentsBar
                           filteredDocuments={templateState.filteredDocuments}
@@ -774,7 +774,7 @@ export default function Editor({ product = 'submission' }: EditorProps) {
                     </div>
 
                     {/* Row 2, Col 1: Sidebar - Next to Preview */}
-                    <div className="border-r border-white/10 pr-4 min-h-0 flex flex-col" style={{ overflow: 'visible' }}>
+                    <div className="border-r border-white/10 pr-4 min-h-0 flex flex-col relative h-full" style={{ maxWidth: '320px', width: '320px', minWidth: '320px', boxSizing: 'border-box', zIndex: 1 }}>
                       <Sidebar
                         plan={plan}
                         activeSectionId={activeSectionId ?? plan.sections[0]?.id ?? null}
@@ -804,7 +804,7 @@ export default function Editor({ product = 'submission' }: EditorProps) {
                     </div>
                     
                     {/* Row 2, Col 2: Preview - Full Width */}
-                    <div className="min-w-0 min-h-0 overflow-hidden relative flex flex-col h-full min-h-[700px]" id="preview-container">
+                    <div className="min-w-0 min-h-0 overflow-hidden relative flex flex-col h-full min-h-[700px]" id="preview-container" style={{ zIndex: 1 }}>
                       {/* Preview - Always visible */}
                       <div className="flex-1 min-h-0 overflow-y-auto overflow-x-hidden relative" id="preview-scroll-container">
                         <PreviewWorkspace 
@@ -819,9 +819,9 @@ export default function Editor({ product = 'submission' }: EditorProps) {
                                                      sectionId === APPENDICES_SECTION_ID;
                             
                             if (isMetadataSection) {
-                              // For metadata sections, clear editingSectionId (no inline editor)
+                              // For metadata sections, enable editing mode (editing happens inline in preview)
                               handleSectionSelect(sectionId, 'preview');
-                              setEditingSectionId(null); // Clear any existing editor
+                              setEditingSectionId(sectionId); // Enable edit mode for metadata sections
                               // Scroll to the specific page
                               setTimeout(() => {
                                 const scrollContainer = document.getElementById('preview-scroll-container');

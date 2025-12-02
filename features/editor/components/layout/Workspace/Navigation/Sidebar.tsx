@@ -76,10 +76,27 @@ export default function Sidebar({
   const isEditing = expandedSectionId && editingSection;
 
   return (
-    <div className={`flex flex-col transition-all duration-300 ${
-      isCollapsed ? 'w-[60px]' : 'w-[320px]'
-    }`} style={{ display: 'flex', flexDirection: 'column', height: '100%' }}>
-      <div className="relative w-full flex-1 flex flex-col min-h-0 overflow-hidden" style={{ flexBasis: 0, minHeight: 0 }}>
+    <div 
+      className={`flex flex-col transition-all duration-300 ${
+        isCollapsed ? 'w-[60px]' : 'w-[320px]'
+      }`} 
+      style={{ 
+        display: 'flex', 
+        flexDirection: 'column', 
+        height: '100%',
+        maxWidth: isCollapsed ? '60px' : '320px',
+        width: isCollapsed ? '60px' : '320px',
+        minWidth: isCollapsed ? '60px' : '320px',
+        overflow: 'hidden',
+        position: 'relative',
+        zIndex: 1,
+        isolation: 'isolate',
+        flexShrink: 0,
+        flexGrow: 0,
+        boxSizing: 'border-box'
+      }}
+    >
+      <div className="relative w-full flex-1 flex flex-col min-h-0" style={{ flexBasis: 0, minHeight: 0, maxHeight: '100%', maxWidth: '100%', overflow: 'hidden', width: '100%', boxSizing: 'border-box' }}>
         {!isCollapsed && (
           <h2 className="text-lg font-bold uppercase tracking-wide text-white mb-2 flex-shrink-0" style={{ borderBottom: '1px solid rgba(255, 255, 255, 0.5)' }}>
             {(t('editor.desktop.sections.title' as any) as string) || 'Deine Abschnitte'} ({allSectionsCount})
@@ -188,24 +205,26 @@ export default function Sidebar({
         )}
 
         {/* Sections Tree */}
-        <div className="flex-1 overflow-y-auto min-h-0 pb-14">
-          <SectionNavigationTree
-            plan={plan}
-            activeSectionId={activeSectionId ?? plan.sections[0]?.id ?? null}
-            onSelectSection={onSelectSection}
-            filteredSectionIds={filteredSectionIds}
-            collapsed={isCollapsed}
-            // Template management props
-            filteredSections={filteredSections}
-            allSections={allSections}
-            disabledSections={disabledSections}
-            onToggleSection={onToggleSection}
-            onEditSection={onEditSection}
-            onRemoveCustomSection={onRemoveCustomSection}
-            getOriginBadge={getOriginBadge}
-            selectedProductMeta={selectedProductMeta}
-            programSummary={programSummary}
-          />
+        <div className="flex-1 overflow-y-auto min-h-0" style={{ overflowX: 'hidden' }}>
+          <div style={{ paddingBottom: '80px' }}>
+            <SectionNavigationTree
+              plan={plan}
+              activeSectionId={activeSectionId ?? plan.sections[0]?.id ?? null}
+              onSelectSection={onSelectSection}
+              filteredSectionIds={filteredSectionIds}
+              collapsed={isCollapsed}
+              // Template management props
+              filteredSections={filteredSections}
+              allSections={allSections}
+              disabledSections={disabledSections}
+              onToggleSection={onToggleSection}
+              onEditSection={onEditSection}
+              onRemoveCustomSection={onRemoveCustomSection}
+              getOriginBadge={getOriginBadge}
+              selectedProductMeta={selectedProductMeta}
+              programSummary={programSummary}
+            />
+          </div>
         </div>
       </div>
     </div>
@@ -351,7 +370,7 @@ function SectionNavigationTree({
 
   if (collapsed) {
     return (
-      <div className="flex flex-col gap-2 overflow-y-auto">
+      <div className="flex flex-col gap-2" style={{ paddingBottom: '20px' }}>
         {sections.map((section) => {
           const totalQuestions = section.questions?.length ?? 0;
           const answeredQuestions = section.questions?.filter((question: any) => question.status === 'complete').length ?? 0;
@@ -390,7 +409,7 @@ function SectionNavigationTree({
   if (showAsCards) {
     const displaySections = sectionsForCards.length > 0 ? sectionsForCards : sections;
     return (
-      <div className="grid grid-cols-1 gap-2 overflow-y-auto pr-1 auto-rows-min pb-2">
+      <div className="grid grid-cols-1 gap-2 pr-1 auto-rows-min" style={{ maxWidth: '100%', width: '100%', paddingBottom: '20px' }}>
         {displaySections.map((section) => {
           const totalQuestions = section.questions.length;
           const answeredQuestions = section.questions.filter((question) => question.status === 'complete').length;
@@ -426,7 +445,7 @@ function SectionNavigationTree({
                 }
                 handleClick(section.id);
               }}
-              className={`relative border rounded-lg p-2.5 cursor-pointer transition-all ${
+              className={`relative border rounded-lg p-2.5 cursor-pointer transition-all overflow-hidden ${
                 isActive
                   ? 'border-blue-400/60 bg-blue-500/30 ring-2 ring-blue-400/40'
                   : isDisabled 
@@ -435,6 +454,7 @@ function SectionNavigationTree({
                   ? 'border-amber-500/30 bg-amber-500/5'
                   : 'border-white/20 bg-white/10'
               } hover:border-white/40 group`}
+              style={{ maxWidth: '100%', width: '100%' }}
             >
               <div className="absolute top-1 right-1 z-10 flex flex-col items-end gap-0.5">
                 <div className="flex items-center gap-1">
@@ -571,7 +591,7 @@ function SectionNavigationTree({
 
   // Fallback to list view when collapsed or no template management
   return (
-    <div className="flex flex-col gap-1 overflow-y-auto">
+    <div className="flex flex-col gap-1" style={{ paddingBottom: '20px' }}>
       {sections.map((section, sectionIndex) => {
         const totalQuestions = section.questions?.length ?? 0;
         const answeredQuestions = section.questions?.filter((question: any) => question.status === 'complete').length ?? 0;
